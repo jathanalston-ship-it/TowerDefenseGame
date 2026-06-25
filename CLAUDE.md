@@ -97,15 +97,17 @@ A machine bricked by runaway background processes is why these rules exist:
 
 ## ✅ Verify before push _(grows with the project)_
 
-Once a build/test setup exists, **all green before pushing**, and record the
-canonical command here, e.g.:
+**All green before pushing.** Canonical checks:
 
 ```
-# <fill in once chosen, e.g.>
-# npm run check     # validate + test + lint
+npm run typecheck   # tsc --noEmit (strict)
+npm test            # vitest run (sim/save/rng)
+npm run build       # tsc --noEmit && vite build → dist/
 ```
 
-For gameplay changes, also launch the game and confirm the behavior live.
+For gameplay changes, also launch the game and confirm the behavior live
+(`npm run dev`, or `npm run preview` against a build). The vertical slice was
+verified additionally with a headless-Chromium smoke run.
 
 ---
 
@@ -129,20 +131,23 @@ economy, and towers. Keep design decisions written down so changes stay coherent
 
 ---
 
-## 🛠 Tech stack & commands _(fill in when chosen)_
+## 🛠 Tech stack & commands
 
-> **Provisional preference (not final — the user will specify the stack later):**
-> **not HTML.** Leaning toward Python or whatever best supports shipping a
-> publishable game. Until confirmed, keep all design docs stack-agnostic.
+> **Stack: confirmed.** React + TypeScript + Vite, built as a **static SPA for
+> Cloudflare Pages** (no backend, no SSR; browser-local saves). This supersedes the
+> earlier provisional "not HTML / Python" lean. Architecture: `docs/ARCHITECTURE.md`.
+> Deployment: `docs/DEPLOYMENT.md`. The deterministic simulation core lives in
+> `src/core/` (no React/DOM imports); React is HUD/menus only.
 
 | Concern | Command / notes |
 |---|---|
-| Language / engine | _TBD_ |
-| Install deps | _TBD_ |
-| Run the game | _TBD_ |
-| Build | _TBD_ |
-| Test | _TBD_ |
-| Lint / format | _TBD_ |
+| Language / engine | TypeScript (strict) + React 18; Canvas 2D rendering |
+| Install deps | `npm install` |
+| Run the game | `npm run dev` (Vite dev server) |
+| Build | `npm run build` → static `dist/` (Cloudflare output dir) |
+| Preview a build | `npm run preview` |
+| Test | `npm test` (Vitest) |
+| Typecheck | `npm run typecheck` |
 
-When you pick a stack, update this table and the **Verify before push** section,
-and add a `.gitignore` entry for its build output and dependencies.
+Balance lives in `src/core/config.ts` (centralized tunables). `node_modules/` and
+`dist/` are gitignored; `package-lock.json` is committed for reproducible builds.
