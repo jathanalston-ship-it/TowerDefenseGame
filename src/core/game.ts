@@ -74,6 +74,9 @@ export interface RenderState {
   selectedTower: TowerKind | null;
   armedAbility: boolean;
   unlockedSlots: number;
+  time: number; // sim seconds — drives presentation pulses/animation
+  integrity: number;
+  maxIntegrity: number;
 }
 
 export class Game {
@@ -853,6 +856,9 @@ export class Game {
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,
       unlockedSlots: this.unlockedSlots,
+      time: this.time,
+      integrity: this.integrity,
+      maxIntegrity: this.maxIntegrity,
     };
   }
 
