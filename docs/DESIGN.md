@@ -158,7 +158,7 @@ Each stage is assembled from:
 The roguelite draft layer. After each wave (or at Gene Lab nodes) the player drafts **1 of 3 Gene Cards**.
 
 - **Rarities:** Common → Rare → Epic → Mythic → **Corrupted** (powerful but attaches a drawback).
-- **Card types:** stat injectors, *behavior changers* (e.g., "Railspine shots ricochet"), *synergy enablers* (e.g., "applying Frost also applies a Viral stack"), *economy* (biomass gain), *hero augments*, *meta-shapers* (alter the draft itself — extra picks, rerolls, rarity weighting).
+- **Card types:** stat injectors, *behavior changers* (e.g., "Needle Spitter shots ricochet"), *synergy enablers* (e.g., "applying Corrosion also applies a Viral stack"), *economy* (biomass gain), *hero augments*, *meta-shapers* (alter the draft itself — extra picks, rerolls, rarity weighting).
 - **Build-around mechanics:** rerolls, banish (remove a card from the pool this run), and **card synergy chains** — some cards explicitly amplify others, rewarding drafting toward a plan. Cards reset between runs; the *library of discovered cards* is permanent (collection).
 - A run's card deck is the **temporary build identity** layered on top of your permanent loadout.
 
@@ -166,7 +166,7 @@ The roguelite draft layer. After each wave (or at Gene Lab nodes) the player dra
 
 Two run-modifier flavors, both reset per run:
 
-- **Hive Mutation Strains (player-positive):** a slow-building run-long evolution. At wave milestones you choose a strain to evolve (e.g., *Acid Lineage*, *Cryo Lineage*, *Swarm Lineage*) that grants escalating effects — a secondary, slower draft alongside cards that defines the run's *macro* direction.
+- **Hive Mutation Strains (player-positive):** a slow-building run-long evolution. At wave milestones you choose a strain to evolve (e.g., *Acid Lineage*, *Vital Lineage*, *Swarm Lineage*) that grants escalating effects — a secondary, slower draft alongside cards that defines the run's *macro* direction.
 - **Corruptions (risk/reward gambling):** at Mutation Altars you may *voluntarily* apply enemy buffs (e.g., "enemies +40% HP," "elites split on death," "fog hides paths") in exchange for multiplied rewards and rarer card weighting. **This is the dopamine-rich risk valve** — pushing corruption depth is its own metagame, and it's the seed of the late-game Corruption Stacking prestige system (§12).
 
 > **Why cards + mutations are temporary but progression persists:** the run is a *generator*. Volatile, high-variance fun (cards/corruptions) lives inside the run; durable growth (shards, mastery, class XP, essence, gear, codex) is the *output* the run deposits into permanence. This separation lets us make the in-run layer wild and experimental without destabilizing the long-term economy.
@@ -179,13 +179,17 @@ Two run-modifier flavors, both reset per run:
 
 ### 7.1 The Launch Five
 
+> **Canonical detail:** full kits, star ladders, and the reaction framework live in
+> [`TOWERS.md`](TOWERS.md). Launch classes are **Kinetic · Caustic · Viral · Neural ·
+> Vital** (Cryo was retired pre-launch — see TOWERS.md).
+
 | Tower | Class | Role | Identity |
 |---|---|---|---|
-| **Railspine** | Kinetic | Single-target sniper | Armor-piercing kinetic spikes; crits & executes. Punishes single big threats. |
-| **Sporebloom** | Caustic | AoE / crowd | Acid-spore clouds; melts armor, spreads, scales with enemy density. |
-| **Glacis Maw** | Cryo | Control | Slows, chills, freezes; enables Shatter; buys time and tempo. |
-| **Rotvein** | Viral | Damage-over-time | Stacking infection that ramps and *spreads* between enemies; rewards long fights. |
-| **Synapse Spire** | Neural | Support / economy | Hacks enemies (turn/weaken), buffs adjacent towers, boosts biomass. The "glue" tower. |
+| **Needle Spitter** | Kinetic | Single-target executioner | Rapid bone needles; stacking Fracture (armor shred + crit); deletes elites/bosses. |
+| **Bone Mortar** | Caustic | AoE artillery / zoner | Arcing marrow-bombs leave caustic pools; armor melt + area denial; anti-cluster. |
+| **Parasite Nest** | Viral | DoT / spread / summon | Ramping infection that leaps between enemies; births Crawlers; scales with density. |
+| **Neural Obelisk** | Neural | Control / hijack | Psionic field: slow + Vulnerability + hijack; force-multiplier support. |
+| **Flesh Reactor** | Vital | Economy / support | Generates biomass, overcharges neighbors, repairs the Nucleus — the hive's engine. |
 
 Deliberate coverage: one of each TD archetype (burst, AoE, control, ramp/DoT, support) so any 3-pick is viable but flavored. **C(5,3) = 10** distinct base loadouts at launch — multiplied enormously by the systems below.
 
@@ -195,29 +199,29 @@ Each tower advances on **three independent permanent tracks**, exactly as specif
 
 **A) Stars (1→10) — via Tower Shards.** Each star unlocks an **ability or mechanic** (mechanics-first), not raw stats. Generic star ladder (each tower themes its own):
 
-| Star | Unlock archetype | Example (Railspine) |
+| Star | Unlock archetype | Example (Needle Spitter) |
 |---|---|---|
-| ★1 | Tower usable | Base kinetic shot |
-| ★2 | Quality-of-life mechanic | Auto-targets highest-armor enemy |
-| ★3 | New on-hit behavior | 15% crit chance |
+| ★1 | Tower usable | Base needle shot |
+| ★2 | Quality-of-life mechanic | Auto-targets highest-HP enemy; ramps faster while held |
+| ★3 | New on-hit behavior | Fracture stacks (armor shred + crit) |
 | ★4 | Resource/economy hook | Crits refund biomass |
-| ★5 | **Branch choice A/B** (build fork) | *Penetrate* (pierce line) **or** *Execute* (bonus dmg <20% HP) |
-| ★6 | Synergy enabler | Hits apply *Fracture* (enables Kinetic reactions) |
-| ★7 | New active/triggered ability | Overcharge: charged shot every Nth attack |
-| ★8 | **Branch choice A/B** | *Railgun* (longer range, slower) **or** *Autocannon* (faster, shorter) |
-| ★9 | Class-defining capstone | Executes spawn a kinetic shockwave |
-| ★10 | Signature transformation | *Singularity Round*: periodic map-wide line that re-fires all crits this wave |
+| ★5 | **Branch choice A/B** (build fork) | *Penetrate* (pierce line) **or** *Execute* (bonus dmg <25% HP) |
+| ★6 | Synergy enabler | *Fracture* enables Kinetic reactions (Shred/Hemorrhage/…) |
+| ★7 | New active/triggered ability | *Overdraw*: charged rail-needle every Nth attack |
+| ★8 | **Branch choice A/B** | *Railgun* (slow, +range, +pierce) **or** *Autocannon* (fast, higher Fracture cap) |
+| ★9 | Class-defining capstone | *Overflow*: a Fractured enemy's death flings its stacks onward |
+| ★10 | Signature transformation | *Singularity Round*: re-triggers every crit dealt to that target this wave |
 
 The **A/B branch choices at ★5 and ★8** mean a single tower has 4 endgame configurations — and those choices are *re-selectable between runs* (loadout-level, not permanent lock), so the same maxed tower supports multiple builds.
 
 **B) Mastery (infinite) — from kills & usage.** Every kill and every second of active use feeds that tower's Mastery. Mastery is the **infinite background ramp**:
 - Each level: small asymptotic bonus (e.g., damage `+`, capped contribution via `bonus = K·(1 − e^(−level/τ))`-style soft curve so it never bloats illegibly).
-- **Milestone perks every 25 levels** (so even the infinite track is mechanics-touched): unlock a passive (e.g., M25 "Railspine ignores the first 10% of armor"), M50, M100… then **Paragon** rules unlock far later via prestige.
+- **Milestone perks every 25 levels** (so even the infinite track is mechanics-touched): unlock a passive (e.g., M25 "Needle Spitter ignores the first 10% of armor"), M50, M100… then **Paragon** rules unlock far later via prestige.
 - Mastery is **permanent through all prestige** — it's a trophy of how much you've used a tower. (XP-to-next grows ~`×1.12`/level; with prestige multipliers it accelerates so veterans climb fast.)
 
 **C) Class Levels — the shared specialization path.** Each tower belongs to a **Combat Class**; using any tower of that class earns **Class XP** for the class. Class levels are where *specialization* is rewarded:
 - Per level: a class-wide stat (all your Kinetic towers benefit).
-- **Class Keystones** at milestones (Lv 10/25/50…): powerful, build-defining passives you **slot** before a run (limited keystone slots → choice, not stacking). E.g., Kinetic keystone *Overpenetration*, Cryo keystone *Permafrost*, Neural keystone *Hostile Takeover*.
+- **Class Keystones** at milestones (Lv 10/25/50…): powerful, build-defining passives you **slot** before a run (limited keystone slots → choice, not stacking). E.g., Kinetic keystone *Overpenetration*, Vital keystone *Transfusion*, Neural keystone *Puppeteer*.
 - Classes are designed to hold **multiple towers** as the roster grows — leveling a class makes *every future tower in it* stronger, so the investment compounds. (Post-Speciation, classes can fuse — §12.)
 
 > **Why three axes?** Stars = *what the tower can do* (deliberate, shard-gated). Class = *how you specialize* (slottable, build-shaping). Mastery = *how much you've used it* (infinite, automatic). They never compete for the same currency, so all three advance in parallel — no false choice between them.
@@ -226,13 +230,15 @@ The **A/B branch choices at ★5 and ★8** mean a single tower has 4 endgame co
 
 Towers apply **status types**; combining two on one enemy triggers a **Reaction** — high-value burst that rewards *mixing classes*. This is the single biggest driver of build variety (§11).
 
-| | Kinetic | Caustic | Cryo | Viral | Neural |
+| + | Kinetic | Caustic | Viral | Neural | Vital |
 |---|---|---|---|---|---|
-| **Kinetic** | — | Fragment (armor→crit) | **Shatter** (frozen→AoE burst) | Hemorrhage (crit→DoT) | Overclock (hacked→guaranteed crit) |
-| **Caustic** | Fragment | — | Brittle Melt | **Plague** (spreading mega-DoT) | Dissolve (hack amplifies acid) |
-| **Cryo** | **Shatter** | Brittle Melt | — | Cryorot (slow amplifies DoT) | Stasis Hack (frozen→long hack) |
-| **Viral** | Hemorrhage | **Plague** | Cryorot | — | Mind Rot (turned enemy spreads infection) |
-| **Neural** | Overclock | Dissolve | Stasis Hack | Mind Rot | — |
+| **Kinetic** | — | **Shred** | Hemorrhage | Overstrike | Harvest |
+| **Caustic** | **Shred** | — | **Plague** | Dissolve | Ferment |
+| **Viral** | Hemorrhage | **Plague** | — | **Mind Rot** | Bloom Rot |
+| **Neural** | Overstrike | Dissolve | **Mind Rot** | — | Synaptic Bloom |
+| **Vital** | Harvest | Ferment | Bloom Rot | Synaptic Bloom | — |
+
+(Full reaction definitions in [`TOWERS.md`](TOWERS.md).)
 
 Mono-class builds are valid (deep specialization via class levels), but reactions make **mixed builds** spike — so the meta is genuinely "specialize *or* combo," not one dominant answer.
 
@@ -245,15 +251,20 @@ Heroes are mobile, actively-controlled avatars of the hive — the **active-skil
 - **Start with 1 hero. Hero slots 2 and 3 unlock through progression** (slot 2 via early meta milestone, slot 3 via mid-game prestige — see pacing §13). Running 2–3 heroes multiplies active complexity and synergy.
 - Heroes are themselves **unlocked through gameplay progression** (boss first-kills, collection milestones, prestige rewards, class milestones) — never random gacha pulls; every hero is *earned and visible* on a roadmap.
 
-### 8.1 Sample Roster (launch + early unlocks)
+### 8.1 Launch Roster
+
+> **Canonical detail:** full kits, star ladders, and the autonomous-unit model live in
+> [`HEROES.md`](HEROES.md).
 
 | Hero | Class | Role | Hook |
 |---|---|---|---|
-| **Vesper, First Bloom** (starter) | Caustic | Summoner/AoE | Spawns spore-drones; area denial. Teaches the fantasy. |
-| **Kessler-9** (defector mech) | Kinetic | Mobile DPS | Overclock burst window; reposition to focus elites. |
-| **The Choir** | Neural | Control/summon | Hacks groups, conducts swarms; economy support. |
-| **Marrow, Flesh-Smith** | — (Vital) | Tank/support | Shields the Nucleus, armors & heals towers. |
-| **Null, the Glitch** | Neural | Disruption/economy | Turns elites against the wave; biomass spikes. |
+| **Ravager** (starter) | Kinetic | Dive bruiser DPS | Charges in, cleaves, stacks Fracture to set up reactions. |
+| **Shepherd** | Vital | Support / summoner | Heals towers/Nucleus, commands a Flock of bio-drones, overcharges the hive. |
+| **Overseer** | Neural | Controller / hijacker | Slows, applies Vulnerability, converts enemies to fight for you. |
+
+Launch trio = damage / sustain / control across 3 of the 5 classes; **Caustic** and
+**Viral** heroes are post-launch unlocks (every class has a tower; not every class has
+a launch hero — a deliberate chase).
 
 ### 8.2 Hero Progression — Four Axes
 
@@ -358,7 +369,7 @@ Six nested layers. **Each resets a specific engine and grants (a) a new currency
 - **Resets:** Class levels + Ascendant Tree.
 - **Keeps:** stars, mastery, codex, gear.
 - **Grants:** **Genome Threads** → the **Speciation Web**.
-- **New mechanic — Hybrid Towers (Subspecies) + Phenotypes:** permanently *fuse two Combat Classes* into a hybrid tower (e.g., Cryo+Viral → **Frostrot**, applying both statuses and auto-triggering Cryorot). This multiplies the roster and the synergy space. **Phenotypes** let you stamp a global build identity on a run. Also **unlocks Hero Slot 3** here.
+- **New mechanic — Hybrid Towers (Subspecies) + Phenotypes:** permanently *fuse two Combat Classes* into a hybrid tower (e.g., Caustic+Viral → **Pestilence**, applying both statuses and auto-triggering **Plague**). This multiplies the roster and the synergy space. **Phenotypes** let you stamp a global build identity on a run. Also **unlocks Hero Slot 3** here.
 - **Why here:** by now players understand class identity deeply — fusing classes is the natural "I want to break the rules" payoff, and it's a massive build-variety unlock right when the base combos start to feel explored.
 
 ### Layer 3 — **HIVEMIND** *(~150–250h)*
@@ -448,8 +459,8 @@ The hardest goal: 1000 hours of systems that stay legible. Tactics:
 2. **One layer of foresight** — the UI always shows the *next* unlock and its requirement, and *nothing further* by default (advanced players can expand a roadmap).
 3. **Consistent currency ladder** — each currency maps to exactly one system; the ladder (§9) is visually a single ascending column. No mystery resources.
 4. **Power Score** — a single summary number abstracts total strength for at-a-glance comparison, hiding the underlying spreadsheet unless the player opens it.
-5. **Build templates / loadout presets** — save and name loadouts ("Cryo-Shatter," "Plague Swarm"); recommended starter templates lower the entry cost of deep customization.
-6. **Reactions are taught, then surfaced** — the synergy matrix is introduced one reaction at a time, with clear on-hit telegraphs (you *see* Shatter happen), not buried in tooltips.
+5. **Build templates / loadout presets** — save and name loadouts ("Kinetic-Shred," "Plague Swarm"); recommended starter templates lower the entry cost of deep customization.
+6. **Reactions are taught, then surfaced** — the synergy matrix is introduced one reaction at a time, with clear on-hit telegraphs (you *see* Shred happen), not buried in tooltips.
 7. **Codex as manual** — the Atlas doubles as the in-game encyclopedia; every mechanic is a lookup away.
 8. **Prestige clarity screens** — every prestige shows *exactly* what resets, what persists, and what you gain, with a projected "you'll re-reach here in ~X" estimate to defuse loss-aversion.
 9. **Mechanics-first means fewer "stat fog" upgrades** — because milestones change *behavior*, the player reasons about *what things do*, not just stacking opaque percentages.
@@ -503,7 +514,7 @@ A lead designer's pre-mortem. Each risk gets a concrete mitigation already built
 - **Biomass** — in-run economy; resets each run.
 - **Shards** — permanent currency for tower/hero **stars** (1→10).
 - **Mastery** — infinite per-unit track from kills/usage; trophy (persists prestige).
-- **Class / Class Level** — Combat Class (Kinetic/Caustic/Cryo/Viral/Neural); shared by towers & heroes; grants keystones.
+- **Class / Class Level** — Combat Class (Kinetic/Caustic/Viral/Neural/Vital); shared by towers & heroes; grants keystones.
 - **Reaction** — burst effect from combining two status types (synergy matrix).
 - **Gene Card** — temporary drafted run power; resets each run.
 - **Mutation Strain** — temporary run-long player evolution.

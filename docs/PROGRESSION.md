@@ -144,7 +144,7 @@ currency, so all three progress in parallel.
 - **Purpose.** The deterministic gate on Star progression. Choosing *which*
   tower's shards to chase is the player's first long-term investment decision.
 - **Two shard types:**
-  - **Tower-specific shards** (e.g., *Railspine Shards*) — the main currency; drop
+  - **Tower-specific shards** (e.g., *Needle Spitter Shards*) — the main currency; drop
     when that tower is used and from its codex/boss sources.
   - **Universal Catalyst** — rare wildcard, substitutes for any tower shard.
     Prevents hard-locking on an unlucky drought (earned ~1 per 4–5 runs + milestones).
@@ -191,11 +191,11 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
 
 | Tower | ★5 fork | ★8 fork | ★10 signature |
 |---|---|---|---|
-| Railspine (Kinetic) | Penetrate / Execute | Railgun / Autocannon | Singularity Round (re-fires crits) |
-| Sporebloom (Caustic) | Lingering Cloud / Burst Spread | Corrosion / Contagion | Bloom Cascade (clouds chain-detonate) |
-| Glacis Maw (Cryo) | Deep Freeze / Wide Chill | Shatter Focus / Permafrost | Absolute Zero (map-wide freeze pulse) |
-| Rotvein (Viral) | Virulence / Vectoring | Necrosis / Mutation | Pandemic (infection becomes uncapped-spread) |
-| Synapse Spire (Neural) | Hijack / Overload | Broadcast / Firewall | Hive Override (mass-converts a wave) |
+| Needle Spitter (Kinetic) | Penetrate / Execute | Railgun / Autocannon | Singularity Round (re-fires crits) |
+| Bone Mortar (Caustic) | Saturation / Heavy Ordnance | Contagion Pools / Concentrated Acid | Marrow Cataclysm (lane-wide corrosion) |
+| Parasite Nest (Viral) | Hatchery / Plaguebearer | Apex Strain / Pandemic Strain | Total Infestation (uncapped self-spread) |
+| Neural Obelisk (Neural) | Hijack / Terror | Dominator / Suppressor | Hive Override (mass-converts a wave) |
+| Flesh Reactor (Vital) | Furnace / Network | Heart / Engine | Apotheosis Bloom (hive-wide overcharge surge) |
 
 - **Upgrade costs (shards per step):**
 
@@ -267,7 +267,7 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
 ### 2.4 Class levels
 
 - **Purpose.** The **specialization** axis. Each tower belongs to a **Combat Class**
-  (Kinetic/Caustic/Cryo/Viral/Neural); *any* unit of that class earns its Class XP.
+  (Kinetic/Caustic/Viral/Neural/Vital); *any* unit of that class earns its Class XP.
   Specializing a class is rewarded across your whole roster.
 - **Source.** Class XP from using any tower **or hero** of that class (the key
   hero↔tower coupling).
@@ -286,7 +286,7 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
   builds* rather than inflating one. Limited slots force the player to *choose an
   identity*, which is what generates build diversity instead of "equip everything."
 - **Interactions.** The **shared currency between towers and heroes** — a Kinetic hero
-  and Railspine pump the same class. Keystones reshape **Reactions** and synergize with
+  and Needle Spitter pump the same class. Keystones reshape **Reactions** and synergize with
   **Star forks** and **Relics**. **Speciation prestige resets class levels** (→ Genome
   Threads) and unlocks **Hybrid classes** (fusing two classes), multiplying the class
   space. Independent of shard/mastery currencies.
@@ -379,9 +379,10 @@ prestige (`DESIGN.md §8, §12`).
 
 - Heroes use the **same Combat Classes** as towers and **share the Class XP pool** —
   the single most important cross-system coupling: investing in Kinetic helps your
-  Kinetic hero *and* Railspine *and* future Kinetic units.
-- Some heroes anchor a **hero-only class** (e.g., Marrow = **Vital/support**) with no
-  launch tower — giving a reason to build hero-centric and to chase future Vital towers.
+  Kinetic hero *and* Needle Spitter *and* future Kinetic units.
+- Class coverage is intentionally asymmetric at launch: **every class has a tower**,
+  but only Kinetic/Neural/Vital have a launch **hero** (Ravager/Overseer/Shepherd) —
+  giving players a reason to chase future **Caustic** & **Viral** heroes.
 - Curve, keystones, slots: identical to §2.4. Keystones buff **both** towers and heroes
   of the class.
 - **Interactions.** This is the hero↔tower bridge; resets/extends with **Speciation**
@@ -563,7 +564,7 @@ earn, never explosive to hold.
 - **New mechanic.** **Hybrid Towers** (fuse 2 classes), **Phenotypes**, **+1 keystone
   slot**, and **unlocks Hero Slot 3**.
 - **Pacing.** Every **few days**; deep resets ~weekly.
-- **Retention loop.** "I can fuse Cryo+Viral into Frostrot" — a *new toy*, not a bigger
+- **Retention loop.** "I can fuse Caustic+Viral into Pestilence" — a *new toy*, not a bigger
   number; re-leveling classes under the new multiplier is fast.
 - **Interactions.** Resets **Class** (towers+heroes) for a mechanic gain; Hybrids
   multiply the **Reaction** matrix and **Star/Relic** combo space; Hero Slot 3 scales
