@@ -60,6 +60,27 @@ the fan-out.
 
 ---
 
+## 🚫 Finish what you start — the backlog is a last resort
+
+**Default: execute the task in full. Do not defer.** Complete the design,
+implementation, _and_ verification before reporting done. Starting something and
+leaving the rest "for later" is exactly how a codebase rots into pointless
+spaghetti — half-wired features, dead branches, TODOs nobody returns to.
+
+- **Do not use `docs/BACKLOG.md` to dodge finishing.** Parking the remainder of
+  the work you just started is the failure mode this rule exists to prevent.
+- **The backlog is for niche edge cases only**, e.g.:
+  - You are about to run out of usage/context and need to push a coherent,
+    **working** "finished" checkpoint, and all that remains is non-essential
+    polish.
+  - A genuinely out-of-scope follow-up that was never part of the current task.
+- **Never shunt the core of a task to the backlog.** If you truly can't finish,
+  say so plainly and name the blocker — don't quietly defer it.
+- Polish-only remnants are the only thing acceptable to defer, and only when
+  finishing now is genuinely not possible.
+
+---
+
 ## 🧹 Background task & monitor hygiene
 
 A machine bricked by runaway background processes is why these rules exist:
@@ -102,7 +123,8 @@ economy, and towers. Keep design decisions written down so changes stay coherent
 - **Document as you build.** As the project grows, keep a `docs/` with:
   - `DESIGN.md` — core mechanics, balance philosophy, the numbers and why.
   - `GAME-STATE.md` — what systems/content exist and their status.
-  - `BACKLOG.md` — deferred work.
+  - `BACKLOG.md` — deferred work (last resort only — see "Finish what you
+    start").
   - `BUGFIX-LOG.md` — one row per fix (symptom → root cause → fix).
 
 ---
