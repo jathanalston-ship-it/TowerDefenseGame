@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies (once a stack is added)
+node_modules/
+
+# Build output
+dist/
+build/
+out/
