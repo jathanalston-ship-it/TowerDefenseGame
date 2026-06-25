@@ -1,5 +1,9 @@
 // Canvas 2D renderer. Reads the sim's RenderState and draws it; holds no game
 // logic and never mutates the sim (ARCHITECTURE.md §2: renderer reads, never owns).
+//
+// Presentation goal: a large, open, cyberpunk bio-horror arena — a living hive
+// holding a defensive line against an invading ecosystem that descends from above.
+// Pressure escalates visually as the swarm nears the line / the hive weakens.
 
 import {
   CELL,
@@ -13,7 +17,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, TOWER_DEFS } from '../core/config';
+import { ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 
 export interface Pointer {
@@ -21,22 +25,36 @@ export interface Pointer {
   y: number;
 }
 
+const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
+
+function pulse(t: number, speed: number, lo: number, hi: number): number {
+  return lo + (hi - lo) * (0.5 + 0.5 * Math.sin(t * speed));
+}
+
 export function drawGame(
   ctx: CanvasRenderingContext2D,
   rs: RenderState,
   pointer: Pointer | null,
 ): void {
-  // background
-  ctx.fillStyle = '#080b11';
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  const t = rs.time;
 
+  // How hard is the hive being pressed right now? (enemies near/into the zone +
+  // how wounded the core is) — drives the danger glow + vignette.
+  let nearLine = 0;
+  for (const e of rs.enemies) if (e.y > DEFENSE_TOP_Y - CELL * 2) nearLine++;
+  const intRatio = rs.maxIntegrity > 0 ? rs.integrity / rs.maxIntegrity : 1;
+  const pressure = Math.min(1, (nearLine / 14) * 0.7 + (1 - intRatio) * 0.7);
+
+  drawBackground(ctx);
   drawGrid(ctx);
-  drawDefenseZone(ctx);
+  drawSpawnZone(ctx, t);
+  drawDefenseZone(ctx, t, pressure);
   drawObstacles(ctx);
 
-  const occupied = new Set(rs.towers.map((t) => t.slot));
+  const occupied = new Set(rs.towers.map((t2) => t2.slot));
+  drawHiveTendrils(ctx, rs, t);
   drawSlots(ctx, rs, occupied);
-  drawBase(ctx);
+  drawBase(ctx, rs, t);
 
   for (const p of rs.pools) {
     ctx.beginPath();
@@ -49,8 +67,7 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-
-  for (const t of rs.towers) drawTower(ctx, t);
+  for (const tw of rs.towers) drawTower(ctx, tw);
 
   for (const p of rs.projectiles) {
     ctx.beginPath();
@@ -59,10 +76,12 @@ export function drawGame(
     ctx.fill();
   }
 
-  for (const e of rs.enemies) drawEnemy(ctx, e);
+  // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
+  const detail = rs.enemies.length < PERF.lodEnemyCount;
+  for (const e of rs.enemies) drawEnemy(ctx, e, detail);
 
+  drawParticles(ctx, rs);
   drawHero(ctx, rs);
-
   drawPointer(ctx, rs, pointer);
 
   for (const f of rs.floats) {
@@ -74,18 +93,35 @@ export function drawGame(
     ctx.globalAlpha = 1;
   }
   ctx.textAlign = 'left';
+
+  drawPressureVignette(ctx, pressure, t);
+}
+
+// ── Environment ──────────────────────────────────────────────────────────────
+
+function drawBackground(ctx: CanvasRenderingContext2D): void {
+  // Vertical depth: cold hostile sky at the top (the invading ecosystem) fading to
+  // the warm, fleshy hive at the bottom.
+  const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+  g.addColorStop(0, '#0c0a16');
+  g.addColorStop(0.45, '#070a10');
+  g.addColorStop(0.8, '#0a0810');
+  g.addColorStop(1, '#150a10');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D): void {
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
   ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
     ctx.beginPath();
     ctx.moveTo(c * CELL, 0);
     ctx.lineTo(c * CELL, HEIGHT);
     ctx.stroke();
   }
   for (let r = 0; r <= ROWS; r++) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
     ctx.beginPath();
     ctx.moveTo(0, r * CELL);
     ctx.lineTo(WIDTH, r * CELL);
@@ -93,43 +129,138 @@ function drawGrid(ctx: CanvasRenderingContext2D): void {
   }
 }
 
-function drawDefenseZone(ctx: CanvasRenderingContext2D): void {
-  // tint the bottom defensive region
+function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
+  // A hostile "breeding membrane" the swarm pours out of along the top edge.
+  const g = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND);
+  g.addColorStop(0, `rgba(150, 70, 220, ${pulse(t, 1.6, 0.16, 0.26)})`);
+  g.addColorStop(0.6, 'rgba(70, 180, 140, 0.08)');
+  g.addColorStop(1, 'rgba(70, 180, 140, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, SPAWN_BAND);
+
+  // membrane edge
+  ctx.strokeStyle = `rgba(180, 110, 230, ${pulse(t, 1.6, 0.4, 0.7)})`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const yb = SPAWN_BAND;
+  for (let x = 0; x <= WIDTH; x += 12) {
+    const yy = yb + Math.sin(x * 0.05 + t * 1.5) * 3;
+    if (x === 0) ctx.moveTo(x, yy);
+    else ctx.lineTo(x, yy);
+  }
+  ctx.stroke();
+
+  // descending chevrons — the swarm's direction of advance
+  ctx.fillStyle = 'rgba(180, 120, 230, 0.18)';
+  const drift = (t * 18) % 28;
+  for (let x = CELL; x < WIDTH; x += 90) {
+    const y = 6 + drift;
+    ctx.beginPath();
+    ctx.moveTo(x - 7, y);
+    ctx.lineTo(x + 7, y);
+    ctx.lineTo(x, y + 7);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = 'rgba(190, 140, 235, 0.7)';
+  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.fillText('▼ ENEMY SPAWN', 8, 12);
+}
+
+function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: number): void {
   const grad = ctx.createLinearGradient(0, DEFENSE_TOP_Y, 0, HEIGHT);
-  grad.addColorStop(0, 'rgba(255, 90, 120, 0.04)');
-  grad.addColorStop(1, 'rgba(255, 90, 120, 0.12)');
+  grad.addColorStop(0, `rgba(255, 90, 120, ${0.04 + pressure * 0.06})`);
+  grad.addColorStop(1, `rgba(255, 90, 120, ${0.12 + pressure * 0.12})`);
   ctx.fillStyle = grad;
   ctx.fillRect(0, DEFENSE_TOP_Y, WIDTH, HEIGHT - DEFENSE_TOP_Y);
 
-  // the defensive line itself
-  ctx.strokeStyle = 'rgba(255, 90, 120, 0.55)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([10, 6]);
+  // The defensive line — a glowing energy barrier (flows + brightens under pressure).
+  const glow = pulse(t, 2, 0.4, 0.7) + pressure * 0.3;
+  ctx.save();
+  ctx.shadowColor = 'rgba(255, 90, 120, 0.9)';
+  ctx.shadowBlur = 8 + pressure * 10;
+  ctx.strokeStyle = `rgba(255, ${110 - pressure * 50}, 140, ${Math.min(1, glow)})`;
+  ctx.lineWidth = 2 + pressure * 1.5;
+  ctx.setLineDash([14, 8]);
+  ctx.lineDashOffset = -((t * 40) % 22);
   ctx.beginPath();
   ctx.moveTo(0, DEFENSE_TOP_Y);
   ctx.lineTo(WIDTH, DEFENSE_TOP_Y);
   ctx.stroke();
+  ctx.restore();
   ctx.setLineDash([]);
 
-  ctx.fillStyle = 'rgba(255, 140, 160, 0.7)';
-  ctx.font = '600 11px system-ui, sans-serif';
-  ctx.fillText('DEFENSIVE LINE', 8, DEFENSE_TOP_Y - 6);
+  ctx.fillStyle = `rgba(255, 150, 165, ${0.7 + pressure * 0.3})`;
+  ctx.font = '700 11px system-ui, sans-serif';
+  ctx.fillText('— HOLD THE LINE —', 8, DEFENSE_TOP_Y - 6);
 }
 
 function drawObstacles(ctx: CanvasRenderingContext2D): void {
   for (const o of obstacleCells) {
-    ctx.fillStyle = '#161c27';
+    ctx.fillStyle = '#13161f';
     ctx.fillRect(o.x - CELL / 2, o.y - CELL / 2, CELL, CELL);
-    ctx.strokeStyle = 'rgba(120,140,170,0.18)';
+    ctx.strokeStyle = 'rgba(120,140,170,0.16)';
     ctx.lineWidth = 1;
     ctx.strokeRect(o.x - CELL / 2 + 0.5, o.y - CELL / 2 + 0.5, CELL - 1, CELL - 1);
   }
 }
 
+function drawHiveTendrils(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  // Living veins from the core feeding its grown defenses.
+  const { x: cx, y: cy } = nucleusPoint;
+  ctx.lineWidth = 2;
+  for (const tw of rs.towers) {
+    const a = pulse(t + tw.id, 2.4, 0.05, 0.16);
+    ctx.strokeStyle = `rgba(255, 110, 90, ${a})`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    const mx = (cx + tw.x) / 2 + Math.sin(t * 1.2 + tw.id) * 6;
+    const my = (cy + tw.y) / 2;
+    ctx.quadraticCurveTo(mx, my, tw.x, tw.y);
+    ctx.stroke();
+  }
+}
+
+function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  const { x, y } = nucleusPoint;
+  const intRatio = rs.maxIntegrity > 0 ? rs.integrity / rs.maxIntegrity : 1;
+  // heartbeat — faster + more frantic as the hive is wounded
+  const beat = pulse(t, 3 + (1 - intRatio) * 4, 0.85, 1.15);
+  const R = 36 * beat;
+
+  const grad = ctx.createRadialGradient(x, y, 5, x, y, R);
+  grad.addColorStop(0, 'rgba(255, 100, 120, 0.95)');
+  grad.addColorStop(0.5, 'rgba(255, 90, 120, 0.35)');
+  grad.addColorStop(1, 'rgba(255, 90, 120, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, R, 0, Math.PI * 2);
+  ctx.fill();
+
+  // core body
+  ctx.fillStyle = '#ff5d73';
+  ctx.beginPath();
+  ctx.arc(x, y, 15 * beat, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.beginPath();
+  ctx.arc(x, y, 5 * beat, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255, 170, 180, 0.85)';
+  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('HIVE CORE', x, y + 34);
+  ctx.textAlign = 'left';
+}
+
+// ── Slots / towers (placement system from the battlefield refactor) ───────────
+
 function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set<number>): void {
   const s = CELL - 12;
   for (const slot of towerSlots) {
-    if (occupied.has(slot.index)) continue; // tower is drawn instead
+    if (occupied.has(slot.index)) continue;
     const locked = slot.index >= rs.unlockedSlots;
     const x = slot.x - s / 2;
     const y = slot.y - s / 2;
@@ -145,7 +276,6 @@ function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set
       ctx.fillText('🔒', slot.x, slot.y + 4);
       ctx.textAlign = 'left';
     } else {
-      // empty, buildable: an obvious bracketed node with a faint fill and a +
       ctx.fillStyle = 'rgba(90, 200, 255, 0.06)';
       ctx.fillRect(x, y, s, s);
       ctx.strokeStyle = 'rgba(90, 200, 255, 0.5)';
@@ -163,19 +293,14 @@ function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set
   }
 }
 
-/** Corner brackets around a slot — reads clearly as a placement node. */
 function drawBracket(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number): void {
   const h = s / 2;
-  const a = 7; // arm length
+  const a = 7;
   const L = [
-    [-h, -h, 1, 0],
-    [-h, -h, 0, 1],
-    [h, -h, -1, 0],
-    [h, -h, 0, 1],
-    [-h, h, 1, 0],
-    [-h, h, 0, -1],
-    [h, h, -1, 0],
-    [h, h, 0, -1],
+    [-h, -h, 1, 0], [-h, -h, 0, 1],
+    [h, -h, -1, 0], [h, -h, 0, 1],
+    [-h, h, 1, 0], [-h, h, 0, -1],
+    [h, h, -1, 0], [h, h, 0, -1],
   ];
   ctx.beginPath();
   for (let i = 0; i < L.length; i += 2) {
@@ -186,25 +311,6 @@ function drawBracket(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: n
     ctx.lineTo(cx + L[i + 1][0] + L[i + 1][2] * a, cy + L[i + 1][1] + L[i + 1][3] * a);
   }
   ctx.stroke();
-}
-
-function drawBase(ctx: CanvasRenderingContext2D): void {
-  const { x, y } = nucleusPoint;
-  const grad = ctx.createRadialGradient(x, y, 5, x, y, 34);
-  grad.addColorStop(0, 'rgba(255, 90, 120, 0.95)');
-  grad.addColorStop(1, 'rgba(255, 90, 120, 0)');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(x, y, 34, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#ff5d73';
-  ctx.beginPath();
-  ctx.arc(x, y, 14, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.beginPath();
-  ctx.arc(x, y, 5, 0, Math.PI * 2);
-  ctx.fill();
 }
 
 function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): void {
@@ -241,41 +347,72 @@ function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][numbe
   }
 }
 
-function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number]): void {
+// ── Enemies ──────────────────────────────────────────────────────────────────
+
+function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number], detail: boolean): void {
   const def = ENEMY_DEFS[e.kind];
   const r = def.radius;
+  const flying = def.behavior.flying === true;
+
+  if (detail) {
+    // airborne units cast a shadow on the arena floor below them
+    if (flying) {
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.beginPath();
+      ctx.ellipse(e.x, e.y + 9, r * 0.8, r * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // a faint advance-trail above (they descend)
+    const tg = ctx.createLinearGradient(e.x, e.y - r * 2.4, e.x, e.y);
+    tg.addColorStop(0, 'rgba(0,0,0,0)');
+    tg.addColorStop(1, def.color + '55');
+    ctx.fillStyle = tg;
+    ctx.fillRect(e.x - r * 0.5, e.y - r * 2.4, r, r * 2.4);
+  }
+
+  const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor
   ctx.beginPath();
-  ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
+  ctx.arc(e.x, drawY, r, 0, Math.PI * 2);
   ctx.fillStyle = def.color;
   ctx.fill();
 
-  if (e.corrosion > 0) {
-    ctx.strokeStyle = 'rgba(150, 220, 70, 0.9)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, r + 2, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  if (e.fracture > 0) {
-    ctx.strokeStyle = `rgba(90, 209, 255, ${Math.min(0.9, 0.25 + e.fracture * 0.12)})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, r + 4, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  if (e.shredFlash > 0) {
-    ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.8, e.shredFlash * 2)})`;
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, r + 3, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  if (detail) {
+    if (e.corrosion > 0) {
+      ctx.strokeStyle = 'rgba(150, 220, 70, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (e.fracture > 0) {
+      ctx.strokeStyle = `rgba(90, 209, 255, ${Math.min(0.9, 0.25 + e.fracture * 0.12)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (e.shredFlash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.8, e.shredFlash * 2)})`;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // danger aura once an enemy has pressed into the defensive zone
+    if (e.y > DEFENSE_TOP_Y) {
+      ctx.strokeStyle = 'rgba(255, 70, 90, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 6, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
-  const w = r * 2;
-  const pct = Math.max(0, e.hp / e.maxHp);
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.fillRect(e.x - w / 2, e.y - r - 7, w, 3);
-  ctx.fillStyle = pct > 0.5 ? '#7CFC9B' : pct > 0.25 ? '#ffd24d' : '#ff5d73';
-  ctx.fillRect(e.x - w / 2, e.y - r - 7, w * pct, 3);
+    const w = r * 2;
+    const pct = Math.max(0, e.hp / e.maxHp);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(e.x - w / 2, drawY - r - 7, w, 3);
+    ctx.fillStyle = pct > 0.5 ? '#7CFC9B' : pct > 0.25 ? '#ffd24d' : '#ff5d73';
+    ctx.fillRect(e.x - w / 2, drawY - r - 7, w * pct, 3);
+  }
 }
 
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
@@ -307,10 +444,32 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   }
 }
 
+function drawParticles(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  for (const p of rs.particles) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life / p.maxLife));
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPressureVignette(ctx: CanvasRenderingContext2D, pressure: number, t: number): void {
+  if (pressure <= 0.02) return;
+  const a = pressure * (0.35 + 0.1 * Math.sin(t * 6)); // throb when pressed hard
+  const g = ctx.createRadialGradient(WIDTH / 2, HEIGHT * 0.62, HEIGHT * 0.3, WIDTH / 2, HEIGHT * 0.62, HEIGHT * 0.75);
+  g.addColorStop(0, 'rgba(255, 40, 70, 0)');
+  g.addColorStop(1, `rgba(255, 30, 60, ${Math.min(0.55, a)})`);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
+// ── Pointer (placement ghost / ability preview / slot info) ──────────────────
+
 function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Pointer | null): void {
   if (!pointer) return;
 
-  // ability targeting preview
   if (rs.armedAbility) {
     ctx.beginPath();
     ctx.arc(pointer.x, pointer.y, 72, 0, Math.PI * 2);
@@ -324,9 +483,8 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
 
   const slot = slotAt(pointer.x, pointer.y);
   if (!slot) return;
-  const tower = rs.towers.find((t) => t.slot === slot.index);
+  const tower = rs.towers.find((tw) => tw.slot === slot.index);
 
-  // placement ghost when a tower is selected
   if (rs.selectedTower) {
     const def = TOWER_DEFS[rs.selectedTower];
     const locked = slot.index >= rs.unlockedSlots;
@@ -345,7 +503,6 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     return;
   }
 
-  // occupied-slot info on hover
   if (tower) {
     const def = TOWER_DEFS[tower.kind];
     if (def.range > 0) {

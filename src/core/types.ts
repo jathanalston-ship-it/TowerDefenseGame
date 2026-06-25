@@ -6,7 +6,7 @@ import type { Vec2 } from './math';
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion';
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
-export type EnemyKind = 'runner' | 'brute' | 'tyrant';
+export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
@@ -83,6 +83,18 @@ export interface FloatingText {
   text: string;
   color: string;
   life: number; // seconds remaining
+}
+
+/** Cosmetic particle (pooled, capped). Never affects gameplay determinism. */
+export interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
 }
 
 /** Permanent (meta) multipliers folded into a run at start — the "permanent bucket". */

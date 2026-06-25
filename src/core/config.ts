@@ -66,6 +66,21 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
 export const TOWER_ORDER: TowerKind[] = ['needle', 'mortar', 'reactor'];
 
 // ── Enemies ───────────────────────────────────────────────────────────────
+/**
+ * Steering profile — how an enemy *thinks*, not just where it walks. Combined each
+ * tick into a single movement vector (see Game.enemyMoveSystem). Data-driven so new
+ * archetypes are a config entry, not new code.
+ */
+export interface EnemyBehavior {
+  seek: number; // pull toward the base/line (flow field)
+  avoidTowers: number; // steer out of tower kill-zones -> seek gaps (penetration)
+  avoidHero: number; // >0 skirt the hero, <0 hunt it (future hunter types)
+  separation: number; // spread from neighbours
+  jitter: number; // organic wander
+  flying?: boolean; // ignore ground obstacles (drift straight for the base)
+  burrowing?: boolean; // ignore ground obstacles (tunnel under them)
+}
+
 export interface EnemyDef {
   kind: EnemyKind;
   name: string;
@@ -73,15 +88,66 @@ export interface EnemyDef {
   armor: number;
   speed: number; // px/sec
   bounty: number; // biomass on death
-  damage: number; // integrity damage at the Nucleus
+  damage: number; // integrity damage at the line
   radius: number;
   color: string;
+  behavior: EnemyBehavior;
 }
 
 export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
-  runner: { kind: 'runner', name: 'Skitterling', hp: 36, armor: 0, speed: 72, bounty: 11, damage: 4, radius: 10, color: '#d98cff' },
-  brute: { kind: 'brute', name: 'Carrion Brute', hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14, color: '#7b9cff' },
-  tyrant: { kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26, color: '#ff4d6d' },
+  runner: {
+    kind: 'runner', name: 'Skitterling', hp: 36, armor: 0, speed: 72, bounty: 11, damage: 4, radius: 10, color: '#d98cff',
+    behavior: { seek: 1, avoidTowers: 0.28, avoidHero: 0.5, separation: 0.55, jitter: 0.16 },
+  },
+  brute: {
+    kind: 'brute', name: 'Carrion Brute', hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14, color: '#7b9cff',
+    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.22, separation: 0.4, jitter: 0.06 },
+  },
+  tyrant: {
+    kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26, color: '#ff4d6d',
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 },
+  },
+  // ── Future archetypes — spawnable via the debug panel; not in the authored waves
+  //    yet. Each is purely a data profile, proving the AI scales by configuration. ──
+  rusher: {
+    kind: 'rusher', name: 'Razor Sprinter', hp: 28, armor: 0, speed: 132, bounty: 9, damage: 5, radius: 8, color: '#ff5db0',
+    behavior: { seek: 1.2, avoidTowers: 0, avoidHero: 0, separation: 0.2, jitter: 0.04 }, // beelines, ignores defenses
+  },
+  tank: {
+    kind: 'tank', name: 'Carapace Hauler', hp: 430, armor: 18, speed: 30, bounty: 60, damage: 14, radius: 18, color: '#5fd0c6',
+    behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0, separation: 0.3, jitter: 0.02 }, // soaks, unbothered
+  },
+  flyer: {
+    kind: 'flyer', name: 'Spore Drifter', hp: 60, armor: 2, speed: 64, bounty: 18, damage: 7, radius: 11, color: '#c0a3ff',
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // over obstacles
+  },
+  burrower: {
+    kind: 'burrower', name: 'Gut Tunneler', hp: 90, armor: 6, speed: 58, bounty: 22, damage: 8, radius: 12, color: '#e8a04a',
+    behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true }, // tunnels gaps
+  },
+};
+
+// Steering radii / cadence for enemy threat behaviour. Raw px (avoids a config<->map
+// import cycle; CELL is 40, so these are ~2.4 / ~2.2 cells).
+export const STEER = {
+  towerAvoidRadius: 96,
+  heroAvoidRadius: 88,
+  jitterFreq: 0.9,
+};
+
+// ── Performance / scalability budgets (large-scale combat) ──────────────────
+export const PERF = {
+  spatialCell: 64, // grid cell px for proximity queries (~tower-avoid radius)
+  maxEnemies: 600, // soft cap on concurrent enemies (spawns skip past this)
+  maxParticles: 420, // cosmetic particle budget (oldest dropped past this)
+  lodEnemyCount: 220, // beyond this, the renderer drops per-enemy embellishments
+};
+
+// Cosmetic combat particles (pooled). Counts kept modest to stay within budget.
+export const PARTICLE = {
+  death: { count: 6, speed: 70, life: 0.5, size: 2.6 },
+  shred: { count: 10, speed: 130, life: 0.45, size: 2.2, color: '#fff066' },
+  breach: { count: 8, speed: 90, life: 0.5, size: 2.4, color: '#ff5d73' },
 };
 
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).

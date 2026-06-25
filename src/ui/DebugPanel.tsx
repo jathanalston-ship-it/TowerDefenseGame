@@ -134,6 +134,23 @@ export function DebugPanel(): JSX.Element {
                 Boss
               </button>
             </div>
+            <div className="debug-row">
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('rusher', 6))}>
+                6 Rushers
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('tank', 2))}>
+                2 Tanks
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('flyer', 4))}>
+                4 Flyers
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('burrower', 4))}>
+                4 Burrowers
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('runner', 150))}>
+                Stress +150
+              </button>
+            </div>
           </div>
 
           <div className="debug-sec">
