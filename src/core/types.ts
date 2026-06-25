@@ -6,7 +6,7 @@ import type { Vec2 } from './math';
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion';
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
-export type EnemyKind = 'runner' | 'brute' | 'tyrant';
+export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';

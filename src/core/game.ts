@@ -9,6 +9,7 @@ import {
   CELL,
   DEFENSE_TOP_Y,
   HEIGHT,
+  REACH_Y,
   WIDTH,
   flowDirAt,
   goalDistanceAt,
@@ -27,6 +28,7 @@ import {
   SIM_DT,
   SLOTS,
   STATUS,
+  STEER,
   TOWER_DEFS,
   TOTAL_WAVES,
   WAVES,
@@ -490,44 +492,105 @@ export class Game {
     }
   }
 
+  /**
+   * Threat-prioritized movement. Each enemy blends, per its behavior profile:
+   * seek toward the base (flow field, or a straight line for flyers/burrowers that
+   * ignore obstacles) + avoid tower kill-zones (steering toward undefended gaps to
+   * PENETRATE) + react to the hero (skirt, or hunt if avoidHero<0) + separation +
+   * organic wander. Emergent, data-driven, and ready for new archetypes.
+   */
   private enemyMoveSystem(dt: number): void {
     const slowBase = STATUS.corrosionSlow + this.mods.corrosionSlowBonus;
     const sepR = CELL * 0.9;
     const sepR2 = sepR * sepR;
+    const tR = STEER.towerAvoidRadius;
+    const tR2 = tR * tR;
+    const hR = STEER.heroAvoidRadius;
+    const hR2 = hR * hR;
+    const hero = this.hero;
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (reachedBottom(e.y)) {
         this.hitNucleus(e);
         continue;
       }
+      const def = ENEMY_DEFS[e.kind];
+      const b = def.behavior;
       const slow = e.corrosion > 0 ? Math.min(0.85, slowBase) : 0;
       const step = e.speed * (1 - slow) * dt;
-      // Flow-field direction toward the line (routes around obstacles).
-      const dir = flowDirAt(e.x, e.y);
-      let vx = dir.x;
-      let vy = dir.y;
-      // Light separation so the swarm spreads naturally instead of stacking.
-      let sx = 0;
-      let sy = 0;
-      for (const o of this.enemies) {
-        if (o === e || !o.alive) continue;
-        const d2 = dist2(e.x, e.y, o.x, o.y);
-        if (d2 > 0 && d2 < sepR2) {
-          const w = (sepR - Math.sqrt(d2)) / sepR;
-          sx += (e.x - o.x) * w;
-          sy += (e.y - o.y) * w;
+
+      // 1. seek
+      let vx: number;
+      let vy: number;
+      if (b.flying || b.burrowing) {
+        const dx = nucleusPoint.x - e.x;
+        const dy = REACH_Y - e.y;
+        const l = Math.hypot(dx, dy) || 1;
+        vx = (dx / l) * b.seek;
+        vy = (dy / l) * b.seek;
+      } else {
+        const dir = flowDirAt(e.x, e.y);
+        vx = dir.x * b.seek;
+        vy = dir.y * b.seek;
+      }
+
+      // 2. avoid defensive structures -> route toward gaps (penetration)
+      if (b.avoidTowers !== 0) {
+        for (const t of this.towers) {
+          const d2 = dist2(e.x, e.y, t.x, t.y);
+          if (d2 > 0 && d2 < tR2) {
+            const d = Math.sqrt(d2);
+            const w = ((tR - d) / tR) * b.avoidTowers;
+            vx += ((e.x - t.x) / d) * w;
+            vy += ((e.y - t.y) / d) * w;
+          }
         }
       }
-      const sl = Math.hypot(sx, sy);
-      if (sl > 0) {
-        vx += (sx / sl) * 0.5;
-        vy += (sy / sl) * 0.5;
+
+      // 3. react to the hero (skirt it; <0 would hunt it)
+      if (b.avoidHero !== 0 && !hero.down) {
+        const d2 = dist2(e.x, e.y, hero.x, hero.y);
+        if (d2 > 0 && d2 < hR2) {
+          const d = Math.sqrt(d2);
+          const w = ((hR - d) / hR) * b.avoidHero;
+          vx += ((e.x - hero.x) / d) * w;
+          vy += ((e.y - hero.y) / d) * w;
+        }
       }
+
+      // 4. separation (spread instead of stacking)
+      if (b.separation !== 0) {
+        let sx = 0;
+        let sy = 0;
+        for (const o of this.enemies) {
+          if (o === e || !o.alive) continue;
+          const d2 = dist2(e.x, e.y, o.x, o.y);
+          if (d2 > 0 && d2 < sepR2) {
+            const w = (sepR - Math.sqrt(d2)) / sepR;
+            sx += (e.x - o.x) * w;
+            sy += (e.y - o.y) * w;
+          }
+        }
+        const sl = Math.hypot(sx, sy);
+        if (sl > 0) {
+          vx += (sx / sl) * b.separation;
+          vy += (sy / sl) * b.separation;
+        }
+      }
+
+      // 5. organic wander (deterministic noise — never touches the gameplay RNG)
+      if (b.jitter !== 0) {
+        const n = e.id * 0.137 + this.time * STEER.jitterFreq;
+        vx += Math.sin(n) * b.jitter;
+        vy += Math.cos(n * 1.31) * b.jitter;
+      }
+
       const vl = Math.hypot(vx, vy) || 1;
       e.x += (vx / vl) * step;
       e.y += (vy / vl) * step;
+
       // Stay inside the arena horizontally.
-      const r = ENEMY_DEFS[e.kind].radius;
+      const r = def.radius;
       if (e.x < r) e.x = r;
       else if (e.x > WIDTH - r) e.x = WIDTH - r;
       if (reachedBottom(e.y)) this.hitNucleus(e);
