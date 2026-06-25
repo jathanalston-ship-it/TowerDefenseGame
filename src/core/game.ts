@@ -27,13 +27,15 @@ import {
   WAVE_HP_GROWTH,
 } from './config';
 import {
+  CARD_POOL,
   cardToOption,
   defaultRunModifiers,
   draftCards,
 } from './cards';
-import type { CardDef, RunModifiers } from './cards';
+import type { CardContext, CardDef, RunModifiers } from './cards';
 import type {
   Enemy,
+  EnemyKind,
   Hero,
   HudSnapshot,
   MetaModifiers,
@@ -73,6 +75,10 @@ export class Game {
   maxIntegrity: number;
   kills = 0;
   time = 0;
+
+  // debug-only knobs — no effect at their defaults (driven by the debug panel)
+  god = false;
+  timeScale = 1;
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -198,16 +204,26 @@ export class Game {
   chooseCard(id: string): void {
     if (this.phase !== 'draft' || !this.draft) return;
     const card = this.draft.find((c) => c.id === id);
-    if (card) {
-      card.apply({
-        mods: this.mods,
-        grantBiomass: (n) => { this.biomass += n; },
-        grantIntegrity: (n) => { this.maxIntegrity += n; this.integrity += n; },
-        healHero: (n) => { this.hero.maxHp += n; this.hero.hp += n; },
-      });
-    }
+    if (card) card.apply(this.cardContext());
     this.draft = null;
     this.phase = 'prep';
+  }
+
+  private cardContext(): CardContext {
+    return {
+      mods: this.mods,
+      grantBiomass: (n) => {
+        this.biomass += n;
+      },
+      grantIntegrity: (n) => {
+        this.maxIntegrity += n;
+        this.integrity += n;
+      },
+      healHero: (n) => {
+        this.hero.maxHp += n;
+        this.hero.hp += n;
+      },
+    };
   }
 
   // ── Tick loop ────────────────────────────────────────────────────────────
@@ -219,9 +235,11 @@ export class Game {
 
   advance(dtReal: number): void {
     if (this.paused) return;
-    this.acc += Math.min(dtReal, 0.25); // clamp to avoid spiral-of-death after a stall
+    const scale = this.timeScale;
+    this.acc += Math.min(dtReal * scale, 0.25 * scale); // clamp avoids spiral-of-death
+    const cap = 8 * Math.max(1, Math.ceil(scale)); // allow extra steps when fast-forwarding
     let steps = 0;
-    while (this.acc >= SIM_DT && steps < 8) {
+    while (this.acc >= SIM_DT && steps < cap) {
       this.step(SIM_DT);
       this.acc -= SIM_DT;
       steps++;
@@ -261,27 +279,31 @@ export class Game {
   private spawnSystem(): void {
     while (this.spawnQueue.length > 0 && this.spawnQueue[0].at <= this.time) {
       const q = this.spawnQueue.shift()!;
-      const def = ENEMY_DEFS[q.kind];
-      this.enemies.push({
-        id: this.nextId++,
-        kind: q.kind,
-        x: spawnPoint.x,
-        y: spawnPoint.y,
-        hp: def.hp * q.hpMult,
-        maxHp: def.hp * q.hpMult,
-        baseArmor: def.armor,
-        speed: def.speed,
-        bounty: def.bounty * q.bountyMult,
-        damage: def.damage,
-        pathIndex: 1,
-        fracture: 0,
-        corrosion: 0,
-        slowUntil: 0,
-        shredFlash: 0,
-        alive: true,
-      });
+      this.spawnOne(q.kind, q.hpMult, q.bountyMult);
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
+  }
+
+  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number): void {
+    const def = ENEMY_DEFS[kind];
+    this.enemies.push({
+      id: this.nextId++,
+      kind,
+      x: spawnPoint.x,
+      y: spawnPoint.y,
+      hp: def.hp * hpMult,
+      maxHp: def.hp * hpMult,
+      baseArmor: def.armor,
+      speed: def.speed,
+      bounty: def.bounty * bountyMult,
+      damage: def.damage,
+      pathIndex: 1,
+      fracture: 0,
+      corrosion: 0,
+      slowUntil: 0,
+      shredFlash: 0,
+      alive: true,
+    });
   }
 
   private economySystem(dt: number): void {
@@ -479,7 +501,7 @@ export class Game {
 
   private hitNucleus(e: Enemy): void {
     if (!e.alive) return;
-    this.integrity -= e.damage;
+    if (!this.god) this.integrity -= e.damage;
     e.alive = false;
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
   }
@@ -537,7 +559,7 @@ export class Game {
       if (!e.alive) continue;
       if (dist(h.x, h.y, e.x, e.y) <= HERO.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
     }
-    if (incoming > 0) {
+    if (incoming > 0 && !this.god) {
       h.hp -= incoming * dt;
       if (h.hp <= 0) {
         h.down = true;
@@ -633,6 +655,70 @@ export class Game {
       e.shredFlash = STATUS.shredFlash;
       this.floats.push({ x: e.x, y: e.y - 16, text: 'SHRED', color: '#fff066', life: 0.7 });
     }
+  }
+
+  // ── Debug API (driven by the debug panel; no effect on normal play) ──────
+
+  debugSpawn(kind: EnemyKind, count = 1): void {
+    const hpMult = 1 + WAVE_HP_GROWTH * Math.max(0, this.waveIndex - 1);
+    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * Math.max(0, this.waveIndex - 1);
+    for (let i = 0; i < count; i++) this.spawnOne(kind, hpMult, bountyMult);
+  }
+
+  debugAddBiomass(n: number): void {
+    this.biomass = Math.max(0, this.biomass + n);
+  }
+
+  debugRefillIntegrity(): void {
+    this.integrity = this.maxIntegrity;
+  }
+
+  debugKillAll(): void {
+    for (const e of this.enemies) {
+      if (e.alive) {
+        this.kills++;
+        this.biomass += e.bounty * this.mods.biomassMult;
+      }
+    }
+    this.enemies = [];
+    this.armorBreakUntil.clear();
+  }
+
+  debugWin(): void {
+    if (!this.paused) this.phase = 'won';
+  }
+
+  debugLose(): void {
+    this.integrity = 0;
+    this.phase = 'lost';
+  }
+
+  /** Instantly clear the current wave (auto-resolves to draft / win next tick). */
+  debugSkipWave(): void {
+    if (this.phase !== 'wave') return;
+    this.debugKillAll();
+    this.spawnQueue = [];
+    this.spawnedAll = true;
+  }
+
+  /** Open the 1-of-3 draft now (abandons any in-progress wave). */
+  debugOpenDraft(): void {
+    if (this.phase === 'won' || this.phase === 'lost') return;
+    this.draft = draftCards(this.rng, 3);
+    this.phase = 'draft';
+  }
+
+  /** Apply a specific card's effect immediately (force a card selection). */
+  debugApplyCard(id: string): void {
+    const card = CARD_POOL.find((c) => c.id === id);
+    if (card) card.apply(this.cardContext());
+  }
+
+  debugReviveHero(): void {
+    this.hero.down = false;
+    this.hero.hp = this.hero.maxHp;
+    this.hero.respawn = 0;
+    this.hero.abilityCd = 0;
   }
 
   // ── Read models (for UI / renderer) ──────────────────────────────────────

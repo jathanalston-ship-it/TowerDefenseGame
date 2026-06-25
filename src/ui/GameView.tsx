@@ -3,6 +3,7 @@ import { Game } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
+import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
@@ -56,6 +57,12 @@ export function GameView({
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
+  }, [game]);
+
+  // expose the live run to the debug panel
+  useEffect(() => {
+    setActiveGame(game);
+    return () => setActiveGame(null);
   }, [game]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {

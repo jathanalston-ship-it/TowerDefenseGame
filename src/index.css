@@ -326,3 +326,82 @@ canvas.board {
 .reward b {
   color: var(--gold);
 }
+
+/* ── Debug panel ── */
+.debug-panel {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 290px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: rgba(10, 12, 18, 0.96);
+  border: 1px solid #3a2a55;
+  border-radius: 10px;
+  z-index: 9999;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+}
+.debug-head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(10, 12, 18, 0.99);
+  border-bottom: 1px solid var(--line);
+}
+.debug-head .t {
+  flex: 1;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--rare);
+}
+.debug-head button {
+  padding: 2px 9px;
+}
+.debug-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.debug-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.debug-sec .h {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.debug-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.debug-panel button {
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+.debug-panel button.on {
+  border-color: var(--gold);
+  background: #211f12;
+  color: var(--gold);
+}
+.debug-panel select {
+  flex: 1;
+  min-width: 120px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+.debug-note {
+  color: var(--muted);
+  font-size: 11px;
+}

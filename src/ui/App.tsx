@@ -2,6 +2,8 @@ import { useCallback, useRef, useState } from 'react';
 import { MainMenu } from './MainMenu';
 import { GameView } from './GameView';
 import { Results } from './Results';
+import { DebugPanel } from './DebugPanel';
+import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import type { RunResult, RunReward } from '../state/meta';
 import type { MetaModifiers } from '../core/types';
@@ -28,6 +30,8 @@ export function App(): JSX.Element {
 
   const toMenu = useCallback(() => setScreen('menu'), []);
 
+  const debugOn = isDebugEnabled();
+
   return (
     <div className="app">
       {screen === 'menu' && <MainMenu onStart={startRun} />}
@@ -37,6 +41,7 @@ export function App(): JSX.Element {
       {screen === 'results' && last && (
         <Results result={last.result} reward={last.reward} onContinue={toMenu} />
       )}
+      {debugOn && <DebugPanel />}
     </div>
   );
 }
