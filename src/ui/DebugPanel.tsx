@@ -1,0 +1,170 @@
+import { useReducer, useState, useSyncExternalStore } from 'react';
+import { disableDebug, getActiveGame, subscribeActiveGame } from '../debug/debug';
+import { meta } from '../state/meta';
+import { CARD_POOL } from '../core/cards';
+import type { Game } from '../core/game';
+
+// Listed-but-not-yet-built systems. The panel is structured so these light up as
+// their milestones land (see docs/ROADMAP.md); for now they're labelled stubs.
+const FUTURE: ReadonlyArray<readonly [string, string]> = [
+  ['Unlock towers', 'M2 — all three towers already available'],
+  ['Unlock heroes', 'M6 — only the Ravager exists in the slice'],
+  ['Star levels', 'M8 — star system not yet built'],
+  ['Mastery levels', 'M8 — mastery not yet built'],
+  ['Grant equipment', 'M9 — equipment not yet built'],
+  ['Force prestige', 'M12 — prestige not yet built'],
+];
+
+export function DebugPanel(): JSX.Element {
+  const game = useSyncExternalStore(subscribeActiveGame, getActiveGame, getActiveGame);
+  const save = meta.use();
+  const [open, setOpen] = useState(true);
+  const [, force] = useReducer((x: number) => x + 1, 0);
+  const [cardId, setCardId] = useState(CARD_POOL[0].id);
+
+  const inRun = game !== null;
+  const run = (fn: (g: Game) => void): void => {
+    const g = getActiveGame();
+    if (g) {
+      fn(g);
+      force();
+    }
+  };
+
+  return (
+    <div className="debug-panel">
+      <div className="debug-head">
+        <span className="t">🐛 DEBUG</span>
+        <button onClick={() => setOpen((o) => !o)}>{open ? '–' : '+'}</button>
+        <button
+          title="Disable debug and reload"
+          onClick={() => {
+            disableDebug();
+            location.reload();
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
+      {open && (
+        <div className="debug-body">
+          <div className="debug-sec">
+            <div className="h">Meta / Save · {save.shards} ◆</div>
+            <div className="debug-row">
+              <button onClick={() => meta.debugAddShards(100)}>+100 ◆</button>
+              <button onClick={() => meta.debugAddShards(1000)}>+1000 ◆</button>
+              <button onClick={() => meta.debugMaxUpgrades()}>Max upgrades</button>
+            </div>
+            <div className="debug-row">
+              <button onClick={() => meta.backupNow()}>Backup</button>
+              <button
+                onClick={() => {
+                  if (confirm('Reset save? (a backup is kept)')) meta.reset();
+                }}
+              >
+                Reset save
+              </button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">Run control {inRun ? '' : '— start a run'}</div>
+            <div className="debug-row">
+              <button
+                className={game?.god ? 'on' : ''}
+                disabled={!inRun}
+                onClick={() => run((g) => (g.god = !g.god))}
+              >
+                God
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugRefillIntegrity())}>
+                Full HP
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugReviveHero())}>
+                Revive hero
+              </button>
+            </div>
+            <div className="debug-row">
+              {[1, 2, 4].map((s) => (
+                <button
+                  key={s}
+                  className={game?.timeScale === s ? 'on' : ''}
+                  disabled={!inRun}
+                  onClick={() => run((g) => (g.timeScale = s))}
+                >
+                  ×{s}
+                </button>
+              ))}
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSkipWave())}>
+                Skip wave
+              </button>
+            </div>
+            <div className="debug-row">
+              <button disabled={!inRun} onClick={() => run((g) => g.debugWin())}>
+                Win
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugLose())}>
+                Lose
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugOpenDraft())}>
+                Open draft
+              </button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">Economy & spawning (run)</div>
+            <div className="debug-row">
+              <button disabled={!inRun} onClick={() => run((g) => g.debugAddBiomass(500))}>
+                +500 biomass
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugAddBiomass(2000))}>
+                +2000
+              </button>
+            </div>
+            <div className="debug-row">
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('runner', 5))}>
+                5 Runners
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('brute', 3))}>
+                3 Brutes
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('tyrant', 1))}>
+                Boss
+              </button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">Force card</div>
+            <div className="debug-row">
+              <select value={cardId} onChange={(e) => setCardId(e.target.value)}>
+                {CARD_POOL.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.rarity})
+                  </option>
+                ))}
+              </select>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugApplyCard(cardId))}>
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">Future systems (not in slice)</div>
+            {FUTURE.map(([label, note]) => (
+              <div key={label} className="debug-row" style={{ alignItems: 'center' }}>
+                <button disabled title={note} style={{ minWidth: 118 }}>
+                  {label}
+                </button>
+                <span className="debug-note">{note}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
