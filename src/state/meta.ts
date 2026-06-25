@@ -1,9 +1,16 @@
 // Permanent (meta) progression: shards, capped upgrades, and run records.
-// Persisted through SaveStore; exposed to React as a reactive store.
+// Persisted through SaveStore; exposed to React as a reactive store. Also fronts
+// the save-management surface (export/import/backup) and debug seeding.
 
 import { createStore } from './store';
-import { SaveStore } from '../save/saveStore';
-import type { SaveData } from '../save/saveStore';
+import {
+  SaveStore,
+  defaultSave,
+  parseImport,
+  serializeExport,
+} from '../save/saveStore';
+import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
+import { downloadText, readTextFile } from '../save/saveFile';
 import { ECON, META_UPGRADES } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type { MetaModifiers } from '../core/types';
@@ -87,8 +94,68 @@ export const meta = {
     return { shardsEarned, newBest };
   },
 
+  // ── Save management ──────────────────────────────────────────────────────
+
+  exportToFile(): void {
+    const date = new Date().toISOString().slice(0, 10);
+    downloadText(`assimilate-save-${date}.json`, serializeExport(store.get()));
+  },
+
+  /** Validate + apply an imported save string. Backs up the current save first. */
+  importText(text: string): ImportResult {
+    const result = parseImport(text);
+    if (!result.ok) return result;
+    saveStore.backup(); // non-destructive: keep the pre-import state recoverable
+    persist(result.data);
+    return result;
+  },
+
+  async importFromFile(file: File): Promise<ImportResult> {
+    try {
+      return this.importText(await readTextFile(file));
+    } catch {
+      return { ok: false, error: 'Could not read the file.' };
+    }
+  },
+
+  backupNow(): BackupMeta | null {
+    return saveStore.backup();
+  },
+
+  listBackups(): BackupMeta[] {
+    return saveStore.listBackups();
+  },
+
+  restoreBackup(id: string): boolean {
+    const data = saveStore.restoreBackup(id);
+    if (!data) return false;
+    store.set(data);
+    return true;
+  },
+
+  /** Wipe permanent progress — but back it up first so it's recoverable. */
   reset(): void {
-    saveStore.reset();
-    persist(saveStore.load());
+    saveStore.backup();
+    persist(defaultSave());
+  },
+
+  // ── Debug seeding (used by the debug panel; harmless no-ops otherwise) ────
+
+  debugAddShards(n: number): void {
+    const save = store.get();
+    persist({ ...save, shards: Math.max(0, save.shards + n) });
+  },
+
+  debugSetUpgrade(id: string, level: number): void {
+    const def = META_UPGRADES.find((u) => u.id === id);
+    if (!def) return;
+    const lvl = Math.max(0, Math.min(def.maxLevel, Math.floor(level)));
+    persist({ ...store.get(), upgrades: { ...store.get().upgrades, [id]: lvl } });
+  },
+
+  debugMaxUpgrades(): void {
+    const upgrades: Record<string, number> = {};
+    for (const u of META_UPGRADES) upgrades[u.id] = u.maxLevel;
+    persist({ ...store.get(), upgrades });
   },
 };

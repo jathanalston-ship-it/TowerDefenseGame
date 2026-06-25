@@ -1,5 +1,6 @@
 import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
+import { SaveManager } from './SaveManager';
 
 export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
   const save = meta.use();
@@ -50,6 +51,8 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
       </div>
 
       <MetaShop />
+
+      <SaveManager />
 
       <div className="panel" style={{ color: 'var(--muted)', fontSize: 13 }}>
         <b style={{ color: 'var(--text)' }}>How to play.</b> Place towers on the lit cells beside
