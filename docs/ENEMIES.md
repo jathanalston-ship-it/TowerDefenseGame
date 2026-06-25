@@ -1,0 +1,260 @@
+# ENEMIES.md — Enemy Factions (canonical spec)
+
+The hostile ecosystems the hive assimilates. Companion to `TOWERS.md`,
+`HEROES.md`, `CARDS.md`, `ECONOMY.md`. Five factions, each a **build-check**: its
+mechanics *punish* one approach and *reward* another, so a varied run forces a
+varied build (anti-homogenization, `DESIGN.md §15 risk #4`).
+
+> **Design throughline:** factions are not just reskins with more HP — each is a
+> **puzzle with a preferred answer**. Procedural stages mix factions, and which
+> faction dominates a biome **rotates the optimal build**, which is the engine of
+> long-term build variety. Each faction also **farms a different currency**
+> (`ECONOMY.md`), giving players a reason to choose where to fight.
+
+---
+
+## Faction quick-reference
+
+| Faction | Fantasy | Punishes | Rewards (build) | Farms |
+|---|---|---|---|---|
+| **Parasites** | swarming infestation | single-target | AoE, DoT-spread, summon-blocking | Biomass, Mutation Fragments |
+| **Machine Cult** | armored techno-zealots | pure DoT, crit-without-pen | armor-pen, **Shred**, Corrosion, burst | Equipment Components |
+| **Corporate Security** | tactical anti-tower elites | static/one-note play | CC, burst, heroes, anti-air | Equipment Components, Hero Essence |
+| **Hive Organisms** | regenerating bio-titans | burst-only, mono-damage | DoT, execute, multi-type, flexibility | Biomass, Genome Samples |
+| **Neural Aberrations** | reality-bending psychics | over-reliance on one system | redundancy, heroes, sustain, cleanse | Neural Fragments |
+
+---
+
+## 1. PARASITES — *the infestation*
+
+**Fantasy.** A self-multiplying tide of chitinous vermin: individually trivial,
+collectively a drowning wave. The ecosystem's immune response gone cancerous.
+
+**Basic enemies.**
+- **Skitterling** — tiny, fast melee; always in packs. Trivial alone, lethal en masse.
+- **Burrower** — tunnels and re-emerges mid-lane, **skipping path segments** (bypasses
+  front-loaded defenses).
+- **Bloatling** — slow sac that **bursts into 3 Skitterlings** on death.
+
+**Elite enemies.**
+- **Brood Host** — periodically spawns Skitterlings; killing it **stops the spawns**
+  (a priority target).
+- **Hollow Carrier** — **immune until the parasite swarm around it is cleared** (its
+  escorts are its shield).
+
+**Boss — The Progenitor.** A mountainous egg-sac that floods the lane with parasites,
+**splits into two** at 50% HP, and accelerates spawns as it dies. A DPS-vs-spawn race.
+
+**Mechanics.** Multiply / split / swarm-overwhelm / path-skip / escort-shielding. The
+threat is *density*, not individual durability.
+
+**Visual identity.** Writhing yellow-brown chitin, glistening egg-sacs, twitching
+mandibles, skittering masses; the lane *crawls*.
+
+**Rewards.** High **Biomass** (kill volume) and **Mutation Fragments** (rampant
+mutating biology). The go-to farm for fueling the card pool.
+
+**Scaling behavior.** **Count** scales hard with depth (more, denser packs); individual
+HP scales slowly. Deep runs = walls of bodies.
+
+**Build pressure.** *Punishes* single-target (Needle Spitter alone drowns). *Rewards*
+AoE (Bone Mortar), DoT-spread (Parasite Nest — a mirror match), and **summon
+body-blocking** (Shepherd's Flock). **Plague** clears them wholesale.
+
+---
+
+## 2. MACHINE CULT — *the armored faithful*
+
+**Fantasy.** A doomsday cult of flesh-fused machines worshipping the old corporate
+gods of steel. Slow, shielded, self-repairing, relentless.
+
+**Basic enemies.**
+- **Drone Acolyte** — armored walker; **plinks your towers** from range.
+- **Censer-Bot** — heavy frontal armor; **shields allies behind it** (line-of-cover).
+- **Sparkhound** — fast leaper that **disables a tower** for a few seconds on contact.
+
+**Elite enemies.**
+- **Reclaimer** — **repairs and shields nearby machines**; must die first or the pack
+  is unkillable.
+- **Aegis Frame** — enormous **frontal shield: immune from the front** — needs flank,
+  AoE, or pierce.
+
+**Boss — The Forgemind.** A cathedral-walker that deploys **shield domes**, **repairs**,
+and summons drones; its **armor regenerates** unless met with penetration or Corrosion.
+
+**Mechanics.** Armor + shields + repair + tower-disable + directional immunity. A
+sustained-mitigation puzzle.
+
+**Visual identity.** Chrome-and-bone zealot machines, glowing cult sigils, drifting
+incense smoke, ritual plating, candle-lit optics.
+
+**Rewards.** **Equipment Components** (mechanical salvage) and the best **gear** drop
+rates. The faction you farm for itemization.
+
+**Scaling behavior.** **Armor & shield values** scale steeply with depth → raw damage
+stalls; **penetration becomes mandatory** deep.
+
+**Build pressure.** *Punishes* pure DoT (shields soak, armor mitigates) and crits
+without penetration. *Rewards* Kinetic penetration + **Shred** (Needle Spitter + Bone
+Mortar melts armor), Corrosion (armor strip), and burst that pops shields.
+
+---
+
+## 3. CORPORATE SECURITY — *the professionals*
+
+**Fantasy.** Sleek, disciplined private military — the people who *made* the hive in a
+lab and want their asset back. They fight smart and target your infrastructure.
+
+**Basic enemies.**
+- **Enforcer** — balanced armored trooper; the reliable backbone.
+- **Riot Drone** — advancing **shield wall** that blocks projectiles from the front.
+- **Recon Flyer** — **flying** (only anti-air towers/heroes hit it); **tags towers**
+  for a damage-taken debuff.
+
+**Elite enemies.**
+- **Breacher** — rushes and **EMPs a tower** (disables it) — forces reactive target
+  priority and repositioning.
+- **Field Commander** — buffs nearby units and **calls reinforcements** (extra spawns).
+
+**Boss — "Golden Parachute" (CEO Mech).** A heavily-armed executive frame: **EMP
+bursts** (mass tower-disable), deployable turrets, shields, and **airstrikes on your
+towers**; each phase swaps tactics.
+
+**Mechanics.** Anti-tower (EMP/disable), **flyers** (air coverage), reinforcements,
+unit buffs, board pressure. Punishes a passive, set-and-forget defense.
+
+**Visual identity.** Neon-trimmed riot tech, holographic corp logos, clean lethal
+drones — a deliberate cold contrast to the wet bio-horror.
+
+**Rewards.** **Equipment Components** + **Hero Essence** (assimilating elite operatives)
++ strong gear. The faction for hero progression.
+
+**Scaling behavior.** Gains *more abilities and reinforcements* with depth (tactical
+escalation), not just bigger numbers.
+
+**Build pressure.** *Punishes* static/one-note builds and no anti-air. *Rewards* CC
+(Neural lock the Breachers), **heroes** (mobile, harder to EMP, kill priority targets),
+burst, and anti-air coverage. **Mind Rot / hijack** turns their elites against them.
+
+---
+
+## 4. HIVE ORGANISMS — *the rival*
+
+**Fantasy.** A competing rogue hive — bigger, older, hungrier. The mirror of what *you*
+are becoming. Tanky bio-titans that regenerate and adapt.
+
+**Basic enemies.**
+- **Lumberer** — huge, slow, high-HP tank that **regenerates** out of combat.
+- **Spitter Maw** — ranged **acid glob** at your towers (zoning you).
+- **Crawling Mass** — medium bruiser that **splits into two** on death.
+
+**Elite enemies.**
+- **Regenerator** — **heals rapidly unless suffering DoT** — out-damage it or rot it.
+- **Mutagen Beast** — **gains a random buff each wave segment it survives** (it adapts
+  if you stall).
+
+**Boss — The Apex Rival.** A colossal rival titan: massive HP, strong regen, and
+**mutates a new resistance to your most-used damage type each phase** — explicitly
+forcing damage diversity.
+
+**Mechanics.** Regeneration + splitting + **adaptive resistance**. Punishes slow,
+narrow, or bursty-but-gappy damage.
+
+**Visual identity.** Building-sized fleshy horrors, pulsing tumors, many mouths,
+visibly knitting wounds, dripping ichor — grotesque and awe-inspiring.
+
+**Rewards.** Huge **Biomass** + **Genome Samples** (rival genetics → tower stars) +
+**Mutation Fragments**. The faction for tower progression.
+
+**Scaling behavior.** HP and regen scale hard; **adaptive resistances** intensify with
+depth (the boss reads your build faster).
+
+**Build pressure.** *Punishes* burst-only (regen heals the gaps) and mono-damage (boss
+adapts). *Rewards* DoT (Infection/Corrosion ignore regen), execute (Needle Spitter),
+**sustained multi-type** damage, and flexible builds that can pivot damage types.
+
+---
+
+## 5. NEURAL ABERRATIONS — *the wrongness*
+
+**Fantasy.** Things that should not exist — psychic, reality-bending horrors born from
+the assimilation of too many minds. They don't fight your army; they **edit it**.
+
+**Basic enemies.**
+- **Phantasm** — periodically **phases out** (untargetable/immune in pulses).
+- **Static Wisp** — floats and **jams a random tower's targeting** periodically.
+- **Echo** — on death **splits into illusory copies** (only one is real).
+
+**Elite enemies.**
+- **Mindflayer** — **aura that debuffs your towers** (−damage/−range) within range.
+- **Paradox** — **reflects a % of damage** and briefly **reverses a tower's targeting**.
+
+**Boss — The Dreaming God.** A reality-warper that, by phase, **disables random systems**
+(a tower type, a card category, or a hero's abilities), spawns illusions, and **inverts
+your buffs into debuffs**. Beating it demands redundancy.
+
+**Mechanics.** Phase/untargetable, tower jam/debuff, illusions, **system-disable**,
+buff-inversion. Punishes any single point of failure.
+
+**Visual identity.** Non-euclidean glitch-flesh, shifting geometry, drifting eyes and
+static, impossible colors, the lane *tearing* at the edges.
+
+**Rewards.** The **primary source of Neural Fragments** (+ Mutation Fragments). The
+faction you farm for the Hive Tree.
+
+**Scaling behavior.** More frequent/longer disables and phases with depth — it
+increasingly *interferes* rather than out-statting you.
+
+**Build pressure.** *Punishes* over-reliance on one tower/system (it disables them) and
+passive towers (jammed). *Rewards* **redundancy** (multiple damage sources/classes),
+**heroes** (autonomous, harder to jam), Vital **sustain/cleanse**, and effects that
+don't care about targeting (auras, DoT already applied).
+
+---
+
+## 6. Cross-faction interactions (the variety engine)
+
+Procedural stages **mix factions**, and the combinations are where build diversity is
+forced:
+
+- **Machine Cult + Hive Organisms** — armor *and* regen in one run → you need
+  **penetration AND DoT**. Neither a pure-crit nor pure-poison build clears it.
+- **Parasites + a Reclaimer (Machine)** — a swarl shielded/repaired → AoE *plus* a way
+  to kill the healer → priority-target discipline.
+- **Corporate Breachers + Neural jam** — your towers get EMP'd *and* jammed → heroes and
+  redundancy carry, not a single super-tower.
+- **Hive adaptive boss + Neural disable** — can't lean on one damage type *or* one
+  system → the most flexible builds win.
+
+**Anti-homogenization in practice:** because the dominant faction **rotates by biome/
+stage**, the "best build" rotates with it. A run that punishes your favorite build is a
+*feature* — it's the game asking you to draft differently (`CARDS.md`) and field a
+different 3-of-5 (`TOWERS.md`). The faction→currency mapping also gives **player agency**
+over the grind: need gear → hit Machine Cult biomes; need Hive Tree → hit Neural
+biomes; need cards → hit Parasite/Hive biomes.
+
+**Reaction answers (designed counters):**
+
+| Threat | Designed answer |
+|---|---|
+| Machine armor/shields | **Shred** (Kinetic+Caustic), Corrosion strip |
+| Parasite/Hive swarms & regen | **Plague** (Caustic+Viral), DoT spread |
+| Corporate elites & commanders | **Mind Rot**/hijack (Viral+Neural), CC, burst |
+| Neural disables & phases | **redundancy** + heroes + **Synaptic Bloom** sustain |
+| Hive adaptive resistance | multi-type damage + execute + build pivots |
+
+---
+
+## 7. Scaling & reward summary
+
+| Faction | Threat axis (scales) | Primary currency | Secondary |
+|---|---|---|---|
+| Parasites | density/count | Biomass | Mutation Fragments |
+| Machine Cult | armor/shields | Equipment Components | gear |
+| Corporate Security | abilities/anti-tower | Equipment Components | Hero Essence |
+| Hive Organisms | HP/regen/adaptation | Genome Samples | Biomass, Mutation Fragments |
+| Neural Aberrations | disables/phases | Neural Fragments | Mutation Fragments |
+
+All five appear from early game (in mild form) and escalate along their *own* axis, so
+the *kind* of challenge keeps changing across the 1000-hour curve — not just the size of
+the health bars.

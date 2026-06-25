@@ -36,7 +36,7 @@ profile):
   active players micro abilities/positioning for more value; casual players let the
   AI drive and still benefit (pillar #5: active beats idle, idle still pays).
 
-Each hero follows `PROGRESSION.md`: four permanent axes — **Stars** (hero shards,
+Each hero follows `PROGRESSION.md`: four permanent axes — **Stars** (Hero Essence,
 mechanics + ★5/★8 forks), **Mastery** (infinite log), **Class** (shared pool +
 keystones), **Equipment** (`EQUIPMENT.md`). Star stat per level is light (+8%); the
 point of a star is a *mechanic*.
@@ -229,7 +229,7 @@ toward many other combinations.
 ## Hero slot progression
 
 You command **1 → 2 → 3** heroes. Going wide is a *step-change*, not a stat bump, but
-carries an opportunity cost (shards/gear spread thinner), so 2-hero focus vs 3-hero
+carries an opportunity cost (Hero Essence/gear spread thinner), so 2-hero focus vs 3-hero
 breadth is a real choice.
 
 ### Slot 1 — from the start
@@ -240,7 +240,7 @@ before adding more.
 ### Slot 2 — Phase 1 unlock (~2–15h)
 - **Condition:** defeat the first major boss (the **Stage-5 Apex**) **and** purchase
   the **"Twin Avatar"** node in the Hive Tree (Roster branch).
-- **Cost:** ~one early Hive-Tree investment in Essence (intentionally cheap — this is
+- **Cost:** ~one early Hive-Tree investment in Neural Fragments (intentionally cheap — this is
   a Phase-1 "the game opens up" moment).
 - **Impact:** two heroes = first real hero *synergy* (e.g., Ravager dives while
   Shepherd keeps him alive; or Overseer disrupts while Ravager executes). Active
@@ -249,8 +249,8 @@ before adding more.
 ### Slot 3 — Speciation prestige unlock (~15–80h)
 - **Condition:** reach **Speciation** (Prestige Layer 2) — slot 3 is one of its
   headline rewards (`DESIGN.md §12`, `PROGRESSION.md §5.2`) — then spend a small
-  **Genome Threads** cost to socket it.
-- **Cost:** prestige milestone + minor Genome Threads.
+  **Splice Threads** cost to socket it.
+- **Cost:** prestige milestone + minor Splice Threads.
 - **Impact:** the full damage/sustain/control trinity (or a 2-class fusion build with
   a flex hero). Combined with multi-lane (Hivemind) later, a third hero becomes
   essential for covering parallel lanes.
@@ -261,7 +261,7 @@ before adding more.
 > rather than to raw grind.
 
 ### The "focus vs breadth" tension (anti-power-creep)
-More heroes ≠ strictly better: hero shards, gear, mastery, and your attention are
+More heroes ≠ strictly better: Hero Essence, gear, mastery, and your attention are
 finite. Two highly-invested heroes can out-perform three thin ones in many builds,
 so the slot count is a *build lever*, not a free power-up — preserving meaningful
 choice instead of "always run 3 maxed."

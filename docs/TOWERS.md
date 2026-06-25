@@ -412,7 +412,7 @@ per wave) · *Power Grid* (overcharge affects +1 ring of towers) · *Vital Reson
 card (overcharged towers' reactions hit far harder) — turns any 2-class pair into a
 reaction powerhouse.
 
-**Example mutation interactions.** *Vital Lineage* strain (Harvest also drops shards
+**Example mutation interactions.** *Vital Lineage* strain (Harvest also drops Genome Samples
 faster — meta-progression accelerator) · Corruption **Sudden Death** (Nucleus has
 −50% integrity) → Heart fork + Living Hive becomes the only way to survive, a
 build-defining response.

@@ -1,0 +1,350 @@
+# CARDS.md — Roguelite Card Drafting (canonical spec)
+
+The in-run roguelite layer. Companion to `DESIGN.md §6.3`, `TOWERS.md`,
+`HEROES.md`, `ECONOMY.md`. **Cards are temporary (reset every run) and are the
+primary source of run-to-run build diversity.** The *pool* you draw from is
+permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-run.
+
+> **Core split:** the drafted **deck is temporary** (volatile run identity); what's
+> **permanent** is which cards are *unlocked into your pool*, their *weights*, and
+> your *draft upgrades* — all bought with **Mutation Fragments**. This keeps runs
+> wild and experimental without inflating permanent power (`PROGRESSION.md §1`).
+
+---
+
+## 1. Draft mechanics
+
+- **Draft cadence.** After each wave (and at **Gene Lab** route nodes) you draft
+  **1 of 3** cards. Over a ~35-wave run that's ~20–35 cards — your temporary build.
+- **Stacking.** Duplicate cards **stack** (additively within their effect) — drafting
+  toward a stack is a core strategy. A few Legendaries are unique (no stack).
+- **Reroll** — reroll the 3 options (limited charges; +charges from economy cards /
+  Hive Tree / Mutation Fragments).
+- **Banish** — remove a card from the pool *for this run* (thin your deck toward a
+  plan). Charges from progression.
+- **Gene Lab nodes** — bonus draft with a guaranteed rarity floor.
+- **Reset.** The deck, rerolls, banishes, and any run-stack effects **wipe at run
+  end**. Only the *outcomes* (currencies, mastery, codex) persist.
+
+---
+
+## 2. Rarity system & weighting
+
+Four rarities, escalating from *simple stat* → *rule-bending*:
+
+| Rarity | Design role | Base draw weight (early) |
+|---|---|---|
+| **Common** | one clean effect; the build's mortar | 64% |
+| **Rare** | stronger / two-part; first synergy hooks | 28% |
+| **Epic** | build-shaping; category payoffs | 7% |
+| **Legendary** | build-defining / rule-bending (relic-lite, temporary) | 1% |
+
+**Weighting shifts (so late runs feel richer, not same-y):**
+- **Run depth** — each wave nudges odds toward higher rarity (≈ +0.4% Epic, +0.1%
+  Legendary per wave); deep endless runs are Legendary-rich.
+- **Mutation Fragments (permanent)** — buy global **rarity-weight** upgrades and
+  per-card **weight** boosts (make a beloved card appear more).
+- **In-run luck** — cards/relics/corruptions that raise rarity odds (a draftable axis).
+- **Pity timers** — guaranteed Epic+ every N picks without one; a Legendary pity over
+  a run so a build-around eventually shows.
+- **Gene Lab / boss picks** — guaranteed rarity floors at key nodes.
+
+**No purchase of power.** Rarity is earned via play/depth/Mutation Fragments — never
+bought with money (pillar: power is never sold).
+
+---
+
+## 3. Progression interactions
+
+How the permanent game shapes the temporary draft (all via **Mutation Fragments**
+unless noted):
+
+- **Pool unlocks** — you start with a *subset* of cards; spend Mutation Fragments to
+  **unlock more cards into the pool** (progressive disclosure → the draft deepens for
+  months without overwhelming new players).
+- **Card weights** — raise a specific card's draw weight (steer toward your style).
+- **Draft upgrades** — buy permanent **+reroll**, **+banish**, **draft 1-of-4**, and a
+  rare **second pick** node.
+- **Card Mastery** — drafting/using a card earns it Mastery; at thresholds its base
+  effect ticks up *and* a cosmetic foil unlocks (infinite, gentle — `PROGRESSION §1`).
+- **Cross-system hooks** — cards reference everything: **classes/statuses** (Fracture/
+  Corrosion/Infection/Disruption/Mark), **reactions** (Shred/Plague/Mind Rot/…),
+  **towers** (per-tower forks), **heroes** (abilities), and **economy** (biomass).
+- **Mutation Strains** — Mutation Fragments also unlock run-long **Strains** (the
+  slower macro-draft, `DESIGN §6.4`); the **Mutation Synergy** card category amplifies
+  them and reactions.
+- **Corruptions** — risk/reward enemy buffs improve card rarity weighting in-run.
+
+---
+
+## 4. Synergy architecture (why cards *heavily* synergize)
+
+Three layered synergy engines guarantee builds compound rather than add:
+
+1. **Category stacking** — cards share a **category tag**; many cards buff *their whole
+   category* ("+X% to all Poison effects"), so going deep in one category snowballs.
+2. **Cross-category reactions** — categories are tuned to pair with the class reaction
+   matrix: **Poison + AoE = spread plagues**, **Crit + Tower Buff = burst engines**,
+   **CC + everything = vulnerability multiplies it**, **Summons + Economy = self-funding
+   army**, **Mutation Synergy = amplifies all reactions**.
+3. **Build-around Legendaries** — each Legendary defines an archetype that *lower-rarity
+   cards feed* (e.g., *Extinction Strain* turns every Poison common into a payoff).
+
+**The nine categories** (Poison spans Infection+Corrosion DoT):
+
+| Tag | Category | Anchors | Pairs with |
+|---|---|---|---|
+| POI | Poison (DoT) | Parasite Nest, Bone Mortar, Plague | AoE, Mutation |
+| SUM | Summons | Parasite Nest, Shepherd, Vital | Economy, AoE |
+| ECO | Economy | Flesh Reactor, Harvest | Summons, Tower Buff |
+| CRIT | Crits | Needle Spitter, Ravager, Kinetic | Tower Buff, CC |
+| AOE | AoE | Bone Mortar | Poison, CC |
+| CC | Crowd Control | Neural Obelisk, Overseer | everything |
+| HERO | Hero Buffs | all heroes | CC, Crit |
+| TWR | Tower Buffs | all towers | Crit, Economy |
+| MUT | Mutation Synergy | reactions, strains | every category |
+
+---
+
+## 5. Card catalog (200)
+
+Effects are per-rarity tier: Common = one clean effect · Rare = stronger/two-part ·
+Epic = build-shaping · Legendary = rule-bending. All values are starting points.
+
+### 5.1 Common (50)
+
+| # | Card | Cat | Effect |
+|---|---|---|---|
+| 1 | Toxic Coating | POI | +15% Infection/Corrosion damage. |
+| 2 | Virulent Spores | POI | Infection spreads to +1 enemy. |
+| 3 | Caustic Edge | POI | Attacks apply +1 Corrosion stack. |
+| 4 | Festering Wounds | POI | DoT duration +20%. |
+| 5 | Necrotic Touch | POI | Poisoned enemies take +10% damage. |
+| 6 | Spore Carriers | POI | Crawlers apply +1 Infection stack. |
+| 7 | Brood Boost | SUM | +1 max Crawler. |
+| 8 | Hardened Shells | SUM | Summons +25% HP. |
+| 9 | Sharp Mandibles | SUM | Summons +20% damage. |
+| 10 | Rapid Gestation | SUM | Summon spawn rate +15%. |
+| 11 | Extra Drone | SUM | Shepherd starts with +1 drone. |
+| 12 | Hive Call | SUM | Summons briefly taunt nearby enemies. |
+| 13 | Efficient Metabolism | ECO | +10% biomass from kills. |
+| 14 | Frugal Growth | ECO | Tower build cost −8%. |
+| 15 | Compost | ECO | Selling/replacing towers refunds +25%. |
+| 16 | Biomass Cache | ECO | Start each wave with bonus biomass. |
+| 17 | Scavenger | ECO | Elite kills drop +20% biomass. |
+| 18 | Interest | ECO | Hold ≥ threshold biomass → +5%/wave. |
+| 19 | Keen Edge | CRIT | +8% crit chance. |
+| 20 | Brutal Force | CRIT | +25% crit damage. |
+| 21 | Fracture Point | CRIT | Crits apply +1 Fracture. |
+| 22 | Steady Aim | CRIT | +10% crit chance vs full-HP enemies. |
+| 23 | Exposed | CRIT | Crits ignore 15% armor. |
+| 24 | Bloodlust | CRIT | Kills grant +2% crit chance (resets each wave). |
+| 25 | Wide Blast | AOE | Splash radius +15%. |
+| 26 | Shrapnel | AOE | Bone Mortar shells gain +1 mini-splash. |
+| 27 | Chain Spark | AOE | Attacks chain to +1 enemy. |
+| 28 | Concussive | AOE | AoE hits apply a brief slow. |
+| 29 | Overspill | AOE | Overkill damage splashes to nearby. |
+| 30 | Numbing Field | CC | Slows +10% stronger. |
+| 31 | Synaptic Static | CC | Neural field radius +15%. |
+| 32 | Heavy Rounds | CC | Attacks have 10% chance to stagger. |
+| 33 | Sticky Spores | CC | Poisoned enemies move 10% slower. |
+| 34 | Disorient | CC | Disrupted enemies +8% vulnerability. |
+| 35 | Adrenaline | HERO | Hero +12% attack speed. |
+| 36 | Thick Hide | HERO | Hero +20% max HP. |
+| 37 | Combat Stims | HERO | Hero ability cooldowns −10%. |
+| 38 | Killing Spirit | HERO | Hero +15% damage. |
+| 39 | Quick Recovery | HERO | Hero revive timer −20%. |
+| 40 | Reinforced Barrels | TWR | Towers +12% damage. |
+| 41 | Long Sight | TWR | Tower range +12%. |
+| 42 | Overdrive | TWR | Tower attack speed +10%. |
+| 43 | Targeting Chip | TWR | Towers prioritize highest-HP target. |
+| 44 | Twin Mount | TWR | A chosen tower occasionally fires +1 projectile. |
+| 45 | Adaptive Cells | MUT | +10% to your active Mutation Strain's effect. |
+| 46 | Reactive Genes | MUT | Reactions deal +12% damage. |
+| 47 | Catalyst Primer | MUT | Statuses apply 10% faster. |
+| 48 | Risk Tolerance | MUT | +5% rewards per active corruption tier. |
+| 49 | Splice | MUT | Gain +1 Mutation Strain evolution this run. |
+| 50 | Volatile Mix | MUT | Enemies with 2 statuses take +10% damage. |
+
+### 5.2 Rare (50)
+
+| # | Card | Cat | Effect |
+|---|---|---|---|
+| 1 | Plague Vector | POI | Infection spreads to +2 and on contact between enemies. |
+| 2 | Acidic Decay | POI | Corrosion also reduces enemy healing 50%. |
+| 3 | Compounding Toxin | POI | Poison stacks uncapped (each new stack 20% weaker). |
+| 4 | Epidemic Onset | POI | Infection ramp starts at +30%. |
+| 5 | Corrosive Synergy | POI | Corrosion+Infection on a target → +25% Plague damage. |
+| 6 | Toxic Bloom | POI | Poisoned deaths leave a small poison pool. |
+| 7 | Apex Brood | SUM | +2 Crawlers; they apply Corrosion. |
+| 8 | Necromantic Hive | SUM | 25% of enemies slain near summons rise as brief Crawlers. |
+| 9 | Pack Tactics | SUM | Summons +5% damage per nearby summon. |
+| 10 | Elite Drone | SUM | Shepherd's strongest drone gains an ability. |
+| 11 | Living Wall | SUM | Summons block more and reflect contact damage. |
+| 12 | Hatch Frenzy | SUM | Burst-spawn 3 Crawlers at wave start. |
+| 13 | Compound Interest | ECO | Biomass interest +12%/wave. |
+| 14 | Recycler | ECO | Refund 50% on sold/replaced towers. |
+| 15 | Harvest Engine | ECO | Harvest reactions yield +50% biomass. |
+| 16 | Lean Hive | ECO | −15% all tower costs. |
+| 17 | Surplus Shield | ECO | Overflow biomass becomes a small Nucleus shield. |
+| 18 | Deadeye | CRIT | +18% crit chance, +40% crit damage. |
+| 19 | Executioner | CRIT | Crits +50% vs enemies <30% HP. |
+| 20 | Crit Cascade | CRIT | Crits 20% chance to fire a free shot. |
+| 21 | Armor Breaker | CRIT | Crits strip 30% armor (stacks). |
+| 22 | Lethal Precision | CRIT | Every 5th attack is a guaranteed crit. |
+| 23 | Hemorrhagic Crits | CRIT | Crits apply Infection (enables Hemorrhage). |
+| 24 | Cluster Munitions | AOE | Splash damage +40%. |
+| 25 | Ricochet Matrix | AOE | Chains +2 and lose no damage. |
+| 26 | Detonation | AOE | Killing blows cause a small explosion. |
+| 27 | Saturation Fire | AOE | Bone Mortar fires +1 shell per volley. |
+| 28 | Shockwave | AOE | AoE hits knock back and slow. |
+| 29 | Pierce Protocol | AOE | Projectiles pierce +2 enemies. |
+| 30 | Neural Lockdown | CC | Slows briefly root (0.5s) on a timer. |
+| 31 | Mass Hysteria | CC | Fear/Terror affects +2 enemies. |
+| 32 | Subjugation | CC | +1 hijack cap. |
+| 33 | Vulnerability Field | CC | Disrupted enemies +18% vulnerability. |
+| 34 | Static Chains | CC | Slowed enemies share slow with neighbors. |
+| 35 | Berserk | HERO | Hero +30% damage below 50% HP. |
+| 36 | Warlord's Presence | HERO | Hero aura: nearby towers +15% damage. |
+| 37 | Second Wind | HERO | Hero heals 20% on kill streak. |
+| 38 | Overclocked Abilities | HERO | Hero cooldowns −25%. |
+| 39 | Lifelink | HERO | Hero lifesteal 10%. |
+| 40 | Ultimate Charge | HERO | Hero ult charges 30% faster. |
+| 41 | Heavy Caliber | TWR | Towers +30% damage, −5% attack speed. |
+| 42 | Rapid Fire | TWR | Towers +25% attack speed. |
+| 43 | Precision Optics | TWR | +20% range; +crit vs distant enemies. |
+| 44 | Overload Capacitors | TWR | Every 10th shot deals ×3. |
+| 45 | Adaptive Targeting | TWR | Towers auto-switch to the optimal target type. |
+| 46 | Resonant Frequency | TWR | Adjacent same-class towers +10% each. |
+| 47 | Catalyst Surge | MUT | Reactions +30% and apply a stack of their status. |
+| 48 | Gene Splicer | MUT | Mutation Strain evolves twice as fast. |
+| 49 | Corruptor | MUT | +1 corruption tier; corruption rewards +25%. |
+| 50 | Reactive Plating | MUT | +3% tower damage per distinct status on the field. |
+
+### 5.3 Epic (50)
+
+| # | Card | Cat | Effect |
+|---|---|---|---|
+| 1 | Pandemic | POI | Infection that kills spreads at full strength (no decay). |
+| 2 | Liquefaction | POI | Max-Corrosion enemies take +40% from all sources. |
+| 3 | Patient Zero | POI | First enemy each wave becomes a super-spreader. |
+| 4 | Virulent Cascade | POI | Each poison stack adds +1% to your AoE damage. |
+| 5 | Caustic Detonation | POI | Corrosion pools explode when an enemy dies inside. |
+| 6 | Viral Apex | POI | Plague reaction radius doubled. |
+| 7 | Endless Swarm | SUM | Dead Crawlers respawn after 3s (capped). |
+| 8 | Brood Mother Protocol | SUM | Every 10 kills spawns an elite Crawler. |
+| 9 | Symbiotic Army | SUM | Summons inherit your towers' status types. |
+| 10 | Hive Overmind | SUM | Summons +2% damage per tower on board. |
+| 11 | Devouring Swarm | SUM | Summon kills heal the Nucleus. |
+| 12 | Mitosis | SUM | Summons split into 2 weaker ones on death (once). |
+| 13 | Biomass Singularity | ECO | +100% biomass, but only from elite kills. |
+| 14 | Golden Hive | ECO | Every 5th tower built is free. |
+| 15 | Exponential Growth | ECO | Biomass income +5% per wave survived (compounds). |
+| 16 | Blood Bank | ECO | Convert excess biomass to Nucleus integrity each wave. |
+| 17 | Harvest Doctrine | ECO | Harvest also speeds Genome Sample gain this run. |
+| 18 | Guaranteed Carnage | CRIT | All attacks crit vs Fractured enemies. |
+| 19 | Crit Overflow | CRIT | Crit overkill carries to the next enemy. |
+| 20 | Bloodbath | CRIT | +1% crit damage per crit this wave (resets each wave). |
+| 21 | Headhunter | CRIT | Crits vs elites refund ability cooldowns. |
+| 22 | Precision Reactions | CRIT | Crits double reaction damage. |
+| 23 | Shatterpoint | CRIT | At max Fracture, deal a guaranteed mega-crit. |
+| 24 | Chain Apocalypse | AOE | Chains unlimited, −15% damage per jump. |
+| 25 | Carpet Bomb | AOE | Bone Mortar covers 2× area. |
+| 26 | Nova Core | AOE | Every 8s, a tower emits a damage nova. |
+| 27 | Fragmentation Matrix | AOE | Every kill emits shrapnel (mini-AoE). |
+| 28 | Conflagration | AOE | AoE leaves burning ground. |
+| 29 | Epicenter | AOE | AoE damage scales with number of enemies hit. |
+| 30 | Absolute Lockdown | CC | Neural fields periodically full-stun (1s). |
+| 31 | Mind Control Matrix | CC | Hijacked enemies don't expire. |
+| 32 | Mass Override | CC | Periodically hijack a small group. |
+| 33 | Terror Cascade | CC | Feared enemies spread fear. |
+| 34 | Gravity Well | CC | Slows pull enemies toward a point (cluster for AoE). |
+| 35 | Avatar of War | HERO | Hero aura: all your units +15% damage. |
+| 36 | Untouchable | HERO | Hero −50% damage while abilities on cooldown. |
+| 37 | Twin Cast | HERO | Hero abilities cast twice. |
+| 38 | Bloodthirster | HERO | Hero lifesteal 25%; overheal → shield. |
+| 39 | Apex Frenzy | HERO | Kills extend Frenzy/ult duration. |
+| 40 | Commander | HERO | Hero's class keystones also apply to towers. |
+| 41 | Overcharged Grid | TWR | All towers gain Flesh Reactor overcharge. |
+| 42 | Critical Mass | TWR | Every 20th shot is a map-wide line. |
+| 43 | Class Resonance | TWR | Towers of your most-used class +30%. |
+| 44 | Sentry Protocol | TWR | Towers holding one target ramp +5%/s. |
+| 45 | Hyper-Targeting | TWR | Towers fire at +1 target simultaneously. |
+| 46 | Symbiotic Towers | TWR | Adjacent towers share status types. |
+| 47 | Reaction Chain | MUT | Reactions can trigger a second, different reaction. |
+| 48 | Unstable Genome | MUT | +2 corruption tiers; +75% corruption rewards. |
+| 49 | Hyper-Evolution | MUT | Gain 2 Mutation Strains this run. |
+| 50 | Catalyst Engine | MUT | Each reaction grants +1% run-long damage (stacks). |
+
+### 5.4 Legendary (50)
+
+| # | Card | Cat | Effect (rule-bending) |
+|---|---|---|---|
+| 1 | Extinction Strain | POI | Infection never caps/decays, spreads infinitely; starts 40% weaker. |
+| 2 | Total Corrosion | POI | Corrosion instantly zeroes armor; pools blanket the lane. |
+| 3 | The Rot | POI | All damage becomes spreading Infection (no burst, pure plague). |
+| 4 | Plague God | POI | Plague reactions chain across the entire wave. |
+| 5 | Necrosis Engine | POI | Poisoned deaths emit a poison nova that re-poisons. |
+| 6 | Doomspore | POI | Every enemy spawns pre-infected. |
+| 7 | The Swarm Eternal | SUM | Uncapped summons; they don't die (despawn at wave end). |
+| 8 | Hive Mind | SUM | Any kill has a chance to spawn a Crawler. |
+| 9 | Living Hive | SUM | Summons count as towers (overcharge/auras/adjacency). |
+| 10 | Broodfather | SUM | Spawn a permanent elite boss-ally for the run. |
+| 11 | Devourer Protocol | SUM | Summons that kill grow permanently stronger (run). |
+| 12 | Replication | SUM | Copy your best summon type onto all summon sources. |
+| 13 | Infinite Biomass | ECO | No tower build costs; Nucleus −40% integrity. |
+| 14 | Midas Hive | ECO | Each kill grants biomass = % of its max HP (scales endless). |
+| 15 | Compound Empire | ECO | Biomass income doubles every 10 waves. |
+| 16 | Blood Economy | ECO | Build with Nucleus HP instead of biomass. |
+| 17 | The Great Harvest | ECO | Harvest +300%; elite Harvest fully heals the Nucleus. |
+| 18 | Perfect Strike | CRIT | 100% crit chance; crit damage halved (consistency). |
+| 19 | Critical Singularity | CRIT | Crits chain to all in range at reduced damage. |
+| 20 | Executioner's Law | CRIT | Crits instakill non-bosses <20% HP. |
+| 21 | Infinite Edge | CRIT | Crit damage uncapped, +2% per crit this run. |
+| 22 | Death Mark | CRIT | Needle Spitter's target takes +100% from everything. |
+| 23 | Reaction Crit | CRIT | Reactions always crit; crits trigger reactions. |
+| 24 | Total Saturation | AOE | All towers become AoE; single-target bonuses halved. |
+| 25 | Endless Chain | AOE | Chains never stop/decay (capped per enemy). |
+| 26 | Meteor Doctrine | AOE | Bone Mortar bombards the whole lane continuously. |
+| 27 | Singularity Rounds | AOE | Every 30s spawn a black hole pulling + damaging all. |
+| 28 | Fission | AOE | Each kill explodes for % of nearby enemies' HP. |
+| 29 | Apocalypse Field | AOE | The lane becomes a permanent damage zone scaling with waves. |
+| 30 | Absolute Dominion | CC | Hijack cap removed; all hijacked enemies permanent. |
+| 31 | Time Stop | CC | Periodically freeze the entire wave 2s. |
+| 32 | Puppet Army | CC | Mass Override converts half the wave. |
+| 33 | Event Horizon | CC | A permanent gravity well holds the wave in a kill-zone. |
+| 34 | Mass Vulnerability | CC | All enemies share the highest vulnerability applied. |
+| 35 | Apotheosis | HERO | Hero gains the default abilities of the other two heroes. |
+| 36 | Immortal Avatar | HERO | Hero can't die (downs become brief stuns). |
+| 37 | One-Man Army | HERO | Hero damage ×3; −2 tower slots. |
+| 38 | Echo of War | HERO | Hero abilities trigger a second time at 50%. |
+| 39 | Avatar Ascendant | HERO | Hero's Mastery counts double this run. |
+| 40 | Unified Command | HERO | All heroes share all equipped relic effects. |
+| 41 | Overcharge Singularity | TWR | One tower gets ×5 everything; others −20%. |
+| 42 | Total War | TWR | All towers +100%; build cost ×2. |
+| 43 | Class Ascension | TWR | Your main-class towers re-gain their ★10 signature behavior. |
+| 44 | Perfect Grid | TWR | All towers act as if next to a maxed Flesh Reactor. |
+| 45 | Hivemind Targeting | TWR | All towers focus the Overseer's mark for ×2. |
+| 46 | Replicant Towers | TWR | Your strongest tower's type mirrors to all empty slots. |
+| 47 | Chain Reaction Theory | MUT | Reactions cascade into ALL applicable reactions. |
+| 48 | Apocalypse Genome | MUT | +5 corruption tiers; rewards ×3. |
+| 49 | Living Mutation | MUT | Keep ALL Mutation Strains; evolve each every wave. |
+| 50 | Singularity Catalyst | MUT | Each reaction permanently (run) buffs all reactions +2%. |
+
+---
+
+## 6. Example synergy builds (showcase)
+
+- **Plague Spread** — POI + AOE + MUT: *Extinction Strain* + *Pandemic* + *Caustic
+  Detonation* + *Viral Apex* + *Reaction Chain*. Parasite Nest + Bone Mortar → endless
+  self-spreading **Plague**. Wants Parasites/Hive Organism enemies.
+- **Crit Executioner** — CRIT + TWR + CC: *Perfect Strike*/*Infinite Edge* +
+  *Shatterpoint* + *Death Mark* + *Vulnerability Field*. Needle Spitter + Ravager +
+  Overseer → delete elites/bosses. Wants Machine Cult / Hive bosses.
+- **Endless Swarm** — SUM + ECO: *The Swarm Eternal* + *Living Hive* + *Hive Mind* +
+  *Midas Hive*. Shepherd + Parasite Nest → a self-funding, self-replacing army.
+- **Idle Economy** — ECO + TWR + MUT: *Compound Empire* + *Golden Hive* + *Overcharged
+  Grid* + *Class Resonance*. Flesh Reactor core → snowballs in long/endless runs.
+
+Each archetype is anchored by a Legendary, fed by lower-rarity cards, and *wants*
+different enemy factions (`ENEMIES.md`) — so the optimal draft rotates by run.

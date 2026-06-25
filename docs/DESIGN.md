@@ -71,7 +71,7 @@ Six nested loops, fastest to slowest. The dopamine design goal: **a reward lands
 
 **Loop 2 — Wave (1–3 min).** Survive a wave → earn biomass + a **card draft** → adapt the build → next wave. Tension/release cadence.
 
-**Loop 3 — Run (20–40 min, endless after).** Pick 3 towers + 1–3 heroes → push a procedural stage gauntlet → bank permanent progression (shards, mastery, class XP, essence, gear, codex entries). Death/extraction ends the run; *everything earned persists.*
+**Loop 3 — Run (20–40 min, endless after).** Pick 3 towers + 1–3 heroes → push a procedural stage gauntlet → bank permanent progression (Genome Samples, Hero Essence, mastery, class XP, Neural Fragments, gear, codex entries). Death/extraction ends the run; *everything earned persists.*
 
 **Loop 4 — Session (15–60 min real-time).** Spend earned currencies: raise tower/hero stars, push class levels, buy Hive Tree nodes, craft/equip gear, unlock the next hero. Plan the next run's loadout.
 
@@ -169,7 +169,7 @@ Two run-modifier flavors, both reset per run:
 - **Hive Mutation Strains (player-positive):** a slow-building run-long evolution. At wave milestones you choose a strain to evolve (e.g., *Acid Lineage*, *Vital Lineage*, *Swarm Lineage*) that grants escalating effects — a secondary, slower draft alongside cards that defines the run's *macro* direction.
 - **Corruptions (risk/reward gambling):** at Mutation Altars you may *voluntarily* apply enemy buffs (e.g., "enemies +40% HP," "elites split on death," "fog hides paths") in exchange for multiplied rewards and rarer card weighting. **This is the dopamine-rich risk valve** — pushing corruption depth is its own metagame, and it's the seed of the late-game Corruption Stacking prestige system (§12).
 
-> **Why cards + mutations are temporary but progression persists:** the run is a *generator*. Volatile, high-variance fun (cards/corruptions) lives inside the run; durable growth (shards, mastery, class XP, essence, gear, codex) is the *output* the run deposits into permanence. This separation lets us make the in-run layer wild and experimental without destabilizing the long-term economy.
+> **Why cards + mutations are temporary but progression persists:** the run is a *generator*. Volatile, high-variance fun (cards/corruptions) lives inside the run; durable growth (Genome Samples, Hero Essence, mastery, class XP, Neural Fragments, gear, codex) is the *output* the run deposits into permanence. This separation lets us make the in-run layer wild and experimental without destabilizing the long-term economy.
 
 ---
 
@@ -197,7 +197,7 @@ Deliberate coverage: one of each TD archetype (burst, AoE, control, ramp/DoT, su
 
 Each tower advances on **three independent permanent tracks**, exactly as specified:
 
-**A) Stars (1→10) — via Tower Shards.** Each star unlocks an **ability or mechanic** (mechanics-first), not raw stats. Generic star ladder (each tower themes its own):
+**A) Stars (1→10) — via Genome Samples.** Each star unlocks an **ability or mechanic** (mechanics-first), not raw stats. Generic star ladder (each tower themes its own):
 
 | Star | Unlock archetype | Example (Needle Spitter) |
 |---|---|---|
@@ -224,7 +224,7 @@ The **A/B branch choices at ★5 and ★8** mean a single tower has 4 endgame co
 - **Class Keystones** at milestones (Lv 10/25/50…): powerful, build-defining passives you **slot** before a run (limited keystone slots → choice, not stacking). E.g., Kinetic keystone *Overpenetration*, Vital keystone *Transfusion*, Neural keystone *Puppeteer*.
 - Classes are designed to hold **multiple towers** as the roster grows — leveling a class makes *every future tower in it* stronger, so the investment compounds. (Post-Speciation, classes can fuse — §12.)
 
-> **Why three axes?** Stars = *what the tower can do* (deliberate, shard-gated). Class = *how you specialize* (slottable, build-shaping). Mastery = *how much you've used it* (infinite, automatic). They never compete for the same currency, so all three advance in parallel — no false choice between them.
+> **Why three axes?** Stars = *what the tower can do* (deliberate, currency-gated). Class = *how you specialize* (slottable, build-shaping). Mastery = *how much you've used it* (infinite, automatic). They never compete for the same currency, so all three advance in parallel — no false choice between them.
 
 ### 7.3 Class Synergy Matrix (the build engine)
 
@@ -270,7 +270,7 @@ a launch hero — a deliberate chase).
 
 Mirrors towers, plus equipment:
 
-**A) Stars — via Hero Shards.** Each star unlocks a hero ability/mechanic (passive, new active, ultimate upgrade, or A/B branch), same mechanics-first ladder as towers. 10 stars = full kit with branch forks.
+**A) Stars — via Hero Essence.** Each star unlocks a hero ability/mechanic (passive, new active, ultimate upgrade, or A/B branch), same mechanics-first ladder as towers. 10 stars = full kit with branch forks.
 
 **B) Mastery (infinite)** — from hero usage/kills; asymptotic stat ramp + milestone perks every 25; permanent through prestige.
 
@@ -293,22 +293,25 @@ A **legible currency ladder** — each tier maps to one system, and the prestige
 | Currency | Source | Spent on | Infinite? | Persists prestige? |
 |---|---|---|---|---|
 | **Biomass** | In-run kills | In-run tower build/upgrade | n/a (resets per run) | n/a |
-| **Tower Shards** | Runs, codex, prestige | Tower stars (1→10) | no (10 caps) | ✅ trophy |
-| **Hero Shards** | Runs, unlocks, prestige | Hero stars (1→10) | no | ✅ trophy |
+| **Genome Samples** | Runs, codex, prestige | Tower stars (1→10) | no (10 caps) | ✅ trophy |
+| **Hero Essence** | Runs, unlocks, prestige | Hero stars (1→10) | no | ✅ trophy |
 | **Mastery XP** (per tower/hero) | Kills & usage | Mastery levels | ✅ | ✅ trophy |
 | **Class XP** (per class) | Using class units | Class levels + keystones | ✅ (paragon late) | ❌ resets @ Speciation |
-| **Essence** | Runs | **Hive Tree** (global tree) | spend-sink | ❌ resets @ Molt |
-| **Gear & Catalysts** | Drops, crafting | Equipment | n/a | ✅ trophy |
+| **Neural Fragments** | Runs (esp. Neural Aberrations) | **Hive Tree** (global tree) | spend-sink | ❌ resets @ Molt |
+| **Mutation Fragments** | Runs (Parasites/Hive), corruptions | Card pool & Mutation Strains | ✅ (soft) | ✅ trophy |
+| **Equipment Components** | Drops, salvage, crafting | Equipment (`EQUIPMENT.md`) | n/a | ✅ trophy |
 | **Ascendant Cells** | Prestige 1 | Ascendant Tree | ✅ | layer-scoped |
-| **Genome Threads** | Prestige 2 | Speciation Web | ✅ | layer-scoped |
+| **Splice Threads** | Prestige 2 | Speciation Web | ✅ | layer-scoped |
 | **Synaptic Cores** | Prestige 3 | Hive Network | ✅ | layer-scoped |
 | **Apex Genes** | Prestige 4 | Apex systems | ✅ | layer-scoped |
 | **Singularity Shards** | Prestige 5 | Singularity systems | ✅ | layer-scoped |
 | **Omega Strain** | Prestige 6 | Omega ladder | ✅ | top-level |
 
+> Canonical currency reference (incl. **Mutation Fragments** & **Equipment Components**): [`ECONOMY.md`](ECONOMY.md).
+
 ### 9.1 The Hive Tree (global meta-progression backbone)
 
-The incremental spine: a large branching tree bought with **Essence**, available from early game. Branches unlock **systems and QoL**, not only percentages:
+The incremental spine: a large branching tree bought with **Neural Fragments**, available from early game. Branches unlock **systems and QoL**, not only percentages:
 - **Economy branch** — biomass gain, starting biomass, interest mechanics.
 - **Draft branch** — extra card picks, rerolls, banish, rarity weighting, a second draft slot.
 - **Survival branch** — Nucleus integrity, repair, emergency abilities.
@@ -359,7 +362,7 @@ Six nested layers. **Each resets a specific engine and grants (a) a new currency
 > Design rule for every layer: *"You give up an engine you've mastered, and in return the game becomes a different, bigger game."*
 
 ### Layer 1 — **MOLT** *(first prestige, ~8–15h)*
-- **Resets:** Hive Tree (Essence), in-run economy upgrades.
+- **Resets:** Hive Tree (Neural Fragments), in-run economy upgrades.
 - **Keeps:** stars, mastery, class levels, codex, gear (everything else).
 - **Grants:** **Ascendant Cells** → the **Ascendant Tree** (a stronger parallel tree) + a global production multiplier scaling with lifetime Cells.
 - **New mechanic — Adaptive Mutation Slots:** every tower gains a small permanent slot that rolls a random beneficial mutation each run, adding controlled run-to-run variance. Early game now blasts by; the multiplier makes re-climbing the Hive Tree feel *great*.
@@ -368,7 +371,7 @@ Six nested layers. **Each resets a specific engine and grants (a) a new currency
 ### Layer 2 — **SPECIATION** *(~40–80h)*
 - **Resets:** Class levels + Ascendant Tree.
 - **Keeps:** stars, mastery, codex, gear.
-- **Grants:** **Genome Threads** → the **Speciation Web**.
+- **Grants:** **Splice Threads** → the **Speciation Web**.
 - **New mechanic — Hybrid Towers (Subspecies) + Phenotypes:** permanently *fuse two Combat Classes* into a hybrid tower (e.g., Caustic+Viral → **Pestilence**, applying both statuses and auto-triggering **Plague**). This multiplies the roster and the synergy space. **Phenotypes** let you stamp a global build identity on a run. Also **unlocks Hero Slot 3** here.
 - **Why here:** by now players understand class identity deeply — fusing classes is the natural "I want to break the rules" payoff, and it's a massive build-variety unlock right when the base combos start to feel explored.
 
@@ -503,8 +506,8 @@ A lead designer's pre-mortem. Each risk gets a concrete mitigation already built
 | Remains understandable | §14 in full; progressive disclosure; Power Score; currency ladder |
 | 5 towers, pick 3 | §7.1 |
 | 1 hero start, slots 2 & 3 via progression | §8 (slot 2 Phase 1, slot 3 @ Speciation) |
-| Towers: shards, 10 stars (abilities), infinite mastery (kills/usage), class levels | §7.2 (three axes) |
-| Heroes: unlocked via progression, shards→stars, mastery, class, weapon/armor/relic | §8.2 (four axes) |
+| Towers: Genome Samples, 10 stars (abilities), infinite mastery (kills/usage), class levels | §7.2 (three axes) |
+| Heroes: unlocked via progression, Hero Essence→stars, mastery, class, weapon/armor/relic | §8.2 (four axes) |
 | Runs: temporary cards + mutations, reset, contribute to permanent | §6.3–6.4 (generator model) |
 | 5–7 prestige layers, each alters gameplay & progression | §12 (six layers, each a new mechanic) |
 
@@ -512,14 +515,14 @@ A lead designer's pre-mortem. Each risk gets a concrete mitigation already built
 
 - **Nucleus** — the objective you defend; loses Integrity when enemies reach it.
 - **Biomass** — in-run economy; resets each run.
-- **Shards** — permanent currency for tower/hero **stars** (1→10).
+- **Genome Samples / Hero Essence** — permanent currencies for tower / hero **stars** (1→10).
 - **Mastery** — infinite per-unit track from kills/usage; trophy (persists prestige).
 - **Class / Class Level** — Combat Class (Kinetic/Caustic/Viral/Neural/Vital); shared by towers & heroes; grants keystones.
 - **Reaction** — burst effect from combining two status types (synergy matrix).
 - **Gene Card** — temporary drafted run power; resets each run.
 - **Mutation Strain** — temporary run-long player evolution.
 - **Corruption** — voluntary enemy buff for multiplied rewards (risk/reward).
-- **Hive Tree** — global Essence-bought meta tree.
+- **Hive Tree** — global **Neural Fragments**-bought meta tree.
 - **Atlas / Codex** — collection of assimilated enemies; completion grants permanent bonuses.
 - **Hybrid / Subspecies** — fused two-class tower (post-Speciation).
 - **Hive Network** — idle overworld of held nodes (post-Hivemind).

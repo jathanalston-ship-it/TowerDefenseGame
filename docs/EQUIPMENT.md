@@ -104,8 +104,8 @@ optimization with zero inflation**.
 ## 6. Crafting
 
 A target-craft loop, not pure RNG:
-- **Bases** drop or are crafted from **Gear Dust**; pick a base = pick a *behavior*.
-- **Imbue** affixes onto a base using Mutagen + class **Essence-of-class** mats (from
+- **Bases** drop or are crafted from **Scrap**; pick a base = pick a *behavior*.
+- **Imbue** affixes onto a base using Mutagen + class **Extract** mats (from
   salvaging matching-class gear) → steer affix pools.
 - **Transmute** — upgrade an item's rarity tier (Rare→Epic→…) with rarity mats
   (`Catalysts` + boss **Cores**), adding an affix slot.
@@ -121,8 +121,8 @@ Crafting is **deterministic-ish**: RNG provides the raw material; crafting lets 
 
 ## 7. Salvaging
 
-- **Dismantle** any item → **Gear Dust** + **Catalysts** (scaled by rarity/level) +
-  class **Essence-of-class** + a Mutagen chance.
+- **Dismantle** any item → **Scrap** + **Catalysts** (scaled by rarity/level) +
+  class **Extract** + a Mutagen chance.
 - **Salvage relics** → **Resonance**.
 - **Mass-salvage** by rarity/class filter (QoL; protects locked/favorited gear).
 - Salvage→craft is the core gear economy: junk drops aren't trash, they're *feedstock*
@@ -293,10 +293,10 @@ choice). Relics are **not** part of sets.
 - **Deterministic crafting** turns drops into *feedstock*, so the chase is "build the
   piece I want," not "pray to RNG."
 - **Cross-layer reach** — armor auras and relics scale *towers*; salvage feeds tower/
-  hero *shards*; Ascension is a *prestige* payoff — gear is woven into every system,
+  hero *star currencies*; Ascension is a *prestige* payoff — gear is woven into every system,
   not a side pocket.
 
 > **Interactions in one line:** Gear is heroes-only but touches everything — it amps
 > Reactions (matrix), scales towers (auras/relics), gates off Mastery/Class/Prestige
-> states, feeds shards (salvage), and is the late-game Mutagen/Resonance sink. Full
+> states, feeds star currencies (salvage), and is the late-game Mutagen/Resonance sink. Full
 > bucket view in `PROGRESSION.md §6`.

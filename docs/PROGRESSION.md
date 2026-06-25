@@ -58,10 +58,10 @@ multiplicative buckets**, each fed by a *different* progression system:
 
 ```
 EffectiveDPS = BaseDPS
-             × S      ← Star bucket        (Tower Shards)
+             × S      ← Star bucket        (Genome Samples)
              × M      ← Mastery bucket      (kills/usage, INFINITE)
              × C      ← Class bucket        (Class XP, shared with heroes)
-             × H      ← Hive Tree bucket    (Essence)
+             × H      ← Hive Tree bucket    (Neural Fragments)
              × P      ← Prestige bucket     (Π of all prestige layers, INFINITE via Ω)
              × R      ← Run bucket          (cards/strains/reactions — TEMPORARY)
 
@@ -89,7 +89,7 @@ floor; the run bucket is the renewable ceiling.
 | **Additive-damped** | `1 + Σ small steps` | Star bucket, Class bucket | Bounded, legible, milestone-friendly |
 | **Logarithmic** | `1 + k·ln(1+x)` | Mastery, prestige global mults | **Infinite but ever-slowing** → never bloats |
 | **Square-root** | `B·√(x/S)` | Prestige *currency gain* | Diminishing within a cycle → "when to prestige" decision |
-| **Geometric** | `base·r^n` | All **costs** (shards, class XP, upgrades) | Each tier meaningfully pricier; paces the climb |
+| **Geometric** | `base·r^n` | All **costs** (Genome Samples, Hero Essence, class XP, upgrades) | Each tier meaningfully pricier; paces the climb |
 | **Bounded/asymptotic** | hard cap | Gear vertical power | Forces variety to come from *horizontal* (affixes/relics), not stat stacking |
 
 **The principle:** *power* uses additive/log (legible, soft); *cost* uses
@@ -121,11 +121,11 @@ pre-multipliers). Endless depth and prestige multipliers scale these up.
 
 | Resource | Per standard run (baseline) |
 |---|---|
-| Tower Shards (of a *used* tower) | 10–15 |
-| Hero Shards (of a *used* hero) | 1–3 |
+| Genome Samples (of a *used* tower) | 10–15 |
+| Hero Essence (of a *used* hero) | 1–3 |
 | Mastery XP (per used unit) | scales with kills × depth |
 | Class XP | scales with class units used |
-| Essence | ~1,000 |
+| Neural Fragments | ~1,000 |
 | Gear drops | 1–3 (rarity by depth) |
 | Catalysts / dust | ~20 (plus dismantles) |
 
@@ -139,26 +139,26 @@ Assumed cadence: **~4–6 runs/session, 1 session/day** for a typical engaged pl
 tracks — **Stars (S)**, **Mastery (M)**, **Class (C)** — that never share a
 currency, so all three progress in parallel.
 
-### 2.1 Tower Shards
+### 2.1 Genome Samples (tower star currency)
 
 - **Purpose.** The deterministic gate on Star progression. Choosing *which*
-  tower's shards to chase is the player's first long-term investment decision.
-- **Two shard types:**
-  - **Tower-specific shards** (e.g., *Needle Spitter Shards*) — the main currency; drop
+  tower's Genome Samples to chase is the player's first long-term investment decision.
+- **Two Genome Sample types:**
+  - **Tower-specific Genome Samples** (e.g., *Needle Spitter Genome Samples*) — the main currency; drop
     when that tower is used and from its codex/boss sources.
-  - **Universal Catalyst** — rare wildcard, substitutes for any tower shard.
+  - **Prime Genome** (universal wildcard) — substitutes for any tower's Genome Samples.
     Prevents hard-locking on an unlucky drought (earned ~1 per 4–5 runs + milestones).
 - **Sources.** Run rewards (used-tower biased), node Caches, **codex-completion
-  bonuses** (Atlas entries pay shards), prestige rewards, daily/weekly, and
-  **dust conversion** (dismantle duplicate gear → small shard trickle).
-- **Progression rate.** ~10–15 specific shards/run for a focused tower → see star
+  bonuses** (Atlas entries pay Genome Samples), prestige rewards, daily/weekly, and
+  **salvage conversion** (dismantle duplicate gear → small Genome Sample trickle).
+- **Progression rate.** ~10–15 Genome Samples/run for a focused tower → see star
   pacing below.
 - **Scaling philosophy.** Income is **deterministic and forecastable** ("~5 runs to
   my next star"), never gacha-random. Respects the bible's "earned and visible"
   rule and lets players *plan* sessions — a key dopamine driver (anticipation).
-- **Interactions.** Shards → **Stars** only. Their *sources* tie shards to **Codex**
-  (completion pays shards), **Equipment** (dismantles → dust → shards), and
-  **Prestige** (multiplies run shard yield). Shards do **not** scale with mastery or
+- **Interactions.** Genome Samples → **Stars** only. Their *sources* tie them to **Codex**
+  (completion pays Genome Samples), **Equipment** (dismantles → Scrap → Genome Samples), and
+  **Prestige** (multiplies run yield). Genome Samples do **not** scale with mastery or
   class — keeping the three tower tracks independent.
 
 ### 2.2 Star progression (1→10)
@@ -197,7 +197,7 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
 | Neural Obelisk (Neural) | Hijack / Terror | Dominator / Suppressor | Hive Override (mass-converts a wave) |
 | Flesh Reactor (Vital) | Furnace / Network | Heart / Engine | Apotheosis Bloom (hive-wide overcharge surge) |
 
-- **Upgrade costs (shards per step):**
+- **Upgrade costs (Genome Samples per step):**
 
 | Star | Step cost | Cumulative |
 |---|---|---|
@@ -211,9 +211,9 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
 | ★9 | 240 | 550 |
 | ★10 | 400 | 950 |
 
-  Formula: `cost(N→N+1) ≈ ⌈3 × 1.8^(N−2)⌉`. **~950 shards to fully max one tower.**
+  Formula: `cost(N→N+1) ≈ ⌈3 × 1.8^(N−2)⌉`. **~950 Genome Samples to fully max one tower.**
 
-- **Progression rate.** At ~12 shards/run: ★5 in ~4 runs (≈1 session), ★7 in ~14
+- **Progression rate.** At ~12 Genome Samples/run: ★5 in ~4 runs (≈1 session), ★7 in ~14
   runs (~3 days), ★10 in ~80 runs (**~2 weeks focused**). Full 5-tower roster to
   ★10 ≈ **2–3 months** — and stars are a **trophy that never resets**, so that
   investment is permanent.
@@ -224,7 +224,7 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
   worth more the more **Mastery/Class/Hive/Prestige/Equipment** you have (they
   compound it). ★6 gates **Reactions** (the synergy matrix) → stars unlock
   cross-**Class** build space. Forks interact with **Cards** (some cards are
-  fork-specific). Stars are independent of shard *rate*, so they never compete with
+  fork-specific). Stars are independent of Genome Sample *rate*, so they never compete with
   **Mastery/Class** for currency.
 
 ### 2.3 Tower Mastery (infinite)
@@ -289,7 +289,7 @@ permanent lock) → a single maxed tower has **4 endgame configurations**.
   and Needle Spitter pump the same class. Keystones reshape **Reactions** and synergize with
   **Star forks** and **Relics**. **Speciation prestige resets class levels** (→ Genome
   Threads) and unlocks **Hybrid classes** (fusing two classes), multiplying the class
-  space. Independent of shard/mastery currencies.
+  space. Independent of Genome Sample/mastery currencies.
 
 ### 2.5 Tower scaling formulas (consolidated)
 
@@ -316,8 +316,8 @@ Permanent tower power = BaseDPS
 
 Stars set the base → Mastery, Class, Hive, Prestige, Equipment(via heroes) all
 multiply it. ★6 opens Reactions → couples to **other classes**. Class XP is the
-bridge to **heroes**. Codex & dismantles feed **shards**. Prestige multiplies
-shard/mastery/essence *income* and (Speciation/Hivemind) resets Class/Mastery
+bridge to **heroes**. Codex & dismantles feed **star currencies**. Prestige multiplies
+star-currency/mastery/Neural-Fragment *income* and (Speciation/Hivemind) resets Class/Mastery
 *levels* for new mechanics. (Full pairwise grid in §6.)
 
 ---
@@ -347,22 +347,22 @@ prestige (`DESIGN.md §8, §12`).
   multiply **Equipment** demand (more gear matters) and **Reaction** potential (more
   status appliers on field).
 
-### 3.2 Hero shards & star progression
+### 3.2 Hero Essence & star progression
 
 - **Purpose.** Same as tower stars — unlock the hero's **kit mechanics** (passives, new
   actives, ultimate upgrades, A/B forks). Heroes are *behavior-rich*, lightly statted.
-- **Hero shard sources.** The unlock grants a starter batch; then runs (used-hero
-  biased), boss drops, codex, prestige, and a **shard shop** (spend surplus universal
-  currency). Hero shards drop **~30% slower** than tower shards (heroes are fewer/stronger).
+- **Hero Essence sources.** The unlock grants a starter batch; then runs (used-hero
+  biased), boss drops, codex, prestige, and an **Essence shop** (spend surplus universal
+  currency). Hero Essence drops **~30% slower** than Genome Samples (heroes are fewer/stronger).
 - **Star stat contribution:** `+8% per star` → **★10 = ×1.72** (lighter than towers;
   hero power leans on *kit + equipment*, not base stats).
-- **Cost curve:** identical step table to towers (§2.2). With slower shard income,
+- **Cost curve:** identical step table to towers (§2.2). With slower Hero Essence income,
   hero ★10 ≈ **3–4 weeks** of favoring that hero.
 - **Scaling philosophy.** Mechanics-first again; the A/B forks at ★5/★8 give each hero
   ~4 endgame kits, re-selectable per run.
 - **Interactions.** Hero stars set the hero's base that **Hero Mastery / Class /
   Prestige / Equipment** multiply. Some star forks are **gear- or relic-synergistic**
-  (e.g., a fork that scales with weapon attack speed). Shard sources tie to **Codex**
+  (e.g., a fork that scales with weapon attack speed). Hero Essence sources tie to **Codex**
   and **Prestige**.
 
 ### 3.3 Hero mastery (infinite)
@@ -426,7 +426,7 @@ equipped pieces** in a loadout.
 - **Rarities:** Common (1 affix) → Rare (2) → Epic (3) → Mythic (4) → **Exotic** (5 +
   one *unique* affix). Drop rarity is weighted by **run depth**.
 - **Currencies:** **Catalysts** (upgrade item level), **Mutagen** (reroll affixes),
-  **Gear Dust** (from dismantles → feeds Catalysts and a trickle of shards).
+  **Scrap** (from dismantles → feeds Catalysts and a trickle of Genome Samples).
 - **Drop rate.** 1–3 items/run → gear is a **fast/frequent** reward track (the
   every-run dopamine), while *perfecting* gear is a long sink.
 
@@ -505,7 +505,7 @@ inflation.
 
 Gear is **heroes-only** but reaches the **whole board**: armor auras scale **towers**;
 weapon behaviors and relics amplify **Reactions** (Class matrix); relics gate off
-**Mastery/Class/Prestige** states; dismantles feed **shards** (towers/heroes); affix
+**Mastery/Class/Prestige** states; dismantles feed **star currencies** (towers/heroes); affix
 rerolls are the late-game **Mutagen** sink; Ascension is a **Prestige (Apex)** payoff.
 (Grid in §6.)
 
@@ -541,25 +541,25 @@ earn, never explosive to hold.
 #### Layer 1 — MOLT
 - **Purpose.** Teach the prestige fantasy cheaply; convert early-game mastery into
   permanent speed. The "first ascension" rush.
-- **Resets.** Hive Tree (Essence) + in-run economy upgrades. **Keeps everything else.**
-- **Currency — Ascendant Cells:** `⌊1.5 × √(EssenceThisCycle / 100)⌋`.
+- **Resets.** Hive Tree (Neural Fragments) + in-run economy upgrades. **Keeps everything else.**
+- **Currency — Ascendant Cells:** `⌊1.5 × √(NeuralFragmentsThisCycle / 100)⌋`.
   (10k essence → 15 cells; 50k → 33.)
 - **Multiplier.** `1 + 0.10 × √(LifetimeCells)` (100 lifetime cells → ×2.0) + the
-  **Ascendant Tree** (cells buy nodes: shard gain, essence gain, mechanic unlocks).
+  **Ascendant Tree** (cells buy nodes: Genome Sample gain, Neural Fragment gain, mechanic unlocks).
 - **New mechanic.** Adaptive Mutation slots (per-tower random run buff).
 - **Pacing.** First Molt ~**8–15h**; then every **1–3h** as you blast through; **dozens**
   of Molts in week 1.
 - **Costs.** Ascendant Tree nodes priced geometrically in cells.
 - **Retention loop.** "Re-climb the Hive Tree in minutes instead of hours, then push a
   little further" — the canonical incremental dopamine.
-- **Interactions.** Multiplies **Essence/shard** income → speeds **Stars**; cells fund
+- **Interactions.** Multiplies **Neural Fragment / star-currency** income → speeds **Stars**; cells fund
   nodes that touch every bucket; sets the template all deeper layers extend.
 
 #### Layer 2 — SPECIATION
 - **Purpose.** Open the **build-space explosion** (class fusion) once base classes feel
   explored.
 - **Resets.** **Class levels** + Ascendant Tree. Keeps stars/mastery/codex/gear.
-- **Currency — Genome Threads:** `⌊1.2 × √(LifetimeCells_thisCycle / 50)⌋`.
+- **Currency — Splice Threads:** `⌊1.2 × √(LifetimeCells_thisCycle / 50)⌋`.
 - **Multiplier.** `1 + 0.08 × √(LifetimeThreads)` + the **Speciation Web**.
 - **New mechanic.** **Hybrid Towers** (fuse 2 classes), **Phenotypes**, **+1 keystone
   slot**, and **unlocks Hero Slot 3**.
@@ -661,14 +661,14 @@ number ever leaves human-comprehensible range.**
 
 | System | Bucket it feeds | Multiplies what | Resets on |
 |---|---|---|---|
-| Tower Shards → Stars | **S** | own tower base | never (trophy) |
+| Genome Samples → Stars | **S** | own tower base | never (trophy) |
 | Tower Mastery | **M** | own tower | Hivemind (levels only) |
 | Class levels | **C** | all towers **+ heroes** of class | Speciation |
-| Hero Shards → Stars | **S(hero)** | own hero | never (trophy) |
+| Hero Essence → Stars | **S(hero)** | own hero | never (trophy) |
 | Hero Mastery | **M(hero)** | own hero | Hivemind (levels only) |
 | Equipment (W/A/R) | **E** | own hero (**armor auras → towers**) | never (trophy); cap raised @ Apex |
 | Hive Tree | **H** | global | Molt |
-| Codex/Collection | shards + flat bonuses + **Bestiary units** | global / vs-type | never (trophy) |
+| Codex/Collection | star currencies + flat bonuses + **Bestiary units** | global / vs-type | never (trophy) |
 | Prestige (each layer) | **P** | global income + new mechanics | nests downward |
 
 ### 6.2 Key cross-system couplings (the ones that matter most)
@@ -680,7 +680,7 @@ number ever leaves human-comprehensible range.**
   engine that drives build variety.
 - **Corruption (run) → Apex Genes (prestige)** — run-time risk converts directly into
   permanent currency.
-- **Codex → shards, and (Apex) Codex → units** — collection feeds both progression and
+- **Codex → star currencies, and (Apex) Codex → units** — collection feeds both progression and
   combat.
 - **Prestige multiplies *income*, not just power** — so it accelerates Stars/Mastery/
   Class/Gear acquisition, which is why post-prestige re-climbs feel fast (anti-grind).
@@ -741,7 +741,7 @@ are resolved when implementation reaches them, per repo convention):
 
 - **Curve constants** (the `k`, `c`, `r`, exponents) need sim validation against the
   target pacing in §7 — especially that no permanent bucket runs away when stacked.
-- **Shard income vs. star cost** balance — confirm the "★10 in ~2 weeks focused"
+- **Genome Sample income vs. star cost** balance — confirm the "★10 in ~2 weeks focused"
   target holds across roster size growth.
 - **Prestige reset-timing sweet spots** — verify the sqrt currency exponents create a
   *real* "prestige now vs. later" decision rather than an obvious always-answer.
