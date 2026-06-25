@@ -131,6 +131,10 @@ economy, and towers. Keep design decisions written down so changes stay coherent
 
 ## 🛠 Tech stack & commands _(fill in when chosen)_
 
+> **Provisional preference (not final — the user will specify the stack later):**
+> **not HTML.** Leaning toward Python or whatever best supports shipping a
+> publishable game. Until confirmed, keep all design docs stack-agnostic.
+
 | Concern | Command / notes |
 |---|---|
 | Language / engine | _TBD_ |

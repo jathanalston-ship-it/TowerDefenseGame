@@ -5,6 +5,9 @@
 **One-line vision:** *You are a rogue biotech hive intelligence. Grow, mutate, and assimilate hostile ecosystems — forever.*
 
 > **Document status:** v0 design bible. All numbers are **starting points / illustrative tuning**, not final balance — per the repo convention they will live in a central data/config file once implementation starts; this doc is the source of truth for *why* the numbers exist, not the runtime values. This is design-before-content: nothing here is implemented yet.
+>
+> **Companion spec:** detailed permanent-progression formulas, costs, rates, and
+> pacing live in [`PROGRESSION.md`](PROGRESSION.md).
 
 ---
 
