@@ -169,8 +169,7 @@ export const HERO = {
   attackInterval: 0.55,
   attackDamage: 19,
   attackFracture: 1,
-  aggroRange: 230,
-  leashRadius: 160,
+  aggroRange: 1400, // effectively the whole arena — heroes roam freely to intercept
   contactRange: 26, // enemies this close damage the hero
   respawnTime: 8,
   ability: {

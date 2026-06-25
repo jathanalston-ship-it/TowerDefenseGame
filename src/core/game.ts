@@ -8,6 +8,7 @@ import { dist, dist2, moveToward } from './math';
 import {
   CELL,
   DEFENSE_TOP_Y,
+  HEIGHT,
   WIDTH,
   flowDirAt,
   goalDistanceAt,
@@ -542,7 +543,19 @@ export class Game {
   }
 
   private heroSystem(dt: number): void {
-    const h = this.hero;
+    // One hero today; structured per-hero so future loadouts can run several
+    // (just call updateHero for each). Equipment/abilities layer on via mods.
+    this.updateHero(this.hero, dt);
+  }
+
+  /**
+   * Autonomous battlefield unit. Roams the whole arena freely (no leash),
+   * auto-seeks enemies, and prioritizes the most-advanced threat — preferring
+   * ones still ABOVE the defensive line so it intercepts them before they enter
+   * tower range; it falls back to the deepest enemy in the zone, and patrols its
+   * rally point when the field is clear.
+   */
+  private updateHero(h: Hero, dt: number): void {
     if (h.down) {
       h.respawn -= dt;
       if (h.respawn <= 0) {
@@ -556,31 +569,35 @@ export class Game {
     if (h.attackCd > 0) h.attackCd -= dt;
     if (h.abilityCd > 0) h.abilityCd -= dt;
 
-    // pick nearest enemy in aggro range
+    // Threat-based targeting (lower goal distance = closer to breaching).
+    const aggro2 = HERO.aggroRange * HERO.aggroRange;
     let target: Enemy | null = null;
-    let best = HERO.aggroRange * HERO.aggroRange;
+    let bestApproach = Infinity; // best among enemies still above the line
+    let fallback: Enemy | null = null;
+    let bestAny = Infinity;
     for (const e of this.enemies) {
       if (!e.alive) continue;
-      const d2 = dist2(h.x, h.y, e.x, e.y);
-      if (d2 < best) {
-        best = d2;
+      if (dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
+      const gd = goalDistanceAt(e.x, e.y);
+      if (gd < bestAny) {
+        bestAny = gd;
+        fallback = e;
+      }
+      if (e.y < DEFENSE_TOP_Y && gd < bestApproach) {
+        bestApproach = gd;
         target = e;
       }
     }
+    target = target ?? fallback;
 
+    // Move to intercept the target, else patrol the rally point. Free roam,
+    // clamped only to the arena bounds.
     const goal = target ? { x: target.x, y: target.y } : h.rally;
     const np = moveToward(h.x, h.y, goal.x, goal.y, HERO.speed * dt);
-    h.x = np.x;
-    h.y = np.y;
-    // clamp within leash of rally
-    const dr = dist(h.x, h.y, h.rally.x, h.rally.y);
-    if (dr > HERO.leashRadius) {
-      const c = moveToward(h.rally.x, h.rally.y, h.x, h.y, HERO.leashRadius);
-      h.x = c.x;
-      h.y = c.y;
-    }
+    h.x = Math.max(0, Math.min(WIDTH, np.x));
+    h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
-    // attack
+    // Attack the target in melee range.
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= HERO.attackRange) {
       this.applyDamage(target, HERO.attackDamage * this.mods.heroDamageMult);
       this.addFracture(target, HERO.attackFracture);
@@ -588,7 +605,7 @@ export class Game {
       h.attackCd = HERO.attackInterval;
     }
 
-    // contact damage to the hero from nearby enemies
+    // Contact damage to the hero from nearby enemies.
     let incoming = 0;
     for (const e of this.enemies) {
       if (!e.alive) continue;
