@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { SIM_DT } from './config';
-import { buildCells } from './map';
+import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
 const NO_META: MetaModifiers = {
@@ -18,9 +18,9 @@ const KINDS: TowerKind[] = ['needle', 'mortar', 'reactor'];
 
 function placeSome(game: Game, perPrep: number): void {
   let placed = 0;
-  for (let i = 0; i < buildCells.length && placed < perPrep; i++) {
-    const cell = buildCells[i];
-    if (game.placeTower(KINDS[i % 3], cell.x, cell.y)) placed++;
+  for (let i = 0; i < towerSlots.length && placed < perPrep; i++) {
+    const s = towerSlots[i];
+    if (game.placeTower(KINDS[i % 3], s.x, s.y)) placed++;
   }
 }
 
@@ -34,7 +34,7 @@ interface Outcome {
 }
 
 /** Deterministic auto-player: build a few towers each prep, auto-draft, run waves. */
-function autoplay(seed: number, maxSeconds = 240): Outcome {
+function autoplay(seed: number, maxSeconds = 600): Outcome {
   const game = new Game(seed, NO_META);
   let t = 0;
   let sawShred = false;

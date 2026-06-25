@@ -6,19 +6,25 @@
 import { Rng } from './rng';
 import { dist, dist2, moveToward } from './math';
 import {
-  buildCells,
-  buildCellAt,
-  cellsAdjacent,
+  CELL,
+  DEFENSE_TOP_Y,
+  WIDTH,
+  flowDirAt,
+  goalDistanceAt,
   nucleusPoint,
-  pathPoints,
-  spawnPoint,
+  reachedBottom,
+  slotAt,
+  slotsAdjacent,
+  topSpawn,
+  towerSlots,
 } from './map';
-import type { BuildCell } from './map';
+import type { TowerSlot } from './map';
 import {
   ECON,
   ENEMY_DEFS,
   HERO,
   SIM_DT,
+  SLOTS,
   STATUS,
   TOWER_DEFS,
   TOTAL_WAVES,
@@ -64,6 +70,7 @@ export interface RenderState {
   phase: Phase;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
+  unlockedSlots: number;
 }
 
 export class Game {
@@ -74,6 +81,7 @@ export class Game {
   integrity: number;
   maxIntegrity: number;
   kills = 0;
+  unlockedSlots = SLOTS.initialUnlocked; // raised by future upgrades
   time = 0;
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
@@ -117,7 +125,7 @@ export class Game {
       maxHp: HERO.maxHp,
       down: false,
       respawn: 0,
-      rally: { x: pathPoints[Math.floor(pathPoints.length / 2)].x, y: pathPoints[Math.floor(pathPoints.length / 2)].y },
+      rally: { x: WIDTH / 2, y: DEFENSE_TOP_Y - CELL }, // patrol the line by default
       attackCd: 0,
       abilityCd: 0,
     };
@@ -159,23 +167,29 @@ export class Game {
 
   placeTower(kind: TowerKind, px: number, py: number): boolean {
     if (this.phase === 'won' || this.phase === 'lost') return false;
-    const cell = buildCellAt(px, py);
-    if (!cell) return false;
-    if (this.occupied.has(cell.index)) return false;
+    const slot = slotAt(px, py);
+    if (!slot) return false;
+    if (slot.index >= this.unlockedSlots) return false; // slot still locked
+    if (this.occupied.has(slot.index)) return false;
     const def = TOWER_DEFS[kind];
     if (this.biomass < def.cost) return false;
     this.biomass -= def.cost;
-    this.occupied.add(cell.index);
+    this.occupied.add(slot.index);
     this.towers.push({
       id: this.nextId++,
       kind,
-      x: cell.x,
-      y: cell.y,
-      cell: cell.index,
+      x: slot.x,
+      y: slot.y,
+      slot: slot.index,
       cooldown: 0,
       overcharged: false,
     });
     return true;
+  }
+
+  /** Unlock additional tower slots (hook for future permanent upgrades). */
+  unlockSlots(n: number): void {
+    this.unlockedSlots = Math.min(towerSlots.length, this.unlockedSlots + n);
   }
 
   startWave(): void {
@@ -286,18 +300,18 @@ export class Game {
 
   private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number): void {
     const def = ENEMY_DEFS[kind];
+    const spawn = topSpawn(this.rng.next());
     this.enemies.push({
       id: this.nextId++,
       kind,
-      x: spawnPoint.x,
-      y: spawnPoint.y,
+      x: spawn.x,
+      y: spawn.y,
       hp: def.hp * hpMult,
       maxHp: def.hp * hpMult,
       baseArmor: def.armor,
       speed: def.speed,
       bounty: def.bounty * bountyMult,
       damage: def.damage,
-      pathIndex: 1,
       fracture: 0,
       corrosion: 0,
       slowUntil: 0,
@@ -314,10 +328,10 @@ export class Game {
     if (gen > 0) this.biomass += gen * this.mods.reactorBiomassMult * dt;
   }
 
-  private reactorCells(): BuildCell[] {
-    const cells: BuildCell[] = [];
+  private reactorCells(): TowerSlot[] {
+    const cells: TowerSlot[] = [];
     for (const t of this.towers) {
-      if (t.kind === 'reactor') cells.push(buildCells[t.cell]);
+      if (t.kind === 'reactor') cells.push(towerSlots[t.slot]);
     }
     return cells;
   }
@@ -329,8 +343,8 @@ export class Game {
         t.overcharged = false;
         continue;
       }
-      const cell = buildCells[t.cell];
-      t.overcharged = reactors.some((rc) => cellsAdjacent(rc, cell));
+      const slot = towerSlots[t.slot];
+      t.overcharged = reactors.some((rc) => slotsAdjacent(rc, slot));
     }
   }
 
@@ -382,11 +396,11 @@ export class Game {
     }
   }
 
-  /** Up to `n` distinct enemies in range, prioritizing those furthest along the path. */
+  /** Up to `n` distinct enemies in range, prioritizing those closest to the line. */
   private pickTargets(x: number, y: number, range: number, n: number): Enemy[] {
     const r2 = range * range;
     const inRange = this.enemies.filter((e) => e.alive && dist2(x, y, e.x, e.y) <= r2);
-    inRange.sort((a, b) => b.pathIndex - a.pathIndex);
+    inRange.sort((a, b) => goalDistanceAt(a.x, a.y) - goalDistanceAt(b.x, b.y));
     return inRange.slice(0, n);
   }
 
@@ -477,25 +491,45 @@ export class Game {
 
   private enemyMoveSystem(dt: number): void {
     const slowBase = STATUS.corrosionSlow + this.mods.corrosionSlowBonus;
+    const sepR = CELL * 0.9;
+    const sepR2 = sepR * sepR;
     for (const e of this.enemies) {
       if (!e.alive) continue;
-      const slow = e.corrosion > 0 ? Math.min(0.85, slowBase) : 0;
-      const step = e.speed * (1 - slow) * dt;
-      if (e.pathIndex >= pathPoints.length) {
+      if (reachedBottom(e.y)) {
         this.hitNucleus(e);
         continue;
       }
-      const wp = pathPoints[e.pathIndex];
-      if (dist(e.x, e.y, wp.x, wp.y) <= step) {
-        e.x = wp.x;
-        e.y = wp.y;
-        e.pathIndex++;
-        if (e.pathIndex >= pathPoints.length) this.hitNucleus(e);
-      } else {
-        const np = moveToward(e.x, e.y, wp.x, wp.y, step);
-        e.x = np.x;
-        e.y = np.y;
+      const slow = e.corrosion > 0 ? Math.min(0.85, slowBase) : 0;
+      const step = e.speed * (1 - slow) * dt;
+      // Flow-field direction toward the line (routes around obstacles).
+      const dir = flowDirAt(e.x, e.y);
+      let vx = dir.x;
+      let vy = dir.y;
+      // Light separation so the swarm spreads naturally instead of stacking.
+      let sx = 0;
+      let sy = 0;
+      for (const o of this.enemies) {
+        if (o === e || !o.alive) continue;
+        const d2 = dist2(e.x, e.y, o.x, o.y);
+        if (d2 > 0 && d2 < sepR2) {
+          const w = (sepR - Math.sqrt(d2)) / sepR;
+          sx += (e.x - o.x) * w;
+          sy += (e.y - o.y) * w;
+        }
       }
+      const sl = Math.hypot(sx, sy);
+      if (sl > 0) {
+        vx += (sx / sl) * 0.5;
+        vy += (sy / sl) * 0.5;
+      }
+      const vl = Math.hypot(vx, vy) || 1;
+      e.x += (vx / vl) * step;
+      e.y += (vy / vl) * step;
+      // Stay inside the arena horizontally.
+      const r = ENEMY_DEFS[e.kind].radius;
+      if (e.x < r) e.x = r;
+      else if (e.x > WIDTH - r) e.x = WIDTH - r;
+      if (reachedBottom(e.y)) this.hitNucleus(e);
     }
   }
 
@@ -503,6 +537,7 @@ export class Game {
     if (!e.alive) return;
     if (!this.god) this.integrity -= e.damage;
     e.alive = false;
+    this.armorBreakUntil.delete(e.id);
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
   }
 
@@ -597,8 +632,11 @@ export class Game {
         const gain = e.bounty * this.mods.biomassMult;
         this.biomass += gain;
         this.armorBreakUntil.delete(e.id);
-        removed = true;
       }
+      // Evict BOTH hp-deaths and enemies that breached the line (hitNucleus set
+      // alive=false without an hp-death). Without this, the last straggler to
+      // breach lingers in the array and the wave never ends.
+      if (!e.alive) removed = true;
     }
     if (removed) this.enemies = this.enemies.filter((e) => e.alive);
   }
@@ -734,6 +772,7 @@ export class Game {
       phase: this.phase,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,
+      unlockedSlots: this.unlockedSlots,
     };
   }
 

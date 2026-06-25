@@ -23,8 +23,7 @@ export interface Enemy {
   baseArmor: number;
   speed: number; // px/sec at full speed
   bounty: number; // biomass on death
-  damage: number; // integrity damage if it reaches the Nucleus
-  pathIndex: number; // current waypoint target index
+  damage: number; // integrity damage if it reaches the bottom edge (the line)
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
@@ -38,7 +37,7 @@ export interface Tower {
   kind: TowerKind;
   x: number;
   y: number;
-  cell: number; // buildable-cell index it occupies
+  slot: number; // tower-slot index it occupies
   cooldown: number; // seconds until next action
   overcharged: boolean; // buffed by an adjacent reactor this tick
 }

@@ -4,13 +4,14 @@
 import {
   CELL,
   COLS,
+  DEFENSE_TOP_Y,
   HEIGHT,
   ROWS,
   WIDTH,
-  buildCells,
-  buildCellAt,
   nucleusPoint,
-  pathPoints,
+  obstacleCells,
+  slotAt,
+  towerSlots,
 } from '../core/map';
 import { ENEMY_DEFS, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
@@ -30,9 +31,12 @@ export function drawGame(
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
   drawGrid(ctx);
-  drawBuildCells(ctx, rs);
-  drawPath(ctx);
-  drawNucleus(ctx);
+  drawDefenseZone(ctx);
+  drawObstacles(ctx);
+
+  const occupied = new Set(rs.towers.map((t) => t.slot));
+  drawSlots(ctx, rs, occupied);
+  drawBase(ctx);
 
   for (const p of rs.pools) {
     ctx.beginPath();
@@ -59,34 +63,7 @@ export function drawGame(
 
   drawHero(ctx, rs);
 
-  // placement ghost / range preview
-  if (rs.selectedTower && pointer) {
-    const cell = buildCellAt(pointer.x, pointer.y);
-    if (cell) {
-      const def = TOWER_DEFS[rs.selectedTower];
-      const occupied = rs.towers.some((t) => t.cell === cell.index);
-      ctx.beginPath();
-      ctx.arc(cell.x, cell.y, Math.max(def.range, 14), 0, Math.PI * 2);
-      ctx.fillStyle = occupied ? 'rgba(255,80,80,0.05)' : 'rgba(120,200,255,0.06)';
-      ctx.fill();
-      ctx.strokeStyle = occupied ? 'rgba(255,80,80,0.5)' : 'rgba(120,200,255,0.5)';
-      ctx.setLineDash([5, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = occupied ? 'rgba(255,80,80,0.35)' : 'rgba(120,200,255,0.35)';
-      ctx.fillRect(cell.x - CELL / 2 + 3, cell.y - CELL / 2 + 3, CELL - 6, CELL - 6);
-    }
-  }
-
-  if (rs.armedAbility && pointer) {
-    ctx.beginPath();
-    ctx.arc(pointer.x, pointer.y, 72, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(90, 209, 255, 0.7)';
-    ctx.setLineDash([6, 4]);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
+  drawPointer(ctx, rs, pointer);
 
   for (const f of rs.floats) {
     ctx.globalAlpha = Math.min(1, f.life * 2);
@@ -116,41 +93,117 @@ function drawGrid(ctx: CanvasRenderingContext2D): void {
   }
 }
 
-function drawBuildCells(ctx: CanvasRenderingContext2D, rs: RenderState): void {
-  for (const b of buildCells) {
-    const occupied = rs.towers.some((t) => t.cell === b.index);
-    if (occupied) continue;
-    ctx.fillStyle = 'rgba(90, 130, 180, 0.08)';
-    ctx.fillRect(b.x - CELL / 2 + 4, b.y - CELL / 2 + 4, CELL - 8, CELL - 8);
+function drawDefenseZone(ctx: CanvasRenderingContext2D): void {
+  // tint the bottom defensive region
+  const grad = ctx.createLinearGradient(0, DEFENSE_TOP_Y, 0, HEIGHT);
+  grad.addColorStop(0, 'rgba(255, 90, 120, 0.04)');
+  grad.addColorStop(1, 'rgba(255, 90, 120, 0.12)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, DEFENSE_TOP_Y, WIDTH, HEIGHT - DEFENSE_TOP_Y);
+
+  // the defensive line itself
+  ctx.strokeStyle = 'rgba(255, 90, 120, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([10, 6]);
+  ctx.beginPath();
+  ctx.moveTo(0, DEFENSE_TOP_Y);
+  ctx.lineTo(WIDTH, DEFENSE_TOP_Y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = 'rgba(255, 140, 160, 0.7)';
+  ctx.font = '600 11px system-ui, sans-serif';
+  ctx.fillText('DEFENSIVE LINE', 8, DEFENSE_TOP_Y - 6);
+}
+
+function drawObstacles(ctx: CanvasRenderingContext2D): void {
+  for (const o of obstacleCells) {
+    ctx.fillStyle = '#161c27';
+    ctx.fillRect(o.x - CELL / 2, o.y - CELL / 2, CELL, CELL);
+    ctx.strokeStyle = 'rgba(120,140,170,0.18)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(o.x - CELL / 2 + 0.5, o.y - CELL / 2 + 0.5, CELL - 1, CELL - 1);
   }
 }
 
-function drawPath(ctx: CanvasRenderingContext2D): void {
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
+function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set<number>): void {
+  const s = CELL - 12;
+  for (const slot of towerSlots) {
+    if (occupied.has(slot.index)) continue; // tower is drawn instead
+    const locked = slot.index >= rs.unlockedSlots;
+    const x = slot.x - s / 2;
+    const y = slot.y - s / 2;
+    if (locked) {
+      ctx.strokeStyle = 'rgba(120,130,150,0.22)';
+      ctx.setLineDash([3, 4]);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, s, s);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(120,130,150,0.3)';
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔒', slot.x, slot.y + 4);
+      ctx.textAlign = 'left';
+    } else {
+      // empty, buildable: an obvious bracketed node with a faint fill and a +
+      ctx.fillStyle = 'rgba(90, 200, 255, 0.06)';
+      ctx.fillRect(x, y, s, s);
+      ctx.strokeStyle = 'rgba(90, 200, 255, 0.5)';
+      ctx.lineWidth = 1.5;
+      drawBracket(ctx, slot.x, slot.y, s);
+      ctx.strokeStyle = 'rgba(90, 200, 255, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(slot.x - 4, slot.y);
+      ctx.lineTo(slot.x + 4, slot.y);
+      ctx.moveTo(slot.x, slot.y - 4);
+      ctx.lineTo(slot.x, slot.y + 4);
+      ctx.stroke();
+    }
+  }
+}
+
+/** Corner brackets around a slot — reads clearly as a placement node. */
+function drawBracket(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number): void {
+  const h = s / 2;
+  const a = 7; // arm length
+  const L = [
+    [-h, -h, 1, 0],
+    [-h, -h, 0, 1],
+    [h, -h, -1, 0],
+    [h, -h, 0, 1],
+    [-h, h, 1, 0],
+    [-h, h, 0, -1],
+    [h, h, -1, 0],
+    [h, h, 0, -1],
+  ];
   ctx.beginPath();
-  ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-  for (let i = 1; i < pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-  ctx.strokeStyle = '#1d2433';
-  ctx.lineWidth = 30;
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(120, 90, 160, 0.5)';
-  ctx.lineWidth = 2;
+  for (let i = 0; i < L.length; i += 2) {
+    const [ox, oy] = L[i];
+    ctx.moveTo(cx + ox, cy + oy);
+    ctx.lineTo(cx + ox + L[i][2] * a, cy + oy + L[i][3] * a);
+    ctx.moveTo(cx + L[i + 1][0], cy + L[i + 1][1]);
+    ctx.lineTo(cx + L[i + 1][0] + L[i + 1][2] * a, cy + L[i + 1][1] + L[i + 1][3] * a);
+  }
   ctx.stroke();
 }
 
-function drawNucleus(ctx: CanvasRenderingContext2D): void {
+function drawBase(ctx: CanvasRenderingContext2D): void {
   const { x, y } = nucleusPoint;
-  const grad = ctx.createRadialGradient(x, y, 4, x, y, 26);
+  const grad = ctx.createRadialGradient(x, y, 5, x, y, 34);
   grad.addColorStop(0, 'rgba(255, 90, 120, 0.95)');
   grad.addColorStop(1, 'rgba(255, 90, 120, 0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(x, y, 26, 0, Math.PI * 2);
+  ctx.arc(x, y, 34, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = '#ff5d73';
   ctx.beginPath();
-  ctx.arc(x, y, 11, 0, Math.PI * 2);
+  ctx.arc(x, y, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -159,7 +212,6 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
     if (!t.overcharged) continue;
     ctx.strokeStyle = 'rgba(255, 122, 89, 0.35)';
     ctx.lineWidth = 2;
-    // draw a soft halo to indicate buffed
     ctx.beginPath();
     ctx.arc(t.x, t.y, 18, 0, Math.PI * 2);
     ctx.stroke();
@@ -191,8 +243,9 @@ function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][numbe
 
 function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number]): void {
   const def = ENEMY_DEFS[e.kind];
+  const r = def.radius;
   ctx.beginPath();
-  ctx.arc(e.x, e.y, def.radius, 0, Math.PI * 2);
+  ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
   ctx.fillStyle = def.color;
   ctx.fill();
 
@@ -200,44 +253,34 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
     ctx.strokeStyle = 'rgba(150, 220, 70, 0.9)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(e.x, e.y, def.radius + 2, 0, Math.PI * 2);
+    ctx.arc(e.x, e.y, r + 2, 0, Math.PI * 2);
     ctx.stroke();
   }
   if (e.fracture > 0) {
     ctx.strokeStyle = `rgba(90, 209, 255, ${Math.min(0.9, 0.25 + e.fracture * 0.12)})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(e.x, e.y, def.radius + 4, 0, Math.PI * 2);
+    ctx.arc(e.x, e.y, r + 4, 0, Math.PI * 2);
     ctx.stroke();
   }
   if (e.shredFlash > 0) {
     ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.8, e.shredFlash * 2)})`;
     ctx.beginPath();
-    ctx.arc(e.x, e.y, def.radius + 3, 0, Math.PI * 2);
+    ctx.arc(e.x, e.y, r + 3, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // hp bar
-  const w = def.radius * 2;
+  const w = r * 2;
   const pct = Math.max(0, e.hp / e.maxHp);
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.fillRect(e.x - w / 2, e.y - def.radius - 7, w, 3);
+  ctx.fillRect(e.x - w / 2, e.y - r - 7, w, 3);
   ctx.fillStyle = pct > 0.5 ? '#7CFC9B' : pct > 0.25 ? '#ffd24d' : '#ff5d73';
-  ctx.fillRect(e.x - w / 2, e.y - def.radius - 7, w * pct, 3);
+  ctx.fillRect(e.x - w / 2, e.y - r - 7, w * pct, 3);
 }
 
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   const h = rs.hero;
-  // leash
-  ctx.strokeStyle = 'rgba(255, 210, 77, 0.15)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(h.rally.x, h.rally.y, 160, 0, Math.PI * 2);
-  ctx.stroke();
-
-  if (h.down) {
-    ctx.globalAlpha = 0.4;
-  }
+  if (h.down) ctx.globalAlpha = 0.4;
   ctx.fillStyle = '#ffd24d';
   ctx.beginPath();
   ctx.moveTo(h.x, h.y - 13);
@@ -262,4 +305,69 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     ctx.fillStyle = '#ffd24d';
     ctx.fillRect(h.x - w / 2, h.y - 20, w * pct, 3);
   }
+}
+
+function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Pointer | null): void {
+  if (!pointer) return;
+
+  // ability targeting preview
+  if (rs.armedAbility) {
+    ctx.beginPath();
+    ctx.arc(pointer.x, pointer.y, 72, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(90, 209, 255, 0.7)';
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return;
+  }
+
+  const slot = slotAt(pointer.x, pointer.y);
+  if (!slot) return;
+  const tower = rs.towers.find((t) => t.slot === slot.index);
+
+  // placement ghost when a tower is selected
+  if (rs.selectedTower) {
+    const def = TOWER_DEFS[rs.selectedTower];
+    const locked = slot.index >= rs.unlockedSlots;
+    const invalid = locked || !!tower;
+    ctx.beginPath();
+    ctx.arc(slot.x, slot.y, Math.max(def.range, 16), 0, Math.PI * 2);
+    ctx.fillStyle = invalid ? 'rgba(255,80,80,0.05)' : 'rgba(120,200,255,0.06)';
+    ctx.fill();
+    ctx.strokeStyle = invalid ? 'rgba(255,80,80,0.6)' : 'rgba(120,200,255,0.6)';
+    ctx.setLineDash([5, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = invalid ? 'rgba(255,80,80,0.3)' : 'rgba(120,200,255,0.35)';
+    ctx.fillRect(slot.x - CELL / 2 + 4, slot.y - CELL / 2 + 4, CELL - 8, CELL - 8);
+    if (locked) labelAt(ctx, slot.x, slot.y - CELL / 2 - 6, 'LOCKED', '#ff8a8a');
+    return;
+  }
+
+  // occupied-slot info on hover
+  if (tower) {
+    const def = TOWER_DEFS[tower.kind];
+    if (def.range > 0) {
+      ctx.beginPath();
+      ctx.arc(tower.x, tower.y, def.range, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(120,200,255,0.35)';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    labelAt(ctx, tower.x, tower.y - CELL / 2 - 6, def.name, def.color);
+  }
+}
+
+function labelAt(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string): void {
+  ctx.font = '600 11px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  const w = ctx.measureText(text).width + 10;
+  ctx.fillStyle = 'rgba(8,11,17,0.85)';
+  ctx.fillRect(x - w / 2, y - 12, w, 15);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.textAlign = 'left';
 }

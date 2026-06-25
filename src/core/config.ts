@@ -193,6 +193,36 @@ export const ECON = {
   shardsPerKill: 0.4,
 };
 
+// ── Battlefield / arena ─────────────────────────────────────────────────────
+// Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
+// along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a
+// flow field, routing around obstacles — no predetermined path.
+export const DEFENSE = {
+  fraction: 0.25, // the bottom 25% of the arena is the player's defensive region
+};
+
+// Static impassable blocks (grid rects {col,row,w,h}) enemies must navigate
+// around. Kept ABOVE the defensive zone and never spanning a full row, so a path
+// to the line always exists.
+export const OBSTACLES: { col: number; row: number; w: number; h: number }[] = [
+  { col: 2, row: 5, w: 4, h: 2 },
+  { col: 12, row: 6, w: 4, h: 2 },
+  { col: 7, row: 10, w: 4, h: 2 },
+  { col: 1, row: 13, w: 3, h: 2 },
+  { col: 14, row: 13, w: 3, h: 2 },
+];
+
+// Tower placement slots: a regular lattice within the defensive region. The total
+// count is derived from the steps; `initialUnlocked` gates how many are usable at
+// run start — future upgrades raise it (Game.unlockedSlots).
+export const SLOTS = {
+  colStep: 2,
+  colStart: 1, // columns 1,3,5,… leave gaps for enemies and visual clarity
+  rowStep: 2,
+  rowOffset: 1, // first slot row sits 1 cell below the defensive line's top
+  initialUnlocked: 14,
+};
+
 // ── Meta upgrades (permanent, capped — NOT prestige/infinite) ─────────────
 export interface UpgradeDef {
   id: string;
