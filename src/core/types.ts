@@ -85,6 +85,18 @@ export interface FloatingText {
   life: number; // seconds remaining
 }
 
+/** Cosmetic particle (pooled, capped). Never affects gameplay determinism. */
+export interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
+}
+
 /** Permanent (meta) multipliers folded into a run at start — the "permanent bucket". */
 export interface MetaModifiers {
   towerDamageMult: number;

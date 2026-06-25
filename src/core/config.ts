@@ -135,6 +135,21 @@ export const STEER = {
   jitterFreq: 0.9,
 };
 
+// ── Performance / scalability budgets (large-scale combat) ──────────────────
+export const PERF = {
+  spatialCell: 64, // grid cell px for proximity queries (~tower-avoid radius)
+  maxEnemies: 600, // soft cap on concurrent enemies (spawns skip past this)
+  maxParticles: 420, // cosmetic particle budget (oldest dropped past this)
+  lodEnemyCount: 220, // beyond this, the renderer drops per-enemy embellishments
+};
+
+// Cosmetic combat particles (pooled). Counts kept modest to stay within budget.
+export const PARTICLE = {
+  death: { count: 6, speed: 70, life: 0.5, size: 2.6 },
+  shred: { count: 10, speed: 130, life: 0.45, size: 2.2, color: '#fff066' },
+  breach: { count: 8, speed: 90, life: 0.5, size: 2.4, color: '#ff5d73' },
+};
+
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).
 export const WAVE_HP_GROWTH = 0.12; // +12% enemy HP per wave index
 export const WAVE_BOUNTY_GROWTH = 0.05;

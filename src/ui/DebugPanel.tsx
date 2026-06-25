@@ -147,6 +147,9 @@ export function DebugPanel(): JSX.Element {
               <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('burrower', 4))}>
                 4 Burrowers
               </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('runner', 150))}>
+                Stress +150
+              </button>
             </div>
           </div>
 

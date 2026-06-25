@@ -17,7 +17,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, TOWER_DEFS } from '../core/config';
+import { ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 
 export interface Pointer {
@@ -77,9 +77,10 @@ export function drawGame(
   }
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
-  const detail = rs.enemies.length < 220;
+  const detail = rs.enemies.length < PERF.lodEnemyCount;
   for (const e of rs.enemies) drawEnemy(ctx, e, detail);
 
+  drawParticles(ctx, rs);
   drawHero(ctx, rs);
   drawPointer(ctx, rs, pointer);
 
@@ -441,6 +442,17 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     ctx.fillStyle = '#ffd24d';
     ctx.fillRect(h.x - w / 2, h.y - 20, w * pct, 3);
   }
+}
+
+function drawParticles(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  for (const p of rs.particles) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life / p.maxLife));
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawPressureVignette(ctx: CanvasRenderingContext2D, pressure: number, t: number): void {
