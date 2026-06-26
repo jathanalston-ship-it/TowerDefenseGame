@@ -120,6 +120,7 @@ export class Game {
   private targetScratch: Enemy[] = [];
   private neighborScratch: Enemy[] = [];
   private occupied = new Set<number>();
+  private needleFocus = new Map<number, Enemy>(); // towerId -> sticky focus-fire target
   private spawnQueue: QueuedSpawn[] = [];
   private spawnedAll = false;
   private nextId = 1;
@@ -287,6 +288,7 @@ export class Game {
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
       this.economySystem(dt);
       this.overchargeSystem();
+      this.reactorAuraSystem();
       this.towerSystem(dt);
       this.projectileSystem(dt);
       this.poolSystem(dt);
@@ -343,6 +345,7 @@ export class Game {
       fracture: 0,
       corrosion: 0,
       slowUntil: 0,
+      weakenUntil: 0,
       shredFlash: 0,
       alive: true,
     });
@@ -376,40 +379,117 @@ export class Game {
     }
   }
 
+  /**
+   * Each tower fires by its OWN logic, so the three read as distinct units:
+   *   • Needle — sticky single-target executioner: locks the toughest threat and
+   *     keeps drilling it (rapid homing needles, Fracture stacks).
+   *   • Mortar — area zoner: lobs a slow shell at the DENSEST cluster, leaving a pool.
+   *   • Reactor — no projectile (handled by economy/overcharge/aura systems).
+   */
   private towerSystem(dt: number): void {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
-      if (def.fireInterval <= 0) continue; // reactor
+      if (def.fireInterval <= 0) continue; // reactor: not a weapon
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const rateMult = this.mods.towerFireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
       const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
       if (t.kind === 'needle') {
-        const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles);
-        if (targets.length === 0) continue;
-        for (const e of targets) {
-          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'needle', 0);
+        const focus = this.needleTarget(t, def.range);
+        if (!focus) continue;
+        // All needles pour into the locked target — single-target burst & fast Fracture.
+        const shots = 1 + this.mods.needleExtraProjectiles;
+        for (let i = 0; i < shots; i++) {
+          this.spawnProjectile(t.x, t.y, focus.x, focus.y, def.projectileSpeed, focus.id, def.damage * dmgMult, 'needle', 0);
         }
         t.cooldown = def.fireInterval / rateMult;
       } else if (t.kind === 'mortar') {
-        const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
-        if (!target) continue;
-        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'mortar', def.splash * this.mods.splashRadiusMult);
+        const aim = this.mortarAim(t.x, t.y, def.range, def.splash * this.mods.splashRadiusMult);
+        if (!aim) continue;
+        this.spawnProjectile(t.x, t.y, aim.x, aim.y, def.projectileSpeed, -1, def.damage * dmgMult, 'mortar', def.splash * this.mods.splashRadiusMult);
         t.cooldown = def.fireInterval / rateMult;
       }
     }
   }
 
-  /** Up to `n` distinct enemies in range, prioritizing those closest to the line. */
-  private pickTargets(x: number, y: number, range: number, n: number): Enemy[] {
+  /**
+   * Needle targeting — sticky focus-fire with an anti-armor bias. Keeps its current
+   * target while it lives and stays in range (so Fracture compounds on one body);
+   * otherwise locks the most-threatening tough enemy in range (armor + shield, then
+   * advancement). This is what makes the Needle the boss/tank killer.
+   */
+  private needleTarget(t: Tower, range: number): Enemy | null {
     const r2 = range * range;
-    const out = this.targetScratch;
-    out.length = 0;
-    this.grid.forNeighbors(x, y, range, (e) => {
-      if (e.alive && dist2(x, y, e.x, e.y) <= r2) out.push(e);
+    const held = this.needleFocus.get(t.id);
+    if (held && held.alive && dist2(t.x, t.y, held.x, held.y) <= r2) return held;
+
+    let best: Enemy | null = null;
+    let bestScore = -Infinity;
+    this.grid.forNeighbors(t.x, t.y, range, (e) => {
+      if (!e.alive || dist2(t.x, t.y, e.x, e.y) > r2) return;
+      // Toughness first (its job is to crack armor), then how close to breaching.
+      const tough = e.baseArmor + e.maxHp * 0.02;
+      const score = tough * 100 - goalDistanceAt(e.x, e.y);
+      if (score > bestScore) {
+        bestScore = score;
+        best = e;
+      }
     });
-    out.sort((a, b) => goalDistanceAt(a.x, a.y) - goalDistanceAt(b.x, b.y));
-    return out.slice(0, n);
+    if (best) this.needleFocus.set(t.id, best);
+    else this.needleFocus.delete(t.id);
+    return best;
+  }
+
+  /**
+   * Mortar targeting — lob where it hits the MOST enemies. Evaluates in-range
+   * enemies as candidate impact points and picks the one whose splash covers the
+   * largest cluster (ties broken toward the line). Makes the Mortar feel like an
+   * area weapon, not a single-target gun.
+   */
+  private mortarAim(x: number, y: number, range: number, splash: number): { x: number; y: number } | null {
+    const r2 = range * range;
+    const cands = this.targetScratch;
+    cands.length = 0;
+    this.grid.forNeighbors(x, y, range, (e) => {
+      if (e.alive && dist2(x, y, e.x, e.y) <= r2 && cands.length < 48) cands.push(e);
+    });
+    if (cands.length === 0) return null;
+    const s2 = splash * splash;
+    let best = cands[0];
+    let bestScore = -Infinity;
+    for (let i = 0; i < cands.length; i++) {
+      const c = cands[i];
+      let count = 0;
+      for (let j = 0; j < cands.length; j++) {
+        if (dist2(c.x, c.y, cands[j].x, cands[j].y) <= s2) count++;
+      }
+      const score = count * 1000 - goalDistanceAt(c.x, c.y);
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
+    }
+    return { x: best.x, y: best.y };
+  }
+
+  /**
+   * Reactor aura — the support tower's battlefield presence. Enemies inside the
+   * aura of any reactor are briefly slowed and "weakened" (take extra damage), so
+   * a reactor planted on a chokepoint amplifies every nearby tower's output on top
+   * of its biomass + overcharge. Refresh-based (re-stamped each tick they're inside).
+   */
+  private reactorAuraSystem(): void {
+    const R = ECON.reactorAuraRadius;
+    const R2 = R * R;
+    const until = this.time + 0.18;
+    for (const t of this.towers) {
+      if (t.kind !== 'reactor') continue;
+      this.grid.forNeighbors(t.x, t.y, R, (e) => {
+        if (!e.alive || dist2(t.x, t.y, e.x, e.y) > R2) return;
+        e.slowUntil = until;
+        e.weakenUntil = until;
+      });
+    }
   }
 
   private projectileSystem(dt: number): void {
@@ -534,7 +614,9 @@ export class Game {
       }
       const def = ENEMY_DEFS[e.kind];
       const b = def.behavior;
-      const slow = e.corrosion > 0 ? Math.min(0.85, slowBase) : 0;
+      let slow = e.corrosion > 0 ? slowBase : 0;
+      if (e.slowUntil > this.time) slow = Math.max(slow, ECON.reactorAuraSlow); // reactor aura
+      slow = Math.min(0.85, slow);
       const step = e.speed * (1 - slow) * dt;
 
       // 1. seek
@@ -770,11 +852,11 @@ export class Game {
     const p = this.projPool.pop();
     if (p) {
       p.id = this.nextId++;
-      p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
+      p.x = x; p.y = y; p.ox = x; p.oy = y; p.tx = tx; p.ty = ty; p.speed = speed;
       p.targetId = targetId; p.damage = damage; p.kind = kind; p.splash = splash; p.alive = true;
       this.projectiles.push(p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, kind, splash, alive: true });
+      this.projectiles.push({ id: this.nextId++, x, y, ox: x, oy: y, tx, ty, speed, targetId, damage, kind, splash, alive: true });
     }
   }
 
@@ -848,7 +930,8 @@ export class Game {
 
   private applyDamage(e: Enemy, raw: number): void {
     if (!e.alive) return;
-    const mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
+    let mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
+    if (e.weakenUntil > this.time) mult += ECON.reactorWeaken; // reactor aura mark
     const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
     e.hp -= applied;
   }

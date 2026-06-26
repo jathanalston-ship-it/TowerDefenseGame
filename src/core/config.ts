@@ -27,26 +27,30 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     name: 'Needle Spitter',
     combatClass: 'Kinetic',
     cost: 100,
-    range: 135,
-    fireInterval: 0.34,
-    damage: 13,
-    projectileSpeed: 540,
+    range: 150,
+    fireInterval: 0.3,
+    damage: 12,
+    projectileSpeed: 620,
     splash: 0,
     color: '#5ad1ff',
-    blurb: 'Fast single-target. Stacks Fracture (armor shred).',
+    // ROLE: single-target executioner. LOCKS one target and rapid-fires homing
+    // needles into it, stacking Fracture (armor shred) — melts tanks & bosses.
+    blurb: 'Locks one target; rapid homing needles stack Fracture. Melts armor; weak vs swarms.',
   },
   mortar: {
     kind: 'mortar',
     name: 'Bone Mortar',
     combatClass: 'Caustic',
     cost: 150,
-    range: 175,
-    fireInterval: 1.45,
-    damage: 20,
-    projectileSpeed: 250,
-    splash: 56,
+    range: 185,
+    fireInterval: 1.5,
+    damage: 18,
+    projectileSpeed: 230,
+    splash: 62,
     color: '#b6e84a',
-    blurb: 'Arcing AoE. Leaves Corrosion pools (DoT + slow).',
+    // ROLE: area denial. LOBS slow arcing shells at the DENSEST cluster, then
+    // leaves a Corrosion pool (DoT + slow). Clears swarms; poor vs lone targets.
+    blurb: 'Lobs at the biggest cluster; leaves Corrosion pools. Clears swarms; poor vs single targets.',
   },
   reactor: {
     kind: 'reactor',
@@ -59,7 +63,9 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     projectileSpeed: 0,
     splash: 0,
     color: '#ff7a59',
-    blurb: 'Generates biomass; overcharges ADJACENT towers (+dmg, +rate).',
+    // ROLE: support. No attack — generates biomass, OVERCHARGES adjacent towers,
+    // and emits a weakening aura (nearby enemies are slowed + take more damage).
+    blurb: 'No attack. Biomass + overcharges neighbors + weakens nearby foes. Useless alone.',
   },
 };
 
@@ -252,6 +258,10 @@ export const ECON = {
   reactorBiomassPerSec: 6,
   overchargeDamage: 0.35, // +35% damage to adjacent towers
   overchargeRate: 0.25, // +25% fire rate to adjacent towers
+  // Reactor weakening aura — its battlefield presence despite dealing no damage.
+  reactorAuraRadius: 92,
+  reactorAuraSlow: 0.2, // -20% speed to enemies in the aura
+  reactorWeaken: 0.2, // +20% damage taken by enemies in the aura
   baseIntegrity: 100,
   // Run-end rewards (permanent shards):
   shardsPerWave: 8,

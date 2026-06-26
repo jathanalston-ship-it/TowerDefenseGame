@@ -27,7 +27,8 @@ export interface Enemy {
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
-  slowUntil: number; // sim-time the slow expires
+  slowUntil: number; // sim-time an external slow (reactor aura) expires
+  weakenUntil: number; // sim-time the reactor "weaken" mark (+damage taken) expires
   shredFlash: number; // seconds of reaction flash remaining (visual)
   alive: boolean;
 }
@@ -46,6 +47,8 @@ export interface Projectile {
   id: number;
   x: number;
   y: number;
+  ox: number; // launch origin (for the mortar's visual arc)
+  oy: number;
   tx: number;
   ty: number;
   speed: number;

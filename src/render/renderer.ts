@@ -17,7 +17,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import { ECON, ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 
 export interface Pointer {
@@ -254,27 +254,11 @@ export function drawGame(
     ctx.stroke();
   }
 
+  drawReactorAuras(ctx, rs, it);
   drawOverchargeLinks(ctx, rs);
   for (const tw of rs.towers) drawTower(ctx, tw, t);
 
-  // Projectiles with a subtle additive bloom halo (cheap; few on screen).
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  for (const p of rs.projectiles) {
-    const big = p.kind === 'mortar';
-    const col = big ? '#d6f06a' : '#aef0ff';
-    ctx.fillStyle = col;
-    ctx.globalAlpha = 0.4; // soft glow
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, big ? 7 : 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1; // bright core
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, big ? 4 : 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-  ctx.globalAlpha = 1;
+  drawProjectiles(ctx, rs);
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
@@ -537,6 +521,82 @@ function drawBracket(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: n
   ctx.stroke();
 }
 
+/** Faint pulsing ring showing each reactor's weaken/slow aura zone. */
+function drawReactorAuras(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  for (const tw of rs.towers) {
+    if (tw.kind !== 'reactor') continue;
+    const a = 0.05 + 0.05 * (0.5 + 0.5 * Math.sin(t * 2 + tw.id));
+    const g = ctx.createRadialGradient(tw.x, tw.y, ECON.reactorAuraRadius * 0.4, tw.x, tw.y, ECON.reactorAuraRadius);
+    g.addColorStop(0, rgba(RGB.vital, 0));
+    g.addColorStop(1, rgba(RGB.vital, a));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y, ECON.reactorAuraRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = rgba(RGB.vital, a + 0.06);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y, ECON.reactorAuraRadius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+/** Projectiles, drawn per kind so the two weapons read differently in flight:
+ *  needle = a fast kinetic dart with a tail; mortar = a lobbed acid shell arcing
+ *  over a ground shadow. */
+function drawProjectiles(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  ctx.save();
+  for (const p of rs.projectiles) {
+    if (p.kind === 'mortar') {
+      const total = Math.hypot(p.tx - p.ox, p.ty - p.oy) || 1;
+      const remain = Math.hypot(p.tx - p.x, p.ty - p.y);
+      const prog = Math.max(0, Math.min(1, 1 - remain / total));
+      const arc = Math.sin(prog * Math.PI) * 26; // visual lift only
+      // ground shadow
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, 5, 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // glowing acid shell (additive)
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 1;
+      const yy = p.y - arc;
+      ctx.fillStyle = rgba(RGB.caustic, 0.4);
+      ctx.beginPath();
+      ctx.arc(p.x, yy, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e8ff8a';
+      ctx.beginPath();
+      ctx.arc(p.x, yy, 3.6, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // needle dart + travel tail
+      ctx.globalCompositeOperation = 'lighter';
+      const dx = p.tx - p.x;
+      const dy = p.ty - p.y;
+      const l = Math.hypot(dx, dy) || 1;
+      const ux = dx / l;
+      const uy = dy / l;
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = rgba(RGB.kinetic, 0.5);
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 9, p.y - uy * 9);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.fillStyle = '#cdf3ff';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
 function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   for (const t of rs.towers) {
     if (!t.overcharged) continue;
@@ -574,26 +634,71 @@ function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][numbe
     ctx.scale(scale, scale);
     ctx.translate(-t.x, -t.y);
   }
-  ctx.fillStyle = def.color;
   if (t.kind === 'needle') {
+    // tall thin kinetic spire with a flickering muzzle tip
+    ctx.fillStyle = def.color;
     ctx.beginPath();
-    ctx.moveTo(t.x, t.y - 12);
-    ctx.lineTo(t.x + 9, t.y + 9);
-    ctx.lineTo(t.x - 9, t.y + 9);
+    ctx.moveTo(t.x, t.y - 15);
+    ctx.lineTo(t.x + 7, t.y + 9);
+    ctx.lineTo(t.x - 7, t.y + 9);
     ctx.closePath();
     ctx.fill();
-  } else if (t.kind === 'mortar') {
-    ctx.fillRect(t.x - 10, t.y - 10, 20, 20);
-  } else {
+    ctx.fillStyle = 'rgba(8,16,24,0.5)';
     ctx.beginPath();
-    ctx.arc(t.x, t.y, 11, 0, Math.PI * 2);
+    ctx.moveTo(t.x, t.y - 5);
+    ctx.lineTo(t.x + 3.5, t.y + 8);
+    ctx.lineTo(t.x - 3.5, t.y + 8);
+    ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    const flick = reduceMotion ? 0.7 : 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(now * 28 + t.id));
+    ctx.fillStyle = `rgba(205,243,255,${flick})`;
     ctx.beginPath();
-    ctx.arc(t.x, t.y, 5, 0, Math.PI * 2);
+    ctx.arc(t.x, t.y - 15, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (t.kind === 'mortar') {
+    // squat caustic body + glowing acid sac
+    ctx.fillStyle = '#3f4a1e';
+    roundRectPath(ctx, t.x - 11, t.y - 3, 22, 13, 3);
+    ctx.fill();
+    const sac = reduceMotion ? 0.8 : 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(now * 2.2 + t.id));
+    ctx.fillStyle = `rgba(214,240,106,${sac})`;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y - 6, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(40,52,16,0.6)';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y - 6, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // beating vital orb
+    const beat = reduceMotion ? 1 : 1 + 0.12 * Math.sin(now * 3 + t.id);
+    ctx.fillStyle = def.color;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, 11 * beat, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,210,180,0.5)';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, 6 * beat, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, 2.6 * beat, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
+}
+
+/** arcTo-based rounded rect (universally supported, unlike ctx.roundRect). */
+function roundRectPath(
+  ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 // ── Enemies ──────────────────────────────────────────────────────────────────
