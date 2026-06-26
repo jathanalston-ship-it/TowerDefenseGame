@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { itemDef } from '../core/equipment';
 import { LootReveal } from './LootReveal';
 import { ShardIcon } from './components/Icon';
 
@@ -41,13 +42,17 @@ export function Results({
   return (
     <div className="menu" style={{ alignItems: 'center', textAlign: 'center' }}>
       <div className={`result-big ${result.won ? 'win' : 'lose'}`}>
-        {result.won ? 'EXTRACTION COMPLETE' : 'NUCLEUS LOST'}
+        {result.endless
+          ? `DEPTH ${result.wave} REACHED`
+          : result.won
+            ? 'EXTRACTION COMPLETE'
+            : 'NUCLEUS LOST'}
       </div>
 
       <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
         <div className="records" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
           <div className="record">
-            <div className="k">Wave Reached</div>
+            <div className="k">{result.endless ? 'Depth Reached' : 'Wave Reached'}</div>
             <div className="v">{result.wave}</div>
           </div>
           <div className="record">
@@ -64,6 +69,35 @@ export function Results({
       <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
         <LootReveal chest={outcome.chest} />
       </div>
+
+      {(() => {
+        const def = itemDef(outcome.gear.defId);
+        if (!def) return null;
+        const tone =
+          outcome.gear.rarity === 'exotic'
+            ? 'var(--viral)'
+            : outcome.gear.rarity === 'legendary'
+              ? 'var(--r-legendary)'
+              : outcome.gear.rarity === 'epic'
+                ? 'var(--r-epic)'
+                : outcome.gear.rarity === 'rare'
+                  ? 'var(--r-rare)'
+                  : 'var(--r-common)';
+        return (
+          <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
+            <div className="panel-title">Gear Drop</div>
+            <div className="gear-drop">
+              <span className="equip-dot" style={{ background: tone, boxShadow: `0 0 8px ${tone}` }} />
+              <span className="gear-drop-info">
+                <span style={{ color: tone, fontWeight: 700 }}>
+                  {def.name} <span style={{ textTransform: 'uppercase', fontSize: 10 }}>{outcome.gear.rarity}</span>
+                </span>
+                <span className="equip-desc">{def.desc}</span>
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       {masteryGains.length > 0 && (
         <div className="panel" style={{ width: 'min(480px, 92vw)' }}>

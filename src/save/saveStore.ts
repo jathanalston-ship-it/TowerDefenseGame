@@ -7,6 +7,7 @@
 
 import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER } from '../core/config';
 import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
+import type { Loadout, OwnedItem } from '../core/equipment';
 
 export interface SaveData {
   shards: number;
@@ -27,6 +28,9 @@ export interface SaveData {
   // ── Lifetime statistics + achievements — added in schema v3 ──
   stats: LifetimeStats;
   achievements: string[]; // unlocked achievement ids
+  // ── Hero equipment (schema v3) ──
+  equipment: { inventory: OwnedItem[]; loadout: Loadout };
+  mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
 }
 
 export const CURRENT_VERSION = 3;
@@ -109,6 +113,8 @@ export function defaultSave(): SaveData {
     selectedHero: 'ravager',
     stats: defaultLifetimeStats(),
     achievements: [],
+    equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
+    mats: { mutagen: 0, scrap: 0, catalyst: 0 },
   };
 }
 
@@ -134,6 +140,11 @@ function withDefaults(data: SaveData): SaveData {
     selectedHero: HERO_ORDER.includes(data.selectedHero) ? data.selectedHero : d.selectedHero,
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
+    equipment: {
+      inventory: Array.isArray(data.equipment?.inventory) ? data.equipment.inventory : [],
+      loadout: { ...d.equipment.loadout, ...data.equipment?.loadout },
+    },
+    mats: { ...d.mats, ...data.mats },
   };
 }
 

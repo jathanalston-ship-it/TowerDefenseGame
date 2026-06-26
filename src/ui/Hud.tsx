@@ -58,21 +58,33 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
         <span className="tt-bubble">Hive Core integrity — the run ends if it reaches 0.</span>
       </div>
 
-      {/* WAVE progress */}
+      {/* WAVE progress (Endless shows Depth) */}
       <div className="hud-cell tt" tabIndex={0}>
-        <div className="hud-k">Wave</div>
-        <div className="hud-v">
-          {displayWave}
-          <span className="hud-sub">/{hud.totalWaves}</span>
-        </div>
-        <div className="wave-pips" aria-hidden>
-          {Array.from({ length: hud.totalWaves }, (_, i) => {
-            const n = i + 1;
-            const state = n < displayWave ? 'done' : n === displayWave ? 'active' : '';
-            return <span key={n} className={`pip ${state}`} />;
-          })}
-        </div>
-        <span className="tt-bubble">Survive all {hud.totalWaves} waves to extract.</span>
+        {hud.endless ? (
+          <>
+            <div className="hud-k">Depth</div>
+            <div className="hud-v" style={{ color: 'var(--viral)' }}>
+              {Math.max(0, hud.wave)}
+            </div>
+            <span className="tt-bubble">Endless — the AI Director escalates forever. Hold the line as deep as you can.</span>
+          </>
+        ) : (
+          <>
+            <div className="hud-k">Wave</div>
+            <div className="hud-v">
+              {displayWave}
+              <span className="hud-sub">/{hud.totalWaves}</span>
+            </div>
+            <div className="wave-pips" aria-hidden>
+              {Array.from({ length: hud.totalWaves }, (_, i) => {
+                const n = i + 1;
+                const state = n < displayWave ? 'done' : n === displayWave ? 'active' : '';
+                return <span key={n} className={`pip ${state}`} />;
+              })}
+            </div>
+            <span className="tt-bubble">Survive all {hud.totalWaves} waves to extract.</span>
+          </>
+        )}
       </div>
 
       <div className="spacer" />

@@ -552,3 +552,26 @@ export function chestForWave(wave: number): string {
 // Heroes that can receive hero shards (the three launch heroes — HEROES.md).
 export const HERO_IDS = ['ravager', 'shepherd', 'overseer'] as const;
 export const HERO_LABELS: Record<string, string> = { ravager: 'Ravager', shepherd: 'Shepherd', overseer: 'Overseer' };
+
+// ── Boss framework (boss.ts) ────────────────────────────────────────────────
+export const BOSS = {
+  baseHp: 1600, // × BossDef.hpMult → boss HP
+  addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
+};
+
+// ── AI Director / run modes (director.ts) ───────────────────────────────────
+// The Director generates Endless waves from a threat budget; Stage mode stays the
+// authored WAVES (so the golden run is untouched). Tunables are illustrative.
+export const DIRECTOR = {
+  baseBudget: 12, // threat points spent on wave 1 of endless
+  budgetGrowth: 0.16, // +16% budget per depth (the difficulty frontier)
+  eliteChanceBase: 0.08, // elite promotion chance, rises with depth
+  eliteChancePerDepth: 0.015,
+  bossEvery: 5, // a (mini)boss caps every N endless waves
+  swarmEvery: 4, // a swarm-event wave every N waves
+  eliteHpMult: 3, // an elite-promoted enemy's HP / damage / bounty multipliers
+  eliteDmgMult: 1.5,
+  eliteBountyMult: 3,
+  // threat cost per archetype (cheaper = more of them in a wave)
+  cost: { runner: 1, rusher: 1.2, brute: 3, burrower: 2.4, flyer: 2.2, tank: 4, tyrant: 20 } as Record<string, number>,
+};

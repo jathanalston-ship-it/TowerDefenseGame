@@ -43,6 +43,28 @@ export interface Enemy {
   dmgTimer: number; // throttle until the banked damage may pop as a float (visual)
   alive: boolean;
   lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
+  boss: BossRuntime | null; // present only for framework bosses (null for normal enemies)
+}
+
+/** Live state a framework boss carries on top of its enemy body (see boss.ts). */
+export interface BossRuntime {
+  defId: string;
+  name: string;
+  phase: number; // current phase index
+  phases: number; // total phase count
+  moduleCd: number[]; // per-module cooldown remaining (indexed like BossDef.modules)
+  shielded: number; // seconds of invulnerability remaining (0 = vulnerable)
+  enrage: number; // enrage stacks
+  channel: number; // seconds left on a Nucleus channel (0 = none)
+  telegraph: string | null; // current telegraphed action (drives the banner)
+}
+
+export interface BossBannerSnapshot {
+  name: string;
+  hpPct: number;
+  phase: number;
+  phases: number;
+  telegraph: string | null;
 }
 
 export interface Tower {
@@ -206,6 +228,8 @@ export interface HudSnapshot {
   armedAbility: boolean;
   cards: CardOption[]; // gene cards drafted this run (build panel)
   buffs: string[]; // human-readable active run modifiers
+  bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
+  endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
 }
 
 export interface CardOption {

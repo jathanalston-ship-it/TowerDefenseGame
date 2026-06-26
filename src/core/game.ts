@@ -52,7 +52,26 @@ import {
   defaultRunModifiers,
   draftCards,
 } from './cards';
-import type { CardContext, CardDef, RunModifiers } from './cards';
+import type { CardContext, CardDef, CardEffect, RunModifiers } from './cards';
+import { CHASSIS, assembleBoss, bossDef } from './boss';
+import type { BossDef } from './boss';
+import { BOSS, DIRECTOR } from './config';
+import { Director } from './director';
+
+export type RunMode = 'stage' | 'endless';
+
+/** Options a run can boot with. */
+export interface RunOptions {
+  runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
+  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director
+}
+
+/** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
+function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
+  if (e.op === 'mul') mods[e.field] *= e.value;
+  else if (e.op === 'add') mods[e.field] += e.value;
+  else if (e.op === 'flag') mods[e.field] = true;
+}
 import type {
   Enemy,
   EnemyKind,
@@ -132,6 +151,7 @@ interface QueuedSpawn {
   at: number; // sim-time to spawn
   hpMult: number;
   bountyMult: number;
+  elite?: boolean; // director-promoted elite (buffed stats) — endless only
 }
 
 export interface RenderState {
@@ -153,8 +173,10 @@ export interface RenderState {
 
 export class Game {
   phase: Phase = 'prep';
-  waveIndex = 0; // waves started/cleared so far
+  waveIndex = 0; // waves started/cleared so far (= Depth in endless)
   readonly totalWaves = TOTAL_WAVES;
+  readonly mode: RunMode;
+  private director: Director | null = null;
   biomass: number;
   integrity: number;
   maxIntegrity: number;
@@ -202,6 +224,8 @@ export class Game {
   private grid = new SpatialGrid<Enemy>(WIDTH, HEIGHT, PERF.spatialCell);
   private enemyById = new Map<number, Enemy>(); // O(1) projectile target lookup
   private reactorCount = 0; // cached on tower placement (economy), not per tick
+  private bossCount = 0; // # framework bosses on the field (gates the boss system)
+  private procBosses = new Map<string, BossDef>(); // assembled boss defs by id (lookup at runtime)
   private projPool: Projectile[] = [];
   private partPool: Particle[] = [];
   private targetScratch: Enemy[] = [];
@@ -219,31 +243,37 @@ export class Game {
     towerProgress: TowerProgress = neutralTowerProgress(),
     heroKind: HeroKind = 'ravager',
     heroProgress: HeroProgress = neutralHeroProgress(),
+    opts: RunOptions = {},
   ) {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.towerProgress = towerProgress;
     this.heroProgress = heroProgress;
+    this.mode = opts.mode ?? 'stage';
+    if (this.mode === 'endless') this.director = new Director(() => this.rng.next());
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
     this.mods.towerDamageMult = meta.towerDamageMult;
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
-    this.maxIntegrity = ECON.baseIntegrity + meta.integrityBonus;
+    // Fold run-start effects (equipment, …) — neutral fields keep a gear-less run identical.
+    if (opts.runEffects) for (const e of opts.runEffects) applyRunEffect(this.mods, e);
+    this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
-    this.biomass = ECON.startingBiomass;
+    this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
     this.heroes = [this.makeHero(heroKind)];
   }
 
   /** Build a hero runtime instance from its data-driven definition. */
   private makeHero(kind: HeroKind): Hero {
     const def = HERO_DEFS[kind];
+    const maxHp = def.maxHp * this.mods.heroMaxHpMult; // equipment survivability folds in here
     return {
       kind,
       x: nucleusPoint.x,
       y: nucleusPoint.y,
-      hp: def.maxHp,
-      maxHp: def.maxHp,
+      hp: maxHp,
+      maxHp,
       down: false,
       respawn: 0,
       rally: { x: WIDTH / 2, y: DEFENSE_TOP_Y - CELL }, // patrol the line by default
@@ -326,6 +356,10 @@ export class Game {
 
   startWave(): void {
     if (this.phase !== 'prep') return;
+    if (this.mode === 'endless') {
+      this.startEndlessWave();
+      return;
+    }
     if (this.waveIndex >= TOTAL_WAVES) return;
     this.waveIndex++;
     const def = WAVES[this.waveIndex - 1];
@@ -345,6 +379,34 @@ export class Game {
     this.spawnQueue.sort((a, b) => a.at - b.at);
     this.spawnedAll = false;
     this.phase = 'wave';
+    this.pushSfx('wave');
+  }
+
+  /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget. */
+  private startEndlessWave(): void {
+    this.waveIndex++; // = Depth
+    const depth = this.waveIndex;
+    const w = this.director!.next(depth);
+    const hpMult = 1 + WAVE_HP_GROWTH * (depth - 1);
+    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * (depth - 1);
+    this.spawnQueue = [];
+    let t0 = this.time + 0.5;
+    for (const g of w.groups) {
+      for (let i = 0; i < g.count; i++) {
+        this.spawnQueue.push({ kind: g.kind, at: t0 + i * 0.5, hpMult, bountyMult, elite: g.elite });
+      }
+      t0 += 0.35;
+    }
+    if (w.swarmEvent) {
+      const burst = this.time + 3;
+      for (let i = 0; i < 12; i++) {
+        this.spawnQueue.push({ kind: 'runner', at: burst + i * 0.18, hpMult, bountyMult });
+      }
+    }
+    this.spawnQueue.sort((a, b) => a.at - b.at);
+    this.spawnedAll = false;
+    this.phase = 'wave';
+    if (w.spawnBoss) this.spawnProceduralBoss(depth);
     this.pushSfx('wave');
   }
 
@@ -405,6 +467,7 @@ export class Game {
     if (this.phase === 'wave') {
       this.spawnSystem();
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
+      if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
       this.economySystem(dt);
       this.towerSystem(dt);
       this.projectileSystem(dt);
@@ -444,25 +507,63 @@ export class Game {
   private spawnSystem(): void {
     while (this.spawnQueue.length > 0 && this.spawnQueue[0].at <= this.time) {
       const q = this.spawnQueue.shift()!;
-      this.spawnOne(q.kind, q.hpMult, q.bountyMult);
+      this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite === true);
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
 
-  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number): void {
+  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const def = ENEMY_DEFS[kind];
     const spawn = topSpawn(this.rng.next());
+    // Director-promoted elites are buffed in place (no new archetype) — endless only,
+    // so a stage run (elite=false) is byte-identical.
+    const eHp = elite ? DIRECTOR.eliteHpMult : 1;
+    const eDmg = elite ? DIRECTOR.eliteDmgMult : 1;
+    const eBounty = elite ? DIRECTOR.eliteBountyMult : 1;
     this.enemies.push({
       id: this.nextId++,
       kind,
       x: spawn.x,
       y: spawn.y,
-      hp: def.hp * hpMult,
-      maxHp: def.hp * hpMult,
+      hp: def.hp * hpMult * eHp,
+      maxHp: def.hp * hpMult * eHp,
       baseArmor: def.armor,
       speed: def.speed,
-      bounty: def.bounty * bountyMult,
+      bounty: def.bounty * bountyMult * eBounty,
+      damage: def.damage * eDmg,
+      fracture: 0,
+      corrosion: 0,
+      shredFlash: 0,
+      hitFlash: 0,
+      dmgAccum: 0,
+      dmgTimer: 0,
+      infection: 0,
+      disrupt: 0,
+      alive: true,
+      lastHitKind: null,
+      boss: null,
+    });
+  }
+
+  /**
+   * Spawn a framework boss (boss.ts) — a composed encounter, not a big enemy. It
+   * enters with a BossRuntime the bossSystem drives through phases/modules. Used by
+   * the director / endless / debug — never in the authored golden waves.
+   */
+  spawnBoss(def: BossDef): void {
+    const hp = BOSS.baseHp * def.hpMult;
+    this.bossCount++;
+    this.enemies.push({
+      id: this.nextId++,
+      kind: 'tyrant', // borrows the boss-tier visual; behavior is driven by the runtime
+      x: topSpawn(this.rng.next()).x,
+      y: 8,
+      hp,
+      maxHp: hp,
+      baseArmor: 14,
+      speed: CHASSIS[def.chassis].speed,
+      bounty: def.bounty,
       damage: def.damage,
       fracture: 0,
       corrosion: 0,
@@ -474,6 +575,98 @@ export class Game {
       dmgTimer: 0,
       alive: true,
       lastHitKind: null,
+      boss: {
+        defId: def.id,
+        name: def.name,
+        phase: 0,
+        phases: def.phases.length,
+        moduleCd: def.modules.map((m) => m.cooldown * 0.6), // first cast comes a little early
+        shielded: 0,
+        enrage: 0,
+        channel: 0,
+        telegraph: null,
+      },
+    });
+  }
+
+  /**
+   * Drive every framework boss: HP-gated phase transitions + telegraphed module
+   * abilities (summon adds, enrage ramp, shield windows, Nucleus channel). Only
+   * called when a boss is on the field, so normal runs pay nothing.
+   */
+  private bossSystem(dt: number): void {
+    for (const e of this.enemies) {
+      const b = e.boss;
+      if (!b || !e.alive) continue;
+      const def = bossDef(b.defId) ?? this.procBosses.get(b.defId);
+      if (!def) continue;
+
+      // phase transition (HP-gated) — advancing resets shield/telegraph (no snowball).
+      const hpFrac = e.hp / e.maxHp;
+      while (b.phase + 1 < def.phases.length && hpFrac <= def.phases[b.phase + 1].threshold) {
+        b.phase++;
+        b.shielded = 0;
+        b.telegraph = 'PHASE SHIFT';
+      }
+      const phase = def.phases[b.phase];
+
+      if (b.shielded > 0) b.shielded = Math.max(0, b.shielded - dt);
+      if (b.channel > 0) {
+        b.channel -= dt;
+        b.telegraph = 'CHANNELING';
+        if (b.channel <= 0) {
+          // the cast lands on the Nucleus unless the boss died mid-cast
+          const chan = def.modules.find((m) => m.kind === 'channeler');
+          if (chan && !this.god) this.integrity = Math.max(0, this.integrity - (chan.amount ?? 12));
+          this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 16, text: 'BREACH!', color: '#ff5d73', life: 1 });
+          b.telegraph = null;
+        }
+      } else if (b.shielded <= 0) {
+        b.telegraph = null;
+      }
+
+      // tick + fire the phase's active modules
+      for (const mi of phase.modules) {
+        b.moduleCd[mi] -= dt;
+        if (b.moduleCd[mi] > 0) continue;
+        const m = def.modules[mi];
+        b.moduleCd[mi] = m.cooldown;
+        switch (m.kind) {
+          case 'spawner':
+            if (this.enemies.length < PERF.maxEnemies) {
+              const n = m.amount ?? 3;
+              for (let i = 0; i < n; i++) this.spawnNear(m.addKind ?? 'runner', e.x, e.y);
+              b.telegraph = 'SUMMON';
+            }
+            break;
+          case 'enrager':
+            b.enrage++;
+            e.speed *= 1.06;
+            b.telegraph = 'ENRAGE';
+            break;
+          case 'shieldphase':
+            b.shielded = m.duration ?? 3;
+            b.telegraph = 'SHIELDED';
+            break;
+          case 'channeler':
+            if (b.channel <= 0) b.channel = m.duration ?? 3;
+            break;
+          default:
+            break; // charger/suppressor: reserved (defined, not yet wired)
+        }
+      }
+      if (phase.speedMult && b.enrage === 0) e.speed = CHASSIS[def.chassis].speed * phase.speedMult;
+    }
+  }
+
+  /** Spawn a normal enemy at a position (boss adds). */
+  private spawnNear(kind: EnemyKind, x: number, y: number): void {
+    if (this.enemies.length >= PERF.maxEnemies) return;
+    const def = ENEMY_DEFS[kind];
+    this.enemies.push({
+      id: this.nextId++, kind, x: Math.max(12, Math.min(WIDTH - 12, x + (this.rng.next() - 0.5) * 60)), y: y + 12,
+      hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed, bounty: def.bounty, damage: def.damage,
+      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null,
     });
   }
 
@@ -821,6 +1014,7 @@ export class Game {
     if (!e.alive) return;
     if (!this.god) this.integrity -= e.damage;
     e.alive = false;
+    if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1);
     this.armorBreakUntil.delete(e.id);
     this.pushSfx('breach');
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
@@ -1056,6 +1250,7 @@ export class Game {
         e.alive = false;
         this.kills++;
         this.statKillsByEnemy[e.kind]++; // lifetime-stats observation
+        if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1); // a boss fell
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
         if (e.infection > 0) this.spreadInfection(e); // Viral: the plague jumps to the living
         const gain = e.bounty * this.mods.biomassMult;
@@ -1169,7 +1364,8 @@ export class Game {
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
-      if (this.waveIndex >= TOTAL_WAVES) {
+      // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
+      if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
         this.phase = 'won';
       } else {
         this.draft = draftCards(this.rng, 3);
@@ -1244,6 +1440,10 @@ export class Game {
    * (corrosion/pools) passes false so it doesn't strobe. Returns damage applied. */
   private applyDamage(e: Enemy, raw: number, sourceKind: TowerKind | null = null, flash = true): number {
     if (!e.alive) return 0;
+    if (e.boss && e.boss.shielded > 0) {
+      if (flash) e.hitFlash = FX.hitFlash; // sparks off the shield, but no HP lost
+      return 0;
+    }
     const mult = this.vulnMult(e);
     const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
     e.hp -= applied;
@@ -1423,12 +1623,43 @@ export class Game {
       armedAbility: this.armedAbility,
       cards: this.chosenCards,
       buffs: this.activeBuffs(),
+      bossBanner: this.bossBanner(),
+      endless: this.mode === 'endless',
     };
+  }
+
+  /** The most-wounded framework boss as a banner snapshot (null if none). */
+  private bossBanner(): HudSnapshot['bossBanner'] {
+    let worst: Enemy | null = null;
+    for (const e of this.enemies) {
+      if (!e.boss || !e.alive) continue;
+      if (!worst || e.hp / e.maxHp < worst.hp / worst.maxHp) worst = e;
+    }
+    if (!worst || !worst.boss) return null;
+    return {
+      name: worst.boss.name,
+      hpPct: Math.max(0, worst.hp / worst.maxHp),
+      phase: worst.boss.phase + 1,
+      phases: worst.boss.phases,
+      telegraph: worst.boss.telegraph,
+    };
+  }
+
+  /** Spawn an authored boss (debug / director). */
+  debugSpawnBoss(): void {
+    this.spawnBoss(bossDef('progenitor')!);
+  }
+
+  /** Assemble + register + spawn a procedural boss at a Threat Level (director/endless). */
+  spawnProceduralBoss(tl: number): void {
+    const def = assembleBoss(() => this.rng.next(), tl);
+    this.procBosses.set(def.id, def);
+    this.spawnBoss(def);
   }
 
   /** Composition of the wave that Start Wave will launch next (null if none left). */
   getNextWavePreview(): WavePreviewEntry[] | null {
-    if (this.waveIndex >= TOTAL_WAVES) return null;
+    if (this.mode === 'endless' || this.waveIndex >= TOTAL_WAVES) return null;
     return wavePreview(WAVES[this.waveIndex]);
   }
 
