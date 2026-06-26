@@ -5,6 +5,7 @@
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 import { Registry } from './registry';
 import type { AbilityComponent, AuraAbility } from './ability';
+import type { TargetingProfile } from './targeting';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -43,6 +44,8 @@ export interface TowerDef {
    * (see TOWER_ABILITIES) — so a NEW tower can instead compose reusable AbilityComponents
    * directly (projectile + chain + poison, …) with no sim code. */
   abilities?: AbilityComponent[];
+  /** Targeting profile (data-driven). Omitted ⇒ 'closestToBase' (historical default). */
+  targeting?: TargetingProfile;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {

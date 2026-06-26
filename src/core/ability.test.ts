@@ -12,7 +12,7 @@ function fakeEnemy(id: number, x = 0, y = 0): Enemy {
   return {
     id, kind: 'runner', x, y, hp: 100, maxHp: 100, baseArmor: 0, speed: 10, bounty: 1, damage: 1,
     fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0,
-    dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null,
+    dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null, elite: false,
   };
 }
 
