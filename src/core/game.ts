@@ -52,6 +52,7 @@ import {
   draftCards,
 } from './cards';
 import type { CardContext, CardDef, RunModifiers } from './cards';
+import { damageAfter, effectiveArmor, fractureCap, shredBurst, shredReady } from './combat';
 import type {
   Enemy,
   EnemyKind,
@@ -978,15 +979,7 @@ export class Game {
   // ── Status / reaction helpers ────────────────────────────────────────────
 
   private addFracture(e: Enemy, n: number): void {
-    const cap = STATUS.fractureMaxStacks + this.mods.fractureBonusStacks;
-    e.fracture = Math.min(cap, e.fracture + n);
-  }
-
-  private effectiveArmor(e: Enemy): number {
-    if ((this.armorBreakUntil.get(e.id) ?? 0) > this.time) return 0;
-    let a = e.baseArmor - e.fracture * STATUS.fractureArmorShred;
-    if (e.corrosion > 0) a -= STATUS.corrosionArmorShred;
-    return Math.max(0, a);
+    e.fracture = Math.min(fractureCap(this.mods.fractureBonusStacks), e.fracture + n);
   }
 
   /** Apply `raw` damage to `e`. `sourceKind` (a firing tower) credits mastery +
@@ -995,8 +988,8 @@ export class Game {
    * (corrosion/pools) passes false so it doesn't strobe. Returns damage applied. */
   private applyDamage(e: Enemy, raw: number, sourceKind: TowerKind | null = null, flash = true): number {
     if (!e.alive) return 0;
-    const mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
-    const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
+    const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
+    const applied = damageAfter(raw, e.fracture, effectiveArmor(e, broken));
     e.hp -= applied;
     e.dmgAccum += applied; // banked for the next aggregated damage number
     this.statDamageDealt += applied; // lifetime-stats observation
@@ -1011,8 +1004,8 @@ export class Game {
   /** Fracture + Corrosion present → consume Fracture for a true-damage burst + armor break. */
   private maybeShred(e: Enemy): void {
     if (!e.alive) return;
-    if (e.fracture >= 1 && e.corrosion > 0) {
-      const burst = STATUS.shredBase + STATUS.shredPerStack * e.fracture;
+    if (shredReady(e.fracture, e.corrosion)) {
+      const burst = shredBurst(e.fracture);
       e.hp -= burst; // true damage, ignores armor
       this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
       e.fracture = 0;
