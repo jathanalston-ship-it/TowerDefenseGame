@@ -78,6 +78,8 @@ export interface Hero {
   rally: Vec2;
   attackCd: number;
   abilityCd: number;
+  facing: number; // radians — smoothed toward the target/movement (for rendering)
+  swing: number; // seconds left in the current attack animation
 }
 
 export interface FloatingText {

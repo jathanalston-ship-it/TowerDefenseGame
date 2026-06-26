@@ -154,6 +154,7 @@ export const PARTICLE = {
   death: { count: 6, speed: 70, life: 0.5, size: 2.6 },
   shred: { count: 10, speed: 130, life: 0.45, size: 2.2, color: '#fff066' },
   breach: { count: 8, speed: 90, life: 0.5, size: 2.4, color: '#ff5d73' },
+  heroHit: { count: 5, speed: 110, life: 0.3, size: 2.2, color: '#ffe39a' },
 };
 
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).
@@ -236,14 +237,23 @@ export const STATUS = {
 // ── Hero (Ravager) ────────────────────────────────────────────────────────
 export const HERO = {
   maxHp: 230,
-  speed: 115,
-  attackRange: 32,
-  attackInterval: 0.55,
+  speed: 122,
+  attackRange: 34,
+  attackInterval: 0.5,
   attackDamage: 19,
   attackFracture: 1,
   aggroRange: 1400, // effectively the whole arena — heroes roam freely to intercept
   contactRange: 26, // enemies this close damage the hero
   respawnTime: 8,
+  // Targeting / movement intelligence:
+  threatPerDamage: 7, // weight an enemy's integrity-damage adds to its hunt priority
+  lead: 0.32, // seconds to lead a moving target (intercept ahead of its path)
+  turnRate: 14, // facing smoothing toward the target/movement direction
+  // Light melee cleave — clears chaff around the target so the hero feels like a
+  // battlefield unit, but stays melee-bound + fractional so it never out-clears towers.
+  cleaveRadius: 42,
+  cleaveFraction: 0.5,
+  swingTime: 0.18, // attack animation window (renderer lunge + slash)
   ability: {
     cooldown: 8,
     radius: 72,

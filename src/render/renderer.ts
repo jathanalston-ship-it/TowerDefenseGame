@@ -17,7 +17,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ECON, ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import { ECON, ENEMY_DEFS, HERO, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 
 export interface Pointer {
@@ -212,7 +212,10 @@ export function drawGame(
   pointer: Pointer | null,
 ): void {
   const t = rs.time;
-  if (t < lastFrameTime) towerBirth.clear(); // sim time rewound => a new run started
+  if (t < lastFrameTime) {
+    towerBirth.clear(); // sim time rewound => a new run started
+    heroTrail.length = 0;
+  }
   lastFrameTime = t;
 
   // How hard is the hive being pressed right now? (enemies near/into the zone +
@@ -617,6 +620,7 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
 const GROW_TIME = 0.18;
 const towerBirth = new Map<number, number>();
 let lastFrameTime = -1; // tracks sim time across frames to detect a run reset
+const heroTrail: { x: number; y: number }[] = []; // recent hero positions (motion trail)
 
 function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][number], now: number): void {
   const def = TOWER_DEFS[t.kind];
@@ -771,16 +775,67 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
 
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   const h = rs.hero;
-  if (h.down) ctx.globalAlpha = 0.4;
-  ctx.fillStyle = SOLID.gold; // hero = gold core (identity, matches HUD hero bar)
+
+  // Motion trail — a few fading echoes behind the moving hero.
+  if (!reduceMotion && !h.down) {
+    heroTrail.push({ x: h.x, y: h.y });
+    if (heroTrail.length > 10) heroTrail.shift();
+  }
+  if (!h.down) {
+    for (let i = 0; i < heroTrail.length; i++) {
+      const tp = heroTrail[i];
+      ctx.fillStyle = rgba(RGB.gold, (i / heroTrail.length) * 0.16);
+      ctx.beginPath();
+      ctx.arc(tp.x, tp.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Ground halo (the shared "this is a hero" tell).
+  ctx.fillStyle = rgba(RGB.gold, 0.1);
   ctx.beginPath();
-  ctx.moveTo(h.x, h.y - 13);
-  ctx.lineTo(h.x + 11, h.y);
-  ctx.lineTo(h.x, h.y + 13);
-  ctx.lineTo(h.x - 11, h.y);
+  ctx.ellipse(h.x, h.y + 11, 13, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body: gold blade-diamond facing its target, lunging forward mid-swing.
+  const lunge = h.swing > 0 ? Math.sin((1 - h.swing / HERO.swingTime) * Math.PI) * 5 : 0;
+  ctx.save();
+  ctx.translate(h.x, h.y);
+  ctx.rotate(h.facing + Math.PI / 2); // local -y (the tip) points along `facing`
+  ctx.translate(0, -lunge);
+  if (h.down) ctx.globalAlpha = 0.4;
+  ctx.fillStyle = SOLID.gold;
+  ctx.beginPath();
+  ctx.moveTo(0, -15);
+  ctx.lineTo(10, 1);
+  ctx.lineTo(0, 13);
+  ctx.lineTo(-10, 1);
   ctx.closePath();
   ctx.fill();
+  ctx.strokeStyle = rgba(RGB.kinetic, 0.7); // Ravager = Kinetic class rim
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,240,200,0.9)';
+  ctx.beginPath();
+  ctx.arc(0, -3, 3, 0, Math.PI * 2);
+  ctx.fill();
   ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Swing slash — a bright kinetic crescent ahead of the hero.
+  if (h.swing > 0 && !h.down) {
+    const p = h.swing / HERO.swingTime; // 1 -> 0
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.rotate(h.facing);
+    ctx.strokeStyle = rgba(RGB.kinetic, p * 0.8);
+    ctx.lineWidth = 3 * p + 1;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(18, 0, 15, -0.85, 0.85);
+    ctx.stroke();
+    ctx.restore();
+  }
 
   if (h.down) {
     ctx.fillStyle = '#ff9aa8';
@@ -792,9 +847,9 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     const w = 26;
     const pct = Math.max(0, h.hp / h.maxHp);
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(h.x - w / 2, h.y - 20, w, 3);
+    ctx.fillRect(h.x - w / 2, h.y - 22, w, 3);
     ctx.fillStyle = SOLID.gold;
-    ctx.fillRect(h.x - w / 2, h.y - 20, w * pct, 3);
+    ctx.fillRect(h.x - w / 2, h.y - 22, w * pct, 3);
   }
 }
 

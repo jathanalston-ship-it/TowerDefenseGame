@@ -148,6 +148,8 @@ export class Game {
       rally: { x: WIDTH / 2, y: DEFENSE_TOP_Y - CELL }, // patrol the line by default
       attackCd: 0,
       abilityCd: 0,
+      facing: -Math.PI / 2, // facing up-field toward the swarm
+      swing: 0,
     };
   }
 
@@ -716,14 +718,14 @@ export class Game {
   }
 
   /**
-   * Autonomous battlefield unit. Roams the whole arena freely (no leash),
-   * auto-seeks enemies, and prioritizes the most-advanced threat — preferring
-   * ones still ABOVE the defensive line so it intercepts them before they enter
-   * tower range; it falls back to the deepest enemy in the zone, and patrols its
-   * rally point when the field is clear.
+   * Autonomous battlefield unit. Roams freely and hunts the MOST DANGEROUS
+   * advancing enemy (proximity to breaching + how hard it hits), intercepting
+   * AHEAD of its path rather than trailing it, faces what it fights, and cleaves
+   * chaff around its target. Patrols its forward guard post when the field is clear.
    */
   private updateHero(h: Hero, dt: number): void {
     if (h.down) {
+      h.swing = 0;
       h.respawn -= dt;
       if (h.respawn <= 0) {
         h.down = false;
@@ -735,41 +737,79 @@ export class Game {
     }
     if (h.attackCd > 0) h.attackCd -= dt;
     if (h.abilityCd > 0) h.abilityCd -= dt;
+    if (h.swing > 0) h.swing = Math.max(0, h.swing - dt);
 
-    // Threat-based targeting (lower goal distance = closer to breaching).
+    // ── Threat targeting: closest-to-breaching, weighted by how much it hurts. ──
     const aggro2 = HERO.aggroRange * HERO.aggroRange;
     let target: Enemy | null = null;
-    let bestApproach = Infinity; // best among enemies still above the line
-    let fallback: Enemy | null = null;
-    let bestAny = Infinity;
+    let bestScore = -Infinity;
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
-      const gd = goalDistanceAt(e.x, e.y);
-      if (gd < bestAny) {
-        bestAny = gd;
-        fallback = e;
-      }
-      if (e.y < DEFENSE_TOP_Y && gd < bestApproach) {
-        bestApproach = gd;
+      const score = -goalDistanceAt(e.x, e.y) + e.damage * HERO.threatPerDamage;
+      if (score > bestScore) {
+        bestScore = score;
         target = e;
       }
     }
-    target = target ?? fallback;
 
-    // Move to intercept the target, else patrol the rally point. Free roam,
-    // clamped only to the arena bounds.
-    const goal = target ? { x: target.x, y: target.y } : h.rally;
-    const np = moveToward(h.x, h.y, goal.x, goal.y, HERO.speed * dt);
+    // ── Movement: lead the target (intercept), else hold the guard post. ──
+    let goalX: number;
+    let goalY: number;
+    if (target) {
+      const b = ENEMY_DEFS[target.kind].behavior;
+      let dx: number;
+      let dy: number;
+      if (b.flying || b.burrowing) {
+        dx = nucleusPoint.x - target.x;
+        dy = REACH_Y - target.y;
+      } else {
+        const fd = flowDirAt(target.x, target.y);
+        dx = fd.x;
+        dy = fd.y;
+      }
+      const l = Math.hypot(dx, dy) || 1;
+      goalX = target.x + (dx / l) * target.speed * HERO.lead;
+      goalY = target.y + (dy / l) * target.speed * HERO.lead;
+    } else {
+      goalX = h.rally.x;
+      goalY = h.rally.y;
+    }
+    const np = moveToward(h.x, h.y, goalX, goalY, HERO.speed * dt);
+    const mvx = np.x - h.x;
+    const mvy = np.y - h.y;
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
-    // Attack the target in melee range.
-    if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= HERO.attackRange) {
-      this.applyDamage(target, HERO.attackDamage * this.mods.heroDamageMult);
+    // ── Facing: smoothly turn toward the target, else toward travel direction. ──
+    let desired = h.facing;
+    if (target) desired = Math.atan2(target.y - h.y, target.x - h.x);
+    else if (mvx * mvx + mvy * mvy > 1e-4) desired = Math.atan2(mvy, mvx);
+    let da = desired - h.facing;
+    while (da > Math.PI) da -= Math.PI * 2;
+    while (da < -Math.PI) da += Math.PI * 2;
+    h.facing += da * Math.min(1, dt * HERO.turnRate);
+
+    // ── Attack: hit the target, then cleave nearby chaff for a fraction. ──
+    if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= HERO.attackRange + ENEMY_DEFS[target.kind].radius) {
+      const dmg = HERO.attackDamage * this.mods.heroDamageMult;
+      this.applyDamage(target, dmg);
       this.addFracture(target, HERO.attackFracture);
       this.maybeShred(target);
+      const cr2 = HERO.cleaveRadius * HERO.cleaveRadius;
+      const hit = this.neighborScratch;
+      this.grid.queryInto(h.x, h.y, HERO.cleaveRadius, hit);
+      for (let k = 0; k < hit.length; k++) {
+        const o = hit[k];
+        if (o === target || !o.alive) continue;
+        if (dist2(h.x, h.y, o.x, o.y) <= cr2) {
+          this.applyDamage(o, dmg * HERO.cleaveFraction);
+          this.maybeShred(o);
+        }
+      }
       h.attackCd = HERO.attackInterval;
+      h.swing = HERO.swingTime;
+      this.spawnParticles(target.x, target.y, PARTICLE.heroHit);
     }
 
     // Contact damage to the hero from nearby enemies (grid-local).
