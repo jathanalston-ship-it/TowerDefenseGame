@@ -5,6 +5,9 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
+import { HERO_IDS, TOWER_ORDER } from '../core/config';
+import type { TowerKind } from '../core/types';
+
 export interface SaveData {
   shards: number;
   upgrades: Record<string, number>; // upgradeId -> level
@@ -12,9 +15,14 @@ export interface SaveData {
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
+  // ── Tower progression (per kind) — added in schema v2 ──
+  towerShards: Record<TowerKind, number>; // shard currency, earned from chests
+  towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
+  towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
+  heroShards: Record<string, number>; // per-hero shards (forward-looking)
 }
 
-export const CURRENT_VERSION = 1;
+export const CURRENT_VERSION = 2;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -39,8 +47,49 @@ export interface StorageLike {
   removeItem(key: string): void;
 }
 
+function zeroByTower(): Record<TowerKind, number> {
+  const r = {} as Record<TowerKind, number>;
+  for (const k of TOWER_ORDER) r[k] = 0;
+  return r;
+}
+function zeroByHero(): Record<string, number> {
+  const r: Record<string, number> = {};
+  for (const id of HERO_IDS) r[id] = 0;
+  return r;
+}
+
 export function defaultSave(): SaveData {
-  return { shards: 0, upgrades: {}, bestWave: 0, totalRuns: 0, lifetimeShards: 0, cardsSeen: 0 };
+  return {
+    shards: 0,
+    upgrades: {},
+    bestWave: 0,
+    totalRuns: 0,
+    lifetimeShards: 0,
+    cardsSeen: 0,
+    towerShards: zeroByTower(),
+    towerStars: zeroByTower(),
+    towerMasteryXp: zeroByTower(),
+    heroShards: zeroByHero(),
+  };
+}
+
+/**
+ * Merge a validated (possibly older / partial) save onto a complete default —
+ * filling any missing top-level field AND deep-merging the per-kind progression
+ * records so every tower/hero key is present. This is the v1→v2 upgrade path:
+ * a pre-progression save simply gains zeroed records.
+ */
+function withDefaults(data: SaveData): SaveData {
+  const d = defaultSave();
+  return {
+    ...d,
+    ...data,
+    upgrades: { ...data.upgrades },
+    towerShards: { ...d.towerShards, ...data.towerShards },
+    towerStars: { ...d.towerStars, ...data.towerStars },
+    towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
+    heroShards: { ...d.heroShards, ...data.heroShards },
+  };
 }
 
 /** Small, stable, non-cryptographic hash (djb2) for integrity detection. */
@@ -86,7 +135,7 @@ function parseBlob(raw: string | null): SaveData | null {
     if (checksum(JSON.stringify(blob.data)) !== blob.checksum) return null; // tamper/corruption
     const migrated = migrate(blob.schemaVersion, blob.data);
     if (!isSaveData(migrated)) return null;
-    return { ...defaultSave(), ...migrated };
+    return withDefaults(migrated);
   } catch {
     return null;
   }
@@ -130,7 +179,7 @@ export function parseImport(text: string): ImportResult {
   const raw = 'data' in o ? o.data : o; // wrapper/blob -> .data, else the object itself
   const migrated = migrate(version, raw);
   if (!isSaveData(migrated)) return { ok: false, error: 'File does not contain a recognizable save.' };
-  return { ok: true, data: { ...defaultSave(), ...migrated } };
+  return { ok: true, data: withDefaults(migrated) };
 }
 
 function memoryStorage(): StorageLike {

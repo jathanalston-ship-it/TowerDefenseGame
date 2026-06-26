@@ -1043,3 +1043,285 @@ canvas.board {
   max-height: 160px;
   overflow: auto;
 }
+
+/* ── Card draft polish (hotkeys + recommended pick) ───────────────────────── */
+kbd {
+  display: inline-block;
+  min-width: 14px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--panel-3);
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  font: 600 11px/1.4 ui-monospace, 'SFMono-Regular', monospace;
+  color: var(--text);
+}
+.card-hotkey {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  font: 700 11px/1 ui-monospace, monospace;
+  color: var(--muted);
+}
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-rec {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 210, 77, 0.16);
+  color: var(--gold);
+}
+.card.is-rec {
+  box-shadow: 0 0 0 1px rgba(255, 210, 77, 0.4), var(--shadow);
+}
+
+/* ── Loot box reveal ──────────────────────────────────────────────────────── */
+.loot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.chest {
+  position: relative;
+  width: 92px;
+  height: 70px;
+  display: grid;
+  place-items: center;
+}
+.chest-box {
+  position: relative;
+  width: 64px;
+  height: 44px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, var(--panel-3), #0e131c);
+  border: 1px solid var(--line-strong);
+  box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.35);
+  animation: chest-idle 1.4s ease-in-out infinite;
+}
+.chest-lid {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -10px;
+  height: 15px;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #2a3547, var(--panel-3));
+  border: 1px solid var(--line-strong);
+  transform-origin: 50% 100%;
+  transition: transform 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.chest-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.2) 50%, transparent 58%);
+  opacity: 0;
+}
+.chest-burst {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid var(--gold);
+  opacity: 0;
+}
+.chest.is-open .chest-box {
+  animation: none;
+}
+.chest.is-open .chest-lid {
+  transform: translateY(-7px) rotateX(60deg);
+}
+.chest.is-open .chest-shine {
+  animation: chest-shine 0.5s ease 0.05s;
+}
+.chest.is-open .chest-burst {
+  animation: chest-burst 0.55s ease-out;
+}
+@keyframes chest-idle {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes chest-shine {
+  0% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes chest-burst {
+  from {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: scale(5);
+  }
+}
+.loot-title {
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-size: 13px;
+}
+.loot-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+.loot-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  animation: loot-in 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@keyframes loot-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px) scale(0.96);
+  }
+}
+.loot-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+}
+.loot-dot.is-hero {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  color: var(--gold);
+  font-size: 16px;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(255, 210, 77, 0.7);
+}
+.loot-name {
+  text-align: left;
+  font-weight: 600;
+}
+.loot-amt {
+  font-weight: 800;
+  font-size: 13px;
+}
+.loot-amt.is-hero {
+  color: var(--gold);
+}
+
+/* ── Mastery gains (results) ──────────────────────────────────────────────── */
+.mastery-gains {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mastery-gain {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.mg-name {
+  text-align: left;
+  font-weight: 700;
+}
+.mg-xp {
+  color: var(--muted);
+}
+.mg-lvl {
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.mg-lvl.is-up {
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* ── Tower Lab (stars + mastery) ──────────────────────────────────────────── */
+.lab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lab-item {
+  padding: 12px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.lab-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.lab-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+.lab-shards {
+  font-weight: 700;
+  font-size: 13px;
+}
+.lab-stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pips {
+  letter-spacing: 2px;
+  font-size: 15px;
+}
+.pip {
+  color: var(--line-strong);
+}
+.pip.on {
+  text-shadow: 0 0 8px currentColor;
+}
+.lab-stars .shop-buy {
+  margin-left: auto;
+}
+.lab-mastery {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lab-mline {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+.lab-bonus {
+  color: var(--success);
+}

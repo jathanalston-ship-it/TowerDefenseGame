@@ -9,7 +9,7 @@ import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
-import type { HudSnapshot, MetaModifiers } from '../core/types';
+import type { HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
 import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
@@ -22,15 +22,17 @@ const SHAKE_DECAY = 2.0; // trauma/sec
 export function GameView({
   seed,
   mods,
+  progress,
   onEnd,
 }: {
   seed: number;
   mods: MetaModifiers;
+  progress: TowerProgress;
   onEnd: (r: RunResult) => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods));
+  const game = (gameRef.current ??= new Game(seed, mods, progress));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function GameView({
         if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
           endedRef.current = true;
           setHud(game.getSnapshot());
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won' });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual() });
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -122,6 +124,8 @@ export function GameView({
     const onKey = (e: KeyboardEvent): void => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       audio.resume();
+      // Board hotkeys only during active play — the draft owns the keyboard while open.
+      if (game.phase !== 'prep' && game.phase !== 'wave') return;
       const k = e.key;
       if (k >= '1' && k <= String(TOWER_ORDER.length)) {
         const kind = TOWER_ORDER[Number(k) - 1];
@@ -204,7 +208,7 @@ export function GameView({
               onClick={() => {
                 if (endedRef.current) return;
                 endedRef.current = true;
-                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false });
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual() });
               }}
             >
               End Run
