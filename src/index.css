@@ -55,8 +55,12 @@
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
-  --t-fast: 0.12s ease;
-  --t-med: 0.2s ease;
+  /* motion — ease-out for UI snap, ease-in-out for organic breathing (STYLE-GUIDE §10.2) */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast: 0.12s var(--ease-out);
+  --t-med: 0.2s var(--ease-out);
+  --t-slow: 0.32s var(--ease-out);
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
   --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.35);
   --ring: 0 0 0 2px rgba(90, 209, 255, 0.55);
@@ -478,7 +482,7 @@ button:disabled {
 .wave-pips .pip.active {
   background: var(--gold);
   box-shadow: 0 0 6px var(--gold);
-  animation: pip-pulse 1.1s ease-in-out infinite;
+  animation: pip-pulse 1.1s var(--ease-in-out) infinite;
 }
 @keyframes pip-pulse {
   50% {
@@ -495,6 +499,7 @@ button:disabled {
   border: 1px solid var(--line-strong);
   background: var(--panel-2);
   color: var(--muted);
+  transition: color var(--t-med), border-color var(--t-med), background var(--t-med);
 }
 .phase-wave {
   color: var(--danger);
@@ -681,7 +686,7 @@ canvas.board {
   align-items: center;
   gap: 8px;
   margin-left: auto;
-  animation: breathe 2.4s ease-in-out infinite;
+  animation: breathe 2.4s var(--ease-in-out) infinite;
 }
 @keyframes breathe {
   50% {
@@ -741,7 +746,8 @@ canvas.board {
   gap: 8px;
   opacity: 0;
   transform: translateY(10px);
-  animation: card-in 0.32s ease forwards;
+  animation: card-in var(--t-slow) forwards;
+  transition: transform var(--t-med), box-shadow var(--t-med);
 }
 @keyframes card-in {
   to {
