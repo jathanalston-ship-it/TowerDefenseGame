@@ -148,6 +148,9 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
 };
 
+/** All enemy kinds, derived from the defs — the canonical list to iterate (stats, etc.). */
+export const ENEMY_KINDS = Object.keys(ENEMY_DEFS) as EnemyKind[];
+
 // Steering radii / cadence for enemy threat behaviour. Raw px (avoids a config<->map
 // import cycle; CELL is 40, so these are ~2.4 / ~2.2 cells).
 export const STEER = {

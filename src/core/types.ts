@@ -134,6 +134,37 @@ export interface MasteryCount {
 }
 export type MasteryCounts = Record<TowerKind, MasteryCount>;
 
+/** Raw per-run statistics observed by the sim (presentation/meta only — never feeds
+ * combat, so it can't change a fixed-seed outcome). Read out once at run end and
+ * folded into LifetimeStats by `state/stats.ts`. */
+export interface RunStats {
+  kills: number;
+  wave: number;
+  won: boolean;
+  biomassEarned: number; // total biomass income this run
+  damageDealt: number; // total damage dealt (towers + hero + DoT)
+  killsByEnemy: Record<EnemyKind, number>;
+  towerBuilds: Record<TowerKind, number>; // towers grown this run, per kind
+  cardIds: string[]; // gene cards drafted this run (ids; may repeat)
+  heroId: string; // hero fielded this run
+}
+
+/** Persistent lifetime statistics (in SaveData). The accumulation reducer in
+ * `state/stats.ts` is the single place that grows when a new stat is added. */
+export interface LifetimeStats {
+  lifetimeKills: number;
+  highestWave: number;
+  totalBiomass: number;
+  totalDamage: number;
+  runsCompleted: number; // won
+  runsFailed: number; // lost
+  cardsDrafted: number; // total gene cards drafted across all runs
+  uniqueCards: string[]; // distinct card ids ever collected (the "collection")
+  killsByEnemy: Record<EnemyKind, number>;
+  towerUsage: Record<TowerKind, number>; // total builds per kind (drives "favorite tower")
+  heroUsage: Record<string, number>; // runs fielded per hero id
+}
+
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */
 export interface HudSnapshot {
   phase: Phase;

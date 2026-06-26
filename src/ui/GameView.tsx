@@ -99,7 +99,7 @@ export function GameView({
         if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
           endedRef.current = true;
           setHud(game.getSnapshot());
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual() });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), stats: game.getRunStats() });
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -212,7 +212,7 @@ export function GameView({
               onClick={() => {
                 if (endedRef.current) return;
                 endedRef.current = true;
-                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual() });
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), stats: game.getRunStats() });
               }}
             >
               End Run

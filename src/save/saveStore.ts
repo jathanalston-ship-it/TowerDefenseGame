@@ -5,8 +5,8 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { HERO_IDS, TOWER_ORDER } from '../core/config';
-import type { TowerKind } from '../core/types';
+import { ENEMY_KINDS, HERO_IDS, TOWER_ORDER } from '../core/config';
+import type { EnemyKind, LifetimeStats, TowerKind } from '../core/types';
 
 export interface SaveData {
   shards: number;
@@ -20,9 +20,11 @@ export interface SaveData {
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
   heroShards: Record<string, number>; // per-hero shards (forward-looking)
+  // ── Lifetime statistics — added in schema v3 ──
+  stats: LifetimeStats;
 }
 
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -57,6 +59,28 @@ function zeroByHero(): Record<string, number> {
   for (const id of HERO_IDS) r[id] = 0;
   return r;
 }
+function zeroByEnemy(): Record<EnemyKind, number> {
+  const r = {} as Record<EnemyKind, number>;
+  for (const k of ENEMY_KINDS) r[k] = 0;
+  return r;
+}
+
+/** A zeroed lifetime-stats block — the v3 default and the merge base for old saves. */
+export function defaultLifetimeStats(): LifetimeStats {
+  return {
+    lifetimeKills: 0,
+    highestWave: 0,
+    totalBiomass: 0,
+    totalDamage: 0,
+    runsCompleted: 0,
+    runsFailed: 0,
+    cardsDrafted: 0,
+    uniqueCards: [],
+    killsByEnemy: zeroByEnemy(),
+    towerUsage: zeroByTower(),
+    heroUsage: zeroByHero(),
+  };
+}
 
 export function defaultSave(): SaveData {
   return {
@@ -70,6 +94,7 @@ export function defaultSave(): SaveData {
     towerStars: zeroByTower(),
     towerMasteryXp: zeroByTower(),
     heroShards: zeroByHero(),
+    stats: defaultLifetimeStats(),
   };
 }
 
@@ -89,6 +114,21 @@ function withDefaults(data: SaveData): SaveData {
     towerStars: { ...d.towerStars, ...data.towerStars },
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
     heroShards: { ...d.heroShards, ...data.heroShards },
+    stats: mergeStats(d.stats, data.stats),
+  };
+}
+
+/** Fill a (possibly absent / partial) stats block onto the zeroed default — the
+ * v2→v3 upgrade path: a pre-stats save simply gains a zeroed stats block. */
+function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): LifetimeStats {
+  if (!s || typeof s !== 'object') return base;
+  return {
+    ...base,
+    ...s,
+    uniqueCards: Array.isArray(s.uniqueCards) ? s.uniqueCards : base.uniqueCards,
+    killsByEnemy: { ...base.killsByEnemy, ...s.killsByEnemy },
+    towerUsage: { ...base.towerUsage, ...s.towerUsage },
+    heroUsage: { ...base.heroUsage, ...s.heroUsage },
   };
 }
 

@@ -13,9 +13,10 @@ import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
 import { CHESTS, ECON, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER } from '../core/config';
 import type { UpgradeDef } from '../core/config';
-import type { MasteryCounts, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
+import type { MasteryCounts, MetaModifiers, RunStats, TowerKind, TowerProgress } from '../core/types';
 import { rollChest } from './lootbox';
 import type { ChestResult } from './lootbox';
+import { accumulateStats } from './stats';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -109,6 +110,7 @@ export interface RunResult {
   kills: number;
   won: boolean;
   mastery: MasteryCounts; // per-kind usage accrued in the run (from Game.getMasteryAccrual)
+  stats: RunStats; // raw run statistics (from Game.getRunStats) — folded into lifetime stats
 }
 
 export interface RunReward {
@@ -191,6 +193,7 @@ export const meta = {
       towerMasteryXp,
       towerShards,
       heroShards,
+      stats: accumulateStats(save.stats, result.stats),
     });
     return { reward: { shardsEarned, newBest }, chest, mastery };
   },
