@@ -196,6 +196,7 @@ export function GameView({
         {hud.phase === 'draft' && hud.draft && (
           <DraftModal
             options={hud.draft}
+            clearedWave={hud.wave}
             onPick={(id) => {
               game.chooseCard(id);
               refresh();

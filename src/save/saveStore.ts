@@ -22,6 +22,7 @@ export interface SaveData {
   heroShards: Record<string, number>; // per-hero shards (forward-looking)
   // ── Lifetime statistics — added in schema v3 ──
   stats: LifetimeStats;
+  achievements: string[]; // unlocked achievement ids
 }
 
 export const CURRENT_VERSION = 3;
@@ -95,6 +96,7 @@ export function defaultSave(): SaveData {
     towerMasteryXp: zeroByTower(),
     heroShards: zeroByHero(),
     stats: defaultLifetimeStats(),
+    achievements: [],
   };
 }
 
@@ -115,6 +117,7 @@ function withDefaults(data: SaveData): SaveData {
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
     heroShards: { ...d.heroShards, ...data.heroShards },
     stats: mergeStats(d.stats, data.stats),
+    achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
   };
 }
 

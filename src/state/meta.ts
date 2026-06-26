@@ -11,12 +11,14 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CHESTS, ECON, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER } from '../core/config';
+import { CHESTS, ECON, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type { MasteryCounts, MetaModifiers, RunStats, TowerKind, TowerProgress } from '../core/types';
 import { rollChest } from './lootbox';
 import type { ChestResult } from './lootbox';
 import { accumulateStats } from './stats';
+import { checkAchievements } from './achievements';
+import type { RunSummary } from './achievements';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -177,8 +179,8 @@ export const meta = {
       mastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(towerMasteryXp[k]) };
     }
 
-    // 3. run-end chest → tower/hero shards
-    const chest = rollChest(CHESTS[RUN_CHEST]);
+    // 3. run-end chest (scaled by how deep the run got) → tower/hero shards
+    const chest = rollChest(CHESTS[chestForWave(result.wave)]);
     const towerShards = { ...save.towerShards };
     for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
     const heroShards = { ...save.heroShards };
@@ -195,7 +197,17 @@ export const meta = {
       heroShards,
       stats: accumulateStats(save.stats, result.stats),
     });
+    this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
     return { reward: { shardsEarned, newBest }, chest, mastery };
+  },
+
+  /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
+  evaluateAchievements(run?: RunSummary): string[] {
+    const save = store.get();
+    const newly = checkAchievements({ save, run });
+    if (newly.length === 0) return [];
+    persist({ ...save, achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)] });
+    return newly.map((a) => a.id);
   },
 
   /** Per-kind run multipliers from the current save (passed into a new Game). */
@@ -215,6 +227,7 @@ export const meta = {
       towerShards: { ...save.towerShards, [kind]: (save.towerShards[kind] ?? 0) - cost },
       towerStars: { ...save.towerStars, [kind]: stars + 1 },
     });
+    this.evaluateAchievements(); // first_star / star3
     return true;
   },
 

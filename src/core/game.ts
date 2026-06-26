@@ -70,7 +70,25 @@ import type {
   TowerProgress,
   FloatingText,
   CardOption,
+  WavePreviewEntry,
 } from './types';
+import type { WaveDef } from './config';
+
+/** Aggregate a wave script into per-kind totals (telegraph for the prep phase). */
+function wavePreview(def: WaveDef): WavePreviewEntry[] {
+  const order: WavePreviewEntry[] = [];
+  const idx = new Map<string, WavePreviewEntry>();
+  for (const g of def) {
+    const e = idx.get(g.kind);
+    if (e) e.count += g.count;
+    else {
+      const entry = { kind: g.kind, count: g.count };
+      idx.set(g.kind, entry);
+      order.push(entry);
+    }
+  }
+  return order;
+}
 
 /** Identity per-kind progression — a fresh save plays exactly like the base game. */
 function neutralTowerProgress(): TowerProgress {
@@ -1149,6 +1167,12 @@ export class Game {
       cards: this.chosenCards,
       buffs: this.activeBuffs(),
     };
+  }
+
+  /** Composition of the wave that Start Wave will launch next (null if none left). */
+  getNextWavePreview(): WavePreviewEntry[] | null {
+    if (this.waveIndex >= TOTAL_WAVES) return null;
+    return wavePreview(WAVES[this.waveIndex]);
   }
 
   /** Per-kind usage accrued this run — banked into permanent mastery at run end. */

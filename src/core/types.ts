@@ -198,3 +198,9 @@ export interface CardOption {
   description: string;
   category: string;
 }
+
+/** A telegraph of an upcoming wave's composition (anticipation / informed prep). */
+export interface WavePreviewEntry {
+  kind: EnemyKind;
+  count: number;
+}
