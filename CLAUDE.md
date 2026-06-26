@@ -60,6 +60,27 @@ the fan-out.
 
 ---
 
+## 🧩 Discipline decomposition — split a task by responsibility
+
+For multi-faceted work, decompose the task into independent engineering
+disciplines, give each a single clear responsibility, solve each in isolation,
+then integrate at the seams. This keeps concerns from bleeding into each other
+and makes the plan reviewable before any code is written.
+
+- **Pick only the disciplines the task actually touches** — e.g. Gameplay,
+  Systems, Rendering, UI, AI, Performance _Engineers_; Economy, Progression,
+  Balance _Designers_. Don't manufacture roles the task doesn't need.
+- **One responsibility per discipline, stated explicitly.** No cross-
+  contamination — a UI change doesn't reach into balance numbers; a balance
+  tweak doesn't restructure rendering.
+- **Solve each responsibility independently, then integrate** through shared
+  config and public APIs — not by interleaving unrelated edits.
+- **Present a short plan before coding** that names each discipline and its
+  responsibility. This maps onto the optional sub-agent split above
+  (engine/systems → `opus`, content/routine → `sonnet`).
+
+---
+
 ## ✂️ Minimal-diff discipline — surgical edits only
 
 **Never rewrite an entire system unless absolutely necessary.** Treat every edit
@@ -79,6 +100,23 @@ and more localized the diff, the lower the merge-conflict and regression risk.
   the surface where conflicts happen.
 
 > A "rewrite" that could have been a three-line edit is a defect, not a cleanup.
+
+---
+
+## 🤝 Trust existing architecture — don't re-analyze by default
+
+**Assume previous architectural decisions remain valid.** Treat existing
+implementations as trusted and infer what you need about the architecture from
+the current task rather than re-deriving it from scratch.
+
+- **Don't re-analyze a working system** unless it's (a) explicitly requested,
+  (b) required for correctness, or (c) required for compatibility (save format,
+  public API). Otherwise build on it as-is.
+- **Read only what the task requires.** No full-project sweeps.
+- **Don't repeat prior conclusions** — settled decisions stay settled unless
+  explicitly changed.
+- **Revisit a system only on evidence** it's actually wrong: a failing test, a
+  reproduced bug, or a direct contradiction with the task.
 
 ---
 
@@ -150,6 +188,25 @@ economy, and towers. Keep design decisions written down so changes stay coherent
   - `BACKLOG.md` — deferred work (last resort only — see "Finish what you
     start").
   - `BUGFIX-LOG.md` — one row per fix (symptom → root cause → fix).
+
+---
+
+## 🗜 Compressed system summaries — write once, reuse across sessions
+
+When a **major system** is completed, write a compressed developer summary so
+future sessions can build on it without re-reading the implementation. Record it
+in `docs/GAME-STATE.md` alongside that system's status; it becomes the canonical
+reference — prefer it over re-reading the code (see "Trust existing
+architecture").
+
+**≤ 500 words**, covering only:
+
+- **Architecture** — shape and key components.
+- **Public APIs** — entry points and signatures callers use.
+- **Extension points** — where new content/behavior plugs in.
+- **Important assumptions** — invariants the system relies on.
+- **Future hooks** — planned seams left open.
+- **Known limitations** — gaps, risks, deferred edge cases.
 
 ---
 
