@@ -105,8 +105,8 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
         </span>
       </div>
 
-      {/* PHASE chip */}
-      <div className={`phase-chip phase-${hud.phase}`}>{PHASE_LABEL[hud.phase]}</div>
+      {/* PHASE chip — keyed by phase so it pops on each transition (wave start/end) */}
+      <div key={hud.phase} className={`phase-chip phase-${hud.phase}`}>{PHASE_LABEL[hud.phase]}</div>
     </div>
   );
 }

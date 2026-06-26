@@ -235,7 +235,7 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw);
+  for (const tw of rs.towers) drawTower(ctx, tw, t);
 
   // Projectiles with a subtle additive bloom halo (cheap; few on screen).
   ctx.save();
@@ -516,8 +516,29 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
   }
 }
 
-function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][number]): void {
+// Placement grow-in (cosmetic): first time the renderer sees a tower object it
+// records sim-time; the tower then eases up to full size over GROW_TIME. Keyed on
+// the live tower object so it auto-clears across runs and never collides — no sim
+// state, no leak.
+const GROW_TIME = 0.18;
+const towerBirth = new WeakMap<object, number>();
+
+function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][number], now: number): void {
   const def = TOWER_DEFS[t.kind];
+  let birth = towerBirth.get(t);
+  if (birth === undefined) {
+    birth = now;
+    towerBirth.set(t, birth);
+  }
+  const grow = Math.min(1, (now - birth) / GROW_TIME);
+  const scale = grow >= 1 ? 1 : 0.5 + 0.5 * (1 - Math.pow(1 - grow, 3)); // ease-out, 50%->100%
+
+  ctx.save();
+  if (scale !== 1) {
+    ctx.translate(t.x, t.y);
+    ctx.scale(scale, scale);
+    ctx.translate(-t.x, -t.y);
+  }
   ctx.fillStyle = def.color;
   if (t.kind === 'needle') {
     ctx.beginPath();
@@ -537,6 +558,7 @@ function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][numbe
     ctx.arc(t.x, t.y, 5, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
 }
 
 // ── Enemies ──────────────────────────────────────────────────────────────────

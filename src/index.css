@@ -521,6 +521,14 @@ button:disabled {
   background: var(--panel-2);
   color: var(--muted);
   transition: color var(--t-med), border-color var(--t-med), background var(--t-med);
+  animation: phase-pop 0.22s var(--ease-out) both;
+}
+/* a quick settle whenever the run phase changes (wave start / complete / result) */
+@keyframes phase-pop {
+  from {
+    opacity: 0.3;
+    transform: scale(0.86);
+  }
 }
 .phase-wave {
   color: var(--danger);
