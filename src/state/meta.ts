@@ -11,9 +11,11 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { ECON, META_UPGRADES } from '../core/config';
+import { CHESTS, ECON, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER } from '../core/config';
 import type { UpgradeDef } from '../core/config';
-import type { MetaModifiers } from '../core/types';
+import type { MasteryCounts, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
+import { rollChest } from './lootbox';
+import type { ChestResult } from './lootbox';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -51,15 +53,80 @@ export function nextUpgradeCost(save: SaveData, def: UpgradeDef): number | null 
   return upgradeCost(def, level);
 }
 
+// ── Tower progression (stars + infinite mastery) — pure derivations ──────────
+
+/** XP required to advance FROM `level` to `level+1` (geometric → ever-slower). */
+export function masteryReq(level: number): number {
+  return Math.round(MASTERY.baseReq * Math.pow(MASTERY.reqGrowth, level));
+}
+
+/** Resolve total lifetime XP into a level + progress toward the next (for the bar). */
+export function masteryProgress(xp: number): { level: number; into: number; need: number } {
+  let level = 0;
+  let rem = Math.max(0, xp);
+  // Bounded loop guard: mastery is conceptually infinite, but no real save reaches
+  // this many levels — it just prevents a pathological spin on absurd input.
+  while (level < 100000) {
+    const need = masteryReq(level);
+    if (rem < need) return { level, into: rem, need };
+    rem -= need;
+    level++;
+  }
+  return { level, into: 0, need: masteryReq(level) };
+}
+
+export function masteryLevel(xp: number): number {
+  return masteryProgress(xp).level;
+}
+
+/** Tower-shard cost to buy the (stars→stars+1) star. */
+export function starCost(stars: number): number {
+  return Math.round(STAR.baseCost * Math.pow(STAR.costMult, stars));
+}
+
+export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
+  const stars = save.towerStars[kind] ?? 0;
+  if (stars >= STAR.maxStars) return null;
+  return starCost(stars);
+}
+
+/** Fold stars + mastery into per-kind run multipliers. Identity for a fresh save. */
+export function towerProgress(save: SaveData): TowerProgress {
+  const out = {} as TowerProgress;
+  for (const k of TOWER_ORDER) {
+    const stars = save.towerStars[k] ?? 0;
+    const mLvl = masteryLevel(save.towerMasteryXp[k] ?? 0);
+    out[k] = {
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
+      fireRateMult: 1 + STAR.fireRatePerStar * stars,
+    };
+  }
+  return out;
+}
+
 export interface RunResult {
   wave: number;
   kills: number;
   won: boolean;
+  mastery: MasteryCounts; // per-kind usage accrued in the run (from Game.getMasteryAccrual)
 }
 
 export interface RunReward {
   shardsEarned: number;
   newBest: boolean;
+}
+
+export interface MasteryDelta {
+  xpGained: number;
+  fromLevel: number;
+  toLevel: number;
+}
+
+/** Everything a finished run grants — the Results screen renders all of it. */
+export interface RunOutcome {
+  reward: RunReward;
+  chest: ChestResult;
+  mastery: Record<TowerKind, MasteryDelta>;
 }
 
 export const meta = {
@@ -83,18 +150,69 @@ export const meta = {
     return true;
   },
 
-  recordRun(result: RunResult): RunReward {
+  /**
+   * Settle a finished run in ONE atomic persist: bank global Shards + records,
+   * convert per-kind usage into permanent mastery XP, and open the run-end chest
+   * (granting tower/hero shards). Returns the full reward bundle for the Results UI.
+   */
+  finishRun(result: RunResult): RunOutcome {
     const save = store.get();
+
+    // 1. global shards + run records
     const shardsEarned = Math.floor(result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill);
     const newBest = result.wave > save.bestWave;
+
+    // 2. mastery: counts → XP, tracking the level delta per kind for the UI
+    const towerMasteryXp = { ...save.towerMasteryXp };
+    const mastery = {} as Record<TowerKind, MasteryDelta>;
+    for (const k of TOWER_ORDER) {
+      const c = result.mastery[k];
+      const gained = Math.round(
+        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+      );
+      const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
+      towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
+      mastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(towerMasteryXp[k]) };
+    }
+
+    // 3. run-end chest → tower/hero shards
+    const chest = rollChest(CHESTS[RUN_CHEST]);
+    const towerShards = { ...save.towerShards };
+    for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
+    const heroShards = { ...save.heroShards };
+    for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
       lifetimeShards: save.lifetimeShards + shardsEarned,
       bestWave: Math.max(save.bestWave, result.wave),
       totalRuns: save.totalRuns + 1,
+      towerMasteryXp,
+      towerShards,
+      heroShards,
     });
-    return { shardsEarned, newBest };
+    return { reward: { shardsEarned, newBest }, chest, mastery };
+  },
+
+  /** Per-kind run multipliers from the current save (passed into a new Game). */
+  towerProgress(): TowerProgress {
+    return towerProgress(store.get());
+  },
+
+  /** Spend tower shards to add a star to `kind`. Returns false if unaffordable/maxed. */
+  buyStar(kind: TowerKind): boolean {
+    const save = store.get();
+    const stars = save.towerStars[kind] ?? 0;
+    if (stars >= STAR.maxStars) return false;
+    const cost = starCost(stars);
+    if ((save.towerShards[kind] ?? 0) < cost) return false;
+    persist({
+      ...save,
+      towerShards: { ...save.towerShards, [kind]: (save.towerShards[kind] ?? 0) - cost },
+      towerStars: { ...save.towerStars, [kind]: stars + 1 },
+    });
+    return true;
   },
 
   // ── Save management ──────────────────────────────────────────────────────
@@ -160,5 +278,31 @@ export const meta = {
     const upgrades: Record<string, number> = {};
     for (const u of META_UPGRADES) upgrades[u.id] = u.maxLevel;
     persist({ ...store.get(), upgrades });
+  },
+
+  debugAddTowerShards(n: number): void {
+    const save = store.get();
+    const towerShards = { ...save.towerShards };
+    for (const k of TOWER_ORDER) towerShards[k] = Math.max(0, (towerShards[k] ?? 0) + n);
+    persist({ ...save, towerShards });
+  },
+
+  debugAddMasteryXp(n: number): void {
+    const save = store.get();
+    const towerMasteryXp = { ...save.towerMasteryXp };
+    for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
+    persist({ ...save, towerMasteryXp });
+  },
+
+  /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */
+  debugOpenChest(): ChestResult {
+    const chest = rollChest(CHESTS[RUN_CHEST]);
+    const save = store.get();
+    const towerShards = { ...save.towerShards };
+    for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
+    const heroShards = { ...save.heroShards };
+    for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
+    persist({ ...save, towerShards, heroShards });
+    return chest;
   },
 };

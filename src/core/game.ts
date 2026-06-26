@@ -36,6 +36,7 @@ import {
   STATUS,
   STEER,
   TOWER_DEFS,
+  TOWER_ORDER,
   TOTAL_WAVES,
   WAVES,
   WAVE_BOUNTY_GROWTH,
@@ -54,6 +55,7 @@ import type {
   EnemyKind,
   Hero,
   HudSnapshot,
+  MasteryCounts,
   MetaModifiers,
   Particle,
   Phase,
@@ -62,9 +64,22 @@ import type {
   ProjectileBehavior,
   Tower,
   TowerKind,
+  TowerProgress,
   FloatingText,
   CardOption,
 } from './types';
+
+/** Identity per-kind progression — a fresh save plays exactly like the base game. */
+function neutralTowerProgress(): TowerProgress {
+  const r = {} as TowerProgress;
+  for (const k of TOWER_ORDER) r[k] = { damageMult: 1, fireRateMult: 1 };
+  return r;
+}
+function zeroMasteryCounts(): MasteryCounts {
+  const r = {} as MasteryCounts;
+  for (const k of TOWER_ORDER) r[k] = { kills: 0, damage: 0, activeTime: 0 };
+  return r;
+}
 
 interface QueuedSpawn {
   kind: EnemyKind;
@@ -113,6 +128,11 @@ export class Game {
   particles: Particle[] = [];
   hero: Hero;
   mods: RunModifiers;
+  // Per-tower-kind permanent buffs (stars + mastery), frozen at construction so a
+  // run stays deterministic; identity for a fresh save.
+  private towerProgress: TowerProgress;
+  // Pure-observation usage signals accrued this run, banked into mastery at run end.
+  private masteryAccrual: MasteryCounts = zeroMasteryCounts();
 
   selectedTower: TowerKind | null = null;
   armedAbility = false;
@@ -136,9 +156,10 @@ export class Game {
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
 
-  constructor(seed: number, meta: MetaModifiers) {
+  constructor(seed: number, meta: MetaModifiers, towerProgress: TowerProgress = neutralTowerProgress()) {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
+    this.towerProgress = towerProgress;
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
     this.mods.towerDamageMult = meta.towerDamageMult;
@@ -369,6 +390,7 @@ export class Game {
       dmgAccum: 0,
       dmgTimer: 0,
       alive: true,
+      lastHitKind: null,
     });
   }
 
@@ -409,24 +431,26 @@ export class Game {
   private towerSystem(dt: number): void {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
+      this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
       if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
-      const rateMult = this.mods.towerFireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
-      const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
+      const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
+      const rateMult = this.mods.towerFireRateMult * prog.fireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
+      const dmgMult = this.mods.towerDamageMult * prog.damageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
       // Dispatch by firing behavior (data), not the specific tower kind — so a new
       // tower reusing 'homing'/'splash' needs no change here.
       if (def.firing === 'homing') {
         const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles);
         if (targets.length === 0) continue;
         for (const e of targets) {
-          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'homing', 0);
+          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'homing', 0, t.kind);
         }
         t.cooldown = def.fireInterval / rateMult;
       } else if (def.firing === 'splash') {
         const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
         if (!target) continue;
-        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult);
+        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult, t.kind);
         t.cooldown = def.fireInterval / rateMult;
       }
     }
@@ -459,7 +483,7 @@ export class Game {
         const dy = p.ty - p.y;
         const d = Math.hypot(dx, dy); // one sqrt for both the arrival test and the move
         if (d <= step + COMBAT.projectileHitEpsilon) {
-          this.applyDamage(target, p.damage);
+          this.applyDamage(target, p.damage, p.sourceKind);
           this.addFracture(target, 1);
           this.maybeShred(target);
           this.pushSfx('hit');
@@ -500,7 +524,7 @@ export class Game {
     this.grid.forNeighbors(p.x, p.y, p.splash, (e) => {
       if (!e.alive) return;
       if (dist2(p.x, p.y, e.x, e.y) <= r2) {
-        this.applyDamage(e, p.damage);
+        this.applyDamage(e, p.damage, p.sourceKind);
         e.corrosion = STATUS.corrosionDuration;
         if (this.mods.mortarAppliesFracture) this.addFracture(e, 1);
         this.maybeShred(e);
@@ -513,6 +537,7 @@ export class Game {
       radius: p.splash * STATUS.poolRadiusFactor,
       dps: STATUS.corrosionDps * this.mods.poolDpsMult,
       remaining: STATUS.poolDuration * this.mods.mortarPoolDurationMult,
+      sourceKind: p.sourceKind,
     });
   }
 
@@ -522,7 +547,7 @@ export class Game {
       this.grid.forNeighbors(pool.x, pool.y, pool.radius, (e) => {
         if (!e.alive) return;
         if (dist2(pool.x, pool.y, e.x, e.y) <= r2) {
-          this.applyDamage(e, pool.dps * dt, false); // continuous DoT — no per-tick flash
+          this.applyDamage(e, pool.dps * dt, pool.sourceKind, false); // DoT — credit mastery, no flash
           e.corrosion = STATUS.corrosionDuration;
           this.maybeShred(e);
         }
@@ -543,7 +568,7 @@ export class Game {
       if (!e.alive) continue;
       if (e.corrosion > 0) {
         e.corrosion = Math.max(0, e.corrosion - dt);
-        this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt, false); // light tick from the status itself
+        this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt, null, false); // light DoT — no source, no flash
       }
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
       if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
@@ -787,6 +812,7 @@ export class Game {
       if (e.alive && e.hp <= 0) {
         e.alive = false;
         this.kills++;
+        if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
         const gain = e.bounty * this.mods.biomassMult;
         this.biomass += gain;
         this.armorBreakUntil.delete(e.id);
@@ -822,15 +848,17 @@ export class Game {
   private spawnProjectile(
     x: number, y: number, tx: number, ty: number, speed: number,
     targetId: number, damage: number, behavior: ProjectileBehavior, splash: number,
+    sourceKind: TowerKind | null,
   ): void {
     const p = this.projPool.pop();
     if (p) {
       p.id = this.nextId++;
       p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
       p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
+      p.sourceKind = sourceKind;
       this.projectiles.push(p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true });
+      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind });
     }
   }
 
@@ -918,15 +946,22 @@ export class Game {
     return Math.max(0, a);
   }
 
-  /** `flash` = a discrete hit (projectile/splash/hero) → pop the white flash;
-   * continuous DoT (corrosion/pools) passes false so it doesn't strobe. */
-  private applyDamage(e: Enemy, raw: number, flash = true): void {
-    if (!e.alive) return;
+  /** Apply `raw` damage to `e`. `sourceKind` (a firing tower) credits mastery +
+   * kill attribution — pure bookkeeping that never alters the damage dealt.
+   * `flash` pops the white hit-flash on discrete hits; continuous DoT
+   * (corrosion/pools) passes false so it doesn't strobe. Returns damage applied. */
+  private applyDamage(e: Enemy, raw: number, sourceKind: TowerKind | null = null, flash = true): number {
+    if (!e.alive) return 0;
     const mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
     e.hp -= applied;
     e.dmgAccum += applied; // banked for the next aggregated damage number
     if (flash) e.hitFlash = FX.hitFlash;
+    if (sourceKind) {
+      e.lastHitKind = sourceKind;
+      this.masteryAccrual[sourceKind].damage += applied;
+    }
+    return applied;
   }
 
   /** Fracture + Corrosion present → consume Fracture for a true-damage burst + armor break. */
@@ -1088,5 +1123,15 @@ export class Game {
       cards: this.chosenCards,
       buffs: this.activeBuffs(),
     };
+  }
+
+  /** Per-kind usage accrued this run — banked into permanent mastery at run end. */
+  getMasteryAccrual(): MasteryCounts {
+    const out = {} as MasteryCounts;
+    for (const k of TOWER_ORDER) {
+      const a = this.masteryAccrual[k];
+      out[k] = { kills: a.kills, damage: a.damage, activeTime: a.activeTime };
+    }
+    return out;
   }
 }

@@ -9,8 +9,6 @@ import type { Game } from '../core/game';
 const FUTURE: ReadonlyArray<readonly [string, string]> = [
   ['Unlock towers', 'M2 — all three towers already available'],
   ['Unlock heroes', 'M6 — only the Ravager exists in the slice'],
-  ['Star levels', 'M8 — star system not yet built'],
-  ['Mastery levels', 'M8 — mastery not yet built'],
   ['Grant equipment', 'M9 — equipment not yet built'],
   ['Force prestige', 'M12 — prestige not yet built'],
 ];
@@ -65,6 +63,15 @@ export function DebugPanel(): JSX.Element {
               >
                 Reset save
               </button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">Tower progression (meta)</div>
+            <div className="debug-row">
+              <button onClick={() => meta.debugAddTowerShards(20)}>+20 ✦ each</button>
+              <button onClick={() => meta.debugAddMasteryXp(500)}>+500 Mastery XP</button>
+              <button onClick={() => meta.debugOpenChest()}>Open chest</button>
             </div>
           </div>
 

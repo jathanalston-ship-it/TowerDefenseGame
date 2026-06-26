@@ -1,6 +1,7 @@
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
+import { TowerLab } from './TowerLab';
 import { SaveManager } from './SaveManager';
 import { PlayIcon } from './components/Icon';
 
@@ -60,6 +61,8 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
       </div>
 
       <MetaShop />
+
+      <TowerLab />
 
       <SaveManager />
 

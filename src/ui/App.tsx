@@ -5,26 +5,29 @@ import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
-import type { RunResult, RunReward } from '../state/meta';
-import type { MetaModifiers } from '../core/types';
+import type { RunOutcome, RunResult } from '../state/meta';
+import type { MetaModifiers, TowerProgress } from '../core/types';
 
 type Screen = 'menu' | 'playing' | 'results';
 
 export function App(): JSX.Element {
   const [screen, setScreen] = useState<Screen>('menu');
-  const [last, setLast] = useState<{ result: RunResult; reward: RunReward } | null>(null);
+  const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
+  const progRef = useRef<TowerProgress>(meta.towerProgress());
 
   const startRun = useCallback(() => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+    // Snapshot permanent progression at run start so the run stays deterministic.
     modsRef.current = metaModifiers(meta.get());
+    progRef.current = meta.towerProgress();
     setScreen('playing');
   }, []);
 
   const handleEnd = useCallback((result: RunResult) => {
-    const reward = meta.recordRun(result);
-    setLast({ result, reward });
+    const outcome = meta.finishRun(result);
+    setLast({ result, outcome });
     setScreen('results');
   }, []);
 
@@ -36,10 +39,15 @@ export function App(): JSX.Element {
     <div className="app">
       {screen === 'menu' && <MainMenu onStart={startRun} />}
       {screen === 'playing' && (
-        <GameView seed={seedRef.current} mods={modsRef.current} onEnd={handleEnd} />
+        <GameView
+          seed={seedRef.current}
+          mods={modsRef.current}
+          progress={progRef.current}
+          onEnd={handleEnd}
+        />
       )}
       {screen === 'results' && last && (
-        <Results result={last.result} reward={last.reward} onContinue={toMenu} />
+        <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
       )}
       {debugOn && <DebugPanel />}
     </div>

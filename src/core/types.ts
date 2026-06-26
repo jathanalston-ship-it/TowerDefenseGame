@@ -38,6 +38,7 @@ export interface Enemy {
   dmgAccum: number; // damage banked toward the next aggregated damage number (visual)
   dmgTimer: number; // throttle until the banked damage may pop as a float (visual)
   alive: boolean;
+  lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
 }
 
 export interface Tower {
@@ -63,6 +64,7 @@ export interface Projectile {
   behavior: ProjectileBehavior;
   splash: number; // splash radius (0 = single target)
   alive: boolean;
+  sourceKind: TowerKind | null; // tower kind that fired it (mastery: damage credit)
 }
 
 export interface Pool {
@@ -72,6 +74,7 @@ export interface Pool {
   radius: number;
   dps: number;
   remaining: number; // seconds
+  sourceKind: TowerKind | null; // tower kind that spawned it (mastery: damage credit)
 }
 
 export interface Hero {
@@ -113,6 +116,23 @@ export interface MetaModifiers {
   heroDamageMult: number;
   integrityBonus: number;
 }
+
+/** Per-tower-kind permanent multipliers (stars + mastery), applied at build time.
+ * Identity (all 1) for a fresh save, so the base game is unchanged. */
+export interface TowerMods {
+  damageMult: number;
+  fireRateMult: number;
+}
+export type TowerProgress = Record<TowerKind, TowerMods>;
+
+/** Per-tower-kind usage signals a run accrues for mastery (pure observation — never
+ * feeds back into the sim; banked into permanent XP at run end). */
+export interface MasteryCount {
+  kills: number;
+  damage: number;
+  activeTime: number; // tower-seconds deployed
+}
+export type MasteryCounts = Record<TowerKind, MasteryCount>;
 
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */
 export interface HudSnapshot {

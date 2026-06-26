@@ -329,3 +329,70 @@ export const META_UPGRADES: UpgradeDef[] = [
   { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
   { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
 ];
+
+// ── Tower progression: shards → stars, plus infinite mastery ────────────────
+// Per-tower permanent growth, kept SEPARATE from the global Shards economy:
+//   • Tower Shards (per kind)  — currency earned from run-end chests.
+//   • Stars (per kind)         — bought with tower shards; small, capped buff.
+//   • Mastery (per kind)       — earned by USE (kills/damage/uptime); INFINITE,
+//                                ever-slower, tiny permanent buff per level.
+// All numbers here are PLACEHOLDER starting points — the architecture is the
+// deliverable, not the balance. Bonuses are identity at level/star 0 so a fresh
+// save plays exactly like the base game (golden-test invariant).
+
+/** Star upgrades: capped, shard-bought, modest per-star buff. */
+export const STAR = {
+  maxStars: 5, // ★0..★5 in the slice; the system itself is uncapped by design
+  baseCost: 8, // tower shards for the 1st star
+  costMult: 1.8, // each subsequent star costs more
+  damagePerStar: 0.06, // +6% tower damage per star (placeholder)
+  fireRatePerStar: 0.03, // +3% fire rate per star (placeholder)
+};
+
+/** Infinite mastery: signals → XP, an ever-growing requirement curve, tiny buff. */
+export const MASTERY = {
+  // XP earned per signal while a tower is deployed (placeholder weights).
+  xpPerKill: 4,
+  xpPerDamage: 0.02,
+  xpPerActiveSecond: 1,
+  // Requirement curve — XP for the (n+1)-th level grows geometrically, so levels
+  // come ever more slowly but NEVER stop (supports "increase forever").
+  baseReq: 100, // XP from level 0 → 1
+  reqGrowth: 1.12, // +12% required per level (compounding)
+  // Permanent reward per mastery level: small, unbounded (milestones come later).
+  damagePerLevel: 0.004, // +0.4% tower damage per level
+};
+
+// ── Loot boxes (run-end reward chests) ──────────────────────────────────────
+// Expandable to multiple chest rarities later; one is defined today. A chest is a
+// number of independent reward "rolls"; each roll grants tower shards, or (small
+// chance) hero shards. Duplicate protection is intentionally not modelled yet.
+export interface ChestDef {
+  id: string;
+  name: string;
+  rarity: string; // chest rarity tier (expandable: standard → rare → prime …)
+  rolls: number; // independent reward slots opened in sequence
+  towerShardRange: [number, number]; // shards granted to a random tower per roll
+  heroShardChance: number; // chance a roll yields hero shards instead
+  heroShardRange: [number, number];
+}
+
+export const CHESTS: Record<string, ChestDef> = {
+  standard: {
+    id: 'standard',
+    name: 'Biomass Cache',
+    rarity: 'standard',
+    rolls: 3,
+    towerShardRange: [2, 5],
+    heroShardChance: 0.12,
+    heroShardRange: [1, 1],
+  },
+};
+
+/** Which chest a completed run awards today (later: scale with wave/performance). */
+export const RUN_CHEST = 'standard';
+
+// Heroes that can receive hero shards. One today; the registry is forward-looking
+// (PLACEHOLDER-ART/HEROES.md describe Shepherd/Overseer as future unlocks).
+export const HERO_IDS = ['ravager'] as const;
+export const HERO_LABELS: Record<string, string> = { ravager: 'Ravager' };
