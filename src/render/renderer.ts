@@ -47,7 +47,7 @@ const SOLID = {
 const rgba = (rgb: string, a: number): string => `rgba(${rgb}, ${a})`;
 
 // Shared with the DOM UI (--font-ui) so on-canvas text matches the HUD.
-const UI_FONT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+const UI_FONT = "'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
 /** HP/health fill color, matching the HUD integrity thresholds (Hud.tsx). */
 function hpColor(pct: number): string {
