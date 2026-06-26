@@ -169,6 +169,11 @@ export interface HudSnapshot {
   armedAbility: boolean;
   objective: { name: string; description: string; done: boolean } | null;
   score: number; // endless score (0 otherwise)
+  // Automatic wave flow (Build Phase)
+  buildCountdown: number | null; // seconds until auto-start (null = not counting down)
+  buildCountdownTotal: number; // full countdown duration (for a progress ring)
+  earlyBonus: number; // amount of the most recent early-start biomass bonus
+  earlyBonusSeq: number; // bumps each grant — the HUD pops the bonus once per change
 }
 
 export interface CardOption {

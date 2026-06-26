@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS } from './config';
+import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW } from './config';
 import { CARD_POOL } from './cards';
 import { generateStage } from './stage';
 import { towerSlots } from './map';
@@ -206,5 +206,59 @@ describe('balancing tools (internal debug API)', () => {
     expect(g.debugTrackDps).toBe(false);
     g.debugSpawn('runner', 1);
     expect(g.enemies[0].maxHp).toBe(ENEMY_DEFS.runner.hp); // no scaling at defaults
+  });
+});
+
+describe('automatic wave flow', () => {
+  const ticks = (g: Game, secs: number) => {
+    for (let i = 0; i < Math.ceil(secs / SIM_DT); i++) g.advance(SIM_DT);
+  };
+
+  it('run start: no countdown until the first tower, then auto-starts wave 1', () => {
+    const g = new Game(1, NO_META);
+    expect(g.phase).toBe('prep');
+    expect(g.buildCountdown).toBeLessThan(0); // unarmed
+    ticks(g, 3); // waiting does nothing without a tower
+    expect(g.phase).toBe('prep');
+    expect(g.waveIndex).toBe(0);
+
+    placeSome(g, 1); // place the first tower → arms the countdown
+    expect(g.buildCountdown).toBeGreaterThan(0);
+    ticks(g, WAVE_FLOW.buildSeconds + 0.2); // let it run out
+    expect(g.phase).toBe('wave');
+    expect(g.waveIndex).toBe(1); // auto-started
+  });
+
+  it('manual start begins the wave immediately + grants a biomass bonus', () => {
+    const g = new Game(2, NO_META);
+    placeSome(g, 1);
+    const before = g.biomass;
+    const seq = g.earlyBonusSeq;
+    g.startWave();
+    expect(g.phase).toBe('wave');
+    expect(g.waveIndex).toBe(1);
+    expect(g.biomass).toBe(before + WAVE_FLOW.earlyStartBonus); // bonus applied
+    expect(g.earlyBonusSeq).toBe(seq + 1); // HUD-pop signal bumped
+    expect(g.earlyBonus).toBe(WAVE_FLOW.earlyStartBonus);
+  });
+
+  it('between waves: the Build-Phase countdown auto-arms after the draft', () => {
+    const g = new Game(3, NO_META);
+    placeSome(g, 1);
+    g.startWave(); // wave 1
+    g.debugSkipWave();
+    g.advance(SIM_DT); // checkWaveEnd → draft
+    expect(g.phase).toBe('draft');
+    g.chooseCard(g.getSnapshot().draft![0].id);
+    expect(g.phase).toBe('prep');
+    expect(g.buildCountdown).toBeGreaterThan(0); // armed immediately between waves
+  });
+
+  it('countdown duration scales with buildCountdownMult (cards/upgrades/difficulty)', () => {
+    const g = new Game(4, NO_META);
+    g.mods.buildCountdownMult = 0.5;
+    expect(g.effectiveBuildSeconds()).toBeCloseTo(WAVE_FLOW.buildSeconds * 0.5, 5);
+    placeSome(g, 1);
+    expect(g.buildCountdown).toBeCloseTo(WAVE_FLOW.buildSeconds * 0.5, 1);
   });
 });

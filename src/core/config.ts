@@ -302,6 +302,16 @@ export const ECON = {
   shardsPerKill: 0.4,
 };
 
+// ── Automatic wave flow ─────────────────────────────────────────────────────
+// The Build Phase runs a countdown that auto-starts the next wave; the player can
+// start early for a small biomass bonus. These are the canonical durations — the
+// EFFECTIVE countdown is `buildSeconds × RunModifiers.buildCountdownMult`, so cards,
+// upgrades, and difficulty settings can shorten/extend it later (a single hook).
+export const WAVE_FLOW = {
+  buildSeconds: 5, // countdown of the Build Phase (run start after 1st tower, + between waves)
+  earlyStartBonus: 25, // biomass granted for manually starting a wave early ("small")
+};
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a

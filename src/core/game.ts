@@ -47,6 +47,7 @@ import {
   STATUS,
   STEER,
   TOWER_DEFS,
+  WAVE_FLOW,
 } from './config';
 import {
   CLASSIC_CAMPAIGN,
@@ -134,6 +135,12 @@ export class Game {
   leaks = 0; // enemies that breached the line
   apexUses = 0; // Apex Leap activations
   towersBuilt = 0;
+  // Automatic wave flow: the Build-Phase countdown that auto-starts the next wave.
+  // -1 = inactive (run start before the first tower, or during a wave/draft);
+  // ≥0 = seconds remaining. Sim-time based, so it stays deterministic.
+  buildCountdown = -1;
+  earlyBonus = 0; // amount of the most recent early-start bonus
+  earlyBonusSeq = 0; // increments on each grant so the HUD can pop it once
   // discovery tracking (write-only observability → Codex; never reads back into sim,
   // so determinism is unaffected). Surfaced via getResult() for the meta layer.
   readonly seenEnemies = new Set<EnemyKind>();
@@ -286,6 +293,9 @@ export class Game {
       overcharged: false,
     });
     this.towersBuilt++;
+    // Run start: placing the FIRST tower arms the auto-start countdown (the player
+    // sets up unrushed, then the clock begins). Between waves it's already armed.
+    if (this.phase === 'prep' && this.buildCountdown < 0) this.buildCountdown = this.effectiveBuildSeconds();
     return true;
   }
 
@@ -294,9 +304,36 @@ export class Game {
     this.unlockedSlots = Math.min(towerSlots.length, this.unlockedSlots + n);
   }
 
+  /** Effective Build-Phase countdown — the canonical base scaled by the run's
+   *  buildCountdownMult (cards/upgrades) so the duration is tunable. */
+  effectiveBuildSeconds(): number {
+    return Math.max(0, WAVE_FLOW.buildSeconds * this.mods.buildCountdownMult);
+  }
+
+  /** Begin the Build Phase: arm the auto-start countdown. Called on entering prep
+   *  between waves (immediately) — the run-start prep instead arms on the first
+   *  tower (see placeTower), giving the player an unrushed first placement. */
+  private enterBuildPhase(): void {
+    this.phase = 'prep';
+    this.buildCountdown = this.effectiveBuildSeconds();
+  }
+
+  /** Manual "Start Next Wave" — begins the next wave immediately and grants a small
+   *  biomass bonus for committing early (surfaced to the HUD + a battlefield float). */
   startWave(): void {
-    if (this.phase !== 'prep') return;
-    if (this.waveIndex >= this.totalWaves) return;
+    if (this.phase !== 'prep' || this.waveIndex >= this.totalWaves) return;
+    const bonus = WAVE_FLOW.earlyStartBonus;
+    this.biomass += bonus;
+    this.earlyBonus = bonus;
+    this.earlyBonusSeq++;
+    this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `+${bonus} ⬡ early`, color: '#7CF6C8', life: 1.1 });
+    this.beginWave();
+  }
+
+  /** Start the next wave (shared by manual start and the countdown auto-start). */
+  private beginWave(): void {
+    if (this.phase !== 'prep' || this.waveIndex >= this.totalWaves) return;
+    this.buildCountdown = -1; // consume the countdown
     this.waveIndex++;
     const def = this.waveScript(this.waveIndex);
     const { hpMult, bountyMult } = this.waveScaling(this.waveIndex);
@@ -338,7 +375,7 @@ export class Game {
     const card = this.draft.find((c) => c.id === id);
     if (card) card.apply(this.cardContext());
     this.draft = null;
-    this.phase = 'prep';
+    this.enterBuildPhase(); // Build Phase: countdown auto-arms between waves
   }
 
   private cardContext(): CardContext {
@@ -404,7 +441,12 @@ export class Game {
         this.phase = 'lost';
       }
     } else {
-      // prep: hero still roams; no spawns/economy/loss.
+      // prep / Build Phase: hero still roams; no spawns/economy/loss. The auto-start
+      // countdown ticks here (when armed) and launches the next wave at zero.
+      if (this.buildCountdown >= 0) {
+        this.buildCountdown -= dt;
+        if (this.buildCountdown <= 0) this.beginWave(); // auto-start (no early bonus)
+      }
       this.overchargeSystem();
       this.heroSystem(dt);
       this.floatSystem(dt);
@@ -1483,6 +1525,10 @@ export class Game {
       armedAbility: this.armedAbility,
       objective: obj ? { name: obj.name, description: obj.description, done: this.objectiveComplete() } : null,
       score: this.mode === 'endless' ? this.endlessScore() : 0,
+      buildCountdown: this.buildCountdown >= 0 ? this.buildCountdown : null,
+      buildCountdownTotal: this.effectiveBuildSeconds(),
+      earlyBonus: this.earlyBonus,
+      earlyBonusSeq: this.earlyBonusSeq,
     };
   }
 }

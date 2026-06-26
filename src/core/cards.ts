@@ -40,6 +40,7 @@ export interface RunModifiers {
   corrodedAmp: number; // +damage fraction to corroded enemies
   lineSlow: number; // extra slow on enemies inside the defensive zone
   adjacencyHaste: number; // +fire-rate per neighbouring tower
+  buildCountdownMult: number; // scales the Build-Phase auto-start countdown (cards/upgrades)
   // ── behavioral flags / counters (modify HOW the game plays) ──
   mortarAppliesFracture: boolean;
   needleBounce: number; // needle shots ricochet to N more targets
@@ -75,6 +76,7 @@ export function defaultRunModifiers(): RunModifiers {
     corrodedAmp: 0,
     lineSlow: 0,
     adjacencyHaste: 0,
+    buildCountdownMult: 1,
     mortarAppliesFracture: false,
     needleBounce: 0,
     mortarExtraShell: 0,

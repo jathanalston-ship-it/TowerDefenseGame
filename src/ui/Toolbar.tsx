@@ -85,13 +85,25 @@ export function Toolbar({
 
       {hud.phase === 'prep' && hud.wave < hud.totalWaves && (
         <button
-          className="primary start-btn"
+          className={`primary start-btn ${hud.buildCountdown !== null ? 'is-counting' : ''}`}
           onClick={() => {
             game.startWave();
             refresh();
           }}
+          title="Start now for a biomass bonus"
         >
-          Start Wave {Math.min(hud.totalWaves, hud.wave + 1)} <span className="hotkey">␣</span>
+          {hud.buildCountdown !== null && hud.buildCountdownTotal > 0 && (
+            <span
+              className="start-cd-fill"
+              style={{ width: `${(1 - hud.buildCountdown / hud.buildCountdownTotal) * 100}%` }}
+              aria-hidden
+            />
+          )}
+          <span className="start-btn-label">
+            Start Wave {Math.min(hud.totalWaves, hud.wave + 1)}
+            {hud.buildCountdown !== null ? ` · auto ${Math.ceil(hud.buildCountdown)}s` : ''}
+            <span className="hotkey">␣</span>
+          </span>
         </button>
       )}
     </div>
