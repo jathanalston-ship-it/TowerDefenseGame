@@ -23,9 +23,12 @@ import {
 } from './map';
 import type { TowerSlot } from './map';
 import {
+  COMBAT,
   ECON,
   ENEMY_DEFS,
+  FX,
   HERO,
+  MOVE,
   PARTICLE,
   PERF,
   SIM_DT,
@@ -40,6 +43,7 @@ import {
 } from './config';
 import {
   CARD_POOL,
+  applyCard,
   cardToOption,
   defaultRunModifiers,
   draftCards,
@@ -55,6 +59,7 @@ import type {
   Phase,
   Pool,
   Projectile,
+  ProjectileBehavior,
   Tower,
   TowerKind,
   FloatingText,
@@ -62,7 +67,7 @@ import type {
 } from './types';
 
 interface QueuedSpawn {
-  kind: Enemy['kind'];
+  kind: EnemyKind;
   at: number; // sim-time to spawn
   hpMult: number;
   bountyMult: number;
@@ -118,6 +123,8 @@ export class Game {
   private rng: Rng;
   private fxRng: Rng; // cosmetic-only stream (particles) — keeps gameplay rng pure
   private grid = new SpatialGrid<Enemy>(WIDTH, HEIGHT, PERF.spatialCell);
+  private enemyById = new Map<number, Enemy>(); // O(1) projectile target lookup
+  private reactorCount = 0; // cached on tower placement (economy), not per tick
   private projPool: Projectile[] = [];
   private partPool: Particle[] = [];
   private targetScratch: Enemy[] = [];
@@ -207,6 +214,7 @@ export class Game {
       overcharged: false,
       bornAt: this.time,
     });
+    this.recomputeTowerCaches();
     this.pushSfx('place');
     return true;
   }
@@ -244,7 +252,7 @@ export class Game {
     if (this.phase !== 'draft' || !this.draft) return;
     const card = this.draft.find((c) => c.id === id);
     if (card) {
-      card.apply(this.cardContext());
+      applyCard(card, this.cardContext());
       this.chosenCards.push(cardToOption(card));
       this.pushSfx('draft');
     }
@@ -296,7 +304,6 @@ export class Game {
       this.spawnSystem();
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
       this.economySystem(dt);
-      this.overchargeSystem();
       this.towerSystem(dt);
       this.projectileSystem(dt);
       this.poolSystem(dt);
@@ -312,17 +319,22 @@ export class Game {
         this.phase = 'lost';
       }
     } else {
-      // prep: hero still roams; no spawns/economy/loss.
-      this.overchargeSystem();
+      // prep: hero still roams; no spawns/economy/loss (overcharge is cached on placement).
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
     }
   }
 
+  /** Rebuild the per-tick spatial index + id map from the live enemy list. */
   private rebuildGrid(): void {
     this.grid.clear();
-    for (const e of this.enemies) if (e.alive) this.grid.insert(e);
+    this.enemyById.clear();
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      this.grid.insert(e);
+      this.enemyById.set(e.id, e);
+    }
   }
 
   // ── Systems ──────────────────────────────────────────────────────────────
@@ -352,59 +364,66 @@ export class Game {
       damage: def.damage,
       fracture: 0,
       corrosion: 0,
-      slowUntil: 0,
       shredFlash: 0,
       alive: true,
     });
   }
 
   private economySystem(dt: number): void {
-    let gen = 0;
-    for (const t of this.towers) {
-      if (t.kind === 'reactor') gen += ECON.reactorBiomassPerSec;
+    if (this.reactorCount > 0) {
+      this.biomass += this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * dt;
     }
-    if (gen > 0) this.biomass += gen * this.mods.reactorBiomassMult * dt;
   }
 
-  private reactorCells(): TowerSlot[] {
-    const cells: TowerSlot[] = [];
+  /**
+   * Recompute tower-layout caches (reactor count + per-tower overcharge flags).
+   * Towers never move or die, so this only runs when a tower is placed — keeping
+   * the economy + overcharge systems O(1) per tick instead of O(towers^2).
+   */
+  private recomputeTowerCaches(): void {
+    const reactors: TowerSlot[] = [];
     for (const t of this.towers) {
-      if (t.kind === 'reactor') cells.push(towerSlots[t.slot]);
+      if (t.kind === 'reactor') reactors.push(towerSlots[t.slot]);
     }
-    return cells;
-  }
-
-  private overchargeSystem(): void {
-    const reactors = this.reactorCells();
+    this.reactorCount = reactors.length;
     for (const t of this.towers) {
       if (t.kind === 'reactor') {
         t.overcharged = false;
         continue;
       }
       const slot = towerSlots[t.slot];
-      t.overcharged = reactors.some((rc) => slotsAdjacent(rc, slot));
+      let oc = false;
+      for (const rc of reactors) {
+        if (slotsAdjacent(rc, slot)) {
+          oc = true;
+          break;
+        }
+      }
+      t.overcharged = oc;
     }
   }
 
   private towerSystem(dt: number): void {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
-      if (def.fireInterval <= 0) continue; // reactor
+      if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const rateMult = this.mods.towerFireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
       const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
-      if (t.kind === 'needle') {
+      // Dispatch by firing behavior (data), not the specific tower kind — so a new
+      // tower reusing 'homing'/'splash' needs no change here.
+      if (def.firing === 'homing') {
         const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles);
         if (targets.length === 0) continue;
         for (const e of targets) {
-          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'needle', 0);
+          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'homing', 0);
         }
         t.cooldown = def.fireInterval / rateMult;
-      } else if (t.kind === 'mortar') {
+      } else if (def.firing === 'splash') {
         const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
         if (!target) continue;
-        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'mortar', def.splash * this.mods.splashRadiusMult);
+        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult);
         t.cooldown = def.fireInterval / rateMult;
       }
     }
@@ -424,36 +443,41 @@ export class Game {
 
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
-      if (p.kind === 'needle') {
-        const target = this.enemies.find((e) => e.id === p.targetId && e.alive);
-        if (!target) {
+      const step = p.speed * dt;
+      if (p.behavior === 'homing') {
+        const target = this.enemyById.get(p.targetId); // O(1) homing lookup
+        if (!target || !target.alive) {
           p.alive = false; // fizzle if the target died
           continue;
         }
         p.tx = target.x;
         p.ty = target.y;
-        const step = p.speed * dt;
-        if (dist(p.x, p.y, p.tx, p.ty) <= step + 4) {
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy); // one sqrt for both the arrival test and the move
+        if (d <= step + COMBAT.projectileHitEpsilon) {
           this.applyDamage(target, p.damage);
           this.addFracture(target, 1);
           this.maybeShred(target);
           this.pushSfx('hit');
           p.alive = false;
         } else {
-          const np = moveToward(p.x, p.y, p.tx, p.ty, step);
-          p.x = np.x;
-          p.y = np.y;
+          const k = step / d;
+          p.x += dx * k;
+          p.y += dy * k;
         }
       } else {
         // mortar: positional, splash on arrival
-        const step = p.speed * dt;
-        if (dist(p.x, p.y, p.tx, p.ty) <= step + 4) {
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d <= step + COMBAT.projectileHitEpsilon) {
           this.mortarImpact(p);
           p.alive = false;
         } else {
-          const np = moveToward(p.x, p.y, p.tx, p.ty, step);
-          p.x = np.x;
-          p.y = np.y;
+          const k = step / d;
+          p.x += dx * k;
+          p.y += dy * k;
         }
       }
     }
@@ -531,7 +555,7 @@ export class Game {
    */
   private enemyMoveSystem(dt: number): void {
     const slowBase = STATUS.corrosionSlow + this.mods.corrosionSlowBonus;
-    const sepR = CELL * 0.9;
+    const sepR = MOVE.separationRadius;
     const sepR2 = sepR * sepR;
     const tR = STEER.towerAvoidRadius;
     const tR2 = tR * tR;
@@ -613,9 +637,9 @@ export class Game {
 
       // 5. organic wander (deterministic noise — never touches the gameplay RNG)
       if (b.jitter !== 0) {
-        const n = e.id * 0.137 + this.time * STEER.jitterFreq;
+        const n = e.id * MOVE.jitterIdScale + this.time * STEER.jitterFreq;
         vx += Math.sin(n) * b.jitter;
-        vy += Math.cos(n * 1.31) * b.jitter;
+        vy += Math.cos(n * MOVE.jitterPhase) * b.jitter;
       }
 
       const vl = Math.hypot(vx, vy) || 1;
@@ -706,7 +730,7 @@ export class Game {
     // Contact damage to the hero from nearby enemies (grid-local).
     let incoming = 0;
     const near = this.neighborScratch;
-    this.grid.queryInto(h.x, h.y, HERO.contactRange + 28, near);
+    this.grid.queryInto(h.x, h.y, HERO.contactRange + COMBAT.heroContactMargin, near);
     for (let k = 0; k < near.length; k++) {
       const e = near[k];
       if (!e.alive) continue;
@@ -772,7 +796,7 @@ export class Game {
     for (let i = fs.length - 1; i >= 0; i--) {
       const f = fs[i];
       f.life -= dt;
-      f.y -= 18 * dt;
+      f.y -= FX.floatRiseSpeed * dt;
       if (f.life <= 0) {
         fs[i] = fs[fs.length - 1];
         fs.pop();
@@ -784,16 +808,16 @@ export class Game {
 
   private spawnProjectile(
     x: number, y: number, tx: number, ty: number, speed: number,
-    targetId: number, damage: number, kind: TowerKind, splash: number,
+    targetId: number, damage: number, behavior: ProjectileBehavior, splash: number,
   ): void {
     const p = this.projPool.pop();
     if (p) {
       p.id = this.nextId++;
       p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
-      p.targetId = targetId; p.damage = damage; p.kind = kind; p.splash = splash; p.alive = true;
+      p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
       this.projectiles.push(p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, kind, splash, alive: true });
+      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true });
     }
   }
 
@@ -814,8 +838,8 @@ export class Game {
       }
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vx *= 0.92; // drag
-      p.vy *= 0.92;
+      p.vx *= FX.particleDrag; // drag
+      p.vy *= FX.particleDrag;
     }
   }
 
@@ -941,7 +965,7 @@ export class Game {
   /** Apply a specific card's effect immediately (force a card selection). */
   debugApplyCard(id: string): void {
     const card = CARD_POOL.find((c) => c.id === id);
-    if (card) card.apply(this.cardContext());
+    if (card) applyCard(card, this.cardContext());
   }
 
   debugReviveHero(): void {

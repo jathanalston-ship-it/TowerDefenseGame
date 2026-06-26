@@ -8,6 +8,12 @@ export type StatusType = 'Fracture' | 'Corrosion';
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
 export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
 
+/** How a tower delivers its attack — drives the firing/projectile dispatch, so a
+ * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire. */
+export type TowerFiring = 'homing' | 'splash' | 'support';
+/** What a live projectile does on the field (a subset of TowerFiring that flies). */
+export type ProjectileBehavior = 'homing' | 'splash';
+
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
 
@@ -27,7 +33,6 @@ export interface Enemy {
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
-  slowUntil: number; // sim-time the slow expires
   shredFlash: number; // seconds of reaction flash remaining (visual)
   alive: boolean;
 }
@@ -50,9 +55,9 @@ export interface Projectile {
   tx: number;
   ty: number;
   speed: number;
-  targetId: number; // homing target (-1 = positional, e.g. mortar)
+  targetId: number; // homing target id (-1 = positional, e.g. splash)
   damage: number;
-  kind: TowerKind;
+  behavior: ProjectileBehavior;
   splash: number; // splash radius (0 = single target)
   alive: boolean;
 }

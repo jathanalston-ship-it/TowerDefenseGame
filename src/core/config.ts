@@ -2,15 +2,31 @@
 // ARCHITECTURE.md §6.2). Systems read these; they never inline magic numbers.
 // Every value is an illustrative starting point for the vertical slice.
 
-import type { CombatClass, EnemyKind, TowerKind } from './types';
+import type { CombatClass, EnemyKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
+
+// ── Sim tuning (movement / combat / fx) — gameplay constants, not magic numbers ──
+export const MOVE = {
+  separationRadius: 36, // px (was CELL*0.9); enemy spacing radius
+  jitterIdScale: 0.137, // per-enemy phase offset for organic wander noise
+  jitterPhase: 1.31, // y-axis noise phase multiplier
+};
+export const COMBAT = {
+  projectileHitEpsilon: 4, // px slop for a projectile counting as "arrived"
+  heroContactMargin: 28, // added to hero contactRange for the proximity query (~max enemy radius)
+};
+export const FX = {
+  particleDrag: 0.92, // per-tick velocity damping on cosmetic particles
+  floatRiseSpeed: 18, // px/sec floating-text drift
+};
 
 // ── Towers ────────────────────────────────────────────────────────────────
 export interface TowerDef {
   kind: TowerKind;
   name: string;
   combatClass: CombatClass;
+  firing: TowerFiring; // how it attacks — drives the sim dispatch (data, not code)
   cost: number;
   range: number;
   fireInterval: number; // seconds between actions
@@ -26,6 +42,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     kind: 'needle',
     name: 'Needle Spitter',
     combatClass: 'Kinetic',
+    firing: 'homing',
     cost: 100,
     range: 135,
     fireInterval: 0.34,
@@ -39,6 +56,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     kind: 'mortar',
     name: 'Bone Mortar',
     combatClass: 'Caustic',
+    firing: 'splash',
     cost: 150,
     range: 175,
     fireInterval: 1.45,
@@ -52,6 +70,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     kind: 'reactor',
     name: 'Flesh Reactor',
     combatClass: 'Vital',
+    firing: 'support',
     cost: 120,
     range: 0,
     fireInterval: 0,
@@ -296,11 +315,14 @@ export interface UpgradeDef {
   maxLevel: number;
   baseCost: number;
   costMult: number;
+  /** Data-driven effect: each level adds `perLevel` to `stat` of MetaModifiers.
+   * (Multiplier stats start at 1, flat stats at 0 — see metaModifiers().) */
+  effect: { stat: keyof MetaModifiers; perLevel: number };
 }
 
 export const META_UPGRADES: UpgradeDef[] = [
-  { id: 'lethality', name: 'Lethal Spores', description: '+8% tower damage per level', maxLevel: 10, baseCost: 30, costMult: 1.55 },
-  { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.55 },
-  { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5 },
-  { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55 },
+  { id: 'lethality', name: 'Lethal Spores', description: '+8% tower damage per level', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'towerDamageMult', perLevel: 0.08 } },
+  { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'biomassMult', perLevel: 0.1 } },
+  { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
+  { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
 ];

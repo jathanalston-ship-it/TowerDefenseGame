@@ -33,6 +33,7 @@ export function GameView({
   const game = (gameRef.current ??= new Game(seed, mods));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
+  const [crashed, setCrashed] = useState<string | null>(null);
   const pointerRef = useRef<Pointer | null>(null);
   const traumaRef = useRef(0);
   const onEndRef = useRef(onEnd);
@@ -50,52 +51,58 @@ export function GameView({
     let lastHud = 0;
 
     const loop = (now: number): void => {
-      const dt = (now - last) / 1000;
-      last = now;
-      game.advance(dt);
+      try {
+        const dt = (now - last) / 1000;
+        last = now;
+        game.advance(dt);
 
-      // Drain presentation cues → audio + screen-shake trauma.
-      const cues = game.drainSfx();
-      if (cues.length) {
-        const tally: Record<string, number> = {};
-        for (const c of cues) {
-          tally[c] = (tally[c] ?? 0) + 1;
-          traumaRef.current = Math.min(1, traumaRef.current + (TRAUMA[c] ?? 0));
+        // Drain presentation cues → audio + screen-shake trauma.
+        const cues = game.drainSfx();
+        if (cues.length) {
+          const tally: Record<string, number> = {};
+          for (const c of cues) {
+            tally[c] = (tally[c] ?? 0) + 1;
+            traumaRef.current = Math.min(1, traumaRef.current + (TRAUMA[c] ?? 0));
+          }
+          audio.cueBatch(tally);
         }
-        audio.cueBatch(tally);
-      }
-      traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
+        traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
 
-      // Render with shake (pre-fill covers the shake margin so no gap shows).
-      const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;
-      const dx = mag ? (Math.random() * 2 - 1) * mag : 0;
-      const dy = mag ? (Math.random() * 2 - 1) * mag : 0;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.fillStyle = '#070a10';
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.save();
-      ctx.translate(dx, dy);
-      drawGame(ctx, game.getRenderState(), pointerRef.current);
-      ctx.restore();
+        // Render with shake (pre-fill covers the shake margin so no gap shows).
+        const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;
+        const dx = mag ? (Math.random() * 2 - 1) * mag : 0;
+        const dy = mag ? (Math.random() * 2 - 1) * mag : 0;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#070a10';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.save();
+        ctx.translate(dx, dy);
+        drawGame(ctx, game.getRenderState(), pointerRef.current);
+        ctx.restore();
 
-      // Ambient bed intensifies with pressure (enemies massing + a wounded core).
-      const intRatio = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;
-      const pressure =
-        game.phase === 'won' || game.phase === 'lost'
-          ? null
-          : Math.min(1, (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6);
-      audio.music(pressure, dt);
+        // Ambient bed intensifies with pressure (enemies massing + a wounded core).
+        const intRatio = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;
+        const pressure =
+          game.phase === 'won' || game.phase === 'lost'
+            ? null
+            : Math.min(1, (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6);
+        audio.music(pressure, dt);
 
-      if (now - lastHud > 80) {
-        setHud(game.getSnapshot());
-        lastHud = now;
+        if (now - lastHud > 80) {
+          setHud(game.getSnapshot());
+          lastHud = now;
+        }
+        if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
+          endedRef.current = true;
+          setHud(game.getSnapshot());
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won' });
+        }
+        raf = requestAnimationFrame(loop);
+      } catch (err) {
+        // Surface the failure and stop cleanly — never freeze silently or spam.
+        console.error('[GameView] run loop error — stopping:', err);
+        setCrashed(err instanceof Error ? err.message : String(err));
       }
-      if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
-        endedRef.current = true;
-        setHud(game.getSnapshot());
-        onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won' });
-      }
-      raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => {
@@ -186,6 +193,23 @@ export function GameView({
               refresh();
             }}
           />
+        )}
+        {crashed && (
+          <div className="overlay">
+            <h2>RUN ERROR</h2>
+            <p className="hint">The run hit an error and stopped. Your permanent progress is safe.</p>
+            <pre className="crash-msg">{crashed}</pre>
+            <button
+              className="primary"
+              onClick={() => {
+                if (endedRef.current) return;
+                endedRef.current = true;
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false });
+              }}
+            >
+              End Run
+            </button>
+          </div>
         )}
       </div>
       <Toolbar game={game} hud={hud} refresh={refresh} />
