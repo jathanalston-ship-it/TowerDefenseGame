@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import type { ChestResult, RewardItem } from '../state/lootbox';
 import { CHESTS, HERO_LABELS, TOWER_DEFS } from '../core/config';
+import { audio } from '../audio/sound';
 import type { TowerKind } from '../core/types';
 
 function RewardRow({ item }: { item: RewardItem }): JSX.Element {
@@ -37,9 +38,12 @@ export function LootReveal({ chest }: { chest: ChestResult }): JSX.Element {
   const [revealed, setRevealed] = useState(0);
   const name = CHESTS[chest.chestId]?.name ?? 'Reward Cache';
 
-  // Beat 1: a short anticipation pause, then the chest pops open.
+  // Beat 1: a short anticipation pause, then the chest pops open (with a thunk).
   useEffect(() => {
-    const t = setTimeout(() => setOpen(true), 320);
+    const t = setTimeout(() => {
+      setOpen(true);
+      audio.cue('chest');
+    }, 320);
     return () => clearTimeout(t);
   }, []);
 
@@ -49,6 +53,13 @@ export function LootReveal({ chest }: { chest: ChestResult }): JSX.Element {
     const t = setTimeout(() => setRevealed((r) => r + 1), 340);
     return () => clearTimeout(t);
   }, [open, revealed, chest.items.length]);
+
+  // Beat 3: each reveal plays a climbing tick — hero shards land a "jackpot".
+  useEffect(() => {
+    if (revealed === 0) return;
+    const it = chest.items[revealed - 1];
+    audio.cue(it && it.type === 'hero' ? 'jackpot' : 'reveal');
+  }, [revealed, chest.items]);
 
   return (
     <div className="loot">
@@ -62,7 +73,7 @@ export function LootReveal({ chest }: { chest: ChestResult }): JSX.Element {
       <div className="loot-title">{open ? name : 'Opening…'}</div>
       <ul className="loot-items">
         {chest.items.slice(0, revealed).map((it, i) => (
-          <li className="loot-item" key={i}>
+          <li className={`loot-item${it.type === 'hero' ? ' is-jackpot' : ''}`} key={i}>
             <RewardRow item={it} />
           </li>
         ))}

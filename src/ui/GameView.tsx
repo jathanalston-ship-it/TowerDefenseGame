@@ -103,7 +103,7 @@ export function GameView({
         if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
           endedRef.current = true;
           setHud(game.getSnapshot());
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual() });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats() });
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -200,6 +200,7 @@ export function GameView({
         {hud.phase === 'draft' && hud.draft && (
           <DraftModal
             options={hud.draft}
+            clearedWave={hud.wave}
             onPick={(id) => {
               game.chooseCard(id);
               refresh();
@@ -216,7 +217,7 @@ export function GameView({
               onClick={() => {
                 if (endedRef.current) return;
                 endedRef.current = true;
-                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual() });
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats() });
               }}
             >
               End Run

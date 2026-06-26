@@ -3,6 +3,7 @@ import { MainMenu } from './MainMenu';
 import { GameView } from './GameView';
 import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
+import { AchievementToaster } from './AchievementToaster';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
@@ -56,6 +57,7 @@ export function App(): JSX.Element {
         <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
       )}
       {debugOn && <DebugPanel />}
+      <AchievementToaster />
     </div>
   );
 }

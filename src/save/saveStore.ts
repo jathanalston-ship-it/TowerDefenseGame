@@ -5,8 +5,8 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { HERO_ORDER, HERO_IDS, TOWER_ORDER } from '../core/config';
-import type { HeroKind, TowerKind } from '../core/types';
+import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER } from '../core/config';
+import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
 
 export interface SaveData {
   shards: number;
@@ -24,6 +24,9 @@ export interface SaveData {
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
   heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
   selectedHero: HeroKind; // which hero the next run fields (slot 1)
+  // ── Lifetime statistics + achievements — added in schema v3 ──
+  stats: LifetimeStats;
+  achievements: string[]; // unlocked achievement ids
 }
 
 export const CURRENT_VERSION = 3;
@@ -66,6 +69,28 @@ function zeroByHeroKind(): Record<HeroKind, number> {
   for (const k of HERO_ORDER) r[k] = 0;
   return r;
 }
+function zeroByEnemy(): Record<EnemyKind, number> {
+  const r = {} as Record<EnemyKind, number>;
+  for (const k of ENEMY_KINDS) r[k] = 0;
+  return r;
+}
+
+/** A zeroed lifetime-stats block — the v3 default and the merge base for old saves. */
+export function defaultLifetimeStats(): LifetimeStats {
+  return {
+    lifetimeKills: 0,
+    highestWave: 0,
+    totalBiomass: 0,
+    totalDamage: 0,
+    runsCompleted: 0,
+    runsFailed: 0,
+    cardsDrafted: 0,
+    uniqueCards: [],
+    killsByEnemy: zeroByEnemy(),
+    towerUsage: zeroByTower(),
+    heroUsage: zeroByHero(),
+  };
+}
 
 export function defaultSave(): SaveData {
   return {
@@ -82,6 +107,8 @@ export function defaultSave(): SaveData {
     heroStars: zeroByHeroKind(),
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
+    stats: defaultLifetimeStats(),
+    achievements: [],
   };
 }
 
@@ -105,6 +132,22 @@ function withDefaults(data: SaveData): SaveData {
     heroMasteryXp: { ...d.heroMasteryXp, ...data.heroMasteryXp },
     // Guard against a hand-edited/corrupt hero id so it can never crash makeHero().
     selectedHero: HERO_ORDER.includes(data.selectedHero) ? data.selectedHero : d.selectedHero,
+    stats: mergeStats(d.stats, data.stats),
+    achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
+  };
+}
+
+/** Fill a (possibly absent / partial) stats block onto the zeroed default — the
+ * v2→v3 upgrade path: a pre-stats save simply gains a zeroed stats block. */
+function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): LifetimeStats {
+  if (!s || typeof s !== 'object') return base;
+  return {
+    ...base,
+    ...s,
+    uniqueCards: Array.isArray(s.uniqueCards) ? s.uniqueCards : base.uniqueCards,
+    killsByEnemy: { ...base.killsByEnemy, ...s.killsByEnemy },
+    towerUsage: { ...base.towerUsage, ...s.towerUsage },
+    heroUsage: { ...base.heroUsage, ...s.heroUsage },
   };
 }
 
@@ -131,9 +174,9 @@ function isSaveData(v: unknown): v is SaveData {
 
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
 function migrate(_version: number, data: unknown): unknown {
-  // v1→v2 (tower progression) and v2→v3 (hero progression + roster) are additive:
-  // withDefaults() deep-fills the new per-kind records and the selectedHero default,
-  // so no explicit reshaping step is needed yet. Structural changes add steps here.
+  // v1→v2 (tower progression) and v2→v3 (hero progression + roster, plus lifetime
+  // stats + achievements) are additive: withDefaults() deep-fills the new records,
+  // the selectedHero default, and the stats block. Structural changes add steps here.
   return data;
 }
 

@@ -26,6 +26,7 @@ import {
   COMBAT,
   ECON,
   ENEMY_DEFS,
+  ENEMY_KINDS,
   FX,
   HERO_DEFS,
   HERO_ORDER,
@@ -67,12 +68,31 @@ import type {
   Pool,
   Projectile,
   ProjectileBehavior,
+  RunStats,
   Tower,
   TowerKind,
   TowerProgress,
   FloatingText,
   CardOption,
+  WavePreviewEntry,
 } from './types';
+import type { WaveDef } from './config';
+
+/** Aggregate a wave script into per-kind totals (telegraph for the prep phase). */
+function wavePreview(def: WaveDef): WavePreviewEntry[] {
+  const order: WavePreviewEntry[] = [];
+  const idx = new Map<string, WavePreviewEntry>();
+  for (const g of def) {
+    const e = idx.get(g.kind);
+    if (e) e.count += g.count;
+    else {
+      const entry = { kind: g.kind, count: g.count };
+      idx.set(g.kind, entry);
+      order.push(entry);
+    }
+  }
+  return order;
+}
 
 /** Identity per-kind progression — a fresh save plays exactly like the base game. */
 function neutralTowerProgress(): TowerProgress {
@@ -94,6 +114,16 @@ function neutralHeroProgress(): HeroProgress {
 function zeroHeroMastery(): HeroMasteryCounts {
   const r = {} as HeroMasteryCounts;
   for (const k of HERO_ORDER) r[k] = { kills: 0, damage: 0, activeTime: 0 };
+  return r;
+}
+function zeroEnemyCounts(): Record<EnemyKind, number> {
+  const r = {} as Record<EnemyKind, number>;
+  for (const k of ENEMY_KINDS) r[k] = 0;
+  return r;
+}
+function zeroTowerCounts(): Record<TowerKind, number> {
+  const r = {} as Record<TowerKind, number>;
+  for (const k of TOWER_ORDER) r[k] = 0;
   return r;
 }
 
@@ -154,6 +184,12 @@ export class Game {
   // Pure-observation usage signals accrued this run, banked into mastery at run end.
   private masteryAccrual: MasteryCounts = zeroMasteryCounts();
   private heroMasteryAccrual: HeroMasteryCounts = zeroHeroMastery();
+  // Pure-observation run statistics (banked into lifetime stats at run end). Like
+  // mastery, these NEVER feed back into combat, so they can't alter a fixed seed.
+  private statBiomassEarned = 0;
+  private statDamageDealt = 0;
+  private statKillsByEnemy: Record<EnemyKind, number> = zeroEnemyCounts();
+  private statTowerBuilds: Record<TowerKind, number> = zeroTowerCounts();
 
   selectedTower: TowerKind | null = null;
   armedAbility = false;
@@ -277,6 +313,7 @@ export class Game {
       overcharged: false,
       bornAt: this.time,
     });
+    this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
     this.pushSfx('place');
     return true;
@@ -328,6 +365,7 @@ export class Game {
       mods: this.mods,
       grantBiomass: (n) => {
         this.biomass += n;
+        this.statBiomassEarned += n;
       },
       grantIntegrity: (n) => {
         this.maxIntegrity += n;
@@ -441,7 +479,9 @@ export class Game {
 
   private economySystem(dt: number): void {
     if (this.reactorCount > 0) {
-      this.biomass += this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * dt;
+      const gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * dt;
+      this.biomass += gain;
+      this.statBiomassEarned += gain;
     }
   }
 
@@ -1015,10 +1055,12 @@ export class Game {
       if (e.alive && e.hp <= 0) {
         e.alive = false;
         this.kills++;
+        this.statKillsByEnemy[e.kind]++; // lifetime-stats observation
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
         if (e.infection > 0) this.spreadInfection(e); // Viral: the plague jumps to the living
         const gain = e.bounty * this.mods.biomassMult;
         this.biomass += gain;
+        this.statBiomassEarned += gain;
         this.armorBreakUntil.delete(e.id);
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
@@ -1206,6 +1248,7 @@ export class Game {
     const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
     e.hp -= applied;
     e.dmgAccum += applied; // banked for the next aggregated damage number
+    this.statDamageDealt += applied; // lifetime-stats observation
     if (flash) e.hitFlash = FX.hitFlash;
     if (sourceKind) {
       e.lastHitKind = sourceKind;
@@ -1383,6 +1426,12 @@ export class Game {
     };
   }
 
+  /** Composition of the wave that Start Wave will launch next (null if none left). */
+  getNextWavePreview(): WavePreviewEntry[] | null {
+    if (this.waveIndex >= TOTAL_WAVES) return null;
+    return wavePreview(WAVES[this.waveIndex]);
+  }
+
   /** Per-tower-kind usage accrued this run — banked into permanent mastery at run end. */
   getMasteryAccrual(): MasteryCounts {
     const out = {} as MasteryCounts;
@@ -1401,5 +1450,20 @@ export class Game {
       out[k] = { kills: a.kills, damage: a.damage, activeTime: a.activeTime };
     }
     return out;
+  }
+
+  /** Raw statistics observed this run — banked into lifetime stats at run end. */
+  getRunStats(): RunStats {
+    return {
+      kills: this.kills,
+      wave: this.waveIndex,
+      won: this.phase === 'won',
+      biomassEarned: this.statBiomassEarned,
+      damageDealt: this.statDamageDealt,
+      killsByEnemy: { ...this.statKillsByEnemy },
+      towerBuilds: { ...this.statTowerBuilds },
+      cardIds: this.chosenCards.map((c) => c.id),
+      heroId: this.primaryHero.kind,
+    };
   }
 }

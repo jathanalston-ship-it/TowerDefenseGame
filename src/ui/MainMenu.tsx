@@ -3,6 +3,8 @@ import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
+import { Statistics } from './Statistics';
+import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 import { PlayIcon } from './components/Icon';
 
@@ -66,6 +68,10 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
       <TowerLab />
 
       <HeroLab />
+
+      <Statistics />
+
+      <AchievementPanel />
 
       <SaveManager />
 

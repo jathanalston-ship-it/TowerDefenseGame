@@ -176,6 +176,9 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
 };
 
+/** All enemy kinds, derived from the defs — the canonical list to iterate (stats, etc.). */
+export const ENEMY_KINDS = Object.keys(ENEMY_DEFS) as EnemyKind[];
+
 // Steering radii / cadence for enemy threat behaviour. Raw px (avoids a config<->map
 // import cycle; CELL is 40, so these are ~2.4 / ~2.2 cells).
 export const STEER = {
@@ -216,46 +219,69 @@ export interface SpawnGroup {
 }
 export type WaveDef = SpawnGroup[];
 
+// Each wave introduces or combines an archetype with a CLEAR role, telegraphed in
+// the prep phase (Toolbar "Incoming"). The escalating mix — speed (rusher), armor
+// (tank), air (flyer), tunnelling (burrower) — keeps combat varied and makes the
+// towers' differences matter, instead of an undifferentiated runner/brute grind.
 export const WAVES: WaveDef[] = [
+  // 1 — soft intro: a trickle of Skitterlings.
   [{ kind: 'runner', count: 8, spacing: 0.9, delay: 0.5 }],
-  [{ kind: 'runner', count: 12, spacing: 0.8, delay: 0.5 }],
+  // 2 — a bigger swarm to establish baseline DPS.
+  [{ kind: 'runner', count: 12, spacing: 0.75, delay: 0.5 }],
+  // 3 — first ARMOR: Carrion Brutes mixed in (rewards focus fire / shred).
   [
     { kind: 'runner', count: 10, spacing: 0.7, delay: 0.4 },
-    { kind: 'brute', count: 2, spacing: 1.6, delay: 3.5 },
+    { kind: 'brute', count: 3, spacing: 1.6, delay: 3.0 },
   ],
+  // 4 — first SPEED: Razor Sprinters beeline the line, testing gap coverage.
   [
-    { kind: 'runner', count: 14, spacing: 0.65, delay: 0.4 },
-    { kind: 'brute', count: 3, spacing: 1.5, delay: 4.0 },
+    { kind: 'rusher', count: 6, spacing: 0.7, delay: 0.5 },
+    { kind: 'runner', count: 10, spacing: 0.6, delay: 2.0 },
   ],
+  // 5 — first SOAK: Carapace Haulers (heavy armor → leans on Fracture+Corrosion).
   [
-    { kind: 'brute', count: 6, spacing: 1.2, delay: 0.5 },
-    { kind: 'runner', count: 8, spacing: 0.7, delay: 2.0 },
+    { kind: 'tank', count: 3, spacing: 1.8, delay: 0.6 },
+    { kind: 'runner', count: 12, spacing: 0.55, delay: 1.5 },
   ],
-  [{ kind: 'runner', count: 22, spacing: 0.45, delay: 0.4 }],
+  // 6 — first AIR: Spore Drifters float over obstacles, demanding wide coverage.
   [
-    { kind: 'brute', count: 8, spacing: 1.0, delay: 0.5 },
-    { kind: 'runner', count: 10, spacing: 0.6, delay: 1.5 },
+    { kind: 'flyer', count: 5, spacing: 1.1, delay: 0.5 },
+    { kind: 'brute', count: 4, spacing: 1.4, delay: 2.5 },
   ],
+  // 7 — speed swarm: overlapping Razor Sprinters + runners.
   [
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 0.4 },
-    { kind: 'brute', count: 6, spacing: 1.1, delay: 2.0 },
+    { kind: 'rusher', count: 10, spacing: 0.5, delay: 0.4 },
+    { kind: 'runner', count: 12, spacing: 0.5, delay: 2.0 },
   ],
+  // 8 — first TUNNELLERS: Gut Tunnelers slip through gaps, plus brute weight.
   [
-    { kind: 'brute', count: 10, spacing: 0.9, delay: 0.5 },
-    { kind: 'runner', count: 14, spacing: 0.5, delay: 1.5 },
+    { kind: 'burrower', count: 5, spacing: 1.1, delay: 0.5 },
+    { kind: 'brute', count: 5, spacing: 1.2, delay: 2.5 },
   ],
+  // 9 — armor + air pressure together.
   [
-    { kind: 'runner', count: 24, spacing: 0.4, delay: 0.4 },
-    { kind: 'brute', count: 6, spacing: 1.0, delay: 3.0 },
+    { kind: 'tank', count: 4, spacing: 1.6, delay: 0.5 },
+    { kind: 'flyer', count: 6, spacing: 1.0, delay: 2.0 },
+    { kind: 'runner', count: 12, spacing: 0.5, delay: 3.5 },
   ],
+  // 10 — combined arms: speed + weight + tunnelling.
   [
-    { kind: 'brute', count: 14, spacing: 0.8, delay: 0.5 },
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 2.0 },
+    { kind: 'rusher', count: 8, spacing: 0.5, delay: 0.4 },
+    { kind: 'brute', count: 6, spacing: 1.0, delay: 2.0 },
+    { kind: 'burrower', count: 5, spacing: 1.0, delay: 4.0 },
   ],
+  // 11 — penetration gauntlet before the boss.
+  [
+    { kind: 'tank', count: 5, spacing: 1.3, delay: 0.5 },
+    { kind: 'rusher', count: 10, spacing: 0.45, delay: 2.0 },
+    { kind: 'flyer', count: 6, spacing: 0.9, delay: 4.0 },
+  ],
+  // 12 — the Brood Tyrant, escorted by a mixed host.
   [
     { kind: 'tyrant', count: 1, spacing: 1, delay: 1.0 },
     { kind: 'brute', count: 8, spacing: 0.9, delay: 2.0 },
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 4.0 },
+    { kind: 'flyer', count: 6, spacing: 0.9, delay: 4.0 },
+    { kind: 'runner', count: 14, spacing: 0.45, delay: 6.0 },
   ],
 ];
 
@@ -493,10 +519,35 @@ export const CHESTS: Record<string, ChestDef> = {
     heroShardChance: 0.12,
     heroShardRange: [1, 1],
   },
+  rich: {
+    id: 'rich',
+    name: 'Mutagen Vault',
+    rarity: 'rich',
+    rolls: 4,
+    towerShardRange: [3, 7],
+    heroShardChance: 0.2,
+    heroShardRange: [1, 2],
+  },
+  prime: {
+    id: 'prime',
+    name: 'Apex Reliquary',
+    rarity: 'prime',
+    rolls: 5,
+    towerShardRange: [5, 10],
+    heroShardChance: 0.32,
+    heroShardRange: [1, 2],
+  },
 };
 
-/** Which chest a completed run awards today (later: scale with wave/performance). */
+/** Default chest (debug / fallback). */
 export const RUN_CHEST = 'standard';
+
+/** Reward pacing: deeper runs earn a better chest, pulling "one more run". */
+export function chestForWave(wave: number): string {
+  if (wave >= 12) return 'prime'; // full extraction
+  if (wave >= 7) return 'rich'; // cleared the mid-game
+  return 'standard';
+}
 
 // Heroes that can receive hero shards (the three launch heroes — HEROES.md).
 export const HERO_IDS = ['ravager', 'shepherd', 'overseer'] as const;

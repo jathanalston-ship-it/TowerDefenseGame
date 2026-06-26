@@ -1,7 +1,29 @@
+import { useEffect, useState } from 'react';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { LootReveal } from './LootReveal';
 import { ShardIcon } from './components/Icon';
+
+/** Ease a number from 0 → target so banked rewards "tick up" satisfyingly. */
+function useCountUp(target: number, ms = 700): number {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (target <= 0) {
+      setN(0);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number): void => {
+      const p = Math.min(1, (now - start) / ms);
+      setN(Math.round(target * (1 - Math.pow(1 - p, 3)))); // easeOutCubic
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return n;
+}
 
 export function Results({
   result,
@@ -14,6 +36,7 @@ export function Results({
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
   const heroMasteryGains = HERO_ORDER.filter((k) => outcome.heroMastery[k].xpGained > 0);
+  const shards = useCountUp(outcome.reward.shardsEarned);
 
   return (
     <div className="menu" style={{ alignItems: 'center', textAlign: 'center' }}>
@@ -33,7 +56,7 @@ export function Results({
           </div>
         </div>
         <div className="reward" style={{ marginTop: 16 }}>
-          Banked <b>{outcome.reward.shardsEarned} <ShardIcon /></b> Shards
+          Banked <b>{shards} <ShardIcon /></b> Shards
           {outcome.reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best wave!</span>}
         </div>
       </div>

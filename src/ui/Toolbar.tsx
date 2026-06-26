@@ -1,5 +1,5 @@
 import type { Game } from '../core/game';
-import { HERO_DEFS, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { ENEMY_DEFS, HERO_DEFS, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { audio } from '../audio/sound';
 import type { HudSnapshot } from '../core/types';
 import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
@@ -87,16 +87,36 @@ export function Toolbar({
       </div>
 
       {hud.phase === 'prep' && hud.wave < hud.totalWaves && (
-        <button
-          className="primary start-btn"
-          onClick={() => {
-            audio.resume();
-            game.startWave();
-            refresh();
-          }}
-        >
-          Start Wave {Math.min(hud.totalWaves, hud.wave + 1)} <span className="hotkey">␣</span>
-        </button>
+        <div className="next-wave">
+          {(() => {
+            const preview = game.getNextWavePreview();
+            if (!preview) return null;
+            return (
+              <div className="incoming" aria-label="incoming enemies">
+                <span className="incoming-k">Incoming</span>
+                {preview.map((e) => {
+                  const def = ENEMY_DEFS[e.kind];
+                  return (
+                    <span className="inc-chip tt" key={e.kind} tabIndex={0}>
+                      <span className="inc-dot" style={{ background: def.color }} />×{e.count}
+                      <span className="tt-bubble">{def.name}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
+          <button
+            className="primary start-btn"
+            onClick={() => {
+              audio.resume();
+              game.startWave();
+              refresh();
+            }}
+          >
+            Start Wave {Math.min(hud.totalWaves, hud.wave + 1)} <span className="hotkey">␣</span>
+          </button>
+        </div>
       )}
     </div>
   );

@@ -106,6 +106,22 @@ function sSelect(): void { tone(520, 0.05, 'square', 0.05); }
 function sWave(): void { tone(330, 0.12, 'sawtooth', 0.16); tone(494, 0.22, 'sawtooth', 0.16); }
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
 function sHeartbeat(strength: number): void { tone(60, 0.18, 'sine', 0.08 + strength * 0.1, 42); }
+// ── progression / reward dopamine cues ──
+function sClear(): void { // wave-cleared fanfare (rising major triad)
+  tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15); tone(659, 0.34, 'triangle', 0.16);
+}
+function sChest(): void { noise(0.18, 0.16, 900, 300); tone(140, 0.22, 'sine', 0.2, 90); } // lid thunk
+let revealStep = 0;
+function sReveal(): void { // bright pluck that climbs with each item revealed
+  const semis = Math.min(revealStep, 10);
+  tone(660 * Math.pow(2, semis / 12), 0.12, 'triangle', 0.12, 990 * Math.pow(2, semis / 12));
+  revealStep++;
+}
+function sJackpot(): void { // rare hero-shard sparkle
+  tone(880, 0.1, 'sine', 0.14); tone(1175, 0.1, 'sine', 0.14); tone(1568, 0.34, 'sine', 0.16);
+  noise(0.2, 0.05, 6000);
+}
+function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
 
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
@@ -161,6 +177,11 @@ export const audio = {
         case 'wave': sWave(); break;
         case 'draft': sDraft(); break;
         case 'ui': sSelect(); break;
+        case 'clear': sClear(); break;
+        case 'chest': revealStep = 0; sChest(); break; // resets the reveal pitch ramp
+        case 'reveal': sReveal(); break;
+        case 'jackpot': sJackpot(); break;
+        case 'achieve': sAchieve(); break;
       }
     }
   },
