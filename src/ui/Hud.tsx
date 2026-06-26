@@ -35,7 +35,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
             className="bar-strong"
             label="Hive Core integrity"
           />
-          <span className={`hud-v ${intPct < 0.34 ? 'is-danger' : ''}`}>
+          <span className={`hud-v ${intPct <= 0.25 ? 'is-danger' : intPct <= 0.5 ? 'is-warn' : ''}`}>
             {hud.integrity}
             <span className="hud-sub">/{hud.maxIntegrity}</span>
           </span>

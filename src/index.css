@@ -442,9 +442,9 @@ button:disabled {
 }
 .hud-k {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px; /* HUD label size per STYLE-GUIDE §9 — more legible at a glance */
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
 }
 .hud-v {
   font-size: 22px;
@@ -453,6 +453,9 @@ button:disabled {
 }
 .hud-v.is-danger {
   color: var(--danger);
+}
+.hud-v.is-warn {
+  color: var(--warn);
 }
 .hud-v-sm {
   font-size: 15px;
