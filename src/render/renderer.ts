@@ -58,6 +58,139 @@ function pulse(t: number, speed: number, lo: number, hi: number): number {
   return lo + (hi - lo) * (0.5 + 0.5 * Math.sin(t * speed));
 }
 
+// ── Ambient atmosphere (purely cosmetic; drawn BEHIND all gameplay) ───────────
+// Static layout is precomputed once from a deterministic PRNG (no gameplay RNG,
+// no per-enemy cost). Every layer is driven by rs.time only and is gated by an
+// `ambient` factor that fades to 0 as the swarm grows — so atmosphere never
+// fights unit readability or the frame budget during a heavy fight.
+function mulberry(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+interface Vein {
+  x0: number; y0: number; cx: number; cy: number; x1: number; y1: number; phase: number; w: number;
+}
+const VEINS: Vein[] = ((): Vein[] => {
+  const r = mulberry(0x5eed);
+  const out: Vein[] = [];
+  for (let i = 0; i < 9; i++) {
+    const x0 = nucleusPoint.x + (r() - 0.5) * 90; // roots near the hive core
+    const y0 = HEIGHT - CELL * (0.5 + r() * 2);
+    const x1 = WIDTH * r(); // reaching up into the field
+    const y1 = HEIGHT * (0.2 + r() * 0.5);
+    const cx = (x0 + x1) / 2 + (r() - 0.5) * 220;
+    const cy = (y0 + y1) / 2 + (r() - 0.5) * 130;
+    out.push({ x0, y0, cx, cy, x1, y1, phase: r() * Math.PI * 2, w: 1 + r() * 1.6 });
+  }
+  return out;
+})();
+
+interface Mote { x: number; y: number; r: number; spd: number; sway: number; phase: number; }
+const MOTES: Mote[] = ((): Mote[] => {
+  const r = mulberry(0xa11ce);
+  const out: Mote[] = [];
+  for (let i = 0; i < 30; i++) {
+    out.push({
+      x: r() * WIDTH,
+      y: r() * HEIGHT,
+      r: 0.6 + r() * 1.4,
+      spd: 4 + r() * 10, // slow downward drift (spores descending)
+      sway: 6 + r() * 16,
+      phase: r() * Math.PI * 2,
+    });
+  }
+  return out;
+})();
+
+/** Warm uplight from the hive core — grounds the base and adds vertical depth. */
+function drawAmbientLight(ctx: CanvasRenderingContext2D, t: number): void {
+  const { x, y } = nucleusPoint;
+  const beat = 0.5 + 0.5 * Math.sin(t * 1.5);
+  const g = ctx.createRadialGradient(x, y, 30, x, y, HEIGHT * 0.62);
+  g.addColorStop(0, `rgba(255, 110, 90, ${0.06 + 0.02 * beat})`);
+  g.addColorStop(1, 'rgba(255, 110, 90, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
+/** Faint biological veins beneath the battlefield, feeding from the core. */
+function drawSubsurfaceVeins(ctx: CanvasRenderingContext2D, t: number, ambient: number): void {
+  if (ambient <= 0.01) return;
+  for (const v of VEINS) {
+    const p = 0.5 + 0.5 * Math.sin(t * 0.8 + v.phase);
+    ctx.strokeStyle = rgba(RGB.vital, (0.022 + 0.045 * p) * ambient);
+    ctx.lineWidth = v.w;
+    ctx.beginPath();
+    ctx.moveTo(v.x0, v.y0);
+    ctx.quadraticCurveTo(v.cx, v.cy, v.x1, v.y1);
+    ctx.stroke();
+  }
+}
+
+/** A few large, dim warm blobs breathing along the defensive floor. */
+function drawGroundPulse(ctx: CanvasRenderingContext2D, t: number, ambient: number): void {
+  if (ambient <= 0.01) return;
+  const n = 4;
+  for (let i = 0; i < n; i++) {
+    const x = WIDTH * ((i + 0.5) / n);
+    const y = HEIGHT - CELL * 1.5;
+    const p = 0.5 + 0.5 * Math.sin(t * 0.9 + i * 1.7);
+    const g = ctx.createRadialGradient(x, y, 4, x, y, CELL * (2.2 + p * 0.8));
+    g.addColorStop(0, `rgba(255, 90, 110, ${(0.045 + 0.045 * p) * ambient})`);
+    g.addColorStop(1, 'rgba(255, 90, 110, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, DEFENSE_TOP_Y, WIDTH, HEIGHT - DEFENSE_TOP_Y);
+  }
+}
+
+/** Two slow, low-opacity fog banks drifting in opposite directions. */
+function drawFog(ctx: CanvasRenderingContext2D, t: number, ambient: number): void {
+  if (ambient <= 0.01) return;
+  for (let i = 0; i < 2; i++) {
+    const dir = i === 0 ? 1 : -1;
+    const cy = HEIGHT * (0.34 + i * 0.3);
+    const cx = WIDTH / 2 + Math.sin(t * 0.05 * dir + i) * WIDTH * 0.34;
+    const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, WIDTH * 0.6);
+    g.addColorStop(0, `rgba(120, 140, 170, ${(i === 0 ? 0.05 : 0.04) * ambient})`);
+    g.addColorStop(1, 'rgba(120, 140, 170, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
+}
+
+/** Soft ambient spore motes drifting down the arena (capped, additive-free). */
+function drawMotes(ctx: CanvasRenderingContext2D, t: number, ambient: number): void {
+  if (ambient <= 0.01) return;
+  ctx.fillStyle = 'rgba(200, 220, 245, 1)';
+  for (const m of MOTES) {
+    const y = ((m.y + t * m.spd) % (HEIGHT + 20)) - 10;
+    const x = m.x + Math.sin(t * 0.4 + m.phase) * m.sway;
+    const tw = 0.5 + 0.5 * Math.sin(t * 1.3 + m.phase);
+    ctx.globalAlpha = (0.05 + 0.1 * tw) * ambient;
+    ctx.beginPath();
+    ctx.arc(x, y, m.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+/** Constant subtle framing vignette (darkened corners) for focus + depth. */
+function drawAmbientVignette(ctx: CanvasRenderingContext2D): void {
+  const g = ctx.createRadialGradient(
+    WIDTH / 2, HEIGHT / 2, HEIGHT * 0.36, WIDTH / 2, HEIGHT / 2, HEIGHT * 0.72,
+  );
+  g.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  g.addColorStop(1, 'rgba(0, 0, 0, 0.34)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
 export function drawGame(
   ctx: CanvasRenderingContext2D,
   rs: RenderState,
@@ -71,12 +204,20 @@ export function drawGame(
   for (const e of rs.enemies) if (e.y > DEFENSE_TOP_Y - CELL * 2) nearLine++;
   const intRatio = rs.maxIntegrity > 0 ? rs.integrity / rs.maxIntegrity : 1;
   const pressure = Math.min(1, (nearLine / 14) * 0.7 + (1 - intRatio) * 0.7);
+  // Atmosphere fades out as the swarm grows — protects readability + the frame
+  // budget exactly when the fight needs them (mirrors the enemy LOD threshold).
+  const ambient = Math.max(0, 1 - rs.enemies.length / PERF.lodEnemyCount);
 
   drawBackground(ctx);
+  drawAmbientLight(ctx, t);
+  drawSubsurfaceVeins(ctx, t, ambient);
   drawGrid(ctx);
+  drawGroundPulse(ctx, t, ambient);
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);
+  drawFog(ctx, t, ambient);
   drawObstacles(ctx);
+  drawMotes(ctx, t, ambient);
 
   const occupied = new Set(rs.towers.map((t2) => t2.slot));
   drawHiveTendrils(ctx, rs, t);
@@ -96,12 +237,24 @@ export function drawGame(
   drawOverchargeLinks(ctx, rs);
   for (const tw of rs.towers) drawTower(ctx, tw);
 
+  // Projectiles with a subtle additive bloom halo (cheap; few on screen).
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   for (const p of rs.projectiles) {
+    const big = p.kind === 'mortar';
+    const col = big ? '#d6f06a' : '#aef0ff';
+    ctx.fillStyle = col;
+    ctx.globalAlpha = 0.4; // soft glow
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.kind === 'mortar' ? 4 : 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = p.kind === 'mortar' ? '#d6f06a' : '#aef0ff';
+    ctx.arc(p.x, p.y, big ? 7 : 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1; // bright core
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, big ? 4 : 2.5, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+  ctx.globalAlpha = 1;
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
@@ -122,6 +275,7 @@ export function drawGame(
   ctx.textAlign = 'left';
 
   drawPressureVignette(ctx, pressure, t);
+  drawAmbientVignette(ctx);
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
@@ -139,19 +293,30 @@ function drawBackground(ctx: CanvasRenderingContext2D): void {
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D): void {
+  // Open field reads as space (very faint); the defensive zone grid is a touch
+  // brighter so build slots are easier to line up — without graph-paper clutter.
+  const FIELD = 'rgba(255,255,255,0.03)';
+  const ZONE = 'rgba(120,200,255,0.06)';
   ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    const x = c * CELL;
+    ctx.strokeStyle = FIELD;
     ctx.beginPath();
-    ctx.moveTo(c * CELL, 0);
-    ctx.lineTo(c * CELL, HEIGHT);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, DEFENSE_TOP_Y);
+    ctx.stroke();
+    ctx.strokeStyle = ZONE;
+    ctx.beginPath();
+    ctx.moveTo(x, DEFENSE_TOP_Y);
+    ctx.lineTo(x, HEIGHT);
     ctx.stroke();
   }
   for (let r = 0; r <= ROWS; r++) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    const y = r * CELL;
+    ctx.strokeStyle = y < DEFENSE_TOP_Y ? FIELD : ZONE;
     ctx.beginPath();
-    ctx.moveTo(0, r * CELL);
-    ctx.lineTo(WIDTH, r * CELL);
+    ctx.moveTo(0, y);
+    ctx.lineTo(WIDTH, y);
     ctx.stroke();
   }
 }
