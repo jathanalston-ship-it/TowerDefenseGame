@@ -1,7 +1,10 @@
 // Browser-local persistence + save management (ARCHITECTURE.md §15). Versioned +
 // checksummed blob, a migration pipeline, rolling backups, JSON export/import, and
-// non-destructive recovery (a corrupt save falls back to the newest valid backup,
-// then to defaults — never crashing, never silently overwriting good data).
+// layered non-destructive recovery: a corrupt save falls back to an automatic
+// last-known-good snapshot, then the newest valid manual backup, then defaults —
+// never crashing, never silently overwriting good data. Every load/import is
+// range-normalized so out-of-bounds values can't reach progression, and writes
+// are quota-aware (prune oldest backup + retry, then verify the round-trip).
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
@@ -16,6 +19,7 @@ export interface SaveData {
 
 export const CURRENT_VERSION = 1;
 const SAVE_KEY = 'assimilate.save';
+const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
 const MAX_BACKUPS = 8;
@@ -64,6 +68,41 @@ function isSaveData(v: unknown): v is SaveData {
   );
 }
 
+// ── Sanitization ────────────────────────────────────────────────────────────
+// A save that passes the type gate can still carry out-of-range values (a hand-
+// edited file, a partial write, or JSON.parse turning "1e999" into Infinity).
+// normalizeSave coerces every field to a finite, non-negative integer so bad
+// data can never reach progression. It is a no-op for already-valid saves, so
+// real player progress is never altered.
+function nonNegInt(v: unknown): number {
+  return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0;
+}
+
+function normalizeUpgrades(v: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (v && typeof v === 'object') {
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      // Keep unknown ids (forward-compat) as long as the level is sane.
+      if (typeof val === 'number' && Number.isFinite(val) && val > 0) out[k] = Math.floor(val);
+    }
+  }
+  return out;
+}
+
+/** Build a clean SaveData from arbitrary (validated-shape) input — clamps ranges,
+ *  drops junk keys, fills missing fields from defaults. */
+export function normalizeSave(raw: unknown): SaveData {
+  const o = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    shards: nonNegInt(o.shards),
+    upgrades: normalizeUpgrades(o.upgrades),
+    bestWave: nonNegInt(o.bestWave),
+    totalRuns: nonNegInt(o.totalRuns),
+    lifetimeShards: nonNegInt(o.lifetimeShards),
+    cardsSeen: nonNegInt(o.cardsSeen),
+  };
+}
+
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
 function migrate(_version: number, data: unknown): unknown {
   // No historical versions yet. Future shape changes add steps here, e.g.:
@@ -86,7 +125,7 @@ function parseBlob(raw: string | null): SaveData | null {
     if (checksum(JSON.stringify(blob.data)) !== blob.checksum) return null; // tamper/corruption
     const migrated = migrate(blob.schemaVersion, blob.data);
     if (!isSaveData(migrated)) return null;
-    return { ...defaultSave(), ...migrated };
+    return normalizeSave(migrated);
   } catch {
     return null;
   }
@@ -130,7 +169,7 @@ export function parseImport(text: string): ImportResult {
   const raw = 'data' in o ? o.data : o; // wrapper/blob -> .data, else the object itself
   const migrated = migrate(version, raw);
   if (!isSaveData(migrated)) return { ok: false, error: 'File does not contain a recognizable save.' };
-  return { ok: true, data: { ...defaultSave(), ...migrated } };
+  return { ok: true, data: normalizeSave(migrated) };
 }
 
 function memoryStorage(): StorageLike {
@@ -160,18 +199,46 @@ export class SaveStore {
     }
   }
 
-  private set(key: string, value: string): void {
+  private set(key: string, value: string): boolean {
     try {
       this.storage.setItem(key, value);
+      return true;
     } catch {
-      /* storage full/unavailable — fail soft */
+      // Likely a quota error — reclaim space by dropping the oldest backup and
+      // retry once so the live save still lands rather than failing silently.
+      if (this.pruneOldestBackup()) {
+        try {
+          this.storage.setItem(key, value);
+          return true;
+        } catch {
+          /* still failing — fall through */
+        }
+      }
+      return false;
     }
   }
 
-  /** Load the main save; recover from the newest valid backup, else clean defaults. */
+  /** Drop the single oldest backup (best-effort) to free storage. */
+  private pruneOldestBackup(): boolean {
+    const list = this.listBackups(); // newest-first
+    if (list.length === 0) return false;
+    const oldest = list[list.length - 1];
+    this.remove(BAK_PREFIX + oldest.id);
+    try {
+      this.storage.setItem(BAK_INDEX, JSON.stringify(list.slice(0, -1)));
+    } catch {
+      /* index update failed — the orphaned entry is already removed */
+    }
+    return true;
+  }
+
+  /** Load the main save; on corruption fall back to the automatic last-known-good,
+   *  then the newest valid manual backup, then clean defaults — never throwing. */
   load(): SaveData {
     const main = parseBlob(this.get(SAVE_KEY));
     if (main) return main;
+    const lastGood = parseBlob(this.get(LAST_GOOD_KEY));
+    if (lastGood) return lastGood;
     for (const b of this.listBackups()) {
       const recovered = parseBlob(this.get(BAK_PREFIX + b.id));
       if (recovered) return recovered;
@@ -179,8 +246,17 @@ export class SaveStore {
     return defaultSave();
   }
 
-  save(data: SaveData): void {
-    this.set(SAVE_KEY, blobString(data));
+  /** Persist the main save. Snapshots the prior valid save to the automatic
+   *  last-known-good slot first, then writes and verifies the new blob round-trips.
+   *  Returns false if the write could not be confirmed (e.g. storage full). */
+  save(data: SaveData): boolean {
+    const blob = blobString(data);
+    const prev = this.get(SAVE_KEY);
+    // Keep the previous good state recoverable before we overwrite it, so a single
+    // bad write is survivable even when the player never made a manual backup.
+    if (prev && prev !== blob && parseBlob(prev)) this.set(LAST_GOOD_KEY, prev);
+    if (!this.set(SAVE_KEY, blob)) return false;
+    return parseBlob(this.get(SAVE_KEY)) !== null; // confirm it wasn't truncated/garbled
   }
 
   /** Snapshot the current main save into the rolling backup ring. */
@@ -220,9 +296,12 @@ export class SaveStore {
     return data;
   }
 
-  /** Wipe the main save (does NOT touch backups). */
+  /** Wipe the main save and its automatic safety net (does NOT touch manual
+   *  backups). Clearing last-known-good is required so the wipe can't be undone
+   *  by an automatic recovery on the next load. */
   reset(): void {
     this.remove(SAVE_KEY);
+    this.remove(LAST_GOOD_KEY);
   }
 
   private remove(key: string): void {

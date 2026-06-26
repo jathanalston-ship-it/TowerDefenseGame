@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SaveStore, defaultSave, parseImport, serializeExport } from './saveStore';
+import { SaveStore, defaultSave, normalizeSave, parseImport, serializeExport } from './saveStore';
 import type { SaveData, StorageLike } from './saveStore';
 
 function mem(): StorageLike & { map: Map<string, string> } {
@@ -96,5 +96,98 @@ describe('backups & corruption recovery', () => {
       store.backup();
     }
     expect(store.listBackups().length).toBeLessThanOrEqual(8);
+  });
+
+  it('recovers a corrupt main from the automatic last-known-good (no manual backup)', () => {
+    const s = mem();
+    const store = new SaveStore(s);
+    store.save({ ...defaultSave(), shards: 10 }); // first write: nothing to snapshot yet
+    store.save({ ...defaultSave(), shards: 20 }); // prior (10) snapshotted to last-known-good
+    s.map.set('assimilate.save', '{corrupt'); // main goes bad, no backup() ever called
+    expect(store.load().shards).toBe(10); // recovered automatically, not reset to defaults
+  });
+
+  it('reset clears the safety net so the wipe is not auto-undone', () => {
+    const s = mem();
+    const store = new SaveStore(s);
+    store.save({ ...defaultSave(), shards: 10 });
+    store.save({ ...defaultSave(), shards: 20 }); // populates last-known-good
+    store.reset();
+    expect(store.load()).toEqual(defaultSave());
+  });
+});
+
+describe('save normalization (resilience to bad data)', () => {
+  it('clamps non-finite / negative / fractional values to non-negative ints', () => {
+    const dirty = {
+      shards: Infinity,
+      bestWave: -3,
+      totalRuns: 2.9,
+      lifetimeShards: NaN,
+      cardsSeen: 5,
+      upgrades: { lethality: 4.7, bad: -1, junk: 'x' },
+    };
+    const n = normalizeSave(dirty as unknown);
+    expect(n.shards).toBe(0); // Infinity -> 0
+    expect(n.bestWave).toBe(0); // negative -> 0
+    expect(n.totalRuns).toBe(2); // 2.9 -> 2
+    expect(n.lifetimeShards).toBe(0); // NaN -> 0
+    expect(n.cardsSeen).toBe(5);
+    expect(n.upgrades.lethality).toBe(4); // 4.7 -> 4
+    expect('bad' in n.upgrades).toBe(false); // negative dropped
+    expect('junk' in n.upgrades).toBe(false); // non-number dropped
+  });
+
+  it('leaves a valid save unchanged (never alters real progression)', () => {
+    const good: SaveData = { ...defaultSave(), shards: 123, bestWave: 7, upgrades: { lethality: 3 } };
+    expect(normalizeSave(good)).toEqual(good);
+  });
+
+  it('sanitizes out-of-range values injected via import', () => {
+    // Negatives survive JSON (unlike Infinity/NaN, which become null and are
+    // rejected by the type gate) — so they exercise import-time normalization.
+    const r = parseImport(JSON.stringify({ ...defaultSave(), shards: -50, bestWave: 3.8 }));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.shards).toBe(0); // negative clamped
+      expect(r.data.bestWave).toBe(3); // fractional floored
+    }
+  });
+});
+
+describe('quota-aware writes', () => {
+  it('prunes the oldest backup on a quota error, then completes the write', () => {
+    const map = new Map<string, string>();
+    let freed = false;
+    const s: StorageLike & { map: Map<string, string> } = {
+      map,
+      getItem: (k) => map.get(k) ?? null,
+      setItem: (k, v) => {
+        if (!freed) throw new Error('QuotaExceededError'); // full until something is removed
+        map.set(k, v);
+      },
+      removeItem: (k) => {
+        map.delete(k);
+        freed = true; // freeing space lets the retry succeed
+      },
+    };
+    // Seed a backup index entry directly so there is an oldest backup to prune.
+    map.set('assimilate.save.baklist', JSON.stringify([{ id: 'x', at: '2020-01-01' }]));
+
+    const store = new SaveStore(s);
+    expect(store.save({ ...defaultSave(), shards: 5 })).toBe(true);
+    expect(store.listBackups().length).toBe(0); // oldest backup was dropped to free space
+    expect(store.load().shards).toBe(5);
+  });
+
+  it('reports failure when a write fails and there is nothing to prune', () => {
+    const s: StorageLike = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error('full');
+      },
+      removeItem: () => {},
+    };
+    expect(new SaveStore(s).save({ ...defaultSave(), shards: 1 })).toBe(false);
   });
 });
