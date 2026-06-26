@@ -27,6 +27,8 @@ import {
 import type { EnemyDef, TowerDef, UpgradeDef, WaveDef } from './config';
 import { cardProblems, cardRegistry } from './cards';
 import type { CardDef } from './cards';
+import { bossRegistry } from './boss';
+import { equipmentRegistry } from './equipment';
 
 export interface ContentRegistries {
   enemies: EnemyDef[];
@@ -82,6 +84,8 @@ export function validateAllContent(): string[] {
     ...cardRegistry.validate(),
     ...upgradeRegistry.validate(),
     ...chestRegistry.validate(),
+    ...bossRegistry.validate(),
+    ...equipmentRegistry.validate(),
     ...waveProblems(WAVES),
   ];
   // Cross-registry: a wave may only spawn enemies that actually exist in the registry.
