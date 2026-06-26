@@ -1,5 +1,6 @@
 import { meta, nextUpgradeCost, upgradeLevel } from '../state/meta';
 import { ProgressBar } from './components/ProgressBar';
+import { Icon } from './components/Icon';
 
 export function MetaShop(): JSX.Element {
   const save = meta.use();
@@ -31,11 +32,15 @@ export function MetaShop(): JSX.Element {
                 />
               </div>
               <button
-                className={`shop-buy ${affordable ? 'is-afford' : ''}`}
+                className={`shop-buy ${affordable ? 'is-afford' : ''} ${maxed ? '' : 'btn-ico'}`}
                 disabled={maxed || !affordable}
                 onClick={() => meta.buyUpgrade(u.id)}
               >
-                {maxed ? 'MAX' : `${cost} ◆`}
+                {maxed ? 'MAX' : (
+                  <>
+                    {cost} <Icon name="diamond" size={11} />
+                  </>
+                )}
               </button>
             </div>
           );

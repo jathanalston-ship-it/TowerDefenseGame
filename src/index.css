@@ -163,12 +163,23 @@ button:disabled {
   margin-bottom: var(--s3);
 }
 .primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
   background: linear-gradient(90deg, #2a6f55, #2f8f6b);
   border-color: #36b083;
   font-weight: 700;
   padding: 12px 22px;
   font-size: 16px;
   box-shadow: 0 6px 18px rgba(47, 143, 107, 0.25);
+}
+/* buttons that pair an icon with a label (export/import/backup, shop buy, etc.) */
+.btn-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 .primary:hover:not(:disabled) {
   background: linear-gradient(90deg, #2f7e60, #35a07a);
@@ -656,6 +667,9 @@ canvas.board {
   max-width: 220px;
 }
 .cost-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-top: 2px;
   font-size: 12px;
   font-weight: 700;

@@ -2,6 +2,7 @@ import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
 import { SaveManager } from './SaveManager';
 import { CountUp } from './components/CountUp';
+import { Icon } from './components/Icon';
 
 export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
   const save = meta.use();
@@ -37,7 +38,7 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
 
       <div className="row">
         <button className="primary" onClick={onStart}>
-          ▶ Start Run
+          <Icon name="play" size={13} /> Start Run
         </button>
         <div className="spacer" />
         <button

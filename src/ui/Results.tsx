@@ -1,5 +1,6 @@
 import type { RunResult, RunReward } from '../state/meta';
 import { CountUp } from './components/CountUp';
+import { Icon } from './components/Icon';
 
 export function Results({
   result,
@@ -28,8 +29,9 @@ export function Results({
         </div>
         <div className="reward" style={{ marginTop: 16 }}>
           Banked{' '}
-          <b>
-            <CountUp value={reward.shardsEarned} animateFrom={0} duration={700} /> ◆
+          <b style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <CountUp value={reward.shardsEarned} animateFrom={0} duration={700} />
+            <Icon name="diamond" size={15} />
           </b>{' '}
           Shards
           {reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best wave!</span>}

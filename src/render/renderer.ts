@@ -451,6 +451,22 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
 
 // ── Slots / towers (placement system from the battlefield refactor) ───────────
 
+/** A small drawn padlock for locked slots (replaces an OS emoji). */
+function drawLock(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  const col = 'rgba(130,140,160,0.5)';
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(cx, cy - 1.5, 3, Math.PI, 0); // shackle
+  ctx.stroke();
+  ctx.fillStyle = col;
+  ctx.fillRect(cx - 4.5, cy - 1.5, 9, 7); // body
+  ctx.fillStyle = 'rgba(18,22,30,0.95)';
+  ctx.beginPath();
+  ctx.arc(cx, cy + 2, 1, 0, Math.PI * 2); // keyhole
+  ctx.fill();
+}
+
 function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set<number>): void {
   const s = CELL - 12;
   for (const slot of towerSlots) {
@@ -464,11 +480,7 @@ function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set
       ctx.lineWidth = 1;
       ctx.strokeRect(x, y, s, s);
       ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(120,130,150,0.3)';
-      ctx.font = `10px ${UI_FONT}`;
-      ctx.textAlign = 'center';
-      ctx.fillText('🔒', slot.x, slot.y + 4);
-      ctx.textAlign = 'left';
+      drawLock(ctx, slot.x, slot.y); // drawn padlock (no OS emoji)
     } else {
       ctx.fillStyle = rgba(RGB.kinetic, 0.06); // buildable = kinetic cyan
       ctx.fillRect(x, y, s, s);

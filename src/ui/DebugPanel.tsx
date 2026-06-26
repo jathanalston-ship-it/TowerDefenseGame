@@ -34,7 +34,7 @@ export function DebugPanel(): JSX.Element {
   return (
     <div className="debug-panel">
       <div className="debug-head">
-        <span className="t">🐛 DEBUG</span>
+        <span className="t">DEBUG</span>
         <button onClick={() => setOpen((o) => !o)}>{open ? '–' : '+'}</button>
         <button
           title="Disable debug and reload"

@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { meta } from '../state/meta';
 import type { BackupMeta } from '../save/saveStore';
+import { Icon } from './components/Icon';
 
 export function SaveManager(): JSX.Element {
   const save = meta.use(); // reactive: reflects imports/restores
@@ -32,8 +33,12 @@ export function SaveManager(): JSX.Element {
         {save.bestWave} · {save.totalRuns} runs
       </div>
       <div className="row">
-        <button onClick={() => meta.exportToFile()}>⬇ Export JSON</button>
-        <button onClick={() => fileRef.current?.click()}>⬆ Import JSON</button>
+        <button className="btn-ico" onClick={() => meta.exportToFile()}>
+          <Icon name="download" /> Export JSON
+        </button>
+        <button className="btn-ico" onClick={() => fileRef.current?.click()}>
+          <Icon name="upload" /> Import JSON
+        </button>
         <input
           ref={fileRef}
           type="file"
@@ -42,13 +47,14 @@ export function SaveManager(): JSX.Element {
           onChange={onImport}
         />
         <button
+          className="btn-ico"
           onClick={() => {
             meta.backupNow();
             refresh();
             setMsg('✓ Backup created.');
           }}
         >
-          ＋ Backup now
+          <Icon name="plus" /> Backup now
         </button>
       </div>
       {msg && <div className="save-msg">{msg}</div>}
