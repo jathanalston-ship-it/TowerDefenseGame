@@ -58,6 +58,7 @@ import type {
   Tower,
   TowerKind,
   FloatingText,
+  CardOption,
 } from './types';
 
 interface QueuedSpawn {
@@ -111,6 +112,8 @@ export class Game {
   selectedTower: TowerKind | null = null;
   armedAbility = false;
   draft: CardDef[] | null = null;
+  sfx: string[] = []; // presentation cue queue (drained by the view: audio + shake)
+  chosenCards: CardOption[] = []; // gene cards taken this run
 
   private rng: Rng;
   private fxRng: Rng; // cosmetic-only stream (particles) — keeps gameplay rng pure
@@ -202,7 +205,9 @@ export class Game {
       slot: slot.index,
       cooldown: 0,
       overcharged: false,
+      bornAt: this.time,
     });
+    this.pushSfx('place');
     return true;
   }
 
@@ -232,12 +237,17 @@ export class Game {
     this.spawnQueue.sort((a, b) => a.at - b.at);
     this.spawnedAll = false;
     this.phase = 'wave';
+    this.pushSfx('wave');
   }
 
   chooseCard(id: string): void {
     if (this.phase !== 'draft' || !this.draft) return;
     const card = this.draft.find((c) => c.id === id);
-    if (card) card.apply(this.cardContext());
+    if (card) {
+      card.apply(this.cardContext());
+      this.chosenCards.push(cardToOption(card));
+      this.pushSfx('draft');
+    }
     this.draft = null;
     this.phase = 'prep';
   }
@@ -427,6 +437,7 @@ export class Game {
           this.applyDamage(target, p.damage);
           this.addFracture(target, 1);
           this.maybeShred(target);
+          this.pushSfx('hit');
           p.alive = false;
         } else {
           const np = moveToward(p.x, p.y, p.tx, p.ty, step);
@@ -457,6 +468,7 @@ export class Game {
   }
 
   private mortarImpact(p: Projectile): void {
+    this.pushSfx('hit');
     const r2 = p.splash * p.splash;
     this.grid.forNeighbors(p.x, p.y, p.splash, (e) => {
       if (!e.alive) return;
@@ -623,6 +635,7 @@ export class Game {
     if (!this.god) this.integrity -= e.damage;
     e.alive = false;
     this.armorBreakUntil.delete(e.id);
+    this.pushSfx('breach');
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
   }
@@ -725,6 +738,7 @@ export class Game {
       }
     }
     h.abilityCd = HERO.ability.cooldown * this.mods.heroCooldownMult;
+    this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 20, text: 'APEX!', color: '#5ad1ff', life: 0.8 });
   }
 
@@ -737,9 +751,14 @@ export class Game {
       if (e.alive && e.hp <= 0) {
         e.alive = false;
         this.kills++;
-        this.biomass += e.bounty * this.mods.biomassMult;
+        const gain = e.bounty * this.mods.biomassMult;
+        this.biomass += gain;
         this.armorBreakUntil.delete(e.id);
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
+        this.pushSfx('kill');
+        if (e.bounty >= 20) {
+          this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
+        }
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -862,6 +881,7 @@ export class Game {
       this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
       e.fracture = 0;
       e.shredFlash = STATUS.shredFlash;
+      this.pushSfx('shred');
       this.spawnParticles(e.x, e.y, PARTICLE.shred);
       this.floats.push({ x: e.x, y: e.y - 16, text: 'SHRED', color: '#fff066', life: 0.7 });
     }
@@ -933,6 +953,40 @@ export class Game {
 
   // ── Read models (for UI / renderer) ──────────────────────────────────────
 
+  /** Drain the presentation cue queue (audio + screen-shake) — view-only. */
+  drainSfx(): string[] {
+    if (this.sfx.length === 0) return this.sfx;
+    const out = this.sfx;
+    this.sfx = [];
+    return out;
+  }
+
+  private pushSfx(k: string): void {
+    if (this.sfx.length < 256) this.sfx.push(k);
+  }
+
+  /** Human-readable active run modifiers for the build panel. */
+  private activeBuffs(): string[] {
+    const m = this.mods;
+    const out: string[] = [];
+    const pct = (v: number): string => `${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`;
+    if (m.towerDamageMult !== 1) out.push(`${pct(m.towerDamageMult - 1)} tower dmg`);
+    if (m.towerFireRateMult !== 1) out.push(`${pct(m.towerFireRateMult - 1)} fire rate`);
+    if (m.splashRadiusMult !== 1) out.push(`${pct(m.splashRadiusMult - 1)} splash`);
+    if (m.biomassMult !== 1) out.push(`${pct(m.biomassMult - 1)} biomass`);
+    if (m.heroDamageMult !== 1) out.push(`${pct(m.heroDamageMult - 1)} hero dmg`);
+    if (m.heroCooldownMult !== 1) out.push(`-${Math.round((1 - m.heroCooldownMult) * 100)}% hero cd`);
+    if (m.needleExtraProjectiles > 0) out.push(`+${m.needleExtraProjectiles} needle`);
+    if (m.fractureBonusStacks > 0) out.push(`+${m.fractureBonusStacks} fracture cap`);
+    if (m.mortarAppliesFracture) out.push('mortar applies Fracture');
+    if (m.reactorOverchargeBonus > 0) out.push(`${pct(m.reactorOverchargeBonus)} overcharge`);
+    if (m.mortarPoolDurationMult !== 1) out.push(`${pct(m.mortarPoolDurationMult - 1)} pool time`);
+    if (m.poolDpsMult !== 1) out.push(`${pct(m.poolDpsMult - 1)} pool dmg`);
+    if (m.reactorBiomassMult !== 1) out.push(`${pct(m.reactorBiomassMult - 1)} reactor biomass`);
+    if (m.corrosionSlowBonus > 0) out.push(`${pct(m.corrosionSlowBonus)} corrosion slow`);
+    return out;
+  }
+
   getRenderState(): RenderState {
     return {
       enemies: this.enemies,
@@ -967,11 +1021,15 @@ export class Game {
         hp: Math.ceil(this.hero.hp),
         maxHp: this.hero.maxHp,
         abilityReady: this.hero.abilityCd <= 0 && !this.hero.down,
+        abilityCd: Math.max(0, this.hero.abilityCd),
+        abilityCdMax: HERO.ability.cooldown * this.mods.heroCooldownMult,
       },
       enemiesAlive: this.enemies.length,
       draft: this.draft ? this.draft.map(cardToOption) : null,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,
+      cards: this.chosenCards,
+      buffs: this.activeBuffs(),
     };
   }
 }

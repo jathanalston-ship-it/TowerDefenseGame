@@ -1,4 +1,5 @@
 import { meta } from '../state/meta';
+import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
 import { SaveManager } from './SaveManager';
 
@@ -37,7 +38,14 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
       </div>
 
       <div className="row">
-        <button className="primary" onClick={onStart}>
+        <button
+          className="primary"
+          onClick={() => {
+            audio.resume();
+            audio.cue('ui');
+            onStart();
+          }}
+        >
           ▶ Start Run
         </button>
         <div className="spacer" />

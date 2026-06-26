@@ -1,5 +1,6 @@
 import type { Game } from '../core/game';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { audio } from '../audio/sound';
 import type { HudSnapshot } from '../core/types';
 
 export function Toolbar({
@@ -27,7 +28,9 @@ export function Toolbar({
               className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}`}
               disabled={(!afford && !sel) || !playable}
               onClick={() => {
+                audio.resume();
                 game.selectTower(sel ? null : kind);
+                if (!sel) audio.cue('select');
                 refresh();
               }}
             >
@@ -64,6 +67,7 @@ export function Toolbar({
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}
           disabled={!hud.hero.abilityReady || !playable}
           onClick={() => {
+            audio.resume();
             game.armAbility();
             refresh();
           }}
@@ -84,6 +88,7 @@ export function Toolbar({
         <button
           className="primary start-btn"
           onClick={() => {
+            audio.resume();
             game.startWave();
             refresh();
           }}

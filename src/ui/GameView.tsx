@@ -4,12 +4,20 @@ import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
 import { TOWER_ORDER } from '../core/config';
+import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
 import type { HudSnapshot, MetaModifiers } from '../core/types';
 import type { RunResult } from '../state/meta';
+
+// Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
+const TRAUMA: Record<string, number> = {
+  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03,
+};
+const SHAKE_MAX = 16; // px
+const SHAKE_DECAY = 2.0; // trauma/sec
 
 export function GameView({
   seed,
@@ -26,6 +34,7 @@ export function GameView({
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const pointerRef = useRef<Pointer | null>(null);
+  const traumaRef = useRef(0);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
@@ -44,7 +53,39 @@ export function GameView({
       const dt = (now - last) / 1000;
       last = now;
       game.advance(dt);
+
+      // Drain presentation cues → audio + screen-shake trauma.
+      const cues = game.drainSfx();
+      if (cues.length) {
+        const tally: Record<string, number> = {};
+        for (const c of cues) {
+          tally[c] = (tally[c] ?? 0) + 1;
+          traumaRef.current = Math.min(1, traumaRef.current + (TRAUMA[c] ?? 0));
+        }
+        audio.cueBatch(tally);
+      }
+      traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
+
+      // Render with shake (pre-fill covers the shake margin so no gap shows).
+      const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;
+      const dx = mag ? (Math.random() * 2 - 1) * mag : 0;
+      const dy = mag ? (Math.random() * 2 - 1) * mag : 0;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#070a10';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.save();
+      ctx.translate(dx, dy);
       drawGame(ctx, game.getRenderState(), pointerRef.current);
+      ctx.restore();
+
+      // Ambient bed intensifies with pressure (enemies massing + a wounded core).
+      const intRatio = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;
+      const pressure =
+        game.phase === 'won' || game.phase === 'lost'
+          ? null
+          : Math.min(1, (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6);
+      audio.music(pressure, dt);
+
       if (now - lastHud > 80) {
         setHud(game.getSnapshot());
         lastHud = now;
@@ -57,7 +98,10 @@ export function GameView({
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      audio.music(null, 0); // fade the bed when leaving the run
+    };
   }, [game]);
 
   // expose the live run to the debug panel
@@ -66,14 +110,16 @@ export function GameView({
     return () => setActiveGame(null);
   }, [game]);
 
-  // ── Desktop keyboard shortcuts (1-3 towers · Q ability · Space wave · Esc) ──
+  // ── Desktop keyboard shortcuts (1-N towers · Q ability · Space wave · Esc) ──
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      audio.resume();
       const k = e.key;
       if (k >= '1' && k <= String(TOWER_ORDER.length)) {
         const kind = TOWER_ORDER[Number(k) - 1];
         game.selectTower(game.selectedTower === kind ? null : kind);
+        audio.cue('select');
       } else if (k === 'q' || k === 'Q') {
         game.armAbility();
       } else if (k === ' ' || k === 'Spacebar') {
@@ -108,16 +154,15 @@ export function GameView({
           className="board"
           width={WIDTH}
           height={HEIGHT}
-          // Pointer Events unify mouse + touch (touch-action:none on .board
-          // prevents scroll/zoom so taps map cleanly to the battlefield).
           onPointerMove={(e) => {
             pointerRef.current = toCoords(e.clientX, e.clientY);
           }}
           onPointerDown={(e) => {
-            pointerRef.current = toCoords(e.clientX, e.clientY); // show the ghost where you touch
+            audio.resume();
+            pointerRef.current = toCoords(e.clientX, e.clientY);
           }}
           onPointerUp={(e) => {
-            if (e.button !== 0) return; // primary tap / left-click only
+            if (e.button !== 0) return;
             const p = toCoords(e.clientX, e.clientY);
             game.click(p.x, p.y);
             refresh();
@@ -126,7 +171,7 @@ export function GameView({
             if (e.pointerType === 'mouse') pointerRef.current = null;
           }}
           onContextMenu={(e) => {
-            e.preventDefault(); // desktop right-click: re-anchor the hero's patrol point
+            e.preventDefault();
             const p = toCoords(e.clientX, e.clientY);
             game.selectTower(null);
             game.setRally(p.x, p.y);

@@ -396,6 +396,15 @@ button:disabled {
 .hud-v.is-danger {
   color: var(--danger);
 }
+.hud-v.pop {
+  animation: hud-pop 0.22s ease;
+}
+@keyframes hud-pop {
+  40% {
+    transform: scale(1.18);
+    color: var(--success);
+  }
+}
 .hud-v-sm {
   font-size: 15px;
   font-weight: 700;

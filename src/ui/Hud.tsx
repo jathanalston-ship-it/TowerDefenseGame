@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { HudSnapshot } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
 
@@ -18,6 +19,20 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
   const heroPct = hud.hero.maxHp > 0 ? hud.hero.hp / hud.hero.maxHp : 0;
+
+  // pulse the biomass readout whenever it ticks up (resource-gain feedback)
+  const prevBiomass = useRef(hud.biomass);
+  const [biomassPop, setBiomassPop] = useState(false);
+  useEffect(() => {
+    if (hud.biomass > prevBiomass.current) {
+      setBiomassPop(true);
+      const id = setTimeout(() => setBiomassPop(false), 220);
+      prevBiomass.current = hud.biomass;
+      return () => clearTimeout(id);
+    }
+    prevBiomass.current = hud.biomass;
+    return undefined;
+  }, [hud.biomass]);
 
   return (
     <div className="hud">
@@ -64,7 +79,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
       {/* ECONOMY + threat */}
       <div className="hud-cell tt" tabIndex={0}>
         <div className="hud-k">Biomass</div>
-        <div className="hud-v" style={{ color: 'var(--caustic)' }}>
+        <div className={`hud-v ${biomassPop ? 'pop' : ''}`} style={{ color: 'var(--caustic)' }}>
           {hud.biomass}
         </div>
         <span className="tt-bubble">In-run currency. Spend it to grow towers.</span>

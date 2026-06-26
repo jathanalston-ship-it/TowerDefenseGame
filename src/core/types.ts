@@ -40,6 +40,7 @@ export interface Tower {
   slot: number; // tower-slot index it occupies
   cooldown: number; // seconds until next action
   overcharged: boolean; // buffed by an adjacent reactor this tick
+  bornAt: number; // sim-time placed (drives the grow-in animation)
 }
 
 export interface Projectile {
@@ -114,11 +115,21 @@ export interface HudSnapshot {
   integrity: number;
   maxIntegrity: number;
   kills: number;
-  hero: { down: boolean; respawn: number; hp: number; maxHp: number; abilityReady: boolean };
+  hero: {
+    down: boolean;
+    respawn: number;
+    hp: number;
+    maxHp: number;
+    abilityReady: boolean;
+    abilityCd: number;
+    abilityCdMax: number;
+  };
   enemiesAlive: number;
   draft: CardOption[] | null;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
+  cards: CardOption[]; // gene cards drafted this run (build panel)
+  buffs: string[]; // human-readable active run modifiers
 }
 
 export interface CardOption {
