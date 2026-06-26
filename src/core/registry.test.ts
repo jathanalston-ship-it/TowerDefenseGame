@@ -1,0 +1,85 @@
+// Guards the content-registry framework: self-registration + stable order, lookup,
+// validation, alias-based save compatibility, modding (open registration), and the
+// derived core lists that replaced the old hardcoded order arrays.
+
+import { describe, it, expect } from 'vitest';
+import { Registry, CONTENT_VERSION } from './registry';
+import {
+  TOWER_ORDER,
+  HERO_ORDER,
+  ENEMY_KINDS,
+  towerRegistry,
+  enemyRegistry,
+  heroRegistry,
+} from './config';
+import { validateAllContent } from './validate';
+
+interface Thing {
+  id: string;
+  n: number;
+}
+
+describe('Registry framework', () => {
+  it('registers in order and looks up by id', () => {
+    const r = new Registry<Thing>('thing', { idOf: (t) => t.id });
+    r.register({ id: 'a', n: 1 });
+    r.register({ id: 'b', n: 2 });
+    expect(r.ids()).toEqual(['a', 'b']); // registration order
+    expect(r.get('b')?.n).toBe(2);
+    expect(r.has('a')).toBe(true);
+    expect(r.has('zzz')).toBe(false);
+    expect(r.size).toBe(2);
+  });
+
+  it('rejects duplicate ids', () => {
+    const r = new Registry<Thing>('thing', { idOf: (t) => t.id });
+    r.register({ id: 'a', n: 1 });
+    expect(() => r.register({ id: 'a', n: 9 })).toThrow(/duplicate/);
+  });
+
+  it('runs a per-def validator with prefixed messages', () => {
+    const r = new Registry<Thing>('thing', { idOf: (t) => t.id, validate: (t) => (t.n > 0 ? [] : ['n must be > 0']) });
+    r.register({ id: 'ok', n: 5 });
+    r.register({ id: 'bad', n: 0 });
+    expect(r.validate()).toEqual(["thing 'bad': n must be > 0"]);
+  });
+
+  it('resolves aliases for save compatibility, and hides deprecated from active()', () => {
+    const r = new Registry<Thing>('thing', { idOf: (t) => t.id });
+    r.register({ id: 'new_name', n: 1 });
+    r.register({ id: 'old_relic', n: 2 }, { deprecated: true });
+    r.alias('legacy_name', 'new_name'); // a renamed id from an old save
+    expect(r.resolve('legacy_name')).toBe('new_name');
+    expect(r.get('legacy_name')?.n).toBe(1);
+    expect(r.resolve('gone')).toBeUndefined(); // unknown id → caller degrades gracefully
+    expect(r.active().map((t) => t.id)).toEqual(['new_name']); // deprecated excluded from rolls
+  });
+
+  it('supports runtime modding via open registration with a source tag', () => {
+    const r = new Registry<Thing>('thing', { idOf: (t) => t.id });
+    r.register({ id: 'core_a', n: 1 });
+    r.register({ id: 'mod:cool', n: 7 }, { source: 'mod' });
+    expect(r.metaOf('mod:cool')?.source).toBe('mod');
+    expect(r.metaOf('core_a')?.source).toBe('core');
+    expect(r.ids()).toContain('mod:cool');
+  });
+
+  it('exposes a content version for migrations', () => {
+    expect(CONTENT_VERSION).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('core content is registry-derived (no hardcoded lists)', () => {
+  it('derives the tower/hero/enemy iteration lists from their registries', () => {
+    expect(TOWER_ORDER).toEqual(towerRegistry.ids());
+    expect(HERO_ORDER).toEqual(heroRegistry.ids());
+    expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
+    // the five launch towers + three heroes are registered
+    expect(towerRegistry.size).toBe(5);
+    expect(heroRegistry.size).toBe(3);
+  });
+
+  it('shipped content passes registry-driven validation', () => {
+    expect(validateAllContent()).toEqual([]);
+  });
+});
