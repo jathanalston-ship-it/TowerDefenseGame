@@ -16,7 +16,20 @@ function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
   );
 }
 
-export function Inspector({ hud }: { hud: HudSnapshot }): JSX.Element {
+function InsHead({ title, onCollapse }: { title: string; onCollapse?: () => void }): JSX.Element {
+  return (
+    <div className="side-head">
+      <span>{title}</span>
+      {onCollapse && (
+        <button className="panel-collapse" onClick={onCollapse} title="Hide panel" aria-label="Hide panel">
+          »
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function Inspector({ hud, onCollapse }: { hud: HudSnapshot; onCollapse?: () => void }): JSX.Element {
   const kind = hud.selectedTower;
 
   if (kind) {
@@ -26,7 +39,7 @@ export function Inspector({ hud }: { hud: HudSnapshot }): JSX.Element {
     const rate = def.fireInterval > 0 ? (1 / def.fireInterval).toFixed(1) : null;
     return (
       <aside className="side-panel inspector" aria-label="Tower inspector">
-        <div className="side-head">Inspect</div>
+        <InsHead title="Inspect" onCollapse={onCollapse} />
         <div className="ins-title">
           <span className="ins-name" style={{ color: `var(--${cls})` }}>
             {def.name}
@@ -62,7 +75,7 @@ export function Inspector({ hud }: { hud: HudSnapshot }): JSX.Element {
 
   return (
     <aside className="side-panel inspector" aria-label="Run inspector">
-      <div className="side-head">Status</div>
+      <InsHead title="Status" onCollapse={onCollapse} />
 
       <div className="ins-title">
         <span className="ins-name" style={{ color: heroDef.color }}>

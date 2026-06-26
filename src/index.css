@@ -353,22 +353,28 @@ button:disabled {
 
 /* ── Game shell ───────────────────────────────────────────────────────────── */
 .game {
-  width: min(1040px, 97vw);
-  margin: 12px auto;
+  /* Full-viewport RTS shell: top bar + stage + bottom bar fill 100vh, never scroll. */
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  margin: 0;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  overflow: hidden;
 }
 
-/* HUD — top bar */
+/* HUD — top bar (single compact row; phase centered between clusters) */
 .hud {
   display: flex;
-  gap: var(--s4);
-  align-items: stretch;
+  gap: var(--s3);
+  align-items: center;
+  flex: none;
   background: linear-gradient(180deg, var(--panel) 0%, #0e131c 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 10px var(--s4);
+  padding: 8px var(--s4);
   flex-wrap: wrap;
   box-shadow: var(--shadow-sm);
 }
@@ -486,6 +492,84 @@ button:disabled {
   border-color: rgba(255, 210, 77, 0.4);
 }
 
+/* Center phase indicator (RTS-style headline between the HUD clusters) */
+.hud-phase-center {
+  flex: 1;
+  text-align: center;
+  min-width: 110px;
+  padding: 0 8px;
+}
+.phase-big {
+  font-family: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  line-height: 1.05;
+}
+.hud-phase-center.phase-prep .phase-big { color: var(--kinetic); }
+.hud-phase-center.phase-wave .phase-big { color: var(--danger); }
+.hud-phase-center.phase-draft .phase-big { color: var(--gold); }
+.hud-phase-center.phase-won .phase-big { color: var(--success); }
+.hud-phase-center.phase-lost .phase-big { color: var(--danger); }
+.phase-num { opacity: 0.85; }
+.phase-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hud-rate {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--success);
+  line-height: 1;
+  min-height: 12px;
+}
+
+/* Top-bar Loot Box Meter */
+.hud-loot {
+  min-width: 156px;
+}
+.loot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.loot-chest {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 15px;
+}
+.loot-bar-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.loot-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #0a0e15;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.loot-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width var(--t-med);
+}
+.loot-sub {
+  font-size: 11px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
 /* canvas */
 .canvas-wrap {
   position: relative;
@@ -503,7 +587,7 @@ canvas.board {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 74vh;
+  max-height: 100%; /* fill the stage height → the battlefield is the biggest element */
   display: block;
   touch-action: none;
 }
@@ -514,6 +598,7 @@ canvas.board {
   gap: 10px;
   align-items: stretch;
   flex-wrap: wrap;
+  flex: none; /* fixed bottom bar — the stage above takes the remaining height */
   background: linear-gradient(180deg, var(--panel) 0%, #0e131c 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -906,9 +991,11 @@ canvas.board {
 /* ── Stage: portrait canvas flanked by gutter panels (HUD.md §5–6) ─────────── */
 .stage {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
+  flex: 1; /* fill the height between the top bar and the toolbar */
   min-height: 0;
+  overflow: hidden;
 }
 .stage .canvas-wrap {
   flex: 1 1 auto;
@@ -929,6 +1016,9 @@ canvas.board {
   min-height: 0;
 }
 .side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -936,6 +1026,52 @@ canvas.board {
   color: var(--muted);
   border-bottom: 1px solid var(--line);
   padding-bottom: 6px;
+}
+/* Collapse "«/»" button inside a panel header */
+.panel-collapse {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 7px;
+  min-height: 0;
+}
+.panel-collapse:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+/* Collapsed side panel → a thin vertical rail that expands on click */
+.panel-rail {
+  flex: 0 0 28px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+  background: linear-gradient(180deg, var(--panel) 0%, #0e131c 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--muted);
+  cursor: pointer;
+}
+.panel-rail:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+.panel-rail .rail-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.panel-rail .rail-arrow {
+  font-size: 14px;
 }
 .side-sec {
   display: flex;
@@ -1126,11 +1262,22 @@ canvas.board {
   }
 }
 @media (max-width: 900px) {
+  /* Below desktop the layout stacks and the page is allowed to scroll again
+     (the no-vertical-scroll guarantee targets 1080p+ desktop). */
+  .game {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
   .stage {
     flex-direction: column;
+    overflow: visible;
   }
   .stage .canvas-wrap {
     order: -1; /* keep the battlefield on top */
+  }
+  canvas.board {
+    max-height: 56vh;
   }
   .side-panel {
     flex: none;

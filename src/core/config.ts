@@ -245,8 +245,28 @@ export const PARTICLE = {
 };
 
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).
+// These are the BASE escalation curve; the universal difficulty framework
+// (difficulty.ts) layers global scalars on top of them, leaving these untouched.
 export const WAVE_HP_GROWTH = 0.12; // +12% enemy HP per wave index
 export const WAVE_BOUNTY_GROWTH = 0.05;
+
+// ── Spawn scheduling (spawndirector.ts) ──────────────────────────────────────
+// The Spawn Director owns the MECHANICS of emitting spawns (spacing/timing/pacing),
+// decoupled from WHAT spawns (composition: WAVES / AI Director) and from enemy AI
+// (movement). These were inline magic numbers in the spawn path; centralizing them
+// here (CLAUDE.md: centralize tunables) keeps the scripted/endless queues byte-identical
+// (the values equal the former literals) while making cadence a single tunable surface.
+export const SPAWN = {
+  // Endless (AI-Director-driven) cadence:
+  endlessStartOffset: 0.5, // seconds before the first directed group spawns
+  endlessIntraGroup: 0.5, // seconds between spawns WITHIN a directed group
+  endlessInterGroup: 0.35, // extra offset added between consecutive groups
+  // Swarm special-event burst (a mid-wave flood of chaff):
+  swarmDelay: 3, // seconds into the wave the burst begins
+  swarmSpacing: 0.18, // seconds between burst spawns
+  swarmCount: 12, // burst size
+  swarmKind: 'runner' as EnemyKind, // archetype the burst floods with
+};
 
 // ── Waves (threat-budget scripts) ─────────────────────────────────────────
 export interface SpawnGroup {

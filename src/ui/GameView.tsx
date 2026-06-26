@@ -48,6 +48,8 @@ export function GameView({
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
+  const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
+  const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
   const pointerRef = useRef<Pointer | null>(null);
   const traumaRef = useRef(0);
   const onEndRef = useRef(onEnd);
@@ -172,7 +174,14 @@ export function GameView({
     <div className="game">
       <Hud hud={hud} />
       <div className="stage">
-        <BuildPanel hud={hud} />
+        {leftOpen ? (
+          <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} />
+        ) : (
+          <button className="panel-rail" onClick={() => setLeftOpen(true)} aria-label="Show Run Build">
+            <span className="rail-arrow">»</span>
+            <span className="rail-label">RUN BUILD</span>
+          </button>
+        )}
         <div className="canvas-wrap">
         <canvas
           ref={canvasRef}
@@ -245,7 +254,14 @@ export function GameView({
           </div>
         )}
         </div>
-        <Inspector hud={hud} />
+        {rightOpen ? (
+          <Inspector hud={hud} onCollapse={() => setRightOpen(false)} />
+        ) : (
+          <button className="panel-rail right" onClick={() => setRightOpen(true)} aria-label="Show Status">
+            <span className="rail-label">STATUS</span>
+            <span className="rail-arrow">«</span>
+          </button>
+        )}
       </div>
       <Toolbar game={game} hud={hud} refresh={refresh} />
     </div>

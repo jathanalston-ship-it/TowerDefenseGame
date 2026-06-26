@@ -64,6 +64,10 @@ import { Director } from './director';
 import { runAbilities, runAbility } from './ability';
 import type { AbilityCast, AbilityContext, ParticleKind, StatusApplication } from './ability';
 import { aggregate as aggregateStatuses, applyStatus as applyStatusInstance, statusRegistry, tickStatuses } from './status';
+import { SpawnDirector } from './spawndirector';
+import type { QueuedSpawn } from './spawndirector';
+import { resolveDifficulty } from './difficulty';
+import type { DifficultyDef } from './difficulty';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
@@ -75,6 +79,7 @@ export type RunMode = 'stage' | 'endless';
 export interface RunOptions {
   runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
   mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director
+  difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -157,14 +162,6 @@ function zeroTowerCounts(): Record<TowerKind, number> {
   return r;
 }
 
-interface QueuedSpawn {
-  kind: EnemyKind;
-  at: number; // sim-time to spawn
-  hpMult: number;
-  bountyMult: number;
-  elite?: boolean; // director-promoted elite (buffed stats) — endless only
-}
-
 export interface RenderState {
   enemies: Enemy[];
   towers: Tower[];
@@ -188,6 +185,10 @@ export class Game {
   readonly totalWaves = TOTAL_WAVES;
   readonly mode: RunMode;
   private director: Director | null = null;
+  // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
+  private readonly diff: DifficultyDef;
+  // Spawn Director: owns spawn spacing/timing/pacing/elite/boss/special-event scheduling.
+  private readonly spawner = new SpawnDirector();
   biomass: number;
   integrity: number;
   maxIntegrity: number;
@@ -271,8 +272,9 @@ export class Game {
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.towerProgress = towerProgress;
     this.heroProgress = heroProgress;
+    this.diff = resolveDifficulty(opts.difficulty);
     this.mode = opts.mode ?? 'stage';
-    if (this.mode === 'endless') this.director = new Director(() => this.rng.next());
+    if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
     this.mods.towerDamageMult = meta.towerDamageMult;
@@ -455,6 +457,17 @@ export class Game {
     this.unlockedSlots = Math.min(towerSlots.length, this.unlockedSlots + n);
   }
 
+  /** Enemy-HP multiplier for a 0-based wave index: the base escalation curve × the universal
+   * difficulty's health scalar. At Standard (×1) this equals the base curve exactly. */
+  private hpMultFor(idx0: number): number {
+    return (1 + WAVE_HP_GROWTH * idx0) * this.diff.enemyHealthMult;
+  }
+
+  /** Bounty/biomass multiplier for a 0-based wave index: base curve × difficulty reward. */
+  private bountyMultFor(idx0: number): number {
+    return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.diff.rewardMult;
+  }
+
   startWave(): void {
     if (this.phase !== 'prep') return;
     if (this.mode === 'endless') {
@@ -464,48 +477,36 @@ export class Game {
     if (this.waveIndex >= TOTAL_WAVES) return;
     this.waveIndex++;
     const def = WAVES[this.waveIndex - 1];
-    const hpMult = 1 + WAVE_HP_GROWTH * (this.waveIndex - 1);
-    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * (this.waveIndex - 1);
-    this.spawnQueue = [];
-    for (const group of def) {
-      for (let i = 0; i < group.count; i++) {
-        this.spawnQueue.push({
-          kind: group.kind,
-          at: this.time + group.delay + i * group.spacing,
-          hpMult,
-          bountyMult,
-        });
-      }
-    }
-    this.spawnQueue.sort((a, b) => a.at - b.at);
+    const idx0 = this.waveIndex - 1;
+    // The Spawn Director schedules the scripted wave; difficulty's spawn-rate knob (×1 at
+    // Standard) tightens spacing. Byte-identical to the former inline loop at the defaults.
+    this.spawnQueue = this.spawner.scheduleScripted(
+      def,
+      this.time,
+      this.hpMultFor(idx0),
+      this.bountyMultFor(idx0),
+      this.diff.spawnRateMult,
+    );
     this.spawnedAll = false;
     this.phase = 'wave';
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
   }
 
-  /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget. */
+  /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget; the
+   * Spawn Director lays them out on the endless cadence (incl. the swarm special event). */
   private startEndlessWave(): void {
     this.waveIndex++; // = Depth
     const depth = this.waveIndex;
     const w = this.director!.next(depth);
-    const hpMult = 1 + WAVE_HP_GROWTH * (depth - 1);
-    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * (depth - 1);
-    this.spawnQueue = [];
-    let t0 = this.time + 0.5;
-    for (const g of w.groups) {
-      for (let i = 0; i < g.count; i++) {
-        this.spawnQueue.push({ kind: g.kind, at: t0 + i * 0.5, hpMult, bountyMult, elite: g.elite });
-      }
-      t0 += 0.35;
-    }
-    if (w.swarmEvent) {
-      const burst = this.time + 3;
-      for (let i = 0; i < 12; i++) {
-        this.spawnQueue.push({ kind: 'runner', at: burst + i * 0.18, hpMult, bountyMult });
-      }
-    }
-    this.spawnQueue.sort((a, b) => a.at - b.at);
+    const idx0 = depth - 1;
+    this.spawnQueue = this.spawner.scheduleDirected(
+      w,
+      this.time,
+      this.hpMultFor(idx0),
+      this.bountyMultFor(idx0),
+      this.diff.spawnRateMult,
+    );
     this.spawnedAll = false;
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
@@ -635,7 +636,7 @@ export class Game {
       baseArmor: def.armor,
       speed: def.speed,
       bounty: def.bounty * bountyMult * eBounty,
-      damage: def.damage * eDmg,
+      damage: def.damage * eDmg * this.diff.enemyDamageMult,
       fracture: 0,
       corrosion: 0,
       shredFlash: 0,
@@ -1590,9 +1591,8 @@ export class Game {
   // ── Debug API (driven by the debug panel; no effect on normal play) ──────
 
   debugSpawn(kind: EnemyKind, count = 1): void {
-    const hpMult = 1 + WAVE_HP_GROWTH * Math.max(0, this.waveIndex - 1);
-    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * Math.max(0, this.waveIndex - 1);
-    for (let i = 0; i < count; i++) this.spawnOne(kind, hpMult, bountyMult);
+    const idx0 = Math.max(0, this.waveIndex - 1);
+    for (let i = 0; i < count; i++) this.spawnOne(kind, this.hpMultFor(idx0), this.bountyMultFor(idx0));
   }
 
   debugAddBiomass(n: number): void {

@@ -22,13 +22,20 @@ function groupCards(cards: CardOption[]): { category: string; stacks: Stack[] }[
   return [...byCat.entries()].map(([category, m]) => ({ category, stacks: [...m.values()] }));
 }
 
-export function BuildPanel({ hud }: { hud: HudSnapshot }): JSX.Element {
+export function BuildPanel({ hud, onCollapse }: { hud: HudSnapshot; onCollapse?: () => void }): JSX.Element {
   const groups = groupCards(hud.cards);
   const hasCards = hud.cards.length > 0;
 
   return (
     <aside className="side-panel build-panel" aria-label="Run build">
-      <div className="side-head">Run Build</div>
+      <div className="side-head">
+        <span>Run Build</span>
+        {onCollapse && (
+          <button className="panel-collapse" onClick={onCollapse} title="Hide panel" aria-label="Hide panel">
+            «
+          </button>
+        )}
+      </div>
 
       <div className="side-sec">
         <div className="side-k">Gene Cards{hasCards ? ` · ${hud.cards.length}` : ''}</div>

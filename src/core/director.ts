@@ -8,6 +8,8 @@
 // drives spawning entirely through this Director. Same enemy/boss data feeds both.
 
 import { DIRECTOR } from './config';
+import { STANDARD } from './difficulty';
+import type { DifficultyDef } from './difficulty';
 import type { EnemyKind } from './types';
 
 export type WaveShape = 'swarm' | 'armored' | 'mixed' | 'rush' | 'elite' | 'boss';
@@ -42,15 +44,22 @@ const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)
 export class Director {
   private lastShape: WaveShape | null = null;
 
-  constructor(private rng: Rng) {}
+  // The universal difficulty framework supplies the elite-chance and boss-frequency
+  // scalars; at Standard (identity) the Director behaves exactly as before.
+  constructor(private rng: Rng, private diff: DifficultyDef = STANDARD) {}
 
   /** Produce the next endless wave for a given depth (1-based). */
   next(depth: number): DirectorWave {
     const budget = DIRECTOR.baseBudget * Math.pow(1 + DIRECTOR.budgetGrowth, depth - 1);
-    const eliteChance = Math.min(0.5, DIRECTOR.eliteChanceBase + DIRECTOR.eliteChancePerDepth * depth);
+    const eliteChance = Math.min(
+      0.5,
+      (DIRECTOR.eliteChanceBase + DIRECTOR.eliteChancePerDepth * depth) * this.diff.eliteChanceMult,
+    );
+    // Difficulty scales how often a (mini)boss caps a wave (>1 = more often).
+    const bossEvery = Math.max(1, Math.round(DIRECTOR.bossEvery / this.diff.bossFrequencyMult));
 
     // Boss cadence: a procedural (mini)boss caps the wave, escorted by light chaff.
-    if (depth % DIRECTOR.bossEvery === 0) {
+    if (depth % bossEvery === 0) {
       const escort = this.spend(budget * 0.4, 'mixed', eliteChance);
       this.lastShape = 'boss';
       return { depth, shape: 'boss', groups: escort, spawnBoss: true, swarmEvent: false, eliteChance };
