@@ -25,6 +25,7 @@ export function GameView({
   const game = (gameRef.current ??= new Game(seed, mods));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
+  const [crashed, setCrashed] = useState<string | null>(null);
   const pointerRef = useRef<Pointer | null>(null);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
@@ -41,20 +42,26 @@ export function GameView({
     let lastHud = 0;
 
     const loop = (now: number): void => {
-      const dt = (now - last) / 1000;
-      last = now;
-      game.advance(dt);
-      drawGame(ctx, game.getRenderState(), pointerRef.current);
-      if (now - lastHud > 80) {
-        setHud(game.getSnapshot());
-        lastHud = now;
+      try {
+        const dt = (now - last) / 1000;
+        last = now;
+        game.advance(dt);
+        drawGame(ctx, game.getRenderState(), pointerRef.current);
+        if (now - lastHud > 80) {
+          setHud(game.getSnapshot());
+          lastHud = now;
+        }
+        if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
+          endedRef.current = true;
+          setHud(game.getSnapshot());
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won' });
+        }
+        raf = requestAnimationFrame(loop);
+      } catch (err) {
+        // Surface the failure and stop cleanly — never freeze silently or spam.
+        console.error('[GameView] run loop error — stopping:', err);
+        setCrashed(err instanceof Error ? err.message : String(err));
       }
-      if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
-        endedRef.current = true;
-        setHud(game.getSnapshot());
-        onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won' });
-      }
-      raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
@@ -141,6 +148,23 @@ export function GameView({
               refresh();
             }}
           />
+        )}
+        {crashed && (
+          <div className="overlay">
+            <h2>RUN ERROR</h2>
+            <p className="hint">The run hit an error and stopped. Your permanent progress is safe.</p>
+            <pre className="crash-msg">{crashed}</pre>
+            <button
+              className="primary"
+              onClick={() => {
+                if (endedRef.current) return;
+                endedRef.current = true;
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false });
+              }}
+            >
+              End Run
+            </button>
+          </div>
         )}
       </div>
       <Toolbar game={game} hud={hud} refresh={refresh} />
