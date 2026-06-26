@@ -27,6 +27,12 @@ export interface RunModifiers {
   obeliskSlowBonus: number; // adds to the Disruption slow
   heroDamageMult: number;
   heroCooldownMult: number;
+  // Run-start (construction-time) behavioral knobs — folded once when the run boots,
+  // so they never touch the hot combat path (equipment/relics ride these). Neutral by
+  // default, so a run with no gear is byte-identical (the golden invariant).
+  startBiomassBonus: number; // flat biomass added at run start
+  integrityMult: number; // multiplies max Nucleus integrity (e.g. Glass Genome ½)
+  heroMaxHpMult: number; // multiplies hero max HP (survivability gear)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -48,6 +54,9 @@ export function defaultRunModifiers(): RunModifiers {
     obeliskSlowBonus: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
+    startBiomassBonus: 0,
+    integrityMult: 1,
+    heroMaxHpMult: 1,
   };
 }
 

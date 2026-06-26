@@ -29,6 +29,9 @@ import type { ChestResult } from './lootbox';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
+import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } from '../core/equipment';
+import type { EquipSlot, OwnedItem } from '../core/equipment';
+import type { CardEffect } from '../core/cards';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -150,12 +153,13 @@ export function heroProgress(save: SaveData): HeroProgress {
 }
 
 export interface RunResult {
-  wave: number;
+  wave: number; // = Depth in endless
   kills: number;
   won: boolean;
   mastery: MasteryCounts; // per-tower usage accrued in the run (from Game.getMasteryAccrual)
   heroMastery: HeroMasteryCounts; // per-hero usage (from Game.getHeroMasteryAccrual)
   stats: RunStats; // raw run statistics (from Game.getRunStats) — folded into lifetime stats
+  endless?: boolean; // Endless (AI Director) mode run
 }
 
 export interface RunReward {
@@ -175,6 +179,7 @@ export interface RunOutcome {
   chest: ChestResult;
   mastery: Record<TowerKind, MasteryDelta>;
   heroMastery: Record<HeroKind, MasteryDelta>;
+  gear: OwnedItem; // a run-end equipment drop (rarity scales with depth)
 }
 
 export const meta = {
@@ -243,6 +248,14 @@ export const meta = {
     const heroShards = { ...save.heroShards };
     for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
 
+    // 4. a run-end equipment drop (rarity scales with depth) + a little craft feedstock
+    const gear = rollItemDrop(Math.random, result.wave);
+    const mats = {
+      mutagen: save.mats.mutagen + (result.won ? 1 : 0),
+      scrap: save.mats.scrap + 2,
+      catalyst: save.mats.catalyst + (result.wave >= 7 ? 1 : 0),
+    };
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -254,9 +267,11 @@ export const meta = {
       towerShards,
       heroShards,
       stats: accumulateStats(save.stats, result.stats),
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, gear] },
+      mats,
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
-    return { reward: { shardsEarned, newBest }, chest, mastery, heroMastery };
+    return { reward: { shardsEarned, newBest }, chest, mastery, heroMastery, gear };
   },
 
   /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
@@ -323,6 +338,84 @@ export const meta = {
     });
     this.evaluateAchievements(); // first_star / star3
     return true;
+  },
+
+  // ── Hero equipment ────────────────────────────────────────────────────────
+
+  /** CardEffects from the currently-equipped loadout — folded into a run at start. */
+  loadoutEffects(): CardEffect[] {
+    const { inventory, loadout } = store.get().equipment;
+    return loadoutEffects(inventory, loadout);
+  },
+
+  /** Equip (or clear, uid=null) an owned item into a slot. */
+  equip(slot: EquipSlot, uid: string | null): void {
+    const save = store.get();
+    persist({ ...save, equipment: { ...save.equipment, loadout: { ...save.equipment.loadout, [slot]: uid } } });
+  },
+
+  grantItem(item: OwnedItem): void {
+    const save = store.get();
+    persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
+  },
+
+  /** Reroll an item's unlocked affixes (spends 1 Mutagen). */
+  rerollItem(uid: string): boolean {
+    const save = store.get();
+    if (save.mats.mutagen < 1) return false;
+    const inv = save.equipment.inventory;
+    const idx = inv.findIndex((i) => i.uid === uid);
+    if (idx < 0) return false;
+    const inventory = inv.slice();
+    inventory[idx] = rerollAffixes(Math.random, inv[idx]);
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, mutagen: save.mats.mutagen - 1 } });
+    return true;
+  },
+
+  /** Transmute an item up a rarity tier (spends 2 Catalysts) — adds an affix slot. */
+  transmuteItem(uid: string): boolean {
+    const save = store.get();
+    if (save.mats.catalyst < 2) return false;
+    const inv = save.equipment.inventory;
+    const idx = inv.findIndex((i) => i.uid === uid);
+    if (idx < 0) return false;
+    const next = transmute(Math.random, inv[idx]);
+    if (!next) return false;
+    const inventory = inv.slice();
+    inventory[idx] = next;
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, catalyst: save.mats.catalyst - 2 } });
+    return true;
+  },
+
+  /** Dismantle an item into crafting feedstock (auto-unequips it). */
+  salvageItem(uid: string): boolean {
+    const save = store.get();
+    const item = save.equipment.inventory.find((i) => i.uid === uid);
+    if (!item) return false;
+    const r = RARITY_ORDER.indexOf(item.rarity);
+    const loadout = { ...save.equipment.loadout };
+    for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;
+    persist({
+      ...save,
+      equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadout },
+      mats: {
+        mutagen: save.mats.mutagen + (r >= 3 ? 1 : 0),
+        scrap: save.mats.scrap + 1 + r,
+        catalyst: save.mats.catalyst + Math.max(0, r - 1),
+      },
+    });
+    return true;
+  },
+
+  debugGrantGear(n = 3): void {
+    const save = store.get();
+    const items: OwnedItem[] = [];
+    for (let i = 0; i < n; i++) items.push(rollItemDrop(Math.random, save.bestWave + 6));
+    persist({
+      ...save,
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...items] },
+      mats: { mutagen: save.mats.mutagen + 5, scrap: save.mats.scrap + 12, catalyst: save.mats.catalyst + 6 },
+    });
   },
 
   // ── Save management ──────────────────────────────────────────────────────

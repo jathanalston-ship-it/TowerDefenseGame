@@ -72,6 +72,7 @@ export function DebugPanel(): JSX.Element {
               <button onClick={() => meta.debugAddTowerShards(20)}>+20 ✦ each</button>
               <button onClick={() => meta.debugAddMasteryXp(500)}>+500 Mastery XP</button>
               <button onClick={() => meta.debugOpenChest()}>Open chest</button>
+              <button onClick={() => meta.debugGrantGear(4)}>Grant gear</button>
             </div>
           </div>
 
@@ -147,6 +148,12 @@ export function DebugPanel(): JSX.Element {
               </button>
               <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('tyrant', 1))}>
                 Boss
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawnBoss())}>
+                FW Boss
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.spawnProceduralBoss(20))}>
+                Proc Boss
               </button>
             </div>
             <div className="debug-row">

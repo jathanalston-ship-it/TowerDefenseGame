@@ -614,26 +614,35 @@ export const HERO_LABELS: Record<string, string> = Object.fromEntries(
   heroRegistry.all().map((d) => [d.kind, d.name]),
 );
 
-// ── Future content registries (framework only — no content yet) ──────────────
-// The game is designed to grow to 500+ equipment, 100+ bosses, and dozens of biomes
-// (EQUIPMENT.md, STAGES.md, LIVING-HIVE.md). Their registries exist NOW so that content
-// drops in by self-registration with zero plumbing changes — the same shape the tower /
-// enemy / hero registries use. Defs carry only an id + name until content is authored.
-export interface EquipmentDef {
-  id: string;
-  name: string;
-  slot: string; // e.g. 'weapon' | 'armor' | 'relic' — formalized when items land
-  rarity: string;
-}
-export interface BossDef {
-  id: string;
-  name: string;
-}
+// ── Boss framework (boss.ts) ────────────────────────────────────────────────
+export const BOSS = {
+  baseHp: 1600, // × BossDef.hpMult → boss HP
+  addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
+};
+
+// ── AI Director / run modes (director.ts) ───────────────────────────────────
+// The Director generates Endless waves from a threat budget; Stage mode stays the
+// authored WAVES (so the golden run is untouched). Tunables are illustrative.
+export const DIRECTOR = {
+  baseBudget: 12, // threat points spent on wave 1 of endless
+  budgetGrowth: 0.16, // +16% budget per depth (the difficulty frontier)
+  eliteChanceBase: 0.08, // elite promotion chance, rises with depth
+  eliteChancePerDepth: 0.015,
+  bossEvery: 5, // a (mini)boss caps every N endless waves
+  swarmEvery: 4, // a swarm-event wave every N waves
+  eliteHpMult: 3, // an elite-promoted enemy's HP / damage / bounty multipliers
+  eliteDmgMult: 1.5,
+  eliteBountyMult: 3,
+  // threat cost per archetype (cheaper = more of them in a wave)
+  cost: { runner: 1, rusher: 1.2, brute: 3, burrower: 2.4, flyer: 2.2, tank: 4, tyrant: 20 } as Record<string, number>,
+};
+
+// ── Future content registry: biomes (framework only — no content yet) ────────
+// Towers/enemies/heroes/cards/upgrades/chests self-register above; bosses + equipment
+// own registries in their modules (boss.ts / equipment.ts). Biomes have no content yet,
+// so their registry stands ready for self-registration (STAGES.md / LIVING-HIVE.md).
 export interface BiomeDef {
   id: string;
   name: string;
 }
-
-export const equipmentRegistry = new Registry<EquipmentDef>('equipment', { idOf: (d) => d.id });
-export const bossRegistry = new Registry<BossDef>('boss', { idOf: (d) => d.id });
 export const biomeRegistry = new Registry<BiomeDef>('biome', { idOf: (d) => d.id });
