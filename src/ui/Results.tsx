@@ -68,6 +68,21 @@ export function Results({
           {reward.catalyst > 0 && <RewardChip label="Catalyst" value={reward.catalyst} color="var(--viral)" />}
           {reward.newBest && <span className="new-best">★ New best!</span>}
         </div>
+
+        {(reward.newAchievements.length > 0 || reward.newTitle) && (
+          <div className="unlock-row">
+            {reward.newAchievements.map((name) => (
+              <div className="unlock" key={name}>
+                <span className="unlock-mark">✦</span> Achievement: <b>{name}</b>
+              </div>
+            ))}
+            {reward.newTitle && (
+              <div className="unlock unlock-title">
+                <span className="unlock-mark">⟡</span> Title earned: <b>“{reward.newTitle}”</b>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <button className="primary" onClick={onContinue}>
         Continue

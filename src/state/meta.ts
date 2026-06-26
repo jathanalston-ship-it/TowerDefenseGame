@@ -23,6 +23,16 @@ import {
 import type { UpgradeDef } from '../core/config';
 import type { MetaModifiers } from '../core/types';
 import type { RunResult } from '../core/game';
+import {
+  ACHIEVEMENTS,
+  ACHIEVEMENT_GROUPS,
+  TOTAL_ENEMIES,
+  TOTAL_BIOMES,
+  TOTAL_CARDS,
+  evaluateUnlocked,
+  titleFor,
+} from '../core/achievements';
+import type { AchievementStats } from '../core/achievements';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -66,6 +76,33 @@ export interface RunReward {
   components: number;
   catalyst: number;
   newBest: boolean;
+  newAchievements: string[]; // display names of achievements unlocked by THIS run
+  newTitle: string | null; // a freshly-earned title to celebrate, else null
+}
+
+/** Build the achievement-check view from a (post-run) save. */
+function statsFromSave(s: SaveData): AchievementStats {
+  return {
+    totalRuns: s.totalRuns,
+    bestWave: s.bestWave,
+    bestStage: s.bestStage,
+    stagesCleared: s.stagesCleared,
+    bestEndlessWave: s.bestEndlessWave,
+    bestEndlessScore: s.bestEndlessScore,
+    lifetimeShards: s.lifetimeShards,
+    enemiesSeen: s.codex.enemies.length,
+    biomesSeen: s.codex.biomes.length,
+    cardsSeen: s.codex.cards.length,
+  };
+}
+
+/** Union an existing id list with newly-seen ids, preserving order, deduped. */
+function mergeIds(have: string[], add: readonly string[]): string[] {
+  if (add.length === 0) return have;
+  const set = new Set(have);
+  let changed = false;
+  for (const id of add) if (!set.has(id)) { set.add(id); changed = true; }
+  return changed ? [...set] : have;
 }
 
 export const meta = {
@@ -73,6 +110,11 @@ export const meta = {
   get: store.get,
   upgrades: ALL_UPGRADES,
   tracks: { core: META_UPGRADES, mastery: MASTERY_UPGRADES, equipment: EQUIPMENT_UPGRADES, prestige: PRESTIGE_UPGRADES },
+
+  // Collection / motivation read-models for the Codex UI.
+  achievementDefs: ACHIEVEMENTS,
+  achievementGroups: ACHIEVEMENT_GROUPS,
+  codexTotals: { enemies: TOTAL_ENEMIES, biomes: TOTAL_BIOMES, cards: TOTAL_CARDS },
 
   buyUpgrade(id: string): boolean {
     const save = store.get();
@@ -100,7 +142,7 @@ export const meta = {
   recordRun(result: RunResult): RunReward {
     const save = store.get();
     const next = { ...save };
-    const reward: RunReward = { shards: 0, essence: 0, components: 0, catalyst: 0, newBest: false };
+    const reward: RunReward = { shards: 0, essence: 0, components: 0, catalyst: 0, newBest: false, newAchievements: [], newTitle: null };
 
     if (result.mode === 'endless') {
       reward.essence = Math.floor(result.wave * 3 * (1 + result.wave * 0.04) + result.kills * 0.15);
@@ -133,6 +175,27 @@ export const meta = {
     }
 
     next.totalRuns = save.totalRuns + 1;
+
+    // ── Codex discoveries (motivation layer — union this run's sightings) ──
+    next.codex = {
+      enemies: mergeIds(save.codex.enemies, result.enemiesSeen),
+      biomes: mergeIds(save.codex.biomes, result.biome ? [result.biome] : []),
+      cards: mergeIds(save.codex.cards, result.cardsSeen),
+    };
+    next.cardsSeen = next.codex.cards.length; // keep the legacy count in sync
+
+    // ── Achievements + title (re-evaluated against the post-run save) ──
+    const unlocked = evaluateUnlocked(statsFromSave(next));
+    const had = new Set(save.achievements);
+    const newly = unlocked.filter((id) => !had.has(id));
+    next.achievements = unlocked;
+    const title = titleFor(new Set(unlocked)) ?? '';
+    if (title && title !== save.title) reward.newTitle = title;
+    next.title = title;
+    reward.newAchievements = newly
+      .map((id) => ACHIEVEMENTS.find((a) => a.id === id)?.name)
+      .filter((n): n is string => !!n);
+
     persist(next);
     return reward;
   },

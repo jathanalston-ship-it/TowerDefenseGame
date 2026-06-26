@@ -130,6 +130,10 @@ export class Game {
   leaks = 0; // enemies that breached the line
   apexUses = 0; // Apex Leap activations
   towersBuilt = 0;
+  // discovery tracking (write-only observability → Codex; never reads back into sim,
+  // so determinism is unaffected). Surfaced via getResult() for the meta layer.
+  readonly seenEnemies = new Set<EnemyKind>();
+  readonly seenCards = new Set<string>();
 
   private stageMods: StageMods;
   private readonly seed: number;
@@ -434,6 +438,7 @@ export class Game {
   /** Construct + register one enemy (shared by top spawns and splits). */
   private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number): void {
     const def = ENEMY_DEFS[kind];
+    this.seenEnemies.add(kind); // Codex discovery (the one choke point for every spawn)
     const shield = def.shield ?? 0;
     this.enemies.push({
       id: this.nextId++,
@@ -1205,8 +1210,7 @@ export class Game {
       if (this.waveIndex >= this.totalWaves) {
         this.phase = 'won'; // finite modes only; endless has totalWaves = Infinity
       } else {
-        this.draft = draftCards(this.rng, 3);
-        this.phase = 'draft';
+        this.openDraft();
       }
     }
   }
@@ -1313,11 +1317,18 @@ export class Game {
     this.spawnedAll = true;
   }
 
+  /** Roll a 1-of-3 draft, record the offered cards for the Codex, and enter draft
+   *  phase. Single choke point so card discovery is tracked wherever a draft opens. */
+  private openDraft(): void {
+    this.draft = draftCards(this.rng, 3);
+    for (const c of this.draft) this.seenCards.add(c.id);
+    this.phase = 'draft';
+  }
+
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3);
-    this.phase = 'draft';
+    this.openDraft();
   }
 
   /** Apply a specific card's effect immediately (force a card selection). */
@@ -1373,6 +1384,10 @@ export class Game {
       objectiveDone: this.mode === 'stage' && this.phase === 'won' && this.objectiveComplete(),
       objectiveBonus: this.stage?.objective?.rewardBonus ?? 0,
       score: this.endlessScore(),
+      // Codex discoveries this run (folded into permanent collection by the meta layer).
+      biome: this.biome,
+      enemiesSeen: [...this.seenEnemies],
+      cardsSeen: [...this.seenCards],
     };
   }
 
@@ -1443,4 +1458,8 @@ export interface RunResult {
   objectiveDone: boolean;
   objectiveBonus: number;
   score: number;
+  // Codex discoveries accrued during the run.
+  biome: BiomeId | null;
+  enemiesSeen: EnemyKind[];
+  cardsSeen: string[];
 }

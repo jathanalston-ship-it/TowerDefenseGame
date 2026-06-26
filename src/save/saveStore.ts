@@ -24,6 +24,19 @@ export interface SaveData {
   essence: number;
   components: number;
   catalyst: number;
+  // collection / motivation layer (discovered content + unlocked achievements + worn
+  // title). Added later — backfilled for old saves by normalizeSave; NOT in the type
+  // gate, so pre-codex saves still load and are simply backfilled empty.
+  codex: CodexData;
+  achievements: string[]; // unlocked achievement ids
+  title: string; // currently worn title (rarest unlocked), '' = none
+}
+
+/** Discovered content sets (stored as deduped id arrays for JSON portability). */
+export interface CodexData {
+  enemies: string[];
+  biomes: string[];
+  cards: string[];
 }
 
 export const CURRENT_VERSION = 1;
@@ -57,6 +70,7 @@ export function defaultSave(): SaveData {
     shards: 0, upgrades: {}, bestWave: 0, totalRuns: 0, lifetimeShards: 0, cardsSeen: 0,
     stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
     essence: 0, components: 0, catalyst: 0,
+    codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
   };
 }
 
@@ -102,6 +116,19 @@ function normalizeUpgrades(v: unknown): Record<string, number> {
   return out;
 }
 
+/** Deduped list of plausible id strings (drops junk; forward-compat with unknown ids). */
+function normalizeIdList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const seen = new Set<string>();
+  for (const x of v) if (typeof x === 'string' && x.length > 0 && x.length <= 64) seen.add(x);
+  return [...seen];
+}
+
+function normalizeCodex(v: unknown): CodexData {
+  const o = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
+  return { enemies: normalizeIdList(o.enemies), biomes: normalizeIdList(o.biomes), cards: normalizeIdList(o.cards) };
+}
+
 /** Build a clean SaveData from arbitrary (validated-shape) input — clamps ranges,
  *  drops junk keys, fills missing fields from defaults. */
 export function normalizeSave(raw: unknown): SaveData {
@@ -120,6 +147,9 @@ export function normalizeSave(raw: unknown): SaveData {
     essence: nonNegInt(o.essence),
     components: nonNegInt(o.components),
     catalyst: nonNegInt(o.catalyst),
+    codex: normalizeCodex(o.codex),
+    achievements: normalizeIdList(o.achievements),
+    title: typeof o.title === 'string' && o.title.length <= 64 ? o.title : '',
   };
 }
 

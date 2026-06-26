@@ -1,5 +1,6 @@
 import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
+import { Codex } from './Codex';
 import { SaveManager } from './SaveManager';
 import { ModePanel } from './ModePanel';
 import { CountUp } from './components/CountUp';
@@ -14,6 +15,7 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
         <p className="subtitle">
           Cyberpunk bio-horror tower defense — vertical slice. Grow, mutate, assimilate.
         </p>
+        {save.title ? <p className="player-title">⟡ {save.title}</p> : null}
       </div>
 
       <div className="panel">
@@ -51,6 +53,8 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
       </div>
 
       <MetaShop />
+
+      <Codex />
 
       <SaveManager />
 

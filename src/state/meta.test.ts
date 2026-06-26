@@ -5,7 +5,8 @@ import type { RunResult } from '../core/game';
 function result(over: Partial<RunResult>): RunResult {
   return {
     mode: 'classic', won: false, wave: 1, kills: 0, stageNumber: 0,
-    rewardMultiplier: 1, objectiveDone: false, objectiveBonus: 0, score: 0, ...over,
+    rewardMultiplier: 1, objectiveDone: false, objectiveBonus: 0, score: 0,
+    biome: null, enemiesSeen: [], cardsSeen: [], ...over,
   };
 }
 
@@ -68,6 +69,43 @@ describe('reward economy', () => {
     expect(meta.buyUpgrade('viral_apex')).toBe(true); // Prestige node, costs Catalyst
     expect(meta.get().catalyst).toBeLessThan(before.catalyst);
     expect(meta.get().shards).toBe(before.shards); // other currencies untouched
+    meta.reset();
+  });
+});
+
+describe('codex & achievements (motivation layer)', () => {
+  it('folds run discoveries into the permanent codex (deduped union)', () => {
+    meta.reset();
+    meta.recordRun(result({ mode: 'stage', won: true, stageNumber: 1, biome: 'marsh', enemiesSeen: ['runner', 'brute'], cardsSeen: ['sharpened_needles'] }));
+    let s = meta.get();
+    expect(s.codex.enemies.sort()).toEqual(['brute', 'runner']);
+    expect(s.codex.biomes).toEqual(['marsh']);
+    expect(s.codex.cards).toEqual(['sharpened_needles']);
+
+    // A second run unions new sightings without duplicating old ones.
+    meta.recordRun(result({ mode: 'endless', wave: 5, biome: 'marsh', enemiesSeen: ['runner', 'rusher'], cardsSeen: ['sharpened_needles', 'rapid_glands'] }));
+    s = meta.get();
+    expect(s.codex.enemies.sort()).toEqual(['brute', 'runner', 'rusher']);
+    expect(s.codex.biomes).toEqual(['marsh']); // not duplicated
+    expect(s.codex.cards.sort()).toEqual(['rapid_glands', 'sharpened_needles']);
+    expect(s.cardsSeen).toBe(2); // legacy count stays in sync
+    meta.reset();
+  });
+
+  it('unlocks achievements + a title, reporting only the NEW ones for this run', () => {
+    meta.reset();
+    // First finished run → "First Assimilation"; clearing all 12 classic waves → "Extraction" (+ title).
+    const r = meta.recordRun(result({ mode: 'classic', won: true, wave: 12, kills: 50 }));
+    expect(r.newAchievements).toContain('First Assimilation');
+    expect(r.newAchievements).toContain('Extraction');
+    expect(r.newTitle).toBe('Defender');
+    expect(meta.get().title).toBe('Defender');
+    expect(meta.get().achievements).toContain('extraction');
+
+    // A second, lesser run unlocks nothing new (idempotent — no repeats).
+    const r2 = meta.recordRun(result({ mode: 'classic', won: false, wave: 3 }));
+    expect(r2.newAchievements).toEqual([]);
+    expect(r2.newTitle).toBeNull();
     meta.reset();
   });
 });
