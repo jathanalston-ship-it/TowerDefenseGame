@@ -4,6 +4,7 @@
 
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 import { Registry } from './registry';
+import type { AbilityComponent, AuraAbility } from './ability';
 import type { TargetingProfile } from './targeting';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
@@ -39,6 +40,10 @@ export interface TowerDef {
   splash: number; // splash radius (0 = single target)
   color: string;
   blurb: string;
+  /** Optional explicit ability kit. When omitted, it's derived from `firing` + stats
+   * (see TOWER_ABILITIES) — so a NEW tower can instead compose reusable AbilityComponents
+   * directly (projectile + chain + poison, …) with no sim code. */
+  abilities?: AbilityComponent[];
   /** Targeting profile (data-driven). Omitted ⇒ 'closestToBase' (historical default). */
   targeting?: TargetingProfile;
 }
@@ -359,6 +364,36 @@ export const STATUS = {
   disruptVulnerability: 0.25, // +25% damage taken from all sources while disrupted
 };
 
+// ── Tower ability kits (Part 2: towers built from reusable ability components) ──
+// Each launch tower's attack is expressed as AbilityComponents executed by the shared
+// ability executor (game.ts), replacing the per-firing branches. For the launch roster
+// the kit is DERIVED from `firing` + stats (so behavior is byte-identical); a new tower
+// may instead set `def.abilities` directly and compose blocks freely.
+function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
+  if (d.abilities) return d.abilities;
+  switch (d.firing) {
+    case 'homing':
+      return [{ type: 'projectile', behavior: 'homing', damage: d.damage, speed: d.projectileSpeed, range: d.range }];
+    case 'splash':
+      return [{ type: 'projectile', behavior: 'splash', damage: d.damage, speed: d.projectileSpeed, range: d.range, splash: d.splash }];
+    case 'infest':
+      return [{ type: 'projectile', behavior: 'parasite', damage: d.damage, speed: d.projectileSpeed, range: d.range }];
+    case 'field':
+      // Psionic pulse: chip damage + Disruption to everything in range (no reaction —
+      // matches the original field pulse). Particle only emits when it catches a target.
+      return [{
+        type: 'aura', radius: d.range, damage: d.damage,
+        status: { kind: 'Disruption', amount: STATUS.disruptDuration }, particle: 'disrupt',
+      }];
+    case 'support':
+      return []; // economy/aura only — no attack
+  }
+}
+
+export const TOWER_ABILITIES: Record<TowerKind, AbilityComponent[]> = Object.fromEntries(
+  TOWER_ORDER.map((k) => [k, deriveTowerAbilities(TOWER_DEFS[k])]),
+) as Record<TowerKind, AbilityComponent[]>;
+
 // ── Heroes (autonomous battlefield units) ───────────────────────────────────
 // Data-driven roster (mirrors TOWER_DEFS). Each hero is a distinct AI profile:
 //   • 'dive'    — Ravager: charges the deepest threat, melee + Fracture (Kinetic).
@@ -443,6 +478,43 @@ export function heroProblems(d: HeroDef): string[] {
 export const heroRegistry = new Registry<HeroDef>('hero', { idOf: (d) => d.kind, validate: heroProblems });
 heroRegistry.registerAll(Object.values(HERO_DEFS));
 export const HERO_ORDER = heroRegistry.ids() as HeroKind[];
+
+// ── Hero ability kits (Part 2: heroes built from reusable ability components) ──
+// The role pulse (guard/control) and the signature ability are AbilityComponents run
+// by the shared executor — derived from the HeroDef fields so behavior is unchanged.
+function heroPulseAbility(d: HeroDef): AuraAbility | null {
+  if (d.pulseInterval <= 0) return null;
+  return {
+    type: 'aura',
+    radius: d.pulseRadius,
+    damage: d.pulseDamage > 0 ? d.pulseDamage : undefined,
+    status: d.pulseDisrupt > 0 ? { kind: 'Disruption', amount: d.pulseDisrupt } : undefined,
+    react: true,
+    particle: d.behavior === 'control' ? 'disrupt' : 'bloom',
+  };
+}
+function heroUltAbility(d: HeroDef): AbilityComponent[] {
+  const ab = d.ability;
+  const out: AbilityComponent[] = [];
+  if (ab.heal > 0) out.push({ type: 'heal', nucleus: ab.heal, self: ab.heal });
+  if (ab.damage > 0) {
+    out.push({
+      type: 'explosion', radius: ab.radius, damage: ab.damage,
+      status: ab.fracture > 0 ? { kind: 'Fracture', amount: ab.fracture } : undefined, react: true,
+    });
+  } else if (ab.disrupt > 0) {
+    // Pure control ult (Overseer Mass Override): flood Disruption, no damage/reaction.
+    out.push({ type: 'debuff', radius: ab.radius, status: { kind: 'Disruption', amount: ab.disrupt } });
+  }
+  return out;
+}
+
+export const HERO_PULSE: Record<HeroKind, AuraAbility | null> = Object.fromEntries(
+  HERO_ORDER.map((k) => [k, heroPulseAbility(HERO_DEFS[k])]),
+) as Record<HeroKind, AuraAbility | null>;
+export const HERO_ULT: Record<HeroKind, AbilityComponent[]> = Object.fromEntries(
+  HERO_ORDER.map((k) => [k, heroUltAbility(HERO_DEFS[k])]),
+) as Record<HeroKind, AbilityComponent[]>;
 
 // ── Economy ───────────────────────────────────────────────────────────────
 export const ECON = {

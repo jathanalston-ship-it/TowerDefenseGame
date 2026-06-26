@@ -40,6 +40,9 @@ import {
   TOWER_DEFS,
   TOWER_ORDER,
   TOTAL_WAVES,
+  TOWER_ABILITIES,
+  HERO_PULSE,
+  HERO_ULT,
   WAVES,
   WAVE_BOUNTY_GROWTH,
   WAVE_HP_GROWTH,
@@ -58,6 +61,8 @@ import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
 import { BOSS, DIRECTOR } from './config';
 import { Director } from './director';
+import { runAbilities, runAbility } from './ability';
+import type { AbilityCast, AbilityContext, ParticleKind, StatusApplication } from './ability';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
@@ -243,6 +248,16 @@ export class Game {
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
 
+  // ── Ability execution (Part 2): the shared executor's context + per-cast scratch ──
+  // The active cast's source (for mastery credit) + caster (for self-heal). Set right
+  // before runAbilities so the context's primitives credit/heal the right unit.
+  private abilitySourceKind: TowerKind | null = null;
+  private abilityHeroKind: HeroKind | null = null;
+  private abilityCaster: Hero | null = null;
+  private abilityTargeting: TargetingProfile = 'closestToBase'; // the active cast's target pick
+  private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
+  private readonly actx: AbilityContext = this.buildAbilityContext();
+
   constructor(
     seed: number,
     meta: MetaModifiers,
@@ -293,6 +308,83 @@ export class Game {
   /** The player-controlled (slot-1) hero — abilities, HUD, and pings target it. */
   private get primaryHero(): Hero {
     return this.heroes[0];
+  }
+
+  /** Build the ability executor's view of the sim. The Game owns the side-effects;
+   * ability components only call these primitives, so a tower/hero kit composes from
+   * reusable blocks without bespoke code. Per-cast source/caster live on the Game. */
+  private buildAbilityContext(): AbilityContext {
+    const self = this;
+    return {
+      pickTargets: (x, y, range, n) => this.pickTargets(x, y, range, n, this.abilityTargeting),
+      forEnemiesInRadius: (x, y, r, fn) => {
+        const r2 = r * r;
+        this.grid.forNeighbors(x, y, r, (e) => {
+          if (e.alive && dist2(x, y, e.x, e.y) <= r2) fn(e);
+        });
+      },
+      nearestEnemy: (x, y, range, exclude) => {
+        let best: Enemy | null = null;
+        let bd = range * range;
+        this.grid.forNeighbors(x, y, range, (e) => {
+          if (!e.alive || exclude.has(e.id)) return;
+          const d2 = dist2(x, y, e.x, e.y);
+          if (d2 <= bd) {
+            bd = d2;
+            best = e;
+          }
+        });
+        return best;
+      },
+      fireProjectile: (x, y, target, tx, ty, behavior, damage, speed, splash) => {
+        this.spawnProjectile(x, y, tx, ty, speed, target ? target.id : -1, damage, behavior, splash, this.abilitySourceKind);
+      },
+      dealDamage: (e, raw, flash) => {
+        const applied = this.applyDamage(e, raw, this.abilitySourceKind, flash);
+        if (this.abilityHeroKind) this.heroMasteryAccrual[this.abilityHeroKind].damage += applied;
+        return applied;
+      },
+      applyStatus: (e, status) => this.applyStatus(e, status),
+      reactOnHit: (e) => this.maybeShred(e),
+      healNucleus: (n) => {
+        this.integrity = Math.min(this.maxIntegrity, this.integrity + n);
+      },
+      healCaster: (n) => {
+        const h = this.abilityCaster;
+        if (h) h.hp = Math.min(h.maxHp, h.hp + n);
+      },
+      grantShield: () => {
+        /* reserved: no shield mechanic yet — the Part 3 status framework will back this */
+      },
+      particles: (x, y, kind: ParticleKind) => this.spawnParticles(x, y, PARTICLE[kind]),
+      sfx: (k) => this.pushSfx(k),
+      roll: () => this.rng.next(),
+      get extraProjectiles() {
+        return self.mods.needleExtraProjectiles;
+      },
+      get splashMult() {
+        return self.mods.splashRadiusMult;
+      },
+    };
+  }
+
+  /** Apply a status request to an enemy — the one place a StatusType maps to its field.
+   * (The Part 3 status framework will replace these direct fields with managed stacks.) */
+  private applyStatus(e: Enemy, status: StatusApplication): void {
+    switch (status.kind) {
+      case 'Fracture':
+        this.addFracture(e, status.amount);
+        break;
+      case 'Corrosion':
+        e.corrosion = status.amount;
+        break;
+      case 'Infection':
+        this.infect(e, status.amount);
+        break;
+      case 'Disruption':
+        e.disrupt = status.amount;
+        break;
+    }
   }
 
   // ── Intents (from the UI) ────────────────────────────────────────────────
@@ -727,56 +819,27 @@ export class Game {
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
-      // Bonus math flows through the universal modifier framework (combineMult is the
-      // canonical multiplier fold — bit-identical to the previous a*b*c product).
+      // Bonus math flows through the universal modifier framework (combineMult — the
+      // canonical multiplier fold, bit-identical to the previous a*b*c product).
       const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
       const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1;
       const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
       const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg);
-      const aim = def.targeting ?? 'closestToBase';
-      // Dispatch by firing behavior (data), not the specific tower kind — so a new
-      // tower reusing 'homing'/'splash' needs no change here.
-      if (def.firing === 'homing') {
-        const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles, aim);
-        if (targets.length === 0) continue;
-        for (const e of targets) {
-          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'homing', 0, t.kind);
-        }
-        t.cooldown = def.fireInterval / rateMult;
-      } else if (def.firing === 'splash') {
-        const target = this.pickTargets(t.x, t.y, def.range, 1, aim)[0];
-        if (!target) continue;
-        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult, t.kind);
-        t.cooldown = def.fireInterval / rateMult;
-      } else if (def.firing === 'infest') {
-        // Viral: launch a homing parasite. Low impact damage — the ramping,
-        // armor-ignoring Infection it seeds (and its death-spread) is the payoff.
-        const target = this.pickTargets(t.x, t.y, def.range, 1, aim)[0];
-        if (!target) continue;
-        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, target.id, def.damage * dmgMult, 'parasite', 0, t.kind);
-        t.cooldown = def.fireInterval / rateMult;
-      } else if (def.firing === 'field') {
-        // Neural: pulse a psionic field over everything in range (no projectile).
-        // The pulse cycles on its rhythm whether or not anything is caught.
-        this.fieldPulse(t, def.range, def.damage * dmgMult);
+      // The tower's attack is a list of reusable AbilityComponents (data), run by the
+      // shared executor — no per-firing branches. The targeting profile drives which
+      // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
+      this.abilitySourceKind = t.kind;
+      this.abilityHeroKind = null;
+      this.abilityCaster = null;
+      this.abilityTargeting = def.targeting ?? 'closestToBase';
+      this.castScratch.x = t.x;
+      this.castScratch.y = t.y;
+      this.castScratch.damageMult = dmgMult;
+      this.castScratch.target = null;
+      if (runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch)) {
         t.cooldown = def.fireInterval / rateMult;
       }
     }
-  }
-
-  /** Neural Obelisk pulse: Disrupt (slow + vulnerability) every enemy in range plus
-   * a token chip of direct damage. Its value is the debuff, not the chip. */
-  private fieldPulse(t: Tower, range: number, damage: number): void {
-    const r2 = range * range;
-    let hit = false;
-    this.grid.forNeighbors(t.x, t.y, range, (e) => {
-      if (!e.alive) return;
-      if (dist2(t.x, t.y, e.x, e.y) > r2) return;
-      e.disrupt = STATUS.disruptDuration; // refresh slow + vulnerability
-      this.applyDamage(e, damage, t.kind); // chip benefits from the vuln it just applied
-      hit = true;
-    });
-    if (hit) this.spawnParticles(t.x, t.y, PARTICLE.disrupt);
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -1150,7 +1213,7 @@ export class Game {
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // stays in/near the zone
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
-      this.heroPulse(h, def);
+      this.heroPulse(h);
       h.pulseCd = def.pulseInterval;
     }
   }
@@ -1172,7 +1235,7 @@ export class Game {
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
-      this.heroPulse(h, def);
+      this.heroPulse(h);
       h.pulseCd = def.pulseInterval;
     }
   }
@@ -1197,20 +1260,18 @@ export class Game {
 
   /** Shepherd/Overseer role pulse: AoE chip (+ Disruption for the controller) around
    * the hero. Credits hero mastery; cosmetic burst uses the FX rng only. */
-  private heroPulse(h: Hero, def: HeroDef): void {
-    const r2 = def.pulseRadius * def.pulseRadius;
-    const dmg = def.pulseDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
-    let hit = false;
-    this.grid.forNeighbors(h.x, h.y, def.pulseRadius, (e) => {
-      if (!e.alive || dist2(h.x, h.y, e.x, e.y) > r2) return;
-      if (def.pulseDisrupt > 0) e.disrupt = def.pulseDisrupt;
-      if (dmg > 0) {
-        this.heroMasteryAccrual[h.kind].damage += this.applyDamage(e, dmg);
-        this.maybeShred(e);
-      }
-      hit = true;
-    });
-    if (hit) this.spawnParticles(h.x, h.y, def.behavior === 'control' ? PARTICLE.disrupt : PARTICLE.bloom);
+  /** The guard/control role pulse — an aura AbilityComponent run by the shared executor. */
+  private heroPulse(h: Hero): void {
+    const pulse = HERO_PULSE[h.kind];
+    if (!pulse) return;
+    this.abilitySourceKind = null;
+    this.abilityHeroKind = h.kind;
+    this.abilityCaster = h;
+    this.castScratch.x = h.x;
+    this.castScratch.y = h.y;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.target = null;
+    runAbility(this.actx, pulse, this.castScratch);
   }
 
   /** Enemies in contact with a hero deal damage to it; at 0 HP the hero is downed. */
@@ -1243,19 +1304,16 @@ export class Game {
     h.x = px;
     h.y = py;
     h.rally = { x: px, y: py };
-    const dmgMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
-    if (ab.heal > 0) {
-      this.integrity = Math.min(this.maxIntegrity, this.integrity + ab.heal); // mend the Nucleus
-      h.hp = Math.min(h.maxHp, h.hp + ab.heal);
-    }
-    const r2 = ab.radius * ab.radius;
-    for (const e of this.enemies) {
-      if (!e.alive || dist2(px, py, e.x, e.y) > r2) continue;
-      if (ab.damage > 0) this.heroMasteryAccrual[h.kind].damage += this.applyDamage(e, ab.damage * dmgMult);
-      if (ab.fracture > 0) this.addFracture(e, ab.fracture);
-      if (ab.disrupt > 0) e.disrupt = ab.disrupt;
-      if (ab.damage > 0 || ab.fracture > 0) this.maybeShred(e);
-    }
+    // The signature ability is a list of AbilityComponents (heal + explosion / debuff),
+    // run by the shared executor — see HERO_ULT.
+    this.abilitySourceKind = null;
+    this.abilityHeroKind = h.kind;
+    this.abilityCaster = h;
+    this.castScratch.x = px;
+    this.castScratch.y = py;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.target = null;
+    runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
