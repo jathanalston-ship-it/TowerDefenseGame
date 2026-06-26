@@ -54,13 +54,14 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
 
       <SaveManager />
 
-      <div className="panel" style={{ color: 'var(--muted)', fontSize: 13 }}>
-        <b style={{ color: 'var(--text)' }}>How to play.</b> Place towers on the lit cells beside
-        the path (spend biomass). Press <b>Start Wave</b>. Survive 12 waves to extract. Between
-        waves, draft a Gene Card. Combine <span style={{ color: 'var(--kinetic)' }}>Fracture</span>{' '}
-        (Needle/Hero) with <span style={{ color: 'var(--caustic)' }}>Corrosion</span> (Mortar) to
-        trigger <b style={{ color: '#fff066' }}>SHRED</b>. Place a{' '}
-        <span style={{ color: 'var(--vital)' }}>Flesh Reactor</span> next to towers to overcharge
+      <div className="panel how-to">
+        <b style={{ color: 'var(--text)' }}>How to play.</b> Grow towers on the lit slots in your
+        defensive zone (spend biomass). Press <b>Start Wave</b>: enemies swarm from the top — hold
+        the line at the bottom. Survive 12 waves to extract. Between waves, draft a Gene Card.
+        Combine <span style={{ color: 'var(--kinetic)' }}>Fracture</span> (Needle/Hero) with{' '}
+        <span style={{ color: 'var(--caustic)' }}>Corrosion</span> (Mortar) to trigger{' '}
+        <b style={{ color: '#fff066' }}>SHRED</b>. Grow a{' '}
+        <span style={{ color: 'var(--vital)' }}>Flesh Reactor</span> beside towers to overcharge
         them. Earn Shards to buy permanent upgrades.
       </div>
     </div>
