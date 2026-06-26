@@ -98,6 +98,11 @@ export interface EnemyDef {
   radius: number;
   color: string;
   behavior: EnemyBehavior;
+  // ── Archetype hooks (each is one optional data field, no bespoke per-type code) ──
+  shield?: number; // Shielded — soaks this much damage before HP is touched
+  regen?: { perSec: number; delay: number }; // Regenerating — heals after `delay`s unhurt
+  split?: { kind: EnemyKind; count: number }; // Splitter — bursts into these on death
+  ranged?: { range: number; damage: number; interval: number; speed: number }; // Ranged — shoots the hero
 }
 
 export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
@@ -130,6 +135,35 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   burrower: {
     kind: 'burrower', name: 'Gut Tunneler', hp: 90, armor: 6, speed: 58, bounty: 22, damage: 8, radius: 12, color: '#e8a04a',
     behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true }, // tunnels gaps
+  },
+
+  // ── Combat archetypes — each is mostly a data profile + one archetype hook. ──
+  // Splitter: a fat sac that bursts into a knot of Skitterlings — punish single-
+  // target overkill; reward AoE (Mortar) parked behind it.
+  splitter: {
+    kind: 'splitter', name: 'Brood Sac', hp: 130, armor: 4, speed: 44, bounty: 26, damage: 9, radius: 16, color: '#c7e04a',
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.35, jitter: 0.05 },
+    split: { kind: 'runner', count: 3 },
+  },
+  // Ranged: hangs back and shoots the hero — towers must reach it; keep the hero clear.
+  spitter: {
+    kind: 'spitter', name: 'Bile Spitter', hp: 72, armor: 2, speed: 50, bounty: 24, damage: 6, radius: 12, color: '#ff5db0',
+    behavior: { seek: 0.9, avoidTowers: 0.2, avoidHero: 0.75, separation: 0.3, jitter: 0.08 }, // kites the hero
+    ranged: { range: 190, damage: 16, interval: 1.9, speed: 230 },
+  },
+  // Regenerating: heals fast unless kept under pressure — counter with Corrosion
+  // pools (continuous DoT) or burst it down before regen kicks in.
+  mender: {
+    kind: 'mender', name: 'Knit Crawler', hp: 165, armor: 6, speed: 40, bounty: 32, damage: 8, radius: 14, color: '#3fe08a',
+    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.25, separation: 0.35, jitter: 0.06 },
+    regen: { perSec: 16, delay: 1.6 },
+  },
+  // Shielded: a hard shield soaks the first hits — needs sustained fire or splash
+  // to crack before the body even takes damage (Needle focus / Mortar chip).
+  warden: {
+    kind: 'warden', name: 'Carapace Warden', hp: 150, armor: 8, speed: 38, bounty: 36, damage: 11, radius: 16, color: '#6e9bff',
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.18, separation: 0.3, jitter: 0.03 },
+    shield: 130,
   },
 };
 
@@ -170,46 +204,74 @@ export interface SpawnGroup {
 }
 export type WaveDef = SpawnGroup[];
 
+// Waves introduce the archetypes one at a time, then remix them so each demands a
+// different answer (Fast→front coverage, Tank/Shielded→focus fire, Splitter→AoE,
+// Regen→sustained/DoT, Ranged→protect the hero).
 export const WAVES: WaveDef[] = [
+  // 1 — Skitterling intro
   [{ kind: 'runner', count: 8, spacing: 0.9, delay: 0.5 }],
-  [{ kind: 'runner', count: 12, spacing: 0.8, delay: 0.5 }],
+  // 2 — first Razor Sprinters (Fast)
   [
-    { kind: 'runner', count: 10, spacing: 0.7, delay: 0.4 },
-    { kind: 'brute', count: 2, spacing: 1.6, delay: 3.5 },
+    { kind: 'runner', count: 10, spacing: 0.75, delay: 0.5 },
+    { kind: 'rusher', count: 3, spacing: 1.0, delay: 2.2 },
   ],
+  // 3 — fast pressure
   [
-    { kind: 'runner', count: 14, spacing: 0.65, delay: 0.4 },
-    { kind: 'brute', count: 3, spacing: 1.5, delay: 4.0 },
+    { kind: 'rusher', count: 6, spacing: 0.6, delay: 0.4 },
+    { kind: 'runner', count: 10, spacing: 0.6, delay: 1.6 },
   ],
+  // 4 — first Carapace Warden (Shielded) behind brutes
   [
-    { kind: 'brute', count: 6, spacing: 1.2, delay: 0.5 },
-    { kind: 'runner', count: 8, spacing: 0.7, delay: 2.0 },
+    { kind: 'brute', count: 3, spacing: 1.4, delay: 0.5 },
+    { kind: 'warden', count: 1, spacing: 1, delay: 3.0 },
+    { kind: 'runner', count: 8, spacing: 0.6, delay: 4.5 },
   ],
-  [{ kind: 'runner', count: 22, spacing: 0.45, delay: 0.4 }],
-  [
-    { kind: 'brute', count: 8, spacing: 1.0, delay: 0.5 },
-    { kind: 'runner', count: 10, spacing: 0.6, delay: 1.5 },
-  ],
+  // 5 — Knit Crawlers (Regen) in a swarm
   [
     { kind: 'runner', count: 16, spacing: 0.45, delay: 0.4 },
-    { kind: 'brute', count: 6, spacing: 1.1, delay: 2.0 },
+    { kind: 'mender', count: 2, spacing: 2.0, delay: 2.5 },
   ],
+  // 6 — Brood Sacs (Splitter) + fast
   [
-    { kind: 'brute', count: 10, spacing: 0.9, delay: 0.5 },
-    { kind: 'runner', count: 14, spacing: 0.5, delay: 1.5 },
+    { kind: 'rusher', count: 6, spacing: 0.6, delay: 0.4 },
+    { kind: 'splitter', count: 2, spacing: 2.6, delay: 2.0 },
+    { kind: 'runner', count: 8, spacing: 0.6, delay: 3.0 },
   ],
+  // 7 — Bile Spitters (Ranged) behind a brute screen
   [
-    { kind: 'runner', count: 24, spacing: 0.4, delay: 0.4 },
-    { kind: 'brute', count: 6, spacing: 1.0, delay: 3.0 },
+    { kind: 'brute', count: 5, spacing: 1.1, delay: 0.5 },
+    { kind: 'spitter', count: 3, spacing: 1.4, delay: 2.2 },
   ],
+  // 8 — Wardens + swarm + fast
   [
-    { kind: 'brute', count: 14, spacing: 0.8, delay: 0.5 },
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 2.0 },
+    { kind: 'warden', count: 2, spacing: 2.2, delay: 0.5 },
+    { kind: 'runner', count: 14, spacing: 0.42, delay: 1.5 },
+    { kind: 'rusher', count: 4, spacing: 0.7, delay: 3.2 },
   ],
+  // 9 — Menders + brutes + fast
+  [
+    { kind: 'mender', count: 3, spacing: 1.7, delay: 0.5 },
+    { kind: 'brute', count: 5, spacing: 1.0, delay: 2.0 },
+    { kind: 'rusher', count: 5, spacing: 0.6, delay: 3.6 },
+  ],
+  // 10 — Splitter wave
+  [
+    { kind: 'splitter', count: 4, spacing: 1.7, delay: 0.5 },
+    { kind: 'runner', count: 16, spacing: 0.4, delay: 2.2 },
+  ],
+  // 11 — Ranged + Shielded + brutes
+  [
+    { kind: 'spitter', count: 4, spacing: 1.3, delay: 0.5 },
+    { kind: 'warden', count: 2, spacing: 2.4, delay: 1.8 },
+    { kind: 'brute', count: 6, spacing: 0.9, delay: 3.2 },
+  ],
+  // 12 — Brood Tyrant finale + a taste of everything
   [
     { kind: 'tyrant', count: 1, spacing: 1, delay: 1.0 },
-    { kind: 'brute', count: 8, spacing: 0.9, delay: 2.0 },
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 4.0 },
+    { kind: 'warden', count: 2, spacing: 2.0, delay: 2.0 },
+    { kind: 'splitter', count: 2, spacing: 2.6, delay: 3.5 },
+    { kind: 'spitter', count: 3, spacing: 1.5, delay: 5.0 },
+    { kind: 'runner', count: 16, spacing: 0.45, delay: 6.0 },
   ],
 ];
 

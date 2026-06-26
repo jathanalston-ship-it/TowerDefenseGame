@@ -266,6 +266,7 @@ export function drawGame(
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
   for (const e of rs.enemies) drawEnemy(ctx, e, detail);
+  drawEnemyShots(ctx, rs);
 
   drawParticles(ctx, rs);
   drawHero(ctx, rs);
@@ -735,6 +736,46 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
   ctx.fill();
 
   if (detail) {
+    // ── Archetype tells — read the threat at a glance ──
+    if (def.split) {
+      // Brood Sac: segmented, ready to burst
+      ctx.strokeStyle = 'rgba(20,28,10,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(e.x - r * 0.7, drawY);
+      ctx.lineTo(e.x + r * 0.7, drawY);
+      ctx.moveTo(e.x, drawY - r * 0.7);
+      ctx.lineTo(e.x, drawY + r * 0.7);
+      ctx.stroke();
+    }
+    if (def.regen) {
+      // Knit Crawler: a vitality cross
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(e.x - 3.2, drawY);
+      ctx.lineTo(e.x + 3.2, drawY);
+      ctx.moveTo(e.x, drawY - 3.2);
+      ctx.lineTo(e.x, drawY + 3.2);
+      ctx.stroke();
+    }
+    if (def.ranged) {
+      // Bile Spitter: a maw that brightens as it readies a shot
+      const charge = Math.max(0, 1 - e.attackCd / def.ranged.interval);
+      ctx.fillStyle = `rgba(255,160,220,${0.3 + charge * 0.6})`;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, 3 + charge * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (e.shield > 0 && e.maxShield > 0) {
+      // Carapace Warden: a depleting shield arc
+      const frac = Math.min(1, e.shield / e.maxShield);
+      ctx.strokeStyle = 'rgba(150,200,255,0.9)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 5, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+      ctx.stroke();
+    }
     if (e.corrosion > 0) {
       ctx.strokeStyle = rgba(RGB.caustic, 0.9); // Corrosion = caustic ring
       ctx.lineWidth = 2;
@@ -851,6 +892,31 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     ctx.fillStyle = SOLID.gold;
     ctx.fillRect(h.x - w / 2, h.y - 22, w * pct, 3);
   }
+}
+
+/** Ranged-enemy shots streaking toward the hero (magenta, with a short tail). */
+function drawEnemyShots(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  if (rs.enemyShots.length === 0) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  for (const s of rs.enemyShots) {
+    const dx = s.tx - s.x;
+    const dy = s.ty - s.y;
+    const l = Math.hypot(dx, dy) || 1;
+    ctx.strokeStyle = 'rgba(255,93,176,0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(s.x - (dx / l) * 8, s.y - (dy / l) * 8);
+    ctx.lineTo(s.x, s.y);
+    ctx.stroke();
+    ctx.fillStyle = '#ff8ad0';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 function drawParticles(ctx: CanvasRenderingContext2D, rs: RenderState): void {

@@ -6,7 +6,18 @@ import type { Vec2 } from './math';
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion';
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
-export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
+export type EnemyKind =
+  | 'runner'
+  | 'brute'
+  | 'tyrant'
+  | 'rusher' // Fast
+  | 'tank' // Tank
+  | 'flyer'
+  | 'burrower'
+  | 'splitter' // bursts into smaller enemies on death
+  | 'spitter' // Ranged — shoots the hero from afar
+  | 'mender' // Regenerating — heals unless recently hurt
+  | 'warden'; // Shielded — a shield soaks damage before HP
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
@@ -30,6 +41,23 @@ export interface Enemy {
   slowUntil: number; // sim-time an external slow (reactor aura) expires
   weakenUntil: number; // sim-time the reactor "weaken" mark (+damage taken) expires
   shredFlash: number; // seconds of reaction flash remaining (visual)
+  // archetype state
+  shield: number; // current shield HP (absorbed before HP); 0 if none
+  maxShield: number;
+  lastHitTime: number; // sim-time of last damage (gates regen)
+  attackCd: number; // ranged-attack cooldown (spitter)
+  alive: boolean;
+}
+
+/** A projectile fired by a Ranged enemy at the hero. Tiny dedicated list — keeps
+ *  the tower Projectile type clean. */
+export interface EnemyShot {
+  x: number;
+  y: number;
+  tx: number;
+  ty: number;
+  speed: number;
+  damage: number;
   alive: boolean;
 }
 

@@ -48,6 +48,7 @@ import type { CardContext, CardDef, RunModifiers } from './cards';
 import type {
   Enemy,
   EnemyKind,
+  EnemyShot,
   Hero,
   HudSnapshot,
   MetaModifiers,
@@ -71,6 +72,7 @@ export interface RenderState {
   enemies: Enemy[];
   towers: Tower[];
   projectiles: Projectile[];
+  enemyShots: EnemyShot[];
   pools: Pool[];
   floats: FloatingText[];
   particles: Particle[];
@@ -102,6 +104,7 @@ export class Game {
   enemies: Enemy[] = [];
   towers: Tower[] = [];
   projectiles: Projectile[] = [];
+  enemyShots: EnemyShot[] = []; // Ranged-enemy shots aimed at the hero
   pools: Pool[] = [];
   floats: FloatingText[] = [];
   particles: Particle[] = [];
@@ -295,8 +298,10 @@ export class Game {
       this.projectileSystem(dt);
       this.poolSystem(dt);
       this.statusSystem(dt);
+      this.enemyAbilitySystem(dt);
       this.enemyMoveSystem(dt);
       this.heroSystem(dt);
+      this.enemyShotSystem(dt);
       this.deathSystem();
       this.floatSystem(dt);
       this.particleSystem(dt);
@@ -331,13 +336,19 @@ export class Game {
 
   private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
-    const def = ENEMY_DEFS[kind];
     const spawn = topSpawn(this.rng.next());
+    this.makeEnemyAt(kind, spawn.x, spawn.y, hpMult, bountyMult);
+  }
+
+  /** Construct + register one enemy (shared by top spawns and splits). */
+  private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number): void {
+    const def = ENEMY_DEFS[kind];
+    const shield = def.shield ?? 0;
     this.enemies.push({
       id: this.nextId++,
       kind,
-      x: spawn.x,
-      y: spawn.y,
+      x,
+      y,
       hp: def.hp * hpMult,
       maxHp: def.hp * hpMult,
       baseArmor: def.armor,
@@ -349,6 +360,10 @@ export class Game {
       slowUntil: 0,
       weakenUntil: 0,
       shredFlash: 0,
+      shield,
+      maxShield: shield,
+      lastHitTime: 0,
+      attackCd: def.ranged ? def.ranged.interval : 0,
       alive: true,
     });
   }
@@ -589,6 +604,77 @@ export class Game {
         this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt); // light tick from the status itself
       }
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
+    }
+  }
+
+  /**
+   * Per-archetype abilities driven by one data field each:
+   *   • Regenerating (mender) — heal once it hasn't been hurt for `delay`s. Corrosion
+   *     ticks (and any pressure) keep stamping lastHitTime, so DoT shuts it off.
+   *   • Ranged (spitter) — when the hero is in range, lob a shot at where it stands.
+   */
+  private enemyAbilitySystem(dt: number): void {
+    const h = this.hero;
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const def = ENEMY_DEFS[e.kind];
+      if (def.regen && e.hp < e.maxHp && this.time - e.lastHitTime >= def.regen.delay) {
+        e.hp = Math.min(e.maxHp, e.hp + def.regen.perSec * dt);
+      }
+      if (def.ranged) {
+        e.attackCd -= dt;
+        if (
+          e.attackCd <= 0 && !h.down &&
+          dist2(e.x, e.y, h.x, h.y) <= def.ranged.range * def.ranged.range
+        ) {
+          this.enemyShots.push({ x: e.x, y: e.y, tx: h.x, ty: h.y, speed: def.ranged.speed, damage: def.ranged.damage, alive: true });
+          e.attackCd = def.ranged.interval;
+        }
+      }
+    }
+  }
+
+  /** Move ranged shots toward their fired point; on arrival they hit the hero only
+   *  if it's still near it — so a moving hero can sidestep them (positioning matters). */
+  private enemyShotSystem(dt: number): void {
+    const h = this.hero;
+    for (const s of this.enemyShots) {
+      const step = s.speed * dt;
+      if (dist(s.x, s.y, s.tx, s.ty) <= step + 4) {
+        if (!h.down && !this.god && dist(s.tx, s.ty, h.x, h.y) <= 24) {
+          h.hp -= s.damage;
+          if (h.hp <= 0) {
+            h.down = true;
+            h.respawn = HERO.respawnTime;
+            this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+          }
+        }
+        this.spawnParticles(s.tx, s.ty, PARTICLE.heroHit);
+        s.alive = false;
+      } else {
+        const np = moveToward(s.x, s.y, s.tx, s.ty, step);
+        s.x = np.x;
+        s.y = np.y;
+      }
+    }
+    const ss = this.enemyShots;
+    for (let i = ss.length - 1; i >= 0; i--) {
+      if (!ss[i].alive) {
+        ss[i] = ss[ss.length - 1];
+        ss.pop();
+      }
+    }
+  }
+
+  /** Splitter death — burst into a small knot of children (deterministic offsets). */
+  private spawnSplit(parent: Enemy, split: { kind: EnemyKind; count: number }): void {
+    for (let i = 0; i < split.count; i++) {
+      if (this.enemies.length >= PERF.maxEnemies) break;
+      const ang = this.rng.next() * Math.PI * 2;
+      const d = 8 + this.rng.next() * 12;
+      const x = Math.max(8, Math.min(WIDTH - 8, parent.x + Math.cos(ang) * d));
+      const y = parent.y + Math.sin(ang) * d;
+      this.makeEnemyAt(split.kind, x, y, 1, 1); // children unscaled — keeps splits fair
     }
   }
 
@@ -862,6 +948,8 @@ export class Game {
         this.biomass += e.bounty * this.mods.biomassMult;
         this.armorBreakUntil.delete(e.id);
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
+        const split = ENEMY_DEFS[e.kind].split;
+        if (split) this.spawnSplit(e, split); // Splitter: burst into children
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -972,8 +1060,21 @@ export class Game {
     if (!e.alive) return;
     let mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.weakenUntil > this.time) mult += ECON.reactorWeaken; // reactor aura mark
-    const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
-    e.hp -= applied;
+    this.hurt(e, Math.max(1, raw * mult - this.effectiveArmor(e)));
+  }
+
+  /** Apply post-mitigation damage, draining the shield first and stamping the hit
+   *  time (which gates regen). Every damage path funnels through here so Shielded
+   *  and Regenerating enemies behave consistently. */
+  private hurt(e: Enemy, amount: number): void {
+    if (amount <= 0 || !e.alive) return;
+    e.lastHitTime = this.time;
+    if (e.shield > 0) {
+      const absorbed = Math.min(e.shield, amount);
+      e.shield -= absorbed;
+      amount -= absorbed;
+    }
+    if (amount > 0) e.hp -= amount;
   }
 
   /** Fracture + Corrosion present → consume Fracture for a true-damage burst + armor break. */
@@ -981,7 +1082,7 @@ export class Game {
     if (!e.alive) return;
     if (e.fracture >= 1 && e.corrosion > 0) {
       const burst = STATUS.shredBase + STATUS.shredPerStack * e.fracture;
-      e.hp -= burst; // true damage, ignores armor
+      this.hurt(e, burst); // true damage (ignores armor), but the shield still soaks it
       this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
       e.fracture = 0;
       e.shredFlash = STATUS.shredFlash;
@@ -1061,6 +1162,7 @@ export class Game {
       enemies: this.enemies,
       towers: this.towers,
       projectiles: this.projectiles,
+      enemyShots: this.enemyShots,
       pools: this.pools,
       floats: this.floats,
       particles: this.particles,
