@@ -13,6 +13,14 @@ know each step is done.**
 > milestone is a **coherent, playable checkpoint** (per `CLAUDE.md` — finish in full;
 > no half-wired features carried forward).
 
+> **Where we are now (see `GAME-STATE.md`):** a **cross-cutting vertical slice** is
+> playable — it realizes the *core* of M1–M7 (combat, status/SHRED, three modes,
+> procedural stages + biomes, the card draft) plus shipped subsets of M8/M10/M11/M12
+> (saves, multi-currency meta economy, the four upgrade tracks incl. a Prestige
+> Catalyst sink, and the Codex/achievements/titles collection layer). The breadth
+> and depth each milestone fully specifies — gear (M9), the prestige *layers* (M12–14),
+> Ω-tiers (M14) — remain **designed, not built**. `GAME-STATE.md` is the live tracker.
+
 ---
 
 ## Guiding principles

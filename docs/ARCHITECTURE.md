@@ -128,6 +128,22 @@ and it's the only way a React app survives hundreds of moving entities at 60 FPS
 
 ## 4. Module map
 
+> **As-built note (see `GAME-STATE.md`).** The tree below is the **target**
+> architecture for the full game. The shipped **vertical slice** keeps the same
+> load-bearing ideas — a deterministic, DOM-free `src/core/` strictly separated
+> from React — but is intentionally **simpler** than the blueprint:
+> - **Canvas 2D**, not PixiJS (`src/render/renderer.ts`).
+> - **Single-threaded** — the sim runs on the main thread via
+>   `requestAnimationFrame` in `src/ui/GameView.tsx`; **no Web Worker/Comlink** yet.
+> - **`useSyncExternalStore`** stores (`src/state/store.ts`, `meta.ts`), not Zustand.
+> - **Flat content tables** in `src/core/config.ts` / `cards.ts` / `biomes.ts` /
+>   `achievements.ts` (typed TS records), not per-type folders + Zod schemas.
+> - Actual layout: `src/core/` (sim, `config`, `cards`, `stage`, `biomes`,
+>   `achievements`, `map`, `rng`, `spatial`, `math`), `src/render/`, `src/state/`,
+>   `src/save/`, `src/ui/`, `src/debug/`. The `core → never imports React/DOM` rule
+>   already holds. The richer structure below is adopted incrementally as the game
+>   grows (Worker offload, content registry, etc.).
+
 Feature-and-layer folders with **enforced dependency direction** (§18). The split
 between `core` (durable, deterministic) and `app` (web-specific) is deliberate:
 

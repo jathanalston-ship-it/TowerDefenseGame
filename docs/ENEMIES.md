@@ -11,6 +11,14 @@ varied build (anti-homogenization, `DESIGN.md §15 risk #4`).
 > long-term build variety. Each faction also **farms a different currency**
 > (`ECONOMY.md`), giving players a reason to choose where to fight.
 
+> **Implemented status (see `GAME-STATE.md`):** ✅ **11 enemy kinds** are live and
+> fully data-driven (`ENEMY_DEFS`), built from generic **archetype hooks**
+> (shielded / regenerating / splitter / ranged) plus steering profiles — see
+> `CONTENT-GUIDE.md §Enemies`. Bosses use an **`isBoss`** data flag (the **Brood
+> Tyrant** is the first). The formal **five-faction** framing, per-faction
+> currency farming, and elite/boss-phase systems below are **designed**; the
+> shipped enemies are organized by archetype rather than explicit factions.
+
 ---
 
 ## Faction quick-reference

@@ -9,6 +9,13 @@ hero-only **E** bucket), `HEROES.md`, `TOWERS.md`. Three slots per hero —
 > attack behavior, armor alters survivability + passives, relics alter gameplay
 > rules.** Vertical power is hard-capped (`PROGRESSION §4.5`); variety is horizontal.
 
+> **Implemented status (see `GAME-STATE.md`):** ⚪ the hero **gear** system below
+> (weapons/armor/relics, affixes, sets, the **E** bucket) is **designed, not yet
+> built**. What ships today is the permanent **Equipment upgrade track** — a
+> Components-bought meta track (Carapace / Payload / Symbiote) detailed in
+> `ECONOMY.md` and `BALANCE-LOG.md`. The two are distinct: this doc specs the
+> future per-hero gear; that track is account-wide relics.
+
 ---
 
 ## 1. Slots & who uses what

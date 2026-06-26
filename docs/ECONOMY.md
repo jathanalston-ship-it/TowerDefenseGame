@@ -25,7 +25,7 @@ currencies are *spent*), `ENEMIES.md` (where they *drop*), `CARDS.md`, `TOWERS.m
 | `shards` | Genome Samples (power) | Stage + Classic | **Core** upgrades (damage / biomass / integrity / hero dmg) |
 | `components` | Equipment Components | Stage clears | **Equipment** track (integrity / splash / biomass) |
 | `essence` | Neural Fragments (mastery) | Endless | **Mastery** track (fire-rate / hero speed / start biomass) |
-| `catalyst` | Splice Threads (prestige) | Endless, deep waves | prestige progression (tracked; reset mechanic = future) |
+| `catalyst` | Splice Threads (prestige) | Endless, deep waves | **Prestige** track (global dmg / integrity / biomass — the slow "forever" lean) |
 
 `lifetimeShards` counts only Shards. Records: `bestStage`, `stagesCleared`,
 `bestEndlessScore`, `bestEndlessWave`.
@@ -59,14 +59,17 @@ Endless pays **no Shards** — its progression is the separate Mastery/Prestige 
 shards = floor(wave*ECON.shardsPerWave + kills*ECON.shardsPerKill)   // 8 / 0.4
 ```
 
-### Upgrade-cost curve (all tracks)
+### Upgrade-cost curve (all four tracks)
 `cost(level) = round(baseCost * costMult^level)`, capped at `maxLevel`. Core base
 25–35 / mult 1.45–1.5 / cap 10; Mastery base 30–40 / mult 1.5 / cap 6–8; Equipment
-base 25–30 / mult 1.45–1.5 / cap 6–8. Tuned in `BALANCE-LOG.md`.
+base 25–30 / mult 1.45–1.5 / cap 6–8; Prestige base 2 / mult 1.35 / cap 8–10 (rare
+Catalyst, so tiny absolute costs but a long geometric climb). Tuned in `BALANCE-LOG.md`.
 
 ### Long-term balance guarantees
 - **No dead currency:** every earned currency has a live sink (Shards→Core,
-  Components→Equipment, Essence→Mastery; Catalyst→prestige meter, future reset).
+  Components→Equipment, Essence→Mastery, Catalyst→Prestige). Per-mode coverage:
+  Classic advances Core; Stage advances Core + Equipment; Endless advances
+  Mastery + Prestige (see `BALANCE-LOG.md`).
 - **Parallel progression:** you're never blocked — Stage and Endless advance
   independent trees, so a wall in one is progress in the other.
 - **Modest power:** the three trees are additive and capped; maxing all is a

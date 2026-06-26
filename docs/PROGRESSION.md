@@ -9,6 +9,15 @@ every permanent system plugs into every other.
 > (buckets, curve types, interaction rules) is the durable part; the numbers are
 > tuning clay. This doc is the source of truth for the *why*.
 
+> **Implemented subset (see `GAME-STATE.md`):** today's build ships a **focused
+> slice** of this spec — **four permanent upgrade tracks** (Core / Mastery /
+> Equipment / Prestige) across **four currencies**, with the actual shipped
+> formulas, costs, and pacing in `ECONOMY.md` + `BALANCE-LOG.md`. The grand
+> structure below — stars, infinite mastery, class levels, hero gear buckets, and
+> the **six nested prestige layers** (Molt → Omega) — is **designed, not yet
+> built**. The non-power **collection / achievement / title** goals *are* built
+> (`COLLECTION.md`).
+
 > **Design oath (anti-inflation):** We reject the "1e300 damage" idle model.
 > **Permanent power is deliberately kept inside ~3–4 orders of magnitude and is
 > always summarized by a single Power Score.** Infinity lives in *depth* —

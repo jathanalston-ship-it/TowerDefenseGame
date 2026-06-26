@@ -10,6 +10,14 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 > your *draft upgrades* — all bought with **Mutation Fragments**. This keeps runs
 > wild and experimental without inflating permanent power (`PROGRESSION.md §1`).
 
+> **Implemented status (see `GAME-STATE.md`):** ✅ a **30-card** pool with the
+> rarity-weighted 1-of-3 **draft between waves** is live (`core/cards.ts`,
+> `ui/DraftModal.tsx`), including ~12 *behavioral* cards via the `RunModifiers`
+> hook pattern (`CONTENT-GUIDE.md §Gene Cards`). Cards drafted are recorded in the
+> **Codex** (`COLLECTION.md`). The permanent **pool-unlock / weighting / draft-
+> upgrade** economy (Mutation Fragments) described below is **designed, not yet
+> built** — today the full pool is always available.
+
 ---
 
 ## 1. Draft mechanics

@@ -13,6 +13,13 @@ the earlier bible.
 > parked as a candidate post-launch expansion class (the one acceptable "deferred"
 > item — genuinely out-of-scope future content).
 
+> **Implemented status (see `GAME-STATE.md`):** 🟡 **3 of 5** towers are live —
+> **Needle Spitter** (Kinetic), **Bone Mortar** (Caustic), and **Flesh Reactor**
+> (Vital) — with the full **Fracture + Corrosion → SHRED** reaction. The **Viral**
+> and **Neural** towers, and per-tower **star** ladders, are **designed, not yet
+> built**. Towers are data-driven (`TOWER_DEFS`); a stat-variant is one entry
+> (`CONTENT-GUIDE.md §Towers`).
+
 ---
 
 ## Canonical class & reaction framework

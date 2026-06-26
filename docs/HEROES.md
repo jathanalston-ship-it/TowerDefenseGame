@@ -9,6 +9,14 @@ Heroes share the five Combat Classes with towers (`TOWERS.md`).
 > optional move/focus ping), but does not micro every step. They are the
 > **active-skill** layer over the **placement** layer of towers.
 
+> **Implemented status (see `GAME-STATE.md`):** 🟡 one hero — **the Ravager**
+> (Kinetic; autonomous movement, melee cleave, and the **Apex Leap** ability) —
+> is live. The roster is now **data-driven** (`HEROES: Record<HeroId, HeroDef>` in
+> `config.ts`), so a stat-variant hero is a single table entry
+> (`CONTENT-GUIDE.md §Heroes`). The rest of this spec — additional launch heroes,
+> hero **slots 2–3**, stars/mastery/class tracks, and equipment — is **designed,
+> not yet built**.
+
 ---
 
 ## Autonomous-unit model
