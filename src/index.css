@@ -106,7 +106,8 @@ button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(1px) scale(0.985); /* tactile depress */
+  transition-duration: 0.05s; /* press registers immediately */
 }
 button:disabled {
   opacity: 0.42;
@@ -140,6 +141,14 @@ button:disabled {
   border-radius: var(--r-md);
   padding: var(--s4) var(--s4);
   box-shadow: var(--shadow-sm);
+  animation: panel-in var(--t-slow) both;
+}
+/* one-shot mount fade for framed surfaces (premium settle, no layout shift) */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 .panel-title {
   font-weight: 700;
@@ -239,10 +248,21 @@ button:disabled {
   overflow: hidden;
 }
 .bar-fill {
+  position: relative;
   height: 100%;
   border-radius: 999px;
   transition: width var(--t-med);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.12) inset;
+}
+/* glossy top sheen — sits over any inline fill color for a premium read */
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 45%;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+  pointer-events: none;
 }
 .bar-seg {
   position: absolute;
@@ -408,6 +428,7 @@ button:disabled {
   padding: 10px var(--s4);
   flex-wrap: wrap;
   box-shadow: var(--shadow-sm);
+  animation: panel-in var(--t-slow) both;
 }
 .hud-cell {
   display: flex;
@@ -548,6 +569,7 @@ canvas.board {
   border-radius: var(--r-md);
   padding: 10px var(--s3);
   box-shadow: var(--shadow-sm);
+  animation: panel-in var(--t-slow) both;
 }
 .tower-rail {
   display: flex;
@@ -638,6 +660,13 @@ canvas.board {
   border-color: var(--gold);
   background: var(--sel);
   box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(255, 210, 77, 0.2);
+  animation: sel-pulse 1.8s var(--ease-in-out) infinite;
+}
+/* a subtle "armed/selected" breathing glow — gentle, never flashy */
+@keyframes sel-pulse {
+  50% {
+    box-shadow: 0 0 0 1px var(--gold), 0 0 22px rgba(255, 210, 77, 0.34);
+  }
 }
 .hotkey {
   display: inline-grid;
@@ -680,6 +709,12 @@ canvas.board {
   border-color: var(--kinetic);
   color: var(--kinetic);
   box-shadow: 0 0 0 1px var(--kinetic), 0 0 14px rgba(90, 209, 255, 0.25);
+  animation: armed-pulse 1.6s var(--ease-in-out) infinite;
+}
+@keyframes armed-pulse {
+  50% {
+    box-shadow: 0 0 0 1px var(--kinetic), 0 0 20px rgba(90, 209, 255, 0.42);
+  }
 }
 .start-btn {
   display: flex;

@@ -1,5 +1,6 @@
 import type { HudSnapshot } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
+import { CountUp } from './components/CountUp';
 
 const PHASE_LABEL: Record<HudSnapshot['phase'], string> = {
   prep: 'PREP',
@@ -64,9 +65,8 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
       {/* ECONOMY + threat */}
       <div className="hud-cell tt" tabIndex={0}>
         <div className="hud-k">Biomass</div>
-        <div className="hud-v" style={{ color: 'var(--caustic)' }}>
-          {hud.biomass}
-        </div>
+        <CountUp className="hud-v" style={{ color: 'var(--caustic)' }} value={hud.biomass} />
+
         <span className="tt-bubble">In-run currency. Spend it to grow towers.</span>
       </div>
 

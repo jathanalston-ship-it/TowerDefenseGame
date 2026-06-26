@@ -1,4 +1,5 @@
 import type { RunResult, RunReward } from '../state/meta';
+import { CountUp } from './components/CountUp';
 
 export function Results({
   result,
@@ -18,15 +19,19 @@ export function Results({
         <div className="records" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
           <div className="record">
             <div className="k">Wave Reached</div>
-            <div className="v">{result.wave}</div>
+            <CountUp className="v" value={result.wave} animateFrom={0} duration={500} />
           </div>
           <div className="record">
             <div className="k">Kills</div>
-            <div className="v">{result.kills}</div>
+            <CountUp className="v" value={result.kills} animateFrom={0} duration={650} />
           </div>
         </div>
         <div className="reward" style={{ marginTop: 16 }}>
-          Banked <b>{reward.shardsEarned} ◆</b> Shards
+          Banked{' '}
+          <b>
+            <CountUp value={reward.shardsEarned} animateFrom={0} duration={700} /> ◆
+          </b>{' '}
+          Shards
           {reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best wave!</span>}
         </div>
       </div>

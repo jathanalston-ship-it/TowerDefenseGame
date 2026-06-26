@@ -1,6 +1,7 @@
 import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
 import { SaveManager } from './SaveManager';
+import { CountUp } from './components/CountUp';
 
 export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
   const save = meta.use();
@@ -17,21 +18,19 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
         <div className="records">
           <div className="record">
             <div className="k">Shards</div>
-            <div className="v" style={{ color: 'var(--gold)' }}>
-              {save.shards}
-            </div>
+            <CountUp className="v" style={{ color: 'var(--gold)' }} value={save.shards} />
           </div>
           <div className="record">
             <div className="k">Best Wave</div>
-            <div className="v">{save.bestWave}</div>
+            <CountUp className="v" value={save.bestWave} />
           </div>
           <div className="record">
             <div className="k">Runs</div>
-            <div className="v">{save.totalRuns}</div>
+            <CountUp className="v" value={save.totalRuns} />
           </div>
           <div className="record">
             <div className="k">Lifetime Shards</div>
-            <div className="v">{save.lifetimeShards}</div>
+            <CountUp className="v" value={save.lifetimeShards} />
           </div>
         </div>
       </div>
