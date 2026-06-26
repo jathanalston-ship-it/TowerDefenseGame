@@ -143,6 +143,22 @@ describe('save normalization (resilience to bad data)', () => {
     expect(normalizeSave(good)).toEqual(good);
   });
 
+  it('loads a pre-stage-mode save and backfills the new mode fields', () => {
+    // An old save predates stagesCleared/bestStage/bestEndless* — it must still
+    // load (it passes the type gate) with the new fields defaulted to 0.
+    const old = { shards: 42, upgrades: { lethality: 2 }, bestWave: 5, totalRuns: 3, lifetimeShards: 99, cardsSeen: 0 };
+    const r = parseImport(JSON.stringify(old));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.shards).toBe(42);
+      expect(r.data.bestWave).toBe(5);
+      expect(r.data.stagesCleared).toBe(0);
+      expect(r.data.bestStage).toBe(0);
+      expect(r.data.bestEndlessScore).toBe(0);
+      expect(r.data.bestEndlessWave).toBe(0);
+    }
+  });
+
   it('sanitizes out-of-range values injected via import', () => {
     // Negatives survive JSON (unlike Infinity/NaN, which become null and are
     // rejected by the type gate) — so they exercise import-time normalization.
