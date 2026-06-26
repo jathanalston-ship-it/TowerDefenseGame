@@ -17,7 +17,7 @@ import type { MasteryCounts, MetaModifiers, RunStats, TowerKind, TowerProgress }
 import { rollChest } from './lootbox';
 import type { ChestResult } from './lootbox';
 import { accumulateStats } from './stats';
-import { checkAchievements } from './achievements';
+import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
 
 const saveStore = new SaveStore();
@@ -206,7 +206,13 @@ export const meta = {
     const save = store.get();
     const newly = checkAchievements({ save, run });
     if (newly.length === 0) return [];
-    persist({ ...save, achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)] });
+    const reward = rewardFor(newly); // Shards granted for the unlock(s)
+    persist({
+      ...save,
+      shards: save.shards + reward,
+      lifetimeShards: save.lifetimeShards + reward,
+      achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)],
+    });
     return newly.map((a) => a.id);
   },
 
