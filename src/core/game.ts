@@ -23,9 +23,12 @@ import {
 } from './map';
 import type { TowerSlot } from './map';
 import {
+  COMBAT,
   ECON,
   ENEMY_DEFS,
+  FX,
   HERO,
+  MOVE,
   PARTICLE,
   PERF,
   SIM_DT,
@@ -40,6 +43,7 @@ import {
 } from './config';
 import {
   CARD_POOL,
+  applyCard,
   cardToOption,
   defaultRunModifiers,
   draftCards,
@@ -240,7 +244,7 @@ export class Game {
   chooseCard(id: string): void {
     if (this.phase !== 'draft' || !this.draft) return;
     const card = this.draft.find((c) => c.id === id);
-    if (card) card.apply(this.cardContext());
+    if (card) applyCard(card, this.cardContext());
     this.draft = null;
     this.phase = 'prep';
   }
@@ -439,7 +443,7 @@ export class Game {
         const dx = p.tx - p.x;
         const dy = p.ty - p.y;
         const d = Math.hypot(dx, dy); // one sqrt for both the arrival test and the move
-        if (d <= step + 4) {
+        if (d <= step + COMBAT.projectileHitEpsilon) {
           this.applyDamage(target, p.damage);
           this.addFracture(target, 1);
           this.maybeShred(target);
@@ -454,7 +458,7 @@ export class Game {
         const dx = p.tx - p.x;
         const dy = p.ty - p.y;
         const d = Math.hypot(dx, dy);
-        if (d <= step + 4) {
+        if (d <= step + COMBAT.projectileHitEpsilon) {
           this.mortarImpact(p);
           p.alive = false;
         } else {
@@ -537,7 +541,7 @@ export class Game {
    */
   private enemyMoveSystem(dt: number): void {
     const slowBase = STATUS.corrosionSlow + this.mods.corrosionSlowBonus;
-    const sepR = CELL * 0.9;
+    const sepR = MOVE.separationRadius;
     const sepR2 = sepR * sepR;
     const tR = STEER.towerAvoidRadius;
     const tR2 = tR * tR;
@@ -619,9 +623,9 @@ export class Game {
 
       // 5. organic wander (deterministic noise — never touches the gameplay RNG)
       if (b.jitter !== 0) {
-        const n = e.id * 0.137 + this.time * STEER.jitterFreq;
+        const n = e.id * MOVE.jitterIdScale + this.time * STEER.jitterFreq;
         vx += Math.sin(n) * b.jitter;
-        vy += Math.cos(n * 1.31) * b.jitter;
+        vy += Math.cos(n * MOVE.jitterPhase) * b.jitter;
       }
 
       const vl = Math.hypot(vx, vy) || 1;
@@ -711,7 +715,7 @@ export class Game {
     // Contact damage to the hero from nearby enemies (grid-local).
     let incoming = 0;
     const near = this.neighborScratch;
-    this.grid.queryInto(h.x, h.y, HERO.contactRange + 28, near);
+    this.grid.queryInto(h.x, h.y, HERO.contactRange + COMBAT.heroContactMargin, near);
     for (let k = 0; k < near.length; k++) {
       const e = near[k];
       if (!e.alive) continue;
@@ -771,7 +775,7 @@ export class Game {
     for (let i = fs.length - 1; i >= 0; i--) {
       const f = fs[i];
       f.life -= dt;
-      f.y -= 18 * dt;
+      f.y -= FX.floatRiseSpeed * dt;
       if (f.life <= 0) {
         fs[i] = fs[fs.length - 1];
         fs.pop();
@@ -813,8 +817,8 @@ export class Game {
       }
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vx *= 0.92; // drag
-      p.vy *= 0.92;
+      p.vx *= FX.particleDrag; // drag
+      p.vy *= FX.particleDrag;
     }
   }
 
@@ -939,7 +943,7 @@ export class Game {
   /** Apply a specific card's effect immediately (force a card selection). */
   debugApplyCard(id: string): void {
     const card = CARD_POOL.find((c) => c.id === id);
-    if (card) card.apply(this.cardContext());
+    if (card) applyCard(card, this.cardContext());
   }
 
   debugReviveHero(): void {

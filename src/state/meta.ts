@@ -23,15 +23,18 @@ function persist(next: SaveData): void {
   saveStore.save(next);
 }
 
-/** Permanent multipliers derived from upgrade levels (folded into a run at start). */
+/**
+ * Permanent multipliers derived from upgrade levels (folded into a run at start).
+ * Data-driven: each upgrade declares its target stat + per-level value (config),
+ * so adding an upgrade needs no change here. Multiplier stats base at 1, flat at 0.
+ */
 export function metaModifiers(save: SaveData): MetaModifiers {
-  const lvl = (id: string): number => save.upgrades[id] ?? 0;
-  return {
-    towerDamageMult: 1 + 0.08 * lvl('lethality'),
-    biomassMult: 1 + 0.1 * lvl('metabolism'),
-    heroDamageMult: 1 + 0.1 * lvl('apex'),
-    integrityBonus: 25 * lvl('nucleus'),
-  };
+  const m: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+  for (const u of META_UPGRADES) {
+    const level = save.upgrades[u.id] ?? 0;
+    if (level > 0) m[u.effect.stat] += u.effect.perLevel * level;
+  }
+  return m;
 }
 
 export function upgradeLevel(save: SaveData, id: string): number {

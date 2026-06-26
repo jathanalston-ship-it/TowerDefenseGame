@@ -50,33 +50,61 @@ export interface CardContext {
   healHero: (maxBonus: number) => void;
 }
 
+// Type-safe field references for data-driven effects: the number-valued vs
+// boolean-valued keys of RunModifiers.
+type RunModNumberKey = { [K in keyof RunModifiers]: RunModifiers[K] extends number ? K : never }[keyof RunModifiers];
+type RunModFlagKey = { [K in keyof RunModifiers]: RunModifiers[K] extends boolean ? K : never }[keyof RunModifiers];
+
+/** A single declarative card effect. New cards are pure data — no code. */
+export type CardEffect =
+  | { op: 'mul'; field: RunModNumberKey; value: number }
+  | { op: 'add'; field: RunModNumberKey; value: number }
+  | { op: 'flag'; field: RunModFlagKey }
+  | { op: 'biomass'; value: number } // instant biomass grant
+  | { op: 'integrity'; value: number } // instant max+current integrity
+  | { op: 'heroHp'; value: number }; // instant max+current hero HP
+
 export interface CardDef {
   id: string;
   name: string;
   rarity: CardRarity;
   category: string;
   description: string;
-  apply: (ctx: CardContext) => void;
+  effects: CardEffect[];
+}
+
+/** Apply a card's declarative effects to the run. The only card interpreter. */
+export function applyCard(def: CardDef, ctx: CardContext): void {
+  for (const e of def.effects) {
+    switch (e.op) {
+      case 'mul': ctx.mods[e.field] *= e.value; break;
+      case 'add': ctx.mods[e.field] += e.value; break;
+      case 'flag': ctx.mods[e.field] = true; break;
+      case 'biomass': ctx.grantBiomass(e.value); break;
+      case 'integrity': ctx.grantIntegrity(e.value); break;
+      case 'heroHp': ctx.healHero(e.value); break;
+    }
+  }
 }
 
 export const CARD_POOL: CardDef[] = [
   // ── Common ──
-  { id: 'sharpened_needles', name: 'Sharpened Needles', rarity: 'common', category: 'Tower Buff', description: '+12% tower damage.', apply: (c) => { c.mods.towerDamageMult *= 1.12; } },
-  { id: 'rapid_glands', name: 'Rapid Glands', rarity: 'common', category: 'Tower Buff', description: '+12% tower fire rate.', apply: (c) => { c.mods.towerFireRateMult *= 1.12; } },
-  { id: 'fertile_decay', name: 'Fertile Decay', rarity: 'common', category: 'Economy', description: '+18% biomass from kills.', apply: (c) => { c.mods.biomassMult *= 1.18; } },
-  { id: 'biomass_surge', name: 'Biomass Surge', rarity: 'common', category: 'Economy', description: 'Gain 180 biomass now.', apply: (c) => c.grantBiomass(180) },
-  { id: 'thick_marrow', name: 'Thick Marrow', rarity: 'common', category: 'Survival', description: '+45 max & current Integrity.', apply: (c) => c.grantIntegrity(45) },
-  { id: 'twin_fang', name: 'Twin Fang', rarity: 'common', category: 'Crits', description: 'Needle Spitter fires +1 extra needle.', apply: (c) => { c.mods.needleExtraProjectiles += 1; } },
-  { id: 'battle_stims', name: 'Battle Stims', rarity: 'common', category: 'Hero Buff', description: '+60 hero max & current HP.', apply: (c) => c.healHero(60) },
+  { id: 'sharpened_needles', name: 'Sharpened Needles', rarity: 'common', category: 'Tower Buff', description: '+12% tower damage.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
+  { id: 'rapid_glands', name: 'Rapid Glands', rarity: 'common', category: 'Tower Buff', description: '+12% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.12 }] },
+  { id: 'fertile_decay', name: 'Fertile Decay', rarity: 'common', category: 'Economy', description: '+18% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.18 }] },
+  { id: 'biomass_surge', name: 'Biomass Surge', rarity: 'common', category: 'Economy', description: 'Gain 180 biomass now.', effects: [{ op: 'biomass', value: 180 }] },
+  { id: 'thick_marrow', name: 'Thick Marrow', rarity: 'common', category: 'Survival', description: '+45 max & current Integrity.', effects: [{ op: 'integrity', value: 45 }] },
+  { id: 'twin_fang', name: 'Twin Fang', rarity: 'common', category: 'Crits', description: 'Needle Spitter fires +1 extra needle.', effects: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }] },
+  { id: 'battle_stims', name: 'Battle Stims', rarity: 'common', category: 'Hero Buff', description: '+60 hero max & current HP.', effects: [{ op: 'heroHp', value: 60 }] },
 
   // ── Rare ──
-  { id: 'caustic_catalyst', name: 'Caustic Catalyst', rarity: 'rare', category: 'Mutation Synergy', description: 'Bone Mortar also applies Fracture — enabling SHRED on its own.', apply: (c) => { c.mods.mortarAppliesFracture = true; } },
-  { id: 'volatile_marrow', name: 'Volatile Marrow', rarity: 'rare', category: 'AoE', description: '+35% splash radius, +8% tower damage.', apply: (c) => { c.mods.splashRadiusMult *= 1.35; c.mods.towerDamageMult *= 1.08; } },
-  { id: 'fracture_cascade', name: 'Fracture Cascade', rarity: 'rare', category: 'Crits', description: '+3 max Fracture stacks (deeper shred & damage).', apply: (c) => { c.mods.fractureBonusStacks += 3; } },
-  { id: 'apex_adrenaline', name: 'Apex Adrenaline', rarity: 'rare', category: 'Hero Buff', description: '+35% hero damage, −22% ability cooldown.', apply: (c) => { c.mods.heroDamageMult *= 1.35; c.mods.heroCooldownMult *= 0.78; } },
-  { id: 'lingering_acid', name: 'Lingering Acid', rarity: 'rare', category: 'Poison', description: 'Corrosion pools last +60% longer and tick +30% harder.', apply: (c) => { c.mods.mortarPoolDurationMult *= 1.6; c.mods.poolDpsMult *= 1.3; } },
-  { id: 'overcharged_veins', name: 'Overcharged Veins', rarity: 'rare', category: 'Tower Buff', description: '+25% reactor overcharge & +30% reactor biomass.', apply: (c) => { c.mods.reactorOverchargeBonus += 0.25; c.mods.reactorBiomassMult *= 1.3; } },
-  { id: 'swarm_bounty', name: 'Swarm Bounty', rarity: 'rare', category: 'Economy', description: '+28% biomass from kills.', apply: (c) => { c.mods.biomassMult *= 1.28; } },
+  { id: 'caustic_catalyst', name: 'Caustic Catalyst', rarity: 'rare', category: 'Mutation Synergy', description: 'Bone Mortar also applies Fracture — enabling SHRED on its own.', effects: [{ op: 'flag', field: 'mortarAppliesFracture' }] },
+  { id: 'volatile_marrow', name: 'Volatile Marrow', rarity: 'rare', category: 'AoE', description: '+35% splash radius, +8% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.35 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'fracture_cascade', name: 'Fracture Cascade', rarity: 'rare', category: 'Crits', description: '+3 max Fracture stacks (deeper shred & damage).', effects: [{ op: 'add', field: 'fractureBonusStacks', value: 3 }] },
+  { id: 'apex_adrenaline', name: 'Apex Adrenaline', rarity: 'rare', category: 'Hero Buff', description: '+35% hero damage, −22% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.35 }, { op: 'mul', field: 'heroCooldownMult', value: 0.78 }] },
+  { id: 'lingering_acid', name: 'Lingering Acid', rarity: 'rare', category: 'Poison', description: 'Corrosion pools last +60% longer and tick +30% harder.', effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.6 }, { op: 'mul', field: 'poolDpsMult', value: 1.3 }] },
+  { id: 'overcharged_veins', name: 'Overcharged Veins', rarity: 'rare', category: 'Tower Buff', description: '+25% reactor overcharge & +30% reactor biomass.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.25 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.3 }] },
+  { id: 'swarm_bounty', name: 'Swarm Bounty', rarity: 'rare', category: 'Economy', description: '+28% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.28 }] },
 ];
 
 const BY_RARITY: Record<CardRarity, CardDef[]> = {
