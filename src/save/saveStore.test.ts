@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { SaveStore, defaultSave, normalizeSave, parseImport, serializeExport } from './saveStore';
+import {
+  SaveStore,
+  defaultSave,
+  normalizeSave,
+  parseImport,
+  serializeExport,
+  fieldOp,
+  getMigrationLog,
+  clearMigrationLog,
+  CURRENT_VERSION,
+} from './saveStore';
 import type { SaveData, StorageLike } from './saveStore';
 
 function mem(): StorageLike & { map: Map<string, string> } {
@@ -168,6 +178,64 @@ describe('save normalization (resilience to bad data)', () => {
       expect(r.data.shards).toBe(0); // negative clamped
       expect(r.data.bestWave).toBe(3); // fractional floored
     }
+  });
+});
+
+describe('save version migration', () => {
+  it('migrates an explicit v1 save up to current, preserving values + adding new fields', () => {
+    clearMigrationLog();
+    const v1 = { schemaVersion: 1, data: { shards: 42, upgrades: { lethality: 2 }, bestWave: 5, totalRuns: 3, lifetimeShards: 99, cardsSeen: 0 } };
+    const r = parseImport(JSON.stringify(v1));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.shards).toBe(42); // original value preserved
+      expect(r.data.essence).toBe(0); // v2 additions, defaulted
+      expect(r.data.catalyst).toBe(0);
+      expect(r.data.codex).toEqual({ enemies: [], biomes: [], cards: [] });
+      expect(r.data.achievements).toEqual([]);
+      expect(r.data.title).toBe('');
+    }
+    const applied = getMigrationLog().find((e) => e.from === 1 && e.to === 2);
+    expect(applied).toBeTruthy();
+    expect(applied!.changes.length).toBeGreaterThan(0); // it actually added fields
+  });
+
+  it('does not re-run a migration on an already-current save', () => {
+    clearMigrationLog();
+    // serializeExport tags the blob with CURRENT_VERSION, so no step is newer.
+    const r = parseImport(serializeExport(defaultSave()));
+    expect(r.ok).toBe(true);
+    expect(getMigrationLog().length).toBe(0); // nothing newer than current ran
+  });
+
+  it('field ops add / drop / rename declaratively and idempotently', () => {
+    const d: Record<string, unknown> = { a: 1, old: 'x' };
+    expect(fieldOp.add(d, 'b', 2)).toBe('+b');
+    expect(d.b).toBe(2);
+    expect(fieldOp.add(d, 'a', 99)).toBeNull(); // present → no-op
+    expect(d.a).toBe(1); // value untouched
+    expect(fieldOp.rename(d, 'old', 'new')).toBe('old→new');
+    expect(d.new).toBe('x');
+    expect('old' in d).toBe(false);
+    expect(fieldOp.rename(d, 'old', 'new')).toBeNull(); // idempotent once renamed
+    expect(fieldOp.drop(d, 'b')).toBe('-b');
+    expect('b' in d).toBe(false);
+    expect(fieldOp.drop(d, 'b')).toBeNull(); // already gone
+  });
+
+  it('writes new saves at the current schema version', () => {
+    const s = mem();
+    new SaveStore(s).save(defaultSave());
+    const blob = JSON.parse(s.map.get('assimilate.save')!);
+    expect(blob.schemaVersion).toBe(CURRENT_VERSION);
+    expect(CURRENT_VERSION).toBe(2);
+  });
+
+  it('round-trips a current save through a stored blob unchanged (preserve current saves)', () => {
+    const store = new SaveStore(mem());
+    const data: SaveData = { ...defaultSave(), shards: 500, essence: 30, catalyst: 4, bestStage: 9, codex: { enemies: ['runner'], biomes: ['marsh'], cards: ['twin_fang'] }, achievements: ['first_run'], title: 'Defender' };
+    store.save(data);
+    expect(store.load()).toEqual(data); // no loss, no drift
   });
 });
 

@@ -51,7 +51,7 @@ updated whenever a system lands.
 | Prestige track (Catalyst sink) | 🟡 | `config.ts PRESTIGE_UPGRADES` | BALANCE-LOG |
 | Codex / collection (enemies·biomes·cards) | ✅ | `state/meta.ts`, `ui/Codex.tsx` | COLLECTION |
 | Achievements (16 / 5 chains) + titles | ✅ | `core/achievements.ts` | COLLECTION |
-| Save: versioned, checksummed, backups | ✅ | `save/saveStore.ts`, `ui/SaveManager.tsx` | ARCHITECTURE |
+| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v2, `MIGRATIONS`) | ARCHITECTURE §15.2 |
 | HUD / menus / results | ✅ | `src/ui/*` | HUD |
 | Debug panel | ✅ | `ui/DebugPanel.tsx`, `debug/debug.ts` | — |
 | Equipment **gear** (weapons/armor/relics) | ⚪ | — | EQUIPMENT, PROGRESSION |

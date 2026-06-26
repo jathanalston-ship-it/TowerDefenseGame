@@ -593,6 +593,21 @@ interface SaveBlob {
 - **Backups**: keep the last *k* autosaves in IndexedDB; export/import a save as a file
   (and a base64 string) for support and device transfer.
 
+> **As-built (✅ implemented, `src/save/saveStore.ts`).** The migration framework is
+> live at **`CURRENT_VERSION = 2`**. `migrate(version, data)` runs every ordered
+> `MIGRATIONS` step whose `to` is newer than the save's `schemaVersion`, logging each
+> applied step (`getMigrationLog()`; `console.info`). Steps are built from
+> declarative, idempotent **field ops** — `fieldOp.add` (addition + default),
+> `fieldOp.drop` (removal), `fieldOp.rename` (rename) — so re-running is harmless and
+> a current save is a no-op. The v1→v2 step formalizes the multi-currency economy +
+> codex/achievements fields that previously shipped as implicit `normalizeSave`
+> backfills (which remains as the final range-sanitizer). A missing `schemaVersion`
+> is assumed to be v1 so legacy saves migrate. Validation is the lightweight
+> `isSaveData` gate + `normalizeSave` (not Zod yet); storage is `localStorage` (not
+> IndexedDB yet); recovery (last-known-good → backups → defaults) is fully in place.
+> Adding a future field is one `fieldOp.add` in a new `{ to: 3, ... }` step — old
+> saves stay valid.
+
 ### 15.3 Storage & cadence
 
 - **IndexedDB** primary (async, large), `localStorage` fallback for tiny critical keys.

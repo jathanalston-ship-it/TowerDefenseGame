@@ -39,7 +39,7 @@ export interface CodexData {
   cards: string[];
 }
 
-export const CURRENT_VERSION = 1;
+export const CURRENT_VERSION = 2;
 const SAVE_KEY = 'assimilate.save';
 const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
@@ -153,11 +153,102 @@ export function normalizeSave(raw: unknown): SaveData {
   };
 }
 
-/** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
-function migrate(_version: number, data: unknown): unknown {
-  // No historical versions yet. Future shape changes add steps here, e.g.:
-  //   if (v < 2) { data = toV2(data); v = 2; }
-  return data;
+// ── Save version migration ───────────────────────────────────────────────────
+// Every save carries a `schemaVersion`. On load, `migrate` runs each ordered step
+// whose target is newer than the save's version, so an old save is brought up to
+// CURRENT_VERSION automatically and future schema changes never invalidate it.
+// Each step is idempotent (add-if-missing / rename-if-present / drop-if-present),
+// so re-running is harmless; every applied step is logged.
+
+type SaveRecord = Record<string, unknown>;
+
+/** Declarative field operations — the supported migration primitives. Each returns
+ *  a short change note (for the log) or null if it was a no-op on this save. */
+export const fieldOp = {
+  /** Add a field with a default value, only if it's missing (field addition). */
+  add(d: SaveRecord, key: string, value: unknown): string | null {
+    if (key in d) return null;
+    d[key] = value;
+    return `+${key}`;
+  },
+  /** Remove a field if present (field removal). */
+  drop(d: SaveRecord, key: string): string | null {
+    if (!(key in d)) return null;
+    delete d[key];
+    return `-${key}`;
+  },
+  /** Rename a field, preserving its value, if the source exists and the target
+   *  doesn't (field rename — idempotent: a no-op once already renamed). */
+  rename(d: SaveRecord, from: string, to: string): string | null {
+    if (!(from in d) || to in d) return null;
+    d[to] = d[from];
+    delete d[from];
+    return `${from}→${to}`;
+  },
+};
+
+interface Migration {
+  to: number; // the schema version this step produces
+  describe: string;
+  up: (d: SaveRecord) => (string | null)[]; // field ops; nulls are filtered out
+}
+
+// Append-only. NEVER edit a shipped step — add a new one with the next `to`.
+// v1→v2 formalizes the multi-currency economy + mode records + codex/achievements
+// that earlier shipped as implicit backfills; running it on an already-current save
+// is a no-op (every add-if-missing finds the field present).
+const MIGRATIONS: Migration[] = [
+  {
+    to: 2,
+    describe: 'multi-currency economy + mode records + codex/achievements',
+    up: (d) => [
+      fieldOp.add(d, 'stagesCleared', 0),
+      fieldOp.add(d, 'bestStage', 0),
+      fieldOp.add(d, 'bestEndlessScore', 0),
+      fieldOp.add(d, 'bestEndlessWave', 0),
+      fieldOp.add(d, 'essence', 0),
+      fieldOp.add(d, 'components', 0),
+      fieldOp.add(d, 'catalyst', 0),
+      fieldOp.add(d, 'codex', { enemies: [], biomes: [], cards: [] }),
+      fieldOp.add(d, 'achievements', []),
+      fieldOp.add(d, 'title', ''),
+    ],
+  },
+];
+
+export interface MigrationLogEntry {
+  from: number;
+  to: number;
+  describe: string;
+  changes: string[];
+  at: string; // ISO timestamp
+}
+
+let migrationLog: MigrationLogEntry[] = [];
+/** The migrations applied this session (for the debug panel / diagnostics). */
+export function getMigrationLog(): readonly MigrationLogEntry[] {
+  return migrationLog;
+}
+export function clearMigrationLog(): void {
+  migrationLog = [];
+}
+
+/** Bring `data` from `version` up to CURRENT_VERSION by running each newer step in
+ *  order. Pure-ish: clones the input, logs every applied step. */
+function migrate(version: number, data: unknown): unknown {
+  if (typeof data !== 'object' || data === null) return data;
+  const d: SaveRecord = { ...(data as SaveRecord) };
+  let v = Number.isFinite(version) ? version : 1;
+  for (const m of MIGRATIONS) {
+    if (m.to <= v) continue;
+    const changes = m.up(d).filter((c): c is string => c !== null);
+    migrationLog.push({ from: v, to: m.to, describe: m.describe, changes, at: new Date().toISOString() });
+    if (typeof console !== 'undefined' && console.info) {
+      console.info(`[save] migrated v${v} → v${m.to}: ${m.describe}${changes.length ? ` (${changes.join(', ')})` : ' (already current)'}`);
+    }
+    v = m.to;
+  }
+  return d;
 }
 
 function blobString(data: SaveData): string {
@@ -215,7 +306,9 @@ export function parseImport(text: string): ImportResult {
   }
   if (typeof obj !== 'object' || obj === null) return { ok: false, error: 'File is not a save object.' };
   const o = obj as Record<string, unknown>;
-  const version = typeof o.schemaVersion === 'number' ? o.schemaVersion : CURRENT_VERSION;
+  // Missing version → assume the oldest schema so every migration runs (steps are
+  // idempotent, so this is safe even for an already-current hand-edited object).
+  const version = typeof o.schemaVersion === 'number' ? o.schemaVersion : 1;
   const raw = 'data' in o ? o.data : o; // wrapper/blob -> .data, else the object itself
   const migrated = migrate(version, raw);
   if (!isSaveData(migrated)) return { ok: false, error: 'File does not contain a recognizable save.' };
