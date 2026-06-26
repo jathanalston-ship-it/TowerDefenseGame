@@ -13,6 +13,15 @@ the earlier bible.
 > parked as a candidate post-launch expansion class (the one acceptable "deferred"
 > item — genuinely out-of-scope future content).
 
+> **Implementation status (vertical slice):** all **five** launch towers are built and
+> placeable, each with its ★1–★3 core mechanic, status, projectile/field, visuals, and
+> the data-driven hooks for the rest (`firing` dispatch, `RunModifiers` card hooks,
+> auto Stars + Mastery via `TOWER_ORDER`). Implemented statuses: **Fracture, Corrosion,
+> Infection, Disruption (slow + Vulnerability)**. The ★4–★10 unlocks, A/B forks,
+> Evolutions, class keystones, and 9 of the 10 reactions (only **Shred** is wired) are
+> the designed-but-future content this spec also covers. Balance values live in
+> `src/core/config.ts`.
+
 ---
 
 ## Canonical class & reaction framework

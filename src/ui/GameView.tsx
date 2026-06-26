@@ -11,7 +11,7 @@ import { Toolbar } from './Toolbar';
 import { BuildPanel } from './BuildPanel';
 import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
-import type { HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
+import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
 import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
@@ -25,16 +25,20 @@ export function GameView({
   seed,
   mods,
   progress,
+  heroKind,
+  heroProgress,
   onEnd,
 }: {
   seed: number;
   mods: MetaModifiers;
   progress: TowerProgress;
+  heroKind: HeroKind;
+  heroProgress: HeroProgress;
   onEnd: (r: RunResult) => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
@@ -99,7 +103,7 @@ export function GameView({
         if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
           endedRef.current = true;
           setHud(game.getSnapshot());
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual() });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual() });
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -212,7 +216,7 @@ export function GameView({
               onClick={() => {
                 if (endedRef.current) return;
                 endedRef.current = true;
-                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual() });
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual() });
               }}
             >
               End Run

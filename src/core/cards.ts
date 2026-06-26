@@ -19,6 +19,11 @@ export interface RunModifiers {
   mortarAppliesFracture: boolean;
   fractureBonusStacks: number;
   corrosionSlowBonus: number;
+  // ── Viral (Parasite Nest) / Neural (Neural Obelisk) hooks — identity by default
+  //    so they're inert until a card sets them (the "support future cards" seam). ──
+  parasiteInfectionMult: number; // scales Infection DoT + ramp speed
+  obeliskVulnerabilityBonus: number; // adds to the Disruption damage-taken amp
+  obeliskSlowBonus: number; // adds to the Disruption slow
   heroDamageMult: number;
   heroCooldownMult: number;
 }
@@ -37,6 +42,9 @@ export function defaultRunModifiers(): RunModifiers {
     mortarAppliesFracture: false,
     fractureBonusStacks: 0,
     corrosionSlowBonus: 0,
+    parasiteInfectionMult: 1,
+    obeliskVulnerabilityBonus: 0,
+    obeliskSlowBonus: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
   };

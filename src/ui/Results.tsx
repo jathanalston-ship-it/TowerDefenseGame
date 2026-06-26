@@ -1,5 +1,5 @@
 import type { RunOutcome, RunResult } from '../state/meta';
-import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { LootReveal } from './LootReveal';
 import { ShardIcon } from './components/Icon';
 
@@ -13,6 +13,7 @@ export function Results({
   onContinue: () => void;
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
+  const heroMasteryGains = HERO_ORDER.filter((k) => outcome.heroMastery[k].xpGained > 0);
 
   return (
     <div className="menu" style={{ alignItems: 'center', textAlign: 'center' }}>
@@ -43,7 +44,7 @@ export function Results({
 
       {masteryGains.length > 0 && (
         <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
-          <div className="panel-title">Mastery Gained</div>
+          <div className="panel-title">Tower Mastery Gained</div>
           <div className="mastery-gains">
             {masteryGains.map((k) => {
               const m = outcome.mastery[k];
@@ -52,6 +53,29 @@ export function Results({
                 <div className="mastery-gain" key={k}>
                   <span className="mg-name" style={{ color: TOWER_DEFS[k].color }}>
                     {TOWER_DEFS[k].name}
+                  </span>
+                  <span className="mg-xp">+{m.xpGained} XP</span>
+                  <span className={`mg-lvl ${leveled ? 'is-up' : ''}`}>
+                    {leveled ? `Lv ${m.fromLevel} → ${m.toLevel}` : `Lv ${m.toLevel}`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {heroMasteryGains.length > 0 && (
+        <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
+          <div className="panel-title">Hero Mastery Gained</div>
+          <div className="mastery-gains">
+            {heroMasteryGains.map((k) => {
+              const m = outcome.heroMastery[k];
+              const leveled = m.toLevel > m.fromLevel;
+              return (
+                <div className="mastery-gain" key={k}>
+                  <span className="mg-name" style={{ color: HERO_DEFS[k].color }}>
+                    {HERO_DEFS[k].name}
                   </span>
                   <span className="mg-xp">+{m.xpGained} XP</span>
                   <span className={`mg-lvl ${leveled ? 'is-up' : ''}`}>

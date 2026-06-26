@@ -1,5 +1,5 @@
 import type { Game } from '../core/game';
-import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { HERO_DEFS, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { audio } from '../audio/sound';
 import type { HudSnapshot } from '../core/types';
 import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
@@ -14,6 +14,7 @@ export function Toolbar({
   refresh: () => void;
 }): JSX.Element {
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
+  const heroDef = HERO_DEFS[hud.hero.kind];
 
   return (
     <div className="toolbar">
@@ -73,13 +74,13 @@ export function Toolbar({
             refresh();
           }}
         >
-          <BoltIcon /> Apex Leap
+          <BoltIcon /> {heroDef.ability.name}
           <span className="hotkey">Q</span>
           <span className="tt-bubble">
             {hud.armedAbility
-              ? 'Armed — click the battlefield to leap.'
+              ? 'Armed — click the battlefield to cast.'
               : hud.hero.abilityReady
-                ? 'AoE leap that fractures enemies.'
+                ? heroDef.ability.blurb
                 : 'Recharging…'}
           </span>
         </button>

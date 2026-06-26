@@ -27,7 +27,8 @@ import {
   ECON,
   ENEMY_DEFS,
   FX,
-  HERO,
+  HERO_DEFS,
+  HERO_ORDER,
   MOVE,
   PARTICLE,
   PERF,
@@ -42,6 +43,7 @@ import {
   WAVE_BOUNTY_GROWTH,
   WAVE_HP_GROWTH,
 } from './config';
+import type { HeroDef } from './config';
 import {
   CARD_POOL,
   applyCard,
@@ -54,6 +56,9 @@ import type {
   Enemy,
   EnemyKind,
   Hero,
+  HeroKind,
+  HeroMasteryCounts,
+  HeroProgress,
   HudSnapshot,
   MasteryCounts,
   MetaModifiers,
@@ -80,6 +85,17 @@ function zeroMasteryCounts(): MasteryCounts {
   for (const k of TOWER_ORDER) r[k] = { kills: 0, damage: 0, activeTime: 0 };
   return r;
 }
+/** Identity per-hero progression — a fresh save plays exactly like the base game. */
+function neutralHeroProgress(): HeroProgress {
+  const r = {} as HeroProgress;
+  for (const k of HERO_ORDER) r[k] = { damageMult: 1, cooldownMult: 1 };
+  return r;
+}
+function zeroHeroMastery(): HeroMasteryCounts {
+  const r = {} as HeroMasteryCounts;
+  for (const k of HERO_ORDER) r[k] = { kills: 0, damage: 0, activeTime: 0 };
+  return r;
+}
 
 interface QueuedSpawn {
   kind: EnemyKind;
@@ -95,7 +111,7 @@ export interface RenderState {
   pools: Pool[];
   floats: FloatingText[];
   particles: Particle[];
-  hero: Hero;
+  heroes: Hero[];
   phase: Phase;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
@@ -126,13 +142,18 @@ export class Game {
   pools: Pool[] = [];
   floats: FloatingText[] = [];
   particles: Particle[] = [];
-  hero: Hero;
+  // The active hero roster. One today (the selected hero); the array is the seam for
+  // future hero slots (HEROES.md) — slot unlocks just push more heroes in.
+  heroes: Hero[];
   mods: RunModifiers;
   // Per-tower-kind permanent buffs (stars + mastery), frozen at construction so a
   // run stays deterministic; identity for a fresh save.
   private towerProgress: TowerProgress;
+  // Per-hero permanent buffs (stars + mastery + equipment); identity for a fresh save.
+  private heroProgress: HeroProgress;
   // Pure-observation usage signals accrued this run, banked into mastery at run end.
   private masteryAccrual: MasteryCounts = zeroMasteryCounts();
+  private heroMasteryAccrual: HeroMasteryCounts = zeroHeroMastery();
 
   selectedTower: TowerKind | null = null;
   armedAbility = false;
@@ -156,10 +177,17 @@ export class Game {
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
 
-  constructor(seed: number, meta: MetaModifiers, towerProgress: TowerProgress = neutralTowerProgress()) {
+  constructor(
+    seed: number,
+    meta: MetaModifiers,
+    towerProgress: TowerProgress = neutralTowerProgress(),
+    heroKind: HeroKind = 'ravager',
+    heroProgress: HeroProgress = neutralHeroProgress(),
+  ) {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.towerProgress = towerProgress;
+    this.heroProgress = heroProgress;
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
     this.mods.towerDamageMult = meta.towerDamageMult;
@@ -168,17 +196,30 @@ export class Game {
     this.maxIntegrity = ECON.baseIntegrity + meta.integrityBonus;
     this.integrity = this.maxIntegrity;
     this.biomass = ECON.startingBiomass;
-    this.hero = {
+    this.heroes = [this.makeHero(heroKind)];
+  }
+
+  /** Build a hero runtime instance from its data-driven definition. */
+  private makeHero(kind: HeroKind): Hero {
+    const def = HERO_DEFS[kind];
+    return {
+      kind,
       x: nucleusPoint.x,
       y: nucleusPoint.y,
-      hp: HERO.maxHp,
-      maxHp: HERO.maxHp,
+      hp: def.maxHp,
+      maxHp: def.maxHp,
       down: false,
       respawn: 0,
       rally: { x: WIDTH / 2, y: DEFENSE_TOP_Y - CELL }, // patrol the line by default
       attackCd: 0,
       abilityCd: 0,
+      pulseCd: 0,
     };
+  }
+
+  /** The player-controlled (slot-1) hero — abilities, HUD, and pings target it. */
+  private get primaryHero(): Hero {
+    return this.heroes[0];
   }
 
   // ── Intents (from the UI) ────────────────────────────────────────────────
@@ -189,7 +230,8 @@ export class Game {
   }
 
   armAbility(): void {
-    if (this.hero.abilityCd <= 0 && !this.hero.down) {
+    const h = this.primaryHero;
+    if (h.abilityCd <= 0 && !h.down) {
       this.armedAbility = true;
       this.selectedTower = null;
     }
@@ -197,7 +239,7 @@ export class Game {
 
   /** Re-anchor the hero's leash (right-click). */
   setRally(px: number, py: number): void {
-    this.hero.rally = { x: px, y: py };
+    this.primaryHero.rally = { x: px, y: py };
   }
 
   /** Route a canvas click based on what is currently armed. */
@@ -292,8 +334,9 @@ export class Game {
         this.integrity += n;
       },
       healHero: (n) => {
-        this.hero.maxHp += n;
-        this.hero.hp += n;
+        const h = this.primaryHero;
+        h.maxHp += n;
+        h.hp += n;
       },
     };
   }
@@ -385,6 +428,8 @@ export class Game {
       damage: def.damage,
       fracture: 0,
       corrosion: 0,
+      infection: 0,
+      disrupt: 0,
       shredFlash: 0,
       hitFlash: 0,
       dmgAccum: 0,
@@ -452,8 +497,35 @@ export class Game {
         if (!target) continue;
         this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult, t.kind);
         t.cooldown = def.fireInterval / rateMult;
+      } else if (def.firing === 'infest') {
+        // Viral: launch a homing parasite. Low impact damage — the ramping,
+        // armor-ignoring Infection it seeds (and its death-spread) is the payoff.
+        const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
+        if (!target) continue;
+        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, target.id, def.damage * dmgMult, 'parasite', 0, t.kind);
+        t.cooldown = def.fireInterval / rateMult;
+      } else if (def.firing === 'field') {
+        // Neural: pulse a psionic field over everything in range (no projectile).
+        // The pulse cycles on its rhythm whether or not anything is caught.
+        this.fieldPulse(t, def.range, def.damage * dmgMult);
+        t.cooldown = def.fireInterval / rateMult;
       }
     }
+  }
+
+  /** Neural Obelisk pulse: Disrupt (slow + vulnerability) every enemy in range plus
+   * a token chip of direct damage. Its value is the debuff, not the chip. */
+  private fieldPulse(t: Tower, range: number, damage: number): void {
+    const r2 = range * range;
+    let hit = false;
+    this.grid.forNeighbors(t.x, t.y, range, (e) => {
+      if (!e.alive) return;
+      if (dist2(t.x, t.y, e.x, e.y) > r2) return;
+      e.disrupt = STATUS.disruptDuration; // refresh slow + vulnerability
+      this.applyDamage(e, damage, t.kind); // chip benefits from the vuln it just applied
+      hit = true;
+    });
+    if (hit) this.spawnParticles(t.x, t.y, PARTICLE.disrupt);
   }
 
   /** Up to `n` distinct enemies in range, prioritizing those closest to the line. */
@@ -471,7 +543,7 @@ export class Game {
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
       const step = p.speed * dt;
-      if (p.behavior === 'homing') {
+      if (p.behavior === 'homing' || p.behavior === 'parasite') {
         const target = this.enemyById.get(p.targetId); // O(1) homing lookup
         if (!target || !target.alive) {
           p.alive = false; // fizzle if the target died
@@ -484,8 +556,12 @@ export class Game {
         const d = Math.hypot(dx, dy); // one sqrt for both the arrival test and the move
         if (d <= step + COMBAT.projectileHitEpsilon) {
           this.applyDamage(target, p.damage, p.sourceKind);
-          this.addFracture(target, 1);
-          this.maybeShred(target);
+          if (p.behavior === 'parasite') {
+            this.infect(target, STATUS.infectionOnHit); // Viral payload (no Fracture)
+          } else {
+            this.addFracture(target, 1);
+            this.maybeShred(target);
+          }
           this.pushSfx('hit');
           p.alive = false;
         } else {
@@ -570,6 +646,12 @@ export class Game {
         e.corrosion = Math.max(0, e.corrosion - dt);
         this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt, null, false); // light DoT — no source, no flash
       }
+      if (e.infection > 0) {
+        // Viral: ramp toward the cap, then bleed armor-ignoring DoT scaled by stacks.
+        e.infection = Math.min(STATUS.infectionMaxStacks, e.infection + STATUS.infectionRampPerSec * dt);
+        this.applyInfectionDamage(e, e.infection * STATUS.infectionDpsPerStack * this.mods.parasiteInfectionMult * dt);
+      }
+      if (e.disrupt > 0) e.disrupt = Math.max(0, e.disrupt - dt); // Neural slow + vulnerability decays
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
       if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
       // Aggregated damage numbers: bank hits, pop a single readable total per beat.
@@ -598,7 +680,7 @@ export class Game {
     const tR2 = tR * tR;
     const hR = STEER.heroAvoidRadius;
     const hR2 = hR * hR;
-    const hero = this.hero;
+    const hero = this.primaryHero; // enemies steer around the lead hero
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (reachedBottom(e.y)) {
@@ -607,7 +689,11 @@ export class Game {
       }
       const def = ENEMY_DEFS[e.kind];
       const b = def.behavior;
-      const slow = e.corrosion > 0 ? Math.min(0.85, slowBase) : 0;
+      // Corrosion and Disruption both slow; take the stronger, capped at 0.85.
+      let slow = 0;
+      if (e.corrosion > 0) slow = slowBase;
+      if (e.disrupt > 0) slow = Math.max(slow, STATUS.disruptSlow + this.mods.obeliskSlowBonus);
+      if (slow > 0.85) slow = 0.85;
       const step = e.speed * (1 - slow) * dt;
 
       // 1. seek
@@ -702,19 +788,16 @@ export class Game {
   }
 
   private heroSystem(dt: number): void {
-    // One hero today; structured per-hero so future loadouts can run several
-    // (just call updateHero for each). Equipment/abilities layer on via mods.
-    this.updateHero(this.hero, dt);
+    // Iterate the roster (one hero today; the loop is the multi-slot seam).
+    for (const h of this.heroes) this.updateHero(h, dt);
   }
 
-  /**
-   * Autonomous battlefield unit. Roams the whole arena freely (no leash),
-   * auto-seeks enemies, and prioritizes the most-advanced threat — preferring
-   * ones still ABOVE the defensive line so it intercepts them before they enter
-   * tower range; it falls back to the deepest enemy in the zone, and patrols its
-   * rally point when the field is clear.
-   */
+  /** Autonomous battlefield unit. Shared lifecycle (respawn, cooldowns, usage
+   * accrual, contact damage); the per-behavior brain — move + target + act — is
+   * dispatched by the hero's data-driven profile so each plays completely
+   * differently: a dive bruiser, a guarding sustainer, a floating controller. */
   private updateHero(h: Hero, dt: number): void {
+    const def = HERO_DEFS[h.kind];
     if (h.down) {
       h.respawn -= dt;
       if (h.respawn <= 0) {
@@ -725,11 +808,29 @@ export class Game {
       }
       return;
     }
+    if (this.phase === 'wave') this.heroMasteryAccrual[h.kind].activeTime += dt; // usage signal
     if (h.attackCd > 0) h.attackCd -= dt;
     if (h.abilityCd > 0) h.abilityCd -= dt;
+    if (h.pulseCd > 0) h.pulseCd -= dt;
 
-    // Threat-based targeting (lower goal distance = closer to breaching).
-    const aggro2 = HERO.aggroRange * HERO.aggroRange;
+    switch (def.behavior) {
+      case 'dive': this.updateDiveHero(h, def, dt); break;
+      case 'guard': this.updateGuardHero(h, def, dt); break;
+      case 'control': this.updateControlHero(h, def, dt); break;
+    }
+
+    this.heroContactDamage(h, def, dt);
+  }
+
+  /**
+   * RAVAGER (Kinetic dive). Roams the whole arena, prioritizing the most-advanced
+   * threat — preferring ones still ABOVE the line so it intercepts before they reach
+   * tower range — falling back to the deepest enemy, then patrolling its rally when
+   * the field is clear. Dives and stacks Fracture. (Behavior unchanged from the
+   * original single-hero build, so the golden outcomes are preserved.)
+   */
+  private updateDiveHero(h: Hero, def: HeroDef, dt: number): void {
+    const aggro2 = def.aggroRange * def.aggroRange;
     let target: Enemy | null = null;
     let bestApproach = Infinity; // best among enemies still above the line
     let fallback: Enemy | null = null;
@@ -749,58 +850,160 @@ export class Game {
     }
     target = target ?? fallback;
 
-    // Move to intercept the target, else patrol the rally point. Free roam,
-    // clamped only to the arena bounds.
     const goal = target ? { x: target.x, y: target.y } : h.rally;
-    const np = moveToward(h.x, h.y, goal.x, goal.y, HERO.speed * dt);
+    const np = moveToward(h.x, h.y, goal.x, goal.y, def.speed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
-    // Attack the target in melee range.
-    if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= HERO.attackRange) {
-      this.applyDamage(target, HERO.attackDamage * this.mods.heroDamageMult);
-      this.addFracture(target, HERO.attackFracture);
+    if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
+      const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+      this.heroMasteryAccrual[h.kind].damage += this.applyDamage(target, dmg);
+      this.addFracture(target, def.attackFracture);
       this.maybeShred(target);
-      h.attackCd = HERO.attackInterval;
+      h.attackCd = def.attackInterval;
     }
+  }
 
-    // Contact damage to the hero from nearby enemies (grid-local).
+  /**
+   * SHEPHERD (Vital guard). Holds the defensive zone in front of the Nucleus,
+   * sliding to cover the deepest incursion; mends Integrity over time and emits a
+   * short vital pulse that chips whatever is pressing the line. Never chases up-field
+   * — its job is to keep the core beating, not to hunt.
+   */
+  private updateGuardHero(h: Hero, def: HeroDef, dt: number): void {
+    if (def.nucleusRegen > 0 && this.integrity < this.maxIntegrity) {
+      this.integrity = Math.min(this.maxIntegrity, this.integrity + def.nucleusRegen * dt);
+    }
+    const zoneTop = DEFENSE_TOP_Y - CELL;
+    let gx = nucleusPoint.x;
+    let gy = (DEFENSE_TOP_Y + HEIGHT) / 2;
+    let best = Infinity;
+    let threat: Enemy | null = null;
+    for (const e of this.enemies) {
+      if (!e.alive || e.y < zoneTop) continue; // only the ones at/into the zone matter
+      const gd = goalDistanceAt(e.x, e.y);
+      if (gd < best) {
+        best = gd;
+        threat = e;
+      }
+    }
+    if (threat) {
+      gx = threat.x;
+      gy = Math.max(DEFENSE_TOP_Y, threat.y - CELL);
+    }
+    const np = moveToward(h.x, h.y, gx, gy, def.speed * dt);
+    h.x = Math.max(0, Math.min(WIDTH, np.x));
+    h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // stays in/near the zone
+    if (def.pulseInterval > 0 && h.pulseCd <= 0) {
+      this.heroPulse(h, def);
+      h.pulseCd = def.pulseInterval;
+    }
+  }
+
+  /**
+   * OVERSEER (Neural control). Floats to the densest knot of enemies to blanket the
+   * most bodies in its Disruption field (slow + vulnerability). Deals ~no damage —
+   * its value is amplifying everything else that hits the crowd it has marked.
+   */
+  private updateControlHero(h: Hero, def: HeroDef, dt: number): void {
+    const hot = this.densestCluster(def.pulseRadius);
+    let gx = nucleusPoint.x;
+    let gy = DEFENSE_TOP_Y;
+    if (hot) {
+      gx = hot.x;
+      gy = Math.max(DEFENSE_TOP_Y - CELL * 3, hot.y); // hover over the crowd, not the spawn
+    }
+    const np = moveToward(h.x, h.y, gx, gy, def.speed * dt);
+    h.x = Math.max(0, Math.min(WIDTH, np.x));
+    h.y = Math.max(0, Math.min(HEIGHT, np.y));
+    if (def.pulseInterval > 0 && h.pulseCd <= 0) {
+      this.heroPulse(h, def);
+      h.pulseCd = def.pulseInterval;
+    }
+  }
+
+  /** Densest enemy (cheap proxy: most neighbours within `r`) — the Overseer's anchor. */
+  private densestCluster(r: number): Enemy | null {
+    let best: Enemy | null = null;
+    let bestCount = -1;
+    const near = this.neighborScratch;
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      this.grid.queryInto(e.x, e.y, r, near);
+      let c = 0;
+      for (let k = 0; k < near.length; k++) if (near[k].alive) c++;
+      if (c > bestCount) {
+        bestCount = c;
+        best = e;
+      }
+    }
+    return best;
+  }
+
+  /** Shepherd/Overseer role pulse: AoE chip (+ Disruption for the controller) around
+   * the hero. Credits hero mastery; cosmetic burst uses the FX rng only. */
+  private heroPulse(h: Hero, def: HeroDef): void {
+    const r2 = def.pulseRadius * def.pulseRadius;
+    const dmg = def.pulseDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    let hit = false;
+    this.grid.forNeighbors(h.x, h.y, def.pulseRadius, (e) => {
+      if (!e.alive || dist2(h.x, h.y, e.x, e.y) > r2) return;
+      if (def.pulseDisrupt > 0) e.disrupt = def.pulseDisrupt;
+      if (dmg > 0) {
+        this.heroMasteryAccrual[h.kind].damage += this.applyDamage(e, dmg);
+        this.maybeShred(e);
+      }
+      hit = true;
+    });
+    if (hit) this.spawnParticles(h.x, h.y, def.behavior === 'control' ? PARTICLE.disrupt : PARTICLE.bloom);
+  }
+
+  /** Enemies in contact with a hero deal damage to it; at 0 HP the hero is downed. */
+  private heroContactDamage(h: Hero, def: HeroDef, dt: number): void {
     let incoming = 0;
     const near = this.neighborScratch;
-    this.grid.queryInto(h.x, h.y, HERO.contactRange + COMBAT.heroContactMargin, near);
+    this.grid.queryInto(h.x, h.y, def.contactRange + COMBAT.heroContactMargin, near);
     for (let k = 0; k < near.length; k++) {
       const e = near[k];
       if (!e.alive) continue;
-      if (dist(h.x, h.y, e.x, e.y) <= HERO.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
+      if (dist(h.x, h.y, e.x, e.y) <= def.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
     }
     if (incoming > 0 && !this.god) {
       h.hp -= incoming * dt;
       if (h.hp <= 0) {
         h.down = true;
-        h.respawn = HERO.respawnTime;
+        h.respawn = def.respawnTime;
         this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
       }
     }
   }
 
+  /** Cast the primary hero's signature ability at (px,py) — dispatched by hero data:
+   * Ravager leaps + fractures, Shepherd blooms (heal + AoE), Overseer floods Disruption. */
   private triggerAbility(px: number, py: number): void {
-    const h = this.hero;
+    const h = this.primaryHero;
     if (h.down || h.abilityCd > 0) return;
+    const def = HERO_DEFS[h.kind];
+    const ab = def.ability;
     h.x = px;
     h.y = py;
     h.rally = { x: px, y: py };
-    const r2 = HERO.ability.radius * HERO.ability.radius;
-    for (const e of this.enemies) {
-      if (!e.alive) continue;
-      if (dist2(px, py, e.x, e.y) <= r2) {
-        this.applyDamage(e, HERO.ability.damage * this.mods.heroDamageMult);
-        this.addFracture(e, HERO.ability.fracture);
-        this.maybeShred(e);
-      }
+    const dmgMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    if (ab.heal > 0) {
+      this.integrity = Math.min(this.maxIntegrity, this.integrity + ab.heal); // mend the Nucleus
+      h.hp = Math.min(h.maxHp, h.hp + ab.heal);
     }
-    h.abilityCd = HERO.ability.cooldown * this.mods.heroCooldownMult;
+    const r2 = ab.radius * ab.radius;
+    for (const e of this.enemies) {
+      if (!e.alive || dist2(px, py, e.x, e.y) > r2) continue;
+      if (ab.damage > 0) this.heroMasteryAccrual[h.kind].damage += this.applyDamage(e, ab.damage * dmgMult);
+      if (ab.fracture > 0) this.addFracture(e, ab.fracture);
+      if (ab.disrupt > 0) e.disrupt = ab.disrupt;
+      if (ab.damage > 0 || ab.fracture > 0) this.maybeShred(e);
+    }
+    h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
-    this.floats.push({ x: px, y: py - 20, text: 'APEX!', color: '#5ad1ff', life: 0.8 });
+    this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
   }
 
   private deathSystem(): void {
@@ -813,6 +1016,7 @@ export class Game {
         e.alive = false;
         this.kills++;
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
+        if (e.infection > 0) this.spreadInfection(e); // Viral: the plague jumps to the living
         const gain = e.bounty * this.mods.biomassMult;
         this.biomass += gain;
         this.armorBreakUntil.delete(e.id);
@@ -939,6 +1143,52 @@ export class Game {
     e.fracture = Math.min(cap, e.fracture + n);
   }
 
+  /** Total incoming-damage multiplier on `e`: Fracture's per-stack amp + Neural
+   * Vulnerability (Disruption). Applies to EVERY source. Identity (1) when clean,
+   * so undisrupted/unfractured enemies take damage exactly as before. */
+  private vulnMult(e: Enemy): number {
+    let m = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
+    if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus;
+    return m;
+  }
+
+  /** Viral: add Infection stacks (capped). */
+  private infect(e: Enemy, n: number): void {
+    e.infection = Math.min(STATUS.infectionMaxStacks, e.infection + n);
+  }
+
+  /** Apply Infection's continuous DoT: ignores armor (biological), but still scales
+   * with Vulnerability and credits the Nest for mastery/kill attribution. No min-1
+   * floor — it's a true continuous bleed, not a discrete hit. */
+  private applyInfectionDamage(e: Enemy, dot: number): void {
+    if (!e.alive || dot <= 0) return;
+    const applied = dot * this.vulnMult(e);
+    e.hp -= applied;
+    e.dmgAccum += applied;
+    e.lastHitKind = 'parasite';
+    this.masteryAccrual.parasite.damage += applied;
+  }
+
+  /** Viral spread: on an infected death, seed Infection onto the nearest neighbours
+   * (the epidemic walking through the pack). Deterministic nearest-first; cosmetic
+   * spore burst uses the FX rng only. */
+  private spreadInfection(src: Enemy): void {
+    const r = STATUS.infectionSpreadRadius;
+    const r2 = r * r;
+    const near = this.neighborScratch;
+    this.grid.queryInto(src.x, src.y, r, near);
+    near.sort((a, b) => dist2(src.x, src.y, a.x, a.y) - dist2(src.x, src.y, b.x, b.y));
+    let jumps = 0;
+    for (let i = 0; i < near.length && jumps < STATUS.infectionSpreadTargets; i++) {
+      const o = near[i];
+      if (o === src || !o.alive || o.infection >= STATUS.infectionMaxStacks) continue;
+      if (dist2(src.x, src.y, o.x, o.y) > r2) continue;
+      this.infect(o, STATUS.infectionSpreadStacks);
+      jumps++;
+    }
+    this.spawnParticles(src.x, src.y, PARTICLE.infect);
+  }
+
   private effectiveArmor(e: Enemy): number {
     if ((this.armorBreakUntil.get(e.id) ?? 0) > this.time) return 0;
     let a = e.baseArmor - e.fracture * STATUS.fractureArmorShred;
@@ -952,7 +1202,7 @@ export class Game {
    * (corrosion/pools) passes false so it doesn't strobe. Returns damage applied. */
   private applyDamage(e: Enemy, raw: number, sourceKind: TowerKind | null = null, flash = true): number {
     if (!e.alive) return 0;
-    const mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
+    const mult = this.vulnMult(e);
     const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
     e.hp -= applied;
     e.dmgAccum += applied; // banked for the next aggregated damage number
@@ -1037,10 +1287,12 @@ export class Game {
   }
 
   debugReviveHero(): void {
-    this.hero.down = false;
-    this.hero.hp = this.hero.maxHp;
-    this.hero.respawn = 0;
-    this.hero.abilityCd = 0;
+    for (const h of this.heroes) {
+      h.down = false;
+      h.hp = h.maxHp;
+      h.respawn = 0;
+      h.abilityCd = 0;
+    }
   }
 
   // ── Read models (for UI / renderer) ──────────────────────────────────────
@@ -1076,6 +1328,9 @@ export class Game {
     if (m.poolDpsMult !== 1) out.push(`${pct(m.poolDpsMult - 1)} pool dmg`);
     if (m.reactorBiomassMult !== 1) out.push(`${pct(m.reactorBiomassMult - 1)} reactor biomass`);
     if (m.corrosionSlowBonus > 0) out.push(`${pct(m.corrosionSlowBonus)} corrosion slow`);
+    if (m.parasiteInfectionMult !== 1) out.push(`${pct(m.parasiteInfectionMult - 1)} infection dmg`);
+    if (m.obeliskVulnerabilityBonus > 0) out.push(`${pct(m.obeliskVulnerabilityBonus)} vulnerability`);
+    if (m.obeliskSlowBonus > 0) out.push(`${pct(m.obeliskSlowBonus)} disrupt slow`);
     return out;
   }
 
@@ -1087,7 +1342,7 @@ export class Game {
       pools: this.pools,
       floats: this.floats,
       particles: this.particles,
-      hero: this.hero,
+      heroes: this.heroes,
       phase: this.phase,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,
@@ -1099,6 +1354,8 @@ export class Game {
   }
 
   getSnapshot(): HudSnapshot {
+    const h = this.primaryHero;
+    const ab = HERO_DEFS[h.kind].ability;
     return {
       phase: this.phase,
       wave: this.waveIndex,
@@ -1108,13 +1365,14 @@ export class Game {
       maxIntegrity: this.maxIntegrity,
       kills: this.kills,
       hero: {
-        down: this.hero.down,
-        respawn: this.hero.respawn,
-        hp: Math.ceil(this.hero.hp),
-        maxHp: this.hero.maxHp,
-        abilityReady: this.hero.abilityCd <= 0 && !this.hero.down,
-        abilityCd: Math.max(0, this.hero.abilityCd),
-        abilityCdMax: HERO.ability.cooldown * this.mods.heroCooldownMult,
+        kind: h.kind,
+        down: h.down,
+        respawn: h.respawn,
+        hp: Math.ceil(h.hp),
+        maxHp: h.maxHp,
+        abilityReady: h.abilityCd <= 0 && !h.down,
+        abilityCd: Math.max(0, h.abilityCd),
+        abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
       },
       enemiesAlive: this.enemies.length,
       draft: this.draft ? this.draft.map(cardToOption) : null,
@@ -1125,11 +1383,21 @@ export class Game {
     };
   }
 
-  /** Per-kind usage accrued this run — banked into permanent mastery at run end. */
+  /** Per-tower-kind usage accrued this run — banked into permanent mastery at run end. */
   getMasteryAccrual(): MasteryCounts {
     const out = {} as MasteryCounts;
     for (const k of TOWER_ORDER) {
       const a = this.masteryAccrual[k];
+      out[k] = { kills: a.kills, damage: a.damage, activeTime: a.activeTime };
+    }
+    return out;
+  }
+
+  /** Per-hero usage accrued this run — banked into permanent hero mastery at run end. */
+  getHeroMasteryAccrual(): HeroMasteryCounts {
+    const out = {} as HeroMasteryCounts;
+    for (const k of HERO_ORDER) {
+      const a = this.heroMasteryAccrual[k];
       out[k] = { kills: a.kills, damage: a.damage, activeTime: a.activeTime };
     }
     return out;

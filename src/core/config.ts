@@ -2,7 +2,7 @@
 // ARCHITECTURE.md §6.2). Systems read these; they never inline magic numbers.
 // Every value is an illustrative starting point for the vertical slice.
 
-import type { CombatClass, EnemyKind, MetaModifiers, TowerFiring, TowerKind } from './types';
+import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -82,9 +82,37 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     color: '#ff7a59',
     blurb: 'Generates biomass; overcharges ADJACENT towers (+dmg, +rate).',
   },
+  parasite: {
+    kind: 'parasite',
+    name: 'Parasite Nest',
+    combatClass: 'Viral',
+    firing: 'infest', // homing parasite that seeds ramping, armor-ignoring Infection
+    cost: 130,
+    range: 150,
+    fireInterval: 0.85,
+    damage: 6, // low on impact — the ramping Infection DoT + spread is the payoff
+    projectileSpeed: 360,
+    splash: 0,
+    color: '#e24dff',
+    blurb: 'Seeds Infection — ramping DoT that ignores armor and spreads on death.',
+  },
+  obelisk: {
+    kind: 'obelisk',
+    name: 'Neural Obelisk',
+    combatClass: 'Neural',
+    firing: 'field', // periodic psionic pulse — no projectile; debuffs in range
+    cost: 140,
+    range: 120, // psionic field radius
+    fireInterval: 1.0, // pulse cadence
+    damage: 5, // token chip; its value is the Disruption (slow + vulnerability)
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#6e7bff',
+    blurb: 'Pulses Disruption — slows enemies and makes them take more from ALL sources.',
+  },
 };
 
-export const TOWER_ORDER: TowerKind[] = ['needle', 'mortar', 'reactor'];
+export const TOWER_ORDER: TowerKind[] = ['needle', 'mortar', 'reactor', 'parasite', 'obelisk'];
 
 // ── Enemies ───────────────────────────────────────────────────────────────
 /**
@@ -170,6 +198,9 @@ export const PARTICLE = {
   shred: { count: 10, speed: 130, life: 0.45, size: 2.2, color: '#fff066' },
   breach: { count: 8, speed: 90, life: 0.5, size: 2.4, color: '#ff5d73' },
   mote: { count: 4, life: 0.7, size: 2.2, color: '#b6e84a' }, // biomass motes drifting up off a kill
+  infect: { count: 7, speed: 60, life: 0.55, size: 2.3, color: '#e24dff' }, // spores burst from an infected death (the spread)
+  disrupt: { count: 5, speed: 40, life: 0.4, size: 2.0, color: '#9aa6ff' }, // psionic static off an obelisk pulse
+  bloom: { count: 8, speed: 80, life: 0.5, size: 2.4, color: '#ffcaa0' }, // vital spores off the Shepherd's pulse
 };
 
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).
@@ -247,26 +278,101 @@ export const STATUS = {
   // Corrosion pools left by Bone Mortar:
   poolDuration: 3.5,
   poolRadiusFactor: 0.85, // pool radius relative to splash radius
+
+  // ── Infection (Viral — Parasite Nest) ──────────────────────────────────────
+  // A ramping, armor-IGNORING DoT that spreads from the dying to the living, so it
+  // scales with crowd density and wave length. Distinct from Corrosion (fixed
+  // pool DoT + slow): Infection grows, persists on the body, and is contagious.
+  infectionOnHit: 2, // stacks applied by a parasite on impact
+  infectionMaxStacks: 8, // ramp/spread cap per enemy
+  infectionRampPerSec: 1, // +stacks/sec while infected (the "ramp")
+  infectionDpsPerStack: 2.0, // armor-ignoring DoT per stack per second
+  infectionSpreadStacks: 2, // stacks seeded onto neighbours when an infected enemy dies
+  infectionSpreadTargets: 3, // how many nearby enemies the plague jumps to on death
+  infectionSpreadRadius: 72, // px reach of the death-spread
+
+  // ── Disruption (Neural — Neural Obelisk) ────────────────────────────────────
+  // Control + force-multiplier: slows enemies AND marks them Vulnerable (+% damage
+  // taken from EVERY source — towers, hero, pools, infection, reactions). Low direct
+  // damage by design; its value is amplifying the rest of the build.
+  disruptDuration: 1.6, // seconds, refreshed each pulse while in the field
+  disruptSlow: 0.35, // -35% speed while disrupted
+  disruptVulnerability: 0.25, // +25% damage taken from all sources while disrupted
 };
 
-// ── Hero (Ravager) ────────────────────────────────────────────────────────
-export const HERO = {
-  maxHp: 230,
-  speed: 115,
-  attackRange: 32,
-  attackInterval: 0.55,
-  attackDamage: 19,
-  attackFracture: 1,
-  aggroRange: 1400, // effectively the whole arena — heroes roam freely to intercept
-  contactRange: 26, // enemies this close damage the hero
-  respawnTime: 8,
-  ability: {
-    cooldown: 8,
-    radius: 72,
-    damage: 62,
-    fracture: 2,
+// ── Heroes (autonomous battlefield units) ───────────────────────────────────
+// Data-driven roster (mirrors TOWER_DEFS). Each hero is a distinct AI profile:
+//   • 'dive'    — Ravager: charges the deepest threat, melee + Fracture (Kinetic).
+//   • 'guard'   — Shepherd: holds the core, regenerates Integrity + vital pulse (Vital).
+//   • 'control' — Overseer: floats to the densest crowd, Disruption field (Neural).
+// The Ravager's numbers are unchanged from the original single-hero build, so the
+// base game (and the golden tests) play identically.
+export type HeroBehavior = 'dive' | 'guard' | 'control';
+
+export interface HeroAbilityDef {
+  name: string;
+  blurb: string;
+  cooldown: number;
+  radius: number;
+  damage: number; // AoE damage at the cast point (0 = pure utility)
+  fracture: number; // Kinetic stacks applied (Ravager)
+  disrupt: number; // Disruption seconds applied (Overseer)
+  heal: number; // Nucleus + self heal granted (Shepherd)
+}
+
+export interface HeroDef {
+  kind: HeroKind;
+  name: string;
+  combatClass: CombatClass;
+  behavior: HeroBehavior;
+  color: string;
+  maxHp: number;
+  speed: number; // px/sec
+  attackRange: number; // 0 = no auto-attack (support/controller)
+  attackInterval: number;
+  attackDamage: number;
+  attackFracture: number;
+  aggroRange: number; // effectively the whole arena — heroes roam freely
+  contactRange: number; // enemies this close damage the hero
+  respawnTime: number;
+  // Role pulse — 'guard'/'control' emit a periodic AoE; 'dive' leaves these at 0.
+  pulseInterval: number; // seconds between pulses (0 = none)
+  pulseRadius: number; // AoE / field radius
+  pulseDamage: number; // direct damage per pulse
+  pulseDisrupt: number; // Disruption seconds applied per pulse (control)
+  nucleusRegen: number; // Integrity/sec restored while alive (guard)
+  ability: HeroAbilityDef;
+}
+
+export const HERO_DEFS: Record<HeroKind, HeroDef> = {
+  ravager: {
+    kind: 'ravager', name: 'Ravager', combatClass: 'Kinetic', behavior: 'dive', color: '#ffd24d',
+    maxHp: 230, speed: 115, attackRange: 32, attackInterval: 0.55, attackDamage: 19, attackFracture: 1,
+    aggroRange: 1400, contactRange: 26, respawnTime: 8,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    ability: { name: 'Apex Leap', blurb: 'AoE leap that fractures enemies.', cooldown: 8, radius: 72, damage: 62, fracture: 2, disrupt: 0, heal: 0 },
+  },
+  shepherd: {
+    kind: 'shepherd', name: 'Shepherd', combatClass: 'Vital', behavior: 'guard', color: '#ff9f6b',
+    // Tanky, slower, NO auto-attack. Guards the Nucleus, mends Integrity, and pulses
+    // a short vital wave that chips enemies pressing the line.
+    maxHp: 300, speed: 95, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
+    aggroRange: 1400, contactRange: 24, respawnTime: 8,
+    pulseInterval: 1.2, pulseRadius: 92, pulseDamage: 8, pulseDisrupt: 0, nucleusRegen: 1.2,
+    ability: { name: 'Bloom', blurb: 'A vital bloom: heals the Nucleus + AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40 },
+  },
+  overseer: {
+    kind: 'overseer', name: 'Overseer', combatClass: 'Neural', behavior: 'control', color: '#8a93ff',
+    // Floats to the densest crowd. NO real damage — emits a fast Disruption field
+    // (slow + vulnerability) that amplifies the rest of your build.
+    maxHp: 200, speed: 108, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
+    aggroRange: 1400, contactRange: 22, respawnTime: 9,
+    pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
+    ability: { name: 'Mass Override', blurb: 'Floods an area with deep Disruption: slow + heavy vulnerability.', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0 },
   },
 };
+
+export const HERO_ORDER: HeroKind[] = ['ravager', 'shepherd', 'overseer'];
 
 // ── Economy ───────────────────────────────────────────────────────────────
 export const ECON = {
@@ -392,7 +498,6 @@ export const CHESTS: Record<string, ChestDef> = {
 /** Which chest a completed run awards today (later: scale with wave/performance). */
 export const RUN_CHEST = 'standard';
 
-// Heroes that can receive hero shards. One today; the registry is forward-looking
-// (PLACEHOLDER-ART/HEROES.md describe Shepherd/Overseer as future unlocks).
-export const HERO_IDS = ['ravager'] as const;
-export const HERO_LABELS: Record<string, string> = { ravager: 'Ravager' };
+// Heroes that can receive hero shards (the three launch heroes — HEROES.md).
+export const HERO_IDS = ['ravager', 'shepherd', 'overseer'] as const;
+export const HERO_LABELS: Record<string, string> = { ravager: 'Ravager', shepherd: 'Shepherd', overseer: 'Overseer' };

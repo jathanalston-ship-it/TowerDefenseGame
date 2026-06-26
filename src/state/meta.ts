@@ -11,9 +11,18 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CHESTS, ECON, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER } from '../core/config';
+import { CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER } from '../core/config';
 import type { UpgradeDef } from '../core/config';
-import type { MasteryCounts, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
+import type {
+  HeroKind,
+  HeroMasteryCounts,
+  HeroMods,
+  HeroProgress,
+  MasteryCounts,
+  MetaModifiers,
+  TowerKind,
+  TowerProgress,
+} from '../core/types';
 import { rollChest } from './lootbox';
 import type { ChestResult } from './lootbox';
 
@@ -104,11 +113,44 @@ export function towerProgress(save: SaveData): TowerProgress {
   return out;
 }
 
+// ── Hero progression (mirrors towers: stars + infinite mastery + EQUIPMENT seam) ──
+
+/** EQUIPMENT.md integration point. Equipment is designed but not yet built, so this
+ * returns identity today; when items land, fold their per-hero modifiers in HERE and
+ * they flow into a run through the same HeroMods path stars + mastery already use. */
+export function heroEquipment(_save: SaveData, _kind: HeroKind): HeroMods {
+  return { damageMult: 1, cooldownMult: 1 };
+}
+
+/** Hero-shard cost of the next star (reuses the tower star curve). */
+export function nextHeroStarCost(save: SaveData, kind: HeroKind): number | null {
+  const stars = save.heroStars[kind] ?? 0;
+  if (stars >= STAR.maxStars) return null;
+  return starCost(stars);
+}
+
+/** Fold stars + mastery + equipment into per-hero run multipliers. Stars add damage
+ * and shave ability cooldown; mastery adds (infinite) damage. Identity for a fresh save. */
+export function heroProgress(save: SaveData): HeroProgress {
+  const out = {} as HeroProgress;
+  for (const k of HERO_ORDER) {
+    const stars = save.heroStars[k] ?? 0;
+    const mLvl = masteryLevel(save.heroMasteryXp[k] ?? 0);
+    const equip = heroEquipment(save, k);
+    out[k] = {
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult,
+      cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult,
+    };
+  }
+  return out;
+}
+
 export interface RunResult {
   wave: number;
   kills: number;
   won: boolean;
-  mastery: MasteryCounts; // per-kind usage accrued in the run (from Game.getMasteryAccrual)
+  mastery: MasteryCounts; // per-tower usage accrued in the run (from Game.getMasteryAccrual)
+  heroMastery: HeroMasteryCounts; // per-hero usage (from Game.getHeroMasteryAccrual)
 }
 
 export interface RunReward {
@@ -127,6 +169,7 @@ export interface RunOutcome {
   reward: RunReward;
   chest: ChestResult;
   mastery: Record<TowerKind, MasteryDelta>;
+  heroMastery: Record<HeroKind, MasteryDelta>;
 }
 
 export const meta = {
@@ -175,7 +218,20 @@ export const meta = {
       mastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(towerMasteryXp[k]) };
     }
 
-    // 3. run-end chest → tower/hero shards
+    // 3. hero mastery: same curve as towers, banked per-hero from run usage
+    const heroMasteryXp = { ...save.heroMasteryXp };
+    const heroMastery = {} as Record<HeroKind, MasteryDelta>;
+    for (const k of HERO_ORDER) {
+      const c = result.heroMastery[k];
+      const gained = Math.round(
+        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+      );
+      const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
+      heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
+      heroMastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(heroMasteryXp[k]) };
+    }
+
+    // 4. run-end chest → tower/hero shards
     const chest = rollChest(CHESTS[RUN_CHEST]);
     const towerShards = { ...save.towerShards };
     for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
@@ -189,15 +245,46 @@ export const meta = {
       bestWave: Math.max(save.bestWave, result.wave),
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
+      heroMasteryXp,
       towerShards,
       heroShards,
     });
-    return { reward: { shardsEarned, newBest }, chest, mastery };
+    return { reward: { shardsEarned, newBest }, chest, mastery, heroMastery };
   },
 
-  /** Per-kind run multipliers from the current save (passed into a new Game). */
+  /** Per-tower run multipliers from the current save (passed into a new Game). */
   towerProgress(): TowerProgress {
     return towerProgress(store.get());
+  },
+
+  /** Per-hero run multipliers from the current save (passed into a new Game). */
+  heroProgress(): HeroProgress {
+    return heroProgress(store.get());
+  },
+
+  /** The hero the next run will field (slot 1). */
+  selectedHero(): HeroKind {
+    return store.get().selectedHero;
+  },
+
+  /** Choose which hero to field next run. */
+  setSelectedHero(kind: HeroKind): void {
+    persist({ ...store.get(), selectedHero: kind });
+  },
+
+  /** Spend hero shards to add a star to `kind`. Returns false if unaffordable/maxed. */
+  buyHeroStar(kind: HeroKind): boolean {
+    const save = store.get();
+    const stars = save.heroStars[kind] ?? 0;
+    if (stars >= STAR.maxStars) return false;
+    const cost = starCost(stars);
+    if ((save.heroShards[kind] ?? 0) < cost) return false;
+    persist({
+      ...save,
+      heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
+      heroStars: { ...save.heroStars, [kind]: stars + 1 },
+    });
+    return true;
   },
 
   /** Spend tower shards to add a star to `kind`. Returns false if unaffordable/maxed. */
@@ -292,6 +379,20 @@ export const meta = {
     const towerMasteryXp = { ...save.towerMasteryXp };
     for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
     persist({ ...save, towerMasteryXp });
+  },
+
+  debugAddHeroShards(n: number): void {
+    const save = store.get();
+    const heroShards = { ...save.heroShards };
+    for (const k of HERO_ORDER) heroShards[k] = Math.max(0, (heroShards[k] ?? 0) + n);
+    persist({ ...save, heroShards });
+  },
+
+  debugAddHeroMasteryXp(n: number): void {
+    const save = store.get();
+    const heroMasteryXp = { ...save.heroMasteryXp };
+    for (const k of HERO_ORDER) heroMasteryXp[k] = Math.max(0, (heroMasteryXp[k] ?? 0) + n);
+    persist({ ...save, heroMasteryXp });
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */

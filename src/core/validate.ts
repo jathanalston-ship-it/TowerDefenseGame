@@ -42,9 +42,14 @@ export function validateContent(reg: ContentRegistries = defaultRegistries()): s
 
   for (const d of reg.towers) {
     if (d.cost < 0) bad(`tower '${d.kind}': cost must be >= 0`);
-    const fires = d.fireInterval > 0;
-    if (fires && d.range <= 0) bad(`tower '${d.kind}': a firing tower needs range > 0`);
-    if (fires && d.projectileSpeed <= 0) bad(`tower '${d.kind}': a firing tower needs projectileSpeed > 0`);
+    // Projectile firings need somewhere to aim and something to fly; 'field' towers
+    // pulse in-range with no projectile (range only); 'support' needs neither.
+    const projectileBased = d.firing === 'homing' || d.firing === 'splash' || d.firing === 'infest';
+    if (projectileBased) {
+      if (d.range <= 0) bad(`tower '${d.kind}': a projectile tower needs range > 0`);
+      if (d.projectileSpeed <= 0) bad(`tower '${d.kind}': a projectile tower needs projectileSpeed > 0`);
+    }
+    if (d.firing === 'field' && d.range <= 0) bad(`tower '${d.kind}': a field tower needs range > 0`);
   }
 
   reg.waves.forEach((wave, w) => {

@@ -3,16 +3,18 @@
 
 import type { Vec2 } from './math';
 
-export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
-export type StatusType = 'Fracture' | 'Corrosion';
-export type TowerKind = 'needle' | 'mortar' | 'reactor';
+export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
+export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk';
 export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
- * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire. */
-export type TowerFiring = 'homing' | 'splash' | 'support';
+ * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
+ * 'field' = periodic in-range pulse (no projectile). */
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
-export type ProjectileBehavior = 'homing' | 'splash';
+export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
@@ -33,6 +35,8 @@ export interface Enemy {
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
+  infection: number; // Viral infection stacks — ramping armor-ignoring DoT; spreads on death
+  disrupt: number; // remaining seconds of Neural Disruption (slow + vulnerability)
   shredFlash: number; // seconds of reaction flash remaining (visual)
   hitFlash: number; // seconds of white hit-flash remaining (visual)
   dmgAccum: number; // damage banked toward the next aggregated damage number (visual)
@@ -78,6 +82,7 @@ export interface Pool {
 }
 
 export interface Hero {
+  kind: HeroKind;
   x: number;
   y: number;
   hp: number;
@@ -87,6 +92,7 @@ export interface Hero {
   rally: Vec2;
   attackCd: number;
   abilityCd: number;
+  pulseCd: number; // role pulse timer (Shepherd vital pulse / Overseer disrupt field)
 }
 
 export interface FloatingText {
@@ -133,6 +139,16 @@ export interface MasteryCount {
   activeTime: number; // tower-seconds deployed
 }
 export type MasteryCounts = Record<TowerKind, MasteryCount>;
+export type HeroMasteryCounts = Record<HeroKind, MasteryCount>;
+
+/** Per-hero permanent multipliers (stars + mastery + equipment), applied at run
+ * start. Identity (all 1) for a fresh save, so the base hero is unchanged. This is
+ * the fold point the EQUIPMENT.md item system plugs into (see meta.heroProgress). */
+export interface HeroMods {
+  damageMult: number;
+  cooldownMult: number;
+}
+export type HeroProgress = Record<HeroKind, HeroMods>;
 
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */
 export interface HudSnapshot {
@@ -144,6 +160,7 @@ export interface HudSnapshot {
   maxIntegrity: number;
   kills: number;
   hero: {
+    kind: HeroKind;
     down: boolean;
     respawn: number;
     hp: number;

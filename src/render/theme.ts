@@ -14,6 +14,15 @@ export function rgba(rgb: string, a: number): string {
   return `rgba(${rgb}, ${a})`;
 }
 
+/** Convert a `#rgb`/`#rrggbb` hex into an "r, g, b" token for use with rgba().
+ * Lets data-driven entity colors (config) feed the alpha-composed render tokens. */
+export function hexRgb(hex: string): string {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
 // ── Palette ──────────────────────────────────────────────────────────────────
 // Static colors are plain strings; anything drawn with a *dynamic* alpha (pulses,
 // pressure ramps) is stored as an "r, g, b" token and composed via rgba() so the
@@ -77,6 +86,8 @@ export const THEME = {
   // Status auras + the enemy health pip.
   enemy: {
     corrosion: 'rgba(150, 220, 70, 0.9)',
+    infection: '226, 77, 255', // viral boils (Parasite Nest) — alpha scales with stacks
+    disrupt: '120, 135, 255', // psionic stutter (Neural Obelisk)
     fracture: '90, 209, 255',
     shred: '255, 255, 255',
     danger: '255, 70, 90',
@@ -112,12 +123,19 @@ export const THEME = {
   projectile: {
     splash: '#d6f06a',
     bolt: '#aef0ff',
+    parasite: '#f2a0ff', // skittering viral parasite
     splashTrail: '214, 240, 106',
     boltTrail: '174, 240, 255',
+    parasiteTrail: '226, 77, 255',
   },
   pool: {
     fill: 'rgba(150, 220, 70, 0.16)',
     edge: 'rgba(150, 220, 70, 0.35)',
+  },
+  // Neural Obelisk's psionic field (drawn under the tower so its reach reads).
+  field: {
+    fill: 'rgba(110, 123, 255, 0.06)',
+    edge: '110, 123, 255',
   },
   overcharge: 'rgba(255, 122, 89, 0.45)',
   vignette: '255, 35, 65',
@@ -132,6 +150,8 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   needle: 'triangle', // sharp kinetic spike
   mortar: 'square', // heavy caustic block
   reactor: 'circle', // pulsing vital core
+  parasite: 'circle', // bulbous egg-sac nest (egg speckles drawn over it)
+  obelisk: 'diamond', // tall psionic monolith (orbiting glyphs drawn over it)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

@@ -9,6 +9,17 @@ Heroes share the five Combat Classes with towers (`TOWERS.md`).
 > optional move/focus ping), but does not micro every step. They are the
 > **active-skill** layer over the **placement** layer of towers.
 
+> **Implementation status (vertical slice):** all **three** launch heroes are built
+> as data-driven `HeroDef`s with distinct autonomous AI — **Ravager** (`dive`: charges
+> the deepest threat, melee + Fracture), **Shepherd** (`guard`: holds the zone, mends
+> Nucleus Integrity + vital pulse), **Overseer** (`control`: floats to the densest crowd,
+> fields Disruption). Each has its signature ability (Apex Leap / Bloom / Mass Override),
+> unique movement + targeting, per-hero **Stars + infinite Mastery** (Hero Lab), and an
+> **equipment fold seam** (`HeroMods`) ready for `EQUIPMENT.md`. You **field one** hero
+> per run (pick it in the Hero Lab); the engine carries a hero **roster** (`Game.heroes[]`)
+> so slot 2/3 is "push another hero in." ★4–★10, forks, and the slot-unlock economy remain
+> designed-but-future. Balance values live in `src/core/config.ts`.
+
 ---
 
 ## Autonomous-unit model

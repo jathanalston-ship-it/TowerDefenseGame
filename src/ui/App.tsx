@@ -6,7 +6,7 @@ import { DebugPanel } from './DebugPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
-import type { MetaModifiers, TowerProgress } from '../core/types';
+import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
 
 type Screen = 'menu' | 'playing' | 'results';
 
@@ -16,12 +16,16 @@ export function App(): JSX.Element {
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
   const progRef = useRef<TowerProgress>(meta.towerProgress());
+  const heroRef = useRef<HeroKind>(meta.selectedHero());
+  const heroProgRef = useRef<HeroProgress>(meta.heroProgress());
 
   const startRun = useCallback(() => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
-    // Snapshot permanent progression at run start so the run stays deterministic.
+    // Snapshot permanent progression + hero choice at run start (run stays deterministic).
     modsRef.current = metaModifiers(meta.get());
     progRef.current = meta.towerProgress();
+    heroRef.current = meta.selectedHero();
+    heroProgRef.current = meta.heroProgress();
     setScreen('playing');
   }, []);
 
@@ -43,6 +47,8 @@ export function App(): JSX.Element {
           seed={seedRef.current}
           mods={modsRef.current}
           progress={progRef.current}
+          heroKind={heroRef.current}
+          heroProgress={heroProgRef.current}
           onEnd={handleEnd}
         />
       )}
