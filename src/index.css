@@ -903,6 +903,196 @@ canvas.board {
 
 /* ── Responsive: desktop + tablet + mobile ────────────────────────────────── */
 
+/* ── Stage: portrait canvas flanked by gutter panels (HUD.md §5–6) ─────────── */
+.stage {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  min-height: 0;
+}
+.stage .canvas-wrap {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+.side-panel {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: linear-gradient(180deg, var(--panel) 0%, #0e131c 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px;
+  box-shadow: var(--shadow-sm);
+  overflow-y: auto;
+  min-height: 0;
+}
+.side-head {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+.side-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.side-k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.side-empty,
+.side-hint {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.85;
+  line-height: 1.35;
+  margin: 2px 0 0;
+}
+.side-hint {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* LEFT — run build: drafted cards (by category, stacked) + active buffs */
+.card-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.build-panel .card-cat {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--r-rare);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+.card-chips,
+.buff-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.card-chip {
+  position: relative;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--r-common);
+  cursor: default;
+}
+.card-chip[data-rarity='rare'] {
+  border-left-color: var(--r-rare);
+}
+.card-chip .stack {
+  margin-left: 4px;
+  color: var(--gold);
+}
+.buff-chip {
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(90, 209, 255, 0.08);
+  border: 1px solid rgba(90, 209, 255, 0.2);
+  color: var(--kinetic);
+}
+
+/* RIGHT — inspector */
+.ins-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ins-name {
+  font-size: 14px;
+  font-weight: 800;
+}
+.class-badge {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0a0e16;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.ins-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ins-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  border-bottom: 1px dashed var(--line);
+  padding: 3px 0;
+}
+.ins-stat-k {
+  color: var(--muted);
+}
+.ins-stat-v {
+  font-weight: 700;
+}
+.ins-blurb {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
+/* drawn-icon sizing inside controls (replaces former emoji) */
+.hero-disc svg {
+  width: 22px;
+  height: 22px;
+  color: var(--gold);
+}
+
+/* Gutter panels collapse below the canvas as the viewport narrows */
+@media (max-width: 1024px) {
+  .side-panel {
+    flex-basis: 168px;
+  }
+}
+@media (max-width: 900px) {
+  .stage {
+    flex-direction: column;
+  }
+  .stage .canvas-wrap {
+    order: -1; /* keep the battlefield on top */
+  }
+  .side-panel {
+    flex: none;
+    width: 100%;
+    max-height: 134px;
+  }
+  .build-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .build-panel .side-sec {
+    flex: 1 1 45%;
+  }
+}
+@media (max-width: 640px) {
+  .build-panel {
+    display: none; /* cards/buffs stay browseable on larger screens */
+  }
+  .inspector {
+    max-height: 112px;
+  }
+}
+
 /* Coarse pointers (touch): comfortable 44px tap targets regardless of width. */
 @media (pointer: coarse) {
   button {

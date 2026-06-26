@@ -365,6 +365,9 @@ export class Game {
       fracture: 0,
       corrosion: 0,
       shredFlash: 0,
+      hitFlash: 0,
+      dmgAccum: 0,
+      dmgTimer: 0,
       alive: true,
     });
   }
@@ -519,7 +522,7 @@ export class Game {
       this.grid.forNeighbors(pool.x, pool.y, pool.radius, (e) => {
         if (!e.alive) return;
         if (dist2(pool.x, pool.y, e.x, e.y) <= r2) {
-          this.applyDamage(e, pool.dps * dt);
+          this.applyDamage(e, pool.dps * dt, false); // continuous DoT — no per-tick flash
           e.corrosion = STATUS.corrosionDuration;
           this.maybeShred(e);
         }
@@ -540,9 +543,18 @@ export class Game {
       if (!e.alive) continue;
       if (e.corrosion > 0) {
         e.corrosion = Math.max(0, e.corrosion - dt);
-        this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt); // light tick from the status itself
+        this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt, false); // light tick from the status itself
       }
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
+      if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
+      // Aggregated damage numbers: bank hits, pop a single readable total per beat.
+      // Suppressed in heavy swarms (same LOD gate as enemy detail) to stay clean.
+      if (e.dmgTimer > 0) e.dmgTimer = Math.max(0, e.dmgTimer - dt);
+      if (e.dmgAccum >= 1 && e.dmgTimer <= 0 && this.enemies.length < PERF.lodEnemyCount) {
+        this.floats.push({ x: e.x, y: e.y - 12, text: `${Math.round(e.dmgAccum)}`, color: '#ffe9a8', life: 0.55 });
+        e.dmgAccum = 0;
+        e.dmgTimer = FX.dmgFloatInterval;
+      }
     }
   }
 
@@ -779,6 +791,7 @@ export class Game {
         this.biomass += gain;
         this.armorBreakUntil.delete(e.id);
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
+        this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
         this.pushSfx('kill');
         if (e.bounty >= 20) {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
@@ -863,6 +876,22 @@ export class Game {
     }
   }
 
+  /** Biomass motes drifting up off a kill — the income reads as "flying" to the HUD. */
+  private spawnMotes(x: number, y: number): void {
+    const spec = PARTICLE.mote;
+    for (let i = 0; i < spec.count; i++) {
+      if (this.particles.length >= PERF.maxParticles) break; // budget
+      const p = this.partPool.pop() ?? { x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0, size: 0, color: spec.color };
+      p.x = x + (this.fxRng.next() - 0.5) * 10;
+      p.y = y;
+      p.vx = (this.fxRng.next() - 0.5) * 24;
+      p.vy = -55 - this.fxRng.next() * 45; // upward, toward the resource counter
+      p.life = spec.life; p.maxLife = spec.life;
+      p.size = spec.size; p.color = spec.color;
+      this.particles.push(p);
+    }
+  }
+
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
@@ -889,11 +918,15 @@ export class Game {
     return Math.max(0, a);
   }
 
-  private applyDamage(e: Enemy, raw: number): void {
+  /** `flash` = a discrete hit (projectile/splash/hero) → pop the white flash;
+   * continuous DoT (corrosion/pools) passes false so it doesn't strobe. */
+  private applyDamage(e: Enemy, raw: number, flash = true): void {
     if (!e.alive) return;
     const mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     const applied = Math.max(1, raw * mult - this.effectiveArmor(e));
     e.hp -= applied;
+    e.dmgAccum += applied; // banked for the next aggregated damage number
+    if (flash) e.hitFlash = FX.hitFlash;
   }
 
   /** Fracture + Corrosion present → consume Fracture for a true-damage burst + armor break. */

@@ -8,6 +8,8 @@ import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
+import { BuildPanel } from './BuildPanel';
+import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
 import type { HudSnapshot, MetaModifiers } from '../core/types';
 import type { RunResult } from '../state/meta';
@@ -155,7 +157,9 @@ export function GameView({
   return (
     <div className="game">
       <Hud hud={hud} />
-      <div className="canvas-wrap">
+      <div className="stage">
+        <BuildPanel hud={hud} />
+        <div className="canvas-wrap">
         <canvas
           ref={canvasRef}
           className="board"
@@ -211,6 +215,8 @@ export function GameView({
             </button>
           </div>
         )}
+        </div>
+        <Inspector hud={hud} />
       </div>
       <Toolbar game={game} hud={hud} refresh={refresh} />
     </div>

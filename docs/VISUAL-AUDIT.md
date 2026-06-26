@@ -11,6 +11,14 @@ atmosphere). The game **inside** the frame still looks like a prototype — enem
 are featureless dots, combat is silent and weightless. Fix feel + the things you
 stare at, and this crosses the "looks commercial" line fast.*
 
+> **Resolution status (updated):** Sprints 1–2 + most of Sprint 3 are **done**.
+> ✅ C1 audio · ✅ C2 enemy faction shapes + boss/elite tiers · ✅ C3 screen-shake +
+> hit-flash + aggregated damage numbers · ✅ M1 hero signature · ✅ M2 tower
+> grow/breathe/recoil · ✅ M3 de-emoji (canvas padlock/chevron + SVG UI icons) ·
+> ✅ M4 resource feedback (count-up, ascending blip, kill motes) · ✅ M5 projectile
+> trails. Full HUD build/inspector panels added (HUD.md §5–6). Remaining: P-tier
+> polish (onboarding, results juice, in-run settings, crit identity, slot pulse).
+
 ---
 
 ## What already works (keep, don't touch)

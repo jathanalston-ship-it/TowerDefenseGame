@@ -34,6 +34,9 @@ export interface Enemy {
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
   shredFlash: number; // seconds of reaction flash remaining (visual)
+  hitFlash: number; // seconds of white hit-flash remaining (visual)
+  dmgAccum: number; // damage banked toward the next aggregated damage number (visual)
+  dmgTimer: number; // throttle until the banked damage may pop as a float (visual)
   alive: boolean;
 }
 

@@ -1,4 +1,5 @@
 import type { RunResult, RunReward } from '../state/meta';
+import { ShardIcon } from './components/Icon';
 
 export function Results({
   result,
@@ -26,7 +27,7 @@ export function Results({
           </div>
         </div>
         <div className="reward" style={{ marginTop: 16 }}>
-          Banked <b>{reward.shardsEarned} ◆</b> Shards
+          Banked <b>{reward.shardsEarned} <ShardIcon /></b> Shards
           {reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best wave!</span>}
         </div>
       </div>

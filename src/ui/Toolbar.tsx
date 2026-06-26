@@ -2,6 +2,7 @@ import type { Game } from '../core/game';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { audio } from '../audio/sound';
 import type { HudSnapshot } from '../core/types';
+import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
 
 export function Toolbar({
   game,
@@ -41,7 +42,7 @@ export function Toolbar({
               </span>
               <span className="tcard-blurb">{def.blurb}</span>
               <span className={`cost-chip ${afford ? 'is-afford' : 'is-broke'}`}>
-                ◆ {def.cost}
+                <BiomassIcon /> {def.cost}
               </span>
               <span className="tt-bubble tt-rich">
                 <b style={{ color: `var(--${def.combatClass.toLowerCase()})` }}>{def.name}</b>
@@ -62,7 +63,7 @@ export function Toolbar({
       <div className="spacer" />
 
       <div className="hero-pod">
-        <div className="hero-disc" aria-hidden>◆</div>
+        <div className="hero-disc" aria-hidden><HeroIcon /></div>
         <button
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}
           disabled={!hud.hero.abilityReady || !playable}
@@ -72,7 +73,7 @@ export function Toolbar({
             refresh();
           }}
         >
-          ⚡ Apex Leap
+          <BoltIcon /> Apex Leap
           <span className="hotkey">Q</span>
           <span className="tt-bubble">
             {hud.armedAbility

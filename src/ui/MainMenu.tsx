@@ -2,6 +2,7 @@ import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
 import { SaveManager } from './SaveManager';
+import { PlayIcon } from './components/Icon';
 
 export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
   const save = meta.use();
@@ -46,7 +47,7 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
             onStart();
           }}
         >
-          ▶ Start Run
+          <PlayIcon /> Start Run
         </button>
         <div className="spacer" />
         <button

@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { meta } from '../state/meta';
 import type { BackupMeta } from '../save/saveStore';
+import { DownloadIcon, PlusIcon, UploadIcon } from './components/Icon';
 
 export function SaveManager(): JSX.Element {
   const save = meta.use(); // reactive: reflects imports/restores
@@ -14,7 +15,7 @@ export function SaveManager(): JSX.Element {
     const file = e.target.files?.[0];
     if (file) {
       const r = await meta.importFromFile(file);
-      setMsg(r.ok ? '✓ Save imported.' : `✗ Import failed: ${r.error}`);
+      setMsg(r.ok ? 'Save imported.' : `Import failed: ${r.error}`);
       refresh();
     }
     if (fileRef.current) fileRef.current.value = '';
@@ -32,8 +33,8 @@ export function SaveManager(): JSX.Element {
         {save.bestWave} · {save.totalRuns} runs
       </div>
       <div className="row">
-        <button onClick={() => meta.exportToFile()}>⬇ Export JSON</button>
-        <button onClick={() => fileRef.current?.click()}>⬆ Import JSON</button>
+        <button onClick={() => meta.exportToFile()}><DownloadIcon /> Export JSON</button>
+        <button onClick={() => fileRef.current?.click()}><UploadIcon /> Import JSON</button>
         <input
           ref={fileRef}
           type="file"
@@ -45,10 +46,10 @@ export function SaveManager(): JSX.Element {
           onClick={() => {
             meta.backupNow();
             refresh();
-            setMsg('✓ Backup created.');
+            setMsg('Backup created.');
           }}
         >
-          ＋ Backup now
+          <PlusIcon /> Backup now
         </button>
       </div>
       {msg && <div style={{ marginTop: 8, fontSize: 13, color: 'var(--muted)' }}>{msg}</div>}
@@ -72,7 +73,7 @@ export function SaveManager(): JSX.Element {
               </div>
               <button
                 onClick={() => {
-                  setMsg(meta.restoreBackup(b.id) ? '✓ Backup restored.' : '✗ Restore failed.');
+                  setMsg(meta.restoreBackup(b.id) ? 'Backup restored.' : 'Restore failed.');
                 }}
               >
                 Restore

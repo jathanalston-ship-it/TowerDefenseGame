@@ -19,6 +19,8 @@ export const COMBAT = {
 export const FX = {
   particleDrag: 0.92, // per-tick velocity damping on cosmetic particles
   floatRiseSpeed: 18, // px/sec floating-text drift
+  hitFlash: 0.09, // seconds of white flash when an enemy takes a discrete hit
+  dmgFloatInterval: 0.4, // min seconds between aggregated damage-number pops per enemy
 };
 
 // ── Towers ────────────────────────────────────────────────────────────────
@@ -167,6 +169,7 @@ export const PARTICLE = {
   death: { count: 6, speed: 70, life: 0.5, size: 2.6 },
   shred: { count: 10, speed: 130, life: 0.45, size: 2.2, color: '#fff066' },
   breach: { count: 8, speed: 90, life: 0.5, size: 2.4, color: '#ff5d73' },
+  mote: { count: 4, life: 0.7, size: 2.2, color: '#b6e84a' }, // biomass motes drifting up off a kill
 };
 
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).

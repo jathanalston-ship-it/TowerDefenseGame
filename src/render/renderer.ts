@@ -457,6 +457,8 @@ function drawEnemy(
   }
 
   if (detail) {
+    // white pop on taking a hit (FX.hitFlash ≈ 0.09s → normalize ×9 for alpha)
+    if (e.hitFlash > 0) drawShape(ctx, shape, e.x, drawY, r, rgba(THEME.enemy.hitFlash, Math.min(0.8, e.hitFlash * 9)));
     if (e.corrosion > 0) ring(ctx, e.x, drawY, r + 2, THEME.enemy.corrosion, 2);
     if (e.fracture > 0) {
       ring(ctx, e.x, drawY, r + 4, rgba(THEME.enemy.fracture, Math.min(0.9, 0.25 + e.fracture * 0.12)), 2);
