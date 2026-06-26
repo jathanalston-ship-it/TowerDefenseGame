@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT, defaultMetaModifiers } from './config';
+import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS } from './config';
 import { CARD_POOL } from './cards';
 import { generateStage } from './stage';
 import { towerSlots } from './map';
@@ -158,5 +158,53 @@ describe('game modes', () => {
     expect(elite.maxHp).toBeGreaterThan(normal.maxHp); // buffed HP
     expect(elite.damage).toBeGreaterThan(normal.damage); // buffed damage
     expect(elite.bounty).toBeGreaterThan(normal.bounty); // richer reward
+  });
+});
+
+describe('balancing tools (internal debug API)', () => {
+  it('spawn-any + HP knob + enemy statistics', () => {
+    const g = new Game(1, NO_META);
+    g.debugHpMult = 3; // "modify health" knob
+    g.debugSpawn('runner', 4);
+    g.debugSpawn('warden', 1, true); // an elite
+    const s = g.debugEnemyStats();
+    expect(s.alive).toBe(5);
+    expect(s.elites).toBe(1);
+    expect(s.byKind.runner).toBe(4);
+    const runner = g.enemies.find((e) => e.kind === 'runner')!;
+    expect(runner.maxHp).toBe(ENEMY_DEFS.runner.hp * 3); // HP knob applied
+  });
+
+  it('debugForceWave jumps to and starts a wave', () => {
+    const g = new Game(7, NO_META);
+    expect(g.phase).toBe('prep');
+    g.debugForceWave(4);
+    expect(g.waveIndex).toBe(4);
+    expect(g.phase).toBe('wave');
+  });
+
+  it('DPS readout reflects player damage only while tracking is on', () => {
+    const g = new Game(3, NO_META);
+    expect(g.debugDps()).toBe(0); // off by default
+    g.debugTrackDps = true;
+    g.debugAddBiomass(1000); // afford several damage dealers
+    placeSome(g, 6);
+    g.debugSpawn('runner', 20); // a sustained stream so combat stays live
+    g.startWave();
+    let peak = 0;
+    for (let i = 0; i < 420; i++) {
+      g.advance(SIM_DT); // ~7s of combat
+      peak = Math.max(peak, g.debugDps()); // capture the busiest 2s window
+    }
+    expect(peak).toBeGreaterThan(0);
+  });
+
+  it('the debug knobs are inert at their defaults (determinism preserved)', () => {
+    const g = new Game(9, NO_META);
+    expect(g.debugDamageMult).toBe(1);
+    expect(g.debugHpMult).toBe(1);
+    expect(g.debugTrackDps).toBe(false);
+    g.debugSpawn('runner', 1);
+    expect(g.enemies[0].maxHp).toBe(ENEMY_DEFS.runner.hp); // no scaling at defaults
   });
 });

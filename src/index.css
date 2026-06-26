@@ -1252,6 +1252,46 @@ canvas.board.is-aiming {
   color: var(--muted);
   font-size: 11px;
 }
+.debug-panel input[type='number'] {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  padding: 4px 6px;
+  font-size: 12px;
+}
+.debug-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+}
+.debug-stat span {
+  color: var(--muted);
+}
+.debug-stat b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.debug-bykind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.debug-chip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.debug-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
 
 /* ── Responsive: desktop + tablet + mobile ────────────────────────────────── */
 

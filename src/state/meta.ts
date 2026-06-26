@@ -21,7 +21,7 @@ import {
   defaultMetaModifiers,
 } from '../core/config';
 import type { UpgradeDef } from '../core/config';
-import type { MetaModifiers } from '../core/types';
+import type { Currency, MetaModifiers } from '../core/types';
 import type { RunResult } from '../core/game';
 import {
   ACHIEVEMENTS,
@@ -250,6 +250,12 @@ export const meta = {
   debugAddShards(n: number): void {
     const save = store.get();
     persist({ ...save, shards: Math.max(0, save.shards + n), essence: Math.max(0, save.essence + n), components: Math.max(0, save.components + n), catalyst: Math.max(0, save.catalyst + n) });
+  },
+
+  /** Grant a single currency (the balancing panel's per-currency buttons). */
+  debugGrantCurrency(currency: Currency, n: number): void {
+    const save = store.get();
+    persist({ ...save, [currency]: Math.max(0, save[currency] + n) });
   },
 
   debugSetUpgrade(id: string, level: number): void {

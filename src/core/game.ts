@@ -145,6 +145,10 @@ export class Game {
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
   timeScale = 1;
+  debugDamageMult = 1; // scales player damage output (applyDamage)
+  debugHpMult = 1; // scales enemy HP at spawn (makeEnemyAt)
+  debugTrackDps = false; // when on, hurt() records hits for the DPS readout
+  private dpsHits: { t: number; amount: number }[] = []; // rolling damage log (debug)
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -434,7 +438,7 @@ export class Game {
   private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number, elite = false): void {
     const def = ENEMY_DEFS[kind];
     this.seenEnemies.add(kind); // Codex discovery (the one choke point for every spawn)
-    const eHp = elite ? ELITE.hpMult : 1;
+    const eHp = (elite ? ELITE.hpMult : 1) * this.debugHpMult; // dev "modify health" knob (×1 default)
     const shield = (def.shield ?? 0) * eHp;
     this.enemies.push({
       id: this.nextId++,
@@ -1228,6 +1232,7 @@ export class Game {
 
   private applyDamage(e: Enemy, raw: number): void {
     if (!e.alive) return;
+    if (this.debugDamageMult !== 1) raw *= this.debugDamageMult; // dev "modify damage" knob
     let mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.weakenUntil > this.time) mult += ECON.reactorWeaken; // reactor aura mark
     if (e.corrosion > 0 && this.mods.corrodedAmp > 0) mult += this.mods.corrodedAmp; // Brittle Rot
@@ -1239,6 +1244,7 @@ export class Game {
    *  and Regenerating enemies behave consistently. */
   private hurt(e: Enemy, amount: number): void {
     if (amount <= 0 || !e.alive) return;
+    if (this.debugTrackDps) this.dpsHits.push({ t: this.time, amount }); // dev DPS readout only
     e.lastHitTime = this.time;
     if (e.shield > 0) {
       const absorbed = Math.min(e.shield, amount);
@@ -1338,6 +1344,43 @@ export class Game {
     this.hero.hp = this.hero.maxHp;
     this.hero.respawn = 0;
     this.hero.abilityCd = 0;
+  }
+
+  /** Jump to and start a specific wave (prep only) — fast-forward to late-game state. */
+  debugForceWave(n: number): void {
+    if (this.phase !== 'prep') return;
+    this.waveIndex = Math.max(0, Math.min(Math.floor(n), this.totalWaves) - 1);
+    this.startWave();
+  }
+
+  /** Player-side DPS over the last `windowSec` (requires debugTrackDps). Prunes the
+   *  rolling hit log as a side effect; returns 0 when tracking is off / no hits. */
+  debugDps(windowSec = 2): number {
+    const cutoff = this.time - windowSec;
+    if (this.dpsHits.length > 0) {
+      let i = 0;
+      while (i < this.dpsHits.length && this.dpsHits[i].t < cutoff) i++;
+      if (i > 0) this.dpsHits.splice(0, i);
+    }
+    let sum = 0;
+    for (const h of this.dpsHits) sum += h.amount;
+    return sum / windowSec;
+  }
+
+  /** Live enemy breakdown for the balancing panel (read-only; no sim effect). */
+  debugEnemyStats(): { alive: number; elites: number; totalHp: number; byKind: Partial<Record<EnemyKind, number>> } {
+    const byKind: Partial<Record<EnemyKind, number>> = {};
+    let alive = 0;
+    let elites = 0;
+    let totalHp = 0;
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      alive++;
+      if (e.elite) elites++;
+      totalHp += e.hp + e.shield;
+      byKind[e.kind] = (byKind[e.kind] ?? 0) + 1;
+    }
+    return { alive, elites, totalHp: Math.round(totalHp), byKind };
   }
 
   // ── Mode helpers ─────────────────────────────────────────────────────────
