@@ -58,6 +58,10 @@ import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
 import { BOSS, DIRECTOR } from './config';
 import { Director } from './director';
+import { combineMult } from './modifiers';
+import { sortByProfile } from './targeting';
+import type { TargetingProfile } from './targeting';
+import { gameEvents } from './events';
 
 export type RunMode = 'stage' | 'endless';
 
@@ -227,6 +231,7 @@ export class Game {
   private reactorCount = 0; // cached on tower placement (economy), not per tick
   private bossCount = 0; // # framework bosses on the field (gates the boss system)
   private procBosses = new Map<string, BossDef>(); // assembled boss defs by id (lookup at runtime)
+  private targetRng = (): number => this.rng.next(); // stable closure for 'random' targeting
   private projPool: Projectile[] = [];
   private partPool: Particle[] = [];
   private targetScratch: Enemy[] = [];
@@ -269,6 +274,7 @@ export class Game {
   private makeHero(kind: HeroKind): Hero {
     const def = HERO_DEFS[kind];
     const maxHp = def.maxHp * this.mods.heroMaxHpMult; // equipment survivability folds in here
+    if (gameEvents.hasListeners('heroSpawned')) gameEvents.emit('heroSpawned', { kind });
     return {
       kind,
       x: nucleusPoint.x,
@@ -347,6 +353,7 @@ export class Game {
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
     this.pushSfx('place');
+    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
     return true;
   }
 
@@ -381,6 +388,7 @@ export class Game {
     this.spawnedAll = false;
     this.phase = 'wave';
     this.pushSfx('wave');
+    if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
   }
 
   /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget. */
@@ -409,6 +417,7 @@ export class Game {
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
     this.pushSfx('wave');
+    if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: true });
   }
 
   chooseCard(id: string): void {
@@ -418,6 +427,7 @@ export class Game {
       applyCard(card, this.cardContext());
       this.chosenCards.push(cardToOption(card));
       this.pushSfx('draft');
+      if (gameEvents.hasListeners('cardChosen')) gameEvents.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
     this.draft = null;
     this.phase = 'prep';
@@ -544,6 +554,7 @@ export class Game {
       alive: true,
       lastHitKind: null,
       boss: null,
+      elite,
     });
   }
 
@@ -576,6 +587,7 @@ export class Game {
       dmgTimer: 0,
       alive: true,
       lastHitKind: null,
+      elite: false,
       boss: {
         defId: def.id,
         name: def.name,
@@ -667,7 +679,7 @@ export class Game {
     this.enemies.push({
       id: this.nextId++, kind, x: Math.max(12, Math.min(WIDTH - 12, x + (this.rng.next() - 0.5) * 60)), y: y + 12,
       hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed, bounty: def.bounty, damage: def.damage,
-      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null,
+      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null, elite: false,
     });
   }
 
@@ -715,26 +727,31 @@ export class Game {
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
-      const rateMult = this.mods.towerFireRateMult * prog.fireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
-      const dmgMult = this.mods.towerDamageMult * prog.damageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
+      // Bonus math flows through the universal modifier framework (combineMult is the
+      // canonical multiplier fold — bit-identical to the previous a*b*c product).
+      const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
+      const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1;
+      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg);
+      const aim = def.targeting ?? 'closestToBase';
       // Dispatch by firing behavior (data), not the specific tower kind — so a new
       // tower reusing 'homing'/'splash' needs no change here.
       if (def.firing === 'homing') {
-        const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles);
+        const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles, aim);
         if (targets.length === 0) continue;
         for (const e of targets) {
           this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'homing', 0, t.kind);
         }
         t.cooldown = def.fireInterval / rateMult;
       } else if (def.firing === 'splash') {
-        const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
+        const target = this.pickTargets(t.x, t.y, def.range, 1, aim)[0];
         if (!target) continue;
         this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult, t.kind);
         t.cooldown = def.fireInterval / rateMult;
       } else if (def.firing === 'infest') {
         // Viral: launch a homing parasite. Low impact damage — the ramping,
         // armor-ignoring Infection it seeds (and its death-spread) is the payoff.
-        const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
+        const target = this.pickTargets(t.x, t.y, def.range, 1, aim)[0];
         if (!target) continue;
         this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, target.id, def.damage * dmgMult, 'parasite', 0, t.kind);
         t.cooldown = def.fireInterval / rateMult;
@@ -762,15 +779,16 @@ export class Game {
     if (hit) this.spawnParticles(t.x, t.y, PARTICLE.disrupt);
   }
 
-  /** Up to `n` distinct enemies in range, prioritizing those closest to the line. */
-  private pickTargets(x: number, y: number, range: number, n: number): Enemy[] {
+  /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
+   * The default 'closestToBase' reproduces the historical goal-distance sort exactly. */
+  private pickTargets(x: number, y: number, range: number, n: number, profile: TargetingProfile = 'closestToBase'): Enemy[] {
     const r2 = range * range;
     const out = this.targetScratch;
     out.length = 0;
     this.grid.forNeighbors(x, y, range, (e) => {
       if (e.alive && dist2(x, y, e.x, e.y) <= r2) out.push(e);
     });
-    out.sort((a, b) => goalDistanceAt(a.x, a.y) - goalDistanceAt(b.x, b.y));
+    sortByProfile(out, profile, { tx: x, ty: y, goalDistance: goalDistanceAt, rng: this.targetRng });
     return out.slice(0, n);
   }
 
@@ -797,6 +815,7 @@ export class Game {
             this.maybeShred(target);
           }
           this.pushSfx('hit');
+          if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
           p.alive = false;
         } else {
           const k = step / d;
@@ -830,6 +849,7 @@ export class Game {
 
   private mortarImpact(p: Projectile): void {
     this.pushSfx('hit');
+    if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: -1, byTower: p.sourceKind });
     const r2 = p.splash * p.splash;
     this.grid.forNeighbors(p.x, p.y, p.splash, (e) => {
       if (!e.alive) return;
@@ -1264,6 +1284,13 @@ export class Game {
         if (e.bounty >= 20) {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
         }
+        // Gameplay events (gated: no payload built when nobody is listening).
+        if (gameEvents.hasListeners('enemyKilled')) {
+          gameEvents.emit('enemyKilled', { id: e.id, kind: e.kind, x: e.x, y: e.y, bounty: e.bounty, byTower: e.lastHitKind, isBoss: e.boss !== null });
+        }
+        if (e.boss && gameEvents.hasListeners('bossKilled')) {
+          gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y });
+        }
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -1365,6 +1392,7 @@ export class Game {
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
+      if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
       if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
         this.phase = 'won';

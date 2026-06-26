@@ -31,6 +31,7 @@ import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
 import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } from '../core/equipment';
 import type { EquipSlot, OwnedItem } from '../core/equipment';
+import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 
 const saveStore = new SaveStore();
@@ -352,6 +353,12 @@ export const meta = {
   equip(slot: EquipSlot, uid: string | null): void {
     const save = store.get();
     persist({ ...save, equipment: { ...save.equipment, loadout: { ...save.equipment.loadout, [slot]: uid } } });
+    if (uid) {
+      const it = save.equipment.inventory.find((i) => i.uid === uid);
+      if (it && gameEvents.hasListeners('equipmentEquipped')) {
+        gameEvents.emit('equipmentEquipped', { slot, defId: it.defId, rarity: it.rarity });
+      }
+    }
   },
 
   grantItem(item: OwnedItem): void {

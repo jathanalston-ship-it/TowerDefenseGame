@@ -4,6 +4,7 @@
 
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 import { Registry } from './registry';
+import type { TargetingProfile } from './targeting';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -38,6 +39,8 @@ export interface TowerDef {
   splash: number; // splash radius (0 = single target)
   color: string;
   blurb: string;
+  /** Targeting profile (data-driven). Omitted ⇒ 'closestToBase' (historical default). */
+  targeting?: TargetingProfile;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
