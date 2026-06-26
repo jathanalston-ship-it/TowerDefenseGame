@@ -362,12 +362,10 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
       ctx.ellipse(e.x, e.y + 9, r * 0.8, r * 0.4, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    // a faint advance-trail above (they descend)
-    const tg = ctx.createLinearGradient(e.x, e.y - r * 2.4, e.x, e.y);
-    tg.addColorStop(0, 'rgba(0,0,0,0)');
-    tg.addColorStop(1, def.color + '55');
-    ctx.fillStyle = tg;
-    ctx.fillRect(e.x - r * 0.5, e.y - r * 2.4, r, r * 2.4);
+    // a faint advance-trail above (they descend) — solid alpha; avoids a
+    // per-enemy, per-frame gradient allocation in the hot draw loop.
+    ctx.fillStyle = def.color + '33';
+    ctx.fillRect(e.x - r * 0.45, e.y - r * 2.2, r * 0.9, r * 2.2);
   }
 
   const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor

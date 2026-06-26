@@ -115,6 +115,8 @@ export class Game {
   private rng: Rng;
   private fxRng: Rng; // cosmetic-only stream (particles) — keeps gameplay rng pure
   private grid = new SpatialGrid<Enemy>(WIDTH, HEIGHT, PERF.spatialCell);
+  private enemyById = new Map<number, Enemy>(); // O(1) projectile target lookup
+  private reactorCount = 0; // cached on tower placement (economy), not per tick
   private projPool: Projectile[] = [];
   private partPool: Particle[] = [];
   private targetScratch: Enemy[] = [];
@@ -203,6 +205,7 @@ export class Game {
       cooldown: 0,
       overcharged: false,
     });
+    this.recomputeTowerCaches();
     return true;
   }
 
@@ -286,7 +289,6 @@ export class Game {
       this.spawnSystem();
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
       this.economySystem(dt);
-      this.overchargeSystem();
       this.towerSystem(dt);
       this.projectileSystem(dt);
       this.poolSystem(dt);
@@ -302,17 +304,22 @@ export class Game {
         this.phase = 'lost';
       }
     } else {
-      // prep: hero still roams; no spawns/economy/loss.
-      this.overchargeSystem();
+      // prep: hero still roams; no spawns/economy/loss (overcharge is cached on placement).
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
     }
   }
 
+  /** Rebuild the per-tick spatial index + id map from the live enemy list. */
   private rebuildGrid(): void {
     this.grid.clear();
-    for (const e of this.enemies) if (e.alive) this.grid.insert(e);
+    this.enemyById.clear();
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      this.grid.insert(e);
+      this.enemyById.set(e.id, e);
+    }
   }
 
   // ── Systems ──────────────────────────────────────────────────────────────
@@ -349,30 +356,36 @@ export class Game {
   }
 
   private economySystem(dt: number): void {
-    let gen = 0;
-    for (const t of this.towers) {
-      if (t.kind === 'reactor') gen += ECON.reactorBiomassPerSec;
+    if (this.reactorCount > 0) {
+      this.biomass += this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * dt;
     }
-    if (gen > 0) this.biomass += gen * this.mods.reactorBiomassMult * dt;
   }
 
-  private reactorCells(): TowerSlot[] {
-    const cells: TowerSlot[] = [];
+  /**
+   * Recompute tower-layout caches (reactor count + per-tower overcharge flags).
+   * Towers never move or die, so this only runs when a tower is placed — keeping
+   * the economy + overcharge systems O(1) per tick instead of O(towers^2).
+   */
+  private recomputeTowerCaches(): void {
+    const reactors: TowerSlot[] = [];
     for (const t of this.towers) {
-      if (t.kind === 'reactor') cells.push(towerSlots[t.slot]);
+      if (t.kind === 'reactor') reactors.push(towerSlots[t.slot]);
     }
-    return cells;
-  }
-
-  private overchargeSystem(): void {
-    const reactors = this.reactorCells();
+    this.reactorCount = reactors.length;
     for (const t of this.towers) {
       if (t.kind === 'reactor') {
         t.overcharged = false;
         continue;
       }
       const slot = towerSlots[t.slot];
-      t.overcharged = reactors.some((rc) => slotsAdjacent(rc, slot));
+      let oc = false;
+      for (const rc of reactors) {
+        if (slotsAdjacent(rc, slot)) {
+          oc = true;
+          break;
+        }
+      }
+      t.overcharged = oc;
     }
   }
 
@@ -414,35 +427,40 @@ export class Game {
 
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
+      const step = p.speed * dt;
       if (p.kind === 'needle') {
-        const target = this.enemies.find((e) => e.id === p.targetId && e.alive);
-        if (!target) {
+        const target = this.enemyById.get(p.targetId); // O(1) homing lookup
+        if (!target || !target.alive) {
           p.alive = false; // fizzle if the target died
           continue;
         }
         p.tx = target.x;
         p.ty = target.y;
-        const step = p.speed * dt;
-        if (dist(p.x, p.y, p.tx, p.ty) <= step + 4) {
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy); // one sqrt for both the arrival test and the move
+        if (d <= step + 4) {
           this.applyDamage(target, p.damage);
           this.addFracture(target, 1);
           this.maybeShred(target);
           p.alive = false;
         } else {
-          const np = moveToward(p.x, p.y, p.tx, p.ty, step);
-          p.x = np.x;
-          p.y = np.y;
+          const k = step / d;
+          p.x += dx * k;
+          p.y += dy * k;
         }
       } else {
         // mortar: positional, splash on arrival
-        const step = p.speed * dt;
-        if (dist(p.x, p.y, p.tx, p.ty) <= step + 4) {
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d <= step + 4) {
           this.mortarImpact(p);
           p.alive = false;
         } else {
-          const np = moveToward(p.x, p.y, p.tx, p.ty, step);
-          p.x = np.x;
-          p.y = np.y;
+          const k = step / d;
+          p.x += dx * k;
+          p.y += dy * k;
         }
       }
     }
