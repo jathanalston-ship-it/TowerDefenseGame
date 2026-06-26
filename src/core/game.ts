@@ -59,6 +59,7 @@ import type {
   Phase,
   Pool,
   Projectile,
+  ProjectileBehavior,
   Tower,
   TowerKind,
   FloatingText,
@@ -395,22 +396,24 @@ export class Game {
   private towerSystem(dt: number): void {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
-      if (def.fireInterval <= 0) continue; // reactor
+      if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const rateMult = this.mods.towerFireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
       const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
-      if (t.kind === 'needle') {
+      // Dispatch by firing behavior (data), not the specific tower kind — so a new
+      // tower reusing 'homing'/'splash' needs no change here.
+      if (def.firing === 'homing') {
         const targets = this.pickTargets(t.x, t.y, def.range, 1 + this.mods.needleExtraProjectiles);
         if (targets.length === 0) continue;
         for (const e of targets) {
-          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'needle', 0);
+          this.spawnProjectile(t.x, t.y, e.x, e.y, def.projectileSpeed, e.id, def.damage * dmgMult, 'homing', 0);
         }
         t.cooldown = def.fireInterval / rateMult;
-      } else if (t.kind === 'mortar') {
+      } else if (def.firing === 'splash') {
         const target = this.pickTargets(t.x, t.y, def.range, 1)[0];
         if (!target) continue;
-        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'mortar', def.splash * this.mods.splashRadiusMult);
+        this.spawnProjectile(t.x, t.y, target.x, target.y, def.projectileSpeed, -1, def.damage * dmgMult, 'splash', def.splash * this.mods.splashRadiusMult);
         t.cooldown = def.fireInterval / rateMult;
       }
     }
@@ -431,7 +434,7 @@ export class Game {
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
       const step = p.speed * dt;
-      if (p.kind === 'needle') {
+      if (p.behavior === 'homing') {
         const target = this.enemyById.get(p.targetId); // O(1) homing lookup
         if (!target || !target.alive) {
           p.alive = false; // fizzle if the target died
@@ -786,16 +789,16 @@ export class Game {
 
   private spawnProjectile(
     x: number, y: number, tx: number, ty: number, speed: number,
-    targetId: number, damage: number, kind: TowerKind, splash: number,
+    targetId: number, damage: number, behavior: ProjectileBehavior, splash: number,
   ): void {
     const p = this.projPool.pop();
     if (p) {
       p.id = this.nextId++;
       p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
-      p.targetId = targetId; p.damage = damage; p.kind = kind; p.splash = splash; p.alive = true;
+      p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
       this.projectiles.push(p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, kind, splash, alive: true });
+      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true });
     }
   }
 

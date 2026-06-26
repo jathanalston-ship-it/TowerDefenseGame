@@ -2,7 +2,7 @@
 // ARCHITECTURE.md §6.2). Systems read these; they never inline magic numbers.
 // Every value is an illustrative starting point for the vertical slice.
 
-import type { CombatClass, EnemyKind, MetaModifiers, TowerKind } from './types';
+import type { CombatClass, EnemyKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -26,6 +26,7 @@ export interface TowerDef {
   kind: TowerKind;
   name: string;
   combatClass: CombatClass;
+  firing: TowerFiring; // how it attacks — drives the sim dispatch (data, not code)
   cost: number;
   range: number;
   fireInterval: number; // seconds between actions
@@ -41,6 +42,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     kind: 'needle',
     name: 'Needle Spitter',
     combatClass: 'Kinetic',
+    firing: 'homing',
     cost: 100,
     range: 135,
     fireInterval: 0.34,
@@ -54,6 +56,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     kind: 'mortar',
     name: 'Bone Mortar',
     combatClass: 'Caustic',
+    firing: 'splash',
     cost: 150,
     range: 175,
     fireInterval: 1.45,
@@ -67,6 +70,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     kind: 'reactor',
     name: 'Flesh Reactor',
     combatClass: 'Vital',
+    firing: 'support',
     cost: 120,
     range: 0,
     fireInterval: 0,

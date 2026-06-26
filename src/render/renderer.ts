@@ -70,9 +70,10 @@ export function drawGame(
   for (const tw of rs.towers) drawTower(ctx, tw);
 
   for (const p of rs.projectiles) {
+    const splash = p.behavior === 'splash';
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.kind === 'mortar' ? 4 : 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = p.kind === 'mortar' ? '#d6f06a' : '#aef0ff';
+    ctx.arc(p.x, p.y, splash ? 4 : 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = splash ? '#d6f06a' : '#aef0ff';
     ctx.fill();
   }
 
