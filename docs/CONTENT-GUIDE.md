@@ -90,16 +90,30 @@ hooks**, each a single data field handled generically by the engine:
 | Splitter | `split: { kind, count }` | bursts into others on death |
 | Ranged | `ranged: { range, damage, interval, speed }` | shoots the hero |
 
+Enemies are **composed from reusable archetypes** (`src/core/archetypes.ts`) — a
+new enemy combines existing parts instead of a bespoke implementation:
+
+```ts
+mecha: defineEnemy('mecha', {
+  name: 'Iron Husk', role: 'tank',
+  stats: { hp: 260, armor: 16, speed: 34, bounty: 70, damage: 13, radius: 17 },
+  movement: MOVEMENT.behemoth,          // a steering profile (the movement AI)
+  visual: { color: '#9fb0c0' },          // renderer derives ability "tells"
+  abilities: [ability.shielded(120), ability.regenerating(8, 2)], // combine modules
+}),
+```
+
 **To add an enemy (pure data):**
 1. Add the `kind` to `EnemyKind` in `types.ts`.
-2. Add an `ENEMY_DEFS[kind]` entry — pick a `behavior` profile and (optionally)
-   one or more archetype hooks. No new code: spawns, steering, splitting,
-   shields, regen, and ranged fire all read these fields.
-3. Reference it in a `WAVES` group (or it's spawnable via the debug panel).
+2. Add an `ENEMY_DEFS[kind] = defineEnemy(...)` entry: a `StatBlock`, a `MOVEMENT`
+   profile (or `tune(base, overrides)`), a `visual`, a `role`, and zero-or-more
+   `ability.*` modules (`shielded` / `regenerating` / `splitsInto` / `ranged`).
+   No new code — the sim reads the four ability hooks already in `game.ts`.
+3. Reference it in a wave (`WAVES.md`) or spawn it from the debug panel.
 
-A *new* archetype mechanic follows the three-step pattern: add an optional field
-to `EnemyDef`, read it at the matching enemy hook, then author enemies that use
-it — existing enemies (which omit the field) are unaffected.
+A *genuinely new* mechanic follows the three-step pattern: add an `AbilityModule`
+field + an `ability.*` factory, read it at a new `game.ts` hook, then have enemies
+combine it. Existing enemies (which omit it) are unaffected.
 
 ---
 

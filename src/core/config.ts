@@ -3,6 +3,11 @@
 // Every value is an illustrative starting point for the vertical slice.
 
 import type { CombatClass, Currency, EnemyKind, HeroId, MetaModifiers, TowerKind } from './types';
+import { defineEnemy, MOVEMENT, ability, tune } from './archetypes';
+import type { EnemyDef, EnemyBehavior, StatBlock, EnemyRole, AbilityModule, MovementId } from './archetypes';
+// Re-export the archetype kit so existing `from './config'` import paths keep working.
+export { defineEnemy, MOVEMENT, ability, tune };
+export type { EnemyDef, EnemyBehavior, StatBlock, EnemyRole, AbilityModule, MovementId };
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -72,100 +77,77 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
 export const TOWER_ORDER: TowerKind[] = ['needle', 'mortar', 'reactor'];
 
 // ── Enemies ───────────────────────────────────────────────────────────────
-/**
- * Steering profile — how an enemy *thinks*, not just where it walks. Combined each
- * tick into a single movement vector (see Game.enemyMoveSystem). Data-driven so new
- * archetypes are a config entry, not new code.
- */
-export interface EnemyBehavior {
-  seek: number; // pull toward the base/line (flow field)
-  avoidTowers: number; // steer out of tower kill-zones -> seek gaps (penetration)
-  avoidHero: number; // >0 skirt the hero, <0 hunt it (future hunter types)
-  separation: number; // spread from neighbours
-  jitter: number; // organic wander
-  flying?: boolean; // ignore ground obstacles (drift straight for the base)
-  burrowing?: boolean; // ignore ground obstacles (tunnel under them)
-}
-
-export interface EnemyDef {
-  kind: EnemyKind;
-  name: string;
-  hp: number;
-  armor: number;
-  speed: number; // px/sec
-  bounty: number; // biomass on death
-  damage: number; // integrity damage at the line
-  radius: number;
-  color: string;
-  behavior: EnemyBehavior;
-  isBoss?: boolean; // marks a wave-defining elite (future boss bars/codex/rewards key off this)
-  // ── Archetype hooks (each is one optional data field, no bespoke per-type code) ──
-  shield?: number; // Shielded — soaks this much damage before HP is touched
-  regen?: { perSec: number; delay: number }; // Regenerating — heals after `delay`s unhurt
-  split?: { kind: EnemyKind; count: number }; // Splitter — bursts into these on death
-  ranged?: { range: number; damage: number; interval: number; speed: number }; // Ranged — shoots the hero
-}
-
+// Every enemy is COMPOSED from reusable archetypes (src/core/archetypes.ts):
+// a StatBlock + a MOVEMENT profile (the movement AI) + a VisualSpec + zero-or-more
+// ability modules. No bespoke per-enemy code — a new enemy is one defineEnemy call
+// combining existing parts (see docs/ENEMIES.md §Archetypes, CONTENT-GUIDE).
 export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
-  runner: {
-    kind: 'runner', name: 'Skitterling', hp: 36, armor: 0, speed: 72, bounty: 11, damage: 4, radius: 10, color: '#d98cff',
-    behavior: { seek: 1, avoidTowers: 0.28, avoidHero: 0.5, separation: 0.55, jitter: 0.16 },
-  },
-  brute: {
-    kind: 'brute', name: 'Carrion Brute', hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14, color: '#7b9cff',
-    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.22, separation: 0.4, jitter: 0.06 },
-  },
-  tyrant: {
-    kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26, color: '#ff4d6d',
-    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 }, isBoss: true,
-  },
-  // ── Future archetypes — spawnable via the debug panel; not in the authored waves
-  //    yet. Each is purely a data profile, proving the AI scales by configuration. ──
-  rusher: {
-    kind: 'rusher', name: 'Razor Sprinter', hp: 28, armor: 0, speed: 132, bounty: 9, damage: 5, radius: 8, color: '#ff5db0',
-    behavior: { seek: 1.2, avoidTowers: 0, avoidHero: 0, separation: 0.2, jitter: 0.04 }, // beelines, ignores defenses
-  },
-  tank: {
-    kind: 'tank', name: 'Carapace Hauler', hp: 430, armor: 18, speed: 30, bounty: 60, damage: 14, radius: 18, color: '#5fd0c6',
-    behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0, separation: 0.3, jitter: 0.02 }, // soaks, unbothered
-  },
-  flyer: {
-    kind: 'flyer', name: 'Spore Drifter', hp: 60, armor: 2, speed: 64, bounty: 18, damage: 7, radius: 11, color: '#c0a3ff',
-    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // over obstacles
-  },
-  burrower: {
-    kind: 'burrower', name: 'Gut Tunneler', hp: 90, armor: 6, speed: 58, bounty: 22, damage: 8, radius: 12, color: '#e8a04a',
-    behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true }, // tunnels gaps
-  },
-
-  // ── Combat archetypes — each is mostly a data profile + one archetype hook. ──
-  // Splitter: a fat sac that bursts into a knot of Skitterlings — punish single-
-  // target overkill; reward AoE (Mortar) parked behind it.
-  splitter: {
-    kind: 'splitter', name: 'Brood Sac', hp: 130, armor: 4, speed: 44, bounty: 26, damage: 9, radius: 16, color: '#c7e04a',
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.35, jitter: 0.05 },
-    split: { kind: 'runner', count: 3 },
-  },
+  // ── Core trio (authored waves) ──
+  runner: defineEnemy('runner', {
+    name: 'Skitterling', role: 'chaff',
+    stats: { hp: 36, armor: 0, speed: 72, bounty: 11, damage: 4, radius: 10 },
+    movement: MOVEMENT.swarmer, visual: { color: '#d98cff' },
+  }),
+  brute: defineEnemy('brute', {
+    name: 'Carrion Brute', role: 'standard',
+    stats: { hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14 },
+    movement: MOVEMENT.bruiser, visual: { color: '#7b9cff' },
+  }),
+  tyrant: defineEnemy('tyrant', {
+    name: 'Brood Tyrant', role: 'boss', isBoss: true,
+    stats: { hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26 },
+    movement: MOVEMENT.juggernaut, visual: { color: '#ff4d6d' },
+  }),
+  // ── Mobility archetypes ──
+  rusher: defineEnemy('rusher', {
+    name: 'Razor Sprinter', role: 'chaff',
+    stats: { hp: 28, armor: 0, speed: 132, bounty: 9, damage: 5, radius: 8 },
+    movement: MOVEMENT.charger, visual: { color: '#ff5db0' }, // beelines, ignores defenses
+  }),
+  tank: defineEnemy('tank', {
+    name: 'Carapace Hauler', role: 'tank',
+    stats: { hp: 430, armor: 18, speed: 30, bounty: 60, damage: 14, radius: 18 },
+    movement: MOVEMENT.behemoth, visual: { color: '#5fd0c6' }, // soaks, unbothered
+  }),
+  flyer: defineEnemy('flyer', {
+    name: 'Spore Drifter', role: 'standard',
+    stats: { hp: 60, armor: 2, speed: 64, bounty: 18, damage: 7, radius: 11 },
+    movement: MOVEMENT.floater, visual: { color: '#c0a3ff' }, // over obstacles
+  }),
+  burrower: defineEnemy('burrower', {
+    name: 'Gut Tunneler', role: 'standard',
+    stats: { hp: 90, armor: 6, speed: 58, bounty: 22, damage: 8, radius: 12 },
+    movement: MOVEMENT.tunneler, visual: { color: '#e8a04a' }, // tunnels gaps
+  }),
+  // ── Combat archetypes — a movement profile + one ability module each ──
+  // Splitter: a fat sac that bursts into Skitterlings — punish single-target overkill.
+  splitter: defineEnemy('splitter', {
+    name: 'Brood Sac', role: 'standard',
+    stats: { hp: 130, armor: 4, speed: 44, bounty: 26, damage: 9, radius: 16 },
+    movement: MOVEMENT.brooder, visual: { color: '#c7e04a' },
+    abilities: [ability.splitsInto('runner', 3)],
+  }),
   // Ranged: hangs back and shoots the hero — towers must reach it; keep the hero clear.
-  spitter: {
-    kind: 'spitter', name: 'Bile Spitter', hp: 72, armor: 2, speed: 50, bounty: 24, damage: 6, radius: 12, color: '#ff5db0',
-    behavior: { seek: 0.9, avoidTowers: 0.2, avoidHero: 0.75, separation: 0.3, jitter: 0.08 }, // kites the hero
-    ranged: { range: 190, damage: 16, interval: 1.9, speed: 230 },
-  },
-  // Regenerating: heals fast unless kept under pressure — counter with Corrosion
-  // pools (continuous DoT) or burst it down before regen kicks in.
-  mender: {
-    kind: 'mender', name: 'Knit Crawler', hp: 165, armor: 6, speed: 40, bounty: 32, damage: 8, radius: 14, color: '#3fe08a',
-    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.25, separation: 0.35, jitter: 0.06 },
-    regen: { perSec: 16, delay: 1.6 },
-  },
-  // Shielded: a hard shield soaks the first hits — needs sustained fire or splash
-  // to crack before the body even takes damage (Needle focus / Mortar chip).
-  warden: {
-    kind: 'warden', name: 'Carapace Warden', hp: 150, armor: 8, speed: 38, bounty: 36, damage: 11, radius: 16, color: '#6e9bff',
-    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.18, separation: 0.3, jitter: 0.03 },
-    shield: 130,
-  },
+  spitter: defineEnemy('spitter', {
+    name: 'Bile Spitter', role: 'standard',
+    stats: { hp: 72, armor: 2, speed: 50, bounty: 24, damage: 6, radius: 12 },
+    movement: MOVEMENT.kiter, visual: { color: '#ff5db0' },
+    abilities: [ability.ranged(190, 16, 1.9, 230)],
+  }),
+  // Regenerating: heals fast unless kept under pressure — counter with Corrosion DoT.
+  mender: defineEnemy('mender', {
+    name: 'Knit Crawler', role: 'support',
+    stats: { hp: 165, armor: 6, speed: 40, bounty: 32, damage: 8, radius: 14 },
+    movement: MOVEMENT.knitter, visual: { color: '#3fe08a' },
+    abilities: [ability.regenerating(16, 1.6)],
+  }),
+  // Shielded: a hard shield soaks the first hits — crack it with sustained fire/splash.
+  warden: defineEnemy('warden', {
+    name: 'Carapace Warden', role: 'tank',
+    stats: { hp: 150, armor: 8, speed: 38, bounty: 36, damage: 11, radius: 16 },
+    movement: MOVEMENT.bulwark, visual: { color: '#6e9bff' },
+    abilities: [ability.shielded(130)],
+  }),
 };
 
 // Steering radii / cadence for enemy threat behaviour. Raw px (avoids a config<->map

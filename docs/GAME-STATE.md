@@ -37,7 +37,7 @@ updated whenever a system lands.
 | Three game modes (Classic / Stage / Endless) | ✅ | `core/game.ts`, `ui/ModePanel.tsx` | STAGES |
 | Towers (3: Needle / Mortar / Reactor) | ✅ | `config.ts TOWER_DEFS`, `game.ts` | TOWERS |
 | Hero (Ravager) — data-driven roster of 1 | 🟡 | `config.ts HEROES`, `game.ts` | HEROES |
-| Enemies (11 kinds + archetype hooks) | ✅ | `config.ts ENEMY_DEFS` | ENEMIES |
+| Enemies (11 kinds, composed from archetypes) | ✅ | `core/archetypes.ts`, `config.ts ENEMY_DEFS` | ENEMIES |
 | Bosses — `isBoss` data hook (Brood Tyrant) | 🟡 | `config.ts ENEMY_DEFS` | ENEMIES |
 | Status + SHRED reaction engine | ✅ | `game.ts`, `config.ts STATUS` | DESIGN |
 | Wave Composer (themes/elites/bosses/scripted) | ✅ | `core/wavecomposer.ts` | WAVES |
