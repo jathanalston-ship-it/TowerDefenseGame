@@ -3,18 +3,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT } from './config';
+import { SIM_DT, defaultMetaModifiers } from './config';
 import { CARD_POOL } from './cards';
 import { generateStage } from './stage';
 import { towerSlots } from './map';
-import type { MetaModifiers, TowerKind } from './types';
+import type { TowerKind } from './types';
 
-const NO_META: MetaModifiers = {
-  towerDamageMult: 1,
-  biomassMult: 1,
-  heroDamageMult: 1,
-  integrityBonus: 0,
-};
+const NO_META = defaultMetaModifiers();
 
 const KINDS: TowerKind[] = ['needle', 'mortar', 'reactor'];
 

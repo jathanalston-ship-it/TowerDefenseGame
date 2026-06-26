@@ -195,13 +195,16 @@ export class Game {
     }
 
     this.mods = defaultRunModifiers();
-    // Fold permanent (meta) multipliers into the run as starting buckets.
+    // Fold permanent (meta) multipliers — from every upgrade track — into the run.
     this.mods.towerDamageMult = meta.towerDamageMult;
+    this.mods.towerFireRateMult *= meta.towerFireRateMult;
+    this.mods.splashRadiusMult *= meta.splashMult;
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
+    this.mods.heroSpeedMult *= meta.heroSpeedMult;
     this.maxIntegrity = Math.round((ECON.baseIntegrity + meta.integrityBonus) * this.stageMods.integrityMult);
     this.integrity = this.maxIntegrity;
-    this.biomass = ECON.startingBiomass + this.stageMods.startBiomassBonus;
+    this.biomass = ECON.startingBiomass + meta.startBiomass + this.stageMods.startBiomassBonus;
     this.hero = {
       x: nucleusPoint.x,
       y: nucleusPoint.y,

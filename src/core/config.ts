@@ -2,7 +2,7 @@
 // ARCHITECTURE.md §6.2). Systems read these; they never inline magic numbers.
 // Every value is an illustrative starting point for the vertical slice.
 
-import type { CombatClass, EnemyKind, TowerKind } from './types';
+import type { CombatClass, Currency, EnemyKind, MetaModifiers, TowerKind } from './types';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -383,7 +383,12 @@ export const SLOTS = {
   initialUnlocked: 14,
 };
 
-// ── Meta upgrades (permanent, capped — NOT prestige/infinite) ─────────────
+// ── Meta upgrades (permanent, capped) — data-driven, multi-currency ───────────
+// Three parallel tracks, each fed by a DIFFERENT mode's currency so each mode has
+// its own progression: Shards (Stage/Classic → power), Essence (Endless → mastery),
+// Components (Stage → equipment). Adding a node is one entry: id, costs, and an
+// apply(mods, level) that folds into the permanent bucket. Costs/coefficients are
+// the canonical balance values — tune here, see docs/BALANCE-LOG.md.
 export interface UpgradeDef {
   id: string;
   name: string;
@@ -391,11 +396,47 @@ export interface UpgradeDef {
   maxLevel: number;
   baseCost: number;
   costMult: number;
+  currency: Currency;
+  track: 'core' | 'mastery' | 'equipment';
+  apply: (m: MetaModifiers, level: number) => void;
 }
 
+export function defaultMetaModifiers(): MetaModifiers {
+  return {
+    towerDamageMult: 1,
+    towerFireRateMult: 1,
+    splashMult: 1,
+    biomassMult: 1,
+    heroDamageMult: 1,
+    heroSpeedMult: 1,
+    integrityBonus: 0,
+    startBiomass: 0,
+  };
+}
+
+// Core power track — bought with Shards (the Stage/Classic currency).
 export const META_UPGRADES: UpgradeDef[] = [
-  { id: 'lethality', name: 'Lethal Spores', description: '+8% tower damage per level', maxLevel: 10, baseCost: 30, costMult: 1.55 },
-  { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.55 },
-  { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5 },
-  { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55 },
+  { id: 'lethality', name: 'Lethal Spores', description: '+8% tower damage per level', maxLevel: 10, baseCost: 30, costMult: 1.5, currency: 'shards', track: 'core', apply: (m, l) => { m.towerDamageMult *= 1 + 0.08 * l; } },
+  { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.5, currency: 'shards', track: 'core', apply: (m, l) => { m.biomassMult *= 1 + 0.1 * l; } },
+  { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.45, currency: 'shards', track: 'core', apply: (m, l) => { m.integrityBonus += 25 * l; } },
+  { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.5, currency: 'shards', track: 'core', apply: (m, l) => { m.heroDamageMult *= 1 + 0.1 * l; } },
 ];
+
+// Mastery track — bought with Essence (the Endless currency). Utility/tempo lean,
+// so endless progression FEELS different from the Shards damage tree.
+export const MASTERY_UPGRADES: UpgradeDef[] = [
+  { id: 'overclock', name: 'Overclock', description: '+6% tower fire rate per level', maxLevel: 8, baseCost: 40, costMult: 1.5, currency: 'essence', track: 'mastery', apply: (m, l) => { m.towerFireRateMult *= 1 + 0.06 * l; } },
+  { id: 'swift_genes', name: 'Swift Genes', description: '+8% hero move speed per level', maxLevel: 6, baseCost: 35, costMult: 1.5, currency: 'essence', track: 'mastery', apply: (m, l) => { m.heroSpeedMult *= 1 + 0.08 * l; } },
+  { id: 'jumpstart', name: 'Jumpstart', description: '+40 starting biomass per level', maxLevel: 6, baseCost: 30, costMult: 1.5, currency: 'essence', track: 'mastery', apply: (m, l) => { m.startBiomass += 40 * l; } },
+];
+
+// Equipment track — bought with Components (dropped by clearing Stages). Gear-like
+// defensive/AoE relics, distinct from both other trees.
+export const EQUIPMENT_UPGRADES: UpgradeDef[] = [
+  { id: 'carapace', name: 'Carapace Plating', description: '+20 max Integrity per level', maxLevel: 8, baseCost: 25, costMult: 1.45, currency: 'components', track: 'equipment', apply: (m, l) => { m.integrityBonus += 20 * l; } },
+  { id: 'payload', name: 'Volatile Payload', description: '+8% splash radius per level', maxLevel: 6, baseCost: 30, costMult: 1.5, currency: 'components', track: 'equipment', apply: (m, l) => { m.splashMult *= 1 + 0.08 * l; } },
+  { id: 'symbiote', name: 'Symbiote Core', description: '+8% biomass income per level', maxLevel: 6, baseCost: 30, costMult: 1.5, currency: 'components', track: 'equipment', apply: (m, l) => { m.biomassMult *= 1 + 0.08 * l; } },
+];
+
+/** Every upgrade across all tracks (meta.ts derives MetaModifiers from this). */
+export const ALL_UPGRADES: UpgradeDef[] = [...META_UPGRADES, ...MASTERY_UPGRADES, ...EQUIPMENT_UPGRADES];

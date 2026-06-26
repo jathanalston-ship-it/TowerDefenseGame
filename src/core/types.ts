@@ -131,12 +131,21 @@ export interface Particle {
   color: string;
 }
 
-/** Permanent (meta) multipliers folded into a run at start — the "permanent bucket". */
+/** Permanent currencies. Stage/Classic pay Shards (power) + Components (gear);
+ *  Endless pays Essence (mastery) + Catalyst (prestige). */
+export type Currency = 'shards' | 'essence' | 'components';
+
+/** Permanent (meta) multipliers folded into a run at start — the "permanent bucket".
+ *  Accumulated from every upgrade track (Shards/Essence/Components) in meta.ts. */
 export interface MetaModifiers {
   towerDamageMult: number;
+  towerFireRateMult: number;
+  splashMult: number;
   biomassMult: number;
   heroDamageMult: number;
+  heroSpeedMult: number;
   integrityBonus: number;
+  startBiomass: number;
 }
 
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */

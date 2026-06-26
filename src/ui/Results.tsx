@@ -12,6 +12,15 @@ function Stat({ label, value, animate }: { label: string; value: number; animate
   );
 }
 
+function RewardChip({ label, value, color }: { label: string; value: number; color: string }): JSX.Element {
+  return (
+    <span className="reward-chip" style={{ color }}>
+      <Icon name="diamond" size={13} />
+      <b><CountUp value={value} animateFrom={0} duration={700} /></b> {label}
+    </span>
+  );
+}
+
 export function Results({
   result,
   reward,
@@ -52,14 +61,12 @@ export function Results({
           </div>
         )}
 
-        <div className="reward" style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          Banked
-          <b style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <CountUp value={reward.shardsEarned} animateFrom={0} duration={700} />
-            <Icon name="diamond" size={15} />
-          </b>
-          Shards
-          {reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best!</span>}
+        <div className="reward-row">
+          {reward.shards > 0 && <RewardChip label="Shards" value={reward.shards} color="var(--gold)" />}
+          {reward.components > 0 && <RewardChip label="Components" value={reward.components} color="var(--r-common)" />}
+          {reward.essence > 0 && <RewardChip label="Essence" value={reward.essence} color="var(--neural)" />}
+          {reward.catalyst > 0 && <RewardChip label="Catalyst" value={reward.catalyst} color="var(--viral)" />}
+          {reward.newBest && <span className="new-best">★ New best!</span>}
         </div>
       </div>
       <button className="primary" onClick={onContinue}>

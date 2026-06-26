@@ -11,6 +11,69 @@ currencies are *spent*), `ENEMIES.md` (where they *drop*), `CARDS.md`, `TOWERS.m
 
 ---
 
+## ⭐ IMPLEMENTED — v1 reward tables (canonical for the code)
+
+> This section documents the economy **as it exists in code today** (`src/core/config.ts`,
+> `src/state/meta.ts`, `src/save/saveStore.ts`). The rest of the doc is the long-term
+> vision. The two reconcile in §0. **Each mode pays in different currencies toward
+> different sinks**, so the modes pull toward different playstyles (the design goal).
+
+### Currencies (implemented)
+
+| Code field | Canonical name | Earned by | Spent on (sink) |
+|---|---|---|---|
+| `shards` | Genome Samples (power) | Stage + Classic | **Core** upgrades (damage / biomass / integrity / hero dmg) |
+| `components` | Equipment Components | Stage clears | **Equipment** track (integrity / splash / biomass) |
+| `essence` | Neural Fragments (mastery) | Endless | **Mastery** track (fire-rate / hero speed / start biomass) |
+| `catalyst` | Splice Threads (prestige) | Endless, deep waves | prestige progression (tracked; reset mechanic = future) |
+
+`lifetimeShards` counts only Shards. Records: `bestStage`, `stagesCleared`,
+`bestEndlessScore`, `bestEndlessWave`.
+
+### Reward formulas (per mode — `meta.recordRun`)
+
+**Stage Mode** (encourages: optimize objectives + reward multiplier; build the
+Core + Equipment power base):
+```
+base       = wave*10 + kills*0.5
+objMult    = objectiveDone ? 1 + objectiveBonus : 1     // bonus 0.25–0.5
+completion = won ? 1 : 0.4                              // partial credit on a loss
+shards     = floor(base * stageRewardMultiplier * objMult * completion)
+components = floor((stageNumber*1.5 + (won?4:0)) * (objectiveDone?1.5:1))
+on win: stagesCleared++, bestStage = max(bestStage, stageNumber)
+```
+`stageRewardMultiplier` (0.8–3.0) comes from the stage's env modifiers + depth
+(see `stage.ts`). So harder/deeper stages and completed objectives pay the most.
+
+**Endless Mode** (encourages: survive deep for leaderboard + Mastery/Prestige):
+```
+essence  = floor(wave*3*(1 + wave*0.04) + kills*0.15)   // depth-escalating
+catalyst = floor(wave / 10)                             // prestige: 1 per 10 waves
+score    = wave² * 100 + kills*5 + floor(time)          // leaderboard (game.ts)
+records: bestEndlessScore, bestEndlessWave
+```
+Endless pays **no Shards** — its progression is the separate Mastery/Prestige path.
+
+**Classic Mode** (the original baseline):
+```
+shards = floor(wave*ECON.shardsPerWave + kills*ECON.shardsPerKill)   // 8 / 0.4
+```
+
+### Upgrade-cost curve (all tracks)
+`cost(level) = round(baseCost * costMult^level)`, capped at `maxLevel`. Core base
+25–35 / mult 1.45–1.5 / cap 10; Mastery base 30–40 / mult 1.5 / cap 6–8; Equipment
+base 25–30 / mult 1.45–1.5 / cap 6–8. Tuned in `BALANCE-LOG.md`.
+
+### Long-term balance guarantees
+- **No dead currency:** every earned currency has a live sink (Shards→Core,
+  Components→Equipment, Essence→Mastery; Catalyst→prestige meter, future reset).
+- **Parallel progression:** you're never blocked — Stage and Endless advance
+  independent trees, so a wall in one is progress in the other.
+- **Modest power:** the three trees are additive and capped; maxing all is a
+  meaningful but non-trivializing boost (see BALANCE-LOG for the totals).
+
+---
+
 ## 0. Currency reconciliation (read once)
 
 Task-3 currency names are now **canonical**; earlier docs used working names. This

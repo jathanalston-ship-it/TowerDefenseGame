@@ -188,6 +188,12 @@ button:disabled {
   letter-spacing: 0.02em;
   margin-bottom: 2px;
 }
+.track-bal {
+  float: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+}
 .panel-sub {
   color: var(--muted);
   font-size: 13px;
@@ -1036,6 +1042,24 @@ canvas.board.is-aiming {
 }
 .reward b {
   color: var(--gold);
+}
+.reward-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--s4);
+}
+.reward-row .reward-chip {
+  font-size: 14px;
+  padding: 6px 12px;
+  background: var(--panel-3);
+}
+.new-best {
+  color: var(--caustic);
+  font-weight: 700;
+  font-size: 14px;
 }
 
 /* ── Debug panel (dev tool — kept) ────────────────────────────────────────── */

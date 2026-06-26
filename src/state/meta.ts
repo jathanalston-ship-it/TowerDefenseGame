@@ -11,7 +11,14 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { ECON, META_UPGRADES } from '../core/config';
+import {
+  ECON,
+  ALL_UPGRADES,
+  META_UPGRADES,
+  MASTERY_UPGRADES,
+  EQUIPMENT_UPGRADES,
+  defaultMetaModifiers,
+} from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type { MetaModifiers } from '../core/types';
 import type { RunResult } from '../core/game';
@@ -24,15 +31,15 @@ function persist(next: SaveData): void {
   saveStore.save(next);
 }
 
-/** Permanent multipliers derived from upgrade levels (folded into a run at start). */
+/** Permanent multipliers derived from EVERY upgrade track (data-driven — each
+ *  UpgradeDef folds itself in). New upgrades need no change here. */
 export function metaModifiers(save: SaveData): MetaModifiers {
-  const lvl = (id: string): number => save.upgrades[id] ?? 0;
-  return {
-    towerDamageMult: 1 + 0.08 * lvl('lethality'),
-    biomassMult: 1 + 0.1 * lvl('metabolism'),
-    heroDamageMult: 1 + 0.1 * lvl('apex'),
-    integrityBonus: 25 * lvl('nucleus'),
-  };
+  const m = defaultMetaModifiers();
+  for (const def of ALL_UPGRADES) {
+    const level = save.upgrades[def.id] ?? 0;
+    if (level > 0) def.apply(m, level);
+  }
+  return m;
 }
 
 export function upgradeLevel(save: SaveData, id: string): number {
@@ -51,69 +58,82 @@ export function nextUpgradeCost(save: SaveData, def: UpgradeDef): number | null 
 
 export type { RunResult };
 
+/** Currencies earned by a finished run (only the mode's own are non-zero). */
 export interface RunReward {
-  shardsEarned: number;
+  shards: number;
+  essence: number;
+  components: number;
+  catalyst: number;
   newBest: boolean;
 }
 
 export const meta = {
   use: store.use,
   get: store.get,
-  upgrades: META_UPGRADES,
+  upgrades: ALL_UPGRADES,
+  tracks: { core: META_UPGRADES, mastery: MASTERY_UPGRADES, equipment: EQUIPMENT_UPGRADES },
 
   buyUpgrade(id: string): boolean {
     const save = store.get();
-    const def = META_UPGRADES.find((u) => u.id === id);
+    const def = ALL_UPGRADES.find((u) => u.id === id);
     if (!def) return false;
     const level = upgradeLevel(save, id);
     if (level >= def.maxLevel) return false;
     const cost = upgradeCost(def, level);
-    if (save.shards < cost) return false;
+    if (save[def.currency] < cost) return false; // spend the upgrade's own currency
     persist({
       ...save,
-      shards: save.shards - cost,
+      [def.currency]: save[def.currency] - cost,
       upgrades: { ...save.upgrades, [id]: level + 1 },
     });
     return true;
   },
 
-  /** Record a finished run. Each mode uses its OWN reward formula + records. */
+  /**
+   * Record a finished run. Each mode pays in DIFFERENT currencies toward DIFFERENT
+   * sinks, so the modes pull toward different playstyles (see docs/ECONOMY.md §Implemented):
+   *   • Stage   → Shards (power) + Components (gear); clearing advances the path.
+   *   • Endless → Essence (mastery) + Catalyst (prestige) + leaderboard score.
+   *   • Classic → Shards (the original baseline).
+   */
   recordRun(result: RunResult): RunReward {
     const save = store.get();
     const next = { ...save };
-    let shardsEarned: number;
-    let newBest = false;
+    const reward: RunReward = { shards: 0, essence: 0, components: 0, catalyst: 0, newBest: false };
 
     if (result.mode === 'endless') {
-      // Survival: depth-escalating payout; tracks a leaderboard score + best wave.
-      shardsEarned = Math.floor(result.wave * 5 * (1 + result.wave * 0.06) + result.kills * 0.25);
-      newBest = result.score > save.bestEndlessScore;
+      reward.essence = Math.floor(result.wave * 3 * (1 + result.wave * 0.04) + result.kills * 0.15);
+      reward.catalyst = Math.floor(result.wave / 10); // prestige currency: 1 per 10 waves
+      reward.newBest = result.score > save.bestEndlessScore;
+      next.essence = save.essence + reward.essence;
+      next.catalyst = save.catalyst + reward.catalyst;
       next.bestEndlessScore = Math.max(save.bestEndlessScore, result.score);
       next.bestEndlessWave = Math.max(save.bestEndlessWave, result.wave);
     } else if (result.mode === 'stage') {
-      // Completion: base × the stage's reward multiplier × objective bonus, with
-      // partial credit on a loss. A cleared stage advances the progression path.
       const base = result.wave * 10 + result.kills * 0.5;
       const objMult = result.objectiveDone ? 1 + result.objectiveBonus : 1;
-      const completion = result.won ? 1 : 0.4;
-      shardsEarned = Math.floor(base * result.rewardMultiplier * objMult * completion);
+      const completion = result.won ? 1 : 0.4; // partial credit on a loss
+      reward.shards = Math.floor(base * result.rewardMultiplier * objMult * completion);
+      reward.components = Math.floor((result.stageNumber * 1.5 + (result.won ? 4 : 0)) * (result.objectiveDone ? 1.5 : 1));
+      next.shards = save.shards + reward.shards;
+      next.lifetimeShards = save.lifetimeShards + reward.shards;
+      next.components = save.components + reward.components;
       if (result.won) {
-        newBest = result.stageNumber > save.bestStage;
+        reward.newBest = result.stageNumber > save.bestStage;
         next.stagesCleared = save.stagesCleared + 1;
         next.bestStage = Math.max(save.bestStage, result.stageNumber);
       }
     } else {
-      // Classic: the original wave + kills payout.
-      shardsEarned = Math.floor(result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill);
-      newBest = result.wave > save.bestWave;
+      reward.shards = Math.floor(result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill);
+      reward.newBest = result.wave > save.bestWave;
+      next.shards = save.shards + reward.shards;
+      next.lifetimeShards = save.lifetimeShards + reward.shards;
       next.bestWave = Math.max(save.bestWave, result.wave);
     }
 
-    next.shards = save.shards + shardsEarned;
-    next.lifetimeShards = save.lifetimeShards + shardsEarned;
     next.totalRuns = save.totalRuns + 1;
     persist(next);
-    return { shardsEarned, newBest };
+    return reward;
   },
 
   // ── Save management ──────────────────────────────────────────────────────
@@ -165,11 +185,11 @@ export const meta = {
 
   debugAddShards(n: number): void {
     const save = store.get();
-    persist({ ...save, shards: Math.max(0, save.shards + n) });
+    persist({ ...save, shards: Math.max(0, save.shards + n), essence: Math.max(0, save.essence + n), components: Math.max(0, save.components + n) });
   },
 
   debugSetUpgrade(id: string, level: number): void {
-    const def = META_UPGRADES.find((u) => u.id === id);
+    const def = ALL_UPGRADES.find((u) => u.id === id);
     if (!def) return;
     const lvl = Math.max(0, Math.min(def.maxLevel, Math.floor(level)));
     persist({ ...store.get(), upgrades: { ...store.get().upgrades, [id]: lvl } });
@@ -177,7 +197,7 @@ export const meta = {
 
   debugMaxUpgrades(): void {
     const upgrades: Record<string, number> = {};
-    for (const u of META_UPGRADES) upgrades[u.id] = u.maxLevel;
+    for (const u of ALL_UPGRADES) upgrades[u.id] = u.maxLevel;
     persist({ ...store.get(), upgrades });
   },
 };

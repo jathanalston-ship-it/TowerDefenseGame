@@ -20,6 +20,10 @@ export interface SaveData {
   bestStage: number;
   bestEndlessScore: number;
   bestEndlessWave: number;
+  // currencies (Stage→shards+components, Endless→essence+catalyst[prestige])
+  essence: number;
+  components: number;
+  catalyst: number;
 }
 
 export const CURRENT_VERSION = 1;
@@ -52,6 +56,7 @@ export function defaultSave(): SaveData {
   return {
     shards: 0, upgrades: {}, bestWave: 0, totalRuns: 0, lifetimeShards: 0, cardsSeen: 0,
     stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+    essence: 0, components: 0, catalyst: 0,
   };
 }
 
@@ -112,6 +117,9 @@ export function normalizeSave(raw: unknown): SaveData {
     bestStage: nonNegInt(o.bestStage),
     bestEndlessScore: nonNegInt(o.bestEndlessScore),
     bestEndlessWave: nonNegInt(o.bestEndlessWave),
+    essence: nonNegInt(o.essence),
+    components: nonNegInt(o.components),
+    catalyst: nonNegInt(o.catalyst),
   };
 }
 
