@@ -44,9 +44,9 @@ export function AchievementToaster(): JSX.Element | null {
     <div className="achv-stack">
       {queue.slice(0, 3).map((a, i) => (
         <div className="achv-toast" key={`${a.id}-${i}`} onClick={() => setQueue((q) => q.slice(1))}>
-          <span className="achv-icon">{a.icon}</span>
+          <span className="achv-icon" aria-hidden>{a.name.charAt(0).toUpperCase()}</span>
           <span className="achv-body">
-            <span className="achv-eyebrow">Achievement Unlocked</span>
+            <span className="achv-eyebrow">Achievement Unlocked{a.reward ? ` · +${a.reward} Shards` : ''}</span>
             <span className="achv-name">{a.name}</span>
             <span className="achv-desc">{a.desc}</span>
           </span>
