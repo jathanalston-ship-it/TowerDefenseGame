@@ -131,12 +131,13 @@ export interface Particle {
   color: string;
 }
 
-/** Permanent currencies. Stage/Classic pay Shards (power) + Components (gear);
- *  Endless pays Essence (mastery) + Catalyst (prestige). */
-export type Currency = 'shards' | 'essence' | 'components';
+/** Permanent currencies, each the buy-currency of one upgrade track. Stage/Classic
+ *  pay Shards (Core power) + Components (Equipment); Endless pays Essence (Mastery)
+ *  + Catalyst (Prestige). Every currency has a sink, so no earned currency is dead. */
+export type Currency = 'shards' | 'essence' | 'components' | 'catalyst';
 
 /** Permanent (meta) multipliers folded into a run at start — the "permanent bucket".
- *  Accumulated from every upgrade track (Shards/Essence/Components) in meta.ts. */
+ *  Accumulated from every upgrade track (Core/Mastery/Equipment/Prestige) in meta.ts. */
 export interface MetaModifiers {
   towerDamageMult: number;
   towerFireRateMult: number;

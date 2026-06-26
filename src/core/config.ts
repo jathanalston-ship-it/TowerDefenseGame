@@ -384,11 +384,13 @@ export const SLOTS = {
 };
 
 // ── Meta upgrades (permanent, capped) — data-driven, multi-currency ───────────
-// Three parallel tracks, each fed by a DIFFERENT mode's currency so each mode has
-// its own progression: Shards (Stage/Classic → power), Essence (Endless → mastery),
-// Components (Stage → equipment). Adding a node is one entry: id, costs, and an
-// apply(mods, level) that folds into the permanent bucket. Costs/coefficients are
-// the canonical balance values — tune here, see docs/BALANCE-LOG.md.
+// Four parallel tracks, each fed by a DIFFERENT mode's currency so each mode has
+// its own progression and no earned currency is a dead end: Shards (Stage/Classic
+// → power), Essence (Endless → mastery), Components (Stage → equipment), Catalyst
+// (Endless depth → prestige, the slow "forever" lean). Adding a node is one entry:
+// id, costs, and an apply(mods, level) that folds into the permanent bucket.
+// Costs/coefficients are the canonical balance values — tune here, see
+// docs/BALANCE-LOG.md.
 export interface UpgradeDef {
   id: string;
   name: string;
@@ -397,7 +399,7 @@ export interface UpgradeDef {
   baseCost: number;
   costMult: number;
   currency: Currency;
-  track: 'core' | 'mastery' | 'equipment';
+  track: 'core' | 'mastery' | 'equipment' | 'prestige';
   apply: (m: MetaModifiers, level: number) => void;
 }
 
@@ -438,5 +440,15 @@ export const EQUIPMENT_UPGRADES: UpgradeDef[] = [
   { id: 'symbiote', name: 'Symbiote Core', description: '+8% biomass income per level', maxLevel: 6, baseCost: 30, costMult: 1.5, currency: 'components', track: 'equipment', apply: (m, l) => { m.biomassMult *= 1 + 0.08 * l; } },
 ];
 
+// Prestige track — bought with Catalyst (minted by Endless DEPTH, 1 per 10 waves).
+// The premium "forever" lean: rare currency, low absolute costs but a long
+// geometric climb, and global dual-stat nodes that compound EVERY mode. This is the
+// sink that makes deep Endless runs matter long-term (closes the catalyst dead zone).
+export const PRESTIGE_UPGRADES: UpgradeDef[] = [
+  { id: 'viral_apex', name: 'Viral Apex', description: '+5% tower & hero damage per level', maxLevel: 10, baseCost: 2, costMult: 1.35, currency: 'catalyst', track: 'prestige', apply: (m, l) => { m.towerDamageMult *= 1 + 0.05 * l; m.heroDamageMult *= 1 + 0.05 * l; } },
+  { id: 'living_bastion', name: 'Living Bastion', description: '+35 max Integrity per level', maxLevel: 10, baseCost: 2, costMult: 1.35, currency: 'catalyst', track: 'prestige', apply: (m, l) => { m.integrityBonus += 35 * l; } },
+  { id: 'hypermetabolism', name: 'Hypermetabolism', description: '+12% biomass income per level', maxLevel: 8, baseCost: 2, costMult: 1.35, currency: 'catalyst', track: 'prestige', apply: (m, l) => { m.biomassMult *= 1 + 0.12 * l; } },
+];
+
 /** Every upgrade across all tracks (meta.ts derives MetaModifiers from this). */
-export const ALL_UPGRADES: UpgradeDef[] = [...META_UPGRADES, ...MASTERY_UPGRADES, ...EQUIPMENT_UPGRADES];
+export const ALL_UPGRADES: UpgradeDef[] = [...META_UPGRADES, ...MASTERY_UPGRADES, ...EQUIPMENT_UPGRADES, ...PRESTIGE_UPGRADES];

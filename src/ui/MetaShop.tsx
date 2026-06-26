@@ -5,12 +5,13 @@ import type { SaveData } from '../save/saveStore';
 import { ProgressBar } from './components/ProgressBar';
 import { Icon } from './components/Icon';
 
-const CURRENCY_LABEL: Record<Currency, string> = { shards: 'Shards', essence: 'Essence', components: 'Components' };
+const CURRENCY_LABEL: Record<Currency, string> = { shards: 'Shards', essence: 'Essence', components: 'Components', catalyst: 'Catalyst' };
 
-const TRACKS: { key: 'core' | 'mastery' | 'equipment'; title: string; sub: string; currency: Currency }[] = [
+const TRACKS: { key: 'core' | 'mastery' | 'equipment' | 'prestige'; title: string; sub: string; currency: Currency }[] = [
   { key: 'core', title: 'Core Upgrades', sub: 'Raw power — bought with Shards (Stage & Classic).', currency: 'shards' },
   { key: 'mastery', title: 'Mastery', sub: 'Tempo & utility — bought with Essence (Endless).', currency: 'essence' },
   { key: 'equipment', title: 'Equipment', sub: 'Defensive relics — bought with Components (Stage clears).', currency: 'components' },
+  { key: 'prestige', title: 'Prestige', sub: 'Global, permanent — bought with Catalyst (deep Endless runs).', currency: 'catalyst' },
 ];
 
 function ShopItem({ u, save }: { u: UpgradeDef; save: SaveData }): JSX.Element {

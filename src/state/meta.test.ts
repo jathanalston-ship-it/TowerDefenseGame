@@ -56,4 +56,18 @@ describe('reward economy', () => {
     expect(meta.buyUpgrade('overclock')).toBe(false); // no essence
     meta.reset();
   });
+
+  it('Catalyst earned in Endless is spendable on the Prestige track (no dead currency)', () => {
+    meta.reset();
+    // Deep Endless run mints Catalyst (floor(wave/10)).
+    const endless = meta.recordRun(result({ mode: 'endless', wave: 40, kills: 500, score: 50000 }));
+    expect(endless.catalyst).toBe(4);
+    expect(meta.get().catalyst).toBe(4);
+
+    const before = meta.get();
+    expect(meta.buyUpgrade('viral_apex')).toBe(true); // Prestige node, costs Catalyst
+    expect(meta.get().catalyst).toBeLessThan(before.catalyst);
+    expect(meta.get().shards).toBe(before.shards); // other currencies untouched
+    meta.reset();
+  });
 });

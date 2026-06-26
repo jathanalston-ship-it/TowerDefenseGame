@@ -17,6 +17,7 @@ import {
   META_UPGRADES,
   MASTERY_UPGRADES,
   EQUIPMENT_UPGRADES,
+  PRESTIGE_UPGRADES,
   defaultMetaModifiers,
 } from '../core/config';
 import type { UpgradeDef } from '../core/config';
@@ -71,7 +72,7 @@ export const meta = {
   use: store.use,
   get: store.get,
   upgrades: ALL_UPGRADES,
-  tracks: { core: META_UPGRADES, mastery: MASTERY_UPGRADES, equipment: EQUIPMENT_UPGRADES },
+  tracks: { core: META_UPGRADES, mastery: MASTERY_UPGRADES, equipment: EQUIPMENT_UPGRADES, prestige: PRESTIGE_UPGRADES },
 
   buyUpgrade(id: string): boolean {
     const save = store.get();
@@ -185,7 +186,7 @@ export const meta = {
 
   debugAddShards(n: number): void {
     const save = store.get();
-    persist({ ...save, shards: Math.max(0, save.shards + n), essence: Math.max(0, save.essence + n), components: Math.max(0, save.components + n) });
+    persist({ ...save, shards: Math.max(0, save.shards + n), essence: Math.max(0, save.essence + n), components: Math.max(0, save.components + n), catalyst: Math.max(0, save.catalyst + n) });
   },
 
   debugSetUpgrade(id: string, level: number): void {
