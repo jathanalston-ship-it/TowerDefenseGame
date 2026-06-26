@@ -77,10 +77,15 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
       <div className="spacer" />
 
       {/* ECONOMY + threat */}
-      <div className="hud-cell tt" tabIndex={0}>
+      <div className="hud-cell tt biomass-cell" tabIndex={0}>
         <div className="hud-k">Biomass</div>
         <CountUp className="hud-v" style={{ color: 'var(--caustic)' }} value={hud.biomass} />
-
+        {hud.earlyBonusSeq > 0 && (
+          // key by the grant sequence so each early-start bonus replays the pop
+          <span key={hud.earlyBonusSeq} className="biomass-pop">
+            +{hud.earlyBonus} ⬡
+          </span>
+        )}
         <span className="tt-bubble">In-run currency. Spend it to grow towers.</span>
       </div>
 

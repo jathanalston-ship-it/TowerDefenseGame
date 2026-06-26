@@ -261,4 +261,27 @@ describe('automatic wave flow', () => {
     placeSome(g, 1);
     expect(g.buildCountdown).toBeCloseTo(WAVE_FLOW.buildSeconds * 0.5, 1);
   });
+
+  it('previews the upcoming wave composition (incoming preview)', () => {
+    const g = new Game(5, NO_META); // classic: wave 1 is 8 Skitterlings
+    const preview = g.getWavePreview();
+    expect(preview.length).toBeGreaterThan(0);
+    expect(preview.every((e) => e.count > 0)).toBe(true);
+    expect(preview.find((e) => e.kind === 'runner')?.count).toBe(8);
+  });
+
+  it('records a wave summary when a wave clears (kills + biomass earned)', () => {
+    const g = new Game(5, NO_META);
+    expect(g.lastWaveSummary).toBeNull(); // nothing cleared yet
+    let guard = 0;
+    while (g.waveIndex < 2 && guard++ < 100000) {
+      if (g.phase === 'draft') { g.chooseCard(g.getSnapshot().draft![0].id); continue; }
+      if (g.phase === 'prep') { placeSome(g, 4); g.startWave(); }
+      g.advance(SIM_DT);
+    }
+    expect(g.lastWaveSummary).not.toBeNull();
+    expect(g.lastWaveSummary!.wave).toBe(1);
+    expect(g.lastWaveSummary!.kills).toBeGreaterThan(0); // real combat kills tallied per wave
+    expect(g.lastWaveSummary!.biomass).toBeGreaterThanOrEqual(0);
+  });
 });

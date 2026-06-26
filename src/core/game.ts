@@ -141,6 +141,10 @@ export class Game {
   buildCountdown = -1;
   earlyBonus = 0; // amount of the most recent early-start bonus
   earlyBonusSeq = 0; // increments on each grant so the HUD can pop it once
+  // Per-wave tallies (reset each wave) → the Build-Phase wave summary.
+  private waveKills = 0;
+  private waveBiomass = 0;
+  lastWaveSummary: { wave: number; kills: number; biomass: number } | null = null;
   // discovery tracking (write-only observability → Codex; never reads back into sim,
   // so determinism is unaffected). Surfaced via getResult() for the meta layer.
   readonly seenEnemies = new Set<EnemyKind>();
@@ -334,6 +338,8 @@ export class Game {
   private beginWave(): void {
     if (this.phase !== 'prep' || this.waveIndex >= this.totalWaves) return;
     this.buildCountdown = -1; // consume the countdown
+    this.waveKills = 0;
+    this.waveBiomass = 0;
     this.waveIndex++;
     const def = this.waveScript(this.waveIndex);
     const { hpMult, bountyMult } = this.waveScaling(this.waveIndex);
@@ -1141,7 +1147,10 @@ export class Game {
       if (e.alive && e.hp <= 0) {
         e.alive = false;
         this.kills++;
-        this.biomass += e.bounty * this.mods.biomassMult;
+        this.waveKills++;
+        const reward = e.bounty * this.mods.biomassMult;
+        this.biomass += reward;
+        this.waveBiomass += reward;
         this.armorBreakUntil.delete(e.id);
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         const split = ENEMY_DEFS[e.kind].split;
@@ -1250,6 +1259,8 @@ export class Game {
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
+      // Snapshot the just-cleared wave for the Build-Phase summary.
+      this.lastWaveSummary = { wave: this.waveIndex, kills: this.waveKills, biomass: Math.round(this.waveBiomass) };
       if (this.waveIndex >= this.totalWaves) {
         this.phase = 'won'; // finite modes only; endless has totalWaves = Infinity
       } else {
@@ -1500,6 +1511,20 @@ export class Game {
     };
   }
 
+  /** Aggregated composition of the upcoming wave (Build-Phase incoming preview).
+   *  Pure — waveScript has no side effects — so it's safe to call from the HUD. */
+  getWavePreview(): { kind: EnemyKind; count: number; elite: boolean; isBoss: boolean }[] {
+    if (this.waveIndex >= this.totalWaves) return [];
+    const agg = new Map<string, { kind: EnemyKind; count: number; elite: boolean; isBoss: boolean }>();
+    for (const g of this.waveScript(this.waveIndex + 1)) {
+      const key = `${g.kind}:${g.elite ? 'e' : ''}`;
+      const cur = agg.get(key);
+      if (cur) cur.count += g.count;
+      else agg.set(key, { kind: g.kind, count: g.count, elite: g.elite ?? false, isBoss: ENEMY_DEFS[g.kind].isBoss ?? false });
+    }
+    return [...agg.values()];
+  }
+
   getSnapshot(): HudSnapshot {
     const obj = this.stage?.objective ?? null;
     return {
@@ -1529,6 +1554,8 @@ export class Game {
       buildCountdownTotal: this.effectiveBuildSeconds(),
       earlyBonus: this.earlyBonus,
       earlyBonusSeq: this.earlyBonusSeq,
+      waveSummary: this.lastWaveSummary,
+      incoming: this.phase === 'prep' && this.waveIndex < this.totalWaves ? this.getWavePreview() : [],
     };
   }
 }

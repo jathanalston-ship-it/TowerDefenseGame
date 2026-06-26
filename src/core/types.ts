@@ -174,6 +174,9 @@ export interface HudSnapshot {
   buildCountdownTotal: number; // full countdown duration (for a progress ring)
   earlyBonus: number; // amount of the most recent early-start biomass bonus
   earlyBonusSeq: number; // bumps each grant — the HUD pops the bonus once per change
+  // Build-Phase presentation
+  waveSummary: { wave: number; kills: number; biomass: number } | null; // last cleared wave
+  incoming: { kind: EnemyKind; count: number; elite: boolean; isBoss: boolean }[]; // next wave preview
 }
 
 export interface CardOption {

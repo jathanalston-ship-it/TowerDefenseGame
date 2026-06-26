@@ -9,6 +9,7 @@ import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
+import { BuildBanner } from './BuildBanner';
 import type { HudSnapshot, MetaModifiers } from '../core/types';
 
 export function GameView({
@@ -31,6 +32,10 @@ export function GameView({
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
+  // Wall-clock instant until which the world runs in slow-motion (the combat→build
+  // transition). Presentation only — scales the dt fed to the live loop, never the
+  // deterministic sim (tests step a fixed dt directly).
+  const slowmoUntilRef = useRef(0);
 
   const refresh = (): void => setHud(game.getSnapshot());
 
@@ -45,7 +50,9 @@ export function GameView({
     const loop = (now: number): void => {
       const dt = (now - last) / 1000;
       last = now;
-      game.advance(dt);
+      // Subtle slow-mo as combat eases into the Build Phase.
+      const slow = now < slowmoUntilRef.current ? 0.4 : 1;
+      game.advance(dt * slow);
       drawGame(ctx, game.getRenderState(), pointerRef.current);
       if (now - lastHud > 80) {
         setHud(game.getSnapshot());
@@ -159,11 +166,13 @@ export function GameView({
           <DraftModal
             options={hud.draft}
             onPick={(id) => {
+              slowmoUntilRef.current = performance.now() + 750; // ease into the Build Phase
               game.chooseCard(id);
               refresh();
             }}
           />
         )}
+        <BuildBanner hud={hud} />
       </div>
       <Toolbar game={game} hud={hud} refresh={refresh} />
     </div>
