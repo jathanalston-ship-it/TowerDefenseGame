@@ -60,6 +60,28 @@ the fan-out.
 
 ---
 
+## ✂️ Minimal-diff discipline — surgical edits only
+
+**Never rewrite an entire system unless absolutely necessary.** Treat every edit
+as if it lands in a large production repo with active contributors: the smaller
+and more localized the diff, the lower the merge-conflict and regression risk.
+
+- **Find the smallest implementation** that satisfies the task; modify only the
+  components actually affected.
+- **Preserve surrounding code.** Don't touch lines you don't need to change.
+- **No cosmetic refactors, no formatting-only churn.** Don't reflow, rename, or
+  reorder code that the task doesn't require.
+- **Prefer localized edits over file rewrites.** Rewrite a whole file only when a
+  surgical edit genuinely can't express the change.
+- **Preserve public APIs** and call sites whenever possible; avoid moving files
+  unless absolutely necessary.
+- **Minimize diff size** as a first-class goal — it's the unit reviewers read and
+  the surface where conflicts happen.
+
+> A "rewrite" that could have been a three-line edit is a defect, not a cleanup.
+
+---
+
 ## 🚫 Finish what you start — the backlog is a last resort
 
 **Default: execute the task in full. Do not defer.** Complete the design,
