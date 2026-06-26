@@ -473,7 +473,7 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
 function drawLock(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
   const col = 'rgba(130,140,160,0.5)';
   ctx.strokeStyle = col;
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.arc(cx, cy - 1.5, 3, Math.PI, 0); // shackle
   ctx.stroke();

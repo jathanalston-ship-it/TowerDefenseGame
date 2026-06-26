@@ -31,7 +31,7 @@ export function Results({
           Banked{' '}
           <b style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             <CountUp value={reward.shardsEarned} animateFrom={0} duration={700} />
-            <Icon name="diamond" size={15} />
+            <Icon name="diamond" size={16} />
           </b>{' '}
           Shards
           {reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best wave!</span>}

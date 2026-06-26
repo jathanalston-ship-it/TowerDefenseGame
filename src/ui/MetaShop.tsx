@@ -38,7 +38,7 @@ export function MetaShop(): JSX.Element {
               >
                 {maxed ? 'MAX' : (
                   <>
-                    {cost} <Icon name="diamond" size={11} />
+                    {cost} <Icon name="diamond" size={12} />
                   </>
                 )}
               </button>

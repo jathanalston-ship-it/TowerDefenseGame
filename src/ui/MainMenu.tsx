@@ -38,7 +38,7 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
 
       <div className="row">
         <button className="primary" onClick={onStart}>
-          <Icon name="play" size={13} /> Start Run
+          <Icon name="play" size={14} /> Start Run
         </button>
         <div className="spacer" />
         <button

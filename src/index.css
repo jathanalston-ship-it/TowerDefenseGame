@@ -35,6 +35,11 @@
   --warn: #ffb24d;
   --danger: #ff5d73;
 
+  /* primary CTA green ramp (Start Run / Continue / Start Wave) */
+  --cta-1: #2a6f55;
+  --cta-2: #2f8f6b;
+  --cta-edge: #36b083;
+
   /* rarity */
   --r-common: #9aa7b8;
   --r-rare: #5ad1ff;
@@ -66,6 +71,9 @@
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
   --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.35);
   --ring: 0 0 0 2px rgba(90, 209, 255, 0.55);
+  /* selection / armed accent glows — one definition for the active-state language */
+  --glow-gold: 0 0 0 1px var(--gold), 0 0 16px rgba(255, 210, 77, 0.2);
+  --glow-kinetic: 0 0 0 1px var(--kinetic), 0 0 14px rgba(90, 209, 255, 0.25);
 
   color-scheme: dark;
 }
@@ -167,8 +175,8 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: var(--s2);
-  background: linear-gradient(90deg, #2a6f55, #2f8f6b);
-  border-color: #36b083;
+  background: linear-gradient(90deg, var(--cta-1), var(--cta-2));
+  border-color: var(--cta-edge);
   font-weight: 700;
   padding: 12px 22px;
   font-size: 16px;
@@ -182,8 +190,10 @@ button:disabled {
   gap: 6px;
 }
 .primary:hover:not(:disabled) {
-  background: linear-gradient(90deg, #2f7e60, #35a07a);
-  border-color: #45c699;
+  /* keep the green ramp (override the base button hover bg) and lift it uniformly */
+  background: linear-gradient(90deg, var(--cta-1), var(--cta-2));
+  filter: brightness(1.12);
+  border-color: var(--cta-edge);
 }
 
 /* ── Tooltip primitive (.tt wrapper + .tt-bubble) ─────────────────────────── */
@@ -591,7 +601,7 @@ canvas.board {
   background: linear-gradient(180deg, var(--panel) 0%, var(--panel-deep) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 10px var(--s3);
+  padding: 10px var(--s4); /* match the HUD bar's horizontal padding */
   box-shadow: var(--shadow-sm);
   animation: panel-in var(--t-slow) both;
 }
@@ -686,7 +696,7 @@ canvas.board {
 .tcard.is-sel {
   border-color: var(--gold);
   background: var(--sel);
-  box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(255, 210, 77, 0.2);
+  box-shadow: var(--glow-gold);
   animation: sel-pulse 1.8s var(--ease-in-out) infinite;
 }
 /* a subtle "armed/selected" breathing glow — gentle, never flashy */
@@ -720,7 +730,7 @@ canvas.board {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, #3a2f12, #11161f);
+  background: radial-gradient(circle at 50% 40%, #3a2f12, var(--panel));
   border: 1px solid var(--gold);
   color: var(--gold);
   font-size: 18px;
@@ -735,7 +745,7 @@ canvas.board {
 .ability-btn.is-armed {
   border-color: var(--kinetic);
   color: var(--kinetic);
-  box-shadow: 0 0 0 1px var(--kinetic), 0 0 14px rgba(90, 209, 255, 0.25);
+  box-shadow: var(--glow-kinetic);
   animation: armed-pulse 1.6s var(--ease-in-out) infinite;
 }
 @keyframes armed-pulse {
@@ -932,7 +942,7 @@ canvas.board {
   border: 1px solid #3a2a55;
   border-radius: var(--r-md);
   z-index: 9999;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow);
 }
 .debug-head {
   position: sticky;

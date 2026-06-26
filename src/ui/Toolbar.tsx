@@ -39,7 +39,7 @@ export function Toolbar({
               </span>
               <span className="tcard-blurb">{def.blurb}</span>
               <span className={`cost-chip ${afford ? 'is-afford' : 'is-broke'}`}>
-                <Icon name="diamond" size={11} /> {def.cost}
+                <Icon name="diamond" size={12} /> {def.cost}
               </span>
               <span className="tt-bubble tt-rich">
                 <b style={{ color: `var(--${def.combatClass.toLowerCase()})` }}>{def.name}</b>
