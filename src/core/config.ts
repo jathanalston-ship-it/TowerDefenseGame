@@ -312,6 +312,23 @@ export const WAVE_FLOW = {
   earlyStartBonus: 25, // biomass granted for manually starting a wave early ("small")
 };
 
+// ── Persistent Loot Meter ───────────────────────────────────────────────────
+// A forever meter (saved, never reset between runs/modes) that fills from kills +
+// wave completions; each fill awards one loot box and rolls the overflow into the
+// next. All tunables here — `meterFor(boxesEarned)` lets the cost curve scale with
+// boxes already earned, so balancing is a one-function change.
+export const LOOT = {
+  perKill: 1, // meter progress per enemy killed
+  perWave: 18, // meter progress per completed wave
+  meterBase: 240, // progress to fill the first meter (one loot box)
+  meterGrowth: 0, // +progress required per box already earned (0 = flat; future-proof)
+};
+
+/** Progress required to fill the meter, given how many boxes are already earned. */
+export function lootMeterSize(boxesEarned: number): number {
+  return LOOT.meterBase + LOOT.meterGrowth * Math.max(0, boxesEarned);
+}
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a

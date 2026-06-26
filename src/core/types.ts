@@ -177,6 +177,7 @@ export interface HudSnapshot {
   // Build-Phase presentation
   waveSummary: { wave: number; kills: number; biomass: number } | null; // last cleared wave
   incoming: { kind: EnemyKind; count: number; elite: boolean; isBoss: boolean }[]; // next wave preview
+  lootProgress: number; // persistent-loot-meter progress earned this run (run-local)
 }
 
 export interface CardOption {

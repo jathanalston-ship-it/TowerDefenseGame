@@ -1,6 +1,7 @@
 import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
 import { Codex } from './Codex';
+import { LootMeter } from './LootMeter';
 import { SaveManager } from './SaveManager';
 import { ModePanel } from './ModePanel';
 import { CountUp } from './components/CountUp';
@@ -37,6 +38,7 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
             <CountUp className="v" value={save.lifetimeShards} />
           </div>
         </div>
+        <LootMeter />
       </div>
 
       <ModePanel onStart={onStart} />

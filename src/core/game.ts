@@ -44,6 +44,7 @@ import {
   PERF,
   SIM_DT,
   SLOTS,
+  LOOT,
   STATUS,
   STEER,
   TOWER_DEFS,
@@ -145,6 +146,9 @@ export class Game {
   private waveKills = 0;
   private waveBiomass = 0;
   lastWaveSummary: { wave: number; kills: number; biomass: number } | null = null;
+  // Persistent Loot Meter contribution earned THIS run (kills + completed waves).
+  // Run-local + monotonic; the meta layer folds the delta into the saved meter.
+  lootProgress = 0;
   // discovery tracking (write-only observability → Codex; never reads back into sim,
   // so determinism is unaffected). Surfaced via getResult() for the meta layer.
   readonly seenEnemies = new Set<EnemyKind>();
@@ -1148,6 +1152,7 @@ export class Game {
         e.alive = false;
         this.kills++;
         this.waveKills++;
+        this.lootProgress += LOOT.perKill; // persistent loot meter (kills)
         const reward = e.bounty * this.mods.biomassMult;
         this.biomass += reward;
         this.waveBiomass += reward;
@@ -1261,6 +1266,7 @@ export class Game {
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
       // Snapshot the just-cleared wave for the Build-Phase summary.
       this.lastWaveSummary = { wave: this.waveIndex, kills: this.waveKills, biomass: Math.round(this.waveBiomass) };
+      this.lootProgress += LOOT.perWave; // persistent loot meter (completed wave)
       if (this.waveIndex >= this.totalWaves) {
         this.phase = 'won'; // finite modes only; endless has totalWaves = Infinity
       } else {
@@ -1556,6 +1562,7 @@ export class Game {
       earlyBonusSeq: this.earlyBonusSeq,
       waveSummary: this.lastWaveSummary,
       incoming: this.phase === 'prep' && this.waveIndex < this.totalWaves ? this.getWavePreview() : [],
+      lootProgress: this.lootProgress,
     };
   }
 }

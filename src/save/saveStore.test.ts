@@ -200,6 +200,27 @@ describe('save version migration', () => {
     expect(applied!.changes.length).toBeGreaterThan(0); // it actually added fields
   });
 
+  it('migrates a v2 save up to v3, adding the loot-meter fields', () => {
+    clearMigrationLog();
+    const v2 = {
+      schemaVersion: 2,
+      data: {
+        shards: 10, upgrades: {}, bestWave: 4, totalRuns: 2, lifetimeShards: 10, cardsSeen: 0,
+        stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+        essence: 0, components: 0, catalyst: 0, codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
+      },
+    };
+    const r = parseImport(JSON.stringify(v2));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.bestWave).toBe(4); // preserved
+      expect(r.data.lootMeter).toBe(0); // v3 additions
+      expect(r.data.lootBoxes).toBe(0);
+      expect(r.data.lootBoxesLifetime).toBe(0);
+    }
+    expect(getMigrationLog().some((e) => e.from === 2 && e.to === 3)).toBe(true);
+  });
+
   it('does not re-run a migration on an already-current save', () => {
     clearMigrationLog();
     // serializeExport tags the blob with CURRENT_VERSION, so no step is newer.
@@ -228,7 +249,7 @@ describe('save version migration', () => {
     new SaveStore(s).save(defaultSave());
     const blob = JSON.parse(s.map.get('assimilate.save')!);
     expect(blob.schemaVersion).toBe(CURRENT_VERSION);
-    expect(CURRENT_VERSION).toBe(2);
+    expect(CURRENT_VERSION).toBe(3);
   });
 
   it('round-trips a current save through a stored blob unchanged (preserve current saves)', () => {

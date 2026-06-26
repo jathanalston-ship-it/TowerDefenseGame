@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { meta } from './meta';
+import { lootMeterSize } from '../core/config';
 import type { RunResult } from '../core/game';
 
 function result(over: Partial<RunResult>): RunResult {
@@ -106,6 +107,48 @@ describe('codex & achievements (motivation layer)', () => {
     const r2 = meta.recordRun(result({ mode: 'classic', won: false, wave: 3 }));
     expect(r2.newAchievements).toEqual([]);
     expect(r2.newTitle).toBeNull();
+    meta.reset();
+  });
+});
+
+describe('persistent loot meter', () => {
+  it('fills, awards a box with rollover, and never loses progress', () => {
+    meta.reset();
+    const size = lootMeterSize(0);
+    expect(meta.get().lootMeter).toBe(0);
+    expect(meta.get().lootBoxes).toBe(0);
+
+    // Partial fill — no box yet.
+    expect(meta.addLootProgress(size - 10)).toBe(0);
+    expect(meta.get().lootMeter).toBe(size - 10);
+    expect(meta.get().lootBoxes).toBe(0);
+
+    // Cross the threshold → one box, overflow rolls into the next meter (no loss).
+    const awarded = meta.addLootProgress(30); // total 20 past the line
+    expect(awarded).toBe(1);
+    expect(meta.get().lootBoxes).toBe(1);
+    expect(meta.get().lootBoxesLifetime).toBe(1);
+    expect(meta.get().lootMeter).toBe(20); // overflow preserved
+    meta.reset();
+  });
+
+  it('awards multiple boxes for a large grant', () => {
+    meta.reset();
+    const size = lootMeterSize(0);
+    const awarded = meta.addLootProgress(size * 3 + 5);
+    expect(awarded).toBe(3);
+    expect(meta.get().lootBoxes).toBe(3);
+    expect(meta.get().lootMeter).toBe(5);
+    meta.reset();
+  });
+
+  it('persists across runs/modes — recordRun never clears the meter', () => {
+    meta.reset();
+    meta.addLootProgress(50);
+    const before = meta.get().lootMeter;
+    meta.recordRun(result({ mode: 'endless', wave: 12, kills: 80 }));
+    meta.recordRun(result({ mode: 'stage', won: true, stageNumber: 2 }));
+    expect(meta.get().lootMeter).toBe(before); // untouched by runs
     meta.reset();
   });
 });

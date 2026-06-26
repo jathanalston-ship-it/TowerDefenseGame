@@ -30,6 +30,10 @@ export interface SaveData {
   codex: CodexData;
   achievements: string[]; // unlocked achievement ids
   title: string; // currently worn title (rarest unlocked), '' = none
+  // Persistent Loot Meter — fills forever from kills + waves across all runs/modes.
+  lootMeter: number; // current progress toward the next loot box
+  lootBoxes: number; // unopened loot boxes on hand
+  lootBoxesLifetime: number; // total ever earned (never decreases — a trophy stat)
 }
 
 /** Discovered content sets (stored as deduped id arrays for JSON portability). */
@@ -39,7 +43,7 @@ export interface CodexData {
   cards: string[];
 }
 
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
 const SAVE_KEY = 'assimilate.save';
 const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
@@ -71,6 +75,7 @@ export function defaultSave(): SaveData {
     stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
     essence: 0, components: 0, catalyst: 0,
     codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
+    lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0,
   };
 }
 
@@ -150,6 +155,9 @@ export function normalizeSave(raw: unknown): SaveData {
     codex: normalizeCodex(o.codex),
     achievements: normalizeIdList(o.achievements),
     title: typeof o.title === 'string' && o.title.length <= 64 ? o.title : '',
+    lootMeter: nonNegInt(o.lootMeter),
+    lootBoxes: nonNegInt(o.lootBoxes),
+    lootBoxesLifetime: nonNegInt(o.lootBoxesLifetime),
   };
 }
 
@@ -212,6 +220,15 @@ const MIGRATIONS: Migration[] = [
       fieldOp.add(d, 'codex', { enemies: [], biomes: [], cards: [] }),
       fieldOp.add(d, 'achievements', []),
       fieldOp.add(d, 'title', ''),
+    ],
+  },
+  {
+    to: 3,
+    describe: 'persistent loot meter',
+    up: (d) => [
+      fieldOp.add(d, 'lootMeter', 0),
+      fieldOp.add(d, 'lootBoxes', 0),
+      fieldOp.add(d, 'lootBoxesLifetime', 0),
     ],
   },
 ];

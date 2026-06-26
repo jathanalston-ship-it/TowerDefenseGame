@@ -1,6 +1,7 @@
 import type { HudSnapshot } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
 import { CountUp } from './components/CountUp';
+import { LootMeter } from './LootMeter';
 
 const PHASE_LABEL: Record<HudSnapshot['phase'], string> = {
   prep: 'PREP',
@@ -135,6 +136,12 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
           <span className="tt-bubble">{hud.objective.description}</span>
         </div>
       )}
+
+      {/* Persistent loot meter (fills across all runs/modes) */}
+      <div className="hud-cell hud-loot tt" tabIndex={0}>
+        <LootMeter compact />
+        <span className="tt-bubble">Fills forever from kills + waves. Fill it to earn a loot box.</span>
+      </div>
 
       {/* PHASE chip — keyed by phase so it pops on each transition (wave start/end) */}
       <div key={hud.phase} className={`phase-chip phase-${hud.phase}`}>{PHASE_LABEL[hud.phase]}</div>

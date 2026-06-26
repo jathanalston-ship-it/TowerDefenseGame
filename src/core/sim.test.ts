@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW } from './config';
+import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW, LOOT } from './config';
 import { CARD_POOL } from './cards';
 import { generateStage } from './stage';
 import { towerSlots } from './map';
@@ -268,6 +268,25 @@ describe('automatic wave flow', () => {
     expect(preview.length).toBeGreaterThan(0);
     expect(preview.every((e) => e.count > 0)).toBe(true);
     expect(preview.find((e) => e.kind === 'runner')?.count).toBe(8);
+  });
+
+  it('accrues persistent-loot progress from kills and completed waves', () => {
+    const g = new Game(5, NO_META);
+    expect(g.lootProgress).toBe(0);
+    let guard = 0;
+    let progressBeforeClear = 0;
+    while (g.waveIndex < 2 && guard++ < 100000) {
+      if (g.phase === 'draft') {
+        progressBeforeClear = g.lootProgress; // captured just after wave 1 cleared
+        g.chooseCard(g.getSnapshot().draft![0].id);
+        continue;
+      }
+      if (g.phase === 'prep') { placeSome(g, 4); g.startWave(); }
+      g.advance(SIM_DT);
+    }
+    // Wave 1 cleared: at least one completed-wave bonus + the kills it took.
+    expect(progressBeforeClear).toBeGreaterThan(LOOT.perWave);
+    expect(g.lootProgress).toBeGreaterThan(LOOT.perWave);
   });
 
   it('records a wave summary when a wave clears (kills + biomass earned)', () => {

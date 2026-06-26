@@ -1043,6 +1043,74 @@ canvas.board.is-aiming {
   }
 }
 
+/* ── Persistent Loot Meter ────────────────────────────────────────────────── */
+.loot-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+.lm-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lm-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.lm-boxes {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold);
+  display: inline-block;
+  animation: lm-pop 0.5s var(--ease-out);
+}
+@keyframes lm-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+    color: #fff;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.lm-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: var(--panel-2);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.lm-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--gold), #ffe39a);
+  transition: width 0.25s var(--ease-out);
+  box-shadow: 0 0 8px rgba(255, 208, 92, 0.4);
+}
+.lm-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.loot-meter.is-compact {
+  min-width: 116px;
+  gap: 3px;
+}
+.loot-meter.is-compact .lm-bar {
+  height: 5px;
+}
+.hud-loot {
+  min-width: 130px;
+}
+
 /* ── Draft overlay ────────────────────────────────────────────────────────── */
 .overlay {
   position: absolute;

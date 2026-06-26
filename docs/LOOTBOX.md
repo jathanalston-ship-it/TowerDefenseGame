@@ -8,7 +8,15 @@ currencies, dupe-conversion), `STYLE-GUIDE.md` (rarity colors), `GAME-FEEL.md`
 > spawn-sacs / cocoons / egg-pods**, not metal boxes. You don't *unlock* loot — the
 > hive **gestates and births** it (assimilation made tangible).
 
----
+> **Implemented status (see `GAME-STATE.md`):** 🟡 the **earn** side ships — a
+> **Persistent Loot Meter** (`src/core/config.ts LOOT`, `state/meta.ts
+> addLootProgress`, `ui/LootMeter.tsx`) that **never resets** across runs / Stage /
+> Endless. It fills from **kills + completed waves**; filling it awards **one loot
+> box** and rolls the overflow into the next meter (progress is never lost — folded
+> in-memory live, persisted at wave boundaries, run end, and every box award). The
+> meter size (`lootMeterSize(boxesEarned)`) is one function, so balancing/scaling is
+> trivial. The **opening ceremony + box contents** below are **designed, not yet
+> built** — today a box is a counted, bankable reward.
 
 ## 1. Goals & the core tension
 

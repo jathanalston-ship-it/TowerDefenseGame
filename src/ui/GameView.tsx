@@ -6,6 +6,7 @@ import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
 import { TOWER_ORDER } from '../core/config';
 import { setActiveGame } from '../debug/debug';
+import { meta } from '../state/meta';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
@@ -36,6 +37,10 @@ export function GameView({
   // transition). Presentation only — scales the dt fed to the live loop, never the
   // deterministic sim (tests step a fixed dt directly).
   const slowmoUntilRef = useRef(0);
+  // Persistent loot meter sync: how much of this run's lootProgress we've folded in,
+  // and the last wave we flushed at (a flush persists; mid-wave folds are in-memory).
+  const syncedLootRef = useRef(0);
+  const lootWaveRef = useRef(0);
 
   const refresh = (): void => setHud(game.getSnapshot());
 
@@ -47,6 +52,19 @@ export function GameView({
     let last = performance.now();
     let lastHud = 0;
 
+    // Fold the run's loot progress into the persistent meter. Mid-wave folds are
+    // in-memory (smooth fill); wave boundaries and run end persist to storage.
+    const syncLoot = (runEnd: boolean): void => {
+      const lp = game.lootProgress;
+      const delta = lp - syncedLootRef.current;
+      const sum = game.lastWaveSummary;
+      const waveFlush = !!sum && sum.wave !== lootWaveRef.current;
+      if (delta <= 0 && !runEnd && !waveFlush) return;
+      meta.addLootProgress(Math.max(0, delta), runEnd || waveFlush);
+      syncedLootRef.current = lp;
+      if (sum) lootWaveRef.current = sum.wave;
+    };
+
     const loop = (now: number): void => {
       const dt = (now - last) / 1000;
       last = now;
@@ -55,11 +73,13 @@ export function GameView({
       game.advance(dt * slow);
       drawGame(ctx, game.getRenderState(), pointerRef.current);
       if (now - lastHud > 80) {
+        syncLoot(false); // live, smooth fill of the persistent meter (in-memory)
         setHud(game.getSnapshot());
         lastHud = now;
       }
       if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
         endedRef.current = true;
+        syncLoot(true); // flush the run's remaining loot progress to storage
         setHud(game.getSnapshot());
         onEndRef.current(game.getResult());
       }

@@ -19,6 +19,7 @@ import {
   EQUIPMENT_UPGRADES,
   PRESTIGE_UPGRADES,
   defaultMetaModifiers,
+  lootMeterSize,
 } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type { Currency, MetaModifiers } from '../core/types';
@@ -198,6 +199,34 @@ export const meta = {
 
     persist(next);
     return reward;
+  },
+
+  /**
+   * Fold loot-meter progress into the PERSISTENT meter. The meter never resets
+   * across runs/modes; crossing its size awards one box and rolls the overflow into
+   * the next (so progress is never lost). Live in-run folds pass `save=false` (cheap
+   * in-memory updates for a smoothly-filling bar); wave/run-end checkpoints — and any
+   * box award — write to storage. Returns the number of boxes awarded by this call.
+   */
+  addLootProgress(amount: number, save = true): number {
+    if (amount <= 0 && !save) return 0;
+    const s = store.get();
+    let meter = s.lootMeter + Math.max(0, amount);
+    let boxes = s.lootBoxes;
+    let lifetime = s.lootBoxesLifetime;
+    let awarded = 0;
+    let size = lootMeterSize(lifetime);
+    while (meter >= size) {
+      meter -= size;
+      boxes++;
+      lifetime++;
+      awarded++;
+      size = lootMeterSize(lifetime); // the next meter (may scale with boxes earned)
+    }
+    const next = { ...s, lootMeter: meter, lootBoxes: boxes, lootBoxesLifetime: lifetime };
+    if (save || awarded > 0) persist(next);
+    else store.set(next); // in-memory only (no storage write) for live fills
+    return awarded;
   },
 
   // ── Save management ──────────────────────────────────────────────────────
