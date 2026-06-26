@@ -65,7 +65,7 @@ import type {
 } from './types';
 
 interface QueuedSpawn {
-  kind: Enemy['kind'];
+  kind: EnemyKind;
   at: number; // sim-time to spawn
   hpMult: number;
   bountyMult: number;
@@ -353,7 +353,6 @@ export class Game {
       damage: def.damage,
       fracture: 0,
       corrosion: 0,
-      slowUntil: 0,
       shredFlash: 0,
       alive: true,
     });

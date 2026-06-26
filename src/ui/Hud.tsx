@@ -17,7 +17,6 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
-  const heroPct = hud.hero.maxHp > 0 ? hud.hero.hp / hud.hero.maxHp : 0;
 
   return (
     <div className="hud">

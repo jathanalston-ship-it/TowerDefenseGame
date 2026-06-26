@@ -27,7 +27,6 @@ export interface Enemy {
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
-  slowUntil: number; // sim-time the slow expires
   shredFlash: number; // seconds of reaction flash remaining (visual)
   alive: boolean;
 }

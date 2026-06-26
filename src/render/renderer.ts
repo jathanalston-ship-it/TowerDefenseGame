@@ -51,7 +51,7 @@ export function drawGame(
   drawDefenseZone(ctx, t, pressure);
   drawObstacles(ctx);
 
-  const occupied = new Set(rs.towers.map((t2) => t2.slot));
+  const occupied = new Set(rs.towers.map((tw) => tw.slot));
   drawHiveTendrils(ctx, rs, t);
   drawSlots(ctx, rs, occupied);
   drawBase(ctx, rs, t);
