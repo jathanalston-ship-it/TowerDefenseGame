@@ -916,7 +916,7 @@ canvas.board {
 .debug-panel button {
   padding: 5px 8px;
   font-size: 12px;
-  border-radius: 6px;
+  border-radius: var(--r-xs);
 }
 .debug-panel button.on {
   border-color: var(--gold);
@@ -929,7 +929,7 @@ canvas.board {
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--r-xs);
   padding: 4px 6px;
 }
 .debug-note {

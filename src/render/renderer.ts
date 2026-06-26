@@ -27,6 +27,33 @@ export interface Pointer {
 
 const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
 
+// Canvas palette — mirrors the CSS design tokens (src/index.css :root) so the
+// battlefield and the DOM HUD speak one color language. RGB triplets let each
+// draw call pick its own alpha while keeping the hue canonical; SOLID has the
+// opaque hex for fills. Environment gradients stay bespoke (their own zone).
+const RGB = {
+  danger: '255, 93, 115', //  --danger   #ff5d73
+  kinetic: '90, 209, 255', // --kinetic  #5ad1ff
+  caustic: '182, 232, 74', // --caustic  #b6e84a
+  vital: '255, 122, 89', //   --vital    #ff7a59
+  gold: '255, 210, 77', //    --gold     #ffd24d
+} as const;
+const SOLID = {
+  danger: '#ff5d73', //  --danger
+  success: '#3fe08a', // --success
+  warn: '#ffb24d', //    --warn
+  gold: '#ffd24d', //    --gold
+} as const;
+const rgba = (rgb: string, a: number): string => `rgba(${rgb}, ${a})`;
+
+// Shared with the DOM UI (--font-ui) so on-canvas text matches the HUD.
+const UI_FONT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+
+/** HP/health fill color, matching the HUD integrity thresholds (Hud.tsx). */
+function hpColor(pct: number): string {
+  return pct > 0.5 ? SOLID.success : pct > 0.25 ? SOLID.warn : SOLID.danger;
+}
+
 function pulse(t: number, speed: number, lo: number, hi: number): number {
   return lo + (hi - lo) * (0.5 + 0.5 * Math.sin(t * speed));
 }
@@ -59,9 +86,9 @@ export function drawGame(
   for (const p of rs.pools) {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(150, 220, 70, 0.16)';
+    ctx.fillStyle = rgba(RGB.caustic, 0.16);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(150, 220, 70, 0.35)';
+    ctx.strokeStyle = rgba(RGB.caustic, 0.35);
     ctx.lineWidth = 1;
     ctx.stroke();
   }
@@ -87,7 +114,7 @@ export function drawGame(
   for (const f of rs.floats) {
     ctx.globalAlpha = Math.min(1, f.life * 2);
     ctx.fillStyle = f.color;
-    ctx.font = 'bold 14px system-ui, sans-serif';
+    ctx.font = `bold 14px ${UI_FONT}`;
     ctx.textAlign = 'center';
     ctx.fillText(f.text, f.x, f.y);
     ctx.globalAlpha = 1;
@@ -164,7 +191,7 @@ function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
   }
 
   ctx.fillStyle = 'rgba(190, 140, 235, 0.7)';
-  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.font = `700 10px ${UI_FONT}`;
   ctx.fillText('▼ ENEMY SPAWN', 8, 12);
 }
 
@@ -192,7 +219,7 @@ function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: num
   ctx.setLineDash([]);
 
   ctx.fillStyle = `rgba(255, 150, 165, ${0.7 + pressure * 0.3})`;
-  ctx.font = '700 11px system-ui, sans-serif';
+  ctx.font = `700 11px ${UI_FONT}`;
   ctx.fillText('— HOLD THE LINE —', 8, DEFENSE_TOP_Y - 6);
 }
 
@@ -239,7 +266,7 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   ctx.fill();
 
   // core body
-  ctx.fillStyle = '#ff5d73';
+  ctx.fillStyle = SOLID.danger;
   ctx.beginPath();
   ctx.arc(x, y, 15 * beat, 0, Math.PI * 2);
   ctx.fill();
@@ -249,7 +276,7 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   ctx.fill();
 
   ctx.fillStyle = 'rgba(255, 170, 180, 0.85)';
-  ctx.font = '700 10px system-ui, sans-serif';
+  ctx.font = `700 10px ${UI_FONT}`;
   ctx.textAlign = 'center';
   ctx.fillText('HIVE CORE', x, y + 34);
   ctx.textAlign = 'left';
@@ -271,17 +298,17 @@ function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set
       ctx.strokeRect(x, y, s, s);
       ctx.setLineDash([]);
       ctx.fillStyle = 'rgba(120,130,150,0.3)';
-      ctx.font = '10px system-ui, sans-serif';
+      ctx.font = `10px ${UI_FONT}`;
       ctx.textAlign = 'center';
       ctx.fillText('🔒', slot.x, slot.y + 4);
       ctx.textAlign = 'left';
     } else {
-      ctx.fillStyle = 'rgba(90, 200, 255, 0.06)';
+      ctx.fillStyle = rgba(RGB.kinetic, 0.06); // buildable = kinetic cyan
       ctx.fillRect(x, y, s, s);
-      ctx.strokeStyle = 'rgba(90, 200, 255, 0.5)';
+      ctx.strokeStyle = rgba(RGB.kinetic, 0.5);
       ctx.lineWidth = 1.5;
       drawBracket(ctx, slot.x, slot.y, s);
-      ctx.strokeStyle = 'rgba(90, 200, 255, 0.35)';
+      ctx.strokeStyle = rgba(RGB.kinetic, 0.35);
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(slot.x - 4, slot.y);
@@ -316,7 +343,7 @@ function drawBracket(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: n
 function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   for (const t of rs.towers) {
     if (!t.overcharged) continue;
-    ctx.strokeStyle = 'rgba(255, 122, 89, 0.35)';
+    ctx.strokeStyle = rgba(RGB.vital, 0.35);
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(t.x, t.y, 18, 0, Math.PI * 2);
@@ -378,14 +405,14 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
 
   if (detail) {
     if (e.corrosion > 0) {
-      ctx.strokeStyle = 'rgba(150, 220, 70, 0.9)';
+      ctx.strokeStyle = rgba(RGB.caustic, 0.9); // Corrosion = caustic ring
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(e.x, drawY, r + 2, 0, Math.PI * 2);
       ctx.stroke();
     }
     if (e.fracture > 0) {
-      ctx.strokeStyle = `rgba(90, 209, 255, ${Math.min(0.9, 0.25 + e.fracture * 0.12)})`;
+      ctx.strokeStyle = rgba(RGB.kinetic, Math.min(0.9, 0.25 + e.fracture * 0.12)); // Fracture = kinetic rim
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(e.x, drawY, r + 4, 0, Math.PI * 2);
@@ -399,7 +426,7 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
     }
     // danger aura once an enemy has pressed into the defensive zone
     if (e.y > DEFENSE_TOP_Y) {
-      ctx.strokeStyle = 'rgba(255, 70, 90, 0.5)';
+      ctx.strokeStyle = rgba(RGB.danger, 0.5);
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(e.x, drawY, r + 6, 0, Math.PI * 2);
@@ -410,7 +437,7 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
     const pct = Math.max(0, e.hp / e.maxHp);
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(e.x - w / 2, drawY - r - 7, w, 3);
-    ctx.fillStyle = pct > 0.5 ? '#7CFC9B' : pct > 0.25 ? '#ffd24d' : '#ff5d73';
+    ctx.fillStyle = hpColor(pct); // match the HUD integrity palette
     ctx.fillRect(e.x - w / 2, drawY - r - 7, w * pct, 3);
   }
 }
@@ -418,7 +445,7 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   const h = rs.hero;
   if (h.down) ctx.globalAlpha = 0.4;
-  ctx.fillStyle = '#ffd24d';
+  ctx.fillStyle = SOLID.gold; // hero = gold core (identity, matches HUD hero bar)
   ctx.beginPath();
   ctx.moveTo(h.x, h.y - 13);
   ctx.lineTo(h.x + 11, h.y);
@@ -430,7 +457,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
 
   if (h.down) {
     ctx.fillStyle = '#ff9aa8';
-    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.font = `bold 12px ${UI_FONT}`;
     ctx.textAlign = 'center';
     ctx.fillText(`${Math.ceil(h.respawn)}s`, h.x, h.y - 18);
     ctx.textAlign = 'left';
@@ -439,7 +466,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     const pct = Math.max(0, h.hp / h.maxHp);
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(h.x - w / 2, h.y - 20, w, 3);
-    ctx.fillStyle = '#ffd24d';
+    ctx.fillStyle = SOLID.gold;
     ctx.fillRect(h.x - w / 2, h.y - 20, w * pct, 3);
   }
 }
@@ -473,7 +500,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
   if (rs.armedAbility) {
     ctx.beginPath();
     ctx.arc(pointer.x, pointer.y, 72, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(90, 209, 255, 0.7)';
+    ctx.strokeStyle = rgba(RGB.kinetic, 0.7);
     ctx.setLineDash([6, 4]);
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -491,15 +518,15 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     const invalid = locked || !!tower;
     ctx.beginPath();
     ctx.arc(slot.x, slot.y, Math.max(def.range, 16), 0, Math.PI * 2);
-    ctx.fillStyle = invalid ? 'rgba(255,80,80,0.05)' : 'rgba(120,200,255,0.06)';
+    ctx.fillStyle = invalid ? rgba(RGB.danger, 0.05) : rgba(RGB.kinetic, 0.06);
     ctx.fill();
-    ctx.strokeStyle = invalid ? 'rgba(255,80,80,0.6)' : 'rgba(120,200,255,0.6)';
+    ctx.strokeStyle = invalid ? rgba(RGB.danger, 0.6) : rgba(RGB.kinetic, 0.6);
     ctx.setLineDash([5, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = invalid ? 'rgba(255,80,80,0.3)' : 'rgba(120,200,255,0.35)';
+    ctx.fillStyle = invalid ? rgba(RGB.danger, 0.3) : rgba(RGB.kinetic, 0.35);
     ctx.fillRect(slot.x - CELL / 2 + 4, slot.y - CELL / 2 + 4, CELL - 8, CELL - 8);
-    if (locked) labelAt(ctx, slot.x, slot.y - CELL / 2 - 6, 'LOCKED', '#ff8a8a');
+    if (locked) labelAt(ctx, slot.x, slot.y - CELL / 2 - 6, 'LOCKED', SOLID.danger);
     return;
   }
 
@@ -508,7 +535,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     if (def.range > 0) {
       ctx.beginPath();
       ctx.arc(tower.x, tower.y, def.range, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(120,200,255,0.35)';
+      ctx.strokeStyle = rgba(RGB.kinetic, 0.35);
       ctx.setLineDash([4, 4]);
       ctx.lineWidth = 1;
       ctx.stroke();
@@ -519,7 +546,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
 }
 
 function labelAt(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string): void {
-  ctx.font = '600 11px system-ui, sans-serif';
+  ctx.font = `600 11px ${UI_FONT}`;
   ctx.textAlign = 'center';
   const w = ctx.measureText(text).width + 10;
   ctx.fillStyle = 'rgba(8,11,17,0.85)';
