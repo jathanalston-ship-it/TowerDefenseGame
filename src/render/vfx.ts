@@ -64,16 +64,16 @@ export function ring(
 
 export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex';
 
-/** Draw a filled placeholder silhouette of `r` radius centered at (x,y). */
-export function drawShape(
+/** Build (but don't paint) a silhouette path of `r` radius centered at (x,y).
+ * Shared by drawShape (fill) and strokeShape (outline) so the polygon math lives
+ * in one place. */
+export function shapePath(
   ctx: CanvasRenderingContext2D,
   shape: ShapeKind,
   x: number,
   y: number,
   r: number,
-  color: string,
 ): void {
-  ctx.fillStyle = color;
   ctx.beginPath();
   switch (shape) {
     case 'circle':
@@ -108,6 +108,87 @@ export function drawShape(
       ctx.closePath();
       break;
   }
+}
+
+/** Draw a filled placeholder silhouette of `r` radius centered at (x,y). */
+export function drawShape(
+  ctx: CanvasRenderingContext2D,
+  shape: ShapeKind,
+  x: number,
+  y: number,
+  r: number,
+  color: string,
+): void {
+  ctx.fillStyle = color;
+  shapePath(ctx, shape, x, y, r);
+  ctx.fill();
+}
+
+/** Outline a silhouette — the rim that makes a flat fill read as a solid unit. */
+export function strokeShape(
+  ctx: CanvasRenderingContext2D,
+  shape: ShapeKind,
+  x: number,
+  y: number,
+  r: number,
+  color: string,
+  lineWidth = 1,
+): void {
+  shapePath(ctx, shape, x, y, r);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+}
+
+/** A ring of `n` outward-pointing spikes — the boss carapace crown. `rot` spins it. */
+export function spikeCrown(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  spikeLen: number,
+  n: number,
+  color: string,
+  rot: number,
+): void {
+  ctx.fillStyle = color;
+  for (let i = 0; i < n; i++) {
+    const a = rot + (Math.PI * 2 / n) * i;
+    const bx = x + Math.cos(a) * r;
+    const by = y + Math.sin(a) * r;
+    const tx = x + Math.cos(a) * (r + spikeLen);
+    const ty = y + Math.sin(a) * (r + spikeLen);
+    const pa = a + Math.PI / 2;
+    const w = spikeLen * 0.34;
+    ctx.beginPath();
+    ctx.moveTo(bx + Math.cos(pa) * w, by + Math.sin(pa) * w);
+    ctx.lineTo(tx, ty);
+    ctx.lineTo(bx - Math.cos(pa) * w, by - Math.sin(pa) * w);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+/** A drawn padlock glyph (replaces the 🔒 emoji on locked slots). */
+export function padlock(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, color: string): void {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, s * 0.16);
+  ctx.beginPath(); // shackle
+  ctx.arc(x, y - s * 0.2, s * 0.3, Math.PI * 1.05, Math.PI * 1.95);
+  ctx.stroke();
+  roundRectPath(ctx, x - s * 0.42, y - s * 0.06, s * 0.84, s * 0.62, s * 0.14); // body
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+/** A small downward chevron glyph (replaces the ▼ emoji on the spawn label). */
+export function chevronDown(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, color: string): void {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x - w / 2, y);
+  ctx.lineTo(x + w / 2, y);
+  ctx.lineTo(x, y + w * 0.7);
+  ctx.closePath();
   ctx.fill();
 }
 

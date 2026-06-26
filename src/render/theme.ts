@@ -80,20 +80,40 @@ export const THEME = {
     fracture: '90, 209, 255',
     shred: '255, 255, 255',
     danger: '255, 70, 90',
+    rim: 'rgba(6, 8, 14, 0.55)', // dark outline so a flat fill reads as a solid unit
+    gloss: 'rgba(255, 255, 255, 0.22)', // top highlight (volume)
+    hitFlash: '255, 255, 255', // white pop on taking damage
     hpBack: 'rgba(0,0,0,0.55)',
     hpEdge: 'rgba(0,0,0,0.35)',
     hpHigh: '#7CFC9B',
     hpMid: '#ffd24d',
     hpLow: '#ff5d73',
   },
+  // The apex predator — its own visual language so a boss reads as a boss.
+  boss: {
+    glow: 'rgba(255, 60, 90, 0.5)',
+    crown: 'rgba(255, 95, 115, 0.92)',
+    ring: 'rgba(255, 150, 170, 0.65)',
+    rim: 'rgba(28, 0, 8, 0.75)',
+  },
+  elite: {
+    rim: 'rgba(255, 214, 150, 0.6)', // gilded armor edge marks the heavies
+  },
   hero: {
     body: '#ffd24d',
     down: '#ff9aa8',
     hpBack: 'rgba(0,0,0,0.55)',
+    halo: 'rgba(255, 210, 77, 0.26)', // ground glow under the hero
+    rim: 'rgba(90, 60, 0, 0.95)', // dark edge on the core
+    core: 'rgba(255, 255, 255, 0.92)', // bright inner core
+    locator: '255, 210, 77', // pulsing find-me ring
+    trail: '255, 210, 77', // motion afterimages
   },
   projectile: {
     splash: '#d6f06a',
     bolt: '#aef0ff',
+    splashTrail: '214, 240, 106',
+    boltTrail: '174, 240, 255',
   },
   pool: {
     fill: 'rgba(150, 220, 70, 0.16)',
@@ -122,4 +142,17 @@ export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
   tank: 'square', // blocky carapace hauler
   flyer: 'diamond', // airborne drifter
   burrower: 'diamond', // tunneller (color sets it apart from the flyer)
+};
+
+/** Threat tier drives the unit's render treatment (rim weight, crown, glow). Data
+ * here, not branched in the renderer, so reclassifying a unit is a one-line edit. */
+export type EnemyTier = 'normal' | 'elite' | 'boss';
+export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
+  runner: 'normal',
+  rusher: 'normal',
+  flyer: 'normal',
+  burrower: 'normal',
+  brute: 'elite', // armored heavies get a gilded rim
+  tank: 'elite',
+  tyrant: 'boss', // the apex predator: crown + glow + containment ring
 };

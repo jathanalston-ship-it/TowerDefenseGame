@@ -24,8 +24,20 @@ import {
 } from '../core/map';
 import { ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
-import { THEME, ENEMY_SHAPE, TOWER_SHAPE, rgba } from './theme';
-import { drawShape, easeOutCubic, glowDisc, healthBar, pulse, ring, roundRectPath } from './vfx';
+import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, rgba } from './theme';
+import {
+  chevronDown,
+  drawShape,
+  easeOutCubic,
+  glowDisc,
+  healthBar,
+  padlock,
+  pulse,
+  ring,
+  roundRectPath,
+  spikeCrown,
+  strokeShape,
+} from './vfx';
 
 export interface Pointer {
   x: number;
@@ -71,19 +83,13 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw);
+  for (const tw of rs.towers) drawTower(ctx, tw, t);
 
-  for (const p of rs.projectiles) {
-    const splash = p.behavior === 'splash';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, splash ? 4 : 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = splash ? THEME.projectile.splash : THEME.projectile.bolt;
-    ctx.fill();
-  }
+  for (const p of rs.projectiles) drawProjectile(ctx, p);
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
-  for (const e of rs.enemies) drawEnemy(ctx, e, detail);
+  for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
   drawParticles(ctx, rs);
   drawHero(ctx, rs);
@@ -175,8 +181,9 @@ function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
   }
 
   ctx.fillStyle = THEME.spawn.label;
+  chevronDown(ctx, 11, 5, 7, THEME.spawn.label);
   ctx.font = '700 10px system-ui, sans-serif';
-  ctx.fillText('▼ ENEMY SPAWN', 8, 12);
+  ctx.fillText('ENEMY SPAWN', 19, 12);
 }
 
 function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: number): void {
@@ -289,11 +296,7 @@ function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set
       ctx.setLineDash([3, 4]);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = THEME.slot.lockedLabel;
-      ctx.font = '10px system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('🔒', slot.x, slot.y + 4);
-      ctx.textAlign = 'left';
+      padlock(ctx, slot.x, slot.y, 11, THEME.slot.lockedLabel);
       continue;
     }
 
@@ -339,20 +342,79 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
   }
 }
 
-function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][number]): void {
-  const def = TOWER_DEFS[t.kind];
-  drawShape(ctx, TOWER_SHAPE[t.kind], t.x, t.y, TOWER_R, def.color);
-  if (t.kind === 'reactor') {
-    drawShape(ctx, 'circle', t.x, t.y, 5, 'rgba(255,255,255,0.25)');
+const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
+
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number): void {
+  const def = TOWER_DEFS[tw.kind];
+  const shape = TOWER_SHAPE[tw.kind];
+
+  // grow-on-place → idle breathing → a recoil punch right after firing.
+  const grow = easeOutCubic(Math.min(1, Math.max(0, (now - tw.bornAt) / TOWER_GROW)));
+  if (grow <= 0.001) return;
+  const breathe = pulse(now + tw.id, 2, 0.97, 1.03);
+  // cooldown counts down from fireInterval → 0; it's highest right after a shot.
+  const fresh = def.fireInterval > 0 ? Math.min(1, Math.max(0, (tw.cooldown / def.fireInterval - 0.7) / 0.3)) : 0;
+  const r = TOWER_R * grow * breathe * (1 + fresh * 0.1);
+
+  // grounding shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(tw.x, tw.y + r * 0.7, r * 0.85, r * 0.4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // muzzle flash above firing towers (enemies are upfield) on the recoil frames
+  if (fresh > 0.01) {
+    glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.7 + fresh), def.color);
   }
+
+  drawShape(ctx, shape, tw.x, tw.y, r, def.color);
+  strokeShape(ctx, shape, tw.x, tw.y, r, 'rgba(6,8,14,0.55)', 1.5);
+  drawShape(ctx, shape, tw.x, tw.y - r * 0.18, r * 0.42, 'rgba(255,255,255,0.18)'); // top gloss
+
+  if (tw.kind === 'reactor') {
+    drawShape(ctx, 'circle', tw.x, tw.y, 5 * grow * breathe, 'rgba(255,255,255,0.3)');
+  }
+}
+
+function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
+  const splash = p.behavior === 'splash';
+  const core = splash ? THEME.projectile.splash : THEME.projectile.bolt;
+  const trail = splash ? THEME.projectile.splashTrail : THEME.projectile.boltTrail;
+
+  // heading toward the target point — the trail streams out behind it
+  let ux = p.tx - p.x;
+  let uy = p.ty - p.y;
+  const len = Math.hypot(ux, uy) || 1;
+  ux /= len;
+  uy /= len;
+  const trailLen = splash ? 11 : 9;
+
+  ctx.strokeStyle = rgba(trail, 0.5);
+  ctx.lineWidth = splash ? 3 : 2;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(p.x - ux * trailLen, p.y - uy * trailLen);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+
+  glowDisc(ctx, p.x, p.y, splash ? 7 : 5, rgba(trail, 0.6));
+  drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : 2.3, core);
 }
 
 // ── Enemies ──────────────────────────────────────────────────────────────────
 
-function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number], detail: boolean): void {
+function drawEnemy(
+  ctx: CanvasRenderingContext2D,
+  e: RenderState['enemies'][number],
+  detail: boolean,
+  t: number,
+): void {
   const def = ENEMY_DEFS[e.kind];
   const r = def.radius;
   const flying = def.behavior.flying === true;
+  const shape = ENEMY_SHAPE[e.kind];
+  const tier = ENEMY_TIER[e.kind];
 
   if (detail) {
     // airborne units cast a shadow on the arena floor below them
@@ -369,7 +431,30 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
   }
 
   const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor
-  drawShape(ctx, ENEMY_SHAPE[e.kind], e.x, drawY, r, def.color);
+
+  // ── Boss signature (behind the body): threat glow, spinning crown + ring ──
+  if (tier === 'boss' && detail) {
+    glowDisc(ctx, e.x, drawY, r * 2.3 * pulse(t, 2.2, 0.92, 1.08), THEME.boss.glow);
+    spikeCrown(ctx, e.x, drawY, r * 1.02, r * 0.5, 8, THEME.boss.crown, t * 0.6);
+    ctx.save();
+    ctx.strokeStyle = THEME.boss.ring;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([7, 7]);
+    ctx.lineDashOffset = -((t * 26) % 14);
+    ctx.beginPath();
+    ctx.arc(e.x, drawY, r * 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+  }
+
+  // body + a tier-weighted rim so it reads as a solid, threat-ranked unit
+  drawShape(ctx, shape, e.x, drawY, r, def.color);
+  if (detail) {
+    const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
+    strokeShape(ctx, shape, e.x, drawY, r, rim, tier === 'normal' ? 1.5 : 2.25);
+    drawShape(ctx, shape, e.x, drawY - r * 0.32, r * 0.4, THEME.enemy.gloss); // sheen = volume
+  }
 
   if (detail) {
     if (e.corrosion > 0) ring(ctx, e.x, drawY, r + 2, THEME.enemy.corrosion, 2);
@@ -385,30 +470,63 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
     // danger aura once an enemy has pressed into the defensive zone
     if (e.y > DEFENSE_TOP_Y) ring(ctx, e.x, drawY, r + 6, rgba(THEME.enemy.danger, 0.5), 1.5);
 
-    // health pip — only once damaged, to keep a fresh swarm uncluttered
+    // health pip — shown once damaged (always, larger, for a boss).
     const pct = Math.max(0, e.hp / e.maxHp);
-    if (pct < 1) {
+    if (pct < 1 || tier === 'boss') {
       const fill = pct > 0.5 ? THEME.enemy.hpHigh : pct > 0.25 ? THEME.enemy.hpMid : THEME.enemy.hpLow;
-      healthBar(ctx, e.x, drawY - r - 9, r * 2, pct, THEME.enemy.hpBack, THEME.enemy.hpEdge, fill);
+      const bw = tier === 'boss' ? r * 2.4 : r * 2;
+      const by = tier === 'boss' ? drawY - r - 16 : drawY - r - 9;
+      healthBar(ctx, e.x, by, bw, pct, THEME.enemy.hpBack, THEME.enemy.hpEdge, fill);
     }
   }
 }
 
+// Presentation-only afterimage buffer (one hero, one canvas) — never read by sim.
+const heroTrail: { x: number; y: number }[] = [];
+
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   const h = rs.hero;
-  if (h.down) ctx.globalAlpha = 0.4;
+  const t = rs.time;
+  const down = h.down;
+
+  // sample the path into a short afterimage trail (reset on a respawn teleport)
+  const last = heroTrail[heroTrail.length - 1];
+  const moved = last ? Math.hypot(h.x - last.x, h.y - last.y) : Infinity;
+  if (moved > 120) heroTrail.length = 0; // respawn teleport → clear
+  if (moved > 3) {
+    heroTrail.push({ x: h.x, y: h.y });
+    if (heroTrail.length > 8) heroTrail.shift();
+  } else if (heroTrail.length > 0) {
+    heroTrail.shift(); // standing still → drain so the trail doesn't linger as litter
+  }
+  if (!down) {
+    for (let i = 0; i < heroTrail.length - 1; i++) {
+      const p = heroTrail[i];
+      drawShape(ctx, 'diamond', p.x, p.y, 5 + i * 0.7, rgba(THEME.hero.trail, (i / heroTrail.length) * 0.22));
+    }
+  }
+
+  ctx.globalAlpha = down ? 0.4 : 1;
+  glowDisc(ctx, h.x, h.y + 4, 22, THEME.hero.halo); // ground halo
+  if (!down) {
+    // pulsing locator ring so the star unit is always findable in a swarm
+    ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(THEME.hero.locator, pulse(t, 3, 0.22, 0.55)), 1.5);
+  }
+  // layered core: dark rim → gold body → bright nucleus (reads as a hero, not a pip)
+  drawShape(ctx, 'diamond', h.x, h.y, 16, THEME.hero.rim);
   drawShape(ctx, 'diamond', h.x, h.y, 13, THEME.hero.body);
+  drawShape(ctx, 'diamond', h.x, h.y - 2, 5, THEME.hero.core);
   ctx.globalAlpha = 1;
 
-  if (h.down) {
+  if (down) {
     ctx.fillStyle = THEME.hero.down;
     ctx.font = 'bold 12px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`${Math.ceil(h.respawn)}s`, h.x, h.y - 18);
+    ctx.fillText(`${Math.ceil(h.respawn)}s`, h.x, h.y - 22);
     ctx.textAlign = 'left';
   } else {
     const pct = Math.max(0, h.hp / h.maxHp);
-    healthBar(ctx, h.x, h.y - 21, 26, pct, THEME.hero.hpBack, THEME.enemy.hpEdge, THEME.hero.body);
+    healthBar(ctx, h.x, h.y - 25, 28, pct, THEME.hero.hpBack, THEME.enemy.hpEdge, THEME.hero.body);
   }
 }
 
