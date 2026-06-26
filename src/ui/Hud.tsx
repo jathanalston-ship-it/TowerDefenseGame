@@ -43,21 +43,35 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
         <span className="tt-bubble">Hive Core integrity — the run ends if it reaches 0.</span>
       </div>
 
-      {/* WAVE progress */}
+      {/* WAVE progress (or endless score) */}
       <div className="hud-cell tt" tabIndex={0}>
-        <div className="hud-k">Wave</div>
-        <div className="hud-v">
-          {displayWave}
-          <span className="hud-sub">/{hud.totalWaves}</span>
-        </div>
-        <div className="wave-pips" aria-hidden>
-          {Array.from({ length: hud.totalWaves }, (_, i) => {
-            const n = i + 1;
-            const state = n < displayWave ? 'done' : n === displayWave ? 'active' : '';
-            return <span key={n} className={`pip ${state}`} />;
-          })}
-        </div>
-        <span className="tt-bubble">Survive all {hud.totalWaves} waves to extract.</span>
+        <div className="hud-k">{hud.mode === 'endless' ? 'Wave · Score' : 'Wave'}</div>
+        {hud.mode === 'endless' ? (
+          <>
+            <div className="hud-v">
+              {Math.max(1, hud.wave)}
+              <span className="hud-sub"> · {hud.score}</span>
+            </div>
+            <span className="tt-bubble">Endless survival — outlast the swarm. Score {hud.score}.</span>
+          </>
+        ) : (
+          <>
+            <div className="hud-v">
+              {displayWave}
+              <span className="hud-sub">/{hud.totalWaves}</span>
+            </div>
+            <div className="wave-pips" aria-hidden>
+              {Array.from({ length: Math.min(20, hud.totalWaves) }, (_, i) => {
+                const n = i + 1;
+                const state = n < displayWave ? 'done' : n === displayWave ? 'active' : '';
+                return <span key={n} className={`pip ${state}`} />;
+              })}
+            </div>
+            <span className="tt-bubble">
+              {hud.biomeName ? `${hud.biomeName} — ` : ''}survive all {hud.totalWaves} waves to extract.
+            </span>
+          </>
+        )}
       </div>
 
       <div className="spacer" />
@@ -104,6 +118,18 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
           {hud.hero.abilityReady ? 'Apex Leap ready.' : 'Apex Leap on cooldown.'}
         </span>
       </div>
+
+      {/* OBJECTIVE chip (stage mode) */}
+      {hud.objective && (
+        <div
+          className={`obj-chip tt ${hud.objective.done ? 'is-done' : ''}`}
+          tabIndex={0}
+        >
+          {hud.objective.done ? '✓ ' : '◇ '}
+          {hud.objective.name}
+          <span className="tt-bubble">{hud.objective.description}</span>
+        </div>
+      )}
 
       {/* PHASE chip — keyed by phase so it pops on each transition (wave start/end) */}
       <div key={hud.phase} className={`phase-chip phase-${hud.phase}`}>{PHASE_LABEL[hud.phase]}</div>

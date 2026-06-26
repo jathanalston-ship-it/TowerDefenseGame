@@ -19,7 +19,10 @@ export function App(): JSX.Element {
   const configRef = useRef<GameConfig>({ mode: 'classic' });
 
   const startRun = useCallback((config: GameConfig = { mode: 'classic' }) => {
-    seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+    // A stage replays identically from its own seed; other modes get a fresh seed.
+    seedRef.current = config.stage
+      ? config.stage.seed
+      : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     modsRef.current = metaModifiers(meta.get());
     configRef.current = config;
     setScreen('playing');

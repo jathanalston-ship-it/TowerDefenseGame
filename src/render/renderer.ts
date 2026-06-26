@@ -18,6 +18,7 @@ import {
   towerSlots,
 } from '../core/map';
 import { ECON, ENEMY_DEFS, HERO, PERF, TOWER_DEFS } from '../core/config';
+import { DEFAULT_PALETTE } from '../core/biomes';
 import type { RenderState } from '../core/game';
 
 export interface Pointer {
@@ -45,6 +46,15 @@ const SOLID = {
   gold: '#ffd24d', //    --gold
 } as const;
 const rgba = (rgb: string, a: number): string => `rgba(${rgb}, ${a})`;
+/** rgba() from a biome [r,g,b] palette tuple. */
+const prgba = (rgb: readonly [number, number, number], a: number): string => `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`;
+
+// Per-frame biome theming, set at the top of drawGame from RenderState (avoids
+// threading the palette through every environment draw). One frame at a time.
+let framePal = DEFAULT_PALETTE;
+let frameAmbient = { motes: 1, fog: 1, pulse: 1 };
+let frameLight = 1;
+let frameSpawn: readonly { x0: number; x1: number }[] = [];
 
 // Shared with the DOM UI (--font-ui) so on-canvas text matches the HUD.
 const UI_FONT = "'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
@@ -128,8 +138,8 @@ function drawAmbientLight(ctx: CanvasRenderingContext2D, t: number): void {
   const { x, y } = nucleusPoint;
   const beat = 0.5 + 0.5 * Math.sin(t * 1.5);
   const g = ctx.createRadialGradient(x, y, 30, x, y, HEIGHT * 0.62);
-  g.addColorStop(0, `rgba(255, 110, 90, ${0.06 + 0.02 * beat})`);
-  g.addColorStop(1, 'rgba(255, 110, 90, 0)');
+  g.addColorStop(0, prgba(framePal.light, (0.06 + 0.02 * beat) * frameLight));
+  g.addColorStop(1, prgba(framePal.light, 0));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
@@ -139,7 +149,7 @@ function drawSubsurfaceVeins(ctx: CanvasRenderingContext2D, t: number, ambient: 
   if (ambient <= 0.01) return;
   for (const v of VEINS) {
     const p = 0.5 + 0.5 * Math.sin(t * 0.8 + v.phase);
-    ctx.strokeStyle = rgba(RGB.vital, (0.022 + 0.045 * p) * ambient);
+    ctx.strokeStyle = prgba(framePal.veins, (0.022 + 0.045 * p) * ambient * frameAmbient.pulse);
     ctx.lineWidth = v.w;
     ctx.beginPath();
     ctx.moveTo(v.x0, v.y0);
@@ -157,8 +167,8 @@ function drawGroundPulse(ctx: CanvasRenderingContext2D, t: number, ambient: numb
     const y = HEIGHT - CELL * 1.5;
     const p = 0.5 + 0.5 * Math.sin(t * 0.9 + i * 1.7);
     const g = ctx.createRadialGradient(x, y, 4, x, y, CELL * (2.2 + p * 0.8));
-    g.addColorStop(0, `rgba(255, 90, 110, ${(0.045 + 0.045 * p) * ambient})`);
-    g.addColorStop(1, 'rgba(255, 90, 110, 0)');
+    g.addColorStop(0, prgba(framePal.defense, (0.045 + 0.045 * p) * ambient * frameAmbient.pulse));
+    g.addColorStop(1, prgba(framePal.defense, 0));
     ctx.fillStyle = g;
     ctx.fillRect(0, DEFENSE_TOP_Y, WIDTH, HEIGHT - DEFENSE_TOP_Y);
   }
@@ -172,8 +182,9 @@ function drawFog(ctx: CanvasRenderingContext2D, t: number, ambient: number): voi
     const cy = HEIGHT * (0.34 + i * 0.3);
     const cx = WIDTH / 2 + Math.sin(t * 0.05 * dir + i) * WIDTH * 0.34;
     const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, WIDTH * 0.6);
-    g.addColorStop(0, `rgba(120, 140, 170, ${(i === 0 ? 0.05 : 0.04) * ambient})`);
-    g.addColorStop(1, 'rgba(120, 140, 170, 0)');
+    const a = (i === 0 ? 0.05 : 0.04) * ambient * frameAmbient.fog;
+    g.addColorStop(0, prgba(framePal.fog, a));
+    g.addColorStop(1, prgba(framePal.fog, 0));
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
@@ -183,7 +194,9 @@ function drawFog(ctx: CanvasRenderingContext2D, t: number, ambient: number): voi
 function drawMotes(ctx: CanvasRenderingContext2D, t: number, ambient: number): void {
   if (ambient <= 0.01) return;
   ctx.fillStyle = 'rgba(200, 220, 245, 1)';
-  for (const m of MOTES) {
+  const n = Math.max(0, Math.min(MOTES.length, Math.round(MOTES.length * frameAmbient.motes)));
+  for (let i = 0; i < n; i++) {
+    const m = MOTES[i];
     const y = ((m.y + t * m.spd) % (HEIGHT + 20)) - 10;
     const x = m.x + Math.sin(t * 0.4 + m.phase) * m.sway;
     const tw = 0.5 + 0.5 * Math.sin(t * 1.3 + m.phase);
@@ -212,6 +225,10 @@ export function drawGame(
   pointer: Pointer | null,
 ): void {
   const t = rs.time;
+  framePal = rs.palette;
+  frameAmbient = rs.ambient;
+  frameLight = rs.lighting;
+  frameSpawn = rs.spawnZones;
   if (t < lastFrameTime) {
     towerBirth.clear(); // sim time rewound => a new run started
     heroTrail.length = 0;
@@ -290,12 +307,12 @@ export function drawGame(
 
 function drawBackground(ctx: CanvasRenderingContext2D): void {
   // Vertical depth: cold hostile sky at the top (the invading ecosystem) fading to
-  // the warm, fleshy hive at the bottom.
+  // the warm, fleshy hive at the bottom. Biome palette drives the gradient.
   const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-  g.addColorStop(0, '#0c0a16');
-  g.addColorStop(0.45, '#070a10');
-  g.addColorStop(0.8, '#0a0810');
-  g.addColorStop(1, '#150a10');
+  g.addColorStop(0, framePal.sky[0]);
+  g.addColorStop(0.45, framePal.sky[1]);
+  g.addColorStop(0.8, framePal.sky[2]);
+  g.addColorStop(1, framePal.sky[3]);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
@@ -304,7 +321,7 @@ function drawGrid(ctx: CanvasRenderingContext2D): void {
   // Open field reads as space (very faint); the defensive zone grid is a touch
   // brighter so build slots are easier to line up — without graph-paper clutter.
   const FIELD = 'rgba(255,255,255,0.03)';
-  const ZONE = 'rgba(120,200,255,0.06)';
+  const ZONE = framePal.grid;
   ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) {
     const x = c * CELL;
@@ -330,57 +347,66 @@ function drawGrid(ctx: CanvasRenderingContext2D): void {
 }
 
 function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
-  // A hostile "breeding membrane" the swarm pours out of along the top edge.
-  const g = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND);
-  g.addColorStop(0, `rgba(150, 70, 220, ${pulse(t, 1.6, 0.16, 0.26)})`);
-  g.addColorStop(0.6, 'rgba(70, 180, 140, 0.08)');
-  g.addColorStop(1, 'rgba(70, 180, 140, 0)');
-  ctx.fillStyle = g;
+  // Faint biome-tinted band across the top, then a BRIGHT breeding membrane only
+  // over the active spawn segments — so the player sees where the swarm pours in.
+  const m = framePal.membrane;
+  const base = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND);
+  base.addColorStop(0, prgba(m, 0.06));
+  base.addColorStop(1, prgba(m, 0));
+  ctx.fillStyle = base;
   ctx.fillRect(0, 0, WIDTH, SPAWN_BAND);
 
-  // membrane edge
-  ctx.strokeStyle = `rgba(180, 110, 230, ${pulse(t, 1.6, 0.4, 0.7)})`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  const yb = SPAWN_BAND;
-  for (let x = 0; x <= WIDTH; x += 12) {
-    const yy = yb + Math.sin(x * 0.05 + t * 1.5) * 3;
-    if (x === 0) ctx.moveTo(x, yy);
-    else ctx.lineTo(x, yy);
-  }
-  ctx.stroke();
-
-  // descending chevrons — the swarm's direction of advance
-  ctx.fillStyle = 'rgba(180, 120, 230, 0.18)';
-  const drift = (t * 18) % 28;
-  for (let x = CELL; x < WIDTH; x += 90) {
-    const y = 6 + drift;
+  const zones = frameSpawn.length > 0 ? frameSpawn : [{ x0: CELL, x1: WIDTH - CELL }];
+  for (const z of zones) {
+    const w = z.x1 - z.x0;
+    const g = ctx.createLinearGradient(0, 0, 0, SPAWN_BAND);
+    g.addColorStop(0, prgba(m, pulse(t, 1.6, 0.18, 0.3)));
+    g.addColorStop(0.7, prgba(m, 0.06));
+    g.addColorStop(1, prgba(m, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(z.x0, 0, w, SPAWN_BAND);
+    // membrane edge over the segment
+    ctx.strokeStyle = prgba(m, pulse(t, 1.6, 0.4, 0.75));
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(x - 7, y);
-    ctx.lineTo(x + 7, y);
-    ctx.lineTo(x, y + 7);
-    ctx.closePath();
-    ctx.fill();
+    for (let x = z.x0; x <= z.x1; x += 12) {
+      const yy = SPAWN_BAND + Math.sin(x * 0.05 + t * 1.5) * 3;
+      if (x === z.x0) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+    // descending chevrons over the segment
+    ctx.fillStyle = prgba(m, 0.2);
+    const y = 6 + ((t * 18) % 28);
+    for (let x = z.x0 + 20; x < z.x1; x += 60) {
+      ctx.beginPath();
+      ctx.moveTo(x - 6, y);
+      ctx.lineTo(x + 6, y);
+      ctx.lineTo(x, y + 6);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 
-  ctx.fillStyle = 'rgba(190, 140, 235, 0.7)';
+  ctx.fillStyle = prgba(m, 0.85);
   ctx.font = `700 10px ${UI_FONT}`;
   ctx.fillText('▼ ENEMY SPAWN', 8, 12);
 }
 
 function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: number): void {
   const grad = ctx.createLinearGradient(0, DEFENSE_TOP_Y, 0, HEIGHT);
-  grad.addColorStop(0, `rgba(255, 90, 120, ${0.04 + pressure * 0.06})`);
-  grad.addColorStop(1, `rgba(255, 90, 120, ${0.12 + pressure * 0.12})`);
+  const d = framePal.defense;
+  grad.addColorStop(0, prgba(d, 0.04 + pressure * 0.06));
+  grad.addColorStop(1, prgba(d, 0.12 + pressure * 0.12));
   ctx.fillStyle = grad;
   ctx.fillRect(0, DEFENSE_TOP_Y, WIDTH, HEIGHT - DEFENSE_TOP_Y);
 
   // The defensive line — a glowing energy barrier (flows + brightens under pressure).
   const glow = pulse(t, 2, 0.4, 0.7) + pressure * 0.3;
   ctx.save();
-  ctx.shadowColor = 'rgba(255, 90, 120, 0.9)';
+  ctx.shadowColor = prgba(d, 0.9);
   ctx.shadowBlur = 8 + pressure * 10;
-  ctx.strokeStyle = `rgba(255, ${110 - pressure * 50}, 140, ${Math.min(1, glow)})`;
+  ctx.strokeStyle = prgba(d, Math.min(1, glow));
   ctx.lineWidth = 2 + pressure * 1.5;
   ctx.setLineDash([14, 8]);
   ctx.lineDashOffset = -((t * 40) % 22);
@@ -965,7 +991,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     const locked = slot.index >= rs.unlockedSlots;
     const invalid = locked || !!tower;
     ctx.beginPath();
-    ctx.arc(slot.x, slot.y, Math.max(def.range, 16), 0, Math.PI * 2);
+    ctx.arc(slot.x, slot.y, Math.max(def.range * rs.rangeMult, 16), 0, Math.PI * 2);
     ctx.fillStyle = invalid ? rgba(RGB.danger, 0.05) : rgba(RGB.kinetic, 0.06);
     ctx.fill();
     ctx.strokeStyle = invalid ? rgba(RGB.danger, 0.6) : rgba(RGB.kinetic, 0.6);
@@ -982,7 +1008,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     const def = TOWER_DEFS[tower.kind];
     if (def.range > 0) {
       ctx.beginPath();
-      ctx.arc(tower.x, tower.y, def.range, 0, Math.PI * 2);
+      ctx.arc(tower.x, tower.y, def.range * rs.rangeMult, 0, Math.PI * 2);
       ctx.strokeStyle = rgba(RGB.kinetic, 0.35);
       ctx.setLineDash([4, 4]);
       ctx.lineWidth = 1;

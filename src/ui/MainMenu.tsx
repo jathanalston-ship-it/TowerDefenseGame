@@ -1,10 +1,11 @@
 import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
 import { SaveManager } from './SaveManager';
+import { ModePanel } from './ModePanel';
 import { CountUp } from './components/CountUp';
-import { Icon } from './components/Icon';
+import type { GameConfig } from '../core/game';
 
-export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
+export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void }): JSX.Element {
   const save = meta.use();
   return (
     <div className="menu">
@@ -36,10 +37,9 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
         </div>
       </div>
 
+      <ModePanel onStart={onStart} />
+
       <div className="row">
-        <button className="primary" onClick={onStart}>
-          <Icon name="play" size={14} /> Start Run
-        </button>
         <div className="spacer" />
         <button
           onClick={() => {
