@@ -818,7 +818,7 @@ canvas.board {
   position: fixed;
   top: 8px;
   right: 8px;
-  width: 290px;
+  width: min(290px, 92vw);
   max-height: 92vh;
   overflow-y: auto;
   background: rgba(10, 12, 18, 0.96);
@@ -892,10 +892,111 @@ canvas.board {
   font-size: 11px;
 }
 
-/* ── Responsive base (full mobile pass in Push 2) ─────────────────────────── */
-@media (max-width: 720px) {
+/* ── Responsive: desktop + tablet + mobile ────────────────────────────────── */
+
+/* Coarse pointers (touch): comfortable 44px tap targets regardless of width. */
+@media (pointer: coarse) {
+  button {
+    min-height: 44px;
+  }
+  .tcard {
+    min-height: 56px;
+  }
+  .hud-cell,
+  .tcard,
+  .ability-btn {
+    touch-action: manipulation;
+  }
+}
+
+/* Tablet / small laptop */
+@media (max-width: 900px) {
+  .game {
+    width: 98vw;
+  }
   .records {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Phones */
+@media (max-width: 640px) {
+  .game {
+    width: 100vw;
+    margin: 6px auto;
+    gap: 8px;
+    padding: 0 6px;
+  }
+  .hud {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  .hud-vital {
+    flex-basis: 100%; /* integrity bar gets its own full-width row */
+    min-width: 0;
+  }
+  .hud-v {
+    font-size: 19px;
+  }
+  canvas.board {
+    max-height: 60vh; /* leave room for the wrapped HUD + toolbar */
+  }
+  /* tower rail becomes a horizontal scroller so it never eats vertical space */
+  .tower-rail {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    max-width: 100%;
+  }
+  .tcard {
+    min-width: 150px;
+    padding: 10px 10px;
+  }
+  .tcard-blurb {
+    display: none; /* detail still available via the tap/hover tooltip */
+  }
+  .menu {
+    width: 95vw;
+    margin: 3vh auto;
+    gap: 14px;
+  }
+  .card {
+    width: min(220px, 80vw);
+  }
+  .tt-bubble {
+    max-width: 200px;
+  }
+}
+
+/* Tiny screens */
+@media (max-width: 420px) {
+  .hud-k {
+    font-size: 9px;
+  }
+  .hud-mini {
+    display: none; /* drop the secondary 'threat' readout to keep the bar clean */
+  }
+  .toolbar {
+    gap: 8px;
+  }
+  .start-btn {
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
+  }
+  .records {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {

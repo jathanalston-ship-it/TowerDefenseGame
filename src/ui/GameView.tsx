@@ -3,6 +3,7 @@ import { Game } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
+import { TOWER_ORDER } from '../core/config';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
@@ -65,6 +66,30 @@ export function GameView({
     return () => setActiveGame(null);
   }, [game]);
 
+  // ── Desktop keyboard shortcuts (1-3 towers · Q ability · Space wave · Esc) ──
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key;
+      if (k >= '1' && k <= String(TOWER_ORDER.length)) {
+        const kind = TOWER_ORDER[Number(k) - 1];
+        game.selectTower(game.selectedTower === kind ? null : kind);
+      } else if (k === 'q' || k === 'Q') {
+        game.armAbility();
+      } else if (k === ' ' || k === 'Spacebar') {
+        e.preventDefault();
+        game.startWave();
+      } else if (k === 'Escape') {
+        game.selectTower(null);
+      } else {
+        return;
+      }
+      setHud(game.getSnapshot());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [game]);
+
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
     const rect = c.getBoundingClientRect();
@@ -83,19 +108,25 @@ export function GameView({
           className="board"
           width={WIDTH}
           height={HEIGHT}
-          onMouseMove={(e) => {
+          // Pointer Events unify mouse + touch (touch-action:none on .board
+          // prevents scroll/zoom so taps map cleanly to the battlefield).
+          onPointerMove={(e) => {
             pointerRef.current = toCoords(e.clientX, e.clientY);
           }}
-          onMouseLeave={() => {
-            pointerRef.current = null;
+          onPointerDown={(e) => {
+            pointerRef.current = toCoords(e.clientX, e.clientY); // show the ghost where you touch
           }}
-          onClick={(e) => {
+          onPointerUp={(e) => {
+            if (e.button !== 0) return; // primary tap / left-click only
             const p = toCoords(e.clientX, e.clientY);
             game.click(p.x, p.y);
             refresh();
           }}
+          onPointerLeave={(e) => {
+            if (e.pointerType === 'mouse') pointerRef.current = null;
+          }}
           onContextMenu={(e) => {
-            e.preventDefault();
+            e.preventDefault(); // desktop right-click: re-anchor the hero's patrol point
             const p = toCoords(e.clientX, e.clientY);
             game.selectTower(null);
             game.setRally(p.x, p.y);
