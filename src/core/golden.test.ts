@@ -6,13 +6,17 @@
 import { describe, it, expect } from 'vitest';
 import { autoplay } from './sim.testutil';
 
+// Re-pinned deliberately for the combat-variety wave redesign (rusher/tank/flyer/
+// burrower introduced across the 12 waves). The slice stays winnable by the naive
+// autoplay strategy on every seed; the spread in surviving integrity reflects the
+// new archetypes' varied pressure. Any FURTHER drift from here is unintended.
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 224, integrity: 150, biomass: 8875, phase: 'won' },
-  7: { wave: 12, kills: 226, integrity: 113, biomass: 9664, phase: 'won' },
-  42: { wave: 12, kills: 226, integrity: 68, biomass: 11392, phase: 'won' },
-  777: { wave: 12, kills: 223, integrity: 146, biomass: 9180, phase: 'won' },
-  2024: { wave: 12, kills: 230, integrity: 129, biomass: 11233, phase: 'won' },
-  12345: { wave: 12, kills: 222, integrity: 52, biomass: 10356, phase: 'won' },
+  1: { wave: 12, kills: 186, integrity: 150, biomass: 9613, phase: 'won' },
+  7: { wave: 12, kills: 188, integrity: 148, biomass: 9844, phase: 'won' },
+  42: { wave: 12, kills: 187, integrity: 109, biomass: 11819, phase: 'won' },
+  777: { wave: 12, kills: 184, integrity: 92, biomass: 11513, phase: 'won' },
+  2024: { wave: 12, kills: 191, integrity: 125, biomass: 14837, phase: 'won' },
+  12345: { wave: 12, kills: 184, integrity: 186, biomass: 8328, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

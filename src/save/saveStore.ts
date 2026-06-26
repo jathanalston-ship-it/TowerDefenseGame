@@ -20,6 +20,7 @@ export interface SaveData {
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
   heroShards: Record<string, number>; // per-hero shards (forward-looking)
+  achievements: string[]; // unlocked achievement ids
 }
 
 export const CURRENT_VERSION = 2;
@@ -70,6 +71,7 @@ export function defaultSave(): SaveData {
     towerStars: zeroByTower(),
     towerMasteryXp: zeroByTower(),
     heroShards: zeroByHero(),
+    achievements: [],
   };
 }
 
@@ -89,6 +91,7 @@ function withDefaults(data: SaveData): SaveData {
     towerStars: { ...d.towerStars, ...data.towerStars },
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
     heroShards: { ...d.heroShards, ...data.heroShards },
+    achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
   };
 }
 
