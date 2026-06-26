@@ -11,14 +11,27 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CHESTS, ECON, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, chestForWave } from '../core/config';
+import { CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
-import type { MasteryCounts, MetaModifiers, RunStats, TowerKind, TowerProgress } from '../core/types';
+import type {
+  HeroKind,
+  HeroMasteryCounts,
+  HeroMods,
+  HeroProgress,
+  MasteryCounts,
+  MetaModifiers,
+  RunStats,
+  TowerKind,
+  TowerProgress,
+} from '../core/types';
 import { rollChest } from './lootbox';
 import type { ChestResult } from './lootbox';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
+import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } from '../core/equipment';
+import type { EquipSlot, OwnedItem } from '../core/equipment';
+import type { CardEffect } from '../core/cards';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -107,12 +120,46 @@ export function towerProgress(save: SaveData): TowerProgress {
   return out;
 }
 
+// ── Hero progression (mirrors towers: stars + infinite mastery + EQUIPMENT seam) ──
+
+/** EQUIPMENT.md integration point. Equipment is designed but not yet built, so this
+ * returns identity today; when items land, fold their per-hero modifiers in HERE and
+ * they flow into a run through the same HeroMods path stars + mastery already use. */
+export function heroEquipment(_save: SaveData, _kind: HeroKind): HeroMods {
+  return { damageMult: 1, cooldownMult: 1 };
+}
+
+/** Hero-shard cost of the next star (reuses the tower star curve). */
+export function nextHeroStarCost(save: SaveData, kind: HeroKind): number | null {
+  const stars = save.heroStars[kind] ?? 0;
+  if (stars >= STAR.maxStars) return null;
+  return starCost(stars);
+}
+
+/** Fold stars + mastery + equipment into per-hero run multipliers. Stars add damage
+ * and shave ability cooldown; mastery adds (infinite) damage. Identity for a fresh save. */
+export function heroProgress(save: SaveData): HeroProgress {
+  const out = {} as HeroProgress;
+  for (const k of HERO_ORDER) {
+    const stars = save.heroStars[k] ?? 0;
+    const mLvl = masteryLevel(save.heroMasteryXp[k] ?? 0);
+    const equip = heroEquipment(save, k);
+    out[k] = {
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult,
+      cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult,
+    };
+  }
+  return out;
+}
+
 export interface RunResult {
-  wave: number;
+  wave: number; // = Depth in endless
   kills: number;
   won: boolean;
-  mastery: MasteryCounts; // per-kind usage accrued in the run (from Game.getMasteryAccrual)
+  mastery: MasteryCounts; // per-tower usage accrued in the run (from Game.getMasteryAccrual)
+  heroMastery: HeroMasteryCounts; // per-hero usage (from Game.getHeroMasteryAccrual)
   stats: RunStats; // raw run statistics (from Game.getRunStats) — folded into lifetime stats
+  endless?: boolean; // Endless (AI Director) mode run
 }
 
 export interface RunReward {
@@ -131,6 +178,8 @@ export interface RunOutcome {
   reward: RunReward;
   chest: ChestResult;
   mastery: Record<TowerKind, MasteryDelta>;
+  heroMastery: Record<HeroKind, MasteryDelta>;
+  gear: OwnedItem; // a run-end equipment drop (rarity scales with depth)
 }
 
 export const meta = {
@@ -179,12 +228,33 @@ export const meta = {
       mastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(towerMasteryXp[k]) };
     }
 
-    // 3. run-end chest (scaled by how deep the run got) → tower/hero shards
+    // 3. hero mastery: same curve as towers, banked per-hero from run usage
+    const heroMasteryXp = { ...save.heroMasteryXp };
+    const heroMastery = {} as Record<HeroKind, MasteryDelta>;
+    for (const k of HERO_ORDER) {
+      const c = result.heroMastery[k];
+      const gained = Math.round(
+        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+      );
+      const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
+      heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
+      heroMastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(heroMasteryXp[k]) };
+    }
+
+    // 4. run-end chest (scaled by how deep the run got) → tower/hero shards
     const chest = rollChest(CHESTS[chestForWave(result.wave)]);
     const towerShards = { ...save.towerShards };
     for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
     const heroShards = { ...save.heroShards };
     for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
+
+    // 4. a run-end equipment drop (rarity scales with depth) + a little craft feedstock
+    const gear = rollItemDrop(Math.random, result.wave);
+    const mats = {
+      mutagen: save.mats.mutagen + (result.won ? 1 : 0),
+      scrap: save.mats.scrap + 2,
+      catalyst: save.mats.catalyst + (result.wave >= 7 ? 1 : 0),
+    };
 
     persist({
       ...save,
@@ -193,12 +263,15 @@ export const meta = {
       bestWave: Math.max(save.bestWave, result.wave),
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
+      heroMasteryXp,
       towerShards,
       heroShards,
       stats: accumulateStats(save.stats, result.stats),
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, gear] },
+      mats,
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
-    return { reward: { shardsEarned, newBest }, chest, mastery };
+    return { reward: { shardsEarned, newBest }, chest, mastery, heroMastery, gear };
   },
 
   /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
@@ -216,9 +289,39 @@ export const meta = {
     return newly.map((a) => a.id);
   },
 
-  /** Per-kind run multipliers from the current save (passed into a new Game). */
+  /** Per-tower run multipliers from the current save (passed into a new Game). */
   towerProgress(): TowerProgress {
     return towerProgress(store.get());
+  },
+
+  /** Per-hero run multipliers from the current save (passed into a new Game). */
+  heroProgress(): HeroProgress {
+    return heroProgress(store.get());
+  },
+
+  /** The hero the next run will field (slot 1). */
+  selectedHero(): HeroKind {
+    return store.get().selectedHero;
+  },
+
+  /** Choose which hero to field next run. */
+  setSelectedHero(kind: HeroKind): void {
+    persist({ ...store.get(), selectedHero: kind });
+  },
+
+  /** Spend hero shards to add a star to `kind`. Returns false if unaffordable/maxed. */
+  buyHeroStar(kind: HeroKind): boolean {
+    const save = store.get();
+    const stars = save.heroStars[kind] ?? 0;
+    if (stars >= STAR.maxStars) return false;
+    const cost = starCost(stars);
+    if ((save.heroShards[kind] ?? 0) < cost) return false;
+    persist({
+      ...save,
+      heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
+      heroStars: { ...save.heroStars, [kind]: stars + 1 },
+    });
+    return true;
   },
 
   /** Spend tower shards to add a star to `kind`. Returns false if unaffordable/maxed. */
@@ -235,6 +338,84 @@ export const meta = {
     });
     this.evaluateAchievements(); // first_star / star3
     return true;
+  },
+
+  // ── Hero equipment ────────────────────────────────────────────────────────
+
+  /** CardEffects from the currently-equipped loadout — folded into a run at start. */
+  loadoutEffects(): CardEffect[] {
+    const { inventory, loadout } = store.get().equipment;
+    return loadoutEffects(inventory, loadout);
+  },
+
+  /** Equip (or clear, uid=null) an owned item into a slot. */
+  equip(slot: EquipSlot, uid: string | null): void {
+    const save = store.get();
+    persist({ ...save, equipment: { ...save.equipment, loadout: { ...save.equipment.loadout, [slot]: uid } } });
+  },
+
+  grantItem(item: OwnedItem): void {
+    const save = store.get();
+    persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
+  },
+
+  /** Reroll an item's unlocked affixes (spends 1 Mutagen). */
+  rerollItem(uid: string): boolean {
+    const save = store.get();
+    if (save.mats.mutagen < 1) return false;
+    const inv = save.equipment.inventory;
+    const idx = inv.findIndex((i) => i.uid === uid);
+    if (idx < 0) return false;
+    const inventory = inv.slice();
+    inventory[idx] = rerollAffixes(Math.random, inv[idx]);
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, mutagen: save.mats.mutagen - 1 } });
+    return true;
+  },
+
+  /** Transmute an item up a rarity tier (spends 2 Catalysts) — adds an affix slot. */
+  transmuteItem(uid: string): boolean {
+    const save = store.get();
+    if (save.mats.catalyst < 2) return false;
+    const inv = save.equipment.inventory;
+    const idx = inv.findIndex((i) => i.uid === uid);
+    if (idx < 0) return false;
+    const next = transmute(Math.random, inv[idx]);
+    if (!next) return false;
+    const inventory = inv.slice();
+    inventory[idx] = next;
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, catalyst: save.mats.catalyst - 2 } });
+    return true;
+  },
+
+  /** Dismantle an item into crafting feedstock (auto-unequips it). */
+  salvageItem(uid: string): boolean {
+    const save = store.get();
+    const item = save.equipment.inventory.find((i) => i.uid === uid);
+    if (!item) return false;
+    const r = RARITY_ORDER.indexOf(item.rarity);
+    const loadout = { ...save.equipment.loadout };
+    for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;
+    persist({
+      ...save,
+      equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadout },
+      mats: {
+        mutagen: save.mats.mutagen + (r >= 3 ? 1 : 0),
+        scrap: save.mats.scrap + 1 + r,
+        catalyst: save.mats.catalyst + Math.max(0, r - 1),
+      },
+    });
+    return true;
+  },
+
+  debugGrantGear(n = 3): void {
+    const save = store.get();
+    const items: OwnedItem[] = [];
+    for (let i = 0; i < n; i++) items.push(rollItemDrop(Math.random, save.bestWave + 6));
+    persist({
+      ...save,
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...items] },
+      mats: { mutagen: save.mats.mutagen + 5, scrap: save.mats.scrap + 12, catalyst: save.mats.catalyst + 6 },
+    });
   },
 
   // ── Save management ──────────────────────────────────────────────────────
@@ -314,6 +495,20 @@ export const meta = {
     const towerMasteryXp = { ...save.towerMasteryXp };
     for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
     persist({ ...save, towerMasteryXp });
+  },
+
+  debugAddHeroShards(n: number): void {
+    const save = store.get();
+    const heroShards = { ...save.heroShards };
+    for (const k of HERO_ORDER) heroShards[k] = Math.max(0, (heroShards[k] ?? 0) + n);
+    persist({ ...save, heroShards });
+  },
+
+  debugAddHeroMasteryXp(n: number): void {
+    const save = store.get();
+    const heroMasteryXp = { ...save.heroMasteryXp };
+    for (const k of HERO_ORDER) heroMasteryXp[k] = Math.max(0, (heroMasteryXp[k] ?? 0) + n);
+    persist({ ...save, heroMasteryXp });
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { HudSnapshot } from '../core/types';
+import { HERO_DEFS } from '../core/config';
 import { ProgressBar } from './components/ProgressBar';
 
 const PHASE_LABEL: Record<HudSnapshot['phase'], string> = {
@@ -18,6 +19,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
+  const heroDef = HERO_DEFS[hud.hero.kind];
 
   // pulse the biomass readout whenever it ticks up (resource-gain feedback)
   const prevBiomass = useRef(hud.biomass);
@@ -56,21 +58,33 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
         <span className="tt-bubble">Hive Core integrity — the run ends if it reaches 0.</span>
       </div>
 
-      {/* WAVE progress */}
+      {/* WAVE progress (Endless shows Depth) */}
       <div className="hud-cell tt" tabIndex={0}>
-        <div className="hud-k">Wave</div>
-        <div className="hud-v">
-          {displayWave}
-          <span className="hud-sub">/{hud.totalWaves}</span>
-        </div>
-        <div className="wave-pips" aria-hidden>
-          {Array.from({ length: hud.totalWaves }, (_, i) => {
-            const n = i + 1;
-            const state = n < displayWave ? 'done' : n === displayWave ? 'active' : '';
-            return <span key={n} className={`pip ${state}`} />;
-          })}
-        </div>
-        <span className="tt-bubble">Survive all {hud.totalWaves} waves to extract.</span>
+        {hud.endless ? (
+          <>
+            <div className="hud-k">Depth</div>
+            <div className="hud-v" style={{ color: 'var(--viral)' }}>
+              {Math.max(0, hud.wave)}
+            </div>
+            <span className="tt-bubble">Endless — the AI Director escalates forever. Hold the line as deep as you can.</span>
+          </>
+        ) : (
+          <>
+            <div className="hud-k">Wave</div>
+            <div className="hud-v">
+              {displayWave}
+              <span className="hud-sub">/{hud.totalWaves}</span>
+            </div>
+            <div className="wave-pips" aria-hidden>
+              {Array.from({ length: hud.totalWaves }, (_, i) => {
+                const n = i + 1;
+                const state = n < displayWave ? 'done' : n === displayWave ? 'active' : '';
+                return <span key={n} className={`pip ${state}`} />;
+              })}
+            </div>
+            <span className="tt-bubble">Survive all {hud.totalWaves} waves to extract.</span>
+          </>
+        )}
       </div>
 
       <div className="spacer" />
@@ -95,7 +109,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
 
       {/* HERO */}
       <div className="hud-cell hud-hero tt" tabIndex={0}>
-        <div className="hud-k">Hero</div>
+        <div className="hud-k">{heroDef.name}</div>
         {hud.hero.down ? (
           <div className="hud-v is-danger">DOWN {Math.ceil(hud.hero.respawn)}s</div>
         ) : (
@@ -103,7 +117,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
             <ProgressBar
               value={hud.hero.hp}
               max={hud.hero.maxHp}
-              color="var(--gold)"
+              color={heroDef.color}
               height={8}
               className="bar-hero"
               label="Hero HP"
@@ -115,7 +129,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
           </div>
         )}
         <span className="tt-bubble">
-          {hud.hero.abilityReady ? 'Apex Leap ready.' : 'Apex Leap on cooldown.'}
+          {hud.hero.abilityReady ? `${heroDef.ability.name} ready.` : `${heroDef.ability.name} on cooldown.`}
         </span>
       </div>
 

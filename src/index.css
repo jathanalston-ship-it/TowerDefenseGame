@@ -1531,6 +1531,16 @@ kbd {
   flex-direction: column;
   gap: 9px;
 }
+/* The hero currently fielded (slot 1) — a quiet highlight in the Hero Lab. */
+.lab-item.is-selected {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold), 0 0 12px rgba(255, 210, 77, 0.12);
+}
+.lab-class {
+  font-weight: 600;
+  font-size: 12px;
+  opacity: 0.7;
+}
 .lab-head {
   display: flex;
   align-items: baseline;
@@ -1840,4 +1850,211 @@ kbd {
   font-size: 11px;
   font-weight: 700;
   color: var(--gold);
+}
+
+/* ── Hero equipment ───────────────────────────────────────────────────────── */
+.equip-mats {
+  float: right;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.loadout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.loadout-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+.loadout-k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.loadout-eq {
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.loadout-clear {
+  font-size: 10px;
+  color: var(--dim);
+  font-weight: 500;
+}
+.loadout-empty {
+  color: var(--dim);
+  font-size: 13px;
+}
+.equip-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.equip-filters button {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.equip-filters button.on {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+.equip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 360px;
+  overflow: auto;
+}
+.equip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+.equip-row.is-equipped {
+  border-color: var(--line-strong);
+}
+.equip-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex: none;
+}
+.equip-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.equip-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+.equip-sig {
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.equip-desc {
+  color: var(--muted);
+  font-size: 12px;
+}
+.equip-affix {
+  color: var(--success);
+  font-size: 11px;
+}
+.equip-actions {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+.equip-actions button {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.equip-actions button.on {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+  color: var(--gold);
+}
+.gear-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gear-drop-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+/* ── Boss banner (framework bosses) ───────────────────────────────────────── */
+.boss-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, 86%);
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(10, 8, 14, 0.82);
+  border: 1px solid var(--danger);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(255, 93, 115, 0.25);
+  z-index: 40;
+  animation: achv-in 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.boss-banner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+.boss-name {
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--danger);
+  font-size: 14px;
+}
+.boss-phase {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+.boss-hp {
+  height: 8px;
+  border-radius: 999px;
+  background: #0a0e15;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.boss-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff3050, var(--danger));
+  transition: width 0.15s linear;
+}
+.boss-telegraph {
+  margin-top: 5px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(255, 210, 77, 0.5);
+  animation: tele-pulse 0.7s ease-in-out infinite;
+}
+@keyframes tele-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+.endless-btn {
+  font-weight: 700;
+  padding: 12px 18px;
+  font-size: 15px;
+  border-color: var(--viral);
+  color: var(--viral);
+  background: rgba(226, 77, 255, 0.08);
+}
+.endless-btn:hover:not(:disabled) {
+  background: rgba(226, 77, 255, 0.16);
+  border-color: var(--viral);
 }

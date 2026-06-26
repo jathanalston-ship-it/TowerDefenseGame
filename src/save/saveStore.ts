@@ -5,8 +5,9 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { ENEMY_KINDS, HERO_IDS, TOWER_ORDER } from '../core/config';
-import type { EnemyKind, LifetimeStats, TowerKind } from '../core/types';
+import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER } from '../core/config';
+import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
+import type { Loadout, OwnedItem } from '../core/equipment';
 
 export interface SaveData {
   shards: number;
@@ -19,10 +20,17 @@ export interface SaveData {
   towerShards: Record<TowerKind, number>; // shard currency, earned from chests
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
-  heroShards: Record<string, number>; // per-hero shards (forward-looking)
-  // ── Lifetime statistics — added in schema v3 ──
+  heroShards: Record<string, number>; // per-hero shards (earned from chests)
+  // ── Hero progression + roster (per kind) — added in schema v3 ──
+  heroStars: Record<HeroKind, number>; // hero star level (0 = base)
+  heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
+  selectedHero: HeroKind; // which hero the next run fields (slot 1)
+  // ── Lifetime statistics + achievements — added in schema v3 ──
   stats: LifetimeStats;
   achievements: string[]; // unlocked achievement ids
+  // ── Hero equipment (schema v3) ──
+  equipment: { inventory: OwnedItem[]; loadout: Loadout };
+  mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
 }
 
 export const CURRENT_VERSION = 3;
@@ -60,6 +68,11 @@ function zeroByHero(): Record<string, number> {
   for (const id of HERO_IDS) r[id] = 0;
   return r;
 }
+function zeroByHeroKind(): Record<HeroKind, number> {
+  const r = {} as Record<HeroKind, number>;
+  for (const k of HERO_ORDER) r[k] = 0;
+  return r;
+}
 function zeroByEnemy(): Record<EnemyKind, number> {
   const r = {} as Record<EnemyKind, number>;
   for (const k of ENEMY_KINDS) r[k] = 0;
@@ -95,8 +108,13 @@ export function defaultSave(): SaveData {
     towerStars: zeroByTower(),
     towerMasteryXp: zeroByTower(),
     heroShards: zeroByHero(),
+    heroStars: zeroByHeroKind(),
+    heroMasteryXp: zeroByHeroKind(),
+    selectedHero: 'ravager',
     stats: defaultLifetimeStats(),
     achievements: [],
+    equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
+    mats: { mutagen: 0, scrap: 0, catalyst: 0 },
   };
 }
 
@@ -116,8 +134,17 @@ function withDefaults(data: SaveData): SaveData {
     towerStars: { ...d.towerStars, ...data.towerStars },
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
     heroShards: { ...d.heroShards, ...data.heroShards },
+    heroStars: { ...d.heroStars, ...data.heroStars },
+    heroMasteryXp: { ...d.heroMasteryXp, ...data.heroMasteryXp },
+    // Guard against a hand-edited/corrupt hero id so it can never crash makeHero().
+    selectedHero: HERO_ORDER.includes(data.selectedHero) ? data.selectedHero : d.selectedHero,
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
+    equipment: {
+      inventory: Array.isArray(data.equipment?.inventory) ? data.equipment.inventory : [],
+      loadout: { ...d.equipment.loadout, ...data.equipment?.loadout },
+    },
+    mats: { ...d.mats, ...data.mats },
   };
 }
 
@@ -158,8 +185,9 @@ function isSaveData(v: unknown): v is SaveData {
 
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
 function migrate(_version: number, data: unknown): unknown {
-  // No historical versions yet. Future shape changes add steps here, e.g.:
-  //   if (v < 2) { data = toV2(data); v = 2; }
+  // v1→v2 (tower progression) and v2→v3 (hero progression + roster, plus lifetime
+  // stats + achievements) are additive: withDefaults() deep-fills the new records,
+  // the selectedHero default, and the stats block. Structural changes add steps here.
   return data;
 }
 

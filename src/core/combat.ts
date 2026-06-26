@@ -19,10 +19,11 @@ export function effectiveArmor(
   return Math.max(0, a);
 }
 
-/** Final damage after Fracture's damage-taken amplification and armor (floored at 1). */
-export function damageAfter(raw: number, fracture: number, armor: number): number {
-  const mult = 1 + fracture * STATUS.fractureDamageTakenPerStack;
-  return Math.max(1, raw * mult - armor);
+/** Final damage from a discrete hit: raw × incoming-vulnerability, minus armor,
+ * floored at 1. `vulnMult` is the caller's composed multiplier (Fracture amp +
+ * Disruption vulnerability + …) — see the Game's vulnMult(). */
+export function damageAfter(raw: number, vulnMult: number, armor: number): number {
+  return Math.max(1, raw * vulnMult - armor);
 }
 
 /** Fracture stack ceiling for a run (base cap + the run's bonus stacks). */

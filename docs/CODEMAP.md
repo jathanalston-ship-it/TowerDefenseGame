@@ -36,8 +36,8 @@ back as method calls (intents) on the `Game`.
 | Path | Responsibility |
 |---|---|
 | `src/core/` | The headless, deterministic simulation + content data. No DOM/React. |
-| `src/core/game.ts` | The `Game`: fixed-timestep tick, all systems (spawn, towers, projectiles, pools, status/reactions, enemy steering, hero, particles), run state. |
-| `src/core/config.ts` | **Central tunables + content data** — tower/enemy/upgrade defs, waves, status/economy/steering/perf constants. Balance lives here. |
+| `src/core/game.ts` | The `Game`: fixed-timestep tick, all systems (spawn, towers, projectiles, pools, status/reactions incl. Infection + Disruption, enemy steering, the hero roster's per-behavior AI, particles), run state. |
+| `src/core/config.ts` | **Central tunables + content data** — tower/enemy/**hero**/upgrade defs, waves, status (Fracture/Corrosion/Infection/Disruption)/economy/steering/perf constants. Balance lives here. |
 | `src/core/cards.ts` | Gene Cards: declarative `CardEffect[]` data + the single `applyCard()` interpreter. |
 | `src/core/map.ts` | The arena: grid, obstacles, the flow-field pathfinding, tower slots, spawn/goal. |
 | `src/core/types.ts` | Shared sim types (entities, enums, snapshots). |
@@ -75,11 +75,19 @@ same outcome (the basis of the golden tests and a future replay/lockstep layer).
 
 Most content is **data, not code**:
 
-- **A new tower** that reuses an existing delivery (homing / splash / support): add a
-  `TowerDef` to `TOWER_DEFS` in `config.ts` with `firing` set, plus a `TowerKind` union
-  member, a `TOWER_ORDER` entry, and a UI label. The sim dispatches on `firing` — no
-  `game.ts` change. *(A genuinely new delivery or on-hit status needs a new behavior
-  branch in `towerSystem`/`projectileSystem` — the one isolated place.)*
+- **A new tower** that reuses an existing delivery (`homing` / `splash` / `support` /
+  `infest` / `field`): add a `TowerDef` to `TOWER_DEFS` in `config.ts` with `firing` set,
+  plus a `TowerKind` union member, a `TOWER_ORDER` entry, and a UI label. The sim
+  dispatches on `firing` — no `game.ts` change. Stars + Mastery (Tower Lab, save records,
+  chests) auto-cover the new kind because they iterate `TOWER_ORDER`. *(A genuinely new
+  delivery or on-hit status needs a new behavior branch in `towerSystem`/`projectileSystem`
+  — the one isolated place. The launch towers added two: `infest` → the `parasite`
+  projectile seeding Infection, and `field` → the Obelisk's in-range Disruption pulse.)*
+- **A new hero**: add a `HeroDef` to `HERO_DEFS` with a `behavior` (`dive`/`guard`/`control`)
+  + a `HeroKind` member + `HERO_ORDER`/`HERO_IDS` entries. The roster dispatches on
+  `behavior` (`updateDiveHero`/`updateGuardHero`/`updateControlHero`); Hero Lab stars/mastery
+  and the `HeroMods` equipment seam auto-cover it. A genuinely new movement/combat identity
+  is a new `behavior` branch — the one isolated place.
 - **A new enemy**: add an `EnemyDef` (stats + a `behavior` steering profile) to
   `ENEMY_DEFS` and an `EnemyKind` member. The steering system reads the profile — no
   movement code change. Put it in waves via `WAVES`, or spawn it from the debug panel.
@@ -102,21 +110,29 @@ What the foundation already supports (no implementation, just structure):
   systems, and intent-based input mean a deterministic replay/lockstep layer can be
   added without touching gameplay. (Cosmetic particles use a *separate* FX rng so they
   never affect determinism.)
-- **Data-driven towers/enemies/cards/upgrades** (above) → adding content scales.
+- **Data-driven towers/enemies/heroes/cards/upgrades** (above) → adding content scales.
 - **Versioned saves** (`saveStore`, `schemaVersion` + ordered migrations + backups) →
-  ready for new persistent fields (equipment, prestige) via a migration step.
-- **Per-hero update loop** (`updateHero(hero)`) → ready to run multiple heroes.
+  schema is at v3 (v2 added tower progression, v3 added hero progression + roster); new
+  persistent fields (equipment, prestige) drop in via `withDefaults` + a migration step.
+- **Hero roster** (`Game.heroes: Hero[]`, behavior-dispatched AI, per-hero stars/mastery,
+  a `HeroMods` equipment fold) → fielding a 2nd/3rd hero is just pushing more into the
+  roster when slot unlocks land (HEROES.md). One hero is fielded today (slot 1).
 
 Deliberately **deferred** (out of scope here — features, or premature churn):
 
-- **Per-tower on-hit status as data.** Today a homing tower implies Fracture and splash
-  implies Corrosion (true for the launch roster's classes). A tower with a novel
-  status+delivery still needs a small code branch; promoting on-hit effects to `TowerDef`
-  data is the next step when a fourth class lands.
+- **Per-tower on-hit status as data.** Each delivery currently implies its status (homing→
+  Fracture, splash→Corrosion, infest→Infection, field→Disruption) — true for the five
+  launch classes. A tower that pairs a novel status with an existing delivery still needs a
+  small branch; promoting on-hit effects to `TowerDef` data is the next step when that lands.
+- **Reaction matrix.** Only **Shred** (Fracture+Corrosion) is wired; the other 9 pairings in
+  `TOWERS.md` and the Neural/Viral participation gates are future content. The status fields
+  + the shared `vulnMult` damage fold are the seam they'll build on.
 - **Physical `core/content/` split.** `config.ts` mixes tunables + content; fine at this
-  size. Split into `content/{towers,enemies,waves,upgrades}.ts` when it grows past
+  size. Split into `content/{towers,enemies,heroes,waves,upgrades}.ts` when it grows past
   comfortable reading.
-- **Equipment / prestige / events / multiple heroes** — designed (`docs/`), not built.
+- **Equipment items / prestige / events / simultaneous multi-hero** — designed (`docs/`),
+  not built. The hero equipment *seam* (`meta.heroEquipment` → `HeroMods`) is wired and
+  returns identity until items exist.
 
 ---
 
@@ -126,6 +142,8 @@ Deliberately **deferred** (out of scope here — features, or premature churn):
 |---|---|
 | `golden.test.ts` | Exact outcomes for 6 seeds — refactors must not change gameplay. |
 | `sim.test.ts` | Loop invariants (progress, reactions, determinism). |
+| `towers.test.ts` | Parasite Nest (Infection ramp + spread) and Neural Obelisk (Disruption) behavior. |
+| `heroes.test.ts` | Shepherd (Nucleus regen + zone guard) and Overseer (Disruption field) behavior; roster default. |
 | `spatial.test.ts` | Grid query correctness. |
 | `saveStore.test.ts` | Round-trip, corruption recovery, backups. |
 | `meta.test.ts` | Data-driven upgrade fold. |

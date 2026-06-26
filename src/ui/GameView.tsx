@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Game } from '../core/game';
+import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
@@ -11,7 +12,8 @@ import { Toolbar } from './Toolbar';
 import { BuildPanel } from './BuildPanel';
 import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
-import type { HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
+import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
+import type { CardEffect } from '../core/cards';
 import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
@@ -25,16 +27,24 @@ export function GameView({
   seed,
   mods,
   progress,
+  heroKind,
+  heroProgress,
+  runEffects,
+  mode,
   onEnd,
 }: {
   seed: number;
   mods: MetaModifiers;
   progress: TowerProgress;
+  heroKind: HeroKind;
+  heroProgress: HeroProgress;
+  runEffects?: CardEffect[];
+  mode?: RunMode;
   onEnd: (r: RunResult) => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode }));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
@@ -99,7 +109,7 @@ export function GameView({
         if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
           endedRef.current = true;
           setHud(game.getSnapshot());
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), stats: game.getRunStats() });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless' });
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -193,6 +203,20 @@ export function GameView({
             refresh();
           }}
         />
+        {hud.bossBanner && (
+          <div className="boss-banner">
+            <div className="boss-banner-row">
+              <span className="boss-name">{hud.bossBanner.name}</span>
+              <span className="boss-phase">
+                PHASE {hud.bossBanner.phase}/{hud.bossBanner.phases}
+              </span>
+            </div>
+            <div className="boss-hp">
+              <div className="boss-hp-fill" style={{ width: `${hud.bossBanner.hpPct * 100}%` }} />
+            </div>
+            {hud.bossBanner.telegraph && <div className="boss-telegraph">{hud.bossBanner.telegraph}</div>}
+          </div>
+        )}
         {hud.phase === 'draft' && hud.draft && (
           <DraftModal
             options={hud.draft}
@@ -213,7 +237,7 @@ export function GameView({
               onClick={() => {
                 if (endedRef.current) return;
                 endedRef.current = true;
-                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), stats: game.getRunStats() });
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless' });
               }}
             >
               End Run

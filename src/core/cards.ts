@@ -19,8 +19,19 @@ export interface RunModifiers {
   mortarAppliesFracture: boolean;
   fractureBonusStacks: number;
   corrosionSlowBonus: number;
+  // ── Viral (Parasite Nest) / Neural (Neural Obelisk) hooks — identity by default
+  //    so they're inert until a card sets them (the "support future cards" seam). ──
+  parasiteInfectionMult: number; // scales Infection DoT + ramp speed
+  obeliskVulnerabilityBonus: number; // adds to the Disruption damage-taken amp
+  obeliskSlowBonus: number; // adds to the Disruption slow
   heroDamageMult: number;
   heroCooldownMult: number;
+  // Run-start (construction-time) behavioral knobs — folded once when the run boots,
+  // so they never touch the hot combat path (equipment/relics ride these). Neutral by
+  // default, so a run with no gear is byte-identical (the golden invariant).
+  startBiomassBonus: number; // flat biomass added at run start
+  integrityMult: number; // multiplies max Nucleus integrity (e.g. Glass Genome ½)
+  heroMaxHpMult: number; // multiplies hero max HP (survivability gear)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -37,8 +48,14 @@ export function defaultRunModifiers(): RunModifiers {
     mortarAppliesFracture: false,
     fractureBonusStacks: 0,
     corrosionSlowBonus: 0,
+    parasiteInfectionMult: 1,
+    obeliskVulnerabilityBonus: 0,
+    obeliskSlowBonus: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
+    startBiomassBonus: 0,
+    integrityMult: 1,
+    heroMaxHpMult: 1,
   };
 }
 

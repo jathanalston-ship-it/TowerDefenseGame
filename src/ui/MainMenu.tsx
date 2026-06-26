@@ -2,12 +2,20 @@ import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
 import { TowerLab } from './TowerLab';
+import { HeroLab } from './HeroLab';
+import { EquipmentPanel } from './EquipmentPanel';
 import { Statistics } from './Statistics';
 import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 import { PlayIcon } from './components/Icon';
 
-export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
+export function MainMenu({
+  onStart,
+  onStartEndless,
+}: {
+  onStart: () => void;
+  onStartEndless: () => void;
+}): JSX.Element {
   const save = meta.use();
   return (
     <div className="menu">
@@ -52,6 +60,17 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
         >
           <PlayIcon /> Start Run
         </button>
+        <button
+          className="endless-btn"
+          onClick={() => {
+            audio.resume();
+            audio.cue('ui');
+            onStartEndless();
+          }}
+          title="AI Director-driven, infinite depth"
+        >
+          ∞ Endless
+        </button>
         <div className="spacer" />
         <button
           onClick={() => {
@@ -65,6 +84,10 @@ export function MainMenu({ onStart }: { onStart: () => void }): JSX.Element {
       <MetaShop />
 
       <TowerLab />
+
+      <HeroLab />
+
+      <EquipmentPanel />
 
       <Statistics />
 

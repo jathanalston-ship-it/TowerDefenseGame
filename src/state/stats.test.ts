@@ -11,7 +11,7 @@ function run(over: Partial<RunStats> = {}): RunStats {
     biomassEarned: 100,
     damageDealt: 2000,
     killsByEnemy: { runner: 6, brute: 2, tyrant: 0, rusher: 1, tank: 0, flyer: 1, burrower: 0 },
-    towerBuilds: { needle: 3, mortar: 1, reactor: 0 },
+    towerBuilds: { needle: 3, mortar: 1, reactor: 0, parasite: 0, obelisk: 0 },
     cardIds: ['twin_fang', 'twin_fang', 'venom_sacs'],
     heroId: 'ravager',
     ...over,

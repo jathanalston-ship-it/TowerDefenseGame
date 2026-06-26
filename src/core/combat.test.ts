@@ -18,10 +18,10 @@ describe('combat rules math', () => {
     expect(effectiveArmor({ baseArmor: 1, fracture: 99, corrosion: 1 }, false)).toBe(0);
   });
 
-  it('damageAfter subtracts armor (floored at 1) and amplifies with fracture', () => {
-    expect(damageAfter(10, 0, 3)).toBe(7);
-    expect(damageAfter(5, 0, 100)).toBe(1); // floor
-    expect(damageAfter(10, 2, 0)).toBe(10 * (1 + 2 * STATUS.fractureDamageTakenPerStack));
+  it('damageAfter = raw × vulnMult − armor, floored at 1', () => {
+    expect(damageAfter(10, 1, 3)).toBe(7);
+    expect(damageAfter(5, 1, 100)).toBe(1); // floor
+    expect(damageAfter(10, 1.5, 0)).toBe(15); // vulnerability multiplier
   });
 
   it('fractureCap adds the run bonus to the base cap', () => {

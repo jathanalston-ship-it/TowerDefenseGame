@@ -26,17 +26,24 @@ and saves progress to `localStorage`.
 ## The slice (what's playable)
 
 - **One map** — a winding path with buildable cells; defend the **Nucleus**.
-- **Three towers** — Needle Spitter (Kinetic, single-target Fracture), Bone Mortar
+- **Five towers** — Needle Spitter (Kinetic, single-target Fracture), Bone Mortar
   (Caustic, AoE Corrosion pools), Flesh Reactor (Vital, biomass + adjacency
-  overcharge).
-- **One hero** — the Ravager: an autonomous melee unit you steer (right-click to
-  re-anchor) with an **Apex Leap** ability.
+  overcharge), **Parasite Nest** (Viral, ramping **Infection** that ignores armor
+  and spreads on death), and **Neural Obelisk** (Neural, a psionic field that
+  **Disrupts** — slow + Vulnerability, amplifying all your damage). No two share a
+  role, status, or scaling axis.
+- **Three heroes (pick one to field)** — the **Ravager** (Kinetic dive bruiser),
+  the **Shepherd** (Vital guardian — mends the Nucleus + vital pulse), and the
+  **Overseer** (Neural controller — floats to the densest crowd, fields Disruption).
+  Each is an autonomous unit you steer (right-click to re-anchor) with its own
+  signature ability (Apex Leap / Bloom / Mass Override). Choose in the **Hero Lab**.
 - **Reactions** — stack **Fracture** + **Corrosion** on an enemy to trigger
-  **SHRED** (the build-variety hook).
+  **SHRED** (the build-variety hook). Disruption's Vulnerability lifts every source.
 - **12 enemy waves** with a Brood Tyrant finale; survive to extract.
 - **Card drafting** — pick 1 of 3 Gene Cards between waves (reset every run).
-- **Saving / progression** — runs bank **Shards**; spend them on permanent,
-  persistent upgrades. Best wave and run stats persist across sessions.
+- **Saving / progression** — runs bank **Shards** (permanent upgrades) and per-unit
+  **Tower/Hero Shards** → **Stars**, plus infinite **Mastery** from use. Best wave
+  and run stats persist across sessions.
 
 > Deliberately **out of scope** for the slice (designed, not yet built): prestige,
 > equipment/loot, infinite scaling. See [`docs/ROADMAP.md`](docs/ROADMAP.md).

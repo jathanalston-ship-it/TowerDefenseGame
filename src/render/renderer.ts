@@ -22,9 +22,9 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import { ENEMY_DEFS, HERO_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
-import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, rgba } from './theme';
+import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, hexRgb, rgba } from './theme';
 import {
   chevronDown,
   drawShape,
@@ -92,7 +92,7 @@ export function drawGame(
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
   drawParticles(ctx, rs);
-  drawHero(ctx, rs);
+  drawHeroes(ctx, rs);
   drawPointer(ctx, rs, pointer);
 
   for (const f of rs.floats) {
@@ -356,6 +356,17 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   const fresh = def.fireInterval > 0 ? Math.min(1, Math.max(0, (tw.cooldown / def.fireInterval - 0.7) / 0.3)) : 0;
   const r = TOWER_R * grow * breathe * (1 + fresh * 0.1);
 
+  // Neural Obelisk: its psionic field reach, drawn under everything so enemies read
+  // as "inside" it. A slow breathing pulse sells the always-on control aura.
+  if (tw.kind === 'obelisk' && def.range > 0) {
+    const fr = def.range * grow * pulse(now + tw.id, 1.4, 0.97, 1.03);
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y, fr, 0, Math.PI * 2);
+    ctx.fillStyle = THEME.field.fill;
+    ctx.fill();
+    ring(ctx, tw.x, tw.y, fr, rgba(THEME.field.edge, pulse(now + tw.id, 1.4, 0.12, 0.32)), 1.5, [6, 6]);
+  }
+
   // grounding shadow
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
@@ -373,13 +384,27 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
 
   if (tw.kind === 'reactor') {
     drawShape(ctx, 'circle', tw.x, tw.y, 5 * grow * breathe, 'rgba(255,255,255,0.3)');
+  } else if (tw.kind === 'parasite') {
+    // a clutch of twitching egg-sacs slowly churning around a pale core
+    const sacs = 4;
+    for (let i = 0; i < sacs; i++) {
+      const a = now * 0.6 + (i * Math.PI * 2) / sacs;
+      const rr = r * 0.5;
+      drawShape(ctx, 'circle', tw.x + Math.cos(a) * rr, tw.y + Math.sin(a) * rr, r * 0.22 * breathe, 'rgba(255, 200, 255, 0.55)');
+    }
+    drawShape(ctx, 'circle', tw.x, tw.y, r * 0.3 * breathe, 'rgba(255,255,255,0.28)');
+  } else if (tw.kind === 'obelisk') {
+    // orbiting glyph ring + a bright psionic core eye
+    ring(ctx, tw.x, tw.y, r * 1.35, rgba(THEME.field.edge, pulse(now + tw.id, 3, 0.3, 0.6)), 1.2, [4, 5]);
+    drawShape(ctx, 'diamond', tw.x, tw.y - r * 0.1, r * 0.32 * breathe, 'rgba(255,255,255,0.45)');
   }
 }
 
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
   const splash = p.behavior === 'splash';
-  const core = splash ? THEME.projectile.splash : THEME.projectile.bolt;
-  const trail = splash ? THEME.projectile.splashTrail : THEME.projectile.boltTrail;
+  const parasite = p.behavior === 'parasite';
+  const core = splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
+  const trail = splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
 
   // heading toward the target point — the trail streams out behind it
   let ux = p.tx - p.x;
@@ -387,7 +412,7 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   const len = Math.hypot(ux, uy) || 1;
   ux /= len;
   uy /= len;
-  const trailLen = splash ? 11 : 9;
+  const trailLen = splash ? 11 : parasite ? 8 : 9;
 
   ctx.strokeStyle = rgba(trail, 0.5);
   ctx.lineWidth = splash ? 3 : 2;
@@ -399,7 +424,7 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   ctx.lineCap = 'butt';
 
   glowDisc(ctx, p.x, p.y, splash ? 7 : 5, rgba(trail, 0.6));
-  drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : 2.3, core);
+  drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : parasite ? 2.6 : 2.3, core);
 }
 
 // ── Enemies ──────────────────────────────────────────────────────────────────
@@ -460,6 +485,10 @@ function drawEnemy(
     // white pop on taking a hit (FX.hitFlash ≈ 0.09s → normalize ×9 for alpha)
     if (e.hitFlash > 0) drawShape(ctx, shape, e.x, drawY, r, rgba(THEME.enemy.hitFlash, Math.min(0.8, e.hitFlash * 9)));
     if (e.corrosion > 0) ring(ctx, e.x, drawY, r + 2, THEME.enemy.corrosion, 2);
+    if (e.infection > 0) {
+      ring(ctx, e.x, drawY, r + 3, rgba(THEME.enemy.infection, Math.min(0.9, 0.3 + e.infection * 0.07)), 2);
+    }
+    if (e.disrupt > 0) ring(ctx, e.x, drawY, r + 5, rgba(THEME.enemy.disrupt, 0.7), 1.5, [3, 3]);
     if (e.fracture > 0) {
       ring(ctx, e.x, drawY, r + 4, rgba(THEME.enemy.fracture, Math.min(0.9, 0.25 + e.fracture * 0.12)), 2);
     }
@@ -483,41 +512,57 @@ function drawEnemy(
   }
 }
 
-// Presentation-only afterimage buffer (one hero, one canvas) — never read by sim.
+// Presentation-only afterimage buffer (primary hero) — never read by sim.
 const heroTrail: { x: number; y: number }[] = [];
 
-function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
-  const h = rs.hero;
+const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle' } as const;
+
+function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0);
+}
+
+function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean): void {
   const t = rs.time;
+  const def = HERO_DEFS[h.kind];
+  const tint = hexRgb(def.color); // class-colored halo/locator/trail
+  const shape = HERO_SHAPE[h.kind];
   const down = h.down;
 
-  // sample the path into a short afterimage trail (reset on a respawn teleport)
-  const last = heroTrail[heroTrail.length - 1];
-  const moved = last ? Math.hypot(h.x - last.x, h.y - last.y) : Infinity;
-  if (moved > 120) heroTrail.length = 0; // respawn teleport → clear
-  if (moved > 3) {
-    heroTrail.push({ x: h.x, y: h.y });
-    if (heroTrail.length > 8) heroTrail.shift();
-  } else if (heroTrail.length > 0) {
-    heroTrail.shift(); // standing still → drain so the trail doesn't linger as litter
+  // Shepherd's vital aura / Overseer's disruption field — show the role's reach.
+  if (!down && def.pulseRadius > 0) {
+    const reach = def.pulseRadius * pulse(t, h.kind === 'overseer' ? 2.4 : 1.6, 0.95, 1.05);
+    ring(ctx, h.x, h.y, reach, rgba(tint, pulse(t, 2, 0.1, 0.22)), 1.2, [5, 6]);
   }
-  if (!down) {
-    for (let i = 0; i < heroTrail.length - 1; i++) {
-      const p = heroTrail[i];
-      drawShape(ctx, 'diamond', p.x, p.y, 5 + i * 0.7, rgba(THEME.hero.trail, (i / heroTrail.length) * 0.22));
+
+  // sample the primary hero's path into a short afterimage trail (slot-1 only)
+  if (primary) {
+    const last = heroTrail[heroTrail.length - 1];
+    const moved = last ? Math.hypot(h.x - last.x, h.y - last.y) : Infinity;
+    if (moved > 120) heroTrail.length = 0; // respawn teleport → clear
+    if (moved > 3) {
+      heroTrail.push({ x: h.x, y: h.y });
+      if (heroTrail.length > 8) heroTrail.shift();
+    } else if (heroTrail.length > 0) {
+      heroTrail.shift(); // standing still → drain so the trail doesn't linger
+    }
+    if (!down) {
+      for (let i = 0; i < heroTrail.length - 1; i++) {
+        const p = heroTrail[i];
+        drawShape(ctx, shape, p.x, p.y, 5 + i * 0.7, rgba(tint, (i / heroTrail.length) * 0.22));
+      }
     }
   }
 
   ctx.globalAlpha = down ? 0.4 : 1;
-  glowDisc(ctx, h.x, h.y + 4, 22, THEME.hero.halo); // ground halo
+  glowDisc(ctx, h.x, h.y + 4, 22, rgba(tint, 0.26)); // ground halo
   if (!down) {
     // pulsing locator ring so the star unit is always findable in a swarm
-    ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(THEME.hero.locator, pulse(t, 3, 0.22, 0.55)), 1.5);
+    ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(tint, pulse(t, 3, 0.22, 0.55)), 1.5);
   }
-  // layered core: dark rim → gold body → bright nucleus (reads as a hero, not a pip)
-  drawShape(ctx, 'diamond', h.x, h.y, 16, THEME.hero.rim);
-  drawShape(ctx, 'diamond', h.x, h.y, 13, THEME.hero.body);
-  drawShape(ctx, 'diamond', h.x, h.y - 2, 5, THEME.hero.core);
+  // layered core: dark rim → class-colored body → bright nucleus (reads as a hero)
+  drawShape(ctx, shape, h.x, h.y, 16, THEME.hero.rim);
+  drawShape(ctx, shape, h.x, h.y, 13, def.color);
+  drawShape(ctx, shape, h.x, h.y - 2, 5, THEME.hero.core);
   ctx.globalAlpha = 1;
 
   if (down) {
@@ -528,7 +573,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
     ctx.textAlign = 'left';
   } else {
     const pct = Math.max(0, h.hp / h.maxHp);
-    healthBar(ctx, h.x, h.y - 25, 28, pct, THEME.hero.hpBack, THEME.enemy.hpEdge, THEME.hero.body);
+    healthBar(ctx, h.x, h.y - 25, 28, pct, THEME.hero.hpBack, THEME.enemy.hpEdge, def.color);
   }
 }
 

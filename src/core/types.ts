@@ -3,16 +3,18 @@
 
 import type { Vec2 } from './math';
 
-export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
-export type StatusType = 'Fracture' | 'Corrosion';
-export type TowerKind = 'needle' | 'mortar' | 'reactor';
+export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
+export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk';
 export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
- * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire. */
-export type TowerFiring = 'homing' | 'splash' | 'support';
+ * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
+ * 'field' = periodic in-range pulse (no projectile). */
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
-export type ProjectileBehavior = 'homing' | 'splash';
+export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
@@ -33,12 +35,36 @@ export interface Enemy {
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
+  infection: number; // Viral infection stacks — ramping armor-ignoring DoT; spreads on death
+  disrupt: number; // remaining seconds of Neural Disruption (slow + vulnerability)
   shredFlash: number; // seconds of reaction flash remaining (visual)
   hitFlash: number; // seconds of white hit-flash remaining (visual)
   dmgAccum: number; // damage banked toward the next aggregated damage number (visual)
   dmgTimer: number; // throttle until the banked damage may pop as a float (visual)
   alive: boolean;
   lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
+  boss: BossRuntime | null; // present only for framework bosses (null for normal enemies)
+}
+
+/** Live state a framework boss carries on top of its enemy body (see boss.ts). */
+export interface BossRuntime {
+  defId: string;
+  name: string;
+  phase: number; // current phase index
+  phases: number; // total phase count
+  moduleCd: number[]; // per-module cooldown remaining (indexed like BossDef.modules)
+  shielded: number; // seconds of invulnerability remaining (0 = vulnerable)
+  enrage: number; // enrage stacks
+  channel: number; // seconds left on a Nucleus channel (0 = none)
+  telegraph: string | null; // current telegraphed action (drives the banner)
+}
+
+export interface BossBannerSnapshot {
+  name: string;
+  hpPct: number;
+  phase: number;
+  phases: number;
+  telegraph: string | null;
 }
 
 export interface Tower {
@@ -78,6 +104,7 @@ export interface Pool {
 }
 
 export interface Hero {
+  kind: HeroKind;
   x: number;
   y: number;
   hp: number;
@@ -87,6 +114,7 @@ export interface Hero {
   rally: Vec2;
   attackCd: number;
   abilityCd: number;
+  pulseCd: number; // role pulse timer (Shepherd vital pulse / Overseer disrupt field)
 }
 
 export interface FloatingText {
@@ -133,6 +161,16 @@ export interface MasteryCount {
   activeTime: number; // tower-seconds deployed
 }
 export type MasteryCounts = Record<TowerKind, MasteryCount>;
+export type HeroMasteryCounts = Record<HeroKind, MasteryCount>;
+
+/** Per-hero permanent multipliers (stars + mastery + equipment), applied at run
+ * start. Identity (all 1) for a fresh save, so the base hero is unchanged. This is
+ * the fold point the EQUIPMENT.md item system plugs into (see meta.heroProgress). */
+export interface HeroMods {
+  damageMult: number;
+  cooldownMult: number;
+}
+export type HeroProgress = Record<HeroKind, HeroMods>;
 
 /** Raw per-run statistics observed by the sim (presentation/meta only — never feeds
  * combat, so it can't change a fixed-seed outcome). Read out once at run end and
@@ -175,6 +213,7 @@ export interface HudSnapshot {
   maxIntegrity: number;
   kills: number;
   hero: {
+    kind: HeroKind;
     down: boolean;
     respawn: number;
     hp: number;
@@ -189,6 +228,8 @@ export interface HudSnapshot {
   armedAbility: boolean;
   cards: CardOption[]; // gene cards drafted this run (build panel)
   buffs: string[]; // human-readable active run modifiers
+  bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
+  endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
 }
 
 export interface CardOption {

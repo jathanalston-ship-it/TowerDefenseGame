@@ -7,9 +7,9 @@ import type { Game } from '../core/game';
 // Listed-but-not-yet-built systems. The panel is structured so these light up as
 // their milestones land (see docs/ROADMAP.md); for now they're labelled stubs.
 const FUTURE: ReadonlyArray<readonly [string, string]> = [
-  ['Unlock towers', 'M2 — all three towers already available'],
-  ['Unlock heroes', 'M6 — only the Ravager exists in the slice'],
-  ['Grant equipment', 'M9 — equipment not yet built'],
+  ['Unlock towers', 'M2 — all five towers already available'],
+  ['Unlock heroes', 'M6 — all three heroes selectable in the Hero Lab'],
+  ['Grant equipment', 'M9 — equipment seam wired (HeroMods), items not yet built'],
   ['Force prestige', 'M12 — prestige not yet built'],
 ];
 
@@ -72,6 +72,15 @@ export function DebugPanel(): JSX.Element {
               <button onClick={() => meta.debugAddTowerShards(20)}>+20 ✦ each</button>
               <button onClick={() => meta.debugAddMasteryXp(500)}>+500 Mastery XP</button>
               <button onClick={() => meta.debugOpenChest()}>Open chest</button>
+              <button onClick={() => meta.debugGrantGear(4)}>Grant gear</button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">Hero progression (meta)</div>
+            <div className="debug-row">
+              <button onClick={() => meta.debugAddHeroShards(20)}>+20 ✦ each hero</button>
+              <button onClick={() => meta.debugAddHeroMasteryXp(500)}>+500 Hero Mastery</button>
             </div>
           </div>
 
@@ -139,6 +148,12 @@ export function DebugPanel(): JSX.Element {
               </button>
               <button disabled={!inRun} onClick={() => run((g) => g.debugSpawn('tyrant', 1))}>
                 Boss
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.debugSpawnBoss())}>
+                FW Boss
+              </button>
+              <button disabled={!inRun} onClick={() => run((g) => g.spawnProceduralBoss(20))}>
+                Proc Boss
               </button>
             </div>
             <div className="debug-row">

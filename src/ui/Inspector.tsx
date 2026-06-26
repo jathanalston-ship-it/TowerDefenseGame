@@ -4,7 +4,7 @@
 //   • otherwise → hero status + a live run summary so the panel is never dead space.
 // (The ★ star track lands here when the star system is built.)
 
-import { TOWER_DEFS } from '../core/config';
+import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import type { HudSnapshot } from '../core/types';
 
 function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
@@ -36,11 +36,14 @@ export function Inspector({ hud }: { hud: HudSnapshot }): JSX.Element {
           </span>
         </div>
         <div className="ins-stats">
-          {dps > 0 && <StatRow k="DPS" v={`~${dps}`} />}
+          {dps > 0 && def.firing !== 'field' && <StatRow k="DPS" v={`~${dps}`} />}
           {def.range > 0 && <StatRow k="Range" v={def.range} />}
-          {rate && <StatRow k="Fire rate" v={`${rate}/s`} />}
+          {rate && def.firing !== 'field' && <StatRow k="Fire rate" v={`${rate}/s`} />}
+          {def.firing === 'field' && rate && <StatRow k="Pulse" v={`${rate}/s`} />}
           {def.splash > 0 && <StatRow k="Splash" v={def.splash} />}
-          {def.kind === 'reactor' && <StatRow k="Role" v="Support" />}
+          {def.firing === 'support' && <StatRow k="Role" v="Support" />}
+          {def.firing === 'field' && <StatRow k="Role" v="Control" />}
+          {def.firing === 'infest' && <StatRow k="Role" v="DoT / Spread" />}
           <StatRow k="Cost" v={`${def.cost} biomass`} />
         </div>
         <p className="ins-blurb">{def.blurb}</p>
@@ -49,22 +52,24 @@ export function Inspector({ hud }: { hud: HudSnapshot }): JSX.Element {
     );
   }
 
+  const heroDef = HERO_DEFS[hud.hero.kind];
+  const abName = heroDef.ability.name;
   const ability = hud.hero.down
     ? `Reviving ${Math.ceil(hud.hero.respawn)}s`
     : hud.hero.abilityReady
-      ? 'Apex Leap ready'
-      : `Apex Leap ${Math.ceil(hud.hero.abilityCd)}s`;
+      ? `${abName} ready`
+      : `${abName} ${Math.ceil(hud.hero.abilityCd)}s`;
 
   return (
     <aside className="side-panel inspector" aria-label="Run inspector">
       <div className="side-head">Status</div>
 
       <div className="ins-title">
-        <span className="ins-name" style={{ color: 'var(--gold)' }}>
-          Apex Ravager
+        <span className="ins-name" style={{ color: heroDef.color }}>
+          {heroDef.name}
         </span>
-        <span className="class-badge" style={{ background: 'var(--gold)', color: '#1a1206' }}>
-          Hero
+        <span className="class-badge" style={{ background: heroDef.color, color: '#1a1206' }}>
+          {heroDef.combatClass}
         </span>
       </div>
       <div className="ins-stats">
