@@ -197,6 +197,8 @@ export function drawGame(
   pointer: Pointer | null,
 ): void {
   const t = rs.time;
+  if (t < lastFrameTime) towerBirth.clear(); // sim time rewound => a new run started
+  lastFrameTime = t;
 
   // How hard is the hive being pressed right now? (enemies near/into the zone +
   // how wounded the core is) — drives the danger glow + vignette.
@@ -516,19 +518,22 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
   }
 }
 
-// Placement grow-in (cosmetic): first time the renderer sees a tower object it
-// records sim-time; the tower then eases up to full size over GROW_TIME. Keyed on
-// the live tower object so it auto-clears across runs and never collides — no sim
-// state, no leak.
+// Placement grow-in (cosmetic): first time the renderer sees a tower it records
+// sim-time, then eases the tower up to full size over GROW_TIME. Keyed by tower
+// id (a stable value, not the object) so it works whether RenderState exposes the
+// live entities or immutable per-frame snapshots; cleared on run reset (drawGame
+// detects sim-time rewinding). Towers are never removed mid-run, so it stays
+// small and bounded — no sim state, no leak.
 const GROW_TIME = 0.18;
-const towerBirth = new WeakMap<object, number>();
+const towerBirth = new Map<number, number>();
+let lastFrameTime = -1; // tracks sim time across frames to detect a run reset
 
 function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][number], now: number): void {
   const def = TOWER_DEFS[t.kind];
-  let birth = towerBirth.get(t);
+  let birth = towerBirth.get(t.id);
   if (birth === undefined) {
     birth = now;
-    towerBirth.set(t, birth);
+    towerBirth.set(t.id, birth);
   }
   const grow = Math.min(1, (now - birth) / GROW_TIME);
   const scale = grow >= 1 ? 1 : 0.5 + 0.5 * (1 - Math.pow(1 - grow, 3)); // ease-out, 50%->100%
