@@ -1,0 +1,152 @@
+# HUD.md — HUD Analysis & Redesign (desktop-first)
+
+Layout + visual specs for the in-run HUD. Derives all colors/type/spacing from
+`STYLE-GUIDE.md`. Grounded in the current build (`src/ui/Hud.tsx`,
+`Toolbar.tsx`, `DraftModal.tsx`, `GameView.tsx`; data model = `HudSnapshot` in
+`src/core/types.ts`). No code — layout specifications and visual recommendations.
+
+---
+
+## 1. Current HUD — analysis
+
+**What exists today:**
+- **Top bar:** one flat strip — `BIOMASS · INTEGRITY · WAVE · KILLS · ENEMIES · HERO · PHASE`. All stats the same size/weight; no hierarchy.
+- **Bottom toolbar:** 3 tower buttons + Apex Leap + Start Wave.
+- **Draft modal:** centered overlay (1-of-3).
+- The **portrait arena** is centered with **empty letterbox gutters left & right** (from `index.css` `max-height:74vh`).
+
+**Problems:**
+1. **No visual hierarchy** — Integrity (life-or-death) reads the same as Kills (vanity).
+2. **Wasted space** — the side gutters are empty; all info is crammed top/bottom.
+3. **Nowhere for the systems we've designed** — cards (`CARDS.md`), mutations/strains, active buffs, tower/hero detail, and the prestige currencies (`ECONOMY.md`) have no home.
+4. **Flat styling** — uniform panels, no grouping, no state language (affordable/selected/cooldown read weakly).
+5. **`PHASE` as raw text** is programmer-facing, not player-facing.
+
+**Opportunity:** the centered portrait arena *wants* a 4-region frame — top/bottom
+bars full-width, **left/right panels in the gutters**. This is the desktop layout.
+
+---
+
+## 2. Layout system
+
+Desktop-first, 16-col frame around the centered canvas. Target 1920×1080; scales to
+≥1280 wide.
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│ TOP BAR  (full width, h 56px)                                              │
+│  [HIVE CORE ▓▓▓▓▓░ 78/100] [WAVE 6/12 ▮▮▮] [◇Biomass ◆Genome ✦Essence] [Ω…]│
+├───────────────┬──────────────────────────────────┬─────────────────────────┤
+│ LEFT PANEL    │                                  │ RIGHT PANEL             │
+│ (gutter,      │                                  │ (gutter, w 300px)       │
+│  w 280px)     │        BATTLEFIELD CANVAS        │                         │
+│               │        (portrait, centered,      │  ▸ contextual:          │
+│ ▸ CARDS       │         max-height ~74vh)        │    Tower / Hero /       │
+│ ▸ MUTATIONS   │                                  │    Upgrade details      │
+│ ▸ ACTIVE BUFFS│                                  │                         │
+│               │                                  │                         │
+├───────────────┴──────────────────────────────────┴─────────────────────────┤
+│ BOTTOM BAR (full width, h 96px)                                            │
+│  [Tower cards ▭▭▭▭▭] ……… [HERO portrait+HP+cooldowns] ……… [active effects]  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Grid:** 12px base unit; panel padding 16px; gaps 12px; radius 12px (panels) / 8px (controls), per STYLE-GUIDE.
+- **Z-order:** canvas (0) < panels (10) < draft/modals (100) < tooltips (200).
+- **Panel surface:** `--panel` fill, `--line` 1px border, subtle top inner-highlight (1px `rgba(255,255,255,0.04)`) for a "machined glass" edge. 8px outer drop-shadow on raised panels.
+- **Responsive:** <1500px → right/left panels narrow to 240px; <1280px → panels collapse to icon-rail + hover-expand; the canvas never shrinks below readable.
+- **Idle collapse:** Left/Right panels fade to 60% opacity when not hovered/relevant, so the battlefield stays the star (toggleable; respects reduce-motion).
+
+---
+
+## 3. TOP BAR — survival & economy (h 56px)
+
+Three weight tiers: **vital (largest) → progress → economy**.
+
+| Slot | Widget | Spec |
+|---|---|---|
+| Far-left | **HIVE CORE (Integrity)** | The most important readout. Label "HIVE CORE" 11px muted; a **segmented health bar** (12 segments) 200px wide + numeric `78/100` 24px/800 tabular. Bar fills `--danger` ramp: green→amber→red by %. Pulses + a soft red bloom on the whole bar when hit. |
+| Left-center | **WAVE** | "WAVE 6/12" 18px; a **mini pip track** of the 12 waves (cleared = filled, current = pulsing, boss wave = ★). Doubles as run progress. |
+| Center | **Run timer / phase** | Subtle. "PREP" / "WAVE" / "DRAFT" as a small state chip, not raw text; countdown to next wave during prep. |
+| Right | **Resources** | Currency chips, each = colored glyph + tabular value (colors per STYLE-GUIDE §5): ◆ Biomass (lime, in-run, biggest), then earned-this-run meta (Genome ◇ cyan, Essence ✦ gold). "+N" floats on gain. |
+| Far-right | **Prestige currencies** | A compact **Ω cluster** (collapsed by default to a single Ω chip; hover/expand shows Cells/Threads/Cores… per `ECONOMY.md`). Present even at 0 (greyed) so the progression ceiling is visible from day one. |
+
+**Hierarchy:** Integrity bar is ~2× the visual weight of anything else. Economy
+chips are small and right-aligned (glanceable, not dominant).
+
+---
+
+## 4. BOTTOM BAR — actions (h 96px)
+
+Three groups, left→right: **build · hero · effects**.
+
+| Group | Widget | Spec |
+|---|---|---|
+| **Tower selection** (left) | **Tower cards** | One card per available tower (currently 3; designed for the 3-of-5 loadout). Each: class-tinted left edge (STYLE-GUIDE class hue), tower glyph (matches its battlefield silhouette — see `PLACEHOLDER-ART.md`), name, **cost chip** that turns `--success` when affordable / `--danger` when not, and a hotkey (1–5). Selected = gold border + raised. Hover → RIGHT PANEL shows full stats. |
+| **Hero** (center) | **Hero pod** | Portrait disc in the hero's class hue + gold ring; **HP arc** around it; **ability buttons** with radial cooldown sweeps (Apex Leap now, more later); a downed state shows the respawn countdown over a desaturated portrait. Built to hold **hero slots 2 & 3** as additional pods. |
+| **Active effects** (right) | **Buff strip** | Row of small icons for run-wide active effects (overcharge active, current Mutation Strain, temporary corruptions). Distinct from the LEFT-panel card *list* — this is the *currently-pulsing* status rail. |
+
+---
+
+## 5. RIGHT PANEL — inspector (w 300px, contextual)
+
+One panel, three contexts (whichever is selected/hovered):
+
+- **Tower info** (hover a tower card or a placed tower): name + class badge, live DPS/range/fire-rate, **★ star track (1–10)**, mastery rank ring, class-keystone chips, and the in-run upgrade path with costs. Range previews on the battlefield in sync (already drawn by `drawPointer`).
+- **Hero info** (select the hero pod): kit (abilities + cooldowns), **★ stars**, mastery, class, and **equipment slots (Weapon/Armor/Relic)** — present as empty sockets now so `EQUIPMENT.md` drops in later.
+- **Upgrade details** (select an upgrade/star node): before→after stat deltas (green ↑), cost in the correct currency color, and a one-line flavor blurb.
+
+**Empty state:** when nothing is selected, show a compact **"Hive Status"** digest
+(towers built, kills, biomass/sec, threat level) so the panel is never dead space.
+
+---
+
+## 6. LEFT PANEL — run build (w 280px)
+
+The *temporary* run identity (everything here resets each run — mirrors
+`CARDS.md`/`DESIGN.md`):
+
+- **Current cards:** the drafted deck this run, grouped by category (Poison/Crits/…) with category-colored chips and **stack counts**. Scrollable; newest pulses briefly.
+- **Mutations:** the active **Mutation Strain(s)** with their evolution tier, and any voluntary **Corruptions** taken (red-tinted, with their reward multiplier).
+- **Active buffs:** persistent run multipliers in plain language ("+38% tower damage", "biomass ×1.5") — the readable rollup of the cards above, so the player sees *what their build actually does*.
+
+**Why left vs right:** LEFT = *what I've built this run* (cards/mutations/buffs,
+persistent, browseable). RIGHT = *what I'm inspecting right now* (contextual,
+transient). Stable spatial memory.
+
+---
+
+## 7. Visual hierarchy & density rules
+
+1. **Three type tiers only** on the HUD: vital values (24px/800), labels (11px/600 muted), body (13px). (STYLE-GUIDE §9.)
+2. **Color = meaning, sparingly.** Panels are neutral; the only saturated color in the chrome is **state** (affordable/selected/danger) and **currency/class identity**. No decorative color.
+3. **Group by spatial law:** survival top, actions bottom, build left, inspect right — learned once, never relearned.
+4. **Density:** top/bottom bars are glance-level (≤7 elements each, per Miller's law); deep detail lives in the side panels on demand.
+5. **Motion is feedback only:** pulses on damage/gain/affordability change; otherwise still. Respects reduce-motion.
+6. **Tooltips** (200ms hover) carry the long tail so primary widgets stay terse.
+
+---
+
+## 8. Built for future progression
+
+| Future system | Where it lands (no relayout) |
+|---|---|
+| Prestige currencies (6 layers) | TOP-right Ω cluster (already reserved) |
+| Hero slots 2 & 3 | BOTTOM-center: +2 hero pods |
+| 3-of-5 tower loadout (+ more towers) | BOTTOM-left: card row already a list |
+| Stars / Mastery / Class / Paragon | RIGHT panel inspector tracks |
+| Equipment (W/A/R) | RIGHT panel hero sockets (stubbed now) |
+| Hive Tree / meta shop | a TOP-bar "HIVE" button → full-screen overlay (out-of-run) |
+| Endless/Omega depth | WAVE widget extends past 12 → "∞ / depth N" |
+
+The four-region frame is the contract: every system designed in the corpus has a
+predetermined home, so live-service additions slot in without a HUD rewrite.
+
+---
+
+## 9. Draft modal (refresh, not redesign)
+
+Keep the centered 1-of-3 (it's good), but: dim+blur the battlefield behind it,
+rarity-frame each card per STYLE-GUIDE §5 (Exotic prismatic), show category color +
+stack-if-owned, and add reroll/banish affordances (per `CARDS.md`) as the card pool
+grows.
