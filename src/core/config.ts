@@ -2,7 +2,7 @@
 // ARCHITECTURE.md §6.2). Systems read these; they never inline magic numbers.
 // Every value is an illustrative starting point for the vertical slice.
 
-import type { CombatClass, Currency, EnemyKind, MetaModifiers, TowerKind } from './types';
+import type { CombatClass, Currency, EnemyKind, HeroId, MetaModifiers, TowerKind } from './types';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -98,6 +98,7 @@ export interface EnemyDef {
   radius: number;
   color: string;
   behavior: EnemyBehavior;
+  isBoss?: boolean; // marks a wave-defining elite (future boss bars/codex/rewards key off this)
   // ── Archetype hooks (each is one optional data field, no bespoke per-type code) ──
   shield?: number; // Shielded — soaks this much damage before HP is touched
   regen?: { perSec: number; delay: number }; // Regenerating — heals after `delay`s unhurt
@@ -116,7 +117,7 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
   tyrant: {
     kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26, color: '#ff4d6d',
-    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 },
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 }, isBoss: true,
   },
   // ── Future archetypes — spawnable via the debug panel; not in the authored waves
   //    yet. Each is purely a data profile, proving the AI scales by configuration. ──
@@ -309,33 +310,71 @@ export const CARD_FX = {
   shredExplosionDamage: 24,
 };
 
-// ── Hero (Ravager) ────────────────────────────────────────────────────────
-export const HERO = {
-  maxHp: 230,
-  speed: 122,
-  attackRange: 34,
-  attackInterval: 0.5,
-  attackDamage: 19,
-  attackFracture: 1,
-  aggroRange: 1400, // effectively the whole arena — heroes roam freely to intercept
-  contactRange: 26, // enemies this close damage the hero
-  respawnTime: 8,
+// ── Heroes ──────────────────────────────────────────────────────────────────
+// Data-driven roster. The active hero's stats are read through `HERO` (the
+// default), so a stat-variant hero is one HEROES entry — no engine changes (see
+// docs/CONTENT-GUIDE.md §Heroes). Numbers below are the Ravager's, unchanged.
+export interface HeroAbilityDef {
+  name: string;
+  cooldown: number;
+  radius: number;
+  damage: number;
+  fracture: number;
+}
+export interface HeroDef {
+  id: HeroId;
+  name: string;
+  combatClass: CombatClass;
+  maxHp: number;
+  speed: number;
+  attackRange: number;
+  attackInterval: number;
+  attackDamage: number;
+  attackFracture: number;
+  aggroRange: number; // effectively the whole arena — heroes roam freely to intercept
+  contactRange: number; // enemies this close damage the hero
+  respawnTime: number;
   // Targeting / movement intelligence:
-  threatPerDamage: 7, // weight an enemy's integrity-damage adds to its hunt priority
-  lead: 0.32, // seconds to lead a moving target (intercept ahead of its path)
-  turnRate: 14, // facing smoothing toward the target/movement direction
+  threatPerDamage: number; // weight an enemy's integrity-damage adds to its hunt priority
+  lead: number; // seconds to lead a moving target (intercept ahead of its path)
+  turnRate: number; // facing smoothing toward the target/movement direction
   // Light melee cleave — clears chaff around the target so the hero feels like a
   // battlefield unit, but stays melee-bound + fractional so it never out-clears towers.
-  cleaveRadius: 42,
-  cleaveFraction: 0.5,
-  swingTime: 0.18, // attack animation window (renderer lunge + slash)
-  ability: {
-    cooldown: 8,
-    radius: 72,
-    damage: 62,
-    fracture: 2,
+  cleaveRadius: number;
+  cleaveFraction: number;
+  swingTime: number; // attack animation window (renderer lunge + slash)
+  ability: HeroAbilityDef;
+}
+
+export const HEROES: Record<HeroId, HeroDef> = {
+  ravager: {
+    id: 'ravager',
+    name: 'The Ravager',
+    combatClass: 'Kinetic',
+    maxHp: 230,
+    speed: 122,
+    attackRange: 34,
+    attackInterval: 0.5,
+    attackDamage: 19,
+    attackFracture: 1,
+    aggroRange: 1400,
+    contactRange: 26,
+    respawnTime: 8,
+    threatPerDamage: 7,
+    lead: 0.32,
+    turnRate: 14,
+    cleaveRadius: 42,
+    cleaveFraction: 0.5,
+    swingTime: 0.18,
+    ability: { name: 'Apex Leap', cooldown: 8, radius: 72, damage: 62, fracture: 2 },
   },
 };
+
+export const DEFAULT_HERO_ID: HeroId = 'ravager';
+
+/** The active hero's tunables. Aliased to the default so every existing call site
+ *  (game.ts reads HERO.*) is unchanged; hero selection just rebinds this later. */
+export const HERO: HeroDef = HEROES[DEFAULT_HERO_ID];
 
 // ── Economy ───────────────────────────────────────────────────────────────
 export const ECON = {

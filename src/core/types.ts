@@ -6,6 +6,7 @@ import type { Vec2 } from './math';
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion';
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
+export type HeroId = 'ravager'; // roster grows by adding HEROES entries (config.ts)
 export type EnemyKind =
   | 'runner'
   | 'brute'
