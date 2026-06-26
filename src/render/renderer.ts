@@ -54,6 +54,21 @@ function hpColor(pct: number): string {
   return pct > 0.5 ? SOLID.success : pct > 0.25 ? SOLID.warn : SOLID.danger;
 }
 
+// Live prefers-reduced-motion flag. The CSS honors it for the DOM; the canvas
+// reads it here to freeze idle/breathing/atmosphere motion (drawGame passes a
+// frozen cosmetic clock and skips the drifting layers). Transient gameplay reads
+// — projectiles, enemy movement — are unaffected.
+let reduceMotion = false;
+if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  reduceMotion = mq.matches;
+  const onChange = (): void => {
+    reduceMotion = mq.matches;
+  };
+  if (mq.addEventListener) mq.addEventListener('change', onChange);
+  else if (mq.addListener) mq.addListener(onChange); // Safari < 14
+}
+
 function pulse(t: number, speed: number, lo: number, hi: number): number {
   return lo + (hi - lo) * (0.5 + 0.5 * Math.sin(t * speed));
 }
@@ -209,22 +224,25 @@ export function drawGame(
   // Atmosphere fades out as the swarm grows — protects readability + the frame
   // budget exactly when the fight needs them (mirrors the enemy LOD threshold).
   const ambient = Math.max(0, 1 - rs.enemies.length / PERF.lodEnemyCount);
+  // Cosmetic clock: frozen under reduced motion so every idle/breathing pulse
+  // renders a static mid-state instead of animating.
+  const it = reduceMotion ? 0 : t;
 
   drawBackground(ctx);
-  drawAmbientLight(ctx, t);
-  drawSubsurfaceVeins(ctx, t, ambient);
+  drawAmbientLight(ctx, it);
+  drawSubsurfaceVeins(ctx, it, ambient);
   drawGrid(ctx);
-  drawGroundPulse(ctx, t, ambient);
-  drawSpawnZone(ctx, t);
-  drawDefenseZone(ctx, t, pressure);
-  drawFog(ctx, t, ambient);
+  drawGroundPulse(ctx, it, ambient);
+  drawSpawnZone(ctx, it);
+  drawDefenseZone(ctx, it, pressure);
+  if (!reduceMotion) drawFog(ctx, t, ambient); // pure drift — skip when reduced
   drawObstacles(ctx);
-  drawMotes(ctx, t, ambient);
+  if (!reduceMotion) drawMotes(ctx, t, ambient); // pure drift — skip when reduced
 
   const occupied = new Set(rs.towers.map((t2) => t2.slot));
-  drawHiveTendrils(ctx, rs, t);
+  drawHiveTendrils(ctx, rs, it);
   drawSlots(ctx, rs, occupied);
-  drawBase(ctx, rs, t);
+  drawBase(ctx, rs, it);
 
   for (const p of rs.pools) {
     ctx.beginPath();
@@ -276,7 +294,7 @@ export function drawGame(
   }
   ctx.textAlign = 'left';
 
-  drawPressureVignette(ctx, pressure, t);
+  drawPressureVignette(ctx, pressure, it);
   drawAmbientVignette(ctx);
 }
 
@@ -547,7 +565,7 @@ function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][numbe
     birth = now;
     towerBirth.set(t.id, birth);
   }
-  const grow = Math.min(1, (now - birth) / GROW_TIME);
+  const grow = reduceMotion ? 1 : Math.min(1, (now - birth) / GROW_TIME);
   const scale = grow >= 1 ? 1 : 0.5 + 0.5 * (1 - Math.pow(1 - grow, 3)); // ease-out, 50%->100%
 
   ctx.save();
