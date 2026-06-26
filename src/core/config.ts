@@ -296,6 +296,19 @@ export const STATUS = {
   poolRadiusFactor: 0.85, // pool radius relative to splash radius
 };
 
+// ── Card-effect tunables (behavioral Gene Cards read these at their hook points) ──
+export const CARD_FX = {
+  needleBounceRange: 95, // ricochet search radius
+  corrosionSpreadRange: 72, // Viral Bloom splash on corroded death
+  deathPoolRadius: 26, // Acidic Remains pool size
+  deathPoolDps: 6,
+  deathPoolDuration: 2.5,
+  deathBurstRadius: 48, // Volatile Decay
+  deathBurstDamage: 12,
+  shredExplosionRadius: 58, // Detonation Cascade
+  shredExplosionDamage: 24,
+};
+
 // ── Hero (Ravager) ────────────────────────────────────────────────────────
 export const HERO = {
   maxHp: 230,

@@ -84,6 +84,7 @@ export interface Projectile {
   damage: number;
   kind: TowerKind;
   splash: number; // splash radius (0 = single target)
+  bounces: number; // remaining ricochets (needle, Ricochet Spores)
   alive: boolean;
 }
 

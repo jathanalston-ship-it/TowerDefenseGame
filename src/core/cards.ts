@@ -1,12 +1,25 @@
 // Gene Cards — the temporary run bucket (PROGRESSION.md §1.1, DESIGN.md §6.3).
 // Cards are drafted between waves and RESET every run: they only ever mutate the
 // run's RunModifiers / run state, never permanent meta. No React/DOM here.
+//
+// ── Architecture (built to scale to hundreds of cards) ───────────────────────
+// A card is pure data: { id, name, rarity, category, description, apply }. Its
+// effect lives ENTIRELY in `apply`, which mutates one shared bag — RunModifiers —
+// of numeric knobs (multipliers/counters, default 1/0) and behavioral flags. The
+// simulation reads that bag at a fixed set of HOOK POINTS (tower fire, projectile
+// hit, on-shred, on-death, hero attack, enemy move, …). So adding a new card is
+// always the same three-step move and never touches existing cards:
+//   1) add a field to RunModifiers (+ its default),
+//   2) read it at the relevant hook in game.ts,
+//   3) append a CardDef here.
+// Rarity weighting + distinct-draft logic below stay unchanged as the pool grows.
 
 import type { CardOption, CardRarity } from './types';
 import type { Rng } from './rng';
 
-/** The run "R bucket": multipliers/flags a run accumulates from drafted cards. */
+/** The run "R bucket": every knob/flag a run accumulates from drafted cards. */
 export interface RunModifiers {
+  // ── stat knobs ──
   towerDamageMult: number;
   towerFireRateMult: number;
   splashRadiusMult: number;
@@ -16,11 +29,28 @@ export interface RunModifiers {
   needleExtraProjectiles: number;
   mortarPoolDurationMult: number;
   poolDpsMult: number;
-  mortarAppliesFracture: boolean;
   fractureBonusStacks: number;
   corrosionSlowBonus: number;
   heroDamageMult: number;
   heroCooldownMult: number;
+  heroSpeedMult: number;
+  heroAttackRateMult: number;
+  reactorAuraRadiusMult: number;
+  needleBonusFracture: number;
+  corrodedAmp: number; // +damage fraction to corroded enemies
+  lineSlow: number; // extra slow on enemies inside the defensive zone
+  adjacencyHaste: number; // +fire-rate per neighbouring tower
+  // ── behavioral flags / counters (modify HOW the game plays) ──
+  mortarAppliesFracture: boolean;
+  needleBounce: number; // needle shots ricochet to N more targets
+  mortarExtraShell: number; // mortar lobs extra shells
+  heroExtraStrikes: number; // hero hits this many extra times per swing
+  corrosionSpread: boolean; // corroded deaths splash Corrosion to neighbours
+  deathPools: boolean; // enemies leave a small acid pool on death
+  deathBurst: boolean; // enemies release a damaging burst on death
+  shredExplosion: boolean; // SHRED detonates an AoE
+  apexKillReset: number; // kills shave this many seconds off Apex Leap
+  heroLifestealOnKill: number; // hero heals this much per kill
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -34,11 +64,27 @@ export function defaultRunModifiers(): RunModifiers {
     needleExtraProjectiles: 0,
     mortarPoolDurationMult: 1,
     poolDpsMult: 1,
-    mortarAppliesFracture: false,
     fractureBonusStacks: 0,
     corrosionSlowBonus: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
+    heroSpeedMult: 1,
+    heroAttackRateMult: 1,
+    reactorAuraRadiusMult: 1,
+    needleBonusFracture: 0,
+    corrodedAmp: 0,
+    lineSlow: 0,
+    adjacencyHaste: 0,
+    mortarAppliesFracture: false,
+    needleBounce: 0,
+    mortarExtraShell: 0,
+    heroExtraStrikes: 0,
+    corrosionSpread: false,
+    deathPools: false,
+    deathBurst: false,
+    shredExplosion: false,
+    apexKillReset: 0,
+    heroLifestealOnKill: 0,
   };
 }
 
@@ -77,6 +123,25 @@ export const CARD_POOL: CardDef[] = [
   { id: 'lingering_acid', name: 'Lingering Acid', rarity: 'rare', category: 'Poison', description: 'Corrosion pools last +60% longer and tick +30% harder.', apply: (c) => { c.mods.mortarPoolDurationMult *= 1.6; c.mods.poolDpsMult *= 1.3; } },
   { id: 'overcharged_veins', name: 'Overcharged Veins', rarity: 'rare', category: 'Tower Buff', description: '+25% reactor overcharge & +30% reactor biomass.', apply: (c) => { c.mods.reactorOverchargeBonus += 0.25; c.mods.reactorBiomassMult *= 1.3; } },
   { id: 'swarm_bounty', name: 'Swarm Bounty', rarity: 'rare', category: 'Economy', description: '+28% biomass from kills.', apply: (c) => { c.mods.biomassMult *= 1.28; } },
+
+  // ── Behavioral — these change HOW the run plays, not just the numbers ──
+  { id: 'ricochet_spores', name: 'Ricochet Spores', rarity: 'rare', category: 'Kinetic', description: 'Needle shots ricochet to 1 more enemy on hit.', apply: (c) => { c.mods.needleBounce += 1; } },
+  { id: 'viral_bloom', name: 'Viral Bloom', rarity: 'rare', category: 'Mutation Synergy', description: 'When a corroded enemy dies, Corrosion spreads to those nearby.', apply: (c) => { c.mods.corrosionSpread = true; } },
+  { id: 'frenzy_glands', name: 'Frenzy Glands', rarity: 'rare', category: 'Hero Buff', description: 'The hero strikes one extra time each attack.', apply: (c) => { c.mods.heroExtraStrikes += 1; } },
+  { id: 'acidic_remains', name: 'Acidic Remains', rarity: 'rare', category: 'Poison', description: 'Enemies leave a small Corrosion pool where they die.', apply: (c) => { c.mods.deathPools = true; } },
+  { id: 'hive_lattice', name: 'Hive Lattice', rarity: 'rare', category: 'Tower Buff', description: 'Towers fire +8% faster per adjacent tower.', apply: (c) => { c.mods.adjacencyHaste += 0.08; } },
+  { id: 'detonation_cascade', name: 'Detonation Cascade', rarity: 'rare', category: 'Crits', description: 'SHRED detonates for AoE damage around the target.', apply: (c) => { c.mods.shredExplosion = true; } },
+  { id: 'apex_hunger', name: 'Apex Hunger', rarity: 'rare', category: 'Hero Buff', description: 'Each kill shaves 0.5s off Apex Leap.', apply: (c) => { c.mods.apexKillReset += 0.5; } },
+  { id: 'sanguine_coil', name: 'Sanguine Coil', rarity: 'rare', category: 'Survival', description: 'The hero heals 3 HP on every kill.', apply: (c) => { c.mods.heroLifestealOnKill += 3; } },
+  { id: 'twin_mortars', name: 'Twin Mortars', rarity: 'rare', category: 'AoE', description: 'Bone Mortar lobs a second shell at another cluster.', apply: (c) => { c.mods.mortarExtraShell += 1; } },
+  { id: 'volatile_decay', name: 'Volatile Decay', rarity: 'rare', category: 'AoE', description: 'Enemies rupture on death, damaging those around them.', apply: (c) => { c.mods.deathBurst = true; } },
+
+  { id: 'tar_membrane', name: 'Tar Membrane', rarity: 'common', category: 'Poison', description: 'Enemies are slowed while inside your defensive zone.', apply: (c) => { c.mods.lineSlow += 0.18; } },
+  { id: 'brittle_rot', name: 'Brittle Rot', rarity: 'common', category: 'Poison', description: 'Corroded enemies take +15% damage from all sources.', apply: (c) => { c.mods.corrodedAmp += 0.15; } },
+  { id: 'sprawling_roots', name: 'Sprawling Roots', rarity: 'common', category: 'Tower Buff', description: '+30% Flesh Reactor aura radius.', apply: (c) => { c.mods.reactorAuraRadiusMult *= 1.3; } },
+  { id: 'predator_instinct', name: 'Predator Instinct', rarity: 'common', category: 'Hero Buff', description: '+18% hero move speed.', apply: (c) => { c.mods.heroSpeedMult *= 1.18; } },
+  { id: 'barbed_needles', name: 'Barbed Needles', rarity: 'common', category: 'Crits', description: 'Needle Spitter applies +1 Fracture per hit.', apply: (c) => { c.mods.needleBonusFracture += 1; } },
+  { id: 'adrenal_surge', name: 'Adrenal Surge', rarity: 'common', category: 'Hero Buff', description: '+20% hero attack speed.', apply: (c) => { c.mods.heroAttackRateMult *= 1.2; } },
 ];
 
 const BY_RARITY: Record<CardRarity, CardDef[]> = {

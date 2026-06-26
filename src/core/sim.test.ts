@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { SIM_DT } from './config';
+import { CARD_POOL } from './cards';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
@@ -77,5 +78,29 @@ describe('simulation', () => {
 
   it('is fully deterministic for a fixed seed + strategy', () => {
     expect(autoplay(2024)).toEqual(autoplay(2024));
+  });
+
+  it('stays stable (finite, terminating) with every Gene Card applied at once', () => {
+    // Stacks all behavioral hooks simultaneously — bounce, spreads, cascades,
+    // death-pools/bursts, cleave/double-strike — and verifies nothing NaNs or hangs.
+    const game = new Game(99, NO_META);
+    for (const c of CARD_POOL) game.debugApplyCard(c.id);
+    let t = 0;
+    let guard = 0;
+    while (t < 200 && game.phase !== 'won' && game.phase !== 'lost' && guard++ < 200000) {
+      if (game.phase === 'draft') {
+        game.chooseCard(game.getSnapshot().draft![0].id);
+        continue;
+      }
+      if (game.phase === 'prep') {
+        placeSome(game, 4);
+        game.startWave();
+      }
+      game.advance(SIM_DT);
+      t += SIM_DT;
+    }
+    expect(Number.isFinite(game.integrity)).toBe(true);
+    expect(Number.isFinite(game.biomass)).toBe(true);
+    expect(game.waveIndex).toBeGreaterThanOrEqual(3);
   });
 });

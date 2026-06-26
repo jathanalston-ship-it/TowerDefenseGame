@@ -23,6 +23,7 @@ import {
 } from './map';
 import type { TowerSlot } from './map';
 import {
+  CARD_FX,
   ECON,
   ENEMY_DEFS,
   HERO,
@@ -409,7 +410,9 @@ export class Game {
       if (def.fireInterval <= 0) continue; // reactor: not a weapon
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
-      const rateMult = this.mods.towerFireRateMult * (t.overcharged ? 1 + ECON.overchargeRate : 1);
+      // Hive Lattice: +fire-rate for each neighbouring tower.
+      const adj = this.mods.adjacencyHaste > 0 ? this.adjacentTowerCount(t) : 0;
+      const rateMult = this.mods.towerFireRateMult * (1 + this.mods.adjacencyHaste * adj) * (t.overcharged ? 1 + ECON.overchargeRate : 1);
       const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
       if (t.kind === 'needle') {
         const focus = this.needleTarget(t, def.range);
@@ -417,13 +420,23 @@ export class Game {
         // All needles pour into the locked target — single-target burst & fast Fracture.
         const shots = 1 + this.mods.needleExtraProjectiles;
         for (let i = 0; i < shots; i++) {
-          this.spawnProjectile(t.x, t.y, focus.x, focus.y, def.projectileSpeed, focus.id, def.damage * dmgMult, 'needle', 0);
+          this.spawnProjectile(t.x, t.y, focus.x, focus.y, def.projectileSpeed, focus.id, def.damage * dmgMult, 'needle', 0, this.mods.needleBounce);
         }
         t.cooldown = def.fireInterval / rateMult;
       } else if (t.kind === 'mortar') {
-        const aim = this.mortarAim(t.x, t.y, def.range, def.splash * this.mods.splashRadiusMult);
-        if (!aim) continue;
-        this.spawnProjectile(t.x, t.y, aim.x, aim.y, def.projectileSpeed, -1, def.damage * dmgMult, 'mortar', def.splash * this.mods.splashRadiusMult);
+        const splash = def.splash * this.mods.splashRadiusMult;
+        const shells = 1 + this.mods.mortarExtraShell;
+        let fired = false;
+        for (let i = 0; i < shells; i++) {
+          const aim = this.mortarAim(t.x, t.y, def.range, splash);
+          if (!aim) break;
+          // fan extra shells slightly so their pools don't fully overlap
+          const off = i === 0 ? 0 : splash * 0.8;
+          const ang = i * 1.7;
+          this.spawnProjectile(t.x, t.y, aim.x + Math.cos(ang) * off, aim.y + Math.sin(ang) * off, def.projectileSpeed, -1, def.damage * dmgMult, 'mortar', splash);
+          fired = true;
+        }
+        if (!fired) continue;
         t.cooldown = def.fireInterval / rateMult;
       }
     }
@@ -496,7 +509,7 @@ export class Game {
    * of its biomass + overcharge. Refresh-based (re-stamped each tick they're inside).
    */
   private reactorAuraSystem(): void {
-    const R = ECON.reactorAuraRadius;
+    const R = ECON.reactorAuraRadius * this.mods.reactorAuraRadiusMult; // Sprawling Roots
     const R2 = R * R;
     const until = this.time + 0.18;
     for (const t of this.towers) {
@@ -507,6 +520,16 @@ export class Game {
         e.weakenUntil = until;
       });
     }
+  }
+
+  /** Count towers on lattice-adjacent slots (Hive Lattice fire-rate bonus). */
+  private adjacentTowerCount(t: Tower): number {
+    const slot = towerSlots[t.slot];
+    let n = 0;
+    for (const o of this.towers) {
+      if (o !== t && slotsAdjacent(slot, towerSlots[o.slot])) n++;
+    }
+    return n;
   }
 
   private projectileSystem(dt: number): void {
@@ -522,8 +545,9 @@ export class Game {
         const step = p.speed * dt;
         if (dist(p.x, p.y, p.tx, p.ty) <= step + 4) {
           this.applyDamage(target, p.damage);
-          this.addFracture(target, 1);
+          this.addFracture(target, 1 + this.mods.needleBonusFracture);
           this.maybeShred(target);
+          if (p.bounces > 0) this.bounceNeedle(p, target); // Ricochet Spores
           p.alive = false;
         } else {
           const np = moveToward(p.x, p.y, p.tx, p.ty, step);
@@ -678,6 +702,34 @@ export class Game {
     }
   }
 
+  /** Run-card effects that fire when an enemy dies (each guarded by its flag). */
+  private onKillCards(e: Enemy): void {
+    const m = this.mods;
+    const h = this.hero;
+    if (m.heroLifestealOnKill > 0 && !h.down) h.hp = Math.min(h.maxHp, h.hp + m.heroLifestealOnKill); // Sanguine Coil
+    if (m.apexKillReset > 0 && h.abilityCd > 0) h.abilityCd = Math.max(0, h.abilityCd - m.apexKillReset); // Apex Hunger
+    if (m.corrosionSpread && e.corrosion > 0) this.areaEffect(e, CARD_FX.corrosionSpreadRange, (o) => { o.corrosion = STATUS.corrosionDuration; }); // Viral Bloom
+    if (m.deathBurst) this.areaEffect(e, CARD_FX.deathBurstRadius, (o) => this.applyDamage(o, CARD_FX.deathBurstDamage)); // Volatile Decay
+    if (m.deathPools) {
+      this.pools.push({ // Acidic Remains
+        id: this.nextId++,
+        x: e.x,
+        y: e.y,
+        radius: CARD_FX.deathPoolRadius,
+        dps: CARD_FX.deathPoolDps * m.poolDpsMult,
+        remaining: CARD_FX.deathPoolDuration * m.mortarPoolDurationMult,
+      });
+    }
+  }
+
+  /** Apply a callback to every other live enemy within `range` of `e` (grid-local). */
+  private areaEffect(e: Enemy, range: number, fn: (o: Enemy) => void): void {
+    const r2 = range * range;
+    this.grid.forNeighbors(e.x, e.y, range, (o) => {
+      if (o.alive && o !== e && dist2(e.x, e.y, o.x, o.y) <= r2) fn(o);
+    });
+  }
+
   /**
    * Threat-prioritized movement. Each enemy blends, per its behavior profile:
    * seek toward the base (flow field, or a straight line for flyers/burrowers that
@@ -704,6 +756,7 @@ export class Game {
       const b = def.behavior;
       let slow = e.corrosion > 0 ? slowBase : 0;
       if (e.slowUntil > this.time) slow = Math.max(slow, ECON.reactorAuraSlow); // reactor aura
+      if (this.mods.lineSlow > 0 && e.y > DEFENSE_TOP_Y) slow = Math.max(slow, this.mods.lineSlow); // Tar Membrane
       slow = Math.min(0.85, slow);
       const step = e.speed * (1 - slow) * dt;
 
@@ -861,7 +914,7 @@ export class Game {
       goalX = h.rally.x;
       goalY = h.rally.y;
     }
-    const np = moveToward(h.x, h.y, goalX, goalY, HERO.speed * dt);
+    const np = moveToward(h.x, h.y, goalX, goalY, HERO.speed * this.mods.heroSpeedMult * dt);
     const mvx = np.x - h.x;
     const mvy = np.y - h.y;
     h.x = Math.max(0, Math.min(WIDTH, np.x));
@@ -879,7 +932,8 @@ export class Game {
     // ── Attack: hit the target, then cleave nearby chaff for a fraction. ──
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= HERO.attackRange + ENEMY_DEFS[target.kind].radius) {
       const dmg = HERO.attackDamage * this.mods.heroDamageMult;
-      this.applyDamage(target, dmg);
+      const strikes = 1 + this.mods.heroExtraStrikes; // Frenzy Glands
+      for (let s = 0; s < strikes; s++) this.applyDamage(target, dmg);
       this.addFracture(target, HERO.attackFracture);
       this.maybeShred(target);
       const cr2 = HERO.cleaveRadius * HERO.cleaveRadius;
@@ -893,7 +947,7 @@ export class Game {
           this.maybeShred(o);
         }
       }
-      h.attackCd = HERO.attackInterval;
+      h.attackCd = HERO.attackInterval / this.mods.heroAttackRateMult; // Adrenal Surge
       h.swing = HERO.swingTime;
       this.spawnParticles(target.x, target.y, PARTICLE.heroHit);
     }
@@ -950,6 +1004,7 @@ export class Game {
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         const split = ENEMY_DEFS[e.kind].split;
         if (split) this.spawnSplit(e, split); // Splitter: burst into children
+        this.onKillCards(e); // run-card on-death effects
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -975,21 +1030,41 @@ export class Game {
 
   private spawnProjectile(
     x: number, y: number, tx: number, ty: number, speed: number,
-    targetId: number, damage: number, kind: TowerKind, splash: number,
+    targetId: number, damage: number, kind: TowerKind, splash: number, bounces = 0,
   ): void {
     const p = this.projPool.pop();
     if (p) {
       p.id = this.nextId++;
       p.x = x; p.y = y; p.ox = x; p.oy = y; p.tx = tx; p.ty = ty; p.speed = speed;
-      p.targetId = targetId; p.damage = damage; p.kind = kind; p.splash = splash; p.alive = true;
+      p.targetId = targetId; p.damage = damage; p.kind = kind; p.splash = splash; p.bounces = bounces; p.alive = true;
       this.projectiles.push(p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, ox: x, oy: y, tx, ty, speed, targetId, damage, kind, splash, alive: true });
+      this.projectiles.push({ id: this.nextId++, x, y, ox: x, oy: y, tx, ty, speed, targetId, damage, kind, splash, bounces, alive: true });
     }
   }
 
   private releaseProjectile(p: Projectile): void {
     if (this.projPool.length < 256) this.projPool.push(p);
+  }
+
+  /** Ricochet a spent needle to the nearest other enemy (one fewer bounce). */
+  private bounceNeedle(p: Projectile, from: Enemy): void {
+    const R = CARD_FX.needleBounceRange;
+    const R2 = R * R;
+    let best: Enemy | null = null;
+    let bestD = Infinity;
+    this.grid.forNeighbors(from.x, from.y, R, (e) => {
+      if (!e.alive || e === from) return;
+      const d = dist2(from.x, from.y, e.x, e.y);
+      if (d <= R2 && d < bestD) {
+        bestD = d;
+        best = e;
+      }
+    });
+    if (best) {
+      const b = best as Enemy;
+      this.spawnProjectile(from.x, from.y, b.x, b.y, p.speed, b.id, p.damage, 'needle', 0, p.bounces - 1);
+    }
   }
 
   private particleSystem(dt: number): void {
@@ -1060,6 +1135,7 @@ export class Game {
     if (!e.alive) return;
     let mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.weakenUntil > this.time) mult += ECON.reactorWeaken; // reactor aura mark
+    if (e.corrosion > 0 && this.mods.corrodedAmp > 0) mult += this.mods.corrodedAmp; // Brittle Rot
     this.hurt(e, Math.max(1, raw * mult - this.effectiveArmor(e)));
   }
 
@@ -1084,10 +1160,18 @@ export class Game {
       const burst = STATUS.shredBase + STATUS.shredPerStack * e.fracture;
       this.hurt(e, burst); // true damage (ignores armor), but the shield still soaks it
       this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
-      e.fracture = 0;
+      e.fracture = 0; // consumed before any explosion -> cascade can't re-trigger on `e`
       e.shredFlash = STATUS.shredFlash;
       this.spawnParticles(e.x, e.y, PARTICLE.shred);
       this.floats.push({ x: e.x, y: e.y - 16, text: 'SHRED', color: '#fff066', life: 0.7 });
+      if (this.mods.shredExplosion) {
+        // Detonation Cascade — AoE around the shredded target.
+        const R2 = CARD_FX.shredExplosionRadius * CARD_FX.shredExplosionRadius;
+        this.grid.forNeighbors(e.x, e.y, CARD_FX.shredExplosionRadius, (o) => {
+          if (!o.alive || o === e || dist2(e.x, e.y, o.x, o.y) > R2) return;
+          this.applyDamage(o, CARD_FX.shredExplosionDamage);
+        });
+      }
     }
   }
 
