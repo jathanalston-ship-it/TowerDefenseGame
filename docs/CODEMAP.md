@@ -37,7 +37,8 @@ back as method calls (intents) on the `Game`.
 |---|---|
 | `src/core/` | The headless, deterministic simulation + content data. No DOM/React. |
 | `src/core/game.ts` | The `Game`: fixed-timestep tick, all systems (spawn, towers, projectiles, pools, status/reactions incl. Infection + Disruption, enemy steering, the hero roster's per-behavior AI, particles), run state. |
-| `src/core/config.ts` | **Central tunables + content data** — tower/enemy/**hero**/upgrade defs, waves, status (Fracture/Corrosion/Infection/Disruption)/economy/steering/perf constants. Balance lives here. |
+| `src/core/config.ts` | **Central tunables + content data** — tower/enemy/**hero**/upgrade defs, waves, status (Fracture/Corrosion/Infection/Disruption)/economy/steering/perf constants. Balance lives here. Each content type also **self-registers** into its `Registry` here, and the iteration lists (`TOWER_ORDER`, `HERO_ORDER`, `ENEMY_KINDS`, …) are derived from them. |
+| `src/core/registry.ts` | **Generic content `Registry<T>`** — the one mechanism every content type plugs into (towers/heroes/enemies/cards/upgrades/chests + future equipment/bosses/biomes). Self-registration (no hardcoded master lists), per-def validation, versioning (`CONTENT_VERSION`), alias-based save compatibility, and open registration for modding. |
 | `src/core/cards.ts` | Gene Cards: declarative `CardEffect[]` data + the single `applyCard()` interpreter. |
 | `src/core/map.ts` | The arena: grid, obstacles, the flow-field pathfinding, tower slots, spawn/goal. |
 | `src/core/types.ts` | Shared sim types (entities, enums, snapshots). |

@@ -44,6 +44,7 @@ export interface Enemy {
   alive: boolean;
   lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
   boss: BossRuntime | null; // present only for framework bosses (null for normal enemies)
+  elite: boolean; // director-promoted elite (buffed) — drives elite-priority targeting
 }
 
 /** Live state a framework boss carries on top of its enemy body (see boss.ts). */

@@ -6,6 +6,7 @@
 // assembly + the pure helpers. No React/DOM, no Math.random — assembly takes an rng.
 
 import type { EnemyKind } from './types';
+import { Registry } from './registry';
 
 export type BossChassis = 'bruiser' | 'artillery' | 'swarmlord' | 'controller' | 'juggernaut';
 
@@ -83,6 +84,14 @@ export const BOSS_DEFS: Record<string, BossDef> = {
     modifiers: ['regenerator'],
   },
 };
+
+// Authored bosses self-register (procedural bosses from `assembleBoss` are ephemeral,
+// so they aren't registered). Unifies bosses under the content-registry framework.
+export const bossRegistry = new Registry<BossDef>('boss', {
+  idOf: (d) => d.id,
+  validate: (d) => (d.hpMult > 0 ? [] : ['hpMult must be > 0']),
+});
+bossRegistry.registerAll(Object.values(BOSS_DEFS));
 
 const MODULE_POOL: BossModule[] = [
   { kind: 'spawner', cooldown: 5, amount: 4, addKind: 'runner' },

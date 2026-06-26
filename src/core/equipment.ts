@@ -11,6 +11,7 @@
 // catalogued with their descriptor and wire in incrementally — the pipeline is ready.
 
 import type { CardEffect } from './cards';
+import { Registry } from './registry';
 
 export type EquipSlot = 'weapon' | 'armor' | 'relic';
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary' | 'exotic';
@@ -168,6 +169,15 @@ export const RELICS: EquipDef[] = [
 ];
 
 export const ALL_ITEMS: EquipDef[] = [...WEAPONS, ...ARMOR, ...RELICS];
+
+// Equipment self-registers under the content-registry framework (lookups/validation/
+// modding flow through it; `itemDef` below stays as the fast id index the sim uses).
+export const equipmentRegistry = new Registry<EquipDef>('equipment', {
+  idOf: (d) => d.id,
+  validate: (d) => (d.base.length > 0 ? [] : ['item needs at least one base effect']),
+});
+equipmentRegistry.registerAll(ALL_ITEMS);
+
 const ITEM_BY_ID = new Map(ALL_ITEMS.map((d) => [d.id, d] as const));
 export function itemDef(id: string): EquipDef | undefined {
   return ITEM_BY_ID.get(id);

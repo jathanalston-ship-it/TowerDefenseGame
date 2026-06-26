@@ -4,6 +4,7 @@
 
 import type { CardOption, CardRarity } from './types';
 import type { Rng } from './rng';
+import { Registry } from './registry';
 
 /** The run "R bucket": multipliers/flags a run accumulates from drafted cards. */
 export interface RunModifiers {
@@ -124,9 +125,31 @@ export const CARD_POOL: CardDef[] = [
   { id: 'swarm_bounty', name: 'Swarm Bounty', rarity: 'rare', category: 'Economy', description: '+28% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.28 }] },
 ];
 
+/** Per-card invariants (shared with the registry's own `validate()`). */
+export function cardProblems(c: CardDef): string[] {
+  const out: string[] = [];
+  const mods = defaultRunModifiers() as unknown as Record<string, unknown>;
+  if (c.effects.length === 0) out.push('has no effects');
+  for (const e of c.effects) {
+    if ('value' in e && !Number.isFinite(e.value)) out.push('non-finite effect value');
+    if (e.op === 'mul' && e.value <= 0) out.push('multiplier must be > 0');
+    if ((e.op === 'mul' || e.op === 'add') && typeof mods[e.field] !== 'number') {
+      out.push(`'${e.field}' is not a numeric run modifier`);
+    }
+    if (e.op === 'flag' && typeof mods[e.field] !== 'boolean') {
+      out.push(`'${e.field}' is not a boolean run modifier`);
+    }
+  }
+  return out;
+}
+
+// Cards self-register; drafts sample the registry's ACTIVE (non-deprecated) entries.
+export const cardRegistry = new Registry<CardDef>('card', { idOf: (c) => c.id, validate: cardProblems });
+cardRegistry.registerAll(CARD_POOL);
+
 const BY_RARITY: Record<CardRarity, CardDef[]> = {
-  common: CARD_POOL.filter((c) => c.rarity === 'common'),
-  rare: CARD_POOL.filter((c) => c.rarity === 'rare'),
+  common: cardRegistry.active().filter((c) => c.rarity === 'common'),
+  rare: cardRegistry.active().filter((c) => c.rarity === 'rare'),
 };
 
 const RARE_CHANCE = 0.32;

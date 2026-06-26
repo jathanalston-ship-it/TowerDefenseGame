@@ -1,14 +1,34 @@
 // Content validation — logical invariants the type system can't express (positive
 // vitals, sane costs, non-degenerate multipliers). TypeScript already guarantees
-// ID/key consistency (typed unions + exhaustive Records), so this targets authoring
-// mistakes that would otherwise surface as subtle gameplay bugs as content scales to
-// hundreds of towers / cards / enemies. Pure (no DOM/state) and parameterized so it
-// also covers future data-loaded content, not just the built-in registries.
+// ID/key consistency, so this targets authoring mistakes that surface as subtle
+// gameplay bugs as content scales to hundreds of towers / cards / enemies.
+//
+// Two entry points:
+//   • validateContent(reg)  — array-based; validates a supplied (or default) content
+//     set. Kept stable for tests and ad-hoc checks.
+//   • validateAllContent()  — registry-driven; runs every registry's own validator
+//     plus CROSS-registry checks (e.g. waves only reference registered enemies). This
+//     is the dev-boot check and the one that scales as content self-registers.
+//
+// The per-def invariants live with their content (config.ts / cards.ts) so there is a
+// single source of truth shared by both entry points and the registries themselves.
 
-import { ENEMY_DEFS, META_UPGRADES, TOWER_DEFS, WAVES } from './config';
+import {
+  WAVES,
+  enemyProblems,
+  towerProblems,
+  upgradeProblems,
+  enemyRegistry,
+  towerRegistry,
+  heroRegistry,
+  upgradeRegistry,
+  chestRegistry,
+} from './config';
 import type { EnemyDef, TowerDef, UpgradeDef, WaveDef } from './config';
-import { CARD_POOL, defaultRunModifiers } from './cards';
+import { cardProblems, cardRegistry } from './cards';
 import type { CardDef } from './cards';
+import { bossRegistry } from './boss';
+import { equipmentRegistry } from './equipment';
 
 export interface ContentRegistries {
   enemies: EnemyDef[];
@@ -20,68 +40,59 @@ export interface ContentRegistries {
 
 function defaultRegistries(): ContentRegistries {
   return {
-    enemies: Object.values(ENEMY_DEFS),
-    towers: Object.values(TOWER_DEFS),
+    enemies: enemyRegistry.all(),
+    towers: towerRegistry.all(),
     waves: WAVES,
-    cards: CARD_POOL,
-    upgrades: META_UPGRADES,
+    cards: cardRegistry.all(),
+    upgrades: upgradeRegistry.all(),
   };
 }
 
-/** Returns a list of content problems (empty = valid). */
-export function validateContent(reg: ContentRegistries = defaultRegistries()): string[] {
-  const problems: string[] = [];
-  const bad = (msg: string): void => void problems.push(msg);
-
-  for (const d of reg.enemies) {
-    if (d.hp <= 0) bad(`enemy '${d.kind}': hp must be > 0`);
-    if (d.speed <= 0) bad(`enemy '${d.kind}': speed must be > 0`);
-    if (d.radius <= 0) bad(`enemy '${d.kind}': radius must be > 0`);
-    if (d.armor < 0) bad(`enemy '${d.kind}': armor must be >= 0`);
-  }
-
-  for (const d of reg.towers) {
-    if (d.cost < 0) bad(`tower '${d.kind}': cost must be >= 0`);
-    // Projectile firings need somewhere to aim and something to fly; 'field' towers
-    // pulse in-range with no projectile (range only); 'support' needs neither.
-    const projectileBased = d.firing === 'homing' || d.firing === 'splash' || d.firing === 'infest';
-    if (projectileBased) {
-      if (d.range <= 0) bad(`tower '${d.kind}': a projectile tower needs range > 0`);
-      if (d.projectileSpeed <= 0) bad(`tower '${d.kind}': a projectile tower needs projectileSpeed > 0`);
-    }
-    if (d.firing === 'field' && d.range <= 0) bad(`tower '${d.kind}': a field tower needs range > 0`);
-  }
-
-  reg.waves.forEach((wave, w) => {
-    if (wave.length === 0) bad(`wave ${w + 1}: has no spawn groups`);
+/** Validate timing/structure of the wave scripts (shared by both entry points). */
+function waveProblems(waves: WaveDef[]): string[] {
+  const out: string[] = [];
+  waves.forEach((wave, w) => {
+    if (wave.length === 0) out.push(`wave ${w + 1}: has no spawn groups`);
     for (const g of wave) {
-      if (g.count <= 0) bad(`wave ${w + 1}: group '${g.kind}' count must be > 0`);
-      if (g.spacing < 0 || g.delay < 0) bad(`wave ${w + 1}: group '${g.kind}' has negative timing`);
+      if (g.count <= 0) out.push(`wave ${w + 1}: group '${g.kind}' count must be > 0`);
+      if (g.spacing < 0 || g.delay < 0) out.push(`wave ${w + 1}: group '${g.kind}' has negative timing`);
     }
   });
+  return out;
+}
 
-  // Cards mutate RunModifiers — verify each effect targets a field of the right type
-  // and that magnitudes are sane (a 0x multiplier would wipe a stat).
-  const mods = defaultRunModifiers() as unknown as Record<string, unknown>;
-  for (const c of reg.cards) {
-    if (c.effects.length === 0) bad(`card '${c.id}': has no effects`);
-    for (const e of c.effects) {
-      if ('value' in e && !Number.isFinite(e.value)) bad(`card '${c.id}': non-finite effect value`);
-      if (e.op === 'mul' && e.value <= 0) bad(`card '${c.id}': multiplier must be > 0`);
-      if ((e.op === 'mul' || e.op === 'add') && typeof mods[e.field] !== 'number') {
-        bad(`card '${c.id}': '${e.field}' is not a numeric run modifier`);
-      }
-      if (e.op === 'flag' && typeof mods[e.field] !== 'boolean') {
-        bad(`card '${c.id}': '${e.field}' is not a boolean run modifier`);
-      }
+/** Returns a list of content problems (empty = valid). Array-based; defaults to the
+ * registered content. The per-def checks are the same ones the registries run. */
+export function validateContent(reg: ContentRegistries = defaultRegistries()): string[] {
+  const problems: string[] = [];
+  for (const d of reg.enemies) for (const p of enemyProblems(d)) problems.push(`enemy '${d.kind}': ${p}`);
+  for (const d of reg.towers) for (const p of towerProblems(d)) problems.push(`tower '${d.kind}': ${p}`);
+  problems.push(...waveProblems(reg.waves));
+  for (const d of reg.cards) for (const p of cardProblems(d)) problems.push(`card '${d.id}': ${p}`);
+  for (const d of reg.upgrades) for (const p of upgradeProblems(d)) problems.push(`upgrade '${d.id}': ${p}`);
+  return problems;
+}
+
+/** Registry-driven validation: every registry's own validator + cross-registry
+ * invariants. This is what the dev boot runs, and what scales as content (towers,
+ * heroes, enemies, cards, …) self-registers — no hand-maintained checklist. */
+export function validateAllContent(): string[] {
+  const problems: string[] = [
+    ...towerRegistry.validate(),
+    ...enemyRegistry.validate(),
+    ...heroRegistry.validate(),
+    ...cardRegistry.validate(),
+    ...upgradeRegistry.validate(),
+    ...chestRegistry.validate(),
+    ...bossRegistry.validate(),
+    ...equipmentRegistry.validate(),
+    ...waveProblems(WAVES),
+  ];
+  // Cross-registry: a wave may only spawn enemies that actually exist in the registry.
+  WAVES.forEach((wave, w) => {
+    for (const g of wave) {
+      if (!enemyRegistry.has(g.kind)) problems.push(`wave ${w + 1}: references unknown enemy '${g.kind}'`);
     }
-  }
-
-  for (const u of reg.upgrades) {
-    if (u.maxLevel <= 0) bad(`upgrade '${u.id}': maxLevel must be > 0`);
-    if (u.baseCost <= 0) bad(`upgrade '${u.id}': baseCost must be > 0`);
-    if (u.costMult < 1) bad(`upgrade '${u.id}': costMult should be >= 1`);
-  }
-
+  });
   return problems;
 }

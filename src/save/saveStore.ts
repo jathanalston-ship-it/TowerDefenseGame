@@ -5,7 +5,7 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER } from '../core/config';
+import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER, heroRegistry } from '../core/config';
 import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
 import type { Loadout, OwnedItem } from '../core/equipment';
 
@@ -136,8 +136,9 @@ function withDefaults(data: SaveData): SaveData {
     heroShards: { ...d.heroShards, ...data.heroShards },
     heroStars: { ...d.heroStars, ...data.heroStars },
     heroMasteryXp: { ...d.heroMasteryXp, ...data.heroMasteryXp },
-    // Guard against a hand-edited/corrupt hero id so it can never crash makeHero().
-    selectedHero: HERO_ORDER.includes(data.selectedHero) ? data.selectedHero : d.selectedHero,
+    // Resolve the fielded hero through the registry (honors aliases for renamed ids)
+    // and fall back to the default if it's unknown — a corrupt/removed id can't crash.
+    selectedHero: (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero,
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {

@@ -3,6 +3,8 @@
 // Every value is an illustrative starting point for the vertical slice.
 
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
+import { Registry } from './registry';
+import type { TargetingProfile } from './targeting';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -37,6 +39,8 @@ export interface TowerDef {
   splash: number; // splash radius (0 = single target)
   color: string;
   blurb: string;
+  /** Targeting profile (data-driven). Omitted ⇒ 'closestToBase' (historical default). */
+  targeting?: TargetingProfile;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -112,7 +116,25 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
   },
 };
 
-export const TOWER_ORDER: TowerKind[] = ['needle', 'mortar', 'reactor', 'parasite', 'obelisk'];
+/** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
+export function towerProblems(d: TowerDef): string[] {
+  const out: string[] = [];
+  if (d.cost < 0) out.push('cost must be >= 0');
+  // Projectile firings need somewhere to aim + something to fly; 'field' pulses
+  // in-range (range only); 'support' needs neither.
+  const projectileBased = d.firing === 'homing' || d.firing === 'splash' || d.firing === 'infest';
+  if (projectileBased) {
+    if (d.range <= 0) out.push('a projectile tower needs range > 0');
+    if (d.projectileSpeed <= 0) out.push('a projectile tower needs projectileSpeed > 0');
+  }
+  if (d.firing === 'field' && d.range <= 0) out.push('a field tower needs range > 0');
+  return out;
+}
+
+// Towers self-register here; the iteration list is DERIVED (no hardcoded order array).
+export const towerRegistry = new Registry<TowerDef>('tower', { idOf: (d) => d.kind, validate: towerProblems });
+towerRegistry.registerAll(Object.values(TOWER_DEFS));
+export const TOWER_ORDER = towerRegistry.ids() as TowerKind[];
 
 // ── Enemies ───────────────────────────────────────────────────────────────
 /**
@@ -176,8 +198,19 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
   },
 };
 
-/** All enemy kinds, derived from the defs — the canonical list to iterate (stats, etc.). */
-export const ENEMY_KINDS = Object.keys(ENEMY_DEFS) as EnemyKind[];
+export function enemyProblems(d: EnemyDef): string[] {
+  const out: string[] = [];
+  if (d.hp <= 0) out.push('hp must be > 0');
+  if (d.speed <= 0) out.push('speed must be > 0');
+  if (d.radius <= 0) out.push('radius must be > 0');
+  if (d.armor < 0) out.push('armor must be >= 0');
+  return out;
+}
+
+// Enemies self-register; the canonical kind list to iterate (stats, spawns, …) is derived.
+export const enemyRegistry = new Registry<EnemyDef>('enemy', { idOf: (d) => d.kind, validate: enemyProblems });
+enemyRegistry.registerAll(Object.values(ENEMY_DEFS));
+export const ENEMY_KINDS = enemyRegistry.ids() as EnemyKind[];
 
 // Steering radii / cadence for enemy threat behaviour. Raw px (avoids a config<->map
 // import cycle; CELL is 40, so these are ~2.4 / ~2.2 cells).
@@ -398,7 +431,18 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
   },
 };
 
-export const HERO_ORDER: HeroKind[] = ['ravager', 'shepherd', 'overseer'];
+export function heroProblems(d: HeroDef): string[] {
+  const out: string[] = [];
+  if (d.maxHp <= 0) out.push('maxHp must be > 0');
+  if (d.speed < 0) out.push('speed must be >= 0');
+  if (d.ability.cooldown < 0) out.push('ability cooldown must be >= 0');
+  return out;
+}
+
+// Heroes self-register; the roster list is derived (no hardcoded order array).
+export const heroRegistry = new Registry<HeroDef>('hero', { idOf: (d) => d.kind, validate: heroProblems });
+heroRegistry.registerAll(Object.values(HERO_DEFS));
+export const HERO_ORDER = heroRegistry.ids() as HeroKind[];
 
 // ── Economy ───────────────────────────────────────────────────────────────
 export const ECON = {
@@ -461,6 +505,17 @@ export const META_UPGRADES: UpgradeDef[] = [
   { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
   { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
 ];
+
+export function upgradeProblems(d: UpgradeDef): string[] {
+  const out: string[] = [];
+  if (d.maxLevel <= 0) out.push('maxLevel must be > 0');
+  if (d.baseCost <= 0) out.push('baseCost must be > 0');
+  if (d.costMult < 1) out.push('costMult should be >= 1');
+  return out;
+}
+
+export const upgradeRegistry = new Registry<UpgradeDef>('upgrade', { idOf: (d) => d.id, validate: upgradeProblems });
+upgradeRegistry.registerAll(META_UPGRADES);
 
 // ── Tower progression: shards → stars, plus infinite mastery ────────────────
 // Per-tower permanent growth, kept SEPARATE from the global Shards economy:
@@ -539,6 +594,13 @@ export const CHESTS: Record<string, ChestDef> = {
   },
 };
 
+// Chests self-register; lookups (rollChest, chestForWave) resolve by id via the registry.
+export const chestRegistry = new Registry<ChestDef>('chest', {
+  idOf: (d) => d.id,
+  validate: (d) => (d.rolls > 0 ? [] : ['rolls must be > 0']),
+});
+chestRegistry.registerAll(Object.values(CHESTS));
+
 /** Default chest (debug / fallback). */
 export const RUN_CHEST = 'standard';
 
@@ -549,9 +611,11 @@ export function chestForWave(wave: number): string {
   return 'standard';
 }
 
-// Heroes that can receive hero shards (the three launch heroes — HEROES.md).
-export const HERO_IDS = ['ravager', 'shepherd', 'overseer'] as const;
-export const HERO_LABELS: Record<string, string> = { ravager: 'Ravager', shepherd: 'Shepherd', overseer: 'Overseer' };
+// Heroes that can receive hero shards — derived from the registry, not hand-listed.
+export const HERO_IDS: string[] = heroRegistry.ids();
+export const HERO_LABELS: Record<string, string> = Object.fromEntries(
+  heroRegistry.all().map((d) => [d.kind, d.name]),
+);
 
 // ── Boss framework (boss.ts) ────────────────────────────────────────────────
 export const BOSS = {
@@ -575,3 +639,13 @@ export const DIRECTOR = {
   // threat cost per archetype (cheaper = more of them in a wave)
   cost: { runner: 1, rusher: 1.2, brute: 3, burrower: 2.4, flyer: 2.2, tank: 4, tyrant: 20 } as Record<string, number>,
 };
+
+// ── Future content registry: biomes (framework only — no content yet) ────────
+// Towers/enemies/heroes/cards/upgrades/chests self-register above; bosses + equipment
+// own registries in their modules (boss.ts / equipment.ts). Biomes have no content yet,
+// so their registry stands ready for self-registration (STAGES.md / LIVING-HIVE.md).
+export interface BiomeDef {
+  id: string;
+  name: string;
+}
+export const biomeRegistry = new Registry<BiomeDef>('biome', { idOf: (d) => d.id });
