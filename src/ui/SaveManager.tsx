@@ -22,12 +22,12 @@ export function SaveManager(): JSX.Element {
 
   return (
     <div className="panel">
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>Save Data</div>
-      <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 6 }}>
+      <div className="panel-title">Save Data</div>
+      <div className="panel-sub">
         Stored in this browser (no account). Export a JSON backup, import it on another
         device, or restore a snapshot.
       </div>
-      <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 10 }}>
+      <div className="save-meta">
         Current: <b style={{ color: 'var(--gold)' }}>{save.shards}</b> shards · best wave{' '}
         {save.bestWave} · {save.totalRuns} runs
       </div>
@@ -51,20 +51,10 @@ export function SaveManager(): JSX.Element {
           ＋ Backup now
         </button>
       </div>
-      {msg && <div style={{ marginTop: 8, fontSize: 13, color: 'var(--muted)' }}>{msg}</div>}
+      {msg && <div className="save-msg">{msg}</div>}
       {backups.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div
-            style={{
-              fontSize: 12,
-              color: 'var(--muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: 4,
-            }}
-          >
-            Backups
-          </div>
+        <div className="save-backups">
+          <div className="eyebrow">Backups</div>
           {backups.map((b) => (
             <div className="shop-item" key={b.id}>
               <div className="info">
