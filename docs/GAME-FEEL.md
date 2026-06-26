@@ -1,0 +1,133 @@
+# GAME-FEEL.md — Juice Audit & Feedback Systems
+
+A full audit of game-feel opportunities, prioritized by **dopamine ROI**
+(frequency × intensity). Builds on `STYLE-GUIDE.md`, `READABILITY.md`,
+`PLACEHOLDER-ART.md`; grounded in the current renderer (`pulse()`, pooled
+particles, `PARTICLE`/`PERF`, base heartbeat, hive tendrils, pressure vignette,
+floating texts). No code — why / visual / audio per item.
+
+> **Two facts that shape everything below:**
+> 1. **There is no audio system yet** — every "Audio" rec is greenfield. The
+>    recommended foundation is a **procedural Web Audio layer** (synthesized SFX),
+>    which fits the asset-free ethos (STYLE-GUIDE §13) and is live-service
+>    re-themeable. Tiny samples can be swapped in later per channel.
+> 2. **Juice serves readability, never fights it** (READABILITY): every effect is
+>    capped, pooled, aggregated, and respects reduce-motion. Spectacle that buries
+>    a 200-enemy swarm is a bug, not juice.
+
+---
+
+## 1. Philosophy
+
+Game feel is **compounding micro-feedback**: every action gets an
+*anticipation → impact → reward → escalation* response across **motion, color,
+sound, and time**. Dopamine comes from (a) **high-frequency** small hits
+(every kill, every coin) and (b) **variable-ratio spikes** (crits, legendaries).
+Design for both: a constant satisfying hum + occasional fireworks.
+
+**Build these four foundational systems first — they power most of the list:**
+
+| System | What it is | Powers |
+|---|---|---|
+| **Trauma-based screen shake** | a 0–1 "trauma" accumulator; shake = trauma²·max, decays ~1.5/s | hits, crits, breaches, boss, prestige |
+| **Procedural Web Audio SFX layer** | synthesized, pooled, voice-stolen, ducked | *every* item below |
+| **Floating-number pool + aggregation** | one rising number per target per ~120ms | damage numbers, crits, resources |
+| **Hit-stop / freeze-frame** | 30–90ms global pause on big impacts | crits, boss hits, kills, legendary |
+
+---
+
+## 2. The audit (prioritized by dopamine ROI)
+
+### ⭐ P0 — Resource collection feedback *(highest ROI: fires every kill)*
+- **Why:** the economy loop is the game's heartbeat; *seeing and hearing* biomass flow to you is the single most reliable dopamine source (Vampire Survivors / Diablo gold). Currently a silent number tick — a huge missed opportunity.
+- **Visual:** on kill, emit **biomass motes** that **arc to the HUD biomass counter** (or hive core), counter does a **scale-pop + count-up** with a brief glow; kill-streaks spawn more motes; elite/boss = a shower. (Ties into Death §below — the death dissolve *becomes* the motes = assimilation.)
+- **Audio:** a bright "blip" per pickup with **ascending pitch on streaks** (the peggle/VS escalation — *the* dopamine lever); when many land at once, collapse into one "shimmer" voice to avoid noise.
+
+### ⭐ P0 — Hit effects *(fires every projectile)*
+- **Why:** confirms every hit *connected* — closes the action→feedback loop and makes combat feel physical instead of "numbers quietly dropping."
+- **Visual:** **impact spark** at contact (small class-tinted starburst), **target flinch** (2-frame squash + 60ms white flash), a micro-knockback nudge against the flow; AoE/pierce show a thin shock ring. Gate flinch/spark behind the LOD `detail` flag.
+- **Audio:** a short percussive per class (Kinetic sharp *tick*, Caustic wet *splat*, Viral *squelch*), pitch-varied ±10%, **voice-pooled** (cap ~8 concurrent; aggregate beyond).
+
+### ⭐ P0 — Screen shake
+- **Why:** the brain reads camera motion as force — it makes impacts *felt*. Scaled by event size, it's the connective tissue of weight across the whole game.
+- **Visual:** trauma per event (small hit 0.08, crit 0.25, mortar impact 0.2, breach 0.4, boss stomp 0.6, prestige 1.0); shake translates the **camera/canvas**, optional directional kick toward impact; **hard cap** + a user "Screen Shake %" slider; **off under reduce-motion**.
+- **Audio:** pair shake with **low-end** — bigger trauma → deeper sub-boom; this is what makes shake feel like impact, not jitter.
+
+### ⭐ P1 — Critical hit effects *(the variable-ratio spike)*
+- **Why:** crits are combat's jackpot; they must feel *disproportionately* good to drive the "one more wave" pull.
+- **Visual:** **bigger, brighter gold (or pair-colored) number** with an over-pop; a burst spark; **hit-stop 40–80ms** on the crit; extra trauma; big crits add a quick **zoom-punch**. Reactions (Shred/Plague…) are "super-crits" — already have the SHRED flash+float; extend with hit-stop + stinger.
+- **Audio:** a distinct rising **"ching"** with body + sub; rarer mega-crits layer a short stinger.
+
+### ⭐ P1 — Death animations *(the kill payoff)*
+- **Why:** the kill is the reward; it must *confirm* and *satisfy*, and on-theme it's **assimilation** (you consume the dead).
+- **Visual:** quick **scale-pop → implode**, **faction-tinted dissolve** into motes (`PARTICLE.death` exists) that are **drawn toward the hive core/HUD** = biomass (unifies Death + Resource feedback). Boss death = **slow-mo + big burst + shockwave ring + screen flash**.
+- **Audio:** wet organic **"pop/squelch"** scaled by enemy size; boss death = layered crunch + boom + brief riser.
+
+### ⭐ P1 — Damage numbers
+- **Why:** "numbers go up" is foundational dopamine *and* information — but uncontrolled, it's clutter that violates readability.
+- **Visual:** pooled floats; **aggregate per target over ~120ms** (one growing number, not 30 from a fast tower); **size scales with magnitude**; color by type (normal off-white, **crit gold**, reaction pair-color, DoT small/dim, Shred yellow — already used); arc up + fade. **Number-LOD:** in a huge swarm, show only crits/reactions. Player toggle (off / crits-only / all).
+- **Audio:** numbers ride the hit SFX (no extra voice); a giant number can tick a soft count-up.
+
+### ⭐ P1 — Card selection feedback
+- **Why:** drafting is a *decision* dopamine beat (anticipation → choice → commitment); juice makes the build feel authored, not clicked.
+- **Visual:** cards **deal in** with a staggered slide/flip; **rarity shimmer/foil** (Exotic prismatic, STYLE-GUIDE §5); hover = lift + tilt + glow; **select = chosen card pulls forward and flares its category color while the others dissolve**, then a confirm burst + a 0.5s **preview of the effect on the battlefield**.
+- **Audio:** per-card deal *whoosh*, hover *tick*, **select = a satisfying *thunk* + a rarity riser** (higher rarity = bigger riser), confirm chord.
+
+### ⭐ P1 — Loot opening feedback
+- **Why:** the **meta dopamine engine** — must stay thrilling after hundreds of opens.
+- See the dedicated deep design: **`LOOTBOX.md`** (camera, reveal sequence, rarity ceremony, dupes, legendary moments).
+
+### ⭐ P2 — Star upgrade feedback
+- **Why:** the progression "ding" — a milestone that must feel earned and celebratory.
+- **Visual:** the star **fills with a burst** (pop + radial flare in class color); the card flashes; on the battlefield the unit **pulses and emits an evolution ring** (ties to the "grown" theme — `LIVING-HIVE.md` — and STYLE-GUIDE §11 progression glow). Milestone stars (★5/★8/★10) trigger a **silhouette-change flourish**.
+- **Audio:** ascending **power-up chime**, pitch climbing with the star number; **★10 = a triumphant stinger**.
+
+### ⭐ P2 — Prestige feedback *(the biggest single moment)*
+- **Why:** prestige is the apex payoff (reset → permanent power); it must feel **monumental** — an ascension — or players won't want to do it.
+- **Visual:** a full-screen **ascension sequence** — the hive core swells, a wave of assimilation-light washes outward, the **palette shifts toward the prestige/prismatic treatment** (STYLE-GUIDE §11), currency rains, and the **new-mechanic reveal** presents as a hero card. Trauma builds then releases. **Skippable after first view.**
+- **Audio:** a long **riser → boom → choir/synth pad**, a "transcended" stinger, and a **new music layer** added for that prestige tier (so the soundtrack itself escalates with progression).
+
+### ⭐ P2 — Projectile trails *(polish + legibility)*
+- **Why:** speed sensation + readability (READABILITY tier 6) — trails make fast shots trackable and satisfying.
+- **Visual:** short **class-tinted fading trail** (segment streak or gradient); Kinetic = thin sharp, Caustic = thick wobbly glob trail; **muzzle flash** at origin + **impact puff** at end; obey the size floor/cap. Skip trails under LOD.
+- **Audio:** keep mostly silent (every shot = noise); optional very-quiet pooled *fwip*, or only on the first shot of a burst.
+
+---
+
+## 3. Priority matrix
+
+| Item | Frequency | Intensity | Effort | Build order |
+|---|---|---|---|---|
+| Resource motes + audio | every kill | med | M | **1** |
+| Hit effects + SFX | every shot | low-med | M | **2** |
+| Screen shake | many events | med-high | S | **3** |
+| Crit + hit-stop | frequent | **high** | S | **4** |
+| Death dissolve→assimilation | every kill | med | S | **5** |
+| Damage numbers (aggregated) | constant | med | M | 6 |
+| Card selection juice | per draft | med | M | 7 |
+| Star upgrade | per session | high | S | 8 |
+| Prestige | per layer | **very high** | M | 9 |
+| Loot opening | per session | **very high** | L | see LOOTBOX |
+| Projectile trails | every shot | low | S | 10 |
+
+Items 1–5 (all S/M) deliver the **constant combat hum**; 8–9 + loot are the
+**rare fireworks**. Ship the hum first.
+
+---
+
+## 4. Discipline — juice without chaos
+
+- **Caps & pooling everywhere:** shake cap, hit-stop cap (never chain), particle/voice pools (reuse the existing `PERF`/`PARTICLE` budgets); audio voice-stealing mirrors particle recycling.
+- **Aggregate, don't spam:** damage numbers and resource pickups *merge* under load.
+- **LOD juice:** the same `detail` flag that culls embellishments culls sparks/flinch/trails first; crits/reactions/boss FX are LOD-immune.
+- **Settings (live-service + accessibility):** Screen Shake %, Damage Numbers (off/crits/all), Reduce Motion (kills shake/hit-stop/idle sines), master + SFX + music volume, "fast feedback" mode for veterans (trims ceremony durations).
+- **Hit-stop is global but tiny** (≤90ms) and never stacks — it punctuates, it doesn't lag.
+
+---
+
+## 5. Audio system foundation (since none exists)
+
+- **Approach:** a small **Web Audio** module — synthesized SFX (oscillators + noise + envelopes) for an **asset-free, instantly re-themeable** layer; categories: *bio* (wet, organic — hive/death/growth), *kinetic* (sharp — hits/crits), *glitch* (enemies/Aberrations), *UI* (clean — cards/menus), *event* (risers/stingers — stars/prestige/loot).
+- **Mix discipline:** a master bus + SFX/music/UI sub-buses; **duck** SFX under stingers (crit/legendary); **voice cap** per category with stealing; pitch-randomize repeats to avoid machine-gun fatigue.
+- **Music:** an adaptive bio-industrial bed that **intensifies with pressure** (reuse the renderer's `pressure` value) and **gains a layer per prestige tier** — the soundtrack escalates with progression.
+- **The dopamine lever to nail first:** the **ascending-pitch resource/loot riser**. More than any visual, rising pitch = "good things are happening." It's cheap to synthesize and it's the backbone of the satisfying loop.
