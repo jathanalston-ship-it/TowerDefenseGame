@@ -148,4 +148,15 @@ describe('game modes', () => {
     expect(['won', 'lost']).toContain(g.phase);
     expect(g.totalWaves).toBe(12);
   });
+
+  it('elite spawns are buffed champions (the Wave Composer elite path)', () => {
+    const g = new Game(1, NO_META);
+    g.debugSpawn('runner', 1, false);
+    g.debugSpawn('runner', 1, true);
+    const normal = g.enemies.find((e) => !e.elite)!;
+    const elite = g.enemies.find((e) => e.elite)!;
+    expect(elite.maxHp).toBeGreaterThan(normal.maxHp); // buffed HP
+    expect(elite.damage).toBeGreaterThan(normal.damage); // buffed damage
+    expect(elite.bounty).toBeGreaterThan(normal.bounty); // richer reward
+  });
 });

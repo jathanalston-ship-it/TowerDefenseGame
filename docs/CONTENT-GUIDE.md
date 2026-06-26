@@ -160,13 +160,16 @@ biomes" goal updates its total automatically (`COLLECTION.md`).
 
 ---
 
-## Waves — `WAVES` (`config.ts`)
+## Waves — Wave Composer (`wavecomposer.ts`)
 
-A wave is a `WaveDef` = array of `SpawnGroup`s `{ kind, count, spacing, delay }`.
-Append a `WAVES` entry (or edit one) to script enemy composition; `TOTAL_WAVES`
-derives from the array length. Per-wave HP/bounty growth is `WAVE_HP_GROWTH` /
-`WAVE_BOUNTY_GROWTH`. Endless waves are generated procedurally
-(`generateEndlessWave`) and need no authoring.
+Waves are assembled by the data-driven **Wave Composer** (full guide:
+`WAVES.md`). A wave is a `WaveDef` = `WaveGroup[]` `{ kind, count, spacing, delay,
+elite? }`. Author exact waves as **scripted encounters** (`SCRIPTED_ENCOUNTERS`,
+e.g. the `CLASSIC_CAMPAIGN`), or roll them procedurally with
+`composeProceduralWave` shaped by a **theme** (`WAVE_THEMES`) and **elite/boss
+injections**. Per-mode difficulty is `waveDifficulty(mode, index, stageNumber)`.
+A new spawnable enemy just needs a `THREAT_COST` entry. Endless/Stage waves are
+generated procedurally (`stage.ts`) and need no authoring.
 
 ---
 

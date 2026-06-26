@@ -17,7 +17,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ECON, ENEMY_DEFS, HERO, PERF, TOWER_DEFS } from '../core/config';
+import { ECON, ELITE, ENEMY_DEFS, HERO, PERF, TOWER_DEFS } from '../core/config';
 import { DEFAULT_PALETTE } from '../core/biomes';
 import type { RenderState } from '../core/game';
 
@@ -756,6 +756,27 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
   }
 
   const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor
+
+  // Elite "champion": a pulsing gold halo + crown spikes so it reads instantly.
+  if (e.elite) {
+    const er = r * ELITE.radiusMult + 4;
+    const pulse = 0.5 + 0.5 * Math.sin(e.x * 0.05 + e.y * 0.05);
+    ctx.strokeStyle = `rgba(255, 208, 92, ${0.5 + pulse * 0.4})`;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(e.x, drawY, er, 0, Math.PI * 2);
+    ctx.stroke();
+    if (detail) {
+      ctx.fillStyle = `rgba(255, 208, 92, ${0.25 + pulse * 0.2})`;
+      for (let i = 0; i < 4; i++) {
+        const a = -Math.PI / 2 + (i / 4) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(e.x + Math.cos(a) * er, drawY + Math.sin(a) * er, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
   ctx.beginPath();
   ctx.arc(e.x, drawY, r, 0, Math.PI * 2);
   ctx.fillStyle = def.color;

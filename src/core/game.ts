@@ -37,6 +37,7 @@ import type { BiomeId, BiomePalette } from './biomes';
 import {
   CARD_FX,
   ECON,
+  ELITE,
   ENEMY_DEFS,
   HERO,
   PARTICLE,
@@ -46,11 +47,13 @@ import {
   STATUS,
   STEER,
   TOWER_DEFS,
-  TOTAL_WAVES,
-  WAVES,
-  WAVE_BOUNTY_GROWTH,
-  WAVE_HP_GROWTH,
 } from './config';
+import {
+  CLASSIC_CAMPAIGN,
+  CLASSIC_WAVE_COUNT,
+  waveDifficulty,
+} from './wavecomposer';
+import type { WaveGroup } from './wavecomposer';
 import {
   CARD_POOL,
   cardToOption,
@@ -79,6 +82,7 @@ interface QueuedSpawn {
   at: number; // sim-time to spawn
   hpMult: number;
   bountyMult: number;
+  elite: boolean;
 }
 
 export interface RenderState {
@@ -195,7 +199,7 @@ export class Game {
     } else {
       loadArena(CLASSIC_LAYOUT);
       this.biome = null;
-      this.totalWaves = TOTAL_WAVES;
+      this.totalWaves = CLASSIC_WAVE_COUNT;
     }
 
     this.mods = defaultRunModifiers();
@@ -300,6 +304,7 @@ export class Game {
           at: this.time + group.delay + i * group.spacing,
           hpMult,
           bountyMult,
+          elite: group.elite ?? false,
         });
       }
     }
@@ -308,30 +313,19 @@ export class Game {
     this.phase = 'wave';
   }
 
-  /** The spawn script for a 1-based wave index, per mode. */
-  private waveScript(index: number): readonly { kind: EnemyKind; count: number; spacing: number; delay: number }[] {
+  /** The composed wave (groups) for a 1-based wave index, per mode — all three
+   *  modes flow through the Wave Composer (scripted campaign / procedural). */
+  private waveScript(index: number): readonly WaveGroup[] {
     if (this.mode === 'endless') return generateEndlessWave(this.seed, index - 1, this.biome ?? 'wasteland');
     if (this.mode === 'stage' && this.stage) return this.stage.waves[index - 1] ?? [];
-    return WAVES[index - 1] ?? [];
+    return CLASSIC_CAMPAIGN[index - 1] ?? [];
   }
 
-  /** Per-wave HP/bounty growth, tuned per mode (the generators already scale the
-   *  COUNT, so stage/endless grow HP gently; classic keeps its authored curve). */
+  /** Per-wave HP/bounty growth — the Wave Composer owns the curves; the stage's
+   *  env-modifier HP mult is folded in here. */
   private waveScaling(index: number): { hpMult: number; bountyMult: number } {
-    const w = index - 1;
-    let hpMult: number;
-    let bountyMult: number;
-    if (this.mode === 'endless') {
-      hpMult = 1 + 0.06 * w;
-      bountyMult = 1 + 0.02 * w;
-    } else if (this.mode === 'stage') {
-      const sn = this.stage ? this.stage.stageNumber : 1;
-      hpMult = 1 + 0.06 * w + (sn - 1) * 0.05;
-      bountyMult = 1 + 0.03 * w;
-    } else {
-      hpMult = 1 + WAVE_HP_GROWTH * w;
-      bountyMult = 1 + WAVE_BOUNTY_GROWTH * w;
-    }
+    const sn = this.stage ? this.stage.stageNumber : 1;
+    const { hpMult, bountyMult } = waveDifficulty(this.mode, index, sn);
     return { hpMult: hpMult * this.stageMods.enemyHpMult, bountyMult };
   }
 
@@ -424,33 +418,36 @@ export class Game {
   private spawnSystem(): void {
     while (this.spawnQueue.length > 0 && this.spawnQueue[0].at <= this.time) {
       const q = this.spawnQueue.shift()!;
-      this.spawnOne(q.kind, q.hpMult, q.bountyMult);
+      this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite);
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
 
-  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number): void {
+  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const spawn = topSpawn(this.rng.next());
-    this.makeEnemyAt(kind, spawn.x, spawn.y, hpMult, bountyMult);
+    this.makeEnemyAt(kind, spawn.x, spawn.y, hpMult, bountyMult, elite);
   }
 
-  /** Construct + register one enemy (shared by top spawns and splits). */
-  private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number): void {
+  /** Construct + register one enemy (shared by top spawns and splits). An elite is
+   *  the same enemy with buffed stats + a flag the renderer reads (ELITE in config). */
+  private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number, elite = false): void {
     const def = ENEMY_DEFS[kind];
     this.seenEnemies.add(kind); // Codex discovery (the one choke point for every spawn)
-    const shield = def.shield ?? 0;
+    const eHp = elite ? ELITE.hpMult : 1;
+    const shield = (def.shield ?? 0) * eHp;
     this.enemies.push({
       id: this.nextId++,
       kind,
       x,
       y,
-      hp: def.hp * hpMult,
-      maxHp: def.hp * hpMult,
+      hp: def.hp * hpMult * eHp,
+      maxHp: def.hp * hpMult * eHp,
       baseArmor: def.armor,
       speed: def.speed * this.stageMods.enemySpeedMult,
-      bounty: def.bounty * bountyMult,
-      damage: def.damage,
+      bounty: def.bounty * bountyMult * (elite ? ELITE.bountyMult : 1),
+      damage: def.damage * (elite ? ELITE.damageMult : 1),
+      elite,
       fracture: 0,
       corrosion: 0,
       slowUntil: 0,
@@ -1275,10 +1272,9 @@ export class Game {
 
   // ── Debug API (driven by the debug panel; no effect on normal play) ──────
 
-  debugSpawn(kind: EnemyKind, count = 1): void {
-    const hpMult = 1 + WAVE_HP_GROWTH * Math.max(0, this.waveIndex - 1);
-    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * Math.max(0, this.waveIndex - 1);
-    for (let i = 0; i < count; i++) this.spawnOne(kind, hpMult, bountyMult);
+  debugSpawn(kind: EnemyKind, count = 1, elite = false): void {
+    const { hpMult, bountyMult } = this.waveScaling(Math.max(1, this.waveIndex));
+    for (let i = 0; i < count; i++) this.spawnOne(kind, hpMult, bountyMult, elite);
   }
 
   debugAddBiomass(n: number): void {

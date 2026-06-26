@@ -40,6 +40,8 @@ updated whenever a system lands.
 | Enemies (11 kinds + archetype hooks) | ✅ | `config.ts ENEMY_DEFS` | ENEMIES |
 | Bosses — `isBoss` data hook (Brood Tyrant) | 🟡 | `config.ts ENEMY_DEFS` | ENEMIES |
 | Status + SHRED reaction engine | ✅ | `game.ts`, `config.ts STATUS` | DESIGN |
+| Wave Composer (themes/elites/bosses/scripted) | ✅ | `core/wavecomposer.ts` | WAVES |
+| Elites (buffed champions) | ✅ | `wavecomposer.ts`, `config.ts ELITE` | WAVES |
 | Gene Cards — roguelite draft (30) | ✅ | `core/cards.ts`, `ui/DraftModal.tsx` | CARDS |
 | Procedural stage generation | ✅ | `core/stage.ts` | STAGES |
 | Biomes (5, data-driven theming) | ✅ | `core/biomes.ts`, `render/renderer.ts` | STAGES |
@@ -125,7 +127,7 @@ buckets, and six nested prestige layers — is specified in `PROGRESSION.md` but
 
 **Design corpus (forward-looking specs; "designed" unless this file says ✅):**
 `DESIGN` · `PROGRESSION` · `ROADMAP` · `STAGES` · `TOWERS` · `HEROES` · `ENEMIES`
-· `CARDS` · `EQUIPMENT` · `LIVING-HIVE` · `LOOTBOX`.
+· `CARDS` · `EQUIPMENT` · `WAVES` (✅ framework) · `LIVING-HIVE` · `LOOTBOX`.
 
 **Craft / quality docs:** `GAME-FEEL` · `HUD` · `READABILITY` · `STYLE-GUIDE` ·
 `VISUAL-AUDIT` · `PLACEHOLDER-ART` · `PLAYTEST-CHECKLIST`.

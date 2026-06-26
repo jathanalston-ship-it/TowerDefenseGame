@@ -13,7 +13,8 @@ import { BIOMES, BIOME_IDS } from './biomes';
 import type { BiomeId } from './biomes';
 import { COLS, DEFENSE_TOP_ROW, WIDTH, CELL } from './map';
 import type { EnemyKind } from './types';
-import type { WaveDef, SpawnGroup } from './config';
+import { THREAT_COST, composeProceduralWave } from './wavecomposer';
+import type { WaveDef, BossInjection } from './wavecomposer';
 
 // ── Environmental modifiers ──────────────────────────────────────────────────
 export interface StageMods {
@@ -114,11 +115,13 @@ export interface StageDef {
   waves: WaveDef[];
 }
 
-// Threat cost per spawnable archetype (drives the wave budget). Tyrant is reserved
-// for boss waves and never budget-rolled.
-const THREAT_COST: Partial<Record<EnemyKind, number>> = {
-  runner: 1, rusher: 1.3, flyer: 2.5, burrower: 2.5, brute: 3, spitter: 3, splitter: 3.5, mender: 4, warden: 5, tank: 6,
-};
+// The biome's weighted, spawnable (budget-rollable) pool — shared by Stage + Endless.
+function biomePool(biome: BiomeId): [EnemyKind, number][] {
+  const weights = BIOMES[biome].enemyWeights;
+  return (Object.keys(weights) as EnemyKind[])
+    .filter((k) => THREAT_COST[k] !== undefined)
+    .map((k) => [k, weights[k] as number]);
+}
 
 const SLOT_PATTERNS: SlotPattern[] = ['lattice', 'sparse', 'clustered', 'flanks'];
 
@@ -164,37 +167,26 @@ function generateSpawnZones(rng: Rng): SpawnZone[] {
   return zones;
 }
 
-/** Budget-built finite wave script weighted by the biome. */
+/** Budget-built finite wave script weighted by the biome, via the Wave Composer. */
 function generateWaves(rng: Rng, biome: BiomeId, stageNumber: number): WaveDef[] {
-  const weights = BIOMES[biome].enemyWeights;
-  const pool: [EnemyKind, number][] = (Object.keys(weights) as EnemyKind[])
-    .filter((k) => THREAT_COST[k] !== undefined)
-    .map((k) => [k, weights[k] as number]);
+  const pool = biomePool(biome);
   const waveCount = 7 + rng.int(4) + Math.floor(stageNumber / 4); // ~7–13+
   const waves: WaveDef[] = [];
   for (let w = 0; w < waveCount; w++) {
-    let budget = (8 + w * 4) * (1 + stageNumber * 0.12);
-    const counts = new Map<EnemyKind, number>();
-    let guard = 0;
-    while (budget > 1 && guard++ < 400) {
-      const kind = rng.pickWeighted(pool);
-      const cost = THREAT_COST[kind] as number;
-      if (cost > budget && counts.size > 0) break;
-      budget -= cost;
-      counts.set(kind, (counts.get(kind) ?? 0) + 1);
-    }
-    const groups: SpawnGroup[] = [];
-    let delay = 0.4;
-    for (const [kind, count] of counts) {
-      const spacing = THREAT_COST[kind]! < 2 ? 0.45 + rng.range(0, 0.2) : 0.9 + rng.range(0, 0.6);
-      groups.push({ kind, count, spacing, delay });
-      delay += 0.8 + rng.range(0, 1.2);
-    }
     // Mini-boss on the final wave of deeper stages.
-    if (w === waveCount - 1 && stageNumber >= 3) {
-      groups.push({ kind: 'tyrant', count: 1, spacing: 1, delay: 1.0 });
-    }
-    waves.push(groups);
+    const boss: BossInjection | undefined =
+      w === waveCount - 1 && stageNumber >= 3 ? { kind: 'tyrant', count: 1, spacing: 1, delay: 1.0 } : undefined;
+    waves.push(
+      composeProceduralWave(rng, {
+        pool,
+        budget: (8 + w * 4) * (1 + stageNumber * 0.12),
+        startDelay: 0.4,
+        fastSpacing: [0.45, 0.2],
+        slowSpacing: [0.9, 0.6],
+        delayStep: [0.8, 1.2],
+        boss,
+      }),
+    );
   }
   return waves;
 }
@@ -266,27 +258,17 @@ export function generateStage(seed: number, stageNumber: number): StageDef {
 // seed are identical, and the budget grows without bound (survival).
 export function generateEndlessWave(seed: number, index: number, biome: BiomeId): WaveDef {
   const rng = new Rng((seed ^ ((index + 1) * 0x85ebca77)) >>> 0);
-  const weights = BIOMES[biome].enemyWeights;
-  const pool: [EnemyKind, number][] = (Object.keys(weights) as EnemyKind[])
-    .filter((k) => THREAT_COST[k] !== undefined)
-    .map((k) => [k, weights[k] as number]);
-  let budget = 10 + index * 5 + index * index * 0.4; // accelerating
-  const counts = new Map<EnemyKind, number>();
-  let guard = 0;
-  while (budget > 1 && guard++ < 1000) {
-    const kind = rng.pickWeighted(pool);
-    const cost = THREAT_COST[kind] as number;
-    if (cost > budget && counts.size > 0) break;
-    budget -= cost;
-    counts.set(kind, (counts.get(kind) ?? 0) + 1);
-  }
-  const groups: SpawnGroup[] = [];
-  let delay = 0.3;
-  for (const [kind, count] of counts) {
-    const spacing = THREAT_COST[kind]! < 2 ? 0.35 + rng.range(0, 0.15) : 0.7 + rng.range(0, 0.5);
-    groups.push({ kind, count, spacing, delay });
-    delay += 0.6 + rng.range(0, 1.0);
-  }
-  if (index > 0 && index % 5 === 4) groups.push({ kind: 'tyrant', count: 1 + Math.floor(index / 15), spacing: 2, delay: 1.5 });
-  return groups;
+  // Boss surge every 5th wave (growing in number with depth).
+  const boss: BossInjection | undefined =
+    index > 0 && index % 5 === 4 ? { kind: 'tyrant', count: 1 + Math.floor(index / 15), spacing: 2, delay: 1.5 } : undefined;
+  return composeProceduralWave(rng, {
+    pool: biomePool(biome),
+    budget: 10 + index * 5 + index * index * 0.4, // accelerating
+    startDelay: 0.3,
+    fastSpacing: [0.35, 0.15],
+    slowSpacing: [0.7, 0.5],
+    delayStep: [0.6, 1.0],
+    boss,
+    guard: 1000,
+  });
 }

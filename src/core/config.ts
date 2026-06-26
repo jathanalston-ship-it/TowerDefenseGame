@@ -192,91 +192,19 @@ export const PARTICLE = {
   heroHit: { count: 5, speed: 110, life: 0.3, size: 2.2, color: '#ffe39a' },
 };
 
-// Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).
-export const WAVE_HP_GROWTH = 0.12; // +12% enemy HP per wave index
-export const WAVE_BOUNTY_GROWTH = 0.05;
+// Wave composition (groups, themes, injections, difficulty, scripted encounters)
+// lives in wavecomposer.ts — the data-driven Wave Composer framework. config.ts
+// keeps only the per-spawn ELITE buff, since it's applied at spawn time (game.ts).
 
-// ── Waves (threat-budget scripts) ─────────────────────────────────────────
-export interface SpawnGroup {
-  kind: EnemyKind;
-  count: number;
-  spacing: number; // seconds between spawns in this group
-  delay: number; // seconds before the group starts
-}
-export type WaveDef = SpawnGroup[];
-
-// Waves introduce the archetypes one at a time, then remix them so each demands a
-// different answer (Fast→front coverage, Tank/Shielded→focus fire, Splitter→AoE,
-// Regen→sustained/DoT, Ranged→protect the hero).
-export const WAVES: WaveDef[] = [
-  // 1 — Skitterling intro
-  [{ kind: 'runner', count: 8, spacing: 0.9, delay: 0.5 }],
-  // 2 — first Razor Sprinters (Fast)
-  [
-    { kind: 'runner', count: 10, spacing: 0.75, delay: 0.5 },
-    { kind: 'rusher', count: 3, spacing: 1.0, delay: 2.2 },
-  ],
-  // 3 — fast pressure
-  [
-    { kind: 'rusher', count: 6, spacing: 0.6, delay: 0.4 },
-    { kind: 'runner', count: 10, spacing: 0.6, delay: 1.6 },
-  ],
-  // 4 — first Carapace Warden (Shielded) behind brutes
-  [
-    { kind: 'brute', count: 3, spacing: 1.4, delay: 0.5 },
-    { kind: 'warden', count: 1, spacing: 1, delay: 3.0 },
-    { kind: 'runner', count: 8, spacing: 0.6, delay: 4.5 },
-  ],
-  // 5 — Knit Crawlers (Regen) in a swarm
-  [
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 0.4 },
-    { kind: 'mender', count: 2, spacing: 2.0, delay: 2.5 },
-  ],
-  // 6 — Brood Sacs (Splitter) + fast
-  [
-    { kind: 'rusher', count: 6, spacing: 0.6, delay: 0.4 },
-    { kind: 'splitter', count: 2, spacing: 2.6, delay: 2.0 },
-    { kind: 'runner', count: 8, spacing: 0.6, delay: 3.0 },
-  ],
-  // 7 — Bile Spitters (Ranged) behind a brute screen
-  [
-    { kind: 'brute', count: 5, spacing: 1.1, delay: 0.5 },
-    { kind: 'spitter', count: 3, spacing: 1.4, delay: 2.2 },
-  ],
-  // 8 — Wardens + swarm + fast
-  [
-    { kind: 'warden', count: 2, spacing: 2.2, delay: 0.5 },
-    { kind: 'runner', count: 14, spacing: 0.42, delay: 1.5 },
-    { kind: 'rusher', count: 4, spacing: 0.7, delay: 3.2 },
-  ],
-  // 9 — Menders + brutes + fast
-  [
-    { kind: 'mender', count: 3, spacing: 1.7, delay: 0.5 },
-    { kind: 'brute', count: 5, spacing: 1.0, delay: 2.0 },
-    { kind: 'rusher', count: 5, spacing: 0.6, delay: 3.6 },
-  ],
-  // 10 — Splitter wave
-  [
-    { kind: 'splitter', count: 4, spacing: 1.7, delay: 0.5 },
-    { kind: 'runner', count: 16, spacing: 0.4, delay: 2.2 },
-  ],
-  // 11 — Ranged + Shielded + brutes
-  [
-    { kind: 'spitter', count: 4, spacing: 1.3, delay: 0.5 },
-    { kind: 'warden', count: 2, spacing: 2.4, delay: 1.8 },
-    { kind: 'brute', count: 6, spacing: 0.9, delay: 3.2 },
-  ],
-  // 12 — Brood Tyrant finale + a taste of everything
-  [
-    { kind: 'tyrant', count: 1, spacing: 1, delay: 1.0 },
-    { kind: 'warden', count: 2, spacing: 2.0, delay: 2.0 },
-    { kind: 'splitter', count: 2, spacing: 2.6, delay: 3.5 },
-    { kind: 'spitter', count: 3, spacing: 1.5, delay: 5.0 },
-    { kind: 'runner', count: 16, spacing: 0.45, delay: 6.0 },
-  ],
-];
-
-export const TOTAL_WAVES = WAVES.length;
+// ── Elites ────────────────────────────────────────────────────────────────
+// An elite is a normal enemy spawned with buffed stats (the Wave Composer flags
+// which spawns are elite; these multipliers are applied in Game.makeEnemyAt).
+export const ELITE = {
+  hpMult: 2.4,
+  damageMult: 1.5,
+  bountyMult: 2.5,
+  radiusMult: 1.25, // bigger silhouette so elites read at a glance
+};
 
 // ── Status & reaction ─────────────────────────────────────────────────────
 export const STATUS = {

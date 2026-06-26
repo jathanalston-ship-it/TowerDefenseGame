@@ -36,6 +36,7 @@ export interface Enemy {
   speed: number; // px/sec at full speed
   bounty: number; // biomass on death
   damage: number; // integrity damage if it reaches the bottom edge (the line)
+  elite: boolean; // buffed "champion" spawn (Wave Composer elite injection)
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
