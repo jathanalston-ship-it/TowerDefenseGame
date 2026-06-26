@@ -117,6 +117,25 @@ the current task rather than re-deriving it from scratch.
   explicitly changed.
 - **Revisit a system only on evidence** it's actually wrong: a failing test, a
   reproduced bug, or a direct contradiction with the task.
+- **Extend, don't redesign.** The architecture is stable; change its shape only
+  on a _measurable_ scalability or performance problem, or a correctness issue —
+  otherwise extend the existing systems.
+
+---
+
+## 🔎 Targeted reading — inspect the minimum
+
+Before opening files, decide what's actually relevant and read only that. The
+repo is the cost surface for tokens and attention alike; traversing it wholesale
+is the waste this rule prevents.
+
+- **Name the likely-relevant files first**, then open only those.
+- **Don't recursively explore directories** or skim unrelated code "for
+  context."
+- **Read incrementally.** If a file turns out to be necessary, open it then — not
+  preemptively.
+- **Minimize traversal.** Prefer a targeted search (symbol, path) over walking
+  the tree; widen scope only when the task demonstrably needs it.
 
 ---
 
