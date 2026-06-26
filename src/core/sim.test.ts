@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { SIM_DT } from './config';
 import { CARD_POOL } from './cards';
+import { generateStage } from './stage';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
@@ -102,5 +103,54 @@ describe('simulation', () => {
     expect(Number.isFinite(game.integrity)).toBe(true);
     expect(Number.isFinite(game.biomass)).toBe(true);
     expect(game.waveIndex).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('game modes', () => {
+  function run(config: ConstructorParameters<typeof Game>[2], maxSeconds: number, perPrep: number) {
+    const game = new Game(4242, NO_META, config);
+    let t = 0;
+    let guard = 0;
+    while (t < maxSeconds && game.phase !== 'won' && game.phase !== 'lost' && guard++ < 500000) {
+      if (game.phase === 'draft') {
+        game.chooseCard(game.getSnapshot().draft![0].id);
+        continue;
+      }
+      if (game.phase === 'prep') {
+        placeSome(game, perPrep);
+        game.startWave();
+      }
+      game.advance(SIM_DT);
+      t += SIM_DT;
+    }
+    return game;
+  }
+
+  it('plays a generated Stage to a finite, deterministic conclusion', () => {
+    const stage = generateStage(4242, 3);
+    const summary = () => {
+      const g = run({ mode: 'stage', stage }, 600, 4);
+      return { phase: g.phase, total: g.totalWaves, result: g.getResult() };
+    };
+    const a = summary();
+    expect(['won', 'lost']).toContain(a.phase);
+    expect(a.total).toBe(stage.waves.length); // finite
+    expect(a.result.mode).toBe('stage');
+    expect(summary()).toEqual(a); // deterministic
+  });
+
+  it('endless mode is infinite (never "won") and produces a score', () => {
+    const g = run({ mode: 'endless', biome: 'wasteland' }, 90, 6);
+    expect(g.totalWaves).toBe(Infinity);
+    expect(g.phase).not.toBe('won'); // endless can only end in defeat
+    const r = g.getResult();
+    expect(r.mode).toBe('endless');
+    expect(r.score).toBeGreaterThan(0);
+  });
+
+  it('a classic run is unaffected by the mode plumbing', () => {
+    const g = run({ mode: 'classic' }, 600, 3);
+    expect(['won', 'lost']).toContain(g.phase);
+    expect(g.totalWaves).toBe(12);
   });
 });

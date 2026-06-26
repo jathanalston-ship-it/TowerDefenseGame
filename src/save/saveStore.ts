@@ -15,6 +15,11 @@ export interface SaveData {
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
+  // mode progression (added later — backfilled to 0 for old saves by normalizeSave)
+  stagesCleared: number;
+  bestStage: number;
+  bestEndlessScore: number;
+  bestEndlessWave: number;
 }
 
 export const CURRENT_VERSION = 1;
@@ -44,7 +49,10 @@ export interface StorageLike {
 }
 
 export function defaultSave(): SaveData {
-  return { shards: 0, upgrades: {}, bestWave: 0, totalRuns: 0, lifetimeShards: 0, cardsSeen: 0 };
+  return {
+    shards: 0, upgrades: {}, bestWave: 0, totalRuns: 0, lifetimeShards: 0, cardsSeen: 0,
+    stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+  };
 }
 
 /** Small, stable, non-cryptographic hash (djb2) for integrity detection. */
@@ -100,6 +108,10 @@ export function normalizeSave(raw: unknown): SaveData {
     totalRuns: nonNegInt(o.totalRuns),
     lifetimeShards: nonNegInt(o.lifetimeShards),
     cardsSeen: nonNegInt(o.cardsSeen),
+    stagesCleared: nonNegInt(o.stagesCleared),
+    bestStage: nonNegInt(o.bestStage),
+    bestEndlessScore: nonNegInt(o.bestEndlessScore),
+    bestEndlessWave: nonNegInt(o.bestEndlessWave),
   };
 }
 

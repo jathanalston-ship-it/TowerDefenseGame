@@ -142,8 +142,10 @@ export interface MetaModifiers {
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */
 export interface HudSnapshot {
   phase: Phase;
+  mode: 'classic' | 'stage' | 'endless';
   wave: number; // 1-based wave the player is on / just finished
-  totalWaves: number;
+  totalWaves: number; // Infinity in endless
+  biomeName: string | null;
   biomass: number;
   integrity: number;
   maxIntegrity: number;
@@ -153,6 +155,8 @@ export interface HudSnapshot {
   draft: CardOption[] | null;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
+  objective: { name: string; description: string; done: boolean } | null;
+  score: number; // endless score (0 otherwise)
 }
 
 export interface CardOption {

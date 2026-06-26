@@ -14,6 +14,7 @@ import { downloadText, readTextFile } from '../save/saveFile';
 import { ECON, META_UPGRADES } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type { MetaModifiers } from '../core/types';
+import type { RunResult } from '../core/game';
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -48,11 +49,7 @@ export function nextUpgradeCost(save: SaveData, def: UpgradeDef): number | null 
   return upgradeCost(def, level);
 }
 
-export interface RunResult {
-  wave: number;
-  kills: number;
-  won: boolean;
-}
+export type { RunResult };
 
 export interface RunReward {
   shardsEarned: number;
@@ -80,17 +77,42 @@ export const meta = {
     return true;
   },
 
+  /** Record a finished run. Each mode uses its OWN reward formula + records. */
   recordRun(result: RunResult): RunReward {
     const save = store.get();
-    const shardsEarned = Math.floor(result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill);
-    const newBest = result.wave > save.bestWave;
-    persist({
-      ...save,
-      shards: save.shards + shardsEarned,
-      lifetimeShards: save.lifetimeShards + shardsEarned,
-      bestWave: Math.max(save.bestWave, result.wave),
-      totalRuns: save.totalRuns + 1,
-    });
+    const next = { ...save };
+    let shardsEarned: number;
+    let newBest = false;
+
+    if (result.mode === 'endless') {
+      // Survival: depth-escalating payout; tracks a leaderboard score + best wave.
+      shardsEarned = Math.floor(result.wave * 5 * (1 + result.wave * 0.06) + result.kills * 0.25);
+      newBest = result.score > save.bestEndlessScore;
+      next.bestEndlessScore = Math.max(save.bestEndlessScore, result.score);
+      next.bestEndlessWave = Math.max(save.bestEndlessWave, result.wave);
+    } else if (result.mode === 'stage') {
+      // Completion: base × the stage's reward multiplier × objective bonus, with
+      // partial credit on a loss. A cleared stage advances the progression path.
+      const base = result.wave * 10 + result.kills * 0.5;
+      const objMult = result.objectiveDone ? 1 + result.objectiveBonus : 1;
+      const completion = result.won ? 1 : 0.4;
+      shardsEarned = Math.floor(base * result.rewardMultiplier * objMult * completion);
+      if (result.won) {
+        newBest = result.stageNumber > save.bestStage;
+        next.stagesCleared = save.stagesCleared + 1;
+        next.bestStage = Math.max(save.bestStage, result.stageNumber);
+      }
+    } else {
+      // Classic: the original wave + kills payout.
+      shardsEarned = Math.floor(result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill);
+      newBest = result.wave > save.bestWave;
+      next.bestWave = Math.max(save.bestWave, result.wave);
+    }
+
+    next.shards = save.shards + shardsEarned;
+    next.lifetimeShards = save.lifetimeShards + shardsEarned;
+    next.totalRuns = save.totalRuns + 1;
+    persist(next);
     return { shardsEarned, newBest };
   },
 

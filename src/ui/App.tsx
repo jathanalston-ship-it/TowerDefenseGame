@@ -6,6 +6,7 @@ import { DebugPanel } from './DebugPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import type { RunResult, RunReward } from '../state/meta';
+import type { GameConfig } from '../core/game';
 import type { MetaModifiers } from '../core/types';
 
 type Screen = 'menu' | 'playing' | 'results';
@@ -15,10 +16,12 @@ export function App(): JSX.Element {
   const [last, setLast] = useState<{ result: RunResult; reward: RunReward } | null>(null);
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
+  const configRef = useRef<GameConfig>({ mode: 'classic' });
 
-  const startRun = useCallback(() => {
+  const startRun = useCallback((config: GameConfig = { mode: 'classic' }) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     modsRef.current = metaModifiers(meta.get());
+    configRef.current = config;
     setScreen('playing');
   }, []);
 
@@ -36,7 +39,7 @@ export function App(): JSX.Element {
     <div className="app">
       {screen === 'menu' && <MainMenu onStart={startRun} />}
       {screen === 'playing' && (
-        <GameView seed={seedRef.current} mods={modsRef.current} onEnd={handleEnd} />
+        <GameView seed={seedRef.current} mods={modsRef.current} config={configRef.current} onEnd={handleEnd} />
       )}
       {screen === 'results' && last && (
         <Results result={last.result} reward={last.reward} onContinue={toMenu} />

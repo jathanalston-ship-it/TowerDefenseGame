@@ -8,20 +8,32 @@ import { dist, dist2, moveToward } from './math';
 import { SpatialGrid } from './spatial';
 import {
   CELL,
+  CLASSIC_LAYOUT,
   DEFENSE_TOP_Y,
   HEIGHT,
   REACH_Y,
   WIDTH,
   flowDirAt,
   goalDistanceAt,
+  loadArena,
   nucleusPoint,
   reachedBottom,
   slotAt,
   slotsAdjacent,
+  spawnSegments,
   topSpawn,
   towerSlots,
 } from './map';
 import type { TowerSlot } from './map';
+import {
+  defaultStageMods,
+  envModifier,
+  generateEndlessWave,
+  generateStage,
+} from './stage';
+import type { StageDef, StageMods, StageObjective, SpawnZone } from './stage';
+import { BIOMES, DEFAULT_PALETTE } from './biomes';
+import type { BiomeId, BiomePalette } from './biomes';
 import {
   CARD_FX,
   ECON,
@@ -85,18 +97,42 @@ export interface RenderState {
   time: number; // sim seconds — drives presentation pulses/animation
   integrity: number;
   maxIntegrity: number;
+  // biome theming (renderer reads these instead of hardcoded colors)
+  palette: BiomePalette;
+  lighting: number;
+  ambient: { motes: number; fog: number; pulse: number };
+  spawnZones: readonly SpawnZone[];
+  rangeMult: number; // tower range mult (Dense Fog etc.) for the placement preview
+}
+
+export type GameMode = 'classic' | 'stage' | 'endless';
+
+export interface GameConfig {
+  mode: GameMode;
+  stage?: StageDef; // required for 'stage'
+  biome?: BiomeId; // optional starting biome for 'endless'
 }
 
 export class Game {
+  readonly mode: GameMode;
+  readonly stage: StageDef | null;
+  readonly biome: BiomeId | null;
   phase: Phase = 'prep';
   waveIndex = 0; // waves started/cleared so far
-  readonly totalWaves = TOTAL_WAVES;
+  totalWaves: number; // finite for classic/stage; Infinity for endless
   biomass: number;
   integrity: number;
   maxIntegrity: number;
   kills = 0;
   unlockedSlots = SLOTS.initialUnlocked; // raised by future upgrades
   time = 0;
+  // objective / scoring tracking
+  leaks = 0; // enemies that breached the line
+  apexUses = 0; // Apex Leap activations
+  towersBuilt = 0;
+
+  private stageMods: StageMods;
+  private readonly seed: number;
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
@@ -131,17 +167,41 @@ export class Game {
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
 
-  constructor(seed: number, meta: MetaModifiers) {
+  constructor(seed: number, meta: MetaModifiers, config: GameConfig = { mode: 'classic' }) {
+    this.seed = seed >>> 0;
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
+    this.mode = config.mode;
+    this.stage = config.stage ?? null;
+    this.stageMods = defaultStageMods();
+
+    // ── Configure the arena, biome, wave source and stage modifiers per mode. ──
+    if (this.mode === 'stage' && this.stage) {
+      loadArena(this.stage.layout);
+      this.biome = this.stage.biome;
+      for (const id of this.stage.mods) envModifier(id)?.apply(this.stageMods);
+      this.totalWaves = this.stage.waves.length;
+    } else if (this.mode === 'endless') {
+      // Reuse the modular generator for a coherent arena + biome; waves are
+      // generated per-index for unbounded escalation (no env modifiers).
+      const base = generateStage(this.seed, 1);
+      loadArena(base.layout);
+      this.biome = config.biome ?? base.biome;
+      this.totalWaves = Infinity;
+    } else {
+      loadArena(CLASSIC_LAYOUT);
+      this.biome = null;
+      this.totalWaves = TOTAL_WAVES;
+    }
+
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
     this.mods.towerDamageMult = meta.towerDamageMult;
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
-    this.maxIntegrity = ECON.baseIntegrity + meta.integrityBonus;
+    this.maxIntegrity = Math.round((ECON.baseIntegrity + meta.integrityBonus) * this.stageMods.integrityMult);
     this.integrity = this.maxIntegrity;
-    this.biomass = ECON.startingBiomass;
+    this.biomass = ECON.startingBiomass + this.stageMods.startBiomassBonus;
     this.hero = {
       x: nucleusPoint.x,
       y: nucleusPoint.y,
@@ -210,6 +270,7 @@ export class Game {
       cooldown: 0,
       overcharged: false,
     });
+    this.towersBuilt++;
     return true;
   }
 
@@ -220,11 +281,10 @@ export class Game {
 
   startWave(): void {
     if (this.phase !== 'prep') return;
-    if (this.waveIndex >= TOTAL_WAVES) return;
+    if (this.waveIndex >= this.totalWaves) return;
     this.waveIndex++;
-    const def = WAVES[this.waveIndex - 1];
-    const hpMult = 1 + WAVE_HP_GROWTH * (this.waveIndex - 1);
-    const bountyMult = 1 + WAVE_BOUNTY_GROWTH * (this.waveIndex - 1);
+    const def = this.waveScript(this.waveIndex);
+    const { hpMult, bountyMult } = this.waveScaling(this.waveIndex);
     this.spawnQueue = [];
     for (const group of def) {
       for (let i = 0; i < group.count; i++) {
@@ -239,6 +299,33 @@ export class Game {
     this.spawnQueue.sort((a, b) => a.at - b.at);
     this.spawnedAll = false;
     this.phase = 'wave';
+  }
+
+  /** The spawn script for a 1-based wave index, per mode. */
+  private waveScript(index: number): readonly { kind: EnemyKind; count: number; spacing: number; delay: number }[] {
+    if (this.mode === 'endless') return generateEndlessWave(this.seed, index - 1, this.biome ?? 'wasteland');
+    if (this.mode === 'stage' && this.stage) return this.stage.waves[index - 1] ?? [];
+    return WAVES[index - 1] ?? [];
+  }
+
+  /** Per-wave HP/bounty growth, tuned per mode (the generators already scale the
+   *  COUNT, so stage/endless grow HP gently; classic keeps its authored curve). */
+  private waveScaling(index: number): { hpMult: number; bountyMult: number } {
+    const w = index - 1;
+    let hpMult: number;
+    let bountyMult: number;
+    if (this.mode === 'endless') {
+      hpMult = 1 + 0.06 * w;
+      bountyMult = 1 + 0.02 * w;
+    } else if (this.mode === 'stage') {
+      const sn = this.stage ? this.stage.stageNumber : 1;
+      hpMult = 1 + 0.06 * w + (sn - 1) * 0.05;
+      bountyMult = 1 + 0.03 * w;
+    } else {
+      hpMult = 1 + WAVE_HP_GROWTH * w;
+      bountyMult = 1 + WAVE_BOUNTY_GROWTH * w;
+    }
+    return { hpMult: hpMult * this.stageMods.enemyHpMult, bountyMult };
   }
 
   chooseCard(id: string): void {
@@ -353,7 +440,7 @@ export class Game {
       hp: def.hp * hpMult,
       maxHp: def.hp * hpMult,
       baseArmor: def.armor,
-      speed: def.speed,
+      speed: def.speed * this.stageMods.enemySpeedMult,
       bounty: def.bounty * bountyMult,
       damage: def.damage,
       fracture: 0,
@@ -410,12 +497,14 @@ export class Game {
       if (def.fireInterval <= 0) continue; // reactor: not a weapon
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
-      // Hive Lattice: +fire-rate for each neighbouring tower.
+      // Hive Lattice: +fire-rate for each neighbouring tower. Stage modifiers
+      // (Power Surge / Dense Fog) fold in here too.
       const adj = this.mods.adjacencyHaste > 0 ? this.adjacentTowerCount(t) : 0;
-      const rateMult = this.mods.towerFireRateMult * (1 + this.mods.adjacencyHaste * adj) * (t.overcharged ? 1 + ECON.overchargeRate : 1);
+      const rateMult = this.mods.towerFireRateMult * this.stageMods.towerFireRateMult * (1 + this.mods.adjacencyHaste * adj) * (t.overcharged ? 1 + ECON.overchargeRate : 1);
       const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
+      const range = def.range * this.stageMods.towerRangeMult;
       if (t.kind === 'needle') {
-        const focus = this.needleTarget(t, def.range);
+        const focus = this.needleTarget(t, range);
         if (!focus) continue;
         // All needles pour into the locked target — single-target burst & fast Fracture.
         const shots = 1 + this.mods.needleExtraProjectiles;
@@ -428,7 +517,7 @@ export class Game {
         const shells = 1 + this.mods.mortarExtraShell;
         let fired = false;
         for (let i = 0; i < shells; i++) {
-          const aim = this.mortarAim(t.x, t.y, def.range, splash);
+          const aim = this.mortarAim(t.x, t.y, range, splash);
           if (!aim) break;
           // fan extra shells slightly so their pools don't fully overlap
           const off = i === 0 ? 0 : splash * 0.8;
@@ -843,6 +932,7 @@ export class Game {
 
   private hitNucleus(e: Enemy): void {
     if (!e.alive) return;
+    this.leaks++;
     if (!this.god) this.integrity -= e.damage;
     e.alive = false;
     this.armorBreakUntil.delete(e.id);
@@ -974,6 +1064,7 @@ export class Game {
   private triggerAbility(px: number, py: number): void {
     const h = this.hero;
     if (h.down || h.abilityCd > 0) return;
+    this.apexUses++;
     h.x = px;
     h.y = py;
     h.rally = { x: px, y: py };
@@ -1108,8 +1199,8 @@ export class Game {
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
-      if (this.waveIndex >= TOTAL_WAVES) {
-        this.phase = 'won';
+      if (this.waveIndex >= this.totalWaves) {
+        this.phase = 'won'; // finite modes only; endless has totalWaves = Infinity
       } else {
         this.draft = draftCards(this.rng, 3);
         this.phase = 'draft';
@@ -1239,9 +1330,53 @@ export class Game {
     this.hero.abilityCd = 0;
   }
 
+  // ── Mode helpers ─────────────────────────────────────────────────────────
+
+  private biomeData(): { palette: BiomePalette; lighting: number; ambient: { motes: number; fog: number; pulse: number } } {
+    const b = this.biome ? BIOMES[this.biome] : null;
+    return {
+      palette: b ? b.palette : DEFAULT_PALETTE,
+      lighting: b ? b.lighting : 1,
+      ambient: b ? b.ambient : { motes: 1, fog: 1, pulse: 1 },
+    };
+  }
+
+  /** Whether the stage's optional objective is satisfied by the tracked stats. */
+  objectiveComplete(): boolean {
+    const o = this.stage?.objective;
+    if (!o) return false;
+    if (o.kind === 'flawless') return this.leaks === 0;
+    if (o.kind === 'restraint') return this.apexUses === 0;
+    if (o.kind === 'frugal') return this.towersBuilt <= o.target;
+    if (o.kind === 'slayer') return this.kills >= o.target;
+    if (o.kind === 'swift') return this.time <= o.target;
+    return false;
+  }
+
+  /** Endless leaderboard score — depth dominates, then kills, then time survived. */
+  endlessScore(): number {
+    return Math.floor(this.waveIndex * this.waveIndex * 100 + this.kills * 5 + this.time);
+  }
+
+  /** Mode-aware run summary the meta layer turns into a reward. */
+  getResult(): RunResult {
+    return {
+      mode: this.mode,
+      won: this.phase === 'won',
+      wave: this.waveIndex,
+      kills: this.kills,
+      stageNumber: this.stage?.stageNumber ?? 0,
+      rewardMultiplier: this.stage?.rewardMultiplier ?? 1,
+      objectiveDone: this.mode === 'stage' && this.phase === 'won' && this.objectiveComplete(),
+      objectiveBonus: this.stage?.objective?.rewardBonus ?? 0,
+      score: this.endlessScore(),
+    };
+  }
+
   // ── Read models (for UI / renderer) ──────────────────────────────────────
 
   getRenderState(): RenderState {
+    const bd = this.biomeData();
     return {
       enemies: this.enemies,
       towers: this.towers,
@@ -1258,14 +1393,22 @@ export class Game {
       time: this.time,
       integrity: this.integrity,
       maxIntegrity: this.maxIntegrity,
+      palette: bd.palette,
+      lighting: bd.lighting,
+      ambient: bd.ambient,
+      spawnZones: spawnSegments(),
+      rangeMult: this.stageMods.towerRangeMult,
     };
   }
 
   getSnapshot(): HudSnapshot {
+    const obj = this.stage?.objective ?? null;
     return {
       phase: this.phase,
+      mode: this.mode,
       wave: this.waveIndex,
       totalWaves: this.totalWaves,
+      biomeName: this.biome ? BIOMES[this.biome].name : null,
       biomass: Math.floor(this.biomass),
       integrity: Math.ceil(this.integrity),
       maxIntegrity: this.maxIntegrity,
@@ -1281,6 +1424,20 @@ export class Game {
       draft: this.draft ? this.draft.map(cardToOption) : null,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,
+      objective: obj ? { name: obj.name, description: obj.description, done: this.objectiveComplete() } : null,
+      score: this.mode === 'endless' ? this.endlessScore() : 0,
     };
   }
+}
+
+export interface RunResult {
+  mode: GameMode;
+  won: boolean;
+  wave: number;
+  kills: number;
+  stageNumber: number;
+  rewardMultiplier: number;
+  objectiveDone: boolean;
+  objectiveBonus: number;
+  score: number;
 }

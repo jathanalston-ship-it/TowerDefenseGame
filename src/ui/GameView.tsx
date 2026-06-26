@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Game } from '../core/game';
+import type { GameConfig, RunResult } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
@@ -9,20 +10,21 @@ import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
 import type { HudSnapshot, MetaModifiers } from '../core/types';
-import type { RunResult } from '../state/meta';
 
 export function GameView({
   seed,
   mods,
+  config,
   onEnd,
 }: {
   seed: number;
   mods: MetaModifiers;
+  config: GameConfig;
   onEnd: (r: RunResult) => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods));
+  const game = (gameRef.current ??= new Game(seed, mods, config));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const pointerRef = useRef<Pointer | null>(null);
@@ -52,7 +54,7 @@ export function GameView({
       if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
         endedRef.current = true;
         setHud(game.getSnapshot());
-        onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won' });
+        onEndRef.current(game.getResult());
       }
       raf = requestAnimationFrame(loop);
     };

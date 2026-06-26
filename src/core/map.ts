@@ -2,9 +2,15 @@
 // toward the BOTTOM edge (the defensive line) via a flow field that routes around
 // obstacles — there is no predetermined path. Towers may only be placed on the
 // predefined slots in the bottom defensive region. Pure (no DOM); deterministic.
+//
+// The arena is DATA-DRIVEN: obstacles, tower-slot pattern and spawn zones are
+// loaded via loadArena() so each procedurally-generated Stage gets its own layout.
+// The dimensions (CELL/COLS/ROWS) and the goal (bottom line) are fixed. Classic
+// mode loads CLASSIC_LAYOUT, which reproduces the original hand-authored arena.
 
 import type { Vec2 } from './math';
 import { DEFENSE, OBSTACLES, SLOTS } from './config';
+import type { ArenaLayout, SlotPattern, SpawnZone } from './stage';
 
 export const CELL = 40;
 export const COLS = 18;
@@ -35,26 +41,25 @@ function rowOf(py: number): number {
   return Math.min(ROWS - 1, Math.max(0, Math.floor(py / CELL)));
 }
 
-// ── Obstacles ────────────────────────────────────────────────────────────────
-const obstacleSet = new Set<number>();
-for (const b of OBSTACLES) {
-  for (let r = b.row; r < b.row + b.h; r++) {
-    for (let c = b.col; c < b.col + b.w; c++) {
-      if (inBounds(c, r)) obstacleSet.add(key(c, r));
-    }
-  }
-}
+// ── Obstacles (loaded per-arena via loadArena) ────────────────────────────────
+let obstacleSet = new Set<number>();
 export function isObstacle(col: number, row: number): boolean {
   return obstacleSet.has(key(col, row));
 }
-/** Obstacle cells (centers) for rendering. */
-export const obstacleCells: { col: number; row: number; x: number; y: number }[] = [];
-for (const b of OBSTACLES) {
-  for (let r = b.row; r < b.row + b.h; r++) {
-    for (let c = b.col; c < b.col + b.w; c++) {
-      if (!inBounds(c, r)) continue;
-      const ctr = center(c, r);
-      obstacleCells.push({ col: c, row: r, x: ctr.x, y: ctr.y });
+/** Obstacle cells (centers) for rendering — rebuilt by loadArena (live binding). */
+export let obstacleCells: { col: number; row: number; x: number; y: number }[] = [];
+
+function buildObstacles(rects: ReadonlyArray<{ col: number; row: number; w: number; h: number }>): void {
+  obstacleSet = new Set<number>();
+  obstacleCells = [];
+  for (const b of rects) {
+    for (let r = b.row; r < b.row + b.h; r++) {
+      for (let c = b.col; c < b.col + b.w; c++) {
+        if (!inBounds(c, r)) continue;
+        obstacleSet.add(key(c, r));
+        const ctr = center(c, r);
+        obstacleCells.push({ col: c, row: r, x: ctr.x, y: ctr.y });
+      }
     }
   }
 }
@@ -142,7 +147,6 @@ export function rebuildFlowField(extraBlocked?: ReadonlySet<number>): void {
     flowField[i] = { x: vx / len, y: vy / len };
   }
 }
-rebuildFlowField();
 
 /** Unit direction an enemy at (px,py) should travel to reach the line. */
 export function flowDirAt(px: number, py: number): Vec2 {
@@ -155,10 +159,22 @@ export function goalDistanceAt(px: number, py: number): number {
 }
 
 // ── Spawn / goal ──────────────────────────────────────────────────────────────
-/** A spawn position along the top edge for t in [0,1) (off the side walls). */
+let spawnZones: SpawnZone[] = [{ x0: CELL, x1: WIDTH - CELL }];
+/** Active top-edge spawn segments (for the renderer to draw the membrane). */
+export function spawnSegments(): readonly SpawnZone[] {
+  return spawnZones;
+}
+/** A spawn position distributed across the active spawn zones for t in [0,1). */
 export function topSpawn(t: number): Vec2 {
-  const margin = CELL;
-  return { x: margin + t * (WIDTH - 2 * margin), y: CELL * 0.5 };
+  const total = spawnZones.reduce((s, z) => s + (z.x1 - z.x0), 0) || 1;
+  let d = t * total;
+  for (const z of spawnZones) {
+    const w = z.x1 - z.x0;
+    if (d <= w) return { x: z.x0 + d, y: CELL * 0.5 };
+    d -= w;
+  }
+  const last = spawnZones[spawnZones.length - 1];
+  return { x: last.x1, y: CELL * 0.5 };
 }
 export const REACH_Y = HEIGHT - CELL * 0.5;
 /** Has an enemy crossed the bottom edge (breached the line)? */
@@ -177,7 +193,17 @@ export interface TowerSlot {
   y: number;
 }
 
-function buildSlots(): TowerSlot[] {
+/** Whether a lattice cell is kept for a given slot pattern (lattice indices `gi`). */
+function slotInPattern(pattern: SlotPattern, gi: number, col: number): boolean {
+  switch (pattern) {
+    case 'sparse': return gi % 2 === 0; // every other lattice column
+    case 'clustered': return col >= 5 && col <= COLS - 5; // central band only
+    case 'flanks': return col <= 3 || col >= COLS - 3; // outer thirds only
+    default: return true; // 'lattice' — the full grid
+  }
+}
+
+function buildSlots(pattern: SlotPattern): TowerSlot[] {
   const out: TowerSlot[] = [];
   let gj = 0;
   for (let row = DEFENSE_TOP_ROW + SLOTS.rowOffset; row < ROWS; row += SLOTS.rowStep, gj++) {
@@ -189,12 +215,14 @@ function buildSlots(): TowerSlot[] {
       if (Math.abs(ctr.x - nucleusPoint.x) < CELL * 0.75 && Math.abs(ctr.y - nucleusPoint.y) < CELL * 0.75) {
         continue;
       }
+      if (!slotInPattern(pattern, gi, col)) continue;
       out.push({ index: out.length, col, row, gi, gj, x: ctr.x, y: ctr.y });
     }
   }
   return out;
 }
-export const towerSlots: TowerSlot[] = buildSlots();
+/** Tower-slot lattice for the current arena — rebuilt by loadArena (live binding). */
+export let towerSlots: TowerSlot[] = [];
 
 /** The slot occupying the cell at (px,py), or null. */
 export function slotAt(px: number, py: number): TowerSlot | null {
@@ -208,3 +236,22 @@ export function slotAt(px: number, py: number): TowerSlot | null {
 export function slotsAdjacent(a: TowerSlot, b: TowerSlot): boolean {
   return Math.abs(a.gi - b.gi) + Math.abs(a.gj - b.gj) === 1;
 }
+
+// ── Arena loading ─────────────────────────────────────────────────────────────
+/** The original hand-authored arena — Classic mode + the renderer's default. */
+export const CLASSIC_LAYOUT: ArenaLayout = {
+  obstacles: OBSTACLES.map((o) => ({ ...o })),
+  spawnZones: [{ x0: CELL, x1: WIDTH - CELL }],
+  slotPattern: 'lattice',
+};
+
+/** Swap in an arena layout: rebuild obstacles, spawn zones, slots and the flow
+ *  field. One active arena at a time (one live Game). Deterministic per layout. */
+export function loadArena(layout: ArenaLayout): void {
+  buildObstacles(layout.obstacles);
+  spawnZones = layout.spawnZones.length > 0 ? layout.spawnZones : [{ x0: CELL, x1: WIDTH - CELL }];
+  towerSlots = buildSlots(layout.slotPattern);
+  rebuildFlowField();
+}
+
+loadArena(CLASSIC_LAYOUT); // initialise the default arena at module load
