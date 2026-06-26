@@ -70,6 +70,9 @@ export function GameView({
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      // Don't hijack keys while typing in a form control (e.g. the debug select).
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))) return;
       const k = e.key;
       if (k >= '1' && k <= String(TOWER_ORDER.length)) {
         const kind = TOWER_ORDER[Number(k) - 1];
@@ -90,9 +93,13 @@ export function GameView({
     return () => window.removeEventListener('keydown', onKey);
   }, [game]);
 
-  const toCoords = (clientX: number, clientY: number): Pointer => {
-    const c = canvasRef.current!;
+  // Map a client point to battlefield coordinates. Returns null if the canvas
+  // isn't laid out yet (zero-sized rect) so we never feed NaN coords to the sim.
+  const toCoords = (clientX: number, clientY: number): Pointer | null => {
+    const c = canvasRef.current;
+    if (!c) return null;
     const rect = c.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
     return {
       x: (clientX - rect.left) * (WIDTH / rect.width),
       y: (clientY - rect.top) * (HEIGHT / rect.height),
@@ -114,20 +121,33 @@ export function GameView({
             pointerRef.current = toCoords(e.clientX, e.clientY);
           }}
           onPointerDown={(e) => {
+            // Capture the pointer so a press that slides slightly off the canvas
+            // edge still delivers its pointerup here (reliable taps near borders).
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch {
+              /* capture unsupported — taps still work without it */
+            }
             pointerRef.current = toCoords(e.clientX, e.clientY); // show the ghost where you touch
           }}
           onPointerUp={(e) => {
             if (e.button !== 0) return; // primary tap / left-click only
             const p = toCoords(e.clientX, e.clientY);
-            game.click(p.x, p.y);
+            if (p) game.click(p.x, p.y);
+            // Don't leave a placement ghost stuck under a lifted finger (touch).
+            if (e.pointerType !== 'mouse') pointerRef.current = null;
             refresh();
           }}
           onPointerLeave={(e) => {
             if (e.pointerType === 'mouse') pointerRef.current = null;
           }}
+          onPointerCancel={() => {
+            pointerRef.current = null; // gesture interrupted — clear the ghost
+          }}
           onContextMenu={(e) => {
             e.preventDefault(); // desktop right-click: re-anchor the hero's patrol point
             const p = toCoords(e.clientX, e.clientY);
+            if (!p) return;
             game.selectTower(null);
             game.setRally(p.x, p.y);
             refresh();
