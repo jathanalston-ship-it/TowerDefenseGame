@@ -129,6 +129,29 @@ button:disabled {
   border-radius: var(--r-sm);
 }
 
+/* ── Themed scrollbars (quietly on-brand vs the OS default) ────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dim);
+  background-clip: padding-box;
+}
+
 /* ── Utilities ────────────────────────────────────────────────────────────── */
 .app {
   min-height: 100%;
@@ -306,6 +329,16 @@ button:disabled {
   flex-direction: column;
   gap: 18px;
 }
+/* soft screen-level fade so menu/game/results don't hard-cut between each other */
+.menu,
+.game {
+  animation: screen-in 0.26s var(--ease-out) both;
+}
+@keyframes screen-in {
+  from {
+    opacity: 0;
+  }
+}
 .title {
   font-family: var(--font-display);
   font-size: clamp(34px, 6vw, 48px);
@@ -473,6 +506,7 @@ button:disabled {
   font-size: 22px;
   font-weight: 800;
   line-height: 1;
+  transition: color var(--t-med); /* ease the integrity white->warn->danger shift */
 }
 .hud-v.is-danger {
   color: var(--danger);
@@ -590,6 +624,11 @@ canvas.board {
   max-height: 74vh;
   display: block;
   touch-action: none;
+  cursor: default;
+}
+/* placing a tower or aiming the ability — signal it on the cursor */
+canvas.board.is-aiming {
+  cursor: crosshair;
 }
 
 /* ── Toolbar — bottom bar ─────────────────────────────────────────────────── */

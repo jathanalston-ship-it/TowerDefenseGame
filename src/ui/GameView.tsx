@@ -112,7 +112,7 @@ export function GameView({
       <div className="canvas-wrap">
         <canvas
           ref={canvasRef}
-          className="board"
+          className={`board ${hud.selectedTower || hud.armedAbility ? 'is-aiming' : ''}`}
           width={WIDTH}
           height={HEIGHT}
           // Pointer Events unify mouse + touch (touch-action:none on .board
