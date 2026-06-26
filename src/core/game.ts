@@ -63,6 +63,7 @@ import { BOSS, DIRECTOR } from './config';
 import { Director } from './director';
 import { runAbilities, runAbility } from './ability';
 import type { AbilityCast, AbilityContext, ParticleKind, StatusApplication } from './ability';
+import { aggregate as aggregateStatuses, applyStatus as applyStatusInstance, statusRegistry, tickStatuses } from './status';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
@@ -969,6 +970,19 @@ export class Game {
         this.applyInfectionDamage(e, e.infection * STATUS.infectionDpsPerStack * this.mods.parasiteInfectionMult * dt);
       }
       if (e.disrupt > 0) e.disrupt = Math.max(0, e.disrupt - dt); // Neural slow + vulnerability decays
+      // Universal status framework: tick any generic effects (burn/poison/regen/…) and
+      // apply this tick's deltas. Inert on the historical path (no framework statuses).
+      // DoT is applied precisely (no per-tick floor) and scaled by vulnerability.
+      if (e.statuses !== undefined && e.statuses.length > 0) {
+        const fx = tickStatuses(e.statuses, dt);
+        const dmg = (fx.dotDamage + fx.trueDamage) * this.vulnMult(e);
+        if (dmg > 0) {
+          e.hp -= dmg;
+          e.dmgAccum += dmg;
+          this.statDamageDealt += dmg;
+        }
+        if (fx.heal > 0) e.hp = Math.min(e.maxHp, e.hp + fx.heal);
+      }
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
       if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
       // Aggregated damage numbers: bank hits, pop a single readable total per beat.
@@ -1010,7 +1024,14 @@ export class Game {
       let slow = 0;
       if (e.corrosion > 0) slow = slowBase;
       if (e.disrupt > 0) slow = Math.max(slow, STATUS.disruptSlow + this.mods.obeliskSlowBonus);
+      let disabled = false;
+      if (e.statuses !== undefined && e.statuses.length > 0) {
+        const ag = aggregateStatuses(e.statuses); // framework Slow/Freeze/Stun fold in here
+        slow = Math.max(slow, ag.slowPct);
+        disabled = ag.disabled;
+      }
       if (slow > 0.85) slow = 0.85;
+      if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
       const step = e.speed * (1 - slow) * dt;
 
       // 1. seek
@@ -1473,12 +1494,27 @@ export class Game {
   private vulnMult(e: Enemy): number {
     let m = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus;
+    // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
+    // inert on the historical path (no framework statuses present).
+    if (e.statuses !== undefined && e.statuses.length > 0) m += aggregateStatuses(e.statuses).damageTakenMult;
     return m;
   }
 
   /** Viral: add Infection stacks (capped). */
   private infect(e: Enemy, n: number): void {
     e.infection = Math.min(STATUS.infectionMaxStacks, e.infection + n);
+  }
+
+  /** Apply a universal status-effect (status.ts) to an enemy — the path NEW effects
+   * (burn, slow, stun, regen, …) flow through. The four legacy statuses keep their fast
+   * fields; everything else lives in the generic container, ticked in statusSystem and
+   * read by enemyMoveSystem/vulnMult. Returns false for an unknown id. */
+  applyEffect(e: Enemy, id: string, amount = 1): boolean {
+    const d = statusRegistry.get(id);
+    if (!d) return false;
+    (e.statuses ??= []);
+    applyStatusInstance(e.statuses, d, amount);
+    return true;
   }
 
   /** Apply Infection's continuous DoT: ignores armor (biological), but still scales

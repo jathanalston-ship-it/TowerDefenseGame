@@ -2,6 +2,7 @@
 // below are runtime instances owned by the Game (game.ts). No React/DOM here.
 
 import type { Vec2 } from './math';
+import type { ActiveStatus } from './status';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption';
@@ -45,6 +46,10 @@ export interface Enemy {
   lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
   boss: BossRuntime | null; // present only for framework bosses (null for normal enemies)
   elite: boolean; // director-promoted elite (buffed) — drives elite-priority targeting
+  // Universal status-effect container (status.ts). Optional/lazy — the four legacy
+  // statuses keep their fast fields above; NEW effects (burn, slow, stun, …) live here
+  // and run through the generic engine. Undefined on the historical path (golden-safe).
+  statuses?: ActiveStatus[];
 }
 
 /** Live state a framework boss carries on top of its enemy body (see boss.ts). */
