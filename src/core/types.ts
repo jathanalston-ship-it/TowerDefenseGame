@@ -93,6 +93,7 @@ export interface BossRuntime {
   shielded: number; // seconds of invulnerability remaining (0 = vulnerable)
   enrage: number; // enrage stacks
   channel: number; // seconds left on a Nucleus channel (0 = none)
+  charge: number; // seconds left on a telegraphed dash (0 = not charging)
   telegraph: string | null; // current telegraphed action (drives the banner)
 }
 
@@ -113,6 +114,7 @@ export interface Tower {
   cooldown: number; // seconds until next action
   overcharged: boolean; // buffed by an adjacent reactor this tick
   bornAt: number; // sim-time placed (drives the grow-in animation)
+  disabledUntil: number; // sim-time a boss suppressor re-enables it (0 = active)
 }
 
 export interface Projectile {

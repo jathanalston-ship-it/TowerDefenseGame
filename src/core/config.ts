@@ -915,6 +915,7 @@ export const HERO_LABELS: Record<string, string> = Object.fromEntries(
 export const BOSS = {
   baseHp: 1600, // × BossDef.hpMult → boss HP
   addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
+  chargeSpeedMult: 2.6, // charger module: movement multiplier during a telegraphed dash
 };
 
 // ── AI Director / run modes (director.ts) ───────────────────────────────────

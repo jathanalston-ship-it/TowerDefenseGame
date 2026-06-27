@@ -532,6 +532,7 @@ export class Game {
       cooldown: 0,
       overcharged: false,
       bornAt: this.time,
+      disabledUntil: 0,
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -792,6 +793,7 @@ export class Game {
    */
   spawnBoss(def: BossDef): void {
     const hp = BOSS.baseHp * def.hpMult;
+    this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
     this.enemies.push({
       id: this.nextId++,
@@ -824,6 +826,7 @@ export class Game {
         shielded: 0,
         enrage: 0,
         channel: 0,
+        charge: 0,
         telegraph: null,
       },
     });
@@ -891,11 +894,29 @@ export class Game {
           case 'channeler':
             if (b.channel <= 0) b.channel = m.duration ?? 3;
             break;
-          default:
-            break; // charger/suppressor: reserved (defined, not yet wired)
+          case 'charger':
+            b.charge = m.duration ?? 1.4; // a telegraphed dash toward the line
+            b.telegraph = 'CHARGE';
+            break;
+          case 'suppressor':
+            this.suppressTowers(e, m.radius ?? 120, m.duration ?? 4); // disable nearby towers
+            b.telegraph = 'SUPPRESS';
+            break;
         }
       }
+      if (b.charge > 0) {
+        b.charge = Math.max(0, b.charge - dt); // count the dash window down
+        if (b.charge > 0 && b.channel <= 0 && b.shielded <= 0) b.telegraph = 'CHARGE';
+      }
       if (phase.speedMult && b.enrage === 0) e.speed = CHASSIS[def.chassis].speed * phase.speedMult;
+    }
+  }
+
+  /** Boss suppressor module: disable every tower within `radius` for `duration` seconds. */
+  private suppressTowers(boss: Enemy, radius: number, duration: number): void {
+    const r2 = radius * radius;
+    for (const t of this.towers) {
+      if (dist2(boss.x, boss.y, t.x, t.y) <= r2) t.disabledUntil = Math.max(t.disabledUntil, this.time + duration);
     }
   }
 
@@ -1016,6 +1037,7 @@ export class Game {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
       if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
+      if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
@@ -1282,7 +1304,9 @@ export class Game {
       }
       if (slow > 0.85) slow = 0.85;
       if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
-      const step = e.speed * (1 - slow) * dt;
+      // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
+      const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
+      const step = e.speed * chargeMult * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
