@@ -45,12 +45,13 @@ export function shardsForCells(cells: number): number {
 
 /** Persisted prestige state (lives on SaveData). */
 export interface PrestigeState {
-  cells: number; // spendable balance (reserved for the future Ascendant Tree)
+  cells: number; // spendable balance — spent on the Ascendant Tree (ascendant.ts)
   lifetimeCells: number; // total ever minted — drives the global multiplier
   cycleShards: number; // Shards earned since the last Molt (the mint metric)
   molts: number; // lifetime Molt count (a trophy / pacing readout)
+  nodes: Record<string, number>; // Ascendant Tree node id → level (kept across Molts)
 }
 
 export function defaultPrestige(): PrestigeState {
-  return { cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0 };
+  return { cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0, nodes: {} };
 }

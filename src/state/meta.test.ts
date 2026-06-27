@@ -80,6 +80,39 @@ describe('prestige MOLT (the ascension loop)', () => {
   });
 });
 
+describe('ascendant tree (spending cells)', () => {
+  it('buys nodes, folds their bonuses, and keeps them across a Molt', () => {
+    const seeded = { ...defaultSave(), prestige: { ...defaultPrestige(), cells: 20, cycleShards: 10000, nodes: {} } };
+    expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
+
+    expect(meta.buyAscendantNode('greed')).toBe(true);
+    expect(meta.ascendantNodes().nodes.find((n) => n.id === 'greed')!.level).toBe(1);
+    expect(meta.ascendantNodes().cells).toBeLessThan(20); // cells were spent
+
+    expect(meta.buyAscendantNode('metabolism')).toBe(true);
+    expect(metaModifiers(meta.get()).biomassMult).toBeCloseTo(1.1, 10); // node folds into the run
+
+    const before = meta.ascendantNodes();
+    expect(meta.molt()).toBe(true);
+    const after = meta.ascendantNodes();
+    expect(after.nodes.find((n) => n.id === 'greed')!.level).toBe(1); // tree persists across Molt
+    expect(after.cells).toBeGreaterThan(before.cells); // … and the Molt minted more cells
+  });
+
+  it('Ascendant Resonance compounds the Molt yield', () => {
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cycleShards: 10000 } }));
+    const plain = meta.prestigeView().gain;
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cycleShards: 10000, nodes: { resonance: 5 } } }));
+    expect(meta.prestigeView().gain).toBeGreaterThan(plain);
+  });
+
+  it('rejects an unaffordable or unknown node', () => {
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cells: 0 } }));
+    expect(meta.buyAscendantNode('greed')).toBe(false); // no cells
+    expect(meta.buyAscendantNode('nope')).toBe(false); // unknown id
+  });
+});
+
 describe('loot queue integration (the finishRun banking seam)', () => {
   it('banking loot points awards boxes and grants their shards, keeping the queue valid', () => {
     meta.reset(); // known clean state (a fresh, pre-determined queue)

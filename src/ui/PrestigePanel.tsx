@@ -47,6 +47,34 @@ export function PrestigePanel(): JSX.Element {
       <button className="primary" style={{ marginTop: 10 }} disabled={!p.canMolt} onClick={onMolt}>
         {p.canMolt ? `Molt (+${p.gain} Cells)` : 'Molt — earn more Shards first'}
       </button>
+
+      {(() => {
+        // Ascendant Tree: spend Cells on permanent economy nodes (kept across every Molt).
+        const tree = meta.ascendantNodes();
+        return (
+          <div className="ascendant-tree">
+            <div className="mp-codex-h">Ascendant Tree · {tree.cells} ◇ cells</div>
+            {tree.nodes.map((n) => (
+              <div className="lab-evo" key={n.id} style={{ borderLeftColor: 'var(--viral)' }}>
+                <div className="asc-node-head">
+                  <span>
+                    <b style={{ color: 'var(--viral)' }}>{n.name}</b>
+                    <span className="hud-sub"> · Lv {n.level}/{n.maxLevel}</span>
+                  </span>
+                  <button
+                    className={`shop-buy ${n.affordable ? 'is-afford' : ''}`}
+                    disabled={n.cost === null || !n.affordable}
+                    onClick={() => meta.buyAscendantNode(n.id)}
+                  >
+                    {n.cost === null ? 'MAX' : `${n.cost} ◇`}
+                  </button>
+                </div>
+                <span className="lab-evo-desc">{n.desc}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

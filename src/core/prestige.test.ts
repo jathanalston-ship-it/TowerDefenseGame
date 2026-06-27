@@ -30,6 +30,6 @@ describe('MOLT multiplier (square-root, never explosive)', () => {
   });
 
   it('defaultPrestige is all-zero (a fresh account)', () => {
-    expect(defaultPrestige()).toEqual({ cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0 });
+    expect(defaultPrestige()).toEqual({ cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0, nodes: {} });
   });
 });

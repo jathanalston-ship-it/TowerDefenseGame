@@ -51,7 +51,7 @@ export interface SaveData {
   prestige: PrestigeState;
 }
 
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 8;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -201,6 +201,12 @@ function sanitizePrestige(p: PrestigeState | undefined): Partial<PrestigeState> 
   if (num(p.lifetimeCells) !== undefined) out.lifetimeCells = p.lifetimeCells;
   if (num(p.cycleShards) !== undefined) out.cycleShards = p.cycleShards;
   if (num(p.molts) !== undefined) out.molts = p.molts;
+  // Ascendant Tree node levels: keep only finite non-negative integer levels.
+  if (p.nodes && typeof p.nodes === 'object') {
+    const nodes: Record<string, number> = {};
+    for (const [k, v] of Object.entries(p.nodes)) if (num(v) !== undefined) nodes[k] = Math.floor(v as number);
+    out.nodes = nodes;
+  }
   return out;
 }
 
@@ -245,7 +251,8 @@ function migrate(_version: number, data: unknown): unknown {
   // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
   // identity: titles/lore) are all additive: withDefaults() deep-fills the new records, the
   // selectedHero default, the stats block, the loot queue, the fork picks, the mastery
-  // identity arrays, and (v6→v7) the zeroed prestige block. Structural changes add steps here.
+  // identity arrays, and the prestige block (v6→v7; v7→v8 adds the Ascendant Tree node map,
+  // deep-filled by sanitizePrestige). Structural changes add steps here.
   return data;
 }
 
