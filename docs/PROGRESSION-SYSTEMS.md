@@ -5,6 +5,14 @@ Implementation companion to the design docs (`PROGRESSION.md`, `ECONOMY.md`,
 vertical slice, **how they stay deterministic**, and where to extend them. Numbers
 are placeholder — the architecture is the deliverable.
 
+> **Design lens (read before extending progression):** `PROGRESSION-PHILOSOPHY.md`
+> assigns each progression layer a distinct player motivation and lists the engine
+> adjustments required before more content is added. Stars and Mastery as implemented
+> here are **slated for redesign** (they're currently stat-sticks) — see
+> `TOWER-STARS.md` (stars → evolution/grants) and `MASTERY.md` (mastery → experience/
+> identity), with hero gear in `EQUIPMENT-PHILOSOPHY.md`. Those supersede the
+> stat-multiplier shapes documented below.
+
 ---
 
 ## The four systems at a glance
