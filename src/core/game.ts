@@ -56,10 +56,12 @@ import {
   draftCards,
 } from './cards';
 import type { CardContext, CardDef, CardEffect, RunModifiers } from './cards';
-import { damageAfter, effectiveArmor, fractureCap, shredBurst, shredReady } from './combat';
+import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR } from './config';
+import { BOSS, DIRECTOR, REACTIONS } from './config';
+import { pendingReaction } from './reactions';
+import type { ReactionDef } from './reactions';
 import { Director } from './director';
 import { runAbilities, runAbility } from './ability';
 import type { AbilityCast, AbilityContext, ParticleKind, StatusApplication } from './ability';
@@ -350,7 +352,7 @@ export class Game {
         return applied;
       },
       applyStatus: (e, status) => this.applyStatus(e, status),
-      reactOnHit: (e) => this.maybeShred(e),
+      reactOnHit: (e) => this.maybeReact(e),
       healNucleus: (n) => {
         this.integrity = Math.min(this.maxIntegrity, this.integrity + n);
       },
@@ -462,12 +464,24 @@ export class Game {
   /** Enemy-HP multiplier for a 0-based wave index: the base escalation curve × the universal
    * difficulty's health scalar. At Standard (×1) this equals the base curve exactly. */
   private hpMultFor(idx0: number): number {
-    return (1 + WAVE_HP_GROWTH * idx0) * this.diff.enemyHealthMult;
+    return (1 + WAVE_HP_GROWTH * idx0) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index: base curve × difficulty reward. */
   private bountyMultFor(idx0: number): number {
     return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.diff.rewardMult;
+  }
+
+  /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,
+   * Swarm). Returns exactly 1 when none are equipped, so combineMult stays bit-identical
+   * (the golden invariant) — every branch is gated on its neutral value. */
+  private keystoneTowerDmgMult(): number {
+    const m = this.mods;
+    let out = 1;
+    if (m.lastStandThreshold > 0 && this.integrity <= m.lastStandThreshold * this.maxIntegrity) out *= m.lastStandMult;
+    if (m.damagePerEmptySlot > 0) out *= 1 + m.damagePerEmptySlot * Math.max(0, this.unlockedSlots - this.towers.length);
+    if (m.damagePerTower > 0) out *= 1 + m.damagePerTower * this.towers.length;
+    return out;
   }
 
   startWave(): void {
@@ -816,6 +830,7 @@ export class Game {
   }
 
   private towerSystem(dt: number): void {
+    const ksDmg = this.keystoneTowerDmgMult(); // run-wide keystone damage (1 = none); per-tick
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
@@ -828,7 +843,7 @@ export class Game {
       const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
       const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1;
       const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -886,7 +901,7 @@ export class Game {
             this.infect(target, STATUS.infectionOnHit); // Viral payload (no Fracture)
           } else {
             this.addFracture(target, 1);
-            this.maybeShred(target);
+            this.maybeReact(target);
           }
           this.pushSfx('hit');
           if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
@@ -931,7 +946,7 @@ export class Game {
         this.applyDamage(e, p.damage, p.sourceKind);
         e.corrosion = STATUS.corrosionDuration;
         if (this.mods.mortarAppliesFracture) this.addFracture(e, 1);
-        this.maybeShred(e);
+        this.maybeReact(e);
       }
     });
     this.pools.push({
@@ -953,7 +968,7 @@ export class Game {
         if (dist2(pool.x, pool.y, e.x, e.y) <= r2) {
           this.applyDamage(e, pool.dps * dt, pool.sourceKind, false); // DoT — credit mastery, no flash
           e.corrosion = STATUS.corrosionDuration;
-          this.maybeShred(e);
+          this.maybeReact(e);
         }
       });
       pool.remaining -= dt;
@@ -1208,7 +1223,7 @@ export class Game {
       const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
       this.heroMasteryAccrual[h.kind].damage += this.applyDamage(target, dmg);
       this.addFracture(target, def.attackFracture);
-      this.maybeShred(target);
+      this.maybeReact(target);
       h.attackCd = def.attackInterval;
     }
   }
@@ -1579,22 +1594,91 @@ export class Game {
       e.lastHitKind = sourceKind;
       this.masteryAccrual[sourceKind].damage += applied;
     }
+    // Executioner keystone: cull a non-elite/boss host left under the threshold (off at 0).
+    if (this.mods.executeThreshold > 0 && e.hp > 0 && !e.boss && !e.elite && e.hp <= this.mods.executeThreshold * e.maxHp) {
+      e.hp = 0;
+    }
     return applied;
   }
 
-  /** Fracture + Corrosion present → consume Fracture for a true-damage burst + armor break. */
-  private maybeShred(e: Enemy): void {
+  /** Run the highest-priority status REACTION ready on `e` (the reaction matrix). Shred
+   * (Fracture + Corrosion) is first and unchanged, so a Fracture+Corrosion-only run is
+   * byte-identical; the other five reactions need Infection/Disruption to be present. */
+  private maybeReact(e: Enemy): void {
     if (!e.alive) return;
-    if (shredReady(e.fracture, e.corrosion)) {
-      const burst = shredBurst(e.fracture);
-      e.hp -= burst; // true damage, ignores armor
-      this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
-      e.fracture = 0;
-      e.shredFlash = STATUS.shredFlash;
-      this.pushSfx('shred');
-      this.spawnParticles(e.x, e.y, PARTICLE.shred);
-      this.floats.push({ x: e.x, y: e.y - 16, text: 'SHRED', color: '#fff066', life: 0.7 });
+    // Reactions normally fire once; the Cascade / Hivemind keystones chain extra ones
+    // (reactionRepeats defaults to 0 ⇒ a single reaction ⇒ byte-identical golden path).
+    let iterations = 1 + this.mods.reactionRepeats;
+    while (iterations-- > 0 && e.alive) {
+      const r = pendingReaction(e);
+      if (!r) return;
+      this.runReaction(e, r);
     }
+  }
+
+  /** Execute one resolved reaction's side-effects on `e` (the matrix payload). */
+  private runReaction(e: Enemy, r: ReactionDef): void {
+    switch (r.id) {
+      case 'shred': {
+        const burst = shredBurst(e.fracture);
+        e.hp -= burst; // true damage, ignores armor
+        this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
+        e.fracture = 0;
+        e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.shred);
+        break;
+      }
+      case 'virulence': {
+        // Fracture + Infection: consume the Fracture to surge the plague (burst + ramp).
+        e.hp -= REACTIONS.virulenceBase + REACTIONS.virulencePerStack * e.fracture;
+        this.infect(e, e.fracture); // wounds feed the plague (capped in infect)
+        e.fracture = 0;
+        e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.infect);
+        break;
+      }
+      case 'detonate': {
+        // Fracture + Disruption: the destabilized shell detonates (true burst).
+        e.hp -= REACTIONS.detonateBase + REACTIONS.detonatePerStack * e.fracture;
+        e.fracture = 0;
+        e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.shred);
+        break;
+      }
+      case 'putrefy': {
+        // Corrosion + Infection: acid rot accelerates the plague.
+        e.hp -= REACTIONS.putrefyBase;
+        this.infect(e, REACTIONS.putrefyInfectAdd);
+        e.corrosion = 0; // consumed
+        e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('hit');
+        this.spawnParticles(e.x, e.y, PARTICLE.infect);
+        break;
+      }
+      case 'dissolve': {
+        // Corrosion + Disruption: armor melts entirely (+ a true tick).
+        e.hp -= REACTIONS.dissolveBase;
+        this.armorBreakUntil.set(e.id, this.time + REACTIONS.dissolveBreak);
+        e.corrosion = 0; // consumed
+        e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.disrupt);
+        break;
+      }
+      case 'plaguebloom': {
+        // Infection + Disruption: the vulnerable plague blooms and leaps to the pack.
+        e.hp -= REACTIONS.plagueBase + REACTIONS.plaguePerStack * Math.floor(e.infection);
+        e.disrupt = 0; // consumed
+        e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spreadInfection(e); // jumps to neighbours now (also bursts infect particles)
+        break;
+      }
+    }
+    this.floats.push({ x: e.x, y: e.y - 16, text: r.name, color: r.color, life: 0.7 });
   }
 
   // ── Debug API (driven by the debug panel; no effect on normal play) ──────

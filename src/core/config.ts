@@ -384,6 +384,24 @@ export const STATUS = {
   disruptVulnerability: 0.25, // +25% damage taken from all sources while disrupted
 };
 
+// ── Reaction matrix (reactions.ts) — co-present statuses combust ──────────────
+// Generalizes the original Shred into the 6 pairings of the 4 statuses. Shred itself keeps
+// the STATUS.shred* numbers (unchanged); the other five reactions are new. All placeholder
+// starting points. Reactions only ever involve Infection/Disruption beyond Shred, so a run
+// without Parasite/Obelisk (e.g. the golden run) only ever produces Shred — byte-identical.
+export const REACTIONS = {
+  virulenceBase: 14, // Fracture+Infection: wounds feed the plague (true burst)
+  virulencePerStack: 4,
+  detonateBase: 30, // Fracture+Disruption: the destabilized shell detonates (burst)
+  detonatePerStack: 12,
+  putrefyBase: 26, // Corrosion+Infection: acid rot + plague acceleration (true)
+  putrefyInfectAdd: 3,
+  dissolveBase: 22, // Corrosion+Disruption: armor fully melts (+ a true tick)
+  dissolveBreak: 3.0, // seconds of zero armor
+  plagueBase: 18, // Infection+Disruption: vulnerable plague blooms + leaps
+  plaguePerStack: 5,
+};
+
 // ── Tower ability kits (Part 2: towers built from reusable ability components) ──
 // Each launch tower's attack is expressed as AbilityComponents executed by the shared
 // ability executor (game.ts), replacing the per-firing branches. For the launch roster
