@@ -50,6 +50,7 @@ import {
   TOWER_DEFS,
   WAVE_FLOW,
 } from './config';
+import type { StarStat } from './config';
 import {
   CLASSIC_CAMPAIGN,
   CLASSIC_WAVE_COUNT,
@@ -119,6 +120,13 @@ export interface GameConfig {
   biome?: BiomeId; // optional starting biome for 'endless'
 }
 
+/** Per-tower Star fold applied at run start (per-kind stats + a run-mod applier).
+ *  Optional: omitted in tests/headless → no star bonus → deterministic baseline. */
+export interface StarRunData {
+  stat: Record<TowerKind, StarStat>;
+  apply: (m: RunModifiers) => void;
+}
+
 export class Game {
   readonly mode: GameMode;
   readonly stage: StageDef | null;
@@ -156,6 +164,7 @@ export class Game {
 
   private stageMods: StageMods;
   private readonly seed: number;
+  private starStat: Record<TowerKind, StarStat> | null = null; // per-kind Star stat fold
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
@@ -194,7 +203,7 @@ export class Game {
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
 
-  constructor(seed: number, meta: MetaModifiers, config: GameConfig = { mode: 'classic' }) {
+  constructor(seed: number, meta: MetaModifiers, config: GameConfig = { mode: 'classic' }, stars?: StarRunData) {
     this.seed = seed >>> 0;
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
@@ -229,6 +238,12 @@ export class Game {
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
     this.mods.heroSpeedMult *= meta.heroSpeedMult;
+    // Fold permanent Tower Stars: mechanic unlocks set the same run hooks cards use;
+    // per-kind stat steps are stored for towerSystem. (Absent in tests → no change.)
+    if (stars) {
+      stars.apply(this.mods);
+      this.starStat = stars.stat;
+    }
     this.maxIntegrity = Math.round((ECON.baseIntegrity + meta.integrityBonus) * this.stageMods.integrityMult);
     this.integrity = this.maxIntegrity;
     this.biomass = ECON.startingBiomass + meta.startBiomass + this.stageMods.startBiomassBonus;
@@ -561,9 +576,10 @@ export class Game {
       // Hive Lattice: +fire-rate for each neighbouring tower. Stage modifiers
       // (Power Surge / Dense Fog) fold in here too.
       const adj = this.mods.adjacencyHaste > 0 ? this.adjacentTowerCount(t) : 0;
-      const rateMult = this.mods.towerFireRateMult * this.stageMods.towerFireRateMult * (1 + this.mods.adjacencyHaste * adj) * (t.overcharged ? 1 + ECON.overchargeRate : 1);
-      const dmgMult = this.mods.towerDamageMult * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
-      const range = def.range * this.stageMods.towerRangeMult;
+      const ss = this.starStat ? this.starStat[t.kind] : null; // per-kind Star stat fold
+      const rateMult = this.mods.towerFireRateMult * this.stageMods.towerFireRateMult * (ss ? ss.fireRateMult : 1) * (1 + this.mods.adjacencyHaste * adj) * (t.overcharged ? 1 + ECON.overchargeRate : 1);
+      const dmgMult = this.mods.towerDamageMult * (ss ? ss.damageMult : 1) * (t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1);
+      const range = def.range * this.stageMods.towerRangeMult * (ss ? ss.rangeMult : 1);
       if (t.kind === 'needle') {
         const focus = this.needleTarget(t, range);
         if (!focus) continue;
@@ -574,7 +590,7 @@ export class Game {
         }
         t.cooldown = def.fireInterval / rateMult;
       } else if (t.kind === 'mortar') {
-        const splash = def.splash * this.mods.splashRadiusMult;
+        const splash = def.splash * this.mods.splashRadiusMult * (ss ? ss.splashMult : 1);
         const shells = 1 + this.mods.mortarExtraShell;
         let fired = false;
         for (let i = 0; i < shells; i++) {

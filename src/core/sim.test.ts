@@ -289,6 +289,27 @@ describe('automatic wave flow', () => {
     expect(g.lootProgress).toBeGreaterThan(LOOT.perWave);
   });
 
+  it('tower stars boost the tower in-run (per-kind stats + mechanic unlock)', () => {
+    // A maxed-needle star fold: damage > 1× and the Ricochet/Twin-Fang hooks set.
+    const stars = {
+      stat: {
+        needle: { damageMult: 1.3, fireRateMult: 1.1, rangeMult: 1, splashMult: 1 },
+        mortar: { damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1 },
+        reactor: { damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1 },
+      },
+      apply: (m: { needleBounce: number; needleExtraProjectiles: number }) => {
+        m.needleBounce += 1;
+        m.needleExtraProjectiles += 1;
+      },
+    };
+    const base = new Game(1, NO_META);
+    const starred = new Game(1, NO_META, { mode: 'classic' }, stars as unknown as ConstructorParameters<typeof Game>[3]);
+    // The starred run's needle modifiers reflect the unlock; the base run's don't.
+    expect(starred.mods.needleBounce).toBe(1);
+    expect(starred.mods.needleExtraProjectiles).toBe(1);
+    expect(base.mods.needleBounce).toBe(0);
+  });
+
   it('records a wave summary when a wave clears (kills + biomass earned)', () => {
     const g = new Game(5, NO_META);
     expect(g.lastWaveSummary).toBeNull(); // nothing cleared yet

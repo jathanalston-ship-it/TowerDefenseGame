@@ -1,5 +1,6 @@
 import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
+import { StarPanel } from './StarPanel';
 import { Codex } from './Codex';
 import { LootMeter } from './LootMeter';
 import { LootBoxOpener } from './LootBoxOpener';
@@ -57,6 +58,8 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
       </div>
 
       <MetaShop />
+
+      <StarPanel />
 
       <Codex />
 

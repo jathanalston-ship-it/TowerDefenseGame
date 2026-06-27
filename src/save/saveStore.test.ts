@@ -249,7 +249,27 @@ describe('save version migration', () => {
     new SaveStore(s).save(defaultSave());
     const blob = JSON.parse(s.map.get('assimilate.save')!);
     expect(blob.schemaVersion).toBe(CURRENT_VERSION);
-    expect(CURRENT_VERSION).toBe(3);
+    expect(CURRENT_VERSION).toBe(4);
+  });
+
+  it('migrates a v3 save up to v4, adding the tower-star fields', () => {
+    clearMigrationLog();
+    const v3 = {
+      schemaVersion: 3,
+      data: {
+        shards: 5, upgrades: {}, bestWave: 2, totalRuns: 1, lifetimeShards: 5, cardsSeen: 0,
+        stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+        essence: 0, components: 0, catalyst: 0, codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
+        lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0,
+      },
+    };
+    const r = parseImport(JSON.stringify(v3));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.genomeShards).toBe(0);
+      expect(r.data.stars).toEqual({});
+    }
+    expect(getMigrationLog().some((e) => e.from === 3 && e.to === 4)).toBe(true);
   });
 
   it('round-trips a current save through a stored blob unchanged (preserve current saves)', () => {

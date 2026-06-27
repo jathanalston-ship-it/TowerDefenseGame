@@ -3,6 +3,7 @@
 // Every value is an illustrative starting point for the vertical slice.
 
 import type { CombatClass, Currency, EnemyKind, HeroId, MetaModifiers, TowerKind } from './types';
+import type { RunModifiers } from './cards'; // type-only (no runtime cycle: cards never imports config)
 import { defineEnemy, MOVEMENT, ability, tune } from './archetypes';
 import type { EnemyDef, EnemyBehavior, StatBlock, EnemyRole, AbilityModule, MovementId } from './archetypes';
 // Re-export the archetype kit so existing `from './config'` import paths keep working.
@@ -342,12 +343,13 @@ export interface LootRarityDef {
   shards: [number, number];
   essence: [number, number];
   components: [number, number];
+  genomeShards: [number, number]; // feeds Tower Stars — the loot→stars payoff
 }
 
 export const LOOT_RARITY: Record<LootRarity, LootRarityDef> = {
-  common: { label: 'Common', color: 'var(--r-common)', shards: [40, 80], essence: [0, 0], components: [0, 0] },
-  rare: { label: 'Rare', color: 'var(--r-rare)', shards: [90, 160], essence: [20, 40], components: [0, 0] },
-  epic: { label: 'Epic', color: 'var(--r-epic)', shards: [220, 360], essence: [50, 90], components: [25, 50] },
+  common: { label: 'Common', color: 'var(--r-common)', shards: [40, 80], essence: [0, 0], components: [0, 0], genomeShards: [12, 22] },
+  rare: { label: 'Rare', color: 'var(--r-rare)', shards: [90, 160], essence: [20, 40], components: [0, 0], genomeShards: [30, 55] },
+  epic: { label: 'Epic', color: 'var(--r-epic)', shards: [220, 360], essence: [50, 90], components: [25, 50], genomeShards: [80, 140] },
 };
 
 /** Rarity of the box at a given 1-based earned index. Every 25th is Epic, every
@@ -356,6 +358,84 @@ export function lootBoxRarity(index: number): LootRarity {
   if (index > 0 && index % 25 === 0) return 'epic';
   if (index > 0 && index % 5 === 0) return 'rare';
   return 'common';
+}
+
+// ── Tower Stars (per-unit permanent progression) ────────────────────────────
+// Each tower has a Star ladder (★0 = baseline, so an un-starred tower is unchanged).
+// Stars are bought with Genome Shards (from loot boxes + runs). Most steps are modest
+// stat steps; the ★3 and ★5 steps unlock a real MECHANIC by setting an existing run
+// hook (the same flags Gene Cards use) — so a star is a *verb*, not just a number, and
+// no new simulation code is required. Data-driven: a new step is one array entry.
+export const STAR_MAX = 5;
+export const GENOME_SHARDS_PER_WAVE = 1.2; // small run trickle so stars progress even without opening boxes
+
+export interface StarStat {
+  damageMult: number;
+  fireRateMult: number;
+  rangeMult: number;
+  splashMult: number;
+}
+export function defaultStarStat(): StarStat {
+  return { damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1 };
+}
+
+export interface StarNode {
+  cost: number; // Genome Shards to buy this star (from the level below)
+  desc: string; // short UI description of what the star grants
+  stat?: Partial<StarStat>; // per-kind stat step (towerSystem applies these)
+  apply?: (m: RunModifiers) => void; // behavioral unlock — reuses an existing run hook
+  unlock?: string; // names the mechanic (★3/★5) for the "new ability" reveal
+}
+
+export const STAR_TRACKS: Record<TowerKind, StarNode[]> = {
+  needle: [
+    { cost: 20, desc: '+8% damage', stat: { damageMult: 1.08 } },
+    { cost: 35, desc: '+8% fire rate', stat: { fireRateMult: 1.08 } },
+    { cost: 60, desc: 'needles bounce to another target on hit', apply: (m) => { m.needleBounce += 1; }, unlock: 'Ricochet' },
+    { cost: 100, desc: '+10% damage', stat: { damageMult: 1.1 } },
+    { cost: 160, desc: 'fire an extra needle', apply: (m) => { m.needleExtraProjectiles += 1; }, unlock: 'Twin Fang' },
+  ],
+  mortar: [
+    { cost: 20, desc: '+8% damage', stat: { damageMult: 1.08 } },
+    { cost: 35, desc: '+12% splash radius', stat: { splashMult: 1.12 } },
+    { cost: 60, desc: 'lob a second shell at another cluster', apply: (m) => { m.mortarExtraShell += 1; }, unlock: 'Twin Mortars' },
+    { cost: 100, desc: '+10% damage', stat: { damageMult: 1.1 } },
+    { cost: 160, desc: 'deadlier, longer-lasting Corrosion pools', apply: (m) => { m.poolDpsMult *= 1.3; m.mortarPoolDurationMult *= 1.4; }, unlock: 'Lingering Acid' },
+  ],
+  reactor: [
+    { cost: 20, desc: '+12% reactor biomass', apply: (m) => { m.reactorBiomassMult *= 1.12; } },
+    { cost: 35, desc: '+20% aura radius', apply: (m) => { m.reactorAuraRadiusMult *= 1.2; } },
+    { cost: 60, desc: 'overcharges neighbors harder', apply: (m) => { m.reactorOverchargeBonus += 0.2; }, unlock: 'Overcharged Veins' },
+    { cost: 100, desc: '+12% reactor biomass', apply: (m) => { m.reactorBiomassMult *= 1.12; } },
+    { cost: 160, desc: 'a surge of aura radius & overcharge', apply: (m) => { m.reactorAuraRadiusMult *= 1.25; m.reactorOverchargeBonus += 0.15; }, unlock: 'Apotheosis' },
+  ],
+};
+
+/** Genome-Shard cost to buy the next star, or null if maxed. */
+export function starCost(kind: TowerKind, currentLevel: number): number | null {
+  const track = STAR_TRACKS[kind];
+  return currentLevel >= track.length ? null : track[currentLevel].cost;
+}
+
+/** Fold a tower's owned stars into its per-kind stat block (towerSystem reads this). */
+export function starStatFor(kind: TowerKind, level: number): StarStat {
+  const s = defaultStarStat();
+  const track = STAR_TRACKS[kind];
+  for (let i = 0; i < Math.min(level, track.length); i++) {
+    const st = track[i].stat;
+    if (!st) continue;
+    if (st.damageMult) s.damageMult *= st.damageMult;
+    if (st.fireRateMult) s.fireRateMult *= st.fireRateMult;
+    if (st.rangeMult) s.rangeMult *= st.rangeMult;
+    if (st.splashMult) s.splashMult *= st.splashMult;
+  }
+  return s;
+}
+
+/** Apply a tower's owned star MECHANIC unlocks into the run modifier bag (reuses card hooks). */
+export function applyStarUnlocks(kind: TowerKind, level: number, m: RunModifiers): void {
+  const track = STAR_TRACKS[kind];
+  for (let i = 0; i < Math.min(level, track.length); i++) track[i].apply?.(m);
 }
 
 // ── Battlefield / arena ─────────────────────────────────────────────────────

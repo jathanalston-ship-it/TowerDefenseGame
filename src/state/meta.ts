@@ -22,9 +22,16 @@ import {
   lootMeterSize,
   lootBoxRarity,
   LOOT_RARITY,
+  GENOME_SHARDS_PER_WAVE,
+  starCost,
+  starStatFor,
+  applyStarUnlocks,
+  TOWER_ORDER,
 } from '../core/config';
-import type { UpgradeDef, LootRarity } from '../core/config';
-import type { Currency, MetaModifiers } from '../core/types';
+import type { UpgradeDef, LootRarity, StarStat } from '../core/config';
+import type { Currency, MetaModifiers, TowerKind } from '../core/types';
+import type { RunModifiers } from '../core/cards';
+import type { StarRunData } from '../core/game';
 import type { RunResult } from '../core/game';
 import {
   ACHIEVEMENTS,
@@ -89,7 +96,9 @@ export interface LootReward {
   shards: number;
   essence: number;
   components: number;
+  genomeShards: number;
 }
+
 
 /** Build the achievement-check view from a (post-run) save. */
 function statsFromSave(s: SaveData): AchievementStats {
@@ -186,6 +195,7 @@ export const meta = {
     }
 
     next.totalRuns = save.totalRuns + 1;
+    next.genomeShards = save.genomeShards + Math.floor(result.wave * GENOME_SHARDS_PER_WAVE); // Star trickle
 
     // ── Codex discoveries (motivation layer — union this run's sightings) ──
     next.codex = {
@@ -264,14 +274,50 @@ export const meta = {
     const shards = roll(def.shards);
     const essence = roll(def.essence);
     const components = roll(def.components);
+    const genomeShards = roll(def.genomeShards);
     persist({
       ...s,
       lootBoxes: s.lootBoxes - 1,
       shards: s.shards + shards,
       essence: s.essence + essence,
       components: s.components + components,
+      genomeShards: s.genomeShards + genomeShards,
     });
-    return { rarity, shards, essence, components };
+    return { rarity, shards, essence, components, genomeShards };
+  },
+
+  // ── Tower Stars (per-unit progression) ───────────────────────────────────
+
+  starLevel(kind: TowerKind): number {
+    return store.get().stars[kind] ?? 0;
+  },
+
+  /** Genome-Shard cost of the next star, or null if maxed. */
+  nextStarCost(kind: TowerKind): number | null {
+    return starCost(kind, store.get().stars[kind] ?? 0);
+  },
+
+  /** Buy the next star for a tower (spends Genome Shards). Returns success. */
+  buyStar(kind: TowerKind): boolean {
+    const s = store.get();
+    const level = s.stars[kind] ?? 0;
+    const cost = starCost(kind, level);
+    if (cost === null || s.genomeShards < cost) return false;
+    persist({ ...s, genomeShards: s.genomeShards - cost, stars: { ...s.stars, [kind]: level + 1 } });
+    return true;
+  },
+
+  /** The per-run star fold the Game applies (per-kind stats + the unlock applier). */
+  starRunData(): StarRunData {
+    const s = store.get();
+    const stat = {} as Record<TowerKind, StarStat>;
+    for (const kind of TOWER_ORDER) stat[kind] = starStatFor(kind, s.stars[kind] ?? 0);
+    return {
+      stat,
+      apply: (m: RunModifiers) => {
+        for (const kind of TOWER_ORDER) applyStarUnlocks(kind, s.stars[kind] ?? 0, m);
+      },
+    };
   },
 
   // ── Save management ──────────────────────────────────────────────────────

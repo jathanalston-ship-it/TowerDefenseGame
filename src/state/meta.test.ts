@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { meta } from './meta';
 import { lootMeterSize, lootBoxRarity } from '../core/config';
+import { defaultRunModifiers } from '../core/cards';
 import type { RunResult } from '../core/game';
 
 function result(over: Partial<RunResult>): RunResult {
@@ -199,6 +200,48 @@ describe('loot boxes (rarity + opening)', () => {
     }
     expect(opened).toEqual(['common', 'common', 'common', 'common', 'rare']); // #1..#5, FIFO
     expect(rareShards).toBeGreaterThan(commonShards); // rare cache is richer
+    meta.reset();
+  });
+
+  it('loot boxes also pay Genome Shards (the loot → stars payoff)', () => {
+    meta.reset();
+    meta.addLootProgress(lootMeterSize(0));
+    const before = meta.get().genomeShards;
+    const reward = meta.openLootBox()!;
+    expect(reward.genomeShards).toBeGreaterThan(0);
+    expect(meta.get().genomeShards).toBe(before + reward.genomeShards);
+    meta.reset();
+  });
+});
+
+describe('tower stars (per-unit progression)', () => {
+  it('buys stars with Genome Shards, increments the level, and caps at MAX', () => {
+    meta.reset();
+    expect(meta.starLevel('needle')).toBe(0);
+    expect(meta.buyStar('needle')).toBe(false); // no shards yet
+
+    for (let i = 0; i < 30; i++) meta.recordRun(result({ mode: 'endless', wave: 40 })); // trickle shards
+    expect(meta.get().genomeShards).toBeGreaterThan(0);
+
+    const cost = meta.nextStarCost('needle')!;
+    const before = meta.get().genomeShards;
+    expect(meta.buyStar('needle')).toBe(true);
+    expect(meta.starLevel('needle')).toBe(1);
+    expect(meta.get().genomeShards).toBe(before - cost);
+    meta.reset();
+  });
+
+  it('starRunData reflects owned stars (per-kind stats + the unlock applier)', () => {
+    meta.reset();
+    for (let i = 0; i < 40; i++) meta.recordRun(result({ mode: 'endless', wave: 50 }));
+    expect(meta.buyStar('needle')).toBe(true); // ★1 (+damage)
+    expect(meta.buyStar('needle')).toBe(true); // ★2 (+fire rate)
+    expect(meta.buyStar('needle')).toBe(true); // ★3 (Ricochet → needleBounce)
+    const data = meta.starRunData();
+    expect(data.stat.needle.damageMult).toBeGreaterThan(1); // stat steps applied
+    const mods = defaultRunModifiers();
+    data.apply(mods);
+    expect(mods.needleBounce).toBe(1); // ★3 mechanic unlock set the run hook
     meta.reset();
   });
 });

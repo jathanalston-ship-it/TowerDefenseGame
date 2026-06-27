@@ -34,6 +34,9 @@ export interface SaveData {
   lootMeter: number; // current progress toward the next loot box
   lootBoxes: number; // unopened loot boxes on hand
   lootBoxesLifetime: number; // total ever earned (never decreases — a trophy stat)
+  // Tower Stars — per-unit permanent progression (the first per-unit record).
+  genomeShards: number; // currency that buys stars (from loot boxes + runs)
+  stars: Record<string, number>; // towerKind -> star level
 }
 
 /** Discovered content sets (stored as deduped id arrays for JSON portability). */
@@ -43,7 +46,7 @@ export interface CodexData {
   cards: string[];
 }
 
-export const CURRENT_VERSION = 3;
+export const CURRENT_VERSION = 4;
 const SAVE_KEY = 'assimilate.save';
 const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
@@ -76,6 +79,7 @@ export function defaultSave(): SaveData {
     essence: 0, components: 0, catalyst: 0,
     codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
     lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0,
+    genomeShards: 0, stars: {},
   };
 }
 
@@ -158,6 +162,8 @@ export function normalizeSave(raw: unknown): SaveData {
     lootMeter: nonNegInt(o.lootMeter),
     lootBoxes: nonNegInt(o.lootBoxes),
     lootBoxesLifetime: nonNegInt(o.lootBoxesLifetime),
+    genomeShards: nonNegInt(o.genomeShards),
+    stars: normalizeUpgrades(o.stars), // same shape as upgrades: id -> positive int level
   };
 }
 
@@ -230,6 +236,11 @@ const MIGRATIONS: Migration[] = [
       fieldOp.add(d, 'lootBoxes', 0),
       fieldOp.add(d, 'lootBoxesLifetime', 0),
     ],
+  },
+  {
+    to: 4,
+    describe: 'tower stars + genome shards',
+    up: (d) => [fieldOp.add(d, 'genomeShards', 0), fieldOp.add(d, 'stars', {})],
   },
 ];
 

@@ -61,6 +61,11 @@ export function LootBoxOpener(): JSX.Element | null {
                 <b><CountUp value={reveal.components} animateFrom={0} duration={650} /></b> Components
               </span>
             )}
+            {reveal.genomeShards > 0 && (
+              <span>
+                <b><CountUp value={reveal.genomeShards} animateFrom={0} duration={650} /></b> Genome Shards
+              </span>
+            )}
           </div>
           <div className="lr-dismiss">{save.lootBoxes > 0 ? 'Tap to continue — open another' : 'Tap to continue'}</div>
         </div>

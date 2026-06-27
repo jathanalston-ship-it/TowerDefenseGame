@@ -48,12 +48,14 @@ updated whenever a system lands.
 | Endless mode + leaderboard score | ✅ | `core/game.ts`, `core/stage.ts` | STAGES |
 | Multi-currency economy (4 currencies) | ✅ | `state/meta.ts`, `save/saveStore.ts` | ECONOMY |
 | Meta upgrades (13 nodes / 4 tracks) | ✅ | `config.ts *_UPGRADES`, `ui/MetaShop.tsx` | ECONOMY, BALANCE-LOG |
+| Tower Stars (per-unit, ★0–5, mechanic unlocks) | 🟡 | `config.ts STAR_TRACKS`, `ui/StarPanel.tsx` | PROGRESSION-LOOP |
+| Genome Shards (Star currency, from loot + runs) | 🟡 | `state/meta.ts`, `config.ts LOOT_RARITY` | PROGRESSION-LOOP |
 | Prestige track (Catalyst sink) | 🟡 | `config.ts PRESTIGE_UPGRADES` | BALANCE-LOG |
 | Codex / collection (enemies·biomes·cards) | ✅ | `state/meta.ts`, `ui/Codex.tsx` | COLLECTION |
 | Persistent Loot Meter (→ loot boxes) | 🟡 | `config.ts LOOT`, `state/meta.ts`, `ui/LootMeter.tsx` | LOOTBOX |
 | Automatic wave flow + Build Phase | ✅ | `game.ts` (buildCountdown), `ui/BuildBanner.tsx` | WAVES |
 | Achievements (16 / 5 chains) + titles | ✅ | `core/achievements.ts` | COLLECTION |
-| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v3, `MIGRATIONS`) | ARCHITECTURE §15.2 |
+| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v4, `MIGRATIONS`) | ARCHITECTURE §15.2 |
 | HUD / menus / results | ✅ | `src/ui/*` | HUD |
 | Internal balancing tools (dev-only) | ✅ | `ui/DebugPanel.tsx`, `debug/debug.ts` | — |
 | Equipment **gear** (weapons/armor/relics) | ⚪ | — | EQUIPMENT, PROGRESSION |
