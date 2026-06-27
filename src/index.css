@@ -606,6 +606,22 @@ button:disabled {
   border-radius: 999px;
   transition: width var(--t-med);
 }
+/* Loot box completion: pop the chest + flash the bar as it locks in and resets to the next. */
+.loot-chest.is-pop {
+  animation: loot-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes loot-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.55); filter: brightness(1.7); }
+  100% { transform: scale(1); }
+}
+.loot-bar.is-complete {
+  animation: loot-complete 0.6s ease;
+}
+@keyframes loot-complete {
+  0%, 100% { box-shadow: none; border-color: var(--line); }
+  35% { box-shadow: 0 0 9px 1px var(--gold); border-color: var(--gold); }
+}
 .loot-sub {
   font-size: 11px;
   margin-top: 2px;

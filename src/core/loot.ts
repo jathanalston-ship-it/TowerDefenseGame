@@ -122,8 +122,10 @@ rarityRegistry.registerAll(RARITIES);
 export const LOOT_EARN = { pointsPerWave: 14, pointsPerKill: 1 };
 
 /** How many boxes the queue keeps determined at once. Front = filling now; the rest are
- * the pre-rolled "next" boxes the player can see coming (≥ 2 → a visible Next box). */
-export const LOOT_QUEUE_DEPTH = 2;
+ * pre-rolled "next" boxes (the HUD surfaces front + next). Deep enough that a single run's
+ * worth of completions are all pre-determined, so the live meter cycles through them with
+ * the CORRECT rarities (and matches the run-end award); the meter overflow-cycles past it. */
+export const LOOT_QUEUE_DEPTH = 6;
 
 // ── Lookups ───────────────────────────────────────────────────────────────────
 
