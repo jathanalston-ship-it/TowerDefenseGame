@@ -79,6 +79,7 @@ import type {
   Tower,
   TowerKind,
   HeroId,
+  CombatClass,
   FloatingText,
 } from './types';
 
@@ -99,6 +100,7 @@ export interface RenderState {
   floats: FloatingText[];
   particles: Particle[];
   hero: Hero;
+  heroClass: CombatClass; // the selected hero's class — drives the renderer's hero accent
   phase: Phase;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
@@ -267,6 +269,7 @@ export class Game {
       abilityCd: 0,
       facing: -Math.PI / 2, // facing up-field toward the swarm
       swing: 0,
+      swingMax: this.heroDef.swingTime,
     };
   }
 
@@ -1151,20 +1154,32 @@ export class Game {
     const h = this.hero;
     if (h.down || h.abilityCd > 0) return;
     this.apexUses++;
-    h.x = px;
-    h.y = py;
-    h.rally = { x: px, y: py };
-    const r2 = this.heroDef.ability.radius * this.heroDef.ability.radius;
+    const a = this.heroDef.ability;
+    // 'leap' repositions the hero to the aim point (mobility + burst). 'slam' anchors at
+    // the hero — a bruiser holds ground and detonates around itself, slowing the area.
+    let cx = px;
+    let cy = py;
+    if (a.kind === 'leap') {
+      h.x = px;
+      h.y = py;
+      h.rally = { x: px, y: py };
+    } else {
+      cx = h.x;
+      cy = h.y;
+    }
+    const r2 = a.radius * a.radius;
     for (const e of this.enemies) {
       if (!e.alive) continue;
-      if (dist2(px, py, e.x, e.y) <= r2) {
-        this.applyDamage(e, this.heroDef.ability.damage * this.mods.heroDamageMult);
-        this.addFracture(e, this.heroDef.ability.fracture);
+      if (dist2(cx, cy, e.x, e.y) <= r2) {
+        this.applyDamage(e, a.damage * this.mods.heroDamageMult);
+        this.addFracture(e, a.fracture);
+        if (a.slowDuration) e.slowUntil = Math.max(e.slowUntil, this.time + a.slowDuration); // reuses the reactor-aura slow
         this.maybeShred(e);
       }
     }
-    h.abilityCd = this.heroDef.ability.cooldown * this.mods.heroCooldownMult;
-    this.floats.push({ x: px, y: py - 20, text: 'APEX!', color: '#5ad1ff', life: 0.8 });
+    h.abilityCd = a.cooldown * this.mods.heroCooldownMult;
+    if (a.kind === 'leap') this.floats.push({ x: cx, y: cy - 20, text: 'APEX!', color: '#5ad1ff', life: 0.8 });
+    else this.floats.push({ x: cx, y: cy - 20, text: 'SLAM!', color: '#7CF6C8', life: 0.8 });
   }
 
   private deathSystem(): void {
@@ -1530,6 +1545,7 @@ export class Game {
       floats: this.floats,
       particles: this.particles,
       hero: this.hero,
+      heroClass: this.heroDef.combatClass,
       phase: this.phase,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,

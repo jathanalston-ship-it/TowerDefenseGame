@@ -17,7 +17,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ECON, ELITE, ENEMY_DEFS, HERO, PERF, TOWER_DEFS } from '../core/config';
+import { ECON, ELITE, ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import { DEFAULT_PALETTE } from '../core/biomes';
 import type { RenderState } from '../core/game';
 
@@ -863,6 +863,9 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
 
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   const h = rs.hero;
+  // Class accent — the gold body is the shared "hero" identity; the rim + slash are
+  // tinted by the selected hero's combat class so the roster reads at a glance.
+  const accent = RGB[rs.heroClass.toLowerCase() as 'kinetic' | 'caustic' | 'vital'] ?? RGB.kinetic;
 
   // Motion trail — a few fading echoes behind the moving hero.
   if (!reduceMotion && !h.down) {
@@ -886,7 +889,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   ctx.fill();
 
   // Body: gold blade-diamond facing its target, lunging forward mid-swing.
-  const lunge = h.swing > 0 ? Math.sin((1 - h.swing / HERO.swingTime) * Math.PI) * 5 : 0;
+  const lunge = h.swing > 0 ? Math.sin((1 - h.swing / h.swingMax) * Math.PI) * 5 : 0;
   ctx.save();
   ctx.translate(h.x, h.y);
   ctx.rotate(h.facing + Math.PI / 2); // local -y (the tip) points along `facing`
@@ -900,7 +903,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   ctx.lineTo(-10, 1);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = rgba(RGB.kinetic, 0.7); // Ravager = Kinetic class rim
+  ctx.strokeStyle = rgba(accent, 0.7); // class-tinted rim (Kinetic / Caustic / Vital)
   ctx.lineWidth = 1.5;
   ctx.stroke();
   ctx.fillStyle = 'rgba(255,240,200,0.9)';
@@ -912,11 +915,11 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState): void {
 
   // Swing slash — a bright kinetic crescent ahead of the hero.
   if (h.swing > 0 && !h.down) {
-    const p = h.swing / HERO.swingTime; // 1 -> 0
+    const p = h.swing / h.swingMax; // 1 -> 0
     ctx.save();
     ctx.translate(h.x, h.y);
     ctx.rotate(h.facing);
-    ctx.strokeStyle = rgba(RGB.kinetic, p * 0.8);
+    ctx.strokeStyle = rgba(accent, p * 0.8);
     ctx.lineWidth = 3 * p + 1;
     ctx.lineCap = 'round';
     ctx.beginPath();

@@ -81,7 +81,7 @@ export class AudioDriver {
       if (this.sounded.has(f)) continue;
       this.sounded.add(f);
       if (f.text === 'SHRED') audio.play('shred');
-      else if (f.text === 'APEX!') audio.play('apex');
+      else if (f.text === 'APEX!' || f.text === 'SLAM!') audio.play('apex');
       else if (f.text === 'DOWN') audio.play('hero_down');
     }
 

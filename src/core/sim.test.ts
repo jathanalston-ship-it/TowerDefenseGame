@@ -337,6 +337,37 @@ describe('automatic wave flow', () => {
     const bulwark = new Game(1, NO_META, { mode: 'classic', heroId: 'bulwark' });
     expect(bulwark.hero.maxHp).toBe(HEROES.bulwark.maxHp);
     expect(bulwark.hero.maxHp).not.toBe(HEROES.ravager.maxHp); // a real, distinct kit
+    expect(bulwark.getRenderState().heroClass).toBe('Vital'); // drives the renderer accent
+  });
+
+  it('ability kind: leap repositions + bursts; slam holds ground + slows', () => {
+    // Ravager — 'leap': the hero teleports to the aim point and bursts it (no slow).
+    const leap = new Game(1, NO_META, { mode: 'classic' });
+    leap.debugSpawn('runner', 1);
+    const le = leap.enemies[0];
+    const lhp = le.hp;
+    leap.armAbility();
+    leap.click(le.x, le.y);
+    expect(leap.hero.x).toBeCloseTo(le.x); // leapt to the target
+    expect(leap.hero.y).toBeCloseTo(le.y);
+    expect(le.hp).toBeLessThan(lhp); // and burst it
+    expect(le.slowUntil).toBe(0); // leap applies no slow
+
+    // Bulwark — 'slam': the hero holds ground and detonates around itself, slowing hits.
+    const slam = new Game(1, NO_META, { mode: 'classic', heroId: 'bulwark' });
+    slam.debugSpawn('runner', 1);
+    const se = slam.enemies[0];
+    slam.hero.x = se.x; // stand on the enemy so the self-centered slam covers it
+    slam.hero.y = se.y;
+    const shp = se.hp;
+    const hx = slam.hero.x;
+    const hy = slam.hero.y;
+    slam.armAbility();
+    slam.click(hx + 400, hy + 400); // aim far away — a slam ignores it and stays put
+    expect(slam.hero.x).toBe(hx); // bruiser does NOT reposition
+    expect(slam.hero.y).toBe(hy);
+    expect(se.hp).toBeLessThan(shp); // damaged the area around itself
+    expect(se.slowUntil).toBeGreaterThan(0); // and slowed it (the control identity)
   });
 
   it('records a wave summary when a wave clears (kills + biomass earned)', () => {

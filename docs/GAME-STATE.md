@@ -73,7 +73,7 @@ updated whenever a system lands.
 | Content | Count | Notes |
 |---|---|---|
 | Towers | 3 | Needle (Kinetic), Mortar (Caustic), Reactor (Vital) |
-| Heroes | 2 | Ravager (Kinetic burst) · Bulwark (Vital bruiser); menu picker, choice carries into runs |
+| Heroes | 2 | Ravager (Kinetic, Apex Leap) · Bulwark (Vital, Seismic Slam); distinct stats + abilities, class-tinted, menu picker |
 | Enemies | 11 | runner, brute, tyrant, rusher, tank, flyer, burrower, splitter, spitter, mender, warden |
 | Bosses | 1 | tyrant (`isBoss`) |
 | Gene Cards | 30 | common + rare; ~12 behavioral |

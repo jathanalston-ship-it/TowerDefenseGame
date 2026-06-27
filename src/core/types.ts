@@ -126,6 +126,7 @@ export interface Hero {
   abilityCd: number;
   facing: number; // radians — smoothed toward the target/movement (for rendering)
   swing: number; // seconds left in the current attack animation
+  swingMax: number; // the hero's full swing duration (renderer normalizes by this)
 }
 
 export interface FloatingText {

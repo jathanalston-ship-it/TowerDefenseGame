@@ -225,12 +225,18 @@ export const CARD_FX = {
 // Data-driven roster. The active hero's stats are read through `HERO` (the
 // default), so a stat-variant hero is one HEROES entry — no engine changes (see
 // docs/CONTENT-GUIDE.md §Heroes). Numbers below are the Ravager's, unchanged.
+/** Ability behaviors. A new hero ability is one `kind` + a handler branch in
+ *  Game.triggerAbility — the minimal, data-driven "ability framework" (each kind
+ *  composes existing sim primitives: teleport, AoE damage, Fracture, slow). */
+export type AbilityKind = 'leap' | 'slam';
 export interface HeroAbilityDef {
   name: string;
+  kind: AbilityKind;
   cooldown: number;
   radius: number;
   damage: number;
   fracture: number;
+  slowDuration?: number; // 'slam': seconds of (reactor-strength) slow applied on hit
 }
 export interface HeroDef {
   id: HeroId;
@@ -279,7 +285,7 @@ export const HEROES: Record<HeroId, HeroDef> = {
     cleaveRadius: 42,
     cleaveFraction: 0.5,
     swingTime: 0.18,
-    ability: { name: 'Apex Leap', cooldown: 8, radius: 72, damage: 62, fracture: 2 },
+    ability: { name: 'Apex Leap', kind: 'leap', cooldown: 8, radius: 72, damage: 62, fracture: 2 },
   },
   // The Bulwark — a Vital frontline bruiser. The Ravager's opposite: slower and
   // pricier in mobility, but far tankier with a wide, hard-hitting cleave and a broad
@@ -304,7 +310,8 @@ export const HEROES: Record<HeroId, HeroDef> = {
     cleaveRadius: 66,
     cleaveFraction: 0.7,
     swingTime: 0.22,
-    ability: { name: 'Seismic Slam', cooldown: 9, radius: 98, damage: 44, fracture: 3 },
+    // Holds ground and detonates around itself, slowing the area it controls.
+    ability: { name: 'Seismic Slam', kind: 'slam', cooldown: 9, radius: 98, damage: 44, fracture: 3, slowDuration: 2.5 },
   },
 };
 
