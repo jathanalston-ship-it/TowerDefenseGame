@@ -1,28 +1,27 @@
-// Top-bar Loot Box Meter. Pure visualization of the EXISTING reward pacing
-// (chestForWave): how close the run is to its next chest-tier upgrade and which
-// chest it's on track to earn. Reads only the snapshot + config — no gameplay,
-// no new state. Stage: progress toward the next tier (rich@7, prime@12 / extract).
-// Endless: progress toward the next depth tier.
+// Top-bar Loot Box Meter. The run is ALWAYS filling a meter toward a box whose rarity is
+// already decided (LOOTBOX.md "anticipation"), with the box queued AFTER it shown as the
+// pre-determined "next" — so the next loot box is known before the current meter completes.
+// Reads the saved queue (meta) + the live run snapshot, where banked loot points mirror
+// the meta earn rate so the bar and the run-end award stay in sync. No gameplay, no sim.
 
-import { CHESTS, chestForWave } from '../core/config';
+import { LOOT_EARN, costOf, rarityRegistry } from '../core/loot';
+import { meta } from '../state/meta';
 import type { HudSnapshot } from '../core/types';
 
-const RARITY_COLOR: Record<string, string> = {
-  standard: 'var(--r-common)',
-  rich: 'var(--r-rare)',
-  prime: 'var(--r-legendary)',
-};
-
 export function LootMeter({ hud }: { hud: HudSnapshot }): JSX.Element {
-  const wave = Math.max(0, hud.wave);
-  const chest = CHESTS[chestForWave(wave)] ?? CHESTS.standard;
-  const color = RARITY_COLOR[chest.rarity] ?? 'var(--r-common)';
+  const { lootQueue } = meta.use();
+  const frontId = lootQueue.queue[0] ?? 'common';
+  const nextId = lootQueue.queue[1];
+  const front = rarityRegistry.get(frontId);
+  const next = nextId ? rarityRegistry.get(nextId) : undefined;
+  const color = front?.color ?? 'var(--r-common)';
 
-  // Band toward the next chest-tier threshold (mirrors chestForWave's 7 / 12 steps).
-  const lo = wave < 7 ? 0 : 7;
-  const next = wave < 7 ? 7 : wave < 12 ? 12 : null; // null = top tier reached
-  const pct = next ? Math.min(1, Math.max(0, (wave - lo) / (next - lo))) : 1;
-  const wavesLeft = next ? Math.max(1, next - wave) : 0;
+  // Live total = banked progress + this run's accrual (same formula meta banks at run end).
+  const live = Math.floor(Math.max(0, hud.wave) * LOOT_EARN.pointsPerWave + hud.kills * LOOT_EARN.pointsPerKill);
+  const cost = costOf(frontId);
+  const total = lootQueue.progress + live;
+  const pct = Math.min(1, Math.max(0, total / cost));
+  const ready = total >= cost;
 
   return (
     <div className="hud-cell hud-loot tt" tabIndex={0}>
@@ -36,14 +35,26 @@ export function LootMeter({ hud }: { hud: HudSnapshot }): JSX.Element {
             <div className="loot-bar-fill" style={{ width: `${pct * 100}%`, background: color }} />
           </div>
           <div className="loot-sub">
-            <span style={{ color }}>{chest.name}</span>
-            <span className="hud-sub">{next ? ` · ${wavesLeft}w` : ' · MAX'}</span>
+            <span style={{ color }}>{front?.name ?? 'Common'}</span>
+            {next && (
+              <span className="hud-sub">
+                {' · next '}
+                <b style={{ color: next.color }}>{next.name}</b>
+              </span>
+            )}
           </div>
         </div>
       </div>
       <span className="tt-bubble">
-        Next chest: <b style={{ color }}>{chest.name}</b> ({chest.rolls} rolls).{' '}
-        {next ? `Reach wave ${next} to upgrade the tier.` : 'Top tier — survive to extract it.'}
+        Filling toward a <b style={{ color }}>{front?.name ?? 'Common'}</b> box ({Math.min(Math.floor(total), cost)}/
+        {cost}).{' '}
+        {ready ? 'Ready — opens at run end.' : `${Math.max(1, Math.ceil(cost - total))} pts to go.`}
+        {next && (
+          <>
+            {' '}
+            Already queued next: <b style={{ color: next.color }}>{next.name}</b>.
+          </>
+        )}
       </span>
     </div>
   );

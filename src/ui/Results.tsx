@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { rarityRegistry } from '../core/loot';
 import { itemDef } from '../core/equipment';
 import { LootReveal } from './LootReveal';
 import { RewardSequence } from './RewardSequence';
@@ -62,6 +63,31 @@ export function Results({
           <LootReveal chest={outcome.chest} />
         </div>
       )}
+
+      {done && (() => {
+        // Loot queue: any boxes the run's banked progress completed, then the box now
+        // filling + the pre-determined next (anticipation carries into the next run).
+        const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
+        const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
+        return (
+          <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
+            <div className="panel-title">Loot Queue</div>
+            {outcome.loot.awarded.map((a, i) => {
+              const def = rarityRegistry.get(a.rarity);
+              return <LootReveal key={i} chest={a.chest} title={`${def?.name ?? a.rarity} Box`} color={def?.color} />;
+            })}
+            <div className="loot-queue-line">
+              Now filling <b style={{ color: front?.color }}>{front?.name ?? 'Common'}</b>
+              {next && (
+                <>
+                  {' · next '}
+                  <b style={{ color: next.color }}>{next.name}</b>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {done && (() => {
         const def = itemDef(outcome.gear.defId);

@@ -8,6 +8,8 @@
 import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER, heroRegistry } from '../core/config';
 import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
 import type { Loadout, OwnedItem } from '../core/equipment';
+import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
+import type { LootQueueState } from '../core/lootQueue';
 
 export interface SaveData {
   shards: number;
@@ -31,9 +33,11 @@ export interface SaveData {
   // ── Hero equipment (schema v3) ──
   equipment: { inventory: OwnedItem[]; loadout: Loadout };
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
+  // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
+  lootQueue: LootQueueState;
 }
 
-export const CURRENT_VERSION = 3;
+export const CURRENT_VERSION = 4;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -115,6 +119,7 @@ export function defaultSave(): SaveData {
     achievements: [],
     equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
+    lootQueue: defaultLootQueue(),
   };
 }
 
@@ -146,6 +151,9 @@ function withDefaults(data: SaveData): SaveData {
       loadout: { ...d.equipment.loadout, ...data.equipment?.loadout },
     },
     mats: { ...d.mats, ...data.mats },
+    // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
+    // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
+    lootQueue: sanitizeLootQueue(data.lootQueue),
   };
 }
 
@@ -186,9 +194,10 @@ function isSaveData(v: unknown): v is SaveData {
 
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
 function migrate(_version: number, data: unknown): unknown {
-  // v1→v2 (tower progression) and v2→v3 (hero progression + roster, plus lifetime
-  // stats + achievements) are additive: withDefaults() deep-fills the new records,
-  // the selectedHero default, and the stats block. Structural changes add steps here.
+  // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
+  // achievements), and v3→v4 (loot queue) are all additive: withDefaults() deep-fills the
+  // new records, the selectedHero default, the stats block, and the loot queue. Structural
+  // changes add steps here.
   return data;
 }
 

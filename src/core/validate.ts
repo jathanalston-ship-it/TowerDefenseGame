@@ -53,6 +53,7 @@ import {
 } from './equipment';
 import { DIFFICULTIES, difficultyRegistry } from './difficulty';
 import { statusRegistry } from './status';
+import { rarityRegistry } from './loot';
 import type { MetaModifiers } from './types';
 
 export interface ContentRegistries {
@@ -113,6 +114,7 @@ export function validateAllContent(): string[] {
     ...equipmentRegistry.validate(),
     ...statusRegistry.validate(),
     ...difficultyRegistry.validate(),
+    ...rarityRegistry.validate(),
     ...waveProblems(WAVES),
   ];
   // Cross-registry: a wave may only spawn enemies that actually exist in the registry.
@@ -275,6 +277,7 @@ export function validateAllContentReport(): ValidationReport {
   issues.push(...difficultyRegistry.validate().map((p) => err('invalid-stat', 'difficulty', p)));
   issues.push(...bossRegistry.validate().map((p) => err('invalid-stat', 'boss', p)));
   issues.push(...equipmentRegistry.validate().map((p) => err('invalid-stat', 'equipment', p)));
+  issues.push(...rarityRegistry.validate().map((p) => err('invalid-stat', 'rarity', p)));
 
   // 5 ─ Missing localization: every user-facing name + description string must be present.
   push(Object.values(TOWER_DEFS).flatMap((d) => [locIssue(d.name, `tower '${d.kind}'`, 'name'), locIssue(d.blurb, `tower '${d.kind}'`, 'blurb')]));

@@ -2,15 +2,22 @@
 // ChestResult from the meta layer) — this only CHOREOGRAPHS the reveal:
 //   charge (anticipation) → burst (lighting + particles + rarity flash) → cascade
 //   the deduped rewards climaxing on the best pull → summary.
-// Ceremony scales to the best rarity (fast floor, big ceiling — the anti-tedium
-// engine), a click reveals everything instantly (fast for repeated use), and it
-// accepts an array of chests for future multi-open (one combined ceremony).
+// Ceremony scales to the rarity (fast floor, big ceiling — the anti-tedium engine),
+// a click reveals everything instantly (fast for repeated use), and it accepts an
+// array of chests for future multi-open (one combined ceremony).
+//
+// Two callers, one component:
+//   • run-end caches  — <LootReveal chest={chestResult} /> (rarity from the pulls).
+//   • loot-queue boxes — <LootReveal chest={box} title="Mythic Box" color={...} />,
+//     where the BOX rarity (6-tier registry scale) supplies title + accent and its
+//     registry rank drives how big the ceremony gets.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChestResult, RewardItem } from '../state/lootbox';
 import { CHESTS, HERO_LABELS, TOWER_DEFS } from '../core/config';
 import type { LootRarity, MaterialKind } from '../core/config';
 import { itemDef } from '../core/equipment';
+import { rarityRank } from '../core/loot';
 import { audio } from '../audio/sound';
 
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
@@ -80,13 +87,34 @@ function summarize(items: RewardItem[]): Reward[] {
     }));
 }
 
-export function LootReveal({ chest, onDone }: { chest: ChestResult | ChestResult[]; onDone?: () => void }): JSX.Element {
+export function LootReveal({
+  chest,
+  title,
+  color,
+  onDone,
+}: {
+  chest: ChestResult | ChestResult[];
+  title?: string; // overrides the chest-name label (loot-queue boxes pass their rarity name)
+  color?: string; // rarity color for the framing + accent (loot-queue boxes)
+  onDone?: () => void;
+}): JSX.Element {
   const chests = useMemo(() => (Array.isArray(chest) ? chest : [chest]), [chest]);
   const rewards = useMemo(() => summarize(chests.flatMap((c) => c.items)), [chests]);
   const top = useMemo(() => chests.reduce<LootRarity>((r, c) => maxR(r, c.topRarity), 'common'), [chests]);
-  const tier = TIER.indexOf(top);
-  const name = chests.length === 1 ? (CHESTS[chests[0].chestId]?.name ?? 'Reward Cache') : `${chests.length}× Caches`;
+
+  // Ceremony tier: the bigger of the best item rarity (run-end pulls) and the box's
+  // registry rank (loot-queue boxes — chestId is the rarity id; non-rarity chests → -1).
+  const itemTier = TIER.indexOf(top);
+  const boxTier = useMemo(() => chests.reduce((m, c) => Math.max(m, rarityRank(c.chestId)), -1), [chests]);
+  const tier = Math.max(itemTier, boxTier);
+
+  const name =
+    title ?? (chests.length === 1 ? (CHESTS[chests[0].chestId]?.name ?? 'Reward Cache') : `${chests.length}× Caches`);
   const pulls = chests.reduce((n, c) => n + c.items.length, 0);
+  // Accent: an explicit box color (loot-queue) wins; otherwise the best item rarity.
+  const accent = color ?? RARITY[top].color;
+  // Flash word: the box name (loot-queue) or the best item rarity label (run-end).
+  const flash = color ? name.toUpperCase() : RARITY[top].label;
 
   const [open, setOpen] = useState(false);
   const [revealed, setRevealed] = useState(0);
@@ -94,9 +122,9 @@ export function LootReveal({ chest, onDone }: { chest: ChestResult | ChestResult
   const calledDone = useRef(false);
 
   // Charge (anticipation) scales with rarity: fast floor (~360ms), big ceiling.
-  const chargeMs = 320 + tier * 140;
+  const chargeMs = 320 + Math.max(0, tier) * 140;
   // Cascade interval: snappy, slightly slower for higher tiers to savor.
-  const stepMs = 150 + tier * 35;
+  const stepMs = 150 + Math.max(0, tier) * 35;
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -137,15 +165,13 @@ export function LootReveal({ chest, onDone }: { chest: ChestResult | ChestResult
 
   // Burst particles (DOM sparks; rarity-tinted, count scales with tier).
   const sparks = useMemo(() => {
-    const n = 12 + tier * 6;
+    const n = 12 + Math.max(0, tier) * 6;
     return Array.from({ length: n }, (_, i) => {
       const a = (i / n) * Math.PI * 2 + (i % 3) * 0.4;
       const dist = 60 + ((i * 37) % 90);
       return { tx: Math.cos(a) * dist, ty: Math.sin(a) * dist, delay: (i % 5) * 0.04 };
     });
   }, [tier]);
-
-  const accent = RARITY[top].color;
 
   return (
     <div
@@ -175,12 +201,12 @@ export function LootReveal({ chest, onDone }: { chest: ChestResult | ChestResult
         </div>
         {open && (
           <div className="loot-rarity-flash" style={{ color: accent }}>
-            {RARITY[top].label}
+            {flash}
           </div>
         )}
       </div>
 
-      <div className="loot-title">
+      <div className="loot-title" style={color ? { color } : undefined}>
         {open ? name : 'Opening…'}
         <span className="loot-pulls">{pulls} pull{pulls > 1 ? 's' : ''}</span>
       </div>
