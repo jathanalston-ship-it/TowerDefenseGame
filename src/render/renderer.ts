@@ -18,6 +18,7 @@ import {
   towerSlots,
 } from '../core/map';
 import { ECON, ELITE, ENEMY_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import type { EnemyDef, BossSilhouette } from '../core/config';
 import { DEFAULT_PALETTE } from '../core/biomes';
 import type { RenderState } from '../core/game';
 
@@ -265,12 +266,16 @@ export function drawGame(
   drawBase(ctx, rs, it);
 
   for (const p of rs.pools) {
+    // Boss hazards (hostile) read as DANGER zones the hero must avoid; mortar pools
+    // stay caustic green. The hostile ring throbs so it can't be mistaken for cover.
+    const hostile = p.hostile === true;
+    const col = hostile ? RGB.danger : RGB.caustic;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fillStyle = rgba(RGB.caustic, 0.16);
+    ctx.fillStyle = rgba(col, hostile ? 0.18 + 0.06 * (0.5 + 0.5 * Math.sin(t * 6)) : 0.16);
     ctx.fill();
-    ctx.strokeStyle = rgba(RGB.caustic, 0.35);
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = rgba(col, hostile ? 0.6 : 0.35);
+    ctx.lineWidth = hostile ? 2 : 1;
     ctx.stroke();
   }
 
@@ -282,7 +287,7 @@ export function drawGame(
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
-  for (const e of rs.enemies) drawEnemy(ctx, e, detail);
+  for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
   drawEnemyShots(ctx, rs);
 
   drawParticles(ctx, rs);
@@ -717,6 +722,22 @@ function drawTower(ctx: CanvasRenderingContext2D, t: RenderState['towers'][numbe
     ctx.fill();
   }
   ctx.restore();
+
+  // Boss EMP/jam: a flickering cyan static ring + a slash, so an offline tower reads.
+  if (t.suppressedUntil > now) {
+    const flick = 0.4 + 0.4 * (0.5 + 0.5 * Math.sin(now * 30 + t.id));
+    ctx.strokeStyle = `rgba(90, 209, 255, ${flick})`;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(t.x - 9, t.y - 9);
+    ctx.lineTo(t.x + 9, t.y + 9);
+    ctx.stroke();
+  }
 }
 
 /** arcTo-based rounded rect (universally supported, unlike ctx.roundRect). */
@@ -734,8 +755,9 @@ function roundRectPath(
 
 // ── Enemies ──────────────────────────────────────────────────────────────────
 
-function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number], detail: boolean): void {
+function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number], detail: boolean, time = 0): void {
   const def = ENEMY_DEFS[e.kind];
+  if (def.boss) { drawBoss(ctx, e, def, detail, time); return; } // bosses draw their own silhouette
   const r = def.radius;
   const flying = def.behavior.flying === true;
 
@@ -858,6 +880,233 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: RenderState['enemies'][numb
     ctx.fillRect(e.x - w / 2, drawY - r - 7, w, 3);
     ctx.fillStyle = hpColor(pct); // match the HUD integrity palette
     ctx.fillRect(e.x - w / 2, drawY - r - 7, w * pct, 3);
+  }
+}
+
+// ── Bosses (parametric silhouettes) ─────────────────────────────────────────
+// A boss draws its `form` shaped by the silhouette params (accent / spikes / eyes), so
+// each reads as a distinct set-piece with no bespoke routine per boss. Body = enemy
+// color, trim/energy = accent. Layers on the boss chrome: a menace aura, shield arc,
+// status rings, a wide HP bar with the live phase name, and a cloak (untargetable) flicker.
+function drawBoss(
+  ctx: CanvasRenderingContext2D, e: RenderState['enemies'][number],
+  def: (typeof ENEMY_DEFS)[keyof typeof ENEMY_DEFS], detail: boolean, time: number,
+): void {
+  const prof = def.boss!;
+  const sil = prof.silhouette;
+  const R = def.radius;
+  const cloaked = !!e.boss && e.boss.invulnUntil > time;
+
+  // Big ground shadow — weight + presence.
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(e.x, e.y + R * 0.6, R * 1.15, R * 0.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pulsing menace aura in the boss color.
+  if (detail && !reduceMotion) {
+    const pulse = 0.5 + 0.5 * Math.sin(time * 2.2);
+    ctx.strokeStyle = `${def.color}40`;
+    ctx.lineWidth = 2 + pulse * 2;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, R + 7 + pulse * 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  ctx.globalAlpha = cloaked ? 0.3 + 0.16 * Math.sin(time * 16) : 1; // flicker while untargetable
+  ctx.save();
+  drawBossForm(ctx, sil.form, R, def.color, sil.accent, sil.spikes, time);
+  ctx.restore(); // isolate the form's own alpha tweaks (aberration rings) from the eyes
+
+  // Glowing eyes — accent ocelli clustered on the upper body (a quick menace read).
+  if (sil.eyes > 0) {
+    ctx.fillStyle = sil.accent;
+    for (let i = 0; i < sil.eyes; i++) {
+      const t = sil.eyes === 1 ? 0 : i / (sil.eyes - 1) - 0.5; // -0.5 … 0.5
+      ctx.beginPath();
+      ctx.arc(t * R * 0.9, -R * 0.28 + Math.abs(t) * R * 0.18, Math.max(1.4, R * 0.07), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // Shield arc (scaled up from the warden tell).
+  if (e.shield > 0 && e.maxShield > 0) {
+    const frac = Math.min(1, e.shield / e.maxShield);
+    ctx.strokeStyle = 'rgba(150,200,255,0.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, R + 7, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+    ctx.stroke();
+  }
+  if (detail) {
+    if (e.corrosion > 0) {
+      ctx.strokeStyle = rgba(RGB.caustic, 0.85);
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, R + 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (e.fracture > 0) {
+      ctx.strokeStyle = rgba(RGB.kinetic, Math.min(0.9, 0.3 + e.fracture * 0.1));
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, R + 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Wide HP bar + the live phase name (the boss's "tell").
+    const w = R * 2.8;
+    const pct = Math.max(0, e.hp / e.maxHp);
+    const by = e.y - R - 16;
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(e.x - w / 2, by, w, 5);
+    ctx.fillStyle = hpColor(pct);
+    ctx.fillRect(e.x - w / 2, by, w * pct, 5);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(e.x - w / 2, by, w, 5);
+
+    const phase = prof.phases[e.boss ? Math.max(0, e.boss.phase) : 0] ?? prof.phases[0];
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = `bold 10px ${UI_FONT}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`${prof.title} — ${phase.name}`.toUpperCase(), e.x, by - 4);
+    ctx.textAlign = 'left';
+  }
+}
+
+/** A regular n-gon path centered at the local origin (caller fills/strokes). */
+function bossPoly(ctx: CanvasRenderingContext2D, n: number, r: number, rot: number): void {
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const a = rot + (i / n) * Math.PI * 2;
+    const px = Math.cos(a) * r;
+    const py = Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+/** Draw one boss silhouette `form` at the local origin (already translated). */
+function drawBossForm(
+  ctx: CanvasRenderingContext2D, form: string, R: number,
+  color: string, accent: string, spikes: number, time: number,
+): void {
+  ctx.fillStyle = color;
+  const span = spikes > 1 ? spikes - 1 : 1;
+  switch (form) {
+    case 'titan': {
+      // Hulking hex torso + a row of shoulder horns.
+      bossPoly(ctx, 6, R, Math.PI / 6);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      for (let i = 0; i < spikes; i++) {
+        const a = -Math.PI / 2 + (i / span - 0.5) * Math.PI * 0.95;
+        const sx = Math.cos(a) * R;
+        const sy = Math.sin(a) * R;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + Math.cos(a) * R * 0.5, sy + Math.sin(a) * R * 0.5);
+        ctx.lineTo(sx + Math.cos(a + 0.5) * R * 0.18, sy + Math.sin(a + 0.5) * R * 0.18);
+        ctx.closePath();
+        ctx.fill();
+      }
+      break;
+    }
+    case 'mech': {
+      // Angular chassis + turret nubs + a glowing optic band.
+      roundRectPath(ctx, -R, -R * 0.85, R * 2, R * 1.7, R * 0.25);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      for (let i = 0; i < spikes; i++) {
+        ctx.fillRect(-R + (i / span) * R * 2 - 2, -R * 1.05, 4, R * 0.32);
+      }
+      ctx.fillRect(-R * 0.55, -R * 0.12, R * 1.1, R * 0.2);
+      break;
+    }
+    case 'serpent': {
+      // Tapering segmented body descending toward the line; bright head segment.
+      const segs = Math.max(5, spikes + 4);
+      for (let i = segs - 1; i >= 0; i--) {
+        const t = i / segs;
+        ctx.fillStyle = i === 0 ? accent : color;
+        ctx.beginPath();
+        ctx.arc(0, -R * 0.7 + t * R * 2, R * (1 - t * 0.62), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case 'crown': {
+      // A wide shield-wall with merlons — the "wall you must crack".
+      roundRectPath(ctx, -R * 1.1, -R * 0.5, R * 2.2, R * 1.3, R * 0.2);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      for (let i = 0; i < spikes; i++) {
+        ctx.fillRect(-R * 1.0 + (i / span) * R * 1.85, -R * 0.78, R * 0.22, R * 0.32);
+      }
+      break;
+    }
+    case 'walker': {
+      // Torso on splayed legs.
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < spikes; i++) {
+        const a = Math.PI / 2 + (i / span - 0.5) * Math.PI * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * R * 1.3, Math.abs(Math.sin(a)) * R * 1.2 + R * 0.1);
+        ctx.stroke();
+      }
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(0, -R * 0.15, R * 0.82, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'aberration': {
+      // Eldritch — warping concentric rings (no spikes; the eyes carry the read).
+      for (let k = 3; k >= 1; k--) {
+        const wob = reduceMotion ? 0 : Math.sin(time * 3 + k) * R * 0.06;
+        ctx.fillStyle = k % 2 ? color : accent;
+        ctx.globalAlpha *= 0.85;
+        ctx.beginPath();
+        ctx.arc(0, 0, (R * k) / 3 + wob, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+    case 'sac':
+    default: {
+      // Bulbous segmented sac + radial nubs + a pulsing core.
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      for (let i = 0; i < spikes; i++) {
+        const a = (i / Math.max(1, spikes)) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * R, Math.sin(a) * R, R * 0.16, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-R * 0.8, 0);
+      ctx.lineTo(R * 0.8, 0);
+      ctx.moveTo(0, -R * 0.8);
+      ctx.lineTo(0, R * 0.8);
+      ctx.stroke();
+      const pulse = 0.5 + 0.5 * Math.sin(time * 4);
+      ctx.fillStyle = `rgba(255,255,255,${0.3 + pulse * 0.4})`;
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
   }
 }
 

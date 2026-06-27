@@ -6,9 +6,19 @@ import type { CombatClass, Currency, EnemyKind, GearItem, GearSlot, HeroId, Meta
 import type { RunModifiers } from './cards'; // type-only (no runtime cycle: cards never imports config)
 import { defineEnemy, MOVEMENT, ability, tune } from './archetypes';
 import type { EnemyDef, EnemyBehavior, StatBlock, EnemyRole, AbilityModule, MovementId } from './archetypes';
+import { BOSS_ENEMY_DEFS } from './bosses';
 // Re-export the archetype kit so existing `from './config'` import paths keep working.
 export { defineEnemy, MOVEMENT, ability, tune };
 export type { EnemyDef, EnemyBehavior, StatBlock, EnemyRole, AbilityModule, MovementId };
+// Re-export the boss kit (roster + framework) for callers that import from config.
+export {
+  BOSS_ENEMY_DEFS, BOSS_KINDS, BOSS_MODIFIERS, applyBossModifiers, bossForBiome, flagshipBoss,
+  bossDamageMult, initBossRuntime,
+} from './bosses';
+export type {
+  BossKind, BossProfile, BossPhase, BossAbility, BossAbilityKind, BossSilhouette, BossForm,
+  BossRuntime, BossModifier, BossModEffect, DamageBias,
+} from './bosses';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
 
@@ -94,11 +104,6 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     stats: { hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14 },
     movement: MOVEMENT.bruiser, visual: { color: '#7b9cff' },
   }),
-  tyrant: defineEnemy('tyrant', {
-    name: 'Brood Tyrant', role: 'boss', isBoss: true,
-    stats: { hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26 },
-    movement: MOVEMENT.juggernaut, visual: { color: '#ff4d6d' },
-  }),
   // ── Mobility archetypes ──
   rusher: defineEnemy('rusher', {
     name: 'Razor Sprinter', role: 'chaff',
@@ -149,6 +154,8 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     movement: MOVEMENT.bulwark, visual: { color: '#6e9bff' },
     abilities: [ability.shielded(130)],
   }),
+  // ── Bosses — phased set-pieces (the roster + framework live in bosses.ts) ──
+  ...BOSS_ENEMY_DEFS,
 };
 
 // Steering radii / cadence for enemy threat behaviour. Raw px (avoids a config<->map
@@ -187,6 +194,20 @@ export const ELITE = {
   damageMult: 1.5,
   bountyMult: 2.5,
   radiusMult: 1.25, // bigger silhouette so elites read at a glance
+};
+
+// ── Bosses ──────────────────────────────────────────────────────────────────
+// Cross-cutting safety caps + presentation for the boss framework (per-boss content
+// — stats, phases, ability cadence — lives in bosses.ts). The sim's one `bossSystem`
+// reads these; tuning here tunes every boss's hard limits at once.
+export const BOSS = {
+  addCap: 18, // max adds a single boss may summon over its life (caps the DPS-race)
+  summonScatter: 34, // px spawn jitter around the boss for summoned adds
+  summonAhead: 16, // adds spawn slightly down-field of the boss (toward the line)
+  volleySpeed: 250, // px/sec for boss volley shots
+  volleySpread: 0.55, // radians: half-width of a volley fan aimed at the hero
+  surgeClampY: 0.78, // a surge can push the boss at most this fraction down the arena
+  castFloat: 0.8, // seconds a boss ability tell floats
 };
 
 // ── Status & reaction ─────────────────────────────────────────────────────

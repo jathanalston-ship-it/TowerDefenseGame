@@ -14,6 +14,7 @@
 // game.ts. Scaling the bestiary = adding data (see docs/ENEMIES.md, CONTENT-GUIDE).
 
 import type { EnemyKind } from './types';
+import type { BossProfile } from './bosses'; // type-only (no runtime cycle: bosses imports this kit)
 
 // ── AI / MOVEMENT ────────────────────────────────────────────────────────────
 /** Steering profile — *how an enemy thinks*. Combined each tick into one movement
@@ -109,6 +110,7 @@ export interface EnemyDef {
   behavior: EnemyBehavior;
   role: EnemyRole;
   isBoss?: boolean;
+  boss?: BossProfile; // present on bosses — phases/abilities/weakness/silhouette (bosses.ts)
   // Ability hooks (flattened from the modules so existing sim reads are unchanged).
   shield?: number;
   regen?: { perSec: number; delay: number };
@@ -125,6 +127,7 @@ export interface EnemyBlueprint {
   visual: VisualSpec;
   abilities?: AbilityModule[];
   isBoss?: boolean;
+  boss?: BossProfile; // bosses only — the phase/ability/weakness/silhouette profile
 }
 
 /** Compose a blueprint into the flat EnemyDef the simulation consumes. */
@@ -143,6 +146,7 @@ export function defineEnemy(kind: EnemyKind, bp: EnemyBlueprint): EnemyDef {
     color: bp.visual.color,
     behavior: bp.movement,
     ...(bp.isBoss ? { isBoss: true } : {}),
+    ...(bp.boss ? { boss: bp.boss } : {}),
     ...abilities,
   };
 }

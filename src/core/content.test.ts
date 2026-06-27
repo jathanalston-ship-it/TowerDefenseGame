@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  TOWER_DEFS, TOWER_ORDER, ENEMY_DEFS, HEROES, HERO, DEFAULT_HERO_ID, ALL_UPGRADES,
+  TOWER_DEFS, TOWER_ORDER, ENEMY_DEFS, HEROES, HERO, DEFAULT_HERO_ID, ALL_UPGRADES, BOSS_KINDS,
 } from './config';
 import { CARD_POOL } from './cards';
 import { BIOMES, BIOME_IDS } from './biomes';
@@ -37,9 +37,20 @@ describe('content tables (data-driven contracts)', () => {
     }
   });
 
-  it('exactly the intended bosses carry isBoss', () => {
-    const bosses = Object.values(ENEMY_DEFS).filter((e) => e.isBoss).map((e) => e.kind);
-    expect(bosses).toEqual(['tyrant']);
+  it('the launch boss roster carries isBoss + a complete BossProfile', () => {
+    const bosses = Object.values(ENEMY_DEFS).filter((e) => e.isBoss);
+    // 12 launch bosses, each flagged AND profiled (phases/abilities/weakness/silhouette).
+    expect(bosses.length).toBe(12);
+    expect([...bosses].map((e) => e.kind).sort()).toEqual([...BOSS_KINDS].sort());
+    for (const b of bosses) {
+      expect(b.role).toBe('boss');
+      expect(b.boss).toBeTruthy();
+      expect(b.boss!.phases.length).toBeGreaterThanOrEqual(2); // "multiple phases"
+      expect(b.boss!.phases[0].at).toBe(1); // first phase active from full HP
+      expect(b.boss!.silhouette.form.length).toBeGreaterThan(0); // a unique silhouette descriptor
+      // every boss runs at least one ability across its phases (signature abilities)
+      expect(b.boss!.phases.some((p) => p.abilities.length > 0)).toBe(true);
+    }
   });
 
   it('splitter targets resolve to real enemies (no dangling references)', () => {

@@ -38,7 +38,7 @@ updated whenever a system lands.
 | Towers (3: Needle / Mortar / Reactor) | ✅ | `config.ts TOWER_DEFS`, `game.ts` | TOWERS |
 | Heroes (2: Ravager · Bulwark) + selection | 🟡 | `config.ts HEROES`, `ui/HeroPanel.tsx`, `state/heroStore.ts` | HEROES |
 | Enemies (11 kinds, composed from archetypes) | ✅ | `core/archetypes.ts`, `config.ts ENEMY_DEFS` | ENEMIES |
-| Bosses — `isBoss` data hook (Brood Tyrant) | 🟡 | `config.ts ENEMY_DEFS` | ENEMIES |
+| Bosses — phased, weakness, abilities, silhouettes (12) | ✅ | `core/bosses.ts`, `game.ts` (`bossSystem`), `render/renderer.ts` | BOSSES |
 | Status + SHRED reaction engine | ✅ | `game.ts`, `config.ts STATUS` | DESIGN |
 | Wave Composer (themes/elites/bosses/scripted) | ✅ | `core/wavecomposer.ts` | WAVES |
 | Elites (buffed champions) | ✅ | `wavecomposer.ts`, `config.ts ELITE` | WAVES |
@@ -75,7 +75,7 @@ updated whenever a system lands.
 | Towers | 3 | Needle (Kinetic), Mortar (Caustic), Reactor (Vital) |
 | Heroes | 2 | Ravager (Kinetic, Apex Leap) · Bulwark (Vital, Seismic Slam); distinct stats + abilities, class-tinted, menu picker |
 | Enemies | 11 | runner, brute, tyrant, rusher, tank, flyer, burrower, splitter, spitter, mender, warden |
-| Bosses | 1 | tyrant (`isBoss`) |
+| Bosses | 12 | phased build-checks across 5 faction-biomes; 9 ability verbs, 7 silhouette forms, 6 modifiers |
 | Gene Cards | 30 | common + rare; ~12 behavioral |
 | Biomes | 5 | wasteland, corporate, marsh, bone, machine |
 | Authored waves | 12 | Classic/Stage; Endless waves are procedural |
@@ -129,6 +129,9 @@ prestige layers — is specified in `PROGRESSION.md` but not yet built.
   is a safe no-op with no Web Audio (the Node test contract) (`audio/audio.test.ts`).
 - **Codex & achievements** — discovery union/dedupe, new-only unlock reporting,
   title earning (`meta.test.ts`); threshold + title logic (`achievements.test.ts`).
+- **Bosses** — roster contracts (valid phases/abilities/silhouettes), phase
+  transitions, weakness/adaptive damage bias, modifiers, deterministic selection
+  (`bosses.test.ts`).
 - **Content contracts** — record keys, HERO alias, `isBoss`, unique ids
   (`content.test.ts`).
 - **Saves** — versioning, checksums, normalization, recovery (`saveStore.test.ts`).
@@ -143,7 +146,7 @@ prestige layers — is specified in `PROGRESSION.md` but not yet built.
 
 **Design corpus (forward-looking specs; "designed" unless this file says ✅):**
 `DESIGN` · `PROGRESSION` · `ROADMAP` · `STAGES` · `TOWERS` · `HEROES` · `ENEMIES`
-· `CARDS` · `EQUIPMENT` · `WAVES` (✅ framework) · `LIVING-HIVE` · `LOOTBOX`.
+· `BOSSES` (✅) · `CARDS` · `EQUIPMENT` · `WAVES` (✅ framework) · `LIVING-HIVE` · `LOOTBOX`.
 
 **Craft / quality docs:** `GAME-FEEL` · `HUD` · `READABILITY` · `STYLE-GUIDE` ·
 `VISUAL-AUDIT` · `PLACEHOLDER-ART` · `PLAYTEST-CHECKLIST`.

@@ -28,6 +28,7 @@ export interface WaveGroup {
   spacing: number; // seconds between spawns within the group
   delay: number; // seconds before the group starts
   elite?: boolean; // spawn as an elite (buffed) variant
+  mutators?: string[]; // boss-only: procedural enhancement ids (bosses.ts BOSS_MODIFIERS)
 }
 
 export type WaveDef = WaveGroup[];
@@ -81,6 +82,7 @@ export interface BossInjection {
   count: number;
   spacing: number;
   delay: number;
+  mutators?: string[]; // procedural boss enhancements applied to each spawned boss
 }
 
 /** Mark `count` of a wave's rolled enemies as elites. Off by default everywhere
@@ -158,7 +160,7 @@ export function composeProceduralWave(rng: Rng, o: ProceduralOptions): WaveGroup
   }
 
   if (o.elite) groups = injectElites(groups, o.elite);
-  if (o.boss) groups.push({ kind: o.boss.kind, count: o.boss.count, spacing: o.boss.spacing, delay: o.boss.delay });
+  if (o.boss) groups.push({ kind: o.boss.kind, count: o.boss.count, spacing: o.boss.spacing, delay: o.boss.delay, mutators: o.boss.mutators });
   return groups;
 }
 

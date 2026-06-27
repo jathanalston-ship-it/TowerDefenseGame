@@ -2,6 +2,7 @@
 // below are runtime instances owned by the Game (game.ts). No React/DOM here.
 
 import type { Vec2 } from './math';
+import type { BossRuntime } from './bosses';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion';
@@ -25,7 +26,6 @@ export type HeroId = 'ravager' | 'bulwark'; // roster grows by adding HEROES ent
 export type EnemyKind =
   | 'runner'
   | 'brute'
-  | 'tyrant'
   | 'rusher' // Fast
   | 'tank' // Tank
   | 'flyer'
@@ -33,7 +33,20 @@ export type EnemyKind =
   | 'splitter' // bursts into smaller enemies on death
   | 'spitter' // Ranged — shoots the hero from afar
   | 'mender' // Regenerating — heals unless recently hurt
-  | 'warden'; // Shielded — a shield soaks damage before HP
+  | 'warden' // Shielded — a shield soaks damage before HP
+  // ── Bosses (isBoss; carry a BossProfile — phases/abilities/weakness) ──
+  | 'tyrant' // Parasites — Brood Tyrant
+  | 'progenitor'
+  | 'forgemind' // Machine Cult
+  | 'aegis'
+  | 'reclaimer'
+  | 'golden_parachute' // Corporate Security
+  | 'field_commander'
+  | 'breacher_prime'
+  | 'apex_rival' // Hive Organisms
+  | 'lumberer_king'
+  | 'dreaming_god' // Neural Aberrations
+  | 'phantom';
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
@@ -64,6 +77,7 @@ export interface Enemy {
   lastHitTime: number; // sim-time of last damage (gates regen)
   attackCd: number; // ranged-attack cooldown (spitter)
   alive: boolean;
+  boss?: BossRuntime; // present only on bosses — phase/ability/enrage state (bosses.ts)
 }
 
 /** A projectile fired by a Ranged enemy at the hero. Tiny dedicated list — keeps
@@ -86,6 +100,7 @@ export interface Tower {
   slot: number; // tower-slot index it occupies
   cooldown: number; // seconds until next action
   overcharged: boolean; // buffed by an adjacent reactor this tick
+  suppressedUntil: number; // sim-time a boss "EMP"/jam disables this tower until (0 = active)
 }
 
 export interface Projectile {
@@ -112,6 +127,7 @@ export interface Pool {
   radius: number;
   dps: number;
   remaining: number; // seconds
+  hostile?: boolean; // boss hazard — damages the HERO inside it (not enemies)
 }
 
 export interface Hero {

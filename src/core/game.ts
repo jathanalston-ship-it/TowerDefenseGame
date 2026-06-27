@@ -35,6 +35,7 @@ import type { StageDef, StageMods, StageObjective, SpawnZone } from './stage';
 import { BIOMES, DEFAULT_PALETTE } from './biomes';
 import type { BiomeId, BiomePalette } from './biomes';
 import {
+  BOSS,
   CARD_FX,
   ECON,
   ELITE,
@@ -52,6 +53,8 @@ import {
   WAVE_FLOW,
 } from './config';
 import type { StarStat, HeroDef } from './config';
+import { applyBossModifiers, bossDamageMult, initBossRuntime } from './bosses';
+import type { BossAbility, BossProfile, BossModEffect } from './bosses';
 import {
   CLASSIC_CAMPAIGN,
   CLASSIC_WAVE_COUNT,
@@ -89,6 +92,7 @@ interface QueuedSpawn {
   hpMult: number;
   bountyMult: number;
   elite: boolean;
+  mutators?: string[]; // boss-only procedural enhancements (bosses.ts modifiers)
 }
 
 export interface RenderState {
@@ -325,6 +329,7 @@ export class Game {
       slot: slot.index,
       cooldown: 0,
       overcharged: false,
+      suppressedUntil: 0,
     });
     this.towersBuilt++;
     this.towersBuiltByKind[kind]++; // per-kind fielding → Mastery XP at run end
@@ -383,6 +388,7 @@ export class Game {
           hpMult,
           bountyMult,
           elite: group.elite ?? false,
+          mutators: group.mutators,
         });
       }
     }
@@ -466,6 +472,7 @@ export class Game {
       this.poolSystem(dt);
       this.statusSystem(dt);
       this.enemyAbilitySystem(dt);
+      this.bossSystem(dt);
       this.enemyMoveSystem(dt);
       this.heroSystem(dt);
       this.enemyShotSystem(dt);
@@ -501,34 +508,40 @@ export class Game {
   private spawnSystem(): void {
     while (this.spawnQueue.length > 0 && this.spawnQueue[0].at <= this.time) {
       const q = this.spawnQueue.shift()!;
-      this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite);
+      this.spawnOne(q.kind, q.hpMult, q.bountyMult, q.elite, q.mutators);
     }
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
 
-  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
+  private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false, mutators?: string[]): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const spawn = topSpawn(this.rng.next());
-    this.makeEnemyAt(kind, spawn.x, spawn.y, hpMult, bountyMult, elite);
+    this.makeEnemyAt(kind, spawn.x, spawn.y, hpMult, bountyMult, elite, mutators);
   }
 
   /** Construct + register one enemy (shared by top spawns and splits). An elite is
-   *  the same enemy with buffed stats + a flag the renderer reads (ELITE in config). */
-  private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number, elite = false): void {
+   *  the same enemy with buffed stats + a flag the renderer reads (ELITE in config).
+   *  A boss (`def.boss`) additionally folds any procedural `mutators` and wires its
+   *  BossRuntime so the bossSystem can step its phases/abilities. */
+  private makeEnemyAt(kind: EnemyKind, x: number, y: number, hpMult: number, bountyMult: number, elite = false, mutators?: string[]): void {
     const def = ENEMY_DEFS[kind];
     this.seenEnemies.add(kind); // Codex discovery (the one choke point for every spawn)
     const eHp = (elite ? ELITE.hpMult : 1) * this.debugHpMult; // dev "modify health" knob (×1 default)
     const shield = (def.shield ?? 0) * eHp;
-    this.enemies.push({
+    // Boss procedural modifiers (empty/identity when absent) — scale stats at spawn.
+    const mod: BossModEffect | null = def.boss ? applyBossModifiers(mutators) : null;
+    const bossHpMult = mod ? mod.hpMult : 1;
+    const speed = def.speed * this.stageMods.enemySpeedMult * (mod ? mod.speedMult : 1);
+    const e: Enemy = {
       id: this.nextId++,
       kind,
       x,
       y,
-      hp: def.hp * hpMult * eHp,
-      maxHp: def.hp * hpMult * eHp,
+      hp: def.hp * hpMult * eHp * bossHpMult,
+      maxHp: def.hp * hpMult * eHp * bossHpMult,
       baseArmor: def.armor,
-      speed: def.speed * this.stageMods.enemySpeedMult,
-      bounty: def.bounty * bountyMult * (elite ? ELITE.bountyMult : 1),
+      speed,
+      bounty: def.bounty * bountyMult * (elite ? ELITE.bountyMult : 1) * (mod ? mod.bountyMult : 1),
       damage: def.damage * (elite ? ELITE.damageMult : 1),
       elite,
       fracture: 0,
@@ -541,7 +554,21 @@ export class Game {
       lastHitTime: 0,
       attackCd: def.ranged ? def.ranged.interval : 0,
       alive: true,
-    });
+    };
+    if (def.boss) {
+      const rt = initBossRuntime();
+      rt.baseSpeed = speed;
+      rt.baseDamage = e.damage;
+      rt.baseArmor = def.armor;
+      if (mod) {
+        rt.cooldownMult = mod.cooldownMult;
+        rt.bonus = mod.bonus;
+        rt.bonusTimers = mod.bonus.map((a) => a.firstAt);
+        rt.adaptive = mod.adaptive;
+      }
+      e.boss = rt;
+    }
+    this.enemies.push(e);
   }
 
   private economySystem(dt: number): void {
@@ -583,6 +610,7 @@ export class Game {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
       if (def.fireInterval <= 0) continue; // reactor: not a weapon
+      if (t.suppressedUntil > this.time) continue; // boss EMP/jam — tower offline
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       // Hive Lattice: +fire-rate for each neighbouring tower. Stage modifiers
@@ -722,7 +750,7 @@ export class Game {
         p.ty = target.y;
         const step = p.speed * dt;
         if (dist(p.x, p.y, p.tx, p.ty) <= step + 4) {
-          this.applyDamage(target, p.damage);
+          this.applyDamage(target, p.damage, 'Kinetic'); // Needle = Kinetic
           this.addFracture(target, 1 + this.mods.needleBonusFracture);
           this.maybeShred(target);
           if (p.bounces > 0) this.bounceNeedle(p, target); // Ricochet Spores
@@ -760,7 +788,7 @@ export class Game {
     this.grid.forNeighbors(p.x, p.y, p.splash, (e) => {
       if (!e.alive) return;
       if (dist2(p.x, p.y, e.x, e.y) <= r2) {
-        this.applyDamage(e, p.damage);
+        this.applyDamage(e, p.damage, 'Caustic'); // Mortar = Caustic
         e.corrosion = STATUS.corrosionDuration;
         if (this.mods.mortarAppliesFracture) this.addFracture(e, 1);
         this.maybeShred(e);
@@ -779,14 +807,19 @@ export class Game {
   private poolSystem(dt: number): void {
     for (const pool of this.pools) {
       const r2 = pool.radius * pool.radius;
-      this.grid.forNeighbors(pool.x, pool.y, pool.radius, (e) => {
-        if (!e.alive) return;
-        if (dist2(pool.x, pool.y, e.x, e.y) <= r2) {
-          this.applyDamage(e, pool.dps * dt);
-          e.corrosion = STATUS.corrosionDuration;
-          this.maybeShred(e);
-        }
-      });
+      if (pool.hostile) {
+        // Boss hazard — burns the hero standing in it (does not touch enemies).
+        if (dist2(pool.x, pool.y, this.hero.x, this.hero.y) <= r2) this.damageHero(pool.dps * dt);
+      } else {
+        this.grid.forNeighbors(pool.x, pool.y, pool.radius, (e) => {
+          if (!e.alive) return;
+          if (dist2(pool.x, pool.y, e.x, e.y) <= r2) {
+            this.applyDamage(e, pool.dps * dt, 'Caustic');
+            e.corrosion = STATUS.corrosionDuration;
+            this.maybeShred(e);
+          }
+        });
+      }
       pool.remaining -= dt;
     }
     const ps = this.pools;
@@ -803,7 +836,7 @@ export class Game {
       if (!e.alive) continue;
       if (e.corrosion > 0) {
         e.corrosion = Math.max(0, e.corrosion - dt);
-        this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt); // light tick from the status itself
+        this.applyDamage(e, STATUS.corrosionDps * 0.5 * dt, 'Caustic'); // light tick from the status itself
       }
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
     }
@@ -836,6 +869,185 @@ export class Game {
     }
   }
 
+  // ── Bosses ─────────────────────────────────────────────────────────────────
+  /**
+   * Steps every live boss: HP-gated phase transitions (re-stat / burst-summon /
+   * weakness swap) and per-phase + modifier ability cadence, plus enrage/cloak
+   * upkeep. One generic loop drives all 12 bosses — abilities are data (bosses.ts),
+   * resolved here through a single switch. RNG use mirrors spawnSplit (seeded →
+   * deterministic). A boss already at 0 HP is left for deathSystem (no death-dump).
+   */
+  private bossSystem(dt: number): void {
+    for (const e of this.enemies) {
+      if (!e.alive || !e.boss || e.hp <= 0) continue;
+      const prof = ENEMY_DEFS[e.kind].boss!;
+      const b = e.boss;
+      if (b.phase < 0) this.enterBossPhase(e, prof, 0); // lazy init on first tick
+      // Advance through any phase thresholds the HP fraction has crossed (forward only).
+      const frac = e.maxHp > 0 ? e.hp / e.maxHp : 0;
+      while (b.phase < prof.phases.length - 1 && frac <= prof.phases[b.phase + 1].at) {
+        this.enterBossPhase(e, prof, b.phase + 1);
+      }
+      const phase = prof.phases[b.phase];
+      for (let i = 0; i < phase.abilities.length; i++) {
+        b.timers[i] -= dt;
+        if (b.timers[i] <= 0) {
+          this.castBossAbility(e, phase.abilities[i]);
+          b.timers[i] = phase.abilities[i].cooldown * b.cooldownMult;
+        }
+      }
+      // Modifier-granted abilities run regardless of phase (procedural enhancements).
+      for (let i = 0; i < b.bonus.length; i++) {
+        b.bonusTimers[i] -= dt;
+        if (b.bonusTimers[i] <= 0) {
+          this.castBossAbility(e, b.bonus[i]);
+          b.bonusTimers[i] = b.bonus[i].cooldown * b.cooldownMult;
+        }
+      }
+    }
+  }
+
+  /** Enter a boss phase: re-stat from the spawn baseline, grant a shield, burst-summon,
+   *  and (re)arm the phase's ability timers. Forward-only — each phase entered once. */
+  private enterBossPhase(e: Enemy, prof: BossProfile, idx: number): void {
+    const b = e.boss!;
+    const ph = prof.phases[idx];
+    b.phase = idx;
+    e.speed = b.baseSpeed * (ph.speedMult ?? 1);
+    e.damage = b.baseDamage * (ph.damageMult ?? 1);
+    e.baseArmor = b.baseArmor + (ph.armorBonus ?? 0);
+    if (ph.shield) {
+      e.shield += ph.shield;
+      e.maxShield = Math.max(e.maxShield, e.shield);
+    }
+    b.timers = ph.abilities.map((a) => a.firstAt * b.cooldownMult);
+    if (ph.onEnterSummon) this.summonAdds(e, ph.onEnterSummon.enemy, ph.onEnterSummon.count);
+    if (idx > 0) {
+      this.floats.push({ x: e.x, y: e.y - ENEMY_DEFS[e.kind].radius - 12, text: ph.name.toUpperCase(), color: '#ffd24d', life: 1.1 });
+      this.spawnParticles(e.x, e.y, PARTICLE.shred);
+    }
+  }
+
+  /** Execute one boss ability. Each verb composes existing sim primitives; nothing
+   *  here is per-boss — the data (bosses.ts) picks the verb + numbers. */
+  private castBossAbility(e: Enemy, a: BossAbility): void {
+    const b = e.boss!;
+    switch (a.kind) {
+      case 'summon':
+        if (a.enemy) this.summonAdds(e, a.enemy, a.count ?? 1);
+        break;
+      case 'volley':
+        this.bossVolley(e, a.count ?? 5, a.damage ?? 12);
+        break;
+      case 'shield':
+        e.shield += a.amount ?? 0;
+        e.maxShield = Math.max(e.maxShield, e.shield);
+        this.bossFloat(e, 'SHIELD', '#9cc6ff');
+        break;
+      case 'heal':
+        this.bossHeal(e, a.amount ?? 0);
+        break;
+      case 'enrage':
+        b.enrageUntil = this.time + (a.duration ?? 2);
+        b.enrageSpeed = a.speedMult ?? 1.3;
+        this.bossFloat(e, 'ENRAGE', '#ff5d73');
+        break;
+      case 'hazard':
+        this.bossHazard(e, a.damage ?? 10, a.radius ?? BOSS.summonScatter, a.duration ?? 3);
+        break;
+      case 'suppress':
+        this.bossSuppress(e, a.radius ?? 150, a.duration ?? 2.5);
+        break;
+      case 'surge':
+        this.bossSurge(e, a.dist ?? 120);
+        break;
+      case 'cloak':
+        b.invulnUntil = this.time + (a.duration ?? 1.5);
+        this.bossFloat(e, 'PHASE OUT', '#c0a3ff');
+        break;
+    }
+  }
+
+  private bossFloat(e: Enemy, text: string, color: string): void {
+    this.floats.push({ x: e.x, y: e.y - ENEMY_DEFS[e.kind].radius - 8, text, color, life: BOSS.castFloat });
+  }
+
+  /** Spawn adds around the boss (toward the line), capped over the boss's lifetime. */
+  private summonAdds(e: Enemy, kind: EnemyKind, count: number): void {
+    const b = e.boss!;
+    let made = 0;
+    for (let i = 0; i < count && b.adds < BOSS.addCap; i++) {
+      if (this.enemies.length >= PERF.maxEnemies) break;
+      const ang = this.rng.next() * Math.PI * 2;
+      const d = this.rng.next() * BOSS.summonScatter;
+      const x = Math.max(8, Math.min(WIDTH - 8, e.x + Math.cos(ang) * d));
+      const y = e.y + Math.sin(ang) * d + BOSS.summonAhead;
+      this.makeEnemyAt(kind, x, y, 1, 1); // adds spawn unscaled — keeps the race fair
+      b.adds++;
+      made++;
+    }
+    if (made > 0) this.bossFloat(e, 'SUMMON', '#d98cff');
+  }
+
+  /** A fan of shots aimed at the hero (a spread → the hero must reposition to dodge). */
+  private bossVolley(e: Enemy, count: number, damage: number): void {
+    const h = this.hero;
+    const base = Math.atan2(h.y - e.y, h.x - e.x);
+    const range = Math.hypot(h.x - e.x, h.y - e.y) || 1;
+    for (let i = 0; i < count; i++) {
+      const t = count > 1 ? i / (count - 1) - 0.5 : 0; // −0.5..0.5 across the fan
+      const ang = base + t * 2 * BOSS.volleySpread;
+      this.enemyShots.push({
+        x: e.x, y: e.y,
+        tx: e.x + Math.cos(ang) * range, ty: e.y + Math.sin(ang) * range,
+        speed: BOSS.volleySpeed, damage, alive: true,
+      });
+    }
+    this.bossFloat(e, 'BARRAGE', '#ff8ad0');
+  }
+
+  /** Restore HP — fully negated while Corroded, so DoT is the answer to a healer. */
+  private bossHeal(e: Enemy, amount: number): void {
+    if (e.corrosion > 0) { this.bossFloat(e, 'HEAL BLOCKED', '#b6e84a'); return; }
+    const heal = amount <= 1 ? e.maxHp * amount : amount;
+    e.hp = Math.min(e.maxHp, e.hp + heal);
+    this.bossFloat(e, 'REPAIR', '#3fe08a');
+  }
+
+  /** Drop a hostile ground pool just down-field of the boss (burns the hero in it). */
+  private bossHazard(e: Enemy, dps: number, radius: number, duration: number): void {
+    this.pools.push({
+      id: this.nextId++,
+      x: Math.max(radius, Math.min(WIDTH - radius, e.x)),
+      y: Math.min(HEIGHT - 8, e.y + radius * 0.6),
+      radius,
+      dps,
+      remaining: duration,
+      hostile: true,
+    });
+    this.bossFloat(e, 'HAZARD', '#ff5d73');
+  }
+
+  /** Disable towers within radius of the boss for a duration (the "EMP"/jam). */
+  private bossSuppress(e: Enemy, radius: number, duration: number): void {
+    const r2 = radius * radius;
+    let hit = 0;
+    for (const t of this.towers) {
+      if (dist2(e.x, e.y, t.x, t.y) <= r2) {
+        t.suppressedUntil = Math.max(t.suppressedUntil, this.time + duration);
+        hit++;
+      }
+    }
+    if (hit > 0) this.bossFloat(e, 'JAMMED', '#5ad1ff');
+  }
+
+  /** Lunge the boss toward the line (clamped) — punishes ceding the chokepoint. */
+  private bossSurge(e: Enemy, dist: number): void {
+    e.y = Math.min(HEIGHT * BOSS.surgeClampY, e.y + dist);
+    this.bossFloat(e, 'SURGE', '#ffb24d');
+    this.spawnParticles(e.x, e.y, PARTICLE.breach);
+  }
+
   /** Move ranged shots toward their fired point; on arrival they hit the hero only
    *  if it's still near it — so a moving hero can sidestep them (positioning matters). */
   private enemyShotSystem(dt: number): void {
@@ -843,14 +1055,7 @@ export class Game {
     for (const s of this.enemyShots) {
       const step = s.speed * dt;
       if (dist(s.x, s.y, s.tx, s.ty) <= step + 4) {
-        if (!h.down && !this.god && dist(s.tx, s.ty, h.x, h.y) <= 24) {
-          h.hp -= s.damage;
-          if (h.hp <= 0) {
-            h.down = true;
-            h.respawn = this.heroDef.respawnTime;
-            this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
-          }
-        }
+        if (dist(s.tx, s.ty, h.x, h.y) <= 24) this.damageHero(s.damage);
         this.spawnParticles(s.tx, s.ty, PARTICLE.heroHit);
         s.alive = false;
       } else {
@@ -936,7 +1141,9 @@ export class Game {
       if (e.slowUntil > this.time) slow = Math.max(slow, ECON.reactorAuraSlow); // reactor aura
       if (this.mods.lineSlow > 0 && e.y > DEFENSE_TOP_Y) slow = Math.max(slow, this.mods.lineSlow); // Tar Membrane
       slow = Math.min(0.85, slow);
-      const step = e.speed * (1 - slow) * dt;
+      // Boss enrage: a temporary speed burst on top of its base speed (tests slows/CC).
+      const enraged = e.boss && e.boss.enrageUntil > this.time ? e.boss.enrageSpeed : 1;
+      const step = e.speed * enraged * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -1026,7 +1233,20 @@ export class Game {
     e.alive = false;
     this.armorBreakUntil.delete(e.id);
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
-    this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
+    this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${Math.round(e.damage)}`, color: '#ff5d73', life: 0.9 });
+  }
+
+  /** Single choke point for hero damage (enemy shots, contact, boss hazards). Honors
+   *  god mode + the down state, and triggers the down/respawn flow once. */
+  private damageHero(amount: number): void {
+    const h = this.hero;
+    if (this.god || h.down || amount <= 0) return;
+    h.hp -= amount;
+    if (h.hp <= 0) {
+      h.down = true;
+      h.respawn = this.heroDef.respawnTime;
+      this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+    }
   }
 
   private heroSystem(dt: number): void {
@@ -1111,8 +1331,9 @@ export class Game {
     // ── Attack: hit the target, then cleave nearby chaff for a fraction. ──
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= this.heroDef.attackRange + ENEMY_DEFS[target.kind].radius) {
       const dmg = this.heroDef.attackDamage * this.mods.heroDamageMult;
+      const hc = this.heroDef.combatClass; // hero's class — drives boss weakness/resistance
       const strikes = 1 + this.mods.heroExtraStrikes; // Frenzy Glands
-      for (let s = 0; s < strikes; s++) this.applyDamage(target, dmg);
+      for (let s = 0; s < strikes; s++) this.applyDamage(target, dmg, hc);
       this.addFracture(target, this.heroDef.attackFracture);
       this.maybeShred(target);
       const cr2 = this.heroDef.cleaveRadius * this.heroDef.cleaveRadius;
@@ -1122,7 +1343,7 @@ export class Game {
         const o = hit[k];
         if (o === target || !o.alive) continue;
         if (dist2(h.x, h.y, o.x, o.y) <= cr2) {
-          this.applyDamage(o, dmg * this.heroDef.cleaveFraction);
+          this.applyDamage(o, dmg * this.heroDef.cleaveFraction, hc);
           this.maybeShred(o);
         }
       }
@@ -1140,14 +1361,7 @@ export class Game {
       if (!e.alive) continue;
       if (dist(h.x, h.y, e.x, e.y) <= this.heroDef.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
     }
-    if (incoming > 0 && !this.god) {
-      h.hp -= incoming * dt;
-      if (h.hp <= 0) {
-        h.down = true;
-        h.respawn = this.heroDef.respawnTime;
-        this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
-      }
-    }
+    if (incoming > 0) this.damageHero(incoming * dt);
   }
 
   private triggerAbility(px: number, py: number): void {
@@ -1171,7 +1385,7 @@ export class Game {
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist2(cx, cy, e.x, e.y) <= r2) {
-        this.applyDamage(e, a.damage * this.mods.heroDamageMult);
+        this.applyDamage(e, a.damage * this.mods.heroDamageMult, this.heroDef.combatClass);
         this.addFracture(e, a.fracture);
         if (a.slowDuration) e.slowUntil = Math.max(e.slowUntil, this.time + a.slowDuration); // reuses the reactor-aura slow
         this.maybeShred(e);
@@ -1329,12 +1543,15 @@ export class Game {
     return Math.max(0, a);
   }
 
-  private applyDamage(e: Enemy, raw: number): void {
+  private applyDamage(e: Enemy, raw: number, srcClass?: CombatClass): void {
     if (!e.alive) return;
+    if (e.boss && e.boss.invulnUntil > this.time) return; // cloaked boss: untargetable window
     if (this.debugDamageMult !== 1) raw *= this.debugDamageMult; // dev "modify damage" knob
     let mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.weakenUntil > this.time) mult += ECON.reactorWeaken; // reactor aura mark
     if (e.corrosion > 0 && this.mods.corrodedAmp > 0) mult += this.mods.corrodedAmp; // Brittle Rot
+    // Boss weakness/resistance by SOURCE class — the "bring the right damage" lever.
+    if (e.boss) mult *= bossDamageMult(ENEMY_DEFS[e.kind].boss!, e.boss, srcClass);
     this.hurt(e, Math.max(1, raw * mult - this.effectiveArmor(e)));
   }
 
@@ -1356,6 +1573,7 @@ export class Game {
   /** Fracture + Corrosion present → consume Fracture for a true-damage burst + armor break. */
   private maybeShred(e: Enemy): void {
     if (!e.alive) return;
+    if (e.boss && e.boss.invulnUntil > this.time) return; // cloaked bosses can't be shredded
     if (e.fracture >= 1 && e.corrosion > 0) {
       const burst = STATUS.shredBase + STATUS.shredPerStack * e.fracture;
       this.hurt(e, burst); // true damage (ignores armor), but the shield still soaks it
