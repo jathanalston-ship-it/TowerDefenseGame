@@ -66,7 +66,7 @@ import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
 import { runAbilities, runAbility } from './ability';
-import type { AbilityCast, AbilityContext, ParticleKind, StatusApplication } from './ability';
+import type { AbilityCast, AbilityComponent, AbilityContext, ParticleKind, StatusApplication } from './ability';
 import { aggregate as aggregateStatuses, applyStatus as applyStatusInstance, statusRegistry, tickStatuses } from './status';
 import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
@@ -300,6 +300,7 @@ export class Game {
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
   private readonly heroAttackStatuses: { status: StatusType; amount: number }[] = []; // weapon: hero hits also apply
+  private readonly heroAttackKit: AbilityComponent[] = []; // weapon: ability components run on each hero hit (cleave/chain/AoE/status/crit)
   private readonly relicHooks: HookSpec[] = []; // relic battlefield rules (run events → actions)
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
   private readonly actx: AbilityContext = this.buildAbilityContext();
@@ -395,6 +396,7 @@ export class Game {
       dealDamage: (e, raw, flash) => {
         const applied = this.applyDamage(e, raw, this.abilitySourceKind, flash);
         if (this.abilityHeroKind) this.heroMasteryAccrual[this.abilityHeroKind].damage += applied;
+        if (this.abilityCaster) this.heroLifesteal(this.abilityCaster, applied); // lifesteal on ability/kit hits
         return applied;
       },
       applyStatus: (e, status) => this.applyStatus(e, status),
@@ -435,6 +437,7 @@ export class Game {
     if (e.op === 'grant') {
       if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id);
       else if (e.grant.kind === 'heroAttackStatus') this.heroAttackStatuses.push({ status: e.grant.status, amount: e.grant.amount });
+      else if (e.grant.kind === 'heroAttackAbility') this.heroAttackKit.push(e.grant.component);
     } else if (e.op === 'hook') {
       this.relicHooks.push(e.hook);
     } else {
@@ -449,6 +452,14 @@ export class Game {
       const a = h.action;
       if (a.do === 'biomass') {
         this.biomass += a.value;
+      } else if (a.do === 'heal') {
+        this.integrity = Math.min(this.maxIntegrity, this.integrity + a.value);
+      } else if (a.do === 'shield') {
+        const ph = this.primaryHero;
+        if (!ph.down) {
+          ph.shield = Math.max(ph.shield, a.value);
+          ph.shieldTime = Math.max(ph.shieldTime, a.seconds);
+        }
       } else if (a.do === 'spreadStatus' && e) {
         const r2 = a.radius * a.radius;
         this.grid.forNeighbors(e.x, e.y, a.radius, (n) => {
@@ -1071,9 +1082,19 @@ export class Game {
       // Reactor STAR evolution: its kit adds to the overcharge it projects onto neighbors.
       const starOc = this.towerProgress.reactor.reactorOverchargeBonus ?? 0; // 0 for a fresh save
       const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus + starOc : 1;
-      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
+      // SUPPORT gear: a hero aura hastes/empowers towers within range (×1 ⇒ golden-safe without aura gear).
+      let heroHaste = 1;
+      let heroDmgAura = 1;
+      if (this.mods.heroAuraRadius > 0) {
+        const ph = this.heroes[0];
+        if (!ph.down && dist2(t.x, t.y, ph.x, ph.y) <= this.mods.heroAuraRadius * this.mods.heroAuraRadius) {
+          heroHaste = 1 + this.mods.heroTowerHasteAura;
+          heroDmgAura = 1 + this.mods.heroTowerDamageAura;
+        }
+      }
+      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste);
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -1475,7 +1496,7 @@ export class Game {
     // at low HP instead of running its normal AI. Neutral default (threshold 0) ⇒ never
     // retreats ⇒ byte-identical to a gear-less run (golden invariant).
     if (this.mods.heroRetreatThreshold > 0 && h.hp < h.maxHp * this.mods.heroRetreatThreshold) {
-      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * dt);
+      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.mods.heroSpeedMult * dt);
       h.x = Math.max(0, Math.min(WIDTH, np.x));
       h.y = Math.max(0, Math.min(HEIGHT, np.y));
     } else {
@@ -1519,19 +1540,44 @@ export class Game {
     target = target ?? fallback;
 
     const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
-    const np = moveToward(h.x, h.y, goal.x, goal.y, def.speed * dt);
+    const np = moveToward(h.x, h.y, goal.x, goal.y, def.speed * this.mods.heroSpeedMult * dt); // MOBILITY gear
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
       const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
-      this.heroMasteryAccrual[h.kind].damage += this.applyDamage(target, dmg);
+      const applied = this.applyDamage(target, dmg);
+      this.heroMasteryAccrual[h.kind].damage += applied;
+      this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
       this.addFracture(target, def.attackFracture);
       // Weapon grant: the hero's hits also apply granted statuses (no-op without such gear).
       for (const s of this.heroAttackStatuses) this.applyStatus(target, { kind: s.status, amount: s.amount });
       this.maybeReact(target);
+      this.runHeroAttackKit(h, target); // weapon: cleave/chain/AoE/status/crit RE-AUTHOR the attack
       h.attackCd = def.attackInterval;
     }
+  }
+
+  /** Heal the hero by a fraction of damage it dealt (lifesteal weapons). No-op at 0 (golden-safe). */
+  private heroLifesteal(h: Hero, applied: number): void {
+    if (this.mods.heroLifestealFrac <= 0 || h.down) return;
+    h.hp = Math.min(h.maxHp, h.hp + applied * this.mods.heroLifestealFrac);
+  }
+
+  /** Run the weapon-granted attack kit on a hero hit (cleave/chain/on-hit AoE/status/crit), via
+   * the shared ability executor. Empty without such gear ⇒ no-op ⇒ a gear-less run is golden-safe. */
+  private runHeroAttackKit(h: Hero, target: Enemy): void {
+    if (this.heroAttackKit.length === 0) return;
+    this.abilitySourceKind = null;
+    this.abilityHeroKind = h.kind;
+    this.abilityCaster = h;
+    this.castScratch.x = target.x;
+    this.castScratch.y = target.y;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.target = target;
+    this.castScratch.pierce = 0;
+    this.castRangeMult = 1;
+    runAbilities(this.actx, this.heroAttackKit, this.castScratch);
   }
 
   /**
@@ -1561,7 +1607,7 @@ export class Game {
       gx = threat.x;
       gy = Math.max(DEFENSE_TOP_Y, threat.y - CELL);
     }
-    const np = moveToward(h.x, h.y, gx, gy, def.speed * dt);
+    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.mods.heroSpeedMult * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // stays in/near the zone
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
@@ -1583,7 +1629,7 @@ export class Game {
       gx = hot.x;
       gy = Math.max(DEFENSE_TOP_Y - CELL * 3, hot.y); // hover over the crowd, not the spawn
     }
-    const np = moveToward(h.x, h.y, gx, gy, def.speed * dt);
+    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.mods.heroSpeedMult * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
@@ -1649,7 +1695,10 @@ export class Game {
     for (let k = 0; k < near.length; k++) {
       const e = near[k];
       if (!e.alive) continue;
-      if (dist(h.x, h.y, e.x, e.y) <= def.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
+      if (dist(h.x, h.y, e.x, e.y) <= def.contactRange + ENEMY_DEFS[e.kind].radius) {
+        incoming += e.damage;
+        if (this.mods.heroThornsFrac > 0) this.applyDamage(e, e.damage * this.mods.heroThornsFrac * dt); // DEFENSE gear: reflect
+      }
     }
     if (incoming > 0 && !this.god) {
       let dmg = incoming * dt;
@@ -1691,7 +1740,10 @@ export class Game {
     this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
+    this.castRangeMult = this.mods.heroAbilityRadiusMult; // ABILITIES gear: scale the ability AoE
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
+    this.castRangeMult = 1;
+    if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
     h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
@@ -1900,6 +1952,7 @@ export class Game {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
+      if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
       // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
       if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {

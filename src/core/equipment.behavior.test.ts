@@ -40,6 +40,18 @@ describe('equipment changes hero behavior (armor → AI)', () => {
     expect(wary).toBeLessThan(base); // the wary profile pulls it back to the nucleus
   });
 
+  // A weapon attack-kit RE-AUTHORS the hero's hit: a cleave aura damages the whole arc, so
+  // the hero accrues more than its single-target base (the heroAttackAbility grant seam).
+  it('a cleave weapon (attack kit) makes the hero hit the whole arc, not one target', () => {
+    const base = ravagerDamage([], 8);
+    const cleave = ravagerDamage(
+      [{ op: 'grant', grant: { kind: 'heroAttackAbility', component: { type: 'aura', radius: 90, damage: 12 } } }],
+      8,
+    );
+    expect(base).toBeGreaterThan(0);
+    expect(cleave).toBeGreaterThan(base * 1.2); // the cleave arc adds real damage every swing
+  });
+
   // A status-on-hit weapon grant must also ride the PULSE heroes' output (not Ravager-only).
   it('a status-on-hit weapon grant works for a pulse hero (Overseer)', () => {
     const venom: CardEffect = { op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Corrosion', amount: 2 } };

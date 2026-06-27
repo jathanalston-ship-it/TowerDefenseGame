@@ -171,3 +171,58 @@ folded at boot through the same interpreter cards use (`behavior.test.ts`):
 **Still design-only:** the full `repositionBias` profile, true weapon *projectile* re-authoring
 (beyond on-hit status), and a larger relic/hook vocabulary — all express through the same
 `grant`/`hook` language now in place, so they're data additions, not new architecture.
+
+## 9. Implementation status (v2 — the behavioral catalog, ~160 items)
+
+The catalog is expanded to **~160 items (≈53 weapons / 55 armor / 52 relics)**, every one
+leading with a behavioral verb — no item is a bag of `+%`. The verb vocabulary now spans all
+six modification axes, each wired once into the sim and **neutral by default** (a gear-less
+run is byte-identical — the golden invariant, proven each pass):
+
+| Axis | New verb(s) | What it does |
+|---|---|---|
+| **Attacks** | `grant heroAttackAbility` (the hero **attack kit**) + `heroLifestealFrac` | every hero hit also runs `AbilityComponent`s via the shared executor — **cleave** (aura), **chain**, **on-hit nova** (explosion), **on-hit status** (debuff), **crit**; lifesteal heals a fraction of damage dealt |
+| **AI / stance** | `heroAnchor` · `heroAggroRangeMult` · `heroRetreatThreshold` · `heroThornsFrac` | where the hero holds, how wide it hunts, when it disengages, and how much contact damage it reflects |
+| **Mobility** | `heroSpeedMult` | hero move speed — kiting, flanking, body-blocking |
+| **Abilities** | `heroAbilityRadiusMult` · `heroCooldownMult` | scale the signature ability's AoE / cadence |
+| **Support** | `heroAuraRadius` + `heroTowerHasteAura` / `heroTowerDamageAura` | the hero projects a roaming aura that hastes / empowers nearby towers |
+| **Resource** | hooks `enemyKilled` / `abilityCast` / `waveCleared` → `biomass` / `heal` / `shield` (+ `spreadStatus`) | gameplay events fund the hive, mend the core, or shield the hero |
+
+### Build archetypes (the decision space the gear creates)
+
+Each item pushes one of these *distinct ways to play one hero*. A drop is exciting when it
+**enables or sharpens an archetype**, never when it's "+3% to what I already do":
+
+| Archetype | Weapon | Armor (AI / stance) | Relic (rule) | Feel |
+|---|---|---|---|---|
+| **Frontline Anchor** | cleave (Reaver Arc) | carapace, `anchor line` + thorns (Aegis Ward) | reactive heal/shield (Phylactery) | hold the line, body-block, punish |
+| **Skirmisher** | crit + speed (Phase Blade) | hide, `heroSpeedMult` + retreat (Evasive Hide) | mobility / pierce | dart, flank, never surrounded |
+| **Bruiser / Berserker** | lifesteal (Sanguine Fang) | hide/carapace, lifesteal + thorns (Juggernaut) | last-stand (Berserker Pact) | sustain through damage |
+| **Support Conduit** | chain (Arc Tether) | weave, `anchor towers` + aura (Resonant Weave) | tower-pierce / haste | buff towers, control |
+| **Plaguebearer** | on-hit status (Spore Caster) | weave aura | death-spread (Pandemic Vector) | turn kills into chain damage |
+| **Artillery / Demolisher** | nova (Shrapnel Burster) | carapace bulk | cascade (Cascade Engine) | detonate clusters |
+| **Controller / Neural** | Disruption chain (Hijack Coil) | weave damage-aura | vulnerability (Vulnerability Doctrine) | slow + amplify everything |
+| **Caster / Overdrive** | ability gear (Echo Brand) | mobility | cooldown + on-cast (Overdrive Core) | ability-centric blasts |
+| **Economist / Harvester** | harvest (Swarm-Caller's Horn) | biomass weave | kill/wave income (Tithe, Jubilee) | kills fund the hive |
+| **Glass Cannon** | overload (Overload Prism) | predator hide (−HP) | risk relics (Reckless Genome) | huge damage, fragile |
+| **Minimalist (tall)** | single-target crit | bulk carapace | `damagePerEmptySlot` (Minimalist Creed) | win with few towers |
+| **Swarm (wide)** | cleave / chain | support aura | `damagePerTower` (Swarmlord Doctrine) | go wide, many towers |
+
+Three slots × set thresholds force a choice (`exclusion creates identity`, §2.5): you become a
+*kind* of hero, you don't equip everything.
+
+### Rarity scaling (bounded vertical, infinite horizontal)
+
+Rarity adds **breadth and a behavioral signature**, never raw % inflation:
+
+- **Base behavior** — always-on, present from Common; the item's identity.
+- **Rolled affixes** (`RARITY_AFFIXES`: rare 1 → epic 2 → legendary/exotic 3) — now mostly
+  **behavioral** (lifesteal / mobility / thorns / hero-aura / ability-reach as well as the
+  classic stat garnish), each scaled along the bounded `AFFIX_TIER_SCALE` (T1..T6) — the reroll
+  chase stays build-relevant.
+- **Signature** (legendary / exotic) — a *named* extra behavior (e.g. *Storm Surge* adds chain
+  jumps), not a bigger number.
+- **Exotics** — fixed-exotic, the most rule-bending pieces (Reaper's Scythe, World Engine).
+
+Magnitudes stay capped so power is legible; the *combinations* (weapon × armor × relic × set ×
+affix) are what scale endlessly — exactly the design space this expansion exists to fill.

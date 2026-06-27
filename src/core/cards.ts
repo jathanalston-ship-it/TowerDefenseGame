@@ -3,6 +3,7 @@
 // run's RunModifiers / run state, never permanent meta. No React/DOM here.
 
 import type { CardOption, CardRarity, StatusType } from './types';
+import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
 
@@ -38,6 +39,17 @@ export interface RunModifiers {
   heroAggroRangeMult: number; // scales the hero's target-seek range (aggression). 1 = base
   heroRetreatThreshold: number; // HP fraction below which the hero disengages to the nucleus (0 = never)
   heroAnchor: string; // where the hero idles/holds: 'default' | 'nucleus' | 'line' | 'towers'
+  // ── Behavioral equipment verbs (EQUIPMENT.md archetypes) — gear authors HOW the hero plays
+  //    across attacks / mobility / abilities / support / defense. Neutral defaults ⇒ a gear-less
+  //    run is byte-identical (golden). The hero ATTACK KIT (grant 'heroAttackAbility') is collected
+  //    separately at boot (game.ts), not here. ──
+  heroSpeedMult: number; // MOBILITY — scales hero move speed (1 = base)
+  heroLifestealFrac: number; // ATTACKS — hero heals this fraction of damage it deals (0 = off)
+  heroThornsFrac: number; // DEFENSE — reflect this fraction of contact damage back to attackers (0 = off)
+  heroAbilityRadiusMult: number; // ABILITIES — scales the hero ability's AoE radius (1 = base)
+  heroAuraRadius: number; // SUPPORT — radius of the hero's tower aura (0 = no aura)
+  heroTowerHasteAura: number; // SUPPORT — +fire rate to towers within heroAuraRadius (0 = off)
+  heroTowerDamageAura: number; // SUPPORT — +damage to towers within heroAuraRadius (0 = off)
   // ── Keystones — rule-benders that change HOW combat resolves, not just the numbers.
   //    Neutral by default (off / ×1) so a run without the relevant gear/card is
   //    byte-identical (the golden invariant). The sim gates each on its neutral value. ──
@@ -77,6 +89,13 @@ export function defaultRunModifiers(): RunModifiers {
     heroAggroRangeMult: 1,
     heroRetreatThreshold: 0,
     heroAnchor: 'default',
+    heroSpeedMult: 1,
+    heroLifestealFrac: 0,
+    heroThornsFrac: 0,
+    heroAbilityRadiusMult: 1,
+    heroAuraRadius: 0,
+    heroTowerHasteAura: 0,
+    heroTowerDamageAura: 0,
     executeThreshold: 0,
     lastStandThreshold: 0,
     lastStandMult: 1,
@@ -110,13 +129,17 @@ type RunModStrKey = { [K in keyof RunModifiers]: RunModifiers[K] extends string 
 /** A capability granted to the whole run at boot. */
 export type GrantSpec =
   | { kind: 'towerProjectileMutator'; id: string } // every tower's shots gain a projectile mutator
-  | { kind: 'heroAttackStatus'; status: StatusType; amount: number }; // the hero's hits also apply a status
+  | { kind: 'heroAttackStatus'; status: StatusType; amount: number } // the hero's hits also apply a status
+  | { kind: 'heroAttackAbility'; component: AbilityComponent }; // the hero's hits also run an ability component
+//   (cleave aura / chain / on-hit explosion / status / crit) — weapons RE-AUTHOR the attack
 
 /** A battlefield RULE: an action fired when a run event occurs (relics). */
-export type HookEvent = 'enemyKilled' | 'waveStarted';
+export type HookEvent = 'enemyKilled' | 'waveStarted' | 'abilityCast' | 'waveCleared';
 export type HookAction =
   | { do: 'spreadStatus'; status: StatusType; amount: number; radius: number } // around the trigger point
-  | { do: 'biomass'; value: number }; // grant biomass
+  | { do: 'biomass'; value: number } // grant biomass
+  | { do: 'heal'; value: number } // restore Nucleus integrity
+  | { do: 'shield'; value: number; seconds: number }; // grant the hero an absorb-shield
 export interface HookSpec {
   on: HookEvent;
   action: HookAction;
@@ -201,6 +224,7 @@ export function cardProblems(c: CardDef): string[] {
       out.push(`'${e.field}' is not a string run modifier`);
     }
     if (e.op === 'grant' && e.grant.kind === 'towerProjectileMutator' && !e.grant.id) out.push('grant missing mutator id');
+    if (e.op === 'grant' && e.grant.kind === 'heroAttackAbility' && !e.grant.component) out.push('heroAttackAbility grant missing component');
   }
   return out;
 }

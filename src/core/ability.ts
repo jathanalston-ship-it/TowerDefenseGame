@@ -195,7 +195,7 @@ function execAura(ctx: AbilityContext, comp: AuraAbility, cast: AbilityCast): bo
 
 function execExplosion(ctx: AbilityContext, comp: ExplosionAbility, cast: AbilityCast): boolean {
   const react = comp.react ?? true;
-  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius, (e) => {
+  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius * ctx.rangeMult, (e) => { // identity/ability-range (hero ability radius)
     if (comp.damage) ctx.dealDamage(e, comp.damage * cast.damageMult, true);
     if (comp.status) ctx.applyStatus(e, comp.status);
     if (react) ctx.reactOnHit(e);
