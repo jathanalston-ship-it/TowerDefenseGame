@@ -174,9 +174,10 @@ badge is enough to read "the Hive is making its final stand" at a glance.
   sweep (win-rate / kill-rate / leaks / status uptime) before and after; numbers above are
   tuned to keep a baseline strategy winning while raising status uptime (towers now engage
   far longer). See `docs/BALANCE-NOTES` in the sweep or re-run the harness.
-- **Reactor range is nominal.** Its mechanic stays slot-adjacency (no change to the
-  overcharge system); the ~90px radius is a faithful *visual* of that adjacency, not a new
-  query. Promoting it to a true radius query is a clean future option.
+- **Reactor range is its support radius.** The overcharge is a true radius query: a tower
+  within the reactor's effective range (90px base) is overcharged. 90px reproduces the
+  former orthogonal slot-adjacency exactly (neighbours at 80px in, diagonals at 113px out),
+  so the change is byte-identical at base — and the "+support radius" mastery widens it.
 - **Emergency overkill.** Every offensive tower focusing one breach can "waste" damage
   while new enemies advance unblocked; in practice the breacher dies fast and the zone
   clears. Tuned via the zone fraction (smaller = rarer, more dramatic; larger = more
@@ -247,18 +248,19 @@ and only ever scaled by *identity-specific* axes. That is the rule we keep:
 |---|---|---|
 | **Needle Spitter** | **+earlier engagement** (open fire sooner) | `TowerMods.rangeMult` → scales targeting range |
 | **Bone Mortar** | **+faster indirect targeting** (shells on target sooner) | `TowerMods.fireRateMult` (already full-map; reach is fixed, *speed* is the axis) |
-| **Flesh Reactor** | **+support radius** | its overcharge reach (today slot-adjacency; the documented future axis) |
+| **Flesh Reactor** | **+support radius** | `TowerMods.rangeMult` → widens the overcharge radius (its `range` IS the support reach) |
 | **Parasite Nest** | **+Infection spread radius** | `TowerMods.infectionSpreadMult` → scales the death-spread |
 | **Neural Obelisk** | **+pulse radius** | `TowerMods.rangeMult` → scales the field/aura radius |
 
-These are realized as **mastery milestone perks** (per-tower, identity-named, baseline-safe
-because a fresh save crosses none, so the golden run is byte-identical): *Forward Sights*
-(Needle), *Rapid Bombardment* (Mortar), *Resonant Field* (Obelisk), *Virulent Spread*
-(Parasite). The seam (`rangeMult` flows through the shared ability executor's
-`ctx.rangeMult`; `infectionSpreadMult` through `spreadInfection`) means future
-identity-range content — stars, cards, equipment — plugs into the same per-tower fields
-without touching sim code, and the visualization automatically reflects it via
-`effectiveRanges`.
+All five are realized as **mastery milestone perks** (per-tower, identity-named,
+baseline-safe because a fresh save crosses none, so the golden run is byte-identical):
+*Forward Sights* (Needle), *Rapid Bombardment* (Mortar), *Mycelial Network* (Reactor),
+*Virulent Spread* (Parasite), *Resonant Field* (Obelisk). The seam (`rangeMult` flows
+through the shared ability executor's `ctx.rangeMult`, and through the reactor's
+`towerEffectiveRange` used by the overcharge query; `infectionSpreadMult` through
+`spreadInfection`) means future identity-range content — stars, cards, equipment — plugs
+into the same per-tower fields without touching sim code, and the visualization
+automatically reflects it via `effectiveRanges`.
 
 The Reactor's support-radius axis is documented but not yet a live upgrade: its overcharge
 is slot-adjacency (the 90px field disc visualizes that reach), and promoting it to a true

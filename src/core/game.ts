@@ -18,7 +18,6 @@ import {
   nucleusPoint,
   reachedBottom,
   slotAt,
-  slotsAdjacent,
   topSpawn,
   towerSlots,
 } from './map';
@@ -995,6 +994,12 @@ export class Game {
       if (t.kind === 'reactor') reactors.push(towerSlots[t.slot]);
     }
     this.reactorCount = reactors.length;
+    // The reactor's SUPPORT RADIUS (docs/RANGE.md §8): its effective range (base × the
+    // "+support radius" mastery). A non-reactor tower whose centre lies within that radius of
+    // any reactor is overcharged. At the base 90px this catches orthogonal lattice neighbours
+    // (80px) and excludes diagonals (≈113px) — reproducing the former slot-adjacency exactly —
+    // and the upgrade widens the reach to support farther towers.
+    const supportR2 = this.towerEffectiveRange.reactor * this.towerEffectiveRange.reactor;
     for (const t of this.towers) {
       if (t.kind === 'reactor') {
         t.overcharged = false;
@@ -1003,7 +1008,7 @@ export class Game {
       const slot = towerSlots[t.slot];
       let oc = false;
       for (const rc of reactors) {
-        if (slotsAdjacent(rc, slot)) {
+        if (dist2(rc.x, rc.y, slot.x, slot.y) <= supportR2) {
           oc = true;
           break;
         }

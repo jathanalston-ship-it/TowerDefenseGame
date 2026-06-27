@@ -169,6 +169,7 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 10, kind: 'lore', id: 'lore.reactor.1', name: 'Vital Doctrine', text: 'The Flesh Reactor is the hive’s heart — it feeds the others, asking nothing.' },
       { at: 25, kind: 'title', id: 'title.reactor.lifewarden', name: 'Lifewarden' },
     ],
+    perks: [{ at: 75, name: 'Mycelial Network', desc: 'Mastery 75: +30% support radius — the Reactor overcharges farther towers.', rangeMult: 1.3 }],
   },
 ];
 

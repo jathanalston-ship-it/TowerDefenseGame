@@ -180,25 +180,21 @@ export interface TowerSlot {
   index: number;
   col: number;
   row: number;
-  gi: number; // lattice column index (for neighbour/adjacency tests)
-  gj: number; // lattice row index
   x: number; // center px
   y: number;
 }
 
 function buildSlots(): TowerSlot[] {
   const out: TowerSlot[] = [];
-  let gj = 0;
-  for (let row = DEFENSE_TOP_ROW + SLOTS.rowOffset; row < ROWS; row += SLOTS.rowStep, gj++) {
-    let gi = 0;
-    for (let col = SLOTS.colStart; col < COLS; col += SLOTS.colStep, gi++) {
+  for (let row = DEFENSE_TOP_ROW + SLOTS.rowOffset; row < ROWS; row += SLOTS.rowStep) {
+    for (let col = SLOTS.colStart; col < COLS; col += SLOTS.colStep) {
       if (isObstacle(col, row)) continue;
       const ctr = center(col, row);
       // Keep the base's cell clear.
       if (Math.abs(ctr.x - nucleusPoint.x) < CELL * 0.75 && Math.abs(ctr.y - nucleusPoint.y) < CELL * 0.75) {
         continue;
       }
-      out.push({ index: out.length, col, row, gi, gj, x: ctr.x, y: ctr.y });
+      out.push({ index: out.length, col, row, x: ctr.x, y: ctr.y });
     }
   }
   return out;
@@ -211,9 +207,4 @@ export function slotAt(px: number, py: number): TowerSlot | null {
   const row = rowOf(py);
   for (const s of towerSlots) if (s.col === col && s.row === row) return s;
   return null;
-}
-
-/** Neighbouring slots on the lattice (used for reactor overcharge adjacency). */
-export function slotsAdjacent(a: TowerSlot, b: TowerSlot): boolean {
-  return Math.abs(a.gi - b.gi) + Math.abs(a.gj - b.gj) === 1;
 }

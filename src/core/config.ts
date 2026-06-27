@@ -86,13 +86,15 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     combatClass: 'Vital',
     firing: 'support',
     cost: 120,
-    range: 90, // SUPPORT — very short; visualizes the slot-adjacency overcharge reach
+    range: 90, // SUPPORT — very short; this IS the overcharge SUPPORT RADIUS (towers whose
+    // centre lies within it are overcharged). 90px catches orthogonal lattice neighbours
+    // (80px) and excludes diagonals (≈113px); the "+support radius" mastery widens it.
     fireInterval: 0,
     damage: 0,
     projectileSpeed: 0,
     splash: 0,
     color: '#ff7a59',
-    blurb: 'Generates biomass; overcharges ADJACENT towers (+dmg, +rate).',
+    blurb: 'Generates biomass; overcharges NEARBY towers (+dmg, +rate).',
   },
   parasite: {
     kind: 'parasite',
