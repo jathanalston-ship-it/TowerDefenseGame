@@ -547,6 +547,13 @@ export const meta = {
     persist({ ...save, [currency]: Math.max(0, save[currency] + n) });
   },
 
+  /** Grant Genome Shards — the Star currency (not one of the four Currency types, so
+   *  it needs its own debug grant to exercise the Star panel + gear dismantle economy). */
+  debugGrantGenome(n: number): void {
+    const save = store.get();
+    persist({ ...save, genomeShards: Math.max(0, save.genomeShards + n) });
+  },
+
   /** Roll a gear item straight into the inventory (debug — skips the loot box). */
   debugGrantGear(rarity: 'common' | 'rare' | 'epic'): GearItem | null {
     const s = store.get();

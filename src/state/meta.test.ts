@@ -232,6 +232,15 @@ describe('tower stars (per-unit progression)', () => {
     meta.reset();
   });
 
+  it('debugGrantGenome funds Genome Shards (debug grant for the Star economy)', () => {
+    meta.reset();
+    expect(meta.get().genomeShards).toBe(0);
+    meta.debugGrantGenome(500);
+    expect(meta.get().genomeShards).toBe(500);
+    expect(meta.buyStar('needle')).toBe(true); // granted shards are spendable on stars
+    meta.reset();
+  });
+
   it('runFold reflects owned stars (per-kind stats + the unlock applier)', () => {
     meta.reset();
     for (let i = 0; i < 40; i++) meta.recordRun(result({ mode: 'endless', wave: 50 }));

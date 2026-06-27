@@ -198,6 +198,11 @@ export function DebugPanel(): JSX.Element {
               </div>
             ))}
             <div className="debug-row">
+              <span className="debug-note" style={{ minWidth: 86 }}>genome ✦: {save.genomeShards}</span>
+              <button onClick={() => meta.debugGrantGenome(100)} title="Genome Shards buy Tower Stars">+100</button>
+              <button onClick={() => meta.debugGrantGenome(1000)} title="Genome Shards buy Tower Stars">+1000</button>
+            </div>
+            <div className="debug-row">
               <button onClick={() => meta.debugMaxUpgrades()} title="Maxes every upgrade track (the shipped permanent 'star' progression)">
                 Max all upgrades ★
               </button>
