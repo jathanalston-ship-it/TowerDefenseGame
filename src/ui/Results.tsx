@@ -1,31 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { rarityRegistry } from '../core/loot';
 import { itemDef } from '../core/equipment';
 import { LootReveal } from './LootReveal';
-import { ShardIcon } from './components/Icon';
-
-/** Ease a number from 0 → target so banked rewards "tick up" satisfyingly. */
-function useCountUp(target: number, ms = 700): number {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (target <= 0) {
-      setN(0);
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number): void => {
-      const p = Math.min(1, (now - start) / ms);
-      setN(Math.round(target * (1 - Math.pow(1 - p, 3)))); // easeOutCubic
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, ms]);
-  return n;
-}
+import { RewardSequence } from './RewardSequence';
+import type { RewardLine } from './RewardSequence';
+import { BiomassIcon, ShardIcon } from './components/Icon';
 
 export function Results({
   result,
@@ -38,7 +19,30 @@ export function Results({
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
   const heroMasteryGains = HERO_ORDER.filter((k) => outcome.heroMastery[k].xpGained > 0);
-  const shards = useCountUp(outcome.reward.shardsEarned);
+  const [done, setDone] = useState(false);
+
+  // Headline mastery number = total XP banked this run (tower + hero); the
+  // per-kind breakdown still renders below once the sequence finishes.
+  const masteryXp =
+    TOWER_ORDER.reduce((s, k) => s + outcome.mastery[k].xpGained, 0) +
+    HERO_ORDER.reduce((s, k) => s + outcome.heroMastery[k].xpGained, 0);
+
+  // Data-driven reward lines — surface a new run-end reward by adding one entry.
+  const lines: RewardLine[] = [
+    {
+      id: 'wave',
+      label: result.endless ? 'Depth Reached' : 'Wave Reached',
+      value: result.wave,
+      note: outcome.reward.newBest ? 'New best!' : undefined,
+      accent: outcome.reward.newBest ? 'var(--caustic)' : undefined,
+    },
+    { id: 'kills', label: 'Enemies Killed', value: result.kills },
+    { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon /> },
+    { id: 'cards', label: 'Cards Collected', value: result.stats.cardIds.length },
+    { id: 'mastery', label: 'Mastery Earned', value: masteryXp, format: (n) => `${n.toLocaleString()} XP` },
+    { id: 'shards', label: 'Shards Earned', value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
+    { id: 'lootbox', label: 'Loot Boxes Earned', value: outcome.chest ? 1 : 0 },
+  ];
 
   return (
     <div className="menu" style={{ alignItems: 'center', textAlign: 'center' }}>
@@ -51,27 +55,16 @@ export function Results({
       </div>
 
       <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
-        <div className="records" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-          <div className="record">
-            <div className="k">{result.endless ? 'Depth Reached' : 'Wave Reached'}</div>
-            <div className="v">{result.wave}</div>
-          </div>
-          <div className="record">
-            <div className="k">Kills</div>
-            <div className="v">{result.kills}</div>
-          </div>
-        </div>
-        <div className="reward" style={{ marginTop: 16 }}>
-          Banked <b>{shards} <ShardIcon /></b> Shards
-          {outcome.reward.newBest && <span style={{ color: 'var(--caustic)' }}> · New best wave!</span>}
-        </div>
+        <RewardSequence lines={lines} onDone={() => setDone(true)} />
       </div>
 
-      <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
-        <LootReveal chest={outcome.chest} />
-      </div>
+      {done && (
+        <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
+          <LootReveal chest={outcome.chest} />
+        </div>
+      )}
 
-      {(() => {
+      {done && (() => {
         // Loot queue: any boxes the run's banked progress completed, then the box now
         // filling + the pre-determined next (anticipation carries into the next run).
         const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
@@ -96,7 +89,7 @@ export function Results({
         );
       })()}
 
-      {(() => {
+      {done && (() => {
         const def = itemDef(outcome.gear.defId);
         if (!def) return null;
         const tone =
@@ -125,7 +118,7 @@ export function Results({
         );
       })()}
 
-      {masteryGains.length > 0 && (
+      {done && masteryGains.length > 0 && (
         <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
           <div className="panel-title">Tower Mastery Gained</div>
           <div className="mastery-gains">
@@ -148,7 +141,7 @@ export function Results({
         </div>
       )}
 
-      {heroMasteryGains.length > 0 && (
+      {done && heroMasteryGains.length > 0 && (
         <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
           <div className="panel-title">Hero Mastery Gained</div>
           <div className="mastery-gains">
@@ -171,9 +164,11 @@ export function Results({
         </div>
       )}
 
-      <button className="primary" onClick={onContinue}>
-        Continue
-      </button>
+      {done && (
+        <button className="primary" onClick={onContinue}>
+          Continue
+        </button>
+      )}
     </div>
   );
 }

@@ -39,6 +39,24 @@ the stack-specific sections (build/test/run) as the project takes shape.
 
 ---
 
+## 📜 Project constitution — the lens for every change
+
+Every implementation should improve at least one of: **scalability,
+maintainability, performance, readability, extensibility, player experience,
+developer velocity** — and sacrifice none of them for short-term convenience.
+
+- **Boring, maintainable, obvious code wins.** Avoid clever abstractions and
+  overengineering; production code beats impressive code. Optimize for the next
+  developer who reads it.
+- **Treat every new system as permanent infrastructure**, not a temporary
+  feature.
+- **When uncertain, choose the version that still makes sense after three years**
+  of active development.
+
+These values are the lens; the sections below are how we apply them.
+
+---
+
 ## 🔁 Rigor loop — plan → implement → verify → self-critique
 
 Apply to every non-trivial change:
@@ -51,6 +69,10 @@ Apply to every non-trivial change:
 4. **Self-critique before reporting done.** Name at least one limitation, gap, or
    risk and fix it or flag it. A green check proves it _runs_, not that it is
    _correct and complete_.
+
+Before finalizing, review the diff for: **duplicate logic, dead code, performance
+regressions, unnecessary allocations, future bottlenecks, save compatibility, and
+API consistency.**
 
 _Optional:_ for large or parallelizable work, delegate implementation to
 sub-agents (`model: "opus"` for engine/systems, `model: "sonnet"` for
@@ -78,6 +100,10 @@ and makes the plan reviewable before any code is written.
 - **Present a short plan before coding** that names each discipline and its
   responsibility. This maps onto the optional sub-agent split above
   (engine/systems → `opus`, content/routine → `sonnet`).
+- **Classify the split for parallelism:** _safe-parallel_ (no shared state),
+  _dependent_ (needs another task first), and _integration_ (wires the pieces
+  together). Sequence accordingly, and favor independent tasks to minimize future
+  merge conflicts.
 
 ---
 
@@ -117,6 +143,25 @@ the current task rather than re-deriving it from scratch.
   explicitly changed.
 - **Revisit a system only on evidence** it's actually wrong: a failing test, a
   reproduced bug, or a direct contradiction with the task.
+- **Extend, don't redesign.** The architecture is stable; change its shape only
+  on a _measurable_ scalability or performance problem, or a correctness issue —
+  otherwise extend the existing systems.
+
+---
+
+## 🔎 Targeted reading — inspect the minimum
+
+Before opening files, decide what's actually relevant and read only that. The
+repo is the cost surface for tokens and attention alike; traversing it wholesale
+is the waste this rule prevents.
+
+- **Name the likely-relevant files first**, then open only those.
+- **Don't recursively explore directories** or skim unrelated code "for
+  context."
+- **Read incrementally.** If a file turns out to be necessary, open it then — not
+  preemptively.
+- **Minimize traversal.** Prefer a targeted search (symbol, path) over walking
+  the tree; widen scope only when the task demonstrably needs it.
 
 ---
 
@@ -188,6 +233,29 @@ economy, and towers. Keep design decisions written down so changes stay coherent
   - `BACKLOG.md` — deferred work (last resort only — see "Finish what you
     start").
   - `BUGFIX-LOG.md` — one row per fix (symptom → root cause → fix).
+
+---
+
+## 📈 Build for scale — generalize, don't hardcode
+
+Design every system for the **target content scale**, not today's handful of
+items:
+
+| Content | Target | Content | Target |
+|---|---|---|---|
+| Towers | 100 | Enemy types | 100 |
+| Heroes | 30 | Bosses | 50 |
+| Cards | 500 | Prestige systems | 20 |
+| Upgrades | 1000 | Equipment items | 500 |
+
+- **Refuse approaches that obviously break at this scale** — per-item `switch`
+  ladders, O(n²) per-frame scans, hand-authored UI per item. Favor scalable
+  implementations even at slightly higher upfront cost.
+- **Generalize before you specialize.** When a feature could be one instance of a
+  general pattern, build the small reusable framework first, then express the
+  feature through it.
+- **Prefer a data-driven entry** (in `src/core/config.ts` or sibling data) over a
+  feature-specific implementation whenever practical.
 
 ---
 

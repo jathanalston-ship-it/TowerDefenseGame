@@ -52,7 +52,12 @@
   --t-med: 0.2s ease;
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
   --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 44px rgba(0, 0, 0, 0.5);
   --ring: 0 0 0 2px rgba(90, 209, 255, 0.55);
+  /* Premium panel depth: a hairline top highlight + bottom shade so chrome reads
+     as lit, beveled glass framing the battlefield rather than flat slabs. */
+  --bevel: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  --frame-edge: rgba(120, 170, 230, 0.18);
 
   color-scheme: dark;
 }
@@ -907,6 +912,48 @@ canvas.board {
 }
 .reward b {
   color: var(--gold);
+}
+.reward-seq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.reward-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  animation: loot-in 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.reward-line .rl-label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.reward-line .rl-note {
+  color: var(--caustic);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.reward-line .rl-value {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: clamp(18px, 2.6vw, 22px);
+}
+.reward-skip {
+  align-self: center;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 /* ── Debug panel (dev tool — kept) ────────────────────────────────────────── */
