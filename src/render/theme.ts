@@ -155,24 +155,46 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
-  runner: 'circle', // small skittering blob
-  brute: 'hex', // armored bulk
-  tyrant: 'hex', // boss carapace
-  rusher: 'triangle', // fast directional dart
-  tank: 'square', // blocky carapace hauler
-  flyer: 'diamond', // airborne drifter
-  burrower: 'diamond', // tunneller (color sets it apart from the flyer)
+  // swarm — small skittering blobs
+  runner: 'circle', mite: 'circle', larva: 'circle',
+  // fast — directional darts
+  rusher: 'triangle', darter: 'triangle', lasher: 'triangle',
+  // heavy — armored bulk
+  brute: 'hex', tank: 'square', golem: 'square', colossus: 'hex',
+  // shielded — plated carapace
+  bulwark: 'hex', warden: 'square',
+  // regenerating
+  knitter: 'circle', revenant: 'hex',
+  // burrowing — tunnellers (color sets them apart from flyers)
+  burrower: 'diamond', molerat: 'diamond',
+  // flying — airborne drifters
+  flyer: 'diamond', wisp: 'diamond', gargoyle: 'diamond',
+  // summoner
+  broodmother: 'hex', hivecaller: 'hex',
+  // support
+  mender: 'circle', cantor: 'diamond',
+  // suicide
+  bomber: 'triangle', popper: 'circle',
+  // artillery
+  siegeworm: 'square', spitter: 'square',
+  // elite / apex
+  apex: 'hex', dreadnought: 'square', tyrant: 'hex',
 };
 
 /** Threat tier drives the unit's render treatment (rim weight, crown, glow). Data
  * here, not branched in the renderer, so reclassifying a unit is a one-line edit. */
 export type EnemyTier = 'normal' | 'elite' | 'boss';
 export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
-  runner: 'normal',
-  rusher: 'normal',
-  flyer: 'normal',
-  burrower: 'normal',
-  brute: 'elite', // armored heavies get a gilded rim
-  tank: 'elite',
-  tyrant: 'boss', // the apex predator: crown + glow + containment ring
+  // normal — chaff, fast, fragile specialists
+  runner: 'normal', mite: 'normal', larva: 'normal',
+  rusher: 'normal', darter: 'normal', lasher: 'normal',
+  bulwark: 'normal', knitter: 'normal', burrower: 'normal', molerat: 'normal',
+  flyer: 'normal', wisp: 'normal', mender: 'normal', cantor: 'normal',
+  bomber: 'normal', popper: 'normal', spitter: 'normal',
+  // elite — heavies + premium specials get a gilded rim
+  brute: 'elite', tank: 'elite', golem: 'elite', warden: 'elite',
+  revenant: 'elite', gargoyle: 'elite', broodmother: 'elite', hivecaller: 'elite',
+  siegeworm: 'elite', apex: 'elite',
+  // boss — capstones get the crown + glow + containment ring
+  colossus: 'boss', dreadnought: 'boss', tyrant: 'boss',
 };

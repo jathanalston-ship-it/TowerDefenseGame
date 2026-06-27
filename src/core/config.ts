@@ -168,38 +168,166 @@ export interface EnemyDef {
   radius: number;
   color: string;
   behavior: EnemyBehavior;
+  // ── Role traits (all OPTIONAL; absent = a baseline melee-at-the-line enemy). Each is read
+  //    by exactly ONE gated hook in the sim, so a new enemy is pure data — and the historical
+  //    seven, which set none of these, are byte-identical (the golden invariant). ──
+  shieldHp?: number; // Shielded: a front shield soaked before HP
+  regenPerSec?: number; // Regenerating: HP/sec self-heal while alive
+  summon?: { kind: EnemyKind; count: number; interval: number }; // Summoner: periodic adds
+  auraRadius?: number; // Support: aura reach (px)
+  auraRegenPerSec?: number; // Support: heal allies inside the aura
+  auraShield?: number; // Support: top up allies' shields inside the aura
+  explodeRadius?: number; // Suicide: blast reach at the line (px)
+  explodeDamage?: number; // Suicide: blast damage to the Nucleus + the hero
+  siege?: { range: number; damage: number; interval: number }; // Artillery: standoff bombard
 }
 
+// ~30 archetypes across 12 ROLES. Every entry trades on a distinct battlefield identity that
+// forces a DIFFERENT placement decision (coverage geometry, focus vs spread, intercept timing),
+// not a stat slide. The historical seven (runner/brute/tyrant/rusher/tank/flyer/burrower) keep
+// their EXACT values — they carry no traits, so the golden run is byte-identical. Roles are
+// documented in docs/ENEMIES.md. Colors are placeholder art (the renderer draws by color/radius).
 export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
+  // ── SWARM — many, weak, spread; demand AoE/splash over single-target ──
   runner: {
     kind: 'runner', name: 'Skitterling', hp: 36, armor: 0, speed: 72, bounty: 11, damage: 4, radius: 10, color: '#d98cff',
     behavior: { seek: 1, avoidTowers: 0.28, avoidHero: 0.5, separation: 0.55, jitter: 0.16 },
   },
-  brute: {
-    kind: 'brute', name: 'Carrion Brute', hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14, color: '#7b9cff',
-    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.22, separation: 0.4, jitter: 0.06 },
+  mite: {
+    kind: 'mite', name: 'Gnat Mite', hp: 14, armor: 0, speed: 96, bounty: 5, damage: 2, radius: 6, color: '#f0a0d8',
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: 0.6, separation: 0.7, jitter: 0.28 }, // a fragile cloud → splash-or-die
   },
-  tyrant: {
-    kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26, color: '#ff4d6d',
-    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 },
+  larva: {
+    kind: 'larva', name: 'Writhing Larva', hp: 24, armor: 0, speed: 40, bounty: 4, damage: 3, radius: 9, color: '#c8e0a0',
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0.1, separation: 0.5, jitter: 0.1 }, // slow chaff that clogs the lane
   },
-  // ── Future archetypes — spawnable via the debug panel; not in the authored waves
-  //    yet. Each is purely a data profile, proving the AI scales by configuration. ──
+  // ── FAST — high speed, beeline; need front-loaded DPS / static coverage ──
   rusher: {
     kind: 'rusher', name: 'Razor Sprinter', hp: 28, armor: 0, speed: 132, bounty: 9, damage: 5, radius: 8, color: '#ff5db0',
     behavior: { seek: 1.2, avoidTowers: 0, avoidHero: 0, separation: 0.2, jitter: 0.04 }, // beelines, ignores defenses
+  },
+  darter: {
+    kind: 'darter', name: 'Synapse Darter', hp: 30, armor: 0, speed: 150, bounty: 11, damage: 5, radius: 8, color: '#ff79c0',
+    behavior: { seek: 1.25, avoidTowers: 0.1, avoidHero: 0.9, separation: 0.2, jitter: 0.2 }, // slips PAST the hero → static front
+  },
+  lasher: {
+    kind: 'lasher', name: 'Whip Lasher', hp: 44, armor: 0, speed: 118, bounty: 13, damage: 7, radius: 10, color: '#ff6088',
+    behavior: { seek: 1.3, avoidTowers: 0, avoidHero: 0, separation: 0.15, jitter: 0.03 }, // shortest-line charge → punishes gaps
+  },
+  // ── HEAVY — high HP/armor, slow; lean on shred + sustained focus ──
+  brute: {
+    kind: 'brute', name: 'Carrion Brute', hp: 150, armor: 8, speed: 42, bounty: 26, damage: 9, radius: 14, color: '#7b9cff',
+    behavior: { seek: 1, avoidTowers: 0.16, avoidHero: 0.22, separation: 0.4, jitter: 0.06 },
   },
   tank: {
     kind: 'tank', name: 'Carapace Hauler', hp: 430, armor: 18, speed: 30, bounty: 60, damage: 14, radius: 18, color: '#5fd0c6',
     behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0, separation: 0.3, jitter: 0.02 }, // soaks, unbothered
   },
+  golem: {
+    kind: 'golem', name: 'Calcified Golem', hp: 360, armor: 26, speed: 28, bounty: 55, damage: 16, radius: 17, color: '#9aa6b8',
+    behavior: { seek: 1, avoidTowers: 0.06, avoidHero: 0, separation: 0.25, jitter: 0.02 }, // walking armor → Fracture/Corrosion
+  },
+  colossus: {
+    kind: 'colossus', name: 'Bonecrusher Colossus', hp: 1100, armor: 12, speed: 22, bounty: 140, damage: 40, radius: 24, color: '#6b7a55',
+    behavior: { seek: 1, avoidTowers: 0.03, avoidHero: 0, separation: 0.12, jitter: 0 }, // an HP mountain → concentrated fire
+  },
+  // ── SHIELDED — a front shield soaks before HP; burst to crack, then finish ──
+  bulwark: {
+    kind: 'bulwark', name: 'Aegis Drone', hp: 90, armor: 4, speed: 46, bounty: 30, damage: 8, radius: 13, color: '#7fd0ff', shieldHp: 120,
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.1, separation: 0.3, jitter: 0.05 }, // 120 shield first → reward burst
+  },
+  warden: {
+    kind: 'warden', name: 'Bastion Warden', hp: 260, armor: 12, speed: 30, bounty: 70, damage: 16, radius: 18, color: '#5fa8d0', shieldHp: 200,
+    behavior: { seek: 1, avoidTowers: 0.06, avoidHero: 0, separation: 0.25, jitter: 0.02 }, // shield + armor + HP = a triple wall
+  },
+  // ── REGENERATING — heals over time; out-DPS / burst or it never dies ──
+  knitter: {
+    kind: 'knitter', name: 'Flesh Knitter', hp: 130, armor: 4, speed: 60, bounty: 34, damage: 9, radius: 13, color: '#7ce0a0', regenPerSec: 26,
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.2, separation: 0.3, jitter: 0.08 }, // mends 26/s → needs burst DPS
+  },
+  revenant: {
+    kind: 'revenant', name: 'Bog Revenant', hp: 320, armor: 8, speed: 34, bounty: 70, damage: 14, radius: 16, color: '#4fb87a', regenPerSec: 48,
+    behavior: { seek: 1, avoidTowers: 0.06, avoidHero: 0, separation: 0.2, jitter: 0.03 }, // mends 48/s → a focused kill-lane
+  },
+  // ── BURROWING — ignores obstacles, hunts gaps; demands even coverage ──
+  burrower: {
+    kind: 'burrower', name: 'Gut Tunneler', hp: 90, armor: 6, speed: 58, bounty: 22, damage: 8, radius: 12, color: '#e8a04a',
+    behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true }, // tunnels gaps
+  },
+  molerat: {
+    kind: 'molerat', name: 'Sand Stalker', hp: 70, armor: 4, speed: 78, bounty: 20, damage: 8, radius: 11, color: '#d8a850',
+    behavior: { seek: 1.1, avoidTowers: 0.7, avoidHero: 0.4, separation: 0.3, jitter: 0.12, burrowing: true }, // fast gap-hunter
+  },
+  // ── FLYING — over all obstacles; need anti-air / wide coverage ──
   flyer: {
     kind: 'flyer', name: 'Spore Drifter', hp: 60, armor: 2, speed: 64, bounty: 18, damage: 7, radius: 11, color: '#c0a3ff',
     behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // over obstacles
   },
-  burrower: {
-    kind: 'burrower', name: 'Gut Tunneler', hp: 90, armor: 6, speed: 58, bounty: 22, damage: 8, radius: 12, color: '#e8a04a',
-    behavior: { seek: 1, avoidTowers: 0.55, avoidHero: 0.4, separation: 0.3, jitter: 0.1, burrowing: true }, // tunnels gaps
+  wisp: {
+    kind: 'wisp', name: 'Mind Wisp', hp: 40, armor: 0, speed: 92, bounty: 16, damage: 6, radius: 9, color: '#b0c8ff',
+    behavior: { seek: 1.1, avoidTowers: 0.15, avoidHero: 0.4, separation: 0.3, jitter: 0.18, flying: true }, // fast air → anti-air
+  },
+  gargoyle: {
+    kind: 'gargoyle', name: 'Bone Gargoyle', hp: 180, armor: 14, speed: 48, bounty: 48, damage: 13, radius: 15, color: '#8898b0',
+    behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0.1, separation: 0.25, jitter: 0.06, flying: true }, // armored air → shred AA
+  },
+  // ── SUMMONER — spawns adds on a timer; priority-kill or drown in swarm ──
+  broodmother: {
+    kind: 'broodmother', name: 'Brood Matron', hp: 200, armor: 6, speed: 38, bounty: 80, damage: 10, radius: 17, color: '#e070c0',
+    summon: { kind: 'mite', count: 2, interval: 3.5 },
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06 }, // births mites → focus it down
+  },
+  hivecaller: {
+    kind: 'hivecaller', name: 'Hive Caller', hp: 170, armor: 4, speed: 34, bounty: 85, damage: 9, radius: 16, color: '#c060a0', shieldHp: 90,
+    summon: { kind: 'larva', count: 3, interval: 5 },
+    behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0.1, separation: 0.25, jitter: 0.05 }, // shielded caller → crack then silence
+  },
+  // ── SUPPORT — auras that heal/shield allies; kill the support FIRST ──
+  mender: {
+    kind: 'mender', name: 'Vital Mender', hp: 110, armor: 2, speed: 48, bounty: 60, damage: 5, radius: 12, color: '#7cf0b0',
+    auraRadius: 96, auraRegenPerSec: 18,
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.5, separation: 0.35, jitter: 0.1 }, // heals the pack 18/s → kill the healer
+  },
+  cantor: {
+    kind: 'cantor', name: 'Aegis Cantor', hp: 120, armor: 4, speed: 44, bounty: 64, damage: 5, radius: 13, color: '#7cb0f0',
+    auraRadius: 104, auraShield: 60,
+    behavior: { seek: 1, avoidTowers: 0.2, avoidHero: 0.45, separation: 0.35, jitter: 0.08 }, // shields the pack 60 → silence it
+  },
+  // ── SUICIDE — fragile bombs that detonate at the line; intercept early ──
+  bomber: {
+    kind: 'bomber', name: 'Bile Bomber', hp: 50, armor: 0, speed: 104, bounty: 18, damage: 28, radius: 11, color: '#ff9a3d',
+    explodeRadius: 70, explodeDamage: 28,
+    behavior: { seek: 1.25, avoidTowers: 0.05, avoidHero: 0, separation: 0.2, jitter: 0.06 }, // fast bomb → kill it BEFORE the line
+  },
+  popper: {
+    kind: 'popper', name: 'Spore Popper', hp: 90, armor: 2, speed: 40, bounty: 22, damage: 36, radius: 14, color: '#ffb84d',
+    explodeRadius: 96, explodeDamage: 40,
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.1, separation: 0.25, jitter: 0.05 }, // a slow walking mine → kill it clear
+  },
+  // ── ARTILLERY — halt short of the line and bombard the Nucleus from range ──
+  siegeworm: {
+    kind: 'siegeworm', name: 'Siege Maw', hp: 240, armor: 8, speed: 30, bounty: 75, damage: 6, radius: 17, color: '#c0d080',
+    siege: { range: 220, damage: 6, interval: 1.6 },
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.2, jitter: 0.02 }, // shells from 220px → reach it mid-field
+  },
+  spitter: {
+    kind: 'spitter', name: 'Acid Spitter', hp: 110, armor: 2, speed: 44, bounty: 40, damage: 4, radius: 12, color: '#a0d060',
+    siege: { range: 180, damage: 4, interval: 1.2 },
+    behavior: { seek: 1.05, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08 }, // nimble standoff → mid-field DPS
+  },
+  // ── ELITE / APEX — premium multi-threats that fuse several roles ──
+  apex: {
+    kind: 'apex', name: 'Apex Predator', hp: 280, armor: 10, speed: 86, bounty: 120, damage: 18, radius: 16, color: '#ffcf5a', regenPerSec: 20,
+    behavior: { seek: 1.1, avoidTowers: 0.1, avoidHero: -0.6, separation: 0.2, jitter: 0.06 }, // regenerates AND hunts the hero
+  },
+  dreadnought: {
+    kind: 'dreadnought', name: 'Dread Nought', hp: 520, armor: 16, speed: 26, bounty: 160, damage: 22, radius: 20, color: '#b85a5a', shieldHp: 260,
+    summon: { kind: 'larva', count: 2, interval: 6 },
+    behavior: { seek: 1, avoidTowers: 0.04, avoidHero: 0, separation: 0.18, jitter: 0.01 }, // shielded, larva-spewing capstone
+  },
+  tyrant: {
+    kind: 'tyrant', name: 'Brood Tyrant', hp: 900, armor: 14, speed: 32, bounty: 180, damage: 45, radius: 26, color: '#ff4d6d',
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.18, jitter: 0 },
   },
 };
 
@@ -783,8 +911,22 @@ export const DIRECTOR = {
   eliteHpMult: 3, // an elite-promoted enemy's HP / damage / bounty multipliers
   eliteDmgMult: 1.5,
   eliteBountyMult: 3,
-  // threat cost per archetype (cheaper = more of them in a wave)
-  cost: { runner: 1, rusher: 1.2, brute: 3, burrower: 2.4, flyer: 2.2, tank: 4, tyrant: 20 } as Record<string, number>,
+  // threat cost per archetype (cheaper = more of them in a wave). New roles cost more so the
+  // Director fields fewer of them; anything omitted falls back to 2 (see Director.spend).
+  cost: {
+    runner: 1, mite: 0.6, larva: 0.7,
+    rusher: 1.2, darter: 1.4, lasher: 1.5,
+    brute: 3, tank: 4, golem: 4.5, colossus: 14,
+    bulwark: 3.5, warden: 6,
+    knitter: 3, revenant: 5,
+    burrower: 2.4, molerat: 2.6,
+    flyer: 2.2, wisp: 2, gargoyle: 4.5,
+    broodmother: 7, hivecaller: 7,
+    mender: 5, cantor: 5,
+    bomber: 2.5, popper: 2.8,
+    siegeworm: 6, spitter: 3.5,
+    apex: 10, dreadnought: 16, tyrant: 20,
+  } as Record<string, number>,
 };
 
 // ── Future content registry: biomes (framework only — no content yet) ────────

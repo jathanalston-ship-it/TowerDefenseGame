@@ -47,7 +47,7 @@ import {
   WAVE_BOUNTY_GROWTH,
   WAVE_HP_GROWTH,
 } from './config';
-import type { HeroDef } from './config';
+import type { EnemyDef, HeroDef } from './config';
 import {
   CARD_POOL,
   applyCard,
@@ -666,6 +666,7 @@ export class Game {
       this.projectileSystem(dt);
       this.poolSystem(dt);
       this.statusSystem(dt);
+      this.enemyAbilitySystem(dt); // regen / support auras / summons (no-op for trait-less enemies)
       this.enemyMoveSystem(dt);
       this.heroSystem(dt);
       this.deathSystem();
@@ -737,6 +738,10 @@ export class Game {
       lastHitKind: null,
       boss: null,
       elite,
+      // Role-trait runtime (undefined for the trait-less historical roster → golden-safe).
+      shield: def.shieldHp,
+      summonCd: def.summon?.interval,
+      siegeCd: def.siege?.interval,
     });
   }
 
@@ -862,6 +867,7 @@ export class Game {
       id: this.nextId++, kind, x: Math.max(12, Math.min(WIDTH - 12, x + (this.rng.next() - 0.5) * 60)), y: y + 12,
       hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed, bounty: def.bounty, damage: def.damage,
       fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null, elite: false,
+      shield: def.shieldHp, summonCd: def.summon?.interval, siegeCd: def.siege?.interval,
     });
   }
 
@@ -873,6 +879,36 @@ export class Game {
       this.biomass += gain;
       this.statBiomassEarned += gain;
     }
+  }
+
+  /** Per-tick enemy ROLE abilities: self-regen, support auras, and summons. Every branch is
+   * gated on a trait the historical seven don't carry, so this is a pure no-op for them (and
+   * consumes no gameplay rng unless a summoner — never in the golden run — actually fires). */
+  private enemyAbilitySystem(dt: number): void {
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const def = ENEMY_DEFS[e.kind];
+      if (def.regenPerSec) e.hp = Math.min(e.maxHp, e.hp + def.regenPerSec * dt); // Regenerating
+      if (def.auraRadius) this.supportAura(e, def, dt); // Support
+      if (def.summon) {
+        e.summonCd = (e.summonCd ?? def.summon.interval) - dt; // Summoner
+        if (e.summonCd <= 0) {
+          e.summonCd = def.summon.interval;
+          for (let i = 0; i < def.summon.count; i++) this.spawnNear(def.summon.kind, e.x, e.y);
+        }
+      }
+    }
+  }
+
+  /** Project a Support enemy's aura onto nearby allies — heal and/or refresh a shield. */
+  private supportAura(src: Enemy, def: EnemyDef, dt: number): void {
+    const r = def.auraRadius as number;
+    const r2 = r * r;
+    this.grid.forNeighbors(src.x, src.y, r, (o) => {
+      if (!o.alive || o === src || dist2(src.x, src.y, o.x, o.y) > r2) return;
+      if (def.auraRegenPerSec) o.hp = Math.min(o.maxHp, o.hp + def.auraRegenPerSec * dt);
+      if (def.auraShield) o.shield = Math.max(o.shield ?? 0, def.auraShield);
+    });
   }
 
   /**
@@ -1135,6 +1171,18 @@ export class Game {
         continue;
       }
       const def = ENEMY_DEFS[e.kind];
+      // Artillery: halt short of the line and bombard the Nucleus from range. Gated on `siege`,
+      // which the historical roster never sets, so those enemies always advance normally.
+      if (def.siege && goalDistanceAt(e.x, e.y) <= def.siege.range) {
+        e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
+        if (e.siegeCd <= 0) {
+          e.siegeCd = def.siege.interval;
+          if (!this.god) this.integrity -= def.siege.damage;
+          this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `-${def.siege.damage}`, color: '#ff8a3d', life: 0.9 });
+          this.pushSfx('breach');
+        }
+        continue; // standoff: it shells the core instead of advancing
+      }
       const b = def.behavior;
       // Corrosion and Disruption both slow; take the stronger, capped at 0.85.
       let slow = 0;
@@ -1240,6 +1288,21 @@ export class Game {
     this.pushSfx('breach');
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
+    // Suicide: a detonation that also catches the hero in its blast (gated on `explodeRadius`,
+    // which the historical roster never sets — so this is a no-op there).
+    const def = ENEMY_DEFS[e.kind];
+    if (def.explodeRadius && def.explodeDamage) {
+      const h = this.primaryHero;
+      if (!h.down && !this.god && dist2(e.x, e.y, h.x, h.y) <= def.explodeRadius * def.explodeRadius) {
+        h.hp -= def.explodeDamage;
+        if (h.hp <= 0) {
+          h.down = true;
+          h.respawn = HERO_DEFS[h.kind].respawnTime;
+          this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+        }
+      }
+      this.spawnParticles(e.x, e.y, PARTICLE.bossfall); // a real blast, not a nibble
+    }
   }
 
   private heroSystem(dt: number): void {
@@ -1758,7 +1821,15 @@ export class Game {
     }
     const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
     const applied = damageAfter(raw, this.vulnMult(e), effectiveArmor(e, broken));
-    e.hp -= applied;
+    // Shielded enemies soak the hit into the front shield first; only the overflow reaches HP.
+    // The shield is undefined/0 on the historical roster, so this is a no-op there (golden-safe).
+    let toBody = applied;
+    if ((e.shield ?? 0) > 0) {
+      const absorbed = Math.min(e.shield as number, applied);
+      e.shield = (e.shield as number) - absorbed;
+      toBody = applied - absorbed;
+    }
+    e.hp -= toBody;
     e.dmgAccum += applied; // banked for the next aggregated damage number
     this.statDamageDealt += applied; // lifetime-stats observation
     if (flash) e.hitFlash = FX.hitFlash;
