@@ -4,6 +4,7 @@
 
 import { heroProgress, masteryProgress, meta, nextHeroStarCost } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, STAR } from '../core/config';
+import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { ProgressBar } from './components/ProgressBar';
 
 export function HeroLab(): JSX.Element {
@@ -72,6 +73,12 @@ export function HeroLab(): JSX.Element {
                 <div className="lab-mline">
                   <span>
                     Mastery <b>Lv {mp.level}</b>
+                    {mp.level >= MASTERY_RANK_EVERY && (
+                      <span className="lab-rank" style={{ color: def.color }}>
+                        {' '}
+                        · {masteryRankTitle(mp.level)}
+                      </span>
+                    )}
                   </span>
                   <span className="lab-bonus">
                     +{dmgPct}% dmg{cdPct ? ` · -${cdPct}% cd` : ''}

@@ -30,6 +30,7 @@ import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
+import { masteryRewardsBetween } from '../core/mastery';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -202,6 +203,7 @@ export interface RunOutcome {
   heroMastery: Record<HeroKind, MasteryDelta>;
   gear: OwnedItem; // a run-end equipment drop (rarity scales with depth)
   loot: { queue: LootQueueState; awarded: LootBoxAward[] }; // loot-queue progress + boxes opened
+  masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -307,6 +309,22 @@ export const meta = {
     const lootAdv = addProgress(save.lootQueue, lootPoints);
     const lootAwarded = openLootBoxes(lootAdv.awarded, towerShards, heroShards);
 
+    // 6. mastery identity: unlock any titles/lore crossed by this run's mastery level-ups.
+    const newTitles: string[] = [];
+    const newLore: string[] = [];
+    for (const k of TOWER_ORDER) {
+      for (const r of masteryRewardsBetween('tower', k, mastery[k].fromLevel, mastery[k].toLevel)) {
+        (r.kind === 'title' ? newTitles : newLore).push(r.id);
+      }
+    }
+    for (const k of HERO_ORDER) {
+      for (const r of masteryRewardsBetween('hero', k, heroMastery[k].fromLevel, heroMastery[k].toLevel)) {
+        (r.kind === 'title' ? newTitles : newLore).push(r.id);
+      }
+    }
+    const unlockedTitles = newTitles.length ? Array.from(new Set([...save.unlockedTitles, ...newTitles])) : save.unlockedTitles;
+    const unlockedLore = newLore.length ? Array.from(new Set([...save.unlockedLore, ...newLore])) : save.unlockedLore;
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -321,6 +339,8 @@ export const meta = {
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...gearAdds] },
       mats,
       lootQueue: lootAdv.state,
+      unlockedTitles,
+      unlockedLore,
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
     return {
@@ -330,7 +350,16 @@ export const meta = {
       heroMastery,
       gear,
       loot: { queue: lootAdv.state, awarded: lootAwarded },
+      masteryUnlocks: { titles: newTitles, lore: newLore },
     };
+  },
+
+  /** Equip (or clear, id=null) a mastery title for the player profile. No-op if the title
+   * isn't unlocked (defensive — the UI only offers unlocked ones). */
+  equipTitle(id: string | null): void {
+    const save = store.get();
+    if (id !== null && !save.unlockedTitles.includes(id)) return;
+    persist({ ...save, equippedTitle: id });
   },
 
   /** Current loot-queue state: the box the meter is filling, the pre-determined next

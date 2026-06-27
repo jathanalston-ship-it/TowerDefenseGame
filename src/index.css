@@ -1933,6 +1933,89 @@ kbd {
   background: rgba(63, 224, 138, 0.14);
   color: var(--text);
 }
+.lab-rank {
+  font-weight: 700;
+}
+/* Mastery profile + codex */
+.mp-titlebar {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.mp-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.mp-equipped {
+  font-weight: 700;
+  color: var(--gold);
+}
+.mp-empty {
+  font-size: 12px;
+  color: var(--dim);
+  padding: 4px 0;
+}
+.mp-codex-h {
+  margin: 12px 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.mp-codex {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mp-lore {
+  padding: 8px 10px;
+  border-left: 3px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+.mp-lore-t {
+  font-weight: 700;
+  font-size: 13px;
+}
+.mp-lore-b {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+/* Results: mastery-unlocked rows */
+.mastery-unlocks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mu-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mu-kind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.mu-title {
+  background: rgba(255, 210, 77, 0.18);
+  color: var(--gold);
+}
+.mu-lore {
+  background: rgba(90, 209, 255, 0.16);
+  color: var(--r-rare);
+}
+.mu-name {
+  font-weight: 600;
+}
 .lab-mastery {
   display: flex;
   flex-direction: column;

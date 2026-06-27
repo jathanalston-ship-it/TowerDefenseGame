@@ -38,9 +38,13 @@ export interface SaveData {
   lootQueue: LootQueueState;
   // ── Tower star-fork picks (schema v5) — per-run evolution choices, persisted ──
   // (towerForks is declared above with the other tower-progression records.)
+  // ── Mastery identity (schema v6) — earned titles/lore + the worn title ──
+  unlockedTitles: string[]; // reward ids of unlocked mastery titles
+  equippedTitle: string | null; // the title shown on the player profile (null = none)
+  unlockedLore: string[]; // reward ids of unlocked lore (codex)
 }
 
-export const CURRENT_VERSION = 5;
+export const CURRENT_VERSION = 6;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -129,6 +133,9 @@ export function defaultSave(): SaveData {
     equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
     lootQueue: defaultLootQueue(),
+    unlockedTitles: [],
+    equippedTitle: null,
+    unlockedLore: [],
   };
 }
 
@@ -166,6 +173,10 @@ function withDefaults(data: SaveData): SaveData {
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
     // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
     lootQueue: sanitizeLootQueue(data.lootQueue),
+    // v5→v6: mastery identity. Empty for a pre-v6 save; arrays guarded against junk.
+    unlockedTitles: Array.isArray(data.unlockedTitles) ? data.unlockedTitles : [],
+    equippedTitle: typeof data.equippedTitle === 'string' ? data.equippedTitle : null,
+    unlockedLore: Array.isArray(data.unlockedLore) ? data.unlockedLore : [],
   };
 }
 
@@ -207,9 +218,10 @@ function isSaveData(v: unknown): v is SaveData {
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
 function migrate(_version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
-  // achievements), v3→v4 (loot queue), and v4→v5 (tower star-fork picks) are all additive:
-  // withDefaults() deep-fills the new records, the selectedHero default, the stats block,
-  // the loot queue, and the fork picks. Structural changes add steps here.
+  // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
+  // identity: titles/lore) are all additive: withDefaults() deep-fills the new records, the
+  // selectedHero default, the stats block, the loot queue, the fork picks, and the mastery
+  // identity arrays. Structural changes add steps here.
   return data;
 }
 

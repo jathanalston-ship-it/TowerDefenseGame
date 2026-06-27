@@ -6,6 +6,7 @@
 import { masteryProgress, meta, nextStarCost, towerProgress } from '../state/meta';
 import { STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { forksOf, isFork, stepAt } from '../core/stars';
+import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import type { TowerKind } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
 
@@ -115,6 +116,12 @@ export function TowerLab(): JSX.Element {
                 <div className="lab-mline">
                   <span>
                     Mastery <b>Lv {mp.level}</b>
+                    {mp.level >= MASTERY_RANK_EVERY && (
+                      <span className="lab-rank" style={{ color: def.color }}>
+                        {' '}
+                        · {masteryRankTitle(mp.level)}
+                      </span>
+                    )}
                   </span>
                   <span className="lab-bonus">
                     +{dmgPct}% dmg{ratePct ? ` · +${ratePct}% rate` : ''}

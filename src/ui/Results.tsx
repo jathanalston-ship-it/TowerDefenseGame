@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { rarityRegistry } from '../core/loot';
+import { masteryRewardById } from '../core/mastery';
 import { itemDef } from '../core/equipment';
 import { LootReveal } from './LootReveal';
 import { RewardSequence } from './RewardSequence';
@@ -88,6 +89,26 @@ export function Results({
           </div>
         );
       })()}
+
+      {done && (outcome.masteryUnlocks.titles.length > 0 || outcome.masteryUnlocks.lore.length > 0) && (
+        <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
+          <div className="panel-title">Mastery Unlocked</div>
+          <div className="mastery-unlocks">
+            {outcome.masteryUnlocks.titles.map((id) => (
+              <div className="mu-row" key={id}>
+                <span className="mu-kind mu-title">Title</span>
+                <span className="mu-name">{masteryRewardById(id)?.name ?? id}</span>
+              </div>
+            ))}
+            {outcome.masteryUnlocks.lore.map((id) => (
+              <div className="mu-row" key={id}>
+                <span className="mu-kind mu-lore">Lore</span>
+                <span className="mu-name">{masteryRewardById(id)?.name ?? id}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {done && (() => {
         const def = itemDef(outcome.gear.defId);

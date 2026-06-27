@@ -55,6 +55,7 @@ import { DIFFICULTIES, difficultyRegistry } from './difficulty';
 import { statusRegistry } from './status';
 import { rarityRegistry } from './loot';
 import { starPathRegistry } from './stars';
+import { masteryTrackRegistry } from './mastery';
 import type { MetaModifiers } from './types';
 
 export interface ContentRegistries {
@@ -117,6 +118,7 @@ export function validateAllContent(): string[] {
     ...difficultyRegistry.validate(),
     ...rarityRegistry.validate(),
     ...starPathRegistry.validate(),
+    ...masteryTrackRegistry.validate(),
     ...waveProblems(WAVES),
   ];
   // Cross-registry: a wave may only spawn enemies that actually exist in the registry.
@@ -281,6 +283,7 @@ export function validateAllContentReport(): ValidationReport {
   issues.push(...equipmentRegistry.validate().map((p) => err('invalid-stat', 'equipment', p)));
   issues.push(...rarityRegistry.validate().map((p) => err('invalid-stat', 'rarity', p)));
   issues.push(...starPathRegistry.validate().map((p) => err('invalid-stat', 'starPath', p)));
+  issues.push(...masteryTrackRegistry.validate().map((p) => err('invalid-stat', 'masteryTrack', p)));
 
   // 5 ─ Missing localization: every user-facing name + description string must be present.
   push(Object.values(TOWER_DEFS).flatMap((d) => [locIssue(d.name, `tower '${d.kind}'`, 'name'), locIssue(d.blurb, `tower '${d.kind}'`, 'blurb')]));

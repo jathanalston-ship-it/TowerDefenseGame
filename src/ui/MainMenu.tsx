@@ -3,6 +3,7 @@ import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
+import { MasteryProfile } from './MasteryProfile';
 import { EquipmentPanel } from './EquipmentPanel';
 import { Statistics } from './Statistics';
 import { AchievementPanel } from './AchievementPanel';
@@ -86,6 +87,8 @@ export function MainMenu({
       <TowerLab />
 
       <HeroLab />
+
+      <MasteryProfile />
 
       <EquipmentPanel />
 
