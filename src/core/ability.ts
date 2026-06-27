@@ -132,6 +132,7 @@ export interface AbilityCast {
   y: number;
   damageMult: number;
   target?: Enemy | null;
+  pierce?: number; // pending pierce a 'pierce' component adds to projectiles fired this cast
 }
 
 export interface AbilityContext {
@@ -256,8 +257,11 @@ function execBuff(_ctx: AbilityContext, _comp: BuffAbility, _cast: AbilityCast):
 function execSummon(_ctx: AbilityContext, _comp: SummonAbility, _cast: AbilityCast): boolean {
   return true; // reserved: spawns friendly units once a friendly-unit system exists
 }
-function execPierce(_ctx: AbilityContext, _comp: PierceAbility, _cast: AbilityCast): boolean {
-  return true; // reserved: a projectile modifier consumed by the projectile system
+function execPierce(_ctx: AbilityContext, comp: PierceAbility, cast: AbilityCast): boolean {
+  // Modifier: projectiles fired LATER in this cast pass through `extra` more enemies. The
+  // sim reads `cast.pierce` at spawn (see Game.spawnProjectile) and applies it to the shot.
+  cast.pierce = (cast.pierce ?? 0) + comp.extra;
+  return true;
 }
 
 /** The executor registry — the one place a component type maps to its behavior. A new

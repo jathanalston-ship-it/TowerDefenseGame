@@ -938,6 +938,7 @@ export class Game {
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
       this.castScratch.target = null;
+      this.castScratch.pierce = 0;
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
       // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
@@ -1420,6 +1421,7 @@ export class Game {
     this.castScratch.y = h.y;
     this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
+    this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
   }
 
@@ -1462,6 +1464,7 @@ export class Game {
     this.castScratch.y = py;
     this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
+    this.castScratch.pierce = 0;
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
@@ -1549,6 +1552,11 @@ export class Game {
   private applyProjectileMutators(p: Projectile): void {
     if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, p);
     if (this.grantedTowerMutators.length) applyMutators(this.grantedTowerMutators, p);
+    // A 'pierce' ability component (ability.ts) adds pierce to shots fired this cast.
+    if (this.castScratch.pierce) {
+      p.pierce = (p.pierce ?? 0) + this.castScratch.pierce;
+      p.hitIds = p.hitIds ?? [];
+    }
   }
 
   /** Nearest alive enemy a piercing projectile hasn't struck yet (the next pass-through). */

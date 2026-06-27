@@ -105,4 +105,13 @@ describe('ability executors', () => {
     runAbility(r.ctx, { type: 'crit', chance: 0.5, mult: 3, damage: 10 }, cast({ damageMult: 1, target: e[0] }));
     expect(r.log.damage[0].raw).toBe(10);
   });
+
+  it('pierce arms cast.pierce for the projectile system (additive across components)', () => {
+    const r = recorder([]);
+    const c = cast();
+    expect(runAbility(r.ctx, { type: 'pierce', extra: 2 }, c)).toBe(true); // a modifier always "acts"
+    expect(c.pierce).toBe(2);
+    runAbility(r.ctx, { type: 'pierce', extra: 1 }, c); // stacks within a cast
+    expect(c.pierce).toBe(3);
+  });
 });
