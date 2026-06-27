@@ -20,10 +20,23 @@ export interface MasteryReward {
   text?: string; // lore body (kind === 'lore')
 }
 
+/** A milestone PERK — a sparse MECHANIC (not a stat-stick) folded into the tower's run kit
+ * at a mastery level. Reuses the star-kit grant fields, so it rides the existing sim wiring;
+ * golden-safe because a fresh unit (level 0) crosses none. */
+export interface MasteryPerk {
+  at: number; // mastery level threshold
+  name: string;
+  desc: string;
+  projectileMutator?: string; // e.g. 'pierce1' — the tower's shots gain a mutator
+  extraProjectiles?: number;
+  splashMult?: number;
+}
+
 export interface MasteryTrack {
   subject: 'tower' | 'hero';
   unit: string; // TowerKind | HeroKind
   rewards: MasteryReward[]; // ascending by `at`
+  perks?: MasteryPerk[]; // sparse mechanic milestones (towers)
 }
 
 export const masteryTrackRegistry = new Registry<MasteryTrack>('masteryTrack', {
@@ -88,6 +101,11 @@ export function masteryRewardsBetween(subject: 'tower' | 'hero', unit: string, f
   return (masteryTrackRegistry.get(trackId(subject, unit))?.rewards ?? []).filter((r) => r.at > from && r.at <= to);
 }
 
+/** Mechanic perks earned at or below `level` for a unit (folded into its run kit). */
+export function masteryPerksUpTo(subject: 'tower' | 'hero', unit: string, level: number): MasteryPerk[] {
+  return (masteryTrackRegistry.get(trackId(subject, unit))?.perks ?? []).filter((p) => p.at <= level);
+}
+
 // Flat index for display (id → reward), since the save stores reward ids.
 const REWARD_BY_ID = new Map<string, MasteryReward>();
 export function masteryRewardById(id: string): MasteryReward | undefined {
@@ -98,7 +116,7 @@ export function masteryRewardById(id: string): MasteryReward | undefined {
 // Tower = CRAFT (class-flex titles + tactical lore). Hero = BOND (character titles +
 // backstory lore). Sparse on purpose; ranks fill the infinite space between.
 
-const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[] }[] = [
+const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: MasteryPerk[] }[] = [
   {
     unit: 'needle',
     rewards: [
@@ -106,6 +124,7 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[] }[] = [
       { at: 25, kind: 'title', id: 'title.needle.virtuoso', name: 'Needle Virtuoso' },
       { at: 50, kind: 'title', id: 'title.needle.stormcaller', name: 'Stormcaller' },
     ],
+    perks: [{ at: 50, name: 'Veteran Barbs', desc: 'Mastery 50: needles pierce one extra foe.', projectileMutator: 'pierce1' }],
   },
   {
     unit: 'mortar',
@@ -113,6 +132,7 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[] }[] = [
       { at: 10, kind: 'lore', id: 'lore.mortar.1', name: 'Caustic Doctrine', text: 'Bone Mortars seed the ground itself against the swarm — patience rendered as acid.' },
       { at: 25, kind: 'title', id: 'title.mortar.siegemaster', name: 'Siegemaster' },
     ],
+    perks: [{ at: 50, name: 'Wide Bore', desc: 'Mastery 50: +15% blast radius.', splashMult: 1.15 }],
   },
   {
     unit: 'parasite',
@@ -120,6 +140,7 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[] }[] = [
       { at: 10, kind: 'lore', id: 'lore.parasite.1', name: 'Viral Doctrine', text: 'The Nest does not kill; it converts. Every host is a future spore.' },
       { at: 25, kind: 'title', id: 'title.parasite.plaguelord', name: 'Plaguelord' },
     ],
+    perks: [{ at: 50, name: 'Burrowing Brood', desc: 'Mastery 50: parasites bore through one extra host.', projectileMutator: 'pierce1' }],
   },
   {
     unit: 'obelisk',
@@ -161,6 +182,6 @@ const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
   },
 ];
 
-for (const t of TOWER_TRACKS) masteryTrackRegistry.register({ subject: 'tower', unit: t.unit, rewards: t.rewards });
+for (const t of TOWER_TRACKS) masteryTrackRegistry.register({ subject: 'tower', unit: t.unit, rewards: t.rewards, perks: t.perks });
 for (const t of HERO_TRACKS) masteryTrackRegistry.register({ subject: 'hero', unit: t.unit, rewards: t.rewards });
 for (const track of masteryTrackRegistry.all()) for (const r of track.rewards) REWARD_BY_ID.set(r.id, r);

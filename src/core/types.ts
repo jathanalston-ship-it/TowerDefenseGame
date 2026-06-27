@@ -169,6 +169,8 @@ export interface TowerMods {
   splashMult?: number; // multiplies projectile splash radius
   projectileMutators?: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
+  reactorBiomassMult?: number; // reactor-only: scales its biomass generation (support evolution)
+  reactorOverchargeBonus?: number; // reactor-only: extra overcharge to adjacent towers
   cosmetics?: string[]; // visual mutation ids (renderer)
 }
 export type TowerProgress = Record<TowerKind, TowerMods>;

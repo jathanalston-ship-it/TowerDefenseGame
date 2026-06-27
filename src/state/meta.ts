@@ -30,7 +30,7 @@ import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
-import { masteryRewardsBetween } from '../core/mastery';
+import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -133,6 +133,13 @@ export function towerProgress(save: SaveData): TowerProgress {
     const stars = save.towerStars[k] ?? 0;
     const mLvl = masteryLevel(save.towerMasteryXp[k] ?? 0);
     const kit = resolveStarKit(k, stars, save.towerForks?.[k]);
+    // Mastery milestone PERKS fold mechanics (not stats) into the same kit — pierce, wider
+    // splash — at high mastery. None below their threshold ⇒ a fresh save stays identity.
+    for (const p of masteryPerksUpTo('tower', k, mLvl)) {
+      if (p.projectileMutator) kit.projectileMutators.push(p.projectileMutator);
+      if (p.extraProjectiles) kit.extraProjectiles += p.extraProjectiles;
+      if (p.splashMult) kit.splashMult *= p.splashMult;
+    }
     out[k] = {
       damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
       fireRateMult: 1 + STAR.fireRatePerStar * stars,
@@ -141,6 +148,8 @@ export function towerProgress(save: SaveData): TowerProgress {
       splashMult: kit.splashMult !== 1 ? kit.splashMult : undefined,
       projectileMutators: kit.projectileMutators.length ? kit.projectileMutators : undefined,
       extraAbilities: kit.extraAbilities.length ? kit.extraAbilities : undefined,
+      reactorBiomassMult: kit.reactorBiomassMult !== 1 ? kit.reactorBiomassMult : undefined,
+      reactorOverchargeBonus: kit.reactorOverchargeBonus !== 0 ? kit.reactorOverchargeBonus : undefined,
       cosmetics: kit.cosmetics.length ? kit.cosmetics : undefined,
     };
   }

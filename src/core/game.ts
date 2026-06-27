@@ -867,7 +867,9 @@ export class Game {
 
   private economySystem(dt: number): void {
     if (this.reactorCount > 0) {
-      const gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * dt;
+      // Reactor STAR evolution (support-tower path): its kit scales biomass generation.
+      const starBiomass = this.towerProgress.reactor.reactorBiomassMult ?? 1; // 1 for a fresh save
+      const gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * starBiomass * dt;
       this.biomass += gain;
       this.statBiomassEarned += gain;
     }
@@ -915,7 +917,9 @@ export class Game {
       // Bonus math flows through the universal modifier framework (combineMult — the
       // canonical multiplier fold, bit-identical to the previous a*b*c product).
       const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
-      const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1;
+      // Reactor STAR evolution: its kit adds to the overcharge it projects onto neighbors.
+      const starOc = this.towerProgress.reactor.reactorOverchargeBonus ?? 0; // 0 for a fresh save
+      const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus + starOc : 1;
       const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
       const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso);

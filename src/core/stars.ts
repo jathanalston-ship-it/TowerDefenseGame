@@ -19,6 +19,7 @@ export type StarGrant =
   | { t: 'targeting'; profile: TargetingProfile } // change who the tower shoots
   | { t: 'projectile'; extraProjectiles?: number; splashMult?: number; mutators?: string[] } // mutate the shot
   | { t: 'ability'; components: AbilityComponent[] } // an added attack/aura/chain/debuff each cast
+  | { t: 'reactor'; biomassMult?: number; overchargeBonus?: number } // economy evolution (support tower)
   | { t: 'cosmetic'; id: string }; // visual mutation (renderer; shared with mastery cosmetics)
 
 /** A UI tag for the node's headline category (drives the preview iconography). */
@@ -89,11 +90,13 @@ export interface ResolvedStarKit {
   splashMult: number; // multiplies projectile splash radius
   projectileMutators: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities: AbilityComponent[]; // run after the base kit each cast
+  reactorBiomassMult: number; // reactor economy: biomass generation (1 = base)
+  reactorOverchargeBonus: number; // reactor economy: extra overcharge to adjacent towers (0 = base)
   cosmetics: string[]; // visual mutation ids
 }
 
 export function emptyStarKit(): ResolvedStarKit {
-  return { extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], cosmetics: [] };
+  return { extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], reactorBiomassMult: 1, reactorOverchargeBonus: 0, cosmetics: [] };
 }
 
 function optionFor(fork: StarFork, picks: Record<string, string>): StarForkOption {
@@ -113,6 +116,10 @@ function applyGrant(kit: ResolvedStarKit, g: StarGrant): void {
       break;
     case 'ability':
       for (const c of g.components) kit.extraAbilities.push(c);
+      break;
+    case 'reactor':
+      if (g.biomassMult) kit.reactorBiomassMult *= g.biomassMult;
+      if (g.overchargeBonus) kit.reactorOverchargeBonus += g.overchargeBonus;
       break;
     case 'cosmetic':
       kit.cosmetics.push(g.id);
@@ -141,8 +148,7 @@ export function resolveStarKit(tower: TowerKind, stars: number, forkPicks: Recor
 // Behavior-only (the incidental stat is config.STAR). Built from the existing ability
 // vocabulary so no new executors are needed; values are modest placeholders (balance is
 // a later pass). The Flesh Reactor is support (it never fires through the tower loop), so
-// its evolution awaits the economy-lever mapping (PROGRESSION-SYSTEMS reconciliation) and
-// is intentionally not authored here.
+// its path is ECONOMY-themed (biomass + overcharge) — authored below as a 'reactor' grant.
 
 const NEEDLE: StarPath = {
   tower: 'needle',
@@ -260,7 +266,38 @@ const OBELISK: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK]);
+// Flesh Reactor (Vital) — support: it never fires, so its evolution is ECONOMY (biomass +
+// overcharge), read by the reactor systems from this kit. A fresh reactor (0 stars) ⇒ ×1/+0.
+const REACTOR: StarPath = {
+  tower: 'reactor',
+  steps: [
+    { star: 1, name: 'Rich Cultures', kind: 'interaction', desc: 'Generates +15% biomass.', grants: [{ t: 'reactor', biomassMult: 1.15 }] },
+    { star: 2, name: 'Conductive Veins', kind: 'interaction', desc: 'Adjacent towers overcharge harder (+8%).', grants: [{ t: 'reactor', overchargeBonus: 0.08 }] },
+    {
+      star: 3,
+      name: 'Specialization',
+      kind: 'fork',
+      desc: 'Choose the Flesh Reactor’s identity (re-pick any run).',
+      fork: [
+        { id: 'furnace', name: 'Furnace', desc: 'Pour everything into biomass (+25%).', grants: [{ t: 'reactor', biomassMult: 1.25 }] },
+        { id: 'network', name: 'Network', desc: 'Pour everything into overcharge (+12%).', grants: [{ t: 'reactor', overchargeBonus: 0.12 }] },
+      ],
+    },
+    { star: 4, name: 'Hyperplasia', kind: 'interaction', desc: 'Generates a further +20% biomass.', grants: [{ t: 'reactor', biomassMult: 1.2 }] },
+    {
+      star: 5,
+      name: 'Apotheosis Bloom',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'apotheosis', name: 'Apotheosis', desc: 'A surge of biomass (+40%).', grants: [{ t: 'reactor', biomassMult: 1.4 }] },
+        { id: 'conduit', name: 'Conduit Engine', desc: 'Overwhelming overcharge (+20%).', grants: [{ t: 'reactor', overchargeBonus: 0.2 }] },
+      ],
+    },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {
