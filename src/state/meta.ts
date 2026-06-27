@@ -38,6 +38,17 @@ import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } 
 import type { EquipSlot, OwnedItem } from '../core/equipment';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
+import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
+import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
+
+/** Build the collection codex context from a save (read-only derivation). */
+function collectionContextOf(save: SaveData): CollectionContext {
+  return {
+    stats: save.stats,
+    ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
+    bestWave: save.bestWave,
+  };
+}
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -449,6 +460,24 @@ export const meta = {
   loadoutEffects(): CardEffect[] {
     const { inventory, loadout } = store.get().equipment;
     return loadoutEffects(inventory, loadout);
+  },
+
+  // ── Collection (codex + completion rewards) ────────────────────────────────
+
+  /** The full codex view, derived from the current save (read-only). */
+  collection(): CollectionView {
+    return collectionView(collectionContextOf(store.get()));
+  },
+
+  /** Completion rewards currently unlocked (titles, badges, portraits, themes, …). */
+  collectionRewards(): CollectionReward[] {
+    return unlockedRewards(this.collection());
+  },
+
+  /** Run-start effects from unlocked completion BONUSES — folded into a run like gear.
+   * Empty for a fresh save, so a new player's run is byte-identical (golden-safe). */
+  collectionRunEffects(): CardEffect[] {
+    return collectionBonusEffects(this.collection());
   },
 
   /** Equip (or clear, uid=null) an owned item into a slot. */
