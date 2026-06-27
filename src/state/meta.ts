@@ -242,20 +242,23 @@ export const meta = {
       heroMastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(heroMasteryXp[k]) };
     }
 
-    // 4. run-end chest (scaled by how deep the run got) → tower/hero shards
+    // 4. run-end chest (tier scales with depth) — the SINGLE data-driven reward
+    //    source feeding every progression system: tower/hero shards, crafting
+    //    materials, and equipment all roll out of its weighted pools.
     const chest = rollChest(CHESTS[chestForWave(result.wave)]);
     const towerShards = { ...save.towerShards };
     for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
     const heroShards = { ...save.heroShards };
     for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
-
-    // 4. a run-end equipment drop (rarity scales with depth) + a little craft feedstock
-    const gear = rollItemDrop(Math.random, result.wave);
     const mats = {
-      mutagen: save.mats.mutagen + (result.won ? 1 : 0),
-      scrap: save.mats.scrap + 2,
-      catalyst: save.mats.catalyst + (result.wave >= 7 ? 1 : 0),
+      mutagen: save.mats.mutagen + chest.materials.mutagen,
+      scrap: save.mats.scrap + chest.materials.scrap,
+      catalyst: save.mats.catalyst + chest.materials.catalyst,
     };
+    // equipment from the chest; guarantee one piece for the results card (early
+    // shard-focused chests may drop none → roll a floor piece for the reveal).
+    const gear = chest.equipment[0] ?? rollItemDrop(Math.random, result.wave);
+    const gearAdds = chest.equipment.length ? chest.equipment : [gear];
 
     persist({
       ...save,
@@ -268,7 +271,7 @@ export const meta = {
       towerShards,
       heroShards,
       stats: accumulateStats(save.stats, result.stats),
-      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, gear] },
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...gearAdds] },
       mats,
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
@@ -519,14 +522,25 @@ export const meta = {
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */
-  debugOpenChest(): ChestResult {
-    const chest = rollChest(CHESTS[RUN_CHEST]);
+  debugOpenChest(chestId: string = RUN_CHEST): ChestResult {
+    const chest = rollChest(CHESTS[chestId] ?? CHESTS[RUN_CHEST]);
     const save = store.get();
     const towerShards = { ...save.towerShards };
     for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
     const heroShards = { ...save.heroShards };
     for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
-    persist({ ...save, towerShards, heroShards });
+    const mats = {
+      mutagen: save.mats.mutagen + chest.materials.mutagen,
+      scrap: save.mats.scrap + chest.materials.scrap,
+      catalyst: save.mats.catalyst + chest.materials.catalyst,
+    };
+    persist({
+      ...save,
+      towerShards,
+      heroShards,
+      mats,
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
+    });
     return chest;
   },
 };

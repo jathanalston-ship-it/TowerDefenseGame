@@ -646,43 +646,77 @@ export const MASTERY = {
 // Expandable to multiple chest rarities later; one is defined today. A chest is a
 // number of independent reward "rolls"; each roll grants tower shards, or (small
 // chance) hero shards. Duplicate protection is intentionally not modelled yet.
+/** Reveal flare tiers (shared with equipment's Rarity literals). */
+export type LootRarity = 'common' | 'rare' | 'epic' | 'legendary' | 'exotic';
+export type MaterialKind = 'mutagen' | 'scrap' | 'catalyst';
+
+/** One reward pool a chest roll can land in — DATA-DRIVEN so a new reward system is
+ * added here, not in roller code. Future pools (cosmetic/relic/event) are real
+ * shapes; a chest simply gives them weight once that content exists. */
+export type PoolSpec =
+  | { pool: 'tower'; range: [number, number] }
+  | { pool: 'hero'; range: [number, number] }
+  | { pool: 'material'; mats: MaterialKind[]; range: [number, number] }
+  | { pool: 'equipment'; wave: number } // equipment quality scales with `wave`
+  | { pool: 'cosmetic'; ids: string[] } // future seam
+  | { pool: 'relic'; ids: string[] } // future seam
+  | { pool: 'event'; currency: string; range: [number, number] }; // future seam
+
+/** A weighted entry in a chest's loot table. `rarity` = the reveal flare for items
+ * from this pool (equipment overrides with its own rolled rarity). */
+export interface WeightedPool {
+  weight: number;
+  rarity?: LootRarity;
+  spec: PoolSpec;
+}
+
 export interface ChestDef {
   id: string;
   name: string;
-  rarity: string; // chest rarity tier (expandable: standard → rare → prime …)
-  rolls: number; // independent reward slots opened in sequence
-  towerShardRange: [number, number]; // shards granted to a random tower per roll
-  heroShardChance: number; // chance a roll yields hero shards instead
-  heroShardRange: [number, number];
+  rarity: string; // chest tier id (standard → rich → prime)
+  rolls: number; // independent reward pulls revealed in sequence
+  pools: WeightedPool[]; // weighted reward table — tiers emphasize different pools
 }
 
+// Each tier emphasizes different reward pools (the rarity → reward-pool mapping):
+//   standard = tower-shard floor; rich = adds equipment + materials; prime = leans
+//   hard into equipment + hero + premium materials. Pools are data — retuning the
+//   reward economy is a weight edit, and a new reward system is a new pool entry.
 export const CHESTS: Record<string, ChestDef> = {
   standard: {
     id: 'standard',
     name: 'Biomass Cache',
     rarity: 'standard',
-    rolls: 3,
-    towerShardRange: [2, 5],
-    heroShardChance: 0.12,
-    heroShardRange: [1, 1],
+    rolls: 4,
+    pools: [
+      { weight: 6, rarity: 'common', spec: { pool: 'tower', range: [2, 5] } },
+      { weight: 2, rarity: 'rare', spec: { pool: 'hero', range: [1, 1] } },
+      { weight: 3, rarity: 'common', spec: { pool: 'material', mats: ['scrap', 'mutagen'], range: [1, 2] } },
+    ],
   },
   rich: {
     id: 'rich',
     name: 'Mutagen Vault',
     rarity: 'rich',
-    rolls: 4,
-    towerShardRange: [3, 7],
-    heroShardChance: 0.2,
-    heroShardRange: [1, 2],
+    rolls: 5,
+    pools: [
+      { weight: 4, rarity: 'rare', spec: { pool: 'tower', range: [3, 7] } },
+      { weight: 3, rarity: 'rare', spec: { pool: 'hero', range: [1, 2] } },
+      { weight: 3, rarity: 'rare', spec: { pool: 'material', mats: ['scrap', 'mutagen', 'catalyst'], range: [1, 3] } },
+      { weight: 2, spec: { pool: 'equipment', wave: 7 } },
+    ],
   },
   prime: {
     id: 'prime',
     name: 'Apex Reliquary',
     rarity: 'prime',
-    rolls: 5,
-    towerShardRange: [5, 10],
-    heroShardChance: 0.32,
-    heroShardRange: [1, 2],
+    rolls: 6,
+    pools: [
+      { weight: 3, rarity: 'epic', spec: { pool: 'tower', range: [5, 10] } },
+      { weight: 3, rarity: 'epic', spec: { pool: 'hero', range: [1, 2] } },
+      { weight: 2, rarity: 'epic', spec: { pool: 'material', mats: ['catalyst', 'mutagen'], range: [2, 4] } },
+      { weight: 4, spec: { pool: 'equipment', wave: 12 } },
+    ],
   },
 };
 

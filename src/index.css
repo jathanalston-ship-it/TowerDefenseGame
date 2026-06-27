@@ -1676,6 +1676,115 @@ kbd {
   color: var(--gold);
 }
 
+/* ── Loot opening v2: stage lighting, anticipation, particles, rarity flash ── */
+.loot {
+  position: relative;
+  cursor: pointer;
+  --loot-accent: var(--r-common);
+}
+.loot-stage {
+  position: relative;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 12px 0 4px;
+  min-height: 104px;
+}
+/* radial rarity light behind the chest — builds during charge, blooms on open */
+.loot-glow {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--loot-accent) 0%, transparent 68%);
+  opacity: 0.14;
+  filter: blur(7px);
+  transition: opacity 0.4s ease;
+}
+.loot.is-charging .loot-glow {
+  animation: loot-charge 1s ease-in-out infinite;
+}
+.loot.is-open .loot-glow {
+  opacity: 0.5;
+  animation: loot-bloom 0.6s ease-out;
+}
+@keyframes loot-charge {
+  0%, 100% { opacity: 0.1; transform: scale(0.9); }
+  50% { opacity: 0.34; transform: scale(1.06); }
+}
+@keyframes loot-bloom {
+  0% { opacity: 0.95; transform: scale(0.55); }
+  100% { opacity: 0.5; transform: scale(1); }
+}
+/* chest anticipation: rattle harder the rarer the pull */
+.loot.is-charging .chest-box {
+  animation: chest-rattle 0.18s ease-in-out infinite;
+}
+.loot.tier-legendary.is-charging .chest-box,
+.loot.tier-exotic.is-charging .chest-box {
+  animation-duration: 0.09s;
+}
+@keyframes chest-rattle {
+  0%, 100% { transform: translateX(-1px) rotate(-0.7deg); }
+  50% { transform: translateX(1px) rotate(0.7deg); }
+}
+.loot .chest-burst {
+  border-color: var(--loot-accent);
+}
+/* burst particles (DOM sparks, rarity-tinted) */
+.loot-sparks {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.loot-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--loot-accent);
+  box-shadow: 0 0 8px var(--loot-accent);
+  animation: loot-spark 0.7s ease-out forwards;
+}
+@keyframes loot-spark {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+}
+/* rarity name flash on open */
+.loot-rarity-flash {
+  position: absolute;
+  bottom: 2px;
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  text-shadow: 0 0 14px var(--loot-accent);
+  animation: loot-flash 0.6s ease-out both;
+}
+@keyframes loot-flash {
+  0% { opacity: 0; transform: scale(1.6); }
+  30% { opacity: 1; }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+.loot-pulls {
+  color: var(--muted);
+  font-size: 11px;
+  margin-left: 8px;
+}
+.loot-skip {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+/* per-reward rarity tint on the cascade rows */
+.loot-item.tier-rare { border-color: rgba(90, 209, 255, 0.4); }
+.loot-item.tier-epic { border-color: rgba(201, 139, 255, 0.45); }
+.loot-item.tier-legendary { border-color: rgba(255, 210, 77, 0.5); }
+.loot-item.tier-exotic { border-color: rgba(95, 251, 241, 0.5); }
+
 /* ── Mastery gains (results) ──────────────────────────────────────────────── */
 .mastery-gains {
   display: flex;
