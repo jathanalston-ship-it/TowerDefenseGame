@@ -33,6 +33,8 @@ export function GameView({
   heroProgress,
   runEffects,
   mode,
+  difficulty,
+  doctrine,
   onEnd,
 }: {
   seed: number;
@@ -42,11 +44,13 @@ export function GameView({
   heroProgress: HeroProgress;
   runEffects?: CardEffect[];
   mode?: RunMode;
+  difficulty?: string;
+  doctrine?: string;
   onEnd: (r: RunResult) => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode }));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, difficulty, doctrine }));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
