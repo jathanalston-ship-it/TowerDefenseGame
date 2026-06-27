@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { meta } from './meta';
-import { lootMeterSize } from '../core/config';
+import { lootMeterSize, lootBoxRarity } from '../core/config';
 import type { RunResult } from '../core/game';
 
 function result(over: Partial<RunResult>): RunResult {
@@ -149,6 +149,56 @@ describe('persistent loot meter', () => {
     meta.recordRun(result({ mode: 'endless', wave: 12, kills: 80 }));
     meta.recordRun(result({ mode: 'stage', won: true, stageNumber: 2 }));
     expect(meta.get().lootMeter).toBe(before); // untouched by runs
+    meta.reset();
+  });
+});
+
+describe('loot boxes (rarity + opening)', () => {
+  it('rarity is a deterministic, previewable cadence by earned index', () => {
+    expect(lootBoxRarity(1)).toBe('common');
+    expect(lootBoxRarity(5)).toBe('rare');
+    expect(lootBoxRarity(10)).toBe('rare');
+    expect(lootBoxRarity(25)).toBe('epic'); // epic takes precedence at multiples of 25
+    expect(lootBoxRarity(50)).toBe('epic');
+    expect(meta.nextLootRarity()).toBe('common'); // fresh account → box #1
+  });
+
+  it('opening a box grants a rarity-scaled cache and banks one fewer', () => {
+    meta.reset();
+    const size = lootMeterSize(0);
+    meta.addLootProgress(size); // earn box #1 (common)
+    expect(meta.get().lootBoxes).toBe(1);
+    expect(meta.pendingLootRarity()).toBe('common');
+
+    const shardsBefore = meta.get().shards;
+    const reward = meta.openLootBox();
+    expect(reward).not.toBeNull();
+    expect(reward!.rarity).toBe('common');
+    expect(reward!.shards).toBeGreaterThan(0); // common pays Shards
+    expect(reward!.essence).toBe(0); // not at common
+    expect(meta.get().lootBoxes).toBe(0); // box consumed
+    expect(meta.get().shards).toBe(shardsBefore + reward!.shards); // currency granted
+    expect(meta.openLootBox()).toBeNull(); // nothing left to open
+    meta.reset();
+  });
+
+  it('opens banked boxes FIFO and a Rare box pays more than Common', () => {
+    meta.reset();
+    // Earn 5 boxes so box #5 is Rare; size grows by lifetime so add generously.
+    for (let i = 0; i < 5; i++) meta.addLootProgress(lootMeterSize(meta.get().lootBoxesLifetime));
+    expect(meta.get().lootBoxes).toBe(5);
+
+    const opened = [] as string[];
+    let rareShards = 0;
+    let commonShards = 0;
+    for (let i = 0; i < 5; i++) {
+      const r = meta.openLootBox()!;
+      opened.push(r.rarity);
+      if (r.rarity === 'rare') rareShards = r.shards;
+      if (r.rarity === 'common' && i === 0) commonShards = r.shards;
+    }
+    expect(opened).toEqual(['common', 'common', 'common', 'common', 'rare']); // #1..#5, FIFO
+    expect(rareShards).toBeGreaterThan(commonShards); // rare cache is richer
     meta.reset();
   });
 });

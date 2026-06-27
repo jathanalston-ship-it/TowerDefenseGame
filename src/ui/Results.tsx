@@ -1,5 +1,6 @@
 import { meta } from '../state/meta';
 import type { RunResult, RunReward } from '../state/meta';
+import { lootMeterSize, LOOT_RARITY } from '../core/config';
 import { CountUp } from './components/CountUp';
 import { Icon } from './components/Icon';
 
@@ -83,6 +84,28 @@ export function Results({
             )}
           </div>
         )}
+
+        {/* Forward pull — the "one more run" hook: a ready box to open, or how close
+            you are to the next one (and what rarity it'll be). */}
+        {(() => {
+          const size = lootMeterSize(save.lootBoxesLifetime);
+          const pct = size > 0 ? Math.round((save.lootMeter / size) * 100) : 0;
+          const next = meta.nextLootRarity();
+          return (
+            <div className="loot-nudge">
+              {save.lootBoxes > 0 ? (
+                <span className="loot-nudge-ready">
+                  ◆ {save.lootBoxes} loot box{save.lootBoxes > 1 ? 'es' : ''} ready — open on the menu
+                </span>
+              ) : (
+                <span>
+                  <b>{pct}%</b> to your next loot box ·{' '}
+                  <b style={{ color: LOOT_RARITY[next].color }}>{LOOT_RARITY[next].label}</b>
+                </span>
+              )}
+            </div>
+          );
+        })()}
       </div>
       <button className="primary" onClick={onContinue}>
         Continue

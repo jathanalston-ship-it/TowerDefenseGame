@@ -2,6 +2,7 @@ import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
 import { Codex } from './Codex';
 import { LootMeter } from './LootMeter';
+import { LootBoxOpener } from './LootBoxOpener';
 import { SaveManager } from './SaveManager';
 import { ModePanel } from './ModePanel';
 import { CountUp } from './components/CountUp';
@@ -39,6 +40,7 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
           </div>
         </div>
         <LootMeter />
+        <LootBoxOpener />
       </div>
 
       <ModePanel onStart={onStart} />

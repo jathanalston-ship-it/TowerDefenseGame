@@ -329,6 +329,35 @@ export function lootMeterSize(boxesEarned: number): number {
   return LOOT.meterBase + LOOT.meterGrowth * Math.max(0, boxesEarned);
 }
 
+// ── Loot boxes (rarity + contents) ──────────────────────────────────────────
+// A box's rarity is DETERMINISTIC by its 1-based earned index, so the meter can
+// PREVIEW the next box (anticipation) and color itself to match. Opening rolls a
+// currency cache within the rarity's bands — reuses existing currencies, no new
+// economy. Tune cadence + payouts here.
+export type LootRarity = 'common' | 'rare' | 'epic';
+
+export interface LootRarityDef {
+  label: string;
+  color: string; // a CSS rarity token (shared palette)
+  shards: [number, number];
+  essence: [number, number];
+  components: [number, number];
+}
+
+export const LOOT_RARITY: Record<LootRarity, LootRarityDef> = {
+  common: { label: 'Common', color: 'var(--r-common)', shards: [40, 80], essence: [0, 0], components: [0, 0] },
+  rare: { label: 'Rare', color: 'var(--r-rare)', shards: [90, 160], essence: [20, 40], components: [0, 0] },
+  epic: { label: 'Epic', color: 'var(--r-epic)', shards: [220, 360], essence: [50, 90], components: [25, 50] },
+};
+
+/** Rarity of the box at a given 1-based earned index. Every 25th is Epic, every
+ *  5th is Rare, the rest Common — a legible cadence the player learns to chase. */
+export function lootBoxRarity(index: number): LootRarity {
+  if (index > 0 && index % 25 === 0) return 'epic';
+  if (index > 0 && index % 5 === 0) return 'rare';
+  return 'common';
+}
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a

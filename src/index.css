@@ -1043,17 +1043,16 @@ canvas.board.is-aiming {
   }
 }
 
-/* ── Persistent Loot Meter ────────────────────────────────────────────────── */
+/* ── Persistent Loot Meter (a glanceable anticipation engine) ─────────────── */
 .loot-meter {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 150px;
 }
 .lm-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
 }
 .lm-label {
@@ -1061,6 +1060,33 @@ canvas.board.is-aiming {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
+  margin-right: auto;
+}
+/* next-box rarity preview — the anticipation hook */
+.lm-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.lm-next-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rarity, var(--gold));
+  box-shadow: 0 0 7px var(--rarity, var(--gold));
+  animation: lm-idle 2.4s var(--ease-in-out) infinite;
+}
+.lm-next-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rarity, var(--muted));
+}
+@keyframes lm-idle {
+  50% {
+    opacity: 0.5;
+  }
 }
 .lm-boxes {
   font-size: 12px;
@@ -1082,18 +1108,98 @@ canvas.board.is-aiming {
   }
 }
 .lm-bar {
-  height: 7px;
+  position: relative; /* unclipped context for the glow + completion burst */
+  height: 8px;
+}
+.lm-track {
+  position: absolute;
+  inset: 0;
   border-radius: 99px;
   background: var(--panel-2);
   overflow: hidden;
   border: 1px solid var(--line);
+  border-color: color-mix(in srgb, var(--rarity, var(--line)) 40%, var(--line));
 }
 .lm-fill {
+  position: relative;
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, var(--gold), #ffe39a);
+  background: var(--rarity, var(--gold)); /* fallback if color-mix unsupported */
+  background: linear-gradient(90deg, color-mix(in srgb, var(--rarity) 55%, #161b24), var(--rarity));
   transition: width 0.25s var(--ease-out);
-  box-shadow: 0 0 8px rgba(255, 208, 92, 0.4);
+  overflow: hidden;
+}
+/* subtle always-on shimmer = idle life that invites the glance */
+.lm-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.25) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: lm-shimmer 2.8s linear infinite;
+}
+@keyframes lm-shimmer {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+/* glow brightens toward completion (opacity ramps with fill %) */
+.lm-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 99px;
+  pointer-events: none;
+  box-shadow: 0 0 11px 1px var(--rarity, var(--gold));
+  opacity: calc(0.08 + var(--lm-pct, 0) * 0.62);
+}
+/* near completion: the meter breathes faster — "almost there!" */
+.loot-meter.is-near .lm-glow {
+  animation: lm-breathe 0.95s var(--ease-in-out) infinite;
+}
+.loot-meter.is-near .lm-next-dot {
+  animation-duration: 0.95s;
+}
+@keyframes lm-breathe {
+  50% {
+    box-shadow: 0 0 17px 2px var(--rarity, var(--gold));
+  }
+}
+/* milestone pulse — a quick white sweep when crossing 25/50/75% */
+.lm-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  animation: lm-pulse 0.5s var(--ease-out) forwards;
+}
+@keyframes lm-pulse {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 0;
+  }
+}
+/* completion burst — a one-shot flare when a loot box is awarded */
+.lm-burst {
+  position: absolute;
+  inset: -3px;
+  border-radius: 99px;
+  pointer-events: none;
+  animation: lm-burst 0.7s var(--ease-out) forwards;
+}
+@keyframes lm-burst {
+  from {
+    box-shadow: 0 0 6px 1px var(--rarity, var(--gold));
+    opacity: 1;
+  }
+  to {
+    box-shadow: 0 0 26px 11px var(--rarity, var(--gold));
+    opacity: 0;
+  }
 }
 .lm-sub {
   font-size: 11px;
@@ -1101,14 +1207,91 @@ canvas.board.is-aiming {
   font-variant-numeric: tabular-nums;
 }
 .loot-meter.is-compact {
-  min-width: 116px;
-  gap: 3px;
+  min-width: 130px;
+  gap: 4px;
 }
 .loot-meter.is-compact .lm-bar {
-  height: 5px;
+  height: 6px;
 }
 .hud-loot {
-  min-width: 130px;
+  min-width: 156px;
+}
+
+/* Loot box opening (menu) */
+.loot-opener {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.loot-open-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  animation: breathe 2s var(--ease-in-out) infinite;
+}
+.loot-open-rarity {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.loot-reveal {
+  border: 1px solid var(--rarity, var(--line));
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 14px 16px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 0 28px -6px var(--rarity, transparent);
+  animation: lr-burst 0.45s var(--ease-out);
+}
+@keyframes lr-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.lr-rarity {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 15px;
+  color: var(--rarity, var(--text));
+  margin-bottom: 6px;
+}
+.lr-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--text);
+}
+.lr-rewards b {
+  color: var(--gold);
+}
+.lr-dismiss {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.loot-nudge {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.loot-nudge-ready {
+  color: var(--gold);
+  font-weight: 700;
 }
 
 /* ── Draft overlay ────────────────────────────────────────────────────────── */

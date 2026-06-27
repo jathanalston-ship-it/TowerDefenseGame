@@ -20,8 +20,10 @@ import {
   PRESTIGE_UPGRADES,
   defaultMetaModifiers,
   lootMeterSize,
+  lootBoxRarity,
+  LOOT_RARITY,
 } from '../core/config';
-import type { UpgradeDef } from '../core/config';
+import type { UpgradeDef, LootRarity } from '../core/config';
 import type { Currency, MetaModifiers } from '../core/types';
 import type { RunResult } from '../core/game';
 import {
@@ -79,6 +81,14 @@ export interface RunReward {
   newBest: boolean;
   newAchievements: string[]; // display names of achievements unlocked by THIS run
   newTitle: string | null; // a freshly-earned title to celebrate, else null
+}
+
+/** Contents revealed by opening a loot box. */
+export interface LootReward {
+  rarity: LootRarity;
+  shards: number;
+  essence: number;
+  components: number;
 }
 
 /** Build the achievement-check view from a (post-run) save. */
@@ -227,6 +237,41 @@ export const meta = {
     if (save || awarded > 0) persist(next);
     else store.set(next); // in-memory only (no storage write) for live fills
     return awarded;
+  },
+
+  /** Rarity of the next box the meter is filling toward (drives the preview/accent). */
+  nextLootRarity(): LootRarity {
+    return lootBoxRarity(store.get().lootBoxesLifetime + 1);
+  },
+
+  /** Rarity of the oldest banked box — the next one `openLootBox` reveals (or null). */
+  pendingLootRarity(): LootRarity | null {
+    const s = store.get();
+    if (s.lootBoxes <= 0) return null;
+    return lootBoxRarity(s.lootBoxesLifetime - s.lootBoxes + 1);
+  },
+
+  /** Open the oldest banked loot box (FIFO) → a currency cache scaled by its rarity.
+   *  Returns the reward, or null if no box is banked. (Loot is intentionally random;
+   *  this is the meta layer, not the deterministic sim, so Math.random is fine.) */
+  openLootBox(): LootReward | null {
+    const s = store.get();
+    if (s.lootBoxes <= 0) return null;
+    const index = s.lootBoxesLifetime - s.lootBoxes + 1; // FIFO order
+    const rarity = lootBoxRarity(index);
+    const def = LOOT_RARITY[rarity];
+    const roll = ([lo, hi]: [number, number]): number => (hi <= 0 ? 0 : lo + Math.floor(Math.random() * (hi - lo + 1)));
+    const shards = roll(def.shards);
+    const essence = roll(def.essence);
+    const components = roll(def.components);
+    persist({
+      ...s,
+      lootBoxes: s.lootBoxes - 1,
+      shards: s.shards + shards,
+      essence: s.essence + essence,
+      components: s.components + components,
+    });
+    return { rarity, shards, essence, components };
   },
 
   // ── Save management ──────────────────────────────────────────────────────
