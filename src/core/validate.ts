@@ -192,13 +192,20 @@ function dupIssues<T>(items: readonly T[], idOf: (t: T) => string, label: string
 export function validateEffects(effects: CardEffect[], target: string): ValidationIssue[] {
   const out: ValidationIssue[] = [];
   for (const e of effects) {
-    if ('value' in e && !Number.isFinite(e.value)) out.push(err('invalid-stat', target, 'non-finite effect value'));
+    const numericValueOp = e.op === 'mul' || e.op === 'add' || e.op === 'biomass' || e.op === 'integrity' || e.op === 'heroHp';
+    if (numericValueOp && !Number.isFinite((e as { value: number }).value)) out.push(err('invalid-stat', target, 'non-finite effect value'));
     if (e.op === 'mul' && e.value <= 0) out.push(err('invalid-stat', target, `multiplier on '${e.field}' must be > 0`));
     if ((e.op === 'mul' || e.op === 'add') && typeof RUN_MOD[e.field] !== 'number') {
       out.push(err('invalid-reference', target, `'${e.field}' is not a numeric run modifier`));
     }
     if (e.op === 'flag' && typeof RUN_MOD[e.field] !== 'boolean') {
       out.push(err('invalid-reference', target, `'${e.field}' is not a boolean run modifier`));
+    }
+    if (e.op === 'set' && typeof RUN_MOD[e.field] !== 'string') {
+      out.push(err('invalid-reference', target, `'${e.field}' is not a string run modifier`));
+    }
+    if (e.op === 'grant' && e.grant.kind === 'towerProjectileMutator' && !e.grant.id) {
+      out.push(err('invalid-reference', target, 'grant missing projectile-mutator id'));
     }
   }
   return out;

@@ -2,7 +2,7 @@
 // Cards are drafted between waves and RESET every run: they only ever mutate the
 // run's RunModifiers / run state, never permanent meta. No React/DOM here.
 
-import type { CardOption, CardRarity } from './types';
+import type { CardOption, CardRarity, StatusType } from './types';
 import type { Rng } from './rng';
 import { Registry } from './registry';
 
@@ -37,6 +37,7 @@ export interface RunModifiers {
   //    plays, not just its numbers. Neutral defaults ⇒ a gear-less run is byte-identical. ──
   heroAggroRangeMult: number; // scales the hero's target-seek range (aggression). 1 = base
   heroRetreatThreshold: number; // HP fraction below which the hero disengages to the nucleus (0 = never)
+  heroAnchor: string; // where the hero idles/holds: 'default' | 'nucleus' | 'line' | 'towers'
   // ── Keystones — rule-benders that change HOW combat resolves, not just the numbers.
   //    Neutral by default (off / ×1) so a run without the relevant gear/card is
   //    byte-identical (the golden invariant). The sim gates each on its neutral value. ──
@@ -75,6 +76,7 @@ export function defaultRunModifiers(): RunModifiers {
     heroMaxHpMult: 1,
     heroAggroRangeMult: 1,
     heroRetreatThreshold: 0,
+    heroAnchor: 'default',
     executeThreshold: 0,
     lastStandThreshold: 0,
     lastStandMult: 1,
@@ -99,12 +101,37 @@ export interface CardContext {
 // boolean-valued keys of RunModifiers.
 type RunModNumberKey = { [K in keyof RunModifiers]: RunModifiers[K] extends number ? K : never }[keyof RunModifiers];
 type RunModFlagKey = { [K in keyof RunModifiers]: RunModifiers[K] extends boolean ? K : never }[keyof RunModifiers];
+type RunModStrKey = { [K in keyof RunModifiers]: RunModifiers[K] extends string ? K : never }[keyof RunModifiers];
 
-/** A single declarative card effect. New cards are pure data — no code. */
+// ── Behavioral grants / hooks (PROGRESSION-PHILOSOPHY §3A/B) — the run-start "verbs"
+//    equipment (and future content) uses beyond stat tweaks. Collected at boot, not folded
+//    into a stat; the sim consumes them (game.ts). Neutral when absent ⇒ golden-safe. ──
+
+/** A capability granted to the whole run at boot. */
+export type GrantSpec =
+  | { kind: 'towerProjectileMutator'; id: string } // every tower's shots gain a projectile mutator
+  | { kind: 'heroAttackStatus'; status: StatusType; amount: number }; // the hero's hits also apply a status
+
+/** A battlefield RULE: an action fired when a run event occurs (relics). */
+export type HookEvent = 'enemyKilled' | 'waveStarted';
+export type HookAction =
+  | { do: 'spreadStatus'; status: StatusType; amount: number; radius: number } // around the trigger point
+  | { do: 'biomass'; value: number }; // grant biomass
+export interface HookSpec {
+  on: HookEvent;
+  action: HookAction;
+}
+
+/** A single declarative effect (cards + equipment). New content is pure data — no code.
+ * `mul`/`add`/`flag`/`set` fold into RunModifiers; `grant`/`hook` are run-start verbs the
+ * sim consumes; the instant ops grant resources immediately. */
 export type CardEffect =
   | { op: 'mul'; field: RunModNumberKey; value: number }
   | { op: 'add'; field: RunModNumberKey; value: number }
   | { op: 'flag'; field: RunModFlagKey }
+  | { op: 'set'; field: RunModStrKey; value: string } // set a string knob (e.g. heroAnchor)
+  | { op: 'grant'; grant: GrantSpec } // run-start capability grant
+  | { op: 'hook'; hook: HookSpec } // run-start battlefield rule
   | { op: 'biomass'; value: number } // instant biomass grant
   | { op: 'integrity'; value: number } // instant max+current integrity
   | { op: 'heroHp'; value: number }; // instant max+current hero HP
@@ -125,6 +152,9 @@ export function applyCard(def: CardDef, ctx: CardContext): void {
       case 'mul': ctx.mods[e.field] *= e.value; break;
       case 'add': ctx.mods[e.field] += e.value; break;
       case 'flag': ctx.mods[e.field] = true; break;
+      case 'set': ctx.mods[e.field] = e.value; break;
+      // grant/hook are run-start verbs consumed by the Game at boot (not by in-run cards).
+      case 'grant': case 'hook': break;
       case 'biomass': ctx.grantBiomass(e.value); break;
       case 'integrity': ctx.grantIntegrity(e.value); break;
       case 'heroHp': ctx.healHero(e.value); break;
@@ -158,7 +188,8 @@ export function cardProblems(c: CardDef): string[] {
   const mods = defaultRunModifiers() as unknown as Record<string, unknown>;
   if (c.effects.length === 0) out.push('has no effects');
   for (const e of c.effects) {
-    if ('value' in e && !Number.isFinite(e.value)) out.push('non-finite effect value');
+    const numericValueOp = e.op === 'mul' || e.op === 'add' || e.op === 'biomass' || e.op === 'integrity' || e.op === 'heroHp';
+    if (numericValueOp && !Number.isFinite((e as { value: number }).value)) out.push('non-finite effect value');
     if (e.op === 'mul' && e.value <= 0) out.push('multiplier must be > 0');
     if ((e.op === 'mul' || e.op === 'add') && typeof mods[e.field] !== 'number') {
       out.push(`'${e.field}' is not a numeric run modifier`);
@@ -166,6 +197,10 @@ export function cardProblems(c: CardDef): string[] {
     if (e.op === 'flag' && typeof mods[e.field] !== 'boolean') {
       out.push(`'${e.field}' is not a boolean run modifier`);
     }
+    if (e.op === 'set' && typeof mods[e.field] !== 'string') {
+      out.push(`'${e.field}' is not a string run modifier`);
+    }
+    if (e.op === 'grant' && e.grant.kind === 'towerProjectileMutator' && !e.grant.id) out.push('grant missing mutator id');
   }
   return out;
 }

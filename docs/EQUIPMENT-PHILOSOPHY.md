@@ -155,7 +155,19 @@ authors behavior through the same `add`/`mul` interpreter cards already use:
   nucleus instead of running its normal AI. Affix **Wary**.
 
 Both default neutral (×1 / 0) ⇒ a gear-less run is byte-identical (golden unchanged);
-`equipment.behavior.test.ts` proves a wary profile measurably changes the AI. **Still
-design-only:** the full `stance`/`anchor`/`repositionBias` profile, weapon attack-mutators,
-and relic event-bus rules (§3, §5A) — these land as the shared star/equipment grant language
-(`PROGRESSION-PHILOSOPHY §3A/B`) is built out.
+`equipment.behavior.test.ts` proves a wary profile measurably changes the AI.
+
+**Unified verbs now live** — `grant` / `set` / `hook` are real `CardEffect` ops (cards.ts),
+folded at boot through the same interpreter cards use (`behavior.test.ts`):
+- **Armor → stance:** `set heroAnchor` ('nucleus' | 'line' | 'towers') changes where the
+  hero holds. Affix **Anchored**.
+- **Weapon → attack:** `grant heroAttackStatus` makes the hero's hits also apply a status.
+  Affix **Venomous** (Corrosion on hit).
+- **Relic → rule:** `grant towerProjectileMutator` makes every tower's shots pierce (affix
+  **Piercer**); `hook { on, action }` fires a battlefield rule — deaths spread Corrosion
+  (affix **Cursed**). Hooks are run-scoped (invoked by the sim at the event point), so there
+  is no global-bus leak.
+
+**Still design-only:** the full `repositionBias` profile, true weapon *projectile* re-authoring
+(beyond on-hit status), and a larger relic/hook vocabulary — all express through the same
+`grant`/`hook` language now in place, so they're data additions, not new architecture.

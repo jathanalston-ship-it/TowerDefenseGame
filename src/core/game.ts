@@ -55,7 +55,7 @@ import {
   defaultRunModifiers,
   draftCards,
 } from './cards';
-import type { CardContext, CardDef, CardEffect, RunModifiers } from './cards';
+import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
@@ -94,6 +94,7 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
   if (e.op === 'mul') mods[e.field] *= e.value;
   else if (e.op === 'add') mods[e.field] += e.value;
   else if (e.op === 'flag') mods[e.field] = true;
+  else if (e.op === 'set') mods[e.field] = e.value;
 }
 import type {
   Enemy,
@@ -111,6 +112,7 @@ import type {
   Projectile,
   ProjectileBehavior,
   RunStats,
+  StatusType,
   Tower,
   TowerKind,
   TowerProgress,
@@ -267,6 +269,11 @@ export class Game {
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
+  // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
+  // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
+  private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
+  private readonly heroAttackStatuses: { status: StatusType; amount: number }[] = []; // weapon: hero hits also apply
+  private readonly relicHooks: HookSpec[] = []; // relic battlefield rules (run events → actions)
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
   private readonly actx: AbilityContext = this.buildAbilityContext();
 
@@ -292,8 +299,8 @@ export class Game {
     this.mods.heroDamageMult = meta.heroDamageMult;
     // Fold the chosen doctrine's run-start effects, then run-start effects (equipment, …).
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
-    for (const e of resolveDoctrine(opts.doctrine).effects) applyRunEffect(this.mods, e);
-    if (opts.runEffects) for (const e of opts.runEffects) applyRunEffect(this.mods, e);
+    for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
+    if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
@@ -381,6 +388,54 @@ export class Game {
         return self.mods.splashRadiusMult * self.castSplashMult; // run-mods × star kit
       },
     };
+  }
+
+  /** Dispatch a run-start effect at boot: stat folds go to mods; the behavioral verbs
+   * (grant/hook) are collected for the sim to consume. Empty when no gear ⇒ golden-safe. */
+  private bootRunEffect(e: CardEffect): void {
+    if (e.op === 'grant') {
+      if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id);
+      else if (e.grant.kind === 'heroAttackStatus') this.heroAttackStatuses.push({ status: e.grant.status, amount: e.grant.amount });
+    } else if (e.op === 'hook') {
+      this.relicHooks.push(e.hook);
+    } else {
+      applyRunEffect(this.mods, e);
+    }
+  }
+
+  /** Run the equipped relics' battlefield rules for a run event (no-op without relic gear). */
+  private fireRelicHooks(on: HookEvent, e: Enemy | null): void {
+    for (const h of this.relicHooks) {
+      if (h.on !== on) continue;
+      const a = h.action;
+      if (a.do === 'biomass') {
+        this.biomass += a.value;
+      } else if (a.do === 'spreadStatus' && e) {
+        const r2 = a.radius * a.radius;
+        this.grid.forNeighbors(e.x, e.y, a.radius, (n) => {
+          if (n.alive && n.id !== e.id && dist2(e.x, e.y, n.x, n.y) <= r2) {
+            this.applyStatus(n, { kind: a.status, amount: a.amount });
+          }
+        });
+      }
+    }
+  }
+
+  /** Where a hero idles when no target — biased by the equipment behavior profile's anchor.
+   * 'default' returns the hero's rally (historical behavior ⇒ golden-safe). */
+  private heroIdleGoal(h: Hero): { x: number; y: number } {
+    switch (this.mods.heroAnchor) {
+      case 'nucleus': return nucleusPoint;
+      case 'line': return { x: WIDTH / 2, y: DEFENSE_TOP_Y };
+      case 'towers': {
+        if (this.towers.length === 0) return nucleusPoint;
+        let sx = 0;
+        let sy = 0;
+        for (const t of this.towers) ((sx += t.x), (sy += t.y));
+        return { x: sx / this.towers.length, y: sy / this.towers.length };
+      }
+      default: return h.rally;
+    }
   }
 
   /** Apply a status request to an enemy — the one place a StatusType maps to its field.
@@ -520,6 +575,7 @@ export class Game {
     this.phase = 'wave';
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
+    if (this.relicHooks.length) this.fireRelicHooks('waveStarted', null); // relic battlefield rules
   }
 
   /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget; the
@@ -1252,7 +1308,7 @@ export class Game {
     }
     target = target ?? fallback;
 
-    const goal = target ? { x: target.x, y: target.y } : h.rally;
+    const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
     const np = moveToward(h.x, h.y, goal.x, goal.y, def.speed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
@@ -1261,6 +1317,8 @@ export class Game {
       const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
       this.heroMasteryAccrual[h.kind].damage += this.applyDamage(target, dmg);
       this.addFracture(target, def.attackFracture);
+      // Weapon grant: the hero's hits also apply granted statuses (no-op without such gear).
+      for (const s of this.heroAttackStatuses) this.applyStatus(target, { kind: s.status, amount: s.amount });
       this.maybeReact(target);
       h.attackCd = def.attackInterval;
     }
@@ -1433,6 +1491,7 @@ export class Game {
         if (e.boss && gameEvents.hasListeners('bossKilled')) {
           gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y });
         }
+        if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -1470,12 +1529,18 @@ export class Game {
       p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
       if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
-      if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, p);
+      this.applyProjectileMutators(p);
     } else {
       const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0 };
-      if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, np);
       this.projectiles.push(np);
+      this.applyProjectileMutators(np);
     }
+  }
+
+  /** Apply the per-cast star-kit mutators + the run-wide granted mutators to a fresh shot. */
+  private applyProjectileMutators(p: Projectile): void {
+    if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, p);
+    if (this.grantedTowerMutators.length) applyMutators(this.grantedTowerMutators, p);
   }
 
   /** Nearest alive enemy a piercing projectile hasn't struck yet (the next pass-through). */

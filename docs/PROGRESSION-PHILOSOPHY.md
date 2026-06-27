@@ -187,6 +187,14 @@ as flat multipliers (`meta.towerProgress` → `{damageMult, fireRateMult}`). Add
 now would just add more stat-sticks. These adjustments come **first**, in order. They are
 additive and preserve the golden invariant (a fresh account resolves to identity).
 
+> **Status:** §A–E are **implemented**. The `CardEffect` language now carries
+> `set`/`grant`/`hook` (cards.ts) folded at boot (game.ts `bootRunEffect`); capabilities
+> reach the sim via the star kit (towers), projectile mutators (`mutators.ts`), granted
+> tower mutators / hero-attack statuses, and run-scoped relic hooks; the per-run config is
+> the frozen `towerProgress`/`heroProgress` snapshot + `RunModifiers` behavior knobs.
+> Identity registries (D) ship as `cosmetic`/title/lore via `mastery.ts`. The bucket
+> resolver + Power Score (F) and currency-role lint (G) remain the standing guardrails.
+
 ### A. One progression-effect language (not many stat folds)
 Today three vocabularies coexist: `UpgradeDef.effect` (meta), `TowerMods` (stars/mastery),
 `CardEffect[]` (cards/equipment). **Unify on `CardEffect[]`-style effects as the single
