@@ -150,6 +150,15 @@ export function GameView({
     return () => setActiveGame(null);
   }, [game]);
 
+  // Restore the persisted auto-start preference for this run.
+  useEffect(() => {
+    try {
+      game.setAutoStart(localStorage.getItem('assimilate.autostart') === '1');
+    } catch {
+      /* storage unavailable */
+    }
+  }, [game]);
+
   // ── Desktop keyboard shortcuts (1-N towers · Q ability · Space wave · Esc) ──
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {

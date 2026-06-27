@@ -46,6 +46,7 @@ import {
   HERO_ULT,
   WAVES,
   WAVE_BOUNTY_GROWTH,
+  AUTO_START_DELAY,
   WAVE_HP_GROWTH,
 } from './config';
 import type { EnemyDef, HeroDef } from './config';
@@ -214,6 +215,9 @@ export class Game {
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
   timeScale = 1;
+  // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
+  // (a player QoL toggle); the manual-start golden run never touches it.
+  autoStart = false;
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -262,6 +266,7 @@ export class Game {
   private spawnQueue: QueuedSpawn[] = [];
   private spawnedAll = false;
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
+  private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -627,6 +632,13 @@ export class Game {
     }
     this.draft = null;
     this.phase = 'prep';
+    this.prepCountdown = AUTO_START_DELAY; // fresh countdown for the new prep
+  }
+
+  /** Toggle auto-start (the next wave fires automatically after a prep countdown). */
+  setAutoStart(on: boolean): void {
+    this.autoStart = on;
+    if (on) this.prepCountdown = AUTO_START_DELAY; // start a fresh countdown when enabling
   }
 
   private cardContext(): CardContext {
@@ -698,6 +710,12 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
+      // Auto-start: count the prep timer down to the next wave when the player enabled it. Off
+      // by default ⇒ the manual-start golden run is byte-identical; consumes no rng.
+      if (this.autoStart && this.phase === 'prep') {
+        this.prepCountdown -= dt;
+        if (this.prepCountdown <= 0) this.startWave();
+      }
     }
   }
 
@@ -2165,6 +2183,8 @@ export class Game {
       bossBanner: this.bossBanner(),
       endless: this.mode === 'endless',
       anticipation: this.nextAnticipation(),
+      autoStart: this.autoStart,
+      autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
     };
   }
 

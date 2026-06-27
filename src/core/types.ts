@@ -283,6 +283,8 @@ export interface HudSnapshot {
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
+  autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
+  autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep)
 }
 
 export interface CardOption {

@@ -384,6 +384,11 @@ export const PARTICLE = {
 export const WAVE_HP_GROWTH = 0.12; // +12% enemy HP per wave index
 export const WAVE_BOUNTY_GROWTH = 0.05;
 
+// Auto-start: when the player enables it, the next wave fires automatically after this many
+// prep seconds (a visible countdown). Opt-in + off by default, so the golden run — which starts
+// waves manually — is byte-identical.
+export const AUTO_START_DELAY = 4; // seconds of prep before an auto-start fires the next wave
+
 // ── Spawn scheduling (spawndirector.ts) ──────────────────────────────────────
 // The Spawn Director owns the MECHANICS of emitting spawns (spacing/timing/pacing),
 // decoupled from WHAT spawns (composition: WAVES / AI Director) and from enemy AI
