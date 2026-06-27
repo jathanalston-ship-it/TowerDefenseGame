@@ -528,6 +528,26 @@ button:disabled {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Emergency Defense Mode indicator — a compact pulsing alarm (docs/RANGE.md §4.4).
+   Appears only while an enemy is in the Final Defense Zone; deliberately small + central
+   so it reads instantly without adding battlefield noise. */
+.phase-emergency {
+  margin-top: 3px;
+  display: inline-block;
+  font-family: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #fff;
+  background: var(--danger);
+  border-radius: 4px;
+  padding: 1px 8px;
+  animation: emergency-flash 0.8s ease-in-out infinite;
+}
+@keyframes emergency-flash {
+  0%, 100% { opacity: 0.72; box-shadow: 0 0 6px rgba(255, 93, 115, 0.4); }
+  50% { opacity: 1; box-shadow: 0 0 16px rgba(255, 93, 115, 0.85); }
+}
 .hud-rate {
   font-size: 11px;
   font-weight: 700;

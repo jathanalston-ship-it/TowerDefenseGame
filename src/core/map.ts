@@ -4,7 +4,7 @@
 // predefined slots in the bottom defensive region. Pure (no DOM); deterministic.
 
 import type { Vec2 } from './math';
-import { DEFENSE, OBSTACLES, SLOTS } from './config';
+import { DEFENSE, FINAL_DEFENSE, OBSTACLES, SLOTS } from './config';
 
 export const CELL = 40;
 export const COLS = 18;
@@ -15,6 +15,15 @@ export const HEIGHT = ROWS * CELL; // 960
 /** Top row of the bottom defensive region (the player holds this line). */
 export const DEFENSE_TOP_ROW = Math.floor(ROWS * (1 - DEFENSE.fraction)); // 18
 export const DEFENSE_TOP_Y = DEFENSE_TOP_ROW * CELL; // 720
+
+/** Top of the Final Defense Zone — the red last-stand band nearest the Hive Core. A
+ * point at or below this Y is inside the zone (full width). See docs/RANGE.md §4. */
+export const FINAL_DEFENSE_TOP_ROW = Math.floor(ROWS * (1 - FINAL_DEFENSE.fraction)); // 20
+export const FINAL_DEFENSE_TOP_Y = FINAL_DEFENSE_TOP_ROW * CELL; // 800
+/** Is a point inside the Final Defense Zone (the bottom band by the core)? */
+export function inFinalDefenseZone(y: number): boolean {
+  return y >= FINAL_DEFENSE_TOP_Y;
+}
 
 /** The base ("Nucleus") — the player's core, bottom-center on the defensive line. */
 export const nucleusPoint: Vec2 = { x: WIDTH / 2, y: HEIGHT - CELL / 2 };
