@@ -599,6 +599,8 @@ export interface HeroAbilityDef {
   buffStat?: string; // timed run-wide buff this ult grants (e.g. 'towerDamage'); absent ⇒ none
   buffAmount?: number; // that buff's multiplier (1.2 = +20%); absent/1 ⇒ no buff emitted
   buffSeconds?: number; // how long the run buff lasts (defaults to 5s)
+  summonUnit?: string; // friendly unit (MINION_DEFS key) this ult conjures; absent ⇒ none
+  summonCount?: number; // how many to summon (absent/0 ⇒ no summon emitted)
 }
 
 export interface HeroDef {
@@ -640,7 +642,7 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 300, speed: 95, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 24, respawnTime: 8,
     pulseInterval: 1.2, pulseRadius: 92, pulseDamage: 8, pulseDisrupt: 0, nucleusRegen: 1.2,
-    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6 },
+    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, sprouts two Vital Wisps, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6, summonUnit: 'wisp', summonCount: 2 },
   },
   overseer: {
     kind: 'overseer', name: 'Overseer', combatClass: 'Neural', behavior: 'control', color: '#8a93ff',
@@ -698,6 +700,11 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   if (ab.buffStat && ab.buffAmount && ab.buffAmount !== 1) {
     out.push({ type: 'buff', stat: ab.buffStat, amount: ab.buffAmount, seconds: ab.buffSeconds ?? 5 });
   }
+  // Summon friendly units (e.g. Shepherd Bloom sprouting Vital Wisps).
+  const summonCount = ab.summonCount ?? 0;
+  if (ab.summonUnit && summonCount > 0) {
+    out.push({ type: 'summon', unit: ab.summonUnit, count: summonCount });
+  }
   return out;
 }
 
@@ -707,6 +714,25 @@ export const HERO_PULSE: Record<HeroKind, AuraAbility | null> = Object.fromEntri
 export const HERO_ULT: Record<HeroKind, AbilityComponent[]> = Object.fromEntries(
   HERO_ORDER.map((k) => [k, heroUltAbility(HERO_DEFS[k])]),
 ) as Record<HeroKind, AbilityComponent[]>;
+
+// ── Summoned friendly units (the `summon` ability primitive) ────────────────
+// Data for each conjurable unit; the SummonAbility references one by id. A new unit is one
+// entry here — no sim code. Minions are time-limited attackers (see types.ts Minion).
+export interface MinionDef {
+  id: string;
+  name: string;
+  damage: number; // per attack
+  attackInterval: number; // seconds between attacks
+  range: number; // seek radius — the nearest enemy within it is the target
+  speed: number; // px/sec
+  life: number; // seconds it persists before expiring
+  radius: number; // body radius (render + attack reach)
+  color: string;
+}
+export const MINION_DEFS: Record<string, MinionDef> = {
+  wisp: { id: 'wisp', name: 'Vital Wisp', damage: 7, attackInterval: 0.7, range: 300, speed: 130, life: 5, radius: 7, color: '#ffd0a6' },
+};
+export const MINION_CAP = 16; // global cap on live minions (perf + visual bound)
 
 // ── Economy ───────────────────────────────────────────────────────────────
 export const ECON = {

@@ -48,6 +48,8 @@ import {
   AUTO_START_DELAY,
   AUTO_START_FIRST_DELAY,
   WAVE_HP_GROWTH,
+  MINION_DEFS,
+  MINION_CAP,
 } from './config';
 import type { EnemyDef, HeroDef } from './config';
 import {
@@ -108,6 +110,7 @@ import type {
   HudSnapshot,
   MasteryCounts,
   MetaModifiers,
+  Minion,
   Particle,
   Phase,
   Pool,
@@ -181,6 +184,7 @@ export interface RenderState {
   floats: FloatingText[];
   particles: Particle[];
   heroes: Hero[];
+  minions: Minion[];
   phase: Phase;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
@@ -237,6 +241,7 @@ export class Game {
   pools: Pool[] = [];
   floats: FloatingText[] = [];
   particles: Particle[] = [];
+  minions: Minion[] = []; // summoned friendly units (empty on the golden path → byte-identical)
   // The active hero roster. One today (the selected hero); the array is the seam for
   // future hero slots (HEROES.md) — slot unlocks just push more heroes in.
   heroes: Hero[];
@@ -427,6 +432,7 @@ export class Game {
         h.shieldTime = Math.max(h.shieldTime, seconds);
       },
       grantBuff: (stat, amount, seconds) => this.grantRunBuff(stat, amount, seconds),
+      summon: (unit, count, x, y) => this.summonMinions(unit, count, x, y),
       particles: (x, y, kind: ParticleKind) => this.spawnParticles(x, y, PARTICLE[kind]),
       sfx: (k) => this.pushSfx(k),
       roll: () => this.rng.next(),
@@ -731,6 +737,7 @@ export class Game {
   private step(dt: number): void {
     this.time += dt;
     if (this.runBuffs.length > 0) this.tickRunBuffs(dt); // no-op (skipped) on the golden path
+    if (this.minions.length > 0) this.minionSystem(dt); // empty on the golden path → skipped
     if (this.phase === 'wave') {
       this.spawnSystem();
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
@@ -1964,6 +1971,7 @@ export class Game {
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
+      this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
@@ -2274,6 +2282,62 @@ export class Game {
     return `${mult >= 1 ? '+' : ''}${Math.round((mult - 1) * 100)}% ${name}`;
   }
 
+  /** Summon `count` friendly units of `unit` around (x,y) — the `summon` ability primitive.
+   * Capped globally (MINION_CAP) and fanned out in a ring so they don't stack on the point. */
+  private summonMinions(unit: string, count: number, x: number, y: number): void {
+    const def = MINION_DEFS[unit];
+    if (!def) return;
+    const n = Math.min(count, MINION_CAP - this.minions.length);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const r = n > 1 ? 18 : 0; // ring radius (single summon sits on the point)
+      this.minions.push({
+        id: this.nextId++, kind: unit, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r,
+        damage: def.damage, attackCd: 0, attackInterval: def.attackInterval, range: def.range,
+        speed: def.speed, life: def.life, maxLife: def.life, radius: def.radius, color: def.color, alive: true,
+      });
+    }
+    if (n > 0) this.spawnParticles(x, y, PARTICLE.bloom); // a small conjuration puff
+  }
+
+  /** Summoned friendly units: decay life, seek the nearest enemy, close in, and strike on
+   * cooldown. Time-limited (no HP today). Seek/attack only during a wave (the grid is fresh
+   * then); life decays every frame so they never freeze between waves. */
+  private minionSystem(dt: number): void {
+    const inWave = this.phase === 'wave';
+    for (const m of this.minions) {
+      m.life -= dt;
+      if (m.life <= 0) { m.alive = false; continue; }
+      if (m.attackCd > 0) m.attackCd -= dt;
+      if (!inWave) continue;
+      const target = this.nearestEnemyTo(m.x, m.y, m.range);
+      if (!target) continue;
+      const reach = m.radius + ENEMY_DEFS[target.kind].radius + 6;
+      if (dist(m.x, m.y, target.x, target.y) > reach) {
+        const np = moveToward(m.x, m.y, target.x, target.y, m.speed * dt);
+        m.x = np.x;
+        m.y = np.y;
+      } else if (m.attackCd <= 0) {
+        this.applyDamage(target, m.damage, null, true);
+        this.maybeReact(target);
+        m.attackCd = m.attackInterval;
+      }
+    }
+    if (this.minions.some((m) => !m.alive)) this.minions = this.minions.filter((m) => m.alive);
+  }
+
+  /** Nearest live enemy within `range` of (x,y), via the spatial grid (null if none). */
+  private nearestEnemyTo(x: number, y: number, range: number): Enemy | null {
+    let best: Enemy | null = null;
+    let bd = range * range;
+    this.grid.forNeighbors(x, y, range, (e) => {
+      if (!e.alive) return;
+      const d2 = dist2(x, y, e.x, e.y);
+      if (d2 < bd) { bd = d2; best = e; }
+    });
+    return best;
+  }
+
   /** Human-readable active run modifiers for the build panel. */
   private activeBuffs(): string[] {
     const m = this.mods;
@@ -2310,6 +2374,7 @@ export class Game {
       floats: this.floats,
       particles: this.particles,
       heroes: this.heroes,
+      minions: this.minions,
       phase: this.phase,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,

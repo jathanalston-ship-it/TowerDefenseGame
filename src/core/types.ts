@@ -165,6 +165,27 @@ export interface Hero {
   shieldTime: number;
 }
 
+/** A summoned friendly unit (the `summon` ability primitive). A temporary, time-limited
+ * attacker that seeks and strikes the nearest enemy, then expires. Runtime-only (never
+ * persisted) and absent on the golden path — no content summons there — so it's byte-identical.
+ * Future hook: HP + enemy contact damage so minions can body-block and be killed. */
+export interface Minion {
+  id: number;
+  kind: string; // MINION_DEFS key (the unit type)
+  x: number;
+  y: number;
+  damage: number; // per attack
+  attackCd: number; // seconds until the next attack
+  attackInterval: number;
+  range: number; // seek radius — finds the nearest enemy within it
+  speed: number; // px/sec
+  life: number; // seconds remaining before it expires
+  maxLife: number; // initial life (drives the render fade-out)
+  radius: number; // body radius (render + attack reach)
+  color: string;
+  alive: boolean;
+}
+
 export interface FloatingText {
   x: number;
   y: number;

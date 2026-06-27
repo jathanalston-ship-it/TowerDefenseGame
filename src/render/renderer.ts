@@ -95,6 +95,7 @@ export function drawGame(
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
   drawParticles(ctx, rs);
+  drawMinions(ctx, rs, t);
   drawHeroes(ctx, rs, cosmeticTiers);
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
@@ -665,6 +666,19 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   } else {
     const pct = Math.max(0, h.hp / h.maxHp);
     healthBar(ctx, h.x, h.y - 25, 28, pct, THEME.hero.hpBack, THEME.enemy.hpEdge, def.color);
+  }
+}
+
+// Summoned friendly units — small glowing motes that fade out over their last second.
+function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  for (const m of rs.minions) {
+    const tint = hexRgb(m.color);
+    ctx.globalAlpha = m.life < 1.2 ? Math.max(0, m.life / 1.2) : 1; // fade as it expires
+    glowDisc(ctx, m.x, m.y, m.radius + 4, rgba(tint, 0.4));
+    ring(ctx, m.x, m.y, m.radius + 2 + pulse(t, 4, 0, 1), rgba(tint, pulse(t, 4, 0.3, 0.6)), 1);
+    drawShape(ctx, 'circle', m.x, m.y, m.radius, m.color);
+    drawShape(ctx, 'circle', m.x, m.y - 1, m.radius * 0.45, THEME.hero.core);
+    ctx.globalAlpha = 1;
   }
 }
 
