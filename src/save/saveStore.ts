@@ -42,6 +42,9 @@ export interface SaveData {
   unlockedTitles: string[]; // reward ids of unlocked mastery titles
   equippedTitle: string | null; // the title shown on the player profile (null = none)
   unlockedLore: string[]; // reward ids of unlocked lore (codex)
+  // ── Collection: framework-boss chassis archetypes ever slain (drives the Bestiary's boss
+  //    codex). Recorded from the bossKilled event; additive (withDefaults fills [] for old saves). ──
+  bossesSlain: string[];
 }
 
 export const CURRENT_VERSION = 6;
@@ -136,6 +139,7 @@ export function defaultSave(): SaveData {
     unlockedTitles: [],
     equippedTitle: null,
     unlockedLore: [],
+    bossesSlain: [],
   };
 }
 
@@ -177,6 +181,7 @@ function withDefaults(data: SaveData): SaveData {
     unlockedTitles: Array.isArray(data.unlockedTitles) ? data.unlockedTitles : [],
     equippedTitle: typeof data.equippedTitle === 'string' ? data.equippedTitle : null,
     unlockedLore: Array.isArray(data.unlockedLore) ? data.unlockedLore : [],
+    bossesSlain: Array.isArray(data.bossesSlain) ? data.bossesSlain : [],
   };
 }
 

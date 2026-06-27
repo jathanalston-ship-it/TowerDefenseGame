@@ -5,9 +5,10 @@ import { defaultLifetimeStats } from '../save/saveStore';
 import { ENEMY_KINDS, TOWER_ORDER, HERO_IDS, enemyRegistry, towerRegistry, heroRegistry, chestRegistry } from './config';
 import { cardRegistry } from './cards';
 import { ALL_ITEMS } from './equipment';
+import { CHASSIS } from './boss';
 import { validateEffects } from './validate';
 
-const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0 });
+const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set() });
 
 function fullCtx(): CollectionContext {
   const stats = defaultLifetimeStats();
@@ -15,15 +16,15 @@ function fullCtx(): CollectionContext {
   for (const k of TOWER_ORDER) stats.towerUsage[k] = 10_000;
   for (const id of HERO_IDS) stats.heroUsage[id] = 10_000;
   stats.uniqueCards = cardRegistry.ids();
-  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99 };
+  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)) };
 }
 
 describe('collection layer', () => {
   it('enumerates straight from the registries (scales with content)', () => {
     const v = collectionView(freshCtx());
-    const expectedTotal = enemyRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + chestRegistry.size;
+    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + chestRegistry.size;
     expect(v.total).toBe(expectedTotal);
-    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'towers', 'heroes', 'cards', 'equipment', 'chests']);
+    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'towers', 'heroes', 'cards', 'equipment', 'chests']);
   });
 
   it('a fresh save unlocks no completion bonuses — so a new run is golden-safe', () => {
