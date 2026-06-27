@@ -16,8 +16,8 @@ export type BossModuleKind =
   | 'enrager' // ramps speed/damage on a timer (counter: front-loaded damage)
   | 'shieldphase' // becomes invulnerable for a window (counter: burst timing)
   | 'channeler' // a cast that damages the Nucleus if it completes (counter: focus burst)
-  | 'charger' // telegraphed dash (counter: peel / slow) — reserved
-  | 'suppressor'; // disables nearby towers (counter: spread value) — reserved
+  | 'charger' // telegraphed dash toward the line (counter: peel / slow)
+  | 'suppressor'; // disables nearby towers for a window (counter: spread value)
 
 export interface BossModule {
   kind: BossModuleKind;
@@ -25,7 +25,7 @@ export interface BossModule {
   amount?: number; // spawner: add count · channeler: Nucleus damage · enrager: +frac/stack
   addKind?: EnemyKind; // spawner add archetype
   duration?: number; // shieldphase / channeler cast length
-  radius?: number; // suppressor reach (reserved)
+  radius?: number; // suppressor reach (px)
 }
 
 export interface BossPhase {
@@ -99,6 +99,8 @@ const MODULE_POOL: BossModule[] = [
   { kind: 'enrager', cooldown: 9, amount: 1 },
   { kind: 'shieldphase', cooldown: 13, duration: 3 },
   { kind: 'channeler', cooldown: 15, duration: 3.5, amount: 16 },
+  { kind: 'charger', cooldown: 11, duration: 1.4 }, // telegraphed dash toward the line
+  { kind: 'suppressor', cooldown: 12, duration: 4, radius: 130 }, // disables nearby towers
 ];
 const CHASSIS_KINDS: BossChassis[] = ['bruiser', 'artillery', 'swarmlord', 'controller', 'juggernaut'];
 const MODIFIER_POOL = ['regenerator', 'bulwark', 'volatile', 'hastening'];

@@ -161,15 +161,24 @@ export function towerProgress(save: SaveData): TowerProgress {
     const mLvl = masteryLevel(save.towerMasteryXp[k] ?? 0);
     const kit = resolveStarKit(k, stars, save.towerForks?.[k]);
     // Mastery milestone PERKS fold mechanics (not stats) into the same kit — pierce, wider
-    // splash — at high mastery. None below their threshold ⇒ a fresh save stays identity.
+    // splash, identity-range axes (docs/RANGE.md §8) — at high mastery. None below their
+    // threshold ⇒ a fresh save stays identity.
+    let rangeMult = 1;
+    let fireRateBonus = 1;
+    let infectionSpreadMult = 1;
     for (const p of masteryPerksUpTo('tower', k, mLvl)) {
       if (p.projectileMutator) kit.projectileMutators.push(p.projectileMutator);
       if (p.extraProjectiles) kit.extraProjectiles += p.extraProjectiles;
       if (p.splashMult) kit.splashMult *= p.splashMult;
+      if (p.rangeMult) rangeMult *= p.rangeMult;
+      if (p.fireRateMult) fireRateBonus *= p.fireRateMult;
+      if (p.infectionSpreadMult) infectionSpreadMult *= p.infectionSpreadMult;
     }
     out[k] = {
       damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
-      fireRateMult: 1 + STAR.fireRatePerStar * stars,
+      fireRateMult: (1 + STAR.fireRatePerStar * stars) * fireRateBonus,
+      rangeMult: rangeMult !== 1 ? rangeMult : undefined,
+      infectionSpreadMult: infectionSpreadMult !== 1 ? infectionSpreadMult : undefined,
       targeting: kit.targeting,
       extraProjectiles: kit.extraProjectiles || undefined,
       splashMult: kit.splashMult !== 1 ? kit.splashMult : undefined,

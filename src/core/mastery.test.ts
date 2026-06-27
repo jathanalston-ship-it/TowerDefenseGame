@@ -91,4 +91,19 @@ describe('mastery perks (mechanic milestones, golden-safe)', () => {
     const veteran = towerProgress({ ...defaultSave(), towerMasteryXp: { ...defaultSave().towerMasteryXp, needle: 1e9 } });
     expect(veteran.needle.projectileMutators).toContain('pierce1');
   });
+
+  it('folds IDENTITY-range upgrades, tower-specific — never a generic +range (docs/RANGE.md §8)', () => {
+    const fresh = towerProgress(defaultSave());
+    expect(fresh.needle.rangeMult).toBeUndefined(); // fresh save = base reach (golden-safe)
+    expect(fresh.parasite.infectionSpreadMult).toBeUndefined();
+
+    const xp = { ...defaultSave().towerMasteryXp, needle: 1e9, mortar: 1e9, obelisk: 1e9, parasite: 1e9 };
+    const vet = towerProgress({ ...defaultSave(), towerMasteryXp: xp });
+    expect(vet.needle.rangeMult).toBeGreaterThan(1); // Forward Sights — earlier engagement
+    expect(vet.obelisk.rangeMult).toBeGreaterThan(1); // Resonant Field — +pulse radius
+    expect(vet.parasite.infectionSpreadMult).toBeGreaterThan(1); // Virulent Spread
+    expect(vet.mortar.fireRateMult).toBeGreaterThan(fresh.mortar.fireRateMult); // Rapid Bombardment
+    // Each axis is tower-specific: the full-map Mortar gets NO engagement-range bump.
+    expect(vet.mortar.rangeMult).toBeUndefined();
+  });
 });

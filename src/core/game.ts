@@ -194,6 +194,9 @@ export interface RenderState {
   emergencyRamp: number; // 0..1 eased intensity so the visuals fade in/out, never pop
   emergencyFocusX: number; // the in-zone enemy nearest the core — beams converge here
   emergencyFocusY: number;
+  // Per-kind EFFECTIVE range (base × identity rangeMult) so the range preview/selection
+  // shows the tower's TRUE reach, including mastery upgrades (docs/RANGE.md §6/§8).
+  effectiveRanges: Record<TowerKind, number>;
 }
 
 export class Game {
@@ -233,6 +236,9 @@ export class Game {
   // Per-tower-kind permanent buffs (stars + mastery), frozen at construction so a
   // run stays deterministic; identity for a fresh save.
   private towerProgress: TowerProgress;
+  // Per-kind EFFECTIVE range (base × identity rangeMult) — frozen at construction; the
+  // renderer reads it so the range preview/selection shows the tower's true reach (docs/RANGE.md §8).
+  private readonly towerEffectiveRange: Record<TowerKind, number>;
   // Per-hero permanent buffs (stars + mastery + equipment); identity for a fresh save.
   private heroProgress: HeroProgress;
   // Pure-observation usage signals accrued this run, banked into mastery at run end.
@@ -289,6 +295,7 @@ export class Game {
   private emergencyFocusY = 0;
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
+  private castRangeMult = 1; // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
@@ -309,6 +316,8 @@ export class Game {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.towerProgress = towerProgress;
+    this.towerEffectiveRange = {} as Record<TowerKind, number>;
+    for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1);
     this.heroProgress = heroProgress;
     this.diff = resolveDifficulty(opts.difficulty);
     this.mode = opts.mode ?? 'stage';
@@ -414,6 +423,9 @@ export class Game {
       },
       get splashMult() {
         return self.mods.splashRadiusMult * self.castSplashMult; // run-mods × star kit
+      },
+      get rangeMult() {
+        return self.castRangeMult; // identity-range upgrade (mastery), per active tower cast
       },
     };
   }
@@ -539,6 +551,7 @@ export class Game {
       cooldown: 0,
       overcharged: false,
       bornAt: this.time,
+      disabledUntil: 0,
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -799,6 +812,7 @@ export class Game {
    */
   spawnBoss(def: BossDef): void {
     const hp = BOSS.baseHp * def.hpMult;
+    this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
     this.enemies.push({
       id: this.nextId++,
@@ -831,6 +845,7 @@ export class Game {
         shielded: 0,
         enrage: 0,
         channel: 0,
+        charge: 0,
         telegraph: null,
       },
     });
@@ -898,11 +913,29 @@ export class Game {
           case 'channeler':
             if (b.channel <= 0) b.channel = m.duration ?? 3;
             break;
-          default:
-            break; // charger/suppressor: reserved (defined, not yet wired)
+          case 'charger':
+            b.charge = m.duration ?? 1.4; // a telegraphed dash toward the line
+            b.telegraph = 'CHARGE';
+            break;
+          case 'suppressor':
+            this.suppressTowers(e, m.radius ?? 120, m.duration ?? 4); // disable nearby towers
+            b.telegraph = 'SUPPRESS';
+            break;
         }
       }
+      if (b.charge > 0) {
+        b.charge = Math.max(0, b.charge - dt); // count the dash window down
+        if (b.charge > 0 && b.channel <= 0 && b.shielded <= 0) b.telegraph = 'CHARGE';
+      }
       if (phase.speedMult && b.enrage === 0) e.speed = CHASSIS[def.chassis].speed * phase.speedMult;
+    }
+  }
+
+  /** Boss suppressor module: disable every tower within `radius` for `duration` seconds. */
+  private suppressTowers(boss: Enemy, radius: number, duration: number): void {
+    const r2 = radius * radius;
+    for (const t of this.towers) {
+      if (dist2(boss.x, boss.y, t.x, t.y) <= r2) t.disabledUntil = Math.max(t.disabledUntil, this.time + duration);
     }
   }
 
@@ -1023,6 +1056,7 @@ export class Game {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
       if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
+      if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
@@ -1045,6 +1079,7 @@ export class Game {
       this.abilityTargeting = prog.targeting ?? def.targeting ?? 'closestToBase';
       this.castExtraProjectiles = prog.extraProjectiles ?? 0;
       this.castSplashMult = prog.splashMult ?? 1;
+      this.castRangeMult = prog.rangeMult ?? 1;
       this.castProjectileMutators = prog.projectileMutators ?? EMPTY_STR;
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
@@ -1059,6 +1094,7 @@ export class Game {
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
+    this.castRangeMult = 1;
     this.castProjectileMutators = EMPTY_STR;
   }
 
@@ -1289,7 +1325,9 @@ export class Game {
       }
       if (slow > 0.85) slow = 0.85;
       if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
-      const step = e.speed * (1 - slow) * dt;
+      // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
+      const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
+      const step = e.speed * chargeMult * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -1921,7 +1959,9 @@ export class Game {
    * (the epidemic walking through the pack). Deterministic nearest-first; cosmetic
    * spore burst uses the FX rng only. */
   private spreadInfection(src: Enemy): void {
-    const r = STATUS.infectionSpreadRadius;
+    // Identity-range upgrade (docs/RANGE.md §8): the Parasite's mastery widens the plague's
+    // reach. 1× for a fresh save (golden-safe).
+    const r = STATUS.infectionSpreadRadius * (this.towerProgress.parasite.infectionSpreadMult ?? 1);
     const r2 = r * r;
     const near = this.neighborScratch;
     this.grid.queryInto(src.x, src.y, r, near);
@@ -2176,6 +2216,7 @@ export class Game {
       emergencyRamp: this.emergencyRamp,
       emergencyFocusX: this.emergencyFocusX,
       emergencyFocusY: this.emergencyFocusY,
+      effectiveRanges: this.towerEffectiveRange,
     };
   }
 

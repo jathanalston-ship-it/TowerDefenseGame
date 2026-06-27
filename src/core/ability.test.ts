@@ -42,6 +42,7 @@ function recorder(enemies: Enemy[]): { ctx: AbilityContext; log: Log; rollValue:
     grantShield: () => {},
     extraProjectiles: 0,
     splashMult: 1,
+    rangeMult: 1,
     particles: (_x, _y, kind) => { log.particles.push(kind); },
     sfx: () => {},
     roll: () => rollValue.v,

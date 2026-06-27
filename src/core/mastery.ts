@@ -30,6 +30,10 @@ export interface MasteryPerk {
   projectileMutator?: string; // e.g. 'pierce1' — the tower's shots gain a mutator
   extraProjectiles?: number;
   splashMult?: number;
+  // Identity-range axes (docs/RANGE.md §8) — tower-specific reach, never a generic "+range%".
+  rangeMult?: number; // engagement range (needle) / pulse radius (obelisk)
+  fireRateMult?: number; // faster indirect targeting (mortar) — quicker re-aim/cadence
+  infectionSpreadMult?: number; // Infection spread radius (parasite)
 }
 
 export interface MasteryTrack {
@@ -124,7 +128,10 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 25, kind: 'title', id: 'title.needle.virtuoso', name: 'Needle Virtuoso' },
       { at: 50, kind: 'title', id: 'title.needle.stormcaller', name: 'Stormcaller' },
     ],
-    perks: [{ at: 50, name: 'Veteran Barbs', desc: 'Mastery 50: needles pierce one extra foe.', projectileMutator: 'pierce1' }],
+    perks: [
+      { at: 50, name: 'Veteran Barbs', desc: 'Mastery 50: needles pierce one extra foe.', projectileMutator: 'pierce1' },
+      { at: 75, name: 'Forward Sights', desc: 'Mastery 75: +20% engagement range — the Needle opens fire even sooner.', rangeMult: 1.2 },
+    ],
   },
   {
     unit: 'mortar',
@@ -132,7 +139,10 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 10, kind: 'lore', id: 'lore.mortar.1', name: 'Caustic Doctrine', text: 'Bone Mortars seed the ground itself against the swarm — patience rendered as acid.' },
       { at: 25, kind: 'title', id: 'title.mortar.siegemaster', name: 'Siegemaster' },
     ],
-    perks: [{ at: 50, name: 'Wide Bore', desc: 'Mastery 50: +15% blast radius.', splashMult: 1.15 }],
+    perks: [
+      { at: 50, name: 'Wide Bore', desc: 'Mastery 50: +15% blast radius.', splashMult: 1.15 },
+      { at: 75, name: 'Rapid Bombardment', desc: 'Mastery 75: +20% fire rate — faster indirect targeting puts shells on target sooner.', fireRateMult: 1.2 },
+    ],
   },
   {
     unit: 'parasite',
@@ -140,7 +150,10 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 10, kind: 'lore', id: 'lore.parasite.1', name: 'Viral Doctrine', text: 'The Nest does not kill; it converts. Every host is a future spore.' },
       { at: 25, kind: 'title', id: 'title.parasite.plaguelord', name: 'Plaguelord' },
     ],
-    perks: [{ at: 50, name: 'Burrowing Brood', desc: 'Mastery 50: parasites bore through one extra host.', projectileMutator: 'pierce1' }],
+    perks: [
+      { at: 50, name: 'Burrowing Brood', desc: 'Mastery 50: parasites bore through one extra host.', projectileMutator: 'pierce1' },
+      { at: 75, name: 'Virulent Spread', desc: 'Mastery 75: +40% Infection spread radius — the plague leaps to farther hosts.', infectionSpreadMult: 1.4 },
+    ],
   },
   {
     unit: 'obelisk',
@@ -148,6 +161,7 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 10, kind: 'lore', id: 'lore.obelisk.1', name: 'Neural Doctrine', text: 'The Obelisk speaks in frequencies the prey cannot refuse.' },
       { at: 25, kind: 'title', id: 'title.obelisk.mindwright', name: 'Mindwright' },
     ],
+    perks: [{ at: 75, name: 'Resonant Field', desc: 'Mastery 75: +20% pulse radius — the control field reaches farther.', rangeMult: 1.2 }],
   },
   {
     unit: 'reactor',
