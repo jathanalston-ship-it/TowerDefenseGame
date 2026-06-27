@@ -596,6 +596,9 @@ export interface HeroAbilityDef {
   heal: number; // Nucleus + self heal granted (Shepherd)
   shield?: number; // self-shield absorb pool granted to the caster (Shepherd Bloom); absent/0 ⇒ none
   shieldSeconds?: number; // how long that self-shield lasts (defaults alongside `shield`)
+  buffStat?: string; // timed run-wide buff this ult grants (e.g. 'towerDamage'); absent ⇒ none
+  buffAmount?: number; // that buff's multiplier (1.2 = +20%); absent/1 ⇒ no buff emitted
+  buffSeconds?: number; // how long the run buff lasts (defaults to 5s)
 }
 
 export interface HeroDef {
@@ -646,7 +649,7 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 200, speed: 108, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
-    ability: { name: 'Mass Override', blurb: 'Floods an area with deep Disruption: slow + heavy vulnerability.', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0 },
+    ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5 },
   },
 };
 
@@ -690,6 +693,10 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   } else if (ab.disrupt > 0) {
     // Pure control ult (Overseer Mass Override): flood Disruption, no damage/reaction.
     out.push({ type: 'debuff', radius: ab.radius, status: { kind: 'Disruption', amount: ab.disrupt } });
+  }
+  // Timed run-wide buff (e.g. Overseer Mass Override empowering your towers).
+  if (ab.buffStat && ab.buffAmount && ab.buffAmount !== 1) {
+    out.push({ type: 'buff', stat: ab.buffStat, amount: ab.buffAmount, seconds: ab.buffSeconds ?? 5 });
   }
   return out;
 }

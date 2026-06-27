@@ -198,6 +198,15 @@ export interface RenderState {
   effectiveRanges: Record<TowerKind, number>;
 }
 
+/** A timed, run-wide friendly buff (the `buff` ability primitive). Keyed by `stat`; the
+ * matching fold point reads `mult`. Lazy — none on the golden path, so it's byte-identical. */
+interface RunBuff {
+  stat: string; // which stat it scales (e.g. 'towerDamage')
+  mult: number; // multiplier (1.2 = +20%)
+  remaining: number; // seconds left
+  label: string; // HUD text for the build panel
+}
+
 export class Game {
   phase: Phase = 'prep';
   waveIndex = 0; // waves started/cleared so far (= Depth in endless)
@@ -283,6 +292,7 @@ export class Game {
   private abilitySourceKind: TowerKind | null = null;
   private abilityHeroKind: HeroKind | null = null;
   private abilityCaster: Hero | null = null;
+  private runBuffs: RunBuff[] = []; // active timed run-wide buffs (empty on the golden path)
   private abilityTargeting: TargetingProfile = 'closestToBase'; // the active cast's target pick
   // ── Final Defense Zone / Emergency Defense Mode (docs/RANGE.md §4) ──
   // In-zone enemies, recomputed ONCE per tick (sorted nearest-to-core) and shared by every
@@ -416,6 +426,7 @@ export class Game {
         h.shield = Math.max(h.shield, amount);
         h.shieldTime = Math.max(h.shieldTime, seconds);
       },
+      grantBuff: (stat, amount, seconds) => this.grantRunBuff(stat, amount, seconds),
       particles: (x, y, kind: ParticleKind) => this.spawnParticles(x, y, PARTICLE[kind]),
       sfx: (k) => this.pushSfx(k),
       roll: () => this.rng.next(),
@@ -719,6 +730,7 @@ export class Game {
 
   private step(dt: number): void {
     this.time += dt;
+    if (this.runBuffs.length > 0) this.tickRunBuffs(dt); // no-op (skipped) on the golden path
     if (this.phase === 'wave') {
       this.spawnSystem();
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
@@ -1066,6 +1078,7 @@ export class Game {
 
   private towerSystem(dt: number): void {
     const ksDmg = this.keystoneTowerDmgMult(); // run-wide keystone damage (1 = none); per-tick
+    const runBuffDmg = this.runBuffMult('towerDamage'); // timed run buff (1 = none); bit-identical when off
     // Class resonance: the fielded hero's combat class amplifies same-class towers (off at 0).
     const resoClass = this.mods.classResonanceBonus > 0 ? HERO_DEFS[this.heroes[0].kind].combatClass : null;
     for (const t of this.towers) {
@@ -1094,7 +1107,7 @@ export class Game {
       }
       const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste);
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -2229,6 +2242,38 @@ export class Game {
     if (this.sfx.length < 256) this.sfx.push(k);
   }
 
+  /** Grant/refresh a timed run-wide buff (the `buff` ability primitive). Refresh-not-stack
+   * per stat: take the stronger multiplier and the longer window so re-casts don't snowball. */
+  private grantRunBuff(stat: string, mult: number, seconds: number): void {
+    const label = this.buffLabel(stat, mult);
+    const existing = this.runBuffs.find((b) => b.stat === stat);
+    if (existing) {
+      existing.mult = Math.max(existing.mult, mult);
+      existing.remaining = Math.max(existing.remaining, seconds);
+      existing.label = label;
+    } else {
+      this.runBuffs.push({ stat, mult, remaining: seconds, label });
+    }
+  }
+
+  /** Advance run-buff timers; drop the expired ones. Called once per tick when any is active. */
+  private tickRunBuffs(dt: number): void {
+    for (const b of this.runBuffs) b.remaining -= dt;
+    if (this.runBuffs.some((b) => b.remaining <= 0)) this.runBuffs = this.runBuffs.filter((b) => b.remaining > 0);
+  }
+
+  /** Product of active buff multipliers for `stat` (exactly 1 when none — the golden path). */
+  private runBuffMult(stat: string): number {
+    let m = 1;
+    for (const b of this.runBuffs) if (b.stat === stat) m *= b.mult;
+    return m;
+  }
+
+  private buffLabel(stat: string, mult: number): string {
+    const name = stat === 'towerDamage' ? 'tower dmg' : stat;
+    return `${mult >= 1 ? '+' : ''}${Math.round((mult - 1) * 100)}% ${name}`;
+  }
+
   /** Human-readable active run modifiers for the build panel. */
   private activeBuffs(): string[] {
     const m = this.mods;
@@ -2251,6 +2296,8 @@ export class Game {
     if (m.parasiteInfectionMult !== 1) out.push(`${pct(m.parasiteInfectionMult - 1)} infection dmg`);
     if (m.obeliskVulnerabilityBonus > 0) out.push(`${pct(m.obeliskVulnerabilityBonus)} vulnerability`);
     if (m.obeliskSlowBonus > 0) out.push(`${pct(m.obeliskSlowBonus)} disrupt slow`);
+    // Timed run-wide buffs (e.g. the Overseer's Mass Override) — shown with their countdown.
+    for (const b of this.runBuffs) out.push(`${b.label} (${Math.ceil(b.remaining)}s)`);
     return out;
   }
 

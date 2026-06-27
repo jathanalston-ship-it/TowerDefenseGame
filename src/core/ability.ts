@@ -80,7 +80,9 @@ export interface ShieldAbility {
   amount: number;
   seconds: number;
 }
-/** Temporary friendly buff (framework hook — folds a modifier once buffs land). */
+/** A timed, run-wide friendly buff: scales `stat` by `amount` (a multiplier, 1.2 = +20%)
+ *  for `seconds`. Live via Game.grantBuff → the run-buff stack (the Overseer's Mass Override
+ *  empowers your towers). A fold point reads each stat key; an unknown stat is simply inert. */
 export interface BuffAbility {
   type: 'buff';
   stat: string;
@@ -150,6 +152,7 @@ export interface AbilityContext {
   healNucleus(amount: number): void;
   healCaster(amount: number): void;
   grantShield(amount: number, seconds: number): void;
+  grantBuff(stat: string, amount: number, seconds: number): void; // timed run-wide friendly buff
   readonly extraProjectiles: number; // adds to a homing projectile's `count`
   readonly splashMult: number; // scales a projectile's splash radius
   readonly rangeMult: number; // identity-range: scales targeting range + aura/field radius (1 = base)
@@ -251,11 +254,12 @@ function execDebuff(ctx: AbilityContext, comp: DebuffAbility, cast: AbilityCast)
   return true;
 }
 
-// Framework hooks with no sim primitive yet — declared so content can use them now;
-// they wire in when their system lands (buff = a timed friendly modifier; summon =
-// friendly units). Shield and pierce below are already live.
-function execBuff(_ctx: AbilityContext, _comp: BuffAbility, _cast: AbilityCast): boolean {
-  return true; // reserved: applies a timed friendly modifier once the buff system exists
+// `buff` joins shield/pierce as a live primitive: it applies a timed run-wide modifier
+// (Game.grantBuff). Only `summon` remains a framework hook with no sim primitive yet —
+// declared so content can use it now; it wires in when a friendly-unit system lands.
+function execBuff(ctx: AbilityContext, comp: BuffAbility, _cast: AbilityCast): boolean {
+  ctx.grantBuff(comp.stat, comp.amount, comp.seconds);
+  return true;
 }
 function execSummon(_ctx: AbilityContext, _comp: SummonAbility, _cast: AbilityCast): boolean {
   return true; // reserved: spawns friendly units once a friendly-unit system exists

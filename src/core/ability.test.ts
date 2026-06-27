@@ -23,11 +23,12 @@ interface Log {
   reactions: number;
   healNucleus: number;
   healCaster: number;
+  buffs: { stat: string; amount: number; seconds: number }[];
   particles: string[];
 }
 
 function recorder(enemies: Enemy[]): { ctx: AbilityContext; log: Log; rollValue: { v: number } } {
-  const log: Log = { projectiles: 0, damage: [], statuses: [], reactions: 0, healNucleus: 0, healCaster: 0, particles: [] };
+  const log: Log = { projectiles: 0, damage: [], statuses: [], reactions: 0, healNucleus: 0, healCaster: 0, buffs: [], particles: [] };
   const rollValue = { v: 0.5 };
   const ctx: AbilityContext = {
     pickTargets: (_x, _y, _r, n) => enemies.slice(0, n),
@@ -40,6 +41,7 @@ function recorder(enemies: Enemy[]): { ctx: AbilityContext; log: Log; rollValue:
     healNucleus: (n) => { log.healNucleus += n; },
     healCaster: (n) => { log.healCaster += n; },
     grantShield: () => {},
+    grantBuff: (stat, amount, seconds) => { log.buffs.push({ stat, amount, seconds }); },
     extraProjectiles: 0,
     splashMult: 1,
     rangeMult: 1,
@@ -114,5 +116,11 @@ describe('ability executors', () => {
     expect(c.pierce).toBe(2);
     runAbility(r.ctx, { type: 'pierce', extra: 1 }, c); // stacks within a cast
     expect(c.pierce).toBe(3);
+  });
+
+  it('buff routes a timed run-wide modifier to ctx.grantBuff', () => {
+    const r = recorder([]);
+    expect(runAbility(r.ctx, { type: 'buff', stat: 'towerDamage', amount: 1.2, seconds: 5 }, cast())).toBe(true);
+    expect(r.log.buffs).toEqual([{ stat: 'towerDamage', amount: 1.2, seconds: 5 }]);
   });
 });
