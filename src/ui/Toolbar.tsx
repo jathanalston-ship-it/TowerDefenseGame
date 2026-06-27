@@ -116,6 +116,24 @@ export function Toolbar({
           >
             Start Wave {Math.min(hud.totalWaves, hud.wave + 1)} <span className="hotkey">␣</span>
           </button>
+          <button
+            type="button"
+            aria-pressed={hud.autoStart}
+            title="Auto-start the next wave after a short countdown"
+            onClick={() => {
+              game.setAutoStart(!game.autoStart);
+              try { localStorage.setItem('assimilate.autostart', game.autoStart ? '1' : '0'); } catch { /* storage unavailable */ }
+              refresh();
+            }}
+            style={{
+              marginLeft: 8, padding: '6px 10px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+              border: `1px solid ${hud.autoStart ? 'var(--success)' : 'rgba(120,170,230,0.28)'}`,
+              background: hud.autoStart ? 'rgba(90,209,140,0.16)' : 'rgba(14,22,34,0.85)',
+              color: hud.autoStart ? 'var(--success)' : '#9fb2c8', letterSpacing: '0.06em', fontSize: 12,
+            }}
+          >
+            ⟳ Auto {hud.autoStart ? (hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}
+          </button>
         </div>
       )}
     </div>
