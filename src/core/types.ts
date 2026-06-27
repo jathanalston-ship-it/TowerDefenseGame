@@ -169,6 +169,29 @@ export interface Hero {
   shieldTime: number;
 }
 
+/** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that
+ * seeks and strikes the nearest enemy; enemies in contact halt and chew through it, so it
+ * also body-blocks the lane until its HP or lifetime runs out. Runtime-only (never persisted)
+ * and absent on the golden path — no content summons there — so it's byte-identical. */
+export interface Minion {
+  id: number;
+  kind: string; // MINION_DEFS key (the unit type)
+  x: number;
+  y: number;
+  hp: number; // remaining health — enemies in contact damage it; 0 ⇒ destroyed
+  maxHp: number;
+  damage: number; // per attack
+  attackCd: number; // seconds until the next attack
+  attackInterval: number;
+  range: number; // seek radius — finds the nearest enemy within it
+  speed: number; // px/sec
+  life: number; // seconds remaining before it expires
+  maxLife: number; // initial life (drives the render fade-out)
+  radius: number; // body radius (render + attack reach)
+  color: string;
+  alive: boolean;
+}
+
 export interface FloatingText {
   x: number;
   y: number;
