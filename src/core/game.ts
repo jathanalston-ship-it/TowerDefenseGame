@@ -1547,6 +1547,20 @@ export class Game {
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
+    // Weapon grant (e.g. "Venomous"): a status-on-hit weapon also rides the guard/control
+    // heroes' role pulse — their offensive output — so it isn't Ravager-only. Gated on the
+    // grant (empty by default ⇒ no-op ⇒ golden-safe).
+    if (this.heroAttackStatuses.length) {
+      const r = HERO_DEFS[h.kind].pulseRadius;
+      if (r > 0) {
+        const r2 = r * r;
+        this.grid.forNeighbors(h.x, h.y, r, (e) => {
+          if (e.alive && dist2(h.x, h.y, e.x, e.y) <= r2) {
+            for (const s of this.heroAttackStatuses) this.applyStatus(e, { kind: s.status, amount: s.amount });
+          }
+        });
+      }
+    }
   }
 
   /** Enemies in contact with a hero deal damage to it; at 0 HP the hero is downed. */

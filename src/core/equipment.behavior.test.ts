@@ -39,4 +39,26 @@ describe('equipment changes hero behavior (armor → AI)', () => {
     expect(base).toBeGreaterThan(0); // the base dive AI hunts and deals damage
     expect(wary).toBeLessThan(base); // the wary profile pulls it back to the nucleus
   });
+
+  // A status-on-hit weapon grant must also ride the PULSE heroes' output (not Ravager-only).
+  it('a status-on-hit weapon grant works for a pulse hero (Overseer)', () => {
+    const venom: CardEffect = { op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Corrosion', amount: 2 } };
+    const sawCorrosion = (runEffects: CardEffect[]): boolean => {
+      const game = new Game(2024, NO_META, undefined, 'overseer', undefined, { runEffects });
+      game.god = true;
+      game.startWave();
+      game.debugSpawn('runner', 80);
+      let t = 0;
+      let guard = 0;
+      let seen = false;
+      while (t < 14 && game.phase === 'wave' && guard++ < 30000) {
+        game.advance(SIM_DT);
+        t += SIM_DT;
+        for (const e of game.enemies) if (e.corrosion > 0) seen = true;
+      }
+      return seen;
+    };
+    expect(sawCorrosion([])).toBe(false); // the Overseer pulse applies Disruption, never Corrosion
+    expect(sawCorrosion([venom])).toBe(true); // …until a Venomous weapon rides its pulse
+  });
 });
