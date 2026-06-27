@@ -99,6 +99,10 @@ export interface Projectile {
   splash: number; // splash radius (0 = single target)
   alive: boolean;
   sourceKind: TowerKind | null; // tower kind that fired it (mastery: damage credit)
+  // ── Projectile mutators (mutators.ts). Absent ⇒ no pierce ⇒ dies on first hit (the
+  //    historical behavior, golden-safe). Set by a tower's star kit at spawn. ──
+  pierce?: number; // extra enemies it passes through before dying (0/undefined = none)
+  hitIds?: number[]; // enemies already struck (pierce: avoids re-hitting the same body)
 }
 
 export interface Pool {
@@ -163,6 +167,7 @@ export interface TowerMods {
   targeting?: TargetingProfile; // overrides the tower's default target pick
   extraProjectiles?: number; // additional simultaneous targets for the base attack
   splashMult?: number; // multiplies projectile splash radius
+  projectileMutators?: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
   cosmetics?: string[]; // visual mutation ids (renderer)
 }

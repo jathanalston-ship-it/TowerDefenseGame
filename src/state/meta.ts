@@ -128,6 +128,7 @@ export function towerProgress(save: SaveData): TowerProgress {
       targeting: kit.targeting,
       extraProjectiles: kit.extraProjectiles || undefined,
       splashMult: kit.splashMult !== 1 ? kit.splashMult : undefined,
+      projectileMutators: kit.projectileMutators.length ? kit.projectileMutators : undefined,
       extraAbilities: kit.extraAbilities.length ? kit.extraAbilities : undefined,
       cosmetics: kit.cosmetics.length ? kit.cosmetics : undefined,
     };

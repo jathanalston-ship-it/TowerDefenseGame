@@ -17,7 +17,7 @@ import type { TowerKind } from './types';
 // ── Grants: the capability a star contributes (the §3 effect language, tower-side) ──
 export type StarGrant =
   | { t: 'targeting'; profile: TargetingProfile } // change who the tower shoots
-  | { t: 'projectile'; extraProjectiles?: number; splashMult?: number } // mutate the shot
+  | { t: 'projectile'; extraProjectiles?: number; splashMult?: number; mutators?: string[] } // mutate the shot
   | { t: 'ability'; components: AbilityComponent[] } // an added attack/aura/chain/debuff each cast
   | { t: 'cosmetic'; id: string }; // visual mutation (renderer; shared with mastery cosmetics)
 
@@ -87,12 +87,13 @@ export interface ResolvedStarKit {
   targeting?: TargetingProfile;
   extraProjectiles: number; // additional simultaneous targets for the base attack
   splashMult: number; // multiplies projectile splash radius
+  projectileMutators: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities: AbilityComponent[]; // run after the base kit each cast
   cosmetics: string[]; // visual mutation ids
 }
 
 export function emptyStarKit(): ResolvedStarKit {
-  return { extraProjectiles: 0, splashMult: 1, extraAbilities: [], cosmetics: [] };
+  return { extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], cosmetics: [] };
 }
 
 function optionFor(fork: StarFork, picks: Record<string, string>): StarForkOption {
@@ -108,6 +109,7 @@ function applyGrant(kit: ResolvedStarKit, g: StarGrant): void {
     case 'projectile':
       if (g.extraProjectiles) kit.extraProjectiles += g.extraProjectiles;
       if (g.splashMult) kit.splashMult *= g.splashMult;
+      if (g.mutators) for (const m of g.mutators) kit.projectileMutators.push(m);
       break;
     case 'ability':
       for (const c of g.components) kit.extraAbilities.push(c);
@@ -164,7 +166,7 @@ const NEEDLE: StarPath = {
       kind: 'fork',
       desc: 'Signature transformation.',
       fork: [
-        { id: 'autocannon', name: 'Autocannon', desc: 'Two more needles per shot — a storm of fire.', grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+        { id: 'autocannon', name: 'Autocannon', desc: 'Two more needles per shot, and they punch THROUGH two foes.', grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce2'] }] },
         { id: 'railspike', name: 'Railspike', desc: 'A piercing chain that arcs through a line of enemies.', grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 4, range: 150, damage: 18, falloff: 0.7 }] }] },
       ],
     },
@@ -222,7 +224,7 @@ const PARASITE: StarPath = {
       kind: 'fork',
       desc: 'Signature transformation.',
       fork: [
-        { id: 'pandemic', name: 'Pandemic Strain', desc: 'Two more parasites per cycle.', grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+        { id: 'pandemic', name: 'Pandemic Strain', desc: 'Two more parasites per cycle, each boring through a foe.', grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce1'] }] },
         { id: 'consume', name: 'Consuming Bloom', desc: 'A heavy infection-and-damage field engulfs the area.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, damage: 6, status: { kind: 'Infection', amount: 2 }, react: true, particle: 'infect' }] }] },
       ],
     },

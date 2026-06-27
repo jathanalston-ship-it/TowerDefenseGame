@@ -74,7 +74,10 @@ import { resolveDoctrine } from './doctrines';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
+import { applyMutators } from './mutators';
 import { gameEvents } from './events';
+
+const EMPTY_STR: readonly string[] = []; // shared no-alloc default for per-cast mutator lists
 
 export type RunMode = 'stage' | 'endless';
 
@@ -263,6 +266,7 @@ export class Game {
   private abilityTargeting: TargetingProfile = 'closestToBase'; // the active cast's target pick
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
+  private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
   private readonly actx: AbilityContext = this.buildAbilityContext();
 
@@ -866,6 +870,7 @@ export class Game {
       this.abilityTargeting = prog.targeting ?? def.targeting ?? 'closestToBase';
       this.castExtraProjectiles = prog.extraProjectiles ?? 0;
       this.castSplashMult = prog.splashMult ?? 1;
+      this.castProjectileMutators = prog.projectileMutators ?? EMPTY_STR;
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
@@ -878,6 +883,7 @@ export class Game {
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
+    this.castProjectileMutators = EMPTY_STR;
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -917,7 +923,17 @@ export class Game {
           }
           this.pushSfx('hit');
           if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
-          p.alive = false;
+          // Pierce (mutators.ts): pass THROUGH to the next unhit foe instead of dying. A
+          // projectile with no pierce (the default) dies here exactly as before (golden-safe).
+          if (p.pierce && p.pierce > 0) {
+            p.pierce -= 1;
+            (p.hitIds ??= []).push(target.id);
+            const next = this.nextPierceTarget(p);
+            if (next) p.targetId = next.id;
+            else p.alive = false;
+          } else {
+            p.alive = false;
+          }
         } else {
           const k = step / d;
           p.x += dx * k;
@@ -1451,10 +1467,32 @@ export class Game {
       p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
       p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
       p.sourceKind = sourceKind;
+      p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
+      if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
+      if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind });
+      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0 };
+      if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, np);
+      this.projectiles.push(np);
     }
+  }
+
+  /** Nearest alive enemy a piercing projectile hasn't struck yet (the next pass-through). */
+  private nextPierceTarget(p: Projectile): Enemy | null {
+    const R = 170; // pass-through search radius
+    let best: Enemy | null = null;
+    let bd = R * R;
+    const hit = p.hitIds;
+    this.grid.forNeighbors(p.x, p.y, R, (e) => {
+      if (!e.alive || (hit !== undefined && hit.includes(e.id))) return;
+      const d2 = dist2(p.x, p.y, e.x, e.y);
+      if (d2 <= bd) {
+        bd = d2;
+        best = e;
+      }
+    });
+    return best;
   }
 
   private releaseProjectile(p: Projectile): void {
