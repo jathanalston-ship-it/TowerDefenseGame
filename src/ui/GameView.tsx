@@ -4,7 +4,7 @@ import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
-import { TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { masteryLevel, meta } from '../state/meta';
 import { masteryRank } from '../core/mastery';
 import { audio } from '../audio/sound';
@@ -58,12 +58,14 @@ export function GameView({
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
 
-  // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations). Fixed for the run
-  // (mastery banks at run end), so compute once; the renderer draws a veteran halo per tier.
+  // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations) for BOTH towers and
+  // heroes (their kind ids don't collide). Fixed for the run (mastery banks at run end), so
+  // compute once; the renderer draws a veteran halo per tier.
   const cosmeticTiers = useMemo(() => {
     const s = meta.get();
     const m: Record<string, number> = {};
     for (const k of TOWER_ORDER) m[k] = masteryRank(masteryLevel(s.towerMasteryXp[k] ?? 0));
+    for (const k of HERO_ORDER) m[k] = masteryRank(masteryLevel(s.heroMasteryXp[k] ?? 0));
     return m;
   }, []);
 

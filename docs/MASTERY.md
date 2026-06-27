@@ -165,8 +165,9 @@ they pass the §1 differentiation test in `PROGRESSION-PHILOSOPHY.md`.
 - **Milestone PERKS (mechanics)** — `MasteryPerk` folds a sparse mechanic into the tower's
   run kit at a level (Mastery 50: Needle/Parasite pierce, Mortar +splash) via
   `meta.towerProgress`. Golden-safe (fresh unit crosses none).
-- **Visual mutations (in-game)** — towers render a veteran **mastery-rank halo**
-  (`renderer.ts drawTower`, fed by `GameView` from each kind's `masteryRank`); pure
+- **Visual mutations (in-game)** — both towers (`drawTower`) and the fielded hero
+  (`drawHero`) render a veteran **mastery-rank halo** (rings + orbiting rank pips), fed by
+  `GameView` from each kind's `masteryRank` (one tier map covers tower + hero kinds). Pure
   cosmetic, tier 0 renders identically. Tower=craft / hero=bond reward split is in the data.
-- **Deferred:** dedicated skin/cosmetic *items* and hero-side visual skins (the halo covers
-  towers); those are additional `cosmeticRegistry` data on the same seam.
+- **Deferred:** dedicated skin/cosmetic *items* (distinct silhouettes/foils) — additional
+  `cosmeticRegistry` data on the same seam, not new architecture.
