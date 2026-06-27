@@ -3,6 +3,7 @@ import { MainMenu } from './MainMenu';
 import { GameView } from './GameView';
 import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
+import { CollectionPanel } from './CollectionPanel';
 import { AchievementToaster } from './AchievementToaster';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
@@ -15,6 +16,7 @@ type Screen = 'menu' | 'playing' | 'results';
 
 export function App(): JSX.Element {
   const [screen, setScreen] = useState<Screen>('menu');
+  const [showCodex, setShowCodex] = useState(false);
   const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
@@ -32,7 +34,8 @@ export function App(): JSX.Element {
     progRef.current = meta.towerProgress();
     heroRef.current = meta.selectedHero();
     heroProgRef.current = meta.heroProgress();
-    effectsRef.current = meta.loadoutEffects();
+    // Equipped loadout + any unlocked collection completion bonuses (both fold in at start).
+    effectsRef.current = [...meta.loadoutEffects(), ...meta.collectionRunEffects()];
     modeRef.current = mode;
     setScreen('playing');
   }, []);
@@ -52,6 +55,20 @@ export function App(): JSX.Element {
   return (
     <div className="app">
       {screen === 'menu' && <MainMenu onStart={startRun} onStartEndless={startEndless} />}
+      {screen === 'menu' && (
+        <button
+          onClick={() => setShowCodex(true)}
+          style={{
+            position: 'fixed', bottom: 18, left: 18, zIndex: 20,
+            padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+            background: 'rgba(14,22,34,0.85)', color: '#cfe0f2',
+            border: '1px solid rgba(120,170,230,0.28)', letterSpacing: '0.08em',
+          }}
+        >
+          ▤ CODEX
+        </button>
+      )}
+      {showCodex && <CollectionPanel onClose={() => setShowCodex(false)} />}
       {screen === 'playing' && (
         <GameView
           seed={seedRef.current}
