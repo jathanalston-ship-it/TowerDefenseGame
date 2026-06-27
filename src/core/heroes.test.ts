@@ -24,6 +24,46 @@ describe('Shepherd (Vital guard)', () => {
   });
 });
 
+describe('Shepherd self-shield (Bloom)', () => {
+  it('grants an absorb-shield that soaks contact damage before any HP is lost', () => {
+    const game = new Game(11, NO_META, undefined, 'shepherd');
+    game.startWave();
+    const h = game.heroes[0];
+
+    // Cast Bloom with the field clear → its AoE hits nothing; the protector self-shields.
+    game.armAbility();
+    game.click(h.x, h.y);
+    expect(h.shield).toBeGreaterThan(0); // Bloom minted the absorb pool
+    expect(h.hp).toBe(h.maxHp); // full HP at the moment of casting
+
+    // One heavy, durable body pinned onto the Shepherd each tick → guaranteed, sustained
+    // contact with no separation scatter (a single enemy has no neighbors to push off).
+    // The duel is held in the open defense zone: the Shepherd's natural guard spot is the
+    // nucleus, where any contacting enemy would instead register as a breach.
+    game.debugSpawn('colossus', 1);
+    const brute = game.enemies[game.enemies.length - 1];
+    const fy = DEFENSE_TOP_Y + 40; // mid-zone: in the open, clear of the nucleus (no breach)
+
+    let absorbedWhileFull = false;
+    let hpChippedWhileShielded = false;
+    let hpDroppedAfterShield = false;
+    for (let i = 0; i < 60 * 8 && game.phase === 'wave'; i++) {
+      h.y = fy; brute.x = h.x; brute.y = fy; // hold the duel in the open; attacker pinned on the hero
+      const shieldBefore = h.shield;
+      game.advance(SIM_DT);
+      if (h.shield < shieldBefore && h.shieldTime > 0.1 && h.hp === h.maxHp) absorbedWhileFull = true;
+      if (h.hp < h.maxHp) {
+        hpDroppedAfterShield = true;
+        if (h.shield > 0) hpChippedWhileShielded = true; // invariant violation
+        break; // HP started dropping → the shield must already be spent
+      }
+    }
+    expect(absorbedWhileFull).toBe(true); // the shield ate contact damage while HP stayed full…
+    expect(hpChippedWhileShielded).toBe(false); // …HP was never chipped while the shield held…
+    expect(hpDroppedAfterShield).toBe(true); // …and once it ran dry, the overflow reached HP
+  });
+});
+
 describe('Overseer (Neural control)', () => {
   it('disrupts enemies with its own field — no Obelisk required', () => {
     const game = new Game(7, NO_META, undefined, 'overseer');

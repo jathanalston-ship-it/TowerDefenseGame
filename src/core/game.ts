@@ -353,6 +353,8 @@ export class Game {
       attackCd: 0,
       abilityCd: 0,
       pulseCd: 0,
+      shield: 0,
+      shieldTime: 0,
     };
   }
 
@@ -404,8 +406,13 @@ export class Game {
         const h = this.abilityCaster;
         if (h) h.hp = Math.min(h.maxHp, h.hp + n);
       },
-      grantShield: () => {
-        /* reserved: no shield mechanic yet — the Part 3 status framework will back this */
+      grantShield: (amount, seconds) => {
+        const h = this.abilityCaster;
+        if (!h) return;
+        // Refresh to the stronger pool + a fresh window (matches the status framework's
+        // 'refresh' Shield buff). Decays in updateHero; absorbed in heroContactDamage.
+        h.shield = Math.max(h.shield, amount);
+        h.shieldTime = Math.max(h.shieldTime, seconds);
       },
       particles: (x, y, kind: ParticleKind) => this.spawnParticles(x, y, PARTICLE[kind]),
       sfx: (k) => this.pushSfx(k),
@@ -1459,6 +1466,10 @@ export class Game {
     if (h.attackCd > 0) h.attackCd -= dt;
     if (h.abilityCd > 0) h.abilityCd -= dt;
     if (h.pulseCd > 0) h.pulseCd -= dt;
+    if (h.shieldTime > 0) {
+      h.shieldTime -= dt;
+      if (h.shieldTime <= 0) { h.shieldTime = 0; h.shield = 0; } // window lapsed → drop the pool
+    }
 
     // Equipment behavior profile: a "wary" loadout disengages the hero toward the nucleus
     // at low HP instead of running its normal AI. Neutral default (threshold 0) ⇒ never
@@ -1641,11 +1652,21 @@ export class Game {
       if (dist(h.x, h.y, e.x, e.y) <= def.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
     }
     if (incoming > 0 && !this.god) {
-      h.hp -= incoming * dt;
-      if (h.hp <= 0) {
-        h.down = true;
-        h.respawn = def.respawnTime;
-        this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+      let dmg = incoming * dt;
+      // Front-shield soaks first; only the overflow reaches HP. No-op when shield is 0
+      // (every hero but a freshly-bloomed Shepherd), so the golden runs are unchanged.
+      if (h.shield > 0) {
+        const absorbed = Math.min(h.shield, dmg);
+        h.shield -= absorbed;
+        dmg -= absorbed;
+      }
+      if (dmg > 0) {
+        h.hp -= dmg;
+        if (h.hp <= 0) {
+          h.down = true;
+          h.respawn = def.respawnTime;
+          this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+        }
       }
     }
   }

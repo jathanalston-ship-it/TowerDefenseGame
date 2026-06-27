@@ -594,6 +594,8 @@ export interface HeroAbilityDef {
   fracture: number; // Kinetic stacks applied (Ravager)
   disrupt: number; // Disruption seconds applied (Overseer)
   heal: number; // Nucleus + self heal granted (Shepherd)
+  shield?: number; // self-shield absorb pool granted to the caster (Shepherd Bloom); absent/0 ⇒ none
+  shieldSeconds?: number; // how long that self-shield lasts (defaults alongside `shield`)
 }
 
 export interface HeroDef {
@@ -635,7 +637,7 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 300, speed: 95, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 24, respawnTime: 8,
     pulseInterval: 1.2, pulseRadius: 92, pulseDamage: 8, pulseDisrupt: 0, nucleusRegen: 1.2,
-    ability: { name: 'Bloom', blurb: 'A vital bloom: heals the Nucleus + AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40 },
+    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6 },
   },
   overseer: {
     kind: 'overseer', name: 'Overseer', combatClass: 'Neural', behavior: 'control', color: '#8a93ff',
@@ -679,6 +681,7 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   const ab = d.ability;
   const out: AbilityComponent[] = [];
   if (ab.heal > 0) out.push({ type: 'heal', nucleus: ab.heal, self: ab.heal });
+  if ((ab.shield ?? 0) > 0) out.push({ type: 'shield', amount: ab.shield as number, seconds: ab.shieldSeconds ?? 6 });
   if (ab.damage > 0) {
     out.push({
       type: 'explosion', radius: ab.radius, damage: ab.damage,

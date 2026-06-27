@@ -73,7 +73,8 @@ export interface HealAbility {
   nucleus?: number;
   self?: number;
 }
-/** Grant the caster a damage-absorbing shield (framework hook — see Part 3 statuses). */
+/** Grant the caster a damage-absorbing shield: an absorb pool soaked before HP for
+ *  `seconds`. Live for heroes (Game.grantShield → Hero.shield/shieldTime; Shepherd's Bloom). */
 export interface ShieldAbility {
   type: 'shield';
   amount: number;
@@ -251,8 +252,8 @@ function execDebuff(ctx: AbilityContext, comp: DebuffAbility, cast: AbilityCast)
 }
 
 // Framework hooks with no sim primitive yet — declared so content can use them now;
-// they wire in when their system lands (buffs/shield in Part 3; summon = friendly units;
-// pierce = a projectile-system modifier).
+// they wire in when their system lands (buff = a timed friendly modifier; summon =
+// friendly units). Shield and pierce below are already live.
 function execBuff(_ctx: AbilityContext, _comp: BuffAbility, _cast: AbilityCast): boolean {
   return true; // reserved: applies a timed friendly modifier once the buff system exists
 }
