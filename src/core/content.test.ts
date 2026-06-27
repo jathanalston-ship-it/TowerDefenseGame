@@ -25,6 +25,18 @@ describe('content tables (data-driven contracts)', () => {
     expect(HERO.ability.name).toBe('Apex Leap'); // the Ravager, unchanged
   });
 
+  it('the roster has multiple selectable heroes with complete, distinct kits', () => {
+    const ids = Object.keys(HEROES);
+    expect(ids.length).toBeGreaterThanOrEqual(2); // selection needs a real choice
+    expect(new Set(ids).size).toBe(ids.length); // unique ids
+    for (const h of Object.values(HEROES)) {
+      expect(h.name.length).toBeGreaterThan(0);
+      expect(h.role.length).toBeGreaterThan(0); // the picker tagline
+      expect(h.maxHp).toBeGreaterThan(0);
+      expect(h.ability.name.length).toBeGreaterThan(0);
+    }
+  });
+
   it('exactly the intended bosses carry isBoss', () => {
     const bosses = Object.values(ENEMY_DEFS).filter((e) => e.isBoss).map((e) => e.kind);
     expect(bosses).toEqual(['tyrant']);

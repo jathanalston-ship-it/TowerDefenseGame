@@ -2,6 +2,7 @@ import type { HudSnapshot } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
 import { CountUp } from './components/CountUp';
 import { LootMeter } from './LootMeter';
+import { MuteButton } from './MuteButton';
 
 const PHASE_LABEL: Record<HudSnapshot['phase'], string> = {
   prep: 'PREP',
@@ -145,6 +146,9 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
 
       {/* PHASE chip — keyed by phase so it pops on each transition (wave start/end) */}
       <div key={hud.phase} className={`phase-chip phase-${hud.phase}`}>{PHASE_LABEL[hud.phase]}</div>
+
+      {/* In-run mute (settings persist; full controls live on the menu) */}
+      <MuteButton className="hud-mute" />
     </div>
   );
 }

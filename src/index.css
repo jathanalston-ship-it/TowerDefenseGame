@@ -1427,6 +1427,84 @@ canvas.board.is-aiming {
 .audio-vol:disabled {
   opacity: 0.4;
 }
+.hud-mute {
+  align-self: center;
+  flex-shrink: 0;
+  padding: 4px 8px;
+}
+
+/* ── Hero picker ─────────────────────────────────────────────────────────────── */
+.hero-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.hero-card {
+  position: relative;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+}
+.hero-card:hover {
+  transform: translateY(-1px);
+}
+.hero-card.kinetic { border-left-color: var(--kinetic); }
+.hero-card.caustic { border-left-color: var(--caustic); }
+.hero-card.vital { border-left-color: var(--vital); }
+.hero-card.is-sel {
+  border-color: var(--gold);
+  background: var(--panel);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+}
+.hero-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hero-card-name {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.hero-card-class {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.hero-card-role {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.hero-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+.hero-card-stats b {
+  color: var(--gold);
+}
+.hero-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
 
 /* ── Draft overlay ────────────────────────────────────────────────────────── */
 .overlay {

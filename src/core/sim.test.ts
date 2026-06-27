@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW, LOOT, applyGear } from './config';
+import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW, LOOT, applyGear, HEROES } from './config';
 import { CARD_POOL } from './cards';
 import { generateStage } from './stage';
 import { towerSlots } from './map';
@@ -328,6 +328,15 @@ describe('automatic wave flow', () => {
     const geared = new Game(7, NO_META, { mode: 'classic' }, fold as unknown as ConstructorParameters<typeof Game>[3]);
     expect(geared.mods.heroDamageMult).toBeCloseTo(base.mods.heroDamageMult * 1.2); // +20%
     expect(geared.mods.heroCooldownMult).toBeCloseTo(base.mods.heroCooldownMult * 0.9); // −10% cd
+  });
+
+  it('the selected hero defines the run\'s hero stats (roster selection)', () => {
+    const def = new Game(1, NO_META, { mode: 'classic' });
+    expect(def.hero.maxHp).toBe(HEROES.ravager.maxHp); // default = Ravager (back-compat)
+
+    const bulwark = new Game(1, NO_META, { mode: 'classic', heroId: 'bulwark' });
+    expect(bulwark.hero.maxHp).toBe(HEROES.bulwark.maxHp);
+    expect(bulwark.hero.maxHp).not.toBe(HEROES.ravager.maxHp); // a real, distinct kit
   });
 
   it('records a wave summary when a wave clears (kills + biomass earned)', () => {

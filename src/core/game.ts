@@ -39,7 +39,8 @@ import {
   ECON,
   ELITE,
   ENEMY_DEFS,
-  HERO,
+  HEROES,
+  DEFAULT_HERO_ID,
   PARTICLE,
   PERF,
   SIM_DT,
@@ -50,7 +51,7 @@ import {
   TOWER_DEFS,
   WAVE_FLOW,
 } from './config';
-import type { StarStat } from './config';
+import type { StarStat, HeroDef } from './config';
 import {
   CLASSIC_CAMPAIGN,
   CLASSIC_WAVE_COUNT,
@@ -77,6 +78,7 @@ import type {
   Projectile,
   Tower,
   TowerKind,
+  HeroId,
   FloatingText,
 } from './types';
 
@@ -118,6 +120,7 @@ export interface GameConfig {
   mode: GameMode;
   stage?: StageDef; // required for 'stage'
   biome?: BiomeId; // optional starting biome for 'endless'
+  heroId?: HeroId; // selected hero (defaults to the Ravager; omitted in tests)
 }
 
 /** Permanent per-run fold applied at run start: per-tower Star stats + a RunModifiers
@@ -166,6 +169,7 @@ export class Game {
 
   private stageMods: StageMods;
   private readonly seed: number;
+  private readonly heroDef: HeroDef; // the selected hero's tunables (config.heroId)
   private starStat: Record<TowerKind, StarStat> | null = null; // per-kind Star stat fold
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
@@ -210,6 +214,7 @@ export class Game {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.mode = config.mode;
+    this.heroDef = HEROES[config.heroId ?? DEFAULT_HERO_ID] ?? HEROES[DEFAULT_HERO_ID];
     this.stage = config.stage ?? null;
     this.stageMods = defaultStageMods();
 
@@ -253,8 +258,8 @@ export class Game {
     this.hero = {
       x: nucleusPoint.x,
       y: nucleusPoint.y,
-      hp: HERO.maxHp,
-      maxHp: HERO.maxHp,
+      hp: this.heroDef.maxHp,
+      maxHp: this.heroDef.maxHp,
       down: false,
       respawn: 0,
       rally: { x: WIDTH / 2, y: DEFENSE_TOP_Y - CELL }, // patrol the line by default
@@ -839,7 +844,7 @@ export class Game {
           h.hp -= s.damage;
           if (h.hp <= 0) {
             h.down = true;
-            h.respawn = HERO.respawnTime;
+            h.respawn = this.heroDef.respawnTime;
             this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
           }
         }
@@ -1050,13 +1055,13 @@ export class Game {
     if (h.swing > 0) h.swing = Math.max(0, h.swing - dt);
 
     // ── Threat targeting: closest-to-breaching, weighted by how much it hurts. ──
-    const aggro2 = HERO.aggroRange * HERO.aggroRange;
+    const aggro2 = this.heroDef.aggroRange * this.heroDef.aggroRange;
     let target: Enemy | null = null;
     let bestScore = -Infinity;
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
-      const score = -goalDistanceAt(e.x, e.y) + e.damage * HERO.threatPerDamage;
+      const score = -goalDistanceAt(e.x, e.y) + e.damage * this.heroDef.threatPerDamage;
       if (score > bestScore) {
         bestScore = score;
         target = e;
@@ -1079,13 +1084,13 @@ export class Game {
         dy = fd.y;
       }
       const l = Math.hypot(dx, dy) || 1;
-      goalX = target.x + (dx / l) * target.speed * HERO.lead;
-      goalY = target.y + (dy / l) * target.speed * HERO.lead;
+      goalX = target.x + (dx / l) * target.speed * this.heroDef.lead;
+      goalY = target.y + (dy / l) * target.speed * this.heroDef.lead;
     } else {
       goalX = h.rally.x;
       goalY = h.rally.y;
     }
-    const np = moveToward(h.x, h.y, goalX, goalY, HERO.speed * this.mods.heroSpeedMult * dt);
+    const np = moveToward(h.x, h.y, goalX, goalY, this.heroDef.speed * this.mods.heroSpeedMult * dt);
     const mvx = np.x - h.x;
     const mvy = np.y - h.y;
     h.x = Math.max(0, Math.min(WIDTH, np.x));
@@ -1098,45 +1103,45 @@ export class Game {
     let da = desired - h.facing;
     while (da > Math.PI) da -= Math.PI * 2;
     while (da < -Math.PI) da += Math.PI * 2;
-    h.facing += da * Math.min(1, dt * HERO.turnRate);
+    h.facing += da * Math.min(1, dt * this.heroDef.turnRate);
 
     // ── Attack: hit the target, then cleave nearby chaff for a fraction. ──
-    if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= HERO.attackRange + ENEMY_DEFS[target.kind].radius) {
-      const dmg = HERO.attackDamage * this.mods.heroDamageMult;
+    if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= this.heroDef.attackRange + ENEMY_DEFS[target.kind].radius) {
+      const dmg = this.heroDef.attackDamage * this.mods.heroDamageMult;
       const strikes = 1 + this.mods.heroExtraStrikes; // Frenzy Glands
       for (let s = 0; s < strikes; s++) this.applyDamage(target, dmg);
-      this.addFracture(target, HERO.attackFracture);
+      this.addFracture(target, this.heroDef.attackFracture);
       this.maybeShred(target);
-      const cr2 = HERO.cleaveRadius * HERO.cleaveRadius;
+      const cr2 = this.heroDef.cleaveRadius * this.heroDef.cleaveRadius;
       const hit = this.neighborScratch;
-      this.grid.queryInto(h.x, h.y, HERO.cleaveRadius, hit);
+      this.grid.queryInto(h.x, h.y, this.heroDef.cleaveRadius, hit);
       for (let k = 0; k < hit.length; k++) {
         const o = hit[k];
         if (o === target || !o.alive) continue;
         if (dist2(h.x, h.y, o.x, o.y) <= cr2) {
-          this.applyDamage(o, dmg * HERO.cleaveFraction);
+          this.applyDamage(o, dmg * this.heroDef.cleaveFraction);
           this.maybeShred(o);
         }
       }
-      h.attackCd = HERO.attackInterval / this.mods.heroAttackRateMult; // Adrenal Surge
-      h.swing = HERO.swingTime;
+      h.attackCd = this.heroDef.attackInterval / this.mods.heroAttackRateMult; // Adrenal Surge
+      h.swing = this.heroDef.swingTime;
       this.spawnParticles(target.x, target.y, PARTICLE.heroHit);
     }
 
     // Contact damage to the hero from nearby enemies (grid-local).
     let incoming = 0;
     const near = this.neighborScratch;
-    this.grid.queryInto(h.x, h.y, HERO.contactRange + 28, near);
+    this.grid.queryInto(h.x, h.y, this.heroDef.contactRange + 28, near);
     for (let k = 0; k < near.length; k++) {
       const e = near[k];
       if (!e.alive) continue;
-      if (dist(h.x, h.y, e.x, e.y) <= HERO.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
+      if (dist(h.x, h.y, e.x, e.y) <= this.heroDef.contactRange + ENEMY_DEFS[e.kind].radius) incoming += e.damage;
     }
     if (incoming > 0 && !this.god) {
       h.hp -= incoming * dt;
       if (h.hp <= 0) {
         h.down = true;
-        h.respawn = HERO.respawnTime;
+        h.respawn = this.heroDef.respawnTime;
         this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
       }
     }
@@ -1149,16 +1154,16 @@ export class Game {
     h.x = px;
     h.y = py;
     h.rally = { x: px, y: py };
-    const r2 = HERO.ability.radius * HERO.ability.radius;
+    const r2 = this.heroDef.ability.radius * this.heroDef.ability.radius;
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist2(px, py, e.x, e.y) <= r2) {
-        this.applyDamage(e, HERO.ability.damage * this.mods.heroDamageMult);
-        this.addFracture(e, HERO.ability.fracture);
+        this.applyDamage(e, this.heroDef.ability.damage * this.mods.heroDamageMult);
+        this.addFracture(e, this.heroDef.ability.fracture);
         this.maybeShred(e);
       }
     }
-    h.abilityCd = HERO.ability.cooldown * this.mods.heroCooldownMult;
+    h.abilityCd = this.heroDef.ability.cooldown * this.mods.heroCooldownMult;
     this.floats.push({ x: px, y: py - 20, text: 'APEX!', color: '#5ad1ff', life: 0.8 });
   }
 

@@ -21,7 +21,7 @@ export interface GearItem {
   affixes: GearAffix[];
 }
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
-export type HeroId = 'ravager'; // roster grows by adding HEROES entries (config.ts)
+export type HeroId = 'ravager' | 'bulwark'; // roster grows by adding HEROES entries (config.ts)
 export type EnemyKind =
   | 'runner'
   | 'brute'

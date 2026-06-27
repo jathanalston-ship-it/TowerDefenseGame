@@ -6,6 +6,7 @@ import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
+import { heroSelect } from '../state/heroStore';
 import type { RunResult, RunReward } from '../state/meta';
 import type { GameConfig } from '../core/game';
 import type { MetaModifiers } from '../core/types';
@@ -25,7 +26,7 @@ export function App(): JSX.Element {
       ? config.stage.seed
       : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     modsRef.current = metaModifiers(meta.get());
-    configRef.current = config;
+    configRef.current = { ...config, heroId: heroSelect.get() }; // fold in the chosen hero
     audio.unlock();
     audio.play('confirm');
     setScreen('playing');

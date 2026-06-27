@@ -235,6 +235,7 @@ export interface HeroAbilityDef {
 export interface HeroDef {
   id: HeroId;
   name: string;
+  role: string; // one-line playstyle tagline (hero picker)
   combatClass: CombatClass;
   maxHp: number;
   speed: number;
@@ -261,6 +262,7 @@ export const HEROES: Record<HeroId, HeroDef> = {
   ravager: {
     id: 'ravager',
     name: 'The Ravager',
+    role: 'Mobile burst assassin — fast, leaps in, deletes priority threats.',
     combatClass: 'Kinetic',
     maxHp: 230,
     speed: 122,
@@ -278,6 +280,31 @@ export const HEROES: Record<HeroId, HeroDef> = {
     cleaveFraction: 0.5,
     swingTime: 0.18,
     ability: { name: 'Apex Leap', cooldown: 8, radius: 72, damage: 62, fracture: 2 },
+  },
+  // The Bulwark — a Vital frontline bruiser. The Ravager's opposite: slower and
+  // pricier in mobility, but far tankier with a wide, hard-hitting cleave and a broad
+  // (lower-burst) slam — a sweeping area controller vs. the Ravager's precise assassin.
+  bulwark: {
+    id: 'bulwark',
+    name: 'The Bulwark',
+    role: 'Durable area sweeper — slow and tanky, wide cleave, broad slam.',
+    combatClass: 'Vital',
+    maxHp: 320,
+    speed: 99,
+    attackRange: 32,
+    attackInterval: 0.62,
+    attackDamage: 26,
+    attackFracture: 1,
+    aggroRange: 1400,
+    contactRange: 28,
+    respawnTime: 7,
+    threatPerDamage: 7,
+    lead: 0.26,
+    turnRate: 12,
+    cleaveRadius: 66,
+    cleaveFraction: 0.7,
+    swingTime: 0.22,
+    ability: { name: 'Seismic Slam', cooldown: 9, radius: 98, damage: 44, fracture: 3 },
   },
 };
 

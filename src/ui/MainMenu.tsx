@@ -8,6 +8,7 @@ import { LootMeter } from './LootMeter';
 import { LootBoxOpener } from './LootBoxOpener';
 import { SaveManager } from './SaveManager';
 import { ModePanel } from './ModePanel';
+import { HeroPanel } from './HeroPanel';
 import { AudioControls } from './AudioControls';
 import { CountUp } from './components/CountUp';
 import type { GameConfig } from '../core/game';
@@ -49,6 +50,8 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
         <LootMeter />
         <LootBoxOpener />
       </div>
+
+      <HeroPanel />
 
       <ModePanel onStart={onStart} />
 

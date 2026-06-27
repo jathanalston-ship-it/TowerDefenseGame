@@ -36,7 +36,7 @@ updated whenever a system lands.
 | Deterministic sim loop (fixed timestep) | ✅ | `core/game.ts`, `core/rng.ts` | ARCHITECTURE |
 | Three game modes (Classic / Stage / Endless) | ✅ | `core/game.ts`, `ui/ModePanel.tsx` | STAGES |
 | Towers (3: Needle / Mortar / Reactor) | ✅ | `config.ts TOWER_DEFS`, `game.ts` | TOWERS |
-| Hero (Ravager) — data-driven roster of 1 | 🟡 | `config.ts HEROES`, `game.ts` | HEROES |
+| Heroes (2: Ravager · Bulwark) + selection | 🟡 | `config.ts HEROES`, `ui/HeroPanel.tsx`, `state/heroStore.ts` | HEROES |
 | Enemies (11 kinds, composed from archetypes) | ✅ | `core/archetypes.ts`, `config.ts ENEMY_DEFS` | ENEMIES |
 | Bosses — `isBoss` data hook (Brood Tyrant) | 🟡 | `config.ts ENEMY_DEFS` | ENEMIES |
 | Status + SHRED reaction engine | ✅ | `game.ts`, `config.ts STATUS` | DESIGN |
@@ -73,7 +73,7 @@ updated whenever a system lands.
 | Content | Count | Notes |
 |---|---|---|
 | Towers | 3 | Needle (Kinetic), Mortar (Caustic), Reactor (Vital) |
-| Heroes | 1 | Ravager (Kinetic); roster is data-driven, selection UI pending |
+| Heroes | 2 | Ravager (Kinetic burst) · Bulwark (Vital bruiser); menu picker, choice carries into runs |
 | Enemies | 11 | runner, brute, tyrant, rusher, tank, flyer, burrower, splitter, spitter, mender, warden |
 | Bosses | 1 | tyrant (`isBoss`) |
 | Gene Cards | 30 | common + rare; ~12 behavioral |
