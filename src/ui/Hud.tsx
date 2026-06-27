@@ -118,6 +118,11 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
                 ? 'Choose a Gene Card'
                 : ' '}
         </div>
+        {hud.anticipation.length > 0 && hud.phase !== 'won' && hud.phase !== 'lost' && (
+          <div className="phase-hint" style={{ opacity: 0.8, fontVariant: 'small-caps', letterSpacing: '0.04em' }}>
+            {'▶'} next: {hud.anticipation[0]}
+          </div>
+        )}
       </div>
 
       {/* ── RIGHT cluster: economy, threat, loot, hero ── */}

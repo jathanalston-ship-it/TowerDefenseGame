@@ -59,7 +59,7 @@ import type { CardContext, CardDef, CardEffect, RunModifiers } from './cards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS } from './config';
+import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -1845,7 +1845,31 @@ export class Game {
       buffs: this.activeBuffs(),
       bossBanner: this.bossBanner(),
       endless: this.mode === 'endless',
+      anticipation: this.nextAnticipation(),
     };
+  }
+
+  /** Upcoming named beats so the player ALWAYS has something to look forward to (the pacing
+   * "always something to anticipate" hook). Pure read-model — never touches the sim. */
+  private nextAnticipation(): string[] {
+    if (this.phase === 'won' || this.phase === 'lost') return [];
+    const out: string[] = [];
+    if (this.mode === 'endless') {
+      const nextBoss = (Math.floor(this.waveIndex / DIRECTOR.bossEvery) + 1) * DIRECTOR.bossEvery;
+      out.push(`Boss at depth ${nextBoss}`);
+      return out;
+    }
+    const w = Math.max(0, this.waveIndex);
+    if (w < TOTAL_WAVES) out.push(`${ENEMY_DEFS.tyrant.name} at wave ${TOTAL_WAVES}`);
+    // The next wave at which the run-end cache tier upgrades (data-driven via chestForWave).
+    const curTier = chestForWave(w);
+    for (let nw = w + 1; nw <= TOTAL_WAVES; nw++) {
+      if (chestForWave(nw) !== curTier) {
+        out.push(`${CHESTS[chestForWave(nw)].name} at wave ${nw}`);
+        break;
+      }
+    }
+    return out;
   }
 
   /** The most-wounded framework boss as a banner snapshot (null if none). */

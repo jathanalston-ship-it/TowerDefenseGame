@@ -245,6 +245,7 @@ export interface HudSnapshot {
   buffs: string[]; // human-readable active run modifiers
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
+  anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
 }
 
 export interface CardOption {
