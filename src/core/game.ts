@@ -48,7 +48,7 @@ import {
   WAVE_BOUNTY_GROWTH,
   WAVE_HP_GROWTH,
 } from './config';
-import type { HeroDef } from './config';
+import type { EnemyDef, HeroDef } from './config';
 import {
   CARD_POOL,
   applyCard,
@@ -56,11 +56,11 @@ import {
   defaultRunModifiers,
   draftCards,
 } from './cards';
-import type { CardContext, CardDef, CardEffect, RunModifiers } from './cards';
+import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS } from './config';
+import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -75,7 +75,10 @@ import { resolveDoctrine } from './doctrines';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
+import { applyMutators } from './mutators';
 import { gameEvents } from './events';
+
+const EMPTY_STR: readonly string[] = []; // shared no-alloc default for per-cast mutator lists
 
 export type RunMode = 'stage' | 'endless';
 
@@ -92,6 +95,7 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
   if (e.op === 'mul') mods[e.field] *= e.value;
   else if (e.op === 'add') mods[e.field] += e.value;
   else if (e.op === 'flag') mods[e.field] = true;
+  else if (e.op === 'set') mods[e.field] = e.value;
 }
 import type {
   Enemy,
@@ -109,6 +113,7 @@ import type {
   Projectile,
   ProjectileBehavior,
   RunStats,
+  StatusType,
   Tower,
   TowerKind,
   TowerProgress,
@@ -256,6 +261,7 @@ export class Game {
   private occupied = new Set<number>();
   private spawnQueue: QueuedSpawn[] = [];
   private spawnedAll = false;
+  private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -277,6 +283,12 @@ export class Game {
   private emergencyFocusY = 0;
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
+  private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
+  // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
+  // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
+  private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
+  private readonly heroAttackStatuses: { status: StatusType; amount: number }[] = []; // weapon: hero hits also apply
+  private readonly relicHooks: HookSpec[] = []; // relic battlefield rules (run events → actions)
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
   private readonly actx: AbilityContext = this.buildAbilityContext();
 
@@ -302,8 +314,8 @@ export class Game {
     this.mods.heroDamageMult = meta.heroDamageMult;
     // Fold the chosen doctrine's run-start effects, then run-start effects (equipment, …).
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
-    for (const e of resolveDoctrine(opts.doctrine).effects) applyRunEffect(this.mods, e);
-    if (opts.runEffects) for (const e of opts.runEffects) applyRunEffect(this.mods, e);
+    for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
+    if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
@@ -391,6 +403,54 @@ export class Game {
         return self.mods.splashRadiusMult * self.castSplashMult; // run-mods × star kit
       },
     };
+  }
+
+  /** Dispatch a run-start effect at boot: stat folds go to mods; the behavioral verbs
+   * (grant/hook) are collected for the sim to consume. Empty when no gear ⇒ golden-safe. */
+  private bootRunEffect(e: CardEffect): void {
+    if (e.op === 'grant') {
+      if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id);
+      else if (e.grant.kind === 'heroAttackStatus') this.heroAttackStatuses.push({ status: e.grant.status, amount: e.grant.amount });
+    } else if (e.op === 'hook') {
+      this.relicHooks.push(e.hook);
+    } else {
+      applyRunEffect(this.mods, e);
+    }
+  }
+
+  /** Run the equipped relics' battlefield rules for a run event (no-op without relic gear). */
+  private fireRelicHooks(on: HookEvent, e: Enemy | null): void {
+    for (const h of this.relicHooks) {
+      if (h.on !== on) continue;
+      const a = h.action;
+      if (a.do === 'biomass') {
+        this.biomass += a.value;
+      } else if (a.do === 'spreadStatus' && e) {
+        const r2 = a.radius * a.radius;
+        this.grid.forNeighbors(e.x, e.y, a.radius, (n) => {
+          if (n.alive && n.id !== e.id && dist2(e.x, e.y, n.x, n.y) <= r2) {
+            this.applyStatus(n, { kind: a.status, amount: a.amount });
+          }
+        });
+      }
+    }
+  }
+
+  /** Where a hero idles when no target — biased by the equipment behavior profile's anchor.
+   * 'default' returns the hero's rally (historical behavior ⇒ golden-safe). */
+  private heroIdleGoal(h: Hero): { x: number; y: number } {
+    switch (this.mods.heroAnchor) {
+      case 'nucleus': return nucleusPoint;
+      case 'line': return { x: WIDTH / 2, y: DEFENSE_TOP_Y };
+      case 'towers': {
+        if (this.towers.length === 0) return nucleusPoint;
+        let sx = 0;
+        let sy = 0;
+        for (const t of this.towers) ((sx += t.x), (sy += t.y));
+        return { x: sx / this.towers.length, y: sy / this.towers.length };
+      }
+      default: return h.rally;
+    }
   }
 
   /** Apply a status request to an enemy — the one place a StatusType maps to its field.
@@ -527,9 +587,11 @@ export class Game {
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
+    this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
+    if (this.relicHooks.length) this.fireRelicHooks('waveStarted', null); // relic battlefield rules
   }
 
   /** Endless wave: the AI Director composes spawns from a depth-scaled threat budget; the
@@ -547,6 +609,7 @@ export class Game {
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
+    this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
     this.pushSfx('wave');
@@ -618,6 +681,7 @@ export class Game {
       this.projectileSystem(dt);
       this.poolSystem(dt);
       this.statusSystem(dt);
+      this.enemyAbilitySystem(dt); // regen / support auras / summons (no-op for trait-less enemies)
       this.enemyMoveSystem(dt);
       this.heroSystem(dt);
       this.deathSystem();
@@ -690,6 +754,10 @@ export class Game {
       lastHitKind: null,
       boss: null,
       elite,
+      // Role-trait runtime (undefined for the trait-less historical roster → golden-safe).
+      shield: def.shieldHp,
+      summonCd: def.summon?.interval,
+      siegeCd: def.siege?.interval,
     });
   }
 
@@ -815,15 +883,48 @@ export class Game {
       id: this.nextId++, kind, x: Math.max(12, Math.min(WIDTH - 12, x + (this.rng.next() - 0.5) * 60)), y: y + 12,
       hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed, bounty: def.bounty, damage: def.damage,
       fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null, elite: false,
+      shield: def.shieldHp, summonCd: def.summon?.interval, siegeCd: def.siege?.interval,
     });
   }
 
   private economySystem(dt: number): void {
     if (this.reactorCount > 0) {
-      const gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * dt;
+      // Reactor STAR evolution (support-tower path): its kit scales biomass generation.
+      const starBiomass = this.towerProgress.reactor.reactorBiomassMult ?? 1; // 1 for a fresh save
+      const gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * starBiomass * dt;
       this.biomass += gain;
       this.statBiomassEarned += gain;
     }
+  }
+
+  /** Per-tick enemy ROLE abilities: self-regen, support auras, and summons. Every branch is
+   * gated on a trait the historical seven don't carry, so this is a pure no-op for them (and
+   * consumes no gameplay rng unless a summoner — never in the golden run — actually fires). */
+  private enemyAbilitySystem(dt: number): void {
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const def = ENEMY_DEFS[e.kind];
+      if (def.regenPerSec) e.hp = Math.min(e.maxHp, e.hp + def.regenPerSec * dt); // Regenerating
+      if (def.auraRadius) this.supportAura(e, def, dt); // Support
+      if (def.summon) {
+        e.summonCd = (e.summonCd ?? def.summon.interval) - dt; // Summoner
+        if (e.summonCd <= 0) {
+          e.summonCd = def.summon.interval;
+          for (let i = 0; i < def.summon.count; i++) this.spawnNear(def.summon.kind, e.x, e.y);
+        }
+      }
+    }
+  }
+
+  /** Project a Support enemy's aura onto nearby allies — heal and/or refresh a shield. */
+  private supportAura(src: Enemy, def: EnemyDef, dt: number): void {
+    const r = def.auraRadius as number;
+    const r2 = r * r;
+    this.grid.forNeighbors(src.x, src.y, r, (o) => {
+      if (!o.alive || o === src || dist2(src.x, src.y, o.x, o.y) > r2) return;
+      if (def.auraRegenPerSec) o.hp = Math.min(o.maxHp, o.hp + def.auraRegenPerSec * dt);
+      if (def.auraShield) o.shield = Math.max(o.shield ?? 0, def.auraShield);
+    });
   }
 
   /**
@@ -897,7 +998,9 @@ export class Game {
       // Bonus math flows through the universal modifier framework (combineMult — the
       // canonical multiplier fold, bit-identical to the previous a*b*c product).
       const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
-      const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1;
+      // Reactor STAR evolution: its kit adds to the overcharge it projects onto neighbors.
+      const starOc = this.towerProgress.reactor.reactorOverchargeBonus ?? 0; // 0 for a fresh save
+      const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus + starOc : 1;
       const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
       const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso);
@@ -911,6 +1014,7 @@ export class Game {
       this.abilityTargeting = prog.targeting ?? def.targeting ?? 'closestToBase';
       this.castExtraProjectiles = prog.extraProjectiles ?? 0;
       this.castSplashMult = prog.splashMult ?? 1;
+      this.castProjectileMutators = prog.projectileMutators ?? EMPTY_STR;
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
@@ -923,6 +1027,7 @@ export class Game {
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
+    this.castProjectileMutators = EMPTY_STR;
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -978,7 +1083,17 @@ export class Game {
           }
           this.pushSfx('hit');
           if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
-          p.alive = false;
+          // Pierce (mutators.ts): pass THROUGH to the next unhit foe instead of dying. A
+          // projectile with no pierce (the default) dies here exactly as before (golden-safe).
+          if (p.pierce && p.pierce > 0) {
+            p.pierce -= 1;
+            (p.hitIds ??= []).push(target.id);
+            const next = this.nextPierceTarget(p);
+            if (next) p.targetId = next.id;
+            else p.alive = false;
+          } else {
+            p.alive = false;
+          }
         } else {
           const k = step / d;
           p.x += dx * k;
@@ -1117,6 +1232,18 @@ export class Game {
         continue;
       }
       const def = ENEMY_DEFS[e.kind];
+      // Artillery: halt short of the line and bombard the Nucleus from range. Gated on `siege`,
+      // which the historical roster never sets, so those enemies always advance normally.
+      if (def.siege && goalDistanceAt(e.x, e.y) <= def.siege.range) {
+        e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
+        if (e.siegeCd <= 0) {
+          e.siegeCd = def.siege.interval;
+          if (!this.god) this.integrity -= def.siege.damage;
+          this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `-${def.siege.damage}`, color: '#ff8a3d', life: 0.9 });
+          this.pushSfx('breach');
+        }
+        continue; // standoff: it shells the core instead of advancing
+      }
       const b = def.behavior;
       // Corrosion and Disruption both slow; take the stronger, capped at 0.85.
       let slow = 0;
@@ -1222,6 +1349,21 @@ export class Game {
     this.pushSfx('breach');
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
+    // Suicide: a detonation that also catches the hero in its blast (gated on `explodeRadius`,
+    // which the historical roster never sets — so this is a no-op there).
+    const def = ENEMY_DEFS[e.kind];
+    if (def.explodeRadius && def.explodeDamage) {
+      const h = this.primaryHero;
+      if (!h.down && !this.god && dist2(e.x, e.y, h.x, h.y) <= def.explodeRadius * def.explodeRadius) {
+        h.hp -= def.explodeDamage;
+        if (h.hp <= 0) {
+          h.down = true;
+          h.respawn = HERO_DEFS[h.kind].respawnTime;
+          this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+        }
+      }
+      this.spawnParticles(e.x, e.y, PARTICLE.bossfall); // a real blast, not a nibble
+    }
   }
 
   private heroSystem(dt: number): void {
@@ -1250,10 +1392,19 @@ export class Game {
     if (h.abilityCd > 0) h.abilityCd -= dt;
     if (h.pulseCd > 0) h.pulseCd -= dt;
 
-    switch (def.behavior) {
-      case 'dive': this.updateDiveHero(h, def, dt); break;
-      case 'guard': this.updateGuardHero(h, def, dt); break;
-      case 'control': this.updateControlHero(h, def, dt); break;
+    // Equipment behavior profile: a "wary" loadout disengages the hero toward the nucleus
+    // at low HP instead of running its normal AI. Neutral default (threshold 0) ⇒ never
+    // retreats ⇒ byte-identical to a gear-less run (golden invariant).
+    if (this.mods.heroRetreatThreshold > 0 && h.hp < h.maxHp * this.mods.heroRetreatThreshold) {
+      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+    } else {
+      switch (def.behavior) {
+        case 'dive': this.updateDiveHero(h, def, dt); break;
+        case 'guard': this.updateGuardHero(h, def, dt); break;
+        case 'control': this.updateControlHero(h, def, dt); break;
+      }
     }
 
     this.heroContactDamage(h, def, dt);
@@ -1267,7 +1418,8 @@ export class Game {
    * original single-hero build, so the golden outcomes are preserved.)
    */
   private updateDiveHero(h: Hero, def: HeroDef, dt: number): void {
-    const aggro2 = def.aggroRange * def.aggroRange;
+    const aggroRange = def.aggroRange * this.mods.heroAggroRangeMult; // equipment aggression knob
+    const aggro2 = aggroRange * aggroRange;
     let target: Enemy | null = null;
     let bestApproach = Infinity; // best among enemies still above the line
     let fallback: Enemy | null = null;
@@ -1287,7 +1439,7 @@ export class Game {
     }
     target = target ?? fallback;
 
-    const goal = target ? { x: target.x, y: target.y } : h.rally;
+    const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
     const np = moveToward(h.x, h.y, goal.x, goal.y, def.speed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
@@ -1296,6 +1448,8 @@ export class Game {
       const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
       this.heroMasteryAccrual[h.kind].damage += this.applyDamage(target, dmg);
       this.addFracture(target, def.attackFracture);
+      // Weapon grant: the hero's hits also apply granted statuses (no-op without such gear).
+      for (const s of this.heroAttackStatuses) this.applyStatus(target, { kind: s.status, amount: s.amount });
       this.maybeReact(target);
       h.attackCd = def.attackInterval;
     }
@@ -1458,6 +1612,7 @@ export class Game {
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
         this.pushSfx('kill');
+        if (e.boss) this.bossDeathSpectacle(e); // a boss death is an event, not a pop
         if (e.bounty >= 20) {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
         }
@@ -1468,6 +1623,7 @@ export class Game {
         if (e.boss && gameEvents.hasListeners('bossKilled')) {
           gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y });
         }
+        if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -1502,10 +1658,38 @@ export class Game {
       p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
       p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
       p.sourceKind = sourceKind;
+      p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
+      if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
+      this.applyProjectileMutators(p);
     } else {
-      this.projectiles.push({ id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind });
+      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0 };
+      this.projectiles.push(np);
+      this.applyProjectileMutators(np);
     }
+  }
+
+  /** Apply the per-cast star-kit mutators + the run-wide granted mutators to a fresh shot. */
+  private applyProjectileMutators(p: Projectile): void {
+    if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, p);
+    if (this.grantedTowerMutators.length) applyMutators(this.grantedTowerMutators, p);
+  }
+
+  /** Nearest alive enemy a piercing projectile hasn't struck yet (the next pass-through). */
+  private nextPierceTarget(p: Projectile): Enemy | null {
+    const R = 170; // pass-through search radius
+    let best: Enemy | null = null;
+    let bd = R * R;
+    const hit = p.hitIds;
+    this.grid.forNeighbors(p.x, p.y, R, (e) => {
+      if (!e.alive || (hit !== undefined && hit.includes(e.id))) return;
+      const d2 = dist2(p.x, p.y, e.x, e.y);
+      if (d2 <= bd) {
+        bd = d2;
+        best = e;
+      }
+    });
+    return best;
   }
 
   private releaseProjectile(p: Projectile): void {
@@ -1566,14 +1750,53 @@ export class Game {
     }
   }
 
+  // ── Reward-moment spectacle (cosmetic; uses the FX rng + cue queue only, so it never
+  //    perturbs the deterministic outcome the golden tests pin). ────────────────────────
+
+  /** A framework boss dies as an EVENT: a double-burst detonation, a flood of biomass motes
+   * streaming to the counter, a banner, and a heavy shake cue. */
+  private bossDeathSpectacle(e: Enemy): void {
+    this.spawnParticles(e.x, e.y, PARTICLE.bossfall);
+    this.spawnParticles(e.x, e.y, PARTICLE.bossfall, ENEMY_DEFS[e.kind].color);
+    for (let i = 0; i < 5; i++) this.spawnMotes(e.x, e.y); // the boss's biomass floods home
+    this.floats.push({ x: e.x, y: e.y - 26, text: `${e.boss?.name ?? 'BOSS'} FELL`, color: '#ffd24d', life: 1.8 });
+    this.pushSfx('breach'); // strongest existing shake cue
+  }
+
+  /** Wave-clear flourish at the line; a no-damage wave reads as FLAWLESS (skill reward). */
+  private waveCompleteFlourish(flawless: boolean): void {
+    const x = nucleusPoint.x;
+    this.spawnParticles(x, DEFENSE_TOP_Y, PARTICLE.celebrate);
+    if (flawless) {
+      this.spawnParticles(x, DEFENSE_TOP_Y, PARTICLE.celebrate, '#ffd24d');
+      this.floats.push({ x, y: DEFENSE_TOP_Y - 30, text: 'FLAWLESS', color: '#ffd24d', life: 1.6 });
+    } else {
+      this.floats.push({ x, y: DEFENSE_TOP_Y - 30, text: 'WAVE CLEARED', color: '#b6e84a', life: 1.2 });
+    }
+    this.pushSfx('wave');
+  }
+
+  /** Stage-clear crescendo — a wide multi-hued extraction bloom across the line. */
+  private stageClearCrescendo(): void {
+    const x = nucleusPoint.x;
+    for (let i = 0; i < 5; i++) {
+      this.spawnParticles(x + (i - 2) * 48, DEFENSE_TOP_Y, PARTICLE.celebrate, i % 2 ? '#ffd24d' : '#5ad1ff');
+    }
+    this.floats.push({ x, y: DEFENSE_TOP_Y - 40, text: 'EXTRACTION', color: '#ffd24d', life: 2.2 });
+    this.pushSfx('ability');
+  }
+
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
+      const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
       // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
       if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
+        this.stageClearCrescendo();
         this.phase = 'won';
       } else {
+        this.waveCompleteFlourish(flawless);
         this.draft = draftCards(this.rng, 3);
         this.phase = 'draft';
       }
@@ -1659,7 +1882,15 @@ export class Game {
     }
     const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
     const applied = damageAfter(raw, this.vulnMult(e), effectiveArmor(e, broken));
-    e.hp -= applied;
+    // Shielded enemies soak the hit into the front shield first; only the overflow reaches HP.
+    // The shield is undefined/0 on the historical roster, so this is a no-op there (golden-safe).
+    let toBody = applied;
+    if ((e.shield ?? 0) > 0) {
+      const absorbed = Math.min(e.shield as number, applied);
+      e.shield = (e.shield as number) - absorbed;
+      toBody = applied - absorbed;
+    }
+    e.hp -= toBody;
     e.dmgAccum += applied; // banked for the next aggregated damage number
     this.statDamageDealt += applied; // lifetime-stats observation
     if (flash) e.hitFlash = FX.hitFlash;
@@ -1911,7 +2142,31 @@ export class Game {
       buffs: this.activeBuffs(),
       bossBanner: this.bossBanner(),
       endless: this.mode === 'endless',
+      anticipation: this.nextAnticipation(),
     };
+  }
+
+  /** Upcoming named beats so the player ALWAYS has something to look forward to (the pacing
+   * "always something to anticipate" hook). Pure read-model — never touches the sim. */
+  private nextAnticipation(): string[] {
+    if (this.phase === 'won' || this.phase === 'lost') return [];
+    const out: string[] = [];
+    if (this.mode === 'endless') {
+      const nextBoss = (Math.floor(this.waveIndex / DIRECTOR.bossEvery) + 1) * DIRECTOR.bossEvery;
+      out.push(`Boss at depth ${nextBoss}`);
+      return out;
+    }
+    const w = Math.max(0, this.waveIndex);
+    if (w < TOTAL_WAVES) out.push(`${ENEMY_DEFS.tyrant.name} at wave ${TOTAL_WAVES}`);
+    // The next wave at which the run-end cache tier upgrades (data-driven via chestForWave).
+    const curTier = chestForWave(w);
+    for (let nw = w + 1; nw <= TOTAL_WAVES; nw++) {
+      if (chestForWave(nw) !== curTier) {
+        out.push(`${CHESTS[chestForWave(nw)].name} at wave ${nw}`);
+        break;
+      }
+    }
+    return out;
   }
 
   /** The most-wounded framework boss as a banner snapshot (null if none). */

@@ -6,8 +6,11 @@ import {
   masteryRewardsUpTo,
   masteryRewardsBetween,
   masteryRewardById,
+  masteryPerksUpTo,
   masteryTrackRegistry,
 } from './mastery';
+import { towerProgress } from '../state/meta';
+import { defaultSave } from '../save/saveStore';
 
 describe('procedural ranks (infinite, zero-authoring)', () => {
   it('ranks every N levels; Unranked below the first', () => {
@@ -68,5 +71,24 @@ describe('mastery tracks', () => {
       expect(t.rewards.some((r) => r.kind === 'title')).toBe(true);
       expect(t.rewards.some((r) => r.kind === 'lore')).toBe(true);
     }
+  });
+});
+
+describe('mastery perks (mechanic milestones, golden-safe)', () => {
+  it('grants the needle a pierce perk at mastery 50, none below', () => {
+    expect(masteryPerksUpTo('tower', 'needle', 49)).toEqual([]);
+    expect(masteryPerksUpTo('tower', 'needle', 50).some((p) => p.projectileMutator === 'pierce1')).toBe(true);
+  });
+
+  it('the mortar perk widens splash', () => {
+    expect(masteryPerksUpTo('tower', 'mortar', 50).some((p) => (p.splashMult ?? 0) > 1)).toBe(true);
+  });
+
+  it('folds a high-mastery perk into the tower run kit (towerProgress)', () => {
+    const fresh = towerProgress(defaultSave());
+    expect(fresh.needle.projectileMutators).toBeUndefined(); // fresh save = identity
+
+    const veteran = towerProgress({ ...defaultSave(), towerMasteryXp: { ...defaultSave().towerMasteryXp, needle: 1e9 } });
+    expect(veteran.needle.projectileMutators).toContain('pierce1');
   });
 });

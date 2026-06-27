@@ -52,6 +52,7 @@ export function drawGame(
   ctx: CanvasRenderingContext2D,
   rs: RenderState,
   pointer: Pointer | null,
+  cosmeticTiers: Partial<Record<string, number>> = {}, // per-kind mastery-rank visual tier (0 = none)
 ): void {
   const t = rs.time;
 
@@ -84,7 +85,7 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw, t);
+  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0);
 
   for (const p of rs.projectiles) drawProjectile(ctx, p);
 
@@ -408,7 +409,7 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
 
 const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number): void {
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0): void {
   const def = TOWER_DEFS[tw.kind];
   const shape = TOWER_SHAPE[tw.kind];
 
@@ -461,6 +462,19 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     // orbiting glyph ring + a bright psionic core eye
     ring(ctx, tw.x, tw.y, r * 1.35, rgba(THEME.field.edge, pulse(now + tw.id, 3, 0.3, 0.6)), 1.2, [4, 5]);
     drawShape(ctx, 'diamond', tw.x, tw.y - r * 0.1, r * 0.32 * breathe, 'rgba(255,255,255,0.45)');
+  }
+
+  // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md
+  // visual mutations). Pure cosmetic — tier 0 (a fresh save) renders identically.
+  if (tier > 0) {
+    const a = pulse(now + tw.id, 1.6, 0.22, 0.5);
+    ring(ctx, tw.x, tw.y, r * 1.7, rgba(hexRgb(def.color), a), 1.4);
+    if (tier >= 2) ring(ctx, tw.x, tw.y, r * 2.05, rgba(hexRgb(def.color), a * 0.55), 1);
+    const pips = Math.min(tier, 5); // orbiting rank pips
+    for (let i = 0; i < pips; i++) {
+      const ang = now * 0.8 + (i * Math.PI * 2) / pips;
+      drawShape(ctx, 'circle', tw.x + Math.cos(ang) * r * 1.7, tw.y + Math.sin(ang) * r * 1.7, 1.7, def.color);
+    }
   }
 }
 

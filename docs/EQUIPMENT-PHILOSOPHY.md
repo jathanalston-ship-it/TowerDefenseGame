@@ -142,3 +142,32 @@ behavioral ops extend it rather than replacing it.
 3. Re-author affixes/sets behavioral; keep a small bounded stat pool.
 4. Relic event-bus hooks; author launch relics.
 5. Loadout UX surfacing archetypes; verify golden byte-identical throughout.
+
+## 8. Implementation status (v1 — shipped)
+
+The behavior-profile seam is **live** as neutral-default fields on `RunModifiers` (the
+existing run-start fold), read by the hero AI — no new effect op was needed, so armor
+authors behavior through the same `add`/`mul` interpreter cards already use:
+
+- `heroAggroRangeMult` — scales the hero's target-seek range (the Ravager's dive AI hunts
+  wider/narrower). Affix **Vigilant**.
+- `heroRetreatThreshold` — HP fraction below which **any** hero disengages toward the
+  nucleus instead of running its normal AI. Affix **Wary**.
+
+Both default neutral (×1 / 0) ⇒ a gear-less run is byte-identical (golden unchanged);
+`equipment.behavior.test.ts` proves a wary profile measurably changes the AI.
+
+**Unified verbs now live** — `grant` / `set` / `hook` are real `CardEffect` ops (cards.ts),
+folded at boot through the same interpreter cards use (`behavior.test.ts`):
+- **Armor → stance:** `set heroAnchor` ('nucleus' | 'line' | 'towers') changes where the
+  hero holds. Affix **Anchored**.
+- **Weapon → attack:** `grant heroAttackStatus` makes the hero's hits also apply a status.
+  Affix **Venomous** (Corrosion on hit).
+- **Relic → rule:** `grant towerProjectileMutator` makes every tower's shots pierce (affix
+  **Piercer**); `hook { on, action }` fires a battlefield rule — deaths spread Corrosion
+  (affix **Cursed**). Hooks are run-scoped (invoked by the sim at the event point), so there
+  is no global-bus leak.
+
+**Still design-only:** the full `repositionBias` profile, true weapon *projectile* re-authoring
+(beyond on-hit status), and a larger relic/hook vocabulary — all express through the same
+`grant`/`hook` language now in place, so they're data additions, not new architecture.

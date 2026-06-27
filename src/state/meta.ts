@@ -30,7 +30,7 @@ import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
-import { masteryRewardsBetween } from '../core/mastery';
+import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -38,6 +38,17 @@ import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } 
 import type { EquipSlot, OwnedItem } from '../core/equipment';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
+import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
+import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
+
+/** Build the collection codex context from a save (read-only derivation). */
+function collectionContextOf(save: SaveData): CollectionContext {
+  return {
+    stats: save.stats,
+    ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
+    bestWave: save.bestWave,
+  };
+}
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -122,13 +133,23 @@ export function towerProgress(save: SaveData): TowerProgress {
     const stars = save.towerStars[k] ?? 0;
     const mLvl = masteryLevel(save.towerMasteryXp[k] ?? 0);
     const kit = resolveStarKit(k, stars, save.towerForks?.[k]);
+    // Mastery milestone PERKS fold mechanics (not stats) into the same kit — pierce, wider
+    // splash — at high mastery. None below their threshold ⇒ a fresh save stays identity.
+    for (const p of masteryPerksUpTo('tower', k, mLvl)) {
+      if (p.projectileMutator) kit.projectileMutators.push(p.projectileMutator);
+      if (p.extraProjectiles) kit.extraProjectiles += p.extraProjectiles;
+      if (p.splashMult) kit.splashMult *= p.splashMult;
+    }
     out[k] = {
       damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
       fireRateMult: 1 + STAR.fireRatePerStar * stars,
       targeting: kit.targeting,
       extraProjectiles: kit.extraProjectiles || undefined,
       splashMult: kit.splashMult !== 1 ? kit.splashMult : undefined,
+      projectileMutators: kit.projectileMutators.length ? kit.projectileMutators : undefined,
       extraAbilities: kit.extraAbilities.length ? kit.extraAbilities : undefined,
+      reactorBiomassMult: kit.reactorBiomassMult !== 1 ? kit.reactorBiomassMult : undefined,
+      reactorOverchargeBonus: kit.reactorOverchargeBonus !== 0 ? kit.reactorOverchargeBonus : undefined,
       cosmetics: kit.cosmetics.length ? kit.cosmetics : undefined,
     };
   }
@@ -448,6 +469,24 @@ export const meta = {
   loadoutEffects(): CardEffect[] {
     const { inventory, loadout } = store.get().equipment;
     return loadoutEffects(inventory, loadout);
+  },
+
+  // ── Collection (codex + completion rewards) ────────────────────────────────
+
+  /** The full codex view, derived from the current save (read-only). */
+  collection(): CollectionView {
+    return collectionView(collectionContextOf(store.get()));
+  },
+
+  /** Completion rewards currently unlocked (titles, badges, portraits, themes, …). */
+  collectionRewards(): CollectionReward[] {
+    return unlockedRewards(this.collection());
+  },
+
+  /** Run-start effects from unlocked completion BONUSES — folded into a run like gear.
+   * Empty for a fresh save, so a new player's run is byte-identical (golden-safe). */
+  collectionRunEffects(): CardEffect[] {
+    return collectionBonusEffects(this.collection());
   },
 
   /** Equip (or clear, uid=null) an owned item into a slot. */

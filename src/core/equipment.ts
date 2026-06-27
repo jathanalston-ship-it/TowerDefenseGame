@@ -53,6 +53,16 @@ export const AFFIXES: AffixDef[] = [
   { id: 'galvanic', name: 'Galvanic', bias: 'armor', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.06 }] },
   { id: 'tidal', name: 'Tidal', bias: 'armor', effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.12 }] },
   { id: 'glacial', name: 'Glacial', bias: 'armor', effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.05 }] },
+  // Behavioral armor (EQUIPMENT-PHILOSOPHY.md): these change HOW the hero plays, not its
+  // numbers — wider hunting vs. disengaging when wounded.
+  { id: 'vigilant', name: 'Vigilant', bias: 'armor', effects: [{ op: 'mul', field: 'heroAggroRangeMult', value: 1.2 }] },
+  { id: 'wary', name: 'Wary', bias: 'armor', effects: [{ op: 'add', field: 'heroRetreatThreshold', value: 0.3 }] },
+  // Unified grant/set/hook verbs (PROGRESSION-PHILOSOPHY §3): armor sets a STANCE, weapons
+  // change the ATTACK, relics bend a RULE — behavior, not numbers.
+  { id: 'anchored', name: 'Anchored', bias: 'armor', effects: [{ op: 'set', field: 'heroAnchor', value: 'nucleus' }] },
+  { id: 'venomous', name: 'Venomous', bias: 'weapon', effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Corrosion', amount: 2 } }] },
+  { id: 'piercer', name: 'Piercer', bias: 'relic', effects: [{ op: 'grant', grant: { kind: 'towerProjectileMutator', id: 'pierce1' } }] },
+  { id: 'cursed', name: 'Cursed', bias: 'relic', effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Corrosion', amount: 2, radius: 60 } } }] },
   { id: 'fertile', name: 'Fertile', bias: 'relic', effects: [{ op: 'mul', field: 'biomassMult', value: 1.08 }] },
   { id: 'flush', name: 'Flush', bias: 'relic', effects: [{ op: 'add', field: 'startBiomassBonus', value: 60 }] },
   { id: 'corrosive', name: 'Corrosive', bias: 'relic', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }] },

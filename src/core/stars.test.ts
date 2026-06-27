@@ -16,7 +16,7 @@ function neutralProgress(): TowerProgress {
 describe('resolveStarKit', () => {
   it('is an empty (identity) kit at 0 stars', () => {
     const kit = resolveStarKit('needle', 0);
-    expect(kit).toEqual({ extraProjectiles: 0, splashMult: 1, extraAbilities: [], cosmetics: [] });
+    expect(kit).toEqual({ extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], reactorBiomassMult: 1, reactorOverchargeBonus: 0, cosmetics: [] });
   });
 
   it('folds unlocked nodes up to the owned star count', () => {
@@ -46,6 +46,15 @@ describe('resolveStarKit', () => {
     const kit = resolveStarKit('obelisk', 4); // ★2 aura + ★3 fork + ★4 explosion
     expect(kit.extraAbilities.length).toBeGreaterThanOrEqual(2);
     expect(kit.extraAbilities.some((a) => a.type === 'explosion')).toBe(true);
+  });
+
+  it('evolves the reactor (support) along an economy path', () => {
+    expect(resolveStarKit('reactor', 1).reactorBiomassMult).toBeGreaterThan(1);
+    expect(resolveStarKit('reactor', 2).reactorOverchargeBonus).toBeGreaterThan(0);
+    // the ★3 "furnace" fork pours into biomass; "network" into overcharge
+    expect(resolveStarKit('reactor', 3, { '3': 'network' }).reactorOverchargeBonus).toBeGreaterThan(
+      resolveStarKit('reactor', 3, { '3': 'furnace' }).reactorOverchargeBonus,
+    );
   });
 });
 

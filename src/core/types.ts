@@ -9,7 +9,31 @@ import type { TargetingProfile } from './targeting';
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption';
 export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk';
-export type EnemyKind = 'runner' | 'brute' | 'tyrant' | 'rusher' | 'tank' | 'flyer' | 'burrower';
+export type EnemyKind =
+  // swarm
+  | 'runner' | 'mite' | 'larva'
+  // fast
+  | 'rusher' | 'darter' | 'lasher'
+  // heavy
+  | 'brute' | 'tank' | 'golem' | 'colossus'
+  // shielded
+  | 'bulwark' | 'warden'
+  // regenerating
+  | 'knitter' | 'revenant'
+  // burrowing
+  | 'burrower' | 'molerat'
+  // flying
+  | 'flyer' | 'wisp' | 'gargoyle'
+  // summoner
+  | 'broodmother' | 'hivecaller'
+  // support
+  | 'mender' | 'cantor'
+  // suicide
+  | 'bomber' | 'popper'
+  // artillery
+  | 'siegeworm' | 'spitter'
+  // elite / apex
+  | 'apex' | 'dreadnought' | 'tyrant';
 export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
@@ -52,6 +76,11 @@ export interface Enemy {
   // statuses keep their fast fields above; NEW effects (burn, slow, stun, …) live here
   // and run through the generic engine. Undefined on the historical path (golden-safe).
   statuses?: ActiveStatus[];
+  // ── Role-trait runtime (the ~30-enemy roster). Optional/lazy: undefined on the historical
+  //    seven enemies, so every gated hook is a no-op there and the golden run is byte-identical.
+  shield?: number; // remaining front-shield HP absorbed before the body (Shielded / Support)
+  summonCd?: number; // seconds until the next add spawns (Summoner)
+  siegeCd?: number; // seconds until the next bombardment volley (Artillery)
 }
 
 /** Live state a framework boss carries on top of its enemy body (see boss.ts). */
@@ -99,6 +128,10 @@ export interface Projectile {
   splash: number; // splash radius (0 = single target)
   alive: boolean;
   sourceKind: TowerKind | null; // tower kind that fired it (mastery: damage credit)
+  // ── Projectile mutators (mutators.ts). Absent ⇒ no pierce ⇒ dies on first hit (the
+  //    historical behavior, golden-safe). Set by a tower's star kit at spawn. ──
+  pierce?: number; // extra enemies it passes through before dying (0/undefined = none)
+  hitIds?: number[]; // enemies already struck (pierce: avoids re-hitting the same body)
 }
 
 export interface Pool {
@@ -163,7 +196,10 @@ export interface TowerMods {
   targeting?: TargetingProfile; // overrides the tower's default target pick
   extraProjectiles?: number; // additional simultaneous targets for the base attack
   splashMult?: number; // multiplies projectile splash radius
+  projectileMutators?: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
+  reactorBiomassMult?: number; // reactor-only: scales its biomass generation (support evolution)
+  reactorOverchargeBonus?: number; // reactor-only: extra overcharge to adjacent towers
   cosmetics?: string[]; // visual mutation ids (renderer)
 }
 export type TowerProgress = Record<TowerKind, TowerMods>;
@@ -246,6 +282,7 @@ export interface HudSnapshot {
   buffs: string[]; // human-readable active run modifiers
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
+  anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
 }
 
 export interface CardOption {

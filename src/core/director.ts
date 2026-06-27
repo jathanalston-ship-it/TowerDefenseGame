@@ -12,7 +12,7 @@ import { STANDARD } from './difficulty';
 import type { DifficultyDef } from './difficulty';
 import type { EnemyKind } from './types';
 
-export type WaveShape = 'swarm' | 'armored' | 'mixed' | 'rush' | 'elite' | 'boss';
+export type WaveShape = 'swarm' | 'armored' | 'mixed' | 'rush' | 'elite' | 'air' | 'siege' | 'horror' | 'boss';
 
 export interface DirectorGroup {
   kind: EnemyKind;
@@ -28,15 +28,19 @@ export interface DirectorWave {
   eliteChance: number;
 }
 
-// Each shape's roster (which archetypes it draws from) — the build-counter pressure.
+// Each shape's roster (which archetypes it draws from) — the build-counter pressure. The
+// expanded roster pulls in the new roles so endless waves cycle through the full bestiary.
 const ROSTER: Record<Exclude<WaveShape, 'boss'>, EnemyKind[]> = {
-  swarm: ['runner', 'runner', 'rusher'],
-  armored: ['brute', 'tank', 'brute'],
-  mixed: ['runner', 'brute', 'flyer', 'rusher'],
-  rush: ['rusher', 'rusher', 'runner'],
-  elite: ['brute', 'tank', 'flyer'],
+  swarm: ['runner', 'mite', 'larva', 'rusher'],
+  armored: ['brute', 'tank', 'golem', 'warden', 'bulwark', 'colossus'],
+  mixed: ['runner', 'brute', 'flyer', 'rusher', 'knitter', 'molerat', 'burrower'],
+  rush: ['rusher', 'darter', 'lasher', 'runner', 'molerat'],
+  elite: ['brute', 'tank', 'revenant', 'gargoyle', 'apex', 'dreadnought'],
+  air: ['flyer', 'wisp', 'gargoyle'],
+  siege: ['siegeworm', 'spitter', 'warden'],
+  horror: ['broodmother', 'hivecaller', 'mender', 'cantor', 'bomber', 'popper'],
 };
-const SHAPE_ROTATION: Exclude<WaveShape, 'boss'>[] = ['swarm', 'armored', 'mixed', 'rush', 'elite'];
+const SHAPE_ROTATION: Exclude<WaveShape, 'boss'>[] = ['swarm', 'armored', 'mixed', 'rush', 'elite', 'air', 'siege', 'horror'];
 
 type Rng = () => number;
 const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)];
