@@ -253,6 +253,7 @@ export class Game {
   private occupied = new Set<number>();
   private spawnQueue: QueuedSpawn[] = [];
   private spawnedAll = false;
+  private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -517,6 +518,7 @@ export class Game {
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
+    this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
@@ -537,6 +539,7 @@ export class Game {
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
+    this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
     this.pushSfx('wave');
@@ -1423,6 +1426,7 @@ export class Game {
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
         this.pushSfx('kill');
+        if (e.boss) this.bossDeathSpectacle(e); // a boss death is an event, not a pop
         if (e.bounty >= 20) {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
         }
@@ -1553,14 +1557,53 @@ export class Game {
     }
   }
 
+  // ── Reward-moment spectacle (cosmetic; uses the FX rng + cue queue only, so it never
+  //    perturbs the deterministic outcome the golden tests pin). ────────────────────────
+
+  /** A framework boss dies as an EVENT: a double-burst detonation, a flood of biomass motes
+   * streaming to the counter, a banner, and a heavy shake cue. */
+  private bossDeathSpectacle(e: Enemy): void {
+    this.spawnParticles(e.x, e.y, PARTICLE.bossfall);
+    this.spawnParticles(e.x, e.y, PARTICLE.bossfall, ENEMY_DEFS[e.kind].color);
+    for (let i = 0; i < 5; i++) this.spawnMotes(e.x, e.y); // the boss's biomass floods home
+    this.floats.push({ x: e.x, y: e.y - 26, text: `${e.boss?.name ?? 'BOSS'} FELL`, color: '#ffd24d', life: 1.8 });
+    this.pushSfx('breach'); // strongest existing shake cue
+  }
+
+  /** Wave-clear flourish at the line; a no-damage wave reads as FLAWLESS (skill reward). */
+  private waveCompleteFlourish(flawless: boolean): void {
+    const x = nucleusPoint.x;
+    this.spawnParticles(x, DEFENSE_TOP_Y, PARTICLE.celebrate);
+    if (flawless) {
+      this.spawnParticles(x, DEFENSE_TOP_Y, PARTICLE.celebrate, '#ffd24d');
+      this.floats.push({ x, y: DEFENSE_TOP_Y - 30, text: 'FLAWLESS', color: '#ffd24d', life: 1.6 });
+    } else {
+      this.floats.push({ x, y: DEFENSE_TOP_Y - 30, text: 'WAVE CLEARED', color: '#b6e84a', life: 1.2 });
+    }
+    this.pushSfx('wave');
+  }
+
+  /** Stage-clear crescendo — a wide multi-hued extraction bloom across the line. */
+  private stageClearCrescendo(): void {
+    const x = nucleusPoint.x;
+    for (let i = 0; i < 5; i++) {
+      this.spawnParticles(x + (i - 2) * 48, DEFENSE_TOP_Y, PARTICLE.celebrate, i % 2 ? '#ffd24d' : '#5ad1ff');
+    }
+    this.floats.push({ x, y: DEFENSE_TOP_Y - 40, text: 'EXTRACTION', color: '#ffd24d', life: 2.2 });
+    this.pushSfx('ability');
+  }
+
   private checkWaveEnd(): void {
     if (this.phase !== 'wave') return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
+      const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
       // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
       if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
+        this.stageClearCrescendo();
         this.phase = 'won';
       } else {
+        this.waveCompleteFlourish(flawless);
         this.draft = draftCards(this.rng, 3);
         this.phase = 'draft';
       }
