@@ -43,6 +43,8 @@ export interface RunModifiers {
   damagePerTower: number; // +tower damage per tower on the board (0 = off)
   reactionRepeats: number; // extra times a status reaction re-fires / chains (0 = off)
   enemyHpRunMult: number; // run-wide enemy-HP scalar (gear trade-off, e.g. Hivemind +10%) (1 = none)
+  classResonanceBonus: number; // +tower damage for towers matching the fielded hero's class (0 = off)
+  diversityBonus: number; // +tower damage per DISTINCT tower class on the board (0 = off)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -74,6 +76,8 @@ export function defaultRunModifiers(): RunModifiers {
     damagePerTower: 0,
     reactionRepeats: 0,
     enemyHpRunMult: 1,
+    classResonanceBonus: 0,
+    diversityBonus: 0,
   };
 }
 

@@ -52,6 +52,7 @@ import {
   MAX_AFFIX_TIER,
 } from './equipment';
 import { DIFFICULTIES, difficultyRegistry } from './difficulty';
+import { DOCTRINES, doctrineRegistry } from './doctrines';
 import { statusRegistry } from './status';
 import { rarityRegistry } from './loot';
 import { starPathRegistry } from './stars';
@@ -115,6 +116,7 @@ export function validateAllContent(): string[] {
     ...equipmentRegistry.validate(),
     ...statusRegistry.validate(),
     ...difficultyRegistry.validate(),
+    ...doctrineRegistry.validate(),
     ...rarityRegistry.validate(),
     ...starPathRegistry.validate(),
     ...waveProblems(WAVES),
@@ -224,6 +226,7 @@ export function validateAllContentReport(): ValidationReport {
   issues.push(...dupIssues(Object.values(CHESTS), (d) => d.id, 'chest'));
   issues.push(...dupIssues(Object.values(BOSS_DEFS), (d) => d.id, 'boss'));
   issues.push(...dupIssues(Object.values(DIFFICULTIES), (d) => d.id, 'difficulty'));
+  issues.push(...dupIssues(Object.values(DOCTRINES), (d) => d.id, 'doctrine'));
 
   // 2 ─ Missing assets: visual defs need a name + a valid hex color (placeholder-art slot).
   const colored: { label: string; name: string; color: string; id: string }[] = [
@@ -262,6 +265,7 @@ export function validateAllContentReport(): ValidationReport {
   for (const a of AFFIXES) issues.push(...validateEffects(a.effects, `affix '${a.id}'`));
   for (const s of Object.values(SETS)) issues.push(...validateEffects([...s.bonus2, ...s.bonus4], `set '${s.id}'`));
   for (const c of CARD_POOL) issues.push(...validateEffects(c.effects, `card '${c.id}'`));
+  for (const d of Object.values(DOCTRINES)) issues.push(...validateEffects(d.effects, `doctrine '${d.id}'`));
   for (const u of META_UPGRADES) {
     if (!META_KEYS.has(u.effect.stat)) issues.push(err('invalid-reference', `upgrade '${u.id}'`, `targets unknown meta stat '${u.effect.stat}'`));
   }
@@ -294,6 +298,7 @@ export function validateAllContentReport(): ValidationReport {
   push(Object.values(CHESTS).map((d) => locIssue(d.name, `chest '${d.id}'`, 'name')));
   push(Object.values(BOSS_DEFS).map((d) => locIssue(d.name, `boss '${d.id}'`, 'name')));
   push(Object.values(DIFFICULTIES).flatMap((d) => [locIssue(d.name, `difficulty '${d.id}'`, 'name'), locIssue(d.blurb, `difficulty '${d.id}'`, 'blurb')]));
+  push(Object.values(DOCTRINES).flatMap((d) => [locIssue(d.name, `doctrine '${d.id}'`, 'name'), locIssue(d.blurb, `doctrine '${d.id}'`, 'blurb')]));
 
   // 6 ─ Broken upgrade chains: progression curves must stay monotonic / non-degenerate.
   if (STAR.maxStars <= 0) issues.push(err('broken-upgrade-chain', 'STAR', 'maxStars must be > 0'));

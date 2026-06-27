@@ -70,6 +70,7 @@ import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
 import { resolveDifficulty } from './difficulty';
 import type { DifficultyDef } from './difficulty';
+import { resolveDoctrine } from './doctrines';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
@@ -82,6 +83,7 @@ export interface RunOptions {
   runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
   mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
+  doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -284,7 +286,9 @@ export class Game {
     this.mods.towerDamageMult = meta.towerDamageMult;
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
-    // Fold run-start effects (equipment, …) — neutral fields keep a gear-less run identical.
+    // Fold the chosen doctrine's run-start effects, then run-start effects (equipment, …).
+    // 'none' / no gear contribute nothing, so a default run stays byte-identical.
+    for (const e of resolveDoctrine(opts.doctrine).effects) applyRunEffect(this.mods, e);
     if (opts.runEffects) for (const e of opts.runEffects) applyRunEffect(this.mods, e);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
@@ -481,6 +485,11 @@ export class Game {
     if (m.lastStandThreshold > 0 && this.integrity <= m.lastStandThreshold * this.maxIntegrity) out *= m.lastStandMult;
     if (m.damagePerEmptySlot > 0) out *= 1 + m.damagePerEmptySlot * Math.max(0, this.unlockedSlots - this.towers.length);
     if (m.damagePerTower > 0) out *= 1 + m.damagePerTower * this.towers.length;
+    if (m.diversityBonus > 0) {
+      const classes = new Set<string>();
+      for (const t of this.towers) classes.add(TOWER_DEFS[t.kind].combatClass);
+      out *= 1 + m.diversityBonus * classes.size; // rewards a varied board (which fuels reactions)
+    }
     return out;
   }
 
@@ -831,6 +840,8 @@ export class Game {
 
   private towerSystem(dt: number): void {
     const ksDmg = this.keystoneTowerDmgMult(); // run-wide keystone damage (1 = none); per-tick
+    // Class resonance: the fielded hero's combat class amplifies same-class towers (off at 0).
+    const resoClass = this.mods.classResonanceBonus > 0 ? HERO_DEFS[this.heroes[0].kind].combatClass : null;
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
@@ -843,7 +854,8 @@ export class Game {
       const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
       const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus : 1;
       const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate);
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg);
+      const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).

@@ -44,6 +44,7 @@ export interface SimConfig {
   seed: number;
   mode?: RunMode; // 'stage' (default) or 'endless'
   difficulty?: string; // universal difficulty id (default 'standard')
+  doctrine?: string; // exclusive run-start doctrine id (default 'none')
   maxSeconds?: number; // wall-clock sim budget (safety bound)
   maxWaves?: number; // stop after this many waves/depths (endless never self-terminates)
   strategy?: SimStrategy;
@@ -122,7 +123,7 @@ export function simulateBattle(cfg: SimConfig): SimReport {
     cfg.towerProgress,
     cfg.heroKind,
     cfg.heroProgress,
-    { mode, difficulty, runEffects: cfg.runEffects },
+    { mode, difficulty, doctrine: cfg.doctrine, runEffects: cfg.runEffects },
   );
 
   // ── Observation accumulators ──
