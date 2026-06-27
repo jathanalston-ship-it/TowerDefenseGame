@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
 import { TOWER_ORDER } from '../core/config';
+import { masteryLevel, meta } from '../state/meta';
+import { masteryRank } from '../core/mastery';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
@@ -56,6 +58,15 @@ export function GameView({
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
 
+  // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations). Fixed for the run
+  // (mastery banks at run end), so compute once; the renderer draws a veteran halo per tier.
+  const cosmeticTiers = useMemo(() => {
+    const s = meta.get();
+    const m: Record<string, number> = {};
+    for (const k of TOWER_ORDER) m[k] = masteryRank(masteryLevel(s.towerMasteryXp[k] ?? 0));
+    return m;
+  }, []);
+
   const refresh = (): void => setHud(game.getSnapshot());
 
   useEffect(() => {
@@ -93,7 +104,7 @@ export function GameView({
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.save();
         ctx.translate(dx, dy);
-        drawGame(ctx, game.getRenderState(), pointerRef.current);
+        drawGame(ctx, game.getRenderState(), pointerRef.current, cosmeticTiers);
         ctx.restore();
 
         // Ambient bed intensifies with pressure (enemies massing + a wounded core).
