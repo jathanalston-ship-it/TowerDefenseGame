@@ -281,6 +281,7 @@ export interface HudSnapshot {
     respawn: number;
     hp: number;
     maxHp: number;
+    shield: number; // active absorb-shield HP (0 = none); shown beside Health when > 0
     abilityReady: boolean;
     abilityCd: number;
     abilityCdMax: number;
