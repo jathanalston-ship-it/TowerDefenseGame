@@ -1,64 +1,143 @@
-// Loot-box rolling — the run-end reward chest (PROGRESSION.md / LOOTBOX.md). A chest
-// is a number of independent rolls; each yields tower shards, or (small chance) hero
-// shards. Pure given its rng, so it's unit-testable and seedable; the meta layer
-// applies the result to the save. This is META, not the deterministic sim, so a
-// plain `() => number` rng (defaulting to Math.random) is fine here.
+// Loot-box rolling. TWO data-driven roll paths share ONE result shape (ChestResult)
+// so a single reveal pipeline serves both:
+//   • rollChest — run-end caches: N pulls from a chest's weighted POOLS (config.ts),
+//     each pull landing in tower/hero shards, crafting materials, equipment, or a
+//     future seam (cosmetic/relic/event); produces one RewardItem per pull.
+//   • rollLoot  — loot-queue boxes: a per-RARITY reward table (core/loot.ts), shards
+//     only, with the box's rarity id riding along as chestId so the reveal styles it.
+// Both aggregate into per-system totals the meta layer applies to the save. Pure given
+// its rng (defaulting to Math.random) — META, not the deterministic sim.
 
 import { HERO_IDS, TOWER_ORDER } from '../core/config';
-import type { ChestDef } from '../core/config';
+import type { ChestDef, LootRarity, MaterialKind, WeightedPool } from '../core/config';
 import type { LootRewardTable, RarityDef } from '../core/loot';
 import type { TowerKind } from '../core/types';
+import { RARITY_ORDER, rollItemDrop } from '../core/equipment';
+import type { OwnedItem } from '../core/equipment';
 
-/** One revealed reward (the animated opening plays these in order). */
+/** One revealed reward (the animated opening plays these in order). Every reward
+ * system is a variant here; future seams (cosmetic/relic/event) are real shapes,
+ * produced only once a chest weights their pool. */
 export type RewardItem =
-  | { type: 'tower'; kind: TowerKind; amount: number }
-  | { type: 'hero'; id: string; amount: number };
+  | { type: 'tower'; rarity: LootRarity; kind: TowerKind; amount: number }
+  | { type: 'hero'; rarity: LootRarity; id: string; amount: number }
+  | { type: 'material'; rarity: LootRarity; mat: MaterialKind; amount: number }
+  | { type: 'equipment'; rarity: LootRarity; item: OwnedItem }
+  | { type: 'cosmetic'; rarity: LootRarity; id: string }
+  | { type: 'relic'; rarity: LootRarity; id: string }
+  | { type: 'event'; rarity: LootRarity; currency: string; amount: number };
 
 export interface ChestResult {
   chestId: string;
-  items: RewardItem[]; // ordered reveal sequence
-  towerShards: Record<TowerKind, number>; // aggregated totals (for applying to the save)
+  topRarity: LootRarity; // the best pull — drives how big the reveal ceremony gets
+  items: RewardItem[]; // ordered reveal sequence (duplicates kept; UI merges them)
+  // ── aggregated per-system totals (what the meta layer applies to the save) ──
+  towerShards: Record<TowerKind, number>;
   heroShards: Record<string, number>;
+  materials: Record<MaterialKind, number>;
+  equipment: OwnedItem[];
 }
 
-function randInt(rng: () => number, [lo, hi]: [number, number]): number {
+type Rng = () => number;
+
+function randInt(rng: Rng, [lo, hi]: [number, number]): number {
   return lo + Math.floor(rng() * (hi - lo + 1));
 }
-function pick<T>(rng: () => number, arr: readonly T[]): T {
+function pick<T>(rng: Rng, arr: readonly T[]): T {
   return arr[Math.floor(rng() * arr.length)];
 }
+function weightedPool(rng: Rng, pools: WeightedPool[]): WeightedPool {
+  const total = pools.reduce((s, p) => s + p.weight, 0);
+  let r = rng() * total;
+  for (const p of pools) if ((r -= p.weight) < 0) return p;
+  return pools[pools.length - 1];
+}
+function higher(a: LootRarity, b: LootRarity): LootRarity {
+  return RARITY_ORDER.indexOf(a) >= RARITY_ORDER.indexOf(b) ? a : b;
+}
 
-/** Core roller: turn a reward table into an ordered reveal list + aggregated shard totals.
- * Shared by chests (config) and loot-queue boxes (rarity framework) so both reveal alike. */
-function rollTable(id: string, t: LootRewardTable, rng: () => number): ChestResult {
-  const items: RewardItem[] = [];
+/** A fresh result with zeroed per-system accumulators (shared by both roll paths). */
+function emptyResult(chestId: string): ChestResult {
   const towerShards = {} as Record<TowerKind, number>;
   for (const k of TOWER_ORDER) towerShards[k] = 0;
-  const heroShards: Record<string, number> = {};
+  return {
+    chestId,
+    topRarity: 'common',
+    items: [],
+    towerShards,
+    heroShards: {},
+    materials: { mutagen: 0, scrap: 0, catalyst: 0 },
+    equipment: [],
+  };
+}
 
+/** Fold a reward item into a result's aggregated per-system totals + reveal list. */
+function accrue(res: ChestResult, item: RewardItem): void {
+  res.items.push(item);
+  res.topRarity = higher(res.topRarity, item.rarity);
+  switch (item.type) {
+    case 'tower':
+      res.towerShards[item.kind] += item.amount;
+      break;
+    case 'hero':
+      res.heroShards[item.id] = (res.heroShards[item.id] ?? 0) + item.amount;
+      break;
+    case 'material':
+      res.materials[item.mat] += item.amount;
+      break;
+    case 'equipment':
+      res.equipment.push(item.item);
+      break;
+    // cosmetic / relic / event: future seams — no save bucket yet, reveal-only.
+  }
+}
+
+/** Roll one pull from a weighted pool into a RewardItem. */
+function rollOne(rng: Rng, wp: WeightedPool): RewardItem {
+  const r = wp.rarity ?? 'common';
+  const s = wp.spec;
+  switch (s.pool) {
+    case 'tower':
+      return { type: 'tower', rarity: r, kind: pick(rng, TOWER_ORDER), amount: randInt(rng, s.range) };
+    case 'hero':
+      return { type: 'hero', rarity: r, id: pick(rng, HERO_IDS), amount: randInt(rng, s.range) };
+    case 'material':
+      return { type: 'material', rarity: r, mat: pick(rng, s.mats), amount: randInt(rng, s.range) };
+    case 'equipment': {
+      const item = rollItemDrop(rng, s.wave);
+      return { type: 'equipment', rarity: item.rarity, item }; // equipment carries its own rarity
+    }
+    case 'cosmetic':
+      return { type: 'cosmetic', rarity: r, id: pick(rng, s.ids) };
+    case 'relic':
+      return { type: 'relic', rarity: r, id: pick(rng, s.ids) };
+    case 'event':
+      return { type: 'event', rarity: r, currency: s.currency, amount: randInt(rng, s.range) };
+  }
+}
+
+/** Roll a chest into an ordered reveal list + aggregated per-system totals (pools model). */
+export function rollChest(def: ChestDef, rng: Rng = Math.random): ChestResult {
+  const res = emptyResult(def.id);
+  for (let i = 0; i < def.rolls; i++) accrue(res, rollOne(rng, weightedPool(rng, def.pools)));
+  return res;
+}
+
+/** Roll a loot-queue box's per-rarity reward table (shards only) into the shared shape.
+ * Items carry a neutral 'common' item-rarity — the BOX rarity (chestId, the rarity id)
+ * supplies the reveal's emphasis (see LootReveal), keeping the item-rarity and box-rarity
+ * scales cleanly separate. */
+export function rollLoot(rarity: RarityDef, rng: Rng = Math.random): ChestResult {
+  const t: LootRewardTable = rarity.reward;
+  const res = emptyResult(rarity.id);
   for (let i = 0; i < t.rolls; i++) {
     if (rng() < t.heroShardChance) {
-      const heroId = pick(rng, HERO_IDS);
-      const amount = randInt(rng, t.heroShardRange);
-      heroShards[heroId] = (heroShards[heroId] ?? 0) + amount;
-      items.push({ type: 'hero', id: heroId, amount });
+      const id = pick(rng, HERO_IDS);
+      accrue(res, { type: 'hero', rarity: 'common', id, amount: randInt(rng, t.heroShardRange) });
     } else {
       const kind = pick(rng, TOWER_ORDER);
-      const amount = randInt(rng, t.towerShardRange);
-      towerShards[kind] += amount;
-      items.push({ type: 'tower', kind, amount });
+      accrue(res, { type: 'tower', rarity: 'common', kind, amount: randInt(rng, t.towerShardRange) });
     }
   }
-  return { chestId: id, items, towerShards, heroShards };
-}
-
-/** Roll a chest into an ordered reveal list + aggregated shard totals. */
-export function rollChest(def: ChestDef, rng: () => number = Math.random): ChestResult {
-  return rollTable(def.id, def, rng);
-}
-
-/** Roll a loot-queue box's per-rarity reward table into the same reveal structure
- * (the rarity id rides along as chestId so the reveal can style by rarity). */
-export function rollLoot(rarity: RarityDef, rng: () => number = Math.random): ChestResult {
-  return rollTable(rarity.id, rarity.reward, rng);
+  return res;
 }

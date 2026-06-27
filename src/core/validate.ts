@@ -322,13 +322,26 @@ export function validateAllContentReport(): ValidationReport {
     });
   }
 
-  // 7 ─ Invalid loot tables: reward ranges/odds must be sane and pools non-empty.
+  // 7 ─ Invalid loot tables: pools non-empty, weights sane, ranges well-formed.
   for (const c of Object.values(CHESTS)) {
     const target = `chest '${c.id}'`;
     if (c.rolls <= 0) issues.push(err('invalid-loot-table', target, 'rolls must be > 0'));
-    if (c.towerShardRange[0] < 0 || c.towerShardRange[1] < c.towerShardRange[0]) issues.push(err('invalid-loot-table', target, `towerShardRange ${JSON.stringify(c.towerShardRange)} is malformed`));
-    if (c.heroShardChance < 0 || c.heroShardChance > 1) issues.push(err('invalid-loot-table', target, `heroShardChance ${c.heroShardChance} must be in [0,1]`));
-    if (c.heroShardRange[0] < 0 || c.heroShardRange[1] < c.heroShardRange[0]) issues.push(err('invalid-loot-table', target, `heroShardRange ${JSON.stringify(c.heroShardRange)} is malformed`));
+    if (!c.pools || c.pools.length === 0) {
+      issues.push(err('invalid-loot-table', target, 'must define at least one reward pool'));
+      continue;
+    }
+    if (c.pools.reduce((s, p) => s + p.weight, 0) <= 0) issues.push(err('invalid-loot-table', target, 'pool weights sum to 0'));
+    for (const p of c.pools) {
+      if (p.weight < 0) issues.push(err('invalid-loot-table', target, 'pool weight must be ≥ 0'));
+      const s = p.spec;
+      if (
+        (s.pool === 'tower' || s.pool === 'hero' || s.pool === 'material' || s.pool === 'event') &&
+        (s.range[0] < 0 || s.range[1] < s.range[0])
+      ) {
+        issues.push(err('invalid-loot-table', target, `${s.pool} range ${JSON.stringify(s.range)} is malformed`));
+      }
+      if (s.pool === 'material' && s.mats.length === 0) issues.push(err('invalid-loot-table', target, 'material pool has no mats'));
+    }
   }
   if (WEAPONS.length === 0) issues.push(err('invalid-loot-table', 'equipment', 'weapon pool is empty'));
   if (ARMOR.length === 0) issues.push(err('invalid-loot-table', 'equipment', 'armor pool is empty'));
