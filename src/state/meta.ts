@@ -418,19 +418,22 @@ export const meta = {
     return store.get().mastery[unit] ?? 0;
   },
 
-  /** Level + progress toward the next level, for the UI bar. */
-  masteryProgress(unit: MasteryUnit): { level: number; xp: number; into: number; span: number; dmgPct: number; nextMilestone: number } {
+  /** Level + progress toward the next level, for the UI bar. `nextRateMilestone` is the
+   *  level of the next rate-granting milestone, or null once the rate cap is reached
+   *  (past the cap only the logarithmic damage keeps growing). */
+  masteryProgress(unit: MasteryUnit): { level: number; xp: number; into: number; span: number; dmgPct: number; nextRateMilestone: number | null } {
     const xp = store.get().mastery[unit] ?? 0;
     const level = masteryLevel(xp);
     const lo = masteryXpForLevel(level);
     const hi = masteryXpForLevel(level + 1);
+    const earned = Math.floor(level / MASTERY.milestoneEvery);
     return {
       level,
       xp,
       into: xp - lo,
       span: Math.max(1, hi - lo),
       dmgPct: Math.round((masteryDamageMult(level) - 1) * 1000) / 10, // +X.X% damage
-      nextMilestone: (Math.floor(level / MASTERY.milestoneEvery) + 1) * MASTERY.milestoneEvery,
+      nextRateMilestone: earned < MASTERY.milestoneRateMax ? (earned + 1) * MASTERY.milestoneEvery : null,
     };
   },
 

@@ -390,7 +390,9 @@ describe('infinite mastery', () => {
   it('a milestone (every 10 levels) adds a rate step, but the rate is capped', () => {
     meta.reset();
     meta.debugGrantMastery('needle', masteryXpForLevel(12)); // past level 10 → one milestone
-    expect(meta.masteryProgress('needle').level).toBeGreaterThanOrEqual(10);
+    const p1 = meta.masteryProgress('needle');
+    expect(p1.level).toBeGreaterThanOrEqual(10);
+    expect(p1.nextRateMilestone).not.toBeNull(); // more rate milestones still ahead
     const r1 = meta.runFold().stat.needle.fireRateMult;
     expect(r1).toBeGreaterThan(1);
 
@@ -400,6 +402,7 @@ describe('infinite mastery', () => {
     const fold = meta.runFold().stat.needle;
     expect(fold.fireRateMult).toBeLessThanOrEqual(1.21); // capped (~+20%), never runs away
     expect(fold.damageMult).toBeGreaterThan(r1); // damage still scales with the huge level
+    expect(meta.masteryProgress('needle').nextRateMilestone).toBeNull(); // UI stops promising +rate
     meta.reset();
   });
 });

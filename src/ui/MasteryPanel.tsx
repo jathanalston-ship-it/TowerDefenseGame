@@ -17,7 +17,6 @@ const UNIT_LABEL: Record<MasteryUnit, string> = {
 
 function MasteryRow({ unit }: { unit: MasteryUnit }): JSX.Element {
   const p = meta.masteryProgress(unit);
-  const toNext = p.nextMilestone - p.level;
   return (
     <div className="shop-item">
       <div className="info">
@@ -26,7 +25,9 @@ function MasteryRow({ unit }: { unit: MasteryUnit }): JSX.Element {
           <span className="lvl" style={{ color: 'var(--gold)' }}>Lv {p.level}</span>
         </div>
         <div className="desc">
-          +{p.dmgPct}% damage · milestone in {toNext} (Lv {p.nextMilestone} → +rate)
+          +{p.dmgPct}% damage · {p.nextRateMilestone != null
+            ? `+rate at Lv ${p.nextRateMilestone} (in ${p.nextRateMilestone - p.level})`
+            : 'rate maxed — +damage forever'}
         </div>
         <ProgressBar value={p.into} max={p.span} color="var(--gold)" height={6} label={`${UNIT_LABEL[unit]} mastery`} />
       </div>
