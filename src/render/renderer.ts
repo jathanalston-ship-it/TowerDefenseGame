@@ -672,6 +672,7 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
 // Summoned friendly units — small glowing motes that fade out over their last second.
 function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
   for (const m of rs.minions) {
+    if (!m.alive) continue; // destroyed this tick, culled next — don't draw the corpse
     const tint = hexRgb(m.color);
     ctx.globalAlpha = m.life < 1.2 ? Math.max(0, m.life / 1.2) : 1; // fade as it expires
     glowDisc(ctx, m.x, m.y, m.radius + 4, rgba(tint, 0.4));

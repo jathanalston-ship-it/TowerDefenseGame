@@ -59,4 +59,35 @@ describe('Shepherd Bloom summon (the summon ability primitive)', () => {
     castUlt(g, WIDTH / 2, 500);
     expect(g.minions.length).toBe(0);
   });
+
+  it('a Wisp body-blocks an enemy (it halts) and the enemy chews the Wisp down', () => {
+    const g = new Game(5, NO_META, undefined, 'shepherd');
+    g.startWave();
+    g.debugSpawn('brute', 1);
+    const e = g.enemies.find((x) => x.kind === 'brute')!;
+    castUlt(g, e.x, e.y); // summon Wisps onto the brute
+    const m = g.minions[0];
+    const hp0 = m.hp;
+    const ey0 = e.y;
+    for (let i = 0; i < 30; i++) {
+      m.x = e.x; m.y = e.y; // hold the Wisp in contact so the block is unambiguous
+      g.advance(SIM_DT);
+    }
+    expect(m.hp).toBeLessThan(hp0); // the brute damaged the blocking Wisp
+    expect(e.y).toBe(ey0); // …and the brute was halted — it never advanced past the block
+  });
+
+  it('sustained enemy contact destroys a Wisp', () => {
+    const g = new Game(5, NO_META, undefined, 'shepherd');
+    g.startWave();
+    g.debugSpawn('colossus', 1); // heavy hitter — chews through a Wisp's HP fast
+    const e = g.enemies.find((x) => x.kind === 'colossus')!;
+    castUlt(g, e.x, e.y);
+    expect(g.minions.length).toBe(2);
+    for (let i = 0; i < 90; i++) {
+      for (const m of g.minions) { m.x = e.x; m.y = e.y; } // hold Wisps in contact
+      g.advance(SIM_DT);
+    }
+    expect(g.minions.length).toBeLessThan(2); // at least one Wisp was destroyed (HP, not lifetime)
+  });
 });

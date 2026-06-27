@@ -721,6 +721,7 @@ export const HERO_ULT: Record<HeroKind, AbilityComponent[]> = Object.fromEntries
 export interface MinionDef {
   id: string;
   name: string;
+  hp: number; // health — enemies in contact chew through it (body-block)
   damage: number; // per attack
   attackInterval: number; // seconds between attacks
   range: number; // seek radius — the nearest enemy within it is the target
@@ -730,7 +731,7 @@ export interface MinionDef {
   color: string;
 }
 export const MINION_DEFS: Record<string, MinionDef> = {
-  wisp: { id: 'wisp', name: 'Vital Wisp', damage: 7, attackInterval: 0.7, range: 300, speed: 130, life: 5, radius: 7, color: '#ffd0a6' },
+  wisp: { id: 'wisp', name: 'Vital Wisp', hp: 30, damage: 7, attackInterval: 0.7, range: 300, speed: 130, life: 5, radius: 7, color: '#ffd0a6' },
 };
 export const MINION_CAP = 16; // global cap on live minions (perf + visual bound)
 

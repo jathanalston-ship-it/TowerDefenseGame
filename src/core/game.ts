@@ -1358,6 +1358,10 @@ export class Game {
         }
         continue; // standoff: it shells the core instead of advancing
       }
+      // Minion body-block: a friendly summon in contact halts the enemy and soaks its attack
+      // (the blocker fantasy). Flying/burrowing enemies bypass it (their identity), and the
+      // whole check is gated on minions existing ⇒ enemyMoveSystem is byte-identical on golden.
+      if (this.minions.length > 0 && !def.behavior.flying && !def.behavior.burrowing && this.minionBlock(e, def, dt)) continue;
       const b = def.behavior;
       // Corrosion and Disruption both slow; take the stronger, capped at 0.85.
       let slow = 0;
@@ -2293,6 +2297,7 @@ export class Game {
       const r = n > 1 ? 18 : 0; // ring radius (single summon sits on the point)
       this.minions.push({
         id: this.nextId++, kind: unit, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r,
+        hp: def.hp, maxHp: def.hp,
         damage: def.damage, attackCd: 0, attackInterval: def.attackInterval, range: def.range,
         speed: def.speed, life: def.life, maxLife: def.life, radius: def.radius, color: def.color, alive: true,
       });
@@ -2336,6 +2341,28 @@ export class Game {
       if (d2 < bd) { bd = d2; best = e; }
     });
     return best;
+  }
+
+  /** Body-block: if a friendly minion is in contact with `e`, the enemy halts and chews
+   * through it (dealing its attack to the minion's HP) instead of advancing. Returns whether
+   * the enemy was blocked this tick. The minion fights back via minionSystem. ≤ MINION_CAP
+   * minions, so the scan is bounded; only called when minions exist (golden-safe). */
+  private minionBlock(e: Enemy, def: EnemyDef, dt: number): boolean {
+    let blocker: Minion | null = null;
+    let bd = Infinity;
+    for (const m of this.minions) {
+      if (!m.alive) continue;
+      const reach = def.radius + m.radius + 6; // matches the minion's own attack reach
+      const d2 = dist2(e.x, e.y, m.x, m.y);
+      if (d2 <= reach * reach && d2 < bd) { bd = d2; blocker = m; }
+    }
+    if (!blocker) return false;
+    blocker.hp -= e.damage * dt;
+    if (blocker.hp <= 0) {
+      blocker.alive = false; // minionSystem culls it next tick
+      this.spawnParticles(blocker.x, blocker.y, PARTICLE.death);
+    }
+    return true;
   }
 
   /** Human-readable active run modifiers for the build panel. */
