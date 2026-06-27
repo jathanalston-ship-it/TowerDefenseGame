@@ -6,19 +6,21 @@
 import { describe, it, expect } from 'vitest';
 import { autoplay } from './sim.testutil';
 
-// Re-pinned deliberately for the TOWER RANGE PHILOSOPHY redesign (docs/RANGE.md): each
-// tower class now owns a distinct vertical engagement band (full-map artillery / long-range
-// marksman / wide control field / medium skirmisher / short support), with cost & DPS
-// rebalanced so long reach is paid back with low damage. Towers now engage the whole lane,
-// so kills land earlier and more integrity survives — every seed still wins at wave 12.
-// Any FURTHER drift from here is unintended.
+// Re-pinned deliberately for the GENE CARD EXPANSION (docs/CARDS.md): the draft pool grew
+// 14 → 44 cards across four rarities (common/rare/epic/legendary), and `draftCards` now rolls
+// a DATA-DRIVEN, depth-scaled rarity weight instead of a hardcoded rare chance. Autoplay drafts
+// card 0 each wave, so the cards it lands on changed → these outcomes shifted. Every seed still
+// WINS at wave 12 (the expansion didn't break beatability); the swing is just the dumb auto-
+// strategy landing on different cards. Any FURTHER drift from here is unintended.
+//
+// (Prior baseline traced to the TOWER RANGE PHILOSOPHY redesign, docs/RANGE.md.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 193, integrity: 178, biomass: 7024, phase: 'won' },
-  7: { wave: 12, kills: 194, integrity: 182, biomass: 7549, phase: 'won' },
-  42: { wave: 12, kills: 192, integrity: 129, biomass: 9007, phase: 'won' },
-  777: { wave: 12, kills: 192, integrity: 129, biomass: 7987, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 145, biomass: 12488, phase: 'won' },
-  12345: { wave: 12, kills: 191, integrity: 215, biomass: 5764, phase: 'won' },
+  1: { wave: 12, kills: 192, integrity: 269, biomass: 7590, phase: 'won' },
+  7: { wave: 12, kills: 194, integrity: 137, biomass: 7457, phase: 'won' },
+  42: { wave: 12, kills: 191, integrity: 80, biomass: 7126, phase: 'won' },
+  777: { wave: 12, kills: 187, integrity: 64, biomass: 6345, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 170, biomass: 10733, phase: 'won' },
+  12345: { wave: 12, kills: 191, integrity: 80, biomass: 7258, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

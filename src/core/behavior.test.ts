@@ -49,7 +49,7 @@ describe('unified effect language', () => {
     const mods = defaultRunModifiers();
     const ctx: CardContext = { mods, grantBiomass: () => {}, grantIntegrity: () => {}, healHero: () => {} };
     expect(mods.heroAnchor).toBe('default');
-    applyCard({ id: 't', name: 'T', rarity: 'common', category: 'x', description: '', effects: [{ op: 'set', field: 'heroAnchor', value: 'nucleus' }] }, ctx);
+    applyCard({ id: 't', name: 'T', rarity: 'common', category: 'hero', description: '', effects: [{ op: 'set', field: 'heroAnchor', value: 'nucleus' }] }, ctx);
     expect(mods.heroAnchor).toBe('nucleus');
   });
 });

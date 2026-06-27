@@ -17,7 +17,7 @@ describe('validateContent', () => {
       ],
       towers: [],
       waves: [[]],
-      cards: [{ id: 'x', name: 'X', rarity: 'common', category: 'c', description: '', effects: [] }],
+      cards: [{ id: 'x', name: 'X', rarity: 'common', category: 'tower', description: '', effects: [] }],
       upgrades: [
         { id: 'u', name: 'U', description: '', maxLevel: 0, baseCost: 0, costMult: 0.5, effect: { stat: 'towerDamageMult', perLevel: 1 } },
       ],

@@ -46,7 +46,11 @@ export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
 
-export type CardRarity = 'common' | 'rare';
+export type CardRarity = 'common' | 'rare' | 'epic' | 'legendary';
+/** Gene-card synergy category (CARDS.md §4). A first-class tag: today it drives UI
+ * grouping; the framework keys future per-category weighting/synergy meta off it. */
+export type CardCategory =
+  | 'poison' | 'summons' | 'economy' | 'crit' | 'aoe' | 'control' | 'hero' | 'tower' | 'mutation';
 
 export interface Enemy {
   id: number;

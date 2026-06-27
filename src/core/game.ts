@@ -434,14 +434,20 @@ export class Game {
   /** Dispatch a run-start effect at boot: stat folds go to mods; the behavioral verbs
    * (grant/hook) are collected for the sim to consume. Empty when no gear ⇒ golden-safe. */
   private bootRunEffect(e: CardEffect): void {
+    if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
+    else applyRunEffect(this.mods, e);
+  }
+
+  /** Collect a behavioral verb (grant/hook) into the live arrays the sim reads each tick.
+   * Shared by boot-time equipment folding AND mid-run card drafts, so a drafted card can
+   * also grant a projectile mutator / hero on-hit / battlefield rule (one effect vocabulary). */
+  private collectRunVerb(e: CardEffect): void {
     if (e.op === 'grant') {
       if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id);
       else if (e.grant.kind === 'heroAttackStatus') this.heroAttackStatuses.push({ status: e.grant.status, amount: e.grant.amount });
       else if (e.grant.kind === 'heroAttackAbility') this.heroAttackKit.push(e.grant.component);
     } else if (e.op === 'hook') {
       this.relicHooks.push(e.hook);
-    } else {
-      applyRunEffect(this.mods, e);
     }
   }
 
@@ -662,6 +668,9 @@ export class Game {
     const card = this.draft.find((c) => c.id === id);
     if (card) {
       applyCard(card, this.cardContext());
+      // Behavioral verbs (grant/hook) fold into the live sim arrays too — a drafted card can
+      // add a projectile mutator / battlefield rule mid-run, not just at boot (equipment).
+      for (const e of card.effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
       this.chosenCards.push(cardToOption(card));
       this.pushSfx('draft');
       if (gameEvents.hasListeners('cardChosen')) gameEvents.emit('cardChosen', { id: card.id, rarity: card.rarity });
@@ -1960,7 +1969,7 @@ export class Game {
         this.phase = 'won';
       } else {
         this.waveCompleteFlourish(flawless);
-        this.draft = draftCards(this.rng, 3);
+        this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
         this.phase = 'draft';
       }
     }
@@ -2196,7 +2205,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3);
+    this.draft = draftCards(this.rng, 3, this.waveIndex);
     this.phase = 'draft';
   }
 
