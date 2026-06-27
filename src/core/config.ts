@@ -496,6 +496,68 @@ export function applyGear(item: GearItem, m: RunModifiers): void {
   for (const a of item.affixes) affixDef(a.id)?.apply(m, a.value);
 }
 
+// ── Infinite Mastery (uncapped per-unit progression) ────────────────────────
+// Every tower kind and the hero accrue Mastery XP from being FIELDED in runs. Unlike
+// Stars (capped at ★5), Mastery has NO ceiling — there is always a next level — so a
+// veteran always has a number going up (the fix for the "everything caps" cliff). Power
+// is deliberately LOGARITHMIC: each level adds a diminishing damage sliver, so infinite
+// levels can't break balance; a milestone every 10 levels adds a small rate step. Folds
+// through the same RunFold path as Stars/gear (towers via the per-kind StarStat block,
+// the hero via a run-mod apply) — so Mastery adds no new simulation behavior.
+export type MasteryUnit = TowerKind | 'hero';
+export const MASTERY_UNITS: MasteryUnit[] = ['needle', 'mortar', 'reactor', 'hero'];
+
+export const MASTERY = {
+  xpBase: 60, // cumulative XP to reach level 1 (scales as xpBase · level^xpPow)
+  xpPow: 1.5, // super-linear level cost → levels slow but never stop
+  dmgPerLevel: 0.02, // damage fraction per log2-doubling of level (the soft, infinite curve)
+  milestoneEvery: 10, // a fire/attack-rate step every N levels …
+  milestoneRate: 0.02,
+  milestoneRateMax: 10, // … but capped: rate perks are front-loaded (max +20%), so only the
+  //                       logarithmic DAMAGE is truly infinite — nothing runs away.
+  // XP earned per run (towers: only a fielded kind; hero: always):
+  xpPerWave: 8,
+  xpPerKill: 0.5,
+  xpPerExtraTower: 0.12, // small bonus for leaning into a kind (capped below)
+  extraTowerCap: 5,
+  xpPerApex: 3, // hero only
+} as const;
+
+/** Cumulative XP required to have reached a given mastery level (UI bars + inversion). */
+export function masteryXpForLevel(level: number): number {
+  return level <= 0 ? 0 : Math.ceil(MASTERY.xpBase * Math.pow(level, MASTERY.xpPow));
+}
+
+/** The (uncapped) mastery level for a cumulative XP total. */
+export function masteryLevel(xp: number): number {
+  if (xp <= 0) return 0;
+  return Math.floor(Math.pow(xp / MASTERY.xpBase, 1 / MASTERY.xpPow));
+}
+
+/** Diminishing damage multiplier from a mastery level (logarithmic → never runs away). */
+export function masteryDamageMult(level: number): number {
+  return 1 + MASTERY.dmgPerLevel * Math.log2(1 + level);
+}
+
+/** Capped fire/attack-rate multiplier from a level's milestones (bounded — front-loaded perks). */
+export function masteryRateMult(level: number): number {
+  const milestones = Math.min(Math.floor(level / MASTERY.milestoneEvery), MASTERY.milestoneRateMax);
+  return 1 + milestones * MASTERY.milestoneRate;
+}
+
+/** A unit's mastery folded into a per-kind stat block (merges with Stars in runFold). */
+export function masteryStatFor(xp: number): StarStat {
+  const lvl = masteryLevel(xp);
+  return { damageMult: masteryDamageMult(lvl), fireRateMult: masteryRateMult(lvl), rangeMult: 1, splashMult: 1 };
+}
+
+/** Apply the hero's mastery into the run modifier bag (damage + capped milestone attack rate). */
+export function applyHeroMastery(xp: number, m: RunModifiers): void {
+  const lvl = masteryLevel(xp);
+  m.heroDamageMult *= masteryDamageMult(lvl);
+  m.heroAttackRateMult *= masteryRateMult(lvl);
+}
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a

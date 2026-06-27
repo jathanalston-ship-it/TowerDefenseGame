@@ -42,6 +42,8 @@ export interface SaveData {
   // Hero equipment — owned gear + the equipped loadout.
   gear: GearItem[];
   equipped: Record<GearSlot, string | null>; // slot -> equipped item id (or none)
+  // Infinite Mastery — uncapped per-unit XP (towerKind | 'hero' -> cumulative XP).
+  mastery: Record<string, number>;
 }
 
 /** Discovered content sets (stored as deduped id arrays for JSON portability). */
@@ -51,7 +53,7 @@ export interface CodexData {
   cards: string[];
 }
 
-export const CURRENT_VERSION = 5;
+export const CURRENT_VERSION = 6;
 const SAVE_KEY = 'assimilate.save';
 const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
@@ -86,6 +88,7 @@ export function defaultSave(): SaveData {
     lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0,
     genomeShards: 0, stars: {},
     gear: [], equipped: { weapon: null, armor: null, relic: null },
+    mastery: {},
   };
 }
 
@@ -199,6 +202,7 @@ export function normalizeSave(raw: unknown): SaveData {
     stars: normalizeUpgrades(o.stars), // same shape as upgrades: id -> positive int level
     gear: normalizeGear(o.gear),
     equipped: normalizeEquipped(o.equipped, normalizeGear(o.gear)),
+    mastery: normalizeUpgrades(o.mastery), // unit -> positive int XP (same shape)
   };
 }
 
@@ -281,6 +285,11 @@ const MIGRATIONS: Migration[] = [
     to: 5,
     describe: 'hero equipment (gear + loadout)',
     up: (d) => [fieldOp.add(d, 'gear', []), fieldOp.add(d, 'equipped', { weapon: null, armor: null, relic: null })],
+  },
+  {
+    to: 6,
+    describe: 'infinite mastery (per-unit xp)',
+    up: (d) => [fieldOp.add(d, 'mastery', {})],
   },
 ];
 

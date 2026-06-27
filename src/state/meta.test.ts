@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { meta } from './meta';
-import { lootMeterSize, lootBoxRarity } from '../core/config';
+import { lootMeterSize, lootBoxRarity, masteryLevel, masteryXpForLevel, masteryDamageMult } from '../core/config';
 import { defaultRunModifiers } from '../core/cards';
 import type { RunResult } from '../core/game';
 
@@ -8,6 +8,7 @@ function result(over: Partial<RunResult>): RunResult {
   return {
     mode: 'classic', won: false, wave: 1, kills: 0, stageNumber: 0,
     rewardMultiplier: 1, objectiveDone: false, objectiveBonus: 0, score: 0,
+    towersByKind: { needle: 1, mortar: 1, reactor: 1 }, apexUses: 0,
     biome: null, enemiesSeen: [], cardsSeen: [], ...over,
   };
 }
@@ -327,6 +328,69 @@ describe('hero gear', () => {
       reward = meta.openLootBox();
     }
     expect(dropped).toBeGreaterThan(0);
+    meta.reset();
+  });
+});
+
+describe('infinite mastery', () => {
+  it('levels are uncapped and monotonic in XP', () => {
+    expect(masteryLevel(0)).toBe(0);
+    const a = masteryLevel(10_000);
+    const b = masteryLevel(1_000_000);
+    const c = masteryLevel(1_000_000_000);
+    expect(b).toBeGreaterThan(a);
+    expect(c).toBeGreaterThan(b); // no ceiling — always a higher level
+    for (const L of [1, 5, 10, 50, 200]) expect(masteryLevel(masteryXpForLevel(L))).toBe(L); // round-trips
+  });
+
+  it('the damage curve is diminishing (logarithmic, never runs away)', () => {
+    expect(masteryDamageMult(1000)).toBeGreaterThan(masteryDamageMult(100));
+    expect(masteryDamageMult(100)).toBeGreaterThan(masteryDamageMult(10)); // always growing
+    // The MARGINAL gain per level strictly shrinks (concave log) — diminishing returns.
+    const step = (l: number): number => masteryDamageMult(l + 1) - masteryDamageMult(l);
+    expect(step(10)).toBeGreaterThan(step(100));
+    expect(step(100)).toBeGreaterThan(step(1000));
+    expect(masteryDamageMult(1_000_000)).toBeLessThan(1.6); // bounded in practice
+  });
+
+  it('recordRun awards mastery XP to fielded towers + the hero', () => {
+    meta.reset();
+    meta.recordRun(result({ mode: 'classic', wave: 10, kills: 100, towersByKind: { needle: 3, mortar: 0, reactor: 1 }, apexUses: 4 }));
+    const s = meta.get();
+    expect(s.mastery.needle).toBeGreaterThan(0); // fielded → XP
+    expect(s.mastery.reactor).toBeGreaterThan(0);
+    expect(s.mastery.mortar ?? 0).toBe(0); // not fielded → none
+    expect(s.mastery.hero).toBeGreaterThan(0); // hero always earns
+    expect(s.mastery.needle).toBeGreaterThan(s.mastery.reactor); // leaning in (3 vs 1) earns more
+    meta.reset();
+  });
+
+  it('mastery folds into the run via runFold (towers + hero)', () => {
+    meta.reset();
+    meta.debugGrantMastery('needle', 500_000); // many levels
+    meta.debugGrantMastery('hero', 500_000);
+    const fold = meta.runFold();
+    expect(fold.stat.needle.damageMult).toBeGreaterThan(1); // tower mastery in the per-kind stat
+    expect(fold.stat.mortar.damageMult).toBe(1); // an untouched unit is unchanged
+    const mods = defaultRunModifiers();
+    fold.apply(mods);
+    expect(mods.heroDamageMult).toBeGreaterThan(1); // hero mastery in the run mods
+    meta.reset();
+  });
+
+  it('a milestone (every 10 levels) adds a rate step, but the rate is capped', () => {
+    meta.reset();
+    meta.debugGrantMastery('needle', masteryXpForLevel(12)); // past level 10 → one milestone
+    expect(meta.masteryProgress('needle').level).toBeGreaterThanOrEqual(10);
+    const r1 = meta.runFold().stat.needle.fireRateMult;
+    expect(r1).toBeGreaterThan(1);
+
+    // A near-infinite level must NOT keep growing the rate (only the log damage does).
+    meta.reset();
+    meta.debugGrantMastery('needle', 1_000_000_000);
+    const fold = meta.runFold().stat.needle;
+    expect(fold.fireRateMult).toBeLessThanOrEqual(1.21); // capped (~+20%), never runs away
+    expect(fold.damageMult).toBeGreaterThan(r1); // damage still scales with the huge level
     meta.reset();
   });
 });

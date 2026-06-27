@@ -270,7 +270,7 @@ describe('save version migration', () => {
     new SaveStore(s).save(defaultSave());
     const blob = JSON.parse(s.map.get('assimilate.save')!);
     expect(blob.schemaVersion).toBe(CURRENT_VERSION);
-    expect(CURRENT_VERSION).toBe(5);
+    expect(CURRENT_VERSION).toBe(6);
   });
 
   it('migrates a v3 save up to v4, adding the tower-star fields', () => {
@@ -313,6 +313,27 @@ describe('save version migration', () => {
       expect(r.data.equipped).toEqual({ weapon: null, armor: null, relic: null });
     }
     expect(getMigrationLog().some((e) => e.from === 4 && e.to === 5)).toBe(true);
+  });
+
+  it('migrates a v5 save up to v6, adding the mastery field', () => {
+    clearMigrationLog();
+    const v5 = {
+      schemaVersion: 5,
+      data: {
+        shards: 9, upgrades: {}, bestWave: 4, totalRuns: 3, lifetimeShards: 9, cardsSeen: 0,
+        stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+        essence: 0, components: 0, catalyst: 0, codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
+        lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0, genomeShards: 5, stars: { mortar: 1 },
+        gear: [], equipped: { weapon: null, armor: null, relic: null },
+      },
+    };
+    const r = parseImport(JSON.stringify(v5));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.stars).toEqual({ mortar: 1 }); // v5 values preserved
+      expect(r.data.mastery).toEqual({}); // v6 addition, defaulted
+    }
+    expect(getMigrationLog().some((e) => e.from === 5 && e.to === 6)).toBe(true);
   });
 
   it('round-trips a current save through a stored blob unchanged (preserve current saves)', () => {

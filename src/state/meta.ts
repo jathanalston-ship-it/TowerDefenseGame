@@ -35,8 +35,15 @@ import {
   GEAR_INVENTORY_CAP,
   GEAR_DISMANTLE_GENOME,
   applyGear,
+  MASTERY,
+  MASTERY_UNITS,
+  masteryLevel,
+  masteryXpForLevel,
+  masteryStatFor,
+  masteryDamageMult,
+  applyHeroMastery,
 } from '../core/config';
-import type { AffixDef } from '../core/config';
+import type { AffixDef, MasteryUnit } from '../core/config';
 import type { UpgradeDef, LootRarity, StarStat } from '../core/config';
 import type { Currency, MetaModifiers, TowerKind, GearItem, GearSlot } from '../core/types';
 import type { RunModifiers } from '../core/cards';
@@ -250,6 +257,18 @@ export const meta = {
     next.totalRuns = save.totalRuns + 1;
     next.genomeShards = save.genomeShards + Math.floor(result.wave * GENOME_SHARDS_PER_WAVE); // Star trickle
 
+    // ── Infinite Mastery XP — fielded towers + the hero each gain XP (never caps) ──
+    const masteryGain: Record<string, number> = { ...save.mastery };
+    const usageBase = result.wave * MASTERY.xpPerWave + result.kills * MASTERY.xpPerKill;
+    for (const kind of TOWER_ORDER) {
+      const built = result.towersByKind[kind] ?? 0;
+      if (built <= 0) continue; // only a fielded kind earns mastery
+      const lean = 1 + Math.min(built - 1, MASTERY.extraTowerCap) * MASTERY.xpPerExtraTower;
+      masteryGain[kind] = (masteryGain[kind] ?? 0) + Math.round(usageBase * lean);
+    }
+    masteryGain.hero = (masteryGain.hero ?? 0) + Math.round(usageBase + result.apexUses * MASTERY.xpPerApex);
+    next.mastery = masteryGain;
+
     // ── Codex discoveries (motivation layer — union this run's sightings) ──
     next.codex = {
       enemies: mergeIds(save.codex.enemies, result.enemiesSeen),
@@ -364,19 +383,54 @@ export const meta = {
     return true;
   },
 
-  /** The per-run permanent fold the Game applies: per-kind Star stats + an applier
-   *  that layers Star unlocks AND equipped Hero gear affixes onto the run. */
+  /** The per-run permanent fold the Game applies: per-kind stats (Stars × Mastery) +
+   *  an applier that layers Star unlocks, equipped Hero gear, AND hero Mastery. */
   runFold(): RunFold {
     const s = store.get();
     const stat = {} as Record<TowerKind, StarStat>;
-    for (const kind of TOWER_ORDER) stat[kind] = starStatFor(kind, s.stars[kind] ?? 0);
+    for (const kind of TOWER_ORDER) {
+      const star = starStatFor(kind, s.stars[kind] ?? 0);
+      const m = masteryStatFor(s.mastery[kind] ?? 0); // uncapped per-kind mastery
+      stat[kind] = {
+        damageMult: star.damageMult * m.damageMult,
+        fireRateMult: star.fireRateMult * m.fireRateMult,
+        rangeMult: star.rangeMult * m.rangeMult,
+        splashMult: star.splashMult * m.splashMult,
+      };
+    }
     const worn = this.equippedItems(s.equipped, s.gear);
     return {
       stat,
       apply: (m: RunModifiers) => {
         for (const kind of TOWER_ORDER) applyStarUnlocks(kind, s.stars[kind] ?? 0, m);
         for (const item of worn) applyGear(item, m);
+        applyHeroMastery(s.mastery.hero ?? 0, m); // hero's uncapped mastery
       },
+    };
+  },
+
+  // ── Infinite Mastery (uncapped per-unit progression) ─────────────────────
+
+  masteryUnits: MASTERY_UNITS,
+
+  /** Cumulative mastery XP for a unit (tower kind or 'hero'). */
+  masteryXp(unit: MasteryUnit): number {
+    return store.get().mastery[unit] ?? 0;
+  },
+
+  /** Level + progress toward the next level, for the UI bar. */
+  masteryProgress(unit: MasteryUnit): { level: number; xp: number; into: number; span: number; dmgPct: number; nextMilestone: number } {
+    const xp = store.get().mastery[unit] ?? 0;
+    const level = masteryLevel(xp);
+    const lo = masteryXpForLevel(level);
+    const hi = masteryXpForLevel(level + 1);
+    return {
+      level,
+      xp,
+      into: xp - lo,
+      span: Math.max(1, hi - lo),
+      dmgPct: Math.round((masteryDamageMult(level) - 1) * 1000) / 10, // +X.X% damage
+      nextMilestone: (Math.floor(level / MASTERY.milestoneEvery) + 1) * MASTERY.milestoneEvery,
     };
   },
 
@@ -500,6 +554,12 @@ export const meta = {
     const item = rollGear(rarity);
     persist({ ...s, gear: [...s.gear, item] });
     return item;
+  },
+
+  /** Grant mastery XP to a unit (debug — fast-forward the mastery curve). */
+  debugGrantMastery(unit: MasteryUnit, xp: number): void {
+    const s = store.get();
+    persist({ ...s, mastery: { ...s.mastery, [unit]: Math.max(0, (s.mastery[unit] ?? 0) + xp) } });
   },
 
   debugSetUpgrade(id: string, level: number): void {

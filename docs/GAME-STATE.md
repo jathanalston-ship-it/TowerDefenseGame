@@ -54,13 +54,14 @@ updated whenever a system lands.
 | Codex / collection (enemies·biomes·cards) | ✅ | `state/meta.ts`, `ui/Codex.tsx` | COLLECTION |
 | Persistent Loot Meter (→ loot boxes → gear) | 🟡 | `config.ts LOOT`, `state/meta.ts`, `ui/LootMeter.tsx` | LOOTBOX |
 | Hero gear (Weapon/Armor/Relic, affix rolls) | 🟡 | `config.ts AFFIX_POOL`, `state/meta.ts`, `ui/LoadoutPanel.tsx` | EQUIPMENT |
+| Infinite Mastery (uncapped per-unit XP, log curve) | 🟡 | `config.ts MASTERY`, `state/meta.ts`, `ui/MasteryPanel.tsx` | PROGRESSION |
 | Automatic wave flow + Build Phase | ✅ | `game.ts` (buildCountdown), `ui/BuildBanner.tsx` | WAVES |
 | Achievements (16 / 5 chains) + titles | ✅ | `core/achievements.ts` | COLLECTION |
-| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v5, `MIGRATIONS`) | ARCHITECTURE §15.2 |
+| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v6, `MIGRATIONS`) | ARCHITECTURE §15.2 |
 | HUD / menus / results | ✅ | `src/ui/*` | HUD |
 | Internal balancing tools (dev-only) | ✅ | `ui/DebugPanel.tsx`, `debug/debug.ts` | — |
 | Gear **depth** (sets, reforge/upgrade, bigger affix pools) | ⚪ | — | EQUIPMENT, PROGRESSION |
-| Hero/class mastery · class levels | ⚪ | — | PROGRESSION |
+| Class levels · per-hero loadouts · mastery perks | ⚪ | — | PROGRESSION |
 | Prestige layers (Molt → Omega), Ω-tiers | ⚪ | — | PROGRESSION, LIVING-HIVE |
 | Hive Tree / idle / loot boxes | ⚪ | — | LIVING-HIVE, LOOTBOX |
 
@@ -101,9 +102,11 @@ Every currency has a sink; every main mode advances ≥2 tracks. The **Codex /
 achievements / titles** layer adds long-term *motivation* goals that grant **no
 power** (`COLLECTION.md`).
 
-The much larger permanent design — stars, infinite mastery, class levels, gear
-buckets, and six nested prestige layers — is specified in `PROGRESSION.md` but
-**not yet implemented**; the current four upgrade tracks are the shipped subset.
+Beyond the four upgrade tracks, three **per-unit** progression layers now ship as
+v1 subsets: **Tower Stars** (capped ★-ladders), **Hero Gear** (loot-box affix items),
+and **Infinite Mastery** (uncapped per-unit XP). The larger permanent design still
+ahead — class levels, per-hero loadouts, gear sets/reforge, and the six nested
+prestige layers — is specified in `PROGRESSION.md` but not yet built.
 
 ---
 
@@ -119,6 +122,8 @@ buckets, and six nested prestige layers — is specified in `PROGRESSION.md` but
   Catalyst→Prestige sink (`state/meta.test.ts`).
 - **Hero gear** — drops at every rarity, equip/unequip/dismantle, run-fold of
   equipped affixes, loot-box drops never voided (`state/meta.test.ts`, `sim.test.ts`).
+- **Infinite Mastery** — uncapped + monotonic level curve, diminishing (logarithmic)
+  damage, XP awarded to fielded units, run-fold of mastery (`state/meta.test.ts`).
 - **Codex & achievements** — discovery union/dedupe, new-only unlock reporting,
   title earning (`meta.test.ts`); threshold + title logic (`achievements.test.ts`).
 - **Content contracts** — record keys, HERO alias, `isBoss`, unique ids

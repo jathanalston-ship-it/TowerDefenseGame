@@ -1384,6 +1384,20 @@ canvas.board.is-aiming {
   align-items: center;
 }
 
+/* ── Mastery panel ──────────────────────────────────────────────────────────── */
+.mastery-xp {
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.mastery-xp span {
+  color: var(--muted);
+  font-weight: 500;
+}
+
 /* ── Draft overlay ────────────────────────────────────────────────────────── */
 .overlay {
   position: absolute;

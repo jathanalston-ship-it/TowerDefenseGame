@@ -145,6 +145,7 @@ export class Game {
   leaks = 0; // enemies that breached the line
   apexUses = 0; // Apex Leap activations
   towersBuilt = 0;
+  towersBuiltByKind: Record<TowerKind, number> = { needle: 0, mortar: 0, reactor: 0 }; // Mastery XP attribution
   // Automatic wave flow: the Build-Phase countdown that auto-starts the next wave.
   // -1 = inactive (run start before the first tower, or during a wave/draft);
   // ≥0 = seconds remaining. Sim-time based, so it stays deterministic.
@@ -318,6 +319,7 @@ export class Game {
       overcharged: false,
     });
     this.towersBuilt++;
+    this.towersBuiltByKind[kind]++; // per-kind fielding → Mastery XP at run end
     // Run start: placing the FIRST tower arms the auto-start countdown (the player
     // sets up unrushed, then the clock begins). Between waves it's already armed.
     if (this.phase === 'prep' && this.buildCountdown < 0) this.buildCountdown = this.effectiveBuildSeconds();
@@ -1500,6 +1502,9 @@ export class Game {
       objectiveDone: this.mode === 'stage' && this.phase === 'won' && this.objectiveComplete(),
       objectiveBonus: this.stage?.objective?.rewardBonus ?? 0,
       score: this.endlessScore(),
+      // Infinite Mastery attribution: which tower kinds were fielded + hero activity.
+      towersByKind: { ...this.towersBuiltByKind },
+      apexUses: this.apexUses,
       // Codex discoveries this run (folded into permanent collection by the meta layer).
       biome: this.biome,
       enemiesSeen: [...this.seenEnemies],
@@ -1595,6 +1600,9 @@ export interface RunResult {
   objectiveDone: boolean;
   objectiveBonus: number;
   score: number;
+  // Infinite Mastery attribution (per-kind towers fielded + hero ability uses).
+  towersByKind: Record<TowerKind, number>;
+  apexUses: number;
   // Codex discoveries accrued during the run.
   biome: BiomeId | null;
   enemiesSeen: EnemyKind[];

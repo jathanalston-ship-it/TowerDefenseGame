@@ -2,6 +2,7 @@ import { meta } from '../state/meta';
 import { MetaShop } from './MetaShop';
 import { StarPanel } from './StarPanel';
 import { LoadoutPanel } from './LoadoutPanel';
+import { MasteryPanel } from './MasteryPanel';
 import { Codex } from './Codex';
 import { LootMeter } from './LootMeter';
 import { LootBoxOpener } from './LootBoxOpener';
@@ -63,6 +64,8 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
       <StarPanel />
 
       <LoadoutPanel />
+
+      <MasteryPanel />
 
       <Codex />
 
