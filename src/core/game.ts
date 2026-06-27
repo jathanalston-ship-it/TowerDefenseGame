@@ -14,6 +14,7 @@ import {
   WIDTH,
   flowDirAt,
   goalDistanceAt,
+  inFinalDefenseZone,
   nucleusPoint,
   reachedBottom,
   slotAt,
@@ -181,6 +182,11 @@ export interface RenderState {
   time: number; // sim seconds — drives presentation pulses/animation
   integrity: number;
   maxIntegrity: number;
+  // Emergency Defense Mode (docs/RANGE.md §4) — render-only.
+  emergency: boolean; // an enemy is in the Final Defense Zone (drives the alert visuals)
+  emergencyRamp: number; // 0..1 eased intensity so the visuals fade in/out, never pop
+  emergencyFocusX: number; // the in-zone enemy nearest the core — beams converge here
+  emergencyFocusY: number;
 }
 
 export class Game {
@@ -261,6 +267,14 @@ export class Game {
   private abilityHeroKind: HeroKind | null = null;
   private abilityCaster: Hero | null = null;
   private abilityTargeting: TargetingProfile = 'closestToBase'; // the active cast's target pick
+  // ── Final Defense Zone / Emergency Defense Mode (docs/RANGE.md §4) ──
+  // In-zone enemies, recomputed ONCE per tick (sorted nearest-to-core) and shared by every
+  // tower — no per-tower re-scan. Drives the targeting override + the emergency visuals.
+  private readonly emergencyEnemies: Enemy[] = [];
+  private emergencyActive = false; // any enemy inside the Final Defense Zone right now
+  private emergencyRamp = 0; // render-only eased intensity (0..1) for the visual fade in/out
+  private emergencyFocusX = 0; // render-only: in-zone enemy nearest the core (beam convergence)
+  private emergencyFocusY = 0;
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
@@ -599,6 +613,7 @@ export class Game {
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
       if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
       this.economySystem(dt);
+      this.emergencySystem(dt); // before towers: builds the in-zone set towers may override to
       this.towerSystem(dt);
       this.projectileSystem(dt);
       this.poolSystem(dt);
@@ -615,6 +630,7 @@ export class Game {
       }
     } else {
       // prep: hero still roams; no spawns/economy/loss (overcharge is cached on placement).
+      this.emergencySystem(dt); // no enemies here → eases the emergency visuals back to rest
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
@@ -838,6 +854,35 @@ export class Game {
     }
   }
 
+  /** Emergency Defense Mode (docs/RANGE.md §4). Recompute — ONCE per tick, shared by every
+   * tower — the enemies inside the Final Defense Zone, ordered nearest-to-core. When that set
+   * is non-empty the Hive is in emergency: every offensive tower may override its range to
+   * focus the breach (see pickTargets). Also eases the render-only intensity/focus. O(enemies).*/
+  private emergencySystem(dt: number): void {
+    const list = this.emergencyEnemies;
+    list.length = 0;
+    for (const e of this.enemies) {
+      if (e.alive && inFinalDefenseZone(e.y)) list.push(e);
+    }
+    // Priority 2: nearest enemy to the Hive Core first (priority 1 — being in-zone — is the
+    // membership test above). The list is just the leakers, so this sort is cheap.
+    if (list.length > 1) {
+      const cx = nucleusPoint.x;
+      const cy = nucleusPoint.y;
+      list.sort((a, b) => (a.x - cx) ** 2 + (a.y - cy) ** 2 - ((b.x - cx) ** 2 + (b.y - cy) ** 2));
+    }
+    this.emergencyActive = list.length > 0;
+    if (this.emergencyActive) {
+      this.emergencyFocusX = list[0].x;
+      this.emergencyFocusY = list[0].y;
+    }
+    // Render-only ease: snap in fast (alarm), relax out slow. Never read by the sim, so it
+    // cannot perturb a fixed-seed outcome.
+    const target = this.emergencyActive ? 1 : 0;
+    const rate = this.emergencyActive ? 8 : 3;
+    this.emergencyRamp += (target - this.emergencyRamp) * Math.min(1, rate * dt);
+  }
+
   private towerSystem(dt: number): void {
     const ksDmg = this.keystoneTowerDmgMult(); // run-wide keystone damage (1 = none); per-tick
     // Class resonance: the fielded hero's combat class amplifies same-class towers (off at 0).
@@ -883,6 +928,22 @@ export class Game {
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
    * The default 'closestToBase' reproduces the historical goal-distance sort exactly. */
   private pickTargets(x: number, y: number, range: number, n: number, profile: TargetingProfile = 'closestToBase'): Enemy[] {
+    // Emergency Defense Mode override (docs/RANGE.md §4): while an enemy is in the Final
+    // Defense Zone, every OFFENSIVE TOWER ignores its range against in-zone enemies and
+    // focuses the breach nearest the Hive Core. Scoped to tower casts — heroes (abilityHeroKind
+    // set) and the Obelisk's control field (no target pick) are excluded. The shared, already
+    // nearest-to-core-sorted list means no per-tower re-scan. Falls through to normal targeting
+    // if every in-zone enemy died this tick (priority 3).
+    if (this.emergencyActive && this.abilityHeroKind === null && this.abilitySourceKind !== null) {
+      const focus = this.targetScratch;
+      focus.length = 0;
+      for (const e of this.emergencyEnemies) {
+        if (!e.alive) continue;
+        focus.push(e);
+        if (focus.length >= n) break;
+      }
+      if (focus.length > 0) return focus.slice(0, n);
+    }
     const r2 = range * range;
     const out = this.targetScratch;
     out.length = 0;
@@ -1813,6 +1874,10 @@ export class Game {
       time: this.time,
       integrity: this.integrity,
       maxIntegrity: this.maxIntegrity,
+      emergency: this.emergencyActive,
+      emergencyRamp: this.emergencyRamp,
+      emergencyFocusX: this.emergencyFocusX,
+      emergencyFocusY: this.emergencyFocusY,
     };
   }
 
@@ -1838,6 +1903,7 @@ export class Game {
         abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
       },
       enemiesAlive: this.enemies.length,
+      emergency: this.emergencyActive,
       draft: this.draft ? this.draft.map(cardToOption) : null,
       selectedTower: this.selectedTower,
       armedAbility: this.armedAbility,

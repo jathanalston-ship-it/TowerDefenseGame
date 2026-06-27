@@ -118,6 +118,9 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
                 ? 'Choose a Gene Card'
                 : ' '}
         </div>
+        {hud.emergency && (
+          <div className="phase-emergency" role="alert">⚠ EMERGENCY DEFENSE</div>
+        )}
       </div>
 
       {/* ── RIGHT cluster: economy, threat, loot, hero ── */}

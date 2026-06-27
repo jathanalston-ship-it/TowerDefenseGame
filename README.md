@@ -31,7 +31,8 @@ and saves progress to `localStorage`.
   overcharge), **Parasite Nest** (Viral, ramping **Infection** that ignores armor
   and spreads on death), and **Neural Obelisk** (Neural, a psionic field that
   **Disrupts** — slow + Vulnerability, amplifying all your damage). No two share a
-  role, status, or scaling axis.
+  role, status, scaling axis, or **engagement range** — each owns a distinct vertical
+  band, from full-map artillery to short-range support (see [`docs/RANGE.md`](docs/RANGE.md)).
 - **Three heroes (pick one to field)** — the **Ravager** (Kinetic dive bruiser),
   the **Shepherd** (Vital guardian — mends the Nucleus + vital pulse), and the
   **Overseer** (Neural controller — floats to the densest crowd, fields Disruption).
@@ -39,6 +40,9 @@ and saves progress to `localStorage`.
   signature ability (Apex Leap / Bloom / Mass Override). Choose in the **Hero Lab**.
 - **Reactions** — stack **Fracture** + **Corrosion** on an enemy to trigger
   **SHRED** (the build-variety hook). Disruption's Vulnerability lifts every source.
+- **Final Defense Zone** — if an enemy breaches the red band by the Hive Core, the hive
+  snaps into **Emergency Defense Mode**: every offensive tower gains unlimited range
+  against the breach and focuses the threat nearest the core (see [`docs/RANGE.md`](docs/RANGE.md)).
 - **12 enemy waves** with a Brood Tyrant finale; survive to extract.
 - **Card drafting** — pick 1 of 3 Gene Cards between waves (reset every run).
 - **Saving / progression** — runs bank **Shards** (permanent upgrades) and per-unit

@@ -14,6 +14,7 @@ import {
   CELL,
   COLS,
   DEFENSE_TOP_Y,
+  FINAL_DEFENSE_TOP_Y,
   HEIGHT,
   ROWS,
   WIDTH,
@@ -93,6 +94,7 @@ export function drawGame(
 
   drawParticles(ctx, rs);
   drawHeroes(ctx, rs);
+  drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 
   for (const f of rs.floats) {
@@ -256,6 +258,13 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
 
   glowDisc(ctx, x, y, R, THEME.hive.glow[0]);
 
+  // Emergency Defense Mode: the core flares brighter — the heart of the alarm.
+  const emr = rs.emergencyRamp;
+  if (emr > 0.01) {
+    const flare = 0.85 + 0.15 * pulse(t, 7, 0, 1);
+    glowDisc(ctx, x, y, R * (1.5 + 0.6 * emr) * flare, rgba(THEME.defense.zone, 0.5 * emr));
+  }
+
   // a slowly rotating containment shell around the core
   ctx.save();
   ctx.strokeStyle = THEME.hive.shell;
@@ -277,6 +286,61 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   ctx.textAlign = 'center';
   ctx.fillText('HIVE CORE', x, y + 34);
   ctx.textAlign = 'left';
+}
+
+/**
+ * Emergency Defense Mode feedback (docs/RANGE.md §4.4). Drawn over the field, under the
+ * floating labels. Everything is gated behind `emergencyRamp` (0..1, eased by the sim) so
+ * the alert fades in/out instead of popping. Deliberately restrained — a soft red zone
+ * wash, one animated edge line, and beams converging on the breach — NO particle bursts or
+ * full-screen flashes, so the signal reads instantly without burying the battlefield.
+ */
+function drawEmergency(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  const emr = rs.emergencyRamp;
+  if (emr <= 0.01) return;
+  const zoneTop = FINAL_DEFENSE_TOP_Y;
+
+  // 1) subtle pulsing red wash over the Final Defense Zone (low alpha: units stay readable)
+  ctx.fillStyle = rgba(THEME.defense.zone, (0.05 + 0.05 * pulse(t, 5, 0, 1)) * emr);
+  ctx.fillRect(0, zoneTop, WIDTH, HEIGHT - zoneTop);
+
+  // 2) an animated alert line sweeping the zone's leading edge (the "HOLD THE LINE"
+  //    barrier escalating to an alarm)
+  ctx.save();
+  ctx.strokeStyle = rgba(THEME.defense.line, (0.5 + 0.4 * pulse(t, 4, 0, 1)) * emr);
+  ctx.lineWidth = 2;
+  ctx.setLineDash([14, 10]);
+  ctx.lineDashOffset = -((t * 60) % 24);
+  ctx.beginPath();
+  ctx.moveTo(0, zoneTop);
+  ctx.lineTo(WIDTH, zoneTop);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
+
+  // 3) targeting beams: every offensive tower converges a fading lock-on line on the
+  //    deepest in-zone threat (the focus). One batched path = cheap at any tower count.
+  if (emr > 0.05) {
+    const fx = rs.emergencyFocusX;
+    const fy = rs.emergencyFocusY;
+    ctx.save();
+    ctx.strokeStyle = rgba(THEME.defense.zone, 0.28 * emr);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 8]);
+    ctx.lineDashOffset = -((t * 120) % 14); // fast travel toward the breach
+    ctx.beginPath();
+    for (const tw of rs.towers) {
+      const firing = TOWER_DEFS[tw.kind].firing;
+      if (firing !== 'homing' && firing !== 'splash' && firing !== 'infest') continue;
+      ctx.moveTo(tw.x, tw.y);
+      ctx.lineTo(fx, fy);
+    }
+    ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+    // a small reticle pulsing on the focused breach
+    ring(ctx, fx, fy, 11 + 3 * pulse(t, 6, 0, 1), rgba(THEME.defense.line, 0.7 * emr), 1.5);
+  }
 }
 
 // ── Slots / towers (placement system from the battlefield refactor) ───────────

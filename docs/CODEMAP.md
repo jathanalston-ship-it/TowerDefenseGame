@@ -1,9 +1,10 @@
 # CODEMAP.md — Developer Orientation
 
 A practical map of the codebase for a developer joining the project. For *vision*
-read `DESIGN.md`; for the *engineering blueprint* read `ARCHITECTURE.md`. This file
-is the "where does what live, and how do I add content" guide for the **current
-implementation** (the playable vertical slice).
+read `DESIGN.md`; for the *engineering blueprint* read `ARCHITECTURE.md`; for the
+*tower range philosophy + the Final Defense Zone / Emergency Defense Mode* read
+`RANGE.md`. This file is the "where does what live, and how do I add content" guide for
+the **current implementation** (the playable vertical slice).
 
 ---
 
@@ -42,7 +43,7 @@ back as method calls (intents) on the `Game`.
 | `src/core/ability.ts` | **Generic ability-component system** — a tower/hero's combat is DATA (a list of reusable `AbilityComponent`s: projectile/aura/explosion/chain/status/pierce/crit/heal/shield/buff/debuff/summon) run by ONE executor against an `AbilityContext` the Game implements. Launch towers/heroes are built from these (see `TOWER_ABILITIES`/`HERO_PULSE`/`HERO_ULT` in config); a new unit composes blocks with no sim code. |
 | `src/core/status.ts` | **Universal status-effect framework** — effects are DATA (`StatusEffectDef` in `statusRegistry`: stacking rule, duration, max stacks, color, icon, potency, modifier tags) + a pure RULES ENGINE (`applyStatus`/`tickStatuses`/`aggregate`) handling stack/refresh/extend/ignore, DoT/regen ticks, and combined slow/vuln/disable. Legacy Fracture/Corrosion/Infection/Disruption keep fast fields but are catalogued here; NEW effects (burn, slow, stun, freeze, …) run through the engine via the optional `Enemy.statuses` container + `Game.applyEffect`. |
 | `src/core/cards.ts` | Gene Cards: declarative `CardEffect[]` data + the single `applyCard()` interpreter. |
-| `src/core/map.ts` | The arena: grid, obstacles, the flow-field pathfinding, tower slots, spawn/goal. |
+| `src/core/map.ts` | The arena: grid, obstacles, the flow-field pathfinding, tower slots, spawn/goal, the **Final Defense Zone** band (`inFinalDefenseZone`). |
 | `src/core/types.ts` | Shared sim types (entities, enums, snapshots). |
 | `src/core/rng.ts` | Seeded PRNG (mulberry32). No `Math.random` in core. |
 | `src/core/spatial.ts` | Uniform spatial-hash grid for proximity queries. |
@@ -147,6 +148,7 @@ Deliberately **deferred** (out of scope here — features, or premature churn):
 | `sim.test.ts` | Loop invariants (progress, reactions, determinism). |
 | `towers.test.ts` | Parasite Nest (Infection ramp + spread) and Neural Obelisk (Disruption) behavior. |
 | `heroes.test.ts` | Shepherd (Nucleus regen + zone guard) and Overseer (Disruption field) behavior; roster default. |
+| `finaldefense.test.ts` | Final Defense Zone emergency: activation, nearest-core focus, offensive-tower range override (in-zone) vs normal targeting (out-of-zone). |
 | `spatial.test.ts` | Grid query correctness. |
 | `saveStore.test.ts` | Round-trip, corruption recovery, backups. |
 | `meta.test.ts` | Data-driven upgrade fold. |

@@ -49,33 +49,36 @@ export interface TowerDef {
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
+  // Range is identity (docs/RANGE.md): each class owns a distinct vertical engagement
+  // band on the ~920px-tall lane, traded against DPS / cadence / cost. Long reach pays
+  // it back with low sustained DPS and/or slow cadence — never a free stat.
   needle: {
     kind: 'needle',
     name: 'Needle Spitter',
     combatClass: 'Kinetic',
     firing: 'homing',
     cost: 100,
-    range: 135,
-    fireInterval: 0.34,
-    damage: 13,
-    projectileSpeed: 540,
+    range: 700, // MARKSMAN — very long; opens fire shortly after enemies spawn
+    fireInterval: 0.4, // fast cadence = fast Fracture stacking over the long approach
+    damage: 3, // low per-shot: it CHIPS + tags the whole lane, it does not burst
+    projectileSpeed: 640, // snappy enough to connect across its long reach
     splash: 0,
     color: '#5ad1ff',
-    blurb: 'Fast single-target. Stacks Fracture (armor shred).',
+    blurb: 'Very long range — peppers from afar, stacking Fracture (armor shred).',
   },
   mortar: {
     kind: 'mortar',
     name: 'Bone Mortar',
     combatClass: 'Caustic',
     firing: 'splash',
-    cost: 150,
-    range: 175,
-    fireInterval: 1.45,
-    damage: 20,
-    projectileSpeed: 250,
-    splash: 56,
+    cost: 170, // premium: full-map area denial
+    range: 960, // ARTILLERY — essentially full-map; suppresses from the spawn line
+    fireInterval: 2.1, // very slow cadence is the balance for unlimited reach
+    damage: 8, // softens clusters from afar — it suppresses, the kill happens down-lane
+    projectileSpeed: 420, // arcs across the lane in a few seconds
+    splash: 60,
     color: '#b6e84a',
-    blurb: 'Arcing AoE. Leaves Corrosion pools (DoT + slow).',
+    blurb: 'Full-map artillery. Slow, arcing AoE; leaves Corrosion pools (DoT + slow).',
   },
   reactor: {
     kind: 'reactor',
@@ -83,7 +86,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     combatClass: 'Vital',
     firing: 'support',
     cost: 120,
-    range: 0,
+    range: 90, // SUPPORT — very short; visualizes the slot-adjacency overcharge reach
     fireInterval: 0,
     damage: 0,
     projectileSpeed: 0,
@@ -97,27 +100,27 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     combatClass: 'Viral',
     firing: 'infest', // homing parasite that seeds ramping, armor-ignoring Infection
     cost: 130,
-    range: 150,
+    range: 280, // SKIRMISHER — medium; only reaches the mid-field when placed FORWARD
     fireInterval: 0.85,
     damage: 6, // low on impact — the ramping Infection DoT + spread is the payoff
     projectileSpeed: 360,
     splash: 0,
     color: '#e24dff',
-    blurb: 'Seeds Infection — ramping DoT that ignores armor and spreads on death.',
+    blurb: 'Medium range — place forward. Seeds Infection: ramping armor-ignoring DoT.',
   },
   obelisk: {
     kind: 'obelisk',
     name: 'Neural Obelisk',
     combatClass: 'Neural',
     firing: 'field', // periodic psionic pulse — no projectile; debuffs in range
-    cost: 140,
-    range: 120, // psionic field radius
-    fireInterval: 1.0, // pulse cadence
+    cost: 165, // premium control anchor
+    range: 360, // CONTROL — very large support radius; the widest footprint in the game
+    fireInterval: 1.1, // pulse cadence
     damage: 5, // token chip; its value is the Disruption (slow + vulnerability)
     projectileSpeed: 0,
     splash: 0,
     color: '#6e7bff',
-    blurb: 'Pulses Disruption — slows enemies and makes them take more from ALL sources.',
+    blurb: 'Wide control field — slows + makes enemies take more from ALL sources.',
   },
 };
 
@@ -572,6 +575,14 @@ export const ECON = {
 // flow field, routing around obstacles — no predetermined path.
 export const DEFENSE = {
   fraction: 0.25, // the bottom 25% of the arena is the player's defensive region
+};
+
+// The Final Defense Zone — the red last-stand band nearest the Hive Core (the inner
+// part of the defensive region). An enemy inside it puts the Hive into Emergency Defense
+// Mode: every offensive tower gains unlimited targeting range against in-zone enemies,
+// prioritising the breach nearest the core. See docs/RANGE.md §4.
+export const FINAL_DEFENSE = {
+  fraction: 0.14, // bottom 14% of the arena (≈4 rows, y ≥ 800) is the Final Defense Zone
 };
 
 // Static impassable blocks (grid rects {col,row,w,h}) enemies must navigate

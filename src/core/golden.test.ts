@@ -6,17 +6,19 @@
 import { describe, it, expect } from 'vitest';
 import { autoplay } from './sim.testutil';
 
-// Re-pinned deliberately for the combat-variety wave redesign (rusher/tank/flyer/
-// burrower introduced across the 12 waves). The slice stays winnable by the naive
-// autoplay strategy on every seed; the spread in surviving integrity reflects the
-// new archetypes' varied pressure. Any FURTHER drift from here is unintended.
+// Re-pinned deliberately for the TOWER RANGE PHILOSOPHY redesign (docs/RANGE.md): each
+// tower class now owns a distinct vertical engagement band (full-map artillery / long-range
+// marksman / wide control field / medium skirmisher / short support), with cost & DPS
+// rebalanced so long reach is paid back with low damage. Towers now engage the whole lane,
+// so kills land earlier and more integrity survives — every seed still wins at wave 12.
+// Any FURTHER drift from here is unintended.
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 186, integrity: 150, biomass: 9613, phase: 'won' },
-  7: { wave: 12, kills: 188, integrity: 148, biomass: 9844, phase: 'won' },
-  42: { wave: 12, kills: 187, integrity: 109, biomass: 11819, phase: 'won' },
-  777: { wave: 12, kills: 184, integrity: 92, biomass: 11513, phase: 'won' },
-  2024: { wave: 12, kills: 191, integrity: 125, biomass: 14837, phase: 'won' },
-  12345: { wave: 12, kills: 184, integrity: 186, biomass: 8328, phase: 'won' },
+  1: { wave: 12, kills: 193, integrity: 178, biomass: 7024, phase: 'won' },
+  7: { wave: 12, kills: 194, integrity: 182, biomass: 7549, phase: 'won' },
+  42: { wave: 12, kills: 192, integrity: 129, biomass: 9007, phase: 'won' },
+  777: { wave: 12, kills: 192, integrity: 129, biomass: 7987, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 145, biomass: 12488, phase: 'won' },
+  12345: { wave: 12, kills: 191, integrity: 215, biomass: 5764, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

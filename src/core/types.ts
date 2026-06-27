@@ -238,6 +238,7 @@ export interface HudSnapshot {
     abilityCdMax: number;
   };
   enemiesAlive: number;
+  emergency: boolean; // Emergency Defense Mode — an enemy is in the Final Defense Zone
   draft: CardOption[] | null;
   selectedTower: TowerKind | null;
   armedAbility: boolean;
