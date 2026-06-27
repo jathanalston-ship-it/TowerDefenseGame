@@ -25,6 +25,7 @@ import {
 } from '../core/map';
 import { ENEMY_DEFS, HERO_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
+import type { TowerFiring } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, hexRgb, rgba } from './theme';
 import {
   chevronDown,
@@ -421,15 +422,13 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   const fresh = def.fireInterval > 0 ? Math.min(1, Math.max(0, (tw.cooldown / def.fireInterval - 0.7) / 0.3)) : 0;
   const r = TOWER_R * grow * breathe * (1 + fresh * 0.1);
 
-  // Neural Obelisk: its psionic field reach, drawn under everything so enemies read
-  // as "inside" it. A slow breathing pulse sells the always-on control aura.
-  if (tw.kind === 'obelisk' && def.range > 0) {
-    const fr = def.range * grow * pulse(now + tw.id, 1.4, 0.97, 1.03);
-    ctx.beginPath();
-    ctx.arc(tw.x, tw.y, fr, 0, Math.PI * 2);
-    ctx.fillStyle = THEME.field.fill;
-    ctx.fill();
-    ring(ctx, tw.x, tw.y, fr, rgba(THEME.field.edge, pulse(now + tw.id, 1.4, 0.12, 0.32)), 1.5, [6, 6]);
+  // (Range/field circles are intentionally NOT drawn permanently — they cluttered play
+  // and, for the long-range towers, were near-fullscreen and uninformative. Range is now
+  // shown only on placement preview + selection; see drawRangeIndicator. The Obelisk keeps
+  // a faint always-on psionic shimmer for identity, but no hard range ring.)
+  if (tw.kind === 'obelisk') {
+    const shimmer = TOWER_R * 2.4 * grow * pulse(now + tw.id, 1.4, 0.95, 1.08);
+    glowDisc(ctx, tw.x, tw.y, shimmer, rgba(THEME.field.edge, 0.05));
   }
 
   // grounding shadow
@@ -676,6 +675,99 @@ function drawPressureVignette(ctx: CanvasRenderingContext2D, pressure: number, t
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
 
+// ── Range visualization (docs/RANGE.md §6) ──────────────────────────────────
+// Range is shown ONLY on placement preview + selection — never permanently. The
+// representation is chosen by the tower's CLASS so it actually informs on this tall,
+// vertical lane, where a literal radius circle is useless once a tower reaches most of the
+// map:
+//   • support / field towers (reactor, obelisk) → a soft FIELD DISC (the area they affect)
+//   • medium ranged towers (parasite)           → a bounded RANGE RING
+//   • long-range towers (needle, mortar)        → an ENGAGEMENT FRONTIER: everything from the
+//       frontier line down to the base is in reach. Effectively-infinite range collapses the
+//       frontier onto the spawn edge and labels it, so a future ∞-range tower reads cleanly.
+// `tone` is an "r, g, b" theme token (valid/invalid on placement; neutral on selection).
+const FRONTIER_MIN_RANGE = 340; // a ranged tower wider than this draws a frontier, not a circle
+
+function drawRangeIndicator(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  range: number,
+  firing: TowerFiring,
+  tone: string,
+  time: number,
+): void {
+  if (range <= 0) return;
+  if (firing === 'support' || firing === 'field') {
+    drawFieldDisc(ctx, x, y, range, tone, time);
+    return;
+  }
+  const reachesTop = !isFinite(range) || y - range <= 0; // effectively infinite up the lane
+  if (range >= FRONTIER_MIN_RANGE || reachesTop) {
+    drawEngagementFrontier(ctx, x, y, range, tone, time, reachesTop);
+  } else {
+    drawRangeRing(ctx, x, y, range, tone, time);
+  }
+}
+
+/** Support towers: a soft filled aura showing the AREA they affect (clamped if a future
+ * field is effectively infinite). */
+function drawFieldDisc(ctx: CanvasRenderingContext2D, x: number, y: number, range: number, tone: string, time: number): void {
+  const r = Math.min(range, Math.hypot(WIDTH, HEIGHT)) * pulse(time, 1.6, 0.98, 1.02);
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = rgba(tone, 0.07);
+  ctx.fill();
+  ring(ctx, x, y, r, rgba(tone, 0.34), 1.5, [6, 6]);
+}
+
+/** Medium ranged towers: a clean bounded range ring (the circle is readable at this size). */
+function drawRangeRing(ctx: CanvasRenderingContext2D, x: number, y: number, range: number, tone: string, time: number): void {
+  ctx.beginPath();
+  ctx.arc(x, y, range, 0, Math.PI * 2);
+  ctx.fillStyle = rgba(tone, 0.05);
+  ctx.fill();
+  ctx.save();
+  ctx.strokeStyle = rgba(tone, 0.5);
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 5]);
+  ctx.lineDashOffset = -((time * 18) % 20);
+  ctx.beginPath();
+  ctx.arc(x, y, range, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
+}
+
+/** Long-range towers: an engagement frontier. Everything from the frontier line DOWN to the
+ * base is covered — the readable mental model for a long reach on a vertical lane. */
+function drawEngagementFrontier(ctx: CanvasRenderingContext2D, x: number, y: number, range: number, tone: string, time: number, infinite: boolean): void {
+  const frontierY = Math.max(0, y - range);
+  // the covered approach, faintly shaded (frontier → base)
+  ctx.fillStyle = rgba(tone, 0.05);
+  ctx.fillRect(0, frontierY, WIDTH, HEIGHT - frontierY);
+  // a thin aim line anchoring the frontier to the tower
+  ctx.strokeStyle = rgba(tone, 0.25);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x, frontierY);
+  ctx.stroke();
+  // the frontier itself — an animated leading edge of engagement
+  ctx.save();
+  ctx.strokeStyle = rgba(tone, 0.6);
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([10, 8]);
+  ctx.lineDashOffset = -((time * 30) % 18);
+  ctx.beginPath();
+  ctx.moveTo(0, frontierY + 0.5);
+  ctx.lineTo(WIDTH, frontierY + 0.5);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
+  labelAt(ctx, WIDTH / 2, frontierY + 14, infinite ? 'FULL-LANE REACH ∞' : 'ENGAGEMENT LINE', rgba(tone, 0.95));
+}
+
 // ── Pointer (placement ghost / ability preview / slot info) ──────────────────
 
 function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Pointer | null): void {
@@ -695,14 +787,9 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     const locked = slot.index >= rs.unlockedSlots;
     const invalid = locked || !!tower;
     const tone = invalid ? THEME.select.invalid : THEME.select.valid;
-    const rad = Math.max(def.range, 16);
-
-    // range preview (filled + outlined)
-    ctx.beginPath();
-    ctx.arc(slot.x, slot.y, rad, 0, Math.PI * 2);
-    ctx.fillStyle = rgba(tone, 0.05);
-    ctx.fill();
-    ring(ctx, slot.x, slot.y, rad, rgba(tone, 0.6), 1.5, [5, 4]);
+    // accurate, class-aware range preview (field disc / range ring / engagement frontier),
+    // using the tower's EFFECTIVE range so mastery upgrades show in the preview
+    drawRangeIndicator(ctx, slot.x, slot.y, rs.effectiveRanges[rs.selectedTower] ?? def.range, def.firing, tone, rs.time);
 
     // animated selection frame on the target pad
     const sf = CELL - 8;
@@ -717,23 +804,8 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
 
   if (tower) {
     const def = TOWER_DEFS[tower.kind];
-    if (def.range > 0) {
-      // subtle fill + a slowly rotating dashed range ring
-      ctx.beginPath();
-      ctx.arc(tower.x, tower.y, def.range, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(THEME.target.range, 0.04);
-      ctx.fill();
-      ctx.save();
-      ctx.strokeStyle = rgba(THEME.target.range, 0.4);
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 5]);
-      ctx.lineDashOffset = -((rs.time * 18) % 20);
-      ctx.beginPath();
-      ctx.arc(tower.x, tower.y, def.range, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-      ctx.setLineDash([]);
-    }
+    // selection: show the selected tower's effective range in its class-appropriate form
+    drawRangeIndicator(ctx, tower.x, tower.y, rs.effectiveRanges[tower.kind] ?? def.range, def.firing, THEME.target.range, rs.time);
     labelAt(ctx, tower.x, tower.y - CELL / 2 - 6, def.name, def.color);
   }
 }

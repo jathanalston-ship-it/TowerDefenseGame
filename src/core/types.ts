@@ -196,6 +196,11 @@ export interface TowerMods {
   targeting?: TargetingProfile; // overrides the tower's default target pick
   extraProjectiles?: number; // additional simultaneous targets for the base attack
   splashMult?: number; // multiplies projectile splash radius
+  // Identity-range upgrades (docs/RANGE.md §8) — NEVER a generic "+range%". Each is a
+  // tower-specific reach axis: engagement range (needle marksman) / pulse radius (obelisk
+  // control field), and infection-spread reach (parasite). Absent ⇒ base, golden-safe.
+  rangeMult?: number; // scales the tower's targeting range + field/aura radius (engagement / pulse)
+  infectionSpreadMult?: number; // parasite-only: scales the Infection death-spread radius
   projectileMutators?: string[]; // mutator ids applied to each spawned projectile (pierce …)
   extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
   reactorBiomassMult?: number; // reactor-only: scales its biomass generation (support evolution)

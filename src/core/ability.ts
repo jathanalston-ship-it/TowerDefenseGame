@@ -150,6 +150,7 @@ export interface AbilityContext {
   grantShield(amount: number, seconds: number): void;
   readonly extraProjectiles: number; // adds to a homing projectile's `count`
   readonly splashMult: number; // scales a projectile's splash radius
+  readonly rangeMult: number; // identity-range: scales targeting range + aura/field radius (1 = base)
   particles(x: number, y: number, kind: ParticleKind): void;
   sfx(k: string): void;
   roll(): number; // deterministic gameplay rng (crit etc.)
@@ -162,14 +163,15 @@ type Executor<C extends AbilityComponent> = (ctx: AbilityContext, comp: C, cast:
 
 function execProjectile(ctx: AbilityContext, comp: ProjectileAbility, cast: AbilityCast): boolean {
   const dmg = comp.damage * cast.damageMult;
+  const range = comp.range * ctx.rangeMult; // identity-range upgrade (needle engagement)
   if (comp.behavior === 'splash') {
-    const target = cast.target ?? ctx.pickTargets(cast.x, cast.y, comp.range, 1)[0];
+    const target = cast.target ?? ctx.pickTargets(cast.x, cast.y, range, 1)[0];
     if (!target) return false;
     ctx.fireProjectile(cast.x, cast.y, null, target.x, target.y, 'splash', dmg, comp.speed, (comp.splash ?? 0) * ctx.splashMult);
     return true;
   }
   const count = (comp.count ?? 1) + (comp.behavior === 'homing' ? ctx.extraProjectiles : 0);
-  const targets = cast.target ? [cast.target] : ctx.pickTargets(cast.x, cast.y, comp.range, count);
+  const targets = cast.target ? [cast.target] : ctx.pickTargets(cast.x, cast.y, range, count);
   if (targets.length === 0) return false;
   for (const e of targets) ctx.fireProjectile(cast.x, cast.y, e, e.x, e.y, comp.behavior, dmg, comp.speed, 0);
   return true;
@@ -177,7 +179,7 @@ function execProjectile(ctx: AbilityContext, comp: ProjectileAbility, cast: Abil
 
 function execAura(ctx: AbilityContext, comp: AuraAbility, cast: AbilityCast): boolean {
   let hit = false;
-  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius, (e) => {
+  ctx.forEnemiesInRadius(cast.x, cast.y, comp.radius * ctx.rangeMult, (e) => { // identity-range (obelisk pulse radius)
     if (comp.status) ctx.applyStatus(e, comp.status);
     if (comp.damage) {
       ctx.dealDamage(e, comp.damage * cast.damageMult, true);

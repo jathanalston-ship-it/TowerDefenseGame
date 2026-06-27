@@ -184,3 +184,82 @@ badge is enough to read "the Hive is making its final stand" at a glance.
 - **Obelisk reach during emergency** is intentionally *not* overridden (it has no single
   target). If a future design wants the control field to also snap to a breach, the seam is
   the same per-tick in-zone list.
+
+## 6. Range visualization
+
+A literal range *circle* is the wrong tool once a tower reaches most of the vertical lane —
+a 700–960px ring is a near-fullscreen smear that says nothing. So:
+
+- **Never draw range permanently.** In normal gameplay there are **no range circles at
+  all** (the old permanent Obelisk field ring is gone; it keeps only a faint psionic
+  shimmer for identity). Range is shown **only** on **placement preview** and **selection**
+  (hovering a placed tower). Implemented in `renderer.ts:drawRangeIndicator`.
+- **Represent range by the tower's CLASS** (derived from `firing`, so it needs no extra
+  config), because each class wants a different read on this tall lane:
+
+  | Class | Towers | Visualization |
+  |---|---|---|
+  | **Support / field** | Reactor, Obelisk | a soft **filled field disc** — the *area* it affects |
+  | **Medium ranged** | Parasite | a bounded **dashed range ring** (a circle is readable here) |
+  | **Long-range** | Needle, Mortar | an **engagement frontier**: a line across the lane with everything *below it* (frontier → base) faintly shaded as "in reach" |
+
+- **Effectively-infinite reach reads cleanly.** When a ranged tower's reach passes the
+  spawn edge (`y − range ≤ 0`, or a non-finite range), the frontier collapses onto the top
+  and is labelled **"FULL-LANE REACH ∞"** — so the Mortar today, and any future ∞-range
+  tower, shows *full coverage* instead of a clipped circle. The Needle (reach short of the
+  spawn) shows a partway **"ENGAGEMENT LINE"**, distinguishing the two long-range towers.
+- **The preview shows EFFECTIVE range** (`RenderState.effectiveRanges`, base × identity
+  `rangeMult`), so a mastered tower's wider reach appears in the preview, not just the base.
+
+This makes range *legible at the decision point* (where to build, what a tower covers) and
+invisible noise the rest of the time.
+
+## 7. Battlefield roles & placement
+
+Because each class owns a distinct band (and the visualization makes that band visible as
+you drag a tower), **placement is now a real decision** — every launch tower wants a
+different home, and you see the trade as you move the ghost:
+
+| Tower | Wants to be… | Why (mechanical) | What the preview shows |
+|---|---|---|---|
+| **Needle Spitter** | **rear-line anchor** | reaches nearly the whole lane from *anywhere*, so it belongs in a back slot — wasting a scarce forward slot on it is a mistake | the engagement frontier stays high up even from the back row |
+| **Bone Mortar** | **anywhere** | full-map: coverage is identical from every slot, so place it wherever is safe/convenient | "FULL-LANE REACH ∞" from any slot |
+| **Flesh Reactor** | **clustered** | overcharges *adjacent* towers (+dmg, +rate) — its value is zero in isolation and maximal packed among damage towers | a small support disc that must overlap neighbours |
+| **Parasite Nest** | **aggressive / forward** | only its medium 280 reach touches the **mid-field** when placed forward, where its Infection has the most lane left to ramp | the ring only covers the bottom from the rear, the mid-field when forward |
+| **Neural Obelisk** | **central support** | a wide control field covers the most lane + the most friendly towers when centred | the large field disc visibly blankets more from the middle |
+
+The intent: a glance at the preview tells you *where each tower belongs*, and the bands
+don't overlap, so a thoughtful board beats a uniform one. (Needle's "rear" is a
+slot-economy truth — it covers the lane from the back, freeing forward slots for the
+Parasite that genuinely needs them; the §8 "earlier engagement" upgrade reinforces the long
+rear sightline.)
+
+## 8. Range-upgrade philosophy — identity, not a generic "+range%"
+
+**Audit (this pass): there are no generic range upgrades anywhere** — no `+X% range` in
+cards, meta upgrades, run-modifiers, stars, or mastery. Tower range is read from the def
+and only ever scaled by *identity-specific* axes. That is the rule we keep:
+
+> A range/reach upgrade must reinforce ONE tower's identity. Never a blanket "+range to all
+> towers." Each tower's reach axis is a different mechanic:
+
+| Tower | Identity reach axis | Mechanism (the seam) |
+|---|---|---|
+| **Needle Spitter** | **+earlier engagement** (open fire sooner) | `TowerMods.rangeMult` → scales targeting range |
+| **Bone Mortar** | **+faster indirect targeting** (shells on target sooner) | `TowerMods.fireRateMult` (already full-map; reach is fixed, *speed* is the axis) |
+| **Flesh Reactor** | **+support radius** | its overcharge reach (today slot-adjacency; the documented future axis) |
+| **Parasite Nest** | **+Infection spread radius** | `TowerMods.infectionSpreadMult` → scales the death-spread |
+| **Neural Obelisk** | **+pulse radius** | `TowerMods.rangeMult` → scales the field/aura radius |
+
+These are realized as **mastery milestone perks** (per-tower, identity-named, baseline-safe
+because a fresh save crosses none, so the golden run is byte-identical): *Forward Sights*
+(Needle), *Rapid Bombardment* (Mortar), *Resonant Field* (Obelisk), *Virulent Spread*
+(Parasite). The seam (`rangeMult` flows through the shared ability executor's
+`ctx.rangeMult`; `infectionSpreadMult` through `spreadInfection`) means future
+identity-range content — stars, cards, equipment — plugs into the same per-tower fields
+without touching sim code, and the visualization automatically reflects it via
+`effectiveRanges`.
+
+The Reactor's support-radius axis is documented but not yet a live upgrade: its overcharge
+is slot-adjacency (the 90px field disc visualizes that reach), and promoting it to a true
+radius is the clean next step when its support evolution is expanded.
