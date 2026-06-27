@@ -231,17 +231,102 @@ describe('tower stars (per-unit progression)', () => {
     meta.reset();
   });
 
-  it('starRunData reflects owned stars (per-kind stats + the unlock applier)', () => {
+  it('runFold reflects owned stars (per-kind stats + the unlock applier)', () => {
     meta.reset();
     for (let i = 0; i < 40; i++) meta.recordRun(result({ mode: 'endless', wave: 50 }));
     expect(meta.buyStar('needle')).toBe(true); // ★1 (+damage)
     expect(meta.buyStar('needle')).toBe(true); // ★2 (+fire rate)
     expect(meta.buyStar('needle')).toBe(true); // ★3 (Ricochet → needleBounce)
-    const data = meta.starRunData();
+    const data = meta.runFold();
     expect(data.stat.needle.damageMult).toBeGreaterThan(1); // stat steps applied
     const mods = defaultRunModifiers();
     data.apply(mods);
     expect(mods.needleBounce).toBe(1); // ★3 mechanic unlock set the run hook
+    meta.reset();
+  });
+});
+
+describe('hero gear', () => {
+  it('drops gear at every rarity, with the right slot + affix count', () => {
+    meta.reset();
+    for (const rarity of ['common', 'rare', 'epic'] as const) {
+      const item = meta.debugGrantGear(rarity)!;
+      expect(item).not.toBeNull();
+      expect(['weapon', 'armor', 'relic']).toContain(item.slot);
+      expect(item.rarity).toBe(rarity);
+      // Affix count tracks rarity (common 1 / rare 2 / epic 3); never repeats an affix.
+      const expectCount = { common: 1, rare: 2, epic: 3 }[rarity];
+      expect(item.affixes.length).toBe(expectCount);
+      expect(new Set(item.affixes.map((a) => a.id)).size).toBe(item.affixes.length);
+    }
+    expect(meta.get().gear.length).toBe(3);
+    meta.reset();
+  });
+
+  it('equip / unequip routes an item into its own slot', () => {
+    meta.reset();
+    const item = meta.debugGrantGear('epic')!;
+    expect(meta.equipGear(item.id)).toBe(true);
+    expect(meta.get().equipped[item.slot]).toBe(item.id);
+    expect(meta.equipGear(item.id)).toBe(false); // already worn — no-op
+    expect(meta.unequipSlot(item.slot)).toBe(true);
+    expect(meta.get().equipped[item.slot]).toBeNull();
+    expect(meta.unequipSlot(item.slot)).toBe(false); // already empty
+    meta.reset();
+  });
+
+  it('equipped gear folds its affixes into the run via runFold', () => {
+    meta.reset();
+    // Grant until we get a weapon (its affixes all touch hero stats we can assert on).
+    let weapon = meta.debugGrantGear('epic');
+    for (let i = 0; i < 50 && weapon && weapon.slot !== 'weapon'; i++) weapon = meta.debugGrantGear('epic');
+    while (weapon && weapon.slot !== 'weapon') weapon = meta.debugGrantGear('epic');
+    expect(weapon!.slot).toBe('weapon');
+    meta.equipGear(weapon!.id);
+
+    const base = defaultRunModifiers();
+    const folded = defaultRunModifiers();
+    meta.runFold().apply(folded);
+    // An epic weapon carries 3 affixes from {damage, attack speed, cooldown} — all
+    // strictly improve their hooks, so at least one hero stat must differ from baseline.
+    const changed =
+      folded.heroDamageMult !== base.heroDamageMult ||
+      folded.heroAttackRateMult !== base.heroAttackRateMult ||
+      folded.heroCooldownMult !== base.heroCooldownMult;
+    expect(changed).toBe(true);
+    meta.reset();
+  });
+
+  it('dismantle refunds Genome Shards and unequips the item', () => {
+    meta.reset();
+    const item = meta.debugGrantGear('rare')!;
+    meta.equipGear(item.id);
+    const before = meta.get().genomeShards;
+    const refund = meta.dismantleGear(item.id);
+    expect(refund).toBe(meta.dismantleValue(item));
+    expect(refund).toBeGreaterThan(0);
+    expect(meta.get().genomeShards).toBe(before + refund);
+    expect(meta.get().gear.find((g) => g.id === item.id)).toBeUndefined();
+    expect(meta.get().equipped[item.slot]).toBeNull(); // worn item was cleared
+    expect(meta.dismantleGear(item.id)).toBe(0); // gone — no double refund
+    meta.reset();
+  });
+
+  it('a box can drop gear; opening never voids it', () => {
+    meta.reset();
+    // Bank a pile of boxes and open them; with rare/epic drop chances, gear must appear.
+    meta.addLootProgress(1_000_000);
+    let dropped = 0;
+    let reward = meta.openLootBox();
+    while (reward) {
+      if (reward.gear) {
+        dropped++;
+        // Anything dropped is in the inventory (never silently lost).
+        expect(meta.get().gear.some((g) => g.id === reward!.gear!.id)).toBe(true);
+      }
+      reward = meta.openLootBox();
+    }
+    expect(dropped).toBeGreaterThan(0);
     meta.reset();
   });
 });

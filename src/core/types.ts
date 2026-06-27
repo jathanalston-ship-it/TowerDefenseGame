@@ -5,6 +5,21 @@ import type { Vec2 } from './math';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion';
+
+// ── Hero equipment (gear) ────────────────────────────────────────────────────
+export type GearSlot = 'weapon' | 'armor' | 'relic';
+/** A rolled affix on a gear item: which affix + its rolled magnitude. */
+export interface GearAffix {
+  id: string; // affix def id (config AFFIX_POOL)
+  value: number;
+}
+/** An owned gear instance (saved). Rarity is the loot rarity it dropped at. */
+export interface GearItem {
+  id: string; // unique instance id
+  slot: GearSlot;
+  rarity: 'common' | 'rare' | 'epic';
+  affixes: GearAffix[];
+}
 export type TowerKind = 'needle' | 'mortar' | 'reactor';
 export type HeroId = 'ravager'; // roster grows by adding HEROES entries (config.ts)
 export type EnemyKind =

@@ -27,11 +27,20 @@ import {
   starStatFor,
   applyStarUnlocks,
   TOWER_ORDER,
+  AFFIX_POOL,
+  affixDef,
+  GEAR_SLOTS,
+  GEAR_RARITY_AFFIXES,
+  GEAR_DROP_CHANCE,
+  GEAR_INVENTORY_CAP,
+  GEAR_DISMANTLE_GENOME,
+  applyGear,
 } from '../core/config';
+import type { AffixDef } from '../core/config';
 import type { UpgradeDef, LootRarity, StarStat } from '../core/config';
-import type { Currency, MetaModifiers, TowerKind } from '../core/types';
+import type { Currency, MetaModifiers, TowerKind, GearItem, GearSlot } from '../core/types';
 import type { RunModifiers } from '../core/cards';
-import type { StarRunData } from '../core/game';
+import type { RunFold } from '../core/game';
 import type { RunResult } from '../core/game';
 import {
   ACHIEVEMENTS,
@@ -97,6 +106,7 @@ export interface LootReward {
   essence: number;
   components: number;
   genomeShards: number;
+  gear: GearItem | null; // a gear item dropped by this box (null = none this time)
 }
 
 
@@ -123,6 +133,49 @@ function mergeIds(have: string[], add: readonly string[]): string[] {
   let changed = false;
   for (const id of add) if (!set.has(id)) { set.add(id); changed = true; }
   return changed ? [...set] : have;
+}
+
+// ── Gear rolling (meta layer — Math.random is fine here; never the sim) ───────
+let gearSeq = 0;
+/** A short, collision-resistant instance id for a freshly-rolled gear item. */
+function gearId(): string {
+  gearSeq = (gearSeq + 1) % 0xffffff;
+  return `g${Date.now().toString(36)}${gearSeq.toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+}
+
+/** Roll one affix's magnitude: integers for wide/whole ranges, one decimal for the
+ *  small fractional relics (e.g. Apex Cooldown / Kill) so the value reads cleanly. */
+function rollAffixValue(def: AffixDef): number {
+  const [lo, hi] = def.range;
+  const raw = lo + Math.random() * (hi - lo);
+  return hi - lo >= 2 ? Math.round(raw) : Math.round(raw * 10) / 10;
+}
+
+/** Roll a fresh gear item at a rarity: a random slot + that rarity's distinct affix
+ *  count drawn from the slot's pool, each at a rolled magnitude. */
+function rollGear(rarity: 'common' | 'rare' | 'epic'): GearItem {
+  const slot = GEAR_SLOTS[Math.floor(Math.random() * GEAR_SLOTS.length)];
+  const bag = AFFIX_POOL.filter((a) => a.slot === slot);
+  const want = Math.min(GEAR_RARITY_AFFIXES[rarity], bag.length);
+  const affixes = [];
+  for (let i = 0; i < want && bag.length > 0; i++) {
+    const j = Math.floor(Math.random() * bag.length);
+    const def = bag.splice(j, 1)[0]; // distinct affixes (no repeats on one item)
+    affixes.push({ id: def.id, value: rollAffixValue(def) });
+  }
+  return { id: gearId(), slot, rarity, affixes };
+}
+
+/** Human-readable lines for an item's affixes: a magnitude + label, or — for a
+ *  behavioral unlock (flag) — the label alone (it has no meaningful number). */
+export function gearAffixLines(item: GearItem): string[] {
+  const out: string[] = [];
+  for (const a of item.affixes) {
+    const def = affixDef(a.id);
+    if (!def) continue;
+    out.push(def.flag ? def.label : `+${a.value}${def.pct ? '%' : ''} ${def.label}`);
+  }
+  return out;
 }
 
 export const meta = {
@@ -275,6 +328,9 @@ export const meta = {
     const essence = roll(def.essence);
     const components = roll(def.components);
     const genomeShards = roll(def.genomeShards);
+    // Gear drop — the loot→build chase. Chance scales with rarity; skipped when the
+    // inventory is full (dismantle to make room), so a box never silently voids gear.
+    const gear = s.gear.length < GEAR_INVENTORY_CAP && Math.random() < GEAR_DROP_CHANCE[rarity] ? rollGear(rarity) : null;
     persist({
       ...s,
       lootBoxes: s.lootBoxes - 1,
@@ -282,8 +338,9 @@ export const meta = {
       essence: s.essence + essence,
       components: s.components + components,
       genomeShards: s.genomeShards + genomeShards,
+      gear: gear ? [...s.gear, gear] : s.gear,
     });
-    return { rarity, shards, essence, components, genomeShards };
+    return { rarity, shards, essence, components, genomeShards, gear };
   },
 
   // ── Tower Stars (per-unit progression) ───────────────────────────────────
@@ -307,17 +364,75 @@ export const meta = {
     return true;
   },
 
-  /** The per-run star fold the Game applies (per-kind stats + the unlock applier). */
-  starRunData(): StarRunData {
+  /** The per-run permanent fold the Game applies: per-kind Star stats + an applier
+   *  that layers Star unlocks AND equipped Hero gear affixes onto the run. */
+  runFold(): RunFold {
     const s = store.get();
     const stat = {} as Record<TowerKind, StarStat>;
     for (const kind of TOWER_ORDER) stat[kind] = starStatFor(kind, s.stars[kind] ?? 0);
+    const worn = this.equippedItems(s.equipped, s.gear);
     return {
       stat,
       apply: (m: RunModifiers) => {
         for (const kind of TOWER_ORDER) applyStarUnlocks(kind, s.stars[kind] ?? 0, m);
+        for (const item of worn) applyGear(item, m);
       },
     };
+  },
+
+  // ── Hero gear (equipment loadout) ────────────────────────────────────────
+
+  /** Resolve the equipped slot ids → live items (skips empty/dangling slots). */
+  equippedItems(equipped: Record<GearSlot, string | null>, gear: GearItem[]): GearItem[] {
+    const out: GearItem[] = [];
+    for (const slot of GEAR_SLOTS) {
+      const id = equipped[slot];
+      if (!id) continue;
+      const item = gear.find((g) => g.id === id);
+      if (item) out.push(item);
+    }
+    return out;
+  },
+
+  /** Equip an owned item into its own slot (replacing whatever was there). */
+  equipGear(id: string): boolean {
+    const s = store.get();
+    const item = s.gear.find((g) => g.id === id);
+    if (!item) return false;
+    if (s.equipped[item.slot] === id) return false; // already worn
+    persist({ ...s, equipped: { ...s.equipped, [item.slot]: id } });
+    return true;
+  },
+
+  /** Clear whatever occupies a slot. Returns false if the slot was already empty. */
+  unequipSlot(slot: GearSlot): boolean {
+    const s = store.get();
+    if (s.equipped[slot] == null) return false;
+    persist({ ...s, equipped: { ...s.equipped, [slot]: null } });
+    return true;
+  },
+
+  /** Dismantle an owned item → Genome Shards (by rarity). Unequips it first if worn.
+   *  Returns the shards refunded (0 if the id isn't owned). */
+  dismantleGear(id: string): number {
+    const s = store.get();
+    const item = s.gear.find((g) => g.id === id);
+    if (!item) return 0;
+    const refund = GEAR_DISMANTLE_GENOME[item.rarity];
+    const equipped = { ...s.equipped };
+    for (const slot of GEAR_SLOTS) if (equipped[slot] === id) equipped[slot] = null;
+    persist({
+      ...s,
+      gear: s.gear.filter((g) => g.id !== id),
+      equipped,
+      genomeShards: s.genomeShards + refund,
+    });
+    return refund;
+  },
+
+  /** Genome-Shard refund a given item would yield if dismantled (for the UI). */
+  dismantleValue(item: GearItem): number {
+    return GEAR_DISMANTLE_GENOME[item.rarity];
   },
 
   // ── Save management ──────────────────────────────────────────────────────
@@ -376,6 +491,15 @@ export const meta = {
   debugGrantCurrency(currency: Currency, n: number): void {
     const save = store.get();
     persist({ ...save, [currency]: Math.max(0, save[currency] + n) });
+  },
+
+  /** Roll a gear item straight into the inventory (debug — skips the loot box). */
+  debugGrantGear(rarity: 'common' | 'rare' | 'epic'): GearItem | null {
+    const s = store.get();
+    if (s.gear.length >= GEAR_INVENTORY_CAP) return null;
+    const item = rollGear(rarity);
+    persist({ ...s, gear: [...s.gear, item] });
+    return item;
   },
 
   debugSetUpgrade(id: string, level: number): void {

@@ -9,12 +9,18 @@ hero-only **E** bucket), `HEROES.md`, `TOWERS.md`. Three slots per hero —
 > attack behavior, armor alters survivability + passives, relics alter gameplay
 > rules.** Vertical power is hard-capped (`PROGRESSION §4.5`); variety is horizontal.
 
-> **Implemented status (see `GAME-STATE.md`):** ⚪ the hero **gear** system below
-> (weapons/armor/relics, affixes, sets, the **E** bucket) is **designed, not yet
-> built**. What ships today is the permanent **Equipment upgrade track** — a
-> Components-bought meta track (Carapace / Payload / Symbiote) detailed in
-> `ECONOMY.md` and `BALANCE-LOG.md`. The two are distinct: this doc specs the
-> future per-hero gear; that track is account-wide relics.
+> **Implemented status (see `GAME-STATE.md`):** 🟡 a **v1 of the hero gear system**
+> now ships — three slots (**Weapon · Armor · Relic**), affix rolls by rarity, an
+> equip/dismantle **Loadout** panel, and a per-run fold of equipped affixes into the
+> hero (`config.ts AFFIX_POOL`, `state/meta.ts`, `ui/LoadoutPanel.tsx`). Gear **drops
+> from loot boxes** (the loot→build chase); surplus dismantles into Genome Shards.
+> v1 keeps power modest and reuses existing run hooks (no new sim behavior). Weapon is
+> a 3-stat stick; Armor/Relic hold 5 affixes each so an Epic there is a real 3-of-5
+> pick. Still **designed, not built:** per-hero loadouts (today gear is account-wide,
+> one hero), set bonuses, reforge/upgrade, exotics, and the larger affix taxonomy below.
+>
+> Distinct from the permanent **Equipment upgrade track** — a Components-bought meta
+> track (Carapace / Payload / Symbiote) detailed in `ECONOMY.md` / `BALANCE-LOG.md`.
 
 ---
 

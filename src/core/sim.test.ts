@@ -3,11 +3,11 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW, LOOT } from './config';
+import { SIM_DT, defaultMetaModifiers, ENEMY_DEFS, WAVE_FLOW, LOOT, applyGear } from './config';
 import { CARD_POOL } from './cards';
 import { generateStage } from './stage';
 import { towerSlots } from './map';
-import type { TowerKind } from './types';
+import type { TowerKind, GearItem } from './types';
 
 const NO_META = defaultMetaModifiers();
 
@@ -308,6 +308,26 @@ describe('automatic wave flow', () => {
     expect(starred.mods.needleBounce).toBe(1);
     expect(starred.mods.needleExtraProjectiles).toBe(1);
     expect(base.mods.needleBounce).toBe(0);
+  });
+
+  it('equipped hero gear folds its affixes into the run (same path as stars)', () => {
+    // A weapon item with two affixes, applied through the real applyGear → AFFIX_POOL.
+    const item: GearItem = {
+      id: 'gtest', slot: 'weapon', rarity: 'rare',
+      affixes: [{ id: 'w_dmg', value: 20 }, { id: 'w_cd', value: 10 }],
+    };
+    const fold = {
+      stat: {
+        needle: { damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1 },
+        mortar: { damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1 },
+        reactor: { damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1 },
+      },
+      apply: (m: Parameters<typeof applyGear>[1]) => applyGear(item, m),
+    };
+    const base = new Game(7, NO_META);
+    const geared = new Game(7, NO_META, { mode: 'classic' }, fold as unknown as ConstructorParameters<typeof Game>[3]);
+    expect(geared.mods.heroDamageMult).toBeCloseTo(base.mods.heroDamageMult * 1.2); // +20%
+    expect(geared.mods.heroCooldownMult).toBeCloseTo(base.mods.heroCooldownMult * 0.9); // −10% cd
   });
 
   it('records a wave summary when a wave clears (kills + biomass earned)', () => {

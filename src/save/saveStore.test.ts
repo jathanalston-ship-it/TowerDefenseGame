@@ -179,6 +179,27 @@ describe('save normalization (resilience to bad data)', () => {
       expect(r.data.bestWave).toBe(3); // fractional floored
     }
   });
+
+  it('drops malformed gear and clears equipped refs that point at nothing', () => {
+    const valid = { id: 'g1', slot: 'weapon', rarity: 'epic', affixes: [{ id: 'w_dmg', value: 15 }] };
+    const dirty = {
+      ...defaultSave(),
+      gear: [
+        valid,
+        { id: 'bad-slot', slot: 'boots', rarity: 'epic', affixes: [] }, // unknown slot → dropped
+        { id: 'bad-rarity', slot: 'armor', rarity: 'mythic', affixes: [] }, // unknown rarity → dropped
+        { slot: 'relic', rarity: 'rare', affixes: [] }, // missing id → dropped
+        { id: 'bad-affix', slot: 'relic', rarity: 'rare', affixes: [{ id: 'r_life', value: 'NaN' }] }, // affix kept-but-cleaned
+      ],
+      equipped: { weapon: 'g1', armor: 'ghost', relic: null }, // armor points at a non-existent item
+    };
+    const n = normalizeSave(dirty as unknown);
+    expect(n.gear.map((g) => g.id).sort()).toEqual(['bad-affix', 'g1']);
+    expect(n.gear.find((g) => g.id === 'bad-affix')!.affixes).toEqual([]); // bad value scrubbed
+    expect(n.equipped.weapon).toBe('g1'); // valid ref preserved
+    expect(n.equipped.armor).toBeNull(); // dangling ref cleared
+    expect(n.equipped.relic).toBeNull();
+  });
 });
 
 describe('save version migration', () => {
@@ -249,7 +270,7 @@ describe('save version migration', () => {
     new SaveStore(s).save(defaultSave());
     const blob = JSON.parse(s.map.get('assimilate.save')!);
     expect(blob.schemaVersion).toBe(CURRENT_VERSION);
-    expect(CURRENT_VERSION).toBe(4);
+    expect(CURRENT_VERSION).toBe(5);
   });
 
   it('migrates a v3 save up to v4, adding the tower-star fields', () => {
@@ -270,6 +291,28 @@ describe('save version migration', () => {
       expect(r.data.stars).toEqual({});
     }
     expect(getMigrationLog().some((e) => e.from === 3 && e.to === 4)).toBe(true);
+  });
+
+  it('migrates a v4 save up to v5, adding the hero-gear fields', () => {
+    clearMigrationLog();
+    const v4 = {
+      schemaVersion: 4,
+      data: {
+        shards: 7, upgrades: {}, bestWave: 3, totalRuns: 2, lifetimeShards: 7, cardsSeen: 0,
+        stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+        essence: 0, components: 0, catalyst: 0, codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
+        lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0, genomeShards: 12, stars: { needle: 2 },
+      },
+    };
+    const r = parseImport(JSON.stringify(v4));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.genomeShards).toBe(12); // v4 values preserved
+      expect(r.data.stars).toEqual({ needle: 2 });
+      expect(r.data.gear).toEqual([]); // v5 additions, defaulted
+      expect(r.data.equipped).toEqual({ weapon: null, armor: null, relic: null });
+    }
+    expect(getMigrationLog().some((e) => e.from === 4 && e.to === 5)).toBe(true);
   });
 
   it('round-trips a current save through a stored blob unchanged (preserve current saves)', () => {

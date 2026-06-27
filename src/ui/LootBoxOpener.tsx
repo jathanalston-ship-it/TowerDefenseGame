@@ -3,10 +3,12 @@
 // currency cache that feeds the upgrade tracks → spend it → one more run.
 
 import { useState } from 'react';
-import { meta } from '../state/meta';
+import { meta, gearAffixLines } from '../state/meta';
 import type { LootReward } from '../state/meta';
 import { LOOT_RARITY } from '../core/config';
 import { CountUp } from './components/CountUp';
+
+const SLOT_LABEL: Record<string, string> = { weapon: 'Weapon', armor: 'Armor', relic: 'Relic' };
 
 export function LootBoxOpener(): JSX.Element | null {
   const save = meta.use();
@@ -67,6 +69,17 @@ export function LootBoxOpener(): JSX.Element | null {
               </span>
             )}
           </div>
+          {reveal.gear && (
+            <div className="lr-gear">
+              <div className="lr-gear-name">
+                ⚙ {LOOT_RARITY[reveal.gear.rarity].label} {SLOT_LABEL[reveal.gear.slot]}
+              </div>
+              <ul className="lr-gear-affixes">
+                {gearAffixLines(reveal.gear).map((line, i) => <li key={i}>{line}</li>)}
+              </ul>
+              <div className="lr-gear-tag">Equip it in the Loadout panel</div>
+            </div>
+          )}
           <div className="lr-dismiss">{save.lootBoxes > 0 ? 'Tap to continue — open another' : 'Tap to continue'}</div>
         </div>
       )}

@@ -26,7 +26,7 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, config, meta.starRunData()));
+  const game = (gameRef.current ??= new Game(seed, mods, config, meta.runFold()));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const pointerRef = useRef<Pointer | null>(null);

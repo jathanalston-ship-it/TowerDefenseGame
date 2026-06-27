@@ -52,14 +52,15 @@ updated whenever a system lands.
 | Genome Shards (Star currency, from loot + runs) | 🟡 | `state/meta.ts`, `config.ts LOOT_RARITY` | PROGRESSION-LOOP |
 | Prestige track (Catalyst sink) | 🟡 | `config.ts PRESTIGE_UPGRADES` | BALANCE-LOG |
 | Codex / collection (enemies·biomes·cards) | ✅ | `state/meta.ts`, `ui/Codex.tsx` | COLLECTION |
-| Persistent Loot Meter (→ loot boxes) | 🟡 | `config.ts LOOT`, `state/meta.ts`, `ui/LootMeter.tsx` | LOOTBOX |
+| Persistent Loot Meter (→ loot boxes → gear) | 🟡 | `config.ts LOOT`, `state/meta.ts`, `ui/LootMeter.tsx` | LOOTBOX |
+| Hero gear (Weapon/Armor/Relic, affix rolls) | 🟡 | `config.ts AFFIX_POOL`, `state/meta.ts`, `ui/LoadoutPanel.tsx` | EQUIPMENT |
 | Automatic wave flow + Build Phase | ✅ | `game.ts` (buildCountdown), `ui/BuildBanner.tsx` | WAVES |
 | Achievements (16 / 5 chains) + titles | ✅ | `core/achievements.ts` | COLLECTION |
-| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v4, `MIGRATIONS`) | ARCHITECTURE §15.2 |
+| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v5, `MIGRATIONS`) | ARCHITECTURE §15.2 |
 | HUD / menus / results | ✅ | `src/ui/*` | HUD |
 | Internal balancing tools (dev-only) | ✅ | `ui/DebugPanel.tsx`, `debug/debug.ts` | — |
-| Equipment **gear** (weapons/armor/relics) | ⚪ | — | EQUIPMENT, PROGRESSION |
-| Tower/Hero stars · mastery · class levels | ⚪ | — | PROGRESSION |
+| Gear **depth** (sets, reforge/upgrade, bigger affix pools) | ⚪ | — | EQUIPMENT, PROGRESSION |
+| Hero/class mastery · class levels | ⚪ | — | PROGRESSION |
 | Prestige layers (Molt → Omega), Ω-tiers | ⚪ | — | PROGRESSION, LIVING-HIVE |
 | Hive Tree / idle / loot boxes | ⚪ | — | LIVING-HIVE, LOOTBOX |
 
@@ -77,6 +78,7 @@ updated whenever a system lands.
 | Biomes | 5 | wasteland, corporate, marsh, bone, machine |
 | Authored waves | 12 | Classic/Stage; Endless waves are procedural |
 | Meta upgrades | 13 | 4 Core · 3 Mastery · 3 Equipment · 3 Prestige |
+| Gear affixes | 13 | 3 Weapon · 5 Armor · 5 Relic (drop from loot boxes) |
 | Currencies | 4 | Shards · Essence · Components · Catalyst |
 | Achievements | 16 | across 5 chains; 6 grant titles |
 
@@ -115,6 +117,8 @@ buckets, and six nested prestige layers — is specified in `PROGRESSION.md` but
 - **Stage generation** determinism (`stage.test.ts`).
 - **Economy / progression** — per-mode currencies, currency-scoped purchases,
   Catalyst→Prestige sink (`state/meta.test.ts`).
+- **Hero gear** — drops at every rarity, equip/unequip/dismantle, run-fold of
+  equipped affixes, loot-box drops never voided (`state/meta.test.ts`, `sim.test.ts`).
 - **Codex & achievements** — discovery union/dedupe, new-only unlock reporting,
   title earning (`meta.test.ts`); threshold + title logic (`achievements.test.ts`).
 - **Content contracts** — record keys, HERO alias, `isBoss`, unique ids

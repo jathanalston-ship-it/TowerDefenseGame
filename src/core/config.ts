@@ -2,7 +2,7 @@
 // ARCHITECTURE.md §6.2). Systems read these; they never inline magic numbers.
 // Every value is an illustrative starting point for the vertical slice.
 
-import type { CombatClass, Currency, EnemyKind, HeroId, MetaModifiers, TowerKind } from './types';
+import type { CombatClass, Currency, EnemyKind, GearItem, GearSlot, HeroId, MetaModifiers, TowerKind } from './types';
 import type { RunModifiers } from './cards'; // type-only (no runtime cycle: cards never imports config)
 import { defineEnemy, MOVEMENT, ability, tune } from './archetypes';
 import type { EnemyDef, EnemyBehavior, StatBlock, EnemyRole, AbilityModule, MovementId } from './archetypes';
@@ -436,6 +436,64 @@ export function starStatFor(kind: TowerKind, level: number): StarStat {
 export function applyStarUnlocks(kind: TowerKind, level: number, m: RunModifiers): void {
   const track = STAR_TRACKS[kind];
   for (let i = 0; i < Math.min(level, track.length); i++) track[i].apply?.(m);
+}
+
+// ── Hero Equipment (gear) ───────────────────────────────────────────────────
+// Three slots (Weapon / Armor / Relic). A gear item is a rarity + rolled affixes;
+// each affix sets an EXISTING hero/run hook, so gear adds no new sim behavior — only
+// new *loadout decisions*. Vertical power stays modest (bounded affix ranges); the
+// depth is horizontal (which affixes/relics, which loadout). Data-driven: a new affix
+// is one AFFIX_POOL entry. Gear drops from loot boxes (the loot→build chase).
+export const GEAR_SLOTS: GearSlot[] = ['weapon', 'armor', 'relic'];
+
+export interface AffixDef {
+  id: string;
+  label: string;
+  slot: GearSlot;
+  range: [number, number]; // rolled magnitude range
+  pct?: boolean; // display as a percentage
+  flag?: boolean; // a behavioral unlock (no magnitude) — shown as the label alone
+  apply: (m: RunModifiers, value: number) => void; // reuses an existing run hook
+}
+
+// Pools per slot are intentionally uneven: Weapon is a 3-stat "stat stick" (an Epic
+// weapon maxes hero offense), while Armor and Relic hold five each, so an Epic in
+// those slots is a real 3-of-5 choice — that's where the horizontal build variety
+// lives. Adding more is one entry; Epic stays a meaningful pick as the pools grow.
+export const AFFIX_POOL: AffixDef[] = [
+  // Weapon — the hero's offense.
+  { id: 'w_dmg', label: 'Hero Damage', slot: 'weapon', range: [8, 20], pct: true, apply: (m, v) => { m.heroDamageMult *= 1 + v / 100; } },
+  { id: 'w_atk', label: 'Hero Attack Speed', slot: 'weapon', range: [8, 18], pct: true, apply: (m, v) => { m.heroAttackRateMult *= 1 + v / 100; } },
+  { id: 'w_cd', label: 'Ability Cooldown', slot: 'weapon', range: [6, 15], pct: true, apply: (m, v) => { m.heroCooldownMult *= 1 - v / 100; } },
+  // Armor — survivability + auras/economy that reach the towers (the cross-layer lever).
+  { id: 'a_spd', label: 'Hero Move Speed', slot: 'armor', range: [8, 18], pct: true, apply: (m, v) => { m.heroSpeedMult *= 1 + v / 100; } },
+  { id: 'a_aura', label: 'Tower Damage Aura', slot: 'armor', range: [4, 10], pct: true, apply: (m, v) => { m.towerDamageMult *= 1 + v / 100; } },
+  { id: 'a_bio', label: 'Biomass Income', slot: 'armor', range: [5, 12], pct: true, apply: (m, v) => { m.biomassMult *= 1 + v / 100; } },
+  { id: 'a_haste', label: 'Tower Fire-Rate Aura', slot: 'armor', range: [3, 8], pct: true, apply: (m, v) => { m.towerFireRateMult *= 1 + v / 100; } },
+  { id: 'a_reactor', label: 'Reactor Yield', slot: 'armor', range: [6, 14], pct: true, apply: (m, v) => { m.reactorBiomassMult *= 1 + v / 100; } },
+  // Relic — rule-benders (flat counters + behavioral unlocks).
+  { id: 'r_life', label: 'Lifesteal on Kill', slot: 'relic', range: [2, 6], apply: (m, v) => { m.heroLifestealOnKill += v; } },
+  { id: 'r_strike', label: 'Extra Hero Strike', slot: 'relic', range: [1, 1], flag: true, apply: (m) => { m.heroExtraStrikes += 1; } },
+  { id: 'r_apex', label: 'Apex Cooldown / Kill', slot: 'relic', range: [0.3, 0.8], apply: (m, v) => { m.apexKillReset += v; } },
+  { id: 'r_pools', label: 'Acidic Remains', slot: 'relic', range: [1, 1], flag: true, apply: (m) => { m.deathPools = true; } },
+  { id: 'r_burst', label: 'Volatile Decay', slot: 'relic', range: [1, 1], flag: true, apply: (m) => { m.deathBurst = true; } },
+];
+
+const AFFIX_BY_ID = new Map(AFFIX_POOL.map((a) => [a.id, a]));
+export function affixDef(id: string): AffixDef | undefined {
+  return AFFIX_BY_ID.get(id);
+}
+
+export const GEAR_RARITY_AFFIXES: Record<'common' | 'rare' | 'epic', number> = { common: 1, rare: 2, epic: 3 };
+export const GEAR_DROP_CHANCE: Record<'common' | 'rare' | 'epic', number> = { common: 0.22, rare: 0.6, epic: 1 };
+export const GEAR_INVENTORY_CAP = 60;
+// Dismantling surplus gear refunds Genome Shards (the per-unit star currency), so even
+// junk drops feed progression — values track the per-rarity genome-shard scale.
+export const GEAR_DISMANTLE_GENOME: Record<'common' | 'rare' | 'epic', number> = { common: 20, rare: 50, epic: 120 };
+
+/** Apply one equipped gear item's affixes into the run modifier bag (pure). */
+export function applyGear(item: GearItem, m: RunModifiers): void {
+  for (const a of item.affixes) affixDef(a.id)?.apply(m, a.value);
 }
 
 // ── Battlefield / arena ─────────────────────────────────────────────────────

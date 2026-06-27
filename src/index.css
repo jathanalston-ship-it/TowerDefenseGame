@@ -1294,6 +1294,96 @@ canvas.board.is-aiming {
   font-weight: 700;
 }
 
+/* Gear drop inside a loot reveal */
+.lr-gear {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--rarity, var(--line));
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+.lr-gear-name {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--rarity, var(--text));
+  font-size: 13px;
+}
+.lr-gear-affixes {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  font-size: 12px;
+  color: var(--text);
+}
+.lr-gear-tag {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── Hero Loadout panel ─────────────────────────────────────────────────────── */
+.loadout-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 4px 0 14px;
+}
+.loadout-slot {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 78px;
+}
+.loadout-slot.is-filled {
+  border-color: var(--line-bright, var(--line));
+  background: var(--panel);
+}
+.ls-slot {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.ls-name {
+  font-weight: 800;
+  font-size: 13px;
+}
+.ls-affixes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ls-empty {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
+  margin: auto 0;
+}
+.ls-unequip {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+.loadout-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 /* ── Draft overlay ────────────────────────────────────────────────────────── */
 .overlay {
   position: absolute;

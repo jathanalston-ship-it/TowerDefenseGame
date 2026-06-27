@@ -120,9 +120,10 @@ export interface GameConfig {
   biome?: BiomeId; // optional starting biome for 'endless'
 }
 
-/** Per-tower Star fold applied at run start (per-kind stats + a run-mod applier).
- *  Optional: omitted in tests/headless → no star bonus → deterministic baseline. */
-export interface StarRunData {
+/** Permanent per-run fold applied at run start: per-tower Star stats + a RunModifiers
+ *  applier that layers Star unlocks AND equipped Hero gear onto the run. Optional:
+ *  omitted in tests/headless → no permanent bonus → deterministic baseline. */
+export interface RunFold {
   stat: Record<TowerKind, StarStat>;
   apply: (m: RunModifiers) => void;
 }
@@ -203,7 +204,7 @@ export class Game {
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
 
-  constructor(seed: number, meta: MetaModifiers, config: GameConfig = { mode: 'classic' }, stars?: StarRunData) {
+  constructor(seed: number, meta: MetaModifiers, config: GameConfig = { mode: 'classic' }, fold?: RunFold) {
     this.seed = seed >>> 0;
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
@@ -238,11 +239,12 @@ export class Game {
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
     this.mods.heroSpeedMult *= meta.heroSpeedMult;
-    // Fold permanent Tower Stars: mechanic unlocks set the same run hooks cards use;
-    // per-kind stat steps are stored for towerSystem. (Absent in tests → no change.)
-    if (stars) {
-      stars.apply(this.mods);
-      this.starStat = stars.stat;
+    // Fold permanent progression (Tower Stars + Hero gear): unlock/affix appliers set
+    // the same run hooks cards use; per-kind Star stat steps are stored for towerSystem.
+    // (Absent in tests → no change → deterministic baseline.)
+    if (fold) {
+      fold.apply(this.mods);
+      this.starStat = fold.stat;
     }
     this.maxIntegrity = Math.round((ECON.baseIntegrity + meta.integrityBonus) * this.stageMods.integrityMult);
     this.integrity = this.maxIntegrity;

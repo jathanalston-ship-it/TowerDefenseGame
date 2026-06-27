@@ -8,6 +8,8 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
+import type { GearItem, GearSlot } from '../core/types';
+
 export interface SaveData {
   shards: number;
   upgrades: Record<string, number>; // upgradeId -> level
@@ -37,6 +39,9 @@ export interface SaveData {
   // Tower Stars — per-unit permanent progression (the first per-unit record).
   genomeShards: number; // currency that buys stars (from loot boxes + runs)
   stars: Record<string, number>; // towerKind -> star level
+  // Hero equipment — owned gear + the equipped loadout.
+  gear: GearItem[];
+  equipped: Record<GearSlot, string | null>; // slot -> equipped item id (or none)
 }
 
 /** Discovered content sets (stored as deduped id arrays for JSON portability). */
@@ -46,7 +51,7 @@ export interface CodexData {
   cards: string[];
 }
 
-export const CURRENT_VERSION = 4;
+export const CURRENT_VERSION = 5;
 const SAVE_KEY = 'assimilate.save';
 const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
@@ -80,6 +85,7 @@ export function defaultSave(): SaveData {
     codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
     lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0,
     genomeShards: 0, stars: {},
+    gear: [], equipped: { weapon: null, armor: null, relic: null },
   };
 }
 
@@ -138,6 +144,33 @@ function normalizeCodex(v: unknown): CodexData {
   return { enemies: normalizeIdList(o.enemies), biomes: normalizeIdList(o.biomes), cards: normalizeIdList(o.cards) };
 }
 
+const GEAR_SLOTS_SET = new Set<GearSlot>(['weapon', 'armor', 'relic']);
+const GEAR_RARITY_SET = new Set(['common', 'rare', 'epic']);
+
+/** Defensive gear normalization — drops malformed items (hand-edited/partial saves). */
+function normalizeGear(v: unknown): GearItem[] {
+  if (!Array.isArray(v)) return [];
+  const out: GearItem[] = [];
+  for (const it of v) {
+    if (!it || typeof it !== 'object') continue;
+    const o = it as Record<string, unknown>;
+    if (typeof o.id !== 'string' || !GEAR_SLOTS_SET.has(o.slot as GearSlot) || !GEAR_RARITY_SET.has(o.rarity as string)) continue;
+    if (!Array.isArray(o.affixes)) continue;
+    const affixes = o.affixes
+      .filter((a): a is { id: string; value: number } => !!a && typeof (a as { id: unknown }).id === 'string' && typeof (a as { value: unknown }).value === 'number' && Number.isFinite((a as { value: number }).value))
+      .map((a) => ({ id: a.id, value: a.value }));
+    out.push({ id: o.id, slot: o.slot as GearSlot, rarity: o.rarity as GearItem['rarity'], affixes });
+  }
+  return out;
+}
+
+function normalizeEquipped(v: unknown, gear: GearItem[]): Record<GearSlot, string | null> {
+  const o = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
+  const ids = new Set(gear.map((g) => g.id));
+  const slot = (s: GearSlot): string | null => (typeof o[s] === 'string' && ids.has(o[s] as string) ? (o[s] as string) : null);
+  return { weapon: slot('weapon'), armor: slot('armor'), relic: slot('relic') };
+}
+
 /** Build a clean SaveData from arbitrary (validated-shape) input — clamps ranges,
  *  drops junk keys, fills missing fields from defaults. */
 export function normalizeSave(raw: unknown): SaveData {
@@ -164,6 +197,8 @@ export function normalizeSave(raw: unknown): SaveData {
     lootBoxesLifetime: nonNegInt(o.lootBoxesLifetime),
     genomeShards: nonNegInt(o.genomeShards),
     stars: normalizeUpgrades(o.stars), // same shape as upgrades: id -> positive int level
+    gear: normalizeGear(o.gear),
+    equipped: normalizeEquipped(o.equipped, normalizeGear(o.gear)),
   };
 }
 
@@ -241,6 +276,11 @@ const MIGRATIONS: Migration[] = [
     to: 4,
     describe: 'tower stars + genome shards',
     up: (d) => [fieldOp.add(d, 'genomeShards', 0), fieldOp.add(d, 'stars', {})],
+  },
+  {
+    to: 5,
+    describe: 'hero equipment (gear + loadout)',
+    up: (d) => [fieldOp.add(d, 'gear', []), fieldOp.add(d, 'equipped', { weapon: null, armor: null, relic: null })],
   },
 ];
 
