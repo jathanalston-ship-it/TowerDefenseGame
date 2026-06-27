@@ -53,6 +53,10 @@ export const AFFIXES: AffixDef[] = [
   { id: 'galvanic', name: 'Galvanic', bias: 'armor', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.06 }] },
   { id: 'tidal', name: 'Tidal', bias: 'armor', effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.12 }] },
   { id: 'glacial', name: 'Glacial', bias: 'armor', effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.05 }] },
+  // Behavioral armor (EQUIPMENT-PHILOSOPHY.md): these change HOW the hero plays, not its
+  // numbers — wider hunting vs. disengaging when wounded.
+  { id: 'vigilant', name: 'Vigilant', bias: 'armor', effects: [{ op: 'mul', field: 'heroAggroRangeMult', value: 1.2 }] },
+  { id: 'wary', name: 'Wary', bias: 'armor', effects: [{ op: 'add', field: 'heroRetreatThreshold', value: 0.3 }] },
   { id: 'fertile', name: 'Fertile', bias: 'relic', effects: [{ op: 'mul', field: 'biomassMult', value: 1.08 }] },
   { id: 'flush', name: 'Flush', bias: 'relic', effects: [{ op: 'add', field: 'startBiomassBonus', value: 60 }] },
   { id: 'corrosive', name: 'Corrosive', bias: 'relic', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }] },

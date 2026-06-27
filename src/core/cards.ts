@@ -33,6 +33,10 @@ export interface RunModifiers {
   startBiomassBonus: number; // flat biomass added at run start
   integrityMult: number; // multiplies max Nucleus integrity (e.g. Glass Genome ½)
   heroMaxHpMult: number; // multiplies hero max HP (survivability gear)
+  // ── Hero behavior profile (EQUIPMENT-PHILOSOPHY.md) — armor/relics author HOW the hero
+  //    plays, not just its numbers. Neutral defaults ⇒ a gear-less run is byte-identical. ──
+  heroAggroRangeMult: number; // scales the hero's target-seek range (aggression). 1 = base
+  heroRetreatThreshold: number; // HP fraction below which the hero disengages to the nucleus (0 = never)
   // ── Keystones — rule-benders that change HOW combat resolves, not just the numbers.
   //    Neutral by default (off / ×1) so a run without the relevant gear/card is
   //    byte-identical (the golden invariant). The sim gates each on its neutral value. ──
@@ -69,6 +73,8 @@ export function defaultRunModifiers(): RunModifiers {
     startBiomassBonus: 0,
     integrityMult: 1,
     heroMaxHpMult: 1,
+    heroAggroRangeMult: 1,
+    heroRetreatThreshold: 0,
     executeThreshold: 0,
     lastStandThreshold: 0,
     lastStandMult: 1,

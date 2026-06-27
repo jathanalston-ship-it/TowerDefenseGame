@@ -1189,10 +1189,19 @@ export class Game {
     if (h.abilityCd > 0) h.abilityCd -= dt;
     if (h.pulseCd > 0) h.pulseCd -= dt;
 
-    switch (def.behavior) {
-      case 'dive': this.updateDiveHero(h, def, dt); break;
-      case 'guard': this.updateGuardHero(h, def, dt); break;
-      case 'control': this.updateControlHero(h, def, dt); break;
+    // Equipment behavior profile: a "wary" loadout disengages the hero toward the nucleus
+    // at low HP instead of running its normal AI. Neutral default (threshold 0) ⇒ never
+    // retreats ⇒ byte-identical to a gear-less run (golden invariant).
+    if (this.mods.heroRetreatThreshold > 0 && h.hp < h.maxHp * this.mods.heroRetreatThreshold) {
+      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+    } else {
+      switch (def.behavior) {
+        case 'dive': this.updateDiveHero(h, def, dt); break;
+        case 'guard': this.updateGuardHero(h, def, dt); break;
+        case 'control': this.updateControlHero(h, def, dt); break;
+      }
     }
 
     this.heroContactDamage(h, def, dt);
@@ -1206,7 +1215,8 @@ export class Game {
    * original single-hero build, so the golden outcomes are preserved.)
    */
   private updateDiveHero(h: Hero, def: HeroDef, dt: number): void {
-    const aggro2 = def.aggroRange * def.aggroRange;
+    const aggroRange = def.aggroRange * this.mods.heroAggroRangeMult; // equipment aggression knob
+    const aggro2 = aggroRange * aggroRange;
     let target: Enemy | null = null;
     let bestApproach = Infinity; // best among enemies still above the line
     let fallback: Enemy | null = null;

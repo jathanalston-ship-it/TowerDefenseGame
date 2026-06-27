@@ -142,3 +142,20 @@ behavioral ops extend it rather than replacing it.
 3. Re-author affixes/sets behavioral; keep a small bounded stat pool.
 4. Relic event-bus hooks; author launch relics.
 5. Loadout UX surfacing archetypes; verify golden byte-identical throughout.
+
+## 8. Implementation status (v1 — shipped)
+
+The behavior-profile seam is **live** as neutral-default fields on `RunModifiers` (the
+existing run-start fold), read by the hero AI — no new effect op was needed, so armor
+authors behavior through the same `add`/`mul` interpreter cards already use:
+
+- `heroAggroRangeMult` — scales the hero's target-seek range (the Ravager's dive AI hunts
+  wider/narrower). Affix **Vigilant**.
+- `heroRetreatThreshold` — HP fraction below which **any** hero disengages toward the
+  nucleus instead of running its normal AI. Affix **Wary**.
+
+Both default neutral (×1 / 0) ⇒ a gear-less run is byte-identical (golden unchanged);
+`equipment.behavior.test.ts` proves a wary profile measurably changes the AI. **Still
+design-only:** the full `stance`/`anchor`/`repositionBias` profile, weapon attack-mutators,
+and relic event-bus rules (§3, §5A) — these land as the shared star/equipment grant language
+(`PROGRESSION-PHILOSOPHY §3A/B`) is built out.
