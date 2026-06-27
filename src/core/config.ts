@@ -388,6 +388,9 @@ export const WAVE_BOUNTY_GROWTH = 0.05;
 // prep seconds (a visible countdown). Opt-in + off by default, so the golden run — which starts
 // waves manually — is byte-identical.
 export const AUTO_START_DELAY = 4; // seconds of prep before an auto-start fires the next wave
+// The opening prep (before any wave) gets a longer window once the player places their first
+// tower, so auto-start doesn't rush the initial build-out.
+export const AUTO_START_FIRST_DELAY = 8; // seconds granted on the first tower of the opening prep
 
 // ── Spawn scheduling (spawndirector.ts) ──────────────────────────────────────
 // The Spawn Director owns the MECHANICS of emitting spawns (spacing/timing/pacing),

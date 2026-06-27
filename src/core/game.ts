@@ -47,6 +47,7 @@ import {
   WAVES,
   WAVE_BOUNTY_GROWTH,
   AUTO_START_DELAY,
+  AUTO_START_FIRST_DELAY,
   WAVE_HP_GROWTH,
 } from './config';
 import type { EnemyDef, HeroDef } from './config';
@@ -536,6 +537,11 @@ export class Game {
     this.recomputeTowerCaches();
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
+    // window, so an auto-start doesn't fire before the player finishes their opening build.
+    if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
+      this.prepCountdown = AUTO_START_FIRST_DELAY;
+    }
     return true;
   }
 
