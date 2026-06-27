@@ -4,6 +4,7 @@
 // reveal. Built to expand to multiple chest rarities (the `rarity` drives styling).
 
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { ChestResult, RewardItem } from '../state/lootbox';
 import { CHESTS, HERO_LABELS, TOWER_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
@@ -33,10 +34,18 @@ function RewardRow({ item }: { item: RewardItem }): JSX.Element {
   );
 }
 
-export function LootReveal({ chest }: { chest: ChestResult }): JSX.Element {
+export function LootReveal({
+  chest,
+  title,
+  color,
+}: {
+  chest: ChestResult;
+  title?: string; // overrides the chest-name label (loot-queue boxes pass their rarity name)
+  color?: string; // rarity color for the box framing + title (loot-queue boxes)
+}): JSX.Element {
   const [open, setOpen] = useState(false);
   const [revealed, setRevealed] = useState(0);
-  const name = CHESTS[chest.chestId]?.name ?? 'Reward Cache';
+  const name = title ?? CHESTS[chest.chestId]?.name ?? 'Reward Cache';
 
   // Beat 1: a short anticipation pause, then the chest pops open (with a thunk).
   useEffect(() => {
@@ -63,14 +72,20 @@ export function LootReveal({ chest }: { chest: ChestResult }): JSX.Element {
 
   return (
     <div className="loot">
-      <div className={`chest rarity-${chest.chestId} ${open ? 'is-open' : ''}`} aria-hidden="true">
+      <div
+        className={`chest rarity-${chest.chestId} ${open ? 'is-open' : ''}`}
+        aria-hidden="true"
+        style={color ? ({ '--rarity': color } as CSSProperties) : undefined}
+      >
         <div className="chest-burst" />
         <div className="chest-box">
           <div className="chest-lid" />
           <div className="chest-shine" />
         </div>
       </div>
-      <div className="loot-title">{open ? name : 'Opening…'}</div>
+      <div className="loot-title" style={color ? { color } : undefined}>
+        {open ? name : 'Opening…'}
+      </div>
       <ul className="loot-items">
         {chest.items.slice(0, revealed).map((it, i) => (
           <li className={`loot-item${it.type === 'hero' ? ' is-jackpot' : ''}`} key={i}>

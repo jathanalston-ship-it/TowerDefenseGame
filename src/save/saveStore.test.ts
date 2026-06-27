@@ -66,6 +66,17 @@ describe('save export / import', () => {
     expect(parseImport('not json').ok).toBe(false);
     expect(parseImport('{"nope":true}').ok).toBe(false);
   });
+
+  it('fills a loot queue for a pre-v4 save (additive migration)', () => {
+    const legacy = { ...defaultSave() } as Record<string, unknown>;
+    delete legacy.lootQueue; // a save written before the loot queue existed
+    const r = parseImport(JSON.stringify(legacy));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.lootQueue.queue.length).toBeGreaterThanOrEqual(2);
+      expect(r.data.lootQueue.progress).toBe(0);
+    }
+  });
 });
 
 describe('backups & corruption recovery', () => {

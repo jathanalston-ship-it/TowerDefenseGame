@@ -64,6 +64,13 @@ export function DebugPanel(): JSX.Element {
                 Reset save
               </button>
             </div>
+            <div className="debug-row">
+              <button onClick={() => meta.debugAddLootPoints(150)}>+150 Loot</button>
+              <button onClick={() => meta.debugAddLootPoints(800)}>+800 Loot</button>
+              <span className="debug-note">
+                Filling {save.lootQueue.queue[0]} → next {save.lootQueue.queue[1]}
+              </span>
+            </div>
           </div>
 
           <div className="debug-sec">

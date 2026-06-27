@@ -24,8 +24,11 @@ import type {
   TowerKind,
   TowerProgress,
 } from '../core/types';
-import { rollChest } from './lootbox';
+import { rollChest, rollLoot } from './lootbox';
 import type { ChestResult } from './lootbox';
+import { LOOT_EARN, rarityRegistry } from '../core/loot';
+import { addProgress } from '../core/lootQueue';
+import type { LootQueueState } from '../core/lootQueue';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -174,6 +177,13 @@ export interface MasteryDelta {
   toLevel: number;
 }
 
+/** One loot-queue box opened this run: its rarity + the rolled rewards (reuses the
+ * chest reveal pipeline, with the rarity id riding along as chestId for styling). */
+export interface LootBoxAward {
+  rarity: string;
+  chest: ChestResult;
+}
+
 /** Everything a finished run grants — the Results screen renders all of it. */
 export interface RunOutcome {
   reward: RunReward;
@@ -181,6 +191,26 @@ export interface RunOutcome {
   mastery: Record<TowerKind, MasteryDelta>;
   heroMastery: Record<HeroKind, MasteryDelta>;
   gear: OwnedItem; // a run-end equipment drop (rarity scales with depth)
+  loot: { queue: LootQueueState; awarded: LootBoxAward[] }; // loot-queue progress + boxes opened
+}
+
+/** Roll each awarded loot-queue box's reward table, fold the shards into the running
+ * totals, and collect the per-box awards for the Results reveal. Mutates the records. */
+function openLootBoxes(
+  awarded: string[],
+  towerShards: Record<TowerKind, number>,
+  heroShards: Record<string, number>,
+): LootBoxAward[] {
+  const out: LootBoxAward[] = [];
+  for (const rarity of awarded) {
+    const def = rarityRegistry.get(rarity);
+    if (!def) continue;
+    const box = rollLoot(def);
+    for (const k of TOWER_ORDER) towerShards[k] += box.towerShards[k] ?? 0;
+    for (const id of Object.keys(box.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + box.heroShards[id];
+    out.push({ rarity, chest: box });
+  }
+  return out;
 }
 
 export const meta = {
@@ -257,6 +287,13 @@ export const meta = {
       catalyst: save.mats.catalyst + (result.wave >= 7 ? 1 : 0),
     };
 
+    // 5. loot queue: bank this run's loot points; awarding any box the meter completed
+    //    slides the pre-determined next box forward and rolls a fresh tail (anticipation
+    //    never resets). Awarded boxes roll their reward tables into the same shard totals.
+    const lootPoints = Math.floor(result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill);
+    const lootAdv = addProgress(save.lootQueue, lootPoints);
+    const lootAwarded = openLootBoxes(lootAdv.awarded, towerShards, heroShards);
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -270,9 +307,23 @@ export const meta = {
       stats: accumulateStats(save.stats, result.stats),
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, gear] },
       mats,
+      lootQueue: lootAdv.state,
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
-    return { reward: { shardsEarned, newBest }, chest, mastery, heroMastery, gear };
+    return {
+      reward: { shardsEarned, newBest },
+      chest,
+      mastery,
+      heroMastery,
+      gear,
+      loot: { queue: lootAdv.state, awarded: lootAwarded },
+    };
+  },
+
+  /** Current loot-queue state: the box the meter is filling, the pre-determined next
+   * box(es), and pity counters. Read by the HUD meter. */
+  lootQueue(): LootQueueState {
+    return store.get().lootQueue;
   },
 
   /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
@@ -528,5 +579,16 @@ export const meta = {
     for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
     persist({ ...save, towerShards, heroShards });
     return chest;
+  },
+
+  /** Bank loot points directly (skips a run); awards + grants any completed boxes. */
+  debugAddLootPoints(n: number): RunOutcome['loot'] {
+    const save = store.get();
+    const towerShards = { ...save.towerShards };
+    const heroShards = { ...save.heroShards };
+    const adv = addProgress(save.lootQueue, n);
+    const awarded = openLootBoxes(adv.awarded, towerShards, heroShards);
+    persist({ ...save, towerShards, heroShards, lootQueue: adv.state });
+    return { queue: adv.state, awarded };
   },
 };

@@ -6,6 +6,7 @@
 
 import { HERO_IDS, TOWER_ORDER } from '../core/config';
 import type { ChestDef } from '../core/config';
+import type { LootRewardTable, RarityDef } from '../core/loot';
 import type { TowerKind } from '../core/types';
 
 /** One revealed reward (the animated opening plays these in order). */
@@ -27,25 +28,37 @@ function pick<T>(rng: () => number, arr: readonly T[]): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
-/** Roll a chest into an ordered reveal list + aggregated shard totals. */
-export function rollChest(def: ChestDef, rng: () => number = Math.random): ChestResult {
+/** Core roller: turn a reward table into an ordered reveal list + aggregated shard totals.
+ * Shared by chests (config) and loot-queue boxes (rarity framework) so both reveal alike. */
+function rollTable(id: string, t: LootRewardTable, rng: () => number): ChestResult {
   const items: RewardItem[] = [];
   const towerShards = {} as Record<TowerKind, number>;
   for (const k of TOWER_ORDER) towerShards[k] = 0;
   const heroShards: Record<string, number> = {};
 
-  for (let i = 0; i < def.rolls; i++) {
-    if (rng() < def.heroShardChance) {
-      const id = pick(rng, HERO_IDS);
-      const amount = randInt(rng, def.heroShardRange);
-      heroShards[id] = (heroShards[id] ?? 0) + amount;
-      items.push({ type: 'hero', id, amount });
+  for (let i = 0; i < t.rolls; i++) {
+    if (rng() < t.heroShardChance) {
+      const heroId = pick(rng, HERO_IDS);
+      const amount = randInt(rng, t.heroShardRange);
+      heroShards[heroId] = (heroShards[heroId] ?? 0) + amount;
+      items.push({ type: 'hero', id: heroId, amount });
     } else {
       const kind = pick(rng, TOWER_ORDER);
-      const amount = randInt(rng, def.towerShardRange);
+      const amount = randInt(rng, t.towerShardRange);
       towerShards[kind] += amount;
       items.push({ type: 'tower', kind, amount });
     }
   }
-  return { chestId: def.id, items, towerShards, heroShards };
+  return { chestId: id, items, towerShards, heroShards };
+}
+
+/** Roll a chest into an ordered reveal list + aggregated shard totals. */
+export function rollChest(def: ChestDef, rng: () => number = Math.random): ChestResult {
+  return rollTable(def.id, def, rng);
+}
+
+/** Roll a loot-queue box's per-rarity reward table into the same reveal structure
+ * (the rarity id rides along as chestId so the reveal can style by rarity). */
+export function rollLoot(rarity: RarityDef, rng: () => number = Math.random): ChestResult {
+  return rollTable(rarity.id, rarity.reward, rng);
 }

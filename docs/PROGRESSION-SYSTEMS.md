@@ -15,8 +15,10 @@ are placeholder — the architecture is the deliverable.
 | **Stars** | capped, shard-bought per-tower buff | spends tower shards | `save.towerStars[kind]`, `meta.buyStar` |
 | **Mastery** | **infinite** per-tower buff earned by USE | none (earned) | `save.towerMasteryXp[kind]` |
 | **Loot box** | run-end reward chest | grants tower/hero shards | `state/lootbox.ts`, `meta.finishRun` |
+| **Loot queue** | pre-determined boxes filled by run progress | grants tower/hero shards | `core/loot.ts` + `core/lootQueue.ts`, `save.lootQueue` |
 
-All tunables: `STAR`, `MASTERY`, `CHESTS` in `src/core/config.ts`.
+All tunables: `STAR`, `MASTERY`, `CHESTS` in `src/core/config.ts`; loot rarities (weights /
+costs / reward tables / pity) + `LOOT_EARN` earn rate in `src/core/loot.ts`.
 
 ---
 
@@ -86,3 +88,53 @@ existing `dmgMult`/`rateMult` — dispatch is unchanged.
   first); `MasteryDelta.toLevel` already surfaces level-ups for a future milestone hook.
 - **Star rewards** are a uniform per-star buff, not per-star unique effects — by design
   for now ("do not implement every star reward yet").
+
+---
+
+## Loot queue + rarity framework (compressed summary)
+
+A second loot track layered on the run-end chest: a meter that is **always filling toward a
+box whose rarity is already decided**, with the box queued after it also visible — so "the
+next loot box is determined before the current meter completes" (LOOTBOX.md anticipation).
+
+**Architecture (two pure core modules + reward roller + save/meta/UI seams):**
+- `core/loot.ts` — the rarity framework. Six tiers (`common`…`mythic`) are **data** on a
+  `Registry<RarityDef>` (`rarityRegistry`); each def carries `weight`, `cost`, a per-rarity
+  `reward` table, optional `eventOnly`, and an optional `pity` ceiling. `rollRarity` sums
+  the pool's weights and walks a uniform draw — **no probability is ever hardcoded**. Pity
+  is a pure reducer (`updatePity`/`pityRemaining`); a met ceiling forces the due tier.
+  `LOOT_EARN` (points/wave, points/kill) and `LOOT_QUEUE_DEPTH` live here.
+- `core/lootQueue.ts` — queue mechanics over the framework. `LootQueueState =
+  { progress, queue[], pity }`. `addProgress(state, points, rng)` awards every box the
+  points cover, slides the pre-rolled next forward, rolls a fresh pity-aware tail, and
+  conserves points. `defaultLootQueue()` is **seeded-deterministic** (so `defaultSave()`
+  stays comparable); `sanitizeLootQueue()` repairs loaded saves (drops unknown rarities,
+  clamps progress, rebuilds pity, re-pads to depth).
+- `state/lootbox.ts` — `rollLoot(rarityDef, rng)` rolls a rarity's reward table into the
+  same `ChestResult` the chest reveal uses (shares `rollTable` with `rollChest`, so chest
+  behavior is byte-identical).
+
+**Public APIs:** `rollRarity`, `lootPool`, `costOf`, `emptyPity`/`updatePity`/`pityRemaining`
+(loot.ts); `defaultLootQueue`, `sanitizeLootQueue`, `addProgress` (lootQueue.ts); `rollLoot`
+(lootbox.ts); `meta.lootQueue()`, `meta.debugAddLootPoints(n)`; `RunOutcome.loot =
+{ queue, awarded: {rarity, chest}[] }`.
+
+**Seams:** `meta.finishRun` banks `wave·pointsPerWave + kills·pointsPerKill`, opens awarded
+boxes into the same shard totals, persists `save.lootQueue` (schema **v4**, additive
+migration via `sanitizeLootQueue`). `LootMeter` shows the front box + progress + the
+pre-determined next, computing live points from the existing `HudSnapshot.wave/kills`.
+`Results` animates each awarded box (`LootReveal` takes `title`/`color`).
+
+**Golden-safe:** loot is a **meta** concern using `Math.random`; the sim is untouched
+(`game.ts`/`HudSnapshot` unchanged — the meter derives points in React). All 6 golden seeds
+byte-identical.
+
+**Extend:** a new rarity (incl. event-exclusive) is a `rarityRegistry.register` data edit;
+tune odds via `weight`, pacing via `cost`/`LOOT_EARN`, pity via the `pity` ceiling. Enable an
+event tier by passing its id to `rollRarity({ events })` / `lootPool(events)`.
+
+**Known limitations:** boxes open at **run end** (meter can read "ready" mid-run), matching
+the existing reward model — no mid-run awarding. Pity is wired and tested but tuned to only
+catch genuine streaks. No event content ships (framework only, by brief). The full rarity-
+scaled reveal *ceremony* (LOOTBOX.md §2–7) is not built — `LootReveal` colors by rarity but
+does not yet scale duration/FX per tier.
