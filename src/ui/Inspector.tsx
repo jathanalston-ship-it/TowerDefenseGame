@@ -87,6 +87,7 @@ export function Inspector({ hud, onCollapse }: { hud: HudSnapshot; onCollapse?: 
       </div>
       <div className="ins-stats">
         <StatRow k="Health" v={`${hud.hero.hp}/${hud.hero.maxHp}`} />
+        {hud.hero.shield > 0 && <StatRow k="Shield" v={hud.hero.shield} />}
         <StatRow k="Ability" v={ability} />
       </div>
 

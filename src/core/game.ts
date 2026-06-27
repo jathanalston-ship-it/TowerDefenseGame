@@ -2295,6 +2295,7 @@ export class Game {
         respawn: h.respawn,
         hp: Math.ceil(h.hp),
         maxHp: h.maxHp,
+        shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
         abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
