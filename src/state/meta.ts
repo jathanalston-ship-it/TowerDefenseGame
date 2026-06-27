@@ -31,6 +31,7 @@ import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
+import { PRESTIGE, canMolt, cellsForCycle, prestigeMult } from '../core/prestige';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -69,6 +70,11 @@ export function metaModifiers(save: SaveData): MetaModifiers {
     const level = save.upgrades[u.id] ?? 0;
     if (level > 0) m[u.effect.stat] += u.effect.perLevel * level;
   }
+  // Prestige (P bucket): a permanent, compounding global damage multiplier from lifetime
+  // Ascendant Cells. ×1 at 0 cells, so a fresh / un-prestiged account is byte-identical.
+  const pm = prestigeMult(save.prestige.lifetimeCells);
+  m.towerDamageMult *= pm;
+  m.heroDamageMult *= pm;
   return m;
 }
 
@@ -267,6 +273,56 @@ export const meta = {
     return true;
   },
 
+  // ── Prestige (MOLT) ─────────────────────────────────────────────────────────
+
+  /** A read-model for the Prestige UI: current P-bucket multiplier, balances, and the
+   * cells a Molt would mint right now (the "when do I ascend?" decision). */
+  prestigeView(): {
+    cells: number;
+    lifetimeCells: number;
+    molts: number;
+    cycleShards: number;
+    mult: number;
+    gain: number;
+    canMolt: boolean;
+  } {
+    const s = store.get().prestige;
+    return {
+      cells: s.cells,
+      lifetimeCells: s.lifetimeCells,
+      molts: s.molts,
+      cycleShards: s.cycleShards,
+      mult: prestigeMult(s.lifetimeCells),
+      gain: cellsForCycle(s.cycleShards),
+      canMolt: canMolt(s.cycleShards),
+    };
+  },
+
+  /**
+   * MOLT: sacrifice the core-upgrade engine (banked Shards + meta-upgrade levels) to mint
+   * Ascendant Cells, which permanently raise the global damage multiplier. Trophies (stars,
+   * mastery, titles/lore, gear, tower/hero shards, loot queue) are KEPT. Returns false if a
+   * Molt isn't worth offering yet (< minCells). Backs up first — it's destructive.
+   */
+  molt(): boolean {
+    const save = store.get();
+    const gain = cellsForCycle(save.prestige.cycleShards);
+    if (gain < PRESTIGE.molt.minCells) return false;
+    saveStore.backup(); // ascensions are big + irreversible — keep a recoverable snapshot
+    persist({
+      ...save,
+      shards: 0, // reset the engine: banked Shards …
+      upgrades: {}, // … and the capped meta-upgrade levels
+      prestige: {
+        cells: save.prestige.cells + gain,
+        lifetimeCells: save.prestige.lifetimeCells + gain,
+        cycleShards: 0,
+        molts: save.prestige.molts + 1,
+      },
+    });
+    return true;
+  },
+
   /**
    * Settle a finished run in ONE atomic persist: bank global Shards + records,
    * convert per-kind usage into permanent mastery XP, and open the run-end chest
@@ -362,6 +418,8 @@ export const meta = {
       lootQueue: lootAdv.state,
       unlockedTitles,
       unlockedLore,
+      // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
+      prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
     return {

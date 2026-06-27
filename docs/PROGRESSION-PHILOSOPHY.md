@@ -150,7 +150,12 @@ For each: **Emotion · Why engage · Unique decisions · Differentiation.**
   creates the timing tension); which layer/path; what to keep vs. reset.
 - **Differentiation:** sacrifice-earned · **timing-decision** · adds a NEW bucket while
   *resetting others* · reinvention. It is the only system that *removes* progress to create
-  progress. Not yet built (roadmap M12).
+  progress.
+- **Status:** **Layer 1 (MOLT) is built** (`core/prestige.ts`, `meta.molt`, `PrestigePanel`):
+  sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket folded in
+  `metaModifiers`); molting resets banked Shards + core upgrades, keeps every trophy. Golden-safe
+  (0 cells ⇒ ×1). The spendable **Ascendant Tree** and deeper layers (Speciation…Ω) remain
+  designed-only (`PROGRESSION.md §5.2`) — they extend this same template.
 
 ### 2.9 Future Prestige Layers — *endless reinvention: "a new game on top"*
 - **Emotion:** the meta-meta thrill — each layer reframes everything beneath it.

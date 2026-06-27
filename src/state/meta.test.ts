@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { defaultSave } from '../save/saveStore';
+import { defaultSave, serializeExport } from '../save/saveStore';
 import { meta, metaModifiers, upgradeCost } from './meta';
 import { META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { isLootRarity } from '../core/loot';
+import { defaultPrestige } from '../core/prestige';
 
 describe('metaModifiers (data-driven upgrades)', () => {
   it('is identity with no upgrades', () => {
@@ -34,6 +35,48 @@ describe('metaModifiers (data-driven upgrades)', () => {
     const def = META_UPGRADES[0];
     expect(upgradeCost(def, 0)).toBe(def.baseCost);
     expect(upgradeCost(def, 2)).toBe(Math.round(def.baseCost * def.costMult ** 2));
+  });
+
+  it('folds the prestige P-bucket into tower + hero damage (×1 at zero cells)', () => {
+    expect(metaModifiers(defaultSave()).towerDamageMult).toBe(1); // fresh = identity (golden-safe)
+    const ascended = metaModifiers({ ...defaultSave(), prestige: { ...defaultPrestige(), lifetimeCells: 100 } });
+    expect(ascended.towerDamageMult).toBeCloseTo(2.0, 10); // ×(1 + 0.1·√100)
+    expect(ascended.heroDamageMult).toBeCloseTo(2.0, 10);
+  });
+});
+
+describe('prestige MOLT (the ascension loop)', () => {
+  it('mints cells, raises the multiplier, and resets the engine — keeping trophies', () => {
+    // Seed a save mid-cycle (banked shards + core upgrades + a maxed tower star to keep).
+    const seeded = {
+      ...defaultSave(),
+      shards: 500,
+      upgrades: { lethality: 3 },
+      towerStars: { ...defaultSave().towerStars, needle: 5 },
+      prestige: { ...defaultPrestige(), cycleShards: 10000 },
+    };
+    const imported = meta.importText(serializeExport(seeded));
+    expect(imported.ok).toBe(true);
+
+    const before = meta.prestigeView();
+    expect(before.canMolt).toBe(true);
+    expect(before.gain).toBe(15); // 1.5·√(10000/100)
+
+    expect(meta.molt()).toBe(true);
+
+    const after = meta.prestigeView();
+    expect(after.lifetimeCells).toBe(15);
+    expect(after.cells).toBe(15);
+    expect(after.molts).toBe(1);
+    expect(after.cycleShards).toBe(0); // cycle reset
+    expect(after.mult).toBeCloseTo(1 + 0.1 * Math.sqrt(15), 10);
+
+    const save = meta.get();
+    expect(save.shards).toBe(0); // engine reset …
+    expect(save.upgrades).toEqual({}); // …
+    expect(save.towerStars.needle).toBe(5); // … but the star trophy is kept
+
+    expect(meta.molt()).toBe(false); // nothing left to mint this cycle
   });
 });
 

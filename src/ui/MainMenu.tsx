@@ -1,6 +1,7 @@
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
+import { PrestigePanel } from './PrestigePanel';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
 import { MasteryProfile } from './MasteryProfile';
@@ -83,6 +84,8 @@ export function MainMenu({
       </div>
 
       <MetaShop />
+
+      <PrestigePanel />
 
       <TowerLab />
 
