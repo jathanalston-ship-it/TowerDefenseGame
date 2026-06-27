@@ -156,6 +156,11 @@ export interface Hero {
   attackCd: number;
   abilityCd: number;
   pulseCd: number; // role pulse timer (Shepherd vital pulse / Overseer disrupt field)
+  // Absorb-shield (Shepherd's Bloom; future support gear). `shield` = remaining absorb
+  // pool, soaked before HP; `shieldTime` = seconds until it lapses. 0/0 ⇒ no shield, so
+  // the Ravager and a fresh run are byte-identical (golden-safe).
+  shield: number;
+  shieldTime: number;
 }
 
 export interface FloatingText {

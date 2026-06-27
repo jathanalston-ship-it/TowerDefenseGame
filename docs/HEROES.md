@@ -13,8 +13,10 @@ Heroes share the five Combat Classes with towers (`TOWERS.md`).
 > as data-driven `HeroDef`s with distinct autonomous AI — **Ravager** (`dive`: charges
 > the deepest threat, melee + Fracture), **Shepherd** (`guard`: holds the zone, mends
 > Nucleus Integrity + vital pulse), **Overseer** (`control`: floats to the densest crowd,
-> fields Disruption). Each has its signature ability (Apex Leap / Bloom / Mass Override),
-> unique movement + targeting, per-hero **Stars + infinite Mastery** (Hero Lab), and an
+> fields Disruption). Each has its signature ability (Apex Leap / Bloom / Mass Override) —
+> the Shepherd's **Bloom** now also grants the protector a brief **self-shield** (absorb
+> pool soaked before HP), the first consumer of the `shield` ability component.
+> Each has unique movement + targeting, per-hero **Stars + infinite Mastery** (Hero Lab), and an
 > **equipment fold seam** (`HeroMods`) ready for `EQUIPMENT.md`. You **field one** hero
 > per run (pick it in the Hero Lab); the engine carries a hero **roster** (`Game.heroes[]`)
 > so slot 2/3 is "push another hero in." ★4–★10, forks, and the slot-unlock economy remain

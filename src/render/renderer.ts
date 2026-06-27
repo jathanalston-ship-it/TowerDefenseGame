@@ -592,6 +592,8 @@ function drawEnemy(
 
 // Presentation-only afterimage buffer (primary hero) — never read by sim.
 const heroTrail: { x: number; y: number }[] = [];
+// Absorb-shield barrier tint (matches the status framework's Shield buff color).
+const SHIELD_RGB = hexRgb('#9ad0ff');
 
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle' } as const;
 
@@ -636,6 +638,8 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   if (!down) {
     // pulsing locator ring so the star unit is always findable in a swarm
     ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(tint, pulse(t, 3, 0.22, 0.55)), 1.5);
+    // Absorb-shield (Shepherd's Bloom): a cyan barrier ring while the pool holds.
+    if (h.shield > 0) ring(ctx, h.x, h.y, 21 + pulse(t, 4, 0, 1.5), rgba(SHIELD_RGB, pulse(t, 4, 0.4, 0.75)), 2);
     // Mastery cosmetic: a veteran halo + orbiting rank pips, tier = the hero's mastery rank
     // (MASTERY.md hero visuals). Pure cosmetic — tier 0 (a fresh save) renders identically.
     if (tier > 0) {
