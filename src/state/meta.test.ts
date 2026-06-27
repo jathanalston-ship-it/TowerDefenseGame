@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { defaultSave } from '../save/saveStore';
+import { defaultSave, serializeExport } from '../save/saveStore';
 import { meta, metaModifiers, upgradeCost } from './meta';
 import { META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { isLootRarity } from '../core/loot';
+import { defaultPrestige } from '../core/prestige';
 
 describe('metaModifiers (data-driven upgrades)', () => {
   it('is identity with no upgrades', () => {
@@ -34,6 +35,93 @@ describe('metaModifiers (data-driven upgrades)', () => {
     const def = META_UPGRADES[0];
     expect(upgradeCost(def, 0)).toBe(def.baseCost);
     expect(upgradeCost(def, 2)).toBe(Math.round(def.baseCost * def.costMult ** 2));
+  });
+
+  it('folds the prestige P-bucket into tower + hero damage (×1 at zero cells)', () => {
+    expect(metaModifiers(defaultSave()).towerDamageMult).toBe(1); // fresh = identity (golden-safe)
+    const ascended = metaModifiers({ ...defaultSave(), prestige: { ...defaultPrestige(), lifetimeCells: 100 } });
+    expect(ascended.towerDamageMult).toBeCloseTo(2.0, 10); // ×(1 + 0.1·√100)
+    expect(ascended.heroDamageMult).toBeCloseTo(2.0, 10);
+  });
+});
+
+describe('prestige MOLT (the ascension loop)', () => {
+  it('mints cells, raises the multiplier, and resets the engine — keeping trophies', () => {
+    // Seed a save mid-cycle (banked shards + core upgrades + a maxed tower star to keep).
+    const seeded = {
+      ...defaultSave(),
+      shards: 500,
+      upgrades: { lethality: 3 },
+      towerStars: { ...defaultSave().towerStars, needle: 5 },
+      prestige: { ...defaultPrestige(), cycleShards: 10000 },
+    };
+    const imported = meta.importText(serializeExport(seeded));
+    expect(imported.ok).toBe(true);
+
+    const before = meta.prestigeView();
+    expect(before.canMolt).toBe(true);
+    expect(before.gain).toBe(15); // 1.5·√(10000/100)
+
+    expect(meta.molt()).toBe(true);
+
+    const after = meta.prestigeView();
+    expect(after.lifetimeCells).toBe(15);
+    expect(after.cells).toBe(15);
+    expect(after.molts).toBe(1);
+    expect(after.cycleShards).toBe(0); // cycle reset
+    expect(after.mult).toBeCloseTo(1 + 0.1 * Math.sqrt(15), 10);
+
+    const save = meta.get();
+    expect(save.shards).toBe(0); // engine reset …
+    expect(save.upgrades).toEqual({}); // …
+    expect(save.towerStars.needle).toBe(5); // … but the star trophy is kept
+
+    expect(meta.molt()).toBe(false); // nothing left to mint this cycle
+  });
+});
+
+describe('ascendant tree (spending cells)', () => {
+  it('buys nodes, folds their bonuses, and keeps them across a Molt', () => {
+    const seeded = { ...defaultSave(), prestige: { ...defaultPrestige(), cells: 20, cycleShards: 10000, nodes: {} } };
+    expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
+
+    expect(meta.buyAscendantNode('greed')).toBe(true);
+    expect(meta.ascendantNodes().nodes.find((n) => n.id === 'greed')!.level).toBe(1);
+    expect(meta.ascendantNodes().cells).toBeLessThan(20); // cells were spent
+
+    expect(meta.buyAscendantNode('metabolism')).toBe(true);
+    expect(metaModifiers(meta.get()).biomassMult).toBeCloseTo(1.1, 10); // node folds into the run
+
+    const before = meta.ascendantNodes();
+    expect(meta.molt()).toBe(true);
+    const after = meta.ascendantNodes();
+    expect(after.nodes.find((n) => n.id === 'greed')!.level).toBe(1); // tree persists across Molt
+    expect(after.cells).toBeGreaterThan(before.cells); // … and the Molt minted more cells
+  });
+
+  it('Ascendant Resonance compounds the Molt yield', () => {
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cycleShards: 10000 } }));
+    const plain = meta.prestigeView().gain;
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cycleShards: 10000, nodes: { resonance: 5 } } }));
+    expect(meta.prestigeView().gain).toBeGreaterThan(plain);
+  });
+
+  it('rejects an unaffordable or unknown node', () => {
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cells: 0 } }));
+    expect(meta.buyAscendantNode('greed')).toBe(false); // no cells
+    expect(meta.buyAscendantNode('nope')).toBe(false); // unknown id
+  });
+});
+
+describe('power score (account-power index)', () => {
+  it('is ×1.0 on a fresh account and rises with permanent buckets', () => {
+    expect(meta.importText(serializeExport(defaultSave())).ok).toBe(true);
+    expect(meta.powerScore().score).toBeCloseTo(1.0, 10); // fresh = baseline
+
+    const ascended = { ...defaultSave(), prestige: { ...defaultPrestige(), lifetimeCells: 100 } };
+    expect(meta.importText(serializeExport(ascended)).ok).toBe(true);
+    expect(meta.powerScore().meta).toBeCloseTo(2.0, 6); // prestige P bucket folds through metaModifiers
+    expect(meta.powerScore().score).toBeGreaterThan(1.9);
   });
 });
 

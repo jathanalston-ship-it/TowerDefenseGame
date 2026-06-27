@@ -150,7 +150,15 @@ For each: **Emotion · Why engage · Unique decisions · Differentiation.**
   creates the timing tension); which layer/path; what to keep vs. reset.
 - **Differentiation:** sacrifice-earned · **timing-decision** · adds a NEW bucket while
   *resetting others* · reinvention. It is the only system that *removes* progress to create
-  progress. Not yet built (roadmap M12).
+  progress.
+- **Status:** **Layer 1 (MOLT) is built**, both halves: (1) `core/prestige.ts` + `meta.molt`
+  — sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket folded in
+  `metaModifiers`); molting resets banked Shards + core upgrades, keeps every trophy; and
+  (2) `core/ascendant.ts` + `meta.buyAscendantNode` — the **Ascendant Tree**, where Cells buy
+  permanent, capped economy nodes (shard / biomass / loot / cell gain) that persist across
+  every Molt and compound the climb. Both surfaced in `PrestigePanel`; golden-safe (0 cells +
+  no nodes ⇒ ×1). Deeper layers (Speciation…Ω) remain designed-only (`PROGRESSION.md §5.2`) —
+  they extend this same template.
 
 ### 2.9 Future Prestige Layers — *endless reinvention: "a new game on top"*
 - **Emotion:** the meta-meta thrill — each layer reframes everything beneath it.
@@ -192,8 +200,9 @@ additive and preserve the golden invariant (a fresh account resolves to identity
 > reach the sim via the star kit (towers), projectile mutators (`mutators.ts`), granted
 > tower mutators / hero-attack statuses, and run-scoped relic hooks; the per-run config is
 > the frozen `towerProgress`/`heroProgress` snapshot + `RunModifiers` behavior knobs.
-> Identity registries (D) ship as `cosmetic`/title/lore via `mastery.ts`. The bucket
-> resolver + Power Score (F) and currency-role lint (G) remain the standing guardrails.
+> Identity registries (D) ship as `cosmetic`/title/lore via `mastery.ts`. **Power Score (F)
+> is built** (`meta.powerScore()` — one legible account-power index, shown on the menu). A
+> formal bucket *resolver* and the currency-role *lint* (G) remain the standing guardrails.
 
 ### A. One progression-effect language (not many stat folds)
 Today three vocabularies coexist: `UpgradeDef.effect` (meta), `TowerMods` (stars/mastery),
@@ -268,6 +277,12 @@ which **named bucket** it feeds and which **curve type** it uses (`§1.2`). One 
 multiplies buckets; one `Power Score` summarizes them. New content slots into a bucket with
 a declared curve — making "is this inflationary?" a question the architecture answers, not
 a vibe.
+
+> **Status:** **Power Score is built** — `meta.powerScore()` aggregates the permanent damage
+> buckets (meta upgrades × prestige × stars × mastery, roster-averaged) into one ×N index,
+> ×1.0 on a fresh account, shown on the main menu. A *formal* bucket resolver (systems
+> declaring a named bucket + curve, so the inflation check is structural) is the remaining
+> guardrail; today each system folds into the existing multiplier fields by hand.
 
 ### G. Currency-role discipline (a content rule, enforced in review)
 Document each currency's role so new content can't quietly add a sixth stat currency:

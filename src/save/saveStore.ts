@@ -10,6 +10,8 @@ import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/type
 import type { Loadout, OwnedItem } from '../core/equipment';
 import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
+import { defaultPrestige } from '../core/prestige';
+import type { PrestigeState } from '../core/prestige';
 
 export interface SaveData {
   shards: number;
@@ -42,9 +44,14 @@ export interface SaveData {
   unlockedTitles: string[]; // reward ids of unlocked mastery titles
   equippedTitle: string | null; // the title shown on the player profile (null = none)
   unlockedLore: string[]; // reward ids of unlocked lore (codex)
+  // ── Collection: framework-boss chassis archetypes ever slain (drives the Bestiary's boss
+  //    codex). Recorded from the bossKilled event; additive (withDefaults fills [] for old saves). ──
+  bossesSlain: string[];
+  // ── Prestige (schema v7) — MOLT: Ascendant Cells + the permanent P-bucket multiplier ──
+  prestige: PrestigeState;
 }
 
-export const CURRENT_VERSION = 6;
+export const CURRENT_VERSION = 8;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -136,6 +143,8 @@ export function defaultSave(): SaveData {
     unlockedTitles: [],
     equippedTitle: null,
     unlockedLore: [],
+    bossesSlain: [],
+    prestige: defaultPrestige(),
   };
 }
 
@@ -177,7 +186,28 @@ function withDefaults(data: SaveData): SaveData {
     unlockedTitles: Array.isArray(data.unlockedTitles) ? data.unlockedTitles : [],
     equippedTitle: typeof data.equippedTitle === 'string' ? data.equippedTitle : null,
     unlockedLore: Array.isArray(data.unlockedLore) ? data.unlockedLore : [],
+    bossesSlain: Array.isArray(data.bossesSlain) ? data.bossesSlain : [],
+    // v6→v7: prestige (MOLT). Zeroed for a pre-v7 save; each field guarded against junk.
+    prestige: { ...d.prestige, ...sanitizePrestige(data.prestige) },
   };
+}
+
+/** Coerce a loaded prestige blob into clean non-negative numbers (drops junk fields). */
+function sanitizePrestige(p: PrestigeState | undefined): Partial<PrestigeState> {
+  if (!p || typeof p !== 'object') return {};
+  const num = (v: unknown): number | undefined => (typeof v === 'number' && isFinite(v) && v >= 0 ? v : undefined);
+  const out: Partial<PrestigeState> = {};
+  if (num(p.cells) !== undefined) out.cells = p.cells;
+  if (num(p.lifetimeCells) !== undefined) out.lifetimeCells = p.lifetimeCells;
+  if (num(p.cycleShards) !== undefined) out.cycleShards = p.cycleShards;
+  if (num(p.molts) !== undefined) out.molts = p.molts;
+  // Ascendant Tree node levels: keep only finite non-negative integer levels.
+  if (p.nodes && typeof p.nodes === 'object') {
+    const nodes: Record<string, number> = {};
+    for (const [k, v] of Object.entries(p.nodes)) if (num(v) !== undefined) nodes[k] = Math.floor(v as number);
+    out.nodes = nodes;
+  }
+  return out;
 }
 
 /** Fill a (possibly absent / partial) stats block onto the zeroed default — the
@@ -220,8 +250,9 @@ function migrate(_version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
   // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
   // identity: titles/lore) are all additive: withDefaults() deep-fills the new records, the
-  // selectedHero default, the stats block, the loot queue, the fork picks, and the mastery
-  // identity arrays. Structural changes add steps here.
+  // selectedHero default, the stats block, the loot queue, the fork picks, the mastery
+  // identity arrays, and the prestige block (v6→v7; v7→v8 adds the Ascendant Tree node map,
+  // deep-filled by sanitizePrestige). Structural changes add steps here.
   return data;
 }
 

@@ -31,6 +31,8 @@ import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
+import { PRESTIGE, canMolt, cellsForCycle, prestigeMult } from '../core/prestige';
+import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -40,6 +42,7 @@ import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
+import { bossDef } from '../core/boss';
 
 /** Build the collection codex context from a save (read-only derivation). */
 function collectionContextOf(save: SaveData): CollectionContext {
@@ -47,8 +50,20 @@ function collectionContextOf(save: SaveData): CollectionContext {
     stats: save.stats,
     ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
     bestWave: save.bestWave,
+    bossesSlain: new Set(save.bossesSlain),
   };
 }
+
+// Record each framework-boss kill into the lifetime collection (the Bestiary's boss codex),
+// keyed by CHASSIS archetype — authored ids resolve via bossDef, procedural ids are
+// `proc_<chassis>_<tl>`. Idempotent. Subscribing here also activates the (otherwise-gated)
+// bossKilled emit in the sim, but only in the app — the golden/sim tests never import meta.
+gameEvents.on('bossKilled', (e) => {
+  const chassis = bossDef(e.defId)?.chassis ?? e.defId.split('_')[1] ?? e.defId;
+  const save = store.get();
+  if (save.bossesSlain.includes(chassis)) return;
+  persist({ ...save, bossesSlain: [...save.bossesSlain, chassis] });
+});
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
@@ -69,7 +84,19 @@ export function metaModifiers(save: SaveData): MetaModifiers {
     const level = save.upgrades[u.id] ?? 0;
     if (level > 0) m[u.effect.stat] += u.effect.perLevel * level;
   }
+  // Prestige (P bucket): a permanent, compounding global damage multiplier from lifetime
+  // Ascendant Cells. ×1 at 0 cells, so a fresh / un-prestiged account is byte-identical.
+  const pm = prestigeMult(save.prestige.lifetimeCells);
+  m.towerDamageMult *= pm;
+  m.heroDamageMult *= pm;
+  // Ascendant Tree: a bought node can raise permanent biomass income (×1 with no nodes).
+  m.biomassMult *= ascendantBonuses(save.prestige.nodes).biomassMult;
   return m;
+}
+
+/** Cells a Molt would mint now: the sqrt base × the Ascendant Resonance node's compounding. */
+function moltGain(save: SaveData): number {
+  return Math.floor(cellsForCycle(save.prestige.cycleShards) * ascendantBonuses(save.prestige.nodes).cellGainMult);
 }
 
 export function upgradeLevel(save: SaveData, id: string): number {
@@ -276,6 +303,91 @@ export const meta = {
     return true;
   },
 
+  // ── Prestige (MOLT) ─────────────────────────────────────────────────────────
+
+  /** A read-model for the Prestige UI: current P-bucket multiplier, balances, and the
+   * cells a Molt would mint right now (the "when do I ascend?" decision). */
+  prestigeView(): {
+    cells: number;
+    lifetimeCells: number;
+    molts: number;
+    cycleShards: number;
+    mult: number;
+    gain: number;
+    canMolt: boolean;
+  } {
+    const save = store.get();
+    const s = save.prestige;
+    return {
+      cells: s.cells,
+      lifetimeCells: s.lifetimeCells,
+      molts: s.molts,
+      cycleShards: s.cycleShards,
+      mult: prestigeMult(s.lifetimeCells),
+      gain: moltGain(save), // includes the Ascendant Resonance compounding
+      canMolt: canMolt(s.cycleShards),
+    };
+  },
+
+  /** The Ascendant Tree as a UI list: each node's level, next cost (null = maxed), and
+   * whether the current cell balance affords it. */
+  ascendantNodes(): {
+    cells: number;
+    nodes: { id: string; name: string; desc: string; level: number; maxLevel: number; cost: number | null; affordable: boolean }[];
+  } {
+    const s = store.get().prestige;
+    return {
+      cells: s.cells,
+      nodes: ASCENDANT_NODES.map((def) => {
+        const level = s.nodes[def.id] ?? 0;
+        const cost = nextAscendantCost(def, level);
+        return { id: def.id, name: def.name, desc: def.desc, level, maxLevel: def.maxLevel, cost, affordable: cost !== null && s.cells >= cost };
+      }),
+    };
+  },
+
+  /** Spend Ascendant Cells to raise a tree node by one level. False if unknown/maxed/unaffordable. */
+  buyAscendantNode(id: string): boolean {
+    const save = store.get();
+    const def = ASCENDANT_NODES.find((n) => n.id === id);
+    if (!def) return false;
+    const level = save.prestige.nodes[id] ?? 0;
+    if (level >= def.maxLevel) return false;
+    const cost = ascendantCost(def, level);
+    if (save.prestige.cells < cost) return false;
+    persist({
+      ...save,
+      prestige: { ...save.prestige, cells: save.prestige.cells - cost, nodes: { ...save.prestige.nodes, [id]: level + 1 } },
+    });
+    return true;
+  },
+
+  /**
+   * MOLT: sacrifice the core-upgrade engine (banked Shards + meta-upgrade levels) to mint
+   * Ascendant Cells, which permanently raise the global damage multiplier. Trophies (stars,
+   * mastery, titles/lore, gear, tower/hero shards, loot queue) are KEPT. Returns false if a
+   * Molt isn't worth offering yet (< minCells). Backs up first — it's destructive.
+   */
+  molt(): boolean {
+    const save = store.get();
+    const gain = moltGain(save);
+    if (gain < PRESTIGE.molt.minCells) return false;
+    saveStore.backup(); // ascensions are big + irreversible — keep a recoverable snapshot
+    persist({
+      ...save,
+      shards: 0, // reset the engine: banked Shards …
+      upgrades: {}, // … and the capped meta-upgrade levels
+      prestige: {
+        cells: save.prestige.cells + gain,
+        lifetimeCells: save.prestige.lifetimeCells + gain,
+        cycleShards: 0,
+        molts: save.prestige.molts + 1,
+        nodes: save.prestige.nodes, // the Ascendant Tree is permanent — kept across Molts
+      },
+    });
+    return true;
+  },
+
   /**
    * Settle a finished run in ONE atomic persist: bank global Shards + records,
    * convert per-kind usage into permanent mastery XP, and open the run-end chest
@@ -283,9 +395,10 @@ export const meta = {
    */
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
+    const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
 
     // 1. global shards + run records
-    const shardsEarned = Math.floor(result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill);
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult);
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -335,7 +448,7 @@ export const meta = {
     // 5. loot queue: bank this run's loot points; awarding any box the meter completed
     //    slides the pre-determined next box forward and rolls a fresh tail (anticipation
     //    never resets). Awarded boxes roll their reward tables into the same shard totals.
-    const lootPoints = Math.floor(result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
     const lootAdv = addProgress(save.lootQueue, lootPoints);
     const lootAwarded = openLootBoxes(lootAdv.awarded, towerShards, heroShards);
 
@@ -371,6 +484,8 @@ export const meta = {
       lootQueue: lootAdv.state,
       unlockedTitles,
       unlockedLore,
+      // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
+      prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
     });
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
     return {
@@ -429,6 +544,21 @@ export const meta = {
   /** Per-hero run multipliers from the current save (passed into a new Game). */
   heroProgress(): HeroProgress {
     return heroProgress(store.get());
+  },
+
+  /** Power Score (PROGRESSION.md §1.4): ONE legible number for total account power — the
+   * product of the permanent damage buckets (meta upgrades × prestige × stars × mastery,
+   * roster-averaged). ×1.0 on a fresh account; the §3F inflation gauge. */
+  powerScore(): { score: number; meta: number; towers: number; heroes: number } {
+    const save = store.get();
+    const mm = metaModifiers(save); // meta upgrades × prestige P bucket
+    const tp = towerProgress(save); // stars + mastery (towers)
+    const hp = heroProgress(save); // stars + mastery (heroes)
+    const geomean = (vals: number[]): number =>
+      vals.length ? Math.exp(vals.reduce((s, v) => s + Math.log(v), 0) / vals.length) : 1;
+    const towers = geomean(TOWER_ORDER.map((k) => tp[k].damageMult));
+    const heroes = geomean(HERO_ORDER.map((k) => hp[k].damageMult));
+    return { score: mm.towerDamageMult * towers * heroes, meta: mm.towerDamageMult, towers, heroes };
   },
 
   /** The hero the next run will field (slot 1). */

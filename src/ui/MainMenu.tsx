@@ -1,6 +1,7 @@
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { MetaShop } from './MetaShop';
+import { PrestigePanel } from './PrestigePanel';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
 import { MasteryProfile } from './MasteryProfile';
@@ -28,6 +29,9 @@ export function MainMenu({
       </div>
 
       <div className="panel">
+        <div className="power-score">
+          Power Score <b>×{meta.powerScore().score.toFixed(1)}</b>
+        </div>
         <div className="records">
           <div className="record">
             <div className="k">Shards</div>
@@ -83,6 +87,8 @@ export function MainMenu({
       </div>
 
       <MetaShop />
+
+      <PrestigePanel />
 
       <TowerLab />
 

@@ -4,7 +4,7 @@ import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { HEIGHT, WIDTH } from '../core/map';
-import { TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { masteryLevel, meta } from '../state/meta';
 import { masteryRank } from '../core/mastery';
 import { audio } from '../audio/sound';
@@ -33,6 +33,8 @@ export function GameView({
   heroProgress,
   runEffects,
   mode,
+  difficulty,
+  doctrine,
   onEnd,
 }: {
   seed: number;
@@ -42,11 +44,13 @@ export function GameView({
   heroProgress: HeroProgress;
   runEffects?: CardEffect[];
   mode?: RunMode;
+  difficulty?: string;
+  doctrine?: string;
   onEnd: (r: RunResult) => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode }));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, difficulty, doctrine }));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
@@ -58,12 +62,14 @@ export function GameView({
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
 
-  // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations). Fixed for the run
-  // (mastery banks at run end), so compute once; the renderer draws a veteran halo per tier.
+  // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations) for BOTH towers and
+  // heroes (their kind ids don't collide). Fixed for the run (mastery banks at run end), so
+  // compute once; the renderer draws a veteran halo per tier.
   const cosmeticTiers = useMemo(() => {
     const s = meta.get();
     const m: Record<string, number> = {};
     for (const k of TOWER_ORDER) m[k] = masteryRank(masteryLevel(s.towerMasteryXp[k] ?? 0));
+    for (const k of HERO_ORDER) m[k] = masteryRank(masteryLevel(s.heroMasteryXp[k] ?? 0));
     return m;
   }, []);
 
@@ -142,6 +148,15 @@ export function GameView({
   useEffect(() => {
     setActiveGame(game);
     return () => setActiveGame(null);
+  }, [game]);
+
+  // Restore the persisted auto-start preference for this run.
+  useEffect(() => {
+    try {
+      game.setAutoStart(localStorage.getItem('assimilate.autostart') === '1');
+    } catch {
+      /* storage unavailable */
+    }
   }, [game]);
 
   // ── Desktop keyboard shortcuts (1-N towers · Q ability · Space wave · Esc) ──

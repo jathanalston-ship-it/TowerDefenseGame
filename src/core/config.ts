@@ -384,6 +384,14 @@ export const PARTICLE = {
 export const WAVE_HP_GROWTH = 0.12; // +12% enemy HP per wave index
 export const WAVE_BOUNTY_GROWTH = 0.05;
 
+// Auto-start: when the player enables it, the next wave fires automatically after this many
+// prep seconds (a visible countdown). Opt-in + off by default, so the golden run — which starts
+// waves manually — is byte-identical.
+export const AUTO_START_DELAY = 4; // seconds of prep before an auto-start fires the next wave
+// The opening prep (before any wave) gets a longer window once the player places their first
+// tower, so auto-start doesn't rush the initial build-out.
+export const AUTO_START_FIRST_DELAY = 8; // seconds granted on the first tower of the opening prep
+
 // ── Spawn scheduling (spawndirector.ts) ──────────────────────────────────────
 // The Spawn Director owns the MECHANICS of emitting spawns (spacing/timing/pacing),
 // decoupled from WHAT spawns (composition: WAVES / AI Director) and from enemy AI
@@ -907,6 +915,7 @@ export const HERO_LABELS: Record<string, string> = Object.fromEntries(
 export const BOSS = {
   baseHp: 1600, // × BossDef.hpMult → boss HP
   addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
+  chargeSpeedMult: 2.6, // charger module: movement multiplier during a telegraphed dash
 };
 
 // ── AI Director / run modes (director.ts) ───────────────────────────────────

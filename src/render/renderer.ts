@@ -95,7 +95,7 @@ export function drawGame(
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
   drawParticles(ctx, rs);
-  drawHeroes(ctx, rs);
+  drawHeroes(ctx, rs, cosmeticTiers);
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 
@@ -594,11 +594,11 @@ const heroTrail: { x: number; y: number }[] = [];
 
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle' } as const;
 
-function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState): void {
-  for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0);
+function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}): void {
+  for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0);
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean): void {
+function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0): void {
   const t = rs.time;
   const def = HERO_DEFS[h.kind];
   const tint = hexRgb(def.color); // class-colored halo/locator/trail
@@ -635,6 +635,16 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   if (!down) {
     // pulsing locator ring so the star unit is always findable in a swarm
     ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(tint, pulse(t, 3, 0.22, 0.55)), 1.5);
+    // Mastery cosmetic: a veteran halo + orbiting rank pips, tier = the hero's mastery rank
+    // (MASTERY.md hero visuals). Pure cosmetic — tier 0 (a fresh save) renders identically.
+    if (tier > 0) {
+      ring(ctx, h.x, h.y, 26, rgba(tint, pulse(t, 1.6, 0.22, 0.5)), 1.4);
+      const pips = Math.min(tier, 5);
+      for (let i = 0; i < pips; i++) {
+        const ang = t * 0.8 + (i * Math.PI * 2) / pips;
+        drawShape(ctx, shape, h.x + Math.cos(ang) * 26, h.y + Math.sin(ang) * 26, 2.4, def.color);
+      }
+    }
   }
   // layered core: dark rim → class-colored body → bright nucleus (reads as a hero)
   drawShape(ctx, shape, h.x, h.y, 16, THEME.hero.rim);

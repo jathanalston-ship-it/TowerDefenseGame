@@ -48,7 +48,14 @@ back as method calls (intents) on the `Game`.
 | `src/core/rng.ts` | Seeded PRNG (mulberry32). No `Math.random` in core. |
 | `src/core/spatial.ts` | Uniform spatial-hash grid for proximity queries. |
 | `src/core/math.ts` | Small vector/scalar helpers. |
-| `src/core/validate.ts` | Content invariant checks (positive vitals, sane costs, …). |
+| `src/core/validate.ts` | Content invariant checks (positive vitals, sane costs, …) — aggregates every registry's validator (towers/enemies/…/rarities/star paths/mastery tracks/ascendant nodes). |
+| `src/core/loot.ts` | **Loot rarity framework** — rarities as data on `rarityRegistry` (weight / cost / reward table / pity); `rollRarity` is weight-driven (no hardcoded odds). |
+| `src/core/lootQueue.ts` | **Loot queue** — the next box is always pre-determined; `addProgress` awards + re-rolls a fresh tail; seeded default + `sanitizeLootQueue`. |
+| `src/core/mutators.ts` | **Projectile mutators** — composable spawn-time transforms (pierce …) on `mutatorRegistry`; a tower's star kit lists mutator ids applied to every shot. |
+| `src/core/stars.ts` | **Tower star EVOLUTION** — per-tower `StarPath` of capability grants (targeting / projectile / attack / reactor-economy / re-pickable forks) resolved into the per-run `ResolvedStarKit`. |
+| `src/core/mastery.ts` | **Mastery as identity** — per-unit titles/lore + procedural ranks (infinite) + sparse mechanic milestone perks; tower = craft, hero = bond. |
+| `src/core/prestige.ts` | **Prestige — MOLT** — sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket, folded in `metaModifiers`). |
+| `src/core/ascendant.ts` | **Ascendant Tree** — Cells buy permanent, capped economy nodes (shard/biomass/loot/cell gain) kept across every Molt. |
 | `src/save/` | Versioned + checksummed persistence (`saveStore`), file I/O (`saveFile`). |
 | `src/state/` | `meta` (permanent progression store), `store` (tiny React-bridged external store). |
 | `src/render/renderer.ts` | Canvas2D battlefield rendering (reads `RenderState`, never mutates). |

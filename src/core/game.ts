@@ -46,6 +46,8 @@ import {
   HERO_ULT,
   WAVES,
   WAVE_BOUNTY_GROWTH,
+  AUTO_START_DELAY,
+  AUTO_START_FIRST_DELAY,
   WAVE_HP_GROWTH,
 } from './config';
 import type { EnemyDef, HeroDef } from './config';
@@ -217,6 +219,9 @@ export class Game {
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
   timeScale = 1;
+  // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
+  // (a player QoL toggle); the manual-start golden run never touches it.
+  autoStart = false;
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -268,6 +273,7 @@ export class Game {
   private spawnQueue: QueuedSpawn[] = [];
   private spawnedAll = false;
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
+  private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -538,11 +544,17 @@ export class Game {
       cooldown: 0,
       overcharged: false,
       bornAt: this.time,
+      disabledUntil: 0,
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
+    // window, so an auto-start doesn't fire before the player finishes their opening build.
+    if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
+      this.prepCountdown = AUTO_START_FIRST_DELAY;
+    }
     return true;
   }
 
@@ -639,6 +651,13 @@ export class Game {
     }
     this.draft = null;
     this.phase = 'prep';
+    this.prepCountdown = AUTO_START_DELAY; // fresh countdown for the new prep
+  }
+
+  /** Toggle auto-start (the next wave fires automatically after a prep countdown). */
+  setAutoStart(on: boolean): void {
+    this.autoStart = on;
+    if (on) this.prepCountdown = AUTO_START_DELAY; // start a fresh countdown when enabling
   }
 
   private cardContext(): CardContext {
@@ -710,6 +729,12 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
+      // Auto-start: count the prep timer down to the next wave when the player enabled it. Off
+      // by default ⇒ the manual-start golden run is byte-identical; consumes no rng.
+      if (this.autoStart && this.phase === 'prep') {
+        this.prepCountdown -= dt;
+        if (this.prepCountdown <= 0) this.startWave();
+      }
     }
   }
 
@@ -780,6 +805,7 @@ export class Game {
    */
   spawnBoss(def: BossDef): void {
     const hp = BOSS.baseHp * def.hpMult;
+    this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
     this.enemies.push({
       id: this.nextId++,
@@ -812,6 +838,7 @@ export class Game {
         shielded: 0,
         enrage: 0,
         channel: 0,
+        charge: 0,
         telegraph: null,
       },
     });
@@ -879,11 +906,29 @@ export class Game {
           case 'channeler':
             if (b.channel <= 0) b.channel = m.duration ?? 3;
             break;
-          default:
-            break; // charger/suppressor: reserved (defined, not yet wired)
+          case 'charger':
+            b.charge = m.duration ?? 1.4; // a telegraphed dash toward the line
+            b.telegraph = 'CHARGE';
+            break;
+          case 'suppressor':
+            this.suppressTowers(e, m.radius ?? 120, m.duration ?? 4); // disable nearby towers
+            b.telegraph = 'SUPPRESS';
+            break;
         }
       }
+      if (b.charge > 0) {
+        b.charge = Math.max(0, b.charge - dt); // count the dash window down
+        if (b.charge > 0 && b.channel <= 0 && b.shielded <= 0) b.telegraph = 'CHARGE';
+      }
       if (phase.speedMult && b.enrage === 0) e.speed = CHASSIS[def.chassis].speed * phase.speedMult;
+    }
+  }
+
+  /** Boss suppressor module: disable every tower within `radius` for `duration` seconds. */
+  private suppressTowers(boss: Enemy, radius: number, duration: number): void {
+    const r2 = radius * radius;
+    for (const t of this.towers) {
+      if (dist2(boss.x, boss.y, t.x, t.y) <= r2) t.disabledUntil = Math.max(t.disabledUntil, this.time + duration);
     }
   }
 
@@ -1004,6 +1049,7 @@ export class Game {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
       if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
+      if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
@@ -1032,6 +1078,7 @@ export class Game {
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
       this.castScratch.target = null;
+      this.castScratch.pierce = 0;
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
       // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
@@ -1271,7 +1318,9 @@ export class Game {
       }
       if (slow > 0.85) slow = 0.85;
       if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
-      const step = e.speed * (1 - slow) * dt;
+      // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
+      const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
+      const step = e.speed * chargeMult * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -1558,7 +1607,22 @@ export class Game {
     this.castScratch.y = h.y;
     this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
+    this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
+    // Weapon grant (e.g. "Venomous"): a status-on-hit weapon also rides the guard/control
+    // heroes' role pulse — their offensive output — so it isn't Ravager-only. Gated on the
+    // grant (empty by default ⇒ no-op ⇒ golden-safe).
+    if (this.heroAttackStatuses.length) {
+      const r = HERO_DEFS[h.kind].pulseRadius;
+      if (r > 0) {
+        const r2 = r * r;
+        this.grid.forNeighbors(h.x, h.y, r, (e) => {
+          if (e.alive && dist2(h.x, h.y, e.x, e.y) <= r2) {
+            for (const s of this.heroAttackStatuses) this.applyStatus(e, { kind: s.status, amount: s.amount });
+          }
+        });
+      }
+    }
   }
 
   /** Enemies in contact with a hero deal damage to it; at 0 HP the hero is downed. */
@@ -1600,6 +1664,7 @@ export class Game {
     this.castScratch.y = py;
     this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
+    this.castScratch.pierce = 0;
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
@@ -1687,6 +1752,11 @@ export class Game {
   private applyProjectileMutators(p: Projectile): void {
     if (this.castProjectileMutators.length) applyMutators(this.castProjectileMutators, p);
     if (this.grantedTowerMutators.length) applyMutators(this.grantedTowerMutators, p);
+    // A 'pierce' ability component (ability.ts) adds pierce to shots fired this cast.
+    if (this.castScratch.pierce) {
+      p.pierce = (p.pierce ?? 0) + this.castScratch.pierce;
+      p.hitIds = p.hitIds ?? [];
+    }
   }
 
   /** Nearest alive enemy a piercing projectile hasn't struck yet (the next pass-through). */
@@ -2160,6 +2230,8 @@ export class Game {
       bossBanner: this.bossBanner(),
       endless: this.mode === 'endless',
       anticipation: this.nextAnticipation(),
+      autoStart: this.autoStart,
+      autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
     };
   }
 

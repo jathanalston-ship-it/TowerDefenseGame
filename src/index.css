@@ -277,6 +277,21 @@ button:disabled {
   grid-template-columns: repeat(4, 1fr);
   gap: var(--s3);
 }
+/* Power Score — one legible account-power number (PROGRESSION §1.4). */
+.power-score {
+  text-align: center;
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  margin-bottom: var(--s3);
+}
+.power-score b {
+  color: var(--viral);
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
 .record .k {
   color: var(--muted);
   font-size: 11px;
@@ -1905,6 +1920,20 @@ kbd {
   margin-left: auto;
 }
 /* Star evolution: the next-unlock preview + reached-fork pickers. */
+/* Ascendant Tree (prestige nodes) */
+.ascendant-tree {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.asc-node-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
 .lab-evo {
   display: flex;
   flex-direction: column;

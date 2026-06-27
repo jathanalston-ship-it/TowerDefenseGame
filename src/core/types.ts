@@ -93,6 +93,7 @@ export interface BossRuntime {
   shielded: number; // seconds of invulnerability remaining (0 = vulnerable)
   enrage: number; // enrage stacks
   channel: number; // seconds left on a Nucleus channel (0 = none)
+  charge: number; // seconds left on a telegraphed dash (0 = not charging)
   telegraph: string | null; // current telegraphed action (drives the banner)
 }
 
@@ -113,6 +114,7 @@ export interface Tower {
   cooldown: number; // seconds until next action
   overcharged: boolean; // buffed by an adjacent reactor this tick
   bornAt: number; // sim-time placed (drives the grow-in animation)
+  disabledUntil: number; // sim-time a boss suppressor re-enables it (0 = active)
 }
 
 export interface Projectile {
@@ -288,6 +290,8 @@ export interface HudSnapshot {
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
+  autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
+  autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep)
 }
 
 export interface CardOption {

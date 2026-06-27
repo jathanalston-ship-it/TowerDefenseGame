@@ -13,9 +13,10 @@ import { ENEMY_DEFS, TOWER_DEFS, HERO_DEFS, CHESTS, chestForWave, TOTAL_WAVES, e
 import { cardRegistry } from './cards';
 import type { CardEffect } from './cards';
 import { ALL_ITEMS } from './equipment';
+import { CHASSIS } from './boss';
 import type { LifetimeStats } from './types';
 
-export type CollectionCategoryId = 'enemies' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'chests';
+export type CollectionCategoryId = 'enemies' | 'bosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'chests';
 
 export interface CollectionEntry {
   id: string;
@@ -46,6 +47,7 @@ export interface CollectionContext {
   stats: LifetimeStats;
   ownedDefIds: Set<string>; // equipment definition ids the player owns ≥1 of
   bestWave: number;
+  bossesSlain: Set<string>; // framework-boss chassis archetypes ever slain
 }
 
 /** Count how many ascending thresholds `n` has reached (the entry's mastery tier). */
@@ -110,8 +112,16 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id, name: CHESTS[id]?.name ?? id, tier, maxTier: 1, tierLabel: tier ? 'Earned' : 'Locked' };
   });
 
+  // Framework bosses are collected by CHASSIS archetype (the stable, finite set every authored
+  // and procedural boss is built from) — slain in endless / boss waves.
+  const bosses = Object.keys(CHASSIS).map((id): CollectionEntry => {
+    const tier = ctx.bossesSlain.has(id) ? 1 : 0;
+    return { id, name: `${id[0].toUpperCase()}${id.slice(1)}`, tier, maxTier: 1, tierLabel: tier ? 'Slain' : 'Unencountered' };
+  });
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
+    makeCategory('bosses', 'Bosses', bosses),
     makeCategory('towers', 'Towers', towers),
     makeCategory('heroes', 'Heroes', heroes),
     makeCategory('cards', 'Mutations', cards),
