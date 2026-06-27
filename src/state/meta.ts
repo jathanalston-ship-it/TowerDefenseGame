@@ -41,6 +41,7 @@ import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
+import { bossDef } from '../core/boss';
 
 /** Build the collection codex context from a save (read-only derivation). */
 function collectionContextOf(save: SaveData): CollectionContext {
@@ -48,8 +49,20 @@ function collectionContextOf(save: SaveData): CollectionContext {
     stats: save.stats,
     ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
     bestWave: save.bestWave,
+    bossesSlain: new Set(save.bossesSlain),
   };
 }
+
+// Record each framework-boss kill into the lifetime collection (the Bestiary's boss codex),
+// keyed by CHASSIS archetype — authored ids resolve via bossDef, procedural ids are
+// `proc_<chassis>_<tl>`. Idempotent. Subscribing here also activates the (otherwise-gated)
+// bossKilled emit in the sim, but only in the app — the golden/sim tests never import meta.
+gameEvents.on('bossKilled', (e) => {
+  const chassis = bossDef(e.defId)?.chassis ?? e.defId.split('_')[1] ?? e.defId;
+  const save = store.get();
+  if (save.bossesSlain.includes(chassis)) return;
+  persist({ ...save, bossesSlain: [...save.bossesSlain, chassis] });
+});
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
