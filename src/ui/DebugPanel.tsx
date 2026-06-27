@@ -203,6 +203,17 @@ export function DebugPanel(): JSX.Element {
               </button>
             </div>
             <div className="debug-row">
+              <span className="debug-note" style={{ minWidth: 86 }}>Gear:</span>
+              <button onClick={() => meta.debugGrantGear('common')} title="Roll a Common item into the inventory">+Common</button>
+              <button onClick={() => meta.debugGrantGear('rare')} title="Roll a Rare item into the inventory">+Rare</button>
+              <button onClick={() => meta.debugGrantGear('epic')} title="Roll an Epic item into the inventory">+Epic</button>
+            </div>
+            <div className="debug-row">
+              <span className="debug-note" style={{ minWidth: 86 }}>Mastery XP:</span>
+              <button onClick={() => meta.masteryUnits.forEach((u) => meta.debugGrantMastery(u, 5000))}>+5k all</button>
+              <button onClick={() => meta.masteryUnits.forEach((u) => meta.debugGrantMastery(u, 100000))}>+100k all</button>
+            </div>
+            <div className="debug-row">
               <span className="debug-note">Heroes: {Object.keys(HEROES).length} (roster data-driven; selection/unlocks: future)</span>
             </div>
             <div className="debug-row">
