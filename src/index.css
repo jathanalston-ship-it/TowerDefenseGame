@@ -1884,6 +1884,55 @@ kbd {
 .lab-stars .shop-buy {
   margin-left: auto;
 }
+/* Star evolution: the next-unlock preview + reached-fork pickers. */
+.lab-evo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 6px 0;
+  padding: 5px 9px;
+  border-left: 3px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+.lab-evo-tag {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.lab-evo-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.lab-forks {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.lab-fork-h {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.lab-fork-opts {
+  display: flex;
+  gap: 6px;
+}
+.fork-opt {
+  flex: 1;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+.fork-opt.on {
+  border-color: var(--success);
+  background: rgba(63, 224, 138, 0.14);
+  color: var(--text);
+}
 .lab-mastery {
   display: flex;
   flex-direction: column;

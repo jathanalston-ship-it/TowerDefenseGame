@@ -3,6 +3,8 @@
 
 import type { Vec2 } from './math';
 import type { ActiveStatus } from './status';
+import type { AbilityComponent } from './ability';
+import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption';
@@ -156,6 +158,13 @@ export interface MetaModifiers {
 export interface TowerMods {
   damageMult: number;
   fireRateMult: number;
+  // ── Star-evolution kit (stars.ts). All optional; absent ⇒ base behavior, so a fresh
+  //    account (no stars) is byte-identical. The sim reads these in towerSystem. ──
+  targeting?: TargetingProfile; // overrides the tower's default target pick
+  extraProjectiles?: number; // additional simultaneous targets for the base attack
+  splashMult?: number; // multiplies projectile splash radius
+  extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
+  cosmetics?: string[]; // visual mutation ids (renderer)
 }
 export type TowerProgress = Record<TowerKind, TowerMods>;
 

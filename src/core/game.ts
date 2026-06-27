@@ -257,6 +257,8 @@ export class Game {
   private abilityHeroKind: HeroKind | null = null;
   private abilityCaster: Hero | null = null;
   private abilityTargeting: TargetingProfile = 'closestToBase'; // the active cast's target pick
+  private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
+  private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
   private readonly actx: AbilityContext = this.buildAbilityContext();
 
@@ -363,10 +365,10 @@ export class Game {
       sfx: (k) => this.pushSfx(k),
       roll: () => this.rng.next(),
       get extraProjectiles() {
-        return self.mods.needleExtraProjectiles;
+        return self.mods.needleExtraProjectiles + self.castExtraProjectiles; // run-mods + star kit
       },
       get splashMult() {
-        return self.mods.splashRadiusMult;
+        return self.mods.splashRadiusMult * self.castSplashMult; // run-mods × star kit
       },
     };
   }
@@ -833,15 +835,22 @@ export class Game {
       this.abilitySourceKind = t.kind;
       this.abilityHeroKind = null;
       this.abilityCaster = null;
-      this.abilityTargeting = def.targeting ?? 'closestToBase';
+      // Star evolution: targeting override + per-cast projectile/splash kit (defaults = base).
+      this.abilityTargeting = prog.targeting ?? def.targeting ?? 'closestToBase';
+      this.castExtraProjectiles = prog.extraProjectiles ?? 0;
+      this.castSplashMult = prog.splashMult ?? 1;
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
       this.castScratch.target = null;
-      if (runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch)) {
-        t.cooldown = def.fireInterval / rateMult;
-      }
+      let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
+      // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
+      if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
+      if (acted) t.cooldown = def.fireInterval / rateMult;
     }
+    // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
+    this.castExtraProjectiles = 0;
+    this.castSplashMult = 1;
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).

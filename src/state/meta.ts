@@ -29,6 +29,7 @@ import type { ChestResult } from './lootbox';
 import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
+import { resolveStarKit } from '../core/stars';
 import { accumulateStats } from './stats';
 import { checkAchievements, rewardFor } from './achievements';
 import type { RunSummary } from './achievements';
@@ -110,15 +111,24 @@ export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   return starCost(stars);
 }
 
-/** Fold stars + mastery into per-kind run multipliers. Identity for a fresh save. */
+/** Fold stars + mastery into per-kind run config. Stars contribute the incidental S-bucket
+ * stat (config.STAR) PLUS their evolution kit (targeting/projectiles/granted attacks,
+ * resolved from the authored star path + the player's per-run fork picks). Identity for a
+ * fresh save: 0 stars ⇒ empty kit ⇒ all kit fields undefined ⇒ a byte-identical run. */
 export function towerProgress(save: SaveData): TowerProgress {
   const out = {} as TowerProgress;
   for (const k of TOWER_ORDER) {
     const stars = save.towerStars[k] ?? 0;
     const mLvl = masteryLevel(save.towerMasteryXp[k] ?? 0);
+    const kit = resolveStarKit(k, stars, save.towerForks?.[k]);
     out[k] = {
       damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
       fireRateMult: 1 + STAR.fireRatePerStar * stars,
+      targeting: kit.targeting,
+      extraProjectiles: kit.extraProjectiles || undefined,
+      splashMult: kit.splashMult !== 1 ? kit.splashMult : undefined,
+      extraAbilities: kit.extraAbilities.length ? kit.extraAbilities : undefined,
+      cosmetics: kit.cosmetics.length ? kit.cosmetics : undefined,
     };
   }
   return out;
@@ -347,6 +357,14 @@ export const meta = {
   /** Per-tower run multipliers from the current save (passed into a new Game). */
   towerProgress(): TowerProgress {
     return towerProgress(store.get());
+  },
+
+  /** Choose a star-fork option for a tower (keyed by the fork's star). Re-selectable any
+   * time; takes effect on the next run (folded by towerProgress). */
+  setTowerFork(kind: TowerKind, star: number, optionId: string): void {
+    const save = store.get();
+    const forKind = { ...(save.towerForks[kind] ?? {}), [String(star)]: optionId };
+    persist({ ...save, towerForks: { ...save.towerForks, [kind]: forKind } });
   },
 
   /** Per-hero run multipliers from the current save (passed into a new Game). */

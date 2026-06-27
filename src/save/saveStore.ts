@@ -21,6 +21,7 @@ export interface SaveData {
   // ── Tower progression (per kind) — added in schema v2 ──
   towerShards: Record<TowerKind, number>; // shard currency, earned from chests
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
+  towerForks: Record<TowerKind, Record<string, string>>; // per-tower star-fork picks (star → optionId)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
   heroShards: Record<string, number>; // per-hero shards (earned from chests)
   // ── Hero progression + roster (per kind) — added in schema v3 ──
@@ -35,9 +36,11 @@ export interface SaveData {
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
+  // ── Tower star-fork picks (schema v5) — per-run evolution choices, persisted ──
+  // (towerForks is declared above with the other tower-progression records.)
 }
 
-export const CURRENT_VERSION = 4;
+export const CURRENT_VERSION = 5;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -65,6 +68,11 @@ export interface StorageLike {
 function zeroByTower(): Record<TowerKind, number> {
   const r = {} as Record<TowerKind, number>;
   for (const k of TOWER_ORDER) r[k] = 0;
+  return r;
+}
+function emptyForksByTower(): Record<TowerKind, Record<string, string>> {
+  const r = {} as Record<TowerKind, Record<string, string>>;
+  for (const k of TOWER_ORDER) r[k] = {};
   return r;
 }
 function zeroByHero(): Record<string, number> {
@@ -110,6 +118,7 @@ export function defaultSave(): SaveData {
     cardsSeen: 0,
     towerShards: zeroByTower(),
     towerStars: zeroByTower(),
+    towerForks: emptyForksByTower(),
     towerMasteryXp: zeroByTower(),
     heroShards: zeroByHero(),
     heroStars: zeroByHeroKind(),
@@ -137,6 +146,9 @@ function withDefaults(data: SaveData): SaveData {
     upgrades: { ...data.upgrades },
     towerShards: { ...d.towerShards, ...data.towerShards },
     towerStars: { ...d.towerStars, ...data.towerStars },
+    // v4→v5: per-tower fork picks fill empty for a pre-v5 save (⇒ each fork defaults to its
+    // first option). Shallow-merge keeps known towers' picks and defaults the rest.
+    towerForks: { ...d.towerForks, ...(data.towerForks && typeof data.towerForks === 'object' ? data.towerForks : {}) },
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
     heroShards: { ...d.heroShards, ...data.heroShards },
     heroStars: { ...d.heroStars, ...data.heroStars },
@@ -195,9 +207,9 @@ function isSaveData(v: unknown): v is SaveData {
 /** Ordered migrations v(n) -> v(n+1). Append-only; never remove old steps. */
 function migrate(_version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
-  // achievements), and v3→v4 (loot queue) are all additive: withDefaults() deep-fills the
-  // new records, the selectedHero default, the stats block, and the loot queue. Structural
-  // changes add steps here.
+  // achievements), v3→v4 (loot queue), and v4→v5 (tower star-fork picks) are all additive:
+  // withDefaults() deep-fills the new records, the selectedHero default, the stats block,
+  // the loot queue, and the fork picks. Structural changes add steps here.
   return data;
 }
 
