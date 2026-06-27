@@ -1398,6 +1398,36 @@ canvas.board.is-aiming {
   font-weight: 500;
 }
 
+/* ── Audio controls (menu header) ───────────────────────────────────────────── */
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.audio-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.audio-btn {
+  padding: 4px 9px;
+  font-size: 14px;
+  line-height: 1;
+}
+.audio-btn.is-on {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+.audio-vol {
+  width: 84px;
+  accent-color: var(--gold);
+}
+.audio-vol:disabled {
+  opacity: 0.4;
+}
+
 /* ── Draft overlay ────────────────────────────────────────────────────────── */
 .overlay {
   position: absolute;

@@ -59,6 +59,7 @@ updated whenever a system lands.
 | Achievements (16 / 5 chains) + titles | ✅ | `core/achievements.ts` | COLLECTION |
 | Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v6, `MIGRATIONS`) | ARCHITECTURE §15.2 |
 | HUD / menus / results | ✅ | `src/ui/*` | HUD |
+| Audio — procedural SFX + music bed (no assets) | 🟡 | `src/audio/*`, `ui/AudioControls.tsx` | GAME-FEEL |
 | Internal balancing tools (dev-only) | ✅ | `ui/DebugPanel.tsx`, `debug/debug.ts` | — |
 | Gear **depth** (sets, reforge/upgrade, bigger affix pools) | ⚪ | — | EQUIPMENT, PROGRESSION |
 | Class levels · per-hero loadouts · mastery perks | ⚪ | — | PROGRESSION |
@@ -124,6 +125,8 @@ prestige layers — is specified in `PROGRESSION.md` but not yet built.
   equipped affixes, loot-box drops never voided (`state/meta.test.ts`, `sim.test.ts`).
 - **Infinite Mastery** — uncapped + monotonic level curve, diminishing (logarithmic)
   damage, XP awarded to fielded units, run-fold of mastery (`state/meta.test.ts`).
+- **Audio** — registry voices well-formed, prefs clamp/parse/persist, and the manager
+  is a safe no-op with no Web Audio (the Node test contract) (`audio/audio.test.ts`).
 - **Codex & achievements** — discovery union/dedupe, new-only unlock reporting,
   title earning (`meta.test.ts`); threshold + title logic (`achievements.test.ts`).
 - **Content contracts** — record keys, HERO alias, `isBoss`, unique ids

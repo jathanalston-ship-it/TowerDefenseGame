@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MainMenu } from './MainMenu';
+import { audio } from '../audio/audio';
 import { GameView } from './GameView';
 import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
@@ -25,6 +26,8 @@ export function App(): JSX.Element {
       : (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     modsRef.current = metaModifiers(meta.get());
     configRef.current = config;
+    audio.unlock();
+    audio.play('confirm');
     setScreen('playing');
   }, []);
 
@@ -35,6 +38,22 @@ export function App(): JSX.Element {
   }, []);
 
   const toMenu = useCallback(() => setScreen('menu'), []);
+
+  // Web Audio needs a user gesture to start — unlock on the first interaction, once.
+  useEffect(() => {
+    const unlock = (): void => audio.unlock();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
+
+  // The menu/results sit on the calm bed; the in-run AudioDriver drives prep/combat.
+  useEffect(() => {
+    if (screen !== 'playing') audio.setScene('menu');
+  }, [screen]);
 
   const debugOn = isDebugEnabled();
 

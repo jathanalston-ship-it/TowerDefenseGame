@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { meta, gearAffixLines } from '../state/meta';
 import type { LootReward } from '../state/meta';
 import { LOOT_RARITY } from '../core/config';
+import { audio } from '../audio/audio';
 import { CountUp } from './components/CountUp';
 
 const SLOT_LABEL: Record<string, string> = { weapon: 'Weapon', armor: 'Armor', relic: 'Relic' };
@@ -21,6 +22,7 @@ export function LootBoxOpener(): JSX.Element | null {
   const open = (): void => {
     const r = meta.openLootBox();
     if (r) {
+      audio.play('box_open');
       setReveal(r);
       setSeq((s) => s + 1);
     }

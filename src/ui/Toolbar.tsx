@@ -1,6 +1,7 @@
 import type { Game } from '../core/game';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import type { HudSnapshot } from '../core/types';
+import { audio } from '../audio/audio';
 import { Icon } from './components/Icon';
 
 export function Toolbar({
@@ -28,6 +29,7 @@ export function Toolbar({
               className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}`}
               disabled={(!afford && !sel) || !playable}
               onClick={() => {
+                if (!sel) audio.play('select');
                 game.selectTower(sel ? null : kind);
                 refresh();
               }}

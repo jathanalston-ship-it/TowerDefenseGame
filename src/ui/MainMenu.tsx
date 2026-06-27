@@ -8,6 +8,7 @@ import { LootMeter } from './LootMeter';
 import { LootBoxOpener } from './LootBoxOpener';
 import { SaveManager } from './SaveManager';
 import { ModePanel } from './ModePanel';
+import { AudioControls } from './AudioControls';
 import { CountUp } from './components/CountUp';
 import type { GameConfig } from '../core/game';
 
@@ -15,12 +16,15 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
   const save = meta.use();
   return (
     <div className="menu">
-      <div>
-        <h1 className="title">ASSIMILATE</h1>
-        <p className="subtitle">
-          Cyberpunk bio-horror tower defense — vertical slice. Grow, mutate, assimilate.
-        </p>
-        {save.title ? <p className="player-title">⟡ {save.title}</p> : null}
+      <div className="menu-header">
+        <div>
+          <h1 className="title">ASSIMILATE</h1>
+          <p className="subtitle">
+            Cyberpunk bio-horror tower defense — vertical slice. Grow, mutate, assimilate.
+          </p>
+          {save.title ? <p className="player-title">⟡ {save.title}</p> : null}
+        </div>
+        <AudioControls />
       </div>
 
       <div className="panel">

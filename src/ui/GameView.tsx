@@ -7,6 +7,8 @@ import { HEIGHT, WIDTH } from '../core/map';
 import { TOWER_ORDER } from '../core/config';
 import { setActiveGame } from '../debug/debug';
 import { meta } from '../state/meta';
+import { audio } from '../audio/audio';
+import { AudioDriver } from '../audio/driver';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
 import { DraftModal } from './DraftModal';
@@ -51,6 +53,7 @@ export function GameView({
     let raf = 0;
     let last = performance.now();
     let lastHud = 0;
+    const audioDriver = new AudioDriver(); // fresh per run; presentation-only (no sim coupling)
 
     // Fold the run's loot progress into the persistent meter. Mid-wave folds are
     // in-memory (smooth fill); wave boundaries and run end persist to storage.
@@ -71,7 +74,9 @@ export function GameView({
       // Subtle slow-mo as combat eases into the Build Phase.
       const slow = now < slowmoUntilRef.current ? 0.4 : 1;
       game.advance(dt * slow);
-      drawGame(ctx, game.getRenderState(), pointerRef.current);
+      const rs = game.getRenderState();
+      drawGame(ctx, rs, pointerRef.current);
+      audioDriver.frame(rs, game.kills, game.earlyBonusSeq); // diff → SFX/music (no sim effect)
       if (now - lastHud > 80) {
         syncLoot(false); // live, smooth fill of the persistent meter (in-memory)
         setHud(game.getSnapshot());
@@ -187,6 +192,7 @@ export function GameView({
             options={hud.draft}
             onPick={(id) => {
               slowmoUntilRef.current = performance.now() + 750; // ease into the Build Phase
+              audio.play('card');
               game.chooseCard(id);
               refresh();
             }}
