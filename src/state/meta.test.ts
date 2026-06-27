@@ -113,6 +113,18 @@ describe('ascendant tree (spending cells)', () => {
   });
 });
 
+describe('power score (account-power index)', () => {
+  it('is ×1.0 on a fresh account and rises with permanent buckets', () => {
+    expect(meta.importText(serializeExport(defaultSave())).ok).toBe(true);
+    expect(meta.powerScore().score).toBeCloseTo(1.0, 10); // fresh = baseline
+
+    const ascended = { ...defaultSave(), prestige: { ...defaultPrestige(), lifetimeCells: 100 } };
+    expect(meta.importText(serializeExport(ascended)).ok).toBe(true);
+    expect(meta.powerScore().meta).toBeCloseTo(2.0, 6); // prestige P bucket folds through metaModifiers
+    expect(meta.powerScore().score).toBeGreaterThan(1.9);
+  });
+});
+
 describe('loot queue integration (the finishRun banking seam)', () => {
   it('banking loot points awards boxes and grants their shards, keeping the queue valid', () => {
     meta.reset(); // known clean state (a fresh, pre-determined queue)

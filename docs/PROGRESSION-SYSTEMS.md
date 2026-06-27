@@ -6,12 +6,22 @@ vertical slice, **how they stay deterministic**, and where to extend them. Numbe
 are placeholder — the architecture is the deliverable.
 
 > **Design lens (read before extending progression):** `PROGRESSION-PHILOSOPHY.md`
-> assigns each progression layer a distinct player motivation and lists the engine
-> adjustments required before more content is added. Stars and Mastery as implemented
-> here are **slated for redesign** (they're currently stat-sticks) — see
-> `TOWER-STARS.md` (stars → evolution/grants) and `MASTERY.md` (mastery → experience/
-> identity), with hero gear in `EQUIPMENT-PHILOSOPHY.md`. Those supersede the
-> stat-multiplier shapes documented below.
+> assigns each progression layer a distinct player motivation. The redesigns it called for
+> have **shipped** and supersede the stat-multiplier shapes below:
+> - **Stars → evolution** (`core/stars.ts`): each star grants a capability (targeting /
+>   projectile mutators / new attacks / forks), resolved into the per-tower run kit. The
+>   incidental stat in `config.STAR` is now secondary. See `TOWER-STARS.md`.
+> - **Mastery → identity** (`core/mastery.ts`): titles, lore, procedural ranks, in-game
+>   visual halos, and sparse mechanic milestone perks — the log stat hum stays minor. See
+>   `MASTERY.md`.
+> - **Equipment → playstyle** (`EQUIPMENT-PHILOSOPHY.md`): the unified `grant`/`set`/`hook`
+>   effect language (`cards.ts`) lets gear change attacks, hero AI, and run rules.
+> - **Prestige (MOLT)** (`core/prestige.ts` + `core/ascendant.ts`): the P bucket — Ascendant
+>   Cells (sqrt mint → log global ×) + a spendable Ascendant Tree. See `PROGRESSION-PHILOSOPHY §2.8`.
+> - **Power Score** (`meta.powerScore()`): one account-power index over all permanent buckets.
+>
+> All are golden-safe (a fresh account resolves to identity). The per-system notes below
+> describe the original currencies/curves, which still underpin the redesigned systems.
 
 ---
 
@@ -83,19 +93,22 @@ existing `dmgMult`/`rateMult` — dispatch is unchanged.
 
 ---
 
-## Known reconciliation items (placeholder → content, later)
+## Reconciliation items — RESOLVED by the redesigns
 
-- **Reactor stars/mastery.** The Reactor is `support` (it never fires), so its
-  `damageMult`/`fireRateMult` buffs are inert today and the Tower Lab still labels a
-  `+% dmg`. Architecture is correct (per-kind mods exist); the *content* fix is to map
-  Reactor progression onto its real levers (biomass / overcharge) via a new `TowerMods`
-  field. Tracked, not yet wired.
-- **Hero shards** are earned, stored, and shown, but not yet spendable (one hero, no
-  hero star/mastery tree yet) — forward-looking per the brief.
-- **Milestone rewards** for mastery levels are intentionally not built (architecture
-  first); `MasteryDelta.toLevel` already surfaces level-ups for a future milestone hook.
-- **Star rewards** are a uniform per-star buff, not per-star unique effects — by design
-  for now ("do not implement every star reward yet").
+These earlier placeholders have since shipped:
+
+- **Reactor stars** — now an **economy** path: a `reactor` star grant carries
+  biomass/overcharge multipliers (`core/stars.ts`) the reactor systems read
+  (`core/ascendant`-style fold in `game.economySystem` + overcharge). No longer inert.
+- **Hero shards** — spendable on hero **Stars** (`meta.buyHeroStar`), and all three heroes
+  earn infinite **Mastery** (`HeroLab`).
+- **Mastery milestone rewards** — built: titles, lore, procedural ranks, in-game visual
+  halos, and sparse **mechanic perks** (`core/mastery.ts`; `meta.finishRun` unlocks them).
+- **Star rewards** — now **unique per-star evolution** (targeting / projectile mutators /
+  granted attacks / forks), not a uniform buff (`core/stars.ts`, `TOWER-STARS.md`).
+
+Still open: per-star *balance* tuning (numbers are placeholder); a formal bucket resolver
+(`PROGRESSION-PHILOSOPHY §3F`); deeper prestige layers (`PROGRESSION.md §5.2`).
 
 ---
 

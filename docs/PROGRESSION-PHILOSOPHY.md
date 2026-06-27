@@ -200,8 +200,9 @@ additive and preserve the golden invariant (a fresh account resolves to identity
 > reach the sim via the star kit (towers), projectile mutators (`mutators.ts`), granted
 > tower mutators / hero-attack statuses, and run-scoped relic hooks; the per-run config is
 > the frozen `towerProgress`/`heroProgress` snapshot + `RunModifiers` behavior knobs.
-> Identity registries (D) ship as `cosmetic`/title/lore via `mastery.ts`. The bucket
-> resolver + Power Score (F) and currency-role lint (G) remain the standing guardrails.
+> Identity registries (D) ship as `cosmetic`/title/lore via `mastery.ts`. **Power Score (F)
+> is built** (`meta.powerScore()` — one legible account-power index, shown on the menu). A
+> formal bucket *resolver* and the currency-role *lint* (G) remain the standing guardrails.
 
 ### A. One progression-effect language (not many stat folds)
 Today three vocabularies coexist: `UpgradeDef.effect` (meta), `TowerMods` (stars/mastery),
@@ -276,6 +277,12 @@ which **named bucket** it feeds and which **curve type** it uses (`§1.2`). One 
 multiplies buckets; one `Power Score` summarizes them. New content slots into a bucket with
 a declared curve — making "is this inflationary?" a question the architecture answers, not
 a vibe.
+
+> **Status:** **Power Score is built** — `meta.powerScore()` aggregates the permanent damage
+> buckets (meta upgrades × prestige × stars × mastery, roster-averaged) into one ×N index,
+> ×1.0 on a fresh account, shown on the main menu. A *formal* bucket resolver (systems
+> declaring a named bucket + curve, so the inflation check is structural) is the remaining
+> guardrail; today each system folds into the existing multiplier fields by hand.
 
 ### G. Currency-role discipline (a content rule, enforced in review)
 Document each currency's role so new content can't quietly add a sixth stat currency:

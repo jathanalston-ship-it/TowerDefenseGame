@@ -537,6 +537,21 @@ export const meta = {
     return heroProgress(store.get());
   },
 
+  /** Power Score (PROGRESSION.md §1.4): ONE legible number for total account power — the
+   * product of the permanent damage buckets (meta upgrades × prestige × stars × mastery,
+   * roster-averaged). ×1.0 on a fresh account; the §3F inflation gauge. */
+  powerScore(): { score: number; meta: number; towers: number; heroes: number } {
+    const save = store.get();
+    const mm = metaModifiers(save); // meta upgrades × prestige P bucket
+    const tp = towerProgress(save); // stars + mastery (towers)
+    const hp = heroProgress(save); // stars + mastery (heroes)
+    const geomean = (vals: number[]): number =>
+      vals.length ? Math.exp(vals.reduce((s, v) => s + Math.log(v), 0) / vals.length) : 1;
+    const towers = geomean(TOWER_ORDER.map((k) => tp[k].damageMult));
+    const heroes = geomean(HERO_ORDER.map((k) => hp[k].damageMult));
+    return { score: mm.towerDamageMult * towers * heroes, meta: mm.towerDamageMult, towers, heroes };
+  },
+
   /** The hero the next run will field (slot 1). */
   selectedHero(): HeroKind {
     return store.get().selectedHero;

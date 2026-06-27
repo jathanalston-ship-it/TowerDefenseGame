@@ -277,6 +277,21 @@ button:disabled {
   grid-template-columns: repeat(4, 1fr);
   gap: var(--s3);
 }
+/* Power Score — one legible account-power number (PROGRESSION §1.4). */
+.power-score {
+  text-align: center;
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  margin-bottom: var(--s3);
+}
+.power-score b {
+  color: var(--viral);
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
 .record .k {
   color: var(--muted);
   font-size: 11px;

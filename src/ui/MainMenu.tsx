@@ -29,6 +29,9 @@ export function MainMenu({
       </div>
 
       <div className="panel">
+        <div className="power-score">
+          Power Score <b>×{meta.powerScore().score.toFixed(1)}</b>
+        </div>
         <div className="records">
           <div className="record">
             <div className="k">Shards</div>
