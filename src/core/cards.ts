@@ -33,6 +33,16 @@ export interface RunModifiers {
   startBiomassBonus: number; // flat biomass added at run start
   integrityMult: number; // multiplies max Nucleus integrity (e.g. Glass Genome ½)
   heroMaxHpMult: number; // multiplies hero max HP (survivability gear)
+  // ── Keystones — rule-benders that change HOW combat resolves, not just the numbers.
+  //    Neutral by default (off / ×1) so a run without the relevant gear/card is
+  //    byte-identical (the golden invariant). The sim gates each on its neutral value. ──
+  executeThreshold: number; // instakill non-elite/boss enemies below this HP fraction (0 = off)
+  lastStandThreshold: number; // Nucleus HP fraction at/under which Last Stand triggers (0 = off)
+  lastStandMult: number; // tower-damage × while Last Stand is active (1 = none)
+  damagePerEmptySlot: number; // +tower damage per EMPTY unlocked build slot (0 = off)
+  damagePerTower: number; // +tower damage per tower on the board (0 = off)
+  reactionRepeats: number; // extra times a status reaction re-fires / chains (0 = off)
+  enemyHpRunMult: number; // run-wide enemy-HP scalar (gear trade-off, e.g. Hivemind +10%) (1 = none)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -57,6 +67,13 @@ export function defaultRunModifiers(): RunModifiers {
     startBiomassBonus: 0,
     integrityMult: 1,
     heroMaxHpMult: 1,
+    executeThreshold: 0,
+    lastStandThreshold: 0,
+    lastStandMult: 1,
+    damagePerEmptySlot: 0,
+    damagePerTower: 0,
+    reactionRepeats: 0,
+    enemyHpRunMult: 1,
   };
 }
 
