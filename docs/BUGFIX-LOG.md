@@ -11,6 +11,7 @@ bug-hunt pass (scope, method, verdict) so "we looked" is auditable.
 |---|---|---|---|
 | 1 | A wave could never end — enemies that breached the line lingered and the run hung. | `deathSystem` only evicted hp-deaths; enemies set `alive=false` by `hitNucleus` (breach) were never removed from `this.enemies`, so `checkWaveEnd` (which needs `enemies.length === 0`) never fired. | Evict **all** non-alive enemies each tick (swap-remove on `!e.alive`), not just hp-deaths. |
 | 2 | Damage-number floats / hit-flash could strobe every tick on enemies standing in Corrosion pools. | The aggregated-damage + hit-flash hooks fired on *all* `applyDamage`, including continuous DoT. | `applyDamage(..., flash=false)` for DoT (corrosion tick, pools); the white flash only pops on discrete hits. |
+| 3 | Green artillery (Acid Spitter / Siege Maw) sniped the Nucleus from the spawn edge, far outside any defensible range (seen ~endless waves 2–4). | The siege gate compared `goalDistanceAt` — a **cell-unit** path cost (max ~23 on the grid) — against `siege.range` in **pixels** (180–220), so the condition was ~always true: they shelled from the moment they spawned and never advanced. | Replace the gate with a Y-position **standoff**: artillery advances to at least 2/3 down the lane (`max(HEIGHT·2/3, DEFENSE_TOP_Y − siege.range)`) before halting to bombard, so it commits into tower range. Regression test: `artillery.test.ts`. |
 
 ---
 

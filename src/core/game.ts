@@ -1355,17 +1355,25 @@ export class Game {
         continue;
       }
       const def = ENEMY_DEFS[e.kind];
-      // Artillery: halt short of the line and bombard the Nucleus from range. Gated on `siege`,
-      // which the historical roster never sets, so those enemies always advance normally.
-      if (def.siege && goalDistanceAt(e.x, e.y) <= def.siege.range) {
-        e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
-        if (e.siegeCd <= 0) {
-          e.siegeCd = def.siege.interval;
-          if (!this.god) this.integrity -= def.siege.damage;
-          this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `-${def.siege.damage}`, color: '#ff8a3d', life: 0.9 });
-          this.pushSfx('breach');
+      // Artillery: advance to a standoff line, THEN halt and bombard the Nucleus. The
+      // standoff is at least 2/3 of the way down the lane so towers can actually engage it;
+      // `siege.range` is how far above the defense line it prefers to stop, clamped to that
+      // 2/3 floor. Gated on `siege`, which the historical roster never sets, so those enemies
+      // always advance normally. (The previous gate compared goalDistanceAt — a CELL-unit
+      // path cost — against a PIXEL range, so it was ~always true and the artillery sniped the
+      // core from the spawn edge, far outside any defensible range. This makes it commit.)
+      if (def.siege) {
+        const standoffY = Math.max(HEIGHT * (2 / 3), DEFENSE_TOP_Y - def.siege.range);
+        if (e.y >= standoffY) {
+          e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
+          if (e.siegeCd <= 0) {
+            e.siegeCd = def.siege.interval;
+            if (!this.god) this.integrity -= def.siege.damage;
+            this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `-${def.siege.damage}`, color: '#ff8a3d', life: 0.9 });
+            this.pushSfx('breach');
+          }
+          continue; // standoff: it shells the core instead of advancing
         }
-        continue; // standoff: it shells the core instead of advancing
       }
       // Minion body-block: a friendly summon in contact halts the enemy and soaks its attack
       // (the blocker fantasy). Flying/burrowing enemies bypass it (their identity), and the
