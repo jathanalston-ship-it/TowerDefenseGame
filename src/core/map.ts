@@ -213,10 +213,27 @@ function buildSlots(): TowerSlot[] {
 }
 export const towerSlots: TowerSlot[] = buildSlots();
 
-/** The slot occupying the cell at (px,py), or null. */
+/** How close a click must land to a slot's pad to select it (px). The pads sit on the
+ * symmetric 80px lattice; a generous, pad-sized radius keeps the tap target comfortable
+ * (> 44px touch target) without ever reaching a neighbouring slot. */
+export const SLOT_HIT_RADIUS = CELL * 0.7; // 28px
+
+/** The tower slot a click selects: the NEAREST pad within `SLOT_HIT_RADIUS`, or null. Snapping
+ * to the pad centre — rather than flooring (px,py) to a grid cell — keeps the clickable target
+ * CENTERED on each visual pad and mirror-symmetric about the Hive Core. (Pads straddle the cell
+ * grid, so cell-flooring biased every hit half a cell to the right and killed each pad's left
+ * half; nearest-pad removes that offset.) */
 export function slotAt(px: number, py: number): TowerSlot | null {
-  const col = colOf(px);
-  const row = rowOf(py);
-  for (const s of towerSlots) if (s.col === col && s.row === row) return s;
-  return null;
+  let best: TowerSlot | null = null;
+  let bestD2 = SLOT_HIT_RADIUS * SLOT_HIT_RADIUS;
+  for (const s of towerSlots) {
+    const dx = px - s.x;
+    const dy = py - s.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD2) {
+      bestD2 = d2;
+      best = s;
+    }
+  }
+  return best;
 }

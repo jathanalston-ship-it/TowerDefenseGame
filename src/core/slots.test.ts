@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { towerSlots, WIDTH, type TowerSlot } from './map';
+import { CELL, slotAt, towerSlots, WIDTH, type TowerSlot } from './map';
 import { SLOTS } from './config';
 import { CARD_POOL, applyCard, defaultRunModifiers } from './cards';
 import type { MetaModifiers } from './types';
@@ -50,6 +50,37 @@ describe('tower-slot geometry (symmetric, centre-out)', () => {
     expect(initial).toBeLessThan(permRing);
     expect(permRing).toBeLessThan(tempRing);
     expect(towerSlots[0].x).toBe(WIDTH / 2); // the very first slot sits on the core's column
+  });
+});
+
+describe('slot hit-detection (click → nearest pad, centred on the visual lattice)', () => {
+  const pad = (CELL - 10) / 2; // half the drawn pad (renderer: s = CELL - 10)
+
+  it('resolves a click at the pad CENTRE to that slot', () => {
+    for (const s of towerSlots) expect(slotAt(s.x, s.y)?.index).toBe(s.index);
+  });
+
+  it('resolves clicks across the WHOLE pad — including the left half (the old dead zone)', () => {
+    // Pads sit on grid LINES, so the old cell-floor lost the left half of every pad. The
+    // centre column (x = 360, the core's line) was the worst case.
+    const s = towerSlots[0];
+    expect(slotAt(s.x - pad, s.y)?.index).toBe(s.index); // left edge — used to miss
+    expect(slotAt(s.x + pad, s.y)?.index).toBe(s.index); // right edge
+    expect(slotAt(s.x, s.y - pad)?.index).toBe(s.index);
+    expect(slotAt(s.x, s.y + pad)?.index).toBe(s.index);
+  });
+
+  it('is mirror-symmetric about the core: a click and its mirror resolve to mirror slots', () => {
+    for (const s of towerSlots) {
+      const mirror = slotAt(WIDTH - s.x, s.y);
+      expect(mirror).not.toBeNull();
+      expect(mirror!.x).toBe(WIDTH - s.x); // the mirrored click lands on the mirrored slot
+    }
+  });
+
+  it('returns null for a click far from any slot (no over-eager snapping)', () => {
+    expect(slotAt(WIDTH / 2, 100)).toBeNull(); // top of the map — no slots there
+    expect(slotAt(0, towerSlots[0].y)).toBeNull(); // far left wall, away from any pad
   });
 });
 
