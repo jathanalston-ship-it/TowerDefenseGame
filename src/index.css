@@ -1743,6 +1743,72 @@ kbd {
   color: var(--muted);
   letter-spacing: 0.04em;
 }
+
+/* End-of-run Genetic Vault breakdown (Results) — exactly what banked, by rarity. */
+.vault-earned-k {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 2px 0 8px;
+}
+.vault-earned {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ve-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-left-width: 3px; /* border-left-color set inline per rarity */
+  animation: ve-row-in 0.32s cubic-bezier(0.2, 1, 0.4, 1) both;
+}
+.ve-icon {
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.ve-name {
+  flex: 1;
+  text-align: left;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.ve-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text);
+}
+.vault-totals {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+.vault-totals b {
+  color: var(--text);
+  font-size: 15px;
+  margin-left: 4px;
+}
+.vault-empty {
+  margin: 6px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+@keyframes ve-row-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
 .loot-items {
   list-style: none;
   margin: 0;

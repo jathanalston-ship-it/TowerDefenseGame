@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
-import { rarityRegistry } from '../core/loot';
+import { rarityRank, rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
 import { RewardSequence } from './RewardSequence';
 import type { RewardLine } from './RewardSequence';
@@ -58,19 +59,54 @@ export function Results({
       </div>
 
       {done && (() => {
-        // All loot — the run-end cache AND any loot-queue containers — banks UNOPENED into the
-        // Genetic Vault. Show the count + the box now filling and the pre-determined next.
+        // Full breakdown of what banked into the Genetic Vault this run — loot boxes grouped by
+        // rarity (rarest first) plus the guaranteed run cache, with totals. Everything's on the
+        // Summary so the player instantly sees what they earned — no drilling into a menu.
+        const lootCounts = new Map<string, number>();
+        let cacheCount = 0;
+        for (const c of outcome.loot.banked) {
+          if (c.kind === 'cache') cacheCount++;
+          else lootCounts.set(c.rarity, (lootCounts.get(c.rarity) ?? 0) + 1);
+        }
+        const rows = rarityRegistry
+          .ids()
+          .filter((id) => lootCounts.has(id))
+          .sort((a, b) => rarityRank(b) - rarityRank(a)) // rarest first
+          .map((id) => {
+            const def = rarityRegistry.get(id);
+            return { key: id, name: def?.name ?? id, color: def?.color ?? 'var(--r-common)', n: lootCounts.get(id) as number };
+          });
+        if (cacheCount > 0) rows.push({ key: 'cache', name: 'Run Cache', color: 'var(--gold)', n: cacheCount });
+
+        const earned = outcome.loot.banked.length;
+        const owned = meta.pendingContainers().length;
         const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
         const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
-        const banked = outcome.loot.banked.length;
+
         return (
           <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
             <div className="panel-title">Genetic Vault</div>
-            <div style={{ margin: '4px 0 10px', fontSize: 14 }}>
-              <b style={{ color: 'var(--gold)' }}>{banked}</b> bio-container{banked > 1 ? 's' : ''} banked
-              (incl. your run cache) — crack {banked > 1 ? 'them' : 'it'} open in the <b>Genetic Vault</b>.
-            </div>
-            <div className="loot-queue-line">
+            {earned === 0 ? (
+              <div className="vault-empty">No bio-containers banked this run — push deeper to fill the loot meter.</div>
+            ) : (
+              <>
+                <div className="vault-earned-k">Bio-Containers Earned</div>
+                <div className="vault-earned">
+                  {rows.map((r) => (
+                    <div className="ve-row" key={r.key} style={{ borderLeftColor: r.color }}>
+                      <span className="ve-icon" style={{ color: r.color }}>◈</span>
+                      <span className="ve-name" style={{ color: r.color }}>{r.name}</span>
+                      <span className="ve-count">×{r.n}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="vault-totals">
+                  <span>Total earned <b>{earned}</b></span>
+                  <span>Now owned <b style={{ color: 'var(--gold)' }}>{owned}</b></span>
+                </div>
+              </>
+            )}
+            <div className="loot-queue-line" style={{ marginTop: 10 }}>
               Now filling <b style={{ color: front?.color }}>{front?.name ?? 'Common'}</b>
               {next && (
                 <>
