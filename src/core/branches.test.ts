@@ -169,3 +169,37 @@ describe('purchase + lock economy (Game)', () => {
     expect(after[0].locked).toBe(true);
   });
 });
+
+// The inspection ENTRY POINT: a canvas click must open a placed tower's Mutation panel. The
+// build tool stays armed for repeat placement, so this only works if an occupied-slot click is
+// routed to inspection rather than a doomed placement (the bug: the armed tool shadowed inspect).
+describe('click routing → tower inspection', () => {
+  const s0 = towerSlots[0];
+
+  it('clicking a placed tower inspects it even while a build tool is still armed', () => {
+    const game = new Game(2, NO_META);
+    game.debugAddBiomass(1000);
+    game.selectTower('needle');
+    expect(game.placeTower('needle', s0.x, s0.y)).toBe(true);
+    expect(game.selectedTower).toBe('needle'); // still armed (repeat-placement default)
+    game.click(s0.x, s0.y); // click the placed tower — must inspect, not misfire a placement
+    expect(game.getSnapshot().selectedPlaced?.id).toBe(game.towers[0].id);
+  });
+
+  it('with a build tool armed, clicking an EMPTY slot still places (repeat placement intact)', () => {
+    const game = new Game(2, NO_META);
+    game.debugAddBiomass(1000);
+    game.selectTower('needle');
+    game.click(s0.x, s0.y); // empty slot → places
+    expect(game.towers.length).toBe(1);
+    expect(game.getSnapshot().selectedPlaced).toBeNull(); // placed, not inspected
+  });
+
+  it('clicking a placed tower with nothing armed inspects it', () => {
+    const game = new Game(2, NO_META);
+    game.debugAddBiomass(1000);
+    game.placeTower('needle', s0.x, s0.y);
+    game.click(s0.x, s0.y);
+    expect(game.getSnapshot().selectedPlaced?.id).toBe(game.towers[0].id);
+  });
+});
