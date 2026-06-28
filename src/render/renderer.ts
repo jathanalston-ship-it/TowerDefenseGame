@@ -502,6 +502,8 @@ const HEART = hexRgb('#ff6f91'); // Symbiotic Heart vital-pink
 const BROOD = hexRgb('#b58cff'); // Brood Spire spore-violet
 const PLAGUE = hexRgb('#e24dff'); // Viral Apex contagion-magenta
 const GORE = hexRgb('#d83a4a'); // Ravager Strain blood-red
+const TYRANT = hexRgb('#9aa6ff'); // Psionic Tyrant domination-violet
+const RENDER = hexRgb('#7cdcff'); // Mindrender electric-cyan
 
 function drawBranchCosmetic(
   ctx: CanvasRenderingContext2D,
@@ -519,6 +521,8 @@ function drawBranchCosmetic(
     case 'reactor_brood': return branchBrood(ctx, tw, now, r);
     case 'parasite_apex': return branchPlague(ctx, tw, now, r);
     case 'parasite_ravager': return branchRavager(ctx, tw, now, r);
+    case 'obelisk_tyrant': return branchTyrant(ctx, tw, now, r);
+    case 'obelisk_mindrender': return branchMindrender(ctx, tw, now, r);
     default: return drawGenericMutation(ctx, tw, now, r, color);
   }
 }
@@ -767,6 +771,69 @@ function branchRavager(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][
   }
 }
 
+/** Psionic Tyrant — a throne of domination: a crown of psionic spikes over a slow, wide rotating
+ *  glyph ring; a second counter-rotating ring crowns the capstone. */
+function branchTyrant(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (2 + tw.tier * 0.2), rgba(TYRANT, 0.06 + tw.tier * 0.015));
+  // the rotating glyph ring — wider each tier
+  const ringR = r * (1.8 + tw.tier * 0.18);
+  ctx.save();
+  ctx.strokeStyle = rgba(TYRANT, 0.5);
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([6, 7]);
+  ctx.lineDashOffset = -((now * 16) % 13);
+  ctx.beginPath();
+  ctx.arc(tw.x, tw.y, ringR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
+  // a crown of psionic spikes, taller/more numerous with tier
+  spikeCrown(ctx, tw.x, tw.y, r * 0.9, r * (0.4 + tw.tier * 0.1), 4 + tw.tier, rgba(TYRANT, 0.8), now * 0.4);
+  if (tw.tier >= 5) {
+    ctx.save();
+    ctx.strokeStyle = rgba(TYRANT, 0.4);
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 9]);
+    ctx.lineDashOffset = (now * 22) % 13; // counter-rotating
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y, ringR * 1.3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+  }
+}
+
+/** Mindrender — crackling neural lightning: jagged arcs lash out from the obelisk (more, longer,
+ *  forking at the capstone), flickering on a fast seed so it reads as live electricity. */
+function branchMindrender(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(RENDER, 0.08 + tw.tier * 0.02));
+  const arcs = 2 + tw.tier;
+  const reach = r * (1.6 + tw.tier * 0.18);
+  ctx.strokeStyle = rgba(RENDER, 0.85);
+  ctx.lineWidth = 1.3;
+  ctx.lineCap = 'round';
+  const flick = Math.floor(now * 18); // a new "frame" of lightning ~18×/s
+  for (let i = 0; i < arcs; i++) {
+    const ang = (i * Math.PI * 2) / arcs + Math.sin(flick * 0.7 + i) * 0.4;
+    // a jagged 3-segment bolt out to `reach`
+    ctx.beginPath();
+    ctx.moveTo(tw.x, tw.y);
+    let px = tw.x;
+    let py = tw.y;
+    const segs = 3 + (tw.tier >= 4 ? 1 : 0);
+    for (let s = 1; s <= segs; s++) {
+      const t = s / segs;
+      const jitter = (((flick * 13 + i * 7 + s * 31) % 17) / 17 - 0.5) * r * 0.7;
+      px = tw.x + Math.cos(ang) * reach * t - Math.sin(ang) * jitter;
+      py = tw.y + Math.sin(ang) * reach * t + Math.cos(ang) * jitter;
+      ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    drawShape(ctx, 'circle', px, py, 1.4, rgba(RENDER, 0.9)); // a bright arc tip
+  }
+  ctx.lineCap = 'butt';
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
   if (p.skin && drawSkinnedProjectile(ctx, p)) return; // themed branch shot; else fall through to base
   const splash = p.behavior === 'splash';
@@ -878,6 +945,20 @@ function drawSkinnedProjectile(ctx: CanvasRenderingContext2D, p: RenderState['pr
       // a back-swept barb
       drawShape(ctx, 'circle', p.x - ux * 3 - uy * 2, p.y - uy * 3 + ux * 2, 1.3, '#a3202e');
       drawShape(ctx, 'circle', p.x - ux * 3 + uy * 2, p.y - uy * 3 - ux * 2, 1.3, '#a3202e');
+      return true;
+    }
+    case 'obelisk_tyrant': {
+      // the Synaptic Lance — a crackling neural bolt with a long electric streak
+      ctx.strokeStyle = rgba(TYRANT, 0.6);
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 14, p.y - uy * 14);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      glowDisc(ctx, p.x, p.y, 5.5, rgba(TYRANT, 0.7));
+      drawShape(ctx, 'diamond', p.x, p.y, 2.6, '#dfe4ff');
       return true;
     }
     default:

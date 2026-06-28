@@ -199,7 +199,7 @@ const BRANCHES: Branch[] = [
     id: 'obelisk_tyrant', tower: 'obelisk', name: 'Psionic Tyrant',
     theme: 'Total battlefield control — a widening field that locks the swarm down.',
     tiers: [
-      { tier: 1, name: 'Dread Field', desc: 'A wider field of deeper Disruption.', damageMult: 1.1, rangeMult: 1.3, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 300, status: { kind: 'Disruption', amount: 2 }, particle: 'disrupt' }] }] },
+      { tier: 1, name: 'Dread Field', desc: 'A wider field of deeper Disruption.', damageMult: 1.1, rangeMult: 1.3, particle: 'disrupt', sfx: 'br_psi', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 300, status: { kind: 'Disruption', amount: 2 }, particle: 'disrupt' }] }] },
       { tier: 2, name: 'Synaptic Lance', desc: 'Snipes the strongest mind with a neural bolt.', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'projectile', behavior: 'homing', range: 360, count: 1, damage: 12, speed: 520 }] }] },
       { tier: 3, name: 'Mind Fracture', desc: 'Disrupted minds crack — Fractured and amplified.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 320, damage: 6, status: { kind: 'Fracture', amount: 2 }, react: true, particle: 'disrupt' }] }] },
       { tier: 4, name: 'Stasis Nova', desc: 'Periodically freezes the field — a slowing, vulnerable stasis.', rangeMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'debuff', status: { kind: 'Disruption', amount: 3 }, radius: 340 }] }] },
@@ -210,7 +210,7 @@ const BRANCHES: Branch[] = [
     id: 'obelisk_mindrender', tower: 'obelisk', name: 'Mindrender',
     theme: 'The obelisk turns predator — a damage caster that fries the swarm.',
     tiers: [
-      { tier: 1, name: 'Neural Spike', desc: 'The pulse now sears nearby minds for real damage.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 280, damage: 12, react: true, particle: 'disrupt' }] }] },
+      { tier: 1, name: 'Neural Spike', desc: 'The pulse now sears nearby minds for real damage.', damageMult: 1.15, particle: 'spark', sfx: 'br_storm', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 280, damage: 12, react: true, particle: 'disrupt' }] }] },
       { tier: 2, name: 'Arc Synapse', desc: 'Lightning leaps between strongest enemies.', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'chain', jumps: 3, range: 160, damage: 14 }] }] },
       { tier: 3, name: 'Overload', desc: 'A harder-hitting field that Fractures what it fries.', damageMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 300, damage: 16, status: { kind: 'Fracture', amount: 1 }, react: true, particle: 'disrupt' }] }] },
       { tier: 4, name: 'Forked Lightning', desc: 'The arc forks farther and harder.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 5, range: 180, damage: 22 }] }] },

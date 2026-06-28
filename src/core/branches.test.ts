@@ -57,6 +57,24 @@ describe('resolveBranchKit', () => {
     expect(resolveBranchKit('reactor_brood', 1).particle).toBe('spore');
     expect(resolveBranchKit('parasite_apex', 1).particle).toBe('infect');
     expect(resolveBranchKit('parasite_ravager', 1).particle).toBe('gore');
+    expect(resolveBranchKit('obelisk_tyrant', 1).particle).toBe('disrupt');
+    expect(resolveBranchKit('obelisk_mindrender', 1).particle).toBe('spark');
+  });
+
+  it('a branched obelisk (field) cues its signature on every pulse', () => {
+    const game = new Game(5, NO_META);
+    game.debugAddBiomass(1_000_000);
+    let id = -1;
+    for (const s of towerSlots) if (game.placeTower('obelisk', s.x, s.y)) { id = game.towers[game.towers.length - 1].id; break; }
+    expect(game.buyBranchTier(id, 'obelisk_tyrant')).toBe('ok');
+    game.drainSfx(); // drop splice
+    game.startWave();
+    let sawSfx = false;
+    for (let i = 0; i < 900 && !sawSfx; i++) {
+      game.advance(SIM_DT);
+      if (game.drainSfx().includes('br_psi')) sawSfx = true;
+    }
+    expect(sawSfx, 'a branched obelisk should cue its psionic signature on its field pulse').toBe(true);
   });
 
   it('a branched reactor (support) throbs its signature on its pulse, even on an economy-only tier', () => {
