@@ -500,6 +500,8 @@ const EMBER = hexRgb('#ff8a3c'); // Necrotic Siege cinder-orange
 const ACID = hexRgb('#9be84a'); // Corrosive Cauldron caustic-green
 const HEART = hexRgb('#ff6f91'); // Symbiotic Heart vital-pink
 const BROOD = hexRgb('#b58cff'); // Brood Spire spore-violet
+const PLAGUE = hexRgb('#e24dff'); // Viral Apex contagion-magenta
+const GORE = hexRgb('#d83a4a'); // Ravager Strain blood-red
 
 function drawBranchCosmetic(
   ctx: CanvasRenderingContext2D,
@@ -515,6 +517,8 @@ function drawBranchCosmetic(
     case 'mortar_cauldron': return branchCauldron(ctx, tw, now, r);
     case 'reactor_heart': return branchHeart(ctx, tw, now, r);
     case 'reactor_brood': return branchBrood(ctx, tw, now, r);
+    case 'parasite_apex': return branchPlague(ctx, tw, now, r);
+    case 'parasite_ravager': return branchRavager(ctx, tw, now, r);
     default: return drawGenericMutation(ctx, tw, now, r, color);
   }
 }
@@ -710,6 +714,59 @@ function branchBrood(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][nu
   if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.4, rgba(ACID, pulse(now + tw.id, 2.4, 0.15, 0.4)), 1.4); // Hive Node corrosive field
 }
 
+/** Viral Apex — a plague bloom: rings of contagion ripple outward (more/faster each tier)
+ *  through a haze of orbiting spores, swelling to a pandemic pulse at the capstone. */
+function branchPlague(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.6 + tw.tier * 0.12), rgba(PLAGUE, 0.08 + tw.tier * 0.02));
+  // expanding contagion rings — each a ripple that grows and fades on its own phase
+  const rings = 1 + Math.ceil(tw.tier / 2);
+  const speed = 0.5 + tw.tier * 0.1;
+  for (let i = 0; i < rings; i++) {
+    const ph = ((now * speed + i / rings) % 1); // 0..1
+    const rr = r * (1.1 + ph * (1.4 + tw.tier * 0.15));
+    ring(ctx, tw.x, tw.y, rr, rgba(PLAGUE, (1 - ph) * 0.5), 1.4);
+  }
+  // orbiting spores in the haze
+  const spores = 3 + tw.tier;
+  for (let i = 0; i < spores; i++) {
+    const ang = now * 1.1 + (i * Math.PI * 2) / spores;
+    const orbit = r * (1.2 + (i % 3) * 0.18);
+    drawShape(ctx, 'circle', tw.x + Math.cos(ang) * orbit, tw.y + Math.sin(ang) * orbit, 1.8, rgba(PLAGUE, 0.75));
+  }
+}
+
+/** Ravager Strain — a predator: curved mandible-fangs snap around the core (more, hungrier each
+ *  tier) over an angry red glow, dripping gore at the capstone. */
+function branchRavager(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.3 + tw.tier * 0.1), rgba(GORE, 0.1 + tw.tier * 0.03));
+  const pairs = 1 + Math.ceil(tw.tier / 2); // 2 → 4 fang pairs
+  const snap = (Math.sin(now * 4) * 0.5 + 0.5) * 0.5; // 0..0.5 jaw open
+  ctx.strokeStyle = rgba(GORE, 0.9);
+  ctx.lineWidth = 2 + tw.tier * 0.2;
+  ctx.lineCap = 'round';
+  for (let p = 0; p < pairs; p++) {
+    const axis = (p * Math.PI) / pairs + now * 0.3;
+    for (const side of [-1, 1]) {
+      const a = axis + side * (0.25 + snap);
+      const reach = r * (1.5 + tw.tier * 0.12);
+      const tipX = tw.x + Math.cos(a) * reach;
+      const tipY = tw.y + Math.sin(a) * reach;
+      // curved fang: control point bowed to the side for a hooked shape
+      const cx = tw.x + Math.cos(axis) * reach * 0.7 - side * Math.sin(axis) * reach * 0.3;
+      const cy = tw.y + Math.sin(axis) * reach * 0.7 + side * Math.cos(axis) * reach * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(tw.x + Math.cos(axis) * r * 0.3, tw.y + Math.sin(axis) * r * 0.3);
+      ctx.quadraticCurveTo(cx, cy, tipX, tipY);
+      ctx.stroke();
+    }
+  }
+  ctx.lineCap = 'butt';
+  if (tw.tier >= 5) { // Apex Predator — gore drips
+    const dripPh = (now * 1.2) % 1;
+    drawShape(ctx, 'circle', tw.x + Math.sin(now * 2) * r * 0.5, tw.y + r * 0.6 + dripPh * r * 0.8, 1.8, rgba(GORE, 0.8 * (1 - dripPh)));
+  }
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
   if (p.skin && drawSkinnedProjectile(ctx, p)) return; // themed branch shot; else fall through to base
   const splash = p.behavior === 'splash';
@@ -795,6 +852,32 @@ function drawSkinnedProjectile(ctx: CanvasRenderingContext2D, p: RenderState['pr
       glowDisc(ctx, p.x, p.y, 6 * wob, rgba(ACID, 0.55));
       drawShape(ctx, 'circle', p.x, p.y, 3.6 * wob, '#8fdc3e');
       drawShape(ctx, 'circle', p.x - 1, p.y - 1, 1.4, 'rgba(230,255,200,0.8)'); // highlight
+      return true;
+    }
+    case 'parasite_apex': {
+      // a spore cluster — a magenta core haloed by small spores
+      glowDisc(ctx, p.x, p.y, 6, rgba(PLAGUE, 0.5));
+      drawShape(ctx, 'circle', p.x, p.y, 2.8, '#e87dff');
+      for (let i = 0; i < 3; i++) {
+        const a = p.x * 0.2 + i * 2.1; // deterministic-ish jitter from position
+        drawShape(ctx, 'circle', p.x + Math.cos(a) * 3.4, p.y + Math.sin(a) * 3.4, 1.2, rgba(PLAGUE, 0.85));
+      }
+      return true;
+    }
+    case 'parasite_ravager': {
+      // a barbed gore-dart with a hooked head and a dark trail
+      ctx.strokeStyle = rgba(GORE, 0.55);
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 9, p.y - uy * 9);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      drawShape(ctx, 'circle', p.x, p.y, 2.8, '#ff5d6c');
+      // a back-swept barb
+      drawShape(ctx, 'circle', p.x - ux * 3 - uy * 2, p.y - uy * 3 + ux * 2, 1.3, '#a3202e');
+      drawShape(ctx, 'circle', p.x - ux * 3 + uy * 2, p.y - uy * 3 - ux * 2, 1.3, '#a3202e');
       return true;
     }
     default:

@@ -175,7 +175,7 @@ const BRANCHES: Branch[] = [
     id: 'parasite_apex', tower: 'parasite', name: 'Viral Apex',
     theme: 'An unstoppable plague that spreads faster than it can be cleansed.',
     tiers: [
-      { tier: 1, name: 'Virulent Spores', desc: 'Heavier Infection; rot the highest-health hosts.', damageMult: 1.1, grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
+      { tier: 1, name: 'Virulent Spores', desc: 'Heavier Infection; rot the highest-health hosts.', damageMult: 1.1, particle: 'infect', sfx: 'br_plague', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
       { tier: 2, name: 'Brood Parasites', desc: 'Fires +1 parasite; they pierce a host.', grants: [{ t: 'projectile', extraProjectiles: 1, mutators: ['pierce1'] }] },
       { tier: 3, name: 'Necrotic Surge', desc: 'Deep Infection on every strike; +1 parasite.', damageMult: 1.1, grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
       { tier: 4, name: 'Hemorrhage', desc: 'Infected also Fracture and bleed under crits; hunt the most-infected.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'mostCorrupted' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'crit', chance: 0.4, mult: 2.5, damage: 10 }] }] },
@@ -186,7 +186,7 @@ const BRANCHES: Branch[] = [
     id: 'parasite_ravager', tower: 'parasite', name: 'Ravager Strain',
     theme: 'Not a plague — a predator. Focused, ramping rot that devours single hosts.',
     tiers: [
-      { tier: 1, name: 'Toxic Fangs', desc: 'Hard-hitting parasites that pierce; hold the line.', damageMult: 1.25, grants: [{ t: 'targeting', profile: 'closestToBase' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 1, name: 'Toxic Fangs', desc: 'Hard-hitting parasites that pierce; hold the line.', damageMult: 1.25, particle: 'gore', sfx: 'br_gore', grants: [{ t: 'targeting', profile: 'closestToBase' }, { t: 'projectile', mutators: ['pierce1'] }] },
       { tier: 2, name: 'Deep Rot', desc: 'Each strike injects a deep Infection load.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 3 } }] }] },
       { tier: 3, name: 'Virulent Strike', desc: 'Faster strikes that savage hosts with crits.', fireRateMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.5, damage: 10 }] }] },
       { tier: 4, name: 'Necrosis', desc: 'Strikes Fracture and double-rot the biggest hosts.', damageMult: 1.2, grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },

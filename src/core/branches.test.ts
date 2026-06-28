@@ -55,6 +55,8 @@ describe('resolveBranchKit', () => {
     expect(resolveBranchKit('mortar_cauldron', 1).particle).toBe('acid');
     expect(resolveBranchKit('reactor_heart', 1).particle).toBe('vital');
     expect(resolveBranchKit('reactor_brood', 1).particle).toBe('spore');
+    expect(resolveBranchKit('parasite_apex', 1).particle).toBe('infect');
+    expect(resolveBranchKit('parasite_ravager', 1).particle).toBe('gore');
   });
 
   it('a branched reactor (support) throbs its signature on its pulse, even on an economy-only tier', () => {
