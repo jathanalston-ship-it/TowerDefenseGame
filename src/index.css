@@ -1218,24 +1218,11 @@ canvas.board.is-aiming {
 }
 
 /* Loot box opening (menu) */
-.loot-opener {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 .loot-open-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  animation: breathe 2s var(--ease-in-out) infinite;
-}
-.loot-open-rarity {
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 .loot-reveal {
   position: relative;

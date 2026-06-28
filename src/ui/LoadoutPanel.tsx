@@ -1,4 +1,4 @@
-// Hero Loadout — equip the gear dropped by loot boxes. Three slots (Weapon / Armor /
+// Hero Loadout — equip the gear dropped by Bio-Containers. Three slots (Weapon / Armor /
 // Relic); each equipped item's affixes fold into the hero at run start (meta.runFold).
 // Surplus gear dismantles into Genome Shards, so even unused drops feed progression.
 // Reuses the meta-shop styles; only appears once the player owns at least one item.
@@ -6,6 +6,7 @@
 import { meta, gearAffixLines } from '../state/meta';
 import { GEAR_SLOTS, LOOT_RARITY } from '../core/config';
 import type { GearItem, GearSlot } from '../core/types';
+import { audio } from '../audio/audio';
 
 const SLOT_LABEL: Record<GearSlot, string> = { weapon: 'Weapon', armor: 'Armor', relic: 'Relic' };
 
@@ -24,7 +25,7 @@ function SlotCard({ slot, item }: { slot: GearSlot; item: GearItem | null }): JS
           <ul className="ls-affixes">
             {gearAffixLines(item).map((line, i) => <li key={i}>{line}</li>)}
           </ul>
-          <button className="ls-unequip" onClick={() => meta.unequipSlot(slot)}>Unequip</button>
+          <button className="ls-unequip" onClick={() => { if (meta.unequipSlot(slot)) audio.play('select'); }}>Unequip</button>
         </>
       ) : (
         <div className="ls-empty">— empty —</div>
@@ -76,14 +77,14 @@ export function LoadoutPanel(): JSX.Element | null {
                 <button
                   className={`shop-buy ${equipped ? '' : 'is-afford'}`}
                   disabled={equipped}
-                  onClick={() => meta.equipGear(item.id)}
+                  onClick={() => { if (meta.equipGear(item.id)) audio.play('select'); }}
                 >
                   {equipped ? 'Worn' : 'Equip'}
                 </button>
                 <button
                   className="shop-buy btn-ico"
                   title={`Dismantle for ${meta.dismantleValue(item)} Genome Shards`}
-                  onClick={() => { if (confirm(`Dismantle this ${LOOT_RARITY[item.rarity].label} ${SLOT_LABEL[item.slot]} for ${meta.dismantleValue(item)} ✦?`)) meta.dismantleGear(item.id); }}
+                  onClick={() => { if (confirm(`Dismantle this ${LOOT_RARITY[item.rarity].label} ${SLOT_LABEL[item.slot]} for ${meta.dismantleValue(item)} ✦?`) && meta.dismantleGear(item.id) > 0) audio.play('purchase'); }}
                 >
                   ♻ {meta.dismantleValue(item)}
                 </button>
