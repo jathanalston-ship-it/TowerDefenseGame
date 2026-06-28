@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { Game } from '../core/game';
 import { ENEMY_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
+import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import type { HudSnapshot } from '../core/types';
 
 // Build-Phase controls (Incoming telegraph · Start Wave · Auto-start) rendered as an
@@ -20,6 +22,10 @@ export function BuildControls({
 }): JSX.Element {
   const visible = hud.phase === 'prep' && hud.wave < hud.totalWaves;
   const preview = visible ? game.getNextWavePreview() : null;
+  // Auto Gene Selection lives in the same prep bar as Auto Wave, so the two semi-idle
+  // automations are toggled together (and in-run, not only from the Hub's Settings). Both
+  // persist to localStorage; the DraftModal reads the pref when the next draft opens.
+  const [autoGene, setAutoGene] = useState(autoGenePref());
 
   return (
     <div className={`build-controls ${visible ? 'is-visible' : ''}`} aria-hidden={!visible}>
@@ -61,7 +67,21 @@ export function BuildControls({
             refresh();
           }}
         >
-          ⟳ Auto {hud.autoStart ? (hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}
+          ⟳ Auto Wave {hud.autoStart ? (hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}
+        </button>
+        <button
+          type="button"
+          className={`auto-btn ${autoGene ? 'is-on' : ''}`}
+          aria-pressed={autoGene}
+          tabIndex={visible ? 0 : -1}
+          title="Auto-draft the recommended ◆ PICK gene card after a countdown (pick any card to override)"
+          onClick={() => {
+            const next = !autoGene;
+            setAutoGene(next);
+            setAutoGenePref(next);
+          }}
+        >
+          ◆ Auto Gene {autoGene ? 'ON' : 'OFF'}
         </button>
       </div>
     </div>
