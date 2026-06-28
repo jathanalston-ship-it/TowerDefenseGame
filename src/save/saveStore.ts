@@ -38,6 +38,9 @@ export interface SaveData {
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
+  // ── Pending bio-containers (schema v8) — rarity ids of completed-but-UNOPENED containers.
+  //    Runs bank them here; the player cracks them open manually in the Genetic Vault. ──
+  pendingContainers: string[];
   // ── Tower star-fork picks (schema v5) — per-run evolution choices, persisted ──
   // (towerForks is declared above with the other tower-progression records.)
   // ── Mastery identity (schema v6) — earned titles/lore + the worn title ──
@@ -140,6 +143,7 @@ export function defaultSave(): SaveData {
     equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
     lootQueue: defaultLootQueue(),
+    pendingContainers: [],
     unlockedTitles: [],
     equippedTitle: null,
     unlockedLore: [],
@@ -182,6 +186,11 @@ function withDefaults(data: SaveData): SaveData {
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
     // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
     lootQueue: sanitizeLootQueue(data.lootQueue),
+    // v8: pending unopened containers. Empty for a pre-v8 save; coerce to a string list
+    // (unknown rarities are dropped harmlessly when opened) and cap against a hostile blob.
+    pendingContainers: Array.isArray(data.pendingContainers)
+      ? data.pendingContainers.filter((x): x is string => typeof x === 'string').slice(0, 999)
+      : [],
     // v5→v6: mastery identity. Empty for a pre-v6 save; arrays guarded against junk.
     unlockedTitles: Array.isArray(data.unlockedTitles) ? data.unlockedTitles : [],
     equippedTitle: typeof data.equippedTitle === 'string' ? data.equippedTitle : null,

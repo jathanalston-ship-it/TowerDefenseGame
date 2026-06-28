@@ -79,7 +79,7 @@ function persist(next: SaveData): void {
 // REMAINDER and reveals every box opened this run, then resets the cycle. A snapshot reset (a
 // new run starting back near 0) also re-arms it defensively.
 let runLootBanked = 0; // loot points already banked this run via syncRunLoot
-let runLootAwarded: LootBoxAward[] = []; // boxes opened live this run (for the Results reveal)
+let runContainersBanked: string[] = []; // rarities of containers completed this run (now pending, unopened)
 
 /**
  * Permanent multipliers derived from upgrade levels (folded into a run at start).
@@ -267,7 +267,7 @@ export interface RunOutcome {
   mastery: Record<TowerKind, MasteryDelta>;
   heroMastery: Record<HeroKind, MasteryDelta>;
   gear: OwnedItem; // a run-end equipment drop (rarity scales with depth)
-  loot: { queue: LootQueueState; awarded: LootBoxAward[] }; // loot-queue progress + boxes opened
+  loot: { queue: LootQueueState; banked: string[] }; // loot-queue progress + rarities banked unopened (Vault)
   masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
 }
 
@@ -460,7 +460,9 @@ export const meta = {
     //    runLootBanked = 0 → it banks the full amount, exactly as before (golden-safe).
     const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
-    const lootAwarded = [...runLootAwarded, ...openLootBoxes(lootAdv.awarded, towerShards, heroShards)];
+    // Containers complete but are NOT opened here — they bank UNOPENED into pendingContainers
+    // (the live ones already did, via syncRunLoot) for the player to crack open in the Vault.
+    const bankedThisRun = [...runContainersBanked, ...lootAdv.awarded];
 
     // 6. mastery identity: unlock any titles/lore crossed by this run's mastery level-ups.
     const newTitles: string[] = [];
@@ -492,13 +494,14 @@ export const meta = {
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...gearAdds] },
       mats,
       lootQueue: lootAdv.state,
+      pendingContainers: [...save.pendingContainers, ...lootAdv.awarded], // bank the run-end remainder, unopened
       unlockedTitles,
       unlockedLore,
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
     });
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
-    runLootAwarded = [];
+    runContainersBanked = [];
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
     return {
       reward: { shardsEarned, newBest },
@@ -506,7 +509,7 @@ export const meta = {
       mastery,
       heroMastery,
       gear,
-      loot: { queue: lootAdv.state, awarded: lootAwarded },
+      loot: { queue: lootAdv.state, banked: bankedThisRun },
       masteryUnlocks: { titles: newTitles, lore: newLore },
     };
   },
@@ -528,11 +531,11 @@ export const meta = {
    * totals immediately, persists, and remembers the box for the run-end reveal. A snapshot
    * reset (a new run back near 0) re-arms the cycle. Returns boxes opened by THIS call.
    */
-  syncRunLoot(wave: number, kills: number): LootBoxAward[] {
+  syncRunLoot(wave: number, kills: number): string[] {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes);
     const total = Math.floor(Math.max(0, wave * LOOT_EARN.pointsPerWave + kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
-    if (total < runLootBanked) { runLootBanked = 0; runLootAwarded = []; } // a new run began → fresh cycle
+    if (total < runLootBanked) { runLootBanked = 0; runContainersBanked = []; } // a new run began → fresh cycle
     const delta = total - runLootBanked;
     if (delta <= 0) return [];
     runLootBanked = total;
@@ -541,18 +544,41 @@ export const meta = {
       store.set({ ...save, lootQueue: adv.state }); // pure progress: advance the meter, skip the disk write
       return [];
     }
-    const towerShards = { ...save.towerShards };
-    const heroShards = { ...save.heroShards };
-    const opened = openLootBoxes(adv.awarded, towerShards, heroShards);
-    runLootAwarded = [...runLootAwarded, ...opened];
-    persist({ ...save, towerShards, heroShards, lootQueue: adv.state }); // a box completed → bank its rewards
-    return opened;
+    // A container completed — bank it UNOPENED. It waits in the Genetic Vault until the
+    // player cracks it open (meta.openContainer), so no rewards are applied here.
+    runContainersBanked = [...runContainersBanked, ...adv.awarded];
+    persist({ ...save, lootQueue: adv.state, pendingContainers: [...save.pendingContainers, ...adv.awarded] });
+    return adv.awarded;
   },
 
   /** Current loot-queue state: the box the meter is filling, the pre-determined next
    * box(es), and pity counters. Read by the HUD meter. */
   lootQueue(): LootQueueState {
     return store.get().lootQueue;
+  },
+
+  /** The unopened bio-containers banked from runs (rarity ids, oldest first) — the Genetic
+   * Vault's stockpile. The player cracks them open one at a time via openContainer(). */
+  pendingContainers(): string[] {
+    return store.get().pendingContainers;
+  },
+
+  /** Crack open the oldest pending container: roll its reward table, fold the shards into the
+   * permanent totals, remove it from the stockpile, and return the award for the reveal
+   * ceremony. Null when nothing is pending (or the front entry's rarity is unknown → dropped). */
+  openContainer(): LootBoxAward | null {
+    const save = store.get();
+    if (save.pendingContainers.length === 0) return null;
+    const [rarity, ...rest] = save.pendingContainers;
+    if (!rarityRegistry.has(rarity)) { // junk id from a tampered save → discard, no reward
+      persist({ ...save, pendingContainers: rest });
+      return null;
+    }
+    const towerShards = { ...save.towerShards };
+    const heroShards = { ...save.heroShards };
+    const [award] = openLootBoxes([rarity], towerShards, heroShards);
+    persist({ ...save, towerShards, heroShards, pendingContainers: rest });
+    return award;
   },
 
   /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
@@ -862,14 +888,11 @@ export const meta = {
     return chest;
   },
 
-  /** Bank loot points directly (skips a run); awards + grants any completed boxes. */
+  /** Bank loot points directly (skips a run); completed containers bank UNOPENED into the Vault. */
   debugAddLootPoints(n: number): RunOutcome['loot'] {
     const save = store.get();
-    const towerShards = { ...save.towerShards };
-    const heroShards = { ...save.heroShards };
     const adv = addProgress(save.lootQueue, n);
-    const awarded = openLootBoxes(adv.awarded, towerShards, heroShards);
-    persist({ ...save, towerShards, heroShards, lootQueue: adv.state });
-    return { queue: adv.state, awarded };
+    persist({ ...save, lootQueue: adv.state, pendingContainers: [...save.pendingContainers, ...adv.awarded] });
+    return { queue: adv.state, banked: adv.awarded };
   },
 };

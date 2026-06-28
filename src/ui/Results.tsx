@@ -66,17 +66,20 @@ export function Results({
       )}
 
       {done && (() => {
-        // Loot queue: any boxes the run's banked progress completed, then the box now
-        // filling + the pre-determined next (anticipation carries into the next run).
+        // Loot queue: containers this run completed bank UNOPENED — the player cracks them
+        // in the Genetic Vault. Show the count + the box now filling and the pre-determined next.
         const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
         const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
+        const banked = outcome.loot.banked.length;
         return (
           <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
             <div className="panel-title">Loot Queue</div>
-            {outcome.loot.awarded.map((a, i) => {
-              const def = rarityRegistry.get(a.rarity);
-              return <LootReveal key={i} chest={a.chest} title={`${def?.name ?? a.rarity} Box`} color={def?.color} />;
-            })}
+            {banked > 0 && (
+              <div style={{ margin: '4px 0 10px', fontSize: 14 }}>
+                <b style={{ color: 'var(--gold)' }}>{banked}</b> bio-container{banked > 1 ? 's' : ''} banked —
+                crack {banked > 1 ? 'them' : 'it'} open in the <b>Genetic Vault</b>.
+              </div>
+            )}
             <div className="loot-queue-line">
               Now filling <b style={{ color: front?.color }}>{front?.name ?? 'Common'}</b>
               {next && (

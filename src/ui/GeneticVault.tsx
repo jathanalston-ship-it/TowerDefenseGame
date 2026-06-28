@@ -1,12 +1,14 @@
-// Genetic Vault — the loot system's dedicated home (LOOTBOX.md). Bio-containers incubate as
-// you fight: a meter fills toward the front container (its rarity already decided), the next
-// container is pre-shown, and pity counters build toward guaranteed tiers. Containers crack
-// open automatically with the premium reveal ceremony (LootReveal) as they complete — this
-// screen is the read-only vault that shows what's incubating and what's guaranteed next.
-// Self-contained (inline-styled) so it stays conflict-light against the shared loot CSS.
+// Genetic Vault — the loot system's home AND its opening floor (LOOTBOX.md). Runs bank
+// completed bio-containers UNOPENED into the stockpile; the player cracks them open here,
+// one at a time, with the premium reveal ceremony — only then do the rewards apply. Below
+// the stockpile, the incubating meter shows the container filling now, the pre-determined
+// next, and pity guarantees. Self-contained (inline-styled) to stay conflict-light.
 
+import { useState } from 'react';
 import { meta } from '../state/meta';
+import type { LootBoxAward } from '../state/meta';
 import { costOf, rarityRegistry } from '../core/loot';
+import { LootReveal } from './LootReveal';
 
 function rarityColor(id: string | undefined): string {
   return (id ? rarityRegistry.get(id)?.color : undefined) ?? 'var(--r-common)';
@@ -46,46 +48,73 @@ function Container({ id, pct, big }: { id: string | undefined; pct: number; big?
 
 export function GeneticVault(): JSX.Element {
   const save = meta.use();
-  // Read the live meta queue directly (loot banks into it during a run): the front container
-  // is queue[0] with `progress` points banked toward its cost; queue[1] is the pre-shown next.
+  const [opening, setOpening] = useState<LootBoxAward | null>(null);
+
+  const pending = save.pendingContainers;
+  // Group the stockpile by rarity (oldest first within the registry order) for a compact display.
+  const counts = new Map<string, number>();
+  for (const id of pending) counts.set(id, (counts.get(id) ?? 0) + 1);
+  const grouped = rarityRegistry.ids().filter((id) => counts.has(id)).map((id) => ({ id, n: counts.get(id) as number }));
+
+  const crack = (): void => {
+    const award = meta.openContainer(); // applies the reward + removes it from the stockpile
+    if (award) setOpening(award);
+  };
+
+  // Incubating meter — read the live queue directly (queue[0] + banked progress; queue[1] next).
   const lq = save.lootQueue;
   const frontId = lq.queue[0] ?? 'common';
   const nextId = lq.queue[1];
   const cost = costOf(frontId);
   const filled = Math.min(Math.max(0, lq.progress), cost);
-  const view = { frontId, nextId, cost, filled, pct: cost > 0 ? filled / cost : 0 };
-  const pity = lq.pity;
-  // Pity rails: every rarity with a pity ceiling shows how close a guarantee is.
+  const pct = cost > 0 ? filled / cost : 0;
   const pityRows = rarityRegistry
     .all()
     .filter((d) => (d.pity ?? 0) > 0)
-    .map((d) => ({ id: d.id, name: d.name, color: d.color, ceiling: d.pity as number, since: pity[d.id] ?? 0 }));
+    .map((d) => ({ id: d.id, name: d.name, color: d.color, ceiling: d.pity as number, since: lq.pity[d.id] ?? 0 }));
 
   return (
     <div className="vault">
       <div className="panel-title">Genetic Vault</div>
       <div className="panel-sub">
-        Bio-containers incubate as you fight — the meter fills toward the container below, then it
-        cracks open automatically with the reveal ceremony. The next container is already determined.
+        Containers you earn in a run bank here unopened. Crack one open to roll its rewards — they
+        only apply once you do.
       </div>
 
+      {/* Ready to crack — the stockpile + the open action */}
+      <div className="vault-ready">
+        <div className="vault-h">Ready to crack {pending.length > 0 && <b style={{ color: 'var(--gold)' }}>· {pending.length}</b>}</div>
+        {pending.length === 0 ? (
+          <div className="vault-empty">No containers ready — fill the meter in a run to earn one.</div>
+        ) : (
+          <>
+            <div className="vault-stockpile">
+              {grouped.map((g) => (
+                <span className="vault-chip" key={g.id} style={{ borderColor: rarityColor(g.id), color: rarityColor(g.id) }}>
+                  ◈ {rarityName(g.id)}{g.n > 1 ? <b style={{ color: 'var(--text)' }}> ×{g.n}</b> : null}
+                </span>
+              ))}
+            </div>
+            <button className="primary vault-crack" onClick={crack}>
+              ◈ Crack Open {pending.length > 1 ? `(${pending.length} left)` : ''}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Incubating — the meter filling now */}
       <div className="vault-stage">
         <div className="vault-incubating">
           <div className="vault-h">Incubating</div>
-          <Container id={view.frontId} pct={view.pct} big />
+          <Container id={frontId} pct={pct} big />
           <div className="vault-fill">
-            {Math.floor(view.filled)} / {view.cost} pts
-            <span className="hud-sub"> · {Math.max(1, Math.ceil(view.cost - view.filled))} to crack</span>
+            {Math.floor(filled)} / {cost} pts
+            <span className="hud-sub"> · {Math.max(1, Math.ceil(cost - filled))} to complete</span>
           </div>
         </div>
-
         <div className="vault-next">
           <div className="vault-h">Next in line</div>
-          {view.nextId ? (
-            <Container id={view.nextId} pct={0} />
-          ) : (
-            <div className="vault-empty">rolling…</div>
-          )}
+          {nextId ? <Container id={nextId} pct={0} /> : <div className="vault-empty">rolling…</div>}
         </div>
       </div>
 
@@ -100,19 +129,23 @@ export function GeneticVault(): JSX.Element {
                 <div className="vault-pity-bar">
                   <div style={{ width: `${Math.round((p.since / p.ceiling) * 100)}%`, height: '100%', background: p.color }} />
                 </div>
-                <span className="vault-pity-v">
-                  {remaining === 0 ? 'GUARANTEED next' : `in ${remaining}`}
-                </span>
+                <span className="vault-pity-v">{remaining === 0 ? 'GUARANTEED next' : `in ${remaining}`}</span>
               </div>
             );
           })}
         </div>
       )}
 
-      <div className="vault-foot">
-        Containers crack open the moment they fill — rewards (tower &amp; hero Shards, gear) bank straight
-        into your account. Push deeper and clear waves to fill them faster.
-      </div>
+      {opening && (
+        <div className="vault-ceremony">
+          <LootReveal
+            chest={opening.chest}
+            title={`${rarityName(opening.rarity)} Container`}
+            color={rarityColor(opening.rarity)}
+            onDone={() => setOpening(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
