@@ -640,6 +640,11 @@ export class Game {
       return;
     }
     if (this.selectedTower) {
+      // Clicking an EXISTING tower always inspects it — placement only lands on empty slots, so
+      // an occupied-slot click would otherwise misfire into a no-op placement and the armed build
+      // tool would shadow inspection entirely. Redirect it to the Mutation panel.
+      const occupant = this.towerAt(px, py);
+      if (occupant) { this.selectPlacedTower(occupant.id); return; }
       this.placeTower(this.selectedTower, px, py);
       return; // stay armed for repeat placement
     }
