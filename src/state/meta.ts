@@ -45,7 +45,7 @@ import type { CollectionContext, CollectionReward, CollectionView } from '../cor
 import { bossDef } from '../core/boss';
 
 /** Build the collection codex context from a save (read-only derivation). */
-function collectionContextOf(save: SaveData): CollectionContext {
+export function collectionContextOf(save: SaveData): CollectionContext {
   return {
     stats: save.stats,
     ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),

@@ -3000,6 +3000,7 @@ kbd {
 }
 .hub-navlist { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
 .hub-navitem {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -3042,6 +3043,24 @@ kbd {
   font-size: 12px;
 }
 .hub-navitem.on .hub-mono { background: rgba(90, 209, 255, 0.14); border-color: rgba(90, 209, 255, 0.4); }
+
+/* Global notification dot (notifications.ts) — any menu with unacknowledged news. */
+.nav-badge {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 0 2px var(--panel), 0 0 8px 1px rgba(255, 178, 77, 0.85);
+  animation: nav-badge-pulse 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes nav-badge-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.55; }
+}
 .hub-navlabel { font-weight: 600; }
 .hub-power {
   padding: 10px 12px;
