@@ -11,6 +11,7 @@ import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
 import { Toolbar } from './Toolbar';
+import { BuildControls } from './BuildControls';
 import { BuildPanel } from './BuildPanel';
 import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
@@ -239,6 +240,7 @@ export function GameView({
             refresh();
           }}
         />
+        <BuildControls game={game} hud={hud} refresh={refresh} />
         {hud.bossBanner && (
           <div className="boss-banner">
             <div className="boss-banner-row">

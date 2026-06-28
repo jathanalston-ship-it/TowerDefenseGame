@@ -2165,11 +2165,58 @@ kbd {
   box-shadow: 0 0 16px rgba(255, 210, 77, 0.3);
 }
 
-/* ── Next-wave telegraph (anticipation) ───────────────────────────────────── */
-.next-wave {
+/* ── Build-Phase controls (top-center overlay — never affects layout) ──────────
+   Always mounted inside .canvas-wrap; visibility is a class toggle (fade + slide)
+   so entering/leaving prep cannot shift the HUD, toolbar, or battlefield. */
+.build-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 14px 14px 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.build-controls.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.build-bar {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(14, 20, 30, 0.86), rgba(8, 12, 20, 0.92));
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+.build-controls:not(.is-visible) .build-bar {
+  pointer-events: none;
+}
+.auto-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  border: 1px solid rgba(120, 170, 230, 0.28);
+  background: rgba(14, 22, 34, 0.85);
+  color: #9fb2c8;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+.auto-btn.is-on {
+  border-color: var(--success);
+  background: rgba(90, 209, 140, 0.16);
+  color: var(--success);
 }
 .incoming {
   display: flex;
