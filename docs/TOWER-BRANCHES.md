@@ -171,13 +171,16 @@ tower's branches), geometric (~×3.7 per tier). **Calibrated to the real endless
 - **Tier 5 ≈ 100,000–200,000** (a wave-40-50+ investment; you fully max maybe 1–2 towers
   per long run).
 
-| Tower | T1 | T2 | T3 | T4 | T5 |
-|---|--:|--:|--:|--:|--:|
-| Needle Spitter | 600 | 2,500 | 10,000 | 38,000 | 140,000 |
-| Bone Mortar | 900 | 3,400 | 12,500 | 46,000 | 175,000 |
-| Flesh Reactor | 800 | 3,000 | 11,000 | 40,000 | 150,000 |
-| Parasite Nest | 750 | 2,800 | 10,500 | 40,000 | 155,000 |
-| Neural Obelisk | 900 | 3,400 | 12,500 | 46,000 | 180,000 |
+| Tower | T1 | T2 | T3 | T4 | T5 | 1→5 total |
+|---|--:|--:|--:|--:|--:|--:|
+| Needle Spitter | 600 | 2,800 | 12,000 | 45,000 | 160,000 | ~220k |
+| Bone Mortar | 900 | 3,800 | 15,000 | 55,000 | 200,000 | ~275k |
+| Flesh Reactor | 800 | 3,200 | 13,000 | 48,000 | 175,000 | ~240k |
+| Parasite Nest | 750 | 3,200 | 13,000 | 48,000 | 180,000 | ~245k |
+| Neural Obelisk | 900 | 3,800 | 15,000 | 55,000 | 200,000 | ~275k |
+
+Tuned to the measured endless income curve (ECONOMY.md "in-run Biomass curve"): T1 lands
+mid-build (~W12–15), T5 is a deep-endless chase (~W30 for the first, deeper to max a board).
 
 Per-tier stat ride-along stays small (≈ +12–25% dmg/rate per tier) so power comes from the
 *mutation*, not the number — the five tiers together roughly 2–3× the tower, fitting a

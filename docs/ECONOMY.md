@@ -49,12 +49,48 @@ Each maps to exactly one system (the legible "currency ladder" of `PROGRESSION �
 
 ### Biomass *(volatile / in-run)*
 - **Source.** Enemy kills during a run (more from elites/bosses; economy cards & Flesh
-  Reactor multiply it).
+  Reactor multiply it). Per-kill bounty grows `WAVE_BOUNTY_GROWTH`/wave; the spawn director
+  ramps enemy *count* → income compounds with depth (see the curve below).
 - **Purpose.** Build and upgrade towers *within the run*.
-- **Sinks.** Tower placement, in-run upgrades, in-run abilities.
-- **Scaling.** Resets every run; per-run pool scales with depth + economy build. Never
-  banked — runs are about *spending well*, not hoarding. (No stagnation risk: it's
-  consumed continuously.)
+- **Sinks.** **(1) Building towers** (the early sink) and **(2) Tower Branch upgrades** (the
+  primary *late* sink — `TOWER-BRANCHES.md`). Gene cards are *free* between-wave drafts
+  (their pool is shaped by Mutation Fragments, not Biomass); tower slots are bought with
+  **Shards** / a Gene Card (a separate system), not Biomass.
+- **Scaling.** Resets every run; never banked — runs are about *spending well*.
+
+#### The in-run Biomass curve (build → branch alternation)
+
+The economy is shaped so Biomass **always has a meaningful home**: building seeds the board,
+then the (uncapped-cost) branch ladder absorbs everything income can throw at it deep into
+endless. Measured income (a full board, god-mode endless, seed 7 — *banked Biomass by wave*):
+
+| Wave | ~Banked | Player is doing | Affordable sink |
+|---|--:|---|---|
+| 1–8 | 50–1.8k | **Building** the board (towers 100–180 each) | tower placement — income ≈ build cost (building is the binding sink) |
+| 10–15 | 3k–7k | board filling out; first mutations | **Branch T1** (600–900) on several towers |
+| 16–22 | 10k–35k | committing branch paths | **T2–T3** (3k–15k) |
+| 23–30 | 50k–170k | deepening one or two carries | **T4** (45k–55k); first **T5** (~150k) by ~W30 |
+| 35–45 | 320k–1M | maxing carries; widening the board | **T5** (150k–200k) every ~2–3 waves |
+
+**Why Biomass never goes meaningless.** The branch ladder is the scaling sink: a single tower
+costs **~220–275k Biomass** to take 1→5 (the T5 capstone is 160k–200k of that), and a full
+damage board (~18 towers) is **~4–5M** — which income only reaches around **wave ~55–60**. Until then every wave you choose between *another
+tower*, *the next branch tier on a carry*, or *banking toward a capstone*. Tower-slot
+progression (Shards/Gene-card, separate system) adds more towers to build **and** branch,
+pushing the "fully-evolved board" point deeper still. (At extreme depth, once your whole board
+is maxed, Biomass does saturate — that's the intended "build complete" state; endless then
+becomes a pure survival/score push. New repeatable in-run sinks can extend this if wanted.)
+
+**Design intent (the four-way loop).** Each prep the player weighs: **Build** (more coverage)
+· **Branch** (deepen a carry — the dominant late spend) · **draft a Gene card** (free, but a
+real opportunity cost in attention) · **unlock a slot** (Shards/card). Income is paced so none
+of these is ever trivially solved: early you can't afford everything, late the branch ladder
+keeps a six-figure goal in front of you.
+
+**Levers (all data).** `ECON` (`startingBiomass`, `reactorBiomassPerSec`), `WAVE_BOUNTY_GROWTH`
++ enemy `bounty` (income); `TOWER_DEFS[*].cost` (build sink); `BRANCH_COSTS[*]` = `[t1..t5]`
+(the branch ladder — the primary late sink, tuned to the curve above). Income is intentionally
+**not** capped; the *sink* scales to meet it.
 
 ### Genome Samples *(tower progression)*
 - **Source.** Runs (biased to *used* towers), **Hive Organisms** (rival genetics),

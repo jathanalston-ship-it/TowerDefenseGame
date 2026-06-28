@@ -146,15 +146,19 @@ export const towerRegistry = new Registry<TowerDef>('tower', { idOf: (d) => d.ki
 towerRegistry.registerAll(Object.values(TOWER_DEFS));
 export const TOWER_ORDER = towerRegistry.ids() as TowerKind[];
 
-/** Per-tower Biomass cost ladder for branch tiers 1..5 (TOWER-BRANCHES.md §4). Shared by
- * both of a tower's branches. Calibrated to the endless economy (~55k banked by wave 20):
- * Tier 1 ≈ 500–1000 (a real first commitment), Tier 5 ≈ 100k–200k (a deep-endless capstone). */
+/** Per-tower Biomass cost ladder for branch tiers 1..5 — the PRIMARY late-game Biomass sink
+ * (TOWER-BRANCHES.md §4, ECONOMY.md "in-run Biomass curve"). Shared by both of a tower's
+ * branches. Calibrated to the measured endless income curve (banked: ~7k @W15, ~30k @W20,
+ * ~160k @W30, ~1M @W45) so the build→branch alternation stays meaningful: T1 ≈ 600–900 (a
+ * real first commitment, affordable mid-build), T5 ≈ 160k–200k (a deep-endless capstone). A
+ * single tower is ~220–275k to take 1→5; a full damage board is ~4–5M, which income only
+ * reaches around wave ~55–60 — so Biomass never goes meaningless before then. */
 export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, number, number]> = {
-  needle: [600, 2500, 10000, 38000, 140000],
-  mortar: [900, 3400, 12500, 46000, 175000],
-  reactor: [800, 3000, 11000, 40000, 150000],
-  parasite: [750, 2800, 10500, 40000, 155000],
-  obelisk: [900, 3400, 12500, 46000, 180000],
+  needle: [600, 2800, 12000, 45000, 160000],
+  mortar: [900, 3800, 15000, 55000, 200000],
+  reactor: [800, 3200, 13000, 48000, 175000],
+  parasite: [750, 3200, 13000, 48000, 180000],
+  obelisk: [900, 3800, 15000, 55000, 200000],
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────
