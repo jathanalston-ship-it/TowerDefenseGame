@@ -53,6 +53,7 @@ back as method calls (intents) on the `Game`.
 | `src/core/lootQueue.ts` | **Loot queue** — the next box is always pre-determined; `addProgress` awards + re-rolls a fresh tail; seeded default + `sanitizeLootQueue`. |
 | `src/core/mutators.ts` | **Projectile mutators** — composable spawn-time transforms (pierce …) on `mutatorRegistry`; a tower's star kit lists mutator ids applied to every shot. |
 | `src/core/stars.ts` | **Tower star EVOLUTION** — per-tower `StarPath` of capability grants (targeting / projectile / attack / reactor-economy / re-pickable forks) resolved into the per-run `ResolvedStarKit`. |
+| `src/core/branches.ts` | **Tower BRANCHING** (TOWER-BRANCHES.md) — per-INSTANCE upgrade paths bought with Biomass in-run. Two 5-tier branches per tower (`branchRegistry`), folded into a `ResolvedBranchKit` per tower in `towerSystem`. Tier-1 locks the path; costs in `config.BRANCH_COSTS`. Run-temporary (not saved); tier 0 = identity (golden-safe). |
 | `src/core/mastery.ts` | **Mastery as identity** — per-unit titles/lore + procedural ranks (infinite) + sparse mechanic milestone perks; tower = craft, hero = bond. |
 | `src/core/prestige.ts` | **Prestige — MOLT** — sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket, folded in `metaModifiers`). |
 | `src/core/ascendant.ts` | **Ascendant Tree** — Cells buy permanent, capped economy nodes (shard/biomass/loot/cell gain) kept across every Molt. |

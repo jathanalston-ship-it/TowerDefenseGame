@@ -119,6 +119,13 @@ export interface Tower {
   overcharged: boolean; // buffed by an adjacent reactor this tick
   bornAt: number; // sim-time placed (drives the grow-in animation)
   disabledUntil: number; // sim-time a boss suppressor re-enables it (0 = active)
+  // ── Per-instance branch upgrade (TOWER-BRANCHES.md). Run-temporary (never persisted);
+  //    `branchId` locks on the Tier-1 purchase, `tier` climbs 1..5. 0/null ⇒ unbranched ⇒
+  //    identical to a branch-less run (golden-safe). `pulseCd` paces a support tower's
+  //    branch abilities (Reactor); `branchKit` caches the resolved kit (recomputed on buy). ──
+  branchId: string | null;
+  tier: number;
+  pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
 }
 
 export interface Projectile {
@@ -295,6 +302,34 @@ export interface LifetimeStats {
 }
 
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */
+/** A purchasable next tier on a branch (TOWER-BRANCHES.md), for the Mutation panel. */
+export interface BranchTierOffer {
+  tier: number;
+  name: string;
+  desc: string;
+  cost: number;
+  affordable: boolean;
+}
+/** One branch path offered for a placed tower (both pre-lock; only the committed one after). */
+export interface BranchOffer {
+  branchId: string;
+  name: string;
+  theme: string;
+  locked: boolean; // this instance is committed to this branch
+  tier: number; // tiers owned on this branch (0 = none)
+  next: BranchTierOffer | null; // next tier to buy, or null if maxed
+}
+/** The placed tower the player is inspecting — drives the Inspector's Mutation panel. */
+export interface SelectedPlacedTower {
+  id: number;
+  kind: TowerKind;
+  name: string;
+  combatClass: CombatClass;
+  tier: number; // current branch tier (0 = unbranched)
+  branchName: string | null; // committed branch's display name (null = unbranched)
+  branches: BranchOffer[];
+}
+
 export interface HudSnapshot {
   phase: Phase;
   wave: number; // 1-based wave the player is on / just finished
@@ -318,6 +353,7 @@ export interface HudSnapshot {
   emergency: boolean; // Emergency Defense Mode — an enemy is in the Final Defense Zone
   draft: CardOption[] | null;
   selectedTower: TowerKind | null;
+  selectedPlaced: SelectedPlacedTower | null; // a placed tower being inspected (branch/Mutation UI)
   armedAbility: boolean;
   cards: CardOption[]; // gene cards drafted this run (build panel)
   buffs: string[]; // human-readable active run modifiers

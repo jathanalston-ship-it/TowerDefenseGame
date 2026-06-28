@@ -80,8 +80,12 @@ import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
 import { applyMutators } from './mutators';
 import { gameEvents } from './events';
+import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
+import type { Branch } from './branches';
+import { BRANCH_COSTS } from './config';
 
 const EMPTY_STR: readonly string[] = []; // shared no-alloc default for per-cast mutator lists
+const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's (Reactor) ability pulses
 
 export type RunMode = 'stage' | 'endless';
 
@@ -117,6 +121,7 @@ import type {
   Projectile,
   ProjectileBehavior,
   RunStats,
+  SelectedPlacedTower,
   StatusType,
   Tower,
   TowerKind,
@@ -187,6 +192,7 @@ export interface RenderState {
   minions: Minion[];
   phase: Phase;
   selectedTower: TowerKind | null;
+  selectedPlacedId: number | null; // a placed tower the player is inspecting (branch highlight)
   armedAbility: boolean;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
@@ -265,6 +271,7 @@ export class Game {
   private statTowerBuilds: Record<TowerKind, number> = zeroTowerCounts();
 
   selectedTower: TowerKind | null = null;
+  selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
   armedAbility = false;
   draft: CardDef[] | null = null;
   sfx: string[] = []; // presentation cue queue (drained by the view: audio + shake)
@@ -535,6 +542,71 @@ export class Game {
   selectTower(kind: TowerKind | null): void {
     this.selectedTower = kind;
     this.armedAbility = false;
+    if (kind) this.selectedPlacedId = null; // arming placement clears any inspected tower
+  }
+
+  // ── Branch upgrades (TOWER-BRANCHES.md) — per-instance, Biomass-bought, run-temporary ──
+
+  /** The branch offers for a placed tower: each path with its lock state + the next tier
+   *  to buy (name/desc/cost/affordable). Once locked, only the chosen path is returned. */
+  branchOptions(towerId: number): {
+    branchId: string; name: string; theme: string; locked: boolean; tier: number;
+    next: { tier: number; name: string; desc: string; cost: number; affordable: boolean } | null;
+  }[] {
+    const t = this.towers.find((tw) => tw.id === towerId);
+    if (!t) return [];
+    const all = branchesFor(t.kind);
+    const offer = (b: Branch) => {
+      const owned = t.branchId === b.id ? t.tier : 0;
+      const nextTier = owned + 1;
+      const td = b.tiers[nextTier - 1];
+      const cost = nextTier <= 5 ? BRANCH_COSTS[t.kind][nextTier - 1] : 0;
+      return {
+        branchId: b.id, name: b.name, theme: b.theme,
+        locked: t.branchId === b.id, tier: owned,
+        next: td ? { tier: nextTier, name: td.name, desc: td.desc, cost, affordable: this.biomass >= cost } : null,
+      };
+    };
+    // Before the lock, show both paths; after, only the committed one.
+    return t.branchId ? all.filter((b) => b.id === t.branchId).map(offer) : all.map(offer);
+  }
+
+  /** Buy the next tier of `branchId` on a placed tower. The first purchase LOCKS the tower
+   *  into that branch for the run; later purchases must match it and step 1→5. */
+  buyBranchTier(towerId: number, branchId: string): 'ok' | 'locked' | 'maxed' | 'poor' | 'badTower' {
+    const t = this.towers.find((tw) => tw.id === towerId);
+    if (!t) return 'badTower';
+    const b = branchRegistry.get(branchId);
+    if (!b || b.tower !== t.kind) return 'badTower';
+    if (t.branchId && t.branchId !== branchId) return 'locked'; // committed elsewhere
+    if (t.tier >= 5) return 'maxed';
+    const cost = BRANCH_COSTS[t.kind][t.tier]; // next tier's cost (t.tier is 0-based into the ladder)
+    if (this.biomass < cost) return 'poor';
+    this.biomass -= cost;
+    t.branchId = branchId;
+    t.tier += 1;
+    this.recomputeTowerCaches(); // overcharge adjacency unaffected, but keep caches coherent
+    this.pushSfx('place'); // mutation/splice sound hook
+    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
+    return 'ok';
+  }
+
+  /** The HUD view of the inspected placed tower (its branch offers), or null. */
+  private selectedPlacedView(): SelectedPlacedTower | null {
+    if (this.selectedPlacedId === null) return null;
+    const t = this.towers.find((tw) => tw.id === this.selectedPlacedId);
+    if (!t) return null;
+    const def = TOWER_DEFS[t.kind];
+    const branch = t.branchId ? branchRegistry.get(t.branchId) : null;
+    return {
+      id: t.id,
+      kind: t.kind,
+      name: def.name,
+      combatClass: def.combatClass,
+      tier: t.tier,
+      branchName: branch ? branch.name : null,
+      branches: this.branchOptions(t.id),
+    };
   }
 
   armAbility(): void {
@@ -561,8 +633,30 @@ export class Game {
       this.placeTower(this.selectedTower, px, py);
       return; // stay armed for repeat placement
     }
-    // default: re-anchor the hero's leash
+    // Nothing armed: clicking a PLACED tower selects it (opens its branch/Mutation panel).
+    const t = this.towerAt(px, py);
+    if (t) {
+      this.selectPlacedTower(t.id);
+      return;
+    }
+    this.selectedPlacedId = null; // clicked empty space → deselect
     this.setRally(px, py);
+  }
+
+  /** The placed tower occupying the cell at (px,py), or null. */
+  private towerAt(px: number, py: number): Tower | null {
+    const slot = slotAt(px, py);
+    if (!slot) return null;
+    return this.towers.find((t) => t.slot === slot.index) ?? null;
+  }
+
+  /** Select a placed tower for inspection / branch upgrades (null = deselect). */
+  selectPlacedTower(id: number | null): void {
+    this.selectedPlacedId = id !== null && this.towers.some((t) => t.id === id) ? id : null;
+    if (this.selectedPlacedId !== null) {
+      this.selectedTower = null; // inspecting, not placing
+      this.armedAbility = false;
+    }
   }
 
   placeTower(kind: TowerKind, px: number, py: number): boolean {
@@ -585,6 +679,9 @@ export class Game {
       overcharged: false,
       bornAt: this.time,
       disabledUntil: 0,
+      branchId: null,
+      tier: 0,
+      pulseCd: 0,
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -993,7 +1090,16 @@ export class Game {
     if (this.reactorCount > 0) {
       // Reactor STAR evolution (support-tower path): its kit scales biomass generation.
       const starBiomass = this.towerProgress.reactor.reactorBiomassMult ?? 1; // 1 for a fresh save
-      const gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * starBiomass * dt;
+      let gain = this.reactorCount * ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * starBiomass * dt;
+      // Per-instance BRANCH economy (TOWER-BRANCHES.md): a branched reactor's kit adds extra
+      // biomass ON TOP of the base term (the base is untouched ⇒ an unbranched run is byte-
+      // identical, golden-safe). Only branched reactors (tier > 0) contribute here.
+      for (const t of this.towers) {
+        if (t.kind === 'reactor' && t.tier > 0) {
+          const bMult = resolveBranchKit(t.branchId, t.tier).reactorBiomassMult;
+          if (bMult > 1) gain += ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * (bMult - 1) * dt;
+        }
+      }
       this.biomass += gain;
       this.statBiomassEarned += gain;
     }
@@ -1100,11 +1206,17 @@ export class Game {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
-      if (def.firing === 'support') continue; // economy/aura only (handled elsewhere)
+      if (def.firing === 'support') {
+        if (t.tier > 0) this.supportBranchPulse(t, dt); // branched reactor: pulse its mutations
+        continue; // base economy/overcharge handled in economySystem
+      }
       if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
+      // Per-instance branch upgrade kit (TOWER-BRANCHES.md). Null when unbranched ⇒ every
+      // fold below reduces to the base path ⇒ golden byte-identical (autoplay never branches).
+      const bk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
       // Bonus math flows through the universal modifier framework (combineMult — the
       // canonical multiplier fold, bit-identical to the previous a*b*c product).
       const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
@@ -1121,9 +1233,9 @@ export class Game {
           heroDmgAura = 1 + this.mods.heroTowerDamageAura;
         }
       }
-      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste);
+      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1);
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -1131,11 +1243,14 @@ export class Game {
       this.abilityHeroKind = null;
       this.abilityCaster = null;
       // Star evolution: targeting override + per-cast projectile/splash kit (defaults = base).
-      this.abilityTargeting = prog.targeting ?? def.targeting ?? 'closestToBase';
-      this.castExtraProjectiles = prog.extraProjectiles ?? 0;
-      this.castSplashMult = prog.splashMult ?? 1;
-      this.castRangeMult = prog.rangeMult ?? 1;
-      this.castProjectileMutators = prog.projectileMutators ?? EMPTY_STR;
+      this.abilityTargeting = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'closestToBase';
+      this.castExtraProjectiles = (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0);
+      this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
+      this.castRangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+      this.castProjectileMutators =
+        bk && bk.projectileMutators.length
+          ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
+          : prog.projectileMutators ?? EMPTY_STR;
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
@@ -1144,6 +1259,8 @@ export class Game {
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
       // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
+      // Branch-granted attacks (shrapnel crits, infection, neural bolts …) on the same cadence.
+      if (bk && bk.extraAbilities.length) acted = runAbilities(this.actx, bk.extraAbilities, this.castScratch) || acted;
       if (acted) t.cooldown = def.fireInterval / rateMult;
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
@@ -1151,6 +1268,27 @@ export class Game {
     this.castSplashMult = 1;
     this.castRangeMult = 1;
     this.castProjectileMutators = EMPTY_STR;
+  }
+
+  /** A branched SUPPORT tower (Flesh Reactor) runs its branch abilities — auras, summons,
+   *  heals, buffs — on a fixed pulse cadence (it has no projectile attack loop). No-op when
+   *  unbranched ⇒ golden-safe. Its branch ECONOMY (biomass/overcharge) folds in economySystem. */
+  private supportBranchPulse(t: Tower, dt: number): void {
+    const bk = resolveBranchKit(t.branchId, t.tier);
+    if (bk.extraAbilities.length === 0) return; // economy-only tiers have nothing to pulse
+    t.pulseCd -= dt;
+    if (t.pulseCd > 0) return;
+    t.pulseCd = SUPPORT_BRANCH_PULSE;
+    this.abilitySourceKind = t.kind;
+    this.abilityHeroKind = null;
+    this.abilityCaster = null;
+    this.abilityTargeting = 'closestToBase';
+    this.castScratch.x = t.x;
+    this.castScratch.y = t.y;
+    this.castScratch.damageMult = this.mods.towerDamageMult * bk.damageMult;
+    this.castScratch.target = null;
+    this.castScratch.pierce = 0;
+    runAbilities(this.actx, bk.extraAbilities, this.castScratch);
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -2423,6 +2561,7 @@ export class Game {
       minions: this.minions,
       phase: this.phase,
       selectedTower: this.selectedTower,
+      selectedPlacedId: this.selectedPlacedId,
       armedAbility: this.armedAbility,
       unlockedSlots: this.unlockedSlots,
       time: this.time,
@@ -2462,6 +2601,7 @@ export class Game {
       emergency: this.emergencyActive,
       draft: this.draft ? this.draft.map(cardToOption) : null,
       selectedTower: this.selectedTower,
+      selectedPlaced: this.selectedPlacedView(),
       armedAbility: this.armedAbility,
       cards: this.chosenCards,
       buffs: this.activeBuffs(),

@@ -3023,3 +3023,58 @@ kbd {
   .play-screen { grid-template-columns: 1fr; }
   .hub-cols { grid-template-columns: 1fr; }
 }
+
+/* ── Tower Mutation panel (TOWER-BRANCHES.md) — branch upgrades on a selected tower ── */
+.branch-status { font-size: 12px; color: var(--muted); margin: 6px 0 10px; }
+.branch-status b { color: var(--text); }
+.branch-list { display: flex; flex-direction: column; gap: 10px; }
+.branch-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--r-rare);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.branch-card.is-locked { border-left-color: var(--r-legendary); background: rgba(255, 210, 77, 0.05); }
+.branch-card-head { display: flex; justify-content: space-between; align-items: baseline; }
+.branch-name { font-weight: 800; font-size: 13px; letter-spacing: 0.02em; }
+.branch-tier { font-size: 11px; font-weight: 700; color: var(--r-legendary); }
+.branch-theme { font-size: 11px; line-height: 1.35; color: var(--muted); margin: 3px 0 8px; }
+.branch-buy {
+  width: 100%; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px;
+  border: 1px solid rgba(120, 230, 255, 0.35); border-radius: 6px;
+  padding: 7px 8px; background: rgba(120, 230, 255, 0.07); color: var(--text);
+  transition: background 0.12s, border-color 0.12s;
+}
+.branch-buy:hover:not(:disabled) { background: rgba(120, 230, 255, 0.16); border-color: rgba(120, 230, 255, 0.6); }
+.branch-buy.is-poor, .branch-buy:disabled { opacity: 0.5; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.03); }
+.branch-buy-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.branch-buy-name { font-weight: 700; font-size: 12px; }
+.branch-buy-cost { font-weight: 800; font-size: 12px; color: var(--r-uncommon); white-space: nowrap; }
+.branch-buy.is-poor .branch-buy-cost { color: #ff7b7b; }
+.branch-buy-desc { font-size: 11px; line-height: 1.3; color: var(--muted); }
+.branch-maxed { text-align: center; font-weight: 800; font-size: 12px; color: var(--r-legendary); padding: 6px; letter-spacing: 0.08em; }
+.branch-done {
+  margin-top: 12px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: var(--muted); font-weight: 700;
+}
+.branch-done:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+
+/* Tier-1 commit confirmation (the permanent-lock warning) */
+.branch-confirm-overlay {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  background: rgba(4, 8, 12, 0.72); backdrop-filter: blur(2px);
+}
+.branch-confirm {
+  width: min(360px, 86vw); border-radius: 12px; padding: 20px;
+  background: linear-gradient(160deg, #16242f, #0c151c);
+  border: 1px solid var(--r-legendary); box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6), 0 0 30px -10px var(--r-legendary);
+}
+.branch-confirm h3 { margin: 0 0 8px; color: var(--r-legendary); font-size: 16px; }
+.branch-confirm p { margin: 0 0 16px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.branch-confirm p b { color: var(--text); }
+.branch-confirm-btns { display: flex; gap: 10px; }
+.branch-confirm-btns button { flex: 1; padding: 10px; border-radius: 7px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05); color: var(--text); }
+.branch-confirm-btns .primary { background: var(--r-legendary); color: #1a1206; border-color: var(--r-legendary); }
+.branch-confirm-btns button:hover { filter: brightness(1.1); }

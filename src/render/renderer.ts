@@ -86,7 +86,7 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0);
+  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId);
 
   for (const p of rs.projectiles) drawProjectile(ctx, p);
 
@@ -411,7 +411,7 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
 
 const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0): void {
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false): void {
   const def = TOWER_DEFS[tw.kind];
   const shape = TOWER_SHAPE[tw.kind];
 
@@ -475,6 +475,26 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
       const ang = now * 0.8 + (i * Math.PI * 2) / pips;
       drawShape(ctx, 'circle', tw.x + Math.cos(ang) * r * 1.7, tw.y + Math.sin(ang) * r * 1.7, 1.7, def.color);
     }
+  }
+
+  // Branch MUTATION (TOWER-BRANCHES.md): an escalating "evolved" silhouette — a glow, a
+  // pulsing ring, and one jutting spike per tier — so two same-kind towers look different by
+  // their path/tier. Per-instance (reads tw.tier); tier 0 renders nothing (golden-safe look).
+  if (tw.tier > 0) {
+    const c = hexRgb(def.color);
+    glowDisc(ctx, tw.x, tw.y, r * (1.2 + tw.tier * 0.12), rgba(c, 0.1 + tw.tier * 0.03));
+    ring(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(c, pulse(now + tw.id, 2.2, 0.25, 0.55)), 1.2 + tw.tier * 0.2);
+    for (let i = 0; i < tw.tier; i++) {
+      const ang = now * 0.5 + (i * Math.PI * 2) / Math.max(3, tw.tier);
+      const rr = r * (1.5 + tw.tier * 0.12);
+      drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * rr, tw.y + Math.sin(ang) * rr, 2.2 + tw.tier * 0.3, def.color);
+    }
+    if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.5, rgba(c, pulse(now + tw.id, 3, 0.15, 0.45)), 1); // capstone aura
+  }
+
+  // Selection highlight (inspected tower → its Mutation panel is open).
+  if (selected) {
+    ring(ctx, tw.x, tw.y, r * 2.0, rgba(hexRgb('#7ce6ff'), pulse(now, 3, 0.45, 0.85)), 2, [3, 4]);
   }
 }
 

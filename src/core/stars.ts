@@ -104,7 +104,8 @@ function optionFor(fork: StarFork, picks: Record<string, string>): StarForkOptio
   return fork.fork.find((o) => o.id === id) ?? fork.fork[0]; // default to the first option
 }
 
-function applyGrant(kit: ResolvedStarKit, g: StarGrant): void {
+/** Fold one grant into a kit (shared by the star resolver and the branch resolver). */
+export function applyGrant(kit: ResolvedStarKit, g: StarGrant): void {
   switch (g.t) {
     case 'targeting':
       kit.targeting = g.profile;

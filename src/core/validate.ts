@@ -56,6 +56,7 @@ import { DOCTRINES, doctrineRegistry } from './doctrines';
 import { statusRegistry } from './status';
 import { rarityRegistry } from './loot';
 import { starPathRegistry } from './stars';
+import { branchRegistry } from './branches';
 import { masteryTrackRegistry } from './mastery';
 import { ascendantRegistry } from './ascendant';
 import type { MetaModifiers } from './types';
@@ -121,6 +122,7 @@ export function validateAllContent(): string[] {
     ...doctrineRegistry.validate(),
     ...rarityRegistry.validate(),
     ...starPathRegistry.validate(),
+    ...branchRegistry.validate(),
     ...masteryTrackRegistry.validate(),
     ...ascendantRegistry.validate(),
     ...waveProblems(WAVES),

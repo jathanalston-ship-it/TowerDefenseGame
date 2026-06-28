@@ -146,6 +146,17 @@ export const towerRegistry = new Registry<TowerDef>('tower', { idOf: (d) => d.ki
 towerRegistry.registerAll(Object.values(TOWER_DEFS));
 export const TOWER_ORDER = towerRegistry.ids() as TowerKind[];
 
+/** Per-tower Biomass cost ladder for branch tiers 1..5 (TOWER-BRANCHES.md §4). Shared by
+ * both of a tower's branches. Calibrated to the endless economy (~55k banked by wave 20):
+ * Tier 1 ≈ 500–1000 (a real first commitment), Tier 5 ≈ 100k–200k (a deep-endless capstone). */
+export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, number, number]> = {
+  needle: [600, 2500, 10000, 38000, 140000],
+  mortar: [900, 3400, 12500, 46000, 175000],
+  reactor: [800, 3000, 11000, 40000, 150000],
+  parasite: [750, 2800, 10500, 40000, 155000],
+  obelisk: [900, 3400, 12500, 46000, 180000],
+};
+
 // ── Enemies ───────────────────────────────────────────────────────────────
 /**
  * Steering profile — how an enemy *thinks*, not just where it walks. Combined each

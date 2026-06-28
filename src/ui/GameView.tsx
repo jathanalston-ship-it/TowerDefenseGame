@@ -282,7 +282,18 @@ export function GameView({
         )}
         </div>
         {rightOpen ? (
-          <Inspector hud={hud} onCollapse={() => setRightOpen(false)} />
+          <Inspector
+            hud={hud}
+            onCollapse={() => setRightOpen(false)}
+            onBranchBuy={(towerId, branchId) => {
+              game.buyBranchTier(towerId, branchId);
+              refresh();
+            }}
+            onDeselect={() => {
+              game.selectPlacedTower(null);
+              refresh();
+            }}
+          />
         ) : (
           <button className="panel-rail right" onClick={() => setRightOpen(true)} aria-label="Show Status">
             <span className="rail-label">STATUS</span>
