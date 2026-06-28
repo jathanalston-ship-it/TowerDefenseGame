@@ -9,6 +9,7 @@
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
 import type { GearItem, GearSlot } from '../core/types';
+import { lootMeterSize } from '../core/config';
 
 export interface SaveData {
   shards: number;
@@ -199,7 +200,9 @@ export function normalizeSave(raw: unknown): SaveData {
     codex: normalizeCodex(o.codex),
     achievements: normalizeIdList(o.achievements),
     title: typeof o.title === 'string' && o.title.length <= 64 ? o.title : '',
-    lootMeter: nonNegInt(o.lootMeter),
+    // A valid meter is always < its size; clamp so a corrupt save can't load a stuck,
+    // maxed-out meter (the runtime re-derives the rest; this only catches bad data).
+    lootMeter: Math.min(nonNegInt(o.lootMeter), Math.max(0, lootMeterSize(nonNegInt(o.lootBoxesLifetime)) - 1)),
     lootBoxesLifetime: nonNegInt(o.lootBoxesLifetime),
     boxes: normalizeUpgrades(o.boxes), // type id -> positive int count (same shape)
     boxesEarned: normalizeUpgrades(o.boxesEarned),

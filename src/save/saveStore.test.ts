@@ -11,6 +11,7 @@ import {
   CURRENT_VERSION,
 } from './saveStore';
 import type { SaveData, StorageLike } from './saveStore';
+import { lootMeterSize } from '../core/config';
 
 function mem(): StorageLike & { map: Map<string, string> } {
   const map = new Map<string, string>();
@@ -128,6 +129,14 @@ describe('backups & corruption recovery', () => {
 });
 
 describe('save normalization (resilience to bad data)', () => {
+  it('clamps a corrupt over-size loot meter (never loads a stuck/maxed meter)', () => {
+    const huge = normalizeSave({ shards: 1, upgrades: {}, bestWave: 0, totalRuns: 0, lifetimeShards: 0, cardsSeen: 0, lootMeter: 1e9, lootBoxesLifetime: 5 } as unknown);
+    expect(huge.lootMeter).toBeGreaterThanOrEqual(0);
+    expect(huge.lootMeter).toBeLessThan(lootMeterSize(5)); // < size — not maxed
+    const nan = normalizeSave({ ...defaultSave(), lootMeter: NaN as unknown as number });
+    expect(nan.lootMeter).toBe(0); // NaN → 0
+  });
+
   it('clamps non-finite / negative / fractional values to non-negative ints', () => {
     const dirty = {
       shards: Infinity,

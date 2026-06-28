@@ -173,6 +173,22 @@ describe('persistent bio-container meter', () => {
     meta.reset();
   });
 
+  it('is hardened against corrupt progress (NaN / Infinity / absurd) — never sticks', () => {
+    meta.reset();
+    meta.addLootProgress(Number.NaN);
+    expect(Number.isFinite(meta.get().lootMeter)).toBe(true);
+    expect(meta.get().lootMeter).toBe(0); // NaN ignored
+    meta.addLootProgress(Number.POSITIVE_INFINITY);
+    expect(meta.get().lootMeter).toBe(0); // Infinity ignored
+    // An absurd value must NOT freeze (iteration cap) and must leave the meter < size,
+    // never stuck at/over max — exactly the "stuck during the run" failure mode.
+    meta.addLootProgress(1e9);
+    const size = lootMeterSize(meta.get().lootBoxesLifetime);
+    expect(meta.get().lootMeter).toBeGreaterThanOrEqual(0);
+    expect(meta.get().lootMeter).toBeLessThan(size);
+    meta.reset();
+  });
+
   it('persists across runs/modes — recordRun never clears the meter', () => {
     meta.reset();
     meta.addLootProgress(50);

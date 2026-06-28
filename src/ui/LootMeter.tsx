@@ -15,7 +15,7 @@ export function LootMeter({ compact = false }: { compact?: boolean }): JSX.Eleme
   const save = meta.use();
   const boxes = Object.values(save.boxes).reduce((a, b) => a + b, 0); // total owned (all types)
   const size = lootMeterSize(save.lootBoxesLifetime);
-  const pct = size > 0 ? Math.max(0, Math.min(1, save.lootMeter / size)) : 0;
+  const pct = size > 0 && Number.isFinite(save.lootMeter) ? Math.max(0, Math.min(1, save.lootMeter / size)) : 0;
   const rarity = meta.nextLootRarity();
   const rDef = LOOT_RARITY[rarity];
 

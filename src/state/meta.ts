@@ -319,15 +319,19 @@ export const meta = {
    * earned by THIS call as a per-type map (e.g. `{ common: 2, rare: 1 }`).
    */
   addLootProgress(amount: number, save = true): Record<string, number> {
+    if (!Number.isFinite(amount)) amount = 0; // guard a NaN/Infinity delta (corrupt sync)
     if (amount <= 0 && !save) return {};
     const s = store.get();
     let meter = s.lootMeter + Math.max(0, amount);
+    if (!Number.isFinite(meter)) meter = 0; // guard a corrupt stored meter
     let lifetime = s.lootBoxesLifetime;
     const boxes = { ...s.boxes };
     const earnedLifetime = { ...s.boxesEarned };
     const awarded: Record<string, number> = {};
     let size = lootMeterSize(lifetime);
-    while (meter >= size) {
+    // Award one container per crossing. Hardened: `size > 0` can't loop forever, and the
+    // iteration cap stops a corrupt/huge meter from freezing the tab (it's clamped below).
+    for (let guard = 0; size > 0 && meter >= size && guard < 100000; guard++) {
       meter -= size;
       lifetime++;
       const id = lootBoxRarity(lifetime); // earn cadence → which container type (base id === rarity)
@@ -336,6 +340,9 @@ export const meta = {
       awarded[id] = (awarded[id] ?? 0) + 1;
       size = lootMeterSize(lifetime);
     }
+    // The meter must NEVER persist >= size (the bar would stick at max) or go non-finite.
+    if (size > 0 && meter >= size) meter = size - 1;
+    if (!(meter >= 0)) meter = 0; // also catches NaN (NaN >= 0 is false)
     const gotOne = Object.keys(awarded).length > 0;
     const next = { ...s, lootMeter: meter, lootBoxesLifetime: lifetime, boxes, boxesEarned: earnedLifetime };
     if (save || gotOne) persist(next);

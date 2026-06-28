@@ -112,7 +112,7 @@ export function Results({
         {/* Forward pull — a stash to crack open, or how close the next container is. */}
         {(() => {
           const size = lootMeterSize(save.lootBoxesLifetime);
-          const pct = size > 0 ? Math.round((save.lootMeter / size) * 100) : 0;
+          const pct = size > 0 && Number.isFinite(save.lootMeter) ? Math.round((save.lootMeter / size) * 100) : 0;
           const next = meta.nextLootRarity();
           return (
             <div className="loot-nudge">
