@@ -6,6 +6,7 @@
 import { useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
+import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { PlayScreen } from './PlayScreen';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
@@ -39,11 +40,17 @@ function audioPref(): boolean {
 /** Settings screen — save data management, the destructive reset, and an audio toggle. */
 function SettingsScreen(): JSX.Element {
   const [sound, setSound] = useState(audioPref());
+  const [autoGene, setAutoGene] = useState(autoGenePref());
   const toggleSound = (): void => {
     const next = !sound;
     setSound(next);
     audio.setEnabled(next);
     try { localStorage.setItem('audioOn', String(next)); } catch { /* private mode */ }
+  };
+  const toggleAutoGene = (): void => {
+    const next = !autoGene;
+    setAutoGene(next);
+    setAutoGenePref(next);
   };
   return (
     <div className="hub-cols">
@@ -58,6 +65,12 @@ function SettingsScreen(): JSX.Element {
             <span>Sound effects</span>
             <button className={`set-switch ${sound ? 'on' : ''}`} onClick={toggleSound} aria-pressed={sound}>
               {sound ? 'On' : 'Off'}
+            </button>
+          </label>
+          <label className="set-toggle">
+            <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
+            <button className={`set-switch ${autoGene ? 'on' : ''}`} onClick={toggleAutoGene} aria-pressed={autoGene}>
+              {autoGene ? 'On' : 'Off'}
             </button>
           </label>
         </div>

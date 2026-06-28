@@ -42,6 +42,10 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 - **Banish** — remove a card from the pool *for this run* (thin your deck toward a
   plan). Charges from progression.
 - **Gene Lab nodes** — bonus draft with a guaranteed rarity floor.
+- **Auto Gene Selection** (opt-in Settings toggle, persisted via `state/prefs.ts`).
+  When on, each draft shows a visible 10s countdown and auto-drafts the recommended
+  **◆ PICK** (highest-rarity) card on expiry. Any manual pick (click / `1`–`N` / `Enter`)
+  cancels the countdown immediately. UI-only — the deterministic sim is untouched.
 - **Reset.** The deck, rerolls, banishes, and any run-stack effects **wipe at run
   end**. Only the *outcomes* (currencies, mastery, codex) persist.
 
