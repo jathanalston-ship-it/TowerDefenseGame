@@ -9,6 +9,7 @@ Bloons-TD-style upgrade **paths**, adapted for ASSIMILATE. **Document-first** sp
 > live; the framework supports N per tower (see §2). A tower instance commits to **one**
 > path on the Tier-1 purchase (the lock). Code: `core/branches.ts` (data + resolver),
 > `game.towerSystem`/`economySystem` (per-instance fold), `game.buyBranchTier` (+ lock),
+> `core/branchTree.ts` (panel read-model) + `ui/components/BranchTree.tsx` (the tree) inside
 > `ui/Inspector` (Mutation panel + confirm). Golden byte-identical (tier 0 = identity).
 >
 > **As-built roster** (full tier detail in `core/branches.ts`):
@@ -157,6 +158,16 @@ pre-lock. The lock logic (`branchId` pin) already enforces "one path per instanc
 4. Tiers 2–5 buy directly (no further lock warning — the commitment is already made).
 5. Visual/audio feedback per tier: the tower's on-canvas appearance mutates (cosmetic
    tier), a splice sfx fires, and a mutation burst plays at the tower.
+
+**Panel layout (the redesigned Tower Inspect).** The **upgrade tree is the centerpiece**:
+each branch is a *lane* (a ladder of all its tiers), rendered generically from
+`branchTreeView` (`core/branchTree.ts`) so adding a branch or changing a tier count needs
+**zero UI changes**. Around it: the **current branch + tier** summary, a branch-folded
+**Current Stats** readout (`branchStatsView` folds the per-instance kit onto the base def —
+DPS/range/rate/targets climb as tiers are bought), the **lock warning** (pre-commit note +
+the Tier-1 modal), per-tier **costs**, the highlighted **next tier** with an inline preview,
+dimmed **future** tiers, and — once committed — the other lane(s) collapsed to a **LOCKED
+OUT** bar. Pure presentation: the tree/stats are derived, the sim is untouched.
 
 ---
 

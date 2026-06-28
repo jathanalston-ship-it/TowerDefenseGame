@@ -6,6 +6,8 @@
 
 import { useState } from 'react';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
+import { branchStatsView, branchTreeView } from '../core/branchTree';
+import { BranchTree } from './components/BranchTree';
 import type { HudSnapshot } from '../core/types';
 
 function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
@@ -30,13 +32,6 @@ function InsHead({ title, onCollapse }: { title: string; onCollapse?: () => void
   );
 }
 
-/** Compact Biomass cost (600 → "600", 2500 → "2.5k", 140000 → "140k"). */
-function fmtCost(n: number): string {
-  if (n < 1000) return String(n);
-  const k = n / 1000;
-  return `${k % 1 === 0 ? k : k.toFixed(1)}k`;
-}
-
 export function Inspector({
   hud,
   onCollapse,
@@ -51,52 +46,73 @@ export function Inspector({
   // Tier-1 commit confirmation (the lock warning).
   const [confirm, setConfirm] = useState<{ towerId: number; branchId: string; name: string } | null>(null);
 
-  // ── Mutation panel: a PLACED tower is selected ──────────────────────────────
+  // ── Mutation panel: a PLACED tower is selected (the Tower Inspect redesign) ──
+  // The upgrade TREE is the centerpiece (core/branchTree → BranchTree). Around it:
+  // current branch + tier, the branch-folded stat readout, and the lock warning.
   const sp = hud.selectedPlaced;
   if (sp) {
     const cls = sp.combatClass.toLowerCase();
+    const accent = `var(--${cls})`;
+    const committedId = sp.branches.find((b) => b.locked)?.branchId ?? null;
+    const tree = branchTreeView(sp.kind, committedId, sp.tier, hud.biomass);
+    const stats = branchStatsView(sp.kind, committedId, sp.tier);
+    const hasBranches = tree.lanes.length > 0;
     return (
-      <aside className="side-panel inspector" aria-label="Tower mutation panel">
+      <aside className="side-panel inspector is-mutate" aria-label="Tower mutation panel">
         <InsHead title="Mutate" onCollapse={onCollapse} />
         <div className="ins-title">
-          <span className="ins-name" style={{ color: `var(--${cls})` }}>{sp.name}</span>
-          <span className="class-badge" style={{ background: `var(--${cls})` }}>{sp.combatClass}</span>
+          <span className="ins-name" style={{ color: accent }}>{sp.name}</span>
+          <span className="class-badge" style={{ background: accent }}>{sp.combatClass}</span>
         </div>
-        {sp.branchName ? (
-          <p className="branch-status">Path locked: <b>{sp.branchName}</b> · Tier {sp.tier}/5</p>
-        ) : (
-          <p className="side-hint">Choose a mutation path — Tier 1 permanently locks it for this run.</p>
+
+        {/* Current branch + current tier */}
+        <div className="mut-sum">
+          {sp.branchName ? (
+            <span className="mut-sum-branch" style={{ color: accent }}>{sp.branchName}</span>
+          ) : (
+            <span className="mut-sum-branch is-none">Unmutated strain</span>
+          )}
+          <span className="mut-sum-tier">
+            Tier <b>{sp.tier}</b>
+            <span className="mut-sum-max">/{tree.maxTier || 5}</span>
+          </span>
+        </div>
+
+        {/* Current stats — the base profile folded with this tower's purchased tiers. */}
+        <div className="ins-stats">
+          {stats.dps !== null && <StatRow k="DPS" v={`~${stats.dps}`} />}
+          {stats.range > 0 && <StatRow k="Range" v={stats.range} />}
+          {stats.rate !== null && stats.firing !== 'field' && stats.firing !== 'support' && (
+            <StatRow k="Fire rate" v={`${stats.rate.toFixed(1)}/s`} />
+          )}
+          {stats.firing === 'field' && stats.rate !== null && <StatRow k="Pulse" v={`${stats.rate.toFixed(1)}/s`} />}
+          {stats.splash > 0 && <StatRow k="Splash" v={stats.splash} />}
+          {stats.shots > 1 && <StatRow k="Targets" v={`×${stats.shots}`} />}
+        </div>
+
+        {/* Branch lock warning (pre-commit; the commit overlay re-warns on the click). */}
+        {hasBranches && !committedId && (
+          <p className="mut-warn" role="note">
+            ⚠ Pick a path to mutate — <b>Tier 1 locks it for the run</b> and closes the other.
+          </p>
         )}
 
-        <div className="branch-list">
-          {sp.branches.map((b) => (
-            <div key={b.branchId} className={`branch-card${b.locked ? ' is-locked' : ''}`}>
-              <div className="branch-card-head">
-                <span className="branch-name">{b.name}</span>
-                {b.tier > 0 && <span className="branch-tier">T{b.tier}/5</span>}
-              </div>
-              <p className="branch-theme">{b.theme}</p>
-              {b.next ? (
-                <button
-                  className={`branch-buy${b.next.affordable ? '' : ' is-poor'}`}
-                  disabled={!b.next.affordable}
-                  onClick={() => {
-                    if (b.next!.tier === 1) setConfirm({ towerId: sp.id, branchId: b.branchId, name: b.name });
-                    else onBranchBuy?.(sp.id, b.branchId);
-                  }}
-                >
-                  <span className="branch-buy-top">
-                    <span className="branch-buy-name">T{b.next.tier} · {b.next.name}</span>
-                    <span className="branch-buy-cost">{fmtCost(b.next.cost)} ⬡</span>
-                  </span>
-                  <span className="branch-buy-desc">{b.next.desc}</span>
-                </button>
-              ) : (
-                <div className="branch-maxed">★ FULLY MUTATED</div>
-              )}
-            </div>
-          ))}
-        </div>
+        {/* The upgrade tree — the centerpiece. */}
+        {hasBranches ? (
+          <BranchTree
+            tree={tree}
+            accent={accent}
+            onBuyNext={(branchId, tier) => {
+              if (tier === 1) {
+                setConfirm({ towerId: sp.id, branchId, name: tree.lanes.find((l) => l.branchId === branchId)?.name ?? '' });
+              } else {
+                onBranchBuy?.(sp.id, branchId);
+              }
+            }}
+          />
+        ) : (
+          <p className="side-hint">This tower has no mutation paths yet.</p>
+        )}
 
         <button className="branch-done" onClick={onDeselect}>Done</button>
 
