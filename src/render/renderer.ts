@@ -40,7 +40,7 @@ import {
   spikeCrown,
   strokeShape,
 } from './vfx';
-import { drawTowerEvolution, evolutionGrowth, branchSkinColor } from './towerEvolution';
+import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 
 export interface Pointer {
   x: number;
@@ -49,6 +49,8 @@ export interface Pointer {
 
 const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
 const TOWER_R = 12; // base silhouette radius for placed towers
+const MUTATE_FLASH = 0.5; // seconds the tier-purchase shockwave + flash plays at the tower
+const WHITE = hexRgb('#ffffff');
 
 export function drawGame(
   ctx: CanvasRenderingContext2D,
@@ -423,8 +425,9 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // cooldown counts down from fireInterval → 0; it's highest right after a shot.
   const fresh = def.fireInterval > 0 ? Math.min(1, Math.max(0, (tw.cooldown / def.fireInterval - 0.7) / 0.3)) : 0;
   // GROWTH (TOWER-BRANCHES.md §9): a branched tower's whole silhouette swells with its tier, so an
-  // evolved tower is bigger + bolder than a fresh one. Identity (×1) when unbranched ⇒ golden look.
-  const r = TOWER_R * grow * breathe * (1 + fresh * 0.1) * evolutionGrowth(tw.branchId, tw.tier);
+  // evolved tower is bigger + bolder than a fresh one — and the swell ANIMATES in over the grow-in
+  // window after a purchase. Identity (×1) when unbranched ⇒ golden look.
+  const r = TOWER_R * grow * breathe * (1 + fresh * 0.1) * evolutionGrowthAnimated(tw.branchId, tw.tier, now - tw.mutatedAt);
 
   // (Range/field circles are intentionally NOT drawn permanently — they cluttered play
   // and, for the long-range towers, were near-fullscreen and uninformative. Range is now
@@ -485,6 +488,16 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // new organ (limbs / armor / barrels / biomass / organs …) so two same-kind towers read
   // differently by path AND tier. Per-instance; tier 0 renders nothing (golden-safe look).
   if (tw.tier > 0) drawTowerEvolution(ctx, tw, now, r, def.color, fresh);
+
+  // Mutation FLASH: a one-shot shockwave + white pop the instant a tier is purchased (driven by
+  // tw.mutatedAt). A settled or unbranched tower (mutatedAt ≪ now) draws nothing.
+  const sinceMut = now - tw.mutatedAt;
+  if (sinceMut >= 0 && sinceMut < MUTATE_FLASH) {
+    const fade = 1 - sinceMut / MUTATE_FLASH;
+    const c = hexRgb(def.color);
+    ring(ctx, tw.x, tw.y, r * (1.1 + easeOutCubic(1 - fade) * 2.4), rgba(c, fade * 0.7), 1 + fade * 2.5);
+    glowDisc(ctx, tw.x, tw.y, r * (1.3 + fade * 1.4), rgba(WHITE, fade * 0.5));
+  }
 
   // Selection highlight (inspected tower → its Mutation panel is open).
   if (selected) {
