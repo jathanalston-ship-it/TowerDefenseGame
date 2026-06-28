@@ -390,6 +390,14 @@ export const PARTICLE = {
   infect: { count: 7, speed: 60, life: 0.55, size: 2.3, color: '#e24dff' }, // spores burst from an infected death (the spread)
   disrupt: { count: 5, speed: 40, life: 0.4, size: 2.0, color: '#9aa6ff' }, // psionic static off an obelisk pulse
   bloom: { count: 8, speed: 80, life: 0.5, size: 2.4, color: '#ffcaa0' }, // vital spores off the Shepherd's pulse
+  // ── Per-branch attack signatures (TOWER-BRANCHES.md): each mutated tower sprays its own matter ──
+  barb: { count: 5, speed: 150, life: 0.32, size: 1.7, color: '#c8f04a' }, // Hivemind Swarm — flung venom barbs
+  spark: { count: 6, speed: 210, life: 0.28, size: 1.5, color: '#bfe9ff' }, // Railspike / Mindrender — electric discharge
+  ember: { count: 7, speed: 120, life: 0.5, size: 2.2, color: '#ff8a3c' }, // Necrotic Siege — burning bone shrapnel
+  acid: { count: 7, speed: 95, life: 0.6, size: 2.4, color: '#9be84a' }, // Corrosive Cauldron — caustic droplets
+  vital: { count: 7, speed: 70, life: 0.7, size: 2.4, color: '#ffb3c8' }, // Symbiotic Heart — warm biomass motes
+  spore: { count: 8, speed: 60, life: 0.66, size: 2.3, color: '#b58cff' }, // Brood Spire — drifting brood spores
+  gore: { count: 7, speed: 135, life: 0.44, size: 2.4, color: '#d83a4a' }, // Ravager Strain — viscera spray
   // ── Reward-moment spectacle (cosmetic; never affects the pinned sim outcomes) ──
   bossfall: { count: 30, speed: 190, life: 0.95, size: 3.6, color: '#ffd24d' }, // a boss detonating into biomass
   celebrate: { count: 22, speed: 150, life: 1.1, size: 3.0, color: '#b6e84a' }, // wave-clear / extraction bloom

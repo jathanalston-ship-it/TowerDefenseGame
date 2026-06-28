@@ -12,6 +12,11 @@ Bloons-TD-style upgrade **paths**, adapted for ASSIMILATE. **Document-first** sp
 > `core/branchTree.ts` (panel read-model) + `ui/components/BranchTree.tsx` (the tree) inside
 > `ui/Inspector` (Mutation panel + confirm). Golden byte-identical (tier 0 = identity).
 >
+> **Sensory layer:** SHIPPED (see §9). Every branch now has a distinct on-canvas silhouette
+> (escalating with tier), a branch-specific projectile, an attack/pulse particle spray, and a
+> sound — plus a `splice` cue + mutation burst on each purchase. All cosmetic (FX rng + sfx
+> queue, gated `tier>0`) so the golden run stays byte-identical.
+>
 > **As-built roster** (full tier detail in `core/branches.ts`):
 > - **Needle** — *Hivemind Swarm* (Barbed Needles → Twin Spinnerets → Venom Coating →
 >   Swarm Logic → **The Thousand Maw**) · *Apex Railspike* (Hollowpoint → Armor Render →
@@ -303,3 +308,56 @@ Every tier was built from the **existing** vocabulary, so no new sim executors l
 - **Refund/sell** — should selling a branched tower refund any Biomass? (Default: no
   sell exists today; out of scope unless wanted.)
 - **Lock granularity** — lock on Tier 1 (as specified) is assumed; confirmed.
+
+---
+
+## 9. Sensory mutations (as-built)
+
+The §1 promise — "every tier visibly *mutates* the tower across projectiles · particles ·
+attack animation · visual appearance · sound" — is implemented as a thin, **cosmetic-only**
+layer over the existing data model. It uses the **FX rng** and the **sfx cue queue**, both
+independent of the gameplay rng, and is gated on `tier>0`, so the golden run stays
+byte-identical (a renderer smoke test drives all 10 branches at tier 5 through `drawGame`).
+
+**Data (`BranchTier`)** — two optional fields carry a branch's signature; the resolver folds
+them like everything else (the **highest purchased tier that sets one wins**, so a capstone
+can escalate it):
+
+```ts
+particle?: ParticleKind; // muzzle/pulse spray on every attack (config.PARTICLE)
+sfx?: string;            // firing/pulse sound cue tag (audio/sound.ts)
+```
+
+`ResolvedBranchKit` gains `particle?`/`sfx?` (unset in `emptyBranchKit` ⇒ tier-0 identity).
+
+**Emission (`game.ts`)** — `emitBranchSignature(bk, x, y)` sprays `bk.particle` + cues
+`bk.sfx` when a branched tower acts: on each shot in `towerSystem`, and on each pulse in
+`supportBranchPulse` (the Reactor now cadences + throbs even on an economy-only tier).
+Shots are tagged with `Projectile.skin = branchId` for the renderer. Buying a tier fires a
+`splice` cue + a `bloom` mutation burst at the tower.
+
+**Rendering (`render/renderer.ts`)** — `drawBranchCosmetic` dispatches on `branchId` to a
+per-branch silhouette that escalates with `tier` (generic mutation glow as the fallback);
+`drawSkinnedProjectile` dispatches on `p.skin`. As-built identities:
+
+| Branch | Silhouette | Shot | Particle | Sfx |
+|---|---|---|---|---|
+| Hivemind Swarm | orbiting venom-barb halo (+counter-shell @5) | venom barb | `barb` | `br_swarm` |
+| Apex Railspike | growing coil-rail + charge node | bright lance | `spark` | `br_rail` |
+| Necrotic Siege | fanned mortar-tube battery | fiery shell | `ember` | `br_siege` |
+| Corrosive Cauldron | bubbling acid pot | caustic glob | `acid` | `br_acid` |
+| Symbiotic Heart | beating organ (lub-dub) + veins | — (support) | `vital` | `br_vital` |
+| Brood Spire | budding egg-pods + lashing tendrils | — (support) | `spore` | `br_spore` |
+| Viral Apex | rippling contagion rings + spore haze | spore cluster | `infect` | `br_plague` |
+| Ravager Strain | snapping mandible-fangs | barbed gore-dart | `gore` | `br_gore` |
+| Psionic Tyrant | psionic crown + rotating glyph ring | neural bolt (Lance) | `disrupt` | `br_psi` |
+| Mindrender | crackling neural lightning arcs | — (aura/chain) | `spark` | `br_storm` |
+
+**New seams** (small, all cosmetic): 7 `ParticleKind`s + specs; `BranchTier.particle/sfx` +
+fold; `Projectile.skin`; `emitBranchSignature`; the `splice` + ten `br_*` synths;
+`drawBranchCosmetic`/`drawSkinnedProjectile`. No sim executors, no save change.
+
+**Known limitations / future hooks** — firing cues are per-shot (kept short + quiet, voice-
+capped); they're tunable in one place if a dense board proves muddy in playtest. Reactor and
+Mindrender have no projectile skin (no projectile attack). Particle/sfx are authored on the
+lock tier; a capstone could set richer ones via the same fold if desired.
