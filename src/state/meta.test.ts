@@ -258,3 +258,27 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     expect(meta.pendingContainers().length).toBe(0);
   });
 });
+
+describe('run-end achievements (surfaced inline on Results, not toasted)', () => {
+  it('finishRun returns the milestones unlocked this run as full defs', () => {
+    meta.reset();
+    const out = meta.finishRun(runResult(12, 300)); // a fresh first extraction (won, wave 12, 300 kills)
+    const ids = out.achievements.map((a) => a.id);
+    // One winning first run trips several milestones at once — Results lists them inline.
+    expect(ids).toEqual(expect.arrayContaining(['first_run', 'extract', 'wave5', 'centurion']));
+    // Full defs (name/desc) so Results renders without a second lookup, and the persisted save agrees.
+    for (const a of out.achievements) {
+      expect(a.name.length).toBeGreaterThan(0);
+      expect(a.desc.length).toBeGreaterThan(0);
+      expect(meta.get().achievements).toContain(a.id);
+    }
+  });
+
+  it('does not re-surface already-unlocked milestones on a later run', () => {
+    meta.reset();
+    meta.finishRun(runResult(12, 300)); // unlocks the first-extraction milestones
+    const again = meta.finishRun(runResult(6, 50)).achievements.map((a) => a.id);
+    expect(again).not.toContain('first_run'); // already earned → not reported again
+    expect(again).not.toContain('extract');
+  });
+});

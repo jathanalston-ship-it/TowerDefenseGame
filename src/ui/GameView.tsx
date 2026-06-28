@@ -27,6 +27,11 @@ const TRAUMA: Record<string, number> = {
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
 
+// How long the battlefield outro lingers before the summary takes over (a beat, then auto-advance;
+// a tap skips it). Shorter under reduced-motion — still a pause, never a hard cut.
+const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const OUTRO_HOLD_MS = reducedMotion ? 1200 : 3400;
+
 // A pointer that travels more than this (screen px) between press and release is a DRAG,
 // not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
 // or moves the rally point by accident.
@@ -69,6 +74,11 @@ export function GameView({
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
+  // Run-end OUTRO: when the run ends we don't cut straight to the summary — we linger on the
+  // (already-quieted) battlefield with a Victory/Defeat title + a resolved sting, then hand off.
+  const outroRef = useRef<{ won: boolean; startedAt: number } | null>(null);
+  const skipRef = useRef(false); // tap during the linger to proceed immediately
+  const [outro, setOutro] = useState<{ won: boolean; endless: boolean } | null>(null);
 
   // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations) for BOTH towers and
   // heroes (their kind ids don't collide). Fixed for the run (mastery banks at run end), so
@@ -138,9 +148,18 @@ export function GameView({
           meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE into the meta queue
           lastHud = now;
         }
-        if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
-          endedRef.current = true;
+        // Run ended → begin the outro (once): resolve the music, raise the Victory/Defeat title,
+        // and linger on the frozen, quieted battlefield before the summary.
+        const over = game.phase === 'won' || game.phase === 'lost';
+        if (over && !outroRef.current && !endedRef.current) {
+          outroRef.current = { won: game.phase === 'won', startedAt: now };
           setHud(game.getSnapshot());
+          setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' });
+          audio.resolve(game.phase === 'won');
+        }
+        // After the linger (or a tap), hand off to the End-of-Run Summary.
+        if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= OUTRO_HOLD_MS)) {
+          endedRef.current = true;
           onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless' });
         }
         raf = requestAnimationFrame(loop);
@@ -221,7 +240,7 @@ export function GameView({
             <span className="rail-label">RUN BUILD</span>
           </button>
         )}
-        <div className="canvas-wrap">
+        <div className={`canvas-wrap ${outro ? 'is-ending' : ''}`}>
         <canvas
           ref={canvasRef}
           className="board"
@@ -280,6 +299,22 @@ export function GameView({
               <span className="mutation-title">{hud.mutation.title}</span>
               <span className="mutation-sub">{hud.mutation.sub}</span>
             </div>
+          </div>
+        )}
+        {outro && (
+          // The run-end linger: a vignette + Victory/Defeat title over the frozen battlefield.
+          // A tap proceeds immediately; otherwise the loop auto-hands-off to the summary.
+          <div
+            className={`run-outro ${outro.won ? 'win' : 'lose'}`}
+            role="button"
+            tabIndex={0}
+            aria-label="Continue to summary"
+            onClick={() => { skipRef.current = true; }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') skipRef.current = true; }}
+          >
+            <div className="run-outro-title">{outro.endless ? 'RUN ENDED' : outro.won ? 'VICTORY' : 'DEFEAT'}</div>
+            <div className="run-outro-sub">{outro.won ? 'The hive holds the line.' : 'The Nucleus is lost.'}</div>
+            <div className="run-outro-hint">tap to continue</div>
           </div>
         )}
         {hud.phase === 'draft' && hud.draft && (

@@ -34,8 +34,8 @@ import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
 import { PRESTIGE, canMolt, cellsForCycle, prestigeMult } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
-import { checkAchievements, rewardFor } from './achievements';
-import type { RunSummary } from './achievements';
+import { achievementById, checkAchievements, rewardFor } from './achievements';
+import type { AchievementDef, RunSummary } from './achievements';
 import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } from '../core/equipment';
 import type { EquipSlot, OwnedItem } from '../core/equipment';
 import { gameEvents } from '../core/events';
@@ -277,6 +277,7 @@ export interface RunOutcome {
   heroMastery: Record<HeroKind, MasteryDelta>;
   loot: { queue: LootQueueState; banked: PendingContainer[] }; // containers banked unopened this run (Vault)
   masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
+  achievements: AchievementDef[]; // milestones unlocked at run end — shown inline on Results, NOT toasted
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -491,13 +492,18 @@ export const meta = {
     });
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
     runContainersBanked = [];
-    this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
+    // Run-end milestones (extract, kills, mastery, …). The Results screen shows these inline AFTER
+    // the reward sequence; the floating toaster is suppressed off-menu so nothing covers the stats.
+    const unlockedAchievements = this.evaluateAchievements(result)
+      .map(achievementById)
+      .filter((d): d is AchievementDef => !!d);
     return {
       reward: { shardsEarned, newBest },
       mastery,
       heroMastery,
       loot: { queue: lootAdv.state, banked: bankedThisRun },
       masteryUnlocks: { titles: newTitles, lore: newLore },
+      achievements: unlockedAchievements,
     };
   },
 

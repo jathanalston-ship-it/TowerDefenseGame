@@ -88,7 +88,9 @@ export function App(): JSX.Element {
         <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
       )}
       {debugOn && <DebugPanel />}
-      <AchievementToaster />
+      {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so
+          it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
+      <AchievementToaster suppressed={screen !== 'menu'} />
     </div>
   );
 }

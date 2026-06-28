@@ -48,8 +48,18 @@
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
-  --t-fast: 0.12s ease;
-  --t-med: 0.2s ease;
+  /* ── Motion language (docs/UI-MOTION.md) — the single source of truth for feel.
+     Never hardcode a ms or a cubic-bezier in a component; compose from these. ── */
+  --dur-1: 90ms; /* press / micro — the tactile click */
+  --dur-2: 150ms; /* hover / toggle — quick acknowledgement */
+  --dur-3: 220ms; /* base: screen/tab/panel enter, most transitions */
+  --dur-4: 300ms; /* emphasis ceiling: overlays / large reveals */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* decelerate — the default */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1); /* accelerate — exits */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* symmetric — slides/moves */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* slight overshoot — moments only */
+  --t-fast: var(--dur-2) var(--ease-out); /* back-compat alias, re-pointed to premium feel */
+  --t-med: var(--dur-3) var(--ease-out); /* back-compat alias, re-pointed to premium feel */
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
   --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 16px 44px rgba(0, 0, 0, 0.5);
@@ -97,10 +107,12 @@ button {
 button:hover:not(:disabled) {
   border-color: var(--line-strong);
   background: var(--panel-3);
-  transform: translateY(-1px);
+  transform: translateY(-2px); /* Lift — the invitation (transform-only: never reflows or
+    fights a styled button's own box-shadow) */
 }
 button:active:not(:disabled) {
-  transform: translateY(1px) scale(0.98); /* tactile press — every button reacts on pointer-down */
+  transform: translateY(1px) scale(0.97); /* Press — every button depresses on pointer-down */
+  transition-duration: var(--dur-1); /* snap down fast; springs back on release */
 }
 button:disabled {
   opacity: 0.42;
@@ -110,6 +122,26 @@ button:disabled {
   outline: none;
   box-shadow: var(--ring);
   border-radius: var(--r-sm);
+}
+
+/* ── Motion language (docs/UI-MOTION.md) ──────────────────────────────────────
+   The named patterns. Transform + opacity only (compositor-cheap, layout-safe).
+   Reduced-motion is honored by the global media query lower in this file. */
+@keyframes ui-rise {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ui-pop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ui-slide-right {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ui-slide-left {
+  from { opacity: 0; transform: translateX(-14px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* ── Utilities ────────────────────────────────────────────────────────────── */
@@ -817,7 +849,7 @@ canvas.board {
   padding: 20px;
   text-align: center;
   line-height: 1.5;
-  animation: fade-in var(--t-med);
+  animation: ui-pop var(--dur-3) var(--ease-out); /* Pop — modals/overlays scale + fade in */
 }
 @keyframes fade-in {
   from {
@@ -958,6 +990,71 @@ canvas.board {
 }
 .lose {
   color: var(--danger);
+}
+
+/* ── Run-end battlefield outro — the linger before the summary (GameView). A vignette drinks in
+   the frozen, quieted battlefield while the Victory/Defeat title resolves; a slow camera push-in
+   adds life; a tap proceeds. ── */
+.run-outro {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: center;
+  /* a full-screen vignette so the whole UI recedes — but the center stays translucent so the
+     quieted, slowly-pushing-in battlefield still reads behind the title. */
+  background: radial-gradient(ellipse at 50% 48%, rgba(4, 6, 11, 0.32) 0%, rgba(4, 6, 11, 0.92) 72%);
+  animation: outro-veil 1s ease-out both;
+  -webkit-tap-highlight-color: transparent;
+}
+@keyframes outro-veil { from { opacity: 0; } to { opacity: 1; } }
+.run-outro-title {
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(44px, 9vw, 92px);
+  letter-spacing: 0.14em;
+  line-height: 1;
+  animation: outro-title 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+.run-outro.win .run-outro-title { color: var(--caustic); text-shadow: 0 0 42px var(--caustic); }
+.run-outro.lose .run-outro-title { color: var(--danger); text-shadow: 0 0 38px var(--danger); }
+@keyframes outro-title {
+  0% { opacity: 0; transform: scale(1.32); filter: blur(9px); letter-spacing: 0.42em; }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); letter-spacing: 0.14em; }
+}
+.run-outro-sub {
+  font-size: clamp(13px, 2vw, 16px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: outro-fade 0.9s ease-out 1.05s both;
+}
+.run-outro-hint {
+  margin-top: 20px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  animation: outro-hint 1.7s ease-in-out 2s infinite;
+}
+@keyframes outro-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes outro-hint { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.7; } }
+.canvas-wrap.is-ending canvas.board {
+  animation: outro-zoom 4.4s ease-out both;
+  transform-origin: 50% 56%;
+}
+@keyframes outro-zoom { from { transform: scale(1); } to { transform: scale(1.07); } }
+@media (prefers-reduced-motion: reduce) {
+  .run-outro { animation-duration: 0.3s; }
+  .run-outro-title { animation: outro-fade 0.3s ease-out both; filter: none; }
+  .run-outro-sub { animation-delay: 0.2s; }
+  .canvas-wrap.is-ending canvas.board { animation: none; }
 }
 .reward {
   font-size: 20px;
@@ -1116,6 +1213,10 @@ canvas.board {
   overflow-y: auto;
   min-height: 0;
 }
+/* Slide — in-run side panels enter from their own edge (transform-only ⇒ the canvas never
+   reflows). Fires on mount: run start, and re-opening after a collapse. */
+.side-panel.build-panel { animation: ui-slide-left var(--dur-3) var(--ease-out) both; }
+.side-panel.inspector { animation: ui-slide-right var(--dur-3) var(--ease-out) both; }
 .side-head {
   display: flex;
   align-items: center;
@@ -2202,6 +2303,44 @@ kbd {
 .mu-name {
   font-weight: 600;
 }
+.mu-achv {
+  background: rgba(255, 184, 77, 0.2);
+  color: var(--warn);
+}
+.mu-desc {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── End-of-Run Summary reveal — the whole screen fades in, the title resolves, and the
+   post-stats panels (Containers → Mastery → Achievements → Continue) cascade in sequence so the
+   payoff lands beat by beat instead of all at once. ── */
+.results-screen {
+  animation: results-in 0.5s ease-out both;
+}
+@keyframes results-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.result-title {
+  animation: result-title-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+@keyframes result-title-in {
+  0% { opacity: 0; transform: scale(0.86); letter-spacing: 0.24em; }
+  100% { opacity: 1; transform: scale(1); letter-spacing: 0.06em; }
+}
+.summary-panel {
+  animation: summary-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.4s);
+}
+@keyframes summary-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-screen, .result-title, .summary-panel { animation-duration: 0.2s; animation-delay: 0s; }
+}
 .lab-mastery {
   display: flex;
   flex-direction: column;
@@ -2435,6 +2574,69 @@ kbd {
 .achv-desc {
   color: var(--muted);
   font-size: 12px;
+}
+
+/* ── Achievements unlocked (results, inline) ──────────────────────────────── */
+/* Run-end milestones presented IN-FLOW on the summary — never floating, never over the stats.
+   Gold-accented so it reads as a reward; rises in gently once the reward sequence has tallied. */
+.achv-earned {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 77, 0.22), 0 0 22px rgba(255, 210, 77, 0.1);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+.ae-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.ae-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+.ae-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #3a2f12, #11161f);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 0 12px rgba(255, 210, 77, 0.3);
+}
+.ae-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ae-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.ae-desc {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ae-reward {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Achievements gallery (menu) ──────────────────────────────────────────── */
@@ -3155,6 +3357,7 @@ kbd {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: left;
+  /* transform transition + Lift/Press come from the base `button` rule (one consistent feel). */
   transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
 }
 .hub-navitem:hover { background: var(--panel-3); color: var(--text); }
@@ -3235,6 +3438,10 @@ kbd {
 .hub-cur-r b { color: var(--text); }
 
 .hub-screen { flex: 1; min-height: 0; overflow-y: auto; padding: 22px; }
+/* Tab switch / menu open: the screen content RISES into place. `.hub-screen` remounts on every
+   nav change (key={nav}), so this fires per switch — one animation; the panels inside ride
+   along (animating each separately would double the motion). */
+.hub-screen > * { animation: ui-rise var(--dur-3) var(--ease-out) both; }
 .hub-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 .hub-col-stack { display: flex; flex-direction: column; gap: 16px; }
 

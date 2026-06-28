@@ -213,6 +213,20 @@ export const audio = {
       }
     }
   },
+  /** Run-end musical RESOLUTION (the tension lets go): fade the ambient bed and land a short
+   *  cadence — a warm rising major for a win, a somber descending minor for a defeat. One-shot,
+   *  played as the battlefield outro begins. */
+  resolve(won: boolean): void {
+    if (!ensure() || !ctx) return;
+    if (musicBus) musicBus.gain.setTargetAtTime(0, ctx.currentTime, 0.8); // the drone resolves out
+    if (won) {
+      [262, 330, 392, 523].forEach((f, i) => setTimeout(() => tone(f, 1.0 + i * 0.18, 'triangle', 0.16), i * 165)); // C–E–G–C
+      setTimeout(() => tone(784, 1.5, 'sine', 0.09), 660); // a high shimmer lands it
+    } else {
+      [330, 262, 196].forEach((f, i) => setTimeout(() => tone(f, 1.1 + i * 0.2, 'sine', 0.16, f * 0.97), i * 270)); // descending fall
+      setTimeout(() => tone(98, 2.0, 'sine', 0.14, 68), 180); // a low sub underpins the loss
+    }
+  },
   /** Update the ambient bed; pass null to fade it out. */
   music(pressure: number | null, dt: number): void {
     if (!ensure() || !ctx || !musicBus) return;
