@@ -2567,3 +2567,302 @@ kbd {
   background: rgba(226, 77, 255, 0.16);
   border-color: var(--viral);
 }
+
+/* ── Loot opening v3: NBA-2K-style card reveal ceremony ───────────────────────────
+   box appears → opens → bright mutation burst → a face-down card rises, slowly turning,
+   its rarity glowing → TAP → 3D flip to the reward → summary cascades. Pacing/intensity
+   scale with rarity; .is-rare / .is-epic add beams, a shockwave, and extra glow. */
+.loot-v3 .loot-stage {
+  position: relative;
+  min-height: 252px;
+  display: grid;
+  place-items: center;
+}
+/* the chest pops in (step 1) then the existing .chest.is-open handles opening (step 2) */
+.loot-v3.stage-box .chest-box { animation: loot-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.loot-v3.stage-box .loot-glow,
+.loot-v3.stage-opening .loot-glow { animation: loot-charge 0.9s ease-in-out infinite; }
+.loot-v3.stage-burst .loot-glow { animation: loot-bloom 0.6s ease-out; }
+
+/* step 3: the bright light / mutation flash */
+.loot-flash {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--loot-accent) 32%, transparent 70%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: loot-whiteflash 0.5s ease-out forwards;
+}
+@keyframes loot-whiteflash {
+  0% { opacity: 0; transform: scale(0.4); }
+  25% { opacity: 0.95; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* the 3D card stage */
+.loot-card-wrap {
+  position: relative;
+  perspective: 1100px;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 248px;
+}
+.loot-card3d {
+  position: relative;
+  width: 158px;
+  height: 218px;
+  transform-style: preserve-3d;
+  transform: rotateY(-16deg) rotateX(7deg);
+  animation: card-emerge 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+/* steps 5–6: the face-down card slowly turns + floats while its rarity glows in */
+.loot-v3.stage-burst .loot-card3d,
+.loot-v3.stage-tease .loot-card3d {
+  animation: card-emerge 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both, card-hover 3.6s ease-in-out 0.5s infinite;
+}
+.loot-v3.is-rare.stage-tease .loot-card3d { animation: card-emerge 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both, card-hover 5s ease-in-out 0.5s infinite; } /* slower = more suspense */
+/* step 8: the reveal flip (always starts from the nominal hover pose → deterministic) */
+.loot-card3d.is-flipped { animation: card-flip 0.66s cubic-bezier(0.3, 1.05, 0.35, 1) forwards; }
+
+@keyframes card-emerge {
+  from { opacity: 0; transform: translateY(46px) scale(0.55) rotateY(-16deg) rotateX(7deg); }
+  to { opacity: 1; transform: translateY(0) scale(1) rotateY(-16deg) rotateX(7deg); }
+}
+@keyframes card-hover {
+  0% { transform: rotateY(-16deg) rotateX(7deg) translateY(0); }
+  50% { transform: rotateY(16deg) rotateX(7deg) translateY(-9px); }
+  100% { transform: rotateY(-16deg) rotateX(7deg) translateY(0); }
+}
+@keyframes card-flip {
+  from { transform: rotateY(-16deg) rotateX(7deg); }
+  to { transform: rotateY(180deg) rotateX(0deg); }
+}
+
+.card-back,
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 13px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border: 2px solid var(--loot-accent);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55), 0 0 22px -6px var(--loot-accent);
+}
+.card-back {
+  transform: rotateY(0deg);
+  background: linear-gradient(160deg, #0c1a26, #122430);
+}
+.card-face {
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, #11212d, #0a141c);
+  display: grid;
+  grid-template-rows: auto 1fr auto auto auto;
+  gap: 6px;
+  padding: 14px 10px 12px;
+  text-align: center;
+}
+
+/* card back: hive sigil + sweeping holo + rarity badge (the step-6 indicators) */
+.card-back-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 9px, rgba(255, 255, 255, 0.035) 9px 10px),
+    repeating-linear-gradient(-45deg, transparent 0 9px, rgba(255, 255, 255, 0.035) 9px 10px);
+}
+.card-sigil {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: 2px solid var(--loot-accent);
+  background: radial-gradient(circle, var(--loot-accent) 0%, transparent 62%);
+  box-shadow: 0 0 18px -2px var(--loot-accent), inset 0 0 14px -4px var(--loot-accent);
+  opacity: 0.5;
+  animation: sigil-pulse 1.8s ease-in-out infinite;
+}
+@keyframes sigil-pulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.4; }
+  50% { transform: scale(1.06); opacity: 0.78; }
+}
+.card-holo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.18) 47%, rgba(255, 255, 255, 0.05) 53%, transparent 70%);
+  background-size: 250% 250%;
+  mix-blend-mode: screen;
+  animation: holo-sweep 3s ease-in-out infinite;
+}
+@keyframes holo-sweep {
+  0% { background-position: 130% 0; }
+  100% { background-position: -30% 0; }
+}
+.card-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  display: grid;
+  gap: 5px;
+  place-items: center;
+  animation: fade-up 0.5s ease 0.28s both; /* step 6: rarity indicators fade into view */
+}
+.card-gem {
+  width: 16px;
+  height: 16px;
+  transform: rotate(45deg);
+  background: var(--loot-accent);
+  box-shadow: 0 0 12px var(--loot-accent);
+  animation: gem-glow 1.4s ease-in-out infinite;
+}
+@keyframes gem-glow {
+  0%, 100% { box-shadow: 0 0 8px var(--loot-accent); }
+  50% { box-shadow: 0 0 18px var(--loot-accent); }
+}
+.card-rword {
+  font: 800 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.18em;
+  color: var(--loot-accent);
+  text-shadow: 0 0 10px var(--loot-accent);
+}
+.card-pips { display: flex; gap: 4px; }
+.card-pips.face { justify-content: center; }
+.card-pips i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--loot-accent);
+  box-shadow: 0 0 6px var(--loot-accent);
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* card face: the revealed reward (emblem + name + amount), not just text */
+.card-face-rword {
+  font: 800 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.18em;
+  color: var(--loot-accent);
+  text-shadow: 0 0 10px var(--loot-accent);
+}
+.card-emblem {
+  position: relative;
+  align-self: center;
+  width: 80px;
+  height: 80px;
+}
+.emblem-core {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: var(--rw, var(--loot-accent));
+  box-shadow: 0 0 24px var(--rw, var(--loot-accent));
+}
+.emblem-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--rw, var(--loot-accent));
+  opacity: 0.6;
+  animation: sigil-pulse 1.6s ease-in-out infinite;
+}
+.card-reward-name { font: 700 13px/1.2 system-ui, sans-serif; color: #eaf2f8; }
+.card-reward-amt { font: 800 15px/1 system-ui, sans-serif; }
+
+/* aura behind the card (rarity glow), intensifies for rare+ */
+.card-aura {
+  position: absolute;
+  width: 232px;
+  height: 232px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--loot-accent) 0%, transparent 62%);
+  opacity: 0.2;
+  filter: blur(8px);
+  pointer-events: none;
+  animation: aura-pulse 2.2s ease-in-out infinite;
+}
+.loot-v3.is-rare .card-aura { opacity: 0.34; }
+@keyframes aura-pulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.16; }
+  50% { transform: scale(1.08); opacity: 0.4; }
+}
+
+/* rare+ additional presentation: rotating light beams behind the card */
+.card-beams {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  pointer-events: none;
+  opacity: 0;
+  filter: blur(1.5px);
+  /* an even sunburst of rays — masked to a ring so it haloes the card, not the whole panel */
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg 10deg,
+    rgba(255, 255, 255, 0.05) 10deg 12deg,
+    transparent 12deg 21deg,
+    var(--loot-accent) 21deg 22.5deg,
+    transparent 22.5deg 30deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 25%, #000 32%, #000 58%, transparent 70%);
+  mask: radial-gradient(circle, transparent 25%, #000 32%, #000 58%, transparent 70%);
+  animation: beams-spin 9s linear infinite, beams-in 0.6s ease 0.2s forwards;
+}
+.loot-v3.is-epic .card-beams { animation: beams-spin 7s linear infinite, beams-in 0.6s ease 0.2s forwards; }
+@keyframes beams-spin { to { transform: rotate(360deg); } }
+@keyframes beams-in { to { opacity: 0.6; } }
+
+/* shockwave ring punched out on the reveal (rare+) */
+.card-shockwave {
+  position: absolute;
+  width: 158px;
+  height: 218px;
+  border-radius: 14px;
+  border: 3px solid var(--loot-accent);
+  pointer-events: none;
+  animation: card-shock 0.6s ease-out forwards;
+}
+@keyframes card-shock {
+  from { transform: scale(0.72); opacity: 0.9; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+
+/* step 7: the reveal prompt */
+.loot-reveal-prompt {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 800 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  color: #fff;
+  text-shadow: 0 0 12px var(--loot-accent);
+  animation: prompt-pulse 1s ease-in-out infinite;
+}
+@keyframes prompt-pulse {
+  0%, 100% { opacity: 0.55; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loot-card3d,
+  .loot-v3.stage-burst .loot-card3d,
+  .loot-v3.stage-tease .loot-card3d,
+  .loot-card3d.is-flipped,
+  .card-sigil,
+  .emblem-ring,
+  .card-holo,
+  .card-beams,
+  .card-aura,
+  .card-gem,
+  .loot-reveal-prompt { animation-duration: 0.01ms; animation-iteration-count: 1; }
+}
