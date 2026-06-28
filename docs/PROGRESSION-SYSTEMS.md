@@ -137,18 +137,21 @@ next loot box is determined before the current meter completes" (LOOTBOX.md anti
 
 **Public APIs:** `rollRarity`, `lootPool`, `costOf`, `emptyPity`/`updatePity`/`pityRemaining`
 (loot.ts); `defaultLootQueue`, `sanitizeLootQueue`, `addProgress` (lootQueue.ts); `rollLoot`
-(lootbox.ts); `meta.lootQueue()`, `meta.debugAddLootPoints(n)`; `RunOutcome.loot =
-{ queue, awarded: {rarity, chest}[] }`.
+(lootbox.ts); `meta.lootQueue()`, `meta.syncRunLoot(wave, kills)`, `meta.debugAddLootPoints(n)`;
+`RunOutcome.loot = { queue, awarded: {rarity, chest}[] }`.
 
-**Seams:** `meta.finishRun` banks `wave·pointsPerWave + kills·pointsPerKill`, opens awarded
-boxes into the same shard totals, persists `save.lootQueue` (schema **v4**, additive
-migration via `sanitizeLootQueue`). `LootMeter` shows the front box + progress + the
-pre-determined next, computing live points from the existing `HudSnapshot.wave/kills`.
-`Results` animates each awarded box (`LootReveal` takes `title`/`color`).
+**Seams:** loot banks **LIVE** during a run — the HUD loop calls `meta.syncRunLoot(wave, kills)`
+each throttle tick, which banks the delta into `save.lootQueue` (pure progress is in-memory via
+`store.set`; a completed box rolls its shards and `persist`s, and is remembered for the reveal).
+`meta.finishRun` then banks only the **remainder** (`floor(wave·pointsPerWave + kills·pointsPerKill)
+− already-banked`) so nothing double-counts, and reveals the live + final boxes together; it
+persists `save.lootQueue` (schema **v4**, additive migration via `sanitizeLootQueue`). `LootMeter`
+reads the live `save.lootQueue` directly (front box + progress + pre-determined next). `Results`
+animates each awarded box (`LootReveal` takes `title`/`color`).
 
 **Golden-safe:** loot is a **meta** concern using `Math.random`; the sim is untouched
-(`game.ts`/`HudSnapshot` unchanged — the meter derives points in React). All 6 golden seeds
-byte-identical.
+(`game.ts` unchanged — `syncRunLoot` only *reads* the run's `wave`/`kills` from React and never
+feeds back into the sim). All 6 golden seeds byte-identical.
 
 **Extend:** a new rarity (incl. event-exclusive) is a `rarityRegistry.register` data edit;
 tune odds via `weight`, pacing via `cost`/`LOOT_EARN`, pity via the `pity` ceiling. Enable an

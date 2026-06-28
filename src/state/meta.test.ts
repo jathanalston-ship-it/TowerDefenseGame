@@ -1,9 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { defaultSave, serializeExport } from '../save/saveStore';
+import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
 import { meta, metaModifiers, upgradeCost } from './meta';
-import { META_UPGRADES, TOWER_ORDER } from '../core/config';
-import { isLootRarity } from '../core/loot';
+import type { RunResult } from './meta';
+import { HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
+import { costOf, isLootRarity } from '../core/loot';
+import type { RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
+
+/** Minimal finished-run payload (zeroed mastery/stats) — enough to drive finishRun's loot
+ * banking without standing up a full Game. */
+function runResult(wave: number, kills: number): RunResult {
+  const zero = { kills: 0, damage: 0, activeTime: 0 };
+  const mastery = TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: { ...zero } }), {}) as RunResult['mastery'];
+  const heroMastery = HERO_ORDER.reduce((o, k) => ({ ...o, [k]: { ...zero } }), {}) as RunResult['heroMastery'];
+  const stats: RunStats = {
+    kills,
+    wave,
+    won: true,
+    biomassEarned: 0,
+    damageDealt: 0,
+    killsByEnemy: defaultLifetimeStats().killsByEnemy,
+    towerBuilds: TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: 0 }), {}) as RunStats['towerBuilds'],
+    cardIds: [],
+    heroId: HERO_ORDER[0],
+  };
+  return { wave, kills, won: true, mastery, heroMastery, stats };
+}
 
 describe('metaModifiers (data-driven upgrades)', () => {
   it('is identity with no upgrades', () => {
@@ -143,5 +165,49 @@ describe('loot queue integration (the finishRun banking seam)', () => {
     // the queue stays full + valid after awarding (next box always pre-determined)
     expect(after.lootQueue.queue.length).toBeGreaterThanOrEqual(2);
     expect(after.lootQueue.queue.every(isLootRarity)).toBe(true);
+  });
+});
+
+describe('live loot banking (syncRunLoot ↔ finishRun reconciliation)', () => {
+  it('banks loot LIVE mid-run and conserves every point through finishRun (no double-count)', () => {
+    meta.reset(); // fresh queue, progress 0, no prestige → lootGainMult = 1 (integer points)
+
+    // Drive the run forward in steps the way the HUD loop does — each sync banks only the delta.
+    let liveBoxes = 0;
+    liveBoxes += meta.syncRunLoot(10, 200).length; // 10·14 + 200 = 340 pts
+    liveBoxes += meta.syncRunLoot(20, 500).length; // 20·14 + 500 = 780 pts (delta 440)
+    expect(liveBoxes).toBeGreaterThan(0); // boxes actually opened mid-run, not just at the end
+
+    const out = meta.finishRun(runResult(30, 1000)); // 30·14 + 1000 = 1420 pts total
+    const fullPoints = 30 * 14 + 1000;
+
+    // Every box opened this run (live + final) is revealed exactly once …
+    expect(out.loot.awarded.length).toBeGreaterThanOrEqual(liveBoxes);
+    // … and the loot points are conserved: box costs + leftover progress == the full earn.
+    const spentOnBoxes = out.loot.awarded.reduce((s, b) => s + costOf(b.rarity), 0);
+    expect(spentOnBoxes + out.loot.queue.progress).toBe(fullPoints);
+    expect(out.loot.queue.queue.every(isLootRarity)).toBe(true); // queue still valid afterward
+  });
+
+  it('a run that never syncs still banks the full amount at finishRun (unchanged path)', () => {
+    meta.reset();
+    const out = meta.finishRun(runResult(12, 300)); // 12·14 + 300 = 468 pts
+    const spent = out.loot.awarded.reduce((s, b) => s + costOf(b.rarity), 0);
+    expect(spent + out.loot.queue.progress).toBe(12 * 14 + 300);
+  });
+
+  it('re-arms across runs: a new run banks its own full amount instead of under-counting', () => {
+    meta.reset();
+    meta.syncRunLoot(40, 2000); // a big first run banks a lot live …
+    meta.finishRun(runResult(40, 2000)); // … and settles, resetting the live cycle
+    const startProgress = meta.get().lootQueue.progress; // the queue carries over (never resets)
+
+    // A fresh, smaller run must bank its OWN full amount on top of the carried progress — not be
+    // starved by the previous run's higher banked total (exercises syncRunLoot's reset guard:
+    // if the cycle didn't re-arm, sync's delta would go negative and bank nothing).
+    meta.syncRunLoot(5, 50); // 5·14 + 50 = 120 pts
+    const out = meta.finishRun(runResult(8, 100)); // 8·14 + 100 = 212 pts THIS run
+    const spent = out.loot.awarded.reduce((s, b) => s + costOf(b.rarity), 0);
+    expect(spent + out.loot.queue.progress).toBe(startProgress + 8 * 14 + 100);
   });
 });
