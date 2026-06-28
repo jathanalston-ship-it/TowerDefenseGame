@@ -61,5 +61,5 @@ No menu or engine change. New nav keys get badges for free.
   new player); clears on first view.
 - Dots are count-less by design (spec: "dots"); the count rides in the button
   `aria-label`. A numbered variant would be a CSS/markup tweak only.
-- Pulse animation isn't yet gated behind a Reduce-Motion setting (none exists
-  globally yet — see GAME-FEEL.md §4).
+- The pulse honors `prefers-reduced-motion` via the global catch-all in index.css
+  (it neutralizes all animation/transition durations), so no per-badge gate is needed.
