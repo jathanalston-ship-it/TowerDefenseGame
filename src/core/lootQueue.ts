@@ -11,48 +11,6 @@
 import { LOOT_QUEUE_DEPTH, costOf, emptyPity, isLootRarity, rollRarity, updatePity } from './loot';
 import type { PityState } from './loot';
 
-/** A read-only view of the meter for the HUD: which box is filling NOW (after the run's live
- * points have walked the pre-determined queue), its fill %, the box after it, and how many
- * boxes the run has completed so far. Pure + deterministic — the same `(state, livePoints)`
- * the run-end `addProgress` sees, so the live meter matches the award it will produce. */
-export interface LootMeterView {
-  frontId: string; // the box currently filling
-  nextId: string | undefined; // the box queued after it (the visible "next")
-  filled: number; // loot points into the current box
-  cost: number; // the current box's cost
-  pct: number; // 0..1 fill of the current box
-  completed: number; // boxes fully filled by this run's points (drives the completion animation)
-}
-
-/** Walk the pre-determined queue by the run's live points so the meter CYCLES through a run's
- * boxes instead of capping at the first. Past the known queue it keeps cycling on the last
- * box's cost (a deep endless run never "maxes out" — it just keeps completing boxes). */
-export function lootMeterView(state: LootQueueState, livePoints: number): LootMeterView {
-  const queue = state.queue;
-  let rem = state.progress + (isFinite(livePoints) && livePoints > 0 ? livePoints : 0);
-  let completed = 0;
-  // Advance through the pre-rolled queue (stop before the last so overflow can keep cycling).
-  while (completed < queue.length - 1 && rem >= costOf(queue[completed])) {
-    rem -= costOf(queue[completed]);
-    completed++;
-  }
-  // Overflow: past the known boxes, keep completing on the last box's cost (never caps).
-  if (queue.length > 0 && completed === queue.length - 1) {
-    const last = costOf(queue[queue.length - 1]);
-    let guard = 0;
-    while (rem >= last && guard++ < 100000) {
-      rem -= last;
-      completed++;
-    }
-  }
-  const frontIdx = Math.min(completed, Math.max(0, queue.length - 1));
-  const frontId = queue[frontIdx] ?? 'common';
-  const nextId = queue[frontIdx + 1];
-  const cost = costOf(frontId);
-  const filled = Math.min(rem, cost);
-  return { frontId, nextId, filled, cost, pct: cost > 0 ? Math.min(1, filled / cost) : 0, completed };
-}
-
 export interface LootQueueState {
   /** Loot points banked toward the FRONT box (queue[0]). */
   progress: number;

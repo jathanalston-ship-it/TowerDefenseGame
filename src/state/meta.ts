@@ -73,6 +73,14 @@ function persist(next: SaveData): void {
   saveStore.save(next);
 }
 
+// Loot banked LIVE during the in-progress run (see meta.syncRunLoot). The HUD drives this as
+// the run advances, so the meta queue rolls real boxes in real time — exact even for deep
+// endless runs, not a run-end-only estimate. Reconciled at run end: finishRun banks only the
+// REMAINDER and reveals every box opened this run, then resets the cycle. A snapshot reset (a
+// new run starting back near 0) also re-arms it defensively.
+let runLootBanked = 0; // loot points already banked this run via syncRunLoot
+let runLootAwarded: LootBoxAward[] = []; // boxes opened live this run (for the Results reveal)
+
 /**
  * Permanent multipliers derived from upgrade levels (folded into a run at start).
  * Data-driven: each upgrade declares its target stat + per-level value (config),
@@ -445,12 +453,14 @@ export const meta = {
     const gear = chest.equipment[0] ?? rollItemDrop(Math.random, result.wave);
     const gearAdds = chest.equipment.length ? chest.equipment : [gear];
 
-    // 5. loot queue: bank this run's loot points; awarding any box the meter completed
-    //    slides the pre-determined next box forward and rolls a fresh tail (anticipation
-    //    never resets). Awarded boxes roll their reward tables into the same shard totals.
+    // 5. loot queue: the HUD's live syncRunLoot already banked most of this run's points (and
+    //    opened any box the meter completed mid-run, folding its shards into `save` already).
+    //    Bank only the REMAINDER here so nothing double-counts, then combine the live-opened
+    //    boxes with any final one(s) for the Results reveal. A run that never synced has
+    //    runLootBanked = 0 → it banks the full amount, exactly as before (golden-safe).
     const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
-    const lootAdv = addProgress(save.lootQueue, lootPoints);
-    const lootAwarded = openLootBoxes(lootAdv.awarded, towerShards, heroShards);
+    const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
+    const lootAwarded = [...runLootAwarded, ...openLootBoxes(lootAdv.awarded, towerShards, heroShards)];
 
     // 6. mastery identity: unlock any titles/lore crossed by this run's mastery level-ups.
     const newTitles: string[] = [];
@@ -487,6 +497,8 @@ export const meta = {
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
     });
+    runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
+    runLootAwarded = [];
     this.evaluateAchievements(result); // run-end milestones (extract, kills, mastery, …)
     return {
       reward: { shardsEarned, newBest },
@@ -505,6 +517,36 @@ export const meta = {
     const save = store.get();
     if (id !== null && !save.unlockedTitles.includes(id)) return;
     persist({ ...save, equippedTitle: id });
+  },
+
+  /**
+   * Bank this run's loot points into the meta queue LIVE — called from the HUD as the run
+   * progresses (wave/kills climb), so the meter advances in real time and deep/endless runs
+   * roll the CORRECT boxes exactly, not a run-end-only estimate that caps at the first box.
+   * Banks only the delta since the last call. Pure progress updates the store in-memory only
+   * (HUD-live, no disk write every frame); completing a box rolls its rewards into the shard
+   * totals immediately, persists, and remembers the box for the run-end reveal. A snapshot
+   * reset (a new run back near 0) re-arms the cycle. Returns boxes opened by THIS call.
+   */
+  syncRunLoot(wave: number, kills: number): LootBoxAward[] {
+    const save = store.get();
+    const asc = ascendantBonuses(save.prestige.nodes);
+    const total = Math.floor(Math.max(0, wave * LOOT_EARN.pointsPerWave + kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
+    if (total < runLootBanked) { runLootBanked = 0; runLootAwarded = []; } // a new run began → fresh cycle
+    const delta = total - runLootBanked;
+    if (delta <= 0) return [];
+    runLootBanked = total;
+    const adv = addProgress(save.lootQueue, delta);
+    if (adv.awarded.length === 0) {
+      store.set({ ...save, lootQueue: adv.state }); // pure progress: advance the meter, skip the disk write
+      return [];
+    }
+    const towerShards = { ...save.towerShards };
+    const heroShards = { ...save.heroShards };
+    const opened = openLootBoxes(adv.awarded, towerShards, heroShards);
+    runLootAwarded = [...runLootAwarded, ...opened];
+    persist({ ...save, towerShards, heroShards, lootQueue: adv.state }); // a box completed → bank its rewards
+    return opened;
   },
 
   /** Current loot-queue state: the box the meter is filling, the pre-determined next

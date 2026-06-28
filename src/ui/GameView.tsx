@@ -123,6 +123,7 @@ export function GameView({
 
         if (now - lastHud > 80) {
           setHud(game.getSnapshot());
+          meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE into the meta queue
           lastHud = now;
         }
         if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {

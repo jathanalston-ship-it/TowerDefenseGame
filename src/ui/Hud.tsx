@@ -144,7 +144,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
         <span className="tt-bubble">Battlefield pressure · {hud.enemiesAlive} alive · {hud.kills} killed.</span>
       </div>
 
-      <LootMeter hud={hud} />
+      <LootMeter />
 
       <div className="hud-cell hud-hero tt" tabIndex={0}>
         <div className="hud-k">{heroDef.name}</div>

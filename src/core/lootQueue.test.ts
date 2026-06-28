@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addProgress, defaultLootQueue, lootMeterView, sanitizeLootQueue } from './lootQueue';
+import { addProgress, defaultLootQueue, sanitizeLootQueue } from './lootQueue';
 import { LOOT_QUEUE_DEPTH, costOf, emptyPity, isLootRarity } from './loot';
 
 describe('defaultLootQueue', () => {
@@ -57,40 +57,6 @@ describe('addProgress', () => {
     expect(r.awarded).toEqual(['common', 'common', 'common', 'common', 'common']);
     expect(r.state.pity.epic).toBe(5);
     expect(r.state.pity.legendary).toBe(5);
-  });
-});
-
-describe('lootMeterView (the live HUD meter)', () => {
-  const sixCommons = () => ({ progress: 0, queue: ['common', 'common', 'common', 'common', 'common', 'common'], pity: emptyPity() });
-
-  it('fills the current box, then CYCLES to the next once it completes (never caps)', () => {
-    const q = sixCommons();
-    const c = costOf('common');
-    const below = lootMeterView(q, c - 1);
-    expect(below.completed).toBe(0);
-    expect(below.pct).toBeCloseTo((c - 1) / c);
-    const past = lootMeterView(q, c + 5);
-    expect(past.completed).toBe(1); // advanced — the meter reset to the next box
-    expect(past.filled).toBe(5); // carrying the overflow into it
-    expect(past.pct).toBeCloseTo(5 / c);
-  });
-
-  it('matches the boxes the run-end addProgress will award (same points)', () => {
-    const q = sixCommons();
-    const pts = 250; // two commons (200) + 50 carry
-    const view = lootMeterView(q, pts);
-    const award = addProgress(q, pts, () => 0);
-    expect(view.completed).toBe(award.awarded.length);
-    expect(view.completed).toBe(2);
-    expect(view.filled).toBe(award.state.progress);
-  });
-
-  it('never maxes out — a deep run keeps completing boxes past the queue', () => {
-    const q = defaultLootQueue();
-    const a = lootMeterView(q, 5000);
-    const b = lootMeterView(q, 50000);
-    expect(b.completed).toBeGreaterThan(a.completed); // keeps cycling, not stuck at the queue end
-    expect(b.pct).toBeLessThanOrEqual(1);
   });
 });
 

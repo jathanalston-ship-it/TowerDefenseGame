@@ -121,11 +121,10 @@ rarityRegistry.registerAll(RARITIES);
  * HUD meter mirrors this live from the run snapshot, so display and award stay in sync. */
 export const LOOT_EARN = { pointsPerWave: 14, pointsPerKill: 1 };
 
-/** How many boxes the queue keeps determined at once. Front = filling now; the rest are
- * pre-rolled "next" boxes (the HUD surfaces front + next). Deep enough that a single run's
- * worth of completions are all pre-determined, so the live meter cycles through them with
- * the CORRECT rarities (and matches the run-end award); the meter overflow-cycles past it. */
-export const LOOT_QUEUE_DEPTH = 6;
+/** How many boxes the queue keeps determined at once: the front (filling now) + the visible
+ * "next". The run banks loot LIVE (meta.syncRunLoot), so the queue rolls a fresh box each time
+ * the front completes — it never needs to pre-roll a whole run's worth up front. */
+export const LOOT_QUEUE_DEPTH = 2;
 
 // ── Lookups ───────────────────────────────────────────────────────────────────
 
