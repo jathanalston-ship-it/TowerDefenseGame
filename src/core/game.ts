@@ -81,6 +81,7 @@ import type { TargetingProfile } from './targeting';
 import { applyMutators } from './mutators';
 import { gameEvents } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
+import type { ResolvedBranchKit } from './branches';
 import type { Branch } from './branches';
 import { BRANCH_COSTS } from './config';
 
@@ -321,6 +322,7 @@ export class Game {
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
   private castRangeMult = 1; // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
+  private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -593,7 +595,8 @@ export class Game {
     t.branchId = branchId;
     t.tier += 1;
     this.recomputeTowerCaches(); // overcharge adjacency unaffected, but keep caches coherent
-    this.pushSfx('place'); // mutation/splice sound hook
+    this.pushSfx('splice'); // the commitment/mutation moment — a meatier cue than a plain place
+    this.spawnParticles(t.x, t.y, PARTICLE.bloom, TOWER_DEFS[t.kind].color); // mutation burst at the tower
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
     return 'ok';
   }
@@ -1271,6 +1274,7 @@ export class Game {
         bk && bk.projectileMutators.length
           ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
           : prog.projectileMutators ?? EMPTY_STR;
+      this.castProjectileSkin = bk ? t.branchId ?? undefined : undefined; // branch shot-skin (renderer-only)
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
@@ -1281,13 +1285,19 @@ export class Game {
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
       // Branch-granted attacks (shrapnel crits, infection, neural bolts …) on the same cadence.
       if (bk && bk.extraAbilities.length) acted = runAbilities(this.actx, bk.extraAbilities, this.castScratch) || acted;
-      if (acted) t.cooldown = def.fireInterval / rateMult;
+      if (acted) {
+        t.cooldown = def.fireInterval / rateMult;
+        // Branch sensory signature (TOWER-BRANCHES.md §1): a muzzle spray + sound on every shot.
+        // Cosmetic only (FX rng + sfx queue) ⇒ golden-safe; bk is null on the unbranched/autoplay path.
+        if (bk) this.emitBranchSignature(bk, t.x, t.y - 6);
+      }
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
     this.castRangeMult = 1;
     this.castProjectileMutators = EMPTY_STR;
+    this.castProjectileSkin = undefined;
   }
 
   /** A branched SUPPORT tower (Flesh Reactor) runs its branch abilities — auras, summons,
@@ -1309,6 +1319,15 @@ export class Game {
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+    this.emitBranchSignature(bk, t.x, t.y); // the reactor's pulse throws its branch matter too
+  }
+
+  /** Spray a branched tower's signature particle + sound on an attack/pulse. Cosmetic only —
+   *  the FX rng and sfx queue are independent of the gameplay rng, so this never perturbs the
+   *  pinned sim (and bk is only ever passed for a branched tower, never on the golden path). */
+  private emitBranchSignature(bk: ResolvedBranchKit, x: number, y: number): void {
+    if (bk.particle) this.spawnParticles(x, y, PARTICLE[bk.particle]);
+    if (bk.sfx) this.pushSfx(bk.sfx);
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -2015,11 +2034,12 @@ export class Game {
       p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
       p.sourceKind = sourceKind;
       p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
+      p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
       if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
       this.applyProjectileMutators(p);
     } else {
-      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0 };
+      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0, skin: this.castProjectileSkin };
       this.projectiles.push(np);
       this.applyProjectileMutators(np);
     }

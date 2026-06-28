@@ -14,6 +14,7 @@
 
 import { Registry } from './registry';
 import type { TowerKind } from './types';
+import type { ParticleKind } from './ability';
 import type { StarGrant, ResolvedStarKit } from './stars';
 import { emptyStarKit, applyGrant } from './stars';
 
@@ -25,6 +26,11 @@ export interface BranchTier {
   fireRateMult?: number; // default 1
   rangeMult?: number; // default 1
   grants: StarGrant[]; // the mutation (targeting / projectile / ability / reactor / cosmetic)
+  // ── Sensory mutation (TOWER-BRANCHES.md §1): every tier visibly/audibly changes the tower.
+  //    Cosmetic only (FX rng + sfx queue) ⇒ never perturbs the pinned sim. Cumulative fold:
+  //    the highest purchased tier that sets one wins (a capstone can escalate the signature). ──
+  particle?: ParticleKind; // sprayed at the muzzle on every attack/pulse
+  sfx?: string; // sound cue tag on every attack/pulse (audio/sound.ts)
 }
 
 export interface Branch {
@@ -35,13 +41,18 @@ export interface Branch {
   tiers: BranchTier[]; // exactly 5, ascending 1..5
 }
 
-/** A tower instance's resolved branch state: the star kit plus per-tier stat mults. */
+/** A tower instance's resolved branch state: the star kit plus per-tier stat mults and the
+ * folded sensory signature (the attack particle/sfx of the highest tier that sets one). */
 export interface ResolvedBranchKit extends ResolvedStarKit {
   damageMult: number;
   fireRateMult: number;
   rangeMult: number;
+  particle?: ParticleKind; // muzzle spray on attack (undefined ⇒ none)
+  sfx?: string; // attack sound cue (undefined ⇒ none)
 }
 
+// NOTE: particle/sfx are intentionally left UNSET here so `resolveBranchKit(x, 0)` is deep-equal
+// to a fresh kit (the golden-safe identity asserted in branches.test.ts).
 export function emptyBranchKit(): ResolvedBranchKit {
   return { ...emptyStarKit(), damageMult: 1, fireRateMult: 1, rangeMult: 1 };
 }
@@ -70,6 +81,8 @@ export function resolveBranchKit(branchId: string | null, tier: number): Resolve
     if (t.damageMult) kit.damageMult *= t.damageMult;
     if (t.fireRateMult) kit.fireRateMult *= t.fireRateMult;
     if (t.rangeMult) kit.rangeMult *= t.rangeMult;
+    if (t.particle) kit.particle = t.particle; // last (highest) tier that sets a signature wins
+    if (t.sfx) kit.sfx = t.sfx;
     for (const g of t.grants) applyGrant(kit, g);
   }
   return kit;
@@ -90,7 +103,7 @@ const BRANCHES: Branch[] = [
     id: 'needle_swarm', tower: 'needle', name: 'Hivemind Swarm',
     theme: 'One spitter becomes a self-guiding needle swarm that shreds crowds.',
     tiers: [
-      { tier: 1, name: 'Barbed Needles', desc: 'Needles pierce 1 enemy; lock onto the FASTEST target.', damageMult: 1.1, grants: [{ t: 'targeting', profile: 'fastest' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 1, name: 'Barbed Needles', desc: 'Needles pierce 1 enemy; lock onto the FASTEST target.', damageMult: 1.1, particle: 'barb', sfx: 'br_swarm', grants: [{ t: 'targeting', profile: 'fastest' }, { t: 'projectile', mutators: ['pierce1'] }] },
       { tier: 2, name: 'Twin Spinnerets', desc: 'Fires +2 needles per volley, faster.', fireRateMult: 1.2, grants: [{ t: 'projectile', extraProjectiles: 2 }] },
       { tier: 3, name: 'Venom Coating', desc: 'Needles smear Corrosion — enabling Shred with their Fracture.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1 } }] }] },
       { tier: 4, name: 'Swarm Logic', desc: '+2 more needles, pierce 2; hunt the most-corrupted prey.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce2'] }, { t: 'targeting', profile: 'mostCorrupted' }] },
@@ -101,7 +114,7 @@ const BRANCHES: Branch[] = [
     id: 'needle_rail', tower: 'needle', name: 'Apex Railspike',
     theme: 'A patient sniper that drives a single colossal spike through elites.',
     tiers: [
-      { tier: 1, name: 'Hollowpoint', desc: 'Pierce 1; target the HIGHEST-health enemy.', damageMult: 1.25, grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 1, name: 'Hollowpoint', desc: 'Pierce 1; target the HIGHEST-health enemy.', damageMult: 1.25, particle: 'spark', sfx: 'br_rail', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce1'] }] },
       { tier: 2, name: 'Armor Render', desc: 'Each spike rips +2 Fracture; longer reach.', damageMult: 1.15, rangeMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }] }] },
       { tier: 3, name: 'Charged Shot', desc: 'Slower cadence, but each spike hits far harder and pierces 2.', damageMult: 1.9, fireRateMult: 0.65, grants: [{ t: 'projectile', mutators: ['pierce2'] }] },
       { tier: 4, name: 'Executioner', desc: 'Priority on elites; brutal critical strikes.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'elitePriority' }, { t: 'ability', components: [{ type: 'crit', chance: 0.5, mult: 3, damage: 10 }] }] },

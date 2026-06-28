@@ -123,6 +123,15 @@ function sJackpot(): void { // rare hero-shard sparkle
 }
 function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
 
+// ── Tower-branch cues (TOWER-BRANCHES.md) — `splice` is the commit moment; the `br_*` tags are
+//    each branch's per-shot firing signature. Firing cues are deliberately SHORT + QUIET so a
+//    board of mutated towers layers under the hit/kill mix rather than drowning it (voice-capped). ──
+function sSplice(): void { // wet, rising graft — the irreversible commitment
+  tone(150, 0.22, 'sawtooth', 0.13, 360); tone(80, 0.26, 'sine', 0.12, 190); noise(0.2, 0.1, 1100, 3200);
+}
+function sBrSwarm(): void { noise(0.04, 0.05, 4200); tone(760, 0.05, 'square', 0.035, 980); } // chittering barb volley
+function sBrRail(): void { tone(1250, 0.06, 'sawtooth', 0.06, 230); tone(130, 0.11, 'sine', 0.06, 66); } // railgun crack + thud
+
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
   droneOn = true;
@@ -182,6 +191,9 @@ export const audio = {
         case 'reveal': sReveal(); break;
         case 'jackpot': sJackpot(); break;
         case 'achieve': sAchieve(); break;
+        case 'splice': sSplice(); break;
+        case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;
+        case 'br_rail': sBrRail(); break;
       }
     }
   },

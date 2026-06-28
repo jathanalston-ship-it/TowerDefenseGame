@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { branchRegistry, branchesFor, resolveBranchKit, emptyBranchKit } from './branches';
 import { Game } from './game';
-import { BRANCH_COSTS, TOWER_ORDER } from './config';
+import { BRANCH_COSTS, SIM_DT, TOWER_ORDER } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
@@ -42,6 +42,21 @@ describe('resolveBranchKit', () => {
     expect(resolveBranchKit('needle_swarm', 1).targeting).toBe('fastest'); // T1
     expect(resolveBranchKit('needle_swarm', 5).targeting).toBe('mostCorrupted'); // T4 wins
   });
+
+  it('carries a sensory signature (particle + sfx) from the lock tier through the capstone', () => {
+    // The lock tier sets the branch's attack particle/sfx; the cumulative fold keeps it at every
+    // higher tier (so a maxed tower still sprays its signature). Cosmetic only — golden-safe.
+    expect(resolveBranchKit('needle_swarm', 1).particle).toBe('barb');
+    expect(resolveBranchKit('needle_swarm', 1).sfx).toBe('br_swarm');
+    expect(resolveBranchKit('needle_swarm', 5).particle).toBe('barb'); // still set at the capstone
+    expect(resolveBranchKit('needle_rail', 2).particle).toBe('spark');
+    expect(resolveBranchKit('needle_rail', 2).sfx).toBe('br_rail');
+  });
+
+  it('an unbranched kit has no sensory signature (identity)', () => {
+    expect(resolveBranchKit('needle_swarm', 0).particle).toBeUndefined();
+    expect(resolveBranchKit('needle_swarm', 0).sfx).toBeUndefined();
+  });
 });
 
 describe('purchase + lock economy (Game)', () => {
@@ -74,6 +89,33 @@ describe('purchase + lock economy (Game)', () => {
     const id = place(game, 'needle');
     game.debugAddBiomass(-game.biomass); // drain to 0
     expect(game.buyBranchTier(id, 'needle_swarm')).toBe('poor');
+  });
+
+  it('locking a branch cues the splice sound + a mutation burst', () => {
+    const game = new Game(3, NO_META);
+    const id = place(game, 'needle');
+    game.drainSfx(); // clear the place cue from setup
+    const partsBefore = game.particles.length;
+    expect(game.buyBranchTier(id, 'needle_swarm')).toBe('ok');
+    expect(game.drainSfx()).toContain('splice'); // the commitment moment
+    expect(game.particles.length).toBeGreaterThan(partsBefore); // mutation burst at the tower
+  });
+
+  it('a branched needle fires SKINNED shots, sprays its particle, and cues its sfx (sensory mutation)', () => {
+    const game = new Game(3, NO_META);
+    const id = place(game, 'needle');
+    expect(game.buyBranchTier(id, 'needle_swarm')).toBe('ok');
+    game.drainSfx(); // drop the splice cue; we now want the per-shot firing cue
+    game.startWave();
+    let sawSkin = false;
+    let sawSfx = false;
+    for (let i = 0; i < 2400 && !(sawSkin && sawSfx); i++) {
+      game.advance(SIM_DT);
+      if (!sawSkin && game.projectiles.some((p) => p.skin === 'needle_swarm')) sawSkin = true;
+      if (!sawSfx && game.drainSfx().includes('br_swarm')) sawSfx = true;
+    }
+    expect(sawSkin, 'a branched needle should tag its projectiles with its branch skin').toBe(true);
+    expect(sawSfx, 'a branched needle should cue its firing sfx').toBe(true);
   });
 
   it('branchOptions offers both paths pre-lock, only the committed one after', () => {

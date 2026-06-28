@@ -145,6 +145,9 @@ export interface Projectile {
   //    historical behavior, golden-safe). Set by a tower's star kit at spawn. ──
   pierce?: number; // extra enemies it passes through before dying (0/undefined = none)
   hitIds?: number[]; // enemies already struck (pierce: avoids re-hitting the same body)
+  // Cosmetic skin id (= the firing tower's branchId) so the renderer can draw a branch-specific
+  // shot (barbed swarm needle, rail lance, acid glob…). Undefined ⇒ the base look (golden-safe).
+  skin?: string;
 }
 
 export interface Pool {

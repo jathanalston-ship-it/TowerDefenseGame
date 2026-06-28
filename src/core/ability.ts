@@ -125,7 +125,18 @@ export interface StatusApplication {
   amount: number;
 }
 
-export type ParticleKind = 'disrupt' | 'bloom' | 'infect' | 'shred' | 'death';
+// Cosmetic particle vocabulary. The first five are shared with statuses/heroes; the rest are
+// per-BRANCH attack signatures (TOWER-BRANCHES.md) so a mutated tower throws a different spray
+// of matter every shot. Every kind MUST have a matching `PARTICLE[kind]` spec (config.ts).
+export type ParticleKind =
+  | 'disrupt' | 'bloom' | 'infect' | 'shred' | 'death'
+  | 'barb' // needle Hivemind Swarm — chitinous venom barbs
+  | 'spark' // needle Apex Railspike / obelisk Mindrender — electric discharge
+  | 'ember' // mortar Necrotic Siege — burning cinders + bone shrapnel
+  | 'acid' // mortar Corrosive Cauldron / reactor Acid Glands — caustic droplets
+  | 'vital' // reactor Symbiotic Heart — warm biomass motes
+  | 'spore' // reactor Brood Spire — drifting brood spores
+  | 'gore'; // parasite Ravager Strain — viscera spray
 
 // ── The world API executors are given (implemented by the Game) ──────────────
 

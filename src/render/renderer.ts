@@ -477,20 +477,10 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     }
   }
 
-  // Branch MUTATION (TOWER-BRANCHES.md): an escalating "evolved" silhouette — a glow, a
-  // pulsing ring, and one jutting spike per tier — so two same-kind towers look different by
-  // their path/tier. Per-instance (reads tw.tier); tier 0 renders nothing (golden-safe look).
-  if (tw.tier > 0) {
-    const c = hexRgb(def.color);
-    glowDisc(ctx, tw.x, tw.y, r * (1.2 + tw.tier * 0.12), rgba(c, 0.1 + tw.tier * 0.03));
-    ring(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(c, pulse(now + tw.id, 2.2, 0.25, 0.55)), 1.2 + tw.tier * 0.2);
-    for (let i = 0; i < tw.tier; i++) {
-      const ang = now * 0.5 + (i * Math.PI * 2) / Math.max(3, tw.tier);
-      const rr = r * (1.5 + tw.tier * 0.12);
-      drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * rr, tw.y + Math.sin(ang) * rr, 2.2 + tw.tier * 0.3, def.color);
-    }
-    if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.5, rgba(c, pulse(now + tw.id, 3, 0.15, 0.45)), 1); // capstone aura
-  }
+  // Branch MUTATION (TOWER-BRANCHES.md): each path grows a DISTINCT evolved silhouette that
+  // escalates with tier, so two same-kind towers read differently by their path. Per-instance
+  // (reads tw.branchId + tw.tier); tier 0 renders nothing (golden-safe look).
+  if (tw.tier > 0) drawBranchCosmetic(ctx, tw, now, r, def.color);
 
   // Selection highlight (inspected tower → its Mutation panel is open).
   if (selected) {
@@ -498,7 +488,100 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   }
 }
 
+// ── Branch cosmetics (TOWER-BRANCHES.md) ─────────────────────────────────────
+// One distinct evolved silhouette per branch, escalating with tier. Each reads tw.branchId
+// (the locked path) + tw.tier (1..5). Pure presentation; an unbranched tower never calls in.
+// A themed branch draws its identity; anything not yet themed falls back to a generic mutation
+// glow so every branched tower still reads as "evolved".
+
+const VENOM = hexRgb('#c8f04a'); // Hivemind Swarm barb-green
+const RAIL = hexRgb('#bfe9ff'); // Apex Railspike coil-white
+
+function drawBranchCosmetic(
+  ctx: CanvasRenderingContext2D,
+  tw: RenderState['towers'][number],
+  now: number,
+  r: number,
+  color: string,
+): void {
+  switch (tw.branchId) {
+    case 'needle_swarm': return branchSwarm(ctx, tw, now, r);
+    case 'needle_rail': return branchRail(ctx, tw, now, r);
+    default: return drawGenericMutation(ctx, tw, now, r, color);
+  }
+}
+
+/** The original path-agnostic look: a glow, a pulsing ring, jutting spikes, a capstone aura. */
+function drawGenericMutation(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number, color: string): void {
+  const c = hexRgb(color);
+  glowDisc(ctx, tw.x, tw.y, r * (1.2 + tw.tier * 0.12), rgba(c, 0.1 + tw.tier * 0.03));
+  ring(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(c, pulse(now + tw.id, 2.2, 0.25, 0.55)), 1.2 + tw.tier * 0.2);
+  for (let i = 0; i < tw.tier; i++) {
+    const ang = now * 0.5 + (i * Math.PI * 2) / Math.max(3, tw.tier);
+    const rr = r * (1.5 + tw.tier * 0.12);
+    drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * rr, tw.y + Math.sin(ang) * rr, 2.2 + tw.tier * 0.3, color);
+  }
+  if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.5, rgba(c, pulse(now + tw.id, 3, 0.15, 0.45)), 1);
+}
+
+/** Hivemind Swarm — a churning cloud of venom barbs orbiting the spitter; denser each tier,
+ *  with a sickly green haze and (at the capstone) a second counter-rotating shell. */
+function branchSwarm(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.4 + tw.tier * 0.1), rgba(VENOM, 0.08 + tw.tier * 0.02));
+  const barbs = 2 + tw.tier * 2; // 4 → 12 barbs
+  const orbit = r * (1.5 + tw.tier * 0.06);
+  for (let i = 0; i < barbs; i++) {
+    const ang = now * 2.2 + (i * Math.PI * 2) / barbs;
+    const bx = tw.x + Math.cos(ang) * orbit;
+    const by = tw.y + Math.sin(ang) * orbit;
+    // a tiny barb: a short spine pointing along its orbit tangent
+    ctx.strokeStyle = rgba(VENOM, 0.85);
+    ctx.lineWidth = 1.3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(bx - Math.sin(ang) * 2.6, by + Math.cos(ang) * 2.6);
+    ctx.lineTo(bx + Math.sin(ang) * 2.6, by - Math.cos(ang) * 2.6);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  if (tw.tier >= 5) {
+    // The Thousand Maw — a second, faster, counter-spinning halo of barbs.
+    for (let i = 0; i < 10; i++) {
+      const ang = -now * 3.1 + (i * Math.PI * 2) / 10;
+      drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * orbit * 1.35, tw.y + Math.sin(ang) * orbit * 1.35, 1.8, '#e8ff9a');
+    }
+  }
+}
+
+/** Apex Railspike — a single heavy coil-rail extending up the lane (enemies are upfield), longer
+ *  each tier, with charge coils and a bright muzzle node that flares on the firing beat. */
+function branchRail(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  const len = r * (1.6 + tw.tier * 0.5); // the barrel grows with tier
+  const tipX = tw.x;
+  const tipY = tw.y - len;
+  // the rail barrel
+  ctx.strokeStyle = rgba(RAIL, 0.85);
+  ctx.lineWidth = 2 + tw.tier * 0.4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(tw.x, tw.y);
+  ctx.lineTo(tipX, tipY);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  // charge coils along the rail
+  const coils = Math.min(tw.tier, 4);
+  for (let i = 1; i <= coils; i++) {
+    const cy = tw.y - (len * i) / (coils + 1);
+    ring(ctx, tw.x, cy, 3 + tw.tier * 0.3, rgba(RAIL, 0.5), 1.2);
+  }
+  // muzzle charge node — pulses (a charged-shot tell)
+  const charge = pulse(now + tw.id, tw.tier >= 3 ? 1.2 : 2.4, 0.6, 1.3);
+  glowDisc(ctx, tipX, tipY, (2.5 + tw.tier * 0.7) * charge, rgba(RAIL, 0.7));
+  if (tw.tier >= 5) glowDisc(ctx, tipX, tipY, (5 + tw.tier) * charge, rgba(RAIL, 0.3)); // Annihilator flare
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
+  if (p.skin && drawSkinnedProjectile(ctx, p)) return; // themed branch shot; else fall through to base
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';
   const core = splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
@@ -523,6 +606,47 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
 
   glowDisc(ctx, p.x, p.y, splash ? 7 : 5, rgba(trail, 0.6));
   drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : parasite ? 2.6 : 2.3, core);
+}
+
+/** Branch-specific projectile looks (TOWER-BRANCHES.md). `p.skin` is the firing tower's
+ *  branchId. Returns true if it drew a themed shot, false to fall back to the base look. */
+function drawSkinnedProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): boolean {
+  let ux = p.tx - p.x;
+  let uy = p.ty - p.y;
+  const len = Math.hypot(ux, uy) || 1;
+  ux /= len;
+  uy /= len;
+  switch (p.skin) {
+    case 'needle_swarm': {
+      // a stubby venom barb: a short bright spine with a chitin-green tip
+      ctx.strokeStyle = rgba(VENOM, 0.6);
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 7, p.y - uy * 7);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      drawShape(ctx, 'circle', p.x, p.y, 2.1, '#eaffb0');
+      return true;
+    }
+    case 'needle_rail': {
+      // a long, bright coil-rail lance with a sharp leading node and a long streak
+      ctx.strokeStyle = rgba(RAIL, 0.55);
+      ctx.lineWidth = 2.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 18, p.y - uy * 18);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      glowDisc(ctx, p.x, p.y, 6, rgba(RAIL, 0.7));
+      drawShape(ctx, 'circle', p.x, p.y, 2.6, '#ffffff');
+      return true;
+    }
+    default:
+      return false;
+  }
 }
 
 // ── Enemies ──────────────────────────────────────────────────────────────────
