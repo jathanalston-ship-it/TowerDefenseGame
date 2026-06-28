@@ -53,6 +53,24 @@ describe('resolveBranchKit', () => {
     expect(resolveBranchKit('needle_rail', 2).sfx).toBe('br_rail');
     expect(resolveBranchKit('mortar_siege', 3).particle).toBe('ember');
     expect(resolveBranchKit('mortar_cauldron', 1).particle).toBe('acid');
+    expect(resolveBranchKit('reactor_heart', 1).particle).toBe('vital');
+    expect(resolveBranchKit('reactor_brood', 1).particle).toBe('spore');
+  });
+
+  it('a branched reactor (support) throbs its signature on its pulse, even on an economy-only tier', () => {
+    const game = new Game(4, NO_META);
+    game.debugAddBiomass(1_000_000);
+    let id = -1;
+    for (const s of towerSlots) if (game.placeTower('reactor', s.x, s.y)) { id = game.towers[game.towers.length - 1].id; break; }
+    expect(game.buyBranchTier(id, 'reactor_heart')).toBe('ok'); // T1 Engorged Sacs = economy-only (no abilities)
+    game.drainSfx(); // drop splice
+    game.startWave();
+    let sawSfx = false;
+    for (let i = 0; i < 600 && !sawSfx; i++) { // 10s ≫ the 2s support pulse
+      game.advance(SIM_DT);
+      if (game.drainSfx().includes('br_vital')) sawSfx = true;
+    }
+    expect(sawSfx, 'an economy-only Symbiotic Heart should still beat its vital cue').toBe(true);
   });
 
   it('an unbranched kit has no sensory signature (identity)', () => {

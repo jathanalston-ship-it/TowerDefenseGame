@@ -1305,20 +1305,24 @@ export class Game {
    *  unbranched ⇒ golden-safe. Its branch ECONOMY (biomass/overcharge) folds in economySystem. */
   private supportBranchPulse(t: Tower, dt: number): void {
     const bk = resolveBranchKit(t.branchId, t.tier);
-    if (bk.extraAbilities.length === 0) return; // economy-only tiers have nothing to pulse
+    // A branched reactor THROBS on a fixed cadence: it runs its offensive/economy mutations (if
+    // any) and throws its sensory signature — even on an economy-only tier, so a Symbiotic Heart
+    // visibly/audibly beats from its very first splice. Cosmetic emission is golden-safe.
     t.pulseCd -= dt;
     if (t.pulseCd > 0) return;
     t.pulseCd = SUPPORT_BRANCH_PULSE;
-    this.abilitySourceKind = t.kind;
-    this.abilityHeroKind = null;
-    this.abilityCaster = null;
-    this.abilityTargeting = 'closestToBase';
-    this.castScratch.x = t.x;
-    this.castScratch.y = t.y;
-    this.castScratch.damageMult = this.mods.towerDamageMult * bk.damageMult;
-    this.castScratch.target = null;
-    this.castScratch.pierce = 0;
-    runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+    if (bk.extraAbilities.length > 0) {
+      this.abilitySourceKind = t.kind;
+      this.abilityHeroKind = null;
+      this.abilityCaster = null;
+      this.abilityTargeting = 'closestToBase';
+      this.castScratch.x = t.x;
+      this.castScratch.y = t.y;
+      this.castScratch.damageMult = this.mods.towerDamageMult * bk.damageMult;
+      this.castScratch.target = null;
+      this.castScratch.pierce = 0;
+      runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+    }
     this.emitBranchSignature(bk, t.x, t.y); // the reactor's pulse throws its branch matter too
   }
 

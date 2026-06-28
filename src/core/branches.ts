@@ -151,7 +151,7 @@ const BRANCHES: Branch[] = [
     id: 'reactor_heart', tower: 'reactor', name: 'Symbiotic Heart',
     theme: 'A swelling engine of biomass that empowers and mends the hive.',
     tiers: [
-      { tier: 1, name: 'Engorged Sacs', desc: '+50% biomass generation.', grants: [{ t: 'reactor', biomassMult: 1.5 }, { t: 'cosmetic', id: 'engorge' }] },
+      { tier: 1, name: 'Engorged Sacs', desc: '+50% biomass generation.', particle: 'vital', sfx: 'br_vital', grants: [{ t: 'reactor', biomassMult: 1.5 }, { t: 'cosmetic', id: 'engorge' }] },
       { tier: 2, name: 'Catalytic Lattice', desc: 'Floods ALL towers with a steady +12% damage charge.', grants: [{ t: 'ability', components: [{ type: 'buff', stat: 'towerDamage', amount: 1.12, seconds: 3 }] }] },
       { tier: 3, name: 'Vital Conduit', desc: 'Mends the Nucleus each pulse; +40% more biomass.', grants: [{ t: 'reactor', biomassMult: 1.4 }, { t: 'ability', components: [{ type: 'heal', nucleus: 2 }] }] },
       { tier: 4, name: 'Mitotic Surge', desc: 'A stronger empowering charge (+20% tower damage) and a steady mend.', grants: [{ t: 'ability', components: [{ type: 'buff', stat: 'towerDamage', amount: 1.2, seconds: 3 }, { type: 'heal', nucleus: 2 }] }] },
@@ -162,7 +162,7 @@ const BRANCHES: Branch[] = [
     id: 'reactor_brood', tower: 'reactor', name: 'Brood Spire',
     theme: 'The reactor grows teeth — birthing blockers and lashing the lane.',
     tiers: [
-      { tier: 1, name: 'Spore Pods', desc: 'Buds a living blocker that fights and bodies the lane.', grants: [{ t: 'reactor', biomassMult: 1.3 }, { t: 'ability', components: [{ type: 'summon', unit: 'wisp', count: 1 }] }] },
+      { tier: 1, name: 'Spore Pods', desc: 'Buds a living blocker that fights and bodies the lane.', particle: 'spore', sfx: 'br_spore', grants: [{ t: 'reactor', biomassMult: 1.3 }, { t: 'ability', components: [{ type: 'summon', unit: 'wisp', count: 1 }] }] },
       { tier: 2, name: 'Lashing Tendrils', desc: 'Sprouts stinging tendrils that flay nearby enemies.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 14, react: true, particle: 'bloom' }] }] },
       { tier: 3, name: 'Brood Mother', desc: 'Births two blockers; richer biomass.', grants: [{ t: 'reactor', biomassMult: 1.3 }, { t: 'ability', components: [{ type: 'summon', unit: 'wisp', count: 2 }] }] },
       { tier: 4, name: 'Acid Glands', desc: 'Tendrils drip Corrosion across a wider reach.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 140, damage: 18, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'infect' }] }] },

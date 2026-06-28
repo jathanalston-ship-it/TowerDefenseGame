@@ -498,6 +498,8 @@ const VENOM = hexRgb('#c8f04a'); // Hivemind Swarm barb-green
 const RAIL = hexRgb('#bfe9ff'); // Apex Railspike coil-white
 const EMBER = hexRgb('#ff8a3c'); // Necrotic Siege cinder-orange
 const ACID = hexRgb('#9be84a'); // Corrosive Cauldron caustic-green
+const HEART = hexRgb('#ff6f91'); // Symbiotic Heart vital-pink
+const BROOD = hexRgb('#b58cff'); // Brood Spire spore-violet
 
 function drawBranchCosmetic(
   ctx: CanvasRenderingContext2D,
@@ -511,6 +513,8 @@ function drawBranchCosmetic(
     case 'needle_rail': return branchRail(ctx, tw, now, r);
     case 'mortar_siege': return branchSiege(ctx, tw, now, r);
     case 'mortar_cauldron': return branchCauldron(ctx, tw, now, r);
+    case 'reactor_heart': return branchHeart(ctx, tw, now, r);
+    case 'reactor_brood': return branchBrood(ctx, tw, now, r);
     default: return drawGenericMutation(ctx, tw, now, r, color);
   }
 }
@@ -636,6 +640,74 @@ function branchCauldron(ctx: CanvasRenderingContext2D, tw: RenderState['towers']
   // an occasional drip below the pot
   const dripPh = (now * 0.8) % 1;
   if (dripPh < 0.5) drawShape(ctx, 'circle', tw.x + Math.sin(now) * r * 0.4, tw.y + r * 0.6 + dripPh * r, 1.6, rgba(ACID, 0.7));
+}
+
+/** A double-thump heartbeat envelope in [0,1] (a "lub-dub" near the start of each period). */
+function heartbeat(now: number, id: number, period = 0.95): number {
+  const ph = ((now + id) % period) / period;
+  const lub = Math.exp(-Math.pow(ph / 0.06, 2));
+  const dub = Math.exp(-Math.pow((ph - 0.17) / 0.07, 2)) * 0.7;
+  return Math.min(1, lub + dub);
+}
+
+/** Symbiotic Heart — a swelling vital organ that BEATS (a real lub-dub), fed by pulsing veins,
+ *  glowing warmer and throwing a vital nova on each beat at the capstone. */
+function branchHeart(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  const beat = heartbeat(now, tw.id);
+  const swell = 1 + beat * (0.16 + tw.tier * 0.03);
+  glowDisc(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12) * swell, rgba(HEART, 0.12 + beat * 0.12));
+  // pulsing veins reaching out
+  const veins = 3 + tw.tier;
+  ctx.strokeStyle = rgba(HEART, 0.4 + beat * 0.3);
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < veins; i++) {
+    const ang = (i * Math.PI * 2) / veins + Math.sin(now * 0.5 + i) * 0.1;
+    const reach = r * (1.3 + tw.tier * 0.1) * swell;
+    ctx.beginPath();
+    ctx.moveTo(tw.x + Math.cos(ang) * r * 0.4, tw.y + Math.sin(ang) * r * 0.4);
+    ctx.lineTo(tw.x + Math.cos(ang) * reach, tw.y + Math.sin(ang) * reach);
+    ctx.stroke();
+  }
+  // the beating core
+  drawShape(ctx, 'circle', tw.x, tw.y, r * 0.62 * swell, rgba(HEART, 0.55));
+  drawShape(ctx, 'circle', tw.x - r * 0.12, tw.y - r * 0.12, r * 0.22 * swell, 'rgba(255,220,230,0.7)');
+  if (tw.tier >= 5 && beat > 0.6) ring(ctx, tw.x, tw.y, r * (1.8 + beat), rgba(HEART, beat * 0.5), 1.6); // Living Core nova
+}
+
+/** Brood Spire — a clutch of twitching egg-pods budding around the core (more each tier) with
+ *  lashing tendrils whipping the lane; a corrosive haze blooms at the capstone. */
+function branchBrood(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.4 + tw.tier * 0.1), rgba(BROOD, 0.1 + tw.tier * 0.02));
+  // lashing tendrils (whip via sin, each on its own phase)
+  const tendrils = 2 + tw.tier;
+  ctx.strokeStyle = rgba(BROOD, 0.5);
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < tendrils; i++) {
+    const base = (i * Math.PI * 2) / tendrils;
+    const whip = Math.sin(now * 2.5 + i * 1.3) * 0.5;
+    const reach = r * (1.6 + tw.tier * 0.12);
+    const ex = tw.x + Math.cos(base + whip) * reach;
+    const ey = tw.y + Math.sin(base + whip) * reach;
+    const mx = tw.x + Math.cos(base) * reach * 0.5;
+    const my = tw.y + Math.sin(base) * reach * 0.5 - 4;
+    ctx.beginPath();
+    ctx.moveTo(tw.x, tw.y);
+    ctx.quadraticCurveTo(mx, my, ex, ey);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  // budding egg-pods, each twitching
+  const pods = 1 + tw.tier;
+  for (let i = 0; i < pods; i++) {
+    const ang = now * 0.4 + (i * Math.PI * 2) / pods;
+    const orbit = r * (0.9 + (i % 2) * 0.3);
+    const px = tw.x + Math.cos(ang) * orbit + Math.sin(now * 6 + i) * 0.8; // twitch
+    const py = tw.y + Math.sin(ang) * orbit;
+    drawShape(ctx, 'circle', px, py, 2.6 + tw.tier * 0.2, rgba(BROOD, 0.8));
+    drawShape(ctx, 'circle', px - 0.8, py - 0.8, 1.1, 'rgba(230,215,255,0.7)');
+  }
+  if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.4, rgba(ACID, pulse(now + tw.id, 2.4, 0.15, 0.4)), 1.4); // Hive Node corrosive field
 }
 
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {

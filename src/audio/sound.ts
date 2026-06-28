@@ -133,6 +133,8 @@ function sBrSwarm(): void { noise(0.04, 0.05, 4200); tone(760, 0.05, 'square', 0
 function sBrRail(): void { tone(1250, 0.06, 'sawtooth', 0.06, 230); tone(130, 0.11, 'sine', 0.06, 66); } // railgun crack + thud
 function sBrSiege(): void { tone(90, 0.16, 'sine', 0.09, 50); noise(0.12, 0.07, 900, 280); } // deep necrotic mortar boom
 function sBrAcid(): void { noise(0.16, 0.06, 1800, 600); tone(220, 0.1, 'triangle', 0.03, 130); } // caustic glug + hiss
+function sBrVital(): void { tone(66, 0.16, 'sine', 0.08, 46); tone(132, 0.12, 'sine', 0.035, 92); } // warm heart lub-dub
+function sBrSpore(): void { noise(0.1, 0.06, 1300, 480); tone(300, 0.09, 'triangle', 0.03, 170); } // wet brood-pod pop
 
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
@@ -198,6 +200,8 @@ export const audio = {
         case 'br_rail': sBrRail(); break;
         case 'br_siege': for (let i = 0; i < Math.min(2, n); i++) sBrSiege(); break;
         case 'br_acid': sBrAcid(); break;
+        case 'br_vital': sBrVital(); break;
+        case 'br_spore': sBrSpore(); break;
       }
     }
   },
