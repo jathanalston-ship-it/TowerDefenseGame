@@ -131,6 +131,8 @@ function sSplice(): void { // wet, rising graft — the irreversible commitment
 }
 function sBrSwarm(): void { noise(0.04, 0.05, 4200); tone(760, 0.05, 'square', 0.035, 980); } // chittering barb volley
 function sBrRail(): void { tone(1250, 0.06, 'sawtooth', 0.06, 230); tone(130, 0.11, 'sine', 0.06, 66); } // railgun crack + thud
+function sBrSiege(): void { tone(90, 0.16, 'sine', 0.09, 50); noise(0.12, 0.07, 900, 280); } // deep necrotic mortar boom
+function sBrAcid(): void { noise(0.16, 0.06, 1800, 600); tone(220, 0.1, 'triangle', 0.03, 130); } // caustic glug + hiss
 
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
@@ -194,6 +196,8 @@ export const audio = {
         case 'splice': sSplice(); break;
         case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;
         case 'br_rail': sBrRail(); break;
+        case 'br_siege': for (let i = 0; i < Math.min(2, n); i++) sBrSiege(); break;
+        case 'br_acid': sBrAcid(); break;
       }
     }
   },

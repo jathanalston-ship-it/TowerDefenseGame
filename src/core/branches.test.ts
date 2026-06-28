@@ -51,6 +51,8 @@ describe('resolveBranchKit', () => {
     expect(resolveBranchKit('needle_swarm', 5).particle).toBe('barb'); // still set at the capstone
     expect(resolveBranchKit('needle_rail', 2).particle).toBe('spark');
     expect(resolveBranchKit('needle_rail', 2).sfx).toBe('br_rail');
+    expect(resolveBranchKit('mortar_siege', 3).particle).toBe('ember');
+    expect(resolveBranchKit('mortar_cauldron', 1).particle).toBe('acid');
   });
 
   it('an unbranched kit has no sensory signature (identity)', () => {

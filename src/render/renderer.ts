@@ -496,6 +496,8 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
 
 const VENOM = hexRgb('#c8f04a'); // Hivemind Swarm barb-green
 const RAIL = hexRgb('#bfe9ff'); // Apex Railspike coil-white
+const EMBER = hexRgb('#ff8a3c'); // Necrotic Siege cinder-orange
+const ACID = hexRgb('#9be84a'); // Corrosive Cauldron caustic-green
 
 function drawBranchCosmetic(
   ctx: CanvasRenderingContext2D,
@@ -507,6 +509,8 @@ function drawBranchCosmetic(
   switch (tw.branchId) {
     case 'needle_swarm': return branchSwarm(ctx, tw, now, r);
     case 'needle_rail': return branchRail(ctx, tw, now, r);
+    case 'mortar_siege': return branchSiege(ctx, tw, now, r);
+    case 'mortar_cauldron': return branchCauldron(ctx, tw, now, r);
     default: return drawGenericMutation(ctx, tw, now, r, color);
   }
 }
@@ -580,6 +584,60 @@ function branchRail(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][num
   if (tw.tier >= 5) glowDisc(ctx, tipX, tipY, (5 + tw.tier) * charge, rgba(RAIL, 0.3)); // Annihilator flare
 }
 
+/** Necrotic Siege — a battery of stubby mortar tubes fanned around the core, one more each tier,
+ *  their mouths glowing with banked cinders that flare on the firing beat. */
+function branchSiege(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.4 + tw.tier * 0.12), rgba(EMBER, 0.1 + tw.tier * 0.02));
+  const tubes = 1 + tw.tier; // 2 → 6 tubes
+  const spread = 0.6; // radians fanned around straight-up
+  for (let i = 0; i < tubes; i++) {
+    const frac = tubes === 1 ? 0.5 : i / (tubes - 1);
+    const ang = -Math.PI / 2 + (frac - 0.5) * spread * 2; // fan upfield (enemies are up)
+    const baseR = r * 0.5;
+    const tubeLen = r * 1.2;
+    const bx = tw.x + Math.cos(ang) * baseR;
+    const by = tw.y + Math.sin(ang) * baseR;
+    const mx = tw.x + Math.cos(ang) * (baseR + tubeLen);
+    const my = tw.y + Math.sin(ang) * (baseR + tubeLen);
+    ctx.strokeStyle = 'rgba(40,30,24,0.85)';
+    ctx.lineWidth = 3.4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.lineTo(mx, my);
+    ctx.stroke();
+    // glowing mouth — banked cinders
+    glowDisc(ctx, mx, my, 2.4 * pulse(now + tw.id + i, 3, 0.7, 1.3), rgba(EMBER, 0.85));
+  }
+  ctx.lineCap = 'butt';
+  if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.4, rgba(EMBER, pulse(now + tw.id, 2.6, 0.15, 0.4)), 1.4); // Extinction aura
+}
+
+/** Corrosive Cauldron — a churning acid pot brewed atop the mortar: a green surface that bubbles
+ *  and pops (more violently each tier) with caustic drips below. */
+function branchCauldron(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  const surfaceR = r * (1.05 + tw.tier * 0.07);
+  glowDisc(ctx, tw.x, tw.y, surfaceR * 1.5, rgba(ACID, 0.08 + tw.tier * 0.02));
+  // the acid surface
+  ctx.beginPath();
+  ctx.arc(tw.x, tw.y - r * 0.2, surfaceR, 0, Math.PI * 2);
+  ctx.fillStyle = rgba(ACID, 0.28);
+  ctx.fill();
+  ring(ctx, tw.x, tw.y - r * 0.2, surfaceR, rgba(ACID, 0.6), 1.4);
+  // rising bubbles — each on its own phase so they pop independently
+  const bubbles = 3 + tw.tier;
+  for (let i = 0; i < bubbles; i++) {
+    const ph = (now * (0.7 + (i % 3) * 0.25) + i * 1.7) % 1; // 0..1 rise cycle
+    const bx = tw.x + Math.sin(i * 2.3) * surfaceR * 0.6;
+    const by = tw.y - r * 0.2 + surfaceR * 0.5 - ph * surfaceR; // rise to the top
+    const sz = (1.6 + (i % 2)) * (1 - ph * 0.5);
+    drawShape(ctx, 'circle', bx, by, sz, rgba(ACID, 0.55 + 0.3 * (1 - ph)));
+  }
+  // an occasional drip below the pot
+  const dripPh = (now * 0.8) % 1;
+  if (dripPh < 0.5) drawShape(ctx, 'circle', tw.x + Math.sin(now) * r * 0.4, tw.y + r * 0.6 + dripPh * r, 1.6, rgba(ACID, 0.7));
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
   if (p.skin && drawSkinnedProjectile(ctx, p)) return; // themed branch shot; else fall through to base
   const splash = p.behavior === 'splash';
@@ -642,6 +700,29 @@ function drawSkinnedProjectile(ctx: CanvasRenderingContext2D, p: RenderState['pr
       ctx.lineCap = 'butt';
       glowDisc(ctx, p.x, p.y, 6, rgba(RAIL, 0.7));
       drawShape(ctx, 'circle', p.x, p.y, 2.6, '#ffffff');
+      return true;
+    }
+    case 'mortar_siege': {
+      // a heavy dark shell trailing fire
+      ctx.strokeStyle = rgba(EMBER, 0.5);
+      ctx.lineWidth = 3.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 12, p.y - uy * 12);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      glowDisc(ctx, p.x, p.y, 5.5, rgba(EMBER, 0.6));
+      drawShape(ctx, 'circle', p.x, p.y, 3.4, '#3a2a20'); // dark iron shell
+      drawShape(ctx, 'circle', p.x - ux * 1.2, p.y - uy * 1.2, 1.6, '#ffd08a'); // burning fuse
+      return true;
+    }
+    case 'mortar_cauldron': {
+      // a wobbling caustic glob
+      const wob = 1 + Math.sin(p.x * 0.3 + p.y * 0.3) * 0.18;
+      glowDisc(ctx, p.x, p.y, 6 * wob, rgba(ACID, 0.55));
+      drawShape(ctx, 'circle', p.x, p.y, 3.6 * wob, '#8fdc3e');
+      drawShape(ctx, 'circle', p.x - 1, p.y - 1, 1.4, 'rgba(230,255,200,0.8)'); // highlight
       return true;
     }
     default:

@@ -127,7 +127,7 @@ const BRANCHES: Branch[] = [
     id: 'mortar_siege', tower: 'mortar', name: 'Necrotic Siege',
     theme: 'Apocalyptic bombardment — wider, heavier, more shells.',
     tiers: [
-      { tier: 1, name: 'Caustic Shells', desc: '+40% blast radius.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.4 }] },
+      { tier: 1, name: 'Caustic Shells', desc: '+40% blast radius.', damageMult: 1.1, particle: 'ember', sfx: 'br_siege', grants: [{ t: 'projectile', splashMult: 1.4 }] },
       { tier: 2, name: 'Saturation Barrage', desc: 'Lobs 3 shells per volley.', fireRateMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2 }] },
       { tier: 3, name: 'Shrapnel Bile', desc: 'Bigger blasts that Fracture the struck target.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.3 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }] }] },
       { tier: 4, name: 'Carpet Bomb', desc: '+2 more shells; saturates elite packs.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2, splashMult: 1.3 }, { t: 'targeting', profile: 'elitePriority' }] },
@@ -138,7 +138,7 @@ const BRANCHES: Branch[] = [
     id: 'mortar_cauldron', tower: 'mortar', name: 'Corrosive Cauldron',
     theme: 'A slow apocalypse — drowns the lane in melting, slowing acid.',
     tiers: [
-      { tier: 1, name: 'Acid Reservoir', desc: 'Shells drench targets in Corrosion over a wider area.', damageMult: 1.05, grants: [{ t: 'projectile', splashMult: 1.3 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 1, name: 'Acid Reservoir', desc: 'Shells drench targets in Corrosion over a wider area.', damageMult: 1.05, particle: 'acid', sfx: 'br_acid', grants: [{ t: 'projectile', splashMult: 1.3 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
       { tier: 2, name: 'Viscous Tar', desc: 'Acid rain falls far more often.', fireRateMult: 1.3, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1 } }] }] },
       { tier: 3, name: 'Dissolving Agent', desc: 'Acid strips armor (Fracture) as it melts.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.2 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
       { tier: 4, name: 'Caustic Flood', desc: 'An extra shell; floods the line to hold it.', fireRateMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 1, splashMult: 1.4 }, { t: 'targeting', profile: 'closestToBase' }] },
