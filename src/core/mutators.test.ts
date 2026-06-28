@@ -5,7 +5,7 @@ import { SIM_DT, TOWER_ORDER } from './config';
 import { DEFENSE_TOP_Y, towerSlots } from './map';
 import type { MetaModifiers, Projectile, TowerProgress } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 function freshProjectile(): Projectile {
   return { id: 1, x: 0, y: 0, tx: 0, ty: 0, speed: 1, targetId: -1, damage: 1, behavior: 'homing', splash: 0, alive: true, sourceKind: 'needle' };

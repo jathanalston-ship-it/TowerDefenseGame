@@ -9,7 +9,7 @@ import { BRANCH_COSTS, TOWER_ORDER } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('branch catalog', () => {
   it('every branch validates, with TWO 5-tier paths per tower', () => {

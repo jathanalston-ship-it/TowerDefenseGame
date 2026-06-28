@@ -34,6 +34,7 @@ describe('metaModifiers (data-driven upgrades)', () => {
       biomassMult: 1,
       heroDamageMult: 1,
       integrityBonus: 0,
+      bonusSlots: 0,
     });
   });
 
@@ -47,9 +48,11 @@ describe('metaModifiers (data-driven upgrades)', () => {
     const upgrades: Record<string, number> = {};
     for (const u of META_UPGRADES) upgrades[u.id] = 1;
     const m = metaModifiers({ ...defaultSave(), upgrades }) as unknown as Record<string, number>;
+    // Derive each stat's identity (base) from the no-upgrade modifiers, so the check stays
+    // generic across multiplier stats (base 1) and flat stats like integrityBonus/bonusSlots (0).
+    const identity = metaModifiers(defaultSave()) as unknown as Record<string, number>;
     for (const u of META_UPGRADES) {
-      const base = u.effect.stat === 'integrityBonus' ? 0 : 1;
-      expect(m[u.effect.stat]).toBeCloseTo(base + u.effect.perLevel, 10);
+      expect(m[u.effect.stat]).toBeCloseTo(identity[u.effect.stat] + u.effect.perLevel, 10);
     }
   });
 

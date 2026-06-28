@@ -10,7 +10,7 @@ import { affixDef } from './equipment';
 import type { CardEffect } from './cards';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 /** Run the Ravager (dive AI) against a flood with the given run-start behavior effects;
  * return the hero damage it accrued. Deterministic (fixed seed, no rng in the profile). */

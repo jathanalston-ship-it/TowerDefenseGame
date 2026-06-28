@@ -9,7 +9,7 @@ import { SIM_DT } from './config';
 import { FINAL_DEFENSE_TOP_Y, nucleusPoint, towerSlots } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 const IN_ZONE_Y = FINAL_DEFENSE_TOP_Y + 20; // safely inside the Final Defense Zone
 const OUT_ZONE_Y = FINAL_DEFENSE_TOP_Y - 200; // safely above it
 

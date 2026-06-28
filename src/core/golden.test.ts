@@ -6,21 +6,22 @@
 import { describe, it, expect } from 'vitest';
 import { autoplay } from './sim.testutil';
 
-// Re-pinned deliberately for the GENE CARD EXPANSION (docs/CARDS.md): the draft pool grew
-// 14 → 44 cards across four rarities (common/rare/epic/legendary), and `draftCards` now rolls
-// a DATA-DRIVEN, depth-scaled rarity weight instead of a hardcoded rare chance. Autoplay drafts
-// card 0 each wave, so the cards it lands on changed → these outcomes shifted. Every seed still
-// WINS at wave 12 (the expansion didn't break beatability); the swing is just the dumb auto-
-// strategy landing on different cards. Any FURTHER drift from here is unintended.
+// Re-pinned deliberately for the TOWER-SLOT PROGRESSION rework (docs/SLOTS.md): the 27
+// emplacements were re-gridded into a SYMMETRIC, centre-out lattice (so the build slots no
+// longer favour one side), and a new "Reclaimed Node" gene card joined the draft pool. Autoplay
+// builds on towerSlots[0..2] (now at new positions) and drafts card 0 each wave (the pool shift
+// nudges which card it lands on), so these outcomes moved. Every seed still WINS at wave 12 (the
+// rework didn't break beatability); the swing is just the dumb auto-strategy on the new layout.
+// Any FURTHER drift from here is unintended.
 //
-// (Prior baseline traced to the TOWER RANGE PHILOSOPHY redesign, docs/RANGE.md.)
+// (Prior baseline traced to the GENE CARD EXPANSION, docs/CARDS.md → TOWER RANGE PHILOSOPHY redesign, docs/RANGE.md.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 192, integrity: 269, biomass: 7590, phase: 'won' },
-  7: { wave: 12, kills: 194, integrity: 137, biomass: 7457, phase: 'won' },
-  42: { wave: 12, kills: 191, integrity: 80, biomass: 7126, phase: 'won' },
-  777: { wave: 12, kills: 187, integrity: 64, biomass: 6345, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 170, biomass: 10733, phase: 'won' },
-  12345: { wave: 12, kills: 191, integrity: 80, biomass: 7258, phase: 'won' },
+  1: { wave: 12, kills: 190, integrity: 261, biomass: 8177, phase: 'won' },
+  7: { wave: 12, kills: 194, integrity: 137, biomass: 8200, phase: 'won' },
+  42: { wave: 12, kills: 188, integrity: 68, biomass: 8338, phase: 'won' },
+  777: { wave: 12, kills: 186, integrity: 60, biomass: 6892, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12368, phase: 'won' },
+  12345: { wave: 12, kills: 193, integrity: 88, biomass: 7467, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

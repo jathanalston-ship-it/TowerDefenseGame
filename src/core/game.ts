@@ -231,7 +231,10 @@ export class Game {
   integrity: number;
   maxIntegrity: number;
   kills = 0;
-  unlockedSlots = SLOTS.initialUnlocked; // raised by future upgrades
+  // Permanently-unlocked slots (initial allotment + Hive Emplacements Shard upgrades), frozen
+  // at construction from meta.bonusSlots. Temporary gene-card slots ride on top via the
+  // `unlockedSlots` getter below. See docs/SLOTS.md.
+  private permanentSlots = SLOTS.initialUnlocked;
   time = 0;
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
@@ -355,6 +358,10 @@ export class Game {
     if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
+    // Permanent tower slots: initial allotment + Hive Emplacements upgrades (meta.bonusSlots),
+    // capped at SLOTS.permanentMax. Persists across runs via the saved upgrade ladder; the
+    // run-only gene-card slots layer on top in the `unlockedSlots` getter. docs/SLOTS.md.
+    this.permanentSlots = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + meta.bonusSlots);
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
     this.heroes = [this.makeHero(heroKind)];
   }
@@ -659,6 +666,16 @@ export class Game {
     }
   }
 
+  /** Tower slots the player may build on right now: the permanent base (initial + Shard
+   *  upgrades, frozen at construction) plus this run's temporary gene-card slots, each capped
+   *  by its own ceiling (SLOTS.permanentMax / SLOTS.tempMax) and the physical slot count.
+   *  Slots unlock in map.ts centre-out index order, so the available set stays symmetric
+   *  whichever source granted the slot. See docs/SLOTS.md. */
+  get unlockedSlots(): number {
+    const temp = Math.min(SLOTS.tempMax, this.mods.bonusTowerSlots);
+    return Math.min(towerSlots.length, this.permanentSlots + temp);
+  }
+
   placeTower(kind: TowerKind, px: number, py: number): boolean {
     if (this.phase === 'won' || this.phase === 'lost') return false;
     const slot = slotAt(px, py);
@@ -695,9 +712,12 @@ export class Game {
     return true;
   }
 
-  /** Unlock additional tower slots (hook for future permanent upgrades). */
+  /** Grant `n` additional TEMPORARY tower slots for this run — the future hook for in-run slot
+   *  rewards (events, boss drops, …) beyond the Reclaimed Node gene card. Run-only (not saved)
+   *  and capped at SLOTS.tempMax by the `unlockedSlots` getter; permanent slots come from the
+   *  Hive Emplacements Shard upgrade (meta.bonusSlots) instead. See docs/SLOTS.md. */
   unlockSlots(n: number): void {
-    this.unlockedSlots = Math.min(towerSlots.length, this.unlockedSlots + n);
+    this.mods.bonusTowerSlots += n;
   }
 
   /** Enemy-HP multiplier for a 0-based wave index: the base escalation curve × the universal

@@ -789,15 +789,15 @@ export const OBSTACLES: { col: number; row: number; w: number; h: number }[] = [
   { col: 14, row: 13, w: 3, h: 2 },
 ];
 
-// Tower placement slots: a regular lattice within the defensive region. The total
-// count is derived from the steps; `initialUnlocked` gates how many are usable at
-// run start — future upgrades raise it (Game.unlockedSlots).
+// Tower-slot PROGRESSION tunables (the geometry lives in map.ts buildSlots). The map has 27
+// emplacements (docs/SLOTS.md): `initialUnlocked` are free at run start; permanent unlocks
+// (Shard upgrade → MetaModifiers.bonusSlots) raise the available count to `permanentMax`;
+// temporary unlocks (the Reclaimed Node gene card → RunModifiers.bonusTowerSlots) add up to
+// `tempMax` more for the run only. permanentMax + tempMax === the 27 total.
 export const SLOTS = {
-  colStep: 2,
-  colStart: 1, // columns 1,3,5,… leave gaps for enemies and visual clarity
-  rowStep: 2,
-  rowOffset: 1, // first slot row sits 1 cell below the defensive line's top
-  initialUnlocked: 14,
+  initialUnlocked: 15, // the centre five columns × three rows — symmetric around the core
+  permanentMax: 21, // the most a player can permanently unlock (initial + Shard upgrades)
+  tempMax: 6, // the most temporary (run-only) slots a run can add via gene cards
 };
 
 // ── Meta upgrades (permanent, capped — NOT prestige/infinite) ─────────────
@@ -818,6 +818,10 @@ export const META_UPGRADES: UpgradeDef[] = [
   { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'biomassMult', perLevel: 0.1 } },
   { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
   { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
+  // Permanent tower slots (docs/SLOTS.md): each level unlocks one more emplacement forever,
+  // raising the run-start count from SLOTS.initialUnlocked (15) toward SLOTS.permanentMax (21).
+  // maxLevel = permanentMax − initialUnlocked. Cost climbs per purchase (costMult).
+  { id: 'emplacements', name: 'Hive Emplacements', description: '+1 permanent tower slot per level', maxLevel: 6, baseCost: 40, costMult: 1.6, effect: { stat: 'bonusSlots', perLevel: 1 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {

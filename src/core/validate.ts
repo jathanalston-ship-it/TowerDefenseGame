@@ -171,7 +171,7 @@ const HEX_COLOR = /^#([0-9a-fA-F]{3,8})$/;
 // The valid run-modifier field set (numeric vs flag) + the meta-modifier stat set — used to
 // validate that every declarative effect / upgrade points at a field that actually exists.
 const RUN_MOD = defaultRunModifiers() as unknown as Record<string, unknown>;
-const META_SAMPLE: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const META_SAMPLE: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 const META_KEYS = new Set(Object.keys(META_SAMPLE));
 
 const err = (category: ValidationCategory, target: string, message: string): ValidationIssue => ({ category, target, message, severity: 'error' });

@@ -9,7 +9,7 @@ import { SIM_DT } from './config';
 import { towerSlots, WIDTH } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 const hasTowerBuff = (g: Game): boolean => g.getSnapshot().buffs.some((b) => /tower dmg/.test(b));
 
 function castUlt(game: Game, px: number, py: number): void {

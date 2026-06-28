@@ -10,7 +10,7 @@ import { SIM_DT, HERO_DEFS } from './config';
 import { WIDTH } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 const BLOOM_SHIELD = HERO_DEFS.shepherd.ability.shield ?? 0;
 
 // Mid-field cast point: far from the Nucleus (bottom) so a pinned test enemy can press

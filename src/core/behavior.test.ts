@@ -11,7 +11,7 @@ import type { CardContext, CardEffect } from './cards';
 import { DEFENSE_TOP_Y, towerSlots } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 /** Needle-only defense (no native Corrosion source), god-mode, saturated lane. */
 function run(runEffects: CardEffect[], secs: number): { kills: number; sawCorrosion: boolean } {

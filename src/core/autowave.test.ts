@@ -4,7 +4,7 @@ import { AUTO_START_DELAY, AUTO_START_FIRST_DELAY, SIM_DT } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('auto-wave-start system', () => {
   it('is OFF by default — prep never auto-advances (the golden-safe default)', () => {

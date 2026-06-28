@@ -4,7 +4,7 @@ import { ENEMY_DEFS, SIM_DT, enemyProblems, enemyRegistry } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('enemy roster (~30, role-trait driven)', () => {
   it('registers ~30 archetypes, all of them valid', () => {

@@ -6,7 +6,7 @@ import { RELICS } from './equipment';
 import { simulateBattle } from './simharness';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 /** Fold a declarative effect list into run modifiers (mirrors the Game's run-start fold). */
 function fold(effects: CardEffect[]): RunModifiers {

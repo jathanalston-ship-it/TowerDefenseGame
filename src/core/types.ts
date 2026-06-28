@@ -226,6 +226,7 @@ export interface MetaModifiers {
   biomassMult: number;
   heroDamageMult: number;
   integrityBonus: number;
+  bonusSlots: number; // permanently-unlocked tower slots beyond SLOTS.initialUnlocked (flat, 0 = none)
 }
 
 /** Per-tower-kind permanent multipliers (stars + mastery), applied at build time.

@@ -9,7 +9,7 @@ import { SIM_DT, MINION_DEFS } from './config';
 import { WIDTH } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 function castUlt(game: Game, px: number, py: number): void {
   game.armAbility();
