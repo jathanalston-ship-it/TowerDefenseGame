@@ -2306,7 +2306,7 @@ export class Game {
       const r = n > 1 ? 18 : 0; // ring radius (single summon sits on the point)
       this.minions.push({
         id: this.nextId++, kind: unit, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r,
-        hp: def.hp, maxHp: def.hp,
+        hp: def.hp, maxHp: def.hp, hitFlash: 0,
         damage: def.damage, attackCd: 0, attackInterval: def.attackInterval, range: def.range,
         speed: def.speed, life: def.life, maxLife: def.life, radius: def.radius, color: def.color, alive: true,
       });
@@ -2322,6 +2322,7 @@ export class Game {
     for (const m of this.minions) {
       m.life -= dt;
       if (m.life <= 0) { m.alive = false; continue; }
+      if (m.hitFlash > 0) m.hitFlash -= dt; // "being chewed" flash decays (visual)
       if (m.attackCd > 0) m.attackCd -= dt;
       if (!inWave) continue;
       const target = this.nearestEnemyTo(m.x, m.y, m.range);
@@ -2367,6 +2368,7 @@ export class Game {
     }
     if (!blocker) return false;
     blocker.hp -= e.damage * dt;
+    blocker.hitFlash = FX.hitFlash; // white shimmer while it's being chewed
     if (blocker.hp <= 0) {
       blocker.alive = false; // minionSystem culls it next tick
       this.spawnParticles(blocker.x, blocker.y, PARTICLE.death);

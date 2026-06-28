@@ -74,6 +74,7 @@ describe('Shepherd Bloom summon (the summon ability primitive)', () => {
       g.advance(SIM_DT);
     }
     expect(m.hp).toBeLessThan(hp0); // the brute damaged the blocking Wisp
+    expect(m.hitFlash).toBeGreaterThan(0); // …and the "being chewed" flash is lit (feedback)
     expect(e.y).toBe(ey0); // …and the brute was halted — it never advanced past the block
   });
 

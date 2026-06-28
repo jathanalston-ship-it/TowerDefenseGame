@@ -180,6 +180,7 @@ export interface Minion {
   y: number;
   hp: number; // remaining health — enemies in contact damage it; 0 ⇒ destroyed
   maxHp: number;
+  hitFlash: number; // seconds of white "being chewed" flash remaining (visual)
   damage: number; // per attack
   attackCd: number; // seconds until the next attack
   attackInterval: number;
