@@ -64,6 +64,10 @@ export interface RunModifiers {
   enemyHpRunMult: number; // run-wide enemy-HP scalar (gear trade-off, e.g. Hivemind +10%) (1 = none)
   classResonanceBonus: number; // +tower damage for towers matching the fielded hero's class (0 = off)
   diversityBonus: number; // +tower damage per DISTINCT tower class on the board (0 = off)
+  // ── Structural (run-only) — TEMPORARY tower-slot unlocks (gene cards). Adds to the run's
+  //    available emplacements on top of the permanent base; capped at SLOTS.tempMax by the
+  //    Game's `unlockedSlots` getter and reset every run. 0 = none (golden-safe). docs/SLOTS.md. ──
+  bonusTowerSlots: number; // temporary tower slots unlocked this run (gene cards)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -107,6 +111,7 @@ export function defaultRunModifiers(): RunModifiers {
     enemyHpRunMult: 1,
     classResonanceBonus: 0,
     diversityBonus: 0,
+    bonusTowerSlots: 0,
   };
 }
 
@@ -238,6 +243,7 @@ export const CARD_POOL: CardDef[] = [
   { id: 'pierce_protocol', name: 'Pierce Protocol', rarity: 'rare', category: 'aoe', description: "Every tower's shots pierce +2 enemies.", effects: [{ op: 'grant', grant: { kind: 'towerProjectileMutator', id: 'pierce2' } }] },
   { id: 'heavy_caliber', name: 'Heavy Caliber', rarity: 'rare', category: 'tower', description: '+30% tower damage, −5% fire rate.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.3 }, { op: 'mul', field: 'towerFireRateMult', value: 0.95 }] },
   { id: 'rapid_cycling', name: 'Rapid Cycling', rarity: 'rare', category: 'tower', description: '+25% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.25 }] },
+  { id: 'reclaimed_node', name: 'Reclaimed Node', rarity: 'rare', category: 'tower', description: 'Unlock one additional tower emplacement for this run (max 6).', effects: [{ op: 'add', field: 'bonusTowerSlots', value: 1 }] },
   { id: 'warlords_presence', name: "Warlord's Presence", rarity: 'rare', category: 'hero', description: 'Hero aura: nearby towers gain +15% damage.', effects: [{ op: 'add', field: 'heroAuraRadius', value: 120 }, { op: 'add', field: 'heroTowerDamageAura', value: 0.15 }] },
   { id: 'lifelink', name: 'Lifelink', rarity: 'rare', category: 'hero', description: 'Hero heals 10% of the damage it deals.', effects: [{ op: 'add', field: 'heroLifestealFrac', value: 0.1 }] },
   { id: 'adaptive_arsenal', name: 'Adaptive Arsenal', rarity: 'rare', category: 'tower', description: '+6% tower damage per DISTINCT tower class fielded.', effects: [{ op: 'add', field: 'diversityBonus', value: 0.06 }] },

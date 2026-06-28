@@ -477,20 +477,10 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     }
   }
 
-  // Branch MUTATION (TOWER-BRANCHES.md): an escalating "evolved" silhouette — a glow, a
-  // pulsing ring, and one jutting spike per tier — so two same-kind towers look different by
-  // their path/tier. Per-instance (reads tw.tier); tier 0 renders nothing (golden-safe look).
-  if (tw.tier > 0) {
-    const c = hexRgb(def.color);
-    glowDisc(ctx, tw.x, tw.y, r * (1.2 + tw.tier * 0.12), rgba(c, 0.1 + tw.tier * 0.03));
-    ring(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(c, pulse(now + tw.id, 2.2, 0.25, 0.55)), 1.2 + tw.tier * 0.2);
-    for (let i = 0; i < tw.tier; i++) {
-      const ang = now * 0.5 + (i * Math.PI * 2) / Math.max(3, tw.tier);
-      const rr = r * (1.5 + tw.tier * 0.12);
-      drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * rr, tw.y + Math.sin(ang) * rr, 2.2 + tw.tier * 0.3, def.color);
-    }
-    if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.5, rgba(c, pulse(now + tw.id, 3, 0.15, 0.45)), 1); // capstone aura
-  }
+  // Branch MUTATION (TOWER-BRANCHES.md): each path grows a DISTINCT evolved silhouette that
+  // escalates with tier, so two same-kind towers read differently by their path. Per-instance
+  // (reads tw.branchId + tw.tier); tier 0 renders nothing (golden-safe look).
+  if (tw.tier > 0) drawBranchCosmetic(ctx, tw, now, r, def.color);
 
   // Selection highlight (inspected tower → its Mutation panel is open).
   if (selected) {
@@ -498,7 +488,360 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   }
 }
 
+// ── Branch cosmetics (TOWER-BRANCHES.md) ─────────────────────────────────────
+// One distinct evolved silhouette per branch, escalating with tier. Each reads tw.branchId
+// (the locked path) + tw.tier (1..5). Pure presentation; an unbranched tower never calls in.
+// A themed branch draws its identity; anything not yet themed falls back to a generic mutation
+// glow so every branched tower still reads as "evolved".
+
+const VENOM = hexRgb('#c8f04a'); // Hivemind Swarm barb-green
+const RAIL = hexRgb('#bfe9ff'); // Apex Railspike coil-white
+const EMBER = hexRgb('#ff8a3c'); // Necrotic Siege cinder-orange
+const ACID = hexRgb('#9be84a'); // Corrosive Cauldron caustic-green
+const HEART = hexRgb('#ff6f91'); // Symbiotic Heart vital-pink
+const BROOD = hexRgb('#b58cff'); // Brood Spire spore-violet
+const PLAGUE = hexRgb('#e24dff'); // Viral Apex contagion-magenta
+const GORE = hexRgb('#d83a4a'); // Ravager Strain blood-red
+const TYRANT = hexRgb('#9aa6ff'); // Psionic Tyrant domination-violet
+const RENDER = hexRgb('#7cdcff'); // Mindrender electric-cyan
+
+function drawBranchCosmetic(
+  ctx: CanvasRenderingContext2D,
+  tw: RenderState['towers'][number],
+  now: number,
+  r: number,
+  color: string,
+): void {
+  switch (tw.branchId) {
+    case 'needle_swarm': return branchSwarm(ctx, tw, now, r);
+    case 'needle_rail': return branchRail(ctx, tw, now, r);
+    case 'mortar_siege': return branchSiege(ctx, tw, now, r);
+    case 'mortar_cauldron': return branchCauldron(ctx, tw, now, r);
+    case 'reactor_heart': return branchHeart(ctx, tw, now, r);
+    case 'reactor_brood': return branchBrood(ctx, tw, now, r);
+    case 'parasite_apex': return branchPlague(ctx, tw, now, r);
+    case 'parasite_ravager': return branchRavager(ctx, tw, now, r);
+    case 'obelisk_tyrant': return branchTyrant(ctx, tw, now, r);
+    case 'obelisk_mindrender': return branchMindrender(ctx, tw, now, r);
+    default: return drawGenericMutation(ctx, tw, now, r, color);
+  }
+}
+
+/** The original path-agnostic look: a glow, a pulsing ring, jutting spikes, a capstone aura. */
+function drawGenericMutation(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number, color: string): void {
+  const c = hexRgb(color);
+  glowDisc(ctx, tw.x, tw.y, r * (1.2 + tw.tier * 0.12), rgba(c, 0.1 + tw.tier * 0.03));
+  ring(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(c, pulse(now + tw.id, 2.2, 0.25, 0.55)), 1.2 + tw.tier * 0.2);
+  for (let i = 0; i < tw.tier; i++) {
+    const ang = now * 0.5 + (i * Math.PI * 2) / Math.max(3, tw.tier);
+    const rr = r * (1.5 + tw.tier * 0.12);
+    drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * rr, tw.y + Math.sin(ang) * rr, 2.2 + tw.tier * 0.3, color);
+  }
+  if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.5, rgba(c, pulse(now + tw.id, 3, 0.15, 0.45)), 1);
+}
+
+/** Hivemind Swarm — a churning cloud of venom barbs orbiting the spitter; denser each tier,
+ *  with a sickly green haze and (at the capstone) a second counter-rotating shell. */
+function branchSwarm(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.4 + tw.tier * 0.1), rgba(VENOM, 0.08 + tw.tier * 0.02));
+  const barbs = 2 + tw.tier * 2; // 4 → 12 barbs
+  const orbit = r * (1.5 + tw.tier * 0.06);
+  for (let i = 0; i < barbs; i++) {
+    const ang = now * 2.2 + (i * Math.PI * 2) / barbs;
+    const bx = tw.x + Math.cos(ang) * orbit;
+    const by = tw.y + Math.sin(ang) * orbit;
+    // a tiny barb: a short spine pointing along its orbit tangent
+    ctx.strokeStyle = rgba(VENOM, 0.85);
+    ctx.lineWidth = 1.3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(bx - Math.sin(ang) * 2.6, by + Math.cos(ang) * 2.6);
+    ctx.lineTo(bx + Math.sin(ang) * 2.6, by - Math.cos(ang) * 2.6);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  if (tw.tier >= 5) {
+    // The Thousand Maw — a second, faster, counter-spinning halo of barbs.
+    for (let i = 0; i < 10; i++) {
+      const ang = -now * 3.1 + (i * Math.PI * 2) / 10;
+      drawShape(ctx, 'diamond', tw.x + Math.cos(ang) * orbit * 1.35, tw.y + Math.sin(ang) * orbit * 1.35, 1.8, '#e8ff9a');
+    }
+  }
+}
+
+/** Apex Railspike — a single heavy coil-rail extending up the lane (enemies are upfield), longer
+ *  each tier, with charge coils and a bright muzzle node that flares on the firing beat. */
+function branchRail(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  const len = r * (1.6 + tw.tier * 0.5); // the barrel grows with tier
+  const tipX = tw.x;
+  const tipY = tw.y - len;
+  // the rail barrel
+  ctx.strokeStyle = rgba(RAIL, 0.85);
+  ctx.lineWidth = 2 + tw.tier * 0.4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(tw.x, tw.y);
+  ctx.lineTo(tipX, tipY);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  // charge coils along the rail
+  const coils = Math.min(tw.tier, 4);
+  for (let i = 1; i <= coils; i++) {
+    const cy = tw.y - (len * i) / (coils + 1);
+    ring(ctx, tw.x, cy, 3 + tw.tier * 0.3, rgba(RAIL, 0.5), 1.2);
+  }
+  // muzzle charge node — pulses (a charged-shot tell)
+  const charge = pulse(now + tw.id, tw.tier >= 3 ? 1.2 : 2.4, 0.6, 1.3);
+  glowDisc(ctx, tipX, tipY, (2.5 + tw.tier * 0.7) * charge, rgba(RAIL, 0.7));
+  if (tw.tier >= 5) glowDisc(ctx, tipX, tipY, (5 + tw.tier) * charge, rgba(RAIL, 0.3)); // Annihilator flare
+}
+
+/** Necrotic Siege — a battery of stubby mortar tubes fanned around the core, one more each tier,
+ *  their mouths glowing with banked cinders that flare on the firing beat. */
+function branchSiege(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.4 + tw.tier * 0.12), rgba(EMBER, 0.1 + tw.tier * 0.02));
+  const tubes = 1 + tw.tier; // 2 → 6 tubes
+  const spread = 0.6; // radians fanned around straight-up
+  for (let i = 0; i < tubes; i++) {
+    const frac = tubes === 1 ? 0.5 : i / (tubes - 1);
+    const ang = -Math.PI / 2 + (frac - 0.5) * spread * 2; // fan upfield (enemies are up)
+    const baseR = r * 0.5;
+    const tubeLen = r * 1.2;
+    const bx = tw.x + Math.cos(ang) * baseR;
+    const by = tw.y + Math.sin(ang) * baseR;
+    const mx = tw.x + Math.cos(ang) * (baseR + tubeLen);
+    const my = tw.y + Math.sin(ang) * (baseR + tubeLen);
+    ctx.strokeStyle = 'rgba(40,30,24,0.85)';
+    ctx.lineWidth = 3.4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.lineTo(mx, my);
+    ctx.stroke();
+    // glowing mouth — banked cinders
+    glowDisc(ctx, mx, my, 2.4 * pulse(now + tw.id + i, 3, 0.7, 1.3), rgba(EMBER, 0.85));
+  }
+  ctx.lineCap = 'butt';
+  if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.4, rgba(EMBER, pulse(now + tw.id, 2.6, 0.15, 0.4)), 1.4); // Extinction aura
+}
+
+/** Corrosive Cauldron — a churning acid pot brewed atop the mortar: a green surface that bubbles
+ *  and pops (more violently each tier) with caustic drips below. */
+function branchCauldron(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  const surfaceR = r * (1.05 + tw.tier * 0.07);
+  glowDisc(ctx, tw.x, tw.y, surfaceR * 1.5, rgba(ACID, 0.08 + tw.tier * 0.02));
+  // the acid surface
+  ctx.beginPath();
+  ctx.arc(tw.x, tw.y - r * 0.2, surfaceR, 0, Math.PI * 2);
+  ctx.fillStyle = rgba(ACID, 0.28);
+  ctx.fill();
+  ring(ctx, tw.x, tw.y - r * 0.2, surfaceR, rgba(ACID, 0.6), 1.4);
+  // rising bubbles — each on its own phase so they pop independently
+  const bubbles = 3 + tw.tier;
+  for (let i = 0; i < bubbles; i++) {
+    const ph = (now * (0.7 + (i % 3) * 0.25) + i * 1.7) % 1; // 0..1 rise cycle
+    const bx = tw.x + Math.sin(i * 2.3) * surfaceR * 0.6;
+    const by = tw.y - r * 0.2 + surfaceR * 0.5 - ph * surfaceR; // rise to the top
+    const sz = (1.6 + (i % 2)) * (1 - ph * 0.5);
+    drawShape(ctx, 'circle', bx, by, sz, rgba(ACID, 0.55 + 0.3 * (1 - ph)));
+  }
+  // an occasional drip below the pot
+  const dripPh = (now * 0.8) % 1;
+  if (dripPh < 0.5) drawShape(ctx, 'circle', tw.x + Math.sin(now) * r * 0.4, tw.y + r * 0.6 + dripPh * r, 1.6, rgba(ACID, 0.7));
+}
+
+/** A double-thump heartbeat envelope in [0,1] (a "lub-dub" near the start of each period). */
+function heartbeat(now: number, id: number, period = 0.95): number {
+  const ph = ((now + id) % period) / period;
+  const lub = Math.exp(-Math.pow(ph / 0.06, 2));
+  const dub = Math.exp(-Math.pow((ph - 0.17) / 0.07, 2)) * 0.7;
+  return Math.min(1, lub + dub);
+}
+
+/** Symbiotic Heart — a swelling vital organ that BEATS (a real lub-dub), fed by pulsing veins,
+ *  glowing warmer and throwing a vital nova on each beat at the capstone. */
+function branchHeart(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  const beat = heartbeat(now, tw.id);
+  const swell = 1 + beat * (0.16 + tw.tier * 0.03);
+  glowDisc(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12) * swell, rgba(HEART, 0.12 + beat * 0.12));
+  // pulsing veins reaching out
+  const veins = 3 + tw.tier;
+  ctx.strokeStyle = rgba(HEART, 0.4 + beat * 0.3);
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < veins; i++) {
+    const ang = (i * Math.PI * 2) / veins + Math.sin(now * 0.5 + i) * 0.1;
+    const reach = r * (1.3 + tw.tier * 0.1) * swell;
+    ctx.beginPath();
+    ctx.moveTo(tw.x + Math.cos(ang) * r * 0.4, tw.y + Math.sin(ang) * r * 0.4);
+    ctx.lineTo(tw.x + Math.cos(ang) * reach, tw.y + Math.sin(ang) * reach);
+    ctx.stroke();
+  }
+  // the beating core
+  drawShape(ctx, 'circle', tw.x, tw.y, r * 0.62 * swell, rgba(HEART, 0.55));
+  drawShape(ctx, 'circle', tw.x - r * 0.12, tw.y - r * 0.12, r * 0.22 * swell, 'rgba(255,220,230,0.7)');
+  if (tw.tier >= 5 && beat > 0.6) ring(ctx, tw.x, tw.y, r * (1.8 + beat), rgba(HEART, beat * 0.5), 1.6); // Living Core nova
+}
+
+/** Brood Spire — a clutch of twitching egg-pods budding around the core (more each tier) with
+ *  lashing tendrils whipping the lane; a corrosive haze blooms at the capstone. */
+function branchBrood(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.4 + tw.tier * 0.1), rgba(BROOD, 0.1 + tw.tier * 0.02));
+  // lashing tendrils (whip via sin, each on its own phase)
+  const tendrils = 2 + tw.tier;
+  ctx.strokeStyle = rgba(BROOD, 0.5);
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < tendrils; i++) {
+    const base = (i * Math.PI * 2) / tendrils;
+    const whip = Math.sin(now * 2.5 + i * 1.3) * 0.5;
+    const reach = r * (1.6 + tw.tier * 0.12);
+    const ex = tw.x + Math.cos(base + whip) * reach;
+    const ey = tw.y + Math.sin(base + whip) * reach;
+    const mx = tw.x + Math.cos(base) * reach * 0.5;
+    const my = tw.y + Math.sin(base) * reach * 0.5 - 4;
+    ctx.beginPath();
+    ctx.moveTo(tw.x, tw.y);
+    ctx.quadraticCurveTo(mx, my, ex, ey);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  // budding egg-pods, each twitching
+  const pods = 1 + tw.tier;
+  for (let i = 0; i < pods; i++) {
+    const ang = now * 0.4 + (i * Math.PI * 2) / pods;
+    const orbit = r * (0.9 + (i % 2) * 0.3);
+    const px = tw.x + Math.cos(ang) * orbit + Math.sin(now * 6 + i) * 0.8; // twitch
+    const py = tw.y + Math.sin(ang) * orbit;
+    drawShape(ctx, 'circle', px, py, 2.6 + tw.tier * 0.2, rgba(BROOD, 0.8));
+    drawShape(ctx, 'circle', px - 0.8, py - 0.8, 1.1, 'rgba(230,215,255,0.7)');
+  }
+  if (tw.tier >= 5) ring(ctx, tw.x, tw.y, r * 2.4, rgba(ACID, pulse(now + tw.id, 2.4, 0.15, 0.4)), 1.4); // Hive Node corrosive field
+}
+
+/** Viral Apex — a plague bloom: rings of contagion ripple outward (more/faster each tier)
+ *  through a haze of orbiting spores, swelling to a pandemic pulse at the capstone. */
+function branchPlague(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.6 + tw.tier * 0.12), rgba(PLAGUE, 0.08 + tw.tier * 0.02));
+  // expanding contagion rings — each a ripple that grows and fades on its own phase
+  const rings = 1 + Math.ceil(tw.tier / 2);
+  const speed = 0.5 + tw.tier * 0.1;
+  for (let i = 0; i < rings; i++) {
+    const ph = ((now * speed + i / rings) % 1); // 0..1
+    const rr = r * (1.1 + ph * (1.4 + tw.tier * 0.15));
+    ring(ctx, tw.x, tw.y, rr, rgba(PLAGUE, (1 - ph) * 0.5), 1.4);
+  }
+  // orbiting spores in the haze
+  const spores = 3 + tw.tier;
+  for (let i = 0; i < spores; i++) {
+    const ang = now * 1.1 + (i * Math.PI * 2) / spores;
+    const orbit = r * (1.2 + (i % 3) * 0.18);
+    drawShape(ctx, 'circle', tw.x + Math.cos(ang) * orbit, tw.y + Math.sin(ang) * orbit, 1.8, rgba(PLAGUE, 0.75));
+  }
+}
+
+/** Ravager Strain — a predator: curved mandible-fangs snap around the core (more, hungrier each
+ *  tier) over an angry red glow, dripping gore at the capstone. */
+function branchRavager(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.3 + tw.tier * 0.1), rgba(GORE, 0.1 + tw.tier * 0.03));
+  const pairs = 1 + Math.ceil(tw.tier / 2); // 2 → 4 fang pairs
+  const snap = (Math.sin(now * 4) * 0.5 + 0.5) * 0.5; // 0..0.5 jaw open
+  ctx.strokeStyle = rgba(GORE, 0.9);
+  ctx.lineWidth = 2 + tw.tier * 0.2;
+  ctx.lineCap = 'round';
+  for (let p = 0; p < pairs; p++) {
+    const axis = (p * Math.PI) / pairs + now * 0.3;
+    for (const side of [-1, 1]) {
+      const a = axis + side * (0.25 + snap);
+      const reach = r * (1.5 + tw.tier * 0.12);
+      const tipX = tw.x + Math.cos(a) * reach;
+      const tipY = tw.y + Math.sin(a) * reach;
+      // curved fang: control point bowed to the side for a hooked shape
+      const cx = tw.x + Math.cos(axis) * reach * 0.7 - side * Math.sin(axis) * reach * 0.3;
+      const cy = tw.y + Math.sin(axis) * reach * 0.7 + side * Math.cos(axis) * reach * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(tw.x + Math.cos(axis) * r * 0.3, tw.y + Math.sin(axis) * r * 0.3);
+      ctx.quadraticCurveTo(cx, cy, tipX, tipY);
+      ctx.stroke();
+    }
+  }
+  ctx.lineCap = 'butt';
+  if (tw.tier >= 5) { // Apex Predator — gore drips
+    const dripPh = (now * 1.2) % 1;
+    drawShape(ctx, 'circle', tw.x + Math.sin(now * 2) * r * 0.5, tw.y + r * 0.6 + dripPh * r * 0.8, 1.8, rgba(GORE, 0.8 * (1 - dripPh)));
+  }
+}
+
+/** Psionic Tyrant — a throne of domination: a crown of psionic spikes over a slow, wide rotating
+ *  glyph ring; a second counter-rotating ring crowns the capstone. */
+function branchTyrant(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (2 + tw.tier * 0.2), rgba(TYRANT, 0.06 + tw.tier * 0.015));
+  // the rotating glyph ring — wider each tier
+  const ringR = r * (1.8 + tw.tier * 0.18);
+  ctx.save();
+  ctx.strokeStyle = rgba(TYRANT, 0.5);
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([6, 7]);
+  ctx.lineDashOffset = -((now * 16) % 13);
+  ctx.beginPath();
+  ctx.arc(tw.x, tw.y, ringR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
+  // a crown of psionic spikes, taller/more numerous with tier
+  spikeCrown(ctx, tw.x, tw.y, r * 0.9, r * (0.4 + tw.tier * 0.1), 4 + tw.tier, rgba(TYRANT, 0.8), now * 0.4);
+  if (tw.tier >= 5) {
+    ctx.save();
+    ctx.strokeStyle = rgba(TYRANT, 0.4);
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 9]);
+    ctx.lineDashOffset = (now * 22) % 13; // counter-rotating
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y, ringR * 1.3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+  }
+}
+
+/** Mindrender — crackling neural lightning: jagged arcs lash out from the obelisk (more, longer,
+ *  forking at the capstone), flickering on a fast seed so it reads as live electricity. */
+function branchMindrender(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number): void {
+  glowDisc(ctx, tw.x, tw.y, r * (1.5 + tw.tier * 0.12), rgba(RENDER, 0.08 + tw.tier * 0.02));
+  const arcs = 2 + tw.tier;
+  const reach = r * (1.6 + tw.tier * 0.18);
+  ctx.strokeStyle = rgba(RENDER, 0.85);
+  ctx.lineWidth = 1.3;
+  ctx.lineCap = 'round';
+  const flick = Math.floor(now * 18); // a new "frame" of lightning ~18×/s
+  for (let i = 0; i < arcs; i++) {
+    const ang = (i * Math.PI * 2) / arcs + Math.sin(flick * 0.7 + i) * 0.4;
+    // a jagged 3-segment bolt out to `reach`
+    ctx.beginPath();
+    ctx.moveTo(tw.x, tw.y);
+    let px = tw.x;
+    let py = tw.y;
+    const segs = 3 + (tw.tier >= 4 ? 1 : 0);
+    for (let s = 1; s <= segs; s++) {
+      const t = s / segs;
+      const jitter = (((flick * 13 + i * 7 + s * 31) % 17) / 17 - 0.5) * r * 0.7;
+      px = tw.x + Math.cos(ang) * reach * t - Math.sin(ang) * jitter;
+      py = tw.y + Math.sin(ang) * reach * t + Math.cos(ang) * jitter;
+      ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    drawShape(ctx, 'circle', px, py, 1.4, rgba(RENDER, 0.9)); // a bright arc tip
+  }
+  ctx.lineCap = 'butt';
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
+  // A target-less shot fades out (game settle / mid-combat fizzle) instead of popping.
+  const fading = p.fade !== undefined && p.fade < 1;
+  if (fading) ctx.globalAlpha = Math.max(0, p.fade!);
+  if (p.skin && drawSkinnedProjectile(ctx, p)) {
+    if (fading) ctx.globalAlpha = 1;
+    return; // themed branch shot; else fall through to base
+  }
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';
   const core = splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
@@ -523,6 +866,111 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
 
   glowDisc(ctx, p.x, p.y, splash ? 7 : 5, rgba(trail, 0.6));
   drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : parasite ? 2.6 : 2.3, core);
+  if (fading) ctx.globalAlpha = 1;
+}
+
+/** Branch-specific projectile looks (TOWER-BRANCHES.md). `p.skin` is the firing tower's
+ *  branchId. Returns true if it drew a themed shot, false to fall back to the base look. */
+function drawSkinnedProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): boolean {
+  let ux = p.tx - p.x;
+  let uy = p.ty - p.y;
+  const len = Math.hypot(ux, uy) || 1;
+  ux /= len;
+  uy /= len;
+  switch (p.skin) {
+    case 'needle_swarm': {
+      // a stubby venom barb: a short bright spine with a chitin-green tip
+      ctx.strokeStyle = rgba(VENOM, 0.6);
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 7, p.y - uy * 7);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      drawShape(ctx, 'circle', p.x, p.y, 2.1, '#eaffb0');
+      return true;
+    }
+    case 'needle_rail': {
+      // a long, bright coil-rail lance with a sharp leading node and a long streak
+      ctx.strokeStyle = rgba(RAIL, 0.55);
+      ctx.lineWidth = 2.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 18, p.y - uy * 18);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      glowDisc(ctx, p.x, p.y, 6, rgba(RAIL, 0.7));
+      drawShape(ctx, 'circle', p.x, p.y, 2.6, '#ffffff');
+      return true;
+    }
+    case 'mortar_siege': {
+      // a heavy dark shell trailing fire
+      ctx.strokeStyle = rgba(EMBER, 0.5);
+      ctx.lineWidth = 3.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 12, p.y - uy * 12);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      glowDisc(ctx, p.x, p.y, 5.5, rgba(EMBER, 0.6));
+      drawShape(ctx, 'circle', p.x, p.y, 3.4, '#3a2a20'); // dark iron shell
+      drawShape(ctx, 'circle', p.x - ux * 1.2, p.y - uy * 1.2, 1.6, '#ffd08a'); // burning fuse
+      return true;
+    }
+    case 'mortar_cauldron': {
+      // a wobbling caustic glob
+      const wob = 1 + Math.sin(p.x * 0.3 + p.y * 0.3) * 0.18;
+      glowDisc(ctx, p.x, p.y, 6 * wob, rgba(ACID, 0.55));
+      drawShape(ctx, 'circle', p.x, p.y, 3.6 * wob, '#8fdc3e');
+      drawShape(ctx, 'circle', p.x - 1, p.y - 1, 1.4, 'rgba(230,255,200,0.8)'); // highlight
+      return true;
+    }
+    case 'parasite_apex': {
+      // a spore cluster — a magenta core haloed by small spores
+      glowDisc(ctx, p.x, p.y, 6, rgba(PLAGUE, 0.5));
+      drawShape(ctx, 'circle', p.x, p.y, 2.8, '#e87dff');
+      for (let i = 0; i < 3; i++) {
+        const a = p.x * 0.2 + i * 2.1; // deterministic-ish jitter from position
+        drawShape(ctx, 'circle', p.x + Math.cos(a) * 3.4, p.y + Math.sin(a) * 3.4, 1.2, rgba(PLAGUE, 0.85));
+      }
+      return true;
+    }
+    case 'parasite_ravager': {
+      // a barbed gore-dart with a hooked head and a dark trail
+      ctx.strokeStyle = rgba(GORE, 0.55);
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 9, p.y - uy * 9);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      drawShape(ctx, 'circle', p.x, p.y, 2.8, '#ff5d6c');
+      // a back-swept barb
+      drawShape(ctx, 'circle', p.x - ux * 3 - uy * 2, p.y - uy * 3 + ux * 2, 1.3, '#a3202e');
+      drawShape(ctx, 'circle', p.x - ux * 3 + uy * 2, p.y - uy * 3 - ux * 2, 1.3, '#a3202e');
+      return true;
+    }
+    case 'obelisk_tyrant': {
+      // the Synaptic Lance — a crackling neural bolt with a long electric streak
+      ctx.strokeStyle = rgba(TYRANT, 0.6);
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x - ux * 14, p.y - uy * 14);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      glowDisc(ctx, p.x, p.y, 5.5, rgba(TYRANT, 0.7));
+      drawShape(ctx, 'diamond', p.x, p.y, 2.6, '#dfe4ff');
+      return true;
+    }
+    default:
+      return false;
+  }
 }
 
 // ── Enemies ──────────────────────────────────────────────────────────────────

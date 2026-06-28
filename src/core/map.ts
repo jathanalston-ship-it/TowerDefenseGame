@@ -4,7 +4,7 @@
 // predefined slots in the bottom defensive region. Pure (no DOM); deterministic.
 
 import type { Vec2 } from './math';
-import { DEFENSE, FINAL_DEFENSE, OBSTACLES, SLOTS } from './config';
+import { DEFENSE, FINAL_DEFENSE, OBSTACLES } from './config';
 
 export const CELL = 40;
 export const COLS = 18;
@@ -184,27 +184,56 @@ export interface TowerSlot {
   y: number;
 }
 
+// The 27 tower emplacements: a 9-wide × 3-deep lattice in the defensive region. The nine
+// columns are spaced 80px apart and SYMMETRIC around the Hive Core (x=360) — four left, a
+// centre, four right — so placement never favours a side. The three rows sit just above the
+// core (the bottom row clears it). Slots are emitted in CENTRE-OUT unlock order: the column
+// nearest the core first, then expanding outward in mirror pairs, bottom row first — so any
+// "available count" (SLOTS.initialUnlocked → permanent → temporary) is left-right balanced.
+// Index = unlock priority: 0–14 are the centre five columns (initial 15), 15–20 the next ring
+// (permanent, up to 21), 21–26 the outer edges (temporary, run-only). See docs/SLOTS.md.
 function buildSlots(): TowerSlot[] {
-  const out: TowerSlot[] = [];
-  for (let row = DEFENSE_TOP_ROW + SLOTS.rowOffset; row < ROWS; row += SLOTS.rowStep) {
-    for (let col = SLOTS.colStart; col < COLS; col += SLOTS.colStep) {
-      if (isObstacle(col, row)) continue;
-      const ctr = center(col, row);
-      // Keep the base's cell clear.
-      if (Math.abs(ctr.x - nucleusPoint.x) < CELL * 0.75 && Math.abs(ctr.y - nucleusPoint.y) < CELL * 0.75) {
-        continue;
-      }
-      out.push({ index: out.length, col, row, x: ctr.x, y: ctr.y });
-    }
+  const xs = [40, 120, 200, 280, 360, 440, 520, 600, 680]; // symmetric around the core (x=360)
+  const rows = [DEFENSE_TOP_ROW, DEFENSE_TOP_ROW + 2, DEFENSE_TOP_ROW + 4]; // 18, 20, 22 — bottom row clears the core (row 23)
+  const center = 4; // index of x=360 in `xs`
+  const cells: { x: number; row: number; ci: number; ri: number }[] = [];
+  for (let ri = 0; ri < rows.length; ri++) {
+    for (let ci = 0; ci < xs.length; ci++) cells.push({ x: xs[ci], row: rows[ri], ci, ri });
   }
-  return out;
+  cells.sort((a, b) => {
+    const da = Math.abs(a.ci - center);
+    const db = Math.abs(b.ci - center);
+    if (da !== db) return da - db; // closer to the core unlocks first (centre-out)
+    const ra = rows.length - 1 - a.ri;
+    const rb = rows.length - 1 - b.ri;
+    if (ra !== rb) return ra - rb; // within a ring, the row nearest the core first
+    return (a.ci < center ? 0 : 1) - (b.ci < center ? 0 : 1); // left before right (mirror pairs adjacent)
+  });
+  return cells.map((c, index) => ({ index, col: colOf(c.x), row: c.row, x: c.x, y: c.row * CELL + CELL / 2 }));
 }
 export const towerSlots: TowerSlot[] = buildSlots();
 
-/** The slot occupying the cell at (px,py), or null. */
+/** How close a click must land to a slot's pad to select it (px). The pads sit on the
+ * symmetric 80px lattice; a generous, pad-sized radius keeps the tap target comfortable
+ * (> 44px touch target) without ever reaching a neighbouring slot. */
+export const SLOT_HIT_RADIUS = CELL * 0.7; // 28px
+
+/** The tower slot a click selects: the NEAREST pad within `SLOT_HIT_RADIUS`, or null. Snapping
+ * to the pad centre — rather than flooring (px,py) to a grid cell — keeps the clickable target
+ * CENTERED on each visual pad and mirror-symmetric about the Hive Core. (Pads straddle the cell
+ * grid, so cell-flooring biased every hit half a cell to the right and killed each pad's left
+ * half; nearest-pad removes that offset.) */
 export function slotAt(px: number, py: number): TowerSlot | null {
-  const col = colOf(px);
-  const row = rowOf(py);
-  for (const s of towerSlots) if (s.col === col && s.row === row) return s;
-  return null;
+  let best: TowerSlot | null = null;
+  let bestD2 = SLOT_HIT_RADIUS * SLOT_HIT_RADIUS;
+  for (const s of towerSlots) {
+    const dx = px - s.x;
+    const dy = py - s.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD2) {
+      bestD2 = d2;
+      best = s;
+    }
+  }
+  return best;
 }

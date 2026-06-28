@@ -5,11 +5,11 @@
 import { describe, it, expect } from 'vitest';
 import { branchRegistry, branchesFor, resolveBranchKit, emptyBranchKit } from './branches';
 import { Game } from './game';
-import { BRANCH_COSTS, TOWER_ORDER } from './config';
+import { BRANCH_COSTS, SIM_DT, TOWER_ORDER } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('branch catalog', () => {
   it('every branch validates, with TWO 5-tier paths per tower', () => {
@@ -41,6 +41,61 @@ describe('resolveBranchKit', () => {
   it('a later targeting grant overrides an earlier one', () => {
     expect(resolveBranchKit('needle_swarm', 1).targeting).toBe('fastest'); // T1
     expect(resolveBranchKit('needle_swarm', 5).targeting).toBe('mostCorrupted'); // T4 wins
+  });
+
+  it('carries a sensory signature (particle + sfx) from the lock tier through the capstone', () => {
+    // The lock tier sets the branch's attack particle/sfx; the cumulative fold keeps it at every
+    // higher tier (so a maxed tower still sprays its signature). Cosmetic only — golden-safe.
+    expect(resolveBranchKit('needle_swarm', 1).particle).toBe('barb');
+    expect(resolveBranchKit('needle_swarm', 1).sfx).toBe('br_swarm');
+    expect(resolveBranchKit('needle_swarm', 5).particle).toBe('barb'); // still set at the capstone
+    expect(resolveBranchKit('needle_rail', 2).particle).toBe('spark');
+    expect(resolveBranchKit('needle_rail', 2).sfx).toBe('br_rail');
+    expect(resolveBranchKit('mortar_siege', 3).particle).toBe('ember');
+    expect(resolveBranchKit('mortar_cauldron', 1).particle).toBe('acid');
+    expect(resolveBranchKit('reactor_heart', 1).particle).toBe('vital');
+    expect(resolveBranchKit('reactor_brood', 1).particle).toBe('spore');
+    expect(resolveBranchKit('parasite_apex', 1).particle).toBe('infect');
+    expect(resolveBranchKit('parasite_ravager', 1).particle).toBe('gore');
+    expect(resolveBranchKit('obelisk_tyrant', 1).particle).toBe('disrupt');
+    expect(resolveBranchKit('obelisk_mindrender', 1).particle).toBe('spark');
+  });
+
+  it('a branched obelisk (field) cues its signature on every pulse', () => {
+    const game = new Game(5, NO_META);
+    game.debugAddBiomass(1_000_000);
+    let id = -1;
+    for (const s of towerSlots) if (game.placeTower('obelisk', s.x, s.y)) { id = game.towers[game.towers.length - 1].id; break; }
+    expect(game.buyBranchTier(id, 'obelisk_tyrant')).toBe('ok');
+    game.drainSfx(); // drop splice
+    game.startWave();
+    let sawSfx = false;
+    for (let i = 0; i < 900 && !sawSfx; i++) {
+      game.advance(SIM_DT);
+      if (game.drainSfx().includes('br_psi')) sawSfx = true;
+    }
+    expect(sawSfx, 'a branched obelisk should cue its psionic signature on its field pulse').toBe(true);
+  });
+
+  it('a branched reactor (support) throbs its signature on its pulse, even on an economy-only tier', () => {
+    const game = new Game(4, NO_META);
+    game.debugAddBiomass(1_000_000);
+    let id = -1;
+    for (const s of towerSlots) if (game.placeTower('reactor', s.x, s.y)) { id = game.towers[game.towers.length - 1].id; break; }
+    expect(game.buyBranchTier(id, 'reactor_heart')).toBe('ok'); // T1 Engorged Sacs = economy-only (no abilities)
+    game.drainSfx(); // drop splice
+    game.startWave();
+    let sawSfx = false;
+    for (let i = 0; i < 600 && !sawSfx; i++) { // 10s ≫ the 2s support pulse
+      game.advance(SIM_DT);
+      if (game.drainSfx().includes('br_vital')) sawSfx = true;
+    }
+    expect(sawSfx, 'an economy-only Symbiotic Heart should still beat its vital cue').toBe(true);
+  });
+
+  it('an unbranched kit has no sensory signature (identity)', () => {
+    expect(resolveBranchKit('needle_swarm', 0).particle).toBeUndefined();
+    expect(resolveBranchKit('needle_swarm', 0).sfx).toBeUndefined();
   });
 });
 
@@ -76,6 +131,33 @@ describe('purchase + lock economy (Game)', () => {
     expect(game.buyBranchTier(id, 'needle_swarm')).toBe('poor');
   });
 
+  it('locking a branch cues the splice sound + a mutation burst', () => {
+    const game = new Game(3, NO_META);
+    const id = place(game, 'needle');
+    game.drainSfx(); // clear the place cue from setup
+    const partsBefore = game.particles.length;
+    expect(game.buyBranchTier(id, 'needle_swarm')).toBe('ok');
+    expect(game.drainSfx()).toContain('splice'); // the commitment moment
+    expect(game.particles.length).toBeGreaterThan(partsBefore); // mutation burst at the tower
+  });
+
+  it('a branched needle fires SKINNED shots, sprays its particle, and cues its sfx (sensory mutation)', () => {
+    const game = new Game(3, NO_META);
+    const id = place(game, 'needle');
+    expect(game.buyBranchTier(id, 'needle_swarm')).toBe('ok');
+    game.drainSfx(); // drop the splice cue; we now want the per-shot firing cue
+    game.startWave();
+    let sawSkin = false;
+    let sawSfx = false;
+    for (let i = 0; i < 2400 && !(sawSkin && sawSfx); i++) {
+      game.advance(SIM_DT);
+      if (!sawSkin && game.projectiles.some((p) => p.skin === 'needle_swarm')) sawSkin = true;
+      if (!sawSfx && game.drainSfx().includes('br_swarm')) sawSfx = true;
+    }
+    expect(sawSkin, 'a branched needle should tag its projectiles with its branch skin').toBe(true);
+    expect(sawSfx, 'a branched needle should cue its firing sfx').toBe(true);
+  });
+
   it('branchOptions offers both paths pre-lock, only the committed one after', () => {
     const game = new Game(2, NO_META);
     const id = place(game, 'mortar');
@@ -85,5 +167,39 @@ describe('purchase + lock economy (Game)', () => {
     expect(after.length).toBe(1);
     expect(after[0].branchId).toBe('mortar_siege');
     expect(after[0].locked).toBe(true);
+  });
+});
+
+// The inspection ENTRY POINT: a canvas click must open a placed tower's Mutation panel. The
+// build tool stays armed for repeat placement, so this only works if an occupied-slot click is
+// routed to inspection rather than a doomed placement (the bug: the armed tool shadowed inspect).
+describe('click routing → tower inspection', () => {
+  const s0 = towerSlots[0];
+
+  it('clicking a placed tower inspects it even while a build tool is still armed', () => {
+    const game = new Game(2, NO_META);
+    game.debugAddBiomass(1000);
+    game.selectTower('needle');
+    expect(game.placeTower('needle', s0.x, s0.y)).toBe(true);
+    expect(game.selectedTower).toBe('needle'); // still armed (repeat-placement default)
+    game.click(s0.x, s0.y); // click the placed tower — must inspect, not misfire a placement
+    expect(game.getSnapshot().selectedPlaced?.id).toBe(game.towers[0].id);
+  });
+
+  it('with a build tool armed, clicking an EMPTY slot still places (repeat placement intact)', () => {
+    const game = new Game(2, NO_META);
+    game.debugAddBiomass(1000);
+    game.selectTower('needle');
+    game.click(s0.x, s0.y); // empty slot → places
+    expect(game.towers.length).toBe(1);
+    expect(game.getSnapshot().selectedPlaced).toBeNull(); // placed, not inspected
+  });
+
+  it('clicking a placed tower with nothing armed inspects it', () => {
+    const game = new Game(2, NO_META);
+    game.debugAddBiomass(1000);
+    game.placeTower('needle', s0.x, s0.y);
+    game.click(s0.x, s0.y);
+    expect(game.getSnapshot().selectedPlaced?.id).toBe(game.towers[0].id);
   });
 });

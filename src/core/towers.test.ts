@@ -9,7 +9,7 @@ import { SIM_DT } from './config';
 import { DEFENSE_TOP_Y, towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 /** Blanket the front slot-rows with one kind, flood the lane, and run a wave.
  * Flooding makes enemies leak past the hero so the back-row towers actually engage. */

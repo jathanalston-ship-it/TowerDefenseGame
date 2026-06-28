@@ -26,6 +26,17 @@ export const FX = {
   dmgFloatInterval: 0.4, // min seconds between aggregated damage-number pops per enemy
 };
 
+/** Combat→Build "settle": after the FINAL enemy of a wave dies, the battlefield winds DOWN for
+ * a beat — in-flight projectiles coast out and fade, acid pools + particles dissipate, the
+ * red-alert eases off — before the gene-card draft / build phase, so combat lands cleanly
+ * instead of snapping or freezing mid-air. Purely presentational: during the settle no
+ * spawns / economy / tower fire run and NO gameplay RNG is touched, so run outcomes (and the
+ * golden seeds) are unchanged — only the moment the phase flips is delayed by `duration`. */
+export const SETTLE = {
+  duration: 0.7, // seconds the battlefield winds down after the last kill before the draft/build
+  projectileFade: 0.3, // seconds a target-less projectile coasts + fades out before it's released
+};
+
 // ── Towers ────────────────────────────────────────────────────────────────
 export interface TowerDef {
   kind: TowerKind;
@@ -390,6 +401,14 @@ export const PARTICLE = {
   infect: { count: 7, speed: 60, life: 0.55, size: 2.3, color: '#e24dff' }, // spores burst from an infected death (the spread)
   disrupt: { count: 5, speed: 40, life: 0.4, size: 2.0, color: '#9aa6ff' }, // psionic static off an obelisk pulse
   bloom: { count: 8, speed: 80, life: 0.5, size: 2.4, color: '#ffcaa0' }, // vital spores off the Shepherd's pulse
+  // ── Per-branch attack signatures (TOWER-BRANCHES.md): each mutated tower sprays its own matter ──
+  barb: { count: 5, speed: 150, life: 0.32, size: 1.7, color: '#c8f04a' }, // Hivemind Swarm — flung venom barbs
+  spark: { count: 6, speed: 210, life: 0.28, size: 1.5, color: '#bfe9ff' }, // Railspike / Mindrender — electric discharge
+  ember: { count: 7, speed: 120, life: 0.5, size: 2.2, color: '#ff8a3c' }, // Necrotic Siege — burning bone shrapnel
+  acid: { count: 7, speed: 95, life: 0.6, size: 2.4, color: '#9be84a' }, // Corrosive Cauldron — caustic droplets
+  vital: { count: 7, speed: 70, life: 0.7, size: 2.4, color: '#ffb3c8' }, // Symbiotic Heart — warm biomass motes
+  spore: { count: 8, speed: 60, life: 0.66, size: 2.3, color: '#b58cff' }, // Brood Spire — drifting brood spores
+  gore: { count: 7, speed: 135, life: 0.44, size: 2.4, color: '#d83a4a' }, // Ravager Strain — viscera spray
   // ── Reward-moment spectacle (cosmetic; never affects the pinned sim outcomes) ──
   bossfall: { count: 30, speed: 190, life: 0.95, size: 3.6, color: '#ffd24d' }, // a boss detonating into biomass
   celebrate: { count: 22, speed: 150, life: 1.1, size: 3.0, color: '#b6e84a' }, // wave-clear / extraction bloom
@@ -789,15 +808,15 @@ export const OBSTACLES: { col: number; row: number; w: number; h: number }[] = [
   { col: 14, row: 13, w: 3, h: 2 },
 ];
 
-// Tower placement slots: a regular lattice within the defensive region. The total
-// count is derived from the steps; `initialUnlocked` gates how many are usable at
-// run start — future upgrades raise it (Game.unlockedSlots).
+// Tower-slot PROGRESSION tunables (the geometry lives in map.ts buildSlots). The map has 27
+// emplacements (docs/SLOTS.md): `initialUnlocked` are free at run start; permanent unlocks
+// (Shard upgrade → MetaModifiers.bonusSlots) raise the available count to `permanentMax`;
+// temporary unlocks (the Reclaimed Node gene card → RunModifiers.bonusTowerSlots) add up to
+// `tempMax` more for the run only. permanentMax + tempMax === the 27 total.
 export const SLOTS = {
-  colStep: 2,
-  colStart: 1, // columns 1,3,5,… leave gaps for enemies and visual clarity
-  rowStep: 2,
-  rowOffset: 1, // first slot row sits 1 cell below the defensive line's top
-  initialUnlocked: 14,
+  initialUnlocked: 15, // the centre five columns × three rows — symmetric around the core
+  permanentMax: 21, // the most a player can permanently unlock (initial + Shard upgrades)
+  tempMax: 6, // the most temporary (run-only) slots a run can add via gene cards
 };
 
 // ── Meta upgrades (permanent, capped — NOT prestige/infinite) ─────────────
@@ -818,6 +837,10 @@ export const META_UPGRADES: UpgradeDef[] = [
   { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'biomassMult', perLevel: 0.1 } },
   { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
   { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
+  // Permanent tower slots (docs/SLOTS.md): each level unlocks one more emplacement forever,
+  // raising the run-start count from SLOTS.initialUnlocked (15) toward SLOTS.permanentMax (21).
+  // maxLevel = permanentMax − initialUnlocked. Cost climbs per purchase (costMult).
+  { id: 'emplacements', name: 'Hive Emplacements', description: '+1 permanent tower slot per level', maxLevel: 6, baseCost: 40, costMult: 1.6, effect: { stat: 'bonusSlots', perLevel: 1 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {

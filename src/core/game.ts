@@ -33,6 +33,7 @@ import {
   MOVE,
   PARTICLE,
   PERF,
+  SETTLE,
   SIM_DT,
   SLOTS,
   STATUS,
@@ -81,6 +82,7 @@ import type { TargetingProfile } from './targeting';
 import { applyMutators } from './mutators';
 import { gameEvents } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
+import type { ResolvedBranchKit } from './branches';
 import type { Branch } from './branches';
 import { BRANCH_COSTS } from './config';
 
@@ -219,6 +221,9 @@ interface RunBuff {
 
 export class Game {
   phase: Phase = 'prep';
+  /** Combat→Build settle countdown (s). > 0 after the last enemy dies: the wave is cleared but
+   * the phase hasn't flipped yet — the battlefield winds down (see step's settle branch). */
+  private settleTimer = 0;
   waveIndex = 0; // waves started/cleared so far (= Depth in endless)
   readonly totalWaves = TOTAL_WAVES;
   readonly mode: RunMode;
@@ -231,7 +236,10 @@ export class Game {
   integrity: number;
   maxIntegrity: number;
   kills = 0;
-  unlockedSlots = SLOTS.initialUnlocked; // raised by future upgrades
+  // Permanently-unlocked slots (initial allotment + Hive Emplacements Shard upgrades), frozen
+  // at construction from meta.bonusSlots. Temporary gene-card slots ride on top via the
+  // `unlockedSlots` getter below. See docs/SLOTS.md.
+  private permanentSlots = SLOTS.initialUnlocked;
   time = 0;
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
@@ -318,6 +326,7 @@ export class Game {
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
   private castRangeMult = 1; // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
+  private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -355,6 +364,10 @@ export class Game {
     if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
+    // Permanent tower slots: initial allotment + Hive Emplacements upgrades (meta.bonusSlots),
+    // capped at SLOTS.permanentMax. Persists across runs via the saved upgrade ladder; the
+    // run-only gene-card slots layer on top in the `unlockedSlots` getter. docs/SLOTS.md.
+    this.permanentSlots = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + meta.bonusSlots);
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
     this.heroes = [this.makeHero(heroKind)];
   }
@@ -586,7 +599,8 @@ export class Game {
     t.branchId = branchId;
     t.tier += 1;
     this.recomputeTowerCaches(); // overcharge adjacency unaffected, but keep caches coherent
-    this.pushSfx('place'); // mutation/splice sound hook
+    this.pushSfx('splice'); // the commitment/mutation moment — a meatier cue than a plain place
+    this.spawnParticles(t.x, t.y, PARTICLE.bloom, TOWER_DEFS[t.kind].color); // mutation burst at the tower
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
     return 'ok';
   }
@@ -630,6 +644,11 @@ export class Game {
       return;
     }
     if (this.selectedTower) {
+      // Clicking an EXISTING tower always inspects it — placement only lands on empty slots, so
+      // an occupied-slot click would otherwise misfire into a no-op placement and the armed build
+      // tool would shadow inspection entirely. Redirect it to the Mutation panel.
+      const occupant = this.towerAt(px, py);
+      if (occupant) { this.selectPlacedTower(occupant.id); return; }
       this.placeTower(this.selectedTower, px, py);
       return; // stay armed for repeat placement
     }
@@ -657,6 +676,16 @@ export class Game {
       this.selectedTower = null; // inspecting, not placing
       this.armedAbility = false;
     }
+  }
+
+  /** Tower slots the player may build on right now: the permanent base (initial + Shard
+   *  upgrades, frozen at construction) plus this run's temporary gene-card slots, each capped
+   *  by its own ceiling (SLOTS.permanentMax / SLOTS.tempMax) and the physical slot count.
+   *  Slots unlock in map.ts centre-out index order, so the available set stays symmetric
+   *  whichever source granted the slot. See docs/SLOTS.md. */
+  get unlockedSlots(): number {
+    const temp = Math.min(SLOTS.tempMax, this.mods.bonusTowerSlots);
+    return Math.min(towerSlots.length, this.permanentSlots + temp);
   }
 
   placeTower(kind: TowerKind, px: number, py: number): boolean {
@@ -695,9 +724,12 @@ export class Game {
     return true;
   }
 
-  /** Unlock additional tower slots (hook for future permanent upgrades). */
+  /** Grant `n` additional TEMPORARY tower slots for this run — the future hook for in-run slot
+   *  rewards (events, boss drops, …) beyond the Reclaimed Node gene card. Run-only (not saved)
+   *  and capped at SLOTS.tempMax by the `unlockedSlots` getter; permanent slots come from the
+   *  Hive Emplacements Shard upgrade (meta.bonusSlots) instead. See docs/SLOTS.md. */
   unlockSlots(n: number): void {
-    this.unlockedSlots = Math.min(towerSlots.length, this.unlockedSlots + n);
+    this.mods.bonusTowerSlots += n;
   }
 
   /** Enemy-HP multiplier for a 0-based wave index: the base escalation curve × the universal
@@ -841,6 +873,21 @@ export class Game {
   }
 
   private step(dt: number): void {
+    // ── Combat→Build SETTLE beat ── the wave is cleared and the simulation is PAUSED: the sim
+    // clock, run-buff + minion timers, and every combat system are frozen, so all downstream
+    // deterministic state (enemy steering jitter keyed off `this.time`, the spawn schedule, buff
+    // durations…) is identical to a no-settle run and the golden seeds don't move. Only the
+    // battlefield's VISUAL wind-down runs: in-flight shots coast out and FADE, particles + floats
+    // dissipate (all driven by the frame `dt`, not the sim clock). endWave() reveals the draft /
+    // win once the beat elapses. (Acid pools + the hero resume in the prep/draft branch below.)
+    if (this.phase === 'wave' && this.settleTimer > 0) {
+      this.settleTimer -= dt;
+      this.projectileSystem(dt);
+      this.floatSystem(dt);
+      this.particleSystem(dt);
+      if (this.settleTimer <= 0) this.endWave();
+      return;
+    }
     this.time += dt;
     if (this.runBuffs.length > 0) this.tickRunBuffs(dt); // no-op (skipped) on the golden path
     if (this.minions.length > 0) this.minionSystem(dt); // empty on the golden path → skipped
@@ -866,8 +913,13 @@ export class Game {
         this.phase = 'lost';
       }
     } else {
-      // prep: hero still roams; no spawns/economy/loss (overcharge is cached on placement).
+      // prep / draft: hero still roams; no spawns/economy/loss (overcharge is cached on
+      // placement). Combat RESIDUE keeps winding down — projectiles coast out + fade, acid pools
+      // dissipate — so nothing freezes mid-air into the build phase. No enemies ⇒ no RNG/damage
+      // (and autoplay never advances in these phases, so the golden run is byte-identical).
       this.emergencySystem(dt); // no enemies here → eases the emergency visuals back to rest
+      this.projectileSystem(dt);
+      this.poolSystem(dt);
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
@@ -1251,6 +1303,7 @@ export class Game {
         bk && bk.projectileMutators.length
           ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
           : prog.projectileMutators ?? EMPTY_STR;
+      this.castProjectileSkin = bk ? t.branchId ?? undefined : undefined; // branch shot-skin (renderer-only)
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
@@ -1261,13 +1314,19 @@ export class Game {
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
       // Branch-granted attacks (shrapnel crits, infection, neural bolts …) on the same cadence.
       if (bk && bk.extraAbilities.length) acted = runAbilities(this.actx, bk.extraAbilities, this.castScratch) || acted;
-      if (acted) t.cooldown = def.fireInterval / rateMult;
+      if (acted) {
+        t.cooldown = def.fireInterval / rateMult;
+        // Branch sensory signature (TOWER-BRANCHES.md §1): a muzzle spray + sound on every shot.
+        // Cosmetic only (FX rng + sfx queue) ⇒ golden-safe; bk is null on the unbranched/autoplay path.
+        if (bk) this.emitBranchSignature(bk, t.x, t.y - 6);
+      }
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
     this.castRangeMult = 1;
     this.castProjectileMutators = EMPTY_STR;
+    this.castProjectileSkin = undefined;
   }
 
   /** A branched SUPPORT tower (Flesh Reactor) runs its branch abilities — auras, summons,
@@ -1275,20 +1334,33 @@ export class Game {
    *  unbranched ⇒ golden-safe. Its branch ECONOMY (biomass/overcharge) folds in economySystem. */
   private supportBranchPulse(t: Tower, dt: number): void {
     const bk = resolveBranchKit(t.branchId, t.tier);
-    if (bk.extraAbilities.length === 0) return; // economy-only tiers have nothing to pulse
+    // A branched reactor THROBS on a fixed cadence: it runs its offensive/economy mutations (if
+    // any) and throws its sensory signature — even on an economy-only tier, so a Symbiotic Heart
+    // visibly/audibly beats from its very first splice. Cosmetic emission is golden-safe.
     t.pulseCd -= dt;
     if (t.pulseCd > 0) return;
     t.pulseCd = SUPPORT_BRANCH_PULSE;
-    this.abilitySourceKind = t.kind;
-    this.abilityHeroKind = null;
-    this.abilityCaster = null;
-    this.abilityTargeting = 'closestToBase';
-    this.castScratch.x = t.x;
-    this.castScratch.y = t.y;
-    this.castScratch.damageMult = this.mods.towerDamageMult * bk.damageMult;
-    this.castScratch.target = null;
-    this.castScratch.pierce = 0;
-    runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+    if (bk.extraAbilities.length > 0) {
+      this.abilitySourceKind = t.kind;
+      this.abilityHeroKind = null;
+      this.abilityCaster = null;
+      this.abilityTargeting = 'closestToBase';
+      this.castScratch.x = t.x;
+      this.castScratch.y = t.y;
+      this.castScratch.damageMult = this.mods.towerDamageMult * bk.damageMult;
+      this.castScratch.target = null;
+      this.castScratch.pierce = 0;
+      runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+    }
+    this.emitBranchSignature(bk, t.x, t.y); // the reactor's pulse throws its branch matter too
+  }
+
+  /** Spray a branched tower's signature particle + sound on an attack/pulse. Cosmetic only —
+   *  the FX rng and sfx queue are independent of the gameplay rng, so this never perturbs the
+   *  pinned sim (and bk is only ever passed for a branched tower, never on the golden path). */
+  private emitBranchSignature(bk: ResolvedBranchKit, x: number, y: number): void {
+    if (bk.particle) this.spawnParticles(x, y, PARTICLE[bk.particle]);
+    if (bk.sfx) this.pushSfx(bk.sfx);
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -1323,10 +1395,27 @@ export class Game {
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
       const step = p.speed * dt;
+      // Fading out (lost its target): coast along the last heading while the renderer fades it,
+      // then release — a graceful wind-down instead of an instant pop. Deals no damage / no rng.
+      if (p.fade !== undefined) {
+        p.fade -= dt / SETTLE.projectileFade; // opacity 1 → 0 over projectileFade seconds
+        if (p.fade <= 0) {
+          p.alive = false;
+          continue;
+        }
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d > step) {
+          p.x += (dx / d) * step;
+          p.y += (dy / d) * step;
+        }
+        continue;
+      }
       if (p.behavior === 'homing' || p.behavior === 'parasite') {
         const target = this.enemyById.get(p.targetId); // O(1) homing lookup
         if (!target || !target.alive) {
-          p.alive = false; // fizzle if the target died
+          p.fade = 1; // target gone → coast out + fade gracefully (was an instant pop)
           continue;
         }
         p.tx = target.x;
@@ -1995,11 +2084,13 @@ export class Game {
       p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
       p.sourceKind = sourceKind;
       p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
+      p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
+      p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
       if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
       this.applyProjectileMutators(p);
     } else {
-      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0 };
+      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0, skin: this.castProjectileSkin };
       this.projectiles.push(np);
       this.applyProjectileMutators(np);
     }
@@ -2128,22 +2219,31 @@ export class Game {
   }
 
   private checkWaveEnd(): void {
-    if (this.phase !== 'wave') return;
+    if (this.phase !== 'wave' || this.settleTimer > 0) return; // already winding down
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
+      // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
+      // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
+      // options aren't shown until the phase is 'draft' (the modal is phase-gated).
       // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
       if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
         this.stageClearCrescendo();
-        this.phase = 'won';
       } else {
         this.waveCompleteFlourish(flawless);
         this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
-        this.phase = 'draft';
       }
+      this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
     }
+  }
+
+  /** End of the settle beat: reveal the post-wave state — the stage win, or the gene-card draft
+   * (already rolled in checkWaveEnd). Pure phase flip; the battlefield is now wound down. */
+  private endWave(): void {
+    this.settleTimer = 0;
+    this.phase = this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES ? 'won' : 'draft';
   }
 
   // ── Status / reaction helpers ────────────────────────────────────────────

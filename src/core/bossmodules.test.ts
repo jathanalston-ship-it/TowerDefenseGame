@@ -5,7 +5,7 @@ import { towerSlots } from './map';
 import type { BossDef, BossModule } from './boss';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 let seq = 0;
 function testBoss(modules: BossModule[]): BossDef {

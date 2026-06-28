@@ -123,6 +123,23 @@ function sJackpot(): void { // rare hero-shard sparkle
 }
 function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
 
+// ── Tower-branch cues (TOWER-BRANCHES.md) — `splice` is the commit moment; the `br_*` tags are
+//    each branch's per-shot firing signature. Firing cues are deliberately SHORT + QUIET so a
+//    board of mutated towers layers under the hit/kill mix rather than drowning it (voice-capped). ──
+function sSplice(): void { // wet, rising graft — the irreversible commitment
+  tone(150, 0.22, 'sawtooth', 0.13, 360); tone(80, 0.26, 'sine', 0.12, 190); noise(0.2, 0.1, 1100, 3200);
+}
+function sBrSwarm(): void { noise(0.04, 0.05, 4200); tone(760, 0.05, 'square', 0.035, 980); } // chittering barb volley
+function sBrRail(): void { tone(1250, 0.06, 'sawtooth', 0.06, 230); tone(130, 0.11, 'sine', 0.06, 66); } // railgun crack + thud
+function sBrSiege(): void { tone(90, 0.16, 'sine', 0.09, 50); noise(0.12, 0.07, 900, 280); } // deep necrotic mortar boom
+function sBrAcid(): void { noise(0.16, 0.06, 1800, 600); tone(220, 0.1, 'triangle', 0.03, 130); } // caustic glug + hiss
+function sBrVital(): void { tone(66, 0.16, 'sine', 0.08, 46); tone(132, 0.12, 'sine', 0.035, 92); } // warm heart lub-dub
+function sBrSpore(): void { noise(0.1, 0.06, 1300, 480); tone(300, 0.09, 'triangle', 0.03, 170); } // wet brood-pod pop
+function sBrPlague(): void { noise(0.12, 0.05, 2400, 700); tone(420, 0.07, 'sine', 0.03, 300); } // sick spore spit
+function sBrGore(): void { noise(0.07, 0.07, 1500, 400); tone(160, 0.07, 'sawtooth', 0.04, 80); } // vicious wet crunch
+function sBrPsi(): void { tone(180, 0.18, 'sine', 0.05, 120); tone(270, 0.16, 'triangle', 0.025, 200); } // ominous psionic hum
+function sBrStorm(): void { noise(0.05, 0.05, 5000, 1500); tone(1500, 0.05, 'sawtooth', 0.04, 400); } // crackling neural zap
+
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
   droneOn = true;
@@ -182,6 +199,17 @@ export const audio = {
         case 'reveal': sReveal(); break;
         case 'jackpot': sJackpot(); break;
         case 'achieve': sAchieve(); break;
+        case 'splice': sSplice(); break;
+        case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;
+        case 'br_rail': sBrRail(); break;
+        case 'br_siege': for (let i = 0; i < Math.min(2, n); i++) sBrSiege(); break;
+        case 'br_acid': sBrAcid(); break;
+        case 'br_vital': sBrVital(); break;
+        case 'br_spore': sBrSpore(); break;
+        case 'br_plague': for (let i = 0; i < Math.min(2, n); i++) sBrPlague(); break;
+        case 'br_gore': for (let i = 0; i < Math.min(2, n); i++) sBrGore(); break;
+        case 'br_psi': sBrPsi(); break;
+        case 'br_storm': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(); break;
       }
     }
   },

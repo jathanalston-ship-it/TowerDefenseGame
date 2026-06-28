@@ -9,7 +9,7 @@ import { SIM_DT } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers, TowerKind } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 const KINDS: TowerKind[] = ['needle', 'mortar', 'reactor'];
 const MOTE = '#b6e84a'; // PARTICLE.mote.color — uniquely identifies a biomass mote
 

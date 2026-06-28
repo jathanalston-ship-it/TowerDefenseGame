@@ -5,7 +5,7 @@ import { SIM_DT, TOWER_ORDER } from './config';
 import { DEFENSE_TOP_Y, towerSlots } from './map';
 import type { MetaModifiers, TowerKind, TowerProgress } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 function neutralProgress(): TowerProgress {
   const r = {} as TowerProgress;

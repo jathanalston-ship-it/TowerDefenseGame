@@ -14,6 +14,7 @@
 
 import { Registry } from './registry';
 import type { TowerKind } from './types';
+import type { ParticleKind } from './ability';
 import type { StarGrant, ResolvedStarKit } from './stars';
 import { emptyStarKit, applyGrant } from './stars';
 
@@ -25,6 +26,11 @@ export interface BranchTier {
   fireRateMult?: number; // default 1
   rangeMult?: number; // default 1
   grants: StarGrant[]; // the mutation (targeting / projectile / ability / reactor / cosmetic)
+  // ── Sensory mutation (TOWER-BRANCHES.md §1): every tier visibly/audibly changes the tower.
+  //    Cosmetic only (FX rng + sfx queue) ⇒ never perturbs the pinned sim. Cumulative fold:
+  //    the highest purchased tier that sets one wins (a capstone can escalate the signature). ──
+  particle?: ParticleKind; // sprayed at the muzzle on every attack/pulse
+  sfx?: string; // sound cue tag on every attack/pulse (audio/sound.ts)
 }
 
 export interface Branch {
@@ -35,13 +41,18 @@ export interface Branch {
   tiers: BranchTier[]; // exactly 5, ascending 1..5
 }
 
-/** A tower instance's resolved branch state: the star kit plus per-tier stat mults. */
+/** A tower instance's resolved branch state: the star kit plus per-tier stat mults and the
+ * folded sensory signature (the attack particle/sfx of the highest tier that sets one). */
 export interface ResolvedBranchKit extends ResolvedStarKit {
   damageMult: number;
   fireRateMult: number;
   rangeMult: number;
+  particle?: ParticleKind; // muzzle spray on attack (undefined ⇒ none)
+  sfx?: string; // attack sound cue (undefined ⇒ none)
 }
 
+// NOTE: particle/sfx are intentionally left UNSET here so `resolveBranchKit(x, 0)` is deep-equal
+// to a fresh kit (the golden-safe identity asserted in branches.test.ts).
 export function emptyBranchKit(): ResolvedBranchKit {
   return { ...emptyStarKit(), damageMult: 1, fireRateMult: 1, rangeMult: 1 };
 }
@@ -70,6 +81,8 @@ export function resolveBranchKit(branchId: string | null, tier: number): Resolve
     if (t.damageMult) kit.damageMult *= t.damageMult;
     if (t.fireRateMult) kit.fireRateMult *= t.fireRateMult;
     if (t.rangeMult) kit.rangeMult *= t.rangeMult;
+    if (t.particle) kit.particle = t.particle; // last (highest) tier that sets a signature wins
+    if (t.sfx) kit.sfx = t.sfx;
     for (const g of t.grants) applyGrant(kit, g);
   }
   return kit;
@@ -90,7 +103,7 @@ const BRANCHES: Branch[] = [
     id: 'needle_swarm', tower: 'needle', name: 'Hivemind Swarm',
     theme: 'One spitter becomes a self-guiding needle swarm that shreds crowds.',
     tiers: [
-      { tier: 1, name: 'Barbed Needles', desc: 'Needles pierce 1 enemy; lock onto the FASTEST target.', damageMult: 1.1, grants: [{ t: 'targeting', profile: 'fastest' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 1, name: 'Barbed Needles', desc: 'Needles pierce 1 enemy; lock onto the FASTEST target.', damageMult: 1.1, particle: 'barb', sfx: 'br_swarm', grants: [{ t: 'targeting', profile: 'fastest' }, { t: 'projectile', mutators: ['pierce1'] }] },
       { tier: 2, name: 'Twin Spinnerets', desc: 'Fires +2 needles per volley, faster.', fireRateMult: 1.2, grants: [{ t: 'projectile', extraProjectiles: 2 }] },
       { tier: 3, name: 'Venom Coating', desc: 'Needles smear Corrosion — enabling Shred with their Fracture.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1 } }] }] },
       { tier: 4, name: 'Swarm Logic', desc: '+2 more needles, pierce 2; hunt the most-corrupted prey.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce2'] }, { t: 'targeting', profile: 'mostCorrupted' }] },
@@ -101,7 +114,7 @@ const BRANCHES: Branch[] = [
     id: 'needle_rail', tower: 'needle', name: 'Apex Railspike',
     theme: 'A patient sniper that drives a single colossal spike through elites.',
     tiers: [
-      { tier: 1, name: 'Hollowpoint', desc: 'Pierce 1; target the HIGHEST-health enemy.', damageMult: 1.25, grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 1, name: 'Hollowpoint', desc: 'Pierce 1; target the HIGHEST-health enemy.', damageMult: 1.25, particle: 'spark', sfx: 'br_rail', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce1'] }] },
       { tier: 2, name: 'Armor Render', desc: 'Each spike rips +2 Fracture; longer reach.', damageMult: 1.15, rangeMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }] }] },
       { tier: 3, name: 'Charged Shot', desc: 'Slower cadence, but each spike hits far harder and pierces 2.', damageMult: 1.9, fireRateMult: 0.65, grants: [{ t: 'projectile', mutators: ['pierce2'] }] },
       { tier: 4, name: 'Executioner', desc: 'Priority on elites; brutal critical strikes.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'elitePriority' }, { t: 'ability', components: [{ type: 'crit', chance: 0.5, mult: 3, damage: 10 }] }] },
@@ -114,7 +127,7 @@ const BRANCHES: Branch[] = [
     id: 'mortar_siege', tower: 'mortar', name: 'Necrotic Siege',
     theme: 'Apocalyptic bombardment — wider, heavier, more shells.',
     tiers: [
-      { tier: 1, name: 'Caustic Shells', desc: '+40% blast radius.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.4 }] },
+      { tier: 1, name: 'Caustic Shells', desc: '+40% blast radius.', damageMult: 1.1, particle: 'ember', sfx: 'br_siege', grants: [{ t: 'projectile', splashMult: 1.4 }] },
       { tier: 2, name: 'Saturation Barrage', desc: 'Lobs 3 shells per volley.', fireRateMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2 }] },
       { tier: 3, name: 'Shrapnel Bile', desc: 'Bigger blasts that Fracture the struck target.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.3 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }] }] },
       { tier: 4, name: 'Carpet Bomb', desc: '+2 more shells; saturates elite packs.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2, splashMult: 1.3 }, { t: 'targeting', profile: 'elitePriority' }] },
@@ -125,7 +138,7 @@ const BRANCHES: Branch[] = [
     id: 'mortar_cauldron', tower: 'mortar', name: 'Corrosive Cauldron',
     theme: 'A slow apocalypse — drowns the lane in melting, slowing acid.',
     tiers: [
-      { tier: 1, name: 'Acid Reservoir', desc: 'Shells drench targets in Corrosion over a wider area.', damageMult: 1.05, grants: [{ t: 'projectile', splashMult: 1.3 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 1, name: 'Acid Reservoir', desc: 'Shells drench targets in Corrosion over a wider area.', damageMult: 1.05, particle: 'acid', sfx: 'br_acid', grants: [{ t: 'projectile', splashMult: 1.3 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
       { tier: 2, name: 'Viscous Tar', desc: 'Acid rain falls far more often.', fireRateMult: 1.3, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1 } }] }] },
       { tier: 3, name: 'Dissolving Agent', desc: 'Acid strips armor (Fracture) as it melts.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.2 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
       { tier: 4, name: 'Caustic Flood', desc: 'An extra shell; floods the line to hold it.', fireRateMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 1, splashMult: 1.4 }, { t: 'targeting', profile: 'closestToBase' }] },
@@ -138,7 +151,7 @@ const BRANCHES: Branch[] = [
     id: 'reactor_heart', tower: 'reactor', name: 'Symbiotic Heart',
     theme: 'A swelling engine of biomass that empowers and mends the hive.',
     tiers: [
-      { tier: 1, name: 'Engorged Sacs', desc: '+50% biomass generation.', grants: [{ t: 'reactor', biomassMult: 1.5 }, { t: 'cosmetic', id: 'engorge' }] },
+      { tier: 1, name: 'Engorged Sacs', desc: '+50% biomass generation.', particle: 'vital', sfx: 'br_vital', grants: [{ t: 'reactor', biomassMult: 1.5 }, { t: 'cosmetic', id: 'engorge' }] },
       { tier: 2, name: 'Catalytic Lattice', desc: 'Floods ALL towers with a steady +12% damage charge.', grants: [{ t: 'ability', components: [{ type: 'buff', stat: 'towerDamage', amount: 1.12, seconds: 3 }] }] },
       { tier: 3, name: 'Vital Conduit', desc: 'Mends the Nucleus each pulse; +40% more biomass.', grants: [{ t: 'reactor', biomassMult: 1.4 }, { t: 'ability', components: [{ type: 'heal', nucleus: 2 }] }] },
       { tier: 4, name: 'Mitotic Surge', desc: 'A stronger empowering charge (+20% tower damage) and a steady mend.', grants: [{ t: 'ability', components: [{ type: 'buff', stat: 'towerDamage', amount: 1.2, seconds: 3 }, { type: 'heal', nucleus: 2 }] }] },
@@ -149,7 +162,7 @@ const BRANCHES: Branch[] = [
     id: 'reactor_brood', tower: 'reactor', name: 'Brood Spire',
     theme: 'The reactor grows teeth — birthing blockers and lashing the lane.',
     tiers: [
-      { tier: 1, name: 'Spore Pods', desc: 'Buds a living blocker that fights and bodies the lane.', grants: [{ t: 'reactor', biomassMult: 1.3 }, { t: 'ability', components: [{ type: 'summon', unit: 'wisp', count: 1 }] }] },
+      { tier: 1, name: 'Spore Pods', desc: 'Buds a living blocker that fights and bodies the lane.', particle: 'spore', sfx: 'br_spore', grants: [{ t: 'reactor', biomassMult: 1.3 }, { t: 'ability', components: [{ type: 'summon', unit: 'wisp', count: 1 }] }] },
       { tier: 2, name: 'Lashing Tendrils', desc: 'Sprouts stinging tendrils that flay nearby enemies.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 14, react: true, particle: 'bloom' }] }] },
       { tier: 3, name: 'Brood Mother', desc: 'Births two blockers; richer biomass.', grants: [{ t: 'reactor', biomassMult: 1.3 }, { t: 'ability', components: [{ type: 'summon', unit: 'wisp', count: 2 }] }] },
       { tier: 4, name: 'Acid Glands', desc: 'Tendrils drip Corrosion across a wider reach.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 140, damage: 18, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'infect' }] }] },
@@ -162,7 +175,7 @@ const BRANCHES: Branch[] = [
     id: 'parasite_apex', tower: 'parasite', name: 'Viral Apex',
     theme: 'An unstoppable plague that spreads faster than it can be cleansed.',
     tiers: [
-      { tier: 1, name: 'Virulent Spores', desc: 'Heavier Infection; rot the highest-health hosts.', damageMult: 1.1, grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
+      { tier: 1, name: 'Virulent Spores', desc: 'Heavier Infection; rot the highest-health hosts.', damageMult: 1.1, particle: 'infect', sfx: 'br_plague', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 1 } }] }] },
       { tier: 2, name: 'Brood Parasites', desc: 'Fires +1 parasite; they pierce a host.', grants: [{ t: 'projectile', extraProjectiles: 1, mutators: ['pierce1'] }] },
       { tier: 3, name: 'Necrotic Surge', desc: 'Deep Infection on every strike; +1 parasite.', damageMult: 1.1, grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
       { tier: 4, name: 'Hemorrhage', desc: 'Infected also Fracture and bleed under crits; hunt the most-infected.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'mostCorrupted' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'crit', chance: 0.4, mult: 2.5, damage: 10 }] }] },
@@ -173,7 +186,7 @@ const BRANCHES: Branch[] = [
     id: 'parasite_ravager', tower: 'parasite', name: 'Ravager Strain',
     theme: 'Not a plague — a predator. Focused, ramping rot that devours single hosts.',
     tiers: [
-      { tier: 1, name: 'Toxic Fangs', desc: 'Hard-hitting parasites that pierce; hold the line.', damageMult: 1.25, grants: [{ t: 'targeting', profile: 'closestToBase' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 1, name: 'Toxic Fangs', desc: 'Hard-hitting parasites that pierce; hold the line.', damageMult: 1.25, particle: 'gore', sfx: 'br_gore', grants: [{ t: 'targeting', profile: 'closestToBase' }, { t: 'projectile', mutators: ['pierce1'] }] },
       { tier: 2, name: 'Deep Rot', desc: 'Each strike injects a deep Infection load.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Infection', amount: 3 } }] }] },
       { tier: 3, name: 'Virulent Strike', desc: 'Faster strikes that savage hosts with crits.', fireRateMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.5, damage: 10 }] }] },
       { tier: 4, name: 'Necrosis', desc: 'Strikes Fracture and double-rot the biggest hosts.', damageMult: 1.2, grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }, { type: 'status', status: { kind: 'Infection', amount: 2 } }] }] },
@@ -186,7 +199,7 @@ const BRANCHES: Branch[] = [
     id: 'obelisk_tyrant', tower: 'obelisk', name: 'Psionic Tyrant',
     theme: 'Total battlefield control — a widening field that locks the swarm down.',
     tiers: [
-      { tier: 1, name: 'Dread Field', desc: 'A wider field of deeper Disruption.', damageMult: 1.1, rangeMult: 1.3, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 300, status: { kind: 'Disruption', amount: 2 }, particle: 'disrupt' }] }] },
+      { tier: 1, name: 'Dread Field', desc: 'A wider field of deeper Disruption.', damageMult: 1.1, rangeMult: 1.3, particle: 'disrupt', sfx: 'br_psi', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 300, status: { kind: 'Disruption', amount: 2 }, particle: 'disrupt' }] }] },
       { tier: 2, name: 'Synaptic Lance', desc: 'Snipes the strongest mind with a neural bolt.', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'projectile', behavior: 'homing', range: 360, count: 1, damage: 12, speed: 520 }] }] },
       { tier: 3, name: 'Mind Fracture', desc: 'Disrupted minds crack — Fractured and amplified.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 320, damage: 6, status: { kind: 'Fracture', amount: 2 }, react: true, particle: 'disrupt' }] }] },
       { tier: 4, name: 'Stasis Nova', desc: 'Periodically freezes the field — a slowing, vulnerable stasis.', rangeMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'debuff', status: { kind: 'Disruption', amount: 3 }, radius: 340 }] }] },
@@ -197,7 +210,7 @@ const BRANCHES: Branch[] = [
     id: 'obelisk_mindrender', tower: 'obelisk', name: 'Mindrender',
     theme: 'The obelisk turns predator — a damage caster that fries the swarm.',
     tiers: [
-      { tier: 1, name: 'Neural Spike', desc: 'The pulse now sears nearby minds for real damage.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 280, damage: 12, react: true, particle: 'disrupt' }] }] },
+      { tier: 1, name: 'Neural Spike', desc: 'The pulse now sears nearby minds for real damage.', damageMult: 1.15, particle: 'spark', sfx: 'br_storm', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 280, damage: 12, react: true, particle: 'disrupt' }] }] },
       { tier: 2, name: 'Arc Synapse', desc: 'Lightning leaps between strongest enemies.', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'ability', components: [{ type: 'chain', jumps: 3, range: 160, damage: 14 }] }] },
       { tier: 3, name: 'Overload', desc: 'A harder-hitting field that Fractures what it fries.', damageMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 300, damage: 16, status: { kind: 'Fracture', amount: 1 }, react: true, particle: 'disrupt' }] }] },
       { tier: 4, name: 'Forked Lightning', desc: 'The arc forks farther and harder.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 5, range: 180, damage: 22 }] }] },

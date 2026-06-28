@@ -11,6 +11,7 @@ const NO_META: MetaModifiers = {
   biomassMult: 1,
   heroDamageMult: 1,
   integrityBonus: 0,
+  bonusSlots: 0,
 };
 
 const KINDS: TowerKind[] = ['needle', 'mortar', 'reactor'];

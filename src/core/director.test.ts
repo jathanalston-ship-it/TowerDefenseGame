@@ -10,7 +10,7 @@ const mk = (seed: number): (() => number) => {
   const r = new Rng(seed);
   return () => r.next();
 };
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 const KINDS: TowerKind[] = ['needle', 'mortar', 'reactor'];
 
 describe('AI Director', () => {

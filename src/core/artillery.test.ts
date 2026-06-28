@@ -9,7 +9,7 @@ import { SIM_DT, ENEMY_DEFS } from './config';
 import { HEIGHT, DEFENSE_TOP_Y } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('artillery standoff (siege enemies)', () => {
   it('does NOT shell the Nucleus from the spawn edge — only from ≥ 2/3 down the lane', () => {

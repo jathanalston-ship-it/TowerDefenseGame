@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('pacing: anticipation read-model (always something to look forward to)', () => {
   it('a stage run surfaces the next boss and the next cache-tier upgrade', () => {

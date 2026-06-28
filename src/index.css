@@ -3132,37 +3132,60 @@ kbd {
   .hub-cols { grid-template-columns: 1fr; }
 }
 
-/* ── Tower Mutation panel (TOWER-BRANCHES.md) — branch upgrades on a selected tower ── */
-.branch-status { font-size: 12px; color: var(--muted); margin: 6px 0 10px; }
-.branch-status b { color: var(--text); }
-.branch-list { display: flex; flex-direction: column; gap: 10px; }
-.branch-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid var(--r-rare);
-  border-radius: 8px;
-  padding: 9px 10px;
-  background: rgba(255, 255, 255, 0.02);
+/* ── Tower Mutation panel (TOWER-BRANCHES.md) — the redesigned Tower Inspect tree ── */
+/* Current branch + current tier summary */
+.mut-sum { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 2px 0 9px; }
+.mut-sum-branch { font-weight: 800; font-size: 13px; letter-spacing: 0.02em; line-height: 1.2; min-width: 0; }
+.mut-sum-branch.is-none { color: var(--muted); font-weight: 600; font-style: italic; }
+.mut-sum-tier { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.mut-sum-tier b { color: var(--text); font-size: 13px; }
+.mut-sum-max { opacity: 0.6; }
+
+/* Branch lock warning */
+.mut-warn {
+  font-size: 11px; line-height: 1.35; margin: 0 0 10px; padding: 7px 9px; border-radius: 7px;
+  color: #ffd24d; background: rgba(255, 210, 77, 0.08); border: 1px solid rgba(255, 210, 77, 0.3);
 }
-.branch-card.is-locked { border-left-color: var(--r-legendary); background: rgba(255, 210, 77, 0.05); }
-.branch-card-head { display: flex; justify-content: space-between; align-items: baseline; }
-.branch-name { font-weight: 800; font-size: 13px; letter-spacing: 0.02em; }
-.branch-tier { font-size: 11px; font-weight: 700; color: var(--r-legendary); }
-.branch-theme { font-size: 11px; line-height: 1.35; color: var(--muted); margin: 3px 0 8px; }
-.branch-buy {
-  width: 100%; text-align: left; cursor: pointer;
-  display: flex; flex-direction: column; gap: 3px;
-  border: 1px solid rgba(120, 230, 255, 0.35); border-radius: 6px;
-  padding: 7px 8px; background: rgba(120, 230, 255, 0.07); color: var(--text);
-  transition: background 0.12s, border-color 0.12s;
+.mut-warn b { color: #fff; }
+
+/* The upgrade tree: stacked branch lanes (generic over N branches × M tiers) */
+.mut-tree { display: flex; flex-direction: column; gap: 11px; }
+.mut-lane { border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 9px; padding: 8px; background: rgba(255, 255, 255, 0.015); }
+.mut-lane.is-committed { border-color: rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.035); }
+.mut-lane.is-lockedout { opacity: 0.5; padding: 7px 9px; }
+.mut-lane-h { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.mut-lane-name { font-weight: 800; font-size: 12.5px; letter-spacing: 0.02em; line-height: 1.15; }
+.mut-lane-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.07em; white-space: nowrap; padding: 2px 6px; border-radius: 999px; color: #0a0e14; }
+.mut-lane-tag.is-choose { background: transparent; color: var(--muted); border: 1px solid rgba(255, 255, 255, 0.18); }
+.mut-lane-tag.is-out { background: transparent; color: #ff8a8a; border: 1px solid rgba(255, 138, 138, 0.4); }
+.mut-lane-theme { font-size: 10.5px; line-height: 1.3; color: var(--muted); margin: 4px 0 0; }
+
+/* Ladder of tier nodes (owned → next → future) */
+.mut-ladder { display: flex; flex-direction: column; gap: 5px; margin-top: 7px; }
+.mut-node {
+  display: flex; align-items: flex-start; gap: 7px; width: 100%; text-align: left;
+  border: 1px solid transparent; border-radius: 7px; padding: 5px 6px; background: rgba(255, 255, 255, 0.02);
 }
-.branch-buy:hover:not(:disabled) { background: rgba(120, 230, 255, 0.16); border-color: rgba(120, 230, 255, 0.6); }
-.branch-buy.is-poor, .branch-buy:disabled { opacity: 0.5; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.03); }
-.branch-buy-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.branch-buy-name { font-weight: 700; font-size: 12px; }
-.branch-buy-cost { font-weight: 800; font-size: 12px; color: var(--r-uncommon); white-space: nowrap; }
-.branch-buy.is-poor .branch-buy-cost { color: #ff7b7b; }
-.branch-buy-desc { font-size: 11px; line-height: 1.3; color: var(--muted); }
-.branch-maxed { text-align: center; font-weight: 800; font-size: 12px; color: var(--r-legendary); padding: 6px; letter-spacing: 0.08em; }
+.mut-node.is-owned { background: rgba(255, 255, 255, 0.05); }
+.mut-node.is-future { opacity: 0.6; }
+.mut-node.is-next {
+  cursor: pointer; color: var(--text); background: rgba(120, 230, 255, 0.06);
+  box-shadow: 0 0 14px -6px rgba(120, 230, 255, 0.5); transition: filter 0.12s, background 0.12s;
+}
+.mut-node.is-next:hover:not(:disabled) { filter: brightness(1.16); }
+.mut-node.is-next.is-poor, .mut-node.is-next:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; }
+.mut-pip {
+  flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; margin-top: 1px;
+  display: grid; place-items: center; font-size: 10px; font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.25); color: var(--muted); background: transparent;
+}
+.mut-node-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.mut-node-top { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.mut-node-name { font-weight: 700; font-size: 11.5px; line-height: 1.2; }
+.mut-node-have { font-size: 11px; font-weight: 800; }
+.mut-node-cost { font-size: 10.5px; font-weight: 800; color: var(--r-uncommon); white-space: nowrap; }
+.mut-node-cost.is-poor { color: #ff7b7b; }
+.mut-node-desc { font-size: 10.5px; line-height: 1.3; color: var(--muted); }
 .branch-done {
   margin-top: 12px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: var(--muted); font-weight: 700;

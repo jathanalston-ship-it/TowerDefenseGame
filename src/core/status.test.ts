@@ -84,7 +84,7 @@ describe('status registry', () => {
   });
 });
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('framework status integration (a NEW effect works end-to-end)', () => {
   it('Burn applied via Game.applyEffect bleeds the enemy each tick', () => {

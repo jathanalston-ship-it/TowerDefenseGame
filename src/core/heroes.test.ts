@@ -8,7 +8,7 @@ import { SIM_DT } from './config';
 import { DEFENSE_TOP_Y } from './map';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 describe('Shepherd (Vital guard)', () => {
   it('regenerates Nucleus integrity over time and holds the defensive zone', () => {

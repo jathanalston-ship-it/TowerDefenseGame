@@ -145,6 +145,13 @@ export interface Projectile {
   //    historical behavior, golden-safe). Set by a tower's star kit at spawn. ──
   pierce?: number; // extra enemies it passes through before dying (0/undefined = none)
   hitIds?: number[]; // enemies already struck (pierce: avoids re-hitting the same body)
+  // Cosmetic skin id (= the firing tower's branchId) so the renderer can draw a branch-specific
+  // shot (barbed swarm needle, rail lance, acid glob…). Undefined ⇒ the base look (golden-safe).
+  skin?: string;
+  // Graceful fade-out OPACITY (1 → 0) once the projectile loses its target: it coasts out and
+  // the renderer fades it instead of popping it instantly. Undefined ⇒ fully opaque / live
+  // (the historical behavior, golden-safe — fading shots never re-acquire or deal damage).
+  fade?: number;
 }
 
 export interface Pool {
@@ -226,6 +233,7 @@ export interface MetaModifiers {
   biomassMult: number;
   heroDamageMult: number;
   integrityBonus: number;
+  bonusSlots: number; // permanently-unlocked tower slots beyond SLOTS.initialUnlocked (flat, 0 = none)
 }
 
 /** Per-tower-kind permanent multipliers (stars + mastery), applied at build time.

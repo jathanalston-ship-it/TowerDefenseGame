@@ -87,7 +87,7 @@ let runContainersBanked: PendingContainer[] = []; // loot-queue containers compl
  * so adding an upgrade needs no change here. Multiplier stats base at 1, flat at 0.
  */
 export function metaModifiers(save: SaveData): MetaModifiers {
-  const m: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+  const m: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
   for (const u of META_UPGRADES) {
     const level = save.upgrades[u.id] ?? 0;
     if (level > 0) m[u.effect.stat] += u.effect.perLevel * level;

@@ -10,12 +10,12 @@ import { towerProgress } from '../state/meta';
 import { defaultSave } from '../save/saveStore';
 import type { MetaModifiers } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 const slot = (col: number, row: number) => towerSlots.find((s) => s.col === col && s.row === row)!;
-const reactorAt = slot(1, 19); // forward-left
-const ortho = slot(3, 19); // same row, next column → 80px away
-const diag = slot(3, 21); // one row down + one column over → ~113px away
+const reactorAt = slot(5, 20); // forward-left (an initially-unlocked centre column)
+const ortho = slot(7, 20); // same row, next column → 80px away
+const diag = slot(7, 22); // one row down + one column over → ~113px away
 
 /** Build a board (reactor + a tower at `ortho` + a tower at `diag`) and report overcharge. */
 function overcharge(prog?: ReturnType<typeof towerProgress>): { ortho: boolean; diag: boolean } {

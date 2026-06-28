@@ -24,7 +24,7 @@ import type {
   HeroProgress,
 } from './types';
 
-const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0 };
+const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
 /** How the autopilot builds + drafts (the "player" the harness substitutes). */
 export interface SimStrategy {
