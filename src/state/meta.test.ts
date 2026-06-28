@@ -148,19 +148,21 @@ describe('power score (account-power index)', () => {
 });
 
 describe('loot queue integration (the finishRun banking seam)', () => {
-  it('banking loot points awards boxes and grants their shards, keeping the queue valid', () => {
+  it('banking loot points stockpiles containers; cracking them grants shards, queue stays valid', () => {
     meta.reset(); // known clean state (a fresh, pre-determined queue)
     const before = meta.get();
     const towerBefore = TOWER_ORDER.reduce((s, k) => s + before.towerShards[k], 0);
     const heroBefore = Object.values(before.heroShards).reduce((a, b) => a + b, 0);
 
-    const out = meta.debugAddLootPoints(5000); // ≫ any front box cost → awards ≥ 1
-    expect(out.awarded.length).toBeGreaterThan(0);
+    const out = meta.debugAddLootPoints(5000); // ≫ any front box cost → banks ≥ 1 container
+    expect(out.banked.length).toBeGreaterThan(0);
+    expect(meta.pendingContainers().length).toBe(out.banked.length); // banked UNOPENED — no shards yet
 
+    // Cracking the containers is what grants the shards.
+    while (meta.openContainer()) { /* open them all */ }
     const after = meta.get();
     const towerAfter = TOWER_ORDER.reduce((s, k) => s + after.towerShards[k], 0);
     const heroAfter = Object.values(after.heroShards).reduce((a, b) => a + b, 0);
-    // every opened box grants shards (tower and/or hero) → net positive gain
     expect(towerAfter - towerBefore + (heroAfter - heroBefore)).toBeGreaterThan(0);
     // the queue stays full + valid after awarding (next box always pre-determined)
     expect(after.lootQueue.queue.length).toBeGreaterThanOrEqual(2);
@@ -168,32 +170,42 @@ describe('loot queue integration (the finishRun banking seam)', () => {
   });
 });
 
-describe('live loot banking (syncRunLoot ↔ finishRun reconciliation)', () => {
-  it('banks loot LIVE mid-run and conserves every point through finishRun (no double-count)', () => {
+/** Total per-tower + per-hero star Shards banked in a save (what cracking a container grants). */
+function totalShards(save: ReturnType<typeof meta.get>): number {
+  const t = TOWER_ORDER.reduce((s, k) => s + (save.towerShards[k] ?? 0), 0);
+  const h = Object.values(save.heroShards).reduce((s, n) => s + n, 0);
+  return t + h;
+}
+
+describe('deferred loot banking (containers bank unopened; cracked in the Vault)', () => {
+  it('banks loot LIVE mid-run into the pending stockpile (unopened) and conserves every point', () => {
     meta.reset(); // fresh queue, progress 0, no prestige → lootGainMult = 1 (integer points)
 
     // Drive the run forward in steps the way the HUD loop does — each sync banks only the delta.
-    let liveBoxes = 0;
-    liveBoxes += meta.syncRunLoot(10, 200).length; // 10·14 + 200 = 340 pts
-    liveBoxes += meta.syncRunLoot(20, 500).length; // 20·14 + 500 = 780 pts (delta 440)
-    expect(liveBoxes).toBeGreaterThan(0); // boxes actually opened mid-run, not just at the end
+    let liveBanked = 0;
+    liveBanked += meta.syncRunLoot(10, 200).length; // 10·14 + 200 = 340 pts
+    liveBanked += meta.syncRunLoot(20, 500).length; // 20·14 + 500 = 780 pts (delta 440)
+    expect(liveBanked).toBeGreaterThan(0); // containers actually completed mid-run …
+    expect(meta.pendingContainers().length).toBe(liveBanked); // … and banked UNOPENED into the Vault
 
     const out = meta.finishRun(runResult(30, 1000)); // 30·14 + 1000 = 1420 pts total
     const fullPoints = 30 * 14 + 1000;
 
-    // Every box opened this run (live + final) is revealed exactly once …
-    expect(out.loot.awarded.length).toBeGreaterThanOrEqual(liveBoxes);
-    // … and the loot points are conserved: box costs + leftover progress == the full earn.
-    const spentOnBoxes = out.loot.awarded.reduce((s, b) => s + costOf(b.rarity), 0);
-    expect(spentOnBoxes + out.loot.queue.progress).toBe(fullPoints);
+    // Every container banked this run (live + final) carried into the stockpile exactly once …
+    expect(out.loot.banked.length).toBeGreaterThanOrEqual(liveBanked);
+    expect(meta.pendingContainers().length).toBe(out.loot.banked.length);
+    // … and the loot points are conserved: container costs + leftover progress == the full earn.
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
+    expect(spent + out.loot.queue.progress).toBe(fullPoints);
     expect(out.loot.queue.queue.every(isLootRarity)).toBe(true); // queue still valid afterward
   });
 
-  it('a run that never syncs still banks the full amount at finishRun (unchanged path)', () => {
+  it('a run that never syncs still banks the full amount at finishRun (unopened)', () => {
     meta.reset();
     const out = meta.finishRun(runResult(12, 300)); // 12·14 + 300 = 468 pts
-    const spent = out.loot.awarded.reduce((s, b) => s + costOf(b.rarity), 0);
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(12 * 14 + 300);
+    expect(meta.pendingContainers().length).toBe(out.loot.banked.length);
   });
 
   it('re-arms across runs: a new run banks its own full amount instead of under-counting', () => {
@@ -202,12 +214,44 @@ describe('live loot banking (syncRunLoot ↔ finishRun reconciliation)', () => {
     meta.finishRun(runResult(40, 2000)); // … and settles, resetting the live cycle
     const startProgress = meta.get().lootQueue.progress; // the queue carries over (never resets)
 
-    // A fresh, smaller run must bank its OWN full amount on top of the carried progress — not be
-    // starved by the previous run's higher banked total (exercises syncRunLoot's reset guard:
-    // if the cycle didn't re-arm, sync's delta would go negative and bank nothing).
     meta.syncRunLoot(5, 50); // 5·14 + 50 = 120 pts
     const out = meta.finishRun(runResult(8, 100)); // 8·14 + 100 = 212 pts THIS run
-    const spent = out.loot.awarded.reduce((s, b) => s + costOf(b.rarity), 0);
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(startProgress + 8 * 14 + 100);
+  });
+
+  it('cracking a pending container applies its reward and shrinks the stockpile', () => {
+    meta.reset();
+    meta.debugAddLootPoints(5000); // bank several containers unopened
+    const before = meta.pendingContainers().length;
+    expect(before).toBeGreaterThan(0);
+
+    const shardsBefore = totalShards(meta.get());
+    const award = meta.openContainer();
+    expect(award).not.toBeNull();
+    expect(meta.pendingContainers().length).toBe(before - 1); // exactly one cracked
+    expect(totalShards(meta.get())).toBeGreaterThanOrEqual(shardsBefore); // its reward folded in
+
+    while (meta.openContainer()) { /* crack the rest */ }
+    expect(meta.pendingContainers().length).toBe(0);
+    expect(meta.openContainer()).toBeNull(); // empty stockpile → nothing to open
+  });
+
+  it('the run-end cache banks unopened too — finishRun grants no cache rewards until it is cracked', () => {
+    meta.reset();
+    const reward = (s: ReturnType<typeof meta.get>): number =>
+      totalShards(s) + s.mats.mutagen + s.mats.scrap + s.mats.catalyst + s.equipment.inventory.length;
+    const before = reward(meta.get());
+
+    const out = meta.finishRun(runResult(12, 300));
+    // Exactly one run cache is banked (alongside any loot boxes), and it is NOT opened at run end.
+    expect(out.loot.banked.filter((c) => c.kind === 'cache').length).toBe(1);
+    expect(meta.pendingContainers().some((c) => c.kind === 'cache')).toBe(true);
+    expect(reward(meta.get())).toBe(before); // no shards/materials/gear granted yet
+
+    // Cracking everything (loot boxes + the cache) is what finally grants the rewards.
+    while (meta.openContainer()) { /* open them all */ }
+    expect(reward(meta.get())).toBeGreaterThan(before);
+    expect(meta.pendingContainers().length).toBe(0);
   });
 });

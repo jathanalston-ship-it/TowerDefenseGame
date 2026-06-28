@@ -10,6 +10,7 @@ import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/type
 import type { Loadout, OwnedItem } from '../core/equipment';
 import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
+import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
 import type { PrestigeState } from '../core/prestige';
 
@@ -38,6 +39,9 @@ export interface SaveData {
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
+  // ── Pending bio-containers (schema v8) — completed-but-UNOPENED containers (loot boxes +
+  //    the run-end cache). Runs bank them here; the player cracks them in the Genetic Vault. ──
+  pendingContainers: PendingContainer[];
   // ── Tower star-fork picks (schema v5) — per-run evolution choices, persisted ──
   // (towerForks is declared above with the other tower-progression records.)
   // ── Mastery identity (schema v6) — earned titles/lore + the worn title ──
@@ -140,6 +144,7 @@ export function defaultSave(): SaveData {
     equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
     lootQueue: defaultLootQueue(),
+    pendingContainers: [],
     unlockedTitles: [],
     equippedTitle: null,
     unlockedLore: [],
@@ -182,6 +187,22 @@ function withDefaults(data: SaveData): SaveData {
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
     // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
     lootQueue: sanitizeLootQueue(data.lootQueue),
+    // v8: pending unopened containers. Empty for a pre-v8 save; coerce each entry (an early
+    // v8 stored bare rarity strings → loot boxes) and cap against a hostile blob.
+    pendingContainers: Array.isArray(data.pendingContainers)
+      ? data.pendingContainers
+          .map((x): PendingContainer | null => {
+            if (typeof x === 'string') return { kind: 'loot', rarity: x }; // early-v8 string → loot box
+            if (x && typeof x === 'object') {
+              const o = x as { kind?: unknown; rarity?: unknown; chestId?: unknown };
+              if (o.kind === 'loot' && typeof o.rarity === 'string') return { kind: 'loot', rarity: o.rarity };
+              if (o.kind === 'cache' && typeof o.chestId === 'string') return { kind: 'cache', chestId: o.chestId };
+            }
+            return null;
+          })
+          .filter((c): c is PendingContainer => c !== null)
+          .slice(0, 999)
+      : [],
     // v5→v6: mastery identity. Empty for a pre-v6 save; arrays guarded against junk.
     unlockedTitles: Array.isArray(data.unlockedTitles) ? data.unlockedTitles : [],
     equippedTitle: typeof data.equippedTitle === 'string' ? data.equippedTitle : null,
