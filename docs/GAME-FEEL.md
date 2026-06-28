@@ -125,6 +125,18 @@ Items 1–5 (all S/M) deliver the **constant combat hum**; 8–9 + loot are the
 
 ---
 
+## 4b. Input responsiveness & accidental-click guards
+
+Snappy input is its own kind of juice — every control reacts on contact and no action fires by accident.
+
+- **Tactile press:** every `button` scales+sinks on `:active` (`scale(0.98)`, 0.12s) so a tap *feels* registered before its effect lands. Mutation-buy nodes share the same press timing.
+- **Click-vs-drag (battlefield):** `GameView` records the press origin; a pointer that travels > `CLICK_SLOP` (8 screen px) before release is treated as a drag and the click is swallowed — a stray drag never places a tower, casts an ability, or moves the rally. Verified live (drag over empty slots = no placement; tap = placement).
+- **Draft input-arm:** `DraftModal` ignores picks for `DRAFT_ARM_MS` (260ms) after it opens, covering the card entry animation so a click/keypress in flight as a wave clears can't blow through the draft. The Auto-Gene countdown (10s) is unaffected.
+- **Tooltip hover-intent:** `.tt-bubble` waits 140ms before showing (instant to hide), so sweeping the tower rail doesn't strobe tooltips.
+- **No layout shift on phase change:** Build-Phase controls are an overlay, not a toolbar row (see CARDS/HUD) — entering/leaving prep never moves the battlefield.
+
+---
+
 ## 5. Audio system foundation (since none exists)
 
 - **Approach:** a small **Web Audio** module — synthesized SFX (oscillators + noise + envelopes) for an **asset-free, instantly re-themeable** layer; categories: *bio* (wet, organic — hive/death/growth), *kinetic* (sharp — hits/crits), *glitch* (enemies/Aberrations), *UI* (clean — cards/menus), *event* (risers/stingers — stars/prestige/loot).

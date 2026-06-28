@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
+import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { masteryLevel, meta } from '../state/meta';
@@ -21,10 +22,15 @@ import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
-  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03,
+  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34,
 };
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
+
+// A pointer that travels more than this (screen px) between press and release is a DRAG,
+// not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
+// or moves the rally point by accident.
+const CLICK_SLOP = 8;
 
 export function GameView({
   seed,
@@ -58,6 +64,7 @@ export function GameView({
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
   const pointerRef = useRef<Pointer | null>(null);
+  const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
@@ -88,7 +95,11 @@ export function GameView({
       try {
         const dt = (now - last) / 1000;
         last = now;
-        game.advance(dt);
+        // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
+        // paused, but cues/shake/render still run below — so the screen shakes + the banner pops
+        // against a frozen battlefield. advance() never reads this, so stepping stays deterministic.
+        if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
+        else game.advance(dt);
 
         // Drain presentation cues → audio + screen-shake trauma.
         const cues = game.drainSfx();
@@ -222,9 +233,14 @@ export function GameView({
           onPointerDown={(e) => {
             audio.resume();
             pointerRef.current = toCoords(e.clientX, e.clientY);
+            downRef.current = { x: e.clientX, y: e.clientY };
           }}
           onPointerUp={(e) => {
             if (e.button !== 0) return;
+            const down = downRef.current;
+            downRef.current = null;
+            // Ignore the release if the pointer was dragged — only deliberate taps act.
+            if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) return;
             const p = toCoords(e.clientX, e.clientY);
             game.click(p.x, p.y);
             refresh();
@@ -253,6 +269,17 @@ export function GameView({
               <div className="boss-hp-fill" style={{ width: `${hud.bossBanner.hpPct * 100}%` }} />
             </div>
             {hud.bossBanner.telegraph && <div className="boss-telegraph">{hud.bossBanner.telegraph}</div>}
+          </div>
+        )}
+        {hud.mutation && (
+          // Re-keyed by id so each purchase restarts the pop + flash animations.
+          <div key={hud.mutation.id} className="mutation-fx" style={{ ['--mut']: BRANCH_COLOR[hud.mutation.branchId] ?? hud.mutation.color } as CSSProperties}>
+            <div className="mutation-flash" aria-hidden />
+            <div className="mutation-banner" role="status">
+              <span className="mutation-kicker">⬢ MUTATION</span>
+              <span className="mutation-title">{hud.mutation.title}</span>
+              <span className="mutation-sub">{hud.mutation.sub}</span>
+            </div>
           </div>
         )}
         {hud.phase === 'draft' && hud.draft && (
@@ -288,6 +315,7 @@ export function GameView({
             hud={hud}
             onCollapse={() => setRightOpen(false)}
             onBranchBuy={(towerId, branchId) => {
+              audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
               game.buyBranchTier(towerId, branchId);
               refresh();
             }}

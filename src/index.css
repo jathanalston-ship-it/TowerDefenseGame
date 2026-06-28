@@ -111,7 +111,7 @@ button:hover:not(:disabled) {
     fights a styled button's own box-shadow) */
 }
 button:active:not(:disabled) {
-  transform: translateY(0) scale(0.97); /* Press — the tactile confirm */
+  transform: translateY(1px) scale(0.97); /* Press — every button depresses on pointer-down */
   transition-duration: var(--dur-1); /* snap down fast; springs back on release */
 }
 button:disabled {
@@ -233,6 +233,7 @@ button:disabled {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+  transition-delay: 0.14s; /* brief hover intent — tooltips don't flash on a cursor sweep (instant to hide) */
 }
 .tt-rich {
   display: flex;
@@ -2632,6 +2633,80 @@ kbd {
   text-align: left;
 }
 
+/* ── Branch-tier purchase celebration — a screen flash + a popping "MUTATION" banner. The
+   wrapper is re-keyed per purchase so the animations restart each time. --mut = branch color. ── */
+.mutation-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 45;
+}
+.mutation-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, var(--mut, #7ce6ff) 0%, transparent 62%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: mut-flash 0.55s ease-out both;
+}
+@keyframes mut-flash {
+  0% { opacity: 0; }
+  12% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+.mutation-banner {
+  position: absolute;
+  top: 23%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 30px;
+  border-radius: 12px;
+  background: rgba(8, 10, 16, 0.9);
+  border: 1px solid var(--mut, #7ce6ff);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55), 0 0 24px var(--mut, #7ce6ff);
+  text-align: center;
+  white-space: nowrap;
+  animation: mut-banner 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes mut-banner {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.78); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.05); }
+  18% { transform: translateX(-50%) translateY(0) scale(1); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.96); }
+}
+.mutation-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mut, #7ce6ff);
+  line-height: 1.1;
+}
+.mutation-title {
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: #fff;
+  /* a tight glow + a dark backing so the title stays crisp over the bright halo */
+  text-shadow: 0 0 8px var(--mut, #7ce6ff), 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+.mutation-sub {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mutation-flash { animation-duration: 0.2s; }
+  .mutation-banner { animation: mut-banner-reduced 2.4s ease both; }
+  @keyframes mut-banner-reduced { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+}
+
 /* ── Boss banner (framework bosses) ───────────────────────────────────────── */
 .boss-banner {
   position: absolute;
@@ -3211,7 +3286,7 @@ kbd {
 .mut-node.is-future { opacity: 0.6; }
 .mut-node.is-next {
   cursor: pointer; color: var(--text); background: rgba(120, 230, 255, 0.06);
-  box-shadow: 0 0 14px -6px rgba(120, 230, 255, 0.5); transition: filter 0.12s, background 0.12s;
+  box-shadow: 0 0 14px -6px rgba(120, 230, 255, 0.5); transition: filter 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
 }
 .mut-node.is-next:hover:not(:disabled) { filter: brightness(1.16); }
 .mut-node.is-next.is-poor, .mut-node.is-next:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; }

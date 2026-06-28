@@ -82,12 +82,13 @@ import type { TargetingProfile } from './targeting';
 import { applyMutators } from './mutators';
 import { gameEvents } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
-import type { ResolvedBranchKit } from './branches';
-import type { Branch } from './branches';
+import type { Branch, ResolvedBranchKit } from './branches';
 import { BRANCH_COSTS } from './config';
 
 const EMPTY_STR: readonly string[] = []; // shared no-alloc default for per-cast mutator lists
 const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's (Reactor) ability pulses
+const BRANCH_HITSTOP = 0.12; // seconds the view-loop freezes on a tier purchase (a juicy "impact" beat)
+const MUTATION_BANNER_LIFE = 2.4; // seconds the tier-purchase banner is surfaced to the HUD
 
 export type RunMode = 'stage' | 'endless';
 
@@ -241,6 +242,14 @@ export class Game {
   // `unlockedSlots` getter below. See docs/SLOTS.md.
   private permanentSlots = SLOTS.initialUnlocked;
   time = 0;
+
+  // Presentation-only: a brief view-loop freeze ("hitstop") after a juicy event. The VIEW
+  // decrements this and skips `advance` while > 0, so the sim's stepping stays deterministic
+  // (advance never reads it ⇒ tests/golden that drive advance directly are unaffected).
+  hitstop = 0;
+  // The most recent branch-tier purchase, surfaced as a transient HUD banner (the upgrade moment).
+  private mutationSeq = 0;
+  private mutation: { id: number; title: string; sub: string; branchId: string; color: string; at: number } | null = null;
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
@@ -599,11 +608,46 @@ export class Game {
     this.biomass -= cost;
     t.branchId = branchId;
     t.tier += 1;
+    t.mutatedAt = this.time; // drives the grow-in + mutation flash (render-side)
     this.recomputeTowerCaches(); // overcharge adjacency unaffected, but keep caches coherent
-    this.pushSfx('splice'); // the commitment/mutation moment — a meatier cue than a plain place
-    this.spawnParticles(t.x, t.y, PARTICLE.bloom, TOWER_DEFS[t.kind].color); // mutation burst at the tower
+    this.triggerMutationSpectacle(t, b, cost); // the "this feels important" moment
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
     return 'ok';
+  }
+
+  /** The branch-tier purchase MOMENT: a brief view-freeze, a mutation burst, biomass visibly
+   *  absorbed into the tower, a cost float, a meaty cue (which also shakes the screen), and a
+   *  transient upgrade banner. Cosmetic only — FX rng + sfx queue + presentation fields, so the
+   *  pinned sim outcome never changes (and autoplay never buys ⇒ golden byte-identical). */
+  private triggerMutationSpectacle(t: Tower, b: Branch, cost: number): void {
+    const color = TOWER_DEFS[t.kind].color;
+    this.hitstop = BRANCH_HITSTOP; // 1) pause briefly (the view honors this)
+    this.spawnParticles(t.x, t.y, PARTICLE.mutate, color); // 2) mutation burst — new matter erupts
+    this.spawnAbsorption(t.x, t.y); // 3) biomass converges INTO the tower (absorption)
+    this.floats.push({ x: t.x, y: t.y - 16, text: `−${cost}`, color: '#b6e84a', life: 1.2 }); // 3) cost absorbed
+    this.pushSfx('splice'); // 6) the cue (drives screen-shake in the view too)
+    const tier = b.tiers[t.tier - 1];
+    // 5) the upgrade banner (surfaced to the HUD; 4) grow-in + the flash are driven by t.mutatedAt)
+    this.mutation = { id: ++this.mutationSeq, title: tier.name, sub: `${b.name} · Tier ${t.tier}`, branchId: b.id, color, at: this.time };
+  }
+
+  /** Biomass motes converging INWARD onto a tower — the tower visibly "absorbing" the spent
+   *  Biomass. FX rng + budget-capped pooling (never the gameplay rng) ⇒ golden-safe. */
+  private spawnAbsorption(x: number, y: number): void {
+    const N = 16;
+    for (let i = 0; i < N; i++) {
+      if (this.particles.length >= PERF.maxParticles) break;
+      const ang = (i / N) * Math.PI * 2 + this.fxRng.next() * 0.4;
+      const dist = 26 + this.fxRng.next() * 20;
+      const spd = dist * 2.4; // reaches the core in ~0.4s (drag eases it in)
+      const p = this.partPool.pop() ?? { x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0, size: 0, color: '#b6e84a' };
+      p.x = x + Math.cos(ang) * dist;
+      p.y = y + Math.sin(ang) * dist;
+      p.vx = -Math.cos(ang) * spd; // inward
+      p.vy = -Math.sin(ang) * spd;
+      p.life = 0.42; p.maxLife = 0.42; p.size = 2.3; p.color = '#b6e84a';
+      this.particles.push(p);
+    }
   }
 
   /** The HUD view of the inspected placed tower (its branch offers), or null. */
@@ -712,6 +756,7 @@ export class Game {
       branchId: null,
       tier: 0,
       pulseCd: 0,
+      mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -2710,6 +2755,10 @@ export class Game {
       cards: this.chosenCards,
       buffs: this.activeBuffs(),
       bossBanner: this.bossBanner(),
+      mutation:
+        this.mutation && this.time - this.mutation.at < MUTATION_BANNER_LIFE
+          ? { id: this.mutation.id, title: this.mutation.title, sub: this.mutation.sub, branchId: this.mutation.branchId, color: this.mutation.color }
+          : null,
       endless: this.mode === 'endless',
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
