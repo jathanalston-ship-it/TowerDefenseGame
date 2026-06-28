@@ -49,6 +49,9 @@ function Container({ id, pct, big }: { id: string | undefined; pct: number; big?
 export function GeneticVault(): JSX.Element {
   const save = meta.use();
   const [opening, setOpening] = useState<CrackedContainer | null>(null);
+  // Bumped on every crack so the reveal remounts & replays when the player taps "Open More"
+  // (without it, opening the next box in place would keep the finished summary's stage).
+  const [crackSeq, setCrackSeq] = useState(0);
 
   const pending = save.pendingContainers;
   // Group the stockpile for a compact display: loot boxes by rarity + the run caches.
@@ -62,7 +65,8 @@ export function GeneticVault(): JSX.Element {
 
   const crack = (): void => {
     const award = meta.openContainer(); // applies the reward + removes it from the stockpile
-    if (award) setOpening(award);
+    setOpening(award); // null closes the ceremony (e.g. "Open More" with nothing left to crack)
+    if (award) setCrackSeq((n) => n + 1);
   };
 
   // Incubating meter — read the live queue directly (queue[0] + banked progress; queue[1] next).
@@ -148,10 +152,13 @@ export function GeneticVault(): JSX.Element {
       {opening && (
         <div className="vault-ceremony">
           <LootReveal
+            key={crackSeq}
             chest={opening.chest}
             title={opening.label}
             color={opening.color}
-            onDone={() => setOpening(null)}
+            remaining={pending.length}
+            onOpenMore={crack}
+            onClose={() => setOpening(null)}
           />
         </div>
       )}
