@@ -65,9 +65,11 @@ export function Results({
       .sort((a, b) => rarityRank(b) - rarityRank(a)) // rarest first
       .map((id) => {
         const def = rarityRegistry.get(id);
-        return { key: id, name: def?.name ?? id, color: def?.color ?? 'var(--r-common)', n: lootCounts.get(id) as number };
+        return { key: id, name: def?.name ?? id, color: def?.color ?? 'var(--r-common)', n: lootCounts.get(id) as number, glyph: '◈', cache: false };
       });
-    if (cacheCount > 0) rows.push({ key: 'cache', name: 'Run Cache', color: 'var(--gold)', n: cacheCount });
+    // The guaranteed run cache is its OWN thing — distinct color + hexagon glyph so it never
+    // reads as a Legendary box (their palette colors happen to coincide).
+    if (cacheCount > 0) rows.push({ key: 'cache', name: 'Run Cache', color: 'var(--cache)', n: cacheCount, glyph: '⬢', cache: true });
 
     const earned = outcome.loot.banked.length;
     const owned = meta.pendingContainers().length;
@@ -84,8 +86,8 @@ export function Results({
             <div className="vault-earned-k">Bio-Containers Earned</div>
             <div className="vault-earned">
               {rows.map((r) => (
-                <div className="ve-row" key={r.key} style={{ borderLeftColor: r.color }}>
-                  <span className="ve-icon" style={{ color: r.color }}>◈</span>
+                <div className={`ve-row${r.cache ? ' is-cache' : ''}`} key={r.key} style={{ borderLeftColor: r.color }}>
+                  <span className="ve-icon" style={{ color: r.color }}>{r.glyph}</span>
                   <span className="ve-name" style={{ color: r.color }}>{r.name}</span>
                   <span className="ve-count">×{r.n}</span>
                 </div>

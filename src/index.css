@@ -38,6 +38,7 @@
   --r-epic: #c98bff;
   --r-legendary: #ffd24d;
   --r-mythic: #ff6b8b;
+  --cache: #36e0c4; /* Run Cache — deliberately NOT gold, so it never reads as Legendary */
 
   /* spacing / radius / motion */
   --s1: 4px;
@@ -1869,6 +1870,11 @@ kbd {
   border: 1px solid var(--line);
   border-left-width: 3px; /* border-left-color set inline per rarity */
   animation: ve-row-in 0.32s cubic-bezier(0.2, 1, 0.4, 1) both;
+}
+/* The guaranteed Run Cache reads as its own thing — dashed accent + faint tint, not a rarity. */
+.ve-row.is-cache {
+  border-left-style: dashed;
+  background: linear-gradient(90deg, rgba(54, 224, 196, 0.08), rgba(255, 255, 255, 0.03) 60%);
 }
 .ve-icon {
   font-size: 16px;
