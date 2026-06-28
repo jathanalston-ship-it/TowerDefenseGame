@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { meta } from '../state/meta';
-import type { LootBoxAward } from '../state/meta';
+import type { CrackedContainer } from '../state/meta';
 import { costOf, rarityRegistry } from '../core/loot';
 import { LootReveal } from './LootReveal';
 
@@ -48,13 +48,17 @@ function Container({ id, pct, big }: { id: string | undefined; pct: number; big?
 
 export function GeneticVault(): JSX.Element {
   const save = meta.use();
-  const [opening, setOpening] = useState<LootBoxAward | null>(null);
+  const [opening, setOpening] = useState<CrackedContainer | null>(null);
 
   const pending = save.pendingContainers;
-  // Group the stockpile by rarity (oldest first within the registry order) for a compact display.
-  const counts = new Map<string, number>();
-  for (const id of pending) counts.set(id, (counts.get(id) ?? 0) + 1);
-  const grouped = rarityRegistry.ids().filter((id) => counts.has(id)).map((id) => ({ id, n: counts.get(id) as number }));
+  // Group the stockpile for a compact display: loot boxes by rarity + the run caches.
+  const lootCounts = new Map<string, number>();
+  let cacheCount = 0;
+  for (const c of pending) {
+    if (c.kind === 'cache') cacheCount++;
+    else lootCounts.set(c.rarity, (lootCounts.get(c.rarity) ?? 0) + 1);
+  }
+  const grouped = rarityRegistry.ids().filter((id) => lootCounts.has(id)).map((id) => ({ id, n: lootCounts.get(id) as number }));
 
   const crack = (): void => {
     const award = meta.openContainer(); // applies the reward + removes it from the stockpile
@@ -89,6 +93,11 @@ export function GeneticVault(): JSX.Element {
         ) : (
           <>
             <div className="vault-stockpile">
+              {cacheCount > 0 && (
+                <span className="vault-chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
+                  ◈ Run Cache{cacheCount > 1 ? <b style={{ color: 'var(--text)' }}> ×{cacheCount}</b> : null}
+                </span>
+              )}
               {grouped.map((g) => (
                 <span className="vault-chip" key={g.id} style={{ borderColor: rarityColor(g.id), color: rarityColor(g.id) }}>
                   ◈ {rarityName(g.id)}{g.n > 1 ? <b style={{ color: 'var(--text)' }}> ×{g.n}</b> : null}
@@ -140,8 +149,8 @@ export function GeneticVault(): JSX.Element {
         <div className="vault-ceremony">
           <LootReveal
             chest={opening.chest}
-            title={`${rarityName(opening.rarity)} Container`}
-            color={rarityColor(opening.rarity)}
+            title={opening.label}
+            color={opening.color}
             onDone={() => setOpening(null)}
           />
         </div>

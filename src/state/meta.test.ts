@@ -195,7 +195,7 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     expect(out.loot.banked.length).toBeGreaterThanOrEqual(liveBanked);
     expect(meta.pendingContainers().length).toBe(out.loot.banked.length);
     // … and the loot points are conserved: container costs + leftover progress == the full earn.
-    const spent = out.loot.banked.reduce((s, r) => s + costOf(r), 0);
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(fullPoints);
     expect(out.loot.queue.queue.every(isLootRarity)).toBe(true); // queue still valid afterward
   });
@@ -203,7 +203,7 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
   it('a run that never syncs still banks the full amount at finishRun (unopened)', () => {
     meta.reset();
     const out = meta.finishRun(runResult(12, 300)); // 12·14 + 300 = 468 pts
-    const spent = out.loot.banked.reduce((s, r) => s + costOf(r), 0);
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(12 * 14 + 300);
     expect(meta.pendingContainers().length).toBe(out.loot.banked.length);
   });
@@ -216,7 +216,7 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
 
     meta.syncRunLoot(5, 50); // 5·14 + 50 = 120 pts
     const out = meta.finishRun(runResult(8, 100)); // 8·14 + 100 = 212 pts THIS run
-    const spent = out.loot.banked.reduce((s, r) => s + costOf(r), 0);
+    const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(startProgress + 8 * 14 + 100);
   });
 
@@ -235,5 +235,23 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     while (meta.openContainer()) { /* crack the rest */ }
     expect(meta.pendingContainers().length).toBe(0);
     expect(meta.openContainer()).toBeNull(); // empty stockpile → nothing to open
+  });
+
+  it('the run-end cache banks unopened too — finishRun grants no cache rewards until it is cracked', () => {
+    meta.reset();
+    const reward = (s: ReturnType<typeof meta.get>): number =>
+      totalShards(s) + s.mats.mutagen + s.mats.scrap + s.mats.catalyst + s.equipment.inventory.length;
+    const before = reward(meta.get());
+
+    const out = meta.finishRun(runResult(12, 300));
+    // Exactly one run cache is banked (alongside any loot boxes), and it is NOT opened at run end.
+    expect(out.loot.banked.filter((c) => c.kind === 'cache').length).toBe(1);
+    expect(meta.pendingContainers().some((c) => c.kind === 'cache')).toBe(true);
+    expect(reward(meta.get())).toBe(before); // no shards/materials/gear granted yet
+
+    // Cracking everything (loot boxes + the cache) is what finally grants the rewards.
+    while (meta.openContainer()) { /* open them all */ }
+    expect(reward(meta.get())).toBeGreaterThan(before);
+    expect(meta.pendingContainers().length).toBe(0);
   });
 });

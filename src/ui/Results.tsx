@@ -3,8 +3,6 @@ import type { RunOutcome, RunResult } from '../state/meta';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
-import { itemDef } from '../core/equipment';
-import { LootReveal } from './LootReveal';
 import { RewardSequence } from './RewardSequence';
 import type { RewardLine } from './RewardSequence';
 import { BiomassIcon, ShardIcon } from './components/Icon';
@@ -42,7 +40,7 @@ export function Results({
     { id: 'cards', label: 'Cards Collected', value: result.stats.cardIds.length },
     { id: 'mastery', label: 'Mastery Earned', value: masteryXp, format: (n) => `${n.toLocaleString()} XP` },
     { id: 'shards', label: 'Shards Earned', value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
-    { id: 'lootbox', label: 'Loot Boxes Earned', value: outcome.chest ? 1 : 0 },
+    { id: 'lootbox', label: 'Containers Banked', value: outcome.loot.banked.length },
   ];
 
   return (
@@ -59,27 +57,19 @@ export function Results({
         <RewardSequence lines={lines} onDone={() => setDone(true)} />
       </div>
 
-      {done && (
-        <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
-          <LootReveal chest={outcome.chest} />
-        </div>
-      )}
-
       {done && (() => {
-        // Loot queue: containers this run completed bank UNOPENED — the player cracks them
-        // in the Genetic Vault. Show the count + the box now filling and the pre-determined next.
+        // All loot — the run-end cache AND any loot-queue containers — banks UNOPENED into the
+        // Genetic Vault. Show the count + the box now filling and the pre-determined next.
         const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
         const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
         const banked = outcome.loot.banked.length;
         return (
           <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
-            <div className="panel-title">Loot Queue</div>
-            {banked > 0 && (
-              <div style={{ margin: '4px 0 10px', fontSize: 14 }}>
-                <b style={{ color: 'var(--gold)' }}>{banked}</b> bio-container{banked > 1 ? 's' : ''} banked —
-                crack {banked > 1 ? 'them' : 'it'} open in the <b>Genetic Vault</b>.
-              </div>
-            )}
+            <div className="panel-title">Genetic Vault</div>
+            <div style={{ margin: '4px 0 10px', fontSize: 14 }}>
+              <b style={{ color: 'var(--gold)' }}>{banked}</b> bio-container{banked > 1 ? 's' : ''} banked
+              (incl. your run cache) — crack {banked > 1 ? 'them' : 'it'} open in the <b>Genetic Vault</b>.
+            </div>
             <div className="loot-queue-line">
               Now filling <b style={{ color: front?.color }}>{front?.name ?? 'Common'}</b>
               {next && (
@@ -112,35 +102,6 @@ export function Results({
           </div>
         </div>
       )}
-
-      {done && (() => {
-        const def = itemDef(outcome.gear.defId);
-        if (!def) return null;
-        const tone =
-          outcome.gear.rarity === 'exotic'
-            ? 'var(--viral)'
-            : outcome.gear.rarity === 'legendary'
-              ? 'var(--r-legendary)'
-              : outcome.gear.rarity === 'epic'
-                ? 'var(--r-epic)'
-                : outcome.gear.rarity === 'rare'
-                  ? 'var(--r-rare)'
-                  : 'var(--r-common)';
-        return (
-          <div className="panel" style={{ width: 'min(480px, 92vw)' }}>
-            <div className="panel-title">Gear Drop</div>
-            <div className="gear-drop">
-              <span className="equip-dot" style={{ background: tone, boxShadow: `0 0 8px ${tone}` }} />
-              <span className="gear-drop-info">
-                <span style={{ color: tone, fontWeight: 700 }}>
-                  {def.name} <span style={{ textTransform: 'uppercase', fontSize: 10 }}>{outcome.gear.rarity}</span>
-                </span>
-                <span className="equip-desc">{def.desc}</span>
-              </span>
-            </div>
-          </div>
-        );
-      })()}
 
       {done && masteryGains.length > 0 && (
         <div className="panel" style={{ width: 'min(480px, 92vw)' }}>

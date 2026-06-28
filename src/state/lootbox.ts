@@ -27,6 +27,13 @@ export type RewardItem =
   | { type: 'relic'; rarity: LootRarity; id: string }
   | { type: 'event'; rarity: LootRarity; currency: string; amount: number };
 
+/** A banked, UNOPENED container in the Genetic Vault. Either a loot-queue box (a rarity
+ *  rolled via rollLoot on crack) or the run-end results cache (a chest def rolled via
+ *  rollChest on crack). Both bank from a run; the player cracks each open manually. */
+export type PendingContainer =
+  | { kind: 'loot'; rarity: string }
+  | { kind: 'cache'; chestId: string };
+
 export interface ChestResult {
   chestId: string;
   topRarity: LootRarity; // the best pull — drives how big the reveal ceremony gets
