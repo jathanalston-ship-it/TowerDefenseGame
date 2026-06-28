@@ -370,6 +370,19 @@ describe('automatic wave flow', () => {
     expect(se.slowUntil).toBeGreaterThan(0); // and slowed it (the control identity)
   });
 
+  it('click reports a failed tower placement (so the UI can buzz)', () => {
+    const g = new Game(1, NO_META);
+    g.selectTower('needle');
+    const slot = towerSlots[0];
+    expect(g.click(slot.x, slot.y)).toBe('placed'); // first placement succeeds
+    expect(g.click(slot.x, slot.y)).toBe('place-failed'); // slot now occupied
+    g.biomass = 0;
+    g.selectTower('mortar');
+    expect(g.click(towerSlots[1].x, towerSlots[1].y)).toBe('place-failed'); // can't afford
+    g.selectTower(null);
+    expect(g.click(slot.x, slot.y)).toBe('rally'); // nothing armed → re-anchor the hero
+  });
+
   it('records a wave summary when a wave clears (kills + biomass earned)', () => {
     const g = new Game(5, NO_META);
     expect(g.lastWaveSummary).toBeNull(); // nothing cleared yet

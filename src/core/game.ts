@@ -297,18 +297,21 @@ export class Game {
   }
 
   /** Route a canvas click based on what is currently armed. */
-  click(px: number, py: number): void {
+  /** Route a tap. Returns what it resolved to so the UI can give feedback (e.g. a
+   *  buzz when a tower placement fails — no biomass / occupied / locked slot). */
+  click(px: number, py: number): 'ability' | 'placed' | 'place-failed' | 'rally' {
     if (this.armedAbility) {
       this.triggerAbility(px, py);
       this.armedAbility = false;
-      return;
+      return 'ability';
     }
     if (this.selectedTower) {
-      this.placeTower(this.selectedTower, px, py);
-      return; // stay armed for repeat placement
+      // stay armed for repeat placement
+      return this.placeTower(this.selectedTower, px, py) ? 'placed' : 'place-failed';
     }
     // default: re-anchor the hero's leash
     this.setRally(px, py);
+    return 'rally';
   }
 
   placeTower(kind: TowerKind, px: number, py: number): boolean {

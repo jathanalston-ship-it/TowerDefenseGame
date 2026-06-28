@@ -30,7 +30,7 @@ export type SoundId =
   | 'fire_needle' | 'fire_mortar'
   | 'death' | 'shred' | 'breach'
   | 'apex' | 'hero_down'
-  | 'place' | 'select'
+  | 'place' | 'select' | 'error'
   | 'card' | 'box_open' | 'purchase'
   | 'wave_start' | 'wave_clear' | 'victory' | 'defeat' | 'bonus' | 'confirm';
 
@@ -50,6 +50,8 @@ export const SOUNDS: Record<SoundId, SoundDef> = {
   // ── UI / meta ───────────────────────────────────────────────────────────────
   place: { voices: [{ wave: 'triangle', freq: 320, freqEnd: 520, dur: 0.09, gain: 0.18, release: 0.04 }] },
   select: { minIntervalMs: 40, voices: [{ wave: 'square', freq: 660, dur: 0.04, gain: 0.1, release: 0.03 }] },
+  // Soft low "nope" buzz — a failed action (e.g. an invalid tower placement).
+  error: { minIntervalMs: 80, voices: [{ wave: 'square', freq: 200, freqEnd: 150, dur: 0.12, gain: 0.12 }] },
   card: { voices: [{ wave: 'triangle', freq: 520, freqEnd: 880, dur: 0.16, gain: 0.16, release: 0.08 }] },
   // Loot box: a rising shimmer that lands on a chord — the payoff moment.
   box_open: { voices: [{ wave: 'triangle', freq: 440, freqEnd: 880, dur: 0.28, gain: 0.18, release: 0.12 }, { wave: 'sine', freq: 660, dur: 0.3, gain: 0.12, delay: 0.06 }, { wave: 'sine', freq: 1320, dur: 0.3, gain: 0.08, delay: 0.12 }] },

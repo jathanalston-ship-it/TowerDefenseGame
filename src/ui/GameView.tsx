@@ -167,7 +167,7 @@ export function GameView({
           onPointerUp={(e) => {
             if (e.button !== 0) return; // primary tap / left-click only
             const p = toCoords(e.clientX, e.clientY);
-            if (p) game.click(p.x, p.y);
+            if (p && game.click(p.x, p.y) === 'place-failed') audio.play('error'); // fumbled placement → buzz
             // Don't leave a placement ghost stuck under a lifted finger (touch).
             if (e.pointerType !== 'mouse') pointerRef.current = null;
             refresh();
