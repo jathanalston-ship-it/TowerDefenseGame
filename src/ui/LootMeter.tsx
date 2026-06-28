@@ -66,6 +66,11 @@ export function LootMeter({ compact = false }: { compact?: boolean }): JSX.Eleme
       {!compact && (
         <div className="lm-sub">
           {Math.floor(save.lootMeter)} / {size}
+          {/* Near-full reads as "maxed"; show the remaining points so it's clearly still
+              filling (it fills during runs, not on the hub) — never a stuck/done state. */}
+          {pct >= 0.85 && pct < 1 && (
+            <span className="lm-togo"> · {Math.max(1, size - Math.floor(save.lootMeter))} to go</span>
+          )}
           {save.lootBoxesLifetime > 0 ? ` · ${save.lootBoxesLifetime} earned` : ''}
         </div>
       )}

@@ -1206,6 +1206,10 @@ canvas.board.is-aiming {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+.lm-togo {
+  color: var(--rarity, var(--gold));
+  font-weight: 700;
+}
 .loot-meter.is-compact {
   min-width: 130px;
   gap: 4px;

@@ -154,6 +154,25 @@ describe('persistent bio-container meter', () => {
     meta.reset();
   });
 
+  it('crosses the EPIC boundary (box #25) and resets — never stuck at max', () => {
+    meta.reset();
+    // Earn 24 containers; the 25th is the Epic. meterGrowth=0 so size is flat.
+    const size = lootMeterSize(0);
+    for (let i = 0; i < 24; i++) meta.addLootProgress(size);
+    expect(meta.get().lootBoxesLifetime).toBe(24);
+    expect(meta.nextLootRarity()).toBe('epic'); // the next one is the Epic
+    // Park it ONE short — 239/240, ~99.6% (this is the "looks maxed" state).
+    meta.addLootProgress(size - 1);
+    expect(meta.get().lootMeter).toBe(size - 1);
+    // One more point crosses it → Epic earned, meter RESETS (never sticks at/over size).
+    const awarded = meta.addLootProgress(1);
+    expect(awarded).toEqual({ epic: 1 });
+    expect(meta.get().boxes.epic).toBe(1);
+    expect(meta.get().lootMeter).toBeLessThan(size); // reset to overflow, not stuck
+    expect(meta.nextLootRarity()).toBe('common'); // flipped to the next box (#26)
+    meta.reset();
+  });
+
   it('persists across runs/modes — recordRun never clears the meter', () => {
     meta.reset();
     meta.addLootProgress(50);
