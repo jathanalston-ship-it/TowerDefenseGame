@@ -58,7 +58,7 @@ back as method calls (intents) on the `Game`.
 | `src/core/prestige.ts` | **Prestige — MOLT** — sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket, folded in `metaModifiers`). |
 | `src/core/ascendant.ts` | **Ascendant Tree** — Cells buy permanent, capped economy nodes (shard/biomass/loot/cell gain) kept across every Molt. |
 | `src/save/` | Versioned + checksummed persistence (`saveStore`), file I/O (`saveFile`). |
-| `src/state/` | `meta` (permanent progression store), `store` (tiny React-bridged external store), `prefs` (per-browser UI toggles, e.g. Auto Gene Selection). |
+| `src/state/` | `meta` (permanent progression store), `store` (tiny React-bridged external store), `prefs` (per-browser UI toggles, e.g. Auto Gene Selection), `notifications`+`notificationSources` (generic menu badge registry — NOTIFICATIONS.md). |
 | `src/render/renderer.ts` | Canvas2D battlefield rendering (reads `RenderState`, never mutates). |
 | `src/ui/` | React: `App`, `GameView` (the rAF loop host), HUD/Toolbar/DraftModal/menus, `ErrorBoundary`. |
 | `src/debug/` | Dev debug flag + active-game registry (`?debug` opt-in). |
