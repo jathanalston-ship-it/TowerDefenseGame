@@ -57,6 +57,28 @@ export function Results({
         <RewardSequence lines={lines} onDone={() => setDone(true)} />
       </div>
 
+      {/* Achievements earned this run surface here — inline, AFTER the reward sequence — so a
+          milestone never floats over the statistics mid-tally. The toaster is suppressed off-menu. */}
+      {done && outcome.achievements.length > 0 && (
+        <div className="panel achv-earned" style={{ width: 'min(480px, 92vw)' }}>
+          <div className="panel-title">Achievements Unlocked</div>
+          <div className="ae-list">
+            {outcome.achievements.map((a) => (
+              <div className="ae-row" key={a.id}>
+                <span className="ae-icon" aria-hidden>{a.name.charAt(0).toUpperCase()}</span>
+                <span className="ae-body">
+                  <span className="ae-name">{a.name}</span>
+                  <span className="ae-desc">{a.desc}</span>
+                </span>
+                {a.reward ? (
+                  <span className="ae-reward"><ShardIcon /> +{a.reward}</span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {done && (() => {
         // All loot — the run-end cache AND any loot-queue containers — banks UNOPENED into the
         // Genetic Vault. Show the count + the box now filling and the pre-determined next.

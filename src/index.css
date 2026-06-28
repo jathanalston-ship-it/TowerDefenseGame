@@ -2407,6 +2407,69 @@ kbd {
   font-size: 12px;
 }
 
+/* ── Achievements unlocked (results, inline) ──────────────────────────────── */
+/* Run-end milestones presented IN-FLOW on the summary — never floating, never over the stats.
+   Gold-accented so it reads as a reward; rises in gently once the reward sequence has tallied. */
+.achv-earned {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 77, 0.22), 0 0 22px rgba(255, 210, 77, 0.1);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+.ae-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.ae-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+.ae-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #3a2f12, #11161f);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 0 12px rgba(255, 210, 77, 0.3);
+}
+.ae-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ae-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.ae-desc {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ae-reward {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Achievements gallery (menu) ──────────────────────────────────────────── */
 .achv-count {
   color: var(--gold);
