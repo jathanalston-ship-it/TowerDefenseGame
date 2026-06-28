@@ -916,6 +916,46 @@ canvas.board {
   letter-spacing: 0.06em;
   color: var(--muted);
 }
+/* Gene Card "what it affects" badge (draft) — the subject color is set inline (cards.ts derives
+   it); the pill's border + icon + text all inherit it via currentColor. */
+.card-affects-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card-affects {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.05);
+}
+.card-affects svg {
+  width: 13px;
+  height: 13px;
+}
+.card-syn {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+}
+/* subject color dot on the Run Build panel chips */
+.chip-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
 .card-name {
   font-size: 17px;
   font-weight: 700;

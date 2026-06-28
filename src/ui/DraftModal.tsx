@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '../audio/sound';
 import { autoGenePref } from '../state/prefs';
+import { affectsOf } from './cardAffects';
 import type { CardOption } from '../core/types';
 
 // Higher = rarer. Unknown tiers sort as 0, so new rarities slot in by adding a key.
@@ -114,7 +115,9 @@ export function DraftModal({
         )}
       </div>
       <div className="cards">
-        {options.map((o, i) => (
+        {options.map((o, i) => {
+          const aff = affectsOf(o.subject);
+          return (
           <button
             key={o.id}
             className={`card r-${o.rarity}${i === best ? ' is-rec' : ''}${auto && i === best ? ' auto-target' : ''}`}
@@ -127,12 +130,21 @@ export function DraftModal({
               <span className="card-rarity">{o.rarity}</span>
               {i === best && <span className="card-rec">◆ PICK</span>}
             </span>
-            <span className="card-cat">{o.category}</span>
+            {/* "What it affects" — immediately recognizable: tower icon+color+name, or
+                HERO / GLOBAL / ECONOMY / HIVE. The synergy tag rides along, muted. */}
+            <span className="card-affects-row">
+              <span className="card-affects" style={{ color: aff.color }}>
+                {aff.icon}
+                <span className="card-affects-name">{aff.label}</span>
+              </span>
+              <span className="card-syn">{o.category}</span>
+            </span>
             <span className="card-name">{o.name}</span>
             <span className="card-desc">{o.description}</span>
             <span className="card-pick">DRAFT</span>
           </button>
-        ))}
+          );
+        })}
       </div>
       <div className="hint">Gene Cards reset when you extract or fall.</div>
     </div>

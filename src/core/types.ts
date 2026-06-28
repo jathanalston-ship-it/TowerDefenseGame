@@ -52,6 +52,18 @@ export type CardRarity = 'common' | 'rare' | 'epic' | 'legendary';
 export type CardCategory =
   | 'poison' | 'summons' | 'economy' | 'crit' | 'aoe' | 'control' | 'hero' | 'tower' | 'mutation';
 
+/** What a Gene Card primarily AFFECTS — its subject, shown as a badge in the draft so a card's
+ *  target reads at a glance (CARDS.md). DERIVED from the card's effects (cards.ts: `cardSubject`),
+ *  so the badge can never drift from behaviour. A specific tower carries its `TowerKind` → the UI
+ *  pulls that tower's color/name/icon from `TOWER_DEFS`, future-proof for new towers with no UI
+ *  change. 'global' = army-wide; 'economy' = biomass; 'hive' = the Nucleus + its build structure. */
+export type CardSubject =
+  | { kind: 'tower'; tower: TowerKind }
+  | { kind: 'hero' }
+  | { kind: 'global' }
+  | { kind: 'economy' }
+  | { kind: 'hive' };
+
 export interface Enemy {
   id: number;
   kind: EnemyKind;
@@ -392,6 +404,7 @@ export interface CardOption {
   rarity: CardRarity;
   description: string;
   category: string;
+  subject: CardSubject; // what the card affects (tower/hero/global/economy/hive) — drives the draft badge
 }
 
 /** A telegraph of an upcoming wave's composition (anticipation / informed prep). */
