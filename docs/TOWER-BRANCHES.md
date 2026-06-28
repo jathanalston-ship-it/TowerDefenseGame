@@ -336,9 +336,17 @@ sfx?: string;            // firing/pulse sound cue tag (audio/sound.ts)
 Shots are tagged with `Projectile.skin = branchId` for the renderer. Buying a tier fires a
 `splice` cue + a `bloom` mutation burst at the tower.
 
-**Rendering (`render/renderer.ts`)** — `drawBranchCosmetic` dispatches on `branchId` to a
-per-branch silhouette that escalates with `tier` (generic mutation glow as the fallback);
-`drawSkinnedProjectile` dispatches on `p.skin`. As-built identities:
+**Visual evolution (`render/towerEvolution.ts`, DATA-DRIVEN)** — every branch declares, in
+`BRANCH_EVOLUTION`, which **organs** it grows at which tier from a reusable vocabulary
+(`halo · barbs · barrel · barrels · armor · biomass · organs · spikes · limbs · tendrils ·
+fangs · crown · glyphRing · arcs · pods · ripples · heart · nova`). One generic composer
+(`drawTowerEvolution`) draws every organ introduced at/below the tower's tier over a body that
+**grows** with tier (`evolutionGrowth`); the muzzle flash and the projectile
+(`drawSkinnedProjectile`, keyed on `p.skin` + `p.skinTier`) escalate too — so a maxed tower is
+instantly recognizable on the field without the inspector. Adding a branch (or a whole tower)
+is a DATA entry, **no new draw code** — replacing the old per-branch `switch`. A test enforces
+that every shipped branch has a spec and **every tier 1..5 introduces a new organ**. The table
+is the as-built identity per branch:
 
 | Branch | Silhouette | Shot | Particle | Sfx |
 |---|---|---|---|---|
@@ -354,8 +362,10 @@ per-branch silhouette that escalates with `tier` (generic mutation glow as the f
 | Mindrender | crackling neural lightning arcs | — (aura/chain) | `spark` | `br_storm` |
 
 **New seams** (small, all cosmetic): 7 `ParticleKind`s + specs; `BranchTier.particle/sfx` +
-fold; `Projectile.skin`; `emitBranchSignature`; the `splice` + ten `br_*` synths;
-`drawBranchCosmetic`/`drawSkinnedProjectile`. No sim executors, no save change.
+fold; `Projectile.skin` + `skinTier`; `emitBranchSignature`; the `splice` + ten `br_*` synths;
+`render/towerEvolution.ts` (the `BRANCH_EVOLUTION` organ data + the `drawTowerEvolution`
+composer + `evolutionGrowth` + the 18 organ drawers) and the tier-aware `drawSkinnedProjectile`.
+No sim executors, no save change.
 
 **Known limitations / future hooks** — firing cues are per-shot (kept short + quiet, voice-
 capped); they're tunable in one place if a dense board proves muddy in playtest. Reactor and
