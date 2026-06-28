@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
+import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { masteryLevel, meta } from '../state/meta';
@@ -21,7 +22,7 @@ import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
-  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03,
+  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34,
 };
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
@@ -94,7 +95,11 @@ export function GameView({
       try {
         const dt = (now - last) / 1000;
         last = now;
-        game.advance(dt);
+        // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
+        // paused, but cues/shake/render still run below — so the screen shakes + the banner pops
+        // against a frozen battlefield. advance() never reads this, so stepping stays deterministic.
+        if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
+        else game.advance(dt);
 
         // Drain presentation cues → audio + screen-shake trauma.
         const cues = game.drainSfx();
@@ -266,6 +271,17 @@ export function GameView({
             {hud.bossBanner.telegraph && <div className="boss-telegraph">{hud.bossBanner.telegraph}</div>}
           </div>
         )}
+        {hud.mutation && (
+          // Re-keyed by id so each purchase restarts the pop + flash animations.
+          <div key={hud.mutation.id} className="mutation-fx" style={{ ['--mut']: BRANCH_COLOR[hud.mutation.branchId] ?? hud.mutation.color } as CSSProperties}>
+            <div className="mutation-flash" aria-hidden />
+            <div className="mutation-banner" role="status">
+              <span className="mutation-kicker">⬢ MUTATION</span>
+              <span className="mutation-title">{hud.mutation.title}</span>
+              <span className="mutation-sub">{hud.mutation.sub}</span>
+            </div>
+          </div>
+        )}
         {hud.phase === 'draft' && hud.draft && (
           <DraftModal
             options={hud.draft}
@@ -299,6 +315,7 @@ export function GameView({
             hud={hud}
             onCollapse={() => setRightOpen(false)}
             onBranchBuy={(towerId, branchId) => {
+              audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
               game.buyBranchTier(towerId, branchId);
               refresh();
             }}

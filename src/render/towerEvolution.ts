@@ -10,7 +10,11 @@
 
 import type { Tower } from '../core/types';
 import { hexRgb, rgba } from './theme';
-import { drawShape, glowDisc, ring, spikeCrown, pulse } from './vfx';
+import { drawShape, glowDisc, ring, spikeCrown, pulse, easeOutCubic } from './vfx';
+
+/** Seconds a freshly-purchased tier takes to "grow in" — the body swells to its new size and the
+ *  new organ materializes over this window (driven by `now - tower.mutatedAt`). */
+export const MUTATION_GROW_TIME = 0.55;
 
 // ── Signature colors (shared with the projectile skins in renderer.ts) ───────────────────────
 export const BRANCH_COLOR: Record<string, string> = {
@@ -185,6 +189,16 @@ export function evolutionGrowth(branchId: string | null, tier: number): number {
   return 1 + (evo ? evo.growth : 0.05) * tier;
 }
 
+/** Body scale that ANIMATES the swell from the previous tier to the new one over MUTATION_GROW_TIME
+ *  after a purchase, so the tower visibly grows when it mutates. `sinceMutation` = now - mutatedAt
+ *  (large for a long-settled or never-mutated tower ⇒ returns the full size). */
+export function evolutionGrowthAnimated(branchId: string | null, tier: number, sinceMutation: number): number {
+  const full = evolutionGrowth(branchId, tier);
+  if (sinceMutation >= MUTATION_GROW_TIME || sinceMutation < 0) return full;
+  const prev = evolutionGrowth(branchId, tier - 1);
+  return prev + (full - prev) * easeOutCubic(sinceMutation / MUTATION_GROW_TIME);
+}
+
 /** A projectile/ skin's signature color (used by the renderer's skinned-projectile drawer). */
 export function branchSkinColor(skin: string | undefined): string {
   return (skin && BRANCH_COLOR[skin]) || '#ffffff';
@@ -206,13 +220,20 @@ export function drawTowerEvolution(
 ): void {
   const evo = tw.branchId ? BRANCH_EVOLUTION[tw.branchId] : undefined;
   if (!evo) { drawGenericEvolution(ctx, tw, now, r, fallbackColor); return; }
+  // Grow-in: the organ introduced at the CURRENT tier materializes over MUTATION_GROW_TIME after a
+  // purchase (older organs render full). `since` is large for a settled tower ⇒ growIn = 1.
+  const since = now - tw.mutatedAt;
+  const growIn = since >= MUTATION_GROW_TIME || since < 0 ? 1 : easeOutCubic(since / MUTATION_GROW_TIME);
   const pc: PartCtx = { ctx, x: tw.x, y: tw.y, id: tw.id, r, now, tier: tw.tier, above: 0, color: evo.color, fired, part: evo.parts[0] };
   for (const part of evo.parts) {
     if (part.at > tw.tier) continue;
     pc.part = part;
     pc.above = tw.tier - part.at;
     pc.color = part.color ?? evo.color;
+    const fresh = pc.above === 0 && growIn < 1; // the just-grown organ fades + scales in
+    if (fresh) { ctx.save(); ctx.globalAlpha = growIn; }
     PART_DRAWERS[part.kind](pc);
+    if (fresh) ctx.restore();
   }
 }
 
