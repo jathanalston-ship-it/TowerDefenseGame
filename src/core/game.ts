@@ -33,6 +33,7 @@ import {
   MOVE,
   PARTICLE,
   PERF,
+  SETTLE,
   SIM_DT,
   SLOTS,
   STATUS,
@@ -220,6 +221,9 @@ interface RunBuff {
 
 export class Game {
   phase: Phase = 'prep';
+  /** Combat→Build settle countdown (s). > 0 after the last enemy dies: the wave is cleared but
+   * the phase hasn't flipped yet — the battlefield winds down (see step's settle branch). */
+  private settleTimer = 0;
   waveIndex = 0; // waves started/cleared so far (= Depth in endless)
   readonly totalWaves = TOTAL_WAVES;
   readonly mode: RunMode;
@@ -864,6 +868,21 @@ export class Game {
   }
 
   private step(dt: number): void {
+    // ── Combat→Build SETTLE beat ── the wave is cleared and the simulation is PAUSED: the sim
+    // clock, run-buff + minion timers, and every combat system are frozen, so all downstream
+    // deterministic state (enemy steering jitter keyed off `this.time`, the spawn schedule, buff
+    // durations…) is identical to a no-settle run and the golden seeds don't move. Only the
+    // battlefield's VISUAL wind-down runs: in-flight shots coast out and FADE, particles + floats
+    // dissipate (all driven by the frame `dt`, not the sim clock). endWave() reveals the draft /
+    // win once the beat elapses. (Acid pools + the hero resume in the prep/draft branch below.)
+    if (this.phase === 'wave' && this.settleTimer > 0) {
+      this.settleTimer -= dt;
+      this.projectileSystem(dt);
+      this.floatSystem(dt);
+      this.particleSystem(dt);
+      if (this.settleTimer <= 0) this.endWave();
+      return;
+    }
     this.time += dt;
     if (this.runBuffs.length > 0) this.tickRunBuffs(dt); // no-op (skipped) on the golden path
     if (this.minions.length > 0) this.minionSystem(dt); // empty on the golden path → skipped
@@ -889,8 +908,13 @@ export class Game {
         this.phase = 'lost';
       }
     } else {
-      // prep: hero still roams; no spawns/economy/loss (overcharge is cached on placement).
+      // prep / draft: hero still roams; no spawns/economy/loss (overcharge is cached on
+      // placement). Combat RESIDUE keeps winding down — projectiles coast out + fade, acid pools
+      // dissipate — so nothing freezes mid-air into the build phase. No enemies ⇒ no RNG/damage
+      // (and autoplay never advances in these phases, so the golden run is byte-identical).
       this.emergencySystem(dt); // no enemies here → eases the emergency visuals back to rest
+      this.projectileSystem(dt);
+      this.poolSystem(dt);
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
@@ -1366,10 +1390,27 @@ export class Game {
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
       const step = p.speed * dt;
+      // Fading out (lost its target): coast along the last heading while the renderer fades it,
+      // then release — a graceful wind-down instead of an instant pop. Deals no damage / no rng.
+      if (p.fade !== undefined) {
+        p.fade -= dt / SETTLE.projectileFade; // opacity 1 → 0 over projectileFade seconds
+        if (p.fade <= 0) {
+          p.alive = false;
+          continue;
+        }
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d > step) {
+          p.x += (dx / d) * step;
+          p.y += (dy / d) * step;
+        }
+        continue;
+      }
       if (p.behavior === 'homing' || p.behavior === 'parasite') {
         const target = this.enemyById.get(p.targetId); // O(1) homing lookup
         if (!target || !target.alive) {
-          p.alive = false; // fizzle if the target died
+          p.fade = 1; // target gone → coast out + fade gracefully (was an instant pop)
           continue;
         }
         p.tx = target.x;
@@ -2039,6 +2080,7 @@ export class Game {
       p.sourceKind = sourceKind;
       p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
       p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
+      p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
       if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
       this.applyProjectileMutators(p);
@@ -2172,22 +2214,31 @@ export class Game {
   }
 
   private checkWaveEnd(): void {
-    if (this.phase !== 'wave') return;
+    if (this.phase !== 'wave' || this.settleTimer > 0) return; // already winding down
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
+      // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
+      // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
+      // options aren't shown until the phase is 'draft' (the modal is phase-gated).
       // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
       if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
         this.stageClearCrescendo();
-        this.phase = 'won';
       } else {
         this.waveCompleteFlourish(flawless);
         this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
-        this.phase = 'draft';
       }
+      this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
     }
+  }
+
+  /** End of the settle beat: reveal the post-wave state — the stage win, or the gene-card draft
+   * (already rolled in checkWaveEnd). Pure phase flip; the battlefield is now wound down. */
+  private endWave(): void {
+    this.settleTimer = 0;
+    this.phase = this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES ? 'won' : 'draft';
   }
 
   // ── Status / reaction helpers ────────────────────────────────────────────

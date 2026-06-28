@@ -835,7 +835,13 @@ function branchMindrender(ctx: CanvasRenderingContext2D, tw: RenderState['towers
 }
 
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
-  if (p.skin && drawSkinnedProjectile(ctx, p)) return; // themed branch shot; else fall through to base
+  // A target-less shot fades out (game settle / mid-combat fizzle) instead of popping.
+  const fading = p.fade !== undefined && p.fade < 1;
+  if (fading) ctx.globalAlpha = Math.max(0, p.fade!);
+  if (p.skin && drawSkinnedProjectile(ctx, p)) {
+    if (fading) ctx.globalAlpha = 1;
+    return; // themed branch shot; else fall through to base
+  }
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';
   const core = splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
@@ -860,6 +866,7 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
 
   glowDisc(ctx, p.x, p.y, splash ? 7 : 5, rgba(trail, 0.6));
   drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : parasite ? 2.6 : 2.3, core);
+  if (fading) ctx.globalAlpha = 1;
 }
 
 /** Branch-specific projectile looks (TOWER-BRANCHES.md). `p.skin` is the firing tower's

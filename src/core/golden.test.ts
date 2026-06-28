@@ -6,22 +6,23 @@
 import { describe, it, expect } from 'vitest';
 import { autoplay } from './sim.testutil';
 
-// Re-pinned deliberately for the TOWER-SLOT PROGRESSION rework (docs/SLOTS.md): the 27
-// emplacements were re-gridded into a SYMMETRIC, centre-out lattice (so the build slots no
-// longer favour one side), and a new "Reclaimed Node" gene card joined the draft pool. Autoplay
-// builds on towerSlots[0..2] (now at new positions) and drafts card 0 each wave (the pool shift
-// nudges which card it lands on), so these outcomes moved. Every seed still WINS at wave 12 (the
-// rework didn't break beatability); the swing is just the dumb auto-strategy on the new layout.
-// Any FURTHER drift from here is unintended.
+// Re-pinned deliberately for the COMBAT→BUILD SETTLE (config.SETTLE): after a wave's last enemy
+// dies the battlefield now winds DOWN for a beat — in-flight projectiles coast out and FADE,
+// particles/floats dissipate — before the draft/build. The settle PAUSES the sim (clock,
+// buff/minion timers, and all combat frozen), so the only outcome change is at the wave
+// BOUNDARY: leftover shots resolve at wave-end instead of freezing and bleeding into the next
+// wave (a lingering mortar no longer lands among the next wave's spawns). Net: **kills and
+// integrity are UNCHANGED for every seed** — only end-of-run biomass shifts ~1% from the
+// boundary-economy timing. Every seed still WINS at wave 12. Any FURTHER drift is unintended.
 //
-// (Prior baseline traced to the GENE CARD EXPANSION, docs/CARDS.md → TOWER RANGE PHILOSOPHY redesign, docs/RANGE.md.)
+// (Prior baseline: TOWER-SLOT PROGRESSION rework, docs/SLOTS.md → GENE CARD EXPANSION, docs/CARDS.md.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 190, integrity: 261, biomass: 8177, phase: 'won' },
-  7: { wave: 12, kills: 194, integrity: 137, biomass: 8200, phase: 'won' },
-  42: { wave: 12, kills: 188, integrity: 68, biomass: 8338, phase: 'won' },
-  777: { wave: 12, kills: 186, integrity: 60, biomass: 6892, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12368, phase: 'won' },
-  12345: { wave: 12, kills: 193, integrity: 88, biomass: 7467, phase: 'won' },
+  1: { wave: 12, kills: 190, integrity: 261, biomass: 8109, phase: 'won' },
+  7: { wave: 12, kills: 194, integrity: 137, biomass: 8028, phase: 'won' },
+  42: { wave: 12, kills: 188, integrity: 68, biomass: 8290, phase: 'won' },
+  777: { wave: 12, kills: 186, integrity: 60, biomass: 6708, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12296, phase: 'won' },
+  12345: { wave: 12, kills: 193, integrity: 88, biomass: 7493, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

@@ -26,6 +26,17 @@ export const FX = {
   dmgFloatInterval: 0.4, // min seconds between aggregated damage-number pops per enemy
 };
 
+/** Combat→Build "settle": after the FINAL enemy of a wave dies, the battlefield winds DOWN for
+ * a beat — in-flight projectiles coast out and fade, acid pools + particles dissipate, the
+ * red-alert eases off — before the gene-card draft / build phase, so combat lands cleanly
+ * instead of snapping or freezing mid-air. Purely presentational: during the settle no
+ * spawns / economy / tower fire run and NO gameplay RNG is touched, so run outcomes (and the
+ * golden seeds) are unchanged — only the moment the phase flips is delayed by `duration`. */
+export const SETTLE = {
+  duration: 0.7, // seconds the battlefield winds down after the last kill before the draft/build
+  projectileFade: 0.3, // seconds a target-less projectile coasts + fades out before it's released
+};
+
 // ── Towers ────────────────────────────────────────────────────────────────
 export interface TowerDef {
   kind: TowerKind;
