@@ -32,10 +32,14 @@ export interface SaveData {
   codex: CodexData;
   achievements: string[]; // unlocked achievement ids
   title: string; // currently worn title (rarest unlocked), '' = none
-  // Persistent Loot Meter — fills forever from kills + waves across all runs/modes.
-  lootMeter: number; // current progress toward the next loot box
-  lootBoxes: number; // unopened loot boxes on hand
-  lootBoxesLifetime: number; // total ever earned (never decreases — a trophy stat)
+  // Bio-Container meter — fills forever from kills + waves across all runs/modes, and
+  // earns typed Bio-Containers (inventory items opened on the LOOT screen, never auto-opened).
+  lootMeter: number; // current progress toward the next Bio-Container
+  lootBoxesLifetime: number; // total ever earned (drives the meter cadence + size; a trophy)
+  boxes: Record<string, number>; // OWNED Bio-Containers by type id (the inventory)
+  boxesEarned: Record<string, number>; // lifetime earned per type (collection / trophy)
+  boxesOpened: Record<string, number>; // lifetime opened per type (collection progress)
+  pity: Record<string, number>; // per-type opens since the last guaranteed gear (pity meter)
   // Tower Stars — per-unit permanent progression (the first per-unit record).
   genomeShards: number; // currency that buys stars (from loot boxes + runs)
   stars: Record<string, number>; // towerKind -> star level
@@ -53,7 +57,7 @@ export interface CodexData {
   cards: string[];
 }
 
-export const CURRENT_VERSION = 6;
+export const CURRENT_VERSION = 7;
 const SAVE_KEY = 'assimilate.save';
 const LAST_GOOD_KEY = 'assimilate.save.lastgood'; // one-deep automatic safety net
 const BAK_PREFIX = 'assimilate.save.bak.';
@@ -85,7 +89,7 @@ export function defaultSave(): SaveData {
     stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
     essence: 0, components: 0, catalyst: 0,
     codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
-    lootMeter: 0, lootBoxes: 0, lootBoxesLifetime: 0,
+    lootMeter: 0, lootBoxesLifetime: 0, boxes: {}, boxesEarned: {}, boxesOpened: {}, pity: {},
     genomeShards: 0, stars: {},
     gear: [], equipped: { weapon: null, armor: null, relic: null },
     mastery: {},
@@ -196,8 +200,11 @@ export function normalizeSave(raw: unknown): SaveData {
     achievements: normalizeIdList(o.achievements),
     title: typeof o.title === 'string' && o.title.length <= 64 ? o.title : '',
     lootMeter: nonNegInt(o.lootMeter),
-    lootBoxes: nonNegInt(o.lootBoxes),
     lootBoxesLifetime: nonNegInt(o.lootBoxesLifetime),
+    boxes: normalizeUpgrades(o.boxes), // type id -> positive int count (same shape)
+    boxesEarned: normalizeUpgrades(o.boxesEarned),
+    boxesOpened: normalizeUpgrades(o.boxesOpened),
+    pity: normalizeUpgrades(o.pity),
     genomeShards: nonNegInt(o.genomeShards),
     stars: normalizeUpgrades(o.stars), // same shape as upgrades: id -> positive int level
     gear: normalizeGear(o.gear),
@@ -290,6 +297,40 @@ const MIGRATIONS: Migration[] = [
     to: 6,
     describe: 'infinite mastery (per-unit xp)',
     up: (d) => [fieldOp.add(d, 'mastery', {})],
+  },
+  {
+    // Bio-Containers become a TYPED inventory. The legacy single FIFO `lootBoxes` count
+    // is distributed into per-type stacks by the (frozen) earn cadence, and lifetime
+    // earned-per-type is reconstructed from the cadence so the collection stat is intact.
+    to: 7,
+    describe: 'typed Bio-Container inventory (+ collection/pity)',
+    up: (d) => {
+      const notes: (string | null)[] = [];
+      if ('lootBoxes' in d) {
+        // Frozen cadence at v7 (mirrors lootBoxRarity): every 25th Epic, every 5th Rare.
+        const rarityAt = (i: number): string => (i % 25 === 0 ? 'epic' : i % 5 === 0 ? 'rare' : 'common');
+        const lifetime = nonNegInt(d.lootBoxesLifetime);
+        const banked = Math.min(nonNegInt(d.lootBoxes), lifetime);
+        const owned: Record<string, number> = {};
+        const earned: Record<string, number> = {};
+        for (let i = 1; i <= lifetime; i++) {
+          const r = rarityAt(i);
+          earned[r] = (earned[r] ?? 0) + 1;
+          if (i > lifetime - banked) owned[r] = (owned[r] ?? 0) + 1; // the unopened tail
+        }
+        d.boxes = owned;
+        d.boxesEarned = earned;
+        delete d.lootBoxes;
+        notes.push('lootBoxes→boxes{}', '+boxesEarned', '-lootBoxes');
+      }
+      notes.push(
+        fieldOp.add(d, 'boxes', {}),
+        fieldOp.add(d, 'boxesEarned', {}),
+        fieldOp.add(d, 'boxesOpened', {}),
+        fieldOp.add(d, 'pity', {}),
+      );
+      return notes;
+    },
   },
 ];
 

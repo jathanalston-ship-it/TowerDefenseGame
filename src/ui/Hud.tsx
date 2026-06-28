@@ -141,7 +141,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
       {/* Persistent loot meter (fills across all runs/modes) */}
       <div className="hud-cell hud-loot tt" tabIndex={0}>
         <LootMeter compact />
-        <span className="tt-bubble">Fills forever from kills + waves. Fill it to earn a loot box.</span>
+        <span className="tt-bubble">Fills forever from kills + waves. Fill it to earn a Bio-Container.</span>
       </div>
 
       {/* PHASE chip — keyed by phase so it pops on each transition (wave start/end) */}

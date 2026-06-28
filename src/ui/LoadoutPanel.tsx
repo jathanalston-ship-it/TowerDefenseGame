@@ -49,7 +49,7 @@ export function LoadoutPanel(): JSX.Element | null {
         <span className="track-bal">{save.genomeShards} ✦ Genome Shards</span>
       </div>
       <div className="panel-sub">
-        Equip one Weapon, Armor and Relic — their affixes fold into your hero every run. Gear drops from loot boxes; dismantle surplus for Genome Shards.
+        Equip one Weapon, Armor and Relic — their affixes fold into your hero every run. Gear drops from Bio-Containers; dismantle surplus for Genome Shards.
       </div>
 
       <div className="loadout-slots">

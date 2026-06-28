@@ -5,7 +5,6 @@ import { LoadoutPanel } from './LoadoutPanel';
 import { MasteryPanel } from './MasteryPanel';
 import { Codex } from './Codex';
 import { LootMeter } from './LootMeter';
-import { LootBoxOpener } from './LootBoxOpener';
 import { SaveManager } from './SaveManager';
 import { ModePanel } from './ModePanel';
 import { HeroPanel } from './HeroPanel';
@@ -13,8 +12,9 @@ import { AudioControls } from './AudioControls';
 import { CountUp } from './components/CountUp';
 import type { GameConfig } from '../core/game';
 
-export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void }): JSX.Element {
+export function MainMenu({ onStart, onOpenLoot }: { onStart: (config: GameConfig) => void; onOpenLoot: () => void }): JSX.Element {
   const save = meta.use();
+  const boxes = meta.totalBoxes();
   return (
     <div className="menu">
       <div className="menu-header">
@@ -48,7 +48,9 @@ export function MainMenu({ onStart }: { onStart: (config: GameConfig) => void })
           </div>
         </div>
         <LootMeter />
-        <LootBoxOpener />
+        <button className={`primary loot-open-btn ${boxes > 0 ? 'has-boxes' : ''}`} onClick={onOpenLoot}>
+          ⬢ Bio-Containers{boxes > 0 ? ` · ${boxes} to open` : ''}
+        </button>
       </div>
 
       <HeroPanel />

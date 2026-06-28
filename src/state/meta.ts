@@ -22,6 +22,9 @@ import {
   lootMeterSize,
   lootBoxRarity,
   LOOT_RARITY,
+  LOOT_BOX_TYPES,
+  LOOT_BOX_ORDER,
+  lootBoxType,
   GENOME_SHARDS_PER_WAVE,
   starCost,
   starStatFor,
@@ -31,7 +34,6 @@ import {
   affixDef,
   GEAR_SLOTS,
   GEAR_RARITY_AFFIXES,
-  GEAR_DROP_CHANCE,
   GEAR_INVENTORY_CAP,
   GEAR_DISMANTLE_GENOME,
   applyGear,
@@ -44,7 +46,7 @@ import {
   applyHeroMastery,
 } from '../core/config';
 import type { AffixDef, MasteryUnit } from '../core/config';
-import type { UpgradeDef, LootRarity, StarStat } from '../core/config';
+import type { UpgradeDef, LootRarity, LootBoxType, StarStat } from '../core/config';
 import type { Currency, MetaModifiers, TowerKind, GearItem, GearSlot } from '../core/types';
 import type { RunModifiers } from '../core/cards';
 import type { RunFold } from '../core/game';
@@ -106,14 +108,29 @@ export interface RunReward {
   newTitle: string | null; // a freshly-earned title to celebrate, else null
 }
 
-/** Contents revealed by opening a loot box. */
+/** Contents revealed by opening a single Bio-Container. */
 export interface LootReward {
+  boxId: string;
+  label: string; // "Common Bio-Container"
   rarity: LootRarity;
   shards: number;
   essence: number;
   components: number;
   genomeShards: number;
-  gear: GearItem | null; // a gear item dropped by this box (null = none this time)
+  gear: GearItem | null; // a gear item dropped by this container (null = none this time)
+}
+
+/** Aggregated result of opening one or more Bio-Containers of a type (Open / Open ×N). */
+export interface LootHaul {
+  boxId: string;
+  label: string;
+  rarity: LootRarity;
+  count: number; // containers opened
+  shards: number;
+  essence: number;
+  components: number;
+  genomeShards: number;
+  gear: GearItem[]; // all gear items dropped across the haul
 }
 
 
@@ -294,72 +311,143 @@ export const meta = {
   },
 
   /**
-   * Fold loot-meter progress into the PERSISTENT meter. The meter never resets
-   * across runs/modes; crossing its size awards one box and rolls the overflow into
-   * the next (so progress is never lost). Live in-run folds pass `save=false` (cheap
-   * in-memory updates for a smoothly-filling bar); wave/run-end checkpoints — and any
-   * box award — write to storage. Returns the number of boxes awarded by this call.
+   * Fold meter progress into the PERSISTENT Bio-Container meter. The meter never resets
+   * across runs/modes; each fill EARNS one typed container (by the earn cadence) into the
+   * inventory — never auto-opened — and rolls the overflow into the next. Live in-run
+   * folds pass `save=false` (cheap in-memory updates for a smoothly-filling bar);
+   * wave/run-end checkpoints — and any earn — write to storage. Returns the containers
+   * earned by THIS call as a per-type map (e.g. `{ common: 2, rare: 1 }`).
    */
-  addLootProgress(amount: number, save = true): number {
-    if (amount <= 0 && !save) return 0;
+  addLootProgress(amount: number, save = true): Record<string, number> {
+    if (amount <= 0 && !save) return {};
     const s = store.get();
     let meter = s.lootMeter + Math.max(0, amount);
-    let boxes = s.lootBoxes;
     let lifetime = s.lootBoxesLifetime;
-    let awarded = 0;
+    const boxes = { ...s.boxes };
+    const earnedLifetime = { ...s.boxesEarned };
+    const awarded: Record<string, number> = {};
     let size = lootMeterSize(lifetime);
     while (meter >= size) {
       meter -= size;
-      boxes++;
       lifetime++;
-      awarded++;
-      size = lootMeterSize(lifetime); // the next meter (may scale with boxes earned)
+      const id = lootBoxRarity(lifetime); // earn cadence → which container type (base id === rarity)
+      boxes[id] = (boxes[id] ?? 0) + 1;
+      earnedLifetime[id] = (earnedLifetime[id] ?? 0) + 1;
+      awarded[id] = (awarded[id] ?? 0) + 1;
+      size = lootMeterSize(lifetime);
     }
-    const next = { ...s, lootMeter: meter, lootBoxes: boxes, lootBoxesLifetime: lifetime };
-    if (save || awarded > 0) persist(next);
+    const gotOne = Object.keys(awarded).length > 0;
+    const next = { ...s, lootMeter: meter, lootBoxesLifetime: lifetime, boxes, boxesEarned: earnedLifetime };
+    if (save || gotOne) persist(next);
     else store.set(next); // in-memory only (no storage write) for live fills
     return awarded;
   },
 
-  /** Rarity of the next box the meter is filling toward (drives the preview/accent). */
+  /** Rarity of the next container the meter is filling toward (drives the preview/accent). */
   nextLootRarity(): LootRarity {
     return lootBoxRarity(store.get().lootBoxesLifetime + 1);
   },
 
-  /** Rarity of the oldest banked box — the next one `openLootBox` reveals (or null). */
-  pendingLootRarity(): LootRarity | null {
-    const s = store.get();
-    if (s.lootBoxes <= 0) return null;
-    return lootBoxRarity(s.lootBoxesLifetime - s.lootBoxes + 1);
+  // ── Bio-Container inventory (the LOOT screen) ────────────────────────────
+
+  /** Owned count of a container type. */
+  boxCount(typeId: string): number {
+    return store.get().boxes[typeId] ?? 0;
   },
 
-  /** Open the oldest banked loot box (FIFO) → a currency cache scaled by its rarity.
-   *  Returns the reward, or null if no box is banked. (Loot is intentionally random;
-   *  this is the meta layer, not the deterministic sim, so Math.random is fine.) */
-  openLootBox(): LootReward | null {
+  /** Total owned containers across all types. */
+  totalBoxes(): number {
+    return Object.values(store.get().boxes).reduce((a, b) => a + b, 0);
+  },
+
+  /** Per-type collection view (display order, rarest first) for the LOOT screen:
+   *  the type def + owned / lifetime-earned / lifetime-opened / pity counters. */
+  boxCollection(): { type: LootBoxType; owned: number; earned: number; opened: number; pity: number }[] {
     const s = store.get();
-    if (s.lootBoxes <= 0) return null;
-    const index = s.lootBoxesLifetime - s.lootBoxes + 1; // FIFO order
-    const rarity = lootBoxRarity(index);
-    const def = LOOT_RARITY[rarity];
+    return LOOT_BOX_ORDER.map((id) => LOOT_BOX_TYPES[id]).map((type) => ({
+      type,
+      owned: s.boxes[type.id] ?? 0,
+      earned: s.boxesEarned[type.id] ?? 0,
+      opened: s.boxesOpened[type.id] ?? 0,
+      pity: s.pity[type.id] ?? 0,
+    }));
+  },
+
+  /** Collection progress: how many container TYPES have ever been earned, of the total. */
+  boxDiscovery(): { discovered: number; total: number; opened: number } {
+    const s = store.get();
+    const total = LOOT_BOX_ORDER.length;
+    const discovered = LOOT_BOX_ORDER.filter((id) => (s.boxesEarned[id] ?? 0) > 0).length;
+    const opened = Object.values(s.boxesOpened).reduce((a, b) => a + b, 0);
+    return { discovered, total, opened };
+  },
+
+  /** Pity state for a type's meter (opens toward a guaranteed gear), or null if no pity. */
+  boxPity(typeId: string): { value: number; every: number } | null {
+    const type = lootBoxType(typeId);
+    if (!type?.pity) return null;
+    return { value: store.get().pity[typeId] ?? 0, every: type.pity.every };
+  },
+
+  /**
+   * Open up to `n` containers of a type → roll each within its rarity bands, with a
+   * pity-aware gear drop (a guaranteed item every `pity.every` opens). Gear that would
+   * overflow the inventory cap converts to Genome Shards (never voided). One storage
+   * write for the whole haul. Returns the aggregate, or null if none owned. (Loot is
+   * intentionally random — meta layer, not the deterministic sim, so Math.random is fine.)
+   */
+  openBoxes(typeId: string, n = 1): LootHaul | null {
+    const type = lootBoxType(typeId);
+    const s = store.get();
+    const have = s.boxes[typeId] ?? 0;
+    const count = Math.min(Math.max(0, Math.floor(n)), have);
+    if (!type || count <= 0) return null;
+    const bands = LOOT_RARITY[type.rarity];
     const roll = ([lo, hi]: [number, number]): number => (hi <= 0 ? 0 : lo + Math.floor(Math.random() * (hi - lo + 1)));
-    const shards = roll(def.shards);
-    const essence = roll(def.essence);
-    const components = roll(def.components);
-    const genomeShards = roll(def.genomeShards);
-    // Gear drop — the loot→build chase. Chance scales with rarity; skipped when the
-    // inventory is full (dismantle to make room), so a box never silently voids gear.
-    const gear = s.gear.length < GEAR_INVENTORY_CAP && Math.random() < GEAR_DROP_CHANCE[rarity] ? rollGear(rarity) : null;
+    let shards = 0;
+    let essence = 0;
+    let components = 0;
+    let genomeShards = 0;
+    const gear: GearItem[] = [];
+    let pity = s.pity[typeId] ?? 0;
+    let owned = s.gear.length;
+    for (let k = 0; k < count; k++) {
+      shards += roll(bands.shards);
+      essence += roll(bands.essence);
+      components += roll(bands.components);
+      genomeShards += roll(bands.genomeShards);
+      pity++;
+      let drop = false;
+      if (type.pity && pity >= type.pity.every) { drop = true; pity = 0; } // pity guarantee
+      else if (Math.random() < type.gearChance) drop = true;
+      if (drop) {
+        if (owned < GEAR_INVENTORY_CAP) { gear.push(rollGear(type.rarity)); owned++; }
+        else genomeShards += GEAR_DISMANTLE_GENOME[type.rarity]; // inventory full → value, not void
+      }
+    }
     persist({
       ...s,
-      lootBoxes: s.lootBoxes - 1,
+      boxes: { ...s.boxes, [typeId]: have - count },
+      boxesOpened: { ...s.boxesOpened, [typeId]: (s.boxesOpened[typeId] ?? 0) + count },
+      pity: { ...s.pity, [typeId]: pity },
       shards: s.shards + shards,
       essence: s.essence + essence,
       components: s.components + components,
       genomeShards: s.genomeShards + genomeShards,
-      gear: gear ? [...s.gear, gear] : s.gear,
+      gear: gear.length ? [...s.gear, ...gear] : s.gear,
     });
-    return { rarity, shards, essence, components, genomeShards, gear };
+    return { boxId: typeId, label: type.label, rarity: type.rarity, count, shards, essence, components, genomeShards, gear };
+  },
+
+  /** Open a single container of a type (the reveal animation). Null if none owned. */
+  openBox(typeId: string): LootReward | null {
+    const haul = this.openBoxes(typeId, 1);
+    if (!haul) return null;
+    return {
+      boxId: haul.boxId, label: haul.label, rarity: haul.rarity,
+      shards: haul.shards, essence: haul.essence, components: haul.components,
+      genomeShards: haul.genomeShards, gear: haul.gear[0] ?? null,
+    };
   },
 
   // ── Tower Stars (per-unit progression) ───────────────────────────────────
@@ -555,6 +643,17 @@ export const meta = {
   debugGrantGenome(n: number): void {
     const save = store.get();
     persist({ ...save, genomeShards: Math.max(0, save.genomeShards + n) });
+  },
+
+  /** Grant Bio-Containers straight into the inventory (debug — skips the meter). */
+  debugGrantBox(typeId: string, n = 1): void {
+    if (!lootBoxType(typeId)) return;
+    const s = store.get();
+    persist({
+      ...s,
+      boxes: { ...s.boxes, [typeId]: (s.boxes[typeId] ?? 0) + Math.max(0, n) },
+      boxesEarned: { ...s.boxesEarned, [typeId]: (s.boxesEarned[typeId] ?? 0) + Math.max(0, n) },
+    });
   },
 
   /** Roll a gear item straight into the inventory (debug — skips the loot box). */

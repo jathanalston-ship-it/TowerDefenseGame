@@ -1,22 +1,27 @@
-# LOOTBOX.md — Loot Opening Experience
+# LOOTBOX.md — Bio-Container Opening Experience
 
-The complete chest-opening ceremony. Builds on `ECONOMY.md` (chest types,
+The complete container-opening ceremony. Builds on `ECONOMY.md` (container types,
 currencies, dupe-conversion), `STYLE-GUIDE.md` (rarity colors), `GAME-FEEL.md`
-(shake/hit-stop/audio), `LIVING-HIVE.md` (bio aesthetic). No code — full design.
+(shake/hit-stop/audio), `LIVING-HIVE.md` (bio aesthetic). Design doc.
 
-> **The chests are alive.** Per the rogue-hive theme, loot containers are **bio
-> spawn-sacs / cocoons / egg-pods**, not metal boxes. You don't *unlock* loot — the
-> hive **gestates and births** it (assimilation made tangible).
+> **In-game name: "Bio-Container".** Loot boxes are never called "loot boxes"
+> in-game — they are **Bio-Containers**. Per the rogue-hive theme they're **bio
+> spawn-sacs / cocoons / egg-pods**, not metal boxes: you don't *unlock* loot, the
+> hive **gestates and births** it. ("Loot box" survives only as an internal code
+> concept — `lootMeter`, `LOOT`, etc.)
 
-> **Implemented status (see `GAME-STATE.md`):** 🟡 the **earn** side ships — a
-> **Persistent Loot Meter** (`src/core/config.ts LOOT`, `state/meta.ts
-> addLootProgress`, `ui/LootMeter.tsx`) that **never resets** across runs / Stage /
-> Endless. It fills from **kills + completed waves**; filling it awards **one loot
-> box** and rolls the overflow into the next meter (progress is never lost — folded
-> in-memory live, persisted at wave boundaries, run end, and every box award). The
-> meter size (`lootMeterSize(boxesEarned)`) is one function, so balancing/scaling is
-> trivial. The **opening ceremony + box contents** below are **designed, not yet
-> built** — today a box is a counted, bankable reward.
+> **Implemented status (see `GAME-STATE.md`):** ✅ the **earn + inventory + open**
+> loop ships. The **Bio-Container meter** (`config.ts LOOT`, `state/meta.ts
+> addLootProgress`, `ui/LootMeter.tsx`) never resets across runs / Stage / Endless;
+> it fills from **kills + completed waves** and **earns a typed Bio-Container** (by
+> the earn cadence) into a **typed inventory** (`config.ts LOOT_BOX_TYPES`,
+> `save boxes/boxesEarned/boxesOpened/pity`). Containers are **never auto-opened** —
+> the end-of-run summary just lists *Bio-Containers Earned*; the player opens them on
+> the dedicated **LOOT bay** (`ui/LootScreen.tsx`): per type the preview art, owned
+> quantity, collection stats, a **pity meter** (a guaranteed gear drop every N opens),
+> and **Open / Open-×N**. The registry is keyed by a stable type id, so **new/seasonal
+> containers are one data entry**. The richer rarity-scaled *ceremony* below (slow-mo,
+> tiered reveal animation, dupe-conversion) is the remaining polish.
 
 ## 1. Goals & the core tension
 

@@ -56,7 +56,7 @@ export function StarPanel(): JSX.Element {
         <span className="track-bal">{save.genomeShards} ✦ Genome Shards</span>
       </div>
       <div className="panel-sub">
-        Star up each tower — power steps plus a new ability at ★3 and ★5. Bought with Genome Shards (loot boxes + every run).
+        Star up each tower — power steps plus a new ability at ★3 and ★5. Bought with Genome Shards (Bio-Containers + every run).
       </div>
       <div className="shop-list">
         {TOWER_ORDER.map((k) => (

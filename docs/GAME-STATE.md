@@ -52,12 +52,13 @@ updated whenever a system lands.
 | Genome Shards (Star currency, from loot + runs) | 🟡 | `state/meta.ts`, `config.ts LOOT_RARITY` | PROGRESSION-LOOP |
 | Prestige track (Catalyst sink) | 🟡 | `config.ts PRESTIGE_UPGRADES` | BALANCE-LOG |
 | Codex / collection (enemies·biomes·cards) | ✅ | `state/meta.ts`, `ui/Codex.tsx` | COLLECTION |
-| Persistent Loot Meter (→ loot boxes → gear) | 🟡 | `config.ts LOOT`, `state/meta.ts`, `ui/LootMeter.tsx` | LOOTBOX |
+| Bio-Container meter (→ earns typed containers) | ✅ | `config.ts LOOT`, `state/meta.ts`, `ui/LootMeter.tsx` | LOOTBOX |
+| Bio-Containers — typed inventory + LOOT bay | ✅ | `config.ts LOOT_BOX_TYPES`, `state/meta.ts`, `ui/LootScreen.tsx` | LOOTBOX |
 | Hero gear (Weapon/Armor/Relic, affix rolls) | 🟡 | `config.ts AFFIX_POOL`, `state/meta.ts`, `ui/LoadoutPanel.tsx` | EQUIPMENT |
 | Infinite Mastery (uncapped per-unit XP, log curve) | 🟡 | `config.ts MASTERY`, `state/meta.ts`, `ui/MasteryPanel.tsx` | PROGRESSION |
 | Automatic wave flow + Build Phase | ✅ | `game.ts` (buildCountdown), `ui/BuildBanner.tsx` | WAVES |
 | Achievements (16 / 5 chains) + titles | ✅ | `core/achievements.ts` | COLLECTION |
-| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v6, `MIGRATIONS`) | ARCHITECTURE §15.2 |
+| Save: versioned + auto-migrated, checksummed, backups | ✅ | `save/saveStore.ts` (schema v7, `MIGRATIONS`) | ARCHITECTURE §15.2 |
 | HUD / menus / results | ✅ | `src/ui/*` | HUD |
 | Audio — procedural SFX + music bed (no assets) | 🟡 | `src/audio/*`, `ui/AudioControls.tsx` | GAME-FEEL |
 | Internal balancing tools (dev-only) | ✅ | `ui/DebugPanel.tsx`, `debug/debug.ts` | — |
@@ -80,7 +81,8 @@ updated whenever a system lands.
 | Biomes | 5 | wasteland, corporate, marsh, bone, machine |
 | Authored waves | 12 | Classic/Stage; Endless waves are procedural |
 | Meta upgrades | 13 | 4 Core · 3 Mastery · 3 Equipment · 3 Prestige |
-| Gear affixes | 13 | 3 Weapon · 5 Armor · 5 Relic (drop from loot boxes) |
+| Gear affixes | 13 | 3 Weapon · 5 Armor · 5 Relic (drop from Bio-Containers) |
+| Bio-Container types | 3 | Common · Rare · Epic (typed inventory; future-proof registry) |
 | Currencies | 4 | Shards · Essence · Components · Catalyst |
 | Achievements | 16 | across 5 chains; 6 grant titles |
 
@@ -104,7 +106,7 @@ achievements / titles** layer adds long-term *motivation* goals that grant **no
 power** (`COLLECTION.md`).
 
 Beyond the four upgrade tracks, three **per-unit** progression layers now ship as
-v1 subsets: **Tower Stars** (capped ★-ladders), **Hero Gear** (loot-box affix items),
+v1 subsets: **Tower Stars** (capped ★-ladders), **Hero Gear** (Bio-Container affix items),
 and **Infinite Mastery** (uncapped per-unit XP). The larger permanent design still
 ahead — class levels, per-hero loadouts, gear sets/reforge, and the six nested
 prestige layers — is specified in `PROGRESSION.md` but not yet built.
@@ -122,7 +124,10 @@ prestige layers — is specified in `PROGRESSION.md` but not yet built.
 - **Economy / progression** — per-mode currencies, currency-scoped purchases,
   Catalyst→Prestige sink (`state/meta.test.ts`).
 - **Hero gear** — drops at every rarity, equip/unequip/dismantle, run-fold of
-  equipped affixes, loot-box drops never voided (`state/meta.test.ts`, `sim.test.ts`).
+  equipped affixes, Bio-Container drops never voided (`state/meta.test.ts`, `sim.test.ts`).
+- **Bio-Containers** — meter earns typed containers by cadence, open / Open-×N with
+  pity-guaranteed gear, collection tracking, and the legacy-FIFO→typed migration
+  (`state/meta.test.ts`, `save/saveStore.test.ts`).
 - **Infinite Mastery** — uncapped + monotonic level curve, diminishing (logarithmic)
   damage, XP awarded to fielded units, run-fold of mastery (`state/meta.test.ts`).
 - **Audio** — registry voices well-formed, prefs clamp/parse/persist, and the manager

@@ -1,6 +1,6 @@
 import { meta } from '../state/meta';
 import type { RunResult, RunReward } from '../state/meta';
-import { lootMeterSize, LOOT_RARITY } from '../core/config';
+import { lootMeterSize, LOOT_RARITY, LOOT_BOX_ORDER, LOOT_BOX_TYPES } from '../core/config';
 import { CountUp } from './components/CountUp';
 import { Icon } from './components/Icon';
 
@@ -25,13 +25,19 @@ function RewardChip({ label, value, color }: { label: string; value: number; col
 export function Results({
   result,
   reward,
+  lootEarned,
   onContinue,
+  onOpenLoot,
 }: {
   result: RunResult;
   reward: RunReward;
+  lootEarned: Record<string, number>;
   onContinue: () => void;
+  onOpenLoot: () => void;
 }): JSX.Element {
   const save = meta.get();
+  const earnedTypes = LOOT_BOX_ORDER.filter((id) => (lootEarned[id] ?? 0) > 0);
+  const ownedTotal = meta.totalBoxes();
 
   // Per-mode title + outcome class.
   let title: string;
@@ -85,21 +91,38 @@ export function Results({
           </div>
         )}
 
-        {/* Forward pull — the "one more run" hook: a ready box to open, or how close
-            you are to the next one (and what rarity it'll be). */}
+        {/* Bio-Containers EARNED this run — banked to inventory, opened on the LOOT screen. */}
+        {earnedTypes.length > 0 && (
+          <div className="earned-block">
+            <div className="earned-head">⬢ Bio-Containers Earned</div>
+            <div className="earned-row">
+              {earnedTypes.map((id) => {
+                const type = LOOT_BOX_TYPES[id];
+                return (
+                  <span key={id} className="earned-chip" style={{ color: LOOT_RARITY[type.rarity].color }}>
+                    <span className="earned-glyph" aria-hidden>{type.glyph}</span>
+                    {type.label} <b>×{lootEarned[id]}</b>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Forward pull — a stash to crack open, or how close the next container is. */}
         {(() => {
           const size = lootMeterSize(save.lootBoxesLifetime);
           const pct = size > 0 ? Math.round((save.lootMeter / size) * 100) : 0;
           const next = meta.nextLootRarity();
           return (
             <div className="loot-nudge">
-              {save.lootBoxes > 0 ? (
-                <span className="loot-nudge-ready">
-                  ◆ {save.lootBoxes} loot box{save.lootBoxes > 1 ? 'es' : ''} ready — open on the menu
-                </span>
+              {ownedTotal > 0 ? (
+                <button className="loot-nudge-ready" onClick={onOpenLoot}>
+                  ◆ {ownedTotal} Bio-Container{ownedTotal > 1 ? 's' : ''} in stash — Open
+                </button>
               ) : (
                 <span>
-                  <b>{pct}%</b> to your next loot box ·{' '}
+                  <b>{pct}%</b> to your next Bio-Container ·{' '}
                   <b style={{ color: LOOT_RARITY[next].color }}>{LOOT_RARITY[next].label}</b>
                 </span>
               )}

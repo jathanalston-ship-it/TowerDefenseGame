@@ -1,9 +1,9 @@
-// Persistent Loot Meter — a forever bar (never resets across runs/modes) that fills
-// from kills + completed waves and awards loot boxes on each fill. Built to be
-// *glanceable*: the fill, glow, and accent are colored by the NEXT box's rarity, the
-// glow brightens toward completion, milestones pulse, and a box award bursts — so the
-// player keeps looking, and every look builds anticipation. Reads saved meta state,
-// so it's identical in-run and on the menu.
+// Persistent Bio-Container meter — a forever bar (never resets across runs/modes) that
+// fills from kills + completed waves and EARNS a typed Bio-Container on each fill. Built
+// to be *glanceable*: the fill, glow, and accent are colored by the NEXT container's
+// rarity, the glow brightens toward completion, milestones pulse, and an earn bursts — so
+// the player keeps looking, and every look builds anticipation. Reads saved meta state,
+// so it's identical in-run and on the menu/LOOT screen.
 
 import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
@@ -13,6 +13,7 @@ const MILESTONES = [0.25, 0.5, 0.75]; // crossings that fire a one-shot pulse
 
 export function LootMeter({ compact = false }: { compact?: boolean }): JSX.Element {
   const save = meta.use();
+  const boxes = Object.values(save.boxes).reduce((a, b) => a + b, 0); // total owned (all types)
   const size = lootMeterSize(save.lootBoxesLifetime);
   const pct = size > 0 ? Math.max(0, Math.min(1, save.lootMeter / size)) : 0;
   const rarity = meta.nextLootRarity();
@@ -22,7 +23,7 @@ export function LootMeter({ compact = false }: { compact?: boolean }): JSX.Eleme
   // (a box was awarded). Tracked via refs so they fire on the *transition*, not every
   // render — keyed elements re-mount to replay the animation.
   const prevPct = useRef(pct);
-  const prevBoxes = useRef(save.lootBoxes);
+  const prevBoxes = useRef(boxes);
   const [pulse, setPulse] = useState(0);
   const [burst, setBurst] = useState(0);
 
@@ -31,9 +32,9 @@ export function LootMeter({ compact = false }: { compact?: boolean }): JSX.Eleme
     prevPct.current = pct;
   }, [pct]);
   useEffect(() => {
-    if (save.lootBoxes > prevBoxes.current) setBurst((b) => b + 1);
-    prevBoxes.current = save.lootBoxes;
-  }, [save.lootBoxes]);
+    if (boxes > prevBoxes.current) setBurst((b) => b + 1);
+    prevBoxes.current = boxes;
+  }, [boxes]);
 
   return (
     <div
@@ -41,13 +42,13 @@ export function LootMeter({ compact = false }: { compact?: boolean }): JSX.Eleme
       style={{ ['--rarity' as string]: rDef.color, ['--lm-pct' as string]: pct }}
     >
       <div className="lm-head">
-        <span className="lm-label">◇ Loot Meter</span>
-        <span className="lm-next" title={`Next box: ${rDef.label}`}>
+        <span className="lm-label">◇ Bio-Container Meter</span>
+        <span className="lm-next" title={`Next: ${rDef.label} Bio-Container`}>
           <span className="lm-next-dot" />
           {!compact && <span className="lm-next-label">{rDef.label}</span>}
         </span>
-        <span className="lm-boxes" key={save.lootBoxes} title="Loot boxes on hand">
-          ◆ {save.lootBoxes}
+        <span className="lm-boxes" key={boxes} title="Bio-Containers in stash">
+          ◆ {boxes}
         </span>
       </div>
 

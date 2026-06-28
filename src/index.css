@@ -1292,7 +1292,131 @@ canvas.board.is-aiming {
 .loot-nudge-ready {
   color: var(--gold);
   font-weight: 700;
+  padding: 6px 14px;
+  border-color: var(--gold);
 }
+.loot-open-btn.has-boxes {
+  border-color: var(--gold);
+  color: var(--gold);
+  animation: breathe 2s var(--ease-in-out) infinite;
+}
+
+/* ── LOOT bay (Bio-Container screen) ─────────────────────────────────────────── */
+.loot-collection {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.loot-collection b { color: var(--text); }
+.loot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.loot-card {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rarity, var(--line));
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  padding: 14px 12px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bio-art {
+  width: 54px;
+  height: 70px;
+  margin: 2px auto 6px;
+  border-radius: 26px / 20px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  color: var(--rarity, var(--text));
+  border: 2px solid var(--rarity, var(--line));
+  background: linear-gradient(180deg, var(--panel-2), var(--panel-deep));
+  box-shadow: 0 0 20px -6px var(--rarity, transparent), inset 0 6px 16px -10px var(--rarity, transparent);
+}
+.loot-card-name { font-weight: 800; letter-spacing: 0.02em; }
+.loot-card-qty { font-size: 13px; color: var(--text); }
+.loot-card-qty b { color: var(--gold); }
+.loot-card-stat { font-size: 11px; color: var(--muted); }
+.loot-pity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  margin: 2px 0;
+}
+.loot-pity-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.loot-pity-bar > div {
+  height: 100%;
+  background: var(--rarity, var(--gold));
+  transition: width var(--t-med);
+}
+.loot-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.loot-card-actions button { flex: 1; padding: 6px 8px; }
+
+/* Reveal overlay (shared reveal card, centered over a dim) */
+.loot-reveal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 8, 12, 0.72);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  animation: fade-in var(--t-med);
+}
+.loot-reveal-overlay .loot-reveal { width: min(440px, 92vw); }
+.lr-gear-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  max-height: 38vh;
+  overflow-y: auto;
+}
+
+/* Bio-Containers EARNED summary (Results) */
+.earned-block { margin-top: 14px; }
+.earned-head {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.earned-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 12px;
+}
+.earned-chip {
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.earned-chip b { font-weight: 800; }
+.earned-glyph { font-size: 15px; }
 
 /* Gear drop inside a loot reveal */
 .lr-gear {

@@ -113,34 +113,44 @@ describe('codex & achievements (motivation layer)', () => {
   });
 });
 
-describe('persistent loot meter', () => {
-  it('fills, awards a box with rollover, and never loses progress', () => {
+describe('persistent bio-container meter', () => {
+  it('fills, earns a typed container with rollover, and never loses progress', () => {
     meta.reset();
     const size = lootMeterSize(0);
     expect(meta.get().lootMeter).toBe(0);
-    expect(meta.get().lootBoxes).toBe(0);
+    expect(meta.totalBoxes()).toBe(0);
 
-    // Partial fill — no box yet.
-    expect(meta.addLootProgress(size - 10)).toBe(0);
+    // Partial fill — none earned yet.
+    expect(meta.addLootProgress(size - 10)).toEqual({});
     expect(meta.get().lootMeter).toBe(size - 10);
-    expect(meta.get().lootBoxes).toBe(0);
+    expect(meta.totalBoxes()).toBe(0);
 
-    // Cross the threshold → one box, overflow rolls into the next meter (no loss).
+    // Cross the threshold → one container (per-type map), overflow rolls into the next.
     const awarded = meta.addLootProgress(30); // total 20 past the line
-    expect(awarded).toBe(1);
-    expect(meta.get().lootBoxes).toBe(1);
+    expect(awarded).toEqual({ common: 1 }); // container #1 = common
+    expect(meta.boxCount('common')).toBe(1);
+    expect(meta.totalBoxes()).toBe(1);
     expect(meta.get().lootBoxesLifetime).toBe(1);
     expect(meta.get().lootMeter).toBe(20); // overflow preserved
     meta.reset();
   });
 
-  it('awards multiple boxes for a large grant', () => {
+  it('earns multiple containers for a large grant', () => {
     meta.reset();
     const size = lootMeterSize(0);
     const awarded = meta.addLootProgress(size * 3 + 5);
-    expect(awarded).toBe(3);
-    expect(meta.get().lootBoxes).toBe(3);
+    expect(awarded.common).toBe(3);
+    expect(meta.totalBoxes()).toBe(3);
     expect(meta.get().lootMeter).toBe(5);
+    meta.reset();
+  });
+
+  it('earns the right TYPE by cadence (every 5th is Rare) + tracks lifetime per type', () => {
+    meta.reset();
+    for (let i = 0; i < 5; i++) meta.addLootProgress(lootMeterSize(meta.get().lootBoxesLifetime));
+    expect(meta.boxCount('common')).toBe(4); // #1..#4
+    expect(meta.boxCount('rare')).toBe(1); // #5
+    expect(meta.get().boxesEarned.rare).toBe(1); // lifetime earned tracked per type
     meta.reset();
   });
 
@@ -155,62 +165,86 @@ describe('persistent loot meter', () => {
   });
 });
 
-describe('loot boxes (rarity + opening)', () => {
+describe('bio-containers (inventory + opening)', () => {
   it('rarity is a deterministic, previewable cadence by earned index', () => {
     expect(lootBoxRarity(1)).toBe('common');
     expect(lootBoxRarity(5)).toBe('rare');
-    expect(lootBoxRarity(10)).toBe('rare');
     expect(lootBoxRarity(25)).toBe('epic'); // epic takes precedence at multiples of 25
-    expect(lootBoxRarity(50)).toBe('epic');
-    expect(meta.nextLootRarity()).toBe('common'); // fresh account → box #1
+    expect(meta.nextLootRarity()).toBe('common'); // fresh account → container #1
   });
 
-  it('opening a box grants a rarity-scaled cache and banks one fewer', () => {
+  it('opening one container grants a cache, banks one fewer, tracks opened', () => {
     meta.reset();
-    const size = lootMeterSize(0);
-    meta.addLootProgress(size); // earn box #1 (common)
-    expect(meta.get().lootBoxes).toBe(1);
-    expect(meta.pendingLootRarity()).toBe('common');
-
+    meta.debugGrantBox('common', 1);
+    expect(meta.boxCount('common')).toBe(1);
     const shardsBefore = meta.get().shards;
-    const reward = meta.openLootBox();
+    const reward = meta.openBox('common');
     expect(reward).not.toBeNull();
     expect(reward!.rarity).toBe('common');
     expect(reward!.shards).toBeGreaterThan(0); // common pays Shards
-    expect(reward!.essence).toBe(0); // not at common
-    expect(meta.get().lootBoxes).toBe(0); // box consumed
-    expect(meta.get().shards).toBe(shardsBefore + reward!.shards); // currency granted
-    expect(meta.openLootBox()).toBeNull(); // nothing left to open
+    expect(reward!.essence).toBe(0); // none at common
+    expect(meta.boxCount('common')).toBe(0); // consumed
+    expect(meta.get().shards).toBe(shardsBefore + reward!.shards);
+    expect(meta.get().boxesOpened.common).toBe(1); // collection progress
+    expect(meta.openBox('common')).toBeNull(); // nothing left
     meta.reset();
   });
 
-  it('opens banked boxes FIFO and a Rare box pays more than Common', () => {
+  it('a Rare container pays more than a Common one', () => {
     meta.reset();
-    // Earn 5 boxes so box #5 is Rare; size grows by lifetime so add generously.
-    for (let i = 0; i < 5; i++) meta.addLootProgress(lootMeterSize(meta.get().lootBoxesLifetime));
-    expect(meta.get().lootBoxes).toBe(5);
-
-    const opened = [] as string[];
-    let rareShards = 0;
-    let commonShards = 0;
-    for (let i = 0; i < 5; i++) {
-      const r = meta.openLootBox()!;
-      opened.push(r.rarity);
-      if (r.rarity === 'rare') rareShards = r.shards;
-      if (r.rarity === 'common' && i === 0) commonShards = r.shards;
-    }
-    expect(opened).toEqual(['common', 'common', 'common', 'common', 'rare']); // #1..#5, FIFO
-    expect(rareShards).toBeGreaterThan(commonShards); // rare cache is richer
+    meta.debugGrantBox('common', 1);
+    meta.debugGrantBox('rare', 1);
+    const c = meta.openBox('common')!;
+    const r = meta.openBox('rare')!;
+    expect(r.shards).toBeGreaterThan(c.shards); // rare bands strictly exceed common
     meta.reset();
   });
 
-  it('loot boxes also pay Genome Shards (the loot → stars payoff)', () => {
+  it('Open ×N opens up to the owned count and aggregates the haul', () => {
     meta.reset();
-    meta.addLootProgress(lootMeterSize(0));
+    meta.debugGrantBox('rare', 4);
+    const haul = meta.openBoxes('rare', 10); // capped at the 4 owned
+    expect(haul).not.toBeNull();
+    expect(haul!.count).toBe(4);
+    expect(haul!.shards).toBeGreaterThan(0);
+    expect(meta.boxCount('rare')).toBe(0);
+    expect(meta.get().boxesOpened.rare).toBe(4);
+    meta.reset();
+  });
+
+  it('containers pay Genome Shards (the loot → stars payoff)', () => {
+    meta.reset();
+    meta.debugGrantBox('common', 1);
     const before = meta.get().genomeShards;
-    const reward = meta.openLootBox()!;
+    const reward = meta.openBox('common')!;
     expect(reward.genomeShards).toBeGreaterThan(0);
     expect(meta.get().genomeShards).toBe(before + reward.genomeShards);
+    meta.reset();
+  });
+
+  it('pity guarantees a gear drop within `every` opens', () => {
+    meta.reset();
+    const pity = meta.boxPity('rare')!; // rare carries a pity rule
+    expect(pity.every).toBeGreaterThan(0);
+    meta.debugGrantBox('rare', pity.every);
+    const gearBefore = meta.get().gear.length;
+    const haul = meta.openBoxes('rare', pity.every)!;
+    expect(haul.gear.length).toBeGreaterThan(0); // ≥1 guaranteed across the pity window
+    expect(meta.get().gear.length).toBeGreaterThan(gearBefore);
+    expect(meta.get().pity.rare).toBeLessThan(pity.every); // reset after the guarantee
+    meta.reset();
+  });
+
+  it('collection progress tracks discovered types + lifetime opened', () => {
+    meta.reset();
+    meta.debugGrantBox('common', 1);
+    meta.debugGrantBox('epic', 1);
+    meta.openBox('common');
+    meta.openBox('epic');
+    const disc = meta.boxDiscovery();
+    expect(disc.total).toBe(3);
+    expect(disc.discovered).toBe(2); // common + epic earned
+    expect(disc.opened).toBe(2);
     meta.reset();
   });
 });
@@ -322,21 +356,14 @@ describe('hero gear', () => {
     meta.reset();
   });
 
-  it('a box can drop gear; opening never voids it', () => {
+  it('a container can drop gear; opening never voids it', () => {
     meta.reset();
-    // Bank a pile of boxes and open them; with rare/epic drop chances, gear must appear.
-    meta.addLootProgress(1_000_000);
-    let dropped = 0;
-    let reward = meta.openLootBox();
-    while (reward) {
-      if (reward.gear) {
-        dropped++;
-        // Anything dropped is in the inventory (never silently lost).
-        expect(meta.get().gear.some((g) => g.id === reward!.gear!.id)).toBe(true);
-      }
-      reward = meta.openLootBox();
-    }
-    expect(dropped).toBeGreaterThan(0);
+    // Epic containers always drop gear (gearChance 1) — open a few and confirm each
+    // dropped item lands in the inventory (never silently lost).
+    meta.debugGrantBox('epic', 3);
+    const haul = meta.openBoxes('epic', 3)!;
+    expect(haul.gear.length).toBeGreaterThan(0);
+    for (const g of haul.gear) expect(meta.get().gear.some((x) => x.id === g.id)).toBe(true);
     meta.reset();
   });
 });

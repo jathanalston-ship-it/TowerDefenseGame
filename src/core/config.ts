@@ -415,6 +415,36 @@ export function lootBoxRarity(index: number): LootRarity {
   return 'common';
 }
 
+// ── Bio-Container types (inventory items) ───────────────────────────────────
+// A "Bio-Container" is a typed inventory item the player banks and opens at will (the
+// LOOT screen), NOT an auto-opened end-of-run reward. The registry is keyed by a stable
+// type id so the inventory + saves are future-proof for new/seasonal containers: a new
+// container is one entry here (its own art glyph, reward rarity, gear odds, and an
+// optional pity rule). The base trio mirrors the meter's earn cadence (id === rarity).
+export interface LootBoxType {
+  id: string; // stable inventory/save key
+  label: string; // full in-game name ("Common Bio-Container")
+  short: string; // rarity word for compact chips
+  rarity: LootRarity; // → color + reward bands (LOOT_RARITY)
+  glyph: string; // preview-art symbol (CSS bio-container, tinted by rarity)
+  gearChance: number; // chance a Hero gear item drops on open (0..1)
+  pity?: { every: number }; // opens between guaranteed gear drops (pity meter)
+  seasonal?: boolean; // limited-time container (future seasonal loot)
+}
+
+export const LOOT_BOX_TYPES: Record<string, LootBoxType> = {
+  common: { id: 'common', label: 'Common Bio-Container', short: 'Common', rarity: 'common', glyph: '⬡', gearChance: 0.22, pity: { every: 12 } },
+  rare: { id: 'rare', label: 'Rare Bio-Container', short: 'Rare', rarity: 'rare', glyph: '⬢', gearChance: 0.6, pity: { every: 6 } },
+  epic: { id: 'epic', label: 'Epic Bio-Container', short: 'Epic', rarity: 'epic', glyph: '✷', gearChance: 1 },
+};
+
+/** Display order — rarest first (the LOOT screen + earned summary). */
+export const LOOT_BOX_ORDER: string[] = ['epic', 'rare', 'common'];
+
+export function lootBoxType(id: string): LootBoxType | undefined {
+  return LOOT_BOX_TYPES[id];
+}
+
 // ── Tower Stars (per-unit permanent progression) ────────────────────────────
 // Each tower has a Star ladder (★0 = baseline, so an un-starred tower is unchanged).
 // Stars are bought with Genome Shards (from loot boxes + runs). Most steps are modest

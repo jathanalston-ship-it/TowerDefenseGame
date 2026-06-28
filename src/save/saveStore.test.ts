@@ -235,9 +235,9 @@ describe('save version migration', () => {
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.data.bestWave).toBe(4); // preserved
-      expect(r.data.lootMeter).toBe(0); // v3 additions
-      expect(r.data.lootBoxes).toBe(0);
+      expect(r.data.lootMeter).toBe(0); // v3 additions (carried forward)
       expect(r.data.lootBoxesLifetime).toBe(0);
+      expect(r.data.boxes).toEqual({}); // v7 replaced the FIFO count with a typed inventory
     }
     expect(getMigrationLog().some((e) => e.from === 2 && e.to === 3)).toBe(true);
   });
@@ -270,7 +270,7 @@ describe('save version migration', () => {
     new SaveStore(s).save(defaultSave());
     const blob = JSON.parse(s.map.get('assimilate.save')!);
     expect(blob.schemaVersion).toBe(CURRENT_VERSION);
-    expect(CURRENT_VERSION).toBe(6);
+    expect(CURRENT_VERSION).toBe(7);
   });
 
   it('migrates a v3 save up to v4, adding the tower-star fields', () => {
@@ -334,6 +334,34 @@ describe('save version migration', () => {
       expect(r.data.mastery).toEqual({}); // v6 addition, defaulted
     }
     expect(getMigrationLog().some((e) => e.from === 5 && e.to === 6)).toBe(true);
+  });
+
+  it('migrates a v6 save up to v7 — legacy FIFO loot boxes become a typed inventory', () => {
+    clearMigrationLog();
+    // 7 lifetime earned (indices 1..7 → six common, one rare at #5), 3 still banked
+    // (the unopened tail #5,#6,#7 → 1 rare + 2 common).
+    const v6 = {
+      schemaVersion: 6,
+      data: {
+        shards: 1, upgrades: {}, bestWave: 1, totalRuns: 1, lifetimeShards: 1, cardsSeen: 0,
+        stagesCleared: 0, bestStage: 0, bestEndlessScore: 0, bestEndlessWave: 0,
+        essence: 0, components: 0, catalyst: 0, codex: { enemies: [], biomes: [], cards: [] }, achievements: [], title: '',
+        lootMeter: 50, lootBoxes: 3, lootBoxesLifetime: 7, genomeShards: 0, stars: {},
+        gear: [], equipped: { weapon: null, armor: null, relic: null }, mastery: {},
+      },
+    };
+    const r = parseImport(JSON.stringify(v6));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.lootMeter).toBe(50); // meter preserved
+      expect(r.data.lootBoxesLifetime).toBe(7);
+      expect(r.data.boxes).toEqual({ common: 2, rare: 1 }); // the unopened tail, by cadence
+      expect(r.data.boxesEarned).toEqual({ common: 6, rare: 1 }); // lifetime earned reconstructed
+      expect(r.data.boxesOpened).toEqual({});
+      expect(r.data.pity).toEqual({});
+      expect('lootBoxes' in (r.data as unknown as Record<string, unknown>)).toBe(false); // legacy field dropped
+    }
+    expect(getMigrationLog().some((e) => e.from === 6 && e.to === 7)).toBe(true);
   });
 
   it('round-trips a current save through a stored blob unchanged (preserve current saves)', () => {

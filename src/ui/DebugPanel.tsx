@@ -219,6 +219,12 @@ export function DebugPanel(): JSX.Element {
               <button onClick={() => meta.masteryUnits.forEach((u) => meta.debugGrantMastery(u, 100000))}>+100k all</button>
             </div>
             <div className="debug-row">
+              <span className="debug-note" style={{ minWidth: 86 }}>Bio-Container:</span>
+              <button onClick={() => meta.debugGrantBox('common', 3)} title="+3 Common Bio-Containers">+Common</button>
+              <button onClick={() => meta.debugGrantBox('rare', 2)} title="+2 Rare Bio-Containers">+Rare</button>
+              <button onClick={() => meta.debugGrantBox('epic', 1)} title="+1 Epic Bio-Container">+Epic</button>
+            </div>
+            <div className="debug-row">
               <span className="debug-note">Heroes: {Object.keys(HEROES).length} (roster data-driven; selection/unlocks: future)</span>
             </div>
             <div className="debug-row">
