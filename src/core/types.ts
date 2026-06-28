@@ -101,6 +101,17 @@ export interface BossRuntime {
   telegraph: string | null; // current telegraphed action (drives the banner)
 }
 
+/** A transient banner shown when a tower buys a branch tier (the "mutation" celebration). `id`
+ * is a monotonic counter so the view can re-key the element and restart its animation even when
+ * the same tier name repeats. `branchId` lets the view tint it with the branch's signature color. */
+export interface MutationBanner {
+  id: number;
+  title: string; // the tier's name ("Twin Spinnerets")
+  sub: string; // branch + tier ("Hivemind Swarm · Tier 2")
+  branchId: string;
+  color: string; // fallback accent (the tower's class color)
+}
+
 export interface BossBannerSnapshot {
   name: string;
   hpPct: number;
@@ -126,6 +137,7 @@ export interface Tower {
   branchId: string | null;
   tier: number;
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
+  mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
 }
 
 export interface Projectile {
@@ -367,6 +379,7 @@ export interface HudSnapshot {
   cards: CardOption[]; // gene cards drafted this run (build panel)
   buffs: string[]; // human-readable active run modifiers
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
+  mutation: MutationBanner | null; // a transient "tier purchased" banner (the branch-upgrade moment)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
   autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)

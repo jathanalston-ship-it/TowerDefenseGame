@@ -98,8 +98,8 @@ export function GeneticVault(): JSX.Element {
           <>
             <div className="vault-stockpile">
               {cacheCount > 0 && (
-                <span className="vault-chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
-                  ◈ Run Cache{cacheCount > 1 ? <b style={{ color: 'var(--text)' }}> ×{cacheCount}</b> : null}
+                <span className="vault-chip" style={{ borderColor: 'var(--cache)', color: 'var(--cache)' }}>
+                  ⬢ Run Cache{cacheCount > 1 ? <b style={{ color: 'var(--text)' }}> ×{cacheCount}</b> : null}
                 </span>
               )}
               {grouped.map((g) => (

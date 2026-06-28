@@ -3,10 +3,12 @@
 // area that swaps one dedicated screen per progression system. Nothing scrolls at the shell
 // level; dense screens lay out in columns and the content area is the only scroll region.
 
-import { useState, type MutableRefObject } from 'react';
+import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
+import { notifications } from '../state/notifications';
+import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { PlayScreen } from './PlayScreen';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
@@ -102,11 +104,17 @@ export function Hub({
 }): JSX.Element {
   const [nav, setNav] = useState<NavKey>('play');
   const save = meta.use();
+  notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
   const power = meta.powerScore().score;
+  const badges = notifications.badges(save);
+
+  // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset).
+  useEffect(() => { notifications.sync(save); }, [save]);
 
   const go = (k: NavKey): void => {
     audio.cue('ui');
+    notifications.markSeen(k, save); // viewing a menu clears its badge immediately
     setNav(k);
   };
 
@@ -120,9 +128,11 @@ export function Hub({
               key={n.key}
               className={`hub-navitem ${nav === n.key ? 'on' : ''} ${n.key === 'play' ? 'is-play' : ''}`}
               onClick={() => go(n.key)}
+              aria-label={badges[n.key] > 0 ? `${n.label} — ${badges[n.key]} new` : undefined}
             >
               <span className="hub-mono" aria-hidden>{n.mono}</span>
               <span className="hub-navlabel">{n.label}</span>
+              {badges[n.key] > 0 && <span className="nav-badge" aria-hidden />}
             </button>
           ))}
         </div>

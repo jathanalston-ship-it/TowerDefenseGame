@@ -2,6 +2,10 @@
 // pops a celebratory toast (slide-in + glow) with an "unlock" chime. Pure feedback:
 // it reads the save and plays sound, never changing gameplay. Mounted once at the
 // app root so unlocks surface from any screen (menu, run, results).
+//
+// `suppressed` (true off the main menu) silences the floating toast: run-end milestones
+// are presented inline on the Results screen instead, so nothing ever covers the summary.
+// Fresh ids are still consumed as "seen" while suppressed, so they don't pop later on the hub.
 
 import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
@@ -9,7 +13,7 @@ import { achievementById } from '../state/achievements';
 import type { AchievementDef } from '../state/achievements';
 import { audio } from '../audio/sound';
 
-export function AchievementToaster(): JSX.Element | null {
+export function AchievementToaster({ suppressed = false }: { suppressed?: boolean }): JSX.Element | null {
   const save = meta.use();
   const seen = useRef<Set<string> | null>(null);
   const [queue, setQueue] = useState<AchievementDef[]>([]);
@@ -26,11 +30,20 @@ export function AchievementToaster(): JSX.Element | null {
         if (def) fresh.push(def);
       }
     }
+    // Off-menu: mark fresh ids seen (above) so they never re-toast, but don't enqueue or chime
+    // over the Results summary — the inline "Achievements Unlocked" panel presents them there.
+    if (suppressed) return;
     if (fresh.length) {
       audio.cue('achieve');
       setQueue((q) => [...q, ...fresh]);
     }
-  }, [save.achievements]);
+  }, [save.achievements, suppressed]);
+
+  // When suppression engages mid-toast (e.g. a run ends while one is on screen), drop the
+  // stack immediately so the summary opens clean.
+  useEffect(() => {
+    if (suppressed) setQueue([]);
+  }, [suppressed]);
 
   // Auto-dismiss the oldest toast on a timer.
   useEffect(() => {
@@ -39,7 +52,7 @@ export function AchievementToaster(): JSX.Element | null {
     return () => clearTimeout(t);
   }, [queue]);
 
-  if (queue.length === 0) return null;
+  if (suppressed || queue.length === 0) return null;
   return (
     <div className="achv-stack">
       {queue.slice(0, 3).map((a, i) => (

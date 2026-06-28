@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
+import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { masteryLevel, meta } from '../state/meta';
@@ -21,10 +22,15 @@ import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
-  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03,
+  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34,
 };
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
+
+// How long the battlefield outro lingers before the summary takes over (a beat, then auto-advance;
+// a tap skips it). Shorter under reduced-motion — still a pause, never a hard cut.
+const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const OUTRO_HOLD_MS = reducedMotion ? 1200 : 3400;
 
 // A pointer that travels more than this (screen px) between press and release is a DRAG,
 // not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
@@ -68,6 +74,11 @@ export function GameView({
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
+  // Run-end OUTRO: when the run ends we don't cut straight to the summary — we linger on the
+  // (already-quieted) battlefield with a Victory/Defeat title + a resolved sting, then hand off.
+  const outroRef = useRef<{ won: boolean; startedAt: number } | null>(null);
+  const skipRef = useRef(false); // tap during the linger to proceed immediately
+  const [outro, setOutro] = useState<{ won: boolean; endless: boolean } | null>(null);
 
   // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations) for BOTH towers and
   // heroes (their kind ids don't collide). Fixed for the run (mastery banks at run end), so
@@ -94,7 +105,11 @@ export function GameView({
       try {
         const dt = (now - last) / 1000;
         last = now;
-        game.advance(dt);
+        // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
+        // paused, but cues/shake/render still run below — so the screen shakes + the banner pops
+        // against a frozen battlefield. advance() never reads this, so stepping stays deterministic.
+        if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
+        else game.advance(dt);
 
         // Drain presentation cues → audio + screen-shake trauma.
         const cues = game.drainSfx();
@@ -133,9 +148,18 @@ export function GameView({
           meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE into the meta queue
           lastHud = now;
         }
-        if ((game.phase === 'won' || game.phase === 'lost') && !endedRef.current) {
-          endedRef.current = true;
+        // Run ended → begin the outro (once): resolve the music, raise the Victory/Defeat title,
+        // and linger on the frozen, quieted battlefield before the summary.
+        const over = game.phase === 'won' || game.phase === 'lost';
+        if (over && !outroRef.current && !endedRef.current) {
+          outroRef.current = { won: game.phase === 'won', startedAt: now };
           setHud(game.getSnapshot());
+          setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' });
+          audio.resolve(game.phase === 'won');
+        }
+        // After the linger (or a tap), hand off to the End-of-Run Summary.
+        if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= OUTRO_HOLD_MS)) {
+          endedRef.current = true;
           onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless' });
         }
         raf = requestAnimationFrame(loop);
@@ -216,7 +240,7 @@ export function GameView({
             <span className="rail-label">RUN BUILD</span>
           </button>
         )}
-        <div className="canvas-wrap">
+        <div className={`canvas-wrap ${outro ? 'is-ending' : ''}`}>
         <canvas
           ref={canvasRef}
           className="board"
@@ -266,6 +290,33 @@ export function GameView({
             {hud.bossBanner.telegraph && <div className="boss-telegraph">{hud.bossBanner.telegraph}</div>}
           </div>
         )}
+        {hud.mutation && (
+          // Re-keyed by id so each purchase restarts the pop + flash animations.
+          <div key={hud.mutation.id} className="mutation-fx" style={{ ['--mut']: BRANCH_COLOR[hud.mutation.branchId] ?? hud.mutation.color } as CSSProperties}>
+            <div className="mutation-flash" aria-hidden />
+            <div className="mutation-banner" role="status">
+              <span className="mutation-kicker">⬢ MUTATION</span>
+              <span className="mutation-title">{hud.mutation.title}</span>
+              <span className="mutation-sub">{hud.mutation.sub}</span>
+            </div>
+          </div>
+        )}
+        {outro && (
+          // The run-end linger: a vignette + Victory/Defeat title over the frozen battlefield.
+          // A tap proceeds immediately; otherwise the loop auto-hands-off to the summary.
+          <div
+            className={`run-outro ${outro.won ? 'win' : 'lose'}`}
+            role="button"
+            tabIndex={0}
+            aria-label="Continue to summary"
+            onClick={() => { skipRef.current = true; }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') skipRef.current = true; }}
+          >
+            <div className="run-outro-title">{outro.endless ? 'RUN ENDED' : outro.won ? 'VICTORY' : 'DEFEAT'}</div>
+            <div className="run-outro-sub">{outro.won ? 'The hive holds the line.' : 'The Nucleus is lost.'}</div>
+            <div className="run-outro-hint">tap to continue</div>
+          </div>
+        )}
         {hud.phase === 'draft' && hud.draft && (
           <DraftModal
             options={hud.draft}
@@ -299,6 +350,7 @@ export function GameView({
             hud={hud}
             onCollapse={() => setRightOpen(false)}
             onBranchBuy={(towerId, branchId) => {
+              audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
               game.buyBranchTier(towerId, branchId);
               refresh();
             }}
