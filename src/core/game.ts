@@ -327,6 +327,7 @@ export class Game {
   private castRangeMult = 1; // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
+  private castProjectileSkinTier = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -1304,6 +1305,7 @@ export class Game {
           ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
           : prog.projectileMutators ?? EMPTY_STR;
       this.castProjectileSkin = bk ? t.branchId ?? undefined : undefined; // branch shot-skin (renderer-only)
+      this.castProjectileSkinTier = bk ? t.tier : 0; // branch shot-tier (renderer-only; drives projectile evolution)
       this.castScratch.x = t.x;
       this.castScratch.y = t.y;
       this.castScratch.damageMult = dmgMult;
@@ -1327,6 +1329,7 @@ export class Game {
     this.castRangeMult = 1;
     this.castProjectileMutators = EMPTY_STR;
     this.castProjectileSkin = undefined;
+    this.castProjectileSkinTier = 0;
   }
 
   /** A branched SUPPORT tower (Flesh Reactor) runs its branch abilities — auras, summons,
@@ -2085,12 +2088,13 @@ export class Game {
       p.sourceKind = sourceKind;
       p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
       p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
+      p.skinTier = this.castProjectileSkinTier; // branch shot-tier (renderer-only)
       p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
       if (p.hitIds) p.hitIds.length = 0;
       this.projectiles.push(p);
       this.applyProjectileMutators(p);
     } else {
-      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0, skin: this.castProjectileSkin };
+      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0, skin: this.castProjectileSkin, skinTier: this.castProjectileSkinTier };
       this.projectiles.push(np);
       this.applyProjectileMutators(np);
     }
