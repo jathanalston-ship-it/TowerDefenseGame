@@ -1238,6 +1238,7 @@ canvas.board.is-aiming {
   letter-spacing: 0.06em;
 }
 .loot-reveal {
+  position: relative;
   border: 1px solid var(--rarity, var(--line));
   border-radius: var(--r-md);
   background: var(--panel);
@@ -1245,7 +1246,7 @@ canvas.board.is-aiming {
   text-align: center;
   cursor: pointer;
   box-shadow: 0 0 28px -6px var(--rarity, transparent);
-  animation: lr-burst 0.45s var(--ease-out);
+  animation: lr-burst 0.45s var(--ease-out); /* Common — quick + subtle (baseline) */
 }
 @keyframes lr-burst {
   0% {
@@ -1258,6 +1259,44 @@ canvas.board.is-aiming {
   }
   100% {
     transform: scale(1);
+  }
+}
+
+/* ── Rarity-scaled reveal ceremony — the rarer the pull, the bigger the moment. ── */
+.loot-reveal.rarity-rare {
+  border-width: 2px;
+  box-shadow: 0 0 42px -6px var(--rarity);
+  animation: lr-burst-rare 0.6s var(--ease-out);
+}
+.loot-reveal.rarity-epic {
+  border-width: 2px;
+  box-shadow: 0 0 56px -6px var(--rarity), 0 0 0 1px var(--rarity) inset;
+  animation: lr-burst-epic 0.85s var(--ease-out), lr-epic-glow 1.9s var(--ease-in-out) 0.85s infinite;
+}
+.loot-reveal.rarity-epic .lr-rarity {
+  font-size: 17px;
+  text-shadow: 0 0 14px var(--rarity);
+}
+@keyframes lr-burst-rare {
+  0% { opacity: 0; transform: scale(0.86); }
+  55% { opacity: 1; transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes lr-burst-epic {
+  0% { opacity: 0; transform: scale(0.8) translateY(6px); }
+  45% { opacity: 1; transform: scale(1.09); }
+  70% { transform: scale(0.98); }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes lr-epic-glow {
+  0%, 100% { box-shadow: 0 0 46px -8px var(--rarity), 0 0 0 1px var(--rarity) inset; }
+  50% { box-shadow: 0 0 80px -2px var(--rarity), 0 0 0 1px var(--rarity) inset; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loot-reveal,
+  .loot-reveal.rarity-rare,
+  .loot-reveal.rarity-epic {
+    animation: none; /* reveal still shows instantly — no motion */
   }
 }
 .lr-rarity {

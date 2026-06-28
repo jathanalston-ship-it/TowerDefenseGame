@@ -20,8 +20,9 @@ currencies, dupe-conversion), `STYLE-GUIDE.md` (rarity colors), `GAME-FEEL.md`
 > the dedicated **LOOT bay** (`ui/LootScreen.tsx`): per type the preview art, owned
 > quantity, collection stats, a **pity meter** (a guaranteed gear drop every N opens),
 > and **Open / Open-×N**. The registry is keyed by a stable type id, so **new/seasonal
-> containers are one data entry**. The richer rarity-scaled *ceremony* below (slow-mo,
-> tiered reveal animation, dupe-conversion) is the remaining polish.
+> containers are one data entry**. The reveal **scales with rarity** (a bigger, glowing,
+> deeper-pitched moment for Epic vs. a quick Common); the fuller *ceremony* below (combat
+> slow-mo, bespoke per-tier animation, dupe-conversion) is the remaining polish.
 
 ## 1. Goals & the core tension
 

@@ -14,6 +14,8 @@ import { LootMeter } from './LootMeter';
 import { CountUp } from './components/CountUp';
 
 const SLOT_LABEL: Record<string, string> = { weapon: 'Weapon', armor: 'Armor', relic: 'Relic' };
+// Pitch the open sound by rarity — Epic lands deeper/grander, Common is brighter/quicker.
+const OPEN_PITCH: Record<string, number> = { common: 1.15, rare: 1.0, epic: 0.8 };
 
 type Reveal = { kind: 'one'; reward: LootReward } | { kind: 'haul'; haul: LootHaul };
 
@@ -27,7 +29,7 @@ export function LootScreen({ onBack }: { onBack: () => void }): JSX.Element {
   const openOne = (id: string): void => {
     const r = meta.openBox(id);
     if (r) {
-      audio.play('box_open');
+      audio.play('box_open', OPEN_PITCH[r.rarity] ?? 1);
       setReveal({ kind: 'one', reward: r });
       setSeq((s) => s + 1);
     }
@@ -35,7 +37,7 @@ export function LootScreen({ onBack }: { onBack: () => void }): JSX.Element {
   const openMany = (id: string, count: number): void => {
     const h = meta.openBoxes(id, count);
     if (h) {
-      audio.play('box_open');
+      audio.play('box_open', OPEN_PITCH[h.rarity] ?? 1);
       setReveal({ kind: 'haul', haul: h });
       setSeq((s) => s + 1);
     }
