@@ -2,6 +2,7 @@ import { meta, nextUpgradeCost, upgradeLevel } from '../state/meta';
 import type { UpgradeDef } from '../core/config';
 import type { Currency } from '../core/types';
 import type { SaveData } from '../save/saveStore';
+import { audio } from '../audio/audio';
 import { ProgressBar } from './components/ProgressBar';
 import { Icon } from './components/Icon';
 
@@ -31,7 +32,7 @@ function ShopItem({ u, save }: { u: UpgradeDef; save: SaveData }): JSX.Element {
       <button
         className={`shop-buy ${affordable ? 'is-afford' : ''} ${maxed ? '' : 'btn-ico'}`}
         disabled={maxed || !affordable}
-        onClick={() => meta.buyUpgrade(u.id)}
+        onClick={() => { if (meta.buyUpgrade(u.id)) audio.play('purchase'); }}
       >
         {maxed ? 'MAX' : (<>{cost} <Icon name="diamond" size={11} /></>)}
       </button>

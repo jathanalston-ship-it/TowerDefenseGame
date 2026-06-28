@@ -5,6 +5,7 @@
 import { meta } from '../state/meta';
 import { TOWER_ORDER, TOWER_DEFS, STAR_TRACKS, STAR_MAX } from '../core/config';
 import type { TowerKind } from '../core/types';
+import { audio } from '../audio/audio';
 import { ProgressBar } from './components/ProgressBar';
 
 function StarRow({ kind, shards }: { kind: TowerKind; shards: number }): JSX.Element {
@@ -39,7 +40,7 @@ function StarRow({ kind, shards }: { kind: TowerKind; shards: number }): JSX.Ele
       <button
         className={`shop-buy ${afford ? 'is-afford' : ''} ${maxed ? '' : 'btn-ico'}`}
         disabled={maxed || !afford}
-        onClick={() => meta.buyStar(kind)}
+        onClick={() => { if (meta.buyStar(kind)) audio.play('purchase'); }}
       >
         {maxed ? 'MAX' : <>{cost} ✦</>}
       </button>
