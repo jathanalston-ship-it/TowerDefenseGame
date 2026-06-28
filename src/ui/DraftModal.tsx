@@ -14,6 +14,10 @@ const RARITY_RANK: Record<string, number> = { common: 0, rare: 1, epic: 2, legen
 // Auto Gene Selection: seconds the recommended card is offered before it auto-drafts.
 const AUTO_SECONDS = 10;
 
+// Ignore picks for a beat after the modal opens, so a click/keypress already in flight as a
+// wave clears can't blow through the draft. Covers the card entry animation (card-in 0.32s).
+const DRAFT_ARM_MS = 260;
+
 export function DraftModal({
   options,
   clearedWave,
@@ -39,21 +43,24 @@ export function DraftModal({
   // refs and the timer runs from a single mount effect — depending on those identities
   // would restart the countdown forever.
   const picked = useRef(false);
+  const armed = useRef(false); // input ignored until the open settles (anti click-through)
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
   const recIdRef = useRef(options[best].id);
   recIdRef.current = options[best].id;
 
   const pick = (id: string): void => {
-    if (picked.current) return; // a manual pick cancels the timer; guards double-fire
+    if (!armed.current || picked.current) return; // ignore pre-arm clicks; one pick only
     picked.current = true;
     audio.cue('select');
     onPickRef.current(id);
   };
 
-  // Wave-cleared fanfare on open (the sim also deals a 'draft' sound).
+  // Wave-cleared fanfare on open (the sim also deals a 'draft' sound) + the input-arm beat.
   useEffect(() => {
     audio.cue('clear');
+    const id = window.setTimeout(() => { armed.current = true; }, DRAFT_ARM_MS);
+    return () => window.clearTimeout(id);
   }, []);
 
   // Countdown → auto-pick the recommended card. A manual pick unmounts the modal, whose

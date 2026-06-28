@@ -26,6 +26,11 @@ const TRAUMA: Record<string, number> = {
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
 
+// A pointer that travels more than this (screen px) between press and release is a DRAG,
+// not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
+// or moves the rally point by accident.
+const CLICK_SLOP = 8;
+
 export function GameView({
   seed,
   mods,
@@ -58,6 +63,7 @@ export function GameView({
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
   const pointerRef = useRef<Pointer | null>(null);
+  const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
@@ -222,9 +228,14 @@ export function GameView({
           onPointerDown={(e) => {
             audio.resume();
             pointerRef.current = toCoords(e.clientX, e.clientY);
+            downRef.current = { x: e.clientX, y: e.clientY };
           }}
           onPointerUp={(e) => {
             if (e.button !== 0) return;
+            const down = downRef.current;
+            downRef.current = null;
+            // Ignore the release if the pointer was dragged — only deliberate taps act.
+            if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) return;
             const p = toCoords(e.clientX, e.clientY);
             game.click(p.x, p.y);
             refresh();

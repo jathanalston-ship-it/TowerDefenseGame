@@ -100,7 +100,7 @@ button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(1px) scale(0.98); /* tactile press — every button reacts on pointer-down */
 }
 button:disabled {
   opacity: 0.42;
@@ -201,6 +201,7 @@ button:disabled {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+  transition-delay: 0.14s; /* brief hover intent — tooltips don't flash on a cursor sweep (instant to hide) */
 }
 .tt-rich {
   display: flex;
@@ -3170,7 +3171,7 @@ kbd {
 .mut-node.is-future { opacity: 0.6; }
 .mut-node.is-next {
   cursor: pointer; color: var(--text); background: rgba(120, 230, 255, 0.06);
-  box-shadow: 0 0 14px -6px rgba(120, 230, 255, 0.5); transition: filter 0.12s, background 0.12s;
+  box-shadow: 0 0 14px -6px rgba(120, 230, 255, 0.5); transition: filter 0.12s, background 0.12s, transform 0.12s, box-shadow 0.12s;
 }
 .mut-node.is-next:hover:not(:disabled) { filter: brightness(1.16); }
 .mut-node.is-next.is-poor, .mut-node.is-next:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; }
