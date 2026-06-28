@@ -102,8 +102,12 @@ Most content is **data, not code**:
 - **A new enemy**: add an `EnemyDef` (stats + a `behavior` steering profile) to
   `ENEMY_DEFS` and an `EnemyKind` member. The steering system reads the profile — no
   movement code change. Put it in waves via `WAVES`, or spawn it from the debug panel.
-- **A new card**: add a `CardDef` with a declarative `effects: CardEffect[]` to
-  `CARD_POOL`. `applyCard()` interprets it — no code.
+- **A new card**: add a `CardDef` (`rarity` + `category` tag + declarative
+  `effects: CardEffect[]`) to `CARD_POOL`. `applyCard()` folds stat ops; `grant`/`hook`
+  verbs route through the same live arrays equipment uses — no code. The draft rolls a
+  **data-driven, depth-scaled** rarity weight (`CARD_RARITY_DEFS` / `rollCardRarity`).
+- **A new card rarity**: add a row to `CARD_RARITY_DEFS` (weight + per-wave scaling) and a
+  member to `CardRarity`; the draft + UI (`r-${rarity}` class) pick it up automatically.
 - **A new permanent upgrade**: add an `UpgradeDef` to `META_UPGRADES` with its
   `effect: { stat, perLevel }`. `metaModifiers()` folds it generically — no code.
 - **Balance changes**: edit values in `config.ts` only.

@@ -2,7 +2,7 @@
 // Cards are drafted between waves and RESET every run: they only ever mutate the
 // run's RunModifiers / run state, never permanent meta. No React/DOM here.
 
-import type { CardOption, CardRarity, StatusType } from './types';
+import type { CardOption, CardRarity, CardCategory, StatusType } from './types';
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
@@ -28,12 +28,14 @@ export interface RunModifiers {
   obeliskSlowBonus: number; // adds to the Disruption slow
   heroDamageMult: number;
   heroCooldownMult: number;
-  // Run-start (construction-time) behavioral knobs — folded once when the run boots,
-  // so they never touch the hot combat path (equipment/relics ride these). Neutral by
-  // default, so a run with no gear is byte-identical (the golden invariant).
+  // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
+  // never touch the hot combat path (equipment/relics, applied pre-run, ride these). Neutral by
+  // default, so a run with no gear is byte-identical (the golden invariant). NOTE for card
+  // authors: a card drafted MID-run cannot use these (the value was already consumed at boot) —
+  // use the live knobs or the instant ops (biomass/integrity/heroHp) for resource/max effects.
   startBiomassBonus: number; // flat biomass added at run start
-  integrityMult: number; // multiplies max Nucleus integrity (e.g. Glass Genome ½)
-  heroMaxHpMult: number; // multiplies hero max HP (survivability gear)
+  integrityMult: number; // multiplies max Nucleus integrity (equipment survivability)
+  heroMaxHpMult: number; // multiplies hero max HP (equipment survivability)
   // ── Hero behavior profile (EQUIPMENT-PHILOSOPHY.md) — armor/relics author HOW the hero
   //    plays, not just its numbers. Neutral defaults ⇒ a gear-less run is byte-identical. ──
   heroAggroRangeMult: number; // scales the hero's target-seek range (aggression). 1 = base
@@ -159,11 +161,24 @@ export type CardEffect =
   | { op: 'integrity'; value: number } // instant max+current integrity
   | { op: 'heroHp'; value: number }; // instant max+current hero HP
 
+/** Display labels for the synergy categories — DraftModal shows these. */
+export const CARD_CATEGORY_LABEL: Record<CardCategory, string> = {
+  poison: 'Poison',
+  summons: 'Summons',
+  economy: 'Economy',
+  crit: 'Crit',
+  aoe: 'AoE',
+  control: 'Control',
+  hero: 'Hero',
+  tower: 'Tower',
+  mutation: 'Mutation',
+};
+
 export interface CardDef {
   id: string;
   name: string;
   rarity: CardRarity;
-  category: string;
+  category: CardCategory; // synergy tag; CARD_CATEGORY_LABEL maps it to the display string
   description: string;
   effects: CardEffect[];
 }
@@ -185,24 +200,62 @@ export function applyCard(def: CardDef, ctx: CardContext): void {
   }
 }
 
+// The draftable pool. New content is pure data — a row here, no code. Effects fold into
+// RunModifiers (mul/add/flag/set) or fire instant grants / run-start verbs (grant/hook).
+// Per-rarity design role (CARDS.md §5): Common = one clean effect · Rare = stronger/two-part
+// · Epic = build-shaping · Legendary = rule-bending. Values are starting points.
 export const CARD_POOL: CardDef[] = [
-  // ── Common ──
-  { id: 'sharpened_needles', name: 'Sharpened Needles', rarity: 'common', category: 'Tower Buff', description: '+12% tower damage.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
-  { id: 'rapid_glands', name: 'Rapid Glands', rarity: 'common', category: 'Tower Buff', description: '+12% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.12 }] },
-  { id: 'fertile_decay', name: 'Fertile Decay', rarity: 'common', category: 'Economy', description: '+18% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.18 }] },
-  { id: 'biomass_surge', name: 'Biomass Surge', rarity: 'common', category: 'Economy', description: 'Gain 180 biomass now.', effects: [{ op: 'biomass', value: 180 }] },
-  { id: 'thick_marrow', name: 'Thick Marrow', rarity: 'common', category: 'Survival', description: '+45 max & current Integrity.', effects: [{ op: 'integrity', value: 45 }] },
-  { id: 'twin_fang', name: 'Twin Fang', rarity: 'common', category: 'Crits', description: 'Needle Spitter fires +1 extra needle.', effects: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }] },
-  { id: 'battle_stims', name: 'Battle Stims', rarity: 'common', category: 'Hero Buff', description: '+60 hero max & current HP.', effects: [{ op: 'heroHp', value: 60 }] },
+  // ════════════════ Common — one clean effect ════════════════
+  { id: 'sharpened_needles', name: 'Sharpened Needles', rarity: 'common', category: 'tower', description: '+12% tower damage.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
+  { id: 'rapid_glands', name: 'Rapid Glands', rarity: 'common', category: 'tower', description: '+12% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.12 }] },
+  { id: 'fertile_decay', name: 'Fertile Decay', rarity: 'common', category: 'economy', description: '+18% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.18 }] },
+  { id: 'biomass_surge', name: 'Biomass Surge', rarity: 'common', category: 'economy', description: 'Gain 180 biomass now.', effects: [{ op: 'biomass', value: 180 }] },
+  { id: 'thick_marrow', name: 'Thick Marrow', rarity: 'common', category: 'economy', description: '+45 max & current Integrity.', effects: [{ op: 'integrity', value: 45 }] },
+  { id: 'twin_fang', name: 'Twin Fang', rarity: 'common', category: 'tower', description: 'Needle Spitter fires +1 extra needle.', effects: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }] },
+  { id: 'battle_stims', name: 'Battle Stims', rarity: 'common', category: 'hero', description: '+60 hero max & current HP.', effects: [{ op: 'heroHp', value: 60 }] },
+  { id: 'toxic_coating', name: 'Toxic Coating', rarity: 'common', category: 'poison', description: '+15% Infection & Corrosion damage.', effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.15 }, { op: 'mul', field: 'poolDpsMult', value: 1.15 }] },
+  { id: 'caustic_edge', name: 'Caustic Edge', rarity: 'common', category: 'poison', description: 'Corrosion slows enemies +8% more.', effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.08 }] },
+  { id: 'numbing_field', name: 'Numbing Field', rarity: 'common', category: 'control', description: 'Disruption slow is +8% stronger.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.08 }] },
+  { id: 'disorient', name: 'Disorient', rarity: 'common', category: 'control', description: 'Disrupted enemies take +6% more damage.', effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.06 }] },
+  { id: 'thick_hide', name: 'Thick Hide', rarity: 'common', category: 'hero', description: '+80 hero max & current HP.', effects: [{ op: 'heroHp', value: 80 }] },
+  { id: 'combat_stims', name: 'Combat Stims', rarity: 'common', category: 'hero', description: '−10% hero ability cooldown.', effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.9 }] },
+  { id: 'fleet_step', name: 'Fleet Step', rarity: 'common', category: 'hero', description: '+12% hero move speed.', effects: [{ op: 'mul', field: 'heroSpeedMult', value: 1.12 }] },
+  { id: 'fracture_point', name: 'Fracture Point', rarity: 'common', category: 'crit', description: '+2 max Fracture stacks (deeper shred).', effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }] },
+  { id: 'bonemeal', name: 'Bonemeal', rarity: 'common', category: 'economy', description: 'Gain 150 biomass now.', effects: [{ op: 'biomass', value: 150 }] },
+  { id: 'hardened_carapace', name: 'Hardened Carapace', rarity: 'common', category: 'economy', description: '+70 max & current Integrity.', effects: [{ op: 'integrity', value: 70 }] },
+  { id: 'engorged_reactor', name: 'Engorged Reactor', rarity: 'common', category: 'economy', description: '+0.15 reactor overcharge bonus.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.15 }] },
 
-  // ── Rare ──
-  { id: 'caustic_catalyst', name: 'Caustic Catalyst', rarity: 'rare', category: 'Mutation Synergy', description: 'Bone Mortar also applies Fracture — enabling SHRED on its own.', effects: [{ op: 'flag', field: 'mortarAppliesFracture' }] },
-  { id: 'volatile_marrow', name: 'Volatile Marrow', rarity: 'rare', category: 'AoE', description: '+35% splash radius, +8% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.35 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
-  { id: 'fracture_cascade', name: 'Fracture Cascade', rarity: 'rare', category: 'Crits', description: '+3 max Fracture stacks (deeper shred & damage).', effects: [{ op: 'add', field: 'fractureBonusStacks', value: 3 }] },
-  { id: 'apex_adrenaline', name: 'Apex Adrenaline', rarity: 'rare', category: 'Hero Buff', description: '+35% hero damage, −22% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.35 }, { op: 'mul', field: 'heroCooldownMult', value: 0.78 }] },
-  { id: 'lingering_acid', name: 'Lingering Acid', rarity: 'rare', category: 'Poison', description: 'Corrosion pools last +60% longer and tick +30% harder.', effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.6 }, { op: 'mul', field: 'poolDpsMult', value: 1.3 }] },
-  { id: 'overcharged_veins', name: 'Overcharged Veins', rarity: 'rare', category: 'Tower Buff', description: '+25% reactor overcharge & +30% reactor biomass.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.25 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.3 }] },
-  { id: 'swarm_bounty', name: 'Swarm Bounty', rarity: 'rare', category: 'Economy', description: '+28% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.28 }] },
+  // ════════════════ Rare — stronger / two-part ════════════════
+  { id: 'caustic_catalyst', name: 'Caustic Catalyst', rarity: 'rare', category: 'mutation', description: 'Bone Mortar also applies Fracture — enabling SHRED on its own.', effects: [{ op: 'flag', field: 'mortarAppliesFracture' }] },
+  { id: 'volatile_marrow', name: 'Volatile Marrow', rarity: 'rare', category: 'aoe', description: '+35% splash radius, +8% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.35 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'fracture_cascade', name: 'Fracture Cascade', rarity: 'rare', category: 'crit', description: '+3 max Fracture stacks (deeper shred & damage).', effects: [{ op: 'add', field: 'fractureBonusStacks', value: 3 }] },
+  { id: 'apex_adrenaline', name: 'Apex Adrenaline', rarity: 'rare', category: 'hero', description: '+35% hero damage, −22% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.35 }, { op: 'mul', field: 'heroCooldownMult', value: 0.78 }] },
+  { id: 'lingering_acid', name: 'Lingering Acid', rarity: 'rare', category: 'poison', description: 'Corrosion pools last +60% longer and tick +30% harder.', effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.6 }, { op: 'mul', field: 'poolDpsMult', value: 1.3 }] },
+  { id: 'overcharged_veins', name: 'Overcharged Veins', rarity: 'rare', category: 'economy', description: '+25% reactor overcharge & +30% reactor biomass.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.25 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.3 }] },
+  { id: 'swarm_bounty', name: 'Swarm Bounty', rarity: 'rare', category: 'economy', description: '+28% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.28 }] },
+  { id: 'plague_vector', name: 'Plague Vector', rarity: 'rare', category: 'poison', description: '+30% Infection; slain enemies spread Infection to nearby foes.', effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.3 }, { op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 2, radius: 70 } } }] },
+  { id: 'vulnerability_field', name: 'Vulnerability Field', rarity: 'rare', category: 'control', description: 'Disrupted enemies take +18% more damage.', effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.18 }] },
+  { id: 'pierce_protocol', name: 'Pierce Protocol', rarity: 'rare', category: 'aoe', description: "Every tower's shots pierce +2 enemies.", effects: [{ op: 'grant', grant: { kind: 'towerProjectileMutator', id: 'pierce2' } }] },
+  { id: 'heavy_caliber', name: 'Heavy Caliber', rarity: 'rare', category: 'tower', description: '+30% tower damage, −5% fire rate.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.3 }, { op: 'mul', field: 'towerFireRateMult', value: 0.95 }] },
+  { id: 'rapid_cycling', name: 'Rapid Cycling', rarity: 'rare', category: 'tower', description: '+25% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.25 }] },
+  { id: 'warlords_presence', name: "Warlord's Presence", rarity: 'rare', category: 'hero', description: 'Hero aura: nearby towers gain +15% damage.', effects: [{ op: 'add', field: 'heroAuraRadius', value: 120 }, { op: 'add', field: 'heroTowerDamageAura', value: 0.15 }] },
+  { id: 'lifelink', name: 'Lifelink', rarity: 'rare', category: 'hero', description: 'Hero heals 10% of the damage it deals.', effects: [{ op: 'add', field: 'heroLifestealFrac', value: 0.1 }] },
+  { id: 'adaptive_arsenal', name: 'Adaptive Arsenal', rarity: 'rare', category: 'tower', description: '+6% tower damage per DISTINCT tower class fielded.', effects: [{ op: 'add', field: 'diversityBonus', value: 0.06 }] },
+
+  // ════════════════ Epic — build-shaping ════════════════
+  { id: 'caustic_detonation', name: 'Caustic Detonation', rarity: 'epic', category: 'poison', description: 'Corrosion pools tick +50% and last +50%; Bone Mortar also Fractures.', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.5 }, { op: 'mul', field: 'mortarPoolDurationMult', value: 1.5 }, { op: 'flag', field: 'mortarAppliesFracture' }] },
+  { id: 'shatterpoint', name: 'Shatterpoint', rarity: 'epic', category: 'crit', description: '+6 max Fracture stacks; status reactions re-fire once.', effects: [{ op: 'add', field: 'fractureBonusStacks', value: 6 }, { op: 'add', field: 'reactionRepeats', value: 1 }] },
+  { id: 'cull_the_weak', name: 'Cull the Weak', rarity: 'epic', category: 'crit', description: 'Instantly kill non-elite enemies below 12% HP.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.12 }] },
+  { id: 'avatar_of_war', name: 'Avatar of War', rarity: 'epic', category: 'hero', description: 'Hero aura empowers nearby towers (+20% dmg, +15% rate); +20% hero damage.', effects: [{ op: 'add', field: 'heroAuraRadius', value: 160 }, { op: 'add', field: 'heroTowerDamageAura', value: 0.2 }, { op: 'add', field: 'heroTowerHasteAura', value: 0.15 }, { op: 'mul', field: 'heroDamageMult', value: 1.2 }] },
+  { id: 'catalyst_engine', name: 'Catalyst Engine', rarity: 'epic', category: 'mutation', description: 'Status reactions re-fire once; +10% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }] },
+  { id: 'overcharged_grid', name: 'Overcharged Grid', rarity: 'epic', category: 'economy', description: '+0.40 reactor overcharge, +50% reactor biomass, +10% tower damage.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.4 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.5 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }] },
+  { id: 'gravity_well', name: 'Gravity Well', rarity: 'epic', category: 'control', description: 'Disruption slows +20% harder and adds +20% vulnerability.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.2 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.2 }] },
+
+  // ════════════════ Legendary — rule-bending ════════════════
+  { id: 'glass_genome', name: 'Glass Genome', rarity: 'legendary', category: 'tower', description: '×2 tower damage — but every enemy has +25% HP.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 2.0 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.25 }] },
+  { id: 'executioners_law', name: "Executioner's Law", rarity: 'legendary', category: 'crit', description: 'Execute non-elite enemies below 20% HP; +15% tower damage.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }] },
+  { id: 'last_bastion', name: 'Last Bastion', rarity: 'legendary', category: 'tower', description: 'Below 50% Nucleus, towers deal ×2.5 — and +4% per tower fielded.', effects: [{ op: 'add', field: 'lastStandThreshold', value: 0.5 }, { op: 'mul', field: 'lastStandMult', value: 2.5 }, { op: 'add', field: 'damagePerTower', value: 0.04 }] },
+  { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
 ];
 
 /** Per-card invariants (shared with the registry's own `validate()`). */
@@ -210,6 +263,7 @@ export function cardProblems(c: CardDef): string[] {
   const out: string[] = [];
   const mods = defaultRunModifiers() as unknown as Record<string, unknown>;
   if (c.effects.length === 0) out.push('has no effects');
+  if (!(c.category in CARD_CATEGORY_LABEL)) out.push(`unknown category '${c.category}'`);
   for (const e of c.effects) {
     const numericValueOp = e.op === 'mul' || e.op === 'add' || e.op === 'biomass' || e.op === 'integrity' || e.op === 'heroHp';
     if (numericValueOp && !Number.isFinite((e as { value: number }).value)) out.push('non-finite effect value');
@@ -233,23 +287,53 @@ export function cardProblems(c: CardDef): string[] {
 export const cardRegistry = new Registry<CardDef>('card', { idOf: (c) => c.id, validate: cardProblems });
 cardRegistry.registerAll(CARD_POOL);
 
-const BY_RARITY: Record<CardRarity, CardDef[]> = {
-  common: cardRegistry.active().filter((c) => c.rarity === 'common'),
-  rare: cardRegistry.active().filter((c) => c.rarity === 'rare'),
-};
+/** Rarity draw weights (CARDS.md §2). DATA, not hardcoded probabilities: a roll sums the
+ * weights of the rarities actually present in the pool and walks a uniform draw, so adding a
+ * rarity is one table row. `weightPerWave` nudges odds toward higher rarity as a run deepens
+ * (deep/endless runs grow Epic/Legendary-rich) — the per-card weight / pity / unlock hooks
+ * from §2–3 layer on top of this same seam. */
+export interface CardRarityDef {
+  rarity: CardRarity;
+  weight: number; // base draw weight at wave 0
+  weightPerWave: number; // added to `weight` per wave cleared (depth scaling)
+}
+export const CARD_RARITY_DEFS: CardRarityDef[] = [
+  { rarity: 'common', weight: 64, weightPerWave: 0 },
+  { rarity: 'rare', weight: 28, weightPerWave: 0 },
+  { rarity: 'epic', weight: 7, weightPerWave: 0.4 },
+  { rarity: 'legendary', weight: 1, weightPerWave: 0.1 },
+];
 
-const RARE_CHANCE = 0.32;
+function rarityWeight(d: CardRarityDef, wave: number): number {
+  return Math.max(0, d.weight + d.weightPerWave * wave);
+}
 
-/** Draft `count` distinct cards, rarity-weighted. */
-export function draftCards(rng: Rng, count = 3): CardDef[] {
+/** Roll a rarity by weight — restricted to the rarities present in `available`, depth-scaled
+ * by `wave`. No probability is hardcoded; the weights are data. */
+export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<CardRarity>): CardRarity {
+  const pool = CARD_RARITY_DEFS.filter((d) => available.has(d.rarity));
+  let total = 0;
+  for (const d of pool) total += rarityWeight(d, wave);
+  let u = rng.next() * total;
+  for (const d of pool) {
+    u -= rarityWeight(d, wave);
+    if (u < 0) return d.rarity;
+  }
+  return pool[pool.length - 1].rarity; // float-rounding guard
+}
+
+/** Draft `count` distinct cards: roll a depth-scaled rarity, then pick within it (falling
+ * back to any remaining card if that tier is exhausted). `wave` drives the depth scaling. */
+export function draftCards(rng: Rng, count = 3, wave = 0): CardDef[] {
+  const active = cardRegistry.active();
+  const available = new Set<CardRarity>(active.map((c) => c.rarity));
   const chosen: CardDef[] = [];
   const used = new Set<string>();
   let guard = 0;
-  while (chosen.length < count && guard++ < 100) {
-    const rarity: CardRarity = rng.chance(RARE_CHANCE) ? 'rare' : 'common';
-    const pool = BY_RARITY[rarity].filter((c) => !used.has(c.id));
-    const fallback = CARD_POOL.filter((c) => !used.has(c.id));
-    const source = pool.length > 0 ? pool : fallback;
+  while (chosen.length < count && guard++ < 200) {
+    const rarity = rollCardRarity(rng, wave, available);
+    const pool = active.filter((c) => c.rarity === rarity && !used.has(c.id));
+    const source = pool.length > 0 ? pool : active.filter((c) => !used.has(c.id));
     if (source.length === 0) break;
     const card = rng.pick(source);
     used.add(card.id);
@@ -264,6 +348,6 @@ export function cardToOption(def: CardDef): CardOption {
     name: def.name,
     rarity: def.rarity,
     description: def.description,
-    category: def.category,
+    category: CARD_CATEGORY_LABEL[def.category],
   };
 }

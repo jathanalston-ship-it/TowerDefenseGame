@@ -95,6 +95,7 @@ export function drawGame(
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
   drawParticles(ctx, rs);
+  drawMinions(ctx, rs, t);
   drawHeroes(ctx, rs, cosmeticTiers);
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
@@ -593,6 +594,8 @@ function drawEnemy(
 const heroTrail: { x: number; y: number }[] = [];
 // Absorb-shield barrier tint (matches the status framework's Shield buff color).
 const SHIELD_RGB = hexRgb('#9ad0ff');
+// Low-HP urgency tint for minions (the shared "danger" red).
+const MINION_LOW_RGB = hexRgb('#ff5d73');
 
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle' } as const;
 
@@ -665,6 +668,36 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   } else {
     const pct = Math.max(0, h.hp / h.maxHp);
     healthBar(ctx, h.x, h.y - 25, 28, pct, THEME.hero.hpBack, THEME.enemy.hpEdge, def.color);
+  }
+}
+
+// Summoned friendly units — small glowing motes that fade out over their last second.
+function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  for (const m of rs.minions) {
+    if (!m.alive) continue; // destroyed this tick, culled next — don't draw the corpse
+    const tint = hexRgb(m.color);
+    const grow = 0.3 + 0.7 * Math.min(1, (m.maxLife - m.life) / 0.18); // pop-in over ~0.18s
+    const fade = m.life < 1.2 ? Math.max(0, m.life / 1.2) : 1; // fade out as it expires
+    const hpPct = Math.max(0, m.hp / m.maxHp);
+    const low = hpPct <= 0.35; // urgency once it's nearly chewed through
+    const r = m.radius * grow;
+    const spd = low ? 8 : 4; // pulse faster when in danger
+    const ringRgb = low ? MINION_LOW_RGB : tint;
+
+    ctx.globalAlpha = fade;
+    glowDisc(ctx, m.x, m.y, r + 4, rgba(tint, 0.4));
+    ring(ctx, m.x, m.y, r + 2 + pulse(t, spd, 0, 1), rgba(ringRgb, pulse(t, spd, 0.3, 0.65)), 1);
+    drawShape(ctx, 'circle', m.x, m.y, r, m.color);
+    drawShape(ctx, 'circle', m.x, m.y - 1, r * 0.45, THEME.hero.core);
+    // white shimmer while an enemy is chewing it (continuous contact → keep it gentle)
+    if (m.hitFlash > 0) drawShape(ctx, 'circle', m.x, m.y, r, rgba(THEME.enemy.hitFlash, Math.min(0.35, m.hitFlash * 5)));
+    ctx.globalAlpha = 1;
+
+    // HP bar — only once damaged, so a full-health swarm stays uncluttered
+    if (hpPct < 1) {
+      const fill = hpPct > 0.5 ? THEME.enemy.hpHigh : hpPct > 0.25 ? THEME.enemy.hpMid : THEME.enemy.hpLow;
+      healthBar(ctx, m.x, m.y - m.radius - 8, m.radius * 2, hpPct, THEME.enemy.hpBack, THEME.enemy.hpEdge, fill);
+    }
   }
 }
 

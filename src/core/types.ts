@@ -46,7 +46,11 @@ export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
 
-export type CardRarity = 'common' | 'rare';
+export type CardRarity = 'common' | 'rare' | 'epic' | 'legendary';
+/** Gene-card synergy category (CARDS.md §4). A first-class tag: today it drives UI
+ * grouping; the framework keys future per-category weighting/synergy meta off it. */
+export type CardCategory =
+  | 'poison' | 'summons' | 'economy' | 'crit' | 'aoe' | 'control' | 'hero' | 'tower' | 'mutation';
 
 export interface Enemy {
   id: number;
@@ -163,6 +167,30 @@ export interface Hero {
   // the Ravager and a fresh run are byte-identical (golden-safe).
   shield: number;
   shieldTime: number;
+}
+
+/** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that
+ * seeks and strikes the nearest enemy; enemies in contact halt and chew through it, so it
+ * also body-blocks the lane until its HP or lifetime runs out. Runtime-only (never persisted)
+ * and absent on the golden path — no content summons there — so it's byte-identical. */
+export interface Minion {
+  id: number;
+  kind: string; // MINION_DEFS key (the unit type)
+  x: number;
+  y: number;
+  hp: number; // remaining health — enemies in contact damage it; 0 ⇒ destroyed
+  maxHp: number;
+  hitFlash: number; // seconds of white "being chewed" flash remaining (visual)
+  damage: number; // per attack
+  attackCd: number; // seconds until the next attack
+  attackInterval: number;
+  range: number; // seek radius — finds the nearest enemy within it
+  speed: number; // px/sec
+  life: number; // seconds remaining before it expires
+  maxLife: number; // initial life (drives the render fade-out)
+  radius: number; // body radius (render + attack reach)
+  color: string;
+  alive: boolean;
 }
 
 export interface FloatingText {

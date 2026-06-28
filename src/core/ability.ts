@@ -80,7 +80,9 @@ export interface ShieldAbility {
   amount: number;
   seconds: number;
 }
-/** Temporary friendly buff (framework hook — folds a modifier once buffs land). */
+/** A timed, run-wide friendly buff: scales `stat` by `amount` (a multiplier, 1.2 = +20%)
+ *  for `seconds`. Live via Game.grantBuff → the run-buff stack (the Overseer's Mass Override
+ *  empowers your towers). A fold point reads each stat key; an unknown stat is simply inert. */
 export interface BuffAbility {
   type: 'buff';
   stat: string;
@@ -93,7 +95,8 @@ export interface DebuffAbility {
   status: StatusApplication;
   radius: number;
 }
-/** Summon friendly units (framework hook — wires in when a friendly-unit system exists). */
+/** Summon `count` friendly units of type `unit` (a MINION_DEFS key) at the cast point.
+ *  Live via Game.summon → time-limited Minions that seek and strike nearby enemies. */
 export interface SummonAbility {
   type: 'summon';
   unit: string;
@@ -150,6 +153,8 @@ export interface AbilityContext {
   healNucleus(amount: number): void;
   healCaster(amount: number): void;
   grantShield(amount: number, seconds: number): void;
+  grantBuff(stat: string, amount: number, seconds: number): void; // timed run-wide friendly buff
+  summon(unit: string, count: number, x: number, y: number): void; // spawn friendly units at (x,y)
   readonly extraProjectiles: number; // adds to a homing projectile's `count`
   readonly splashMult: number; // scales a projectile's splash radius
   readonly rangeMult: number; // identity-range: scales targeting range + aura/field radius (1 = base)
@@ -251,14 +256,16 @@ function execDebuff(ctx: AbilityContext, comp: DebuffAbility, cast: AbilityCast)
   return true;
 }
 
-// Framework hooks with no sim primitive yet — declared so content can use them now;
-// they wire in when their system lands (buff = a timed friendly modifier; summon =
-// friendly units). Shield and pierce below are already live.
-function execBuff(_ctx: AbilityContext, _comp: BuffAbility, _cast: AbilityCast): boolean {
-  return true; // reserved: applies a timed friendly modifier once the buff system exists
+// `buff` applies a timed run-wide modifier (Game.grantBuff); `summon` spawns time-limited
+// friendly units at the cast point (Game.summon). With these, every component type in the
+// vocabulary is live — no reserved executors remain.
+function execBuff(ctx: AbilityContext, comp: BuffAbility, _cast: AbilityCast): boolean {
+  ctx.grantBuff(comp.stat, comp.amount, comp.seconds);
+  return true;
 }
-function execSummon(_ctx: AbilityContext, _comp: SummonAbility, _cast: AbilityCast): boolean {
-  return true; // reserved: spawns friendly units once a friendly-unit system exists
+function execSummon(ctx: AbilityContext, comp: SummonAbility, cast: AbilityCast): boolean {
+  ctx.summon(comp.unit, comp.count, cast.x, cast.y);
+  return true;
 }
 function execPierce(_ctx: AbilityContext, comp: PierceAbility, cast: AbilityCast): boolean {
   // Modifier: projectiles fired LATER in this cast pass through `extra` more enemies. The

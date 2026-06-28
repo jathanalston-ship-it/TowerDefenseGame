@@ -10,6 +10,25 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 > your *draft upgrades* — all bought with **Mutation Fragments**. This keeps runs
 > wild and experimental without inflating permanent power (`PROGRESSION.md §1`).
 
+> **Implementation status (this build).** The **framework is built to scale**; the catalog is
+> seeded small on purpose (room to add systems early without re-balancing 150+ cards):
+> - **Rarities (4):** common / rare / epic / legendary, with **data-driven draw weights**
+>   (`CARD_RARITY_DEFS`, no hardcoded probabilities) and **depth scaling** (`weightPerWave` →
+>   deep runs grow Epic/Legendary-rich). `rollCardRarity` walks the weighted pool (`core/cards.ts`).
+> - **Categories (9):** a first-class `CardCategory` tag (`poison/summons/economy/crit/aoe/
+>   control/hero/tower/mutation`) drives UI grouping today; the §2–4 per-category weighting/
+>   synergy meta keys off it.
+> - **Effect vocabulary:** the declarative `CardEffect` (`mul/add/flag/set` + instant
+>   `biomass/integrity/heroHp`) now also covers the behavioral **verbs** `grant`/`hook` for
+>   cards — a drafted card can add a projectile mutator or a battlefield rule mid-run, sharing
+>   equipment's live arrays. New content is a data row, no code.
+> - **Catalog:** **44 cards** ship now (the original 14 + **30 new** across all rarities/
+>   categories — §5 lists the full ~200-card design target). Golden outcomes were re-pinned
+>   deliberately (the draft pool grew).
+> - **Seams left open (designed, not yet built):** per-card weights, **pity timers**, **pool
+>   unlocks** via Mutation Fragments (§3), Gene Lab floors, reroll/banish, and the category-wide
+>   *multiplier* engine (waits on the systems some categories reference — crits, summons, strains).
+
 ---
 
 ## 1. Draft mechanics

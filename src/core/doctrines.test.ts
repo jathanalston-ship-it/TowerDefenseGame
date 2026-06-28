@@ -33,9 +33,14 @@ describe('doctrines (exclusive run-start commitments)', () => {
 
   it('Resonance amplifies same-class towers + a varied board (more tower damage)', () => {
     // Default strategy fields the Kinetic Ravager + needle (Kinetic), mortar, reactor — so
-    // resonance (same-class boost) and diversity (3 classes) both pay off.
-    const base = simulateBattle({ seed: 1, maxWaves: 6 });
-    const reso = simulateBattle({ seed: 1, maxWaves: 6, doctrine: 'resonance' });
-    expect(reso.totalTowerDamage).toBeGreaterThan(base.totalTowerDamage);
+    // resonance (same-class boost) and diversity (3 classes) both pay off. Summed across seeds
+    // so per-run gene-card draft variance cancels and the doctrine's signal is what's measured.
+    let base = 0;
+    let reso = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      base += simulateBattle({ seed, maxWaves: 6 }).totalTowerDamage;
+      reso += simulateBattle({ seed, maxWaves: 6, doctrine: 'resonance' }).totalTowerDamage;
+    }
+    expect(reso).toBeGreaterThan(base);
   });
 });
