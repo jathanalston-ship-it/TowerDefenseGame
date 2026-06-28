@@ -58,69 +58,49 @@ function CategoryBlock({ c }: { c: CollectionCategory }): JSX.Element {
   );
 }
 
-export function CollectionPanel({ onClose }: { onClose: () => void }): JSX.Element {
+/** Codex as a dedicated headquarters screen (no overlay chrome). Reflects
+ * meta.collection() / meta.collectionRewards(); read-only. */
+export function CollectionScreen(): JSX.Element {
   const view = useMemo(() => meta.collection(), []);
   const rewards = useMemo(() => meta.collectionRewards(), []);
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 50,
-        background: 'rgba(4,8,14,0.74)', backdropFilter: 'blur(3px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-      }}
-    >
-      <div
-        onClick={(ev) => ev.stopPropagation()}
-        style={{
-          width: 'min(880px, 96vw)', maxHeight: '90vh', overflowY: 'auto',
-          background: 'linear-gradient(180deg, #0e1622, #0a0f18)',
-          border: '1px solid rgba(120,170,230,0.18)', borderRadius: 12,
-          boxShadow: '0 16px 44px rgba(0,0,0,0.5)', padding: '20px 22px', color: '#dfe8f2',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <h2 style={{ margin: 0, letterSpacing: '0.12em' }}>CODEX</h2>
-          <button onClick={onClose} style={{ background: 'transparent', color: '#9fb2c8', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
-            Close
-          </button>
-        </div>
-        <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
-          {view.discovered}/{view.total} discovered · {Math.round(view.pct * 100)}% complete
-        </div>
-        <div style={{ height: 8, borderRadius: 5, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 18 }}>
-          <div style={{ width: `${Math.round(view.pct * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #5ad1ff, #ffd24d)' }} />
-        </div>
-
-        {view.categories.map((c) => (
-          <CategoryBlock key={c.id} c={c} />
-        ))}
-
-        <h3 style={{ margin: '8px 0 8px', fontSize: 15, letterSpacing: '0.06em' }}>Rewards</h3>
-        {rewards.length === 0 ? (
-          <div style={{ fontSize: 12.5, opacity: 0.7 }}>Complete a category to earn titles, badges, and bonuses.</div>
-        ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {rewards.map((r) => (
-              <div
-                key={r.id}
-                title={r.desc}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 10px', borderRadius: 999,
-                  background: 'rgba(255,210,77,0.10)', border: '1px solid rgba(255,210,77,0.35)',
-                  fontSize: 12.5,
-                }}
-              >
-                <span style={{ color: '#ffd24d' }}>{REWARD_ICON[r.kind]}</span>
-                <span>{r.name}</span>
-                <span style={{ opacity: 0.55, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.kind}</span>
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="collection" style={{ color: '#dfe8f2' }}>
+      <div className="panel-title">Codex</div>
+      <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>
+        {view.discovered}/{view.total} discovered · {Math.round(view.pct * 100)}% complete
       </div>
+      <div style={{ height: 8, borderRadius: 5, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 18 }}>
+        <div style={{ width: `${Math.round(view.pct * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #5ad1ff, #ffd24d)' }} />
+      </div>
+
+      {view.categories.map((c) => (
+        <CategoryBlock key={c.id} c={c} />
+      ))}
+
+      <h3 style={{ margin: '8px 0 8px', fontSize: 15, letterSpacing: '0.06em' }}>Rewards</h3>
+      {rewards.length === 0 ? (
+        <div style={{ fontSize: 12.5, opacity: 0.7 }}>Complete a category to earn titles, badges, and bonuses.</div>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {rewards.map((r) => (
+            <div
+              key={r.id}
+              title={r.desc}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 10px', borderRadius: 999,
+                background: 'rgba(255,210,77,0.10)', border: '1px solid rgba(255,210,77,0.35)',
+                fontSize: 12.5,
+              }}
+            >
+              <span style={{ color: '#ffd24d' }}>{REWARD_ICON[r.kind]}</span>
+              <span>{r.name}</span>
+              <span style={{ opacity: 0.55, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.kind}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
