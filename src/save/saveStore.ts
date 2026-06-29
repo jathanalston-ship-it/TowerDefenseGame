@@ -26,6 +26,7 @@ export interface SaveData {
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
   towerForks: Record<TowerKind, Record<string, string>>; // per-tower star-fork picks (star → optionId)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
+  towerKills: Record<TowerKind, number>; // lifetime kills per tower (schema v9) — Tower Lab
   heroShards: Record<string, number>; // per-hero shards (earned from chests)
   // ── Hero progression + roster (per kind) — added in schema v3 ──
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
@@ -143,6 +144,7 @@ export function defaultSave(): SaveData {
     towerStars: zeroByTower(),
     towerForks: emptyForksByTower(),
     towerMasteryXp: zeroByTower(),
+    towerKills: zeroByTower(),
     heroShards: zeroByHero(),
     heroStars: zeroByHeroKind(),
     heroMasteryXp: zeroByHeroKind(),
@@ -181,6 +183,7 @@ function withDefaults(data: SaveData): SaveData {
     // first option). Shallow-merge keeps known towers' picks and defaults the rest.
     towerForks: { ...d.towerForks, ...(data.towerForks && typeof data.towerForks === 'object' ? data.towerForks : {}) },
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
+    towerKills: { ...d.towerKills, ...data.towerKills }, // v8→v9: additive, zeroed for old saves
     heroShards: { ...d.heroShards, ...data.heroShards },
     heroStars: { ...d.heroStars, ...data.heroStars },
     heroMasteryXp: { ...d.heroMasteryXp, ...data.heroMasteryXp },
@@ -283,7 +286,7 @@ function isSaveData(v: unknown): v is SaveData {
 function migrate(_version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
   // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
-  // identity: titles/lore) are all additive: withDefaults() deep-fills the new records, the
+  // identity: titles/lore) — plus v8→v9 (per-tower lifetime kills) — are all additive: withDefaults() deep-fills the new records, the
   // selectedHero default, the stats block, the loot queue, the fork picks, the mastery
   // identity arrays, and the prestige block (v6→v7; v7→v8 adds the Ascendant Tree node map,
   // deep-filled by sanitizePrestige). v8→v9 adds per-hero kills + favorite-equipment, deep-filled
