@@ -4084,3 +4084,34 @@ kbd {
   .cmp-cols { grid-template-columns: 1fr; }
   .ac-right { margin-left: 0; }
 }
+
+/* ── Campaign — procedural stage-select ladder (CampaignScreen) ──────────────────────────────── */
+.camp-panel { width: min(1000px, 96vw); }
+.camp-bar { display: flex; align-items: center; gap: 18px; margin: 12px 0 14px; }
+.camp-record { font-size: 13px; color: var(--muted); }
+.camp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.camp-card {
+  --biome: var(--text);
+  display: flex; flex-direction: column; gap: 7px;
+  background: linear-gradient(180deg, var(--panel-2), #10151e);
+  border: 1px solid var(--line); border-left: 3px solid var(--biome);
+  border-radius: var(--r-md); padding: 13px 14px;
+}
+.camp-card.is-locked { opacity: 0.5; filter: grayscale(0.5); }
+.camp-card.is-next { box-shadow: 0 0 18px color-mix(in srgb, var(--biome) 30%, transparent); border-color: var(--biome); }
+.camp-card-head { display: flex; align-items: center; justify-content: space-between; }
+.camp-stage-n { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); }
+.camp-tag { font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; }
+.camp-tag.cleared { background: rgba(63, 224, 138, 0.16); color: var(--success); }
+.camp-tag.next { background: var(--biome); color: #0a0e14; }
+.camp-tag.locked { background: none; }
+.camp-biome { font-size: 17px; font-weight: 900; letter-spacing: 0.02em; }
+.camp-facts { display: flex; flex-wrap: wrap; gap: 5px 10px; font-size: 12px; color: var(--text); }
+.camp-fact b { font-weight: 800; }
+.camp-boss { font-size: 12px; color: var(--muted); }
+.camp-boss b { color: var(--text); }
+.camp-mods { display: flex; flex-wrap: wrap; gap: 6px; }
+.camp-mod { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); color: var(--muted); }
+.camp-mod.hazard { color: var(--danger); border-color: rgba(255, 93, 115, 0.4); }
+.camp-play { margin-top: 4px; padding: 8px; font-weight: 700; }
+.camp-play:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -11,6 +11,8 @@ import type { RunOutcome, RunResult } from '../state/meta';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
+import { generateStage } from '../core/campaign';
+import type { StageConfig } from '../core/campaign';
 
 type Screen = 'menu' | 'playing' | 'results';
 
@@ -24,6 +26,8 @@ export function App(): JSX.Element {
   const heroProgRef = useRef<HeroProgress>(meta.heroProgress());
   const effectsRef = useRef<CardEffect[]>([]);
   const modeRef = useRef<RunMode>('stage');
+  const stageRef = useRef<StageConfig | null>(null); // campaign: the generated stage being played
+  const campaignStageRef = useRef(0); // campaign: the stage number (winning it unlocks the next)
   // Run setup the player picks on the Play screen (uncontrolled → read at run start). Defaults are
   // identity ('standard' / 'none'), so an untouched menu plays exactly the baseline run.
   const difficultyRef = useRef('standard');
@@ -34,7 +38,7 @@ export function App(): JSX.Element {
     try { audio.setEnabled(localStorage.getItem('audioOn') !== 'false'); } catch { /* private mode */ }
   }, []);
 
-  const begin = useCallback((mode: RunMode) => {
+  const begin = useCallback((mode: RunMode, stage: StageConfig | null = null) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
     // (the run stays deterministic from this snapshot).
@@ -45,12 +49,24 @@ export function App(): JSX.Element {
     // Equipped loadout + any unlocked collection completion bonuses (both fold in at start).
     effectsRef.current = [...meta.loadoutEffects(), ...meta.collectionRunEffects()];
     modeRef.current = mode;
+    stageRef.current = stage;
     setScreen('playing');
   }, []);
   const startRun = useCallback(() => begin('stage'), [begin]);
   const startEndless = useCallback(() => begin('endless'), [begin]);
+  // Campaign: generate the chosen stage deterministically from (stage #, difficulty) and play it.
+  const startCampaign = useCallback((stage: number) => {
+    campaignStageRef.current = stage;
+    begin('campaign', generateStage(stage, difficultyRef.current));
+  }, [begin]);
 
   const handleEnd = useCallback((result: RunResult) => {
+    // Campaign: tag the result so finishRun unlocks the next stage + scales the rewards.
+    if (modeRef.current === 'campaign') {
+      result.campaignStage = campaignStageRef.current;
+      result.difficulty = difficultyRef.current;
+      result.rewardMult = stageRef.current?.rewardMult;
+    }
     const outcome = meta.finishRun(result);
     setLast({ result, outcome });
     setScreen('results');
@@ -66,6 +82,7 @@ export function App(): JSX.Element {
         <Hub
           onStart={startRun}
           onStartEndless={startEndless}
+          onStartCampaign={startCampaign}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />
@@ -79,6 +96,7 @@ export function App(): JSX.Element {
           heroProgress={heroProgRef.current}
           runEffects={effectsRef.current}
           mode={modeRef.current}
+          stage={stageRef.current ?? undefined}
           difficulty={difficultyRef.current}
           doctrine={doctrineRef.current}
           onEnd={handleEnd}
