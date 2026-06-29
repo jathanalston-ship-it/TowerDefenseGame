@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { defaultSave, parseImport } from '../save/saveStore';
 import {
+  heroStarCost,
   masteryLevel,
   masteryProgress,
   masteryReq,
+  nextHeroStarCost,
   nextStarCost,
-  starCost,
   towerProgress,
+  towerStarCost,
 } from './meta';
-import { MASTERY, STAR, TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, MASTERY, STAR, TOWER_ORDER } from '../core/config';
 
 describe('mastery curve (infinite, ever-slower requirements)', () => {
   it('starts at level 0 and the per-level requirement keeps growing', () => {
@@ -34,18 +36,39 @@ describe('mastery curve (infinite, ever-slower requirements)', () => {
   });
 });
 
-describe('star cost', () => {
-  it('grows geometrically and caps at maxTowerStars', () => {
-    expect(starCost(0)).toBe(STAR.baseCost);
-    expect(starCost(2)).toBe(Math.round(STAR.baseCost * STAR.costMult ** 2));
+describe('star cost — separate tower (★10) and hero (★5) ladders', () => {
+  it('tower stars: smooth doubling exponential, capped at maxTowerStars', () => {
+    expect(towerStarCost(0)).toBe(STAR.towerBaseCost); // ★1 = 10
+    expect(towerStarCost(2)).toBe(Math.round(STAR.towerBaseCost * STAR.towerCostMult ** 2)); // ★3 = 40
+    // The documented curve (docs/SHARD-ECONOMY.md) — pin every step so a re-tune is a deliberate edit.
+    const curve = Array.from({ length: STAR.maxTowerStars }, (_, s) => towerStarCost(s));
+    expect(curve).toEqual([10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]);
+    expect(curve.reduce((a, b) => a + b, 0)).toBe(10230); // total Tower Shards ★0→★10
+
     const maxed = defaultSave();
     maxed.towerStars.needle = STAR.maxTowerStars;
     expect(nextStarCost(maxed, 'needle')).toBeNull();
-    // towers ascend past the ★5 evolution band into the ★6-10 power tiers
     const five = defaultSave();
-    five.towerStars.needle = 5;
+    five.towerStars.needle = 5; // towers ascend past the ★5 evolution band into the ★6-10 power tiers
     expect(nextStarCost(five, 'needle')).not.toBeNull();
-    expect(nextStarCost(defaultSave(), 'needle')).toBe(STAR.baseCost);
+    expect(nextStarCost(defaultSave(), 'needle')).toBe(STAR.towerBaseCost);
+  });
+
+  it('hero stars: a gentler, shorter ★5 ladder, capped at maxStars', () => {
+    const curve = Array.from({ length: STAR.maxStars }, (_, s) => heroStarCost(s));
+    expect(curve).toEqual([8, 14, 26, 47, 84]);
+    expect(curve.reduce((a, b) => a + b, 0)).toBe(179); // total Hero Shards ★0→★5
+
+    const hero = HERO_ORDER[0];
+    const maxed = defaultSave();
+    maxed.heroStars[hero] = STAR.maxStars;
+    expect(nextHeroStarCost(maxed, hero)).toBeNull();
+    expect(nextHeroStarCost(defaultSave(), hero)).toBe(STAR.heroBaseCost);
+  });
+
+  it('tower stars are the steeper, more demanding ladder', () => {
+    // by the top of the hero ladder, the same tower step already costs far more
+    expect(towerStarCost(4)).toBeGreaterThan(heroStarCost(4) * 1.5);
   });
 });
 

@@ -12,6 +12,7 @@ import type { HeroKind } from '../core/types';
 import { masteryRank } from '../core/mastery';
 import { HeroPortrait } from './components/HeroPortrait';
 import { ProgressBar } from './components/ProgressBar';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 const RARITY_VAR: Record<string, string> = {
   common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)',
@@ -129,7 +130,7 @@ export function HeroLab(): JSX.Element {
               disabled={d.nextStarCost === null || !d.canBuyStar}
               onClick={() => meta.buyHeroStar(focus)}
             >
-              {d.nextStarCost === null ? 'MAX STARS' : `Add Star · ${d.nextStarCost} ✦  (have ${d.shards})`}
+              {d.nextStarCost === null ? 'MAX STARS' : <>Add Star · {d.nextStarCost} <CurrencyIcon id="heroShards" color={c} size={13} title="" /> (have {d.shards})</>}
             </button>
           </Section>
 

@@ -10,6 +10,7 @@ import { STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { forksOf } from '../core/stars';
 import type { TowerKind } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
+import { CurrencyIcon } from './components/CurrencyIcon';
 import { TowerPortrait } from './TowerPortrait';
 import { StarCeremony } from './StarCeremony';
 import { ceremonyView, towerLabModel } from './towerLabModel';
@@ -161,9 +162,9 @@ export function TowerLab(): JSX.Element {
                     disabled={m.maxed || !m.affordable}
                     onClick={() => upgrade(k, m.stars)}
                   >
-                    {m.maxed ? 'MAX' : `Mutate · ${m.cost} ✦`}
+                    {m.maxed ? 'MAX' : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
                   </button>
-                  <span className="tl-shards" title="Tower Shards">{m.shards} ✦</span>
+                  <span className="tl-shards" title="Tower Shards">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
                 </div>
 
                 {forksOf(k).some((f) => f.star <= m.stars) && (

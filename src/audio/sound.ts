@@ -122,6 +122,13 @@ function sJackpot(): void { // rare hero-shard sparkle
   noise(0.2, 0.05, 6000);
 }
 function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
+// Shard reward stingers — deliberately DISTINCT so the ear, not the text, says which shard landed.
+function sShardTower(): void { // Tower Shard — a crisp, glassy crystalline "ting"
+  tone(1245, 0.07, 'triangle', 0.1, 1660); tone(1860, 0.16, 'sine', 0.08); noise(0.05, 0.03, 8000);
+}
+function sShardHero(): void { // Hero Shard — a brighter ASCENDING sparkle, a celebratory "rare get"
+  tone(988, 0.08, 'sine', 0.12); tone(1319, 0.08, 'sine', 0.12); tone(1976, 0.3, 'sine', 0.14); noise(0.22, 0.05, 7500);
+}
 
 // ── Tower-branch cues (TOWER-BRANCHES.md) — `splice` is the commit moment; the `br_*` tags are
 //    each branch's per-shot firing signature. Firing cues are deliberately SHORT + QUIET so a
@@ -198,6 +205,8 @@ export const audio = {
         case 'chest': revealStep = 0; sChest(); break; // resets the reveal pitch ramp
         case 'reveal': sReveal(); break;
         case 'jackpot': sJackpot(); break;
+        case 'shard_tower': sShardTower(); break;
+        case 'shard_hero': sShardHero(); break;
         case 'achieve': sAchieve(); break;
         case 'splice': sSplice(); break;
         case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;

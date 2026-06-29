@@ -7,6 +7,7 @@ import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { CurrencyIcon } from './components/CurrencyIcon';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
@@ -152,8 +153,8 @@ export function Hub({
 
       <div className="hub-main">
         <header className="hub-topbar">
-          <span className="hub-cur" title={ACCOUNT_CURRENCY.blurb}><span className="hub-cur-k" style={{ color: 'var(--gold)' }}>✦</span> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
-          <span className="hub-cur"><span className="hub-cur-k" style={{ color: 'var(--viral)' }}>◇</span> {cells} <span className="hub-cur-l">Cells</span></span>
+          <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
+          <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>
           <span className="hub-cur" title="Mutagen · Scrap · Catalyst">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>
           <span className="hub-cur hub-cur-r">Best Wave <b>{save.bestWave}</b> · Runs <b>{save.totalRuns}</b></span>
         </header>

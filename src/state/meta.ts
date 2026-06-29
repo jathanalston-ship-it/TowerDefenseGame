@@ -147,15 +147,22 @@ export function masteryLevel(xp: number): number {
   return masteryProgress(xp).level;
 }
 
-/** Tower-shard cost to buy the (stars→stars+1) star. */
-export function starCost(stars: number): number {
-  return Math.round(STAR.baseCost * Math.pow(STAR.costMult, stars));
+/** Tower-Shard cost to buy the (stars→stars+1) star — the PRIMARY long grind. Smooth doubling
+ * exponential (base × 2^s): ★1=10 … ★10=5,120 (cumulative 10,230). See docs/SHARD-ECONOMY.md. */
+export function towerStarCost(stars: number): number {
+  return Math.round(STAR.towerBaseCost * Math.pow(STAR.towerCostMult, stars));
+}
+
+/** Hero-Shard cost to buy the (stars→stars+1) star — a shorter, gentler ★5 ladder fed by the
+ * rarer Hero-Shard drops (base 8 × 1.8^s): ★1=8 … ★5=84 (cumulative 179). */
+export function heroStarCost(stars: number): number {
+  return Math.round(STAR.heroBaseCost * Math.pow(STAR.heroCostMult, stars));
 }
 
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
   if (stars >= STAR.maxTowerStars) return null;
-  return starCost(stars);
+  return towerStarCost(stars);
 }
 
 /** Fold stars + mastery into per-kind run config. Stars contribute the incidental S-bucket
@@ -209,11 +216,11 @@ export function heroEquipment(_save: SaveData, _kind: HeroKind): HeroMods {
   return { damageMult: 1, cooldownMult: 1 };
 }
 
-/** Hero-shard cost of the next star (reuses the tower star curve). */
+/** Hero-shard cost of the next star — the separate, gentler Hero ladder (★5). */
 export function nextHeroStarCost(save: SaveData, kind: HeroKind): number | null {
   const stars = save.heroStars[kind] ?? 0;
   if (stars >= STAR.maxStars) return null;
-  return starCost(stars);
+  return heroStarCost(stars);
 }
 
 /** Fold stars + mastery + equipment into per-hero run multipliers. Stars add damage
@@ -414,6 +421,24 @@ export const meta = {
    * convert per-kind usage into permanent mastery XP, and open the run-end chest
    * (granting tower/hero shards). Returns the full reward bundle for the Results UI.
    */
+  /**
+   * Abandon the current run and FORFEIT all of its rewards. We never call finishRun, so none of
+   * its banking happens (no Genome Cores, mastery XP, hero kills, lifetime stats, run cache, prestige
+   * cycle, or achievements). We also roll back the loot the run banked LIVE via syncRunLoot — the
+   * completed containers are removed from the Vault and the cycle counters reset — so the player
+   * truly walks away with nothing. (The seen-a-boss codex tick is a discovery record, not a reward,
+   * and is left as-is.)
+   */
+  abandonRun(): void {
+    const save = store.get();
+    if (runContainersBanked.length > 0) {
+      const drop = new Set<PendingContainer>(runContainersBanked);
+      persist({ ...save, pendingContainers: save.pendingContainers.filter((c) => !drop.has(c)) });
+    }
+    runLootBanked = 0; // re-arm the live-bank cycle for the next run
+    runContainersBanked = [];
+  },
+
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
@@ -688,7 +713,7 @@ export const meta = {
     const save = store.get();
     const stars = save.heroStars[kind] ?? 0;
     if (stars >= STAR.maxStars) return false;
-    const cost = starCost(stars);
+    const cost = heroStarCost(stars);
     if ((save.heroShards[kind] ?? 0) < cost) return false;
     persist({
       ...save,
@@ -703,7 +728,7 @@ export const meta = {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
     if (stars >= STAR.maxTowerStars) return false;
-    const cost = starCost(stars);
+    const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
       ...save,

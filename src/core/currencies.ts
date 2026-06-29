@@ -18,30 +18,50 @@ export interface CurrencyDef {
   name: string;
   /** One-line description for tooltips: what it is, how it's earned and spent. */
   blurb: string;
+  // ── Visual identity ──────────────────────────────────────────────────────────────────────
+  // Each currency owns a UNIQUE silhouette (the <CurrencyIcon> SVG), color and glow so a reward
+  // is recognizable from the visual alone — never the text. Tower/Hero Shards are per-kind, so
+  // their `color` here is a sensible default; callers pass the specific tower/hero color to tint
+  // the same shard/sigil shape. Idle + pickup motion live in CSS keyed on `cur-${id}`.
+  /** Signature color (CSS value — a token like `var(--gold)` or a hex). */
+  color: string;
+  /** Glow color used for the icon drop-shadow / pickup burst (rgba so it can sit under the fill). */
+  glow: string;
 }
 
 export const CURRENCIES: Record<CurrencyId, CurrencyDef> = {
   // Primary account currency — the broad meta-progression spend. Renamed from "Shards" so it no
-  // longer collides with the per-tower / per-hero Shard currencies below.
+  // longer collides with the per-tower / per-hero Shard currencies below. Gold double-helix.
   genomeCores: {
     id: 'genomeCores',
     name: 'Genome Cores',
     blurb: 'Refined genetic capital. Banked from every run, spent on Permanent Upgrades and Molt.',
+    color: 'var(--gold)',
+    glow: 'rgba(255, 210, 77, 0.6)',
   },
+  // Tower-colored crystal shard. `color` is the default; tower contexts pass the tower's own hue.
   towerShards: {
     id: 'towerShards',
     name: 'Tower Shards',
     blurb: 'Per-tower currency cracked from bio-containers. Spent on tower Stars.',
+    color: 'var(--kinetic)',
+    glow: 'rgba(90, 209, 255, 0.55)',
   },
+  // Hero-colored star sigil. `color` is the default; hero contexts pass the hero's own hue.
   heroShards: {
     id: 'heroShards',
     name: 'Hero Shards',
     blurb: 'Per-hero currency cracked from bio-containers. Spent on hero Stars.',
+    color: 'var(--vital)',
+    glow: 'rgba(255, 122, 89, 0.55)',
   },
+  // Prestige currency — a violet dividing cell, deliberately unlike the other three.
   ascendantCells: {
     id: 'ascendantCells',
     name: 'Ascendant Cells',
     blurb: 'Prestige currency minted by Molting. Permanently empowers the hive.',
+    color: 'var(--viral)',
+    glow: 'rgba(226, 77, 255, 0.55)',
   },
 };
 

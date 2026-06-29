@@ -50,6 +50,7 @@ export function GameView({
   difficulty,
   doctrine,
   onEnd,
+  onAbandon,
 }: {
   seed: number;
   mods: MetaModifiers;
@@ -62,6 +63,7 @@ export function GameView({
   difficulty?: string;
   doctrine?: string;
   onEnd: (r: RunResult) => void;
+  onAbandon: () => void;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
@@ -73,8 +75,10 @@ export function GameView({
   // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
   const pausedRef = useRef(false);
   const [paused, setPaused] = useState(false);
+  const [confirmAbandon, setConfirmAbandon] = useState(false); // 2-step guard on the destructive quit
   const togglePause = useCallback(() => {
     setPaused((p) => { pausedRef.current = !p; return !p; });
+    setConfirmAbandon(false); // reset the abandon guard whenever pause toggles
   }, []);
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
@@ -310,10 +314,26 @@ export function GameView({
             onClick={togglePause}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePause(); } }}
           >
-            <div className="pause-card">
+            <div className="pause-card" onClick={(e) => e.stopPropagation()}>
               <div className="pause-title">PAUSED</div>
-              <button className="primary" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
-              <div className="pause-hint">Press P or click anywhere to resume</div>
+              {confirmAbandon ? (
+                <>
+                  <div className="pause-warn">
+                    Abandon the run? You <b>forfeit ALL rewards</b> from this run — no Genome Cores,
+                    mastery, gear, or bio-containers. This can't be undone.
+                  </div>
+                  <div className="pause-row">
+                    <button className="set-danger" onClick={(e) => { e.stopPropagation(); onAbandon(); }}>Forfeit &amp; Quit</button>
+                    <button onClick={(e) => { e.stopPropagation(); setConfirmAbandon(false); }}>Keep Playing</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button className="primary" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
+                  <button className="pause-abandon" onClick={(e) => { e.stopPropagation(); setConfirmAbandon(true); }}>Abandon Run</button>
+                  <div className="pause-hint">Press P or click outside to resume</div>
+                </>
+              )}
             </div>
           </div>
         )}

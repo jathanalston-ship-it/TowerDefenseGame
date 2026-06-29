@@ -9,6 +9,7 @@ import { PlayIcon } from './components/Icon';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 export function PlayScreen({
   onStart,
@@ -74,7 +75,7 @@ export function PlayScreen({
           Power Score <b>×{meta.powerScore().score.toFixed(1)}</b>
         </div>
         <div className="records play-records">
-          <div className="record"><div className="k">{ACCOUNT_CURRENCY.name}</div><div className="v" style={{ color: 'var(--gold)' }}>{save.shards}</div></div>
+          <div className="record"><div className="k">{ACCOUNT_CURRENCY.name}</div><div className="v" style={{ color: 'var(--gold)' }}><CurrencyIcon id="genomeCores" size={15} title="" /> {save.shards}</div></div>
           <div className="record"><div className="k">Best Wave</div><div className="v">{save.bestWave}</div></div>
           <div className="record"><div className="k">Runs</div><div className="v">{save.totalRuns}</div></div>
           <div className="record"><div className="k">Lifetime {ACCOUNT_CURRENCY.name}</div><div className="v">{save.lifetimeShards}</div></div>

@@ -317,8 +317,8 @@ export function validateAllContentReport(): ValidationReport {
 
   // 6 ─ Broken upgrade chains: progression curves must stay monotonic / non-degenerate.
   if (STAR.maxStars <= 0) issues.push(err('broken-upgrade-chain', 'STAR', 'maxStars must be > 0'));
-  if (STAR.baseCost <= 0) issues.push(err('broken-upgrade-chain', 'STAR', 'baseCost must be > 0'));
-  if (STAR.costMult < 1) issues.push(err('broken-upgrade-chain', 'STAR', 'costMult must be >= 1 (costs must not shrink)'));
+  if (STAR.towerBaseCost <= 0 || STAR.heroBaseCost <= 0) issues.push(err('broken-upgrade-chain', 'STAR', 'tower/hero baseCost must be > 0'));
+  if (STAR.towerCostMult < 1 || STAR.heroCostMult < 1) issues.push(err('broken-upgrade-chain', 'STAR', 'tower/hero costMult must be >= 1 (costs must not shrink)'));
   if (MASTERY.baseReq <= 0) issues.push(err('broken-upgrade-chain', 'MASTERY', 'baseReq must be > 0'));
   if (MASTERY.reqGrowth < 1) issues.push(err('broken-upgrade-chain', 'MASTERY', 'reqGrowth must be >= 1 (requirements must not shrink)'));
   for (const u of META_UPGRADES) {
