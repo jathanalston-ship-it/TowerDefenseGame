@@ -18,6 +18,16 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 > - **Categories (9):** a first-class `CardCategory` tag (`poison/summons/economy/crit/aoe/
 >   control/hero/tower/mutation`) drives UI grouping today; the §2–4 per-category weighting/
 >   synergy meta keys off it.
+> - **Subject — "what it AFFECTS" (`CardSubject`):** a *separate* axis from the synergy category,
+>   shown as the draft badge so a card's target reads at a glance: a **specific tower** (icon +
+>   that tower's color + name, pulled from `TOWER_DEFS`), **HERO**, **GLOBAL** (army-wide),
+>   **ECONOMY** (biomass), or **HIVE** (the Nucleus + build slots). It is **derived from the card's
+>   effects** (`cardSubject` in `core/cards.ts`, via a single `FIELD_SUBJECT` map) — *not* authored
+>   per card — so the badge can never drift from behaviour and a new card auto-classifies. One
+>   distinct non-global subject ⇒ that subject; none or several ⇒ GLOBAL (e.g. "Sharpened Needles"
+>   = +12% *all*-tower damage ⇒ GLOBAL, not Needle). **Future-proof:** a new tower just maps its
+>   tower-specific `RunModifiers` fields in `FIELD_SUBJECT`; its color/name/icon come from
+>   `TOWER_DEFS` with no UI change. `cards.test.ts` pins every card's derived subject.
 > - **Effect vocabulary:** the declarative `CardEffect` (`mul/add/flag/set` + instant
 >   `biomass/integrity/heroHp`) now also covers the behavioral **verbs** `grant`/`hook` for
 >   cards — a drafted card can add a projectile mutator or a battlefield rule mid-run, sharing

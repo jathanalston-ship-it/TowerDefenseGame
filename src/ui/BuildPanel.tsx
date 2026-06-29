@@ -2,6 +2,7 @@
 // grouped by category with stack counts, and the plain-language rollup of active
 // run buffs. Reads only the throttled HudSnapshot (cards/buffs), never the sim.
 
+import { affectsOf } from './cardAffects';
 import type { CardOption, HudSnapshot } from '../core/types';
 
 interface Stack {
@@ -45,18 +46,22 @@ export function BuildPanel({ hud, onCollapse }: { hud: HudSnapshot; onCollapse?:
               <div className="card-group" key={g.category}>
                 <div className="card-cat">{g.category}</div>
                 <div className="card-chips">
-                  {g.stacks.map((s) => (
-                    <span
-                      key={s.opt.id}
-                      className="card-chip tt"
-                      data-rarity={s.opt.rarity}
-                      tabIndex={0}
-                    >
-                      {s.opt.name}
-                      {s.count > 1 && <b className="stack">×{s.count}</b>}
-                      <span className="tt-bubble">{s.opt.description}</span>
-                    </span>
-                  ))}
+                  {g.stacks.map((s) => {
+                    const aff = affectsOf(s.opt.subject);
+                    return (
+                      <span
+                        key={s.opt.id}
+                        className="card-chip tt"
+                        data-rarity={s.opt.rarity}
+                        tabIndex={0}
+                      >
+                        <span className="chip-dot" style={{ background: aff.color }} aria-hidden />
+                        {s.opt.name}
+                        {s.count > 1 && <b className="stack">×{s.count}</b>}
+                        <span className="tt-bubble">{aff.label} · {s.opt.description}</span>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             ))}
