@@ -856,7 +856,7 @@ export const upgradeRegistry = new Registry<UpgradeDef>('upgrade', { idOf: (d) =
 upgradeRegistry.registerAll(META_UPGRADES);
 
 // ── Tower progression: shards → stars, plus infinite mastery ────────────────
-// Per-tower permanent growth, kept SEPARATE from the global Shards economy:
+// Per-tower permanent growth, kept SEPARATE from the global Genome Cores economy:
 //   • Tower Shards (per kind)  — currency earned from run-end chests.
 //   • Stars (per kind)         — bought with tower shards; small, capped buff.
 //   • Mastery (per kind)       — earned by USE (kills/damage/uptime); INFINITE,

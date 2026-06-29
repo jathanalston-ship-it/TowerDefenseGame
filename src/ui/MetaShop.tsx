@@ -1,13 +1,14 @@
 import { meta, nextUpgradeCost, upgradeLevel } from '../state/meta';
 import { ProgressBar } from './components/ProgressBar';
 import { ShardIcon } from './components/Icon';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function MetaShop(): JSX.Element {
   const save = meta.use();
   return (
     <div className="panel">
       <div className="panel-title">Permanent Upgrades</div>
-      <div className="panel-sub">Spend Shards. These multipliers persist across every run.</div>
+      <div className="panel-sub">Spend {ACCOUNT_CURRENCY.name}. These multipliers persist across every run.</div>
       <div className="shop-list">
         {meta.upgrades.map((u) => {
           const level = upgradeLevel(save, u.id);

@@ -1,5 +1,5 @@
 // Prestige — Layer 1: MOLT (PROGRESSION.md §5). The first "ascension": sacrifice the
-// core-upgrade economy (banked Shards + the capped meta upgrades) to mint Ascendant Cells,
+// core-upgrade economy (banked Genome Cores + the capped meta upgrades) to mint Ascendant Cells,
 // which grant a PERMANENT, compounding global damage multiplier — a brand-new multiplicative
 // bucket on top of stars/mastery/equipment. Trophies (stars, mastery, titles, lore, gear,
 // tower/hero shards, loot queue) never reset; only the engine does.
@@ -21,7 +21,7 @@ export const PRESTIGE = {
   },
 };
 
-/** Per-run-cycle "engine metric": the Shards EARNED since the last Molt drive the mint. */
+/** Per-run-cycle "engine metric": the Genome Cores EARNED since the last Molt drive the mint. */
 export function cellsForCycle(cycleShards: number): number {
   if (cycleShards <= 0) return 0;
   return Math.floor(PRESTIGE.molt.cellGain * Math.sqrt(cycleShards / PRESTIGE.molt.cellScale));
@@ -47,7 +47,7 @@ export function shardsForCells(cells: number): number {
 export interface PrestigeState {
   cells: number; // spendable balance — spent on the Ascendant Tree (ascendant.ts)
   lifetimeCells: number; // total ever minted — drives the global multiplier
-  cycleShards: number; // Shards earned since the last Molt (the mint metric)
+  cycleShards: number; // Genome Cores earned since the last Molt (the mint metric)
   molts: number; // lifetime Molt count (a trophy / pacing readout)
   nodes: Record<string, number>; // Ascendant Tree node id → level (kept across Molts)
 }
