@@ -58,12 +58,13 @@ import {
   cardToOption,
   defaultRunModifiers,
   draftCards,
+  endlessDraftInterval,
 } from './cards';
 import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave } from './config';
+import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -329,6 +330,7 @@ export class Game {
   private spawnedAll = false;
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
+  private wavesSinceDraft = 0; // endless cadence: waves cleared since the last Gene Card draft
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -817,6 +819,29 @@ export class Game {
     return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.diff.rewardMult;
   }
 
+  // ── Endless intensity curves (docs/ENDLESS-SCALING.md). Kept SEPARATE from the linear stage
+  //    curves above so the authored golden run is byte-identical; these apply ONLY in endless. ──
+
+  /** Endless enemy-HP multiplier — GEOMETRIC, the PRIMARY wall (outpaces any fixed DPS over depth). */
+  private endlessHpMult(depth: number): number {
+    return Math.pow(ENDLESS.hpGrowth, depth - 1) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
+  }
+
+  /** Endless per-enemy bounty — rises SLOWER than HP, so deep enemies are biomass-inefficient. */
+  private endlessBountyMult(depth: number): number {
+    return (1 + ENDLESS.bountyGrowth * (depth - 1)) * this.diff.rewardMult;
+  }
+
+  /** Endless enemy-speed multiplier — gradual, clamped so the field stays readable. */
+  private endlessSpeedMult(depth: number): number {
+    return Math.min(ENDLESS.speedCap, 1 + ENDLESS.speedGrowth * (depth - 1));
+  }
+
+  /** Endless enemy-damage multiplier — gradual, continuous. */
+  private endlessDamageMult(depth: number): number {
+    return 1 + ENDLESS.damageGrowth * (depth - 1);
+  }
+
   /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,
    * Swarm). Returns exactly 1 when none are equipped, so combineMult stays bit-identical
    * (the golden invariant) — every branch is gated on its neutral value. */
@@ -893,12 +918,14 @@ export class Game {
     const depth = this.waveIndex;
     this.enterBiome(biomeForDepth(depth)); // Infinite: rotate ecosystems as the run goes deep
     const w = this.director!.next(depth, this.activeBiome);
-    const idx0 = depth - 1;
+    // Endless uses its OWN intensity curves (geometric HP, gradual bounty) — NOT the linear stage
+    // curve — so the wall behaves as docs/ENDLESS-SCALING.md describes. Speed/damage are applied
+    // per-enemy in spawnOne (also mode-gated), keyed on this depth.
     this.spawnQueue = this.spawner.scheduleDirected(
       w,
       this.time,
-      this.hpMultFor(idx0),
-      this.bountyMultFor(idx0),
+      this.endlessHpMult(depth),
+      this.endlessBountyMult(depth),
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
@@ -1067,6 +1094,11 @@ export class Game {
     // biome's stats after an Infinite transition. Identity under NEUTRAL_BIOME ⇒ golden-safe.
     const bm = this.activeBiome.mods;
     const hp = def.hp * hpMult * eHp * bm.enemyHpMult;
+    // Endless-only intensity: enemies get gradually faster + hit harder with depth. Mode-gated so a
+    // stage spawn is byte-identical (×1). Keyed on the current depth (= waveIndex during this wave).
+    const endless = this.mode === 'endless';
+    const eSpeed = endless ? this.endlessSpeedMult(this.waveIndex) : 1;
+    const eDmgWave = endless ? this.endlessDamageMult(this.waveIndex) : 1;
     this.enemies.push({
       id: this.nextId++,
       kind,
@@ -1075,9 +1107,9 @@ export class Game {
       hp,
       maxHp: hp,
       baseArmor: def.armor + bm.enemyArmorBonus,
-      speed: def.speed * this.stageSpeedMult * bm.enemySpeedMult, // campaign per-stage × biome (×1 in Stage → golden-safe)
+      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult, // ×endless depth ×campaign per-stage ×biome (all ×1 otherwise → golden-safe)
       bounty: def.bounty * bountyMult * eBounty * bm.bountyMult,
-      damage: def.damage * eDmg * this.diff.enemyDamageMult * bm.enemyDamageMult,
+      damage: def.damage * eDmg * this.diff.enemyDamageMult * eDmgWave * bm.enemyDamageMult,
       fracture: 0,
       corrosion: 0,
       shredFlash: 0,
@@ -2351,17 +2383,45 @@ export class Game {
         this.stageClearCrescendo();
       } else {
         this.waveCompleteFlourish(flawless);
-        this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
+        // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
+        // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
+        if (this.shouldDraftThisWave()) {
+          this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
+        }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
     }
   }
 
-  /** End of the settle beat: reveal the post-wave state — the stage win, or the gene-card draft
-   * (already rolled in checkWaveEnd). Pure phase flip; the battlefield is now wound down. */
+  /** Whether the just-cleared wave grants a Gene Card draft. Stage + campaign: always (generous).
+   * Endless: the cadence widens with depth (1→5-wave gaps, CARDS.md §1) — counts waves since the
+   * last draft and fires once it reaches the depth's interval, so the gap only ever widens. Mutates
+   * the since-last-draft counter, so call exactly once per cleared wave. */
+  private shouldDraftThisWave(): boolean {
+    if (this.mode !== 'endless') return true;
+    this.wavesSinceDraft++;
+    if (this.wavesSinceDraft >= endlessDraftInterval(this.waveIndex)) {
+      this.wavesSinceDraft = 0;
+      return true;
+    }
+    return false;
+  }
+
+  /** End of the settle beat: reveal the post-wave state — the stage win, the gene-card draft
+   * (already rolled in checkWaveEnd), or straight to the next prep on an endless no-draft wave.
+   * Pure phase flip; the battlefield is now wound down. */
   private endWave(): void {
     this.settleTimer = 0;
-    this.phase = this.mode !== 'endless' && this.waveIndex >= this.totalWaves ? 'won' : 'draft';
+    // Stage + campaign clear (win) when their wave count is reached; endless never wins.
+    if (this.mode !== 'endless' && this.waveIndex >= this.totalWaves) {
+      this.phase = 'won';
+    } else if (this.draft && this.draft.length > 0) {
+      this.phase = 'draft';
+    } else {
+      // Endless skipped this wave's draft (CARDS.md §1) — no card to offer, so go build.
+      this.phase = 'prep';
+      this.prepCountdown = AUTO_START_DELAY; // fresh countdown, like chooseCard's prep entry
+    }
   }
 
   // ── Status / reaction helpers ────────────────────────────────────────────
@@ -2854,6 +2914,13 @@ export class Game {
     if (this.mode === 'endless') {
       const nextBoss = (Math.floor(this.waveIndex / DIRECTOR.bossEvery) + 1) * DIRECTOR.bossEvery;
       out.push(`Boss at depth ${nextBoss}`);
+      // Next Gene Card depth: simulate the cadence counter forward so the slower endless drip stays
+      // anticipated, not just absent (CARDS.md §1). During a wave the current depth can still grant
+      // the card (its draft hasn't resolved); in prep that decision is already behind us.
+      let since = this.wavesSinceDraft;
+      let depth = this.phase === 'wave' ? this.waveIndex - 1 : this.waveIndex;
+      do { depth++; since++; } while (since < endlessDraftInterval(depth));
+      out.push(`Gene Card at depth ${depth}`);
       return out;
     }
     const w = Math.max(0, this.waveIndex);

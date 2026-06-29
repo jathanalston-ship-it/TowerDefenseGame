@@ -1010,7 +1010,9 @@ export const BOSS = {
 // authored WAVES (so the golden run is untouched). Tunables are illustrative.
 export const DIRECTOR = {
   baseBudget: 12, // threat points spent on wave 1 of endless
-  budgetGrowth: 0.16, // +16% budget per depth (the difficulty frontier)
+  budgetGrowth: 0.16, // +16% budget per depth — the EARLY population ramp …
+  budgetCap: 150, // … CAPPED here (~depth 18): the battlefield population plateaus, then HP/elites
+  // scale, NOT count (docs/ENDLESS-SCALING.md). Stops the biomass snowball that rode hordes to 50+.
   eliteChanceBase: 0.08, // elite promotion chance, rises with depth
   eliteChancePerDepth: 0.015,
   bossEvery: 5, // a (mini)boss caps every N endless waves
@@ -1034,6 +1036,18 @@ export const DIRECTOR = {
     siegeworm: 6, spitter: 3.5,
     apex: 10, dreadnought: 16, tyrant: 20,
   } as Record<string, number>,
+};
+
+// Endless INTENSITY curves (docs/ENDLESS-SCALING.md). Applied ONLY in endless mode — Stage keeps
+// its own linear hpMultFor/bountyMultFor, so the golden run is byte-identical. Health is geometric
+// (the PRIMARY wall, once the population caps); damage + speed rise gradually; bounty lags HP so
+// deep enemies are biomass-inefficient (income falls on long runs instead of snowballing).
+export const ENDLESS = {
+  hpGrowth: 1.12, // × enemy HP per depth (geometric → eventually outpaces any fixed DPS)
+  damageGrowth: 0.05, // +5% enemy damage per depth (linear, gradual)
+  speedGrowth: 0.004, // +0.4% enemy speed per depth …
+  speedCap: 1.5, // … clamped at +50% so the field stays readable
+  bountyGrowth: 0.03, // +3% per-enemy biomass per depth (slower than HP → diminishing income)
 };
 
 // ── Future content registry: biomes (framework only — no content yet) ────────

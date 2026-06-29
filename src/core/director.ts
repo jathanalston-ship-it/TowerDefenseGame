@@ -57,7 +57,9 @@ export class Director {
    *  docs/BIOMES.md) scales elite frequency and injects its signature kinds into the roster;
    *  omitted ⇒ unchanged behaviour (the director test + any biome-less caller stay identical). */
   next(depth: number, biome?: Biome): DirectorWave {
-    const budget = DIRECTOR.baseBudget * Math.pow(1 + DIRECTOR.budgetGrowth, depth - 1);
+    // Population saturates: the budget (→ enemy count) ramps early then CAPS, so past ~depth 18
+    // the battlefield holds a max headcount and difficulty comes from HP/elites, not more bodies.
+    const budget = Math.min(DIRECTOR.budgetCap, DIRECTOR.baseBudget * Math.pow(1 + DIRECTOR.budgetGrowth, depth - 1));
     const eliteMult = biome ? biome.mods.eliteMult : 1;
     const eliteChance = Math.min(
       0.5,
