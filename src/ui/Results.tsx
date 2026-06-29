@@ -72,6 +72,7 @@ export function Results({
     if (cacheCount > 0) rows.push({ key: 'cache', name: 'Run Cache', color: 'var(--cache)', n: cacheCount, glyph: '⬢', cache: true });
 
     const earned = outcome.loot.banked.length;
+    const lootBoxes = earned - cacheCount; // loot-queue boxes only (excludes the guaranteed cache)
     const owned = meta.pendingContainers().length;
     const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
     const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
@@ -97,6 +98,9 @@ export function Results({
               <span>Total earned <b>{earned}</b></span>
               <span>Now owned <b style={{ color: 'var(--gold)' }}>{owned}</b></span>
             </div>
+            {lootBoxes === 0 && (
+              <div className="vault-note">Only your guaranteed run cache — push deeper to fill the loot meter for rarity drops.</div>
+            )}
           </>
         )}
         <div className="loot-queue-line" style={{ marginTop: 10 }}>
