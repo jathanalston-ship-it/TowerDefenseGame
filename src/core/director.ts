@@ -54,7 +54,9 @@ export class Director {
 
   /** Produce the next endless wave for a given depth (1-based). */
   next(depth: number): DirectorWave {
-    const budget = DIRECTOR.baseBudget * Math.pow(1 + DIRECTOR.budgetGrowth, depth - 1);
+    // Population saturates: the budget (→ enemy count) ramps early then CAPS, so past ~depth 18
+    // the battlefield holds a max headcount and difficulty comes from HP/elites, not more bodies.
+    const budget = Math.min(DIRECTOR.budgetCap, DIRECTOR.baseBudget * Math.pow(1 + DIRECTOR.budgetGrowth, depth - 1));
     const eliteChance = Math.min(
       0.5,
       (DIRECTOR.eliteChanceBase + DIRECTOR.eliteChancePerDepth * depth) * this.diff.eliteChanceMult,

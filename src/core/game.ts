@@ -64,7 +64,7 @@ import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifier
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave } from './config';
+import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -789,6 +789,29 @@ export class Game {
     return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.diff.rewardMult;
   }
 
+  // ── Endless intensity curves (docs/ENDLESS-SCALING.md). Kept SEPARATE from the linear stage
+  //    curves above so the authored golden run is byte-identical; these apply ONLY in endless. ──
+
+  /** Endless enemy-HP multiplier — GEOMETRIC, the PRIMARY wall (outpaces any fixed DPS over depth). */
+  private endlessHpMult(depth: number): number {
+    return Math.pow(ENDLESS.hpGrowth, depth - 1) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
+  }
+
+  /** Endless per-enemy bounty — rises SLOWER than HP, so deep enemies are biomass-inefficient. */
+  private endlessBountyMult(depth: number): number {
+    return (1 + ENDLESS.bountyGrowth * (depth - 1)) * this.diff.rewardMult;
+  }
+
+  /** Endless enemy-speed multiplier — gradual, clamped so the field stays readable. */
+  private endlessSpeedMult(depth: number): number {
+    return Math.min(ENDLESS.speedCap, 1 + ENDLESS.speedGrowth * (depth - 1));
+  }
+
+  /** Endless enemy-damage multiplier — gradual, continuous. */
+  private endlessDamageMult(depth: number): number {
+    return 1 + ENDLESS.damageGrowth * (depth - 1);
+  }
+
   /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,
    * Swarm). Returns exactly 1 when none are equipped, so combineMult stays bit-identical
    * (the golden invariant) — every branch is gated on its neutral value. */
@@ -839,12 +862,14 @@ export class Game {
     this.waveIndex++; // = Depth
     const depth = this.waveIndex;
     const w = this.director!.next(depth);
-    const idx0 = depth - 1;
+    // Endless uses its OWN intensity curves (geometric HP, gradual bounty) — NOT the linear stage
+    // curve — so the wall behaves as docs/ENDLESS-SCALING.md describes. Speed/damage are applied
+    // per-enemy in spawnOne (also mode-gated), keyed on this depth.
     this.spawnQueue = this.spawner.scheduleDirected(
       w,
       this.time,
-      this.hpMultFor(idx0),
-      this.bountyMultFor(idx0),
+      this.endlessHpMult(depth),
+      this.endlessBountyMult(depth),
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
@@ -1008,6 +1033,11 @@ export class Game {
     const eHp = elite ? DIRECTOR.eliteHpMult : 1;
     const eDmg = elite ? DIRECTOR.eliteDmgMult : 1;
     const eBounty = elite ? DIRECTOR.eliteBountyMult : 1;
+    // Endless-only intensity: enemies get gradually faster + hit harder with depth. Mode-gated so a
+    // stage spawn is byte-identical (×1). Keyed on the current depth (= waveIndex during this wave).
+    const endless = this.mode === 'endless';
+    const eSpeed = endless ? this.endlessSpeedMult(this.waveIndex) : 1;
+    const eDmgWave = endless ? this.endlessDamageMult(this.waveIndex) : 1;
     this.enemies.push({
       id: this.nextId++,
       kind,
@@ -1016,9 +1046,9 @@ export class Game {
       hp: def.hp * hpMult * eHp,
       maxHp: def.hp * hpMult * eHp,
       baseArmor: def.armor,
-      speed: def.speed,
+      speed: def.speed * eSpeed,
       bounty: def.bounty * bountyMult * eBounty,
-      damage: def.damage * eDmg * this.diff.enemyDamageMult,
+      damage: def.damage * eDmg * this.diff.enemyDamageMult * eDmgWave,
       fracture: 0,
       corrosion: 0,
       shredFlash: 0,
