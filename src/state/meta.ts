@@ -154,7 +154,7 @@ export function starCost(stars: number): number {
 
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
-  if (stars >= STAR.maxStars) return null;
+  if (stars >= STAR.maxTowerStars) return null;
   return starCost(stars);
 }
 
@@ -420,6 +420,7 @@ export const meta = {
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
     const towerMasteryXp = { ...save.towerMasteryXp };
+    const towerKills = { ...save.towerKills }; // lifetime per-tower kills (Tower Lab "Lifetime Kills")
     const mastery = {} as Record<TowerKind, MasteryDelta>;
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
@@ -428,6 +429,7 @@ export const meta = {
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
+      towerKills[k] = (save.towerKills[k] ?? 0) + c.kills;
       mastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(towerMasteryXp[k]) };
     }
 
@@ -481,6 +483,7 @@ export const meta = {
       bestWave: Math.max(save.bestWave, result.wave),
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
+      towerKills,
       heroMasteryXp,
       stats: accumulateStats(save.stats, result.stats),
       lootQueue: lootAdv.state,
@@ -671,7 +674,7 @@ export const meta = {
   buyStar(kind: TowerKind): boolean {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
-    if (stars >= STAR.maxStars) return false;
+    if (stars >= STAR.maxTowerStars) return false;
     const cost = starCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
