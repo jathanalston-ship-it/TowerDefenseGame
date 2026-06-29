@@ -6,6 +6,7 @@ import { masteryRewardById } from '../core/mastery';
 import { RewardSequence } from './RewardSequence';
 import type { RewardLine } from './RewardSequence';
 import { BiomassIcon, ShardIcon } from './components/Icon';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function Results({
   result,
@@ -39,7 +40,7 @@ export function Results({
     { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon /> },
     { id: 'cards', label: 'Cards Collected', value: result.stats.cardIds.length },
     { id: 'mastery', label: 'Mastery Earned', value: masteryXp, format: (n) => `${n.toLocaleString()} XP` },
-    { id: 'shards', label: 'Shards Earned', value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
+    { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
     { id: 'lootbox', label: 'Containers Banked', value: outcome.loot.banked.length },
   ];
 

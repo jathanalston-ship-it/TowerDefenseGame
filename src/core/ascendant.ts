@@ -8,6 +8,7 @@
 // byte-identical.
 
 import { Registry } from './registry';
+import { ACCOUNT_CURRENCY } from './currencies';
 
 /** The economy levers a node can raise — each a multiplier that bases at ×1. */
 export type AscendantStat = 'shardGainMult' | 'biomassMult' | 'lootGainMult' | 'cellGainMult';
@@ -24,14 +25,14 @@ export interface AscendantNodeDef {
 
 /** The folded multipliers an owned tree contributes (all ×1 when nothing is bought). */
 export interface AscendantBonuses {
-  shardGainMult: number; // run-end Shards
+  shardGainMult: number; // run-end Genome Cores
   biomassMult: number; // in-run biomass income
   lootGainMult: number; // loot-queue points banked
   cellGainMult: number; // cells minted on the next Molt (compounding)
 }
 
 export const ASCENDANT_NODES: AscendantNodeDef[] = [
-  { id: 'greed', name: 'Ascendant Greed', desc: '+15% Shards earned per run, per level.', maxLevel: 10, baseCost: 3, costMult: 1.7, effect: { stat: 'shardGainMult', perLevel: 0.15 } },
+  { id: 'greed', name: 'Ascendant Greed', desc: `+15% ${ACCOUNT_CURRENCY.name} earned per run, per level.`, maxLevel: 10, baseCost: 3, costMult: 1.7, effect: { stat: 'shardGainMult', perLevel: 0.15 } },
   { id: 'metabolism', name: 'Ascendant Metabolism', desc: '+10% in-run biomass income, per level.', maxLevel: 10, baseCost: 3, costMult: 1.7, effect: { stat: 'biomassMult', perLevel: 0.1 } },
   { id: 'harvest', name: 'Ascendant Harvest', desc: '+12% loot-meter progress per run, per level.', maxLevel: 8, baseCost: 4, costMult: 1.8, effect: { stat: 'lootGainMult', perLevel: 0.12 } },
   { id: 'resonance', name: 'Ascendant Resonance', desc: '+10% Ascendant Cells minted per Molt, per level (compounds).', maxLevel: 5, baseCost: 8, costMult: 2.2, effect: { stat: 'cellGainMult', perLevel: 0.1 } },

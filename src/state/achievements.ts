@@ -1,17 +1,18 @@
 // Data-driven achievement framework — pure milestone checks over the save (+ the
 // optional last-run summary). Unlocking is recognition/feedback (and an optional
-// Shard reward); it never touches the sim or grants combat power, so it adds zero
+// Genome Cores reward); it never touches the sim or grants combat power, so it adds zero
 // gameplay drift. Add an entry to grow the set — persistence, toasts, rewards,
 // progress bars, and hidden reveals are all generic.
 //
 // Architecture (per the brief — build the framework, not hundreds of entries):
 //   • hidden   — concealed until unlocked (surprise milestones).
-//   • reward   — Shards granted once on unlock (0/absent = recognition only).
+//   • reward   — Genome Cores granted once on unlock (0/absent = recognition only).
 //   • progress — optional lifetime tracker {cur,max} → drives the panel's bar.
 //   • test     — the unlock predicate. Reads `save` (incl. lifetime `save.stats`,
 //                the statistics-system integration) and the optional run summary.
 
 import { TOWER_ORDER } from '../core/config';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 import type { SaveData } from '../save/saveStore';
 
 /** Minimal run summary (structurally a subset of RunResult — avoids a meta import). */
@@ -36,7 +37,7 @@ export interface AchievementDef {
   name: string;
   desc: string;
   hidden?: boolean; // concealed in the gallery until unlocked
-  reward?: number; // Shards granted on unlock
+  reward?: number; // Genome Cores granted on unlock
   test: (c: AchievementCtx) => boolean;
   /** Optional lifetime progress for the gallery bar (run-only goals omit it). */
   progress?: (c: AchievementCtx) => AchievementProgress;
@@ -52,7 +53,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'extract', name: 'Extraction', desc: 'Survive every wave and extract.', reward: 50, test: (c) => !!c.run?.won },
   { id: 'centurion', name: 'Centurion', desc: 'Score 100 kills in a single run.', reward: 25, test: (c) => (c.run?.kills ?? 0) >= 100 },
   { id: 'veteran', name: 'Veteran', desc: 'Complete 10 runs.', reward: 50, test: (c) => c.save.totalRuns >= 10, progress: (c) => ({ cur: c.save.totalRuns, max: 10 }) },
-  { id: 'hoarder', name: 'Hoarder', desc: 'Bank 500 lifetime Shards.', reward: 40, test: (c) => c.save.lifetimeShards >= 500, progress: (c) => ({ cur: c.save.lifetimeShards, max: 500 }) },
+  { id: 'hoarder', name: 'Hoarder', desc: `Bank 500 lifetime ${ACCOUNT_CURRENCY.name}.`, reward: 40, test: (c) => c.save.lifetimeShards >= 500, progress: (c) => ({ cur: c.save.lifetimeShards, max: 500 }) },
 
   // ── Progression (towers) ──
   { id: 'first_star', name: 'Ascendant', desc: 'Upgrade a tower to one star.', reward: 10, test: (c) => maxStars(c.save) >= 1, progress: (c) => ({ cur: maxStars(c.save), max: 1 }) },
@@ -81,7 +82,7 @@ export function achievementById(id: string): AchievementDef | undefined {
   return ACHIEVEMENTS.find((a) => a.id === id);
 }
 
-/** Total Shards a set of newly-unlocked achievements grants. */
+/** Total Genome Cores a set of newly-unlocked achievements grants. */
 export function rewardFor(defs: AchievementDef[]): number {
   return defs.reduce((sum, a) => sum + (a.reward ?? 0), 0);
 }

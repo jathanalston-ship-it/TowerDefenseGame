@@ -13,7 +13,7 @@ export interface RewardLine {
   id: string;
   label: string;
   value: number;
-  icon?: ReactNode; // optional trailing currency glyph (e.g. Biomass/Shard)
+  icon?: ReactNode; // optional trailing currency glyph (e.g. Biomass/Genome Cores)
   accent?: string; // optional CSS color for the value
   note?: string; // optional badge (e.g. "New best!")
   format?: (n: number) => string; // defaults to a locale integer
