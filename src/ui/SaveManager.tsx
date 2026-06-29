@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { meta } from '../state/meta';
 import type { BackupMeta } from '../save/saveStore';
 import { DownloadIcon, PlusIcon, UploadIcon } from './components/Icon';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function SaveManager(): JSX.Element {
   const save = meta.use(); // reactive: reflects imports/restores
@@ -29,7 +30,7 @@ export function SaveManager(): JSX.Element {
         device, or restore a snapshot.
       </div>
       <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 10 }}>
-        Current: <b style={{ color: 'var(--gold)' }}>{save.shards}</b> shards · best wave{' '}
+        Current: <b style={{ color: 'var(--gold)' }}>{save.shards}</b> {ACCOUNT_CURRENCY.name} · best wave{' '}
         {save.bestWave} · {save.totalRuns} runs
       </div>
       <div className="row">

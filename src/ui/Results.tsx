@@ -13,6 +13,7 @@ import { masteryRewardById } from '../core/mastery';
 import { RewardReveal } from './RewardReveal';
 import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal';
 import { BiomassIcon, ShardIcon } from './components/Icon';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function Results({
   result,
@@ -144,10 +145,10 @@ export function Results({
     title: 'Resources',
     icon: '◆',
     accent: 'var(--caustic)',
-    summary: `+${num(result.stats.biomassEarned)} biomass · +${num(outcome.reward.shardsEarned)} shards`,
+    summary: `+${num(result.stats.biomassEarned)} biomass · +${num(outcome.reward.shardsEarned)} ${ACCOUNT_CURRENCY.name}`,
     stats: [
       { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon />, accent: 'var(--caustic)' },
-      { id: 'shards', label: 'Shards Earned', value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
+      { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
     ],
   });
 
@@ -212,7 +213,7 @@ export function Results({
           {outcome.achievements.map((a) => (
             <div className="mu-row" key={`a-${a.id}`}>
               <span className="mu-kind mu-achv">Achv</span>
-              <span className="mu-name">{a.name}{a.reward ? ` · +${a.reward} Shards` : ''}</span>
+              <span className="mu-name">{a.name}{a.reward ? ` · +${a.reward} ${ACCOUNT_CURRENCY.name}` : ''}</span>
             </div>
           ))}
           {outcome.masteryUnlocks.titles.map((id) => (

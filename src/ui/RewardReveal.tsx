@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 const prefersReduced = (): boolean =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -133,7 +134,7 @@ function AchievementSpotlight({ a, index, total }: { a: AchievementItem; index: 
       <span className="rr-achv-icon" aria-hidden>{a.name.charAt(0).toUpperCase()}</span>
       <span className="rr-achv-body">
         <span className="rr-achv-eyebrow">
-          Achievement Unlocked{a.reward ? ` · +${a.reward} Shards` : ''}
+          Achievement Unlocked{a.reward ? ` · +${a.reward} ${ACCOUNT_CURRENCY.name}` : ''}
           {total > 1 && <span className="rr-achv-count">{index + 1}/{total}</span>}
         </span>
         <span className="rr-achv-name">{a.name}</span>

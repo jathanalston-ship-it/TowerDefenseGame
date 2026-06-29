@@ -28,7 +28,7 @@ function svg(path: JSX.Element, { size = '1em', className }: IconProps, stroke =
   );
 }
 
-/** Faceted gem — the meta Shard currency (replaces ◆ in menus). */
+/** Faceted gem — the Genome Cores account currency (replaces ◆ in menus). */
 export const ShardIcon = (p: IconProps): JSX.Element =>
   svg(
     <>

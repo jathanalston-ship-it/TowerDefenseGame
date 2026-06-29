@@ -12,6 +12,7 @@ import { meta } from '../state/meta';
 import { achievementById } from '../state/achievements';
 import type { AchievementDef } from '../state/achievements';
 import { audio } from '../audio/sound';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function AchievementToaster({ suppressed = false }: { suppressed?: boolean }): JSX.Element | null {
   const save = meta.use();
@@ -59,7 +60,7 @@ export function AchievementToaster({ suppressed = false }: { suppressed?: boolea
         <div className="achv-toast" key={`${a.id}-${i}`} onClick={() => setQueue((q) => q.slice(1))}>
           <span className="achv-icon" aria-hidden>{a.name.charAt(0).toUpperCase()}</span>
           <span className="achv-body">
-            <span className="achv-eyebrow">Achievement Unlocked{a.reward ? ` · +${a.reward} Shards` : ''}</span>
+            <span className="achv-eyebrow">Achievement Unlocked{a.reward ? ` · +${a.reward} ${ACCOUNT_CURRENCY.name}` : ''}</span>
             <span className="achv-name">{a.name}</span>
             <span className="achv-desc">{a.desc}</span>
           </span>

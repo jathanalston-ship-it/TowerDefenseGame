@@ -1,9 +1,10 @@
 // Prestige — MOLT panel (PROGRESSION.md §5.1). The "should I ascend?" decision: sacrifice
-// banked Shards + core upgrades to mint Ascendant Cells, which permanently raise the global
+// banked Genome Cores + core upgrades to mint Ascendant Cells, which permanently raise the global
 // damage multiplier (the P bucket). Trophies (stars, mastery, gear, shards) are kept. Reads
 // the reactive save store; the action goes through meta.molt.
 
 import { meta } from '../state/meta';
+import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function PrestigePanel(): JSX.Element {
   meta.use(); // re-render when the save changes
@@ -11,7 +12,7 @@ export function PrestigePanel(): JSX.Element {
 
   const onMolt = (): void => {
     if (!p.canMolt) return;
-    if (confirm(`Molt for +${p.gain} Ascendant Cells?\n\nThis RESETS your banked Shards and core upgrades. Everything else — stars, mastery, gear, shards, loot — is kept.`)) {
+    if (confirm(`Molt for +${p.gain} Ascendant Cells?\n\nThis RESETS your banked ${ACCOUNT_CURRENCY.name} and core upgrades. Everything else — stars, mastery, gear, shards, loot — is kept.`)) {
       meta.molt();
     }
   };
@@ -20,7 +21,7 @@ export function PrestigePanel(): JSX.Element {
     <div className="panel">
       <div className="panel-title">Ascension · Molt</div>
       <div className="panel-sub">
-        Sacrifice your banked Shards &amp; core upgrades to mint <b>Ascendant Cells</b> — a permanent,
+        Sacrifice your banked {ACCOUNT_CURRENCY.name} &amp; core upgrades to mint <b>Ascendant Cells</b> — a permanent,
         compounding global damage multiplier. Stars, mastery, gear and shard currencies are kept.
       </div>
 
@@ -41,11 +42,11 @@ export function PrestigePanel(): JSX.Element {
 
       <div className="reward" style={{ marginTop: 12 }}>
         Molt now mints <b style={{ color: 'var(--viral)' }}>+{p.gain}</b> Cell{p.gain === 1 ? '' : 's'}
-        <span className="hud-sub"> · this cycle: {Math.floor(p.cycleShards)} shards earned</span>
+        <span className="hud-sub"> · this cycle: {Math.floor(p.cycleShards)} {ACCOUNT_CURRENCY.name} earned</span>
       </div>
 
       <button className="primary" style={{ marginTop: 10 }} disabled={!p.canMolt} onClick={onMolt}>
-        {p.canMolt ? `Molt (+${p.gain} Cells)` : 'Molt — earn more Shards first'}
+        {p.canMolt ? `Molt (+${p.gain} Cells)` : `Molt — earn more ${ACCOUNT_CURRENCY.name} first`}
       </button>
 
       {(() => {
