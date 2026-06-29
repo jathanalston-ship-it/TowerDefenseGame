@@ -56,6 +56,13 @@ export function App(): JSX.Element {
     setScreen('results');
   }, []);
 
+  // Abandon: forfeit ALL rewards and go straight to the menu — NO finishRun, and roll back the
+  // run's live-banked loot. The deliberate opposite of handleEnd.
+  const handleAbandon = useCallback(() => {
+    meta.abandonRun();
+    setScreen('menu');
+  }, []);
+
   const toMenu = useCallback(() => setScreen('menu'), []);
 
   const debugOn = isDebugEnabled();
@@ -82,6 +89,7 @@ export function App(): JSX.Element {
           difficulty={difficultyRef.current}
           doctrine={doctrineRef.current}
           onEnd={handleEnd}
+          onAbandon={handleAbandon}
         />
       )}
       {screen === 'results' && last && (

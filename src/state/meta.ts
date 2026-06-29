@@ -417,6 +417,24 @@ export const meta = {
    * convert per-kind usage into permanent mastery XP, and open the run-end chest
    * (granting tower/hero shards). Returns the full reward bundle for the Results UI.
    */
+  /**
+   * Abandon the current run and FORFEIT all of its rewards. We never call finishRun, so none of
+   * its banking happens (no Genome Cores, mastery XP, hero kills, lifetime stats, run cache, prestige
+   * cycle, or achievements). We also roll back the loot the run banked LIVE via syncRunLoot — the
+   * completed containers are removed from the Vault and the cycle counters reset — so the player
+   * truly walks away with nothing. (The seen-a-boss codex tick is a discovery record, not a reward,
+   * and is left as-is.)
+   */
+  abandonRun(): void {
+    const save = store.get();
+    if (runContainersBanked.length > 0) {
+      const drop = new Set<PendingContainer>(runContainersBanked);
+      persist({ ...save, pendingContainers: save.pendingContainers.filter((c) => !drop.has(c)) });
+    }
+    runLootBanked = 0; // re-arm the live-bank cycle for the next run
+    runContainersBanked = [];
+  },
+
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)

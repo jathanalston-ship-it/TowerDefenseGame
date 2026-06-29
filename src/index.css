@@ -3937,9 +3937,16 @@ kbd {
 }
 @keyframes pause-in { from { opacity: 0; } to { opacity: 1; } }
 .pause-card { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
-.pause-title { font-size: clamp(44px, 9vw, 76px); font-weight: 900; letter-spacing: 0.22em; color: var(--text); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7); }
+.pause-title { font-size: clamp(40px, 8vw, 60px); line-height: 1.1; margin: 0; font-weight: 900; letter-spacing: 0.22em; color: var(--text); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7); }
 .pause-card .primary { min-width: 170px; }
 .pause-hint { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.pause-abandon { min-width: 170px; padding: 9px 18px; border-radius: var(--r-sm); cursor: pointer; font-weight: 700; background: transparent; border: 1px solid rgba(255, 93, 115, 0.5); color: var(--danger); }
+.pause-abandon:hover { background: rgba(255, 93, 115, 0.12); border-color: var(--danger); }
+.pause-warn { max-width: 340px; font-size: 13px; line-height: 1.5; color: var(--text); }
+.pause-warn b { color: var(--danger); }
+.pause-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.pause-row button { padding: 9px 16px; border-radius: var(--r-sm); cursor: pointer; font-weight: 700; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); }
+.pause-row .set-danger { margin-top: 0; min-width: 150px; }
 @media (prefers-reduced-motion: reduce) { .pause-overlay { animation: none; } }
 
 /* ═══ HERO LAB — Champion Select (HEROES.md) ════════════════════════════════════ */
