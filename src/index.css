@@ -3875,3 +3875,24 @@ kbd {
 .branch-confirm-btns button { flex: 1; padding: 10px; border-radius: 7px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05); color: var(--text); }
 .branch-confirm-btns .primary { background: var(--r-legendary); color: #1a1206; border-color: var(--r-legendary); }
 .branch-confirm-btns button:hover { filter: brightness(1.1); }
+
+/* In-game pause — a floating button (top-right of the board) + a PAUSED overlay over the board.
+   z above boss-banner (40) / mutation-fx (45) so it covers the battlefield while frozen. */
+.pause-btn {
+  position: absolute; top: 10px; right: 10px; z-index: 48;
+  padding: 7px 13px; font-size: 13px; font-weight: 700; letter-spacing: 0.03em;
+  background: rgba(8, 12, 20, 0.72); border: 1px solid var(--line-strong); color: var(--text);
+  border-radius: var(--r-sm); backdrop-filter: blur(3px);
+}
+.pause-btn:hover:not(:disabled) { border-color: var(--text); background: rgba(8, 12, 20, 0.9); }
+.pause-overlay {
+  position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; cursor: pointer;
+  background: rgba(4, 8, 14, 0.62); backdrop-filter: blur(3px);
+  animation: pause-in 0.18s ease-out both;
+}
+@keyframes pause-in { from { opacity: 0; } to { opacity: 1; } }
+.pause-card { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.pause-title { font-size: clamp(44px, 9vw, 76px); font-weight: 900; letter-spacing: 0.22em; color: var(--text); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7); }
+.pause-card .primary { min-width: 170px; }
+.pause-hint { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { .pause-overlay { animation: none; } }
