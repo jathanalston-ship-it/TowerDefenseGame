@@ -5,6 +5,7 @@
 //   • otherwise → hero status + a live run summary so the panel is never dead space.
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
@@ -116,7 +117,9 @@ export function Inspector({
 
         <button className="branch-done" onClick={onDeselect}>Done</button>
 
-        {confirm && (
+        {/* Portal to <body> so the modal is a true screen-centered pop-up — rendering it inside the
+            transformed/animated sidebar trapped `position: fixed` to the sidebar (warped + cut off). */}
+        {confirm && createPortal(
           <div className="branch-confirm-overlay" onClick={() => setConfirm(null)}>
             <div className="branch-confirm" onClick={(e) => e.stopPropagation()}>
               <h3>Splice the {confirm.name} strain?</h3>
@@ -137,7 +140,8 @@ export function Inspector({
                 <button onClick={() => setConfirm(null)}>Cancel</button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body,
         )}
       </aside>
     );

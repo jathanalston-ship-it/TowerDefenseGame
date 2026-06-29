@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import { drawGame } from '../render/renderer';
@@ -66,6 +66,13 @@ export function GameView({
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
+  // Pause: freezes the sim (the rAF loop skips advance) — both a hotkey (P) and a button drive it.
+  // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
+  const pausedRef = useRef(false);
+  const [paused, setPaused] = useState(false);
+  const togglePause = useCallback(() => {
+    setPaused((p) => { pausedRef.current = !p; return !p; });
+  }, []);
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
   const pointerRef = useRef<Pointer | null>(null);
@@ -103,6 +110,10 @@ export function GameView({
 
     const loop = (now: number): void => {
       try {
+        // Paused: keep the loop alive (so resume is instant) but skip the sim + render. Advancing
+        // `last` here means resume doesn't fast-forward by the whole pause duration. The canvas
+        // keeps its last-drawn frame; the React PAUSED overlay covers the board.
+        if (pausedRef.current) { last = now; raf = requestAnimationFrame(loop); return; }
         const dt = (now - last) / 1000;
         last = now;
         // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
@@ -199,6 +210,7 @@ export function GameView({
       // Board hotkeys only during active play — the draft owns the keyboard while open.
       if (game.phase !== 'prep' && game.phase !== 'wave') return;
       const k = e.key;
+      if (k === 'p' || k === 'P') { togglePause(); return; }
       if (k >= '1' && k <= String(TOWER_ORDER.length)) {
         const kind = TOWER_ORDER[Number(k) - 1];
         game.selectTower(game.selectedTower === kind ? null : kind);
@@ -217,7 +229,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game]);
+  }, [game, togglePause]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -276,6 +288,32 @@ export function GameView({
           }}
         />
         <BuildControls game={game} hud={hud} refresh={refresh} />
+        {(hud.phase === 'prep' || hud.phase === 'wave') && (
+          <button
+            className="pause-btn"
+            onClick={togglePause}
+            title={paused ? 'Resume (P)' : 'Pause (P)'}
+            aria-label={paused ? 'Resume' : 'Pause'}
+          >
+            {paused ? '▶ Resume' : '❚❚ Pause'}
+          </button>
+        )}
+        {paused && (
+          <div
+            className="pause-overlay"
+            role="button"
+            tabIndex={0}
+            aria-label="Resume"
+            onClick={togglePause}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePause(); } }}
+          >
+            <div className="pause-card">
+              <div className="pause-title">PAUSED</div>
+              <button className="primary" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
+              <div className="pause-hint">Press P or click anywhere to resume</div>
+            </div>
+          </div>
+        )}
         {hud.bossBanner && (
           <div className="boss-banner">
             <div className="boss-banner-row">

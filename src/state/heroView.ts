@@ -15,7 +15,7 @@ import {
   masteryRewardsBetween,
 } from '../core/mastery';
 import type { MasteryPerk } from '../core/mastery';
-import { itemDef, SLOT_LABELS } from '../core/equipment';
+import { itemDef, loadoutScore, SLOT_LABELS } from '../core/equipment';
 import type { EquipSlot, Rarity } from '../core/equipment';
 import { heroLore } from '../core/heroLore';
 import type { HeroLore } from '../core/heroLore';
@@ -45,7 +45,9 @@ export interface HeroDetailView {
   canBuyStar: boolean;
   dmgPct: number;
   cdPct: number;
-  mastery: { level: number; into: number; need: number; rank: number; rankTitle: string };
+  equipScore: number; // account gear score (the shared loadout)
+  powerRating: number; // one legible number: stars × mastery × gear
+  mastery: { level: number; into: number; need: number; rank: number; rankTitle: string; nextRankLevel: number; nextRankTitle: string };
   runs: number; // runs fielded with this hero
   kills: number; // lifetime kills by this hero
   favoriteEquip: string | null; // most-run gear name with this hero
@@ -81,6 +83,7 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
   const cost = nextHeroStarCost(save, kind);
   const mp = masteryProgress(save.heroMasteryXp[kind] ?? 0);
   const rank = masteryRank(mp.level);
+  const equipScore = loadoutScore(save.equipment.inventory, save.equipment.loadout);
 
   const nextUnlocks: FutureUnlock[] = [];
   if (cost !== null) {
@@ -91,7 +94,8 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
     });
   }
   const nextRankLevel = (rank + 1) * MASTERY_RANK_EVERY;
-  nextUnlocks.push({ kind: 'Rank', label: masteryRankTitle(nextRankLevel), detail: `at Mastery Lv ${nextRankLevel}` });
+  const nextRankTitle = masteryRankTitle(nextRankLevel);
+  nextUnlocks.push({ kind: 'Rank', label: nextRankTitle, detail: `at Mastery Lv ${nextRankLevel}` });
   const nextReward = masteryRewardsBetween('hero', kind, mp.level, Number.MAX_SAFE_INTEGER)[0];
   if (nextReward) {
     nextUnlocks.push({ kind: nextReward.kind === 'title' ? 'Title' : 'Lore', label: nextReward.name, detail: `at Mastery Lv ${nextReward.at}` });
@@ -108,7 +112,9 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
     canBuyStar: cost !== null && shards >= cost,
     dmgPct: Math.round((prog.damageMult - 1) * 100),
     cdPct: Math.round((1 - prog.cooldownMult) * 100),
-    mastery: { level: mp.level, into: mp.into, need: mp.need, rank, rankTitle: masteryRankTitle(mp.level) },
+    equipScore,
+    powerRating: Math.round(prog.damageMult * (100 + equipScore)),
+    mastery: { level: mp.level, into: mp.into, need: mp.need, rank, rankTitle: masteryRankTitle(mp.level), nextRankLevel, nextRankTitle },
     runs: save.stats.heroUsage[kind] ?? 0,
     kills: save.heroKills[kind] ?? 0,
     favoriteEquip: favoriteEquipName(save.heroFavEquip[kind]),
