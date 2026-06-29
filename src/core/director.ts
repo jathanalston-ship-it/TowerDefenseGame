@@ -10,6 +10,7 @@
 import { DIRECTOR } from './config';
 import { STANDARD } from './difficulty';
 import type { DifficultyDef } from './difficulty';
+import type { Biome } from './biomes';
 import type { EnemyKind } from './types';
 
 export type WaveShape = 'swarm' | 'armored' | 'mixed' | 'rush' | 'elite' | 'air' | 'siege' | 'horror' | 'boss';
@@ -52,19 +53,22 @@ export class Director {
   // scalars; at Standard (identity) the Director behaves exactly as before.
   constructor(private rng: Rng, private diff: DifficultyDef = STANDARD) {}
 
-  /** Produce the next endless wave for a given depth (1-based). */
-  next(depth: number): DirectorWave {
+  /** Produce the next endless wave for a given depth (1-based). The active biome (Infinite mode,
+   *  docs/BIOMES.md) scales elite frequency and injects its signature kinds into the roster;
+   *  omitted ⇒ unchanged behaviour (the director test + any biome-less caller stay identical). */
+  next(depth: number, biome?: Biome): DirectorWave {
     const budget = DIRECTOR.baseBudget * Math.pow(1 + DIRECTOR.budgetGrowth, depth - 1);
+    const eliteMult = biome ? biome.mods.eliteMult : 1;
     const eliteChance = Math.min(
       0.5,
-      (DIRECTOR.eliteChanceBase + DIRECTOR.eliteChancePerDepth * depth) * this.diff.eliteChanceMult,
+      (DIRECTOR.eliteChanceBase + DIRECTOR.eliteChancePerDepth * depth) * this.diff.eliteChanceMult * eliteMult,
     );
     // Difficulty scales how often a (mini)boss caps a wave (>1 = more often).
     const bossEvery = Math.max(1, Math.round(DIRECTOR.bossEvery / this.diff.bossFrequencyMult));
 
     // Boss cadence: a procedural (mini)boss caps the wave, escorted by light chaff.
     if (depth % bossEvery === 0) {
-      const escort = this.spend(budget * 0.4, 'mixed', eliteChance);
+      const escort = this.spend(budget * 0.4, 'mixed', eliteChance, biome);
       this.lastShape = 'boss';
       return { depth, shape: 'boss', groups: escort, spawnBoss: true, swarmEvent: false, eliteChance };
     }
@@ -76,13 +80,15 @@ export class Director {
     this.lastShape = shape;
 
     const swarmEvent = depth % DIRECTOR.swarmEvery === 0;
-    const groups = this.spend(budget, shape, shape === 'elite' ? Math.max(eliteChance, 0.5) : eliteChance);
+    const groups = this.spend(budget, shape, shape === 'elite' ? Math.max(eliteChance, 0.5) : eliteChance, biome);
     return { depth, shape, groups, spawnBoss: false, swarmEvent, eliteChance };
   }
 
-  /** Greedily spend a threat budget on a shape's roster into enemy groups. */
-  private spend(budget: number, shape: Exclude<WaveShape, 'boss'>, eliteChance: number): DirectorGroup[] {
-    const roster = ROSTER[shape];
+  /** Greedily spend a threat budget on a shape's roster into enemy groups. The biome's signature
+   *  kinds are appended to the shape roster so biome-exclusive enemies surface in Infinite waves. */
+  private spend(budget: number, shape: Exclude<WaveShape, 'boss'>, eliteChance: number, biome?: Biome): DirectorGroup[] {
+    const sig = biome?.mods.signature ?? [];
+    const roster = sig.length > 0 ? [...ROSTER[shape], ...sig] : ROSTER[shape];
     const counts = new Map<EnemyKind, { n: number; elite: number }>();
     let remaining = budget;
     let guard = 0;

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
+import { biomeById } from '../core/biomes';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { BRANCH_COLOR } from '../render/towerEvolution';
@@ -85,6 +86,7 @@ export function GameView({
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
+  const biomeRef = useRef(''); // last biome id seen by the loop → re-voices the ambient drone on a change
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
@@ -150,8 +152,16 @@ export function GameView({
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.save();
         ctx.translate(dx, dy);
-        drawGame(ctx, game.getRenderState(), pointerRef.current, cosmeticTiers);
+        const rs = game.getRenderState();
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers);
         ctx.restore();
+
+        // Biome transition → re-voice the ambient drone (the audio half of the ecosystem change;
+        // the transition STING rides the sfx queue above). Cheap; only fires when the id changes.
+        if (rs.biome.id !== biomeRef.current) {
+          biomeRef.current = rs.biome.id;
+          audio.setBiome(biomeById(rs.biome.id).ambient);
+        }
 
         // Ambient bed intensifies with pressure (enemies massing + a wounded core).
         const intRatio = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;

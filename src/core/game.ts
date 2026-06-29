@@ -74,6 +74,8 @@ import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
 import { resolveDifficulty } from './difficulty';
 import type { StageConfig } from './campaign';
+import { NEUTRAL_BIOME, biomeForDepth, hazardActive } from './biomes';
+import type { Biome } from './biomes';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
 import { combineMult } from './modifiers';
@@ -210,6 +212,11 @@ export interface RenderState {
   // Per-kind EFFECTIVE range (base × identity rangeMult) so the range preview/selection
   // shows the tower's TRUE reach, including mastery upgrades (docs/RANGE.md §6/§8).
   effectiveRanges: Record<TowerKind, number>;
+  // Biome (docs/BIOMES.md) — the renderer tints the arena to the biome accent, flashes on a
+  // transition, and pulses a hazard telegraph. Stage mode reports NEUTRAL_BIOME.
+  biome: { id: string; name: string; accent: string };
+  biomeFlash: number; // 0..1 transition flash (Infinite); 0 in Stage/Campaign steady state
+  hazardActive: boolean; // the biome's hazard pulse is firing right now (telegraph)
 }
 
 /** A timed, run-wide friendly buff (the `buff` ability primitive). Keyed by `stat`; the
@@ -235,6 +242,11 @@ export class Game {
   // The campaign stage this run plays (null for stage/endless) — drives the finale + mini boss.
   private readonly stage: StageConfig | null;
   private readonly stageSpeedMult: number; // enemy-speed scalar (campaign per-stage; 1 otherwise → golden-safe)
+  // The active biome (docs/BIOMES.md): its mechanical modifiers are read at the spawn/tower/hero/
+  // hazard hooks below. Campaign = the stage's biome (fixed); Infinite = rotates by depth; Stage =
+  // NEUTRAL_BIOME (identity ×1/+0/no-hazard ⇒ every biome read is byte-identical → golden-safe).
+  private activeBiome: Biome;
+  private biomeFlash = 0; // render-only: eased 1→0 after an Infinite-mode biome transition (surfaced via RenderState)
   // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
   private readonly diff: DifficultyDef;
   // Spawn Director: owns spawn spacing/timing/pacing/elite/boss/special-event scheduling.
@@ -375,6 +387,9 @@ export class Game {
     this.waves = this.stage ? this.stage.waves : WAVES;
     this.totalWaves = this.waves.length;
     this.stageSpeedMult = this.stage ? this.stage.enemySpeedMult : 1;
+    // Biome: Campaign uses the stage's fixed biome; Infinite seeds the first biome (rotates as the
+    // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
+    this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
     if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
@@ -819,6 +834,25 @@ export class Game {
     return out;
   }
 
+  // ── Biome hooks (docs/BIOMES.md). All reduce to identity under NEUTRAL_BIOME (Stage mode). ──
+  /** Tower fire-rate factor: the biome's steady modifier × its active hazard pulse (1 in Stage). */
+  private biomeTowerRate(): number {
+    const m = this.activeBiome.mods;
+    return m.towerFireRateMult * (hazardActive(this.activeBiome, this.time) ? m.hazard.towerRateMult : 1);
+  }
+  /** Enemy-speed factor from the active hazard pulse only (the steady biome speed is baked at spawn). */
+  private biomeHazardEnemySpeed(): number {
+    return hazardActive(this.activeBiome, this.time) ? this.activeBiome.mods.hazard.enemySpeedMult : 1;
+  }
+  /** Switch the active biome; on a CHANGE (Infinite transition) telegraph it (sting + render flash)
+   *  so crossing into a new ecosystem is seen and heard (BIOMES.md §5). No-op when unchanged. */
+  private enterBiome(b: Biome): void {
+    if (b.id === this.activeBiome.id) return;
+    this.activeBiome = b;
+    this.biomeFlash = 1;
+    this.pushSfx('biome');
+  }
+
   startWave(): void {
     if (this.phase !== 'prep') return;
     if (this.mode === 'endless') {
@@ -857,7 +891,8 @@ export class Game {
   private startEndlessWave(): void {
     this.waveIndex++; // = Depth
     const depth = this.waveIndex;
-    const w = this.director!.next(depth);
+    this.enterBiome(biomeForDepth(depth)); // Infinite: rotate ecosystems as the run goes deep
+    const w = this.director!.next(depth, this.activeBiome);
     const idx0 = depth - 1;
     this.spawnQueue = this.spawner.scheduleDirected(
       w,
@@ -925,6 +960,7 @@ export class Game {
 
   advance(dtReal: number): void {
     if (this.paused) return;
+    if (this.biomeFlash > 0) this.biomeFlash = Math.max(0, this.biomeFlash - dtReal * 0.7); // render-only transition ease (~1.4s)
     const scale = this.timeScale;
     this.acc += Math.min(dtReal * scale, 0.25 * scale); // clamp avoids spiral-of-death
     const cap = 8 * Math.max(1, Math.ceil(scale)); // allow extra steps when fast-forwarding
@@ -1027,17 +1063,21 @@ export class Game {
     const eHp = elite ? DIRECTOR.eliteHpMult : 1;
     const eDmg = elite ? DIRECTOR.eliteDmgMult : 1;
     const eBounty = elite ? DIRECTOR.eliteBountyMult : 1;
+    // Biome enemy modifiers (docs/BIOMES.md) — baked once at spawn so a unit keeps its BIRTH
+    // biome's stats after an Infinite transition. Identity under NEUTRAL_BIOME ⇒ golden-safe.
+    const bm = this.activeBiome.mods;
+    const hp = def.hp * hpMult * eHp * bm.enemyHpMult;
     this.enemies.push({
       id: this.nextId++,
       kind,
       x: spawn.x,
       y: spawn.y,
-      hp: def.hp * hpMult * eHp,
-      maxHp: def.hp * hpMult * eHp,
-      baseArmor: def.armor,
-      speed: def.speed * this.stageSpeedMult, // campaign per-stage speed scalar (×1 otherwise → golden-safe)
-      bounty: def.bounty * bountyMult * eBounty,
-      damage: def.damage * eDmg * this.diff.enemyDamageMult,
+      hp,
+      maxHp: hp,
+      baseArmor: def.armor + bm.enemyArmorBonus,
+      speed: def.speed * this.stageSpeedMult * bm.enemySpeedMult, // campaign per-stage × biome (×1 in Stage → golden-safe)
+      bounty: def.bounty * bountyMult * eBounty * bm.bountyMult,
+      damage: def.damage * eDmg * this.diff.enemyDamageMult * bm.enemyDamageMult,
       fracture: 0,
       corrosion: 0,
       shredFlash: 0,
@@ -1229,7 +1269,10 @@ export class Game {
     for (const e of this.enemies) {
       if (!e.alive) continue;
       const def = ENEMY_DEFS[e.kind];
-      if (def.regenPerSec) e.hp = Math.min(e.maxHp, e.hp + def.regenPerSec * dt); // Regenerating
+      // Regen = the enemy's own trait + the biome's ambient regen (Necrotic Mire). The biome term
+      // is 0 under NEUTRAL_BIOME, so this is byte-identical to `def.regenPerSec` on the golden path.
+      const regen = (def.regenPerSec ?? 0) + this.activeBiome.mods.enemyRegenFrac * e.maxHp;
+      if (regen > 0) e.hp = Math.min(e.maxHp, e.hp + regen * dt); // Regenerating
       if (def.auraRadius) this.supportAura(e, def, dt); // Support
       if (def.summon) {
         e.summonCd = (e.summonCd ?? def.summon.interval) - dt; // Summoner
@@ -1350,9 +1393,13 @@ export class Game {
           heroDmgAura = 1 + this.mods.heroTowerDamageAura;
         }
       }
-      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1);
+      // Biome efficiency (docs/BIOMES.md): a per-combat-class damage × that shifts which class
+      // shines, and a fire-rate × (steady + hazard pulse). Applied OUTSIDE combineMult so the
+      // identity (×1 under NEUTRAL_BIOME) is IEEE-exact ⇒ Stage mode stays byte-identical.
+      const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
+      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate();
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg;
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -1688,7 +1735,9 @@ export class Game {
       if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
       // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
       const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
-      const step = e.speed * chargeMult * (1 - slow) * dt;
+      // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
+      // 1 when no hazard is active / Stage mode ⇒ golden-safe.
+      const step = e.speed * chargeMult * this.biomeHazardEnemySpeed() * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -1880,7 +1929,7 @@ export class Game {
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
-      const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
       const applied = this.applyDamage(target, dmg);
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
@@ -1908,7 +1957,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = target.x;
     this.castScratch.y = target.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = target;
     this.castScratch.pierce = 0;
     this.castRangeMult = 1;
@@ -2002,7 +2051,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = h.x;
     this.castScratch.y = h.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
@@ -2072,14 +2121,14 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = px;
     this.castScratch.y = py;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     this.castRangeMult = this.mods.heroAbilityRadiusMult; // ABILITIES gear: scale the ability AoE
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     this.castRangeMult = 1;
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
-    h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
+    h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
   }
@@ -2741,6 +2790,9 @@ export class Game {
       emergencyFocusX: this.emergencyFocusX,
       emergencyFocusY: this.emergencyFocusY,
       effectiveRanges: this.towerEffectiveRange,
+      biome: { id: this.activeBiome.id, name: this.activeBiome.name, accent: this.activeBiome.accent },
+      biomeFlash: this.biomeFlash,
+      hazardActive: hazardActive(this.activeBiome, this.time),
     };
   }
 
@@ -2764,7 +2816,7 @@ export class Game {
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
-        abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
+        abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
       },
       enemiesAlive: this.enemies.length,
       emergency: this.emergencyActive,
@@ -2780,6 +2832,14 @@ export class Game {
           ? { id: this.mutation.id, title: this.mutation.title, sub: this.mutation.sub, branchId: this.mutation.branchId, color: this.mutation.color }
           : null,
       endless: this.mode === 'endless',
+      biome: {
+        id: this.activeBiome.id,
+        name: this.activeBiome.name,
+        accent: this.activeBiome.accent,
+        modifier: this.activeBiome.modifierName,
+        hazardName: this.activeBiome.mods.hazard.name,
+        hazardActive: hazardActive(this.activeBiome, this.time),
+      },
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
       autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
@@ -2836,7 +2896,7 @@ export class Game {
 
   /** Assemble + register + spawn a procedural boss at a Threat Level (director/endless). */
   spawnProceduralBoss(tl: number): void {
-    const def = assembleBoss(() => this.rng.next(), tl);
+    const def = assembleBoss(() => this.rng.next(), tl, this.activeBiome.mods.bossChassisBias);
     this.procBosses.set(def.id, def);
     this.spawnBoss(def);
   }
