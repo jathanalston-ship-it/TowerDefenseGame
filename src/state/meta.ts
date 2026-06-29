@@ -247,6 +247,10 @@ export interface RunResult {
   heroMastery: HeroMasteryCounts; // per-hero usage (from Game.getHeroMasteryAccrual)
   stats: RunStats; // raw run statistics (from Game.getRunStats) — folded into lifetime stats
   endless?: boolean; // Endless (AI Director) mode run
+  // ── Campaign (procedural progression) — set by App for a 'campaign' run ──
+  campaignStage?: number; // the stage number played (winning it unlocks the next)
+  difficulty?: string; // the difficulty variant id (the per-difficulty campaign track)
+  rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
 }
 
 export interface RunReward {
@@ -438,9 +442,10 @@ export const meta = {
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
+    const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
 
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult);
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult);
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -478,7 +483,7 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult);
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
@@ -515,6 +520,12 @@ export const meta = {
     }
     heroFavEquip[fielded] = fieldedEquip;
 
+    // Campaign: clearing a stage permanently unlocks the next (highest CLEARED per difficulty id).
+    const campDiff = result.difficulty ?? 'standard';
+    const nextCampaign = result.campaignStage && result.won
+      ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
+      : save.campaign;
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -533,6 +544,7 @@ export const meta = {
       unlockedLore,
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
+      campaign: nextCampaign,
     });
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
     runContainersBanked = [];

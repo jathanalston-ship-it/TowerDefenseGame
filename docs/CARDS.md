@@ -43,8 +43,32 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 
 ## 1. Draft mechanics
 
-- **Draft cadence.** After each wave (and at **Gene Lab** route nodes) you draft
-  **1 of 3** cards. Over a ~35-wave run that's ~20–35 cards — your temporary build.
+- **Draft cadence — mode-dependent.** You draft **1 of 3** cards (and at **Gene
+  Lab** route nodes). *When* a draft is offered depends on the run mode:
+  - **Campaign (stage): every wave.** All 12 authored waves grant a draft —
+    campaign is deliberately **generous** (the power-fantasy on-ramp), so a
+    full clear yields ~12 cards plus any Gene Lab nodes.
+  - **Infinite (endless): a widening drip.** Cards become **progressively less
+    frequent** with depth so they stay *exciting* instead of *expected*, and so
+    deep runs lean on **permanent progression** (tower upgrades, hero equipment,
+    Mastery, Stars, prestige) rather than endless Gene Card stacking. The gap
+    between drafts grows in 5-wave bands, capped at 5:
+
+    | Depth | Cadence | Gap (waves between cards) |
+    |---|---|---|
+    | 1–5 | every wave | 1 |
+    | 6–10 | every 2 waves | 2 |
+    | 11–15 | every 3 waves | 3 |
+    | 16–20 | every 4 waves | 4 |
+    | 21+ | every 5 waves (cap) | 5 |
+
+    Formally `interval(depth) = min(5, ceil(depth / 5))`. The implementation
+    counts **waves since the last draft** and offers a card once that reaches
+    the current depth's `interval` (a counter, not `depth % interval`), so the
+    gap never momentarily *shrinks* at a band boundary — it only ever widens.
+    Concretely, drafts land on depths **1·2·3·4·5·7·9·12·15·19·24·29·34…**
+    (gaps `1·1·1·1·2·2·3·3·4·5·5·5…`). The exact curve is a balance tunable.
+  - Over a ~35-wave run that's ~12–35 cards depending on mode — your temporary build.
 - **Stacking.** Duplicate cards **stack** (additively within their effect) — drafting
   toward a stack is a core strategy. A few Legendaries are unique (no stack).
 - **Reroll** — reroll the 3 options (limited charges; +charges from economy cards /

@@ -453,6 +453,7 @@ export interface SpawnGroup {
   count: number;
   spacing: number; // seconds between spawns in this group
   delay: number; // seconds before the group starts
+  elite?: boolean; // promote this group to elites (campaign generator); absent ⇒ false (golden-safe)
 }
 export type WaveDef = SpawnGroup[];
 

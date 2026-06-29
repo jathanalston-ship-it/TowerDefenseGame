@@ -12,6 +12,7 @@ import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { PlayScreen } from './PlayScreen';
+import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
 import { EquipmentPanel } from './EquipmentPanel';
@@ -24,10 +25,11 @@ import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 
-type NavKey = 'play' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
+type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
 
 const NAV: { key: NavKey; label: string; mono: string }[] = [
   { key: 'play', label: 'Play', mono: '▶' },
+  { key: 'campaign', label: 'Campaign', mono: '⬡' },
   { key: 'towers', label: 'Towers', mono: 'T' },
   { key: 'heroes', label: 'Heroes', mono: 'H' },
   { key: 'vault', label: 'Genetic Vault', mono: '◈' },
@@ -96,11 +98,13 @@ function SettingsScreen(): JSX.Element {
 export function Hub({
   onStart,
   onStartEndless,
+  onStartCampaign,
   difficultyRef,
   doctrineRef,
 }: {
   onStart: () => void;
   onStartEndless: () => void;
+  onStartCampaign: (stage: number) => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -159,6 +163,7 @@ export function Hub({
           {nav === 'play' && (
             <PlayScreen onStart={onStart} onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
+          {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && (
             <div className="heroes-screen">

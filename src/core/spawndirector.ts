@@ -50,7 +50,7 @@ export class SpawnDirector {
     for (const group of def) {
       const spacing = group.spacing / rateMult;
       for (let i = 0; i < group.count; i++) {
-        out.push({ kind: group.kind, at: now + group.delay + i * spacing, hpMult, bountyMult });
+        out.push({ kind: group.kind, at: now + group.delay + i * spacing, hpMult, bountyMult, elite: group.elite });
       }
     }
     out.sort((a, b) => a.at - b.at);
