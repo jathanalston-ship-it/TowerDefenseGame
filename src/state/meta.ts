@@ -476,6 +476,20 @@ export const meta = {
     const unlockedTitles = newTitles.length ? Array.from(new Set([...save.unlockedTitles, ...newTitles])) : save.unlockedTitles;
     const unlockedLore = newLore.length ? Array.from(new Set([...save.unlockedLore, ...newLore])) : save.unlockedLore;
 
+    // 7. Per-hero ownership stats: the FIELDED hero banks the kills it scored and the gear it
+    //    ran with (drives the Hero Lab's lifetime kills + favorite equipment). Only slot 1
+    //    fights, so only that hero accrues. Runs-per-hero already ride accumulateStats(heroUsage).
+    const fielded = save.selectedHero;
+    const heroKills = { ...save.heroKills, [fielded]: (save.heroKills[fielded] ?? 0) + (result.heroMastery[fielded]?.kills ?? 0) };
+    const heroFavEquip = { ...save.heroFavEquip };
+    const fieldedEquip = { ...(heroFavEquip[fielded] ?? {}) };
+    for (const slot of ['weapon', 'armor', 'relic'] as const) {
+      const uid = save.equipment.loadout[slot];
+      const it = uid ? save.equipment.inventory.find((i) => i.uid === uid) : null;
+      if (it) fieldedEquip[it.defId] = (fieldedEquip[it.defId] ?? 0) + 1;
+    }
+    heroFavEquip[fielded] = fieldedEquip;
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -485,6 +499,8 @@ export const meta = {
       towerMasteryXp,
       towerKills,
       heroMasteryXp,
+      heroKills,
+      heroFavEquip,
       stats: accumulateStats(save.stats, result.stats),
       lootQueue: lootAdv.state,
       pendingContainers: [...save.pendingContainers, ...newlyBanked], // bank the run-end remainder + cache, unopened
@@ -729,6 +745,20 @@ export const meta = {
     persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
   },
 
+  /** Toggle the collectible "favorite" pin on an owned item (sorts first; never auto-salvaged). */
+  toggleFavorite(uid: string): void {
+    const save = store.get();
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? { ...i, favorite: !i.favorite } : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
+  },
+
+  /** Toggle the "lock" on an owned item (protects it from salvage). */
+  toggleLock(uid: string): void {
+    const save = store.get();
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? { ...i, locked: !i.locked } : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
+  },
+
   /** Reroll an item's unlocked affixes (spends 1 Mutagen). */
   rerollItem(uid: string): boolean {
     const save = store.get();
@@ -761,7 +791,7 @@ export const meta = {
   salvageItem(uid: string): boolean {
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
-    if (!item) return false;
+    if (!item || item.locked) return false; // locked items are protected from salvage
     const r = RARITY_ORDER.indexOf(item.rarity);
     const loadout = { ...save.equipment.loadout };
     for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;

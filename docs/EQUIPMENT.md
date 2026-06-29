@@ -300,3 +300,23 @@ choice). Relics are **not** part of sets.
 > Reactions (matrix), scales towers (auras/relics), gates off Mastery/Class/Prestige
 > states, feeds star currencies (salvage), and is the late-game Mutagen/Resonance sink. Full
 > bucket view in `PROGRESSION.md §6`.
+
+---
+
+## 15. The Armory (collectible inventory UI)
+
+Equipment is presented as a **collectible ARPG inventory**, not a list (`ui/EquipmentPanel.tsx`).
+
+- **Item cards** in a responsive grid — each: procedural **artwork** (`components/ItemArt.tsx`,
+  asset-free, rarity-framed + slot/type sigil; premium tiers get an animated sheen), **rarity**
+  (color/label), **traits** (affix chips), **set** chip (+ active piece count), **current owner**
+  (Equipped · fielded hero), and a **Signature** line for legendary/exotic.
+- **Per-card actions:** Equip/Unequip · **Compare** (overlay: selected vs equipped, side-by-side) ·
+  **Favorite** (★ pin, sorts first) · **Lock** (🔒 protects from salvage) · reroll/transmute/salvage.
+- **Controls:** Category (slot) · Rarity filter · Sort (Power/Rarity/Newest/Name/Set) · Favorites-only.
+- **Equipment Score** — `loadoutScore()` (rarity weight + affix tiers + set synergy); shown in the
+  Armory header and on each Hero page, and folded into the hero **Power Rating** (`state/heroView.ts`).
+- **State:** `OwnedItem.favorite/locked` (additive, persisted); pure read-models `itemScore` /
+  `activeSets` / `loadoutScore` in `core/equipment.ts`.
+- **Future-proof:** rarity-agnostic colors (mythic-ready), optional `EquipDef.season` ribbon
+  (seasonal-ready), data-driven grid (scales to hundreds).
