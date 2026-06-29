@@ -114,6 +114,8 @@ export interface EquipDef {
   /** Named effect for legendary/exotic items (extra always-on effects). */
   signature?: { name: string; effects: CardEffect[] };
   exotic?: boolean;
+  /** Limited-time line (future-proof for seasonal drops) — shows a ribbon + filter when set. */
+  season?: string;
 }
 
 // WEAPONS (~50) — RE-AUTHOR THE ATTACK: cleave / chain / lifesteal / on-hit status / crit /
@@ -352,6 +354,8 @@ export interface OwnedItem {
   defId: string;
   rarity: Rarity;
   affixes: RolledAffix[];
+  favorite?: boolean; // pinned by the player (sorts first; never the salvage target)
+  locked?: boolean; // protected from salvage (the collectible "keep" flag)
 }
 export interface Loadout {
   weapon: string | null; // OwnedItem.uid
@@ -476,4 +480,63 @@ export function loadoutEffects(inventory: OwnedItem[], loadout: Loadout): CardEf
 export const SLOT_LABELS: Record<EquipSlot, string> = { weapon: 'Weapon', armor: 'Armor', relic: 'Relic' };
 export function itemsForSlot(slot: EquipSlot): EquipDef[] {
   return BY_SLOT[slot];
+}
+
+// ── Collectible scoring + set status (UI read-models; pure, mythic-ready) ──────
+
+/** Relative power weight per rarity (open map — a future 'mythic'/event tier just adds a key). */
+export const RARITY_WEIGHT: Record<string, number> = {
+  common: 1, rare: 2, epic: 4, legendary: 7, exotic: 9, mythic: 12,
+};
+
+/** A single item's "gear score" — rarity weight (×10) + summed affix tiers. Drives sort + the
+ *  account Equipment Score. Deterministic; UI/meta only (never touches the sim). */
+export function itemScore(item: OwnedItem): number {
+  const base = RARITY_WEIGHT[item.rarity] ?? 1;
+  const aff = item.affixes.reduce((s, a) => s + a.tier, 0);
+  return base * 10 + aff;
+}
+
+/** The items currently slotted (weapon/armor/relic order), skipping empty slots. */
+export function equippedItems(inventory: OwnedItem[], loadout: Loadout): OwnedItem[] {
+  const byUid = new Map(inventory.map((i) => [i.uid, i] as const));
+  const out: OwnedItem[] = [];
+  for (const slot of ['weapon', 'armor', 'relic'] as EquipSlot[]) {
+    const uid = loadout[slot];
+    const it = uid ? byUid.get(uid) : undefined;
+    if (it) out.push(it);
+  }
+  return out;
+}
+
+export interface ActiveSet {
+  id: string;
+  name: string;
+  count: number; // equipped pieces of this set (weapon + armor)
+  bonus2: boolean; // 2-piece bonus active
+  bonus4: boolean; // 4-piece bonus active
+}
+
+/** Set membership of the equipped weapon+armor (relics aren't set pieces) — for the Sets panel. */
+export function activeSets(inventory: OwnedItem[], loadout: Loadout): ActiveSet[] {
+  const counts = new Map<string, number>();
+  for (const it of equippedItems(inventory, loadout)) {
+    const def = itemDef(it.defId);
+    if (def && def.slot !== 'relic' && def.setId) counts.set(def.setId, (counts.get(def.setId) ?? 0) + 1);
+  }
+  const out: ActiveSet[] = [];
+  for (const [id, count] of counts) {
+    const set = SETS[id];
+    if (!set) continue;
+    out.push({ id, name: set.name, count, bonus2: count >= 2, bonus4: count >= 4 });
+  }
+  return out.sort((a, b) => b.count - a.count);
+}
+
+/** Account Equipment Score — the gear score of everything equipped + a set-synergy bonus. */
+export function loadoutScore(inventory: OwnedItem[], loadout: Loadout): number {
+  let score = 0;
+  for (const it of equippedItems(inventory, loadout)) score += itemScore(it);
+  for (const s of activeSets(inventory, loadout)) score += (s.bonus2 ? 15 : 0) + (s.bonus4 ? 30 : 0);
+  return score;
 }

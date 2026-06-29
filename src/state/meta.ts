@@ -745,6 +745,20 @@ export const meta = {
     persist({ ...save, equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] } });
   },
 
+  /** Toggle the collectible "favorite" pin on an owned item (sorts first; never auto-salvaged). */
+  toggleFavorite(uid: string): void {
+    const save = store.get();
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? { ...i, favorite: !i.favorite } : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
+  },
+
+  /** Toggle the "lock" on an owned item (protects it from salvage). */
+  toggleLock(uid: string): void {
+    const save = store.get();
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? { ...i, locked: !i.locked } : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
+  },
+
   /** Reroll an item's unlocked affixes (spends 1 Mutagen). */
   rerollItem(uid: string): boolean {
     const save = store.get();
@@ -777,7 +791,7 @@ export const meta = {
   salvageItem(uid: string): boolean {
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
-    if (!item) return false;
+    if (!item || item.locked) return false; // locked items are protected from salvage
     const r = RARITY_ORDER.indexOf(item.rarity);
     const loadout = { ...save.equipment.loadout };
     for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;

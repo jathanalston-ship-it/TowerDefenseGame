@@ -88,10 +88,12 @@ export function HeroLab(): JSX.Element {
           </div>
         </div>
 
-        {/* Quick stat strip */}
+        {/* Quick stat strip — Power Rating is the one legible "am I stronger?" number */}
         <div className="hero-strip">
+          <div className="hstat is-power"><span className="hstat-v" style={{ color: c }}>{d.powerRating}</span><span className="hstat-k">Power Rating</span></div>
           <div className="hstat"><span className="hstat-v">{d.mastery.level}</span><span className="hstat-k">Mastery Lv</span></div>
           <div className="hstat"><span className="hstat-v" style={{ color: c }}>{d.stars}/{d.maxStars}</span><span className="hstat-k">Stars</span></div>
+          <div className="hstat"><span className="hstat-v">⚙ {d.equipScore}</span><span className="hstat-k">Equipment Score</span></div>
           <div className="hstat"><span className="hstat-v">{d.kills.toLocaleString()}</span><span className="hstat-k">Lifetime Kills</span></div>
           <div className="hstat"><span className="hstat-v">{d.runs}</span><span className="hstat-k">Runs Fielded</span></div>
         </div>
@@ -140,6 +142,7 @@ export function HeroLab(): JSX.Element {
             <div className="hsec-bar">
               <ProgressBar value={d.mastery.into} max={d.mastery.need} color={c} height={8} label={`${d.def.name} mastery`} />
               <span className="hsec-bar-k">Lv {d.mastery.level} · {Math.round(d.mastery.into)}/{Math.round(d.mastery.need)} XP</span>
+              <span className="hsec-next" style={{ color: c }}>→ next rank {d.mastery.nextRankTitle} at Lv {d.mastery.nextRankLevel}</span>
             </div>
             {d.perks.length > 0 ? (
               d.perks.map((p) => (
@@ -187,6 +190,7 @@ export function HeroLab(): JSX.Element {
                 </span>
               </div>
             ))}
+            <p className="hsec-hint">One more run pushes every one of these forward.</p>
           </Section>
         </div>
       </div>
