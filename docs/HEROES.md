@@ -239,6 +239,28 @@ toward many other combinations.
 
 ---
 
+## Hero Lab — Champion Select (UI)
+
+The Hero Lab is a **champion-select**, not a roster spreadsheet: a scrollable roster
+**rail** (future-proof for 30+) frames ONE focused hero at a time on a dedicated page.
+The whole page is tinted by the hero's color (`--hc`) so each hero feels distinct.
+
+- **Portrait** (`ui/components/HeroPortrait.tsx`) — procedural, asset-free, animated
+  (rotating class aura, breathing core, orbiting motes, class sigil), driven purely by
+  `HeroDef` (color + class + behavior) + mastery rank. No art needed for new heroes.
+- **Identity flavor** (`core/heroLore.ts`) — epithet / tagline / specialization / role,
+  authored for the shipped heroes and **derived from `HeroDef` otherwise** (30+ ready).
+- **Read-model** (`state/heroView.ts → heroDetail(save, kind)`) — folds stars, mastery
+  (rank + bar + perks), bonuses, current loadout, specialization, lifetime stats, and the
+  next unlocks into one view object. Pure; tested in `state/heroLab.test.ts`.
+- **Ownership stats** — per-hero **lifetime kills** + **favorite equipment** are banked for
+  the fielded hero in `meta.finishRun` (save v9: `heroKills`, `heroFavEquip`); runs-fielded
+  reuse `stats.heroUsage`. Sim untouched → golden-safe.
+- The shared **Armory** (EquipmentPanel) sits below for equip/craft; the page shows the
+  live loadout and points to it.
+
+---
+
 ## Hero slot progression
 
 You command **1 → 2 → 3** heroes. Going wide is a *step-change*, not a stat bump, but

@@ -159,7 +159,7 @@ export function Hub({
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && (
-            <div className="hub-cols">
+            <div className="heroes-screen">
               <HeroLab />
               <EquipmentPanel />
             </div>
