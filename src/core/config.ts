@@ -867,12 +867,16 @@ upgradeRegistry.registerAll(META_UPGRADES);
 
 /** Star upgrades: capped, shard-bought, modest per-star buff. */
 export const STAR = {
-  maxStars: 5, // ★0..★5 in the slice; the system itself is uncapped by design
+  maxStars: 5, // heroes: ★0..★5 (hero star paths author evolutions to ★5)
+  maxTowerStars: 10, // towers: ★0..★10 — ★1-5 unlock evolutions (stars.ts); ★6-10 are ASCENSION power
+  // tiers. Milestones at 3/5/7/10★ are the long-term goal; a steep cost curve gates the late grind.
   baseCost: 8, // tower shards for the 1st star
   costMult: 1.8, // each subsequent star costs more
   damagePerStar: 0.06, // +6% tower damage per star (placeholder)
   fireRatePerStar: 0.03, // +3% fire rate per star (placeholder)
 };
+/** Star levels that earn a celebratory MILESTONE moment in the upgrade ceremony (TowerLab). */
+export const STAR_MILESTONES: readonly number[] = [3, 5, 7, 10];
 
 /** Infinite mastery: signals → XP, an ever-growing requirement curve, tiny buff. */
 export const MASTERY = {

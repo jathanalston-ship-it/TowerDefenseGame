@@ -35,12 +35,16 @@ describe('mastery curve (infinite, ever-slower requirements)', () => {
 });
 
 describe('star cost', () => {
-  it('grows geometrically and caps at maxStars', () => {
+  it('grows geometrically and caps at maxTowerStars', () => {
     expect(starCost(0)).toBe(STAR.baseCost);
     expect(starCost(2)).toBe(Math.round(STAR.baseCost * STAR.costMult ** 2));
     const maxed = defaultSave();
-    maxed.towerStars.needle = STAR.maxStars;
+    maxed.towerStars.needle = STAR.maxTowerStars;
     expect(nextStarCost(maxed, 'needle')).toBeNull();
+    // towers ascend past the ★5 evolution band into the ★6-10 power tiers
+    const five = defaultSave();
+    five.towerStars.needle = 5;
+    expect(nextStarCost(five, 'needle')).not.toBeNull();
     expect(nextStarCost(defaultSave(), 'needle')).toBe(STAR.baseCost);
   });
 });

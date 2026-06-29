@@ -1,101 +1,195 @@
-// Hero Lab — pick which hero to field, and spend hero Shards on Stars. Mirrors the
-// Tower Lab (stars + infinite mastery), plus a roster selector for slot 1. Reads the
-// reactive save store; purchases/selection go through the meta layer.
+// Hero Lab — a CHAMPION SELECT, not a spreadsheet. A scrollable roster rail (future-proof for
+// 30+ heroes) frames ONE focused hero at a time: a large animated portrait, identity + role,
+// stars, mastery, current loadout, specialization, lifetime ownership stats, and future unlocks.
+// Reads the reactive save; selection/purchases go through meta. Equipment management lives in the
+// Armory (EquipmentPanel) below — this page shows the loadout and points there.
 
-import { heroProgress, masteryProgress, meta, nextHeroStarCost } from '../state/meta';
-import { HERO_DEFS, HERO_ORDER, STAR } from '../core/config';
-import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
+import { useState } from 'react';
+import { masteryProgress, meta } from '../state/meta';
+import { heroDetail } from '../state/heroView';
+import { HERO_DEFS, HERO_ORDER } from '../core/config';
+import type { HeroKind } from '../core/types';
+import { masteryRank } from '../core/mastery';
+import { HeroPortrait } from './components/HeroPortrait';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
+const RARITY_VAR: Record<string, string> = {
+  common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)',
+  legendary: 'var(--r-legendary)', exotic: 'var(--viral)',
+};
+
+function Section({ title, accent, children }: { title: string; accent?: string; children: React.ReactNode }): JSX.Element {
+  return (
+    <div className="hsec">
+      <div className="hsec-h" style={accent ? { color: accent } : undefined}>{title}</div>
+      {children}
+    </div>
+  );
+}
+
 export function HeroLab(): JSX.Element {
   const save = meta.use();
-  const prog = heroProgress(save);
+  // Which hero's page is OPEN (focus) — independent of which is FIELDED. Defaults to fielded.
+  const [focus, setFocus] = useState<HeroKind>(save.selectedHero);
+  const d = heroDetail(save, focus);
+  const c = d.def.color;
 
   return (
-    <div className="panel">
-      <div className="panel-title">Hero Lab</div>
-      <div className="panel-sub">
-        Choose the hero you deploy, then spend hero Shards on Stars. Mastery rises forever as a hero fights.
-      </div>
-      <div className="lab-list">
+    <div className="panel herolab">
+      {/* ── Roster rail: compact, scrollable, one row per hero (scales to 30+) ── */}
+      <div className="hero-roster" role="tablist" aria-label="Hero roster">
+        <div className="hero-roster-h">Roster <span className="hr-count">{HERO_ORDER.length}</span></div>
         {HERO_ORDER.map((k) => {
           const def = HERO_DEFS[k];
           const stars = save.heroStars[k] ?? 0;
-          const shards = save.heroShards[k] ?? 0;
-          const cost = nextHeroStarCost(save, k);
-          const maxed = cost === null;
-          const affordable = cost !== null && shards >= cost;
-          const mp = masteryProgress(save.heroMasteryXp[k] ?? 0);
-          const dmgPct = Math.round((prog[k].damageMult - 1) * 100);
-          const cdPct = Math.round((1 - prog[k].cooldownMult) * 100);
-          const selected = save.selectedHero === k;
-
+          const rank = masteryRank(masteryProgress(save.heroMasteryXp[k] ?? 0).level);
+          const fielded = save.selectedHero === k;
+          const active = focus === k;
           return (
-            <div className={`lab-item ${selected ? 'is-selected' : ''}`} key={k}>
-              <div className="lab-head">
-                <span className="lab-name" style={{ color: def.color }}>
-                  {def.name} <span className="lab-class">· {def.combatClass}</span>
-                </span>
-                <span className="lab-shards">
-                  {shards} <CurrencyIcon id="heroShards" color={def.color} size={13} />
-                </span>
-              </div>
-
-              <div className="lab-stars">
-                <button
-                  className={`shop-buy ${selected ? '' : 'is-afford'}`}
-                  disabled={selected}
-                  onClick={() => meta.setSelectedHero(k)}
-                >
-                  {selected ? 'FIELDED' : 'Field'}
-                </button>
-                <span className="pips" aria-label={`${stars} of ${STAR.maxStars} stars`}>
-                  {Array.from({ length: STAR.maxStars }, (_, i) => (
-                    <span
-                      key={i}
-                      className={`pip ${i < stars ? 'on' : ''}`}
-                      style={i < stars ? { color: def.color } : undefined}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </span>
-                <button
-                  className={`shop-buy ${affordable ? 'is-afford' : ''}`}
-                  disabled={maxed || !affordable}
-                  onClick={() => meta.buyHeroStar(k)}
-                >
-                  {maxed ? 'MAX' : <>{cost} <CurrencyIcon id="heroShards" color={def.color} size={12} title="" /></>}
-                </button>
-              </div>
-
-              <div className="lab-mastery">
-                <div className="lab-mline">
-                  <span>
-                    Mastery <b>Lv {mp.level}</b>
-                    {mp.level >= MASTERY_RANK_EVERY && (
-                      <span className="lab-rank" style={{ color: def.color }}>
-                        {' '}
-                        · {masteryRankTitle(mp.level)}
-                      </span>
-                    )}
-                  </span>
-                  <span className="lab-bonus">
-                    +{dmgPct}% dmg{cdPct ? ` · -${cdPct}% cd` : ''}
-                  </span>
-                </div>
-                <ProgressBar
-                  value={mp.into}
-                  max={mp.need}
-                  color={def.color}
-                  height={6}
-                  label={`${def.name} mastery progress`}
-                />
-              </div>
-            </div>
+            <button
+              key={k}
+              role="tab"
+              aria-selected={active}
+              className={`roster-card ${active ? 'is-active' : ''}`}
+              style={active ? ({ ['--hc' as string]: def.color, borderColor: def.color }) : undefined}
+              onClick={() => setFocus(k)}
+            >
+              <HeroPortrait def={def} size={44} />
+              <span className="rc-body">
+                <span className="rc-name" style={{ color: def.color }}>{def.name}</span>
+                <span className="rc-sub">{def.combatClass} · {stars}★{rank > 0 ? ` · R${rank}` : ''}</span>
+              </span>
+              {fielded && <span className="rc-deployed" title="Currently fielded">●</span>}
+            </button>
           );
         })}
+      </div>
+
+      {/* ── Focused hero page ── */}
+      <div className="hero-page" style={{ ['--hc' as string]: c }}>
+        <div className="hero-banner">
+          <HeroPortrait def={d.def} size={184} rank={d.mastery.rank} />
+          <div className="hero-id">
+            <div className="hero-epithet">{d.lore.title}</div>
+            <h2 className="hero-name" style={{ color: c }}>{d.def.name}</h2>
+            <div className="hero-tags">
+              <span className="class-badge" style={{ background: c }}>{d.def.combatClass}</span>
+              <span className="hero-role-tag">{d.lore.roleLabel}</span>
+              <span className="hero-spec-tag">{d.lore.specialization}</span>
+            </div>
+            <p className="hero-tagline">{d.lore.tagline}</p>
+            <button
+              className={`primary hero-field ${d.fielded ? 'is-fielded' : ''}`}
+              disabled={d.fielded}
+              onClick={() => meta.setSelectedHero(focus)}
+            >
+              {d.fielded ? '● Deployed' : 'Field this Hero'}
+            </button>
+          </div>
+        </div>
+
+        {/* Quick stat strip */}
+        <div className="hero-strip">
+          <div className="hstat"><span className="hstat-v">{d.mastery.level}</span><span className="hstat-k">Mastery Lv</span></div>
+          <div className="hstat"><span className="hstat-v" style={{ color: c }}>{d.stars}/{d.maxStars}</span><span className="hstat-k">Stars</span></div>
+          <div className="hstat"><span className="hstat-v">{d.kills.toLocaleString()}</span><span className="hstat-k">Lifetime Kills</span></div>
+          <div className="hstat"><span className="hstat-v">{d.runs}</span><span className="hstat-k">Runs Fielded</span></div>
+        </div>
+
+        <div className="hero-sections">
+          {/* Combat Role */}
+          <Section title="Combat Role" accent={c}>
+            <div className="hsec-role">{d.lore.roleLabel}</div>
+            <p className="hsec-desc">{d.lore.roleDesc}</p>
+            <div className="hsec-ability">
+              <span className="ab-name" style={{ color: c }}>⚡ {d.def.ability.name}</span>
+              <span className="ab-cd">{d.def.ability.cooldown}s cooldown</span>
+            </div>
+            <p className="hsec-desc">{d.def.ability.blurb}</p>
+            <div className="kv-row"><span>Vitality</span><b>{d.def.maxHp} HP</b></div>
+            <div className="kv-row"><span>Mobility</span><b>{d.def.speed} spd</b></div>
+            {d.def.attackDamage > 0
+              ? <div className="kv-row"><span>Strike</span><b>{d.def.attackDamage} dmg</b></div>
+              : <div className="kv-row"><span>Support</span><b>field / utility</b></div>}
+          </Section>
+
+          {/* Stars */}
+          <Section title="Star Progression" accent={c}>
+            <div className="pips big" aria-label={`${d.stars} of ${d.maxStars} stars`}>
+              {Array.from({ length: d.maxStars }, (_, i) => (
+                <span key={i} className={`pip ${i < d.stars ? 'on' : ''}`} style={i < d.stars ? { color: c } : undefined}>★</span>
+              ))}
+            </div>
+            <div className="kv-row"><span>Damage</span><b style={{ color: c }}>+{d.dmgPct}%</b></div>
+            {d.cdPct > 0 && <div className="kv-row"><span>Ability cooldown</span><b style={{ color: c }}>-{d.cdPct}%</b></div>}
+            <button
+              className={`shop-buy wide ${d.canBuyStar ? 'is-afford' : ''}`}
+              disabled={d.nextStarCost === null || !d.canBuyStar}
+              onClick={() => meta.buyHeroStar(focus)}
+            >
+              {d.nextStarCost === null ? 'MAX STARS' : <>Add Star · {d.nextStarCost} <CurrencyIcon id="heroShards" color={c} size={13} title="" /> (have {d.shards})</>}
+            </button>
+          </Section>
+
+          {/* Mastery */}
+          <Section title="Mastery" accent={c}>
+            <div className="kv-row">
+              <span>Rank</span>
+              <b style={{ color: c }}>{d.mastery.rankTitle}</b>
+            </div>
+            <div className="hsec-bar">
+              <ProgressBar value={d.mastery.into} max={d.mastery.need} color={c} height={8} label={`${d.def.name} mastery`} />
+              <span className="hsec-bar-k">Lv {d.mastery.level} · {Math.round(d.mastery.into)}/{Math.round(d.mastery.need)} XP</span>
+            </div>
+            {d.perks.length > 0 ? (
+              d.perks.map((p) => (
+                <div className="hperk" key={p.name}><b style={{ color: c }}>{p.name}</b> — {p.desc}</div>
+              ))
+            ) : (
+              <p className="hsec-desc">Mastery rises forever as this hero fights — ranks and perks unlock with use.</p>
+            )}
+          </Section>
+
+          {/* Current Loadout */}
+          <Section title="Current Loadout" accent={c}>
+            <div className="hero-loadout">
+              {d.loadout.map((l) => (
+                <div className="hl-slot" key={l.slot}>
+                  <span className="hl-k">{l.label}</span>
+                  {l.name ? (
+                    <span className="hl-item" style={{ color: l.rarity ? RARITY_VAR[l.rarity] : undefined }}>{l.name}</span>
+                  ) : (
+                    <span className="hl-empty">— empty —</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="kv-row"><span>Favorite gear</span><b>{d.favoriteEquip ?? '—'}</b></div>
+            <p className="hsec-hint">Equip & craft gear in the Armory below ↓</p>
+          </Section>
+
+          {/* Specialization */}
+          <Section title="Specialization" accent={c}>
+            <div className="hsec-role" style={{ color: c }}>{d.lore.specialization}</div>
+            <p className="hsec-desc">
+              {d.def.combatClass} discipline — this hero's build leans into its {d.lore.roleLabel.toLowerCase()} identity through stars, mastery, and gear.
+            </p>
+          </Section>
+
+          {/* Future unlocks */}
+          <Section title="Future Progress" accent={c}>
+            {d.nextUnlocks.map((u, i) => (
+              <div className="hunlock" key={i}>
+                <span className="hu-kind" style={{ borderColor: c, color: c }}>{u.kind}</span>
+                <span className="hu-body">
+                  <span className="hu-label">{u.label}</span>
+                  <span className="hu-detail">{u.detail}</span>
+                </span>
+              </div>
+            ))}
+          </Section>
+        </div>
       </div>
     </div>
   );

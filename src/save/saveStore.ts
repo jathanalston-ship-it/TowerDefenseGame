@@ -26,11 +26,15 @@ export interface SaveData {
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
   towerForks: Record<TowerKind, Record<string, string>>; // per-tower star-fork picks (star → optionId)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
+  towerKills: Record<TowerKind, number>; // lifetime kills per tower (schema v9) — Tower Lab
   heroShards: Record<string, number>; // per-hero shards (earned from chests)
   // ── Hero progression + roster (per kind) — added in schema v3 ──
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
   heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
   selectedHero: HeroKind; // which hero the next run fields (slot 1)
+  // ── Per-hero lifetime ownership stats (schema v9) — drive the Hero Lab detail page ──
+  heroKills: Record<HeroKind, number>; // lifetime kills BY each hero (accrued for the fielded hero)
+  heroFavEquip: Record<HeroKind, Record<string, number>>; // per-hero equip-usage counts (defId → runs); argmax = favorite
   // ── Lifetime statistics + achievements — added in schema v3 ──
   stats: LifetimeStats;
   achievements: string[]; // unlocked achievement ids
@@ -55,7 +59,7 @@ export interface SaveData {
   prestige: PrestigeState;
 }
 
-export const CURRENT_VERSION = 8;
+export const CURRENT_VERSION = 9;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -100,6 +104,11 @@ function zeroByHeroKind(): Record<HeroKind, number> {
   for (const k of HERO_ORDER) r[k] = 0;
   return r;
 }
+function emptyFavByHero(): Record<HeroKind, Record<string, number>> {
+  const r = {} as Record<HeroKind, Record<string, number>>;
+  for (const k of HERO_ORDER) r[k] = {};
+  return r;
+}
 function zeroByEnemy(): Record<EnemyKind, number> {
   const r = {} as Record<EnemyKind, number>;
   for (const k of ENEMY_KINDS) r[k] = 0;
@@ -135,10 +144,13 @@ export function defaultSave(): SaveData {
     towerStars: zeroByTower(),
     towerForks: emptyForksByTower(),
     towerMasteryXp: zeroByTower(),
+    towerKills: zeroByTower(),
     heroShards: zeroByHero(),
     heroStars: zeroByHeroKind(),
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
+    heroKills: zeroByHeroKind(),
+    heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
     achievements: [],
     equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
@@ -171,9 +183,13 @@ function withDefaults(data: SaveData): SaveData {
     // first option). Shallow-merge keeps known towers' picks and defaults the rest.
     towerForks: { ...d.towerForks, ...(data.towerForks && typeof data.towerForks === 'object' ? data.towerForks : {}) },
     towerMasteryXp: { ...d.towerMasteryXp, ...data.towerMasteryXp },
+    towerKills: { ...d.towerKills, ...data.towerKills }, // v8→v9: additive, zeroed for old saves
     heroShards: { ...d.heroShards, ...data.heroShards },
     heroStars: { ...d.heroStars, ...data.heroStars },
     heroMasteryXp: { ...d.heroMasteryXp, ...data.heroMasteryXp },
+    // v8→v9: per-hero ownership stats. Zeroed/empty for a pre-v9 save (deep-filled per hero).
+    heroKills: { ...d.heroKills, ...data.heroKills },
+    heroFavEquip: { ...d.heroFavEquip, ...(data.heroFavEquip && typeof data.heroFavEquip === 'object' ? data.heroFavEquip : {}) },
     // Resolve the fielded hero through the registry (honors aliases for renamed ids)
     // and fall back to the default if it's unknown — a corrupt/removed id can't crash.
     selectedHero: (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero,
@@ -270,10 +286,11 @@ function isSaveData(v: unknown): v is SaveData {
 function migrate(_version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
   // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
-  // identity: titles/lore) are all additive: withDefaults() deep-fills the new records, the
+  // identity: titles/lore) — plus v8→v9 (per-tower lifetime kills) — are all additive: withDefaults() deep-fills the new records, the
   // selectedHero default, the stats block, the loot queue, the fork picks, the mastery
   // identity arrays, and the prestige block (v6→v7; v7→v8 adds the Ascendant Tree node map,
-  // deep-filled by sanitizePrestige). Structural changes add steps here.
+  // deep-filled by sanitizePrestige). v8→v9 adds per-hero kills + favorite-equipment, deep-filled
+  // by withDefaults. Structural changes add steps here.
   return data;
 }
 

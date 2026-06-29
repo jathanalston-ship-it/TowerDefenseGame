@@ -154,7 +154,7 @@ export function starCost(stars: number): number {
 
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
-  if (stars >= STAR.maxStars) return null;
+  if (stars >= STAR.maxTowerStars) return null;
   return starCost(stars);
 }
 
@@ -420,6 +420,7 @@ export const meta = {
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
     const towerMasteryXp = { ...save.towerMasteryXp };
+    const towerKills = { ...save.towerKills }; // lifetime per-tower kills (Tower Lab "Lifetime Kills")
     const mastery = {} as Record<TowerKind, MasteryDelta>;
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
@@ -428,6 +429,7 @@ export const meta = {
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
+      towerKills[k] = (save.towerKills[k] ?? 0) + c.kills;
       mastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(towerMasteryXp[k]) };
     }
 
@@ -474,6 +476,20 @@ export const meta = {
     const unlockedTitles = newTitles.length ? Array.from(new Set([...save.unlockedTitles, ...newTitles])) : save.unlockedTitles;
     const unlockedLore = newLore.length ? Array.from(new Set([...save.unlockedLore, ...newLore])) : save.unlockedLore;
 
+    // 7. Per-hero ownership stats: the FIELDED hero banks the kills it scored and the gear it
+    //    ran with (drives the Hero Lab's lifetime kills + favorite equipment). Only slot 1
+    //    fights, so only that hero accrues. Runs-per-hero already ride accumulateStats(heroUsage).
+    const fielded = save.selectedHero;
+    const heroKills = { ...save.heroKills, [fielded]: (save.heroKills[fielded] ?? 0) + (result.heroMastery[fielded]?.kills ?? 0) };
+    const heroFavEquip = { ...save.heroFavEquip };
+    const fieldedEquip = { ...(heroFavEquip[fielded] ?? {}) };
+    for (const slot of ['weapon', 'armor', 'relic'] as const) {
+      const uid = save.equipment.loadout[slot];
+      const it = uid ? save.equipment.inventory.find((i) => i.uid === uid) : null;
+      if (it) fieldedEquip[it.defId] = (fieldedEquip[it.defId] ?? 0) + 1;
+    }
+    heroFavEquip[fielded] = fieldedEquip;
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -481,7 +497,10 @@ export const meta = {
       bestWave: Math.max(save.bestWave, result.wave),
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
+      towerKills,
       heroMasteryXp,
+      heroKills,
+      heroFavEquip,
       stats: accumulateStats(save.stats, result.stats),
       lootQueue: lootAdv.state,
       pendingContainers: [...save.pendingContainers, ...newlyBanked], // bank the run-end remainder + cache, unopened
@@ -671,7 +690,7 @@ export const meta = {
   buyStar(kind: TowerKind): boolean {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
-    if (stars >= STAR.maxStars) return false;
+    if (stars >= STAR.maxTowerStars) return false;
     const cost = starCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
