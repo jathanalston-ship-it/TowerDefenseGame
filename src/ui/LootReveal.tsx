@@ -161,11 +161,16 @@ export function LootReveal({
     return () => clearTimeout(id);
   }, [stage, revealed, rewards.length, stepMs]);
 
-  // Per-reward stinger — epic+ pulls land a "jackpot".
+  // Per-reward stinger. Shards play their OWN cue (crystalline tower ting / bright hero sparkle) so
+  // the player hears which shard landed without reading; other pulls keep the rarity-based stinger.
   useEffect(() => {
     if (revealed === 0) return;
     const r = rewards[revealed - 1];
-    audio.cue(r && TIER.indexOf(r.rarity) >= 2 ? 'jackpot' : 'reveal');
+    if (!r) return;
+    const cue = r.currency === 'heroShards' ? 'shard_hero'
+      : r.currency === 'towerShards' ? 'shard_tower'
+      : TIER.indexOf(r.rarity) >= 2 ? 'jackpot' : 'reveal';
+    audio.cue(cue);
   }, [revealed, rewards]);
 
   // The reveal is "done" once the cascade has fully played. This used to auto-fire a dismiss
