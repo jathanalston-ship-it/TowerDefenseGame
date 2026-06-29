@@ -453,6 +453,7 @@ export interface SpawnGroup {
   count: number;
   spacing: number; // seconds between spawns in this group
   delay: number; // seconds before the group starts
+  elite?: boolean; // promote this group to elites (campaign generator); absent ⇒ false (golden-safe)
 }
 export type WaveDef = SpawnGroup[];
 
@@ -870,8 +871,12 @@ export const STAR = {
   maxStars: 5, // heroes: ★0..★5 (hero star paths author evolutions to ★5)
   maxTowerStars: 10, // towers: ★0..★10 — ★1-5 unlock evolutions (stars.ts); ★6-10 are ASCENSION power
   // tiers. Milestones at 3/5/7/10★ are the long-term goal; a steep cost curve gates the late grind.
-  baseCost: 8, // tower shards for the 1st star
-  costMult: 1.8, // each subsequent star costs more
+  // TWO SEPARATE shard ladders (docs/SHARD-ECONOMY.md): Tower Shards drive the long ★10 PRIMARY
+  // grind; Hero Shards a short ★5 ladder fed by rarer drops. Smooth exponential — no spikes.
+  towerBaseCost: 10, // Tower Shards for ★1; ×towerCostMult per star → 10,20,40,…,5120 (★10 = 10,230 total)
+  towerCostMult: 2.0,
+  heroBaseCost: 8, // Hero Shards for ★1; gentler curve → 8,14,26,47,84 (★5 = 179 total)
+  heroCostMult: 1.8,
   damagePerStar: 0.06, // +6% tower damage per star (placeholder)
   fireRatePerStar: 0.03, // +3% fire rate per star (placeholder)
 };

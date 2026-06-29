@@ -57,9 +57,13 @@ export interface SaveData {
   bossesSlain: string[];
   // ── Prestige (schema v7) — MOLT: Ascendant Cells + the permanent P-bucket multiplier ──
   prestige: PrestigeState;
+  // ── Campaign progression (schema v10) — highest stage CLEARED per difficulty id (0 = none).
+  //    Stage N is unlocked when N ≤ cleared[diff] + 1; cleared stages are replayable. Per-difficulty
+  //    so new DifficultyDef variants get their own track for free (CAMPAIGN.md §7). ──
+  campaign: { cleared: Record<string, number> };
 }
 
-export const CURRENT_VERSION = 9;
+export const CURRENT_VERSION = 10;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -162,6 +166,7 @@ export function defaultSave(): SaveData {
     unlockedLore: [],
     bossesSlain: [],
     prestige: defaultPrestige(),
+    campaign: { cleared: {} },
   };
 }
 
@@ -226,7 +231,20 @@ function withDefaults(data: SaveData): SaveData {
     bossesSlain: Array.isArray(data.bossesSlain) ? data.bossesSlain : [],
     // v6→v7: prestige (MOLT). Zeroed for a pre-v7 save; each field guarded against junk.
     prestige: { ...d.prestige, ...sanitizePrestige(data.prestige) },
+    // v9→v10: campaign progression. Empty for an old save; coerce the cleared map to finite ≥0 ints.
+    campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
   };
+}
+
+/** Coerce a loaded campaign `cleared` map into clean non-negative integers (drops junk). */
+function sanitizeCleared(raw: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (raw && typeof raw === 'object') {
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out[k] = Math.floor(v);
+    }
+  }
+  return out;
 }
 
 /** Coerce a loaded prestige blob into clean non-negative numbers (drops junk fields). */
@@ -286,7 +304,7 @@ function isSaveData(v: unknown): v is SaveData {
 function migrate(_version: number, data: unknown): unknown {
   // v1→v2 (tower progression), v2→v3 (hero progression + roster, lifetime stats +
   // achievements), v3→v4 (loot queue), v4→v5 (tower star-fork picks), and v5→v6 (mastery
-  // identity: titles/lore) — plus v8→v9 (per-tower lifetime kills) — are all additive: withDefaults() deep-fills the new records, the
+  // identity: titles/lore) — plus v8→v9 (per-tower lifetime kills) and v9→v10 (campaign progression) — are all additive: withDefaults() deep-fills the new records, the
   // selectedHero default, the stats block, the loot queue, the fork picks, the mastery
   // identity arrays, and the prestige block (v6→v7; v7→v8 adds the Ascendant Tree node map,
   // deep-filled by sanitizePrestige). v8→v9 adds per-hero kills + favorite-equipment, deep-filled

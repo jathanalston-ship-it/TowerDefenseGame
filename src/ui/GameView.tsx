@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
+import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { BRANCH_COLOR } from '../render/towerEvolution';
@@ -45,6 +46,7 @@ export function GameView({
   heroProgress,
   runEffects,
   mode,
+  stage,
   difficulty,
   doctrine,
   onEnd,
@@ -57,6 +59,7 @@ export function GameView({
   heroProgress: HeroProgress;
   runEffects?: CardEffect[];
   mode?: RunMode;
+  stage?: StageConfig;
   difficulty?: string;
   doctrine?: string;
   onEnd: (r: RunResult) => void;
@@ -64,7 +67,7 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, difficulty, doctrine }));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, stage, difficulty, doctrine }));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);

@@ -147,15 +147,22 @@ export function masteryLevel(xp: number): number {
   return masteryProgress(xp).level;
 }
 
-/** Tower-shard cost to buy the (stars→stars+1) star. */
-export function starCost(stars: number): number {
-  return Math.round(STAR.baseCost * Math.pow(STAR.costMult, stars));
+/** Tower-Shard cost to buy the (stars→stars+1) star — the PRIMARY long grind. Smooth doubling
+ * exponential (base × 2^s): ★1=10 … ★10=5,120 (cumulative 10,230). See docs/SHARD-ECONOMY.md. */
+export function towerStarCost(stars: number): number {
+  return Math.round(STAR.towerBaseCost * Math.pow(STAR.towerCostMult, stars));
+}
+
+/** Hero-Shard cost to buy the (stars→stars+1) star — a shorter, gentler ★5 ladder fed by the
+ * rarer Hero-Shard drops (base 8 × 1.8^s): ★1=8 … ★5=84 (cumulative 179). */
+export function heroStarCost(stars: number): number {
+  return Math.round(STAR.heroBaseCost * Math.pow(STAR.heroCostMult, stars));
 }
 
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
   if (stars >= STAR.maxTowerStars) return null;
-  return starCost(stars);
+  return towerStarCost(stars);
 }
 
 /** Fold stars + mastery into per-kind run config. Stars contribute the incidental S-bucket
@@ -209,11 +216,11 @@ export function heroEquipment(_save: SaveData, _kind: HeroKind): HeroMods {
   return { damageMult: 1, cooldownMult: 1 };
 }
 
-/** Hero-shard cost of the next star (reuses the tower star curve). */
+/** Hero-shard cost of the next star — the separate, gentler Hero ladder (★5). */
 export function nextHeroStarCost(save: SaveData, kind: HeroKind): number | null {
   const stars = save.heroStars[kind] ?? 0;
   if (stars >= STAR.maxStars) return null;
-  return starCost(stars);
+  return heroStarCost(stars);
 }
 
 /** Fold stars + mastery + equipment into per-hero run multipliers. Stars add damage
@@ -240,6 +247,10 @@ export interface RunResult {
   heroMastery: HeroMasteryCounts; // per-hero usage (from Game.getHeroMasteryAccrual)
   stats: RunStats; // raw run statistics (from Game.getRunStats) — folded into lifetime stats
   endless?: boolean; // Endless (AI Director) mode run
+  // ── Campaign (procedural progression) — set by App for a 'campaign' run ──
+  campaignStage?: number; // the stage number played (winning it unlocks the next)
+  difficulty?: string; // the difficulty variant id (the per-difficulty campaign track)
+  rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
 }
 
 export interface RunReward {
@@ -431,9 +442,10 @@ export const meta = {
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
+    const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
 
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult);
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult);
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -471,7 +483,7 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult);
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
@@ -508,6 +520,12 @@ export const meta = {
     }
     heroFavEquip[fielded] = fieldedEquip;
 
+    // Campaign: clearing a stage permanently unlocks the next (highest CLEARED per difficulty id).
+    const campDiff = result.difficulty ?? 'standard';
+    const nextCampaign = result.campaignStage && result.won
+      ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
+      : save.campaign;
+
     persist({
       ...save,
       shards: save.shards + shardsEarned,
@@ -526,6 +544,7 @@ export const meta = {
       unlockedLore,
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
+      campaign: nextCampaign,
     });
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
     runContainersBanked = [];
@@ -694,7 +713,7 @@ export const meta = {
     const save = store.get();
     const stars = save.heroStars[kind] ?? 0;
     if (stars >= STAR.maxStars) return false;
-    const cost = starCost(stars);
+    const cost = heroStarCost(stars);
     if ((save.heroShards[kind] ?? 0) < cost) return false;
     persist({
       ...save,
@@ -709,7 +728,7 @@ export const meta = {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
     if (stars >= STAR.maxTowerStars) return false;
-    const cost = starCost(stars);
+    const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
       ...save,

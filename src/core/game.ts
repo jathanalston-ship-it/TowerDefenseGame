@@ -40,7 +40,6 @@ import {
   STEER,
   TOWER_DEFS,
   TOWER_ORDER,
-  TOTAL_WAVES,
   TOWER_ABILITIES,
   HERO_PULSE,
   HERO_ULT,
@@ -75,6 +74,7 @@ import { aggregate as aggregateStatuses, applyStatus as applyStatusInstance, sta
 import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
 import { resolveDifficulty } from './difficulty';
+import type { StageConfig } from './campaign';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
 import { combineMult } from './modifiers';
@@ -91,14 +91,15 @@ const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's 
 const BRANCH_HITSTOP = 0.12; // seconds the view-loop freezes on a tier purchase (a juicy "impact" beat)
 const MUTATION_BANNER_LIFE = 2.4; // seconds the tier-purchase banner is surfaced to the HUD
 
-export type RunMode = 'stage' | 'endless';
+export type RunMode = 'stage' | 'endless' | 'campaign';
 
 /** Options a run can boot with. */
 export interface RunOptions {
   runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
-  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director
+  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
+  stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -227,9 +228,14 @@ export class Game {
    * the phase hasn't flipped yet — the battlefield winds down (see step's settle branch). */
   private settleTimer = 0;
   waveIndex = 0; // waves started/cleared so far (= Depth in endless)
-  readonly totalWaves = TOTAL_WAVES;
+  readonly totalWaves: number; // authored TOTAL_WAVES, or a campaign stage's generated wave count
   readonly mode: RunMode;
   private director: Director | null = null;
+  // The wave list this run plays: authored WAVES (stage) or a campaign stage's generated waves.
+  private readonly waves: WaveDef[];
+  // The campaign stage this run plays (null for stage/endless) — drives the finale + mini boss.
+  private readonly stage: StageConfig | null;
+  private readonly stageSpeedMult: number; // enemy-speed scalar (campaign per-stage; 1 otherwise → golden-safe)
   // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
   private readonly diff: DifficultyDef;
   // Spawn Director: owns spawn spacing/timing/pacing/elite/boss/special-event scheduling.
@@ -362,8 +368,15 @@ export class Game {
     this.towerEffectiveRange = {} as Record<TowerKind, number>;
     for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1);
     this.heroProgress = heroProgress;
-    this.diff = resolveDifficulty(opts.difficulty);
     this.mode = opts.mode ?? 'stage';
+    // Campaign runs a procedurally GENERATED stage: its combined difficulty (variant × per-stage
+    // scaling) becomes `this.diff`, its waves replace the authored WAVES, and its speed scalar
+    // rides separately. Stage/endless are unchanged ⇒ byte-identical (golden-safe).
+    this.stage = opts.stage ?? null;
+    this.diff = this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty);
+    this.waves = this.stage ? this.stage.waves : WAVES;
+    this.totalWaves = this.waves.length;
+    this.stageSpeedMult = this.stage ? this.stage.enemySpeedMult : 1;
     if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
@@ -814,9 +827,9 @@ export class Game {
       this.startEndlessWave();
       return;
     }
-    if (this.waveIndex >= TOTAL_WAVES) return;
+    if (this.waveIndex >= this.totalWaves) return;
     this.waveIndex++;
-    const def = WAVES[this.waveIndex - 1];
+    const def = this.waves[this.waveIndex - 1];
     const idx0 = this.waveIndex - 1;
     // The Spawn Director schedules the scripted wave; difficulty's spawn-rate knob (×1 at
     // Standard) tightens spacing. Byte-identical to the former inline loop at the defaults.
@@ -827,6 +840,12 @@ export class Game {
       this.bountyMultFor(idx0),
       this.diff.spawnRateMult,
     );
+    // Campaign: framework bosses aren't enemy-kinds, so the Game spawns them — the selected boss
+    // caps the finale wave, the mini-boss (if any) anchors a middle wave. Both escorted by chaff.
+    if (this.stage) {
+      if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss);
+      else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss);
+    }
     this.spawnedAll = false;
     this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
@@ -1018,7 +1037,7 @@ export class Game {
       hp: def.hp * hpMult * eHp,
       maxHp: def.hp * hpMult * eHp,
       baseArmor: def.armor,
-      speed: def.speed,
+      speed: def.speed * this.stageSpeedMult, // campaign per-stage speed scalar (×1 otherwise → golden-safe)
       bounty: def.bounty * bountyMult * eBounty,
       damage: def.damage * eDmg * this.diff.enemyDamageMult,
       fracture: 0,
@@ -2279,8 +2298,9 @@ export class Game {
       // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
       // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
       // options aren't shown until the phase is 'draft' (the modal is phase-gated).
-      // Endless never "wins" — it only ends when the Nucleus falls. Stage caps at 12.
-      if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
+      // Endless never "wins" — it only ends when the Nucleus falls. Stage + campaign clear when
+      // their (authored / generated) wave count is reached.
+      if (this.mode !== 'endless' && this.waveIndex >= this.totalWaves) {
         this.stageClearCrescendo();
       } else {
         this.waveCompleteFlourish(flawless);
@@ -2294,12 +2314,12 @@ export class Game {
     }
   }
 
-  /** Whether the just-cleared wave grants a Gene Card draft. Campaign (stage): always. Endless:
-   * the cadence widens with depth (1→5-wave gaps, CARDS.md §1) — counts waves since the last draft
-   * and fires once it reaches the depth's interval, so the gap only ever widens. Mutates the
-   * since-last-draft counter, so call exactly once per cleared wave. */
+  /** Whether the just-cleared wave grants a Gene Card draft. Stage + campaign: always (generous).
+   * Endless: the cadence widens with depth (1→5-wave gaps, CARDS.md §1) — counts waves since the
+   * last draft and fires once it reaches the depth's interval, so the gap only ever widens. Mutates
+   * the since-last-draft counter, so call exactly once per cleared wave. */
   private shouldDraftThisWave(): boolean {
-    if (this.mode === 'stage') return true;
+    if (this.mode !== 'endless') return true;
     this.wavesSinceDraft++;
     if (this.wavesSinceDraft >= endlessDraftInterval(this.waveIndex)) {
       this.wavesSinceDraft = 0;
@@ -2313,7 +2333,8 @@ export class Game {
    * Pure phase flip; the battlefield is now wound down. */
   private endWave(): void {
     this.settleTimer = 0;
-    if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
+    // Stage + campaign clear (win) when their wave count is reached; endless never wins.
+    if (this.mode !== 'endless' && this.waveIndex >= this.totalWaves) {
       this.phase = 'won';
     } else if (this.draft && this.draft.length > 0) {
       this.phase = 'draft';
@@ -2813,10 +2834,13 @@ export class Game {
       return out;
     }
     const w = Math.max(0, this.waveIndex);
-    if (w < TOTAL_WAVES) out.push(`${ENEMY_DEFS.tyrant.name} at wave ${TOTAL_WAVES}`);
+    // The finale boss: a campaign stage names its generated boss; the authored stage, the Tyrant.
+    const bossName = this.stage ? this.stage.boss.name : ENEMY_DEFS.tyrant.name;
+    if (w < this.totalWaves) out.push(`${bossName} at wave ${this.totalWaves}`);
+    if (this.stage?.miniBoss && w < this.stage.miniBossWave) out.push(`${this.stage.miniBoss.name} at wave ${this.stage.miniBossWave}`);
     // The next wave at which the run-end cache tier upgrades (data-driven via chestForWave).
     const curTier = chestForWave(w);
-    for (let nw = w + 1; nw <= TOTAL_WAVES; nw++) {
+    for (let nw = w + 1; nw <= this.totalWaves; nw++) {
       if (chestForWave(nw) !== curTier) {
         out.push(`${CHESTS[chestForWave(nw)].name} at wave ${nw}`);
         break;
@@ -2856,8 +2880,8 @@ export class Game {
 
   /** Composition of the wave that Start Wave will launch next (null if none left). */
   getNextWavePreview(): WavePreviewEntry[] | null {
-    if (this.mode === 'endless' || this.waveIndex >= TOTAL_WAVES) return null;
-    return wavePreview(WAVES[this.waveIndex]);
+    if (this.mode === 'endless' || this.waveIndex >= this.totalWaves) return null;
+    return wavePreview(this.waves[this.waveIndex]);
   }
 
   /** Per-tower-kind usage accrued this run — banked into permanent mastery at run end. */
