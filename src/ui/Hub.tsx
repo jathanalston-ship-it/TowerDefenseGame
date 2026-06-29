@@ -133,7 +133,11 @@ export function Hub({
             >
               <span className="hub-mono" aria-hidden>{n.mono}</span>
               <span className="hub-navlabel">{n.label}</span>
-              {badges[n.key] > 0 && <span className="nav-badge" aria-hidden />}
+              {badges[n.key] > 0 && (
+                <span className="nav-badge" aria-hidden>
+                  {badges[n.key] > 1 ? (badges[n.key] > 9 ? '9+' : badges[n.key]) : ''}
+                </span>
+              )}
             </button>
           ))}
         </div>

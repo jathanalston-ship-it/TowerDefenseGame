@@ -80,3 +80,22 @@ export const CheckIcon = (p: IconProps): JSX.Element => svg(<path d="M5 13l4 4L1
 
 /** Cross / X (replaces ✗). */
 export const CrossIcon = (p: IconProps): JSX.Element => svg(<path d="M6 6l12 12M18 6L6 18" />, p, true);
+
+/** Turret — a tower (the Gene Card "affects this tower" badge; tinted to the tower's color). */
+export const TowerIcon = (p: IconProps): JSX.Element =>
+  svg(<path d="M5 21V9l7-4 7 4v12h-4v-6h-6v6z" />, p);
+
+/** Globe — an army-wide / GLOBAL card. */
+export const GlobalIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c3.2 2.6 3.2 15.4 0 18M12 3c-3.2 2.6-3.2 15.4 0 18" />
+    </>,
+    p,
+    true,
+  );
+
+/** Shielded core — the Hive (Nucleus integrity + build structure). */
+export const HiveIcon = (p: IconProps): JSX.Element =>
+  svg(<path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5z" />, p);

@@ -14,7 +14,7 @@
 //     where the BOX rarity (6-tier registry scale) supplies title + accent and its
 //     registry rank drives how big the ceremony gets.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ChestResult, RewardItem } from '../state/lootbox';
 import { CHESTS, HERO_LABELS, TOWER_DEFS } from '../core/config';
 import type { LootRarity, MaterialKind } from '../core/config';
@@ -98,12 +98,16 @@ export function LootReveal({
   chest,
   title,
   color,
-  onDone,
+  onClose,
+  onOpenMore,
+  remaining = 0,
 }: {
   chest: ChestResult | ChestResult[];
   title?: string; // overrides the chest-name label (loot-queue boxes pass their rarity name)
   color?: string; // rarity color for the framing + accent (loot-queue boxes)
-  onDone?: () => void;
+  onClose: () => void; // explicit dismissal (Return / Continue) — the ceremony NEVER auto-closes
+  onOpenMore?: () => void; // crack the next container in place (Open More), without leaving the reveal
+  remaining?: number; // containers still in the stockpile → drives the "Open More (N left)" CTA
 }): JSX.Element {
   const chests = useMemo(() => (Array.isArray(chest) ? chest : [chest]), [chest]);
   const rewards = useMemo(() => summarize(chests.flatMap((c) => c.items)), [chests]);
@@ -130,7 +134,6 @@ export function LootReveal({
   const [stage, setStage] = useState<Stage>('box');
   const [revealed, setRevealed] = useState(0);
   const si = STAGES.indexOf(stage);
-  const calledDone = useRef(false);
 
   // Anticipation scales with rarity: fast floor, long savored ceiling.
   const openMs = 420 + t * 150;
@@ -160,19 +163,24 @@ export function LootReveal({
     audio.cue(r && TIER.indexOf(r.rarity) >= 2 ? 'jackpot' : 'reveal');
   }, [revealed, rewards]);
 
+  // The reveal is "done" once the cascade has fully played. This used to auto-fire a dismiss
+  // callback here, which destroyed the summary the instant it finished animating in — the player
+  // never got to read it. Now `done` only UNLOCKS the explicit actions below; closing is always a
+  // deliberate player choice (see BUGFIX-LOG #5).
   const done = stage === 'summary' && revealed >= rewards.length;
-  useEffect(() => {
-    if (done && onDone && !calledDone.current) {
-      calledDone.current = true;
-      onDone();
-    }
-  }, [done, onDone]);
 
   // Click: fast-forward anticipation → reveal gate → flip → skip the cascade.
   const advance = (): void => {
     if (si < STAGES.indexOf('tease')) setStage('tease');
     else if (stage === 'tease') setStage('flip');
     else setRevealed(rewards.length);
+  };
+
+  // "Review Rewards" — jump straight to the fully-revealed summary so the player can read every
+  // drop immediately, skipping the staged theatrics. Never triggered automatically.
+  const reviewRewards = (): void => {
+    setStage('summary');
+    setRevealed(rewards.length);
   };
 
   // Celebration sparks fired on the reveal (rarity-tinted; count scales with tier).
@@ -276,7 +284,30 @@ export function LootReveal({
         </ul>
       )}
 
-      {!done && <div className="loot-skip">{stage === 'tease' ? '' : 'click to skip'}</div>}
+      {/* Explicit, player-driven controls — the ceremony never dismisses on its own. Before the
+          reveal lands: Review Rewards (skip to the full list). After it lands: Open More (crack the
+          next box) + Return, or Continue when the stockpile is empty. stopPropagation keeps these
+          clicks from also triggering the backdrop's skip-advance. */}
+      <div className="loot-actions" onClick={(e) => e.stopPropagation()}>
+        {!done ? (
+          <button type="button" className="loot-btn loot-review" onClick={reviewRewards}>
+            Review Rewards
+          </button>
+        ) : onOpenMore && remaining > 0 ? (
+          <>
+            <button type="button" className="loot-btn primary" onClick={onOpenMore}>
+              Open More <span className="loot-btn-sub">({remaining} left)</span>
+            </button>
+            <button type="button" className="loot-btn" onClick={onClose}>
+              Return
+            </button>
+          </>
+        ) : (
+          <button type="button" className="loot-btn primary" onClick={onClose}>
+            Continue
+          </button>
+        )}
+      </div>
     </div>
   );
 }

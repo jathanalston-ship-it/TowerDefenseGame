@@ -9,6 +9,7 @@ import {
   CARD_RARITY_DEFS,
   cardProblems,
   cardRegistry,
+  cardSubject,
   cardToOption,
   applyCard,
   defaultRunModifiers,
@@ -16,7 +17,7 @@ import {
   rollCardRarity,
 } from './cards';
 import type { CardContext } from './cards';
-import type { CardRarity } from './types';
+import type { CardRarity, CardSubject } from './types';
 import { Rng } from './rng';
 import { Game } from './game';
 import { SIM_DT } from './config';
@@ -42,6 +43,50 @@ describe('card catalog (data integrity)', () => {
   it('cardToOption surfaces the human-readable category label', () => {
     const tower = CARD_POOL.find((c) => c.category === 'tower')!;
     expect(cardToOption(tower).category).toBe('Tower');
+  });
+});
+
+describe('card subject — what it AFFECTS (derived from effects)', () => {
+  // Pin EVERY card's derived subject: this documents the intended badge AND catches drift — a
+  // behaviour change that would silently flip a card's draft badge fails here. Tower subjects use
+  // the TowerKind tag; the rest use their kind ('hero' | 'global' | 'economy' | 'hive').
+  const EXPECT: Record<string, string> = {
+    sharpened_needles: 'global', rapid_glands: 'global', fertile_decay: 'economy',
+    biomass_surge: 'economy', thick_marrow: 'hive', twin_fang: 'needle',
+    battle_stims: 'hero', toxic_coating: 'global', caustic_edge: 'mortar',
+    numbing_field: 'obelisk', disorient: 'obelisk', thick_hide: 'hero',
+    combat_stims: 'hero', fleet_step: 'hero', fracture_point: 'global',
+    bonemeal: 'economy', hardened_carapace: 'hive', engorged_reactor: 'reactor',
+    caustic_catalyst: 'mortar', volatile_marrow: 'global', fracture_cascade: 'global',
+    apex_adrenaline: 'hero', lingering_acid: 'mortar', overcharged_veins: 'reactor',
+    swarm_bounty: 'economy', plague_vector: 'parasite', vulnerability_field: 'obelisk',
+    pierce_protocol: 'global', heavy_caliber: 'global', rapid_cycling: 'global',
+    reclaimed_node: 'hive', warlords_presence: 'hero', lifelink: 'hero',
+    adaptive_arsenal: 'global', caustic_detonation: 'mortar', shatterpoint: 'global',
+    cull_the_weak: 'global', avatar_of_war: 'hero', catalyst_engine: 'global',
+    overcharged_grid: 'reactor', gravity_well: 'obelisk', glass_genome: 'global',
+    executioners_law: 'global', last_bastion: 'global', apex_predator: 'hero',
+  };
+  const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
+
+  it('classifies every card in the pool (and the expectation map has no stale ids)', () => {
+    for (const c of CARD_POOL) {
+      expect(EXPECT[c.id], `card '${c.id}' needs an expected subject`).toBeDefined();
+      expect(tagOf(cardSubject(c)), `card '${c.id}' subject`).toBe(EXPECT[c.id]);
+    }
+    for (const id of Object.keys(EXPECT)) {
+      expect(CARD_POOL.some((c) => c.id === id), `EXPECT id '${id}' still exists`).toBe(true);
+    }
+  });
+
+  it('cardToOption carries the subject through to the UI', () => {
+    expect(cardToOption(cardRegistry.get('twin_fang')!).subject).toEqual({ kind: 'tower', tower: 'needle' });
+    expect(cardToOption(cardRegistry.get('sharpened_needles')!).subject).toEqual({ kind: 'global' });
+  });
+
+  it('resolves a multi-tower card to GLOBAL, but keeps a hero card with a global drawback HERO', () => {
+    expect(tagOf(cardSubject(cardRegistry.get('toxic_coating')!))).toBe('global'); // parasite + mortar
+    expect(tagOf(cardSubject(cardRegistry.get('apex_predator')!))).toBe('hero'); // hero kit + enemyHp drawback
   });
 });
 

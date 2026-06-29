@@ -2,7 +2,7 @@
 // Cards are drafted between waves and RESET every run: they only ever mutate the
 // run's RunModifiers / run state, never permanent meta. No React/DOM here.
 
-import type { CardOption, CardRarity, CardCategory, StatusType } from './types';
+import type { CardOption, CardRarity, CardCategory, CardSubject, StatusType, TowerKind } from './types';
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
@@ -348,6 +348,80 @@ export function draftCards(rng: Rng, count = 3, wave = 0): CardDef[] {
   return chosen;
 }
 
+// ── Card SUBJECT — "what it AFFECTS" (CARDS.md) ──────────────────────────────────────────
+// Derived from a card's effects, so the draft badge can NEVER drift from what the card does and a
+// NEW card auto-classifies from the fields it touches. This map is the single source of truth: each
+// tower-/hero-/resource-specific RunModifiers field points at the thing it changes. Fields left out
+// are army-wide ⇒ 'global'. Adding a tower = map its new tower-specific fields here (one place).
+type SubjectTag = TowerKind | 'hero' | 'global' | 'economy' | 'hive';
+
+const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
+  // tower identity fields (each maps to the one tower it belongs to)
+  needleExtraProjectiles: 'needle',
+  mortarPoolDurationMult: 'mortar',
+  mortarAppliesFracture: 'mortar',
+  corrosionSlowBonus: 'mortar',
+  poolDpsMult: 'mortar',
+  parasiteInfectionMult: 'parasite',
+  obeliskVulnerabilityBonus: 'obelisk',
+  obeliskSlowBonus: 'obelisk',
+  reactorBiomassMult: 'reactor',
+  reactorOverchargeBonus: 'reactor',
+  // hero kit (numbers + behaviour)
+  heroDamageMult: 'hero', heroCooldownMult: 'hero', heroMaxHpMult: 'hero',
+  heroAggroRangeMult: 'hero', heroRetreatThreshold: 'hero', heroAnchor: 'hero',
+  heroSpeedMult: 'hero', heroLifestealFrac: 'hero', heroThornsFrac: 'hero',
+  heroAbilityRadiusMult: 'hero', heroAuraRadius: 'hero',
+  heroTowerHasteAura: 'hero', heroTowerDamageAura: 'hero',
+  // economy (biomass income / stockpile)
+  biomassMult: 'economy', startBiomassBonus: 'economy',
+  // the Hive itself (the Nucleus + its build structure)
+  integrityMult: 'hive', bonusTowerSlots: 'hive',
+  // (towerDamageMult, towerFireRateMult, splashRadiusMult, fractureBonusStacks, reactionRepeats,
+  //  executeThreshold, diversityBonus, damagePer*, lastStand*, classResonanceBonus, enemyHpRunMult)
+  //  are army-wide ⇒ 'global' via the default — intentionally unlisted.
+};
+
+// On-hit status → the tower whose identity that status is (for spread-on-event relic hooks).
+const STATUS_SUBJECT: Partial<Record<StatusType, SubjectTag>> = {
+  Fracture: 'needle', Corrosion: 'mortar', Infection: 'parasite', Disruption: 'obelisk',
+};
+
+function effectSubject(e: CardEffect): SubjectTag {
+  switch (e.op) {
+    case 'mul': case 'add': case 'flag': case 'set':
+      return FIELD_SUBJECT[e.field] ?? 'global';
+    case 'biomass': return 'economy';
+    case 'integrity': return 'hive';
+    case 'heroHp': return 'hero';
+    case 'grant':
+      return e.grant.kind === 'towerProjectileMutator' ? 'global' : 'hero';
+    case 'hook': {
+      const a = e.hook.action;
+      if (a.do === 'biomass') return 'economy';
+      if (a.do === 'heal') return 'hive';
+      if (a.do === 'shield') return 'hero';
+      return STATUS_SUBJECT[a.status] ?? 'global'; // spreadStatus
+    }
+  }
+}
+
+/** What a card primarily AFFECTS, derived from its effects: exactly one distinct non-global
+ *  subject ⇒ that subject; none or several ⇒ 'global' (army-wide). Pure + deterministic
+ *  (cards.test pins every card's result, so a behaviour change that shifts a badge is caught). */
+export function cardSubject(def: CardDef): CardSubject {
+  const specific = [...new Set(def.effects.map(effectSubject))].filter((t) => t !== 'global');
+  const tag: SubjectTag = specific.length === 1 ? specific[0] : 'global';
+  switch (tag) {
+    case 'needle': case 'mortar': case 'reactor': case 'parasite': case 'obelisk':
+      return { kind: 'tower', tower: tag };
+    case 'hero': return { kind: 'hero' };
+    case 'economy': return { kind: 'economy' };
+    case 'hive': return { kind: 'hive' };
+    case 'global': return { kind: 'global' };
+  }
+}
+
 export function cardToOption(def: CardDef): CardOption {
   return {
     id: def.id,
@@ -355,5 +429,6 @@ export function cardToOption(def: CardDef): CardOption {
     rarity: def.rarity,
     description: def.description,
     category: CARD_CATEGORY_LABEL[def.category],
+    subject: cardSubject(def),
   };
 }
