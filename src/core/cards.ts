@@ -348,6 +348,16 @@ export function draftCards(rng: Rng, count = 3, wave = 0): CardDef[] {
   return chosen;
 }
 
+/**
+ * Endless Gene Card cadence — waves required between drafts at a given depth (CARDS.md §1).
+ * Grows one wave per 5-depth band (1→2→3→4→5) and caps at 5, so cards become progressively
+ * rarer the deeper an endless run goes and late runs lean on permanent progression instead of
+ * endless card stacking. Campaign (stage) ignores this and drafts every wave.
+ */
+export function endlessDraftInterval(wave: number): number {
+  return Math.min(5, Math.max(1, Math.ceil(wave / 5)));
+}
+
 // ── Card SUBJECT — "what it AFFECTS" (CARDS.md) ──────────────────────────────────────────
 // Derived from a card's effects, so the draft badge can NEVER drift from what the card does and a
 // NEW card auto-classifies from the fields it touches. This map is the single source of truth: each

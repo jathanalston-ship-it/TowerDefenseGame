@@ -59,6 +59,7 @@ import {
   cardToOption,
   defaultRunModifiers,
   draftCards,
+  endlessDraftInterval,
 } from './cards';
 import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
@@ -311,6 +312,7 @@ export class Game {
   private spawnedAll = false;
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
+  private wavesSinceDraft = 0; // endless cadence: waves cleared since the last Gene Card draft
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -2282,17 +2284,44 @@ export class Game {
         this.stageClearCrescendo();
       } else {
         this.waveCompleteFlourish(flawless);
-        this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
+        // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
+        // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
+        if (this.shouldDraftThisWave()) {
+          this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
+        }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
     }
   }
 
-  /** End of the settle beat: reveal the post-wave state — the stage win, or the gene-card draft
-   * (already rolled in checkWaveEnd). Pure phase flip; the battlefield is now wound down. */
+  /** Whether the just-cleared wave grants a Gene Card draft. Campaign (stage): always. Endless:
+   * the cadence widens with depth (1→5-wave gaps, CARDS.md §1) — counts waves since the last draft
+   * and fires once it reaches the depth's interval, so the gap only ever widens. Mutates the
+   * since-last-draft counter, so call exactly once per cleared wave. */
+  private shouldDraftThisWave(): boolean {
+    if (this.mode === 'stage') return true;
+    this.wavesSinceDraft++;
+    if (this.wavesSinceDraft >= endlessDraftInterval(this.waveIndex)) {
+      this.wavesSinceDraft = 0;
+      return true;
+    }
+    return false;
+  }
+
+  /** End of the settle beat: reveal the post-wave state — the stage win, the gene-card draft
+   * (already rolled in checkWaveEnd), or straight to the next prep on an endless no-draft wave.
+   * Pure phase flip; the battlefield is now wound down. */
   private endWave(): void {
     this.settleTimer = 0;
-    this.phase = this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES ? 'won' : 'draft';
+    if (this.mode === 'stage' && this.waveIndex >= TOTAL_WAVES) {
+      this.phase = 'won';
+    } else if (this.draft && this.draft.length > 0) {
+      this.phase = 'draft';
+    } else {
+      // Endless skipped this wave's draft (CARDS.md §1) — no card to offer, so go build.
+      this.phase = 'prep';
+      this.prepCountdown = AUTO_START_DELAY; // fresh countdown, like chooseCard's prep entry
+    }
   }
 
   // ── Status / reaction helpers ────────────────────────────────────────────
@@ -2774,6 +2803,13 @@ export class Game {
     if (this.mode === 'endless') {
       const nextBoss = (Math.floor(this.waveIndex / DIRECTOR.bossEvery) + 1) * DIRECTOR.bossEvery;
       out.push(`Boss at depth ${nextBoss}`);
+      // Next Gene Card depth: simulate the cadence counter forward so the slower endless drip stays
+      // anticipated, not just absent (CARDS.md §1). During a wave the current depth can still grant
+      // the card (its draft hasn't resolved); in prep that decision is already behind us.
+      let since = this.wavesSinceDraft;
+      let depth = this.phase === 'wave' ? this.waveIndex - 1 : this.waveIndex;
+      do { depth++; since++; } while (since < endlessDraftInterval(depth));
+      out.push(`Gene Card at depth ${depth}`);
       return out;
     }
     const w = Math.max(0, this.waveIndex);
