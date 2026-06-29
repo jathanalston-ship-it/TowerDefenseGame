@@ -59,6 +59,7 @@ export function Results({
     });
   if (cacheCount > 0) containerRows.push({ key: 'cache', name: 'Run Cache', color: 'var(--cache)', n: cacheCount, glyph: '⬢', cache: true });
   const earned = outcome.loot.banked.length;
+  const lootBoxes = earned - cacheCount; // loot-queue boxes only (excludes the guaranteed cache)
   const owned = meta.pendingContainers().length;
   const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
   const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
@@ -164,15 +165,20 @@ export function Results({
     extra: (
       <>
         {earned > 0 ? (
-          <div className="vault-earned">
-            {containerRows.map((r, i) => (
-              <div className={`ve-row${r.cache ? ' is-cache' : ''}`} key={r.key} style={{ borderLeftColor: r.color, ['--i' as string]: i }}>
-                <span className="ve-icon" style={{ color: r.color }}>{r.glyph}</span>
-                <span className="ve-name" style={{ color: r.color }}>{r.name}</span>
-                <span className="ve-count">×{r.n}</span>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="vault-earned">
+              {containerRows.map((r, i) => (
+                <div className={`ve-row${r.cache ? ' is-cache' : ''}`} key={r.key} style={{ borderLeftColor: r.color, ['--i' as string]: i }}>
+                  <span className="ve-icon" style={{ color: r.color }}>{r.glyph}</span>
+                  <span className="ve-name" style={{ color: r.color }}>{r.name}</span>
+                  <span className="ve-count">×{r.n}</span>
+                </div>
+              ))}
+            </div>
+            {lootBoxes === 0 && (
+              <div className="vault-note">Only your guaranteed run cache — push deeper to fill the loot meter for rarity drops.</div>
+            )}
+          </>
         ) : (
           <div className="vault-empty">No bio-containers banked — push deeper to fill the loot meter.</div>
         )}

@@ -22,7 +22,7 @@ import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
-  hit: 0.018, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34,
+  hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34,
 };
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
