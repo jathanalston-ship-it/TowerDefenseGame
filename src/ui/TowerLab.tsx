@@ -9,6 +9,7 @@ import { forksOf, isFork, stepAt } from '../core/stars';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import type { TowerKind } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 /** The re-pickable star forks the player has reached for a tower. */
 function ForkPicker({ kind, stars }: { kind: TowerKind; stars: number }): JSX.Element | null {
@@ -73,8 +74,8 @@ export function TowerLab(): JSX.Element {
                 <span className="lab-name" style={{ color: def.color }}>
                   {def.name}
                 </span>
-                <span className="lab-shards" title="Tower Shards">
-                  {shards} ✦
+                <span className="lab-shards">
+                  {shards} <CurrencyIcon id="towerShards" color={def.color} size={13} />
                 </span>
               </div>
 
@@ -95,7 +96,7 @@ export function TowerLab(): JSX.Element {
                   disabled={maxed || !affordable}
                   onClick={() => meta.buyStar(k)}
                 >
-                  {maxed ? 'MAX' : `${cost} ✦`}
+                  {maxed ? 'MAX' : <>{cost} <CurrencyIcon id="towerShards" color={def.color} size={12} title="" /></>}
                 </button>
               </div>
 

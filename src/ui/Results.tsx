@@ -12,7 +12,8 @@ import { rarityRank, rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
 import { RewardReveal } from './RewardReveal';
 import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal';
-import { BiomassIcon, ShardIcon } from './components/Icon';
+import { BiomassIcon } from './components/Icon';
+import { CurrencyIcon } from './components/CurrencyIcon';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function Results({
@@ -148,7 +149,7 @@ export function Results({
     summary: `+${num(result.stats.biomassEarned)} biomass · +${num(outcome.reward.shardsEarned)} ${ACCOUNT_CURRENCY.name}`,
     stats: [
       { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon />, accent: 'var(--caustic)' },
-      { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <ShardIcon />, accent: 'var(--gold)' },
+      { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <CurrencyIcon id="genomeCores" />, accent: 'var(--gold)' },
     ],
   });
 

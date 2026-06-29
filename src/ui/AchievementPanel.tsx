@@ -6,8 +6,8 @@
 import { meta } from '../state/meta';
 import { ACHIEVEMENTS } from '../state/achievements';
 import { ProgressBar } from './components/ProgressBar';
-import { ShardIcon } from './components/Icon';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 export function AchievementPanel(): JSX.Element {
   const save = meta.use();
@@ -50,7 +50,7 @@ export function AchievementPanel(): JSX.Element {
               </span>
               {!got && !concealed && a.reward ? (
                 <span className="achv-reward" title={`${ACCOUNT_CURRENCY.name} reward`}>
-                  +{a.reward} <ShardIcon />
+                  +{a.reward} <CurrencyIcon id="genomeCores" title="" />
                 </span>
               ) : null}
             </div>

@@ -5,6 +5,7 @@
 
 import { meta } from '../state/meta';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 export function PrestigePanel(): JSX.Element {
   meta.use(); // re-render when the save changes
@@ -32,7 +33,7 @@ export function PrestigePanel(): JSX.Element {
         </div>
         <div className="record">
           <div className="k">Ascendant Cells</div>
-          <div className="v">{p.cells}</div>
+          <div className="v" style={{ color: 'var(--viral)' }}><CurrencyIcon id="ascendantCells" size={15} title="" /> {p.cells}</div>
         </div>
         <div className="record">
           <div className="k">Molts</div>
@@ -54,7 +55,7 @@ export function PrestigePanel(): JSX.Element {
         const tree = meta.ascendantNodes();
         return (
           <div className="ascendant-tree">
-            <div className="mp-codex-h">Ascendant Tree · {tree.cells} ◇ cells</div>
+            <div className="mp-codex-h">Ascendant Tree · {tree.cells} <CurrencyIcon id="ascendantCells" size={13} title="" /> cells</div>
             {tree.nodes.map((n) => (
               <div className="lab-evo" key={n.id} style={{ borderLeftColor: 'var(--viral)' }}>
                 <div className="asc-node-head">
@@ -67,7 +68,7 @@ export function PrestigePanel(): JSX.Element {
                     disabled={n.cost === null || !n.affordable}
                     onClick={() => meta.buyAscendantNode(n.id)}
                   >
-                    {n.cost === null ? 'MAX' : `${n.cost} ◇`}
+                    {n.cost === null ? 'MAX' : <>{n.cost} <CurrencyIcon id="ascendantCells" size={12} title="" /></>}
                   </button>
                 </div>
                 <span className="lab-evo-desc">{n.desc}</span>

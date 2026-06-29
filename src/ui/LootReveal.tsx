@@ -16,11 +16,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { ChestResult, RewardItem } from '../state/lootbox';
-import { CHESTS, HERO_LABELS, TOWER_DEFS } from '../core/config';
+import { CHESTS, HERO_DEFS, HERO_LABELS, TOWER_DEFS } from '../core/config';
 import type { LootRarity, MaterialKind } from '../core/config';
+import type { HeroKind } from '../core/types';
 import { itemDef } from '../core/equipment';
 import { rarityRank } from '../core/loot';
 import { audio } from '../audio/sound';
+import { CurrencyIcon } from './components/CurrencyIcon';
+import type { CurrencyId } from '../core/currencies';
 
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 const RARITY: Record<LootRarity, { label: string; color: string }> = {
@@ -40,16 +43,17 @@ interface Reward {
   color: string;
   name: string;
   amount: string; // e.g. "+5 Shards" or "EPIC"
+  currency?: CurrencyId; // tower/hero shard pulls get the matching currency icon + gain burst
 }
 
-function describe(item: RewardItem): { key: string; name: string; amount: number; suffix: string; color: string } {
+function describe(item: RewardItem): { key: string; name: string; amount: number; suffix: string; color: string; currency?: CurrencyId } {
   switch (item.type) {
     case 'tower': {
       const d = TOWER_DEFS[item.kind];
-      return { key: `tower:${item.kind}`, name: d.name, amount: item.amount, suffix: 'Shards', color: d.color };
+      return { key: `tower:${item.kind}`, name: d.name, amount: item.amount, suffix: 'Shards', color: d.color, currency: 'towerShards' };
     }
     case 'hero':
-      return { key: `hero:${item.id}`, name: HERO_LABELS[item.id] ?? item.id, amount: item.amount, suffix: 'Hero Shards', color: 'var(--gold)' };
+      return { key: `hero:${item.id}`, name: HERO_LABELS[item.id] ?? item.id, amount: item.amount, suffix: 'Hero Shards', color: HERO_DEFS[item.id as HeroKind]?.color ?? 'var(--vital)', currency: 'heroShards' };
     case 'material':
       return { key: `mat:${item.mat}`, name: MAT_LABEL[item.mat], amount: item.amount, suffix: 'Materials', color: 'var(--caustic)' };
     case 'equipment': {
@@ -67,7 +71,7 @@ function describe(item: RewardItem): { key: string; name: string; amount: number
 
 /** Merge raw pulls into deduped rewards, ordered ascending so the best is the finale. */
 function summarize(items: RewardItem[]): Reward[] {
-  const byKey = new Map<string, { rarity: LootRarity; name: string; amount: number; suffix: string; color: string }>();
+  const byKey = new Map<string, { rarity: LootRarity; name: string; amount: number; suffix: string; color: string; currency?: CurrencyId }>();
   for (const it of items) {
     const d = describe(it);
     const ex = byKey.get(d.key);
@@ -75,7 +79,7 @@ function summarize(items: RewardItem[]): Reward[] {
       ex.amount += d.amount;
       ex.rarity = maxR(ex.rarity, it.rarity);
     } else {
-      byKey.set(d.key, { rarity: it.rarity, name: d.name, amount: d.amount, suffix: d.suffix, color: d.color });
+      byKey.set(d.key, { rarity: it.rarity, name: d.name, amount: d.amount, suffix: d.suffix, color: d.color, currency: d.currency });
     }
   }
   return [...byKey.values()]
@@ -86,6 +90,7 @@ function summarize(items: RewardItem[]): Reward[] {
       color: r.color,
       name: r.name,
       amount: r.suffix === 'Item' ? RARITY[r.rarity].label : `+${r.amount} ${r.suffix}`,
+      currency: r.currency,
     }));
 }
 
@@ -276,7 +281,11 @@ export function LootReveal({
         <ul className="loot-items">
           {rewards.slice(0, revealed).map((r) => (
             <li className={`loot-item tier-${r.rarity}`} key={r.key} style={{ ['--rw' as string]: r.color }}>
-              <span className="loot-dot" style={{ background: r.color, boxShadow: `0 0 10px ${r.color}` }} />
+              {r.currency ? (
+                <CurrencyIcon id={r.currency} color={r.color} size={20} pickup className="loot-cur" />
+              ) : (
+                <span className="loot-dot" style={{ background: r.color, boxShadow: `0 0 10px ${r.color}` }} />
+              )}
               <span className="loot-name">{r.name}</span>
               <span className="loot-amt" style={{ color: r.color }}>{r.amount}</span>
             </li>

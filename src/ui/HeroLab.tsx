@@ -6,6 +6,7 @@ import { heroProgress, masteryProgress, meta, nextHeroStarCost } from '../state/
 import { HERO_DEFS, HERO_ORDER, STAR } from '../core/config';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { ProgressBar } from './components/ProgressBar';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 export function HeroLab(): JSX.Element {
   const save = meta.use();
@@ -36,8 +37,8 @@ export function HeroLab(): JSX.Element {
                 <span className="lab-name" style={{ color: def.color }}>
                   {def.name} <span className="lab-class">· {def.combatClass}</span>
                 </span>
-                <span className="lab-shards" title="Hero Shards">
-                  {shards} ✦
+                <span className="lab-shards">
+                  {shards} <CurrencyIcon id="heroShards" color={def.color} size={13} />
                 </span>
               </div>
 
@@ -65,7 +66,7 @@ export function HeroLab(): JSX.Element {
                   disabled={maxed || !affordable}
                   onClick={() => meta.buyHeroStar(k)}
                 >
-                  {maxed ? 'MAX' : `${cost} ✦`}
+                  {maxed ? 'MAX' : <>{cost} <CurrencyIcon id="heroShards" color={def.color} size={12} title="" /></>}
                 </button>
               </div>
 

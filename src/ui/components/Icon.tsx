@@ -28,16 +28,6 @@ function svg(path: JSX.Element, { size = '1em', className }: IconProps, stroke =
   );
 }
 
-/** Faceted gem — the Genome Cores account currency (replaces ◆ in menus). */
-export const ShardIcon = (p: IconProps): JSX.Element =>
-  svg(
-    <>
-      <path d="M12 2l7 6-7 14L5 8z" opacity="0.95" />
-      <path d="M5 8h14M12 2v20" stroke="rgba(0,0,0,0.35)" strokeWidth="1" fill="none" />
-    </>,
-    p,
-  );
-
 /** Hexagonal cell — in-run Biomass (replaces ◆ on tower cost chips). */
 export const BiomassIcon = (p: IconProps): JSX.Element =>
   svg(
@@ -54,6 +44,54 @@ export const HeroIcon = (p: IconProps): JSX.Element =>
     <>
       <path d="M12 2l10 10-10 10L2 12z" opacity="0.95" />
       <circle cx="12" cy="12" r="3" fill="rgba(0,0,0,0.35)" />
+    </>,
+    p,
+  );
+
+// ── Currency icons — one unmistakable silhouette per currency (see core/currencies.ts). Tinted
+//    and animated by <CurrencyIcon>; color comes from `currentColor` so the wrapper can override it
+//    per-kind (tower/hero). Shapes are deliberately distinct: helix vs crystal vs star vs cell. ──
+
+/** Double helix — the Genome Cores account currency (gold). */
+export const GenomeCoreIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M8 3c0 4.5 8 5.5 8 9s-8 4.5-8 9" />
+      <path d="M16 3c0 4.5-8 5.5-8 9s8 4.5 8 9" />
+      <path d="M9 6.2h6M9.4 9.4h5.2M9.4 14.6h5.2M9 17.8h6" strokeWidth="1.3" />
+    </>,
+    p,
+    true,
+  );
+
+/** Faceted crystal — Tower Shards (tinted per tower). */
+export const TowerShardIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M12 2l5.5 6.5-5.5 13.5-5.5-13.5z" opacity="0.95" />
+      <path d="M6.5 8.5h11M12 2v20" stroke="rgba(0,0,0,0.35)" strokeWidth="1" fill="none" />
+    </>,
+    p,
+  );
+
+/** Four-point star sigil — Hero Shards (tinted per hero). */
+export const HeroShardIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M12 1.5l2.6 6.9 6.9 2.6-6.9 2.6L12 22.5l-2.6-6.9L2.5 13l6.9-2.6z" opacity="0.95" />
+      <circle cx="12" cy="12" r="1.7" fill="rgba(0,0,0,0.3)" />
+    </>,
+    p,
+  );
+
+/** Dividing cell — Ascendant Cells prestige currency (violet). */
+export const AscensionCellIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <circle cx="8.6" cy="12" r="5.7" opacity="0.95" />
+      <circle cx="15.4" cy="12" r="5.7" opacity="0.95" />
+      <circle cx="8.6" cy="12" r="1.7" fill="rgba(0,0,0,0.32)" />
+      <circle cx="15.4" cy="12" r="1.7" fill="rgba(0,0,0,0.32)" />
     </>,
     p,
   );

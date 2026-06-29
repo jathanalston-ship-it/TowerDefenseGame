@@ -1,7 +1,7 @@
 import { meta, nextUpgradeCost, upgradeLevel } from '../state/meta';
 import { ProgressBar } from './components/ProgressBar';
-import { ShardIcon } from './components/Icon';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
 export function MetaShop(): JSX.Element {
   const save = meta.use();
@@ -37,7 +37,7 @@ export function MetaShop(): JSX.Element {
                 disabled={maxed || !affordable}
                 onClick={() => meta.buyUpgrade(u.id)}
               >
-                {maxed ? 'MAX' : <>{cost} <ShardIcon /></>}
+                {maxed ? 'MAX' : <>{cost} <CurrencyIcon id="genomeCores" /></>}
               </button>
             </div>
           );
