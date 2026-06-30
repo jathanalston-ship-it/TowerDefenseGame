@@ -10,7 +10,7 @@ import { meta, nextStarCost } from '../state/meta';
 import { audio } from '../audio/sound';
 import { notifications } from '../state/notifications';
 import { TOWER_ORDER, CAMPAIGN_REWARDS } from '../core/config';
-import { costOf, rarityRegistry } from '../core/loot';
+import { costOf, rarityRank, rarityRegistry } from '../core/loot';
 import type { NavKey } from './Hub';
 
 interface DashCard {
@@ -23,6 +23,7 @@ interface DashCard {
   badge?: number; // "new since last viewed" attention count
   hot?: boolean; // something to claim right now → grows + shows a CTA
   cta?: string; // the action verb shown when hot ("Open Now", "Evolve", …)
+  chips?: { label: string; color: string }[]; // a "contains" preview (Vault stockpile)
   onClick: () => void;
 }
 
@@ -49,11 +50,30 @@ export function ProgressDashboard({
   const nextGoal = (Math.floor(best / 10) + 1) * 10;
 
   // Vault — containers ready to crack, else the front box's fill toward its rarity.
-  const pending = meta.pendingContainers().length;
+  const pendingList = meta.pendingContainers();
+  const pending = pendingList.length;
   const lq = meta.lootQueue();
   const front = lq.queue[0] ?? 'common';
   const fillPct = Math.min(1, lq.progress / costOf(front));
   const frontName = rarityRegistry.get(front)?.name ?? 'Common';
+  // "Contains" preview — the distinct container types in the stockpile, best rarity first.
+  const vaultChips: { label: string; color: string }[] = [];
+  {
+    const seen = new Set<string>();
+    const ranked = pendingList
+      .map((c) =>
+        c.kind === 'loot'
+          ? { id: c.rarity, label: rarityRegistry.get(c.rarity)?.name ?? c.rarity, color: rarityRegistry.get(c.rarity)?.color ?? 'var(--r-common)', rank: rarityRank(c.rarity) }
+          : { id: 'cache', label: 'Stage Cache', color: 'var(--gold)', rank: -1 },
+      )
+      .sort((a, b) => b.rank - a.rank);
+    for (const r of ranked) {
+      if (seen.has(r.id)) continue;
+      seen.add(r.id);
+      vaultChips.push({ label: r.label, color: r.color });
+      if (vaultChips.length >= 4) break;
+    }
+  }
 
   // Tower Evolution — towers whose next star you can afford right now.
   const towersReady = TOWER_ORDER.reduce((n, k) => {
@@ -84,7 +104,8 @@ export function ProgressDashboard({
       big: pending > 0 ? `${pending} Ready` : `${Math.round(fillPct * 100)}%`,
       sub: pending > 0 ? 'Containers to crack' : `${frontName} container filling`,
       progress: pending > 0 ? undefined : fillPct, badge: badges.vault,
-      hot: pending > 0, cta: 'Open Now', onClick: () => nav('vault'),
+      hot: pending > 0, cta: 'Open Now', chips: pending > 0 ? vaultChips : undefined,
+      onClick: () => nav('vault'),
     },
     {
       key: 'towers', title: 'Tower Evolution', accent: 'var(--kinetic)',
@@ -130,11 +151,17 @@ export function ProgressDashboard({
               {c.badge ? <span className="dash-badge">{c.badge > 9 ? '9+' : c.badge} new</span> : null}
             </div>
             <div className="dash-big" style={{ color: c.accent }}>{c.big}</div>
-            {c.progress != null && (
+            {c.chips ? (
+              <div className="dash-chips">
+                {c.chips.map((ch, i) => (
+                  <span className="dash-chip" key={i} style={{ ['--cc' as string]: ch.color }}>{ch.label}</span>
+                ))}
+              </div>
+            ) : c.progress != null ? (
               <div className="dash-bar">
                 <div className="dash-bar-fill" style={{ width: `${Math.max(0, Math.min(1, c.progress)) * 100}%`, background: c.accent }} />
               </div>
-            )}
+            ) : null}
             {c.hot && c.cta ? <span className="dash-cta">{c.cta} ▸</span> : <div className="dash-sub">{c.sub}</div>}
           </button>
         ))}
