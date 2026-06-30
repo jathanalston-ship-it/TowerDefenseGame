@@ -77,6 +77,8 @@ import type { QueuedSpawn } from './spawndirector';
 import { resolveDifficulty } from './difficulty';
 import type { StageConfig } from './campaign';
 import { NEUTRAL_BIOME, biomeForDepth, hazardActive } from './biomes';
+import { heroIdentity } from './heroIdentity';
+import type { HeroIdentity } from './heroIdentity';
 import type { Biome } from './biomes';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
@@ -299,6 +301,12 @@ export class Game {
   private readonly towerEffectiveRange: Record<TowerKind, number>;
   // Per-hero permanent buffs (stars + mastery + equipment); identity for a fresh save.
   private heroProgress: HeroProgress;
+  // ── Hero identity (docs/HERO-FRAMEWORK.md) — the fielded hero's data-driven kit + its in-run
+  //    scaling state. All golden-safe: the Ravager's hooks fire only on `elite` enemies (absent
+  //    from Stage autoplay) and Shepherd/Overseer are never fielded by autoplay. ──
+  private readonly heroId: HeroIdentity;
+  private heroKillchain = 0; // Ravager: elites slain this run (feeds Killchain scaling)
+  private heroRushUntil = 0; // Ravager: sim-time the Bloodthirst speed boost lasts until
   // Pure-observation usage signals accrued this run, banked into mastery at run end.
   private masteryAccrual: MasteryCounts = zeroMasteryCounts();
   private heroMasteryAccrual: HeroMasteryCounts = zeroHeroMastery();
@@ -406,6 +414,15 @@ export class Game {
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
     for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
     if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
+    // Hero identity (docs/HERO-FRAMEWORK.md): cache the fielded hero's kit, and fold its innate
+    // PASSIVE where it's a mod — Shepherd's Symbiosis grants a tower aura. Golden-safe: the Ravager's
+    // passive is `eliteDamage` (no fold here), so the autoplay run stays byte-identical.
+    this.heroId = heroIdentity(heroKind);
+    if (this.heroId.passive.kind === 'towerAura') {
+      this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130);
+      this.mods.heroTowerHasteAura += this.heroId.passive.amount;
+      this.mods.heroTowerDamageAura += this.heroId.passive.amount;
+    }
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
     // Permanent tower slots: initial allotment + Hive Emplacements upgrades (meta.bonusSlots),
@@ -2050,6 +2067,34 @@ export class Game {
     }
   }
 
+  // ── Hero identity hooks (docs/HERO-FRAMEWORK.md). All reduce to identity unless the matching
+  //    hero is fielded + (Ravager) the target is `elite` ⇒ golden-safe. ──
+  /** Ravager Apex Predator + Killchain: bonus damage vs ELITE enemies, growing per elite slain this
+   *  run. ×1 vs non-elites — and Stage autoplay spawns none ⇒ byte-identical golden run. */
+  private heroEliteDamage(target: Enemy): number {
+    if (!target.elite || this.heroId.passive.kind !== 'eliteDamage') return 1;
+    return 1 + this.heroId.passive.amount + Math.min(this.heroId.scaling.cap, this.heroKillchain * this.heroId.scaling.perStack);
+  }
+
+  /** Overseer Neural Static + Overload: disrupted enemies take extra damage, deepening with depth.
+   *  0 unless the Overseer is fielded ⇒ golden-safe. */
+  private heroVulnBonus(): number {
+    if (this.heroId.passive.kind !== 'vulnField') return 0;
+    return this.heroId.passive.amount + Math.min(this.heroId.scaling.cap, this.waveIndex * this.heroId.scaling.perStack);
+  }
+
+  /** Ravager Bloodthirst + Killchain on an elite death: stack the chain, heal the hero, brief speed
+   *  rush. No-op unless the Ravager is fielded; elites never spawn in Stage autoplay ⇒ golden-safe. */
+  private onEliteSlain(): void {
+    if (this.heroId.passive.kind !== 'eliteDamage') return;
+    this.heroKillchain++;
+    const h = this.primaryHero;
+    if (!h.down) {
+      h.hp = Math.min(h.maxHp, h.hp + h.maxHp * 0.12); // Bloodthirst heal
+      this.heroRushUntil = this.time + 3; // brief mobility surge
+    }
+  }
+
   private heroSystem(dt: number): void {
     // Iterate the roster (one hero today; the loop is the multi-slot seam).
     for (const h of this.heroes) this.updateHero(h, dt);
@@ -2080,10 +2125,13 @@ export class Game {
       if (h.shieldTime <= 0) { h.shieldTime = 0; h.shield = 0; } // window lapsed → drop the pool
     }
 
-    // Equipment behavior profile: a "wary" loadout disengages the hero toward the nucleus
-    // at low HP instead of running its normal AI. Neutral default (threshold 0) ⇒ never
-    // retreats ⇒ byte-identical to a gear-less run (golden invariant).
-    if (this.mods.heroRetreatThreshold > 0 && h.hp < h.maxHp * this.mods.heroRetreatThreshold) {
+    // Threat-aware survival (docs/HERO-FRAMEWORK.md §3): cautious/evasive heroes disengage toward the
+    // nucleus at low HP; the Ravager's `aggressive` profile contributes 0 (its recklessness is a
+    // designed weakness), so the golden autoplay hero never retreats ⇒ byte-identical. Equipment's
+    // "wary" threshold layers on top (max).
+    const innateRetreat = this.heroId.survival === 'evasive' ? 0.4 : this.heroId.survival === 'cautious' ? 0.3 : 0;
+    const retreatAt = Math.max(this.mods.heroRetreatThreshold, innateRetreat);
+    if (retreatAt > 0 && h.hp < h.maxHp * retreatAt) {
       const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.mods.heroSpeedMult * dt);
       h.x = Math.max(0, Math.min(WIDTH, np.x));
       h.y = Math.max(0, Math.min(HEIGHT, np.y));
@@ -2112,6 +2160,8 @@ export class Game {
     let bestApproach = Infinity; // best among enemies still above the line
     let fallback: Enemy | null = null;
     let bestAny = Infinity;
+    let elite: Enemy | null = null; // Apex Predator: hunt elites first (none in Stage ⇒ golden-safe)
+    let bestElite = Infinity;
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
@@ -2124,16 +2174,22 @@ export class Game {
         bestApproach = gd;
         target = e;
       }
+      if (e.elite && gd < bestElite) {
+        bestElite = gd;
+        elite = e;
+      }
     }
-    target = target ?? fallback;
+    target = elite ?? target ?? fallback; // identity: prioritize elites, then the most-advanced threat
 
     const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
-    const np = moveToward(h.x, h.y, goal.x, goal.y, def.speed * this.mods.heroSpeedMult * dt); // MOBILITY gear
+    // Bloodthirst: a brief speed surge after an elite kill (×1 otherwise ⇒ golden-safe). MOBILITY gear rides on top.
+    const moveSpeed = def.speed * this.mods.heroSpeedMult * (this.time < this.heroRushUntil ? 1.4 : 1);
+    const np = moveToward(h.x, h.y, goal.x, goal.y, moveSpeed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
-      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(target);
       const applied = this.applyDamage(target, dmg);
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
@@ -2161,7 +2217,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = target.x;
     this.castScratch.y = target.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(target);
     this.castScratch.target = target;
     this.castScratch.pierce = 0;
     this.castRangeMult = 1;
@@ -2346,6 +2402,7 @@ export class Game {
       if (e.alive && e.hp <= 0) {
         e.alive = false;
         this.kills++;
+        if (e.elite) this.onEliteSlain(); // Ravager Killchain/Bloodthirst (golden-safe: no elites in Stage)
         this.statKillsByEnemy[e.kind]++; // lifetime-stats observation
         if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1); // a boss fell
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
@@ -2611,7 +2668,7 @@ export class Game {
    * so undisrupted/unfractured enemies take damage exactly as before. */
   private vulnMult(e: Enemy): number {
     let m = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
-    if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus;
+    if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus + this.heroVulnBonus();
     // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
     // inert on the historical path (no framework statuses present).
     if (e.statuses !== undefined && e.statuses.length > 0) m += aggregateStatuses(e.statuses).damageTakenMult;

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { masteryProgress, meta } from '../state/meta';
 import { heroDetail } from '../state/heroView';
 import { HERO_DEFS, HERO_ORDER } from '../core/config';
+import { heroIdentity } from '../core/heroIdentity';
 import type { HeroKind } from '../core/types';
 import { masteryRank } from '../core/mastery';
 import { HeroPortrait } from './components/HeroPortrait';
@@ -33,6 +34,7 @@ export function HeroLab(): JSX.Element {
   // Which hero's page is OPEN (focus) — independent of which is FIELDED. Defaults to fielded.
   const [focus, setFocus] = useState<HeroKind>(save.selectedHero);
   const d = heroDetail(save, focus);
+  const id = heroIdentity(focus); // the data-driven identity layer (docs/HERO-FRAMEWORK.md)
   const c = d.def.color;
 
   return (
@@ -114,6 +116,26 @@ export function HeroLab(): JSX.Element {
             {d.def.attackDamage > 0
               ? <div className="kv-row"><span>Strike</span><b>{d.def.attackDamage} dmg</b></div>
               : <div className="kv-row"><span>Support</span><b>field / utility</b></div>}
+          </Section>
+
+          {/* Hero Identity — the data-driven kit (docs/HERO-FRAMEWORK.md): passive · active · trait · scaling */}
+          <Section title="Hero Identity" accent={c}>
+            <div className="hkit">
+              <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Passive</span><span className="hkit-body"><b>{id.passive.name}</b> — {id.passive.desc}</span></div>
+              <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Active</span><span className="hkit-body"><b>{d.def.ability.name}</b> — {d.def.ability.blurb}</span></div>
+              <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Trait</span><span className="hkit-body"><b>{id.trait.name}</b> — {id.trait.desc}</span></div>
+              <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Scaling</span><span className="hkit-body"><b>{id.scaling.name}</b> — {id.scaling.desc}</span></div>
+            </div>
+            <div className="hsw">
+              <div className="hsw-col">
+                <span className="hsw-h is-str">Strengths</span>
+                {id.strengths.map((s) => <span className="hsw-item" key={s}>+ {s}</span>)}
+              </div>
+              <div className="hsw-col">
+                <span className="hsw-h is-weak">Weaknesses</span>
+                {id.weaknesses.map((w) => <span className="hsw-item" key={w}>− {w}</span>)}
+              </div>
+            </div>
           </Section>
 
           {/* Stars */}

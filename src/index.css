@@ -4225,6 +4225,19 @@ kbd {
 .hsec-bar { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 10px; }
 .hsec-bar-k { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .hperk { font-size: 12px; line-height: 1.5; color: var(--muted); margin-top: 6px; }
+
+/* Hero Identity kit (docs/HERO-FRAMEWORK.md) — passive/active/trait/scaling + strengths/weaknesses */
+.hkit { display: flex; flex-direction: column; gap: 8px; }
+.hkit-row { display: flex; gap: 9px; align-items: baseline; }
+.hkit-tag { flex: none; width: 58px; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px 0; }
+.hkit-body { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.hkit-body b { color: var(--text); }
+.hsw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.hsw-col { display: flex; flex-direction: column; gap: 3px; }
+.hsw-h { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+.hsw-h.is-str { color: var(--success); }
+.hsw-h.is-weak { color: var(--danger); }
+.hsw-item { font-size: 12px; color: var(--muted); line-height: 1.4; }
 .pips.big { font-size: 20px; letter-spacing: 3px; margin-bottom: 8px; }
 
 /* Loadout */
