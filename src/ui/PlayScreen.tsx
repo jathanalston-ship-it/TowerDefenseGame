@@ -13,17 +13,21 @@ import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import { generateStage, recommendedPower } from '../core/campaign';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { ProgressDashboard } from './ProgressDashboard';
+import type { NavKey } from './Hub';
 
 export function PlayScreen({
   onStart,
   onStartEndless,
   onStartCampaign,
+  go,
   difficultyRef,
   doctrineRef,
 }: {
   onStart: () => void;
   onStartEndless: () => void;
   onStartCampaign: (stage: number) => void;
+  go: (k: NavKey) => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -159,6 +163,9 @@ export function PlayScreen({
           </span>
         </button>
       </section>
+
+      {/* ── Living Progress dashboard — momentum across every system ── */}
+      <ProgressDashboard go={go} onStartEndless={onStartEndless} />
     </div>
   );
 }

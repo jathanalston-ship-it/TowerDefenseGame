@@ -3998,6 +3998,27 @@ kbd {
   .mc-facts, .mc-secondary { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ── Living Progress dashboard — momentum cards ── */
+.dash { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.dash-card {
+  position: relative; text-align: left; display: flex; flex-direction: column; gap: 7px;
+  padding: 14px 15px; min-height: 116px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
+  color: var(--text); cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.dash-card:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); transform: translateY(-3px); box-shadow: 0 12px 30px -20px var(--c); }
+.dash-card.has-new { border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
+.dash-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.dash-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.dash-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0d12; background: var(--c); padding: 2px 6px; border-radius: 999px; }
+.dash-big { font-size: 26px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.dash-bar { height: 5px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
+.dash-bar-fill { height: 100%; border-radius: 3px; }
+.dash-sub { font-size: 11px; color: var(--muted); margin-top: auto; }
+@media (max-width: 1400px) { .dash { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px) { .dash { grid-template-columns: repeat(2, 1fr); } }
+
 /* Genetic Vault */
 .vault { max-width: 760px; }
 .vault-stage { display: flex; gap: 44px; align-items: flex-start; margin: 18px 0 22px; padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); }

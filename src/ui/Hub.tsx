@@ -26,7 +26,7 @@ import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 import { DevTools } from './DevTools';
 
-type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
+export type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
 
 const NAV: { key: NavKey; label: string; mono: string }[] = [
   { key: 'play', label: 'Play', mono: '▶' },
@@ -163,7 +163,7 @@ export function Hub({
 
         <section className="hub-screen" key={nav}>
           {nav === 'play' && (
-            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
+            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'towers' && <TowerLab />}
