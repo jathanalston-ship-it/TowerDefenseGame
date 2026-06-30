@@ -45,7 +45,7 @@ export interface TowerLabModel {
 }
 
 /** Resolve a star step's display (forks show the player's chosen option). */
-function stepView(kind: TowerKind, step: StarStep, save: SaveData): StepView {
+export function stepView(kind: TowerKind, step: StarStep, save: SaveData): StepView {
   if (isFork(step)) {
     const id = save.towerForks[kind]?.[String(step.star)] ?? step.fork[0].id;
     const opt = step.fork.find((o) => o.id === id) ?? step.fork[0];
@@ -55,7 +55,7 @@ function stepView(kind: TowerKind, step: StarStep, save: SaveData): StepView {
 }
 
 /** Does a star step introduce a new ATTACK/ABILITY (vs. targeting/projectile/economy only)? */
-function grantsAbility(kind: TowerKind, step: StarStep, save: SaveData): boolean {
+export function grantsAbility(kind: TowerKind, step: StarStep, save: SaveData): boolean {
   const grants = isFork(step)
     ? (step.fork.find((o) => o.id === (save.towerForks[kind]?.[String(step.star)] ?? step.fork[0].id)) ?? step.fork[0]).grants
     : step.grants;

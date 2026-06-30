@@ -80,6 +80,7 @@ export function DebugPanel(): JSX.Element {
               <button onClick={() => meta.debugAddMasteryXp(500)}>+500 Mastery XP</button>
               <button onClick={() => meta.debugOpenChest()}>Open chest</button>
               <button onClick={() => meta.debugGrantGear(4)}>Grant gear</button>
+              <button onClick={() => meta.debugMaxEvolution()}>Evolve all ★max</button>
             </div>
           </div>
 

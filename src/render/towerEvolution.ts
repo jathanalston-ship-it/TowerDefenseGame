@@ -204,9 +204,24 @@ export function branchSkinColor(skin: string | undefined): string {
   return (skin && BRANCH_COLOR[skin]) || '#ffffff';
 }
 
+/** Draw a branch's evolved organs for a Tower Lab / Codex PORTRAIT (no live tower) — a thin wrapper
+ *  over `drawTowerEvolution` with a synthetic, settled tower, so the encyclopedia can preview any
+ *  branch+tier WITHOUT owning it (docs/TOWER-CODEX.md §3). `mutatedAt` is in the past ⇒ fully grown. */
+export function drawBranchPortrait(
+  ctx: CanvasRenderingContext2D, branchId: string, tier: number, x: number, y: number, r: number, now: number,
+): void {
+  const tw: Tower = {
+    id: 0, kind: 'needle', x, y, slot: 0, cooldown: 0, overcharged: false, bornAt: -100,
+    disabledUntil: 0, branchId, tier, pulseCd: 0, mutatedAt: -100, movedAt: -100,
+  };
+  drawTowerEvolution(ctx, tw, now, r, BRANCH_EVOLUTION[branchId]?.color ?? '#ffffff', 0);
+}
+
 // ── The composer ─────────────────────────────────────────────────────────────────────────────
 // A single reused arg object (no per-part allocation in the hot draw loop). Drawers read it.
-interface PartCtx {
+// Exported so a SECOND consumer (star evolution, starEvolution.ts) can drive the same organ
+// drawers without re-deriving the vocabulary — the shared "framework" surface.
+export interface PartCtx {
   ctx: CanvasRenderingContext2D;
   x: number; y: number; id: number; r: number; now: number;
   tier: number; above: number; color: string; fired: number; part: EvoPart;
@@ -254,7 +269,9 @@ function drawGenericEvolution(ctx: CanvasRenderingContext2D, tw: Tower, now: num
 const n = (p: PartCtx, dflt: number): number => (p.part.count ?? dflt) + p.above * (p.part.per ?? 0);
 
 // ── Organ drawers — one per EvoPartKind. Small, pure, parameterized by the branch color. ──────
-const PART_DRAWERS: Record<EvoPartKind, (p: PartCtx) => void> = {
+// Exported as the shared organ vocabulary: both branch (BRANCH_EVOLUTION) and star
+// (STAR_EVOLUTION) evolution compose these, so a new organ benefits both with no draw-code fork.
+export const PART_DRAWERS: Record<EvoPartKind, (p: PartCtx) => void> = {
   halo: ({ ctx, x, y, r, tier, color }) => {
     glowDisc(ctx, x, y, r * (1.4 + tier * 0.1), rgba(hexRgb(color), 0.08 + tier * 0.02));
   },

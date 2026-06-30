@@ -13,12 +13,16 @@ import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
 import { generateStage } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
+import { EvolutionUnlock } from './EvolutionUnlock';
+import type { EvolutionUnlockData } from './EvolutionUnlock';
 
 type Screen = 'menu' | 'playing' | 'results';
 
 export function App(): JSX.Element {
   const [screen, setScreen] = useState<Screen>('menu');
   const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
+  // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
+  const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
   const progRef = useRef<TowerProgress>(meta.towerProgress());
@@ -69,6 +73,8 @@ export function App(): JSX.Element {
     }
     const outcome = meta.finishRun(result);
     setLast({ result, outcome });
+    // A crossed Campaign milestone plays the Evolution Unlock sequence over the Results screen.
+    setEvoUnlock(outcome.evolutionUnlock ?? null);
     setScreen('results');
   }, []);
 
@@ -112,6 +118,10 @@ export function App(): JSX.Element {
       )}
       {screen === 'results' && last && (
         <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
+      )}
+      {/* Evolution Unlock sequence — dramatic, over the Results screen; dismiss → continue to Results. */}
+      {screen === 'results' && evoUnlock && (
+        <EvolutionUnlock unlock={evoUnlock} onClose={() => setEvoUnlock(null)} />
       )}
       {debugOn && <DebugPanel />}
       {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so

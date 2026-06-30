@@ -162,7 +162,7 @@ export function heroStarCost(stars: number): number {
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
   if (stars >= STAR.maxTowerStars) return null;
-  return towerStarCost(stars);
+  return towerStarCost(stars); // cost ladder only; the Campaign Evolution Cap is enforced in buyStar
 }
 
 /** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress, which
@@ -304,6 +304,10 @@ export interface RunOutcome {
   loot: { queue: LootQueueState; banked: PendingContainer[] }; // containers banked unopened this run (Vault)
   masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
   achievements: AchievementDef[]; // milestones unlocked at run end — shown inline on Results, NOT toasted
+  // Campaign milestone raised the Evolution Cap this run (docs/EVOLUTION-CAP.md) → the dramatic
+  // Evolution Unlock sequence (docs/TOWER-CODEX.md §2). Absent on a normal run. `stage` = the
+  // campaign stage just cleared that pushed the cap from oldCap → newCap.
+  evolutionUnlock?: { oldCap: number; newCap: number; stage: number };
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -563,6 +567,13 @@ export const meta = {
     const nextCampaign = result.campaignStage && result.won
       ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
       : save.campaign;
+    // Evolution Cap: did clearing this stage raise the account-wide Star Cap (config.EVOLUTION_CAPS)?
+    // If so, drive the dramatic Evolution Unlock sequence (docs/TOWER-CODEX.md §2).
+    const oldCap = evolutionStarCap(save);
+    const newCap = evolutionStarCap({ ...save, campaign: nextCampaign });
+    const evolutionUnlock = result.won && result.campaignStage && newCap > oldCap
+      ? { oldCap, newCap, stage: result.campaignStage }
+      : null;
 
     persist({
       ...save,
@@ -598,6 +609,7 @@ export const meta = {
       loot: { queue: lootAdv.state, banked: bankedThisRun },
       masteryUnlocks: { titles: newTitles, lore: newLore },
       achievements: unlockedAchievements,
+      ...(evolutionUnlock ? { evolutionUnlock } : {}),
     };
   },
 
@@ -985,6 +997,15 @@ export const meta = {
   debugSetCampaignStage(stage: number, difficulty = 'standard'): void {
     const save = store.get();
     persist({ ...save, campaign: { cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
+  },
+
+  /** Fully evolve every tower (★max) and unlock the Evolution Cap — to inspect the late-game
+   *  visual evolution (lab portraits + battlefield) without the full grind. */
+  debugMaxEvolution(): void {
+    const save = store.get();
+    const towerStars = { ...save.towerStars };
+    for (const k of TOWER_ORDER) towerStars[k] = STAR.maxTowerStars;
+    persist({ ...save, towerStars, campaign: { cleared: { ...save.campaign.cleared, standard: 300 } } });
   },
 
   debugAddHeroShards(n: number): void {

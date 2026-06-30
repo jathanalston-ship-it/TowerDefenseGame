@@ -41,6 +41,7 @@ import {
   strokeShape,
 } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
+import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
 
 export interface Pointer {
   x: number;
@@ -77,6 +78,7 @@ export function drawGame(
   rs: RenderState,
   pointer: Pointer | null,
   cosmeticTiers: Partial<Record<string, number>> = {}, // per-kind mastery-rank visual tier (0 = none)
+  starTiers: Partial<Record<string, number>> = {}, // per-kind permanent STAR count → visual evolution (0 = none)
 ): void {
   const t = rs.time;
 
@@ -110,7 +112,7 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId);
+  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0);
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
@@ -508,7 +510,7 @@ function drawLandingImpacts(ctx: CanvasRenderingContext2D, rs: RenderState, t: n
 
 const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false): void {
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0): void {
   const def = TOWER_DEFS[tw.kind];
   const shape = TOWER_SHAPE[tw.kind];
 
@@ -521,7 +523,11 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // GROWTH (TOWER-BRANCHES.md §9): a branched tower's whole silhouette swells with its tier, so an
   // evolved tower is bigger + bolder than a fresh one — and the swell ANIMATES in over the grow-in
   // window after a purchase. Identity (×1) when unbranched ⇒ golden look.
-  const r = TOWER_R * grow * breathe * (1 + fresh * 0.1) * evolutionGrowthAnimated(tw.branchId, tw.tier, now - tw.mutatedAt);
+  // Body swells with BOTH the in-run branch tier AND the permanent STAR count (docs/
+  // TOWER-VISUAL-EVOLUTION.md). Both are ×1 at zero ⇒ a fresh/unbranched tower is unchanged.
+  const r = TOWER_R * grow * breathe * (1 + fresh * 0.1)
+    * evolutionGrowthAnimated(tw.branchId, tw.tier, now - tw.mutatedAt)
+    * starEvolutionGrowth(tw.kind, stars);
 
   // (Range/field circles are intentionally NOT drawn permanently — they cluttered play
   // and, for the long-range towers, were near-fullscreen and uninformative. Range is now
@@ -577,6 +583,12 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
       drawShape(ctx, 'circle', tw.x + Math.cos(ang) * r * 1.7, tw.y + Math.sin(ang) * r * 1.7, 1.7, def.color);
     }
   }
+
+  // STAR EVOLUTION (docs/TOWER-VISUAL-EVOLUTION.md): the PERMANENT progression made visible — a
+  // tower grows a new identity organ each generation (★1/3/5/7/9), drawn from the SAME organ
+  // vocabulary as branches and tinted its class hue, so star + branch read as one organism. 0
+  // stars renders nothing (golden-safe look).
+  if (stars > 0) drawStarEvolution(ctx, tw, stars, r, now, def.color, fresh);
 
   // Branch MUTATION (TOWER-BRANCHES.md §9): a DATA-DRIVEN evolved silhouette — every tier grows a
   // new organ (limbs / armor / barrels / biomass / organs …) so two same-kind towers read
