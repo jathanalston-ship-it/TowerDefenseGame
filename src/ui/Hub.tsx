@@ -5,6 +5,7 @@
 
 import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
+import type { RunOutcome, RunResult } from '../state/meta';
 import { audio } from '../audio/sound';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -25,8 +26,9 @@ import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 import { DevTools } from './DevTools';
+import { LabAtmosphere } from './LabAtmosphere';
 
-type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
+export type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
 
 const NAV: { key: NavKey; label: string; mono: string }[] = [
   { key: 'play', label: 'Play', mono: '▶' },
@@ -101,12 +103,16 @@ export function Hub({
   onStart,
   onStartEndless,
   onStartCampaign,
+  last,
+  onSeenLast,
   difficultyRef,
   doctrineRef,
 }: {
   onStart: () => void;
   onStartEndless: () => void;
   onStartCampaign: (stage: number) => void;
+  last: { result: RunResult; outcome: RunOutcome } | null;
+  onSeenLast: () => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -128,6 +134,7 @@ export function Hub({
 
   return (
     <div className="hub">
+      <LabAtmosphere />
       <nav className="hub-nav" aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
@@ -163,7 +170,7 @@ export function Hub({
 
         <section className="hub-screen" key={nav}>
           {nav === 'play' && (
-            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
+            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'towers' && <TowerLab />}
