@@ -4,7 +4,7 @@
 // formulas, no DOM/sim. The Game runs a StageConfig through the existing scripted-wave path
 // (`game.ts` 'campaign' mode); stage mode stays byte-identical (golden-safe).
 
-import { CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS, biomeRegistry } from './config';
+import { CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind } from './types';
 import { Rng } from './rng';
@@ -12,6 +12,12 @@ import { assembleBoss } from './boss';
 import type { BossDef } from './boss';
 import { resolveDifficulty } from './difficulty';
 import type { DifficultyDef } from './difficulty';
+import { BIOMES, categoryOf } from './biomes';
+import type { Biome, BiomeCategory } from './biomes';
+
+// Biomes are the shared ecosystem layer (docs/BIOMES.md), used by BOTH Campaign and Infinite
+// mode. Re-exported here for the campaign test + any campaign-facing consumer.
+export { BIOMES } from './biomes';
 
 // ── Tunables (all smooth/continuous in `stage` ⇒ no spikes) ──────────────────────────────────
 const C = {
@@ -25,75 +31,17 @@ const C = {
   baseBudget: 56, stageBudgetGrowth: 0.1, intraBudget: 0.14, // wave threat budget
   threatDivisor: 28, groupMax: 16,
   baseHp: 20, hpPerTier: 72, // enemy unlock-stage gating (tougher enemies arrive later)
-  heavyHp: 280, heavyArmor: 12, fastSpeed: 110, // category thresholds
+  signatureBoost: 3, // a biome's signature kinds are heavily up-weighted in their home biome
 } as const;
 
 const BOSS_VISUAL_KIND: EnemyKind = 'tyrant'; // reserved as the framework-boss render; excluded from the pool
 
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
 
-// ── Biomes (data; self-registered into biomeRegistry). Each leans the roster + adds an
-//    intrinsic modifier and a telegraphed hazard. Adding a biome = one row. ──────────────────
-type BiomeCategory = 'swarm' | 'fast' | 'heavy' | 'special';
-export interface CampaignBiome {
-  id: string;
-  name: string;
-  accent: string;
-  bias: Partial<Record<BiomeCategory, number>>; // category weight multipliers (default 1)
-  // Biome identity is mechanical via `bias` (roster) + `hazard`; `modifier` is the telegraphed
-  // NAME of that character. It deliberately does NOT perturb the scaling curve — that keeps
-  // HP/speed/damage/reward a pure, monotonic, spike-free function of stage (CAMPAIGN.md §3).
-  modifier: { name: string };
-  hazard: { name: string; desc: string };
-}
+// Biome data + `categoryOf` now live in the shared biome framework (biomes.ts), consumed by
+// BOTH Campaign (here) and Infinite mode. Campaign picks the biome by rotation order and reads
+// its mechanical modifiers (roster bias / signatures / elite / boss flavour) during generation.
 
-export const BIOMES: CampaignBiome[] = [
-  {
-    id: 'verdant', name: 'Verdant Hive', accent: 'var(--caustic)',
-    bias: { swarm: 1.3, fast: 1.1 },
-    modifier: { name: 'Fertile Ground' },
-    hazard: { name: 'Spore Bloom', desc: 'Dense growth — swarms come thick and fast.' },
-  },
-  {
-    id: 'necrotic', name: 'Necrotic Mire', accent: 'var(--viral)',
-    bias: { special: 1.6, swarm: 1.1 },
-    modifier: { name: 'Rot' },
-    hazard: { name: 'Miasma', desc: 'Regenerating and special strains thrive in the rot.' },
-  },
-  {
-    id: 'frostbound', name: 'Frostbound Reach', accent: 'var(--kinetic)',
-    bias: { heavy: 1.5 },
-    modifier: { name: 'Permafrost' },
-    hazard: { name: 'Deep Freeze', desc: 'Slow but heavily armored hosts grind the line.' },
-  },
-  {
-    id: 'ashen', name: 'Ashen Warrens', accent: 'var(--vital)',
-    bias: { fast: 1.7, swarm: 1.2 },
-    modifier: { name: 'Wildfire' },
-    hazard: { name: 'Firestorm', desc: 'Fast, aggressive packs race the line.' },
-  },
-  {
-    id: 'carapace', name: 'Carapace Wastes', accent: 'var(--neural)',
-    bias: { heavy: 1.6, special: 1.3 },
-    modifier: { name: 'Chitin' },
-    hazard: { name: 'Shellquake', desc: 'Armored and shielded bulwarks demand shred.' },
-  },
-  {
-    id: 'neural', name: 'Neural Expanse', accent: 'var(--gold)',
-    bias: { fast: 1.2, special: 1.4 },
-    modifier: { name: 'Overcharge' },
-    hazard: { name: 'Static Field', desc: 'Erratic, high-pressure assaults from every angle.' },
-  },
-];
-biomeRegistry.registerAll(BIOMES.map((b) => ({ id: b.id, name: b.name })));
-
-// ── Enemy classification (derived from stats ⇒ a new enemy auto-slots; future-proof) ──────────
-function categoryOf(e: EnemyDef): BiomeCategory {
-  if (e.shieldHp || e.regenPerSec || e.summon || e.siege || e.explodeRadius || e.auraRadius) return 'special';
-  if (e.hp >= C.heavyHp || e.armor >= C.heavyArmor) return 'heavy';
-  if (e.speed >= C.fastSpeed) return 'fast';
-  return 'swarm';
-}
 function unlockStage(e: EnemyDef): number {
   return clamp(1 + Math.floor((e.hp - C.baseHp) / C.hpPerTier), 1, 80);
 }
@@ -133,7 +81,7 @@ function combineDifficulty(base: DifficultyDef, sc: StageScaling): DifficultyDef
 export interface StageConfig {
   stage: number;
   difficulty: string;
-  biome: { id: string; name: string; accent: string };
+  biome: Biome; // the full ecosystem; its mechanical modifiers are read by the Game at the spawn/tower/hero/hazard hooks
   modifierName: string;
   hazardName: string;
   hazardDesc: string;
@@ -200,10 +148,14 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   // Roster: stage-gated, biome-biased (exclude the boss-visual kind).
   const pool = (ENEMY_KINDS as EnemyKind[]).filter((k) => k !== BOSS_VISUAL_KIND && unlockStage(ENEMY_DEFS[k]) <= st);
   if (pool.length === 0) pool.push('runner');
-  const weights = pool.map((k) => biome.bias[categoryOf(ENEMY_DEFS[k])] ?? 1);
+  // Biome bias (by category) × a heavy boost for the biome's signature kinds (BIOMES.md §2):
+  // signatures dominate their home biome's roster without hard-locking it (the pool stays valid).
+  const sig = new Set<EnemyKind>(biome.mods.signature);
+  const weights = pool.map((k) => (biome.mods.bias[categoryOf(ENEMY_DEFS[k])] ?? 1) * (sig.has(k) ? C.signatureBoost : 1));
 
   const waveCount = Math.min(C.waveMax, C.baseWaves + Math.floor((st - 1) / C.waveIncEvery));
-  const eliteFrequency = clamp(C.eliteBase + C.elitePerStage * st, 0, C.eliteCap) * base.eliteChanceMult;
+  // Elite frequency: the biome eliteMult is applied BEFORE the cap, so the 0.45 invariant holds.
+  const eliteFrequency = clamp((C.eliteBase + C.elitePerStage * st) * biome.mods.eliteMult, 0, C.eliteCap) * base.eliteChanceMult;
   const miniBossChance = clamp(C.mbBase + C.mbPerStage * st, 0, C.mbCap) * base.bossFrequencyMult;
 
   const budget0 = C.baseBudget * (1 + C.stageBudgetGrowth * (st - 1));
@@ -217,18 +169,19 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   // Mini-boss (a middle wave) + the finale boss — both via the framework boss assembler, so the
   // pool/selection/difficulty all come from boss.ts (difficulty rides the tier `tl`).
   const rngFn = (): number => rng.next();
+  // Bosses carry the biome's chassis flavour (juggernaut in Frostbound, swarmlord in Verdant, …).
   const hasMiniBoss = rng.chance(miniBossChance) && waveCount >= 3;
-  const miniBoss = hasMiniBoss ? assembleBoss(rngFn, Math.max(1, st * C.mbTierFrac)) : null;
+  const miniBoss = hasMiniBoss ? assembleBoss(rngFn, Math.max(1, st * C.mbTierFrac), biome.mods.bossChassisBias) : null;
   const miniBossWave = Math.max(2, Math.ceil(waveCount / 2));
-  const boss = assembleBoss(rngFn, st);
+  const boss = assembleBoss(rngFn, st, biome.mods.bossChassisBias);
 
   return {
     stage: st,
     difficulty: difficultyId,
-    biome: { id: biome.id, name: biome.name, accent: biome.accent },
-    modifierName: biome.modifier.name,
-    hazardName: biome.hazard.name,
-    hazardDesc: biome.hazard.desc,
+    biome,
+    modifierName: biome.modifierName,
+    hazardName: biome.mods.hazard.name,
+    hazardDesc: biome.mods.hazard.desc,
     waveCount,
     waves,
     enemyPool: pool,
@@ -251,7 +204,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
 export const BIOME_REGION = 5;
 
 /** The biome a stage belongs to. Regions cycle through BIOMES; appending a biome extends the world. */
-export function biomeForStage(stage: number): CampaignBiome {
+export function biomeForStage(stage: number): Biome {
   return BIOMES[Math.floor((Math.max(1, Math.floor(stage)) - 1) / BIOME_REGION) % BIOMES.length];
 }
 

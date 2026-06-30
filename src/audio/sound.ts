@@ -3,6 +3,8 @@
 // gesture (browser autoplay policy). Pure presentation: the sim emits string
 // cues; this turns them into sound. Voice-capped so a swarm can't machine-gun.
 
+import type { BiomeAmbient } from '../core/biomes';
+
 type AnyWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
 let ctx: AudioContext | null = null;
@@ -21,6 +23,11 @@ let droneOn = false;
 let beatAcc = 0;
 let killStreak = 0;
 let lastKillAt = -10;
+// Biome ambient (docs/BIOMES.md) — the drone is RE-VOICED per biome (asset-free): we keep the
+// oscillator/filter nodes so `setBiome` can ramp them smoothly on a transition. Default = the
+// original Hostile-Frontier drone (so Stage mode sounds exactly as before).
+let biomeAmbient: BiomeAmbient = { root: 55, fifth: 82.4, cutoff: 260, wave: 'sawtooth' };
+let droneNodes: { osc: OscillatorNode; filter: BiquadFilterNode }[] = [];
 
 function ensure(): boolean {
   if (!enabled) return false;
@@ -150,23 +157,30 @@ function sBrStorm(): void { noise(0.05, 0.05, 5000, 1500); tone(1500, 0.05, 'saw
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
   droneOn = true;
+  droneNodes = [];
   const make = (freq: number, detune: number): void => {
     const o = ctx!.createOscillator();
-    o.type = 'sawtooth';
+    o.type = biomeAmbient.wave;
     o.frequency.value = freq;
     o.detune.value = detune;
     const g = ctx!.createGain();
     g.gain.value = 0.5;
     const f = ctx!.createBiquadFilter();
     f.type = 'lowpass';
-    f.frequency.value = 260;
+    f.frequency.value = biomeAmbient.cutoff;
     o.connect(f);
     f.connect(g);
     g.connect(musicBus!);
     o.start();
+    droneNodes.push({ osc: o, filter: f });
   };
-  make(55, -4); // A1
-  make(82.4, 5); // E2
+  make(biomeAmbient.root, -4); // root
+  make(biomeAmbient.fifth, 5); // fifth
+}
+
+// Ecosystem-transition sting — an airy rising sweep that says "new biome" (BIOMES.md §5).
+function sBiome(): void {
+  tone(196, 0.5, 'sine', 0.12, 523); tone(294, 0.55, 'triangle', 0.07, 784); noise(0.4, 0.05, 600, 3200);
 }
 
 export const audio = {
@@ -208,6 +222,7 @@ export const audio = {
         case 'shard_tower': sShardTower(); break;
         case 'shard_hero': sShardHero(); break;
         case 'achieve': sAchieve(); break;
+        case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;
         case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;
         case 'br_rail': sBrRail(); break;
@@ -234,6 +249,20 @@ export const audio = {
     } else {
       [330, 262, 196].forEach((f, i) => setTimeout(() => tone(f, 1.1 + i * 0.2, 'sine', 0.16, f * 0.97), i * 270)); // descending fall
       setTimeout(() => tone(98, 2.0, 'sine', 0.14, 68), 180); // a low sub underpins the loss
+    }
+  },
+  /** Re-voice the ambient drone for the active biome (docs/BIOMES.md). Smoothly ramps the live
+   *  drone's frequencies + filter on a transition; if the drone isn't running yet, the tuning is
+   *  applied when it next starts. Cheap + idempotent — safe to call every biome change. */
+  setBiome(ambient: BiomeAmbient): void {
+    biomeAmbient = { ...ambient };
+    if (!ctx || droneNodes.length < 2) return;
+    const now = ctx.currentTime;
+    droneNodes[0].osc.frequency.setTargetAtTime(ambient.root, now, 0.7);
+    droneNodes[1].osc.frequency.setTargetAtTime(ambient.fifth, now, 0.7);
+    for (const n of droneNodes) {
+      n.filter.frequency.setTargetAtTime(ambient.cutoff, now, 0.7);
+      n.osc.type = ambient.wave;
     }
   },
   /** Update the ambient bed; pass null to fade it out. */

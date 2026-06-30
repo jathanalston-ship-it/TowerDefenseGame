@@ -54,6 +54,19 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
     return undefined;
   }, [hud.biomass]);
 
+  // Biome transition banner (docs/BIOMES.md): briefly flash "Entering · <name>" when the
+  // ecosystem changes (Infinite mode rotation). Suppressed for the NEUTRAL biome (Stage mode).
+  const [biomeBanner, setBiomeBanner] = useState<string | null>(null);
+  const prevBiome = useRef(hud.biome.id);
+  useEffect(() => {
+    if (hud.biome.id === prevBiome.current) return undefined;
+    prevBiome.current = hud.biome.id;
+    if (hud.biome.id === 'neutral') return undefined;
+    setBiomeBanner(hud.biome.name);
+    const id = setTimeout(() => setBiomeBanner(null), 2600);
+    return () => clearTimeout(id);
+  }, [hud.biome.id, hud.biome.name]);
+
   return (
     <div className="hud">
       {/* ── LEFT cluster: survival + progress ── */}
@@ -126,6 +139,14 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
             {'▶'} next: {hud.anticipation[0]}
           </div>
         )}
+        {hud.biome.id !== 'neutral' && (
+          <div className="phase-biome" style={{ ['--biome' as string]: hud.biome.accent }}>
+            <span className="phase-biome-name">{hud.biome.name}</span>
+            {hud.biome.modifier && <span className="phase-biome-mod">{hud.biome.modifier}</span>}
+            {hud.biome.hazardActive && <span className="phase-biome-haz" role="alert">⚠ {hud.biome.hazardName}</span>}
+          </div>
+        )}
+        {biomeBanner && <div className="biome-enter" role="status">Entering · {biomeBanner}</div>}
       </div>
 
       {/* ── RIGHT cluster: economy, threat, loot, hero ── */}

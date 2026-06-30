@@ -393,6 +393,9 @@ export interface HudSnapshot {
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
   mutation: MutationBanner | null; // a transient "tier purchased" banner (the branch-upgrade moment)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
+  // Active biome (docs/BIOMES.md) — the HUD shows its name/accent + a hazard telegraph. In Stage
+  // mode this is the NEUTRAL identity (the HUD suppresses the chip when there is no real biome).
+  biome: { id: string; name: string; accent: string; modifier: string; hazardName: string; hazardActive: boolean };
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
   autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
   autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep)

@@ -52,6 +52,26 @@ const TOWER_R = 12; // base silhouette radius for placed towers
 const MUTATE_FLASH = 0.5; // seconds the tier-purchase shockwave + flash plays at the tower
 const WHITE = hexRgb('#ffffff');
 
+// Biome accent (docs/BIOMES.md) resolved to an "r, g, b" token for rgba(). The biome carries a
+// CSS var ('var(--caustic)'); the canvas can't read CSS vars, so we resolve via getComputedStyle
+// once per accent and cache it. Falls back to a hex literal or kinetic blue.
+const biomeRgbCache = new Map<string, string>();
+function biomeRgb(accent: string): string {
+  const cached = biomeRgbCache.get(accent);
+  if (cached !== undefined) return cached;
+  let hex = '#5ad1ff';
+  const m = /var\((--[\w-]+)\)/.exec(accent);
+  if (m && typeof document !== 'undefined') {
+    const c = getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim();
+    if (c) hex = c;
+  } else if (accent.startsWith('#')) {
+    hex = accent;
+  }
+  const rgb = hexRgb(hex);
+  biomeRgbCache.set(accent, rgb);
+  return rgb;
+}
+
 export function drawGame(
   ctx: CanvasRenderingContext2D,
   rs: RenderState,
@@ -69,6 +89,7 @@ export function drawGame(
 
   drawBackground(ctx);
   drawTiles(ctx);
+  drawBiomeWash(ctx, rs); // biome accent wash, under the entities (skipped for NEUTRAL/Stage)
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);
   drawObstacles(ctx);
@@ -114,6 +135,7 @@ export function drawGame(
   ctx.textAlign = 'left';
 
   drawPressureVignette(ctx, pressure, t);
+  drawBiomeFx(ctx, rs, t); // hazard-pulse vignette + transition flash, over everything
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
@@ -129,6 +151,37 @@ function drawBackground(ctx: CanvasRenderingContext2D): void {
   g.addColorStop(1, s3);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
+/** Soft accent wash UNDER the entities — the arena reads as a distinct ecosystem. Skipped for the
+ *  NEUTRAL biome (Stage mode) so the original arena look is untouched. */
+function drawBiomeWash(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  if (rs.biome.id === 'neutral') return;
+  const rgb = biomeRgb(rs.biome.accent);
+  const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+  g.addColorStop(0, rgba(rgb, 0.1));
+  g.addColorStop(0.5, rgba(rgb, 0.04));
+  g.addColorStop(1, rgba(rgb, 0.09));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
+/** Biome OVERLAYS, drawn last: a breathing hazard-pulse vignette + a brief transition flash. */
+function drawBiomeFx(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  if (rs.biome.id === 'neutral') return;
+  const rgb = biomeRgb(rs.biome.accent);
+  if (rs.hazardActive) {
+    const a = 0.1 + 0.06 * pulse(t, 3, 0, 1);
+    const grad = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, HEIGHT * 0.3, WIDTH / 2, HEIGHT / 2, HEIGHT * 0.78);
+    grad.addColorStop(0, rgba(rgb, 0));
+    grad.addColorStop(1, rgba(rgb, a));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
+  if (rs.biomeFlash > 0) {
+    ctx.fillStyle = rgba(rgb, 0.28 * rs.biomeFlash);
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
 }
 
 function drawTiles(ctx: CanvasRenderingContext2D): void {
