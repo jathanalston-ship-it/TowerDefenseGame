@@ -107,6 +107,15 @@ export function GameView({
     return m;
   }, []);
 
+  // Per-kind permanent STAR count → visual evolution on the battlefield (docs/
+  // TOWER-VISUAL-EVOLUTION.md). Fixed for the run (stars are bought in the Lab between runs).
+  const starTiers = useMemo(() => {
+    const s = meta.get();
+    const m: Record<string, number> = {};
+    for (const k of TOWER_ORDER) m[k] = s.towerStars[k] ?? 0;
+    return m;
+  }, []);
+
   const refresh = (): void => setHud(game.getSnapshot());
 
   useEffect(() => {
@@ -153,7 +162,7 @@ export function GameView({
         ctx.save();
         ctx.translate(dx, dy);
         const rs = game.getRenderState();
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers);
         ctx.restore();
 
         // Biome transition → re-voice the ambient drone (the audio half of the ecosystem change;

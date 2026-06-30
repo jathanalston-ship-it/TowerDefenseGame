@@ -3,11 +3,11 @@
 // scales to dozens of towers with no new code. Pure: no React/DOM.
 
 import { CARD_POOL, cardSubject } from '../core/cards';
-import { STAR, STAR_MILESTONES, TOWER_DEFS } from '../core/config';
+import { STAR, STAR_MILESTONES, TOWER_DEFS, nextEvolutionUnlock, nextStarMutationTier } from '../core/config';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { forksOf, isFork, stepAt } from '../core/stars';
 import type { StarStep } from '../core/stars';
-import { masteryProgress, nextStarCost, towerProgress } from '../state/meta';
+import { evolutionStarCap, highestCampaignStage, masteryProgress, nextStarCost, towerProgress } from '../state/meta';
 import type { SaveData } from '../save/saveStore';
 import type { TowerKind } from '../core/types';
 
@@ -36,6 +36,12 @@ export interface TowerLabModel {
   buildPath: string; // the configured fork path, or "Base form"
   milestones: { star: number; reached: boolean }[];
   nextMilestone: number | null;
+  // ── Campaign Evolution Cap (docs/EVOLUTION-CAP.md) ──
+  evolutionCap: number; // highest star Campaign currently permits
+  capLocked: boolean; // the next star is gated by Campaign progress (not shards)
+  campaignStage: number; // highest Campaign stage cleared (progress toward the next cap)
+  capUnlock: { stage: number; maxStar: number } | null; // the stage that lifts the cap for the next star
+  nextVisualMutation: { at: number; name: string; desc: string } | null; // upcoming visual generation
 }
 
 /** Resolve a star step's display (forks show the player's chosen option). */
@@ -144,6 +150,13 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
       .map((f) => stepView(kind, f, save).name)
       .join(' · ') || 'Base form';
 
+  // Campaign Evolution Cap: the next star may be SHARD-affordable yet still gated by Campaign
+  // progress (docs/EVOLUTION-CAP.md). capLocked is a distinct state from can't-afford.
+  const evolutionCap = evolutionStarCap(save);
+  const campaignStage = highestCampaignStage(save);
+  const capLocked = !maxed && stars >= evolutionCap;
+  const capUnlock = capLocked ? nextEvolutionUnlock(stars) : null;
+
   return {
     kind,
     name: def.name,
@@ -153,7 +166,7 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
     maxStars: STAR.maxTowerStars,
     shards,
     cost,
-    affordable: cost !== null && shards >= cost,
+    affordable: cost !== null && shards >= cost && !capLocked,
     maxed,
     mastery: { level: mp.level, into: mp.into, need: mp.need, rank: mp.level >= MASTERY_RANK_EVERY ? masteryRankTitle(mp.level) : null },
     specialization,
@@ -166,5 +179,10 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
     buildPath,
     milestones: STAR_MILESTONES.map((m) => ({ star: m, reached: stars >= m })),
     nextMilestone: STAR_MILESTONES.find((m) => m > stars) ?? null,
+    evolutionCap,
+    capLocked,
+    campaignStage,
+    capUnlock,
+    nextVisualMutation: maxed ? null : nextStarMutationTier(stars),
   };
 }

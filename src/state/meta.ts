@@ -11,7 +11,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, chestForWave } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -30,8 +30,6 @@ import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
-import { evolutionStarCap, highestCampaignStage, milestoneCrossed } from '../core/evolution';
-import type { EvolutionMilestone } from '../core/evolution';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
 import { PRESTIGE, canMolt, cellsForCycle, prestigeMult } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
@@ -163,9 +161,23 @@ export function heroStarCost(stars: number): number {
 
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
-  // Gated by the campaign-unlocked Evolution Tier (docs/TOWER-CODEX.md §1), never the absolute max.
-  if (stars >= evolutionStarCap(highestCampaignStage(save.campaign.cleared))) return null;
-  return towerStarCost(stars);
+  if (stars >= STAR.maxTowerStars) return null;
+  return towerStarCost(stars); // cost ladder only; the Campaign Evolution Cap is enforced in buyStar
+}
+
+/** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress, which
+ *  drives the Evolution Cap (docs/EVOLUTION-CAP.md §3). 0 for a fresh account. */
+export function highestCampaignStage(save: SaveData): number {
+  let max = 0;
+  for (const v of Object.values(save.campaign?.cleared ?? {})) max = Math.max(max, v ?? 0);
+  return max;
+}
+
+/** The current Tower-Star EVOLUTION CAP from Campaign progress (config.EVOLUTION_CAPS). A star may
+ *  not be bought beyond this until the matching Campaign milestone is cleared — Shards are the
+ *  fuel, Campaign is the permission. */
+export function evolutionStarCap(save: SaveData): number {
+  return campaignStarCap(highestCampaignStage(save));
 }
 
 /** Fold stars + mastery into per-kind run config. Stars contribute the incidental S-bucket
@@ -292,9 +304,10 @@ export interface RunOutcome {
   loot: { queue: LootQueueState; banked: PendingContainer[] }; // containers banked unopened this run (Vault)
   masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
   achievements: AchievementDef[]; // milestones unlocked at run end — shown inline on Results, NOT toasted
-  // Campaign milestone crossed this run → a new Evolution Tier (raised Star Cap). Drives the
-  // dramatic Evolution Unlock sequence (docs/TOWER-CODEX.md §2); absent on a normal run.
-  evolutionUnlock?: { milestone: EvolutionMilestone; oldCap: number; newCap: number };
+  // Campaign milestone raised the Evolution Cap this run (docs/EVOLUTION-CAP.md) → the dramatic
+  // Evolution Unlock sequence (docs/TOWER-CODEX.md §2). Absent on a normal run. `stage` = the
+  // campaign stage just cleared that pushed the cap from oldCap → newCap.
+  evolutionUnlock?: { oldCap: number; newCap: number; stage: number };
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -450,8 +463,29 @@ export const meta = {
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
     const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
 
+    // Mode reward identity (docs/MODE-IDENTITY.md): Campaign pays the account currency (most on a
+    // FIRST clear) + first-clear bonuses; Infinite pays the loot meter + a mastery bonus; Stage (the
+    // legacy quick-run) stays neutral (×1) so the golden/meta tests don't move.
+    const campDiff = result.difficulty ?? 'standard';
+    const prevCleared = save.campaign.cleared[campDiff] ?? 0;
+    const isCampaign = result.campaignStage != null && !result.endless;
+    const stageNo = result.campaignStage ?? 0;
+    const firstClear = isCampaign && result.won && stageNo > prevCleared;
+    const coreMult = result.endless
+      ? MODE_REWARDS.core.endless
+      : isCampaign
+        ? (firstClear ? MODE_REWARDS.core.campaignFirst : MODE_REWARDS.core.campaignReplay)
+        : MODE_REWARDS.core.stage;
+    const lootMult = result.endless ? MODE_REWARDS.loot.endless : isCampaign ? MODE_REWARDS.loot.campaign : MODE_REWARDS.loot.stage;
+    const masteryMult = result.endless ? MODE_REWARDS.mastery.endless : isCampaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
+    // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
+    const firstClearBonus = firstClear
+      ? CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
+        (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)
+      : 0;
+
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult);
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult * coreMult) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -461,7 +495,7 @@ export const meta = {
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
       const gained = Math.round(
-        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult,
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
@@ -475,7 +509,7 @@ export const meta = {
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
       const gained = Math.round(
-        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult,
       );
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
@@ -489,11 +523,14 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult);
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
-    const newlyBanked: PendingContainer[] = [...queueRemainder, runCache];
+    // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
+    // by the stage number so deeper first clears drop a richer cache.
+    const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    const newlyBanked: PendingContainer[] = [...queueRemainder, runCache, ...stageCache];
     const bankedThisRun: PendingContainer[] = [...runContainersBanked, ...newlyBanked];
 
     // 6. mastery identity: unlock any titles/lore crossed by this run's mastery level-ups.
@@ -527,14 +564,16 @@ export const meta = {
     heroFavEquip[fielded] = fieldedEquip;
 
     // Campaign: clearing a stage permanently unlocks the next (highest CLEARED per difficulty id).
-    const campDiff = result.difficulty ?? 'standard';
     const nextCampaign = result.campaignStage && result.won
       ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
       : save.campaign;
-    // Evolution Tier: did this clear cross a milestone that raises the global Star Cap?
-    const oldHigh = highestCampaignStage(save.campaign.cleared);
-    const newHigh = highestCampaignStage(nextCampaign.cleared);
-    const crossed: EvolutionMilestone | null = result.won && result.campaignStage ? milestoneCrossed(oldHigh, newHigh) : null;
+    // Evolution Cap: did clearing this stage raise the account-wide Star Cap (config.EVOLUTION_CAPS)?
+    // If so, drive the dramatic Evolution Unlock sequence (docs/TOWER-CODEX.md §2).
+    const oldCap = evolutionStarCap(save);
+    const newCap = evolutionStarCap({ ...save, campaign: nextCampaign });
+    const evolutionUnlock = result.won && result.campaignStage && newCap > oldCap
+      ? { oldCap, newCap, stage: result.campaignStage }
+      : null;
 
     persist({
       ...save,
@@ -570,7 +609,7 @@ export const meta = {
       loot: { queue: lootAdv.state, banked: bankedThisRun },
       masteryUnlocks: { titles: newTitles, lore: newLore },
       achievements: unlockedAchievements,
-      ...(crossed ? { evolutionUnlock: { milestone: crossed, oldCap: evolutionStarCap(oldHigh), newCap: evolutionStarCap(newHigh) } } : {}),
+      ...(evolutionUnlock ? { evolutionUnlock } : {}),
     };
   },
 
@@ -734,11 +773,19 @@ export const meta = {
     return true;
   },
 
-  /** Spend tower shards to add a star to `kind`. Returns false if unaffordable/maxed. */
+  /** The current Tower-Star EVOLUTION CAP from Campaign progress (docs/EVOLUTION-CAP.md). A tower
+   *  may not be evolved past this until the matching Campaign milestone is cleared. */
+  evolutionCap(): number {
+    return evolutionStarCap(store.get());
+  },
+
+  /** Spend tower shards to add a star to `kind`. Returns false if unaffordable, maxed, OR gated by
+   *  the Campaign Evolution Cap (Shards are the fuel, Campaign is the permission). */
   buyStar(kind: TowerKind): boolean {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
-    if (stars >= evolutionStarCap(highestCampaignStage(save.campaign.cleared))) return false; // Evolution-Tier cap
+    if (stars >= STAR.maxTowerStars) return false;
+    if (stars >= evolutionStarCap(save)) return false; // Campaign Evolution Cap not yet unlocked
     const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
@@ -943,6 +990,22 @@ export const meta = {
     const towerMasteryXp = { ...save.towerMasteryXp };
     for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
     persist({ ...save, towerMasteryXp });
+  },
+
+  /** Set the highest cleared Campaign stage for a difficulty track — drives the Evolution Cap
+   *  (lets the debug panel + tests exercise the cap gating without playing the ladder). */
+  debugSetCampaignStage(stage: number, difficulty = 'standard'): void {
+    const save = store.get();
+    persist({ ...save, campaign: { cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
+  },
+
+  /** Fully evolve every tower (★max) and unlock the Evolution Cap — to inspect the late-game
+   *  visual evolution (lab portraits + battlefield) without the full grind. */
+  debugMaxEvolution(): void {
+    const save = store.get();
+    const towerStars = { ...save.towerStars };
+    for (const k of TOWER_ORDER) towerStars[k] = STAR.maxTowerStars;
+    persist({ ...save, towerStars, campaign: { cleared: { ...save.campaign.cleared, standard: 300 } } });
   },
 
   debugAddHeroShards(n: number): void {

@@ -1,0 +1,129 @@
+// Tower STAR visual evolution (docs/TOWER-VISUAL-EVOLUTION.md) — the PERMANENT per-tower
+// progression made visible on the battlefield. As a tower gains Stars it enters a new
+// "generation" (~every two stars) and visibly MUTATES: new identity organs grow and the body
+// swells, so a ★9 organism reads as far more evolved than a ★1 — without ever losing the tower's
+// identity (each set is chosen to EXTEND its silhouette, never mask it).
+//
+// This is a SECOND consumer of the data-driven organ vocabulary in towerEvolution.ts (the first
+// is in-run branch tiers). It reuses the same EvoPart kinds + PART_DRAWERS, so adding a tower's
+// evolution is one data row and a brand-new tower needs no draw code (CLAUDE.md "generalize,
+// don't hardcode"). Pure presentation: reads only a tower's kind/position + its star count; never
+// touches the sim, so the golden tests (which never render) are unaffected and a 0-star tower
+// draws nothing here (the fresh-account look is byte-identical).
+
+import type { EvoPart, PartCtx } from './towerEvolution';
+import { PART_DRAWERS } from './towerEvolution';
+import type { TowerKind } from '../core/types';
+
+/** A tower's star evolution: organs (each with the star it first appears at) + a body-growth knob. */
+export interface StarEvolution {
+  growth: number; // body silhouette scale ADDED per star (gentle; ★10 ≈ 1 + 10·growth)
+  parts: EvoPart[]; // organs; `at` = the STAR the organ appears (1/3/5/7/9 — the generations)
+}
+
+// The launch roster (docs/TOWER-VISUAL-EVOLUTION.md §4). Generations at ★1/3/5/7/9; each tower's
+// organs are picked from the shared vocabulary to read as ITS species — Needle grows spines + a
+// firing spire, Reactor beats as a heart, Obelisk crowns a psionic glyph, etc. `color: undefined`
+// ⇒ the organ takes the tower's class hue (passed in by the renderer), preserving identity.
+export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
+  // Needle Spitter (Kinetic) — precision spire → barbed overkill.
+  needle: {
+    growth: 0.02,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 3, kind: 'barbs', count: 5 }, // venom spines / glowing veins
+      { at: 5, kind: 'barrel' }, // a longer firing spire
+      { at: 7, kind: 'spikes', count: 6 }, // barbed carapace
+      { at: 9, kind: 'nova' }, // ultimate organism
+    ],
+  },
+  // Bone Mortar (Caustic) — drum → siege battery.
+  mortar: {
+    growth: 0.022,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 3, kind: 'biomass', count: 3 }, // bubbling acid sacs
+      { at: 5, kind: 'barrels', count: 3 }, // a fanned battery
+      { at: 7, kind: 'armor', count: 5 }, // carapace plating
+      { at: 9, kind: 'nova' },
+    ],
+  },
+  // Flesh Reactor (Vital) — heart-orb → living engine.
+  reactor: {
+    growth: 0.024,
+    parts: [
+      { at: 1, kind: 'heart' }, // a beating organ + veins
+      { at: 3, kind: 'organs', count: 3 }, // vital nodes
+      { at: 5, kind: 'biomass', count: 4 }, // engorged sacs
+      { at: 7, kind: 'tendrils', count: 4 }, // overcharge tendrils
+      { at: 9, kind: 'nova' },
+    ],
+  },
+  // Parasite Nest (Viral) — egg cluster → pandemic brood.
+  parasite: {
+    growth: 0.02,
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 3, kind: 'pods', count: 3 }, // budding egg-pods
+      { at: 5, kind: 'biomass', count: 4 }, // spore blisters
+      { at: 7, kind: 'ripples', count: 2 }, // contagion waves
+      { at: 9, kind: 'nova' },
+    ],
+  },
+  // Neural Obelisk (Neural) — obelisk + glyph → psionic tyrant.
+  obelisk: {
+    growth: 0.018,
+    parts: [
+      { at: 1, kind: 'glyphRing' },
+      { at: 3, kind: 'organs', count: 3 }, // psionic nodes
+      { at: 5, kind: 'crown', count: 6 }, // a crown of spikes
+      { at: 7, kind: 'arcs', count: 3 }, // neural lightning
+      { at: 9, kind: 'nova' },
+    ],
+  },
+};
+
+/** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at
+ *  ★0, gentle per star so the body never outgrows its build pad (★10 ≈ 1.2×). Multiplies with the
+ *  branch-tier growth, which is separate. */
+export function starEvolutionGrowth(kind: TowerKind, stars: number): number {
+  if (stars <= 0) return 1;
+  const evo = STAR_EVOLUTION[kind];
+  return 1 + (evo ? evo.growth : 0.02) * stars;
+}
+
+/** The minimal tower shape the star composer needs (a subset of the render tower). */
+interface StarTower {
+  kind: TowerKind;
+  x: number;
+  y: number;
+  id: number;
+}
+
+/** Compose a tower's star-evolved organs over its (already growth-scaled) body: every organ whose
+ *  appearance star ≤ the tower's stars, drawn via the shared PART_DRAWERS. Organ SIZE is driven by
+ *  a moderated intensity `vis = ceil(stars/2)` (∈ 1..5 — the range the drawers were tuned for, so
+ *  ★10 never blows up); WHICH organs appear is gated by the raw star. `fired` is the firing-recoil
+ *  [0..1]. A 0-star tower (or an unmapped future kind) draws nothing. */
+export function drawStarEvolution(
+  ctx: CanvasRenderingContext2D,
+  tw: StarTower,
+  stars: number,
+  r: number,
+  now: number,
+  baseColor: string,
+  fired: number,
+): void {
+  if (stars <= 0) return;
+  const evo = STAR_EVOLUTION[tw.kind];
+  if (!evo) return;
+  const vis = Math.min(5, Math.ceil(stars / 2)); // ★1-2→1, 3-4→2, 5-6→3, 7-8→4, 9-10→5
+  const pc: PartCtx = { ctx, x: tw.x, y: tw.y, id: tw.id, r, now, tier: vis, above: 0, color: baseColor, fired, part: evo.parts[0] };
+  for (const part of evo.parts) {
+    if (part.at > stars) continue;
+    pc.part = part;
+    pc.above = 0; // star organs use a fixed count per generation (no count growth → no ★10 clutter)
+    pc.color = part.color ?? baseColor;
+    PART_DRAWERS[part.kind](pc);
+  }
+}

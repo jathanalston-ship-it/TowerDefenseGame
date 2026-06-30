@@ -1,46 +1,20 @@
-// Campaign — the procedural progression ladder (CAMPAIGN.md). A stage-select rail of
-// deterministically GENERATED stages: each shows its biome, wave count, boss, biome modifier +
-// hazard, the smooth scaling, and the reward multiplier. Clearing a stage unlocks the next;
-// cleared stages replay. Per-difficulty track (switch the variant to see its own progress).
-// Pure presentation over the generator + the save's campaign record.
+// Campaign — a LIVING WORLD MAP (docs/MODE-IDENTITY.md §3), not a numbered list. A winding path of
+// stage nodes plunges DEEPER into the infected planet: biomes occupy colored regions, the frontier
+// pulses, cleared depths light up behind you, locked depths fade into the dark ahead. The view is a
+// deterministic WINDOW over the unbounded procedural ladder (campaignMapView), so it scales to
+// thousands of stages with no authoring. A side panel details the focused stage. Pure presentation.
 
-import { useState, type MutableRefObject } from 'react';
+import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
-import { generateStage } from '../core/campaign';
-import type { StageConfig } from '../core/campaign';
+import { campaignMapView, generateStage, recommendedPower } from '../core/campaign';
+import { CAMPAIGN_REWARDS } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
+import { CurrencyIcon } from './components/CurrencyIcon';
 
-function StageCard({ s, state, onPlay }: { s: StageConfig; state: 'cleared' | 'next' | 'locked'; onPlay: () => void }): JSX.Element {
-  const hpPct = Math.round((s.scaling.enemyHealthMult - 1) * 100);
-  const dmgPct = Math.round((s.scaling.enemyDamageMult - 1) * 100);
-  const locked = state === 'locked';
-  return (
-    <div className={`camp-card is-${state}`} style={{ ['--biome' as string]: s.biome.accent }}>
-      <div className="camp-card-head">
-        <span className="camp-stage-n">STAGE {s.stage}</span>
-        {state === 'cleared' && <span className="camp-tag cleared">✓ CLEARED</span>}
-        {state === 'next' && <span className="camp-tag next">NEXT</span>}
-        {locked && <span className="camp-tag locked" aria-hidden>🔒</span>}
-      </div>
-      <div className="camp-biome" style={{ color: s.biome.accent }}>{s.biome.name}</div>
-      <div className="camp-facts">
-        <span className="camp-fact"><b>{s.waveCount}</b> waves</span>
-        <span className="camp-fact">+{hpPct}% HP</span>
-        {dmgPct > 0 && <span className="camp-fact">+{dmgPct}% dmg</span>}
-        <span className="camp-fact" style={{ color: 'var(--gold)' }}>×{s.rewardMult.toFixed(2)} rewards</span>
-      </div>
-      <div className="camp-boss">◈ Boss · <b>{s.boss.name}</b>{s.miniBoss ? ` · mini: ${s.miniBoss.name}` : ''}</div>
-      <div className="camp-mods">
-        <span className="camp-mod" title="Biome modifier">{s.modifierName}</span>
-        <span className="camp-mod hazard" title={s.hazardDesc}>⚠ {s.hazardName}</span>
-      </div>
-      <button className={`camp-play${state === 'next' ? ' primary' : ''}`} disabled={locked} onClick={onPlay}>
-        {locked ? `Clear Stage ${s.stage - 1}` : state === 'cleared' ? 'Replay' : 'Deploy'}
-      </button>
-    </div>
-  );
-}
+const WINDOW = 8; // nodes shown at once (a window over the infinite ladder)
+const ROW = 64, TOP = 44, MIDX = 150, AMP = 98; // serpentine descent layout (SVG units)
+const pos = (i: number, stage: number): { x: number; y: number } => ({ x: MIDX + AMP * Math.sin(stage * 0.7), y: TOP + i * ROW });
 
 export function CampaignScreen({
   onStart,
@@ -51,44 +25,124 @@ export function CampaignScreen({
 }): JSX.Element {
   const save = meta.use();
   const [diff, setDiff] = useState(difficultyRef.current);
-
   const cleared = save.campaign.cleared[diff] ?? 0;
-  const maxUnlocked = cleared + 1; // the next stage is always unlocked
-  const lo = Math.max(1, maxUnlocked - 7); // a window of recent stages …
-  const hi = maxUnlocked + 3; // … plus a few locked teasers ahead
+  const frontier = cleared + 1;
+  const power = meta.powerScore().score;
 
-  const stages: { cfg: StageConfig; state: 'cleared' | 'next' | 'locked' }[] = [];
-  for (let n = lo; n <= hi; n++) {
-    const state = n <= cleared ? 'cleared' : n === maxUnlocked ? 'next' : 'locked';
-    stages.push({ cfg: generateStage(n, diff), state });
-  }
+  // Window + focus track the frontier; recenter when you clear a stage or switch the difficulty track.
+  const [viewStart, setViewStart] = useState(() => Math.max(1, frontier - 2));
+  const [focus, setFocus] = useState(frontier);
+  useEffect(() => { setViewStart(Math.max(1, cleared + 1 - 2)); setFocus(cleared + 1); }, [cleared, diff]);
 
-  const play = (n: number): void => { audio.resume(); audio.cue('ui'); difficultyRef.current = diff; onStart(n); };
+  const nodes = campaignMapView(cleared, diff, viewStart, WINDOW);
+  const svgH = TOP * 2 + (WINDOW - 1) * ROW;
+
+  // Biome REGIONS: maximal runs of one biome become a colored band the path crosses.
+  const bands: { id: string; name: string; accent: string; y0: number; y1: number }[] = [];
+  nodes.forEach((n, i) => {
+    const y = TOP + i * ROW;
+    const last = bands[bands.length - 1];
+    if (last && last.id === n.biome.id) last.y1 = y + ROW / 2;
+    else bands.push({ id: n.biome.id, name: n.biome.name, accent: n.biome.accent, y0: y - ROW / 2 + 8, y1: y + ROW / 2 });
+  });
+
+  const deploy = (n: number): void => { audio.resume(); audio.cue('ui'); difficultyRef.current = diff; onStart(n); };
+
+  // Focused stage — one full generation (the selected node only).
+  const cfg = generateStage(focus, diff);
+  const focusState = focus <= cleared ? 'cleared' : focus === frontier ? 'current' : 'locked';
+  const rec = recommendedPower(focus, diff);
+  const ready = power >= rec;
+  const firstClearCore = CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * focus +
+    (focus % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0);
 
   return (
-    <div className="panel camp-panel">
-      <div className="panel-title">Campaign</div>
-      <div className="panel-sub">
-        A procedurally generated ladder — every stage is built from its number, difficulty, and biome.
-        Clear a stage to unlock the next; replay any you've beaten.
-      </div>
+    <div className="panel camp-map-panel">
+      <header className="camp-map-head">
+        <div>
+          <div className="panel-title">Campaign · The Descent</div>
+          <div className="panel-sub">Push deeper into the infected planet — each stage cleared opens the next.</div>
+        </div>
+        <div className="camp-map-meta">
+          <label className="play-field">
+            <span className="play-field-k">Difficulty</span>
+            <select value={diff} onChange={(e) => { setDiff(e.target.value); difficultyRef.current = e.target.value; }}>
+              {DIFFICULTY_IDS.map((id) => <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>)}
+            </select>
+          </label>
+          <span className="camp-record">Deepest cleared <b>{cleared}</b></span>
+          <span className="camp-record">Power <b>×{power.toFixed(1)}</b></span>
+        </div>
+      </header>
 
-      <div className="camp-bar">
-        <label className="play-field">
-          <span className="play-field-k">Difficulty</span>
-          <select value={diff} onChange={(e) => { setDiff(e.target.value); difficultyRef.current = e.target.value; }}>
-            {DIFFICULTY_IDS.map((id) => (
-              <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>
+      <div className="camp-map-body">
+        {/* ── The living map ── */}
+        <div className="camp-map-wrap">
+          <button className="camp-scroll" disabled={viewStart <= 1} onClick={() => setViewStart((v) => Math.max(1, v - 3))}>▲ Toward the surface</button>
+          <svg className="camp-map-svg" viewBox={`0 0 300 ${svgH}`} preserveAspectRatio="xMidYMin meet" role="list" aria-label="Campaign descent">
+            {bands.map((b, i) => (
+              <g key={`${b.id}-${i}`}>
+                <rect x="0" y={b.y0} width="300" height={Math.max(0, b.y1 - b.y0)} fill={b.accent} opacity="0.08" />
+                <text x="9" y={b.y0 + 17} className="camp-band-label" fill={b.accent}>{b.name.toUpperCase()}</text>
+              </g>
             ))}
-          </select>
-        </label>
-        <span className="camp-record">Highest cleared <b style={{ color: 'var(--gold)' }}>{cleared}</b></span>
-      </div>
+            <path className="camp-vein" d={nodes.map((n, i) => { const p = pos(i, n.stage); return `${i ? 'L' : 'M'} ${p.x.toFixed(1)} ${p.y}`; }).join(' ')} />
+            {nodes.map((n, i) => {
+              const p = pos(i, n.stage);
+              const r = n.milestone ? 19 : 14;
+              return (
+                <g key={n.stage} className={`camp-node is-${n.state}${n.stage === focus ? ' is-focus' : ''}`}
+                   style={{ ['--biome' as string]: n.biome.accent }} onClick={() => setFocus(n.stage)} role="listitem">
+                  {n.state === 'current' && <circle cx={p.x} cy={p.y} r={r + 7} className="camp-node-pulse" />}
+                  {n.stage === focus && <circle cx={p.x} cy={p.y} r={r + 4} className="camp-node-focus" />}
+                  <circle cx={p.x} cy={p.y} r={r} className="camp-node-dot" />
+                  {n.milestone && <text x={p.x} y={p.y - r - 5} className="camp-node-ms" textAnchor="middle">◈</text>}
+                  <text x={p.x} y={p.y + 5} className="camp-node-n" textAnchor="middle">{n.stage}</text>
+                </g>
+              );
+            })}
+          </svg>
+          <button className="camp-scroll" onClick={() => setViewStart((v) => v + 3)}>▼ Descend deeper</button>
+        </div>
 
-      <div className="camp-grid">
-        {stages.map(({ cfg, state }) => (
-          <StageCard key={cfg.stage} s={cfg} state={state} onPlay={() => play(cfg.stage)} />
-        ))}
+        {/* ── Focused stage ── */}
+        <aside className="camp-detail" style={{ ['--biome' as string]: cfg.biome.accent }}>
+          <div className="camp-detail-stage">
+            STAGE {focus}
+            {focus === frontier && <span className="camp-here">◂ frontier</span>}
+            {focusState === 'cleared' && <span className="camp-here cleared">✓ cleared</span>}
+          </div>
+          <div className="camp-detail-biome" style={{ color: cfg.biome.accent }}>{cfg.biome.name}</div>
+          <div className="camp-detail-mods">
+            <span className="camp-mod" title="Biome modifier">{cfg.modifierName}</span>
+            <span className="camp-mod hazard" title={cfg.hazardDesc}>⚠ {cfg.hazardName}</span>
+          </div>
+
+          <div className="camp-detail-grid">
+            <div className="cd-row"><span className="cd-k">◈ Boss</span><span className="cd-v">{cfg.boss.name}</span></div>
+            {cfg.miniBoss && <div className="cd-row"><span className="cd-k">Mini-boss</span><span className="cd-v">{cfg.miniBoss.name}</span></div>}
+            <div className="cd-row"><span className="cd-k">Waves</span><span className="cd-v">{cfg.waveCount}</span></div>
+            <div className="cd-row"><span className="cd-k">Enemy HP</span><span className="cd-v">+{Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}%</span></div>
+            <div className="cd-row"><span className="cd-k">Enemy Damage</span><span className="cd-v">+{Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%</span></div>
+          </div>
+
+          <div className={`camp-power ${ready ? 'ok' : 'low'}`}>
+            <span>Recommended Power</span>
+            <b>×{rec.toFixed(1)}</b>
+            <span className="camp-power-you">you ×{power.toFixed(1)} {ready ? '✓' : '⚠'}</span>
+          </div>
+
+          <div className="camp-rewards">
+            <span className="cd-k">{focusState === 'cleared' ? 'Replay' : 'First-clear reward'}</span>
+            {focusState !== 'cleared'
+              ? <span className="cd-reward"><CurrencyIcon id="genomeCores" size={14} title="" /> +{firstClearCore} · Stage Cache <span style={{ color: cfg.biome.accent }}>◈</span></span>
+              : <span className="cd-reward dim">already claimed — replay for loot &amp; mastery</span>}
+          </div>
+
+          <button className={`camp-deploy ${focusState === 'current' ? 'primary' : ''}`} disabled={focusState === 'locked'} onClick={() => deploy(focus)}>
+            {focusState === 'locked' ? `Clear Stage ${frontier} first` : focusState === 'cleared' ? 'Replay ▸' : 'Deploy ▸'}
+          </button>
+        </aside>
       </div>
     </div>
   );

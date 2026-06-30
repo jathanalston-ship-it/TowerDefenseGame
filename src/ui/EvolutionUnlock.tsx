@@ -1,24 +1,24 @@
 // Evolution Unlock sequence (docs/TOWER-CODEX.md §2) — the dramatic, RPG-boss-grade moment when a
-// Campaign milestone raises the tower Star Cap. NOT a silent unlock: a full-screen reveal of the new
-// tier, the affected towers (living portraits at the new cap, bursting in), and the mutations each
-// gains. Shown by App over the Results screen when RunOutcome.evolutionUnlock is present.
+// Campaign milestone raises the account-wide Evolution Cap (docs/EVOLUTION-CAP.md). NOT a silent
+// unlock: a full-screen reveal of the new tier, the affected towers (living portraits at the new
+// cap, bursting in), and the mutation each gains. Shown by App over Results when the cap rose.
 
-import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { TOWER_DEFS, TOWER_ORDER, starMutationTier } from '../core/config';
 import { stepAt } from '../core/stars';
 import { TowerPortrait } from './TowerPortrait';
 import { stepView } from './towerLabModel';
 import { meta } from '../state/meta';
-import type { EvolutionMilestone } from '../core/evolution';
 
 export interface EvolutionUnlockData {
-  milestone: EvolutionMilestone;
-  oldCap: number;
-  newCap: number;
+  oldCap: number; // star cap before this run
+  newCap: number; // star cap after (newCap > oldCap)
+  stage: number; // the campaign stage just cleared that raised it
 }
 
 export function EvolutionUnlock({ unlock, onClose }: { unlock: EvolutionUnlockData; onClose: () => void }): JSX.Element {
   const save = meta.get();
-  const { milestone, oldCap, newCap } = unlock;
+  const { oldCap, newCap, stage } = unlock;
+  const gen = starMutationTier(newCap); // the generation taxonomy at the new cap (shared with the renderer)
   // Each tower's mutation at the newly-unlocked tier (authored star step, or the ascension power tier).
   const towers = TOWER_ORDER.map((k) => {
     const st = stepAt(k, newCap);
@@ -35,16 +35,16 @@ export function EvolutionUnlock({ unlock, onClose }: { unlock: EvolutionUnlockDa
       <div className="evo-rays" aria-hidden />
       <div className="evo-card" onClick={(e) => e.stopPropagation()}>
         <div className="evo-eyebrow">◆ New Evolution Unlocked ◆</div>
-        <h2 className="evo-title">{milestone.title}</h2>
+        <h2 className="evo-title">{gen.name}</h2>
         <div className="evo-cap">Star Cap Increased&nbsp; <b>★{oldCap} → ★{newCap}</b></div>
-        <p className="evo-blurb">{milestone.blurb}</p>
-        <div className="evo-band">New mutations available · ★{oldCap + 1}–★{newCap}</div>
+        <p className="evo-blurb">{gen.desc}</p>
+        <div className="evo-band">Cleared Campaign Stage {stage} · new mutations available · ★{oldCap + 1}–★{newCap}</div>
 
         <div className="evo-roster">
           {towers.map((t, i) => (
             <div className="evo-tower" key={t.kind} style={{ animationDelay: `${0.25 + i * 0.13}s` }}>
               <div className="evo-portrait">
-                <TowerPortrait color={t.color} stars={newCap} size={96} />
+                <TowerPortrait color={t.color} stars={newCap} size={96} kind={t.kind} />
                 <span className="evo-burst" aria-hidden />
               </div>
               <div className="evo-tower-name" style={{ color: t.color }}>{t.name}</div>

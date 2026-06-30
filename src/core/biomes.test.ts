@@ -101,8 +101,8 @@ describe('biome framework', () => {
   });
 
   it('biome modifiers reach the sim — campaign enemies carry their biome armour + speed', () => {
-    // Frostbound Reach (stage 3): +5 armour, ×0.86 speed. Drive a campaign Game and inspect spawns.
-    const stage = generateStage(3, 'standard');
+    // Frostbound Reach (stage 11, the armoured biome's region): +5 armour, ×0.86 speed. Drive a campaign Game and inspect spawns.
+    const stage = generateStage(11, 'standard');
     expect(stage.biome.mods.enemyArmorBonus).toBeGreaterThan(0); // guard: the test stage is the armoured biome
     const game = new Game(777, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage });
     game.startWave();

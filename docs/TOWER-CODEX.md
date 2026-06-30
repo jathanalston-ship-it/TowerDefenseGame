@@ -16,36 +16,23 @@ Pure presentation reuses the existing systems; the only sim/meta change is the S
 
 ## 1. Evolution Tiers (the Star-Cap gate)
 
-### Model (`src/core/evolution.ts`, pure)
-- `BASE_STAR_CAP = 6` — a fresh save can fully **evolve** a tower (★1–5, the visual mutation band)
-  and take the **first ascension step** (★6) with shards alone. (Preserves the existing
-  "towers ascend past ★5" rule + its test.)
-- `EVOLUTION_MILESTONES` — campaign-stage thresholds that unlock the **transcendent** tiers:
+The Campaign-gated Star Cap is the **canonical Campaign Evolution Cap** system —
+`config.EVOLUTION_CAPS` + `campaignStarCap` / `nextEvolutionUnlock` + `meta.evolutionStarCap(save)`,
+documented in **docs/EVOLUTION-CAP.md**. This doc builds the *encyclopedia* and the *unlock
+sequence* ON TOP of it; it does not redefine the cap. Summary of what this feature consumes:
 
-  | Milestone | Campaign stage cleared | New Star Cap | Title |
-  |---|---|---|---|
-  | 1 | 4  | ★7  | Apex Genome |
-  | 2 | 8  | ★8  | Transcendent Genome |
-  | 3 | 12 | ★9  | Primordial Genome |
-  | 4 | 16 | ★10 | Omega Genome |
-
-- `highestCampaignStage(cleared)` = max cleared stage across **all** difficulties (best progress
-  counts). `evolutionStarCap(highestStage)` = the highest milestone cap ≤ that, else `BASE_STAR_CAP`
-  (always ≤ `STAR.maxTowerStars`). `milestoneCrossed(oldStage, newStage)` → the milestone unlocked
-  by this clear, or null.
-
-### Gate (`state/meta.ts`)
-- `nextStarCost` and `buyStar` cap at `evolutionStarCap(highestCampaignStage(save))` instead of the
-  absolute `STAR.maxTowerStars`. **Never downgrades**: a tower already above the current cap (e.g.
-  a legacy ★10) keeps every star and its kit; the gate only blocks *new* purchases past the cap.
-- This is the ONLY mechanical change. Determinism/golden runs are untouched (star kits still
-  resolve from owned stars; the cap only limits the meta shop).
+- `meta.evolutionStarCap(save)` — the account-wide cap from the player's furthest Campaign progress
+  (`config.EVOLUTION_CAPS`: a fresh account caps at ★2; stages 10/25/50/80/120/170/230/300 unlock
+  ★3…★10). Shards are the FUEL, Campaign is the PERMISSION; `buyStar` enforces it (purchase-only —
+  legacy over-cap stars are never downgraded).
+- `config.EVOLUTION_CAPS` — used by the Codex to label a locked preview star with the Campaign stage
+  that unlocks it.
 
 ### Unlock detection (`finishRun`)
-On a **won campaign** run, compare `highestCampaignStage` before/after the `cleared` update. If a
-milestone was crossed, attach `RunOutcome.evolutionUnlock = { milestone, oldCap, newCap, title,
-towers, newAbilities }` — the trigger for the sequence. `towers` = the whole roster (the cap is
-global); `newAbilities` = each tower's star-step name at the new cap (what the tier grants).
+On a **won campaign** run, compare `evolutionStarCap` before/after the `cleared` update. If the cap
+rose, attach `RunOutcome.evolutionUnlock = { oldCap, newCap, stage }` — the trigger for the
+sequence. The affected towers (whole roster) + the mutation each gains at `newCap` are derived in
+the sequence component from the star path + the shared `STAR_MUTATION_TIERS` taxonomy.
 
 ---
 

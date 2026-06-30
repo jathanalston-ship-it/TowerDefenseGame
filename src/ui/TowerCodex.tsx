@@ -37,7 +37,7 @@ export function TowerCodex({ kind, onClose }: { kind: TowerKind; onClose: () => 
           <div className="codex-stage">
             <div className="codex-portrait">
               {view.kind === 'star' ? (
-                <TowerPortrait color={accent} stars={view.star} size={188} />
+                <TowerPortrait color={accent} stars={view.star} size={188} kind={cx.kind} />
               ) : (
                 <TowerPortrait color={branch!.color} stars={0} branchId={branch!.id} tier={view.tier} size={188} />
               )}

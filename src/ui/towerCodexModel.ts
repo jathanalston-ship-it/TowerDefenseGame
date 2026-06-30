@@ -3,13 +3,12 @@
 // (Tier 1-5), from the existing star / branch / mastery systems. Pure: no React/DOM. A NEW tower
 // flows through with zero codex code — it just needs a star path + branches, like every tower.
 
-import { STAR, TOWER_DEFS } from '../core/config';
+import { EVOLUTION_CAPS, STAR, TOWER_DEFS } from '../core/config';
 import { forksOf, stepAt } from '../core/stars';
 import { branchesFor } from '../core/branches';
 import { BRANCH_COLOR } from '../render/towerEvolution';
-import { EVOLUTION_MILESTONES, evolutionStarCap, highestCampaignStage } from '../core/evolution';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
-import { masteryProgress } from '../state/meta';
+import { evolutionStarCap, masteryProgress } from '../state/meta';
 import { grantsAbility, stepView } from './towerLabModel';
 import type { SaveData } from '../save/saveStore';
 import type { TowerKind } from '../core/types';
@@ -50,14 +49,14 @@ export interface TowerCodex {
 function stageState(star: number, stars: number, cap: number): { state: StageState; unlockHint: string | null } {
   if (star <= stars) return { state: 'owned', unlockHint: null };
   if (star <= cap) return { state: 'reachable', unlockHint: null };
-  const ms = EVOLUTION_MILESTONES.find((m) => m.starCap >= star);
-  return { state: 'locked', unlockHint: ms ? `Clear Campaign Stage ${ms.stage}` : null };
+  const row = EVOLUTION_CAPS.find((e) => e.maxStar >= star);
+  return { state: 'locked', unlockHint: row ? `Clear Campaign Stage ${row.stage}` : null };
 }
 
 export function towerCodex(save: SaveData, kind: TowerKind): TowerCodex {
   const def = TOWER_DEFS[kind];
   const stars = save.towerStars[kind] ?? 0;
-  const cap = evolutionStarCap(highestCampaignStage(save.campaign.cleared));
+  const cap = evolutionStarCap(save); // Campaign Evolution Cap (docs/EVOLUTION-CAP.md)
   const mp = masteryProgress(save.towerMasteryXp[kind] ?? 0);
 
   // Current branch = the persistent ★3 specialization fork choice, once reached.
