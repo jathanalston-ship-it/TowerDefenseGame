@@ -110,6 +110,8 @@ function sBreach(): void { tone(90, 0.35, 'sine', 0.3, 55); noise(0.3, 0.18, 700
 function sAbility(): void { noise(0.3, 0.16, 400, 3500); tone(120, 0.4, 'sine', 0.22, 320); }
 function sPlace(): void { tone(200, 0.16, 'sine', 0.18, 130); tone(330, 0.1, 'triangle', 0.08); }
 function sSelect(): void { tone(520, 0.05, 'square', 0.05); }
+function sHover(): void { tone(900, 0.02, 'sine', 0.012, 1200); } // a faint, premium tick as the pointer crosses a control
+function sLaunch(): void { tone(196, 0.16, 'sine', 0.15, 392); tone(294, 0.3, 'triangle', 0.09, 440); noise(0.1, 0.045, 1300, 4200); } // a confident "engage" swell on Start Run
 function sWave(): void { tone(330, 0.12, 'sawtooth', 0.16); tone(494, 0.22, 'sawtooth', 0.16); }
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
 function sHeartbeat(strength: number): void { tone(60, 0.18, 'sine', 0.08 + strength * 0.1, 42); }
@@ -230,6 +232,8 @@ export const audio = {
         case 'wave': sWave(); break;
         case 'draft': sDraft(); break;
         case 'ui': sSelect(); break;
+        case 'hover': sHover(); break;
+        case 'launch': sLaunch(); break;
         case 'clear': sClear(); break;
         case 'chest': revealStep = 0; sChest(); break; // resets the reveal pitch ramp
         case 'reveal': sReveal(); break;
