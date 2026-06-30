@@ -783,6 +783,28 @@ export const ECON = {
   shardsPerKill: 0.4,
 };
 
+// ── Mode reward identity (docs/MODE-IDENTITY.md) ──────────────────────────────────────────────
+// Each mode owns a lane so players ALTERNATE instead of farming one forever. Applied as
+// multipliers in meta.finishRun on top of the shared formulas. 'stage' (the legacy quick-run,
+// golden-pinned) is ×1 across the board, so the characterization tests never move.
+export const MODE_REWARDS = {
+  // Genome Cores (account currency) — Campaign-primary, biggest on a FIRST clear; Infinite gives a
+  // token amount so depth can't be farmed for currency.
+  core: { campaignFirst: 1.0, campaignReplay: 0.3, endless: 0.2, stage: 1.0 },
+  // Loot points (Loot Box Meter → Tower/Hero Shards) — Infinite is the farm; Campaign a trickle.
+  loot: { campaign: 0.35, endless: 1.0, stage: 1.0 },
+  // Mastery XP (from use) — Infinite earns an endurance bonus, cementing it as the mastery venue.
+  mastery: { campaign: 1.0, endless: 1.35, stage: 1.0 },
+};
+
+// Campaign-exclusive "first-time completion" grants — paid once per brand-new stage clear.
+export const CAMPAIGN_REWARDS = {
+  firstClearCore: 25, // base one-time Genome Cores for a never-cleared stage …
+  firstClearCorePerStage: 6, // … + this per stage number (deeper discovery pays more)
+  milestoneEvery: 5, // every Nth cleared stage …
+  milestoneCore: 150, // … a bonus Genome Cores chunk
+};
+
 // ── Battlefield / arena ─────────────────────────────────────────────────────
 // Open vertical arena (map.ts owns CELL/COLS/ROWS/WIDTH/HEIGHT). Enemies spawn
 // along the TOP edge and dynamically flow toward the BOTTOM edge (the line) via a
