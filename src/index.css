@@ -3758,7 +3758,59 @@ kbd {
   display: grid;
   grid-template-columns: 216px 1fr;
   overflow: hidden;
+  position: relative;
+  isolation: isolate;
   background: radial-gradient(1200px 600px at 18% -10%, rgba(110, 123, 255, 0.08), transparent), var(--bg);
+}
+/* Lift the shell above the living-laboratory atmosphere layer (which sits at z-index 0). */
+.hub > .hub-nav, .hub > .hub-main { position: relative; z-index: 1; }
+
+/* ── Living-laboratory atmosphere — subtle ambient layer behind the whole Hub ── */
+.lab-atmos { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.lab-drift { position: absolute; inset: -4%; animation: lab-drift 60s ease-in-out infinite alternate; }
+@keyframes lab-drift {
+  from { transform: translate3d(-1%, -1%, 0) scale(1.02); }
+  to { transform: translate3d(1.5%, 1%, 0) scale(1.05); }
+}
+/* Reactive lighting — slow bioluminescent blobs */
+.lab-glow { position: absolute; width: 46vw; height: 46vw; border-radius: 50%; filter: blur(60px); opacity: 0.1; will-change: transform; }
+.lab-glow-a { background: var(--vital); left: -8vw; top: -6vw; animation: lab-float-a 34s ease-in-out infinite alternate; }
+.lab-glow-b { background: var(--viral); right: -10vw; top: 18vh; animation: lab-float-b 42s ease-in-out infinite alternate; }
+.lab-glow-c { background: var(--caustic); left: 28vw; bottom: -14vw; animation: lab-float-a 50s ease-in-out infinite alternate-reverse; }
+@keyframes lab-float-a { from { transform: translate(0, 0); } to { transform: translate(6vw, 4vh); } }
+@keyframes lab-float-b { from { transform: translate(0, 0); } to { transform: translate(-5vw, 5vh); } }
+/* Background organisms — large faint cells, breathing */
+.lab-cell { position: absolute; border-radius: 50%; opacity: 0.06; border: 1px solid color-mix(in srgb, var(--vital) 40%, transparent); }
+.lab-cell-a { width: 360px; height: 360px; left: 12vw; top: 30vh; animation: lab-breathe 18s ease-in-out infinite; }
+.lab-cell-b { width: 520px; height: 520px; right: 8vw; bottom: 6vh; border-color: color-mix(in srgb, var(--viral) 40%, transparent); animation: lab-breathe 24s ease-in-out infinite; }
+@keyframes lab-breathe { 0%, 100% { transform: scale(1); opacity: 0.05; } 50% { transform: scale(1.06); opacity: 0.09; } }
+/* DNA helices — faint, slowly scrolling */
+.lab-dna { position: absolute; height: 120vh; width: 64px; opacity: 0.12; }
+.lab-dna-l { left: 7vw; top: -10vh; animation: lab-dna-scroll 40s linear infinite; }
+.lab-dna-r { right: 6vw; top: -30vh; animation: lab-dna-scroll 52s linear infinite reverse; }
+@keyframes lab-dna-scroll { from { transform: translateY(-8%); } to { transform: translateY(8%); } }
+/* Floating spores */
+.lab-spores { position: absolute; inset: 0; }
+.lab-spore { position: absolute; bottom: -3%; border-radius: 50%; opacity: 0; filter: blur(0.4px); animation: lab-spore var(--dur) linear infinite; animation-delay: var(--delay); }
+@keyframes lab-spore {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.4; }
+  100% { transform: translate(var(--drift), -108vh); opacity: 0; }
+}
+/* Scanning hologram — a slow vertical sweep */
+.lab-scan { position: absolute; left: 0; right: 0; height: 140px; top: -140px; opacity: 0.5; background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--vital) 22%, transparent), transparent); animation: lab-scan 11s linear infinite; }
+@keyframes lab-scan { from { transform: translateY(0); } to { transform: translateY(140vh); } }
+/* Animated UI glow — the Mission Control panel softly breathes its accent light */
+.mc-campaign { animation: mc-breathe 7s ease-in-out infinite; }
+@keyframes mc-breathe {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 44px -26px var(--mc-accent); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 54px -20px var(--mc-accent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-drift, .lab-glow, .lab-cell, .lab-dna, .lab-spore, .lab-scan, .mc-campaign { animation: none; }
+  .lab-scan { display: none; }
+  .lab-spore { opacity: 0.22; }
 }
 .hub-nav {
   display: flex;

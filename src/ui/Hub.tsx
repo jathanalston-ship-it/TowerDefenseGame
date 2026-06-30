@@ -26,6 +26,7 @@ import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 import { DevTools } from './DevTools';
+import { LabAtmosphere } from './LabAtmosphere';
 
 export type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
 
@@ -133,6 +134,7 @@ export function Hub({
 
   return (
     <div className="hub">
+      <LabAtmosphere />
       <nav className="hub-nav" aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
