@@ -146,16 +146,23 @@ function sSplice(): void { // wet, rising graft — the irreversible commitment
 function sDissolve(): void { // tower dissolves into biomass — a wet, DESCENDING melt (the inverse of splice)
   tone(360, 0.26, 'sawtooth', 0.12, 90); tone(190, 0.3, 'sine', 0.1, 70); noise(0.28, 0.12, 2600, 480);
 }
-function sBrSwarm(): void { noise(0.04, 0.05, 4200); tone(760, 0.05, 'square', 0.035, 980); } // chittering barb volley
-function sBrRail(): void { tone(1250, 0.06, 'sawtooth', 0.06, 230); tone(130, 0.11, 'sine', 0.06, 66); } // railgun crack + thud
-function sBrSiege(): void { tone(90, 0.16, 'sine', 0.09, 50); noise(0.12, 0.07, 900, 280); } // deep necrotic mortar boom
-function sBrAcid(): void { noise(0.16, 0.06, 1800, 600); tone(220, 0.1, 'triangle', 0.03, 130); } // caustic glug + hiss
-function sBrVital(): void { tone(66, 0.16, 'sine', 0.08, 46); tone(132, 0.12, 'sine', 0.035, 92); } // warm heart lub-dub
-function sBrSpore(): void { noise(0.1, 0.06, 1300, 480); tone(300, 0.09, 'triangle', 0.03, 170); } // wet brood-pod pop
-function sBrPlague(): void { noise(0.12, 0.05, 2400, 700); tone(420, 0.07, 'sine', 0.03, 300); } // sick spore spit
-function sBrGore(): void { noise(0.07, 0.07, 1500, 400); tone(160, 0.07, 'sawtooth', 0.04, 80); } // vicious wet crunch
-function sBrPsi(): void { tone(180, 0.18, 'sine', 0.05, 120); tone(270, 0.16, 'triangle', 0.025, 200); } // ominous psionic hum
-function sBrStorm(): void { noise(0.05, 0.05, 5000, 1500); tone(1500, 0.05, 'sawtooth', 0.04, 400); } // crackling neural zap
+// Branch cue DEPTH (BRANCH-EVOLUTION.md §3d): a tier intensity d∈[0,1] (tier 1→0 … tier 5→1)
+// deepens the synth — pitch sinks (`lo`), the hit gains weight (`up`), and a sub-octave thump
+// drops in at the high tiers — so each purchased tier sounds bigger than the last. d=0 reproduces
+// the original tier-1 cue exactly.
+const lo = (d: number): number => 1 - 0.16 * d; // pitch multiplier (sinks with tier)
+const up = (d: number): number => 1 + 0.55 * d; // peak multiplier (louder with tier)
+function sub(d: number, freq: number): void { if (d >= 0.5) tone(freq, 0.13, 'sine', 0.05 * d, freq * 0.7); } // capstone weight
+function sBrSwarm(d = 0): void { noise(0.04, 0.05 * up(d), 4200 * lo(d)); tone(760 * lo(d), 0.05, 'square', 0.035 * up(d), 980 * lo(d)); sub(d, 150); } // chittering barb volley
+function sBrRail(d = 0): void { tone(1250 * lo(d), 0.06, 'sawtooth', 0.06 * up(d), 230); tone(130 * lo(d), 0.11, 'sine', 0.06 * up(d), 66); sub(d, 90); } // railgun crack + thud
+function sBrSiege(d = 0): void { tone(90 * lo(d), 0.16, 'sine', 0.09 * up(d), 50); noise(0.12, 0.07 * up(d), 900 * lo(d), 280); sub(d, 60); } // deep necrotic mortar boom
+function sBrAcid(d = 0): void { noise(0.16, 0.06 * up(d), 1800 * lo(d), 600); tone(220 * lo(d), 0.1, 'triangle', 0.03 * up(d), 130); } // caustic glug + hiss
+function sBrVital(d = 0): void { tone(66 * lo(d), 0.16, 'sine', 0.08 * up(d), 46); tone(132 * lo(d), 0.12, 'sine', 0.035 * up(d), 92); sub(d, 44); } // warm heart lub-dub
+function sBrSpore(d = 0): void { noise(0.1, 0.06 * up(d), 1300 * lo(d), 480); tone(300 * lo(d), 0.09, 'triangle', 0.03 * up(d), 170); } // wet brood-pod pop
+function sBrPlague(d = 0): void { noise(0.12, 0.05 * up(d), 2400 * lo(d), 700); tone(420 * lo(d), 0.07, 'sine', 0.03 * up(d), 300); } // sick spore spit
+function sBrGore(d = 0): void { noise(0.07, 0.07 * up(d), 1500 * lo(d), 400); tone(160 * lo(d), 0.07, 'sawtooth', 0.04 * up(d), 80); sub(d, 70); } // vicious wet crunch
+function sBrPsi(d = 0): void { tone(180 * lo(d), 0.18, 'sine', 0.05 * up(d), 120); tone(270 * lo(d), 0.16, 'triangle', 0.025 * up(d), 200); } // ominous psionic hum
+function sBrStorm(d = 0): void { noise(0.05, 0.05 * up(d), 5000 * lo(d), 1500); tone(1500 * lo(d), 0.05, 'sawtooth', 0.04 * up(d), 400); sub(d, 110); } // crackling neural zap
 
 function startDrone(): void {
   if (droneOn || !ctx || !musicBus) return;
@@ -204,9 +211,14 @@ export const audio = {
   },
   cueBatch(counts: Record<string, number>): void {
     if (!ensure()) return;
-    for (const tag in counts) {
-      const n = counts[tag];
+    for (const rawTag in counts) {
+      const n = counts[rawTag];
       if (n <= 0) continue;
+      // Branch cues carry a "tag@tier" suffix (game.pushSfx) → a depth d∈[0,1] (tier 1→0 … 5→1)
+      // that deepens the synth per tier (BRANCH-EVOLUTION.md §3d). Non-suffixed cues ⇒ d=0, unchanged.
+      const at = rawTag.indexOf('@');
+      const tag = at < 0 ? rawTag : rawTag.slice(0, at);
+      const d = at < 0 ? 0 : Math.min(1, Math.max(0, (Number(rawTag.slice(at + 1)) - 1) / 4));
       switch (tag) {
         case 'hit': for (let i = 0; i < Math.min(3, n); i++) sHit(i); break;
         case 'kill': for (let i = 0; i < Math.min(5, n); i++) sKill(); break;
@@ -228,16 +240,16 @@ export const audio = {
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;
         case 'dissolve': sDissolve(); break;
-        case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;
-        case 'br_rail': sBrRail(); break;
-        case 'br_siege': for (let i = 0; i < Math.min(2, n); i++) sBrSiege(); break;
-        case 'br_acid': sBrAcid(); break;
-        case 'br_vital': sBrVital(); break;
-        case 'br_spore': sBrSpore(); break;
-        case 'br_plague': for (let i = 0; i < Math.min(2, n); i++) sBrPlague(); break;
-        case 'br_gore': for (let i = 0; i < Math.min(2, n); i++) sBrGore(); break;
-        case 'br_psi': sBrPsi(); break;
-        case 'br_storm': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(); break;
+        case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(d); break;
+        case 'br_rail': sBrRail(d); break;
+        case 'br_siege': for (let i = 0; i < Math.min(2, n); i++) sBrSiege(d); break;
+        case 'br_acid': sBrAcid(d); break;
+        case 'br_vital': sBrVital(d); break;
+        case 'br_spore': sBrSpore(d); break;
+        case 'br_plague': for (let i = 0; i < Math.min(2, n); i++) sBrPlague(d); break;
+        case 'br_gore': for (let i = 0; i < Math.min(2, n); i++) sBrGore(d); break;
+        case 'br_psi': sBrPsi(d); break;
+        case 'br_storm': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(d); break;
       }
     }
   },

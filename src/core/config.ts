@@ -414,11 +414,28 @@ export const PARTICLE = {
   vital: { count: 7, speed: 70, life: 0.7, size: 2.4, color: '#ffb3c8' }, // Symbiotic Heart — warm biomass motes
   spore: { count: 8, speed: 60, life: 0.66, size: 2.3, color: '#b58cff' }, // Brood Spire — drifting brood spores
   gore: { count: 7, speed: 135, life: 0.44, size: 2.4, color: '#d83a4a' }, // Ravager Strain — viscera spray
+  // ── Branch APEX signatures (BRANCH-EVOLUTION.md §5): denser/recoloured siblings sprayed at a
+  //    branch's high tiers (muzzle + impact). Tier-scaled further by EVO.muzzleGrowth at spray time. ──
+  venom: { count: 8, speed: 90, life: 0.62, size: 2.2, color: '#a6f04a' }, // venom-slick caustic mist
+  barbstorm: { count: 11, speed: 205, life: 0.4, size: 1.9, color: '#d8ff5a' }, // a shredding barb storm
+  railburst: { count: 9, speed: 245, life: 0.3, size: 1.7, color: '#dffbff' }, // electric detonation
+  shrapnel: { count: 9, speed: 165, life: 0.55, size: 2.3, color: '#ffcaa0' }, // bone shrapnel burst
+  dissolve: { count: 9, speed: 80, life: 0.72, size: 2.6, color: '#b6f060' }, // fungal melt bloom
+  pandemic: { count: 11, speed: 95, life: 0.66, size: 2.5, color: '#f06dff' }, // an outbreak spore burst
+  vitalcore: { count: 10, speed: 115, life: 0.7, size: 2.6, color: '#ffc6d6' }, // vital-nova motes
   // ── Reward-moment spectacle (cosmetic; never affects the pinned sim outcomes) ──
   mutate: { count: 20, speed: 175, life: 0.6, size: 2.9 }, // branch tier purchased — a big burst (tinted by tower color)
   bossfall: { count: 30, speed: 190, life: 0.95, size: 3.6, color: '#ffd24d' }, // a boss detonating into biomass
   celebrate: { count: 22, speed: 150, life: 1.1, size: 3.0, color: '#b6e84a' }, // wave-clear / extraction bloom
 };
+
+// Branch sensory ESCALATION (BRANCH-EVOLUTION.md §3a): every branch tier sprays denser, faster
+// matter than the last — so a maxed tower's muzzle + impact visibly out-erupt a fresh one, for
+// every branch (and every future tower) without per-tower art. Cosmetic ⇒ golden-safe.
+export const EVO = {
+  muzzleGrowth: 0.22, // + per tier above 1 → particle count & speed scalar (T1 ×1 … T5 ×1.88)
+  impactGrowth: 0.18, // + per tier above 1 → impact-burst scalar
+} as const;
 
 // Per-wave HP/bounty growth so later waves bite (finite — slice ends at wave 12).
 // These are the BASE escalation curve; the universal difficulty framework

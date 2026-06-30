@@ -136,7 +136,16 @@ export type ParticleKind =
   | 'acid' // mortar Corrosive Cauldron / reactor Acid Glands — caustic droplets
   | 'vital' // reactor Symbiotic Heart — warm biomass motes
   | 'spore' // reactor Brood Spire — drifting brood spores
-  | 'gore'; // parasite Ravager Strain — viscera spray
+  | 'gore' // parasite Ravager Strain — viscera spray
+  // ── Branch APEX signatures (BRANCH-EVOLUTION.md §5): denser/recoloured siblings a branch
+  //    matures INTO at its high tiers, so a maxed path reads differently from a fresh splice. ──
+  | 'venom' // Hivemind Swarm T3+ — venom-slick caustic mist
+  | 'barbstorm' // Hivemind Swarm T5 — a shredding barb storm
+  | 'railburst' // Railspike / Mindrender apex — electric detonation
+  | 'shrapnel' // Necrotic Siege apex — bone shrapnel burst
+  | 'dissolve' // Corrosive Cauldron apex — fungal melt bloom
+  | 'pandemic' // Viral Apex T5 — an outbreak spore burst
+  | 'vitalcore'; // Symbiotic Heart T5 — vital-nova motes
 
 // ── The world API executors are given (implemented by the Game) ──────────────
 

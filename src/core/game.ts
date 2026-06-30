@@ -27,6 +27,7 @@ import {
   ECON,
   ENEMY_DEFS,
   ENEMY_KINDS,
+  EVO,
   FX,
   HERO_DEFS,
   HERO_ORDER,
@@ -1617,7 +1618,7 @@ export class Game {
         t.cooldown = def.fireInterval / rateMult;
         // Branch sensory signature (TOWER-BRANCHES.md §1): a muzzle spray + sound on every shot.
         // Cosmetic only (FX rng + sfx queue) ⇒ golden-safe; bk is null on the unbranched/autoplay path.
-        if (bk) this.emitBranchSignature(bk, t.x, t.y - 6);
+        if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier);
       }
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
@@ -1652,15 +1653,30 @@ export class Game {
       this.castScratch.pierce = 0;
       runAbilities(this.actx, bk.extraAbilities, this.castScratch);
     }
-    this.emitBranchSignature(bk, t.x, t.y); // the reactor's pulse throws its branch matter too
+    this.emitBranchSignature(bk, t.x, t.y, t.tier); // the reactor's pulse throws its branch matter too
   }
 
-  /** Spray a branched tower's signature particle + sound on an attack/pulse. Cosmetic only —
-   *  the FX rng and sfx queue are independent of the gameplay rng, so this never perturbs the
-   *  pinned sim (and bk is only ever passed for a branched tower, never on the golden path). */
-  private emitBranchSignature(bk: ResolvedBranchKit, x: number, y: number): void {
-    if (bk.particle) this.spawnParticles(x, y, PARTICLE[bk.particle]);
-    if (bk.sfx) this.pushSfx(bk.sfx);
+  /** Spray a branched tower's signature particle + sound on an attack/pulse, ESCALATED by tier
+   *  (BRANCH-EVOLUTION.md §3a/§3d): a higher tier erupts denser, faster matter and a deeper cue,
+   *  so every purchased upgrade visibly + audibly grows. Cosmetic only — the FX rng and sfx queue
+   *  are independent of the gameplay rng, so this never perturbs the pinned sim (and bk is only
+   *  ever passed for a branched tower, never on the golden path). */
+  private emitBranchSignature(bk: ResolvedBranchKit, x: number, y: number, tier: number): void {
+    const intensity = 1 + EVO.muzzleGrowth * Math.max(0, tier - 1);
+    if (bk.particle) this.spawnParticles(x, y, PARTICLE[bk.particle], undefined, intensity);
+    if (bk.sfx) this.pushSfx(bk.sfx, tier);
+  }
+
+  /** Branch-flavoured IMPACT burst where a branched shot LANDS (BRANCH-EVOLUTION.md §3c). The shot
+   *  carries its branchId (skin) + tier; we resolve the kit's impact matter and spray it, scaled by
+   *  tier. Cosmetic (FX rng) and only ever called for a branched shot (skin set), so the
+   *  golden/autoplay path — which fires un-skinned shots — never reaches it. */
+  private spawnBranchImpact(x: number, y: number, skin: string, tier: number): void {
+    const bk = resolveBranchKit(skin, tier);
+    const kind = bk.impact ?? bk.particle;
+    if (!kind) return;
+    const intensity = 1 + EVO.impactGrowth * Math.max(0, tier - 1);
+    this.spawnParticles(x, y, PARTICLE[kind], undefined, intensity);
   }
 
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
@@ -1732,6 +1748,7 @@ export class Game {
             this.maybeReact(target);
           }
           this.pushSfx('hit');
+          if (p.skin) this.spawnBranchImpact(p.x, p.y, p.skin, p.skinTier ?? 1); // branch-flavoured landing (cosmetic; un-skinned golden shots skip it)
           if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
           // Pierce (mutators.ts): pass THROUGH to the next unhit foe instead of dying. A
           // projectile with no pierce (the default) dies here exactly as before (golden-safe).
@@ -1776,6 +1793,7 @@ export class Game {
 
   private mortarImpact(p: Projectile): void {
     this.pushSfx('hit');
+    if (p.skin) this.spawnBranchImpact(p.x, p.y, p.skin, p.skinTier ?? 1); // siege fireball / acid splash, by branch+tier
     if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: -1, byTower: p.sourceKind });
     const r2 = p.splash * p.splash;
     this.grid.forNeighbors(p.x, p.y, p.splash, (e) => {
@@ -2449,17 +2467,21 @@ export class Game {
     }
   }
 
-  /** Cosmetic burst. Uses the FX rng (never the gameplay rng) + pooling + budget. */
+  /** Cosmetic burst. Uses the FX rng (never the gameplay rng) + pooling + budget. `intensity`
+   *  (default 1) scales the burst's headcount + speed — the branch sensory escalation
+   *  (BRANCH-EVOLUTION.md §3a) sprays denser, faster matter at higher tiers. At intensity 1 the
+   *  draws are byte-identical to before, so every existing caller is unchanged. */
   private spawnParticles(
     x: number, y: number,
     spec: { count: number; speed: number; life: number; size: number; color?: string },
-    color?: string,
+    color?: string, intensity = 1,
   ): void {
     const col = color ?? spec.color ?? '#ffffff';
-    for (let i = 0; i < spec.count; i++) {
+    const count = Math.round(spec.count * intensity);
+    for (let i = 0; i < count; i++) {
       if (this.particles.length >= PERF.maxParticles) break; // budget
       const ang = this.fxRng.next() * Math.PI * 2;
-      const spd = spec.speed * (0.4 + this.fxRng.next() * 0.6);
+      const spd = spec.speed * intensity * (0.4 + this.fxRng.next() * 0.6);
       const p = this.partPool.pop() ?? { x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0, size: 0, color: col };
       p.x = x; p.y = y;
       p.vx = Math.cos(ang) * spd; p.vy = Math.sin(ang) * spd;
@@ -2837,8 +2859,11 @@ export class Game {
     return out;
   }
 
-  private pushSfx(k: string): void {
-    if (this.sfx.length < 256) this.sfx.push(k);
+  private pushSfx(k: string, tier?: number): void {
+    // A branch cue carries its tier as a "tag@tier" suffix so the audio layer can deepen the
+    // synth per tier (BRANCH-EVOLUTION.md §3d). Tier ≤1 / absent ⇒ the plain tag, so every
+    // existing cue is byte-identical and the coalescer (GameView) stays tag-agnostic.
+    if (this.sfx.length < 256) this.sfx.push(tier && tier > 1 ? `${k}@${tier}` : k);
   }
 
   /** Grant/refresh a timed run-wide buff (the `buff` ability primitive). Refresh-not-stack
