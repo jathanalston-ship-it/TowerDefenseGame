@@ -4046,6 +4046,17 @@ kbd {
 .mc-sec-t { font-weight: 700; font-size: 14px; }
 .mc-sec-d { font-size: 11px; color: var(--muted); }
 .mc-sec.is-soon { opacity: 0.5; cursor: default; }
+
+/* Reward Preview chips — anticipation at the point of action */
+.rwp { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rwp-h { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.rwp-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.rwp-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text); padding: 3px 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--rc) 35%, var(--line)); }
+.rwp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rc); box-shadow: 0 0 6px var(--rc); }
+.rwp-i { display: inline-flex; align-items: center; }
+.mc-rewards { margin: 0 0 16px; }
+.mc-sec-rwp { margin-top: 6px; }
+.mc-sec-rwp .rwp-chip { font-size: 10px; padding: 2px 6px; gap: 4px; }
 @media (max-width: 1100px) {
   .mc-facts, .mc-secondary { grid-template-columns: repeat(2, 1fr); }
 }
@@ -4068,6 +4079,8 @@ kbd {
 .dash-bar { height: 5px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
 .dash-bar-fill { height: 100%; border-radius: 3px; }
 .dash-sub { font-size: 11px; color: var(--muted); margin-top: auto; }
+.dash-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+.dash-chip { font-size: 9px; font-weight: 700; letter-spacing: 0.02em; padding: 2px 6px; border-radius: 999px; color: var(--text); background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--cc) 45%, var(--line)); }
 @media (max-width: 1400px) { .dash { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) { .dash { grid-template-columns: repeat(2, 1fr); } }
 

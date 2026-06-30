@@ -15,6 +15,8 @@ import { generateStage, recommendedPower } from '../core/campaign';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
+import { RewardPreview } from './RewardPreview';
+import type { PreviewChip } from './RewardPreview';
 import type { NavKey } from './Hub';
 
 type RunRecap = { result: RunResult; outcome: RunOutcome } | null;
@@ -85,6 +87,21 @@ export function PlayScreen({
     ? 'Milestone stage — clearing it raises your Evolution Cap'
     : `Descend into the ${cfg.biome.name} and clear Stage ${frontier}`;
 
+  // Possible Rewards (anticipation): the variety a run can drop. Campaign adds an
+  // Evolution Unlock chip on milestone stages so the payoff is obvious before deploying.
+  const campaignRewards: PreviewChip[] = [
+    { label: 'Tower Shards', color: 'var(--kinetic)', icon: <CurrencyIcon id="towerShards" size={12} title="" /> },
+    { label: 'Hero Shards', color: 'var(--vital)', icon: <CurrencyIcon id="heroShards" size={12} title="" /> },
+    { label: 'Equipment', color: 'var(--r-epic)' },
+    { label: 'Genome Cores', color: 'var(--gold)', icon: <CurrencyIcon id="genomeCores" size={12} title="" /> },
+  ];
+  if (isMilestone) campaignRewards.push({ label: 'Evolution Unlock', color: 'var(--r-legendary)' });
+  const infiniteRewards: PreviewChip[] = [
+    { label: 'Containers', color: 'var(--r-epic)' },
+    { label: 'Mastery', color: 'var(--r-rare)' },
+    { label: 'Genome Cores', color: 'var(--gold)' },
+  ];
+
   const start = (fn: () => void): void => {
     audio.resume();
     audio.cue('ui');
@@ -141,12 +158,14 @@ export function PlayScreen({
             <span className="mc-fact-v">{cleared}</span>
           </div>
           <div className="mc-fact">
-            <span className="mc-fact-k">Reward Preview</span>
+            <span className="mc-fact-k">First Clear</span>
             <span className="mc-fact-v">
               <CurrencyIcon id="genomeCores" size={13} title="" /> +{firstClearCore} · Stage Cache
             </span>
           </div>
         </div>
+
+        <RewardPreview heading="Possible Rewards" chips={campaignRewards} className="mc-rewards" />
 
         <div className="mc-cta">
           <button className="primary mc-deploy" onClick={() => start(() => onStartCampaign(frontier))}>
@@ -180,6 +199,7 @@ export function PlayScreen({
           <span className="mc-sec-body">
             <span className="mc-sec-t">Infinite Mode</span>
             <span className="mc-sec-d">Quick endless run · AI Director, infinite depth</span>
+            <RewardPreview chips={infiniteRewards} className="mc-sec-rwp" />
           </span>
         </button>
         <button className="mc-sec" onClick={() => start(onStart)}>
