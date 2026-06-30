@@ -86,6 +86,8 @@ export function App(): JSX.Element {
   }, []);
 
   const toMenu = useCallback(() => setScreen('menu'), []);
+  // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
+  const clearLast = useCallback(() => setLast(null), []);
 
   const debugOn = isDebugEnabled();
 
@@ -96,6 +98,8 @@ export function App(): JSX.Element {
           onStart={startRun}
           onStartEndless={startEndless}
           onStartCampaign={startCampaign}
+          last={last}
+          onSeenLast={clearLast}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />

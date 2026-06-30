@@ -4019,6 +4019,38 @@ kbd {
 @media (max-width: 1400px) { .dash { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) { .dash { grid-template-columns: repeat(2, 1fr); } }
 
+/* Hot card — something to claim right now: gains weight + shows an action verb */
+.dash-card.is-hot { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--panel)); animation: dash-hot 2.4s ease-in-out infinite; }
+.dash-card.is-hot .dash-big { text-shadow: 0 0 18px color-mix(in srgb, var(--c) 60%, transparent); }
+@keyframes dash-hot { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 22px -6px var(--c); } }
+.dash-cta { margin-top: auto; align-self: flex-start; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0d12; background: var(--c); padding: 4px 10px; border-radius: 999px; }
+
+/* Ascension available → it dominates the dashboard */
+.dash-ascension {
+  display: flex; align-items: center; gap: 18px; width: 100%; text-align: left;
+  padding: 16px 22px; border-radius: var(--r-md); cursor: pointer; color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--r-mythic, #ff6b8b) 55%, var(--line));
+  background: linear-gradient(100deg, color-mix(in srgb, var(--r-mythic, #ff6b8b) 22%, var(--panel)), var(--panel) 70%);
+  animation: asc-pulse 2.6s ease-in-out infinite;
+}
+.asc-glyph { font-size: 34px; color: var(--r-mythic, #ff6b8b); text-shadow: 0 0 20px var(--r-mythic, #ff6b8b); }
+.asc-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.asc-t { font-size: 18px; font-weight: 800; letter-spacing: 0.02em; }
+.asc-d { font-size: 13px; color: var(--muted); }
+.asc-cta { font-size: 14px; font-weight: 800; color: var(--r-mythic, #ff6b8b); white-space: nowrap; }
+@keyframes asc-pulse { 0%, 100% { box-shadow: 0 0 34px -18px var(--r-mythic, #ff6b8b); } 50% { box-shadow: 0 0 42px -8px var(--r-mythic, #ff6b8b); } }
+
+/* Return-from-run recap — "since your last run" highlights */
+.mc-recap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line)); background: color-mix(in srgb, var(--gold) 7%, var(--panel)); animation: mc-recap-in 0.4s ease both; }
+.mc-recap-h { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+.mc-recap-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text); padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+.mc-recap-i { color: var(--gold); }
+@keyframes mc-recap-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-card.is-hot, .dash-ascension, .mc-recap { animation: none; }
+}
+
 /* Genetic Vault */
 .vault { max-width: 760px; }
 .vault-stage { display: flex; gap: 44px; align-items: flex-start; margin: 18px 0 22px; padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); }
