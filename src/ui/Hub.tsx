@@ -163,7 +163,7 @@ export function Hub({
 
         <section className="hub-screen" key={nav}>
           {nav === 'play' && (
-            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
+            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'towers' && <TowerLab />}

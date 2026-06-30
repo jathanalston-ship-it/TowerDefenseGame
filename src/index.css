@@ -3944,19 +3944,59 @@ kbd {
 .hub-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 .hub-col-stack { display: flex; flex-direction: column; gap: 16px; }
 
-/* PLAY landing — dominated by the Start Run CTA */
-.play-screen { display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; min-height: 100%; align-items: center; }
-.play-hero { display: flex; flex-direction: column; gap: 18px; }
-.play-title { font-size: clamp(40px, 5vw, 64px); }
-.play-cta { display: flex; gap: 14px; flex-wrap: wrap; }
-.play-start { font-size: 19px; padding: 16px 30px; }
-.play-endless { font-size: 15px; padding: 16px 22px; }
-.play-setup { display: flex; gap: 16px; flex-wrap: wrap; }
+/* PLAY landing — Mission Control: CONTINUE CAMPAIGN dominates the page */
+.play-screen { display: flex; flex-direction: column; gap: 18px; min-height: 100%; }
 .play-field { display: flex; flex-direction: column; gap: 5px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.play-field select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 9px 12px; font-size: 14px; min-width: 170px; }
-.play-side { display: flex; flex-direction: column; gap: 14px; }
-.play-records { grid-template-columns: repeat(2, 1fr); }
-.play-howto { margin: 0; }
+.play-field select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 9px 12px; font-size: 14px; min-width: 150px; }
+
+.mc-campaign {
+  position: relative; overflow: hidden;
+  padding: 22px 26px; border-radius: var(--r-md);
+  border: 1px solid var(--line-strong);
+  background:
+    radial-gradient(130% 150% at 8% -10%, color-mix(in srgb, var(--mc-accent) 16%, transparent), transparent 55%),
+    var(--panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 44px -26px var(--mc-accent);
+}
+.mc-campaign::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--mc-accent); box-shadow: 0 0 18px var(--mc-accent);
+}
+.mc-eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.mc-head { display: flex; align-items: center; gap: 22px; }
+.mc-stage { display: flex; flex-direction: column; align-items: center; line-height: 1; padding-right: 22px; border-right: 1px solid var(--line); }
+.mc-stage-k { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+.mc-stage-n { font-size: clamp(48px, 6vw, 76px); font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.mc-biome { min-width: 0; }
+.mc-biome-name { font-size: 24px; font-weight: 800; letter-spacing: 0.01em; }
+.mc-mods { display: flex; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
+.mc-mod { font-size: 11px; padding: 3px 9px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+.mc-mod.hazard { color: #ffb454; border-color: color-mix(in srgb, #ffb454 35%, var(--line)); }
+.mc-objective { font-size: 14px; color: var(--text); opacity: 0.9; }
+.mc-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0; }
+.mc-fact { display: flex; flex-direction: column; gap: 4px; padding: 11px 13px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.mc-fact-k { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.mc-fact-v { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 5px; }
+.mc-fact-v small { font-size: 11px; font-weight: 600; color: var(--muted); }
+.mc-fact.ok .mc-fact-v small { color: var(--success); }
+.mc-fact.low .mc-fact-v small { color: #ff7a7a; }
+.mc-cta { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+.mc-deploy { font-size: 18px; padding: 15px 30px; }
+.mc-setup { display: flex; gap: 14px; }
+
+.mc-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mc-sec { display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--text); cursor: pointer; transition: border-color 0.15s ease, transform 0.15s ease; }
+.mc-sec:hover:not(:disabled) { border-color: var(--line-strong); transform: translateY(-2px); }
+.mc-sec-endless { border-color: color-mix(in srgb, var(--vital) 40%, var(--line)); }
+.mc-sec-i { font-size: 22px; color: var(--muted); width: 26px; text-align: center; }
+.mc-sec-endless .mc-sec-i { color: var(--vital); }
+.mc-sec-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mc-sec-t { font-weight: 700; font-size: 14px; }
+.mc-sec-d { font-size: 11px; color: var(--muted); }
+.mc-sec.is-soon { opacity: 0.5; cursor: default; }
+@media (max-width: 1100px) {
+  .mc-facts, .mc-secondary { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* Genetic Vault */
 .vault { max-width: 760px; }

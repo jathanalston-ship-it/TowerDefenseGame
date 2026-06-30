@@ -1,28 +1,58 @@
-// The PLAY landing — the headquarters' front door. Everything here drives the player toward
-// starting the next run: a dominant Start Run / Endless CTA, the run setup (Difficulty +
-// Doctrine), and a side rail of account records + a how-to. No scrolling; fits 1080p.
+// The PLAY landing — the headquarters' Mission Control. It answers, at a glance: what to
+// do next (CONTINUE CAMPAIGN, the dominant action), how hard it is (recommended vs your
+// power), and what's waiting (reward preview). Secondary modes sit visually beneath it.
+// Built entirely on the existing campaign + meta systems — no new gameplay. No scrolling;
+// fits 1080p inside the Hub's content area.
 
-import type { MutableRefObject } from 'react';
+import { useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { PlayIcon } from './components/Icon';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
-import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { generateStage, recommendedPower } from '../core/campaign';
+import { CAMPAIGN_REWARDS } from '../core/config';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
 export function PlayScreen({
   onStart,
   onStartEndless,
+  onStartCampaign,
   difficultyRef,
   doctrineRef,
 }: {
   onStart: () => void;
   onStartEndless: () => void;
+  onStartCampaign: (stage: number) => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
   const save = meta.use();
+  // Difficulty drives WHICH campaign track's frontier we show, so it must re-render the
+  // panel — mirror it into local state (the ref stays the source of truth for run start).
+  const [diff, setDiff] = useState(difficultyRef.current);
+  const setDifficulty = (id: string): void => {
+    setDiff(id);
+    difficultyRef.current = id;
+  };
+
+  const cleared = save.campaign.cleared[diff] ?? 0;
+  const frontier = cleared + 1; // the next stage to attempt on this track
+  const cfg = generateStage(frontier, diff);
+  const rec = recommendedPower(frontier, diff);
+  const power = meta.powerScore().score;
+  const ready = power >= rec;
+  const accent = cfg.biome.accent;
+
+  const isMilestone = frontier % CAMPAIGN_REWARDS.milestoneEvery === 0;
+  const firstClearCore =
+    CAMPAIGN_REWARDS.firstClearCore +
+    CAMPAIGN_REWARDS.firstClearCorePerStage * frontier +
+    (isMilestone ? CAMPAIGN_REWARDS.milestoneCore : 0);
+  const objective = isMilestone
+    ? 'Milestone stage — clearing it raises your Evolution Cap'
+    : `Descend into the ${cfg.biome.name} and clear Stage ${frontier}`;
+
   const start = (fn: () => void): void => {
     audio.resume();
     audio.cue('ui');
@@ -31,66 +61,104 @@ export function PlayScreen({
 
   return (
     <div className="play-screen">
-      <div className="play-hero">
-        <h1 className="title play-title">ASSIMILATE</h1>
-        <p className="subtitle">Cyberpunk bio-horror tower defense. Grow, mutate, assimilate.</p>
+      {/* ── Mission Control: CONTINUE CAMPAIGN dominates ── */}
+      <section className="mc-campaign" style={{ ['--mc-accent' as string]: accent }}>
+        <div className="mc-eyebrow">Continue Campaign · The Descent</div>
 
-        <div className="play-cta">
-          <button className="primary play-start" onClick={() => start(onStart)}>
-            <PlayIcon /> Start Run
+        <div className="mc-head">
+          <div className="mc-stage">
+            <span className="mc-stage-k">Stage</span>
+            <span className="mc-stage-n">{frontier}</span>
+          </div>
+          <div className="mc-biome">
+            <div className="mc-biome-name" style={{ color: accent }}>{cfg.biome.name}</div>
+            <div className="mc-mods">
+              <span className="mc-mod" title="Biome modifier">{cfg.modifierName}</span>
+              <span className="mc-mod hazard" title={cfg.hazardDesc}>⚠ {cfg.hazardName}</span>
+            </div>
+            <div className="mc-objective">{objective}</div>
+          </div>
+        </div>
+
+        <div className="mc-facts">
+          <div className="mc-fact">
+            <span className="mc-fact-k">◈ Next Boss</span>
+            <span className="mc-fact-v">{cfg.boss.name}</span>
+          </div>
+          <div className={`mc-fact ${ready ? 'ok' : 'low'}`}>
+            <span className="mc-fact-k">Recommended Power</span>
+            <span className="mc-fact-v">
+              ×{rec.toFixed(1)} <small>you ×{power.toFixed(1)} {ready ? '✓' : '⚠'}</small>
+            </span>
+          </div>
+          <div className="mc-fact">
+            <span className="mc-fact-k">Highest Stage</span>
+            <span className="mc-fact-v">{cleared}</span>
+          </div>
+          <div className="mc-fact">
+            <span className="mc-fact-k">Reward Preview</span>
+            <span className="mc-fact-v">
+              <CurrencyIcon id="genomeCores" size={13} title="" /> +{firstClearCore} · Stage Cache
+            </span>
+          </div>
+        </div>
+
+        <div className="mc-cta">
+          <button className="primary mc-deploy" onClick={() => start(() => onStartCampaign(frontier))}>
+            <PlayIcon /> Continue Campaign
           </button>
-          <button className="endless-btn play-endless" onClick={() => start(onStartEndless)} title="AI Director-driven, infinite depth">
-            ∞ Endless
-          </button>
+          <div className="mc-setup">
+            <label className="play-field">
+              <span className="play-field-k">Difficulty</span>
+              <select value={diff} onChange={(e) => setDifficulty(e.target.value)}>
+                {DIFFICULTY_IDS.map((id) => (
+                  <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="play-field">
+              <span className="play-field-k">Doctrine</span>
+              <select defaultValue={doctrineRef.current} onChange={(e) => (doctrineRef.current = e.target.value)}>
+                {DOCTRINE_IDS.map((id) => (
+                  <option key={id} value={id} title={DOCTRINES[id].blurb}>{DOCTRINES[id].name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
+      </section>
 
-        <div className="play-setup">
-          <label className="play-field">
-            <span className="play-field-k">Difficulty</span>
-            <select
-              defaultValue={difficultyRef.current}
-              onChange={(e) => (difficultyRef.current = e.target.value)}
-            >
-              {DIFFICULTY_IDS.map((id) => (
-                <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>
-              ))}
-            </select>
-          </label>
-          <label className="play-field">
-            <span className="play-field-k">Doctrine</span>
-            <select
-              defaultValue={doctrineRef.current}
-              onChange={(e) => (doctrineRef.current = e.target.value)}
-            >
-              {DOCTRINE_IDS.map((id) => (
-                <option key={id} value={id} title={DOCTRINES[id].blurb}>{DOCTRINES[id].name}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <aside className="play-side">
-        <div className="power-score">
-          Power Score <b>×{meta.powerScore().score.toFixed(1)}</b>
-        </div>
-        <div className="records play-records">
-          <div className="record"><div className="k">{ACCOUNT_CURRENCY.name}</div><div className="v" style={{ color: 'var(--gold)' }}><CurrencyIcon id="genomeCores" size={15} title="" /> {save.shards}</div></div>
-          <div className="record"><div className="k">Best Wave</div><div className="v">{save.bestWave}</div></div>
-          <div className="record"><div className="k">Runs</div><div className="v">{save.totalRuns}</div></div>
-          <div className="record"><div className="k">Lifetime {ACCOUNT_CURRENCY.name}</div><div className="v">{save.lifetimeShards}</div></div>
-        </div>
-
-        <div className="panel how-to play-howto">
-          <b style={{ color: 'var(--text)' }}>How to play.</b> Grow towers on the lit slots in your
-          defensive zone (spend biomass). Press <b>Start Wave</b>: enemies swarm from the top — hold
-          the line at the bottom. Survive 12 waves to extract. Between waves, draft a Gene Card.
-          Combine <span style={{ color: 'var(--kinetic)' }}>Fracture</span> with{' '}
-          <span style={{ color: 'var(--caustic)' }}>Corrosion</span> to trigger{' '}
-          <b style={{ color: '#fff066' }}>SHRED</b>. Grow a{' '}
-          <span style={{ color: 'var(--vital)' }}>Flesh Reactor</span> beside towers to overcharge them.
-        </div>
-      </aside>
+      {/* ── Secondary modes — visually subordinate to the campaign ── */}
+      <section className="mc-secondary" aria-label="Other modes">
+        <button className="mc-sec mc-sec-endless" onClick={() => start(onStartEndless)}>
+          <span className="mc-sec-i" aria-hidden>∞</span>
+          <span className="mc-sec-body">
+            <span className="mc-sec-t">Infinite Mode</span>
+            <span className="mc-sec-d">Quick endless run · AI Director, infinite depth</span>
+          </span>
+        </button>
+        <button className="mc-sec" onClick={() => start(onStart)}>
+          <span className="mc-sec-i" aria-hidden>▷</span>
+          <span className="mc-sec-body">
+            <span className="mc-sec-t">Quick Skirmish</span>
+            <span className="mc-sec-d">The authored 12-wave defense</span>
+          </span>
+        </button>
+        <button className="mc-sec is-soon" disabled>
+          <span className="mc-sec-i" aria-hidden>✦</span>
+          <span className="mc-sec-body">
+            <span className="mc-sec-t">Custom Challenge</span>
+            <span className="mc-sec-d">Soon</span>
+          </span>
+        </button>
+        <button className="mc-sec is-soon" disabled>
+          <span className="mc-sec-i" aria-hidden>◎</span>
+          <span className="mc-sec-body">
+            <span className="mc-sec-t">Training</span>
+            <span className="mc-sec-d">Soon</span>
+          </span>
+        </button>
+      </section>
     </div>
   );
 }
