@@ -164,6 +164,11 @@ export const TOWER_ORDER = towerRegistry.ids() as TowerKind[];
  * real first commitment, affordable mid-build), T5 ≈ 160k–200k (a deep-endless capstone). A
  * single tower is ~220–275k to take 1→5; a full damage board is ~4–5M, which income only
  * reaches around wave ~55–60 — so Biomass never goes meaningless before then. */
+// ── Tower Sell (docs/TOWER-MANAGEMENT.md §2). The refund FRACTION is the future-proof knob:
+//    it seeds `RunModifiers.sellRefundFrac`, which any Gene Card / Equipment / Prestige perk /
+//    Permanent Upgrade can raise through the normal effect pipeline. frac ≤ 1 ⇒ never exploitable. ──
+export const SELL = { refundFrac: 0.75 } as const;
+
 export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, number, number]> = {
   needle: [600, 2800, 12000, 45000, 160000],
   mortar: [900, 3800, 15000, 55000, 200000],
@@ -1070,7 +1075,9 @@ export const BOSS = {
 // authored WAVES (so the golden run is untouched). Tunables are illustrative.
 export const DIRECTOR = {
   baseBudget: 12, // threat points spent on wave 1 of endless
-  budgetGrowth: 0.16, // +16% budget per depth (the difficulty frontier)
+  budgetGrowth: 0.16, // +16% budget per depth — the EARLY population ramp …
+  budgetCap: 150, // … CAPPED here (~depth 18): the battlefield population plateaus, then HP/elites
+  // scale, NOT count (docs/ENDLESS-SCALING.md). Stops the biomass snowball that rode hordes to 50+.
   eliteChanceBase: 0.08, // elite promotion chance, rises with depth
   eliteChancePerDepth: 0.015,
   bossEvery: 5, // a (mini)boss caps every N endless waves
@@ -1094,6 +1101,18 @@ export const DIRECTOR = {
     siegeworm: 6, spitter: 3.5,
     apex: 10, dreadnought: 16, tyrant: 20,
   } as Record<string, number>,
+};
+
+// Endless INTENSITY curves (docs/ENDLESS-SCALING.md). Applied ONLY in endless mode — Stage keeps
+// its own linear hpMultFor/bountyMultFor, so the golden run is byte-identical. Health is geometric
+// (the PRIMARY wall, once the population caps); damage + speed rise gradually; bounty lags HP so
+// deep enemies are biomass-inefficient (income falls on long runs instead of snowballing).
+export const ENDLESS = {
+  hpGrowth: 1.12, // × enemy HP per depth (geometric → eventually outpaces any fixed DPS)
+  damageGrowth: 0.05, // +5% enemy damage per depth (linear, gradual)
+  speedGrowth: 0.004, // +0.4% enemy speed per depth …
+  speedCap: 1.5, // … clamped at +50% so the field stays readable
+  bountyGrowth: 0.03, // +3% per-enemy biomass per depth (slower than HP → diminishing income)
 };
 
 // ── Future content registry: biomes (framework only — no content yet) ────────

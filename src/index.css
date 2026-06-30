@@ -597,6 +597,46 @@ button:disabled {
   0%, 100% { opacity: 0.72; box-shadow: 0 0 6px rgba(255, 93, 115, 0.4); }
   50% { opacity: 1; box-shadow: 0 0 16px rgba(255, 93, 115, 0.85); }
 }
+/* ── Biome (docs/BIOMES.md): the active-ecosystem chip + transition banner in the HUD center ── */
+.phase-biome {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.phase-biome-name {
+  font-weight: 800;
+  font-variant: small-caps;
+  color: var(--biome, var(--kinetic));
+  text-shadow: 0 0 8px color-mix(in srgb, var(--biome, var(--kinetic)) 55%, transparent);
+}
+.phase-biome-mod { color: var(--text-dim); font-variant: small-caps; }
+.phase-biome-haz {
+  font-weight: 800;
+  color: #fff;
+  background: color-mix(in srgb, var(--biome, var(--danger)) 70%, #000);
+  border-radius: 4px;
+  padding: 0 6px;
+  animation: emergency-flash 1.1s ease-in-out infinite;
+}
+.biome-enter {
+  margin-top: 4px;
+  font-family: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  font-variant: small-caps;
+  color: var(--biome, var(--kinetic));
+  animation: biome-enter 2.6s ease-out forwards;
+}
+@keyframes biome-enter {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  14% { opacity: 1; transform: translateY(0) scale(1); }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
 .hud-rate {
   font-size: 11px;
   font-weight: 700;
@@ -3930,6 +3970,36 @@ kbd {
 .branch-confirm-btns button { flex: 1; padding: 10px; border-radius: 7px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05); color: var(--text); }
 .branch-confirm-btns .primary { background: var(--r-legendary); color: #1a1206; border-color: var(--r-legendary); }
 .branch-confirm-btns button:hover { filter: brightness(1.1); }
+
+/* ── Tower management (docs/TOWER-MANAGEMENT.md): Move + Sell row, the combat note, the sell dialog ── */
+.mut-manage { display: flex; gap: 8px; margin-top: 10px; }
+.mut-btn {
+  flex: 1; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: var(--text);
+}
+.mut-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.09); }
+.mut-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mut-sell { border-color: color-mix(in srgb, var(--caustic) 45%, transparent); color: var(--caustic); }
+.mut-sell:hover:not(:disabled) { background: color-mix(in srgb, var(--caustic) 14%, transparent); }
+.mut-sell-amt { font-weight: 900; }
+.mut-btn.is-moving {
+  flex-basis: 100%; border-color: var(--caustic); color: var(--caustic);
+  background: color-mix(in srgb, var(--caustic) 12%, transparent);
+  animation: emergency-flash 1.2s ease-in-out infinite;
+}
+.mut-move-note { margin: 6px 0 0; font-size: 11px; color: var(--warn); font-style: italic; }
+/* Sell confirm — refund-positive accent (caustic/biomass green), not the legendary-lock red */
+.sell-confirm { border-color: color-mix(in srgb, var(--caustic) 60%, transparent); box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6), 0 0 30px -10px var(--caustic); }
+.sell-confirm h3 { color: var(--caustic); }
+.sell-rows { margin: 0 0 14px; display: flex; flex-direction: column; gap: 6px; }
+.sell-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; color: var(--muted); }
+.sell-row b { color: var(--text); font-weight: 700; }
+.sell-row .sell-pos { color: var(--caustic); }
+.sell-total { margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.12); font-size: 14px; }
+.sell-total span { color: var(--text); font-weight: 700; }
+.sell-total b { font-size: 16px; }
+.sell-warn { margin: 0 0 14px !important; font-size: 12px !important; color: var(--warn) !important; }
+.sell-warn b { color: var(--text); }
 
 /* In-game pause — a floating button (top-right of the board) + a PAUSED overlay over the board.
    z above boss-banner (40) / mutation-fx (45) so it covers the battlefield while frozen. */

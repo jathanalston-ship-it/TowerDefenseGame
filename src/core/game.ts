@@ -64,7 +64,7 @@ import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifier
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave } from './config';
+import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -75,6 +75,8 @@ import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
 import { resolveDifficulty } from './difficulty';
 import type { StageConfig } from './campaign';
+import { NEUTRAL_BIOME, biomeForDepth, hazardActive } from './biomes';
+import type { Biome } from './biomes';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
 import { combineMult } from './modifiers';
@@ -127,6 +129,7 @@ import type {
   ProjectileBehavior,
   RunStats,
   SelectedPlacedTower,
+  TowerSellQuote,
   StatusType,
   Tower,
   TowerKind,
@@ -198,6 +201,7 @@ export interface RenderState {
   phase: Phase;
   selectedTower: TowerKind | null;
   selectedPlacedId: number | null; // a placed tower the player is inspecting (branch highlight)
+  movingTowerId: number | null; // a placed tower picked up for relocation (move-mode highlight + holo)
   armedAbility: boolean;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
@@ -211,6 +215,11 @@ export interface RenderState {
   // Per-kind EFFECTIVE range (base × identity rangeMult) so the range preview/selection
   // shows the tower's TRUE reach, including mastery upgrades (docs/RANGE.md §6/§8).
   effectiveRanges: Record<TowerKind, number>;
+  // Biome (docs/BIOMES.md) — the renderer tints the arena to the biome accent, flashes on a
+  // transition, and pulses a hazard telegraph. Stage mode reports NEUTRAL_BIOME.
+  biome: { id: string; name: string; accent: string };
+  biomeFlash: number; // 0..1 transition flash (Infinite); 0 in Stage/Campaign steady state
+  hazardActive: boolean; // the biome's hazard pulse is firing right now (telegraph)
 }
 
 /** A timed, run-wide friendly buff (the `buff` ability primitive). Keyed by `stat`; the
@@ -236,6 +245,11 @@ export class Game {
   // The campaign stage this run plays (null for stage/endless) — drives the finale + mini boss.
   private readonly stage: StageConfig | null;
   private readonly stageSpeedMult: number; // enemy-speed scalar (campaign per-stage; 1 otherwise → golden-safe)
+  // The active biome (docs/BIOMES.md): its mechanical modifiers are read at the spawn/tower/hero/
+  // hazard hooks below. Campaign = the stage's biome (fixed); Infinite = rotates by depth; Stage =
+  // NEUTRAL_BIOME (identity ×1/+0/no-hazard ⇒ every biome read is byte-identical → golden-safe).
+  private activeBiome: Biome;
+  private biomeFlash = 0; // render-only: eased 1→0 after an Infinite-mode biome transition (surfaced via RenderState)
   // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
   private readonly diff: DifficultyDef;
   // Spawn Director: owns spawn spacing/timing/pacing/elite/boss/special-event scheduling.
@@ -296,6 +310,7 @@ export class Game {
 
   selectedTower: TowerKind | null = null;
   selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
+  movingTowerId: number | null = null; // a placed tower PICKED UP for relocation (Build Phase) — docs/TOWER-MANAGEMENT.md §3
   armedAbility = false;
   draft: CardDef[] | null = null;
   sfx: string[] = []; // presentation cue queue (drained by the view: audio + shake)
@@ -377,6 +392,9 @@ export class Game {
     this.waves = this.stage ? this.stage.waves : WAVES;
     this.totalWaves = this.waves.length;
     this.stageSpeedMult = this.stage ? this.stage.enemySpeedMult : 1;
+    // Biome: Campaign uses the stage's fixed biome; Infinite seeds the first biome (rotates as the
+    // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
+    this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
     if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
@@ -580,7 +598,7 @@ export class Game {
   selectTower(kind: TowerKind | null): void {
     this.selectedTower = kind;
     this.armedAbility = false;
-    if (kind) this.selectedPlacedId = null; // arming placement clears any inspected tower
+    if (kind) { this.selectedPlacedId = null; this.movingTowerId = null; } // arming placement clears inspect/move
   }
 
   // ── Branch upgrades (TOWER-BRANCHES.md) — per-instance, Biomass-bought, run-temporary ──
@@ -672,6 +690,7 @@ export class Game {
     if (!t) return null;
     const def = TOWER_DEFS[t.kind];
     const branch = t.branchId ? branchRegistry.get(t.branchId) : null;
+    const q = this.sellQuote(t.id)!;
     return {
       id: t.id,
       kind: t.kind,
@@ -680,6 +699,9 @@ export class Game {
       tier: t.tier,
       branchName: branch ? branch.name : null,
       branches: this.branchOptions(t.id),
+      sell: { investment: q.investment, towerRefund: q.towerRefund, branchRefund: q.branchRefund, total: q.total },
+      canMove: this.phase === 'prep', // relocation is Build-Phase only
+      moving: this.movingTowerId === t.id,
     };
   }
 
@@ -696,11 +718,19 @@ export class Game {
     this.primaryHero.rally = { x: px, y: py };
   }
 
-  /** Route a canvas click based on what is currently armed. */
-  click(px: number, py: number): void {
+  /** Route a canvas click based on what is currently armed. `shift` keeps the build tool armed for
+   *  rapid placement (docs/TOWER-MANAGEMENT.md §4). */
+  click(px: number, py: number, opts: { shift?: boolean } = {}): void {
     if (this.armedAbility) {
       this.triggerAbility(px, py);
       this.armedAbility = false;
+      return;
+    }
+    // Relocation mode: a tap lands the picked-up tower on a valid empty slot (moveTower re-selects
+    // it → back to Inspect), or cancels on its own slot. An invalid tap is ignored so the player
+    // stays in move mode and can try another slot.
+    if (this.movingTowerId !== null) {
+      this.moveTower(px, py);
       return;
     }
     if (this.selectedTower) {
@@ -709,8 +739,9 @@ export class Game {
       // tool would shadow inspection entirely. Redirect it to the Mutation panel.
       const occupant = this.towerAt(px, py);
       if (occupant) { this.selectPlacedTower(occupant.id); return; }
-      this.placeTower(this.selectedTower, px, py);
-      return; // stay armed for repeat placement
+      // One-shot placement by default; holding Shift keeps the tool armed for rapid building.
+      if (this.placeTower(this.selectedTower, px, py) && !opts.shift) this.selectedTower = null;
+      return;
     }
     // Nothing armed: clicking a PLACED tower selects it (opens its branch/Mutation panel).
     const t = this.towerAt(px, py);
@@ -720,6 +751,13 @@ export class Game {
     }
     this.selectedPlacedId = null; // clicked empty space → deselect
     this.setRally(px, py);
+  }
+
+  /** Double-click fast path (docs/TOWER-MANAGEMENT.md §4): open Inspect on the tower under
+   *  (px,py), if any. A no-op on empty space, so it never disturbs the hero/rally. */
+  inspectAt(px: number, py: number): void {
+    const t = this.towerAt(px, py);
+    if (t) this.selectPlacedTower(t.id);
   }
 
   /** The placed tower occupying the cell at (px,py), or null. */
@@ -734,8 +772,138 @@ export class Game {
     this.selectedPlacedId = id !== null && this.towers.some((t) => t.id === id) ? id : null;
     if (this.selectedPlacedId !== null) {
       this.selectedTower = null; // inspecting, not placing
+      this.movingTowerId = null;
       this.armedAbility = false;
     }
+  }
+
+  /** Close every tower interaction (inspect / move / armed placement). The ESC + right-click
+   *  escape hatch (docs/TOWER-MANAGEMENT.md §4). Never touches the hero or the sim clock. */
+  cancelInteractions(): void {
+    this.selectedTower = null;
+    this.selectedPlacedId = null;
+    this.movingTowerId = null;
+  }
+
+  // ── Tower SELL (docs/TOWER-MANAGEMENT.md §2) ───────────────────────────────
+  /** Refund breakdown for the Sell confirm dialog (pure read-model), or null if the id is gone.
+   *  Investment = purchase cost + every branch tier bought; refund = round(frac · each part). */
+  sellQuote(id: number): (TowerSellQuote & { name: string; kind: TowerKind; tier: number }) | null {
+    const t = this.towers.find((tw) => tw.id === id);
+    if (!t) return null;
+    const frac = this.mods.sellRefundFrac;
+    const purchase = TOWER_DEFS[t.kind].cost;
+    const ladder = BRANCH_COSTS[t.kind];
+    let branchTotal = 0;
+    for (let i = 0; i < t.tier; i++) branchTotal += ladder[i];
+    const towerRefund = Math.round(frac * purchase);
+    const branchRefund = Math.round(frac * branchTotal);
+    return {
+      name: TOWER_DEFS[t.kind].name,
+      kind: t.kind,
+      tier: t.tier,
+      investment: purchase + branchTotal,
+      towerRefund,
+      branchRefund,
+      total: towerRefund + branchRefund,
+    };
+  }
+
+  /** Sell a placed tower: credit the refund, free its slot, despawn it cleanly, play the dissolve
+   *  FX. Allowed in prep AND combat (remove unwanted towers during a run); blocked once the run
+   *  is over. Returns false if the id is unknown / the run ended. */
+  sellTower(id: number): boolean {
+    if (this.phase === 'won' || this.phase === 'lost') return false;
+    const idx = this.towers.findIndex((tw) => tw.id === id);
+    if (idx < 0) return false;
+    const t = this.towers[idx];
+    const refund = this.sellQuote(id)!.total;
+    this.biomass += refund;
+    this.occupied.delete(t.slot); // free the placement slot IMMEDIATELY
+    this.towers.splice(idx, 1); // remove the tower (its in-flight shots/pools coast out on their own)
+    if (this.selectedPlacedId === id) this.selectedPlacedId = null; // selling closes Inspect
+    if (this.movingTowerId === id) this.movingTowerId = null;
+    this.recomputeTowerCaches(); // overcharge adjacency + reactor count stay coherent
+    this.sellFx(t, refund);
+    if (gameEvents.hasListeners('towerSold')) gameEvents.emit('towerSold', { id, kind: t.kind, slot: t.slot, refund });
+    return true;
+  }
+
+  /** Dissolve spectacle: tower matter erupts, green biomass motes stream to the Hive Core, a
+   *  refund float rises, and a unique cue fires. FX rng + presentation queues ⇒ golden-safe. */
+  private sellFx(t: Tower, refund: number): void {
+    const color = TOWER_DEFS[t.kind].color;
+    this.spawnParticles(t.x, t.y, PARTICLE.mutate, color); // tower dissolves into matter
+    this.spawnDissolveToCore(t.x, t.y); // biomass returns to the Hive Core
+    this.floats.push({ x: t.x, y: t.y - 16, text: `+${refund}`, color: '#b6e84a', life: 1.4 });
+    this.pushSfx('dissolve');
+  }
+
+  /** Green biomass motes flung from (x,y) toward the Hive Core — the refund "returning". FX-only. */
+  private spawnDissolveToCore(x: number, y: number): void {
+    const N = 14;
+    const dx = nucleusPoint.x - x;
+    const dy = nucleusPoint.y - y;
+    const d = Math.hypot(dx, dy) || 1;
+    const life = 0.5;
+    for (let i = 0; i < N; i++) {
+      if (this.particles.length >= PERF.maxParticles) break;
+      const spread = (this.fxRng.next() - 0.5) * 0.5; // a little fan so it reads as a stream, not a line
+      const ca = Math.cos(spread);
+      const sa = Math.sin(spread);
+      const ux = (dx / d) * ca - (dy / d) * sa;
+      const uy = (dx / d) * sa + (dy / d) * ca;
+      const spd = (d / life) * (0.85 + this.fxRng.next() * 0.3); // reaches the core in ~`life`s
+      const p = this.partPool.pop() ?? { x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0, size: 0, color: '#b6e84a' };
+      p.x = x + (this.fxRng.next() - 0.5) * 10;
+      p.y = y + (this.fxRng.next() - 0.5) * 10;
+      p.vx = ux * spd;
+      p.vy = uy * spd;
+      p.life = life; p.maxLife = life; p.size = 2.4; p.color = '#b6e84a';
+      this.particles.push(p);
+    }
+  }
+
+  // ── Tower RELOCATION (docs/TOWER-MANAGEMENT.md §3) ─────────────────────────
+  /** Pick a tower up for relocation — Build Phase only (no-op otherwise). */
+  beginMove(id: number): void {
+    if (this.phase !== 'prep') return; // movement is disabled during combat (future perk widens this)
+    if (!this.towers.some((t) => t.id === id)) return;
+    this.movingTowerId = id;
+    this.selectedTower = null;
+    this.armedAbility = false;
+  }
+
+  /** Drop the picked-up tower (cancel relocation), keeping it where it is. */
+  cancelMove(): void {
+    this.movingTowerId = null;
+  }
+
+  /** Relocate the picked-up tower to the slot under (px,py). Build Phase only; the slot must be
+   *  unlocked + empty. Mutates the EXISTING tower object (so every runtime state transfers) and
+   *  re-selects it (returns to Inspect). Returns 'ok' | 'sameSlot' (cancel) | 'invalid'. */
+  moveTower(px: number, py: number): 'ok' | 'sameSlot' | 'invalid' {
+    if (this.phase !== 'prep' || this.movingTowerId === null) return 'invalid';
+    const t = this.towers.find((tw) => tw.id === this.movingTowerId);
+    if (!t) { this.movingTowerId = null; return 'invalid'; }
+    const slot = slotAt(px, py);
+    if (!slot) return 'invalid';
+    if (slot.index === t.slot) { this.movingTowerId = null; this.selectPlacedTower(t.id); return 'sameSlot'; } // dropped back
+    if (slot.index >= this.unlockedSlots || this.occupied.has(slot.index)) return 'invalid'; // locked / occupied
+    // Relocate the SAME object — slot/position only. bornAt/mutatedAt (visual evolution) untouched.
+    this.occupied.delete(t.slot);
+    this.occupied.add(slot.index);
+    t.slot = slot.index;
+    t.x = slot.x;
+    t.y = slot.y;
+    t.movedAt = this.time; // landing-impact FX
+    this.movingTowerId = null;
+    this.recomputeTowerCaches(); // overcharge adjacency changed → refresh
+    this.spawnParticles(t.x, t.y, PARTICLE.mutate, TOWER_DEFS[t.kind].color); // land burst
+    this.pushSfx('place');
+    this.selectPlacedTower(t.id); // returns to Inspect automatically
+    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
+    return 'ok';
   }
 
   /** Tower slots the player may build on right now: the permanent base (initial + Shard
@@ -772,6 +940,7 @@ export class Game {
       tier: 0,
       pulseCd: 0,
       mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
+      movedAt: -100, // never relocated ⇒ no landing-impact FX
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -804,6 +973,29 @@ export class Game {
     return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.diff.rewardMult;
   }
 
+  // ── Endless intensity curves (docs/ENDLESS-SCALING.md). Kept SEPARATE from the linear stage
+  //    curves above so the authored golden run is byte-identical; these apply ONLY in endless. ──
+
+  /** Endless enemy-HP multiplier — GEOMETRIC, the PRIMARY wall (outpaces any fixed DPS over depth). */
+  private endlessHpMult(depth: number): number {
+    return Math.pow(ENDLESS.hpGrowth, depth - 1) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
+  }
+
+  /** Endless per-enemy bounty — rises SLOWER than HP, so deep enemies are biomass-inefficient. */
+  private endlessBountyMult(depth: number): number {
+    return (1 + ENDLESS.bountyGrowth * (depth - 1)) * this.diff.rewardMult;
+  }
+
+  /** Endless enemy-speed multiplier — gradual, clamped so the field stays readable. */
+  private endlessSpeedMult(depth: number): number {
+    return Math.min(ENDLESS.speedCap, 1 + ENDLESS.speedGrowth * (depth - 1));
+  }
+
+  /** Endless enemy-damage multiplier — gradual, continuous. */
+  private endlessDamageMult(depth: number): number {
+    return 1 + ENDLESS.damageGrowth * (depth - 1);
+  }
+
   /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,
    * Swarm). Returns exactly 1 when none are equipped, so combineMult stays bit-identical
    * (the golden invariant) — every branch is gated on its neutral value. */
@@ -819,6 +1011,25 @@ export class Game {
       out *= 1 + m.diversityBonus * classes.size; // rewards a varied board (which fuels reactions)
     }
     return out;
+  }
+
+  // ── Biome hooks (docs/BIOMES.md). All reduce to identity under NEUTRAL_BIOME (Stage mode). ──
+  /** Tower fire-rate factor: the biome's steady modifier × its active hazard pulse (1 in Stage). */
+  private biomeTowerRate(): number {
+    const m = this.activeBiome.mods;
+    return m.towerFireRateMult * (hazardActive(this.activeBiome, this.time) ? m.hazard.towerRateMult : 1);
+  }
+  /** Enemy-speed factor from the active hazard pulse only (the steady biome speed is baked at spawn). */
+  private biomeHazardEnemySpeed(): number {
+    return hazardActive(this.activeBiome, this.time) ? this.activeBiome.mods.hazard.enemySpeedMult : 1;
+  }
+  /** Switch the active biome; on a CHANGE (Infinite transition) telegraph it (sting + render flash)
+   *  so crossing into a new ecosystem is seen and heard (BIOMES.md §5). No-op when unchanged. */
+  private enterBiome(b: Biome): void {
+    if (b.id === this.activeBiome.id) return;
+    this.activeBiome = b;
+    this.biomeFlash = 1;
+    this.pushSfx('biome');
   }
 
   startWave(): void {
@@ -859,13 +1070,16 @@ export class Game {
   private startEndlessWave(): void {
     this.waveIndex++; // = Depth
     const depth = this.waveIndex;
-    const w = this.director!.next(depth);
-    const idx0 = depth - 1;
+    this.enterBiome(biomeForDepth(depth)); // Infinite: rotate ecosystems as the run goes deep
+    const w = this.director!.next(depth, this.activeBiome);
+    // Endless uses its OWN intensity curves (geometric HP, gradual bounty) — NOT the linear stage
+    // curve — so the wall behaves as docs/ENDLESS-SCALING.md describes. Speed/damage are applied
+    // per-enemy in spawnOne (also mode-gated), keyed on this depth.
     this.spawnQueue = this.spawner.scheduleDirected(
       w,
       this.time,
-      this.hpMultFor(idx0),
-      this.bountyMultFor(idx0),
+      this.endlessHpMult(depth),
+      this.endlessBountyMult(depth),
       this.diff.spawnRateMult,
     );
     this.spawnedAll = false;
@@ -927,6 +1141,7 @@ export class Game {
 
   advance(dtReal: number): void {
     if (this.paused) return;
+    if (this.biomeFlash > 0) this.biomeFlash = Math.max(0, this.biomeFlash - dtReal * 0.7); // render-only transition ease (~1.4s)
     const scale = this.timeScale;
     this.acc += Math.min(dtReal * scale, 0.25 * scale); // clamp avoids spiral-of-death
     const cap = 8 * Math.max(1, Math.ceil(scale)); // allow extra steps when fast-forwarding
@@ -1029,17 +1244,26 @@ export class Game {
     const eHp = elite ? DIRECTOR.eliteHpMult : 1;
     const eDmg = elite ? DIRECTOR.eliteDmgMult : 1;
     const eBounty = elite ? DIRECTOR.eliteBountyMult : 1;
+    // Biome enemy modifiers (docs/BIOMES.md) — baked once at spawn so a unit keeps its BIRTH
+    // biome's stats after an Infinite transition. Identity under NEUTRAL_BIOME ⇒ golden-safe.
+    const bm = this.activeBiome.mods;
+    const hp = def.hp * hpMult * eHp * bm.enemyHpMult;
+    // Endless-only intensity: enemies get gradually faster + hit harder with depth. Mode-gated so a
+    // stage spawn is byte-identical (×1). Keyed on the current depth (= waveIndex during this wave).
+    const endless = this.mode === 'endless';
+    const eSpeed = endless ? this.endlessSpeedMult(this.waveIndex) : 1;
+    const eDmgWave = endless ? this.endlessDamageMult(this.waveIndex) : 1;
     this.enemies.push({
       id: this.nextId++,
       kind,
       x: spawn.x,
       y: spawn.y,
-      hp: def.hp * hpMult * eHp,
-      maxHp: def.hp * hpMult * eHp,
-      baseArmor: def.armor,
-      speed: def.speed * this.stageSpeedMult, // campaign per-stage speed scalar (×1 otherwise → golden-safe)
-      bounty: def.bounty * bountyMult * eBounty,
-      damage: def.damage * eDmg * this.diff.enemyDamageMult,
+      hp,
+      maxHp: hp,
+      baseArmor: def.armor + bm.enemyArmorBonus,
+      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult, // ×endless depth ×campaign per-stage ×biome (all ×1 otherwise → golden-safe)
+      bounty: def.bounty * bountyMult * eBounty * bm.bountyMult,
+      damage: def.damage * eDmg * this.diff.enemyDamageMult * eDmgWave * bm.enemyDamageMult,
       fracture: 0,
       corrosion: 0,
       shredFlash: 0,
@@ -1231,7 +1455,10 @@ export class Game {
     for (const e of this.enemies) {
       if (!e.alive) continue;
       const def = ENEMY_DEFS[e.kind];
-      if (def.regenPerSec) e.hp = Math.min(e.maxHp, e.hp + def.regenPerSec * dt); // Regenerating
+      // Regen = the enemy's own trait + the biome's ambient regen (Necrotic Mire). The biome term
+      // is 0 under NEUTRAL_BIOME, so this is byte-identical to `def.regenPerSec` on the golden path.
+      const regen = (def.regenPerSec ?? 0) + this.activeBiome.mods.enemyRegenFrac * e.maxHp;
+      if (regen > 0) e.hp = Math.min(e.maxHp, e.hp + regen * dt); // Regenerating
       if (def.auraRadius) this.supportAura(e, def, dt); // Support
       if (def.summon) {
         e.summonCd = (e.summonCd ?? def.summon.interval) - dt; // Summoner
@@ -1352,9 +1579,13 @@ export class Game {
           heroDmgAura = 1 + this.mods.heroTowerDamageAura;
         }
       }
-      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1);
+      // Biome efficiency (docs/BIOMES.md): a per-combat-class damage × that shifts which class
+      // shines, and a fire-rate × (steady + hazard pulse). Applied OUTSIDE combineMult so the
+      // identity (×1 under NEUTRAL_BIOME) is IEEE-exact ⇒ Stage mode stays byte-identical.
+      const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
+      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate();
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1);
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg;
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -1690,7 +1921,9 @@ export class Game {
       if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
       // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
       const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
-      const step = e.speed * chargeMult * (1 - slow) * dt;
+      // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
+      // 1 when no hazard is active / Stage mode ⇒ golden-safe.
+      const step = e.speed * chargeMult * this.biomeHazardEnemySpeed() * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -1882,7 +2115,7 @@ export class Game {
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
-      const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
       const applied = this.applyDamage(target, dmg);
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
@@ -1910,7 +2143,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = target.x;
     this.castScratch.y = target.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = target;
     this.castScratch.pierce = 0;
     this.castRangeMult = 1;
@@ -2004,7 +2237,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = h.x;
     this.castScratch.y = h.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
@@ -2074,14 +2307,14 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = px;
     this.castScratch.y = py;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     this.castRangeMult = this.mods.heroAbilityRadiusMult; // ABILITIES gear: scale the ability AoE
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     this.castRangeMult = 1;
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
-    h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
+    h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
   }
@@ -2761,6 +2994,7 @@ export class Game {
       phase: this.phase,
       selectedTower: this.selectedTower,
       selectedPlacedId: this.selectedPlacedId,
+      movingTowerId: this.movingTowerId,
       armedAbility: this.armedAbility,
       unlockedSlots: this.unlockedSlots,
       time: this.time,
@@ -2771,6 +3005,9 @@ export class Game {
       emergencyFocusX: this.emergencyFocusX,
       emergencyFocusY: this.emergencyFocusY,
       effectiveRanges: this.towerEffectiveRange,
+      biome: { id: this.activeBiome.id, name: this.activeBiome.name, accent: this.activeBiome.accent },
+      biomeFlash: this.biomeFlash,
+      hazardActive: hazardActive(this.activeBiome, this.time),
     };
   }
 
@@ -2794,7 +3031,7 @@ export class Game {
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
-        abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
+        abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
       },
       enemiesAlive: this.enemies.length,
       emergency: this.emergencyActive,
@@ -2810,6 +3047,14 @@ export class Game {
           ? { id: this.mutation.id, title: this.mutation.title, sub: this.mutation.sub, branchId: this.mutation.branchId, color: this.mutation.color }
           : null,
       endless: this.mode === 'endless',
+      biome: {
+        id: this.activeBiome.id,
+        name: this.activeBiome.name,
+        accent: this.activeBiome.accent,
+        modifier: this.activeBiome.modifierName,
+        hazardName: this.activeBiome.mods.hazard.name,
+        hazardActive: hazardActive(this.activeBiome, this.time),
+      },
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
       autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
@@ -2873,7 +3118,7 @@ export class Game {
 
   /** Assemble + register + spawn a procedural boss at a Threat Level (director/endless). */
   spawnProceduralBoss(tl: number): void {
-    const def = assembleBoss(() => this.rng.next(), tl);
+    const def = assembleBoss(() => this.rng.next(), tl, this.activeBiome.mods.bossChassisBias);
     this.procBosses.set(def.id, def);
     this.spawnBoss(def);
   }

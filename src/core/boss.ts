@@ -108,13 +108,26 @@ const MODIFIER_POOL = ['regenerator', 'bulwark', 'volatile', 'hastening'];
 type Rng = () => number;
 const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)];
 
+/** Weighted chassis pick (biome flavour). Empty/absent bias ⇒ a uniform pick over the same
+ *  order as `pick(rng, CHASSIS_KINDS)` ⇒ byte-identical to the unbiased path (golden-safe). */
+function pickChassis(rng: Rng, bias?: Partial<Record<BossChassis, number>>): BossChassis {
+  if (!bias) return pick(rng, CHASSIS_KINDS);
+  const weights = CHASSIS_KINDS.map((c) => bias[c] ?? 1);
+  let total = 0;
+  for (const w of weights) total += w;
+  let u = rng() * total;
+  for (let i = 0; i < CHASSIS_KINDS.length; i++) { u -= weights[i]; if (u < 0) return CHASSIS_KINDS[i]; }
+  return CHASSIS_KINDS[CHASSIS_KINDS.length - 1];
+}
+
 /**
  * Procedurally assemble a boss for a given Threat Level. Module + phase + modifier
  * COUNT rise with TL (STAGES §10.2); constraints keep it fair (always ≥1 telegraph,
- * phases reset add-pressure). Deterministic from the rng.
+ * phases reset add-pressure). Deterministic from the rng. `chassisBias` (optional, from the
+ * active biome) flavours the body plan; omitted ⇒ a uniform pick (unchanged behaviour).
  */
-export function assembleBoss(rng: Rng, tl: number): BossDef {
-  const chassis = pick(rng, CHASSIS_KINDS);
+export function assembleBoss(rng: Rng, tl: number, chassisBias?: Partial<Record<BossChassis, number>>): BossDef {
+  const chassis = pickChassis(rng, chassisBias);
   const base = CHASSIS[chassis];
   const moduleCount = Math.max(2, Math.min(4, 2 + Math.floor(tl / 8)));
   const phaseCount = Math.max(1, Math.min(3, 1 + Math.floor(tl / 6)));

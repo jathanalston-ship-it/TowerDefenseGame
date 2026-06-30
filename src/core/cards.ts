@@ -6,6 +6,7 @@ import type { CardOption, CardRarity, CardCategory, CardSubject, StatusType, Tow
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
+import { SELL } from './config';
 
 /** The run "R bucket": multipliers/flags a run accumulates from drafted cards. */
 export interface RunModifiers {
@@ -68,6 +69,9 @@ export interface RunModifiers {
   //    available emplacements on top of the permanent base; capped at SLOTS.tempMax by the
   //    Game's `unlockedSlots` getter and reset every run. 0 = none (golden-safe). docs/SLOTS.md. ──
   bonusTowerSlots: number; // temporary tower slots unlocked this run (gene cards)
+  // Tower SELL refund fraction (docs/TOWER-MANAGEMENT.md §2). The single extensibility point for
+  // refund-rate mechanics — cards/equipment/prestige bump it via the normal effect pipeline.
+  sellRefundFrac: number; // default SELL.refundFrac (0.75); ≤ 1 so selling is never exploitable
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -112,6 +116,7 @@ export function defaultRunModifiers(): RunModifiers {
     classResonanceBonus: 0,
     diversityBonus: 0,
     bonusTowerSlots: 0,
+    sellRefundFrac: SELL.refundFrac,
   };
 }
 
