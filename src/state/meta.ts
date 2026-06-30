@@ -3,6 +3,7 @@
 // the save-management surface (export/import/backup) and debug seeding.
 
 import { createStore } from './store';
+import { applyDevReset } from './devReset';
 import {
   SaveStore,
   defaultSave,
@@ -956,6 +957,23 @@ export const meta = {
   reset(): void {
     saveStore.backup();
     persist(defaultSave());
+  },
+
+  /** Developer Reset (docs/DEV-RESET.md) — wipe a specific save SCOPE (or everything). Always
+   *  persists a valid, complete, current-version save (re-checksummed by SaveStore.save), so no
+   *  orphaned references or version drift. 'everything' also clears backups + preference keys. */
+  devReset(id: string): void {
+    if (id === 'everything') {
+      saveStore.wipeAll(); // remove the main save, all backups, and the index (no recovery — factory-fresh)
+      // Clear known preference/flag keys (not a blind clear — never touches unrelated keys).
+      for (const key of ['audioOn', 'assimilate.autogene', 'assimilate.debug', 'assimilate.autostart']) {
+        try { localStorage.removeItem(key); } catch { /* private mode / no DOM */ }
+      }
+      persist(defaultSave());
+      return;
+    }
+    saveStore.backup(); // every other scope is recoverable from the pre-reset backup
+    persist(applyDevReset(store.get(), id));
   },
 
   // ── Debug seeding (used by the debug panel; harmless no-ops otherwise) ────

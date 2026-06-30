@@ -1,0 +1,84 @@
+// Hero identity framework (docs/HERO-FRAMEWORK.md) — the data-driven layer that turns each hero into
+// a deep, distinct playstyle: Role · Passive · Trait · Scaling mechanic · Strengths · Weaknesses ·
+// AI survival profile. HeroDef (config.ts) keeps the base stats + the signature Active ability; this
+// adds everything else. Pure data + lookups (no DOM/sim). A new hero is one row (future expansion).
+//
+// GOLDEN-SAFETY (HERO-FRAMEWORK.md §4): the Ravager's mechanics are scoped to `elite` enemies (absent
+// from Stage-mode authored waves), and Shepherd/Overseer are never fielded by autoplay — so the
+// pinned golden outcomes never drift.
+
+import type { HeroKind } from './types';
+
+/** What a hero's always-on PASSIVE does mechanically (read at a fixed sim hook). */
+export type HeroPassiveKind =
+  | 'eliteDamage' // + hero damage vs elite enemies (Ravager)
+  | 'towerAura' // innate aura: nearby towers gain fire-rate + damage (Shepherd)
+  | 'vulnField'; // disrupted enemies take extra damage from all sources (Overseer)
+
+/** A hero's defining identity rule (flavour + a light mechanical lean). */
+export type HeroTraitKind =
+  | 'eliteHunter' // elite kills heal + briefly haste the hero (Ravager)
+  | 'broodTender' // summons/pulse lean to crowd control (Shepherd)
+  | 'targetHijack'; // the control field drags + denies the lane (Overseer)
+
+/** How a hero scales WITHIN a run so it stays relevant to endgame. */
+export type HeroScalingKind =
+  | 'killchain' // stacking bonus vs-elite damage per elite slain this run (Ravager)
+  | 'livingHive' // the tower aura strengthens per nearby tower (Shepherd)
+  | 'overload'; // the vulnerability field deepens with depth (Overseer)
+
+/** AI repositioning profile (game.ts hero brains): aggressive never retreats (a weakness). */
+export type HeroSurvival = 'aggressive' | 'cautious' | 'evasive';
+
+export interface HeroPassive { name: string; desc: string; kind: HeroPassiveKind; amount: number }
+export interface HeroTrait { name: string; desc: string; kind: HeroTraitKind }
+export interface HeroScaling { name: string; desc: string; kind: HeroScalingKind; perStack: number; cap: number }
+
+export interface HeroIdentity {
+  kind: HeroKind;
+  role: string;
+  strengths: string[];
+  weaknesses: string[];
+  passive: HeroPassive;
+  trait: HeroTrait;
+  scaling: HeroScaling;
+  survival: HeroSurvival;
+}
+
+// ── The three identities (placeholder numbers — balance is a later pass) ─────────────────────
+export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
+  ravager: {
+    kind: 'ravager',
+    role: 'Aggressive frontline hunter — dives the deadliest targets and exists to delete elites & bosses.',
+    strengths: ['Deletes elites & bosses', 'High mobility', 'Frontline burst'],
+    weaknesses: ['Fragile — no self-sustain', 'No tower or crowd support', 'Overextends into danger'],
+    passive: { name: 'Apex Predator', desc: '+50% damage to elite enemies.', kind: 'eliteDamage', amount: 0.5 },
+    trait: { name: 'Bloodthirst', desc: 'Slaying an elite heals the Ravager and briefly boosts its speed.', kind: 'eliteHunter' },
+    scaling: { name: 'Killchain', desc: 'Each elite slain this run adds +4% elite damage (stacking, up to +60%).', kind: 'killchain', perStack: 0.04, cap: 0.6 },
+    survival: 'aggressive',
+  },
+  shepherd: {
+    kind: 'shepherd',
+    role: 'Summoner-support — sustains the line, empowers nearby towers, and births organisms.',
+    strengths: ['Buffs nearby towers', 'Heals the Nucleus', 'Summons + crowd control'],
+    weaknesses: ['Low personal damage', 'Slow', 'Reliant on positioning near towers'],
+    passive: { name: 'Symbiosis', desc: 'Towers near the Shepherd gain fire rate and damage.', kind: 'towerAura', amount: 0.15 },
+    trait: { name: 'Brood Tender', desc: 'Its vital pulse also slows enemies; its summons endure.', kind: 'broodTender' },
+    scaling: { name: 'Living Hive', desc: 'The Symbiosis aura strengthens for each tower nearby (up to +60%).', kind: 'livingHive', perStack: 0.15, cap: 0.6 },
+    survival: 'cautious',
+  },
+  overseer: {
+    kind: 'overseer',
+    role: 'Battlefield controller — denies ground, debuffs crowds, manipulates targeting, amplifies your build.',
+    strengths: ['Area denial', 'Deep debuffs (slow + vulnerability)', 'Amplifies all damage on a marked crowd'],
+    weaknesses: ['Almost no direct damage', 'Needs a build to capitalize', 'Fragile'],
+    passive: { name: 'Neural Static', desc: 'Enemies in its Disruption field take extra damage from ALL sources.', kind: 'vulnField', amount: 0.2 },
+    trait: { name: 'Hijack', desc: 'The field drags enemies — denying the lane and scattering their advance.', kind: 'targetHijack' },
+    scaling: { name: 'Overload', desc: 'The vulnerability field deepens the deeper the run (up to +40%).', kind: 'overload', perStack: 0.02, cap: 0.4 },
+    survival: 'evasive',
+  },
+};
+
+export function heroIdentity(kind: HeroKind): HeroIdentity {
+  return HERO_IDENTITIES[kind];
+}
