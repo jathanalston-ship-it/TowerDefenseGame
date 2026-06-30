@@ -964,6 +964,15 @@ export const meta = {
     persist({ ...save, campaign: { cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
   },
 
+  /** Fully evolve every tower (★max) and unlock the Evolution Cap — to inspect the late-game
+   *  visual evolution (lab portraits + battlefield) without the full grind. */
+  debugMaxEvolution(): void {
+    const save = store.get();
+    const towerStars = { ...save.towerStars };
+    for (const k of TOWER_ORDER) towerStars[k] = STAR.maxTowerStars;
+    persist({ ...save, towerStars, campaign: { cleared: { ...save.campaign.cleared, standard: 300 } } });
+  },
+
   debugAddHeroShards(n: number): void {
     const save = store.get();
     const heroShards = { ...save.heroShards };

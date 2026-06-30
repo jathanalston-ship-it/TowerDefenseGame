@@ -5,6 +5,7 @@
 // already bought/persisted upstream; this only choreographs the reveal.
 
 import type { StepView } from './towerLabModel';
+import type { TowerKind } from '../core/types';
 import { TowerPortrait } from './TowerPortrait';
 
 const MILESTONE_LABEL: Record<number, string> = {
@@ -23,11 +24,13 @@ export function StarCeremony({
   next,
   milestoneStar,
   onClose,
+  kind,
 }: {
   name: string;
   color: string;
   toStar: number;
   maxStars: number;
+  kind?: TowerKind; // drives the portrait's per-tower identity organs (battlefield ↔ lab parity)
   unlocked: StepView | null; // the evolution this star granted (null past the ★5 evolution band)
   next: StepView | null; // what the next star will bring
   milestoneStar: number | null; // 3 | 5 | 7 | 10 if this upgrade hit a milestone, else null
@@ -45,7 +48,7 @@ export function StarCeremony({
         <div className="tl-cer-name" style={{ color }}>{name}</div>
 
         <div className="tl-cer-portrait">
-          <TowerPortrait color={color} stars={toStar} size={150} />
+          <TowerPortrait color={color} stars={toStar} size={150} kind={kind} />
           {isMilestone && <div className="tl-cer-burst" aria-hidden />}
         </div>
 

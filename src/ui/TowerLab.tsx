@@ -83,7 +83,7 @@ export function TowerLab(): JSX.Element {
               {/* identity row: living portrait + name/class + star track */}
               <div className="tl-id">
                 <div className="tl-portrait">
-                  <TowerPortrait color={m.color} stars={m.stars} size={112} />
+                  <TowerPortrait color={m.color} stars={m.stars} size={112} kind={m.kind} />
                   <span className="tl-portrait-lvl" style={{ color: m.color }}>★{m.stars}</span>
                 </div>
                 <div className="tl-id-body">
@@ -197,6 +197,7 @@ export function TowerLab(): JSX.Element {
         <StarCeremony
           name={ceremony.name}
           color={ceremony.color}
+          kind={ceremony.kind}
           toStar={ceremony.toStar}
           maxStars={STAR.maxTowerStars}
           unlocked={ceremony.unlocked}
