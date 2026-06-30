@@ -129,6 +129,7 @@ import type {
   ProjectileBehavior,
   RunStats,
   SelectedPlacedTower,
+  TowerSellQuote,
   StatusType,
   Tower,
   TowerKind,
@@ -200,6 +201,7 @@ export interface RenderState {
   phase: Phase;
   selectedTower: TowerKind | null;
   selectedPlacedId: number | null; // a placed tower the player is inspecting (branch highlight)
+  movingTowerId: number | null; // a placed tower picked up for relocation (move-mode highlight + holo)
   armedAbility: boolean;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
@@ -308,6 +310,7 @@ export class Game {
 
   selectedTower: TowerKind | null = null;
   selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
+  movingTowerId: number | null = null; // a placed tower PICKED UP for relocation (Build Phase) — docs/TOWER-MANAGEMENT.md §3
   armedAbility = false;
   draft: CardDef[] | null = null;
   sfx: string[] = []; // presentation cue queue (drained by the view: audio + shake)
@@ -595,7 +598,7 @@ export class Game {
   selectTower(kind: TowerKind | null): void {
     this.selectedTower = kind;
     this.armedAbility = false;
-    if (kind) this.selectedPlacedId = null; // arming placement clears any inspected tower
+    if (kind) { this.selectedPlacedId = null; this.movingTowerId = null; } // arming placement clears inspect/move
   }
 
   // ── Branch upgrades (TOWER-BRANCHES.md) — per-instance, Biomass-bought, run-temporary ──
@@ -687,6 +690,7 @@ export class Game {
     if (!t) return null;
     const def = TOWER_DEFS[t.kind];
     const branch = t.branchId ? branchRegistry.get(t.branchId) : null;
+    const q = this.sellQuote(t.id)!;
     return {
       id: t.id,
       kind: t.kind,
@@ -695,6 +699,9 @@ export class Game {
       tier: t.tier,
       branchName: branch ? branch.name : null,
       branches: this.branchOptions(t.id),
+      sell: { investment: q.investment, towerRefund: q.towerRefund, branchRefund: q.branchRefund, total: q.total },
+      canMove: this.phase === 'prep', // relocation is Build-Phase only
+      moving: this.movingTowerId === t.id,
     };
   }
 
@@ -711,11 +718,19 @@ export class Game {
     this.primaryHero.rally = { x: px, y: py };
   }
 
-  /** Route a canvas click based on what is currently armed. */
-  click(px: number, py: number): void {
+  /** Route a canvas click based on what is currently armed. `shift` keeps the build tool armed for
+   *  rapid placement (docs/TOWER-MANAGEMENT.md §4). */
+  click(px: number, py: number, opts: { shift?: boolean } = {}): void {
     if (this.armedAbility) {
       this.triggerAbility(px, py);
       this.armedAbility = false;
+      return;
+    }
+    // Relocation mode: a tap lands the picked-up tower on a valid empty slot (moveTower re-selects
+    // it → back to Inspect), or cancels on its own slot. An invalid tap is ignored so the player
+    // stays in move mode and can try another slot.
+    if (this.movingTowerId !== null) {
+      this.moveTower(px, py);
       return;
     }
     if (this.selectedTower) {
@@ -724,8 +739,9 @@ export class Game {
       // tool would shadow inspection entirely. Redirect it to the Mutation panel.
       const occupant = this.towerAt(px, py);
       if (occupant) { this.selectPlacedTower(occupant.id); return; }
-      this.placeTower(this.selectedTower, px, py);
-      return; // stay armed for repeat placement
+      // One-shot placement by default; holding Shift keeps the tool armed for rapid building.
+      if (this.placeTower(this.selectedTower, px, py) && !opts.shift) this.selectedTower = null;
+      return;
     }
     // Nothing armed: clicking a PLACED tower selects it (opens its branch/Mutation panel).
     const t = this.towerAt(px, py);
@@ -735,6 +751,13 @@ export class Game {
     }
     this.selectedPlacedId = null; // clicked empty space → deselect
     this.setRally(px, py);
+  }
+
+  /** Double-click fast path (docs/TOWER-MANAGEMENT.md §4): open Inspect on the tower under
+   *  (px,py), if any. A no-op on empty space, so it never disturbs the hero/rally. */
+  inspectAt(px: number, py: number): void {
+    const t = this.towerAt(px, py);
+    if (t) this.selectPlacedTower(t.id);
   }
 
   /** The placed tower occupying the cell at (px,py), or null. */
@@ -749,8 +772,138 @@ export class Game {
     this.selectedPlacedId = id !== null && this.towers.some((t) => t.id === id) ? id : null;
     if (this.selectedPlacedId !== null) {
       this.selectedTower = null; // inspecting, not placing
+      this.movingTowerId = null;
       this.armedAbility = false;
     }
+  }
+
+  /** Close every tower interaction (inspect / move / armed placement). The ESC + right-click
+   *  escape hatch (docs/TOWER-MANAGEMENT.md §4). Never touches the hero or the sim clock. */
+  cancelInteractions(): void {
+    this.selectedTower = null;
+    this.selectedPlacedId = null;
+    this.movingTowerId = null;
+  }
+
+  // ── Tower SELL (docs/TOWER-MANAGEMENT.md §2) ───────────────────────────────
+  /** Refund breakdown for the Sell confirm dialog (pure read-model), or null if the id is gone.
+   *  Investment = purchase cost + every branch tier bought; refund = round(frac · each part). */
+  sellQuote(id: number): (TowerSellQuote & { name: string; kind: TowerKind; tier: number }) | null {
+    const t = this.towers.find((tw) => tw.id === id);
+    if (!t) return null;
+    const frac = this.mods.sellRefundFrac;
+    const purchase = TOWER_DEFS[t.kind].cost;
+    const ladder = BRANCH_COSTS[t.kind];
+    let branchTotal = 0;
+    for (let i = 0; i < t.tier; i++) branchTotal += ladder[i];
+    const towerRefund = Math.round(frac * purchase);
+    const branchRefund = Math.round(frac * branchTotal);
+    return {
+      name: TOWER_DEFS[t.kind].name,
+      kind: t.kind,
+      tier: t.tier,
+      investment: purchase + branchTotal,
+      towerRefund,
+      branchRefund,
+      total: towerRefund + branchRefund,
+    };
+  }
+
+  /** Sell a placed tower: credit the refund, free its slot, despawn it cleanly, play the dissolve
+   *  FX. Allowed in prep AND combat (remove unwanted towers during a run); blocked once the run
+   *  is over. Returns false if the id is unknown / the run ended. */
+  sellTower(id: number): boolean {
+    if (this.phase === 'won' || this.phase === 'lost') return false;
+    const idx = this.towers.findIndex((tw) => tw.id === id);
+    if (idx < 0) return false;
+    const t = this.towers[idx];
+    const refund = this.sellQuote(id)!.total;
+    this.biomass += refund;
+    this.occupied.delete(t.slot); // free the placement slot IMMEDIATELY
+    this.towers.splice(idx, 1); // remove the tower (its in-flight shots/pools coast out on their own)
+    if (this.selectedPlacedId === id) this.selectedPlacedId = null; // selling closes Inspect
+    if (this.movingTowerId === id) this.movingTowerId = null;
+    this.recomputeTowerCaches(); // overcharge adjacency + reactor count stay coherent
+    this.sellFx(t, refund);
+    if (gameEvents.hasListeners('towerSold')) gameEvents.emit('towerSold', { id, kind: t.kind, slot: t.slot, refund });
+    return true;
+  }
+
+  /** Dissolve spectacle: tower matter erupts, green biomass motes stream to the Hive Core, a
+   *  refund float rises, and a unique cue fires. FX rng + presentation queues ⇒ golden-safe. */
+  private sellFx(t: Tower, refund: number): void {
+    const color = TOWER_DEFS[t.kind].color;
+    this.spawnParticles(t.x, t.y, PARTICLE.mutate, color); // tower dissolves into matter
+    this.spawnDissolveToCore(t.x, t.y); // biomass returns to the Hive Core
+    this.floats.push({ x: t.x, y: t.y - 16, text: `+${refund}`, color: '#b6e84a', life: 1.4 });
+    this.pushSfx('dissolve');
+  }
+
+  /** Green biomass motes flung from (x,y) toward the Hive Core — the refund "returning". FX-only. */
+  private spawnDissolveToCore(x: number, y: number): void {
+    const N = 14;
+    const dx = nucleusPoint.x - x;
+    const dy = nucleusPoint.y - y;
+    const d = Math.hypot(dx, dy) || 1;
+    const life = 0.5;
+    for (let i = 0; i < N; i++) {
+      if (this.particles.length >= PERF.maxParticles) break;
+      const spread = (this.fxRng.next() - 0.5) * 0.5; // a little fan so it reads as a stream, not a line
+      const ca = Math.cos(spread);
+      const sa = Math.sin(spread);
+      const ux = (dx / d) * ca - (dy / d) * sa;
+      const uy = (dx / d) * sa + (dy / d) * ca;
+      const spd = (d / life) * (0.85 + this.fxRng.next() * 0.3); // reaches the core in ~`life`s
+      const p = this.partPool.pop() ?? { x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0, size: 0, color: '#b6e84a' };
+      p.x = x + (this.fxRng.next() - 0.5) * 10;
+      p.y = y + (this.fxRng.next() - 0.5) * 10;
+      p.vx = ux * spd;
+      p.vy = uy * spd;
+      p.life = life; p.maxLife = life; p.size = 2.4; p.color = '#b6e84a';
+      this.particles.push(p);
+    }
+  }
+
+  // ── Tower RELOCATION (docs/TOWER-MANAGEMENT.md §3) ─────────────────────────
+  /** Pick a tower up for relocation — Build Phase only (no-op otherwise). */
+  beginMove(id: number): void {
+    if (this.phase !== 'prep') return; // movement is disabled during combat (future perk widens this)
+    if (!this.towers.some((t) => t.id === id)) return;
+    this.movingTowerId = id;
+    this.selectedTower = null;
+    this.armedAbility = false;
+  }
+
+  /** Drop the picked-up tower (cancel relocation), keeping it where it is. */
+  cancelMove(): void {
+    this.movingTowerId = null;
+  }
+
+  /** Relocate the picked-up tower to the slot under (px,py). Build Phase only; the slot must be
+   *  unlocked + empty. Mutates the EXISTING tower object (so every runtime state transfers) and
+   *  re-selects it (returns to Inspect). Returns 'ok' | 'sameSlot' (cancel) | 'invalid'. */
+  moveTower(px: number, py: number): 'ok' | 'sameSlot' | 'invalid' {
+    if (this.phase !== 'prep' || this.movingTowerId === null) return 'invalid';
+    const t = this.towers.find((tw) => tw.id === this.movingTowerId);
+    if (!t) { this.movingTowerId = null; return 'invalid'; }
+    const slot = slotAt(px, py);
+    if (!slot) return 'invalid';
+    if (slot.index === t.slot) { this.movingTowerId = null; this.selectPlacedTower(t.id); return 'sameSlot'; } // dropped back
+    if (slot.index >= this.unlockedSlots || this.occupied.has(slot.index)) return 'invalid'; // locked / occupied
+    // Relocate the SAME object — slot/position only. bornAt/mutatedAt (visual evolution) untouched.
+    this.occupied.delete(t.slot);
+    this.occupied.add(slot.index);
+    t.slot = slot.index;
+    t.x = slot.x;
+    t.y = slot.y;
+    t.movedAt = this.time; // landing-impact FX
+    this.movingTowerId = null;
+    this.recomputeTowerCaches(); // overcharge adjacency changed → refresh
+    this.spawnParticles(t.x, t.y, PARTICLE.mutate, TOWER_DEFS[t.kind].color); // land burst
+    this.pushSfx('place');
+    this.selectPlacedTower(t.id); // returns to Inspect automatically
+    if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
+    return 'ok';
   }
 
   /** Tower slots the player may build on right now: the permanent base (initial + Shard
@@ -787,6 +940,7 @@ export class Game {
       tier: 0,
       pulseCd: 0,
       mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
+      movedAt: -100, // never relocated ⇒ no landing-impact FX
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -2840,6 +2994,7 @@ export class Game {
       phase: this.phase,
       selectedTower: this.selectedTower,
       selectedPlacedId: this.selectedPlacedId,
+      movingTowerId: this.movingTowerId,
       armedAbility: this.armedAbility,
       unlockedSlots: this.unlockedSlots,
       time: this.time,

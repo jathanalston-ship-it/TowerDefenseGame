@@ -141,13 +141,24 @@ export function TowerLab(): JSX.Element {
               {/* what they're WORKING TOWARD — next star + the upgrade action */}
               <div className="tl-next-wrap">
                 {m.nextStep ? (
-                  <div className="tl-next" style={{ borderLeftColor: m.color }}>
+                  <div className={`tl-next${m.capLocked ? ' is-locked' : ''}`} style={{ borderLeftColor: m.color }}>
                     <span className="tl-next-k" style={{ color: m.color }}>
-                      NEXT ★{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
+                      {m.capLocked ? 'LOCKED' : 'NEXT'} ★{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
                     </span>
                     {m.nextStep.desc && <span className="tl-next-desc">{m.nextStep.desc}</span>}
                     {m.nextAbility && m.nextAbility.star !== m.nextStep.star && (
                       <span className="tl-next-ability">Next ability · ★{m.nextAbility.star} {m.nextAbility.name}</span>
+                    )}
+                    {/* Campaign Evolution Cap: show what to work toward — never just grey it out. */}
+                    {m.capLocked && m.capUnlock && (
+                      <div className="tl-cap">
+                        <span className="tl-cap-req">🧬 Reach <b>Campaign Stage {m.capUnlock.stage}</b> to evolve to ★{m.capUnlock.maxStar}</span>
+                        <ProgressBar value={Math.min(m.campaignStage, m.capUnlock.stage)} max={m.capUnlock.stage} color={m.color} height={6} label="Campaign progress" />
+                        <span className="tl-cap-prog">Campaign Stage {m.campaignStage} / {m.capUnlock.stage}</span>
+                        {m.nextVisualMutation && (
+                          <span className="tl-cap-vis">Upcoming mutation · <b>{m.nextVisualMutation.name}</b> at ★{m.nextVisualMutation.at}</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -158,11 +169,12 @@ export function TowerLab(): JSX.Element {
 
                 <div className="tl-actions">
                   <button
-                    className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}`}
+                    className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
                     disabled={m.maxed || !m.affordable}
                     onClick={() => upgrade(k, m.stars)}
+                    title={m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
                   >
-                    {m.maxed ? 'MAX' : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
+                    {m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
                   </button>
                   <span className="tl-shards" title="Tower Shards">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
                 </div>

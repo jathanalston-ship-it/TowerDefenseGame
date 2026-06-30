@@ -150,6 +150,7 @@ export interface Tower {
   tier: number;
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
+  movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
 }
 
 export interface Projectile {
@@ -361,6 +362,18 @@ export interface SelectedPlacedTower {
   tier: number; // current branch tier (0 = unbranched)
   branchName: string | null; // committed branch's display name (null = unbranched)
   branches: BranchOffer[];
+  // ── Tower management (docs/TOWER-MANAGEMENT.md) ──
+  sell: TowerSellQuote; // refund breakdown for the Sell confirm dialog
+  canMove: boolean; // relocation allowed right now (Build Phase only)
+  moving: boolean; // this tower is currently picked up for relocation
+}
+
+/** Refund breakdown for the Sell dialog (docs/TOWER-MANAGEMENT.md §2). All values are biomass. */
+export interface TowerSellQuote {
+  investment: number; // total spent: purchase + every branch tier bought
+  towerRefund: number; // round(frac · purchase cost)
+  branchRefund: number; // round(frac · branch-tier total)
+  total: number; // towerRefund + branchRefund (what selling credits)
 }
 
 export interface HudSnapshot {

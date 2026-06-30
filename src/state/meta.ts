@@ -11,7 +11,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, chestForWave } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -163,6 +163,21 @@ export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
   if (stars >= STAR.maxTowerStars) return null;
   return towerStarCost(stars);
+}
+
+/** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress, which
+ *  drives the Evolution Cap (docs/EVOLUTION-CAP.md §3). 0 for a fresh account. */
+export function highestCampaignStage(save: SaveData): number {
+  let max = 0;
+  for (const v of Object.values(save.campaign?.cleared ?? {})) max = Math.max(max, v ?? 0);
+  return max;
+}
+
+/** The current Tower-Star EVOLUTION CAP from Campaign progress (config.EVOLUTION_CAPS). A star may
+ *  not be bought beyond this until the matching Campaign milestone is cleared — Shards are the
+ *  fuel, Campaign is the permission. */
+export function evolutionStarCap(save: SaveData): number {
+  return campaignStarCap(highestCampaignStage(save));
 }
 
 /** Fold stars + mastery into per-kind run config. Stars contribute the incidental S-bucket
@@ -746,11 +761,19 @@ export const meta = {
     return true;
   },
 
-  /** Spend tower shards to add a star to `kind`. Returns false if unaffordable/maxed. */
+  /** The current Tower-Star EVOLUTION CAP from Campaign progress (docs/EVOLUTION-CAP.md). A tower
+   *  may not be evolved past this until the matching Campaign milestone is cleared. */
+  evolutionCap(): number {
+    return evolutionStarCap(store.get());
+  },
+
+  /** Spend tower shards to add a star to `kind`. Returns false if unaffordable, maxed, OR gated by
+   *  the Campaign Evolution Cap (Shards are the fuel, Campaign is the permission). */
   buyStar(kind: TowerKind): boolean {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
     if (stars >= STAR.maxTowerStars) return false;
+    if (stars >= evolutionStarCap(save)) return false; // Campaign Evolution Cap not yet unlocked
     const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
@@ -955,6 +978,13 @@ export const meta = {
     const towerMasteryXp = { ...save.towerMasteryXp };
     for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
     persist({ ...save, towerMasteryXp });
+  },
+
+  /** Set the highest cleared Campaign stage for a difficulty track — drives the Evolution Cap
+   *  (lets the debug panel + tests exercise the cap gating without playing the ladder). */
+  debugSetCampaignStage(stage: number, difficulty = 'standard'): void {
+    const save = store.get();
+    persist({ ...save, campaign: { cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
   },
 
   debugAddHeroShards(n: number): void {

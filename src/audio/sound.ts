@@ -143,6 +143,9 @@ function sShardHero(): void { // Hero Shard — a brighter ASCENDING sparkle, a 
 function sSplice(): void { // wet, rising graft — the irreversible commitment
   tone(150, 0.22, 'sawtooth', 0.13, 360); tone(80, 0.26, 'sine', 0.12, 190); noise(0.2, 0.1, 1100, 3200);
 }
+function sDissolve(): void { // tower dissolves into biomass — a wet, DESCENDING melt (the inverse of splice)
+  tone(360, 0.26, 'sawtooth', 0.12, 90); tone(190, 0.3, 'sine', 0.1, 70); noise(0.28, 0.12, 2600, 480);
+}
 function sBrSwarm(): void { noise(0.04, 0.05, 4200); tone(760, 0.05, 'square', 0.035, 980); } // chittering barb volley
 function sBrRail(): void { tone(1250, 0.06, 'sawtooth', 0.06, 230); tone(130, 0.11, 'sine', 0.06, 66); } // railgun crack + thud
 function sBrSiege(): void { tone(90, 0.16, 'sine', 0.09, 50); noise(0.12, 0.07, 900, 280); } // deep necrotic mortar boom
@@ -224,6 +227,7 @@ export const audio = {
         case 'achieve': sAchieve(); break;
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;
+        case 'dissolve': sDissolve(); break;
         case 'br_swarm': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(); break;
         case 'br_rail': sBrRail(); break;
         case 'br_siege': for (let i = 0; i < Math.min(2, n); i++) sBrSiege(); break;

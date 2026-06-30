@@ -164,6 +164,11 @@ export const TOWER_ORDER = towerRegistry.ids() as TowerKind[];
  * real first commitment, affordable mid-build), T5 ≈ 160k–200k (a deep-endless capstone). A
  * single tower is ~220–275k to take 1→5; a full damage board is ~4–5M, which income only
  * reaches around wave ~55–60 — so Biomass never goes meaningless before then. */
+// ── Tower Sell (docs/TOWER-MANAGEMENT.md §2). The refund FRACTION is the future-proof knob:
+//    it seeds `RunModifiers.sellRefundFrac`, which any Gene Card / Equipment / Prestige perk /
+//    Permanent Upgrade can raise through the normal effect pipeline. frac ≤ 1 ⇒ never exploitable. ──
+export const SELL = { refundFrac: 0.75 } as const;
+
 export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, number, number]> = {
   needle: [600, 2800, 12000, 45000, 160000],
   mortar: [900, 3800, 15000, 55000, 200000],
@@ -904,6 +909,66 @@ export const STAR = {
 };
 /** Star levels that earn a celebratory MILESTONE moment in the upgrade ceremony (TowerLab). */
 export const STAR_MILESTONES: readonly number[] = [3, 5, 7, 10];
+
+/** Campaign EVOLUTION CAP (docs/EVOLUTION-CAP.md) — the highest Star tier a tower may be evolved
+ *  to is gated by CAMPAIGN progress, not Tower Shards alone. Clearing each `stage` permanently
+ *  unlocks evolving towers up to `maxStar` account-wide — "a new generation of biological
+ *  mutation." Ascending; the last row's `maxStar` is the absolute cap. Shards are the FUEL,
+ *  Campaign is the PERMISSION: both must be satisfied to buy a star. */
+export const EVOLUTION_CAPS: readonly { stage: number; maxStar: number }[] = [
+  { stage: 1, maxStar: 2 }, // a fresh account can still evolve to ★2 (default below this row)
+  { stage: 10, maxStar: 3 }, // ★3 = specialization fork opens
+  { stage: 25, maxStar: 4 },
+  { stage: 50, maxStar: 5 }, // ★5 = fully-evolved base form
+  { stage: 80, maxStar: 6 }, // ★6+ = ascension band
+  { stage: 120, maxStar: 7 },
+  { stage: 170, maxStar: 8 },
+  { stage: 230, maxStar: 9 },
+  { stage: 300, maxStar: 10 }, // apex organism
+];
+
+/** The Evolution Cap for a given highest-cleared Campaign stage: the `maxStar` of the last
+ *  EVOLUTION_CAPS row with `stage ≤ highest` (defaults to the first row so a fresh account, 0
+ *  cleared, can reach ★2). Pure; the single source of truth shared by the UI + the buy-path. */
+export function campaignStarCap(highestStageCleared: number): number {
+  let cap = EVOLUTION_CAPS[0].maxStar;
+  for (const e of EVOLUTION_CAPS) if (highestStageCleared >= e.stage) cap = e.maxStar;
+  return cap;
+}
+
+/** The next EVOLUTION_CAPS row that raises the cap above `maxStar` (null once at the absolute
+ *  cap) — drives the "Reach Campaign Stage N to evolve to ★X" preview. */
+export function nextEvolutionUnlock(maxStar: number): { stage: number; maxStar: number } | null {
+  for (const e of EVOLUTION_CAPS) if (e.maxStar > maxStar) return e;
+  return null;
+}
+
+/** STAR MUTATION TIERS (docs/TOWER-VISUAL-EVOLUTION.md) — the shared *generation* taxonomy: a
+ *  tower visibly mutates every two stars. Used by BOTH the visual-evolution renderer and the
+ *  Tower Lab's "upcoming visual mutation" preview, so the look and the label never drift. `at` =
+ *  the star the generation begins; it persists until the next tier's `at`. */
+export const STAR_MUTATION_TIERS: readonly { at: number; name: string; desc: string }[] = [
+  { at: 1, name: 'Base Organism', desc: 'The unmutated base form.' },
+  { at: 3, name: 'Minor Mutation', desc: 'Additional limbs, glowing veins, armor growth, a new firing organ.' },
+  { at: 5, name: 'Large Mutation', desc: 'A larger, more aggressive silhouette and improved projectiles.' },
+  { at: 7, name: 'Advanced Mutation', desc: 'Animated biological structures, larger attack effects, organic movement.' },
+  { at: 9, name: 'Ultimate Organism', desc: 'A fully evolved, prestige-level silhouette with legendary effects.' },
+];
+
+/** The STAR_MUTATION_TIERS generation a tower of `star` is currently in (the last row with
+ *  `at ≤ star`; the Base Organism for ★0–2). */
+export function starMutationTier(star: number): { at: number; name: string; desc: string } {
+  let t = STAR_MUTATION_TIERS[0];
+  for (const m of STAR_MUTATION_TIERS) if (star >= m.at) t = m;
+  return t;
+}
+
+/** The next STAR_MUTATION_TIERS generation above `star` (null once at the Ultimate tier) — drives
+ *  the "upcoming visual mutation" preview on a locked star. */
+export function nextStarMutationTier(star: number): { at: number; name: string; desc: string } | null {
+  for (const m of STAR_MUTATION_TIERS) if (m.at > star) return m;
+  return null;
+}
 
 /** Infinite mastery: signals → XP, an ever-growing requirement curve, tiny buff. */
 export const MASTERY = {

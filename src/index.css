@@ -2618,9 +2618,19 @@ kbd {
 .tl-next-k { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; }
 .tl-next-desc { font-size: 12px; color: var(--muted); }
 .tl-next-ability { font-size: 10.5px; color: var(--dim); }
+/* Campaign Evolution Cap — a "work toward it" panel, NOT a grey-out (docs/EVOLUTION-CAP.md §4). */
+.tl-next.is-locked { border-left-style: dashed; opacity: 0.95; }
+.tl-cap { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; padding: 6px 8px; border-radius: 7px;
+  background: rgba(120, 90, 200, 0.1); border: 1px solid rgba(150, 120, 230, 0.25); }
+.tl-cap-req { font-size: 11px; color: var(--text); }
+.tl-cap-req b { color: #c9b6ff; }
+.tl-cap-prog { font-size: 10px; color: var(--dim); align-self: flex-end; }
+.tl-cap-vis { font-size: 10.5px; color: var(--muted); }
+.tl-cap-vis b { color: #c9b6ff; }
 .tl-actions { display: flex; align-items: center; gap: 10px; }
 .tl-mutate { flex: 1; }
 .tl-mutate.is-afford { box-shadow: 0 0 14px rgba(63, 224, 138, 0.35); }
+.tl-mutate.is-locked { background: rgba(90, 80, 130, 0.5); color: #c9b6ff; }
 .tl-shards { font-size: 13px; font-weight: 700; color: var(--gold); flex: none; }
 .tl-forks-toggle { background: none; border: none; color: var(--muted); font-size: 11px; padding: 2px 0; align-self: flex-start; }
 .tl-forks-toggle:hover:not(:disabled) { color: var(--text); transform: none; background: none; }
@@ -3960,6 +3970,36 @@ kbd {
 .branch-confirm-btns button { flex: 1; padding: 10px; border-radius: 7px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05); color: var(--text); }
 .branch-confirm-btns .primary { background: var(--r-legendary); color: #1a1206; border-color: var(--r-legendary); }
 .branch-confirm-btns button:hover { filter: brightness(1.1); }
+
+/* ── Tower management (docs/TOWER-MANAGEMENT.md): Move + Sell row, the combat note, the sell dialog ── */
+.mut-manage { display: flex; gap: 8px; margin-top: 10px; }
+.mut-btn {
+  flex: 1; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: var(--text);
+}
+.mut-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.09); }
+.mut-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mut-sell { border-color: color-mix(in srgb, var(--caustic) 45%, transparent); color: var(--caustic); }
+.mut-sell:hover:not(:disabled) { background: color-mix(in srgb, var(--caustic) 14%, transparent); }
+.mut-sell-amt { font-weight: 900; }
+.mut-btn.is-moving {
+  flex-basis: 100%; border-color: var(--caustic); color: var(--caustic);
+  background: color-mix(in srgb, var(--caustic) 12%, transparent);
+  animation: emergency-flash 1.2s ease-in-out infinite;
+}
+.mut-move-note { margin: 6px 0 0; font-size: 11px; color: var(--warn); font-style: italic; }
+/* Sell confirm — refund-positive accent (caustic/biomass green), not the legendary-lock red */
+.sell-confirm { border-color: color-mix(in srgb, var(--caustic) 60%, transparent); box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6), 0 0 30px -10px var(--caustic); }
+.sell-confirm h3 { color: var(--caustic); }
+.sell-rows { margin: 0 0 14px; display: flex; flex-direction: column; gap: 6px; }
+.sell-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; color: var(--muted); }
+.sell-row b { color: var(--text); font-weight: 700; }
+.sell-row .sell-pos { color: var(--caustic); }
+.sell-total { margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.12); font-size: 14px; }
+.sell-total span { color: var(--text); font-weight: 700; }
+.sell-total b { font-size: 16px; }
+.sell-warn { margin: 0 0 14px !important; font-size: 12px !important; color: var(--warn) !important; }
+.sell-warn b { color: var(--text); }
 
 /* In-game pause — a floating button (top-right of the board) + a PAUSED overlay over the board.
    z above boss-banner (40) / mutation-fx (45) so it covers the battlefield while frozen. */
