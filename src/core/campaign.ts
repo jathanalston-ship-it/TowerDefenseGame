@@ -4,7 +4,7 @@
 // formulas, no DOM/sim. The Game runs a StageConfig through the existing scripted-wave path
 // (`game.ts` 'campaign' mode); stage mode stays byte-identical (golden-safe).
 
-import { ENEMY_DEFS, ENEMY_KINDS, biomeRegistry } from './config';
+import { CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS, biomeRegistry } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind } from './types';
 import { Rng } from './rng';
@@ -193,7 +193,7 @@ function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: numbe
 export function generateStage(stage: number, difficultyId = 'standard'): StageConfig {
   const st = Math.max(1, Math.floor(stage));
   const rng = new Rng(stageSeed(st, difficultyId));
-  const biome = BIOMES[(st - 1) % BIOMES.length];
+  const biome = biomeForStage(st); // contiguous biome regions (BIOME_REGION stages each)
   const base = resolveDifficulty(difficultyId);
   const sc = stageScaling(st);
 
@@ -240,4 +240,52 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
     enemySpeedMult: sc.speedMult,
     rewardMult: sc.rewardMult * base.rewardMult,
   };
+}
+
+// ── World-map read models (CAMPAIGN-MAP / docs/MODE-IDENTITY.md §3) ────────────────────────────
+// Pure, LIGHT (no wave generation) + deterministic in stage number, so the living map is a windowed
+// view over an unbounded procedural ladder — thousands of stages, zero authoring, no redesign.
+
+/** Stages per biome REGION — biomes occupy contiguous bands of the map (a region, not every-other
+ *  stage), so the world reads as zones you cross. Appending a biome extends the planet's depth. */
+export const BIOME_REGION = 5;
+
+/** The biome a stage belongs to. Regions cycle through BIOMES; appending a biome extends the world. */
+export function biomeForStage(stage: number): CampaignBiome {
+  return BIOMES[Math.floor((Math.max(1, Math.floor(stage)) - 1) / BIOME_REGION) % BIOMES.length];
+}
+
+/** Recommended account Power Score for a stage — SAME scale as meta.powerScore() (1.0 = fresh),
+ *  derived from the stage's combined HP×damage scaling so "am I strong enough?" is a glance. */
+export function recommendedPower(stage: number, difficultyId = 'standard'): number {
+  const sc = stageScaling(Math.max(1, Math.floor(stage)));
+  const base = resolveDifficulty(difficultyId);
+  return Math.sqrt(sc.hpMult * base.enemyHealthMult * sc.damageMult * base.enemyDamageMult);
+}
+
+export interface CampaignMapNode {
+  stage: number;
+  biome: { id: string; name: string; accent: string };
+  state: 'cleared' | 'current' | 'locked';
+  milestone: boolean; // a CAMPAIGN_REWARDS.milestoneEvery checkpoint (bonus reward + a map landmark)
+  recommendedPower: number;
+}
+
+/** A WINDOWED slice of the campaign for the map — `cleared` = highest cleared on this difficulty
+ *  track; renders `count` nodes from `viewStart` (1-based). O(count), independent of total depth. */
+export function campaignMapView(cleared: number, difficultyId: string, viewStart: number, count: number): CampaignMapNode[] {
+  const start = Math.max(1, Math.floor(viewStart));
+  const out: CampaignMapNode[] = [];
+  for (let i = 0; i < count; i++) {
+    const stage = start + i;
+    const b = biomeForStage(stage);
+    out.push({
+      stage,
+      biome: { id: b.id, name: b.name, accent: b.accent },
+      state: stage <= cleared ? 'cleared' : stage === cleared + 1 ? 'current' : 'locked',
+      milestone: stage % CAMPAIGN_REWARDS.milestoneEvery === 0,
+      recommendedPower: recommendedPower(stage, difficultyId),
+    });
+  }
+  return out;
 }
