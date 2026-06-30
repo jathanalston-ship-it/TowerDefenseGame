@@ -30,6 +30,8 @@ import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
+import { evolutionStarCap, highestCampaignStage, milestoneCrossed } from '../core/evolution';
+import type { EvolutionMilestone } from '../core/evolution';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
 import { PRESTIGE, canMolt, cellsForCycle, prestigeMult } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
@@ -161,7 +163,8 @@ export function heroStarCost(stars: number): number {
 
 export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
-  if (stars >= STAR.maxTowerStars) return null;
+  // Gated by the campaign-unlocked Evolution Tier (docs/TOWER-CODEX.md §1), never the absolute max.
+  if (stars >= evolutionStarCap(highestCampaignStage(save.campaign.cleared))) return null;
   return towerStarCost(stars);
 }
 
@@ -289,6 +292,9 @@ export interface RunOutcome {
   loot: { queue: LootQueueState; banked: PendingContainer[] }; // containers banked unopened this run (Vault)
   masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
   achievements: AchievementDef[]; // milestones unlocked at run end — shown inline on Results, NOT toasted
+  // Campaign milestone crossed this run → a new Evolution Tier (raised Star Cap). Drives the
+  // dramatic Evolution Unlock sequence (docs/TOWER-CODEX.md §2); absent on a normal run.
+  evolutionUnlock?: { milestone: EvolutionMilestone; oldCap: number; newCap: number };
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -525,6 +531,10 @@ export const meta = {
     const nextCampaign = result.campaignStage && result.won
       ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
       : save.campaign;
+    // Evolution Tier: did this clear cross a milestone that raises the global Star Cap?
+    const oldHigh = highestCampaignStage(save.campaign.cleared);
+    const newHigh = highestCampaignStage(nextCampaign.cleared);
+    const crossed: EvolutionMilestone | null = result.won && result.campaignStage ? milestoneCrossed(oldHigh, newHigh) : null;
 
     persist({
       ...save,
@@ -560,6 +570,7 @@ export const meta = {
       loot: { queue: lootAdv.state, banked: bankedThisRun },
       masteryUnlocks: { titles: newTitles, lore: newLore },
       achievements: unlockedAchievements,
+      ...(crossed ? { evolutionUnlock: { milestone: crossed, oldCap: evolutionStarCap(oldHigh), newCap: evolutionStarCap(newHigh) } } : {}),
     };
   },
 
@@ -727,7 +738,7 @@ export const meta = {
   buyStar(kind: TowerKind): boolean {
     const save = store.get();
     const stars = save.towerStars[kind] ?? 0;
-    if (stars >= STAR.maxTowerStars) return false;
+    if (stars >= evolutionStarCap(highestCampaignStage(save.campaign.cleared))) return false; // Evolution-Tier cap
     const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({

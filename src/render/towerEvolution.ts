@@ -204,6 +204,19 @@ export function branchSkinColor(skin: string | undefined): string {
   return (skin && BRANCH_COLOR[skin]) || '#ffffff';
 }
 
+/** Draw a branch's evolved organs for a Tower Lab / Codex PORTRAIT (no live tower) — a thin wrapper
+ *  over `drawTowerEvolution` with a synthetic, settled tower, so the encyclopedia can preview any
+ *  branch+tier WITHOUT owning it (docs/TOWER-CODEX.md §3). `mutatedAt` is in the past ⇒ fully grown. */
+export function drawBranchPortrait(
+  ctx: CanvasRenderingContext2D, branchId: string, tier: number, x: number, y: number, r: number, now: number,
+): void {
+  const tw: Tower = {
+    id: 0, kind: 'needle', x, y, slot: 0, cooldown: 0, overcharged: false, bornAt: -100,
+    disabledUntil: 0, branchId, tier, pulseCd: 0, mutatedAt: -100, movedAt: -100,
+  };
+  drawTowerEvolution(ctx, tw, now, r, BRANCH_EVOLUTION[branchId]?.color ?? '#ffffff', 0);
+}
+
 // ── The composer ─────────────────────────────────────────────────────────────────────────────
 // A single reused arg object (no per-part allocation in the hot draw loop). Drawers read it.
 interface PartCtx {

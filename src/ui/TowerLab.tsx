@@ -12,6 +12,7 @@ import type { TowerKind } from '../core/types';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { TowerPortrait } from './TowerPortrait';
+import { TowerCodex } from './TowerCodex';
 import { StarCeremony } from './StarCeremony';
 import { ceremonyView, towerLabModel } from './towerLabModel';
 import type { StepView } from './towerLabModel';
@@ -62,6 +63,7 @@ export function TowerLab(): JSX.Element {
   const prog = towerProgress(save);
   const [ceremony, setCeremony] = useState<CeremonyState | null>(null);
   const [openForks, setOpenForks] = useState<TowerKind | null>(null);
+  const [codexKind, setCodexKind] = useState<TowerKind | null>(null); // open the Evolution Codex for a tower
 
   const upgrade = (k: TowerKind, fromStar: number): void => {
     if (!meta.buyStar(k)) return;
@@ -80,12 +82,13 @@ export function TowerLab(): JSX.Element {
           const m = towerLabModel(save, k, prog[k]);
           return (
             <div className="tl-card" key={k} style={{ ['--tw' as string]: m.color }}>
-              {/* identity row: living portrait + name/class + star track */}
+              {/* identity row: living portrait (→ Evolution Codex) + name/class + star track */}
               <div className="tl-id">
-                <div className="tl-portrait">
+                <button className="tl-portrait" onClick={() => setCodexKind(k)} title={`Open the ${m.name} Evolution Codex`}>
                   <TowerPortrait color={m.color} stars={m.stars} size={112} />
                   <span className="tl-portrait-lvl" style={{ color: m.color }}>★{m.stars}</span>
-                </div>
+                  <span className="tl-portrait-examine">⤢ Codex</span>
+                </button>
                 <div className="tl-id-body">
                   <div className="tl-name" style={{ color: m.color }}>{m.name}</div>
                   <div className="tl-class">{m.combatClass}{m.mastery.rank ? ` · ${m.mastery.rank}` : ''}</div>
@@ -193,6 +196,8 @@ export function TowerLab(): JSX.Element {
           onClose={() => setCeremony(null)}
         />
       )}
+
+      {codexKind && <TowerCodex kind={codexKind} onClose={() => setCodexKind(null)} />}
     </div>
   );
 }
