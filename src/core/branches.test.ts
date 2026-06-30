@@ -43,22 +43,38 @@ describe('resolveBranchKit', () => {
     expect(resolveBranchKit('needle_swarm', 5).targeting).toBe('mostCorrupted'); // T4 wins
   });
 
-  it('carries a sensory signature (particle + sfx) from the lock tier through the capstone', () => {
-    // The lock tier sets the branch's attack particle/sfx; the cumulative fold keeps it at every
-    // higher tier (so a maxed tower still sprays its signature). Cosmetic only — golden-safe.
+  it('every branch carries a FULL sensory signature — muzzle + sound + impact — at every tier', () => {
+    // BRANCH-EVOLUTION.md §3: the lock tier sets all three channels and the cumulative fold keeps
+    // each defined at every higher tier, so a branched tower always sprays matter, plays a cue, and
+    // lands a flavoured impact — no tier renders/sounds generic. Cosmetic only ⇒ golden-safe.
+    for (const k of TOWER_ORDER) {
+      for (const b of branchesFor(k)) {
+        for (let tier = 1; tier <= 5; tier++) {
+          const kit = resolveBranchKit(b.id, tier);
+          expect(kit.particle, `${b.id} t${tier} muzzle particle`).toBeDefined();
+          expect(kit.sfx, `${b.id} t${tier} sound cue`).toBeDefined();
+          expect(kit.impact, `${b.id} t${tier} impact burst`).toBeDefined();
+        }
+      }
+    }
+  });
+
+  it('the sensory signature MATURES along a branch — not frozen at the lock tier', () => {
+    // A path evolves its matter as it climbs (organic barb → venom → barb-storm; the railspike's
+    // charged shot starts to detonate) so a maxed tower reads differently from a fresh splice.
     expect(resolveBranchKit('needle_swarm', 1).particle).toBe('barb');
-    expect(resolveBranchKit('needle_swarm', 1).sfx).toBe('br_swarm');
-    expect(resolveBranchKit('needle_swarm', 5).particle).toBe('barb'); // still set at the capstone
-    expect(resolveBranchKit('needle_rail', 2).particle).toBe('spark');
-    expect(resolveBranchKit('needle_rail', 2).sfx).toBe('br_rail');
-    expect(resolveBranchKit('mortar_siege', 3).particle).toBe('ember');
+    expect(resolveBranchKit('needle_swarm', 3).particle).toBe('venom');
+    expect(resolveBranchKit('needle_swarm', 5).particle).toBe('barbstorm');
     expect(resolveBranchKit('mortar_cauldron', 1).particle).toBe('acid');
-    expect(resolveBranchKit('reactor_heart', 1).particle).toBe('vital');
-    expect(resolveBranchKit('reactor_brood', 1).particle).toBe('spore');
-    expect(resolveBranchKit('parasite_apex', 1).particle).toBe('infect');
-    expect(resolveBranchKit('parasite_ravager', 1).particle).toBe('gore');
-    expect(resolveBranchKit('obelisk_tyrant', 1).particle).toBe('disrupt');
-    expect(resolveBranchKit('obelisk_mindrender', 1).particle).toBe('spark');
+    expect(resolveBranchKit('mortar_cauldron', 5).particle).toBe('dissolve');
+    expect(resolveBranchKit('parasite_apex', 5).particle).toBe('pandemic');
+    expect(resolveBranchKit('reactor_heart', 5).particle).toBe('vitalcore');
+    // the impact channel matures INDEPENDENTLY of the muzzle (Charged Shot detonates from T3).
+    expect(resolveBranchKit('needle_rail', 1).impact).toBe('spark');
+    expect(resolveBranchKit('needle_rail', 3).impact).toBe('railburst');
+    // the sound cue tag is the branch identity (held across tiers; the audio layer deepens it by tier).
+    expect(resolveBranchKit('needle_swarm', 1).sfx).toBe('br_swarm');
+    expect(resolveBranchKit('needle_swarm', 5).sfx).toBe('br_swarm');
   });
 
   it('a branched obelisk (field) cues its signature on every pulse', () => {
@@ -93,9 +109,12 @@ describe('resolveBranchKit', () => {
     expect(sawSfx, 'an economy-only Symbiotic Heart should still beat its vital cue').toBe(true);
   });
 
-  it('an unbranched kit has no sensory signature (identity)', () => {
-    expect(resolveBranchKit('needle_swarm', 0).particle).toBeUndefined();
-    expect(resolveBranchKit('needle_swarm', 0).sfx).toBeUndefined();
+  it('an unbranched kit has no sensory signature on ANY channel (identity)', () => {
+    const k0 = resolveBranchKit('needle_swarm', 0);
+    expect(k0.particle).toBeUndefined();
+    expect(k0.sfx).toBeUndefined();
+    expect(k0.impact).toBeUndefined(); // impact is unset at tier 0 too ⇒ deep-equal the empty kit
+    expect(k0).toEqual(emptyBranchKit());
   });
 });
 
