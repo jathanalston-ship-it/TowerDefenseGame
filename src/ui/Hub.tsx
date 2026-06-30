@@ -24,6 +24,7 @@ import { Statistics } from './Statistics';
 import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
+import { DevTools } from './DevTools';
 
 type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
 
@@ -90,6 +91,7 @@ function SettingsScreen(): JSX.Element {
             Reset Save
           </button>
         </div>
+        <DevTools />
       </div>
     </div>
   );

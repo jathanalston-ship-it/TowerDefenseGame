@@ -466,6 +466,14 @@ export class SaveStore {
     this.remove(SAVE_KEY);
   }
 
+  /** Developer Reset "EVERYTHING" (docs/DEV-RESET.md §3): remove the main save, EVERY backup, and
+   *  the backup index — a clean slate in this store's keyspace. (Prefs/flags are wiped by meta.) */
+  wipeAll(): void {
+    for (const b of this.listBackups()) this.remove(BAK_PREFIX + b.id);
+    this.remove(BAK_INDEX);
+    this.remove(SAVE_KEY);
+  }
+
   private remove(key: string): void {
     try {
       this.storage.removeItem(key);
