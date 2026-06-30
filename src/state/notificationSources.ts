@@ -29,10 +29,10 @@ registerNotification({
     }, 0),
 });
 
-// Hero Lab — newly acquired equipment (the inventory grows as caches drop gear).
+// Equipment — newly acquired gear (the inventory grows as caches drop loot). Its own nav now.
 registerNotification({
   id: 'heroes.equipment',
-  channel: 'heroes',
+  channel: 'equipment',
   count: (s) => s.equipment.inventory.length,
 });
 
