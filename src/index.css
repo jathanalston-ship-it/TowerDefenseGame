@@ -2578,9 +2578,19 @@ kbd {
 .tl-next-k { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; }
 .tl-next-desc { font-size: 12px; color: var(--muted); }
 .tl-next-ability { font-size: 10.5px; color: var(--dim); }
+/* Campaign Evolution Cap — a "work toward it" panel, NOT a grey-out (docs/EVOLUTION-CAP.md §4). */
+.tl-next.is-locked { border-left-style: dashed; opacity: 0.95; }
+.tl-cap { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; padding: 6px 8px; border-radius: 7px;
+  background: rgba(120, 90, 200, 0.1); border: 1px solid rgba(150, 120, 230, 0.25); }
+.tl-cap-req { font-size: 11px; color: var(--text); }
+.tl-cap-req b { color: #c9b6ff; }
+.tl-cap-prog { font-size: 10px; color: var(--dim); align-self: flex-end; }
+.tl-cap-vis { font-size: 10.5px; color: var(--muted); }
+.tl-cap-vis b { color: #c9b6ff; }
 .tl-actions { display: flex; align-items: center; gap: 10px; }
 .tl-mutate { flex: 1; }
 .tl-mutate.is-afford { box-shadow: 0 0 14px rgba(63, 224, 138, 0.35); }
+.tl-mutate.is-locked { background: rgba(90, 80, 130, 0.5); color: #c9b6ff; }
 .tl-shards { font-size: 13px; font-weight: 700; color: var(--gold); flex: none; }
 .tl-forks-toggle { background: none; border: none; color: var(--muted); font-size: 11px; padding: 2px 0; align-self: flex-start; }
 .tl-forks-toggle:hover:not(:disabled) { color: var(--text); transform: none; background: none; }
