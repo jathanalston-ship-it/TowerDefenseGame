@@ -24,7 +24,7 @@ import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
-  hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34,
+  hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34, dissolve: 0.14,
 };
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
@@ -238,7 +238,7 @@ export function GameView({
         e.preventDefault();
         game.startWave();
       } else if (k === 'Escape') {
-        game.selectTower(null);
+        game.cancelInteractions(); // close inspect / cancel move / disarm placement
       } else {
         return;
       }
@@ -290,7 +290,13 @@ export function GameView({
             // Ignore the release if the pointer was dragged — only deliberate taps act.
             if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) return;
             const p = toCoords(e.clientX, e.clientY);
-            game.click(p.x, p.y);
+            // Shift keeps the build tool armed for rapid placement (docs/TOWER-MANAGEMENT.md §4).
+            game.click(p.x, p.y, { shift: e.shiftKey });
+            refresh();
+          }}
+          onDoubleClick={(e) => {
+            const p = toCoords(e.clientX, e.clientY);
+            game.inspectAt(p.x, p.y); // double-click a placed tower → open Inspect immediately
             refresh();
           }}
           onPointerLeave={(e) => {
@@ -299,8 +305,13 @@ export function GameView({
           onContextMenu={(e) => {
             e.preventDefault();
             const p = toCoords(e.clientX, e.clientY);
-            game.selectTower(null);
-            game.setRally(p.x, p.y);
+            // Right-click closes any tower interaction; only re-anchors the hero rally when there
+            // was nothing to close (so a stray right-click never yanks the hero mid-build).
+            if (game.selectedTower || game.selectedPlacedId !== null || game.movingTowerId !== null) {
+              game.cancelInteractions();
+            } else {
+              game.setRally(p.x, p.y);
+            }
             refresh();
           }}
         />
@@ -427,6 +438,20 @@ export function GameView({
             }}
             onDeselect={() => {
               game.selectPlacedTower(null);
+              refresh();
+            }}
+            onSell={(towerId) => {
+              audio.resume();
+              game.sellTower(towerId); // dissolve FX + refund; closes Inspect (selectedPlacedId cleared)
+              refresh();
+            }}
+            onMove={(towerId) => {
+              audio.resume();
+              game.beginMove(towerId); // pick up → tap a valid slot on the board to relocate
+              refresh();
+            }}
+            onCancelMove={() => {
+              game.cancelMove();
               refresh();
             }}
           />

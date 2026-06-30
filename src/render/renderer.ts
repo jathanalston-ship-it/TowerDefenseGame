@@ -111,6 +111,8 @@ export function drawGame(
 
   drawOverchargeLinks(ctx, rs);
   for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId);
+  drawLandingImpacts(ctx, rs, t); // relocation landing impact
+  drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
   for (const p of rs.projectiles) drawProjectile(ctx, p);
 
@@ -462,6 +464,45 @@ function drawOverchargeLinks(ctx: CanvasRenderingContext2D, rs: RenderState): vo
   for (const t of rs.towers) {
     if (!t.overcharged) continue;
     ring(ctx, t.x, t.y, pulse(rs.time + t.id, 3, 16, 19), THEME.overcharge, 2);
+  }
+}
+
+// ── Tower relocation (docs/TOWER-MANAGEMENT.md §3) — move-mode targets + holographic pickup ──
+function drawMoveOverlay(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  if (rs.movingTowerId === null) return;
+  const occupied = new Set(rs.towers.map((x) => x.slot));
+  const s = CELL - 10;
+  // Every VALID empty unlocked slot pulses as a landing target; occupied/locked stay disabled.
+  for (const slot of towerSlots) {
+    if (slot.index >= rs.unlockedSlots || occupied.has(slot.index)) continue;
+    const a = pulse(t * 1.5 + slot.index, 1.4, 0.4, 0.95);
+    roundRectPath(ctx, slot.x - s / 2, slot.y - s / 2, s, s, 6);
+    ctx.fillStyle = rgba(THEME.select.valid, 0.1 * a);
+    ctx.fill();
+    ctx.strokeStyle = rgba(THEME.select.valid, a);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  // The picked-up tower: a hovering holographic silhouette + a dashed pickup ring.
+  const tw = rs.towers.find((x) => x.id === rs.movingTowerId);
+  if (tw) {
+    ring(ctx, tw.x, tw.y, 16 + 2 * pulse(t, 4, 0, 1), rgba(THEME.select.valid, 0.85), 2, [5, 4]);
+    const lift = 5 + 2 * pulse(t, 3, 0, 1);
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    glowDisc(ctx, tw.x, tw.y - lift, 13, TOWER_DEFS[tw.kind].color);
+    ctx.restore();
+    labelAt(ctx, tw.x, tw.y - CELL / 2 - 6, 'MOVING — tap a slot', TOWER_DEFS[tw.kind].color);
+  }
+}
+
+/** Expanding impact ring right after a tower lands from a relocation (reads `movedAt`). */
+function drawLandingImpacts(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
+  for (const tw of rs.towers) {
+    const age = t - tw.movedAt;
+    if (age < 0 || age > 0.45) continue; // recent relocation only (movedAt = -100 when never moved)
+    const k = age / 0.45;
+    ring(ctx, tw.x, tw.y, 8 + k * 26, rgba(THEME.select.valid, (1 - k) * 0.8), 2.5);
   }
 }
 
@@ -1056,7 +1097,9 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     return;
   }
 
-  if (tower) {
+  // Hover highlights a tower's attack radius — UNLESS a relocation is in progress, when unrelated
+  // range indicators are hidden so the board reads cleanly (docs/TOWER-MANAGEMENT.md §3/§4).
+  if (tower && rs.movingTowerId === null) {
     const def = TOWER_DEFS[tower.kind];
     // selection: show the selected tower's effective range in its class-appropriate form
     drawRangeIndicator(ctx, tower.x, tower.y, rs.effectiveRanges[tower.kind] ?? def.range, def.firing, THEME.target.range, rs.time);

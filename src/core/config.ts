@@ -164,6 +164,11 @@ export const TOWER_ORDER = towerRegistry.ids() as TowerKind[];
  * real first commitment, affordable mid-build), T5 ≈ 160k–200k (a deep-endless capstone). A
  * single tower is ~220–275k to take 1→5; a full damage board is ~4–5M, which income only
  * reaches around wave ~55–60 — so Biomass never goes meaningless before then. */
+// ── Tower Sell (docs/TOWER-MANAGEMENT.md §2). The refund FRACTION is the future-proof knob:
+//    it seeds `RunModifiers.sellRefundFrac`, which any Gene Card / Equipment / Prestige perk /
+//    Permanent Upgrade can raise through the normal effect pipeline. frac ≤ 1 ⇒ never exploitable. ──
+export const SELL = { refundFrac: 0.75 } as const;
+
 export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, number, number]> = {
   needle: [600, 2800, 12000, 45000, 160000],
   mortar: [900, 3800, 15000, 55000, 200000],

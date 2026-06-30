@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
-import type { HudSnapshot } from '../core/types';
+import type { HudSnapshot, SelectedPlacedTower } from '../core/types';
 
 function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
   return (
@@ -38,14 +38,22 @@ export function Inspector({
   onCollapse,
   onBranchBuy,
   onDeselect,
+  onSell,
+  onMove,
+  onCancelMove,
 }: {
   hud: HudSnapshot;
   onCollapse?: () => void;
   onBranchBuy?: (towerId: number, branchId: string) => void;
   onDeselect?: () => void;
+  onSell?: (towerId: number) => void;
+  onMove?: (towerId: number) => void;
+  onCancelMove?: () => void;
 }): JSX.Element {
   // Tier-1 commit confirmation (the lock warning).
   const [confirm, setConfirm] = useState<{ towerId: number; branchId: string; name: string } | null>(null);
+  // Sell confirmation (docs/TOWER-MANAGEMENT.md §2) — a lightweight, non-modal centered popup.
+  const [sell, setSell] = useState<SelectedPlacedTower | null>(null);
 
   // ── Mutation panel: a PLACED tower is selected (the Tower Inspect redesign) ──
   // The upgrade TREE is the centerpiece (core/branchTree → BranchTree). Around it:
@@ -115,10 +123,54 @@ export function Inspector({
           <p className="side-hint">This tower has no mutation paths yet.</p>
         )}
 
+        {/* Tower management (docs/TOWER-MANAGEMENT.md): Relocate (Build Phase) + Sell. */}
+        <div className="mut-manage">
+          {sp.moving ? (
+            <button className="mut-btn is-moving" onClick={() => onCancelMove?.()}>
+              Tap a slot · <b>Cancel move</b>
+            </button>
+          ) : (
+            <button
+              className="mut-btn mut-move"
+              disabled={!sp.canMove}
+              title={sp.canMove ? 'Relocate this tower (free, Build Phase)' : 'Cannot relocate towers during combat.'}
+              onClick={() => onMove?.(sp.id)}
+            >
+              ⤢ Move
+            </button>
+          )}
+          <button className="mut-btn mut-sell" onClick={() => setSell(sp)} title={`Sell for +${sp.sell.total} biomass`}>
+            Sell <span className="mut-sell-amt">+{sp.sell.total}</span>
+          </button>
+        </div>
+        {!sp.canMove && !sp.moving && <p className="mut-move-note" role="note">Cannot relocate towers during combat.</p>}
+
         <button className="branch-done" onClick={onDeselect}>Done</button>
 
         {/* Portal to <body> so the modal is a true screen-centered pop-up — rendering it inside the
             transformed/animated sidebar trapped `position: fixed` to the sidebar (warped + cut off). */}
+        {sell && createPortal(
+          <div className="branch-confirm-overlay" onClick={() => setSell(null)}>
+            <div className="branch-confirm sell-confirm" onClick={(e) => e.stopPropagation()}>
+              <h3>Sell {sell.name}?</h3>
+              <div className="sell-rows">
+                <div className="sell-row"><span>Current investment</span><b>{sell.sell.investment} biomass</b></div>
+                <div className="sell-row"><span>Tower refund</span><b className="sell-pos">+{sell.sell.towerRefund}</b></div>
+                {sell.sell.branchRefund > 0 && (
+                  <div className="sell-row"><span>Branch upgrades refunded</span><b className="sell-pos">+{sell.sell.branchRefund}</b></div>
+                )}
+                <div className="sell-row sell-total"><span>Total refund</span><b className="sell-pos">+{sell.sell.total} biomass</b></div>
+              </div>
+              <p className="sell-warn" role="note">⚠ This tower is <b>permanently removed</b> for this run. Gene Cards, mastery, and stars are kept.</p>
+              <div className="branch-confirm-btns">
+                <button className="primary" onClick={() => { onSell?.(sell.id); setSell(null); }}>Sell tower</button>
+                <button onClick={() => setSell(null)}>Cancel</button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
         {confirm && createPortal(
           <div className="branch-confirm-overlay" onClick={() => setConfirm(null)}>
             <div className="branch-confirm" onClick={(e) => e.stopPropagation()}>
