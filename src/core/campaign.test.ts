@@ -2,7 +2,7 @@
 // stage-gated + biome-biased roster, valid generated waves, and a stage-scaled boss finale.
 
 import { describe, it, expect } from 'vitest';
-import { generateStage, BIOMES } from './campaign';
+import { generateStage, biomeForStage, BIOMES, BIOME_REGION } from './campaign';
 
 describe('campaign generator', () => {
   it('is deterministic in (stage, difficulty) — same inputs ⇒ identical stage', () => {
@@ -83,9 +83,14 @@ describe('campaign generator', () => {
     expect(hard.rewardMult).toBeGreaterThan(std.rewardMult);
   });
 
-  it('rotates biomes deterministically by stage number', () => {
-    for (let n = 1; n <= BIOMES.length * 2 + 1; n++) {
-      expect(generateStage(n, 'standard').biome.id).toBe(BIOMES[(n - 1) % BIOMES.length].id);
+  it('groups biomes into contiguous REGIONS (a band per BIOME_REGION stages), cycling', () => {
+    for (let n = 1; n <= BIOMES.length * BIOME_REGION + 3; n++) {
+      const expected = BIOMES[Math.floor((n - 1) / BIOME_REGION) % BIOMES.length].id;
+      expect(generateStage(n, 'standard').biome.id).toBe(expected); // generator + map agree
+      expect(biomeForStage(n).id).toBe(expected);
     }
+    // A region is contiguous: same biome across its band, a new one at the boundary.
+    expect(biomeForStage(1).id).toBe(biomeForStage(BIOME_REGION).id);
+    expect(biomeForStage(1).id).not.toBe(biomeForStage(BIOME_REGION + 1).id);
   });
 });

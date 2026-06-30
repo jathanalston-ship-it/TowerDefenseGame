@@ -11,7 +11,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -459,8 +459,29 @@ export const meta = {
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
     const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
 
+    // Mode reward identity (docs/MODE-IDENTITY.md): Campaign pays the account currency (most on a
+    // FIRST clear) + first-clear bonuses; Infinite pays the loot meter + a mastery bonus; Stage (the
+    // legacy quick-run) stays neutral (×1) so the golden/meta tests don't move.
+    const campDiff = result.difficulty ?? 'standard';
+    const prevCleared = save.campaign.cleared[campDiff] ?? 0;
+    const isCampaign = result.campaignStage != null && !result.endless;
+    const stageNo = result.campaignStage ?? 0;
+    const firstClear = isCampaign && result.won && stageNo > prevCleared;
+    const coreMult = result.endless
+      ? MODE_REWARDS.core.endless
+      : isCampaign
+        ? (firstClear ? MODE_REWARDS.core.campaignFirst : MODE_REWARDS.core.campaignReplay)
+        : MODE_REWARDS.core.stage;
+    const lootMult = result.endless ? MODE_REWARDS.loot.endless : isCampaign ? MODE_REWARDS.loot.campaign : MODE_REWARDS.loot.stage;
+    const masteryMult = result.endless ? MODE_REWARDS.mastery.endless : isCampaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
+    // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
+    const firstClearBonus = firstClear
+      ? CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
+        (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)
+      : 0;
+
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult);
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult * coreMult) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -470,7 +491,7 @@ export const meta = {
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
       const gained = Math.round(
-        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult,
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
@@ -484,7 +505,7 @@ export const meta = {
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
       const gained = Math.round(
-        c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult,
       );
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
@@ -498,11 +519,14 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult);
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
-    const newlyBanked: PendingContainer[] = [...queueRemainder, runCache];
+    // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
+    // by the stage number so deeper first clears drop a richer cache.
+    const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    const newlyBanked: PendingContainer[] = [...queueRemainder, runCache, ...stageCache];
     const bankedThisRun: PendingContainer[] = [...runContainersBanked, ...newlyBanked];
 
     // 6. mastery identity: unlock any titles/lore crossed by this run's mastery level-ups.
@@ -536,7 +560,6 @@ export const meta = {
     heroFavEquip[fielded] = fieldedEquip;
 
     // Campaign: clearing a stage permanently unlocks the next (highest CLEARED per difficulty id).
-    const campDiff = result.difficulty ?? 'standard';
     const nextCampaign = result.campaignStage && result.won
       ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
       : save.campaign;
