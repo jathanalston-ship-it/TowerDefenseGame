@@ -11,6 +11,7 @@ import { HudTour } from './HudTour';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
+import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
@@ -54,7 +55,11 @@ export function App(): JSX.Element {
 
   // Apply the persisted audio preference once on boot (the Settings screen writes it).
   useEffect(() => {
-    try { audio.setEnabled(localStorage.getItem('audioOn') !== 'false'); } catch { /* private mode */ }
+    try {
+      const on = localStorage.getItem('audioOn') !== 'false';
+      audio.setEnabled(on);
+      music.setEnabled(on);
+    } catch { /* private mode */ }
   }, []);
 
   // Boot the tutorial session if this is a first launch (screen was auto-set to 'tutorial').
@@ -136,6 +141,17 @@ export function App(): JSX.Element {
   const launchTutorial = useCallback(() => { tutorial.start('combat'); setScreen('tutorial'); }, []);
 
   const debugOn = isDebugEnabled();
+
+  // Menu soundtrack (audio/music.ts): the Hive theme plays across the whole Command Center.
+  // Autoplay policy: the FIRST start is armed on the first pointer gesture; category switches
+  // afterwards are immediate. GameView drives combat/boss/victory/defeat itself.
+  useEffect(() => {
+    if (screen !== 'menu') return;
+    const start = (): void => music.play('menu');
+    start(); // no-op until the AudioContext may run…
+    window.addEventListener('pointerdown', start, { once: true }); // …then the first click unlocks it
+    return () => window.removeEventListener('pointerdown', start);
+  }, [screen]);
 
   return (
     <div className="app">

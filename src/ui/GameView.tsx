@@ -11,6 +11,7 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta } from '../state/meta';
 import { announcePower } from '../state/powerEvents';
+import { music } from '../audio/music';
 import { PowerToaster } from './components/PowerToaster';
 import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
@@ -93,7 +94,16 @@ export function GameView({
   useEffect(() => {
     if (geneSplash.length === 0) return;
     const t = setTimeout(() => setGeneSplash([]), 3200);
-    return () => clearTimeout(t);
+    // Run soundtrack: combat by default, boss while a boss banner is live, victory/defeat cadence
+  // at run end (one-shots). Categories only — the manager owns all playback (audio/music.ts).
+  useEffect(() => {
+    if (hud.phase === 'won') { music.play('victory'); return; }
+    if (hud.phase === 'lost') { music.play('defeat'); return; }
+    music.play(hud.bossBanner ? 'boss' : 'combat');
+    music.setIntensity(hud.bossBanner ? 1 : 0.5);
+  }, [hud.phase, hud.bossBanner ? 1 : 0]);
+
+  return () => clearTimeout(t);
   }, [geneSplash.length]);
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());

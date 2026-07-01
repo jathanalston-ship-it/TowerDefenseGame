@@ -7,6 +7,7 @@ import { useEffect, useState, type CSSProperties, type MutableRefObject } from '
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { audio } from '../audio/sound';
+import { music } from '../audio/music';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
@@ -86,6 +87,7 @@ function SettingsScreen({ onReplayTutorial }: { onReplayTutorial: () => void }):
     setSound(next);
     audio.setEnabled(next);
     try { localStorage.setItem('audioOn', String(next)); } catch { /* private mode */ }
+    music.setEnabled(next);
   };
   const toggleAutoGene = (): void => {
     const next = !autoGene;

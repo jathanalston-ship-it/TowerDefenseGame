@@ -143,3 +143,27 @@ Snappy input is its own kind of juice — every control reacts on contact and no
 - **Mix discipline:** a master bus + SFX/music/UI sub-buses; **duck** SFX under stingers (crit/legendary); **voice cap** per category with stealing; pitch-randomize repeats to avoid machine-gun fatigue.
 - **Music:** an adaptive bio-industrial bed that **intensifies with pressure** (reuse the renderer's `pressure` value) and **gains a layer per prestige tier** — the soundtrack escalates with progression.
 - **The dopamine lever to nail first:** the **ascending-pitch resource/loot riser**. More than any visual, rising pitch = "good things are happening." It's cheap to synthesize and it's the backbone of the satisfying loop.
+
+
+## §music — the soundtrack engine (src/audio/music.ts)
+
+An actual composition system, not ambience (the explicit design bar: melody · harmonic
+progression · rhythm · percussion · bass · evolving structure — all TEST-PINNED in
+`src/audio/music.test.ts` against the pure bar renderer):
+
+- **Tracks are data** (`TRACKS`): tempo, key/scale, chord progression, authored lead motif, and
+  per-layer intensity gain ranges. Six categories: **menu** (the 92 BPM E-minor "Hive theme":
+  16-bar i–VI–III–VII / i–VI–iv–V loop, 4-bar breathing intro, 8th-note bass with chromatic
+  approaches, mechanical kick/snare/hat kit with phrase-end fills, A/B re-voiced 16th arps,
+  a long haunting lead that sits out half of every cycle, organic pad UNDER the mix) ·
+  **combat** · **boss** (phrygian, 126 BPM) · **victory** / **defeat** (one-shot cadences) ·
+  **events**.
+- **The manager** (`music`): lookahead scheduler (bars render ~150 ms ahead — a handful of
+  short-lived nodes per note, no per-frame work), intro → loop-region playback, ~2 s crossfades
+  between categories, per-layer gain buses.
+- **Adaptive seams (no hardcoded playback):** callers only request a CATEGORY
+  (`music.play('boss')`); `setIntensity(0..1)` maps onto each layer's authored gain range
+  (boss → 1 today; low-health percussion swaps ride the same lever) and `setLayerGain` targets
+  one layer (future: prestige melody layer). Wired: App plays `menu` across the Command Center
+  (first-gesture autoplay unlock); GameView drives combat/boss (live boss banner) and the
+  victory/defeat cadences; the Hub audio toggle governs it.
