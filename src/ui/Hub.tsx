@@ -20,6 +20,7 @@ import { HeroLab } from './HeroLab';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
 import { EvolutionHQ } from './EvolutionHQ';
+import { HelpWiki } from './HelpWiki';
 import { CollectionScreen } from './CollectionPanel';
 import { Statistics } from './Statistics';
 import { MasteryProfile } from './MasteryProfile';
@@ -34,7 +35,7 @@ export type NavKey =
   | 'home' | 'campaign' | 'infinite'
   | 'towers' | 'heroes' | 'evolution'
   | 'vault' | 'equipment' | 'collection'
-  | 'profile' | 'settings';
+  | 'profile' | 'settings' | 'help';
 
 interface NavItem { key: NavKey; label: string; mono: string }
 interface NavGroup { title: string; items: NavItem[] }
@@ -59,6 +60,7 @@ const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: 'Account', items: [
     { key: 'profile', label: 'Profile', mono: '◑' },
+    { key: 'help', label: 'Help', mono: '?' },
     { key: 'settings', label: 'Settings', mono: '⚙' },
   ] },
 ];
@@ -248,6 +250,7 @@ export function Hub({
             </div>
           )}
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} />}
+          {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} />}
         </section>
       </div>
     </div>

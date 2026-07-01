@@ -5,6 +5,8 @@ import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
 import { AchievementToaster } from './AchievementToaster';
 import { LootToaster } from './LootToaster';
+import { WhatsNew } from './WhatsNew';
+import { HudTour } from './HudTour';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
@@ -32,6 +34,7 @@ export function App(): JSX.Element {
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
   // A Campaign milestone that opened a new Hero Slot this run → the cinematic Hero Slot Unlock (HEROES.md).
   const [heroSlotUnlock, setHeroSlotUnlock] = useState<HeroSlotUnlockData | null>(null);
+  const [tourActive, setTourActive] = useState(false); // first-launch HUD Tour is showing (docs/HELP.md)
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
   const progRef = useRef<TowerProgress>(meta.towerProgress());
@@ -55,6 +58,9 @@ export function App(): JSX.Element {
 
   // Boot the tutorial session if this is a first launch (screen was auto-set to 'tutorial').
   useEffect(() => { if (meta.shouldAutoTutorial()) tutorial.start('combat'); }, []);
+  // Prime the Help archive once so existing saves don't flood with "What's New" on first load.
+  useEffect(() => { meta.primeHelp(); }, []);
+  meta.use(); // subscribe App so the HUD Tour / What's New react to save changes (unlocks, tour completion)
 
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
@@ -114,6 +120,9 @@ export function App(): JSX.Element {
   const toMenu = useCallback(() => setScreen('menu'), []);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
+  // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
+  // (not the reactive predicate) so its reward reveal survives completeHudTour marking it done.
+  useEffect(() => { if (screen === 'menu' && meta.shouldHudTour()) setTourActive(true); }, [screen]);
   // Launch (or replay) the Combat Tutorial from Settings — its own mode.
   const launchTutorial = useCallback(() => { tutorial.start('combat'); setScreen('tutorial'); }, []);
 
@@ -170,6 +179,10 @@ export function App(): JSX.Element {
       <AchievementToaster suppressed={screen !== 'menu'} />
       {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
       <LootToaster />
+      {/* Onboarding + discovery (menu only): the HUD Tour runs once after the tutorial, then the
+          "What's New?" queue announces each newly-unlocked mechanic. */}
+      {screen === 'menu' && tourActive && <HudTour onClose={() => setTourActive(false)} />}
+      {screen === 'menu' && !tourActive && <WhatsNew />}
     </div>
   );
 }

@@ -77,6 +77,10 @@ export interface SaveData {
   // ── Progress prediction (docs/PREDICTION.md) — self-calibrating per-mode estimators. Additive;
   //    withDefaults fills defaults for older saves. Never affects the sim (golden-safe). ──
   prediction: { campaign: PredictCalib; infinite: PredictCalib };
+  // ── Help / What's New (docs/HELP.md): `seen` = mechanic ids already announced (archived into the
+  //    Help wiki); `primed` guards a one-time seed so existing saves don't flood on first load. Also
+  //    tracks whether the first-launch HUD Tour has run. Additive; golden-safe. ──
+  help: { seen: string[]; primed: boolean; hudTour: boolean };
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -196,6 +200,7 @@ export function defaultSave(): SaveData {
     campaign: { cleared: {} },
     tutorial: { completed: [], rewarded: [], progress: null },
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
+    help: { seen: [], primed: false, hudTour: false },
   };
 }
 
@@ -222,6 +227,11 @@ function sanitizeCalib(raw: unknown): PredictCalib {
 function sanitizePrediction(raw: unknown): SaveData['prediction'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   return { campaign: sanitizeCalib(o.campaign), infinite: sanitizeCalib(o.infinite) };
+}
+function sanitizeHelp(raw: unknown): SaveData['help'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const seen = Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [];
+  return { seen, primed: o.primed === true, hudTour: o.hudTour === true };
 }
 
 /**
@@ -296,6 +306,7 @@ function withDefaults(data: SaveData): SaveData {
     campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
     tutorial: sanitizeTutorial(data.tutorial),
     prediction: sanitizePrediction(data.prediction),
+    help: sanitizeHelp(data.help),
   };
 }
 

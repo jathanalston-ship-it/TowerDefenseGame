@@ -51,6 +51,8 @@ import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
 import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { Prediction } from '../core/predict';
+import { unlockedMechanics, pendingAnnouncements } from './mechanics';
+import type { MechanicDef } from './mechanics';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
@@ -1361,6 +1363,53 @@ export const meta = {
       achievement: unlocked.includes('tutorial_complete') ? 'Assimilation Protocol' : null,
       powerBefore, powerAfter: composePower(accountPowerParts(store.get())).score,
     };
+  },
+
+  // ── Help wiki + What's New (docs/HELP.md) ──────────────────────────────────
+  /** The unlocked mechanics for the living Help wiki (locked ones stay hidden). */
+  helpMechanics(): MechanicDef[] {
+    return unlockedMechanics(store.get());
+  },
+  /** Mechanics unlocked but not yet announced — drives the "What's New?" queue. */
+  whatsNew(): MechanicDef[] {
+    return pendingAnnouncements(store.get());
+  },
+  /** Archive announced mechanics into Help (so they never re-announce, but stay browsable). */
+  archiveMechanics(ids: string[]): void {
+    const s = store.get();
+    const seen = Array.from(new Set([...s.help.seen, ...ids]));
+    persist({ ...s, help: { ...s.help, seen } });
+  },
+  /** One-time prime (App boot): silently archive everything ALREADY unlocked so an existing save
+   *  doesn't flood with What's New on first load. A brand-new account primes empty ⇒ it discovers
+   *  each mechanic as it unlocks. */
+  primeHelp(): void {
+    const s = store.get();
+    if (s.help.primed) return;
+    const seen = Array.from(new Set([...s.help.seen, ...unlockedMechanics(s).filter((m) => !m.core).map((m) => m.id)]));
+    persist({ ...s, help: { ...s.help, seen, primed: true } });
+  },
+  /** First-launch HUD Tour gate: run once, only after the Combat Tutorial, on a fresh account. */
+  shouldHudTour(): boolean {
+    const s = store.get();
+    return !s.help.hudTour && s.tutorial.completed.includes('combat');
+  },
+  /** Mark the HUD Tour done + grant its one-time Tutorial Bio-Container (idempotent — reuses the
+   *  tutorial reward ledger so it never double-grants). Returns the reward summary, or null. */
+  completeHudTour(): TutorialRewardSummary | null {
+    const s = store.get();
+    if (s.help.hudTour) return null;
+    persist({ ...s, help: { ...s.help, hudTour: true } });
+    const reward = this.grantTutorialRewards('hudtour');
+    // Onboarding (the Combat Tutorial + this HUD Tour) just introduced the foundational systems —
+    // and its rewards unlock several at once (shards → Tower Stars, gear → Equipment, a Bio-Container,
+    // Genome Cores). Archive everything unlocked so far so the What's New queue doesn't cascade for
+    // systems the player was just shown. Genuine PLAY-driven unlocks later (Prestige at Stage 10,
+    // new biomes, bosses …) are not yet unlocked here, so they still announce when the player earns them.
+    const after = store.get();
+    const seen = Array.from(new Set([...after.help.seen, ...unlockedMechanics(after).filter((m) => !m.core).map((m) => m.id)]));
+    persist({ ...after, help: { ...after.help, seen } });
+    return reward;
   },
 
   reset(): void {
