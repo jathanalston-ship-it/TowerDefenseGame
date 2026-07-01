@@ -448,6 +448,21 @@ export function rollItemDrop(rng: Rng, wave: number): OwnedItem {
   return rollItem(rng, def, rarity, ilvl);
 }
 
+/** Map an account Power Score → an equipment item level, so a container's gear rarity tracks account
+ *  STRENGTH (not run depth). A fresh account (score ≈ base) floors at ilvl 1 (Common); it climbs
+ *  smoothly and caps at 30 so late-game reads Legendary/Exotic-capable without spikes. `base` is
+ *  POWER_BASE, passed in to avoid a power↔equipment import cycle. Pure + monotonic. */
+export function powerItemLevel(powerScore: number, base = 1000): number {
+  return Math.max(1, Math.min(30, Math.round((powerScore - base) / 150) + 1));
+}
+
+/** A power-scaled equipment drop: ONE item whose rarity floor + ilvl track the account Power Score,
+ *  reusing the wave→rarity ladder via powerItemLevel. This is the single acquisition path used when a
+ *  container yields gear (docs/EQUIPMENT.md). */
+export function rollItemForPower(rng: Rng, powerScore: number, base = 1000): OwnedItem {
+  return rollItemDrop(rng, powerItemLevel(powerScore, base));
+}
+
 // ── Reroll & craft hooks (the optimization sink — bounded, deterministic-ish) ──
 
 /** Reroll the (unlocked) affixes of an item to fresh random tiers. */

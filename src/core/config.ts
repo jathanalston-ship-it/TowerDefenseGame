@@ -684,6 +684,10 @@ export interface HeroDef {
   pulseDisrupt: number; // Disruption seconds applied per pulse (control)
   nucleusRegen: number; // Integrity/sec restored while alive (guard)
   ability: HeroAbilityDef;
+  /** Hero Shards to unlock this hero from the Collection (absent/0 ⇒ a STARTER, owned from the
+   *  start). A locked hero accumulates its shards toward this threshold; claiming spends them and
+   *  unlocks it. Meta-only (the sim ignores it) — a data-driven gate, so a new hero is one field. */
+  unlockShards?: number;
 }
 
 export const HERO_DEFS: Record<HeroKind, HeroDef> = {
@@ -696,6 +700,7 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
   },
   shepherd: {
     kind: 'shepherd', name: 'Shepherd', combatClass: 'Vital', behavior: 'guard', color: '#ff9f6b',
+    unlockShards: 60, // locked: the first Collection unlock (support role, earlier goal)
     // Tanky, slower, NO auto-attack. Guards the Nucleus, mends Integrity, and pulses
     // a short vital wave that chips enemies pressing the line.
     maxHp: 300, speed: 95, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
@@ -705,6 +710,7 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
   },
   overseer: {
     kind: 'overseer', name: 'Overseer', combatClass: 'Neural', behavior: 'control', color: '#8a93ff',
+    unlockShards: 100, // locked: the second Collection unlock (control role, longer goal)
     // Floats to the densest crowd. NO real damage — emits a fast Disruption field
     // (slow + vulnerability) that amplifies the rest of your build.
     maxHp: 200, speed: 108, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
@@ -1123,11 +1129,12 @@ export const CHESTS: Record<string, ChestDef> = {
     name: 'Mutagen Vault',
     rarity: 'rich',
     rolls: 5,
+    // Shards + materials only — EQUIPMENT no longer drops per-roll here; it comes from the single
+    // power-scaled container roll (EQUIP_DROP_CHANCE) so a container yields at most one item.
     pools: [
-      { weight: 4, rarity: 'rare', spec: { pool: 'tower', range: [3, 7] } },
+      { weight: 6, rarity: 'rare', spec: { pool: 'tower', range: [3, 7] } },
       { weight: 3, rarity: 'rare', spec: { pool: 'hero', range: [1, 2] } },
       { weight: 3, rarity: 'rare', spec: { pool: 'material', mats: ['scrap', 'mutagen', 'catalyst'], range: [1, 3] } },
-      { weight: 2, spec: { pool: 'equipment', wave: 7 } },
     ],
   },
   prime: {
@@ -1135,11 +1142,11 @@ export const CHESTS: Record<string, ChestDef> = {
     name: 'Apex Reliquary',
     rarity: 'prime',
     rolls: 6,
+    // Shards + materials only — see `rich` (equipment is the single power-scaled container roll).
     pools: [
-      { weight: 3, rarity: 'epic', spec: { pool: 'tower', range: [5, 10] } },
-      { weight: 3, rarity: 'epic', spec: { pool: 'hero', range: [1, 2] } },
-      { weight: 2, rarity: 'epic', spec: { pool: 'material', mats: ['catalyst', 'mutagen'], range: [2, 4] } },
-      { weight: 4, spec: { pool: 'equipment', wave: 12 } },
+      { weight: 5, rarity: 'epic', spec: { pool: 'tower', range: [5, 10] } },
+      { weight: 4, rarity: 'epic', spec: { pool: 'hero', range: [1, 2] } },
+      { weight: 3, rarity: 'epic', spec: { pool: 'material', mats: ['catalyst', 'mutagen'], range: [2, 4] } },
     ],
   },
 };
@@ -1153,6 +1160,10 @@ chestRegistry.registerAll(Object.values(CHESTS));
 
 /** Default chest (debug / fallback). */
 export const RUN_CHEST = 'standard';
+
+/** Probability that cracking a container ALSO yields equipment (docs/EQUIPMENT.md). At most ONE item
+ *  per container; its rarity scales with the account Power Score (not run depth). Centralized tunable. */
+export const EQUIP_DROP_CHANCE = 0.5;
 
 /** Reward pacing: deeper runs earn a better chest, pulling "one more run". */
 export function chestForWave(wave: number): string {
