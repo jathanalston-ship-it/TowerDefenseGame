@@ -25,8 +25,8 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-function traitChips(item: OwnedItem): { key: string; label: string }[] {
-  return item.affixes.map((a) => ({ key: a.affixId, label: `${affixDef(a.affixId)?.name ?? a.affixId} T${a.tier}` }));
+function traitChips(item: OwnedItem): { key: string; label: string; locked: boolean }[] {
+  return item.affixes.map((a) => ({ key: a.affixId, label: `${affixDef(a.affixId)?.name ?? a.affixId} T${a.tier}`, locked: !!a.locked }));
 }
 
 export function EquipmentPanel(): JSX.Element {
@@ -96,7 +96,11 @@ export function EquipmentPanel(): JSX.Element {
           {sig && <div className="ic-sig">◆ {sig}</div>}
           {traitChips(item).length > 0 && (
             <div className="ic-traits">
-              {traitChips(item).map((t) => <span className="ic-trait" key={t.key}>{t.label}</span>)}
+              {traitChips(item).map((t) => (
+                <span className={`ic-trait${t.locked ? ' is-locked' : ''}`} key={t.key} title={t.locked ? 'Locked affix (protected from reroll / reforge / randomize)' : undefined}>
+                  {t.locked ? '🔒 ' : ''}{t.label}
+                </span>
+              ))}
             </div>
           )}
           {set && (
@@ -196,7 +200,7 @@ function CompareCol({ item, tag }: { item: OwnedItem | null; tag: string }): JSX
           <div className="ic-meta"><span style={{ color: c }}>{cap(item.rarity)}</span> · {SLOT_LABELS[def.slot]}</div>
           <p className="ic-desc">{def.desc}</p>
           {traitChips(item).length > 0 && (
-            <div className="ic-traits">{traitChips(item).map((t) => <span className="ic-trait" key={t.key}>{t.label}</span>)}</div>
+            <div className="ic-traits">{traitChips(item).map((t) => <span className={`ic-trait${t.locked ? ' is-locked' : ''}`} key={t.key}>{t.locked ? '🔒 ' : ''}{t.label}</span>)}</div>
           )}
         </>
       ) : (
