@@ -26,7 +26,7 @@ export function EvolutionUnlock({ unlock, onClose }: { unlock: EvolutionUnlockDa
       kind: k,
       name: TOWER_DEFS[k].name,
       color: TOWER_DEFS[k].color,
-      mutation: st ? stepView(k, st, save).name : `Ascension ★${newCap}`,
+      mutation: st ? stepView(k, st, save).name : `Ascension ◈${newCap}`,
     };
   });
 
@@ -36,9 +36,9 @@ export function EvolutionUnlock({ unlock, onClose }: { unlock: EvolutionUnlockDa
       <div className="evo-card" onClick={(e) => e.stopPropagation()}>
         <div className="evo-eyebrow">◆ New Evolution Unlocked ◆</div>
         <h2 className="evo-title">{gen.name}</h2>
-        <div className="evo-cap">Star Cap Increased&nbsp; <b>★{oldCap} → ★{newCap}</b></div>
+        <div className="evo-cap">Star Cap Increased&nbsp; <b>◈{oldCap} → ◈{newCap}</b></div>
         <p className="evo-blurb">{gen.desc}</p>
-        <div className="evo-band">Cleared Campaign Stage {stage} · new mutations available · ★{oldCap + 1}–★{newCap}</div>
+        <div className="evo-band">Cleared Campaign Stage {stage} · new mutations available · ◈{oldCap + 1}–◈{newCap}</div>
 
         <div className="evo-roster">
           {towers.map((t, i) => (

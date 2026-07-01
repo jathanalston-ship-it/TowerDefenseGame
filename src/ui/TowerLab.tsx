@@ -39,7 +39,7 @@ function ForkPaths({ kind, stars, color }: { kind: TowerKind; stars: number; col
         const picked = save.towerForks[kind]?.[String(f.star)] ?? f.fork[0].id;
         return (
           <div className="tl-fork" key={f.star}>
-            <span className="tl-fork-k" style={{ color }}>★{f.star}</span>
+            <span className="tl-fork-k" style={{ color }}>◈{f.star}</span>
             <div className="tl-fork-opts">
               {f.fork.map((o) => (
                 <button
@@ -88,7 +88,7 @@ export function TowerLab(): JSX.Element {
               <div className="tl-id">
                 <button className="tl-portrait" onClick={() => setCodexKind(k)} title={`Open the ${m.name} Evolution Codex`}>
                   <TowerPortrait color={m.color} stars={m.stars} size={112} kind={m.kind} />
-                  <span className="tl-portrait-lvl" style={{ color: m.color }}>★{m.stars}</span>
+                  <span className="tl-portrait-lvl" style={{ color: m.color }}>◈{m.stars}</span>
                   <span className="tl-portrait-examine">⤢ Codex</span>
                 </button>
                 <div className="tl-id-body">
@@ -103,7 +103,7 @@ export function TowerLab(): JSX.Element {
                           className={`tl-pip${i < m.stars ? ' on' : ''}${isMs ? ' ms' : ''}`}
                           style={i < m.stars ? { color: m.color } : undefined}
                         >
-                          ★
+                          ◈
                         </span>
                       );
                     })}
@@ -148,7 +148,7 @@ export function TowerLab(): JSX.Element {
                 {m.nextStep ? (
                   <div className={`tl-next${m.capLocked ? ' is-locked' : ''}`} style={{ borderLeftColor: m.color }}>
                     <span className="tl-next-k" style={{ color: m.color }}>
-                      {m.capLocked ? 'LOCKED' : 'NEXT'} ★{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
+                      {m.capLocked ? 'LOCKED' : 'NEXT'} ◈{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
                     </span>
                     {m.nextStep.desc && <span className="tl-next-desc">{m.nextStep.desc}</span>}
                     {!m.capLocked && (
@@ -161,23 +161,23 @@ export function TowerLab(): JSX.Element {
                       </span>
                     )}
                     {m.nextAbility && m.nextAbility.star !== m.nextStep.star && (
-                      <span className="tl-next-ability">Next ability · ★{m.nextAbility.star} {m.nextAbility.name}</span>
+                      <span className="tl-next-ability">Next ability · ◈{m.nextAbility.star} {m.nextAbility.name}</span>
                     )}
                     {/* Campaign Evolution Cap: show what to work toward — never just grey it out. */}
                     {m.capLocked && m.capUnlock && (
                       <div className="tl-cap">
-                        <span className="tl-cap-req">🧬 Reach <b>Campaign Stage {m.capUnlock.stage}</b> to evolve to ★{m.capUnlock.maxStar}</span>
+                        <span className="tl-cap-req">🧬 Reach <b>Campaign Stage {m.capUnlock.stage}</b> to evolve to ◈{m.capUnlock.maxStar}</span>
                         <ProgressBar value={Math.min(m.campaignStage, m.capUnlock.stage)} max={m.capUnlock.stage} color={m.color} height={6} label="Campaign progress" />
                         <span className="tl-cap-prog">Campaign Stage {m.campaignStage} / {m.capUnlock.stage}</span>
                         {m.nextVisualMutation && (
-                          <span className="tl-cap-vis">Upcoming mutation · <b>{m.nextVisualMutation.name}</b> at ★{m.nextVisualMutation.at}</span>
+                          <span className="tl-cap-vis">Upcoming mutation · <b>{m.nextVisualMutation.name}</b> at ◈{m.nextVisualMutation.at}</span>
                         )}
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="tl-next is-max" style={{ borderLeftColor: m.color }}>
-                    <span className="tl-next-k" style={{ color: m.color }}>FULLY ASCENDED ★{m.stars}</span>
+                    <span className="tl-next-k" style={{ color: m.color }}>FULLY ASCENDED ◈{m.stars}</span>
                   </div>
                 )}
 

@@ -161,7 +161,7 @@ export function HeroLab(): JSX.Element {
                 {locked ? (
                   <span className="rc-sub">◈ {entry.shards}/{entry.cost}{entry.canUnlock ? ' · Ready!' : ''}</span>
                 ) : (
-                  <span className="rc-sub">{def.combatClass} · {stars}★{rank > 0 ? ` · R${rank}` : ''}</span>
+                  <span className="rc-sub">{def.combatClass} · {stars}◈{rank > 0 ? ` · R${rank}` : ''}</span>
                 )}
                 {locked && <span className="rc-lockbar" aria-hidden><i style={{ width: `${Math.round(entry.progress * 100)}%`, background: def.color }} /></span>}
               </span>
@@ -254,7 +254,7 @@ export function HeroLab(): JSX.Element {
           <Section title="Star Progression" accent={c}>
             <div className="pips big" aria-label={`${d.stars} of ${d.maxStars} stars`}>
               {Array.from({ length: d.maxStars }, (_, i) => (
-                <span key={i} className={`pip ${i < d.stars ? 'on' : ''}`} style={i < d.stars ? { color: c } : undefined}>★</span>
+                <span key={i} className={`pip ${i < d.stars ? 'on' : ''}`} style={i < d.stars ? { color: c } : undefined}>◈</span>
               ))}
             </div>
             <div className="kv-row"><span>Damage</span><b style={{ color: c }}>+{d.dmgPct}%</b></div>
