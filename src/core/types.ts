@@ -413,6 +413,10 @@ export interface HudSnapshot {
   // Active biome (docs/BIOMES.md) — the HUD shows its name/accent + a hazard telegraph. In Stage
   // mode this is the NEUTRAL identity (the HUD suppresses the chip when there is no real biome).
   biome: { id: string; name: string; accent: string; modifier: string; hazardName: string; hazardActive: boolean };
+  // Run Identity (docs/RUN-IDENTITY.md) — the current wave's telegraphed beat (Campaign/Endless), and
+  // the run's one-line headline (its Anomaly, if any). Both null/empty in Stage mode.
+  runEvent: { name: string; desc: string; kind: string } | null;
+  runHeadline?: string;
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
   autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
   autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep)

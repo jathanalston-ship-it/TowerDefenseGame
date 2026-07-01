@@ -67,6 +67,21 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
     return () => clearTimeout(id);
   }, [hud.biome.id, hud.biome.name]);
 
+  // Run Identity (docs/RUN-IDENTITY.md): flash the current wave's telegraphed BEAT ("⚠ Corrupted
+  // Wave") when it fires. Fires once per distinct event (guarded by name). Campaign/Endless only.
+  const [runBanner, setRunBanner] = useState<{ name: string; desc: string } | null>(null);
+  const prevRunEvent = useRef<string | null>(null);
+  useEffect(() => {
+    const ev = hud.runEvent;
+    const key = ev ? ev.name : null;
+    if (key === prevRunEvent.current) return undefined;
+    prevRunEvent.current = key;
+    if (!ev) return undefined;
+    setRunBanner({ name: ev.name, desc: ev.desc });
+    const id = setTimeout(() => setRunBanner(null), 3400);
+    return () => clearTimeout(id);
+  }, [hud.runEvent]);
+
   return (
     <div className="hud">
       {/* ── LEFT cluster: survival + progress ── */}
@@ -147,6 +162,15 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
           </div>
         )}
         {biomeBanner && <div className="biome-enter" role="status">Entering · {biomeBanner}</div>}
+        {hud.runHeadline && (
+          <div className="run-headline" title="This run's identity">✦ {hud.runHeadline}</div>
+        )}
+        {runBanner && (
+          <div className="run-event-banner" role="status">
+            <span className="reb-name">⚠ {runBanner.name}</span>
+            <span className="reb-desc">{runBanner.desc}</span>
+          </div>
+        )}
       </div>
 
       {/* ── RIGHT cluster: economy, threat, loot, hero ── */}
