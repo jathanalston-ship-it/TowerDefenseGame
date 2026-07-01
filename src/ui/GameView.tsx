@@ -13,6 +13,7 @@ import { masteryRank } from '../core/mastery';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
+import { HeroSelectPanel } from './HeroSelectPanel';
 import { Toolbar } from './Toolbar';
 import { BuildControls } from './BuildControls';
 import { BuildPanel } from './BuildPanel';
@@ -405,6 +406,10 @@ export function GameView({
               <span className="mutation-sub">{hud.mutation.sub}</span>
             </div>
           </div>
+        )}
+        {/* Hero selection readout — non-modal (the sim keeps running); dismiss deselects the hero. */}
+        {hud.selectedHero && (
+          <HeroSelectPanel hero={hud.selectedHero} onClose={() => { game.selectHero(null); refresh(); }} />
         )}
         {outro && (
           // The run-end linger: a vignette + Victory/Defeat title over the frozen battlefield.

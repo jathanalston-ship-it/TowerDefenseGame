@@ -190,6 +190,10 @@ export interface Pool {
   sourceKind: TowerKind | null; // tower kind that spawned it (mastery: damage credit)
 }
 
+/** A hero's current action/movement state — observational (drives the selection panel + future
+ *  ability targeting). Never feeds back into the sim, so a fresh/golden run is byte-identical. */
+export type HeroMoveState = 'idle' | 'moving' | 'attacking' | 'retreating' | 'downed';
+
 export interface Hero {
   kind: HeroKind;
   x: number;
@@ -211,6 +215,10 @@ export interface Hero {
   // HEROES.md). Ravager only; 0/0 for every other hero + a fresh run ⇒ byte-identical golden run.
   killchain: number; // elites this hero has slain this run (Apex Predator / Killchain)
   rushUntil: number; // sim-time its Bloodthirst speed surge lasts until
+  // Observational AI state, refreshed each tick — read by the selection panel + future abilities,
+  // never by sim math (so it stays golden-safe): the current target + what the hero is doing.
+  targetId: number; // current target's Enemy.id, or -1 when none
+  moveState: HeroMoveState;
 }
 
 /** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that
@@ -380,6 +388,29 @@ export interface TowerSellQuote {
   total: number; // towerRefund + branchRefund (what selling credits)
 }
 
+/** One buff/debuff chip on the hero selection panel — extensible: a new hero status is one entry. */
+export interface HeroStatusChip { id: string; label: string; kind: 'buff' | 'debuff'; detail?: string }
+/** One cooldown gauge on the selection panel (remaining / total seconds; 0 total ⇒ ready/none). */
+export interface HeroCooldownView { id: string; label: string; remaining: number; total: number }
+/** The selected hero's LIVE combat state for the (non-modal) selection panel — null when nothing is
+ *  selected. Equipment is read separately from the meta loadout (locked at run start). This is the
+ *  read-model future hero abilities also key off (the selection is authoritative in the sim). */
+export interface SelectedHeroView {
+  kind: HeroKind;
+  name: string;
+  combatClass: string;
+  hp: number;
+  maxHp: number;
+  shield: number;
+  down: boolean;
+  respawn: number; // seconds until respawn while down
+  state: HeroMoveState;
+  target: string | null; // the current target enemy's display name, or null
+  cooldowns: HeroCooldownView[];
+  buffs: HeroStatusChip[];
+  debuffs: HeroStatusChip[];
+}
+
 export interface HudSnapshot {
   phase: Phase;
   wave: number; // 1-based wave the player is on / just finished
@@ -417,6 +448,9 @@ export interface HudSnapshot {
   // the run's one-line headline (its Anomaly, if any). Both null/empty in Stage mode.
   runEvent: { name: string; desc: string; kind: string } | null;
   runHeadline?: string;
+  // The player-selected hero's live state (docs/HERO-SELECTION.md), or null. Non-modal — the sim
+  // keeps running while it's shown. Future hero abilities read the same selection.
+  selectedHero: SelectedHeroView | null;
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
   autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
   autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep)
