@@ -87,9 +87,11 @@ hard you hit** — and most here change the latter.
 
 ## 3. Dead ends & half-wired features
 
-- **"Custom Challenge" and "Training" menu tiles render "Soon"** (confirmed live). Dead
-  entrances on the main menu are the worst kind of dead end — they advertise absence. *P1:
-  hide unbuilt modes behind a flag, or cut the tiles until built.*
+- ~~**"Custom Challenge" and "Training" menu tiles render "Soon"**~~ — **RESOLVED.** Both
+  unbuilt tiles are now hidden behind `core/features.ts` (`FEATURES.customChallenge` /
+  `FEATURES.trainingMode`, default `false`); flip the flag in the commit that ships the mode.
+  No more dead entrances — the PLAY screen shows only real modes (Campaign / Infinite / Quick
+  Skirmish).
 - **Bosses are a framework with ~1 authored boss** (`boss.ts` + Bestiary tracking). The
   "Every Boss" collection promises 50; there is essentially one. *P1.*
 - **Doctrines (6)** are a thin run-modifier layer with little identity; most players will
