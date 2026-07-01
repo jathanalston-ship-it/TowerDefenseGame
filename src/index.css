@@ -1824,101 +1824,6 @@ kbd {
   letter-spacing: 0.02em;
 }
 
-/* ── Loot box reveal ──────────────────────────────────────────────────────── */
-.loot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.chest {
-  position: relative;
-  width: 92px;
-  height: 70px;
-  display: grid;
-  place-items: center;
-}
-.chest-box {
-  position: relative;
-  width: 64px;
-  height: 44px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, var(--panel-3), #0e131c);
-  border: 1px solid var(--line-strong);
-  box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.35);
-  animation: chest-idle 1.4s ease-in-out infinite;
-}
-.chest-lid {
-  position: absolute;
-  left: -1px;
-  right: -1px;
-  top: -10px;
-  height: 15px;
-  border-radius: 8px 8px 4px 4px;
-  background: linear-gradient(180deg, #2a3547, var(--panel-3));
-  border: 1px solid var(--line-strong);
-  transform-origin: 50% 100%;
-  transition: transform 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
-}
-.chest-shine {
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.2) 50%, transparent 58%);
-  opacity: 0;
-}
-.chest-burst {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 2px solid var(--gold);
-  opacity: 0;
-}
-.chest.is-open .chest-box {
-  animation: none;
-}
-.chest.is-open .chest-lid {
-  transform: translateY(-7px) rotateX(60deg);
-}
-.chest.is-open .chest-shine {
-  animation: chest-shine 0.5s ease 0.05s;
-}
-.chest.is-open .chest-burst {
-  animation: chest-burst 0.55s ease-out;
-}
-@keyframes chest-idle {
-  50% {
-    transform: translateY(-3px);
-  }
-}
-@keyframes chest-shine {
-  0% {
-    opacity: 0;
-  }
-  45% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-@keyframes chest-burst {
-  from {
-    opacity: 0.9;
-    transform: scale(0.4);
-  }
-  to {
-    opacity: 0;
-    transform: scale(5);
-  }
-}
-.loot-title {
-  font-family: 'Chakra Petch', system-ui, sans-serif;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  font-size: 13px;
-}
 .loot-queue-line {
   margin-top: 10px;
   text-align: center;
@@ -2003,197 +1908,6 @@ kbd {
 @keyframes ve-row-in {
   from { opacity: 0; transform: translateY(6px); }
 }
-.loot-items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-  max-width: 320px;
-}
-.loot-item {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--r-sm);
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  animation: loot-in 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both;
-}
-@keyframes loot-in {
-  from {
-    opacity: 0;
-    transform: translateX(-12px) scale(0.96);
-  }
-}
-.loot-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-}
-.loot-dot.is-hero {
-  width: auto;
-  height: auto;
-  border-radius: 0;
-  color: var(--gold);
-  font-size: 16px;
-  line-height: 1;
-  text-shadow: 0 0 10px rgba(255, 210, 77, 0.7);
-}
-.loot-name {
-  text-align: left;
-  font-weight: 600;
-}
-.loot-amt {
-  font-weight: 800;
-  font-size: 13px;
-}
-.loot-amt.is-hero {
-  color: var(--gold);
-}
-
-/* ── Loot opening v2: stage lighting, anticipation, particles, rarity flash ── */
-.loot {
-  position: relative;
-  cursor: pointer;
-  --loot-accent: var(--r-common);
-}
-.loot-stage {
-  position: relative;
-  width: 100%;
-  display: grid;
-  place-items: center;
-  padding: 12px 0 4px;
-  min-height: 104px;
-}
-/* radial rarity light behind the chest — builds during charge, blooms on open */
-.loot-glow {
-  position: absolute;
-  width: 190px;
-  height: 190px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--loot-accent) 0%, transparent 68%);
-  opacity: 0.14;
-  filter: blur(7px);
-  transition: opacity 0.4s ease;
-}
-.loot.is-charging .loot-glow {
-  animation: loot-charge 1s ease-in-out infinite;
-}
-.loot.is-open .loot-glow {
-  opacity: 0.5;
-  animation: loot-bloom 0.6s ease-out;
-}
-@keyframes loot-charge {
-  0%, 100% { opacity: 0.1; transform: scale(0.9); }
-  50% { opacity: 0.34; transform: scale(1.06); }
-}
-@keyframes loot-bloom {
-  0% { opacity: 0.95; transform: scale(0.55); }
-  100% { opacity: 0.5; transform: scale(1); }
-}
-/* chest anticipation: rattle harder the rarer the pull */
-.loot.is-charging .chest-box {
-  animation: chest-rattle 0.18s ease-in-out infinite;
-}
-.loot.tier-legendary.is-charging .chest-box,
-.loot.tier-exotic.is-charging .chest-box {
-  animation-duration: 0.09s;
-}
-@keyframes chest-rattle {
-  0%, 100% { transform: translateX(-1px) rotate(-0.7deg); }
-  50% { transform: translateX(1px) rotate(0.7deg); }
-}
-.loot .chest-burst {
-  border-color: var(--loot-accent);
-}
-/* burst particles (DOM sparks, rarity-tinted) */
-.loot-sparks {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-.loot-spark {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--loot-accent);
-  box-shadow: 0 0 8px var(--loot-accent);
-  animation: loot-spark 0.7s ease-out forwards;
-}
-@keyframes loot-spark {
-  0% { opacity: 1; transform: translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
-}
-/* rarity name flash on open */
-.loot-rarity-flash {
-  position: absolute;
-  bottom: 2px;
-  font-family: 'Chakra Petch', system-ui, sans-serif;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.22em;
-  text-shadow: 0 0 14px var(--loot-accent);
-  animation: loot-flash 0.6s ease-out both;
-}
-@keyframes loot-flash {
-  0% { opacity: 0; transform: scale(1.6); }
-  30% { opacity: 1; }
-  100% { opacity: 0.9; transform: scale(1); }
-}
-.loot-pulls {
-  color: var(--muted);
-  font-size: 11px;
-  margin-left: 8px;
-}
-.loot-skip {
-  color: var(--dim);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-/* Explicit, player-driven reveal controls (LootReveal). The ceremony NEVER auto-dismisses —
-   the player chooses Review Rewards / Open More / Return / Continue. */
-.loot-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px; /* reserve height so the layout doesn't jump when the buttons swap in */
-  margin-top: 4px;
-}
-.loot-btn {
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-.loot-btn-sub {
-  margin-left: 5px;
-  font-weight: 500;
-  opacity: 0.78;
-}
-.loot-review {
-  background: transparent;
-  border-color: var(--line-strong);
-  color: var(--muted);
-}
-.loot-review:hover:not(:disabled) {
-  color: var(--text);
-}
-/* per-reward rarity tint on the cascade rows */
-.loot-item.tier-rare { border-color: rgba(90, 209, 255, 0.4); }
-.loot-item.tier-epic { border-color: rgba(201, 139, 255, 0.45); }
-.loot-item.tier-legendary { border-color: rgba(255, 210, 77, 0.5); }
-.loot-item.tier-exotic { border-color: rgba(95, 251, 241, 0.5); }
 
 /* ── Mastery gains (results) ──────────────────────────────────────────────── */
 .mastery-gains {
@@ -3044,29 +2758,6 @@ kbd {
   }
 }
 
-/* Hero-shard "jackpot" loot row */
-.loot-item.is-jackpot {
-  border-color: rgba(255, 210, 77, 0.5);
-  box-shadow: 0 0 18px rgba(255, 210, 77, 0.28);
-  animation: loot-in 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both, jackpot-glow 1.1s ease-in-out 0.34s 2;
-}
-@keyframes jackpot-glow {
-  50% {
-    box-shadow: 0 0 26px rgba(255, 210, 77, 0.5);
-  }
-}
-
-/* Chest rarity tiers */
-.chest.rarity-rich .chest-box,
-.chest.rarity-rich .chest-lid {
-  border-color: #6e7bff;
-}
-.chest.rarity-prime .chest-box,
-.chest.rarity-prime .chest-lid {
-  border-color: var(--gold);
-  box-shadow: 0 0 16px rgba(255, 210, 77, 0.3);
-}
-
 /* ── Build-Phase controls (top-center overlay — never affects layout) ──────────
    Always mounted inside .canvas-wrap; visibility is a class toggle (fade + slide)
    so entering/leaving prep cannot shift the HUD, toolbar, or battlefield. */
@@ -3676,305 +3367,6 @@ kbd {
 .endless-btn:hover:not(:disabled) {
   background: rgba(226, 77, 255, 0.16);
   border-color: var(--viral);
-}
-
-/* ── Loot opening v3: NBA-2K-style card reveal ceremony ───────────────────────────
-   box appears → opens → bright mutation burst → a face-down card rises, slowly turning,
-   its rarity glowing → TAP → 3D flip to the reward → summary cascades. Pacing/intensity
-   scale with rarity; .is-rare / .is-epic add beams, a shockwave, and extra glow. */
-.loot-v3 .loot-stage {
-  position: relative;
-  min-height: 252px;
-  display: grid;
-  place-items: center;
-}
-/* the chest pops in (step 1) then the existing .chest.is-open handles opening (step 2) */
-.loot-v3.stage-box .chest-box { animation: loot-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
-.loot-v3.stage-box .loot-glow,
-.loot-v3.stage-opening .loot-glow { animation: loot-charge 0.9s ease-in-out infinite; }
-.loot-v3.stage-burst .loot-glow { animation: loot-bloom 0.6s ease-out; }
-
-/* step 3: the bright light / mutation flash */
-.loot-flash {
-  position: absolute;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff 0%, var(--loot-accent) 32%, transparent 70%);
-  mix-blend-mode: screen;
-  pointer-events: none;
-  animation: loot-whiteflash 0.5s ease-out forwards;
-}
-@keyframes loot-whiteflash {
-  0% { opacity: 0; transform: scale(0.4); }
-  25% { opacity: 0.95; }
-  100% { opacity: 0; transform: scale(1.6); }
-}
-
-/* the 3D card stage */
-.loot-card-wrap {
-  position: relative;
-  perspective: 1100px;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  min-height: 248px;
-}
-.loot-card3d {
-  position: relative;
-  width: 158px;
-  height: 218px;
-  transform-style: preserve-3d;
-  transform: rotateY(-16deg) rotateX(7deg);
-  animation: card-emerge 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both;
-}
-/* steps 5–6: the face-down card slowly turns + floats while its rarity glows in */
-.loot-v3.stage-burst .loot-card3d,
-.loot-v3.stage-tease .loot-card3d {
-  animation: card-emerge 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both, card-hover 3.6s ease-in-out 0.5s infinite;
-}
-.loot-v3.is-rare.stage-tease .loot-card3d { animation: card-emerge 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both, card-hover 5s ease-in-out 0.5s infinite; } /* slower = more suspense */
-/* step 8: the reveal flip (always starts from the nominal hover pose → deterministic) */
-.loot-card3d.is-flipped { animation: card-flip 0.66s cubic-bezier(0.3, 1.05, 0.35, 1) forwards; }
-
-@keyframes card-emerge {
-  from { opacity: 0; transform: translateY(46px) scale(0.55) rotateY(-16deg) rotateX(7deg); }
-  to { opacity: 1; transform: translateY(0) scale(1) rotateY(-16deg) rotateX(7deg); }
-}
-@keyframes card-hover {
-  0% { transform: rotateY(-16deg) rotateX(7deg) translateY(0); }
-  50% { transform: rotateY(16deg) rotateX(7deg) translateY(-9px); }
-  100% { transform: rotateY(-16deg) rotateX(7deg) translateY(0); }
-}
-@keyframes card-flip {
-  from { transform: rotateY(-16deg) rotateX(7deg); }
-  to { transform: rotateY(180deg) rotateX(0deg); }
-}
-
-.card-back,
-.card-face {
-  position: absolute;
-  inset: 0;
-  border-radius: 13px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  overflow: hidden;
-  border: 2px solid var(--loot-accent);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55), 0 0 22px -6px var(--loot-accent);
-}
-.card-back {
-  transform: rotateY(0deg);
-  background: linear-gradient(160deg, #0c1a26, #122430);
-}
-.card-face {
-  transform: rotateY(180deg);
-  background: linear-gradient(160deg, #11212d, #0a141c);
-  display: grid;
-  grid-template-rows: auto 1fr auto auto auto;
-  gap: 6px;
-  padding: 14px 10px 12px;
-  text-align: center;
-}
-
-/* card back: hive sigil + sweeping holo + rarity badge (the step-6 indicators) */
-.card-back-grid {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(45deg, transparent 0 9px, rgba(255, 255, 255, 0.035) 9px 10px),
-    repeating-linear-gradient(-45deg, transparent 0 9px, rgba(255, 255, 255, 0.035) 9px 10px);
-}
-.card-sigil {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 86px;
-  height: 86px;
-  border-radius: 50%;
-  border: 2px solid var(--loot-accent);
-  background: radial-gradient(circle, var(--loot-accent) 0%, transparent 62%);
-  box-shadow: 0 0 18px -2px var(--loot-accent), inset 0 0 14px -4px var(--loot-accent);
-  opacity: 0.5;
-  animation: sigil-pulse 1.8s ease-in-out infinite;
-}
-@keyframes sigil-pulse {
-  0%, 100% { transform: scale(0.92); opacity: 0.4; }
-  50% { transform: scale(1.06); opacity: 0.78; }
-}
-.card-holo {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.18) 47%, rgba(255, 255, 255, 0.05) 53%, transparent 70%);
-  background-size: 250% 250%;
-  mix-blend-mode: screen;
-  animation: holo-sweep 3s ease-in-out infinite;
-}
-@keyframes holo-sweep {
-  0% { background-position: 130% 0; }
-  100% { background-position: -30% 0; }
-}
-.card-badge {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 12px;
-  display: grid;
-  gap: 5px;
-  place-items: center;
-  animation: fade-up 0.5s ease 0.28s both; /* step 6: rarity indicators fade into view */
-}
-.card-gem {
-  width: 16px;
-  height: 16px;
-  transform: rotate(45deg);
-  background: var(--loot-accent);
-  box-shadow: 0 0 12px var(--loot-accent);
-  animation: gem-glow 1.4s ease-in-out infinite;
-}
-@keyframes gem-glow {
-  0%, 100% { box-shadow: 0 0 8px var(--loot-accent); }
-  50% { box-shadow: 0 0 18px var(--loot-accent); }
-}
-.card-rword {
-  font: 800 11px/1 system-ui, sans-serif;
-  letter-spacing: 0.18em;
-  color: var(--loot-accent);
-  text-shadow: 0 0 10px var(--loot-accent);
-}
-.card-pips { display: flex; gap: 4px; }
-.card-pips.face { justify-content: center; }
-.card-pips i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--loot-accent);
-  box-shadow: 0 0 6px var(--loot-accent);
-}
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* card face: the revealed reward (emblem + name + amount), not just text */
-.card-face-rword {
-  font: 800 11px/1 system-ui, sans-serif;
-  letter-spacing: 0.18em;
-  color: var(--loot-accent);
-  text-shadow: 0 0 10px var(--loot-accent);
-}
-.card-emblem {
-  position: relative;
-  align-self: center;
-  width: 80px;
-  height: 80px;
-}
-.emblem-core {
-  position: absolute;
-  inset: 22px;
-  border-radius: 50%;
-  background: var(--rw, var(--loot-accent));
-  box-shadow: 0 0 24px var(--rw, var(--loot-accent));
-}
-.emblem-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid var(--rw, var(--loot-accent));
-  opacity: 0.6;
-  animation: sigil-pulse 1.6s ease-in-out infinite;
-}
-.card-reward-name { font: 700 13px/1.2 system-ui, sans-serif; color: #eaf2f8; }
-.card-reward-amt { font: 800 15px/1 system-ui, sans-serif; }
-
-/* aura behind the card (rarity glow), intensifies for rare+ */
-.card-aura {
-  position: absolute;
-  width: 232px;
-  height: 232px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--loot-accent) 0%, transparent 62%);
-  opacity: 0.2;
-  filter: blur(8px);
-  pointer-events: none;
-  animation: aura-pulse 2.2s ease-in-out infinite;
-}
-.loot-v3.is-rare .card-aura { opacity: 0.34; }
-@keyframes aura-pulse {
-  0%, 100% { transform: scale(0.9); opacity: 0.16; }
-  50% { transform: scale(1.08); opacity: 0.4; }
-}
-
-/* rare+ additional presentation: rotating light beams behind the card */
-.card-beams {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  pointer-events: none;
-  opacity: 0;
-  filter: blur(1.5px);
-  /* an even sunburst of rays — masked to a ring so it haloes the card, not the whole panel */
-  background: repeating-conic-gradient(
-    from 0deg,
-    transparent 0deg 10deg,
-    rgba(255, 255, 255, 0.05) 10deg 12deg,
-    transparent 12deg 21deg,
-    var(--loot-accent) 21deg 22.5deg,
-    transparent 22.5deg 30deg
-  );
-  -webkit-mask: radial-gradient(circle, transparent 25%, #000 32%, #000 58%, transparent 70%);
-  mask: radial-gradient(circle, transparent 25%, #000 32%, #000 58%, transparent 70%);
-  animation: beams-spin 9s linear infinite, beams-in 0.6s ease 0.2s forwards;
-}
-.loot-v3.is-epic .card-beams { animation: beams-spin 7s linear infinite, beams-in 0.6s ease 0.2s forwards; }
-@keyframes beams-spin { to { transform: rotate(360deg); } }
-@keyframes beams-in { to { opacity: 0.6; } }
-
-/* shockwave ring punched out on the reveal (rare+) */
-.card-shockwave {
-  position: absolute;
-  width: 158px;
-  height: 218px;
-  border-radius: 14px;
-  border: 3px solid var(--loot-accent);
-  pointer-events: none;
-  animation: card-shock 0.6s ease-out forwards;
-}
-@keyframes card-shock {
-  from { transform: scale(0.72); opacity: 0.9; }
-  to { transform: scale(2.4); opacity: 0; }
-}
-
-/* step 7: the reveal prompt */
-.loot-reveal-prompt {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font: 800 12px/1 system-ui, sans-serif;
-  letter-spacing: 0.16em;
-  color: #fff;
-  text-shadow: 0 0 12px var(--loot-accent);
-  animation: prompt-pulse 1s ease-in-out infinite;
-}
-@keyframes prompt-pulse {
-  0%, 100% { opacity: 0.55; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-3px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loot-card3d,
-  .loot-v3.stage-burst .loot-card3d,
-  .loot-v3.stage-tease .loot-card3d,
-  .loot-card3d.is-flipped,
-  .card-sigil,
-  .emblem-ring,
-  .card-holo,
-  .card-beams,
-  .card-aura,
-  .card-gem,
-  .loot-reveal-prompt { animation-duration: 0.01ms; animation-iteration-count: 1; }
 }
 
 /* ── Headquarters hub — the inter-run menu system (replaces the long scroll) ─── */
@@ -5143,4 +4535,241 @@ kbd {
 .tut-paused-veil { position: fixed; inset: 0; display: grid; place-items: center; font-size: 28px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); background: rgba(4, 7, 12, 0.55); }
 @media (prefers-reduced-motion: reduce) {
   .tut-ring, .tut-arrow, .tut-callout { animation: none; }
+}
+
+/* ── Genetic Vault reveal — fullscreen cinematic pack-opening (src/ui/VaultReveal) ─
+   A fixed, blurred, darkened backdrop centers the card at any viewport so nothing clips.
+   Pull phase: a 3D flip card + bottom "Pull 2/5" HUD. Summary phase: categorized, merged,
+   animated reward totals with the Power gain highlighted. Never auto-closes. */
+.vreveal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: radial-gradient(1200px 700px at 50% 30%, rgba(12, 20, 30, 0.72), rgba(4, 7, 12, 0.92));
+  backdrop-filter: blur(9px) saturate(1.1);
+  -webkit-backdrop-filter: blur(9px) saturate(1.1);
+  animation: vreveal-fade 0.28s ease both;
+  --vr-accent: var(--gold);
+}
+@keyframes vreveal-fade { from { opacity: 0; } }
+.vreveal {
+  position: relative;
+  width: min(560px, 94vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 22px 20px;
+  border-radius: 20px;
+  background: linear-gradient(165deg, rgba(19, 30, 42, 0.96), rgba(9, 14, 22, 0.97));
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.6), 0 0 60px -24px var(--vr-accent);
+  animation: vreveal-pop 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@keyframes vreveal-pop { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
+
+/* ── Pull phase: the 3D flip card ── */
+.vreveal-ceremony {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+  perspective: 1200px;
+  cursor: pointer;
+}
+.vreveal-glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--vr-accent) 0%, transparent 66%);
+  opacity: 0.18;
+  filter: blur(10px);
+  animation: vreveal-glowpulse 2.4s ease-in-out infinite;
+}
+.is-rare .vreveal-glow { opacity: 0.3; }
+@keyframes vreveal-glowpulse { 0%, 100% { transform: scale(0.92); opacity: 0.14; } 50% { transform: scale(1.08); opacity: 0.34; } }
+.vreveal-beams {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  pointer-events: none;
+  opacity: 0.5;
+  filter: blur(1.5px);
+  background: repeating-conic-gradient(from 0deg, transparent 0deg 10deg, rgba(255,255,255,0.05) 10deg 12deg, transparent 12deg 21deg, var(--vr-accent) 21deg 22.5deg, transparent 22.5deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 26%, #000 33%, #000 58%, transparent 70%);
+  mask: radial-gradient(circle, transparent 26%, #000 33%, #000 58%, transparent 70%);
+  animation: vreveal-spin 8s linear infinite;
+}
+@keyframes vreveal-spin { to { transform: rotate(360deg); } }
+.vreveal-card {
+  position: relative;
+  width: 200px;
+  height: 280px;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.3, 1.05, 0.35, 1);
+  animation: vreveal-cardin 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+@keyframes vreveal-cardin { from { opacity: 0; transform: translateY(40px) scale(0.6); } }
+.vreveal-card.is-flipped { transform: rotateY(180deg); }
+.vreveal-card-back,
+.vreveal-card-front {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border: 2px solid var(--vr-accent);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55), 0 0 26px -8px var(--vr-accent);
+}
+.vreveal-card-back {
+  background: linear-gradient(160deg, #0c1a26, #122430);
+  display: grid;
+  place-items: center;
+}
+.vreveal-card-sigil {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid var(--vr-accent);
+  background: radial-gradient(circle, var(--vr-accent) 0%, transparent 62%);
+  box-shadow: 0 0 20px -2px var(--vr-accent), inset 0 0 16px -4px var(--vr-accent);
+  opacity: 0.5;
+  animation: vreveal-glowpulse 1.8s ease-in-out infinite;
+}
+.vreveal-card-rword {
+  position: absolute;
+  bottom: 16px;
+  font: 800 12px/1 'Chakra Petch', system-ui, sans-serif;
+  letter-spacing: 0.2em;
+  color: var(--vr-accent);
+  text-shadow: 0 0 10px var(--vr-accent);
+}
+.vreveal-card-front {
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, #11212d, #0a141c);
+  display: grid;
+  place-items: center;
+  padding: 16px 12px;
+}
+.vreveal-face { display: grid; gap: 8px; place-items: center; text-align: center; }
+.vreveal-face-rword { font: 800 11px/1 system-ui, sans-serif; letter-spacing: 0.18em; }
+.vreveal-emblem {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--rw, var(--vr-accent));
+  background: radial-gradient(circle, color-mix(in srgb, var(--rw, var(--vr-accent)) 30%, transparent) 0%, transparent 70%);
+  box-shadow: 0 0 24px -6px var(--rw, var(--vr-accent));
+}
+.vreveal-glyph { font-size: 40px; color: var(--rw, var(--vr-accent)); font-weight: 800; }
+.vreveal-face-name { font: 700 14px/1.2 system-ui, sans-serif; color: #eaf2f8; }
+.vreveal-face-amt { font: 800 17px/1 system-ui, sans-serif; }
+.vreveal-face-power { font: 700 12px/1 system-ui, sans-serif; color: var(--gold); text-shadow: 0 0 10px rgba(255, 210, 77, 0.5); }
+.vreveal-tap {
+  position: absolute;
+  bottom: 6px;
+  font: 800 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  color: #fff;
+  text-shadow: 0 0 12px var(--vr-accent);
+  animation: vreveal-tap 1s ease-in-out infinite;
+}
+@keyframes vreveal-tap { 0%, 100% { opacity: 0.55; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+/* ── Bottom HUD: container identity + pull progress ── */
+.vreveal-hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.vreveal-hud-name { font: 700 13px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.06em; }
+.vreveal-pullcount { font: 800 13px/1 system-ui, sans-serif; color: var(--text); letter-spacing: 0.04em; }
+.vreveal-pips { display: inline-flex; gap: 5px; }
+.vreveal-pips i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); transition: background 0.2s, transform 0.2s; }
+.vreveal-pips i.done { background: var(--vr-accent); opacity: 0.6; }
+.vreveal-pips i.cur { background: var(--vr-accent); transform: scale(1.35); box-shadow: 0 0 8px var(--vr-accent); }
+
+/* ── Actions (never auto-closes) ── */
+.vreveal-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%; }
+.vreveal-btn {
+  padding: 11px 22px;
+  border-radius: var(--r-sm);
+  font: 700 14px/1 system-ui, sans-serif;
+  letter-spacing: 0.03em;
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s, background 0.16s, border-color 0.16s;
+}
+.vreveal-btn:hover { transform: translateY(-1px); background: var(--panel-3); }
+.vreveal-btn:active { transform: translateY(0); }
+.vreveal-btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--vr-accent) 26%, var(--panel-2)), var(--panel-2)); border-color: var(--vr-accent); color: #fff; }
+.vreveal-btn-sub { margin-left: 5px; font-weight: 500; opacity: 0.8; }
+
+/* ── Summary phase: categorized, merged, animated ── */
+.vreveal-summary { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.vreveal-summary-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vreveal-summary-title { font: 800 18px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.04em; color: var(--text); }
+.vreveal-power-total {
+  font: 800 15px/1 system-ui, sans-serif;
+  color: var(--gold);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 210, 77, 0.12);
+  border: 1px solid rgba(255, 210, 77, 0.4);
+  text-shadow: 0 0 12px rgba(255, 210, 77, 0.5);
+  animation: vreveal-powerin 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes vreveal-powerin { from { opacity: 0; transform: scale(0.8); } }
+.vreveal-sections { display: flex; flex-direction: column; gap: 12px; }
+.vreveal-section { display: flex; flex-direction: column; gap: 7px; }
+.vreveal-section-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-bottom: 3px; border-bottom: 1px solid var(--line); }
+.vreveal-section-title { font: 700 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.vreveal-section-power { font: 800 12px/1 system-ui, sans-serif; color: var(--gold); }
+.vreveal-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.vreveal-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rw, var(--line-strong));
+  animation: vreveal-rowin 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@keyframes vreveal-rowin { from { opacity: 0; transform: translateX(-10px); } }
+.vreveal-row.tier-epic { box-shadow: inset 0 0 0 1px rgba(201, 139, 255, 0.25); }
+.vreveal-row.tier-legendary { box-shadow: inset 0 0 0 1px rgba(255, 210, 77, 0.3); }
+.vreveal-row.tier-exotic { box-shadow: inset 0 0 0 1px rgba(95, 251, 241, 0.3); }
+.vreveal-row-glyph { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font: 800 12px/1 system-ui, sans-serif; color: #0a0f18; }
+.vreveal-row-name { font-weight: 600; color: var(--text); text-align: left; }
+.vreveal-row-x { font: 800 12px/1 system-ui, sans-serif; color: var(--muted); padding: 2px 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); }
+.vreveal-row-power { font: 700 12px/1 system-ui, sans-serif; color: var(--gold); }
+.vreveal-row-amt { font: 800 13px/1 system-ui, sans-serif; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vreveal-backdrop, .vreveal, .vreveal-card, .vreveal-glow, .vreveal-card-sigil, .vreveal-beams,
+  .vreveal-tap, .vreveal-power-total, .vreveal-row, .vreveal-card.is-flipped {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

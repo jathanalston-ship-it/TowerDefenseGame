@@ -120,3 +120,36 @@ The payoff the whole system exists for:
 
 Fast where it's routine, slow where it's special. That ratio — not raw spectacle —
 is what keeps loot exciting after the five-hundredth sac.
+
+---
+
+## Implementation — the Vault reveal (as built)
+
+The ceremony is code now; this is the canonical reference (prefer it over re-reading).
+
+**Split of concerns (the pull-count invariant).** `state/vaultReveal.buildReveal(chests)`
+is a pure read-model returning two shapes from the rolled `ChestResult`s:
+- `pulls[]` — **one entry per raw roll, never collapsed.** Its length equals the
+  container's roll count, so the "Pull 2/5" HUD and the one-by-one reveal can never
+  disagree with what was rolled. (This is the fix for BUGFIX-LOG #8: the old reveal
+  merged before counting, so "5 pulls" showed 3 rows.)
+- `sections[]` — the **only** place duplicates merge: same-reward pulls collapse into a
+  categorized row carrying a `count` ("×N") + summed total. Equipment keys per-uid, so
+  distinct pieces never merge. Categories: Equipment · Tower Shards · Hero Shards ·
+  Materials · Other. Equipment carries an intrinsic Power Score (`itemPowerScore` =
+  `itemRarityPower × effectsPower(itemEffects)`); the section + grand totals highlight it.
+
+**Presentation.** `ui/VaultReveal` renders both, as a **fullscreen fixed overlay portaled
+to `document.body`** (escapes the Hub's `isolation: isolate` stacking context — covers
+everything, nothing clips; same fix pattern as BUGFIX-LOG #6). Two modes:
+- **Cinematic** (default) — face-down card → flip → reward → Continue → next, with a bottom
+  HUD (container name + "Pull i/N" + pips). Rarity scales the pace/spectacle.
+- **Reveal All** — one button skips straight to the summary.
+
+The summary is **categorized, merged, animated** (row stagger + Power count-up) and **never
+auto-closes** — the player dismisses via Open More (N) / Return / Collect. Props
+(`chest, title, color, onClose, onOpenMore, remaining`) serve both run caches and loot-queue
+boxes; `GeneticVault` is the sole caller and keys the reveal per crack so Open More replays.
+
+**Extension points.** A new reward family = one `case` in `describePull` + a `RevealCategory`.
+Rarity label/color maps are open (an unknown tier like `mythic` degrades gracefully).
