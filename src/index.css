@@ -4598,6 +4598,8 @@ kbd {
 .ic-equip { padding: 6px 14px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--rc); background: color-mix(in srgb, var(--rc) 22%, transparent); color: var(--text); }
 .ic-equip.on { background: rgba(63, 224, 138, 0.16); border-color: var(--success); color: var(--success); }
 .ic-mini { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-sm); font-size: 12px; cursor: pointer; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+/* Details carries a text label — size to content (the fixed 28px square is for glyph-only minis). */
+.ic-details { width: auto; padding: 0 10px; white-space: nowrap; }
 .ic-mini:hover:not(:disabled) { background: var(--panel-3); color: var(--text); }
 .ic-mini.is-on { color: var(--gold); border-color: var(--gold); }
 .ic-mini.danger:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); }
