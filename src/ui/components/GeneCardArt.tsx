@@ -4,11 +4,10 @@
 // card's accent (its subject color) and framed by rarity. Pure + memo-friendly: same id ⇒ same art.
 
 import type { CardRarity } from '../../core/types';
+import { rarityColorOf } from '../../core/equipment';
 
-const RARITY_COLOR: Record<CardRarity, string> = {
-  common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)', legendary: 'var(--r-legendary)',
-};
-export function geneRarityColor(r: CardRarity): string { return RARITY_COLOR[r] ?? 'var(--r-common)'; }
+// Delegates to the ONE canonical rarity map (core/equipment.ts) — card rarities are a subset.
+export function geneRarityColor(r: CardRarity): string { return rarityColorOf(r); }
 
 /** Tiny deterministic hash → [0,1) stream from the card id. */
 function hashStream(id: string): () => number {

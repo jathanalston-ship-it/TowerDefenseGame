@@ -43,17 +43,15 @@ const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 const RARITY_LABEL: Record<string, string> = {
   common: 'INERT', rare: 'ACTIVE', epic: 'VIRULENT', legendary: 'RAMPANT', exotic: 'APEX', mythic: 'ABERRANT',
 };
-const RARITY_COLOR: Record<string, string> = {
-  common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)',
-  legendary: 'var(--r-legendary)', exotic: '#5ffbf1', mythic: '#ff5fd2',
-};
+
 
 /** Higher of two rarities (open — an unknown id sorts as lowest so it never wins the finale). */
 export function maxRarity(a: LootRarity, b: LootRarity): LootRarity {
   return TIER.indexOf(a) >= TIER.indexOf(b) ? a : b;
 }
 export function rarityLabel(r: string): string { return RARITY_LABEL[r] ?? r.toUpperCase(); }
-export function rarityColor(r: string): string { return RARITY_COLOR[r] ?? 'var(--r-common)'; }
+import { rarityColorOf as rarityColor } from '../core/equipment'; // ONE canonical rarity map
+export { rarityColor };
 
 /** One revealed pull, display-ready. `qty` is the numeric amount (shards granted, or 1 for a
  *  unique item); `key` is the merge identity used to collapse duplicates in the summary. */

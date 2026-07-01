@@ -259,13 +259,13 @@ export const SYSTEMS: SystemDef[] = [
     id: 'ui-kit', name: 'Shared UI Component Kit', purpose: 'Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.',
     files: ['src/ui/components/Icon.tsx', 'src/ui/components/ProgressBar.tsx', 'src/ui/components/useCountUp.ts'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: ['(embedded everywhere)'], ui: ['(embedded everywhere)'],
-    collection: null, achievements: [], localization: 'inline-en', docs: ['docs/STYLE-GUIDE.md', 'docs/UI-MOTION.md'],
+    collection: null, achievements: [], localization: 'inline-en', docs: ['docs/UI-STANDARDS.md', 'docs/STYLE-GUIDE.md', 'docs/UI-MOTION.md'],
   },
   {
     id: 'dev-registry', name: 'System Registry & Doc Tooling', purpose: 'THIS registry + the doc-sync/validation generators (dev-only).',
     files: ['src/dev/*'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: [], collection: null, achievements: [],
-    localization: 'none', docs: ['docs/DEPENDENCY_GRAPH.md', 'docs/ENGINEERING-AUDIT.md'],
+    localization: 'none', docs: ['docs/DEPENDENCY_GRAPH.md', 'docs/ENGINEERING-AUDIT.md', 'docs/GAME_CONSTITUTION.md', 'docs/PROJECT_STATUS.md', 'docs/AI_HANDOFF.md'],
   },
 ];
 

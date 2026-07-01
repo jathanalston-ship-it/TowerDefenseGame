@@ -7,7 +7,11 @@ stack-specific sections (build/test/run) are filled in below.
 > Status: **active development.** Stack is committed (React + TypeScript + Vite static SPA;
 > deterministic sim core in `src/core/`). **Read `docs/PROJECT_MANIFEST.md` FIRST** — the single
 > source of truth mapping every major system (purpose, files, dependencies, tips); every feature
-> should reference it and update its section on change. For the live "what's actually built vs.
+> should reference it and update its section on change. **`docs/GAME_CONSTITUTION.md` is
+> MANDATORY** (non-negotiable rules, mostly machine-enforced); check `docs/DEPENDENCY_GRAPH.md`
+> before major features ("what breaks if I change this?"), and `docs/PROJECT_STATUS.md` +
+> `docs/AI_HANDOFF.md` for live context. After major work: `npm run validate` (regression audit →
+> `docs/VALIDATION_REPORT.md`); before ending a session: `npm run handoff`. For the live "what's actually built vs.
 > planned" index, read `docs/GAME-STATE.md` (the tiebreaker when a design doc and the build
 > disagree). Sections
 > still marked _(grows with the project)_ are conventions to extend, not commands that exist today —

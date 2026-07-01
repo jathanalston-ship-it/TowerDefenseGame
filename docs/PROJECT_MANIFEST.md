@@ -5,8 +5,10 @@
 > what it touches, where it's going, and what to watch out for. Every future feature should
 > reference this document — and update its row when it changes a system.
 >
-> Reading order: **this file** → `GAME-STATE.md` (what's actually built — the tiebreaker when a
-> design doc and the build disagree) → `CODEMAP.md` (file-level orientation) →
+> Reading order: **this file** → `GAME_CONSTITUTION.md` (the mandatory rules) →
+> `PROJECT_STATUS.md` + `AI_HANDOFF.md` (live state + last session's handoff) → `GAME-STATE.md`
+> (what's actually built — the tiebreaker when a design doc and the build disagree) →
+> `DEPENDENCY_GRAPH.md` (what breaks if I change this?) → `CODEMAP.md` (file-level orientation) →
 > `ENGINEERING-AUDIT.md` (architecture health) → the per-system doc linked in each section.
 
 **The game:** ASSIMILATE — a bio-horror tower defense. React 18 + TypeScript (strict) + Vite,

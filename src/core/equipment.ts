@@ -28,6 +28,16 @@ export const RARITY_AFFIXES: Record<Rarity, number> = {
 };
 export const RARITY_ORDER: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 
+/** Canonical rarity → CSS color (design tokens). THE one map every surface renders rarity with —
+ *  Armory, reveals, tooltips, art frames (docs/UI-STANDARDS.md §Color). Open: unknown → common. */
+export const RARITY_COLOR: Record<string, string> = {
+  common: 'var(--r-common)', uncommon: 'var(--r-uncommon)', rare: 'var(--r-rare)',
+  epic: 'var(--r-epic)', legendary: 'var(--r-legendary)', exotic: 'var(--viral)', mythic: 'var(--r-mythic)',
+};
+export function rarityColorOf(r: string): string {
+  return RARITY_COLOR[r] ?? 'var(--r-common)';
+}
+
 /** Bounded magnitude ladder for affix tiers T1..T6 (the reroll chase — never unbounded). */
 export const AFFIX_TIER_SCALE = [0, 1, 1.18, 1.36, 1.58, 1.8, 2.0];
 export const MAX_AFFIX_TIER = 6;

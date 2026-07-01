@@ -5,18 +5,9 @@
 import type { CSSProperties } from 'react';
 import type { EquipDef } from '../../core/equipment';
 
-/** Rarity → CSS color. Open map (mythic-ready); unknown rarities fall back to common. */
-export const RARITY_VAR: Record<string, string> = {
-  common: 'var(--r-common)',
-  rare: 'var(--r-rare)',
-  epic: 'var(--r-epic)',
-  legendary: 'var(--r-legendary)',
-  exotic: 'var(--viral)',
-  mythic: 'var(--r-mythic)',
-};
-export function rarityColor(r: string): string {
-  return RARITY_VAR[r] ?? 'var(--r-common)';
-}
+// Rarity colors come from the ONE canonical map (core/equipment.ts) — re-exported for callers.
+import { rarityColorOf as rarityColor } from '../../core/equipment';
+export { rarityColor };
 
 const SLOT_GLYPH: Record<string, string> = { weapon: '⚔', armor: '⬡', relic: '❖' };
 const WEAPON_GLYPH: Record<string, string> = { melee: '⚔', ranged: '➹', conduit: '⌁' };

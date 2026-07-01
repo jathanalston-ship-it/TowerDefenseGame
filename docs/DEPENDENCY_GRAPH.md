@@ -110,8 +110,8 @@ graph TD
 | **Rendering & VFX** (`rendering`) | `engine` | — | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` |
 | **Audio** (`audio`) | — | — | — | — | `docs/GAME-FEEL.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` | — | — | — | `docs/DEV-RESET.md` |
-| **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` |
-| **System Registry & Doc Tooling** (`dev-registry`) | — | — | — | — | `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` |
+| **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` |
+| **System Registry & Doc Tooling** (`dev-registry`) | — | — | — | — | `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md` |
 
 ## Per-system detail — the full blast radius
 
@@ -593,7 +593,7 @@ graph TD
 - **HUD surfaces:** `(embedded everywhere)` · **UI screens:** `(embedded everywhere)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md`
+- **Docs to update on change:** `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md`
 
 ### System Registry & Doc Tooling (`dev-registry`)
 
@@ -608,7 +608,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md`
+- **Docs to update on change:** `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md`
 
 ---
 *Maintained automatically: edit `src/dev/systemRegistry.ts`, run `npm run docs:graph`,
