@@ -1464,29 +1464,58 @@ export const meta = {
     persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
-  /** Dismantle an item into crafting feedstock (auto-unequips it). */
+  /** Whether an item is worn by any hero right now (equipped items must be UNEQUIPPED before salvage). */
+  isItemEquipped(uid: string): boolean {
+    const loadouts = store.get().equipment.loadouts;
+    for (const k of Object.keys(loadouts) as HeroKind[]) {
+      const l = loadouts[k]; if (l && EQUIP_SLOTS.some((s) => l[s] === uid)) return true;
+    }
+    return false;
+  },
+
+  /** Dismantle an item into crafting feedstock. Guarded (docs/EQUIPMENT.md §safeguards): favorites and
+   *  locked items are protected, and an EQUIPPED item must be unequipped first — the UI never offers
+   *  salvage in those states, so a `false` here is the defensive backstop. The item + its material
+   *  refund are stashed in `lastSalvage` so the dismantle is UNDOABLE until the next salvage. */
   salvageItem(uid: string): boolean {
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
-    if (!item || item.locked) return false; // locked items are protected from salvage
-    const gain = salvageValue(item);
-    // Unequip the salvaged item from whichever hero wears it (per-hero loadouts).
-    const loadouts: Partial<Record<HeroKind, Loadout>> = {};
-    for (const k of Object.keys(save.equipment.loadouts) as HeroKind[]) {
-      const l = { ...save.equipment.loadouts[k]! };
-      for (const s of EQUIP_SLOTS) if (l[s] === uid) l[s] = null;
-      loadouts[k] = l;
-    }
+    if (!item || item.locked || item.favorite || this.isItemEquipped(uid)) return false;
+    const refund = salvageValue(item);
     persist({
       ...save,
-      equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadouts },
-      mats: {
-        mutagen: save.mats.mutagen + gain.mutagen,
-        scrap: save.mats.scrap + gain.scrap,
-        catalyst: save.mats.catalyst + gain.catalyst,
-      },
+      equipment: { ...save.equipment, inventory: save.equipment.inventory.filter((i) => i.uid !== uid) },
+      mats: { mutagen: save.mats.mutagen + refund.mutagen, scrap: save.mats.scrap + refund.scrap, catalyst: save.mats.catalyst + refund.catalyst },
+      lastSalvage: { item, refund }, // stash for Undo
     });
     return true;
+  },
+
+  /** Undo the most recent salvage: restore the item and reclaim the materials it refunded (floored at
+   *  0). One-deep — the buffer holds only the last salvage; clears after undoing. Returns success. */
+  undoSalvage(): boolean {
+    const save = store.get();
+    const ls = save.lastSalvage;
+    if (!ls) return false;
+    persist({
+      ...save,
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ls.item] },
+      mats: {
+        mutagen: Math.max(0, save.mats.mutagen - ls.refund.mutagen),
+        scrap: Math.max(0, save.mats.scrap - ls.refund.scrap),
+        catalyst: Math.max(0, save.mats.catalyst - ls.refund.catalyst),
+      },
+      lastSalvage: null,
+    });
+    return true;
+  },
+
+  /** Mark an item as inspected (opening its Details) — clears its "NEW" card badge. Idempotent. */
+  markItemSeen(uid: string): void {
+    const save = store.get();
+    if (save.equipment.inventory.find((i) => i.uid === uid)?.seen) return; // already seen → no write
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? { ...i, seen: true } : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
   debugGrantGear(n = 3): void {

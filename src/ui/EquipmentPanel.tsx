@@ -90,6 +90,7 @@ export function EquipmentPanel(): JSX.Element {
       <div className={`item-card${equipped ? ' is-equipped' : ''}${item.favorite ? ' is-fav' : ''}`} key={item.uid} style={{ ['--rc' as string]: c }}>
         <div className="ic-frame">
           <ItemArt def={def} rarity={item.rarity} size={66} />
+          {!item.seen && <span className="ic-new" title="Not yet inspected">NEW</span>}
           {item.locked && <span className="ic-lock" title="Locked (protected from salvage)">🔒</span>}
           {item.favorite && <span className="ic-star" title="Favorite">★</span>}
           {def.season && <span className="ic-season" title={`Seasonal: ${def.season}`}>{def.season}</span>}
@@ -140,6 +141,14 @@ export function EquipmentPanel(): JSX.Element {
         <span className="equip-mats">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>
       </div>
       <div className="panel-sub">Gearing <b>{focusName}</b> — equip one per slot; gear folds into your next run. Each hero keeps its own loadout.</div>
+
+      {/* Undo-Salvage: the last dismantle is recoverable until the next one overwrites the buffer. */}
+      {save.lastSalvage && (
+        <div className="armory-undo">
+          <span>Salvaged <b>{itemDef(save.lastSalvage.item.defId)?.name ?? 'an item'}</b> — its materials were reclaimed.</span>
+          <button className="armory-undo-btn" onClick={() => meta.undoSalvage()}>↺ Undo Salvage</button>
+        </div>
+      )}
 
       {/* Hero focus — pick which fielded hero you're gearing (per-hero loadouts). */}
       {roster.length > 1 && (

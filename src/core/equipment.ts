@@ -427,6 +427,7 @@ export interface OwnedItem {
   locked?: boolean; // protected from salvage (the collectible "keep" flag)
   source?: string; // where it came from (Genetic Vault / Run Extraction / …) — shown on the Details screen
   history?: string[]; // mod log: one short entry per Reforge op applied (oldest first) — Details screen
+  seen?: boolean; // the player has opened its Details at least once — drives the "NEW" card badge
 }
 export interface Loadout {
   weapon: string | null; // OwnedItem.uid

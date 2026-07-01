@@ -62,6 +62,9 @@ export interface SaveData {
   equipment: { inventory: OwnedItem[]; loadouts: Partial<Record<HeroKind, Loadout>> };
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
   matPity: number; // containers opened since the last RARE material (catalyst) — the pity counter (v16)
+  // ── Undo-Salvage buffer (v17): the single most-recently salvaged item + the materials it refunded,
+  //    so an accidental dismantle is recoverable until the next salvage (or a run) overwrites it. ──
+  lastSalvage: { item: OwnedItem; refund: { mutagen: number; scrap: number; catalyst: number } } | null;
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
   // ── Pending bio-containers (schema v8) — completed-but-UNOPENED containers (loot boxes +
@@ -104,7 +107,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 16;
+export const CURRENT_VERSION = 17;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -236,6 +239,7 @@ export function defaultSave(): SaveData {
     equipment: { inventory: [], loadouts: {} },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
     matPity: 0,
+    lastSalvage: null,
     lootQueue: defaultLootQueue(),
     pendingContainers: [],
     unlockedTitles: [],
@@ -278,6 +282,13 @@ function sanitizeHelp(raw: unknown): SaveData['help'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   const seen = Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [];
   return { seen, primed: o.primed === true, hudTour: o.hudTour === true };
+}
+/** Coerce the Undo-Salvage buffer: needs a plausible item (uid + defId) and a numeric refund, else null. */
+function sanitizeLastSalvage(raw: unknown): SaveData['lastSalvage'] {
+  const o = raw as { item?: { uid?: unknown; defId?: unknown }; refund?: Record<string, unknown> } | null;
+  if (!o || typeof o !== 'object' || !o.item || typeof o.item.uid !== 'string' || typeof o.item.defId !== 'string') return null;
+  const n = (v: unknown): number => Math.max(0, Math.floor(Number(v) || 0));
+  return { item: o.item as OwnedItem, refund: { mutagen: n(o.refund?.mutagen), scrap: n(o.refund?.scrap), catalyst: n(o.refund?.catalyst) } };
 }
 
 /**
@@ -328,6 +339,8 @@ function withDefaults(data: SaveData): SaveData {
     mats: { ...d.mats, ...data.mats },
     // v15→v16: the crafting-material pity counter. Absent on older saves ⇒ 0 (fresh pity).
     matPity: Math.max(0, Math.floor(Number((data as { matPity?: unknown }).matPity) || 0)),
+    // v16→v17: the Undo-Salvage buffer. Absent/malformed ⇒ null (nothing to undo).
+    lastSalvage: sanitizeLastSalvage((data as { lastSalvage?: unknown }).lastSalvage),
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
     // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
     lootQueue: sanitizeLootQueue(data.lootQueue),

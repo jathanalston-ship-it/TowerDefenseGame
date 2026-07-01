@@ -96,9 +96,26 @@ To keep gear **understandable within seconds**, the two surfaces have distinct j
   full upgrade bar (**Enhance / Reroll / Reforge / Upgrade Rarity / Salvage** with live material
   costs), and the item's story: **upgrade potential** (tier headroom vs. its ilvl ceiling), **power
   contribution** (its share of the hero's gear), **source** (`OwnedItem.source` — where it dropped),
-  and **mod history** (`OwnedItem.history` — every Reforge op applied). Salvage is a two-step
-  arm→confirm here; the tiered destruction safeguards + Undo land next (see BACKLOG / the safeguards
-  task).
+  and **mod history** (`OwnedItem.history` — every Reforge op applied). Salvage here is guarded by
+  the destruction safeguards (below).
+
+### Destruction safeguards + Undo Salvage (SHIPPED)
+
+Dismantling is hard to do by accident and easy to reverse:
+
+- **Protected states can't be salvaged at all:** a **favorited** item, a **locked** item, or one
+  that's **currently equipped** (unequip it first). The Salvage button is disabled with the reason;
+  `meta.salvageItem` re-checks as a backstop.
+- **The confirm ceremony scales with rarity:** Inert (common) salvages one-click; Active (rare) asks;
+  Virulent (epic) asks **with a power comparison**; Rampant+ (legendary/exotic) throws a large
+  warning.
+- **A higher-Power dismantle hard-warns regardless of rarity** — salvaging gear stronger than what
+  the hero wears shows: *"⚠ WARNING / This item has +N higher Power than your equipped {slot}. / Are
+  you absolutely sure you want to salvage it?"*
+- **Undo Salvage:** the last dismantle is recoverable from an Armory bar until the next salvage
+  overwrites the buffer (`save.lastSalvage` — restores the item and reclaims the refunded materials).
+- **"NEW" badge:** a freshly-dropped item shows a NEW pip until you open its Details
+  (`OwnedItem.seen`).
 
 ---
 

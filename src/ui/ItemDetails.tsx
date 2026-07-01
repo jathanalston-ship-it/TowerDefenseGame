@@ -5,12 +5,12 @@
 // (Enhance / Reroll / Reforge / Upgrade Rarity / Salvage) with live costs, and the item's story
 // (upgrade potential, power contribution, source, mod history). Reads the reactive save via meta.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
 import {
-  SLOT_LABELS, affixDef, affixEffectText, itemDef, itemScore, loadoutScore, maxTierForIlvl, rarityLabelOf,
+  RARITY_ORDER, SLOT_LABELS, affixDef, affixEffectText, itemDef, itemScore, loadoutScore, maxTierForIlvl, rarityLabelOf,
 } from '../core/equipment';
 import type { Loadout, OwnedItem, RolledAffix } from '../core/equipment';
 import {
@@ -60,7 +60,8 @@ export function ItemDetails({
   onClose: () => void;
 }): JSX.Element | null {
   const save = meta.use(); // reactive: equips / reforges / salvage reflect immediately
-  const [armed, setArmed] = useState(false); // two-step Salvage guard (tiered safeguards land in #88)
+  const [confirming, setConfirming] = useState(false); // salvage confirm dialog (tiered by rarity / power)
+  useEffect(() => { meta.markItemSeen(uid); }, [uid]); // opening Details clears the "NEW" badge
   const item = save.equipment.inventory.find((i) => i.uid === uid);
   const def = item ? itemDef(item.defId) : undefined;
   if (!item || !def) return null; // salvaged / missing → the screen closes itself
@@ -79,7 +80,20 @@ export function ItemDetails({
   const ceiling = maxTierForIlvl(item.ilvl);
   const headroom = item.affixes.filter((a) => a.tier < ceiling).length;
 
-  const salvage = (): void => { if (meta.salvageItem(uid)) onClose(); };
+  // Salvage safeguards (docs/EQUIPMENT.md §safeguards): favorites + equipped items can never be
+  // salvaged from here; the confirm ceremony scales with rarity, and salvaging gear STRONGER than
+  // what the hero wears throws a hard warning regardless of rarity.
+  const slotWord = SLOT_LABELS[def.slot].toLowerCase();
+  const rivalPower = rival ? itemScore(rival) : 0;
+  const powerDiff = rival ? power - rivalPower : 0;
+  const higherPower = !!rival && powerDiff > 0;
+  const salvageBlock = equipped ? `Unequip from ${heroName} first` : item.favorite ? 'Unfavorite to salvage' : item.locked ? 'Unlock to salvage' : null;
+  const requestSalvage = (): void => {
+    if (salvageBlock) return; // guarded (the button is disabled in these states)
+    if (item.rarity === 'common' && !higherPower) { doSalvage(); return; } // common = one-click, no ceremony
+    setConfirming(true);
+  };
+  const doSalvage = (): void => { if (meta.salvageItem(uid)) onClose(); };
 
   return (
     <div className="cmp-overlay" onClick={onClose}>
@@ -148,9 +162,9 @@ export function ItemDetails({
               const disabled = !opAvailable(op.id, item) || (!isSalvage && !canAfford(mats, cost));
               if (isSalvage) {
                 return (
-                  <button key={op.id} className={`id-op danger${armed ? ' is-armed' : ''}`} disabled={item.locked} onClick={() => (armed ? salvage() : setArmed(true))} onMouseLeave={() => setArmed(false)}>
-                    <span className="id-op-h"><b>{op.icon} {armed ? 'Confirm salvage?' : 'Salvage'}</b><span className="id-op-cost">+{costLabel(salvageValue(item))}</span></span>
-                    <span className="id-op-blurb">{item.locked ? 'Locked — unlock to salvage.' : op.blurb}</span>
+                  <button key={op.id} className="id-op danger" disabled={!!salvageBlock} onClick={requestSalvage}>
+                    <span className="id-op-h"><b>{op.icon} Salvage</b><span className="id-op-cost">+{costLabel(salvageValue(item))}</span></span>
+                    <span className="id-op-blurb">{salvageBlock ?? op.blurb}</span>
                   </button>
                 );
               }
@@ -171,6 +185,36 @@ export function ItemDetails({
           <div className="id-fact"><span className="id-fact-k">Source</span><span className="id-fact-v">{item.source ?? 'Unknown'}</span></div>
           <div className="id-fact"><span className="id-fact-k">Mod history</span><span className="id-fact-v">{item.history && item.history.length ? item.history.join(' → ') : 'Unmodified'}</span></div>
         </div>
+
+        {/* ── Tiered salvage confirm: rarity scales the ceremony; a higher-Power dismantle hard-warns ── */}
+        {confirming && (() => {
+          const rIdx = RARITY_ORDER.indexOf(item.rarity);
+          const level = higherPower ? 'warning' : rIdx >= 3 ? 'legendary' : rIdx === 2 ? 'epic' : 'rare';
+          return (
+            <div className="id-salvage-scrim" onClick={() => setConfirming(false)}>
+              <div className={`id-salvage is-${level}`} onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+                {higherPower ? (
+                  <>
+                    <div className="id-salvage-warn">⚠ WARNING</div>
+                    <p className="id-salvage-copy">This item has <b>+{powerDiff}</b> higher Power than your equipped {slotWord}.</p>
+                    <p className="id-salvage-copy">Are you absolutely sure you want to salvage it?</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="id-salvage-h" style={{ color: c }}>Salvage this {rarityLabelOf(item.rarity)} {slotWord}?</div>
+                    {level === 'legendary' && <p className="id-salvage-copy">A <b style={{ color: c }}>{rarityLabelOf(item.rarity)}</b> piece — this is permanent (Undo keeps only your most recent salvage).</p>}
+                    {level === 'epic' && <p className="id-salvage-copy">Power {power}{rival ? ` vs ${rivalPower} equipped (${powerDiff >= 0 ? '+' : ''}${powerDiff})` : ''} · yields +{costLabel(salvageValue(item))}.</p>}
+                    {level === 'rare' && <p className="id-salvage-copy">Yields +{costLabel(salvageValue(item))} materials.</p>}
+                  </>
+                )}
+                <div className="id-salvage-btns">
+                  <button onClick={() => setConfirming(false)}>Cancel</button>
+                  <button className="danger" onClick={doSalvage}>Salvage</button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

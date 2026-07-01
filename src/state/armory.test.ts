@@ -35,7 +35,7 @@ describe('set bonuses + loadout score', () => {
 });
 
 describe('favorite / lock', () => {
-  it('locks an item against salvage; flags persist', () => {
+  it('protects an item from salvage while locked OR favorited; flags persist', () => {
     meta.reset();
     meta.grantItem(item('x1', 'w_coil', 'rare'));
     meta.toggleLock('x1');
@@ -45,7 +45,10 @@ describe('favorite / lock', () => {
     meta.toggleLock('x1'); // unlock
     meta.toggleFavorite('x1');
     expect(meta.get().equipment.inventory[0].favorite).toBe(true);
-    expect(meta.salvageItem('x1')).toBe(true); // now salvages
+    expect(meta.salvageItem('x1')).toBe(false); // favorites are ALSO protected (destruction safeguards)
+
+    meta.toggleFavorite('x1'); // unfavorite → now unprotected
+    expect(meta.salvageItem('x1')).toBe(true);
   });
 });
 

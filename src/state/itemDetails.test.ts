@@ -23,3 +23,46 @@ describe('equipment Details: source + mod history', () => {
     expect(after.source).toBe('Genetic Vault'); // provenance survives the reforge (spread-preserved)
   });
 });
+
+describe('equipment destruction safeguards + Undo Salvage', () => {
+  const seed = (over: Partial<import('../save/saveStore').SaveData> = {}) => {
+    const item = rollItem(rng(), WEAPONS[0], 'epic', 15, 'Genetic Vault');
+    meta.importText(serializeExport({ ...defaultSave(), equipment: { inventory: [item], loadouts: {} }, mats: { mutagen: 5, scrap: 5, catalyst: 5 }, ...over }));
+    return item;
+  };
+
+  it('refuses to salvage a FAVORITE or an EQUIPPED item; a free item salvages + fills the Undo buffer', () => {
+    const fav = seed();
+    meta.toggleFavorite(fav.uid);
+    expect(meta.salvageItem(fav.uid)).toBe(false); // favorite protected
+    meta.toggleFavorite(fav.uid); // unfavorite
+    meta.equip('ravager', 'weapon', fav.uid);
+    expect(meta.salvageItem(fav.uid)).toBe(false); // equipped ⇒ must unequip first
+    meta.equip('ravager', 'weapon', null); // unequip
+    const beforeScrap = meta.get().mats.scrap;
+    expect(meta.salvageItem(fav.uid)).toBe(true);
+    expect(meta.get().equipment.inventory).toHaveLength(0); // gone
+    expect(meta.get().mats.scrap).toBeGreaterThan(beforeScrap); // materials reclaimed
+    expect(meta.get().lastSalvage?.item.uid).toBe(fav.uid); // Undo buffer armed
+  });
+
+  it('undoSalvage restores the item and reclaims the refunded materials, then clears the buffer', () => {
+    const item = seed();
+    const scrapBefore = meta.get().mats.scrap;
+    meta.salvageItem(item.uid);
+    const scrapAfter = meta.get().mats.scrap;
+    expect(scrapAfter).toBeGreaterThan(scrapBefore);
+    expect(meta.undoSalvage()).toBe(true);
+    expect(meta.get().equipment.inventory.map((i) => i.uid)).toContain(item.uid); // item back
+    expect(meta.get().mats.scrap).toBe(scrapBefore); // refund taken back
+    expect(meta.get().lastSalvage).toBeNull(); // one-deep buffer cleared
+    expect(meta.undoSalvage()).toBe(false); // nothing left to undo
+  });
+
+  it('markItemSeen clears the NEW state (idempotent)', () => {
+    const item = seed();
+    expect(meta.get().equipment.inventory[0].seen).toBeFalsy(); // fresh drop = NEW
+    meta.markItemSeen(item.uid);
+    expect(meta.get().equipment.inventory[0].seen).toBe(true);
+  });
+});
