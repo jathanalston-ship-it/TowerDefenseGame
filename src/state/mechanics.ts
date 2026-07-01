@@ -5,11 +5,7 @@
 // SaveData — never touches the sim.
 
 import type { SaveData } from '../save/saveStore';
-
-/** Highest Campaign stage cleared across difficulties (inlined to avoid a meta↔mechanics cycle). */
-function highestCampaignStage(s: SaveData): number {
-  return Math.max(0, ...Object.values(s.campaign?.cleared ?? {}).map((v) => v ?? 0));
-}
+import { highestCampaignStage } from '../save/derive'; // cycle-free (never import meta here)
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
 

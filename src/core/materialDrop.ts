@@ -6,6 +6,7 @@
 // unit-testable and deterministic in tests. Metadata (color/icon/tier) lives here so the reveal and
 // any future crafting UI share ONE material identity source.
 
+import { clamp } from './math';
 import { MATERIAL_DROP } from './config';
 import type { LootRarity, MaterialKind } from './config';
 import { RARITY_ORDER } from './equipment';
@@ -37,7 +38,6 @@ export interface MaterialDropResult {
   pity: number; // updated counter to persist (0 right after a catalyst)
 }
 
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
 /** The progression scale (≥1) that grows material quantity + rare odds with account strength. */
 function progressionScale(power: number, stage: number, rarityIdx: number): number {

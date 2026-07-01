@@ -1,0 +1,26 @@
+// Shared ease-out count-up hook (easeOutCubic, 0 → target) — the number-reveal animation used by
+// reward summaries. One implementation for every reveal surface; add options here, not copies.
+
+import { useEffect, useState } from 'react';
+
+/** Animate a number 0→`target` over `ms`. `instant` (skip / reduced-motion) snaps to the value;
+ *  a non-positive target renders as 0 immediately. */
+export function useCountUp(target: number, { ms = 750, instant = false }: { ms?: number; instant?: boolean } = {}): number {
+  const [n, setN] = useState(instant ? Math.max(0, target) : 0);
+  useEffect(() => {
+    if (instant || target <= 0) {
+      setN(Math.max(0, target));
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number): void => {
+      const p = Math.min(1, (now - start) / ms);
+      setN(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms, instant]);
+  return n;
+}

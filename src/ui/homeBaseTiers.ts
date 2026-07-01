@@ -8,12 +8,8 @@
 // Adding a fixture is one row; the renderer + CSS are generic. No sim, no DOM here.
 
 import type { SaveData } from '../save/saveStore';
+import { sumValues } from '../core/math';
 
-function sumValues(obj: Record<string, number>): number {
-  let n = 0;
-  for (const k in obj) n += obj[k] ?? 0;
-  return n;
-}
 
 /** A single monotonic measure of "how developed is this account" — drives the lab's growth.
  *  Weighted so each system contributes and the curve keeps climbing on a long arc. */

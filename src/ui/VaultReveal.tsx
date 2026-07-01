@@ -11,6 +11,7 @@
 // loot-queue boxes (the box rarity supplies the title/accent + ceremony magnitude).
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCountUp } from './components/useCountUp';
 import { createPortal } from 'react-dom';
 import type { ChestResult } from '../state/lootbox';
 import { buildReveal, rarityLabel } from '../state/vaultReveal';
@@ -26,24 +27,6 @@ import type { OwnedItem } from '../core/equipment';
 import type { PowerCompare } from '../state/itemPower';
 
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
-
-/** Ease-out count-up for the summary's headline Power total (0 → target over ~750ms). */
-function useCountUp(target: number, ms = 750): number {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    if (target <= 0) { setV(0); return undefined; }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number): void => {
-      const p = Math.min(1, (now - start) / ms);
-      setV(Math.round(target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, ms]);
-  return v;
-}
 
 function PullFace({ pull }: { pull: PullView }): JSX.Element {
   return (

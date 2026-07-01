@@ -123,12 +123,6 @@ export const DownloadIcon = (p: IconProps): JSX.Element =>
 export const UploadIcon = (p: IconProps): JSX.Element =>
   svg(<path d="M12 21V9m0 0l-4 4m4-4l4 4M5 4h14" />, p, true);
 
-/** Check mark (replaces ✓). */
-export const CheckIcon = (p: IconProps): JSX.Element => svg(<path d="M5 13l4 4L19 7" />, p, true);
-
-/** Cross / X (replaces ✗). */
-export const CrossIcon = (p: IconProps): JSX.Element => svg(<path d="M6 6l12 12M18 6L6 18" />, p, true);
-
 /** Turret — a tower (the Gene Card "affects this tower" badge; tinted to the tower's color). */
 export const TowerIcon = (p: IconProps): JSX.Element =>
   svg(<path d="M5 21V9l7-4 7 4v12h-4v-6h-6v6z" />, p);

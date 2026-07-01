@@ -12,6 +12,7 @@ import {
 } from '../core/geneCards';
 import { essenceUpgradeCost } from '../core/geneEssence';
 import type { SaveData } from '../save/saveStore';
+import { highestCampaignStage } from '../save/derive';
 
 export interface GeneArchiveRow {
   def: CardDef;
@@ -48,14 +49,9 @@ export interface GeneArchiveSummary {
   nextGate: { level: number; stage: number } | null; // the next milestone to surface prominently
 }
 
-/** Highest campaign stage cleared on any difficulty (mirrors meta's helper without importing it). */
-function campaignStageOf(save: SaveData): number {
-  return Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
-}
-
 /** One row per REGISTERED card, in registry order (stable). */
 export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
-  const stage = campaignStageOf(save);
+  const stage = highestCampaignStage(save);
   const ownedSet = new Set(save.stats?.uniqueCards ?? []);
   const cap = geneLevelCapForStage(stage);
   return cardRegistry.active().map((def) => {
@@ -98,7 +94,7 @@ export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
 /** Header totals + the next campaign gate (displayed prominently — the player always knows what
  *  they are working toward). */
 export function geneArchiveSummary(save: SaveData, rows = geneArchiveRows(save)): GeneArchiveSummary {
-  const stage = campaignStageOf(save);
+  const stage = highestCampaignStage(save);
   const cap = geneLevelCapForStage(stage);
   let levels = 0, maxLevels = 0, owned = 0, upgradeable = 0;
   for (const r of rows) {

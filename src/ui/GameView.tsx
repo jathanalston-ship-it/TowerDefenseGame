@@ -8,6 +8,7 @@ import type { Pointer } from '../render/renderer';
 import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta } from '../state/meta';
 import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
@@ -259,7 +260,7 @@ export function GameView({
   // Restore the persisted auto-start preference for this run.
   useEffect(() => {
     try {
-      game.setAutoStart(localStorage.getItem('assimilate.autostart') === '1');
+      game.setAutoStart(localStorage.getItem(AUTOSTART_KEY) === '1');
     } catch {
       /* storage unavailable */
     }

@@ -12,6 +12,7 @@ import { notifications } from '../state/notifications';
 import { TOWER_ORDER, CAMPAIGN_REWARDS } from '../core/config';
 import { costOf, rarityRank, rarityRegistry } from '../core/loot';
 import type { NavKey } from './Hub';
+import { highestCampaignStage } from '../save/derive';
 
 interface DashCard {
   key: string;
@@ -40,7 +41,7 @@ export function ProgressDashboard({
   // Campaign — deepest cleared across all difficulty tracks, climbing toward the next
   // Evolution-Cap milestone (every CAMPAIGN_REWARDS.milestoneEvery stages).
   const ms = CAMPAIGN_REWARDS.milestoneEvery;
-  const campCleared = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
+  const campCleared = highestCampaignStage(save);
   const nextMilestone = (Math.floor(campCleared / ms) + 1) * ms;
   const campProgress = (campCleared - (nextMilestone - ms)) / ms;
   const milestoneNext = (campCleared + 1) % ms === 0; // clearing the next stage unlocks a tier

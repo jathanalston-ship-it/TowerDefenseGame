@@ -13,6 +13,8 @@
 // Pure: no DOM/sim/state/rarity-id hardcoding. Callers pass the rarity ids (ascending rank) and
 // the strength inputs; the bias is a per-id weight MULTIPLIER consumed by rollRarity.
 
+import { clamp } from './math';
+
 export const PROG_LOOT = {
   expectBase: 1.0, // expected power multiple at zero progress (a fresh account is "on par")
   expectPerStage: 0.02, // …+2% expected power per unit of progress (campaign stage / half-wave)
@@ -22,7 +24,6 @@ export const PROG_LOOT = {
   dupeK: 0.6, // duplicate downweight strength (owned copies divide an option's pick weight)
 } as const;
 
-const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
 
 /** The account power the game EXPECTS for a given progress depth (max of campaign stage and
  * half the best Infinite wave — the two frontiers on one scale). A soft, smooth target. */

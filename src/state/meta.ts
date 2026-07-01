@@ -11,6 +11,7 @@ import {
   serializeExport,
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
+import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
 import { CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
@@ -36,6 +37,7 @@ import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
 import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
+import { DEVICE_PREF_KEYS } from './prefs';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
 import { EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItemDrop, rollItemForPower } from '../core/equipment';
@@ -245,7 +247,7 @@ function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite'
  * account's power compares to what its campaign/wave depth expects. All 1 (a no-op) for an on-par
  * or fresh account, so it never perturbs a baseline roll. */
 function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, number> {
-  const campaignStage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
+  const campaignStage = highestCampaignStage(save);
   // Loot-quality axis: harder difficulties tilt the catch-up bias richer, scaled continuously by
   // the difficulty's lootQualityMult; the Ascendant Fortune node adds a permanent account-wide tilt
   // on top (×1 without it). standard + no node ⇒ 0 tier ⇒ no tilt, golden-safe.
@@ -325,13 +327,9 @@ export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   return towerStarCost(stars); // cost ladder only; the Campaign Evolution Cap is enforced in buyStar
 }
 
-/** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress, which
- *  drives the Evolution Cap (docs/EVOLUTION-CAP.md §3). 0 for a fresh account. */
-export function highestCampaignStage(save: SaveData): number {
-  let max = 0;
-  for (const v of Object.values(save.campaign?.cleared ?? {})) max = Math.max(max, v ?? 0);
-  return max;
-}
+// Canonical implementation lives in save/derive.ts (cycle-free — mechanics/read-models import it
+// there); re-exported here so meta stays the one-stop progression API for existing callers.
+export { highestCampaignStage };
 
 /** The current Tower-Star EVOLUTION CAP from Campaign progress (config.EVOLUTION_CAPS). A star may
  *  not be bought beyond this until the matching Campaign milestone is cleared — Shards are the
@@ -1875,7 +1873,8 @@ export const meta = {
     if (id === 'everything') {
       saveStore.wipeAll(); // remove the main save, all backups, and the index (no recovery — factory-fresh)
       // Clear known preference/flag keys (not a blind clear — never touches unrelated keys).
-      for (const key of ['audioOn', 'assimilate.autogene', 'assimilate.debug', 'assimilate.autostart']) {
+      // DEVICE_PREF_KEYS is the one registry every device pref must join (state/prefs.ts).
+      for (const key of DEVICE_PREF_KEYS) {
         try { localStorage.removeItem(key); } catch { /* private mode / no DOM */ }
       }
       persist(defaultSave());

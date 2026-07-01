@@ -3,17 +3,12 @@
 // adding a ring is one entry. Menus without a natural completion metric simply get no ring.
 
 import type { SaveData } from '../save/saveStore';
+import { clamp01, sumValues } from '../core/math';
 import { HERO_ORDER, META_UPGRADES, STAR, TOWER_ORDER } from '../core/config';
 import { cardRegistry } from '../core/cards';
 import { geneLevel, geneMaxLevel } from '../core/geneCards';
 
-function sumValues(obj: Record<string, number>): number {
-  let n = 0;
-  for (const k in obj) n += obj[k] ?? 0;
-  return n;
-}
 
-const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
 
 /** Completion ratio per nav key (0..1). Keyed by NavKey; absent keys render no ring. */
 export function navProgress(save: SaveData): Partial<Record<string, number>> {

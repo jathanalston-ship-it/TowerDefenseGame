@@ -10,6 +10,7 @@
 
 import { LOOT_QUEUE_DEPTH, costOf, emptyPity, isLootRarity, rollRarity, updatePity } from './loot';
 import type { PityState } from './loot';
+import { Rng } from './rng';
 
 export interface LootQueueState {
   /** Loot points banked toward the FRONT box (queue[0]). */
@@ -21,16 +22,11 @@ export interface LootQueueState {
 }
 
 // Deterministic PRNG so a fresh/loaded queue is reproducible (defaultSave must be stable
-// for save round-trip tests; loading the same blob must yield the same padding).
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+// for save round-trip tests; loading the same blob must yield the same padding). The shared
+// core Rng IS mulberry32 — bit-identical to the copy this replaced (round-trip tests pin it).
+function seededStream(seed: number): () => number {
+  const r = new Rng(seed);
+  return () => r.next();
 }
 
 const DEFAULT_SEED = 0x10c7;
@@ -46,7 +42,7 @@ function fill(queue: string[], pity: PityState, rng: () => number, bias?: Record
  * start identical; real progression re-rolls with Math.random via `addProgress`. */
 export function defaultLootQueue(): LootQueueState {
   const pity = emptyPity();
-  return { progress: 0, queue: fill([], pity, mulberry32(DEFAULT_SEED)), pity };
+  return { progress: 0, queue: fill([], pity, seededStream(DEFAULT_SEED)), pity };
 }
 
 /** Coerce a loaded (possibly stale / partial / hostile) value into a valid queue:
@@ -64,7 +60,7 @@ export function sanitizeLootQueue(raw: unknown): LootQueueState {
       if (typeof v === 'number' && isFinite(v) && v >= 0) pity[k] = Math.floor(v);
     }
   }
-  return { progress, queue: fill(queue, pity, mulberry32(DEFAULT_SEED)), pity };
+  return { progress, queue: fill(queue, pity, seededStream(DEFAULT_SEED)), pity };
 }
 
 export interface AddProgressResult {

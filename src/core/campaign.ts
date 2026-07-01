@@ -4,6 +4,7 @@
 // formulas, no DOM/sim. The Game runs a StageConfig through the existing scripted-wave path
 // (`game.ts` 'campaign' mode); stage mode stays byte-identical (golden-safe).
 
+import { clamp } from './math';
 import { CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind } from './types';
@@ -37,7 +38,6 @@ const C = {
 
 const BOSS_VISUAL_KIND: EnemyKind = 'tyrant'; // reserved as the framework-boss render; excluded from the pool
 
-const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
 
 // Biome data + `categoryOf` now live in the shared biome framework (biomes.ts), consumed by
 // BOTH Campaign (here) and Infinite mode. Campaign picks the biome by rotation order and reads

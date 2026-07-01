@@ -15,6 +15,7 @@ import { affectsOf } from './cardAffects';
 import { GeneCardArt, geneRarityColor } from './components/GeneCardArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
+import { highestCampaignStage } from '../save/derive';
 
 function levelPips(level: number, max: number, color: string): JSX.Element {
   return (
@@ -179,7 +180,7 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
 function LoadoutBar({ equipMode, onArmSlot }: { equipMode: number | null; onArmSlot: (i: number | null) => void }): JSX.Element {
   const save = meta.use();
   const slots = save.geneSlots;
-  const stage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
+  const stage = highestCampaignStage(save);
   const [swapFrom, setSwapFrom] = useState<number | null>(null);
   const clickFilled = (i: number): void => {
     if (swapFrom === null) { setSwapFrom(i); return; } // select for rearrange

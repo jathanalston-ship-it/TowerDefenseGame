@@ -19,6 +19,18 @@ export function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
 }
 
+/** Clamp to the unit interval — the progress-bar / fraction workhorse. */
+export function clamp01(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+/** Sum a numeric record's values (missing/undefined entries count as 0). */
+export function sumValues(obj: Record<string, number>): number {
+  let n = 0;
+  for (const k in obj) n += obj[k] ?? 0;
+  return n;
+}
+
 /** Move (x,y) toward (tx,ty) by at most `maxStep`. Returns the new position. */
 export function moveToward(
   x: number,

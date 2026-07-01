@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Game } from '../core/game';
 import { ENEMY_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
+import { AUTOSTART_KEY } from '../state/prefs';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import type { HudSnapshot } from '../core/types';
 
@@ -67,7 +68,7 @@ export function BuildControls({
           }
           onClick={() => {
             game.setAutoStart(!game.autoStart);
-            try { localStorage.setItem('assimilate.autostart', game.autoStart ? '1' : '0'); } catch { /* storage unavailable */ }
+            try { localStorage.setItem(AUTOSTART_KEY, game.autoStart ? '1' : '0'); } catch { /* storage unavailable */ }
             refresh();
           }}
         >

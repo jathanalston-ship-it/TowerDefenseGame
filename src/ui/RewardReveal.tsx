@@ -7,6 +7,7 @@
 // inspect it. Pure presentation: the rewards are already decided + applied upstream.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCountUp } from './components/useCountUp';
 import type { ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
@@ -49,29 +50,8 @@ export interface AchievementItem {
   reward?: number;
 }
 
-/** Ease a number 0→target (easeOutCubic). `instant` (skip / reduced-motion) snaps to the value. */
-function useCountUp(target: number, instant: boolean): number {
-  const [n, setN] = useState(instant ? target : 0);
-  useEffect(() => {
-    if (instant || target <= 0) {
-      setN(Math.max(0, target));
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number): void => {
-      const p = Math.min(1, (now - start) / COUNT_MS);
-      setN(Math.round(target * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, instant]);
-  return n;
-}
-
 function StatRow({ s, instant }: { s: RewardStat; instant: boolean }): JSX.Element {
-  const n = useCountUp(s.value, instant);
+  const n = useCountUp(s.value, { ms: COUNT_MS, instant });
   const text = s.format ? s.format(n) : n.toLocaleString();
   const fill = s.bar == null ? null : s.value > 0 ? (n / s.value) * s.bar : s.bar;
   return (

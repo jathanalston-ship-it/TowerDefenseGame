@@ -42,3 +42,20 @@ export function setDifficultyPref(mode: DiffMode, id: string): void {
     /* storage unavailable */
   }
 }
+
+// ── Device-pref key registry ─────────────────────────────────────────────────
+// The Auto-Start toggle key (read/written by GameView + BuildControls — shared const, not copies).
+export const AUTOSTART_KEY = 'assimilate.autostart';
+
+/** EVERY device-local preference/flag key, in one place — the list `meta.devReset('everything')`
+ *  wipes for a true factory reset. When a module adds a new localStorage pref, it MUST add its key
+ *  here (the owners keep their own consts; this registry only guarantees the wipe is complete). */
+export const DEVICE_PREF_KEYS: readonly string[] = [
+  'audioOn', // audio toggle (App boot)
+  AUTO_GENE_KEY,
+  DIFF_KEY.campaign,
+  DIFF_KEY.infinite,
+  AUTOSTART_KEY,
+  'assimilate.debug', // debug flag (src/debug/debug.ts)
+  'assimilate.notif.seen', // notification watermarks (state/notifications.ts)
+];

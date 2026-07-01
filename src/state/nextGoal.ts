@@ -8,6 +8,8 @@
 // (one-way), so there is no cycle.
 
 import type { SaveData } from '../save/saveStore';
+import { highestCampaignStage } from '../save/derive';
+import { clamp01 } from '../core/math';
 import { TOWER_DEFS, HERO_DEFS, HERO_SLOTS, STAR } from '../core/config';
 import { prestigeStageReq } from '../core/prestige';
 import { collectionView } from '../core/collection';
@@ -29,9 +31,6 @@ export interface NextGoal {
   nav: string; // Hub nav key to jump to it
   color: string;
 }
-
-const clamp01 = (n: number): number => Math.max(0, Math.min(1, n));
-const highestStage = (s: SaveData): number => Math.max(0, ...Object.values(s.campaign?.cleared ?? {}).map((v) => v ?? 0));
 
 /** Scan the save and rank every imminent reward closest-to-done first (capped). */
 export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
@@ -92,7 +91,7 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
   // ── MOLT readiness (Campaign depth toward the next prestige) ──
   const molts = save.prestige?.molts ?? 0;
   const req = prestigeStageReq(molts);
-  const stage = highestStage(save);
+  const stage = highestCampaignStage(save);
   if (req > 0 && stage < req) {
     goals.push({
       id: 'prestige', kind: 'prestige',
