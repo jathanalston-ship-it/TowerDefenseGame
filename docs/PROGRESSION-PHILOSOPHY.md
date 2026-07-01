@@ -6,8 +6,9 @@ The lens for every progression decision. `PROGRESSION.md` specifies the **power 
 content on top of it. Companion redesigns: `TOWER-STARS.md`, `MASTERY.md`,
 `EQUIPMENT-PHILOSOPHY.md`. Implementation status: `PROGRESSION-SYSTEMS.md`.
 
-> No gameplay code yet. This is the design + architecture gate that must pass before
-> the next wave of towers/heroes/cards/equipment is built.
+> The design + architecture gate for progression. Its principles are now **realized in code**
+> (stars, branches, mastery→Adaptation, equipment, prestige) — this doc is the *why* every new
+> tower/hero/card/equipment should still satisfy. Shipped-vs-planned: `GAME-STATE.md`.
 
 ---
 

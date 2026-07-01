@@ -7,8 +7,10 @@
 > risk, or reward. The objective: progression that changes **how the player plays**, not
 > only **how hard they hit.** **No code changed here — this is the redesign spec.**
 
-**Status:** PLANNED. Companion: `PROGRESSION-PHILOSOPHY.md`, `POWER-SCORE.md`,
-`TOWER-STARS.md`, `MASTERY.md`, `EQUIPMENT-PHILOSOPHY.md`, `IDENTITY-AUDIT.md`.
+**Status:** PARTIAL — **§2 Adaptation is SHIPPED** (`core/adaptation.ts`: mastery Ranks pay Antigen
+Points into a 3-branch tower/hero tree, wired into `state/meta` folds + the Lab UIs). Other sections
+remain PLANNED. Companion: `PROGRESSION-PHILOSOPHY.md`, `POWER-SCORE.md`, `TOWER-STARS.md`,
+`MASTERY.md`, `EQUIPMENT-PHILOSOPHY.md`, `IDENTITY-AUDIT.md`. Live status: `GAME-STATE.md`.
 
 **Scoring key:** 🟩 already a decision · 🟨 partly (a decision wrapped around a stat) · 🟥
 pure stat — the redesign targets.

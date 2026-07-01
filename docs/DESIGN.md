@@ -4,7 +4,7 @@
 **Genre:** Cyberpunk biological-horror Tower Defense × Incremental × Roguelite-draft × Collection × Endless
 **One-line vision:** *You are a rogue biotech hive intelligence. Grow, mutate, and assimilate hostile ecosystems — forever.*
 
-> **Document status:** v0 design bible. All numbers are **starting points / illustrative tuning**, not final balance — per the repo convention they will live in a central data/config file once implementation starts; this doc is the source of truth for *why* the numbers exist, not the runtime values. This is design-before-content: nothing here is implemented yet.
+> **Document status:** the design bible — the source of truth for *why* the numbers exist, not the runtime values (those live in `core/config.ts`). The core game it describes **is implemented and tested** (deterministic sim, towers/heroes/enemies, economy, modes); treat specific numbers here as illustrative intent, and `GAME-STATE.md` as the record of what's actually built vs. still planned.
 >
 > **Companion spec:** detailed permanent-progression formulas, costs, rates, and
 > pacing live in [`PROGRESSION.md`](PROGRESSION.md).

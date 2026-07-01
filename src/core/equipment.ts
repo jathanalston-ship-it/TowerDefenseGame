@@ -96,6 +96,52 @@ export function affixDef(id: string): AffixDef | undefined {
   return AFFIX_BY_ID.get(id);
 }
 
+/** Human labels for the RunModifier fields an affix touches — so the Details screen can EXPLAIN a
+ *  stat in plain words ("+5% Tower Damage") instead of showing a raw field key. Unlisted fields fall
+ *  back to a camelCase→words humanizer, so new content reads sensibly without a hand-edit. */
+const FIELD_LABEL: Record<string, string> = {
+  towerDamageMult: 'Tower Damage', towerFireRateMult: 'Fire Rate', splashRadiusMult: 'Splash Radius',
+  fractureBonusStacks: 'max Fracture', heroDamageMult: 'Hero Damage', heroCooldownMult: 'Ability Cooldown',
+  heroMaxHpMult: 'Hero Health', integrityMult: 'Nucleus Integrity', reactorOverchargeBonus: 'Reactor Overcharge',
+  mortarPoolDurationMult: 'Acid Pool Duration', corrosionSlowBonus: 'Corrosion Slow', heroAggroRangeMult: 'Hunt Range',
+  heroRetreatThreshold: 'Retreat Caution', biomassMult: 'Biomass Income', startBiomassBonus: 'Starting Biomass',
+  poolDpsMult: 'Acid Pool Damage', reactorBiomassMult: 'Reactor Biomass', needleExtraProjectiles: 'extra Needles',
+  heroLifestealFrac: 'Lifesteal', heroAbilityRadiusMult: 'Ability Radius', heroSpeedMult: 'Move Speed',
+  heroThornsFrac: 'Thorns', heroTowerHasteAura: 'Tower Haste Aura', heroTowerDamageAura: 'Tower Damage Aura',
+  heroAuraRadius: 'Aura Radius', heroAnchor: 'Anchor Point',
+};
+function humanizeField(f: string): string {
+  return FIELD_LABEL[f] ?? f.replace(/(Mult|Frac|Bonus)$/, '').replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim();
+}
+
+/** A plain-language explanation of what an affix DOES (its tier-1 magnitude + which stat it moves).
+ *  Shown on the Details screen so a first-time player understands each roll at a glance. */
+export function affixEffectText(affix: RolledAffix): string {
+  const def = affixDef(affix.affixId);
+  const e = def?.effects[0];
+  if (!def || !e) return affix.affixId;
+  switch (e.op) {
+    case 'mul': {
+      const pct = Math.round(Math.abs(e.value - 1) * 100);
+      return `${e.value >= 1 ? '+' : '−'}${pct}% ${humanizeField(e.field)}`;
+    }
+    case 'add':
+      return `${e.value >= 0 ? '+' : '−'}${Math.abs(e.value)} ${humanizeField(e.field)}`;
+    case 'flag':
+      return humanizeField(e.field);
+    case 'set':
+      return `Sets ${humanizeField(e.field)} → ${e.value}`;
+    case 'grant':
+      return e.grant.kind === 'heroAttackStatus' ? `Hero attacks apply ${e.grant.status}`
+        : e.grant.kind === 'towerProjectileMutator' ? 'Shots pierce +1 host'
+        : 'Grants a run capability';
+    case 'hook':
+      return `On ${e.hook.on}: a battlefield rule`;
+    default:
+      return def.name;
+  }
+}
+
 /** Offense affixes → "prefix"; everything else is a utility "suffix". Data-driven classification
  *  for the Reforge affix view (Primary / Prefix / Suffix). One reviewable list; an AffixDef may
  *  override via its `kind` field, and any new affix defaults to a suffix unless listed here. */
@@ -379,6 +425,9 @@ export interface OwnedItem {
   ilvl?: number; // Reforge item level (drop depth) — caps the affix tier ceiling; legacy gear omits it
   favorite?: boolean; // pinned by the player (sorts first; never the salvage target)
   locked?: boolean; // protected from salvage (the collectible "keep" flag)
+  source?: string; // where it came from (Genetic Vault / Run Extraction / …) — shown on the Details screen
+  history?: string[]; // mod log: one short entry per Reforge op applied (oldest first) — Details screen
+  seen?: boolean; // the player has opened its Details at least once — drives the "NEW" card badge
 }
 export interface Loadout {
   weapon: string | null; // OwnedItem.uid
@@ -425,27 +474,27 @@ function newUid(): string {
 
 /** Create an owned instance of a definition at a rarity (rolls affixes for the tier). An optional
  *  `ilvl` stamps the item level and caps rolled affix tiers to that level's ceiling. */
-export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity, ilvl?: number): OwnedItem {
+export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity, ilvl?: number, source = 'Genetic Vault'): OwnedItem {
   const fixed: Rarity = def.exotic ? 'exotic' : rarity;
   const cap = ilvl === undefined ? MAX_AFFIX_TIER : maxTierForIlvl(ilvl);
-  const item: OwnedItem = { uid: newUid(), defId: def.id, rarity: fixed, affixes: rollAffixes(rng, def.slot, RARITY_AFFIXES[fixed], cap) };
+  const item: OwnedItem = { uid: newUid(), defId: def.id, rarity: fixed, affixes: rollAffixes(rng, def.slot, RARITY_AFFIXES[fixed], cap), source };
   if (ilvl !== undefined) item.ilvl = ilvl;
   return item;
 }
 
 /** A run-end drop: a slot-balanced random item, rarity weighted by how deep the run got, stamped
  *  with an item level from the run depth (the Reforge tier ceiling). */
-export function rollItemDrop(rng: Rng, wave: number): OwnedItem {
+export function rollItemDrop(rng: Rng, wave: number, source = 'Run Extraction'): OwnedItem {
   // Pick a SLOT uniformly, then an item within it — so Weapon / Armor / Relic each drop at a 1/3
   // share regardless of how many items each category defines (equal category representation).
   const slot = pick(rng, ['weapon', 'armor', 'relic'] as EquipSlot[]);
   const def = pick(rng, BY_SLOT[slot]);
   const ilvl = Math.max(1, Math.round(wave));
-  if (def.exotic) return rollItem(rng, def, 'exotic', ilvl);
+  if (def.exotic) return rollItem(rng, def, 'exotic', ilvl, source);
   // deeper → better floor
   const roll = rng() + Math.min(0.35, wave * 0.03);
   const rarity: Rarity = roll > 1.15 ? 'legendary' : roll > 0.9 ? 'epic' : roll > 0.55 ? 'rare' : 'common';
-  return rollItem(rng, def, rarity, ilvl);
+  return rollItem(rng, def, rarity, ilvl, source);
 }
 
 /** Map an account Power Score → an equipment item level, so a container's gear rarity tracks account
@@ -460,7 +509,7 @@ export function powerItemLevel(powerScore: number, base = 1000): number {
  *  reusing the wave→rarity ladder via powerItemLevel. This is the single acquisition path used when a
  *  container yields gear (docs/EQUIPMENT.md). */
 export function rollItemForPower(rng: Rng, powerScore: number, base = 1000): OwnedItem {
-  return rollItemDrop(rng, powerItemLevel(powerScore, base));
+  return rollItemDrop(rng, powerItemLevel(powerScore, base), 'Genetic Vault');
 }
 
 // ── Reroll & craft hooks (the optimization sink — bounded, deterministic-ish) ──

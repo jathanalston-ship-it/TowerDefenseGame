@@ -8,6 +8,14 @@
 
 **Date:** 2026-07-01 · **Scope:** the shipped codebase (`src/`), not the roadmap.
 
+> **Reconciliation note (kept live):** this is a dated *snapshot*; its analysis stands, but some
+> findings have since shipped. Now built: **Adaptation** (mastery→decisions), the **Milestone-1 boss
+> line** (7 authored bosses, not ~1), **crafting materials from Vaults** (pity-protected), the
+> **Equipment Details screen** + card simplification, **destruction safeguards + Undo Salvage**, and
+> the dead "Soon" menu tiles are gone (behind `core/features.ts`). The still-open structural P0s
+> (content scale, mid-game economy sink, no backend) are unchanged. For current status always defer
+> to **`GAME-STATE.md`**.
+
 ---
 
 ## 0. The one-paragraph verdict (read this even if you read nothing else)
@@ -87,9 +95,11 @@ hard you hit** — and most here change the latter.
 
 ## 3. Dead ends & half-wired features
 
-- **"Custom Challenge" and "Training" menu tiles render "Soon"** (confirmed live). Dead
-  entrances on the main menu are the worst kind of dead end — they advertise absence. *P1:
-  hide unbuilt modes behind a flag, or cut the tiles until built.*
+- ~~**"Custom Challenge" and "Training" menu tiles render "Soon"**~~ — **RESOLVED.** Both
+  unbuilt tiles are now hidden behind `core/features.ts` (`FEATURES.customChallenge` /
+  `FEATURES.trainingMode`, default `false`); flip the flag in the commit that ships the mode.
+  No more dead entrances — the PLAY screen shows only real modes (Campaign / Infinite / Quick
+  Skirmish).
 - **Bosses are a framework with ~1 authored boss** (`boss.ts` + Bestiary tracking). The
   "Every Boss" collection promises 50; there is essentially one. *P1.*
 - **Doctrines (6)** are a thin run-modifier layer with little identity; most players will

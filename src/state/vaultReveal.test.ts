@@ -81,6 +81,21 @@ describe('vault reveal read-model (honest pulls + merged summary)', () => {
     expect(m.totalPower).toBe(eq.power);
   });
 
+  it('a crafting material renders with its own identity + rarity flare (Catalyst = legendary amber)', () => {
+    const items: RewardItem[] = [
+      { type: 'material', rarity: 'common', mat: 'scrap', amount: 3 },
+      { type: 'material', rarity: 'legendary', mat: 'catalyst', amount: 1 }, // the rare, pity-protected drop
+    ];
+    const m = buildReveal(chest(items));
+    const mats = m.sections.find((s) => s.id === 'materials')!;
+    expect(mats.rows.map((r) => r.name).sort()).toEqual(['Catalyst', 'Scrap']);
+    const cat = mats.rows.find((r) => r.name === 'Catalyst')!;
+    expect(cat.rarity).toBe('legendary'); // drives the reveal ceremony flare
+    expect(cat.color).toBe('#ff9d3c'); // its own amber accent, not a flat material color
+    expect(cat.amountLabel).toBe('+1 Catalyst');
+    expect(m.topRarity).toBe('legendary'); // a catalyst pull makes the whole crack feel legendary
+  });
+
   it('topRarity reflects the best pull across the whole container', () => {
     const items: RewardItem[] = [
       { type: 'tower', rarity: 'common', kind: t0, amount: 1 },

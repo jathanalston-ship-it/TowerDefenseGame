@@ -14,10 +14,11 @@
 
 import type { ChestResult, RewardItem } from './lootbox';
 import { HERO_DEFS, HERO_LABELS, TOWER_DEFS } from '../core/config';
-import type { LootRarity, MaterialKind } from '../core/config';
+import type { LootRarity } from '../core/config';
 import type { HeroKind } from '../core/types';
 import { itemDef, SLOT_LABELS } from '../core/equipment';
 import type { OwnedItem } from '../core/equipment';
+import { MATERIAL_META } from '../core/materialDrop';
 import { itemPowerScore } from './itemPower';
 import type { PowerCompare } from './itemPower';
 import type { CurrencyId } from '../core/currencies';
@@ -45,7 +46,6 @@ const RARITY_COLOR: Record<string, string> = {
   common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)',
   legendary: 'var(--r-legendary)', exotic: '#5ffbf1', mythic: '#ff5fd2',
 };
-const MAT_LABEL: Record<MaterialKind, string> = { mutagen: 'Mutagen', scrap: 'Scrap', catalyst: 'Catalyst' };
 
 /** Higher of two rarities (open — an unknown id sorts as lowest so it never wins the finale). */
 export function maxRarity(a: LootRarity, b: LootRarity): LootRarity {
@@ -118,8 +118,10 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
       const color = HERO_DEFS[item.id as HeroKind]?.color ?? 'var(--vital)';
       return { key: `hero:${item.id}`, category: 'heroShards', rarity: item.rarity, color, name: HERO_LABELS[item.id] ?? item.id, qty: item.amount, unit: 'Apex Genome', amountLabel: `+${item.amount} Apex Genome`, currency: 'heroShards' };
     }
-    case 'material':
-      return { key: `mat:${item.mat}`, category: 'materials', rarity: item.rarity, color: 'var(--caustic)', name: MAT_LABEL[item.mat], qty: item.amount, unit: 'Materials', amountLabel: `+${item.amount} Materials`, glyph: '✦' };
+    case 'material': {
+      const m = MATERIAL_META[item.mat];
+      return { key: `mat:${item.mat}`, category: 'materials', rarity: item.rarity, color: m.color, name: m.name, qty: item.amount, unit: m.name, amountLabel: `+${item.amount} ${m.name}`, glyph: m.icon };
+    }
     case 'equipment': {
       const d = itemDef(item.item.defId);
       const power = itemPowerScore(item.item);
@@ -175,7 +177,7 @@ function unitFor(r: SummaryRow): string {
   switch (r.category) {
     case 'towerShards': return 'Strain Samples';
     case 'heroShards': return 'Apex Genome';
-    case 'materials': return 'Materials';
+    case 'materials': return r.name; // each material row is its own kind (Mutagen / Scrap / Catalyst)
     default: return '';
   }
 }

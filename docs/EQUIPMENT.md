@@ -84,6 +84,41 @@ Legendary Effects are what make builds; affixes *tune* them.
 
 ---
 
+## 4b. Managing gear — cards vs. the Details screen (SHIPPED · `ui/ItemDetails.tsx`)
+
+To keep gear **understandable within seconds**, the two surfaces have distinct jobs:
+
+- **Item cards** (the Armory grid) expose only three actions: **Equip / Unequip**, **Details**, and
+  **Favorite**. That's the whole scan-and-slot loop — nothing destructive on the card.
+- The **Details screen** is the single place everything else lives: large artwork + Power Score, a
+  side-by-side **vs. the equipped item** (with the ▲/▼ Power verdict), affixes each written in
+  **plain language** (`affixEffectText` — "+5% Tower Damage", "Hero attacks apply Corrosion"), the
+  full upgrade bar (**Enhance / Reroll / Reforge / Upgrade Rarity / Salvage** with live material
+  costs), and the item's story: **upgrade potential** (tier headroom vs. its ilvl ceiling), **power
+  contribution** (its share of the hero's gear), **source** (`OwnedItem.source` — where it dropped),
+  and **mod history** (`OwnedItem.history` — every Reforge op applied). Salvage here is guarded by
+  the destruction safeguards (below).
+
+### Destruction safeguards + Undo Salvage (SHIPPED)
+
+Dismantling is hard to do by accident and easy to reverse:
+
+- **Protected states can't be salvaged at all:** a **favorited** item, a **locked** item, or one
+  that's **currently equipped** (unequip it first). The Salvage button is disabled with the reason;
+  `meta.salvageItem` re-checks as a backstop.
+- **The confirm ceremony scales with rarity:** Inert (common) salvages one-click; Active (rare) asks;
+  Virulent (epic) asks **with a power comparison**; Rampant+ (legendary/exotic) throws a large
+  warning.
+- **A higher-Power dismantle hard-warns regardless of rarity** — salvaging gear stronger than what
+  the hero wears shows: *"⚠ WARNING / This item has +N higher Power than your equipped {slot}. / Are
+  you absolutely sure you want to salvage it?"*
+- **Undo Salvage:** the last dismantle is recoverable from an Armory bar until the next salvage
+  overwrites the buffer (`save.lastSalvage` — restores the item and reclaims the refunded materials).
+- **"NEW" badge:** a freshly-dropped item shows a NEW pip until you open its Details
+  (`OwnedItem.seen`).
+
+---
+
 ## 5. Upgrade systems
 
 | System | Currency | Effect | Bound |
@@ -141,6 +176,25 @@ Crafting is **deterministic-ish**: RNG provides the raw material; crafting lets 
 | **Crafting / salvage loop** | deterministic target gear |
 | **Omega seasons / leaderboards** | seasonal Exotics + cosmetics |
 | **Set bosses** | set-specific pieces (farm the set you want) |
+
+### Materials — how crafting mats drop (SHIPPED · `core/materialDrop.ts`)
+
+Cracking any Genetic Vault container can also yield **crafting materials**, as a deliberate
+*secondary* feeder — **equipment stays the primary crafting source** (`EQUIP_DROP_CHANCE = 0.5`
+vs. `MATERIAL_DROP.baseChance = 0.3`). Rules (`rollMaterialDrop`, all tunables in
+`config.MATERIAL_DROP`):
+
+- **At most one material stack per container**, small quantities. Common feeders (**Mutagen**,
+  **Scrap**) are the usual drop; **Catalyst** is the RARE material — *extremely uncommon*
+  (`rareBaseChance = 0.03`, capped low).
+- **Scales** with account **Power Score**, **campaign progress**, and the **container's rarity**
+  (bigger common stacks + slightly better rare odds as you grow).
+- **Pity-protected:** after `rarePity` (22) containers without a Catalyst, the next material is a
+  **guaranteed Catalyst** (`save.matPity` persists the counter; resets on any Catalyst). Verified
+  live: over 120 cracks, the longest dry streak was 21 — the guarantee holds.
+- **Reveal identity:** each material has its own name/color/glyph (`MATERIAL_META`) and its drop
+  carries a rarity flare (Catalyst = *legendary* amber), so a rare pull makes the whole crack feel
+  legendary (the ceremony magnitude reads `topRarity`).
 
 ---
 

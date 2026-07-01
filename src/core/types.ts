@@ -110,6 +110,9 @@ export interface BossRuntime {
   enrage: number; // enrage stacks
   channel: number; // seconds left on a Nucleus channel (0 = none)
   charge: number; // seconds left on a telegraphed dash (0 = not charging)
+  carapace: number; // bonus armor from an active carapace window (0 = none; cracked by Fracture → Shred)
+  carapaceT: number; // seconds left on the carapace window (0 ⇒ carapace resets to 0)
+  splitsLeft: number; // splitter: generations this lineage may still split into on death (0 = terminal)
   telegraph: string | null; // current telegraphed action (drives the banner)
 }
 

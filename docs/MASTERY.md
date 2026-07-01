@@ -6,7 +6,12 @@ mutations, lore, and milestone perks — that scales **forever** without ever in
 power. Aligns with `PROGRESSION.md §2.3` (log-infinite + milestone perks) and the
 philosophy in `PROGRESSION-PHILOSOPHY.md §2.3–2.4`.
 
-> Design + architecture only. No gameplay code yet.
+> **Status: PARTIAL.** The mastery track itself is built (per-tower/per-hero XP from use → levels +
+> ranks + the flat `1 + MASTERY.damagePerLevel·level` multiplier, plus rank perks). The **spendable
+> layer this doc's "experience, not a stat" thesis wants is now shipped as ADAPTATION** (`core/
+> adaptation.ts`, PROGRESSION-REDESIGN §2): each mastery Rank pays one Antigen Point into a
+> three-branch tree, so the infinite grind buys *decisions*, not just a bigger number. The
+> title/badge/visual-mutation trophy surface described below remains largely PLANNED.
 
 ---
 
