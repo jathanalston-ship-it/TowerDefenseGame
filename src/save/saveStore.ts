@@ -17,6 +17,7 @@ import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
 import { defaultCalib } from '../core/predict';
 import type { PredictCalib } from '../core/predict';
+import { adaptNode } from '../core/adaptation';
 
 export interface SaveData {
   shards: number;
@@ -45,6 +46,10 @@ export interface SaveData {
   //    Selection/fielding is gated to this set. Pre-v14 saves grandfather in every hero the player
   //    already engaged with (stars / usage / loadout / selected) so no access is stripped. ──
   heroUnlocked: HeroKind[];
+  // ── Adaptation (schema v15, docs/PROGRESSION-REDESIGN §2). Chosen adaptation-node ids per unit,
+  //    keyed `tower:<kind>` / `hero:<kind>`. Antigen Points (one per mastery Rank) are spent here.
+  //    Empty for a fresh unit ⇒ zero run effects ⇒ golden-safe. Additive; pre-v15 saves default {}. ──
+  adaptation: Record<string, string[]>;
   // ── Per-hero lifetime ownership stats (schema v9) — drive the Hero Lab detail page ──
   heroKills: Record<HeroKind, number>; // lifetime kills BY each hero (accrued for the fielded hero)
   heroFavEquip: Record<HeroKind, Record<string, number>>; // per-hero equip-usage counts (defId → runs); argmax = favorite
@@ -98,7 +103,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 14;
+export const CURRENT_VERSION = 15;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -169,6 +174,17 @@ function sanitizeHeroUnlocked(data: SaveData): HeroKind[] {
   }
   return HERO_ORDER.filter((k) => set.has(k));
 }
+/** Keep only real, de-duplicated adaptation-node ids per unit key (drops junk from a tampered save). */
+function sanitizeAdaptation(raw: unknown): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  if (typeof raw !== 'object' || raw === null) return out;
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (!Array.isArray(val)) continue;
+    const ids = Array.from(new Set(val.filter((x): x is string => typeof x === 'string' && !!adaptNode(x))));
+    if (ids.length) out[key] = ids;
+  }
+  return out;
+}
 function zeroByEnemy(): Record<EnemyKind, number> {
   const r = {} as Record<EnemyKind, number>;
   for (const k of ENEMY_KINDS) r[k] = 0;
@@ -211,6 +227,7 @@ export function defaultSave(): SaveData {
     selectedHero: 'ravager',
     heroLoadout: ['ravager'],
     heroUnlocked: starterHeroes(),
+    adaptation: {},
     heroKills: zeroByHeroKind(),
     heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
@@ -295,6 +312,8 @@ function withDefaults(data: SaveData): SaveData {
     heroLoadout: sanitizeLoadout(data.heroLoadout, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     // v13→v14: Hero Collection ownership. Pre-v14 saves grandfather in used heroes (no access lost).
     heroUnlocked: sanitizeHeroUnlocked(data),
+    // v14→v15: Adaptation node picks (empty for pre-v15 ⇒ golden-safe).
+    adaptation: sanitizeAdaptation((data as { adaptation?: unknown }).adaptation),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {

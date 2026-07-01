@@ -14,6 +14,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { TowerPortrait } from './TowerPortrait';
 import { TowerCodex } from './TowerCodex';
 import { PowerDelta } from './components/PowerScore';
+import { AdaptationTree } from './components/AdaptationTree';
 import { StarCeremony } from './StarCeremony';
 import { ceremonyView, towerLabModel } from './towerLabModel';
 import type { StepView } from './towerLabModel';
@@ -65,6 +66,7 @@ export function TowerLab(): JSX.Element {
   const curPower = meta.power().score; // for the "next star → new Power" preview
   const [ceremony, setCeremony] = useState<CeremonyState | null>(null);
   const [openForks, setOpenForks] = useState<TowerKind | null>(null);
+  const [openAdapt, setOpenAdapt] = useState<TowerKind | null>(null); // open the Adaptation tree for a tower
   const [codexKind, setCodexKind] = useState<TowerKind | null>(null); // open the Evolution Codex for a tower
 
   const upgrade = (k: TowerKind, fromStar: number): void => {
@@ -201,6 +203,18 @@ export function TowerLab(): JSX.Element {
                     {openForks === k && <ForkPaths kind={k} stars={m.stars} color={m.color} />}
                   </>
                 )}
+
+                {(() => {
+                  const pts = meta.adaptation('tower', k).pointsAvailable;
+                  return (
+                    <>
+                      <button className="tl-forks-toggle" onClick={() => setOpenAdapt(openAdapt === k ? null : k)}>
+                        Adaptation {pts > 0 && <span className="tl-adapt-badge">{pts}</span>} {openAdapt === k ? '▾' : '▸'}
+                      </button>
+                      {openAdapt === k && <AdaptationTree subject="tower" unit={k} color={m.color} />}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           );

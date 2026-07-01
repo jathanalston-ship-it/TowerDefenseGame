@@ -46,6 +46,8 @@ import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
+import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
+import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
@@ -422,8 +424,17 @@ export function towerProgress(save: SaveData): TowerProgress {
       if (p.fireRateMult) fireRateBonus *= p.fireRateMult;
       if (p.infectionSpreadMult) infectionSpreadMult *= p.infectionSpreadMult;
     }
+    // Adaptation (docs/PROGRESSION-REDESIGN §2) — the player's SPENT antigen-point picks fold into
+    // the SAME kit. Empty picks ⇒ a neutral effect ⇒ byte-identical to before (golden-safe).
+    const adapt = adaptationEffect(save.adaptation?.[`tower:${k}`] ?? []);
+    kit.projectileMutators.push(...adapt.projectileMutators);
+    kit.extraProjectiles += adapt.extraProjectiles;
+    kit.splashMult *= adapt.splashMult;
+    rangeMult *= adapt.rangeMult;
+    fireRateBonus *= adapt.fireRateMult;
+    infectionSpreadMult *= adapt.infectionSpreadMult;
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * adapt.damageMult,
       fireRateMult: (1 + STAR.fireRatePerStar * stars) * fireRateBonus,
       rangeMult: rangeMult !== 1 ? rangeMult : undefined,
       infectionSpreadMult: infectionSpreadMult !== 1 ? infectionSpreadMult : undefined,
@@ -464,12 +475,41 @@ export function heroProgress(save: SaveData): HeroProgress {
     const stars = save.heroStars[k] ?? 0;
     const mLvl = masteryLevel(save.heroMasteryXp[k] ?? 0);
     const equip = heroEquipment(save, k);
+    const adapt = adaptationEffect(save.adaptation?.[`hero:${k}`] ?? []); // golden-safe: empty ⇒ ×1
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult,
-      cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult,
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult * adapt.heroDamageMult,
+      cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult * adapt.heroCooldownMult,
     };
   }
   return out;
+}
+
+// ── Adaptation (docs/PROGRESSION-REDESIGN §2) — mastery-as-a-decision read-model + spends ──────────
+
+export interface AdaptView {
+  subject: 'tower' | 'hero';
+  unit: string;
+  pointsEarned: number; // one Antigen Point per mastery Rank
+  pointsSpent: number;
+  pointsAvailable: number;
+  chosen: string[];
+  nodes: { node: AdaptNode; chosen: boolean; canPick: boolean }[];
+}
+
+/** The Adaptation tree for a unit: its nodes (chosen / pickable) + the spendable point budget. */
+export function adaptationView(save: SaveData, subject: 'tower' | 'hero', unit: string): AdaptView {
+  const key = `${subject}:${unit}`;
+  const chosen = save.adaptation?.[key] ?? [];
+  const level = subject === 'tower'
+    ? masteryLevel(save.towerMasteryXp[unit as TowerKind] ?? 0)
+    : masteryLevel(save.heroMasteryXp[unit as HeroKind] ?? 0);
+  const pointsEarned = adaptPointsEarned(level);
+  return {
+    subject, unit, pointsEarned, pointsSpent: chosen.length,
+    pointsAvailable: Math.max(0, pointsEarned - chosen.length),
+    chosen: [...chosen],
+    nodes: adaptNodesFor(subject).map((node) => ({ node, chosen: chosen.includes(node.id), canPick: canPickAdapt(node.id, chosen) })),
+  };
 }
 
 export interface RunResult {
@@ -1025,6 +1065,31 @@ export const meta = {
     const save = store.get();
     const forKind = { ...(save.towerForks[kind] ?? {}), [String(star)]: optionId };
     persist({ ...save, towerForks: { ...save.towerForks, [kind]: forKind } });
+  },
+
+  /** The Adaptation tree for a unit (nodes + spendable Antigen Points). */
+  adaptation(subject: 'tower' | 'hero', unit: string): AdaptView {
+    return adaptationView(store.get(), subject, unit);
+  },
+  /** Spend one Antigen Point on an adaptation node — if a point is free AND the node is pickable
+   *  (tier unlocked, not already owned). Takes effect on the next run. Returns success. */
+  spendAdaptation(subject: 'tower' | 'hero', unit: string, nodeId: string): boolean {
+    const save = store.get();
+    const key = `${subject}:${unit}`;
+    const chosen = save.adaptation?.[key] ?? [];
+    const view = adaptationView(save, subject, unit);
+    if (view.pointsAvailable <= 0 || !canPickAdapt(nodeId, chosen)) return false;
+    persist({ ...save, adaptation: { ...save.adaptation, [key]: [...chosen, nodeId] } });
+    return true;
+  },
+  /** Refund every adaptation pick for a unit (respec is free, out of combat). */
+  respecAdaptation(subject: 'tower' | 'hero', unit: string): void {
+    const save = store.get();
+    const key = `${subject}:${unit}`;
+    if (!save.adaptation?.[key]?.length) return;
+    const next = { ...save.adaptation };
+    delete next[key];
+    persist({ ...save, adaptation: next });
   },
 
   /** Per-hero run multipliers from the current save (passed into a new Game). */
