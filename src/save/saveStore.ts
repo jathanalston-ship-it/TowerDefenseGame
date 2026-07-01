@@ -18,6 +18,8 @@ import type { TutorialProgress } from '../core/tutorial';
 import { defaultCalib } from '../core/predict';
 import type { PredictCalib } from '../core/predict';
 import { adaptNode } from '../core/adaptation';
+import { sanitizeGeneSave } from '../core/geneCards';
+import type { GeneSave } from '../core/geneCards';
 
 export interface SaveData {
   shards: number;
@@ -95,6 +97,11 @@ export interface SaveData {
   //    Help wiki); `primed` guards a one-time seed so existing saves don't flood on first load. Also
   //    tracks whether the first-launch HUD Tour has run. Additive; golden-safe. ──
   help: { seen: string[]; primed: boolean; hudTour: boolean };
+  // ── Gene Cards — permanent progression (schema v18, docs/GENE-EVOLUTION.md). Sparse per-card state
+  //    (level / rarity-tier / ascension / skin), keyed by the card's permanent id. Absent id ⇒ base
+  //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
+  //    withDefaults fills {} for pre-v18 saves, sanitizeGeneSave drops unknown/renamed ids. ──
+  genes: GeneSave;
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -107,7 +114,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 17;
+export const CURRENT_VERSION = 18;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -251,6 +258,7 @@ export function defaultSave(): SaveData {
     tutorial: { completed: [], rewarded: [], progress: null },
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
+    genes: {},
   };
 }
 
@@ -372,6 +380,7 @@ function withDefaults(data: SaveData): SaveData {
     tutorial: sanitizeTutorial(data.tutorial),
     prediction: sanitizePrediction(data.prediction),
     help: sanitizeHelp(data.help),
+    genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
   };
 }
 

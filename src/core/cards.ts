@@ -197,13 +197,43 @@ export const CARD_CATEGORY_LABEL: Record<CardCategory, string> = {
   mutation: 'Mutation',
 };
 
-export interface CardDef {
+/** One permanent upgrade LEVEL for a gene card (docs/GENE-EVOLUTION.md). Its `effects` are ADDED on
+ *  top of the card's base effects (and lower levels) when the card is applied at that level. `note`
+ *  is the human description of what the level does. Authored per-card in Task 4; empty until then. */
+export interface GeneUpgradeLevel {
+  effects: CardEffect[];
+  note: string;
+}
+
+/** Ascension BACKEND scaffolding (docs/GENE-EVOLUTION.md §Ascension) — data only, NO gameplay yet.
+ *  A future tier can raise rarity, swap art, and layer extra effects/power. Absent ⇒ not ascendable. */
+export interface GeneAscension {
+  maxTier: number; // number of ascension tiers (0 until authored)
+  tiers?: { rarity?: CardRarity; art?: string; effects?: CardEffect[]; note?: string }[];
+}
+
+/** A cosmetic artwork variant (future). `id` is stable; `art` is the renderer art key. */
+export interface GeneSkin {
   id: string;
+  name: string;
+  art?: string;
+}
+
+export interface CardDef {
+  id: string; // PERMANENT unique id — the save key for this card's progression. Never reuse/rename.
   name: string;
   rarity: CardRarity;
   category: CardCategory; // synergy tag; CARD_CATEGORY_LABEL maps it to the display string
   description: string;
-  effects: CardEffect[];
+  effects: CardEffect[]; // BASE (level-0) effects
+  // ── Permanent progression scaffolding (docs/GENE-EVOLUTION.md). ALL OPTIONAL — a card with none of
+  //    these behaves exactly as before (base-only, no upgrades) so existing gameplay is preserved.
+  //    Populated by later tasks; the architecture reads them through core/geneCards.ts. ──
+  maxLevel?: number; // permanent upgrade ceiling (default = base only). Task 4 sets 3–5.
+  upgrades?: GeneUpgradeLevel[]; // per-level upgrades; index i = the jump to level i+1. Task 4.
+  ascension?: GeneAscension; // ascension backend (Task 10) — no gameplay.
+  skins?: GeneSkin[]; // future artwork variants.
+  art?: string; // base artwork key (procedural fallback if absent).
 }
 
 /** Apply a card's declarative effects to the run. The only card interpreter. */

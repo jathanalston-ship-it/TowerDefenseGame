@@ -47,6 +47,8 @@ import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
+import { geneCollectionPowerMult, geneLevel } from '../core/geneCards';
+import type { GeneSave } from '../core/geneCards';
 import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -208,7 +210,9 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     // Every PERMANENT strength source lands in `meta`: upgrades (tower-dmg proxy × genome run-effects ×
     // the hero/biomass/integrity/slot axes), prestige/ascendant, and collection bonuses — so ANY
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult,
+    // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
+    // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * geneCollectionPowerMult(save.genes),
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
@@ -1209,6 +1213,20 @@ export const meta = {
    * (never persisted). Drives the "current → new (+diff)" upgrade previews. */
   previewPower(mutate: (s: SaveData) => SaveData): PowerScore {
     return composePower(accountPowerParts(mutate(store.get())));
+  },
+
+  // ── Gene Cards — permanent progression (docs/GENE-EVOLUTION.md) ──────────────
+  /** The raw permanent gene map (card id → state). Read-only view of save.genes. */
+  genes(): GeneSave {
+    return store.get().genes;
+  },
+  /** Permanent gene LEVELS (card id → level) for a run boot — passed to the Game so drafted cards
+   *  apply at the player's level. Sparse (only leveled cards); empty ⇒ base effects (golden path). */
+  geneLevels(): Record<string, number> {
+    const out: Record<string, number> = {};
+    const g = store.get().genes;
+    for (const id in g) { const lvl = geneLevel(g, id); if (lvl > 0) out[id] = lvl; }
+    return out;
   },
 
   /** Progress prediction (docs/PREDICTION.md) — an intelligent, self-calibrating ESTIMATE (never a

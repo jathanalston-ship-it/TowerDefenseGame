@@ -78,7 +78,7 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip }));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, geneLevels: meta.geneLevels() }));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);

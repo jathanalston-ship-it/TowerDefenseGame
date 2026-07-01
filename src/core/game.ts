@@ -64,6 +64,7 @@ import {
 import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
 import { HERO_CRIT_BASE, HERO_EVO, HERO_EVO_BY_ID, NEUTRAL_HERO_EVO, deriveHeroEvoMods, heroEvoCost, heroEvoEffects, heroEvoTotalOwned } from './heroEvolution';
 import type { HeroEvoLevels, HeroEvoMods } from './heroEvolution';
+import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
@@ -111,6 +112,7 @@ export interface RunOptions {
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
+  geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -348,6 +350,9 @@ export class Game {
   // Raw effects of gene cards drafted this run — retained so the run's TEMPORARY Power bucket can be
   // scored live (effectsPower) for the HUD/menus. Reset per run (fresh Game). Golden-safe: unused by sim.
   private chosenCardEffects: CardEffect[] = [];
+  // Permanent gene-card levels (docs/GENE-EVOLUTION.md) — a drafted/starting card applies its EFFECTIVE
+  // effects at the player's level. Empty ⇒ base effects everywhere ⇒ golden byte-identical.
+  private readonly geneLevels: Record<string, number>;
   selectedTower: TowerKind | null = null;
   selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
   movingTowerId: number | null = null; // a placed tower PICKED UP for relocation (Build Phase) — docs/TOWER-MANAGEMENT.md §3
@@ -446,6 +451,7 @@ export class Game {
     // Biome: Campaign uses the stage's fixed biome; Infinite seeds the first biome (rotates as the
     // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
+    this.geneLevels = opts.geneLevels ?? {}; // permanent gene levels; empty ⇒ base effects (golden-safe)
     if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
     // Run Identity: a DEDICATED rng stream (decoupled from this.rng ⇒ base run unperturbed) + the plan.
     // Stage ⇒ null plan (golden-safe). Campaign uses the stage's wave count (finale reserved for its
@@ -1360,12 +1366,15 @@ export class Game {
     if (this.phase !== 'draft' || !this.draft) return;
     const card = this.draft.find((c) => c.id === id);
     if (card) {
-      applyCard(card, this.cardContext());
+      // Apply the card at the player's PERMANENT level (docs/GENE-EVOLUTION.md): base effects + any
+      // authored upgrade levels. With no upgrades authored yet this equals card.effects (golden-safe).
+      const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0);
+      applyCard({ ...card, effects }, this.cardContext());
       // Behavioral verbs (grant/hook) fold into the live sim arrays too — a drafted card can
       // add a projectile mutator / battlefield rule mid-run, not just at boot (equipment).
-      for (const e of card.effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
+      for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
       this.chosenCards.push(cardToOption(card));
-      this.chosenCardEffects.push(...card.effects); // retain for the live run-Power (temporary bucket)
+      this.chosenCardEffects.push(...effects); // retain for the live run-Power (temporary bucket)
       this.pushSfx('draft');
       if (gameEvents.hasListeners('cardChosen')) gameEvents.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
