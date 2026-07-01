@@ -54,6 +54,8 @@ export function GameView({
   doctrine,
   onEnd,
   onAbandon,
+  tutorial,
+  onReady,
 }: {
   seed: number;
   mods: MetaModifiers;
@@ -69,6 +71,8 @@ export function GameView({
   doctrine?: string;
   onEnd: (r: RunResult) => void;
   onAbandon: () => void;
+  tutorial?: boolean; // TUTORIAL mode: don't bank loot + don't auto-hand-off on run end (the tutorial director drives completion)
+  onReady?: (g: Game) => void; // fires once with the live game so the tutorial director can script beats
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
@@ -186,12 +190,13 @@ export function GameView({
 
         if (now - lastHud > 80) {
           setHud(game.getSnapshot());
-          meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE into the meta queue
+          if (!tutorial) meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE (never in the tutorial)
           lastHud = now;
         }
         // Run ended → begin the outro (once): resolve the music, raise the Victory/Defeat title,
-        // and linger on the frozen, quieted battlefield before the summary.
-        const over = game.phase === 'won' || game.phase === 'lost';
+        // and linger on the frozen, quieted battlefield before the summary. The tutorial drives its
+        // own completion (via the director), so it never auto-hands-off here.
+        const over = !tutorial && (game.phase === 'won' || game.phase === 'lost');
         if (over && !outroRef.current && !endedRef.current) {
           outroRef.current = { won: game.phase === 'won', startedAt: now };
           setHud(game.getSnapshot());
@@ -222,6 +227,11 @@ export function GameView({
     setActiveGame(game);
     return () => setActiveGame(null);
   }, [game]);
+
+  // Hand the live game to the tutorial director (once) so it can script beats + read state.
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+  useEffect(() => { onReadyRef.current?.(game); }, [game]);
 
   // Restore the persisted auto-start preference for this run.
   useEffect(() => {

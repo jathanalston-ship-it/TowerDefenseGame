@@ -40,7 +40,9 @@ export function TutorialOverlay(): JSX.Element | null {
 
   return (
     <div className={`tut-overlay ${paused ? 'is-paused' : ''}`}>
-      <Spotlight rect={spotlightRect} />
+      {/* Only dim when a step actually declares a spotlight — arrow/callout-only steps must leave the
+          board fully interactive (else the full-dim fallback would block tower placement / casting). */}
+      {cue?.spotlight && <Spotlight rect={spotlightRect} />}
       {cue?.focus && <CameraFocus target={cue.focus} />}
       {cue?.arrow && <TutorialArrow rect={arrowRect} from={cue.arrow.from} />}
 

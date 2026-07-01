@@ -70,7 +70,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
   return (
     <div className="hud">
       {/* ── LEFT cluster: survival + progress ── */}
-      <div className="hud-cell hud-vital tt" tabIndex={0}>
+      <div className="hud-cell hud-vital tt" tabIndex={0} data-tut="hive-core">
         <div className="hud-k">Hive Core</div>
         <div className="hud-vital-row">
           <ProgressBar
@@ -150,7 +150,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
       </div>
 
       {/* ── RIGHT cluster: economy, threat, loot, hero ── */}
-      <div className="hud-cell tt" tabIndex={0}>
+      <div className="hud-cell tt" tabIndex={0} data-tut="biomass">
         <div className="hud-k">Biomass</div>
         <div className={`hud-v ${biomassPop ? 'pop' : ''}`} style={{ color: 'var(--caustic)' }}>
           {hud.biomass}
@@ -167,7 +167,7 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
 
       <LootMeter />
 
-      <div className="hud-cell hud-hero tt" tabIndex={0}>
+      <div className="hud-cell hud-hero tt" tabIndex={0} data-tut="hero">
         <div className="hud-k">{heroDef.name}</div>
         {hud.hero.down ? (
           <div className="hud-v is-danger">DOWN {Math.ceil(hud.hero.respawn)}s</div>

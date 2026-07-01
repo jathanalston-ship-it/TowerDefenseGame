@@ -18,7 +18,7 @@ export function Toolbar({
 
   return (
     <div className="toolbar">
-      <div className="tower-rail">
+      <div className="tower-rail" data-tut="tower-rail">
         {TOWER_ORDER.map((kind, i) => {
           const def = TOWER_DEFS[kind];
           const sel = hud.selectedTower === kind;
@@ -63,7 +63,7 @@ export function Toolbar({
 
       <div className="spacer" />
 
-      <div className="hero-pod">
+      <div className="hero-pod" data-tut="ability">
         <div className="hero-disc" aria-hidden><HeroIcon /></div>
         <button
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}

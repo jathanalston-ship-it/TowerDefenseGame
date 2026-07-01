@@ -1,29 +1,76 @@
-// The tutorial MODE — its own screen (not baked into Campaign). It mounts a backdrop + the reusable
-// TutorialOverlay, which is driven entirely by the tutorial session store. When the session ends
-// (final checkpoint completed OR skipped → store null) it leaves back to the hub. The combat lessons
-// (and the simplified, fail-safe encounter they run over) are authored later; this runner is the
-// stable host. Framework rule: a tutorial LOSS calls tutorial.restartCheckpoint() — never a full
-// restart — so lessons wire their loss handler to that.
+// The tutorial MODE — its own screen. It hosts a REAL, simplified game (fail-safe: the Hive Core is
+// boosted so it can't fall mid-lesson) and layers the TutorialOverlay + director on top. The director
+// advances event-checkpoints from live game signals and scripts the wave beats; the overlay draws the
+// spotlights/arrows/callouts. On genuine completion it grants the one-time rewards (idempotent — a
+// replay from Settings never re-grants) and shows the reward reveal; a Skip just leaves.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { tutorial } from '../state/tutorial';
+import { meta, metaModifiers } from '../state/meta';
+import type { TutorialRewardSummary } from '../state/meta';
+import { COMBAT_TUTORIAL } from '../core/tutorial';
+import type { Game } from '../core/game';
+import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
+import { GameView } from './GameView';
 import { TutorialOverlay } from './tutorial/TutorialOverlay';
+import { useTutorialDirector } from './tutorial/tutorialDirector';
+import { TutorialRewardReveal } from './tutorial/TutorialRewardReveal';
+
+const TUTORIAL_SEED = 0x7c0de; // fixed → the tutorial encounter is identical every time
+
+interface RunConfig { mods: MetaModifiers; progress: TowerProgress; heroKind: HeroKind; heroProgress: HeroProgress }
 
 export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element {
   const session = tutorial.use();
-  // Leave only AFTER the session was active and then ended (avoids an immediate bounce if the store
-  // hasn't been started yet on the first render).
+  const [game, setGame] = useState<Game | null>(null);
+  const [reward, setReward] = useState<TutorialRewardSummary | null>(null);
+  useTutorialDirector(game);
+
+  // Snapshot the fail-safe run config ONCE: the player's real progression + a huge Integrity bonus
+  // so the Hive Core can never fall during the lesson (the tutorial can't be "lost").
+  const cfg = useRef<RunConfig | null>(null);
+  if (!cfg.current) {
+    const base = metaModifiers(meta.get());
+    cfg.current = {
+      mods: { ...base, integrityBonus: base.integrityBonus + 100000 },
+      progress: meta.towerProgress(),
+      heroKind: meta.selectedHero(),
+      heroProgress: meta.heroProgress(),
+    };
+  }
+
+  // Completion detection: the session goes active→null when the final step advances (or on Skip).
+  // Grant rewards only if we actually REACHED the end (not an early skip).
   const wasActive = useRef(false);
+  const reachedEnd = useRef(false);
   useEffect(() => {
-    if (session) wasActive.current = true;
-    else if (wasActive.current) onExit();
+    if (session) {
+      wasActive.current = true;
+      if (session.progress.checkpoint >= COMBAT_TUTORIAL.checkpoints.length - 1) reachedEnd.current = true;
+    } else if (wasActive.current) {
+      if (reachedEnd.current) {
+        const r = meta.grantTutorialRewards('combat'); // idempotent — null on a replay
+        if (r) { setReward(r); return; }
+      }
+      onExit();
+    }
   }, [session, onExit]);
+
+  if (reward) return <TutorialRewardReveal reward={reward} onClose={onExit} />;
 
   return (
     <div className="tut-runner">
-      <div className="tut-runner-bg" aria-hidden>
-        <div className="tut-runner-title">Combat Tutorial</div>
-      </div>
+      <GameView
+        tutorial
+        onReady={setGame}
+        seed={TUTORIAL_SEED}
+        mods={cfg.current.mods}
+        progress={cfg.current.progress}
+        heroKind={cfg.current.heroKind}
+        heroProgress={cfg.current.heroProgress}
+        onEnd={() => { /* the tutorial drives its own completion — never auto-ends */ }}
+        onAbandon={onExit}
+      />
       <TutorialOverlay />
     </div>
   );

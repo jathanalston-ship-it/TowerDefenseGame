@@ -48,6 +48,7 @@ const maxMastery = (s: SaveData): number => Math.max(0, ...TOWER_ORDER.map((k) =
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Milestones (visible, save/run based) ──
+  { id: 'tutorial_complete', name: 'Assimilation Protocol', desc: 'Complete the Combat Tutorial.', reward: 20, test: (c) => c.save.tutorial.completed.includes('combat') },
   { id: 'first_run', name: 'First Contact', desc: 'Finish your first run.', reward: 10, test: (c) => c.save.totalRuns >= 1 },
   { id: 'wave5', name: 'Holding the Line', desc: 'Reach wave 5.', reward: 15, test: (c) => c.save.bestWave >= 5, progress: (c) => ({ cur: c.save.bestWave, max: 5 }) },
   { id: 'extract', name: 'Extraction', desc: 'Survive every wave and extract.', reward: 50, test: (c) => !!c.run?.won },

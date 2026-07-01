@@ -37,7 +37,7 @@ import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } f
 import { accumulateStats } from './stats';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { EQUIP_SLOTS, emptyLoadout, loadoutEffects, rollItemDrop } from '../core/equipment';
+import { EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItemDrop } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import {
   canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
@@ -465,6 +465,18 @@ export interface RunOutcome {
   // Campaign milestone unlocked a new HERO SLOT this run (HEROES.md) → the cinematic Hero Slot
   // Unlock sequence. Absent on a normal run. `slot` = the newly-opened slot (2 or 3).
   heroSlotUnlock?: { slot: number; name: string; blurb: string; stage: number; powerScore: number };
+}
+
+/** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
+export interface TutorialRewardSummary {
+  cores: number; // Genome Cores
+  towerShards: number; // per-tower shard grant
+  heroShards: number; // shard grant for the selected hero
+  containerRarity: string; // the guaranteed Tutorial Bio-Container's rarity
+  itemName: string; // the basic Hero Equipment piece granted
+  achievement: string | null; // achievement unlocked ('Assimilation Protocol'), or null if already had it
+  powerBefore: number;
+  powerAfter: number; // the visible Power Score increase
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -1271,7 +1283,38 @@ export const meta = {
   completeTutorial(id: string): void {
     const s = store.get();
     const completed = s.tutorial.completed.includes(id) ? s.tutorial.completed : [...s.tutorial.completed, id];
-    persist({ ...s, tutorial: { completed, progress: null } });
+    persist({ ...s, tutorial: { ...s.tutorial, completed, progress: null } });
+  },
+  /** Grant a tutorial's ONE-TIME completion rewards (idempotent — a replay from Settings never
+   *  re-grants). Returns the reward summary for the reveal, or null if already paid out. */
+  grantTutorialRewards(id: string): TutorialRewardSummary | null {
+    const save = store.get();
+    if (save.tutorial.rewarded.includes(id)) return null; // already paid — replays never duplicate
+    const powerBefore = composePower(accountPowerParts(save)).score;
+    const CORES = 150, TSHARD = 15, HSHARD = 20;
+    const hero = save.selectedHero;
+    const towerShards = { ...save.towerShards };
+    for (const k of TOWER_ORDER) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every tower currency
+    const heroShards = { ...save.heroShards, [hero]: (save.heroShards[hero] ?? 0) + HSHARD };
+    const container: PendingContainer = { kind: 'loot', rarity: 'rare' }; // the guaranteed Tutorial Bio-Container
+    const item: OwnedItem = { uid: `tut-${Date.now().toString(36)}`, defId: 'w_quill', rarity: 'rare', affixes: [] };
+    persist({
+      ...save,
+      shards: save.shards + CORES,
+      lifetimeShards: save.lifetimeShards + CORES,
+      towerShards,
+      heroShards,
+      pendingContainers: [...save.pendingContainers, container],
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] },
+      tutorial: { ...save.tutorial, rewarded: [...save.tutorial.rewarded, id] },
+    });
+    const unlocked = this.evaluateAchievements(); // grants tutorial_complete (completeTutorial ran first)
+    return {
+      cores: CORES, towerShards: TSHARD, heroShards: HSHARD, containerRarity: 'rare',
+      itemName: itemDef('w_quill')?.name ?? 'Weapon',
+      achievement: unlocked.includes('tutorial_complete') ? 'Assimilation Protocol' : null,
+      powerBefore, powerAfter: composePower(accountPowerParts(store.get())).score,
+    };
   },
 
   reset(): void {

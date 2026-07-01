@@ -1,8 +1,32 @@
 # Tutorial framework
 
 A reusable, content-agnostic system for guided, one-mechanic-at-a-time tutorials. This document
-describes the ARCHITECTURE; the first consumer (the Combat Tutorial) ships with **placeholder
-checkpoints only** — the real lessons are authored later against these same seams.
+describes the ARCHITECTURE. The first consumer, the **Combat Tutorial, is now fully authored** — 10
+lessons taught over a LIVE simplified game (see "Combat Tutorial — shipped" below).
+
+## Combat Tutorial — shipped
+
+Ten checkpoints (`COMBAT_TUTORIAL` in `core/tutorial.ts`) teach through play, each unlocking only
+when its objective is met: protect the Hive Core → Biomass → place a Needle → survive Wave 1 →
+first-kill Biomass → second tower → Hero ability → Gene Card draft → tower Inspect → graduate.
+
+- **Live encounter.** `TutorialRunner` hosts a real `<GameView tutorial onReady=…>` (fail-safe: a
+  huge Integrity bonus so the core can't fall) + the `TutorialOverlay`. `GameView`'s `tutorial` flag
+  skips loot banking and the auto run-end hand-off — the tutorial drives its own completion.
+- **Director (`ui/tutorial/tutorialDirector.ts`).** Bridges the game event bus onto the checkpoints'
+  abstract lesson signals (`tower-placed`, `enemy-killed`, `hero-ability`, `card-chosen`,
+  `wave-completed`) — advancing the CURRENT step once, guarded against event bursts — and scripts the
+  wave beats (auto-starts Wave 1 + the graduation wave). Golden-safe: the one new event
+  (`heroAbilityUsed`) is gated on a listener.
+- **Non-blocking guidance.** Board-interaction steps use an arrow + callout (no click-blocking
+  spotlight); the callout/arrow/objective are pointer-through so they never eat a placement or cast.
+  Pure look-at steps use the dimming spotlight.
+- **Rewards (`meta.grantTutorialRewards`, idempotent via `save.tutorial.rewarded`).** First completion
+  grants Genome Cores + Tower/Hero Shards + a guaranteed **rare Tutorial Bio-Container** + a basic Hero
+  weapon + the *Assimilation Protocol* achievement, with a visible Power Score bump — shown by
+  `TutorialRewardReveal`. A replay from Settings re-teaches but **never re-grants**.
+
+Below is the underlying architecture (unchanged; the lessons are data + presentation props on it).
 
 Design goals: teach through interaction (no wall of text), one mechanic per checkpoint, fully
 replayable, skippable, pausable/resumable, and never a fail state. The framework is a **distinct
