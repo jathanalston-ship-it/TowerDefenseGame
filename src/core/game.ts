@@ -63,6 +63,7 @@ import {
   endlessDraftInterval,
 } from './cards';
 import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
+import { branchPowerEffects, effectsPower } from './power';
 import { HERO_CRIT_BASE, HERO_EVO, HERO_EVO_BY_ID, NEUTRAL_HERO_EVO, deriveHeroEvoMods, heroEvoCost, heroEvoEffects, heroEvoTotalOwned } from './heroEvolution';
 import type { HeroEvoLevels, HeroEvoMods } from './heroEvolution';
 import { effectiveGeneEffects } from './geneCards';
@@ -833,6 +834,7 @@ export class Game {
     if (t.tier >= 5) return 'maxed';
     const cost = BRANCH_COSTS[t.kind][t.tier]; // next tier's cost (t.tier is 0-based into the ladder)
     if (this.biomass < cost) return 'poor';
+    const powerBefore = effectsPower(this.powerEffects()); // runtime Power validator (cold path)
     this.biomass -= cost;
     t.branchId = branchId;
     t.tier += 1;
@@ -840,6 +842,7 @@ export class Game {
     this.recomputeTowerCaches(); // overcharge adjacency unaffected, but keep caches coherent
     this.triggerMutationSpectacle(t, b, cost); // the "this feels important" moment
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: t.id, kind: t.kind, slot: t.slot });
+    this.auditTempPower(powerBefore, `Branch tier ${t.tier} (${b.name})`);
     return 'ok';
   }
 
@@ -1391,8 +1394,11 @@ export class Game {
       // Behavioral verbs (grant/hook) fold into the live sim arrays too — a drafted card can
       // add a projectile mutator / battlefield rule mid-run, not just at boot (equipment).
       for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
+      const scored = effectsPower(effects) > 1; // instant-only cards are legitimately unscored
+      const powerBefore = scored ? effectsPower(this.powerEffects()) : 0;
       this.chosenCards.push(cardToOption(card));
       this.chosenCardEffects.push(...effects); // retain for the live run-Power (temporary bucket)
+      if (scored) this.auditTempPower(powerBefore, `Gene Card ${card.name}`);
       this.pushSfx('draft');
       if (gameEvents.hasListeners('cardChosen')) gameEvents.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
@@ -1421,6 +1427,7 @@ export class Game {
     if (level >= HERO_EVO.maxLevel) return false;
     const cost = heroEvoCost(cat, level, heroEvoTotalOwned(this.heroEvoLevels));
     if (this.biomass < cost) return false;
+    const powerBefore = effectsPower(this.powerEffects()); // runtime Power validator (cold path)
     this.biomass -= cost;
     this.heroEvoLevels[catId] = level + 1;
     this.evo = deriveHeroEvoMods(this.heroEvoLevels);
@@ -1437,6 +1444,7 @@ export class Game {
     this.pushSfx('splice'); // the evolution/mutation cue — a satisfying purchase sound
     const ph = this.primaryHero;
     this.floats.push({ x: ph.x, y: ph.y - 30, text: `${cat.icon} ${cat.name} ${level + 1}`, color: '#7ad1ff', life: 1.2 });
+    this.auditTempPower(powerBefore, `Hero Evolution ${cat.name} L${level + 1}`);
     return true;
   }
 
@@ -1450,7 +1458,25 @@ export class Game {
    *  Evolution. `meta.powerWith(game.powerEffects())` yields the live run Power Score (HUD/menus).
    *  Gear/doctrine boot effects are excluded (already counted in the account `equipment` bucket). */
   powerEffects(): CardEffect[] {
-    return [...this.chosenCardEffects, ...heroEvoEffects(this.heroEvoLevels)];
+    // Purchased branch tiers are real strength — scored via the heuristic vehicle (POWER-AUDIT.md;
+    // this fixed the "branches raise strength without raising Power" bug).
+    const branchTiers = this.towers.reduce((n, t) => n + t.tier, 0);
+    return [...this.chosenCardEffects, ...heroEvoEffects(this.heroEvoLevels), ...branchPowerEffects(branchTiers)];
+  }
+
+  // ── Power-integration runtime validator (docs/POWER-AUDIT.md) ────────────────────────────────
+  //   Any in-run action that grants strength MUST move the temporary Power bucket. Violations
+  //   collect here (and warn) so tests pin the contract and future content can't silently bypass
+  //   Power. Cold paths only (draft / purchase moments) — never the tick loop.
+  readonly powerAuditWarnings: string[] = [];
+
+  private auditTempPower(before: number, source: string): void {
+    const after = effectsPower(this.powerEffects());
+    if (after <= before + 1e-12) {
+      const msg = `[power-audit] ${source} granted strength but the temporary Power bucket did not rise (${before.toFixed(4)} → ${after.toFixed(4)})`;
+      this.powerAuditWarnings.push(msg);
+      console.warn(msg);
+    }
   }
 
   /** Field an ADDITIONAL hero mid-run — the forward-looking hero-unlock seam (HEROES.md). The new

@@ -49,7 +49,7 @@ import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { cardRegistry } from '../core/cards';
-import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
+import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
 import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../core/geneEssence';
@@ -212,13 +212,16 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   });
   // Collection completion bonuses are permanent account strength → their offense folds into `meta`.
   const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
+  // Unlocked hero slots beyond the first are account strength (a fielded extra champion) — the
+  // hero-slot twin of the tower bonusSlots fold (POWER-AUDIT.md).
+  const heroSlotMult = 1 + HERO_SLOT_POWER * Math.max(0, heroSlotsUnlocked(save) - 1);
   return {
     // Every PERMANENT strength source lands in `meta`: upgrades (tower-dmg proxy × genome run-effects ×
     // the hero/biomass/integrity/slot axes), prestige/ascendant, and collection bonuses — so ANY
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
     // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
     // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * geneCollectionPowerMult(save.genes),
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * geneCollectionPowerMult(save.genes) * heroSlotMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),

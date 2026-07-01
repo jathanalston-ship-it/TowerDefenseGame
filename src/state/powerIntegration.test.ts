@@ -53,6 +53,49 @@ describe('Power Score integration — every strength source moves the index', ()
     }
   });
 
+  it('Mastery XP, Adaptation picks, Prestige, and Ascendant nodes each raise Power', () => {
+    meta.reset();
+    const before = meta.power().score;
+    const k = TOWER_ORDER[0];
+    expect(meta.previewPower((s: SaveData) => ({ ...s, towerMasteryXp: { ...s.towerMasteryXp, [k]: 100_000 } })).score,
+      'tower Mastery must raise Power').toBeGreaterThan(before);
+    expect(meta.previewPower((s: SaveData) => ({ ...s, adaptation: { ...s.adaptation, [`tower:${k}`]: ['t.vir.1'] } })).score,
+      'an Adaptation pick must raise Power').toBeGreaterThan(before);
+    expect(meta.previewPower((s: SaveData) => ({ ...s, prestige: { ...s.prestige, lifetimeCells: 50 } })).score,
+      'Prestige (minted Cells) must raise Power').toBeGreaterThan(before);
+    expect(meta.previewPower((s: SaveData) => ({ ...s, prestige: { ...s.prestige, nodes: { ...s.prestige.nodes, potency: 3 } } })).score,
+      'an Ascendant damage node must raise Power').toBeGreaterThan(before);
+  });
+
+  it('unlocking the 2nd hero slot raises Power (fielding an extra champion is strength)', () => {
+    meta.reset();
+    const at24 = meta.previewPower((s: SaveData) => ({ ...s, campaign: { cleared: { standard: 24 } } })).score;
+    const at25 = meta.previewPower((s: SaveData) => ({ ...s, campaign: { cleared: { standard: 25 } } })).score;
+    expect(at25, 'Hero Slot 2 (Campaign 25) must raise Power').toBeGreaterThan(at24);
+  });
+
+  it('Collection discovery and a Reforge rarity upgrade each raise Power', () => {
+    meta.reset();
+    const before = meta.power().score;
+    expect(meta.previewPower((s: SaveData) => ({
+      ...s, stats: { ...s.stats, killsByEnemy: { ...s.stats.killsByEnemy, runner: 10_000 } },
+    })).score, 'codex discovery/mastery must raise Power (collection bucket)').toBeGreaterThan(before);
+    // Reforge rarity upgrade: the SAME equipped item at a higher rarity must read as more Power.
+    const def = ALL_ITEMS[0];
+    const item = rollItem(HALF, def, 'common');
+    meta.grantItem(item);
+    meta.equip(meta.selectedHero(), def.slot, item.uid);
+    const equippedCommon = meta.power().score;
+    const upgraded = meta.previewPower((s: SaveData) => ({
+      ...s,
+      equipment: {
+        ...s.equipment,
+        inventory: s.equipment.inventory.map((i) => (i.uid === item.uid ? { ...i, rarity: 'rare' as const } : i)),
+      },
+    })).score;
+    expect(upgraded, 'a Reforge rarity upgrade on an equipped item must raise Power').toBeGreaterThan(equippedCommon);
+  });
+
   it('the account index only GROWS as progression stacks (monotonic across sources)', () => {
     meta.reset();
     const fresh = meta.power().score;

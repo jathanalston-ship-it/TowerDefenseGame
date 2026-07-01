@@ -128,6 +128,24 @@ export function itemRarityPower(rarity: Rarity, affixCount: number): number {
 /** Each permanent build slot ≈ +5% account offense (one more tower on the field). */
 export const META_SLOT_POWER = 0.05;
 
+/** Each UNLOCKED hero slot beyond the first ≈ +10% account offense — fielding a whole extra
+ *  champion is undeniable strength (the hero-slot twin of META_SLOT_POWER; found by the same
+ *  audit that fixed branches). Folded into the meta bucket in accountPowerParts. */
+export const HERO_SLOT_POWER = 0.1;
+
+/** Each purchased in-run Tower Branch TIER ≈ +5% run offense. Branch tiers are build-defining
+ *  capability buys whose grants are mostly invisible to effectsPower (the Task 9 lesson), so —
+ *  like equipment rarity (itemRarityPower) — they score by a flat heuristic weight. A maxed
+ *  5-tier tower reads ≈ +25%; the scoring-vehicle effect below feeds the TEMPORARY bucket. */
+export const BRANCH_TIER_POWER = 0.05;
+
+/** The run's purchased branch tiers as a scoring-vehicle effect (consumed ONLY by the Power fold —
+ *  game.powerEffects() is never applied to the sim). [] at 0 tiers keeps a branchless run exact. */
+export function branchPowerEffects(totalTiers: number): CardEffect[] {
+  if (totalTiers <= 0) return [];
+  return [{ op: 'mul', field: 'towerDamageMult', value: 1 + BRANCH_TIER_POWER * totalTiers }];
+}
+
 /** The permanent-meta contributions the `towerDamageMult` proxy does NOT already capture, scored so
  * that EVERY permanent upgrade moves Power (the coverage guarantee): hero-damage upgrades, biomass,
  * integrity, and build slots. Weights mirror `effectsPower`. Prestige/Ascendant global damage is

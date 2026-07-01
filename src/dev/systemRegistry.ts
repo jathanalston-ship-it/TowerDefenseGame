@@ -62,7 +62,7 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/core/power.ts', 'src/state/itemPower.ts', 'src/ui/components/PowerScore.tsx', 'src/ui/components/PowerDelta.tsx'],
     dependsOn: ['content-infra'], powerScore: 'IS the model (buckets, effectsPower, FIELD_WEIGHT)', save: [], tutorial: [], help: ['power-score'],
     hud: ['Hud (live run Power)'], ui: ['ProgressDashboard', 'PlayScreen (recommended power)'], collection: 'collection completion feeds a bucket', achievements: [],
-    localization: 'inline-en', docs: ['docs/POWER-SCORE.md'],
+    localization: 'inline-en', docs: ['docs/POWER-SCORE.md', 'docs/POWER-AUDIT.md'],
   },
   {
     id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate.',
