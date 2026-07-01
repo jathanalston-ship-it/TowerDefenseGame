@@ -717,8 +717,9 @@ export class Game {
     this.recomputeTowerCaches();
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
-    // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
-    // window, so an auto-start doesn't fire before the player finishes their opening build.
+    // Auto-start: placing the FIRST tower of the opening prep is what arms the countdown — it
+    // stays paused on an empty board (see autoStartCounting). That same placement also buys a
+    // longer setup window, so auto-start doesn't fire before the player finishes their opening build.
     if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
       this.prepCountdown = AUTO_START_FIRST_DELAY;
     }
@@ -833,6 +834,13 @@ export class Game {
     if (on) this.prepCountdown = AUTO_START_DELAY; // start a fresh countdown when enabling
   }
 
+  /** Whether the auto-start countdown is actively ticking: enabled, in prep, AND at least one
+   *  tower is on the board. The tower clause means the opening prep only begins its countdown
+   *  once the player has placed their first tower — auto-start never rushes an undefended board. */
+  private autoStartCounting(): boolean {
+    return this.autoStart && this.phase === 'prep' && this.towers.length > 0;
+  }
+
   private cardContext(): CardContext {
     return {
       mods: this.mods,
@@ -924,9 +932,11 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
-      // Auto-start: count the prep timer down to the next wave when the player enabled it. Off
-      // by default ⇒ the manual-start golden run is byte-identical; consumes no rng.
-      if (this.autoStart && this.phase === 'prep') {
+      // Auto-start: count the prep timer down to the next wave when the player enabled it. It
+      // only arms once a tower is on the board (autoStartCounting), so the opening prep never
+      // fires before the player places their first tower. Off by default ⇒ the manual-start
+      // golden run is byte-identical; consumes no rng.
+      if (this.autoStartCounting()) {
         this.prepCountdown -= dt;
         if (this.prepCountdown <= 0) this.startWave();
       }
@@ -2713,7 +2723,7 @@ export class Game {
       endless: this.mode === 'endless',
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
-      autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartIn: this.autoStartCounting() ? Math.max(0, this.prepCountdown) : 0,
     };
   }
 

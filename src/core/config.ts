@@ -420,9 +420,10 @@ export const PARTICLE = {
 export const WAVE_HP_GROWTH = 0.12; // +12% enemy HP per wave index
 export const WAVE_BOUNTY_GROWTH = 0.05;
 
-// Auto-start: when the player enables it, the next wave fires automatically after this many
-// prep seconds (a visible countdown). Opt-in + off by default, so the golden run — which starts
-// waves manually — is byte-identical.
+// Auto-start: when the player enables it, the next wave fires automatically after a visible prep
+// countdown. The countdown only begins once the board has a tower — in the opening prep it waits
+// for the player's first placement (see Game.autoStartCounting) rather than ticking from an empty
+// board. Opt-in + off by default, so the golden run — which starts waves manually — is byte-identical.
 export const AUTO_START_DELAY = 4; // seconds of prep before an auto-start fires the next wave
 // The opening prep (before any wave) gets a longer window once the player places their first
 // tower, so auto-start doesn't rush the initial build-out.
