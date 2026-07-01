@@ -47,6 +47,7 @@ import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
 import type { PowerParts, PowerScore } from '../core/power';
+import { lootBias } from '../core/progressionLoot';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
 import { bossDef } from '../core/boss';
@@ -136,6 +137,21 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     equipment: equipmentPower(save),
     temporary,
   };
+}
+
+/** Progression-aware loot bias (docs/LOOT-PROGRESSION.md): catch-up weights derived from how the
+ * account's power compares to what its campaign/wave depth expects. All 1 (a no-op) for an on-par
+ * or fresh account, so it never perturbs a baseline roll. */
+function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, number> {
+  const campaignStage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
+  const tier = difficultyId === 'brutal' ? 2 : difficultyId === 'hardened' ? 1 : 0;
+  return lootBias({
+    idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
+    campaignStage,
+    bestWave: save.bestWave,
+    actualPowerMult: composePower(accountPowerParts(save)).mult,
+    difficultyTier: tier,
+  });
 }
 
 /** Cells a Molt would mint now: the sqrt base × the Ascendant Resonance node's compounding. */
@@ -560,7 +576,7 @@ export const meta = {
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
     const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult);
-    const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
+    const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
     // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
@@ -674,7 +690,7 @@ export const meta = {
     const delta = total - runLootBanked;
     if (delta <= 0) return [];
     runLootBanked = total;
-    const adv = addProgress(save.lootQueue, delta);
+    const adv = addProgress(save.lootQueue, delta, Math.random, lootBiasFor(save));
     if (adv.awarded.length === 0) {
       store.set({ ...save, lootQueue: adv.state }); // pure progress: advance the meter, skip the disk write
       return [];
