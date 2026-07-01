@@ -292,6 +292,12 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  // Auto-start ARMING gate (mode-agnostic): even with autoStart ON, the countdown stays frozen
+  // until the player takes their FIRST setup action this run — places a tower OR manually starts
+  // wave 1. This stops an armed Auto Wave from firing (and taking damage) before the player has
+  // built anything. Latched once, true for the rest of the run. Centralized here so EVERY mode
+  // (campaign/infinite/tutorial/challenge/future) inherits it with no per-mode code.
+  private autoStartReady = false;
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -1050,6 +1056,9 @@ export class Game {
     this.recomputeTowerCaches();
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    // First setup action taken → ARM the auto-start countdown (see autoStartReady). Placing a
+    // tower is one of the two triggers (the other is a manual startWave); latched for the run.
+    this.autoStartReady = true;
     // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
     // window, so an auto-start doesn't fire before the player finishes their opening build.
     if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
@@ -1138,6 +1147,9 @@ export class Game {
 
   startWave(): void {
     if (this.phase !== 'prep') return;
+    // Starting a wave (manually, or via a now-armed auto-start) is the other trigger that ARMS
+    // the auto-start countdown for the rest of the run (see autoStartReady). No-op once latched.
+    this.autoStartReady = true;
     if (this.mode === 'endless') {
       this.startEndlessWave();
       return;
@@ -1361,9 +1373,11 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
-      // Auto-start: count the prep timer down to the next wave when the player enabled it. Off
-      // by default ⇒ the manual-start golden run is byte-identical; consumes no rng.
-      if (this.autoStart && this.phase === 'prep') {
+      // Auto-start: count the prep timer down to the next wave when the player enabled it AND has
+      // taken their first setup action (autoStartReady). Off by default ⇒ the manual-start golden
+      // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
+      // (the HUD shows "Waiting for first placement…") so the run never auto-fires on an empty board.
+      if (this.autoStart && this.autoStartReady && this.phase === 'prep') {
         this.prepCountdown -= dt;
         if (this.prepCountdown <= 0) this.startWave();
       }
@@ -3383,7 +3397,8 @@ export class Game {
       runHeadline: this.runPlan?.headline || undefined,
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
-      autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartWaiting: this.autoStart && !this.autoStartReady,
     };
   }
 

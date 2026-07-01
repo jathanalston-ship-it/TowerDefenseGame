@@ -2839,7 +2839,9 @@ kbd {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   padding: 14px 14px 0;
   z-index: 6;
   pointer-events: none;
@@ -2882,6 +2884,23 @@ kbd {
   border-color: var(--success);
   background: rgba(90, 209, 140, 0.16);
   color: var(--success);
+}
+/* Armed but INACTIVE — Auto Wave is on, waiting for the first placement / manual wave. */
+.auto-btn.is-waiting {
+  border-color: rgba(240, 190, 90, 0.5);
+  background: rgba(240, 190, 90, 0.12);
+  color: #f0be5a;
+}
+.auto-wait-note {
+  pointer-events: none;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: #f0be5a;
+  background: rgba(240, 190, 90, 0.1);
+  border: 1px solid rgba(240, 190, 90, 0.3);
+  padding: 4px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
 }
 .incoming {
   display: flex;

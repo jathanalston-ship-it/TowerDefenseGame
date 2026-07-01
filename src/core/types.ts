@@ -422,7 +422,8 @@ export interface HudSnapshot {
   runHeadline?: string;
   anticipation: string[]; // upcoming named beats (next boss / next chest tier) — pacing hook
   autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
-  autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep)
+  autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep / still armed-but-waiting)
+  autoStartWaiting: boolean; // armed but INACTIVE — waiting for the first tower / manual wave before the countdown begins
 }
 
 export interface CardOption {
