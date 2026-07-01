@@ -4,93 +4,95 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-01 22:09 UTC · **Diff scope:** the engineering-infrastructure block (commits `18599af` → `6bdc478` + this one)
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD at scaffold:** 6bdc478
+- **Generated:** 2026-07-01 23:23 UTC · **Diff scope:** session block (5 commits, scaffolder ran post-commit)
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 145839e
 
 ## Summary of work completed
 
-This session closed the 12-task **Gene Card Evolution** program (permanent collectible cards:
-Essence economy, 168 authored upgrade levels, the Gene Archive, campaign gates, starting
-loadouts, Power integration, Ascension backend, onboarding, final audit + 500-card stress test —
-see `docs/GENE-AUDIT-REPORT.md`), then executed the **engineering pivot**: repo-wide audit +
-dedupe refactors (`docs/ENGINEERING-AUDIT.md`), the first-read system map
-(`docs/PROJECT_MANIFEST.md`), and the **automation core** — a dependency registry with orphan
-enforcement, generated `docs/DEPENDENCY_GRAPH.md`, doc↔code ANCHOR checks that fail the suite on
-drift, and `npm run validate` (the 19-area regression audit that writes
-`docs/VALIDATION_REPORT.md`). The one thing to know: **the tooling is load-bearing now** — new
-files must be registered, doc-stated numbers must match code, and the graph must be regenerated,
-or `npm test` goes red with instructions.
+Five-part premium polish block: (1) Command Center living-lab redesign (`628ebdc`) — fog/vein/
+parallax atmosphere, cc-vitals dashboard strip, deploy CTA breathe/sheen; (2) real music engine
+(`83e8565`) — pure composition core (`src/audio/music.ts` TRACKS + `barNotes`) under a WebAudio
+manager (lookahead scheduler, layers, crossfades, intensity seam), six categories, App/GameView
+drive `music.play(category)` only; (3) gameplay HUD redesign (`145839e`) — vital hierarchy with
+per-cell `--hud-acc` accents, Power promoted to primary, glass cells, heartbeat danger pulse,
+responsive `clamp()` scale, four-viewport no-clip sweep; (4) Power full-coverage audit
+(`5ffd439`) — fixed the tower-branch bypass (`branchPowerEffects`) + the hero-slot miss
+(`HERO_SLOT_POWER`), runtime tripwires (`game.powerAuditWarnings`, `powerAnnounceWarnings`),
+21-source table in docs/POWER-AUDIT.md; (5) Power feel (`4d278c5`) — `announcePower` bus →
+PowerToaster + `audio.cue('power')`, rolling PowerBadge, PowerPreview (current/new/diff/impact)
+on every upgrade surface. The one thing to know: **the run-soundtrack `useEffect` in
+GameView.tsx must stay a top-level hook** — a nested insertion crashed every run mount (React
+#321) and was caught only by the headless HUD sweep.
 
 ## Files modified
 
-- Source: `src/dev/systemRegistry.ts` + graph builder/doc-sync/enforcement tests, `src/save/derive.ts`,
-  `src/core/math.ts` + dedupe touch-ups across 21 files (commit `18599af`), the gene system
-  (~25 files, commits `9f88594`…`0cce54b`).
-- Scripts: `scripts/gen-depgraph.ts`, `scripts/doc-sync.ts`, `scripts/validate.ts`, `scripts/handoff.ts`.
-- Docs: `docs/PROJECT_MANIFEST.md`, `docs/ENGINEERING-AUDIT.md`, `docs/DEPENDENCY_GRAPH.md` (generated),
-  `docs/VALIDATION_REPORT.md` (generated), `docs/GAME_CONSTITUTION.md`, `docs/PROJECT_STATUS.md`, this file,
-  plus reconciliations (GENE-EVOLUTION, GAME-STATE, CARDS, ECONOMY, CODEMAP, HELP, TUTORIAL).
+- Source: `src/audio/music.ts` (new), `src/audio/sound.ts`, `src/core/power.ts`,
+  `src/core/game.ts`, `src/state/meta.ts`, `src/state/powerEvents.ts` (new),
+  `src/ui/components/PowerToaster.tsx` (new), `src/ui/components/PowerScore.tsx`,
+  `src/ui/App.tsx`, `src/ui/GameView.tsx`, `src/ui/Hud.tsx`, `src/ui/PlayScreen.tsx`,
+  `src/ui/LabAtmosphere.tsx`, `src/ui/HeroLab.tsx`, `src/ui/TowerLab.tsx`,
+  `src/ui/EvolutionHQ.tsx`, `src/ui/HeroEvolutionPanel.tsx`, `src/index.css`
+- Tests: `src/audio/music.test.ts` (new), `src/core/runPower.test.ts` (new),
+  `src/state/powerEvents.test.ts` (new), `src/state/powerIntegration.test.ts`
+- Docs: `docs/POWER-AUDIT.md` (new), `docs/GAME-FEEL.md` §music, `docs/POWER-SCORE.md` §feel,
+  `docs/UI-STANDARDS.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
-- **gene-cards** — the entire permanent-progression pillar (complete, audited).
-- **dev-registry** — new: the registry + doc tooling itself.
-- **meta-store / ui-kit / hub-shell / run-ui / loot** — dedupe refactors (behavior-identical).
-- Consumer ring at the time: every Power consumer (previews verified equal to outcomes by test).
+- Power (core/power.ts scoring + state/powerEvents.ts announce bus + UI feel surfaces)
+- Audio (music engine sits beside sound.ts; registry claims both under audio)
+- HUD / Command Center / menu shell (ui system)
 
 ## Power Score changes
 
-`GENE_POWER_SCALE = 0.15` calibration (maxed 45-card library ≈ ×2.26 on the meta bucket,
-test-pinned ×2–2.6); gene collection folds linearly incl. the Ascension seam; bypass validation
-in `cardProblems` (every authored level/tier must be Power-visible). No other Power math moved.
+- `BRANCH_TIER_POWER = 0.05` — branch tiers now score via `branchPowerEffects` folded into
+  `game.powerEffects()` (temporary bucket). **This closed the user-reported bypass.**
+- `HERO_SLOT_POWER = 0.1` — meta bucket multiplies per unlocked slot beyond the first.
+- Any new temp-power source must keep `game.powerAuditWarnings` empty (tripwire warns on
+  no-gain purchases); meta-side sources must `announcePower` (tripwire in powerEvents.ts).
 
 ## UI changes
 
-Gene Archive (grid/inspect/loadout bar/search/sort/help collapsible), Play screen loading tips,
-HUD Tour 13th stop, Help wiki gene mechanics, Collection gene-level labels, gene run-start
-splash. All headless-smoke verified against built dists.
+PowerToaster (menu + in-run), PowerPreview on TowerLab/EvolutionHQ/HeroLab/HeroEvolutionPanel,
+rolling PowerBadge, HUD hierarchy restyle, Command Center atmosphere + cc-vitals. All pass
+`uiStandards.test.ts` (tokens, radii, durations).
 
 ## Documentation changes
 
-Everything above plus: the manifest is now the FIRST READ (CLAUDE.md/README/CODEMAP/GAME-STATE
-point to it), and doc ANCHORS pin: save version, content counts, gene gates, conversion rates,
-cost base, loadout slots, GENE_POWER_SCALE.
+docs/POWER-AUDIT.md registered under the power system (anchors enforced); GAME-FEEL/
+POWER-SCORE/UI-STANDARDS sections appended; PROJECT_STATUS block refreshed. No change needed
+elsewhere — doc-sync anchors green in `npm test`.
 
 ## Save changes
 
-Schema `CURRENT_VERSION = 19` (`geneSlots`, `geneLoadout`; v18 added `genes`, `geneEssence`).
-Additive migrations + sanitizers test-pinned (`src/save/saveStore.test.ts`), including
-manipulated-state clamps. `src/save/derive.ts` is the new cycle-free home for shared derivations.
+None — save layer untouched (v19; goldens byte-identical all five commits).
 
 ## Known edge cases
 
-- The gene-cards test band (×2–2.6 maxed) FAILS BY DESIGN when the card library grows — that is
-  the recalibration reminder for `GENE_POWER_SCALE`, not a bug.
-- vitest runs node-side: registry tests read the real fs; the graph freshness test requires
-  regenerating `docs/DEPENDENCY_GRAPH.md` in the same commit as registry edits.
-- Type-only import cycles are INTENTIONAL (erased at compile) — don\'t "fix" them; see
-  `docs/ENGINEERING-AUDIT.md` §3.
-- Ascension is backend-only ON PURPOSE: one deliberately-unwired gameplay seam
-  (`effectiveGeneEffects` third arg at the run seams).
+- GameView hooks: gene-splash effect ends right before the run-soundtrack effect — do not
+  anchor code insertions on the first `return (` in that file.
+- Music can't be *heard* in this environment; correctness is pinned by the 8 pure-composition
+  tests (progression/percussion/bass/melody/structure/determinism/scale membership).
+- HUD "text-clip" sweep hits on `.hud-cell`/`.tt` are false positives from hidden absolute
+  `.tt-bubble` tooltips inflating scrollWidth — verify with screenshots, not scrollWidth alone.
+- `chooseCard` only audits temp power when `effectsPower(effects) > 1` (utility cards may
+  legitimately score 0).
 
 ## Remaining technical debt
 
-Ranked in `docs/ENGINEERING-AUDIT.md` §4: game.ts monolith → meta.ts God-module → index.css
-monolith → rarity-color ×4 (a deliberate visual pass) → scale-coupled constants → no
-lint-enforced import direction.
+- `music.setIntensity` is wired to a coarse boss/combat split (0.5/1.0) — the per-wave threat
+  mapping is the open seam.
+- Giant-file ranking unchanged (`game.ts`, `meta.ts`, `index.css`) — see ENGINEERING-AUDIT §4.
 
 ## Recommended next tasks
 
-1. UI standards + component-library pass (in progress as this handoff is written — see
-   `docs/PROJECT_STATUS.md`).
-2. Ship Card Ascension (backend complete; content + one wire + ceremony).
-3. `src/state/meta.ts` split behind its façade (ENGINEERING-AUDIT §5.2).
-4. CI guards: madge --circular + ts-prune (§5.6).
+1. Dynamic music intensity: map live threat (wave pressure, core damage) → `music.setIntensity`
+   in GameView's soundtrack effect.
+2. Card Ascension gameplay wire + ceremony (backend shipped in Gene Task 10).
+3. Content wave through the validators (towers/heroes/cards).
 
 ## Future expansion hooks
 
-- `src/core/geneCards.ts`: `geneAscensionPowerMult` / `geneEffectiveRarity` / `geneArtKey` (+
-  `def.ascension.tiers` authoring).
-- `src/save/derive.ts`: add shared derivations here, never re-inline.
-- `src/dev/docSync.ts` `docAnchors()`: add an anchor whenever a doc states a code-owned number.
-- `scripts/validate.ts` AREAS: add a row when a new always-verify area emerges.
+- `music.setLayerGain(id, gain)` — per-layer ducking (e.g. mute lead under dialogue).
+- `TRACKS.events` — authored but unused; wire to limited-time events when they exist.
+- `powerEvents.onPowerGain` — any future surface (results screen, animations) can subscribe.

@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-01 (engineering-infrastructure block).
+> **Last updated:** 2026-07-01 (premium polish block: Command Center, music engine, HUD, Power audit + feel).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -15,12 +15,15 @@ Prestige layer 1 (Molt/Ascendant) · Campaign (world map, gates) · Infinite (AI
 Power Score (+ mandatory-coverage validation) · Currencies · Achievements · Onboarding (Combat
 Tutorial, HUD Tour, Help wiki, What's New, loading tips) · Notifications · Progress Prediction ·
 Save (v19, migrations, backups, dev reset) · **Engineering automation (dependency registry,
-doc-sync anchors, `npm run validate`, handoff scaffolder)**.
+doc-sync anchors, `npm run validate`, handoff scaffolder)** · UI standards + component library
+(`docs/UI-STANDARDS.md`, style tests) · **Music engine (composition core + WebAudio manager,
+`docs/GAME-FEEL.md` §music)** · Command Center living-lab redesign · Gameplay HUD redesign
+(vital hierarchy, glass cells, responsive) · Power Score full-coverage audit + gain feel
+(`docs/POWER-AUDIT.md`, toasts/previews).
 
 ## Systems in progress
 
-- **UI standards + component-library pass** — CSS drift audit, tokens, shared components,
-  `docs/UI-STANDARDS.md` (this session, in flight).
+- _(none — between milestones)_
 
 ## Known issues
 
@@ -34,10 +37,10 @@ doc-sync anchors, `npm run validate`, handoff scaffolder)**.
 
 ## Upcoming milestones
 
-1. **UI consistency milestone** — standards + shared components + polish (in progress).
-2. **Card Ascension** — backend done; author tiers + one gameplay wire + ceremony.
-3. **Content wave** — toward 10 towers / 6 heroes / 100 cards through the validators.
-4. **meta.ts façade split + CI guards** (madge, ts-prune, import-direction lint).
+1. **Card Ascension** — backend done; author tiers + one gameplay wire + ceremony.
+2. **Content wave** — toward 10 towers / 6 heroes / 100 cards through the validators.
+3. **meta.ts façade split + CI guards** (madge, ts-prune, import-direction lint).
+4. **Dynamic music intensity** — wire `music.setIntensity` to live threat (seam already open).
 
 ## Future roadmap (design-corpus scale)
 
@@ -56,7 +59,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 716 tests / 115 files green; golden sim byte-identical; typecheck strict; build clean.
+- 738 tests / 118 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.
