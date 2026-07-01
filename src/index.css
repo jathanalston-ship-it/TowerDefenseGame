@@ -4646,6 +4646,18 @@ kbd {
 .ga-gates-k { color: var(--text); } .ga-gates-k b { color: var(--gold); }
 .ga-gates-next { color: var(--muted); } .ga-gates-next b { color: var(--kinetic); }
 .ga-gates-up { color: var(--success); font-weight: 700; }
+.ga-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; }
+.ga-search { flex: 0 1 220px; padding: 6px 12px; border-radius: 9px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-size: 12px; }
+.ga-search:focus { border-color: var(--caustic); outline: none; }
+.ga-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.ga-chip { padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); font-size: 10.5px; color: var(--muted); }
+.ga-chip.on { border-color: var(--caustic); color: var(--caustic); background: color-mix(in srgb, var(--caustic) 10%, transparent); }
+.ga-sort { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.ga-marks { position: absolute; top: 4px; left: 6px; display: flex; gap: 3px; z-index: 2; }
+.ga-mark { font-size: 10px; opacity: 0; filter: grayscale(1); cursor: pointer; transition: opacity 0.12s ease; }
+.ga-tile:hover .ga-mark, .ga-tile:focus .ga-mark { opacity: 0.55; }
+.ga-mark.is-on { opacity: 1 !important; filter: none; }
+.ga-mark:hover { opacity: 1; }
 .ga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
 .ga-tile { position: relative; display: flex; gap: 10px; align-items: flex-start; text-align: left; padding: 10px; border-radius: 12px; background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--rc) 35%, var(--line)); }
 .ga-tile:hover { border-color: var(--rc); transform: translateY(-1px); }

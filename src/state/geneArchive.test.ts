@@ -78,6 +78,26 @@ describe('next-goal prominence (Task 6): the upcoming gene gate surfaces when it
   });
 });
 
+describe('favorites + pinning (Task 8) — persisted collection gestures', () => {
+  it('toggles persist, survive a save round-trip, and surface on the rows', () => {
+    seed();
+    meta.toggleGeneFavorite(card.id);
+    meta.toggleGenePin(card.id);
+    let row = geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!;
+    expect(row.favorite).toBe(true);
+    expect(row.pinned).toBe(true);
+    // Round-trip through the sanitizer (export → import) keeps the flags.
+    meta.importText(serializeExport(meta.get()));
+    row = geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!;
+    expect(row.favorite).toBe(true);
+    expect(row.pinned).toBe(true);
+    // Toggling off returns the entry toward sparse defaults.
+    meta.toggleGeneFavorite(card.id);
+    expect(geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!.favorite).toBe(false);
+    expect(meta.upgradeGene(card.id)).toBe(false); // unrelated guards untouched (still unowned)
+  });
+});
+
 describe('meta.upgradeGene — the guarded spend', () => {
   it('refuses unowned / unaffordable; succeeds owned + funded; stamps upgradedAt', () => {
     seed({ geneEssence: 999 });

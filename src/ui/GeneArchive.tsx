@@ -5,7 +5,7 @@
 // power contribution, the Upgrade button). Nothing here is hardcoded per card: hundreds of future
 // cards render from the same rows. Task 8 layers search/sort on top of this state shape.
 
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { geneArchiveRows, geneArchiveSummary } from '../state/geneArchive';
 import type { GeneArchiveRow } from '../state/geneArchive';
@@ -39,6 +39,20 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
       title={`${def.name} — inspect`}
     >
       {row.upgradeable && <span className="ga-up" title="Upgrade available">▲</span>}
+      <span className="ga-marks">
+        <span
+          className={`ga-mark${row.pinned ? ' is-on' : ''}`}
+          title={row.pinned ? 'Unpin' : 'Pin (always first)'}
+          role="button"
+          onClick={(e) => { e.stopPropagation(); meta.toggleGenePin(def.id); }}
+        >📌</span>
+        <span
+          className={`ga-mark${row.favorite ? ' is-on' : ''}`}
+          title={row.favorite ? 'Unfavorite' : 'Favorite'}
+          role="button"
+          onClick={(e) => { e.stopPropagation(); meta.toggleGeneFavorite(def.id); }}
+        >★</span>
+      </span>
       <GeneCardArt id={def.id} accent={aff.color} rarity={def.rarity} size={64} />
       <span className="ga-tile-body">
         <span className="ga-name" style={{ color: rc }}>{def.name}</span>
@@ -202,12 +216,85 @@ function LoadoutBar({ equipMode, onArmSlot }: { equipMode: number | null; onArmS
   );
 }
 
+// ── Search / filter / sort (Task 8) — pure derivations over the read-model rows, so they scale to
+//    hundreds of cards with no UI change. Pinned rows ALWAYS lead; favorites lead the rest. ──
+type GeneFilter = 'all' | 'tower' | 'hero' | 'global' | 'owned' | 'unowned' | 'upgradeable' | 'gated' | 'favorites';
+const FILTERS: { key: GeneFilter; label: string }[] = [
+  { key: 'all', label: 'All' }, { key: 'tower', label: 'Towers' }, { key: 'hero', label: 'Hero' },
+  { key: 'global', label: 'Global' }, { key: 'owned', label: 'Owned' }, { key: 'unowned', label: 'Unowned' },
+  { key: 'upgradeable', label: '▲ Upgradeable now' }, { key: 'gated', label: '🔒 Future unlock' },
+  { key: 'favorites', label: '★ Favorites' },
+];
+type GeneSort = 'default' | 'power' | 'lowLevel' | 'alpha' | 'recentAcquired' | 'recentImproved';
+const SORTS: { key: GeneSort; label: string }[] = [
+  { key: 'default', label: 'Default' }, { key: 'power', label: 'Highest Power' },
+  { key: 'lowLevel', label: 'Lowest Level' }, { key: 'alpha', label: 'Alphabetical' },
+  { key: 'recentAcquired', label: 'Recently acquired' }, { key: 'recentImproved', label: 'Recently improved' },
+];
+
+function matchesFilter(r: GeneArchiveRow, f: GeneFilter): boolean {
+  switch (f) {
+    case 'all': return true;
+    case 'tower': return r.subject.kind === 'tower';
+    case 'hero': return r.subject.kind === 'hero';
+    case 'global': return r.subject.kind === 'global' || r.subject.kind === 'economy' || r.subject.kind === 'hive';
+    case 'owned': return r.owned;
+    case 'unowned': return !r.owned;
+    case 'upgradeable': return r.upgradeable;
+    case 'gated': return r.owned && r.nextCost !== null && !r.gateMet; // next level exists but is campaign-locked
+    case 'favorites': return r.favorite;
+  }
+}
+
+function sortRows(rows: GeneArchiveRow[], sort: GeneSort): GeneArchiveRow[] {
+  const cmp = (a: GeneArchiveRow, b: GeneArchiveRow): number => {
+    switch (sort) {
+      case 'power': return b.powerMult - a.powerMult;
+      case 'lowLevel': return a.level - b.level || a.def.name.localeCompare(b.def.name);
+      case 'alpha': return a.def.name.localeCompare(b.def.name);
+      case 'recentAcquired': return (b.acquiredAt ?? 0) - (a.acquiredAt ?? 0);
+      case 'recentImproved': return (b.upgradedAt ?? 0) - (a.upgradedAt ?? 0);
+      default: return 0; // registry order (stable)
+    }
+  };
+  return rows.slice().sort((a, b) =>
+    Number(b.pinned) - Number(a.pinned) || Number(b.favorite) - Number(a.favorite) || cmp(a, b));
+}
+
 export function GeneArchive(): JSX.Element {
   const save = meta.use();
   const rows = geneArchiveRows(save);
   const sum = geneArchiveSummary(save, rows);
   const [inspectId, setInspectId] = useState<string | null>(null);
   const [equipSlot, setEquipSlot] = useState<number | null>(null); // armed slot: the next tile click equips
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<GeneFilter>('all');
+  const [sort, setSort] = useState<GeneSort>('default');
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = rows.filter((r) =>
+      matchesFilter(r, filter) &&
+      (q === '' || r.def.name.toLowerCase().includes(q) || r.def.description.toLowerCase().includes(q)));
+    return sortRows(filtered, sort);
+  }, [rows, query, filter, sort]);
+
+  // Keyboard (and spatial-nav controller) navigation: arrows move focus across the tile grid,
+  // Enter/Space activates (native button behavior), Escape backs out of equip mode.
+  const onGridKeyDown = (e: React.KeyboardEvent): void => {
+    if (e.key === 'Escape') { setEquipSlot(null); return; }
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    const tiles = Array.from(gridRef.current?.querySelectorAll<HTMLButtonElement>('.ga-tile') ?? []);
+    const idx = tiles.indexOf(document.activeElement as HTMLButtonElement);
+    if (idx < 0 || tiles.length === 0) return;
+    e.preventDefault();
+    // Column count from layout (tiles per visual row) — resilient to any grid width.
+    let cols = 1;
+    while (cols < tiles.length && tiles[cols].offsetTop === tiles[0].offsetTop) cols++;
+    const delta = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' ? -cols : cols;
+    tiles[Math.max(0, Math.min(tiles.length - 1, idx + delta))]?.focus();
+  };
 
   return (
     <div className="panel ga-panel">
@@ -236,8 +323,31 @@ export function GeneArchive(): JSX.Element {
         {sum.upgradeable > 0 && <span className="ga-gates-up">▲ {sum.upgradeable} upgrade{sum.upgradeable > 1 ? 's' : ''} available</span>}
       </div>
 
-      <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`}>
-        {rows.map((r) => (
+      {/* Search · filter · sort (Task 8) — pinned always lead, favorites next. */}
+      <div className="ga-controls">
+        <input
+          className="ga-search"
+          type="search"
+          placeholder="Search genes…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search gene cards"
+        />
+        <div className="ga-chips">
+          {FILTERS.map((f) => (
+            <button key={f.key} className={`ga-chip${filter === f.key ? ' on' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
+          ))}
+        </div>
+        <label className="ga-sort">Sort
+          <select value={sort} onChange={(e) => setSort(e.target.value as GeneSort)}>
+            {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+          </select>
+        </label>
+      </div>
+
+      {shown.length === 0 && <div className="ga-hint">No genes match — clear the search or filters.</div>}
+      <div ref={gridRef} className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
+        {shown.map((r) => (
           <GeneTile
             key={r.def.id}
             row={r}

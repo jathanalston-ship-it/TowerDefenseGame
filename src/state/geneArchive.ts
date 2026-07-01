@@ -32,6 +32,8 @@ export interface GeneArchiveRow {
   futureNotes: { level: number; note: string; cost: number; gateStage: number; gateMet: boolean }[];
   acquiredAt?: number;
   upgradedAt?: number;
+  favorite: boolean;
+  pinned: boolean;
 }
 
 export interface GeneArchiveSummary {
@@ -87,6 +89,8 @@ export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
       }),
       acquiredAt: save.genes[def.id]?.acquiredAt,
       upgradedAt: save.genes[def.id]?.upgradedAt,
+      favorite: save.genes[def.id]?.favorite === true,
+      pinned: save.genes[def.id]?.pinned === true,
     };
   });
 }

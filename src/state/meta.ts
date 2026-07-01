@@ -1333,6 +1333,21 @@ export const meta = {
     return true;
   },
 
+  /** Toggle the ★ favorite on a gene card (sorts ahead in the Archive). */
+  toggleGeneFavorite(id: string): void {
+    const s = store.get();
+    if (!cardRegistry.has(id)) return;
+    const prev = s.genes[id];
+    persist({ ...s, genes: { ...s.genes, [id]: { ...(prev ?? { level: 0 }), favorite: !prev?.favorite } } });
+  },
+  /** Toggle the 📌 pin on a gene card (always FIRST in the Archive, before favorites). */
+  toggleGenePin(id: string): void {
+    const s = store.get();
+    if (!cardRegistry.has(id)) return;
+    const prev = s.genes[id];
+    persist({ ...s, genes: { ...s.genes, [id]: { ...(prev ?? { level: 0 }), pinned: !prev?.pinned } } });
+  },
+
   /** Buy the next permanent level of a gene card (the Archive's upgrade button). Guarded: the card
    *  must be registered + OWNED (drafted at least once), below its authored ceiling AND the global
    *  campaign-gate ceiling, and the Gene Essence cost must be covered. Stamps `upgradedAt` (drives

@@ -20,6 +20,8 @@ export interface GeneCardSave {
   skin?: string; // equipped skin id (future artwork).
   acquiredAt?: number; // ms timestamp of first acquisition (drives "recently acquired" sort).
   upgradedAt?: number; // ms timestamp of the last level purchase (drives "recently improved" sort).
+  favorite?: boolean; // player-starred (sorts ahead of the rest; a collection gesture).
+  pinned?: boolean; // player-pinned (always first in the Archive, before favorites).
 }
 
 // ── Campaign gates (docs/GENE-EVOLUTION.md §Gates) — gene LEVELS unlock GLOBALLY at campaign
@@ -118,9 +120,11 @@ export function sanitizeGeneSave(raw: unknown): GeneSave {
     const skin = typeof s.skin === 'string' ? s.skin : undefined;
     const acquiredAt = typeof s.acquiredAt === 'number' && s.acquiredAt >= 0 ? s.acquiredAt : undefined;
     const upgradedAt = typeof s.upgradedAt === 'number' && s.upgradedAt >= 0 ? s.upgradedAt : undefined;
+    const favorite = s.favorite === true;
+    const pinned = s.pinned === true;
     // Persist only meaningful (non-default) state so the map stays sparse.
-    if (level > 0 || rarityTier > 0 || ascension > 0 || skin || acquiredAt !== undefined || upgradedAt !== undefined) {
-      out[id] = { level, ...(rarityTier ? { rarityTier } : {}), ...(ascension ? { ascension } : {}), ...(skin ? { skin } : {}), ...(acquiredAt !== undefined ? { acquiredAt } : {}), ...(upgradedAt !== undefined ? { upgradedAt } : {}) };
+    if (level > 0 || rarityTier > 0 || ascension > 0 || skin || acquiredAt !== undefined || upgradedAt !== undefined || favorite || pinned) {
+      out[id] = { level, ...(rarityTier ? { rarityTier } : {}), ...(ascension ? { ascension } : {}), ...(skin ? { skin } : {}), ...(acquiredAt !== undefined ? { acquiredAt } : {}), ...(upgradedAt !== undefined ? { upgradedAt } : {}), ...(favorite ? { favorite } : {}), ...(pinned ? { pinned } : {}) };
     }
   }
   return out;
