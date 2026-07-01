@@ -105,6 +105,8 @@ later is content + one gameplay wire, not a refactor:
 - **Task 9** — tune `GENE_POWER_SCALE`; add a build-time coverage guard (no gene bypasses Power).
 - **Task 10** — ✅ backend complete (see §Ascension backend); authoring `def.ascension` tiers is the
   future content step.
+- **Task 12** — ✅ final audit + 100/250/500-card stress test + closing report:
+  **`GENE-AUDIT-REPORT.md`** (the system is a permanent core progression pillar).
 
 ## Economy — Gene Essence (Task 2)
 `geneEssence` is the permanent Gene Card upgrade currency (`core/currencies.ts`, save field

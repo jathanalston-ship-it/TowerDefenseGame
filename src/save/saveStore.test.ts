@@ -77,6 +77,39 @@ describe('save export / import', () => {
       expect(r.data.lootQueue.progress).toBe(0);
     }
   });
+
+  it('fills the Gene Evolution fields for a pre-v18 save (additive migration)', () => {
+    const legacy = { ...defaultSave() } as Record<string, unknown>;
+    delete legacy.genes; delete legacy.geneEssence; delete legacy.geneSlots; delete legacy.geneLoadout;
+    const r = parseImport(JSON.stringify(legacy));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.genes).toEqual({});
+      expect(r.data.geneEssence).toBe(0);
+      expect(r.data.geneSlots).toBe(1); // slot 1 is free
+      expect(r.data.geneLoadout).toEqual([null, null, null, null, null]);
+    }
+  });
+
+  it('sanitizes manipulated gene state on import (clamps + drops, never corrupts)', () => {
+    const bad = {
+      ...defaultSave(),
+      genes: { __junk__: { level: 9 }, sharpened_needles: { level: 99, ascension: 7 } },
+      geneEssence: -50, geneSlots: 99,
+      geneLoadout: ['sharpened_needles', 'sharpened_needles', '__junk__', null],
+    } as unknown as Record<string, unknown>;
+    const r = parseImport(JSON.stringify(bad));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.genes.__junk__).toBeUndefined(); // unknown card dropped
+      expect(r.data.genes.sharpened_needles.level).toBeLessThanOrEqual(5); // clamped to the authored ceiling
+      expect(r.data.genes.sharpened_needles.ascension).toBeUndefined(); // no tiers authored ⇒ clamps to 0 (sparse)
+      expect(r.data.geneEssence).toBe(0); // negative wallet floors at 0
+      expect(r.data.geneSlots).toBeLessThanOrEqual(5); // slot count clamps to the ladder
+      expect(r.data.geneLoadout.filter((id) => id === 'sharpened_needles')).toHaveLength(1); // deduped
+      expect(r.data.geneLoadout).not.toContain('__junk__'); // unknown card dropped
+    }
+  });
 });
 
 describe('backups & corruption recovery', () => {

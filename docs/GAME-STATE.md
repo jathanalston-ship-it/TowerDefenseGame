@@ -88,7 +88,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Starting Gene Loadouts: 1→5 slots (Campaign + Genome Cores), auto-apply at run boot + splash
 - ✅ Power integration: linear collection fold (`GENE_POWER_SCALE` 0.15 ⇒ ×≈2.26 maxed), real-model previews, bypass validation
 - ✅ Ascension BACKEND only (tiers/rarity/art/Power/save seams + validation) — no gameplay, by design
-- ✅ Onboarding: tutorial step, HUD Tour stop, 3 Help mechanics, loading tips, in-Archive help
+- ✅ Onboarding: tutorial step, HUD Tour stop, Help mechanics, loading tips, in-Archive help
+- ✅ **Final audit + 100/250/500-card stress test PASSED** — GENE-AUDIT-REPORT.md. The system is a
+  **permanent core progression pillar** alongside Towers, Heroes, Equipment, Campaign, Prestige.
 
 **Compressed summary (Gene Evolution).** *Architecture:* `CardDef` (cards.ts) carries optional
 `maxLevel`/`upgrades`/`ascension`/`skins`/`art`; player state is a sparse `save.genes:

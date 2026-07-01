@@ -119,6 +119,19 @@ describe('Power integration (Task 9) — every permanent gene improvement moves 
   });
 });
 
+describe('nav badge (Task 12 audit) — the Archive lights up when an upgrade is ready', () => {
+  it("the 'genes' channel counts upgradeable cards and clears when none remain", async () => {
+    await import('./notificationSources'); // side-effect registration (as the Hub does)
+    const { notifications } = await import('./notifications');
+    seed(); // fresh save: nothing owned ⇒ no badge
+    expect(notifications.badges(meta.get()).genes).toBeUndefined();
+    seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999 });
+    expect(notifications.badges(meta.get()).genes).toBe(1); // owned + gate met + affordable
+    notifications.markSeen('genes', meta.get());
+    expect(notifications.badges(meta.get()).genes).toBeUndefined(); // acknowledged
+  });
+});
+
 describe('favorites + pinning (Task 8) — persisted collection gestures', () => {
   it('toggles persist, survive a save round-trip, and surface on the rows', () => {
     seed();
