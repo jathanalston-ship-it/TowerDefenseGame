@@ -61,7 +61,7 @@ describe('finishRun → per-hero ownership stats', () => {
     meta.debugGrantGear(1);
     const item = meta.get().equipment.inventory[0];
     const def = itemDef(item.defId)!;
-    meta.equip(def.slot, item.uid);
+    meta.equip('ravager', def.slot, item.uid);
 
     meta.finishRun(runWithHeroKills('ravager', 50));
 
@@ -75,5 +75,40 @@ describe('finishRun → per-hero ownership stats', () => {
     meta.finishRun(runWithHeroKills('ravager', 25));
     expect(heroDetail(meta.get(), 'ravager').kills).toBe(75);
     expect(heroDetail(meta.get(), 'ravager').runs).toBe(2);
+  });
+});
+
+describe('per-hero equipment — independent loadouts (HEROES.md)', () => {
+  const [h1, h2] = HERO_ORDER;
+
+  it('each hero keeps its own loadout; equipping one never overwrites another', () => {
+    meta.reset();
+    meta.grantItem({ uid: 'wa', defId: 'w_quill', rarity: 'epic', affixes: [] });
+    meta.grantItem({ uid: 'wb', defId: 'w_coil', rarity: 'epic', affixes: [] });
+    meta.equip(h1, 'weapon', 'wa');
+    meta.equip(h2, 'weapon', 'wb');
+    expect(meta.loadoutOf(h1).weapon).toBe('wa');
+    expect(meta.loadoutOf(h2).weapon).toBe('wb'); // h2's equip did not clobber h1
+    meta.equip(h1, 'weapon', null); // clearing h1 leaves h2 intact
+    expect(meta.loadoutOf(h1).weapon).toBeNull();
+    expect(meta.loadoutOf(h2).weapon).toBe('wb');
+  });
+
+  it('a single physical item moves off whichever hero wears it (single instance)', () => {
+    meta.reset();
+    meta.grantItem({ uid: 'shared', defId: 'w_quill', rarity: 'epic', affixes: [] });
+    meta.equip(h1, 'weapon', 'shared');
+    meta.equip(h2, 'weapon', 'shared'); // steal it onto h2
+    expect(meta.loadoutOf(h1).weapon).toBeNull(); // pulled off h1
+    expect(meta.loadoutOf(h2).weapon).toBe('shared');
+  });
+
+  it('heroRosterEquip carries a geared fielded hero’s effects (per-hero, folds into the run)', () => {
+    meta.reset();
+    const hero = meta.selectedHero(); // slot-1 is always fielded
+    expect(meta.heroRosterEquip()[hero] ?? []).toHaveLength(0); // no gear ⇒ no effects (golden-safe)
+    meta.grantItem({ uid: 'g', defId: 'w_quill', rarity: 'epic', affixes: [] });
+    meta.equip(hero, 'weapon', 'g');
+    expect((meta.heroRosterEquip()[hero] ?? []).length).toBeGreaterThan(0); // geared ⇒ per-hero effects present
   });
 });

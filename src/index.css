@@ -4638,6 +4638,16 @@ kbd {
 .set-chip span { opacity: 0.35; font-weight: 700; }
 .set-chip span.on { opacity: 1; color: var(--success); }
 
+/* Hero focus — which fielded hero the Armory is gearing (per-hero loadouts). */
+.armory-heroes { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 12px; }
+.armory-hero { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast); }
+.armory-hero:hover { background: var(--panel-3); transform: translateY(-1px); }
+.armory-hero.on { background: var(--panel-3); border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 1px var(--accent) inset; }
+.armory-hero .ah-slot { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; }
+.armory-hero .ah-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.armory-hero .ah-score { font-size: 11px; color: var(--muted); }
+.armory-hero.on .ah-score { color: var(--accent); }
+
 .armory-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
 .ac-group { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .ac-right { margin-left: auto; }

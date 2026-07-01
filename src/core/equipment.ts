@@ -386,6 +386,14 @@ export interface Loadout {
   relic: string | null;
 }
 
+/** The three equip slots, in display order. */
+export const EQUIP_SLOTS: EquipSlot[] = ['weapon', 'armor', 'relic'];
+
+/** An empty loadout — the default for a hero with no gear equipped (HEROES.md per-hero loadouts). */
+export function emptyLoadout(): Loadout {
+  return { weapon: null, armor: null, relic: null };
+}
+
 type Rng = () => number;
 const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)];
 /** Roll a random affix tier in 1..maxTier (the reroll chase, bounded by the ilvl ceiling). */

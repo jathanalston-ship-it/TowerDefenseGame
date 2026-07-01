@@ -21,15 +21,16 @@ describe('set bonuses + loadout score', () => {
     meta.reset();
     meta.grantItem(item('w1', 'w_quill', 'epic')); // apex weapon
     meta.grantItem(item('a1', 'a_chitin', 'epic')); // apex armor
-    meta.equip('weapon', 'w1');
-    meta.equip('armor', 'a1');
+    meta.equip('ravager', 'weapon', 'w1');
+    meta.equip('ravager', 'armor', 'a1');
     const save = meta.get();
-    const apex = activeSets(save.equipment.inventory, save.equipment.loadout).find((s) => s.id === 'apex');
+    const lo = meta.loadoutOf('ravager');
+    const apex = activeSets(save.equipment.inventory, lo).find((s) => s.id === 'apex');
     expect(apex?.count).toBe(2);
     expect(apex?.bonus2).toBe(true);
     // Score = both items + the 2-piece set bonus, so it exceeds the bare item sum.
     const itemsSum = itemScore(save.equipment.inventory[0]) + itemScore(save.equipment.inventory[1]);
-    expect(loadoutScore(save.equipment.inventory, save.equipment.loadout)).toBeGreaterThan(itemsSum);
+    expect(loadoutScore(save.equipment.inventory, lo)).toBeGreaterThan(itemsSum);
   });
 });
 
@@ -55,7 +56,7 @@ describe('heroDetail — equipment score + power rating', () => {
     expect(base.equipScore).toBe(0);
 
     meta.grantItem(item('g1', 'w_hunger', 'exotic', [{ affixId: 'keen', tier: 5 }]));
-    meta.equip('weapon', 'g1');
+    meta.equip('ravager', 'weapon', 'g1');
     const geared = heroDetail(meta.get(), 'ravager');
     expect(geared.equipScore).toBeGreaterThan(0);
     expect(geared.powerRating).toBeGreaterThan(base.powerRating);

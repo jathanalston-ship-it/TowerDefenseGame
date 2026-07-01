@@ -344,3 +344,42 @@ count) — retune, or swap to a future Twin-Avatar/Speciation gate, in one place
 **Golden-safety:** a fresh account has exactly one slot ⇒ single-hero runs. All multi-hero code is
 gated behind per-roster iteration that is a no-op for one hero (the autonomous-cast loop starts at
 index 1), so `golden.test` stays byte-identical.
+
+### Per-hero equipment (independent loadouts) — SHIPPED
+
+With 2–3 heroes fielded at once, **each hero maintains its OWN Weapon / Armor / Relic**. Equipping
+a hero never touches another hero's loadout; a single physical item, if worn elsewhere, is pulled
+off that hero first (single-instance move). Stars, Mastery, gear score, and Power Score were already
+per-hero; equipment now joins them.
+
+**Data model.** `save.equipment` holds a shared `inventory: OwnedItem[]` plus
+`loadouts: Partial<Record<HeroKind, Loadout>>` (was a single `loadout`). Schema **v12**; the v11→v12
+migration (`sanitizeLoadouts`) moves the legacy single loadout onto the slot-1 hero and resolves hero
+aliases. Reset-Equipment clears all `loadouts` together (no orphan uid).
+
+**Run application (the seam).** Each hero's gear folds into a *per-hero* modifier bundle at run
+construction — `game.foldHeroEquip(roster, opts.heroEquip)` builds `heroHmods[kind]` (a clone of the
+global `mods` + that hero's gear), `heroKits[kind]` (on-hit ability verbs), and `heroStatuses[kind]`
+(on-hit statuses). Every hero-method stat read goes through `hmods(h)` / `hkit(h)` / `hstatuses(h)`,
+which fall back to the global `this.mods` when a hero has no gear — so a gear-less roster is
+byte-identical (golden-safe). Battlefield-GLOBAL grants (tower projectile mutators, relic hooks) stay
+global; only hero-scoped stats/verbs are per-hero.
+
+**Systems modified (this feature):**
+- `core/equipment.ts` — `EQUIP_SLOTS`, `emptyLoadout()` (shared slot list + empty-loadout helper).
+- `save/saveStore.ts` — `equipment.loadouts` map (schema **v12**) + `sanitizeLoadouts` migration.
+- `state/meta.ts` — `loadoutOf(kind)`, `loadoutEffectsFor(kind)`, `heroRosterEquip()` (per-hero run
+  effects for the fielded roster), `equip(hero, slot, uid)` (per-hero, single-instance); `equipmentPower`
+  now the PRODUCT over all heroes' loadouts; finishRun favorite-equip + salvage iterate `loadouts`.
+- `state/heroView.ts` — `heroDetail` reads that hero's own loadout for gear score / slots.
+- `core/game.ts` — `heroHmods` / `heroKits` / `heroStatuses` + `foldHeroEquip` + `hmods/hkit/hstatuses`
+  accessors; `RunOptions.heroEquip`; every hero stat/verb site rewired to the per-hero accessor; the
+  hero aura is now per-roster (proximity checked across all heroes).
+- `ui/App.tsx` + `ui/GameView.tsx` — snapshot `meta.heroRosterEquip()` and thread it into the run.
+- `ui/EquipmentPanel.tsx` — a **hero-focus selector** (which fielded hero you're gearing), per-hero
+  loadout/score/sets, and an **owner tag** ("Equipped · <hero>") with a *Move here* action when an item
+  is worn by another hero.
+
+**Tests:** `state/heroLab.test.ts` (loadout independence, single-instance move, `heroRosterEquip`),
+`core/heroEquip.test.ts` (gear applies to that hero's max HP in-sim; never bleeds to another hero;
+empty/omitted heroEquip = baseline). Goldens unchanged.
