@@ -61,6 +61,7 @@ export interface SaveData {
   // item ⇒ it lives in at most one hero's loadout. Absent hero key ⇒ that hero has no gear equipped.
   equipment: { inventory: OwnedItem[]; loadouts: Partial<Record<HeroKind, Loadout>> };
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
+  matPity: number; // containers opened since the last RARE material (catalyst) — the pity counter (v16)
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
   // ── Pending bio-containers (schema v8) — completed-but-UNOPENED containers (loot boxes +
@@ -103,7 +104,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 15;
+export const CURRENT_VERSION = 16;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -234,6 +235,7 @@ export function defaultSave(): SaveData {
     achievements: [],
     equipment: { inventory: [], loadouts: {} },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
+    matPity: 0,
     lootQueue: defaultLootQueue(),
     pendingContainers: [],
     unlockedTitles: [],
@@ -324,6 +326,8 @@ function withDefaults(data: SaveData): SaveData {
       loadouts: sanitizeLoadouts(data.equipment, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     },
     mats: { ...d.mats, ...data.mats },
+    // v15→v16: the crafting-material pity counter. Absent on older saves ⇒ 0 (fresh pity).
+    matPity: Math.max(0, Math.floor(Number((data as { matPity?: unknown }).matPity) || 0)),
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
     // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
     lootQueue: sanitizeLootQueue(data.lootQueue),

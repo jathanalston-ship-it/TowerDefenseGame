@@ -26,6 +26,7 @@ import type {
   TowerProgress,
 } from '../core/types';
 import { rollChest, rollLoot } from './lootbox';
+import { rollMaterialDrop } from '../core/materialDrop';
 import type { ChestResult, PendingContainer } from './lootbox';
 import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
@@ -1069,13 +1070,26 @@ export const meta = {
     // scaled to the account Power Score (early Common → late Legendary/Exotic; no run-depth spikes).
     // Folded into the reveal (chest.items/equipment) + inventory here so BOTH container kinds award
     // gear identically — equipment no longer drops per-roll from the chest pools.
+    const power = composePower(accountPowerParts(save)).score;
     if (Math.random() < EQUIP_DROP_CHANCE) {
-      const item = rollItemForPower(Math.random, composePower(accountPowerParts(save)).score);
+      const item = rollItemForPower(Math.random, power);
       chest.items.push({ type: 'equipment', rarity: item.rarity, item });
       chest.equipment.push(item);
     }
+    // Secondary crafting-material drop (docs/EQUIPMENT.md §Materials): low chance, small stacks, a
+    // pity-protected RARE catalyst — scaled by Power + campaign progress + this container's rarity.
+    // Applied to BOTH container kinds so every Vault container can feed crafting (equipment stays
+    // primary). Folded into the reveal + save; matPity persists the guarantee across containers.
+    const { drop, pity } = rollMaterialDrop({
+      containerRarity: chest.topRarity, power, campaignStage: highestCampaignStage(save), pity: save.matPity, rng: Math.random,
+    });
+    if (drop) {
+      chest.items.push({ type: 'material', rarity: drop.rarity, mat: drop.mat, amount: drop.amount });
+      chest.materials[drop.mat] += drop.amount;
+      mats = { ...mats, [drop.mat]: mats[drop.mat] + drop.amount };
+    }
     persist({
-      ...save, towerShards, heroShards, mats,
+      ...save, towerShards, heroShards, mats, matPity: pity,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
     });

@@ -1165,6 +1165,28 @@ export const RUN_CHEST = 'standard';
  *  per container; its rarity scales with the account Power Score (not run depth). Centralized tunable. */
 export const EQUIP_DROP_CHANCE = 0.5;
 
+/** Crafting-material drop from a container (docs/EQUIPMENT.md §Materials) — the SECONDARY source,
+ *  deliberately below EQUIP_DROP_CHANCE so equipment stays the primary crafting feeder. At most one
+ *  material stack per container. `catalyst` is the RARE material (extremely uncommon), pity-protected:
+ *  after `rarePity` containers without one, the next drop is a guaranteed catalyst. All tunables here. */
+export const MATERIAL_DROP = {
+  baseChance: 0.3, // chance a container yields a common material (mutagen/scrap)
+  chancePerRarity: 0.04, // + per container-rarity tier (common=0 … exotic=+0.16)
+  chanceCap: 0.55,
+  commonRange: [1, 2] as [number, number], // base common-material quantity (small)
+  commonBonusPerScale: 1.4, // + up to this × the progression scale (power+stage+rarity), rounded
+  commonMax: 6, // hard cap on a common stack
+  rareBaseChance: 0.03, // catalyst chance WHEN a material drops — extremely uncommon
+  rarePowerDiv: 9000, // + power/ this
+  rareStageDiv: 260, // + stage/ this
+  rareChancePerRarity: 0.02, // + per container-rarity tier
+  rareChanceCap: 0.18,
+  rarePity: 22, // containers without a catalyst → the next material is a guaranteed catalyst
+  rareHighScale: 2.2, // a catalyst yields 2 (not 1) once the progression scale clears this
+  powerScaleDiv: 2600, // progression scale = 1 + power/this + …
+  stageScaleDiv: 55, //                         + stage/this
+} as const;
+
 /** Reward pacing: deeper runs earn a better chest, pulling "one more run". */
 export function chestForWave(wave: number): string {
   if (wave >= 12) return 'prime'; // full extraction

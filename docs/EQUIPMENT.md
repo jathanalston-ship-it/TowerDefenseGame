@@ -142,6 +142,25 @@ Crafting is **deterministic-ish**: RNG provides the raw material; crafting lets 
 | **Omega seasons / leaderboards** | seasonal Exotics + cosmetics |
 | **Set bosses** | set-specific pieces (farm the set you want) |
 
+### Materials — how crafting mats drop (SHIPPED · `core/materialDrop.ts`)
+
+Cracking any Genetic Vault container can also yield **crafting materials**, as a deliberate
+*secondary* feeder — **equipment stays the primary crafting source** (`EQUIP_DROP_CHANCE = 0.5`
+vs. `MATERIAL_DROP.baseChance = 0.3`). Rules (`rollMaterialDrop`, all tunables in
+`config.MATERIAL_DROP`):
+
+- **At most one material stack per container**, small quantities. Common feeders (**Mutagen**,
+  **Scrap**) are the usual drop; **Catalyst** is the RARE material — *extremely uncommon*
+  (`rareBaseChance = 0.03`, capped low).
+- **Scales** with account **Power Score**, **campaign progress**, and the **container's rarity**
+  (bigger common stacks + slightly better rare odds as you grow).
+- **Pity-protected:** after `rarePity` (22) containers without a Catalyst, the next material is a
+  **guaranteed Catalyst** (`save.matPity` persists the counter; resets on any Catalyst). Verified
+  live: over 120 cracks, the longest dry streak was 21 — the guarantee holds.
+- **Reveal identity:** each material has its own name/color/glyph (`MATERIAL_META`) and its drop
+  carries a rarity flare (Catalyst = *legendary* amber), so a rare pull makes the whole crack feel
+  legendary (the ceremony magnitude reads `topRarity`).
+
 ---
 
 ## 9. WEAPONS (30) — *alter attack behavior*
