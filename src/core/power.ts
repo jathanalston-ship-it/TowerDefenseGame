@@ -145,6 +145,7 @@ export interface PowerParts {
   towers: number; // tower Stars + Mastery (roster geomean)
   heroes: number; // hero Stars + Mastery (roster geomean)
   equipment: number; // equipped loadout (effects + rarity/affixes)
+  collection: number; // codex completion across categories (1 on a fresh account)
   temporary: number; // in-run buffs: gene cards + branch upgrades (1 outside a run)
 }
 
@@ -166,7 +167,7 @@ export function geomean(vals: number[]): number {
  * strictly raises the total — the core "you always know if it improved you" invariant.
  */
 export function composePower(parts: PowerParts): PowerScore {
-  const mult = parts.meta * parts.towers * parts.heroes * parts.equipment * parts.temporary;
+  const mult = parts.meta * parts.towers * parts.heroes * parts.equipment * parts.collection * parts.temporary;
   return { score: Math.round(POWER_BASE * mult), mult, parts };
 }
 

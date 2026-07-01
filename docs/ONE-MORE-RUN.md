@@ -8,8 +8,10 @@
 > and where the answer is weak, designs a stronger pull. **No code changed here — this is
 > the spec + an actionable roadmap.**
 
-**Status:** PLANNED. Companion: `RETENTION-ANALYSIS.md`, `PROGRESSION-REDESIGN.md`,
-`BOSS-DESIGN.md`, `IDENTITY-AUDIT.md`, `PREDICTION.md`.
+**Status:** PARTIAL — **Phase A shipped** (the Next-Goal engine `state/nextGoal.ts` + Home NEXT
+banner + the Results cliffhanger/replay). Later phases remain PLANNED. Companion:
+`RETENTION-ANALYSIS.md`, `PROGRESSION-REDESIGN.md`, `BOSS-DESIGN.md`, `IDENTITY-AUDIT.md`,
+`PREDICTION.md`. Live status: `GAME-STATE.md`.
 
 ---
 

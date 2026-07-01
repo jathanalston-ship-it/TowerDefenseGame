@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { WAVES, chestForWave } from './config';
+import { generateStage } from './campaign';
 import type { MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
@@ -32,6 +33,21 @@ describe('getNextWavePreview (telegraph)', () => {
     const kinds = new Set(WAVES.flat().map((g) => g.kind));
     for (const k of ['runner', 'brute', 'rusher', 'tank', 'flyer', 'burrower', 'tyrant']) {
       expect(kinds.has(k as never)).toBe(true);
+    }
+  });
+
+  it('a generated campaign wave previews WHOLE integers (fractional budget counts never leak to the UI)', () => {
+    // The campaign generator spends a float threat budget, so raw group counts are fractional — the
+    // preview must still show whole enemies (the "x12.53491" bug), matching what actually spawns.
+    for (const stageNo of [3, 12, 25]) {
+      const stage = generateStage(stageNo, 'standard');
+      const g = new Game(1, NO_META, undefined, 'ravager', undefined, { stage });
+      const preview = g.getNextWavePreview();
+      expect(preview).not.toBeNull();
+      for (const e of preview!) {
+        expect(Number.isInteger(e.count)).toBe(true);
+        expect(e.count).toBeGreaterThan(0);
+      }
     }
   });
 });

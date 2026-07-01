@@ -65,7 +65,7 @@ import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifier
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave } from './config';
+import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -155,10 +155,11 @@ function wavePreview(def: WaveDef): WavePreviewEntry[] {
   const order: WavePreviewEntry[] = [];
   const idx = new Map<string, WavePreviewEntry>();
   for (const g of def) {
+    const n = spawnCount(g.count); // the REAL integer that spawns — never a fractional preview
     const e = idx.get(g.kind);
-    if (e) e.count += g.count;
+    if (e) e.count += n;
     else {
-      const entry = { kind: g.kind, count: g.count };
+      const entry = { kind: g.kind, count: n };
       idx.set(g.kind, entry);
       order.push(entry);
     }
@@ -295,6 +296,12 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  // Auto-start ARMING gate (mode-agnostic): even with autoStart ON, the countdown stays frozen
+  // until the player takes their FIRST setup action this run — places a tower OR manually starts
+  // wave 1. This stops an armed Auto Wave from firing (and taking damage) before the player has
+  // built anything. Latched once, true for the rest of the run. Centralized here so EVERY mode
+  // (campaign/infinite/tutorial/challenge/future) inherits it with no per-mode code.
+  private autoStartReady = false;
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -1095,6 +1102,9 @@ export class Game {
     this.recomputeTowerCaches();
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    // First setup action taken → ARM the auto-start countdown (see autoStartReady). Placing a
+    // tower is one of the two triggers (the other is a manual startWave); latched for the run.
+    this.autoStartReady = true;
     // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
     // window, so an auto-start doesn't fire before the player finishes their opening build.
     if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
@@ -1183,6 +1193,9 @@ export class Game {
 
   startWave(): void {
     if (this.phase !== 'prep') return;
+    // Starting a wave (manually, or via a now-armed auto-start) is the other trigger that ARMS
+    // the auto-start countdown for the rest of the run (see autoStartReady). No-op once latched.
+    this.autoStartReady = true;
     if (this.mode === 'endless') {
       this.startEndlessWave();
       return;
@@ -1406,9 +1419,11 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
-      // Auto-start: count the prep timer down to the next wave when the player enabled it. Off
-      // by default ⇒ the manual-start golden run is byte-identical; consumes no rng.
-      if (this.autoStart && this.phase === 'prep') {
+      // Auto-start: count the prep timer down to the next wave when the player enabled it AND has
+      // taken their first setup action (autoStartReady). Off by default ⇒ the manual-start golden
+      // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
+      // (the HUD shows "Waiting for first placement…") so the run never auto-fires on an empty board.
+      if (this.autoStart && this.autoStartReady && this.phase === 'prep') {
         this.prepCountdown -= dt;
         if (this.prepCountdown <= 0) this.startWave();
       }
@@ -1493,6 +1508,7 @@ export class Game {
     const hp = BOSS.baseHp * def.hpMult;
     this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
+    const splitter = def.modules.find((m) => m.kind === 'splitter');
     this.enemies.push({
       id: this.nextId++,
       kind: 'tyrant', // borrows the boss-tier visual; behavior is driven by the runtime
@@ -1500,7 +1516,7 @@ export class Game {
       y: 8,
       hp,
       maxHp: hp,
-      baseArmor: 14,
+      baseArmor: def.armor ?? 14,
       speed: CHASSIS[def.chassis].speed,
       bounty: def.bounty,
       damage: def.damage,
@@ -1525,6 +1541,9 @@ export class Game {
         enrage: 0,
         channel: 0,
         charge: 0,
+        carapace: 0,
+        carapaceT: 0,
+        splitsLeft: splitter ? splitter.generations ?? 1 : 0,
         telegraph: null,
       },
     });
@@ -1600,7 +1619,20 @@ export class Game {
             this.suppressTowers(e, m.radius ?? 120, m.duration ?? 4); // disable nearby towers
             b.telegraph = 'SUPPRESS';
             break;
+          case 'healer':
+            this.bossHeal(e, m.amount ?? 120, m.radius ?? 160); // mend itself + the nearby pack
+            b.telegraph = 'MENDING';
+            break;
+          case 'carapace':
+            b.carapace = m.amount ?? 30; // heavy bonus armor for a window — Fracture → Shred cracks it
+            b.carapaceT = m.duration ?? 3.5;
+            b.telegraph = 'CARAPACE';
+            break;
         }
+      }
+      if (b.carapaceT > 0) {
+        b.carapaceT = Math.max(0, b.carapaceT - dt);
+        if (b.carapaceT <= 0) b.carapace = 0; // window closed — soft again
       }
       if (b.charge > 0) {
         b.charge = Math.max(0, b.charge - dt); // count the dash window down
@@ -1616,6 +1648,53 @@ export class Game {
     for (const t of this.towers) {
       if (dist2(boss.x, boss.y, t.x, t.y) <= r2) t.disabledUntil = Math.max(t.disabledUntil, this.time + duration);
     }
+  }
+
+  /** Boss healer module: pulse HP to the boss + every living enemy within `radius` (the whole pack),
+   *  clamped to each unit's max. The lesson is kill-priority — burst it down or clear the adds it mends. */
+  private bossHeal(boss: Enemy, amount: number, radius: number): void {
+    const r2 = radius * radius;
+    for (const e of this.enemies) {
+      if (!e.alive || e.hp >= e.maxHp) continue;
+      if (e === boss || dist2(boss.x, boss.y, e.x, e.y) <= r2) {
+        e.hp = Math.min(e.maxHp, e.hp + amount);
+        e.hitFlash = FX.hitFlash;
+      }
+    }
+    this.floats.push({ x: boss.x, y: boss.y - 18, text: 'MEND', color: '#6effa8', life: 0.7 });
+  }
+
+  /** Boss splitter module (death-triggered): cleave the dying boss into `amount` smaller copies, each
+   *  at a fraction of its max HP and one generation shorter. The lesson is to spread damage — overkill
+   *  on the parent is wasted, since the split children carry their own fresh bars. */
+  private splitBoss(parent: Enemy): void {
+    const b = parent.boss;
+    if (!b) return;
+    const def = bossDef(b.defId) ?? this.procBosses.get(b.defId);
+    if (!def) return;
+    const copies = def.modules.find((m) => m.kind === 'splitter')?.amount ?? 2;
+    const childHp = Math.max(1, Math.floor(parent.maxHp * 0.4)); // diminishing — finishing beats overkill
+    for (let i = 0; i < copies; i++) {
+      if (this.enemies.length >= PERF.maxEnemies) break;
+      const ang = ((i + 0.5) / copies) * Math.PI * 2;
+      this.bossCount++;
+      this.enemies.push({
+        id: this.nextId++, kind: 'tyrant',
+        x: Math.max(12, Math.min(WIDTH - 12, parent.x + Math.cos(ang) * 26)),
+        y: Math.max(8, parent.y + 8),
+        hp: childHp, maxHp: childHp, baseArmor: def.armor ?? 14,
+        speed: CHASSIS[def.chassis].speed * 1.08, bounty: Math.round(def.bounty * 0.35),
+        damage: Math.max(1, Math.round(def.damage * 0.6)),
+        fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0,
+        alive: true, lastHitKind: null, elite: false,
+        boss: {
+          defId: def.id, name: def.name, phase: 0, phases: def.phases.length,
+          moduleCd: def.modules.map((m) => m.cooldown * 0.6), shielded: 0, enrage: 0, channel: 0, charge: 0,
+          carapace: 0, carapaceT: 0, splitsLeft: b.splitsLeft - 1, telegraph: null,
+        },
+      });
+    }
+    this.floats.push({ x: parent.x, y: parent.y - 20, text: 'SPLIT!', color: def.color, life: 0.9 });
   }
 
   /** Spawn a normal enemy at a position (boss adds). */
@@ -2644,6 +2723,7 @@ export class Game {
         this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
         this.pushSfx('kill');
         if (e.boss) this.bossDeathSpectacle(e); // a boss death is an event, not a pop
+        if (e.boss && e.boss.splitsLeft > 0) this.splitBoss(e); // Mitotic Horror: cleave into smaller copies
         if (e.bounty >= 20) {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
         }
@@ -2966,7 +3046,10 @@ export class Game {
       return 0;
     }
     const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
-    const applied = damageAfter(raw, this.vulnMult(e), effectiveArmor(e, broken));
+    // Boss carapace: heavy bonus armor while the window is up — but a Shred (broken) cracks it too,
+    // so Fracture answers the wall. Zero on every normal enemy ⇒ golden-safe.
+    const armor = effectiveArmor(e, broken) + (broken ? 0 : e.boss?.carapace ?? 0);
+    const applied = damageAfter(raw, this.vulnMult(e), armor);
     // Shielded enemies soak the hit into the front shield first; only the overflow reaches HP.
     // The shield is undefined/0 on the historical roster, so this is a no-op there (golden-safe).
     let toBody = applied;
@@ -3411,7 +3494,8 @@ export class Game {
       selectedHero: this.selectedHeroView(),
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
-      autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartWaiting: this.autoStart && !this.autoStartReady,
     };
   }
 

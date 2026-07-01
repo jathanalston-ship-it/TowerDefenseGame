@@ -4,11 +4,13 @@ import {
   ALL_ITEMS,
   RARITY_AFFIXES,
   WEAPONS,
+  affixEffectText,
   itemDef,
   itemEffects,
   loadoutEffects,
   rerollAffixes,
   rollItem,
+  rollItemForPower,
   transmute,
 } from './equipment';
 
@@ -60,5 +62,20 @@ describe('equipment', () => {
     const t = transmute(r, it)!;
     expect(t.rarity).toBe('epic');
     expect(t.affixes.length).toBe(RARITY_AFFIXES.epic);
+  });
+});
+
+describe('Details-screen support: affix explanations + item provenance', () => {
+  it('affixEffectText renders a plain-language stat line per op', () => {
+    expect(affixEffectText({ affixId: 'keen', tier: 1 })).toBe('+5% Tower Damage'); // mul
+    expect(affixEffectText({ affixId: 'piercing', tier: 1 })).toBe('+1 max Fracture'); // add
+    expect(affixEffectText({ affixId: 'anchored', tier: 1 })).toBe('Sets Anchor Point → nucleus'); // set
+    expect(affixEffectText({ affixId: 'swift', tier: 1 })).toBe('−5% Ability Cooldown'); // reduction
+  });
+
+  it('rolled items are stamped with a source (Vault gear says so)', () => {
+    expect(rollItemForPower(mk(3), 5000).source).toBe('Genetic Vault');
+    expect(rollItem(mk(3), WEAPONS[0], 'rare').source).toBe('Genetic Vault'); // default
+    expect(rollItem(mk(3), WEAPONS[0], 'rare', 5, 'Run Extraction').source).toBe('Run Extraction');
   });
 });

@@ -8,7 +8,7 @@ import { CAMPAIGN_REWARDS, ENEMY_DEFS, ENEMY_KINDS } from './config';
 import type { EnemyDef, SpawnGroup, WaveDef } from './config';
 import type { EnemyKind } from './types';
 import { Rng } from './rng';
-import { assembleBoss } from './boss';
+import { assembleBoss, campaignBossFor } from './boss';
 import type { BossDef } from './boss';
 import { resolveDifficulty } from './difficulty';
 import type { DifficultyDef } from './difficulty';
@@ -174,7 +174,11 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const hasMiniBoss = rng.chance(miniBossChance) && waveCount >= 3;
   const miniBoss = hasMiniBoss ? assembleBoss(rngFn, Math.max(1, st * C.mbTierFrac), biome.mods.bossChassisBias) : null;
   const miniBossWave = Math.max(2, Math.ceil(waveCount / 2));
-  const boss = assembleBoss(rngFn, st, biome.mods.bossChassisBias);
+  // Always roll the procedural finale (keeps the rng stream identical), then let an authored
+  // Milestone-1 boss OVERRIDE it at its pinned stage (docs/BOSS-DESIGN §4). Non-milestone stages
+  // keep the generated boss — so the campaign stays procedural everywhere else.
+  const generatedBoss = assembleBoss(rngFn, st, biome.mods.bossChassisBias);
+  const boss = campaignBossFor(st) ?? generatedBoss;
 
   return {
     stage: st,

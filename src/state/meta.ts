@@ -26,6 +26,7 @@ import type {
   TowerProgress,
 } from '../core/types';
 import { rollChest, rollLoot } from './lootbox';
+import { rollMaterialDrop } from '../core/materialDrop';
 import type { ChestResult, PendingContainer } from './lootbox';
 import { LOOT_EARN, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
@@ -46,6 +47,8 @@ import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
+import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
+import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
@@ -54,9 +57,23 @@ import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import type { TutorialProgress } from '../core/tutorial';
-import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
-import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
+import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
+import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
+import { BIOMES } from '../core/biomes';
+import { BIOME_REGION } from '../core/campaign';
 import { bossDef } from '../core/boss';
+
+/** Biome ids the account has reached in Campaign, derived from campaign depth (biomes occupy
+ *  contiguous BIOME_REGION-stage bands that rotate through BIOMES). No new save field. */
+function biomesSeenOf(save: SaveData): Set<string> {
+  const seen = new Set<string>();
+  const deepest = highestCampaignStage(save);
+  if (deepest < 1) return seen;
+  const n = BIOMES.length;
+  const maxRegion = Math.floor((deepest - 1) / BIOME_REGION);
+  for (let r = 0; r <= maxRegion && seen.size < n; r++) seen.add(BIOMES[r % n].id);
+  return seen;
+}
 
 /** Build the collection codex context from a save (read-only derivation). */
 export function collectionContextOf(save: SaveData): CollectionContext {
@@ -65,6 +82,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
     bestWave: save.bestWave,
     bossesSlain: new Set(save.bossesSlain),
+    biomesSeen: biomesSeenOf(save),
   };
 }
 
@@ -94,6 +112,14 @@ function persist(next: SaveData): void {
 // new run starting back near 0) also re-arms it defensively.
 let runLootBanked = 0; // loot points already banked this run via syncRunLoot
 let runContainersBanked: PendingContainer[] = []; // loot-queue containers completed live this run (pending, unopened)
+
+// Collection rank celebration — SESSION baseline (not persisted): the per-category rank + the
+// collection Power multiplier at the last poll. meta.pollCollectionRankUps() diffs against these so
+// a promotion is celebrated once per session (the Codex screen polls on open). Seeded at load so the
+// first poll reports growth since the app started, never retroactively for already-earned ranks.
+const _collBaseline = collectionView(collectionContextOf(store.get()));
+let lastCollectionRanks: Partial<Record<CollectionCategoryId, number>> = rankSnapshot(_collBaseline);
+let lastCollectionMult = _collBaseline.power;
 
 /**
  * Permanent multipliers derived from upgrade levels (folded into a run at start).
@@ -186,6 +212,8 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
+    // Codex completion across categories (1 on a fresh account ⇒ POWER_BASE preserved).
+    collection: collectionView(collectionContextOf(save)).power,
     temporary,
   };
 }
@@ -214,7 +242,9 @@ function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, numb
   // the difficulty's lootQualityMult; the Ascendant Fortune node adds a permanent account-wide tilt
   // on top (×1 without it). standard + no node ⇒ 0 tier ⇒ no tilt, golden-safe.
   const fortune = ascendantBonuses(save.prestige.nodes).lootQualityMult;
-  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2 + (fortune - 1) * 2);
+  // Armory collection tilts loot quality richer as it fills (+0 on a fresh account).
+  const codexLoot = collectionEconomyBonuses(collectionView(collectionContextOf(save))).lootQualityTier;
+  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2 + (fortune - 1) * 2 + codexLoot);
   return lootBias({
     idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
     campaignStage,
@@ -435,8 +465,17 @@ export function towerProgress(save: SaveData): TowerProgress {
       if (p.fireRateMult) fireRateBonus *= p.fireRateMult;
       if (p.infectionSpreadMult) infectionSpreadMult *= p.infectionSpreadMult;
     }
+    // Adaptation (docs/PROGRESSION-REDESIGN §2) — the player's SPENT antigen-point picks fold into
+    // the SAME kit. Empty picks ⇒ a neutral effect ⇒ byte-identical to before (golden-safe).
+    const adapt = adaptationEffect(save.adaptation?.[`tower:${k}`] ?? []);
+    kit.projectileMutators.push(...adapt.projectileMutators);
+    kit.extraProjectiles += adapt.extraProjectiles;
+    kit.splashMult *= adapt.splashMult;
+    rangeMult *= adapt.rangeMult;
+    fireRateBonus *= adapt.fireRateMult;
+    infectionSpreadMult *= adapt.infectionSpreadMult;
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl),
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * adapt.damageMult,
       fireRateMult: (1 + STAR.fireRatePerStar * stars) * fireRateBonus,
       rangeMult: rangeMult !== 1 ? rangeMult : undefined,
       infectionSpreadMult: infectionSpreadMult !== 1 ? infectionSpreadMult : undefined,
@@ -477,12 +516,41 @@ export function heroProgress(save: SaveData): HeroProgress {
     const stars = save.heroStars[k] ?? 0;
     const mLvl = masteryLevel(save.heroMasteryXp[k] ?? 0);
     const equip = heroEquipment(save, k);
+    const adapt = adaptationEffect(save.adaptation?.[`hero:${k}`] ?? []); // golden-safe: empty ⇒ ×1
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult,
-      cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult,
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult * adapt.heroDamageMult,
+      cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult * adapt.heroCooldownMult,
     };
   }
   return out;
+}
+
+// ── Adaptation (docs/PROGRESSION-REDESIGN §2) — mastery-as-a-decision read-model + spends ──────────
+
+export interface AdaptView {
+  subject: 'tower' | 'hero';
+  unit: string;
+  pointsEarned: number; // one Antigen Point per mastery Rank
+  pointsSpent: number;
+  pointsAvailable: number;
+  chosen: string[];
+  nodes: { node: AdaptNode; chosen: boolean; canPick: boolean }[];
+}
+
+/** The Adaptation tree for a unit: its nodes (chosen / pickable) + the spendable point budget. */
+export function adaptationView(save: SaveData, subject: 'tower' | 'hero', unit: string): AdaptView {
+  const key = `${subject}:${unit}`;
+  const chosen = save.adaptation?.[key] ?? [];
+  const level = subject === 'tower'
+    ? masteryLevel(save.towerMasteryXp[unit as TowerKind] ?? 0)
+    : masteryLevel(save.heroMasteryXp[unit as HeroKind] ?? 0);
+  const pointsEarned = adaptPointsEarned(level);
+  return {
+    subject, unit, pointsEarned, pointsSpent: chosen.length,
+    pointsAvailable: Math.max(0, pointsEarned - chosen.length),
+    chosen: [...chosen],
+    nodes: adaptNodesFor(subject).map((node) => ({ node, chosen: chosen.includes(node.id), canPick: canPickAdapt(node.id, chosen) })),
+  };
 }
 
 export interface RunResult {
@@ -723,6 +791,7 @@ export const meta = {
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
+    const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save))); // codex economy bonuses (neutral on a fresh save)
     const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
     // Difficulty ECONOMY scalars (docs/DIFFICULTY.md). standard ⇒ identity (golden-safe). Campaign
     // already folds difficulty.rewardMult into result.rewardMult, so the currency reward scalar is
@@ -749,8 +818,10 @@ export const meta = {
     const masteryMult = result.endless ? MODE_REWARDS.mastery.endless : isCampaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
-      ? CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
-        (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)
+      ? Math.round(
+          (CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
+            (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)) * cb.campaignRewardMult, // Biomes codex: +Campaign Rewards
+        )
       : 0;
 
     // 1. global shards + run records
@@ -764,7 +835,7 @@ export const meta = {
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult * cb.towerXpMult, // Towers codex: +Tower XP
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
@@ -778,7 +849,7 @@ export const meta = {
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult * cb.heroXpMult, // Heroes codex: +Hero XP
       );
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
@@ -792,7 +863,7 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult * cb.bossLootMult); // Bosses codex: +Boss Loot
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
@@ -999,13 +1070,26 @@ export const meta = {
     // scaled to the account Power Score (early Common → late Legendary/Exotic; no run-depth spikes).
     // Folded into the reveal (chest.items/equipment) + inventory here so BOTH container kinds award
     // gear identically — equipment no longer drops per-roll from the chest pools.
+    const power = composePower(accountPowerParts(save)).score;
     if (Math.random() < EQUIP_DROP_CHANCE) {
-      const item = rollItemForPower(Math.random, composePower(accountPowerParts(save)).score);
+      const item = rollItemForPower(Math.random, power);
       chest.items.push({ type: 'equipment', rarity: item.rarity, item });
       chest.equipment.push(item);
     }
+    // Secondary crafting-material drop (docs/EQUIPMENT.md §Materials): low chance, small stacks, a
+    // pity-protected RARE catalyst — scaled by Power + campaign progress + this container's rarity.
+    // Applied to BOTH container kinds so every Vault container can feed crafting (equipment stays
+    // primary). Folded into the reveal + save; matPity persists the guarantee across containers.
+    const { drop, pity } = rollMaterialDrop({
+      containerRarity: chest.topRarity, power, campaignStage: highestCampaignStage(save), pity: save.matPity, rng: Math.random,
+    });
+    if (drop) {
+      chest.items.push({ type: 'material', rarity: drop.rarity, mat: drop.mat, amount: drop.amount });
+      chest.materials[drop.mat] += drop.amount;
+      mats = { ...mats, [drop.mat]: mats[drop.mat] + drop.amount };
+    }
     persist({
-      ...save, towerShards, heroShards, mats,
+      ...save, towerShards, heroShards, mats, matPity: pity,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
     });
@@ -1038,6 +1122,31 @@ export const meta = {
     const save = store.get();
     const forKind = { ...(save.towerForks[kind] ?? {}), [String(star)]: optionId };
     persist({ ...save, towerForks: { ...save.towerForks, [kind]: forKind } });
+  },
+
+  /** The Adaptation tree for a unit (nodes + spendable Antigen Points). */
+  adaptation(subject: 'tower' | 'hero', unit: string): AdaptView {
+    return adaptationView(store.get(), subject, unit);
+  },
+  /** Spend one Antigen Point on an adaptation node — if a point is free AND the node is pickable
+   *  (tier unlocked, not already owned). Takes effect on the next run. Returns success. */
+  spendAdaptation(subject: 'tower' | 'hero', unit: string, nodeId: string): boolean {
+    const save = store.get();
+    const key = `${subject}:${unit}`;
+    const chosen = save.adaptation?.[key] ?? [];
+    const view = adaptationView(save, subject, unit);
+    if (view.pointsAvailable <= 0 || !canPickAdapt(nodeId, chosen)) return false;
+    persist({ ...save, adaptation: { ...save.adaptation, [key]: [...chosen, nodeId] } });
+    return true;
+  },
+  /** Refund every adaptation pick for a unit (respec is free, out of combat). */
+  respecAdaptation(subject: 'tower' | 'hero', unit: string): void {
+    const save = store.get();
+    const key = `${subject}:${unit}`;
+    if (!save.adaptation?.[key]?.length) return;
+    const next = { ...save.adaptation };
+    delete next[key];
+    persist({ ...save, adaptation: next });
   },
 
   /** Per-hero run multipliers from the current save (passed into a new Game). */
@@ -1235,6 +1344,21 @@ export const meta = {
     return unlockedRewards(this.collection());
   },
 
+  /** Codex category rank promotions since the last poll, plus the account Power gained from the
+   *  collection growing in between (drives the Codex rank-up celebration + Power popup). SESSION-
+   *  diffed: each promotion fires once per session. Advances the baseline on every call. */
+  pollCollectionRankUps(): { rankUps: CollectionRankUp[]; powerGain: number } {
+    const v = collectionView(collectionContextOf(store.get()));
+    const { rankUps, snapshot } = collectionRankUps(v, lastCollectionRanks);
+    // Power gained since the last poll attributable to the collection part rising (holds other
+    // contributors at their current value): score × (1 − oldCollMult / newCollMult).
+    const score = composePower(accountPowerParts(store.get())).score;
+    const powerGain = v.power > 0 ? Math.max(0, Math.round(score * (1 - lastCollectionMult / v.power))) : 0;
+    lastCollectionRanks = snapshot;
+    lastCollectionMult = v.power;
+    return { rankUps, powerGain };
+  },
+
   /** Run-start effects from unlocked completion BONUSES — folded into a run like gear.
    * Empty for a fresh save, so a new player's run is byte-identical (golden-safe). */
   collectionRunEffects(): CardEffect[] {
@@ -1300,6 +1424,7 @@ export const meta = {
     const cost = reforgeCost(op, item);
     if (!canAfford(save.mats, cost)) return false;
     let next: OwnedItem | null;
+    const label = { enhance: 'Enhanced', reroll: 'Rerolled tiers', reforge: 'Reforged affixes', upgrade: 'Raised rarity' }[op as 'enhance' | 'reroll' | 'reforge' | 'upgrade'];
     switch (op) {
       case 'enhance': next = enhance(Math.random, item); break;
       case 'reroll': next = reroll(Math.random, item); break;
@@ -1308,6 +1433,7 @@ export const meta = {
       default: return false; // lock / randomize / salvage have dedicated methods
     }
     if (!next || next === item) return false; // invalid or no-op → don't charge
+    next = { ...next, history: [...(item.history ?? []), label] }; // mod log for the Details screen
     const inventory = inv.slice();
     inventory[idx] = next;
     persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });
@@ -1338,29 +1464,58 @@ export const meta = {
     persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
-  /** Dismantle an item into crafting feedstock (auto-unequips it). */
+  /** Whether an item is worn by any hero right now (equipped items must be UNEQUIPPED before salvage). */
+  isItemEquipped(uid: string): boolean {
+    const loadouts = store.get().equipment.loadouts;
+    for (const k of Object.keys(loadouts) as HeroKind[]) {
+      const l = loadouts[k]; if (l && EQUIP_SLOTS.some((s) => l[s] === uid)) return true;
+    }
+    return false;
+  },
+
+  /** Dismantle an item into crafting feedstock. Guarded (docs/EQUIPMENT.md §safeguards): favorites and
+   *  locked items are protected, and an EQUIPPED item must be unequipped first — the UI never offers
+   *  salvage in those states, so a `false` here is the defensive backstop. The item + its material
+   *  refund are stashed in `lastSalvage` so the dismantle is UNDOABLE until the next salvage. */
   salvageItem(uid: string): boolean {
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
-    if (!item || item.locked) return false; // locked items are protected from salvage
-    const gain = salvageValue(item);
-    // Unequip the salvaged item from whichever hero wears it (per-hero loadouts).
-    const loadouts: Partial<Record<HeroKind, Loadout>> = {};
-    for (const k of Object.keys(save.equipment.loadouts) as HeroKind[]) {
-      const l = { ...save.equipment.loadouts[k]! };
-      for (const s of EQUIP_SLOTS) if (l[s] === uid) l[s] = null;
-      loadouts[k] = l;
-    }
+    if (!item || item.locked || item.favorite || this.isItemEquipped(uid)) return false;
+    const refund = salvageValue(item);
     persist({
       ...save,
-      equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadouts },
-      mats: {
-        mutagen: save.mats.mutagen + gain.mutagen,
-        scrap: save.mats.scrap + gain.scrap,
-        catalyst: save.mats.catalyst + gain.catalyst,
-      },
+      equipment: { ...save.equipment, inventory: save.equipment.inventory.filter((i) => i.uid !== uid) },
+      mats: { mutagen: save.mats.mutagen + refund.mutagen, scrap: save.mats.scrap + refund.scrap, catalyst: save.mats.catalyst + refund.catalyst },
+      lastSalvage: { item, refund }, // stash for Undo
     });
     return true;
+  },
+
+  /** Undo the most recent salvage: restore the item and reclaim the materials it refunded (floored at
+   *  0). One-deep — the buffer holds only the last salvage; clears after undoing. Returns success. */
+  undoSalvage(): boolean {
+    const save = store.get();
+    const ls = save.lastSalvage;
+    if (!ls) return false;
+    persist({
+      ...save,
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ls.item] },
+      mats: {
+        mutagen: Math.max(0, save.mats.mutagen - ls.refund.mutagen),
+        scrap: Math.max(0, save.mats.scrap - ls.refund.scrap),
+        catalyst: Math.max(0, save.mats.catalyst - ls.refund.catalyst),
+      },
+      lastSalvage: null,
+    });
+    return true;
+  },
+
+  /** Mark an item as inspected (opening its Details) — clears its "NEW" card badge. Idempotent. */
+  markItemSeen(uid: string): void {
+    const save = store.get();
+    if (save.equipment.inventory.find((i) => i.uid === uid)?.seen) return; // already seen → no write
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? { ...i, seen: true } : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
   debugGrantGear(n = 3): void {

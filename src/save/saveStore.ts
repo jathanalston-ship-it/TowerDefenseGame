@@ -17,6 +17,7 @@ import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
 import { defaultCalib } from '../core/predict';
 import type { PredictCalib } from '../core/predict';
+import { adaptNode } from '../core/adaptation';
 
 export interface SaveData {
   shards: number;
@@ -45,6 +46,10 @@ export interface SaveData {
   //    Selection/fielding is gated to this set. Pre-v14 saves grandfather in every hero the player
   //    already engaged with (stars / usage / loadout / selected) so no access is stripped. ──
   heroUnlocked: HeroKind[];
+  // ── Adaptation (schema v15, docs/PROGRESSION-REDESIGN §2). Chosen adaptation-node ids per unit,
+  //    keyed `tower:<kind>` / `hero:<kind>`. Antigen Points (one per mastery Rank) are spent here.
+  //    Empty for a fresh unit ⇒ zero run effects ⇒ golden-safe. Additive; pre-v15 saves default {}. ──
+  adaptation: Record<string, string[]>;
   // ── Per-hero lifetime ownership stats (schema v9) — drive the Hero Lab detail page ──
   heroKills: Record<HeroKind, number>; // lifetime kills BY each hero (accrued for the fielded hero)
   heroFavEquip: Record<HeroKind, Record<string, number>>; // per-hero equip-usage counts (defId → runs); argmax = favorite
@@ -56,6 +61,10 @@ export interface SaveData {
   // item ⇒ it lives in at most one hero's loadout. Absent hero key ⇒ that hero has no gear equipped.
   equipment: { inventory: OwnedItem[]; loadouts: Partial<Record<HeroKind, Loadout>> };
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
+  matPity: number; // containers opened since the last RARE material (catalyst) — the pity counter (v16)
+  // ── Undo-Salvage buffer (v17): the single most-recently salvaged item + the materials it refunded,
+  //    so an accidental dismantle is recoverable until the next salvage (or a run) overwrites it. ──
+  lastSalvage: { item: OwnedItem; refund: { mutagen: number; scrap: number; catalyst: number } } | null;
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
   // ── Pending bio-containers (schema v8) — completed-but-UNOPENED containers (loot boxes +
@@ -98,7 +107,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 14;
+export const CURRENT_VERSION = 17;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -169,6 +178,17 @@ function sanitizeHeroUnlocked(data: SaveData): HeroKind[] {
   }
   return HERO_ORDER.filter((k) => set.has(k));
 }
+/** Keep only real, de-duplicated adaptation-node ids per unit key (drops junk from a tampered save). */
+function sanitizeAdaptation(raw: unknown): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  if (typeof raw !== 'object' || raw === null) return out;
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (!Array.isArray(val)) continue;
+    const ids = Array.from(new Set(val.filter((x): x is string => typeof x === 'string' && !!adaptNode(x))));
+    if (ids.length) out[key] = ids;
+  }
+  return out;
+}
 function zeroByEnemy(): Record<EnemyKind, number> {
   const r = {} as Record<EnemyKind, number>;
   for (const k of ENEMY_KINDS) r[k] = 0;
@@ -211,12 +231,15 @@ export function defaultSave(): SaveData {
     selectedHero: 'ravager',
     heroLoadout: ['ravager'],
     heroUnlocked: starterHeroes(),
+    adaptation: {},
     heroKills: zeroByHeroKind(),
     heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
     achievements: [],
     equipment: { inventory: [], loadouts: {} },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
+    matPity: 0,
+    lastSalvage: null,
     lootQueue: defaultLootQueue(),
     pendingContainers: [],
     unlockedTitles: [],
@@ -260,6 +283,13 @@ function sanitizeHelp(raw: unknown): SaveData['help'] {
   const seen = Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [];
   return { seen, primed: o.primed === true, hudTour: o.hudTour === true };
 }
+/** Coerce the Undo-Salvage buffer: needs a plausible item (uid + defId) and a numeric refund, else null. */
+function sanitizeLastSalvage(raw: unknown): SaveData['lastSalvage'] {
+  const o = raw as { item?: { uid?: unknown; defId?: unknown }; refund?: Record<string, unknown> } | null;
+  if (!o || typeof o !== 'object' || !o.item || typeof o.item.uid !== 'string' || typeof o.item.defId !== 'string') return null;
+  const n = (v: unknown): number => Math.max(0, Math.floor(Number(v) || 0));
+  return { item: o.item as OwnedItem, refund: { mutagen: n(o.refund?.mutagen), scrap: n(o.refund?.scrap), catalyst: n(o.refund?.catalyst) } };
+}
 
 /**
  * Merge a validated (possibly older / partial) save onto a complete default —
@@ -295,6 +325,8 @@ function withDefaults(data: SaveData): SaveData {
     heroLoadout: sanitizeLoadout(data.heroLoadout, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     // v13→v14: Hero Collection ownership. Pre-v14 saves grandfather in used heroes (no access lost).
     heroUnlocked: sanitizeHeroUnlocked(data),
+    // v14→v15: Adaptation node picks (empty for pre-v15 ⇒ golden-safe).
+    adaptation: sanitizeAdaptation((data as { adaptation?: unknown }).adaptation),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {
@@ -305,6 +337,10 @@ function withDefaults(data: SaveData): SaveData {
       loadouts: sanitizeLoadouts(data.equipment, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     },
     mats: { ...d.mats, ...data.mats },
+    // v15→v16: the crafting-material pity counter. Absent on older saves ⇒ 0 (fresh pity).
+    matPity: Math.max(0, Math.floor(Number((data as { matPity?: unknown }).matPity) || 0)),
+    // v16→v17: the Undo-Salvage buffer. Absent/malformed ⇒ null (nothing to undo).
+    lastSalvage: sanitizeLastSalvage((data as { lastSalvage?: unknown }).lastSalvage),
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
     // an existing queue is validated (unknown rarities dropped, pity/depth rebuilt).
     lootQueue: sanitizeLootQueue(data.lootQueue),

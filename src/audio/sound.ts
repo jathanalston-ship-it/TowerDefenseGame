@@ -194,6 +194,11 @@ function startDrone(): void {
 function sBiome(): void {
   tone(196, 0.5, 'sine', 0.12, 523); tone(294, 0.55, 'triangle', 0.07, 784); noise(0.4, 0.05, 600, 3200);
 }
+// Collection rank promotion (COLLECTION.md) — a triumphant ascending fanfare + shimmer.
+function sRankUp(): void {
+  tone(523, 0.12, 'triangle', 0.12); tone(659, 0.12, 'triangle', 0.12);
+  tone(784, 0.16, 'sine', 0.14); tone(1047, 0.42, 'sine', 0.16); noise(0.28, 0.05, 6500);
+}
 
 export const audio = {
   resume(): void {
@@ -241,6 +246,7 @@ export const audio = {
         case 'shard_tower': sShardTower(); break;
         case 'shard_hero': sShardHero(); break;
         case 'achieve': sAchieve(); break;
+        case 'rankup': sRankUp(); break;
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;
         case 'dissolve': sDissolve(); break;

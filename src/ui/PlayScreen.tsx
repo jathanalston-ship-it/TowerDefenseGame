@@ -15,6 +15,7 @@ import { difficultyPref } from '../state/prefs';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
 import { formatPower } from '../core/power';
 import { CAMPAIGN_REWARDS } from '../core/config';
+import { FEATURES } from '../core/features';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
 import { RewardPreview } from './RewardPreview';
@@ -207,20 +208,26 @@ export function PlayScreen({
             <span className="mc-sec-d">The authored 12-wave defense</span>
           </span>
         </button>
-        <button className="mc-sec is-soon" disabled>
-          <span className="mc-sec-i" aria-hidden>✦</span>
-          <span className="mc-sec-body">
-            <span className="mc-sec-t">Custom Challenge</span>
-            <span className="mc-sec-d">Soon</span>
-          </span>
-        </button>
-        <button className="mc-sec is-soon" disabled>
-          <span className="mc-sec-i" aria-hidden>◎</span>
-          <span className="mc-sec-body">
-            <span className="mc-sec-t">Training</span>
-            <span className="mc-sec-d">Soon</span>
-          </span>
-        </button>
+        {/* Unbuilt modes are hidden behind FEATURES (docs/EA-DESIGN-AUDIT P1 #15) — no dead "Soon"
+            entrances. Flip the flag in the commit that ships the mode. */}
+        {FEATURES.customChallenge && (
+          <button className="mc-sec is-soon" disabled>
+            <span className="mc-sec-i" aria-hidden>✦</span>
+            <span className="mc-sec-body">
+              <span className="mc-sec-t">Custom Challenge</span>
+              <span className="mc-sec-d">Soon</span>
+            </span>
+          </button>
+        )}
+        {FEATURES.trainingMode && (
+          <button className="mc-sec is-soon" disabled>
+            <span className="mc-sec-i" aria-hidden>◎</span>
+            <span className="mc-sec-body">
+              <span className="mc-sec-t">Training</span>
+              <span className="mc-sec-d">Soon</span>
+            </span>
+          </button>
+        )}
       </section>
 
       {/* ── Living Progress dashboard — momentum across every system ── */}

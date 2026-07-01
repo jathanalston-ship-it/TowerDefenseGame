@@ -6,7 +6,9 @@ of the battlefield. Two heroes with the same base and different gear should play
 different characters. Sharpens `EQUIPMENT.md §9–13` (already "alter attack / survivability
 / rules") and the philosophy in `PROGRESSION-PHILOSOPHY.md §2.5`.
 
-> Document the philosophy before implementation. No gameplay code yet.
+> The philosophy behind the equipment system, which is now **BUILT** (~180 items, behavioral
+> affixes, sets, Reforge, the Details screen + salvage safeguards). See `EQUIPMENT.md` and
+> `GAME-STATE.md` for the shipped state; this doc is the *why*.
 
 ---
 

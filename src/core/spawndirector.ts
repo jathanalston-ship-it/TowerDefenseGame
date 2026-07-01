@@ -10,7 +10,7 @@
 // Gameplay is preserved EXACTLY: the scheduled queue is byte-identical to the former inline
 // spawn code (same arithmetic, same sort), and the difficulty spawn-rate knob defaults to ×1.
 
-import { SPAWN } from './config';
+import { SPAWN, spawnCount } from './config';
 import type { WaveDef } from './config';
 import type { DirectorWave } from './director';
 import type { EnemyKind } from './types';
@@ -49,7 +49,8 @@ export class SpawnDirector {
     const out: QueuedSpawn[] = [];
     for (const group of def) {
       const spacing = group.spacing / rateMult;
-      for (let i = 0; i < group.count; i++) {
+      const n = spawnCount(group.count); // integer reality — a fractional budget count can't spawn a fraction
+      for (let i = 0; i < n; i++) {
         out.push({ kind: group.kind, at: now + group.delay + i * spacing, hpMult, bountyMult, elite: group.elite });
       }
     }
@@ -68,7 +69,8 @@ export class SpawnDirector {
     let t0 = now + SPAWN.endlessStartOffset;
     const intra = SPAWN.endlessIntraGroup / rateMult;
     for (const g of wave.groups) {
-      for (let i = 0; i < g.count; i++) {
+      const n = spawnCount(g.count); // integer reality (director counts are already whole; defensive + uniform)
+      for (let i = 0; i < n; i++) {
         out.push({ kind: g.kind, at: t0 + i * intra, hpMult, bountyMult, elite: g.elite });
       }
       t0 += SPAWN.endlessInterGroup;

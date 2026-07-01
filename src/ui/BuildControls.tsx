@@ -57,17 +57,21 @@ export function BuildControls({
         </button>
         <button
           type="button"
-          className={`auto-btn ${hud.autoStart ? 'is-on' : ''}`}
+          className={`auto-btn ${hud.autoStart ? (hud.autoStartWaiting ? 'is-waiting' : 'is-on') : ''}`}
           aria-pressed={hud.autoStart}
           tabIndex={visible ? 0 : -1}
-          title="Auto-start the next wave after a short countdown"
+          title={
+            hud.autoStartWaiting
+              ? 'Auto Wave is armed but waiting — it starts once you place your first tower or start Wave 1'
+              : 'Auto-start the next wave after a short countdown'
+          }
           onClick={() => {
             game.setAutoStart(!game.autoStart);
             try { localStorage.setItem('assimilate.autostart', game.autoStart ? '1' : '0'); } catch { /* storage unavailable */ }
             refresh();
           }}
         >
-          ⟳ Auto Wave {hud.autoStart ? (hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}
+          ⟳ Auto Wave {hud.autoStart ? (hud.autoStartWaiting ? 'Waiting' : hud.autoStartIn > 0 ? `${Math.ceil(hud.autoStartIn)}s` : 'ON') : 'OFF'}
         </button>
         <button
           type="button"
@@ -84,6 +88,11 @@ export function BuildControls({
           ◆ Auto Gene {autoGene ? 'ON' : 'OFF'}
         </button>
       </div>
+      {hud.autoStartWaiting && (
+        <div className="auto-wait-note" role="status">
+          Waiting for first placement…
+        </div>
+      )}
     </div>
   );
 }

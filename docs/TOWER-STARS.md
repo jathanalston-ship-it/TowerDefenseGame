@@ -6,7 +6,8 @@ Stars stop being a stat dial and become the tower's **evolution tree**: every st
 `PROGRESSION.md §2.2` ("stars are mostly *behavior*, only lightly *stats*") and the
 philosophy in `PROGRESSION-PHILOSOPHY.md §2.2`.
 
-> Design + architecture only. No gameplay code yet.
+> **Status: BUILT** (`core/stars.ts` + the star ceremony in `ui/TowerLab`/`StarCeremony`; runtime
+> numbers in `core/config.ts`). This doc is the design intent. See `GAME-STATE.md`.
 
 ---
 

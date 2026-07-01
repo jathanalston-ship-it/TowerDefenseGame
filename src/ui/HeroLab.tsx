@@ -12,6 +12,7 @@ import { heroIdentity } from '../core/heroIdentity';
 import type { HeroKind } from '../core/types';
 import { masteryRank } from '../core/mastery';
 import { HeroPortrait } from './components/HeroPortrait';
+import { AdaptationTree } from './components/AdaptationTree';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
@@ -286,6 +287,11 @@ export function HeroLab(): JSX.Element {
             ) : (
               <p className="hsec-desc">Mastery rises forever as this hero fights — ranks and perks unlock with use.</p>
             )}
+          </Section>
+
+          {/* Adaptation — spend Antigen Points earned from Mastery Ranks */}
+          <Section title="Adaptation" accent={c}>
+            <AdaptationTree subject="hero" unit={d.def.kind} color={c} />
           </Section>
 
           {/* Current Loadout */}
