@@ -11,12 +11,23 @@ export type CheckpointTrigger =
   | { kind: 'event'; event: string }
   | { kind: 'timed'; ms: number };
 
-/** One teaching step. Presentation cues (highlight target, arrow, callout text) are attached by the
- * lesson author later; the framework needs only the id, an objective title, and the advance trigger. */
+/** Presentation cues for a checkpoint — ALL optional, attached by the lesson author later. The
+ * overlay renders whichever are present (defaulting to a centered callout of the title), so the
+ * reusable primitives are fully wired even before any lesson content exists. */
+export interface CheckpointCue {
+  spotlight?: string; // CSS selector to highlight (dims the rest + pulses an outline)
+  arrow?: { target: string; from?: 'top' | 'bottom' | 'left' | 'right' };
+  callout?: { text: string; target?: string; side?: 'top' | 'bottom' | 'left' | 'right' };
+  focus?: string; // camera-focus target selector (scrolled into view when the checkpoint activates)
+}
+
+/** One teaching step. `cue` (presentation) and `event` triggers are attached by the lesson author
+ * later; the framework needs only the id, an objective title, and the advance trigger. */
 export interface TutorialCheckpoint {
   id: string;
   title: string; // shown in the objective tracker
   advance: CheckpointTrigger;
+  cue?: CheckpointCue;
 }
 
 export interface TutorialDef {

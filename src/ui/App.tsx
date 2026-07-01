@@ -16,11 +16,14 @@ import type { StageConfig } from '../core/campaign';
 import { EvolutionUnlock } from './EvolutionUnlock';
 import type { EvolutionUnlockData } from './EvolutionUnlock';
 import { difficultyPref } from '../state/prefs';
+import { tutorial } from '../state/tutorial';
+import { TutorialRunner } from './TutorialRunner';
 
-type Screen = 'menu' | 'playing' | 'results';
+type Screen = 'menu' | 'playing' | 'results' | 'tutorial';
 
 export function App(): JSX.Element {
-  const [screen, setScreen] = useState<Screen>('menu');
+  // First launch / after an Account Reset → open straight into the Combat Tutorial (its own mode).
+  const [screen, setScreen] = useState<Screen>(() => (meta.shouldAutoTutorial() ? 'tutorial' : 'menu'));
   const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
   // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
@@ -43,6 +46,9 @@ export function App(): JSX.Element {
   useEffect(() => {
     try { audio.setEnabled(localStorage.getItem('audioOn') !== 'false'); } catch { /* private mode */ }
   }, []);
+
+  // Boot the tutorial session if this is a first launch (screen was auto-set to 'tutorial').
+  useEffect(() => { if (meta.shouldAutoTutorial()) tutorial.start('combat'); }, []);
 
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
@@ -98,6 +104,8 @@ export function App(): JSX.Element {
   const toMenu = useCallback(() => setScreen('menu'), []);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
+  // Launch (or replay) the Combat Tutorial from Settings — its own mode.
+  const launchTutorial = useCallback(() => { tutorial.start('combat'); setScreen('tutorial'); }, []);
 
   const debugOn = isDebugEnabled();
 
@@ -110,6 +118,7 @@ export function App(): JSX.Element {
           onStartCampaign={startCampaign}
           last={last}
           onSeenLast={clearLast}
+          onReplayTutorial={launchTutorial}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />
@@ -134,6 +143,7 @@ export function App(): JSX.Element {
       {screen === 'results' && last && (
         <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
       )}
+      {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
       {/* Evolution Unlock sequence — dramatic, over the Results screen; dismiss → continue to Results. */}
       {screen === 'results' && evoUnlock && (
         <EvolutionUnlock unlock={evoUnlock} onClose={() => setEvoUnlock(null)} />

@@ -1,0 +1,101 @@
+// Reusable tutorial presentation primitives (docs/TUTORIAL.md §4). Each is generic — it takes a
+// measured target rect (or none) + config — and is styled in index.css (.tut-*). Reduced-motion is
+// handled in CSS. These are the building blocks any future tutorial composes; none know anything
+// about combat or a specific lesson.
+
+import { useEffect, type CSSProperties, type ReactNode } from 'react';
+
+type Side = 'top' | 'bottom' | 'left' | 'right';
+
+/** Spotlight — dim ALL UI except the target rect (four dim panels around a hole), with a pulsing
+ * outline on the target. No rect ⇒ a full dim scrim. The hole passes clicks through to the target;
+ * the panels swallow clicks elsewhere (focuses interaction on the highlighted element). */
+export function Spotlight({ rect, padding = 8 }: { rect: DOMRect | null; padding?: number }): JSX.Element {
+  if (!rect) return <div className="tut-dim tut-dim-full" />;
+  const x = Math.max(0, rect.left - padding);
+  const y = Math.max(0, rect.top - padding);
+  const w = rect.width + padding * 2;
+  const h = rect.height + padding * 2;
+  return (
+    <>
+      <div className="tut-dim" style={{ left: 0, top: 0, width: '100%', height: y }} />
+      <div className="tut-dim" style={{ left: 0, top: y + h, width: '100%', bottom: 0 }} />
+      <div className="tut-dim" style={{ left: 0, top: y, width: x, height: h }} />
+      <div className="tut-dim" style={{ left: x + w, top: y, right: 0, height: h }} />
+      <div className="tut-ring" style={{ left: x, top: y, width: w, height: h }} />
+    </>
+  );
+}
+
+/** Animated arrow pointing at the target from `from` side. */
+export function TutorialArrow({ rect, from = 'top' }: { rect: DOMRect | null; from?: Side }): JSX.Element | null {
+  if (!rect) return null;
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const gap = 44;
+  const style: CSSProperties =
+    from === 'top' ? { left: cx, top: rect.top - gap } :
+    from === 'bottom' ? { left: cx, top: rect.bottom + 8 } :
+    from === 'left' ? { left: rect.left - gap, top: cy } :
+    { left: rect.right + 8, top: cy };
+  return <div className={`tut-arrow from-${from}`} style={style} aria-hidden>➤</div>;
+}
+
+/** Tooltip callout bubble anchored to a target side, or centered when there's no target. */
+export function Callout({
+  rect,
+  side = 'bottom',
+  children,
+}: {
+  rect: DOMRect | null;
+  side?: Side;
+  children: ReactNode;
+}): JSX.Element {
+  let style: CSSProperties;
+  let cls: string;
+  if (!rect) {
+    style = { left: '50%', top: '46%', transform: 'translate(-50%, -50%)' };
+    cls = 'side-center';
+  } else {
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const gap = 14;
+    style =
+      side === 'top' ? { left: cx, top: rect.top - gap, transform: 'translate(-50%, -100%)' } :
+      side === 'bottom' ? { left: cx, top: rect.bottom + gap, transform: 'translate(-50%, 0)' } :
+      side === 'left' ? { left: rect.left - gap, top: cy, transform: 'translate(-100%, -50%)' } :
+      { left: rect.right + gap, top: cy, transform: 'translate(0, -50%)' };
+    cls = `side-${side}`;
+  }
+  return <div className={`tut-callout ${cls}`} style={style} role="dialog">{children}</div>;
+}
+
+/** The temporary objective tracker — "Step X of N" + the current objective title. */
+export function ObjectiveTracker({ title, step, total }: { title: string; step: number; total: number }): JSX.Element {
+  return (
+    <div className="tut-objective">
+      <span className="tut-obj-step">Step {step} of {total}</span>
+      <span className="tut-obj-title">{title}</span>
+    </div>
+  );
+}
+
+/** The continue-prompt affordance. */
+export function ContinuePrompt({ label = 'Continue', onContinue }: { label?: string; onContinue: () => void }): JSX.Element {
+  return (
+    <button className="tut-continue" onClick={onContinue}>
+      {label} <span aria-hidden>▸</span>
+    </button>
+  );
+}
+
+/** Camera focus — scrolls a target selector into view when it (re)activates. Behavioral, renders
+ * nothing. (In-canvas camera pan is a lesson-time hook layered on the same selector.) */
+export function CameraFocus({ target }: { target: string | null | undefined }): null {
+  useEffect(() => {
+    if (!target) return;
+    const el = document.querySelector(target);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+  }, [target]);
+  return null;
+}

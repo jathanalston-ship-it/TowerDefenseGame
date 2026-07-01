@@ -75,7 +75,7 @@ function audioPref(): boolean {
 }
 
 /** Settings screen — save data management, the destructive reset, and an audio toggle. */
-function SettingsScreen(): JSX.Element {
+function SettingsScreen({ onReplayTutorial }: { onReplayTutorial: () => void }): JSX.Element {
   const [sound, setSound] = useState(audioPref());
   const [autoGene, setAutoGene] = useState(autoGenePref());
   const toggleSound = (): void => {
@@ -112,11 +112,16 @@ function SettingsScreen(): JSX.Element {
           </label>
         </div>
         <div className="panel">
+          <div className="panel-title">Help</div>
+          <div className="panel-sub">Re-learn the basics any time.</div>
+          <button className="set-switch" onClick={onReplayTutorial}>▶ Replay Combat Tutorial</button>
+        </div>
+        <div className="panel">
           <div className="panel-title">Danger Zone</div>
           <div className="panel-sub">Permanently erase all progress on this device.</div>
           <button
             className="set-danger"
-            onClick={() => { if (confirm('Erase all permanent progress?')) meta.reset(); }}
+            onClick={() => { if (confirm('Erase all permanent progress?')) { meta.reset(); onReplayTutorial(); } }}
           >
             Reset Save
           </button>
@@ -133,6 +138,7 @@ export function Hub({
   onStartCampaign,
   last,
   onSeenLast,
+  onReplayTutorial,
   difficultyRef,
   doctrineRef,
 }: {
@@ -141,6 +147,7 @@ export function Hub({
   onStartCampaign: (stage: number) => void;
   last: { result: RunResult; outcome: RunOutcome } | null;
   onSeenLast: () => void;
+  onReplayTutorial: () => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -246,7 +253,7 @@ export function Hub({
               </div>
             </div>
           )}
-          {nav === 'settings' && <SettingsScreen />}
+          {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} />}
         </section>
       </div>
     </div>
