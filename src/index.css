@@ -1947,6 +1947,17 @@ kbd {
   color: var(--muted);
   font-style: italic;
 }
+/* Reward-eligibility warning — a run that didn't qualify for its Stage Cache says why. */
+.vault-blocked {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #f0be5a;
+  background: rgba(240, 190, 90, 0.1);
+  border: 1px solid rgba(240, 190, 90, 0.32);
+  border-radius: 8px;
+}
 @keyframes ve-row-in {
   from { opacity: 0; transform: translateY(6px); }
 }

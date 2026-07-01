@@ -12,7 +12,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -610,6 +610,10 @@ export interface RunOutcome {
   // Campaign milestone unlocked a new HERO SLOT this run (HEROES.md) → the cinematic Hero Slot
   // Unlock sequence. Absent on a normal run. `slot` = the newly-opened slot (2 or 3).
   heroSlotUnlock?: { slot: number; name: string; blurb: string; stage: number; powerScore: number };
+  // Reward eligibility (docs/MODE-IDENTITY.md): present when the run FAILED to qualify for its reward
+  // cache — a lost Campaign stage, or an Infinite run shorter than qualifyWave (50% of the prior
+  // personal best). No cache/loot was banked; Results shows the reason. Absent on a qualifying run.
+  rewardBlocked?: { reason: 'campaign-loss' | 'infinite-short'; qualifyWave: number };
 }
 
 /** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
@@ -856,6 +860,22 @@ export const meta = {
       heroMastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(heroMasteryXp[k]) };
     }
 
+    // ── Reward eligibility (docs/MODE-IDENTITY.md). A run must EARN its bio-container cache. The old
+    //    behavior banked a guaranteed run cache regardless of outcome, so a Start-Run → instant-Quit
+    //    loop farmed caches. Campaign banks the cache ONLY on a win. Infinite must reach at least
+    //    INFINITE_REWARD_QUALIFY_FRAC of the PRIOR personal best (save.bestWave, pre-run); below that
+    //    it banks NO cache and NO loot ("exploit") containers — INCLUDING any banked LIVE this run —
+    //    and Results shows why. The neutral quick-run is unchanged (golden/meta-test safe). Centralized
+    //    here so every mode inherits it. ──
+    const infiniteQualifyWave = result.endless ? Math.floor(save.bestWave * INFINITE_REWARD_QUALIFY_FRAC) : 0;
+    const cacheEligible = result.endless ? result.wave >= infiniteQualifyWave : isCampaign ? result.won : true;
+    // Infinite also forfeits its loot when short; campaign/quick keep loot earned by progress (only the
+    // cache is gated for them). rewardBlocked drives the Results "why you got nothing" message.
+    const lootEligible = result.endless ? cacheEligible : true;
+    const rewardBlocked: RunOutcome['rewardBlocked'] = cacheEligible
+      ? undefined
+      : { reason: result.endless ? 'infinite-short' : 'campaign-loss', qualifyWave: infiniteQualifyWave };
+
     // 4. Loot: the run-end cache AND every loot-queue container this run completed bank
     //    UNOPENED into the Genetic Vault — nothing opens at run end. Rewards (tower/hero
     //    Shards, crafting materials, equipment) apply only when the player cracks each one
@@ -864,14 +884,22 @@ export const meta = {
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
     const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult * cb.bossLootMult); // Bosses codex: +Boss Loot
-    const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty));
+    const lootAdv = lootEligible
+      ? addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty))
+      : { state: save.lootQueue, awarded: [] as string[] }; // unqualified: no run-end loot, meter frozen (no RNG spent)
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
     // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
     // by the stage number so deeper first clears drop a richer cache.
     const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
-    const newlyBanked: PendingContainer[] = [...queueRemainder, runCache, ...stageCache];
-    const bankedThisRun: PendingContainer[] = [...runContainersBanked, ...newlyBanked];
+    const cacheBank: PendingContainer[] = cacheEligible ? [runCache, ...stageCache] : [];
+    const newlyBanked: PendingContainer[] = [...queueRemainder, ...cacheBank];
+    // An unqualified Infinite run rolls back the containers it banked LIVE this run (syncRunLoot) —
+    // the "no exploit rewards" rule. Reference-identity filter mirrors abandonRun. Other runs keep them.
+    const forfeitLive = !lootEligible && runContainersBanked.length > 0;
+    const forfeited = forfeitLive ? new Set<PendingContainer>(runContainersBanked) : null;
+    const pendingBase: PendingContainer[] = forfeited ? save.pendingContainers.filter((c) => !forfeited.has(c)) : save.pendingContainers;
+    const bankedThisRun: PendingContainer[] = [...(forfeitLive ? [] : runContainersBanked), ...newlyBanked];
 
     // 6. mastery identity: unlock any titles/lore crossed by this run's mastery level-ups.
     const newTitles: string[] = [];
@@ -946,7 +974,7 @@ export const meta = {
       heroFavEquip,
       stats: accumulateStats(save.stats, result.stats),
       lootQueue: lootAdv.state,
-      pendingContainers: [...save.pendingContainers, ...newlyBanked], // bank the run-end remainder + cache, unopened
+      pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
       unlockedTitles,
       unlockedLore,
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
@@ -969,6 +997,7 @@ export const meta = {
       achievements: unlockedAchievements,
       ...(evolutionUnlock ? { evolutionUnlock } : {}),
       ...(heroSlotUnlock ? { heroSlotUnlock } : {}),
+      ...(rewardBlocked ? { rewardBlocked } : {}),
     };
   },
 
