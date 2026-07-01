@@ -12,14 +12,24 @@ abilities target through.
 Tapping a living hero opens the **Hero Selection Panel** (bottom-left of the board), showing:
 
 - **Selection ring + highlight** — a pulsing warm-gold ring drawn under the hero (renderer).
+- **Portrait + identity** — the procedural `HeroPortrait` (class-tinted, mastery-rank flourish), name,
+  combat class, and **Level** (hero mastery level).
 - **Health** — HP / max, with a shield overlay when the hero has an absorb pool.
+- **Effective combat stats** — live **Damage**, **Attack Speed** (/s), **Move Speed** (px/s), and the
+  base **Ability Cooldown**. Damage/attack read `—` for a non-attacker (support/controller). These fold
+  gear + stars + mastery + biome, matching what combat actually uses.
 - **Cooldowns** — a gauge per relevant timer: the signature Ability (always), Attack (attackers),
   role Pulse (support/control).
 - **Movement state** — Holding / Moving / Attacking / Retreating / Downed.
 - **Current target** — the enemy the hero is engaging (by name), or —.
+- **Temporary buffs / debuffs** — chips derived from live state (Shielded, Bloodthirst, Killchain ×N).
+  The debuff section is wired for when hero statuses land.
+- **Permanent buffs** — Evolution stars, mastery multiplier folds (+DMG% / −Ability CD%), and earned
+  mastery perks; a clear "none yet" when the hero is fresh.
+- **Power Score contribution** — the hero's power rating (stars × mastery × gear), from `heroDetail`.
 - **Active equipment** — the hero's equipped Weapon / Armor / Relic (from the run's locked loadout).
-- **Buffs / debuffs** — chips derived from live state (Shielded, Bloodthirst, Killchain ×N). The
-  debuff section is wired for when hero statuses land.
+- **Ability readout** — the signature ability's name, cooldown, and **description**; the block is the
+  seam future abilities extend.
 
 ---
 
@@ -41,8 +51,10 @@ abilities can act on "the selected hero" directly.
 - **Render** — `RenderState.selectedHero: HeroKind | null` → `drawHero` draws the ring for the
   matching hero. Purely presentational.
 - **Snapshot** — `HudSnapshot.selectedHero: SelectedHeroView | null` (built by `Game.selectedHeroView()`):
-  hp/maxHp, shield, cooldowns (remaining/total), state, target name, buffs/debuffs. Equipment is read
-  separately at the UI layer from `meta.loadoutOf(kind)` (gear is locked at run start).
+  hp/maxHp, shield, **live effective damage/attackSpeed/moveSpeed**, cooldowns (remaining/total), state,
+  target name, buffs/debuffs. The **permanent** profile (level, stars, perks, Power rating) and equipment
+  are read separately at the UI layer from `meta` (`heroDetail(save, kind)` + `meta.loadoutOf(kind)`) —
+  they're locked at run start, so the panel memoizes them by kind.
 - **UI** — `HeroSelectPanel.tsx`, rendered by `GameView` when `hud.selectedHero` is set. Non-modal
   overlay; the ✕ (or clicking away) deselects.
 

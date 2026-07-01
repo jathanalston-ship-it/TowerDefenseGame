@@ -402,6 +402,12 @@ export interface SelectedHeroView {
   kind: HeroKind;
   name: string;
   combatClass: string;
+  // Live effective combat stats — fold gear + stars + mastery + biome. damage/attackSpeed are 0
+  // for a non-attacker (support/controller). moveSpeed is the steady rate (excludes the transient
+  // Bloodthirst surge, which shows as its own buff chip).
+  damage: number;
+  attackSpeed: number; // attacks per second
+  moveSpeed: number; // px per second
   hp: number;
   maxHp: number;
   shield: number;

@@ -3428,10 +3428,19 @@ export class Game {
       const e = this.enemies.find((en) => en.id === h.targetId && en.alive);
       if (e) target = ENEMY_DEFS[e.kind].name;
     }
+    // Live effective stats (same folds combat uses): damage = base × gear × biome × stars/mastery;
+    // moveSpeed = base × gear speed (steady, sans the transient rush). Non-attackers read 0 damage.
+    const hm = this.hmods(h);
+    const damage = def.attackRange > 0
+      ? def.attackDamage * hm.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult
+      : 0;
     return {
       kind: h.kind,
       name: def.name,
       combatClass: def.combatClass,
+      damage: Math.round(damage),
+      attackSpeed: def.attackInterval > 0 ? 1 / def.attackInterval : 0,
+      moveSpeed: Math.round(def.speed * hm.heroSpeedMult),
       hp: Math.max(0, Math.round(h.hp)),
       maxHp: Math.round(h.maxHp),
       shield: Math.round(h.shield),

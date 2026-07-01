@@ -23,6 +23,10 @@ describe('hero selection', () => {
     expect(view!.maxHp).toBeGreaterThan(0);
     expect(view!.hp).toBeLessThanOrEqual(view!.maxHp);
     expect(view!.cooldowns.length).toBeGreaterThan(0); // at least the signature ability gauge
+    // Effective combat stats — the Ravager is an attacker, so all three read positive.
+    expect(view!.damage).toBeGreaterThan(0);
+    expect(view!.attackSpeed).toBeGreaterThan(0);
+    expect(view!.moveSpeed).toBeGreaterThan(0);
     expect(['idle', 'moving', 'attacking', 'retreating', 'downed']).toContain(view!.state);
     expect(g.getRenderState().selectedHero).toBe(h.kind); // drives the selection ring
 

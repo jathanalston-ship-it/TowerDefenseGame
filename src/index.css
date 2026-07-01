@@ -3414,6 +3414,8 @@ kbd {
   backdrop-filter: blur(4px);
   z-index: 20;
   font-size: 12px;
+  max-height: calc(100vh - 92px);
+  overflow-y: auto;
   animation: hero-panel-in 0.16s ease-out;
 }
 @keyframes hero-panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -3449,6 +3451,25 @@ kbd {
 .hp-gear-slot { color: var(--muted); text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.06em; }
 .hp-gear-item { font-weight: 700; font-size: 11px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hp-gear-empty { color: var(--text-dim); font-size: 10.5px; }
+/* ── Hero panel — extended readout (portrait, level, stats, permanent buffs, power, ability) ── */
+.hp-portrait-sm { flex: 0 0 auto; width: 44px; height: 44px; display: block; }
+.hp-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hp-sub { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.hp-stats { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+.hp-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 3px 7px; border-radius: 5px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
+.hp-stat-k { color: var(--muted); text-transform: uppercase; font-size: 9px; letter-spacing: 0.05em; }
+.hp-stat-v { font-weight: 800; font-size: 11.5px; color: var(--text); font-variant-numeric: tabular-nums; }
+.hp-section-k { margin-top: 9px; margin-bottom: 4px; color: var(--muted); text-transform: uppercase; font-size: 9px; letter-spacing: 0.08em; }
+.hp-none { color: var(--text-dim); font-size: 10.5px; }
+.hp-chip.perm { color: var(--hero, var(--gold)); border-color: color-mix(in srgb, var(--hero, var(--gold)) 45%, var(--line)); }
+.hp-power { margin-top: 9px; display: flex; justify-content: space-between; align-items: center; padding: 5px 9px; border-radius: 6px; background: color-mix(in srgb, var(--hero, var(--gold)) 10%, transparent); border: 1px solid color-mix(in srgb, var(--hero, var(--gold)) 35%, var(--line)); }
+.hp-power-k { text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.07em; color: var(--muted); }
+.hp-power-v { font-weight: 800; font-size: 14px; color: var(--hero, var(--gold)); font-variant-numeric: tabular-nums; }
+.hp-ability { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); }
+.hp-ability-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.hp-ability-name { font-weight: 800; font-size: 12px; }
+.hp-ability-cd { font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hp-ability-desc { margin: 3px 0 0; font-size: 11px; line-height: 1.4; color: var(--text-dim); }
 
 .boss-banner {
   position: absolute;
