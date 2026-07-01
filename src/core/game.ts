@@ -65,7 +65,7 @@ import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifier
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave } from './config';
+import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -152,10 +152,11 @@ function wavePreview(def: WaveDef): WavePreviewEntry[] {
   const order: WavePreviewEntry[] = [];
   const idx = new Map<string, WavePreviewEntry>();
   for (const g of def) {
+    const n = spawnCount(g.count); // the REAL integer that spawns — never a fractional preview
     const e = idx.get(g.kind);
-    if (e) e.count += g.count;
+    if (e) e.count += n;
     else {
-      const entry = { kind: g.kind, count: g.count };
+      const entry = { kind: g.kind, count: n };
       idx.set(g.kind, entry);
       order.push(entry);
     }

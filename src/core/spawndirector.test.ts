@@ -1,11 +1,34 @@
 import { describe, it, expect } from 'vitest';
 import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
-import { SPAWN } from './config';
+import { SPAWN, spawnCount } from './config';
 import type { WaveDef } from './config';
 import type { DirectorWave } from './director';
 
 const sd = new SpawnDirector();
+
+describe('spawnCount (fractional budget → whole enemies)', () => {
+  it('rounds to the nearest integer (the display/spawn rule)', () => {
+    expect(spawnCount(34.12)).toBe(34);
+    expect(spawnCount(34.87)).toBe(35);
+    expect(spawnCount(12.53491)).toBe(13);
+  });
+  it('leaves integers untouched (authored WAVES / endless queues stay byte-identical)', () => {
+    for (const n of [0, 1, 6, 8, 12, 30]) expect(spawnCount(n)).toBe(n);
+  });
+  it('never returns a negative count', () => {
+    expect(spawnCount(-0.4)).toBe(0);
+  });
+});
+
+describe('scheduled spawns are whole enemies, matching reality', () => {
+  it('a fractional group count spawns round(count) enemies — never ceil/fraction', () => {
+    const def: WaveDef = [{ kind: 'runner', count: 5.23, spacing: 0.5, delay: 0 }];
+    const q = sd.scheduleScripted(def, 0, 1, 1, 1);
+    expect(q.length).toBe(5); // round(5.23) = 5 (not 6 from the old i<count ceil behavior)
+    expect(Number.isInteger(q.length)).toBe(true);
+  });
+});
 
 describe('Spawn Director', () => {
   it('SPAWN defaults equal the historical inline literals (golden-safety guard)', () => {

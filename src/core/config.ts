@@ -473,12 +473,21 @@ export const SPAWN = {
 // ── Waves (threat-budget scripts) ─────────────────────────────────────────
 export interface SpawnGroup {
   kind: EnemyKind;
-  count: number;
+  count: number; // MAY be fractional (the campaign generator spends a float threat budget) — see spawnCount
   spacing: number; // seconds between spawns in this group
   delay: number; // seconds before the group starts
   elite?: boolean; // promote this group to elites (campaign generator); absent ⇒ false (golden-safe)
 }
 export type WaveDef = SpawnGroup[];
+
+/** The REAL number of enemies a group emits. `count` may be fractional (float threat budget), but
+ *  you can't spawn a fraction of an enemy — so the spawner AND the Incoming preview both round it
+ *  through here. Single source of truth ⇒ the UI always represents reality (never a decimal count).
+ *  Integer inputs are unchanged (Math.round(n)===n), so the authored WAVES / endless queues stay
+ *  byte-identical. */
+export function spawnCount(count: number): number {
+  return Math.max(0, Math.round(count));
+}
 
 // Each wave introduces or combines an archetype with a CLEAR role, telegraphed in
 // the prep phase (Toolbar "Incoming"). The escalating mix — speed (rusher), armor
