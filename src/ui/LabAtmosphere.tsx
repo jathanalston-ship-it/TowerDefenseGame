@@ -4,8 +4,10 @@
 // lab feels alive. Pure decoration: pointer-events:none, no gameplay, no JS render loop
 // (all motion is CSS transforms/opacity), and fully stilled under prefers-reduced-motion.
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type CSSProperties } from 'react';
 import { audio } from '../audio/sound';
+import { meta } from '../state/meta';
+import { labState } from './homeBaseTiers';
 
 interface Spore { left: number; size: number; dur: number; delay: number; drift: number; hue: string }
 
@@ -43,9 +45,15 @@ function Dna({ className, color }: { className: string; color: string }): JSX.El
 }
 
 export function LabAtmosphere(): JSX.Element {
+  // The lab EVOLVES with the account (docs/HOME-BASE.md): denser life + more equipment as the
+  // development score climbs. Pure read of the save; updates whenever progression changes.
+  const save = meta.use();
+  const lab = labState(save);
+  const sporeCount = Math.round(10 + lab.intensity * 18); // 12 (nascent) → 28 (ascendant)
+
   const spores = useMemo<Spore[]>(
     () =>
-      Array.from({ length: 18 }, (_, i) => ({
+      Array.from({ length: sporeCount }, (_, i) => ({
         left: (i * 53 + 7) % 100,
         size: 2 + ((i * 7) % 5),
         dur: 16 + ((i * 11) % 16),
@@ -53,7 +61,7 @@ export function LabAtmosphere(): JSX.Element {
         drift: ((i % 5) - 2) * 18,
         hue: HUES[i % HUES.length],
       })),
-    [],
+    [sporeCount],
   );
 
   // Faint, infrequent organic SFX — "the lab breathing". Naturally silent when sound is off
@@ -73,7 +81,19 @@ export function LabAtmosphere(): JSX.Element {
   }, []);
 
   return (
-    <div className="lab-atmos" aria-hidden>
+    <div
+      className="lab-atmos"
+      aria-hidden
+      data-lab-era={lab.era}
+      style={{ ['--lab-intensity' as string]: lab.intensity } as CSSProperties}
+    >
+      {/* Progression-driven equipment — each fixture materializes once the account passes its
+          development threshold (homeBaseTiers). A late-game lab is unrecognizably richer. */}
+      {lab.fixtures.length > 0 && (
+        <div className="lab-fixtures">
+          {lab.fixtures.map((id) => <div key={id} className={`lab-fix fix-${id}`} />)}
+        </div>
+      )}
       <div className="lab-drift">
         <div className="lab-cell lab-cell-a" />
         <div className="lab-cell lab-cell-b" />

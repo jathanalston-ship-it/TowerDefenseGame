@@ -3,7 +3,7 @@
 // area that swaps one dedicated screen per progression system. Nothing scrolls at the shell
 // level; dense screens lay out in columns and the content area is the only scroll region.
 
-import { useEffect, useState, type MutableRefObject } from 'react';
+import { useEffect, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { audio } from '../audio/sound';
@@ -13,6 +13,7 @@ import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { PlayScreen } from './PlayScreen';
+import { InfiniteScreen } from './InfiniteScreen';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
@@ -25,22 +26,49 @@ import { Statistics } from './Statistics';
 import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
+import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { LabAtmosphere } from './LabAtmosphere';
+import { PowerBadge } from './components/PowerScore';
 
-export type NavKey = 'play' | 'campaign' | 'towers' | 'heroes' | 'vault' | 'upgrades' | 'collection' | 'profile' | 'settings';
+export type NavKey =
+  | 'home' | 'campaign' | 'infinite'
+  | 'towers' | 'heroes' | 'evolution'
+  | 'vault' | 'equipment' | 'collection'
+  | 'profile' | 'settings';
 
-const NAV: { key: NavKey; label: string; mono: string }[] = [
-  { key: 'play', label: 'Play', mono: '▶' },
-  { key: 'campaign', label: 'Campaign', mono: '⬡' },
-  { key: 'towers', label: 'Towers', mono: 'T' },
-  { key: 'heroes', label: 'Heroes', mono: 'H' },
-  { key: 'vault', label: 'Genetic Vault', mono: '◈' },
-  { key: 'upgrades', label: 'Upgrades', mono: '↑' },
-  { key: 'collection', label: 'Collection', mono: '▤' },
-  { key: 'profile', label: 'Profile', mono: '◑' },
-  { key: 'settings', label: 'Settings', mono: '⚙' },
+interface NavItem { key: NavKey; label: string; mono: string }
+interface NavGroup { title: string; items: NavItem[] }
+
+// The nav is GROUPED by intent (the user-facing IA): Play / Progression / Collection / Account.
+// Adding a screen is one row in the right group — the renderer, badges, and rings are generic.
+const NAV_GROUPS: NavGroup[] = [
+  { title: 'Play', items: [
+    { key: 'home', label: 'Home', mono: '⌂' },
+    { key: 'campaign', label: 'Campaign', mono: '⬡' },
+    { key: 'infinite', label: 'Infinite', mono: '∞' },
+  ] },
+  { title: 'Progression', items: [
+    { key: 'towers', label: 'Towers', mono: 'T' },
+    { key: 'heroes', label: 'Heroes', mono: 'H' },
+    { key: 'evolution', label: 'Evolution', mono: '✷' },
+  ] },
+  { title: 'Collection', items: [
+    { key: 'vault', label: 'Genetic Vault', mono: '◈' },
+    { key: 'equipment', label: 'Equipment', mono: '⛨' },
+    { key: 'collection', label: 'Collection', mono: '▤' },
+  ] },
+  { title: 'Account', items: [
+    { key: 'profile', label: 'Profile', mono: '◑' },
+    { key: 'settings', label: 'Settings', mono: '⚙' },
+  ] },
 ];
+
+// Accent tint per group — the rail reads as zones, and each group's selected item / ring glows
+// in its own hue (CSS consumes `--nav-accent`).
+const GROUP_ACCENT: Record<string, string> = {
+  Play: 'var(--vital)', Progression: 'var(--kinetic)', Collection: 'var(--gold)', Account: 'var(--muted)',
+};
 
 function audioPref(): boolean {
   try { return localStorage.getItem('audioOn') !== 'false'; } catch { return true; }
@@ -116,12 +144,12 @@ export function Hub({
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
-  const [nav, setNav] = useState<NavKey>('play');
+  const [nav, setNav] = useState<NavKey>('home');
   const save = meta.use();
   notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
-  const power = meta.powerScore().score;
   const badges = notifications.badges(save);
+  const progress = navProgress(save); // 0..1 completion rings per menu
 
   // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset).
   useEffect(() => { notifications.sync(save); }, [save]);
@@ -138,25 +166,47 @@ export function Hub({
       <nav className="hub-nav" aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
-          {NAV.map((n) => (
-            <button
-              key={n.key}
-              className={`hub-navitem ${nav === n.key ? 'on' : ''} ${n.key === 'play' ? 'is-play' : ''}`}
-              onClick={() => go(n.key)}
-              aria-label={badges[n.key] > 0 ? `${n.label} — ${badges[n.key]} new` : undefined}
+          {NAV_GROUPS.map((group) => (
+            <div
+              className="hub-navgroup"
+              key={group.title}
+              style={{ ['--nav-accent' as string]: GROUP_ACCENT[group.title] } as CSSProperties}
             >
-              <span className="hub-mono" aria-hidden>{n.mono}</span>
-              <span className="hub-navlabel">{n.label}</span>
-              {badges[n.key] > 0 && (
-                <span className="nav-badge" aria-hidden>
-                  {badges[n.key] > 1 ? (badges[n.key] > 9 ? '9+' : badges[n.key]) : ''}
-                </span>
-              )}
-            </button>
+              <div className="hub-navgroup-h" aria-hidden>{group.title}</div>
+              {group.items.map((n) => {
+                const badge = badges[n.key] ?? 0;
+                const ring = progress[n.key];
+                return (
+                  <button
+                    key={n.key}
+                    className={`hub-navitem ${nav === n.key ? 'on' : ''}`}
+                    onClick={() => go(n.key)}
+                    onPointerEnter={() => audio.cue('hover')}
+                    aria-current={nav === n.key ? 'page' : undefined}
+                    aria-label={badge > 0 ? `${n.label} — ${badge} new` : undefined}
+                  >
+                    <span
+                      className={`hub-mono ${ring != null ? 'has-ring' : ''}`}
+                      aria-hidden
+                      style={ring != null ? ({ ['--p' as string]: ring } as CSSProperties) : undefined}
+                    >
+                      {n.mono}
+                    </span>
+                    <span className="hub-navlabel">{n.label}</span>
+                    {ring != null && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
+                    {badge > 0 && (
+                      <span className="nav-badge" aria-hidden>
+                        {badge > 1 ? (badge > 9 ? '9+' : badge) : ''}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           ))}
         </div>
-        <div className="hub-power" title="Account power index">
-          Power <b>×{power.toFixed(1)}</b>
+        <div className="hub-power">
+          <PowerBadge />
         </div>
       </nav>
 
@@ -169,24 +219,23 @@ export function Hub({
         </header>
 
         <section className="hub-screen" key={nav}>
-          {nav === 'play' && (
+          {nav === 'home' && (
             <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
-          {nav === 'towers' && <TowerLab />}
-          {nav === 'heroes' && (
-            <div className="heroes-screen">
-              <HeroLab />
-              <EquipmentPanel />
-            </div>
+          {nav === 'infinite' && (
+            <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
-          {nav === 'vault' && <GeneticVault />}
-          {nav === 'upgrades' && (
+          {nav === 'towers' && <TowerLab />}
+          {nav === 'heroes' && <HeroLab />}
+          {nav === 'evolution' && (
             <div className="hub-cols">
               <MetaShop />
               <PrestigePanel />
             </div>
           )}
+          {nav === 'vault' && <GeneticVault />}
+          {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'profile' && (
             <div className="hub-cols">

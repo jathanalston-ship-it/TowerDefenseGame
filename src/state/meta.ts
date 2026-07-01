@@ -45,6 +45,8 @@ import {
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
+import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
+import type { PowerParts, PowerScore } from '../core/power';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
 import { bossDef } from '../core/boss';
@@ -105,6 +107,35 @@ export function metaModifiers(save: SaveData): MetaModifiers {
   // Ascendant Tree: a bought node can raise permanent biomass income (×1 with no nodes).
   m.biomassMult *= ascendantBonuses(save.prestige.nodes).biomassMult;
   return m;
+}
+
+/** Equipment's Power contribution: its equipped loadout's offense effects × each piece's
+ * rarity/affix index, so even utility-only gear reads as a small gain when equipped. */
+function equipmentPower(save: SaveData): number {
+  let mult = effectsPower(loadoutEffects(save.equipment.inventory, save.equipment.loadout));
+  const inv = save.equipment.inventory;
+  for (const slot of ['weapon', 'armor', 'relic'] as EquipSlot[]) {
+    const uid = save.equipment.loadout[slot];
+    const it = uid ? inv.find((i) => i.uid === uid) : undefined;
+    if (it) mult *= itemRarityPower(it.rarity, it.affixes.length);
+  }
+  return mult;
+}
+
+/** The account Power contributors folded from the save (docs/POWER-SCORE.md). `temporary`
+ * carries in-run buffs (gene cards / branches); it is 1 for the at-rest account view. Prestige
+ * is already inside metaModifiers.towerDamageMult (the P bucket), so it counts via `meta`. */
+function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
+  const mm = metaModifiers(save);
+  const tp = towerProgress(save);
+  const hp = heroProgress(save);
+  return {
+    meta: mm.towerDamageMult,
+    towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
+    heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
+    equipment: equipmentPower(save),
+    temporary,
+  };
 }
 
 /** Cells a Molt would mint now: the sqrt base × the Ascendant Resonance node's compounding. */
@@ -742,15 +773,28 @@ export const meta = {
    * product of the permanent damage buckets (meta upgrades × prestige × stars × mastery,
    * roster-averaged). ×1.0 on a fresh account; the §3F inflation gauge. */
   powerScore(): { score: number; meta: number; towers: number; heroes: number } {
-    const save = store.get();
-    const mm = metaModifiers(save); // meta upgrades × prestige P bucket
-    const tp = towerProgress(save); // stars + mastery (towers)
-    const hp = heroProgress(save); // stars + mastery (heroes)
-    const geomean = (vals: number[]): number =>
-      vals.length ? Math.exp(vals.reduce((s, v) => s + Math.log(v), 0) / vals.length) : 1;
-    const towers = geomean(TOWER_ORDER.map((k) => tp[k].damageMult));
-    const heroes = geomean(HERO_ORDER.map((k) => hp[k].damageMult));
-    return { score: mm.towerDamageMult * towers * heroes, meta: mm.towerDamageMult, towers, heroes };
+    const p = accountPowerParts(store.get());
+    // Back-compat: `.score` stays the account DAMAGE multiple (meta × towers × heroes) used by
+    // the recommended-power readiness checks — equipment/temporary live in the universal index.
+    return { score: p.meta * p.towers * p.heroes, meta: p.meta, towers: p.towers, heroes: p.heroes };
+  },
+
+  /** Universal Power Score (docs/POWER-SCORE.md) — the integer feedback index folding meta,
+   * prestige, tower/hero Stars + Mastery, and Equipment. A fresh account reads POWER_BASE. */
+  power(): PowerScore {
+    return composePower(accountPowerParts(store.get()));
+  },
+
+  /** Power Score WITH in-run temporary buffs (gene cards + branch grants as CardEffect[]) — for
+   * the HUD and gene-draft "new power" preview. Outside a run pass nothing ⇒ equals power(). */
+  powerWith(temporaryEffects: readonly CardEffect[] = []): PowerScore {
+    return composePower(accountPowerParts(store.get(), effectsPower(temporaryEffects)));
+  },
+
+  /** Power Score for a HYPOTHETICAL save — pass a pure mutator returning the post-upgrade save
+   * (never persisted). Drives the "current → new (+diff)" upgrade previews. */
+  previewPower(mutate: (s: SaveData) => SaveData): PowerScore {
+    return composePower(accountPowerParts(mutate(store.get())));
   },
 
   /** The hero the next run will field (slot 1). */

@@ -2,9 +2,11 @@ import { meta, nextUpgradeCost, upgradeLevel } from '../state/meta';
 import { ProgressBar } from './components/ProgressBar';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { PowerDelta } from './components/PowerScore';
 
 export function MetaShop(): JSX.Element {
   const save = meta.use();
+  const curPower = meta.power().score;
   return (
     <div className="panel">
       <div className="panel-title">Permanent Upgrades</div>
@@ -15,6 +17,7 @@ export function MetaShop(): JSX.Element {
           const cost = nextUpgradeCost(save, u);
           const maxed = cost === null;
           const affordable = cost !== null && save.shards >= cost;
+          const nextPower = maxed ? curPower : meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [u.id]: level + 1 } })).score;
           return (
             <div className={`shop-item ${maxed ? 'is-maxed' : ''}`} key={u.id}>
               <div className="info">
@@ -31,6 +34,9 @@ export function MetaShop(): JSX.Element {
                   className="bar-upgrade"
                   label={`${u.name} level`}
                 />
+                {nextPower !== curPower && (
+                  <div className="shop-power">Power <PowerDelta current={curPower} next={nextPower} /></div>
+                )}
               </div>
               <button
                 className={`shop-buy ${affordable ? 'is-afford' : ''}`}

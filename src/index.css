@@ -3811,6 +3811,97 @@ kbd {
   .lab-drift, .lab-glow, .lab-cell, .lab-dna, .lab-spore, .lab-scan, .mc-campaign { animation: none; }
   .lab-scan { display: none; }
   .lab-spore { opacity: 0.22; }
+  .lab-fix { animation: none !important; }
+}
+
+/* ── Evolving Home Base (HOME-BASE.md) — the lab brightens + grows equipment with the account's
+      development score (--lab-intensity 0..1) and era (data-lab-era 0..3). Pure decoration behind
+      the headquarters; edge-anchored + low-opacity so menu content stays readable. ── */
+.lab-atmos { --lab-intensity: 0.3; }
+.lab-atmos .lab-drift { opacity: calc(0.4 + 0.6 * var(--lab-intensity)); }
+/* The mood warms as the lab matures: a faint accent wash that deepens by era. */
+.lab-atmos[data-lab-era='2']::before,
+.lab-atmos[data-lab-era='3']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 50% 116%, color-mix(in srgb, var(--vital) 14%, transparent), transparent 70%);
+  opacity: calc(0.4 * var(--lab-intensity));
+}
+.lab-atmos[data-lab-era='3']::before { background: radial-gradient(120% 90% at 50% 116%, color-mix(in srgb, var(--viral) 18%, transparent), transparent 72%); }
+
+/* The equipment lives in the MAIN area only (offset past the 216px nav rail) and rises from the
+   bottom "lab floor" + clings to the right wall — the zones not covered by menu content. */
+.lab-fixtures { position: absolute; left: 216px; right: 0; top: 0; bottom: 0; opacity: calc(0.55 + 0.45 * var(--lab-intensity)); }
+.lab-fix { position: absolute; pointer-events: none; }
+
+/* Mutation vats — bubbling tanks rising from the lab floor. */
+.fix-vats { left: 2%; bottom: 0; width: 104px; height: 32vh; min-height: 170px;
+  background:
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--vital) 24%, transparent)) ,
+    radial-gradient(60% 30% at 30% 22%, color-mix(in srgb, var(--vital) 34%, transparent), transparent 70%);
+  border: 1px solid color-mix(in srgb, var(--vital) 32%, transparent);
+  border-bottom: none; border-radius: 14px 14px 0 0; opacity: 0.62;
+  box-shadow: inset 0 0 28px color-mix(in srgb, var(--vital) 26%, transparent);
+  animation: fix-bubble 6s ease-in-out infinite;
+}
+.fix-vats::after { content: ''; position: absolute; left: 58%; bottom: 0; width: 74px; height: 26vh; min-height: 140px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--viral) 24%, transparent));
+  border: 1px solid color-mix(in srgb, var(--viral) 30%, transparent); border-bottom: none; border-radius: 12px 12px 0 0;
+  animation: fix-bubble 7.5s ease-in-out infinite reverse;
+}
+@keyframes fix-bubble { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.45); } }
+
+/* Biomechanical plumbing — vertical conduits threading the right wall. */
+.fix-pipes { right: 0.6%; top: 9vh; bottom: 9vh; width: 24px;
+  background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--caustic) 26%, transparent) 0 3px, transparent 3px 22px);
+  opacity: 0.45; border-radius: 3px;
+}
+
+/* Containment chambers — a glowing pod rising from the floor, left-of-centre. */
+.fix-containment { left: 21%; bottom: 0; width: 84px; height: 28vh; min-height: 150px;
+  background: radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--viral) 38%, transparent), transparent 64%);
+  border-radius: 42px 42px 0 0; border: 1px solid color-mix(in srgb, var(--viral) 32%, transparent); border-bottom: none; opacity: 0.6;
+  animation: fix-pulse 4.5s ease-in-out infinite;
+}
+@keyframes fix-pulse { 0%, 100% { opacity: 0.4; transform: scale(0.99); } 50% { opacity: 0.66; transform: scale(1.01); } }
+
+/* Organic supercomputer — a lattice of pulsing nodes, bottom-right. */
+.fix-supercomputer { right: 2.6%; bottom: 2vh; width: 138px; height: 138px;
+  background:
+    radial-gradient(circle at 25% 25%, color-mix(in srgb, var(--kinetic) 55%, transparent) 0 4px, transparent 5px),
+    radial-gradient(circle at 75% 25%, color-mix(in srgb, var(--kinetic) 55%, transparent) 0 4px, transparent 5px),
+    radial-gradient(circle at 25% 75%, color-mix(in srgb, var(--vital) 55%, transparent) 0 4px, transparent 5px),
+    radial-gradient(circle at 75% 75%, color-mix(in srgb, var(--viral) 55%, transparent) 0 4px, transparent 5px),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--gold) 65%, transparent) 0 5px, transparent 6px);
+  opacity: 0.7; animation: fix-pulse 3.2s ease-in-out infinite;
+}
+.fix-supercomputer::before { content: ''; position: absolute; inset: -8px;
+  background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--kinetic) 26%, transparent), transparent 60%);
+  border-radius: 14px; animation: fix-spin 14s linear infinite;
+}
+@keyframes fix-spin { to { transform: rotate(360deg); } }
+
+/* Mutating walls — the right wall of the lab crawls with living tissue. */
+.fix-walls { right: 0; top: 0; bottom: 0; width: 30px;
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--viral) 20%, transparent) 0 6px, transparent 6px 16px);
+  opacity: 0.5; animation: fix-crawl 9s linear infinite;
+}
+@keyframes fix-crawl { from { background-position: 0 0; } to { background-position: 0 64px; } }
+
+/* Hero stasis chambers — a lit capsule rising from the floor, left. */
+.fix-herochambers { left: 12%; bottom: 0; width: 50px; height: 25vh; min-height: 140px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 30%, transparent), color-mix(in srgb, var(--caustic) 24%, transparent));
+  border: 1px solid color-mix(in srgb, var(--gold) 36%, transparent); border-bottom: none; border-radius: 26px 26px 0 0; opacity: 0.6;
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--gold) 55%, transparent); animation: fix-pulse 5.5s ease-in-out infinite;
+}
+
+/* Ascension device — a glowing reactor crowning the lab floor once the player has Molted. */
+.fix-ascension { left: 40%; bottom: 1vh; width: 188px; height: 188px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--r-epic) 34%, transparent) 0 2px, transparent 3px);
+  border: 2px solid color-mix(in srgb, var(--r-epic) 44%, transparent); border-radius: 50%; opacity: 0.55;
+  box-shadow: 0 0 54px -10px color-mix(in srgb, var(--r-epic) 75%, transparent), inset 0 0 44px -12px color-mix(in srgb, var(--r-epic) 65%, transparent);
+  animation: fix-spin 26s linear infinite;
 }
 .hub-nav {
   display: flex;
@@ -3833,14 +3924,29 @@ kbd {
   color: transparent;
   border-bottom: 1px solid var(--line);
 }
-.hub-navlist { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
+.hub-navlist { display: flex; flex-direction: column; gap: 2px; flex: 1; min-height: 0; overflow-y: auto; }
+
+/* Grouped nav — each section is a labelled zone carrying its own accent hue (--nav-accent),
+   so the rail reads as four intent-zones rather than one flat list. */
+.hub-navgroup { display: flex; flex-direction: column; gap: 3px; }
+.hub-navgroup + .hub-navgroup { margin-top: 9px; border-top: 1px solid var(--line); padding-top: 11px; }
+.hub-navgroup-h {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nav-accent) 50%, var(--muted));
+  padding: 0 12px 4px;
+  user-select: none;
+}
+
 .hub-navitem {
   position: relative;
   display: flex;
   align-items: center;
   gap: 11px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: var(--r-sm);
   background: transparent;
   border: 1px solid transparent;
@@ -3851,34 +3957,87 @@ kbd {
   text-transform: uppercase;
   text-align: left;
   /* transform transition + Lift/Press come from the base `button` rule (one consistent feel). */
-  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
 }
-.hub-navitem:hover { background: var(--panel-3); color: var(--text); }
-.hub-navitem.on {
-  background: linear-gradient(90deg, rgba(90, 209, 255, 0.16), rgba(90, 209, 255, 0.02));
+.hub-navitem:hover {
+  background: var(--panel-3);
   color: var(--text);
-  border-color: rgba(90, 209, 255, 0.4);
-  box-shadow: inset 3px 0 0 var(--kinetic);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nav-accent) 24%, transparent),
+              0 0 18px -7px color-mix(in srgb, var(--nav-accent) 72%, transparent);
 }
-.hub-navitem.is-play { color: var(--vital); }
-.hub-navitem.is-play.on {
-  background: linear-gradient(90deg, rgba(255, 122, 89, 0.18), rgba(255, 122, 89, 0.02));
-  border-color: rgba(255, 122, 89, 0.45);
-  box-shadow: inset 3px 0 0 var(--vital);
+/* Selected — the active tab OPENS toward the content panel: right corners flatten, the right
+   border dissolves, and an accent glow bleeds inward so it reads as one piece with the screen. */
+.hub-navitem.on {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--nav-accent) 42%, transparent);
+  border-right-color: transparent;
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--nav-accent) 24%, transparent),
+    color-mix(in srgb, var(--nav-accent) 7%, transparent) 72%,
+    transparent);
+  box-shadow: inset 3px 0 0 var(--nav-accent),
+              inset -16px 0 22px -16px color-mix(in srgb, var(--nav-accent) 85%, transparent);
 }
+.hub-navitem.on .hub-navlabel { font-weight: 800; }
+
 .hub-mono {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   flex: none;
-  border-radius: 6px;
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--line);
   font-size: 12px;
+  transition: background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
 }
-.hub-navitem.on .hub-mono { background: rgba(90, 209, 255, 0.14); border-color: rgba(90, 209, 255, 0.4); }
+.hub-navitem:hover .hub-mono { border-color: color-mix(in srgb, var(--nav-accent) 45%, var(--line)); }
+.hub-navitem.on .hub-mono {
+  background: color-mix(in srgb, var(--nav-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--nav-accent) 52%, transparent);
+  box-shadow: 0 0 13px -2px color-mix(in srgb, var(--nav-accent) 70%, transparent);
+}
+
+/* Progress ring around the glyph — a thin conic gauge driven by --p (0..1), in the group accent. */
+.hub-mono.has-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--nav-accent) calc(var(--p, 0) * 360deg), color-mix(in srgb, var(--line) 70%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  opacity: 0.9;
+  pointer-events: none;
+}
+.hub-ringpct {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--nav-accent) 60%, var(--muted));
+  font-variant-numeric: tabular-nums;
+}
+.hub-navitem.on .hub-ringpct { color: color-mix(in srgb, var(--nav-accent) 78%, var(--text)); }
+
+/* Selection micro-feedback — a one-shot accent ring "pops" off the glyph the instant an item
+   becomes active (replays on each re-selection). Cheap: one pseudo-element, one keyframe. */
+.hub-navitem.on .hub-mono::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9px;
+  border: 1.5px solid var(--nav-accent);
+  animation: nav-pick var(--dur-3) var(--ease-out) 1 both;
+  pointer-events: none;
+}
+@keyframes nav-pick {
+  0% { opacity: 0.85; transform: scale(0.78); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
 
 /* Global notification dot (notifications.ts) — any menu with unacknowledged news. */
 .nav-badge {
@@ -4179,8 +4338,14 @@ kbd {
   .hub { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .hub-nav { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px; border-right: none; border-bottom: 1px solid var(--line); }
   .hub-brand { border-bottom: none; padding: 4px 8px; }
-  .hub-navlist { flex-direction: row; flex-wrap: wrap; overflow: visible; }
+  .hub-navlist { flex-direction: row; flex-wrap: wrap; overflow: visible; gap: 6px; }
+  .hub-navgroup { display: contents; } /* groups dissolve → every item flows into one icon row */
+  .hub-navgroup + .hub-navgroup { margin: 0; border: none; padding: 0; }
+  .hub-navgroup-h { display: none; }
   .hub-navlabel { display: none; }
+  .hub-ringpct { display: none; }
+  .hub-navitem { padding: 8px; }
+  .hub-navitem.on { border-radius: var(--r-sm); border-right-color: color-mix(in srgb, var(--nav-accent) 42%, transparent); }
   .hub-power { display: none; }
   .play-screen { grid-template-columns: 1fr; }
   .hub-cols { grid-template-columns: 1fr; }
@@ -4627,3 +4792,28 @@ kbd {
 .cd-reward.dim { color: var(--muted); font-weight: 500; font-size: 12px; }
 .camp-deploy { margin-top: 4px; padding: 9px; font-weight: 700; }
 .camp-deploy:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Power Score (docs/POWER-SCORE.md) — animated badge + upgrade delta ── */
+.power-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+.power-badge.is-compact { padding: 2px 8px; gap: 4px; }
+.power-badge-k { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.power-badge-v { font-size: 16px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.power-badge.is-compact .power-badge-v { font-size: 13px; }
+.power-badge.pulse-up { border-color: var(--success); box-shadow: 0 0 16px -2px var(--success); animation: power-pulse-up 0.7s ease-out; }
+.power-badge.pulse-up .power-badge-v { color: var(--success); }
+.power-badge.pulse-down { border-color: #ff7a7a; box-shadow: 0 0 16px -4px #ff7a7a; animation: power-pulse-down 0.7s ease-out; }
+.power-badge.pulse-down .power-badge-v { color: #ff7a7a; }
+@keyframes power-pulse-up { 0% { transform: scale(1); } 30% { transform: scale(1.14); } 100% { transform: scale(1); } }
+@keyframes power-pulse-down { 0% { transform: translateY(0); } 30% { transform: translateY(2px); } 100% { transform: translateY(0); } }
+
+.power-delta { display: inline-flex; align-items: baseline; gap: 5px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.power-delta .pd-cur { color: var(--muted); }
+.power-delta .pd-arrow { color: var(--dim); }
+.power-delta .pd-new { font-weight: 800; color: var(--text); }
+.power-delta .pd-diff { font-weight: 800; }
+.power-delta.up .pd-diff, .power-delta.up .pd-new { color: var(--success); }
+.power-delta.down .pd-diff, .power-delta.down .pd-new { color: #ff7a7a; }
+.power-delta.flat .pd-diff { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .power-badge.pulse-up, .power-badge.pulse-down { animation: none; }
+}

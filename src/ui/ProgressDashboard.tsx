@@ -82,7 +82,7 @@ export function ProgressDashboard({
   }, 0);
 
   const items = save.equipment.inventory.length;
-  const newGear = badges.heroes ?? 0;
+  const newGear = badges.equipment ?? 0; // equipment is its own nav now (re-channeled)
   const col = meta.collection();
   const prestige = meta.prestigeView();
 
@@ -113,9 +113,9 @@ export function ProgressDashboard({
       badge: badges.towers, hot: towersReady > 0, cta: 'Evolve', onClick: () => nav('towers'),
     },
     {
-      key: 'heroes', title: 'Hero Equipment', accent: 'var(--caustic)',
+      key: 'equipment', title: 'Hero Equipment', accent: 'var(--caustic)',
       big: `${items}`, sub: items === 1 ? 'Item in the armory' : 'Items in the armory',
-      badge: newGear, hot: newGear > 0, cta: 'Equip', onClick: () => nav('heroes'),
+      badge: newGear, hot: newGear > 0, cta: 'Equip', onClick: () => nav('equipment'),
     },
     {
       key: 'collection', title: 'Collection', accent: 'var(--r-epic)',
@@ -128,7 +128,7 @@ export function ProgressDashboard({
     <>
       {/* Ascension available → it dominates the dashboard. */}
       {prestige.canMolt && (
-        <button className="dash-ascension" onClick={() => nav('upgrades')}>
+        <button className="dash-ascension" onClick={() => nav('evolution')}>
           <span className="asc-glyph" aria-hidden>✸</span>
           <span className="asc-body">
             <span className="asc-t">Ascension Available</span>
