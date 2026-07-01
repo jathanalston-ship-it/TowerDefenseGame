@@ -15,6 +15,7 @@ import { generateStage } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
 import { EvolutionUnlock } from './EvolutionUnlock';
 import type { EvolutionUnlockData } from './EvolutionUnlock';
+import { difficultyPref } from '../state/prefs';
 
 type Screen = 'menu' | 'playing' | 'results';
 
@@ -59,9 +60,14 @@ export function App(): JSX.Element {
     setScreen('playing');
   }, []);
   const startRun = useCallback(() => begin('stage'), [begin]);
-  const startEndless = useCallback(() => begin('endless'), [begin]);
-  // Campaign: generate the chosen stage deterministically from (stage #, difficulty) and play it.
+  // Infinite uses its OWN persisted difficulty (chosen inside Infinite, not the Main Menu).
+  const startEndless = useCallback(() => {
+    difficultyRef.current = difficultyPref('infinite');
+    begin('endless');
+  }, [begin]);
+  // Campaign uses its OWN persisted difficulty; generate the chosen stage deterministically and play it.
   const startCampaign = useCallback((stage: number) => {
+    difficultyRef.current = difficultyPref('campaign');
     campaignStageRef.current = stage;
     begin('campaign', generateStage(stage, difficultyRef.current));
   }, [begin]);
@@ -72,6 +78,8 @@ export function App(): JSX.Element {
       result.campaignStage = campaignStageRef.current;
       result.difficulty = difficultyRef.current;
       result.rewardMult = stageRef.current?.rewardMult;
+    } else if (modeRef.current === 'endless') {
+      result.difficulty = difficultyRef.current; // Infinite's difficulty drives its run-end economy
     }
     const outcome = meta.finishRun(result);
     setLast({ result, outcome });

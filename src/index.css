@@ -4193,7 +4193,9 @@ kbd {
 .mc-fact.low .mc-fact-v small { color: #ff7a7a; }
 .mc-cta { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
 .mc-deploy { font-size: 18px; padding: 15px 30px; }
-.mc-setup { display: flex; gap: 14px; }
+.mc-setup { display: flex; gap: 14px; align-items: flex-end; }
+.mc-diff-ro { font-size: 14px; font-weight: 700; color: var(--text); padding: 9px 0; }
+.mc-diff-ro small { color: var(--muted); font-weight: 500; font-size: 11px; }
 
 .mc-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .mc-sec { display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--text); cursor: pointer; transition: border-color 0.15s ease, transform 0.15s ease; }

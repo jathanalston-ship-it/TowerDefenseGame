@@ -401,7 +401,9 @@ export class Game {
     this.diff = this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty);
     this.waves = this.stage ? this.stage.waves : WAVES;
     this.totalWaves = this.waves.length;
-    this.stageSpeedMult = this.stage ? this.stage.enemySpeedMult : 1;
+    // Enemy speed = the stage's own scaling (campaign) × the DIFFICULTY speed axis (both modes).
+    // standard ⇒ ×1 → golden-safe.
+    this.stageSpeedMult = (this.stage ? this.stage.enemySpeedMult : 1) * this.diff.enemySpeedMult;
     // Biome: Campaign uses the stage's fixed biome; Infinite seeds the first biome (rotates as the
     // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
