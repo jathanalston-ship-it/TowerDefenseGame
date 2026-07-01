@@ -51,6 +51,7 @@ import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower }
 import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
 import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../core/geneEssence';
+import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -1277,6 +1278,61 @@ export const meta = {
     for (const id in g) { const lvl = geneLevel(g, id); if (lvl > 0) out[id] = lvl; }
     return out;
   },
+  // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts) ──────────────────
+  /** Unlocked loadout slot count (1..GENE_LOADOUT_MAX; slot 1 is always owned). */
+  geneSlots(): number {
+    return store.get().geneSlots;
+  },
+  /** The full 5-slot loadout (equipped card id or null per slot; slots ≥ geneSlots are locked). */
+  geneLoadout(): (string | null)[] {
+    return store.get().geneLoadout;
+  },
+  /** The card ids that AUTO-ACTIVATE at run boot: the equipped, OWNED cards in unlocked slots.
+   *  Passed to the Game as RunOptions.startingGenes; empty ⇒ nothing applied (golden path). */
+  startingGenes(): string[] {
+    const s = store.get();
+    const owned = new Set(s.stats?.uniqueCards ?? []);
+    const out: string[] = [];
+    for (let i = 0; i < s.geneSlots; i++) {
+      const id = s.geneLoadout[i];
+      if (id && owned.has(id) && cardRegistry.has(id) && !out.includes(id)) out.push(id);
+    }
+    return out;
+  },
+  /** Equip a card into an UNLOCKED slot (null clears it). Guarded: the slot must be unlocked, the
+   *  card registered + OWNED, and not already equipped in another slot (no duplicates). */
+  setGeneSlot(index: number, id: string | null): boolean {
+    const s = store.get();
+    if (index < 0 || index >= s.geneSlots) return false;
+    if (id !== null) {
+      if (!cardRegistry.has(id)) return false;
+      if (!(s.stats?.uniqueCards ?? []).includes(id)) return false; // must be discovered
+      if (s.geneLoadout.some((v, i) => v === id && i !== index)) return false; // one slot per card
+    }
+    const geneLoadout = s.geneLoadout.slice();
+    geneLoadout[index] = id;
+    persist({ ...s, geneLoadout });
+    return true;
+  },
+  /** Swap two UNLOCKED slots (the rearrange gesture). */
+  swapGeneSlots(a: number, b: number): void {
+    const s = store.get();
+    if (a < 0 || b < 0 || a >= s.geneSlots || b >= s.geneSlots || a === b) return;
+    const geneLoadout = s.geneLoadout.slice();
+    [geneLoadout[a], geneLoadout[b]] = [geneLoadout[b], geneLoadout[a]];
+    persist({ ...s, geneLoadout });
+  },
+  /** Buy the NEXT loadout slot. Dual-gated (the spec): Campaign progression AND Genome Cores. */
+  buyGeneSlot(): boolean {
+    const s = store.get();
+    const next = GENE_LOADOUT_SLOTS[s.geneSlots]; // the first still-locked slot (0-indexed)
+    if (!next) return false; // all five owned
+    if (highestCampaignStage(s) < next.campaignStage) return false;
+    if (s.shards < next.coreCost) return false;
+    persist({ ...s, shards: s.shards - next.coreCost, geneSlots: s.geneSlots + 1 });
+    return true;
+  },
+
   /** Buy the next permanent level of a gene card (the Archive's upgrade button). Guarded: the card
    *  must be registered + OWNED (drafted at least once), below its authored ceiling AND the global
    *  campaign-gate ceiling, and the Gene Essence cost must be covered. Stamps `upgradedAt` (drives

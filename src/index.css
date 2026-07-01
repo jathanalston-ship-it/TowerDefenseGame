@@ -4612,6 +4612,33 @@ kbd {
 .ic-ilvl { color: var(--muted); font-variant-numeric: tabular-nums; }
 .ic-power { color: var(--gold); font-variant-numeric: tabular-nums; }
 
+/* ── Starting Gene Loadout (bar + run-boot splash) ── */
+.gl-bar { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 10px 0 4px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--line-strong); }
+.gl-k { align-self: center; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--muted); margin-right: 4px; }
+.gl-slot { display: flex; align-items: center; gap: 6px; min-width: 118px; min-height: 44px; padding: 4px 8px; border-radius: 10px; border: 1px dashed var(--line); background: rgba(255,255,255,0.03); font-size: 11px; }
+.gl-slot.is-filled { border-style: solid; border-color: color-mix(in srgb, var(--rc) 55%, var(--line)); background: color-mix(in srgb, var(--rc) 8%, transparent); }
+.gl-slot.is-filled.is-swapping { outline: 2px solid var(--gold); outline-offset: 1px; }
+.gl-card { display: flex; align-items: center; gap: 6px; background: none; border: none; padding: 0; min-width: 0; }
+.gl-name { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.gl-x { flex: none; width: 18px; height: 18px; border-radius: 6px; background: rgba(255,255,255,0.06); color: var(--muted); font-size: 10px; padding: 0; }
+.gl-x:hover { color: var(--danger); }
+.gl-slot.is-empty { justify-content: center; color: var(--muted); cursor: pointer; }
+.gl-slot.is-empty:hover, .gl-slot.is-empty.is-arming { border-color: var(--caustic); color: var(--caustic); }
+.gl-slot.is-empty.is-arming { animation: pulse 1.4s ease-in-out infinite; }
+.gl-slot.is-locked { flex-direction: column; justify-content: center; gap: 2px; opacity: 0.85; }
+.gl-lock { font-size: 12px; }
+.gl-req { display: inline-flex; align-items: center; gap: 3px; font-size: 9.5px; color: var(--muted); white-space: nowrap; }
+.gl-buy { margin-top: 2px; padding: 2px 10px; border-radius: 7px; background: var(--gold); color: #1a1400; font-size: 10px; font-weight: 800; }
+.ga-grid.is-equipping .ga-tile:not(.is-unowned) { outline: 1px dashed var(--caustic); cursor: copy; }
+.gene-splash { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 26px; border-radius: 14px; background: rgba(6, 14, 12, 0.82); border: 1px solid var(--caustic); box-shadow: 0 0 30px color-mix(in srgb, var(--caustic) 30%, transparent); animation: gene-splash-in 0.45s ease-out, gene-splash-out 0.6s ease-in 2.6s forwards; pointer-events: auto; cursor: pointer; }
+.gene-splash-k { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 15px; font-weight: 900; letter-spacing: 0.12em; color: var(--caustic); }
+.gene-splash-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 480px; }
+.gene-splash-card { padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,0.07); border: 1px solid var(--line-strong); font-size: 12px; font-weight: 700; color: var(--text); opacity: 0; animation: gene-card-in 0.4s ease-out forwards; }
+.gene-splash-card b { color: var(--gold); margin-left: 2px; }
+@keyframes gene-splash-in { from { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(0.96); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes gene-splash-out { to { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
+@keyframes gene-card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
 /* ── Gene Archive (permanent Gene Card collection) ── */
 .ga-panel .panel-title { display: flex; align-items: baseline; gap: 12px; }
 .ga-wallet { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 800; color: var(--caustic, #6ad1b0); }

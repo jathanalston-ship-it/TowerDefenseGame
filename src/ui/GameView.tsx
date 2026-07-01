@@ -9,6 +9,7 @@ import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { masteryLevel, meta } from '../state/meta';
+import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
@@ -78,7 +79,19 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, geneLevels: meta.geneLevels() }));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, {
+    runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip,
+    geneLevels: meta.geneLevels(),
+    // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
+    startingGenes: tutorial ? [] : meta.startingGenes(),
+  }));
+  // The starting-genes CINEMATIC: a brief splash naming the genes that just activated (auto-fades).
+  const [geneSplash, setGeneSplash] = useState<string[]>(() => (tutorial ? [] : meta.startingGenes()));
+  useEffect(() => {
+    if (geneSplash.length === 0) return;
+    const t = setTimeout(() => setGeneSplash([]), 3200);
+    return () => clearTimeout(t);
+  }, [geneSplash.length]);
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
@@ -420,6 +433,24 @@ export function GameView({
         {/* Hero selection readout — non-modal (the sim keeps running); dismiss deselects the hero. */}
         {hud.selectedHero && (
           <HeroSelectPanel hero={hud.selectedHero} onClose={() => { game.selectHero(null); refresh(); }} />
+        )}
+        {geneSplash.length > 0 && (
+          // Starting Gene Loadout cinematic (docs/GENE-EVOLUTION.md §Loadouts): a brief splash naming
+          // the permanent genes that just auto-activated, then it fades. Tap to dismiss early.
+          <div className="gene-splash" role="status" onClick={() => setGeneSplash([])}>
+            <div className="gene-splash-k">⌬ STARTING GENES ACTIVE</div>
+            <div className="gene-splash-cards">
+              {geneSplash.map((id, i) => {
+                const c = cardRegistry.get(id);
+                const lvl = meta.geneLevels()[id] ?? 0;
+                return (
+                  <span className="gene-splash-card" key={id} style={{ animationDelay: `${0.15 + i * 0.18}s` }}>
+                    {c?.name ?? id}{lvl > 0 ? <b> L{lvl}</b> : null}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
         )}
         {outro && (
           // The run-end linger: a vignette + Victory/Defeat title over the frozen battlefield.

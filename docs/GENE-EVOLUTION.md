@@ -138,6 +138,25 @@ fully maxes around hour ~400, with the last legendary levels each a double-digit
 - **Data-driven** — a new card is one `CARD_POOL` row; new upgrades are data on the def; the UI/power/
   save all derive generically. Scales to hundreds of cards with no redesign.
 
+## Starting Gene Loadouts (Task 7)
+
+Players equip Gene Cards that **auto-activate when every run begins** — applied at boot through the
+exact same path as a mid-run draft (base + permanent levels, live verb collection, the run's card
+list), so they appear in the Build panel and the **live run Power immediately**. A brief cinematic
+splash ("⌬ STARTING GENES ACTIVE") names the activated genes at run start.
+
+- **Slots:** one free; up to five. Each further slot is **dual-gated** — Campaign progression AND
+  Genome Cores (`GENE_LOADOUT_SLOTS`): slot 2 = Stage 10 + 300 ⬢ · slot 3 = Stage 25 + 900 ·
+  slot 4 = Stage 45 + 2,000 · slot 5 = Stage 70 + 4,500. Locked slots always DISPLAY both
+  requirements; an Unlock button appears once both are met.
+- **Rules:** only OWNED (drafted-at-least-once) cards equip; a card occupies at most ONE slot (no
+  duplicates — enforced in `meta.setGeneSlot` and by `sanitizeGeneLoadout` on load); slots
+  rearrange via click-to-swap.
+- **Save (v19):** `geneSlots` (1–5) + `geneLoadout` (five entries, sparse). Sanitizers drop junk
+  ids/duplicates; pre-v19 saves default to one empty slot.
+- **Run seam:** `RunOptions.startingGenes` (from `meta.startingGenes()` — equipped ∧ owned ∧
+  unlocked-slot). Empty ⇒ nothing applied ⇒ the golden run is byte-identical.
+
 ## Upgrade content (Task 4) — every card, 3–5 levels
 
 Authored in `core/geneUpgrades.ts` and folded onto each `CardDef` (`upgrades` + `maxLevel`) before

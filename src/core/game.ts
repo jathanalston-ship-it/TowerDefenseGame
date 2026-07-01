@@ -56,6 +56,7 @@ import type { EnemyDef, HeroDef } from './config';
 import {
   CARD_POOL,
   applyCard,
+  cardRegistry,
   cardToOption,
   defaultRunModifiers,
   draftCards,
@@ -113,6 +114,7 @@ export interface RunOptions {
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
   geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
+  startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -496,6 +498,22 @@ export class Game {
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
     this.foldHeroEquip(roster, opts.heroEquip); // build per-hero gear mods BEFORE heroes (makeHero reads them)
     this.heroes = roster.map((k) => this.makeHero(k));
+    // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts): equipped cards auto-activate NOW,
+    //    through the exact same path as a mid-run draft (applyCard + live verb collection + the run's
+    //    card list + chosenCardEffects), so they show in the Build panel and the live run Power
+    //    IMMEDIATELY. Applied last — heroes/integrity/biomass exist, so instant ops land correctly.
+    //    Empty/omitted ⇒ nothing happens (the golden run is byte-identical). ──
+    if (opts.startingGenes) {
+      for (const id of opts.startingGenes) {
+        const card = cardRegistry.get(id);
+        if (!card) continue; // unknown id (stale save) — skip, never crash a run boot
+        const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0);
+        applyCard({ ...card, effects }, this.cardContext());
+        for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
+        this.chosenCards.push(cardToOption(card));
+        this.chosenCardEffects.push(...effects);
+      }
+    }
   }
 
   /** Fold each hero's EQUIPMENT (opts.heroEquip) into a per-hero mods bundle + attack verbs, so a

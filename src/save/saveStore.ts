@@ -19,6 +19,7 @@ import { defaultCalib } from '../core/predict';
 import type { PredictCalib } from '../core/predict';
 import { adaptNode } from '../core/adaptation';
 import { sanitizeGeneSave } from '../core/geneCards';
+import { sanitizeGeneLoadout, sanitizeGeneSlots } from '../core/geneLoadout';
 import type { GeneSave } from '../core/geneCards';
 
 export interface SaveData {
@@ -102,6 +103,10 @@ export interface SaveData {
   //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
   //    withDefaults fills {} for pre-v18 saves, sanitizeGeneSave drops unknown/renamed ids. ──
   genes: GeneSave;
+  // ── Starting Gene Loadout (v19) — equipped card ids that auto-activate at run boot. `geneSlots`
+  //    = unlocked slot count (1..5; slot 1 free, 2–5 bought with Campaign progress + Genome Cores). ──
+  geneSlots: number;
+  geneLoadout: (string | null)[];
   // ── Gene Essence (schema v18) — permanent Gene Card upgrade currency. Earned mainly by converting
   //    duplicate max-Star shards (meta.openContainer) + rare container drops. Additive ⇒ 0 for old saves. ──
   geneEssence: number;
@@ -117,7 +122,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 18;
+export const CURRENT_VERSION = 19;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -262,6 +267,8 @@ export function defaultSave(): SaveData {
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
     genes: {},
+    geneSlots: 1,
+    geneLoadout: [null, null, null, null, null],
     geneEssence: 0,
   };
 }
@@ -385,6 +392,9 @@ function withDefaults(data: SaveData): SaveData {
     prediction: sanitizePrediction(data.prediction),
     help: sanitizeHelp(data.help),
     genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
+    // v18→v19: Starting Gene Loadout. Pre-v19 ⇒ 1 slot, empty loadout; junk ids/duplicates dropped.
+    geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),
+    geneLoadout: sanitizeGeneLoadout((data as { geneLoadout?: unknown }).geneLoadout),
     geneEssence: Math.max(0, Math.floor(Number((data as { geneEssence?: unknown }).geneEssence) || 0)), // v18: permanent gene currency (pre-v18 ⇒ 0)
   };
 }

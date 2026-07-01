@@ -9,7 +9,8 @@ import { useState } from 'react';
 import { meta } from '../state/meta';
 import { geneArchiveRows, geneArchiveSummary } from '../state/geneArchive';
 import type { GeneArchiveRow } from '../state/geneArchive';
-import { CARD_CATEGORY_LABEL } from '../core/cards';
+import { CARD_CATEGORY_LABEL, cardRegistry, cardSubject } from '../core/cards';
+import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { affectsOf } from './cardAffects';
 import { GeneCardArt, geneRarityColor } from './components/GeneCardArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -143,11 +144,70 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
   );
 }
 
+/** The Starting Gene Loadout bar (docs/GENE-EVOLUTION.md §Loadouts): five slot chips — equipped
+ *  (art + name; click to select for swap, ✕ to clear), empty ("+ Equip" arms pick-a-card-below),
+ *  locked (requirements ALWAYS displayed; an Unlock button once both gates are met). Equipped genes
+ *  auto-activate when every run begins. */
+function LoadoutBar({ equipMode, onArmSlot }: { equipMode: number | null; onArmSlot: (i: number | null) => void }): JSX.Element {
+  const save = meta.use();
+  const slots = save.geneSlots;
+  const stage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
+  const [swapFrom, setSwapFrom] = useState<number | null>(null);
+  const clickFilled = (i: number): void => {
+    if (swapFrom === null) { setSwapFrom(i); return; } // select for rearrange
+    if (swapFrom !== i) meta.swapGeneSlots(swapFrom, i);
+    setSwapFrom(null);
+  };
+  return (
+    <div className="gl-bar">
+      <span className="gl-k" title="Equipped genes auto-activate at the start of EVERY run">STARTING GENES</span>
+      {GENE_LOADOUT_SLOTS.map((def, i) => {
+        const unlocked = i < slots;
+        const id = save.geneLoadout[i];
+        const card = id ? cardRegistry.get(id) : undefined;
+        if (!unlocked) {
+          const canBuy = i === slots && stage >= def.campaignStage && save.shards >= def.coreCost;
+          return (
+            <div className="gl-slot is-locked" key={def.slot} title={`Slot ${def.slot} — requires Campaign Stage ${def.campaignStage} AND ${def.coreCost} Genome Cores`}>
+              <span className="gl-lock">🔒</span>
+              <span className="gl-req">Stage {def.campaignStage} · <CurrencyIcon id="genomeCores" size={10} title="" /> {def.coreCost.toLocaleString()}</span>
+              {canBuy && <button className="gl-buy" onClick={() => { if (meta.buyGeneSlot()) audio.cue('draft'); }}>Unlock</button>}
+            </div>
+          );
+        }
+        if (card) {
+          const aff = affectsOf(cardSubject(card));
+          return (
+            <div className={`gl-slot is-filled${swapFrom === i ? ' is-swapping' : ''}`} key={def.slot} style={{ ['--rc' as string]: geneRarityColor(card.rarity) }}>
+              <button className="gl-card" onClick={() => clickFilled(i)} title={swapFrom === null ? `${card.name} — click, then click another slot to rearrange` : 'Click a slot to swap into'}>
+                <GeneCardArt id={card.id} accent={aff.color} rarity={card.rarity} size={34} />
+                <span className="gl-name">{card.name}</span>
+              </button>
+              <button className="gl-x" title="Unequip" onClick={() => { meta.setGeneSlot(i, null); setSwapFrom(null); }}>✕</button>
+            </div>
+          );
+        }
+        return (
+          <button
+            key={def.slot}
+            className={`gl-slot is-empty${equipMode === i ? ' is-arming' : ''}`}
+            onClick={() => onArmSlot(equipMode === i ? null : i)}
+            title="Equip a gene — click, then pick an owned card below"
+          >
+            {equipMode === i ? 'pick a card below…' : '+ Equip'}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function GeneArchive(): JSX.Element {
   const save = meta.use();
   const rows = geneArchiveRows(save);
   const sum = geneArchiveSummary(save, rows);
   const [inspectId, setInspectId] = useState<string | null>(null);
+  const [equipSlot, setEquipSlot] = useState<number | null>(null); // armed slot: the next tile click equips
 
   return (
     <div className="panel ga-panel">
@@ -162,6 +222,9 @@ export function GeneArchive(): JSX.Element {
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
 
+      {/* Starting Gene Loadout — equipped genes auto-activate when every run begins. */}
+      <LoadoutBar equipMode={equipSlot} onArmSlot={setEquipSlot} />
+
       {/* The campaign gate ladder — what's unlocked and what to work toward, always visible. */}
       <div className="ga-gates">
         <span className="ga-gates-k">Gene levels unlocked: <b>L{sum.levelCap}</b></span>
@@ -173,8 +236,21 @@ export function GeneArchive(): JSX.Element {
         {sum.upgradeable > 0 && <span className="ga-gates-up">▲ {sum.upgradeable} upgrade{sum.upgradeable > 1 ? 's' : ''} available</span>}
       </div>
 
-      <div className="ga-grid">
-        {rows.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => setInspectId(r.def.id)} />)}
+      <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`}>
+        {rows.map((r) => (
+          <GeneTile
+            key={r.def.id}
+            row={r}
+            onOpen={() => {
+              // Equip mode: an armed empty slot captures the next OWNED tile click (unowned refuse).
+              if (equipSlot !== null) {
+                if (r.owned && meta.setGeneSlot(equipSlot, r.def.id)) { audio.cue('draft'); setEquipSlot(null); }
+                return;
+              }
+              setInspectId(r.def.id);
+            }}
+          />
+        ))}
       </div>
 
       {inspectId && <GeneInspect id={inspectId} onClose={() => setInspectId(null)} />}
