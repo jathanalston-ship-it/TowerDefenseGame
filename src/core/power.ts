@@ -17,18 +17,69 @@ import type { Rarity } from './equipment';
 export const POWER_BASE = 1000;
 
 // Offense-relevant run-mod fields and how heavily each counts toward Power. Raw offense (damage,
-// fire rate) counts fully; economy is weighted lighter; everything else (utility/flags) is 0 —
-// it doesn't move Power. Data-driven so a new offense knob is one row.
+// fire rate) counts fully; secondary offense (splash / DoT / auras / execute) counts partially;
+// economy + survivability are weighted lighter; everything else (pure utility, CC, behavior, string
+// /flag knobs, and inverse trade-offs like heroCooldownMult / enemyHpRunMult) is 0 — it doesn't move
+// Power. Data-driven so a new offense knob is one row. INVARIANT: every POWER_RELEVANT_FIELDS entry
+// MUST appear here or in ADD_POWER (enforced by validate.ts → 'power-coverage'); a fresh account is
+// unaffected because all these fields default to their neutral value (effectsPower(defaults) === 1).
 const FIELD_WEIGHT: Record<string, number> = {
   towerDamageMult: 1,
   heroDamageMult: 1,
   towerFireRateMult: 1,
-  biomassMult: 0.3,
+  splashRadiusMult: 0.5,
+  poolDpsMult: 0.5,
+  parasiteInfectionMult: 0.4,
+  heroAbilityRadiusMult: 0.3,
+  lastStandMult: 0.3,
+  integrityMult: 0.35, // survivability
+  heroMaxHpMult: 0.3, // survivability
+  biomassMult: 0.3, // economy
+  reactorBiomassMult: 0.25, // economy
 };
-// `add`-op fields that meaningfully raise offense, expressed as "per unit" multiplier bumps.
+// `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
   needleExtraProjectiles: 0.08, // each extra projectile ≈ +8% offense
+  heroLifestealFrac: 0.5,
+  heroThornsFrac: 0.2,
+  heroTowerHasteAura: 0.3,
+  heroTowerDamageAura: 0.4,
+  executeThreshold: 1.5,
+  damagePerTower: 3,
+  damagePerEmptySlot: 3,
+  classResonanceBonus: 0.5,
+  diversityBonus: 0.5,
+  fractureBonusStacks: 0.04,
+  reactionRepeats: 0.1,
+  obeliskVulnerabilityBonus: 0.3,
+  reactorOverchargeBonus: 0.1,
 };
+
+/** The canonical set of run-modifier fields that represent account STRENGTH — the CONTRACT the Power
+ *  index must honor. Every entry MUST be scored by the model above (FIELD_WEIGHT ∪ ADD_POWER), which
+ *  `validate.ts` enforces at dev boot: a strength field left unscored is a validation ERROR, so no
+ *  strength-affecting content can exist without a Power evaluation. Deliberately EXCLUDES inverse
+ *  trade-offs (heroCooldownMult, enemyHpRunMult) and pure utility/CC/behavior knobs. */
+export const POWER_RELEVANT_FIELDS: readonly string[] = [
+  'towerDamageMult', 'towerFireRateMult', 'heroDamageMult', 'splashRadiusMult', 'poolDpsMult',
+  'parasiteInfectionMult', 'heroAbilityRadiusMult', 'lastStandMult', 'integrityMult', 'heroMaxHpMult',
+  'biomassMult', 'reactorBiomassMult', 'needleExtraProjectiles', 'heroLifestealFrac', 'heroThornsFrac',
+  'heroTowerHasteAura', 'heroTowerDamageAura', 'executeThreshold', 'damagePerTower', 'damagePerEmptySlot',
+  'classResonanceBonus', 'diversityBonus', 'fractureBonusStacks', 'reactionRepeats', 'obeliskVulnerabilityBonus',
+  'reactorOverchargeBonus',
+];
+
+/** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */
+export function powerModelFields(): Set<string> {
+  return new Set([...Object.keys(FIELD_WEIGHT), ...Object.keys(ADD_POWER)]);
+}
+
+/** Strength fields the model FAILS to score — must be empty (validate.ts turns a non-empty result
+ *  into a 'power-coverage' error). The enforcement point for "no strength content without Power". */
+export function uncoveredPowerFields(): string[] {
+  const scored = powerModelFields();
+  return POWER_RELEVANT_FIELDS.filter((f) => !scored.has(f));
+}
 
 /**
  * Fold any CardEffect[] — an equipped loadout, drafted gene cards, or branch grants — into one

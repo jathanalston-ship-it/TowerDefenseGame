@@ -53,6 +53,7 @@ import {
 } from './equipment';
 import { DIFFICULTIES, difficultyRegistry } from './difficulty';
 import { DOCTRINES, doctrineRegistry } from './doctrines';
+import { effectsPower, uncoveredPowerFields } from './power';
 import { statusRegistry } from './status';
 import { rarityRegistry } from './loot';
 import { starPathRegistry } from './stars';
@@ -126,6 +127,9 @@ export function validateAllContent(): string[] {
     ...masteryTrackRegistry.validate(),
     ...ascendantRegistry.validate(),
     ...waveProblems(WAVES),
+    // Power Score coverage — a declared strength field left unscored fails the boot check, so no
+    // strength-affecting content can ship without a Power evaluation (docs/POWER-SCORE.md).
+    ...uncoveredPowerFields().map((f) => `power model: strength field '${f}' is unscored by FIELD_WEIGHT/ADD_POWER`),
   ];
   // Cross-registry: a wave may only spawn enemies that actually exist in the registry.
   WAVES.forEach((wave, w) => {
@@ -151,7 +155,8 @@ export type ValidationCategory =
   | 'invalid-stat' // out-of-range / non-finite numeric value
   | 'missing-localization' // a user-facing string (name/description) is empty
   | 'broken-upgrade-chain' // a progression curve is non-monotonic / degenerate
-  | 'invalid-loot-table'; // a reward table is malformed (ranges/odds/empty pool)
+  | 'invalid-loot-table' // a reward table is malformed (ranges/odds/empty pool)
+  | 'power-coverage'; // a strength field is unscored by the Power index, or a source spikes it
 
 export interface ValidationIssue {
   category: ValidationCategory;
@@ -373,6 +378,33 @@ export function validateAllContentReport(): ValidationReport {
   if (ARMOR.length === 0) issues.push(err('invalid-loot-table', 'equipment', 'armor pool is empty'));
   if (RELICS.length === 0) issues.push(err('invalid-loot-table', 'equipment', 'relic pool is empty'));
   if (ALL_ITEMS.length === 0) issues.push(err('invalid-loot-table', 'equipment', 'item drop pool is empty'));
+
+  // 8 ─ Power Score coverage (docs/POWER-SCORE.md). The engine-level guarantee that no strength-
+  //     affecting content escapes the Power index: (a) every declared strength field MUST be scored
+  //     by the model (an unscored one is an ERROR — it would change strength INVISIBLY to Power),
+  //     and (b) no single content source may spike the index (a balance WARNING). Any new item /
+  //     card / affix / set / doctrine is checked here the moment it's added.
+  for (const f of uncoveredPowerFields()) {
+    issues.push(err('power-coverage', 'power model', `strength field '${f}' is not scored by FIELD_WEIGHT/ADD_POWER — Power would be blind to it`));
+  }
+  // Spike caps are CATEGORY-AWARE: a spike is dangerous when it PERMANENTLY inflates the account
+  // power curve (equipment / affixes / sets), so those cap tight at +60%. TEMPORARY run choices
+  // (gene cards / doctrines) are per-run and self-limiting — glass-cannon archetypes (× damage with
+  // a downside) are by design — so they cap far higher, catching only truly degenerate outliers.
+  const GEAR_SPIKE = 0.6;
+  const RUN_SPIKE = 2.5;
+  const spikeCheck = (effects: CardEffect[], target: string, cap: number): void => {
+    const gain = effectsPower(effects) - 1;
+    if (gain > cap) issues.push(warn('power-coverage', target, `single source contributes +${Math.round(gain * 100)}% Power (spike — cap +${Math.round(cap * 100)}%)`));
+  };
+  for (const it of ALL_ITEMS) {
+    spikeCheck(it.base, `item '${it.id}'`, GEAR_SPIKE);
+    if (it.signature) spikeCheck([...it.base, ...it.signature.effects], `item '${it.id}' (with signature)`, GEAR_SPIKE);
+  }
+  for (const a of AFFIXES) spikeCheck(a.effects, `affix '${a.id}' (base tier)`, GEAR_SPIKE); // pre-tier-scale floor
+  for (const s of Object.values(SETS)) spikeCheck([...s.bonus2, ...s.bonus4], `set '${s.id}' (full bonus)`, GEAR_SPIKE);
+  for (const c of CARD_POOL) spikeCheck(c.effects, `card '${c.id}'`, RUN_SPIKE);
+  for (const d of Object.values(DOCTRINES)) spikeCheck(d.effects, `doctrine '${d.id}'`, RUN_SPIKE);
 
   const errors = issues.filter((i) => i.severity === 'error');
   const warnings = issues.filter((i) => i.severity === 'warning');
