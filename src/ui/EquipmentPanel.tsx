@@ -10,7 +10,11 @@ import { HERO_DEFS } from '../core/config';
 import {
   RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, itemDef, itemScore, loadoutScore,
 } from '../core/equipment';
-import type { EquipSlot, OwnedItem, Rarity } from '../core/equipment';
+import type { EquipSlot, OwnedItem, Rarity, RolledAffix } from '../core/equipment';
+import {
+  REFORGE_OPS, canAfford, itemAffixView, opAvailable, reforgeCost, salvageValue,
+} from '../core/reforge';
+import type { Mats, ReforgeOp } from '../core/reforge';
 import { ItemArt, rarityColor } from './components/ItemArt';
 
 type SortKey = 'power' | 'rarity' | 'name' | 'set' | 'newest';
@@ -33,6 +37,7 @@ export function EquipmentPanel(): JSX.Element {
   const [sort, setSort] = useState<SortKey>('power');
   const [favOnly, setFavOnly] = useState(false);
   const [compareUid, setCompareUid] = useState<string | null>(null);
+  const [reforgeUid, setReforgeUid] = useState<string | null>(null);
 
   const byUid = new Map(inventory.map((i) => [i.uid, i] as const));
   const equippedUids = new Set([loadout.weapon, loadout.armor, loadout.relic].filter(Boolean) as string[]);
@@ -84,6 +89,8 @@ export function EquipmentPanel(): JSX.Element {
           <div className="ic-meta">
             <span className="ic-rarity" style={{ color: c }}>{cap(item.rarity)}</span>
             <span> · {SLOT_LABELS[def.slot]}{def.weaponType ? ` · ${cap(def.weaponType)}` : def.armorType ? ` · ${cap(def.armorType)}` : ''}</span>
+            {item.ilvl !== undefined && <span className="ic-ilvl" title="Item level"> · i{item.ilvl}</span>}
+            <span className="ic-power" title="Power Score"> · ⚙ {itemScore(item)}</span>
           </div>
           <p className="ic-desc">{def.desc}</p>
           {sig && <div className="ic-sig">◆ {sig}</div>}
@@ -106,8 +113,7 @@ export function EquipmentPanel(): JSX.Element {
           <button className="ic-mini" title="Compare with equipped" onClick={() => setCompareUid(item.uid)}>⇄</button>
           <button className={`ic-mini ${item.favorite ? 'is-on' : ''}`} title="Favorite" onClick={() => meta.toggleFavorite(item.uid)}>★</button>
           <button className={`ic-mini ${item.locked ? 'is-on' : ''}`} title="Lock (protect from salvage)" onClick={() => meta.toggleLock(item.uid)}>{item.locked ? '🔒' : '🔓'}</button>
-          <button className="ic-mini" title="Reroll affixes (1 Mutagen)" onClick={() => meta.rerollItem(item.uid)}>⟳</button>
-          <button className="ic-mini" title="Transmute up a rarity (2 Catalyst)" onClick={() => meta.transmuteItem(item.uid)}>▲</button>
+          <button className="ic-mini" title="Reforge — improve this item" onClick={() => setReforgeUid(item.uid)}>⚒</button>
           <button className="ic-mini danger" title={item.locked ? 'Unlock to salvage' : 'Salvage for materials'} disabled={item.locked} onClick={() => meta.salvageItem(item.uid)}>✕</button>
         </div>
       </div>
@@ -171,6 +177,7 @@ export function EquipmentPanel(): JSX.Element {
       )}
 
       {compareUid && <CompareOverlay uid={compareUid} byUid={byUid} loadout={loadout} onClose={() => setCompareUid(null)} />}
+      {reforgeUid && <ReforgeOverlay uid={reforgeUid} byUid={byUid} mats={save.mats} onClose={() => setReforgeUid(null)} />}
     </div>
   );
 }
@@ -226,6 +233,104 @@ function CompareOverlay({
           )}
           <button onClick={onClose}>Close</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Reforge overlay: improve an existing item (Diablo-style — no recipes) ────────
+function costLabel(cost: Mats): string {
+  const parts: string[] = [];
+  if (cost.mutagen) parts.push(`⊕${cost.mutagen}`);
+  if (cost.scrap) parts.push(`◳${cost.scrap}`);
+  if (cost.catalyst) parts.push(`✷${cost.catalyst}`);
+  return parts.length ? parts.join(' ') : 'Free';
+}
+
+/** One affix row in the Reforge overlay — name · tier · lock · randomize (targeted swap). */
+function ReforgeAffixRow({ item, affix, mats, tag }: { item: OwnedItem; affix: RolledAffix; mats: Mats; tag: string }): JSX.Element {
+  const index = item.affixes.indexOf(affix);
+  const def = affixDef(affix.affixId);
+  const randCost = reforgeCost('randomize', item);
+  const canRand = !affix.locked && canAfford(mats, randCost);
+  return (
+    <div className={`rf-affix rf-${tag.toLowerCase()}${affix.locked ? ' is-locked' : ''}`}>
+      <span className="rf-affix-tag">{tag}</span>
+      <span className="rf-affix-name">{def?.name ?? affix.affixId}</span>
+      <span className="rf-affix-tier">T{affix.tier}</span>
+      <span className="rf-affix-actions">
+        <button
+          className={`rf-mini${affix.locked ? ' is-on' : ''}`}
+          title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'}
+          onClick={() => meta.lockItemAffix(item.uid, index)}
+        >{affix.locked ? '🔒' : '🔓'}</button>
+        <button
+          className="rf-mini"
+          title={`Randomize this affix — new type (${costLabel(randCost)})`}
+          disabled={!canRand}
+          onClick={() => meta.randomizeItemAffix(item.uid, index)}
+        >⤨</button>
+      </span>
+    </div>
+  );
+}
+
+function ReforgeOverlay({
+  uid, byUid, mats, onClose,
+}: {
+  uid: string;
+  byUid: Map<string, OwnedItem>;
+  mats: Mats;
+  onClose: () => void;
+}): JSX.Element | null {
+  const item = byUid.get(uid);
+  const def = item ? itemDef(item.defId) : undefined;
+  if (!item || !def) return null; // salvaged / missing → overlay collapses
+  const c = rarityColor(item.rarity);
+  const view = itemAffixView(item);
+  const runOp = (op: ReforgeOp): void => {
+    if (op === 'salvage') { meta.salvageItem(uid); onClose(); return; }
+    meta.reforgeOp(uid, op);
+  };
+  return (
+    <div className="cmp-overlay" onClick={onClose}>
+      <div className="rf-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+        <div className="rf-head">
+          <ItemArt def={def} rarity={item.rarity} size={64} />
+          <div className="rf-head-info">
+            <div className="rf-name" style={{ color: c }}>{def.name}</div>
+            <div className="ic-meta">
+              <span style={{ color: c }}>{cap(item.rarity)}</span> · {SLOT_LABELS[def.slot]}
+              {item.ilvl !== undefined && <span title="Item level"> · i{item.ilvl}</span>}
+              <span title="Power Score"> · ⚙ {itemScore(item)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rf-affixes">
+          {view.primary
+            ? <ReforgeAffixRow item={item} affix={view.primary} mats={mats} tag="Primary" />
+            : <div className="hint">No affixes yet — Upgrade to add an affix slot.</div>}
+          {view.prefixes.map((a) => <ReforgeAffixRow key={a.affixId} item={item} affix={a} mats={mats} tag="Prefix" />)}
+          {view.suffixes.map((a) => <ReforgeAffixRow key={a.affixId} item={item} affix={a} mats={mats} tag="Suffix" />)}
+        </div>
+
+        <div className="rf-ops">
+          {REFORGE_OPS.map((op) => {
+            const cost = reforgeCost(op.id, item);
+            const disabled = !opAvailable(op.id, item) || (op.id !== 'salvage' && !canAfford(mats, cost));
+            return (
+              <button key={op.id} className={`rf-op${op.id === 'salvage' ? ' danger' : ''}`} disabled={disabled} onClick={() => runOp(op.id)}>
+                <span className="rf-op-h"><b>{op.icon} {op.label}</b>
+                  <span className="rf-op-cost">{op.id === 'salvage' ? `+${costLabel(salvageValue(item))}` : costLabel(cost)}</span>
+                </span>
+                <span className="rf-op-blurb">{op.blurb}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="rf-mats">Materials · ⊕ {mats.mutagen} Mutagen · ◳ {mats.scrap} Scrap · ✷ {mats.catalyst} Catalyst</div>
+        <div className="cmp-btns"><button onClick={onClose}>Close</button></div>
       </div>
     </div>
   );

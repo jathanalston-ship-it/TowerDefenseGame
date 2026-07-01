@@ -32,11 +32,22 @@ export const RARITY_ORDER: Rarity[] = ['common', 'rare', 'epic', 'legendary', 'e
 export const AFFIX_TIER_SCALE = [0, 1, 1.18, 1.36, 1.58, 1.8, 2.0];
 export const MAX_AFFIX_TIER = 6;
 
+/** Item-level → affix tier ceiling (Reforge gradual progression). Low ilvl caps low (T2), deep
+ *  runs unlock T6; a missing ilvl (legacy gear) is uncapped. Power climbs with depth, never in one
+ *  jump. Lives here (next to the tier ladder) so item generation can honour it without a cycle. */
+export function maxTierForIlvl(ilvl?: number): number {
+  if (ilvl === undefined) return MAX_AFFIX_TIER; // legacy / uncapped
+  return Math.max(2, Math.min(MAX_AFFIX_TIER, 2 + Math.floor((Math.max(1, ilvl) - 1) / 8)));
+}
+
 // ── Affixes (behavioral, drawn by slot bias) ─────────────────────────────────
 export interface AffixDef {
   id: string;
   name: string;
   bias: EquipSlot | 'any';
+  /** Prefix (offense) or suffix (utility) for the Reforge affix view. Optional: affixes default
+   *  via `affixKind` (offense list → prefix, else suffix); set here to override for new content. */
+  kind?: 'prefix' | 'suffix';
   /** Tier-1 magnitude; scaled by AFFIX_TIER_SCALE[tier] at application. */
   effects: CardEffect[];
 }
@@ -83,6 +94,16 @@ export const AFFIXES: AffixDef[] = [
 const AFFIX_BY_ID = new Map(AFFIXES.map((a) => [a.id, a] as const));
 export function affixDef(id: string): AffixDef | undefined {
   return AFFIX_BY_ID.get(id);
+}
+
+/** Offense affixes → "prefix"; everything else is a utility "suffix". Data-driven classification
+ *  for the Reforge affix view (Primary / Prefix / Suffix). One reviewable list; an AffixDef may
+ *  override via its `kind` field, and any new affix defaults to a suffix unless listed here. */
+const PREFIX_AFFIX_IDS = new Set<string>([
+  'keen', 'rapid', 'volatile', 'piercing', 'savage', 'venomous', 'piercer', 'cursed', 'corrosive', 'twinned',
+]);
+export function affixKind(id: string): 'prefix' | 'suffix' {
+  return affixDef(id)?.kind ?? (PREFIX_AFFIX_IDS.has(id) ? 'prefix' : 'suffix');
 }
 
 // ── Sets (counted across equipped weapon + armor) ────────────────────────────
@@ -348,12 +369,14 @@ const BY_SLOT: Record<EquipSlot, EquipDef[]> = {
 export interface RolledAffix {
   affixId: string;
   tier: number; // 1..MAX_AFFIX_TIER
+  locked?: boolean; // Reforge: shielded from reroll / reforge / randomize
 }
 export interface OwnedItem {
   uid: string;
   defId: string;
   rarity: Rarity;
   affixes: RolledAffix[];
+  ilvl?: number; // Reforge item level (drop depth) — caps the affix tier ceiling; legacy gear omits it
   favorite?: boolean; // pinned by the player (sorts first; never the salvage target)
   locked?: boolean; // protected from salvage (the collectible "keep" flag)
 }
@@ -365,19 +388,24 @@ export interface Loadout {
 
 type Rng = () => number;
 const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)];
-const randTier = (rng: Rng): number => 1 + Math.floor(rng() * MAX_AFFIX_TIER);
+/** Roll a random affix tier in 1..maxTier (the reroll chase, bounded by the ilvl ceiling). */
+export const rollAffixTier = (rng: Rng, maxTier: number = MAX_AFFIX_TIER): number =>
+  1 + Math.floor(rng() * Math.max(1, Math.min(MAX_AFFIX_TIER, maxTier)));
 
-/** Roll N affixes biased to the slot (no duplicates), each at a random tier. */
-function rollAffixes(rng: Rng, slot: EquipSlot, n: number): RolledAffix[] {
+/** Roll N affixes biased to the slot (no duplicates), each at a random tier ≤ maxTier.
+ *  `exclude` seeds the used-set so callers (Reforge ops) can avoid affix types already carried. */
+export function rollAffixes(
+  rng: Rng, slot: EquipSlot, n: number, maxTier: number = MAX_AFFIX_TIER, exclude: Iterable<string> = [],
+): RolledAffix[] {
   const pool = AFFIXES.filter((a) => a.bias === slot || a.bias === 'any');
   const out: RolledAffix[] = [];
-  const used = new Set<string>();
+  const used = new Set<string>(exclude);
   let guard = 0;
   while (out.length < n && guard++ < 50) {
     const a = pick(rng, pool);
     if (used.has(a.id)) continue;
     used.add(a.id);
-    out.push({ affixId: a.id, tier: randTier(rng) });
+    out.push({ affixId: a.id, tier: rollAffixTier(rng, maxTier) });
   }
   return out;
 }
@@ -387,20 +415,29 @@ function newUid(): string {
   return `it_${Date.now().toString(36)}_${(uidSeq++).toString(36)}`;
 }
 
-/** Create an owned instance of a definition at a rarity (rolls affixes for the tier). */
-export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity): OwnedItem {
+/** Create an owned instance of a definition at a rarity (rolls affixes for the tier). An optional
+ *  `ilvl` stamps the item level and caps rolled affix tiers to that level's ceiling. */
+export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity, ilvl?: number): OwnedItem {
   const fixed: Rarity = def.exotic ? 'exotic' : rarity;
-  return { uid: newUid(), defId: def.id, rarity: fixed, affixes: rollAffixes(rng, def.slot, RARITY_AFFIXES[fixed]) };
+  const cap = ilvl === undefined ? MAX_AFFIX_TIER : maxTierForIlvl(ilvl);
+  const item: OwnedItem = { uid: newUid(), defId: def.id, rarity: fixed, affixes: rollAffixes(rng, def.slot, RARITY_AFFIXES[fixed], cap) };
+  if (ilvl !== undefined) item.ilvl = ilvl;
+  return item;
 }
 
-/** A run-end drop: a random item with rarity weighted by how deep the run got. */
+/** A run-end drop: a slot-balanced random item, rarity weighted by how deep the run got, stamped
+ *  with an item level from the run depth (the Reforge tier ceiling). */
 export function rollItemDrop(rng: Rng, wave: number): OwnedItem {
-  const def = pick(rng, ALL_ITEMS);
-  if (def.exotic) return rollItem(rng, def, 'exotic');
+  // Pick a SLOT uniformly, then an item within it — so Weapon / Armor / Relic each drop at a 1/3
+  // share regardless of how many items each category defines (equal category representation).
+  const slot = pick(rng, ['weapon', 'armor', 'relic'] as EquipSlot[]);
+  const def = pick(rng, BY_SLOT[slot]);
+  const ilvl = Math.max(1, Math.round(wave));
+  if (def.exotic) return rollItem(rng, def, 'exotic', ilvl);
   // deeper → better floor
   const roll = rng() + Math.min(0.35, wave * 0.03);
   const rarity: Rarity = roll > 1.15 ? 'legendary' : roll > 0.9 ? 'epic' : roll > 0.55 ? 'rare' : 'common';
-  return rollItem(rng, def, rarity);
+  return rollItem(rng, def, rarity, ilvl);
 }
 
 // ── Reroll & craft hooks (the optimization sink — bounded, deterministic-ish) ──
@@ -494,7 +531,7 @@ export const RARITY_WEIGHT: Record<string, number> = {
 export function itemScore(item: OwnedItem): number {
   const base = RARITY_WEIGHT[item.rarity] ?? 1;
   const aff = item.affixes.reduce((s, a) => s + a.tier, 0);
-  return base * 10 + aff;
+  return base * 10 + aff + Math.round((item.ilvl ?? 0) / 5); // ilvl a light nudge; rarity+affixes dominate
 }
 
 /** The items currently slotted (weapon/armor/relic order), skipping empty slots. */

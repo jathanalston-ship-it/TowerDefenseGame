@@ -37,8 +37,12 @@ import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } f
 import { accumulateStats } from './stats';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } from '../core/equipment';
+import { loadoutEffects, rollItemDrop } from '../core/equipment';
 import type { EquipSlot, OwnedItem } from '../core/equipment';
+import {
+  canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
+} from '../core/reforge';
+import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
@@ -855,32 +859,54 @@ export const meta = {
     persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
-  /** Reroll an item's unlocked affixes (spends 1 Mutagen). */
-  rerollItem(uid: string): boolean {
+  /** Apply a whole-item Reforge operation (Enhance / Reroll / Reforge / Upgrade), spending its
+   *  material cost. No-ops (Upgrade at cap, Enhance with nothing to raise) don't charge. */
+  reforgeOp(uid: string, op: ReforgeOp): boolean {
     const save = store.get();
-    if (save.mats.mutagen < 1) return false;
     const inv = save.equipment.inventory;
     const idx = inv.findIndex((i) => i.uid === uid);
     if (idx < 0) return false;
+    const item = inv[idx];
+    if (!opAvailable(op, item)) return false; // e.g. Upgrade at cap, or Reforge with every affix locked
+    const cost = reforgeCost(op, item);
+    if (!canAfford(save.mats, cost)) return false;
+    let next: OwnedItem | null;
+    switch (op) {
+      case 'enhance': next = enhance(Math.random, item); break;
+      case 'reroll': next = reroll(Math.random, item); break;
+      case 'reforge': next = reforge(Math.random, item); break;
+      case 'upgrade': next = upgrade(Math.random, item); break;
+      default: return false; // lock / randomize / salvage have dedicated methods
+    }
+    if (!next || next === item) return false; // invalid or no-op → don't charge
     const inventory = inv.slice();
-    inventory[idx] = rerollAffixes(Math.random, inv[idx]);
-    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, mutagen: save.mats.mutagen - 1 } });
+    inventory[idx] = next;
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });
     return true;
   },
 
-  /** Transmute an item up a rarity tier (spends 2 Catalysts) — adds an affix slot. */
-  transmuteItem(uid: string): boolean {
+  /** Randomize ONE affix's type (targeted swap), spending its cost. */
+  randomizeItemAffix(uid: string, affixIndex: number): boolean {
     const save = store.get();
-    if (save.mats.catalyst < 2) return false;
     const inv = save.equipment.inventory;
     const idx = inv.findIndex((i) => i.uid === uid);
     if (idx < 0) return false;
-    const next = transmute(Math.random, inv[idx]);
-    if (!next) return false;
+    const item = inv[idx];
+    const cost = reforgeCost('randomize', item);
+    if (!canAfford(save.mats, cost)) return false;
+    const next = randomizeAffix(Math.random, item, affixIndex);
+    if (next === item) return false;
     const inventory = inv.slice();
     inventory[idx] = next;
-    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, catalyst: save.mats.catalyst - 2 } });
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });
     return true;
+  },
+
+  /** Toggle the per-affix lock (free) — protects an affix from Reroll / Reforge / Randomize. */
+  lockItemAffix(uid: string, affixIndex: number): void {
+    const save = store.get();
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? toggleAffixLock(i, affixIndex) : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
   /** Dismantle an item into crafting feedstock (auto-unequips it). */
@@ -888,16 +914,16 @@ export const meta = {
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
     if (!item || item.locked) return false; // locked items are protected from salvage
-    const r = RARITY_ORDER.indexOf(item.rarity);
+    const gain = salvageValue(item);
     const loadout = { ...save.equipment.loadout };
     for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;
     persist({
       ...save,
       equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadout },
       mats: {
-        mutagen: save.mats.mutagen + (r >= 3 ? 1 : 0),
-        scrap: save.mats.scrap + 1 + r,
-        catalyst: save.mats.catalyst + Math.max(0, r - 1),
+        mutagen: save.mats.mutagen + gain.mutagen,
+        scrap: save.mats.scrap + gain.scrap,
+        catalyst: save.mats.catalyst + gain.catalyst,
       },
     });
     return true;
