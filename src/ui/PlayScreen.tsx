@@ -9,8 +9,9 @@ import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { audio } from '../audio/sound';
 import { PlayIcon } from './components/Icon';
-import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
+import { DIFFICULTIES } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
+import { difficultyPref } from '../state/prefs';
 import { generateStage, recommendedPower } from '../core/campaign';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -45,7 +46,6 @@ export function PlayScreen({
   go,
   last,
   onSeenLast,
-  difficultyRef,
   doctrineRef,
 }: {
   onStart: () => void;
@@ -54,7 +54,6 @@ export function PlayScreen({
   go: (k: NavKey) => void;
   last: RunRecap;
   onSeenLast: () => void;
-  difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
   const save = meta.use();
@@ -64,11 +63,7 @@ export function PlayScreen({
   useEffect(() => { if (last) onSeenLast(); }, [last, onSeenLast]);
   // Difficulty drives WHICH campaign track's frontier we show, so it must re-render the
   // panel — mirror it into local state (the ref stays the source of truth for run start).
-  const [diff, setDiff] = useState(difficultyRef.current);
-  const setDifficulty = (id: string): void => {
-    setDiff(id);
-    difficultyRef.current = id;
-  };
+  const diff = difficultyPref('campaign'); // Continue Campaign uses Campaign's own difficulty (chosen there)
 
   const cleared = save.campaign.cleared[diff] ?? 0;
   const frontier = cleared + 1; // the next stage to attempt on this track
@@ -172,14 +167,12 @@ export function PlayScreen({
             <PlayIcon /> Continue Campaign
           </button>
           <div className="mc-setup">
-            <label className="play-field">
+            <div className="play-field">
               <span className="play-field-k">Difficulty</span>
-              <select value={diff} onChange={(e) => setDifficulty(e.target.value)}>
-                {DIFFICULTY_IDS.map((id) => (
-                  <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>
-                ))}
-              </select>
-            </label>
+              <span className="mc-diff-ro" title="Change difficulty inside Campaign">
+                {DIFFICULTIES[diff]?.name ?? 'Standard'} <small>· set in Campaign</small>
+              </span>
+            </div>
             <label className="play-field">
               <span className="play-field-k">Doctrine</span>
               <select defaultValue={doctrineRef.current} onChange={(e) => (doctrineRef.current = e.target.value)}>

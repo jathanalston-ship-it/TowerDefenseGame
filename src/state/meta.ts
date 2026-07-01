@@ -48,6 +48,8 @@ import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
+import { resolveDifficulty } from '../core/difficulty';
+import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
 import { bossDef } from '../core/boss';
@@ -155,7 +157,9 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
  * or fresh account, so it never perturbs a baseline roll. */
 function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, number> {
   const campaignStage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
-  const tier = difficultyId === 'brutal' ? 2 : difficultyId === 'hardened' ? 1 : 0;
+  // Loot-quality axis: harder difficulties tilt the catch-up bias richer, scaled continuously by
+  // the difficulty's lootQualityMult (standard ⇒ 0 tier ⇒ no tilt, golden-safe).
+  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2);
   return lootBias({
     idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
     campaignStage,
@@ -584,6 +588,12 @@ export const meta = {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
     const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
+    // Difficulty ECONOMY scalars (docs/DIFFICULTY.md). standard ⇒ identity (golden-safe). Campaign
+    // already folds difficulty.rewardMult into result.rewardMult, so the currency reward scalar is
+    // applied only to endless here (endlessRewardMult); the OTHER axes (XP, container rate) apply
+    // universally as distinct levers.
+    const econDiff = resolveDifficulty(result.difficulty);
+    const endlessRewardMult = result.endless ? econDiff.rewardMult : 1;
 
     // Mode reward identity (docs/MODE-IDENTITY.md): Campaign pays the account currency (most on a
     // FIRST clear) + first-clear bonuses; Infinite pays the loot meter + a mastery bonus; Stage (the
@@ -607,7 +617,7 @@ export const meta = {
       : 0;
 
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult * coreMult) + firstClearBonus;
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult * endlessRewardMult * coreMult) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -617,7 +627,7 @@ export const meta = {
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult,
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
@@ -631,7 +641,7 @@ export const meta = {
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult,
       );
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
@@ -645,7 +655,7 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult);
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
@@ -1171,6 +1181,31 @@ export const meta = {
   },
 
   /** Wipe permanent progress — but back it up first so it's recoverable. */
+  // ── Tutorial (docs/TUTORIAL.md) — permanent completion + resumable progress ──
+  tutorialState(): SaveData['tutorial'] {
+    return store.get().tutorial;
+  },
+  isTutorialDone(id: string): boolean {
+    return store.get().tutorial.completed.includes(id);
+  },
+  /** First-time detection: the combat tutorial isn't done AND the save is brand-new (no runs), so a
+   * migrated existing player is never force-tutorialized — only a fresh save or an Account Reset. */
+  shouldAutoTutorial(): boolean {
+    const s = store.get();
+    return !s.tutorial.completed.includes('combat') && s.totalRuns === 0;
+  },
+  /** Persist resumable tutorial progress (pass null to clear it). */
+  saveTutorialProgress(progress: TutorialProgress | null): void {
+    const s = store.get();
+    persist({ ...s, tutorial: { ...s.tutorial, progress } });
+  },
+  /** Mark a tutorial permanently complete + clear its progress. Idempotent. */
+  completeTutorial(id: string): void {
+    const s = store.get();
+    const completed = s.tutorial.completed.includes(id) ? s.tutorial.completed : [...s.tutorial.completed, id];
+    persist({ ...s, tutorial: { completed, progress: null } });
+  },
+
   reset(): void {
     saveStore.backup();
     persist(defaultSave());

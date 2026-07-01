@@ -7,6 +7,7 @@ import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
+import { difficultyPref, setDifficultyPref } from '../state/prefs';
 
 export function InfiniteScreen({
   onStartEndless,
@@ -40,8 +41,8 @@ export function InfiniteScreen({
           <label className="play-field">
             <span className="play-field-k">Difficulty</span>
             <select
-              defaultValue={difficultyRef.current}
-              onChange={(e) => (difficultyRef.current = e.target.value)}
+              defaultValue={difficultyPref('infinite')}
+              onChange={(e) => { difficultyRef.current = e.target.value; setDifficultyPref('infinite', e.target.value); }}
             >
               {DIFFICULTY_IDS.map((id) => (
                 <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>

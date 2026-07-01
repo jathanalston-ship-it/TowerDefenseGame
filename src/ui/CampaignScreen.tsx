@@ -10,6 +10,7 @@ import { audio } from '../audio/sound';
 import { campaignMapView, generateStage, recommendedPower } from '../core/campaign';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
+import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
 const WINDOW = 8; // nodes shown at once (a window over the infinite ladder)
@@ -24,7 +25,7 @@ export function CampaignScreen({
   difficultyRef: MutableRefObject<string>;
 }): JSX.Element {
   const save = meta.use();
-  const [diff, setDiff] = useState(difficultyRef.current);
+  const [diff, setDiff] = useState(() => difficultyPref('campaign')); // Campaign's OWN persisted difficulty
   const cleared = save.campaign.cleared[diff] ?? 0;
   const frontier = cleared + 1;
   const power = meta.powerScore().score;
@@ -66,7 +67,7 @@ export function CampaignScreen({
         <div className="camp-map-meta">
           <label className="play-field">
             <span className="play-field-k">Difficulty</span>
-            <select value={diff} onChange={(e) => { setDiff(e.target.value); difficultyRef.current = e.target.value; }}>
+            <select value={diff} onChange={(e) => { setDiff(e.target.value); difficultyRef.current = e.target.value; setDifficultyPref('campaign', e.target.value); }}>
               {DIFFICULTY_IDS.map((id) => <option key={id} value={id} title={DIFFICULTIES[id].blurb}>{DIFFICULTIES[id].name}</option>)}
             </select>
           </label>

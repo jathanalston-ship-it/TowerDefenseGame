@@ -4,15 +4,6 @@ import { meta } from '../state/meta';
 import { CARD_POOL } from '../core/cards';
 import type { Game } from '../core/game';
 
-// Listed-but-not-yet-built systems. The panel is structured so these light up as
-// their milestones land (see docs/ROADMAP.md); for now they're labelled stubs.
-const FUTURE: ReadonlyArray<readonly [string, string]> = [
-  ['Unlock towers', 'M2 — all five towers already available'],
-  ['Unlock heroes', 'M6 — all three heroes selectable in the Hero Lab'],
-  ['Grant equipment', 'M9 — equipment seam wired (HeroMods), items not yet built'],
-  ['Force prestige', 'M12 — prestige not yet built'],
-];
-
 export function DebugPanel(): JSX.Element {
   const game = useSyncExternalStore(subscribeActiveGame, getActiveGame, getActiveGame);
   const save = meta.use();
@@ -197,18 +188,6 @@ export function DebugPanel(): JSX.Element {
                 Apply
               </button>
             </div>
-          </div>
-
-          <div className="debug-sec">
-            <div className="h">Future systems (not in slice)</div>
-            {FUTURE.map(([label, note]) => (
-              <div key={label} className="debug-row" style={{ alignItems: 'center' }}>
-                <button disabled title={note} style={{ minWidth: 118 }}>
-                  {label}
-                </button>
-                <span className="debug-note">{note}</span>
-              </div>
-            ))}
           </div>
         </div>
       )}

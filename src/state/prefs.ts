@@ -21,3 +21,24 @@ export function setAutoGenePref(on: boolean): void {
     /* storage unavailable */
   }
 }
+
+// Per-mode difficulty — Campaign and Infinite each remember their OWN choice, independently
+// (selection lives inside each mode, not the Main Menu). Default 'standard' (identity/golden-safe).
+const DIFF_KEY = { campaign: 'assimilate.diff.campaign', infinite: 'assimilate.diff.infinite' } as const;
+export type DiffMode = keyof typeof DIFF_KEY;
+
+export function difficultyPref(mode: DiffMode): string {
+  try {
+    return localStorage.getItem(DIFF_KEY[mode]) ?? 'standard';
+  } catch {
+    return 'standard';
+  }
+}
+
+export function setDifficultyPref(mode: DiffMode, id: string): void {
+  try {
+    localStorage.setItem(DIFF_KEY[mode], id);
+  } catch {
+    /* storage unavailable */
+  }
+}

@@ -190,7 +190,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
     miniBossWave,
     boss,
     scaling: combineDifficulty(base, sc),
-    enemySpeedMult: sc.speedMult,
+    enemySpeedMult: sc.speedMult, // stage's own speed scaling; the DIFFICULTY speed axis is applied in the sim
     rewardMult: sc.rewardMult * base.rewardMult,
   };
 }
@@ -213,7 +213,8 @@ export function biomeForStage(stage: number): Biome {
 export function recommendedPower(stage: number, difficultyId = 'standard'): number {
   const sc = stageScaling(Math.max(1, Math.floor(stage)));
   const base = resolveDifficulty(difficultyId);
-  return Math.sqrt(sc.hpMult * base.enemyHealthMult * sc.damageMult * base.enemyDamageMult);
+  // × the difficulty's power target so a harder track raises the "am I strong enough?" bar.
+  return Math.sqrt(sc.hpMult * base.enemyHealthMult * sc.damageMult * base.enemyDamageMult) * base.powerTargetMult;
 }
 
 export interface CampaignMapNode {

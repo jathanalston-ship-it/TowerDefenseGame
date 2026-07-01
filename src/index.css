@@ -4193,7 +4193,9 @@ kbd {
 .mc-fact.low .mc-fact-v small { color: #ff7a7a; }
 .mc-cta { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
 .mc-deploy { font-size: 18px; padding: 15px 30px; }
-.mc-setup { display: flex; gap: 14px; }
+.mc-setup { display: flex; gap: 14px; align-items: flex-end; }
+.mc-diff-ro { font-size: 14px; font-weight: 700; color: var(--text); padding: 9px 0; }
+.mc-diff-ro small { color: var(--muted); font-weight: 500; font-size: 11px; }
 
 .mc-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .mc-sec { display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--text); cursor: pointer; transition: border-color 0.15s ease, transform 0.15s ease; }
@@ -4682,6 +4684,7 @@ kbd {
 .ic-sig { margin-top: 5px; font-size: 11px; font-weight: 700; color: var(--gold); }
 .ic-traits { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
 .ic-trait { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); color: var(--muted); }
+.ic-trait.is-locked { border-color: var(--gold); color: var(--gold); }
 .ic-set { display: inline-block; margin-top: 7px; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .ic-owner { margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--success); }
 .ic-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

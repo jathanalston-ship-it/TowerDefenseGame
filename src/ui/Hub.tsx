@@ -220,7 +220,7 @@ export function Hub({
 
         <section className="hub-screen" key={nav}>
           {nav === 'home' && (
-            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
+            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'infinite' && (

@@ -13,6 +13,8 @@ import type { LootQueueState } from '../core/lootQueue';
 import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
 import type { PrestigeState } from '../core/prestige';
+import { sanitizeProgress } from '../core/tutorial';
+import type { TutorialProgress } from '../core/tutorial';
 
 export interface SaveData {
   shards: number;
@@ -67,9 +69,20 @@ export interface SaveData {
   //    Stage N is unlocked when N ≤ cleared[diff] + 1; cleared stages are replayable. Per-difficulty
   //    so new DifficultyDef variants get their own track for free (CAMPAIGN.md §7). ──
   campaign: { cleared: Record<string, number> };
+  // ── Tutorial (schema v12) — permanent completion + resumable progress. Additive; withDefaults
+  //    fills the default for older saves. Cleared on Account Reset (docs/TUTORIAL.md). ──
+  tutorial: TutorialSave;
 }
 
-export const CURRENT_VERSION = 12; // v11→v12: PER-HERO equipment loadouts — migrated from the shared loadout
+/** Permanent tutorial state: which tutorials are fully done + any resumable in-progress run. */
+export interface TutorialSave {
+  completed: string[];
+  progress: TutorialProgress | null;
+}
+
+// v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
+// (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
+export const CURRENT_VERSION = 13;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -174,7 +187,16 @@ export function defaultSave(): SaveData {
     bossesSlain: [],
     prestige: defaultPrestige(),
     campaign: { cleared: {} },
+    tutorial: { completed: [], progress: null },
   };
+}
+
+/** Coerce a loaded tutorial block into a valid shape (completed ids + resumable progress). */
+function sanitizeTutorial(raw: unknown): TutorialSave {
+  if (typeof raw !== 'object' || raw === null) return { completed: [], progress: null };
+  const o = raw as Partial<TutorialSave>;
+  const completed = Array.isArray(o.completed) ? o.completed.filter((x): x is string => typeof x === 'string') : [];
+  return { completed, progress: sanitizeProgress(o.progress) };
 }
 
 /**
@@ -247,6 +269,7 @@ function withDefaults(data: SaveData): SaveData {
     prestige: { ...d.prestige, ...sanitizePrestige(data.prestige) },
     // v9→v10: campaign progression. Empty for an old save; coerce the cleared map to finite ≥0 ints.
     campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
+    tutorial: sanitizeTutorial(data.tutorial),
   };
 }
 
