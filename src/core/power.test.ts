@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { composePower, effectsPower, formatPower, geomean, itemRarityPower, POWER_BASE } from './power';
 import type { PowerParts } from './power';
 
-const FRESH: PowerParts = { meta: 1, towers: 1, heroes: 1, equipment: 1, temporary: 1 };
+const FRESH: PowerParts = { meta: 1, towers: 1, heroes: 1, equipment: 1, collection: 1, temporary: 1 };
 
 describe('composePower', () => {
   it('a fresh account reads exactly POWER_BASE', () => {
@@ -13,14 +13,14 @@ describe('composePower', () => {
 
   it('is strictly monotonic — raising ANY contributor raises the score', () => {
     const base = composePower(FRESH).score;
-    for (const k of ['meta', 'towers', 'heroes', 'equipment', 'temporary'] as (keyof PowerParts)[]) {
+    for (const k of ['meta', 'towers', 'heroes', 'equipment', 'collection', 'temporary'] as (keyof PowerParts)[]) {
       const bumped = composePower({ ...FRESH, [k]: 1.1 });
       expect(bumped.score).toBeGreaterThan(base); // the "you always know if it improved you" invariant
     }
   });
 
   it('is multiplicative — contributors compound', () => {
-    const p = composePower({ meta: 1.2, towers: 1.1, heroes: 1.0, equipment: 1.05, temporary: 1.0 });
+    const p = composePower({ meta: 1.2, towers: 1.1, heroes: 1.0, equipment: 1.05, collection: 1.0, temporary: 1.0 });
     expect(p.mult).toBeCloseTo(1.2 * 1.1 * 1.05, 9);
     expect(p.score).toBe(Math.round(POWER_BASE * 1.2 * 1.1 * 1.05));
   });

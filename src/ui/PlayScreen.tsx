@@ -12,7 +12,8 @@ import { PlayIcon } from './components/Icon';
 import { DIFFICULTIES } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import { difficultyPref } from '../state/prefs';
-import { generateStage, recommendedPower } from '../core/campaign';
+import { generateStage, recommendedPowerScore } from '../core/campaign';
+import { formatPower } from '../core/power';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
@@ -69,8 +70,8 @@ export function PlayScreen({
   const cleared = save.campaign.cleared[diff] ?? 0;
   const frontier = cleared + 1; // the next stage to attempt on this track
   const cfg = generateStage(frontier, diff);
-  const rec = recommendedPower(frontier, diff);
-  const power = meta.powerScore().score;
+  const rec = recommendedPowerScore(frontier, diff);
+  const power = meta.power().score;
   const ready = power >= rec;
   const accent = cfg.biome.accent;
 
@@ -149,7 +150,7 @@ export function PlayScreen({
           <div className={`mc-fact ${ready ? 'ok' : 'low'}`}>
             <span className="mc-fact-k">Recommended Power</span>
             <span className="mc-fact-v">
-              ×{rec.toFixed(1)} <small>you ×{power.toFixed(1)} {ready ? '✓' : '⚠'}</small>
+              {formatPower(rec)} <small>you {formatPower(power)} {ready ? '✓' : '⚠'}</small>
             </span>
           </div>
           <div className="mc-fact">

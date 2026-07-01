@@ -45,7 +45,7 @@ import {
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
-import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
+import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -56,9 +56,23 @@ import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import type { TutorialProgress } from '../core/tutorial';
-import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
-import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
+import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
+import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
+import { BIOMES } from '../core/biomes';
+import { BIOME_REGION } from '../core/campaign';
 import { bossDef } from '../core/boss';
+
+/** Biome ids the account has reached in Campaign, derived from campaign depth (biomes occupy
+ *  contiguous BIOME_REGION-stage bands that rotate through BIOMES). No new save field. */
+function biomesSeenOf(save: SaveData): Set<string> {
+  const seen = new Set<string>();
+  const deepest = highestCampaignStage(save);
+  if (deepest < 1) return seen;
+  const n = BIOMES.length;
+  const maxRegion = Math.floor((deepest - 1) / BIOME_REGION);
+  for (let r = 0; r <= maxRegion && seen.size < n; r++) seen.add(BIOMES[r % n].id);
+  return seen;
+}
 
 /** Build the collection codex context from a save (read-only derivation). */
 export function collectionContextOf(save: SaveData): CollectionContext {
@@ -67,6 +81,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
     bestWave: save.bestWave,
     bossesSlain: new Set(save.bossesSlain),
+    biomesSeen: biomesSeenOf(save),
   };
 }
 
@@ -96,6 +111,14 @@ function persist(next: SaveData): void {
 // new run starting back near 0) also re-arms it defensively.
 let runLootBanked = 0; // loot points already banked this run via syncRunLoot
 let runContainersBanked: PendingContainer[] = []; // loot-queue containers completed live this run (pending, unopened)
+
+// Collection rank celebration — SESSION baseline (not persisted): the per-category rank + the
+// collection Power multiplier at the last poll. meta.pollCollectionRankUps() diffs against these so
+// a promotion is celebrated once per session (the Codex screen polls on open). Seeded at load so the
+// first poll reports growth since the app started, never retroactively for already-earned ranks.
+const _collBaseline = collectionView(collectionContextOf(store.get()));
+let lastCollectionRanks: Partial<Record<CollectionCategoryId, number>> = rankSnapshot(_collBaseline);
+let lastCollectionMult = _collBaseline.power;
 
 /**
  * Permanent multipliers derived from upgrade levels (folded into a run at start).
@@ -168,13 +191,28 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   const mm = metaModifiers(save);
   const tp = towerProgress(save);
   const hp = heroProgress(save);
+  // Prestige + Ascendant global damage is captured ONCE via mm.towerDamageMult; pass the UPGRADE-only
+  // hero multiple to metaExtrasPower so Apex Genome / Rich Biomass / Reinforced Nucleus / Hive
+  // Emplacements all move Power without double-counting prestige (POWER-SCORE.md coverage guarantee).
+  const globalDmg = prestigeMult(save.prestige.lifetimeCells) * ascendantBonuses(save.prestige.nodes).damageMult;
+  const metaExtras = metaExtrasPower({
+    heroDamageUpgradeMult: globalDmg > 0 ? mm.heroDamageMult / globalDmg : 1,
+    biomassMult: mm.biomassMult,
+    integrityMult: 1 + mm.integrityBonus / ECON.baseIntegrity,
+    bonusSlots: mm.bonusSlots,
+  });
+  // Collection completion bonuses are permanent account strength → their offense folds into `meta`.
+  const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
   return {
-    // Ascendant damage already folded into mm.towerDamageMult; genome run-effect combat upgrades add
-    // via effectsPower (weights damage/rate fields; defensive fields weight 0 ⇒ no power inflation).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)),
+    // Every PERMANENT strength source lands in `meta`: upgrades (tower-dmg proxy × genome run-effects ×
+    // the hero/biomass/integrity/slot axes), prestige/ascendant, and collection bonuses — so ANY
+    // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
+    // Codex completion across categories (1 on a fresh account ⇒ POWER_BASE preserved).
+    collection: collectionView(collectionContextOf(save)).power,
     temporary,
   };
 }
@@ -203,7 +241,9 @@ function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, numb
   // the difficulty's lootQualityMult; the Ascendant Fortune node adds a permanent account-wide tilt
   // on top (×1 without it). standard + no node ⇒ 0 tier ⇒ no tilt, golden-safe.
   const fortune = ascendantBonuses(save.prestige.nodes).lootQualityMult;
-  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2 + (fortune - 1) * 2);
+  // Armory collection tilts loot quality richer as it fills (+0 on a fresh account).
+  const codexLoot = collectionEconomyBonuses(collectionView(collectionContextOf(save))).lootQualityTier;
+  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2 + (fortune - 1) * 2 + codexLoot);
   return lootBias({
     idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
     campaignStage,
@@ -750,6 +790,7 @@ export const meta = {
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
+    const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save))); // codex economy bonuses (neutral on a fresh save)
     const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
     // Difficulty ECONOMY scalars (docs/DIFFICULTY.md). standard ⇒ identity (golden-safe). Campaign
     // already folds difficulty.rewardMult into result.rewardMult, so the currency reward scalar is
@@ -776,8 +817,10 @@ export const meta = {
     const masteryMult = result.endless ? MODE_REWARDS.mastery.endless : isCampaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
-      ? CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
-        (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)
+      ? Math.round(
+          (CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo +
+            (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)) * cb.campaignRewardMult, // Biomes codex: +Campaign Rewards
+        )
       : 0;
 
     // 1. global shards + run records
@@ -791,7 +834,7 @@ export const meta = {
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult * cb.towerXpMult, // Towers codex: +Tower XP
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
@@ -805,7 +848,7 @@ export const meta = {
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult * cb.heroXpMult, // Heroes codex: +Hero XP
       );
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
@@ -819,7 +862,7 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult);
+    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult * cb.bossLootMult); // Bosses codex: +Boss Loot
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
@@ -1285,6 +1328,21 @@ export const meta = {
   /** Completion rewards currently unlocked (titles, badges, portraits, themes, …). */
   collectionRewards(): CollectionReward[] {
     return unlockedRewards(this.collection());
+  },
+
+  /** Codex category rank promotions since the last poll, plus the account Power gained from the
+   *  collection growing in between (drives the Codex rank-up celebration + Power popup). SESSION-
+   *  diffed: each promotion fires once per session. Advances the baseline on every call. */
+  pollCollectionRankUps(): { rankUps: CollectionRankUp[]; powerGain: number } {
+    const v = collectionView(collectionContextOf(store.get()));
+    const { rankUps, snapshot } = collectionRankUps(v, lastCollectionRanks);
+    // Power gained since the last poll attributable to the collection part rising (holds other
+    // contributors at their current value): score × (1 − oldCollMult / newCollMult).
+    const score = composePower(accountPowerParts(store.get())).score;
+    const powerGain = v.power > 0 ? Math.max(0, Math.round(score * (1 - lastCollectionMult / v.power))) : 0;
+    lastCollectionRanks = snapshot;
+    lastCollectionMult = v.power;
+    return { rankUps, powerGain };
   },
 
   /** Run-start effects from unlocked completion BONUSES — folded into a run like gear.
