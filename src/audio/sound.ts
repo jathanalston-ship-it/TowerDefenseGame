@@ -131,6 +131,9 @@ function sJackpot(): void { // rare hero-shard sparkle
   noise(0.2, 0.05, 6000);
 }
 function sAchieve(): void { tone(587, 0.14, 'square', 0.1); tone(880, 0.36, 'square', 0.12); } // unlock "ta-da"
+// Power gain — a short ASCENDING bio-chime (fifth up + octave shimmer): unmistakably "you got
+// stronger", quiet enough to layer under reveals (POWER-SCORE.md §feel).
+function sPower(): void { tone(523, 0.07, 'triangle', 0.09, 660); tone(784, 0.12, 'sine', 0.1); tone(1568, 0.22, 'sine', 0.06); }
 // Shard reward stingers — deliberately DISTINCT so the ear, not the text, says which shard landed.
 function sShardTower(): void { // Tower Shard — a crisp, glassy crystalline "ting"
   tone(1245, 0.07, 'triangle', 0.1, 1660); tone(1860, 0.16, 'sine', 0.08); noise(0.05, 0.03, 8000);
@@ -246,6 +249,7 @@ export const audio = {
         case 'shard_tower': sShardTower(); break;
         case 'shard_hero': sShardHero(); break;
         case 'achieve': sAchieve(); break;
+        case 'power': sPower(); break;
         case 'rankup': sRankUp(); break;
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;

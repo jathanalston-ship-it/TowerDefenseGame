@@ -13,7 +13,7 @@ import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { TowerPortrait } from './TowerPortrait';
 import { TowerCodex } from './TowerCodex';
-import { PowerDelta } from './components/PowerScore';
+import { PowerPreview } from './components/PowerScore';
 import { AdaptationTree } from './components/AdaptationTree';
 import { StarCeremony } from './StarCeremony';
 import { ceremonyView, towerLabModel } from './towerLabModel';
@@ -156,7 +156,7 @@ export function TowerLab(): JSX.Element {
                     {!m.capLocked && (
                       <span className="tl-next-power">
                         Power{' '}
-                        <PowerDelta
+                        <PowerPreview
                           current={curPower}
                           next={meta.previewPower((s) => ({ ...s, towerStars: { ...s.towerStars, [k]: (s.towerStars[k] ?? 0) + 1 } })).score}
                         />

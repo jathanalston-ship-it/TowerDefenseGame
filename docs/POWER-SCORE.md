@@ -130,3 +130,22 @@ No strength-affecting content can ship without a Power evaluation, enforced in c
   permanent axis (not just tower damage) + collection bonuses, and inverse upgrade fields
   (`heroCooldownMult`, `enemyHpRunMult`) are scored with negative weights so a permanent buff to them
   moves Power. No permanent upgrade can be invisible to the index.
+
+
+## §feel — Power gains are events, not silent numbers (state/powerEvents.ts)
+
+Every strength API announces `before → after + SOURCE` through the powerEvents bus:
+
+- **Toast** (`PowerToaster`, mounted in the Hub + the in-run HUD): `▲ +18 Power` over its cause
+  ("Needle Spitter — Evolution ◈4", "Equipped Marrow Claws", "Bone Mortar — Gene Level 2",
+  "Tower Branch upgrade"), with burst coalescing and a 3-toast cap.
+- **Audio**: the ascending `power` chime (`audio.cue('power')`) rides every gain.
+- **The badge rolls**: `PowerBadge` animates the number to its new value (easeOutCubic) while
+  pulsing green (gains) / red (losses) — a loss never looks like a gain.
+- **Previews**: `PowerPreview` (UI-STANDARDS §11) is the standard upgrade preview — current → new
+  (+diff) plus "≈ +N% strength" estimated combat impact, computed with `meta.previewPower` (the
+  REAL model, so preview always equals outcome — test-pinned). Wired: Tower Lab, Hero Lab,
+  Evolution HQ, Gene Archive, equipment compares.
+- **Meta tripwire**: a declared strength source announcing a non-positive delta records into
+  `powerAnnounceWarnings` + console.warn — the meta twin of `game.powerAuditWarnings`
+  (POWER-AUDIT.md). Sidegrade/unequip announcers pass `expectGain: false`.

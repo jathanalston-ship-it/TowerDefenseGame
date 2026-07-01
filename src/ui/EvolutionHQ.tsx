@@ -10,7 +10,7 @@ import type { GenomeSection, GenomeCardView } from '../state/evolutionHQ';
 import { SLOTS } from '../core/config';
 import { formatPower } from '../core/power';
 import { ProgressBar } from './components/ProgressBar';
-import { PowerDelta } from './components/PowerScore';
+import { PowerPreview } from './components/PowerScore';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { PrestigePanel } from './PrestigePanel';
 
@@ -56,7 +56,7 @@ function GenomeCard({ card, curPower, onBuy, justBought }: {
       </div>
       <div className="evo-card-foot">
         {nextPower !== curPower && !card.completed && (
-          <span className="evo-card-power">Power <PowerDelta current={curPower} next={nextPower} /></span>
+          <span className="evo-card-power">Power <PowerPreview current={curPower} next={nextPower} /></span>
         )}
         <button
           className={`shop-buy evo-card-buy ${affordable ? 'is-afford' : ''}`}

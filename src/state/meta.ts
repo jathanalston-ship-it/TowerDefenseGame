@@ -13,7 +13,7 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -38,6 +38,7 @@ import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq } from
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
 import { DEVICE_PREF_KEYS } from './prefs';
+import { announcePower } from './powerEvents';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
 import { EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItemDrop, rollItemForPower } from '../core/equipment';
@@ -670,11 +671,13 @@ export const meta = {
     if (level >= def.maxLevel) return false;
     const cost = upgradeCost(def, level);
     if (save.shards < cost) return false;
+    const powerBefore = meta.power().score;
     persist({
       ...save,
       shards: save.shards - cost,
       upgrades: { ...save.upgrades, [id]: level + 1 },
     });
+    announcePower(`${def.name} L${level + 1} — Genome Upgrade`, powerBefore, meta.power().score);
     return true;
   },
 
@@ -744,10 +747,13 @@ export const meta = {
     if (level >= def.maxLevel) return false;
     const cost = ascendantCost(def, level);
     if (save.prestige.cells < cost) return false;
+    const powerBefore = meta.power().score;
     persist({
       ...save,
       prestige: { ...save.prestige, cells: save.prestige.cells - cost, nodes: { ...save.prestige.nodes, [id]: level + 1 } },
     });
+    // Some Ascendant nodes are pure economy (loot/shard gain) — real value, not scored strength.
+    announcePower(`${def.name} L${level + 1} — Ascendant Tree`, powerBefore, meta.power().score, false);
     return true;
   },
 
@@ -1221,7 +1227,9 @@ export const meta = {
     const chosen = save.adaptation?.[key] ?? [];
     const view = adaptationView(save, subject, unit);
     if (view.pointsAvailable <= 0 || !canPickAdapt(nodeId, chosen)) return false;
+    const powerBefore = meta.power().score;
     persist({ ...save, adaptation: { ...save.adaptation, [key]: [...chosen, nodeId] } });
+    announcePower('Adaptation unlocked', powerBefore, meta.power().score);
     return true;
   },
   /** Refund every adaptation pick for a unit (respec is free, out of combat). */
@@ -1366,11 +1374,13 @@ export const meta = {
     const cost = essenceUpgradeCost(def.rarity, next);
     if (save.geneEssence < cost) return false;
     const prev = save.genes[id];
+    const powerBefore = meta.power().score;
     persist({
       ...save,
       geneEssence: save.geneEssence - cost,
       genes: { ...save.genes, [id]: { ...prev, level: next, upgradedAt: Date.now() } },
     });
+    announcePower(`${def.name} — Gene Level ${next}`, powerBefore, meta.power().score);
     return true;
   },
 
@@ -1470,11 +1480,13 @@ export const meta = {
     if (stars >= STAR.maxStars) return false;
     const cost = heroStarCost(stars);
     if ((save.heroShards[kind] ?? 0) < cost) return false;
+    const powerBefore = meta.power().score;
     persist({
       ...save,
       heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
       heroStars: { ...save.heroStars, [kind]: stars + 1 },
     });
+    announcePower(`${HERO_DEFS[kind].name} — Evolution ◈${stars + 1}`, powerBefore, meta.power().score);
     return true;
   },
 
@@ -1493,11 +1505,13 @@ export const meta = {
     if (stars >= evolutionStarCap(save)) return false; // Campaign Evolution Cap not yet unlocked
     const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
+    const powerBefore = meta.power().score;
     persist({
       ...save,
       towerShards: { ...save.towerShards, [kind]: (save.towerShards[kind] ?? 0) - cost },
       towerStars: { ...save.towerStars, [kind]: stars + 1 },
     });
+    announcePower(`${TOWER_DEFS[kind].name} — Evolution ◈${stars + 1}`, powerBefore, meta.power().score);
     this.evaluateAchievements(); // first_star / star3
     return true;
   },
@@ -1576,9 +1590,11 @@ export const meta = {
       }
     }
     loadouts[hero] = { ...(loadouts[hero] ?? emptyLoadout()), [slot]: uid };
+    const powerBefore = meta.power().score;
     persist({ ...save, equipment: { ...save.equipment, loadouts } });
     if (uid) {
       const it = save.equipment.inventory.find((i) => i.uid === uid);
+      announcePower(`Equipped ${it ? itemDef(it.defId)?.name ?? 'item' : 'item'}`, powerBefore, meta.power().score, false);
       if (it && gameEvents.hasListeners('equipmentEquipped')) {
         gameEvents.emit('equipmentEquipped', { slot, defId: it.defId, rarity: it.rarity });
       }
@@ -1628,7 +1644,11 @@ export const meta = {
     next = { ...next, history: [...(item.history ?? []), label] }; // mod log for the Details screen
     const inventory = inv.slice();
     inventory[idx] = next;
+    const powerBefore = meta.power().score;
     persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });
+    // Rerolls/reforges can sidegrade (and unequipped items don't move the account score) — only a
+    // real gain announces; no warning otherwise.
+    announcePower(`${itemDef(item.defId)?.name ?? 'Item'} — ${label}`, powerBefore, meta.power().score, false);
     return true;
   },
 

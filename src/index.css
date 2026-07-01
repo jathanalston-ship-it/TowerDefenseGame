@@ -4905,6 +4905,23 @@ kbd {
 .camp-deploy:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Power Score (docs/POWER-SCORE.md) — animated badge + upgrade delta ── */
+/* ── Power gain toasts (POWER-SCORE.md §feel): amount + SOURCE, near the live badge ── */
+.ptoasts { position: fixed; top: 64px; right: 22px; z-index: 60; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.ptoast { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 8px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--success) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--success) 45%, var(--line)); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35); animation: ptoast-in var(--dur-3) var(--ease-out) both, ptoast-out var(--dur-3) var(--ease-in) 2.2s both; }
+.ptoast-delta { font-size: 14px; font-weight: 800; color: var(--success); font-variant-numeric: tabular-nums; }
+.ptoast-src { font-size: 11px; color: var(--muted); }
+@keyframes ptoast-in { from { opacity: 0; transform: translateY(-8px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes ptoast-out { to { opacity: 0; transform: translateY(-6px); } }
+
+/* The standard upgrade preview (PowerPreview): delta + estimated combat impact. */
+.power-preview { display: inline-flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pp-impact { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--success); opacity: 0.9; }
+.hl-power-preview { margin-top: 6px; font-size: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ptoast { animation: none; }
+}
+
 .power-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); transition: box-shadow var(--dur-3) ease, border-color var(--dur-3) ease; }
 .power-badge.is-compact { padding: 2px 8px; gap: 4px; }
 .power-badge-k { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }

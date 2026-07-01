@@ -114,6 +114,7 @@
 | `ItemArt` / `GeneCardArt` / `HeroPortrait` | procedural art frames | `<img>` placeholders |
 | `BranchTree` / `AdaptationTree` | tiered decision trees | one-off tree layouts |
 | `useCountUp` | number reveal animation | copy-pasting rAF counters |
+| `PowerPreview` / `PowerToaster` | upgrade previews (current→new +impact) · gain toasts | bespoke power text or ad-hoc toasts |
 | `rarityColorOf` (core/equipment) | rarity → color, everywhere | inline rarity hexes |
 
 Adding a component: put it in `src/ui/components/`, register it in the `ui-kit` system

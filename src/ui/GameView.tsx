@@ -10,6 +10,8 @@ import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta } from '../state/meta';
+import { announcePower } from '../state/powerEvents';
+import { PowerToaster } from './components/PowerToaster';
 import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { audio } from '../audio/sound';
@@ -307,6 +309,7 @@ export function GameView({
   return (
     <div className="game">
       <Hud hud={hud} power={power} />
+      <PowerToaster />
       <div className="stage">
         {leftOpen ? (
           <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />
@@ -503,7 +506,10 @@ export function GameView({
             onCollapse={() => setRightOpen(false)}
             onBranchBuy={(towerId, branchId) => {
               audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
-              game.buyBranchTier(towerId, branchId);
+              const powerBefore = meta.powerWith(game.powerEffects()).score;
+              if (game.buyBranchTier(towerId, branchId) === 'ok') {
+                announcePower('Tower Branch upgrade', powerBefore, meta.powerWith(game.powerEffects()).score);
+              }
               refresh();
             }}
             onDeselect={() => {

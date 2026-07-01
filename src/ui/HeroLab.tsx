@@ -11,6 +11,7 @@ import { HERO_DEFS, HERO_ORDER } from '../core/config';
 import { heroIdentity } from '../core/heroIdentity';
 import type { HeroKind } from '../core/types';
 import { masteryRank } from '../core/mastery';
+import { PowerPreview } from './components/PowerScore';
 import { HeroPortrait } from './components/HeroPortrait';
 import { AdaptationTree } from './components/AdaptationTree';
 import { ProgressBar } from './components/ProgressBar';
@@ -267,6 +268,14 @@ export function HeroLab(): JSX.Element {
             >
               {d.nextStarCost === null ? 'MAX STARS' : <>Add Star · {d.nextStarCost} <CurrencyIcon id="heroShards" color={c} size={13} title="" /> (have {d.shards})</>}
             </button>
+            {d.nextStarCost !== null && (
+              <div className="hl-power-preview">
+                <PowerPreview
+                  current={meta.power().score}
+                  next={meta.previewPower((s) => ({ ...s, heroStars: { ...s.heroStars, [focus]: (s.heroStars[focus] ?? 0) + 1 } })).score}
+                />
+              </div>
+            )}
           </Section>
 
           {/* Mastery */}

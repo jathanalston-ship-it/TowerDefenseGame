@@ -8,6 +8,7 @@ import type { Game } from '../core/game';
 import type { HudSnapshot } from '../core/types';
 import { HERO_EVO, HERO_EVO_CATEGORIES, heroEvoCost, heroEvoEffectLabel } from '../core/heroEvolution';
 import { meta } from '../state/meta';
+import { announcePower } from '../state/powerEvents';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 
@@ -33,9 +34,11 @@ export function HeroEvolutionPanel({
 
   const buy = (id: string): void => {
     audio.resume();
+    const powerBefore = meta.powerWith(game.powerEffects()).score;
     if (game.buyHeroEvolution(id)) {
       bumps.current += 1;
       setFlash({ id, n: bumps.current });
+      announcePower('Hero Evolution', powerBefore, meta.powerWith(game.powerEffects()).score);
     }
     refresh();
   };
