@@ -6,8 +6,10 @@
 > mutation choices. If a boss can be beaten by the exact build that beat the last one, it
 > has failed. **No code changed here — this is the design spec + roadmap.**
 
-**Status:** PLANNED. Framework: `core/boss.ts` (phase + module system — already built).
-Companion: `ENEMIES.md`, `BIOMES.md`, `EVOLUTION-CAP.md`, `IDENTITY-AUDIT.md`.
+**Status:** **Milestone 1 SHIPPED** (bosses 1–6 + their module spine live in `core/boss.ts` +
+`core/game.ts`, injected into the campaign at stages 5/10/15/20/25/30). Milestones 2–4 remain
+PLANNED. Framework: `core/boss.ts` (phase + module system). Companion: `ENEMIES.md`, `BIOMES.md`,
+`EVOLUTION-CAP.md`, `IDENTITY-AUDIT.md`.
 
 ---
 
@@ -43,10 +45,24 @@ below is authored almost entirely as **new module types + phase scripts + data**
 engines — consistent with the data-driven architecture.
 
 **New module primitives the roadmap needs** (the reusable spine — build once, reuse across
-bosses): `armor-facing` (damage-reduction from one direction), `split-on-death`,
-`shield-linked` (invuln while an ally lives), `enrage-timer`, `zone-denial` (corruption
-pools that block placement), `adaptive-resist` (grows resistance to the most-used damage
-type), `heal-aura`, `burrow-reposition`, `mutate-phase` (changes its own type mid-fight).
+bosses). Milestone 1 shipped three of these, fully wired into the deterministic sim:
+
+- ✅ **`healer`** — pulses HP to itself + the nearby pack on a cadence (`bossHeal`). Counter: kill-
+  priority / burst.
+- ✅ **`carapace`** — raises heavy *bonus armor* for a telegraphed window (`b.carapace` folded into
+  the `applyDamage` armor term). Counter: **Fracture → Shred**, which cracks the armor (an
+  armor-break zeroes the carapace too). *This is the shipped realization of the design's
+  `armor-facing`:* true positional flank-detection would require threading hit-source coordinates
+  through every damage call site, so we express the "hardened front" lesson through the existing
+  armor/Fracture system instead — same lesson (bring an armor answer + position your Fracture
+  forward), no pipeline surgery.
+- ✅ **`splitter`** — death-triggered cleave into smaller copies, one `generations` shorter each time
+  (`splitBoss`, capped by `PERF.maxEnemies`). Counter: spread damage, don't overkill.
+
+Still PLANNED (land with their Milestone 2–3 bosses, to avoid dead code): `shield-linked` (invuln
+while an ally lives), `enrage-timer` as a standalone overlay (the `enrager` module already ramps),
+`zone-denial` (corruption pools that block placement), `adaptive-resist` (grows resistance to the
+most-used damage type), `burrow-reposition`, `mutate-phase` (changes its own type mid-fight).
 
 ---
 
@@ -76,15 +92,19 @@ Placement: **C#** = Campaign stage, **B:x** = biome-gated, **∞** = Infinite-ex
 forced** — the two things that make it not-a-stat-wall. Sequenced so each lesson builds on
 the last.
 
-### EA Milestone 1 — "the fundamentals" (bosses 1–6, the first campaign act)
+### EA Milestone 1 — "the fundamentals" (bosses 1–6, the first campaign act) — ✅ SHIPPED
+Live in `BOSS_DEFS` + `CAMPAIGN_BOSSES` (stage→boss), replacing the procedural finale at these
+stages. Enemy `armor` shipped as a `BossDef.armor` field; the "armor-facing" lesson ships as the
+`carapace` module (see §2).
+
 | # | Boss | Archetype | Placement | Introduces | Forces you to… |
 |---|---|---|---|---|---|
-| 1 | **The First Antibody** | Siege (tutorial boss) | C5 | a target that shrugs off chip damage; telegraphed core-shots | build *forward*, focus fire — teaches the boss loop safely |
-| 2 | **Brood Cyst** | Swarm | C10 | births Scout Antibodies on a cadence | add AoE / splash — punishes pure single-target |
-| 3 | **The Mender** | Support | C15 | a heal-aura node that regens the whole pack | **kill priority** — the node must die first |
-| 4 | **Chitin Colossus** | Mutation (armor) | C20 | **armor-facing**: armored front, soft flanks | **positioning** — germinate to hit the flank |
-| 5 | **Mitotic Horror** | Split | C25 (slot-2 gate) | **split-on-death** into halves | spread damage; don't overkill one target |
-| 6 | **The Purge Engine** | Campaign-finale (Act 1) | C30 | chains bosses 1–5's mechanics across 3 phases | adapt *phase to phase* — the first real gauntlet |
+| 1 | **The First Antibody** | Siege (tutorial boss) | C5 | high `armor` (shrugs chip) + a `channeler` core-shot + a `charger` dash | build *forward*, focus the channel — teaches the boss loop safely |
+| 2 | **Brood Cyst** | Swarm | C10 | two `spawner` broods + an `enrager`, phase-gated | add AoE / splash — punishes pure single-target |
+| 3 | **The Mender** | Support | C15 | a `healer` aura that regens itself + the whole pack | **kill priority** — burst it down or clear the adds it mends |
+| 4 | **Chitin Colossus** | Mutation (armor) | C20 | **`carapace`**: a hardened window that shrugs off direct fire | bring **Fracture → Shred** to crack it (the shipped armor lesson) |
+| 5 | **Mitotic Horror** | Split | C25 | **`splitter`**: cleaves into smaller copies (2 generations) | spread damage; don't overkill one target |
+| 6 | **The Purge Engine** | Campaign-finale (Act 1) | C30 | chains swarm→armor+heal→enrage+channel across **3 phases** | adapt *phase to phase* — the first real gauntlet |
 
 ### EA Milestone 2 — "the biomes" (bosses 7–14, biome-gated)
 | # | Boss | Archetype | Placement | Introduces | Forces you to… |
@@ -142,16 +162,22 @@ the last.
 
 ## 6. Build order (maps onto the framework)
 
-1. **The module spine** (§2 primitives) — `armor-facing`, `split-on-death`, `heal-aura`,
-   `shield-linked`, `enrage-timer`, `zone-denial`, `adaptive-resist`, `mutate-phase`,
-   `burrow-reposition`. Data-driven, each with a validator entry.
-2. **Bosses 1–6** (Milestone 1) + the first-kill **mechanic rewards**.
+1. ✅ **The module spine** — Milestone 1 shipped `healer`, `carapace`, `splitter` (fully sim-wired),
+   each guarded by `bossProblems` (the boss registry validator). The remaining primitives
+   (`shield-linked`, `zone-denial`, `adaptive-resist`, `mutate-phase`, `burrow-reposition`) land
+   with their Milestone 2–3 bosses so nothing ships as dead data.
+2. ✅ **Bosses 1–6** (Milestone 1) authored in `BOSS_DEFS`, pinned to campaign stages via
+   `CAMPAIGN_BOSSES` (the generator overrides the procedural finale at 5/10/15/20/25/30 while
+   keeping the RNG stream identical → every other stage stays procedural, goldens untouched).
 3. **Elite-variant overlay system** (bosses 23–25) — unlocks huge encounter variety early.
 4. **Bosses 7–14** as biomes land.
 5. **Prestige + Infinite bosses 15–22** with the director-driven rotation for ∞.
-6. Each boss ships with: a **telegraph** (players read the mechanic before it hurts), a
-   **Bestiary/Archive entry** (the lesson, written as horror lore), and a **first-kill
-   celebration** that hands over the answer-capability.
+6. Each boss ships with a **telegraph** (`b.telegraph` banner — `MENDING` / `CARAPACE` / `SPLIT!`
+   / `CHANNELING` / …). **Still to do:** a per-boss **Bestiary/Archive entry** (the codex currently
+   keys by *chassis*, so authored bosses share a chassis row) and bespoke **first-kill capability
+   rewards** (today a boss kill feeds the chassis Bestiary + the collection reward tracks — a real
+   reward, but not yet the "unlock the answer-capability" celebration the design wants). These are
+   the immediate Milestone-1 follow-ups.
 
 **Definition of done per boss:** a new player who lost can articulate the lesson; the build
 that won differs from the previous boss's winning build; zero HP/damage-only phases.

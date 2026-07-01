@@ -76,6 +76,12 @@ describe('campaign generator', () => {
     expect(generateStage(30, 'standard').boss.hpMult).toBeGreaterThan(generateStage(2, 'standard').boss.hpMult);
   });
 
+  it('injects the authored Milestone-1 boss at its pinned stage, procedural elsewhere', () => {
+    expect(generateStage(5, 'standard').boss.id).toBe('first_antibody'); // authored override
+    expect(generateStage(25, 'standard').boss.id).toBe('mitotic_horror');
+    expect(generateStage(11, 'standard').boss.id).toMatch(/^proc_/); // non-milestone ⇒ still procedural
+  });
+
   it('difficulty variants raise the whole curve', () => {
     const std = generateStage(10, 'standard');
     const hard = generateStage(10, 'hardened');
