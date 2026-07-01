@@ -79,12 +79,58 @@ Formula: `essence = flooredShards × ESSENCE_PER_SHARD[containerRarity]` (`core/
 | Essence / shard | 1 | 2 | 3 | 6 | 9 | 15 |
 
 So 5 duplicate common shards → **+5** (matches spec); 5 duplicate legendary → **+45**. Locked heroes
-never convert (their shards still go toward unlocking). *Task 3 adds a small rare Essence drop from
-containers; duplicate conversion stays the dominant source.*
+never convert (their shards still go toward unlocking). The conversion (and the drop below) reads the
+container's **true** rarity: a loot box IS its box rarity, a run cache reads its best pull, and the
+cache ladder's `exotic` pays its own tier (12/shard — between legendary and mythic).
 
 **Anti-exploit.** Conversion is driven by shards actually **granted at open time** (the pre/post diff),
 not by re-reading star counts — so it can't be farmed by re-opening. Resets grant no shards ⇒ mint no
 Essence. `sanitizeGeneSave` + a numeric clamp on load neutralize save manipulation.
+
+### Container drop (Task 3) — the secondary source
+
+Opening any Bio-Container also makes one small **bonus** Essence roll (`rollEssenceDrop`,
+tunables in `ESSENCE_DROP`). Purely **additive** — it never replaces a guaranteed reward — and
+revealed as an *"Essence Trace"* event pull. Stateless (no pity): it should surprise, not be
+counted on.
+
+**Drop table** (chance capped at 22%, amount at 9):
+
+| Term | Chance | Amount |
+|---|---|---|
+| Base | 8% | 1–2 |
+| + per container-rarity tier (common 0 … mythic/exotic 5) | +2%/tier | +0.6/tier (rounded) |
+| + Campaign progress (slight) | +stage/500 | +stage/60 |
+| + Power Score (slight) | +power/60,000 | +power/8,000 |
+
+### Upgrade costs (the sink)
+
+One canonical curve (`essenceUpgradeCost`, tunables in `ESSENCE_COST`): `base(cardRarity) ×
+5^(level−1)` with bases common 25 / rare 45 / epic 80 / legendary 130. L1s are quick wins a fresh
+account funds from drops alone; L4s are long-horizon chases (legendary L4 ≈ 16,250 — ~13 hours of
+endgame income). Full-library sink (45 cards × ~4 levels) ≈ **351k Essence**.
+
+### Long-horizon simulation (the audit)
+
+Monte-Carlo over the real roll functions (`rollLoot`/`rollChest`/`essenceForDuplicates`/
+`rollEssenceDrop`), seeded, at four account profiles. **Assumptions:** ~5 runs/hour banking ~4
+containers each (3 loot boxes + 1 run cache) ⇒ ~20 containers/hour; box rarities from the loot-queue
+weights; `maxedFrac` = the fraction of granted shards hitting max-Star (converting) units (0 → 1.0
+as stars complete).
+
+| Horizon | Essence/hr (duplicates) | Essence/hr (drop) | duplicate share | cumulative |
+|---|--:|--:|--:|--:|
+| 10 h (power 1.5k · C8 · nothing maxed) | 0 | ~7 | 0% | ~70 |
+| 50 h (4k · C25 · ~⅓ maxed) | ~280 | ~13 | 96% | ~12k |
+| 200 h (9k · C60 · ~85% maxed) | ~1,020 | ~19 | 98% | ~167k |
+| 1,000 h (20k · C120 · all maxed) | ~1,210 | ~30 | 98% | ~1.16M |
+
+**Reading:** early on the drop is the only trickle (first upgrade ≈ hour 3–4 — exciting, not
+primary); once units max, duplicate conversion dominates (96–98%) exactly as specced. Against the
+351k sink: at 50h you afford every L1 + a spread of L2s; at 200h ≈ half the library; the library
+fully maxes around hour ~400, with the last legendary levels each a double-digit-hour chase — and
+**Ascension (Task 10) is the designed sink beyond that**. Sim source: the Task 3 scratch script
+(`essenceSim.ts`), re-runnable against these tunables.
 
 ## Invariants
 - **Gameplay preserved / golden byte-identical** — every seam is a no-op with no authored upgrades.

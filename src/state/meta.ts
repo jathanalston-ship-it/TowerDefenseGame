@@ -49,7 +49,7 @@ import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
-import { essenceForDuplicates } from '../core/geneEssence';
+import { essenceForDuplicates, rollEssenceDrop } from '../core/geneEssence';
 import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -1127,6 +1127,9 @@ export const meta = {
     //    pre-open save, so it's path-agnostic + un-farmable) convert to Gene Essence, scaled by the
     //    container's rarity, instead of piling up dead. The excess is reverted from the shard totals so
     //    it never accumulates, and shown immediately on the reveal (a `geneEssence` event item). ──
+    // The container's TRUE rarity: a loot box IS its box rarity (its pulls all read 'common'); a run
+    // cache reads its best pull. Feeds both the conversion rate and the bonus-drop scaling below.
+    const containerRarity = c.kind === 'loot' ? c.rarity : chest.topRarity;
     let essenceGained = 0;
     let towerDupes = 0;
     for (const k of TOWER_ORDER) {
@@ -1145,16 +1148,25 @@ export const meta = {
         heroDupes += granted;
       }
     }
-    const rName = rarityRegistry.get(chest.topRarity)?.name ?? chest.topRarity;
+    const rName = rarityRegistry.get(containerRarity)?.name ?? containerRarity;
     if (towerDupes > 0) {
-      const amt = essenceForDuplicates(chest.topRarity, towerDupes);
+      const amt = essenceForDuplicates(containerRarity, towerDupes);
       essenceGained += amt;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Tower` });
     }
     if (heroDupes > 0) {
-      const amt = essenceForDuplicates(chest.topRarity, heroDupes);
+      const amt = essenceForDuplicates(containerRarity, heroDupes);
       essenceGained += amt;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Hero` });
+    }
+    // ── Gene Essence — bonus container drop (Task 3): a rare, small, purely-ADDITIVE roll (never
+    //    replaces a guaranteed reward), scaled by the container's rarity + slightly by Campaign
+    //    progress and Power Score. Duplicate conversion above stays the dominant source (simulated
+    //    in docs/GENE-EVOLUTION.md §Economy). ──
+    const essenceDrop = rollEssenceDrop({ containerRarity, power, campaignStage: highestCampaignStage(save), rng: Math.random });
+    if (essenceDrop > 0) {
+      essenceGained += essenceDrop;
+      chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceDrop, note: 'Essence Trace' });
     }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity,
