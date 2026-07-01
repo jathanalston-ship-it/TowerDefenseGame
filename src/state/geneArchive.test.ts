@@ -78,6 +78,47 @@ describe('next-goal prominence (Task 6): the upcoming gene gate surfaces when it
   });
 });
 
+describe('Power integration (Task 9) — every permanent gene improvement moves Power, immediately', () => {
+  it('upgradeGene raises the ACCOUNT Power Score at once, and previewPower predicts it exactly', async () => {
+    seed({
+      stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999,
+      campaign: { cleared: { standard: 100 } },
+    });
+    const before = meta.power().score;
+    const predicted = meta.previewPower((s) => ({
+      ...s, genes: { ...s.genes, [card.id]: { level: 1 } },
+    })).score;
+    expect(meta.upgradeGene(card.id)).toBe(true);
+    const after = meta.power().score;
+    expect(after).toBeGreaterThan(before); // Power moved immediately on persist
+    expect(after).toBe(predicted); // the Archive's preview is the real model, not an estimate
+  });
+
+  it('the maxed library lands in the calibrated major-pillar band (×2–2.6 on the meta bucket)', async () => {
+    const { geneCollectionPowerMult, geneMaxLevel } = await import('../core/geneCards');
+    const full: Record<string, { level: number }> = {};
+    for (const c of CARD_POOL) full[c.id] = { level: geneMaxLevel(c) };
+    const mult = geneCollectionPowerMult(full);
+    expect(mult).toBeGreaterThan(2);
+    expect(mult).toBeLessThan(2.6);
+  });
+
+  it('the validator REJECTS a gene level that is invisible to Power (bypass prevention)', async () => {
+    const { cardProblems } = await import('../core/cards');
+    const bad = {
+      ...card,
+      maxLevel: 3,
+      upgrades: [
+        { effects: [{ op: 'mul' as const, field: 'towerDamageMult' as const, value: 1.05 }], note: 'ok' },
+        { effects: [{ op: 'biomass' as const, value: 50 }], note: 'instant only — unscored' },
+        { effects: [{ op: 'mul' as const, field: 'towerDamageMult' as const, value: 1.05 }], note: 'ok' },
+      ],
+    };
+    const problems = cardProblems(bad);
+    expect(problems.some((p) => p.includes('L2 is invisible to Power Score'))).toBe(true);
+  });
+});
+
 describe('favorites + pinning (Task 8) — persisted collection gestures', () => {
   it('toggles persist, survive a save round-trip, and surface on the rows', () => {
     seed();

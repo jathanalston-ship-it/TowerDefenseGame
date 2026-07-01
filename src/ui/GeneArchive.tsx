@@ -136,6 +136,20 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
           </div>
         )}
 
+        {/* Upgrade preview: the ACCOUNT Power this level adds — computed with the real Power model. */}
+        {row.upgradeable && (() => {
+          const cur = meta.power().score;
+          const next = meta.previewPower((s) => ({
+            ...s, genes: { ...s.genes, [id]: { ...(s.genes[id] ?? { level: 0 }), level: row.level + 1 } },
+          })).score;
+          return (
+            <div className="ga-preview" title="Account Power Score after this upgrade">
+              Power <b>{cur.toLocaleString()}</b> → <b className="ga-preview-next">{next.toLocaleString()}</b>
+              <span className="ga-preview-delta">+{Math.max(0, next - cur).toLocaleString()}</span>
+            </div>
+          );
+        })()}
+
         <div className="ga-actions">
           <span className="ga-wallet" title="Gene Essence"><CurrencyIcon id="geneEssence" size={14} title="" /> {save.geneEssence.toLocaleString()}</span>
           {row.nextCost === null ? (

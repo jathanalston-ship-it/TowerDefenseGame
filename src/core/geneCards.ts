@@ -55,9 +55,12 @@ export type GeneSave = Record<string, GeneCardSave>;
 export const DEFAULT_GENE_STATE: Readonly<GeneCardSave> = { level: 0 };
 
 /** How strongly permanent gene upgrades move the account Power Score. LINEAR in the number of
- *  upgrades (see geneCollectionPowerMult) so it stays sane at 500+ cards. Task 9 tunes it; the
- *  architecture only needs the seam. */
-export const GENE_POWER_SCALE = 1;
+ *  upgrades (see geneCollectionPowerMult) so it stays sane at 500+ cards. CALIBRATED (Task 9):
+ *  the current library's per-card deltas sum to ≈8.4 fully maxed, so 0.15 puts a completed
+ *  library at ≈×2.26 on the meta bucket — a major pillar (comparable to stars/prestige), not a
+ *  runaway dominator; a mid-game third of the library reads ≈×1.4. Re-measure when the library
+ *  grows (geneCards.test pins the band). */
+export const GENE_POWER_SCALE = 0.15;
 
 /** The permanent upgrade ceiling for a card (base-only = 1 until Task 4 authors levels). */
 export function geneMaxLevel(def: CardDef): number {

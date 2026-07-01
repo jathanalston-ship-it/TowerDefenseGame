@@ -8,6 +8,7 @@ import type { Rng } from './rng';
 import { Registry } from './registry';
 import { SELL } from './config';
 import { GENE_UPGRADES } from './geneUpgrades';
+import { effectsPower } from './power'; // type-only back-edges elsewhere ⇒ no runtime cycle
 
 /** The run "R bucket": multipliers/flags a run accumulates from drafted cards. */
 export interface RunModifiers {
@@ -359,6 +360,10 @@ export function cardProblems(c: CardDef): string[] {
         out.push(`upgrade L${i + 1}: '${e.field}' is boot-only (dead when drafted mid-run)`);
       }
     }
+    // ── Power-bypass prevention (Task 9): every level must MOVE the Power Score. A level whose
+    //    effects are all unscored (pure grants/hooks/instants with no weighted rider) would be a
+    //    permanent upgrade invisible to Power — a validation ERROR, so future content can't ship it.
+    if (effectsPower(u.effects) <= 1) out.push(`upgrade L${i + 1} is invisible to Power Score (add a scored effect)`);
   });
   return out;
 }

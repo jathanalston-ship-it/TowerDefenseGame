@@ -48,10 +48,23 @@ card via `effectiveGeneEffects(card, level)` — so once Task 4 authors upgrades
 automatically apply at the player's level, with **zero** further plumbing. Empty levels ⇒ base ⇒ the
 golden run is byte-identical.
 
-### Power integration
+### Power integration (audited + calibrated, Task 9)
 Permanent gene upgrades are account strength → folded into the account `meta` Power bucket via
-`geneCollectionPowerMult(save.genes)` (=1 today). Drafted cards' live effects still feed the run's
-`temporary` bucket (now surfaced in the HUD via `game.powerEffects()`).
+`geneCollectionPowerMult(save.genes)`. **Calibration:** `GENE_POWER_SCALE = 0.15` — the library's
+per-card deltas sum to ≈8.4 fully maxed, so a completed library reads ≈**×2.26** on the meta bucket
+(a major pillar, comparable to stars/prestige; a mid-game third ≈×1.4). Linear aggregation keeps it
+sane at 500+ cards; re-measure the sum when the library grows (the test pins the ×2–2.6 band).
+
+**Every improvement moves Power immediately** — `meta.upgradeGene` persists → the account score
+recomputes; the Archive's upgrade preview ("Power N → M, +Δ") is computed with the REAL model
+(`meta.previewPower`), so preview and outcome are identical (test-pinned). Surfaces audited: the
+Archive (per-card contribution + upgrade preview), run boot (starting genes land in the temporary
+bucket at once), the live HUD Power (`game.powerEffects()`), and saves (sanitized levels only).
+
+**Bypass prevention:** `cardProblems` validates — at dev boot, for every card — that EVERY authored
+level is Power-visible (`effectsPower(level.effects) > 1`); an unscored level (pure grant/hook/
+instant with no weighted rider) is a validation ERROR, so future gene content cannot ship outside
+the Power model. This stacks on the engine-wide `POWER_RELEVANT_FIELDS` coverage guarantee.
 
 ## Extension points (filled by later tasks)
 - **Task 2/3** — Gene Essence currency (duplicate-shard conversion + container drops).
