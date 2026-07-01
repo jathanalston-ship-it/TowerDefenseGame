@@ -1,12 +1,14 @@
 # CLAUDE.md — Tower Defense Game
 
-Greenfield tower-defense game. This file is the operating guide for any Claude
-session working in this repo. It captures the practices worth keeping; expand
-the stack-specific sections (build/test/run) as the project takes shape.
+ASSIMILATE — a bio-horror tower-defense game. This file is the operating guide for any Claude
+session working in this repo. It captures the practices worth keeping; the
+stack-specific sections (build/test/run) are filled in below.
 
-> Status: **bootstrap** — no tech stack committed yet. Sections marked _(grows
-> with the project)_ are conventions to fill in, not commands that exist today.
-> Don't invent commands; if a script isn't real, it isn't an instruction.
+> Status: **active development.** Stack is committed (React + TypeScript + Vite static SPA;
+> deterministic sim core in `src/core/`). For the live "what's actually built vs. planned" index,
+> read `docs/GAME-STATE.md` (the tiebreaker when a design doc and the build disagree). Sections
+> still marked _(grows with the project)_ are conventions to extend, not commands that exist today —
+> don't invent commands; if a script isn't real, it isn't an instruction.
 
 ---
 

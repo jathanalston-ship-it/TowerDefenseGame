@@ -146,9 +146,10 @@ Deliberately **deferred** (out of scope here — features, or premature churn):
 - **Physical `core/content/` split.** `config.ts` mixes tunables + content; fine at this
   size. Split into `content/{towers,enemies,heroes,waves,upgrades}.ts` when it grows past
   comfortable reading.
-- **Equipment items / prestige / events / simultaneous multi-hero** — designed (`docs/`),
-  not built. The hero equipment *seam* (`meta.heroEquipment` → `HeroMods`) is wired and
-  returns identity until items exist.
+- **Equipment items / prestige / simultaneous multi-hero — now BUILT** (~180 items + Reforge +
+  the Details screen; MOLT→Ascendant prestige; a 1–3 hero roster with per-hero loadouts). The
+  hero-equipment seam (`meta` loadouts → `HeroMods`) is fully wired and folds real gear. Run
+  *events* are the remaining designed-but-thin piece here. See `GAME-STATE.md`.
 
 ---
 

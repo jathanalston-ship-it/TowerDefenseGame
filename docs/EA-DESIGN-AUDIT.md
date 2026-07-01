@@ -8,6 +8,14 @@
 
 **Date:** 2026-07-01 · **Scope:** the shipped codebase (`src/`), not the roadmap.
 
+> **Reconciliation note (kept live):** this is a dated *snapshot*; its analysis stands, but some
+> findings have since shipped. Now built: **Adaptation** (mastery→decisions), the **Milestone-1 boss
+> line** (7 authored bosses, not ~1), **crafting materials from Vaults** (pity-protected), the
+> **Equipment Details screen** + card simplification, **destruction safeguards + Undo Salvage**, and
+> the dead "Soon" menu tiles are gone (behind `core/features.ts`). The still-open structural P0s
+> (content scale, mid-game economy sink, no backend) are unchanged. For current status always defer
+> to **`GAME-STATE.md`**.
+
 ---
 
 ## 0. The one-paragraph verdict (read this even if you read nothing else)

@@ -12,7 +12,10 @@
 > the UI verbs, and specifies the rename/reflavor + the visual/animation direction for each.
 > **No code changed here — this is the spec implementation follows.**
 
-**Status:** PLANNED (design spec). Companion: `LIVING-HIVE.md`, `STYLE-GUIDE.md`, `GAME-FEEL.md`.
+**Status:** PARTIAL — the identity pass has begun: `LEXICON.md` is authored and the ◈ star glyph,
+rarity grade ladder (Inert→Aberrant), and currency renames (Strain Samples / Apex Genome) are
+shipped. The deeper visual/audio identity work remains PLANNED. Companion: `LEXICON.md`,
+`LIVING-HIVE.md`, `STYLE-GUIDE.md`, `GAME-FEEL.md`. Live status: `GAME-STATE.md`.
 
 ---
 
