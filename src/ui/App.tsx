@@ -34,6 +34,7 @@ export function App(): JSX.Element {
   const rosterRef = useRef<HeroKind[]>(meta.fieldedLoadout()); // the fielded hero slots (HEROES.md)
   const heroProgRef = useRef<HeroProgress>(meta.heroProgress());
   const effectsRef = useRef<CardEffect[]>([]);
+  const heroEquipRef = useRef<Partial<Record<HeroKind, CardEffect[]>>>({}); // per-hero gear effects (HEROES.md)
   const modeRef = useRef<RunMode>('stage');
   const stageRef = useRef<StageConfig | null>(null); // campaign: the generated stage being played
   const campaignStageRef = useRef(0); // campaign: the stage number (winning it unlocks the next)
@@ -59,8 +60,10 @@ export function App(): JSX.Element {
     heroRef.current = meta.selectedHero();
     rosterRef.current = meta.fieldedLoadout();
     heroProgRef.current = meta.heroProgress();
-    // Equipped loadout + any unlocked collection completion bonuses (both fold in at start).
-    effectsRef.current = [...meta.loadoutEffects(), ...meta.collectionRunEffects()];
+    // Per-hero equipment folds in per hero (never overwrites another's loadout); collection
+    // completion bonuses stay battlefield-global run effects.
+    heroEquipRef.current = meta.heroRosterEquip();
+    effectsRef.current = [...meta.collectionRunEffects()];
     modeRef.current = mode;
     stageRef.current = stage;
     setScreen('playing');
@@ -132,6 +135,7 @@ export function App(): JSX.Element {
           heroRoster={rosterRef.current}
           heroProgress={heroProgRef.current}
           runEffects={effectsRef.current}
+          heroEquip={heroEquipRef.current}
           mode={modeRef.current}
           stage={stageRef.current ?? undefined}
           difficulty={difficultyRef.current}

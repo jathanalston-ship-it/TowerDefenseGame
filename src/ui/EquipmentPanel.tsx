@@ -7,10 +7,11 @@
 import { useState } from 'react';
 import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
+import type { HeroKind } from '../core/types';
 import {
-  RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, itemDef, itemScore, loadoutScore,
+  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore,
 } from '../core/equipment';
-import type { EquipSlot, OwnedItem, Rarity, RolledAffix } from '../core/equipment';
+import type { EquipSlot, Loadout, OwnedItem, Rarity, RolledAffix } from '../core/equipment';
 import {
   REFORGE_OPS, canAfford, itemAffixView, opAvailable, reforgeCost, salvageValue,
 } from '../core/reforge';
@@ -31,7 +32,11 @@ function traitChips(item: OwnedItem): { key: string; label: string; locked: bool
 
 export function EquipmentPanel(): JSX.Element {
   const save = meta.use();
-  const { inventory, loadout } = save.equipment;
+  const { inventory } = save.equipment;
+  const roster = meta.fieldedLoadout(); // the heroes the next run fields (1–3 by slot progression)
+  const [focusHero, setFocusHero] = useState<HeroKind>(save.selectedHero);
+  const focus = roster.includes(focusHero) ? focusHero : (roster[0] ?? save.selectedHero); // keep valid if roster changed
+  const loadout = save.equipment.loadouts[focus] ?? emptyLoadout(); // the FOCUSED hero's own gear (per-hero)
   const [category, setCategory] = useState<EquipSlot | 'all'>('all');
   const [rarity, setRarity] = useState<Rarity | 'all'>('all');
   const [sort, setSort] = useState<SortKey>('power');
@@ -40,10 +45,17 @@ export function EquipmentPanel(): JSX.Element {
   const [reforgeUid, setReforgeUid] = useState<string | null>(null);
 
   const byUid = new Map(inventory.map((i) => [i.uid, i] as const));
-  const equippedUids = new Set([loadout.weapon, loadout.armor, loadout.relic].filter(Boolean) as string[]);
+  // Which fielded hero (if any) wears each item — items are single-instance, so an item shows
+  // its owner and can be moved between heroes. Never overwrites another hero's loadout.
+  const ownerOf = new Map<string, HeroKind>();
+  for (const k of roster) {
+    const lo = save.equipment.loadouts[k];
+    if (!lo) continue;
+    for (const s of EQUIP_SLOTS) { const u = lo[s]; if (u) ownerOf.set(u, k); }
+  }
   const sets = activeSets(inventory, loadout);
   const setActiveMap = new Map(sets.map((s) => [s.id, s] as const));
-  const fieldedName = HERO_DEFS[save.selectedHero]?.name ?? 'Hero';
+  const focusName = HERO_DEFS[focus]?.name ?? 'Hero';
   const gearScore = loadoutScore(inventory, loadout);
   const idxOf = new Map(inventory.map((i, n) => [i.uid, n] as const));
   const raritiesPresent = RARITY_ORDER.filter((r) => inventory.some((i) => i.rarity === r));
@@ -72,7 +84,8 @@ export function EquipmentPanel(): JSX.Element {
     const def = itemDef(item.defId);
     if (!def) return null;
     const c = rarityColor(item.rarity);
-    const equipped = equippedUids.has(item.uid);
+    const owner = ownerOf.get(item.uid); // fielded hero wearing it (any slot), or undefined
+    const equipped = owner === focus; // equipped on the FOCUSED hero
     const set = def.setId ? SETS[def.setId] : undefined;
     const setStatus = def.setId ? setActiveMap.get(def.setId) : undefined;
     const sig = def.signature && (item.rarity === 'legendary' || item.rarity === 'exotic') ? def.signature.name : null;
@@ -108,11 +121,11 @@ export function EquipmentPanel(): JSX.Element {
               ◈ {set.name}{setStatus ? ` · ${setStatus.count} pc${setStatus.count > 1 ? 's' : ''}` : ''}
             </div>
           )}
-          {equipped && <div className="ic-owner">Equipped · {fieldedName}</div>}
+          {owner && <div className="ic-owner">Equipped · {HERO_DEFS[owner]?.name ?? 'Hero'}</div>}
         </div>
         <div className="ic-actions">
-          <button className={`ic-equip ${equipped ? 'on' : ''}`} onClick={() => meta.equip(def.slot, equipped ? null : item.uid)}>
-            {equipped ? 'Unequip' : 'Equip'}
+          <button className={`ic-equip ${equipped ? 'on' : ''}`} onClick={() => meta.equip(focus, def.slot, equipped ? null : item.uid)}>
+            {equipped ? 'Unequip' : owner ? 'Move here' : 'Equip'}
           </button>
           <button className="ic-mini" title="Compare with equipped" onClick={() => setCompareUid(item.uid)}>⇄</button>
           <button className={`ic-mini ${item.favorite ? 'is-on' : ''}`} title="Favorite" onClick={() => meta.toggleFavorite(item.uid)}>★</button>
@@ -128,10 +141,26 @@ export function EquipmentPanel(): JSX.Element {
     <div className="panel armory">
       <div className="panel-title">
         Armory
-        <span className="armory-score" title="Equipment Score — power of your equipped gear">⚙ {gearScore}</span>
+        <span className="armory-score" title={`Equipment Score — power of ${focusName}'s equipped gear`}>⚙ {gearScore}</span>
         <span className="equip-mats">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>
       </div>
-      <div className="panel-sub">Your collection — equip one per slot; gear folds into your next run.</div>
+      <div className="panel-sub">Gearing <b>{focusName}</b> — equip one per slot; gear folds into your next run. Each hero keeps its own loadout.</div>
+
+      {/* Hero focus — pick which fielded hero you're gearing (per-hero loadouts). */}
+      {roster.length > 1 && (
+        <div className="armory-heroes">
+          {roster.map((k, i) => {
+            const hs = loadoutScore(inventory, save.equipment.loadouts[k] ?? emptyLoadout());
+            return (
+              <button key={k} className={`armory-hero${k === focus ? ' on' : ''}`} onClick={() => setFocusHero(k)}>
+                <span className="ah-slot">Slot {i + 1}</span>
+                <span className="ah-name">{HERO_DEFS[k]?.name ?? 'Hero'}</span>
+                <span className="ah-score" title="Equipment Score">⚙ {hs}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Active set bonuses */}
       {sets.length > 0 && (
@@ -180,7 +209,7 @@ export function EquipmentPanel(): JSX.Element {
         <div className="armory-grid">{shown.map(cardFor)}</div>
       )}
 
-      {compareUid && <CompareOverlay uid={compareUid} byUid={byUid} loadout={loadout} onClose={() => setCompareUid(null)} />}
+      {compareUid && <CompareOverlay uid={compareUid} byUid={byUid} loadout={loadout} hero={focus} heroName={focusName} onClose={() => setCompareUid(null)} />}
       {reforgeUid && <ReforgeOverlay uid={reforgeUid} byUid={byUid} mats={save.mats} onClose={() => setReforgeUid(null)} />}
     </div>
   );
@@ -211,11 +240,13 @@ function CompareCol({ item, tag }: { item: OwnedItem | null; tag: string }): JSX
 }
 
 function CompareOverlay({
-  uid, byUid, loadout, onClose,
+  uid, byUid, loadout, hero, heroName, onClose,
 }: {
   uid: string;
   byUid: Map<string, OwnedItem>;
-  loadout: { weapon: string | null; armor: string | null; relic: string | null };
+  loadout: Loadout;
+  hero: HeroKind;
+  heroName: string;
   onClose: () => void;
 }): JSX.Element {
   const sel = byUid.get(uid);
@@ -226,14 +257,14 @@ function CompareOverlay({
   return (
     <div className="cmp-overlay" onClick={onClose}>
       <div className="cmp-box" onClick={(e) => e.stopPropagation()}>
-        <div className="cmp-h">Compare {slot ? SLOT_LABELS[slot] : ''}</div>
+        <div className="cmp-h">Compare {slot ? SLOT_LABELS[slot] : ''} · {heroName}</div>
         <div className="cmp-cols">
           <CompareCol item={sel ?? null} tag="Selected" />
-          <CompareCol item={equipped} tag="Equipped" />
+          <CompareCol item={equipped} tag={`${heroName} wears`} />
         </div>
         <div className="cmp-btns">
           {sel && def && equippedUid !== uid && (
-            <button className="primary" onClick={() => { meta.equip(def.slot, uid); onClose(); }}>Equip Selected</button>
+            <button className="primary" onClick={() => { meta.equip(hero, def.slot, uid); onClose(); }}>Equip to {heroName}</button>
           )}
           <button onClick={onClose}>Close</button>
         </div>

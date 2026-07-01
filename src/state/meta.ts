@@ -37,8 +37,8 @@ import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } f
 import { accumulateStats } from './stats';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { loadoutEffects, rollItemDrop } from '../core/equipment';
-import type { EquipSlot, OwnedItem } from '../core/equipment';
+import { EQUIP_SLOTS, emptyLoadout, loadoutEffects, rollItemDrop } from '../core/equipment';
+import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import {
   canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
 } from '../core/reforge';
@@ -112,15 +112,26 @@ export function metaModifiers(save: SaveData): MetaModifiers {
   return m;
 }
 
-/** Equipment's Power contribution: its equipped loadout's offense effects × each piece's
- * rarity/affix index, so even utility-only gear reads as a small gain when equipped. */
+/** A hero's equipped loadout — PER-HERO (HEROES.md hero slots). Empty when the hero has no gear. */
+export function loadoutOf(save: SaveData, kind: HeroKind): Loadout {
+  return save.equipment.loadouts[kind] ?? emptyLoadout();
+}
+
+/** Equipment's Power contribution: the PRODUCT of every hero's equipped-loadout power (offense
+ * effects × each piece's rarity/affix index), so gearing more heroes raises account power and a
+ * single-loadout (migrated) save reads identically. 1 with no gear. */
 function equipmentPower(save: SaveData): number {
-  let mult = effectsPower(loadoutEffects(save.equipment.inventory, save.equipment.loadout));
   const inv = save.equipment.inventory;
-  for (const slot of ['weapon', 'armor', 'relic'] as EquipSlot[]) {
-    const uid = save.equipment.loadout[slot];
-    const it = uid ? inv.find((i) => i.uid === uid) : undefined;
-    if (it) mult *= itemRarityPower(it.rarity, it.affixes.length);
+  let mult = 1;
+  for (const kind of HERO_ORDER) {
+    const loadout = save.equipment.loadouts[kind];
+    if (!loadout) continue;
+    mult *= effectsPower(loadoutEffects(inv, loadout));
+    for (const slot of EQUIP_SLOTS) {
+      const uid = loadout[slot];
+      const it = uid ? inv.find((i) => i.uid === uid) : undefined;
+      if (it) mult *= itemRarityPower(it.rarity, it.affixes.length);
+    }
   }
   return mult;
 }
@@ -677,8 +688,9 @@ export const meta = {
     const heroKills = { ...save.heroKills, [fielded]: (save.heroKills[fielded] ?? 0) + (result.heroMastery[fielded]?.kills ?? 0) };
     const heroFavEquip = { ...save.heroFavEquip };
     const fieldedEquip = { ...(heroFavEquip[fielded] ?? {}) };
-    for (const slot of ['weapon', 'armor', 'relic'] as const) {
-      const uid = save.equipment.loadout[slot];
+    const fieldedLoad = loadoutOf(save, fielded); // the slot-1 hero's own gear (per-hero)
+    for (const slot of EQUIP_SLOTS) {
+      const uid = fieldedLoad[slot];
       const it = uid ? save.equipment.inventory.find((i) => i.uid === uid) : null;
       if (it) fieldedEquip[it.defId] = (fieldedEquip[it.defId] ?? 0) + 1;
     }
@@ -964,10 +976,24 @@ export const meta = {
 
   // ── Hero equipment ────────────────────────────────────────────────────────
 
-  /** CardEffects from the currently-equipped loadout — folded into a run at start. */
-  loadoutEffects(): CardEffect[] {
-    const { inventory, loadout } = store.get().equipment;
-    return loadoutEffects(inventory, loadout);
+  /** A hero's equipped loadout (empty if none). PER-HERO (HEROES.md hero slots). */
+  loadoutOf(kind: HeroKind): Loadout {
+    return loadoutOf(store.get(), kind);
+  },
+
+  /** CardEffects from ONE hero's equipped loadout — folded into that hero at run start. */
+  loadoutEffectsFor(kind: HeroKind): CardEffect[] {
+    const save = store.get();
+    return loadoutEffects(save.equipment.inventory, loadoutOf(save, kind));
+  },
+
+  /** Per-hero equipment effects for the fielded roster (App threads this into the run so each
+   *  hero's gear affects only that hero — gear never overwrites another hero's loadout). */
+  heroRosterEquip(): Partial<Record<HeroKind, CardEffect[]>> {
+    const save = store.get();
+    const out: Partial<Record<HeroKind, CardEffect[]>> = {};
+    for (const kind of fieldedLoadout(save)) out[kind] = loadoutEffects(save.equipment.inventory, loadoutOf(save, kind));
+    return out;
   },
 
   // ── Collection (codex + completion rewards) ────────────────────────────────
@@ -988,10 +1014,20 @@ export const meta = {
     return collectionBonusEffects(this.collection());
   },
 
-  /** Equip (or clear, uid=null) an owned item into a slot. */
-  equip(slot: EquipSlot, uid: string | null): void {
+  /** Equip (or clear, uid=null) an owned item into `hero`'s `slot`. PER-HERO: gear never overwrites
+   *  another hero's loadout. Single physical item — if `uid` is worn by ANY hero it is unequipped
+   *  there first (so equipping is always a legal move). */
+  equip(hero: HeroKind, slot: EquipSlot, uid: string | null): void {
     const save = store.get();
-    persist({ ...save, equipment: { ...save.equipment, loadout: { ...save.equipment.loadout, [slot]: uid } } });
+    const loadouts: Partial<Record<HeroKind, Loadout>> = {};
+    for (const k of Object.keys(save.equipment.loadouts) as HeroKind[]) loadouts[k] = { ...save.equipment.loadouts[k]! };
+    if (uid) { // pull the item off whichever hero currently wears it (single instance)
+      for (const k of Object.keys(loadouts) as HeroKind[]) {
+        for (const s of EQUIP_SLOTS) if (loadouts[k]![s] === uid) loadouts[k]![s] = null;
+      }
+    }
+    loadouts[hero] = { ...(loadouts[hero] ?? emptyLoadout()), [slot]: uid };
+    persist({ ...save, equipment: { ...save.equipment, loadouts } });
     if (uid) {
       const it = save.equipment.inventory.find((i) => i.uid === uid);
       if (it && gameEvents.hasListeners('equipmentEquipped')) {
@@ -1075,11 +1111,16 @@ export const meta = {
     const item = save.equipment.inventory.find((i) => i.uid === uid);
     if (!item || item.locked) return false; // locked items are protected from salvage
     const gain = salvageValue(item);
-    const loadout = { ...save.equipment.loadout };
-    for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;
+    // Unequip the salvaged item from whichever hero wears it (per-hero loadouts).
+    const loadouts: Partial<Record<HeroKind, Loadout>> = {};
+    for (const k of Object.keys(save.equipment.loadouts) as HeroKind[]) {
+      const l = { ...save.equipment.loadouts[k]! };
+      for (const s of EQUIP_SLOTS) if (l[s] === uid) l[s] = null;
+      loadouts[k] = l;
+    }
     persist({
       ...save,
-      equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadout },
+      equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadouts },
       mats: {
         mutagen: save.mats.mutagen + gain.mutagen,
         scrap: save.mats.scrap + gain.scrap,

@@ -44,8 +44,10 @@ export interface SaveData {
   // ── Lifetime statistics + achievements — added in schema v3 ──
   stats: LifetimeStats;
   achievements: string[]; // unlocked achievement ids
-  // ── Hero equipment (schema v3) ──
-  equipment: { inventory: OwnedItem[]; loadout: Loadout };
+  // ── Hero equipment (schema v3; PER-HERO loadouts as of v12) ──
+  // Each hero keeps its OWN weapon/armor/relic (HEROES.md hero slots). A uid is a single physical
+  // item ⇒ it lives in at most one hero's loadout. Absent hero key ⇒ that hero has no gear equipped.
+  equipment: { inventory: OwnedItem[]; loadouts: Partial<Record<HeroKind, Loadout>> };
   mats: { mutagen: number; scrap: number; catalyst: number }; // crafting / reroll currencies
   // ── Loot queue (schema v4) — pre-determined boxes + pity, filled by run progress ──
   lootQueue: LootQueueState;
@@ -78,7 +80,9 @@ export interface TutorialSave {
   progress: TutorialProgress | null;
 }
 
-export const CURRENT_VERSION = 12; // v11→v12: tutorial (completion + resumable progress) — additive
+// v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
+// (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
+export const CURRENT_VERSION = 13;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -173,7 +177,7 @@ export function defaultSave(): SaveData {
     heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
     achievements: [],
-    equipment: { inventory: [], loadout: { weapon: null, armor: null, relic: null } },
+    equipment: { inventory: [], loadouts: {} },
     mats: { mutagen: 0, scrap: 0, catalyst: 0 },
     lootQueue: defaultLootQueue(),
     pendingContainers: [],
@@ -231,7 +235,10 @@ function withDefaults(data: SaveData): SaveData {
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {
       inventory: Array.isArray(data.equipment?.inventory) ? data.equipment.inventory : [],
-      loadout: { ...d.equipment.loadout, ...data.equipment?.loadout },
+      // v11→v12: PER-HERO loadouts. A pre-v12 save has one shared `loadout` → migrate it onto the
+      // slot-1 hero (its selectedHero) so equipped gear carries over. Sanitized so a uid lives on
+      // only ONE hero (a single physical item).
+      loadouts: sanitizeLoadouts(data.equipment, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     },
     mats: { ...d.mats, ...data.mats },
     // v3→v4: a pre-v4 save has no queue — sanitize fills a fresh, pre-determined one;
@@ -264,6 +271,28 @@ function withDefaults(data: SaveData): SaveData {
     campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
     tutorial: sanitizeTutorial(data.tutorial),
   };
+}
+
+/** Coerce loaded equipment into PER-HERO loadouts (v12). Resolves hero aliases and guarantees a uid
+ *  is equipped on at most one hero. Migrates a legacy single `loadout` onto `slot1`. */
+function sanitizeLoadouts(equip: unknown, slot1: HeroKind): Partial<Record<HeroKind, Loadout>> {
+  const out: Partial<Record<HeroKind, Loadout>> = {};
+  const used = new Set<string>(); // a physical item lives on only ONE hero
+  const take = (raw: unknown): Loadout => {
+    const l = (raw && typeof raw === 'object' ? raw : {}) as Partial<Loadout>;
+    const pick = (v: unknown): string | null => (typeof v === 'string' && !used.has(v) ? (used.add(v), v) : null);
+    return { weapon: pick(l.weapon), armor: pick(l.armor), relic: pick(l.relic) };
+  };
+  const e = equip as { loadouts?: Record<string, unknown>; loadout?: unknown } | undefined;
+  if (e?.loadouts && typeof e.loadouts === 'object') {
+    for (const [k, v] of Object.entries(e.loadouts)) {
+      const kind = heroRegistry.resolve(k) as HeroKind | undefined;
+      if (kind) out[kind] = take(v);
+    }
+  } else if (e?.loadout) {
+    out[slot1] = take(e.loadout); // legacy single loadout → the slot-1 hero
+  }
+  return out;
 }
 
 /** Coerce a loaded hero-loadout array into known, DISTINCT hero kinds (aliases resolved).

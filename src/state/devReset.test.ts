@@ -35,7 +35,7 @@ function dirtySave(): SaveData {
   s.heroStars = { ...s.heroStars, ravager: 2 }; s.heroShards = { ...s.heroShards, ravager: 10 };
   s.heroKills = { ...s.heroKills, ravager: 20 }; s.heroFavEquip = { ...s.heroFavEquip, ravager: { blade: 1 } };
   s.selectedHero = HERO_ORDER.find((h) => h !== 'ravager') ?? 'ravager';
-  s.equipment = { inventory: [{ uid: 'u1', defId: 'blade', tier: 1, affixes: [] } as never], loadout: { weapon: 'u1', armor: null, relic: null } };
+  s.equipment = { inventory: [{ uid: 'u1', defId: 'blade', tier: 1, affixes: [] } as never], loadouts: { [s.selectedHero]: { weapon: 'u1', armor: null, relic: null } } };
   s.pendingContainers = [{ kind: 'loot', rarity: 'common' }];
   s.achievements = ['first_star'];
   s.stats = { ...s.stats, lifetimeKills: 555 };
@@ -92,10 +92,10 @@ describe('applyDevReset — surgical, version-safe', () => {
     }
   });
 
-  it('Reset Equipment clears inventory AND loadout together (no orphaned uid)', () => {
+  it('Reset Equipment clears inventory AND loadouts together (no orphaned uid)', () => {
     const out = applyDevReset(dirtySave(), 'equipment');
     expect(out.equipment.inventory).toEqual([]);
-    expect(out.equipment.loadout).toEqual({ weapon: null, armor: null, relic: null }); // no dangling ref
+    expect(out.equipment.loadouts).toEqual({}); // per-hero loadouts all cleared → no dangling ref
   });
 });
 

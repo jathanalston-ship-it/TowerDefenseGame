@@ -106,6 +106,7 @@ export interface RunOptions {
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
+  heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -373,8 +374,14 @@ export class Game {
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
-  private readonly heroAttackStatuses: { status: StatusType; amount: number }[] = []; // weapon: hero hits also apply
-  private readonly heroAttackKit: AbilityComponent[] = []; // weapon: ability components run on each hero hit (cleave/chain/AoE/status/crit)
+  private readonly heroAttackStatuses: { status: StatusType; amount: number }[] = []; // GLOBAL (doctrine/collection): every hero's hits apply
+  private readonly heroAttackKit: AbilityComponent[] = []; // GLOBAL: ability components run on each hero hit (cleave/chain/AoE/status/crit)
+  // PER-HERO equipment (HEROES.md per-hero loadouts): a hero WITH gear gets its own mods bundle +
+  // attack verbs; a hero WITHOUT gear falls back to the global values ⇒ a single-hero / gear-less
+  // run is byte-identical (golden-safe). Keyed by kind (the roster is distinct).
+  private readonly heroHmods: Partial<Record<HeroKind, RunModifiers>> = {};
+  private readonly heroKits: Partial<Record<HeroKind, AbilityComponent[]>> = {};
+  private readonly heroStatuses: Partial<Record<HeroKind, { status: StatusType; amount: number }[]>> = {};
   private readonly relicHooks: HookSpec[] = []; // relic battlefield rules (run events → actions)
   private readonly castScratch: AbilityCast = { x: 0, y: 0, damageMult: 1, target: null };
   private readonly actx: AbilityContext = this.buildAbilityContext();
@@ -438,13 +445,43 @@ export class Game {
     // run-only gene-card slots layer on top in the `unlockedSlots` getter. docs/SLOTS.md.
     this.permanentSlots = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + meta.bonusSlots);
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
+    this.foldHeroEquip(roster, opts.heroEquip); // build per-hero gear mods BEFORE heroes (makeHero reads them)
     this.heroes = roster.map((k) => this.makeHero(k));
+  }
+
+  /** Fold each hero's EQUIPMENT (opts.heroEquip) into a per-hero mods bundle + attack verbs, so a
+   *  hero's gear affects only that hero and never overwrites another's loadout (HEROES.md). Tower
+   *  grants (projectile mutators) + relic hooks are battlefield-GLOBAL. No-op for a gear-less roster
+   *  (opts.heroEquip omitted / empty) ⇒ the golden run is byte-identical. */
+  private foldHeroEquip(roster: HeroKind[], heroEquip?: Partial<Record<HeroKind, CardEffect[]>>): void {
+    if (!heroEquip) return;
+    for (const k of roster) {
+      const effects = heroEquip[k];
+      if (!effects || effects.length === 0) continue;
+      const hm: RunModifiers = { ...this.mods }; // start from the global (meta × doctrine × collection)
+      const kit = [...this.heroAttackKit];
+      const statuses = [...this.heroAttackStatuses];
+      for (const e of effects) {
+        if (e.op === 'grant') {
+          if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id); // battlefield-global
+          else if (e.grant.kind === 'heroAttackStatus') statuses.push({ status: e.grant.status, amount: e.grant.amount });
+          else if (e.grant.kind === 'heroAttackAbility') kit.push(e.grant.component);
+        } else if (e.op === 'hook') {
+          this.relicHooks.push(e.hook); // relic rules are battlefield-global
+        } else {
+          applyRunEffect(hm, e);
+        }
+      }
+      this.heroHmods[k] = hm;
+      this.heroKits[k] = kit;
+      this.heroStatuses[k] = statuses;
+    }
   }
 
   /** Build a hero runtime instance from its data-driven definition. */
   private makeHero(kind: HeroKind): Hero {
     const def = HERO_DEFS[kind];
-    const maxHp = def.maxHp * this.mods.heroMaxHpMult; // equipment survivability folds in here
+    const maxHp = def.maxHp * (this.heroHmods[kind] ?? this.mods).heroMaxHpMult; // this hero's own gear survivability folds in
     if (gameEvents.hasListeners('heroSpawned')) gameEvents.emit('heroSpawned', { kind });
     return {
       kind,
@@ -473,6 +510,20 @@ export class Game {
   /** The data-driven identity kit for a fielded hero (built at construction, keyed by kind). */
   private idOf(h: Hero): HeroIdentity {
     return this.heroIdById[h.kind]!;
+  }
+
+  /** A hero's effective run modifiers — its own gear-folded bundle if it has equipment, else the
+   *  global mods. Single-hero / gear-less ⇒ returns `this.mods` (byte-identical). */
+  private hmods(h: Hero): RunModifiers {
+    return this.heroHmods[h.kind] ?? this.mods;
+  }
+  /** A hero's on-hit ability verbs (its equipment kit, else the global grants). */
+  private hkit(h: Hero): AbilityComponent[] {
+    return this.heroKits[h.kind] ?? this.heroAttackKit;
+  }
+  /** A hero's on-hit statuses (its equipment statuses, else the global grants). */
+  private hstatuses(h: Hero): { status: StatusType; amount: number }[] {
+    return this.heroStatuses[h.kind] ?? this.heroAttackStatuses;
   }
 
   /** Build the ability executor's view of the sim. The Game owns the side-effects;
@@ -593,7 +644,7 @@ export class Game {
   /** Where a hero idles when no target — biased by the equipment behavior profile's anchor.
    * 'default' returns the hero's rally (historical behavior ⇒ golden-safe). */
   private heroIdleGoal(h: Hero): { x: number; y: number } {
-    switch (this.mods.heroAnchor) {
+    switch (this.hmods(h).heroAnchor) {
       case 'nucleus': return nucleusPoint;
       case 'line': return { x: WIDTH / 2, y: DEFENSE_TOP_Y };
       case 'towers': {
@@ -1606,8 +1657,10 @@ export class Game {
       let heroHaste = 1;
       let heroDmgAura = 1;
       if (this.mods.heroAuraRadius > 0) {
-        const ph = this.heroes[0];
-        if (!ph.down && dist2(t.x, t.y, ph.x, ph.y) <= this.mods.heroAuraRadius * this.mods.heroAuraRadius) {
+        const r2 = this.mods.heroAuraRadius * this.mods.heroAuraRadius;
+        // A tower is buffed if near ANY living hero projecting the aura (per-roster; single-hero
+        // iterates just the primary ⇒ byte-identical golden run).
+        if (this.heroes.some((ph) => !ph.down && dist2(t.x, t.y, ph.x, ph.y) <= r2)) {
           heroHaste = 1 + this.mods.heroTowerHasteAura;
           heroDmgAura = 1 + this.mods.heroTowerDamageAura;
         }
@@ -2130,7 +2183,7 @@ export class Game {
   private autoCastHero(h: Hero): void {
     if (h.down || h.abilityCd > 0) return;
     const def = HERO_DEFS[h.kind];
-    const r2 = (def.aggroRange * this.mods.heroAggroRangeMult) ** 2;
+    const r2 = (def.aggroRange * this.hmods(h).heroAggroRangeMult) ** 2;
     let target: Enemy | null = null;
     let best = Infinity;
     for (const e of this.enemies) {
@@ -2172,9 +2225,9 @@ export class Game {
     // designed weakness), so the golden autoplay hero never retreats ⇒ byte-identical. Equipment's
     // "wary" threshold layers on top (max).
     const innateRetreat = this.idOf(h).survival === 'evasive' ? 0.4 : this.idOf(h).survival === 'cautious' ? 0.3 : 0;
-    const retreatAt = Math.max(this.mods.heroRetreatThreshold, innateRetreat);
+    const retreatAt = Math.max(this.hmods(h).heroRetreatThreshold, innateRetreat);
     if (retreatAt > 0 && h.hp < h.maxHp * retreatAt) {
-      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.mods.heroSpeedMult * dt);
+      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.hmods(h).heroSpeedMult * dt);
       h.x = Math.max(0, Math.min(WIDTH, np.x));
       h.y = Math.max(0, Math.min(HEIGHT, np.y));
     } else {
@@ -2196,7 +2249,7 @@ export class Game {
    * original single-hero build, so the golden outcomes are preserved.)
    */
   private updateDiveHero(h: Hero, def: HeroDef, dt: number): void {
-    const aggroRange = def.aggroRange * this.mods.heroAggroRangeMult; // equipment aggression knob
+    const aggroRange = def.aggroRange * this.hmods(h).heroAggroRangeMult; // equipment aggression knob
     const aggro2 = aggroRange * aggroRange;
     let target: Enemy | null = null;
     let bestApproach = Infinity; // best among enemies still above the line
@@ -2225,19 +2278,19 @@ export class Game {
 
     const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
     // Bloodthirst: a brief speed surge after an elite kill (×1 otherwise ⇒ golden-safe). MOBILITY gear rides on top.
-    const moveSpeed = def.speed * this.mods.heroSpeedMult * (this.time < h.rushUntil ? 1.4 : 1);
+    const moveSpeed = def.speed * this.hmods(h).heroSpeedMult * (this.time < h.rushUntil ? 1.4 : 1);
     const np = moveToward(h.x, h.y, goal.x, goal.y, moveSpeed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
-      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
+      const dmg = def.attackDamage * this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
       const applied = this.applyDamage(target, dmg);
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
       this.addFracture(target, def.attackFracture);
       // Weapon grant: the hero's hits also apply granted statuses (no-op without such gear).
-      for (const s of this.heroAttackStatuses) this.applyStatus(target, { kind: s.status, amount: s.amount });
+      for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount });
       this.maybeReact(target);
       this.runHeroAttackKit(h, target); // weapon: cleave/chain/AoE/status/crit RE-AUTHOR the attack
       h.attackCd = def.attackInterval;
@@ -2246,24 +2299,24 @@ export class Game {
 
   /** Heal the hero by a fraction of damage it dealt (lifesteal weapons). No-op at 0 (golden-safe). */
   private heroLifesteal(h: Hero, applied: number): void {
-    if (this.mods.heroLifestealFrac <= 0 || h.down) return;
-    h.hp = Math.min(h.maxHp, h.hp + applied * this.mods.heroLifestealFrac);
+    if (this.hmods(h).heroLifestealFrac <= 0 || h.down) return;
+    h.hp = Math.min(h.maxHp, h.hp + applied * this.hmods(h).heroLifestealFrac);
   }
 
   /** Run the weapon-granted attack kit on a hero hit (cleave/chain/on-hit AoE/status/crit), via
    * the shared ability executor. Empty without such gear ⇒ no-op ⇒ a gear-less run is golden-safe. */
   private runHeroAttackKit(h: Hero, target: Enemy): void {
-    if (this.heroAttackKit.length === 0) return;
+    if (this.hkit(h).length === 0) return;
     this.abilitySourceKind = null;
     this.abilityHeroKind = h.kind;
     this.abilityCaster = h;
     this.castScratch.x = target.x;
     this.castScratch.y = target.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
+    this.castScratch.damageMult = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
     this.castScratch.target = target;
     this.castScratch.pierce = 0;
     this.castRangeMult = 1;
-    runAbilities(this.actx, this.heroAttackKit, this.castScratch);
+    runAbilities(this.actx, this.hkit(h), this.castScratch);
   }
 
   /**
@@ -2293,7 +2346,7 @@ export class Game {
       gx = threat.x;
       gy = Math.max(DEFENSE_TOP_Y, threat.y - CELL);
     }
-    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.mods.heroSpeedMult * dt);
+    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.hmods(h).heroSpeedMult * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // stays in/near the zone
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
@@ -2315,7 +2368,7 @@ export class Game {
       gx = hot.x;
       gy = Math.max(DEFENSE_TOP_Y - CELL * 3, hot.y); // hover over the crowd, not the spawn
     }
-    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.mods.heroSpeedMult * dt);
+    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.hmods(h).heroSpeedMult * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
@@ -2353,20 +2406,20 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = h.x;
     this.castScratch.y = h.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
     // Weapon grant (e.g. "Venomous"): a status-on-hit weapon also rides the guard/control
     // heroes' role pulse — their offensive output — so it isn't Ravager-only. Gated on the
     // grant (empty by default ⇒ no-op ⇒ golden-safe).
-    if (this.heroAttackStatuses.length) {
+    if (this.hstatuses(h).length) {
       const r = HERO_DEFS[h.kind].pulseRadius;
       if (r > 0) {
         const r2 = r * r;
         this.grid.forNeighbors(h.x, h.y, r, (e) => {
           if (e.alive && dist2(h.x, h.y, e.x, e.y) <= r2) {
-            for (const s of this.heroAttackStatuses) this.applyStatus(e, { kind: s.status, amount: s.amount });
+            for (const s of this.hstatuses(h)) this.applyStatus(e, { kind: s.status, amount: s.amount });
           }
         });
       }
@@ -2383,7 +2436,7 @@ export class Game {
       if (!e.alive) continue;
       if (dist(h.x, h.y, e.x, e.y) <= def.contactRange + ENEMY_DEFS[e.kind].radius) {
         incoming += e.damage;
-        if (this.mods.heroThornsFrac > 0) this.applyDamage(e, e.damage * this.mods.heroThornsFrac * dt); // DEFENSE gear: reflect
+        if (this.hmods(h).heroThornsFrac > 0) this.applyDamage(e, e.damage * this.hmods(h).heroThornsFrac * dt); // DEFENSE gear: reflect
       }
     }
     if (incoming > 0 && !this.god) {
@@ -2429,14 +2482,14 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = px;
     this.castScratch.y = py;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
-    this.castRangeMult = this.mods.heroAbilityRadiusMult; // ABILITIES gear: scale the ability AoE
+    this.castRangeMult = this.hmods(h).heroAbilityRadiusMult; // this hero's ABILITIES gear scales its ability AoE
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     this.castRangeMult = 1;
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
-    h.abilityCd = ab.cooldown * this.mods.heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
+    h.abilityCd = ab.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
     this.pushSfx('ability');
     this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
   }
@@ -3161,7 +3214,7 @@ export class Game {
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
-        abilityCdMax: ab.cooldown * this.mods.heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
+        abilityCdMax: ab.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
       },
       enemiesAlive: this.enemies.length,
       emergency: this.emergencyActive,

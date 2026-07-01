@@ -15,8 +15,8 @@ import {
   masteryRewardsBetween,
 } from '../core/mastery';
 import type { MasteryPerk } from '../core/mastery';
-import { itemDef, loadoutScore, SLOT_LABELS } from '../core/equipment';
-import type { EquipSlot, Rarity } from '../core/equipment';
+import { emptyLoadout, EQUIP_SLOTS, itemDef, loadoutScore, SLOT_LABELS } from '../core/equipment';
+import type { EquipSlot, Loadout, OwnedItem, Rarity } from '../core/equipment';
 import { heroLore } from '../core/heroLore';
 import type { HeroLore } from '../core/heroLore';
 import type { SaveData } from '../save/saveStore';
@@ -67,10 +67,10 @@ function favoriteEquipName(counts: Record<string, number> | undefined): string |
   return best ? (itemDef(best)?.name ?? null) : null;
 }
 
-/** Resolve the equipped item (name + rarity) for a slot from the shared loadout. */
-function loadoutSlot(save: SaveData, slot: EquipSlot): LoadoutView {
-  const uid = save.equipment.loadout[slot];
-  const it = uid ? save.equipment.inventory.find((i) => i.uid === uid) : undefined;
+/** Resolve the equipped item (name + rarity) for a slot from THIS hero's loadout (per-hero). */
+function loadoutSlot(loadout: Loadout, inventory: OwnedItem[], slot: EquipSlot): LoadoutView {
+  const uid = loadout[slot];
+  const it = uid ? inventory.find((i) => i.uid === uid) : undefined;
   const def = it ? itemDef(it.defId) : undefined;
   return { slot, label: SLOT_LABELS[slot], name: def?.name ?? null, rarity: it?.rarity ?? null };
 }
@@ -83,7 +83,8 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
   const cost = nextHeroStarCost(save, kind);
   const mp = masteryProgress(save.heroMasteryXp[kind] ?? 0);
   const rank = masteryRank(mp.level);
-  const equipScore = loadoutScore(save.equipment.inventory, save.equipment.loadout);
+  const heroLoadout = save.equipment.loadouts[kind] ?? emptyLoadout(); // this hero's own gear (per-hero)
+  const equipScore = loadoutScore(save.equipment.inventory, heroLoadout);
 
   const nextUnlocks: FutureUnlock[] = [];
   if (cost !== null) {
@@ -118,7 +119,7 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
     runs: save.stats.heroUsage[kind] ?? 0,
     kills: save.heroKills[kind] ?? 0,
     favoriteEquip: favoriteEquipName(save.heroFavEquip[kind]),
-    loadout: (['weapon', 'armor', 'relic'] as EquipSlot[]).map((s) => loadoutSlot(save, s)),
+    loadout: EQUIP_SLOTS.map((s) => loadoutSlot(heroLoadout, save.equipment.inventory, s)),
     perks: masteryPerksUpTo('hero', kind, mp.level),
     nextUnlocks,
   };
