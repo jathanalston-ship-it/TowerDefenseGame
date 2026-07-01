@@ -320,3 +320,22 @@ Equipment is presented as a **collectible ARPG inventory**, not a list (`ui/Equi
   `activeSets` / `loadoutScore` in `core/equipment.ts`.
 - **Future-proof:** rarity-agnostic colors (mythic-ready), optional `EquipDef.season` ribbon
   (seasonal-ready), data-driven grid (scales to hundreds).
+
+---
+
+## Acquisition & the Power comparison (as built)
+
+**One acquisition path.** Equipment no longer drops per-roll from chest pools. Every container crack has
+a **~50% chance** (`EQUIP_DROP_CHANCE`, config) to also yield **at most ONE** item, unified across run
+caches + loot-queue boxes (`meta.openContainer`). Its rarity scales with the account **Power Score** —
+`powerItemLevel(score)` maps score → an item level (fresh ⇒ Common floor; climbs smoothly; capped so
+late-game reads Legendary/Exotic-capable without run-depth spikes) → the existing `rollItemDrop` ladder
+via `rollItemForPower`. Folded into the Vault reveal + inventory in one place.
+
+**Power comparison (▲/▼/=).** `state/itemPower.compareItemPower(save, item, hero)` returns the Power
+Score delta vs whatever that hero wears in the same slot (`{ delta, verdict, candidate, equipped,
+equippedName }`). The presentational `ui/components/PowerDelta` chip (▲ Stronger / ▼ Weaker / = Equal +
+"+37 Power", with a hover tooltip) is reused on: the Armory item cards + Compare overlay, and the Vault
+reveal (equipment pull faces + summary rows, threaded via `VaultReveal.compareEquip` → `buildReveal`).
+`itemPowerScore` (rarity/affix weight × behavioral-effect offense) lives in `state/itemPower` so both
+the reveal and the Armory read it without a power↔equipment import cycle.

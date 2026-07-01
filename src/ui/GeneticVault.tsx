@@ -9,6 +9,7 @@ import { meta } from '../state/meta';
 import type { CrackedContainer } from '../state/meta';
 import { costOf, rarityRegistry } from '../core/loot';
 import { VaultReveal } from './VaultReveal';
+import { compareItemPower } from '../state/itemPower';
 
 function rarityColor(id: string | undefined): string {
   return (id ? rarityRegistry.get(id)?.color : undefined) ?? 'var(--r-common)';
@@ -160,6 +161,7 @@ export function GeneticVault(): JSX.Element {
           remaining={pending.length}
           onOpenMore={crack}
           onClose={() => setOpening(null)}
+          compareEquip={(item) => compareItemPower(save, item, save.selectedHero)}
         />
       )}
     </div>

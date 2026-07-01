@@ -17,6 +17,9 @@ import {
 } from '../core/reforge';
 import type { Mats, ReforgeOp } from '../core/reforge';
 import { ItemArt, rarityColor } from './components/ItemArt';
+import { PowerDelta } from './components/PowerDelta';
+import { compareItemPower } from '../state/itemPower';
+import type { SaveData } from '../save/saveStore';
 
 type SortKey = 'power' | 'rarity' | 'name' | 'set' | 'newest';
 const SORTS: { key: SortKey; label: string }[] = [
@@ -105,6 +108,7 @@ export function EquipmentPanel(): JSX.Element {
             {item.ilvl !== undefined && <span className="ic-ilvl" title="Item level"> · i{item.ilvl}</span>}
             <span className="ic-power" title="Power Score"> · ⚙ {itemScore(item)}</span>
           </div>
+          {!equipped && <div className="ic-compare"><PowerDelta cmp={compareItemPower(save, item, focus)} /></div>}
           <p className="ic-desc">{def.desc}</p>
           {sig && <div className="ic-sig">◆ {sig}</div>}
           {traitChips(item).length > 0 && (
@@ -209,7 +213,7 @@ export function EquipmentPanel(): JSX.Element {
         <div className="armory-grid">{shown.map(cardFor)}</div>
       )}
 
-      {compareUid && <CompareOverlay uid={compareUid} byUid={byUid} loadout={loadout} hero={focus} heroName={focusName} onClose={() => setCompareUid(null)} />}
+      {compareUid && <CompareOverlay uid={compareUid} save={save} byUid={byUid} loadout={loadout} hero={focus} heroName={focusName} onClose={() => setCompareUid(null)} />}
       {reforgeUid && <ReforgeOverlay uid={reforgeUid} byUid={byUid} mats={save.mats} onClose={() => setReforgeUid(null)} />}
     </div>
   );
@@ -240,9 +244,10 @@ function CompareCol({ item, tag }: { item: OwnedItem | null; tag: string }): JSX
 }
 
 function CompareOverlay({
-  uid, byUid, loadout, hero, heroName, onClose,
+  uid, save, byUid, loadout, hero, heroName, onClose,
 }: {
   uid: string;
+  save: SaveData;
   byUid: Map<string, OwnedItem>;
   loadout: Loadout;
   hero: HeroKind;
@@ -254,10 +259,12 @@ function CompareOverlay({
   const slot = def?.slot;
   const equippedUid = slot ? loadout[slot] : null;
   const equipped = equippedUid && equippedUid !== uid ? byUid.get(equippedUid) ?? null : null;
+  const cmp = sel ? compareItemPower(save, sel, hero) : null;
   return (
     <div className="cmp-overlay" onClick={onClose}>
       <div className="cmp-box" onClick={(e) => e.stopPropagation()}>
         <div className="cmp-h">Compare {slot ? SLOT_LABELS[slot] : ''} · {heroName}</div>
+        {cmp && <div className="cmp-verdict"><PowerDelta cmp={cmp} /></div>}
         <div className="cmp-cols">
           <CompareCol item={sel ?? null} tag="Selected" />
           <CompareCol item={equipped} tag={`${heroName} wears`} />

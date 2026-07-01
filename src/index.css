@@ -4807,3 +4807,24 @@ kbd {
 .hero-unlock-burst > span { font: 900 30px/1.1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.06em; color: #fff; text-shadow: 0 0 22px var(--hc), 0 2px 6px #000; animation: hub-burst-pop 0.6s cubic-bezier(0.2, 1.5, 0.4, 1) both; text-align: center; padding: 0 16px; }
 @keyframes hub-burst-fade { 0% { opacity: 0; } 12% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes hub-burst-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+
+/* ── Power comparison chip (▲/▼/= vs equipped) — src/ui/components/PowerDelta ────── */
+.pdelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: 800 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.pdelta-sym { font-size: 10px; }
+.pdelta.is-better { color: #57e08a; background: rgba(87, 224, 138, 0.12); }
+.pdelta.is-worse { color: #ff7a7a; background: rgba(255, 122, 122, 0.1); }
+.pdelta.is-same { color: var(--muted); background: rgba(255, 255, 255, 0.05); }
+.ic-compare { margin: 2px 0 1px; }
+.cmp-verdict { display: flex; justify-content: center; margin: 2px 0 8px; }
+.cmp-verdict .pdelta { font-size: 14px; padding: 4px 12px; }
+.vreveal-face-cmp { margin-top: 2px; }

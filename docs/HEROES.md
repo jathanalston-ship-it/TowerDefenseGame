@@ -388,3 +388,16 @@ global; only hero-scoped stats/verbs are per-hero.
 **Tests:** `state/heroLab.test.ts` (loadout independence, single-instance move, `heroRosterEquip`),
 `core/heroEquip.test.ts` (gear applies to that hero's max HP in-sim; never bleeds to another hero;
 empty/omitted heroEquip = baseline). Goldens unchanged.
+
+---
+
+## Hero Collection ownership (as built)
+
+Heroes are **owned**, not all-available — orthogonal to hero SLOTS (how many you field). `HeroDef.unlockShards`
+gates a hero; **Ravager** is a starter, **Shepherd** (60) and **Overseer** (100) are locked and claimed with
+their Hero Shards. `save.heroUnlocked[]` tracks ownership (schema v14; migration grandfathers in any hero an
+existing player already used, so no access is stripped). `meta.isHeroUnlocked / heroCollection / unlockHero`;
+`fieldedLoadout` + `setHeroInSlot` gate on ownership (a locked hero can never be fielded). Container hero-shard
+pulls **bias toward still-locked heroes** so a "42 / 100" bar fills visibly. HeroLab renders locked roster cards
+(silhouette + progress) and a dormant-strain page (sealed lore, Release CTA + celebration) — the hero is
+selectable the instant it's claimed.

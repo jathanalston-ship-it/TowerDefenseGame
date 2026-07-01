@@ -16,10 +16,13 @@ import type { ChestResult, RewardItem } from './lootbox';
 import { HERO_DEFS, HERO_LABELS, TOWER_DEFS } from '../core/config';
 import type { LootRarity, MaterialKind } from '../core/config';
 import type { HeroKind } from '../core/types';
-import { itemDef, itemEffects, SLOT_LABELS } from '../core/equipment';
+import { itemDef, SLOT_LABELS } from '../core/equipment';
 import type { OwnedItem } from '../core/equipment';
-import { effectsPower, itemRarityPower, POWER_BASE } from '../core/power';
+import { itemPowerScore } from './itemPower';
+import type { PowerCompare } from './itemPower';
 import type { CurrencyId } from '../core/currencies';
+
+export { itemPowerScore }; // re-exported for callers that import it from the reveal read-model
 
 /** Reward families the summary groups by (fixed display order below). */
 export type RevealCategory = 'equipment' | 'towerShards' | 'heroShards' | 'materials' | 'other';
@@ -50,14 +53,6 @@ export function maxRarity(a: LootRarity, b: LootRarity): LootRarity {
 export function rarityLabel(r: string): string { return RARITY_LABEL[r] ?? r.toUpperCase(); }
 export function rarityColor(r: string): string { return RARITY_COLOR[r] ?? 'var(--r-common)'; }
 
-/** An equipment piece's intrinsic Power Score contribution (points over a fresh account), so a
- *  drop reads as "+NN Power" without needing the equip context (the equipped-vs-owned comparison
- *  is a separate feature). Rarity/affix flat weight × behavioral-effect offense multiplier. */
-export function itemPowerScore(item: OwnedItem): number {
-  const mult = itemRarityPower(item.rarity, item.affixes.length) * effectsPower(itemEffects(item));
-  return Math.max(0, Math.round(POWER_BASE * (mult - 1)));
-}
-
 /** One revealed pull, display-ready. `qty` is the numeric amount (shards granted, or 1 for a
  *  unique item); `key` is the merge identity used to collapse duplicates in the summary. */
 export interface PullView {
@@ -72,6 +67,7 @@ export interface PullView {
   currency?: CurrencyId; // shard pulls → the matching animated currency icon
   glyph?: string; // fallback glyph when there is no currency icon (equipment/material/…)
   power?: number; // equipment: intrinsic Power Score points (drives the highlight)
+  compare?: PowerCompare; // equipment: ▲/▼/= vs the selected hero's equipped slot (when supplied)
 }
 
 /** A merged summary row — duplicate pulls of the same reward collapsed, `count` = how many. */
@@ -87,6 +83,7 @@ export interface SummaryRow {
   currency?: CurrencyId;
   glyph?: string;
   power?: number; // summed equipment power across merged pulls (equipment never actually merges)
+  compare?: PowerCompare; // equipment: ▲/▼/= vs the selected hero's equipped slot (when supplied)
 }
 
 export interface SummarySection {
@@ -108,8 +105,9 @@ function amountLabel(qty: number, unit: string, rarity: LootRarity, isEquip: boo
   return isEquip ? rarityLabel(rarity) : `+${qty} ${unit}`;
 }
 
-/** Map a raw reward pull to its display fields (pure; shared by the pull list and the summary). */
-export function describePull(item: RewardItem): PullView {
+/** Map a raw reward pull to its display fields (pure; shared by the pull list and the summary).
+ *  `compare` (optional) attaches the equipped-vs-drop Power verdict to equipment pulls. */
+export function describePull(item: RewardItem, compare?: (i: OwnedItem) => PowerCompare): PullView {
   switch (item.type) {
     case 'tower': {
       const d = TOWER_DEFS[item.kind];
@@ -124,7 +122,7 @@ export function describePull(item: RewardItem): PullView {
     case 'equipment': {
       const d = itemDef(item.item.defId);
       const power = itemPowerScore(item.item);
-      return { key: `equip:${item.item.uid}`, category: 'equipment', rarity: item.rarity, color: rarityColor(item.rarity), name: d?.name ?? 'Equipment', qty: 1, unit: '', amountLabel: rarityLabel(item.rarity), glyph: d ? SLOT_LABELS[d.slot][0] : '◆', power };
+      return { key: `equip:${item.item.uid}`, category: 'equipment', rarity: item.rarity, color: rarityColor(item.rarity), name: d?.name ?? 'Equipment', qty: 1, unit: '', amountLabel: rarityLabel(item.rarity), glyph: d ? SLOT_LABELS[d.slot][0] : '◆', power, compare: compare?.(item.item) };
     }
     case 'cosmetic':
       return { key: `cos:${item.id}`, category: 'other', rarity: item.rarity, color: 'var(--r-epic)', name: item.id, qty: 1, unit: 'Cosmetic', amountLabel: 'Cosmetic', glyph: '✦' };
@@ -136,10 +134,10 @@ export function describePull(item: RewardItem): PullView {
 }
 
 /** Build the reveal model: an honest ordered pull list + a merged, categorized summary. */
-export function buildReveal(chests: ChestResult | ChestResult[]): RevealModel {
+export function buildReveal(chests: ChestResult | ChestResult[], compare?: (i: OwnedItem) => PowerCompare): RevealModel {
   const list = Array.isArray(chests) ? chests : [chests];
   const items = list.flatMap((c) => c.items);
-  const pulls = items.map(describePull); // one per raw pull — never collapsed
+  const pulls = items.map((it) => describePull(it, compare)); // one per raw pull — never collapsed
 
   // Merge duplicates for the summary (equipment keys are per-uid, so they never merge).
   const byKey = new Map<string, SummaryRow>();
@@ -151,7 +149,7 @@ export function buildReveal(chests: ChestResult | ChestResult[]): RevealModel {
       ex.rarity = maxRarity(ex.rarity, p.rarity);
       if (p.power) ex.power = (ex.power ?? 0) + p.power;
     } else {
-      byKey.set(p.key, { key: p.key, category: p.category, rarity: p.rarity, color: p.color, name: p.name, qty: p.qty, count: 1, amountLabel: p.amountLabel, currency: p.currency, glyph: p.glyph, power: p.power });
+      byKey.set(p.key, { key: p.key, category: p.category, rarity: p.rarity, color: p.color, name: p.name, qty: p.qty, count: 1, amountLabel: p.amountLabel, currency: p.currency, glyph: p.glyph, power: p.power, compare: p.compare });
     }
   }
   // Finalize merged labels (amount reflects the summed qty) and group into ordered sections.

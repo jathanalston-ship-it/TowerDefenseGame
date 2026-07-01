@@ -21,6 +21,9 @@ import { rarityRank } from '../core/loot';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { PowerDelta } from './components/PowerDelta';
+import type { OwnedItem } from '../core/equipment';
+import type { PowerCompare } from '../state/itemPower';
 
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 
@@ -52,6 +55,7 @@ function PullFace({ pull }: { pull: PullView }): JSX.Element {
       <div className="vreveal-face-name">{pull.name}</div>
       <div className="vreveal-face-amt" style={{ color: pull.color }}>{pull.amountLabel}</div>
       {pull.power ? <div className="vreveal-face-power">+{formatPower(pull.power)} Power</div> : null}
+      {pull.compare ? <div className="vreveal-face-cmp"><PowerDelta cmp={pull.compare} /></div> : null}
     </div>
   );
 }
@@ -83,7 +87,7 @@ function SummaryList({ sections, totalPower }: { sections: SummarySection[]; tot
                   )}
                   <span className="vreveal-row-name">{r.name}</span>
                   {r.count > 1 && <span className="vreveal-row-x">×{r.count}</span>}
-                  {r.power ? <span className="vreveal-row-power">+{formatPower(r.power)}</span> : null}
+                  {r.compare ? <PowerDelta cmp={r.compare} compact /> : r.power ? <span className="vreveal-row-power">+{formatPower(r.power)}</span> : null}
                   <span className="vreveal-row-amt" style={{ color: r.color }}>{r.amountLabel}</span>
                 </li>
               ))}
@@ -102,6 +106,7 @@ export function VaultReveal({
   onClose,
   onOpenMore,
   remaining = 0,
+  compareEquip,
 }: {
   chest: ChestResult | ChestResult[];
   title?: string; // overrides the chest name (loot-queue boxes pass their rarity name)
@@ -109,9 +114,10 @@ export function VaultReveal({
   onClose: () => void; // explicit dismissal — the ceremony NEVER auto-closes
   onOpenMore?: () => void; // crack the next container in place, without leaving the reveal
   remaining?: number; // containers still stockpiled → the "Open More (N)" CTA
+  compareEquip?: (item: OwnedItem) => PowerCompare; // equipment ▲/▼/= vs the selected hero's gear
 }): JSX.Element {
   const chests = useMemo(() => (Array.isArray(chest) ? chest : [chest]), [chest]);
-  const model = useMemo(() => buildReveal(chests), [chests]);
+  const model = useMemo(() => buildReveal(chests, compareEquip), [chests, compareEquip]);
 
   // Ceremony magnitude: the bigger of the best pull rarity and the box's registry rank.
   const itemTier = TIER.indexOf(model.topRarity);
