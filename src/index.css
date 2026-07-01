@@ -2851,6 +2851,73 @@ kbd {
   .slot-card, .slot-badge, .slot-medallion, .slot-burst, .slot-pip, .slot-vignette { animation: none !important; }
 }
 
+/* ── Evolution HQ (docs/EVOLUTION-HQ.md) — the permanent-progression headquarters ── */
+.evo-hq { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 4px; overflow: hidden; border-radius: var(--r-lg); }
+/* Living-lab backdrop — drifting cells + a rotating DNA helix (decorative, behind content). */
+.evo-hq-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.evo-cell {
+  position: absolute; left: calc((var(--i) * 10%) - 4%); bottom: -40px; width: calc(18px + var(--i) * 5px); height: calc(18px + var(--i) * 5px);
+  border-radius: 50%; background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--viral) 22%, transparent), transparent 70%);
+  border: 1px solid color-mix(in srgb, var(--viral) 14%, transparent); opacity: 0.5;
+  animation: evo-cell-rise calc(16s + var(--i) * 2s) linear infinite; animation-delay: calc(var(--i) * -1.7s);
+}
+@keyframes evo-cell-rise { 0% { transform: translateY(0) scale(0.9); opacity: 0; } 12% { opacity: 0.5; } 88% { opacity: 0.5; } 100% { transform: translateY(-115vh) scale(1.15); opacity: 0; } }
+.evo-dna { position: absolute; top: 0; right: 7%; width: 40px; height: 100%; display: flex; flex-direction: column; justify-content: space-around; opacity: 0.5; }
+.evo-dna-rung { height: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 60%, transparent), transparent); transform-origin: center; animation: evo-dna-twist 3.4s ease-in-out infinite; animation-delay: calc(var(--r) * -0.24s); }
+@keyframes evo-dna-twist { 0%, 100% { transform: scaleX(0.15); opacity: 0.3; } 50% { transform: scaleX(1); opacity: 0.8; } }
+
+.evo-hq-head { position: relative; z-index: 1; }
+.evo-hq-eyebrow { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--viral); }
+.evo-hq-title { margin: 2px 0; font-size: 26px; font-weight: 900; letter-spacing: 0.02em; }
+.evo-hq-sub { margin: 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+
+/* Statistics — the permanent account state. */
+.evo-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px; }
+.evo-stat { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--panel-2) 82%, transparent); border: 1px solid var(--line); }
+.evo-stat-v { font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.evo-stat-k { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+/* Section blocks. */
+.evo-hq-section { position: relative; z-index: 1; padding: 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); }
+.evo-sec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.evo-sec-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; font-size: 20px; border-radius: 10px; color: var(--viral); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--viral) 18%, transparent), var(--panel-2)); border: 1px solid color-mix(in srgb, var(--viral) 40%, transparent); }
+.evo-sec-icon.is-locked { color: var(--muted); border-color: var(--line); background: var(--panel-2); }
+.evo-sec-title-wrap { flex: 1; min-width: 0; }
+.evo-sec-title { font-size: 16px; font-weight: 800; }
+.evo-sec-desc { font-size: 12px; color: var(--muted); }
+.evo-sec-prog { flex: none; width: 190px; text-align: right; }
+.evo-sec-pct { font-size: 15px; font-weight: 900; color: var(--viral); font-variant-numeric: tabular-nums; }
+.evo-sec-meta { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+@media (max-width: 620px) { .evo-sec-prog { display: none; } }
+
+/* Upgrade cards. */
+.evo-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.evohq-card { display: flex; flex-direction: column; gap: 6px; padding: 11px 13px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); transition: transform var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast); }
+.evohq-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); box-shadow: 0 8px 24px -12px var(--gold); }
+.evohq-card.is-complete { opacity: 0.72; border-color: color-mix(in srgb, var(--success) 32%, var(--line)); }
+.evohq-card.is-just-bought { animation: evohq-buy 0.62s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+@keyframes evohq-buy { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 60%, transparent); } 30% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 45%, transparent); border-color: var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.evo-card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.evo-card-name { font-size: 13.5px; font-weight: 800; }
+.evo-card-lvl { flex: none; font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.evohq-card.is-complete .evo-card-lvl { color: var(--success); }
+.evo-card-desc { font-size: 11.5px; color: var(--muted); line-height: 1.35; margin: 0; }
+.evo-card-eff { display: flex; align-items: center; gap: 6px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.evo-eff-now { font-weight: 800; color: var(--text); }
+.evo-eff-arrow { color: var(--muted); }
+.evo-eff-next { font-weight: 800; color: var(--gold); }
+.evo-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.evo-card-power { font-size: 11px; color: var(--muted); }
+.evo-card-buy { flex: none; }
+
+/* Ascension + Future sections reuse the section chrome; the panel inside keeps its own styling. */
+.evo-ascension .panel { background: transparent; border: none; padding: 0; }
+.evo-future-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.evo-future-card { padding: 12px; border-radius: 12px; background: var(--panel-2); border: 1px dashed color-mix(in srgb, var(--line-strong) 70%, transparent); opacity: 0.8; }
+.evo-future-name { font-size: 13px; font-weight: 800; color: var(--muted); }
+.evo-future-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+@media (prefers-reduced-motion: reduce) { .evo-cell, .evo-dna-rung, .evohq-card.is-just-bought { animation: none !important; } }
+
 /* ── Dopamine pass: reward/feedback flourishes ────────────────────────────── */
 
 /* Wave-cleared celebration (leads the draft) */

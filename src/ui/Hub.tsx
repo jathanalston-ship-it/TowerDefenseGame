@@ -19,8 +19,7 @@ import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
-import { MetaShop } from './MetaShop';
-import { PrestigePanel } from './PrestigePanel';
+import { EvolutionHQ } from './EvolutionHQ';
 import { CollectionScreen } from './CollectionPanel';
 import { Statistics } from './Statistics';
 import { MasteryProfile } from './MasteryProfile';
@@ -235,12 +234,7 @@ export function Hub({
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && <HeroLab />}
-          {nav === 'evolution' && (
-            <div className="hub-cols">
-              <MetaShop />
-              <PrestigePanel />
-            </div>
-          )}
+          {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}
