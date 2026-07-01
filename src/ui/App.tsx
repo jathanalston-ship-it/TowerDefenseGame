@@ -4,6 +4,7 @@ import { GameView } from './GameView';
 import { Results } from './Results';
 import { DebugPanel } from './DebugPanel';
 import { AchievementToaster } from './AchievementToaster';
+import { LootToaster } from './LootToaster';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
@@ -167,6 +168,8 @@ export function App(): JSX.Element {
       {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
       <AchievementToaster suppressed={screen !== 'menu'} />
+      {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
+      <LootToaster />
     </div>
   );
 }

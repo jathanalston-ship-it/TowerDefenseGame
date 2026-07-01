@@ -21,6 +21,17 @@ just notices that runs keep paying off.
 Implementation: `src/core/progressionLoot.ts` (pure) → `meta.lootBiasFor(save)` → threaded into
 `addProgress` (live `syncRunLoot` + run-end `finishRun`).
 
+### Fill toast (the "you earned a container" moment)
+
+When the LIVE meter completes a container, `meta.syncRunLoot` emits the `lootContainerEarned`
+gameEvent (rarity). `ui/LootToaster.tsx` (mounted once at the app root) enqueues it and slides in a
+compact toast — *"Bio-Container Acquired · &lt;Rarity&gt; Container Earned · Open it from the Genetic
+Vault"* — glowing in the container's rarity color (`--rc`), with an animated icon and a rarity-scaled
+audio cue. It **never interrupts play** (a pointer-through corner overlay) and **never overlaps**: the
+toaster renders only the FRONT of its queue, so a burst of completions plays out one at a time and
+auto-dismisses (`TOAST_MS`). `meta.debugAddLootPoints` emits the same event, so the toast is testable
+from the debug panel. Golden-safe: emission is gated on a listener, so the sim/headless path is untouched.
+
 ---
 
 ## Inputs

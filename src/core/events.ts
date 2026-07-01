@@ -21,6 +21,7 @@ export interface GameEventMap {
   cardChosen: { id: string; rarity: string };
   equipmentEquipped: { slot: string; defId: string; rarity: string };
   heroSpawned: { kind: string };
+  lootContainerEarned: { rarity: string }; // a bio-container completed on the LIVE loot meter (drives the fill toast)
   projectileHit: { x: number; y: number; damage: number; targetId: number; byTower: TowerKind | null };
 }
 

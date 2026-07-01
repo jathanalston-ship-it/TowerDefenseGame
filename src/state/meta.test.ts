@@ -6,6 +6,7 @@ import { HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { costOf, isLootRarity } from '../core/loot';
 import type { RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
+import { gameEvents } from '../core/events';
 
 /** Minimal finished-run payload (zeroed mastery/stats) — enough to drive finishRun's loot
  * banking without standing up a full Game. */
@@ -223,6 +224,17 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(fullPoints);
     expect(out.loot.queue.queue.every(isLootRarity)).toBe(true); // queue still valid afterward
+  });
+
+  it('emits lootContainerEarned once per container completed on the live meter (drives the fill toast)', () => {
+    meta.reset();
+    const earned: string[] = [];
+    const off = gameEvents.on('lootContainerEarned', ({ rarity }) => earned.push(rarity));
+    const awarded = [...meta.syncRunLoot(10, 200), ...meta.syncRunLoot(20, 500)];
+    off();
+    expect(earned.length).toBeGreaterThan(0); // containers completed → toast events fired
+    expect(earned).toEqual(awarded); // exactly one event per awarded container, in order
+    meta.finishRun(runResult(30, 1000)); // settle the live-bank cycle so module state is clean for the next test
   });
 
   it('a run that never syncs still banks the full amount at finishRun (unopened)', () => {

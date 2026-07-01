@@ -814,6 +814,11 @@ export const meta = {
     const entries: PendingContainer[] = adv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     runContainersBanked = [...runContainersBanked, ...entries];
     persist({ ...save, lootQueue: adv.state, pendingContainers: [...save.pendingContainers, ...entries] });
+    // Fire the loot-fill toast (queued in the HUD) for each container just completed. Gated on a
+    // listener so a headless/sim caller does zero extra work.
+    if (gameEvents.hasListeners('lootContainerEarned')) {
+      for (const rarity of adv.awarded) gameEvents.emit('lootContainerEarned', { rarity });
+    }
     return adv.awarded;
   },
 
@@ -1354,6 +1359,9 @@ export const meta = {
     const adv = addProgress(save.lootQueue, n);
     const entries: PendingContainer[] = adv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     persist({ ...save, lootQueue: adv.state, pendingContainers: [...save.pendingContainers, ...entries] });
+    if (gameEvents.hasListeners('lootContainerEarned')) {
+      for (const rarity of adv.awarded) gameEvents.emit('lootContainerEarned', { rarity }); // same fill toast as live play
+    }
     return { queue: adv.state, banked: entries };
   },
 };
