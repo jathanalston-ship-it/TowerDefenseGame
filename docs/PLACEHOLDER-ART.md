@@ -25,7 +25,7 @@ Canvas renderer (`src/render/renderer.ts`: `drawTower`/`drawEnemy`/`drawHero`, t
 
 ## 2. Shared construction kit (build once, reuse everywhere)
 
-Recommend a `src/render/shapes.ts` so towers/heroes/enemies speak one language and
+Recommend a shared shape kit (LANDED as `src/render/vfx.ts`) so towers/heroes/enemies speak one language and
 the renderer stays DRY. Primitives:
 
 | Primitive | Use |

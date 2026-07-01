@@ -9,13 +9,18 @@
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "docs:graph": "vite-node scripts/gen-depgraph.ts",
+    "docs:check": "vite-node scripts/doc-sync.ts",
+    "validate": "vite-node scripts/validate.ts",
+    "handoff": "vite-node scripts/handoff.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/node": "^26.1.0",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",

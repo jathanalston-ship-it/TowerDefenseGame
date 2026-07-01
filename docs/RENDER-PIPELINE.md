@@ -105,7 +105,7 @@ refactor. Findings and the decisions they drove:
   architecture refactor settles, these maps can migrate into `config.ts` as
   `EnemyDef.shape` with no renderer change (the renderer already indexes by
   `kind`). Tracked here so it isn't lost.
-- **Shared-kit naming.** `PLACEHOLDER-ART.md §2` proposed `src/render/shapes.ts`;
+- **Shared-kit naming.** `PLACEHOLDER-ART.md §2` proposed a separate `shapes` module;
   this pass landed the same construction kit as `src/render/vfx.ts` (broader: also
   holds animation + health-bar primitives). If the other session creates
   `shapes.ts`, the two are non-colliding files but conceptually overlap — fold one
