@@ -94,20 +94,20 @@ export function GameView({
   useEffect(() => {
     if (geneSplash.length === 0) return;
     const t = setTimeout(() => setGeneSplash([]), 3200);
-    // Run soundtrack: combat by default, boss while a boss banner is live, victory/defeat cadence
-  // at run end (one-shots). Categories only — the manager owns all playback (audio/music.ts).
-  useEffect(() => {
-    if (hud.phase === 'won') { music.play('victory'); return; }
-    if (hud.phase === 'lost') { music.play('defeat'); return; }
-    music.play(hud.bossBanner ? 'boss' : 'combat');
-    music.setIntensity(hud.bossBanner ? 1 : 0.5);
-  }, [hud.phase, hud.bossBanner ? 1 : 0]);
-
-  return () => clearTimeout(t);
+    return () => clearTimeout(t);
   }, [geneSplash.length]);
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);
+  // Run soundtrack: combat by default, boss while a boss banner is live, victory/defeat cadence
+  // at run end (one-shots). Categories only — the manager owns all playback (audio/music.ts).
+  const bossLive = hud.bossBanner !== null;
+  useEffect(() => {
+    if (hud.phase === 'won') { music.play('victory'); return; }
+    if (hud.phase === 'lost') { music.play('defeat'); return; }
+    music.play(bossLive ? 'boss' : 'combat');
+    music.setIntensity(bossLive ? 1 : 0.5);
+  }, [hud.phase, bossLive]);
   // Pause: freezes the sim (the rAF loop skips advance) — both a hotkey (P) and a button drive it.
   // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
   const pausedRef = useRef(false);

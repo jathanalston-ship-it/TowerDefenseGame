@@ -86,7 +86,7 @@ export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.El
   return (
     <div className="hud">
       {/* ── LEFT cluster: survival + progress ── */}
-      <div className="hud-cell hud-vital tt" tabIndex={0} data-tut="hive-core">
+      <div className="hud-cell hud-vital tt" tabIndex={0} data-tut="hive-core" style={{ ['--hud-acc' as string]: integrityColor(intPct) }}>
         <div className="hud-k">Hive Core</div>
         <div className="hud-vital-row">
           <ProgressBar
@@ -175,12 +175,12 @@ export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.El
       </div>
 
       {/* ── RIGHT cluster: power, economy, threat, loot, hero ── */}
-      <div className="hud-cell hud-mini tt" tabIndex={0} data-tut="power">
+      <div className="hud-cell tt" tabIndex={0} data-tut="power" style={{ ['--hud-acc' as string]: 'var(--gold)' }}>
         <div className="hud-k">Power</div>
-        <div className="hud-v hud-v-sm" style={{ color: 'var(--vital, #7ad1ff)' }}>{formatPower(power)}</div>
+        <div className="hud-v" style={{ color: 'var(--gold)' }}>{formatPower(power)}</div>
         <span className="tt-bubble">Total run strength — your account × this run's genes & Hero Evolution. Rises as you draft cards and evolve.</span>
       </div>
-      <div className="hud-cell tt" tabIndex={0} data-tut="biomass">
+      <div className="hud-cell tt" tabIndex={0} data-tut="biomass" style={{ ['--hud-acc' as string]: 'var(--caustic)' }}>
         <div className="hud-k">Biomass</div>
         <div className={`hud-v ${biomassPop ? 'pop' : ''}`} style={{ color: 'var(--caustic)' }}>
           {hud.biomass}
@@ -197,7 +197,7 @@ export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.El
 
       <LootMeter />
 
-      <div className="hud-cell hud-hero tt" tabIndex={0} data-tut="hero">
+      <div className="hud-cell hud-hero tt" tabIndex={0} data-tut="hero" style={{ ['--hud-acc' as string]: heroDef.color }}>
         <div className="hud-k">{heroDef.name}</div>
         {hud.hero.down ? (
           <div className="hud-v is-danger">DOWN {Math.ceil(hud.hero.respawn)}s</div>
