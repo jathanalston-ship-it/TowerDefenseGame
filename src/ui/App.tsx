@@ -27,6 +27,7 @@ export function App(): JSX.Element {
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
   const progRef = useRef<TowerProgress>(meta.towerProgress());
   const heroRef = useRef<HeroKind>(meta.selectedHero());
+  const rosterRef = useRef<HeroKind[]>(meta.fieldedLoadout()); // the fielded hero slots (HEROES.md)
   const heroProgRef = useRef<HeroProgress>(meta.heroProgress());
   const effectsRef = useRef<CardEffect[]>([]);
   const modeRef = useRef<RunMode>('stage');
@@ -49,6 +50,7 @@ export function App(): JSX.Element {
     modsRef.current = metaModifiers(meta.get());
     progRef.current = meta.towerProgress();
     heroRef.current = meta.selectedHero();
+    rosterRef.current = meta.fieldedLoadout();
     heroProgRef.current = meta.heroProgress();
     // Equipped loadout + any unlocked collection completion bonuses (both fold in at start).
     effectsRef.current = [...meta.loadoutEffects(), ...meta.collectionRunEffects()];
@@ -110,6 +112,7 @@ export function App(): JSX.Element {
           mods={modsRef.current}
           progress={progRef.current}
           heroKind={heroRef.current}
+          heroRoster={rosterRef.current}
           heroProgress={heroProgRef.current}
           runEffects={effectsRef.current}
           mode={modeRef.current}

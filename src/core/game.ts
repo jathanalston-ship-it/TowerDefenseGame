@@ -105,6 +105,7 @@ export interface RunOptions {
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
+  heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -301,12 +302,12 @@ export class Game {
   private readonly towerEffectiveRange: Record<TowerKind, number>;
   // Per-hero permanent buffs (stars + mastery + equipment); identity for a fresh save.
   private heroProgress: HeroProgress;
-  // ── Hero identity (docs/HERO-FRAMEWORK.md) — the fielded hero's data-driven kit + its in-run
-  //    scaling state. All golden-safe: the Ravager's hooks fire only on `elite` enemies (absent
-  //    from Stage autoplay) and Shepherd/Overseer are never fielded by autoplay. ──
-  private readonly heroId: HeroIdentity;
-  private heroKillchain = 0; // Ravager: elites slain this run (feeds Killchain scaling)
-  private heroRushUntil = 0; // Ravager: sim-time the Bloodthirst speed boost lasts until
+  // ── Hero identity (docs/HERO-FRAMEWORK.md) — the fielded roster's data-driven kits, keyed by
+  //    kind (1–3 distinct heroes; HEROES.md hero slots). Per-hero scaling state (killchain/rush)
+  //    lives on the Hero. All golden-safe: the Ravager's hooks fire only on `elite` enemies (absent
+  //    from Stage autoplay), Shepherd/Overseer are never fielded by autoplay, and a fresh account
+  //    fields exactly ONE hero ⇒ the single-hero path is byte-identical. ──
+  private readonly heroIdById: Partial<Record<HeroKind, HeroIdentity>> = {};
   // Pure-observation usage signals accrued this run, banked into mastery at run end.
   private masteryAccrual: MasteryCounts = zeroMasteryCounts();
   private heroMasteryAccrual: HeroMasteryCounts = zeroHeroMastery();
@@ -414,14 +415,19 @@ export class Game {
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
     for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
     if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
-    // Hero identity (docs/HERO-FRAMEWORK.md): cache the fielded hero's kit, and fold its innate
-    // PASSIVE where it's a mod — Shepherd's Symbiosis grants a tower aura. Golden-safe: the Ravager's
-    // passive is `eliteDamage` (no fold here), so the autoplay run stays byte-identical.
-    this.heroId = heroIdentity(heroKind);
-    if (this.heroId.passive.kind === 'towerAura') {
-      this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130);
-      this.mods.heroTowerHasteAura += this.heroId.passive.amount;
-      this.mods.heroTowerDamageAura += this.heroId.passive.amount;
+    // Hero identity (docs/HERO-FRAMEWORK.md): field the ROSTER — 1–3 distinct heroes (opts.heroRoster,
+    // defaulting to the single selected hero ⇒ golden-safe). Cache each hero's kit and fold its innate
+    // PASSIVE where it's a mod (Shepherd's Symbiosis grants a tower aura). The Ravager's passive is
+    // `eliteDamage` (no fold), so a single-Ravager autoplay run stays byte-identical.
+    const roster = opts.heroRoster && opts.heroRoster.length > 0 ? opts.heroRoster : [heroKind];
+    for (const k of roster) {
+      const id = heroIdentity(k);
+      this.heroIdById[k] = id;
+      if (id.passive.kind === 'towerAura') {
+        this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130);
+        this.mods.heroTowerHasteAura += id.passive.amount;
+        this.mods.heroTowerDamageAura += id.passive.amount;
+      }
     }
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
@@ -430,7 +436,7 @@ export class Game {
     // run-only gene-card slots layer on top in the `unlockedSlots` getter. docs/SLOTS.md.
     this.permanentSlots = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + meta.bonusSlots);
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
-    this.heroes = [this.makeHero(heroKind)];
+    this.heroes = roster.map((k) => this.makeHero(k));
   }
 
   /** Build a hero runtime instance from its data-driven definition. */
@@ -452,12 +458,19 @@ export class Game {
       pulseCd: 0,
       shield: 0,
       shieldTime: 0,
+      killchain: 0,
+      rushUntil: 0,
     };
   }
 
   /** The player-controlled (slot-1) hero — abilities, HUD, and pings target it. */
   private get primaryHero(): Hero {
     return this.heroes[0];
+  }
+
+  /** The data-driven identity kit for a fielded hero (built at construction, keyed by kind). */
+  private idOf(h: Hero): HeroIdentity {
+    return this.heroIdById[h.kind]!;
   }
 
   /** Build the ability executor's view of the sim. The Game owns the side-effects;
@@ -2071,33 +2084,60 @@ export class Game {
   //    hero is fielded + (Ravager) the target is `elite` ⇒ golden-safe. ──
   /** Ravager Apex Predator + Killchain: bonus damage vs ELITE enemies, growing per elite slain this
    *  run. ×1 vs non-elites — and Stage autoplay spawns none ⇒ byte-identical golden run. */
-  private heroEliteDamage(target: Enemy): number {
-    if (!target.elite || this.heroId.passive.kind !== 'eliteDamage') return 1;
-    return 1 + this.heroId.passive.amount + Math.min(this.heroId.scaling.cap, this.heroKillchain * this.heroId.scaling.perStack);
+  private heroEliteDamage(h: Hero, target: Enemy): number {
+    const id = this.idOf(h);
+    if (!target.elite || id.passive.kind !== 'eliteDamage') return 1;
+    return 1 + id.passive.amount + Math.min(id.scaling.cap, h.killchain * id.scaling.perStack);
   }
 
   /** Overseer Neural Static + Overload: disrupted enemies take extra damage, deepening with depth.
-   *  0 unless the Overseer is fielded ⇒ golden-safe. */
+   *  Summed over the roster; 0 unless an Overseer is fielded ⇒ golden-safe. */
   private heroVulnBonus(): number {
-    if (this.heroId.passive.kind !== 'vulnField') return 0;
-    return this.heroId.passive.amount + Math.min(this.heroId.scaling.cap, this.waveIndex * this.heroId.scaling.perStack);
+    let m = 0;
+    for (const h of this.heroes) {
+      const id = this.idOf(h);
+      if (id.passive.kind === 'vulnField') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+    }
+    return m;
   }
 
   /** Ravager Bloodthirst + Killchain on an elite death: stack the chain, heal the hero, brief speed
-   *  rush. No-op unless the Ravager is fielded; elites never spawn in Stage autoplay ⇒ golden-safe. */
+   *  rush — PER Ravager in the roster. No-op unless a Ravager is fielded; elites never spawn in Stage
+   *  autoplay ⇒ golden-safe (a single Ravager behaves byte-identically to the old singular state). */
   private onEliteSlain(): void {
-    if (this.heroId.passive.kind !== 'eliteDamage') return;
-    this.heroKillchain++;
-    const h = this.primaryHero;
-    if (!h.down) {
-      h.hp = Math.min(h.maxHp, h.hp + h.maxHp * 0.12); // Bloodthirst heal
-      this.heroRushUntil = this.time + 3; // brief mobility surge
+    for (const h of this.heroes) {
+      if (this.idOf(h).passive.kind !== 'eliteDamage') continue;
+      h.killchain++;
+      if (!h.down) {
+        h.hp = Math.min(h.maxHp, h.hp + h.maxHp * 0.12); // Bloodthirst heal
+        h.rushUntil = this.time + 3; // brief mobility surge
+      }
     }
   }
 
   private heroSystem(dt: number): void {
-    // Iterate the roster (one hero today; the loop is the multi-slot seam).
     for (const h of this.heroes) this.updateHero(h, dt);
+    // The non-primary roster (slots 2+) is fully AUTONOMOUS — it auto-casts its signature ability on
+    // cooldown; the primary (slot 1) stays PLAYER-triggered. The loop is empty for a single-hero run
+    // ⇒ it never executes ⇒ byte-identical golden run.
+    for (let i = 1; i < this.heroes.length; i++) this.autoCastHero(this.heroes[i]);
+  }
+
+  /** Autonomous ability cast for a non-primary hero: fire the signature ability the moment it's
+   *  ready, aimed at the deepest enemy in aggro range (a support hero with no target self-casts). */
+  private autoCastHero(h: Hero): void {
+    if (h.down || h.abilityCd > 0) return;
+    const def = HERO_DEFS[h.kind];
+    const r2 = (def.aggroRange * this.mods.heroAggroRangeMult) ** 2;
+    let target: Enemy | null = null;
+    let best = Infinity;
+    for (const e of this.enemies) {
+      if (!e.alive || dist2(h.x, h.y, e.x, e.y) > r2) continue;
+      const gd = goalDistanceAt(e.x, e.y);
+      if (gd < best) { best = gd; target = e; }
+    }
+    if (target) this.castHeroAbility(h, target.x, target.y);
+    else if (def.behavior === 'guard') this.castHeroAbility(h, h.x, h.y); // support self-casts (heal / shield / mend)
   }
 
   /** Autonomous battlefield unit. Shared lifecycle (respawn, cooldowns, usage
@@ -2129,7 +2169,7 @@ export class Game {
     // nucleus at low HP; the Ravager's `aggressive` profile contributes 0 (its recklessness is a
     // designed weakness), so the golden autoplay hero never retreats ⇒ byte-identical. Equipment's
     // "wary" threshold layers on top (max).
-    const innateRetreat = this.heroId.survival === 'evasive' ? 0.4 : this.heroId.survival === 'cautious' ? 0.3 : 0;
+    const innateRetreat = this.idOf(h).survival === 'evasive' ? 0.4 : this.idOf(h).survival === 'cautious' ? 0.3 : 0;
     const retreatAt = Math.max(this.mods.heroRetreatThreshold, innateRetreat);
     if (retreatAt > 0 && h.hp < h.maxHp * retreatAt) {
       const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.mods.heroSpeedMult * dt);
@@ -2183,13 +2223,13 @@ export class Game {
 
     const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
     // Bloodthirst: a brief speed surge after an elite kill (×1 otherwise ⇒ golden-safe). MOBILITY gear rides on top.
-    const moveSpeed = def.speed * this.mods.heroSpeedMult * (this.time < this.heroRushUntil ? 1.4 : 1);
+    const moveSpeed = def.speed * this.mods.heroSpeedMult * (this.time < h.rushUntil ? 1.4 : 1);
     const np = moveToward(h.x, h.y, goal.x, goal.y, moveSpeed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
-      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(target);
+      const dmg = def.attackDamage * this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
       const applied = this.applyDamage(target, dmg);
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
@@ -2217,7 +2257,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = target.x;
     this.castScratch.y = target.y;
-    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(target);
+    this.castScratch.damageMult = this.mods.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
     this.castScratch.target = target;
     this.castScratch.pierce = 0;
     this.castRangeMult = 1;
@@ -2367,7 +2407,13 @@ export class Game {
   /** Cast the primary hero's signature ability at (px,py) — dispatched by hero data:
    * Ravager leaps + fractures, Shepherd blooms (heal + AoE), Overseer floods Disruption. */
   private triggerAbility(px: number, py: number): void {
-    const h = this.primaryHero;
+    this.castHeroAbility(this.primaryHero, px, py);
+  }
+
+  /** Cast hero `h`'s signature ability at (px,py). Player-triggered for the primary (triggerAbility);
+   *  auto-cast for the autonomous roster (autoCastHero). A single-hero run only ever casts the
+   *  primary ⇒ byte-identical golden run. */
+  private castHeroAbility(h: Hero, px: number, py: number): void {
     if (h.down || h.abilityCd > 0) return;
     const def = HERO_DEFS[h.kind];
     const ab = def.ability;
