@@ -8,6 +8,7 @@ import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
+import { PredictionPanel } from './PredictionPanel';
 
 export function InfiniteScreen({
   onStartEndless,
@@ -22,6 +23,7 @@ export function InfiniteScreen({
   const start = (): void => {
     audio.resume();
     audio.cue('ui');
+    meta.notePredictionBaseline('infinite', difficultyPref('infinite'));
     onStartEndless();
   };
 
@@ -36,6 +38,8 @@ export function InfiniteScreen({
             ∞ Descend
           </button>
         </div>
+
+        <PredictionPanel mode="infinite" difficultyId={difficultyPref('infinite')} label="Infinite Wave" />
 
         <div className="play-setup">
           <label className="play-field">

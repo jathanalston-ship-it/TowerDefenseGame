@@ -49,6 +49,8 @@ import { composePower, effectsPower, geomean, itemRarityPower } from '../core/po
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
+import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
+import type { Prediction } from '../core/predict';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
@@ -171,6 +173,21 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     equipment: equipmentPower(save),
     temporary,
   };
+}
+
+/** Up to two soft guidance lines for the prediction panel — surfaces the weakest lever without ever
+ *  dictating a move (docs/PREDICTION.md). Priority order; capped at two so it never overwhelms. */
+function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite', estimate: number): string[] {
+  const out: string[] = [];
+  const cleared = highestCampaignStage(save);
+  const maxTowerStars = Math.max(0, ...TOWER_ORDER.map((k) => save.towerStars[k] ?? 0));
+  const gear = equipmentPower(save);
+  const molts = save.prestige?.molts ?? 0;
+  if (mode === 'campaign' && cleared < estimate - 2) out.push('Campaign progression recommended — you can push several stages deeper.');
+  if (maxTowerStars === 0) out.push('Tower Stars will significantly improve success — buy one in the Tower Lab.');
+  if (gear <= 1.01) out.push('Equipment quality is below expected — gear up a hero in the Armory.');
+  if (molts === 0 && cleared >= 10) out.push('Consider Prestiging for a permanent, compounding power multiplier.');
+  return out.slice(0, 2);
 }
 
 /** Progression-aware loot bias (docs/LOOT-PROGRESSION.md): catch-up weights derived from how the
@@ -776,8 +793,16 @@ export const meta = {
           powerScore: composePower(accountPowerParts({ ...save, campaign: nextCampaign })).score }
       : null;
 
+    // Prediction calibration (docs/PREDICTION.md): fold this run's ACTUAL depth into the mode's
+    // estimator so future predictions quietly get more accurate. Only campaign/infinite runs calibrate.
+    const predMode: 'campaign' | 'infinite' | null = result.endless ? 'infinite' : (result.campaignStage != null ? 'campaign' : null);
+    const prediction = predMode
+      ? { ...save.prediction, [predMode]: calibrate(save.prediction[predMode], predMode === 'infinite' ? result.wave : (result.campaignStage ?? 0), composePower(accountPowerParts(save)).mult) }
+      : save.prediction;
+
     persist({
       ...save,
+      prediction,
       shards: save.shards + shardsEarned,
       lifetimeShards: save.lifetimeShards + shardsEarned,
       bestWave: Math.max(save.bestWave, result.wave),
@@ -966,6 +991,27 @@ export const meta = {
    * (never persisted). Drives the "current → new (+diff)" upgrade previews. */
   previewPower(mutate: (s: SaveData) => SaveData): PowerScore {
     return composePower(accountPowerParts(mutate(store.get())));
+  },
+
+  /** Progress prediction (docs/PREDICTION.md) — an intelligent, self-calibrating ESTIMATE (never a
+   *  guarantee) of how far the account can expect to reach in a mode, + 1–2 guidance recommendations.
+   *  `difficultyId` is the mode's currently selected difficulty (harder ⇒ lower reach). */
+  predict(mode: 'campaign' | 'infinite', difficultyId?: string): { p: Prediction; recommendations: string[] } {
+    const save = store.get();
+    const powerMult = composePower(accountPowerParts(save)).mult;
+    const diffMult = resolveDifficulty(difficultyId).enemyHealthMult;
+    const p = mode === 'campaign'
+      ? predictCampaign(powerMult, highestCampaignStage(save), diffMult, save.prediction.campaign)
+      : predictInfinite(powerMult, save.bestWave, diffMult, save.prediction.infinite);
+    return { p, recommendations: predictionRecommendations(save, mode, p.estimate) };
+  },
+
+  /** Record the estimate shown at run START so the next finishRun can calibrate against the actual
+   *  result. Called by the Play screens when a run launches. Quietly improves future predictions. */
+  notePredictionBaseline(mode: 'campaign' | 'infinite', difficultyId?: string): void {
+    const save = store.get();
+    const est = this.predict(mode, difficultyId).p.estimate;
+    persist({ ...save, prediction: { ...save.prediction, [mode]: { ...save.prediction[mode], lastEstimate: est } } });
   },
 
   /** The slot-1 hero the next run fields (back-compat; = fieldedLoadout()[0]). */

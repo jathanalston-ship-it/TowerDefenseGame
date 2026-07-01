@@ -2918,6 +2918,35 @@ kbd {
 .evo-future-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
 @media (prefers-reduced-motion: reduce) { .evo-cell, .evo-dna-rung, .evohq-card.is-just-bought { animation: none !important; } }
 
+/* Progress prediction panel (docs/PREDICTION.md) — a futuristic capability readout with an animated band. */
+.predict-panel { position: relative; margin: 12px 0; padding: 14px 16px; border-radius: var(--r-md); background: linear-gradient(150deg, color-mix(in srgb, var(--viral) 8%, var(--panel-2)), var(--panel-2)); border: 1px solid color-mix(in srgb, var(--viral) 30%, var(--line)); overflow: hidden; }
+.predict-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.predict-eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--viral); }
+.predict-conf { font-size: 10.5px; font-weight: 800; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.predict-conf.conf-high { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); }
+.predict-conf.conf-medium { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+.predict-hero { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 10px; }
+.predict-approx { font-size: 22px; color: var(--muted); }
+.predict-num { font-size: 40px; font-weight: 900; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 0 20px color-mix(in srgb, var(--viral) 45%, transparent); }
+.predict-trend { margin-left: auto; font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+.predict-trend .pt-icon { font-size: 15px; }
+.trend-up .predict-trend { color: var(--success); }
+.trend-stable .predict-trend { color: var(--muted); }
+.trend-down .predict-trend { color: var(--r-mythic, #ff6b8b); }
+.predict-graph { position: relative; height: 12px; border-radius: 999px; margin: 4px 0 8px; }
+.predict-track { position: absolute; inset: 0; border-radius: 999px; background: var(--panel-3); }
+.predict-band { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: color-mix(in srgb, var(--viral) 18%, transparent); }
+.predict-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--viral) 40%, transparent), var(--viral)); animation: predict-grow 0.9s cubic-bezier(0.2, 1, 0.3, 1) both; }
+@keyframes predict-grow { from { width: 0 !important; } }
+.predict-marker { position: absolute; top: -3px; width: 4px; height: 18px; border-radius: 2px; background: #fff; box-shadow: 0 0 10px var(--viral); transform: translateX(-50%); animation: predict-pulse 1.6s ease-in-out infinite; }
+@keyframes predict-pulse { 0%, 100% { box-shadow: 0 0 8px var(--viral); } 50% { box-shadow: 0 0 16px var(--viral); } }
+.predict-range { font-size: 11.5px; color: var(--muted); }
+.predict-range b { color: var(--text); font-variant-numeric: tabular-nums; }
+.predict-recs { margin: 8px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.predict-recs li { font-size: 11.5px; color: var(--text); padding-left: 16px; position: relative; }
+.predict-recs li::before { content: '▸'; position: absolute; left: 0; color: var(--viral); }
+@media (prefers-reduced-motion: reduce) { .predict-fill, .predict-marker { animation: none !important; } }
+
 /* ── Dopamine pass: reward/feedback flourishes ────────────────────────────── */
 
 /* Wave-cleared celebration (leads the draft) */

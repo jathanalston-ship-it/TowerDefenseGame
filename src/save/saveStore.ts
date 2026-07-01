@@ -15,6 +15,8 @@ import { defaultPrestige } from '../core/prestige';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
+import { defaultCalib } from '../core/predict';
+import type { PredictCalib } from '../core/predict';
 
 export interface SaveData {
   shards: number;
@@ -72,6 +74,9 @@ export interface SaveData {
   // ── Tutorial (schema v12) — permanent completion + resumable progress. Additive; withDefaults
   //    fills the default for older saves. Cleared on Account Reset (docs/TUTORIAL.md). ──
   tutorial: TutorialSave;
+  // ── Progress prediction (docs/PREDICTION.md) — self-calibrating per-mode estimators. Additive;
+  //    withDefaults fills defaults for older saves. Never affects the sim (golden-safe). ──
+  prediction: { campaign: PredictCalib; infinite: PredictCalib };
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -190,6 +195,7 @@ export function defaultSave(): SaveData {
     prestige: defaultPrestige(),
     campaign: { cleared: {} },
     tutorial: { completed: [], rewarded: [], progress: null },
+    prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
   };
 }
 
@@ -199,6 +205,23 @@ function sanitizeTutorial(raw: unknown): TutorialSave {
   const o = raw as Partial<TutorialSave>;
   const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
   return { completed: strs(o.completed), rewarded: strs(o.rewarded), progress: sanitizeProgress(o.progress) };
+}
+
+function sanitizeCalib(raw: unknown): PredictCalib {
+  const d = defaultCalib();
+  if (typeof raw !== 'object' || raw === null) return d;
+  const o = raw as Partial<PredictCalib>;
+  const num = (v: unknown, fb: number): number => (typeof v === 'number' && isFinite(v) ? v : fb);
+  return {
+    bias: num(o.bias, 0),
+    samples: Math.max(0, Math.floor(num(o.samples, 0))),
+    lastEstimate: Math.max(0, num(o.lastEstimate, 0)),
+    prevPowerMult: Math.max(0, num(o.prevPowerMult, 1)),
+  };
+}
+function sanitizePrediction(raw: unknown): SaveData['prediction'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  return { campaign: sanitizeCalib(o.campaign), infinite: sanitizeCalib(o.infinite) };
 }
 
 /**
@@ -272,6 +295,7 @@ function withDefaults(data: SaveData): SaveData {
     // v9→v10: campaign progression. Empty for an old save; coerce the cleared map to finite ≥0 ints.
     campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
     tutorial: sanitizeTutorial(data.tutorial),
+    prediction: sanitizePrediction(data.prediction),
   };
 }
 

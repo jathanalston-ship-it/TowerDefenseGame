@@ -6,6 +6,7 @@
 
 import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
+import { PredictionPanel } from './PredictionPanel';
 import { audio } from '../audio/sound';
 import { campaignMapView, generateStage, recommendedPower } from '../core/campaign';
 import { CAMPAIGN_REWARDS } from '../core/config';
@@ -47,7 +48,7 @@ export function CampaignScreen({
     else bands.push({ id: n.biome.id, name: n.biome.name, accent: n.biome.accent, y0: y - ROW / 2 + 8, y1: y + ROW / 2 });
   });
 
-  const deploy = (n: number): void => { audio.resume(); audio.cue('ui'); difficultyRef.current = diff; onStart(n); };
+  const deploy = (n: number): void => { audio.resume(); audio.cue('ui'); difficultyRef.current = diff; meta.notePredictionBaseline('campaign', diff); onStart(n); };
 
   // Focused stage — one full generation (the selected node only).
   const cfg = generateStage(focus, diff);
@@ -75,6 +76,8 @@ export function CampaignScreen({
           <span className="camp-record">Power <b>×{power.toFixed(1)}</b></span>
         </div>
       </header>
+
+      <PredictionPanel mode="campaign" difficultyId={diff} label="Campaign Stage" />
 
       <div className="camp-map-body">
         {/* ── The living map ── */}
