@@ -66,6 +66,36 @@ level is Power-visible (`effectsPower(level.effects) > 1`); an unscored level (p
 instant with no weighted rider) is a validation ERROR, so future gene content cannot ship outside
 the Power model. This stacks on the engine-wide `POWER_RELEVANT_FIELDS` coverage guarantee.
 
+### Ascension backend (Task 10 — architecture only, NO gameplay)
+Card Ascension is **not implemented as gameplay**: no tiers are authored, no grant path exists, and
+`sanitizeGeneSave` clamps a save's `ascension` to the card's authored ceiling (0 today) — so no
+player state can reach tier > 0. What IS in place is the complete backend, so shipping Ascension
+later is content + one gameplay wire, not a refactor:
+
+- **Data** — `CardDef.ascension: GeneAscension { maxTier, tiers[{ rarity?, art?, effects?, note? }] }`
+  (future rarity + ascended artwork/stats/effects per tier) and `CardDef.skins` (cosmetics).
+  Player state: `GeneCardSave.ascension` / `.rarityTier` / `.skin` — saved, sanitized, sparse.
+- **Effects seam** — `effectiveGeneEffects(def, level, ascension)`: authored tier effects fold in
+  after upgrade levels, clamped to the authored count. Third argument defaults to 0 ⇒ every current
+  caller is untouched (golden-safe).
+- **Power** — `geneAscensionPowerMult(def, tier)`; `geneCollectionPowerMult` already folds it into
+  the SAME linear sum as levels, so the moment a tier becomes reachable it moves the account Power
+  Score with **no extra wiring** (Ascension can never silently bypass Power).
+- **Rarity / artwork resolution (future UI)** — `geneEffectiveRarity(def, state)` (base →
+  `rarityTier` steps up `CARD_RARITY_LADDER` → ascended-rarity override, clamped at legendary) and
+  `geneArtKey(def, state)` (equipped skin → deepest ascended art at the tier → base art →
+  procedural fallback).
+- **Save compatibility** — the sanitizer clamps `ascension`/`rarityTier` to what content authors
+  (like `level`), so balance changes and save manipulation can't fabricate progression.
+- **Validation (future balancing)** — `cardProblems` validates any authored ascension block at dev
+  boot: `tiers.length === maxTier`, every tier has valid, Power-visible, non-boot-only effects, and
+  never downgrades rarity. Bad future content fails loud before it ships.
+- **The one gameplay wire left** (deliberately unwired): pass the saved tier as the third argument
+  of `effectiveGeneEffects` at the run seams (`chooseCard`, starting-gene boot) when Ascension
+  ships. Leaving it unwired keeps "no gameplay yet" true by construction — and the omission is
+  loud (testers see no in-run effect), whereas a missed Power wire would be silent, which is why
+  Power is wired now. Test-pinned in `core/geneAscension.test.ts`.
+
 ## Extension points (filled by later tasks)
 - **Task 2/3** — Gene Essence currency (duplicate-shard conversion + container drops).
 - **Task 4** — author `def.upgrades` (3–5 levels each) + `def.maxLevel`. Pure content; seams already read it.
@@ -73,7 +103,8 @@ the Power model. This stacks on the engine-wide `POWER_RELEVANT_FIELDS` coverage
 - **Task 6** — campaign-gated level ceilings.
 - **Task 7** — Starting Gene Loadouts (a `RunOptions.startingGenes` apply-at-boot seam).
 - **Task 9** — tune `GENE_POWER_SCALE`; add a build-time coverage guard (no gene bypasses Power).
-- **Task 10** — populate `def.ascension` (backend only).
+- **Task 10** — ✅ backend complete (see §Ascension backend); authoring `def.ascension` tiers is the
+  future content step.
 
 ## Economy — Gene Essence (Task 2)
 `geneEssence` is the permanent Gene Card upgrade currency (`core/currencies.ts`, save field

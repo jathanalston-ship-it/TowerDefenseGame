@@ -207,8 +207,13 @@ export interface GeneUpgradeLevel {
   note: string;
 }
 
+/** The card-rarity ladder, lowest→highest — the ORDER used by future rarity upgrades and
+ *  ascended-rarity overrides (geneCards.geneEffectiveRarity). Data, not scattered comparisons. */
+export const CARD_RARITY_LADDER: CardRarity[] = ['common', 'rare', 'epic', 'legendary'];
+
 /** Ascension BACKEND scaffolding (docs/GENE-EVOLUTION.md §Ascension) — data only, NO gameplay yet.
- *  A future tier can raise rarity, swap art, and layer extra effects/power. Absent ⇒ not ascendable. */
+ *  A future tier can raise rarity, swap art, and layer extra effects/power. Absent ⇒ not ascendable.
+ *  Authored tiers are VALIDATED at dev boot (cardProblems) so future content ships sound. */
 export interface GeneAscension {
   maxTier: number; // number of ascension tiers (0 until authored)
   tiers?: { rarity?: CardRarity; art?: string; effects?: CardEffect[]; note?: string }[];
@@ -365,6 +370,29 @@ export function cardProblems(c: CardDef): string[] {
     //    permanent upgrade invisible to Power — a validation ERROR, so future content can't ship it.
     if (effectsPower(u.effects) <= 1) out.push(`upgrade L${i + 1} is invisible to Power Score (add a scored effect)`);
   });
+  // ── Ascension backend contract (Task 10) — NO tiers are authored yet, but the moment future
+  //    content ships one, it must be complete (effects per tier), rule-abiding (no boot-only
+  //    fields, no rarity downgrade), and Power-visible (the same Task 9 bypass prevention). ──
+  if (c.ascension) {
+    const asc = c.ascension;
+    if (!Number.isInteger(asc.maxTier) || asc.maxTier < 1) out.push('ascension.maxTier must be a positive integer');
+    const tiers = asc.tiers ?? [];
+    if (tiers.length !== asc.maxTier) out.push(`ascension tiers (${tiers.length}) must equal maxTier (${asc.maxTier})`);
+    tiers.forEach((t, i) => {
+      const fx = t.effects ?? [];
+      if (fx.length === 0) out.push(`ascension T${i + 1} has no effects (cosmetics belong in skins)`);
+      for (const e of fx) {
+        out.push(...effectProblems(e, mods).map((p) => `ascension T${i + 1}: ${p}`));
+        if ((e.op === 'mul' || e.op === 'add') && BOOT_ONLY_FIELDS.has(e.field)) {
+          out.push(`ascension T${i + 1}: '${e.field}' is boot-only (dead when drafted mid-run)`);
+        }
+      }
+      if (t.rarity && CARD_RARITY_LADDER.indexOf(t.rarity) < CARD_RARITY_LADDER.indexOf(c.rarity)) {
+        out.push(`ascension T${i + 1} downgrades rarity (${t.rarity} < ${c.rarity})`);
+      }
+      if (effectsPower(fx) <= 1) out.push(`ascension T${i + 1} is invisible to Power Score (add a scored effect)`);
+    });
+  }
   return out;
 }
 

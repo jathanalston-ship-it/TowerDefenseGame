@@ -8,8 +8,9 @@
 // ARCHITECTURE ONLY: no upgrade CONTENT is authored here (Task 4) — with the current empty `upgrades`
 // arrays every seam is a no-op, so existing gameplay + the golden run are byte-identical. No DOM/state.
 
-import { cardRegistry } from './cards';
+import { cardRegistry, CARD_RARITY_LADDER } from './cards';
 import type { CardDef, CardEffect } from './cards';
+import type { CardRarity } from './types';
 import { effectsPower } from './power';
 
 /** PERMANENT per-card player state (saved, sparse — only non-default cards get an entry). */
@@ -72,15 +73,78 @@ export function geneLevel(genes: GeneSave, id: string): number {
   return genes[id]?.level ?? 0;
 }
 
-/** The card's effects AT a permanent level: base effects + every authored upgrade up to `level`.
- *  With no authored upgrades this returns the base effects unchanged (golden-safe). */
-export function effectiveGeneEffects(def: CardDef, level: number): CardEffect[] {
+/** The card's effects AT a permanent level: base effects + every authored upgrade up to `level`,
+ *  plus every authored ASCENSION tier up to `ascension` (Task 10 backend — no tiers are authored
+ *  and no save can reach tier > 0 yet, so today the third argument is always a no-op).
+ *  With nothing authored this returns the base effects unchanged (golden-safe). */
+export function effectiveGeneEffects(def: CardDef, level: number, ascension = 0): CardEffect[] {
   const ups = def.upgrades;
-  if (!ups || ups.length === 0 || level <= 0) return def.effects;
+  const tiers = ascension > 0 ? def.ascension?.tiers : undefined;
+  if ((!ups || ups.length === 0 || level <= 0) && !tiers) return def.effects;
   const out = def.effects.slice();
-  const cap = Math.min(level, ups.length);
-  for (let i = 0; i < cap; i++) out.push(...ups[i].effects);
+  if (ups && level > 0) {
+    const cap = Math.min(level, ups.length);
+    for (let i = 0; i < cap; i++) out.push(...ups[i].effects);
+  }
+  if (tiers) {
+    const cap = Math.min(ascension, tiers.length);
+    for (let i = 0; i < cap; i++) out.push(...(tiers[i].effects ?? []));
+  }
   return out;
+}
+
+// ── Ascension backend seams (Task 10) — pure reads over the AUTHORED tier data. No gameplay
+//    consumes these yet: no grant path exists, no tiers are authored, and the sanitizer clamps
+//    saved tiers to the authored ceiling (0 today). When Ascension ships, gameplay wires
+//    effectiveGeneEffects(def, level, tier) at the run seams — Power ALREADY counts it below. ──
+
+/** The card's ascension ceiling (0 = not ascendable — nothing authored). */
+export function geneAscensionMaxTier(def: CardDef): number {
+  return Math.max(0, def.ascension?.maxTier ?? 0);
+}
+
+/** ONE card's ascension power multiplier — the strength added by its ascended tiers only. */
+export function geneAscensionPowerMult(def: CardDef, tier: number): number {
+  const tiers = def.ascension?.tiers;
+  if (!tiers || tiers.length === 0 || tier <= 0) return 1;
+  const delta: CardEffect[] = [];
+  const cap = Math.min(tier, tiers.length);
+  for (let i = 0; i < cap; i++) delta.push(...(tiers[i].effects ?? []));
+  return effectsPower(delta);
+}
+
+/** The card's EFFECTIVE rarity: base, stepped up the ladder by future rarity upgrades
+ *  (`rarityTier`), then raised further by an authored ascended-rarity override if higher. */
+export function geneEffectiveRarity(def: CardDef, state?: GeneCardSave): CardRarity {
+  let idx = Math.max(0, CARD_RARITY_LADDER.indexOf(def.rarity));
+  idx = Math.min(CARD_RARITY_LADDER.length - 1, idx + (state?.rarityTier ?? 0));
+  const tiers = def.ascension?.tiers;
+  const tier = state?.ascension ?? 0;
+  if (tiers && tier > 0) {
+    const cap = Math.min(tier, tiers.length);
+    for (let i = 0; i < cap; i++) {
+      const r = tiers[i].rarity;
+      if (r) idx = Math.max(idx, CARD_RARITY_LADDER.indexOf(r));
+    }
+  }
+  return CARD_RARITY_LADDER[idx];
+}
+
+/** The card's artwork key for the renderer: equipped skin → deepest ascended art at the saved
+ *  tier → base art → undefined (procedural fallback, GeneCardArt). The future-UI resolution seam. */
+export function geneArtKey(def: CardDef, state?: GeneCardSave): string | undefined {
+  if (state?.skin) {
+    const skin = def.skins?.find((s) => s.id === state.skin);
+    if (skin?.art) return skin.art;
+  }
+  const tiers = def.ascension?.tiers;
+  const tier = state?.ascension ?? 0;
+  if (tiers && tier > 0) {
+    for (let i = Math.min(tier, tiers.length) - 1; i >= 0; i--) {
+      if (tiers[i].art) return tiers[i].art;
+    }
+  }
+  return def.art;
 }
 
 /** ONE card's PERMANENT power multiplier — the offense/strength added by its upgrade LEVELS only
@@ -103,6 +167,9 @@ export function geneCollectionPowerMult(genes: GeneSave): number {
     const def = cardRegistry.get(id);
     if (!def) continue;
     sum += genePermanentPowerMult(def, genes[id].level) - 1;
+    // Ascension folds into the SAME linear sum (Task 10) — a no-op today (no tiers authored, no
+    // save reaches tier > 0), but the moment Ascension ships, Power counts it with no extra wire.
+    sum += geneAscensionPowerMult(def, genes[id].ascension ?? 0) - 1;
   }
   return 1 + GENE_POWER_SCALE * sum;
 }
@@ -118,8 +185,11 @@ export function sanitizeGeneSave(raw: unknown): GeneSave {
     if (!def || !v || typeof v !== 'object') continue; // drop unknown/renamed cards
     const s = v as Record<string, unknown>;
     const level = clampInt(s.level, 0, geneMaxLevel(def));
-    const rarityTier = clampInt(s.rarityTier, 0, 99);
-    const ascension = clampInt(s.ascension, 0, 99);
+    // Future-state fields clamp to what CURRENT content authors (like `level`): rarityTier can't
+    // step past the ladder top; ascension can't exceed the card's authored tier count (0 today) —
+    // so save manipulation can't fabricate progression that content doesn't define.
+    const rarityTier = clampInt(s.rarityTier, 0, CARD_RARITY_LADDER.length - 1 - Math.max(0, CARD_RARITY_LADDER.indexOf(def.rarity)));
+    const ascension = clampInt(s.ascension, 0, geneAscensionMaxTier(def));
     const skin = typeof s.skin === 'string' ? s.skin : undefined;
     const acquiredAt = typeof s.acquiredAt === 'number' && s.acquiredAt >= 0 ? s.acquiredAt : undefined;
     const upgradedAt = typeof s.upgradedAt === 'number' && s.upgradedAt >= 0 ? s.upgradedAt : undefined;
