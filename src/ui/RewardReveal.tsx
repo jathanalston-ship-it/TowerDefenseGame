@@ -149,11 +149,15 @@ export function RewardReveal({
   categories,
   achievements,
   onContinue,
+  cliffhanger,
+  onReplay,
 }: {
   title: ReactNode;
   categories: RewardCategory[];
   achievements: AchievementItem[];
   onContinue: () => void;
+  cliffhanger?: ReactNode; // the "1 run from …" tease, shown once the rewards have all landed
+  onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode without a menu round-trip
 }): JSX.Element {
   const reduced = useRef(prefersReduced()).current;
   const [instant, setInstant] = useState(reduced);
@@ -249,13 +253,24 @@ export function RewardReveal({
         </div>
       )}
 
-      <button
-        type="button"
-        className={`primary rr-continue${sequenceDone ? ' is-ready' : ''}`}
-        onClick={(e) => { e.stopPropagation(); onContinue(); }}
-      >
-        Continue
-      </button>
+      {/* The cliffhanger — the nearest NEXT reward — lands once the rewards have all revealed, so the
+          player is looking at "you're almost at X" at the exact moment they'd otherwise quit. */}
+      {sequenceDone && cliffhanger && (
+        <div className="rr-cliff-slot" onClick={(e) => e.stopPropagation()}>{cliffhanger}</div>
+      )}
+
+      <div className="rr-actions" onClick={(e) => e.stopPropagation()}>
+        {sequenceDone && onReplay && (
+          <button type="button" className="rr-btn rr-replay" onClick={onReplay}>↻ Infect Again</button>
+        )}
+        <button
+          type="button"
+          className={`primary rr-continue${sequenceDone ? ' is-ready' : ''}`}
+          onClick={(e) => { e.stopPropagation(); onContinue(); }}
+        >
+          Continue
+        </button>
+      </div>
     </div>
   );
 }

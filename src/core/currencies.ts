@@ -42,16 +42,16 @@ export const CURRENCIES: Record<CurrencyId, CurrencyDef> = {
   // Tower-colored crystal shard. `color` is the default; tower contexts pass the tower's own hue.
   towerShards: {
     id: 'towerShards',
-    name: 'Tower Shards',
-    blurb: 'Per-tower currency cracked from bio-containers. Spent on tower Stars.',
+    name: 'Strain Samples',
+    blurb: 'Per-strain DNA cracked from bio-containers. Spliced into strain Evolutions.',
     color: 'var(--kinetic)',
     glow: 'rgba(90, 209, 255, 0.55)',
   },
   // Hero-colored star sigil. `color` is the default; hero contexts pass the hero's own hue.
   heroShards: {
     id: 'heroShards',
-    name: 'Hero Shards',
-    blurb: 'Per-hero currency cracked from bio-containers. Spent on hero Stars.',
+    name: 'Apex Genome',
+    blurb: 'Per-champion DNA cracked from bio-containers. Spliced into champion Evolutions.',
     color: 'var(--vital)',
     glow: 'rgba(255, 122, 89, 0.55)',
   },

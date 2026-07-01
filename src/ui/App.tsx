@@ -118,6 +118,14 @@ export function App(): JSX.Element {
   }, []);
 
   const toMenu = useCallback(() => setScreen('menu'), []);
+  // One-tap "Infect Again" from Results — re-run the SAME mode without a menu round-trip. The run
+  // re-snapshots the now-updated save (begin() reads meta fresh), so the replay uses the progression
+  // just earned. Campaign replays the same host stage; the map is where you advance to the next.
+  const replayRun = useCallback(() => {
+    if (modeRef.current === 'endless') startEndless();
+    else if (modeRef.current === 'campaign') startCampaign(campaignStageRef.current);
+    else startRun();
+  }, [startEndless, startCampaign, startRun]);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
@@ -161,7 +169,7 @@ export function App(): JSX.Element {
         />
       )}
       {screen === 'results' && last && (
-        <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
+        <Results result={last.result} outcome={last.outcome} onContinue={toMenu} onReplay={replayRun} />
       )}
       {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
       {/* Hero Slot Unlock — the biggest milestone; shows first, over Results. Dismiss → reveals the

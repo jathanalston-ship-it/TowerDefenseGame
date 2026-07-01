@@ -12,12 +12,14 @@ import { PlayIcon } from './components/Icon';
 import { DIFFICULTIES } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import { difficultyPref } from '../state/prefs';
-import { generateStage, recommendedPower } from '../core/campaign';
+import { generateStage, recommendedPowerScore } from '../core/campaign';
+import { formatPower } from '../core/power';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
+import { NextGoalBanner } from './NextGoalBanner';
 import type { NavKey } from './Hub';
 
 type RunRecap = { result: RunResult; outcome: RunOutcome } | null;
@@ -68,8 +70,8 @@ export function PlayScreen({
   const cleared = save.campaign.cleared[diff] ?? 0;
   const frontier = cleared + 1; // the next stage to attempt on this track
   const cfg = generateStage(frontier, diff);
-  const rec = recommendedPower(frontier, diff);
-  const power = meta.powerScore().score;
+  const rec = recommendedPowerScore(frontier, diff);
+  const power = meta.power().score;
   const ready = power >= rec;
   const accent = cfg.biome.accent;
 
@@ -85,8 +87,8 @@ export function PlayScreen({
   // Possible Rewards (anticipation): the variety a run can drop. Campaign adds an
   // Evolution Unlock chip on milestone stages so the payoff is obvious before deploying.
   const campaignRewards: PreviewChip[] = [
-    { label: 'Tower Shards', color: 'var(--kinetic)', icon: <CurrencyIcon id="towerShards" size={12} title="" /> },
-    { label: 'Hero Shards', color: 'var(--vital)', icon: <CurrencyIcon id="heroShards" size={12} title="" /> },
+    { label: 'Strain Samples', color: 'var(--kinetic)', icon: <CurrencyIcon id="towerShards" size={12} title="" /> },
+    { label: 'Apex Genome', color: 'var(--vital)', icon: <CurrencyIcon id="heroShards" size={12} title="" /> },
     { label: 'Equipment', color: 'var(--r-epic)' },
     { label: 'Genome Cores', color: 'var(--gold)', icon: <CurrencyIcon id="genomeCores" size={12} title="" /> },
   ];
@@ -118,6 +120,9 @@ export function PlayScreen({
         </section>
       )}
 
+      {/* ── The anticipation spine: the nearest reward, always in view (docs/ONE-MORE-RUN.md) ── */}
+      <NextGoalBanner onNavigate={(k) => go(k as NavKey)} />
+
       {/* ── Mission Control: CONTINUE CAMPAIGN dominates ── */}
       <section className="mc-campaign" style={{ ['--mc-accent' as string]: accent }}>
         <div className="mc-eyebrow">Continue Campaign · The Descent</div>
@@ -145,7 +150,7 @@ export function PlayScreen({
           <div className={`mc-fact ${ready ? 'ok' : 'low'}`}>
             <span className="mc-fact-k">Recommended Power</span>
             <span className="mc-fact-v">
-              ×{rec.toFixed(1)} <small>you ×{power.toFixed(1)} {ready ? '✓' : '⚠'}</small>
+              {formatPower(rec)} <small>you {formatPower(power)} {ready ? '✓' : '⚠'}</small>
             </span>
           </div>
           <div className="mc-fact">

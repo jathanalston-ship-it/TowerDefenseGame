@@ -14,6 +14,7 @@ import { resolveDifficulty } from './difficulty';
 import type { DifficultyDef } from './difficulty';
 import { BIOMES, categoryOf } from './biomes';
 import type { Biome, BiomeCategory } from './biomes';
+import { POWER_BASE } from './power';
 
 // Biomes are the shared ecosystem layer (docs/BIOMES.md), used by BOTH Campaign and Infinite
 // mode. Re-exported here for the campaign test + any campaign-facing consumer.
@@ -215,6 +216,13 @@ export function recommendedPower(stage: number, difficultyId = 'standard'): numb
   const base = resolveDifficulty(difficultyId);
   // × the difficulty's power target so a harder track raises the "am I strong enough?" bar.
   return Math.sqrt(sc.hpMult * base.enemyHealthMult * sc.damageMult * base.enemyDamageMult) * base.powerTargetMult;
+}
+
+/** Recommended Power on the UNIVERSAL index (docs/POWER-SCORE.md) — POWER_BASE × the damage-multiple
+ *  target, so it compares directly against `meta.power().score`, the player-facing number. This is
+ *  what the Campaign / Play / Infinite readiness UI shows (no more "×1.x" legacy multiples). */
+export function recommendedPowerScore(stage: number, difficultyId = 'standard'): number {
+  return Math.round(POWER_BASE * recommendedPower(stage, difficultyId));
 }
 
 export interface CampaignMapNode {

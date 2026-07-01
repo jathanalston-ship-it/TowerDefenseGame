@@ -74,6 +74,8 @@ import type { AbilityCast, AbilityComponent, AbilityContext, ParticleKind, Statu
 import { aggregate as aggregateStatuses, applyStatus as applyStatusInstance, statusRegistry, tickStatuses } from './status';
 import { SpawnDirector } from './spawndirector';
 import type { QueuedSpawn } from './spawndirector';
+import { generateRunPlan, planForWave } from './runEvents';
+import type { RunPlan } from './runEvents';
 import { resolveDifficulty } from './difficulty';
 import type { StageConfig } from './campaign';
 import { NEUTRAL_BIOME, biomeForDepth, hazardActive } from './biomes';
@@ -255,6 +257,12 @@ export class Game {
   // NEUTRAL_BIOME (identity ×1/+0/no-hazard ⇒ every biome read is byte-identical → golden-safe).
   private activeBiome: Biome;
   private biomeFlash = 0; // render-only: eased 1→0 after an Infinite-mode biome transition (surfaced via RenderState)
+  // Run Identity (docs/RUN-IDENTITY.md): a seed-derived plan of discrete per-wave EVENTS + a run-wide
+  // ANOMALY, layered onto Campaign/Endless via a DEDICATED rng stream (never this.rng). null in Stage
+  // ⇒ every wave read is a no-op ⇒ the golden autoplay never drifts.
+  private runPlan: RunPlan | null = null;
+  private runEventRng: Rng;
+  private activeRunEvent: { name: string; desc: string; kind: string } | null = null; // current wave's beat (HUD telegraph)
   // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
   private readonly diff: DifficultyDef;
   // Spawn Director: owns spawn spacing/timing/pacing/elite/boss/special-event scheduling.
@@ -415,6 +423,17 @@ export class Game {
     // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
     if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
+    // Run Identity: a DEDICATED rng stream (decoupled from this.rng ⇒ base run unperturbed) + the plan.
+    // Stage ⇒ null plan (golden-safe). Campaign uses the stage's wave count (finale reserved for its
+    // boss); Endless plans over a horizon. Rare Invasions draw OUT of the active biome's signature.
+    this.runEventRng = new Rng((seed ^ 0x52554e21) >>> 0);
+    this.runPlan = this.mode === 'stage' ? null : generateRunPlan(seed, {
+      mode: this.mode,
+      waveCount: this.mode === 'endless' ? 50 : this.totalWaves,
+      reserveFinale: this.mode === 'campaign',
+      biomeSignature: this.activeBiome.mods.signature,
+      invasionPool: ENEMY_KINDS,
+    });
     this.mods = defaultRunModifiers();
     // Fold permanent (meta) multipliers into the run as starting buckets.
     this.mods.towerDamageMult = meta.towerDamageMult;
@@ -1141,6 +1160,7 @@ export class Game {
       if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss);
       else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss);
     }
+    this.applyRunEvent(this.waveIndex); // Run Identity: fold this wave's beat + anomaly (no-op in Stage)
     this.spawnedAll = false;
     this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
@@ -1170,8 +1190,59 @@ export class Game {
     this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
+    this.applyRunEvent(depth); // Run Identity: fold this depth's beat + anomaly
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: true });
+  }
+
+  /** Run Identity (docs/RUN-IDENTITY.md): fold this wave's scheduled event + the run anomaly onto the
+   *  freshly-scheduled spawn queue (buff HP/bounty, promote elites, inflate/thin counts, inject an
+   *  out-of-biome group) and spawn any ambush boss. Uses the DEDICATED runEventRng so the base run is
+   *  unperturbed; a no-op when the plan is null (Stage) ⇒ golden-safe. Sets the HUD telegraph. */
+  private applyRunEvent(wave: number): void {
+    this.activeRunEvent = null;
+    if (!this.runPlan) return;
+    const { event, effect } = planForWave(this.runPlan, wave);
+    const q = this.spawnQueue;
+    if (effect.hpMult) for (const s of q) s.hpMult *= effect.hpMult;
+    if (effect.bountyMult) for (const s of q) s.bountyMult *= effect.bountyMult;
+    if (effect.eliteAll) for (const s of q) s.elite = true;
+    else if (effect.eliteChance) for (const s of q) { if (this.runEventRng.next() < effect.eliteChance) s.elite = true; }
+    if (effect.countMult && effect.countMult !== 1) this.scaleSpawnCount(effect.countMult);
+    if (effect.injectKind) this.injectSpawnGroup(effect.injectKind, effect.injectCount ?? 6, !!effect.eliteAll);
+    if (effect.boss) {
+      const scale = this.stage ? this.stage.stage : this.waveIndex;
+      const tier = effect.boss === 'major' ? Math.max(2, scale + 1) : Math.max(1, Math.round(scale * 0.6));
+      this.spawnBoss(assembleBoss(() => this.runEventRng.next(), tier, this.activeBiome.mods.bossChassisBias));
+    }
+    if (event) {
+      this.activeRunEvent = { name: event.def.name, desc: event.def.desc, kind: event.def.kind };
+      this.pushSfx('boss'); // a telegraph sting so the beat is felt, not just seen
+    }
+  }
+
+  /** Duplicate a share of the queued spawns (Swarm; mult>1) or thin them (Dead Calm; mult<1), keeping
+   *  at least the first spawn. Deterministic on runEventRng. */
+  private scaleSpawnCount(mult: number): void {
+    if (mult >= 1) {
+      const extra = mult - 1;
+      const clones: QueuedSpawn[] = [];
+      for (const s of this.spawnQueue) if (this.runEventRng.next() < extra) clones.push({ ...s, at: s.at + 0.3 });
+      if (clones.length) { for (const c of clones) this.spawnQueue.push(c); this.spawnQueue.sort((a, b) => a.at - b.at); }
+    } else {
+      const drop = 1 - mult;
+      this.spawnQueue = this.spawnQueue.filter((_, i) => i === 0 || this.runEventRng.next() >= drop);
+    }
+  }
+
+  /** Inject an out-of-biome group into the current wave window (Rare Invasion). */
+  private injectSpawnGroup(kind: EnemyKind, count: number, elite: boolean): void {
+    const q = this.spawnQueue;
+    const base = q.length ? q[0].at : this.time + 1;
+    const hp = q.length ? q[0].hpMult : 1;
+    const bounty = q.length ? q[0].bountyMult : 1;
+    for (let i = 0; i < count; i++) q.push({ kind, at: base + 1 + i * 0.4, hpMult: hp, bountyMult: bounty, elite: elite || undefined });
+    q.sort((a, b) => a.at - b.at);
   }
 
   chooseCard(id: string): void {
@@ -3239,6 +3310,8 @@ export class Game {
         hazardName: this.activeBiome.mods.hazard.name,
         hazardActive: hazardActive(this.activeBiome, this.time),
       },
+      runEvent: this.activeRunEvent,
+      runHeadline: this.runPlan?.headline || undefined,
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
       autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,

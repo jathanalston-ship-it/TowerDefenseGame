@@ -8,7 +8,8 @@ import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { PredictionPanel } from './PredictionPanel';
 import { audio } from '../audio/sound';
-import { campaignMapView, generateStage, recommendedPower } from '../core/campaign';
+import { campaignMapView, generateStage, recommendedPowerScore } from '../core/campaign';
+import { formatPower } from '../core/power';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
@@ -29,7 +30,7 @@ export function CampaignScreen({
   const [diff, setDiff] = useState(() => difficultyPref('campaign')); // Campaign's OWN persisted difficulty
   const cleared = save.campaign.cleared[diff] ?? 0;
   const frontier = cleared + 1;
-  const power = meta.powerScore().score;
+  const power = meta.power().score;
 
   // Window + focus track the frontier; recenter when you clear a stage or switch the difficulty track.
   const [viewStart, setViewStart] = useState(() => Math.max(1, frontier - 2));
@@ -53,7 +54,7 @@ export function CampaignScreen({
   // Focused stage — one full generation (the selected node only).
   const cfg = generateStage(focus, diff);
   const focusState = focus <= cleared ? 'cleared' : focus === frontier ? 'current' : 'locked';
-  const rec = recommendedPower(focus, diff);
+  const rec = recommendedPowerScore(focus, diff);
   const ready = power >= rec;
   const firstClearCore = CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * focus +
     (focus % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0);
@@ -73,7 +74,7 @@ export function CampaignScreen({
             </select>
           </label>
           <span className="camp-record">Deepest cleared <b>{cleared}</b></span>
-          <span className="camp-record">Power <b>×{power.toFixed(1)}</b></span>
+          <span className="camp-record">Power <b>{formatPower(power)}</b></span>
         </div>
       </header>
 
@@ -132,8 +133,8 @@ export function CampaignScreen({
 
           <div className={`camp-power ${ready ? 'ok' : 'low'}`}>
             <span>Recommended Power</span>
-            <b>×{rec.toFixed(1)}</b>
-            <span className="camp-power-you">you ×{power.toFixed(1)} {ready ? '✓' : '⚠'}</span>
+            <b>{formatPower(rec)}</b>
+            <span className="camp-power-you">you {formatPower(power)} {ready ? '✓' : '⚠'}</span>
           </div>
 
           <div className="camp-rewards">

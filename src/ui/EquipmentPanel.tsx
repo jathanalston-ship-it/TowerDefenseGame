@@ -9,7 +9,7 @@ import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
 import {
-  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore,
+  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore, rarityLabelOf,
 } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem, Rarity, RolledAffix } from '../core/equipment';
 import {
@@ -103,7 +103,7 @@ export function EquipmentPanel(): JSX.Element {
         <div className="ic-body">
           <div className="ic-name" style={{ color: c }}>{def.name}</div>
           <div className="ic-meta">
-            <span className="ic-rarity" style={{ color: c }}>{cap(item.rarity)}</span>
+            <span className="ic-rarity" style={{ color: c }}>{rarityLabelOf(item.rarity)}</span>
             <span> · {SLOT_LABELS[def.slot]}{def.weaponType ? ` · ${cap(def.weaponType)}` : def.armorType ? ` · ${cap(def.armorType)}` : ''}</span>
             {item.ilvl !== undefined && <span className="ic-ilvl" title="Item level"> · i{item.ilvl}</span>}
             <span className="ic-power" title="Power Score"> · ⚙ {itemScore(item)}</span>
@@ -192,7 +192,7 @@ export function EquipmentPanel(): JSX.Element {
           <div className="ac-group">
             <button className={rarity === 'all' ? 'on' : ''} onClick={() => setRarity('all')}>Any</button>
             {raritiesPresent.map((r) => (
-              <button key={r} className={rarity === r ? 'on' : ''} style={rarity === r ? { color: rarityColor(r), borderColor: rarityColor(r) } : { color: rarityColor(r) }} onClick={() => setRarity(r)}>{cap(r)}</button>
+              <button key={r} className={rarity === r ? 'on' : ''} style={rarity === r ? { color: rarityColor(r), borderColor: rarityColor(r) } : { color: rarityColor(r) }} onClick={() => setRarity(r)}>{rarityLabelOf(r)}</button>
             ))}
           </div>
         )}
@@ -230,7 +230,7 @@ function CompareCol({ item, tag }: { item: OwnedItem | null; tag: string }): JSX
         <>
           <ItemArt def={def} rarity={item.rarity} size={84} />
           <div className="cmp-name" style={{ color: c }}>{def.name}</div>
-          <div className="ic-meta"><span style={{ color: c }}>{cap(item.rarity)}</span> · {SLOT_LABELS[def.slot]}</div>
+          <div className="ic-meta"><span style={{ color: c }}>{rarityLabelOf(item.rarity)}</span> · {SLOT_LABELS[def.slot]}</div>
           <p className="ic-desc">{def.desc}</p>
           {traitChips(item).length > 0 && (
             <div className="ic-traits">{traitChips(item).map((t) => <span className={`ic-trait${t.locked ? ' is-locked' : ''}`} key={t.key}>{t.locked ? '🔒 ' : ''}{t.label}</span>)}</div>
@@ -342,7 +342,7 @@ function ReforgeOverlay({
           <div className="rf-head-info">
             <div className="rf-name" style={{ color: c }}>{def.name}</div>
             <div className="ic-meta">
-              <span style={{ color: c }}>{cap(item.rarity)}</span> · {SLOT_LABELS[def.slot]}
+              <span style={{ color: c }}>{rarityLabelOf(item.rarity)}</span> · {SLOT_LABELS[def.slot]}
               {item.ilvl !== undefined && <span title="Item level"> · i{item.ilvl}</span>}
               <span title="Power Score"> · ⚙ {itemScore(item)}</span>
             </div>

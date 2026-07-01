@@ -549,6 +549,15 @@ export const RARITY_WEIGHT: Record<string, number> = {
   common: 1, rare: 2, epic: 4, legendary: 7, exotic: 9, mythic: 12,
 };
 
+/** ASSIMILATE grade labels for rarity (docs/LEXICON.md) — the DISPLAY name; the internal id (and
+ *  save data) never change. common→Inert … exotic→Apex; a future 'mythic' reads 'Aberrant'. */
+export const RARITY_LABELS: Record<string, string> = {
+  common: 'Inert', rare: 'Active', epic: 'Virulent', legendary: 'Rampant', exotic: 'Apex', mythic: 'Aberrant',
+};
+export function rarityLabelOf(r: string): string {
+  return RARITY_LABELS[r] ?? r.charAt(0).toUpperCase() + r.slice(1);
+}
+
 /** A single item's "gear score" — rarity weight (×10) + summed affix tiers. Drives sort + the
  *  account Equipment Score. Deterministic; UI/meta only (never touches the sim). */
 export function itemScore(item: OwnedItem): number {

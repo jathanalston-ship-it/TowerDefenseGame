@@ -51,7 +51,7 @@ describe('vault reveal read-model (honest pulls + merged summary)', () => {
     const row = m.sections.find((s) => s.id === 'towerShards')!.rows[0];
     expect(row.count).toBe(3); // "×3"
     expect(row.qty).toBe(18); // 3 + 6 + 9 merged total
-    expect(row.amountLabel).toBe('+18 Shards');
+    expect(row.amountLabel).toBe('+18 Strain Samples');
     expect(row.rarity).toBe('rare'); // best rarity among merged pulls wins the row styling
   });
 
