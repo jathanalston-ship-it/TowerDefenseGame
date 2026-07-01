@@ -96,6 +96,16 @@ export const AscensionCellIcon = (p: IconProps): JSX.Element =>
     p,
   );
 
+/** Gene Essence — a distilled droplet cradling a helix mote (permanent gene-upgrade currency). */
+export const GeneEssenceIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M12 2.5c3.6 4.4 6 8 6 11a6 6 0 1 1-12 0c0-3 2.4-6.6 6-11z" opacity="0.95" />
+      <path d="M9.8 12.5c1.4 1 3 1 4.4 0M9.8 15c1.4 1 3 1 4.4 0" fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="1.1" strokeLinecap="round" />
+    </>,
+    p,
+  );
+
 /** Lightning bolt — the Apex Leap ability (replaces ⚡). */
 export const BoltIcon = (p: IconProps): JSX.Element => svg(<path d="M13 2L4 14h6l-1 8 9-12h-6z" />, p);
 

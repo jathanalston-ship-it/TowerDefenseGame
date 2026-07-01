@@ -102,6 +102,9 @@ export interface SaveData {
   //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
   //    withDefaults fills {} for pre-v18 saves, sanitizeGeneSave drops unknown/renamed ids. ──
   genes: GeneSave;
+  // ── Gene Essence (schema v18) — permanent Gene Card upgrade currency. Earned mainly by converting
+  //    duplicate max-Star shards (meta.openContainer) + rare container drops. Additive ⇒ 0 for old saves. ──
+  geneEssence: number;
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -259,6 +262,7 @@ export function defaultSave(): SaveData {
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
     genes: {},
+    geneEssence: 0,
   };
 }
 
@@ -381,6 +385,7 @@ function withDefaults(data: SaveData): SaveData {
     prediction: sanitizePrediction(data.prediction),
     help: sanitizeHelp(data.help),
     genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
+    geneEssence: Math.max(0, Math.floor(Number((data as { geneEssence?: unknown }).geneEssence) || 0)), // v18: permanent gene currency (pre-v18 ⇒ 0)
   };
 }
 

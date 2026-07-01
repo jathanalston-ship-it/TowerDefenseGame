@@ -62,6 +62,30 @@ Permanent gene upgrades are account strength → folded into the account `meta` 
 - **Task 9** — tune `GENE_POWER_SCALE`; add a build-time coverage guard (no gene bypasses Power).
 - **Task 10** — populate `def.ascension` (backend only).
 
+## Economy — Gene Essence (Task 2)
+`geneEssence` is the permanent Gene Card upgrade currency (`core/currencies.ts`, save field
+`geneEssence`, teal droplet icon + tooltip, Help mechanic `gene-essence`).
+
+**Duplicate conversion (primary source).** When a Bio-Container is opened (`meta.openContainer`), the
+shards it grants are diffed against the pre-open save. For any **max-Star** tower (`STAR.maxTowerStars`
+= 10) or **unlocked max-Star** hero (`STAR.maxStars` = 5), those excess shards can't buy more stars, so
+they are **reverted from the shard total and converted to Gene Essence** instead — shown immediately on
+the reveal as a `geneEssence` event pull with the reason (e.g. *"Duplicate Legendary Hero"*).
+
+Formula: `essence = flooredShards × ESSENCE_PER_SHARD[containerRarity]` (`core/geneEssence.ts`):
+
+| Rarity | common | uncommon | rare | epic | legendary | mythic |
+|---|--:|--:|--:|--:|--:|--:|
+| Essence / shard | 1 | 2 | 3 | 6 | 9 | 15 |
+
+So 5 duplicate common shards → **+5** (matches spec); 5 duplicate legendary → **+45**. Locked heroes
+never convert (their shards still go toward unlocking). *Task 3 adds a small rare Essence drop from
+containers; duplicate conversion stays the dominant source.*
+
+**Anti-exploit.** Conversion is driven by shards actually **granted at open time** (the pre/post diff),
+not by re-reading star counts — so it can't be farmed by re-opening. Resets grant no shards ⇒ mint no
+Essence. `sanitizeGeneSave` + a numeric clamp on load neutralize save manipulation.
+
 ## Invariants
 - **Gameplay preserved / golden byte-identical** — every seam is a no-op with no authored upgrades.
 - **Permanent id is sacred** — the save key. Renames = new card.

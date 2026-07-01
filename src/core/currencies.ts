@@ -9,7 +9,7 @@
 // keys would force a schema migration across the economy/prestige tests for zero player-visible
 // benefit). Tower/Hero Shards keep both their name AND their `towerShards` / `heroShards` keys.
 
-export type CurrencyId = 'genomeCores' | 'towerShards' | 'heroShards' | 'ascendantCells';
+export type CurrencyId = 'genomeCores' | 'towerShards' | 'heroShards' | 'ascendantCells' | 'geneEssence';
 
 export interface CurrencyDef {
   /** Stable framework id (see STORAGE NOTE — not always the save key). */
@@ -62,6 +62,15 @@ export const CURRENCIES: Record<CurrencyId, CurrencyDef> = {
     blurb: 'Prestige currency minted by Molting. Permanently empowers the hive.',
     color: 'var(--viral)',
     glow: 'rgba(226, 77, 255, 0.55)',
+  },
+  // Gene Essence — the permanent Gene Card upgrade currency (docs/GENE-EVOLUTION.md). Earned mainly by
+  // AUTO-CONVERTING duplicate max-Star tower/hero shards, plus rare Bio-Container drops. Teal strand.
+  geneEssence: {
+    id: 'geneEssence',
+    name: 'Gene Essence',
+    blurb: 'Distilled genetic memory. Converted from max-Star duplicate shards + rare Bio-Container drops; spent to permanently upgrade Gene Cards in the Gene Archive.',
+    color: 'var(--caustic, #6ad1b0)',
+    glow: 'rgba(106, 209, 176, 0.55)',
   },
 };
 

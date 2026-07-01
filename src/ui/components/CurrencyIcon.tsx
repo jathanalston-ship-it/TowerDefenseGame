@@ -6,7 +6,7 @@
 
 import { CURRENCIES } from '../../core/currencies';
 import type { CurrencyId } from '../../core/currencies';
-import { GenomeCoreIcon, TowerShardIcon, HeroShardIcon, AscensionCellIcon } from './Icon';
+import { GenomeCoreIcon, TowerShardIcon, HeroShardIcon, AscensionCellIcon, GeneEssenceIcon } from './Icon';
 
 interface IconProps {
   size?: number | string;
@@ -17,6 +17,7 @@ const SVG: Record<CurrencyId, (p: IconProps) => JSX.Element> = {
   towerShards: TowerShardIcon,
   heroShards: HeroShardIcon,
   ascendantCells: AscensionCellIcon,
+  geneEssence: GeneEssenceIcon,
 };
 
 export function CurrencyIcon({

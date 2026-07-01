@@ -21,6 +21,7 @@ import type { OwnedItem } from '../core/equipment';
 import { MATERIAL_META } from '../core/materialDrop';
 import { itemPowerScore } from './itemPower';
 import type { PowerCompare } from './itemPower';
+import { CURRENCIES } from '../core/currencies';
 import type { CurrencyId } from '../core/currencies';
 
 export { itemPowerScore }; // re-exported for callers that import it from the reveal read-model
@@ -131,8 +132,21 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
       return { key: `cos:${item.id}`, category: 'other', rarity: item.rarity, color: 'var(--r-epic)', name: item.id, qty: 1, unit: 'Cosmetic', amountLabel: 'Cosmetic', glyph: '✦' };
     case 'relic':
       return { key: `relic:${item.id}`, category: 'other', rarity: item.rarity, color: 'var(--r-legendary)', name: item.id, qty: 1, unit: 'Relic', amountLabel: 'Relic', glyph: '❈' };
-    case 'event':
-      return { key: `evt:${item.currency}`, category: 'other', rarity: item.rarity, color: 'var(--viral)', name: item.currency, qty: item.amount, unit: 'Event', amountLabel: `+${item.amount}`, glyph: '✦' };
+    case 'event': {
+      // Currency events (e.g. Gene Essence from duplicate conversion) render the animated currency
+      // icon; `note` becomes the reason ("Duplicate Common Tower") so the player sees WHY it converted.
+      const cur = CURRENCIES[item.currency as CurrencyId];
+      return {
+        key: `evt:${item.currency}:${item.note ?? ''}`,
+        category: 'other', rarity: item.rarity,
+        color: cur?.color ?? 'var(--viral)',
+        name: item.note ?? cur?.name ?? item.currency,
+        qty: item.amount, unit: cur?.name ?? 'Event',
+        amountLabel: `+${item.amount} ${cur?.name ?? ''}`.trim(),
+        currency: cur ? (item.currency as CurrencyId) : undefined,
+        glyph: cur ? undefined : '✦',
+      };
+    }
   }
 }
 

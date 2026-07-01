@@ -49,6 +49,7 @@ import type { CardEffect } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
+import { essenceForDuplicates } from '../core/geneEssence';
 import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -1121,8 +1122,43 @@ export const meta = {
       chest.materials[drop.mat] += drop.amount;
       mats = { ...mats, [drop.mat]: mats[drop.mat] + drop.amount };
     }
+    // ── Gene Essence — duplicate conversion (docs/GENE-EVOLUTION.md §Economy). A tower/hero at MAX
+    //    Star progression can't spend more shards, so the shards GRANTED by this open (diffed from the
+    //    pre-open save, so it's path-agnostic + un-farmable) convert to Gene Essence, scaled by the
+    //    container's rarity, instead of piling up dead. The excess is reverted from the shard totals so
+    //    it never accumulates, and shown immediately on the reveal (a `geneEssence` event item). ──
+    let essenceGained = 0;
+    let towerDupes = 0;
+    for (const k of TOWER_ORDER) {
+      const granted = (towerShards[k] ?? 0) - (save.towerShards[k] ?? 0);
+      if (granted > 0 && (save.towerStars[k] ?? 0) >= STAR.maxTowerStars) {
+        towerShards[k] = save.towerShards[k] ?? 0; // maxed → don't accumulate; convert instead
+        towerDupes += granted;
+      }
+    }
+    let heroDupes = 0;
+    for (const id of Object.keys(heroShards)) {
+      const granted = (heroShards[id] ?? 0) - (save.heroShards[id] ?? 0);
+      // Only UNLOCKED, max-Star heroes convert — a locked hero keeps its shards toward unlocking.
+      if (granted > 0 && isHeroUnlocked(save, id as HeroKind) && (save.heroStars[id as HeroKind] ?? 0) >= STAR.maxStars) {
+        heroShards[id] = save.heroShards[id] ?? 0;
+        heroDupes += granted;
+      }
+    }
+    const rName = rarityRegistry.get(chest.topRarity)?.name ?? chest.topRarity;
+    if (towerDupes > 0) {
+      const amt = essenceForDuplicates(chest.topRarity, towerDupes);
+      essenceGained += amt;
+      chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Tower` });
+    }
+    if (heroDupes > 0) {
+      const amt = essenceForDuplicates(chest.topRarity, heroDupes);
+      essenceGained += amt;
+      chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Hero` });
+    }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity,
+      geneEssence: save.geneEssence + essenceGained,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
     });

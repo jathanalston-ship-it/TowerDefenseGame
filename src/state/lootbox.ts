@@ -25,7 +25,7 @@ export type RewardItem =
   | { type: 'equipment'; rarity: LootRarity; item: OwnedItem }
   | { type: 'cosmetic'; rarity: LootRarity; id: string }
   | { type: 'relic'; rarity: LootRarity; id: string }
-  | { type: 'event'; rarity: LootRarity; currency: string; amount: number };
+  | { type: 'event'; rarity: LootRarity; currency: string; amount: number; note?: string };
 
 /** A banked, UNOPENED container in the Genetic Vault. Either a loot-queue box (a rarity
  *  rolled via rollLoot on crack) or the run-end results cache (a chest def rolled via
