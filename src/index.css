@@ -554,6 +554,7 @@ button:disabled {
   text-align: center;
   min-width: 110px;
   padding: 0 8px;
+  position: relative; /* anchors the absolutely-positioned run-event banner */
 }
 .phase-big {
   font-family: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
@@ -636,6 +637,47 @@ button:disabled {
   14% { opacity: 1; transform: translateY(0) scale(1); }
   78% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* ── Run Identity (docs/RUN-IDENTITY.md): the run headline chip + the per-wave beat banner ── */
+.run-headline {
+  margin-top: 3px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  font-variant: small-caps;
+  color: var(--gold);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.run-event-banner {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: run-event-in 3.4s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+.reb-name {
+  font-family: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--danger);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--danger) 70%, transparent);
+}
+.reb-desc { font-size: 12px; color: var(--text-dim); font-variant: small-caps; letter-spacing: 0.03em; }
+@keyframes run-event-in {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.9); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.04); }
+  16% { transform: translateX(-50%) translateY(0) scale(1); }
+  82% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 }
 .hud-rate {
   font-size: 11px;
