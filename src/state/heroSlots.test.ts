@@ -38,6 +38,7 @@ describe('hero slots', () => {
     const [a, b, c] = HERO_ORDER;
     const s = defaultSave();
     s.campaign.cleared.standard = 25; // 2 slots unlocked
+    s.heroUnlocked = [a, b, c]; // own all heroes → this pins slot-clamp/distinct, not the unlock gate
     s.heroLoadout = [a, b, c]; // 3 assigned, but only 2 slots → clamp
     expect(fieldedLoadout(s)).toEqual([a, b]);
     s.heroLoadout = [a, a]; // duplicates collapse to a distinct roster

@@ -12,7 +12,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, HERO_SLOTS, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -37,7 +37,7 @@ import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } f
 import { accumulateStats } from './stats';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItemDrop } from '../core/equipment';
+import { EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItemDrop, rollItemForPower } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import {
   canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
@@ -51,6 +51,8 @@ import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
 import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { Prediction } from '../core/predict';
+import { unlockedMechanics, pendingAnnouncements } from './mechanics';
+import type { MechanicDef } from './mechanics';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
@@ -302,18 +304,63 @@ export function heroSlotsUnlocked(save: SaveData): number {
   return Math.max(1, n);
 }
 
-/** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT kinds.
- *  Always ≥1 (falls back to slot-1 / the default hero). Length = heroes actually assigned. */
+// ── Hero Collection ownership (docs/HEROES.md) — WHICH heroes the account owns ────────────────────
+// Orthogonal to hero SLOTS (how many you field): a hero must be OWNED to be selectable, and slots
+// gate how many owned heroes deploy at once. Starters (no unlockShards) are always owned.
+
+/** Whether the account owns `kind`. Starters (HeroDef without an unlockShards gate) are always
+ *  owned; a locked hero is owned once it appears in `save.heroUnlocked` (claimed with Hero Shards). */
+export function isHeroUnlocked(save: SaveData, kind: HeroKind): boolean {
+  const cost = HERO_DEFS[kind]?.unlockShards ?? 0;
+  if (cost <= 0) return true; // starter
+  return (save.heroUnlocked ?? []).includes(kind);
+}
+
+/** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT + OWNED
+ *  kinds. Always ≥1 (falls back to the selected hero, or the first owned hero). A locked hero can
+ *  never be fielded even if a stale loadout entry names it. */
 export function fieldedLoadout(save: SaveData): HeroKind[] {
   const unlocked = heroSlotsUnlocked(save);
   const out: HeroKind[] = [];
   const seen = new Set<HeroKind>();
   for (const k of save.heroLoadout ?? []) {
     if (out.length >= unlocked) break;
-    if (!seen.has(k)) { out.push(k); seen.add(k); }
+    if (!seen.has(k) && isHeroUnlocked(save, k)) { out.push(k); seen.add(k); }
   }
-  if (out.length === 0) out.push(save.selectedHero);
+  if (out.length === 0) {
+    out.push(isHeroUnlocked(save, save.selectedHero) ? save.selectedHero : (HERO_ORDER.find((k) => isHeroUnlocked(save, k)) ?? save.selectedHero));
+  }
   return out;
+}
+
+export interface HeroCollectionEntry {
+  kind: HeroKind;
+  name: string;
+  color: string;
+  unlocked: boolean;
+  isStarter: boolean;
+  cost: number; // Hero Shards to unlock (0 for starters / already-owned)
+  shards: number; // Hero Shards banked toward this hero
+  progress: number; // 0..1 toward the unlock threshold (1 when owned)
+  canUnlock: boolean; // locked AND enough shards banked to claim now
+}
+
+/** The Hero Collection roster view: every hero with ownership + unlock progress ("42 / 100"), so
+ *  a locked hero reads as a concrete, visible goal. Pure over the save; future-proof (reads the
+ *  registry order, so a new hero just appears). */
+export function heroCollection(save: SaveData): HeroCollectionEntry[] {
+  return HERO_ORDER.map((kind) => {
+    const def = HERO_DEFS[kind];
+    const cost = def.unlockShards ?? 0;
+    const isStarter = cost <= 0;
+    const unlocked = isHeroUnlocked(save, kind);
+    const shards = save.heroShards[kind] ?? 0;
+    return {
+      kind, name: def.name, color: def.color, unlocked, isStarter, cost, shards,
+      progress: unlocked ? 1 : cost > 0 ? Math.min(1, shards / cost) : 1,
+      canUnlock: !unlocked && shards >= cost,
+    };
+  });
 }
 
 export interface HeroSlotView {
@@ -502,12 +549,13 @@ function openLootBoxes(
   awarded: string[],
   towerShards: Record<TowerKind, number>,
   heroShards: Record<string, number>,
+  heroPool?: readonly string[],
 ): LootBoxAward[] {
   const out: LootBoxAward[] = [];
   for (const rarity of awarded) {
     const def = rarityRegistry.get(rarity);
     if (!def) continue;
-    const box = rollLoot(def);
+    const box = rollLoot(def, Math.random, heroPool);
     for (const k of TOWER_ORDER) towerShards[k] += box.towerShards[k] ?? 0;
     for (const id of Object.keys(box.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + box.heroShards[id];
     out.push({ rarity, chest: box });
@@ -905,31 +953,50 @@ export const meta = {
     if (!c) return null;
     const towerShards = { ...save.towerShards };
     const heroShards = { ...save.heroShards };
+    // Bias hero-shard pulls toward still-LOCKED heroes so their "42 / 100" unlock bar fills visibly
+    // (empty ⇒ every hero owned ⇒ shards distribute normally for stars).
+    const lockedPool = HERO_ORDER.filter((k) => !isHeroUnlocked(save, k));
+    let mats = save.mats;
+    let chest: ChestResult;
+    let label: string;
+    let color: string;
     if (c.kind === 'cache') {
       const def = CHESTS[c.chestId] ?? CHESTS[RUN_CHEST];
-      const chest = rollChest(def);
+      chest = rollChest(def, Math.random, lockedPool);
       for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
       for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
-      const mats = {
+      mats = {
         mutagen: save.mats.mutagen + chest.materials.mutagen,
         scrap: save.mats.scrap + chest.materials.scrap,
         catalyst: save.mats.catalyst + chest.materials.catalyst,
       };
-      persist({
-        ...save, towerShards, heroShards, mats,
-        equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
-        pendingContainers: rest,
-      });
-      return { chest, label: def?.name ?? 'Reward Cache', color: 'var(--gold)' };
-    }
-    if (!rarityRegistry.has(c.rarity)) { // junk id from a tampered save → discard, no reward
+      label = def?.name ?? 'Reward Cache';
+      color = 'var(--gold)';
+    } else if (rarityRegistry.has(c.rarity)) {
+      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool);
+      chest = award.chest;
+      const def = rarityRegistry.get(c.rarity);
+      label = `${def?.name ?? c.rarity} Container`;
+      color = def?.color ?? 'var(--r-common)';
+    } else { // junk id from a tampered save → discard, no reward
       persist({ ...save, pendingContainers: rest });
       return null;
     }
-    const [award] = openLootBoxes([c.rarity], towerShards, heroShards);
-    persist({ ...save, towerShards, heroShards, pendingContainers: rest });
-    const def = rarityRegistry.get(c.rarity);
-    return { chest: award.chest, label: `${def?.name ?? c.rarity} Container`, color: def?.color ?? 'var(--r-common)' };
+    // Unified equipment drop (docs/EQUIPMENT.md): ~50% chance per container, AT MOST ONE item, rarity
+    // scaled to the account Power Score (early Common → late Legendary/Exotic; no run-depth spikes).
+    // Folded into the reveal (chest.items/equipment) + inventory here so BOTH container kinds award
+    // gear identically — equipment no longer drops per-roll from the chest pools.
+    if (Math.random() < EQUIP_DROP_CHANCE) {
+      const item = rollItemForPower(Math.random, composePower(accountPowerParts(save)).score);
+      chest.items.push({ type: 'equipment', rarity: item.rarity, item });
+      chest.equipment.push(item);
+    }
+    persist({
+      ...save, towerShards, heroShards, mats,
+      equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
+      pendingContainers: rest,
+    });
+    return { chest, label, color };
   },
 
   /** Unlock any newly-satisfied achievements; persist + return the new ids (for toasts). */
@@ -1045,6 +1112,7 @@ export const meta = {
     const save = store.get();
     const unlocked = heroSlotsUnlocked(save);
     if (slot < 1 || slot > unlocked) return;
+    if (!isHeroUnlocked(save, kind)) return; // can't field a hero the account doesn't own
     const loadout = fieldedLoadout(save).slice();
     // Fill any not-yet-assigned lower slots with distinct heroes so a higher slot can be set.
     while (loadout.length < slot) loadout.push(HERO_ORDER.find((k) => !loadout.includes(k)) ?? loadout[0]);
@@ -1053,6 +1121,32 @@ export const meta = {
     if (other >= 0 && other !== slot - 1) loadout[other] = prev; // swap to keep the roster distinct
     loadout[slot - 1] = kind;
     persist({ ...save, heroLoadout: loadout, selectedHero: loadout[0] });
+  },
+
+  /** Whether the account owns `kind` (starters always; locked heroes once claimed). */
+  isHeroUnlocked(kind: HeroKind): boolean {
+    return isHeroUnlocked(store.get(), kind);
+  },
+
+  /** The Hero Collection roster: every hero with ownership + unlock progress ("42 / 100"). */
+  heroCollection(): HeroCollectionEntry[] {
+    return heroCollection(store.get());
+  },
+
+  /** Claim a locked hero once enough Hero Shards are banked: spends its unlock cost, marks it owned,
+   *  and returns true. False if already owned or unaffordable. The claimed hero is immediately
+   *  selectable (setHeroInSlot no longer rejects it). */
+  unlockHero(kind: HeroKind): boolean {
+    const save = store.get();
+    if (isHeroUnlocked(save, kind)) return false;
+    const cost = HERO_DEFS[kind].unlockShards ?? 0;
+    if ((save.heroShards[kind] ?? 0) < cost) return false;
+    persist({
+      ...save,
+      heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
+      heroUnlocked: [...(save.heroUnlocked ?? []), kind],
+    });
+    return true;
   },
 
   /** Spend hero shards to add a star to `kind`. Returns false if unaffordable/maxed. */
@@ -1361,6 +1455,53 @@ export const meta = {
       achievement: unlocked.includes('tutorial_complete') ? 'Assimilation Protocol' : null,
       powerBefore, powerAfter: composePower(accountPowerParts(store.get())).score,
     };
+  },
+
+  // ── Help wiki + What's New (docs/HELP.md) ──────────────────────────────────
+  /** The unlocked mechanics for the living Help wiki (locked ones stay hidden). */
+  helpMechanics(): MechanicDef[] {
+    return unlockedMechanics(store.get());
+  },
+  /** Mechanics unlocked but not yet announced — drives the "What's New?" queue. */
+  whatsNew(): MechanicDef[] {
+    return pendingAnnouncements(store.get());
+  },
+  /** Archive announced mechanics into Help (so they never re-announce, but stay browsable). */
+  archiveMechanics(ids: string[]): void {
+    const s = store.get();
+    const seen = Array.from(new Set([...s.help.seen, ...ids]));
+    persist({ ...s, help: { ...s.help, seen } });
+  },
+  /** One-time prime (App boot): silently archive everything ALREADY unlocked so an existing save
+   *  doesn't flood with What's New on first load. A brand-new account primes empty ⇒ it discovers
+   *  each mechanic as it unlocks. */
+  primeHelp(): void {
+    const s = store.get();
+    if (s.help.primed) return;
+    const seen = Array.from(new Set([...s.help.seen, ...unlockedMechanics(s).filter((m) => !m.core).map((m) => m.id)]));
+    persist({ ...s, help: { ...s.help, seen, primed: true } });
+  },
+  /** First-launch HUD Tour gate: run once, only after the Combat Tutorial, on a fresh account. */
+  shouldHudTour(): boolean {
+    const s = store.get();
+    return !s.help.hudTour && s.tutorial.completed.includes('combat');
+  },
+  /** Mark the HUD Tour done + grant its one-time Tutorial Bio-Container (idempotent — reuses the
+   *  tutorial reward ledger so it never double-grants). Returns the reward summary, or null. */
+  completeHudTour(): TutorialRewardSummary | null {
+    const s = store.get();
+    if (s.help.hudTour) return null;
+    persist({ ...s, help: { ...s.help, hudTour: true } });
+    const reward = this.grantTutorialRewards('hudtour');
+    // Onboarding (the Combat Tutorial + this HUD Tour) just introduced the foundational systems —
+    // and its rewards unlock several at once (shards → Tower Stars, gear → Equipment, a Bio-Container,
+    // Genome Cores). Archive everything unlocked so far so the What's New queue doesn't cascade for
+    // systems the player was just shown. Genuine PLAY-driven unlocks later (Prestige at Stage 10,
+    // new biomes, bosses …) are not yet unlocked here, so they still announce when the player earns them.
+    const after = store.get();
+    const seen = Array.from(new Set([...after.help.seen, ...unlockedMechanics(after).filter((m) => !m.core).map((m) => m.id)]));
+    persist({ ...after, help: { ...after.help, seen } });
+    return reward;
   },
 
   reset(): void {

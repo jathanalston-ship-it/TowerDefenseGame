@@ -98,3 +98,27 @@ Power Score is a first-class **balancing input**, not just a display. Systems th
   Unifying readiness onto the universal index is a safe future step.
 - **Weights are tunable.** `FIELD_WEIGHT`, `ADD_POWER`, `itemRarityPower`, and `POWER_BASE` are
   the levers; changing them re-scales the index without touching any consumer.
+
+---
+
+## Mandatory coverage — the engine-level guarantee (as built)
+
+No strength-affecting content can ship without a Power evaluation, enforced in code
+(`core/power.ts` + `core/validate.ts`, run at dev boot via `main.tsx` and in tests):
+
+- **The contract.** `POWER_RELEVANT_FIELDS` lists every run-modifier field that represents account
+  STRENGTH (raw + secondary offense, survivability, economy). Inverse trade-offs (`heroCooldownMult`,
+  `enemyHpRunMult`) and pure utility/CC/behavior knobs are deliberately excluded.
+- **The enforcement.** `uncoveredPowerFields()` returns any strength field the model
+  (`FIELD_WEIGHT` ∪ `ADD_POWER`) fails to score. `validateAllContent()` (boot) and
+  `validateAllContentReport()` (category `power-coverage`) turn a non-empty result into an **error** —
+  the content check fails. So adding a strength field to `RunModifiers` + `POWER_RELEVANT_FIELDS`
+  without weighting it is caught immediately; unknown fields score neutral (invisible to Power),
+  which is exactly the danger this prevents.
+- **Spike guard.** Each content source's single-source Power contribution is capped: PERMANENT gear
+  (items / affixes / sets) at **+60%** (a spike permanently inflates the account curve), TEMPORARY
+  run choices (gene cards / doctrines) at **+250%** (per-run, self-limiting — glass-cannon archetypes
+  like Glass Genome / Apex Predator are by design, and carry an `enemyHpRunMult` downside).
+- **Baseline-safe.** Every scored field defaults to its neutral value, so `effectsPower(defaults) === 1`
+  and a fresh account still reads exactly `POWER_BASE` regardless of the weights — the model only grows
+  MORE complete as gear/cards deviate from neutral. Pinned by `core/powerCoverage.test.ts`.

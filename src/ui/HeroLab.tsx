@@ -14,6 +14,8 @@ import { masteryRank } from '../core/mastery';
 import { HeroPortrait } from './components/HeroPortrait';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { audio } from '../audio/sound';
+import type { HeroCollectionEntry } from '../state/meta';
 
 const RARITY_VAR: Record<string, string> = {
   common: 'var(--r-common)', rare: 'var(--r-rare)', epic: 'var(--r-epic)',
@@ -73,10 +75,54 @@ function HeroSlotsBar({ slots, focus, onAssign }: {
   );
 }
 
+/** LOCKED hero page — a dormant strain: a silhouette + name + role, with its dossier / kit / lore
+ *  withheld until release. The Hero-Shard progress ("42 / 100") reads as a concrete goal; claiming
+ *  is enabled the moment enough shards are banked, and the hero is immediately selectable after. */
+function HeroLockedPage({ entry, onUnlock }: { entry: HeroCollectionEntry; onUnlock: () => void }): JSX.Element {
+  const def = HERO_DEFS[entry.kind];
+  const remaining = Math.max(0, entry.cost - entry.shards);
+  return (
+    <div className="hero-locked" style={{ ['--hc' as string]: def.color }}>
+      <div className="hlk-portrait" aria-hidden>
+        <div className="hlk-silhouette"><HeroPortrait def={def} size={184} /></div>
+        <div className="hlk-lockbadge">🔒</div>
+      </div>
+      <div className="hlk-id">
+        <div className="hlk-tag">◈ Dormant Strain</div>
+        <h2 className="hero-name" style={{ color: def.color }}>{def.name}</h2>
+        <div className="hlk-class"><span className="class-badge" style={{ background: def.color }}>{def.combatClass}</span></div>
+        <p className="hlk-mystery">
+          This strain is dormant. Collect its Hero Shards to bring it online — its dossier, kit, and
+          lore are sealed until release.
+        </p>
+        <div className="hlk-progress">
+          <ProgressBar value={entry.shards} max={entry.cost} color={def.color} height={12} label={`${def.name} unlock progress`} />
+          <div className="hlk-count">
+            <CurrencyIcon id="heroShards" color={def.color} size={16} title="" />
+            <b style={{ color: def.color }}>{entry.shards}</b> / {entry.cost} Hero Shards
+            {!entry.canUnlock && <span className="hlk-need"> · {remaining} to go</span>}
+          </div>
+        </div>
+        <button className={`primary hlk-unlock ${entry.canUnlock ? 'is-ready' : ''}`} disabled={!entry.canUnlock} onClick={onUnlock}>
+          {entry.canUnlock ? `◈ Release ${def.name}` : 'Locked — keep collecting shards'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function HeroLab(): JSX.Element {
   const save = meta.use();
   // Which hero's page is OPEN (focus) — independent of which is FIELDED. Defaults to fielded.
   const [focus, setFocus] = useState<HeroKind>(save.selectedHero);
+  // A just-claimed hero → the release celebration overlay (cleared after it plays).
+  const [justUnlocked, setJustUnlocked] = useState<HeroKind | null>(null);
+  const collection = meta.heroCollection();
+  const colByKind = new Map(collection.map((e) => [e.kind, e] as const));
+  const focusEntry = colByKind.get(focus)!;
+  const doUnlock = (k: HeroKind): void => {
+    if (meta.unlockHero(k)) { setJustUnlocked(k); audio.cue('jackpot'); setTimeout(() => setJustUnlocked(null), 1700); }
+  };
   const d = heroDetail(save, focus);
   const id = heroIdentity(focus); // the data-driven identity layer (docs/HERO-FRAMEWORK.md)
   const c = d.def.color;
@@ -91,6 +137,8 @@ export function HeroLab(): JSX.Element {
         <div className="hero-roster-h">Roster <span className="hr-count">{HERO_ORDER.length}</span></div>
         {HERO_ORDER.map((k) => {
           const def = HERO_DEFS[k];
+          const entry = colByKind.get(k)!;
+          const locked = !entry.unlocked;
           const stars = save.heroStars[k] ?? 0;
           const rank = masteryRank(masteryProgress(save.heroMasteryXp[k] ?? 0).level);
           const fielded = fieldedSet.has(k); // in the roster (any slot)
@@ -100,23 +148,37 @@ export function HeroLab(): JSX.Element {
               key={k}
               role="tab"
               aria-selected={active}
-              className={`roster-card ${active ? 'is-active' : ''}`}
+              className={`roster-card ${active ? 'is-active' : ''} ${locked ? 'is-locked' : ''}`}
               style={active ? ({ ['--hc' as string]: def.color, borderColor: def.color }) : undefined}
               onClick={() => setFocus(k)}
             >
-              <HeroPortrait def={def} size={44} />
-              <span className="rc-body">
-                <span className="rc-name" style={{ color: def.color }}>{def.name}</span>
-                <span className="rc-sub">{def.combatClass} · {stars}★{rank > 0 ? ` · R${rank}` : ''}</span>
+              <span className={`rc-portrait ${locked ? 'is-sil' : ''}`}>
+                <HeroPortrait def={def} size={44} />
+                {locked && <span className="rc-lock" aria-hidden>🔒</span>}
               </span>
-              {fielded && <span className="rc-deployed" title="Currently fielded">●</span>}
+              <span className="rc-body">
+                <span className="rc-name" style={{ color: locked ? 'var(--muted)' : def.color }}>{def.name}</span>
+                {locked ? (
+                  <span className="rc-sub">◈ {entry.shards}/{entry.cost}{entry.canUnlock ? ' · Ready!' : ''}</span>
+                ) : (
+                  <span className="rc-sub">{def.combatClass} · {stars}★{rank > 0 ? ` · R${rank}` : ''}</span>
+                )}
+                {locked && <span className="rc-lockbar" aria-hidden><i style={{ width: `${Math.round(entry.progress * 100)}%`, background: def.color }} /></span>}
+              </span>
+              {!locked && fielded && <span className="rc-deployed" title="Currently fielded">●</span>}
             </button>
           );
         })}
       </div>
 
       {/* ── Focused hero page ── */}
-      <div className="hero-page" style={{ ['--hc' as string]: c }}>
+      <div className={`hero-page ${justUnlocked === focus ? 'is-releasing' : ''}`} style={{ ['--hc' as string]: c }}>
+        {justUnlocked === focus && (
+          <div className="hero-unlock-burst" aria-hidden><span>◈ {d.def.name.toUpperCase()} RELEASED</span></div>
+        )}
+        {!focusEntry.unlocked ? (
+          <HeroLockedPage entry={focusEntry} onUnlock={() => doUnlock(focus)} />
+        ) : (<>
         <div className="hero-banner">
           <HeroPortrait def={d.def} size={184} rank={d.mastery.rank} />
           <div className="hero-id">
@@ -266,6 +328,7 @@ export function HeroLab(): JSX.Element {
             <p className="hsec-hint">One more run pushes every one of these forward.</p>
           </Section>
         </div>
+        </>)}
       </div>
     </div>
   );

@@ -8,7 +8,8 @@ import { useState } from 'react';
 import { meta } from '../state/meta';
 import type { CrackedContainer } from '../state/meta';
 import { costOf, rarityRegistry } from '../core/loot';
-import { LootReveal } from './LootReveal';
+import { VaultReveal } from './VaultReveal';
+import { compareItemPower } from '../state/itemPower';
 
 function rarityColor(id: string | undefined): string {
   return (id ? rarityRegistry.get(id)?.color : undefined) ?? 'var(--r-common)';
@@ -149,18 +150,19 @@ export function GeneticVault(): JSX.Element {
         </div>
       )}
 
+      {/* The opening ceremony is a fullscreen fixed overlay (VaultReveal) — it escapes the panel
+          so nothing clips. `remaining` is what's still stockpiled AFTER this crack. */}
       {opening && (
-        <div className="vault-ceremony">
-          <LootReveal
-            key={crackSeq}
-            chest={opening.chest}
-            title={opening.label}
-            color={opening.color}
-            remaining={pending.length}
-            onOpenMore={crack}
-            onClose={() => setOpening(null)}
-          />
-        </div>
+        <VaultReveal
+          key={crackSeq}
+          chest={opening.chest}
+          title={opening.label}
+          color={opening.color}
+          remaining={pending.length}
+          onOpenMore={crack}
+          onClose={() => setOpening(null)}
+          compareEquip={(item) => compareItemPower(save, item, save.selectedHero)}
+        />
       )}
     </div>
   );

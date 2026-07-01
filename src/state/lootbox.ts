@@ -99,15 +99,17 @@ function accrue(res: ChestResult, item: RewardItem): void {
   }
 }
 
-/** Roll one pull from a weighted pool into a RewardItem. */
-function rollOne(rng: Rng, wp: WeightedPool): RewardItem {
+/** Roll one pull from a weighted pool into a RewardItem. `heroPool` biases which hero a hero-shard
+ *  pull lands on (the meta layer passes still-LOCKED heroes so shards visibly fund the next unlock;
+ *  defaults to every hero). */
+function rollOne(rng: Rng, wp: WeightedPool, heroPool: readonly string[] = HERO_IDS): RewardItem {
   const r = wp.rarity ?? 'common';
   const s = wp.spec;
   switch (s.pool) {
     case 'tower':
       return { type: 'tower', rarity: r, kind: pick(rng, TOWER_ORDER), amount: randInt(rng, s.range) };
     case 'hero':
-      return { type: 'hero', rarity: r, id: pick(rng, HERO_IDS), amount: randInt(rng, s.range) };
+      return { type: 'hero', rarity: r, id: pick(rng, heroPool.length ? heroPool : HERO_IDS), amount: randInt(rng, s.range) };
     case 'material':
       return { type: 'material', rarity: r, mat: pick(rng, s.mats), amount: randInt(rng, s.range) };
     case 'equipment': {
@@ -123,10 +125,11 @@ function rollOne(rng: Rng, wp: WeightedPool): RewardItem {
   }
 }
 
-/** Roll a chest into an ordered reveal list + aggregated per-system totals (pools model). */
-export function rollChest(def: ChestDef, rng: Rng = Math.random): ChestResult {
+/** Roll a chest into an ordered reveal list + aggregated per-system totals (pools model). `heroPool`
+ *  (optional) biases hero-shard pulls toward still-locked heroes; defaults to every hero. */
+export function rollChest(def: ChestDef, rng: Rng = Math.random, heroPool?: readonly string[]): ChestResult {
   const res = emptyResult(def.id);
-  for (let i = 0; i < def.rolls; i++) accrue(res, rollOne(rng, weightedPool(rng, def.pools)));
+  for (let i = 0; i < def.rolls; i++) accrue(res, rollOne(rng, weightedPool(rng, def.pools), heroPool));
   return res;
 }
 
@@ -134,12 +137,13 @@ export function rollChest(def: ChestDef, rng: Rng = Math.random): ChestResult {
  * Items carry a neutral 'common' item-rarity — the BOX rarity (chestId, the rarity id)
  * supplies the reveal's emphasis (see LootReveal), keeping the item-rarity and box-rarity
  * scales cleanly separate. */
-export function rollLoot(rarity: RarityDef, rng: Rng = Math.random): ChestResult {
+export function rollLoot(rarity: RarityDef, rng: Rng = Math.random, heroPool?: readonly string[]): ChestResult {
   const t: LootRewardTable = rarity.reward;
+  const pool = heroPool && heroPool.length ? heroPool : HERO_IDS;
   const res = emptyResult(rarity.id);
   for (let i = 0; i < t.rolls; i++) {
     if (rng() < t.heroShardChance) {
-      const id = pick(rng, HERO_IDS);
+      const id = pick(rng, pool);
       accrue(res, { type: 'hero', rarity: 'common', id, amount: randInt(rng, t.heroShardRange) });
     } else {
       const kind = pick(rng, TOWER_ORDER);

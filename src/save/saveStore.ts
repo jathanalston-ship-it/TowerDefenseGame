@@ -5,7 +5,7 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { ENEMY_KINDS, HERO_ORDER, HERO_IDS, TOWER_ORDER, heroRegistry } from '../core/config';
+import { ENEMY_KINDS, HERO_DEFS, HERO_ORDER, HERO_IDS, TOWER_ORDER, heroRegistry } from '../core/config';
 import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
 import type { Loadout, OwnedItem } from '../core/equipment';
 import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
@@ -40,6 +40,11 @@ export interface SaveData {
   //    with unlocked slots (heroSlotsUnlocked). Clamped to unlocked slots + distinct kinds at run
   //    start. Migrated from selectedHero for pre-slot saves. ──
   heroLoadout: HeroKind[];
+  // ── Hero Collection unlock (schema v14). Which heroes the account OWNS. Starters (HeroDef with no
+  //    unlockShards, e.g. Ravager) are always present; locked heroes are claimed with Hero Shards.
+  //    Selection/fielding is gated to this set. Pre-v14 saves grandfather in every hero the player
+  //    already engaged with (stars / usage / loadout / selected) so no access is stripped. ──
+  heroUnlocked: HeroKind[];
   // ── Per-hero lifetime ownership stats (schema v9) — drive the Hero Lab detail page ──
   heroKills: Record<HeroKind, number>; // lifetime kills BY each hero (accrued for the fielded hero)
   heroFavEquip: Record<HeroKind, Record<string, number>>; // per-hero equip-usage counts (defId → runs); argmax = favorite
@@ -77,6 +82,10 @@ export interface SaveData {
   // ── Progress prediction (docs/PREDICTION.md) — self-calibrating per-mode estimators. Additive;
   //    withDefaults fills defaults for older saves. Never affects the sim (golden-safe). ──
   prediction: { campaign: PredictCalib; infinite: PredictCalib };
+  // ── Help / What's New (docs/HELP.md): `seen` = mechanic ids already announced (archived into the
+  //    Help wiki); `primed` guards a one-time seed so existing saves don't flood on first load. Also
+  //    tracks whether the first-launch HUD Tour has run. Additive; golden-safe. ──
+  help: { seen: string[]; primed: boolean; hudTour: boolean };
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -89,7 +98,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 13;
+export const CURRENT_VERSION = 14;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -139,6 +148,27 @@ function emptyFavByHero(): Record<HeroKind, Record<string, number>> {
   for (const k of HERO_ORDER) r[k] = {};
   return r;
 }
+/** Heroes owned from the start — those with no `unlockShards` gate (e.g. Ravager). */
+function starterHeroes(): HeroKind[] {
+  return HERO_ORDER.filter((k) => !(HERO_DEFS[k].unlockShards && HERO_DEFS[k].unlockShards! > 0));
+}
+/** Resolve the owned-hero set. A v14+ save honors its persisted list (registry-resolved, deduped);
+ *  a PRE-v14 save has no field ⇒ grandfather in every hero the player already engaged with (stars /
+ *  fielded / selected / lifetime usage) UNION the starters, so an existing player never loses access
+ *  to a hero they were using. Always includes the starters and returns a stable HERO_ORDER order. */
+function sanitizeHeroUnlocked(data: SaveData): HeroKind[] {
+  const set = new Set<HeroKind>(starterHeroes());
+  const raw = (data as { heroUnlocked?: unknown }).heroUnlocked;
+  if (Array.isArray(raw)) {
+    for (const x of raw) { const k = heroRegistry.resolve(typeof x === 'string' ? x : '') as HeroKind | undefined; if (k) set.add(k); }
+  } else {
+    // Pre-v14 migration: anything the player has touched stays owned.
+    for (const k of HERO_ORDER) if ((data.heroStars?.[k] ?? 0) > 0 || (data.stats?.heroUsage?.[k] ?? 0) > 0) set.add(k);
+    for (const x of data.heroLoadout ?? []) { const k = heroRegistry.resolve(x) as HeroKind | undefined; if (k) set.add(k); }
+    const sel = heroRegistry.resolve(data.selectedHero) as HeroKind | undefined; if (sel) set.add(sel);
+  }
+  return HERO_ORDER.filter((k) => set.has(k));
+}
 function zeroByEnemy(): Record<EnemyKind, number> {
   const r = {} as Record<EnemyKind, number>;
   for (const k of ENEMY_KINDS) r[k] = 0;
@@ -180,6 +210,7 @@ export function defaultSave(): SaveData {
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
     heroLoadout: ['ravager'],
+    heroUnlocked: starterHeroes(),
     heroKills: zeroByHeroKind(),
     heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
@@ -196,6 +227,7 @@ export function defaultSave(): SaveData {
     campaign: { cleared: {} },
     tutorial: { completed: [], rewarded: [], progress: null },
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
+    help: { seen: [], primed: false, hudTour: false },
   };
 }
 
@@ -222,6 +254,11 @@ function sanitizeCalib(raw: unknown): PredictCalib {
 function sanitizePrediction(raw: unknown): SaveData['prediction'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   return { campaign: sanitizeCalib(o.campaign), infinite: sanitizeCalib(o.infinite) };
+}
+function sanitizeHelp(raw: unknown): SaveData['help'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const seen = Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [];
+  return { seen, primed: o.primed === true, hudTour: o.hudTour === true };
 }
 
 /**
@@ -256,6 +293,8 @@ function withDefaults(data: SaveData): SaveData {
     // dedupe, and drop junk. A pre-slot save (no heroLoadout) seeds from the migrated selectedHero
     // so slot 1 carries over unchanged — additive, no data loss.
     heroLoadout: sanitizeLoadout(data.heroLoadout, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
+    // v13→v14: Hero Collection ownership. Pre-v14 saves grandfather in used heroes (no access lost).
+    heroUnlocked: sanitizeHeroUnlocked(data),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {
@@ -296,6 +335,7 @@ function withDefaults(data: SaveData): SaveData {
     campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
     tutorial: sanitizeTutorial(data.tutorial),
     prediction: sanitizePrediction(data.prediction),
+    help: sanitizeHelp(data.help),
   };
 }
 
