@@ -27,6 +27,8 @@ const FIELD_WEIGHT: Record<string, number> = {
   towerDamageMult: 1,
   heroDamageMult: 1,
   towerFireRateMult: 1,
+  heroAttackSpeedMult: 1, // hero attack/pulse cadence — raw offense (Hero Evolution)
+  heroHealingMult: 0.2, // sustain — survivability weight (Hero Evolution)
   splashRadiusMult: 0.5,
   poolDpsMult: 0.5,
   parasiteInfectionMult: 0.4,
@@ -49,6 +51,9 @@ const ADD_POWER: Record<string, number> = {
   needleExtraProjectiles: 0.08, // each extra projectile ≈ +8% offense
   heroLifestealFrac: 0.5,
   heroThornsFrac: 0.2,
+  heroCritChance: 0.5, // Hero Evolution — expected-damage from crit rate
+  heroCritDamageBonus: 0.3, // Hero Evolution — bigger crits
+  heroArmor: 0.5, // Hero Evolution — flat damage-prevention (survivability)
   heroTowerHasteAura: 0.3,
   heroTowerDamageAura: 0.4,
   executeThreshold: 1.5,
@@ -79,6 +84,8 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'reactorOverchargeBonus', 'startBiomassBonus',
   // Permanent-upgrade axes (inverse fields scored with negative weights; mobility/economy lightly):
   'heroCooldownMult', 'enemyHpRunMult', 'heroSpeedMult', 'heroAggroRangeMult', 'sellRefundFrac',
+  // Hero Evolution axes (in-run biomass sink; every one moves Power — docs/HERO-EVOLUTION.md):
+  'heroAttackSpeedMult', 'heroCritChance', 'heroCritDamageBonus', 'heroHealingMult', 'heroArmor',
 ];
 
 /** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */

@@ -17,6 +17,7 @@ import { HeroSelectPanel } from './HeroSelectPanel';
 import { Toolbar } from './Toolbar';
 import { BuildControls } from './BuildControls';
 import { BuildPanel } from './BuildPanel';
+import { HeroEvolutionPanel } from './HeroEvolutionPanel';
 import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
 import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
@@ -92,6 +93,7 @@ export function GameView({
   }, []);
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
+  const [evoOpen, setEvoOpen] = useState(false); // Hero Evolution menu (non-modal — sim keeps running)
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -286,13 +288,14 @@ export function GameView({
       <Hud hud={hud} />
       <div className="stage">
         {leftOpen ? (
-          <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} />
+          <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />
         ) : (
           <button className="panel-rail" onClick={() => setLeftOpen(true)} aria-label="Show Run Build">
             <span className="rail-arrow">»</span>
             <span className="rail-label">RUN BUILD</span>
           </button>
         )}
+        {evoOpen && <HeroEvolutionPanel game={game} hud={hud} refresh={refresh} onClose={() => setEvoOpen(false)} />}
         <div className={`canvas-wrap ${outro ? 'is-ending' : ''}`}>
         <canvas
           ref={canvasRef}

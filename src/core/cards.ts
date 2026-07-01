@@ -50,6 +50,14 @@ export interface RunModifiers {
   heroLifestealFrac: number; // ATTACKS — hero heals this fraction of damage it deals (0 = off)
   heroThornsFrac: number; // DEFENSE — reflect this fraction of contact damage back to attackers (0 = off)
   heroAbilityRadiusMult: number; // ABILITIES — scales the hero ability's AoE radius (1 = base)
+  // ── Hero stat axes shared by gear/cards AND the in-run Hero Evolution sink (docs/HERO-EVOLUTION.md).
+  //    Neutral defaults ⇒ a run that buys nothing is byte-identical (golden). The sim reads each as
+  //    `hmods(h).X × evo.X` so equipment and Evolution stack on the same field. ──
+  heroAttackSpeedMult: number; // ATTACKS — scales hero attack + pulse cadence (1 = base; >1 = faster)
+  heroCritChance: number; // ATTACKS — chance [0..1] a hero hit/ability crits (0 = never; no RNG spent at 0)
+  heroCritDamageBonus: number; // ATTACKS — crit multiplier ADDED to HERO_CRIT_BASE (0 = base ×1.5 crit)
+  heroHealingMult: number; // SUSTAIN — scales ALL healing the hero RECEIVES (1 = base)
+  heroArmor: number; // DEFENSE — flat fraction [0..~0.6] of incoming contact damage prevented (0 = none)
   heroAuraRadius: number; // SUPPORT — radius of the hero's tower aura (0 = no aura)
   heroTowerHasteAura: number; // SUPPORT — +fire rate to towers within heroAuraRadius (0 = off)
   heroTowerDamageAura: number; // SUPPORT — +damage to towers within heroAuraRadius (0 = off)
@@ -103,6 +111,11 @@ export function defaultRunModifiers(): RunModifiers {
     heroLifestealFrac: 0,
     heroThornsFrac: 0,
     heroAbilityRadiusMult: 1,
+    heroAttackSpeedMult: 1,
+    heroCritChance: 0,
+    heroCritDamageBonus: 0,
+    heroHealingMult: 1,
+    heroArmor: 0,
     heroAuraRadius: 0,
     heroTowerHasteAura: 0,
     heroTowerDamageAura: 0,

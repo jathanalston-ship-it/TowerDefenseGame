@@ -62,6 +62,8 @@ import {
   endlessDraftInterval,
 } from './cards';
 import type { CardContext, CardDef, CardEffect, HookEvent, HookSpec, RunModifiers } from './cards';
+import { HERO_CRIT_BASE, HERO_EVO, HERO_EVO_BY_ID, NEUTRAL_HERO_EVO, deriveHeroEvoMods, heroEvoCost, heroEvoEffects, heroEvoTotalOwned } from './heroEvolution';
+import type { HeroEvoLevels, HeroEvoMods } from './heroEvolution';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
@@ -314,6 +316,11 @@ export class Game {
   // future hero slots (HEROES.md) — slot unlocks just push more heroes in.
   heroes: Hero[];
   mods: RunModifiers;
+  // Hero Evolution (docs/HERO-EVOLUTION.md) — the in-run BIOMASS sink. Per-category levels bought
+  // this run + the derived live multiplier bundle, applied to EVERY hero (and any unlocked mid-run).
+  // Run-only: constructed empty, never saved, reset by a fresh Game. Neutral bundle ⇒ golden-safe.
+  private heroEvoLevels: HeroEvoLevels = {};
+  private evo: HeroEvoMods = NEUTRAL_HERO_EVO;
   // Per-tower-kind permanent buffs (stars + mastery), frozen at construction so a
   // run stays deterministic; identity for a fresh save.
   private towerProgress: TowerProgress;
@@ -513,8 +520,7 @@ export class Game {
 
   /** Build a hero runtime instance from its data-driven definition. */
   private makeHero(kind: HeroKind): Hero {
-    const def = HERO_DEFS[kind];
-    const maxHp = def.maxHp * (this.heroHmods[kind] ?? this.mods).heroMaxHpMult; // this hero's own gear survivability folds in
+    const maxHp = this.heroMaxHpFor(kind); // gear survivability × Evolution Vitality — a mid-run hero inherits both
     if (gameEvents.hasListeners('heroSpawned')) gameEvents.emit('heroSpawned', { kind });
     return {
       kind,
@@ -561,6 +567,49 @@ export class Game {
     return this.heroStatuses[h.kind] ?? this.heroAttackStatuses;
   }
 
+  // ── Hero effective stats (docs/HERO-EVOLUTION.md) — each folds the hero's own gear mods with the
+  //    run-wide Evolution bundle (this.evo). Centralized so gear + Evolution stack in ONE place and
+  //    the HUD/panel read the same numbers combat does. Neutral evo ⇒ identical to before (golden). ──
+
+  /** Effective hero max HP: base × gear survivability × Evolution Vitality. */
+  private heroMaxHpFor(kind: HeroKind): number {
+    return HERO_DEFS[kind].maxHp * (this.heroHmods[kind] ?? this.mods).heroMaxHpMult * this.evo.maxHpMult;
+  }
+  /** Target-independent hero damage multiplier: gear × biome × stars/mastery × Evolution Lethality. */
+  private heroDamageMult(h: Hero): number {
+    return this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.evo.damageMult;
+  }
+  /** Effective hero move speed (px/s), steady (excludes the transient Bloodthirst surge). */
+  private heroSpeed(h: Hero): number {
+    return HERO_DEFS[h.kind].speed * this.hmods(h).heroSpeedMult * this.evo.moveSpeedMult;
+  }
+  /** Attack/pulse HASTE multiplier (>1 = faster) — gear × Evolution Frenzy. Divides the base interval. */
+  private heroHaste(h: Hero): number {
+    return this.hmods(h).heroAttackSpeedMult * this.evo.attackSpeedMult;
+  }
+  /** Effective ability cooldown (s): base × gear × biome × mastery × Evolution Overdrive. */
+  private heroAbilityCooldownFor(h: Hero): number {
+    return HERO_DEFS[h.kind].ability.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult * this.evo.cooldownMult;
+  }
+  /** Effective ability AoE multiplier: gear × Evolution Amplitude. */
+  private heroAbilityRadiusFor(h: Hero): number {
+    return this.hmods(h).heroAbilityRadiusMult * this.evo.abilityRadiusMult;
+  }
+  /** Heal a hero by `n`, scaled by Evolution Regeneration (healing RECEIVED), clamped to max HP.
+   *  No-op when down or n≤0. healingMult=1 ⇒ a plain clamp (golden-safe). */
+  private healHeroBy(h: Hero, n: number): void {
+    if (h.down || n <= 0) return;
+    h.hp = Math.min(h.maxHp, h.hp + n * this.evo.healingMult);
+  }
+  /** Roll a hero crit for one damage instance → the damage multiplier (1 = no crit) + whether it
+   *  crit. GATED on crit chance > 0 so a run with no Precision spends NO rng (golden byte-identical). */
+  private rollHeroCrit(h: Hero): { mult: number; crit: boolean } {
+    const chance = this.hmods(h).heroCritChance + this.evo.critChance;
+    if (chance <= 0) return { mult: 1, crit: false };
+    if (this.rng.next() < chance) return { mult: HERO_CRIT_BASE + this.hmods(h).heroCritDamageBonus + this.evo.critDamageBonus, crit: true };
+    return { mult: 1, crit: false };
+  }
+
   /** Build the ability executor's view of the sim. The Game owns the side-effects;
    * ability components only call these primitives, so a tower/hero kit composes from
    * reusable blocks without bespoke code. Per-cast source/caster live on the Game. */
@@ -603,7 +652,7 @@ export class Game {
       },
       healCaster: (n) => {
         const h = this.abilityCaster;
-        if (h) h.hp = Math.min(h.maxHp, h.hp + n);
+        if (h) this.healHeroBy(h, n); // Regeneration scales received healing (Bloom, etc.)
       },
       grantShield: (amount, seconds) => {
         const h = this.abilityCaster;
@@ -1325,6 +1374,63 @@ export class Game {
   setAutoStart(on: boolean): void {
     this.autoStart = on;
     if (on) this.prepCountdown = AUTO_START_DELAY; // start a fresh countdown when enabling
+  }
+
+  // ── Hero Evolution (docs/HERO-EVOLUTION.md) — the in-run BIOMASS sink ──────────
+
+  /** Buy the next level of a Hero Evolution category. Deducts Biomass, applies the upgrade to EVERY
+   *  active hero at once (and to any hero unlocked later — makeHero re-reads the bundle), and
+   *  re-derives the live multiplier bundle. Returns false if the run is over / unknown id / maxed /
+   *  unaffordable, so the caller can gate feedback on a real purchase. */
+  buyHeroEvolution(catId: string): boolean {
+    if (this.phase === 'won' || this.phase === 'lost') return false;
+    const cat = HERO_EVO_BY_ID[catId];
+    if (!cat) return false;
+    const level = this.heroEvoLevels[catId] ?? 0;
+    if (level >= HERO_EVO.maxLevel) return false;
+    const cost = heroEvoCost(cat, level, heroEvoTotalOwned(this.heroEvoLevels));
+    if (this.biomass < cost) return false;
+    this.biomass -= cost;
+    this.heroEvoLevels[catId] = level + 1;
+    this.evo = deriveHeroEvoMods(this.heroEvoLevels);
+    // Vitality changes maxHp on the LIVE heroes — grow every hero's pool and heal by the delta so
+    // the buy is instantly felt and never drops a hero to a lower HP% than before.
+    if (cat.key === 'maxHpMult') {
+      for (const h of this.heroes) {
+        const newMax = this.heroMaxHpFor(h.kind);
+        const delta = newMax - h.maxHp;
+        h.maxHp = newMax;
+        if (delta > 0 && !h.down) h.hp = Math.min(newMax, h.hp + delta);
+      }
+    }
+    this.pushSfx('splice'); // the evolution/mutation cue — a satisfying purchase sound
+    const ph = this.primaryHero;
+    this.floats.push({ x: ph.x, y: ph.y - 30, text: `${cat.icon} ${cat.name} ${level + 1}`, color: '#7ad1ff', life: 1.2 });
+    return true;
+  }
+
+  /** The run's Hero Evolution purchases as CardEffect[] — they fold into the `temporary` Power bucket
+   *  via the shared effectsPower bridge, so every purchase raises the global Power Score. */
+  heroEvoEffects(): CardEffect[] {
+    return heroEvoEffects(this.heroEvoLevels);
+  }
+
+  /** Field an ADDITIONAL hero mid-run — the forward-looking hero-unlock seam (HEROES.md). The new
+   *  hero IMMEDIATELY inherits every Hero Evolution bought so far (makeHero folds the live bundle),
+   *  and its innate passive aura folds in like a roster hero. No-op if the kind is already fielded. */
+  fieldHero(kind: HeroKind): boolean {
+    if (this.heroes.some((h) => h.kind === kind)) return false;
+    if (!this.heroIdById[kind]) {
+      const id = heroIdentity(kind);
+      this.heroIdById[kind] = id;
+      if (id.passive.kind === 'towerAura') {
+        this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130);
+        this.mods.heroTowerHasteAura += id.passive.amount;
+        this.mods.heroTowerDamageAura += id.passive.amount;
+      }
+    }
+    this.heroes.push(this.makeHero(kind));
+    return true;
   }
 
   private cardContext(): CardContext {
@@ -2360,7 +2466,7 @@ export class Game {
       if (this.idOf(h).passive.kind !== 'eliteDamage') continue;
       h.killchain++;
       if (!h.down) {
-        h.hp = Math.min(h.maxHp, h.hp + h.maxHp * 0.12); // Bloodthirst heal
+        this.healHeroBy(h, h.maxHp * 0.12); // Bloodthirst heal (Regeneration scales it)
         h.rushUntil = this.time + 3; // brief mobility surge
       }
     }
@@ -2427,7 +2533,7 @@ export class Game {
     if (retreatAt > 0 && h.hp < h.maxHp * retreatAt) {
       h.moveState = 'retreating';
       h.targetId = -1;
-      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.hmods(h).heroSpeedMult * dt);
+      const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, this.heroSpeed(h) * dt);
       h.x = Math.max(0, Math.min(WIDTH, np.x));
       h.y = Math.max(0, Math.min(HEIGHT, np.y));
     } else {
@@ -2479,15 +2585,17 @@ export class Game {
 
     const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
     // Bloodthirst: a brief speed surge after an elite kill (×1 otherwise ⇒ golden-safe). MOBILITY gear rides on top.
-    const moveSpeed = def.speed * this.hmods(h).heroSpeedMult * (this.time < h.rushUntil ? 1.4 : 1);
+    const moveSpeed = this.heroSpeed(h) * (this.time < h.rushUntil ? 1.4 : 1);
     const np = moveToward(h.x, h.y, goal.x, goal.y, moveSpeed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
     h.moveState = !target ? 'idle' : dist(h.x, h.y, target.x, target.y) <= def.attackRange ? 'attacking' : 'moving';
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
-      const dmg = def.attackDamage * this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
+      const crit = this.rollHeroCrit(h); // Precision/Savagery — gated so no-crit runs spend no rng
+      const dmg = def.attackDamage * this.heroDamageMult(h) * this.heroEliteDamage(h, target) * crit.mult;
       const applied = this.applyDamage(target, dmg);
+      if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7 }); // crit damage number
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
       this.addFracture(target, def.attackFracture);
@@ -2495,14 +2603,14 @@ export class Game {
       for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount });
       this.maybeReact(target);
       this.runHeroAttackKit(h, target); // weapon: cleave/chain/AoE/status/crit RE-AUTHOR the attack
-      h.attackCd = def.attackInterval;
+      h.attackCd = def.attackInterval / this.heroHaste(h);
     }
   }
 
   /** Heal the hero by a fraction of damage it dealt (lifesteal weapons). No-op at 0 (golden-safe). */
   private heroLifesteal(h: Hero, applied: number): void {
     if (this.hmods(h).heroLifestealFrac <= 0 || h.down) return;
-    h.hp = Math.min(h.maxHp, h.hp + applied * this.hmods(h).heroLifestealFrac);
+    this.healHeroBy(h, applied * this.hmods(h).heroLifestealFrac); // Regeneration scales lifesteal healing
   }
 
   /** Run the weapon-granted attack kit on a hero hit (cleave/chain/on-hit AoE/status/crit), via
@@ -2514,7 +2622,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = target.x;
     this.castScratch.y = target.y;
-    this.castScratch.damageMult = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
+    this.castScratch.damageMult = this.heroDamageMult(h) * this.heroEliteDamage(h, target);
     this.castScratch.target = target;
     this.castScratch.pierce = 0;
     this.castRangeMult = 1;
@@ -2550,12 +2658,12 @@ export class Game {
     }
     h.targetId = threat ? threat.id : -1;
     h.moveState = threat ? 'attacking' : 'idle'; // holds the zone; engages the deepest incursion
-    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.hmods(h).heroSpeedMult * dt);
+    const np = moveToward(h.x, h.y, gx, gy, this.heroSpeed(h) * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // stays in/near the zone
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
       this.heroPulse(h);
-      h.pulseCd = def.pulseInterval;
+      h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
     }
   }
 
@@ -2574,12 +2682,12 @@ export class Game {
       gx = hot.x;
       gy = Math.max(DEFENSE_TOP_Y - CELL * 3, hot.y); // hover over the crowd, not the spawn
     }
-    const np = moveToward(h.x, h.y, gx, gy, def.speed * this.hmods(h).heroSpeedMult * dt);
+    const np = moveToward(h.x, h.y, gx, gy, this.heroSpeed(h) * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
       this.heroPulse(h);
-      h.pulseCd = def.pulseInterval;
+      h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
     }
   }
 
@@ -2612,7 +2720,7 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = h.x;
     this.castScratch.y = h.y;
-    this.castScratch.damageMult = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    this.castScratch.damageMult = this.heroDamageMult(h); // Evolution Lethality folds in (pulse gets damage, not crit)
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     runAbility(this.actx, pulse, this.castScratch);
@@ -2646,7 +2754,10 @@ export class Game {
       }
     }
     if (incoming > 0 && !this.god) {
-      let dmg = incoming * dt;
+      // Carapace (Evolution) + any gear armor prevent a fraction of incoming contact damage, capped
+      // well short of immunity. 0 ⇒ ×1 (golden-safe).
+      const reduction = Math.min(0.85, this.hmods(h).heroArmor + this.evo.armor);
+      let dmg = incoming * dt * (1 - reduction);
       // Front-shield soaks first; only the overflow reaches HP. No-op when shield is 0
       // (every hero but a freshly-bloomed Shepherd), so the golden runs are unchanged.
       if (h.shield > 0) {
@@ -2688,17 +2799,18 @@ export class Game {
     this.abilityCaster = h;
     this.castScratch.x = px;
     this.castScratch.y = py;
-    this.castScratch.damageMult = this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    const crit = this.rollHeroCrit(h); // Precision/Savagery — one roll per cast (no rng at 0 chance)
+    this.castScratch.damageMult = this.heroDamageMult(h) * crit.mult;
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
-    this.castRangeMult = this.hmods(h).heroAbilityRadiusMult; // this hero's ABILITIES gear scales its ability AoE
+    this.castRangeMult = this.heroAbilityRadiusFor(h); // gear × Evolution Amplitude scales the ability AoE
     runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
     this.castRangeMult = 1;
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
-    h.abilityCd = ab.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult;
+    h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
     if (gameEvents.hasListeners('heroAbilityUsed')) gameEvents.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
-    this.floats.push({ x: px, y: py - 20, text: `${ab.name}!`, color: def.color, life: 0.8 });
+    this.floats.push({ x: px, y: py - 20, text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8 });
   }
 
   private deathSystem(): void {
@@ -3428,19 +3540,16 @@ export class Game {
       const e = this.enemies.find((en) => en.id === h.targetId && en.alive);
       if (e) target = ENEMY_DEFS[e.kind].name;
     }
-    // Live effective stats (same folds combat uses): damage = base × gear × biome × stars/mastery;
-    // moveSpeed = base × gear speed (steady, sans the transient rush). Non-attackers read 0 damage.
-    const hm = this.hmods(h);
-    const damage = def.attackRange > 0
-      ? def.attackDamage * hm.heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult
-      : 0;
+    // Live effective stats (same folds combat uses, incl. Hero Evolution): damage = base × gear ×
+    // biome × stars/mastery × Evolution; attackSpeed folds the haste mult; moveSpeed the steady rate.
+    const damage = def.attackRange > 0 ? def.attackDamage * this.heroDamageMult(h) : 0;
     return {
       kind: h.kind,
       name: def.name,
       combatClass: def.combatClass,
       damage: Math.round(damage),
-      attackSpeed: def.attackInterval > 0 ? 1 / def.attackInterval : 0,
-      moveSpeed: Math.round(def.speed * hm.heroSpeedMult),
+      attackSpeed: def.attackInterval > 0 ? this.heroHaste(h) / def.attackInterval : 0,
+      moveSpeed: Math.round(this.heroSpeed(h)),
       hp: Math.max(0, Math.round(h.hp)),
       maxHp: Math.round(h.maxHp),
       shield: Math.round(h.shield),
@@ -3456,7 +3565,6 @@ export class Game {
 
   getSnapshot(): HudSnapshot {
     const h = this.primaryHero;
-    const ab = HERO_DEFS[h.kind].ability;
     return {
       phase: this.phase,
       wave: this.waveIndex,
@@ -3474,7 +3582,7 @@ export class Game {
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
-        abilityCdMax: ab.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult,
+        abilityCdMax: this.heroAbilityCooldownFor(h),
       },
       enemiesAlive: this.enemies.length,
       emergency: this.emergencyActive,
@@ -3505,6 +3613,7 @@ export class Game {
       autoStart: this.autoStart,
       autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
       autoStartWaiting: this.autoStart && !this.autoStartReady,
+      heroEvo: { levels: { ...this.heroEvoLevels }, totalOwned: heroEvoTotalOwned(this.heroEvoLevels) },
     };
   }
 

@@ -23,7 +23,7 @@ function groupCards(cards: CardOption[]): { category: string; stacks: Stack[] }[
   return [...byCat.entries()].map(([category, m]) => ({ category, stacks: [...m.values()] }));
 }
 
-export function BuildPanel({ hud, onCollapse }: { hud: HudSnapshot; onCollapse?: () => void }): JSX.Element {
+export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnapshot; onCollapse?: () => void; onOpenEvolution?: () => void }): JSX.Element {
   const groups = groupCards(hud.cards);
   const hasCards = hud.cards.length > 0;
 
@@ -70,6 +70,17 @@ export function BuildPanel({ hud, onCollapse }: { hud: HudSnapshot; onCollapse?:
           <p className="side-empty">Draft gene cards between waves to shape this run.</p>
         )}
       </div>
+
+      {/* Hero Evolution — the in-run Biomass sink (docs/HERO-EVOLUTION.md), beside Gene Cards. */}
+      {onOpenEvolution && (
+        <div className="side-sec">
+          <button className="evo-open-btn" onClick={onOpenEvolution} title="Spend Biomass to evolve all heroes for this run">
+            <span className="evo-open-i" aria-hidden>🧬</span>
+            <span className="evo-open-l">Hero Evolution{hud.heroEvo.totalOwned > 0 ? ` · ${hud.heroEvo.totalOwned}` : ''}</span>
+            <span className="evo-open-hint">Spend Biomass →</span>
+          </button>
+        </div>
+      )}
 
       <div className="side-sec">
         <div className="side-k">Active Effects</div>

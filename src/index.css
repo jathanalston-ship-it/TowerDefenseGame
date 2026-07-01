@@ -3471,6 +3471,99 @@ kbd {
 .hp-ability-cd { font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .hp-ability-desc { margin: 3px 0 0; font-size: 11px; line-height: 1.4; color: var(--text-dim); }
 
+/* ── Hero Evolution — open button (Run Build panel) + the non-modal menu ─────────────────────── */
+.evo-open-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 9px;
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--vital, #7ad1ff) 40%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--vital, #7ad1ff) 16%, transparent), rgba(10, 16, 24, 0.6));
+  color: var(--text);
+  transition: border-color 0.14s ease, background 0.14s ease, transform 0.08s ease;
+}
+.evo-open-btn:hover { border-color: var(--vital, #7ad1ff); background: color-mix(in srgb, var(--vital, #7ad1ff) 24%, rgba(10, 16, 24, 0.6)); }
+.evo-open-btn:active { transform: translateY(1px); }
+.evo-open-i { font-size: 16px; }
+.evo-open-l { font-weight: 800; font-size: 12.5px; letter-spacing: 0.02em; }
+.evo-open-hint { margin-left: auto; font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+.evo-menu {
+  position: absolute;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(640px, 94%);
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  z-index: 30;
+  padding: 14px 15px 16px;
+  border-radius: 14px;
+  background: rgba(9, 12, 18, 0.96);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  animation: hero-panel-in 0.16s ease-out;
+}
+.evo-head { display: flex; align-items: center; gap: 12px; }
+.evo-title { display: flex; align-items: center; gap: 8px; font-family: 'Chakra Petch', system-ui, sans-serif; font-weight: 800; font-size: 17px; letter-spacing: 0.03em; }
+.evo-title-i { font-size: 19px; }
+.evo-meters { margin-left: auto; display: flex; gap: 12px; font-size: 12.5px; }
+.evo-meter { color: var(--muted); font-variant-numeric: tabular-nums; }
+.evo-meter b { color: var(--caustic, #9fe870); }
+.evo-power b { color: var(--vital, #7ad1ff); }
+.evo-close { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 13px; line-height: 1; display: grid; place-items: center; }
+.evo-close:hover { color: var(--text); border-color: var(--danger); }
+.evo-sub { margin: 6px 0 12px; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+.evo-sub b { color: var(--text); }
+
+.evo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 9px; }
+.evo-card {
+  padding: 9px 10px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+}
+.evo-card.is-maxed { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 8%, transparent); }
+.evo-card.is-bought { animation: evo-bought 0.5s ease-out; }
+@keyframes evo-bought {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--vital, #7ad1ff) 70%, transparent); }
+  35% { transform: scale(1.045); box-shadow: 0 0 0 4px color-mix(in srgb, var(--vital, #7ad1ff) 45%, transparent); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+.evo-card-top { display: flex; align-items: center; gap: 7px; }
+.evo-icon { font-size: 15px; }
+.evo-name { font-weight: 800; font-size: 12.5px; }
+.evo-lv { margin-left: auto; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.evo-lv-max { color: var(--muted); font-weight: 600; }
+.evo-pips { display: flex; gap: 3px; margin: 7px 0 6px; }
+.evo-pips i { flex: 1; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); }
+.evo-pips i.on { background: var(--vital, #7ad1ff); }
+.evo-blurb { font-size: 10.5px; line-height: 1.35; color: var(--text-dim); min-height: 28px; }
+.evo-effect { margin: 5px 0 8px; font-size: 12.5px; }
+.evo-effect b { color: var(--vital, #7ad1ff); font-variant-numeric: tabular-nums; }
+.evo-next { color: var(--muted); font-size: 11px; }
+.evo-buy {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.evo-buy.can { border-color: color-mix(in srgb, var(--caustic, #9fe870) 50%, var(--line)); color: var(--caustic, #9fe870); }
+.evo-buy.can:hover { background: color-mix(in srgb, var(--caustic, #9fe870) 16%, var(--panel-2)); }
+.evo-buy:disabled { cursor: not-allowed; opacity: 0.55; }
+
 .boss-banner {
   position: absolute;
   top: 10px;

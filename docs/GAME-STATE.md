@@ -49,6 +49,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 ### Heroes
 - ✅ Roster slots (campaign-gated), per-hero equipment, mastery — HEROES.md, HERO-FRAMEWORK.md
 - ✅ Adaptation for heroes (same Antigen-Point tree)
+- ✅ **In-run hero selection** — click a hero → non-modal live-state + profile panel — HERO-SELECTION.md
+- ✅ **Hero Evolution** — in-run Biomass sink: 10 axes × 10 levels, all-heroes/new-heroes-inherit,
+  Power-integrated, run-only — HERO-EVOLUTION.md
 - 🟨 Hero abilities are largely one-verb; roster of 3 caps team-comp depth
 
 ### Bosses

@@ -464,6 +464,9 @@ export interface HudSnapshot {
   autoStart: boolean; // auto-start preference (next wave fires after a prep countdown)
   autoStartIn: number; // seconds left on the auto-start countdown (0 when off / not in prep / still armed-but-waiting)
   autoStartWaiting: boolean; // armed but INACTIVE — waiting for the first tower / manual wave before the countdown begins
+  // Hero Evolution (docs/HERO-EVOLUTION.md) — per-category levels bought this run + total owned.
+  // The UI renders costs/effects/affordability from the shared HERO_EVO_CATEGORIES + live biomass.
+  heroEvo: { levels: Record<string, number>; totalOwned: number };
 }
 
 export interface CardOption {
