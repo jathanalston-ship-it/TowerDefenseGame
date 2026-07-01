@@ -75,6 +75,12 @@ export const RANK_COLORS: Record<CollectionRank, string> = {
   Platinum: '#7fe3d0', Diamond: '#7cc9ff', Ascendant: '#e6a2ff',
 };
 
+/** The reward-track milestones: each earnable rank (Bronze→Ascendant) + the completion it needs.
+ *  Single source of truth for the UI's track pips, so display can't drift from RANK_THRESHOLDS. */
+export function rankMilestones(): { rank: CollectionRank; at: number }[] {
+  return COLLECTION_RANKS.slice(1).map((rank, i) => ({ rank, at: RANK_THRESHOLDS[i + 1] }));
+}
+
 /** Resolve a completion fraction into its rank + the threshold for the next rank. */
 export function rankOf(completion: number): { index: number; name: CollectionRank; next: CollectionRank | null; nextAt: number | null } {
   let idx = 0;
