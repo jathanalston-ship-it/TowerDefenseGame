@@ -36,9 +36,9 @@ function mulberry32(seed: number): () => number {
 const DEFAULT_SEED = 0x10c7;
 
 /** Roll boxes until the queue holds `LOOT_QUEUE_DEPTH`, honoring pity on each roll. */
-function fill(queue: string[], pity: PityState, rng: () => number): string[] {
+function fill(queue: string[], pity: PityState, rng: () => number, bias?: Record<string, number>): string[] {
   const out = queue.slice();
-  while (out.length < LOOT_QUEUE_DEPTH) out.push(rollRarity(rng, { pity }));
+  while (out.length < LOOT_QUEUE_DEPTH) out.push(rollRarity(rng, { pity, bias }));
   return out;
 }
 
@@ -79,10 +79,15 @@ export interface AddProgressResult {
  * fresh tail is rolled (pity-aware) — so the queue stays full and the next box stays known.
  * `rng` is META (defaults to Math.random); inject for deterministic tests.
  */
-export function addProgress(state: LootQueueState, points: number, rng: () => number = Math.random): AddProgressResult {
+export function addProgress(
+  state: LootQueueState,
+  points: number,
+  rng: () => number = Math.random,
+  bias?: Record<string, number>, // progression-aware catch-up weights (see core/progressionLoot.ts)
+): AddProgressResult {
   let progress = state.progress + (isFinite(points) && points > 0 ? points : 0);
   let pity = state.pity;
-  let queue = fill(state.queue.slice(), pity, rng); // guarantee depth before awarding
+  let queue = fill(state.queue.slice(), pity, rng, bias); // guarantee depth before awarding
   const awarded: string[] = [];
 
   // Award as many boxes as the banked points cover. Guard bounds a pathological bank.
@@ -92,7 +97,7 @@ export function addProgress(state: LootQueueState, points: number, rng: () => nu
     progress -= costOf(done);
     awarded.push(done);
     pity = updatePity(pity, done); // opening this box advances pity
-    queue = fill(queue.slice(1), pity, rng); // slide next forward, roll a fresh tail
+    queue = fill(queue.slice(1), pity, rng, bias); // slide next forward, roll a fresh (biased) tail
   }
 
   return { state: { progress, queue, pity }, awarded };
