@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { HudSnapshot } from '../core/types';
 import { HERO_DEFS } from '../core/config';
+import { formatPower } from '../core/power';
 import { ProgressBar } from './components/ProgressBar';
 import { LootMeter } from './LootMeter';
 
@@ -19,7 +20,7 @@ function threatColor(pct: number): string {
   return pct < 33 ? 'var(--success)' : pct < 66 ? 'var(--warn)' : 'var(--danger)';
 }
 
-export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
+export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
@@ -173,7 +174,12 @@ export function Hud({ hud }: { hud: HudSnapshot }): JSX.Element {
         )}
       </div>
 
-      {/* ── RIGHT cluster: economy, threat, loot, hero ── */}
+      {/* ── RIGHT cluster: power, economy, threat, loot, hero ── */}
+      <div className="hud-cell hud-mini tt" tabIndex={0} data-tut="power">
+        <div className="hud-k">Power</div>
+        <div className="hud-v hud-v-sm" style={{ color: 'var(--vital, #7ad1ff)' }}>{formatPower(power)}</div>
+        <span className="tt-bubble">Total run strength — your account × this run's genes & Hero Evolution. Rises as you draft cards and evolve.</span>
+      </div>
       <div className="hud-cell tt" tabIndex={0} data-tut="biomass">
         <div className="hud-k">Biomass</div>
         <div className={`hud-v ${biomassPop ? 'pop' : ''}`} style={{ color: 'var(--caustic)' }}>

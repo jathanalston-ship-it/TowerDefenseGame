@@ -127,6 +127,13 @@ export function GameView({
     return m;
   }, []);
 
+  // Live run Power Score = account × this run's temporary buffs (drafted genes + Hero Evolution).
+  // Recomputed only when those change (not every frame) — account power is static mid-run.
+  const power = useMemo(
+    () => meta.powerWith(game.powerEffects()).score,
+    [game, hud.cards.length, hud.heroEvo.totalOwned],
+  );
+
   const refresh = (): void => setHud(game.getSnapshot());
 
   useEffect(() => {
@@ -285,7 +292,7 @@ export function GameView({
 
   return (
     <div className="game">
-      <Hud hud={hud} />
+      <Hud hud={hud} power={power} />
       <div className="stage">
         {leftOpen ? (
           <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />

@@ -345,6 +345,9 @@ export class Game {
   private statKillsByEnemy: Record<EnemyKind, number> = zeroEnemyCounts();
   private statTowerBuilds: Record<TowerKind, number> = zeroTowerCounts();
 
+  // Raw effects of gene cards drafted this run — retained so the run's TEMPORARY Power bucket can be
+  // scored live (effectsPower) for the HUD/menus. Reset per run (fresh Game). Golden-safe: unused by sim.
+  private chosenCardEffects: CardEffect[] = [];
   selectedTower: TowerKind | null = null;
   selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
   movingTowerId: number | null = null; // a placed tower PICKED UP for relocation (Build Phase) — docs/TOWER-MANAGEMENT.md §3
@@ -1362,6 +1365,7 @@ export class Game {
       // add a projectile mutator / battlefield rule mid-run, not just at boot (equipment).
       for (const e of card.effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
       this.chosenCards.push(cardToOption(card));
+      this.chosenCardEffects.push(...card.effects); // retain for the live run-Power (temporary bucket)
       this.pushSfx('draft');
       if (gameEvents.hasListeners('cardChosen')) gameEvents.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
@@ -1413,6 +1417,13 @@ export class Game {
    *  via the shared effectsPower bridge, so every purchase raises the global Power Score. */
   heroEvoEffects(): CardEffect[] {
     return heroEvoEffects(this.heroEvoLevels);
+  }
+
+  /** ALL of the run's TEMPORARY power contributors as CardEffect[] — drafted gene cards + Hero
+   *  Evolution. `meta.powerWith(game.powerEffects())` yields the live run Power Score (HUD/menus).
+   *  Gear/doctrine boot effects are excluded (already counted in the account `equipment` bucket). */
+  powerEffects(): CardEffect[] {
+    return [...this.chosenCardEffects, ...heroEvoEffects(this.heroEvoLevels)];
   }
 
   /** Field an ADDITIONAL hero mid-run — the forward-looking hero-unlock seam (HEROES.md). The new
