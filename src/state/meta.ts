@@ -49,6 +49,7 @@ import { composePower, effectsPower, geomean, itemRarityPower } from '../core/po
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
+import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
 import { bossDef } from '../core/boss';
@@ -1139,6 +1140,31 @@ export const meta = {
   },
 
   /** Wipe permanent progress — but back it up first so it's recoverable. */
+  // ── Tutorial (docs/TUTORIAL.md) — permanent completion + resumable progress ──
+  tutorialState(): SaveData['tutorial'] {
+    return store.get().tutorial;
+  },
+  isTutorialDone(id: string): boolean {
+    return store.get().tutorial.completed.includes(id);
+  },
+  /** First-time detection: the combat tutorial isn't done AND the save is brand-new (no runs), so a
+   * migrated existing player is never force-tutorialized — only a fresh save or an Account Reset. */
+  shouldAutoTutorial(): boolean {
+    const s = store.get();
+    return !s.tutorial.completed.includes('combat') && s.totalRuns === 0;
+  },
+  /** Persist resumable tutorial progress (pass null to clear it). */
+  saveTutorialProgress(progress: TutorialProgress | null): void {
+    const s = store.get();
+    persist({ ...s, tutorial: { ...s.tutorial, progress } });
+  },
+  /** Mark a tutorial permanently complete + clear its progress. Idempotent. */
+  completeTutorial(id: string): void {
+    const s = store.get();
+    const completed = s.tutorial.completed.includes(id) ? s.tutorial.completed : [...s.tutorial.completed, id];
+    persist({ ...s, tutorial: { completed, progress: null } });
+  },
+
   reset(): void {
     saveStore.backup();
     persist(defaultSave());
