@@ -309,3 +309,38 @@ choice instead of "always run 3 maxed."
 - **Reactions:** more heroes = more status-appliers on the field = more/faster
   reactions; a control+DoT+Vital trio chains Mind Rot → Bloom Rot trivially.
 - **Multi-lane (Hivemind):** slot 3 is what makes parallel-lane defense tractable.
+
+### Implementation status — SHIPPED (was previously design-only)
+
+The 1 → 2 → 3 slot progression is implemented and unit-pinned (`state/heroSlots.test.ts`).
+The aspirational unlock hooks above (Twin Avatar node, Speciation Layer 2) do not exist yet,
+so the **shipped unlock is PRESTIGE-GATED** — the natural long-horizon lever:
+
+| Slot | Unlock (shipped) | config |
+|------|------------------|--------|
+| 1 Prime | from the start | `HERO_SLOTS[0].molts = 0` |
+| 2 Twin | after your **1st Molt** | `HERO_SLOTS[1].molts = 1` |
+| 3 Trinity | after your **3rd Molt** | `HERO_SLOTS[2].molts = 3` |
+
+Conditions are DATA in `config.HERO_SLOTS` (one row per slot; `molts` = required Prestige
+count) — retune, or swap to a future Twin-Avatar/Speciation gate, in one place.
+
+**Systems modified (this feature):**
+- `core/config.ts` — `HERO_SLOTS` / `HeroSlotDef` / `MAX_HERO_SLOTS` (the data-driven unlock ladder).
+- `save/saveStore.ts` — new `heroLoadout: HeroKind[]` (schema **v11**), migrated from the legacy
+  `selectedHero`; `sanitizeLoadout` resolves aliases, dedupes, clamps.
+- `state/meta.ts` — `heroSlotsUnlocked` / `fieldedLoadout` / `heroSlotView` (pure) + `setHeroInSlot`
+  (distinct-swap) + `heroSlots()`; `selectedHero`/`setSelectedHero` now slot-1 wrappers.
+- `core/game.ts` — the roster is fielded from `opts.heroRoster` (defaults to one hero ⇒ golden-safe);
+  per-hero identity (`heroIdById`) + per-hero scaling state (`Hero.killchain` / `Hero.rushUntil`);
+  `heroEliteDamage`/`heroVulnBonus`/`onEliteSlain`/survival/rush now iterate the roster; **non-primary
+  heroes are autonomous** (auto-cast their signature on cooldown) while slot-1 stays player-controlled.
+- `core/types.ts` — `Hero.killchain` / `Hero.rushUntil`.
+- `ui/App.tsx` + `ui/GameView.tsx` — snapshot + thread the fielded roster into the run.
+- `ui/HeroLab.tsx` + `index.css` — the **Hero Slots strip**: assign a hero per unlocked slot; LOCKED
+  slots show their prestige unlock + progress bar (anticipation). The renderer already iterated
+  `rs.heroes[]`, so 1–3 heroes draw with no render change.
+
+**Golden-safety:** a fresh account has exactly one slot ⇒ single-hero runs. All multi-hero code is
+gated behind per-roster iteration that is a no-op for one hero (the autonomous-cast loop starts at
+index 1), so `golden.test` stays byte-identical.

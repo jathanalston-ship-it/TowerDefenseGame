@@ -207,6 +207,10 @@ export interface Hero {
   // the Ravager and a fresh run are byte-identical (golden-safe).
   shield: number;
   shieldTime: number;
+  // Per-hero identity SCALING state (was singular on the Game; now per-hero for multi-slot rosters,
+  // HEROES.md). Ravager only; 0/0 for every other hero + a fresh run ⇒ byte-identical golden run.
+  killchain: number; // elites this hero has slain this run (Apex Predator / Killchain)
+  rushUntil: number; // sim-time its Bloodthirst speed surge lasts until
 }
 
 /** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that

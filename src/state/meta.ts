@@ -12,7 +12,7 @@ import {
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, ECON, HERO_ORDER, HERO_SLOTS, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -230,6 +230,65 @@ export function highestCampaignStage(save: SaveData): number {
  *  fuel, Campaign is the permission. */
 export function evolutionStarCap(save: SaveData): number {
   return campaignStarCap(highestCampaignStage(save));
+}
+
+// ── Hero Slot progression (HEROES.md) — pure derivations over the save ───────────────────────────
+
+/** How many hero slots are unlocked (1..HERO_SLOTS.length). Slots unlock strictly IN ORDER; each
+ *  checks its Campaign + Prestige gate (config.HERO_SLOTS). Pure — run start, the Hero Lab, and the
+ *  slot notification all read this. Always ≥1 (a fresh account fields one hero ⇒ golden-safe). */
+export function heroSlotsUnlocked(save: SaveData): number {
+  const molts = save.prestige?.molts ?? 0; // lifetime Prestige (Molt) count
+  let n = 0;
+  for (const def of HERO_SLOTS) {
+    if (molts >= def.molts) n++;
+    else break; // a locked slot gates every later one (ordered milestones)
+  }
+  return Math.max(1, n);
+}
+
+/** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT kinds.
+ *  Always ≥1 (falls back to slot-1 / the default hero). Length = heroes actually assigned. */
+export function fieldedLoadout(save: SaveData): HeroKind[] {
+  const unlocked = heroSlotsUnlocked(save);
+  const out: HeroKind[] = [];
+  const seen = new Set<HeroKind>();
+  for (const k of save.heroLoadout ?? []) {
+    if (out.length >= unlocked) break;
+    if (!seen.has(k)) { out.push(k); seen.add(k); }
+  }
+  if (out.length === 0) out.push(save.selectedHero);
+  return out;
+}
+
+export interface HeroSlotView {
+  slot: number;
+  name: string;
+  unlocked: boolean;
+  kind: HeroKind | null; // the hero assigned to this slot (null when locked / unassigned)
+  hint: string; // unlock requirement (locked) — anticipation copy
+  blurb: string; // what fielding this slot grants
+  progress: number; // 0..1 toward unlocking (1 when unlocked)
+}
+
+/** Per-slot view for the Hero Lab: unlocked slots show their fielded hero; LOCKED slots show the
+ *  unlock condition + progress, so the "next hero slot" reads as a visible long-horizon goal. */
+export function heroSlotView(save: SaveData): HeroSlotView[] {
+  const unlocked = heroSlotsUnlocked(save);
+  const loadout = fieldedLoadout(save);
+  const molts = save.prestige?.molts ?? 0;
+  return HERO_SLOTS.map((def) => {
+    const isUnlocked = def.slot <= unlocked;
+    return {
+      slot: def.slot,
+      name: def.name,
+      unlocked: isUnlocked,
+      kind: isUnlocked ? (loadout[def.slot - 1] ?? null) : null,
+      hint: def.hint,
+      blurb: def.blurb,
+      progress: isUnlocked ? 1 : def.molts > 0 ? Math.min(1, molts / def.molts) : 1,
+    };
+  });
 }
 
 /** Fold stars + mastery into per-kind run config. Stars contribute the incidental S-bucket
@@ -813,14 +872,45 @@ export const meta = {
     return composePower(accountPowerParts(mutate(store.get())));
   },
 
-  /** The hero the next run will field (slot 1). */
+  /** The slot-1 hero the next run fields (back-compat; = fieldedLoadout()[0]). */
   selectedHero(): HeroKind {
-    return store.get().selectedHero;
+    return fieldedLoadout(store.get())[0];
   },
 
-  /** Choose which hero to field next run. */
+  /** Choose the slot-1 hero (back-compat wrapper over setHeroInSlot). */
   setSelectedHero(kind: HeroKind): void {
-    persist({ ...store.get(), selectedHero: kind });
+    meta.setHeroInSlot(1, kind);
+  },
+
+  /** The heroes the next run fields — the saved loadout clamped to unlocked slots (≥1). */
+  fieldedLoadout(): HeroKind[] {
+    return fieldedLoadout(store.get());
+  },
+
+  /** How many hero slots are unlocked right now (1..HERO_SLOTS.length). */
+  heroSlotsUnlocked(): number {
+    return heroSlotsUnlocked(store.get());
+  },
+
+  /** Per-slot view for the Hero Lab (fielded hero, or unlock condition + progress). */
+  heroSlots(): HeroSlotView[] {
+    return heroSlotView(store.get());
+  },
+
+  /** Assign `kind` to slot `slot` (1-based). Enforces UNLOCKED + a distinct roster: if `kind`
+   *  already occupies another slot, the two swap. No-op when the slot is locked. */
+  setHeroInSlot(slot: number, kind: HeroKind): void {
+    const save = store.get();
+    const unlocked = heroSlotsUnlocked(save);
+    if (slot < 1 || slot > unlocked) return;
+    const loadout = fieldedLoadout(save).slice();
+    // Fill any not-yet-assigned lower slots with distinct heroes so a higher slot can be set.
+    while (loadout.length < slot) loadout.push(HERO_ORDER.find((k) => !loadout.includes(k)) ?? loadout[0]);
+    const prev = loadout[slot - 1];
+    const other = loadout.indexOf(kind);
+    if (other >= 0 && other !== slot - 1) loadout[other] = prev; // swap to keep the roster distinct
+    loadout[slot - 1] = kind;
+    persist({ ...save, heroLoadout: loadout, selectedHero: loadout[0] });
   },
 
   /** Spend hero shards to add a star to `kind`. Returns false if unaffordable/maxed. */

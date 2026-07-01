@@ -31,7 +31,11 @@ export interface SaveData {
   // ── Hero progression + roster (per kind) — added in schema v3 ──
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
   heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
-  selectedHero: HeroKind; // which hero the next run fields (slot 1)
+  selectedHero: HeroKind; // slot-1 hero (back-compat mirror of heroLoadout[0]); see meta.setSelectedHero
+  // ── Hero Slot roster (HEROES.md) — the heroes fielded per slot; index i = slot i+1. Length grows
+  //    with unlocked slots (heroSlotsUnlocked). Clamped to unlocked slots + distinct kinds at run
+  //    start. Migrated from selectedHero for pre-slot saves. ──
+  heroLoadout: HeroKind[];
   // ── Per-hero lifetime ownership stats (schema v9) — drive the Hero Lab detail page ──
   heroKills: Record<HeroKind, number>; // lifetime kills BY each hero (accrued for the fielded hero)
   heroFavEquip: Record<HeroKind, Record<string, number>>; // per-hero equip-usage counts (defId → runs); argmax = favorite
@@ -63,7 +67,7 @@ export interface SaveData {
   campaign: { cleared: Record<string, number> };
 }
 
-export const CURRENT_VERSION = 10;
+export const CURRENT_VERSION = 11; // v10→v11: heroLoadout (Hero Slot roster) — additive, seeded from selectedHero
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -153,6 +157,7 @@ export function defaultSave(): SaveData {
     heroStars: zeroByHeroKind(),
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
+    heroLoadout: ['ravager'],
     heroKills: zeroByHeroKind(),
     heroFavEquip: emptyFavByHero(),
     stats: defaultLifetimeStats(),
@@ -198,6 +203,10 @@ function withDefaults(data: SaveData): SaveData {
     // Resolve the fielded hero through the registry (honors aliases for renamed ids)
     // and fall back to the default if it's unknown — a corrupt/removed id can't crash.
     selectedHero: (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero,
+    // Hero Slot roster (HEROES.md): resolve each entry through the registry (honors aliases),
+    // dedupe, and drop junk. A pre-slot save (no heroLoadout) seeds from the migrated selectedHero
+    // so slot 1 carries over unchanged — additive, no data loss.
+    heroLoadout: sanitizeLoadout(data.heroLoadout, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {
@@ -234,6 +243,21 @@ function withDefaults(data: SaveData): SaveData {
     // v9→v10: campaign progression. Empty for an old save; coerce the cleared map to finite ≥0 ints.
     campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
   };
+}
+
+/** Coerce a loaded hero-loadout array into known, DISTINCT hero kinds (aliases resolved).
+ *  Empty / all-junk → the fallback (slot-1) hero, so a run always has at least one hero. */
+function sanitizeLoadout(raw: unknown, fallback: HeroKind): HeroKind[] {
+  const out: HeroKind[] = [];
+  const seen = new Set<string>();
+  if (Array.isArray(raw)) {
+    for (const x of raw) {
+      const k = heroRegistry.resolve(typeof x === 'string' ? x : '') as HeroKind | undefined;
+      if (k && !seen.has(k)) { out.push(k); seen.add(k); }
+    }
+  }
+  if (out.length === 0) out.push(fallback);
+  return out;
 }
 
 /** Coerce a loaded campaign `cleared` map into clean non-negative integers (drops junk). */

@@ -29,6 +29,49 @@ function Section({ title, accent, children }: { title: string; accent?: string; 
   );
 }
 
+/** Hero Slots (HEROES.md) — the account's 1 → 2 → 3 roster. Unlocked slots show their fielded hero
+ *  and assign the focused one; LOCKED slots show their prestige unlock + progress, so "the next hero
+ *  slot" reads as a visible long-horizon milestone. */
+function HeroSlotsBar({ slots, focus, onAssign }: {
+  slots: ReturnType<typeof meta.heroSlots>;
+  focus: HeroKind;
+  onAssign: (slot: number) => void;
+}): JSX.Element {
+  const focusDef = HERO_DEFS[focus];
+  return (
+    <div className="hslots" role="group" aria-label="Hero Slots">
+      {slots.map((s) => {
+        const hero = s.kind ? HERO_DEFS[s.kind] : null;
+        const holdsFocus = s.kind === focus;
+        return (
+          <div key={s.slot} className={`hslot ${s.unlocked ? 'is-open' : 'is-locked'} ${holdsFocus ? 'is-focus' : ''}`}
+            style={hero ? ({ ['--hc' as string]: hero.color }) : undefined}>
+            <div className="hslot-h"><span className="hslot-n">Slot {s.slot}</span> {s.name}</div>
+            {s.unlocked ? (
+              <>
+                <div className="hslot-body">
+                  {hero ? <HeroPortrait def={hero} size={38} /> : <span className="hslot-empty">＋</span>}
+                  <span className="hslot-hero" style={hero ? { color: hero.color } : undefined}>{hero ? hero.name : 'Empty'}</span>
+                </div>
+                <button className={`hslot-assign ${holdsFocus ? 'is-set' : ''}`} disabled={holdsFocus} onClick={() => onAssign(s.slot)}>
+                  {holdsFocus ? '● Assigned' : `Assign ${focusDef.name}`}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="hslot-lock" aria-hidden>🔒</div>
+                <div className="hslot-hint">{s.hint}</div>
+                <ProgressBar value={s.progress} max={1} height={5} color="var(--r-epic)" label={`slot ${s.slot} unlock progress`} />
+                <div className="hslot-blurb">{s.blurb}</div>
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function HeroLab(): JSX.Element {
   const save = meta.use();
   // Which hero's page is OPEN (focus) — independent of which is FIELDED. Defaults to fielded.
@@ -36,6 +79,9 @@ export function HeroLab(): JSX.Element {
   const d = heroDetail(save, focus);
   const id = heroIdentity(focus); // the data-driven identity layer (docs/HERO-FRAMEWORK.md)
   const c = d.def.color;
+  const slots = meta.heroSlots(); // Hero Slot progression (1 → 2 → 3; HEROES.md)
+  const fieldedSet = new Set(meta.fieldedLoadout()); // heroes currently in the roster (any slot)
+  const isPrimary = slots[0]?.kind === focus;
 
   return (
     <div className="panel herolab">
@@ -46,7 +92,7 @@ export function HeroLab(): JSX.Element {
           const def = HERO_DEFS[k];
           const stars = save.heroStars[k] ?? 0;
           const rank = masteryRank(masteryProgress(save.heroMasteryXp[k] ?? 0).level);
-          const fielded = save.selectedHero === k;
+          const fielded = fieldedSet.has(k); // in the roster (any slot)
           const active = focus === k;
           return (
             <button
@@ -82,14 +128,17 @@ export function HeroLab(): JSX.Element {
             </div>
             <p className="hero-tagline">{d.lore.tagline}</p>
             <button
-              className={`primary hero-field ${d.fielded ? 'is-fielded' : ''}`}
-              disabled={d.fielded}
-              onClick={() => meta.setSelectedHero(focus)}
+              className={`primary hero-field ${isPrimary ? 'is-fielded' : ''}`}
+              disabled={isPrimary}
+              onClick={() => meta.setHeroInSlot(1, focus)}
             >
-              {d.fielded ? '● Deployed' : 'Field this Hero'}
+              {isPrimary ? '● Primary Hero' : 'Field as Primary'}
             </button>
           </div>
         </div>
+
+        {/* Hero Slots (HEROES.md) — the 1 → 2 → 3 roster + locked prestige previews (anticipation). */}
+        <HeroSlotsBar slots={slots} focus={focus} onAssign={(slot) => meta.setHeroInSlot(slot, focus)} />
 
         {/* Quick stat strip — Power Rating is the one legible "am I stronger?" number */}
         <div className="hero-strip">

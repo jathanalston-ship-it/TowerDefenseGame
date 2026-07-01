@@ -44,6 +44,7 @@ export function GameView({
   mods,
   progress,
   heroKind,
+  heroRoster,
   heroProgress,
   runEffects,
   mode,
@@ -57,6 +58,7 @@ export function GameView({
   mods: MetaModifiers;
   progress: TowerProgress;
   heroKind: HeroKind;
+  heroRoster?: HeroKind[];
   heroProgress: HeroProgress;
   runEffects?: CardEffect[];
   mode?: RunMode;
@@ -68,7 +70,7 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, stage, difficulty, doctrine }));
+  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, { runEffects, mode, stage, difficulty, doctrine, heroRoster }));
 
   const [hud, setHud] = useState<HudSnapshot>(() => game.getSnapshot());
   const [crashed, setCrashed] = useState<string | null>(null);

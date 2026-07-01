@@ -4523,6 +4523,29 @@ kbd {
 .hero-field { margin-top: 6px; align-self: flex-start; }
 .hero-field.is-fielded { background: rgba(63, 224, 138, 0.14); border-color: var(--success); color: var(--success); box-shadow: none; cursor: default; opacity: 1; }
 
+/* ── Hero Slots (HEROES.md) — the 1 → 2 → 3 roster strip + locked prestige previews ── */
+.hslots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.hslot {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 12px; border-radius: var(--r-md);
+  background: var(--panel-2); border: 1px solid var(--line);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--dur-1) var(--ease-spring);
+}
+.hslot.is-open { border-color: color-mix(in srgb, var(--hc, var(--kinetic)) 40%, var(--line)); }
+.hslot.is-focus { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hc, var(--kinetic)) 55%, transparent), 0 0 20px -8px var(--hc, var(--kinetic)); }
+.hslot.is-locked { border-style: dashed; opacity: 0.9; background: repeating-linear-gradient(135deg, var(--panel-2) 0 10px, var(--panel) 10px 20px); }
+.hslot-h { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.hslot-n { color: color-mix(in srgb, var(--hc, var(--r-epic)) 70%, var(--text)); }
+.hslot-body { display: flex; align-items: center; gap: 9px; }
+.hslot-hero { font-weight: 800; font-size: 14px; }
+.hslot-empty { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 9px; border: 1px dashed var(--line); color: var(--muted); font-size: 18px; }
+.hslot-assign { font-size: 11px; font-weight: 700; padding: 6px 8px; border-radius: var(--r-sm); }
+.hslot-assign.is-set { background: rgba(63, 224, 138, 0.14); border-color: var(--success); color: var(--success); cursor: default; }
+.hslot-lock { font-size: 20px; filter: grayscale(0.3); opacity: 0.8; }
+.hslot-hint { font-size: 11.5px; font-weight: 700; color: var(--r-epic); letter-spacing: 0.02em; }
+.hslot-blurb { font-size: 11px; color: var(--muted); line-height: 1.35; }
+@media (max-width: 700px) { .hslots { grid-template-columns: 1fr; } }
+
 /* Quick stat strip */
 .hero-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; }
 .hstat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); }
