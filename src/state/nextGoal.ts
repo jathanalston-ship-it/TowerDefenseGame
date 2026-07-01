@@ -11,6 +11,8 @@ import type { SaveData } from '../save/saveStore';
 import { TOWER_DEFS, HERO_DEFS, HERO_SLOTS, STAR } from '../core/config';
 import { prestigeStageReq } from '../core/prestige';
 import { collectionView } from '../core/collection';
+import { cardRegistry } from '../core/cards';
+import { GENE_LEVEL_GATES, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
 import {
   heroCollection, towerStarCost, nextHeroStarCost, evolutionStarCap, heroSlotsUnlocked,
   collectionContextOf,
@@ -112,6 +114,28 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
       reward: 'Field another champion at once',
       progress: clamp01(stage / nextSlot.campaignStage), nav: 'campaign', color: 'var(--r-epic)',
     });
+  }
+
+  // ── Campaign gate — the next GLOBAL gene-level unlock (docs/GENE-EVOLUTION.md §Gates). Surfaced
+  //    exactly when it BITES: at least one owned card is parked at the current cap with deeper
+  //    authored levels waiting — the player has something real to unlock. ──
+  const geneCap = geneLevelCapForStage(stage);
+  const geneGate = GENE_LEVEL_GATES.find((g) => g.stage > stage);
+  if (geneGate) {
+    const ownedSet = new Set(save.stats?.uniqueCards ?? []);
+    let blocked = 0;
+    for (const c of cardRegistry.active()) {
+      if (ownedSet.has(c.id) && geneLevel(save.genes, c.id) >= geneCap && geneMaxLevel(c) > geneCap) blocked++;
+    }
+    if (blocked > 0) {
+      goals.push({
+        id: `gene-gate:${geneGate.level}`, kind: 'campaign-gate',
+        label: `Gene Level ${geneGate.level} unlock`,
+        remaining: `${geneGate.stage - stage} Campaign ${geneGate.stage - stage === 1 ? 'stage' : 'stages'}`,
+        reward: `${blocked} gene card${blocked > 1 ? 's' : ''} ready to evolve deeper`,
+        progress: clamp01(stage / geneGate.stage), nav: 'genes', color: 'var(--caustic)',
+      });
+    }
   }
 
   // ── Collection (Assimilation Archive completion) ──

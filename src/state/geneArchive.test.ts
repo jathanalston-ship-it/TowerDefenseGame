@@ -62,6 +62,22 @@ describe('gene archive read-model', () => {
   });
 });
 
+describe('next-goal prominence (Task 6): the upcoming gene gate surfaces when it BITES', () => {
+  it('appears on the Home goals once an owned card is parked at the cap, and points at the Archive', async () => {
+    const { nextGoals } = await import('./nextGoal');
+    // Fresh save: nothing owned ⇒ no gene-gate goal (nothing real to unlock).
+    seed();
+    expect(nextGoals(meta.get(), 20).find((g) => g.id.startsWith('gene-gate'))).toBeUndefined();
+    // A card at the L1 cap with deeper levels waiting ⇒ the L2@15 gate is now a surfaced goal.
+    seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, genes: { [card.id]: { level: 1 } }, campaign: { cleared: { standard: 5 } } });
+    const goal = nextGoals(meta.get(), 20).find((g) => g.id.startsWith('gene-gate'));
+    expect(goal).toBeDefined();
+    expect(goal!.label).toContain('Gene Level 2');
+    expect(goal!.remaining).toBe('10 Campaign stages'); // stage 5 of 15 — the requirement is explicit
+    expect(goal!.nav).toBe('genes');
+  });
+});
+
 describe('meta.upgradeGene — the guarded spend', () => {
   it('refuses unowned / unaffordable; succeeds owned + funded; stamps upgradedAt', () => {
     seed({ geneEssence: 999 });
