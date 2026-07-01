@@ -32,7 +32,7 @@ import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
-import { PRESTIGE, canMolt, cellsForCycle, prestigeMult } from '../core/prestige';
+import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
@@ -253,10 +253,10 @@ export function evolutionStarCap(save: SaveData): number {
  *  checks its Campaign + Prestige gate (config.HERO_SLOTS). Pure — run start, the Hero Lab, and the
  *  slot notification all read this. Always ≥1 (a fresh account fields one hero ⇒ golden-safe). */
 export function heroSlotsUnlocked(save: SaveData): number {
-  const molts = save.prestige?.molts ?? 0; // lifetime Prestige (Molt) count
+  const stage = highestCampaignStage(save); // highest Campaign stage cleared (any difficulty)
   let n = 0;
   for (const def of HERO_SLOTS) {
-    if (molts >= def.molts) n++;
+    if (stage >= def.campaignStage) n++;
     else break; // a locked slot gates every later one (ordered milestones)
   }
   return Math.max(1, n);
@@ -284,14 +284,17 @@ export interface HeroSlotView {
   hint: string; // unlock requirement (locked) — anticipation copy
   blurb: string; // what fielding this slot grants
   progress: number; // 0..1 toward unlocking (1 when unlocked)
+  campaignStage: number; // current highest Campaign stage cleared (for "18 / 25" copy)
+  campaignReq: number; // Campaign stage that unlocks this slot (0 = from the start)
 }
 
 /** Per-slot view for the Hero Lab: unlocked slots show their fielded hero; LOCKED slots show the
- *  unlock condition + progress, so the "next hero slot" reads as a visible long-horizon goal. */
+ *  Campaign unlock condition + progress ("Campaign 18 / 25"), so the "next hero slot" reads as a
+ *  concrete, visible long-horizon goal. */
 export function heroSlotView(save: SaveData): HeroSlotView[] {
   const unlocked = heroSlotsUnlocked(save);
   const loadout = fieldedLoadout(save);
-  const molts = save.prestige?.molts ?? 0;
+  const stage = highestCampaignStage(save);
   return HERO_SLOTS.map((def) => {
     const isUnlocked = def.slot <= unlocked;
     return {
@@ -301,7 +304,9 @@ export function heroSlotView(save: SaveData): HeroSlotView[] {
       kind: isUnlocked ? (loadout[def.slot - 1] ?? null) : null,
       hint: def.hint,
       blurb: def.blurb,
-      progress: isUnlocked ? 1 : def.molts > 0 ? Math.min(1, molts / def.molts) : 1,
+      progress: isUnlocked ? 1 : def.campaignStage > 0 ? Math.min(1, stage / def.campaignStage) : 1,
+      campaignStage: stage,
+      campaignReq: def.campaignStage,
     };
   });
 }
@@ -434,6 +439,9 @@ export interface RunOutcome {
   // Evolution Unlock sequence (docs/TOWER-CODEX.md §2). Absent on a normal run. `stage` = the
   // campaign stage just cleared that pushed the cap from oldCap → newCap.
   evolutionUnlock?: { oldCap: number; newCap: number; stage: number };
+  // Campaign milestone unlocked a new HERO SLOT this run (HEROES.md) → the cinematic Hero Slot
+  // Unlock sequence. Absent on a normal run. `slot` = the newly-opened slot (2 or 3).
+  heroSlotUnlock?: { slot: number; name: string; blurb: string; stage: number; powerScore: number };
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -487,10 +495,19 @@ export const meta = {
     cycleShards: number;
     mult: number;
     gain: number;
-    canMolt: boolean;
+    canMolt: boolean; // BOTH gates met (shards would mint ≥ minCells AND campaign depth reached)
+    shardsReady: boolean; // the mint gate alone (enough Genome Cores banked this cycle)
+    campaignStage: number; // current highest Campaign stage cleared
+    campaignReq: number; // Campaign stage required to unlock the NEXT Molt
+    campaignMet: boolean; // the campaign gate is satisfied
+    campaignProgress: number; // 0..1 toward the campaign requirement
   } {
     const save = store.get();
     const s = save.prestige;
+    const stage = highestCampaignStage(save);
+    const req = prestigeStageReq(s.molts);
+    const campaignMet = stage >= req;
+    const shardsReady = canMolt(s.cycleShards);
     return {
       cells: s.cells,
       lifetimeCells: s.lifetimeCells,
@@ -498,7 +515,12 @@ export const meta = {
       cycleShards: s.cycleShards,
       mult: prestigeMult(s.lifetimeCells),
       gain: moltGain(save), // includes the Ascendant Resonance compounding
-      canMolt: canMolt(s.cycleShards),
+      canMolt: shardsReady && campaignMet, // Prestige needs the mint AND the campaign gate
+      shardsReady,
+      campaignStage: stage,
+      campaignReq: req,
+      campaignMet,
+      campaignProgress: req > 0 ? Math.min(1, stage / req) : 1,
     };
   },
 
@@ -545,6 +567,7 @@ export const meta = {
     const save = store.get();
     const gain = moltGain(save);
     if (gain < PRESTIGE.molt.minCells) return false;
+    if (highestCampaignStage(save) < prestigeStageReq(save.prestige.molts)) return false; // campaign gate (PROGRESSION.md)
     saveStore.backup(); // ascensions are big + irreversible — keep a recoverable snapshot
     persist({
       ...save,
@@ -707,6 +730,15 @@ export const meta = {
     const evolutionUnlock = result.won && result.campaignStage && newCap > oldCap
       ? { oldCap, newCap, stage: result.campaignStage }
       : null;
+    // Hero Slot: did clearing this stage cross a Hero-Slot campaign gate (config.HERO_SLOTS)? If so,
+    // drive the cinematic Hero Slot Unlock sequence — one of the account's biggest milestones (HEROES.md).
+    const oldSlots = heroSlotsUnlocked(save);
+    const newSlots = heroSlotsUnlocked({ ...save, campaign: nextCampaign });
+    const slotDef = newSlots > oldSlots ? HERO_SLOTS[newSlots - 1] : null;
+    const heroSlotUnlock = slotDef && result.won && result.campaignStage
+      ? { slot: slotDef.slot, name: slotDef.name, blurb: slotDef.blurb, stage: result.campaignStage,
+          powerScore: composePower(accountPowerParts({ ...save, campaign: nextCampaign })).score }
+      : null;
 
     persist({
       ...save,
@@ -743,6 +775,7 @@ export const meta = {
       masteryUnlocks: { titles: newTitles, lore: newLore },
       achievements: unlockedAchievements,
       ...(evolutionUnlock ? { evolutionUnlock } : {}),
+      ...(heroSlotUnlock ? { heroSlotUnlock } : {}),
     };
   },
 

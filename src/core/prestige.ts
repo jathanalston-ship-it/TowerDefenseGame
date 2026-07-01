@@ -19,7 +19,23 @@ export const PRESTIGE = {
     multPerCell: 0.1, // c — globalMult = 1 + c × √(lifetimeCells)
     minCells: 1, // a Molt is offered once it would mint at least this many cells
   },
+  // Campaign gate (PROGRESSION.md) — Prestige is no longer instantly available: the FIRST Molt
+  // requires clearing Campaign Stage `firstStage`, and every subsequent Molt raises the required
+  // stage by `growth` (compound). Keeps ascension anchored to campaign depth, not just idle shards.
+  campaign: {
+    firstStage: 10, // first Molt (molts = 0) requires clearing Campaign Stage 10
+    growth: 1.05, // each later Molt requires +5% campaign depth (compound; floored to +1 stage)
+  },
 };
+
+/** The highest-cleared Campaign stage the NEXT Molt requires, given lifetime `molts` already done.
+ *  molts=0 → firstStage; each further Molt compounds by `growth`, kept STRICTLY increasing (so every
+ *  Molt visibly costs more campaign — early molts step +1, deep molts accelerate as 5% exceeds 1). */
+export function prestigeStageReq(molts: number): number {
+  let req = PRESTIGE.campaign.firstStage;
+  for (let i = 0; i < Math.max(0, molts); i++) req = Math.max(req + 1, Math.ceil(req * PRESTIGE.campaign.growth));
+  return req;
+}
 
 /** Per-run-cycle "engine metric": the Genome Cores EARNED since the last Molt drive the mint. */
 export function cellsForCycle(cycleShards: number): number {

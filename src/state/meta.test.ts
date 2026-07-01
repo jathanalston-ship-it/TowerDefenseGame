@@ -72,12 +72,14 @@ describe('metaModifiers (data-driven upgrades)', () => {
 
 describe('prestige MOLT (the ascension loop)', () => {
   it('mints cells, raises the multiplier, and resets the engine — keeping trophies', () => {
-    // Seed a save mid-cycle (banked shards + core upgrades + a maxed tower star to keep).
+    // Seed a save mid-cycle (banked shards + core upgrades + a maxed tower star to keep). Campaign
+    // Stage 10 is cleared so the first Molt's campaign gate (PROGRESSION.md) is satisfied.
     const seeded = {
       ...defaultSave(),
       shards: 500,
       upgrades: { lethality: 3 },
       towerStars: { ...defaultSave().towerStars, needle: 5 },
+      campaign: { cleared: { standard: 10 } },
       prestige: { ...defaultPrestige(), cycleShards: 10000 },
     };
     const imported = meta.importText(serializeExport(seeded));
@@ -103,11 +105,31 @@ describe('prestige MOLT (the ascension loop)', () => {
 
     expect(meta.molt()).toBe(false); // nothing left to mint this cycle
   });
+
+  it('gates the first Molt behind Campaign Stage 10 — mint alone is not enough', () => {
+    // Mint is ready (cycleShards), but NO campaign cleared → Prestige is locked.
+    meta.importText(serializeExport({ ...defaultSave(), prestige: { ...defaultPrestige(), cycleShards: 10000 } }));
+    let v = meta.prestigeView();
+    expect(v.shardsReady).toBe(true); // the cores would mint
+    expect(v.campaignMet).toBe(false); // but the campaign gate isn't met
+    expect(v.canMolt).toBe(false);
+    expect(v.campaignReq).toBe(10);
+    expect(meta.molt()).toBe(false); // refused
+
+    // Clear Campaign Stage 10 → the gate opens and the Molt succeeds.
+    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 10 } }, prestige: { ...defaultPrestige(), cycleShards: 10000 } }));
+    v = meta.prestigeView();
+    expect(v.campaignMet).toBe(true);
+    expect(v.canMolt).toBe(true);
+    expect(meta.molt()).toBe(true);
+    // The NEXT Molt now requires MORE campaign depth than the first (compounding gate).
+    expect(meta.prestigeView().campaignReq).toBeGreaterThan(10);
+  });
 });
 
 describe('ascendant tree (spending cells)', () => {
   it('buys nodes, folds their bonuses, and keeps them across a Molt', () => {
-    const seeded = { ...defaultSave(), prestige: { ...defaultPrestige(), cells: 20, cycleShards: 10000, nodes: {} } };
+    const seeded = { ...defaultSave(), campaign: { cleared: { standard: 10 } }, prestige: { ...defaultPrestige(), cells: 20, cycleShards: 10000, nodes: {} } };
     expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
 
     expect(meta.buyAscendantNode('greed')).toBe(true);

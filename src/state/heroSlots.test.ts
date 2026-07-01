@@ -1,4 +1,4 @@
-// Hero Slot progression (HEROES.md) — pins the prestige-gated unlock ladder, the clamped/distinct
+// Hero Slot progression (HEROES.md) — pins the CAMPAIGN-gated unlock ladder, the clamped/distinct
 // roster, the anticipation view, and the save migration. The multi-hero gameplay is golden-safe
 // (single-hero runs stay byte-identical — see golden.test); this covers the meta/save layer.
 
@@ -18,37 +18,47 @@ describe('hero slots', () => {
     expect(fieldedLoadout(s)).toEqual([s.selectedHero]);
   });
 
-  it('slot 2 unlocks after the first Molt; slot 3 after the third (prestige-gated)', () => {
+  it('slot 2 unlocks at Campaign 25; slot 3 at Campaign 90 (campaign-gated)', () => {
     const s = defaultSave();
-    s.prestige.molts = 0; expect(heroSlotsUnlocked(s)).toBe(1);
-    s.prestige.molts = 1; expect(heroSlotsUnlocked(s)).toBe(2);
-    s.prestige.molts = 2; expect(heroSlotsUnlocked(s)).toBe(2); // still 2 until the 3rd Molt
-    s.prestige.molts = 3; expect(heroSlotsUnlocked(s)).toBe(3);
-    s.prestige.molts = 99; expect(heroSlotsUnlocked(s)).toBe(HERO_SLOTS.length); // never exceeds the ladder
+    s.campaign.cleared.standard = 0; expect(heroSlotsUnlocked(s)).toBe(1);
+    s.campaign.cleared.standard = 24; expect(heroSlotsUnlocked(s)).toBe(1); // one short of slot 2
+    s.campaign.cleared.standard = 25; expect(heroSlotsUnlocked(s)).toBe(2);
+    s.campaign.cleared.standard = 89; expect(heroSlotsUnlocked(s)).toBe(2); // still 2 until stage 90
+    s.campaign.cleared.standard = 90; expect(heroSlotsUnlocked(s)).toBe(3);
+    s.campaign.cleared.standard = 999; expect(heroSlotsUnlocked(s)).toBe(HERO_SLOTS.length); // never exceeds the ladder
+  });
+
+  it('the highest cleared stage across difficulties gates the slots', () => {
+    const s = defaultSave();
+    s.campaign.cleared = { standard: 10, brutal: 25 }; // brutal is further → slot 2 unlocked
+    expect(heroSlotsUnlocked(s)).toBe(2);
   });
 
   it('the fielded loadout clamps to unlocked slots and stays DISTINCT', () => {
     const [a, b, c] = HERO_ORDER;
     const s = defaultSave();
-    s.prestige.molts = 1; // 2 slots unlocked
+    s.campaign.cleared.standard = 25; // 2 slots unlocked
     s.heroLoadout = [a, b, c]; // 3 assigned, but only 2 slots → clamp
     expect(fieldedLoadout(s)).toEqual([a, b]);
     s.heroLoadout = [a, a]; // duplicates collapse to a distinct roster
     expect(fieldedLoadout(s)).toEqual([a]);
   });
 
-  it('the slot view shows LOCKED slots with their unlock hint + progress (anticipation)', () => {
+  it('the slot view shows LOCKED slots with their Campaign unlock req + progress (anticipation)', () => {
     const s = defaultSave(); // 1 slot
     const v = heroSlotView(s);
     expect(v).toHaveLength(HERO_SLOTS.length);
     expect(v[0].unlocked).toBe(true);
     expect(v[1].unlocked).toBe(false);
-    expect(v[1].progress).toBe(0); // 0 / 1 Molts
+    expect(v[1].progress).toBe(0); // 0 / 25 stages
     expect(v[1].hint).toBeTruthy();
+    expect(v[1].campaignReq).toBe(25);
+    expect(v[2].campaignReq).toBe(90);
     expect(v[2].progress).toBeCloseTo(0, 6);
-    s.prestige.molts = 2; // slot 3 needs 3 Molts → 2/3 progress, still locked
+    s.campaign.cleared.standard = 45; // slot 3 needs stage 90 → 45/90 progress, still locked
     expect(heroSlotView(s)[2].unlocked).toBe(false);
-    expect(heroSlotView(s)[2].progress).toBeCloseTo(2 / 3, 6);
+    expect(heroSlotView(s)[2].progress).toBeCloseTo(0.5, 6);
+    expect(heroSlotView(s)[2].campaignStage).toBe(45); // current-progress readout
   });
 
   it('migrates a pre-slot save: heroLoadout seeds from the legacy selectedHero', () => {

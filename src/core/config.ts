@@ -727,26 +727,27 @@ heroRegistry.registerAll(Object.values(HERO_DEFS));
 export const HERO_ORDER = heroRegistry.ids() as HeroKind[];
 
 // ── Hero Slot progression (HEROES.md §"Hero slot progression") — you command 1 → 2 → 3 heroes.
-// One of the account's biggest long-horizon milestones: slot 2 is a mid-campaign dopamine gate,
-// slot 3 a prestige reward. Conditions are DATA (evaluated in meta, which owns the save) so they're
-// tunable in one place and the reader + UI stay generic; slots unlock strictly in order. Future
-// slots (4+) are a single row. Golden-safe: a fresh save has exactly 1 slot ⇒ single-hero runs.
+// One of the account's biggest long-horizon milestones, gated on CAMPAIGN depth so "the next hero
+// slot" is a concrete, visible goal on the world map (not a hidden prestige side-effect). Conditions
+// are DATA (evaluated in meta, which owns the save) so they're tunable in one place and the reader +
+// UI stay generic; slots unlock strictly in order. Future slots (4+) are a single row. Golden-safe:
+// a fresh save has exactly 1 slot ⇒ single-hero runs.
 export interface HeroSlotDef {
   slot: number; // 1-based
   name: string; // the milestone's identity
-  molts: number; // min lifetime Molts (Prestige count) required to unlock (0 = from the start)
+  campaignStage: number; // min highest-cleared Campaign stage required to unlock (0 = from the start)
   hint: string; // player-facing unlock requirement
   blurb: string; // what fielding this slot grants (anticipation copy)
 }
-// Both extra slots are PRESTIGE gates — going wide is tied to the prestige ladder, so "the next
-// hero slot" stays a visible goal across many prestige cycles (HEROES.md design intent).
+// Both extra slots are CAMPAIGN gates — going wide is earned by pushing the campaign, so each slot is
+// a headline milestone the player can see coming on the map (HEROES.md design intent).
 export const HERO_SLOTS: HeroSlotDef[] = [
-  { slot: 1, name: 'Prime Avatar', molts: 0,
+  { slot: 1, name: 'Prime Avatar', campaignStage: 0,
     hint: 'Unlocked from the start.', blurb: 'Your first hero — an autonomous living weapon that patrols the line.' },
-  { slot: 2, name: 'Twin Avatar', molts: 1,
-    hint: 'Prestige once — complete your first Molt.', blurb: 'A second hero. Real synergy begins: dive + sustain, or disrupt + execute.' },
-  { slot: 3, name: 'Trinity Avatar', molts: 3,
-    hint: 'Prestige three times — complete your third Molt.', blurb: 'A third hero. The full damage / sustain / control trinity across parallel lanes.' },
+  { slot: 2, name: 'Twin Avatar', campaignStage: 25,
+    hint: 'Clear Campaign Stage 25.', blurb: 'A second hero. Real synergy begins: dive + sustain, or disrupt + execute.' },
+  { slot: 3, name: 'Trinity Avatar', campaignStage: 90,
+    hint: 'Clear Campaign Stage 90.', blurb: 'A third hero. The full damage / sustain / control trinity across parallel lanes.' },
 ];
 export const MAX_HERO_SLOTS = HERO_SLOTS.length;
 

@@ -62,6 +62,7 @@ function HeroSlotsBar({ slots, focus, onAssign }: {
                 <div className="hslot-lock" aria-hidden>🔒</div>
                 <div className="hslot-hint">{s.hint}</div>
                 <ProgressBar value={s.progress} max={1} height={5} color="var(--r-epic)" label={`slot ${s.slot} unlock progress`} />
+                <div className="hslot-req">Campaign <b>{s.campaignStage}</b> / {s.campaignReq}</div>
                 <div className="hslot-blurb">{s.blurb}</div>
               </>
             )}

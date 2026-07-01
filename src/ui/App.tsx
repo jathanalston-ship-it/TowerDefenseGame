@@ -15,6 +15,8 @@ import { generateStage } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
 import { EvolutionUnlock } from './EvolutionUnlock';
 import type { EvolutionUnlockData } from './EvolutionUnlock';
+import { HeroSlotUnlock } from './HeroSlotUnlock';
+import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref } from '../state/prefs';
 
 type Screen = 'menu' | 'playing' | 'results';
@@ -24,6 +26,8 @@ export function App(): JSX.Element {
   const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
   // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
+  // A Campaign milestone that opened a new Hero Slot this run → the cinematic Hero Slot Unlock (HEROES.md).
+  const [heroSlotUnlock, setHeroSlotUnlock] = useState<HeroSlotUnlockData | null>(null);
   const seedRef = useRef(0);
   const modsRef = useRef<MetaModifiers>(metaModifiers(meta.get()));
   const progRef = useRef<TowerProgress>(meta.towerProgress());
@@ -86,7 +90,9 @@ export function App(): JSX.Element {
     }
     const outcome = meta.finishRun(result);
     setLast({ result, outcome });
-    // A crossed Campaign milestone plays the Evolution Unlock sequence over the Results screen.
+    // Crossed Campaign milestones play their cinematics over Results. Hero Slot is the bigger
+    // milestone → it shows first; the Evolution Unlock follows once it's dismissed.
+    setHeroSlotUnlock(outcome.heroSlotUnlock ?? null);
     setEvoUnlock(outcome.evolutionUnlock ?? null);
     setScreen('results');
   }, []);
@@ -138,8 +144,13 @@ export function App(): JSX.Element {
       {screen === 'results' && last && (
         <Results result={last.result} outcome={last.outcome} onContinue={toMenu} />
       )}
+      {/* Hero Slot Unlock — the biggest milestone; shows first, over Results. Dismiss → reveals the
+          Evolution Unlock beneath it (if this run also raised the Star Cap). */}
+      {screen === 'results' && heroSlotUnlock && (
+        <HeroSlotUnlock unlock={heroSlotUnlock} onClose={() => setHeroSlotUnlock(null)} />
+      )}
       {/* Evolution Unlock sequence — dramatic, over the Results screen; dismiss → continue to Results. */}
-      {screen === 'results' && evoUnlock && (
+      {screen === 'results' && !heroSlotUnlock && evoUnlock && (
         <EvolutionUnlock unlock={evoUnlock} onClose={() => setEvoUnlock(null)} />
       )}
       {debugOn && <DebugPanel />}

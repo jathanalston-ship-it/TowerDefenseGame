@@ -126,8 +126,9 @@ export function ProgressDashboard({
 
   return (
     <>
-      {/* Ascension available → it dominates the dashboard. */}
-      {prestige.canMolt && (
+      {/* Ascension: when the mint is ready it dominates the dashboard — as a CTA if the campaign gate
+          is met, else a LOCKED banner surfacing the campaign requirement (PROGRESSION.md). */}
+      {prestige.shardsReady && (prestige.campaignMet ? (
         <button className="dash-ascension" onClick={() => nav('evolution')}>
           <span className="asc-glyph" aria-hidden>✸</span>
           <span className="asc-body">
@@ -136,7 +137,17 @@ export function ProgressDashboard({
           </span>
           <span className="asc-cta">Ascend ▸</span>
         </button>
-      )}
+      ) : (
+        <button className="dash-ascension is-locked" onClick={() => nav('evolution')}
+          title={`Clear Campaign Stage ${prestige.campaignReq} to unlock your ${prestige.molts === 0 ? 'first' : 'next'} Molt.`}>
+          <span className="asc-glyph" aria-hidden>🔒</span>
+          <span className="asc-body">
+            <span className="asc-t">Ascension Locked · Campaign {prestige.campaignStage} / {prestige.campaignReq}</span>
+            <span className="asc-d">Molt is ready (+{prestige.gain} Cells) — clear Campaign Stage {prestige.campaignReq} to unlock it.</span>
+          </span>
+          <span className="asc-cta">View ▸</span>
+        </button>
+      ))}
 
       <section className="dash" aria-label="Living progress">
         {cards.map((c) => (

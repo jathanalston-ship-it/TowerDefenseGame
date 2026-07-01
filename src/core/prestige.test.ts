@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, shardsForCells, defaultPrestige } from './prestige';
+import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq, shardsForCells, defaultPrestige } from './prestige';
 
 describe('MOLT currency (square-root gain)', () => {
   it('mints ⌊cellGain·√(cycleShards/cellScale)⌋ — diminishing within a cycle', () => {
@@ -31,5 +31,19 @@ describe('MOLT multiplier (square-root, never explosive)', () => {
 
   it('defaultPrestige is all-zero (a fresh account)', () => {
     expect(defaultPrestige()).toEqual({ cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0, nodes: {} });
+  });
+});
+
+describe('MOLT campaign gate (Prestige is earned by campaign depth)', () => {
+  it('the first Molt requires Campaign Stage 10', () => {
+    expect(prestigeStageReq(0)).toBe(PRESTIGE.campaign.firstStage);
+    expect(prestigeStageReq(0)).toBe(10);
+  });
+
+  it('every subsequent Molt raises the requirement — strictly increasing (5% compound, floored to +1)', () => {
+    const seq = Array.from({ length: 8 }, (_, n) => prestigeStageReq(n));
+    for (let i = 1; i < seq.length; i++) expect(seq[i]).toBeGreaterThan(seq[i - 1]);
+    // Deep molts accelerate: once 5% exceeds a whole stage the step grows beyond +1.
+    expect(prestigeStageReq(60) - prestigeStageReq(59)).toBeGreaterThan(1);
   });
 });

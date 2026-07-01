@@ -313,17 +313,22 @@ choice instead of "always run 3 maxed."
 ### Implementation status — SHIPPED (was previously design-only)
 
 The 1 → 2 → 3 slot progression is implemented and unit-pinned (`state/heroSlots.test.ts`).
-The aspirational unlock hooks above (Twin Avatar node, Speciation Layer 2) do not exist yet,
-so the **shipped unlock is PRESTIGE-GATED** — the natural long-horizon lever:
+The shipped unlock is **CAMPAIGN-GATED** — each slot is a concrete milestone the player can see
+coming on the world map, not a hidden prestige side-effect:
 
 | Slot | Unlock (shipped) | config |
 |------|------------------|--------|
-| 1 Prime | from the start | `HERO_SLOTS[0].molts = 0` |
-| 2 Twin | after your **1st Molt** | `HERO_SLOTS[1].molts = 1` |
-| 3 Trinity | after your **3rd Molt** | `HERO_SLOTS[2].molts = 3` |
+| 1 Prime | from the start | `HERO_SLOTS[0].campaignStage = 0` |
+| 2 Twin | clear **Campaign Stage 25** | `HERO_SLOTS[1].campaignStage = 25` |
+| 3 Trinity | clear **Campaign Stage 90** | `HERO_SLOTS[2].campaignStage = 90` |
 
-Conditions are DATA in `config.HERO_SLOTS` (one row per slot; `molts` = required Prestige
-count) — retune, or swap to a future Twin-Avatar/Speciation gate, in one place.
+Conditions are DATA in `config.HERO_SLOTS` (one row per slot; `campaignStage` = required
+highest-cleared Campaign stage) — retune the thresholds, or add slot 4+, in one place. The Hero Lab's
+locked slots show a live **`Campaign 18 / 25`** readout + progress bar (`heroSlotView` exposes
+`campaignStage`/`campaignReq`). Crossing a gate on a campaign win fires a **cinematic Hero Slot Unlock**
+(`ui/HeroSlotUnlock.tsx`): screen vignette, a bursting slot medallion, roster pips filling in, an
+achievement banner, the milestone fanfare (`audio.cue('jackpot')`), and the new Power Score. Detected in
+`finishRun` (`outcome.heroSlotUnlock`) and shown by App over Results, ahead of any Evolution Unlock.
 
 **Systems modified (this feature):**
 - `core/config.ts` — `HERO_SLOTS` / `HeroSlotDef` / `MAX_HERO_SLOTS` (the data-driven unlock ladder).

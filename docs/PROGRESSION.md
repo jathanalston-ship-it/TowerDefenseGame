@@ -541,6 +541,13 @@ earn, never explosive to hold.
 #### Layer 1 — MOLT
 - **Purpose.** Teach the prestige fantasy cheaply; convert early-game mastery into
   permanent speed. The "first ascension" rush.
+- **Campaign gate (SHIPPED).** Prestige is **not** instantly available. The first Molt requires
+  clearing **Campaign Stage 10**; every subsequent Molt raises the required stage by **5% (compound,
+  floored to +1 stage)** — `prestigeStageReq(molts)` in `core/prestige.ts` (`PRESTIGE.campaign`).
+  `meta.molt()` refuses below the gate; `prestigeView()` surfaces `campaignStage` / `campaignReq` /
+  `campaignMet` / `campaignProgress`, and the requirement + progress bar + tooltip render on the
+  Prestige panel and the Mission-Control ascension banner. Golden-safe: pure gating over the save,
+  no sim effect.
 - **Resets.** Hive Tree (Neural Fragments) + in-run economy upgrades. **Keeps everything else.**
 - **Currency — Ascendant Cells:** `⌊1.5 × √(NeuralFragmentsThisCycle / 100)⌋`.
   (10k essence → 15 cells; 50k → 33.)

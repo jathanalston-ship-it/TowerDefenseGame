@@ -6,6 +6,7 @@
 import { meta } from '../state/meta';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { ProgressBar } from './components/ProgressBar';
 
 export function PrestigePanel(): JSX.Element {
   meta.use(); // re-render when the save changes
@@ -46,8 +47,30 @@ export function PrestigePanel(): JSX.Element {
         <span className="hud-sub"> · this cycle: {Math.floor(p.cycleShards)} {ACCOUNT_CURRENCY.name} earned</span>
       </div>
 
+      {/* Campaign gate (PROGRESSION.md) — Prestige requires campaign depth; the first Molt needs Stage
+          10 and each Molt after raises it by 5%. Shown always so the requirement is never a surprise. */}
+      <div className={`molt-gate ${p.campaignMet ? 'is-met' : 'is-locked'}`}
+        title={`Prestige is gated on Campaign depth. Your first Molt unlocks at Campaign Stage ${p.molts === 0 ? p.campaignReq : 10}; every Molt after raises the requirement by 5% (compounding). Current requirement: clear Stage ${p.campaignReq}.`}>
+        <div className="molt-gate-h">
+          <span>🗺 Campaign Gate</span>
+          <span className="molt-gate-v">
+            {p.campaignMet
+              ? <><b>✓</b> Stage {p.campaignReq} cleared</>
+              : <>Stage <b>{p.campaignStage}</b> / {p.campaignReq}</>}
+          </span>
+        </div>
+        <ProgressBar value={p.campaignProgress} max={1} height={6} color="var(--viral)" label="campaign gate progress" />
+        {!p.campaignMet && (
+          <div className="molt-gate-hint">Clear Campaign Stage <b>{p.campaignReq}</b> to unlock your {p.molts === 0 ? 'first' : 'next'} Molt.</div>
+        )}
+      </div>
+
       <button className="primary" style={{ marginTop: 10 }} disabled={!p.canMolt} onClick={onMolt}>
-        {p.canMolt ? `Molt (+${p.gain} Cells)` : `Molt — earn more ${ACCOUNT_CURRENCY.name} first`}
+        {p.canMolt
+          ? `Molt (+${p.gain} Cells)`
+          : !p.campaignMet
+            ? `Molt — reach Campaign Stage ${p.campaignReq}`
+            : `Molt — earn more ${ACCOUNT_CURRENCY.name} first`}
       </button>
 
       {(() => {
