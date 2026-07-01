@@ -12,6 +12,7 @@ import { rarityRank, rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
 import { RewardReveal } from './RewardReveal';
 import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal';
+import { NextGoalCliffhanger } from './NextGoalBanner';
 import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
@@ -20,10 +21,12 @@ export function Results({
   result,
   outcome,
   onContinue,
+  onReplay,
 }: {
   result: RunResult;
   outcome: RunOutcome;
   onContinue: () => void;
+  onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
   const heroMasteryGains = HERO_ORDER.filter((k) => outcome.heroMastery[k].xpGained > 0);
@@ -248,7 +251,14 @@ export function Results({
 
   return (
     <div className="menu results-screen">
-      <RewardReveal title={title} categories={categories} achievements={achievements} onContinue={onContinue} />
+      <RewardReveal
+        title={title}
+        categories={categories}
+        achievements={achievements}
+        onContinue={onContinue}
+        onReplay={onReplay}
+        cliffhanger={<NextGoalCliffhanger />}
+      />
     </div>
   );
 }

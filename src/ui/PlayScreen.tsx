@@ -18,6 +18,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
+import { NextGoalBanner } from './NextGoalBanner';
 import type { NavKey } from './Hub';
 
 type RunRecap = { result: RunResult; outcome: RunOutcome } | null;
@@ -117,6 +118,9 @@ export function PlayScreen({
           ))}
         </section>
       )}
+
+      {/* ── The anticipation spine: the nearest reward, always in view (docs/ONE-MORE-RUN.md) ── */}
+      <NextGoalBanner onNavigate={(k) => go(k as NavKey)} />
 
       {/* ── Mission Control: CONTINUE CAMPAIGN dominates ── */}
       <section className="mc-campaign" style={{ ['--mc-accent' as string]: accent }}>
