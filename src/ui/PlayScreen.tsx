@@ -19,6 +19,11 @@ import { FEATURES } from '../core/features';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
 import { pickTip } from './tips';
+import { collectionView } from '../core/collection';
+import { collectionContextOf, heroSlotsUnlocked } from '../state/meta';
+import { highestCampaignStage } from '../save/derive';
+import { nextGoals } from '../state/nextGoal';
+import { formatPower as fmtP } from '../core/power';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
 import { NextGoalBanner } from './NextGoalBanner';
@@ -122,6 +127,35 @@ export function PlayScreen({
           ))}
         </section>
       )}
+
+      {/* ── Command Center vitals — the account as a LIVING dashboard (existing read-models). ── */}
+      {(() => {
+        const codex = collectionView(collectionContextOf(save));
+        const goal = nextGoals(save, 1)[0];
+        const vaults = save.pendingContainers.length;
+        const ach = (save.achievements ?? []).length;
+        const vitals: { k: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
+          { k: 'Power', v: fmtP(power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
+          { k: 'Campaign', v: `Stage ${highestCampaignStage(save)}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
+          { k: 'Infinite', v: `Wave ${save.bestWave}`, nav: 'infinite', title: 'Infinite personal best' },
+          { k: 'Collection', v: `${Math.round(codex.completion * 100)}%`, nav: 'collection', title: 'Codex completion' },
+          { k: 'Champions', v: `${save.heroLoadout.length}/${heroSlotsUnlocked(save)}`, nav: 'heroes', title: 'Fielded champions / unlocked slots' },
+          { k: 'Vaults', v: vaults > 0 ? `${vaults} ready` : '—', c: vaults > 0 ? 'var(--r-epic)' : undefined, nav: 'vault', title: 'Unopened Bio-Containers' },
+          ...(goal ? [{ k: 'Next unlock', v: `${goal.label} · ${Math.round(goal.progress * 100)}%`, c: goal.color, nav: goal.nav as NavKey, title: `${goal.remaining} to go` }] : []),
+          ...(ach > 0 ? [{ k: 'Achievements', v: `${ach}`, nav: 'profile' as NavKey, title: 'Achievements earned' }] : []),
+        ];
+        return (
+          <section className="cc-vitals" aria-label="Command Center vitals">
+            <span className="cc-vitals-h">◉ COMMAND CENTER</span>
+            {vitals.map((x) => (
+              <button className="cc-vital" key={x.k} onClick={() => x.nav && go(x.nav)} title={x.title}>
+                <span className="cc-vital-k">{x.k}</span>
+                <span className="cc-vital-v" style={x.c ? { color: x.c } : undefined}>{x.v}</span>
+              </button>
+            ))}
+          </section>
+        );
+      })()}
 
       {/* ── The anticipation spine: the nearest reward, always in view (docs/ONE-MORE-RUN.md) ── */}
       <NextGoalBanner onNavigate={(k) => go(k as NavKey)} />

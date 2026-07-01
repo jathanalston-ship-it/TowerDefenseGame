@@ -4174,6 +4174,51 @@ kbd {
 .mc-recap-i { color: var(--gold); }
 @keyframes mc-recap-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
+/* ── COMMAND CENTER living layer (LabAtmosphere additions): fog · veins · parallax ── */
+.lab-fog { position: absolute; inset: -10%; pointer-events: none; transform: translate(calc(var(--plx-x, 0) * 14px), calc(var(--plx-y, 0) * 10px)); }
+.lab-fog-a, .lab-fog-b { position: absolute; width: 55vw; height: 55vw; border-radius: 50%; filter: blur(60px); opacity: 0.4; }
+.lab-fog-a { background: radial-gradient(circle, color-mix(in srgb, var(--vital) 8%, transparent) 0%, transparent 65%); top: -12%; left: -8%; animation: fog-drift-a 46s ease-in-out infinite alternate; }
+.lab-fog-b { background: radial-gradient(circle, color-mix(in srgb, var(--viral) 7%, transparent) 0%, transparent 65%); bottom: -18%; right: -10%; animation: fog-drift-b 58s ease-in-out infinite alternate; }
+@keyframes fog-drift-a { from { transform: translate(0, 0) scale(1); } to { transform: translate(7vw, 4vh) scale(1.12); } }
+@keyframes fog-drift-b { from { transform: translate(0, 0) scale(1.08); } to { transform: translate(-6vw, -5vh) scale(1); } }
+
+.lab-veins { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: calc(0.16 + var(--lab-intensity, 0.3) * 0.12); transform: translate(calc(var(--plx-x, 0) * 8px), calc(var(--plx-y, 0) * 6px)); }
+.lab-vein { fill: none; stroke: var(--vital); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 26 220; animation: vein-pulse 9s linear infinite, vein-breathe 7s ease-in-out infinite alternate; }
+.lab-vein.v2 { stroke: var(--viral); animation-duration: 12s, 8.5s; animation-delay: -3s, -2s; }
+.lab-vein.v3 { stroke: var(--caustic); animation-duration: 10.5s, 6.5s; animation-delay: -6s, -4s; }
+@keyframes vein-pulse { to { stroke-dashoffset: -246; } }
+@keyframes vein-breathe { from { stroke-width: 1.4; opacity: 0.7; } to { stroke-width: 2.6; opacity: 1; } }
+
+.lab-drift { transform: translate(calc(var(--plx-x, 0) * 22px), calc(var(--plx-y, 0) * 16px)); }
+
+/* ── Command Center vitals — the living dashboard strip ── */
+.cc-vitals { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 78%, transparent); border: 1px solid var(--line); backdrop-filter: blur(4px); }
+.cc-vitals-h { font-size: 10px; letter-spacing: 0.16em; font-weight: 700; color: var(--vital); animation: cc-blink 3.6s ease-in-out infinite; }
+@keyframes cc-blink { 0%, 92%, 100% { opacity: 1; } 96% { opacity: 0.45; } }
+.cc-vital { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 4px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+.cc-vital:hover { border-color: var(--line-strong); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.cc-vital-k { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.cc-vital-v { font-size: 12px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Command Center feel: sections breathe in; the deploy CTA lives ── */
+.play-screen > * { animation: cc-rise var(--dur-4) var(--ease-out) both; }
+.play-screen > *:nth-child(2) { animation-delay: 60ms; }
+.play-screen > *:nth-child(3) { animation-delay: 120ms; }
+.play-screen > *:nth-child(4) { animation-delay: 180ms; }
+.play-screen > *:nth-child(5) { animation-delay: 240ms; }
+.play-screen > *:nth-child(6) { animation-delay: 300ms; }
+@keyframes cc-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.mc-deploy { position: relative; overflow: hidden; animation: cc-cta-breathe 5.5s ease-in-out infinite; }
+@keyframes cc-cta-breathe { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mc-accent, var(--vital)) 0%, transparent); } 50% { box-shadow: 0 0 22px 2px color-mix(in srgb, var(--mc-accent, var(--vital)) 30%, transparent); } }
+.mc-deploy::after { content: ''; position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.12), transparent); animation: cc-sheen 7s ease-in-out infinite; }
+@keyframes cc-sheen { 0%, 78% { left: -40%; } 92%, 100% { left: 120%; } }
+button:active { transform: translateY(1px) scale(0.99); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .play-screen > *, .mc-deploy, .mc-deploy::after { animation: none; }
+}
+
 /* Loading tip — a one-line teacher at the foot of Mission Control (ui/tips.ts) */
 .mc-tip { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; padding: 8px 14px; border-radius: var(--r-md); border: 1px dashed var(--line); background: rgba(0,0,0,0.18); font-size: 12px; color: var(--muted); }
 .mc-tip-k { font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: var(--caustic); }

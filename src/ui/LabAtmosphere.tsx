@@ -80,6 +80,30 @@ export function LabAtmosphere(): JSX.Element {
     return () => { alive = false; clearTimeout(timer); };
   }, []);
 
+  // Parallax camera drift: the pointer eases two CSS vars (rAF-throttled); depth layers
+  // translate by different factors. Disabled under prefers-reduced-motion.
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const el = document.querySelector<HTMLElement>('.lab-atmos');
+    if (!el) return;
+    let raf = 0;
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    const onMove = (e: PointerEvent): void => {
+      tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      ty = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (!raf) raf = requestAnimationFrame(step);
+    };
+    const step = (): void => {
+      cx += (tx - cx) * 0.06;
+      cy += (ty - cy) * 0.06;
+      el.style.setProperty('--plx-x', cx.toFixed(4));
+      el.style.setProperty('--plx-y', cy.toFixed(4));
+      raf = Math.abs(tx - cx) + Math.abs(ty - cy) > 0.002 ? requestAnimationFrame(step) : 0;
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => { window.removeEventListener('pointermove', onMove); cancelAnimationFrame(raf); };
+  }, []);
+
   return (
     <div
       className="lab-atmos"
@@ -94,6 +118,15 @@ export function LabAtmosphere(): JSX.Element {
           {lab.fixtures.map((id) => <div key={id} className={`lab-fix fix-${id}`} />)}
         </div>
       )}
+      <div className="lab-fog">
+        <div className="lab-fog-a" />
+        <div className="lab-fog-b" />
+      </div>
+      <svg className="lab-veins" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+        <path className="lab-vein v1" d="M-20,860 C240,780 180,560 420,520 S760,600 940,470 S1380,420 1650,330" />
+        <path className="lab-vein v2" d="M-30,120 C220,180 420,60 660,140 S1080,90 1300,200 S1560,260 1660,220" />
+        <path className="lab-vein v3" d="M120,940 C180,700 60,520 220,360 S420,180 380,-40" />
+      </svg>
       <div className="lab-drift">
         <div className="lab-cell lab-cell-a" />
         <div className="lab-cell lab-cell-b" />
