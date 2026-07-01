@@ -46,10 +46,11 @@ import {
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
+import { cardRegistry } from '../core/cards';
 import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
-import { geneCollectionPowerMult, geneLevel } from '../core/geneCards';
+import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
-import { essenceForDuplicates, rollEssenceDrop } from '../core/geneEssence';
+import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../core/geneEssence';
 import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -1275,6 +1276,29 @@ export const meta = {
     const g = store.get().genes;
     for (const id in g) { const lvl = geneLevel(g, id); if (lvl > 0) out[id] = lvl; }
     return out;
+  },
+  /** Buy the next permanent level of a gene card (the Archive's upgrade button). Guarded: the card
+   *  must be registered + OWNED (drafted at least once), below its authored ceiling AND the global
+   *  campaign-gate ceiling, and the Gene Essence cost must be covered. Stamps `upgradedAt` (drives
+   *  "recently improved"). Returns success; a refusal never charges. */
+  upgradeGene(id: string): boolean {
+    const save = store.get();
+    const def = cardRegistry.get(id);
+    if (!def) return false;
+    if (!(save.stats?.uniqueCards ?? []).includes(id)) return false; // must be discovered first
+    const level = geneLevel(save.genes, id);
+    if (level >= geneMaxLevel(def)) return false; // authored ceiling
+    const next = level + 1;
+    if (next > geneLevelCapForStage(highestCampaignStage(save))) return false; // campaign gate
+    const cost = essenceUpgradeCost(def.rarity, next);
+    if (save.geneEssence < cost) return false;
+    const prev = save.genes[id];
+    persist({
+      ...save,
+      geneEssence: save.geneEssence - cost,
+      genes: { ...save.genes, [id]: { ...prev, level: next, upgradedAt: Date.now() } },
+    });
+    return true;
   },
 
   /** Progress prediction (docs/PREDICTION.md) — an intelligent, self-calibrating ESTIMATE (never a

@@ -28,12 +28,13 @@ import { AchievementPanel } from './AchievementPanel';
 import { SaveManager } from './SaveManager';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
+import { GeneArchive } from './GeneArchive';
 import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite'
-  | 'towers' | 'heroes' | 'evolution'
+  | 'towers' | 'heroes' | 'evolution' | 'genes'
   | 'vault' | 'equipment' | 'collection'
   | 'profile' | 'settings' | 'help';
 
@@ -52,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
     { key: 'towers', label: 'Towers', mono: 'T' },
     { key: 'heroes', label: 'Heroes', mono: 'H' },
     { key: 'evolution', label: 'Evolution', mono: '✷' },
+    { key: 'genes', label: 'Gene Archive', mono: '⌬' },
   ] },
   { title: 'Collection', items: [
     { key: 'vault', label: 'Genetic Vault', mono: '◈' },
@@ -237,6 +239,7 @@ export function Hub({
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && <HeroLab />}
           {nav === 'evolution' && <EvolutionHQ />}
+          {nav === 'genes' && <GeneArchive />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}

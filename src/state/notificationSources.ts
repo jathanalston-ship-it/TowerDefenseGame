@@ -7,6 +7,7 @@
 // Imported for its side effects (the registrations run on load); Hub.tsx pulls it in.
 
 import { registerNotification } from './notifications';
+import { geneArchiveRows } from './geneArchive';
 import { collectionContextOf, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
 import { TOWER_ORDER } from '../core/config';
@@ -48,4 +49,11 @@ registerNotification({
   id: 'collection.discovered',
   channel: 'collection',
   count: (s) => collectionView(collectionContextOf(s)).discovered,
+});
+
+// Gene Archive — cards you can permanently upgrade RIGHT NOW (owned + gate met + affordable).
+registerNotification({
+  id: 'genes.upgradeable',
+  channel: 'genes',
+  count: (s) => geneArchiveRows(s).reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0),
 });

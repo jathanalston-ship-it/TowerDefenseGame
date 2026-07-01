@@ -14,11 +14,36 @@ import { effectsPower } from './power';
 
 /** PERMANENT per-card player state (saved, sparse — only non-default cards get an entry). */
 export interface GeneCardSave {
-  level: number; // permanent upgrade level (0 = base). Campaign-gated ceiling in Task 6.
+  level: number; // permanent upgrade level (0 = base). Campaign-gated ceiling (GENE_LEVEL_GATES).
   rarityTier?: number; // rarity-UPGRADE tier above the card's base rarity (0 = base). Backend (Task 10).
   ascension?: number; // ascension tier (0 = none). Backend only — NO gameplay (Task 10).
   skin?: string; // equipped skin id (future artwork).
   acquiredAt?: number; // ms timestamp of first acquisition (drives "recently acquired" sort).
+  upgradedAt?: number; // ms timestamp of the last level purchase (drives "recently improved" sort).
+}
+
+// ── Campaign gates (docs/GENE-EVOLUTION.md §Gates) — gene LEVELS unlock GLOBALLY at campaign
+//    milestones: L1 immediately, deeper levels as the campaign advances. Data — rebalance = edit rows.
+//    The Archive always SHOWS a locked level's requirement (never hides it).
+export const GENE_LEVEL_GATES: { level: number; stage: number }[] = [
+  { level: 1, stage: 0 },
+  { level: 2, stage: 15 },
+  { level: 3, stage: 30 },
+  { level: 4, stage: 50 },
+  { level: 5, stage: 75 },
+];
+
+/** The globally-unlocked gene level ceiling at a campaign stage (level 1 from the start). */
+export function geneLevelCapForStage(stage: number): number {
+  let cap = 0;
+  for (const g of GENE_LEVEL_GATES) if (stage >= g.stage) cap = Math.max(cap, g.level);
+  return cap;
+}
+
+/** The campaign stage required to buy `level` (0 = ungated; beyond the table ⇒ the last gate). */
+export function geneGateForLevel(level: number): number {
+  const g = GENE_LEVEL_GATES.find((x) => x.level === level);
+  return g ? g.stage : GENE_LEVEL_GATES[GENE_LEVEL_GATES.length - 1].stage;
 }
 
 /** The permanent gene map: card id → its state. Absent id ⇒ base (level 0). Ownership is tracked
@@ -92,9 +117,10 @@ export function sanitizeGeneSave(raw: unknown): GeneSave {
     const ascension = clampInt(s.ascension, 0, 99);
     const skin = typeof s.skin === 'string' ? s.skin : undefined;
     const acquiredAt = typeof s.acquiredAt === 'number' && s.acquiredAt >= 0 ? s.acquiredAt : undefined;
+    const upgradedAt = typeof s.upgradedAt === 'number' && s.upgradedAt >= 0 ? s.upgradedAt : undefined;
     // Persist only meaningful (non-default) state so the map stays sparse.
-    if (level > 0 || rarityTier > 0 || ascension > 0 || skin || acquiredAt !== undefined) {
-      out[id] = { level, ...(rarityTier ? { rarityTier } : {}), ...(ascension ? { ascension } : {}), ...(skin ? { skin } : {}), ...(acquiredAt !== undefined ? { acquiredAt } : {}) };
+    if (level > 0 || rarityTier > 0 || ascension > 0 || skin || acquiredAt !== undefined || upgradedAt !== undefined) {
+      out[id] = { level, ...(rarityTier ? { rarityTier } : {}), ...(ascension ? { ascension } : {}), ...(skin ? { skin } : {}), ...(acquiredAt !== undefined ? { acquiredAt } : {}), ...(upgradedAt !== undefined ? { upgradedAt } : {}) };
     }
   }
   return out;
