@@ -130,7 +130,7 @@ export interface CardContext {
 
 // Type-safe field references for data-driven effects: the number-valued vs
 // boolean-valued keys of RunModifiers.
-type RunModNumberKey = { [K in keyof RunModifiers]: RunModifiers[K] extends number ? K : never }[keyof RunModifiers];
+export type RunModNumberKey = { [K in keyof RunModifiers]: RunModifiers[K] extends number ? K : never }[keyof RunModifiers];
 type RunModFlagKey = { [K in keyof RunModifiers]: RunModifiers[K] extends boolean ? K : never }[keyof RunModifiers];
 type RunModStrKey = { [K in keyof RunModifiers]: RunModifiers[K] extends string ? K : never }[keyof RunModifiers];
 

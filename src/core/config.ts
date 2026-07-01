@@ -3,6 +3,7 @@
 // Every value is an illustrative starting point for the vertical slice.
 
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
+import type { RunModNumberKey } from './cards';
 import { Registry } from './registry';
 import type { AbilityComponent, AuraAbility } from './ability';
 import type { TargetingProfile } from './targeting';
@@ -890,28 +891,66 @@ export const SLOTS = {
   tempMax: 6, // the most temporary (run-only) slots a run can add via gene cards
 };
 
-// ── Meta upgrades (permanent, capped — NOT prestige/infinite) ─────────────
+// ── Genome Core (meta) upgrades — permanent, capped, reset on a Molt (docs/GENOME-CORE.md) ──
+// The Evolution HQ groups these by `category`. An upgrade folds in via ONE of two seams:
+//   • `effect`  → a field of the small MetaModifiers bundle (the legacy 5; folded at Game start).
+//   • `run`     → a RunModifiers field, emitted as a CardEffect through the existing run-effects
+//                 seam (meta.genomeRunEffects → bootRunEffect). Zero new sim wiring per upgrade ⇒
+//                 the set scales to 50+ purely as data. Golden-safe: level 0 ⇒ no effect.
+export type GenomeCategory = 'Combat' | 'Economy' | 'Hero' | 'Tower' | 'Infrastructure' | 'Utility';
+
 export interface UpgradeDef {
   id: string;
   name: string;
   description: string;
+  category: GenomeCategory;
   maxLevel: number;
   baseCost: number;
   costMult: number;
-  /** Data-driven effect: each level adds `perLevel` to `stat` of MetaModifiers.
-   * (Multiplier stats start at 1, flat stats at 0 — see metaModifiers().) */
-  effect: { stat: keyof MetaModifiers; perLevel: number };
+  /** Legacy seam: each level adds `perLevel` to `stat` of MetaModifiers (mults base 1, flats 0). */
+  effect?: { stat: keyof MetaModifiers; perLevel: number };
+  /** Run-effect seam: each level contributes to a RunModifiers `field` — 'mul' adds `perLevel` to a
+   *  base-1 multiplier (so ×(1 + perLevel·level)); 'add' adds `perLevel·level` to a flat field. */
+  run?: { field: RunModNumberKey; op: 'mul' | 'add'; perLevel: number };
 }
 
 export const META_UPGRADES: UpgradeDef[] = [
-  { id: 'lethality', name: 'Lethal Spores', description: '+8% tower damage per level', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'towerDamageMult', perLevel: 0.08 } },
-  { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'biomassMult', perLevel: 0.1 } },
-  { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
-  { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
+  // ── Legacy (MetaModifiers seam) ─────────────────────────────────────────────
+  { id: 'lethality', name: 'Lethal Spores', description: '+8% tower damage per level', category: 'Combat', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'towerDamageMult', perLevel: 0.08 } },
+  { id: 'metabolism', name: 'Rich Biomass', description: '+10% in-run biomass income per level', category: 'Economy', maxLevel: 10, baseCost: 30, costMult: 1.55, effect: { stat: 'biomassMult', perLevel: 0.1 } },
+  { id: 'nucleus', name: 'Reinforced Nucleus', description: '+25 max Integrity per level', category: 'Infrastructure', maxLevel: 10, baseCost: 25, costMult: 1.5, effect: { stat: 'integrityBonus', perLevel: 25 } },
+  { id: 'apex', name: 'Apex Genome', description: '+10% hero damage per level', category: 'Hero', maxLevel: 10, baseCost: 35, costMult: 1.55, effect: { stat: 'heroDamageMult', perLevel: 0.1 } },
   // Permanent tower slots (docs/SLOTS.md): each level unlocks one more emplacement forever,
   // raising the run-start count from SLOTS.initialUnlocked (15) toward SLOTS.permanentMax (21).
-  // maxLevel = permanentMax − initialUnlocked. Cost climbs per purchase (costMult).
-  { id: 'emplacements', name: 'Hive Emplacements', description: '+1 permanent tower slot per level', maxLevel: 6, baseCost: 40, costMult: 1.6, effect: { stat: 'bonusSlots', perLevel: 1 } },
+  { id: 'emplacements', name: 'Hive Emplacements', description: '+1 permanent tower slot per level', category: 'Infrastructure', maxLevel: 6, baseCost: 40, costMult: 1.6, effect: { stat: 'bonusSlots', perLevel: 1 } },
+
+  // ── Combat (run-effect seam) ────────────────────────────────────────────────
+  { id: 'adaptive_targeting', name: 'Adaptive Targeting', description: '+4% tower fire rate per level', category: 'Combat', maxLevel: 8, baseCost: 40, costMult: 1.55, run: { field: 'towerFireRateMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'aggressive_evolution', name: 'Aggressive Evolution', description: '+5% splash radius per level', category: 'Combat', maxLevel: 6, baseCost: 45, costMult: 1.55, run: { field: 'splashRadiusMult', op: 'mul', perLevel: 0.05 } },
+  { id: 'overclocked_synapses', name: 'Overclocked Synapses', description: 'Execute non-elites below +0.8% max HP per level', category: 'Combat', maxLevel: 5, baseCost: 60, costMult: 1.6, run: { field: 'executeThreshold', op: 'add', perLevel: 0.008 } },
+
+  // ── Economy (run-effect seam) ───────────────────────────────────────────────
+  { id: 'rapid_assimilation', name: 'Rapid Assimilation', description: '+6% Flesh Reactor biomass per level', category: 'Economy', maxLevel: 8, baseCost: 35, costMult: 1.5, run: { field: 'reactorBiomassMult', op: 'mul', perLevel: 0.06 } },
+  { id: 'expanded_biomass', name: 'Expanded Biomass Storage', description: '+15 starting biomass per level', category: 'Economy', maxLevel: 8, baseCost: 30, costMult: 1.5, run: { field: 'startBiomassBonus', op: 'add', perLevel: 15 } },
+  { id: 'recycling_matrix', name: 'Recycling Matrix', description: '+3% tower sell refund per level', category: 'Economy', maxLevel: 5, baseCost: 40, costMult: 1.5, run: { field: 'sellRefundFrac', op: 'add', perLevel: 0.03 } },
+
+  // ── Hero (run-effect seam) ──────────────────────────────────────────────────
+  { id: 'enhanced_genetics', name: 'Enhanced Genetics', description: '+7% hero max HP per level', category: 'Hero', maxLevel: 8, baseCost: 35, costMult: 1.55, run: { field: 'heroMaxHpMult', op: 'mul', perLevel: 0.07 } },
+  { id: 'neural_efficiency', name: 'Neural Efficiency', description: '−3% hero ability cooldown per level', category: 'Hero', maxLevel: 5, baseCost: 45, costMult: 1.6, run: { field: 'heroCooldownMult', op: 'mul', perLevel: -0.03 } },
+  { id: 'symbiotic_growth', name: 'Symbiotic Growth', description: '+3% hero lifesteal per level', category: 'Hero', maxLevel: 5, baseCost: 45, costMult: 1.6, run: { field: 'heroLifestealFrac', op: 'add', perLevel: 0.03 } },
+  { id: 'reactive_armor', name: 'Reactive Armor', description: '+5% hero thorns per level', category: 'Hero', maxLevel: 5, baseCost: 40, costMult: 1.55, run: { field: 'heroThornsFrac', op: 'add', perLevel: 0.05 } },
+  { id: 'predatory_instinct', name: 'Predatory Instinct', description: '+6% hero aggro range per level', category: 'Hero', maxLevel: 5, baseCost: 35, costMult: 1.5, run: { field: 'heroAggroRangeMult', op: 'mul', perLevel: 0.06 } },
+
+  // ── Tower (run-effect seam) ─────────────────────────────────────────────────
+  { id: 'hive_intelligence', name: 'Hive Intelligence', description: '+0.3% tower damage per active tower, per level', category: 'Tower', maxLevel: 6, baseCost: 45, costMult: 1.55, run: { field: 'damagePerTower', op: 'add', perLevel: 0.003 } },
+  { id: 'corrosive_saturation', name: 'Corrosive Saturation', description: '+5% acid-pool damage per level', category: 'Tower', maxLevel: 6, baseCost: 40, costMult: 1.5, run: { field: 'poolDpsMult', op: 'mul', perLevel: 0.05 } },
+
+  // ── Infrastructure (run-effect seam) ────────────────────────────────────────
+  { id: 'reinforced_lattice', name: 'Reinforced Lattice', description: '+5% max Integrity (multiplicative) per level', category: 'Infrastructure', maxLevel: 6, baseCost: 35, costMult: 1.5, run: { field: 'integrityMult', op: 'mul', perLevel: 0.05 } },
+
+  // ── Utility (run-effect seam) ───────────────────────────────────────────────
+  { id: 'genetic_stability', name: 'Genetic Stability', description: '−2% enemy HP scaling per level', category: 'Utility', maxLevel: 5, baseCost: 55, costMult: 1.65, run: { field: 'enemyHpRunMult', op: 'mul', perLevel: -0.02 } },
+  { id: 'adaptive_reflexes', name: 'Adaptive Reflexes', description: '+4% hero move speed per level', category: 'Utility', maxLevel: 5, baseCost: 35, costMult: 1.5, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.04 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {
@@ -919,6 +958,7 @@ export function upgradeProblems(d: UpgradeDef): string[] {
   if (d.maxLevel <= 0) out.push('maxLevel must be > 0');
   if (d.baseCost <= 0) out.push('baseCost must be > 0');
   if (d.costMult < 1) out.push('costMult should be >= 1');
+  if (!d.effect === !d.run) out.push('exactly one of effect | run must be set');
   return out;
 }
 

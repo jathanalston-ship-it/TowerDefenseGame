@@ -65,10 +65,10 @@ export function App(): JSX.Element {
     heroRef.current = meta.selectedHero();
     rosterRef.current = meta.fieldedLoadout();
     heroProgRef.current = meta.heroProgress();
-    // Per-hero equipment folds in per hero (never overwrites another's loadout); collection
-    // completion bonuses stay battlefield-global run effects.
+    // Per-hero equipment folds in per hero (never overwrites another's loadout); Genome Core
+    // (run-effect seam) + collection completion bonuses stay battlefield-global run effects.
     heroEquipRef.current = meta.heroRosterEquip();
-    effectsRef.current = [...meta.collectionRunEffects()];
+    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects()];
     modeRef.current = mode;
     stageRef.current = stage;
     setScreen('playing');

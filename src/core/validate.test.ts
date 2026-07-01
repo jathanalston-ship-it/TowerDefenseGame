@@ -19,7 +19,7 @@ describe('validateContent', () => {
       waves: [[]],
       cards: [{ id: 'x', name: 'X', rarity: 'common', category: 'tower', description: '', effects: [] }],
       upgrades: [
-        { id: 'u', name: 'U', description: '', maxLevel: 0, baseCost: 0, costMult: 0.5, effect: { stat: 'towerDamageMult', perLevel: 1 } },
+        { id: 'u', name: 'U', description: '', category: 'Combat', maxLevel: 0, baseCost: 0, costMult: 0.5, effect: { stat: 'towerDamageMult', perLevel: 1 } },
       ],
     };
     const problems = validateContent(reg);

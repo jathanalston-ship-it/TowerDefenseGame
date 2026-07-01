@@ -100,16 +100,35 @@ export function metaModifiers(save: SaveData): MetaModifiers {
   const m: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
   for (const u of META_UPGRADES) {
     const level = save.upgrades[u.id] ?? 0;
-    if (level > 0) m[u.effect.stat] += u.effect.perLevel * level;
+    if (level > 0 && u.effect) m[u.effect.stat] += u.effect.perLevel * level; // `run`-seam upgrades fold via genomeRunEffects
   }
   // Prestige (P bucket): a permanent, compounding global damage multiplier from lifetime
   // Ascendant Cells. ×1 at 0 cells, so a fresh / un-prestiged account is byte-identical.
   const pm = prestigeMult(save.prestige.lifetimeCells);
   m.towerDamageMult *= pm;
   m.heroDamageMult *= pm;
-  // Ascendant Tree: a bought node can raise permanent biomass income (×1 with no nodes).
-  m.biomassMult *= ascendantBonuses(save.prestige.nodes).biomassMult;
+  // Ascendant Tree: bought nodes raise permanent biomass income + a global damage bucket + core HP
+  // (all ×1 / +0 with no nodes ⇒ golden-safe).
+  const ab = ascendantBonuses(save.prestige.nodes);
+  m.biomassMult *= ab.biomassMult;
+  m.towerDamageMult *= ab.damageMult;
+  m.heroDamageMult *= ab.damageMult;
+  m.integrityBonus += ECON.baseIntegrity * (ab.integrityMult - 1); // Ascendant Vitality: permanent max Integrity
   return m;
+}
+
+/** Genome Core upgrades that fold through the RUN-EFFECT seam (docs/GENOME-CORE.md) → CardEffects
+ *  threaded into a run like gear/collection. Empty for a fresh save (all levels 0) ⇒ golden-safe. */
+export function genomeRunEffects(save: SaveData): CardEffect[] {
+  const out: CardEffect[] = [];
+  for (const u of META_UPGRADES) {
+    if (!u.run) continue;
+    const level = save.upgrades[u.id] ?? 0;
+    if (level <= 0) continue;
+    if (u.run.op === 'mul') out.push({ op: 'mul', field: u.run.field, value: 1 + u.run.perLevel * level });
+    else out.push({ op: 'add', field: u.run.field, value: u.run.perLevel * level });
+  }
+  return out;
 }
 
 /** A hero's equipped loadout — PER-HERO (HEROES.md hero slots). Empty when the hero has no gear. */
@@ -144,7 +163,9 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   const tp = towerProgress(save);
   const hp = heroProgress(save);
   return {
-    meta: mm.towerDamageMult,
+    // Ascendant damage already folded into mm.towerDamageMult; genome run-effect combat upgrades add
+    // via effectsPower (weights damage/rate fields; defensive fields weight 0 ⇒ no power inflation).
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)),
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
@@ -158,8 +179,10 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
 function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, number> {
   const campaignStage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
   // Loot-quality axis: harder difficulties tilt the catch-up bias richer, scaled continuously by
-  // the difficulty's lootQualityMult (standard ⇒ 0 tier ⇒ no tilt, golden-safe).
-  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2);
+  // the difficulty's lootQualityMult; the Ascendant Fortune node adds a permanent account-wide tilt
+  // on top (×1 without it). standard + no node ⇒ 0 tier ⇒ no tilt, golden-safe.
+  const fortune = ascendantBonuses(save.prestige.nodes).lootQualityMult;
+  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2 + (fortune - 1) * 2);
   return lootBias({
     idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
     campaignStage,
@@ -616,7 +639,8 @@ export const meta = {
     // applied only to endless here (endlessRewardMult); the OTHER axes (XP, container rate) apply
     // universally as distinct levers.
     const econDiff = resolveDifficulty(result.difficulty);
-    const endlessRewardMult = result.endless ? econDiff.rewardMult : 1;
+    // Infinite core reward = the difficulty scalar × the Ascendant Infinity bonus (×1 without it).
+    const endlessRewardMult = result.endless ? econDiff.rewardMult * asc.endlessBonusMult : 1;
 
     // Mode reward identity (docs/MODE-IDENTITY.md): Campaign pays the account currency (most on a
     // FIRST clear) + first-clear bonuses; Infinite pays the loot meter + a mastery bonus; Stage (the
@@ -640,7 +664,7 @@ export const meta = {
       : 0;
 
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * rewardMult * endlessRewardMult * coreMult) + firstClearBonus;
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * asc.coreGainMult * rewardMult * endlessRewardMult * coreMult) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -650,7 +674,7 @@ export const meta = {
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult,
       );
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
@@ -664,7 +688,7 @@ export const meta = {
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
       const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult,
+        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult,
       );
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
@@ -1050,6 +1074,12 @@ export const meta = {
    * Empty for a fresh save, so a new player's run is byte-identical (golden-safe). */
   collectionRunEffects(): CardEffect[] {
     return collectionBonusEffects(this.collection());
+  },
+
+  /** Run-start effects from owned Genome Core upgrades that use the run-effect seam
+   * (docs/GENOME-CORE.md). Empty for a fresh save ⇒ golden-safe. */
+  genomeRunEffects(): CardEffect[] {
+    return genomeRunEffects(store.get());
   },
 
   /** Equip (or clear, uid=null) an owned item into `hero`'s `slot`. PER-HERO: gear never overwrites

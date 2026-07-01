@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
-import { meta, metaModifiers, upgradeCost } from './meta';
+import { meta, metaModifiers, upgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { costOf, isLootRarity } from '../core/loot';
@@ -53,8 +53,29 @@ describe('metaModifiers (data-driven upgrades)', () => {
     // generic across multiplier stats (base 1) and flat stats like integrityBonus/bonusSlots (0).
     const identity = metaModifiers(defaultSave()) as unknown as Record<string, number>;
     for (const u of META_UPGRADES) {
+      if (!u.effect) continue; // `run`-seam upgrades fold via genomeRunEffects, not MetaModifiers
       expect(m[u.effect.stat]).toBeCloseTo(identity[u.effect.stat] + u.effect.perLevel, 10);
     }
+  });
+
+  it('genome run-effect upgrades: empty for a fresh save; scaled CardEffects when owned', () => {
+    expect(genomeRunEffects(defaultSave())).toEqual([]); // golden-safe
+    const save = { ...defaultSave(), upgrades: { enhanced_genetics: 3, expanded_biomass: 2, lethality: 5 } };
+    const eff = genomeRunEffects(save);
+    // run-seam upgrades emit scaled effects …
+    expect(eff).toContainEqual({ op: 'mul', field: 'heroMaxHpMult', value: 1 + 0.07 * 3 });
+    expect(eff).toContainEqual({ op: 'add', field: 'startBiomassBonus', value: 15 * 2 });
+    // … but the legacy MetaModifiers-seam upgrade (lethality) does NOT.
+    expect(eff.some((e) => 'field' in e && e.field === 'towerDamageMult')).toBe(false);
+  });
+
+  it('ascendant deeper levers fold into metaModifiers (Potency damage, Vitality integrity)', () => {
+    const save = { ...defaultSave(), prestige: { ...defaultPrestige(), nodes: { potency: 4, vitality: 2 } } };
+    const m = metaModifiers(save);
+    const base = metaModifiers(defaultSave());
+    expect(m.towerDamageMult).toBeCloseTo(base.towerDamageMult * (1 + 0.05 * 4), 10);
+    expect(m.heroDamageMult).toBeCloseTo(base.heroDamageMult * (1 + 0.05 * 4), 10);
+    expect(m.integrityBonus).toBeGreaterThan(base.integrityBonus); // Vitality raised permanent Integrity
   });
 
   it('upgradeCost grows geometrically', () => {

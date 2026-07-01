@@ -7,12 +7,16 @@ describe('ascendant tree nodes', () => {
   });
 
   it('no nodes ⇒ every bonus is ×1 (golden-safe)', () => {
-    expect(ascendantBonuses({})).toEqual({ shardGainMult: 1, biomassMult: 1, lootGainMult: 1, cellGainMult: 1 });
+    const b = ascendantBonuses({});
+    for (const v of Object.values(b)) expect(v).toBe(1); // every lever bases at ×1 (no nodes bought)
   });
 
-  it('folds a node level into its declared economy stat (additive per level)', () => {
+  it('folds a node level into its declared stat (additive per level)', () => {
     expect(ascendantBonuses({ greed: 2 }).shardGainMult).toBeCloseTo(1 + 0.15 * 2, 10);
     expect(ascendantBonuses({ resonance: 3 }).cellGainMult).toBeCloseTo(1 + 0.1 * 3, 10);
+    // new deeper levers fold the same way
+    expect(ascendantBonuses({ potency: 4 }).damageMult).toBeCloseTo(1 + 0.05 * 4, 10);
+    expect(ascendantBonuses({ scholar: 2 }).masteryXpMult).toBeCloseTo(1 + 0.12 * 2, 10);
     // unrelated stats stay ×1
     expect(ascendantBonuses({ greed: 2 }).biomassMult).toBe(1);
   });

@@ -280,7 +280,9 @@ export function validateAllContentReport(): ValidationReport {
   for (const c of CARD_POOL) issues.push(...validateEffects(c.effects, `card '${c.id}'`));
   for (const d of Object.values(DOCTRINES)) issues.push(...validateEffects(d.effects, `doctrine '${d.id}'`));
   for (const u of META_UPGRADES) {
-    if (!META_KEYS.has(u.effect.stat)) issues.push(err('invalid-reference', `upgrade '${u.id}'`, `targets unknown meta stat '${u.effect.stat}'`));
+    if (u.effect && !META_KEYS.has(u.effect.stat)) issues.push(err('invalid-reference', `upgrade '${u.id}'`, `targets unknown meta stat '${u.effect.stat}'`));
+    // `run`-seam upgrades reference a RunModifiers field — statically typed (RunModNumberKey), so no
+    // runtime reference check is needed; upgradeProblems enforces exactly one of effect | run.
   }
   for (let w = 1; w <= TOTAL_WAVES; w++) {
     const id = chestForWave(w);
@@ -322,8 +324,9 @@ export function validateAllContentReport(): ValidationReport {
   if (MASTERY.baseReq <= 0) issues.push(err('broken-upgrade-chain', 'MASTERY', 'baseReq must be > 0'));
   if (MASTERY.reqGrowth < 1) issues.push(err('broken-upgrade-chain', 'MASTERY', 'reqGrowth must be >= 1 (requirements must not shrink)'));
   for (const u of META_UPGRADES) {
-    if (!Number.isFinite(u.effect.perLevel)) issues.push(err('broken-upgrade-chain', `upgrade '${u.id}'`, 'effect.perLevel must be finite'));
-    else if (u.effect.perLevel === 0) issues.push(warn('broken-upgrade-chain', `upgrade '${u.id}'`, 'effect.perLevel is 0 (upgrade does nothing)'));
+    const per = u.effect?.perLevel ?? u.run?.perLevel; // exactly one seam is set (upgradeProblems)
+    if (per === undefined || !Number.isFinite(per)) issues.push(err('broken-upgrade-chain', `upgrade '${u.id}'`, 'perLevel must be finite'));
+    else if (per === 0) issues.push(warn('broken-upgrade-chain', `upgrade '${u.id}'`, 'perLevel is 0 (upgrade does nothing)'));
   }
   // Equipment rarity ladder: affix-slot count must not DROP as rarity rises.
   for (let i = 1; i < RARITY_ORDER.length; i++) {
