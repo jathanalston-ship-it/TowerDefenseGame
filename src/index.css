@@ -4757,3 +4757,28 @@ kbd {
 .cd-reward.dim { color: var(--muted); font-weight: 500; font-size: 12px; }
 .camp-deploy { margin-top: 4px; padding: 9px; font-weight: 700; }
 .camp-deploy:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Power Score (docs/POWER-SCORE.md) — animated badge + upgrade delta ── */
+.power-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+.power-badge.is-compact { padding: 2px 8px; gap: 4px; }
+.power-badge-k { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.power-badge-v { font-size: 16px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.power-badge.is-compact .power-badge-v { font-size: 13px; }
+.power-badge.pulse-up { border-color: var(--success); box-shadow: 0 0 16px -2px var(--success); animation: power-pulse-up 0.7s ease-out; }
+.power-badge.pulse-up .power-badge-v { color: var(--success); }
+.power-badge.pulse-down { border-color: #ff7a7a; box-shadow: 0 0 16px -4px #ff7a7a; animation: power-pulse-down 0.7s ease-out; }
+.power-badge.pulse-down .power-badge-v { color: #ff7a7a; }
+@keyframes power-pulse-up { 0% { transform: scale(1); } 30% { transform: scale(1.14); } 100% { transform: scale(1); } }
+@keyframes power-pulse-down { 0% { transform: translateY(0); } 30% { transform: translateY(2px); } 100% { transform: translateY(0); } }
+
+.power-delta { display: inline-flex; align-items: baseline; gap: 5px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.power-delta .pd-cur { color: var(--muted); }
+.power-delta .pd-arrow { color: var(--dim); }
+.power-delta .pd-new { font-weight: 800; color: var(--text); }
+.power-delta .pd-diff { font-weight: 800; }
+.power-delta.up .pd-diff, .power-delta.up .pd-new { color: var(--success); }
+.power-delta.down .pd-diff, .power-delta.down .pd-new { color: #ff7a7a; }
+.power-delta.flat .pd-diff { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .power-badge.pulse-up, .power-badge.pulse-down { animation: none; }
+}

@@ -787,6 +787,12 @@ export const meta = {
     return composePower(accountPowerParts(store.get(), effectsPower(temporaryEffects)));
   },
 
+  /** Power Score for a HYPOTHETICAL save — pass a pure mutator returning the post-upgrade save
+   * (never persisted). Drives the "current → new (+diff)" upgrade previews. */
+  previewPower(mutate: (s: SaveData) => SaveData): PowerScore {
+    return composePower(accountPowerParts(mutate(store.get())));
+  },
+
   /** The hero the next run will field (slot 1). */
   selectedHero(): HeroKind {
     return store.get().selectedHero;
