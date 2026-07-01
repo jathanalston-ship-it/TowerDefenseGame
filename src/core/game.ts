@@ -126,6 +126,9 @@ import type {
   HeroMasteryCounts,
   HeroProgress,
   HudSnapshot,
+  HeroCooldownView,
+  HeroStatusChip,
+  SelectedHeroView,
   MasteryCounts,
   MetaModifiers,
   Minion,
@@ -210,6 +213,7 @@ export interface RenderState {
   selectedTower: TowerKind | null;
   selectedPlacedId: number | null; // a placed tower the player is inspecting (branch highlight)
   movingTowerId: number | null; // a placed tower picked up for relocation (move-mode highlight + holo)
+  selectedHero: HeroKind | null; // the player-selected hero (draws the selection ring) — null = none
   armedAbility: boolean;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
@@ -292,6 +296,12 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  // Auto-start ARMING gate (mode-agnostic): even with autoStart ON, the countdown stays frozen
+  // until the player takes their FIRST setup action this run — places a tower OR manually starts
+  // wave 1. This stops an armed Auto Wave from firing (and taking damage) before the player has
+  // built anything. Latched once, true for the rest of the run. Centralized here so EVERY mode
+  // (campaign/infinite/tutorial/challenge/future) inherits it with no per-mode code.
+  private autoStartReady = false;
 
   enemies: Enemy[] = [];
   towers: Tower[] = [];
@@ -331,6 +341,9 @@ export class Game {
   selectedTower: TowerKind | null = null;
   selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
   movingTowerId: number | null = null; // a placed tower PICKED UP for relocation (Build Phase) — docs/TOWER-MANAGEMENT.md §3
+  /** The player-selected hero (docs/HERO-SELECTION.md) — authoritative in the sim so future hero
+   *  abilities key off it. null = nothing selected. Selecting never pauses the run. */
+  selectedHeroKind: HeroKind | null = null;
   armedAbility = false;
   draft: CardDef[] | null = null;
   sfx: string[] = []; // presentation cue queue (drained by the view: audio + shake)
@@ -519,6 +532,8 @@ export class Game {
       shieldTime: 0,
       killchain: 0,
       rushUntil: 0,
+      targetId: -1,
+      moveState: 'idle',
     };
   }
 
@@ -847,14 +862,50 @@ export class Game {
       if (this.placeTower(this.selectedTower, px, py) && !opts.shift) this.selectedTower = null;
       return;
     }
+    // Nothing armed: a tap on a HERO selects it (non-modal — the run keeps running). Heroes roam the
+    // open field, so this rarely competes with a tower's fixed slot; check it first.
+    if (this.selectHeroAt(px, py)) return;
     // Nothing armed: clicking a PLACED tower selects it (opens its branch/Mutation panel).
     const t = this.towerAt(px, py);
     if (t) {
       this.selectPlacedTower(t.id);
       return;
     }
-    this.selectedPlacedId = null; // clicked empty space → deselect
+    this.selectedPlacedId = null; // clicked empty space → deselect tower
+    this.selectedHeroKind = null; // …and the hero (tap the hero again to reselect)
     this.setRally(px, py);
+  }
+
+  // ── Hero selection (docs/HERO-SELECTION.md) — a non-modal pick abilities also key off ─────────
+  /** The living hero whose body is under (px,py) within a forgiving tap radius, nearest first. */
+  private heroAt(px: number, py: number): Hero | null {
+    let best: Hero | null = null;
+    let bestD2 = 26 * 26; // tap radius a touch wider than the 16px hero body
+    for (const h of this.heroes) {
+      if (h.down) continue; // a downed hero has nothing to act on
+      const d2 = dist2(px, py, h.x, h.y);
+      if (d2 < bestD2) { bestD2 = d2; best = h; }
+    }
+    return best;
+  }
+
+  /** Select the hero under (px,py), if any; returns whether one was hit. Never pauses the run. */
+  selectHeroAt(px: number, py: number): boolean {
+    const h = this.heroAt(px, py);
+    if (!h) return false;
+    this.selectedHeroKind = h.kind;
+    this.selectedPlacedId = null; // selecting a hero clears tower inspection
+    return true;
+  }
+
+  /** Set/clear the hero selection directly (kind must be in the fielded roster). */
+  selectHero(kind: HeroKind | null): void {
+    this.selectedHeroKind = kind && this.heroes.some((h) => h.kind === kind) ? kind : null;
+  }
+
+  /** The selected Hero instance, or null — the seam future hero abilities act through. */
+  getSelectedHero(): Hero | null {
+    return this.selectedHeroKind ? this.heroes.find((h) => h.kind === this.selectedHeroKind) ?? null : null;
   }
 
   /** Double-click fast path (docs/TOWER-MANAGEMENT.md §4): open Inspect on the tower under
@@ -887,6 +938,7 @@ export class Game {
     this.selectedTower = null;
     this.selectedPlacedId = null;
     this.movingTowerId = null;
+    this.selectedHeroKind = null; // Escape also drops the hero selection
   }
 
   // ── Tower SELL (docs/TOWER-MANAGEMENT.md §2) ───────────────────────────────
@@ -1050,6 +1102,9 @@ export class Game {
     this.recomputeTowerCaches();
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
+    // First setup action taken → ARM the auto-start countdown (see autoStartReady). Placing a
+    // tower is one of the two triggers (the other is a manual startWave); latched for the run.
+    this.autoStartReady = true;
     // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
     // window, so an auto-start doesn't fire before the player finishes their opening build.
     if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
@@ -1138,6 +1193,9 @@ export class Game {
 
   startWave(): void {
     if (this.phase !== 'prep') return;
+    // Starting a wave (manually, or via a now-armed auto-start) is the other trigger that ARMS
+    // the auto-start countdown for the rest of the run (see autoStartReady). No-op once latched.
+    this.autoStartReady = true;
     if (this.mode === 'endless') {
       this.startEndlessWave();
       return;
@@ -1361,9 +1419,11 @@ export class Game {
       this.heroSystem(dt);
       this.floatSystem(dt);
       this.particleSystem(dt);
-      // Auto-start: count the prep timer down to the next wave when the player enabled it. Off
-      // by default ⇒ the manual-start golden run is byte-identical; consumes no rng.
-      if (this.autoStart && this.phase === 'prep') {
+      // Auto-start: count the prep timer down to the next wave when the player enabled it AND has
+      // taken their first setup action (autoStartReady). Off by default ⇒ the manual-start golden
+      // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
+      // (the HUD shows "Waiting for first placement…") so the run never auto-fires on an empty board.
+      if (this.autoStart && this.autoStartReady && this.phase === 'prep') {
         this.prepCountdown -= dt;
         if (this.prepCountdown <= 0) this.startWave();
       }
@@ -2338,6 +2398,8 @@ export class Game {
   private updateHero(h: Hero, dt: number): void {
     const def = HERO_DEFS[h.kind];
     if (h.down) {
+      h.moveState = 'downed';
+      h.targetId = -1;
       h.respawn -= dt;
       if (h.respawn <= 0) {
         h.down = false;
@@ -2363,6 +2425,8 @@ export class Game {
     const innateRetreat = this.idOf(h).survival === 'evasive' ? 0.4 : this.idOf(h).survival === 'cautious' ? 0.3 : 0;
     const retreatAt = Math.max(this.hmods(h).heroRetreatThreshold, innateRetreat);
     if (retreatAt > 0 && h.hp < h.maxHp * retreatAt) {
+      h.moveState = 'retreating';
+      h.targetId = -1;
       const np = moveToward(h.x, h.y, nucleusPoint.x, nucleusPoint.y, def.speed * this.hmods(h).heroSpeedMult * dt);
       h.x = Math.max(0, Math.min(WIDTH, np.x));
       h.y = Math.max(0, Math.min(HEIGHT, np.y));
@@ -2411,6 +2475,7 @@ export class Game {
       }
     }
     target = elite ?? target ?? fallback; // identity: prioritize elites, then the most-advanced threat
+    h.targetId = target ? target.id : -1;
 
     const goal = target ? { x: target.x, y: target.y } : this.heroIdleGoal(h); // anchor (equipment)
     // Bloodthirst: a brief speed surge after an elite kill (×1 otherwise ⇒ golden-safe). MOBILITY gear rides on top.
@@ -2418,6 +2483,7 @@ export class Game {
     const np = moveToward(h.x, h.y, goal.x, goal.y, moveSpeed * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(0, Math.min(HEIGHT, np.y));
+    h.moveState = !target ? 'idle' : dist(h.x, h.y, target.x, target.y) <= def.attackRange ? 'attacking' : 'moving';
 
     if (target && h.attackCd <= 0 && dist(h.x, h.y, target.x, target.y) <= def.attackRange) {
       const dmg = def.attackDamage * this.hmods(h).heroDamageMult * this.activeBiome.mods.heroDamageMult * this.heroProgress[h.kind].damageMult * this.heroEliteDamage(h, target);
@@ -2482,6 +2548,8 @@ export class Game {
       gx = threat.x;
       gy = Math.max(DEFENSE_TOP_Y, threat.y - CELL);
     }
+    h.targetId = threat ? threat.id : -1;
+    h.moveState = threat ? 'attacking' : 'idle'; // holds the zone; engages the deepest incursion
     const np = moveToward(h.x, h.y, gx, gy, def.speed * this.hmods(h).heroSpeedMult * dt);
     h.x = Math.max(0, Math.min(WIDTH, np.x));
     h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // stays in/near the zone
@@ -2498,6 +2566,8 @@ export class Game {
    */
   private updateControlHero(h: Hero, def: HeroDef, dt: number): void {
     const hot = this.densestCluster(def.pulseRadius);
+    h.targetId = -1; // control blankets a CLUSTER, not a single target
+    h.moveState = hot ? 'moving' : 'idle';
     let gx = nucleusPoint.x;
     let gy = DEFENSE_TOP_Y;
     if (hot) {
@@ -3319,6 +3389,7 @@ export class Game {
       selectedTower: this.selectedTower,
       selectedPlacedId: this.selectedPlacedId,
       movingTowerId: this.movingTowerId,
+      selectedHero: this.selectedHeroKind,
       armedAbility: this.armedAbility,
       unlockedSlots: this.unlockedSlots,
       time: this.time,
@@ -3332,6 +3403,45 @@ export class Game {
       biome: { id: this.activeBiome.id, name: this.activeBiome.name, accent: this.activeBiome.accent },
       biomeFlash: this.biomeFlash,
       hazardActive: hazardActive(this.activeBiome, this.time),
+    };
+  }
+
+  /** Build the selected hero's LIVE panel view (docs/HERO-SELECTION.md), or null when none is
+   *  selected. A pure read of the sim's hero state — the same selection future abilities act on. */
+  private selectedHeroView(): SelectedHeroView | null {
+    const h = this.getSelectedHero();
+    if (!h) return null;
+    const def = HERO_DEFS[h.kind];
+    // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
+    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: def.ability.name, remaining: Math.max(0, h.abilityCd), total: def.ability.cooldown }];
+    if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: def.attackInterval });
+    if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: def.pulseInterval });
+    // Buffs from live hero state (extensible — a new hero status appends a chip). Debuffs: none yet.
+    const buffs: HeroStatusChip[] = [];
+    if (h.shield > 0) buffs.push({ id: 'shield', label: 'Shielded', kind: 'buff', detail: `${Math.round(h.shield)} absorb · ${h.shieldTime.toFixed(1)}s` });
+    if (this.time < h.rushUntil) buffs.push({ id: 'rush', label: 'Bloodthirst', kind: 'buff', detail: `+40% speed · ${(h.rushUntil - this.time).toFixed(1)}s` });
+    if (h.killchain > 0) buffs.push({ id: 'killchain', label: `Killchain ×${h.killchain}`, kind: 'buff', detail: 'Apex Predator stacks' });
+    const debuffs: HeroStatusChip[] = []; // heroes take no debuffs yet — the section is wired for when they do
+    // The current target's display name, resolved from the observational targetId (or null).
+    let target: string | null = null;
+    if (h.targetId >= 0) {
+      const e = this.enemies.find((en) => en.id === h.targetId && en.alive);
+      if (e) target = ENEMY_DEFS[e.kind].name;
+    }
+    return {
+      kind: h.kind,
+      name: def.name,
+      combatClass: def.combatClass,
+      hp: Math.max(0, Math.round(h.hp)),
+      maxHp: Math.round(h.maxHp),
+      shield: Math.round(h.shield),
+      down: h.down,
+      respawn: Math.max(0, h.respawn),
+      state: h.moveState,
+      target,
+      cooldowns,
+      buffs,
+      debuffs,
     };
   }
 
@@ -3381,9 +3491,11 @@ export class Game {
       },
       runEvent: this.activeRunEvent,
       runHeadline: this.runPlan?.headline || undefined,
+      selectedHero: this.selectedHeroView(),
       anticipation: this.nextAnticipation(),
       autoStart: this.autoStart,
-      autoStartIn: this.autoStart && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartWaiting: this.autoStart && !this.autoStartReady,
     };
   }
 

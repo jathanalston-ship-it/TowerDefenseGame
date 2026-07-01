@@ -1947,6 +1947,17 @@ kbd {
   color: var(--muted);
   font-style: italic;
 }
+/* Reward-eligibility warning — a run that didn't qualify for its Stage Cache says why. */
+.vault-blocked {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #f0be5a;
+  background: rgba(240, 190, 90, 0.1);
+  border: 1px solid rgba(240, 190, 90, 0.32);
+  border-radius: 8px;
+}
 @keyframes ve-row-in {
   from { opacity: 0; transform: translateY(6px); }
 }
@@ -2839,7 +2850,9 @@ kbd {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   padding: 14px 14px 0;
   z-index: 6;
   pointer-events: none;
@@ -2882,6 +2895,23 @@ kbd {
   border-color: var(--success);
   background: rgba(90, 209, 140, 0.16);
   color: var(--success);
+}
+/* Armed but INACTIVE — Auto Wave is on, waiting for the first placement / manual wave. */
+.auto-btn.is-waiting {
+  border-color: rgba(240, 190, 90, 0.5);
+  background: rgba(240, 190, 90, 0.12);
+  color: #f0be5a;
+}
+.auto-wait-note {
+  pointer-events: none;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: #f0be5a;
+  background: rgba(240, 190, 90, 0.1);
+  border: 1px solid rgba(240, 190, 90, 0.3);
+  padding: 4px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
 }
 .incoming {
   display: flex;
@@ -3369,6 +3399,57 @@ kbd {
 }
 
 /* ── Boss banner (framework bosses) ───────────────────────────────────────── */
+/* ── Hero Selection Panel (docs/HERO-SELECTION.md) — non-modal readout, bottom-left of the board ── */
+.hero-panel {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 250px;
+  padding: 10px 11px 11px;
+  border-radius: var(--r-sm, 8px);
+  background: rgba(10, 12, 18, 0.9);
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--hero, var(--gold));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 20;
+  font-size: 12px;
+  animation: hero-panel-in 0.16s ease-out;
+}
+@keyframes hero-panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.hp-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.hp-name { font-family: 'Chakra Petch', system-ui, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.03em; }
+.hp-class { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.hp-state { margin-left: auto; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 1px 6px; border-radius: 999px; background: var(--panel-3); color: var(--text-dim); }
+.hp-state.st-attacking { color: #ffd0c0; background: color-mix(in srgb, var(--danger) 30%, #000); }
+.hp-state.st-retreating { color: #ffe6a6; background: color-mix(in srgb, var(--gold) 25%, #000); }
+.hp-state.st-moving { color: #bfe0ff; }
+.hp-state.st-downed { color: var(--danger); }
+.hp-close { width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 11px; line-height: 1; display: grid; place-items: center; }
+.hp-close:hover { color: var(--text); border-color: var(--danger); }
+.hp-bar { position: relative; height: 16px; border-radius: 4px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--line); overflow: hidden; }
+.hp-bar-fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--good, #57d98a), color-mix(in srgb, var(--hero, var(--good, #57d98a)) 60%, #57d98a)); transition: width 0.15s linear; }
+.hp-bar-shield { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(45deg, rgba(154, 208, 255, 0.55) 0 4px, rgba(154, 208, 255, 0.25) 4px 8px); }
+.hp-bar-num { position: relative; z-index: 1; display: block; text-align: center; line-height: 16px; font-size: 10.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); font-variant-numeric: tabular-nums; }
+.hp-target { margin-top: 7px; color: var(--muted); }
+.hp-target b { color: var(--text); }
+.hp-cds { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+.hp-cd { display: grid; align-items: center; }
+.hp-cd-track { grid-area: 1 / 1; height: 14px; border-radius: 4px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--line); overflow: hidden; }
+.hp-cd-fill { height: 100%; background: color-mix(in srgb, var(--hero, var(--gold)) 55%, #2a3550); transition: width 0.1s linear; }
+.hp-cd.ready .hp-cd-fill { background: var(--good, #57d98a); }
+.hp-cd-l { grid-area: 1 / 1; z-index: 1; padding-left: 7px; font-size: 10.5px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); }
+.hp-cd-v { grid-area: 1 / 1; z-index: 1; justify-self: end; padding-right: 7px; font-size: 10px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); font-variant-numeric: tabular-nums; }
+.hp-status { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.hp-chip { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); }
+.hp-chip.buff { color: var(--good, #57d98a); border-color: color-mix(in srgb, var(--good, #57d98a) 50%, var(--line)); }
+.hp-chip.debuff { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, var(--line)); }
+.hp-gear { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; }
+.hp-gear-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.hp-gear-slot { color: var(--muted); text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.06em; }
+.hp-gear-item { font-weight: 700; font-size: 11px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-gear-empty { color: var(--text-dim); font-size: 10.5px; }
+
 .boss-banner {
   position: absolute;
   top: 10px;

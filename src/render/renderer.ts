@@ -854,6 +854,7 @@ function drawEnemy(
 const heroTrail: { x: number; y: number }[] = [];
 // Absorb-shield barrier tint (matches the status framework's Shield buff color).
 const SHIELD_RGB = hexRgb('#9ad0ff');
+const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold, distinct from class tints
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
@@ -897,6 +898,13 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
 
   ctx.globalAlpha = down ? 0.4 : 1;
   glowDisc(ctx, h.x, h.y + 4, 22, rgba(tint, 0.26)); // ground halo
+  // Selection ring (docs/HERO-SELECTION.md): a bright, animated marker for the player-SELECTED hero.
+  // Purely presentational — the sim keeps running while it shows (selection never pauses gameplay).
+  if (rs.selectedHero === h.kind && !down) {
+    const rSel = 25 + pulse(t, 2.5, 0, 2);
+    ring(ctx, h.x, h.y, rSel, rgba(SELECT_RGB, pulse(t, 2.5, 0.7, 1)), 2.6);
+    ring(ctx, h.x, h.y, rSel + 5, rgba(SELECT_RGB, 0.3), 1.2, [4, 7]);
+  }
   if (!down) {
     // pulsing locator ring so the star unit is always findable in a swarm
     ring(ctx, h.x, h.y, 19 + pulse(t, 3, 0, 2), rgba(tint, pulse(t, 3, 0.22, 0.55)), 1.5);

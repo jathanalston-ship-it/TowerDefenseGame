@@ -860,6 +860,14 @@ export const MODE_REWARDS = {
   mastery: { campaign: 1.0, endless: 1.35, stage: 1.0 },
 };
 
+// Infinite-mode reward GATE (docs/MODE-IDENTITY.md): an Infinite run must reach at least this
+// fraction of the player's PRIOR personal-best depth (save.bestWave, pre-run) to bank ANY reward
+// container — its run cache AND its loot ("exploit") boxes. Below the threshold the run qualifies
+// for nothing and Results says so. This stops a Start-Run → instant-Quit loop from farming caches.
+// The first-ever run (best 0 ⇒ threshold 0) always qualifies; the threshold re-bases automatically
+// the moment a new personal best is set.
+export const INFINITE_REWARD_QUALIFY_FRAC = 0.5;
+
 // Campaign-exclusive "first-time completion" grants — paid once per brand-new stage clear.
 export const CAMPAIGN_REWARDS = {
   firstClearCore: 25, // base one-time Genome Cores for a never-cleared stage …

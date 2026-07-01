@@ -66,6 +66,12 @@ export function Results({
   const earned = outcome.loot.banked.length;
   const lootBoxes = earned - cacheCount; // loot-queue boxes only (excludes the guaranteed cache)
   const owned = meta.pendingContainers().length;
+  // Reward eligibility (docs/MODE-IDENTITY.md): a run that didn't qualify for its cache says why.
+  const blockedNote = outcome.rewardBlocked
+    ? outcome.rewardBlocked.reason === 'infinite-short'
+      ? `Run too short to qualify for Stage Cache rewards — reach Wave ${outcome.rewardBlocked.qualifyWave} (50% of your best) to bank rewards.`
+      : 'Stage failed — no Stage Cache awarded. Clear the stage to earn its cache.'
+    : null;
   const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
   const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
 
@@ -163,13 +169,16 @@ export function Results({
     title: 'Bio-Containers',
     icon: '◈',
     accent: 'var(--r-legendary)',
-    summary: earned > 0 ? `${earned} recovered · ${owned} in vault` : 'None this run',
+    summary: blockedNote
+      ? (outcome.rewardBlocked?.reason === 'infinite-short' ? 'Run too short — no rewards' : 'Stage failed — no cache')
+      : earned > 0 ? `${earned} recovered · ${owned} in vault` : 'None this run',
     stats: [
       { id: 'recovered', label: 'Containers Recovered', value: earned },
       { id: 'vault', label: 'Now in Vault', value: owned, accent: 'var(--gold)', celebrate: earned > 0 },
     ],
     extra: (
       <>
+        {blockedNote && <div className="vault-blocked" role="status">{blockedNote}</div>}
         {earned > 0 ? (
           <>
             <div className="vault-earned">
@@ -186,7 +195,7 @@ export function Results({
             )}
           </>
         ) : (
-          <div className="vault-empty">No bio-containers banked — push deeper to fill the loot meter.</div>
+          !blockedNote && <div className="vault-empty">No bio-containers banked — push deeper to fill the loot meter.</div>
         )}
         <div className="loot-queue-line" style={{ marginTop: 8 }}>
           Now filling <b style={{ color: front?.color }}>{front?.name ?? 'Common'}</b>
