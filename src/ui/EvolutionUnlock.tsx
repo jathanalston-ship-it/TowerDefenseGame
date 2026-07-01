@@ -53,7 +53,7 @@ export function EvolutionUnlock({ unlock, onClose }: { unlock: EvolutionUnlockDa
           ))}
         </div>
 
-        <p className="evo-foot">Every tower can now ascend further. Spend Tower Shards in the Tower Lab to claim it.</p>
+        <p className="evo-foot">Every tower can now ascend further. Spend Strain Samples in the Tower Lab to claim it.</p>
         <button className="primary evo-continue" onClick={onClose}>Continue</button>
       </div>
     </div>

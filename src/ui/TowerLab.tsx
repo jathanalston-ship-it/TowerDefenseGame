@@ -190,7 +190,7 @@ export function TowerLab(): JSX.Element {
                   >
                     {m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
                   </button>
-                  <span className="tl-shards" title="Tower Shards">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
+                  <span className="tl-shards" title="Strain Samples">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
                 </div>
 
                 {forksOf(k).some((f) => f.star <= m.stars) && (

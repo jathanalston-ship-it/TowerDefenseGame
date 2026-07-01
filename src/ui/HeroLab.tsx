@@ -92,14 +92,14 @@ function HeroLockedPage({ entry, onUnlock }: { entry: HeroCollectionEntry; onUnl
         <h2 className="hero-name" style={{ color: def.color }}>{def.name}</h2>
         <div className="hlk-class"><span className="class-badge" style={{ background: def.color }}>{def.combatClass}</span></div>
         <p className="hlk-mystery">
-          This strain is dormant. Collect its Hero Shards to bring it online — its dossier, kit, and
+          This strain is dormant. Collect its Apex Genome to bring it online — its dossier, kit, and
           lore are sealed until release.
         </p>
         <div className="hlk-progress">
           <ProgressBar value={entry.shards} max={entry.cost} color={def.color} height={12} label={`${def.name} unlock progress`} />
           <div className="hlk-count">
             <CurrencyIcon id="heroShards" color={def.color} size={16} title="" />
-            <b style={{ color: def.color }}>{entry.shards}</b> / {entry.cost} Hero Shards
+            <b style={{ color: def.color }}>{entry.shards}</b> / {entry.cost} Apex Genome
             {!entry.canUnlock && <span className="hlk-need"> · {remaining} to go</span>}
           </div>
         </div>

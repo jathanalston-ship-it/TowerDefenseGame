@@ -86,8 +86,8 @@ export function PlayScreen({
   // Possible Rewards (anticipation): the variety a run can drop. Campaign adds an
   // Evolution Unlock chip on milestone stages so the payoff is obvious before deploying.
   const campaignRewards: PreviewChip[] = [
-    { label: 'Tower Shards', color: 'var(--kinetic)', icon: <CurrencyIcon id="towerShards" size={12} title="" /> },
-    { label: 'Hero Shards', color: 'var(--vital)', icon: <CurrencyIcon id="heroShards" size={12} title="" /> },
+    { label: 'Strain Samples', color: 'var(--kinetic)', icon: <CurrencyIcon id="towerShards" size={12} title="" /> },
+    { label: 'Apex Genome', color: 'var(--vital)', icon: <CurrencyIcon id="heroShards" size={12} title="" /> },
     { label: 'Equipment', color: 'var(--r-epic)' },
     { label: 'Genome Cores', color: 'var(--gold)', icon: <CurrencyIcon id="genomeCores" size={12} title="" /> },
   ];

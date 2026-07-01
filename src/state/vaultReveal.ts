@@ -30,8 +30,8 @@ export type RevealCategory = 'equipment' | 'towerShards' | 'heroShards' | 'mater
 const CATEGORY_ORDER: RevealCategory[] = ['equipment', 'towerShards', 'heroShards', 'materials', 'other'];
 const CATEGORY_TITLE: Record<RevealCategory, string> = {
   equipment: 'Equipment',
-  towerShards: 'Tower Shards',
-  heroShards: 'Hero Shards',
+  towerShards: 'Strain Samples',
+  heroShards: 'Apex Genome',
   materials: 'Materials',
   other: 'Other',
 };
@@ -112,11 +112,11 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
   switch (item.type) {
     case 'tower': {
       const d = TOWER_DEFS[item.kind];
-      return { key: `tower:${item.kind}`, category: 'towerShards', rarity: item.rarity, color: d.color, name: d.name, qty: item.amount, unit: 'Shards', amountLabel: `+${item.amount} Shards`, currency: 'towerShards' };
+      return { key: `tower:${item.kind}`, category: 'towerShards', rarity: item.rarity, color: d.color, name: d.name, qty: item.amount, unit: 'Strain Samples', amountLabel: `+${item.amount} Strain Samples`, currency: 'towerShards' };
     }
     case 'hero': {
       const color = HERO_DEFS[item.id as HeroKind]?.color ?? 'var(--vital)';
-      return { key: `hero:${item.id}`, category: 'heroShards', rarity: item.rarity, color, name: HERO_LABELS[item.id] ?? item.id, qty: item.amount, unit: 'Hero Shards', amountLabel: `+${item.amount} Hero Shards`, currency: 'heroShards' };
+      return { key: `hero:${item.id}`, category: 'heroShards', rarity: item.rarity, color, name: HERO_LABELS[item.id] ?? item.id, qty: item.amount, unit: 'Apex Genome', amountLabel: `+${item.amount} Apex Genome`, currency: 'heroShards' };
     }
     case 'material':
       return { key: `mat:${item.mat}`, category: 'materials', rarity: item.rarity, color: 'var(--caustic)', name: MAT_LABEL[item.mat], qty: item.amount, unit: 'Materials', amountLabel: `+${item.amount} Materials`, glyph: '✦' };
@@ -173,8 +173,8 @@ export function buildReveal(chests: ChestResult | ChestResult[], compare?: (i: O
 /** The unit word to reprint on a merged row (kept off SummaryRow to avoid a redundant field). */
 function unitFor(r: SummaryRow): string {
   switch (r.category) {
-    case 'towerShards': return 'Shards';
-    case 'heroShards': return 'Hero Shards';
+    case 'towerShards': return 'Strain Samples';
+    case 'heroShards': return 'Apex Genome';
     case 'materials': return 'Materials';
     default: return '';
   }
