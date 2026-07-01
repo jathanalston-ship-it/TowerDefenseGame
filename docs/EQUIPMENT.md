@@ -84,6 +84,24 @@ Legendary Effects are what make builds; affixes *tune* them.
 
 ---
 
+## 4b. Managing gear — cards vs. the Details screen (SHIPPED · `ui/ItemDetails.tsx`)
+
+To keep gear **understandable within seconds**, the two surfaces have distinct jobs:
+
+- **Item cards** (the Armory grid) expose only three actions: **Equip / Unequip**, **Details**, and
+  **Favorite**. That's the whole scan-and-slot loop — nothing destructive on the card.
+- The **Details screen** is the single place everything else lives: large artwork + Power Score, a
+  side-by-side **vs. the equipped item** (with the ▲/▼ Power verdict), affixes each written in
+  **plain language** (`affixEffectText` — "+5% Tower Damage", "Hero attacks apply Corrosion"), the
+  full upgrade bar (**Enhance / Reroll / Reforge / Upgrade Rarity / Salvage** with live material
+  costs), and the item's story: **upgrade potential** (tier headroom vs. its ilvl ceiling), **power
+  contribution** (its share of the hero's gear), **source** (`OwnedItem.source` — where it dropped),
+  and **mod history** (`OwnedItem.history` — every Reforge op applied). Salvage is a two-step
+  arm→confirm here; the tiered destruction safeguards + Undo land next (see BACKLOG / the safeguards
+  task).
+
+---
+
 ## 5. Upgrade systems
 
 | System | Currency | Effect | Bound |

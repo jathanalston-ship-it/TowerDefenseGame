@@ -1424,6 +1424,7 @@ export const meta = {
     const cost = reforgeCost(op, item);
     if (!canAfford(save.mats, cost)) return false;
     let next: OwnedItem | null;
+    const label = { enhance: 'Enhanced', reroll: 'Rerolled tiers', reforge: 'Reforged affixes', upgrade: 'Raised rarity' }[op as 'enhance' | 'reroll' | 'reforge' | 'upgrade'];
     switch (op) {
       case 'enhance': next = enhance(Math.random, item); break;
       case 'reroll': next = reroll(Math.random, item); break;
@@ -1432,6 +1433,7 @@ export const meta = {
       default: return false; // lock / randomize / salvage have dedicated methods
     }
     if (!next || next === item) return false; // invalid or no-op → don't charge
+    next = { ...next, history: [...(item.history ?? []), label] }; // mod log for the Details screen
     const inventory = inv.slice();
     inventory[idx] = next;
     persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });

@@ -11,15 +11,11 @@ import type { HeroKind } from '../core/types';
 import {
   EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore, rarityLabelOf,
 } from '../core/equipment';
-import type { EquipSlot, Loadout, OwnedItem, Rarity, RolledAffix } from '../core/equipment';
-import {
-  REFORGE_OPS, canAfford, itemAffixView, opAvailable, reforgeCost, salvageValue,
-} from '../core/reforge';
-import type { Mats, ReforgeOp } from '../core/reforge';
+import type { EquipSlot, OwnedItem, Rarity } from '../core/equipment';
 import { ItemArt, rarityColor } from './components/ItemArt';
 import { PowerDelta } from './components/PowerDelta';
 import { compareItemPower } from '../state/itemPower';
-import type { SaveData } from '../save/saveStore';
+import { ItemDetails } from './ItemDetails';
 
 type SortKey = 'power' | 'rarity' | 'name' | 'set' | 'newest';
 const SORTS: { key: SortKey; label: string }[] = [
@@ -44,10 +40,8 @@ export function EquipmentPanel(): JSX.Element {
   const [rarity, setRarity] = useState<Rarity | 'all'>('all');
   const [sort, setSort] = useState<SortKey>('power');
   const [favOnly, setFavOnly] = useState(false);
-  const [compareUid, setCompareUid] = useState<string | null>(null);
-  const [reforgeUid, setReforgeUid] = useState<string | null>(null);
+  const [detailsUid, setDetailsUid] = useState<string | null>(null); // opens the Equipment Details screen
 
-  const byUid = new Map(inventory.map((i) => [i.uid, i] as const));
   // Which fielded hero (if any) wears each item — items are single-instance, so an item shows
   // its owner and can be moved between heroes. Never overwrites another hero's loadout.
   const ownerOf = new Map<string, HeroKind>();
@@ -131,11 +125,8 @@ export function EquipmentPanel(): JSX.Element {
           <button className={`ic-equip ${equipped ? 'on' : ''}`} onClick={() => meta.equip(focus, def.slot, equipped ? null : item.uid)}>
             {equipped ? 'Unequip' : owner ? 'Move here' : 'Equip'}
           </button>
-          <button className="ic-mini" title="Compare with equipped" onClick={() => setCompareUid(item.uid)}>⇄</button>
-          <button className={`ic-mini ${item.favorite ? 'is-on' : ''}`} title="Favorite" onClick={() => meta.toggleFavorite(item.uid)}>★</button>
-          <button className={`ic-mini ${item.locked ? 'is-on' : ''}`} title="Lock (protect from salvage)" onClick={() => meta.toggleLock(item.uid)}>{item.locked ? '🔒' : '🔓'}</button>
-          <button className="ic-mini" title="Reforge — improve this item" onClick={() => setReforgeUid(item.uid)}>⚒</button>
-          <button className="ic-mini danger" title={item.locked ? 'Unlock to salvage' : 'Salvage for materials'} disabled={item.locked} onClick={() => meta.salvageItem(item.uid)}>✕</button>
+          <button className="ic-mini ic-details" title="Details — compare, affixes, upgrade & salvage" onClick={() => setDetailsUid(item.uid)}>⤢ Details</button>
+          <button className={`ic-mini ${item.favorite ? 'is-on' : ''}`} title="Favorite (pins first; never auto-salvaged)" onClick={() => meta.toggleFavorite(item.uid)}>★</button>
         </div>
       </div>
     );
@@ -213,167 +204,7 @@ export function EquipmentPanel(): JSX.Element {
         <div className="armory-grid">{shown.map(cardFor)}</div>
       )}
 
-      {compareUid && <CompareOverlay uid={compareUid} save={save} byUid={byUid} loadout={loadout} hero={focus} heroName={focusName} onClose={() => setCompareUid(null)} />}
-      {reforgeUid && <ReforgeOverlay uid={reforgeUid} byUid={byUid} mats={save.mats} onClose={() => setReforgeUid(null)} />}
-    </div>
-  );
-}
-
-// ── Compare overlay: the selected item vs the item equipped in its slot ──────────
-function CompareCol({ item, tag }: { item: OwnedItem | null; tag: string }): JSX.Element {
-  const def = item ? itemDef(item.defId) : undefined;
-  const c = item ? rarityColor(item.rarity) : 'var(--muted)';
-  return (
-    <div className="cmp-col" style={{ ['--rc' as string]: c }}>
-      <div className="cmp-tag">{tag}</div>
-      {item && def ? (
-        <>
-          <ItemArt def={def} rarity={item.rarity} size={84} />
-          <div className="cmp-name" style={{ color: c }}>{def.name}</div>
-          <div className="ic-meta"><span style={{ color: c }}>{rarityLabelOf(item.rarity)}</span> · {SLOT_LABELS[def.slot]}</div>
-          <p className="ic-desc">{def.desc}</p>
-          {traitChips(item).length > 0 && (
-            <div className="ic-traits">{traitChips(item).map((t) => <span className={`ic-trait${t.locked ? ' is-locked' : ''}`} key={t.key}>{t.locked ? '🔒 ' : ''}{t.label}</span>)}</div>
-          )}
-        </>
-      ) : (
-        <div className="cmp-empty">— nothing equipped —</div>
-      )}
-    </div>
-  );
-}
-
-function CompareOverlay({
-  uid, save, byUid, loadout, hero, heroName, onClose,
-}: {
-  uid: string;
-  save: SaveData;
-  byUid: Map<string, OwnedItem>;
-  loadout: Loadout;
-  hero: HeroKind;
-  heroName: string;
-  onClose: () => void;
-}): JSX.Element {
-  const sel = byUid.get(uid);
-  const def = sel ? itemDef(sel.defId) : undefined;
-  const slot = def?.slot;
-  const equippedUid = slot ? loadout[slot] : null;
-  const equipped = equippedUid && equippedUid !== uid ? byUid.get(equippedUid) ?? null : null;
-  const cmp = sel ? compareItemPower(save, sel, hero) : null;
-  return (
-    <div className="cmp-overlay" onClick={onClose}>
-      <div className="cmp-box" onClick={(e) => e.stopPropagation()}>
-        <div className="cmp-h">Compare {slot ? SLOT_LABELS[slot] : ''} · {heroName}</div>
-        {cmp && <div className="cmp-verdict"><PowerDelta cmp={cmp} /></div>}
-        <div className="cmp-cols">
-          <CompareCol item={sel ?? null} tag="Selected" />
-          <CompareCol item={equipped} tag={`${heroName} wears`} />
-        </div>
-        <div className="cmp-btns">
-          {sel && def && equippedUid !== uid && (
-            <button className="primary" onClick={() => { meta.equip(hero, def.slot, uid); onClose(); }}>Equip to {heroName}</button>
-          )}
-          <button onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Reforge overlay: improve an existing item (Diablo-style — no recipes) ────────
-function costLabel(cost: Mats): string {
-  const parts: string[] = [];
-  if (cost.mutagen) parts.push(`⊕${cost.mutagen}`);
-  if (cost.scrap) parts.push(`◳${cost.scrap}`);
-  if (cost.catalyst) parts.push(`✷${cost.catalyst}`);
-  return parts.length ? parts.join(' ') : 'Free';
-}
-
-/** One affix row in the Reforge overlay — name · tier · lock · randomize (targeted swap). */
-function ReforgeAffixRow({ item, affix, mats, tag }: { item: OwnedItem; affix: RolledAffix; mats: Mats; tag: string }): JSX.Element {
-  const index = item.affixes.indexOf(affix);
-  const def = affixDef(affix.affixId);
-  const randCost = reforgeCost('randomize', item);
-  const canRand = !affix.locked && canAfford(mats, randCost);
-  return (
-    <div className={`rf-affix rf-${tag.toLowerCase()}${affix.locked ? ' is-locked' : ''}`}>
-      <span className="rf-affix-tag">{tag}</span>
-      <span className="rf-affix-name">{def?.name ?? affix.affixId}</span>
-      <span className="rf-affix-tier">T{affix.tier}</span>
-      <span className="rf-affix-actions">
-        <button
-          className={`rf-mini${affix.locked ? ' is-on' : ''}`}
-          title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'}
-          onClick={() => meta.lockItemAffix(item.uid, index)}
-        >{affix.locked ? '🔒' : '🔓'}</button>
-        <button
-          className="rf-mini"
-          title={`Randomize this affix — new type (${costLabel(randCost)})`}
-          disabled={!canRand}
-          onClick={() => meta.randomizeItemAffix(item.uid, index)}
-        >⤨</button>
-      </span>
-    </div>
-  );
-}
-
-function ReforgeOverlay({
-  uid, byUid, mats, onClose,
-}: {
-  uid: string;
-  byUid: Map<string, OwnedItem>;
-  mats: Mats;
-  onClose: () => void;
-}): JSX.Element | null {
-  const item = byUid.get(uid);
-  const def = item ? itemDef(item.defId) : undefined;
-  if (!item || !def) return null; // salvaged / missing → overlay collapses
-  const c = rarityColor(item.rarity);
-  const view = itemAffixView(item);
-  const runOp = (op: ReforgeOp): void => {
-    if (op === 'salvage') { meta.salvageItem(uid); onClose(); return; }
-    meta.reforgeOp(uid, op);
-  };
-  return (
-    <div className="cmp-overlay" onClick={onClose}>
-      <div className="rf-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
-        <div className="rf-head">
-          <ItemArt def={def} rarity={item.rarity} size={64} />
-          <div className="rf-head-info">
-            <div className="rf-name" style={{ color: c }}>{def.name}</div>
-            <div className="ic-meta">
-              <span style={{ color: c }}>{rarityLabelOf(item.rarity)}</span> · {SLOT_LABELS[def.slot]}
-              {item.ilvl !== undefined && <span title="Item level"> · i{item.ilvl}</span>}
-              <span title="Power Score"> · ⚙ {itemScore(item)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="rf-affixes">
-          {view.primary
-            ? <ReforgeAffixRow item={item} affix={view.primary} mats={mats} tag="Primary" />
-            : <div className="hint">No affixes yet — Upgrade to add an affix slot.</div>}
-          {view.prefixes.map((a) => <ReforgeAffixRow key={a.affixId} item={item} affix={a} mats={mats} tag="Prefix" />)}
-          {view.suffixes.map((a) => <ReforgeAffixRow key={a.affixId} item={item} affix={a} mats={mats} tag="Suffix" />)}
-        </div>
-
-        <div className="rf-ops">
-          {REFORGE_OPS.map((op) => {
-            const cost = reforgeCost(op.id, item);
-            const disabled = !opAvailable(op.id, item) || (op.id !== 'salvage' && !canAfford(mats, cost));
-            return (
-              <button key={op.id} className={`rf-op${op.id === 'salvage' ? ' danger' : ''}`} disabled={disabled} onClick={() => runOp(op.id)}>
-                <span className="rf-op-h"><b>{op.icon} {op.label}</b>
-                  <span className="rf-op-cost">{op.id === 'salvage' ? `+${costLabel(salvageValue(item))}` : costLabel(cost)}</span>
-                </span>
-                <span className="rf-op-blurb">{op.blurb}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="rf-mats">Materials · ⊕ {mats.mutagen} Mutagen · ◳ {mats.scrap} Scrap · ✷ {mats.catalyst} Catalyst</div>
-        <div className="cmp-btns"><button onClick={onClose}>Close</button></div>
-      </div>
+      {detailsUid && <ItemDetails uid={detailsUid} hero={focus} onClose={() => setDetailsUid(null)} />}
     </div>
   );
 }
