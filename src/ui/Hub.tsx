@@ -29,6 +29,7 @@ import { SaveManager } from './SaveManager';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { LabAtmosphere } from './LabAtmosphere';
+import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite'
@@ -147,7 +148,6 @@ export function Hub({
   const save = meta.use();
   notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
-  const power = meta.powerScore().score;
   const badges = notifications.badges(save);
   const progress = navProgress(save); // 0..1 completion rings per menu
 
@@ -205,8 +205,8 @@ export function Hub({
             </div>
           ))}
         </div>
-        <div className="hub-power" title="Account power index">
-          Power <b>×{power.toFixed(1)}</b>
+        <div className="hub-power">
+          <PowerBadge />
         </div>
       </nav>
 

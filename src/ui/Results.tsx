@@ -111,6 +111,7 @@ export function Results({
     stats: [
       { id: 'xp', label: 'Mastery XP Earned', value: masteryXp, format: (n) => `${n.toLocaleString()} XP`, accent: 'var(--gold)', bar: masteryXp > 0 ? 1 : 0 },
       { id: 'levels', label: 'Mastery Levels', value: levelUps, celebrate: levelUps > 0 },
+      { id: 'power', label: 'Power Score', value: meta.power().score, accent: 'var(--vital)', celebrate: levelUps > 0 },
     ],
     extra: (masteryGains.length > 0 || heroMasteryGains.length > 0) ? (
       <div className="mastery-gains">

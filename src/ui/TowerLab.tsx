@@ -13,6 +13,7 @@ import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { TowerPortrait } from './TowerPortrait';
 import { TowerCodex } from './TowerCodex';
+import { PowerDelta } from './components/PowerScore';
 import { StarCeremony } from './StarCeremony';
 import { ceremonyView, towerLabModel } from './towerLabModel';
 import type { StepView } from './towerLabModel';
@@ -61,6 +62,7 @@ function ForkPaths({ kind, stars, color }: { kind: TowerKind; stars: number; col
 export function TowerLab(): JSX.Element {
   const save = meta.use();
   const prog = towerProgress(save);
+  const curPower = meta.power().score; // for the "next star → new Power" preview
   const [ceremony, setCeremony] = useState<CeremonyState | null>(null);
   const [openForks, setOpenForks] = useState<TowerKind | null>(null);
   const [codexKind, setCodexKind] = useState<TowerKind | null>(null); // open the Evolution Codex for a tower
@@ -149,6 +151,15 @@ export function TowerLab(): JSX.Element {
                       {m.capLocked ? 'LOCKED' : 'NEXT'} ★{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
                     </span>
                     {m.nextStep.desc && <span className="tl-next-desc">{m.nextStep.desc}</span>}
+                    {!m.capLocked && (
+                      <span className="tl-next-power">
+                        Power{' '}
+                        <PowerDelta
+                          current={curPower}
+                          next={meta.previewPower((s) => ({ ...s, towerStars: { ...s.towerStars, [k]: (s.towerStars[k] ?? 0) + 1 } })).score}
+                        />
+                      </span>
+                    )}
                     {m.nextAbility && m.nextAbility.star !== m.nextStep.star && (
                       <span className="tl-next-ability">Next ability · ★{m.nextAbility.star} {m.nextAbility.name}</span>
                     )}

@@ -37,10 +37,17 @@ import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } f
 import { accumulateStats } from './stats';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { RARITY_ORDER, loadoutEffects, rerollAffixes, rollItemDrop, transmute } from '../core/equipment';
+import { loadoutEffects, rollItemDrop } from '../core/equipment';
 import type { EquipSlot, OwnedItem } from '../core/equipment';
+import {
+  canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
+} from '../core/reforge';
+import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
+import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
+import type { PowerParts, PowerScore } from '../core/power';
+import { lootBias } from '../core/progressionLoot';
 import { collectionView, unlockedRewards, collectionBonusEffects } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView } from '../core/collection';
 import { bossDef } from '../core/boss';
@@ -101,6 +108,50 @@ export function metaModifiers(save: SaveData): MetaModifiers {
   // Ascendant Tree: a bought node can raise permanent biomass income (×1 with no nodes).
   m.biomassMult *= ascendantBonuses(save.prestige.nodes).biomassMult;
   return m;
+}
+
+/** Equipment's Power contribution: its equipped loadout's offense effects × each piece's
+ * rarity/affix index, so even utility-only gear reads as a small gain when equipped. */
+function equipmentPower(save: SaveData): number {
+  let mult = effectsPower(loadoutEffects(save.equipment.inventory, save.equipment.loadout));
+  const inv = save.equipment.inventory;
+  for (const slot of ['weapon', 'armor', 'relic'] as EquipSlot[]) {
+    const uid = save.equipment.loadout[slot];
+    const it = uid ? inv.find((i) => i.uid === uid) : undefined;
+    if (it) mult *= itemRarityPower(it.rarity, it.affixes.length);
+  }
+  return mult;
+}
+
+/** The account Power contributors folded from the save (docs/POWER-SCORE.md). `temporary`
+ * carries in-run buffs (gene cards / branches); it is 1 for the at-rest account view. Prestige
+ * is already inside metaModifiers.towerDamageMult (the P bucket), so it counts via `meta`. */
+function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
+  const mm = metaModifiers(save);
+  const tp = towerProgress(save);
+  const hp = heroProgress(save);
+  return {
+    meta: mm.towerDamageMult,
+    towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
+    heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
+    equipment: equipmentPower(save),
+    temporary,
+  };
+}
+
+/** Progression-aware loot bias (docs/LOOT-PROGRESSION.md): catch-up weights derived from how the
+ * account's power compares to what its campaign/wave depth expects. All 1 (a no-op) for an on-par
+ * or fresh account, so it never perturbs a baseline roll. */
+function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, number> {
+  const campaignStage = Math.max(0, ...Object.values(save.campaign?.cleared ?? {}));
+  const tier = difficultyId === 'brutal' ? 2 : difficultyId === 'hardened' ? 1 : 0;
+  return lootBias({
+    idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
+    campaignStage,
+    bestWave: save.bestWave,
+    actualPowerMult: composePower(accountPowerParts(save)).mult,
+    difficultyTier: tier,
+  });
 }
 
 /** Cells a Molt would mint now: the sqrt base × the Ascendant Resonance node's compounding. */
@@ -584,7 +635,7 @@ export const meta = {
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
     const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult);
-    const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
+    const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
     // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
@@ -698,7 +749,7 @@ export const meta = {
     const delta = total - runLootBanked;
     if (delta <= 0) return [];
     runLootBanked = total;
-    const adv = addProgress(save.lootQueue, delta);
+    const adv = addProgress(save.lootQueue, delta, Math.random, lootBiasFor(save));
     if (adv.awarded.length === 0) {
       store.set({ ...save, lootQueue: adv.state }); // pure progress: advance the meter, skip the disk write
       return [];
@@ -797,15 +848,28 @@ export const meta = {
    * product of the permanent damage buckets (meta upgrades × prestige × stars × mastery,
    * roster-averaged). ×1.0 on a fresh account; the §3F inflation gauge. */
   powerScore(): { score: number; meta: number; towers: number; heroes: number } {
-    const save = store.get();
-    const mm = metaModifiers(save); // meta upgrades × prestige P bucket
-    const tp = towerProgress(save); // stars + mastery (towers)
-    const hp = heroProgress(save); // stars + mastery (heroes)
-    const geomean = (vals: number[]): number =>
-      vals.length ? Math.exp(vals.reduce((s, v) => s + Math.log(v), 0) / vals.length) : 1;
-    const towers = geomean(TOWER_ORDER.map((k) => tp[k].damageMult));
-    const heroes = geomean(HERO_ORDER.map((k) => hp[k].damageMult));
-    return { score: mm.towerDamageMult * towers * heroes, meta: mm.towerDamageMult, towers, heroes };
+    const p = accountPowerParts(store.get());
+    // Back-compat: `.score` stays the account DAMAGE multiple (meta × towers × heroes) used by
+    // the recommended-power readiness checks — equipment/temporary live in the universal index.
+    return { score: p.meta * p.towers * p.heroes, meta: p.meta, towers: p.towers, heroes: p.heroes };
+  },
+
+  /** Universal Power Score (docs/POWER-SCORE.md) — the integer feedback index folding meta,
+   * prestige, tower/hero Stars + Mastery, and Equipment. A fresh account reads POWER_BASE. */
+  power(): PowerScore {
+    return composePower(accountPowerParts(store.get()));
+  },
+
+  /** Power Score WITH in-run temporary buffs (gene cards + branch grants as CardEffect[]) — for
+   * the HUD and gene-draft "new power" preview. Outside a run pass nothing ⇒ equals power(). */
+  powerWith(temporaryEffects: readonly CardEffect[] = []): PowerScore {
+    return composePower(accountPowerParts(store.get(), effectsPower(temporaryEffects)));
+  },
+
+  /** Power Score for a HYPOTHETICAL save — pass a pure mutator returning the post-upgrade save
+   * (never persisted). Drives the "current → new (+diff)" upgrade previews. */
+  previewPower(mutate: (s: SaveData) => SaveData): PowerScore {
+    return composePower(accountPowerParts(mutate(store.get())));
   },
 
   /** The slot-1 hero the next run fields (back-compat; = fieldedLoadout()[0]). */
@@ -945,32 +1009,54 @@ export const meta = {
     persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
-  /** Reroll an item's unlocked affixes (spends 1 Mutagen). */
-  rerollItem(uid: string): boolean {
+  /** Apply a whole-item Reforge operation (Enhance / Reroll / Reforge / Upgrade), spending its
+   *  material cost. No-ops (Upgrade at cap, Enhance with nothing to raise) don't charge. */
+  reforgeOp(uid: string, op: ReforgeOp): boolean {
     const save = store.get();
-    if (save.mats.mutagen < 1) return false;
     const inv = save.equipment.inventory;
     const idx = inv.findIndex((i) => i.uid === uid);
     if (idx < 0) return false;
+    const item = inv[idx];
+    if (!opAvailable(op, item)) return false; // e.g. Upgrade at cap, or Reforge with every affix locked
+    const cost = reforgeCost(op, item);
+    if (!canAfford(save.mats, cost)) return false;
+    let next: OwnedItem | null;
+    switch (op) {
+      case 'enhance': next = enhance(Math.random, item); break;
+      case 'reroll': next = reroll(Math.random, item); break;
+      case 'reforge': next = reforge(Math.random, item); break;
+      case 'upgrade': next = upgrade(Math.random, item); break;
+      default: return false; // lock / randomize / salvage have dedicated methods
+    }
+    if (!next || next === item) return false; // invalid or no-op → don't charge
     const inventory = inv.slice();
-    inventory[idx] = rerollAffixes(Math.random, inv[idx]);
-    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, mutagen: save.mats.mutagen - 1 } });
+    inventory[idx] = next;
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });
     return true;
   },
 
-  /** Transmute an item up a rarity tier (spends 2 Catalysts) — adds an affix slot. */
-  transmuteItem(uid: string): boolean {
+  /** Randomize ONE affix's type (targeted swap), spending its cost. */
+  randomizeItemAffix(uid: string, affixIndex: number): boolean {
     const save = store.get();
-    if (save.mats.catalyst < 2) return false;
     const inv = save.equipment.inventory;
     const idx = inv.findIndex((i) => i.uid === uid);
     if (idx < 0) return false;
-    const next = transmute(Math.random, inv[idx]);
-    if (!next) return false;
+    const item = inv[idx];
+    const cost = reforgeCost('randomize', item);
+    if (!canAfford(save.mats, cost)) return false;
+    const next = randomizeAffix(Math.random, item, affixIndex);
+    if (next === item) return false;
     const inventory = inv.slice();
     inventory[idx] = next;
-    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: { ...save.mats, catalyst: save.mats.catalyst - 2 } });
+    persist({ ...save, equipment: { ...save.equipment, inventory }, mats: spend(save.mats, cost) });
     return true;
+  },
+
+  /** Toggle the per-affix lock (free) — protects an affix from Reroll / Reforge / Randomize. */
+  lockItemAffix(uid: string, affixIndex: number): void {
+    const save = store.get();
+    const inventory = save.equipment.inventory.map((i) => (i.uid === uid ? toggleAffixLock(i, affixIndex) : i));
+    persist({ ...save, equipment: { ...save.equipment, inventory } });
   },
 
   /** Dismantle an item into crafting feedstock (auto-unequips it). */
@@ -978,16 +1064,16 @@ export const meta = {
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
     if (!item || item.locked) return false; // locked items are protected from salvage
-    const r = RARITY_ORDER.indexOf(item.rarity);
+    const gain = salvageValue(item);
     const loadout = { ...save.equipment.loadout };
     for (const s of ['weapon', 'armor', 'relic'] as EquipSlot[]) if (loadout[s] === uid) loadout[s] = null;
     persist({
       ...save,
       equipment: { inventory: save.equipment.inventory.filter((i) => i.uid !== uid), loadout },
       mats: {
-        mutagen: save.mats.mutagen + (r >= 3 ? 1 : 0),
-        scrap: save.mats.scrap + 1 + r,
-        catalyst: save.mats.catalyst + Math.max(0, r - 1),
+        mutagen: save.mats.mutagen + gain.mutagen,
+        scrap: save.mats.scrap + gain.scrap,
+        catalyst: save.mats.catalyst + gain.catalyst,
       },
     });
     return true;

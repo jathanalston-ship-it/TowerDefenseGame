@@ -198,6 +198,9 @@ export interface RollOpts {
   pity?: PityState;
   /** Event ids that opt their event-exclusive tiers into the pool. */
   events?: readonly string[];
+  /** Per-rarity-id weight MULTIPLIER (progression-aware catch-up; see core/progressionLoot.ts).
+   * Omitted / 1 for every id ⇒ the untouched weight table (golden-safe). */
+  bias?: Record<string, number>;
 }
 
 /**
@@ -212,10 +215,11 @@ export function rollRarity(rng: () => number = Math.random, opts: RollOpts = {})
     const due = dueTier(opts.pity, pool);
     if (due) return due.id;
   }
-  const total = pool.reduce((s, d) => s + d.weight, 0);
+  const w = (d: RarityDef): number => d.weight * (opts.bias?.[d.id] ?? 1);
+  const total = pool.reduce((s, d) => s + w(d), 0);
   let r = rng() * total;
   for (const d of pool) {
-    r -= d.weight;
+    r -= w(d);
     if (r < 0) return d.id;
   }
   return pool[pool.length - 1].id; // fp safety net
