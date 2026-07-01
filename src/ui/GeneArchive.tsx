@@ -323,6 +323,18 @@ export function GeneArchive(): JSX.Element {
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
 
+      {/* In-place help (Task 11) — the whole loop in five lines, one tap away. */}
+      <details className="ga-help">
+        <summary>How the Gene system works</summary>
+        <ul>
+          <li><b>Collect</b> — draft a Gene Card in any run and it joins this Archive forever.</li>
+          <li><b>Gene Essence</b> — earned mainly by duplicate shards once a tower/hero is max Star, plus rare Bio-Container drops.</li>
+          <li><b>Upgrade</b> — each card has 3–5 permanent levels; every level adds real new effects and raises your Power Score immediately.</li>
+          <li><b>Campaign gates</b> — deeper levels unlock globally: L2 at Stage 15, L3 at 30, L4 at 50, L5 at 75.</li>
+          <li><b>Starting Genes</b> — equip up to five cards above; they auto-activate at their level when every run begins. <i>Card Ascension arrives in a future update.</i></li>
+        </ul>
+      </details>
+
       {/* Starting Gene Loadout — equipped genes auto-activate when every run begins. */}
       <LoadoutBar equipMode={equipSlot} onArmSlot={setEquipSlot} />
 

@@ -88,6 +88,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     bestWave: save.bestWave,
     bossesSlain: new Set(save.bossesSlain),
     biomesSeen: biomesSeenOf(save),
+    geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
   };
 }
 

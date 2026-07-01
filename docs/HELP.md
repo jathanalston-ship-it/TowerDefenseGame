@@ -28,8 +28,13 @@ in every surface automatically as the player unlocks it.
 - **UI** — `WhatsNew.tsx` (front-of-queue card, "Got it · N more",
   `archiveMechanics` on close), `HelpWiki.tsx` (search + category index +
   What/Why/Where/Next detail + cross-links to *unlocked* mechanics only),
-  `HudTour.tsx` (12-step area→purpose walk; finish → reward reveal). Mounted in
+  `HudTour.tsx` (13-step area→purpose walk; finish → reward reveal). Mounted in
   `App.tsx` (tour/What's New, menu only) + `Hub.tsx` (`help` nav key).
+- **Loading tips (`src/ui/tips.ts`)** — a fourth, lighter surface: one-line
+  teachers rotated per visit at the foot of the Play screen (`.mc-tip`). Pure
+  data (adding a tip is one row), weighted toward the Gene Evolution loop.
+  In-place help also lives where the system does: the Gene Archive's
+  "How the Gene system works" collapsible.
 
 ## Public APIs (callers use these)
 

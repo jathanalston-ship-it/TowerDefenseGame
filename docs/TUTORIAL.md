@@ -9,6 +9,8 @@ lessons taught over a LIVE simplified game (see "Combat Tutorial — shipped" be
 Ten checkpoints (`COMBAT_TUTORIAL` in `core/tutorial.ts`) teach through play, each unlocking only
 when its objective is met: protect the Hive Core → Biomass → place a Needle → survive Wave 1 →
 first-kill Biomass → second tower → Hero ability → Gene Card draft → tower Inspect → graduate.
+The Gene Card step teaches BOTH halves of the system (GENE-EVOLUTION.md): the drafted boost is
+run-only, but the card itself joins the permanent Gene Archive.
 
 - **Live encounter.** `TutorialRunner` hosts a real `<GameView tutorial onReady=…>` (fail-safe: a
   huge Integrity bonus so the core can't fall) + the `TutorialOverlay`. `GameView`'s `tutorial` flag

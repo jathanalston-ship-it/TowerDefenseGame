@@ -129,7 +129,7 @@ export const COMBAT_TUTORIAL: TutorialDef = {
     { id: 'hero-ability', title: 'Use your Hero ability', advance: { kind: 'event', event: 'hero-ability' },
       cue: { arrow: { target: '[data-tut="ability"]', from: 'bottom' }, callout: { text: 'Your Hero moves and fights on its own — and has an Active Ability. Trigger it once (the ability button, or Q).', target: '[data-tut="ability"]', side: 'top' } } },
     { id: 'gene-card', title: 'Draft a Gene Card', advance: { kind: 'event', event: 'card-chosen' },
-      cue: { callout: { text: 'Wave cleared! Draft a Gene Card — a temporary upgrade that lasts only for THIS run. Pick one.' } } },
+      cue: { callout: { text: 'Wave cleared! Draft a Gene Card — its boost lasts only for THIS run, but the card itself joins your permanent Gene Archive, where it can be leveled forever. Pick one.' } } },
     { id: 'inspect', title: 'Inspect your towers', advance: { kind: 'continue' },
       cue: { spotlight: '.side-panel.inspector', callout: { text: 'Inspecting a tower shows its Stats and Branches, and lets you Move or Sell it. Take a look, then continue.', target: '.side-panel.inspector', side: 'left' } } },
     { id: 'graduation', title: 'Hold the line', advance: { kind: 'event', event: 'wave-completed' },

@@ -61,6 +61,18 @@ describe('collection layer', () => {
     expect(hi.tier).toBe(hi.maxTier);
   });
 
+  it('card entries surface the permanent Gene level in the LABEL only (completion untouched)', () => {
+    const ctx = freshCtx();
+    const id = cardRegistry.ids()[0];
+    ctx.stats.uniqueCards = [id];
+    const plain = collectionView(ctx).categories.find((c) => c.id === 'cards')!;
+    ctx.geneLevels = { [id]: 2 };
+    const leveled = collectionView(ctx).categories.find((c) => c.id === 'cards')!;
+    expect(plain.entries.find((e) => e.id === id)!.tierLabel).toBe('Collected');
+    expect(leveled.entries.find((e) => e.id === id)!.tierLabel).toBe('Gene Level 2');
+    expect(leveled.completion).toBe(plain.completion); // label enrichment can't move collection Power
+  });
+
   it('rank rises with completion (Bronze at first discovery → Ascendant at 100%)', () => {
     expect(rankOf(0).name).toBe('Unranked');
     expect(rankOf(0.001).name).toBe('Bronze');

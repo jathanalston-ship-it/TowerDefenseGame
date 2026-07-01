@@ -25,8 +25,15 @@ table is the single source of truth:
 | **Mutation Fragments** | *(new)* | card pool & mutation meta currency |
 | **Equipment Components** | Catalysts / Mutagen / Resonance / Scrap (umbrella) | gear-currency family |
 | **Splice Threads** | Genome Threads | Speciation (P2) prestige currency |
+| **Gene Essence** | *(new — shipped)* | permanent Gene Card upgrade currency (`GENE-EVOLUTION.md`) |
 
 (DESIGN.md and PROGRESSION.md have been updated to these names.)
+
+> **Shipped note — Gene Essence.** Unlike the aspirational rows above, Gene Essence is live
+> (`core/geneEssence.ts`): earned by auto-converting duplicate max-Star shards (primary) plus a
+> rare Bio-Container bonus drop, spent on permanent Gene Card levels in the Gene Archive. Drop
+> tables, conversion rates, the cost curve, and the 10/50/200/1000-hour economy simulation are
+> canonical in `GENE-EVOLUTION.md §Economy`.
 
 ---
 

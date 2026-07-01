@@ -4161,6 +4161,10 @@ kbd {
 .mc-recap-i { color: var(--gold); }
 @keyframes mc-recap-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
+/* Loading tip — a one-line teacher at the foot of Mission Control (ui/tips.ts) */
+.mc-tip { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; padding: 8px 14px; border-radius: var(--r-md); border: 1px dashed var(--line); background: rgba(0,0,0,0.18); font-size: 12px; color: var(--muted); }
+.mc-tip-k { font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: var(--caustic); }
+
 @media (prefers-reduced-motion: reduce) {
   .dash-card.is-hot, .dash-ascension, .mc-recap { animation: none; }
 }
@@ -4642,6 +4646,10 @@ kbd {
 /* ── Gene Archive (permanent Gene Card collection) ── */
 .ga-panel .panel-title { display: flex; align-items: baseline; gap: 12px; }
 .ga-wallet { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 800; color: var(--caustic, #6ad1b0); }
+.ga-help { margin: 2px 0 10px; font-size: 12px; color: var(--muted); }
+.ga-help summary { cursor: pointer; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--caustic, #6ad1b0); user-select: none; }
+.ga-help ul { margin: 8px 0 2px; padding-left: 18px; display: grid; gap: 4px; }
+.ga-help b { color: var(--text); }
 .ga-gates { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 8px 0 12px; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,0.22); border: 1px solid var(--line); font-size: 12px; }
 .ga-gates-k { color: var(--text); } .ga-gates-k b { color: var(--gold); }
 .ga-gates-next { color: var(--muted); } .ga-gates-next b { color: var(--kinetic); }

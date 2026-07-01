@@ -18,6 +18,11 @@ are placeholder — the architecture is the deliverable.
 >   effect language (`cards.ts`) lets gear change attacks, hero AI, and run rules.
 > - **Prestige (MOLT)** (`core/prestige.ts` + `core/ascendant.ts`): the P bucket — Ascendant
 >   Cells (sqrt mint → log global ×) + a spendable Ascendant Tree. See `PROGRESSION-PHILOSOPHY §2.8`.
+> - **Gene Evolution** (`core/geneCards.ts` + `core/geneUpgrades.ts` + `core/geneEssence.ts`):
+>   every Gene Card is a permanent collectible with 3–5 campaign-gated upgrade levels bought
+>   with **Gene Essence** (duplicate max-Star shards + rare container drops); Starting Gene
+>   Loadouts auto-activate up to five cards at run start. A major permanent pillar, folded
+>   into Power. See `GENE-EVOLUTION.md`.
 > - **Power Score** (`meta.powerScore()`): one account-power index over all permanent buckets.
 >
 > All are golden-safe (a fresh account resolves to identity). The per-system notes below

@@ -42,7 +42,11 @@ back as method calls (intents) on the `Game`.
 | `src/core/registry.ts` | **Generic content `Registry<T>`** — the one mechanism every content type plugs into (towers/heroes/enemies/cards/upgrades/chests/bosses/equipment + future biomes). Self-registration (no hardcoded master lists), per-def validation, versioning (`CONTENT_VERSION`), alias-based save compatibility, and open registration for modding. |
 | `src/core/ability.ts` | **Generic ability-component system** — a tower/hero's combat is DATA (a list of reusable `AbilityComponent`s: projectile/aura/explosion/chain/status/pierce/crit/heal/shield/buff/debuff/summon) run by ONE executor against an `AbilityContext` the Game implements. Launch towers/heroes are built from these (see `TOWER_ABILITIES`/`HERO_PULSE`/`HERO_ULT` in config); a new unit composes blocks with no sim code. |
 | `src/core/status.ts` | **Universal status-effect framework** — effects are DATA (`StatusEffectDef` in `statusRegistry`: stacking rule, duration, max stacks, color, icon, potency, modifier tags) + a pure RULES ENGINE (`applyStatus`/`tickStatuses`/`aggregate`) handling stack/refresh/extend/ignore, DoT/regen ticks, and combined slow/vuln/disable. Legacy Fracture/Corrosion/Infection/Disruption keep fast fields but are catalogued here; NEW effects (burn, slow, stun, freeze, …) run through the engine via the optional `Enemy.statuses` container + `Game.applyEffect`. |
-| `src/core/cards.ts` | Gene Cards: declarative `CardEffect[]` data + the single `applyCard()` interpreter. |
+| `src/core/cards.ts` | Gene Cards: declarative `CardEffect[]` data + the single `applyCard()` interpreter; per-card permanent-upgrade + Ascension-backend scaffolding on `CardDef`, validated by `cardProblems`. |
+| `src/core/geneCards.ts` | **Gene Card permanent progression** (GENE-EVOLUTION.md) — per-card save state (`GeneCardSave`), campaign gates, `effectiveGeneEffects(def, level, ascension)`, the collection Power fold (`geneCollectionPowerMult`), rarity/art resolution seams, sanitizer. |
+| `src/core/geneUpgrades.ts` | Authored permanent upgrade CONTENT — 3–5 levels for every card, folded onto defs pre-registration. |
+| `src/core/geneEssence.ts` | Gene Essence economy — duplicate-shard conversion rates, container drop rolls, upgrade cost curve. |
+| `src/core/geneLoadout.ts` | Starting Gene Loadouts — the slot-unlock ladder (Campaign + Genome Cores) and loadout sanitizers. |
 | `src/core/map.ts` | The arena: grid, obstacles, the flow-field pathfinding, tower slots, spawn/goal, the **Final Defense Zone** band (`inFinalDefenseZone`). |
 | `src/core/types.ts` | Shared sim types (entities, enums, snapshots). |
 | `src/core/rng.ts` | Seeded PRNG (mulberry32). No `Math.random` in core. |
@@ -58,7 +62,7 @@ back as method calls (intents) on the `Game`.
 | `src/core/prestige.ts` | **Prestige — MOLT** — sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket, folded in `metaModifiers`). |
 | `src/core/ascendant.ts` | **Ascendant Tree** — Cells buy permanent, capped economy nodes (shard/biomass/loot/cell gain) kept across every Molt. |
 | `src/save/` | Versioned + checksummed persistence (`saveStore`), file I/O (`saveFile`). |
-| `src/state/` | `meta` (permanent progression store), `store` (tiny React-bridged external store), `prefs` (per-browser UI toggles, e.g. Auto Gene Selection), `notifications`+`notificationSources` (generic menu badge registry — NOTIFICATIONS.md), `heroView` (Hero Lab `heroDetail` read-model). |
+| `src/state/` | `meta` (permanent progression store), `store` (tiny React-bridged external store), `prefs` (per-browser UI toggles, e.g. Auto Gene Selection), `notifications`+`notificationSources` (generic menu badge registry — NOTIFICATIONS.md), `heroView` (Hero Lab `heroDetail` read-model), `geneArchive` (Gene Archive row read-model), `mechanics` (Help wiki + What's New registry). |
 | `src/render/renderer.ts` | Canvas2D battlefield rendering (reads `RenderState`, never mutates). |
 | `src/ui/` | React: `App`, `GameView` (the rAF loop host), HUD/Toolbar/DraftModal/menus, `HeroLab` (champion-select + animated `components/HeroPortrait`), `ErrorBoundary`. Hero identity flavor in `core/heroLore`. |
 | `src/debug/` | Dev debug flag + active-game registry (`?debug` opt-in). |

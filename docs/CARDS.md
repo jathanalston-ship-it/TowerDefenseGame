@@ -9,6 +9,14 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 > **permanent** is which cards are *unlocked into your pool*, their *weights*, and
 > your *draft upgrades* — all bought with **Mutation Fragments**. This keeps runs
 > wild and experimental without inflating permanent power (`PROGRESSION.md §1`).
+>
+> **Shipped permanence — Gene Evolution (`GENE-EVOLUTION.md`).** Every card is now ALSO a
+> permanent collectible: drafting it once adds it to the **Gene Archive**, where **Gene
+> Essence** buys 3–5 permanent upgrade levels per card (campaign-gated globally at Stages
+> 15/30/50/75). A card's levels apply **every time it is drafted** (and via **Starting Gene
+> Loadouts**, up to five cards auto-activate at run start). The DRAFT stays the temporary,
+> run-shaping act this doc describes; the permanent layer lives entirely in the Archive and
+> is Power-Score-counted there.
 
 > **Implementation status (this build).** The **framework is built to scale**; the catalog is
 > seeded small on purpose (room to add systems early without re-balancing 150+ cards):

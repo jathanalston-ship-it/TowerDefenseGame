@@ -18,6 +18,7 @@ import { CAMPAIGN_REWARDS } from '../core/config';
 import { FEATURES } from '../core/features';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
+import { pickTip } from './tips';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
 import { NextGoalBanner } from './NextGoalBanner';
@@ -63,6 +64,7 @@ export function PlayScreen({
   // Snapshot the last run ONCE at mount so the recap survives onSeenLast clearing it (and
   // doesn't re-appear when you tab back to Play later in the same session).
   const [recap] = useState(() => recapItems(last));
+  const [tip] = useState(pickTip); // one loading tip per visit (ui/tips.ts)
   useEffect(() => { if (last) onSeenLast(); }, [last, onSeenLast]);
   // Difficulty drives WHICH campaign track's frontier we show, so it must re-render the
   // panel — mirror it into local state (the ref stays the source of truth for run start).
@@ -232,6 +234,9 @@ export function PlayScreen({
 
       {/* ── Living Progress dashboard — momentum across every system ── */}
       <ProgressDashboard go={go} onStartEndless={onStartEndless} />
+
+      {/* ── Loading tip — a one-line teacher, rotated per visit (ui/tips.ts) ── */}
+      <div className="mc-tip" role="note"><span className="mc-tip-k">TIP</span>{tip}</div>
     </div>
   );
 }

@@ -18,6 +18,7 @@ const TOUR: { area: string; purpose: string }[] = [
   { area: 'Hero Lab', purpose: 'Develop your heroes — stars, mastery, and which heroes you field each run.' },
   { area: 'Equipment', purpose: 'The Armory — gear each hero with a weapon, armor, and relic; reforge to perfect them.' },
   { area: 'Genetic Vault', purpose: 'Crack open the Bio-Containers your runs earn for equipment, shards, and crafting materials.' },
+  { area: 'Gene Archive', purpose: 'Every Gene Card you draft is collected here permanently. Spend Gene Essence to level cards up, and equip Starting Genes that auto-activate every run.' },
   { area: 'Collection', purpose: 'Your codex — every tower, enemy, boss, and Gene Card you have discovered.' },
   { area: 'Profile', purpose: 'Your lifetime stats, mastery ranks, achievements, and account records.' },
   { area: 'Settings', purpose: 'Audio, difficulty defaults, save management, and replaying this tour or the tutorial.' },

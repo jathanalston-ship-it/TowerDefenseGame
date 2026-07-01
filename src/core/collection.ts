@@ -62,6 +62,7 @@ export interface CollectionContext {
   bestWave: number;
   bossesSlain: Set<string>; // framework-boss chassis archetypes ever slain
   biomesSeen: Set<string>; // biome ids the account has reached in Campaign
+  geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
 // ── Ranks ─────────────────────────────────────────────────────────────────────
@@ -146,7 +147,10 @@ export function collectionView(ctx: CollectionContext): CollectionView {
   const seenCards = new Set(stats.uniqueCards);
   const cards = cardRegistry.ids().map((id): CollectionEntry => {
     const tier = seenCards.has(id) ? 1 : 0;
-    return { id, name: cardRegistry.get(id)?.name ?? id, tier, maxTier: 1, tierLabel: tier ? 'Collected' : 'Undiscovered' };
+    // The permanent Gene level enriches the LABEL only (tier/maxTier untouched, so collection
+    // completion and its Power/bonuses are unchanged — Gene power is counted by the Archive).
+    const lvl = ctx.geneLevels?.[id] ?? 0;
+    return { id, name: cardRegistry.get(id)?.name ?? id, tier, maxTier: 1, tierLabel: tier ? (lvl > 0 ? `Gene Level ${lvl}` : 'Collected') : 'Undiscovered' };
   });
 
   const equipment = ALL_ITEMS.map((d): CollectionEntry => {
