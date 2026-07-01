@@ -178,7 +178,9 @@ export function VaultReveal({
             <div className="vreveal-ceremony" onClick={advance}>
               <div className="vreveal-glow" aria-hidden />
               {isRare && flipped && <div className="vreveal-beams" aria-hidden />}
-              <div className={`vreveal-card ${flipped ? 'is-flipped' : ''}`}>
+              {/* Key on the pull index so each pull DEALS IN fresh face-down (clean flip forward),
+                  instead of reusing the element and reverse-flipping the previous reward away. */}
+              <div key={i} className={`vreveal-card ${flipped ? 'is-flipped' : ''}`}>
                 <div className="vreveal-card-back" aria-hidden>
                   <div className="vreveal-card-sigil" />
                   <div className="vreveal-card-rword">{rarityLabel(pull.rarity)}</div>

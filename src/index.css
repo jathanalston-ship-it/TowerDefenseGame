@@ -4764,12 +4764,17 @@ kbd {
   position: absolute;
   inset: 0;
   border-radius: 16px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   overflow: hidden;
   border: 2px solid var(--vr-accent);
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55), 0 0 26px -8px var(--vr-accent);
+  /* Which face shows is driven by the flip STATE (opacity), NOT GPU backface-culling. On clipped
+     (overflow + border-radius) 3D faces, backface-visibility:hidden is unreliable and rendered the
+     back MIRRORED ("backwards text") while the reward front never appeared. Opacity swaps at the
+     flip's edge-on midpoint (~0.29s into the 0.7s rotation) so the correct face reads cleanly. */
+  transition: opacity 0.12s linear 0.29s;
 }
+.vreveal-card.is-flipped .vreveal-card-back { opacity: 0; }
+.vreveal-card.is-flipped .vreveal-card-front { opacity: 1; }
 .vreveal-card-back {
   background: linear-gradient(160deg, #0c1a26, #122430);
   display: grid;
@@ -4795,6 +4800,7 @@ kbd {
 }
 .vreveal-card-front {
   transform: rotateY(180deg);
+  opacity: 0; /* hidden until the flip reaches its midpoint (see the shared face rule) */
   background: linear-gradient(160deg, #11212d, #0a141c);
   display: grid;
   place-items: center;
@@ -4908,9 +4914,11 @@ kbd {
 
 @media (prefers-reduced-motion: reduce) {
   .vreveal-backdrop, .vreveal, .vreveal-card, .vreveal-glow, .vreveal-card-sigil, .vreveal-beams,
-  .vreveal-tap, .vreveal-power-total, .vreveal-row, .vreveal-card.is-flipped {
+  .vreveal-tap, .vreveal-power-total, .vreveal-row, .vreveal-card.is-flipped,
+  .vreveal-card-back, .vreveal-card-front {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important; /* flip is instant here → swap the face opacity instantly too */
   }
 }
 
