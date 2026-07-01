@@ -11,7 +11,14 @@ import { CARD_POOL, cardRegistry } from './cards';
 import type { CardDef } from './cards';
 import { effectsPower } from './power';
 
-const baseCard = CARD_POOL[0]; // a real registered card (no upgrades authored yet)
+const baseCard = CARD_POOL[0]; // a real registered card (Task 4: now carries authored upgrades)
+
+// A synthetic upgrade-less card — the golden-safety reference: a card applied at level 0 (or with
+// nothing authored) must be byte-identical to its base. Fresh saves have EMPTY gene maps ⇒ level 0.
+const bare: CardDef = {
+  id: 'x_bare', name: 'X', rarity: 'common', category: 'tower', description: '',
+  effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.1 }],
+};
 
 // A synthetic card WITH upgrade levels — proves the fold logic works ahead of Task 4's content.
 const leveled: CardDef = {
@@ -27,10 +34,11 @@ const leveled: CardDef = {
 };
 
 describe('gene architecture — effective effects seam', () => {
-  it('a card with no authored upgrades returns its BASE effects at any level (golden-safe)', () => {
-    expect(effectiveGeneEffects(baseCard, 0)).toEqual(baseCard.effects);
-    expect(effectiveGeneEffects(baseCard, 5)).toEqual(baseCard.effects); // still base — no upgrades exist
-    expect(geneMaxLevel(baseCard)).toBe(1); // base-only ceiling
+  it('level 0 (a fresh save) returns BASE effects — and an upgrade-less card at any level (golden-safe)', () => {
+    expect(effectiveGeneEffects(baseCard, 0)).toEqual(baseCard.effects); // real card at level 0 = base
+    expect(effectiveGeneEffects(bare, 5)).toEqual(bare.effects); // no upgrades authored ⇒ base at any level
+    expect(geneMaxLevel(bare)).toBe(1); // base-only ceiling
+    expect(geneMaxLevel(baseCard)).toBeGreaterThanOrEqual(3); // Task 4: real cards carry 3–5 levels
   });
 
   it('folds base + upgrades up to the level (and clamps to authored count)', () => {
@@ -45,6 +53,7 @@ describe('gene architecture — effective effects seam', () => {
 describe('gene architecture — power seams', () => {
   it('permanent power is 1 at level 0 and rises with authored upgrade levels', () => {
     expect(genePermanentPowerMult(baseCard, 0)).toBe(1);
+    expect(genePermanentPowerMult(bare, 5)).toBe(1); // nothing authored ⇒ nothing permanent
     expect(genePermanentPowerMult(leveled, 0)).toBe(1);
     expect(genePermanentPowerMult(leveled, 1)).toBeGreaterThan(1);
     expect(genePermanentPowerMult(leveled, 3)).toBeGreaterThan(genePermanentPowerMult(leveled, 1));
@@ -56,11 +65,12 @@ describe('gene architecture — power seams', () => {
     expect(geneCollectionPowerMult({})).toBe(1);
     const one: GeneSave = { [baseCard.id]: { level: 0 } };
     expect(geneCollectionPowerMult(one)).toBe(1); // level 0 ⇒ no contribution
-    // Linear aggregation: 100 hypothetical upgraded cards can't explode (bounded, additive).
+    // Linear aggregation: the WHOLE library maxed can't explode (bounded, additive — scale-safe).
     const many: GeneSave = {};
     for (const c of CARD_POOL) many[c.id] = { level: 5 };
     const p = geneCollectionPowerMult(many);
-    expect(p).toBe(1); // real cards have no upgrades yet ⇒ still 1 (golden-safe)
+    expect(p).toBeGreaterThan(1); // Task 4: real upgrades now contribute permanent power
+    expect(p).toBeLessThan(30); // linear, not exponential — sane even fully maxed
     expect(Number.isFinite(p)).toBe(true);
   });
 });

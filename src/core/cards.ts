@@ -7,6 +7,7 @@ import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
 import { SELL } from './config';
+import { GENE_UPGRADES } from './geneUpgrades';
 
 /** The run "R bucket": multipliers/flags a run accumulates from drafted cards. */
 export interface RunModifiers {
@@ -312,29 +313,64 @@ export const CARD_POOL: CardDef[] = [
   { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
 ];
 
-/** Per-card invariants (shared with the registry's own `validate()`). */
+/** Per-effect invariants — shared by base effects AND every authored upgrade level. */
+function effectProblems(e: CardEffect, mods: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  const numericValueOp = e.op === 'mul' || e.op === 'add' || e.op === 'biomass' || e.op === 'integrity' || e.op === 'heroHp';
+  if (numericValueOp && !Number.isFinite((e as { value: number }).value)) out.push('non-finite effect value');
+  if (e.op === 'mul' && e.value <= 0) out.push('multiplier must be > 0');
+  if ((e.op === 'mul' || e.op === 'add') && typeof mods[e.field] !== 'number') {
+    out.push(`'${e.field}' is not a numeric run modifier`);
+  }
+  if (e.op === 'flag' && typeof mods[e.field] !== 'boolean') {
+    out.push(`'${e.field}' is not a boolean run modifier`);
+  }
+  if (e.op === 'set' && typeof mods[e.field] !== 'string') {
+    out.push(`'${e.field}' is not a string run modifier`);
+  }
+  if (e.op === 'grant' && e.grant.kind === 'towerProjectileMutator' && !e.grant.id) out.push('grant missing mutator id');
+  if (e.op === 'grant' && e.grant.kind === 'heroAttackAbility' && !e.grant.component) out.push('heroAttackAbility grant missing component');
+  return out;
+}
+
+// Upgrade fields that are CONSUMED at run boot — dead if a card is drafted mid-run, so upgrade
+// content must never rely on them (the base card may; it sets expectations at draft time).
+const BOOT_ONLY_FIELDS = new Set(['startBiomassBonus', 'integrityMult', 'heroMaxHpMult']);
+
+/** Per-card invariants (shared with the registry's own `validate()`). Since Task 4, EVERY gene card
+ *  must carry 3–5 authored permanent upgrade levels — the structural "no card bypasses the upgrade
+ *  system" guarantee (docs/GENE-EVOLUTION.md). */
 export function cardProblems(c: CardDef): string[] {
   const out: string[] = [];
   const mods = defaultRunModifiers() as unknown as Record<string, unknown>;
   if (c.effects.length === 0) out.push('has no effects');
   if (!(c.category in CARD_CATEGORY_LABEL)) out.push(`unknown category '${c.category}'`);
-  for (const e of c.effects) {
-    const numericValueOp = e.op === 'mul' || e.op === 'add' || e.op === 'biomass' || e.op === 'integrity' || e.op === 'heroHp';
-    if (numericValueOp && !Number.isFinite((e as { value: number }).value)) out.push('non-finite effect value');
-    if (e.op === 'mul' && e.value <= 0) out.push('multiplier must be > 0');
-    if ((e.op === 'mul' || e.op === 'add') && typeof mods[e.field] !== 'number') {
-      out.push(`'${e.field}' is not a numeric run modifier`);
+  for (const e of c.effects) out.push(...effectProblems(e, mods));
+  // ── Permanent-upgrade contract (Task 4): 3–5 meaningful, valid, non-boot-only levels. ──
+  const ups = c.upgrades ?? [];
+  if (ups.length < 3 || ups.length > 5) out.push(`must have 3–5 upgrade levels (has ${ups.length})`);
+  if ((c.maxLevel ?? 0) !== ups.length) out.push(`maxLevel (${c.maxLevel}) must equal upgrade count (${ups.length})`);
+  ups.forEach((u, i) => {
+    if (u.effects.length === 0) out.push(`upgrade L${i + 1} has no effects`);
+    if (!u.note?.trim()) out.push(`upgrade L${i + 1} has no note`);
+    for (const e of u.effects) {
+      out.push(...effectProblems(e, mods).map((p) => `upgrade L${i + 1}: ${p}`));
+      if ((e.op === 'mul' || e.op === 'add') && BOOT_ONLY_FIELDS.has(e.field)) {
+        out.push(`upgrade L${i + 1}: '${e.field}' is boot-only (dead when drafted mid-run)`);
+      }
     }
-    if (e.op === 'flag' && typeof mods[e.field] !== 'boolean') {
-      out.push(`'${e.field}' is not a boolean run modifier`);
-    }
-    if (e.op === 'set' && typeof mods[e.field] !== 'string') {
-      out.push(`'${e.field}' is not a string run modifier`);
-    }
-    if (e.op === 'grant' && e.grant.kind === 'towerProjectileMutator' && !e.grant.id) out.push('grant missing mutator id');
-    if (e.op === 'grant' && e.grant.kind === 'heroAttackAbility' && !e.grant.component) out.push('heroAttackAbility grant missing component');
-  }
+  });
   return out;
+}
+
+// Fold the authored permanent-upgrade content (Task 4) onto each def BEFORE registration, so every
+// seam (effectiveGeneEffects / Power / the Archive) reads it off the def. maxLevel == level count.
+for (const c of CARD_POOL) {
+  const ups = GENE_UPGRADES[c.id];
+  if (ups) {
+    c.upgrades = ups;
+    c.maxLevel = ups.length;
+  }
 }
 
 // Cards self-register; drafts sample the registry's ACTIVE (non-deprecated) entries.
