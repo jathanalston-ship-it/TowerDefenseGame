@@ -4,6 +4,7 @@
 
 import type { MutableRefObject } from 'react';
 import { meta } from '../state/meta';
+import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
@@ -69,7 +70,7 @@ export function InfiniteScreen({
 
       <aside className="play-side">
         <div className="power-score">
-          Power Score <b>×{meta.powerScore().score.toFixed(1)}</b>
+          Power Score <b>{formatPower(meta.power().score)}</b>
         </div>
         <div className="records play-records">
           <div className="record"><div className="k">Deepest Wave</div><div className="v" style={{ color: 'var(--viral)' }}>{save.bestWave}</div></div>

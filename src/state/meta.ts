@@ -45,7 +45,7 @@ import {
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
 import type { CardEffect } from '../core/cards';
-import { composePower, effectsPower, geomean, itemRarityPower } from '../core/power';
+import { composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
@@ -166,10 +166,23 @@ function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   const mm = metaModifiers(save);
   const tp = towerProgress(save);
   const hp = heroProgress(save);
+  // Prestige + Ascendant global damage is captured ONCE via mm.towerDamageMult; pass the UPGRADE-only
+  // hero multiple to metaExtrasPower so Apex Genome / Rich Biomass / Reinforced Nucleus / Hive
+  // Emplacements all move Power without double-counting prestige (POWER-SCORE.md coverage guarantee).
+  const globalDmg = prestigeMult(save.prestige.lifetimeCells) * ascendantBonuses(save.prestige.nodes).damageMult;
+  const metaExtras = metaExtrasPower({
+    heroDamageUpgradeMult: globalDmg > 0 ? mm.heroDamageMult / globalDmg : 1,
+    biomassMult: mm.biomassMult,
+    integrityMult: 1 + mm.integrityBonus / ECON.baseIntegrity,
+    bonusSlots: mm.bonusSlots,
+  });
+  // Collection completion bonuses are permanent account strength → their offense folds into `meta`.
+  const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
   return {
-    // Ascendant damage already folded into mm.towerDamageMult; genome run-effect combat upgrades add
-    // via effectsPower (weights damage/rate fields; defensive fields weight 0 ⇒ no power inflation).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)),
+    // Every PERMANENT strength source lands in `meta`: upgrades (tower-dmg proxy × genome run-effects ×
+    // the hero/biomass/integrity/slot axes), prestige/ascendant, and collection bonuses — so ANY
+    // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),

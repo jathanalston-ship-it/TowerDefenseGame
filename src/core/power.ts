@@ -36,6 +36,13 @@ const FIELD_WEIGHT: Record<string, number> = {
   heroMaxHpMult: 0.3, // survivability
   biomassMult: 0.3, // economy
   reactorBiomassMult: 0.25, // economy
+  // Permanent-upgrade axes the "did buying this make me stronger?" invariant requires: ability uptime
+  // and effective-damage-vs-tougher-enemies are INVERSE (lower value = stronger ⇒ NEGATIVE weight, so a
+  // buff raises Power and a trade-off downside lowers it); mobility/engagement count lightly.
+  heroCooldownMult: -0.4, // lower cooldown ⇒ more ability casts ⇒ more offense
+  enemyHpRunMult: -0.4, // softer enemies ⇒ more effective damage
+  heroSpeedMult: 0.15, // mobility ⇒ survival + uptime
+  heroAggroRangeMult: 0.1, // wider engagement ⇒ more effective DPS
 };
 // `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
@@ -53,20 +60,25 @@ const ADD_POWER: Record<string, number> = {
   reactionRepeats: 0.1,
   obeliskVulnerabilityBonus: 0.3,
   reactorOverchargeBonus: 0.1,
+  startBiomassBonus: 0.0003, // flat starting biomass — economy tempo; small per-unit so a big grant ≈ a few %
+  sellRefundFrac: 0.2, // tower sell refund — economy flexibility (a small but real advantage)
 };
 
 /** The canonical set of run-modifier fields that represent account STRENGTH — the CONTRACT the Power
  *  index must honor. Every entry MUST be scored by the model above (FIELD_WEIGHT ∪ ADD_POWER), which
  *  `validate.ts` enforces at dev boot: a strength field left unscored is a validation ERROR, so no
- *  strength-affecting content can exist without a Power evaluation. Deliberately EXCLUDES inverse
- *  trade-offs (heroCooldownMult, enemyHpRunMult) and pure utility/CC/behavior knobs. */
+ *  strength-affecting content can exist without a Power evaluation. Inverse fields (heroCooldownMult,
+ *  enemyHpRunMult) ARE scored — with negative weights, so a buff raises Power — because permanent
+ *  upgrades tune them; only pure cosmetic / flag / string knobs remain unscored. */
 export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'towerDamageMult', 'towerFireRateMult', 'heroDamageMult', 'splashRadiusMult', 'poolDpsMult',
   'parasiteInfectionMult', 'heroAbilityRadiusMult', 'lastStandMult', 'integrityMult', 'heroMaxHpMult',
   'biomassMult', 'reactorBiomassMult', 'needleExtraProjectiles', 'heroLifestealFrac', 'heroThornsFrac',
   'heroTowerHasteAura', 'heroTowerDamageAura', 'executeThreshold', 'damagePerTower', 'damagePerEmptySlot',
   'classResonanceBonus', 'diversityBonus', 'fractureBonusStacks', 'reactionRepeats', 'obeliskVulnerabilityBonus',
-  'reactorOverchargeBonus',
+  'reactorOverchargeBonus', 'startBiomassBonus',
+  // Permanent-upgrade axes (inverse fields scored with negative weights; mobility/economy lightly):
+  'heroCooldownMult', 'enemyHpRunMult', 'heroSpeedMult', 'heroAggroRangeMult', 'sellRefundFrac',
 ];
 
 /** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */
@@ -104,6 +116,26 @@ export function effectsPower(effects: readonly CardEffect[]): number {
  * piece reads as "power gained" when equipped (rarity 1..5 → +3%..+15%; each affix +1%). */
 export function itemRarityPower(rarity: Rarity, affixCount: number): number {
   return 1 + 0.03 * (RARITY_ORDER.indexOf(rarity) + 1) + 0.01 * Math.max(0, affixCount);
+}
+
+/** Each permanent build slot ≈ +5% account offense (one more tower on the field). */
+export const META_SLOT_POWER = 0.05;
+
+/** The permanent-meta contributions the `towerDamageMult` proxy does NOT already capture, scored so
+ * that EVERY permanent upgrade moves Power (the coverage guarantee): hero-damage upgrades, biomass,
+ * integrity, and build slots. Weights mirror `effectsPower`. Prestige/Ascendant global damage is
+ * excluded here (it is counted once via `towerDamageMult`), so pass the UPGRADE-only hero multiple.
+ * Neutral input (1 / 1 / 1 / 0) → 1, so a fresh account still reads exactly POWER_BASE. */
+export function metaExtrasPower(s: {
+  heroDamageUpgradeMult: number; // hero damage from meta upgrades ONLY (prestige/ascendant excluded)
+  biomassMult: number;
+  integrityMult: number; // (baseIntegrity + integrityBonus) / baseIntegrity
+  bonusSlots: number;
+}): number {
+  return Math.pow(Math.max(0, s.heroDamageUpgradeMult) || 1, FIELD_WEIGHT.heroDamageMult)
+    * Math.pow(Math.max(0, s.biomassMult) || 1, FIELD_WEIGHT.biomassMult)
+    * Math.pow(Math.max(0, s.integrityMult) || 1, FIELD_WEIGHT.integrityMult)
+    * (1 + META_SLOT_POWER * Math.max(0, s.bonusSlots));
 }
 
 /** Per-contributor multipliers (each ≥ 1 on a fresh account). Every listed system in the design

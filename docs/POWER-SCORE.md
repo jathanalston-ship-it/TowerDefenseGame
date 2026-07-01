@@ -33,7 +33,7 @@ A fresh account reads `1000`; a typical single upgrade moves it by a readable ha
 
 | Bucket | Contains | Source |
 |---|---|---|
-| `meta` | Permanent meta upgrades **and Prestige** (the compounding P bucket + Ascendant Tree) | `metaModifiers(save).towerDamageMult` |
+| `meta` | Permanent meta upgrades (**every** axis — tower/hero damage, fire rate, biomass, integrity, slots, cooldown, …), **Prestige** + Ascendant Tree, and **Collection** completion bonuses | `metaModifiers` × genome run-effects × `metaExtrasPower` × collection |
 | `towers` | Tower **Stars** + Tower **Mastery**, geomean-averaged across the roster | `towerProgress(save)` |
 | `heroes` | Hero **Stars** + Hero **Mastery**, geomean-averaged across the roster | `heroProgress(save)` |
 | `equipment` | The equipped loadout: offense effects × each piece's rarity/affix index | `equipmentPower(save)` |
@@ -80,9 +80,10 @@ Power Score is a first-class **balancing input**, not just a display. Systems th
 
 - **Progression-aware loot** — drop-quality windows, catch-up, and pity keyed off account
   strength (see `docs/LOOT-PROGRESSION.md`).
-- **Enemy scaling / recommendation** — "recommended power" per campaign stage compares against
-  the account damage multiple (`meta.powerScore().score`, the `meta × towers × heroes` sub-index),
-  while the universal integer index (`meta.power().score`) is the player-facing feedback number.
+- **Enemy scaling / recommendation** — "recommended power" per campaign stage is now on the
+  **universal index**: `recommendedPowerScore(stage) = POWER_BASE × recommendedPower(stage)` compares
+  directly against `meta.power().score`, so Campaign / Play / Infinite readiness shows one number
+  ("Recommended 1,500 · you 1,284 ⚠") — no more legacy `×1.x` multiples.
 - **Future**: loot quality, matchmaking-style recommendations, and pity systems.
 
 ---
@@ -92,10 +93,10 @@ Power Score is a first-class **balancing input**, not just a display. Systems th
 - **Index, not sim truth.** Power Score is a monotonic, comparable index. It intentionally does
   **not** equal a run's exact damage output — statuses, reactions, targeting, and positioning are
   out of scope. It answers "stronger or not," reliably and cheaply.
-- **Two related numbers.** `meta.power().score` is the universal integer (folds equipment +
-  temporary). `meta.powerScore().score` is the narrower account **damage multiple** (meta × towers
-  × heroes) retained for recommended-power readiness checks, which were calibrated against it.
-  Unifying readiness onto the universal index is a safe future step.
+- **One player-facing number.** `meta.power().score` is THE universal integer index shown everywhere
+  (Menu, HUD, Profile, Run Summary, Tower/Hero/Equipment, Draft, loot, upgrades, Campaign & Infinite,
+  and readiness). `meta.powerScore()` (the narrower meta × towers × heroes sub-index) is retained only
+  as an internal read-model; readiness has been unified onto the universal index (above).
 - **Weights are tunable.** `FIELD_WEIGHT`, `ADD_POWER`, `itemRarityPower`, and `POWER_BASE` are
   the levers; changing them re-scales the index without touching any consumer.
 
@@ -122,3 +123,10 @@ No strength-affecting content can ship without a Power evaluation, enforced in c
 - **Baseline-safe.** Every scored field defaults to its neutral value, so `effectsPower(defaults) === 1`
   and a fresh account still reads exactly `POWER_BASE` regardless of the weights — the model only grows
   MORE complete as gear/cards deviate from neutral. Pinned by `core/powerCoverage.test.ts`.
+- **Every upgrade / star / item raises it (behavioral guarantee).** `state/powerIntegration.test.ts`
+  buys one level of EVERY permanent upgrade, maxes each tower's and hero's Stars, and equips one item
+  per slot — asserting Power STRICTLY rises every time. This is the auto-check that bites when new
+  upgrade content forgets to register as strength. To honor it the `meta` bucket now folds **every**
+  permanent axis (not just tower damage) + collection bonuses, and inverse upgrade fields
+  (`heroCooldownMult`, `enemyHpRunMult`) are scored with negative weights so a permanent buff to them
+  moves Power. No permanent upgrade can be invisible to the index.
