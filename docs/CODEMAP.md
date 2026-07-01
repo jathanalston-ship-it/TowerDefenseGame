@@ -1,6 +1,7 @@
 # CODEMAP.md — Developer Orientation
 
-A practical map of the codebase for a developer joining the project. For *vision*
+A practical map of the codebase for a developer joining the project. **Read
+`PROJECT_MANIFEST.md` first** (the per-system source of truth); for *vision*
 read `DESIGN.md`; for the *engineering blueprint* read `ARCHITECTURE.md`; for the
 *tower range philosophy + the Final Defense Zone / Emergency Defense Mode* read
 `RANGE.md`. This file is the "where does what live, and how do I add content" guide for
@@ -61,7 +62,7 @@ back as method calls (intents) on the `Game`.
 | `src/core/mastery.ts` | **Mastery as identity** — per-unit titles/lore + procedural ranks (infinite) + sparse mechanic milestone perks; tower = craft, hero = bond. |
 | `src/core/prestige.ts` | **Prestige — MOLT** — sqrt-minted Ascendant Cells → a log global damage multiplier (the P bucket, folded in `metaModifiers`). |
 | `src/core/ascendant.ts` | **Ascendant Tree** — Cells buy permanent, capped economy nodes (shard/biomass/loot/cell gain) kept across every Molt. |
-| `src/save/` | Versioned + checksummed persistence (`saveStore`), file I/O (`saveFile`). |
+| `src/save/` | Versioned + checksummed persistence (`saveStore`), file I/O (`saveFile`), shared pure save-derivations (`derive.ts`, e.g. `highestCampaignStage` — cycle-free home readers import instead of re-inlining). |
 | `src/state/` | `meta` (permanent progression store), `store` (tiny React-bridged external store), `prefs` (per-browser UI toggles, e.g. Auto Gene Selection), `notifications`+`notificationSources` (generic menu badge registry — NOTIFICATIONS.md), `heroView` (Hero Lab `heroDetail` read-model), `geneArchive` (Gene Archive row read-model), `mechanics` (Help wiki + What's New registry). |
 | `src/render/renderer.ts` | Canvas2D battlefield rendering (reads `RenderState`, never mutates). |
 | `src/ui/` | React: `App`, `GameView` (the rAF loop host), HUD/Toolbar/DraftModal/menus, `HeroLab` (champion-select + animated `components/HeroPortrait`), `ErrorBoundary`. Hero identity flavor in `core/heroLore`. |

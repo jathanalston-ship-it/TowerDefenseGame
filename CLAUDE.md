@@ -5,8 +5,11 @@ session working in this repo. It captures the practices worth keeping; the
 stack-specific sections (build/test/run) are filled in below.
 
 > Status: **active development.** Stack is committed (React + TypeScript + Vite static SPA;
-> deterministic sim core in `src/core/`). For the live "what's actually built vs. planned" index,
-> read `docs/GAME-STATE.md` (the tiebreaker when a design doc and the build disagree). Sections
+> deterministic sim core in `src/core/`). **Read `docs/PROJECT_MANIFEST.md` FIRST** — the single
+> source of truth mapping every major system (purpose, files, dependencies, tips); every feature
+> should reference it and update its section on change. For the live "what's actually built vs.
+> planned" index, read `docs/GAME-STATE.md` (the tiebreaker when a design doc and the build
+> disagree). Sections
 > still marked _(grows with the project)_ are conventions to extend, not commands that exist today —
 > don't invent commands; if a script isn't real, it isn't an instruction.
 

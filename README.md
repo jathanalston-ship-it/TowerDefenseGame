@@ -4,7 +4,8 @@ A cyberpunk bio-horror tower defense. This repo currently contains the **design
 corpus** (`docs/`) and a **playable vertical slice** built as a static
 **React + TypeScript + Vite** app, deployable to **Cloudflare Pages**.
 
-> Vision, systems, and the full 1000-hour design live in `docs/` —
+> **Start with [`docs/PROJECT_MANIFEST.md`](docs/PROJECT_MANIFEST.md)** — the single source of
+> truth mapping every major system. Vision, systems, and the full 1000-hour design live in `docs/` —
 > [`DESIGN.md`](docs/DESIGN.md), [`PROGRESSION.md`](docs/PROGRESSION.md),
 > [`STAGES.md`](docs/STAGES.md), [`TOWERS.md`](docs/TOWERS.md),
 > [`HEROES.md`](docs/HEROES.md), [`EQUIPMENT.md`](docs/EQUIPMENT.md),

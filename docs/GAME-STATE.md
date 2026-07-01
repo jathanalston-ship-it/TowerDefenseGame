@@ -1,6 +1,7 @@
 # GAME-STATE.md — what actually exists, and its status
 
-> **This is the canonical "is it built?" index.** The design docs describe intent (some of it
+> **This is the canonical "is it built?" index.** (System map / first read:
+> `PROJECT_MANIFEST.md`.) The design docs describe intent (some of it
 > aspirational); this file tracks what the *shipped code* actually does. When a design doc and the
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
