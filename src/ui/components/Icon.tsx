@@ -64,7 +64,7 @@ export const GenomeCoreIcon = (p: IconProps): JSX.Element =>
     true,
   );
 
-/** Faceted crystal — Tower Shards (tinted per tower). */
+/** Faceted crystal — Strain Samples (tinted per tower). */
 export const TowerShardIcon = (p: IconProps): JSX.Element =>
   svg(
     <>
@@ -74,7 +74,7 @@ export const TowerShardIcon = (p: IconProps): JSX.Element =>
     p,
   );
 
-/** Four-point star sigil — Hero Shards (tinted per hero). */
+/** Four-point star sigil — Apex Genome (tinted per hero). */
 export const HeroShardIcon = (p: IconProps): JSX.Element =>
   svg(
     <>

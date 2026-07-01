@@ -11,8 +11,8 @@ const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 export function TutorialRewardReveal({ reward, onClose }: { reward: TutorialRewardSummary; onClose: () => void }): JSX.Element {
   const rows: { icon: JSX.Element | string; label: string; v: string }[] = [
     { icon: <CurrencyIcon id="genomeCores" size={15} title="" />, label: 'Genome Cores', v: `+${reward.cores}` },
-    { icon: '✦', label: 'Tower Shards · each tower', v: `+${reward.towerShards}` },
-    { icon: '✦', label: 'Hero Shards', v: `+${reward.heroShards}` },
+    { icon: '✦', label: 'Strain Samples · each tower', v: `+${reward.towerShards}` },
+    { icon: '✦', label: 'Apex Genome', v: `+${reward.heroShards}` },
     { icon: '◈', label: 'Tutorial Bio-Container', v: `${cap(reward.containerRarity)} · in the Vault` },
     { icon: '⚔', label: 'Hero Equipment', v: reward.itemName },
   ];
