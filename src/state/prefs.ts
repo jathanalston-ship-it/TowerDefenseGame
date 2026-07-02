@@ -94,6 +94,37 @@ export function setLabPrefs(patch: Partial<LabPrefs>): LabPrefs {
   return next;
 }
 
+// ── Genetic Vault ledger — session-spanning opening history + counters (device-local;
+// presentation only, never progression). Capped list so it can't grow unbounded.
+const VAULT_KEY = 'assimilate.vault';
+export interface VaultLedger {
+  opened: number;
+  byRarity: Record<string, number>;
+  recent: { at: number; label: string; rarity: string; items: number }[]; // newest first, ≤ 10
+}
+export function vaultLedger(): VaultLedger {
+  try {
+    const raw = JSON.parse(localStorage.getItem(VAULT_KEY) ?? '{}') as Partial<VaultLedger>;
+    return {
+      opened: typeof raw.opened === 'number' ? raw.opened : 0,
+      byRarity: raw.byRarity && typeof raw.byRarity === 'object' ? raw.byRarity : {},
+      recent: Array.isArray(raw.recent) ? raw.recent.slice(0, 10) : [],
+    };
+  } catch {
+    return { opened: 0, byRarity: {}, recent: [] };
+  }
+}
+export function recordVaultOpen(label: string, rarity: string, items: number): VaultLedger {
+  const led = vaultLedger();
+  const next: VaultLedger = {
+    opened: led.opened + 1,
+    byRarity: { ...led.byRarity, [rarity]: (led.byRarity[rarity] ?? 0) + 1 },
+    recent: [{ at: Date.now(), label, rarity, items }, ...led.recent].slice(0, 10),
+  };
+  try { localStorage.setItem(VAULT_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
+  return next;
+}
+
 // ── Device-pref key registry ─────────────────────────────────────────────────
 // The Auto-Start toggle key (read/written by GameView + BuildControls — shared const, not copies).
 export const AUTOSTART_KEY = 'assimilate.autostart';
@@ -111,4 +142,5 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   'assimilate.debug', // debug flag (src/debug/debug.ts)
   'assimilate.notif.seen', // notification watermarks (state/notifications.ts)
   LAB_KEY, // Tower Lab bench prefs (favorites/recents/selection/sort)
+  VAULT_KEY, // Genetic Vault opening ledger (history/statistics)
 ];

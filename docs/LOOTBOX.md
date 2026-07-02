@@ -153,3 +153,13 @@ boxes; `GeneticVault` is the sole caller and keys the reveal per crack so Open M
 
 **Extension points.** A new reward family = one `case` in `describePull` + a `RevealCategory`.
 Rarity label/color maps are open (an unknown tier like `mythic` degrades gracefully).
+
+
+## §vault (2026-07) — the Vault as a collection floor
+
+Premium VAULT OBJECTS (per-rarity stacks with counts; breathing cores, hover halos, tooltip
+reward readouts: rolls x shard ranges x hero-shard %), the roll-distribution DROP RATES strip
+(weights normalized), Open One / Five / Ten (batches merge into ONE ceremony via mergeCracked
+— best pull drives the scale; "Open All" is the same helper with pending.length), the pity
+guarantees bars (unchanged), and the device-local VAULT LEDGER (opened counters by rarity +
+the last openings — state/prefs vaultLedger, in the factory-reset registry).

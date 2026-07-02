@@ -7,9 +7,26 @@
 import { useState } from 'react';
 import { meta } from '../state/meta';
 import type { CrackedContainer } from '../state/meta';
-import { costOf, rarityRegistry } from '../core/loot';
+import { RARITIES, costOf, rarityRegistry } from '../core/loot';
 import { VaultReveal } from './VaultReveal';
 import { compareItemPower } from '../state/itemPower';
+import { recordVaultOpen, vaultLedger } from '../state/prefs';
+
+/** Merge N cracked containers into ONE ceremony (Open Five/Ten): items concatenate in crack
+ * order; the best pull drives the ceremony scale; the label counts the batch. */
+function mergeCracked(list: CrackedContainer[]): CrackedContainer {
+  if (list.length === 1) return list[0];
+  const rank = (r: string): number => RARITIES.findIndex((d) => d.id === r);
+  const top = list.reduce((a, b) => (rank(b.chest.topRarity) > rank(a.chest.topRarity) ? b : a));
+  return {
+    label: `${list.length} Containers`,
+    color: top.color,
+    chest: {
+      ...top.chest,
+      items: list.flatMap((c) => c.chest.items),
+    },
+  };
+}
 
 function rarityColor(id: string | undefined): string {
   return (id ? rarityRegistry.get(id)?.color : undefined) ?? 'var(--r-common)';
@@ -64,10 +81,18 @@ export function GeneticVault(): JSX.Element {
   }
   const grouped = rarityRegistry.ids().filter((id) => lootCounts.has(id)).map((id) => ({ id, n: lootCounts.get(id) as number }));
 
-  const crack = (): void => {
-    const award = meta.openContainer(); // applies the reward + removes it from the stockpile
-    setOpening(award); // null closes the ceremony (e.g. "Open More" with nothing left to crack)
-    if (award) setCrackSeq((n) => n + 1);
+  const crack = (count = 1): void => {
+    const opened: CrackedContainer[] = [];
+    for (let i = 0; i < count; i++) {
+      const award = meta.openContainer(); // applies the reward + removes it from the stockpile
+      if (!award) break;
+      opened.push(award);
+    }
+    if (opened.length === 0) { setOpening(null); return; }
+    const merged = mergeCracked(opened);
+    for (const c of opened) recordVaultOpen(c.label, c.chest.topRarity, c.chest.items.length);
+    setOpening(merged);
+    setCrackSeq((n) => n + 1);
   };
 
   // Incubating meter — read the live queue directly (queue[0] + banked progress; queue[1] next).
@@ -97,21 +122,38 @@ export function GeneticVault(): JSX.Element {
           <div className="vault-empty">No containers ready — fill the meter in a run to earn one.</div>
         ) : (
           <>
-            <div className="vault-stockpile">
+            <div className="vault-objects">
               {cacheCount > 0 && (
-                <span className="vault-chip" style={{ borderColor: 'var(--cache)', color: 'var(--cache)' }}>
-                  ⬢ Run Cache{cacheCount > 1 ? <b style={{ color: 'var(--text)' }}> ×{cacheCount}</b> : null}
-                </span>
+                <div className="vault-obj" style={{ ['--vc' as string]: 'var(--cache)' }}>
+                  <span className="vault-obj-core" aria-hidden>⬢</span>
+                  <span className="vault-obj-name">Run Cache</span>
+                  {cacheCount > 1 && <span className="vault-obj-n">×{cacheCount}</span>}
+                </div>
               )}
-              {grouped.map((g) => (
-                <span className="vault-chip" key={g.id} style={{ borderColor: rarityColor(g.id), color: rarityColor(g.id) }}>
-                  ◈ {rarityName(g.id)}{g.n > 1 ? <b style={{ color: 'var(--text)' }}> ×{g.n}</b> : null}
-                </span>
-              ))}
+              {grouped.map((g) => {
+                const def = rarityRegistry.get(g.id);
+                const rw = def?.reward;
+                return (
+                  <div className="vault-obj tt" key={g.id} tabIndex={0} style={{ ['--vc' as string]: rarityColor(g.id) }}>
+                    <span className="vault-obj-core" aria-hidden>◈</span>
+                    <span className="vault-obj-name">{rarityName(g.id)}</span>
+                    {g.n > 1 && <span className="vault-obj-n">×{g.n}</span>}
+                    {rw && (
+                      <span className="tt-bubble">
+                        {rw.rolls} rolls · {rw.towerShardRange[0]}–{rw.towerShardRange[1]} Strain Samples each ·
+                        {' '}{Math.round(rw.heroShardChance * 100)}% hero-shard rolls · materials &amp; essence scale with rarity
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <button className="primary vault-crack" onClick={crack}>
-              ◈ Crack Open {pending.length > 1 ? `(${pending.length} left)` : ''}
-            </button>
+            <div className="vault-actions">
+              <button className="primary vault-crack" onClick={() => crack(1)}>◈ Open One</button>
+              {pending.length >= 5 && <button className="vault-crack" onClick={() => crack(5)}>Open Five</button>}
+              {pending.length >= 10 && <button className="vault-crack" onClick={() => crack(10)}>Open Ten</button>}
+              <span className="vault-left">{pending.length} banked</span>
+            </div>
           </>
         )}
       </div>
@@ -150,6 +192,39 @@ export function GeneticVault(): JSX.Element {
         </div>
       )}
 
+      {/* Rarity odds — the roll distribution the queue draws from (weights normalized). */}
+      <div className="vault-odds">
+        <div className="vault-h">Drop rates</div>
+        <div className="vault-odds-row">
+          {(() => {
+            const total = RARITIES.reduce((s2, d) => s2 + d.weight, 0);
+            return RARITIES.map((d) => (
+              <span className="vault-odd" key={d.id} style={{ color: d.color }} title={`${d.name}: ${((d.weight / total) * 100).toFixed(1)}%`}>
+                {d.name.slice(0, 4)} <b>{((d.weight / total) * 100).toFixed(d.weight / total < 0.05 ? 1 : 0)}%</b>
+              </span>
+            ));
+          })()}
+        </div>
+      </div>
+
+      {/* Opening ledger — device-local history + counters (docs/LOOTBOX.md §vault). */}
+      {(() => {
+        const led = vaultLedger();
+        if (led.opened === 0) return null;
+        return (
+          <div className="vault-history">
+            <div className="vault-h">Vault history · {led.opened} opened</div>
+            <div className="vault-hist-rows">
+              {led.recent.slice(0, 5).map((r) => (
+                <span className="vault-hist" key={r.at} style={{ color: rarityColor(r.rarity) }}>
+                  {r.label} · {r.items} rewards
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* The opening ceremony is a fullscreen fixed overlay (VaultReveal) — it escapes the panel
           so nothing clips. `remaining` is what's still stockpiled AFTER this crack. */}
       {opening && (
@@ -159,7 +234,7 @@ export function GeneticVault(): JSX.Element {
           title={opening.label}
           color={opening.color}
           remaining={pending.length}
-          onOpenMore={crack}
+          onOpenMore={() => crack(1)}
           onClose={() => setOpening(null)}
           compareEquip={(item) => compareItemPower(save, item, save.selectedHero)}
         />
