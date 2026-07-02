@@ -47,7 +47,7 @@ in-run command surface, roster tabs, hold-to-buy, preview===outcome comparisons,
 1. **Card Ascension** — backend done; author tiers + one gameplay wire + ceremony.
 2. **Content wave** — toward 10 towers / 6 heroes / 100 cards through the validators.
 3. **meta.ts façade split + CI guards** (madge, ts-prune, import-direction lint).
-4. **Dynamic music intensity** — wire `music.setIntensity` to live threat (seam already open).
+4. **Hero mastery live projection** — towers wired; heroes ride the same bus (data change).
 
 ## Future roadmap (design-corpus scale)
 
@@ -66,7 +66,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 738 tests / 118 files green; golden sim byte-identical; typecheck strict; build clean.
+- 742 tests / 118 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.
