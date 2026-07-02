@@ -89,6 +89,7 @@ import type { HeroIdentity } from './heroIdentity';
 import type { Biome } from './biomes';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
+import type { DoctrineWarp } from './doctrines';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
@@ -414,6 +415,8 @@ export class Game {
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
+  /** The active doctrine's enemy-world warp ({} = none — every consumer gates on presence). */
+  private warp: DoctrineWarp = {};
   private readonly heroAttackStatuses: { status: StatusType; amount: number }[] = []; // GLOBAL (doctrine/collection): every hero's hits apply
   private readonly heroAttackKit: AbilityComponent[] = []; // GLOBAL: ability components run on each hero hit (cleave/chain/AoE/status/crit)
   // PER-HERO equipment (HEROES.md per-hero loadouts): a hero WITH gear gets its own mods bundle +
@@ -472,6 +475,12 @@ export class Game {
     this.mods.towerDamageMult = meta.towerDamageMult;
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
+    // Doctrine WARP (docs/MODE-IDENTITY.md §doctrines): enemy-world reshaping. 'none' has no
+    // warp ⇒ empty object, zero RNG draws, byte-identical golden run. Damage folds into the
+    // run's difficulty ONCE here; per-spawn hp/bounty/elites/counts apply per wave below.
+    this.warp = resolveDoctrine(opts.doctrine).warp ?? {};
+    if (this.warp.damageMult) this.diff = { ...this.diff, enemyDamageMult: this.diff.enemyDamageMult * this.warp.damageMult };
+
     // Fold the chosen doctrine's run-start effects, then run-start effects (equipment, …).
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
     for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
@@ -1216,22 +1225,22 @@ export class Game {
 
   /** Endless enemy-HP multiplier — GEOMETRIC, the PRIMARY wall (outpaces any fixed DPS over depth). */
   private endlessHpMult(depth: number): number {
-    return Math.pow(ENDLESS.hpGrowth, depth - 1) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
+    return Math.pow(ENDLESS.hpGrowth, (depth - 1) * (this.warp.scalingRateMult ?? 1)) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
   }
 
   /** Endless per-enemy bounty — rises SLOWER than HP, so deep enemies are biomass-inefficient. */
   private endlessBountyMult(depth: number): number {
-    return (1 + ENDLESS.bountyGrowth * (depth - 1)) * this.diff.rewardMult;
+    return (1 + ENDLESS.bountyGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1))) * this.diff.rewardMult;
   }
 
   /** Endless enemy-speed multiplier — gradual, clamped so the field stays readable. */
   private endlessSpeedMult(depth: number): number {
-    return Math.min(ENDLESS.speedCap, 1 + ENDLESS.speedGrowth * (depth - 1));
+    return Math.min(ENDLESS.speedCap, 1 + ENDLESS.speedGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1)));
   }
 
   /** Endless enemy-damage multiplier — gradual, continuous. */
   private endlessDamageMult(depth: number): number {
-    return 1 + ENDLESS.damageGrowth * (depth - 1);
+    return 1 + ENDLESS.damageGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1));
   }
 
   /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,
@@ -1298,6 +1307,7 @@ export class Game {
       if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss);
       else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss);
     }
+    this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(this.waveIndex); // Run Identity: fold this wave's beat + anomaly (no-op in Stage)
     this.spawnedAll = false;
     this.waveStartIntegrity = this.integrity;
@@ -1328,6 +1338,7 @@ export class Game {
     this.waveStartIntegrity = this.integrity;
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
+    this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(depth); // Run Identity: fold this depth's beat + anomaly
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: true });
@@ -1337,6 +1348,17 @@ export class Game {
    *  freshly-scheduled spawn queue (buff HP/bounty, promote elites, inflate/thin counts, inject an
    *  out-of-biome group) and spawn any ambush boss. Uses the DEDICATED runEventRng so the base run is
    *  unperturbed; a no-op when the plan is null (Stage) ⇒ golden-safe. Sets the HUD telegraph. */
+  /** Doctrine protocol warp for the freshly-scheduled wave — the SAME deterministic queue
+   *  transforms run events use (hp/bounty buffs, elite promotion, count scaling on
+   *  runEventRng). Zero draws when the doctrine has no warp ⇒ golden-safe. */
+  private applyDoctrineWarp(): void {
+    const w = this.warp;
+    if (w.hpMult) for (const s of this.spawnQueue) s.hpMult *= w.hpMult;
+    if (w.bountyMult) for (const s of this.spawnQueue) s.bountyMult *= w.bountyMult;
+    if (w.eliteChance) for (const s of this.spawnQueue) { if (this.runEventRng.next() < w.eliteChance) s.elite = true; }
+    if (w.countMult && w.countMult !== 1) this.scaleSpawnCount(w.countMult);
+  }
+
   private applyRunEvent(wave: number): void {
     this.activeRunEvent = null;
     if (!this.runPlan) return;
@@ -1651,7 +1673,7 @@ export class Game {
       hp,
       maxHp: hp,
       baseArmor: def.armor + bm.enemyArmorBonus,
-      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult, // ×endless depth ×campaign per-stage ×biome (all ×1 otherwise → golden-safe)
+      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult * (this.warp.speedMult ?? 1), // ×endless ×stage ×biome ×doctrine (all ×1 otherwise → golden-safe)
       bounty: def.bounty * bountyMult * eBounty * bm.bountyMult,
       damage: def.damage * eDmg * this.diff.enemyDamageMult * eDmgWave * bm.enemyDamageMult,
       fracture: 0,

@@ -44,3 +44,26 @@ describe('doctrines (exclusive run-start commitments)', () => {
     expect(reso).toBeGreaterThan(base);
   });
 });
+
+describe('protocol doctrines (enemy-world warps)', () => {
+  it('every protocol declares a warp and the identity stays clean', () => {
+    for (const id of ['adaptive', 'swarmprotocol', 'titan', 'frenzy', 'mutation', 'corrupted']) {
+      expect(DOCTRINES[id].warp, id).toBeTruthy();
+    }
+    expect(DOCTRINES.none.warp).toBeUndefined(); // the golden run never touches the warp path
+  });
+
+  it('Swarm Protocol floods the field; Titan Protocol thins it (same seed)', () => {
+    const base = simulateBattle({ seed: 11, maxWaves: 5 });
+    const swarm = simulateBattle({ seed: 11, maxWaves: 5, doctrine: 'swarmprotocol' });
+    const titan = simulateBattle({ seed: 11, maxWaves: 5, doctrine: 'titan' });
+    expect(swarm.enemiesSpawned).toBeGreaterThan(base.enemiesSpawned * 1.3); // ×1.8 target, RNG-thinned tolerance
+    expect(titan.enemiesSpawned).toBeLessThan(base.enemiesSpawned * 0.75); // ×0.45 target
+  });
+
+  it('warped runs are deterministic (same seed + doctrine ⇒ identical report)', () => {
+    const a = simulateBattle({ seed: 23, maxWaves: 4, doctrine: 'corrupted' });
+    const b = simulateBattle({ seed: 23, maxWaves: 4, doctrine: 'corrupted' });
+    expect(a).toEqual(b);
+  });
+});

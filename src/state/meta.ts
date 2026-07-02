@@ -60,6 +60,7 @@ import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
+import { resolveDoctrine } from '../core/doctrines';
 import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
@@ -598,6 +599,7 @@ export interface RunResult {
   difficulty?: string; // the difficulty variant id (the per-difficulty campaign track)
   rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
   durationSec?: number; // run length (sim seconds) — drives the campaign fastest-clear ledger
+  doctrine?: string; // the run's doctrine — protocols pay run-end rewards (docs/MODE-IDENTITY.md §doctrines)
 }
 
 export interface RunReward {
@@ -867,7 +869,11 @@ export const meta = {
       : 0;
 
     // 1. global shards + run records
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * asc.coreGainMult * rewardMult * endlessRewardMult * coreMult) + firstClearBonus;
+    // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps.
+    const docWarp = resolveDoctrine(result.doctrine).warp ?? {};
+    const doctrineRewardMult = docWarp.rewardMult ?? 1;
+    const doctrineEssence = docWarp.essencePerWave ? Math.floor(docWarp.essencePerWave * result.wave) : 0;
+    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * asc.coreGainMult * rewardMult * endlessRewardMult * coreMult * doctrineRewardMult) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -1017,6 +1023,7 @@ export const meta = {
       heroKills,
       heroFavEquip,
       stats: accumulateStats(save.stats, result.stats, result.mastery),
+      geneEssence: save.geneEssence + doctrineEssence, // Corrupted Genome pays essence per wave (0 otherwise)
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
       unlockedTitles,

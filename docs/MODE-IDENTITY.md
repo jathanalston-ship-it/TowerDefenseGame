@@ -116,3 +116,27 @@ redesign; authored set-pieces can later override specific stage numbers without 
   season id (the per-difficulty map generalizes).
 - "Highest score" was deliberately NOT invented: campaign stages are win/clear moments —
   completion + fastest time ARE the records.
+
+
+## §doctrines (2026-07) — protocols that reshape the WORLD
+
+Two doctrine families now coexist (12 total + none):
+- **Build-shaping** (the original five): Glass/Swarm/Ascetic/Cascade/Resonance — they bend the
+  PLAYER's math via CardEffect, unchanged.
+- **PROTOCOLS** (new; `DoctrineWarp`): they reshape the ENEMY WORLD — Adaptive Evolution
+  (scaling ×1.5 accel, +15% HP/dmg, rewards ×1.35), Swarm Protocol (spawns ×1.8, HP ×0.55),
+  Titan Protocol (spawns ×0.45, HP ×2.6, dmg ×1.3, bounty ×2.2), Biological Frenzy (speed
+  ×1.35, biomass ×1.4), Experimental Mutation (25% elites, rewards ×1.3), Corrupted Genome
+  (HP ×1.6, dmg ×1.5, spawns ×1.15, speed ×1.1, +3 Essence/wave, rewards ×1.5).
+
+Integration: warps ride the SAME deterministic queue transforms as run events (hp/bounty
+buffs, elite promotion on runEventRng, scaleSpawnCount), fold damage into the run difficulty
+once at construction, accelerate the four ENDLESS curves via a (depth−1) rate multiplier,
+and pay run-end rewards in meta.finishRun (rewardMult × shards/loot; essencePerWave →
+geneEssence). 'none' has NO warp — zero RNG draws, golden run byte-identical (test-pinned:
+swarm floods / titan thins / warped runs deterministic).
+
+The Infinite screen is the EXPERIMENT TERMINAL: doctrine cards with full readouts, a
+composite HAZARD rating (difficulty × protocol), and the forecast panel (HP ramp, boss
+cadence every DIRECTOR.bossEvery, biome rotation, speed cap, loot rate). Weekly challenges /
+season modifiers / mutators / leaderboards are parameterizations of this same terminal.
