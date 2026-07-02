@@ -60,7 +60,7 @@ prestige is the unbounded deep lever. `progressionLoop.test.ts` invariants 3–5
 | Hero star cost | `heroStarCost(s)` (≥ +10%/star pinned) | `state/meta.ts` |
 | Hero unlock | Apex Genome ≥ per-hero cost; drops biased toward locked heroes | `unlockHero` |
 | Gene level | per-card authored essence costs; global cap by stage gates | `core/geneCards.ts` |
-| Molt requirement | `firstStage`, then `req = max(req+1, ⌈req × growth⌉)` per molt | `prestigeStageReq` |
+| Molt requirement | LINEAR: `firstStage + stagePerMolt × molts` (tuned 2026-07 — a compound gate froze layer-1 at the deep frontier); offered only at ≥ `minCells` (12 ⇒ ≥ 6,400 cycle Cores) | `prestigeStageReq`, `canMolt` |
 | Loot queue | box cost per rarity (`RARITIES.cost`); progress = settle loot points; pity ceilings 40/90/200 | `core/lootQueue.ts` |
 | Collection tiers | kills/usage thresholds per category | `core/collection.ts` |
 

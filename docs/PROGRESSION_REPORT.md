@@ -3,28 +3,28 @@
 > **GENERATED** by `npm run sim:progression` (do not hand-edit). 8 virtual accounts ×
 > 3000h, optimal-play policy over the REAL meta layer (docs/PROGRESSION-LOOP.md §time).
 > World model: 30s/wave, 90s between runs, ~12 kills/wave.
-> Generated 2026-07-02; wall-clock 477s.
+> Generated 2026-07-02; wall-clock 472s.
 
 ## Hour-band medians (p50, with p10–p90 spread)
 
 | Hours | Power | Campaign stage | Infinite best | Molts | Runs | Farm share |
 |---|---|---|---|---|---|---|
-| 10 | 58,550 <sub>37,719–145,112</sub> | 70 <sub>66–70</sub> | 55 <sub>53–60</sub> | 31 <sub>30–31</sub> | 73 <sub>71–73</sub> | 4% |
-| 50 | 398,264 <sub>240,532–676,283</sub> | 114 <sub>114–114</sub> | 93 <sub>87–95</sub> | 40 <sub>40–40</sub> | 172 <sub>170–174</sub> | 34% |
-| 100 | 1,904,951 <sub>181,199–2,322,179</sub> | 133 <sub>133–140</sub> | 111 <sub>106–113</sub> | 43 <sub>43–44</sub> | 251 <sub>247–255</sub> | 47% |
-| 250 | 7,097,288 <sub>6,300,736–7,624,574</sub> | 153 <sub>151–154</sub> | 135 <sub>132–137</sub> | 45 <sub>45–45</sub> | 421 <sub>419–425</sub> | 64% |
-| 500 | 8,578,354 <sub>7,344,710–9,077,492</sub> | 156 <sub>153–157</sub> | 139 <sub>136–144</sub> | 46 <sub>45–46</sub> | 661 <sub>657–665</sub> | 76% |
-| 1000 | 10,093,081 <sub>9,413,811–10,607,937</sub> | 159 <sub>158–160</sub> | 147 <sub>144–151</sub> | 46 <sub>46–46</sub> | 1,115 <sub>1,103–1,126</sub> | 86% |
-| 3000 | 11,722,874 <sub>11,346,416–12,051,602</sub> | 161 <sub>161–162</sub> | 187 <sub>167–191</sub> | 46 <sub>46–46</sub> | 2,783 <sub>2,653–2,806</sub> | 94% |
+| 10 | 48,230 <sub>38,374–67,128</sub> | 67 <sub>62–71</sub> | 55 <sub>50–58</sub> | 8 <sub>7–9</sub> | 71 <sub>68–74</sub> | 7% |
+| 50 | 208,409 <sub>159,578–399,867</sub> | 98 <sub>95–99</sub> | 83 <sub>79–87</sub> | 21 <sub>20–22</sub> | 163 <sub>162–164</sub> | 40% |
+| 100 | 372,085 <sub>270,367–572,280</sub> | 109 <sub>106–110</sub> | 93 <sub>88–93</sub> | 32 <sub>31–34</sub> | 245 <sub>243–246</sub> | 55% |
+| 250 | 2,426,240 <sub>454,388–3,375,023</sub> | 145 <sub>142–145</sub> | 120 <sub>117–124</sub> | 46 <sub>45–46</sub> | 454 <sub>450–459</sub> | 68% |
+| 500 | 10,021,568 <sub>5,552,139–11,071,779</sub> | 160 <sub>158–160</sub> | 140 <sub>138–144</sub> | 51 <sub>50–51</sub> | 711 <sub>709–721</sub> | 78% |
+| 1000 | 12,449,217 <sub>3,425,493–13,501,191</sub> | 163 <sub>162–164</sub> | 149 <sub>146–157</sub> | 52 <sub>51–52</sub> | 1,166 <sub>1,147–1,175</sub> | 86% |
+| 3000 | 16,575,212 <sub>14,820,480–17,336,028</sub> | 167 <sub>165–168</sub> | 188 <sub>177–202</sub> | 53 <sub>52–53</sub> | 2,745 <sub>2,625–2,852</sub> | 94% |
 
 ## Detector findings (across all 8 accounts)
 
 | Detector | Flagged bands | Meaning when non-zero |
 |---|---|---|
-| Dead progression | 1 | farming that moves no power (broken conversion) |
+| Dead progression | 4 | farming that moves no power (broken conversion) |
 | Wall stall | 0 | stuck at a frontier with flat readiness (impossible wall) |
-| Power spike | 5 | a band multiplying power ≥ ×8 (unsmooth texture) |
-| Sink exhaustion | 16 | currency compounding with nothing to buy |
+| Power spike | 6 | a band multiplying power ≥ ×8 (unsmooth texture) |
+| Sink exhaustion | 4 | currency compounding with nothing to buy |
 
 ## Observations for the balance milestone
 

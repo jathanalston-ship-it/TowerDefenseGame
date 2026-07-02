@@ -869,11 +869,14 @@ export const MODE_REWARDS = {
 export const INFINITE_REWARD_QUALIFY_FRAC = 0.5;
 
 // Campaign-exclusive "first-time completion" grants — paid once per brand-new stage clear.
+// Tuned 2026-07 (BALANCE_ARCHITECTURE.md §4 protocol): the per-stage discovery payout was the
+// main early-game accelerant under optimal play (PROGRESSION_REPORT.md) — trimmed ~1/3 deep
+// while keeping the early onboarding payout intact (base 25 unchanged).
 export const CAMPAIGN_REWARDS = {
   firstClearCore: 25, // base one-time Genome Cores for a never-cleared stage …
-  firstClearCorePerStage: 6, // … + this per stage number (deeper discovery pays more)
+  firstClearCorePerStage: 4, // … + this per stage number (deeper discovery pays more)
   milestoneEvery: 5, // every Nth cleared stage …
-  milestoneCore: 150, // … a bonus Genome Cores chunk
+  milestoneCore: 100, // … a bonus Genome Cores chunk
 };
 
 // ── Battlefield / arena ─────────────────────────────────────────────────────

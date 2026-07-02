@@ -59,5 +59,13 @@ describe('live mini-simulation (real meta layer)', () => {
     expect(trace.flags.deadProgression).toEqual([]);
     expect(trace.flags.wallStall).toEqual([]);
     expect(trace.flags.sinkExhaustion).toEqual([]);
+    // PACING ENVELOPE (BALANCE_ARCHITECTURE.md §5 — tuned 2026-07, WORLD-model-relative):
+    // coarse CI-scale bounds so a future content/economy change that re-opens the molt
+    // spiral, freezes the prestige gate, or softens the requirement curve trips loudly.
+    const early = trace.checkpoints[0]; // ~5h
+    expect(early.molts).toBeLessThanOrEqual(6); // the pre-tune spiral produced 15+ here
+    expect(last.molts).toBeGreaterThanOrEqual(2); // …but the milestone gate must not freeze early
+    expect(last.molts).toBeLessThanOrEqual(30);
+    expect(last.stage).toBeLessThanOrEqual(130); // the requirement curve still bites at CI scale
   }, 60_000);
 });

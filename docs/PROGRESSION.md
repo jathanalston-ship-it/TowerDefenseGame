@@ -541,9 +541,12 @@ earn, never explosive to hold.
 #### Layer 1 — MOLT
 - **Purpose.** Teach the prestige fantasy cheaply; convert early-game mastery into
   permanent speed. The "first ascension" rush.
-- **Campaign gate (SHIPPED).** Prestige is **not** instantly available. The first Molt requires
-  clearing **Campaign Stage 10**; every subsequent Molt raises the required stage by **5% (compound,
-  floored to +1 stage)** — `prestigeStageReq(molts)` in `core/prestige.ts` (`PRESTIGE.campaign`).
+- **Campaign gate (SHIPPED; retuned 2026-07).** Prestige is **not** instantly available. The first
+  Molt requires clearing **Campaign Stage 10**; every subsequent Molt requires **+3 more stages
+  (LINEAR)** — `prestigeStageReq(molts)` in `core/prestige.ts` (`PRESTIGE.campaign`). Linear by
+  simulator evidence (`PROGRESSION_REPORT.md`): the earlier 5%-compound gate outran the crawling
+  deep frontier and froze layer-1 at molt ~46 forever. A Molt is also only OFFERED at
+  `minCells` ≥ 12 (≈ 6,400 cycle Cores) — a milestone, not a per-run action.
   `meta.molt()` refuses below the gate; `prestigeView()` surfaces `campaignStage` / `campaignReq` /
   `campaignMet` / `campaignProgress`, and the requirement + progress bar + tooltip render on the
   Prestige panel and the Mission-Control ascension banner. Golden-safe: pure gating over the save,

@@ -57,13 +57,17 @@ detectors, `npm run sim:progression`)**.
 
 ## Upcoming milestones
 
-1. **Balance tuning pass** — the simulator found optimal-play pacing HOT (stage ~70 by ~10h,
-   molt cadence in minutes; `docs/PROGRESSION_REPORT.md`); tune molt gates + first-clear curve
-   through the change protocol (`docs/BALANCE_ARCHITECTURE.md` §4–5).
+1. **Prestige layers 2–6 + content waves** — the deep band (stage ~165+, hours 500+) is the
+   measured flattening zone reserved for them; `docs/PROGRESSION_REPORT.md` is the yardstick
+   (watch items in `docs/BALANCE_ARCHITECTURE.md` §5).
 2. **Card Ascension** — backend done; author tiers + one gameplay wire + ceremony.
 3. **Content wave** — toward 10 towers / 6 heroes / 100 cards through the validators.
 4. **meta.ts façade split + CI guards** (madge, ts-prune, import-direction lint).
 5. **Hero mastery live projection** — towers wired; heroes ride the same bus (data change).
+
+_Done 2026-07: **balance tuning pass** — molt milestone gate (minCells 12, linear +3
+stages/molt), first-clear trim; molt spiral ended (31→8 @10h), deep freeze eliminated
+(molts cycle past 3000h), sink exhaustion −75%; pacing envelope CI-pinned._
 
 ## Future roadmap (design-corpus scale)
 

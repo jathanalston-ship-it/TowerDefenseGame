@@ -9,10 +9,12 @@ describe('MOLT currency (square-root gain)', () => {
     expect(cellsForCycle(40000)).toBe(30); // 1.5·√400 = 30 → 4× the shards, only 2× the cells
   });
 
-  it('canMolt only once a Molt is worth ≥ minCells', () => {
-    expect(canMolt(44)).toBe(false); // < 1 cell
-    expect(canMolt(45)).toBe(true); // ≥ 1 cell
-    expect(cellsForCycle(45)).toBe(PRESTIGE.molt.minCells);
+  it('canMolt only once a Molt is worth ≥ minCells (a MILESTONE, not a per-run action)', () => {
+    // minCells 12 ⇒ cycleShards ≥ cellScale·(minCells/cellGain)² = 6,400 Cores of cycle income
+    // (tuned 2026-07 from PROGRESSION_REPORT.md — minCells 1 produced a molt every ~15 minutes).
+    expect(canMolt(6399)).toBe(false); // 11 cells — not yet worth shedding
+    expect(canMolt(6400)).toBe(true); // 12 cells — the milestone
+    expect(cellsForCycle(6400)).toBe(PRESTIGE.molt.minCells);
   });
 
   it('shardsForCells inverts the mint (progress-to-next-cell)', () => {
@@ -40,10 +42,15 @@ describe('MOLT campaign gate (Prestige is earned by campaign depth)', () => {
     expect(prestigeStageReq(0)).toBe(10);
   });
 
-  it('every subsequent Molt raises the requirement — strictly increasing (5% compound, floored to +1)', () => {
+  it('every subsequent Molt raises the requirement — strictly increasing, LINEAR (never freezes)', () => {
     const seq = Array.from({ length: 8 }, (_, n) => prestigeStageReq(n));
     for (let i = 1; i < seq.length; i++) expect(seq[i]).toBeGreaterThan(seq[i - 1]);
-    // Deep molts accelerate: once 5% exceeds a whole stage the step grows beyond +1.
-    expect(prestigeStageReq(60) - prestigeStageReq(59)).toBeGreaterThan(1);
+    // LINEAR by design (PROGRESSION_REPORT.md finding: a compound gate outran the crawling deep
+    // frontier and froze layer-1 at molt 46 forever). The step is constant at any depth, so
+    // Molts keep cycling as long as the campaign frontier moves at all.
+    expect(prestigeStageReq(1) - prestigeStageReq(0)).toBe(PRESTIGE.campaign.stagePerMolt);
+    expect(prestigeStageReq(60) - prestigeStageReq(59)).toBe(PRESTIGE.campaign.stagePerMolt);
+    // Deep sanity: molt 46 must stay reachable within the measured deep frontier (~stage 160).
+    expect(prestigeStageReq(46)).toBeLessThan(160);
   });
 });

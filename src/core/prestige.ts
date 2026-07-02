@@ -11,30 +11,35 @@
 // Golden invariant: a fresh account has 0 lifetime cells ⇒ multiplier ×1 ⇒ every run is
 // byte-identical.
 
-/** Centralized MOLT tunables (balance is placeholder; the architecture is the deliverable). */
+/** Centralized MOLT tunables. Tuned 2026-07 from progression-simulator evidence
+ *  (docs/PROGRESSION_REPORT.md via the BALANCE_ARCHITECTURE.md §4 change protocol):
+ *  minCells 1→12 ended the molt-every-run spiral (a Molt is a MILESTONE — ≥ 6,400 Cores of
+ *  cycle income), and the stage gate went compound→LINEAR so deep Molts never freeze —
+ *  layer-1 prestige stays alive as the deep-game bridge until prestige layers 2–6 land. */
 export const PRESTIGE = {
   molt: {
     cellGain: 1.5, // B — cells = ⌊cellGain × √(cycleShards / cellScale)⌋
     cellScale: 100, // S — cycle-shards per scale unit
     multPerCell: 0.1, // c — globalMult = 1 + c × √(lifetimeCells)
-    minCells: 1, // a Molt is offered once it would mint at least this many cells
+    minCells: 12, // a Molt is offered once it would mint at least this many cells (⇒ ≥ 6,400 cycle Cores)
   },
-  // Campaign gate (PROGRESSION.md) — Prestige is no longer instantly available: the FIRST Molt
-  // requires clearing Campaign Stage `firstStage`, and every subsequent Molt raises the required
-  // stage by `growth` (compound). Keeps ascension anchored to campaign depth, not just idle shards.
+  // Campaign gate (PROGRESSION.md) — Prestige is anchored to campaign depth, not idle shards:
+  // the FIRST Molt requires clearing Campaign Stage `firstStage`, and every later Molt requires
+  // `stagePerMolt` MORE stages. LINEAR by design: a compound gate eventually outruns the
+  // crawling deep frontier and freezes layer-1 forever (measured — PROGRESSION_REPORT.md);
+  // a linear gate keeps Molts cycling at the pace of real breakthroughs. Future prestige
+  // layers (2–6) add their own, steeper gates ON TOP rather than re-shaping this one.
   campaign: {
     firstStage: 10, // first Molt (molts = 0) requires clearing Campaign Stage 10
-    growth: 1.05, // each later Molt requires +5% campaign depth (compound; floored to +1 stage)
+    stagePerMolt: 3, // each later Molt requires +3 more campaign stages (linear — never freezes)
   },
 };
 
-/** The highest-cleared Campaign stage the NEXT Molt requires, given lifetime `molts` already done.
- *  molts=0 → firstStage; each further Molt compounds by `growth`, kept STRICTLY increasing (so every
- *  Molt visibly costs more campaign — early molts step +1, deep molts accelerate as 5% exceeds 1). */
+/** The highest-cleared Campaign stage the NEXT Molt requires, given lifetime `molts` already
+ *  done. Linear: `firstStage + stagePerMolt × molts` — strictly increasing (every Molt visibly
+ *  costs more campaign) yet always reachable while the frontier still moves at all. */
 export function prestigeStageReq(molts: number): number {
-  let req = PRESTIGE.campaign.firstStage;
-  for (let i = 0; i < Math.max(0, molts); i++) req = Math.max(req + 1, Math.ceil(req * PRESTIGE.campaign.growth));
-  return req;
+  return PRESTIGE.campaign.firstStage + PRESTIGE.campaign.stagePerMolt * Math.max(0, molts);
 }
 
 /** Per-run-cycle "engine metric": the Genome Cores EARNED since the last Molt drive the mint. */

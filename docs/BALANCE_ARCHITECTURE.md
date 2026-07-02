@@ -74,18 +74,29 @@
 
 Manual "feels right" tuning is retired. A change without a simulator diff is a defect.
 
-## 5. Current findings docket (simulated 2026-07 — 8 accounts × 3000h)
+## 5. Findings docket — TUNING PASS APPLIED (2026-07, 8 accounts × 3000h before/after)
 
-- **Early pacing is hot**: median stage 70 by hour 10 with 31 molts (a molt every ~15
-  minutes) and 5 flagged early power-spike bands — the molt spiral compounds far faster than
-  a milestone should. First tuning candidates: `PRESTIGE.molt.minCells`,
-  `prestigeStageReq` growth, the first-clear bonus curve.
-- **The deep game flattens**: stage 153 → 161 across hours 250 → 3000 (+8 stages in 2750h),
-  molts frozen at 46, power +65% over the same span, farm share 94%, and **16 sink-exhaustion
-  bands** — the EA-audit P0 (mid-late sinks thin out), now quantified. The designed answer is
-  prestige layers 2–6 + content waves; the report is the yardstick for landing them.
-- **Structure holds**: zero wall stalls across every account (never stuck), farm share rising
-  4% → 94% with depth (walls thicken exactly as the loop intends), Infinite best still
-  climbing at 3000h (187) — the endless record remains the deep chase.
-- All tuning waits on the change protocol above — the instrument (simulator + report) now
-  exists; regenerate after every candidate change.
+**Applied changes** (via §4 protocol; parity/pinned tests updated with them):
+
+| Lever | Before | After | Why |
+|---|---|---|---|
+| `PRESTIGE.molt.minCells` | 1 (a molt per ~45 Cores) | **12** (≥ ~6,400 cycle Cores) | a Molt is a milestone, not a per-run action |
+| `prestigeStageReq` shape | ×1.05 compound (froze at molt ~46 vs the crawling deep frontier) | **linear `+3 stages/molt`** | layer-1 must never freeze — it is the deep bridge until prestige layers 2–6 |
+| `CAMPAIGN_REWARDS` | +6 Cores/stage, 150 milestone | **+4/stage, 100 milestone** | the discovery torrent was the main early accelerant (base 25 kept — onboarding intact) |
+
+**Measured results** (medians): molts @10h **31 → 8**; molts @3000h **46-frozen → 53 and
+still cycling**; sink-exhaustion bands **16 → 4** (cycling Molts consume the deep shard
+pile); deep power @3000h **11.7M → 16.6M** (+42%); deep stage 161 → 167; zero wall stalls
+before and after. Early stage@10h ≈ 67 is the **frictionless-bot ceiling** (instant wins,
+perfect spending — real players run well below it); the requirement curve is deliberately
+untouched: steepening it would deepen the content-horizon crawl.
+
+**Watch items (open, by design):**
+- Deep dead-progression bands (4) at the content horizon (~stage 165+) — the flattening the
+  prestige layers 2–6 + content waves are designed to own; the report is their yardstick.
+- Mid-band power texture (6 ×8+ bands, wide 250h spread) — chunky Molt batches; acceptable
+  until layer-2 smooths the deep cadence.
+- **Future-content compatibility:** the pacing envelope is CI-pinned
+  (`progressionSim.test.ts`) — new towers/cards/equipment/currencies that re-open the molt
+  spiral, freeze the gate, or soften the requirement curve fail the build; the linear molt
+  gate leaves layers 2–6 to add their own gates ON TOP rather than re-shaping layer 1.
