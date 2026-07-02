@@ -87,7 +87,11 @@ export interface SaveData {
   // ── Campaign progression (schema v10) — highest stage CLEARED per difficulty id (0 = none).
   //    Stage N is unlocked when N ≤ cleared[diff] + 1; cleared stages are replayable. Per-difficulty
   //    so new DifficultyDef variants get their own track for free (CAMPAIGN.md §7). ──
-  campaign: { cleared: Record<string, number> };
+  campaign: {
+    cleared: Record<string, number>;
+    // Fastest clear per stage per difficulty (schema v21) — seconds; only WINS record.
+    bestTime: Record<string, Record<string, number>>;
+  };
   // ── Tutorial (schema v12) — permanent completion + resumable progress. Additive; withDefaults
   //    fills the default for older saves. Cleared on Account Reset (docs/TUTORIAL.md). ──
   tutorial: TutorialSave;
@@ -122,7 +126,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 20;
+export const CURRENT_VERSION = 21;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -264,7 +268,7 @@ export function defaultSave(): SaveData {
     unlockedLore: [],
     bossesSlain: [],
     prestige: defaultPrestige(),
-    campaign: { cleared: {} },
+    campaign: { cleared: {}, bestTime: {} },
     tutorial: { completed: [], rewarded: [], progress: null },
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
@@ -389,7 +393,11 @@ function withDefaults(data: SaveData): SaveData {
     // v6→v7: prestige (MOLT). Zeroed for a pre-v7 save; each field guarded against junk.
     prestige: { ...d.prestige, ...sanitizePrestige(data.prestige) },
     // v9→v10: campaign progression. Empty for an old save; coerce the cleared map to finite ≥0 ints.
-    campaign: { cleared: sanitizeCleared(data.campaign?.cleared) },
+    campaign: {
+      cleared: sanitizeCleared(data.campaign?.cleared),
+      // v20→v21: fastest-clear ledger — empty for older saves (additive).
+      bestTime: data.campaign?.bestTime && typeof data.campaign.bestTime === 'object' ? data.campaign.bestTime : {},
+    },
     tutorial: sanitizeTutorial(data.tutorial),
     prediction: sanitizePrediction(data.prediction),
     help: sanitizeHelp(data.help),

@@ -101,7 +101,7 @@ describe('prestige MOLT (the ascension loop)', () => {
       shards: 500,
       upgrades: { lethality: 3 },
       towerStars: { ...defaultSave().towerStars, needle: 5 },
-      campaign: { cleared: { standard: 10 } },
+      campaign: { cleared: { standard: 10 }, bestTime: {} },
       prestige: { ...defaultPrestige(), cycleShards: 10000 },
     };
     const imported = meta.importText(serializeExport(seeded));
@@ -139,7 +139,7 @@ describe('prestige MOLT (the ascension loop)', () => {
     expect(meta.molt()).toBe(false); // refused
 
     // Clear Campaign Stage 10 → the gate opens and the Molt succeeds.
-    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 10 } }, prestige: { ...defaultPrestige(), cycleShards: 10000 } }));
+    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 10 }, bestTime: {} }, prestige: { ...defaultPrestige(), cycleShards: 10000 } }));
     v = meta.prestigeView();
     expect(v.campaignMet).toBe(true);
     expect(v.canMolt).toBe(true);
@@ -151,7 +151,7 @@ describe('prestige MOLT (the ascension loop)', () => {
 
 describe('ascendant tree (spending cells)', () => {
   it('buys nodes, folds their bonuses, and keeps them across a Molt', () => {
-    const seeded = { ...defaultSave(), campaign: { cleared: { standard: 10 } }, prestige: { ...defaultPrestige(), cells: 20, cycleShards: 10000, nodes: {} } };
+    const seeded = { ...defaultSave(), campaign: { cleared: { standard: 10 }, bestTime: {} }, prestige: { ...defaultPrestige(), cells: 20, cycleShards: 10000, nodes: {} } };
     expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
 
     expect(meta.buyAscendantNode('greed')).toBe(true);

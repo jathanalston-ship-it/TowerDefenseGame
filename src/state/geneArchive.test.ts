@@ -69,7 +69,7 @@ describe('next-goal prominence (Task 6): the upcoming gene gate surfaces when it
     seed();
     expect(nextGoals(meta.get(), 20).find((g) => g.id.startsWith('gene-gate'))).toBeUndefined();
     // A card at the L1 cap with deeper levels waiting ⇒ the L2@15 gate is now a surfaced goal.
-    seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, genes: { [card.id]: { level: 1 } }, campaign: { cleared: { standard: 5 } } });
+    seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, genes: { [card.id]: { level: 1 } }, campaign: { cleared: { standard: 5 }, bestTime: {} } });
     const goal = nextGoals(meta.get(), 20).find((g) => g.id.startsWith('gene-gate'));
     expect(goal).toBeDefined();
     expect(goal!.label).toContain('Gene Level 2');
@@ -82,7 +82,7 @@ describe('Power integration (Task 9) — every permanent gene improvement moves 
   it('upgradeGene raises the ACCOUNT Power Score at once, and previewPower predicts it exactly', async () => {
     seed({
       stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 999,
-      campaign: { cleared: { standard: 100 } },
+      campaign: { cleared: { standard: 100 }, bestTime: {} },
     });
     const before = meta.power().score;
     const predicted = meta.previewPower((s) => ({
@@ -174,7 +174,7 @@ describe('meta.upgradeGene — the guarded spend', () => {
     // With the campaign far along, levels buy through to the authored ceiling and stop.
     seed({
       stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: 9999999,
-      campaign: { cleared: { standard: 100 } },
+      campaign: { cleared: { standard: 100 }, bestTime: {} },
     });
     for (let i = 0; i < card.maxLevel!; i++) expect(meta.upgradeGene(card.id)).toBe(true);
     expect(meta.upgradeGene(card.id)).toBe(false); // authored ceiling reached

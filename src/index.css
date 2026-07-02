@@ -5239,6 +5239,30 @@ kbd {
 }
 
 /* ── Campaign — the living WORLD MAP / descent (CampaignScreen) ───────────────────────────────── */
+/* ── Campaign roadmap rail + mission-card enrichment (docs/MODE-IDENTITY.md §campaign) ── */
+.camp-rail { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); padding: 8px 10px; border-radius: var(--r-md); border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); }
+.camp-gate { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 4px 12px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; border: 1px solid var(--line-strong); background: var(--panel-2); }
+.camp-gate i { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.camp-gate.is-gene-tier { border-color: color-mix(in srgb, var(--caustic) 45%, var(--line)); }
+.camp-gate.is-hero-slot { border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); }
+.camp-gate.is-evolution { border-color: color-mix(in srgb, var(--kinetic) 45%, var(--line)); }
+.camp-gate:hover:not(:disabled) { box-shadow: var(--halo) color-mix(in srgb, var(--gold) 30%, transparent); }
+.camp-goal { display: flex; flex-direction: column; gap: 3px; min-width: 150px; flex: 1 1 150px; max-width: 240px; }
+.camp-goal-l { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.camp-jump { padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); color: var(--gold); background: color-mix(in srgb, var(--gold) 8%, transparent); }
+.camp-search { width: 84px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.camp-threat { display: flex; align-items: center; gap: 8px; }
+.camp-skulls { color: var(--danger); letter-spacing: 0.16em; font-size: 12px; }
+.camp-rmult { margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+.camp-enemies { display: flex; flex-wrap: wrap; gap: 4px; }
+.camp-enemy { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; color: var(--text); border: 1px solid color-mix(in srgb, var(--ec, var(--line)) 50%, var(--line)); background: color-mix(in srgb, var(--ec, transparent) 10%, transparent); }
+.camp-enemy.is-elite { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+.camp-unlocks { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px dashed color-mix(in srgb, var(--gold) 40%, var(--line)); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+.camp-unlock { font-size: 12px; font-weight: 800; color: var(--gold); }
+.camp-node-dot { transition: filter var(--dur-2) var(--ease-out); }
+.camp-node:hover .camp-node-dot { filter: drop-shadow(0 0 6px var(--biome)) brightness(1.25); }
+.camp-deploy.primary { animation: cc-cta-breathe 5.5s ease-in-out infinite; }
+
 .camp-map-panel { width: min(1000px, 100%); }
 .camp-map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .camp-map-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }

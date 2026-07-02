@@ -8,7 +8,10 @@ import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { PredictionPanel } from './PredictionPanel';
 import { audio } from '../audio/sound';
-import { campaignMapView, generateStage, recommendedPowerScore } from '../core/campaign';
+import { campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
+import { ENEMY_DEFS } from '../core/config';
+import { nextGoals } from '../state/nextGoal';
+import { ProgressBar } from './components/ProgressBar';
 import { formatPower } from '../core/power';
 import { CAMPAIGN_REWARDS } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
@@ -75,10 +78,40 @@ export function CampaignScreen({
           </label>
           <span className="camp-record">Deepest cleared <b>{cleared}</b></span>
           <span className="camp-record">Power <b>{formatPower(power)}</b></span>
+          <button className="camp-jump" onClick={() => { setViewStart(Math.max(1, frontier - 2)); setFocus(frontier); }} title="Jump the map to your frontier">⌖ Frontier</button>
+          <input
+            className="camp-search"
+            type="search"
+            inputMode="numeric"
+            placeholder="Stage №"
+            aria-label="Jump to stage"
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return;
+              const n = Math.max(1, Math.floor(Number((e.target as HTMLInputElement).value)));
+              if (Number.isFinite(n) && n > 0) { setViewStart(Math.max(1, n - 2)); setFocus(n); }
+            }}
+          />
         </div>
       </header>
 
       <PredictionPanel mode="campaign" difficultyId={diff} label="Campaign Stage" />
+
+      {/* ── The ROADMAP rail: what the descent is unlocking next (docs/MODE-IDENTITY.md §campaign).
+          Goal chips (closest-first, the shared Next-Goal engine) + gate chips that JUMP the map. */}
+      <div className="camp-rail" aria-label="Upcoming unlocks">
+        {upcomingGates(cleared).map((g) => (
+          <button key={`${g.kind}-${g.stage}`} className={`camp-gate is-${g.kind}`} title={`Jump the map to Stage ${g.stage}`}
+                  onClick={() => { setViewStart(Math.max(1, g.stage - 2)); setFocus(g.stage); }}>
+            <i>Stage {g.stage}</i>{g.label}
+          </button>
+        ))}
+        {nextGoals(save, 3).map((g) => (
+          <span key={g.id} className="camp-goal" style={{ ['--gc' as string]: g.color }} title={`${g.remaining} → ${g.reward}`}>
+            <span className="camp-goal-l">{g.label}</span>
+            <ProgressBar value={Math.round(g.progress * 100)} max={100} color={g.color} height={4} label={g.label} />
+          </span>
+        ))}
+      </div>
 
       <div className="camp-map-body">
         {/* ── The living map ── */}
@@ -123,13 +156,41 @@ export function CampaignScreen({
             <span className="camp-mod hazard" title={cfg.hazardDesc}>⚠ {cfg.hazardName}</span>
           </div>
 
+          {(() => {
+            const threat = Math.min(5, 1 + Math.floor(((cfg.scaling.enemyHealthMult - 1) + (cfg.scaling.enemyDamageMult - 1)) * 1.6));
+            return (
+              <div className="camp-threat" title={`Enemy HP +${Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}% · damage +${Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%`}>
+                <span className="cd-k">Threat</span>
+                <span className="camp-skulls">{'◆'.repeat(threat)}{'◇'.repeat(5 - threat)}</span>
+                {cfg.rewardMult > 1 && <span className="camp-rmult">rewards ×{cfg.rewardMult.toFixed(1)}</span>}
+              </div>
+            );
+          })()}
+          <div className="camp-enemies" aria-label="Enemy forecast">
+            {cfg.enemyPool.slice(0, 5).map((k) => (
+              <span className="camp-enemy" key={k} style={{ ['--ec' as string]: ENEMY_DEFS[k].color }}>{ENEMY_DEFS[k].name}</span>
+            ))}
+            {cfg.eliteFrequency > 0 && <span className="camp-enemy is-elite">Elites {Math.round(cfg.eliteFrequency * 100)}%</span>}
+          </div>
+
           <div className="camp-detail-grid">
             <div className="cd-row"><span className="cd-k">◈ Boss</span><span className="cd-v">{cfg.boss.name}</span></div>
             {cfg.miniBoss && <div className="cd-row"><span className="cd-k">Mini-boss</span><span className="cd-v">{cfg.miniBoss.name}</span></div>}
             <div className="cd-row"><span className="cd-k">Waves</span><span className="cd-v">{cfg.waveCount}</span></div>
             <div className="cd-row"><span className="cd-k">Enemy HP</span><span className="cd-v">+{Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}%</span></div>
             <div className="cd-row"><span className="cd-k">Enemy Damage</span><span className="cd-v">+{Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%</span></div>
+            {(() => {
+              const t = save.campaign.bestTime[diff]?.[String(focus)];
+              return t ? <div className="cd-row"><span className="cd-k">Fastest clear</span><span className="cd-v">{Math.floor(t / 60)}:{String(t % 60).padStart(2, '0')}</span></div> : null;
+            })()}
           </div>
+
+          {stageUnlocks(focus).length > 0 && (
+            <div className="camp-unlocks">
+              <span className="cd-k">Clearing unlocks</span>
+              {stageUnlocks(focus).map((u) => <span className={`camp-unlock is-${u.kind}`} key={u.label}>◈ {u.label}</span>)}
+            </div>
+          )}
 
           <div className={`camp-power ${ready ? 'ok' : 'low'}`}>
             <span>Recommended Power</span>

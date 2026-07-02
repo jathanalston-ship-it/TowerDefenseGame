@@ -52,14 +52,14 @@ describe('meta loadout API — guarded equip / swap / buy', () => {
     const slot2 = GENE_LOADOUT_SLOTS[1];
     seed({ shards: slot2.coreCost }); // rich but no campaign
     expect(meta.buyGeneSlot()).toBe(false);
-    seed({ campaign: { cleared: { standard: slot2.campaignStage } } }); // deep but broke
+    seed({ campaign: { cleared: { standard: slot2.campaignStage }, bestTime: {} } }); // deep but broke
     expect(meta.buyGeneSlot()).toBe(false);
-    seed({ shards: slot2.coreCost + 5, campaign: { cleared: { standard: slot2.campaignStage } } });
+    seed({ shards: slot2.coreCost + 5, campaign: { cleared: { standard: slot2.campaignStage }, bestTime: {} } });
     expect(meta.buyGeneSlot()).toBe(true); // both gates met
     expect(meta.geneSlots()).toBe(2);
     expect(meta.get().shards).toBe(5); // cores spent
     expect(meta.buyGeneSlot()).toBe(false); // slot 3 needs Stage 25 — sequential, still gated
-    seed({ geneSlots: 5, shards: 1e9, campaign: { cleared: { standard: 999 } } });
+    seed({ geneSlots: 5, shards: 1e9, campaign: { cleared: { standard: 999 }, bestTime: {} } });
     expect(meta.buyGeneSlot()).toBe(false); // all five owned
   });
 

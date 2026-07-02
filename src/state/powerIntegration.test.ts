@@ -69,8 +69,8 @@ describe('Power Score integration — every strength source moves the index', ()
 
   it('unlocking the 2nd hero slot raises Power (fielding an extra champion is strength)', () => {
     meta.reset();
-    const at24 = meta.previewPower((s: SaveData) => ({ ...s, campaign: { cleared: { standard: 24 } } })).score;
-    const at25 = meta.previewPower((s: SaveData) => ({ ...s, campaign: { cleared: { standard: 25 } } })).score;
+    const at24 = meta.previewPower((s: SaveData) => ({ ...s, campaign: { cleared: { standard: 24 }, bestTime: {} } })).score;
+    const at25 = meta.previewPower((s: SaveData) => ({ ...s, campaign: { cleared: { standard: 25 }, bestTime: {} } })).score;
     expect(at25, 'Hero Slot 2 (Campaign 25) must raise Power').toBeGreaterThan(at24);
   });
 

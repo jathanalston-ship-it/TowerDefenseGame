@@ -597,6 +597,7 @@ export interface RunResult {
   campaignStage?: number; // the stage number played (winning it unlocks the next)
   difficulty?: string; // the difficulty variant id (the per-difficulty campaign track)
   rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
+  durationSec?: number; // run length (sim seconds) — drives the campaign fastest-clear ledger
 }
 
 export interface RunReward {
@@ -966,9 +967,19 @@ export const meta = {
     heroFavEquip[fielded] = fieldedEquip;
 
     // Campaign: clearing a stage permanently unlocks the next (highest CLEARED per difficulty id).
-    const nextCampaign = result.campaignStage && result.won
-      ? { cleared: { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) } }
-      : save.campaign;
+    let nextCampaign = save.campaign;
+    if (result.campaignStage && result.won) {
+      const cleared = { ...save.campaign.cleared, [campDiff]: Math.max(save.campaign.cleared[campDiff] ?? 0, result.campaignStage) };
+      // Fastest-clear ledger (schema v21): a WIN with a duration folds min(previous, this run).
+      let bestTime = save.campaign.bestTime;
+      if (result.durationSec && result.durationSec > 0) {
+        const track = { ...(bestTime[campDiff] ?? {}) };
+        const key = String(result.campaignStage);
+        track[key] = Math.min(track[key] ?? Infinity, Math.round(result.durationSec));
+        bestTime = { ...bestTime, [campDiff]: track };
+      }
+      nextCampaign = { cleared, bestTime };
+    }
     // Evolution Cap: did clearing this stage raise the account-wide Star Cap (config.EVOLUTION_CAPS)?
     // If so, drive the dramatic Evolution Unlock sequence (docs/TOWER-CODEX.md §2).
     const oldCap = evolutionStarCap(save);
@@ -1963,7 +1974,7 @@ export const meta = {
    *  (lets the debug panel + tests exercise the cap gating without playing the ladder). */
   debugSetCampaignStage(stage: number, difficulty = 'standard'): void {
     const save = store.get();
-    persist({ ...save, campaign: { cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
+    persist({ ...save, campaign: { ...save.campaign, cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
   },
 
   /** Fully evolve every tower (★max) and unlock the Evolution Cap — to inspect the late-game
@@ -1972,7 +1983,7 @@ export const meta = {
     const save = store.get();
     const towerStars = { ...save.towerStars };
     for (const k of TOWER_ORDER) towerStars[k] = STAR.maxTowerStars;
-    persist({ ...save, towerStars, campaign: { cleared: { ...save.campaign.cleared, standard: 300 } } });
+    persist({ ...save, towerStars, campaign: { ...save.campaign, cleared: { ...save.campaign.cleared, standard: 300 } } });
   },
 
   debugAddHeroShards(n: number): void {

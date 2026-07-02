@@ -12,13 +12,13 @@ describe('mechanics registry (Help + What\'s New spine)', () => {
   });
 
   it('an unlock predicate flips on the right save signal', () => {
-    const s = { ...defaultSave(), campaign: { cleared: { standard: 12 } } };
+    const s = { ...defaultSave(), campaign: { cleared: { standard: 12 }, bestTime: {} } };
     expect(isMechanicUnlocked(MECHANIC_BY_ID.get('prestige')!, s)).toBe(true); // ≥ 10
     expect(isMechanicUnlocked(MECHANIC_BY_ID.get('hero-slots')!, s)).toBe(false); // needs 25
   });
 
   it('pendingAnnouncements surfaces only newly-unlocked, unseen, non-core mechanics', () => {
-    const s = { ...defaultSave(), campaign: { cleared: { standard: 12 } }, help: { seen: [], primed: false, hudTour: false } };
+    const s = { ...defaultSave(), campaign: { cleared: { standard: 12 }, bestTime: {} }, help: { seen: [], primed: false, hudTour: false } };
     expect(pendingAnnouncements(s).some((m) => m.id === 'prestige')).toBe(true);
     expect(pendingAnnouncements(s).some((m) => m.core)).toBe(false); // core never announces
     const seen = { ...s, help: { ...s.help, seen: ['prestige'] } };
@@ -39,7 +39,7 @@ describe('mechanics registry (Help + What\'s New spine)', () => {
   });
 
   it('primeHelp archives everything already unlocked once (existing saves never flood)', () => {
-    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 12 } } }));
+    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 12 }, bestTime: {} } }));
     expect(meta.whatsNew().some((m) => m.id === 'prestige')).toBe(true); // would announce pre-prime
     meta.primeHelp();
     expect(meta.get().help.primed).toBe(true);

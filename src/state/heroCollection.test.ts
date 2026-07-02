@@ -52,13 +52,13 @@ describe('Hero Collection unlock', () => {
   });
 
   it('a locked hero can never be fielded, even from a stale loadout entry', () => {
-    const s = { ...defaultSave(), campaign: { cleared: { standard: 25 } }, heroLoadout: ['ravager', 'shepherd'] as never };
+    const s = { ...defaultSave(), campaign: { cleared: { standard: 25 }, bestTime: {} }, heroLoadout: ['ravager', 'shepherd'] as never };
     expect(fieldedLoadout(s)).toEqual(['ravager']); // shepherd locked ⇒ filtered out
   });
 
   it('setHeroInSlot rejects a locked hero but accepts it once claimed', () => {
     const cost = HERO_DEFS.shepherd.unlockShards ?? 0;
-    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 25 } }, heroShards: { ...defaultSave().heroShards, shepherd: cost } }));
+    meta.importText(serializeExport({ ...defaultSave(), campaign: { cleared: { standard: 25 }, bestTime: {} }, heroShards: { ...defaultSave().heroShards, shepherd: cost } }));
     meta.setHeroInSlot(2, 'shepherd');
     expect(meta.fieldedLoadout().includes('shepherd')).toBe(false); // locked → no-op
     meta.unlockHero('shepherd');

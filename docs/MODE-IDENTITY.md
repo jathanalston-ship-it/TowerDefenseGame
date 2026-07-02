@@ -97,3 +97,22 @@ glance: your Power Score ≥ the node’s recommendation ⇒ comfortable; well b
 Pure windowed layout + registry-driven biomes + formula-driven scaling/recommendation ⇒ stages,
 biomes, and bosses are all data. Hundreds or thousands of procedural stages need **no** map
 redesign; authored set-pieces can later override specific stage numbers without touching the layout.
+
+
+---
+
+## §campaign-roadmap (2026-07) — the screen became the long-term ROADMAP
+
+- **Roadmap rail**: gate chips (next Gene Tier / Evolution Cap / Hero Slot stages — clicking
+  JUMPS the map there) + the top Next-Goal chips with live progress bars (shared engine).
+- **Mission card** (focused stage): biome + modifiers, THREAT rating (◆ scale from the stage
+  scaling) + reward multiplier, enemy forecast chips (stage enemyPool + elite %), boss +
+  mini-boss, waves/HP/damage, "Clearing unlocks" chips (stageUnlocks: gene tiers, evolution
+  caps, hero slots), first-clear reward, recommended vs your Power, and the FASTEST CLEAR
+  record (campaign.bestTime, schema v21 — folded on wins from result.durationSec).
+- **QoL**: ⌖ Frontier jump + Stage № search (Enter jumps the window); the gate chips double
+  as reward-anchored filters over the infinite ladder. Future seams: endless campaign =
+  the ladder already never ends; seasonal campaign = a parallel `cleared` track keyed by a
+  season id (the per-difficulty map generalizes).
+- "Highest score" was deliberately NOT invented: campaign stages are win/clear moments —
+  completion + fastest time ARE the records.

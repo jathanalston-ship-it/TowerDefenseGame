@@ -255,3 +255,33 @@ export function campaignMapView(cleared: number, difficultyId: string, viewStart
   }
   return out;
 }
+
+// ── Account-wide gates a Campaign stage opens (docs/MODE-IDENTITY.md §campaign) ──────────
+// Pure lookups over the three gate tables — the mission card shows what CLEARING the focused
+// stage unlocks, and the map's milestone chips jump to the next gate of each family.
+
+import { EVOLUTION_CAPS, HERO_SLOTS } from './config';
+import { GENE_LEVEL_GATES } from './geneCards';
+
+export interface StageUnlock { kind: 'evolution' | 'hero-slot' | 'gene-tier'; label: string }
+
+/** Everything clearing `stage` unlocks (empty for most stages — gates are sparse). */
+export function stageUnlocks(stage: number): StageUnlock[] {
+  const out: StageUnlock[] = [];
+  for (const e of EVOLUTION_CAPS) if (e.stage === stage) out.push({ kind: 'evolution', label: `Evolution Cap ◈${e.maxStar}` });
+  for (const h of HERO_SLOTS) if (h.campaignStage === stage) out.push({ kind: 'hero-slot', label: `${h.name} (Hero Slot ${h.slot})` });
+  for (const g of GENE_LEVEL_GATES) if (g.stage === stage) out.push({ kind: 'gene-tier', label: `Gene Tier L${g.level}` });
+  return out;
+}
+
+/** The NEXT gate of each family past `cleared` — the map's quick-jump chips. */
+export function upcomingGates(cleared: number): { stage: number; label: string; kind: StageUnlock['kind'] }[] {
+  const out: { stage: number; label: string; kind: StageUnlock['kind'] }[] = [];
+  const evo = EVOLUTION_CAPS.find((e) => e.stage > cleared);
+  if (evo) out.push({ stage: evo.stage, label: `◈${evo.maxStar} cap`, kind: 'evolution' });
+  const slot = HERO_SLOTS.find((h) => h.campaignStage > cleared);
+  if (slot) out.push({ stage: slot.campaignStage, label: `Hero Slot ${slot.slot}`, kind: 'hero-slot' });
+  const gene = GENE_LEVEL_GATES.filter((g) => g.stage > cleared).sort((a, b) => a.stage - b.stage)[0];
+  if (gene) out.push({ stage: gene.stage, label: `Gene L${gene.level}`, kind: 'gene-tier' });
+  return out.sort((a, b) => a.stage - b.stage);
+}

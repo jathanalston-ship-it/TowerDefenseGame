@@ -53,7 +53,7 @@ function fullSave(): SaveData {
     stats: { ...defaultSave().stats, uniqueCards: ids },
     genes,
     geneEssence: 10_000_000,
-    campaign: { cleared: { standard: 100 } },
+    campaign: { cleared: { standard: 100 }, bestTime: {} },
   };
 }
 

@@ -29,7 +29,7 @@ function dirtySave(): SaveData {
   const s = defaultSave();
   s.shards = 999; s.lifetimeShards = 1234; s.mats = { mutagen: 5, scrap: 5, catalyst: 5 };
   s.bestWave = 42; s.totalRuns = 10; s.cardsSeen = 7;
-  s.campaign = { cleared: { standard: 7, brutal: 3 } };
+  s.campaign = { cleared: { standard: 7, brutal: 3 }, bestTime: {} };
   s.towerStars = { ...s.towerStars, needle: 3 }; s.towerForks = { ...s.towerForks, needle: { '3': 'x' } };
   s.towerShards = { ...s.towerShards, needle: 50 }; s.towerKills = { ...s.towerKills, needle: 100 };
   s.heroStars = { ...s.heroStars, ravager: 2 }; s.heroShards = { ...s.heroShards, ravager: 10 };

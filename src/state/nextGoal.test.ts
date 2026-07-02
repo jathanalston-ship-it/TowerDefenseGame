@@ -37,7 +37,7 @@ describe('Next-Goal engine (the anticipation spine)', () => {
     const base = defaultSave();
     const firstTower = Object.keys(base.towerStars)[0];
     const partial = Math.max(1, Math.floor(towerStarCost(0) * 0.8)); // 80% of the way to Evolution 1
-    const s = { ...base, campaign: { cleared: { standard: 12 } }, towerShards: { ...base.towerShards, [firstTower]: partial } };
+    const s = { ...base, campaign: { cleared: { standard: 12 }, bestTime: {} }, towerShards: { ...base.towerShards, [firstTower]: partial } };
     const evo = nextGoals(s).find((x) => x.id === `evo:tower:${firstTower}`);
     expect(evo).toBeTruthy();
     expect(evo!.kind).toBe('evolution');
