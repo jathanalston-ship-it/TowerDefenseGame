@@ -71,13 +71,20 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
         )}
       </div>
 
-      {/* Hero Evolution — the in-run Biomass sink (docs/HERO-EVOLUTION.md), beside Gene Cards. */}
+      {/* Hero Combat Console — the in-run Biomass sink (docs/HERO-EVOLUTION.md §console). */}
       {onOpenEvolution && (
         <div className="side-sec">
-          <button className="evo-open-btn" onClick={onOpenEvolution} title="Spend Biomass to evolve all heroes for this run">
+          <button className="evo-open-btn" onClick={onOpenEvolution} title="Open the Hero Combat Console (E) — spend Biomass to evolve every champion for this run">
             <span className="evo-open-i" aria-hidden>🧬</span>
-            <span className="evo-open-l">Hero Evolution{hud.heroEvo.totalOwned > 0 ? ` · ${hud.heroEvo.totalOwned}` : ''}</span>
-            <span className="evo-open-hint">Spend Biomass →</span>
+            <span className="evo-open-body">
+              <span className="evo-open-l">Hero Console</span>
+              <span className="evo-open-hint">Evolve heroes · E</span>
+            </span>
+            {hud.heroEvo.totalOwned > 0 ? (
+              <span className="evo-open-count" title={`${hud.heroEvo.totalOwned} evolution levels active`}>▲{hud.heroEvo.totalOwned}</span>
+            ) : (
+              <span className="evo-open-chev" aria-hidden>▸</span>
+            )}
           </button>
         </div>
       )}

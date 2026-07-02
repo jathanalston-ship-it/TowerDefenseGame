@@ -53,7 +53,10 @@ interrupts gameplay.
 ## §console — the Hero Combat Console (2026-07 overhaul, implemented)
 
 The in-run menu became a command surface (src/ui/HeroEvolutionPanel.tsx — the component name
-stays for continuity; the UI is the CONSOLE). Non-modal as ever: the sim never pauses.
+stays for continuity; the UI is the CONSOLE). The battlefield AUTO-PAUSES while the console
+is open (GameView holds the sim — a "❚❚ SIM HELD" chip says so — and restores the player's
+own pause state on close): upgrading is a decision moment, not a dexterity test. E or the
+HUD hero chip opens; E / ✕ / Escape closes.
 
 **Audit that drove it** (pre-overhaul problems): no hero identity (you strengthened champions
 you couldn't see), label-only comparisons (no Power/DPS/survivability deltas), invisible
@@ -74,7 +77,7 @@ ability context, and a bare open button.
   effect · cost). Expanding shows current → next, the exact Power gain, and ≈ hero-DPS /
   ≈ survivability estimates; cooldown/radius/damage/healing axes explain their ability impact.
 
-**Purchases**: click · HOLD to repeat (usePressRepeat ramp; a failed buy halts the hold —
+**Purchases** (sim held, so browsing is safe): click · HOLD to repeat (usePressRepeat ramp; a failed buy halts the hold —
 the overspend guard) · shift-click buys 5. Every buy: splice cue + row flash + floating gain
 + the Power toast, and **preview === outcome** — the row's Power delta composes the exact
 marginal effect over the run's FULL effect set (an isolated composition under-reported by

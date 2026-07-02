@@ -7,7 +7,7 @@ import { useEffect, useState, type CSSProperties, type MutableRefObject } from '
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { audio } from '../audio/sound';
-import { music } from '../audio/music';
+import { AudioToggles } from './components/AudioToggles';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
@@ -74,21 +74,9 @@ const GROUP_ACCENT: Record<string, string> = {
   Play: 'var(--vital)', Progression: 'var(--kinetic)', Collection: 'var(--gold)', Account: 'var(--muted)',
 };
 
-function audioPref(): boolean {
-  try { return localStorage.getItem('audioOn') !== 'false'; } catch { return true; }
-}
-
-/** Settings screen — save data management, the destructive reset, and an audio toggle. */
+/** Settings screen — save data management, the destructive reset, and audio preferences. */
 function SettingsScreen({ onReplayTutorial }: { onReplayTutorial: () => void }): JSX.Element {
-  const [sound, setSound] = useState(audioPref());
   const [autoGene, setAutoGene] = useState(autoGenePref());
-  const toggleSound = (): void => {
-    const next = !sound;
-    setSound(next);
-    audio.setEnabled(next);
-    try { localStorage.setItem('audioOn', String(next)); } catch { /* private mode */ }
-    music.setEnabled(next);
-  };
   const toggleAutoGene = (): void => {
     const next = !autoGene;
     setAutoGene(next);
@@ -103,12 +91,7 @@ function SettingsScreen({ onReplayTutorial }: { onReplayTutorial: () => void }):
         <div className="panel">
           <div className="panel-title">Preferences</div>
           <div className="panel-sub">Stored in this browser.</div>
-          <label className="set-toggle">
-            <span>Sound effects</span>
-            <button className={`set-switch ${sound ? 'on' : ''}`} onClick={toggleSound} aria-pressed={sound}>
-              {sound ? 'On' : 'Off'}
-            </button>
-          </label>
+          <AudioToggles />
           <label className="set-toggle">
             <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
             <button className={`set-switch ${autoGene ? 'on' : ''}`} onClick={toggleAutoGene} aria-pressed={autoGene}>

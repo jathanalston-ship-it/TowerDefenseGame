@@ -13,6 +13,7 @@ import { announcePower } from '../state/powerEvents';
 import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
 import { MasteryToaster } from './components/MasteryToaster';
+import { AudioToggles } from './components/AudioToggles';
 import { MASTERY, TOWER_DEFS } from '../core/config';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { masteryProgress, masteryXpMults, masteryXpRaw } from '../state/meta';
@@ -124,7 +125,22 @@ export function GameView({
   }, []);
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
-  const [evoOpen, setEvoOpen] = useState(false); // Hero Evolution menu (non-modal — sim keeps running)
+  const [evoOpen, setEvoOpen] = useState(false); // Hero Combat Console (auto-pauses the sim while open)
+  const evoOpenRef = useRef(false);
+  evoOpenRef.current = evoOpen;
+  const pausedBeforeConsole = useRef(false); // restore the player's own pause state on close
+  // The Combat Console AUTO-PAUSES the battlefield: upgrading is a decision moment, not a
+  // dexterity test. Closing restores the player's own pause state (a manual pause survives).
+  useEffect(() => {
+    if (evoOpen) {
+      pausedBeforeConsole.current = pausedRef.current;
+      pausedRef.current = true;
+      setPaused(true);
+    } else if (!pausedBeforeConsole.current) {
+      pausedRef.current = false;
+      setPaused(false);
+    }
+  }, [evoOpen]);
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -367,6 +383,7 @@ export function GameView({
         e.preventDefault();
         game.startWave();
       } else if (k === 'Escape') {
+        if (evoOpenRef.current) { setEvoOpen(false); return; } // console first, then board intents
         game.cancelInteractions(); // close inspect / cancel move / disarm placement
       } else {
         return;
@@ -458,7 +475,7 @@ export function GameView({
             {paused ? '▶ Resume' : '❚❚ Pause'}
           </button>
         )}
-        {paused && (
+        {paused && !evoOpen && (
           <div
             className="pause-overlay"
             role="button"
@@ -468,7 +485,14 @@ export function GameView({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePause(); } }}
           >
             <div className="pause-card" onClick={(e) => e.stopPropagation()}>
+              <div className="pause-eyebrow">Simulation held</div>
               <div className="pause-title">PAUSED</div>
+              <div className="pause-vitals">
+                <span><i>Wave</i><b>{Math.max(1, hud.wave)}{hud.endless ? '' : `/${hud.totalWaves}`}</b></span>
+                <span><i>Kills</i><b>{hud.kills}</b></span>
+                <span><i>Biomass</i><b>{hud.biomass}</b></span>
+                <span><i>Integrity</i><b>{hud.integrity}/{hud.maxIntegrity}</b></span>
+              </div>
               {confirmAbandon ? (
                 <>
                   <div className="pause-warn">
@@ -482,9 +506,13 @@ export function GameView({
                 </>
               ) : (
                 <>
-                  <button className="primary" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
+                  <button className="primary pause-resume" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
+                  <div className="pause-settings" onClick={(e) => e.stopPropagation()}>
+                    <div className="pause-set-k">Settings</div>
+                    <AudioToggles compact />
+                  </div>
                   <button className="pause-abandon" onClick={(e) => { e.stopPropagation(); setConfirmAbandon(true); }}>Abandon Run</button>
-                  <div className="pause-hint">Press P or click outside to resume</div>
+                  <div className="pause-hint">P or tap outside to resume</div>
                 </>
               )}
             </div>

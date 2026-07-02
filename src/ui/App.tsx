@@ -22,7 +22,7 @@ import { EvolutionUnlock } from './EvolutionUnlock';
 import type { EvolutionUnlockData } from './EvolutionUnlock';
 import { HeroSlotUnlock } from './HeroSlotUnlock';
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
-import { difficultyPref } from '../state/prefs';
+import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
 import { tutorial } from '../state/tutorial';
 import { TutorialRunner } from './TutorialRunner';
 
@@ -53,13 +53,10 @@ export function App(): JSX.Element {
   const difficultyRef = useRef('standard');
   const doctrineRef = useRef('none');
 
-  // Apply the persisted audio preference once on boot (the Settings screen writes it).
+  // Apply the persisted audio preferences once on boot (Settings + the pause menu write them).
   useEffect(() => {
-    try {
-      const on = localStorage.getItem('audioOn') !== 'false';
-      audio.setEnabled(on);
-      music.setEnabled(on);
-    } catch { /* private mode */ }
+    audio.setEnabled(sfxPref());
+    music.setEnabled(musicPref());
   }, []);
 
   // Touch tooltips (docs/RESPONSIVE-DESIGN.md §touch): hover-less pointers TAP a .tt to

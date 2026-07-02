@@ -43,6 +43,21 @@ export function setDifficultyPref(mode: DiffMode, id: string): void {
   }
 }
 
+// ── Audio prefs — SFX and Music are INDEPENDENT toggles (Settings + the pause menu).
+// 'audioOn' is the legacy key (SFX); 'musicOn' joined when the music engine landed.
+export function sfxPref(): boolean {
+  try { return localStorage.getItem('audioOn') !== 'false'; } catch { return true; }
+}
+export function setSfxPref(on: boolean): void {
+  try { localStorage.setItem('audioOn', String(on)); } catch { /* storage unavailable */ }
+}
+export function musicPref(): boolean {
+  try { return localStorage.getItem('musicOn') !== 'false'; } catch { return true; }
+}
+export function setMusicPref(on: boolean): void {
+  try { localStorage.setItem('musicOn', String(on)); } catch { /* storage unavailable */ }
+}
+
 // ── Tower Lab bench prefs (docs/TOWERS.md) — favorites, recent upgrades, selection, sort.
 // Device-local curation (NOT progression): favorites/sort are how THIS player arranges the
 // bench, so they live beside the other UI prefs, never in the save.
@@ -87,7 +102,8 @@ export const AUTOSTART_KEY = 'assimilate.autostart';
  *  wipes for a true factory reset. When a module adds a new localStorage pref, it MUST add its key
  *  here (the owners keep their own consts; this registry only guarantees the wipe is complete). */
 export const DEVICE_PREF_KEYS: readonly string[] = [
-  'audioOn', // audio toggle (App boot)
+  'audioOn', // SFX toggle (App boot + Settings + pause menu)
+  'musicOn', // Music toggle (independent of SFX)
   AUTO_GENE_KEY,
   DIFF_KEY.campaign,
   DIFF_KEY.infinite,

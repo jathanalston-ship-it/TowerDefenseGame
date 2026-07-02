@@ -1,5 +1,6 @@
 // HERO COMBAT CONSOLE (docs/HERO-EVOLUTION.md §console) — the in-run Biomass sink as a
-// premium command surface, not a spreadsheet. NON-MODAL: the sim never pauses. Three regions:
+// premium command surface, not a spreadsheet. The battlefield AUTO-PAUSES while it is open
+// (GameView holds the sim and restores the player's own pause state on close). Three regions:
 // VITALS (the selected champion's live numbers), the SHOWCASE (living portrait + ability +
 // active effects), and UPGRADES (all ten axes as compact rows with full comparisons). The
 // roster tabs switch heroes INSTANTLY (upgrades are run-global — every champion benefits);
@@ -172,6 +173,7 @@ export function HeroEvolutionPanel({
           <span className="evo-title-i" aria-hidden>🧬</span>
           <span>Hero Combat Console</span>
           <span className="hcc-key" aria-hidden>E</span>
+          <span className="hcc-held" title="The battlefield is paused while the console is open">❚❚ SIM HELD</span>
         </div>
         <div className="evo-meters">
           <span className="evo-meter" title="Biomass — the in-run currency">⬢ <b>{hud.biomass}</b></span>
