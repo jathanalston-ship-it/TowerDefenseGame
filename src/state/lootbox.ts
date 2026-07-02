@@ -22,7 +22,7 @@ export type RewardItem =
   | { type: 'tower'; rarity: LootRarity; kind: TowerKind; amount: number }
   | { type: 'hero'; rarity: LootRarity; id: string; amount: number }
   | { type: 'material'; rarity: LootRarity; mat: MaterialKind; amount: number }
-  | { type: 'equipment'; rarity: LootRarity; item: OwnedItem }
+  | { type: 'equipment'; rarity: LootRarity; item: OwnedItem; isNew?: boolean } // isNew = defId undiscovered at roll time (collection semantics: not in the inventory)
   | { type: 'cosmetic'; rarity: LootRarity; id: string }
   | { type: 'relic'; rarity: LootRarity; id: string }
   | { type: 'event'; rarity: LootRarity; currency: string; amount: number; note?: string };

@@ -31,6 +31,7 @@ const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 function PullFace({ pull }: { pull: PullView }): JSX.Element {
   return (
     <div className="vreveal-face">
+      {pull.isNew && <div className="vreveal-new" aria-label="First discovery">✦ NEW DISCOVERY</div>}
       <div className="vreveal-face-rword" style={{ color: pull.color }}>{rarityLabel(pull.rarity)}</div>
       <div className="vreveal-emblem" style={{ ['--rw' as string]: pull.color }}>
         {pull.currency ? <CurrencyIcon id={pull.currency} color={pull.color} size={46} pickup /> : <span className="vreveal-glyph">{pull.glyph ?? '◆'}</span>}
@@ -69,6 +70,7 @@ function SummaryList({ sections, totalPower }: { sections: SummarySection[]; tot
                     <span className="vreveal-row-glyph" style={{ background: r.color }}>{r.glyph ?? '◆'}</span>
                   )}
                   <span className="vreveal-row-name">{r.name}</span>
+                  {r.isNew && <i className="vreveal-row-new">NEW</i>}
                   {r.count > 1 && <span className="vreveal-row-x">×{r.count}</span>}
                   {r.compare ? <PowerDelta cmp={r.compare} compact /> : r.power ? <span className="vreveal-row-power">+{formatPower(r.power)}</span> : null}
                   <span className="vreveal-row-amt" style={{ color: r.color }}>{r.amountLabel}</span>

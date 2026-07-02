@@ -1153,7 +1153,11 @@ export const meta = {
     const power = composePower(accountPowerParts(save)).score;
     if (Math.random() < EQUIP_DROP_CHANCE) {
       const item = rollItemForPower(Math.random, power);
-      chest.items.push({ type: 'equipment', rarity: item.rarity, item });
+      // FIRST DISCOVERY (docs/LOOTBOX.md §opening-flow): the def isn't in the inventory yet —
+      // the collection's own "discovered" definition. Each open persists before the next, so
+      // the second copy in a multi-open batch is correctly NOT new.
+      const isNew = !save.equipment.inventory.some((i) => i.defId === item.defId);
+      chest.items.push({ type: 'equipment', rarity: item.rarity, item, isNew });
       chest.equipment.push(item);
     }
     // Secondary crafting-material drop (docs/EQUIPMENT.md §Materials): low chance, small stacks, a

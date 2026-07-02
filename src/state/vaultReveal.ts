@@ -68,6 +68,7 @@ export interface PullView {
   glyph?: string; // fallback glyph when there is no currency icon (equipment/material/…)
   power?: number; // equipment: intrinsic Power Score points (drives the highlight)
   compare?: PowerCompare; // equipment: ▲/▼/= vs the selected hero's equipped slot (when supplied)
+  isNew?: boolean; // equipment: first collection discovery (defId not owned at roll time)
 }
 
 /** A merged summary row — duplicate pulls of the same reward collapsed, `count` = how many. */
@@ -84,6 +85,7 @@ export interface SummaryRow {
   glyph?: string;
   power?: number; // summed equipment power across merged pulls (equipment never actually merges)
   compare?: PowerCompare; // equipment: ▲/▼/= vs the selected hero's equipped slot (when supplied)
+  isNew?: boolean; // equipment: first collection discovery → the NEW badge
 }
 
 export interface SummarySection {
@@ -124,7 +126,7 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
     case 'equipment': {
       const d = itemDef(item.item.defId);
       const power = itemPowerScore(item.item);
-      return { key: `equip:${item.item.uid}`, category: 'equipment', rarity: item.rarity, color: rarityColor(item.rarity), name: d?.name ?? 'Equipment', qty: 1, unit: '', amountLabel: rarityLabel(item.rarity), glyph: d ? SLOT_LABELS[d.slot][0] : '◆', power, compare: compare?.(item.item) };
+      return { key: `equip:${item.item.uid}`, category: 'equipment', rarity: item.rarity, color: rarityColor(item.rarity), name: d?.name ?? 'Equipment', qty: 1, unit: '', amountLabel: rarityLabel(item.rarity), glyph: d ? SLOT_LABELS[d.slot][0] : '◆', power, compare: compare?.(item.item), isNew: item.isNew };
     }
     case 'cosmetic':
       return { key: `cos:${item.id}`, category: 'other', rarity: item.rarity, color: 'var(--r-epic)', name: item.id, qty: 1, unit: 'Cosmetic', amountLabel: 'Cosmetic', glyph: '✦' };
@@ -164,7 +166,7 @@ export function buildReveal(chests: ChestResult | ChestResult[], compare?: (i: O
       ex.rarity = maxRarity(ex.rarity, p.rarity);
       if (p.power) ex.power = (ex.power ?? 0) + p.power;
     } else {
-      byKey.set(p.key, { key: p.key, category: p.category, rarity: p.rarity, color: p.color, name: p.name, qty: p.qty, count: 1, amountLabel: p.amountLabel, currency: p.currency, glyph: p.glyph, power: p.power, compare: p.compare });
+      byKey.set(p.key, { key: p.key, category: p.category, rarity: p.rarity, color: p.color, name: p.name, qty: p.qty, count: 1, amountLabel: p.amountLabel, currency: p.currency, glyph: p.glyph, power: p.power, compare: p.compare, isNew: p.isNew });
     }
   }
   // Finalize merged labels (amount reflects the summed qty) and group into ordered sections.

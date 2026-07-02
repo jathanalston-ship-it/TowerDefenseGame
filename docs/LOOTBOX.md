@@ -173,5 +173,8 @@ card reveals (tap-to-flip, per-pull audio: shard cues / jackpot at epic+, beams 
 persistent summary (never auto-closes). Modes: Normal · FAST (auto-deals the next card after
 each reveal) · Reveal All (straight to summary) · tap-to-skip the charge. Legendary/exotic
 presentation is fundamentally bigger: faster charge shake, a RUNNING card border, and the
-whole backdrop breathing light. Known gap (documented): the summary does not yet badge
-first-time collection items as NEW — the reveal model doesn't carry ownership deltas.
+whole backdrop breathing light. FIRST DISCOVERY: `meta.openContainer` stamps `isNew` on an
+equipment pull whose defId isn't in the inventory at roll time (each open persists before the
+next, so the second copy in a multi-open batch is correctly not new); the reveal model carries
+it (PullView/SummaryRow `isNew`) and the ceremony badges it — a pulsing gold "✦ NEW DISCOVERY"
+ribbon on the pull face and a gold NEW chip on the summary row.

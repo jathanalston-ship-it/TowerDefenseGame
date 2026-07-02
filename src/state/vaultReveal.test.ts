@@ -96,6 +96,23 @@ describe('vault reveal read-model (honest pulls + merged summary)', () => {
     expect(m.topRarity).toBe('legendary'); // a catalyst pull makes the whole crack feel legendary
   });
 
+  it('first-discovery equipment carries isNew through the pull AND its summary row', () => {
+    const weaponDef = itemsForSlot('weapon').find((d) => !d.exotic)!;
+    const rng = mulberry32(7);
+    const fresh = rollItem(rng, weaponDef, 'rare');
+    const dupe = rollItem(rng, weaponDef, 'rare');
+    const items: RewardItem[] = [
+      { type: 'equipment', rarity: fresh.rarity, item: fresh, isNew: true }, // defId undiscovered at roll time
+      { type: 'equipment', rarity: dupe.rarity, item: dupe }, // already-owned def → no badge
+    ];
+    const m = buildReveal(chest(items));
+    expect(m.pulls[0].isNew).toBe(true);
+    expect(m.pulls[1].isNew).toBeUndefined();
+    const rows = m.sections.find((s) => s.id === 'equipment')!.rows;
+    expect(rows.find((r) => r.key === `equip:${fresh.uid}`)!.isNew).toBe(true);
+    expect(rows.find((r) => r.key === `equip:${dupe.uid}`)!.isNew).toBeUndefined();
+  });
+
   it('topRarity reflects the best pull across the whole container', () => {
     const items: RewardItem[] = [
       { type: 'tower', rarity: 'common', kind: t0, amount: 1 },
