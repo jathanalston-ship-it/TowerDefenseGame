@@ -157,6 +157,7 @@ export function Hub({
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
   const [nav, setNav] = useState<NavKey>('home');
+  const [navOpen, setNavOpen] = useState(false); // narrow-shell drawer (docs/RESPONSIVE-DESIGN.md)
   const save = meta.use();
   notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
@@ -170,12 +171,14 @@ export function Hub({
     audio.cue('ui');
     notifications.markSeen(k, save); // viewing a menu clears its badge immediately
     setNav(k);
+    setNavOpen(false); // picking a destination closes the narrow-shell drawer
   };
 
   return (
     <div className="hub">
       <LabAtmosphere />
-      <nav className="hub-nav" aria-label="Headquarters">
+      {navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
+      <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
           {NAV_GROUPS.map((group) => (
@@ -224,6 +227,9 @@ export function Hub({
 
       <div className="hub-main">
         <header className="hub-topbar">
+          <button className="hub-burger" onClick={() => setNavOpen((v) => !v)} aria-label="Open navigation" aria-expanded={navOpen}>
+            ☰ <span className="hub-burger-l">Menu</span>
+          </button>
           <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
           <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>
           <span className="hub-cur" title="Mutagen · Scrap · Catalyst">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>

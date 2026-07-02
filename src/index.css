@@ -13,6 +13,12 @@
   --panel-2: #161d28;
   --panel-3: #1c2533;
   --panel-deep: #0a0e15; /* gradient floors — the deepest chrome under icon cores */
+  /* Safe areas (docs/RESPONSIVE-DESIGN.md) — notches, cutouts, gesture regions. Fixed
+     overlays (HUD, toasts, rails, drawers) add these to their edge offsets. */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
   --line: #232c3a;
   --line-strong: #3a4a63;
   --text: #d7e0ec;
@@ -87,6 +93,12 @@ body,
 #root {
   margin: 0;
   height: 100%;
+}
+html {
+  /* Mobile browsers must never auto-inflate text (font boosting paints scaled glyphs over
+     unscaled layout — overlapping text). The type scale is authored; adjustment is ours. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -225,6 +237,22 @@ button:disabled {
   border-color: #45c699;
 }
 
+/* ── Modal safety net (docs/RESPONSIVE-DESIGN.md §modals) — every dialog panel is bounded
+   to the safe viewport and scrolls internally. New modals join this list (or inherit the
+   pattern): readable, reachable buttons, centered animations, at every size. ── */
+.branch-confirm,
+.codex,
+.wn-card,
+.tut-reward-card,
+.cmp-panel,
+.id-box,
+.hudtour-card {
+  max-width: min(96vw, calc(100vw - var(--safe-l) - var(--safe-r) - 12px));
+  max-height: calc(100dvh - var(--safe-t) - var(--safe-b) - 20px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 /* ── Tooltip primitive (.tt wrapper + .tt-bubble) ─────────────────────────── */
 .tt {
   position: relative;
@@ -264,7 +292,8 @@ button:disabled {
 }
 .tt:hover > .tt-bubble,
 .tt:focus-visible > .tt-bubble,
-.tt:focus-within > .tt-bubble {
+.tt:focus-within > .tt-bubble,
+.tt.tt-open > .tt-bubble {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
@@ -341,7 +370,7 @@ button:disabled {
 }
 .records {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: var(--s3);
 }
 /* Power Score — one legible account-power number (PROGRESSION §1.4). */
@@ -1568,7 +1597,7 @@ canvas.board {
 /* ── Statistics screen ─────────────────────────────────────────────────────── */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 8px;
   margin-top: 6px;
 }
@@ -1671,19 +1700,56 @@ canvas.board {
   }
 }
 @media (max-width: 640px) {
+  /* Never hide functionality: the Run Build panel compresses to a scrollable strip. */
   .build-panel {
-    display: none; /* cards/buffs stay browseable on larger screens */
+    max-height: 118px;
+    overflow-y: auto;
   }
   .inspector {
-    max-height: 112px;
+    max-height: 148px;
+    overflow-y: auto;
   }
+}
+
+
+/* ── In-run chrome adaptation (docs/RESPONSIVE-DESIGN.md §hud) ─────────────────
+   Desktop keeps the information-rich chrome; short/narrow viewports compress it so
+   the battlefield dominates. All functionality remains — nothing hides. */
+
+/* Compact band: Steam Deck / short laptops — the rail drops its blurbs to one row. */
+@media (max-height: 880px) and (min-width: 641px) {
+  .tcard-blurb { display: none; }
+  .tcard { min-width: 148px; min-height: 0; }
+  .toolbar { padding: 6px 10px; gap: 8px; }
+  .hud { padding-top: 4px; padding-bottom: 4px; }
+}
+
+/* Phones: the run stack reorders so BUILDING never needs a scroll — hud, board,
+   tower rail (scroll-snap chip row), then the browseable panels. */
+@media (max-width: 640px) {
+  .stage { display: contents; } /* promote the board + panels into the .game column for ordering */
+  .hud { order: -2; }
+  .canvas-wrap { order: -1; }
+  .toolbar { order: 0; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; padding: 6px 8px; gap: 8px; padding-bottom: calc(6px + var(--safe-b)); }
+  .tcard { flex: none; width: 152px; scroll-snap-align: start; }
+  .tcard-blurb { display: none; }
+  .build-panel { order: 1; }
+  .inspector { order: 2; }
+  .build-bar { flex-wrap: wrap; gap: 6px; padding: 6px 8px; max-width: calc(100% - 96px); } /* clears the Pause chip */
+  .gene-splash { top: 42%; } /* below the wrapped prep bar — never under other chrome */
+  .game { padding-left: var(--safe-l); padding-right: var(--safe-r); }
 }
 
 /* Coarse pointers (touch): comfortable 44px tap targets regardless of width. */
 @media (pointer: coarse) {
-  button {
+  button,
+  select,
+  input[type='search'],
+  input[type='text'],
+  [role='button'] {
     min-height: 44px;
   }
+  [role='button'] { display: inline-flex; align-items: center; }
   .tcard {
     min-height: 56px;
   }
@@ -2434,12 +2500,12 @@ kbd {
 }
 
 /* ── Tower Lab — the collection of evolving organisms (TowerLab + TowerPortrait + StarCeremony) ── */
-.tl-panel { width: min(960px, 96vw); }
+.tl-panel { width: min(960px, 100%); }
 
 /* ── Tower Lab v2 — the engineering wing (specimen rail + mutation-chamber showcase).
    Master–detail: the rail scales to a 100-tower roster; the showcase is one organism's
    whole story. Reuses the tl-* atoms (facts/stats/next/forks) inside the showcase. ── */
-.tl2 { width: min(1180px, 96vw); }
+.tl2 { width: min(1180px, 100%); }
 .tl2-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3); }
 .tl2-ready-badge { flex: none; margin-top: 4px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--success); border: 1px solid color-mix(in srgb, var(--success) 45%, var(--line)); background: color-mix(in srgb, var(--success) 10%, transparent); animation: tl2-ready-breathe 5s ease-in-out infinite; }
 @keyframes tl2-ready-breathe { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: var(--halo) color-mix(in srgb, var(--success) 55%, transparent); } }
@@ -2690,7 +2756,7 @@ kbd {
   background: rgba(4, 8, 14, 0.84); backdrop-filter: blur(5px);
 }
 .codex {
-  position: relative; width: min(840px, 96vw); max-height: 92vh; overflow: auto;
+  position: relative; width: min(840px, 100%); max-height: 92vh; overflow: auto;
   background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 9%, transparent), var(--panel-2));
   border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius: var(--r-lg); padding: 20px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 40px -16px var(--accent);
@@ -2755,7 +2821,7 @@ kbd {
 }
 @keyframes evo-rays-spin { to { transform: rotate(360deg); } }
 .evo-card {
-  position: relative; width: min(720px, 96vw); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  position: relative; width: min(720px, 100%); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
   animation: evo-card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes evo-card-in { from { opacity: 0; transform: translateY(24px) scale(0.94); } to { opacity: 1; transform: none; } }
@@ -2792,7 +2858,7 @@ kbd {
 }
 .slot-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 260px 60px rgba(0, 0, 0, 0.85); animation: fade-in 0.6s ease both; }
 .slot-card {
-  position: relative; width: min(640px, 96vw); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  position: relative; width: min(640px, 100%); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
   animation: evo-card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .slot-badge {
@@ -2921,7 +2987,7 @@ kbd {
 
 /* What's New? — celebratory unlock intro (docs/HELP.md). */
 .whatsnew { position: fixed; inset: 0; z-index: 92; display: grid; place-items: center; overflow: auto; padding: 20px; background: radial-gradient(120% 90% at 50% 30%, rgba(20, 30, 24, 0.8), rgba(3, 6, 10, 0.97)); backdrop-filter: blur(6px); animation: fade-in 0.4s ease both; }
-.wn-card { position: relative; width: min(440px, 96vw); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 22px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid color-mix(in srgb, var(--success) 40%, var(--line)); box-shadow: 0 24px 70px rgba(0,0,0,0.6), 0 0 40px -16px var(--success); animation: evo-card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.wn-card { position: relative; width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 22px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid color-mix(in srgb, var(--success) 40%, var(--line)); box-shadow: 0 24px 70px rgba(0,0,0,0.6), 0 0 40px -16px var(--success); animation: evo-card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .wn-badge { font-size: 11px; font-weight: 900; letter-spacing: 0.24em; color: var(--success); }
 .wn-title { margin: 2px 0 0; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 0 3px 24px color-mix(in srgb, var(--success) 45%, transparent); }
 .wn-summary { font-size: 13px; color: var(--muted); font-style: italic; }
@@ -3122,7 +3188,7 @@ kbd {
    the right, glows in the container's rarity color (--rc), pops its icon, and auto-dismisses. One at
    a time (the toaster renders only the front of its queue) so bursts never overlap. Non-interrupting:
    the wrap is pointer-through; only the toast itself is clickable (to dismiss early). */
-.loot-toast-wrap { position: fixed; top: 64px; right: 16px; z-index: 480; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; }
+.loot-toast-wrap { position: fixed; top: calc(64px + var(--safe-t)); right: calc(16px + var(--safe-r)); z-index: 480; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; }
 .loot-toast {
   pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 12px; min-width: 260px; max-width: 340px;
   padding: 11px 15px; border-radius: var(--r-md); background: linear-gradient(180deg, var(--panel-2), var(--panel));
@@ -3144,7 +3210,7 @@ kbd {
 
 .achv-stack {
   position: fixed;
-  top: 16px;
+  top: calc(16px + var(--safe-t));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -3373,7 +3439,7 @@ kbd {
 }
 .loadout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -4202,7 +4268,29 @@ kbd {
   .cur-ico.is-anim, .cur-ico.is-pickup { animation: none; }
 }
 
-.hub-screen { flex: 1; min-height: 0; overflow-y: auto; padding: 22px; }
+.hub-screen { flex: 1; min-height: 0; overflow-y: auto; padding: 22px; padding-bottom: calc(22px + var(--safe-b)); }
+
+/* ── Narrow shell (docs/RESPONSIVE-DESIGN.md): the nav rail becomes an off-canvas drawer.
+   One codebase — the same nav, presented as a sheet; the burger lives in the topbar. ── */
+.hub-burger { display: none; }
+@media (max-width: 860px) {
+  .hub { grid-template-columns: 1fr; }
+  .hub-burger { display: inline-flex; align-items: center; gap: 8px; margin-right: 4px; padding: 6px 12px; border-radius: var(--r-sm); font-weight: 800; }
+  .hub > .hub-nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 700; /* above toasts; below nothing it shouldn't be (modals 900+) */
+    width: min(300px, 84vw);
+    transform: translateX(-102%);
+    transition: transform var(--dur-3) var(--ease-out);
+    box-shadow: var(--shadow-lg);
+    padding-left: var(--safe-l);
+  }
+  .hub > .hub-nav.is-open { transform: translateX(0); }
+  .hub-nav-veil { position: fixed; inset: 0; z-index: 690; background: rgba(4, 7, 12, 0.55); }
+  .hub-topbar { padding: 0 12px; gap: 10px; overflow-x: auto; }
+  .hub-screen { padding: 12px; padding-bottom: calc(12px + var(--safe-b)); }
+}
 /* Tab switch / menu open: the screen content RISES into place. `.hub-screen` remounts on every
    nav change (key={nav}), so this fires per switch — one animation; the panels inside ride
    along (animating each separately would double the motion). */
@@ -4632,7 +4720,7 @@ kbd {
 .hero-field.is-fielded { background: rgba(63, 224, 138, 0.14); border-color: var(--success); color: var(--success); box-shadow: none; cursor: default; opacity: 1; }
 
 /* ── Hero Slots (HEROES.md) — the 1 → 2 → 3 roster strip + locked prestige previews ── */
-.hslots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.hslots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 .hslot {
   display: flex; flex-direction: column; gap: 7px;
   padding: 12px; border-radius: var(--r-md);
@@ -4850,8 +4938,8 @@ kbd {
 .gl-req { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--muted); white-space: nowrap; }
 .gl-buy { margin-top: 2px; padding: 2px 10px; border-radius: var(--r-sm); background: var(--gold); color: #1a1400; font-size: 10px; font-weight: 800; }
 .ga-grid.is-equipping .ga-tile:not(.is-unowned) { outline: 1px dashed var(--caustic); cursor: copy; }
-.gene-splash { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 26px; border-radius: var(--r-md); background: rgba(6, 14, 12, 0.82); border: 1px solid var(--caustic); box-shadow: 0 0 30px color-mix(in srgb, var(--caustic) 30%, transparent); animation: gene-splash-in 0.45s ease-out, gene-splash-out 0.6s ease-in 2.6s forwards; pointer-events: auto; cursor: pointer; }
-.gene-splash-k { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 0.12em; color: var(--caustic); }
+.gene-splash { position: absolute; top: 18%; line-height: 1.35; /* undo canvas-wrap's line-height:0 (text collapse) */ left: 50%; transform: translateX(-50%); max-width: min(520px, 92%); z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 26px; border-radius: var(--r-md); background: rgba(6, 14, 12, 0.82); border: 1px solid var(--caustic); box-shadow: 0 0 30px color-mix(in srgb, var(--caustic) 30%, transparent); animation: gene-splash-in 0.45s ease-out, gene-splash-out 0.6s ease-in 2.6s forwards; pointer-events: auto; cursor: pointer; }
+.gene-splash-k { font-size: 14px; font-weight: 900; letter-spacing: 0.12em; color: var(--caustic); }
 .gene-splash-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 480px; }
 .gene-splash-card { padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,0.07); border: 1px solid var(--line-strong); font-size: 12px; font-weight: 700; color: var(--text); opacity: 0; animation: gene-card-in 0.4s ease-out forwards; }
 .gene-splash-card b { color: var(--gold); margin-left: 2px; }
@@ -4903,7 +4991,7 @@ kbd {
 .ga-unowned { color: var(--muted); font-size: 10px; }
 .ga-pow { margin-left: auto; color: var(--gold); font-size: 11px; font-weight: 700; }
 /* inspection screen */
-.ga-box { position: relative; width: min(640px, 96vw); max-height: 92vh; overflow-y: auto; border-radius: var(--r-lg); padding: 20px; background: linear-gradient(160deg, #12201c, var(--panel-deep)); border: 1px solid var(--rc, var(--line-strong)); box-shadow: 0 24px 70px rgba(0,0,0,0.65), var(--ring-in) color-mix(in srgb, var(--acc) 16%, transparent); display: flex; flex-direction: column; gap: 14px; }
+.ga-box { position: relative; width: min(640px, 100%); max-height: 92vh; overflow-y: auto; border-radius: var(--r-lg); padding: 20px; background: linear-gradient(160deg, #12201c, var(--panel-deep)); border: 1px solid var(--rc, var(--line-strong)); box-shadow: 0 24px 70px rgba(0,0,0,0.65), var(--ring-in) color-mix(in srgb, var(--acc) 16%, transparent); display: flex; flex-direction: column; gap: 14px; }
 .ga-head { display: flex; gap: 16px; align-items: flex-start; }
 .ga-art { flex: none; border-radius: var(--r-md); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--acc) 18%, transparent), transparent 70%); }
 .ga-head-info { min-width: 0; flex: 1; }
@@ -4931,7 +5019,7 @@ kbd {
 @media (max-width: 560px) { .ga-head { flex-direction: column; align-items: center; text-align: center; } }
 
 /* ── Equipment Details screen (the ONE place gear is managed) ── */
-.id-box { position: relative; width: min(680px, 96vw); max-height: 92vh; overflow-y: auto; border-radius: var(--r-lg); padding: 20px; background: linear-gradient(160deg, #141d28, var(--panel-deep)); border: 1px solid var(--rc, var(--line-strong)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), var(--ring-in) color-mix(in srgb, var(--rc) 22%, transparent); display: flex; flex-direction: column; gap: 16px; }
+.id-box { position: relative; width: min(680px, 100%); max-height: 92vh; overflow-y: auto; border-radius: var(--r-lg); padding: 20px; background: linear-gradient(160deg, #141d28, var(--panel-deep)); border: 1px solid var(--rc, var(--line-strong)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), var(--ring-in) color-mix(in srgb, var(--rc) 22%, transparent); display: flex; flex-direction: column; gap: 16px; }
 .id-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: var(--r-sm); background: rgba(255,255,255,0.06); color: var(--muted); font-size: 13px; }
 .id-close:hover { color: var(--text); background: rgba(255,255,255,0.12); }
 .id-head { display: flex; gap: 16px; align-items: flex-start; }
@@ -5036,7 +5124,7 @@ kbd {
 }
 
 /* ── Campaign — the living WORLD MAP / descent (CampaignScreen) ───────────────────────────────── */
-.camp-map-panel { width: min(1000px, 96vw); }
+.camp-map-panel { width: min(1000px, 100%); }
 .camp-map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .camp-map-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .camp-record { font-size: 13px; color: var(--muted); white-space: nowrap; }
@@ -5109,13 +5197,13 @@ kbd {
 /* ── Power gain toasts (POWER-SCORE.md §feel): amount + SOURCE, near the live badge ── */
 /* Toast rails (docs/UI_STYLE_GUIDE.md §8): center band = account milestones (.achv-stack),
    right rail = gains — loot at the top slot, power in the band below (never overlap). */
-.ptoasts { position: fixed; top: 128px; right: 16px; z-index: 484; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.ptoasts { position: fixed; top: calc(128px + var(--safe-t)); right: calc(16px + var(--safe-r)); z-index: 484; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .ptoast { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 8px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--success) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--success) 45%, var(--line)); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35); animation: ptoast-in var(--dur-3) var(--ease-out) both, ptoast-out var(--dur-3) var(--ease-in) 2.2s both; }
 .ptoast-delta { font-size: 14px; font-weight: 800; color: var(--success); font-variant-numeric: tabular-nums; }
 .ptoast-src { font-size: 11px; color: var(--muted); }
 
 /* Mastery level-up toasts — the gains rail's third band (below loot + power). */
-.mtoasts { position: fixed; top: 192px; right: 16px; z-index: 486; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.mtoasts { position: fixed; top: calc(192px + var(--safe-t)); right: calc(16px + var(--safe-r)); z-index: 486; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .mtoast { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--mc, var(--gold)) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--mc, var(--gold)) 45%, var(--line)); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35), var(--halo) color-mix(in srgb, var(--mc, var(--gold)) 30%, transparent); animation: ptoast-in var(--dur-3) var(--ease-out) both, ptoast-out var(--dur-3) var(--ease-in) 2.8s both; }
 .mtoast-glyph { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-size: 16px; color: var(--mc, var(--gold)); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--mc, var(--gold)) 22%, var(--panel-deep)), var(--panel-deep)); box-shadow: inset 0 0 12px -4px var(--mc, var(--gold)); }
 .mtoast-body { display: flex; flex-direction: column; gap: 1px; text-align: left; }
@@ -5178,7 +5266,7 @@ kbd {
 /* Tutorial completion reward reveal (docs/TUTORIAL.md) — the celebratory one-time payout. */
 .tut-reward { position: fixed; inset: 0; z-index: 4200; display: grid; place-items: center; overflow: auto; padding: 20px; background: radial-gradient(120% 90% at 50% 35%, rgba(34, 26, 10, 0.82), rgba(4, 4, 8, 0.97)); backdrop-filter: blur(6px); animation: fade-in 0.5s ease both; }
 .tut-reward .evo-rays { background: conic-gradient(from 0deg at 50% 42%, transparent 0deg, rgba(245, 197, 66, 0.12) 8deg, transparent 16deg, rgba(245, 197, 66, 0.09) 24deg, transparent 32deg); }
-.tut-reward-card { position: relative; width: min(460px, 96vw); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 44px -14px var(--gold); animation: evo-card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.tut-reward-card { position: relative; width: min(460px, 100%); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 44px -14px var(--gold); animation: evo-card-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .tut-reward-badge { font-size: 11px; font-weight: 900; letter-spacing: 0.28em; color: #1a1406; background: linear-gradient(180deg, var(--gold), #c9962f); padding: 4px 14px; border-radius: 999px; box-shadow: var(--halo) var(--gold); }
 .tut-reward-title { margin: 4px 0 0; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 0 4px 30px rgba(245, 197, 66, 0.5); }
 .tut-reward-sub { margin: 0; font-size: 13px; color: var(--muted); }

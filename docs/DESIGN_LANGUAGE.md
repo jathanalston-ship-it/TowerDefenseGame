@@ -89,6 +89,9 @@ Before shipping any new UI:
 6. Sounds from existing families; music via categories.
 7. Passes the screenshot test (VISUAL_IDENTITY §8).
 8. Component kit first (`src/ui/components/`) — extend it rather than fork it.
+   Responsive by construction: follow `docs/RESPONSIVE-DESIGN.md` §6 (container-sized
+   panels, reflow grids, safe areas, touch equivalents) — new screens inherit every
+   platform for free.
 9. Docs: register the surface in `src/dev/systemRegistry.ts`; update the owning system doc.
 
 ## 9. Future UI standards (reserved seams)

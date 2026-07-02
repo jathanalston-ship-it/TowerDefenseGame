@@ -62,6 +62,20 @@ export function App(): JSX.Element {
     } catch { /* private mode */ }
   }, []);
 
+  // Touch tooltips (docs/RESPONSIVE-DESIGN.md §touch): hover-less pointers TAP a .tt to
+  // toggle its bubble; tapping anywhere else closes it. One delegated listener — every
+  // existing and future tooltip inherits the behavior.
+  useEffect(() => {
+    if (window.matchMedia?.('(hover: hover)').matches) return; // hover devices keep hover
+    const onTap = (e: Event): void => {
+      const tt = (e.target as HTMLElement).closest?.('.tt');
+      for (const open of document.querySelectorAll('.tt.tt-open')) if (open !== tt) open.classList.remove('tt-open');
+      if (tt) tt.classList.toggle('tt-open');
+    };
+    document.addEventListener('click', onTap);
+    return () => document.removeEventListener('click', onTap);
+  }, []);
+
   // Boot the tutorial session if this is a first launch (screen was auto-set to 'tutorial').
   useEffect(() => { if (meta.shouldAutoTutorial()) tutorial.start('combat'); }, []);
   // Prime the Help archive once so existing saves don't flood with "What's New" on first load.

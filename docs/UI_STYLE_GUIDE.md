@@ -123,7 +123,15 @@ number rolls ~600ms ease-out. Eases: `--ease-out` default, `--ease-in` exits,
 `--ease-in-out` slides, `--ease-spring` rewards only. Transition durations MUST come from
 tokens (enforced); keyframe ambience declares its own seconds.
 
-## 11. Enforcement
+## 11. Responsive & platforms
+
+The multi-platform framework lives in `docs/RESPONSIVE-DESIGN.md`: breakpoints (860 shell /
+900 run-stack / 640 phone / Deck short-band), container-sized panels `min(Xpx, 100%)`,
+reflow grids, `--safe-t/r/b/l` tokens on fixed chrome, the modal safety net, coarse-pointer
+44px floors, tooltip tap-toggling, and `usePressRepeat` hold-to-buy. New screens follow its
+§6 checklist and need no additional responsive work.
+
+## 12. Enforcement
 
 `src/dev/uiStandards.test.ts` fails the suite on: fractional font px, off-token radii,
 off-token transition durations (un-annotated), and off-scale font sizes. Doc-sync anchors

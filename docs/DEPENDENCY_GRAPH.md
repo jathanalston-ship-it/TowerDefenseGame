@@ -110,7 +110,7 @@ graph TD
 | **Rendering & VFX** (`rendering`) | `engine` | — | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` |
 | **Audio** (`audio`) | — | — | — | — | `docs/GAME-FEEL.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` | — | — | — | `docs/DEV-RESET.md` |
-| **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` |
+| **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` |
 | **System Registry & Doc Tooling** (`dev-registry`) | — | — | — | — | `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md` |
 
 ## Per-system detail — the full blast radius
@@ -584,7 +584,7 @@ graph TD
 
 *Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.*
 
-- **Files:** `src/ui/components/Icon.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts`
+- **Files:** `src/ui/components/Icon.tsx` · `src/ui/components/ProgressBar.tsx` · `src/ui/components/useCountUp.ts` · `src/ui/components/usePressRepeat.ts`
 - **Depends on:** —
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
@@ -593,7 +593,7 @@ graph TD
 - **HUD surfaces:** `(embedded everywhere)` · **UI screens:** `(embedded everywhere)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md`
+- **Docs to update on change:** `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md`
 
 ### System Registry & Doc Tooling (`dev-registry`)
 
