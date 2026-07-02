@@ -176,3 +176,64 @@ they pass the §1 differentiation test in `PROGRESSION-PHILOSOPHY.md`.
   cosmetic, tier 0 renders identically. Tower=craft / hero=bond reward split is in the data.
 - **Deferred:** dedicated skin/cosmetic *items* (distinct silhouettes/foils) — additional
   `cosmeticRegistry` data on the same seam, not new architecture.
+
+
+---
+
+## 9. The LIVE mastery experience (2026-07 overhaul — implemented)
+
+Mastery stopped being a run-end surprise: the player now WATCHES the craft grow. Everything
+below is presentation over the unchanged economy — the XP formula and banking are identical.
+
+### 9.1 One formula, two consumers (zero drift by construction)
+
+- `masteryXpRaw(counts)` (src/state/meta.ts) — kills·xpPerKill + damage·xpPerDamage +
+  activeTime·xpPerActiveSecond. THE signal formula.
+- `masteryXpMults(save, mode, difficulty)` — the run-constant multiplier product
+  (mode reward × difficulty XP × ascendant × collection codex).
+- `meta.finishRun` banks `round(raw × mult)`; GameView's run loop projects the SAME
+  expression from `game.getMasteryAccrual()` every HUD tick. The number the player watches
+  is byte-equal to the number that banks.
+
+### 9.2 In-run surfaces
+
+- **Inspector craft bar** (select any placed tower): projected level, smoothly-filling
+  progress bar, "+N XP this run", floating `+N XP` ticks as the organism earns, permanent
+  bonus, lifetime kills/damage, next unlock, and the tower's Power contribution.
+- **Level-up celebration** (never pauses): MasteryToaster (state/masteryEvents.ts bus →
+  ui/components/MasteryToaster.tsx) shows tower · new level · permanent bonus · the Power
+  the level banks (real preview model); the `mastery` craft chime plays (`rankup` fanfare
+  on rank boundaries); a ring blooms from every deployed unit of the kind on the
+  battlefield (GameView presentation layer — never sim state); a small trauma pulse lands
+  the moment. Reduced-motion & tutorial-safe.
+
+### 9.3 Account surfaces
+
+- **Tower Lab ledger** (towerLabModel.masteryPanelModel): rank, level, XP bar, lifetime
+  kills / damage / deployments / best wave (LifetimeStats per-tower ledgers, schema v20),
+  permanent bonus, Power contribution, next unlock (`nextMasteryUnlock` — reward, perk, or
+  the always-present next procedural rank), milestone chips.
+- **End of Run**: the Progression category's mastery ledger — per-tower kills/damage,
+  +XP, level movement, bonus + Power earned on level-ups, lifetime standing; the run's
+  top contributor wears the ✦ crown.
+- **Evolution Codex** shows level + rank; **Mastery Profile** holds titles + lore;
+  **Help → Tower Mastery** (mechanics registry `tower-mastery`) teaches the loop.
+
+### 9.4 Future-support seams (already load-bearing)
+
+- **Prestige interactions**: `masteryXpMults` already folds ascendant bonuses; new prestige
+  effects join there and every surface follows automatically.
+- **Achievements / milestones / badges / titles / cosmetics / seasonal bonuses**: the
+  mastery track registry (rewards + perks) + `masteryRewardsBetween` (run-end unlock set) +
+  `onMasteryLevelUp` (live bus) are the three hook points — a seasonal system can subscribe
+  to the bus or append track rewards without touching the loop.
+- Hero mastery ("bond") rides the same engine; the live projection currently surfaces
+  towers (the craft loop); wiring heroes into the same bus is a data change, not a design.
+
+### 9.5 Validation
+
+- Save: v19→v20 zero-fill migration + accumulation tests (state/stats.test.ts).
+- Power: mastery XP scores through the permanent bucket (state/powerIntegration.test.ts);
+  the level-up toast derives its Power line from `meta.previewPower` — preview === outcome.
+- Suite: golden sim untouched (projection reads accrual; celebrations are DOM/canvas
+  presentation).

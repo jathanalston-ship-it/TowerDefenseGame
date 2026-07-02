@@ -10,6 +10,12 @@ import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta } from '../state/meta';
 import { announcePower } from '../state/powerEvents';
+import { announceMasteryLevelUp } from '../state/masteryEvents';
+import type { LiveMasteryView } from '../state/masteryEvents';
+import { MasteryToaster } from './components/MasteryToaster';
+import { MASTERY, TOWER_DEFS } from '../core/config';
+import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
+import { masteryProgress, masteryXpMults, masteryXpRaw } from '../state/meta';
 import { music } from '../audio/music';
 import { PowerToaster } from './components/PowerToaster';
 import { cardRegistry } from '../core/cards';
@@ -123,6 +129,14 @@ export function GameView({
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
+  // ── Live Mastery projection (docs/MASTERY.md §live) — the EXACT banking math, watched
+  //    per HUD tick: banked XP (run-start snapshot; mastery only banks at finishRun) +
+  //    this run's accrual × the run-constant multipliers. Level-ups celebrate instantly.
+  const masteryBankRef = useRef<Record<string, number>>({});
+  const masteryMultRef = useRef(1);
+  const masteryPrevRef = useRef<Record<string, { level: number; total: number }> | null>(null);
+  const celebRef = useRef<{ x: number; y: number; color: string; start: number }[]>([]);
+  const [liveMastery, setLiveMastery] = useState<Partial<Record<string, LiveMasteryView>>>({});
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
@@ -206,6 +220,25 @@ export function GameView({
         ctx.translate(dx, dy);
         const rs = game.getRenderState();
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers);
+        // Mastery level-up rings — pure presentation over the sim frame (never sim state).
+        if (celebRef.current.length > 0) {
+          const RING_MS = 900;
+          celebRef.current = celebRef.current.filter((c) => now - c.start < RING_MS);
+          for (const c of celebRef.current) {
+            const pr = (now - c.start) / RING_MS;
+            ctx.globalAlpha = (1 - pr) * 0.85;
+            ctx.strokeStyle = c.color;
+            ctx.lineWidth = 1 + 2.5 * (1 - pr);
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 16 + pr * 48, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = (1 - pr) * 0.3;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 8 + pr * 24, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
         ctx.restore();
 
         // Dynamic music intensity (audio/music.ts): battlefield pressure — enemies massing +
@@ -221,6 +254,40 @@ export function GameView({
         if (now - lastHud > 80) {
           setHud(game.getSnapshot());
           if (!tutorial) meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE (never in the tutorial)
+          // Live Mastery: project every kind's level from the sim accrual; celebrate crossings.
+          const accrual = game.getMasteryAccrual();
+          const lm: Partial<Record<string, LiveMasteryView>> = {};
+          const prev = masteryPrevRef.current;
+          const nextPrev: Record<string, { level: number; total: number }> = {};
+          for (const k of TOWER_ORDER) {
+            const gained = Math.round(masteryXpRaw(accrual[k]) * masteryMultRef.current);
+            const total = (masteryBankRef.current[k] ?? 0) + gained;
+            const mp = masteryProgress(total);
+            lm[k] = { level: mp.level, into: mp.into, need: mp.need, gained };
+            nextPrev[k] = { level: mp.level, total };
+            const p = prev?.[k];
+            if (p && mp.level > p.level && !tutorial) {
+              // Power this level banks: the real preview model at both XP totals.
+              const powerAt = (xp: number): number =>
+                meta.previewPower((sv) => ({ ...sv, towerMasteryXp: { ...sv.towerMasteryXp, [k]: xp } })).score;
+              announceMasteryLevelUp({
+                kind: k,
+                name: TOWER_DEFS[k].name,
+                color: TOWER_DEFS[k].color,
+                level: mp.level,
+                rank: mp.level % MASTERY_RANK_EVERY === 0 ? masteryRankTitle(mp.level) : null,
+                bonus: `+${(MASTERY.damagePerLevel * 100).toFixed(1)}% damage / level`,
+                powerGained: Math.max(0, powerAt(total) - powerAt(p.total)),
+                at: Date.now(),
+              });
+              // The organisms themselves celebrate: a ring blooms from every deployed unit
+              // of the kind, and the field registers a heartbeat of impact.
+              for (const t of game.towers) if (t.kind === k) celebRef.current.push({ x: t.x, y: t.y, color: TOWER_DEFS[k].color, start: now });
+              traumaRef.current = Math.min(1, traumaRef.current + 0.06);
+            }
+          }
+          masteryPrevRef.current = nextPrev;
+          setLiveMastery(lm);
           lastHud = now;
         }
         // Run ended → begin the outro (once): resolve the music, raise the Victory/Defeat title,
@@ -249,6 +316,15 @@ export function GameView({
       cancelAnimationFrame(raf);
     };
   }, [game]);
+
+  // Snapshot the mastery banking inputs at run start (they are run-constant).
+  useEffect(() => {
+    const save = meta.get();
+    masteryBankRef.current = { ...save.towerMasteryXp };
+    masteryMultRef.current = masteryXpMults(save, { endless: mode === 'endless', campaign: mode === 'campaign' }, difficulty).tower;
+    masteryPrevRef.current = null; // first tick initializes silently (no phantom level-ups)
+    celebRef.current = [];
+  }, [game, mode, difficulty]);
 
   // expose the live run to the debug panel
   useEffect(() => {
@@ -312,6 +388,7 @@ export function GameView({
     <div className="game">
       <Hud hud={hud} power={power} />
       <PowerToaster />
+      <MasteryToaster />
       <div className="stage">
         {leftOpen ? (
           <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />
@@ -505,6 +582,7 @@ export function GameView({
         {rightOpen ? (
           <Inspector
             hud={hud}
+            liveMastery={liveMastery}
             onCollapse={() => setRightOpen(false)}
             onBranchBuy={(towerId, branchId) => {
               audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)

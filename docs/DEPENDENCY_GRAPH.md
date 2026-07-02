@@ -209,13 +209,13 @@ graph TD
 
 *Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees.*
 
-- **Files:** `src/core/mastery.ts` · `src/core/adaptation.ts` · `src/ui/MasteryProfile.tsx` · `src/ui/components/AdaptationTree.tsx`
+- **Files:** `src/core/mastery.ts` · `src/core/adaptation.ts` · `src/state/masteryEvents.ts` · `src/ui/MasteryProfile.tsx` · `src/ui/components/AdaptationTree.tsx` · `src/ui/components/MasteryToaster.tsx`
 - **Depends on:** `stats` · `content-infra`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** mastery multiplier folds into the permanent bucket
 - **Save fields:** `towerMasteryXp` · `heroMasteryXp` · `adaptation`
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** `halos (renderer)` · **UI screens:** `MasteryProfile`
+- **HUD surfaces:** `halos (renderer)` · `live projection + level-up rings (GameView)` · `Inspector craft bar` · **UI screens:** `MasteryProfile` · `MasteryToaster`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/MASTERY.md`

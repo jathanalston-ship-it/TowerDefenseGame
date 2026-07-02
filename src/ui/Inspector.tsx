@@ -4,12 +4,16 @@
 //   • a tower KIND is armed for placement → its live combat stats (mobile stat readout);
 //   • otherwise → hero status + a live run summary so the panel is never dead space.
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
-import type { HudSnapshot, SelectedPlacedTower } from '../core/types';
+import { ProgressBar } from './components/ProgressBar';
+import { meta } from '../state/meta';
+import { masteryPanelModel } from './towerLabModel';
+import type { LiveMasteryView } from '../state/masteryEvents';
+import type { HudSnapshot, SelectedPlacedTower, TowerKind } from '../core/types';
 
 function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
   return (
@@ -33,8 +37,67 @@ function InsHead({ title, onCollapse }: { title: string; onCollapse?: () => void
   );
 }
 
+/** Live Mastery for the selected tower (docs/MASTERY.md §live): projected level + a
+ * smoothly-filling bar + floating "+N XP" ticks as the organism earns, over the save-side
+ * ledger (rank, bonus, next unlock, lifetime, Power contribution). */
+function MasteryLive({ kind, color, live }: { kind: TowerKind; color: string; live: LiveMasteryView | undefined }): JSX.Element | null {
+  const save = meta.get(); // stable during a run (mastery banks at finishRun)
+  const ledger = useMemo(() => masteryPanelModel(save, kind), [save, kind]);
+  const contribution = useMemo(() => {
+    const cur = meta.power().score;
+    const without = meta.previewPower((sv) => ({
+      ...sv,
+      towerStars: { ...sv.towerStars, [kind]: 0 },
+      towerMasteryXp: { ...sv.towerMasteryXp, [kind]: 0 },
+    })).score;
+    return Math.max(0, cur - without);
+  }, [kind]);
+  // Floating XP ticks: whenever this kind's run XP rises, a "+N Mastery XP" drifts up.
+  const [floats, setFloats] = useState<{ id: number; amt: number }[]>([]);
+  const prevGained = useRef<{ kind: TowerKind; gained: number } | null>(null);
+  const seq = useRef(0);
+  useEffect(() => {
+    const g = live?.gained ?? 0;
+    const p = prevGained.current;
+    if (p && p.kind === kind && g > p.gained) {
+      const id = ++seq.current;
+      setFloats((f) => [...f.slice(-3), { id, amt: g - p.gained }]);
+      setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1100);
+    }
+    prevGained.current = { kind, gained: g };
+  }, [kind, live?.gained]);
+
+  if (!live) return null;
+  return (
+    <div className="ins-mastery" style={{ ['--mc' as string]: color }}>
+      <div className="ins-mx-head">
+        <span className="ins-mx-eyebrow">Mastery</span>
+        <span className="ins-mx-lv" style={{ color }}>Lv {live.level}</span>
+      </div>
+      <div className="ins-mx-barwrap">
+        <ProgressBar value={live.into} max={live.need} color={color} height={6} label="Mastery progress" />
+        {floats.map((f) => (
+          <span className="ins-mx-float" key={f.id}>+{f.amt} XP</span>
+        ))}
+      </div>
+      <div className="ins-mx-row">
+        <span>+{live.gained.toLocaleString()} XP this run</span>
+        <span title="Permanent damage bonus from mastery">+{ledger.bonusPct.toFixed(1)}% dmg</span>
+      </div>
+      <div className="ins-mx-row is-dim">
+        <span>{ledger.lifetime.kills.toLocaleString()} kills · {ledger.lifetime.damage.toLocaleString()} dmg lifetime</span>
+      </div>
+      <div className="ins-mx-row is-dim">
+        <span>Next · {ledger.next.name} at Lv {ledger.next.at}</span>
+        <span title="This tower's Power Score contribution">⚡ +{contribution.toLocaleString()}</span>
+      </div>
+    </div>
+  );
+}
+
 export function Inspector({
   hud,
+  liveMastery,
   onCollapse,
   onBranchBuy,
   onDeselect,
@@ -43,6 +106,7 @@ export function Inspector({
   onCancelMove,
 }: {
   hud: HudSnapshot;
+  liveMastery?: Partial<Record<string, LiveMasteryView>>;
   onCollapse?: () => void;
   onBranchBuy?: (towerId: number, branchId: string) => void;
   onDeselect?: () => void;
@@ -98,6 +162,9 @@ export function Inspector({
           {stats.splash > 0 && <StatRow k="Splash" v={stats.splash} />}
           {stats.shots > 1 && <StatRow k="Targets" v={`×${stats.shots}`} />}
         </div>
+
+        {/* Live Mastery — the craft grows WHILE you watch (docs/MASTERY.md §live). */}
+        <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
 
         {/* Branch lock warning (pre-commit; the commit overlay re-warns on the click). */}
         {hasBranches && !committedId && (

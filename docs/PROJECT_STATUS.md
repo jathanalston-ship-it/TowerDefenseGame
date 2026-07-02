@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-01 (premium polish block: Command Center, music engine, HUD, Power audit + feel).
+> **Last updated:** 2026-07-02 (identity unification: VISUAL_IDENTITY trilogy + CSS/audio unification; Tower Lab v2 rail+showcase; live Mastery experience).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -14,12 +14,16 @@ pillar status, `docs/GENE-AUDIT-REPORT.md`)** · Collections · Evolution HQ (Ge
 Prestige layer 1 (Molt/Ascendant) · Campaign (world map, gates) · Infinite (AI Director) ·
 Power Score (+ mandatory-coverage validation) · Currencies · Achievements · Onboarding (Combat
 Tutorial, HUD Tour, Help wiki, What's New, loading tips) · Notifications · Progress Prediction ·
-Save (v19, migrations, backups, dev reset) · **Engineering automation (dependency registry,
+Save (v20, migrations, backups, dev reset) · **Engineering automation (dependency registry,
 doc-sync anchors, `npm run validate`, handoff scaffolder)** · UI standards + component library
 (`docs/UI-STANDARDS.md`, style tests) · **Music engine (composition core + WebAudio manager,
 `docs/GAME-FEEL.md` §music)** · Command Center living-lab redesign · Gameplay HUD redesign
 (vital hierarchy, glass cells, responsive) · Power Score full-coverage audit + gain feel
-(`docs/POWER-AUDIT.md`, toasts/previews).
+(`docs/POWER-AUDIT.md`, toasts/previews) · **Visual identity trilogy + unification
+(`docs/VISUAL_IDENTITY.md` / `docs/UI_STYLE_GUIDE.md` / `docs/DESIGN_LANGUAGE.md`; type/tracking
+scales enforced, drone retired → live music intensity)** · Tower Lab v2 (specimen rail +
+mutation-chamber showcase, bench prefs) · Live Mastery (in-run projection, level-up
+celebrations, per-tower lifetime ledgers v20, Results ledger, Help entry).
 
 ## Systems in progress
 

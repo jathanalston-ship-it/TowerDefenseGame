@@ -4,38 +4,41 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-01 23:23 UTC · **Diff scope:** session block (5 commits, scaffolder ran post-commit)
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 145839e
+- **Generated:** 2026-07-02 · **Diff scope:** identity-unification session block (identity 7b588ce · Tower Lab f9ea67e · live Mastery HEAD)
+- **Branch:** claude/zen-hawking-rh1gxl
 
 ## Summary of work completed
 
-Five-part premium polish block: (1) Command Center living-lab redesign (`628ebdc`) — fog/vein/
-parallax atmosphere, cc-vitals dashboard strip, deploy CTA breathe/sheen; (2) real music engine
-(`83e8565`) — pure composition core (`src/audio/music.ts` TRACKS + `barNotes`) under a WebAudio
-manager (lookahead scheduler, layers, crossfades, intensity seam), six categories, App/GameView
-drive `music.play(category)` only; (3) gameplay HUD redesign (`145839e`) — vital hierarchy with
-per-cell `--hud-acc` accents, Power promoted to primary, glass cells, heartbeat danger pulse,
-responsive `clamp()` scale, four-viewport no-clip sweep; (4) Power full-coverage audit
-(`5ffd439`) — fixed the tower-branch bypass (`branchPowerEffects`) + the hero-slot miss
-(`HERO_SLOT_POWER`), runtime tripwires (`game.powerAuditWarnings`, `powerAnnounceWarnings`),
-21-source table in docs/POWER-AUDIT.md; (5) Power feel (`4d278c5`) — `announcePower` bus →
-PowerToaster + `audio.cue('power')`, rolling PowerBadge, PowerPreview (current/new/diff/impact)
-on every upgrade surface. The one thing to know: **the run-soundtrack `useEffect` in
-GameView.tsx must stay a top-level hook** — a nested insertion crashed every run mount (React
-#321) and was caught only by the headless HUD sweep.
+Identity-unification session (three prompts in one): (1) full visual/audio/animation audit
+(15 findings → docs/UI_STYLE_GUIDE.md Appendix A) + unification pass (type/tracking scales
+enforced by uiStandards, phantom webfonts removed, --panel-deep + glow geometry tokens,
+themed scrollbars, toast rails, legacy drone RETIRED → music.setIntensity now live from
+battlefield pressure) + the permanent identity trilogy (VISUAL_IDENTITY / UI_STYLE_GUIDE /
+DESIGN_LANGUAGE, doc-sync anchored to :root); (2) Tower Lab v2 — specimen rail
+(search/sort/filter/favorites/badges, device prefs) + mutation-chamber showcase (animated
+portrait + future form, Power contribution, future path, full Mastery ledger); (3) live
+Mastery — masteryXpRaw/masteryXpMults shared with finishRun (zero drift), GameView projects
+per-tick, MasteryToaster + craft chime + battlefield rings + trauma pulse on level-ups,
+Inspector craft bar with floating XP, Results per-tower ledger with ✦ top contributor,
+LifetimeStats per-tower damage/bestWave (schema v19→v20), Help wiki entry, MASTERY.md §9.
+Know: the run loop's 80ms block now drives loot + mastery projection — keep additions there
+throttled; toast rails are fixed bands (loot 64 / power 128 / mastery 192, achievements
+top-center).
 
 ## Files modified
 
-- Source: `src/audio/music.ts` (new), `src/audio/sound.ts`, `src/core/power.ts`,
-  `src/core/game.ts`, `src/state/meta.ts`, `src/state/powerEvents.ts` (new),
-  `src/ui/components/PowerToaster.tsx` (new), `src/ui/components/PowerScore.tsx`,
-  `src/ui/App.tsx`, `src/ui/GameView.tsx`, `src/ui/Hud.tsx`, `src/ui/PlayScreen.tsx`,
-  `src/ui/LabAtmosphere.tsx`, `src/ui/HeroLab.tsx`, `src/ui/TowerLab.tsx`,
-  `src/ui/EvolutionHQ.tsx`, `src/ui/HeroEvolutionPanel.tsx`, `src/index.css`
-- Tests: `src/audio/music.test.ts` (new), `src/core/runPower.test.ts` (new),
-  `src/state/powerEvents.test.ts` (new), `src/state/powerIntegration.test.ts`
-- Docs: `docs/POWER-AUDIT.md` (new), `docs/GAME-FEEL.md` §music, `docs/POWER-SCORE.md` §feel,
-  `docs/UI-STANDARDS.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`
+- Source: `src/index.css` (unification + tl2 + toasts), `src/ui/TowerLab.tsx` (v2 rewrite),
+  `src/ui/towerLabModel.ts` (+roster/mastery-panel/future-path), `src/ui/Inspector.tsx`
+  (+craft bar), `src/ui/GameView.tsx` (projection watcher + rings + intensity), `src/ui/Results.tsx`
+  (ledger), `src/state/masteryEvents.ts` (new), `src/ui/components/MasteryToaster.tsx` (new),
+  `src/state/prefs.ts` (+lab prefs), `src/state/meta.ts` (masteryXpRaw/masteryXpMults),
+  `src/state/stats.ts` + `src/core/types.ts` + `src/save/saveStore.ts` (v20 ledgers),
+  `src/core/mastery.ts` (+nextMasteryUnlock), `src/state/mechanics.ts` (+tower-mastery),
+  `src/audio/sound.ts` (drone removed; +mastery chime), `src/dev/docSync.ts` (+CSS anchors),
+  `src/dev/uiStandards.test.ts` (+type/tracking scales)
+- Tests: `src/state/stats.test.ts` (+ledger/migration)
+- Docs: `docs/VISUAL_IDENTITY.md` + `docs/UI_STYLE_GUIDE.md` + `docs/DESIGN_LANGUAGE.md` (new),
+  `docs/MASTERY.md` §9, `docs/STYLE-GUIDE.md` + `docs/BIOMES.md` repointed, boards refreshed
 
 ## Systems affected (from the dependency registry)
 
@@ -65,7 +68,8 @@ elsewhere — doc-sync anchors green in `npm test`.
 
 ## Save changes
 
-None — save layer untouched (v19; goldens byte-identical all five commits).
+Schema v19→v20: `LifetimeStats.towerDamage` + `towerBestWave` (zero-fill merge for older
+saves, pinned by stats.test.ts; goldens byte-identical).
 
 ## Known edge cases
 
@@ -80,16 +84,14 @@ None — save layer untouched (v19; goldens byte-identical all five commits).
 
 ## Remaining technical debt
 
-- `music.setIntensity` is wired to a coarse boss/combat split (0.5/1.0) — the per-wave threat
-  mapping is the open seam.
+- ~~music intensity coarse split~~ CLOSED: intensity now tracks live battlefield pressure.
 - Giant-file ranking unchanged (`game.ts`, `meta.ts`, `index.css`) — see ENGINEERING-AUDIT §4.
 
 ## Recommended next tasks
 
-1. Dynamic music intensity: map live threat (wave pressure, core damage) → `music.setIntensity`
-   in GameView's soundtrack effect.
-2. Card Ascension gameplay wire + ceremony (backend shipped in Gene Task 10).
-3. Content wave through the validators (towers/heroes/cards).
+1. Card Ascension gameplay wire + ceremony (backend shipped in Gene Task 10).
+2. Content wave through the validators (towers/heroes/cards).
+3. Hero mastery live projection (towers wired; heroes ride the same bus — data change).
 
 ## Future expansion hooks
 

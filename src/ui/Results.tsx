@@ -6,7 +6,7 @@
 
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
-import { ENEMY_DEFS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { MASTERY, ENEMY_DEFS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import type { EnemyKind } from '../core/types';
 import { rarityRank, rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
@@ -29,6 +29,8 @@ export function Results({
   onReplay?: () => void; // one-tap "Infect Again" — re-run the same mode
 }): JSX.Element {
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
+  // The run's highest mastery contributor (by XP) wears the crown in the ledger.
+  const topContributor = masteryGains.length > 0 ? masteryGains.reduce((a, b) => (outcome.mastery[b].xpGained > outcome.mastery[a].xpGained ? b : a)) : null;
   const heroMasteryGains = HERO_ORDER.filter((k) => outcome.heroMastery[k].xpGained > 0);
 
   const masteryXp =
@@ -126,12 +128,31 @@ export function Results({
       <div className="mastery-gains">
         {masteryGains.map((k) => {
           const m = outcome.mastery[k];
+          const c = result.mastery[k];
           const leveled = m.toLevel > m.fromLevel;
+          const top = k === topContributor;
+          const save = meta.get();
+          // Power this run's mastery BANKED for the kind: current score minus the score
+          // with the gained XP rolled back (the same preview model as everywhere).
+          const powerGained = m.xpGained > 0
+            ? Math.max(0, meta.power().score - meta.previewPower((sv) => ({
+                ...sv,
+                towerMasteryXp: { ...sv.towerMasteryXp, [k]: Math.max(0, (sv.towerMasteryXp[k] ?? 0) - m.xpGained) },
+              })).score)
+            : 0;
           return (
-            <div className="mastery-gain" key={`t-${k}`}>
-              <span className="mg-name" style={{ color: TOWER_DEFS[k].color }}>{TOWER_DEFS[k].name}</span>
-              <span className="mg-xp">+{m.xpGained} XP</span>
+            <div className={`mastery-gain${top ? ' is-top' : ''}`} key={`t-${k}`}>
+              <span className="mg-name" style={{ color: TOWER_DEFS[k].color }}>{top && <i className="mg-crown" title="Top contributor">✦</i>}{TOWER_DEFS[k].name}</span>
+              <span className="mg-combat">{num(c.kills)} kills · {num(Math.round(c.damage))} dmg</span>
+              <span className="mg-xp">+{num(m.xpGained)} XP</span>
               <span className={`mg-lvl ${leveled ? 'is-up' : ''}`}>{leveled ? `Lv ${m.fromLevel} → ${m.toLevel}` : `Lv ${m.toLevel}`}</span>
+              {leveled && (
+                <span className="mg-earn">
+                  +{((m.toLevel - m.fromLevel) * MASTERY.damagePerLevel * 100).toFixed(1)}% dmg
+                  {powerGained > 0 ? ` · ▲ +${num(powerGained)} Power` : ''}
+                </span>
+              )}
+              <span className="mg-life">lifetime {num(save.towerKills[k] ?? 0)} kills · best wave {save.stats.towerBestWave[k] || '—'}</span>
             </div>
           );
         })}

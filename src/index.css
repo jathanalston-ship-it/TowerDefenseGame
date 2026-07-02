@@ -2022,25 +2022,61 @@ kbd {
 }
 .mastery-gain {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-areas: 'name combat xp lvl' 'life life life earn';
   align-items: center;
-  gap: 10px;
+  gap: 2px 10px;
   font-size: 13px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+}
+.mastery-gain.is-top {
+  border-color: color-mix(in srgb, var(--gold) 35%, var(--line));
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
 }
 .mg-name {
+  grid-area: name;
   text-align: left;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-crown { font-style: normal; color: var(--gold); margin-right: 5px; }
+.mg-combat {
+  grid-area: combat;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .mg-xp {
+  grid-area: xp;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .mg-lvl {
+  grid-area: lvl;
   color: var(--dim);
   font-variant-numeric: tabular-nums;
 }
 .mg-lvl.is-up {
   color: var(--success);
   font-weight: 700;
+}
+.mg-earn {
+  grid-area: earn;
+  font-size: 11px;
+  color: var(--success);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mg-life {
+  grid-area: life;
+  font-size: 10px;
+  color: var(--dim);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Tower Lab (stars + mastery) ──────────────────────────────────────────── */
@@ -5077,6 +5113,27 @@ kbd {
 .ptoast { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 8px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--success) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--success) 45%, var(--line)); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35); animation: ptoast-in var(--dur-3) var(--ease-out) both, ptoast-out var(--dur-3) var(--ease-in) 2.2s both; }
 .ptoast-delta { font-size: 14px; font-weight: 800; color: var(--success); font-variant-numeric: tabular-nums; }
 .ptoast-src { font-size: 11px; color: var(--muted); }
+
+/* Mastery level-up toasts — the gains rail's third band (below loot + power). */
+.mtoasts { position: fixed; top: 192px; right: 16px; z-index: 486; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.mtoast { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; border-radius: var(--r-md); background: color-mix(in srgb, var(--mc, var(--gold)) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--mc, var(--gold)) 45%, var(--line)); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35), var(--halo) color-mix(in srgb, var(--mc, var(--gold)) 30%, transparent); animation: ptoast-in var(--dur-3) var(--ease-out) both, ptoast-out var(--dur-3) var(--ease-in) 2.8s both; }
+.mtoast-glyph { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-size: 16px; color: var(--mc, var(--gold)); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--mc, var(--gold)) 22%, var(--panel-deep)), var(--panel-deep)); box-shadow: inset 0 0 12px -4px var(--mc, var(--gold)); }
+.mtoast-body { display: flex; flex-direction: column; gap: 1px; text-align: left; }
+.mtoast-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mc, var(--gold)); }
+.mtoast-name { font-size: 14px; font-weight: 800; }
+.mtoast-sub { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mtoast-sub i { font-style: normal; color: var(--success); }
+
+/* Inspector live-Mastery block — a smoothly-filling craft bar with floating XP ticks. */
+.ins-mastery { display: flex; flex-direction: column; gap: 5px; margin: 8px 0 2px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--mc, var(--line)) 30%, var(--line)); background: color-mix(in srgb, var(--mc, transparent) 5%, rgba(255, 255, 255, 0.02)); }
+.ins-mx-head { display: flex; align-items: baseline; justify-content: space-between; }
+.ins-mx-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.ins-mx-lv { font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.ins-mx-barwrap { position: relative; }
+.ins-mx-float { position: absolute; right: 0; top: 100%; font-size: 11px; font-weight: 800; color: var(--mc, var(--success)); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); pointer-events: none; animation: ins-mx-rise 1.05s var(--ease-out) both; }
+@keyframes ins-mx-rise { from { opacity: 0; transform: translateY(6px); } 25% { opacity: 1; } to { opacity: 0; transform: translateY(-6px); } }
+.ins-mx-row { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--text); font-variant-numeric: tabular-nums; }
+.ins-mx-row.is-dim { color: var(--muted); }
 @keyframes ptoast-in { from { opacity: 0; transform: translateY(-8px) scale(0.96); } to { opacity: 1; transform: none; } }
 @keyframes ptoast-out { to { opacity: 0; transform: translateY(-6px); } }
 
