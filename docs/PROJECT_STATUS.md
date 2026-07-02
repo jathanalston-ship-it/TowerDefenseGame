@@ -3,9 +3,10 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-02 (balance-architecture arc: loot-meter rebuild + first-discovery
-> NEW badges, Universal Difficulty Director, progression loop engine, progression simulator +
-> report, adaptive economy framework, and the four permanent balance docs).
+> **Last updated:** 2026-07-02 (balance-architecture arc + tuning pass, Player Profile
+> dashboard (registry-driven, save v22), and the full Tower Adaptation / Antigen system:
+> per-tower generated trees, multi-source capped Antigen, campaign-gated depth, FORM stages,
+> priced respec, lab UI — `docs/ADAPTATION.md`).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -39,7 +40,11 @@ self-heal, 5000-fill stress pin — `docs/BUGFIX-LOG.md` #10) · **Balance archi
 bit-exact parity) · Adaptive Economy Framework (factor-traced income chains + health guards) ·
 Progression Loop Engine (8 enforced invariants, LoopDirective on Results/Campaign/Infinite) ·
 Progression Simulator (virtual accounts over the real meta layer, hour-band report +
-detectors, `npm run sim:progression`)**.
+detectors, `npm run sim:progression`)** · Player Profile dashboard (registry-driven sections,
+power attribution, frames/timeline/milestones, save v22 ledgers — `docs/PROFILE.md`) ·
+**Tower Adaptation / Antigen (per-tower generated 4-branch trees, exclusive forks, capped
+multi-source Antigen, campaign gates 15/30/50, battlefield FORM stages, priced stage-gated
+respec, lab UI + inspector — `docs/ADAPTATION.md`)**.
 
 ## Systems in progress
 
@@ -86,7 +91,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 745 tests / 118 files green; golden sim byte-identical; typecheck strict; build clean.
+- 794 tests / 123 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.

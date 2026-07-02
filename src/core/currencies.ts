@@ -9,7 +9,7 @@
 // keys would force a schema migration across the economy/prestige tests for zero player-visible
 // benefit). Tower/Hero Shards keep both their name AND their `towerShards` / `heroShards` keys.
 
-export type CurrencyId = 'genomeCores' | 'towerShards' | 'heroShards' | 'ascendantCells' | 'geneEssence';
+export type CurrencyId = 'genomeCores' | 'towerShards' | 'heroShards' | 'ascendantCells' | 'geneEssence' | 'antigen';
 
 export interface CurrencyDef {
   /** Stable framework id (see STORAGE NOTE — not always the save key). */
@@ -71,6 +71,16 @@ export const CURRENCIES: Record<CurrencyId, CurrencyDef> = {
     blurb: 'Distilled genetic memory. Converted from max-Star duplicate shards + rare Bio-Container drops; spent to permanently upgrade Gene Cards in the Gene Archive.',
     color: 'var(--caustic, #6ad1b0)',
     glow: 'rgba(106, 209, 176, 0.55)',
+  },
+  // Antigen — the Adaptation specialization currency (docs/ADAPTATION.md). Deliberately scarce:
+  // minted by Mastery Ranks, campaign depth, rare Bio-Container traces and achievements — never
+  // farmable from repeat runs. Violet spike-ball, distinct from the Ascendant Cells cell shape.
+  antigen: {
+    id: 'antigen',
+    name: 'Antigen',
+    blurb: 'Adaptive specialization points. Earned from Mastery Ranks, campaign depth, rare container traces and achievements; spent in a unit’s Adaptation tree to rewrite its behavior.',
+    color: 'var(--viral, #c98bff)',
+    glow: 'rgba(201, 139, 255, 0.55)',
   },
 };
 

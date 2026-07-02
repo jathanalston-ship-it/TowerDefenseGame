@@ -9,9 +9,10 @@ philosophy in `PROGRESSION-PHILOSOPHY.md §2.3–2.4`.
 > **Status: PARTIAL.** The mastery track itself is built (per-tower/per-hero XP from use → levels +
 > ranks + the flat `1 + MASTERY.damagePerLevel·level` multiplier, plus rank perks). The **spendable
 > layer this doc's "experience, not a stat" thesis wants is now shipped as ADAPTATION** (`core/
-> adaptation.ts`, PROGRESSION-REDESIGN §2): each mastery Rank pays one Antigen Point into a
-> three-branch tree, so the infinite grind buys *decisions*, not just a bigger number. The
-> title/badge/visual-mutation trophy surface described below remains largely PLANNED.
+> adaptation.ts`, **docs/ADAPTATION.md**): mastery Ranks (plus capped campaign/container/achievement
+> sources) mint Antigen spent into PER-TOWER four-branch trees with exclusive forks, campaign-gated
+> depth and battlefield FORM stages — the infinite grind buys *decisions*, not just a bigger number.
+> The title/badge/visual-mutation trophy surface described below remains largely PLANNED.
 
 ---
 

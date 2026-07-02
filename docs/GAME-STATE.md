@@ -44,12 +44,15 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 
 ### Towers
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
-- ✅ **Adaptation** — mastery Ranks pay Antigen Points into a 3-branch tree (`core/adaptation.ts`) — PROGRESSION-REDESIGN §2
+- ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
+  capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +
+  achievements); campaign gates at 15/30/50; battlefield FORM stages 1–3; priced stage-gated respec;
+  a new tower's tree = one `TOWER_THEMES` row (`core/adaptation.ts`) — ADAPTATION.md
 - ✅ Range identity + Final Defense Zone — RANGE.md
 
 ### Heroes
 - ✅ Roster slots (campaign-gated), per-hero equipment, mastery — HEROES.md, HERO-FRAMEWORK.md
-- ✅ Adaptation for heroes (same Antigen-Point tree)
+- ✅ Adaptation for heroes (legacy shared 3-branch tree; per-hero trees are a later content pass — ADAPTATION.md)
 - ✅ **In-run hero selection** — click a hero → non-modal live-state + profile panel — HERO-SELECTION.md
 - ✅ **Hero Evolution** — in-run Biomass sink: 10 axes × 10 levels, all-heroes/new-heroes-inherit,
   Power-integrated, run-only — HERO-EVOLUTION.md

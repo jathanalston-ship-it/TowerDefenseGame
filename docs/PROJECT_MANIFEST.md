@@ -186,18 +186,26 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Tower Mastery / Adaptation
 
-- **Purpose:** identity-through-use — per-unit titles, lore, procedural infinite ranks, visual
-  halos, and sparse mechanic milestone perks (tower = craft, hero = bond). The Adaptation
-  redesign made milestones decisions, not stat drips.
-- **Dependencies:** lifetime usage stats; folds a minor multiplier into Power.
-- **Files:** `core/mastery.ts`, `ui/MasteryProfile.tsx`, halo rendering in
-  `render/towerEvolution.ts`. Docs: `MASTERY.md`.
-- **Related:** Stars (parallel per-tower track), Collections (usage tiers), Power.
-- **Future expansion:** more milestone perks; per-hero bond stories.
-- **Known limitations:** perk vocabulary is small; ranks beyond the authored titles are
-  procedurally named.
-- **Developer tips:** mastery XP accrues in `accumulateStats` — it's driven by the run summary,
-  not live ticks.
+- **Purpose:** identity-through-use, in two layers. Mastery = **experience** (titles, procedural
+  infinite ranks, halos, sparse milestone perks). Adaptation = **specialization**: per-tower
+  GENERATED trees (4 branches × 10 tiers; mutually exclusive forks at 4/7; apex capstone) bought
+  with **Antigen** — a multi-source, capped currency (mastery ranks + campaign depth + Legendary
+  container Traces + achievements; never run-farmable). Deep tiers campaign-gate (15/30/50);
+  keystones evolve the tower's battlefield FORM (stages 1–3); respec is priced (Genome Cores) and
+  stage-gated.
+- **Dependencies:** lifetime usage stats; campaign depth; folds into the per-kind kit channel
+  (`meta.towerProgress`) and Power.
+- **Files:** `core/mastery.ts`, `core/adaptation.ts` (trees + economy + rules),
+  `ui/MasteryProfile.tsx`, `ui/components/AdaptationTree.tsx` (lab UI), halo rendering in
+  `render/towerEvolution.ts`, FORM stages in `render/renderer.ts`. Docs: `MASTERY.md`,
+  `ADAPTATION.md` (economy, anatomy, authoring).
+- **Related:** Stars (parallel per-tower track), Collections (usage tiers), Power, Campaign.
+- **Future expansion:** a new tower's tree = ONE `TOWER_THEMES` row (zero code); per-hero trees;
+  new effect verbs (ricochet/spores) once added to the sim mutator vocabulary.
+- **Known limitations:** heroes still share the legacy 3-branch tree; effect vocabulary rides the
+  existing kit fields (no bespoke sim behaviors yet).
+- **Developer tips:** mastery XP accrues in `accumulateStats`; adaptation is golden-safe because
+  empty picks fold to the neutral effect — keep it that way for every new node field.
 
 ## Heroes
 

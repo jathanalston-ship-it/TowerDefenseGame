@@ -121,6 +121,9 @@ export interface SaveData {
   profileName: string;
   profileFrame: string; // unlockable banner frame id (state/profile PROFILE_FRAMES)
   timeline: TimelineEvent[];
+  // ── Adaptation (v22, docs/ADAPTATION.md) — Antigen granted by legendary+ containers.
+  //    Consumed as a CAPPED budget source (core/adaptation ANTIGEN.containerCap). ──
+  antigen: number;
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -293,6 +296,7 @@ export function defaultSave(): SaveData {
     profileName: 'OVERMIND',
     profileFrame: 'membrane',
     timeline: [],
+    antigen: 0,
   };
 }
 
@@ -431,6 +435,7 @@ function withDefaults(data: SaveData): SaveData {
       : d.profileName,
     profileFrame: typeof (data as { profileFrame?: unknown }).profileFrame === 'string' ? ((data as { profileFrame?: unknown }).profileFrame as string) : d.profileFrame,
     timeline: sanitizeTimeline((data as { timeline?: unknown }).timeline),
+    antigen: Math.max(0, Math.floor(Number((data as { antigen?: unknown }).antigen) || 0)),
   };
 }
 

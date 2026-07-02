@@ -21,6 +21,7 @@ import { music } from '../audio/music';
 import { PowerToaster } from './components/PowerToaster';
 import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
+import { adaptVisualTier } from '../core/adaptation';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
@@ -191,6 +192,15 @@ export function GameView({
     return m;
   }, []);
 
+  // Per-kind Adaptation FORM stage (docs/ADAPTATION.md §visual evolution) — keystone/apex picks
+  // physically mutate the strain on the field. Fixed for the run (Antigen is spent in the Lab).
+  const adaptTiers = useMemo(() => {
+    const s = meta.get();
+    const m: Record<string, number> = {};
+    for (const k of TOWER_ORDER) m[k] = adaptVisualTier(s.adaptation?.[`tower:${k}`] ?? []);
+    return m;
+  }, []);
+
   // Live run Power Score = account × this run's temporary buffs (drafted genes + Hero Evolution).
   // Recomputed only when those change (not every frame) — account power is static mid-run.
   const power = useMemo(
@@ -244,7 +254,7 @@ export function GameView({
         ctx.save();
         ctx.translate(dx, dy);
         const rs = game.getRenderState();
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
           const RING_MS = 900;

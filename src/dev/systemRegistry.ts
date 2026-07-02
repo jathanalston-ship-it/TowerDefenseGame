@@ -89,9 +89,9 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'mastery', name: 'Mastery / Adaptation', purpose: 'Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees.',
     files: ['src/core/mastery.ts', 'src/core/adaptation.ts', 'src/state/masteryEvents.ts', 'src/ui/MasteryProfile.tsx', 'src/ui/components/AdaptationTree.tsx', 'src/ui/components/MasteryToaster.tsx'],
-    dependsOn: ['stats', 'content-infra'], powerScore: 'mastery multiplier folds into the permanent bucket', save: ['towerMasteryXp', 'heroMasteryXp', 'adaptation'],
+    dependsOn: ['stats', 'content-infra'], powerScore: 'mastery multiplier folds into the permanent bucket', save: ['towerMasteryXp', 'heroMasteryXp', 'adaptation', 'antigen'],
     tutorial: [], help: [], hud: ['halos (renderer)', 'live projection + level-up rings (GameView)', 'Inspector craft bar'], ui: ['MasteryProfile', 'MasteryToaster'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/MASTERY.md'],
+    localization: 'inline-en', docs: ['docs/MASTERY.md', 'docs/ADAPTATION.md'],
   },
   {
     id: 'heroes', name: 'Heroes', purpose: 'Autonomous champions: AI behaviors, abilities, stars, slots, in-run Hero Evolution.',

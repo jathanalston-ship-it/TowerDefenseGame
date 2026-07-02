@@ -106,6 +106,23 @@ export const GeneEssenceIcon = (p: IconProps): JSX.Element =>
     p,
   );
 
+/** Antigen — a spiked antigen ball (Adaptation specialization currency, violet). */
+export const AntigenIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path
+        d="M12 2.2v3M12 18.8v3M2.2 12h3M18.8 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M18.9 5.1l-2.1 2.1M7.2 16.8l-2.1 2.1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="6.2" opacity="0.95" />
+      <circle cx="12" cy="12" r="2.2" fill="rgba(0,0,0,0.32)" />
+    </>,
+    p,
+  );
+
 /** Lightning bolt — the Apex Leap ability (replaces ⚡). */
 export const BoltIcon = (p: IconProps): JSX.Element => svg(<path d="M13 2L4 14h6l-1 8 9-12h-6z" />, p);
 

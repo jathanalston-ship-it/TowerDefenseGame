@@ -79,6 +79,7 @@ export function drawGame(
   pointer: Pointer | null,
   cosmeticTiers: Partial<Record<string, number>> = {}, // per-kind mastery-rank visual tier (0 = none)
   starTiers: Partial<Record<string, number>> = {}, // per-kind permanent STAR count → visual evolution (0 = none)
+  adaptTiers: Partial<Record<string, number>> = {}, // per-kind Adaptation FORM stage (docs/ADAPTATION.md; 0 = none)
 ): void {
   const t = rs.time;
 
@@ -112,7 +113,7 @@ export function drawGame(
   }
 
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0);
+  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
@@ -510,7 +511,7 @@ function drawLandingImpacts(ctx: CanvasRenderingContext2D, rs: RenderState, t: n
 
 const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0): void {
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0): void {
   const def = TOWER_DEFS[tw.kind];
   const shape = TOWER_SHAPE[tw.kind];
 
@@ -581,6 +582,27 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     for (let i = 0; i < pips; i++) {
       const ang = now * 0.8 + (i * Math.PI * 2) / pips;
       drawShape(ctx, 'circle', tw.x + Math.cos(ang) * r * 1.7, tw.y + Math.sin(ang) * r * 1.7, 1.7, def.color);
+    }
+  }
+
+  // ADAPTATION form stages (docs/ADAPTATION.md §visual evolution): keystone/apex picks physically
+  // rewrite the strain — a living viral membrane (stage 1), rotating antigen spikes studding it
+  // (stage 2), an apex corona (stage 3). Violet = the Antigen identity hue, so an adapted strain
+  // reads instantly. Stage 0 (no keystone chosen) draws nothing — the fresh look is untouched.
+  if (adaptTier > 0) {
+    const viral = hexRgb('#c98bff');
+    const wob = pulse(now * 1.15 + tw.id, 2.2, 0.96, 1.05);
+    const mr = r * 1.28 * wob;
+    ring(ctx, tw.x, tw.y, mr, rgba(viral, 0.3 + adaptTier * 0.08), 1 + adaptTier * 0.4);
+    if (adaptTier >= 2) {
+      const spikes = 3 + adaptTier * 2;
+      for (let i = 0; i < spikes; i++) {
+        const a = now * 0.7 + (i * Math.PI * 2) / spikes;
+        drawShape(ctx, 'diamond', tw.x + Math.cos(a) * mr, tw.y + Math.sin(a) * mr, 2.2 + adaptTier * 0.4, rgba(viral, 0.75));
+      }
+    }
+    if (adaptTier >= 3) {
+      glowDisc(ctx, tw.x, tw.y, r * 2.2 * pulse(now + tw.id, 1.1, 0.9, 1.1), rgba(viral, 0.1));
     }
   }
 

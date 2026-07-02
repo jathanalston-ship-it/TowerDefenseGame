@@ -56,7 +56,7 @@ import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel 
 import type { GeneSave } from '../core/geneCards';
 import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../core/geneEssence';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
-import { adaptationEffect, adaptNodesFor, adaptPointsEarned, canPickAdapt } from '../core/adaptation';
+import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
@@ -565,26 +565,42 @@ export function heroProgress(save: SaveData): HeroProgress {
 export interface AdaptView {
   subject: 'tower' | 'hero';
   unit: string;
-  pointsEarned: number; // one Antigen Point per mastery Rank
+  pointsEarned: number; // multi-source Antigen (mastery ranks + campaign + containers + achievements)
   pointsSpent: number;
   pointsAvailable: number;
   chosen: string[];
+  campaignStage: number; // the account's deepest cleared stage (drives node gates)
+  visualTier: number; // the unit's battlefield visual stage (keystones raise it, 0..3)
+  respec: { cost: number; gated: boolean; stageReq: number }; // priced, campaign-gated identity change
+  sources: { mastery: number; campaign: number; containers: number; achievements: number }; // budget provenance
   nodes: { node: AdaptNode; chosen: boolean; canPick: boolean }[];
 }
 
-/** The Adaptation tree for a unit: its nodes (chosen / pickable) + the spendable point budget. */
+/** The Adaptation tree for a unit: its nodes (chosen / pickable / gated) + the Antigen budget
+ *  with its provenance (docs/ADAPTATION.md — every source slow or capped). */
 export function adaptationView(save: SaveData, subject: 'tower' | 'hero', unit: string): AdaptView {
   const key = `${subject}:${unit}`;
   const chosen = save.adaptation?.[key] ?? [];
   const level = subject === 'tower'
     ? masteryLevel(save.towerMasteryXp[unit as TowerKind] ?? 0)
     : masteryLevel(save.heroMasteryXp[unit as HeroKind] ?? 0);
-  const pointsEarned = adaptPointsEarned(level);
+  const stage = highestCampaignStage(save);
+  const sources = {
+    mastery: adaptPointsEarned(level),
+    campaign: Math.floor(stage / ANTIGEN.stagePer),
+    containers: Math.min(ANTIGEN.containerCap, save.antigen),
+    achievements: Math.min(ANTIGEN.achievementCap, Math.floor(save.achievements.length / ANTIGEN.achievementsPer)),
+  };
+  const pointsEarned = antigenEarned({ masteryLevel: level, campaignStage: stage, containerAntigen: save.antigen, achievementCount: save.achievements.length });
   return {
     subject, unit, pointsEarned, pointsSpent: chosen.length,
     pointsAvailable: Math.max(0, pointsEarned - chosen.length),
     chosen: [...chosen],
-    nodes: adaptNodesFor(subject).map((node) => ({ node, chosen: chosen.includes(node.id), canPick: canPickAdapt(node.id, chosen) })),
+    campaignStage: stage,
+    visualTier: adaptVisualTier(chosen),
+    respec: { cost: respecCost(chosen.length), gated: stage < ADAPT_RESPEC.stageGate, stageReq: ADAPT_RESPEC.stageGate },
+    sources,
+    nodes: adaptNodesFor(subject, unit, chosen).map((node) => ({ node, chosen: chosen.includes(node.id), canPick: canPickAdapt(node.id, chosen, stage) })),
   };
 }
 
@@ -1262,8 +1278,16 @@ export const meta = {
       essenceGained += essenceDrop;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceDrop, note: 'Essence Trace' });
     }
+    // ── Antigen Trace (docs/ADAPTATION.md §sources): a legendary-or-better container carries
+    //    one Antigen — HARD-CAPPED lifetime (ANTIGEN.containerCap), so containers season the
+    //    budget but can never be farmed for it. Shown on the reveal as an event item.
+    let antigen = save.antigen;
+    if ((containerRarity === 'legendary' || containerRarity === 'mythic') && antigen < ANTIGEN.containerCap) {
+      antigen += 1;
+      chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'antigen', amount: 1, note: 'Antigen Trace' });
+    }
     persist({
-      ...save, towerShards, heroShards, mats, matPity: pity,
+      ...save, towerShards, heroShards, mats, matPity: pity, antigen,
       geneEssence: save.geneEssence + essenceGained,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
@@ -1307,26 +1331,32 @@ export const meta = {
     return adaptationView(store.get(), subject, unit);
   },
   /** Spend one Antigen Point on an adaptation node — if a point is free AND the node is pickable
-   *  (tier unlocked, not already owned). Takes effect on the next run. Returns success. */
+   *  (tier ladder + campaign gate + no exclusive sibling owned). Takes effect on the next run. */
   spendAdaptation(subject: 'tower' | 'hero', unit: string, nodeId: string): boolean {
     const save = store.get();
     const key = `${subject}:${unit}`;
     const chosen = save.adaptation?.[key] ?? [];
     const view = adaptationView(save, subject, unit);
-    if (view.pointsAvailable <= 0 || !canPickAdapt(nodeId, chosen)) return false;
+    if (view.pointsAvailable <= 0 || !canPickAdapt(nodeId, chosen, view.campaignStage)) return false;
     const powerBefore = meta.power().score;
     persist({ ...save, adaptation: { ...save.adaptation, [key]: [...chosen, nodeId] } });
     announcePower('Adaptation unlocked', powerBefore, meta.power().score);
     return true;
   },
-  /** Refund every adaptation pick for a unit (respec is free, out of combat). */
-  respecAdaptation(subject: 'tower' | 'hero', unit: string): void {
+  /** Refund every adaptation pick for a unit. Identity changes are allowed but PRICED
+   *  (Genome Cores per pick) and campaign-gated (docs/ADAPTATION.md §respec). */
+  respecAdaptation(subject: 'tower' | 'hero', unit: string): boolean {
     const save = store.get();
     const key = `${subject}:${unit}`;
-    if (!save.adaptation?.[key]?.length) return;
+    const picks = save.adaptation?.[key]?.length ?? 0;
+    if (picks === 0) return false;
+    if (highestCampaignStage(save) < ADAPT_RESPEC.stageGate) return false;
+    const cost = respecCost(picks);
+    if (save.shards < cost) return false;
     const next = { ...save.adaptation };
     delete next[key];
-    persist({ ...save, adaptation: next });
+    persist({ ...save, shards: save.shards - cost, adaptation: next });
+    return true;
   },
 
   /** Per-hero run multipliers from the current save (passed into a new Game). */
