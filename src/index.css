@@ -4749,6 +4749,16 @@ kbd {
 
 /* In-game pause — a floating button (top-right of the board) + a PAUSED overlay over the board.
    z above boss-banner (40) / mutation-fx (45) so it covers the battlefield while frozen. */
+/* ── Gameplay Speed control (docs/HUD.md §speed) — beside Pause; F cycles. ── */
+.speed-ctl { position: absolute; top: 10px; right: 108px; z-index: 30; display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(8, 12, 20, 0.82); backdrop-filter: blur(4px); }
+.speed-btn { min-width: 34px; padding: 3px 8px; border-radius: 999px; border: none; background: none; color: var(--dim); font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.speed-btn.on { color: #0c1119; background: var(--kinetic); box-shadow: var(--halo) color-mix(in srgb, var(--kinetic) 45%, transparent); }
+.speed-btn:hover:not(:disabled) { color: var(--text); transform: none; background: var(--panel-3); }
+.speed-btn.on:hover:not(:disabled) { color: #0c1119; background: var(--kinetic); }
+.speed-note { position: absolute; top: 52px; right: 12px; z-index: 45; display: flex; align-items: center; gap: 10px; max-width: min(340px, 90%); padding: 8px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--kinetic) 45%, var(--line)); background: color-mix(in srgb, var(--kinetic) 10%, var(--panel)); box-shadow: var(--shadow-sm); font-size: 12px; line-height: 1.4; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+.speed-note button { flex: none; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+@media (max-width: 640px) { .speed-ctl { right: 96px; } }
+
 .pause-btn {
   position: absolute; top: 10px; right: 10px; z-index: 48;
   padding: 7px 13px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em;

@@ -150,3 +150,17 @@ Keep the centered 1-of-3 (it's good), but: dim+blur the battlefield behind it,
 rarity-frame each card per STYLE-GUIDE §5 (Exotic prismatic), show category color +
 stack-if-owned, and add reroll/banish affordances (per `CARDS.md`) as the card pool
 grows.
+
+
+## §speed — the Gameplay Speed system (2026-07)
+
+1×/2×/5× chips beside Pause (F cycles; 44px targets under coarse pointers). Speed scales the
+SIMULATION, not animations: `game.timeScale` runs MORE fixed `SIM_DT` steps per real frame,
+so enemies/towers/heroes/projectiles/status/waves/timers all advance together and the sim is
+**byte-identical at any speed** (same step sequence, faster wall clock) — no desync class of
+bug exists by construction; Power/Mastery accrue identically.
+
+AUTO-SLOW (once per run each): the FINAL Campaign/Stage wave beginning, or reaching ~95% of
+your Infinite record (best ≥ 12), pulls the throttle back to 1× and posts an explanatory
+notice ("Final wave — speed returned to 1×…"). Acknowledge with OK; the chips stay free to
+re-raise immediately. Controller support rides the same button group (documented seam).

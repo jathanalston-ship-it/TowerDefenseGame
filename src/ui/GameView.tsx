@@ -129,6 +129,15 @@ export function GameView({
   const evoOpenRef = useRef(false);
   evoOpenRef.current = evoOpen;
   const pausedBeforeConsole = useRef(false); // restore the player's own pause state on close
+  // ── Gameplay Speed (docs/HUD.md §speed): 1×/2×/5× run MORE fixed SIM_DT steps per frame —
+  //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
+  const [speed, setSpeedState] = useState(1);
+  const [speedNote, setSpeedNote] = useState<string | null>(null);
+  const autoSlowFired = useRef({ finale: false, record: false });
+  const setSpeed = useCallback((x: number) => {
+    game.timeScale = x;
+    setSpeedState(x);
+  }, [game]);
   // The Combat Console AUTO-PAUSES the battlefield: upgrading is a decision moment, not a
   // dexterity test. Closing restores the player's own pause state (a manual pause survives).
   useEffect(() => {
@@ -304,6 +313,23 @@ export function GameView({
           }
           masteryPrevRef.current = nextPrev;
           setLiveMastery(lm);
+          // AUTO-SLOW (docs/HUD.md §speed): the moments that deserve full attention pull the
+          // throttle back to 1× — ONCE each per run; the control stays free to re-raise.
+          if (game.timeScale > 1) {
+            const fired = autoSlowFired.current;
+            if (!fired.finale && game.mode !== 'endless' && game.waveIndex >= game.totalWaves && game.phase === 'wave') {
+              fired.finale = true;
+              setSpeed(1);
+              setSpeedNote('Final wave — speed returned to 1×. Raise it again if you dare.');
+            } else if (!fired.record && game.mode === 'endless') {
+              const best = meta.get().bestWave;
+              if (best >= 12 && game.waveIndex >= Math.ceil(best * 0.95)) {
+                fired.record = true;
+                setSpeed(1);
+                setSpeedNote(`Approaching your record (wave ${best}) — speed returned to 1×.`);
+              }
+            }
+          }
           lastHud = now;
         }
         // Run ended → begin the outro (once): resolve the music, raise the Victory/Defeat title,
@@ -379,6 +405,8 @@ export function GameView({
         game.armAbility();
       } else if (k === 'e' || k === 'E') {
         setEvoOpen((v) => !v); // Hero Combat Console (docs/HERO-EVOLUTION.md §console)
+      } else if (k === 'f' || k === 'F') {
+        setSpeed(game.timeScale >= 5 ? 1 : game.timeScale >= 2 ? 5 : 2); // cycle 1→2→5→1
       } else if (k === ' ' || k === 'Spacebar') {
         e.preventDefault();
         game.startWave();
@@ -392,7 +420,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause]);
+  }, [game, togglePause, setSpeed]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -465,6 +493,21 @@ export function GameView({
           }}
         />
         <BuildControls game={game} hud={hud} refresh={refresh} />
+        {(hud.phase === 'prep' || hud.phase === 'wave') && (
+          <div className="speed-ctl" role="group" aria-label="Game speed (F)">
+            {[1, 2, 5].map((x) => (
+              <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
+                {x}×
+              </button>
+            ))}
+          </div>
+        )}
+        {speedNote && (
+          <div className="speed-note" role="status">
+            <span>⏱ {speedNote}</span>
+            <button onClick={() => setSpeedNote(null)}>OK</button>
+          </div>
+        )}
         {(hud.phase === 'prep' || hud.phase === 'wave') && (
           <button
             className="pause-btn"
