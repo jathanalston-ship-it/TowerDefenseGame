@@ -60,6 +60,48 @@ describe('addProgress', () => {
   });
 });
 
+describe('meter invariants (the HUD bar is a pure read of this state — docs/LOOTBOX.md §meter)', () => {
+  // Deterministic RNG so the sweep is stable across runs.
+  function mulberry32(seed: number): () => number {
+    let a = seed >>> 0;
+    return () => {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  it('stress: thousands of randomized fills never leave the front box full-or-over', () => {
+    const rng = mulberry32(0xbeef);
+    let st = defaultLootQueue();
+    let banked = 0;
+    let spent = 0;
+    for (let i = 0; i < 5000; i++) {
+      const pts = Math.floor(rng() * 220); // mixes no-ops, partial fills, single + multi awards
+      const r = addProgress(st, pts, rng);
+      banked += pts;
+      spent += r.awarded.reduce((s, id) => s + costOf(id), 0);
+      st = r.state;
+      // The invariant the meter renders from: progress strictly below the front's cost.
+      expect(st.progress).toBeGreaterThanOrEqual(0);
+      expect(st.progress).toBeLessThan(costOf(st.queue[0]));
+      expect(st.queue.length).toBe(LOOT_QUEUE_DEPTH);
+    }
+    expect(spent + st.progress).toBe(banked); // conservation across the whole sweep
+  });
+
+  it('self-heals an owed state: 0 new points still award a front at/over its cost', () => {
+    // Only reachable via legacy/hand-edited saves — meta.syncRunLoot calls this with 0 delta
+    // when it detects progress ≥ cost, so a loaded save can never sit pinned at full.
+    const base = defaultLootQueue();
+    const owed = { ...base, progress: costOf(base.queue[0]) + 25 };
+    const r = addProgress(owed, 0, () => 0);
+    expect(r.awarded).toEqual([base.queue[0]]);
+    expect(r.state.progress).toBe(25);
+  });
+});
+
 describe('sanitizeLootQueue', () => {
   it('fills a fresh queue from junk input', () => {
     for (const junk of [null, undefined, 42, 'x', []]) {

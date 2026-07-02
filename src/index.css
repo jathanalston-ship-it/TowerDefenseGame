@@ -803,13 +803,35 @@ button:disabled {
   overflow: hidden;
 }
 .loot-bar-fill {
+  position: relative;
   height: 100%;
   border-radius: 999px;
   transition: width var(--dur-3) var(--ease-out);
 }
-/* Loot box completion: pop the chest + flash the bar as it locks in and resets to the next. */
-.loot-chest.is-pop {
-  animation: loot-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+/* Charging shimmer — a light band sweeps the filled span so live banking reads ALIVE. */
+.loot-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(100deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%) 0 0 / 200% 100%;
+  animation: loot-shimmer 2.4s linear infinite;
+  opacity: 0.55;
+}
+@keyframes loot-shimmer { from { background-position: 170% 0; } to { background-position: -70% 0; } }
+/* Near-full (≥85%): the bar breathes in anticipation — a container is imminent. */
+.loot-bar.is-hot { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+.loot-bar.is-hot .loot-bar-fill { animation: loot-hot 1.1s ease-in-out infinite; }
+@keyframes loot-hot {
+  0%, 100% { filter: brightness(1); box-shadow: 0 0 4px 0 currentColor; }
+  50% { filter: brightness(1.4); box-shadow: 0 0 11px 1px currentColor; }
+}
+/* ── Completion ceremony (docs/BUGFIX-LOG.md #10): pure OVERLAYS — the width never lies. ──
+   T0: bar flash in the completed rarity's color + the earned container streaks in from the
+   toast rail (.loot-fly); impact at 0.44s: chest pop + 8-ray burst + a subtle cell shake. */
+.loot-chest { position: relative; }
+.loot-chest.is-impact {
+  animation: loot-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 0.44s both;
 }
 @keyframes loot-pop {
   0% { transform: scale(1); }
@@ -817,12 +839,63 @@ button:disabled {
   100% { transform: scale(1); }
 }
 .loot-bar.is-complete {
-  animation: loot-complete 0.6s ease;
+  animation: loot-complete 0.7s ease;
 }
 @keyframes loot-complete {
   0%, 100% { box-shadow: none; border-color: var(--line); }
-  35% { box-shadow: 0 0 9px 1px var(--gold); border-color: var(--gold); }
+  30% { box-shadow: 0 0 12px 2px var(--cc, var(--gold)); border-color: var(--cc, var(--gold)); }
 }
+.hud-loot.is-celebrating { animation: loot-cell-shake 0.34s ease 0.44s; }
+@keyframes loot-cell-shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 0); }
+}
+.loot-burst { position: absolute; inset: 0; pointer-events: none; }
+.loot-burst i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  transform: rotate(var(--pa)) translateX(4px);
+  opacity: 0;
+  animation: loot-spark 0.55s var(--ease-out) 0.44s both;
+}
+@keyframes loot-spark {
+  0% { transform: rotate(var(--pa)) translateX(4px) scale(1); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: rotate(var(--pa)) translateX(27px) scale(0.35); opacity: 0; }
+}
+/* The earned container in flight: toast rail → meter chest (portaled to <body>, under toasts). */
+.loot-fly {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 478;
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--cc, var(--gold));
+  opacity: 0;
+  filter: drop-shadow(0 0 8px currentColor);
+  animation: loot-fly 0.44s cubic-bezier(0.45, 0, 0.55, 1) both, loot-fly-land 0.25s ease 0.44s both;
+}
+@keyframes loot-fly {
+  from { transform: translate(var(--fx0), var(--fy0)) scale(1.3); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translate(var(--fx1), var(--fy1)) scale(0.85); opacity: 1; }
+}
+@keyframes loot-fly-land { from { opacity: 1; } to { opacity: 0; } }
 .loot-sub {
   font-size: 11px;
   margin-top: 2px;
@@ -3214,7 +3287,10 @@ kbd {
 .lt-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .lt-name { font-size: 14px; font-weight: 800; }
 .lt-sub { font-size: 11px; color: var(--muted); }
-@media (prefers-reduced-motion: reduce) { .loot-toast, .loot-toast.is-big, .lt-icon { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .loot-toast, .loot-toast.is-big, .lt-icon, .loot-fly, .loot-burst i, .loot-chest.is-impact,
+  .hud-loot.is-celebrating, .loot-bar.is-hot .loot-bar-fill, .loot-bar-fill::after { animation: none !important; }
+}
 
 .achv-stack {
   position: fixed;

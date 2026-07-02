@@ -22,7 +22,7 @@ export interface GameEventMap {
   equipmentEquipped: { slot: string; defId: string; rarity: string };
   heroSpawned: { kind: string };
   heroAbilityUsed: { kind: string }; // a hero's active ability was cast (drives the Combat Tutorial)
-  lootContainerEarned: { rarity: string }; // a bio-container completed on the LIVE loot meter (drives the fill toast)
+  lootContainerEarned: { rarity: string; banked: number; next: string }; // a bio-container completed on the LIVE loot meter (banked = vault count including it; next = the box now filling) — drives the fill toast + meter ceremony
   projectileHit: { x: number; y: number; damage: number; targetId: number; byTower: TowerKind | null };
 }
 

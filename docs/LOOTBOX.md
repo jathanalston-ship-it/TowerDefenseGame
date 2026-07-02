@@ -178,3 +178,21 @@ equipment pull whose defId isn't in the inventory at roll time (each open persis
 next, so the second copy in a multi-open batch is correctly not new); the reveal model carries
 it (PullView/SummaryRow `isNew`) and the ceremony badges it — a pulsing gold "✦ NEW DISCOVERY"
 ribbon on the pull face and a gold NEW chip on the summary row.
+
+
+## §meter (2026-07) — live HUD bar contract + earn ceremony
+
+CONTRACT: the HUD Loot bar (`ui/LootMeter`) renders ONLY `save.lootQueue` — the fill width is
+always `progress / costOf(queue[0])`, so the display cannot drift from the backend. A
+completion celebrates with OVERLAYS, never a faked width (the old faked-full pop latched
+permanently — docs/BUGFIX-LOG.md #10): at T0 the bar flashes in the completed rarity's color
+and the fill element REMOUNTS (`key=cycle`) so the next box's small width starts fresh with
+no backward drain; the earned container streaks from the toast rail into the meter chest
+(`.loot-fly`) and on impact (~0.44s) the chest pops, an 8-ray burst fires, and the HUD cell
+shakes subtly. Anticipation: the fill carries a constant charge shimmer, and at ≥85% the bar
+breathes (`is-hot`). The Earned toast (`ui/LootToaster`) shows the rarity, the vault count
+after banking, and what's now filling — the `lootContainerEarned` event carries
+`{ rarity, banked, next }`. Backend self-heal: `syncRunLoot` awards an OWED front
+(progress ≥ cost — only reachable via legacy/tampered saves) even with zero new points.
+The invariant `0 ≤ progress < costOf(queue[0])` after every `addProgress` is stress-pinned
+(5000 randomized fills + conservation) in `core/lootQueue.test.ts`.

@@ -29,7 +29,7 @@ import type {
 import { rollChest, rollLoot } from './lootbox';
 import { rollMaterialDrop } from '../core/materialDrop';
 import type { ChestResult, PendingContainer } from './lootbox';
-import { LOOT_EARN, rarityRegistry } from '../core/loot';
+import { LOOT_EARN, costOf, rarityRegistry } from '../core/loot';
 import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
@@ -1075,9 +1075,12 @@ export const meta = {
     const total = Math.floor(Math.max(0, wave * LOOT_EARN.pointsPerWave + kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
     if (total < runLootBanked) { runLootBanked = 0; runContainersBanked = []; } // a new run began → fresh cycle
     const delta = total - runLootBanked;
-    if (delta <= 0) return [];
+    // Self-heal (docs/LOOTBOX.md §meter): a save loaded with progress ≥ the front's cost is OWED
+    // that box — award it even with zero new points, so the meter can never sit pinned at full.
+    const owed = save.lootQueue.progress >= costOf(save.lootQueue.queue[0] ?? 'common');
+    if (delta <= 0 && !owed) return [];
     runLootBanked = total;
-    const adv = addProgress(save.lootQueue, delta, Math.random, lootBiasFor(save));
+    const adv = addProgress(save.lootQueue, Math.max(0, delta), Math.random, lootBiasFor(save));
     if (adv.awarded.length === 0) {
       store.set({ ...save, lootQueue: adv.state }); // pure progress: advance the meter, skip the disk write
       return [];
@@ -1090,7 +1093,8 @@ export const meta = {
     // Fire the loot-fill toast (queued in the HUD) for each container just completed. Gated on a
     // listener so a headless/sim caller does zero extra work.
     if (gameEvents.hasListeners('lootContainerEarned')) {
-      for (const rarity of adv.awarded) gameEvents.emit('lootContainerEarned', { rarity });
+      let banked = save.pendingContainers.length;
+      for (const rarity of adv.awarded) gameEvents.emit('lootContainerEarned', { rarity, banked: ++banked, next: adv.state.queue[0] ?? 'common' });
     }
     return adv.awarded;
   },
@@ -2041,7 +2045,8 @@ export const meta = {
     const entries: PendingContainer[] = adv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     persist({ ...save, lootQueue: adv.state, pendingContainers: [...save.pendingContainers, ...entries] });
     if (gameEvents.hasListeners('lootContainerEarned')) {
-      for (const rarity of adv.awarded) gameEvents.emit('lootContainerEarned', { rarity }); // same fill toast as live play
+      let banked = save.pendingContainers.length;
+      for (const rarity of adv.awarded) gameEvents.emit('lootContainerEarned', { rarity, banked: ++banked, next: adv.state.queue[0] ?? 'common' }); // same fill toast as live play
     }
     return { queue: adv.state, banked: entries };
   },

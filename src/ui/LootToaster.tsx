@@ -10,7 +10,7 @@ import { gameEvents } from '../core/events';
 import { rarityRegistry } from '../core/loot';
 import { audio } from '../audio/sound';
 
-interface LootToast { id: number; rarity: string; name: string; color: string; big: boolean }
+interface LootToast { id: number; rarity: string; name: string; color: string; big: boolean; banked: number; nextName: string }
 
 const TOAST_MS = 3200; // on screen before auto-dismiss; the next queued toast follows
 
@@ -21,10 +21,11 @@ export function LootToaster(): JSX.Element | null {
   // Enqueue one toast per completed container. Rendering only the FRONT (below) guarantees they
   // never overlap; a burst simply lines up and plays out in order.
   useEffect(() => {
-    const off = gameEvents.on('lootContainerEarned', ({ rarity }) => {
+    const off = gameEvents.on('lootContainerEarned', ({ rarity, banked, next }) => {
       const def = rarityRegistry.get(rarity);
       const big = rarity === 'legendary' || rarity === 'exotic' || rarity === 'mythic';
-      setQueue((q) => [...q, { id: idc.current++, rarity, name: def?.name ?? 'Common', color: def?.color ?? 'var(--r-common)', big }]);
+      const nextName = rarityRegistry.get(next)?.name ?? 'Common';
+      setQueue((q) => [...q, { id: idc.current++, rarity, name: def?.name ?? 'Common', color: def?.color ?? 'var(--r-common)', big, banked, nextName }]);
     });
     return off;
   }, []);
@@ -53,9 +54,9 @@ export function LootToaster(): JSX.Element | null {
       >
         <span className="lt-icon" aria-hidden>◈</span>
         <span className="lt-body">
-          <span className="lt-eyebrow">Bio-Container Acquired</span>
-          <span className="lt-name" style={{ color: front.color }}>{front.name} Container Earned</span>
-          <span className="lt-sub">Open it from the Genetic Vault</span>
+          <span className="lt-eyebrow">Bio-Container Earned!</span>
+          <span className="lt-name" style={{ color: front.color }}>{front.name} Container</span>
+          <span className="lt-sub">Vault: {front.banked} banked · meter reset — now filling {front.nextName}</span>
         </span>
       </div>
     </div>
