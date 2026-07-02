@@ -3,10 +3,12 @@
 // the data-driven STAT_ROWS. Pure functions — no persistence here (that's meta.ts).
 
 import { ENEMY_KINDS, TOWER_DEFS, TOWER_ORDER } from '../core/config';
-import type { LifetimeStats, RunStats, TowerKind } from '../core/types';
+import type { LifetimeStats, MasteryCounts, RunStats, TowerKind } from '../core/types';
 
-/** Fold one finished run's stats into the lifetime totals (pure, immutable). */
-export function accumulateStats(prev: LifetimeStats, run: RunStats): LifetimeStats {
+/** Fold one finished run's stats into the lifetime totals (pure, immutable).
+ * `towerCombat` (the run's per-tower mastery accrual) deepens the per-tower ledger —
+ * lifetime damage + best wave — without widening RunStats. */
+export function accumulateStats(prev: LifetimeStats, run: RunStats, towerCombat?: MasteryCounts): LifetimeStats {
   const killsByEnemy = { ...prev.killsByEnemy };
   for (const k of ENEMY_KINDS) killsByEnemy[k] = (killsByEnemy[k] ?? 0) + (run.killsByEnemy[k] ?? 0);
 
@@ -25,6 +27,16 @@ export function accumulateStats(prev: LifetimeStats, run: RunStats): LifetimeSta
     }
   }
 
+  const towerDamage = { ...prev.towerDamage };
+  const towerBestWave = { ...prev.towerBestWave };
+  if (towerCombat) {
+    for (const k of TOWER_ORDER) {
+      towerDamage[k] = (towerDamage[k] ?? 0) + Math.round(towerCombat[k].damage);
+      // "Best wave with this tower" counts runs the kind actually fought in (was deployed).
+      if (towerCombat[k].activeTime > 0) towerBestWave[k] = Math.max(towerBestWave[k] ?? 0, run.wave);
+    }
+  }
+
   return {
     lifetimeKills: prev.lifetimeKills + run.kills,
     highestWave: Math.max(prev.highestWave, run.wave),
@@ -37,6 +49,8 @@ export function accumulateStats(prev: LifetimeStats, run: RunStats): LifetimeSta
     killsByEnemy,
     towerUsage,
     heroUsage,
+    towerDamage,
+    towerBestWave,
   };
 }
 

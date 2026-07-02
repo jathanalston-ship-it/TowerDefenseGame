@@ -3,8 +3,9 @@
 // scales to dozens of towers with no new code. Pure: no React/DOM.
 
 import { CARD_POOL, cardSubject } from '../core/cards';
-import { STAR, STAR_MILESTONES, TOWER_DEFS, nextEvolutionUnlock, nextStarMutationTier } from '../core/config';
-import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
+import { MASTERY, STAR, STAR_MILESTONES, TOWER_DEFS, TOWER_ORDER, nextEvolutionUnlock, nextStarMutationTier } from '../core/config';
+import { MASTERY_RANK_EVERY, masteryRankTitle, masteryTrackRegistry, nextMasteryUnlock } from '../core/mastery';
+import type { MasteryRewardKind } from '../core/mastery';
 import { forksOf, isFork, stepAt } from '../core/stars';
 import type { StarStep } from '../core/stars';
 import { evolutionStarCap, highestCampaignStage, masteryProgress, nextStarCost, towerProgress } from '../state/meta';
@@ -185,4 +186,115 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
     capUnlock,
     nextVisualMutation: maxed ? null : nextStarMutationTier(stars),
   };
+}
+
+// ── The specimen BENCH (roster rail) — search / sort / filter, scale-ready ────────────
+// Pure list logic so a 100-tower roster costs one pass; the rail renders what this returns.
+
+export type LabSort = 'default' | 'power' | 'mastery' | 'stars' | 'upgradeable' | 'recent';
+export const LAB_SORTS: { id: LabSort; label: string }[] = [
+  { id: 'default', label: 'Doctrine order' },
+  { id: 'upgradeable', label: 'Upgradeable first' },
+  { id: 'power', label: 'Highest Power' },
+  { id: 'stars', label: 'Highest Evolution' },
+  { id: 'mastery', label: 'Highest Mastery' },
+  { id: 'recent', label: 'Recently upgraded' },
+];
+
+export interface LabFilters {
+  query: string;
+  favoritesOnly: boolean;
+  upgradeableOnly: boolean;
+}
+
+/** Order + filter the roster for the bench rail. `powerOf` supplies each kind's Power
+ * contribution (computed by the caller via meta.previewPower, memoized on the save). */
+export function labRoster(
+  models: Record<TowerKind, TowerLabModel>,
+  filters: LabFilters,
+  sort: LabSort,
+  favorites: ReadonlySet<string>,
+  recents: Record<string, number>,
+  powerOf: (k: TowerKind) => number,
+): TowerKind[] {
+  const q = filters.query.trim().toLowerCase();
+  let kinds = TOWER_ORDER.filter((k) => {
+    const m = models[k];
+    if (filters.favoritesOnly && !favorites.has(k)) return false;
+    if (filters.upgradeableOnly && !m.affordable) return false;
+    if (!q) return true;
+    return `${m.name} ${m.combatClass} ${m.specialization}`.toLowerCase().includes(q);
+  });
+  const by = (fn: (k: TowerKind) => number): void => {
+    kinds = kinds.slice().sort((a, b) => fn(b) - fn(a));
+  };
+  if (sort === 'power') by(powerOf);
+  else if (sort === 'stars') by((k) => models[k].stars);
+  else if (sort === 'mastery') by((k) => models[k].mastery.level);
+  else if (sort === 'recent') by((k) => recents[k] ?? 0);
+  else if (sort === 'upgradeable') by((k) => (models[k].affordable ? 1 : 0));
+  // Favorites always lead within the chosen order (curation beats sorting).
+  return kinds.slice().sort((a, b) => Number(favorites.has(b)) - Number(favorites.has(a)));
+}
+
+// ── Mastery panel model (docs/MASTERY.md) — the lab's veteran ledger for one tower ────
+
+export interface MasteryPanelModel {
+  level: number;
+  rank: string; // 'Unranked' below the first rank boundary
+  into: number;
+  need: number;
+  totalXp: number;
+  bonusPct: number; // permanent damage bonus from mastery levels (MASTERY.damagePerLevel)
+  lifetime: { kills: number; damage: number; deployments: number; bestWave: number };
+  next: { at: number; name: string; kind: MasteryRewardKind | 'perk' | 'rank' };
+  milestones: { at: number; name: string; kind: MasteryRewardKind | 'perk'; reached: boolean }[];
+}
+
+export function masteryPanelModel(save: SaveData, kind: TowerKind): MasteryPanelModel {
+  const xp = save.towerMasteryXp[kind] ?? 0;
+  const mp = masteryProgress(xp);
+  return {
+    level: mp.level,
+    rank: masteryRankTitle(mp.level),
+    into: mp.into,
+    need: mp.need,
+    totalXp: xp,
+    bonusPct: mp.level * MASTERY.damagePerLevel * 100,
+    lifetime: {
+      kills: save.towerKills[kind] ?? 0,
+      damage: save.stats.towerDamage[kind] ?? 0,
+      deployments: save.stats.towerUsage[kind] ?? 0,
+      bestWave: save.stats.towerBestWave[kind] ?? 0,
+    },
+    next: nextMasteryUnlock('tower', kind, mp.level),
+    milestones: masteryMilestones(kind, mp.level),
+  };
+}
+
+
+function masteryMilestones(kind: TowerKind, level: number): MasteryPanelModel['milestones'] {
+  const track = masteryTrackRegistry.get(`tower:${kind}`);
+  const out: MasteryPanelModel['milestones'] = [];
+  for (const r of track?.rewards ?? []) out.push({ at: r.at, name: r.name, kind: r.kind, reached: level >= r.at });
+  for (const p of track?.perks ?? []) out.push({ at: p.at, name: p.name, kind: 'perk', reached: level >= p.at });
+  return out.sort((a, b) => a.at - b.at);
+}
+
+// ── Future evolution path — every remaining star step, resolved for THIS build ────────
+
+export interface FutureStep extends StepView {
+  forkAlt: string | null; // a fork's OTHER option name ("or …"), so both paths read at a glance
+}
+
+export function futurePath(save: SaveData, kind: TowerKind, fromStar: number): FutureStep[] {
+  const out: FutureStep[] = [];
+  for (let s = fromStar + 1; s <= STAR.maxStars; s++) {
+    const raw = stepAt(kind, s);
+    if (!raw) continue;
+    const v = stepView(kind, raw, save);
+    const alt = isFork(raw) ? raw.fork.find((o) => o.name !== v.name)?.name ?? null : null;
+    out.push({ ...v, forkAlt: alt });
+  }
+  return out;
 }

@@ -1,10 +1,11 @@
-// Tower Lab — the COLLECTION of evolving organisms (not a list of upgrade cards). Each tower is a
-// rich, scannable specimen card: a living portrait that grows with stars, its specialization /
-// evolution / mastery / lifetime kills / signature genes / current stats at a glance, and a Mutate
-// button that plays the star CEREMONY (StarCeremony). Data comes from towerLabModel; this file is
-// presentation + the upgrade intent. Scales to dozens of towers (responsive grid).
+// Tower Lab — the biological engineering wing. A master–detail bench: the SPECIMEN RAIL
+// (search/sort/filter/favorites — scales to a 100-tower roster) selects one organism for the
+// SHOWCASE — a living mutation chamber (large animated portrait), its evolution track, next
+// mutation (with Power preview + campaign gate), specialization paths, future evolution path,
+// the full Mastery ledger, and the Adaptation tree. Data comes from towerLabModel; buying a
+// star plays the StarCeremony. No functionality removed from the card era — re-homed.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { meta, towerProgress } from '../state/meta';
 import { STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { forksOf } from '../core/stars';
@@ -16,8 +17,9 @@ import { TowerCodex } from './TowerCodex';
 import { PowerPreview } from './components/PowerScore';
 import { AdaptationTree } from './components/AdaptationTree';
 import { StarCeremony } from './StarCeremony';
-import { ceremonyView, towerLabModel } from './towerLabModel';
-import type { StepView } from './towerLabModel';
+import { labPrefs, setLabPrefs } from '../state/prefs';
+import { LAB_SORTS, ceremonyView, futurePath, labRoster, masteryPanelModel, towerLabModel } from './towerLabModel';
+import type { LabSort, StepView, TowerLabModel } from './towerLabModel';
 
 interface CeremonyState {
   kind: TowerKind;
@@ -29,7 +31,9 @@ interface CeremonyState {
   milestoneStar: number | null;
 }
 
-/** Re-pickable specialization forks (loadout-level, applied next run) — collapsed by default. */
+const num = (n: number): string => n.toLocaleString();
+
+/** Re-pickable specialization forks (loadout-level, applied next run). */
 function ForkPaths({ kind, stars, color }: { kind: TowerKind; stars: number; color: string }): JSX.Element | null {
   const save = meta.use();
   const reached = forksOf(kind).filter((f) => f.star <= stars);
@@ -60,66 +64,200 @@ function ForkPaths({ kind, stars, color }: { kind: TowerKind; stars: number; col
   );
 }
 
+/** The Mastery ledger — craft expertise as a first-class panel (docs/MASTERY.md). */
+function MasteryPanel({ kind, color, contribution }: { kind: TowerKind; color: string; contribution: number }): JSX.Element {
+  const save = meta.use();
+  const m = useMemo(() => masteryPanelModel(save, kind), [save, kind]);
+  return (
+    <div className="tl2-block tl2-masterypanel">
+      <div className="tl2-block-h">
+        <span className="tl2-eyebrow">Mastery · Craft</span>
+        <span className="tl2-rank" style={{ color }}>{m.rank}</span>
+      </div>
+      <div className="tl2-mlevel">
+        <b style={{ color }}>Lv {m.level}</b>
+        <span className="tl2-mxp">{num(Math.floor(m.into))} / {num(Math.ceil(m.need))} XP</span>
+      </div>
+      <ProgressBar value={m.into} max={m.need} color={color} height={8} label={`${TOWER_DEFS[kind].name} mastery`} />
+      <div className="tl2-mgrid">
+        <span className="tl2-mstat"><b>{num(m.lifetime.kills)}</b>lifetime kills</span>
+        <span className="tl2-mstat"><b>{num(m.lifetime.damage)}</b>lifetime damage</span>
+        <span className="tl2-mstat"><b>{num(m.lifetime.deployments)}</b>deployments</span>
+        <span className="tl2-mstat"><b>{m.lifetime.bestWave || '—'}</b>best wave</span>
+      </div>
+      <div className="tl2-mbonus">
+        <span>Permanent bonus <b style={{ color }}>+{m.bonusPct.toFixed(1)}% damage</b></span>
+        <span>Power contribution <b className="tl2-gold">+{num(contribution)}</b></span>
+      </div>
+      <div className="tl2-mnext">
+        Next unlock · <b>{m.next.name}</b> at Lv {m.next.at}
+        <span className="tl2-mnext-kind">{m.next.kind}</span>
+      </div>
+      {m.milestones.length > 0 && (
+        <div className="tl2-mstones">
+          {m.milestones.map((ms) => (
+            <span className={`tl2-mstone${ms.reached ? ' on' : ''}`} key={`${ms.at}-${ms.name}`} title={`${ms.name} — Mastery ${ms.at}`}>
+              {ms.at} · {ms.name}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TowerLab(): JSX.Element {
   const save = meta.use();
   const prog = towerProgress(save);
-  const curPower = meta.power().score; // for the "next star → new Power" preview
+  const curPower = meta.power().score;
   const [ceremony, setCeremony] = useState<CeremonyState | null>(null);
-  const [openForks, setOpenForks] = useState<TowerKind | null>(null);
-  const [openAdapt, setOpenAdapt] = useState<TowerKind | null>(null); // open the Adaptation tree for a tower
-  const [codexKind, setCodexKind] = useState<TowerKind | null>(null); // open the Evolution Codex for a tower
+  const [openAdapt, setOpenAdapt] = useState(false);
+  const [codexKind, setCodexKind] = useState<TowerKind | null>(null);
+  const [prefs, setPrefs] = useState(labPrefs);
+  const [query, setQuery] = useState('');
+  const [favOnly, setFavOnly] = useState(false);
+  const [upOnly, setUpOnly] = useState(false);
+  const [chamberFlash, setChamberFlash] = useState(0); // increments on a star buy → chamber pulse
+
+  const models = useMemo(() => {
+    const out = {} as Record<TowerKind, TowerLabModel>;
+    for (const k of TOWER_ORDER) out[k] = towerLabModel(save, k, prog[k]);
+    return out;
+  }, [save, prog]);
+
+  // Each tower's Power CONTRIBUTION: account Power minus a world where its stars + mastery
+  // are zero (the real model — same engine the previews use). Memoized per save.
+  const contribution = useMemo(() => {
+    const out = {} as Record<TowerKind, number>;
+    for (const k of TOWER_ORDER) {
+      const without = meta.previewPower((s) => ({
+        ...s,
+        towerStars: { ...s.towerStars, [k]: 0 },
+        towerMasteryXp: { ...s.towerMasteryXp, [k]: 0 },
+      })).score;
+      out[k] = Math.max(0, curPower - without);
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [save, curPower]);
+
+  const favorites = useMemo(() => new Set(prefs.favorites), [prefs.favorites]);
+  const roster = labRoster(models, { query, favoritesOnly: favOnly, upgradeableOnly: upOnly }, prefs.sort as LabSort, favorites, prefs.recents, (k) => contribution[k]);
+
+  // Selection: last-inspected (pref) → first of the roster; never an empty showcase.
+  const selected: TowerKind = (roster.includes(prefs.selected as TowerKind) ? (prefs.selected as TowerKind) : roster[0]) ?? TOWER_ORDER[0];
+  const m = models[selected];
+  const future = useMemo(() => futurePath(save, selected, m.stars), [save, selected, m.stars]);
+
+  const select = (k: TowerKind): void => setPrefs(setLabPrefs({ selected: k }));
+  const toggleFav = (k: TowerKind): void => {
+    const favs = favorites.has(k) ? prefs.favorites.filter((f) => f !== k) : [...prefs.favorites, k];
+    setPrefs(setLabPrefs({ favorites: favs }));
+  };
 
   const upgrade = (k: TowerKind, fromStar: number): void => {
     if (!meta.buyStar(k)) return;
     const toStar = fromStar + 1;
     const cv = ceremonyView(meta.get(), k, toStar);
     setCeremony({ kind: k, name: TOWER_DEFS[k].name, color: TOWER_DEFS[k].color, toStar, ...cv });
+    setPrefs(setLabPrefs({ recents: { ...labPrefs().recents, [k]: Date.now() } }));
+    setChamberFlash((n) => n + 1); // the chamber lighting reacts to the mutation
   };
 
+  const upgradeableCount = TOWER_ORDER.filter((k) => models[k].affordable).length;
+  const recentMs = 24 * 60 * 60 * 1000;
+
   return (
-    <div className="panel tl-panel">
-      <div className="panel-title">Tower Lab</div>
-      <div className="panel-sub">Your roster of living weapons. Spend Shards to mutate each one up the star path — every star is a transformation, not a number.</div>
+    <div className="panel tl-panel tl2">
+      <div className="tl2-head">
+        <div>
+          <div className="panel-title">Tower Lab</div>
+          <div className="panel-sub">The engineering wing. Select a specimen; spend Strain Samples to mutate it up the evolution path — every star is a transformation, not a number.</div>
+        </div>
+        {upgradeableCount > 0 && <span className="tl2-ready-badge">{upgradeableCount} ready to evolve</span>}
+      </div>
 
-      <div className="tl-grid">
-        {TOWER_ORDER.map((k) => {
-          const m = towerLabModel(save, k, prog[k]);
-          return (
-            <div className="tl-card" key={k} style={{ ['--tw' as string]: m.color }}>
-              {/* identity row: living portrait (→ Evolution Codex) + name/class + star track */}
-              <div className="tl-id">
-                <button className="tl-portrait" onClick={() => setCodexKind(k)} title={`Open the ${m.name} Evolution Codex`}>
-                  <TowerPortrait color={m.color} stars={m.stars} size={112} kind={m.kind} />
-                  <span className="tl-portrait-lvl" style={{ color: m.color }}>◈{m.stars}</span>
-                  <span className="tl-portrait-examine">⤢ Codex</span>
+      <div className="tl2-body">
+        {/* ── The specimen rail — search / sort / filter, favorites lead ── */}
+        <div className="tl2-rail">
+          <input
+            className="tl2-search"
+            type="search"
+            placeholder="Search specimens…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search towers"
+          />
+          <div className="tl2-tools">
+            <select className="tl2-sort" value={prefs.sort} onChange={(e) => setPrefs(setLabPrefs({ sort: e.target.value }))} aria-label="Sort towers">
+              {LAB_SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+            <button className={`tl2-chip${upOnly ? ' on' : ''}`} onClick={() => setUpOnly((v) => !v)} title="Only towers with an affordable next star">Upgradeable</button>
+            <button className={`tl2-chip${favOnly ? ' on' : ''}`} onClick={() => setFavOnly((v) => !v)} title="Only favorites">★</button>
+          </div>
+          <div className="tl2-list" role="listbox" aria-label="Tower roster">
+            {roster.map((k) => {
+              const r = models[k];
+              const recent = Date.now() - (prefs.recents[k] ?? 0) < recentMs;
+              return (
+                <button
+                  key={k}
+                  className={`tl2-item${k === selected ? ' on' : ''}`}
+                  style={{ ['--tw' as string]: r.color }}
+                  onClick={() => select(k)}
+                  role="option"
+                  aria-selected={k === selected}
+                >
+                  <span className="tl2-item-portrait"><TowerPortrait color={r.color} stars={r.stars} size={52} kind={k} /></span>
+                  <span className="tl2-item-body">
+                    <span className="tl2-item-name" style={{ color: r.color }}>{r.name}{favorites.has(k) && <i className="tl2-item-fav">★</i>}</span>
+                    <span className="tl2-item-sub">◈{r.stars} · Mastery {r.mastery.level}</span>
+                  </span>
+                  <span className="tl2-item-badges">
+                    {recent && <i className="tl2-b tl2-b-recent" title="Recently upgraded">NEW</i>}
+                    {r.affordable && <i className="tl2-b tl2-b-up" title="Next star affordable">▲</i>}
+                    {r.capLocked && <i className="tl2-b tl2-b-cap" title="Campaign-gated">🔒</i>}
+                    {meta.adaptation('tower', k).pointsAvailable > 0 && <i className="tl2-b tl2-b-pts" title="Adaptation points to spend">{meta.adaptation('tower', k).pointsAvailable}</i>}
+                  </span>
                 </button>
-                <div className="tl-id-body">
-                  <div className="tl-name" style={{ color: m.color }}>{m.name}</div>
-                  <div className="tl-class">{m.combatClass}{m.mastery.rank ? ` · ${m.mastery.rank}` : ''}</div>
-                  <div className="tl-pips" aria-label={`${m.stars} of ${m.maxStars} stars`}>
-                    {Array.from({ length: m.maxStars }, (_, i) => {
-                      const isMs = m.milestones.some((ms) => ms.star === i + 1);
-                      return (
-                        <span
-                          key={i}
-                          className={`tl-pip${i < m.stars ? ' on' : ''}${isMs ? ' ms' : ''}`}
-                          style={i < m.stars ? { color: m.color } : undefined}
-                        >
-                          ◈
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              );
+            })}
+            {roster.length === 0 && <div className="tl2-empty">No specimens match — clear the filters.</div>}
+          </div>
+        </div>
 
-              {/* what it IS — specialization + current evolution (scannable label/value) */}
+        {/* ── The showcase — one organism, everything it is and will become ── */}
+        <div className="tl2-showcase" style={{ ['--tw' as string]: m.color }} key={selected}>
+          <div className="tl2-hero">
+            <div className={`tl2-chamber${chamberFlash % 2 ? ' flash-a' : ' flash-b'}`} data-flash={chamberFlash > 0 || undefined}>
+              <TowerPortrait color={m.color} stars={m.stars} size={224} kind={selected} />
+              <span className="tl2-chamber-lvl" style={{ color: m.color }}>◈{m.stars}</span>
+              {m.nextVisualMutation && (
+                <div className="tl2-next-form" title={`${m.nextVisualMutation.name} — ${m.nextVisualMutation.desc}`}>
+                  <TowerPortrait color={m.color} stars={m.nextVisualMutation.at} size={64} kind={selected} />
+                  <span>at ◈{m.nextVisualMutation.at}</span>
+                </div>
+              )}
+            </div>
+            <div className="tl2-id">
+              <div className="tl2-name-row">
+                <span className="tl2-name" style={{ color: m.color }}>{m.name}</span>
+                <button className={`tl2-favbtn${favorites.has(selected) ? ' on' : ''}`} onClick={() => toggleFav(selected)} title="Favorite (leads the rail)">★</button>
+              </div>
+              <div className="tl2-class">{m.combatClass}{m.mastery.rank ? ` · ${m.mastery.rank}` : ''}</div>
+              <div className="tl-pips tl2-pips" aria-label={`${m.stars} of ${m.maxStars} stars`}>
+                {Array.from({ length: m.maxStars }, (_, i) => {
+                  const isMs = m.milestones.some((ms) => ms.star === i + 1);
+                  return (
+                    <span key={i} className={`tl-pip${i < m.stars ? ' on' : ''}${isMs ? ' ms' : ''}`} style={i < m.stars ? { color: m.color } : undefined}>◈</span>
+                  );
+                })}
+              </div>
               <div className="tl-facts">
                 <div className="tl-fact"><span className="tl-k">Specialization</span><span className="tl-v">{m.specialization}</span></div>
                 <div className="tl-fact"><span className="tl-k">Evolution</span><span className="tl-v">{m.currentEvolution}</span></div>
+                <div className="tl-fact"><span className="tl-k">Build</span><span className="tl-v">{m.buildPath}</span></div>
               </div>
-
-              {/* how STRONG it is — stat chips */}
               <div className="tl-stats">
                 {m.stats.map((s) => (
                   <span className="tl-stat" key={s.label}>
@@ -127,98 +265,104 @@ export function TowerLab(): JSX.Element {
                     <span className="tl-stat-k">{s.label}</span>
                   </span>
                 ))}
+                <span className="tl-stat">
+                  <span className="tl-stat-v tl2-gold">+{num(contribution[selected])}</span>
+                  <span className="tl-stat-k">Power</span>
+                </span>
               </div>
+              <button className="tl2-codex" onClick={() => setCodexKind(selected)}>⤢ Evolution Codex — every stage &amp; both branches</button>
+            </div>
+          </div>
 
-              {/* mastery + collectible flavor */}
-              <div className="tl-mastery">
-                <div className="tl-mline"><span>Mastery <b>Lv {m.mastery.level}</b></span><span className="tl-kills">{m.lifetimeKills.toLocaleString()} lifetime kills</span></div>
-                <ProgressBar value={m.mastery.into} max={m.mastery.need} color={m.color} height={6} label={`${m.name} mastery`} />
-              </div>
-
-              {m.signatureGenes.length > 0 && (
-                <div className="tl-genes">
-                  <span className="tl-k">Genes</span>
-                  <span className="tl-gene-chips">
-                    {m.signatureGenes.slice(0, 3).map((g) => <span className="tl-gene" key={g}>{g}</span>)}
+          {/* Next mutation + the action (campaign gate never just greys out) */}
+          <div className="tl2-block tl2-nextblock">
+            {m.nextStep ? (
+              <div className={`tl-next${m.capLocked ? ' is-locked' : ''}`} style={{ borderLeftColor: m.color }}>
+                <span className="tl-next-k" style={{ color: m.color }}>
+                  {m.capLocked ? 'LOCKED' : 'NEXT'} ◈{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
+                </span>
+                {m.nextStep.desc && <span className="tl-next-desc">{m.nextStep.desc}</span>}
+                {!m.capLocked && (
+                  <span className="tl-next-power">
+                    Power{' '}
+                    <PowerPreview
+                      current={curPower}
+                      next={meta.previewPower((s) => ({ ...s, towerStars: { ...s.towerStars, [selected]: (s.towerStars[selected] ?? 0) + 1 } })).score}
+                    />
                   </span>
-                </div>
-              )}
-              <div className="tl-fact tl-build"><span className="tl-k">Build</span><span className="tl-v">{m.buildPath}</span></div>
-
-              {/* what they're WORKING TOWARD — next star + the upgrade action */}
-              <div className="tl-next-wrap">
-                {m.nextStep ? (
-                  <div className={`tl-next${m.capLocked ? ' is-locked' : ''}`} style={{ borderLeftColor: m.color }}>
-                    <span className="tl-next-k" style={{ color: m.color }}>
-                      {m.capLocked ? 'LOCKED' : 'NEXT'} ◈{m.nextStep.star} · {m.nextStep.name}{m.nextStep.isFork ? ' — choose a path' : ''}
-                    </span>
-                    {m.nextStep.desc && <span className="tl-next-desc">{m.nextStep.desc}</span>}
-                    {!m.capLocked && (
-                      <span className="tl-next-power">
-                        Power{' '}
-                        <PowerPreview
-                          current={curPower}
-                          next={meta.previewPower((s) => ({ ...s, towerStars: { ...s.towerStars, [k]: (s.towerStars[k] ?? 0) + 1 } })).score}
-                        />
-                      </span>
-                    )}
-                    {m.nextAbility && m.nextAbility.star !== m.nextStep.star && (
-                      <span className="tl-next-ability">Next ability · ◈{m.nextAbility.star} {m.nextAbility.name}</span>
-                    )}
-                    {/* Campaign Evolution Cap: show what to work toward — never just grey it out. */}
-                    {m.capLocked && m.capUnlock && (
-                      <div className="tl-cap">
-                        <span className="tl-cap-req">🧬 Reach <b>Campaign Stage {m.capUnlock.stage}</b> to evolve to ◈{m.capUnlock.maxStar}</span>
-                        <ProgressBar value={Math.min(m.campaignStage, m.capUnlock.stage)} max={m.capUnlock.stage} color={m.color} height={6} label="Campaign progress" />
-                        <span className="tl-cap-prog">Campaign Stage {m.campaignStage} / {m.capUnlock.stage}</span>
-                        {m.nextVisualMutation && (
-                          <span className="tl-cap-vis">Upcoming mutation · <b>{m.nextVisualMutation.name}</b> at ◈{m.nextVisualMutation.at}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="tl-next is-max" style={{ borderLeftColor: m.color }}>
-                    <span className="tl-next-k" style={{ color: m.color }}>FULLY ASCENDED ◈{m.stars}</span>
+                )}
+                {m.nextAbility && m.nextAbility.star !== m.nextStep.star && (
+                  <span className="tl-next-ability">Next ability · ◈{m.nextAbility.star} {m.nextAbility.name}</span>
+                )}
+                {m.capLocked && m.capUnlock && (
+                  <div className="tl-cap">
+                    <span className="tl-cap-req">🧬 Reach <b>Campaign Stage {m.capUnlock.stage}</b> to evolve to ◈{m.capUnlock.maxStar}</span>
+                    <ProgressBar value={Math.min(m.campaignStage, m.capUnlock.stage)} max={m.capUnlock.stage} color={m.color} height={6} label="Campaign progress" />
+                    <span className="tl-cap-prog">Campaign Stage {m.campaignStage} / {m.capUnlock.stage}</span>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="tl-next is-max" style={{ borderLeftColor: m.color }}>
+                <span className="tl-next-k" style={{ color: m.color }}>FULLY ASCENDED ◈{m.stars}</span>
+              </div>
+            )}
+            <div className="tl-actions">
+              <button
+                className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
+                disabled={m.maxed || !m.affordable}
+                onClick={() => upgrade(selected, m.stars)}
+                title={m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
+              >
+                {m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
+              </button>
+              <span className="tl-shards" title="Strain Samples">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
+            </div>
+          </div>
 
-                <div className="tl-actions">
-                  <button
-                    className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
-                    disabled={m.maxed || !m.affordable}
-                    onClick={() => upgrade(k, m.stars)}
-                    title={m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
-                  >
-                    {m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
-                  </button>
-                  <span className="tl-shards" title="Strain Samples">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
-                </div>
+          {/* Specialization paths — both branches, re-pickable */}
+          {forksOf(selected).some((f) => f.star <= m.stars) && (
+            <div className="tl2-block">
+              <div className="tl2-block-h"><span className="tl2-eyebrow">Specialization paths</span></div>
+              <ForkPaths kind={selected} stars={m.stars} color={m.color} />
+            </div>
+          )}
 
-                {forksOf(k).some((f) => f.star <= m.stars) && (
-                  <>
-                    <button className="tl-forks-toggle" onClick={() => setOpenForks(openForks === k ? null : k)}>
-                      Specialization paths {openForks === k ? '▾' : '▸'}
-                    </button>
-                    {openForks === k && <ForkPaths kind={k} stars={m.stars} color={m.color} />}
-                  </>
-                )}
-
-                {(() => {
-                  const pts = meta.adaptation('tower', k).pointsAvailable;
-                  return (
-                    <>
-                      <button className="tl-forks-toggle" onClick={() => setOpenAdapt(openAdapt === k ? null : k)}>
-                        Adaptation {pts > 0 && <span className="tl-adapt-badge">{pts}</span>} {openAdapt === k ? '▾' : '▸'}
-                      </button>
-                      {openAdapt === k && <AdaptationTree subject="tower" unit={k} color={m.color} />}
-                    </>
-                  );
-                })()}
+          {/* The future path — every remaining evolution, both fork options readable */}
+          {future.length > 0 && (
+            <div className="tl2-block">
+              <div className="tl2-block-h"><span className="tl2-eyebrow">Future evolutions</span></div>
+              <div className="tl2-future">
+                {future.map((f) => (
+                  <div className={`tl2-fstep${f.star <= m.evolutionCap ? '' : ' gated'}`} key={f.star} title={f.desc}>
+                    <span className="tl2-fstar" style={{ color: m.color }}>◈{f.star}</span>
+                    <span className="tl2-fname">{f.name}{f.forkAlt ? <i> or {f.forkAlt}</i> : null}</span>
+                    {f.star > m.evolutionCap && <span className="tl2-fgate">stage-gated</span>}
+                  </div>
+                ))}
               </div>
             </div>
-          );
-        })}
+          )}
+
+          {/* Signature genes — the collection thread for this organism */}
+          {m.signatureGenes.length > 0 && (
+            <div className="tl2-block">
+              <div className="tl2-block-h"><span className="tl2-eyebrow">Signature genes</span></div>
+              <span className="tl-gene-chips">
+                {m.signatureGenes.map((g) => <span className="tl-gene" key={g}>{g}</span>)}
+              </span>
+            </div>
+          )}
+
+          <MasteryPanel kind={selected} color={m.color} contribution={contribution[selected]} />
+
+          <div className="tl2-block">
+            <button className="tl-forks-toggle" onClick={() => setOpenAdapt((v) => !v)}>
+              Adaptation {meta.adaptation('tower', selected).pointsAvailable > 0 && <span className="tl-adapt-badge">{meta.adaptation('tower', selected).pointsAvailable}</span>} {openAdapt ? '▾' : '▸'}
+            </button>
+            {openAdapt && <AdaptationTree subject="tower" unit={selected} color={m.color} />}
+          </div>
+        </div>
       </div>
 
       {ceremony && (

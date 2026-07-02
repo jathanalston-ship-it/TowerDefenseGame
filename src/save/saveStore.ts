@@ -122,7 +122,7 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 19;
+export const CURRENT_VERSION = 20;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -224,6 +224,8 @@ export function defaultLifetimeStats(): LifetimeStats {
     killsByEnemy: zeroByEnemy(),
     towerUsage: zeroByTower(),
     heroUsage: zeroByHero(),
+    towerDamage: zeroByTower(),
+    towerBestWave: zeroByTower(),
   };
 }
 
@@ -476,6 +478,9 @@ function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): Lifetime
     killsByEnemy: { ...base.killsByEnemy, ...s.killsByEnemy },
     towerUsage: { ...base.towerUsage, ...s.towerUsage },
     heroUsage: { ...base.heroUsage, ...s.heroUsage },
+    // v19→v20: per-tower damage/best-wave ledgers — zeroed for older saves (additive).
+    towerDamage: { ...base.towerDamage, ...s.towerDamage },
+    towerBestWave: { ...base.towerBestWave, ...s.towerBestWave },
   };
 }
 

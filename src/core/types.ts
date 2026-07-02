@@ -348,6 +348,9 @@ export interface LifetimeStats {
   killsByEnemy: Record<EnemyKind, number>;
   towerUsage: Record<TowerKind, number>; // total builds per kind (drives "favorite tower")
   heroUsage: Record<string, number>; // runs fielded per hero id
+  // ── Per-tower combat depth (schema v20) — the Mastery panel's lifetime ledger ──
+  towerDamage: Record<TowerKind, number>; // lifetime damage dealt per kind
+  towerBestWave: Record<TowerKind, number>; // deepest wave reached in a run that DEPLOYED the kind
 }
 
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */

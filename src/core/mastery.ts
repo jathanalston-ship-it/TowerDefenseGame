@@ -110,6 +110,24 @@ export function masteryPerksUpTo(subject: 'tower' | 'hero', unit: string, level:
   return (masteryTrackRegistry.get(trackId(subject, unit))?.perks ?? []).filter((p) => p.at <= level);
 }
 
+/** The NEXT thing this unit's mastery will unlock above `level` — the nearest of its
+ * authored rewards, mechanic perks, and the procedural rank boundary. Never null:
+ * ranks are infinite, so there is always a next goal to surface. */
+export function nextMasteryUnlock(
+  subject: 'tower' | 'hero',
+  unit: string,
+  level: number,
+): { at: number; name: string; kind: MasteryRewardKind | 'perk' | 'rank' } {
+  const track = masteryTrackRegistry.get(trackId(subject, unit));
+  const candidates: { at: number; name: string; kind: MasteryRewardKind | 'perk' | 'rank' }[] = [];
+  for (const r of track?.rewards ?? []) if (r.at > level) candidates.push({ at: r.at, name: r.name, kind: r.kind });
+  for (const p of track?.perks ?? []) if (p.at > level) candidates.push({ at: p.at, name: p.name, kind: 'perk' });
+  const nextRankAt = (masteryRank(level) + 1) * MASTERY_RANK_EVERY;
+  candidates.push({ at: nextRankAt, name: masteryRankTitle(nextRankAt), kind: 'rank' });
+  candidates.sort((a, b) => a.at - b.at);
+  return candidates[0];
+}
+
 // Flat index for display (id → reward), since the save stores reward ids.
 const REWARD_BY_ID = new Map<string, MasteryReward>();
 export function masteryRewardById(id: string): MasteryReward | undefined {

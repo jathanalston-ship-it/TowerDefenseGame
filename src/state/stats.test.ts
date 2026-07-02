@@ -44,6 +44,37 @@ describe('lifetime statistics', () => {
     expect(favoriteTower(s)).toBe('needle'); // 3 + 3 needles, the most-built
   });
 
+  it('deepens the per-tower ledger from the run mastery accrual (schema v20)', () => {
+    const combat = {
+      needle: { kills: 6, damage: 1500.7, activeTime: 40 },
+      mortar: { kills: 4, damage: 480.2, activeTime: 22 },
+      reactor: { kills: 0, damage: 0, activeTime: 0 },
+      parasite: { kills: 0, damage: 0, activeTime: 0 },
+      obelisk: { kills: 0, damage: 0, activeTime: 0 },
+    };
+    let s = accumulateStats(defaultLifetimeStats(), run({ wave: 9 }), combat);
+    expect(s.towerDamage.needle).toBe(1501); // rounded
+    expect(s.towerDamage.mortar).toBe(480);
+    expect(s.towerBestWave.needle).toBe(9); // deployed → the run wave counts
+    expect(s.towerBestWave.reactor).toBe(0); // never fielded → untouched
+    s = accumulateStats(s, run({ wave: 4 }), combat);
+    expect(s.towerDamage.needle).toBe(3002);
+    expect(s.towerBestWave.needle).toBe(9); // a shallower run never lowers the best
+  });
+
+  it('migrates a pre-v20 stats block by zero-filling the per-tower ledgers', () => {
+    const old = defaultLifetimeStats() as unknown as Record<string, unknown>;
+    delete old.towerDamage;
+    delete old.towerBestWave;
+    const blob = { ...defaultSave(), stats: old as unknown as ReturnType<typeof defaultLifetimeStats> };
+    const r = parseImport(JSON.stringify(blob));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.stats.towerDamage.needle).toBe(0);
+      expect(r.data.stats.towerBestWave.mortar).toBe(0);
+    }
+  });
+
   it('migrates a pre-stats (v2) save by filling a zeroed stats block', () => {
     const v2 = { ...defaultSave() } as Record<string, unknown>;
     delete v2.stats; // simulate an old save that predates v3

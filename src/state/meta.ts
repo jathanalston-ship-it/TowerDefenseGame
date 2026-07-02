@@ -294,6 +294,28 @@ export function masteryReq(level: number): number {
   return Math.round(MASTERY.baseReq * Math.pow(MASTERY.reqGrowth, level));
 }
 
+/** Raw mastery-XP signal for one unit's run accrual — THE formula (docs/MASTERY.md).
+ * Shared by finishRun (banking) and the live in-run projection (Hud/Inspector), so the
+ * number the player watches during a run is byte-equal to the number that banks. */
+export function masteryXpRaw(c: { kills: number; damage: number; activeTime: number }): number {
+  return c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond;
+}
+
+/** The run-constant mastery-XP multipliers for a run setup (mode + difficulty + save state).
+ * Snapshot once at run start for the live projection; finishRun derives the same product. */
+export function masteryXpMults(
+  save: SaveData,
+  mode: { endless?: boolean; campaign?: boolean },
+  difficulty: string | undefined,
+): { tower: number; hero: number } {
+  const asc = ascendantBonuses(save.prestige.nodes);
+  const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save)));
+  const econDiff = resolveDifficulty(difficulty);
+  const modeMult = mode.endless ? MODE_REWARDS.mastery.endless : mode.campaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
+  const base = modeMult * econDiff.xpMult * asc.masteryXpMult;
+  return { tower: base * cb.towerXpMult, hero: base * cb.heroXpMult };
+}
+
 /** Resolve total lifetime XP into a level + progress toward the next (for the bar). */
 export function masteryProgress(xp: number): { level: number; into: number; need: number } {
   let level = 0;
@@ -834,7 +856,7 @@ export const meta = {
         ? (firstClear ? MODE_REWARDS.core.campaignFirst : MODE_REWARDS.core.campaignReplay)
         : MODE_REWARDS.core.stage;
     const lootMult = result.endless ? MODE_REWARDS.loot.endless : isCampaign ? MODE_REWARDS.loot.campaign : MODE_REWARDS.loot.stage;
-    const masteryMult = result.endless ? MODE_REWARDS.mastery.endless : isCampaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
+    const xpMults = masteryXpMults(save, { endless: result.endless, campaign: isCampaign }, result.difficulty);
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
       ? Math.round(
@@ -853,9 +875,7 @@ export const meta = {
     const mastery = {} as Record<TowerKind, MasteryDelta>;
     for (const k of TOWER_ORDER) {
       const c = result.mastery[k];
-      const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult * cb.towerXpMult, // Towers codex: +Tower XP
-      );
+      const gained = Math.round(masteryXpRaw(c) * xpMults.tower); // Towers codex: +Tower XP rides xpMults
       const fromLevel = masteryLevel(save.towerMasteryXp[k] ?? 0);
       towerMasteryXp[k] = (save.towerMasteryXp[k] ?? 0) + gained;
       towerKills[k] = (save.towerKills[k] ?? 0) + c.kills;
@@ -867,9 +887,7 @@ export const meta = {
     const heroMastery = {} as Record<HeroKind, MasteryDelta>;
     for (const k of HERO_ORDER) {
       const c = result.heroMastery[k];
-      const gained = Math.round(
-        (c.kills * MASTERY.xpPerKill + c.damage * MASTERY.xpPerDamage + c.activeTime * MASTERY.xpPerActiveSecond) * masteryMult * econDiff.xpMult * asc.masteryXpMult * cb.heroXpMult, // Heroes codex: +Hero XP
-      );
+      const gained = Math.round(masteryXpRaw(c) * xpMults.hero); // Heroes codex: +Hero XP rides xpMults
       const fromLevel = masteryLevel(save.heroMasteryXp[k] ?? 0);
       heroMasteryXp[k] = (save.heroMasteryXp[k] ?? 0) + gained;
       heroMastery[k] = { xpGained: gained, fromLevel, toLevel: masteryLevel(heroMasteryXp[k]) };
@@ -987,7 +1005,7 @@ export const meta = {
       heroMasteryXp,
       heroKills,
       heroFavEquip,
-      stats: accumulateStats(save.stats, result.stats),
+      stats: accumulateStats(save.stats, result.stats, result.mastery),
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
       unlockedTitles,

@@ -43,6 +43,42 @@ export function setDifficultyPref(mode: DiffMode, id: string): void {
   }
 }
 
+// ── Tower Lab bench prefs (docs/TOWERS.md) — favorites, recent upgrades, selection, sort.
+// Device-local curation (NOT progression): favorites/sort are how THIS player arranges the
+// bench, so they live beside the other UI prefs, never in the save.
+const LAB_KEY = 'assimilate.lab';
+
+export interface LabPrefs {
+  favorites: string[]; // favorited tower kinds
+  recents: Record<string, number>; // kind → last star-upgrade epoch ms (drives "Recently upgraded")
+  selected: string | null; // last inspected tower
+  sort: string; // roster sort mode id
+}
+
+export function labPrefs(): LabPrefs {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LAB_KEY) ?? '{}') as Partial<LabPrefs>;
+    return {
+      favorites: Array.isArray(raw.favorites) ? raw.favorites : [],
+      recents: raw.recents && typeof raw.recents === 'object' ? raw.recents : {},
+      selected: typeof raw.selected === 'string' ? raw.selected : null,
+      sort: typeof raw.sort === 'string' ? raw.sort : 'default',
+    };
+  } catch {
+    return { favorites: [], recents: {}, selected: null, sort: 'default' };
+  }
+}
+
+export function setLabPrefs(patch: Partial<LabPrefs>): LabPrefs {
+  const next = { ...labPrefs(), ...patch };
+  try {
+    localStorage.setItem(LAB_KEY, JSON.stringify(next));
+  } catch {
+    /* storage unavailable */
+  }
+  return next;
+}
+
 // ── Device-pref key registry ─────────────────────────────────────────────────
 // The Auto-Start toggle key (read/written by GameView + BuildControls — shared const, not copies).
 export const AUTOSTART_KEY = 'assimilate.autostart';
@@ -58,4 +94,5 @@ export const DEVICE_PREF_KEYS: readonly string[] = [
   AUTOSTART_KEY,
   'assimilate.debug', // debug flag (src/debug/debug.ts)
   'assimilate.notif.seen', // notification watermarks (state/notifications.ts)
+  LAB_KEY, // Tower Lab bench prefs (favorites/recents/selection/sort)
 ];
