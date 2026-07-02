@@ -44,7 +44,9 @@ detectors, `npm run sim:progression`)** · Player Profile dashboard (registry-dr
 power attribution, frames/timeline/milestones, save v22 ledgers — `docs/PROFILE.md`) ·
 **Tower Adaptation / Antigen (per-tower generated 4-branch trees, exclusive forks, capped
 multi-source Antigen, campaign gates 15/30/50, battlefield FORM stages, priced stage-gated
-respec, lab UI + inspector — `docs/ADAPTATION.md`)**.
+respec, lab UI + inspector — `docs/ADAPTATION.md`)** · **Command Center home (registry-driven
+widget zones over pure read-models; living World Status canvas organism, command strip, feed,
+unlock roadmap, forecast, live army — `docs/COMMAND-CENTER.md`)**.
 
 ## Systems in progress
 
@@ -91,7 +93,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 794 tests / 123 files green; golden sim byte-identical; typecheck strict; build clean.
+- 801 tests / 124 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.

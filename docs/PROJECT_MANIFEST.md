@@ -403,8 +403,12 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Dependencies:** `game.getSnapshot()` (~10 Hz) + `meta.use()`; notifications registry.
 - **Files:** `ui/Hud.tsx`, `ui/Toolbar.tsx`, `ui/BuildControls.tsx`, `ui/Inspector.tsx`,
   `ui/BuildPanel.tsx`, `ui/DraftModal.tsx`, `ui/GameView.tsx` (rAF host), `ui/Hub.tsx` (nav
-  shell), `ui/hubProgress.ts` (rings), `state/notificationSources.ts` (badges).
-  Docs: `HUD.md`, `READABILITY.md`, `UI-MOTION.md`, `NOTIFICATIONS.md`.
+  shell), `ui/hubProgress.ts` (rings), `state/notificationSources.ts` (badges). The HOME
+  screen is the Command Center (`ui/CommandCenter.tsx` + `ui/homeModel.ts` registry +
+  `ui/WorldStatus.tsx` living centerpiece — `COMMAND-CENTER.md`): registry-driven widget
+  zones (command strip, world status, mission control, forecast/roadmap rail, live army,
+  command feed, dashboard); a future system's home widget = one register() + one renderer.
+  Docs: `HUD.md`, `READABILITY.md`, `UI-MOTION.md`, `NOTIFICATIONS.md`, `COMMAND-CENTER.md`.
 - **Related:** everything player-facing; the motion language in `index.css`.
 - **Future expansion:** new Hub screen = NavKey + section entry + notification channel.
 - **Known limitations:** `index.css` is one 5.3k-line stylesheet (see `ENGINEERING-AUDIT.md`).

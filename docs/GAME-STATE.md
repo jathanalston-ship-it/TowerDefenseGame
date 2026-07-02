@@ -38,6 +38,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 
 ### Core sim & framework
 - ✅ Deterministic tick + golden test (`core/game.ts`, `core/sim.testutil.ts`) — ARCHITECTURE.md
+- ✅ **Command Center home** — registry-driven widget zones over pure read-models (`ui/homeModel.ts`);
+  living World Status canvas organism (era/organs/FORM/readiness), command strip, feed (save
+  timeline), unlock roadmap, forecast, live army — COMMAND-CENTER.md
 - ✅ Data-driven registries + content validator (`core/registry.ts`, `core/validate.ts`)
 - ✅ Save: versioned blob, migrations, backups, export/import (`save/saveStore.ts`, UI `SaveManager`)
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md

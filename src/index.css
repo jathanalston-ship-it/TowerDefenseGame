@@ -4516,8 +4516,74 @@ kbd {
 .hub-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 .hub-col-stack { display: flex; flex-direction: column; gap: 16px; }
 
-/* PLAY landing — Mission Control: CONTINUE CAMPAIGN dominates the page */
-.play-screen { display: flex; flex-direction: column; gap: 18px; min-height: 100%; }
+/* COMMAND CENTER — the living bio-organic home board (docs/COMMAND-CENTER.md) */
+.cchome { display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
+.cc-zone { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.cc-zone:empty { display: none; }
+.cc-widget { display: contents; }
+.cc-zone-row { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(240px, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .cc-zone-row { grid-template-columns: 1fr; } }
+.cc-panel-h { font-size: 11px; font-weight: 900; letter-spacing: 0.16em; color: var(--muted); }
+
+/* World Status — the living centerpiece */
+.cc-world { position: relative; overflow: hidden; min-height: 190px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: radial-gradient(120% 160% at 50% -20%, rgba(124, 230, 160, 0.07), transparent 60%), rgba(0, 0, 0, 0.28); }
+.cc-world.is-era3 { border-color: color-mix(in srgb, var(--viral) 40%, var(--line-strong)); }
+.cc-world-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cc-world-head { position: relative; display: flex; align-items: baseline; gap: 10px; padding: 10px 14px 0; flex-wrap: wrap; }
+.cc-world-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.16em; color: var(--muted); }
+.cc-world-era { font-size: 13px; font-weight: 900; letter-spacing: 0.1em; color: var(--success); }
+.cc-world.is-era3 .cc-world-era { color: var(--viral); }
+.cc-world-ready { margin-left: auto; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(90, 209, 255, 0.4); color: var(--kinetic); }
+.cc-world-ready.is-go { border-color: rgba(255, 210, 77, 0.5); color: var(--gold); box-shadow: 0 0 12px rgba(255, 210, 77, 0.18); }
+.cc-world-vitals { position: absolute; left: 14px; bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
+.cc-wv { display: flex; flex-direction: column-reverse; font-size: 10px; letter-spacing: 0.12em; color: var(--muted); }
+.cc-wv b { font-size: 18px; font-weight: 900; color: var(--text); letter-spacing: 0; }
+.cc-world-foot { position: absolute; right: 14px; bottom: 12px; font-size: 11px; color: var(--muted); }
+
+/* Unlock roadmap — the next few earns as a rail of progress rings */
+.cc-roadmap, .cc-feed, .cc-army { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: rgba(0, 0, 0, 0.22); }
+.cc-road { display: flex; flex-direction: column; gap: 6px; }
+.cc-road-stop { display: flex; align-items: center; gap: 10px; text-align: left; padding: 6px 8px; border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+.cc-road-stop:hover { border-color: color-mix(in srgb, var(--g) 60%, transparent); transform: translateY(-1px); }
+.cc-road-ring { position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--g) calc(var(--p) * 360deg), rgba(255,255,255,0.08) 0); }
+.cc-road-ring::before { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--panel-2); }
+.cc-road-ring b { position: relative; font-size: 10px; font-weight: 900; color: var(--g); }
+.cc-road-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.cc-road-l { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-road-r { font-size: 10px; color: var(--muted); }
+
+/* Live army — every strain + champion, each a door to its lab */
+.cc-army-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; }
+.cc-army-div { width: 1px; align-self: stretch; background: rgba(255,255,255,0.1); }
+.cc-unit { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 76px; padding: 8px 10px; border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+.cc-unit:hover { border-color: color-mix(in srgb, var(--u) 60%, transparent); transform: translateY(-1px); }
+.cc-unit-orb { position: relative; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--u) 60%, white 20%), var(--u)); box-shadow: 0 0 10px color-mix(in srgb, var(--u) 45%, transparent); animation: ccOrb 2.6s ease-in-out infinite; }
+.cc-unit-orb.is-diamond { border-radius: var(--r-xs); transform: rotate(45deg); }
+@keyframes ccOrb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.cc-unit-orb.is-diamond { animation: none; }
+.cc-unit-form { position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--viral); opacity: 0.7; }
+.cc-unit-n { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.cc-unit-s { font-size: 10px; color: color-mix(in srgb, var(--u) 75%, white 10%); }
+.cc-unit.is-locked { opacity: 0.45; }
+.cc-unit.is-fielded { border-color: color-mix(in srgb, var(--u) 45%, transparent); }
+.cc-unit.is-fielded .cc-unit-s { color: var(--success); font-weight: 800; letter-spacing: 0.06em; }
+
+/* Command feed — recent milestones from the save timeline */
+.cc-feed-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.cc-feed-item { display: flex; align-items: baseline; gap: 8px; font-size: 12px; color: var(--text); border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 5px; }
+.cc-feed-item:last-child { border-bottom: none; padding-bottom: 0; }
+.cc-feed-i { flex: none; width: 16px; text-align: center; color: var(--gold); }
+.cc-feed-l { min-width: 0; }
+.cc-feed-t { margin-left: auto; flex: none; font-size: 10px; color: var(--muted); }
+
+/* Feed zone: feed beside the system dashboard on wide shells */
+.cc-zone-feed { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 2.2fr); gap: 14px; align-items: start; }
+.cc-zone-feed > .cc-widget[data-widget='dashboard']:only-child { grid-column: 1 / -1; }
+@media (max-width: 900px) { .cc-zone-feed { grid-template-columns: 1fr; } }
+.cc-zone-feed .cc-widget { display: block; min-width: 0; }
+.cc-forecast .predict-panel { margin: 0; }
+
+/* Mission Control block styles (the mission-control widget) */
 .play-field { display: flex; flex-direction: column; gap: 5px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .play-field select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 9px 12px; font-size: 14px; min-width: 150px; }
 
@@ -4665,12 +4731,13 @@ kbd {
 .cc-vital-v { font-size: 12px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Command Center feel: sections breathe in; the deploy CTA lives ── */
-.play-screen > * { animation: cc-rise var(--dur-4) var(--ease-out) both; }
-.play-screen > *:nth-child(2) { animation-delay: 60ms; }
-.play-screen > *:nth-child(3) { animation-delay: 120ms; }
-.play-screen > *:nth-child(4) { animation-delay: 180ms; }
-.play-screen > *:nth-child(5) { animation-delay: 240ms; }
-.play-screen > *:nth-child(6) { animation-delay: 300ms; }
+.cchome > * { animation: cc-rise var(--dur-4) var(--ease-out) both; }
+.cchome > *:nth-child(2) { animation-delay: 60ms; }
+.cchome > *:nth-child(3) { animation-delay: 120ms; }
+.cchome > *:nth-child(4) { animation-delay: 180ms; }
+.cchome > *:nth-child(5) { animation-delay: 240ms; }
+.cchome > *:nth-child(6) { animation-delay: 300ms; }
+.cchome > *:nth-child(n+7) { animation-delay: 340ms; }
 @keyframes cc-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 .mc-deploy { position: relative; overflow: hidden; animation: cc-cta-breathe 5.5s ease-in-out infinite; }
@@ -4678,7 +4745,7 @@ kbd {
 .mc-deploy::after { content: ''; position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.12), transparent); animation: cc-sheen 7s ease-in-out infinite; }
 @keyframes cc-sheen { 0%, 78% { left: -40%; } 92%, 100% { left: 120%; } }
 @media (prefers-reduced-motion: reduce) {
-  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .play-screen > *, .mc-deploy, .mc-deploy::after, .hud-v.is-danger, .tl2-chamber::before, .tl2-ready-badge, .tl2-chamber[data-flash], .hcc-chamber::before, .hud-hero.has-upgrade, .inf-forecast::before, .infinite-start, .vault-obj-core, .vreveal-seal, .vreveal-seal-core, .vreveal-backdrop.is-rare { animation: none; }
+  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .cchome > *, .cc-unit-orb, .mc-deploy, .mc-deploy::after, .hud-v.is-danger, .tl2-chamber::before, .tl2-ready-badge, .tl2-chamber[data-flash], .hcc-chamber::before, .hud-hero.has-upgrade, .inf-forecast::before, .infinite-start, .vault-obj-core, .vreveal-seal, .vreveal-seal-core, .vreveal-backdrop.is-rare { animation: none; }
 }
 
 /* Loading tip — a one-line teacher at the foot of Mission Control (ui/tips.ts) */
@@ -4761,7 +4828,6 @@ kbd {
   .hub-navitem { padding: 8px; }
   .hub-navitem.on { border-radius: var(--r-sm); border-right-color: color-mix(in srgb, var(--nav-accent) 42%, transparent); }
   .hub-power { display: none; }
-  .play-screen { grid-template-columns: 1fr; }
   .hub-cols { grid-template-columns: 1fr; }
 }
 

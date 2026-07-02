@@ -13,7 +13,7 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { autoGenePref, setAutoGenePref } from '../state/prefs';
 import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
-import { PlayScreen } from './PlayScreen';
+import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
@@ -219,7 +219,7 @@ export function Hub({
 
         <section className="hub-screen" key={nav}>
           {nav === 'home' && (
-            <PlayScreen onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
+            <CommandCenter onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'infinite' && (
