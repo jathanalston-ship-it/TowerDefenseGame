@@ -6296,3 +6296,41 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .pf-banner-bg, .pf-block, .pf-tl, .pf-power-bar i { animation: none !important; }
 }
+
+/* ── Deployment interstitial (App: menu → battlefield breath) ─────────────────────────────── */
+.deploy {
+  position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 24px;
+  background:
+    radial-gradient(90% 70% at 50% 42%, color-mix(in srgb, var(--dp) 12%, transparent), transparent 65%),
+    var(--bg, #070a10);
+  animation: deployIn 220ms var(--ease-out) both;
+}
+@keyframes deployIn { from { opacity: 0; } to { opacity: 1; } }
+.deploy-core { position: relative; width: 92px; height: 92px; display: grid; place-items: center; }
+.deploy-helix { position: relative; display: block; width: 64px; height: 64px; }
+.deploy-helix i {
+  position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--dp); opacity: 0.85;
+  transform: rotate(calc(var(--i) * 40deg)) translateY(-26px);
+  animation: deploySpin 1.4s linear infinite;
+  animation-delay: calc(var(--i) * -0.155s);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--dp) 60%, transparent);
+}
+@keyframes deploySpin {
+  0% { opacity: 0.15; transform: rotate(calc(var(--i) * 40deg)) translateY(-26px) scale(0.7); }
+  35% { opacity: 0.95; transform: rotate(calc(var(--i) * 40deg)) translateY(-26px) scale(1.15); }
+  100% { opacity: 0.15; transform: rotate(calc(var(--i) * 40deg)) translateY(-26px) scale(0.7); }
+}
+.deploy-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.28em; color: var(--muted); }
+.deploy-title { font-size: 26px; font-weight: 900; letter-spacing: 0.08em; color: var(--text); text-shadow: 0 0 24px color-mix(in srgb, var(--dp) 45%, transparent); }
+.deploy-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
+.deploy-bar { width: min(320px, 70vw); height: 4px; margin-top: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.deploy-bar span { display: block; height: 100%; border-radius: 999px; background: var(--dp); animation: deployFill 1.6s var(--ease-out) both; box-shadow: 0 0 10px color-mix(in srgb, var(--dp) 55%, transparent); }
+@keyframes deployFill { from { width: 4%; } to { width: 100%; } }
+.deploy-tip { max-width: 520px; margin-top: 14px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.deploy-tip-k { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; color: var(--gold); margin-right: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .deploy, .deploy-helix i { animation: none; }
+  .deploy-bar span { animation-duration: 1ms; } /* the bar lands full; the timer still advances */
+}

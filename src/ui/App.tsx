@@ -25,8 +25,14 @@ import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
 import { tutorial } from '../state/tutorial';
 import { TutorialRunner } from './TutorialRunner';
+import { DeployScreen } from './DeployScreen';
+import type { DeployInfo } from './DeployScreen';
+import { DIFFICULTIES } from '../core/difficulty';
 
-type Screen = 'menu' | 'playing' | 'results' | 'tutorial';
+type Screen = 'menu' | 'deploying' | 'playing' | 'results' | 'tutorial';
+
+/** How long the deployment interstitial breathes before the battlefield mounts. */
+const DEPLOY_MS = 1600;
 
 export function App(): JSX.Element {
   // First launch / after an Account Reset → open straight into the Combat Tutorial (its own mode).
@@ -79,6 +85,7 @@ export function App(): JSX.Element {
   useEffect(() => { meta.primeHelp(); }, []);
   meta.use(); // subscribe App so the HUD Tour / What's New react to save changes (unlocks, tour completion)
 
+  const [deployInfo, setDeployInfo] = useState<DeployInfo | null>(null);
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
@@ -94,8 +101,24 @@ export function App(): JSX.Element {
     effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects()];
     modeRef.current = mode;
     stageRef.current = stage;
-    setScreen('playing');
+    // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of
+    // being thrown straight onto the battlefield. The playing screen mounts after DEPLOY_MS.
+    const diffName = DIFFICULTIES[difficultyRef.current]?.name ?? 'Standard';
+    setDeployInfo(
+      mode === 'campaign' && stage
+        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}`, accent: stage.biome.accent }
+        : mode === 'endless'
+          ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}`, accent: 'var(--viral, #c98bff)' }
+          : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
+    );
+    setScreen('deploying');
   }, []);
+  // Deployment breath → battlefield. Cleared on unmount so leaving mid-deploy never mounts a run.
+  useEffect(() => {
+    if (screen !== 'deploying') return;
+    const t = window.setTimeout(() => setScreen('playing'), DEPLOY_MS);
+    return () => window.clearTimeout(t);
+  }, [screen]);
   const startRun = useCallback(() => begin('stage'), [begin]);
   // Infinite uses its OWN persisted difficulty (chosen inside Infinite, not the Main Menu).
   const startEndless = useCallback(() => {
@@ -178,6 +201,7 @@ export function App(): JSX.Element {
           doctrineRef={doctrineRef}
         />
       )}
+      {screen === 'deploying' && deployInfo && <DeployScreen info={deployInfo} />}
       {screen === 'playing' && (
         <GameView
           seed={seedRef.current}
