@@ -132,6 +132,24 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** never balance from intuition — regenerate the report and read the
   hour-band medians + detector table first. Income changes go through a named factor.
 
+## Player Profile
+
+- **Purpose:** the account dashboard — banner + unlockable frames, registry-driven career
+  statistics, power breakdown, achievements showcase, milestone timeline, next milestones,
+  performance analytics. Reinforces progression on every row.
+- **Dependencies:** stats ledgers, Power model, achievements, collection, prestige,
+  Next-Goal engine + loop directive (milestones section).
+- **Files:** `state/profile.ts` (provider registry + banner/power/showcase read-models),
+  `ui/PlayerProfile.tsx`; save v22 fields (`createdAt`, `profileName`, `profileFrame`,
+  `timeline`, profile stat ledgers). Docs: `PROFILE.md`.
+- **Related:** Mastery titles (worn badge), achievements gallery (embedded), vault ledger.
+- **Future expansion:** any system adds a provider (`profileRegistry.register`) and appears —
+  no UI edits; new frames/timeline recorders are data + one push call.
+- **Known limitations:** sold/moved/reforge ledgers not tracked yet; v22 ledgers count
+  forward from migration.
+- **Developer tips:** never hardcode a stat into the screen — register a provider. The
+  fresh-account contract (`profile.test.ts`): every section renders, no dead panels.
+
 ## Power Score
 
 - **Purpose:** ONE number for account strength. Folds every permanent bucket (upgrades, stars,

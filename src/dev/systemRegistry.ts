@@ -172,10 +172,18 @@ export const SYSTEMS: SystemDef[] = [
     achievements: [], localization: 'inline-en', docs: ['docs/PROGRESSION-SYSTEMS.md'],
   },
   {
-    id: 'stats', name: 'Lifetime Stats', purpose: 'Run summaries accumulated into lifetime stats — the substrate for mastery/collection/achievements.',
-    files: ['src/state/stats.ts', 'src/ui/Statistics.tsx'],
-    dependsOn: [], powerScore: null, save: ['stats', 'totalRuns', 'bestWave'], tutorial: [], help: [], hud: [], ui: ['Statistics', 'MasteryProfile'],
+    id: 'stats', name: 'Lifetime Stats', purpose: 'Run summaries accumulated into lifetime stats — the substrate for mastery/collection/achievements/profile.',
+    files: ['src/state/stats.ts'],
+    dependsOn: [], powerScore: null, save: ['stats', 'totalRuns', 'bestWave'], tutorial: [], help: [], hud: [], ui: ['PlayerProfile', 'MasteryProfile'],
     collection: 'usage counts drive tiers', achievements: ['collector'], localization: 'inline-en', docs: ['docs/PROGRESSION-SYSTEMS.md'],
+  },
+  {
+    id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',
+    files: ['src/state/profile.ts', 'src/ui/PlayerProfile.tsx'],
+    dependsOn: ['stats', 'power', 'achievements', 'collection', 'prestige', 'hub-shell'], powerScore: null,
+    save: ['createdAt', 'profileName', 'profileFrame', 'timeline'], tutorial: [], help: [], hud: [],
+    ui: ['PlayerProfile'], collection: 'per-category completion rendered', achievements: [],
+    localization: 'inline-en', docs: ['docs/PROFILE.md'],
   },
   {
     id: 'onboarding', name: 'Tutorials, Help & Onboarding', purpose: 'Combat Tutorial over a live sim, HUD Tour, mechanics-registry Help wiki, What\'s New, loading tips.',

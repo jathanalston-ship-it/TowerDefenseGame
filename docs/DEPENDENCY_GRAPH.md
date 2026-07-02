@@ -56,6 +56,12 @@ graph TD
   prestige --> evolution_hq
   currencies --> content_infra
   achievements --> stats
+  profile --> stats
+  profile --> power
+  profile --> achievements
+  profile --> collection
+  profile --> prestige
+  profile --> hub_shell
   onboarding --> engine
   onboarding --> meta_store
   hub_shell --> meta_store
@@ -82,7 +88,7 @@ graph TD
 |---|---|---|---|---|---|
 | **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` | `campaign` · `infinite` · `heroes` · `onboarding` · `run-ui` · `bosses` · `rendering` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
 | **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `biomes` · `difficulty` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
-| **Power Score** (`power`) | `content-infra` | `campaign` · `equipment` · `loot` · `gene-cards` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
+| **Power Score** (`power`) | `content-infra` | `campaign` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `towers` · `heroes` · `loot` · `gene-cards` · `prestige` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
 | **Towers, Stars, Branches & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` |
@@ -93,14 +99,15 @@ graph TD
 | **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `equipment` · `crafting` · `shards-economy` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
 | **Gene Cards (draft + permanent evolution)** (`gene-cards`) | `content-infra` · `power` · `campaign` · `shards-economy` | `engine` | ⚡ permanent levels fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility | `genes` · `geneEssence` · `geneSlots` · `geneLoadout` | `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` |
 | **Shards & Star Economy** (`shards-economy`) | `loot` | `towers` · `heroes` · `gene-cards` | ⚡ stars bought with shards move the permanent bucket | `shards` · `lifetimeShards` | `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` |
-| **Collections / Codex** (`collection`) | `content-infra` · `stats` | — | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
+| **Collections / Codex** (`collection`) | `content-infra` · `stats` | `profile` | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
 | **Evolution HQ (Genome Cores)** (`evolution-hq`) | `content-infra` · `prestige` | `prestige` | ⚡ META_UPGRADES fold into the permanent bucket | `upgrades` | `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` |
-| **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` |
+| **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` |
 | **Currencies & Economy Framework** (`currencies`) | `content-infra` | — | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
-| **Achievements** (`achievements`) | `stats` | — | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
-| **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
+| **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
+| **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
+| **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | — | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` |
-| **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | — | — | — | `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
+| **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `profile` | — | — | `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
@@ -152,14 +159,14 @@ graph TD
 
 - **Files:** `src/core/power.ts` · `src/state/itemPower.ts` · `src/state/powerEvents.ts` · `src/ui/components/PowerScore.tsx` · `src/ui/components/PowerDelta.tsx` · `src/ui/components/PowerToaster.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `campaign` · `equipment` · `loot` · `gene-cards` · `hub-shell` · `run-ui` · `prediction`
+- **Consumers — what breaks if you change this:** `campaign` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction`
 - **Power Score:** IS the model (buckets, effectsPower, FIELD_WEIGHT)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** `power-score`
 - **HUD surfaces:** `Hud (live run Power)` · **UI screens:** `ProgressDashboard` · `PlayScreen (recommended power)`
 - **Collection:** collection completion feeds a bucket · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
+- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROFILE.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
 
 ### Campaign (`campaign`)
 
@@ -317,14 +324,14 @@ graph TD
 
 - **Files:** `src/core/collection.ts` · `src/ui/CollectionPanel.tsx`
 - **Depends on:** `content-infra` · `stats`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `profile`
 - **Power Score:** completion feeds the collection bucket
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `CollectionPanel`
 - **Collection:** IS the system · **Achievements:** `collector`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/COLLECTION.md`
+- **Docs to update on change:** `docs/COLLECTION.md` · `docs/PROFILE.md`
 
 ### Evolution HQ (Genome Cores) (`evolution-hq`)
 
@@ -347,14 +354,14 @@ graph TD
 
 - **Files:** `src/core/prestige.ts` · `src/core/ascendant.ts` · `src/ui/PrestigePanel.tsx`
 - **Depends on:** `campaign` · `evolution-hq`
-- **Consumers — what breaks if you change this:** `evolution-hq`
+- **Consumers — what breaks if you change this:** `evolution-hq` · `profile`
 - **Power Score:** the P bucket (log fold of Cells + tree)
 - **Save fields:** `prestige`
 - **Tutorial:** — · **Help mechanics:** `prestige` · `ascension`
 - **HUD surfaces:** — · **UI screens:** `PrestigePanel` · `EvolutionHQ (Ascension section)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md`
+- **Docs to update on change:** `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/PROFILE.md`
 
 ### Currencies & Economy Framework (`currencies`)
 
@@ -377,29 +384,44 @@ graph TD
 
 - **Files:** `src/state/achievements.ts` · `src/ui/AchievementPanel.tsx` · `src/ui/AchievementToaster.tsx`
 - **Depends on:** `stats`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `profile`
 - **Power Score:** rewards (shards) move Power indirectly
 - **Save fields:** `achievements`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** `AchievementToaster` · **UI screens:** `AchievementPanel` · `RewardReveal (inline strip)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PROGRESSION-SYSTEMS.md`
+- **Docs to update on change:** `docs/PROGRESSION-SYSTEMS.md` · `docs/PROFILE.md`
 
 ### Lifetime Stats (`stats`)
 
-*Run summaries accumulated into lifetime stats — the substrate for mastery/collection/achievements.*
+*Run summaries accumulated into lifetime stats — the substrate for mastery/collection/achievements/profile.*
 
-- **Files:** `src/state/stats.ts` · `src/ui/Statistics.tsx`
+- **Files:** `src/state/stats.ts`
 - **Depends on:** —
-- **Consumers — what breaks if you change this:** `mastery` · `collection` · `achievements`
+- **Consumers — what breaks if you change this:** `mastery` · `collection` · `achievements` · `profile`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `stats` · `totalRuns` · `bestWave`
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `Statistics` · `MasteryProfile`
+- **HUD surfaces:** — · **UI screens:** `PlayerProfile` · `MasteryProfile`
 - **Collection:** usage counts drive tiers · **Achievements:** `collector`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PROGRESSION-SYSTEMS.md` · `docs/MASTERY.md` · `docs/COLLECTION.md`
+- **Docs to update on change:** `docs/PROGRESSION-SYSTEMS.md` · `docs/MASTERY.md` · `docs/COLLECTION.md` · `docs/PROFILE.md`
+
+### Player Profile (`profile`)
+
+*The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.*
+
+- **Files:** `src/state/profile.ts` · `src/ui/PlayerProfile.tsx`
+- **Depends on:** `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** `createdAt` · `profileName` · `profileFrame` · `timeline`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `PlayerProfile`
+- **Collection:** per-category completion rendered · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/PROFILE.md`
 
 ### Tutorials, Help & Onboarding (`onboarding`)
 
@@ -422,14 +444,14 @@ graph TD
 
 - **Files:** `src/ui/Hub.tsx` · `src/ui/PlayScreen.tsx` · `src/ui/ProgressDashboard.tsx` · `src/ui/NextGoalBanner.tsx` · `src/state/nextGoal.ts` · `src/state/progressionLoop.ts` · `src/ui/hubProgress.ts` · `src/ui/homeBaseTiers.ts` · `src/ui/LabAtmosphere.tsx` · `src/ui/App.tsx` · `src/ui/ErrorBoundary.tsx` · `src/main.tsx`
 - **Depends on:** `meta-store` · `notifications` · `prediction` · `power`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `profile`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `Hub` · `PlayScreen` · `ProgressDashboard`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md`
+- **Docs to update on change:** `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/PROFILE.md`
 
 ### In-Run HUD & Results (`run-ui`)
 

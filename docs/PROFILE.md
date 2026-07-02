@@ -1,0 +1,67 @@
+# PROFILE.md — the Player Profile (account dashboard)
+
+> The profile answers, top to bottom: **who is this player** (banner, frames, worn title),
+> **what have they accomplished** (career statistics, power breakdown, achievements showcase,
+> milestone timeline), **what are they working toward** (loop directive + Next-Goal
+> milestones), and **how do they play** (performance analytics). Read-model + registry:
+> `src/state/profile.ts` (pinned by `profile.test.ts`); screen: `src/ui/PlayerProfile.tsx`
+> (Hub → Profile). Save schema v22 adds the identity fields + ledgers.
+
+---
+
+## 1. Architecture — the provider registry (no hardcoded stat lists)
+
+The screen renders **whatever `profileRegistry` yields**. A provider owns one slice:
+
+```ts
+profileRegistry.register({
+  id: 'my-system', section: 'economy' | 'combat' | … | 'analytics', order: 20,
+  stats: (save) => [{ id, label, value, hint?, color?, progress? }],
+});
+```
+
+`profileSection(save, id)` returns the section's stats in registry order — the UI's only
+career entry point. **A future system surfaces itself by registering a provider** (the same
+self-registration pattern as every content registry); the screen inherits it with zero UI
+edits. Structured surfaces are dedicated read-models over the same save: `playerBanner`
+(identity + frames), `powerBreakdown` (bucket attribution), `achievementShowcase`,
+`save.timeline` (raw), plus `nextGoals` + `loopState` reused for the milestones section.
+
+## 2. Save schema v22 (all additive)
+
+| Field | Meaning |
+|---|---|
+| `createdAt` | 0 in `defaultSave()` (determinism); stamped by the FIRST settled run |
+| `profileName` | the specimen line's name (1–24 chars, inline-editable on the banner) |
+| `profileFrame` | selected banner frame id (falls back to `membrane` if no longer unlocked) |
+| `timeline` | `TimelineEvent[]` — newest LAST, capped at 60 (`pushTimeline`) |
+| `stats.playtimeSec` / `longestRunSec` / `waveSum` | run-length + average-wave ledgers |
+| `stats.doctrineRuns` / `cardDrafts` | per-doctrine settles / per-card lifetime drafts |
+
+Timeline recorders (the moments that matter): first settle ("Specimen line established"),
+new Infinite best crossing a 25-band, every 10th first-cleared stage, hero releases, MOLTs,
+achievement unlocks. Adding a recorder = one `pushTimeline` call at the event's persist.
+
+## 3. Frames & badges
+
+`PROFILE_FRAMES` (data): membrane (default) · chitin (Stage 25) · molted (first MOLT) ·
+abyssal (Depth 100) · archivist (50% Archive) · apex (15 achievements). Appending an entry
+is the whole feature — unlock predicate + banner accent (`.pf-banner.frame-<id>` CSS).
+**Badges are the existing mastery titles** (worn via the embedded Mastery Profile panel and
+shown beside the name).
+
+## 4. Power breakdown attribution
+
+`powerBreakdown` splits `score − POWER_BASE` across the REAL power-model buckets
+(towers / heroes / equipment / meta a.k.a. Permanent Evolution / collection) by **log-share**
+of each multiplicative bucket — mathematically consistent (shares sum to the gained total)
+and honest about the model's actual shape. New power buckets appear by extending the
+`defs` list in step with `PowerParts`.
+
+## 5. Known limitations (registry-ready gaps)
+
+- Towers sold/moved and reforge counts have no lifetime ledgers yet — their stats land by
+  adding a ledger + a provider row (the registry is the seam).
+- `Containers Opened` reads the device-local vault ledger (labeled as such in its tooltip).
+- Ledgers added in v22 (`playtime`, drafts, doctrines) start counting from v22 onward for
+  existing accounts; the timeline starts at the first post-v22 settle.

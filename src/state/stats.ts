@@ -7,8 +7,14 @@ import type { LifetimeStats, MasteryCounts, RunStats, TowerKind } from '../core/
 
 /** Fold one finished run's stats into the lifetime totals (pure, immutable).
  * `towerCombat` (the run's per-tower mastery accrual) deepens the per-tower ledger —
- * lifetime damage + best wave — without widening RunStats. */
-export function accumulateStats(prev: LifetimeStats, run: RunStats, towerCombat?: MasteryCounts): LifetimeStats {
+ * lifetime damage + best wave — without widening RunStats. `extra` carries the run-level
+ * bits that live on RunResult rather than RunStats (duration, doctrine — profile ledgers). */
+export function accumulateStats(
+  prev: LifetimeStats,
+  run: RunStats,
+  towerCombat?: MasteryCounts,
+  extra?: { durationSec?: number; doctrine?: string },
+): LifetimeStats {
   const killsByEnemy = { ...prev.killsByEnemy };
   for (const k of ENEMY_KINDS) killsByEnemy[k] = (killsByEnemy[k] ?? 0) + (run.killsByEnemy[k] ?? 0);
 
@@ -37,6 +43,13 @@ export function accumulateStats(prev: LifetimeStats, run: RunStats, towerCombat?
     }
   }
 
+  // Profile ledgers (schema v22): duration, doctrine, and per-card draft counts.
+  const doctrineRuns = { ...prev.doctrineRuns };
+  if (extra?.doctrine && extra.doctrine !== 'none') doctrineRuns[extra.doctrine] = (doctrineRuns[extra.doctrine] ?? 0) + 1;
+  const cardDrafts = { ...prev.cardDrafts };
+  for (const id of run.cardIds) cardDrafts[id] = (cardDrafts[id] ?? 0) + 1;
+  const dur = Math.max(0, Math.round(extra?.durationSec ?? 0));
+
   return {
     lifetimeKills: prev.lifetimeKills + run.kills,
     highestWave: Math.max(prev.highestWave, run.wave),
@@ -51,6 +64,11 @@ export function accumulateStats(prev: LifetimeStats, run: RunStats, towerCombat?
     heroUsage,
     towerDamage,
     towerBestWave,
+    playtimeSec: prev.playtimeSec + dur,
+    longestRunSec: Math.max(prev.longestRunSec, dur),
+    waveSum: prev.waveSum + run.wave,
+    doctrineRuns,
+    cardDrafts,
   };
 }
 

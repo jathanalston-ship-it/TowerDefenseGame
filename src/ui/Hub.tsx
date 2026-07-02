@@ -23,9 +23,7 @@ import { GeneticVault } from './GeneticVault';
 import { EvolutionHQ } from './EvolutionHQ';
 import { HelpWiki } from './HelpWiki';
 import { CollectionScreen } from './CollectionPanel';
-import { Statistics } from './Statistics';
-import { MasteryProfile } from './MasteryProfile';
-import { AchievementPanel } from './AchievementPanel';
+import { PlayerProfile } from './PlayerProfile';
 import { SaveManager } from './SaveManager';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
@@ -234,15 +232,7 @@ export function Hub({
           {nav === 'vault' && <GeneticVault />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}
-          {nav === 'profile' && (
-            <div className="hub-cols">
-              <Statistics />
-              <div className="hub-col-stack">
-                <MasteryProfile />
-                <AchievementPanel />
-              </div>
-            </div>
-          )}
+          {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} />}
         </section>

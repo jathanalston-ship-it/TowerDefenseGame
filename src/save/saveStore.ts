@@ -6,7 +6,7 @@
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
 import { ENEMY_KINDS, HERO_DEFS, HERO_ORDER, HERO_IDS, TOWER_ORDER, heroRegistry } from '../core/config';
-import type { EnemyKind, HeroKind, LifetimeStats, TowerKind } from '../core/types';
+import type { EnemyKind, HeroKind, LifetimeStats, TimelineEvent, TowerKind } from '../core/types';
 import type { Loadout, OwnedItem } from '../core/equipment';
 import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
@@ -114,6 +114,13 @@ export interface SaveData {
   // ── Gene Essence (schema v18) — permanent Gene Card upgrade currency. Earned mainly by converting
   //    duplicate max-Star shards (meta.openContainer) + rare container drops. Additive ⇒ 0 for old saves. ──
   geneEssence: number;
+  // ── Player Profile (schema v22, docs/PROFILE.md) — account identity + the milestone timeline.
+  //    `createdAt` stays 0 in defaultSave (determinism) and is stamped by the FIRST settle.
+  //    `timeline` is newest-LAST and capped (TIMELINE_CAP) at every push. Additive migrations. ──
+  createdAt: number;
+  profileName: string;
+  profileFrame: string; // unlockable banner frame id (state/profile PROFILE_FRAMES)
+  timeline: TimelineEvent[];
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -125,8 +132,9 @@ export interface TutorialSave {
 }
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
-// (migrated from the shared loadout). Both additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 21;
+// (migrated from the shared loadout). v21→v22: Player Profile (identity fields + milestone
+// timeline + profile stat ledgers). All additive — withDefaults() deep-fills, migrate() passes through.
+export const CURRENT_VERSION = 22;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -230,6 +238,11 @@ export function defaultLifetimeStats(): LifetimeStats {
     heroUsage: zeroByHero(),
     towerDamage: zeroByTower(),
     towerBestWave: zeroByTower(),
+    playtimeSec: 0,
+    longestRunSec: 0,
+    waveSum: 0,
+    doctrineRuns: {},
+    cardDrafts: {},
   };
 }
 
@@ -276,6 +289,10 @@ export function defaultSave(): SaveData {
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
     geneEssence: 0,
+    createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
+    profileName: 'OVERMIND',
+    profileFrame: 'membrane',
+    timeline: [],
   };
 }
 
@@ -406,7 +423,35 @@ function withDefaults(data: SaveData): SaveData {
     geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),
     geneLoadout: sanitizeGeneLoadout((data as { geneLoadout?: unknown }).geneLoadout),
     geneEssence: Math.max(0, Math.floor(Number((data as { geneEssence?: unknown }).geneEssence) || 0)), // v18: permanent gene currency (pre-v18 ⇒ 0)
+    // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
+    // createdAt stays 0 until the first settle stamps it).
+    createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),
+    profileName: typeof (data as { profileName?: unknown }).profileName === 'string' && ((data as { profileName?: unknown }).profileName as string).trim().length > 0
+      ? ((data as { profileName?: unknown }).profileName as string).slice(0, 24)
+      : d.profileName,
+    profileFrame: typeof (data as { profileFrame?: unknown }).profileFrame === 'string' ? ((data as { profileFrame?: unknown }).profileFrame as string) : d.profileFrame,
+    timeline: sanitizeTimeline((data as { timeline?: unknown }).timeline),
   };
+}
+
+/** Coerce a loaded timeline into valid, capped shape (newest LAST preserved). */
+const TIMELINE_CAP = 60;
+function sanitizeTimeline(raw: unknown): TimelineEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const out: TimelineEvent[] = [];
+  for (const e of raw) {
+    if (typeof e !== 'object' || e === null) continue;
+    const o = e as Partial<TimelineEvent>;
+    if (typeof o.at !== 'number' || typeof o.label !== 'string') continue;
+    out.push({ at: o.at, icon: typeof o.icon === 'string' ? o.icon : '◈', label: o.label.slice(0, 80) });
+  }
+  return out.slice(-TIMELINE_CAP);
+}
+
+/** Append a milestone to the timeline (pure; newest LAST, capped). The meta layer calls this
+ *  at the moments that matter (settle records, releases, molts, achievements). */
+export function pushTimeline(list: TimelineEvent[], icon: string, label: string): TimelineEvent[] {
+  return [...list, { at: Date.now(), icon, label }].slice(-TIMELINE_CAP);
 }
 
 /** Coerce loaded equipment into PER-HERO loadouts (v12). Resolves hero aliases and guarantees a uid
@@ -489,6 +534,9 @@ function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): Lifetime
     // v19→v20: per-tower damage/best-wave ledgers — zeroed for older saves (additive).
     towerDamage: { ...base.towerDamage, ...s.towerDamage },
     towerBestWave: { ...base.towerBestWave, ...s.towerBestWave },
+    // v21→v22: profile ledgers — zeroed/empty for older saves (additive).
+    doctrineRuns: { ...base.doctrineRuns, ...s.doctrineRuns },
+    cardDrafts: { ...base.cardDrafts, ...s.cardDrafts },
   };
 }
 

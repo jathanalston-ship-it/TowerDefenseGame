@@ -8,6 +8,7 @@ import {
   SaveStore,
   defaultSave,
   parseImport,
+  pushTimeline,
   serializeExport,
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
@@ -806,6 +807,7 @@ export const meta = {
         molts: save.prestige.molts + 1,
         nodes: save.prestige.nodes, // the Ascendant Tree is permanent — kept across Molts
       },
+      timeline: pushTimeline(save.timeline, '◬', `MOLT ${save.prestige.molts + 1} — ${gain} Ascendant Cells`), // profile milestone
     });
     return true;
   },
@@ -1025,9 +1027,19 @@ export const meta = {
       ? { ...save.prediction, [predMode]: calibrate(save.prediction[predMode], predMode === 'infinite' ? result.wave : (result.campaignStage ?? 0), composePower(accountPowerParts(save)).mult) }
       : save.prediction;
 
+    // Player Profile (docs/PROFILE.md): stamp the account clock on the FIRST settle and record
+    // the run's milestone moments on the timeline (new-best depth bands, every 10th stage).
+    let timeline = save.createdAt === 0 ? pushTimeline(save.timeline, '◈', 'Specimen line established') : save.timeline;
+    if (newBest && Math.floor(result.wave / 25) > Math.floor(save.bestWave / 25)) {
+      timeline = pushTimeline(timeline, '∞', `Infinite record — Depth ${result.wave}`);
+    }
+    if (firstClear && stageNo % 10 === 0) timeline = pushTimeline(timeline, '◆', `Reached Campaign Stage ${stageNo}`);
+
     persist({
       ...save,
       prediction,
+      createdAt: save.createdAt || Date.now(),
+      timeline,
       shards: save.shards + shardsEarned,
       lifetimeShards: save.lifetimeShards + shardsEarned,
       bestWave: Math.max(save.bestWave, result.wave),
@@ -1037,7 +1049,7 @@ export const meta = {
       heroMasteryXp,
       heroKills,
       heroFavEquip,
-      stats: accumulateStats(save.stats, result.stats, result.mastery),
+      stats: accumulateStats(save.stats, result.stats, result.mastery, { durationSec: result.durationSec, doctrine: result.doctrine }),
       geneEssence: save.geneEssence + doctrineEssence, // Corrupted Genome pays essence per wave (0 otherwise)
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
@@ -1073,6 +1085,19 @@ export const meta = {
     const save = store.get();
     if (id !== null && !save.unlockedTitles.includes(id)) return;
     persist({ ...save, equippedTitle: id });
+  },
+
+  /** Rename the specimen line (Player Profile banner). Trimmed, 1–24 chars; junk is a no-op. */
+  setProfileName(name: string): void {
+    const trimmed = name.trim().slice(0, 24);
+    if (trimmed.length === 0) return;
+    persist({ ...store.get(), profileName: trimmed });
+  },
+
+  /** Select an unlockable profile banner frame (docs/PROFILE.md). The UI only offers unlocked
+   * frames; unknown ids are tolerated (render falls back to the default frame styling). */
+  setProfileFrame(id: string): void {
+    persist({ ...store.get(), profileFrame: id });
   },
 
   /**
@@ -1252,11 +1277,14 @@ export const meta = {
     const newly = checkAchievements({ save, run });
     if (newly.length === 0) return [];
     const reward = rewardFor(newly); // Shards granted for the unlock(s)
+    let timeline = save.timeline;
+    for (const a of newly) timeline = pushTimeline(timeline, '✦', `Achievement — ${a.name}`); // profile milestones
     persist({
       ...save,
       shards: save.shards + reward,
       lifetimeShards: save.lifetimeShards + reward,
       achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)],
+      timeline,
     });
     return newly.map((a) => a.id);
   },
@@ -1528,6 +1556,7 @@ export const meta = {
       ...save,
       heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
       heroUnlocked: [...(save.heroUnlocked ?? []), kind],
+      timeline: pushTimeline(save.timeline, '☣', `Released ${HERO_DEFS[kind].name}`), // profile milestone
     });
     return true;
   },

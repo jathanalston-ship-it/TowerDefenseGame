@@ -351,6 +351,19 @@ export interface LifetimeStats {
   // ── Per-tower combat depth (schema v20) — the Mastery panel's lifetime ledger ──
   towerDamage: Record<TowerKind, number>; // lifetime damage dealt per kind
   towerBestWave: Record<TowerKind, number>; // deepest wave reached in a run that DEPLOYED the kind
+  // ── Player Profile ledgers (schema v22, docs/PROFILE.md) — additive; 0/{} for old saves ──
+  playtimeSec: number; // total sim-seconds across settled runs (RunResult.durationSec)
+  longestRunSec: number; // the single longest settled run
+  waveSum: number; // Σ final waves across settled runs → average wave = waveSum / totalRuns
+  doctrineRuns: Record<string, number>; // runs settled per doctrine id ('none' excluded)
+  cardDrafts: Record<string, number>; // lifetime drafts per gene-card id (argmax = most drafted)
+}
+
+/** One account milestone on the Profile timeline (schema v22, docs/PROFILE.md) — newest LAST. */
+export interface TimelineEvent {
+  at: number; // Date.now() at the moment the milestone landed
+  icon: string; // single glyph for the rail
+  label: string; // "Released Shepherd" / "MOLT III" / "Reached Stage 30"
 }
 
 /** Compact snapshot the React HUD reads (throttled). Never the live entity arrays. */

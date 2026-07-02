@@ -5991,3 +5991,192 @@ kbd {
 .rr-btn { padding: 11px 20px; border-radius: var(--r-sm); font: 700 14px/1 system-ui, sans-serif; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); cursor: pointer; transition: transform var(--dur-2), background var(--dur-2); }
 .rr-btn:hover { transform: translateY(-1px); background: var(--panel-3); }
 .rr-replay { border-color: var(--viral); color: #fff; }
+
+/* ═══ PLAYER PROFILE — the account dashboard (docs/PROFILE.md; ui/PlayerProfile) ═══ */
+.pf { display: flex; flex-direction: column; gap: 14px; width: min(1060px, 100%); }
+.pf-block {
+  padding: 14px 16px 16px;
+  border-radius: var(--r-md);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  animation: vreveal-rowin 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.pf-h { display: flex; align-items: baseline; gap: 10px; font: 700 13px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.pf-h-power { font: 800 18px/1 system-ui, sans-serif; color: var(--gold); letter-spacing: 0.02em; }
+.pf-h-sub { font: 800 13px/1 system-ui, sans-serif; color: var(--text); letter-spacing: 0.02em; }
+.pf-empty { font-size: 12px; color: var(--muted); padding: 8px 2px; }
+
+/* ── Banner: animated membrane bg + unlockable frame accents ── */
+.pf-banner {
+  --pfc: var(--line-strong);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, var(--pfc) 70%, var(--line));
+  background: var(--panel);
+  box-shadow: inset 0 0 40px -18px var(--pfc);
+}
+.pf-banner-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 130% at 12% -20%, color-mix(in srgb, var(--pfc) 22%, transparent), transparent 60%),
+    radial-gradient(70% 120% at 95% 120%, color-mix(in srgb, var(--viral) 12%, transparent), transparent 65%);
+  animation: pf-breathe 7s ease-in-out infinite;
+}
+@keyframes pf-breathe { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+.pf-banner.frame-membrane { --pfc: var(--line-strong); }
+.pf-banner.frame-chitin { --pfc: var(--caustic); }
+.pf-banner.frame-molted { --pfc: var(--viral); }
+.pf-banner.frame-abyssal { --pfc: #5ffbf1; }
+.pf-banner.frame-archivist { --pfc: var(--gold); }
+.pf-banner.frame-apex { --pfc: var(--gold); border-width: 2px; }
+.pf-id { position: relative; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.pf-name {
+  font: 800 26px/1.1 'Chakra Petch', system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.pf-name i { font-style: normal; font-size: 13px; color: var(--muted); opacity: 0; transition: opacity var(--dur-2); }
+.pf-name:hover i { opacity: 1; }
+.pf-name-input {
+  font: 800 26px/1.1 'Chakra Petch', system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--pfc);
+  border-radius: var(--r-sm);
+  padding: 2px 8px;
+  width: min(340px, 100%);
+}
+.pf-title { font: 700 13px/1 system-ui, sans-serif; color: var(--gold); letter-spacing: 0.06em; }
+.pf-frame-name { font: 700 11px/1 system-ui, sans-serif; color: color-mix(in srgb, var(--pfc) 80%, var(--text)); letter-spacing: 0.12em; text-transform: uppercase; margin-left: auto; }
+.pf-banner-stats { position: relative; display: flex; gap: 22px; flex-wrap: wrap; }
+.pf-big { display: flex; flex-direction: column; gap: 3px; }
+.pf-big-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.pf-big-v { font: 800 26px/1 system-ui, sans-serif; color: var(--text); }
+.pf-banner-chips { position: relative; display: flex; gap: 8px; flex-wrap: wrap; }
+.pf-chip { font-size: 11px; color: var(--muted); padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); }
+.pf-chip b { color: var(--text); margin-left: 4px; }
+.pf-frames { position: relative; display: flex; gap: 8px; flex-wrap: wrap; }
+.pf-frame-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: border-color var(--dur-2), color var(--dur-2), transform var(--dur-2);
+}
+.pf-frame-pick:hover { transform: translateY(-1px); }
+.pf-frame-pick.on { color: var(--text); border-color: var(--pfc, var(--gold)); }
+.pf-frame-pick.locked { opacity: 0.45; cursor: default; }
+.pf-frame-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--line-strong); }
+.pf-frame-dot.frame-membrane { background: var(--line-strong); }
+.pf-frame-dot.frame-chitin { background: var(--caustic); }
+.pf-frame-dot.frame-molted { background: var(--viral); }
+.pf-frame-dot.frame-abyssal { background: #5ffbf1; }
+.pf-frame-dot.frame-archivist { background: var(--gold); }
+.pf-frame-dot.frame-apex { background: linear-gradient(135deg, var(--gold), var(--viral)); }
+
+/* ── Career grids (registry-driven) ── */
+.pf-career { display: flex; flex-direction: column; gap: 14px; }
+.pf-group-h { font: 700 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+.pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; }
+.pf-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 11px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  transition: border-color var(--dur-2), transform var(--dur-2);
+}
+.pf-stat:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.pf-stat-k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pf-stat-v { font: 800 16px/1.1 system-ui, sans-serif; color: var(--text); }
+.pf-stat-bar { display: block; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.pf-stat-bar i { display: block; height: 100%; border-radius: 999px; background: var(--viral); transition: width var(--dur-3) var(--ease-out); }
+
+/* ── Power breakdown ── */
+.pf-power { display: flex; flex-direction: column; gap: 6px; }
+.pf-power-row { display: grid; grid-template-columns: 150px 1fr 92px; align-items: center; gap: 10px; }
+.pf-power-k { font-size: 12px; font-weight: 700; color: var(--text); }
+.pf-power-bar { display: block; height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.pf-power-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 55%, var(--panel-2)), var(--gold)); animation: pf-grow 0.7s var(--ease-out) both; }
+@keyframes pf-grow { from { width: 0 !important; } }
+.pf-power-v { font: 800 13px/1 system-ui, sans-serif; color: var(--gold); text-align: right; }
+.pf-power-base { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ── Achievements showcase ── */
+.pf-showcase { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.pf-case { display: flex; flex-direction: column; gap: 4px; padding: 11px 13px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid var(--line); }
+.pf-case.is-goal { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+.pf-case-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.pf-case b { font-size: 14px; color: var(--text); }
+.pf-case i { font-style: normal; font-size: 11px; color: var(--muted); line-height: 1.45; }
+
+/* ── Timeline ── */
+.pf-timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0; max-height: 340px; overflow: auto; }
+.pf-tl {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-left: 2px solid var(--line);
+  margin-left: 8px;
+  padding-left: 14px;
+  animation: vreveal-rowin 0.34s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.pf-tl-icon { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line-strong); font-size: 12px; color: var(--viral); }
+.pf-tl-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.pf-tl-when { font-size: 11px; color: var(--muted); }
+
+/* ── Next milestones ── */
+.pf-goals { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
+.pf-goal {
+  --gc: var(--gold);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  border: 1px solid color-mix(in srgb, var(--gc) 40%, var(--line));
+  color: var(--text);
+  cursor: pointer;
+  transition: transform var(--dur-2), border-color var(--dur-2);
+}
+.pf-goal:hover { transform: translateY(-1px); border-color: var(--gc); }
+.pf-goal-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.pf-goal-top b { font-size: 13px; }
+.pf-goal-top i { font-style: normal; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.pf-goal-bar { display: block; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.pf-goal-bar i { display: block; height: 100%; border-radius: 999px; background: var(--gc); }
+.pf-goal-reward { font-size: 11px; color: var(--muted); }
+
+.pf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px) {
+  .pf-cols { grid-template-columns: 1fr; }
+  .pf-power-row { grid-template-columns: 110px 1fr 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-banner-bg, .pf-block, .pf-tl, .pf-power-bar i { animation: none !important; }
+}
