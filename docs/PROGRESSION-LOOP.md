@@ -61,10 +61,11 @@ farming — the experiment feeds the frontier's bar). One engine, identical copy
 ## 5. What is deliberately NOT pinned here — the time axis
 
 How LONG each wall takes (hours per breakthrough band) is an income-rate question, not a
-structural one. That belongs to the **progression simulator** (thousands of virtual accounts
-over the real settle layer, hour-band reports) — it calibrates pacing and, with evidence, the
-`DIRECTOR_ADAPTIVE` weights. Until a simulator report ships, pacing constants stay untouched
-(the same rule the Difficulty Director pins for its adaptive seams).
+structural one. That belongs to the **progression simulator** (`src/dev/progressionSim.ts`,
+virtual accounts over the real settle layer) — its hour-band report is generated to
+`docs/PROGRESSION_REPORT.md` (`npm run sim:progression`) and is the only sanctioned input
+for weighting the `DIRECTOR_ADAPTIVE` / `ECONOMY_ADAPTIVE` seams or touching pacing
+constants (the change protocol in `BALANCE_ARCHITECTURE.md` §4).
 
 ## 6. Player-experience contract (the checklist the invariants encode)
 

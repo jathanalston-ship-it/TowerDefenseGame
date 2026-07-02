@@ -113,6 +113,25 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   invariants ARE the loop contract (resistance, wall, never-impossible, interlock, prestige
   ring, unskippable modes, engine classification).
 
+## Economy Framework & Progression Simulator
+
+- **Purpose:** ONE factor-traced income composition per currency (adaptive economy framework)
+  + virtual accounts played against the REAL meta layer to measure pacing and detect dead
+  progression, walls, spikes, and sink exhaustion (the evidence base for all balancing).
+- **Dependencies:** Difficulty Director policies, progression-loop engine (the sim's player
+  policy), meta settle layer (the simulator drives the real APIs).
+- **Files:** `core/economyDirector.ts` (income chains + adaptive seams + explain),
+  `dev/progressionSim.ts` (simulator + detectors), `scripts/sim-progression.ts`
+  (`npm run sim:progression` → `docs/PROGRESSION_REPORT.md`, generated).
+  Docs: `ECONOMY_FORMULAS.md`, `PROGRESSION_REPORT.md`.
+- **Related:** loot (container tables), prestige/collections (factor inputs), currencies.
+- **Future expansion:** weight `ECONOMY_ADAPTIVE` / `DIRECTOR_ADAPTIVE` from report evidence;
+  scale seeds via CLI (`-- --seeds 2000`) for release-gate sweeps.
+- **Known limitations:** the run itself is a coarse world model (waves/kills/duration
+  constants in `WORLD`); only the economy it feeds is production truth.
+- **Developer tips:** never balance from intuition — regenerate the report and read the
+  hour-band medians + detector table first. Income changes go through a named factor.
+
 ## Power Score
 
 - **Purpose:** ONE number for account strength. Folds every permanent bucket (upgrades, stars,

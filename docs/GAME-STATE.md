@@ -80,6 +80,43 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md
 - 📋 "Custom Challenge" / "Training" modes — hidden behind `core/features.ts` flags until built
 
+### Balance architecture (the mathematical backbone) — BALANCE_ARCHITECTURE.md
+- ✅ **Universal Difficulty Director** (`core/difficultyDirector.ts`) — ONE composition layer for
+  every scaling policy (difficulty × doctrine × stage/endless curves × mode economy), byte-identical
+  parity pinned; adaptive seams weight-0 — DIFFICULTY_DIRECTOR.md
+- ✅ **Adaptive Economy Framework** (`core/economyDirector.ts`) — factor-traced income chains
+  (Cores, loot points) + health guards (uncapped sources, geometric sinks) — ECONOMY_FORMULAS.md
+- ✅ **Progression Loop Engine** (`state/progressionLoop.ts` + `LoopDirective` on Results/Campaign/
+  Infinite) — 8 enforced invariants (walls form, farms pay, caps gate, prestige ring) — PROGRESSION-LOOP.md
+- ✅ **Progression Simulator** (`dev/progressionSim.ts`, `npm run sim:progression`) — virtual
+  accounts over the REAL meta layer, hour-band report + problem detectors — PROGRESSION_REPORT.md
+- 🟨 Findings docket: optimal-play pacing hot (molt cadence), mid-late sink thinning — tuning waits
+  on the change protocol (BALANCE_ARCHITECTURE.md §4/§5)
+
+**Compressed summary (Balance architecture).** *Architecture:* four pillars. The Difficulty
+Director composes every threat/economy scalar from data (DifficultyDef, DoctrineWarp, WAVE_*/
+ENDLESS curves, MODE_REWARDS); consumers (game.ts run boot + curves, campaign compose, meta
+settle, pickers) apply factors at their existing sites in the existing float order — goldens
+byte-identical, parity suites reproduce the legacy formulas verbatim. The Economy Framework
+expresses each currency's settle as base × named-factor chain (left-to-right contract) with an
+`explainIncome` trace; finishRun consumes `coreShardIncome`/`lootPointIncome`. The Loop Engine
+classifies push/farm from geometric requirements × logarithmic reach and surfaces one directive
+on Results/Campaign/Infinite. The Simulator plays greedy virtual accounts through the real meta
+APIs (only the run itself is modeled — WORLD constants) and emits hour-band medians + detector
+flags. *Public APIs:* `createDirector(inputs)` + standalone policy fns (`economyFor`,
+`modeCoreMult/LootMult/MasteryMult`, `doctrineEconomy`, `lootQualityTier`, `hazardRating`,
+`composeStageDifficulty`); `coreShardIncome/lootPointIncome/adaptiveIncomeMult/explainIncome`;
+`loopState/loopAdvice`; `simulateAccount(seed, bands)/detectProblems`. *Extension points:* new
+mode = one MODE_REWARDS row + resolved difficulty; new scaling factor = one director input; new
+currency = one income chain + compounding sink; adaptive tuning = weight `DIRECTOR_ADAPTIVE`/
+`ECONOMY_ADAPTIVE` (config) from report evidence only. *Assumptions:* standard difficulty + no
+doctrine ⇒ every axis exactly ×1; ×1 factors are IEEE-754 identity so seams live in the chains
+at zero cost; parity tests update only as deliberate simulated balance changes. *Future hooks:*
+biome threat bands, boss-presence weighting, prestige-tier factors, seasonal modifiers (reserved
+in DIFFICULTY_DIRECTOR.md §7); simulator CLI scales to thousands of seeds. *Limitations:* the
+simulator's run model is coarse (waves/kills constants); loop phase uses the campaign
+difficulty's bar; adaptive inputs unwired until the loop engine feeds them (by design).
+
 ### Gene Evolution (permanent card progression) — GENE-EVOLUTION.md
 - ✅ Architecture: every Gene Card is a permanent collectible (`core/geneCards.ts`, save v18/v19)
 - ✅ Gene Essence: duplicate max-Star shard conversion + rare container drops, 10/50/200/1000-hr sim

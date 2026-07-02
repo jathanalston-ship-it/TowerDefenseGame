@@ -13,7 +13,8 @@
     "docs:graph": "vite-node scripts/gen-depgraph.ts",
     "docs:check": "vite-node scripts/doc-sync.ts",
     "validate": "vite-node scripts/validate.ts",
-    "handoff": "vite-node scripts/handoff.ts"
+    "handoff": "vite-node scripts/handoff.ts",
+    "sim:progression": "vite-node scripts/sim-progression.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

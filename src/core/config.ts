@@ -1278,6 +1278,15 @@ export const DIRECTOR_ADAPTIVE = {
   rewardPerPerformance: 0, // ×(1 + w·recentPerformance) on bounty/reward curves
 };
 
+// ── Adaptive Economy Framework: income-seam weights (docs/ECONOMY_FORMULAS.md) ──
+// Catch-up boosts a behind-the-curve account's settle income; the ahead-taper cools a
+// runaway one. SHIP AT 0 (exact ×1 in every chain — golden/meta-test safe): tune ONLY on
+// progression-simulator evidence (docs/PROGRESSION_REPORT.md).
+export const ECONOMY_ADAPTIVE = {
+  catchUpPerPowerGap: 0, // ×(1 + w·gap) when the account is BEHIND its frontier's power bar
+  aheadTaperPerPowerGap: 0, // ÷(1 + w·|gap|) when far AHEAD of it
+};
+
 // ── Future content registry: biomes (framework only — no content yet) ────────
 // Towers/enemies/heroes/cards/upgrades/chests self-register above; bosses + equipment
 // own registries in their modules (boss.ts / equipment.ts). Biomes have no content yet,

@@ -61,6 +61,7 @@ import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
 import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
+import { coreShardIncome, lootPointIncome } from '../core/economyDirector';
 import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
@@ -867,9 +868,19 @@ export const meta = {
     // 1. global shards + run records
     // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps (director policy).
     const docEcon = doctrineEconomy(result.doctrine);
-    const doctrineRewardMult = docEcon.rewardMult;
     const doctrineEssence = docEcon.essenceFor(result.wave);
-    const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * asc.coreGainMult * rewardMult * endlessRewardMult * coreMult * doctrineRewardMult) + firstClearBonus;
+    // Genome Cores ride the economy framework's composition (docs/ECONOMY_FORMULAS.md) — the
+    // same factor chain, one owner, with an explainable trace.
+    const shardsEarned = Math.floor(coreShardIncome({
+      wave: result.wave,
+      kills: result.kills,
+      prestigeShardGainMult: asc.shardGainMult,
+      prestigeCoreGainMult: asc.coreGainMult,
+      stageRewardMult: rewardMult,
+      endlessRewardMult,
+      modeCoreMult: coreMult,
+      doctrineRewardMult: docEcon.rewardMult,
+    }).total()) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
@@ -919,7 +930,15 @@ export const meta = {
     //    their containers into save.pendingContainers; here we add the run-end remainder + the
     //    guaranteed run cache. A run that never synced has runLootBanked = 0 → it banks its full
     //    points here.
-    const lootPoints = Math.floor((result.wave * LOOT_EARN.pointsPerWave + result.kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult * rewardMult * lootMult * econDiff.containerRateMult * cb.bossLootMult); // Bosses codex: +Boss Loot
+    const lootPoints = Math.floor(lootPointIncome({
+      wave: result.wave,
+      kills: result.kills,
+      prestigeLootGainMult: asc.lootGainMult,
+      stageRewardMult: rewardMult,
+      modeLootMult: lootMult,
+      containerRateMult: econDiff.containerRateMult,
+      bossLootMult: cb.bossLootMult, // Bosses codex: +Boss Loot
+    }).total());
     const lootAdv = lootEligible
       ? addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty))
       : { state: save.lootQueue, awarded: [] as string[] }; // unqualified: no run-end loot, meter frozen (no RNG spent)

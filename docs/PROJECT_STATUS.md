@@ -3,7 +3,9 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-02 (five-part pass: Campaign roadmap, doctrine protocols + Infinite terminal, 1×/2×/5× speed system, Vault v2, staged container openings).
+> **Last updated:** 2026-07-02 (balance-architecture arc: loot-meter rebuild + first-discovery
+> NEW badges, Universal Difficulty Director, progression loop engine, progression simulator +
+> report, adaptive economy framework, and the four permanent balance docs).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -30,7 +32,14 @@ in-run command surface, roster tabs, hold-to-buy, preview===outcome comparisons,
 Campaign ROADMAP (gate jumps, goal rail, mission cards, fastest-clear ledger v21) · Doctrine
 PROTOCOLS (six enemy-world warps, golden-safe) + Infinite experiment terminal · Gameplay Speed
 (fixed-step 1×/2×/5×, auto-slow) · Genetic Vault v2 (objects/rates/multi-open/ledger) ·
-staged Bio-Container openings (build-up, fast mode, legendary lighting).
+staged Bio-Container openings (build-up, fast mode, legendary lighting, first-discovery NEW
+badges) · Loot-meter rebuild (truthful-fill contract, earn ceremony + container flight,
+self-heal, 5000-fill stress pin — `docs/BUGFIX-LOG.md` #10) · **Balance architecture
+(`docs/BALANCE_ARCHITECTURE.md`): Universal Difficulty Director (one scaling-policy layer,
+bit-exact parity) · Adaptive Economy Framework (factor-traced income chains + health guards) ·
+Progression Loop Engine (8 enforced invariants, LoopDirective on Results/Campaign/Infinite) ·
+Progression Simulator (virtual accounts over the real meta layer, hour-band report +
+detectors, `npm run sim:progression`)**.
 
 ## Systems in progress
 
@@ -48,10 +57,13 @@ staged Bio-Container openings (build-up, fast mode, legendary lighting).
 
 ## Upcoming milestones
 
-1. **Card Ascension** — backend done; author tiers + one gameplay wire + ceremony.
-2. **Content wave** — toward 10 towers / 6 heroes / 100 cards through the validators.
-3. **meta.ts façade split + CI guards** (madge, ts-prune, import-direction lint).
-4. **Hero mastery live projection** — towers wired; heroes ride the same bus (data change).
+1. **Balance tuning pass** — the simulator found optimal-play pacing HOT (stage ~70 by ~10h,
+   molt cadence in minutes; `docs/PROGRESSION_REPORT.md`); tune molt gates + first-clear curve
+   through the change protocol (`docs/BALANCE_ARCHITECTURE.md` §4–5).
+2. **Card Ascension** — backend done; author tiers + one gameplay wire + ceremony.
+3. **Content wave** — toward 10 towers / 6 heroes / 100 cards through the validators.
+4. **meta.ts façade split + CI guards** (madge, ts-prune, import-direction lint).
+5. **Hero mastery live projection** — towers wired; heroes ride the same bus (data change).
 
 ## Future roadmap (design-corpus scale)
 
