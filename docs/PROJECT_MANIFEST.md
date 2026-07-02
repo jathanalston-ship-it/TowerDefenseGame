@@ -94,6 +94,25 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** never write `resolveDifficulty(...).x * warp.y` inline — add or use a
   director query. Parity tests reproduce the legacy formulas verbatim; goldens gate the sim.
 
+## Progression Loop Engine
+
+- **Purpose:** makes the Campaign↔Infinite macro-loop legible and keeps it mathematically
+  enforced: geometric stage requirements × logarithmic reach ⇒ walls always re-form; uncapped
+  farm income + stage-gated caps ⇒ walls always break and neither mode can be skipped.
+- **Dependencies:** predict curves, Power Score, campaign requirement curve, mode rewards.
+- **Files:** `state/progressionLoop.ts` (loopState/loopAdvice), `LoopDirective` in
+  `ui/NextGoalBanner.tsx`; surfaced on Results, CampaignScreen, InfiniteScreen.
+  Docs: `PROGRESSION-LOOP.md`.
+- **Related:** Next-Goal engine (micro-goals; the loop is the macro-goal), prediction,
+  prestige (the unbounded long-range ring), Difficulty Director (adaptive seams).
+- **Future expansion:** the progression simulator calibrates the TIME axis (hours per band)
+  and, with evidence, the `DIRECTOR_ADAPTIVE` weights.
+- **Known limitations:** phase classification uses the campaign difficulty's requirement bar;
+  per-attempt fail history isn't tracked (no "breakthrough" pseudo-state).
+- **Developer tips:** loop-shape changes must keep `progressionLoop.test.ts` green — its 8
+  invariants ARE the loop contract (resistance, wall, never-impossible, interlock, prestige
+  ring, unskippable modes, engine classification).
+
 ## Power Score
 
 - **Purpose:** ONE number for account strength. Folds every permanent bucket (upgrades, stars,

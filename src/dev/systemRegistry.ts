@@ -185,11 +185,11 @@ export const SYSTEMS: SystemDef[] = [
     achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md'],
   },
   {
-    id: 'hub-shell', name: 'Hub Shell & Home', purpose: 'The nav shell, home base, mission control, dashboards, next-goal surfacing.',
-    files: ['src/ui/Hub.tsx', 'src/ui/PlayScreen.tsx', 'src/ui/ProgressDashboard.tsx', 'src/ui/NextGoalBanner.tsx', 'src/state/nextGoal.ts', 'src/ui/hubProgress.ts', 'src/ui/homeBaseTiers.ts', 'src/ui/LabAtmosphere.tsx', 'src/ui/App.tsx', 'src/ui/ErrorBoundary.tsx', 'src/main.tsx'],
+    id: 'hub-shell', name: 'Hub Shell & Home', purpose: 'The nav shell, home base, mission control, dashboards, next-goal + progression-loop surfacing.',
+    files: ['src/ui/Hub.tsx', 'src/ui/PlayScreen.tsx', 'src/ui/ProgressDashboard.tsx', 'src/ui/NextGoalBanner.tsx', 'src/state/nextGoal.ts', 'src/state/progressionLoop.ts', 'src/ui/hubProgress.ts', 'src/ui/homeBaseTiers.ts', 'src/ui/LabAtmosphere.tsx', 'src/ui/App.tsx', 'src/ui/ErrorBoundary.tsx', 'src/main.tsx'],
     dependsOn: ['meta-store', 'notifications', 'prediction', 'power'], powerScore: null, save: [],
     tutorial: [], help: [], hud: [], ui: ['Hub', 'PlayScreen', 'ProgressDashboard'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/HOME-BASE.md', 'docs/ONE-MORE-RUN.md', 'docs/HUD.md'],
+    localization: 'inline-en', docs: ['docs/HOME-BASE.md', 'docs/ONE-MORE-RUN.md', 'docs/HUD.md', 'docs/PROGRESSION-LOOP.md'],
   },
   {
     id: 'run-ui', name: 'In-Run HUD & Results', purpose: 'The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.',

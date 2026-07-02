@@ -198,7 +198,7 @@ function equipmentPower(save: SaveData): number {
 /** The account Power contributors folded from the save (docs/POWER-SCORE.md). `temporary`
  * carries in-run buffs (gene cards / branches); it is 1 for the at-rest account view. Prestige
  * is already inside metaModifiers.towerDamageMult (the P bucket), so it counts via `meta`. */
-function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
+export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   const mm = metaModifiers(save);
   const tp = towerProgress(save);
   const hp = heroProgress(save);

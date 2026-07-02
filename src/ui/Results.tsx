@@ -12,7 +12,7 @@ import { rarityRank, rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
 import { RewardReveal } from './RewardReveal';
 import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal';
-import { NextGoalCliffhanger } from './NextGoalBanner';
+import { LoopDirective, NextGoalCliffhanger } from './NextGoalBanner';
 import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
@@ -287,7 +287,13 @@ export function Results({
         achievements={achievements}
         onContinue={onContinue}
         onReplay={onReplay}
-        cliffhanger={<NextGoalCliffhanger />}
+        cliffhanger={
+          <>
+            {/* The macro-loop routing — the wall/breakthrough moment lands HERE (PROGRESSION-LOOP.md) */}
+            <LoopDirective difficultyId={result.difficulty} />
+            <NextGoalCliffhanger />
+          </>
+        }
       />
     </div>
   );

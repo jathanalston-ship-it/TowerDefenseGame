@@ -7,6 +7,7 @@
 import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { PredictionPanel } from './PredictionPanel';
+import { LoopDirective } from './NextGoalBanner';
 import { audio } from '../audio/sound';
 import { campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
 import { ENEMY_DEFS } from '../core/config';
@@ -95,6 +96,10 @@ export function CampaignScreen({
       </header>
 
       <PredictionPanel mode="campaign" difficultyId={diff} label="Campaign Stage" />
+
+      {/* The macro-loop readiness meter — push when the frontier is open, farm Infinite when
+          it isn't (docs/PROGRESSION-LOOP.md). */}
+      <LoopDirective difficultyId={diff} />
 
       {/* ── The ROADMAP rail: what the descent is unlocking next (docs/MODE-IDENTITY.md §campaign).
           Goal chips (closest-first, the shared Next-Goal engine) + gate chips that JUMP the map. */}

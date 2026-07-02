@@ -16,6 +16,7 @@ import { DIRECTOR, ENDLESS } from '../core/config';
 import { doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
+import { LoopDirective } from './NextGoalBanner';
 
 /** Human-readable lines for a doctrine's full impact (effects + world warp). */
 function doctrineLines(d: DoctrineDef): string[] {
@@ -79,6 +80,10 @@ export function InfiniteScreen({
         </div>
 
         <PredictionPanel mode="infinite" difficultyId={diff} label="Infinite Wave" />
+
+        {/* Why you're farming — the macro-loop directive (docs/PROGRESSION-LOOP.md): this
+            experiment feeds the Campaign frontier's power bar. */}
+        <LoopDirective difficultyId={difficultyPref('campaign')} />
 
         <div className="play-setup">
           <label className="play-field">

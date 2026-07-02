@@ -5965,6 +5965,27 @@ kbd {
   animation: ng-breathe 3.2s ease-in-out infinite, vreveal-powerin 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 .ng-cliff-eyebrow { font: 800 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.14em; color: var(--gc); text-transform: uppercase; }
+
+/* ── The macro-loop directive (docs/PROGRESSION-LOOP.md): farm ↔ push routing ── */
+.loop-directive {
+  --lc: var(--viral);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 16px;
+  border-radius: var(--r-md);
+  margin: 4px auto 0;
+  width: min(420px, 100%);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--lc) 14%, rgba(9, 14, 22, 0.9)), rgba(9, 14, 22, 0.9));
+  border: 1px solid color-mix(in srgb, var(--lc) 50%, var(--line-strong));
+  text-align: left;
+}
+.loop-directive.is-push { --lc: var(--caustic); }
+.loop-k { font: 800 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.14em; color: var(--lc); text-transform: uppercase; }
+.loop-line { font: 600 13px/1.45 system-ui, sans-serif; color: var(--text); }
+.loop-meter { display: block; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.loop-meter i { display: block; height: 100%; border-radius: 999px; background: var(--lc); transition: width var(--dur-3) var(--ease-out); }
+.loop-sub { font: 600 11px/1 system-ui, sans-serif; color: var(--muted); letter-spacing: 0.04em; }
 .rr-cliff-slot { display: flex; justify-content: center; width: 100%; margin-top: 6px; }
 .rr-actions { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
 .rr-btn { padding: 11px 20px; border-radius: var(--r-sm); font: 700 14px/1 system-ui, sans-serif; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); cursor: pointer; transition: transform var(--dur-2), background var(--dur-2); }
