@@ -232,10 +232,10 @@ export const SYSTEMS: SystemDef[] = [
     collection: 'biomes category', achievements: [], localization: 'inline-en', docs: ['docs/BIOMES.md'],
   },
   {
-    id: 'difficulty', name: 'Difficulty', purpose: 'Per-mode difficulty tracks scaling threat + loot quality.',
-    files: ['src/core/difficulty.ts'],
+    id: 'difficulty', name: 'Difficulty', purpose: 'Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).',
+    files: ['src/core/difficulty.ts', 'src/core/difficultyDirector.ts'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: ['CampaignScreen', 'InfiniteScreen', 'PlayScreen'],
-    collection: null, achievements: [], localization: 'inline-en', docs: ['docs/DIFFICULTY.md'],
+    collection: null, achievements: [], localization: 'inline-en', docs: ['docs/DIFFICULTY.md', 'docs/DIFFICULTY_DIRECTOR.md'],
   },
   {
     id: 'rendering', name: 'Rendering & VFX', purpose: 'Canvas2D battlefield, tower visual evolution, particles/vfx, theme.',

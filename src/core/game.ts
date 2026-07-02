@@ -45,10 +45,8 @@ import {
   HERO_PULSE,
   HERO_ULT,
   WAVES,
-  WAVE_BOUNTY_GROWTH,
   AUTO_START_DELAY,
   AUTO_START_FIRST_DELAY,
-  WAVE_HP_GROWTH,
   MINION_DEFS,
   MINION_CAP,
 } from './config';
@@ -70,7 +68,7 @@ import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, ENDLESS, REACTIONS, CHESTS, chestForWave, spawnCount } from './config';
+import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -90,6 +88,8 @@ import type { Biome } from './biomes';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
 import type { DoctrineWarp } from './doctrines';
+import { createDirector } from './difficultyDirector';
+import type { RunDirector } from './difficultyDirector';
 import { combineMult } from './modifiers';
 import { sortByProfile } from './targeting';
 import type { TargetingProfile } from './targeting';
@@ -278,6 +278,9 @@ export class Game {
   private activeRunEvent: { name: string; desc: string; kind: string } | null = null; // current wave's beat (HUD telegraph)
   // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
   private readonly diff: DifficultyDef;
+  // The Universal Difficulty Director — the run's whole scaling policy (difficulty × doctrine
+  // warp × stage axes × curves). The sim APPLIES its factors; it never composes balance inline.
+  private readonly dd: RunDirector;
   // Spawn Director: owns spawn spacing/timing/pacing/elite/boss/special-event scheduling.
   private readonly spawner = new SpawnDirector();
   biomass: number;
@@ -448,12 +451,21 @@ export class Game {
     // scaling) becomes `this.diff`, its waves replace the authored WAVES, and its speed scalar
     // rides separately. Stage/endless are unchanged ⇒ byte-identical (golden-safe).
     this.stage = opts.stage ?? null;
-    this.diff = this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty);
+    // The UNIVERSAL DIFFICULTY DIRECTOR (docs/DIFFICULTY_DIRECTOR.md) composes the run's whole
+    // scaling policy — difficulty variant × doctrine warp × stage axes. The sim only APPLIES
+    // its factors, at the same sites in the same order ⇒ the golden runs stay byte-identical.
+    this.dd = createDirector({
+      difficulty: this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty),
+      warp: resolveDoctrine(opts.doctrine).warp,
+      stageEnemySpeedMult: this.stage ? this.stage.enemySpeedMult : 1,
+    });
+    this.diff = this.dd.difficulty; // doctrine damage already folded (the director's ONE fold site)
+    this.warp = this.dd.queueWarp();
     this.waves = this.stage ? this.stage.waves : WAVES;
     this.totalWaves = this.waves.length;
     // Enemy speed = the stage's own scaling (campaign) × the DIFFICULTY speed axis (both modes).
     // standard ⇒ ×1 → golden-safe.
-    this.stageSpeedMult = (this.stage ? this.stage.enemySpeedMult : 1) * this.diff.enemySpeedMult;
+    this.stageSpeedMult = this.dd.enemySpeedStatic();
     // Biome: Campaign uses the stage's fixed biome; Infinite seeds the first biome (rotates as the
     // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
@@ -475,11 +487,8 @@ export class Game {
     this.mods.towerDamageMult = meta.towerDamageMult;
     this.mods.biomassMult = meta.biomassMult;
     this.mods.heroDamageMult = meta.heroDamageMult;
-    // Doctrine WARP (docs/MODE-IDENTITY.md §doctrines): enemy-world reshaping. 'none' has no
-    // warp ⇒ empty object, zero RNG draws, byte-identical golden run. Damage folds into the
-    // run's difficulty ONCE here; per-spawn hp/bounty/elites/counts apply per wave below.
-    this.warp = resolveDoctrine(opts.doctrine).warp ?? {};
-    if (this.warp.damageMult) this.diff = { ...this.diff, enemyDamageMult: this.diff.enemyDamageMult * this.warp.damageMult };
+    // Doctrine WARP (docs/MODE-IDENTITY.md §doctrines) is owned by the director above:
+    // 'none' ⇒ empty warp, zero RNG draws, byte-identical golden run.
 
     // Fold the chosen doctrine's run-start effects, then run-start effects (equipment, …).
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
@@ -1209,38 +1218,35 @@ export class Game {
     this.mods.bonusTowerSlots += n;
   }
 
-  /** Enemy-HP multiplier for a 0-based wave index: the base escalation curve × the universal
-   * difficulty's health scalar. At Standard (×1) this equals the base curve exactly. */
+  // ── Scaling curves: ALL sourced from the Universal Difficulty Director (the policy layer).
+  //    The sim only multiplies its own RUN-state modifiers (player build) on top. ──
+
+  /** Enemy-HP multiplier for a 0-based wave index (director curve × the run's own HP mod). */
   private hpMultFor(idx0: number): number {
-    return (1 + WAVE_HP_GROWTH * idx0) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
+    return this.dd.waveHpMult(idx0) * this.mods.enemyHpRunMult;
   }
 
-  /** Bounty/biomass multiplier for a 0-based wave index: base curve × difficulty reward. */
+  /** Bounty/biomass multiplier for a 0-based wave index. */
   private bountyMultFor(idx0: number): number {
-    return (1 + WAVE_BOUNTY_GROWTH * idx0) * this.diff.rewardMult;
+    return this.dd.waveBountyMult(idx0);
   }
 
-  // ── Endless intensity curves (docs/ENDLESS-SCALING.md). Kept SEPARATE from the linear stage
-  //    curves above so the authored golden run is byte-identical; these apply ONLY in endless. ──
+  // Endless intensity curves (docs/ENDLESS-SCALING.md) — director-owned; endless-only call sites.
 
-  /** Endless enemy-HP multiplier — GEOMETRIC, the PRIMARY wall (outpaces any fixed DPS over depth). */
   private endlessHpMult(depth: number): number {
-    return Math.pow(ENDLESS.hpGrowth, (depth - 1) * (this.warp.scalingRateMult ?? 1)) * this.diff.enemyHealthMult * this.mods.enemyHpRunMult;
+    return this.dd.endlessHpMult(depth) * this.mods.enemyHpRunMult;
   }
 
-  /** Endless per-enemy bounty — rises SLOWER than HP, so deep enemies are biomass-inefficient. */
   private endlessBountyMult(depth: number): number {
-    return (1 + ENDLESS.bountyGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1))) * this.diff.rewardMult;
+    return this.dd.endlessBountyMult(depth);
   }
 
-  /** Endless enemy-speed multiplier — gradual, clamped so the field stays readable. */
   private endlessSpeedMult(depth: number): number {
-    return Math.min(ENDLESS.speedCap, 1 + ENDLESS.speedGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1)));
+    return this.dd.endlessSpeedMult(depth);
   }
 
-  /** Endless enemy-damage multiplier — gradual, continuous. */
   private endlessDamageMult(depth: number): number {
-    return 1 + ENDLESS.damageGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1));
+    return this.dd.endlessDamageMult(depth);
   }
 
   /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,

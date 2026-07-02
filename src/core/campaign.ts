@@ -13,6 +13,7 @@ import { assembleBoss, campaignBossFor } from './boss';
 import type { BossDef } from './boss';
 import { resolveDifficulty } from './difficulty';
 import type { DifficultyDef } from './difficulty';
+import { composeStageDifficulty } from './difficultyDirector';
 import { BIOMES, categoryOf } from './biomes';
 import type { Biome, BiomeCategory } from './biomes';
 import { POWER_BASE } from './power';
@@ -64,18 +65,10 @@ function stageScaling(stage: number): StageScaling {
   };
 }
 
-/** Fold the per-stage scalars onto the chosen difficulty VARIANT → the DifficultyDef the Game runs. */
+/** Fold the per-stage scalars onto the chosen difficulty VARIANT → the DifficultyDef the Game
+ *  runs. The composition itself is Difficulty Director policy (docs/DIFFICULTY_DIRECTOR.md). */
 function combineDifficulty(base: DifficultyDef, sc: StageScaling): DifficultyDef {
-  return {
-    ...base,
-    id: `campaign:${base.id}`,
-    enemyHealthMult: base.enemyHealthMult * sc.hpMult,
-    enemyDamageMult: base.enemyDamageMult * sc.damageMult,
-    spawnRateMult: base.spawnRateMult * sc.spawnMult,
-    rewardMult: base.rewardMult * sc.rewardMult,
-    // eliteChanceMult / bossFrequencyMult carry from the variant — campaign drives its own
-    // elite frequency (per-group flags) and bosses (finale/mini), not the Director.
-  };
+  return composeStageDifficulty(base, sc);
 }
 
 // ── The generated stage ─────────────────────────────────────────────────────────────────────

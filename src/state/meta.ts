@@ -13,7 +13,7 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, MODE_REWARDS, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -60,7 +60,7 @@ import type { AdaptNode } from '../core/adaptation';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
-import { resolveDoctrine } from '../core/doctrines';
+import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
 import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
@@ -259,7 +259,7 @@ function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, numb
   const fortune = ascendantBonuses(save.prestige.nodes).lootQualityMult;
   // Armory collection tilts loot quality richer as it fills (+0 on a fresh account).
   const codexLoot = collectionEconomyBonuses(collectionView(collectionContextOf(save))).lootQualityTier;
-  const tier = Math.max(0, (resolveDifficulty(difficultyId).lootQualityMult - 1) * 2 + (fortune - 1) * 2 + codexLoot);
+  const tier = lootQualityTier({ difficultyLootQualityMult: economyFor(difficultyId).lootQualityMult, fortuneMult: fortune, codexTier: codexLoot });
   return lootBias({
     idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
     campaignStage,
@@ -311,8 +311,8 @@ export function masteryXpMults(
 ): { tower: number; hero: number } {
   const asc = ascendantBonuses(save.prestige.nodes);
   const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save)));
-  const econDiff = resolveDifficulty(difficulty);
-  const modeMult = mode.endless ? MODE_REWARDS.mastery.endless : mode.campaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
+  const econDiff = economyFor(difficulty);
+  const modeMult = modeMasteryMult({ endless: !!mode.endless, campaign: !!mode.campaign });
   const base = modeMult * econDiff.xpMult * asc.masteryXpMult;
   return { tower: base * cb.towerXpMult, hero: base * cb.heroXpMult };
 }
@@ -841,7 +841,7 @@ export const meta = {
     // already folds difficulty.rewardMult into result.rewardMult, so the currency reward scalar is
     // applied only to endless here (endlessRewardMult); the OTHER axes (XP, container rate) apply
     // universally as distinct levers.
-    const econDiff = resolveDifficulty(result.difficulty);
+    const econDiff = economyFor(result.difficulty);
     // Infinite core reward = the difficulty scalar × the Ascendant Infinity bonus (×1 without it).
     const endlessRewardMult = result.endless ? econDiff.rewardMult * asc.endlessBonusMult : 1;
 
@@ -853,12 +853,8 @@ export const meta = {
     const isCampaign = result.campaignStage != null && !result.endless;
     const stageNo = result.campaignStage ?? 0;
     const firstClear = isCampaign && result.won && stageNo > prevCleared;
-    const coreMult = result.endless
-      ? MODE_REWARDS.core.endless
-      : isCampaign
-        ? (firstClear ? MODE_REWARDS.core.campaignFirst : MODE_REWARDS.core.campaignReplay)
-        : MODE_REWARDS.core.stage;
-    const lootMult = result.endless ? MODE_REWARDS.loot.endless : isCampaign ? MODE_REWARDS.loot.campaign : MODE_REWARDS.loot.stage;
+    const coreMult = modeCoreMult({ endless: !!result.endless, campaign: isCampaign, firstClear });
+    const lootMult = modeLootMult({ endless: !!result.endless, campaign: isCampaign });
     const xpMults = masteryXpMults(save, { endless: result.endless, campaign: isCampaign }, result.difficulty);
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
@@ -869,10 +865,10 @@ export const meta = {
       : 0;
 
     // 1. global shards + run records
-    // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps.
-    const docWarp = resolveDoctrine(result.doctrine).warp ?? {};
-    const doctrineRewardMult = docWarp.rewardMult ?? 1;
-    const doctrineEssence = docWarp.essencePerWave ? Math.floor(docWarp.essencePerWave * result.wave) : 0;
+    // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps (director policy).
+    const docEcon = doctrineEconomy(result.doctrine);
+    const doctrineRewardMult = docEcon.rewardMult;
+    const doctrineEssence = docEcon.essenceFor(result.wave);
     const shardsEarned = Math.floor((result.wave * ECON.shardsPerWave + result.kills * ECON.shardsPerKill) * asc.shardGainMult * asc.coreGainMult * rewardMult * endlessRewardMult * coreMult * doctrineRewardMult) + firstClearBonus;
     const newBest = result.wave > save.bestWave;
 

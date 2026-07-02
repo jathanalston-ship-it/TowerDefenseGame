@@ -74,6 +74,26 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** endless tuning lives in config scaling constants — verify with the
   depth/biomass empirical tests (`draftcadence.test.ts`, endless scaling tests), not by feel.
 
+## Difficulty & the Universal Difficulty Director
+
+- **Purpose:** difficulty variants (threat + economy scalars) AND the single composition layer
+  for every scaling policy — no gameplay system combines balance factors inline; they ask the
+  director (curves, doctrine warps, stage folds, mode economy, hazard, adaptive seams).
+- **Dependencies:** difficulty defs, doctrine warps, config curve constants
+  (`WAVE_*`, `ENDLESS`, `MODE_REWARDS`, `DIRECTOR_ADAPTIVE`).
+- **Files:** `core/difficulty.ts` (variant data), `core/difficultyDirector.ts` (the director),
+  consumers: `core/game.ts` (RunDirector), `core/campaign.ts` (`composeStageDifficulty`),
+  `state/meta.ts` (settle economy), `ui/InfiniteScreen.tsx` (hazard/forecast).
+  Docs: `DIFFICULTY.md`, `DIFFICULTY_DIRECTOR.md`.
+- **Related:** AI Director (wave composition under these scalars), Spawn Director (emission),
+  doctrines, campaign generator, loot bias, mastery XP, predictions.
+- **Future expansion:** biome threat bands, boss-presence weighting, prestige tier, seasonal
+  modifiers — each lands as one input + one factor in the director.
+- **Known limitations:** adaptive seams (`powerRatio`, `recentPerformance`) ship weight-0 —
+  tuning them requires progression-simulator evidence (pinned by test).
+- **Developer tips:** never write `resolveDifficulty(...).x * warp.y` inline — add or use a
+  director query. Parity tests reproduce the legacy formulas verbatim; goldens gate the sim.
+
 ## Power Score
 
 - **Purpose:** ONE number for account strength. Folds every permanent bucket (upgrades, stars,

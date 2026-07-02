@@ -12,7 +12,8 @@ import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import type { DoctrineDef } from '../core/doctrines';
 import { BIOMES } from '../core/biomes';
-import { DIRECTOR, ENDLESS, MODE_REWARDS } from '../core/config';
+import { DIRECTOR, ENDLESS } from '../core/config';
+import { doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
 
@@ -35,14 +36,8 @@ function doctrineLines(d: DoctrineDef): string[] {
   return out;
 }
 
-/** A composite hazard rating for the configured experiment (difficulty × doctrine warp). */
-function hazardRating(diffId: string, d: DoctrineDef): number {
-  const diff = DIFFICULTIES[diffId];
-  const w = d.warp ?? {};
-  const load = (diff?.enemyHealthMult ?? 1) * (w.hpMult ?? 1) * (w.damageMult ?? 1) *
-    (w.countMult && w.countMult > 1 ? w.countMult : 1) * (w.speedMult ?? 1) * (w.scalingRateMult ?? 1);
-  return Math.max(1, Math.min(5, Math.round(1 + (load - 1) * 1.4)));
-}
+// Hazard rating + reward composition are Difficulty Director policy (core/difficultyDirector.ts) —
+// this terminal renders the same numbers any future mode picker would read.
 
 export function InfiniteScreen({
   onStartEndless,
@@ -58,7 +53,7 @@ export function InfiniteScreen({
   const [doctrine, setDoctrine] = useState(doctrineRef.current || 'none');
   const active = DOCTRINES[doctrine] ?? DOCTRINES.none;
   const hazard = hazardRating(diff, active);
-  const lootMult = MODE_REWARDS.loot.endless * (active.warp?.rewardMult ?? 1);
+  const lootMult = modeLootMult({ endless: true, campaign: false }) * doctrineEconomy(active.id).rewardMult;
 
   const start = (): void => {
     audio.resume();

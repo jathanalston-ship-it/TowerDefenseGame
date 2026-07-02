@@ -1269,6 +1269,15 @@ export const ENDLESS = {
   bountyGrowth: 0.03, // +3% per-enemy biomass per depth (slower than HP → diminishing income)
 };
 
+// ── Universal Difficulty Director: ADAPTIVE factor weights (docs/DIFFICULTY_DIRECTOR.md) ──
+// Player-relative scaling seams composed into the director's threat/reward chains. They SHIP
+// AT 0 (an exact ×1 in every formula — IEEE-754 identity, golden-safe): balance changes must
+// come from the progression simulator, not intuition. Tuning them is a data edit here, ever.
+export const DIRECTOR_ADAPTIVE = {
+  threatPerPowerRatio: 0, // ×(1 + w·(powerRatio−1)) on enemy HP/damage curves
+  rewardPerPerformance: 0, // ×(1 + w·recentPerformance) on bounty/reward curves
+};
+
 // ── Future content registry: biomes (framework only — no content yet) ────────
 // Towers/enemies/heroes/cards/upgrades/chests self-register above; bosses + equipment
 // own registries in their modules (boss.ts / equipment.ts). Biomes have no content yet,
