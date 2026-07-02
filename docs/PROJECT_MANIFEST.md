@@ -116,17 +116,21 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 ## Economy Framework & Progression Simulator
 
 - **Purpose:** ONE factor-traced income composition per currency (adaptive economy framework)
-  + virtual accounts played against the REAL meta layer to measure pacing and detect dead
-  progression, walls, spikes, and sink exhaustion (the evidence base for all balancing).
+  + the PERMANENT simulation framework: player personas over the REAL meta layer measuring
+  pacing, unlock cadence (dopamine gaps), dead zones, walls, grind, inflation and shortages,
+  with automatic bottleneck detection → `BALANCE_REPORT.md` (report-only; humans review).
 - **Dependencies:** Difficulty Director policies, progression-loop engine (the sim's player
   policy), meta settle layer (the simulator drives the real APIs).
 - **Files:** `core/economyDirector.ts` (income chains + adaptive seams + explain),
-  `dev/progressionSim.ts` (simulator + detectors), `scripts/sim-progression.ts`
-  (`npm run sim:progression` → `docs/PROGRESSION_REPORT.md`, generated).
-  Docs: `ECONOMY_FORMULAS.md`, `PROGRESSION_REPORT.md`.
+  `dev/progressionSim.ts` (persona-aware engine + acquisition ledger), `dev/personas.ts`
+  (the 11-persona roster), `dev/balanceReport.ts` (matrix + detectors + renderer),
+  `scripts/sim-progression.ts` (`npm run sim:progression` → `PROGRESSION_REPORT.md`),
+  `scripts/sim-balance-report.ts` (`npm run sim:report` → `BALANCE_REPORT.md`).
+  Docs: `ECONOMY_FORMULAS.md`, `PROGRESSION_REPORT.md`, `SIMULATION-FRAMEWORK.md`,
+  `BALANCE_REPORT.md` (generated).
 - **Related:** loot (container tables), prestige/collections (factor inputs), currencies.
 - **Future expansion:** weight `ECONOMY_ADAPTIVE` / `DIRECTOR_ADAPTIVE` from report evidence;
-  scale seeds via CLI (`-- --seeds 2000`) for release-gate sweeps.
+  new persona = one `PERSONAS` row; new detector = one `hit()` + diagnosis row.
 - **Known limitations:** the run itself is a coarse world model (waves/kills/duration
   constants in `WORLD`); only the economy it feeds is production truth.
 - **Developer tips:** never balance from intuition — regenerate the report and read the

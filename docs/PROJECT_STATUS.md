@@ -46,7 +46,10 @@ power attribution, frames/timeline/milestones, save v22 ledgers — `docs/PROFIL
 multi-source Antigen, campaign gates 15/30/50, battlefield FORM stages, priced stage-gated
 respec, lab UI + inspector — `docs/ADAPTATION.md`)** · **Command Center home (registry-driven
 widget zones over pure read-models; living World Status canvas organism, command strip, feed,
-unlock roadmap, forecast, live army — `docs/COMMAND-CENTER.md`)**.
+unlock roadmap, forecast, live army — `docs/COMMAND-CENTER.md`)** · **Permanent simulation
+framework (11 personas over the real meta layer, dopamine-cadence ledger, 8 bottleneck
+detectors with diagnosis, `npm run sim:report` → report-only `docs/BALANCE_REPORT.md` —
+`docs/SIMULATION-FRAMEWORK.md`)**.
 
 ## Systems in progress
 
@@ -93,7 +96,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 801 tests / 124 files green; golden sim byte-identical; typecheck strict; build clean.
+- 808 tests / 125 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.

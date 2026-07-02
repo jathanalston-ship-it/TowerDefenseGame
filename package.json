@@ -14,7 +14,8 @@
     "docs:check": "vite-node scripts/doc-sync.ts",
     "validate": "vite-node scripts/validate.ts",
     "handoff": "vite-node scripts/handoff.ts",
-    "sim:progression": "vite-node scripts/sim-progression.ts"
+    "sim:progression": "vite-node scripts/sim-progression.ts",
+    "sim:report": "vite-node scripts/sim-balance-report.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

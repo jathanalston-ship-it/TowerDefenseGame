@@ -156,7 +156,7 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/core/prestige.ts', 'src/core/ascendant.ts', 'src/ui/PrestigePanel.tsx'],
     dependsOn: ['campaign', 'evolution-hq'], powerScore: 'the P bucket (log fold of Cells + tree)', save: ['prestige'],
     tutorial: [], help: ['prestige', 'ascension'], hud: [], ui: ['PrestigePanel', 'EvolutionHQ (Ascension section)'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/PROGRESSION-PHILOSOPHY.md', 'docs/PROGRESSION-REDESIGN.md'],
+    localization: 'inline-en', docs: ['docs/PROGRESSION-PHILOSOPHY.md', 'docs/PROGRESSION-REDESIGN.md', 'docs/SIMULATION-FRAMEWORK.md', 'docs/BALANCE_REPORT.md'],
   },
   {
     id: 'currencies', name: 'Currencies & Economy Framework', purpose: 'Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams, health guards.',

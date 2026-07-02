@@ -41,6 +41,10 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Command Center home** — registry-driven widget zones over pure read-models (`ui/homeModel.ts`);
   living World Status canvas organism (era/organs/FORM/readiness), command strip, feed (save
   timeline), unlock roadmap, forecast, live army — COMMAND-CENTER.md
+- ✅ **Permanent simulation framework** — 11 player personas over the real meta layer; acquisition
+  ledger (dopamine cadence), failed-push frustration model, 8 bottleneck detectors with
+  severity/confidence/diagnosis; `npm run sim:report` → BALANCE_REPORT.md (**report-only** — humans
+  review every bottleneck) — SIMULATION-FRAMEWORK.md
 - ✅ Data-driven registries + content validator (`core/registry.ts`, `core/validate.ts`)
 - ✅ Save: versioned blob, migrations, backups, export/import (`save/saveStore.ts`, UI `SaveManager`)
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md

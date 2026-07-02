@@ -13,7 +13,7 @@ import type { SimCheckpoint } from './progressionSim';
 import { meta } from '../state/meta';
 
 function cp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
-  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, ...p };
+  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, ...p };
 }
 
 describe('problem detectors (synthetic traces)', () => {

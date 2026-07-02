@@ -19,6 +19,9 @@ import type { EnemyKind, HeroKind, MasteryCount, TowerKind } from '../core/types
 import { cardRegistry } from '../core/cards';
 import { itemPowerScore } from '../state/itemPower';
 import { EQUIP_SLOTS, itemDef } from '../core/equipment';
+import { sumValues } from '../core/math';
+import { highestCampaignStage } from '../save/derive';
+import type { Persona } from './personas';
 
 /** The WORLD MODEL — the only simulated part (the run itself). Coarse, centralized,
  *  calibratable; the report states these assumptions up front. */
@@ -106,18 +109,23 @@ function makeResult(opts: {
 }
 
 /** Greedy spend pass — the virtual player converts every farmable currency into permanent
- *  power through the REAL purchase APIs (each guards caps/funds itself). */
-function spendEverything(): void {
+ *  power through the REAL purchase APIs (each guards caps/funds itself). Tower and hero
+ *  tracks spend SEPARATE wallets, so persona `focus` models neglect, not ordering: an
+ *  off-track gets a small per-pass buy cap (banked shards convert slower — what a focused
+ *  player actually does). `balanced` reproduces the historical policy exactly. */
+function spendEverything(focus: Persona['focus'] = 'balanced'): void {
   const guard = (fn: () => boolean, cap = 200): void => {
     for (let i = 0; i < cap && fn(); i++) { /* buy until refused */ }
   };
   for (const e of meta.heroCollection()) if (!e.unlocked && e.canUnlock) meta.unlockHero(e.kind);
-  for (const k of TOWER_ORDER) guard(() => meta.buyStar(k), 20);
-  for (const k of HERO_ORDER) guard(() => meta.buyHeroStar(k), 20);
+  const towerCap = focus === 'heroes' ? 4 : 20;
+  const heroCap = focus === 'towers' ? 4 : 20;
+  for (const k of TOWER_ORDER) guard(() => meta.buyStar(k), towerCap);
+  for (const k of HERO_ORDER) guard(() => meta.buyHeroStar(k), heroCap);
   for (const u of META_UPGRADES) guard(() => meta.buyUpgrade(u.id), 40);
   guard(() => meta.buyGeneSlot(), 6);
   const owned = meta.get().stats.uniqueCards;
-  for (const id of owned) guard(() => meta.upgradeGene(id), 12);
+  for (const id of owned) guard(() => meta.upgradeGene(id), focus === 'completionist' ? 24 : 12);
   // Equip the strongest item per slot on every hero (shared best — coarse but honest), then
   // SALVAGE everything weaker — what a real player does, and it keeps the save bounded so
   // long simulations don't crawl on ever-growing inventory clones.
@@ -152,6 +160,21 @@ export interface SimCheckpoint {
   farmRuns: number; // runs spent farming Infinite (the loop's farm share)
   readiness: number; // frontier readiness at the checkpoint
   unspentShards: number; // sink-exhaustion signal (Genome Cores with nothing to buy)
+  unlocks: number; // cumulative ACQUISITIONS (stars/upgrades/heroes/molts/genes/stages/feats) — the dopamine ledger
+  failedPushes: number; // cumulative under-ready campaign attempts that FAILED (persona frustration)
+}
+
+/** One integer that counts every meaningful acquisition on the account — each +1 is one
+ *  "dopamine moment" (a star, an upgrade level, a hero, a molt, a gene level, a stage, a
+ *  feat). Band deltas measure unlock cadence; a flat signature is a dead zone. */
+export function progressSignature(): number {
+  const s = meta.get();
+  const geneLv = Object.values(meta.geneLevels()).reduce((a, b) => a + b, 0);
+  return (
+    sumValues(s.towerStars) + sumValues(s.heroStars) + sumValues(s.upgrades) +
+    sumValues(s.prestige.nodes) + s.heroUnlocked.length + s.prestige.molts +
+    (s.geneSlots - 1) + geneLv + s.achievements.length + highestCampaignStage(s)
+  );
 }
 
 export interface SimFlags {
@@ -168,40 +191,63 @@ export interface SimTrace {
 }
 
 /** Simulate one account for `hours` of play, snapshotting at each band. Drives the REAL
- *  meta singleton (reset first) — accounts are sequential, never concurrent. */
-export function simulateAccount(seed: number, bands: number[]): SimTrace {
+ *  meta singleton (reset first) — accounts are sequential, never concurrent. Omitting
+ *  `persona` reproduces the historical loop-faithful policy EXACTLY (the pinned pacing
+ *  envelope); a persona modulates decisions/luck/spending (docs/SIMULATION-FRAMEWORK.md). */
+export function simulateAccount(seed: number, bands: number[], persona?: Persona): SimTrace {
   meta.reset();
   const rng = mulberry32(seed);
   const hero = HERO_ORDER[0];
   const totalHours = bands[bands.length - 1];
+  const luck = persona?.luck ?? 1;
+  const menuSec = persona?.menuSec ?? WORLD.secMenu;
   let secs = 0;
   let runs = 0;
   let farmRuns = 0;
+  let failedPushes = 0;
   const checkpoints: SimCheckpoint[] = [];
   let bandIx = 0;
 
   while (secs < totalHours * 3600) {
     const save = meta.get();
     const ls = loopState(save);
+    // Persona deviations from the intended macro-loop: farm when told to advance
+    // (infinite-lovers), or push the frontier under-ready (impatient campaigners).
+    let phase: 'advance' | 'farm' | 'push-early' =
+      ls.phase === 'advance-campaign' ? 'advance' : 'farm';
+    if (persona) {
+      if (phase === 'advance' && rng() < persona.farmAnyway) phase = 'farm';
+      else if (phase === 'farm' && rng() < persona.pushRisk) phase = 'push-early';
+    }
     let result: RunResult;
-    if (ls.phase === 'advance-campaign') {
+    if (phase === 'advance') {
       const stage = ls.frontierStage;
       const waves = WORLD.campaignWaves(stage);
-      const kills = Math.round(waves * WORLD.killsPerWave * (0.9 + rng() * 0.2));
+      const kills = Math.round(waves * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
       result = makeResult({ rng, waves, kills, won: true, endless: false, stage, hero });
+    } else if (phase === 'push-early') {
+      // Under-ready attempt: win chance tracks readiness; a loss burns most of the run's
+      // time for no stage credit — the wall-frustration model for campaign-focused players.
+      const stage = ls.frontierStage;
+      const waves = WORLD.campaignWaves(stage);
+      const won = rng() < Math.max(0.1, Math.min(0.95, ls.readiness));
+      if (!won) failedPushes++;
+      const played = won ? waves : Math.max(2, Math.round(waves * 0.6));
+      const kills = Math.round(played * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
+      result = makeResult({ rng, waves: played, kills, won, endless: false, stage, hero });
     } else {
       farmRuns++;
       // Farm at the predicted frontier ±12% — short runs would fail the qualify gate.
       const depth = Math.max(5, Math.round(ls.farmDepth * (0.88 + rng() * 0.24)));
-      const kills = Math.round(depth * WORLD.killsPerWave * (0.9 + rng() * 0.2));
+      const kills = Math.round(depth * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
       result = makeResult({ rng, waves: depth, kills, won: false, endless: true, hero });
     }
     meta.syncRunLoot(result.wave, result.kills); // live loot banking, like a real run
     meta.finishRun(result);
     while (meta.openContainer()) { /* crack the whole stockpile */ }
-    spendEverything();
+    if (!persona || rng() >= persona.spendSkip) spendEverything(persona?.focus);
     runs++;
-    secs += result.wave * WORLD.secPerWave + WORLD.secMenu;
+    secs += result.wave * WORLD.secPerWave + menuSec;
 
     while (bandIx < bands.length && secs >= bands[bandIx] * 3600) {
       const s2 = meta.get();
@@ -216,6 +262,8 @@ export function simulateAccount(seed: number, bands: number[]): SimTrace {
         farmRuns,
         readiness: Number(ls2.readiness.toFixed(3)),
         unspentShards: s2.shards,
+        unlocks: progressSignature(),
+        failedPushes,
       });
       bandIx++;
     }
