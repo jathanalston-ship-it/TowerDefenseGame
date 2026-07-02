@@ -65,6 +65,37 @@ describe('enemy roster (~30, role-trait driven)', () => {
     expect((g.enemies.find((e) => e.kind === 'knitter')?.hp ?? 0)).toBeGreaterThan(50);
   });
 
+  it('an Artillery enemy LOBS a visible shell; Nucleus damage lands on IMPACT, not at fire time', () => {
+    const g = new Game(5, NO_META);
+    g.startWave();
+    g.debugSpawn('siegeworm', 1);
+    const worm = g.enemies.find((e) => e.kind === 'siegeworm')!;
+    worm.y = 700; // deep inside the standoff band → it plants and bombards
+    const integrity0 = g.integrity;
+    let guard = 0;
+    // Cull everything else each tick so only the bombardment can touch integrity.
+    const cull = (): void => { for (const e of g.enemies) if (e.kind !== 'siegeworm') { e.hp = 0; e.alive = false; } };
+    while (g.enemyShells.length === 0 && guard++ < 600) { cull(); g.advance(SIM_DT); }
+    expect(g.enemyShells.length).toBeGreaterThan(0); // the shell is airborne…
+    expect(g.integrity).toBe(integrity0); // …and NOTHING has landed yet
+    while (g.enemyShells.length > 0 && guard++ < 2000) { cull(); g.advance(SIM_DT); }
+    expect(g.integrity).toBeLessThan(integrity0); // impact applied on arrival
+  });
+
+  it('a broken shield sets the shatter flash (the visible crack moment)', () => {
+    const g = new Game(7, NO_META);
+    for (let i = 0; i < 2; i++) g.placeTower('needle', towerSlots[i].x, towerSlots[i].y);
+    g.startWave();
+    g.debugSpawn('bulwark', 1);
+    const b = g.enemies.find((e) => e.kind === 'bulwark')!;
+    b.y = towerSlots[0].y - 120;
+    b.speed = 0; // pin it in tower range so the needles chew the shield down
+    let guard = 0;
+    while ((b.shield ?? 0) > 0 && b.alive && guard++ < 4000) g.advance(SIM_DT);
+    expect(b.shield ?? 0).toBeLessThanOrEqual(0); // the shield actually broke…
+    expect(b.shieldFlash).not.toBeUndefined(); // …and the crack moment was marked for the renderer
+  });
+
   it('the endless Director fields a varied bestiary (integration)', () => {
     const KINDS: TowerKind[] = ['needle', 'mortar', 'reactor'];
     const g = new Game(99, NO_META, undefined, undefined, undefined, { mode: 'endless' });

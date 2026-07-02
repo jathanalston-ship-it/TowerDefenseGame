@@ -118,6 +118,7 @@ export function drawGame(
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
   for (const p of rs.projectiles) drawProjectile(ctx, p);
+  drawEnemyShells(ctx, rs); // artillery bombardment arcs (empty array on the golden path)
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
@@ -789,6 +790,39 @@ function drawSkinnedProjectile(ctx: CanvasRenderingContext2D, p: RenderState['pr
 
 // ── Enemies ──────────────────────────────────────────────────────────────────
 
+/** Artillery shells in flight (docs/ENEMIES.md §artillery) — a lobbed arc with a tracking
+ *  ground shadow and a landing reticle that sharpens as the shell descends, so incoming
+ *  Nucleus damage is VISIBLE and readable before it lands. */
+function drawEnemyShells(ctx: CanvasRenderingContext2D, rs: RenderState): void {
+  for (const s of rs.enemyShells) {
+    const k = Math.min(1, Math.max(0, s.t));
+    const gx = s.x + (s.targetX - s.x) * k;
+    const gy = s.y + (s.targetY - s.y) * k; // ground track
+    const y = gy - Math.sin(k * Math.PI) * 48; // the lob
+    const c = hexRgb(s.color);
+    // ground shadow under the shell
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(gx, gy, 4, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // short trail back along the arc
+    for (let i = 1; i <= 3; i++) {
+      const kk = k - i * 0.045;
+      if (kk <= 0) continue;
+      const tx = s.x + (s.targetX - s.x) * kk;
+      const ty = s.y + (s.targetY - s.y) * kk - Math.sin(kk * Math.PI) * 48;
+      drawShape(ctx, 'circle', tx, ty, 2.4 - i * 0.6, rgba(c, 0.4 - i * 0.11));
+    }
+    glowDisc(ctx, gx, y, 7, rgba(c, 0.3));
+    drawShape(ctx, 'circle', gx, y, 3.2, rgba(c, 0.95));
+    // landing reticle sharpens over the impact point on the descent
+    if (k > 0.55) {
+      const a = (k - 0.55) / 0.45;
+      ring(ctx, s.targetX, s.targetY, 12 - a * 6, rgba(hexRgb('#ff8a3d'), 0.25 + a * 0.55), 1.2, [3, 3]);
+    }
+  }
+}
+
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
   e: RenderState['enemies'][number],
@@ -833,12 +867,124 @@ function drawEnemy(
     ctx.setLineDash([]);
   }
 
+  // ── ROLE identity layer (docs/ENEMIES.md §visual language) — every optional trait reads
+  //    on the body BEFORE it acts. Keyed off def fields the historical seven never set and
+  //    LOD-gated, so the golden look and the huge-swarm frame cost are both untouched. ──
+  if (detail) {
+    // Support aura — the heal/shield circle IS the threat; show its true reach.
+    if (def.auraRadius) {
+      ring(ctx, e.x, drawY, def.auraRadius * pulse(t + e.id, 2.6, 0.97, 1.03), rgba(hexRgb(def.color), 0.14), 1, [6, 7]);
+      ring(ctx, e.x, drawY, r + 4, rgba(hexRgb(def.color), pulse(t + e.id, 2.6, 0.25, 0.5)), 1.2);
+    }
+    // Summoner womb — swells toward each birth, releasing at the reset.
+    if (def.summon && e.summonCd !== undefined) {
+      const g = 1 - Math.max(0, Math.min(1, e.summonCd / def.summon.interval));
+      drawShape(ctx, 'circle', e.x, drawY + r * 0.25, r * (0.3 + 0.24 * g * g), rgba(hexRgb(def.color), 0.45 + 0.35 * g));
+    }
+    // Artillery standoff — dug-in braces + a muzzle charge that betrays the next volley.
+    if (def.siege && e.y >= Math.max(HEIGHT * (2 / 3), DEFENSE_TOP_Y - def.siege.range)) {
+      ctx.strokeStyle = rgba(hexRgb(def.color), 0.55);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(e.x - r * 0.9, drawY + r * 0.7);
+      ctx.lineTo(e.x - r * 1.4, drawY + r * 1.1);
+      ctx.moveTo(e.x + r * 0.9, drawY + r * 0.7);
+      ctx.lineTo(e.x + r * 1.4, drawY + r * 1.1);
+      ctx.stroke();
+      const chg = 1 - Math.max(0, Math.min(1, (e.siegeCd ?? def.siege.interval) / def.siege.interval));
+      glowDisc(ctx, e.x, drawY - r * 0.9, r * (0.3 + 0.55 * chg), rgba(hexRgb('#ffb84d'), 0.2 + 0.6 * chg * chg));
+    }
+    // Suicide payload — a pulsing blast-radius warning once the line is in reach.
+    if (def.explodeRadius && e.y > DEFENSE_TOP_Y - def.explodeRadius) {
+      ring(ctx, e.x, drawY, def.explodeRadius, rgba(hexRgb('#ff8a3d'), pulse(t * 2 + e.id, 4, 0.15, 0.4)), 1.5, [4, 4]);
+    }
+    // Regeneration — knitting motes rise while wounded flesh reweaves.
+    if ((def.regenPerSec ?? 0) > 0 && e.hp < e.maxHp) {
+      for (let i = 0; i < 3; i++) {
+        const ph = (t * 0.9 + i / 3 + (e.id % 7) * 0.13) % 1;
+        const mx = e.x + Math.sin((t + i * 2.1 + e.id) * 2.2) * r * 0.5;
+        drawShape(ctx, 'circle', mx, drawY + r * 0.6 - ph * r * 1.8, 1.6 * (1 - ph * 0.5), rgba(hexRgb('#7ce0a0'), (1 - ph) * 0.7));
+      }
+    }
+  }
+
   // body + a tier-weighted rim so it reads as a solid, threat-ranked unit
   drawShape(ctx, shape, e.x, drawY, r, def.color);
   if (detail) {
     const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
     strokeShape(ctx, shape, e.x, drawY, r, rim, tier === 'normal' ? 1.5 : 2.25);
     drawShape(ctx, shape, e.x, drawY - r * 0.32, r * 0.4, THEME.enemy.gloss); // sheen = volume
+
+    // Shield bubble — a front-arc barrier facing the descent, alpha by remaining charge;
+    // it SHATTERS visibly the instant it breaks (sim sets shieldFlash at 0-cross).
+    if ((e.shield ?? 0) > 0) {
+      const cap = Math.max(def.shieldHp ?? 0, e.shield as number, 60); // aura-granted shields have no def cap
+      const frac = Math.min(1, (e.shield as number) / cap);
+      ctx.strokeStyle = rgba(hexRgb('#7fd0ff'), 0.35 + 0.45 * frac);
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 4, Math.PI * 0.18, Math.PI * 0.82); // facing the line (downfield)
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r + 7, Math.PI * 0.3, Math.PI * 0.7);
+      ctx.strokeStyle = rgba(hexRgb('#7fd0ff'), 0.2 + 0.25 * frac);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    if ((e.shieldFlash ?? 0) > 0) {
+      const a = (e.shieldFlash as number) / 0.3;
+      ring(ctx, e.x, drawY, r + 6 + (1 - a) * 14, rgba(hexRgb('#bfe9ff'), a * 0.8), 1 + a * 2);
+    }
+
+    // ── BOSS runtime (docs/BOSS-DESIGN.md) — the framework's live state ON the body, so an
+    //    invulnerability window, carapace, enrage, charge and channel all read at a glance. ──
+    if (e.boss) {
+      const b = e.boss;
+      if (b.shielded > 0) {
+        // Invulnerability — a hard golden shell: attacks are wasted, and it LOOKS that way.
+        ring(ctx, e.x, drawY, r * 1.22, rgba(hexRgb('#ffe9a0'), pulse(t, 6, 0.55, 0.95)), 2.5);
+        ring(ctx, e.x, drawY, r * 1.22 + 4, rgba(hexRgb('#ffe9a0'), 0.25), 1);
+      }
+      if (b.carapace > 0 && b.carapaceT > 0) {
+        // Carapace window — bone plating segments while the bonus armor holds (crack it with Fracture).
+        ctx.strokeStyle = rgba(hexRgb('#c8d0dc'), 0.8);
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+          const a0 = (i / 4) * Math.PI * 2 + t * 0.3;
+          ctx.beginPath();
+          ctx.arc(e.x, drawY, r + 3, a0, a0 + Math.PI * 0.32);
+          ctx.stroke();
+        }
+      }
+      if (b.enrage > 0) {
+        // Enrage — a deepening blood rim; each stack thickens the fury.
+        const k = Math.min(1, b.enrage * 0.2);
+        ring(ctx, e.x, drawY, r + 2, rgba(hexRgb('#ff4d4d'), 0.3 + 0.5 * k), 2 + k * 2);
+      }
+      if (b.charge > 0) {
+        // Charge telegraph — the dash vector flashes downfield before it fires.
+        ctx.strokeStyle = rgba(hexRgb('#ffd24d'), pulse(t, 9, 0.4, 0.9));
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(e.x, drawY + r);
+        ctx.lineTo(e.x, drawY + r * 4);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        chevronDown(ctx, e.x, drawY + r * 4 + 4, 7, rgba(hexRgb('#ffd24d'), 0.9));
+      }
+      if (b.channel > 0) {
+        // Nucleus channel — a feeding tether; sever it by breaking the channel.
+        ctx.strokeStyle = rgba(hexRgb('#ff8a3d'), pulse(t, 5, 0.35, 0.7));
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 6]);
+        ctx.beginPath();
+        ctx.moveTo(e.x, drawY);
+        ctx.lineTo(nucleusPoint.x, nucleusPoint.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
   }
 
   if (detail) {
@@ -868,6 +1014,13 @@ function drawEnemy(
       const bw = tier === 'boss' ? r * 2.4 : r * 2;
       const by = tier === 'boss' ? drawY - r - 16 : drawY - r - 9;
       healthBar(ctx, e.x, by, bw, pct, THEME.enemy.hpBack, THEME.enemy.hpEdge, fill);
+      // Boss PHASE pips — how deep into the fight it is (fills as phases fall).
+      if (e.boss && e.boss.phases > 1) {
+        for (let i = 0; i < e.boss.phases; i++) {
+          const px = e.x - ((e.boss.phases - 1) * 7) / 2 + i * 7;
+          drawShape(ctx, 'circle', px, by + 7, 2, i <= e.boss.phase ? rgba(hexRgb('#ff4d6d'), 0.95) : 'rgba(255,255,255,0.25)');
+        }
+      }
     }
   }
 }

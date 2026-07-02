@@ -258,3 +258,32 @@ biomes; need cards → hit Parasite/Hive biomes.
 All five appear from early game (in mild form) and escalate along their *own* axis, so
 the *kind* of challenge keeps changing across the 1000-hour curve — not just the size of
 the health bars.
+
+---
+
+## 8. Battlefield visual language — roles read BEFORE they act
+
+Every role trait in the ~30-archetype roster (`src/core/config.ts` `ENEMY_DEFS`) now carries
+a battlefield tell, drawn by `src/render/renderer.ts` `drawEnemy` (LOD-gated; the historical
+seven set no traits, so the golden-era look is untouched):
+
+| Role | Tell |
+|---|---|
+| **Shielded** (Aegis Drone, Bastion Warden) | a cyan front-arc bubble facing the line, alpha = remaining charge; it **visibly shatters** the instant it breaks (`shieldFlash`, set by the sim at the 0-cross) |
+| **Regenerating** (Flesh Knitter, Bog Revenant, Apex) | green knitting motes rise while wounded flesh reweaves |
+| **Summoner** (Brood Matron, Hive Caller, Dread Nought) | the womb **swells toward each birth** and releases with a spore burst |
+| **Support** (Vital Mender, Aegis Cantor) | the aura's true reach drawn as a slow-pulsing dashed circle |
+| **Suicide** (Bile Bomber, Spore Popper) | a pulsing blast-radius warning ring once the line is in reach |
+| **Artillery** (Siege Maw, Acid Spitter) | dug-in stance braces + a muzzle charge that betrays the next volley (§9) |
+| **Boss runtime** (`BossRuntime`) | invulnerability = hard golden shell; carapace = rotating bone plating; enrage = deepening blood rim; charge = flashing dash vector + chevron; Nucleus channel = feeding tether; **phase pips** under the health bar |
+
+## 9. Artillery shells — bombardment is visible and lands on impact
+
+Siege enemies previously deducted Nucleus integrity **instantly** on their timer, with only
+a damage float — an invisible tax. They now **lob a real shell** (`EnemyShell`, sim-owned):
+launched on the volley timer, arcing to the Nucleus over `distance/260` seconds (≥ 0.5 s),
+with a ground-tracking shadow and a landing reticle that sharpens on descent; **integrity
+damage applies on impact**, with the breach float + burst at the landing point. In-flight
+shells keep flying through the wave-end settle (combat residue, like tower projectiles).
+The shell array is empty on the golden path (no historical enemy sets `siege`), and the
+lifecycle is pinned in `src/core/enemies.test.ts`.

@@ -153,6 +153,7 @@ import type {
   TowerKind,
   TowerProgress,
   FloatingText,
+  EnemyShell,
   CardOption,
   WavePreviewEntry,
 } from './types';
@@ -212,6 +213,7 @@ export interface RenderState {
   enemies: Enemy[];
   towers: Tower[];
   projectiles: Projectile[];
+  enemyShells: EnemyShell[]; // artillery bombardment in flight (drawn as arcing lobs)
   pools: Pool[];
   floats: FloatingText[];
   particles: Particle[];
@@ -321,6 +323,7 @@ export class Game {
   floats: FloatingText[] = [];
   particles: Particle[] = [];
   minions: Minion[] = []; // summoned friendly units (empty on the golden path → byte-identical)
+  enemyShells: EnemyShell[] = []; // artillery shells in flight (empty on the golden path)
   // The active hero roster. One today (the selected hero); the array is the seam for
   // future hero slots (HEROES.md) — slot unlocks just push more heroes in.
   heroes: Hero[];
@@ -1600,6 +1603,7 @@ export class Game {
       this.poolSystem(dt);
       this.statusSystem(dt);
       this.enemyAbilitySystem(dt); // regen / support auras / summons (no-op for trait-less enemies)
+      this.enemyShellSystem(dt); // artillery shells in flight (empty array on the golden path)
       this.enemyMoveSystem(dt);
       this.heroSystem(dt);
       this.deathSystem();
@@ -1617,6 +1621,7 @@ export class Game {
       // (and autoplay never advances in these phases, so the golden run is byte-identical).
       this.emergencySystem(dt); // no enemies here → eases the emergency visuals back to rest
       this.projectileSystem(dt);
+      this.enemyShellSystem(dt); // in-flight shells still land (combat residue, like projectiles)
       this.poolSystem(dt);
       this.heroSystem(dt);
       this.floatSystem(dt);
@@ -1947,9 +1952,27 @@ export class Game {
         if (e.summonCd <= 0) {
           e.summonCd = def.summon.interval;
           for (let i = 0; i < def.summon.count; i++) this.spawnNear(def.summon.kind, e.x, e.y);
+          // Birth burst — the womb's release reads on the battlefield (render-only particles).
+          this.spawnParticles(e.x, e.y, PARTICLE.spore, def.color);
         }
       }
+      if (e.shieldFlash !== undefined && e.shieldFlash > 0) e.shieldFlash -= dt; // shatter flash decay
     }
+  }
+
+  /** Advance artillery shells: arc toward the Nucleus; damage lands ON IMPACT (with the
+   *  breach float + burst the old instant hit used to fire). Empty on the golden path. */
+  private enemyShellSystem(dt: number): void {
+    if (this.enemyShells.length === 0) return;
+    for (const s of this.enemyShells) {
+      s.t += dt / s.duration;
+      if (s.t >= 1) {
+        if (!this.god) this.integrity -= s.damage;
+        this.floats.push({ x: s.targetX, y: s.targetY - 18, text: `-${s.damage}`, color: '#ff8a3d', life: 0.9 });
+        this.spawnParticles(s.targetX, s.targetY, PARTICLE.breach, s.color);
+      }
+    }
+    this.enemyShells = this.enemyShells.filter((s) => s.t < 1);
   }
 
   /** Project a Support enemy's aura onto nearby allies — heal and/or refresh a shield. */
@@ -2396,8 +2419,13 @@ export class Game {
           e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
           if (e.siegeCd <= 0) {
             e.siegeCd = def.siege.interval;
-            if (!this.god) this.integrity -= def.siege.damage;
-            this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `-${def.siege.damage}`, color: '#ff8a3d', life: 0.9 });
+            // Launch a VISIBLE shell (docs/ENEMIES.md §artillery) — damage lands on IMPACT,
+            // so the bombardment reads as a dodgeable arc instead of an invisible tax.
+            const dist = Math.hypot(nucleusPoint.x - e.x, nucleusPoint.y - e.y);
+            this.enemyShells.push({
+              x: e.x, y: e.y, targetX: nucleusPoint.x, targetY: nucleusPoint.y,
+              t: 0, duration: Math.max(0.5, dist / 260), damage: def.siege.damage, color: def.color,
+            });
             this.pushSfx('breach');
           }
           continue; // standoff: it shells the core instead of advancing
@@ -3265,6 +3293,7 @@ export class Game {
       const absorbed = Math.min(e.shield as number, applied);
       e.shield = (e.shield as number) - absorbed;
       toBody = applied - absorbed;
+      if (e.shield <= 0) e.shieldFlash = 0.3; // the bubble SHATTERS — a readable break moment
     }
     e.hp -= toBody;
     e.dmgAccum += applied; // banked for the next aggregated damage number
@@ -3588,6 +3617,7 @@ export class Game {
       enemies: this.enemies,
       towers: this.towers,
       projectiles: this.projectiles,
+      enemyShells: this.enemyShells,
       pools: this.pools,
       floats: this.floats,
       particles: this.particles,

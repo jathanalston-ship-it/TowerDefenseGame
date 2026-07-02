@@ -95,8 +95,23 @@ export interface Enemy {
   // ── Role-trait runtime (the ~30-enemy roster). Optional/lazy: undefined on the historical
   //    seven enemies, so every gated hook is a no-op there and the golden run is byte-identical.
   shield?: number; // remaining front-shield HP absorbed before the body (Shielded / Support)
+  shieldFlash?: number; // seconds of shield-SHATTER flash remaining (visual; set when it breaks)
   summonCd?: number; // seconds until the next add spawns (Summoner)
   siegeCd?: number; // seconds until the next bombardment volley (Artillery)
+}
+
+/** An ARTILLERY shell in flight (Siege Maw / Acid Spitter bombardment — docs/ENEMIES.md
+ *  §artillery). Sim-real: damage lands ON IMPACT, so the player sees the threat coming.
+ *  The array is empty on the golden path (no historical enemy sets `siege`). */
+export interface EnemyShell {
+  x: number; // launch point (the renderer arcs from here)
+  y: number;
+  targetX: number; // impact point (the Nucleus)
+  targetY: number;
+  t: number; // flight progress 0..1
+  duration: number; // total flight seconds
+  damage: number; // integrity damage on impact
+  color: string; // the firing enemy's hue (shell + trail tint)
 }
 
 /** Live state a framework boss carries on top of its enemy body (see boss.ts). */

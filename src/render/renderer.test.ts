@@ -66,4 +66,37 @@ describe('renderer branch cosmetics (smoke)', () => {
     }
     expect(sawSkinnedShot).toBe(true);
   });
+
+  it('draws the full ROLE-TRAIT layer + boss runtime + artillery shells without throwing', () => {
+    const game = new Game(11, NO_META);
+    game.startWave();
+    // One of every visual role: shield bubble, regen motes, womb, aura, payload warning, standoff.
+    for (const kind of ['bulwark', 'knitter', 'broodmother', 'mender', 'cantor', 'bomber', 'siegeworm', 'spitter'] as const) {
+      game.debugSpawn(kind, 1);
+    }
+    // Park the artillery in its standoff band so shells launch; wound the knitter so motes rise;
+    // walk the bomber into its warning band.
+    for (const e of game.enemies) {
+      if (e.kind === 'siegeworm' || e.kind === 'spitter') { e.y = 700; e.speed = 0; }
+      if (e.kind === 'knitter') e.hp = 40;
+      if (e.kind === 'bomber') { e.y = 850; e.speed = 0; }
+    }
+    // A framework boss exercising the runtime layer (shield window + phases + charge fields).
+    game.spawnBoss({
+      id: 'smoke_boss', name: 'Smoke Boss', chassis: 'controller', hpMult: 1, radius: 28, color: '#f0f',
+      bounty: 10, damage: 8, modifiers: [],
+      modules: [{ kind: 'shieldSelf', cooldown: 1, duration: 1 }],
+      phases: [{ threshold: 1, modules: [0] }, { threshold: 0.5, modules: [0] }],
+    } as never);
+    const ctx = stubCtx();
+    let sawShell = false;
+    expect(() => {
+      for (let i = 0; i < 300; i++) {
+        game.advance(SIM_DT);
+        sawShell ||= game.enemyShells.length > 0;
+        if (i % 20 === 0) drawGame(ctx, game.getRenderState(), null, {});
+      }
+    }).not.toThrow();
+    expect(sawShell).toBe(true); // the bombardment actually flew through the draw path
+  });
 });
