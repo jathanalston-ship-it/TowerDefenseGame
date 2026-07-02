@@ -361,6 +361,8 @@ export function GameView({
         audio.cue('select');
       } else if (k === 'q' || k === 'Q') {
         game.armAbility();
+      } else if (k === 'e' || k === 'E') {
+        setEvoOpen((v) => !v); // Hero Combat Console (docs/HERO-EVOLUTION.md §console)
       } else if (k === ' ' || k === 'Spacebar') {
         e.preventDefault();
         game.startWave();
@@ -386,7 +388,7 @@ export function GameView({
 
   return (
     <div className="game">
-      <Hud hud={hud} power={power} />
+      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} />
       <PowerToaster />
       <MasteryToaster />
       <div className="stage">

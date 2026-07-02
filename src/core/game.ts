@@ -1419,6 +1419,9 @@ export class Game {
    *  active hero at once (and to any hero unlocked later — makeHero re-reads the bundle), and
    *  re-derives the live multiplier bundle. Returns false if the run is over / unknown id / maxed /
    *  unaffordable, so the caller can gate feedback on a real purchase. */
+  /** Biomass invested into Hero Evolution this run (Hero Combat Console economy readout). */
+  heroEvoSpent = 0;
+
   buyHeroEvolution(catId: string): boolean {
     if (this.phase === 'won' || this.phase === 'lost') return false;
     const cat = HERO_EVO_BY_ID[catId];
@@ -1429,6 +1432,7 @@ export class Game {
     if (this.biomass < cost) return false;
     const powerBefore = effectsPower(this.powerEffects()); // runtime Power validator (cold path)
     this.biomass -= cost;
+    this.heroEvoSpent += cost; // the console's economy ledger (display only)
     this.heroEvoLevels[catId] = level + 1;
     this.evo = deriveHeroEvoMods(this.heroEvoLevels);
     // Vitality changes maxHp on the LIVE heroes — grow every hero's pool and heal by the delta so

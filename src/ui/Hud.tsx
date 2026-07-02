@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { HudSnapshot } from '../core/types';
 import { HERO_DEFS } from '../core/config';
+import { HERO_EVO, HERO_EVO_CATEGORIES, heroEvoCost } from '../core/heroEvolution';
 import { formatPower } from '../core/power';
 import { ProgressBar } from './components/ProgressBar';
 import { LootMeter } from './LootMeter';
@@ -20,11 +21,18 @@ function threatColor(pct: number): string {
   return pct < 33 ? 'var(--success)' : pct < 66 ? 'var(--warn)' : 'var(--danger)';
 }
 
-export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.Element {
+export function Hud({ hud, power, onOpenConsole }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
   const heroDef = HERO_DEFS[hud.hero.kind];
+  // Hero Summary signals (docs/HERO-EVOLUTION.md §console): total evo levels + "an upgrade is
+  // affordable" — the cheapest unowned-tier cost vs banked biomass (same math the console uses).
+  const buffCount = hud.heroEvo.totalOwned;
+  const consoleReady = HERO_EVO_CATEGORIES.some((c) => {
+    const lvl = hud.heroEvo.levels[c.id] ?? 0;
+    return lvl < HERO_EVO.maxLevel && hud.biomass >= heroEvoCost(c, lvl, hud.heroEvo.totalOwned);
+  });
   // Threat = a readable pressure %, derived from the live swarm size (presentation only).
   const threatPct = Math.min(100, Math.round((hud.enemiesAlive / 40) * 100));
 
@@ -197,8 +205,24 @@ export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.El
 
       <LootMeter />
 
-      <div className="hud-cell hud-hero tt" tabIndex={0} data-tut="hero" style={{ ['--hud-acc' as string]: heroDef.color }}>
-        <div className="hud-k">{heroDef.name}</div>
+      <div
+        className={`hud-cell hud-hero tt${consoleReady ? ' has-upgrade' : ''}`}
+        tabIndex={0}
+        role="button"
+        data-tut="hero"
+        style={{ ['--hud-acc' as string]: heroDef.color }}
+        onClick={onOpenConsole}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenConsole?.(); } }}
+        aria-label={`${heroDef.name} — open the Hero Combat Console (E)`}
+      >
+        <div className="hud-k">
+          {heroDef.name}
+          <span className="hud-hero-meta">
+            {buffCount > 0 && <i className="hud-hero-buffs" title={`${buffCount} evolution levels active`}>▲{buffCount}</i>}
+            {!hud.hero.abilityReady && !hud.hero.down && <i className="hud-hero-cd">↻{Math.ceil(hud.hero.abilityCd)}s</i>}
+            {consoleReady && <i className="hud-hero-up" title="Evolution affordable — open the Console (E)">◈</i>}
+          </span>
+        </div>
         {hud.hero.down ? (
           <div className="hud-v is-danger">DOWN {Math.ceil(hud.hero.respawn)}s</div>
         ) : (
@@ -218,7 +242,7 @@ export function Hud({ hud, power }: { hud: HudSnapshot; power: number }): JSX.El
           </div>
         )}
         <span className="tt-bubble">
-          {hud.hero.abilityReady ? `${heroDef.ability.name} ready.` : `${heroDef.ability.name} on cooldown.`}
+          {hud.hero.abilityReady ? `${heroDef.ability.name} ready.` : `${heroDef.ability.name} on cooldown.`} Tap to open the Combat Console (E) · ⬢ {hud.biomass} banked.
         </span>
       </div>
     </div>

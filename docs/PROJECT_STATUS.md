@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-02 (identity unification: VISUAL_IDENTITY trilogy + CSS/audio unification; Tower Lab v2 rail+showcase; live Mastery experience).
+> **Last updated:** 2026-07-02 (multi-platform responsive framework + Hero Combat Console).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -23,7 +23,10 @@ doc-sync anchors, `npm run validate`, handoff scaffolder)** · UI standards + co
 (`docs/VISUAL_IDENTITY.md` / `docs/UI_STYLE_GUIDE.md` / `docs/DESIGN_LANGUAGE.md`; type/tracking
 scales enforced, drone retired → live music intensity)** · Tower Lab v2 (specimen rail +
 mutation-chamber showcase, bench prefs) · Live Mastery (in-run projection, level-up
-celebrations, per-tower lifetime ledgers v20, Results ledger, Help entry).
+celebrations, per-tower lifetime ledgers v20, Results ledger, Help entry) · **Multi-platform
+responsive framework (`docs/RESPONSIVE-DESIGN.md`: drawer shell, container-sized panels, safe
+areas, touch layer, probe-validated 13-viewport matrix)** · Hero Combat Console (three-region
+in-run command surface, roster tabs, hold-to-buy, preview===outcome comparisons, HUD summary).
 
 ## Systems in progress
 

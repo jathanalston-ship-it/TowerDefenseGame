@@ -46,3 +46,48 @@ interrupts gameplay.
 - **Known limits:** a mid-run `fieldHero` gets no per-hero *gear* fold (gear is roster-time);
   Precision/Savagery apply to auto-attacks + signature abilities (role pulses take Lethality, not
   crit). Menu Power shows account × Evolution (gene-card temporary power isn't separately exposed).
+
+
+---
+
+## §console — the Hero Combat Console (2026-07 overhaul, implemented)
+
+The in-run menu became a command surface (src/ui/HeroEvolutionPanel.tsx — the component name
+stays for continuity; the UI is the CONSOLE). Non-modal as ever: the sim never pauses.
+
+**Audit that drove it** (pre-overhaul problems): no hero identity (you strengthened champions
+you couldn't see), label-only comparisons (no Power/DPS/survivability deltas), invisible
+economy (no invested total), single-click buys, a flat 7-card grid with no hierarchy, no
+ability context, and a bare open button.
+
+**Layout** — three regions over the evo-menu shell (responsive: 3 → 2 → 1 columns at
+900/640px; bounded to the safe viewport):
+- **VITALS**: the selected champion's live numbers — HP bar (live entity), damage / atk-per-s
+  / move / crit / armor / cooldown reduction (base × live evolution mods), kills + damage
+  this run (hero mastery accrual), Biomass invested + average per upgrade (`game.heroEvoSpent`
+  ledger).
+- **SHOWCASE**: the living HeroPortrait in a class-hue chamber (floating "+5% Swiftness ·
+  Lv N" numbers rise on buys), the ability card (name, READY/cooldown, damage/radius/heal/
+  fracture folded through live mods), and the active-effects chips: owned evolution axes,
+  hero-subject gene cards drafted this run, equipped gear count.
+- **UPGRADES**: all ten axes as compact expandable rows (icon · name · level pips · current
+  effect · cost). Expanding shows current → next, the exact Power gain, and ≈ hero-DPS /
+  ≈ survivability estimates; cooldown/radius/damage/healing axes explain their ability impact.
+
+**Purchases**: click · HOLD to repeat (usePressRepeat ramp; a failed buy halts the hold —
+the overspend guard) · shift-click buys 5. Every buy: splice cue + row flash + floating gain
++ the Power toast, and **preview === outcome** — the row's Power delta composes the exact
+marginal effect over the run's FULL effect set (an isolated composition under-reported by
+missing multiplicative interaction; fixed and smoke-verified +13 === +13).
+
+**Roster**: tabs switch champions instantly (1–3 fielded; upgrades are run-global — every
+champion benefits, and the tabs bar says so). Downed heroes show dimmed with respawn.
+
+**Summary bar** (closed state): the HUD hero cell is the console chip — portrait-colored
+vitals + ▲ evolution-level count + ability cooldown + a breathing ◈ when any axis is
+affordable + banked Biomass in its tooltip. Click/tap or **E** opens; ✕ or E closes.
+
+**Future hooks**: the axes array is the extension point (a new axis = one entry, zero UI
+work); hero skills/trees/mutations/ascension slot in as new row groups under the upgrades
+region; cosmetics ride the showcase chamber; controller navigation maps to the tab/row
+structure (documented seam).

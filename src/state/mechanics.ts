@@ -114,7 +114,7 @@ export const MECHANICS: MechanicDef[] = [
     what: 'Your Hero patrols the field autonomously, attacks, and has a powerful Active Ability you trigger.',
     why: 'A Hero is mobile burst + control the static towers can’t provide.',
     where: 'On the battlefield; developed in the Hero Lab.',
-    next: 'Gear the Hero in the Armory and unlock more Hero Slots.' },
+    next: 'Open the Hero Combat Console in a run (E, or tap the hero chip) to spend Biomass. Gear the Hero in the Armory and unlock more Hero Slots.' },
   { id: 'hero-slots', title: 'Hero Slots', category: 'Heroes', nav: 'heroes', links: ['heroes'],
     unlock: (s) => highestCampaignStage(s) >= 25,
     summary: 'Field 2, then 3 heroes at once.', media: 'Image: the Hero Slots strip',
