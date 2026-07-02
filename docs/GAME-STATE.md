@@ -71,6 +71,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   shatter, regen motes, summoner womb, aura reach, blast warning, artillery stance) and the boss
   runtime renders live (invuln shell, carapace plating, enrage rim, charge vector, channel tether,
   phase pips); Artillery fires REAL arcing shells with impact-timed Nucleus damage — ENEMIES.md §8–9
+- ✅ **Wave Briefing console** (`ui/BuildControls.tsx`) — the prep popup as threat INTEL: named
+  per-kind chips with tier highlighting + role tags (same vocabulary as §8), hostile count,
+  wave/depth header, deploy button + LED automation switches; preview memoized per wave
+- ✅ **Deployment interstitial** (`ui/DeployScreen.tsx`) — a mode-aware ~1.6s briefing breath
+  between the Command Center and the battlefield (biome-tinted, spore loader, loading tip)
 - ✅ **Milestone-1 line (bosses 1–6)** pinned to Campaign stages via `CAMPAIGN_BOSSES`; module spine
   `healer` / `carapace` / `splitter` fully sim-wired
 - 📋 Milestones 2–4 (biome/prestige/∞ bosses + elite-variant overlay); per-boss Bestiary + first-kill

@@ -3237,15 +3237,52 @@ kbd {
 }
 .build-bar {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
+  align-items: stretch;
+  gap: 14px;
+  padding: 10px 12px;
+  max-width: min(860px, calc(100% - 24px));
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(14, 20, 30, 0.86), rgba(8, 12, 20, 0.92));
+  background: linear-gradient(180deg, rgba(14, 20, 30, 0.88), rgba(8, 12, 20, 0.94));
   border: 1px solid var(--line);
+  border-top: 2px solid color-mix(in srgb, var(--vital, #ff7a59) 45%, var(--line));
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(8px);
   pointer-events: auto;
+}
+/* ── The briefing (left): wave header + named threat intel chips ── */
+.wb-brief { display: flex; flex-direction: column; gap: 6px; min-width: 0; justify-content: center; }
+.wb-head { display: flex; align-items: baseline; gap: 7px; }
+.wb-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; color: var(--vital); }
+.wb-wave { font-size: 16px; font-weight: 900; letter-spacing: 0.06em; color: var(--text); }
+.wb-of { font-size: 12px; color: var(--muted); }
+.wb-count { margin-left: 6px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wb-threats { display: flex; flex-wrap: wrap; gap: 5px; max-width: 460px; }
+.wb-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px;
+  background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--ec) 35%, var(--line));
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.wb-chip.is-elite { border-color: color-mix(in srgb, var(--ec) 65%, transparent); box-shadow: inset 0 0 8px color-mix(in srgb, var(--ec) 14%, transparent); }
+.wb-chip.is-boss { border-color: var(--vital); box-shadow: 0 0 10px color-mix(in srgb, var(--vital) 30%, transparent); animation: wbBossPulse 1.6s ease-in-out infinite; }
+@keyframes wbBossPulse { 0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--vital) 22%, transparent); } 50% { box-shadow: 0 0 14px color-mix(in srgb, var(--vital) 45%, transparent); } }
+.wb-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--ec); box-shadow: 0 0 6px color-mix(in srgb, var(--ec) 60%, transparent); flex: none; }
+.wb-name { color: var(--text); }
+.wb-n { color: var(--muted); }
+.wb-role { font-size: 10px; font-weight: 900; letter-spacing: 0.06em; padding: 1px 5px; border-radius: var(--r-xs); background: color-mix(in srgb, var(--ec) 18%, transparent); color: color-mix(in srgb, var(--ec) 80%, white 15%); }
+/* ── Actions (right): the big deploy + the automation switches ── */
+.wb-actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: none; border-left: 1px solid rgba(255,255,255,0.07); padding-left: 14px; }
+.wb-autos { display: flex; gap: 6px; }
+.auto-btn b { font-weight: 900; letter-spacing: 0.04em; color: inherit; margin-left: 5px; }
+.wb-led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.45; margin-right: 5px; display: inline-block; }
+.auto-btn.is-on .wb-led { opacity: 1; box-shadow: 0 0 6px currentColor; }
+.auto-btn.is-waiting .wb-led { opacity: 1; animation: wbLedBlink 0.9s steps(2) infinite; }
+@keyframes wbLedBlink { 50% { opacity: 0.2; } }
+@media (max-width: 700px) {
+  .build-bar { flex-direction: column; align-items: stretch; }
+  .wb-actions { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wb-chip.is-boss, .auto-btn.is-waiting .wb-led { animation: none; }
 }
 .build-controls:not(.is-visible) .build-bar {
   pointer-events: none;
@@ -3283,35 +3320,6 @@ kbd {
   padding: 4px 12px;
   border-radius: 999px;
   backdrop-filter: blur(6px);
-}
-.incoming {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.incoming-k {
-  color: var(--muted);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-right: 2px;
-}
-.inc-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.inc-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
 }
 
 /* ── Achievement unlock toasts ────────────────────────────────────────────── */

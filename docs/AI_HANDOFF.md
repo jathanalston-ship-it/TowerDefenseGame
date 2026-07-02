@@ -4,91 +4,99 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-02 08:46 UTC · **Diff scope:** session commits `37f0d9c..3724a84`
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 3724a84
+- **Generated:** 2026-07-02 14:59 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** b64eddb
 
 ## Summary of work completed
 
-The BALANCE-ARCHITECTURE arc, six commits: (1) first-discovery NEW badges through the
-container reveal chain; (2) the Bio-Container meter rebuilt after finding the pinned-full
-latch bug (effect-cleanup cancelled the un-pop timer — BUGFIX-LOG #10): the fill is now a
-truthful pure read of `save.lootQueue` with an overlay-only earn ceremony, verified live
-headless; (3) the Universal Difficulty Director — every scaling policy in one module with
-bit-exact parity to the legacy formulas (goldens untouched); (4) the progression loop engine
-+ LoopDirective surfacing with 8 enforced invariants; (5) the progression simulator (virtual
-accounts over the REAL meta layer) + `npm run sim:progression` hour-band report; (6) the
-adaptive economy framework (factor-traced income chains) and the four permanent balance docs.
-**The one thing to know:** balance changes now go through the change protocol
-(`BALANCE_ARCHITECTURE.md` §4) — simulate first, never tune the parity-pinned constants or
-the weight-0 adaptive seams from intuition.
+Six-commit session, all pushed: (1) the full Tower Adaptation/Antigen system — per-tower
+generated trees, capped multi-source Antigen, campaign gates, FORM stages, priced respec,
+the lab UI (`6a690b2`); (2) the Command Center home — registry-driven widget zones + the
+living World Status organism (`f06d635`); (3) the PERMANENT simulation framework — 11
+personas over the real meta layer, dopamine-cadence ledger, 8 bottleneck detectors,
+`npm run sim:report` → report-only `docs/BALANCE_REPORT.md` (`76ccbd6`); (4) the enemy/boss
+battlefield revamp — every role trait + the whole boss runtime now read on the body, and
+Artillery fires REAL impact-timed shells (`83ce836`); (5) the deployment interstitial
+(`b64eddb`); (6) this tree: the Wave Briefing console. **The one thing to know:**
+`docs/BALANCE_REPORT.md` holds 20 evidence-ranked bottlenecks awaiting HUMAN review —
+do not auto-apply fixes; the change protocol stays BALANCE_ARCHITECTURE §4.
 
 ## Files modified
 
-- Source: `core/difficultyDirector.ts` (new), `core/economyDirector.ts` (new),
-  `state/progressionLoop.ts` (new), `dev/progressionSim.ts` (new), `scripts/sim-progression.ts`
-  (new), `core/game.ts`, `core/campaign.ts`, `core/config.ts`, `core/events.ts`,
-  `state/meta.ts`, `state/lootbox.ts`, `state/vaultReveal.ts`, `ui/LootMeter.tsx`,
-  `ui/LootToaster.tsx`, `ui/VaultReveal.tsx`, `ui/NextGoalBanner.tsx`, `ui/Results.tsx`,
-  `ui/CampaignScreen.tsx`, `ui/InfiniteScreen.tsx`, `index.css`, `dev/systemRegistry.ts`
-- Tests (new): `difficultyDirector.test.ts`, `economyDirector.test.ts`,
-  `progressionLoop.test.ts`, `progressionSim.test.ts`; extended: `lootQueue.test.ts`,
-  `vaultReveal.test.ts`
-- Docs (new): `BALANCE_ARCHITECTURE.md`, `DIFFICULTY_DIRECTOR.md`, `ECONOMY_FORMULAS.md`,
-  `PROGRESSION_FORMULAS.md`, `PROGRESSION-LOOP.md`, `PROGRESSION_REPORT.md` (generated);
-  updated: `LOOTBOX.md` (§meter + §opening-flow), `BUGFIX-LOG.md` (#10), boards + manifest +
-  GAME-STATE (compressed summary) + dependency graph.
+- Source (2): `src/index.css`, `src/ui/BuildControls.tsx`
+- Tests (0): —
+- Docs (1): `docs/GAME-STATE.md`
 
 ## Systems affected (from the dependency registry)
 
-engine (director wiring — value-identical) · difficulty (now owns the Director) · campaign ·
-infinite · loot (meter contract) · currencies/economy (framework) · hub-shell (loop engine +
-directive) · meta-store (settle chains).
+- **run-ui** — `src/ui/BuildControls.tsx`
 
 ## Power Score changes
 
-None — no scored field moved; `accountPowerParts` is now exported (read-only consumer:
-the loop engine).
+No scale/bucket changes. Adaptation picks move Power through the existing per-kind
+towerProgress damage fold (adaptation.test.ts pins neutrality when nothing is chosen);
+the AdaptationTree inspector previews contribution via meta.previewPower.
 
 ## UI changes
 
-LootMeter (truthful fill + ceremony), LootToaster (vault count + next box), VaultReveal
-(NEW badges), LoopDirective on Results/CampaignScreen/InfiniteScreen. All uiStandards-clean.
+Surfaces in the blast radius: `Results`, `ALL`
+
+This tree: BuildControls rebuilt as the WAVE BRIEFING console — named threat chips with
+tier highlighting + role tags (the docs/ENEMIES.md §8 vocabulary), hostile count,
+wave/depth header, deploy button + LED automation switches; preview memoized per wave.
+Headless-verified live (chips/roles/counts correct at Stage 31; hides on wave start with
+zero layout shift; no console errors). Session-wide UI: Adaptation lab, Command Center,
+deployment interstitial — each headless-probed in its own commit.
 
 ## Documentation changes
 
-All registry-mapped docs updated (see Files); `docs:graph` regenerated twice; validation
-report regenerated (PASS).
+Registry says these move with the touched systems: `docs/HUD.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`
+
+`docs/HUD.md` — no change needed (the console keeps the overlay/no-layout-shift contract
+HUD.md documents; the redesign is inside the same component). `docs/READABILITY.md`,
+`docs/REWARD-PRESENTATION.md` — no change needed. Session docs shipped in their commits:
+ADAPTATION.md, COMMAND-CENTER.md, SIMULATION-FRAMEWORK.md, BALANCE_REPORT.md (generated),
+ENEMIES.md §8–9, GAME-STATE entries.
+
+## Save changes
+
+None — save layer untouched.
 
 ## Known edge cases
 
-- The parity suites (director/economy) reproduce legacy formulas VERBATIM — a deliberate
-  balance change must update test + code together, with a simulator diff attached.
-- `Income.total()` applies factors left-to-right; re-associating the chain breaks bit-parity.
-- The simulator's `spendEverything` salvages non-equipped gear each cycle — required to keep
-  long simulations from crawling on inventory clones (and it models real play).
-- `syncRunLoot` now self-heals an owed front (progress ≥ cost) — only reachable via
-  legacy/tampered saves; do not "optimize" the `owed` check away.
+- The meta loot layer rolls with Math.random — sim traces are NOT run-reproducible;
+  CI asserts structure only (balanceReport.test.ts comment), pacing lives in multi-seed
+  report medians.
+- Endless prep shows DEPTH (hud.endless) — the briefing hides the "/ total" fraction there.
+- Enemy shells keep flying through the settle window (combat residue); they are sim-real,
+  so integrity can still drop after the last kill.
+- The deploy interstitial timer is cleared on unmount — leaving mid-deploy never mounts a run.
 
 ## Remaining technical debt
 
-- Giant files unchanged (game.ts / meta.ts / index.css — ENGINEERING-AUDIT §4).
-- The simulator's world model is coarse (WORLD constants); calibrate against real sim
-  harness runs when pacing decisions get close.
-- Loop engine has no per-attempt fail history (no "breakthrough" pseudo-state).
+- Heroes still share the legacy 3-branch Adaptation tree (per-hero trees = a content pass;
+  the shapes coexist in core/adaptation.ts).
+- Trait-wave pixel screenshots remain uncovered headlessly (probes die before deep waves);
+  execution coverage is the renderer smoke over live state.
+- index.css keeps growing (pre-existing ranked debt, ENGINEERING-AUDIT §4).
 
 ## Recommended next tasks
 
-1. **Balance tuning pass** (PROJECT_STATUS milestone 1): molt cadence + first-clear curve,
-   through `BALANCE_ARCHITECTURE.md` §4, using `npm run sim:progression` before/after.
-   Entry: `core/config.ts` PRESTIGE / CAMPAIGN_REWARDS; evidence: `PROGRESSION_REPORT.md`.
-2. Wire `AdaptiveInputs` (powerRatio from the loop engine) into GameView → createDirector —
-   the seam exists; weights stay 0 until the tuning pass.
-3. Card Ascension gameplay wire (backend done).
+1. Review docs/BALANCE_REPORT.md top-20 with the user; apply accepted fixes via the §4
+   protocol (entry: scripts/sim-balance-report.ts to regenerate after each change).
+2. Campaign push-futility findings suggest surfacing readiness harder at mission start
+   (CommandCenter mission-control widget) — zero balance risk.
+3. Per-hero Adaptation trees (extend TOWER_THEMES pattern to heroes in core/adaptation.ts).
+4. Boss visual pass could extend to per-chassis silhouettes (render/towerEvolution organ
+   vocabulary is reusable).
 
 ## Future expansion hooks
 
-- `difficultyDirector.ts`: reserved factors (biome bands, boss presence, prestige tier,
-  seasonal) — one input + one factor each (§7 of its doc).
-- `economyDirector.ts`: `ECONOMY_ADAPTIVE` seams; add currencies as new income chains.
-- `progressionSim.ts`: CLI scale (`-- --seeds 2000`); WORLD constants are the calibration
-  surface.
+- `homeRegistry` (ui/homeModel.ts) — a future system's home widget = register() + one
+  renderer entry in CommandCenter's WIDGETS map.
+- `TOWER_THEMES` (core/adaptation.ts) — a new tower's full adaptation tree is one data row.
+- `PERSONAS` / `detectBottlenecks` (dev/personas.ts, dev/balanceReport.ts) — new persona =
+  one row; new detector = one hit() + DIAGNOSIS entry.
+- `EnemyShell` (core/types.ts) — future ranged enemies reuse the shell channel (any def
+  with `siege` gets projectiles for free).
+- `ANTIGEN` sources (core/adaptation.ts antigenEarned) — events/seasons add a capped term.
