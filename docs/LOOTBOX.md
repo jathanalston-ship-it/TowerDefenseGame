@@ -163,3 +163,15 @@ reward readouts: rolls x shard ranges x hero-shard %), the roll-distribution DRO
 — best pull drives the scale; "Open All" is the same helper with pending.length), the pity
 guarantees bars (unchanged), and the device-local VAULT LEDGER (opened counters by rarity +
 the last openings — state/prefs vaultLedger, in the factory-reset registry).
+
+
+## §opening-flow (2026-07) — anticipation staged in
+
+Closed container → ENERGY BUILD-UP (the sealed vault charges: glow ramp + core shake,
+rarity-scaled ~1–2.3s, tap to crack early; the chest cue lands ON the break) → individual
+card reveals (tap-to-flip, per-pull audio: shard cues / jackpot at epic+, beams on rare) →
+persistent summary (never auto-closes). Modes: Normal · FAST (auto-deals the next card after
+each reveal) · Reveal All (straight to summary) · tap-to-skip the charge. Legendary/exotic
+presentation is fundamentally bigger: faster charge shake, a RUNNING card border, and the
+whole backdrop breathing light. Known gap (documented): the summary does not yet badge
+first-time collection items as NEW — the reveal model doesn't carry ownership deltas.

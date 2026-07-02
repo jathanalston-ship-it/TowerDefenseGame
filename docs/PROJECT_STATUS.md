@@ -3,7 +3,7 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-02 (multi-platform responsive framework + Hero Combat Console).
+> **Last updated:** 2026-07-02 (five-part pass: Campaign roadmap, doctrine protocols + Infinite terminal, 1×/2×/5× speed system, Vault v2, staged container openings).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -26,7 +26,11 @@ mutation-chamber showcase, bench prefs) · Live Mastery (in-run projection, leve
 celebrations, per-tower lifetime ledgers v20, Results ledger, Help entry) · **Multi-platform
 responsive framework (`docs/RESPONSIVE-DESIGN.md`: drawer shell, container-sized panels, safe
 areas, touch layer, probe-validated 13-viewport matrix)** · Hero Combat Console (three-region
-in-run command surface, roster tabs, hold-to-buy, preview===outcome comparisons, HUD summary).
+in-run command surface, roster tabs, hold-to-buy, preview===outcome comparisons, HUD summary) ·
+Campaign ROADMAP (gate jumps, goal rail, mission cards, fastest-clear ledger v21) · Doctrine
+PROTOCOLS (six enemy-world warps, golden-safe) + Infinite experiment terminal · Gameplay Speed
+(fixed-step 1×/2×/5×, auto-slow) · Genetic Vault v2 (objects/rates/multi-open/ledger) ·
+staged Bio-Container openings (build-up, fast mode, legendary lighting).
 
 ## Systems in progress
 
@@ -66,7 +70,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 742 tests / 118 files green; golden sim byte-identical; typecheck strict; build clean.
+- 745 tests / 118 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.

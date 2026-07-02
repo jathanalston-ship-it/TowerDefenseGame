@@ -4552,7 +4552,7 @@ kbd {
 .mc-deploy::after { content: ''; position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.12), transparent); animation: cc-sheen 7s ease-in-out infinite; }
 @keyframes cc-sheen { 0%, 78% { left: -40%; } 92%, 100% { left: 120%; } }
 @media (prefers-reduced-motion: reduce) {
-  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .play-screen > *, .mc-deploy, .mc-deploy::after, .hud-v.is-danger, .tl2-chamber::before, .tl2-ready-badge, .tl2-chamber[data-flash], .hcc-chamber::before, .hud-hero.has-upgrade, .inf-forecast::before, .infinite-start, .vault-obj-core { animation: none; }
+  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .play-screen > *, .mc-deploy, .mc-deploy::after, .hud-v.is-danger, .tl2-chamber::before, .tl2-ready-badge, .tl2-chamber[data-flash], .hcc-chamber::before, .hud-hero.has-upgrade, .inf-forecast::before, .infinite-start, .vault-obj-core, .vreveal-seal, .vreveal-seal-core, .vreveal-backdrop.is-rare { animation: none; }
 }
 
 /* Loading tip — a one-line teacher at the foot of Mission Control (ui/tips.ts) */
@@ -5249,6 +5249,22 @@ kbd {
 }
 
 /* ── Campaign — the living WORLD MAP / descent (CampaignScreen) ───────────────────────────────── */
+/* ── Bio-Container opening: ENERGY BUILD-UP stage + legendary lighting (docs/LOOTBOX.md) ── */
+.vreveal-buildup { display: flex; flex-direction: column; align-items: center; gap: 14px; cursor: pointer; }
+.vreveal-seal { position: relative; width: 148px; height: 148px; display: grid; place-items: center; border-radius: var(--r-lg); border: 2px solid var(--vr-accent, var(--gold)); background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--vr-accent, var(--gold)) 26%, var(--panel-deep)), var(--panel-deep) 76%); animation: vreveal-charge 1s ease-in infinite; }
+.vreveal-seal-core { font-size: 58px; color: var(--vr-accent, var(--gold)); text-shadow: 0 0 24px var(--vr-accent, var(--gold)); animation: vreveal-core-shake 0.5s ease-in-out infinite; }
+@keyframes vreveal-charge { 0%, 100% { box-shadow: 0 0 18px -6px var(--vr-accent, var(--gold)); } 50% { box-shadow: 0 0 44px 2px var(--vr-accent, var(--gold)); } }
+@keyframes vreveal-core-shake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-1px, 1px) rotate(-1.5deg); } 75% { transform: translate(1px, -1px) rotate(1.5deg); } }
+.vreveal-buildup-k { font-size: 16px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; }
+.vreveal-seal.tier-legendary, .vreveal-seal.tier-exotic { animation-duration: 0.7s; }
+/* Legendary+ pulls: the whole screen breathes light and the card border RUNS. */
+.vreveal.tier-legendary .vreveal-card.is-flipped .vreveal-card-front,
+.vreveal.tier-exotic .vreveal-card.is-flipped .vreveal-card-front { animation: vreveal-legend-border 2.2s linear infinite; }
+@keyframes vreveal-legend-border { 0% { box-shadow: var(--ring-in) var(--vr-accent, var(--gold)), 0 0 30px -6px var(--vr-accent, var(--gold)); } 50% { box-shadow: inset 0 0 0 2px var(--vr-accent, var(--gold)), 0 0 54px -2px var(--vr-accent, var(--gold)); } 100% { box-shadow: var(--ring-in) var(--vr-accent, var(--gold)), 0 0 30px -6px var(--vr-accent, var(--gold)); } }
+.vreveal-backdrop.is-rare { animation: vreveal-room-light 3.2s ease-in-out infinite; }
+@keyframes vreveal-room-light { 0%, 100% { background-color: rgba(4, 7, 12, 0.78); } 50% { background-color: rgba(10, 10, 6, 0.72); } }
+.vreveal-btn.on { border-color: var(--kinetic); color: var(--kinetic); }
+
 /* ── Genetic Vault v2 — premium vault objects + odds + ledger (docs/LOOTBOX.md §vault) ── */
 .vault-objects { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: var(--s2); margin: var(--s2) 0; }
 .vault-obj { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 14px 8px 10px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--vc, var(--line)) 45%, var(--line)); background: radial-gradient(circle at 50% 24%, color-mix(in srgb, var(--vc, var(--line)) 14%, var(--panel-deep)), var(--panel-deep) 78%); transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }

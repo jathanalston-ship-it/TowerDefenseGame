@@ -110,14 +110,21 @@ export function VaultReveal({
   const name = title ?? (chests.length === 1 ? (CHESTS[chests[0].chestId]?.name ?? 'Reward Cache') : `${chests.length}× Caches`);
   const accent = color ?? (model.pulls[model.pulls.length - 1]?.color ?? 'var(--gold)');
 
-  // 'pull' plays the cards one-by-one; 'summary' shows the merged totals. An empty container
-  // (should never happen — rolls ≥ 3) skips straight to the summary.
-  const [phase, setPhase] = useState<'pull' | 'summary'>(model.count > 0 ? 'pull' : 'summary');
+  // 'build' charges the sealed container (anticipation — tap to crack early); 'pull' plays the
+  // cards one-by-one; 'summary' shows the merged totals and NEVER auto-closes.
+  const [phase, setPhase] = useState<'build' | 'pull' | 'summary'>(model.count > 0 ? 'build' : 'summary');
   const [i, setI] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [fast, setFast] = useState(false); // fast-reveal: auto-advance the deck at a quick cadence
   const pull = model.pulls[i];
 
-  useEffect(() => { audio.cue('chest'); }, []); // the container cracks open on mount
+  // ENERGY BUILD-UP → BREAK: the sealed container charges (rarity-scaled), then cracks into
+  // the pull phase. A tap skips the charge. The chest cue lands ON the break, not on mount.
+  useEffect(() => {
+    if (phase !== 'build') return undefined;
+    const id = setTimeout(() => { setPhase('pull'); audio.cue('chest'); }, 950 + tier * 260);
+    return () => clearTimeout(id);
+  }, [phase, tier]);
 
   // Auto-flip the current card after a short beat (a tap flips it early). Pace scales with rarity.
   useEffect(() => {
@@ -136,6 +143,15 @@ export function VaultReveal({
   }, [phase, flipped, i, pull]);
 
   const toSummary = useCallback(() => { setPhase('summary'); audio.cue('reveal'); }, []);
+  // Fast reveal: once flipped, the next card deals itself after a beat (still one card at a time).
+  useEffect(() => {
+    if (!fast || phase !== 'pull' || !flipped) return undefined;
+    const id = setTimeout(() => {
+      if (i < model.count - 1) { setI((n) => n + 1); setFlipped(false); }
+      else toSummary();
+    }, 420);
+    return () => clearTimeout(id);
+  }, [fast, phase, flipped, i, model.count, toSummary]);
   const advance = useCallback((): void => {
     if (phase !== 'pull') return;
     if (!flipped) { setFlipped(true); return; } // first tap flips the face-down card
@@ -156,7 +172,15 @@ export function VaultReveal({
       aria-modal="true"
     >
       <div className={`vreveal tier-${model.topRarity} phase-${phase}`} onClick={(e) => e.stopPropagation()}>
-        {phase === 'pull' && pull ? (
+        {phase === 'build' ? (
+          <div className="vreveal-buildup" onClick={() => { setPhase('pull'); audio.cue('chest'); }} role="button" aria-label="Crack open">
+            <div className={`vreveal-seal tier-${model.topRarity}`} aria-hidden>
+              <span className="vreveal-seal-core">◈</span>
+            </div>
+            <div className="vreveal-buildup-k" style={{ color: accent }}>{name}</div>
+            <div className="vreveal-tap">CHARGING — TAP TO CRACK</div>
+          </div>
+        ) : phase === 'pull' && pull ? (
           <>
             <div className="vreveal-ceremony" onClick={advance}>
               <div className="vreveal-glow" aria-hidden />
@@ -187,9 +211,14 @@ export function VaultReveal({
                 {!flipped ? 'Reveal ▸' : isLast ? 'See Rewards ▸' : 'Continue ▸'}
               </button>
               {model.count > 1 && (
-                <button type="button" className="vreveal-btn vreveal-revealall" onClick={toSummary}>
-                  Reveal All ⏩
-                </button>
+                <>
+                  <button type="button" className={`vreveal-btn${fast ? ' on' : ''}`} onClick={() => setFast((v) => !v)} title="Auto-deal each card after its reveal">
+                    Fast {fast ? '✓' : '▸▸'}
+                  </button>
+                  <button type="button" className="vreveal-btn vreveal-revealall" onClick={toSummary}>
+                    Reveal All ⏩
+                  </button>
+                </>
               )}
             </div>
           </>
