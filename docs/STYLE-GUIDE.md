@@ -1,6 +1,9 @@
 # STYLE-GUIDE.md — Visual Style Guide (canonical art direction)
 
-The single source of truth for the game's look. Companion to `DESIGN.md`
+The single source of truth for the game's **battlefield look** (art direction:
+enemies, arenas, luminance, render specs). The game-wide identity layer above it —
+UI, audio, motion, notification/reward language — lives in `docs/VISUAL_IDENTITY.md`
++ `docs/UI_STYLE_GUIDE.md` + `docs/DESIGN_LANGUAGE.md`. Companion to `DESIGN.md`
 (fiction), `TOWERS.md` / `HEROES.md` / `ENEMIES.md` (content), and the live code
 (`src/index.css` tokens, `src/render/renderer.ts`). The HUD, readability, and
 placeholder-art specs (`HUD.md`, `READABILITY.md`, `PLACEHOLDER-ART.md`) all

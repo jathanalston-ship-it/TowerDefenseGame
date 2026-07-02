@@ -26,7 +26,7 @@ export interface TowerLabModel {
   affordable: boolean;
   maxed: boolean;
   mastery: { level: number; into: number; need: number; rank: string | null };
-  specialization: string; // the ★3 fork choice once reached, else the combat class
+  specialization: string; // the ◈3 fork choice once reached, else the combat class
   currentEvolution: string; // the latest named mutation, or "Base Form"
   nextStep: StepView | null; // the very next star (preview)
   nextAbility: StepView | null; // the next star that grants a new attack/ability (may be further)
@@ -77,7 +77,7 @@ export function ceremonyView(save: SaveData, kind: TowerKind, toStar: number): {
       ? null
       : nextRaw
         ? stepView(kind, nextRaw, save)
-        : { star: toStar + 1, name: `Ascension ★${toStar + 1}`, desc: '', isFork: false, ascension: true };
+        : { star: toStar + 1, name: `Ascension ◈${toStar + 1}`, desc: '', isFork: false, ascension: true };
   return { unlocked, next, milestoneStar: STAR_MILESTONES.includes(toStar) ? toStar : null };
 }
 
@@ -96,12 +96,12 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
     if (st) { currentEvolution = stepView(kind, st, save).name; break; }
   }
 
-  // Specialization = the ★3 "Specialization" fork choice once reached; otherwise the combat class.
+  // Specialization = the ◈3 "Specialization" fork choice once reached; otherwise the combat class.
   const specFork = forksOf(kind).find((f) => f.star === 3);
   const specialization =
     specFork && stars >= 3 ? stepView(kind, specFork, save).name : def.combatClass;
 
-  // Next star preview: the authored step if any; past ★5 it's an ASCENSION power tier.
+  // Next star preview: the authored step if any; past ◈5 it's an ASCENSION power tier.
   const rawNext = maxed ? null : stepAt(kind, stars + 1);
   const nextStep: StepView | null = maxed
     ? null
@@ -109,7 +109,7 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
       ? stepView(kind, rawNext, save)
       : {
           star: stars + 1,
-          name: `Ascension ★${stars + 1}`,
+          name: `Ascension ◈${stars + 1}`,
           desc: `+${Math.round(STAR.damagePerStar * 100)}% damage · +${Math.round(STAR.fireRatePerStar * 100)}% fire rate`,
           isFork: false,
           ascension: true,

@@ -1,6 +1,6 @@
 // Tower Codex (docs/TOWER-CODEX.md §3) — the encyclopedia detail view. Selecting a tower opens this
 // overlay: its CURRENT form (appearance, star level, branch, mastery, unlocked abilities) plus a
-// preview of EVERY evolutionary stage (★1/3/5/7/9) and BOTH branch specializations (Tier 1-5),
+// preview of EVERY evolutionary stage (◈1/3/5/7/9) and BOTH branch specializations (Tier 1-5),
 // switchable instantly and viewable WITHOUT owning the upgrades. Pure presentation over towerCodex().
 
 import { useState } from 'react';
@@ -42,7 +42,7 @@ export function TowerCodex({ kind, onClose }: { kind: TowerKind; onClose: () => 
                 <TowerPortrait color={branch!.color} stars={0} branchId={branch!.id} tier={view.tier} size={188} />
               )}
               <span className="codex-portrait-tag" style={{ color: view.kind === 'branch' ? branch!.color : accent }}>
-                {view.kind === 'star' ? `★${view.star}` : `Tier ${view.tier}`}
+                {view.kind === 'star' ? `◈${view.star}` : `Tier ${view.tier}`}
               </span>
             </div>
             <div className="codex-detail">
@@ -77,7 +77,7 @@ export function TowerCodex({ kind, onClose }: { kind: TowerKind; onClose: () => 
           {/* RIGHT: the current form summary + the preview switchers */}
           <div className="codex-side">
             <div className="codex-current">
-              <div className="codex-cur-row"><span>Star level</span><b style={{ color: accent }}>★{cx.stars}<span className="codex-cur-cap"> / ★{cx.starCap}</span></b></div>
+              <div className="codex-cur-row"><span>Star level</span><b style={{ color: accent }}>◈{cx.stars}<span className="codex-cur-cap"> / ◈{cx.starCap}</span></b></div>
               <div className="codex-cur-row"><span>Branch</span><b>{cx.currentBranch}</b></div>
               <div className="codex-cur-row"><span>Mastery</span><b>{cx.mastery.rank ? `${cx.mastery.rank} · ` : ''}Lv {cx.mastery.level}</b></div>
             </div>
@@ -114,7 +114,7 @@ export function TowerCodex({ kind, onClose }: { kind: TowerKind; onClose: () => 
                       onClick={() => setView({ kind: 'star', star: s.star })}
                       title={s.name}
                     >
-                      ★{s.star}
+                      ◈{s.star}
                       {s.grantsAbility && <span className="codex-chip-dot" />}
                     </button>
                   ))

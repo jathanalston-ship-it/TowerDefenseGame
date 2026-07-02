@@ -3,14 +3,12 @@
 // gesture (browser autoplay policy). Pure presentation: the sim emits string
 // cues; this turns them into sound. Voice-capped so a swarm can't machine-gun.
 
-import type { BiomeAmbient } from '../core/biomes';
 
 type AnyWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
-let musicBus: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
 
 let enabled = true;
@@ -18,16 +16,9 @@ let volume = 0.75;
 let voices = 0;
 const MAX_VOICES = 28;
 
-// music
-let droneOn = false;
-let beatAcc = 0;
+// kill-cadence state (pitch ramps on streaks)
 let killStreak = 0;
 let lastKillAt = -10;
-// Biome ambient (docs/BIOMES.md) — the drone is RE-VOICED per biome (asset-free): we keep the
-// oscillator/filter nodes so `setBiome` can ramp them smoothly on a transition. Default = the
-// original Hostile-Frontier drone (so Stage mode sounds exactly as before).
-let biomeAmbient: BiomeAmbient = { root: 55, fifth: 82.4, cutoff: 260, wave: 'sawtooth' };
-let droneNodes: { osc: OscillatorNode; filter: BiquadFilterNode }[] = [];
 
 function ensure(): boolean {
   if (!enabled) return false;
@@ -42,9 +33,6 @@ function ensure(): boolean {
     sfxBus = ctx.createGain();
     sfxBus.gain.value = 0.9;
     sfxBus.connect(master);
-    musicBus = ctx.createGain();
-    musicBus.gain.value = 0;
-    musicBus.connect(master);
     // one shared noise buffer (0.5s white noise)
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
@@ -114,7 +102,6 @@ function sHover(): void { tone(900, 0.02, 'sine', 0.012, 1200); } // a faint, pr
 function sLaunch(): void { tone(196, 0.16, 'sine', 0.15, 392); tone(294, 0.3, 'triangle', 0.09, 440); noise(0.1, 0.045, 1300, 4200); } // a confident "engage" swell on Start Run
 function sWave(): void { tone(330, 0.12, 'sawtooth', 0.16); tone(494, 0.22, 'sawtooth', 0.16); }
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
-function sHeartbeat(strength: number): void { tone(60, 0.18, 'sine', 0.08 + strength * 0.1, 42); }
 // ── progression / reward dopamine cues ──
 function sClear(): void { // wave-cleared fanfare (rising major triad)
   tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15); tone(659, 0.34, 'triangle', 0.16);
@@ -168,30 +155,6 @@ function sBrPlague(d = 0): void { noise(0.12, 0.05 * up(d), 2400 * lo(d), 700); 
 function sBrGore(d = 0): void { noise(0.07, 0.07 * up(d), 1500 * lo(d), 400); tone(160 * lo(d), 0.07, 'sawtooth', 0.04 * up(d), 80); sub(d, 70); } // vicious wet crunch
 function sBrPsi(d = 0): void { tone(180 * lo(d), 0.18, 'sine', 0.05 * up(d), 120); tone(270 * lo(d), 0.16, 'triangle', 0.025 * up(d), 200); } // ominous psionic hum
 function sBrStorm(d = 0): void { noise(0.05, 0.05 * up(d), 5000 * lo(d), 1500); tone(1500 * lo(d), 0.05, 'sawtooth', 0.04 * up(d), 400); sub(d, 110); } // crackling neural zap
-
-function startDrone(): void {
-  if (droneOn || !ctx || !musicBus) return;
-  droneOn = true;
-  droneNodes = [];
-  const make = (freq: number, detune: number): void => {
-    const o = ctx!.createOscillator();
-    o.type = biomeAmbient.wave;
-    o.frequency.value = freq;
-    o.detune.value = detune;
-    const g = ctx!.createGain();
-    g.gain.value = 0.5;
-    const f = ctx!.createBiquadFilter();
-    f.type = 'lowpass';
-    f.frequency.value = biomeAmbient.cutoff;
-    o.connect(f);
-    f.connect(g);
-    g.connect(musicBus!);
-    o.start();
-    droneNodes.push({ osc: o, filter: f });
-  };
-  make(biomeAmbient.root, -4); // root
-  make(biomeAmbient.fifth, 5); // fifth
-}
 
 // Ecosystem-transition sting — an airy rising sweep that says "new biome" (BIOMES.md §5).
 function sBiome(): void {
@@ -265,50 +228,6 @@ export const audio = {
         case 'br_psi': sBrPsi(d); break;
         case 'br_storm': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(d); break;
       }
-    }
-  },
-  /** Run-end musical RESOLUTION (the tension lets go): fade the ambient bed and land a short
-   *  cadence — a warm rising major for a win, a somber descending minor for a defeat. One-shot,
-   *  played as the battlefield outro begins. */
-  resolve(won: boolean): void {
-    if (!ensure() || !ctx) return;
-    if (musicBus) musicBus.gain.setTargetAtTime(0, ctx.currentTime, 0.8); // the drone resolves out
-    if (won) {
-      [262, 330, 392, 523].forEach((f, i) => setTimeout(() => tone(f, 1.0 + i * 0.18, 'triangle', 0.16), i * 165)); // C–E–G–C
-      setTimeout(() => tone(784, 1.5, 'sine', 0.09), 660); // a high shimmer lands it
-    } else {
-      [330, 262, 196].forEach((f, i) => setTimeout(() => tone(f, 1.1 + i * 0.2, 'sine', 0.16, f * 0.97), i * 270)); // descending fall
-      setTimeout(() => tone(98, 2.0, 'sine', 0.14, 68), 180); // a low sub underpins the loss
-    }
-  },
-  /** Re-voice the ambient drone for the active biome (docs/BIOMES.md). Smoothly ramps the live
-   *  drone's frequencies + filter on a transition; if the drone isn't running yet, the tuning is
-   *  applied when it next starts. Cheap + idempotent — safe to call every biome change. */
-  setBiome(ambient: BiomeAmbient): void {
-    biomeAmbient = { ...ambient };
-    if (!ctx || droneNodes.length < 2) return;
-    const now = ctx.currentTime;
-    droneNodes[0].osc.frequency.setTargetAtTime(ambient.root, now, 0.7);
-    droneNodes[1].osc.frequency.setTargetAtTime(ambient.fifth, now, 0.7);
-    for (const n of droneNodes) {
-      n.filter.frequency.setTargetAtTime(ambient.cutoff, now, 0.7);
-      n.osc.type = ambient.wave;
-    }
-  },
-  /** Update the ambient bed; pass null to fade it out. */
-  music(pressure: number | null, dt: number): void {
-    if (!ensure() || !ctx || !musicBus) return;
-    if (pressure === null) {
-      musicBus.gain.setTargetAtTime(0, ctx.currentTime, 0.4);
-      return;
-    }
-    startDrone();
-    musicBus.gain.setTargetAtTime(0.05 + pressure * 0.06, ctx.currentTime, 0.6);
-    const interval = 1.1 - pressure * 0.55; // heartbeat quickens under pressure
-    beatAcc += dt;
-    if (beatAcc >= interval) {
-      beatAcc = 0;
-      sHeartbeat(pressure);
     }
   },
 };

@@ -96,7 +96,7 @@ heard* before it bites.
 | Field | Meaning |
 |---|---|
 | `accent` | CSS var driving the biome tint (background gradient, particles, HUD chip) |
-| `ambient` | drone tuning `{ root, fifth, cutoff, wave }` re-voicing the existing music bed |
+| `ambient` | audio tuning `{ root, fifth, cutoff, wave }` — reserved data seam; the composed music engine (src/audio/music.ts) owns the soundtrack, and per-biome flavor will ride its intensity/layer API |
 
 ---
 
@@ -210,4 +210,4 @@ smooth-scaling guarantee (CAMPAIGN.md §3) holds for the base curve.
   read at their site — no new system, same pattern.
 - **Biome-exclusive bosses** are expressed as chassis *bias* (flavour), not bespoke
   boss defs; a biome-keyed authored boss table is a future hook on `bossRegistry`.
-- **Per-biome ambient is a re-voiced drone**, not bespoke tracks (asset-free audio).
+- **Per-biome audio flavor is a reserved seam** on the composed music engine (intensity/layers), not bespoke tracks (asset-free audio). The legacy re-voiced drone was retired when the music engine landed.

@@ -29,6 +29,20 @@ describe('UI standards — the stylesheet stays on the design scale', () => {
     expect(bad, `off-scale font sizes (use the whole-px scale, docs/UI-STANDARDS.md §Typography): ${bad.join(', ')}`).toEqual([]);
   });
 
+  it('typography: px font sizes come from the type scale (docs/UI_STYLE_GUIDE.md §1)', () => {
+    // 10–26 = the working scale; 34/40/58 = sanctioned display numerals. clamp()/em pass untouched.
+    const SCALE = new Set([10, 11, 12, 13, 14, 16, 18, 20, 26, 34, 40, 58]);
+    const bad = [...css().matchAll(/font-size: (\d+)px/g)].map((m) => Number(m[1])).filter((v) => !SCALE.has(v));
+    expect([...new Set(bad)], `off-scale font sizes (scale: ${[...SCALE].join('/')}px): ${bad.join(', ')}`).toEqual([]);
+  });
+
+  it('typography: letter-spacing comes from the tracking scale (docs/UI_STYLE_GUIDE.md §1)', () => {
+    // 0.02–0.28 = working scale; 0.34/0.42 = ceremonial display tier (huge dramatic tracking).
+    const SCALE = new Set(['0.02', '0.04', '0.06', '0.08', '0.1', '0.12', '0.14', '0.16', '0.2', '0.24', '0.28', '0.34', '0.42']);
+    const bad = [...css().matchAll(/letter-spacing: (-?[\d.]+)em/g)].map((m) => m[1]).filter((v) => !SCALE.has(v));
+    expect([...new Set(bad)], `off-scale tracking (scale: ${[...SCALE].join('/')}em): ${bad.join(', ')}`).toEqual([]);
+  });
+
   it('corners: border-radius uses the radius tokens (or pill/circle/hairline/arc)', () => {
     const bad = [...css().matchAll(/border-radius: ([^;]+);/g)].map((m) => m[1].trim()).filter((v) => !radiusValueAllowed(v));
     expect(bad, `off-scale radii (use --r-xs/sm/md/lg · 999px pill · 50% circle): ${bad.join(', ')}`).toEqual([]);

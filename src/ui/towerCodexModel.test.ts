@@ -27,8 +27,8 @@ describe('tower codex model', () => {
 
   it('tags stages owned / reachable / locked by stars + the Campaign Evolution Cap', () => {
     const save = defaultSave();
-    save.campaign.cleared = { standard: 50 }; // EVOLUTION_CAPS → cap ★5
-    save.towerStars.needle = 3; // owns up to ★3
+    save.campaign.cleared = { standard: 50 }; // EVOLUTION_CAPS → cap ◈5
+    save.towerStars.needle = 3; // owns up to ◈3
     const cx = towerCodex(save, 'needle');
     expect(cx.starCap).toBe(5);
     const byStar = Object.fromEntries(cx.stages.map((s) => [s.star, s]));
@@ -39,7 +39,7 @@ describe('tower codex model', () => {
     expect(byStar[9].state).toBe('locked');
     expect(byStar[7].unlockHint).toMatch(/Campaign Stage/); // tells the player how to unlock it
 
-    save.campaign.cleared = { standard: 300 }; // all caps cleared → cap ★10
+    save.campaign.cleared = { standard: 300 }; // all caps cleared → cap ◈10
     const cx2 = towerCodex(save, 'needle');
     expect(cx2.starCap).toBe(10);
     expect(cx2.stages.find((s) => s.star === 9)!.state).toBe('reachable'); // now unlocked

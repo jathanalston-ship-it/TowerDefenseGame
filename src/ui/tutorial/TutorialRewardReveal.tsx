@@ -22,7 +22,7 @@ export function TutorialRewardReveal({ reward, onClose }: { reward: TutorialRewa
     <div className="tut-reward" role="dialog" aria-label="Tutorial Complete" onClick={onClose}>
       <div className="evo-rays" aria-hidden />
       <div className="tut-reward-card" onClick={(e) => e.stopPropagation()}>
-        <div className="tut-reward-badge">★ TUTORIAL COMPLETE ★</div>
+        <div className="tut-reward-badge">◈ TUTORIAL COMPLETE ◈</div>
         <h2 className="tut-reward-title">Assimilation Protocol</h2>
         <p className="tut-reward-sub">Your first progression loop is ready — here is your starter payout.</p>
         <div className="tut-reward-rows">

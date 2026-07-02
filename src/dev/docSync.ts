@@ -24,6 +24,13 @@ export interface DocAnchor {
   why: string; // what drifted if this fails
 }
 
+/** A design token's live value from src/index.css `:root` (the CSS owns these, not TS). */
+function cssToken(name: string): string {
+  const css = readFileSync(join(REPO_ROOT, 'src/index.css'), 'utf8');
+  const m = css.match(new RegExp(`--${name}:\\s*([^;]+);`));
+  return m ? m[1].trim().split('/*')[0].trim() : `<missing token --${name}>`;
+}
+
 /** Value-level doc↔code anchors. ADD ONE whenever a doc states a number the code owns. */
 export function docAnchors(): DocAnchor[] {
   const gates = GENE_LEVEL_GATES.filter((g) => g.stage > 0).map((g) => `L${g.level}@${g.stage}`).join(' · ');
@@ -38,6 +45,13 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${ESSENCE_COST.baseByCardRarity.common}`, why: 'essence cost base drifted (ESSENCE_COST.common)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${GENE_LOADOUT_SLOTS.length}`, why: 'loadout slot count drifted (GENE_LOADOUT_SLOTS)' },
     { doc: 'docs/PROJECT_MANIFEST.md', contains: 'gates at stages 15/30/50/75', why: 'manifest gene-gate summary drifted (GENE_LEVEL_GATES)' },
+    // Identity trilogy (docs/UI_STYLE_GUIDE.md) — pinned to the LIVE :root tokens.
+    { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--kinetic ${cssToken('kinetic')}`, why: 'class-hue palette drifted (src/index.css --kinetic)' },
+    { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--viral ${cssToken('viral')}`, why: 'class-hue palette drifted (src/index.css --viral)' },
+    { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--r-mythic ${cssToken('r-mythic')}`, why: 'rarity ladder drifted (src/index.css --r-mythic)' },
+    { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--panel-deep ${cssToken('panel-deep')}`, why: 'panel ramp drifted (src/index.css --panel-deep)' },
+    { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--dur-2 ${cssToken('dur-2')}`, why: 'motion tokens drifted (src/index.css --dur-2)' },
+    { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--dur-3 ${cssToken('dur-3')}`, why: 'motion tokens drifted (src/index.css --dur-3)' },
   ];
 }
 

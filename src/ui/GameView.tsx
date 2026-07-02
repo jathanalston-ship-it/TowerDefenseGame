@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
-import { biomeById } from '../core/biomes';
 import { drawGame } from '../render/renderer';
 import type { Pointer } from '../render/renderer';
 import { BRANCH_COLOR } from '../render/towerEvolution';
@@ -106,7 +105,7 @@ export function GameView({
     if (hud.phase === 'won') { music.play('victory'); return; }
     if (hud.phase === 'lost') { music.play('defeat'); return; }
     music.play(bossLive ? 'boss' : 'combat');
-    music.setIntensity(bossLive ? 1 : 0.5);
+    // Intensity is driven LIVE by the run loop (pressure → layers); the floor rises for bosses.
   }, [hud.phase, bossLive]);
   // Pause: freezes the sim (the rAF loop skips advance) — both a hotkey (P) and a button drive it.
   // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
@@ -123,7 +122,7 @@ export function GameView({
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
-  const biomeRef = useRef(''); // last biome id seen by the loop → re-voices the ambient drone on a change
+  const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
   const endedRef = useRef(false);
@@ -209,20 +208,15 @@ export function GameView({
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers);
         ctx.restore();
 
-        // Biome transition → re-voice the ambient drone (the audio half of the ecosystem change;
-        // the transition STING rides the sfx queue above). Cheap; only fires when the id changes.
-        if (rs.biome.id !== biomeRef.current) {
-          biomeRef.current = rs.biome.id;
-          audio.setBiome(biomeById(rs.biome.id).ambient);
-        }
-
-        // Ambient bed intensifies with pressure (enemies massing + a wounded core).
+        // Dynamic music intensity (audio/music.ts): battlefield pressure — enemies massing +
+        // a wounded core — breathes the track's layers in and out. Throttled to real changes.
         const intRatio = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;
-        const pressure =
-          game.phase === 'won' || game.phase === 'lost'
-            ? null
-            : Math.min(1, (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6);
-        audio.music(pressure, dt);
+        const pressure = Math.min(1, (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6);
+        const intensity = game.phase === 'won' || game.phase === 'lost' ? 0 : 0.25 + pressure * 0.75;
+        if (Math.abs(intensity - intensityRef.current) > 0.04) {
+          intensityRef.current = intensity;
+          music.setIntensity(intensity);
+        }
 
         if (now - lastHud > 80) {
           setHud(game.getSnapshot());
@@ -237,7 +231,6 @@ export function GameView({
           outroRef.current = { won: game.phase === 'won', startedAt: now };
           setHud(game.getSnapshot());
           setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' });
-          audio.resolve(game.phase === 'won');
         }
         // After the linger (or a tap), hand off to the End-of-Run Summary.
         if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= OUTRO_HOLD_MS)) {
@@ -254,7 +247,6 @@ export function GameView({
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
-      audio.music(null, 0); // fade the bed when leaving the run
     };
   }, [game]);
 
