@@ -877,6 +877,10 @@ export const CAMPAIGN_REWARDS = {
   firstClearCorePerStage: 4, // … + this per stage number (deeper discovery pays more)
   milestoneEvery: 5, // every Nth cleared stage …
   milestoneCore: 100, // … a bonus Genome Cores chunk
+  // Failed FRONTIER attempts recover partial "field data" (BALANCE_REPORT №1-3 push-futility):
+  // this fraction of the stage's first-clear value, scaled by how deep the attempt survived.
+  // Frontier-only + replaced by the full first-clear once the stage falls ⇒ never farmable.
+  attemptFrac: 0.25,
 };
 
 // ── Battlefield / arena ─────────────────────────────────────────────────────

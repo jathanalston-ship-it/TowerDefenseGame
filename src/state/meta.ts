@@ -71,7 +71,7 @@ import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
 import { BIOMES } from '../core/biomes';
-import { BIOME_REGION } from '../core/campaign';
+import { BIOME_REGION, stageWaveCount } from '../core/campaign';
 import { bossDef } from '../core/boss';
 
 /** Biome ids the account has reached in Campaign, derived from campaign depth (biomes occupy
@@ -882,6 +882,17 @@ export const meta = {
             (stageNo % CAMPAIGN_REWARDS.milestoneEvery === 0 ? CAMPAIGN_REWARDS.milestoneCore : 0)) * cb.campaignRewardMult, // Biomes codex: +Campaign Rewards
         )
       : 0;
+    // Failed FRONTIER attempt → partial "field data" consolation (BALANCE_REPORT push-futility):
+    // attemptFrac of the stage's first-clear value, scaled by how deep the attempt survived.
+    // Frontier-only (stage > cleared) so sub-wall stages can't be farmed, and the payout is
+    // superseded by the full first-clear the moment the stage falls.
+    const attemptBonus = isCampaign && !result.won && stageNo > prevCleared
+      ? Math.round(
+          CAMPAIGN_REWARDS.attemptFrac *
+            (CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * stageNo) *
+            Math.min(1, result.wave / stageWaveCount(stageNo)),
+        )
+      : 0;
 
     // 1. global shards + run records
     // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps (director policy).
@@ -898,7 +909,7 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
-    }).total()) + firstClearBonus;
+    }).total()) + firstClearBonus + attemptBonus;
     const newBest = result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI

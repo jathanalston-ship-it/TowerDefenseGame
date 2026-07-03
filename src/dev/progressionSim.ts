@@ -126,6 +126,17 @@ function spendEverything(focus: Persona['focus'] = 'balanced'): void {
   guard(() => meta.buyGeneSlot(), 6);
   const owned = meta.get().stats.uniqueCards;
   for (const id of owned) guard(() => meta.upgradeGene(id), focus === 'completionist' ? 24 : 12);
+  // Adaptation: spend free Antigen down each tower's tree (first pickable node per pass —
+  // the ladder + campaign gates guard order). Real players spend this; leaving it unspent
+  // made the deep band's acquisition cadence read emptier than the game actually is.
+  for (const k of TOWER_ORDER) {
+    guard(() => {
+      const v = meta.adaptation('tower', k);
+      if (v.pointsAvailable <= 0) return false;
+      const pick = v.nodes.find((n) => !n.chosen && n.canPick);
+      return pick ? meta.spendAdaptation('tower', k, pick.node.id) : false;
+    }, 8);
+  }
   // Equip the strongest item per slot on every hero (shared best — coarse but honest), then
   // SALVAGE everything weaker — what a real player does, and it keeps the save bounded so
   // long simulations don't crawl on ever-growing inventory clones.
@@ -170,10 +181,11 @@ export interface SimCheckpoint {
 export function progressSignature(): number {
   const s = meta.get();
   const geneLv = Object.values(meta.geneLevels()).reduce((a, b) => a + b, 0);
+  const adaptPicks = Object.values(s.adaptation ?? {}).reduce((a, p) => a + p.length, 0);
   return (
     sumValues(s.towerStars) + sumValues(s.heroStars) + sumValues(s.upgrades) +
     sumValues(s.prestige.nodes) + s.heroUnlocked.length + s.prestige.molts +
-    (s.geneSlots - 1) + geneLv + s.achievements.length + highestCampaignStage(s)
+    (s.geneSlots - 1) + geneLv + adaptPicks + s.achievements.length + highestCampaignStage(s)
   );
 }
 

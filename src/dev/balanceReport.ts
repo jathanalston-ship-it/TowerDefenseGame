@@ -119,8 +119,14 @@ export function detectBottlenecks(runs: PersonaRun[]): Bottleneck[] {
         (h) => `unspent Cores ${h[0][0].unspentShards}→${h[0][1].unspentShards}`);
       hit('currency-shortage', (a, b) => b.unspentShards < 50 && b.stage === a.stage && b.runs > a.runs,
         (h) => `wallet ≈${h[0][1].unspentShards} Cores while stage held at ${h[0][1].stage}`);
-      hit('power-spike', (a, b) => b.power > a.power * 8,
-        (h) => `power ×${(h[0][1].power / Math.max(1, h[0][0].power)).toFixed(1)} inside one band`);
+      // Power spike = a DISCONTINUITY, not the curve: bands are wide (250h late), so the whole
+      // cohort legitimately grows many-fold inside one. Only a seed leaping far beyond its own
+      // cohort's median growth for the same band flags (single-seed cohorts can never flag —
+      // a discontinuity needs a baseline).
+      const growths = pairs.map(([a, b]) => b.power / Math.max(1, a.power)).sort((x, y) => x - y);
+      const medianGrowth = growths[Math.floor(growths.length / 2)];
+      hit('power-spike', (a, b) => b.power / Math.max(1, a.power) > Math.max(2, medianGrowth * 3),
+        (h) => `power ×${(h[0][1].power / Math.max(1, h[0][0].power)).toFixed(1)} vs cohort median ×${medianGrowth.toFixed(1)} for the band`);
       hit('grind-saturation', (a, b) => b.runs > a.runs && (b.farmRuns - a.farmRuns) / Math.max(1, b.runs - a.runs) > 0.9,
         (h) => `${h[0][1].farmRuns - h[0][0].farmRuns}/${h[0][1].runs - h[0][0].runs} runs were farm runs`);
       hit('push-futility', (a, b) => b.failedPushes - a.failedPushes >= 3,

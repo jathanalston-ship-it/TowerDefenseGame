@@ -245,8 +245,12 @@ function MissionControl({ save, go, start, onStartCampaign, doctrineRef }: Widge
       </div>
       <RewardPreview heading="Possible Rewards" chips={campaignRewards} className="mc-rewards" />
       <div className="mc-cta">
-        <button className="primary mc-deploy" onClick={() => start(() => onStartCampaign(frontier))}>
-          <PlayIcon /> Continue Campaign
+        <button
+          className={`primary mc-deploy${ready ? '' : ' is-underready'}`}
+          onClick={() => start(() => onStartCampaign(frontier))}
+          title={ready ? undefined : `Below recommended Power (${formatPower(rec)}) — expect a wall. Failed frontier attempts still recover partial field data.`}
+        >
+          <PlayIcon /> {ready ? 'Continue Campaign' : `Deploy Under-Powered ⚠ ${formatPower(power)} / ${formatPower(rec)}`}
         </button>
         <div className="mc-setup">
           <div className="play-field">

@@ -102,6 +102,13 @@ export function stageSeed(stage: number, difficultyId: string): number {
   return (Math.imul(stage >>> 0, 2654435761) ^ hashStr(difficultyId)) >>> 0;
 }
 
+/** A stage's total wave count (the same formula generateStage authors). Exported so the
+ *  attempt-consolation payout can scale by depth survived without regenerating the stage. */
+export function stageWaveCount(stage: number): number {
+  const st = Math.max(1, stage);
+  return Math.min(C.waveMax, C.baseWaves + Math.floor((st - 1) / C.waveIncEvery));
+}
+
 function weightedPick(rng: Rng, pool: EnemyKind[], weights: number[]): EnemyKind {
   let total = 0;
   for (const w of weights) total += w;
@@ -147,7 +154,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const sig = new Set<EnemyKind>(biome.mods.signature);
   const weights = pool.map((k) => (biome.mods.bias[categoryOf(ENEMY_DEFS[k])] ?? 1) * (sig.has(k) ? C.signatureBoost : 1));
 
-  const waveCount = Math.min(C.waveMax, C.baseWaves + Math.floor((st - 1) / C.waveIncEvery));
+  const waveCount = stageWaveCount(st);
   // Elite frequency: the biome eliteMult is applied BEFORE the cap, so the 0.45 invariant holds.
   const eliteFrequency = clamp((C.eliteBase + C.elitePerStage * st) * biome.mods.eliteMult, 0, C.eliteCap) * base.eliteChanceMult;
   const miniBossChance = clamp(C.mbBase + C.mbPerStage * st, 0, C.mbCap) * base.bossFrequencyMult;

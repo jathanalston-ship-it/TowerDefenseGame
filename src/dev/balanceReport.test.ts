@@ -76,6 +76,21 @@ describe('bottleneck detectors (synthetic traces — deterministic)', () => {
     const b = mkCp({ hours: 50, power: 400, stage: 14, unlocks: 90, readiness: 0.6, runs: 40, farmRuns: 20, unspentShards: 300 });
     expect(detectBottlenecks([mkRun('average', [[a, b]])])).toEqual([]);
   });
+
+  it('power-spike is cohort-relative: only the seed leaping past its cohort median flags', () => {
+    const mk = (p0: number, p1: number): SimCheckpoint[] => [
+      mkCp({ hours: 150, power: p0, stage: 20, unlocks: 100, readiness: 0.5 }),
+      mkCp({ hours: 400, power: p1, stage: 40, unlocks: 260, readiness: 0.6, runs: 300, farmRuns: 150, unspentShards: 200 }),
+    ];
+    // Whole cohort grows ×10 (the curve): silent — that IS the ramp, not a spike.
+    expect(detectBottlenecks([mkRun('average', [mk(100, 1000), mk(100, 1000), mk(100, 1000)])])
+      .filter((x) => x.kind === 'power-spike')).toEqual([]);
+    // One seed leaps ×30 while the cohort medians ×3: the outlier flags.
+    const found = detectBottlenecks([mkRun('average', [mk(100, 300), mk(100, 300), mk(100, 3000)])])
+      .filter((x) => x.kind === 'power-spike');
+    expect(found.length).toBe(1);
+    expect(found[0].evidence).toContain('cohort median');
+  });
 });
 
 describe('diagnosis + report rendering (report-only by construction)', () => {

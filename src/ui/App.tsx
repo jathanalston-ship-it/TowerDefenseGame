@@ -16,8 +16,9 @@ import type { RunOutcome, RunResult } from '../state/meta';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
-import { generateStage } from '../core/campaign';
+import { generateStage, recommendedPowerScore } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
+import { formatPower } from '../core/power';
 import { EvolutionUnlock } from './EvolutionUnlock';
 import type { EvolutionUnlockData } from './EvolutionUnlock';
 import { HeroSlotUnlock } from './HeroSlotUnlock';
@@ -104,9 +105,16 @@ export function App(): JSX.Element {
     // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of
     // being thrown straight onto the battlefield. The playing screen mounts after DEPLOY_MS.
     const diffName = DIFFICULTIES[difficultyRef.current]?.name ?? 'Standard';
+    // Readiness surfacing (BALANCE_REPORT push-futility): an under-powered frontier attempt is
+    // allowed — informed risk — but the briefing says so out loud before the wall does.
+    const campaignWarn = (): string | undefined => {
+      const rec = recommendedPowerScore(campaignStageRef.current, difficultyRef.current);
+      const power = meta.power().score;
+      return power < rec ? `⚠ Below recommended Power — ${formatPower(power)} of ${formatPower(rec)}. Expect a wall; failed attempts still recover field data.` : undefined;
+    };
     setDeployInfo(
       mode === 'campaign' && stage
-        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}`, accent: stage.biome.accent }
+        ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}`, accent: stage.biome.accent, warn: campaignWarn() }
         : mode === 'endless'
           ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}`, accent: 'var(--viral, #c98bff)' }
           : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },

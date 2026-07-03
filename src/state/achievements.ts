@@ -13,6 +13,7 @@
 
 import { TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { highestCampaignStage } from '../save/derive';
 import type { SaveData } from '../save/saveStore';
 
 /** Minimal run summary (structurally a subset of RunResult — avoids a meta import). */
@@ -71,6 +72,47 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Hidden (surprise milestones — concealed until earned) ──
   { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },
+
+  // ── Deep-band ladder (BALANCE_REPORT unlock-cadence gap: the 150–400h band had almost no
+  //    authored beats — every unlock below is a mid/late-game milestone with a progress bar,
+  //    spacing the acquisition cadence across the long arc instead of ending at the tutorial
+  //    scales above). Generated ladders keep the set data-driven: one rung per threshold. ──
+  ...([15, 30, 50, 75, 100, 150] as const).map((n, i): AchievementDef => ({
+    id: `stage${n}`, name: ['Descender', 'Deep Descender', 'Abyssal Pioneer', 'Void Cartographer', 'Centurial Descent', 'The Long Dark'][i],
+    desc: `Clear Campaign Stage ${n}.`, reward: 25 + i * 15,
+    test: (c) => highestCampaignStage(c.save) >= n,
+    progress: (c) => ({ cur: highestCampaignStage(c.save), max: n }),
+  })),
+  ...([25, 50, 75, 100, 140] as const).map((n, i): AchievementDef => ({
+    id: `wave${n}`, name: ['Survivor', 'Depth Runner', 'Abyss Swimmer', 'Century Survivor', 'Beyond the Charts'][i],
+    desc: `Reach Infinite Depth ${n}.`, reward: 25 + i * 15,
+    test: (c) => c.save.bestWave >= n,
+    progress: (c) => ({ cur: c.save.bestWave, max: n }),
+  })),
+  ...([1, 5, 10, 20, 35] as const).map((n, i): AchievementDef => ({
+    id: `molt${n}`, name: ['First Molt', 'Serial Shedder', 'Ascendant Cycle', 'Perpetual Rebirth', 'The Eternal Return'][i],
+    desc: `Molt ${n === 1 ? 'for the first time' : `${n} times`}.`, reward: 30 + i * 15,
+    test: (c) => (c.save.prestige?.molts ?? 0) >= n,
+    progress: (c) => ({ cur: c.save.prestige?.molts ?? 0, max: n }),
+  })),
+  ...([5, 7, 9] as const).map((n, i): AchievementDef => ({
+    id: `star${n}`, name: ['Constellation', 'Stellar Forge', 'Supernova'][i],
+    desc: `Bring a tower to ${n} stars.`, reward: 40 + i * 20,
+    test: (c) => maxStars(c.save) >= n,
+    progress: (c) => ({ cur: maxStars(c.save), max: n }),
+  })),
+  ...([1, 12, 30] as const).map((n, i): AchievementDef => ({
+    id: `adapt${n}`, name: ['First Rewrite', 'Divergent Strain', 'Total Speciation'][i],
+    desc: `Commit ${n === 1 ? 'an Adaptation' : `${n} Adaptations`} across your strains.`, reward: 30 + i * 20,
+    test: (c) => Object.values(c.save.adaptation ?? {}).reduce((a, p) => a + p.length, 0) >= n,
+    progress: (c) => ({ cur: Object.values(c.save.adaptation ?? {}).reduce((a, p) => a + p.length, 0), max: n }),
+  })),
+  ...([10_000, 100_000] as const).map((n, i): AchievementDef => ({
+    id: `kills${n}`, name: ['Purge Protocol', 'Extinction Event'][i],
+    desc: `Kill ${n.toLocaleString('en-US')} enemies (lifetime).`, reward: 75 + i * 50,
+    test: (c) => c.save.stats.lifetimeKills >= n,
+    progress: (c) => ({ cur: c.save.stats.lifetimeKills, max: n }),
+  })),
 ];
 
 /** Achievements whose condition is now met but which aren't yet unlocked. */

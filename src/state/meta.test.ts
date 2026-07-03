@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
 import { meta, metaModifiers, upgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
-import { HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
+import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
+import { stageWaveCount } from '../core/campaign';
 import { costOf, isLootRarity } from '../core/loot';
 import type { RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
@@ -335,5 +336,31 @@ describe('run-end achievements (surfaced inline on Results, not toasted)', () =>
     const again = meta.finishRun(runResult(6, 50)).achievements.map((a) => a.id);
     expect(again).not.toContain('first_run'); // already earned → not reported again
     expect(again).not.toContain('extract');
+  });
+});
+
+describe('failed frontier attempt consolation (BALANCE_REPORT push-futility amendment)', () => {
+  const cleared5 = () => ({ ...defaultSave(), campaign: { cleared: { standard: 5 }, bestTime: {} } });
+
+  it('pays partial field data on a lost FRONTIER attempt, scaled by depth survived', () => {
+    // Two identical lost campaign runs; only the frontier flag differs ⇒ the delta IS the bonus.
+    meta.importText(serializeExport(cleared5()));
+    const below = meta.finishRun({ ...runResult(4, 40), campaignStage: 3, won: false, difficulty: 'standard' });
+    meta.importText(serializeExport(cleared5()));
+    const frontier = meta.finishRun({ ...runResult(4, 40), campaignStage: 6, won: false, difficulty: 'standard' });
+    const expected = Math.round(
+      CAMPAIGN_REWARDS.attemptFrac *
+        (CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * 6) *
+        Math.min(1, 4 / stageWaveCount(6)),
+    );
+    expect(expected).toBeGreaterThan(0);
+    expect(frontier.reward.shardsEarned - below.reward.shardsEarned).toBe(expected);
+  });
+
+  it('never pays on a WON run (the full first-clear supersedes it)', () => {
+    meta.importText(serializeExport(cleared5()));
+    const won = meta.finishRun({ ...runResult(7, 80), campaignStage: 6, won: true, difficulty: 'standard' });
+    // A won frontier run pays the FULL first-clear (≥ base 25 + 4×6), not the fraction.
+    expect(won.reward.shardsEarned).toBeGreaterThanOrEqual(CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * 6);
   });
 });

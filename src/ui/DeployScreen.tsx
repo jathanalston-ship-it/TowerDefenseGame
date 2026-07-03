@@ -10,6 +10,7 @@ export interface DeployInfo {
   title: string; // "STAGE 31 — VERDANT HIVE" / "INFINITE MODE" / "QUICK SKIRMISH"
   sub: string; // one context line ("The Descent · Standard" / "AI Director · infinite depth")
   accent: string; // biome/mode hue for the glow + bar
+  warn?: string; // under-ready warning ("⚠ Below recommended Power …") — readiness surfacing
 }
 
 export function DeployScreen({ info }: { info: DeployInfo }): JSX.Element {
@@ -26,6 +27,7 @@ export function DeployScreen({ info }: { info: DeployInfo }): JSX.Element {
       <div className="deploy-eyebrow">DEPLOYING THE INFECTION</div>
       <div className="deploy-title">{info.title}</div>
       <div className="deploy-sub">{info.sub}</div>
+      {info.warn && <div className="deploy-warn" role="alert">{info.warn}</div>}
       <div className="deploy-bar" aria-hidden><span /></div>
       <div className="deploy-tip"><span className="deploy-tip-k">TIP</span>{tip}</div>
     </div>

@@ -39,16 +39,20 @@ itself* is modeled (the `WORLD` constants: wave length, kills, menu overhead).
 
 **Measured per band** (`SimCheckpoint`): Power, campaign stage, best wave, molts,
 runs/farm-runs, frontier readiness, unspent Genome Cores, **cumulative acquisitions**
-(`progressSignature` — every star/upgrade/hero/molt/gene level/stage/feat counts one
-"dopamine moment"), and **failed frontier pushes**.
+(`progressSignature` — every star/upgrade/hero/molt/gene level/**Adaptation pick**/stage/
+feat counts one "dopamine moment"), and **failed frontier pushes**. The virtual player
+spends every wallet the game has, including Antigen (Adaptation picks in tier order) —
+an unspent system would make the deep band read emptier than the game actually is.
 
 ## 2. Bottleneck detectors (`balanceReport.ts`)
 
 Each fires per persona-band across seeds; frequency across seeds drives severity +
 confidence. Kinds: `dead-zone` (farming moves no power) · `wall-stall` (frontier +
 readiness flat) · `dopamine-gap` (< 0.5 acquisitions/hour) · `sink-exhaustion` (Cores
-compound unspent) · `currency-shortage` (broke AND walled) · `power-spike` (×8 in one
-band) · `grind-saturation` (> 90% farm share) · `push-futility` (≥ 3 failed pushes).
+compound unspent) · `currency-shortage` (broke AND walled) · `power-spike`
+(**cohort-relative discontinuity**: a seed's band growth > 3× its cohort's median for the
+same band — curve-following growth never flags, and single-seed cohorts cannot flag) ·
+`grind-saturation` (> 90% farm share) · `push-futility` (≥ 3 failed pushes).
 
 Ranking `score = frequency × bandWeight × kindWeight` — the first 50 hours weigh 1.5×
 (retention shapes hardest early); structural kinds (walls, dead zones, shortages) weigh

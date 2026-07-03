@@ -100,3 +100,22 @@ untouched: steepening it would deepen the content-horizon crawl.
   (`progressionSim.test.ts`) — new towers/cards/equipment/currencies that re-open the molt
   spiral, freeze the gate, or soften the requirement curve fail the build; the linear molt
   gate leaves layers 2–6 to add their own gates ON TOP rather than re-shaping layer 1.
+
+---
+
+## 6. Amendment round — BALANCE_REPORT №1 (2026-07, persona matrix 11×4×400h)
+
+The first persona-matrix report (`docs/BALANCE_REPORT.md`, top-20) was reviewed and amended.
+Changes went through the §4 protocol (named constants → simulate before/after → re-pin):
+
+| Finding (family) | Change | Where |
+|---|---|---|
+| **Push-futility** (№1–3, MAJOR/High — campaign-focused players burn whole runs on under-ready frontier attempts) | Failed FRONTIER attempts now recover **partial field data**: `CAMPAIGN_REWARDS.attemptFrac` (0.25) of the stage's first-clear value, scaled by depth survived. Frontier-only (never farmable below the wall); superseded by the full first-clear. Plus **readiness surfaced** at both decision points: the Command Center deploy button switches to an explicit `Deploy Under-Powered ⚠ you/rec` state, and the deployment interstitial carries the warning line. The attempt stays allowed — informed risk. | `config.CAMPAIGN_REWARDS.attemptFrac`, `meta.finishRun` (attemptBonus), `CommandCenter`/`DeployScreen` |
+| **Unlock-cadence gap 150–400h** (№4/6/14/15/16, incl. the one CRITICAL — acquisitions fell to 0.32–0.48/h) | Two-part: (a) **instrument honesty** — the virtual player now SPENDS Antigen (Adaptation picks in tier order) and `progressSignature` counts picks: the deep band's existing dopamine source was invisible to the meter; (b) **content** — a ~24-rung deep-band achievement ladder (stages 15→150, depths 25→140, molts 1→35, stars 5/7/9, Adaptation 1/12/30, lifetime kills), each with a progress bar, so authored beats span the long arc instead of ending at tutorial scales. | `dev/progressionSim.ts`, `state/achievements.ts` |
+| **Power spikes** (№5/7–10/12/13/17/18 — ×8–28 "inside one band") | **Instrument correction:** the ×8 threshold ignored band width — late bands span 250h, over which the whole cohort legitimately grows many-fold; most flags were the curve, not discontinuities. The detector is now **cohort-relative**: a seed flags only when its band growth exceeds 3× its cohort's median for the same band. True molt-chain outliers (e.g. №7's ×28 vs cohort ×~10) still flag; payout smoothing itself remains deliberately deferred to prestige layers 2–6 (re-shaping layer 1 would re-open the tuned molt envelope). | `dev/balanceReport.ts` |
+| **Dead zone №11** (MINOR, 25% — power *declined* while farming) | Traced to gear-swap metric variance: `spendEverything` picks by `itemPowerScore` while the Power meter values `effectsPower×rarity` — a swap can rank up on one metric and down on the other, exactly as a real player's sidegrade can. Recorded as measurement texture (the detector's farming+flat-power condition remains meaningful at higher frequencies); no change. | — (recorded here) |
+| **Grind saturation** (№19/20, MINOR/Low) | No direct knob turned: the consolation + Antigen spending raise farm→power conversion, which shortens farm phases organically. Kept as a watch item against the regenerated report; the readiness-curve knob stays untouched (loop invariants). | watch item |
+
+**Guardrails:** goldens byte-identical (all changes live in the meta/report layers); the CI
+pacing envelope (`progressionSim.test.ts`) passed unmodified; the consolation contract is
+pinned in `meta.test.ts` (frontier-only, depth-scaled, superseded on the clear).
