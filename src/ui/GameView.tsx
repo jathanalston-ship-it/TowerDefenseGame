@@ -487,8 +487,12 @@ export function GameView({
     };
   };
 
+  // Phase skin for the whole combat shell (docs/HUD.md): BUILD = calm green preparation,
+  // COMBAT = heated accents, DANGER = the committed emergency state. Pure presentation.
+  const hphase = hud.emergency ? 'danger' : hud.phase === 'wave' ? 'combat' : 'prep';
+
   return (
-    <div className="game">
+    <div className="game" data-hphase={hphase}>
       <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} />
       <PowerToaster />
       <MasteryToaster />

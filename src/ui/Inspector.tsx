@@ -11,6 +11,7 @@ import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
 import { ProgressBar } from './components/ProgressBar';
 import { meta } from '../state/meta';
+import { itemDef } from '../core/equipment';
 import { masteryPanelModel } from './towerLabModel';
 import type { LiveMasteryView } from '../state/masteryEvents';
 import type { HudSnapshot, SelectedPlacedTower, TowerKind } from '../core/types';
@@ -301,31 +302,75 @@ export function Inspector({
     );
   }
 
-  // ── Default: hero status + run summary ──────────────────────────────────────
+  // ── Default: HERO OPS — portrait, vitals, ability wheel, gear, run summary ─────────────
   const heroDef = HERO_DEFS[hud.hero.kind];
-  const abName = heroDef.ability.name;
-  const ability = hud.hero.down
-    ? `Reviving ${Math.ceil(hud.hero.respawn)}s`
-    : hud.hero.abilityReady
-      ? `${abName} ready`
-      : `${abName} ${Math.ceil(hud.hero.abilityCd)}s`;
+  const abMax = Math.max(0.001, heroDef.ability.cooldown);
+  const abPct = hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / abMax));
+  const save = meta.get();
+  const loadout = save.equipment.loadouts[hud.hero.kind];
+  const inv = save.equipment.inventory;
+  const slots = (['weapon', 'armor', 'relic'] as const).map((slot) => {
+    const uid = loadout?.[slot] ?? null;
+    const item = uid ? inv.find((it) => it.uid === uid) ?? null : null;
+    return { slot, item };
+  });
 
   return (
     <aside className="side-panel inspector" aria-label="Run inspector">
-      <InsHead title="Status" onCollapse={onCollapse} />
+      <InsHead title="Hero Ops" onCollapse={onCollapse} />
 
-      <div className="ins-title">
-        <span className="ins-name" style={{ color: heroDef.color }}>
-          {heroDef.name}
-        </span>
-        <span className="class-badge" style={{ background: heroDef.color, color: '#1a1206' }}>
-          {heroDef.combatClass}
-        </span>
-      </div>
-      <div className="ins-stats">
-        <StatRow k="Health" v={`${hud.hero.hp}/${hud.hero.maxHp}`} />
-        {hud.hero.shield > 0 && <StatRow k="Shield" v={hud.hero.shield} />}
-        <StatRow k="Ability" v={ability} />
+      <div className={`hero-ops${hud.hero.down ? ' is-down' : ''}`} style={{ ['--hero' as string]: heroDef.color }}>
+        <div className="ho-top">
+          <div className="ho-portrait" aria-hidden>
+            <span className="ho-port-core" />
+            <span className="ho-port-ring" />
+            {hud.hero.down && <span className="ho-port-down">✕</span>}
+          </div>
+          <div className="ho-id">
+            <span className="ho-name">{heroDef.name}</span>
+            <span className="class-badge" style={{ background: heroDef.color, color: '#1a1206' }}>
+              {heroDef.combatClass}
+            </span>
+            {hud.heroEvo.totalOwned > 0 && (
+              <span className="ho-evo tt" tabIndex={0}>
+                ▲{hud.heroEvo.totalOwned}
+                <span className="tt-bubble">{hud.heroEvo.totalOwned} Hero Evolution levels active this run (E).</span>
+              </span>
+            )}
+          </div>
+          <div
+            className={`ho-ability tt${hud.hero.abilityReady ? ' is-ready' : ''}`}
+            tabIndex={0}
+            style={{ ['--ab' as string]: abPct }}
+            aria-label={`${heroDef.ability.name} ${hud.hero.abilityReady ? 'ready' : `recharging, ${Math.ceil(hud.hero.abilityCd)}s`}`}
+          >
+            <span className="ho-ab-wheel" aria-hidden />
+            <span className="ho-ab-icon" aria-hidden>⚡</span>
+            {!hud.hero.abilityReady && !hud.hero.down && <span className="ho-ab-cd">{Math.ceil(hud.hero.abilityCd)}</span>}
+            <span className="tt-bubble">{heroDef.ability.name} — {heroDef.ability.blurb} (Q)</span>
+          </div>
+        </div>
+
+        {hud.hero.down ? (
+          <div className="ho-down" role="status">REGENERATING · {Math.ceil(hud.hero.respawn)}s</div>
+        ) : (
+          <div className="ho-vitals">
+            <ProgressBar value={hud.hero.hp} max={hud.hero.maxHp} color={heroDef.color} height={10} className="bar-hero" label="Hero HP" />
+            <span className="ho-hp">{hud.hero.hp}<i>/{hud.hero.maxHp}</i></span>
+            {hud.hero.shield > 0 && <span className="ho-shield" title="Shield">⛨ {hud.hero.shield}</span>}
+          </div>
+        )}
+
+        <div className="ho-gear" aria-label="Equipment">
+          {slots.map(({ slot, item }) => (
+            <span key={slot} className={`ho-slot tt${item ? ` r-${item.rarity}` : ' is-empty'}`} tabIndex={0}>
+              <i aria-hidden>{slot === 'weapon' ? '⚔' : slot === 'armor' ? '⛨' : '◈'}</i>
+              <span className="tt-bubble">
+                {item ? `${itemDef(item.defId)?.name ?? 'Item'} · ${item.rarity}` : `No ${slot} equipped — visit the Armory.`}
+              </span>
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="side-k">Run</div>

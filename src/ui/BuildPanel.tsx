@@ -2,6 +2,7 @@
 // grouped by category with stack counts, and the plain-language rollup of active
 // run buffs. Reads only the throttled HudSnapshot (cards/buffs), never the sim.
 
+import { useState } from 'react';
 import { affectsOf } from './cardAffects';
 import type { CardOption, HudSnapshot } from '../core/types';
 
@@ -26,6 +27,10 @@ function groupCards(cards: CardOption[]): { category: string; stacks: Stack[] }[
 export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnapshot; onCollapse?: () => void; onOpenEvolution?: () => void }): JSX.Element {
   const groups = groupCards(hud.cards);
   const hasCards = hud.cards.length > 0;
+  // Collapsible sections — grouped, animated, no dead space (docs/HUD.md §left panel).
+  const [folded, setFolded] = useState<Record<string, boolean>>({});
+  const toggle = (k: string): void => setFolded((f) => ({ ...f, [k]: !f[k] }));
+  const wavesLeft = Math.max(0, hud.totalWaves - Math.max(0, hud.wave));
 
   return (
     <aside className="side-panel build-panel" aria-label="Run build">
@@ -38,9 +43,12 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
         )}
       </div>
 
-      <div className="side-sec">
-        <div className="side-k">Gene Cards{hasCards ? ` · ${hud.cards.length}` : ''}</div>
-        {hasCards ? (
+      <div className={`side-sec${folded.cards ? ' is-folded' : ''}`}>
+        <button className="side-k side-fold" onClick={() => toggle('cards')} aria-expanded={!folded.cards}>
+          Gene Cards{hasCards ? ` · ${hud.cards.length}` : ''}
+          <i aria-hidden>{folded.cards ? '▸' : '▾'}</i>
+        </button>
+        {!folded.cards && (hasCards ? (
           <div className="card-groups">
             {groups.map((g) => (
               <div className="card-group" key={g.category}>
@@ -68,7 +76,7 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
           </div>
         ) : (
           <p className="side-empty">Draft gene cards between waves to shape this run.</p>
-        )}
+        ))}
       </div>
 
       {/* Hero Combat Console — the in-run Biomass sink (docs/HERO-EVOLUTION.md §console). */}
@@ -89,9 +97,12 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
         </div>
       )}
 
-      <div className="side-sec">
-        <div className="side-k">Active Effects</div>
-        {hud.buffs.length > 0 ? (
+      <div className={`side-sec${folded.fx ? ' is-folded' : ''}`}>
+        <button className="side-k side-fold" onClick={() => toggle('fx')} aria-expanded={!folded.fx}>
+          Active Effects{hud.buffs.length > 0 ? ` · ${hud.buffs.length}` : ''}
+          <i aria-hidden>{folded.fx ? '▸' : '▾'}</i>
+        </button>
+        {!folded.fx && (hud.buffs.length > 0 ? (
           <div className="buff-chips">
             {hud.buffs.map((b) => (
               <span className="buff-chip" key={b}>
@@ -101,7 +112,24 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
           </div>
         ) : (
           <p className="side-empty">No run modifiers yet.</p>
-        )}
+        ))}
+      </div>
+
+      {/* Objectives — where this run is headed, always visible at a glance. */}
+      <div className="side-sec side-obj">
+        <div className="side-k">Objectives</div>
+        <ul className="obj-list">
+          <li className="obj-row">
+            <i className="obj-dot" aria-hidden />
+            {hud.endless ? `Hold the line · depth ${Math.max(1, hud.wave)}` : wavesLeft > 0 ? `Survive ${wavesLeft} more wave${wavesLeft === 1 ? '' : 's'}` : 'Final wave — finish it'}
+          </li>
+          {hud.anticipation.slice(0, 2).map((a) => (
+            <li className="obj-row is-next" key={a}>
+              <i className="obj-dot" aria-hidden />
+              {a}
+            </li>
+          ))}
+        </ul>
       </div>
     </aside>
   );

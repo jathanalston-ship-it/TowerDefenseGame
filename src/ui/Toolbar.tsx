@@ -2,6 +2,7 @@ import type { Game } from '../core/game';
 import { HERO_DEFS, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { audio } from '../audio/sound';
 import type { HudSnapshot } from '../core/types';
+import { meta, masteryLevel } from '../state/meta';
 import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
 
 export function Toolbar({
@@ -15,6 +16,7 @@ export function Toolbar({
 }): JSX.Element {
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
   const heroDef = HERO_DEFS[hud.hero.kind];
+  const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
 
   return (
     <div className="toolbar">
@@ -24,11 +26,14 @@ export function Toolbar({
           const sel = hud.selectedTower === kind;
           const afford = hud.biomass >= def.cost;
           const dps = def.fireInterval > 0 ? Math.round(def.damage / def.fireInterval) : 0;
+          const stars = save.towerStars[kind] ?? 0;
+          const mastery = masteryLevel(save.towerMasteryXp[kind] ?? 0);
+          const placed = game.towers.reduce((n, t) => n + (t.kind === kind ? 1 : 0), 0);
           return (
             <button
               key={kind}
               data-tut={i === 0 ? 'tower-card-first' : undefined}
-              className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}`}
+              className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}${afford && playable ? ' is-ready' : ''}`}
               disabled={(!afford && !sel) || !playable}
               onClick={() => {
                 audio.resume();
@@ -38,13 +43,33 @@ export function Toolbar({
               }}
             >
               <span className="tcard-edge" />
+              <span className="tcard-sheen" aria-hidden />
               <span className="tcard-head">
                 <span className="tcard-name">{def.name}</span>
+                {mastery > 0 && (
+                  <span
+                    className="tcard-mring"
+                    title={`Mastery rank ${mastery}`}
+                    style={{ ['--mp' as string]: Math.min(1, mastery / 50) }}
+                  >
+                    {Math.min(99, mastery)}
+                  </span>
+                )}
                 <span className="hotkey">{i + 1}</span>
               </span>
+              {stars > 0 && (
+                <span className="tcard-stars" aria-label={`${stars} evolution stars`}>
+                  {'◈'.repeat(Math.min(5, stars))}
+                  {stars > 5 && <i>+{stars - 5}</i>}
+                </span>
+              )}
               <span className="tcard-blurb">{def.blurb}</span>
-              <span className={`cost-chip ${afford ? 'is-afford' : 'is-broke'}`}>
-                <BiomassIcon /> {def.cost}
+              <span className="tcard-foot">
+                <span className={`cost-chip ${afford ? 'is-afford' : 'is-broke'}`}>
+                  <BiomassIcon /> {def.cost}
+                </span>
+                {dps > 0 && <span className="tcard-dps">{dps} dps</span>}
+                {placed > 0 && <span className="tcard-placed" title={`${placed} deployed this run`}>×{placed}</span>}
               </span>
               <span className="tt-bubble tt-rich">
                 <b style={{ color: `var(--${def.combatClass.toLowerCase()})` }}>{def.name}</b>

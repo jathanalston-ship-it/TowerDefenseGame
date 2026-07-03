@@ -57,6 +57,22 @@ export function BuildControls({
   // persist to localStorage; the DraftModal reads the pref when the next draft opens.
   const [autoGene, setAutoGene] = useState(autoGenePref());
   const nextWave = Math.min(hud.totalWaves, hud.wave + 1);
+  // Launch sweep: a one-shot full-board energy band when the wave fires (keyed per launch).
+  const [sweepAt, setSweepAt] = useState(0);
+  // Encounter forecast — expected biomass (Σ bounty) + the heaviest tier present, from the
+  // SAME memoized preview (no extra per-render aggregation).
+  const forecast = useMemo(() => {
+    if (!preview) return null;
+    let biomass = 0;
+    let heavy: 'boss' | 'elite' | null = null;
+    for (const e of preview) {
+      biomass += (ENEMY_DEFS[e.kind]?.bounty ?? 0) * e.count;
+      const tier = ENEMY_TIER[e.kind];
+      if (tier === 'boss') heavy = 'boss';
+      else if (tier === 'elite' && heavy !== 'boss') heavy = 'elite';
+    }
+    return { biomass, heavy };
+  }, [preview]);
 
   return (
     <div className={`build-controls ${visible ? 'is-visible' : ''}`} aria-hidden={!visible}>
@@ -67,6 +83,17 @@ export function BuildControls({
             <span className="wb-wave">{hud.endless ? `DEPTH ${nextWave}` : `WAVE ${nextWave}`}</span>
             {!hud.endless && <span className="wb-of">/ {hud.totalWaves}</span>}
             {hostiles > 0 && <span className="wb-count">{hostiles} hostiles</span>}
+            {forecast && forecast.biomass > 0 && (
+              <span className="wb-forecast tt" tabIndex={visible ? 0 : -1}>
+                ⬢ +{forecast.biomass}
+                <span className="tt-bubble">Expected Biomass if the whole wave falls.</span>
+              </span>
+            )}
+            {forecast?.heavy && (
+              <span className={`wb-heavy is-${forecast.heavy}`} role="alert">
+                {forecast.heavy === 'boss' ? '◆ BOSS INBOUND' : '▲ ELITES'}
+              </span>
+            )}
           </div>
           {preview && (
             <div className="wb-threats" aria-label="incoming enemies">
@@ -98,11 +125,14 @@ export function BuildControls({
             tabIndex={visible ? 0 : -1}
             onClick={() => {
               audio.resume();
+              setSweepAt(Date.now());
               game.startWave();
               refresh();
             }}
           >
-            ▶ Start Wave {nextWave} <span className="hotkey">␣</span>
+            <span className="start-btn-core">▶ Start Wave {nextWave}</span>
+            <span className="hotkey">␣</span>
+            <span className="start-btn-ring" aria-hidden />
           </button>
           )}
           {!tutorialLock && <div className="wb-autos">
@@ -150,6 +180,7 @@ export function BuildControls({
           Waiting for first placement…
         </div>
       )}
+      {sweepAt > 0 && <div className="wave-sweep" key={sweepAt} aria-hidden />}
     </div>
   );
 }
