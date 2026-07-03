@@ -101,6 +101,10 @@ function sSelect(): void { tone(520, 0.05, 'square', 0.05); }
 function sHover(): void { tone(900, 0.02, 'sine', 0.012, 1200); } // a faint, premium tick as the pointer crosses a control
 function sLaunch(): void { tone(196, 0.16, 'sine', 0.15, 392); tone(294, 0.3, 'triangle', 0.09, 440); noise(0.1, 0.045, 1300, 4200); } // a confident "engage" swell on Start Run
 function sWave(): void { tone(330, 0.12, 'sawtooth', 0.16); tone(494, 0.22, 'sawtooth', 0.16); }
+function sBoss(): void { // apex-threat sting: falling tritone over a sub thump + hiss swell
+  tone(220, 0.5, 'sawtooth', 0.22, 156); tone(156, 0.7, 'sawtooth', 0.16, 110);
+  tone(55, 0.6, 'sine', 0.3, 41); noise(0.5, 0.1, 500, 150);
+}
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
 // ── progression / reward dopamine cues ──
 function sClear(): void { // wave-cleared fanfare (rising major triad)
@@ -203,6 +207,7 @@ export const audio = {
         case 'place': sPlace(); break;
         case 'select': sSelect(); break;
         case 'wave': sWave(); break;
+        case 'boss': sBoss(); break;
         case 'draft': sDraft(); break;
         case 'ui': sSelect(); break;
         case 'hover': sHover(); break;

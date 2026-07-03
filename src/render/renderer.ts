@@ -134,10 +134,31 @@ export function drawGame(
 
   for (const f of rs.floats) {
     ctx.globalAlpha = Math.min(1, f.life * 2);
-    ctx.fillStyle = f.color;
-    ctx.font = 'bold 14px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(f.text, f.x, f.y);
+    if (f.kind === 'crit') {
+      // CRIT (docs/GAME-FEEL.md): pop-in scale (overshoot → settle), heavier type, a burst
+      // ring in the first beat — critical hits should feel like small explosions.
+      const age = Math.max(0, 0.7 - f.life); // floats are pushed with life 0.7
+      const popIn = Math.min(1, age / 0.12);
+      const scale = 1 + 0.5 * (1 - popIn) + 0.12 * Math.max(0, 1 - age * 5);
+      if (age < 0.22) {
+        ctx.strokeStyle = f.color;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = (1 - age / 0.22) * 0.8;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y - 4, 6 + age * 60, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = Math.min(1, f.life * 2);
+      }
+      ctx.fillStyle = f.color;
+      ctx.font = `900 ${Math.round(17 * scale)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(f.text, f.x, f.y);
+    } else {
+      ctx.fillStyle = f.color;
+      ctx.font = 'bold 14px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(f.text, f.x, f.y);
+    }
     ctx.globalAlpha = 1;
   }
   ctx.textAlign = 'left';
@@ -521,6 +542,29 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // grow-on-place → idle breathing → a recoil punch right after firing.
   const grow = easeOutCubic(Math.min(1, Math.max(0, (now - tw.bornAt) / TOWER_GROW)));
   if (grow <= 0.001) return;
+  // ROOTING (docs/GAME-FEEL.md): while young, bio tendrils crawl outward and sink in — the
+  // tower visibly takes hold of the terrain instead of popping into place.
+  const rootAge = now - tw.bornAt;
+  if (rootAge < 0.8) {
+    const rp = Math.min(1, rootAge / 0.8);
+    const reach = (10 + 16 * easeOutCubic(rp)) * grow;
+    ctx.save();
+    ctx.globalAlpha = 0.65 * (1 - rp);
+    ctx.strokeStyle = def.color;
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + tw.id * 1.7; // stable per tower — no flicker
+      const wob = Math.sin(now * 6 + i * 2.1) * 2.5;
+      ctx.beginPath();
+      ctx.moveTo(tw.x + Math.cos(a) * 6, tw.y + Math.sin(a) * 6);
+      ctx.quadraticCurveTo(
+        tw.x + Math.cos(a) * reach * 0.6 + wob, tw.y + Math.sin(a) * reach * 0.6 - wob,
+        tw.x + Math.cos(a) * reach, tw.y + Math.sin(a) * reach,
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   const breathe = pulse(now + tw.id, 2, 0.97, 1.03);
   // cooldown counts down from fireInterval → 0; it's highest right after a shot.
   const fresh = def.fireInterval > 0 ? Math.min(1, Math.max(0, (tw.cooldown / def.fireInterval - 0.7) / 0.3)) : 0;

@@ -24,6 +24,7 @@ import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
 import { dangerCurve } from '../core/dangerCamera';
 import { tutorial as tutorialStore } from '../state/tutorial';
+import { gameEvents } from '../core/events';
 import { currentCheckpoint } from '../core/tutorial';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
@@ -43,6 +44,7 @@ import type { RunResult } from '../state/meta';
 const TRAUMA: Record<string, number> = {
   hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34, dissolve: 0.14,
 };
+const BOSS_TRAUMA = 0.32; // arrival impact (the sting + banner land together)
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
 
@@ -164,6 +166,40 @@ export function GameView({
       setPaused(false);
     }
   }, [evoOpen]);
+  // WAVE START spectacle (docs/GAME-FEEL.md): a sweeping banner + a small camera push-in on
+  // every wave launch (button, hotkey, auto, tutorial director — all fire waveStarted).
+  const [waveBanner, setWaveBanner] = useState<{ n: number; endless: boolean; at: number } | null>(null);
+  const wavePushRef = useRef(0); // 0..1, decays in the loop → eased zoom pulse
+  useEffect(() => {
+    const off = gameEvents.on('waveStarted', ({ wave, endless }) => {
+      setWaveBanner({ n: wave, endless, at: Date.now() });
+      wavePushRef.current = 1;
+    });
+    return off;
+  }, []);
+  useEffect(() => {
+    if (!waveBanner) return undefined;
+    const id = setTimeout(() => setWaveBanner(null), 1700);
+    return () => clearTimeout(id);
+  }, [waveBanner]);
+  // BOSS ARRIVAL spectacle: the banner snapshot flipping null→present IS the arrival.
+  const [bossIntro, setBossIntro] = useState<{ name: string; phases: number; at: number } | null>(null);
+  const bossWasLive = useRef(false);
+  useEffect(() => {
+    const live = !!hud.bossBanner;
+    if (live && !bossWasLive.current && hud.bossBanner) {
+      setBossIntro({ name: hud.bossBanner.name, phases: hud.bossBanner.phases, at: Date.now() });
+      audio.cue('boss');
+      traumaRef.current = Math.min(1, traumaRef.current + BOSS_TRAUMA);
+      wavePushRef.current = 1;
+    }
+    bossWasLive.current = live;
+  }, [hud.bossBanner]);
+  useEffect(() => {
+    if (!bossIntro) return undefined;
+    const id = setTimeout(() => setBossIntro(null), 3000);
+    return () => clearTimeout(id);
+  }, [bossIntro]);
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -274,6 +310,15 @@ export function GameView({
           ctx.translate(WIDTH / 2, HEIGHT * 0.78);
           ctx.scale(dz, dz);
           ctx.translate(-WIDTH / 2, -HEIGHT * 0.78);
+        }
+        // Wave/boss push-in: a small eased zoom pulse that decays over ~1s — the launch has
+        // physical weight without ever disorienting (composes under the danger zoom).
+        if (wavePushRef.current > 0.002) {
+          wavePushRef.current *= Math.exp(-2.4 * dt);
+          const wz = 1 + 0.012 * dangerCurve(wavePushRef.current);
+          ctx.translate(WIDTH / 2, HEIGHT * 0.5);
+          ctx.scale(wz, wz);
+          ctx.translate(-WIDTH / 2, -HEIGHT * 0.5);
         }
         // Smart tutorial camera (docs/TUTORIAL.md): ease toward the lesson's focus point (or
         // back to neutral) — exponential glide, so entering/leaving a step never snaps the view.
@@ -553,6 +598,18 @@ export function GameView({
           }}
         />
         <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} />
+        {waveBanner && !bossIntro && (
+          <div className="wave-banner" key={waveBanner.at} aria-hidden>
+            <span className="wave-banner-t">{waveBanner.endless ? `DEPTH ${waveBanner.n}` : `WAVE ${waveBanner.n}`}</span>
+          </div>
+        )}
+        {bossIntro && (
+          <div className="boss-intro" key={bossIntro.at} role="alert">
+            <span className="boss-intro-eyebrow">◆ APEX THREAT DETECTED ◆</span>
+            <span className="boss-intro-name">{bossIntro.name}</span>
+            <span className="boss-intro-sub">{bossIntro.phases > 1 ? `${bossIntro.phases}-phase organism — read the telegraphs` : 'Hold the line'}</span>
+          </div>
+        )}
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <div className="speed-ctl" role="group" aria-label="Game speed (F)">
             {[1, 2, 5].map((x) => (

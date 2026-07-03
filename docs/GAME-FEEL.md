@@ -17,6 +17,25 @@ floating texts). No code — why / visual / audio per item.
 
 ---
 
+## 0. SHIPPED — the 2026-07 feel pass (this doc's top recs, live)
+
+- **Power gains celebrate** at the HUD cell: +Δ fly-up, pulse, burst, throttled chime (Hud.tsx).
+- **Placement roots**: towers grow in (existing `bornAt` ease) + bio tendrils crawl outward and
+  sink in over 0.8s + a rooting particle burst (fxRng — golden-safe).
+- **Crits read as events**: `FloatingText.kind: 'crit'` → pop-in overshoot scale, heavier type,
+  a burst ring (renderer float pass).
+- **Wave launch spectacle**: every `waveStarted` (button/hotkey/auto/director) sweeps a WAVE N
+  banner across the board, fires the console energy sweep, and pushes the camera in ~1.2%
+  (eased decay, composed under the danger zoom).
+- **Boss arrival**: bossBanner flipping live triggers the APEX THREAT intro (eyebrow → name
+  slam → subtitle over a red iris), the `boss` sting (falling tritone + sub thump), and an
+  arrival shake (BOSS_TRAUMA).
+- **Draft feel**: staggered card arrival, hover lift+tilt, animated conic rarity borders for
+  epic/legendary, floating motes over legendaries.
+- All spectacle respects `prefers-reduced-motion` (heavy animations collapse).
+
+---
+
 ## 1. Philosophy
 
 Game feel is **compounding micro-feedback**: every action gets an

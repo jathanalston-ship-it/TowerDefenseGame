@@ -56,6 +56,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   achievements); campaign gates at 15/30/50; battlefield FORM stages 1–3; priced stage-gated respec;
   a new tower's tree = one `TOWER_THEMES` row (`core/adaptation.ts`) — ADAPTATION.md
 - ✅ Range identity + Final Defense Zone — RANGE.md
+- ✅ **Premium combat HUD + feel pass** — phase-reactive skin (build/combat/danger), three
+  aligned zones, power-gain celebration, glass depth system, premium tower cards (mastery ring,
+  star pips), focal Start Wave + launch sweep, HERO OPS panel, objectives; wave banner + camera
+  push, boss APEX-THREAT intro + sting, crit pop floats, placement rooting tendrils, draft
+  rarity borders — HUD.md §0, GAME-FEEL.md §0
 - ✅ **Danger Camera** (`core/dangerCamera.ts`) — hysteresis-gated state machine (calm→rising→
   danger→easing: confirmation window, min-hold, release confirmation, asymmetric ease) turning a
   weighted threat fold (proximity ramp × tier × health) into ONE smooth intensity that every

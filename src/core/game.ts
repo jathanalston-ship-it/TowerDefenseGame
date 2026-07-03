@@ -1211,6 +1211,8 @@ export class Game {
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
+    // Rooting burst — the organism takes hold (fxRng: pure presentation, golden-safe).
+    this.spawnParticles(slot.x, slot.y, PARTICLE.mutate, TOWER_DEFS[kind].color, 0.8);
     this.pushSfx('place');
     if (gameEvents.hasListeners('towerPlaced')) gameEvents.emit('towerPlaced', { id: this.nextId - 1, kind, slot: slot.index });
     // First setup action taken → ARM the auto-start countdown (see autoStartReady). Placing a
@@ -2759,7 +2761,7 @@ export class Game {
       const crit = this.rollHeroCrit(h); // Precision/Savagery — gated so no-crit runs spend no rng
       const dmg = def.attackDamage * this.heroDamageMult(h) * this.heroEliteDamage(h, target) * crit.mult;
       const applied = this.applyDamage(target, dmg);
-      if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7 }); // crit damage number
+      if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' }); // crit damage number
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
       this.addFracture(target, def.attackFracture);
@@ -2974,7 +2976,7 @@ export class Game {
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
     if (gameEvents.hasListeners('heroAbilityUsed')) gameEvents.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
-    this.floats.push({ x: px, y: py - 20, text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8 });
+    this.floats.push({ x: px, y: py - 20, text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8, kind: crit.crit ? 'crit' : undefined });
   }
 
   private deathSystem(): void {

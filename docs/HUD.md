@@ -7,6 +7,35 @@ Layout + visual specs for the in-run HUD. Derives all colors/type/spacing from
 
 ---
 
+## 0. SHIPPED — the premium phase-reactive HUD (2026-07)
+
+The redesign below has been implemented and extended. The live combat HUD is now:
+
+- **Phase-reactive skin** (`data-hphase` on `.hud` + the `.game` shell): BUILD = calm green,
+  Biomass primary, Start Wave focal; COMBAT = heated accents, glowing wave module, Threat
+  emphasized, Biomass softened; DANGER rides the committed emergency state (docs/CAMERA.md).
+  The board frame tints with the phase.
+- **Three aligned zones** (`.hz-l/.hz-c/.hz-r`): LEFT survival (Hive integrity + slim loot
+  progress) · CENTER the WAVE MODULE (eyebrow phase label, the big wave number + pips, status
+  line, biome/boss/modifier chips, emergency/biome/run-event banners) · RIGHT power → biomass →
+  threat → hero. Zones dissolve (`display: contents`) ≤900px so the mobile stacking is unchanged.
+- **Power cell** = the progression number: magnitude-tier accents (K/M/B/T hues), ambient conic
+  border sweep, and a GAIN CELEBRATION (+Δ fly-up, scale pulse, 6-dot burst, throttled `power`
+  chime) on every live increase.
+- **Glass depth system**: every cell is layered gradient + inner highlight + hover lift/glow;
+  cells stagger-ease in on mount.
+- **Tower cards**: hover lift + sheen sweep, mastery ring (conic, capped 99), star-tier pips,
+  DPS + deployed-count chips, affordable-pulse edge.
+- **Start Wave focal** + full-board energy sweep on launch; the briefing header carries the
+  encounter forecast (Σ bounty Biomass + ELITES/BOSS INBOUND warnings).
+- **HERO OPS** right-panel default: breathing portrait, conic ability wheel, HP + shield,
+  rarity-lit equipment slots, evolution chip, compact run stats.
+- **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section.
+
+The sections below are the original analysis/spec that led here — kept as design rationale.
+
+---
+
 ## 1. Current HUD — analysis
 
 **What exists today:**

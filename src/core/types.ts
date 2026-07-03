@@ -269,6 +269,8 @@ export interface FloatingText {
   text: string;
   color: string;
   life: number; // seconds remaining
+  /** Presentation class — 'crit' floats render bigger with a pop + ring (renderer-only). */
+  kind?: 'crit';
 }
 
 /** Cosmetic particle (pooled, capped). Never affects gameplay determinism. */
