@@ -34,7 +34,7 @@ export function TutorialArrow({ rect, from = 'top' }: { rect: DOMRect | null; fr
   const cy = rect.top + rect.height / 2;
   const gap = 44;
   const style: CSSProperties =
-    from === 'top' ? { left: cx, top: rect.top - gap } :
+    from === 'top' ? { left: cx, top: rect.top - 16 } :
     from === 'bottom' ? { left: cx, top: rect.bottom + 8 } :
     from === 'left' ? { left: rect.left - gap, top: cy } :
     { left: rect.right + 8, top: cy };
@@ -57,7 +57,11 @@ export function Callout({
     style = { left: '50%', top: '46%', transform: 'translate(-50%, -50%)' };
     cls = 'side-center';
   } else {
-    const cx = rect.left + rect.width / 2;
+    // Clamp the anchor point so the bubble (max-width 340) can never leave the viewport —
+    // wide targets (the tower rail) and edge targets otherwise push it off-screen.
+    const half = 178;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    const cx = Math.max(half, Math.min(rect.left + rect.width / 2, vw - half));
     const cy = rect.top + rect.height / 2;
     const gap = 14;
     style =

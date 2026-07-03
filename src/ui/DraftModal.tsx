@@ -23,10 +23,13 @@ export function DraftModal({
   options,
   clearedWave,
   onPick,
+  forceManual = false,
 }: {
   options: CardOption[];
   clearedWave?: number;
   onPick: (id: string) => void;
+  /** Tutorial: the draft lesson must be a confirmed player choice — never the auto countdown. */
+  forceManual?: boolean;
 }): JSX.Element {
   // Recommend the highest-rarity option (first on ties) to speed the call.
   let best = 0;
@@ -36,7 +39,7 @@ export function DraftModal({
 
   // Auto Gene Selection (opt-in, persisted): a visible countdown that auto-drafts the
   // recommended card unless the player picks first. Fixed for the life of this draft.
-  const auto = useRef(autoGenePref()).current;
+  const auto = useRef(!forceManual && autoGenePref()).current;
   const [remaining, setRemaining] = useState(auto ? AUTO_SECONDS : 0);
 
   // Exactly one selection ever fires (manual OR auto). getSnapshot() hands us a fresh

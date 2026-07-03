@@ -27,6 +27,7 @@ export function Toolbar({
           return (
             <button
               key={kind}
+              data-tut={i === 0 ? 'tower-card-first' : undefined}
               className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}`}
               disabled={(!afford && !sel) || !playable}
               onClick={() => {

@@ -25,6 +25,14 @@ export interface TutorialSession {
 
 const store = createStore<TutorialSession | null>(null);
 
+/** How the last session ended — the runner grants completion rewards ONLY on 'completed'
+ * (a Skip on the final step must not pay out like a finish). Reset on start(). */
+let endReason: 'completed' | 'skipped' | null = null;
+
+/** The most recent milestone grant (drives the overlay's reward toast; keyed by `at`). */
+export interface MilestoneToast { label: string; cores: number; essence: number; at: number }
+const milestoneStore = createStore<MilestoneToast | null>(null);
+
 /** Set the live session AND persist its progress (null clears the saved resume point). */
 function commit(session: TutorialSession | null): void {
   store.set(session);
@@ -43,8 +51,18 @@ export const tutorial = {
     const saved = sanitizeProgress(meta.tutorialState().progress, def);
     const progress =
       saved && saved.id === id && !isComplete(saved, def) ? resume(saved) : startProgress(def);
+    endReason = null;
+    milestoneStore.set(null);
     commit({ def, progress });
   },
+
+  /** How the last session ended ('completed' | 'skipped' | null while active). */
+  lastEndReason(): 'completed' | 'skipped' | null {
+    return endReason;
+  },
+
+  /** Subscribe to the latest milestone grant (the overlay's toast). */
+  useMilestone: milestoneStore.use,
 
   /** The active checkpoint (null when no session / complete). */
   current(): TutorialCheckpoint | null {
@@ -57,8 +75,16 @@ export const tutorial = {
   advance(): void {
     const s = store.get();
     if (!s) return;
+    // Milestone reward for the checkpoint being COMPLETED right now (idempotent in meta —
+    // a replayed lesson advances silently).
+    const done = currentCheckpoint(s.progress, s.def);
+    if (done?.milestone) {
+      const granted = meta.grantTutorialMilestone(s.def.id, done.id, done.milestone);
+      if (granted) milestoneStore.set({ label: done.milestone.label, ...granted, at: Date.now() });
+    }
     const next = advance(s.progress, s.def);
     if (isComplete(next, s.def)) {
+      endReason = 'completed';
       meta.completeTutorial(s.def.id);
       store.set(null);
       return;
@@ -81,10 +107,11 @@ export const tutorial = {
     if (s) commit({ ...s, progress: resume(s.progress) });
   },
 
-  /** Skip the whole tutorial — marks it complete + ends the session. */
+  /** Skip the whole tutorial — marks it complete + ends the session (no completion rewards). */
   skip(): void {
     const s = store.get();
     if (!s) return;
+    endReason = 'skipped';
     meta.completeTutorial(s.def.id);
     store.set(null);
   },

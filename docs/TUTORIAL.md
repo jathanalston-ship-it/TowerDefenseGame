@@ -4,29 +4,39 @@ A reusable, content-agnostic system for guided, one-mechanic-at-a-time tutorials
 describes the ARCHITECTURE. The first consumer, the **Combat Tutorial, is now fully authored** — 10
 lessons taught over a LIVE simplified game (see "Combat Tutorial — shipped" below).
 
-## Combat Tutorial — shipped
+## Combat Tutorial — shipped (GATED flow; audit record: docs/TUTORIAL-AUDIT.md)
 
 Ten checkpoints (`COMBAT_TUTORIAL` in `core/tutorial.ts`) teach through play, each unlocking only
-when its objective is met: protect the Hive Core → Biomass → place a Needle → survive Wave 1 →
-first-kill Biomass → second tower → Hero ability → Gene Card draft → tower Inspect → graduate.
-The Gene Card step teaches BOTH halves of the system (GENE-EVOLUTION.md): the drafted boost is
-run-only, but the card itself joins the permanent Gene Archive.
+on a CONFIRMED player action (event trigger) or acknowledgement — never a timer: protect the Hive
+Core → Biomass → place a Needle → survive Wave 1 → kills-became-Biomass recap → second tower →
+Hero ability → Gene Card draft → tower Inspect → graduate. The Gene Card step teaches BOTH halves
+of the system (GENE-EVOLUTION.md): the drafted boost is run-only, but the card joins the permanent
+Gene Archive.
 
+- **The game is gated to the lesson plan (`game.tutorialMode`).** Set only by the director, never
+  on a golden run. While on: natural post-wave drafts are HELD (`endWave` skips the roll), the
+  wave console's launch controls are locked (`wb-tutlock` notice), Space/F hotkeys are swallowed,
+  the speed switch is hidden, auto-start is never restored from prefs, and the DraftModal is
+  forced manual. The game can never outrun or desync from the lesson.
+- **Director (`ui/tutorial/tutorialDirector.ts`).** Bridges the game event bus onto the abstract
+  lesson signals (`tower-placed`, `hero-ability`, `card-chosen`, `wave-completed` …) — advancing
+  the CURRENT step once, guarded against bursts — and scripts EVERY beat: starts each tutorial
+  wave, releases the held draft via `game.openTutorialDraft()` exactly at the gene-card lesson,
+  tops the bank up (`game.tutorialEnsureBiomass`) so the build lesson can't stall, and pre-selects
+  the first tower for the Inspector lesson.
 - **Live encounter.** `TutorialRunner` hosts a real `<GameView tutorial onReady=…>` (fail-safe: a
-  huge Integrity bonus so the core can't fall) + the `TutorialOverlay`. `GameView`'s `tutorial` flag
-  skips loot banking and the auto run-end hand-off — the tutorial drives its own completion.
-- **Director (`ui/tutorial/tutorialDirector.ts`).** Bridges the game event bus onto the checkpoints'
-  abstract lesson signals (`tower-placed`, `enemy-killed`, `hero-ability`, `card-chosen`,
-  `wave-completed`) — advancing the CURRENT step once, guarded against event bursts — and scripts the
-  wave beats (auto-starts Wave 1 + the graduation wave). Golden-safe: the one new event
-  (`heroAbilityUsed`) is gated on a listener.
-- **Non-blocking guidance.** Board-interaction steps use an arrow + callout (no click-blocking
-  spotlight); the callout/arrow/objective are pointer-through so they never eat a placement or cast.
-  Pure look-at steps use the dimming spotlight.
-- **Rewards (`meta.grantTutorialRewards`, idempotent via `save.tutorial.rewarded`).** First completion
-  grants Genome Cores + Tower/Hero Shards + a guaranteed **rare Tutorial Bio-Container** + a basic Hero
-  weapon + the *Assimilation Protocol* achievement, with a visible Power Score bump — shown by
-  `TutorialRewardReveal`. A replay from Settings re-teaches but **never re-grants**.
+  huge Integrity bonus so the core can't fall) + the `TutorialOverlay`. The `tutorial` flag skips
+  loot banking and the auto run-end hand-off; the tutorial's Pause also freezes the SIM.
+- **Non-blocking guidance + smart camera.** Board steps use an arrow + callout anchored to the
+  EXACT element (`data-tut="tower-card-first"`, ability pod), pointer-through, viewport-clamped
+  clear of the slot lattice; the objective pill sits below the HUD. `cue.canvasFocus` glides the
+  battlefield view toward a board point (eased, ≤6 % zoom — never snaps).
+- **Rewards.** Mid-flow MILESTONES (`checkpoint.milestone` → `meta.grantTutorialMilestone`,
+  ledger `save.tutorial.milestones`): +25 Genome Cores for surviving Wave 1, +10 Gene Essence at
+  the first draft — celebrated by an overlay toast. First COMPLETION (gated on the store's end
+  reason — a Skip never pays) grants Genome Cores + Tower/Hero Shards + a guaranteed **rare
+  Tutorial Bio-Container** + a basic Hero weapon + the *Assimilation Protocol* achievement —
+  shown by `TutorialRewardReveal`. Replays re-teach but **never re-grant** (all three ledgers).
 
 Below is the underlying architecture (unchanged; the lessons are data + presentation props on it).
 

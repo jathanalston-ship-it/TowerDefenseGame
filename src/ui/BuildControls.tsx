@@ -36,10 +36,14 @@ export function BuildControls({
   game,
   hud,
   refresh,
+  tutorialLock = false,
 }: {
   game: Game;
   hud: HudSnapshot;
   refresh: () => void;
+  /** Tutorial: the director scripts every wave start — the console shows intel only, with the
+   * launch controls held so the game can never outrun the lesson. */
+  tutorialLock?: boolean;
 }): JSX.Element {
   const visible = hud.phase === 'prep' && hud.wave < hud.totalWaves;
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
@@ -86,6 +90,9 @@ export function BuildControls({
           )}
         </div>
         <div className="wb-actions">
+          {tutorialLock ? (
+            <div className="wb-tutlock" role="status">◈ Follow the lesson — deployment is scripted</div>
+          ) : (
           <button
             className="primary start-btn"
             tabIndex={visible ? 0 : -1}
@@ -97,7 +104,8 @@ export function BuildControls({
           >
             ▶ Start Wave {nextWave} <span className="hotkey">␣</span>
           </button>
-          <div className="wb-autos">
+          )}
+          {!tutorialLock && <div className="wb-autos">
             <button
               type="button"
               className={`auto-btn ${hud.autoStart ? (hud.autoStartWaiting ? 'is-waiting' : 'is-on') : ''}`}
@@ -134,7 +142,7 @@ export function BuildControls({
               ◆ Auto Gene
               <b>{autoGene ? 'ON' : 'OFF'}</b>
             </button>
-          </div>
+          </div>}
         </div>
       </div>
       {hud.autoStartWaiting && (

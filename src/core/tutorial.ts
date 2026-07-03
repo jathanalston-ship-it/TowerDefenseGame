@@ -19,6 +19,9 @@ export interface CheckpointCue {
   arrow?: { target: string; from?: 'top' | 'bottom' | 'left' | 'right' };
   callout?: { text: string; target?: string; side?: 'top' | 'bottom' | 'left' | 'right' };
   focus?: string; // camera-focus target selector (scrolled into view when the checkpoint activates)
+  /** Smart tutorial camera: ease the battlefield view gently toward this BOARD-space point while
+   * the checkpoint is active (render-side only — GameView owns the smoothing; it never snaps). */
+  canvasFocus?: { x: number; y: number; zoom: number };
 }
 
 /** One teaching step. `cue` (presentation) and `event` triggers are attached by the lesson author
@@ -28,6 +31,9 @@ export interface TutorialCheckpoint {
   title: string; // shown in the objective tracker
   advance: CheckpointTrigger;
   cue?: CheckpointCue;
+  /** Milestone reward granted when this checkpoint is COMPLETED (small, one-time per account —
+   * meta keeps the idempotence ledger, so replays never re-grant). */
+  milestone?: { label: string; cores?: number; essence?: number };
 }
 
 export interface TutorialDef {
@@ -106,34 +112,44 @@ export function sanitizeProgress(raw: unknown, def?: TutorialDef): TutorialProgr
 }
 
 // ── The Combat Tutorial — 10 authored lessons taught THROUGH a live, simplified encounter ───────
-// Each step teaches one mechanic and unlocks the next only when its objective is met (event trigger)
-// or acknowledged (continue). `event` ids are the abstract lesson signals the TutorialDirector maps
-// from the game's event bus (docs/TUTORIAL.md). Cues spotlight the real HUD (data-tut anchors) with a
-// short callout — mechanics are taught by DOING, not by walls of text.
+// Each step teaches one mechanic and unlocks the next ONLY on a confirmed player action (event
+// trigger) or acknowledgement (continue) — never a timer. The live game is GATED to the lessons
+// (game.tutorialMode): the director starts every wave and releases the held draft exactly when its
+// lesson arrives, so the callouts can never describe a world that has moved on without them.
+// Copy teaches PURPOSE (why a system matters), not just where a button is.
 export const COMBAT_TUTORIAL: TutorialDef = {
   id: 'combat',
   name: 'Combat Tutorial',
   checkpoints: [
     { id: 'hive-core', title: 'Protect the Hive Core', advance: { kind: 'continue' },
-      cue: { spotlight: '[data-tut="hive-core"]', callout: { text: 'This is your Hive Core. Protect it at all costs — if it falls, the run ends.', target: '[data-tut="hive-core"]', side: 'bottom' } } },
+      cue: { spotlight: '[data-tut="hive-core"]', canvasFocus: { x: 480, y: 880, zoom: 1.05 },
+        callout: { text: 'This is your Hive Core — your one life. Everything you build exists to keep it alive: if its integrity falls, the run ends.', target: '[data-tut="hive-core"]', side: 'bottom' } } },
     { id: 'biomass', title: 'Biomass grows your hive', advance: { kind: 'continue' },
-      cue: { spotlight: '[data-tut="biomass"]', callout: { text: 'Biomass is your in-run resource. You spend it to grow your defenses — more towers, stronger hive.', target: '[data-tut="biomass"]', side: 'bottom' } } },
+      cue: { spotlight: '[data-tut="biomass"]',
+        callout: { text: 'Biomass is this run’s fuel. Enemies drop it when they die, and you spend it to grow — every tower, upgrade, and hero purchase comes from this counter.', target: '[data-tut="biomass"]', side: 'bottom' } } },
     { id: 'place-needle', title: 'Place a Needle Spitter', advance: { kind: 'event', event: 'tower-placed' },
-      cue: { arrow: { target: '[data-tut="tower-rail"]', from: 'bottom' }, callout: { text: 'Select the Needle Spitter below, then click a build slot on the field to place it.', target: '[data-tut="tower-rail"]', side: 'top' } } },
-    { id: 'wave-1', title: 'Survive Wave 1', advance: { kind: 'event', event: 'enemy-killed' },
-      cue: { callout: { text: 'Wave 1 incoming! Enemies advance toward the Hive — your towers fire on them automatically. Hold the line.' } } },
-    { id: 'first-kill', title: 'Biomass fuels expansion', advance: { kind: 'continue' },
-      cue: { spotlight: '[data-tut="biomass"]', callout: { text: 'Every enemy you kill drops Biomass. Biomass fuels expansion — bank it, then build.', target: '[data-tut="biomass"]', side: 'bottom' } } },
-    { id: 'second-tower', title: 'Build a second tower', advance: { kind: 'event', event: 'tower-placed' },
-      cue: { arrow: { target: '[data-tut="tower-rail"]', from: 'bottom' }, callout: { text: 'Different towers serve different battlefield roles. Place a second tower to layer your defense.', target: '[data-tut="tower-rail"]', side: 'top' } } },
+      cue: { arrow: { target: '[data-tut="tower-card-first"]', from: 'top' }, canvasFocus: { x: 480, y: 780, zoom: 1.03 },
+        callout: { text: 'Time to build. Select the Needle Spitter — long range, cheap, reliable — then click any glowing build slot on the field to place it.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
+    { id: 'wave-1', title: 'Survive Wave 1', advance: { kind: 'event', event: 'wave-completed' },
+      milestone: { label: 'The line holds', cores: 25 },
+      cue: { callout: { text: 'Wave 1 incoming! Enemies march on the Hive — your towers pick targets and fire on their own. Watch your Needle work, and hold the line until the wave is cleared.' } } },
+    { id: 'first-kill', title: 'Kills became Biomass', advance: { kind: 'continue' },
+      cue: { spotlight: '[data-tut="biomass"]',
+        callout: { text: 'Held it. Every kill you just made dropped Biomass into your bank — kills fund expansion, expansion brings bigger kills. That loop is the whole run.', target: '[data-tut="biomass"]', side: 'bottom' } } },
+    { id: 'second-tower', title: 'Layer a second tower', advance: { kind: 'event', event: 'tower-placed' },
+      cue: { arrow: { target: '[data-tut="tower-rail"]', from: 'top' },
+        callout: { text: 'One tower is a start, not a defense. Each species fills a different role — splash, income, control. Spend your Biomass on a second tower to layer the line.', target: '[data-tut="tower-card-first"]', side: 'top' } } },
     { id: 'hero-ability', title: 'Use your Hero ability', advance: { kind: 'event', event: 'hero-ability' },
-      cue: { arrow: { target: '[data-tut="ability"]', from: 'bottom' }, callout: { text: 'Your Hero moves and fights on its own — and has an Active Ability. Trigger it once (the ability button, or Q).', target: '[data-tut="ability"]', side: 'top' } } },
+      cue: { arrow: { target: '[data-tut="ability"]', from: 'bottom' },
+        callout: { text: 'Your Hero fights on its own — but its Active Ability is yours. It’s the burst you save for the moment a wave gets past your towers. Arm it (the button, or Q), then click the field to unleash it.', target: '[data-tut="ability"]', side: 'top' } } },
     { id: 'gene-card', title: 'Draft a Gene Card', advance: { kind: 'event', event: 'card-chosen' },
-      cue: { callout: { text: 'Wave cleared! Draft a Gene Card — its boost lasts only for THIS run, but the card itself joins your permanent Gene Archive, where it can be leveled forever. Pick one.' } } },
+      milestone: { label: 'First strain isolated', essence: 10 },
+      cue: { callout: { text: 'Time to evolve. You’ll draft a Gene Card: its boost lasts only THIS run, but the card itself joins your permanent Gene Archive, where it can be leveled forever. Pick whichever calls to you.' } } },
     { id: 'inspect', title: 'Inspect your towers', advance: { kind: 'continue' },
-      cue: { spotlight: '.side-panel.inspector', callout: { text: 'Inspecting a tower shows its Stats and Branches, and lets you Move or Sell it. Take a look, then continue.', target: '.side-panel.inspector', side: 'left' } } },
+      cue: { spotlight: '.side-panel.inspector',
+        callout: { text: 'We’ve selected your Needle Spitter. The Inspector shows its stats, live Mastery, and — as you push deeper — Branch mutations that re-author how it fires. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
     { id: 'graduation', title: 'Hold the line', advance: { kind: 'event', event: 'wave-completed' },
-      cue: { callout: { text: 'You have the basics — towers, Biomass, your Hero, and Gene Cards. Clear one more wave to graduate.' } } },
+      cue: { callout: { text: 'You have the fundamentals — towers, Biomass, your Hero, Gene Cards. One more wave, on your own. Hold the line and graduate.' } } },
   ],
 };
 

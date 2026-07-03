@@ -27,9 +27,15 @@ in every surface automatically as the player unlocks it.
   unlocks don't cascade as popups).
 - **UI** — `WhatsNew.tsx` (front-of-queue card, "Got it · N more",
   `archiveMechanics` on close), `HelpWiki.tsx` (search + category index +
-  What/Why/Where/Next detail + cross-links to *unlocked* mechanics only),
-  `HudTour.tsx` (13-step area→purpose walk; finish → reward reveal). Mounted in
-  `App.tsx` (tour/What's New, menu only) + `Hub.tsx` (`help` nav key).
+  What/Why/Where/Next + "Watch out" (`mistakes`) detail + cross-links to
+  *unlocked* mechanics only + a Field Orientation replay button),
+  `HudTour.tsx` — **Field Orientation**: an ANCHORED tour that spotlights the
+  real Hub element per stop (`data-nav`/`data-tour` anchors; centered fallback
+  when hidden) and teaches WHAT / WHY / WHEN / what unlocks LATER. Back/Next
+  confirmed clicks; finish → reward reveal; Skip marks seen without paying
+  (`completeHudTour(false)`). Replayable from Help or Settings — never
+  re-grants. Mounted in `App.tsx` (tour/What's New, menu only) + `Hub.tsx`
+  (`help` nav key).
 - **Loading tips (`src/ui/tips.ts`)** — a fourth, lighter surface: one-line
   teachers rotated per visit at the foot of the Play screen (`.mc-tip`). Pure
   data (adding a tip is one row), weighted toward the Gene Evolution loop.
@@ -39,14 +45,16 @@ in every surface automatically as the player unlocks it.
 ## Public APIs (callers use these)
 
 `meta.helpMechanics() | whatsNew() | archiveMechanics(ids) | primeHelp() |
-shouldHudTour() | completeHudTour()`. UI reads via `meta.use()` for reactivity.
+shouldHudTour() | completeHudTour(grant)`. UI reads via `meta.use()` for reactivity.
 
 ## Extension points
 
 **Add a mechanic** = append one `MechanicDef` to `MECHANICS` (id, title,
-category, summary, what/why/where/next, optional `unlock`, `nav`, `links`,
-`media`). It auto-joins the wiki, and (if non-core) announces the first time its
-predicate flips. No UI or save change required.
+category, summary, what/why/where/next, optional `mistakes` ("Watch out" row),
+`unlock`, `nav`, `links`, `media`). It auto-joins the wiki, and (if non-core)
+announces the first time its predicate flips. No UI or save change required.
+Registry coverage now includes the wave/build rhythm, Game Speed, Emergency
+Defense, Adaptation/Antigen, and in-run Hero Evolution.
 
 ## Important assumptions
 

@@ -21,7 +21,7 @@ function threatColor(pct: number): string {
   return pct < 33 ? 'var(--success)' : pct < 66 ? 'var(--warn)' : 'var(--danger)';
 }
 
-export function Hud({ hud, power, onOpenConsole }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void }): JSX.Element {
+export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
@@ -148,7 +148,9 @@ export function Hud({ hud, power, onOpenConsole }: { hud: HudSnapshot; power: nu
         </div>
         <div className="phase-hint">
           {hud.phase === 'prep'
-            ? 'Build & upgrade — press SPACE to start the wave'
+            ? tutorial
+              ? 'Build & upgrade — the lesson launches each wave'
+              : 'Build & upgrade — press SPACE to start the wave'
             : hud.phase === 'wave'
               ? `${hud.enemiesAlive} hostiles in the field`
               : hud.phase === 'draft'

@@ -190,7 +190,7 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/core/tutorial.ts', 'src/state/tutorial.ts', 'src/state/mechanics.ts', 'src/ui/TutorialRunner.tsx', 'src/ui/tutorial/*', 'src/ui/HelpWiki.tsx', 'src/ui/WhatsNew.tsx', 'src/ui/HudTour.tsx', 'src/ui/tips.ts'],
     dependsOn: ['engine', 'meta-store'], powerScore: null, save: ['tutorial', 'help'],
     tutorial: ['combat'], help: [], hud: ['TutorialOverlay'], ui: ['HelpWiki', 'WhatsNew', 'HudTour', 'CommandCenter (tips)'], collection: null,
-    achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md'],
+    achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md'],
   },
   {
     id: 'hub-shell', name: 'Hub Shell & Home', purpose: 'The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.',

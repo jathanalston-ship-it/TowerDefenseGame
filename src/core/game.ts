@@ -313,6 +313,11 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  // TUTORIAL GATE (docs/TUTORIAL.md): set only by the TutorialRunner, never on a golden run.
+  // While on, the game defers its self-driven beats to the tutorial director: natural post-wave
+  // drafts are HELD (the director releases one exactly when the gene-card lesson teaches it) and
+  // auto-start stays inert — so the lessons and the live game can never desync.
+  tutorialMode = false;
   // Auto-start ARMING gate (mode-agnostic): even with autoStart ON, the countdown stays frozen
   // until the player takes their FIRST setup action this run — places a tower OR manually starts
   // wave 1. This stops an armed Auto Wave from firing (and taking damage) before the player has
@@ -3198,7 +3203,7 @@ export class Game {
         this.waveCompleteFlourish(flawless);
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
-        if (this.shouldDraftThisWave()) {
+        if (!this.tutorialMode && this.shouldDraftThisWave()) {
           this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
         }
       }
@@ -3466,6 +3471,20 @@ export class Game {
     this.debugKillAll();
     this.spawnQueue = [];
     this.spawnedAll = true;
+  }
+
+  /** Tutorial beats (tutorialMode only — the director calls these to script the lessons). The
+   *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
+  openTutorialDraft(): void {
+    if (!this.tutorialMode || this.phase !== 'prep') return;
+    this.draft = draftCards(this.rng, 3, this.waveIndex);
+    this.phase = 'draft';
+  }
+
+  /** Top the Biomass bank up to `min` so a build lesson can never stall unaffordable. */
+  tutorialEnsureBiomass(min: number): void {
+    if (!this.tutorialMode) return;
+    this.biomass = Math.max(this.biomass, min);
   }
 
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */

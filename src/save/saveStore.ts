@@ -131,6 +131,7 @@ export interface SaveData {
 export interface TutorialSave {
   completed: string[];
   rewarded: string[]; // tutorial ids whose one-time rewards were granted (never re-granted on replay)
+  milestones: string[]; // "tutorialId:checkpointId" mid-lesson rewards granted (same never-re-grant rule)
   progress: TutorialProgress | null;
 }
 
@@ -285,7 +286,7 @@ export function defaultSave(): SaveData {
     bossesSlain: [],
     prestige: defaultPrestige(),
     campaign: { cleared: {}, bestTime: {} },
-    tutorial: { completed: [], rewarded: [], progress: null },
+    tutorial: { completed: [], rewarded: [], milestones: [], progress: null },
     prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
     genes: {},
@@ -302,10 +303,10 @@ export function defaultSave(): SaveData {
 
 /** Coerce a loaded tutorial block into a valid shape (completed ids + resumable progress). */
 function sanitizeTutorial(raw: unknown): TutorialSave {
-  if (typeof raw !== 'object' || raw === null) return { completed: [], rewarded: [], progress: null };
+  if (typeof raw !== 'object' || raw === null) return { completed: [], rewarded: [], milestones: [], progress: null };
   const o = raw as Partial<TutorialSave>;
   const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
-  return { completed: strs(o.completed), rewarded: strs(o.rewarded), progress: sanitizeProgress(o.progress) };
+  return { completed: strs(o.completed), rewarded: strs(o.rewarded), milestones: strs(o.milestones), progress: sanitizeProgress(o.progress) };
 }
 
 function sanitizeCalib(raw: unknown): PredictCalib {

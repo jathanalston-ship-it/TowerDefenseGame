@@ -13,6 +13,7 @@ import { Callout, CameraFocus, ContinuePrompt, ObjectiveTracker, Spotlight, Tuto
 
 export function TutorialOverlay(): JSX.Element | null {
   const session = tutorial.use();
+  const milestone = tutorial.useMilestone();
   const cp = session ? currentCheckpoint(session.progress, session.def) : null;
   const cue = cp?.cue;
 
@@ -47,6 +48,17 @@ export function TutorialOverlay(): JSX.Element | null {
       {cue?.arrow && <TutorialArrow rect={arrowRect} from={cue.arrow.from} />}
 
       <ObjectiveTracker title={cp.title} step={step} total={total} />
+
+      {/* Milestone reward toast — pure CSS lifetime (animates in, holds, fades), keyed per grant. */}
+      {milestone && (
+        <div className="tut-milestone" key={milestone.at} role="status">
+          <span className="tut-ms-label">◈ {milestone.label}</span>
+          <span className="tut-ms-grant">
+            {milestone.cores > 0 && <b>+{milestone.cores} Genome Cores</b>}
+            {milestone.essence > 0 && <b>+{milestone.essence} Gene Essence</b>}
+          </span>
+        </div>
+      )}
 
       <Callout rect={calloutRect} side={cue?.callout?.side}>
         <div className="tut-callout-text">{calloutText}</div>

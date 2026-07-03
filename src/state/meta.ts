@@ -1969,6 +1969,24 @@ export const meta = {
     };
   },
 
+  /** Grant a mid-lesson MILESTONE reward (docs/TUTORIAL.md) — small, one-time per account,
+   *  keyed "tutorialId:checkpointId" so replays never re-grant. Returns what was granted, or null. */
+  grantTutorialMilestone(tutorialId: string, checkpointId: string, m: { cores?: number; essence?: number }): { cores: number; essence: number } | null {
+    const s = store.get();
+    const key = `${tutorialId}:${checkpointId}`;
+    if (s.tutorial.milestones.includes(key)) return null;
+    const cores = Math.max(0, Math.floor(m.cores ?? 0));
+    const essence = Math.max(0, Math.floor(m.essence ?? 0));
+    persist({
+      ...s,
+      shards: s.shards + cores,
+      lifetimeShards: s.lifetimeShards + cores,
+      geneEssence: s.geneEssence + essence,
+      tutorial: { ...s.tutorial, milestones: [...s.tutorial.milestones, key] },
+    });
+    return { cores, essence };
+  },
+
   // ── Help wiki + What's New (docs/HELP.md) ──────────────────────────────────
   /** The unlocked mechanics for the living Help wiki (locked ones stay hidden). */
   helpMechanics(): MechanicDef[] {
@@ -1998,13 +2016,14 @@ export const meta = {
     const s = store.get();
     return !s.help.hudTour && s.tutorial.completed.includes('combat');
   },
-  /** Mark the HUD Tour done + grant its one-time Tutorial Bio-Container (idempotent — reuses the
-   *  tutorial reward ledger so it never double-grants). Returns the reward summary, or null. */
-  completeHudTour(): TutorialRewardSummary | null {
+  /** Mark the HUD Tour done and (on a genuine FINISH — not a skip) grant its one-time Tutorial
+   *  Bio-Container (idempotent — reuses the tutorial reward ledger so it never double-grants).
+   *  Returns the reward summary, or null. */
+  completeHudTour(grant = true): TutorialRewardSummary | null {
     const s = store.get();
     if (s.help.hudTour) return null;
     persist({ ...s, help: { ...s.help, hudTour: true } });
-    const reward = this.grantTutorialRewards('hudtour');
+    const reward = grant ? this.grantTutorialRewards('hudtour') : null;
     // Onboarding (the Combat Tutorial + this HUD Tour) just introduced the foundational systems —
     // and its rewards unlock several at once (shards → Tower Stars, gear → Equipment, a Bio-Container,
     // Genome Cores). Archive everything unlocked so far so the What's New queue doesn't cascade for

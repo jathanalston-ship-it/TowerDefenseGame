@@ -205,6 +205,7 @@ export function App(): JSX.Element {
           last={last}
           onSeenLast={clearLast}
           onReplayTutorial={launchTutorial}
+          onReplayTour={() => setTourActive(true)}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />

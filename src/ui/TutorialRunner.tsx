@@ -8,7 +8,6 @@ import { useEffect, useRef, useState } from 'react';
 import { tutorial } from '../state/tutorial';
 import { meta, metaModifiers } from '../state/meta';
 import type { TutorialRewardSummary } from '../state/meta';
-import { COMBAT_TUTORIAL } from '../core/tutorial';
 import type { Game } from '../core/game';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
 import { GameView } from './GameView';
@@ -40,15 +39,13 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
   }
 
   // Completion detection: the session goes active→null when the final step advances (or on Skip).
-  // Grant rewards only if we actually REACHED the end (not an early skip).
+  // Rewards are gated on the store's end reason — a Skip (even on the last step) never pays out.
   const wasActive = useRef(false);
-  const reachedEnd = useRef(false);
   useEffect(() => {
     if (session) {
       wasActive.current = true;
-      if (session.progress.checkpoint >= COMBAT_TUTORIAL.checkpoints.length - 1) reachedEnd.current = true;
     } else if (wasActive.current) {
-      if (reachedEnd.current) {
+      if (tutorial.lastEndReason() === 'completed') {
         const r = meta.grantTutorialRewards('combat'); // idempotent — null on a replay
         if (r) { setReward(r); return; }
       }

@@ -23,6 +23,8 @@ import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
 import { dangerCurve } from '../core/dangerCamera';
+import { tutorial as tutorialStore } from '../state/tutorial';
+import { currentCheckpoint } from '../core/tutorial';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
@@ -125,6 +127,16 @@ export function GameView({
     setPaused((p) => { pausedRef.current = !p; return !p; });
     setConfirmAbandon(false); // reset the abandon guard whenever pause toggles
   }, []);
+  // TUTORIAL GATES (docs/TUTORIAL.md): the overlay's Pause must freeze the SIM too (not just
+  // the lesson), and the active checkpoint may request a gentle canvas focus. Subscribing is a
+  // no-op cost outside the tutorial (the store is null on normal runs).
+  const tutSession = tutorialStore.use();
+  const tutPausedRef = useRef(false);
+  tutPausedRef.current = !!(tutorial && tutSession?.progress.status === 'paused');
+  const tutCue = tutorial && tutSession ? currentCheckpoint(tutSession.progress, tutSession.def)?.cue : undefined;
+  const tutFocusRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
+  tutFocusRef.current = tutCue?.canvasFocus ?? null;
+  const tutCamRef = useRef({ x: WIDTH / 2, y: HEIGHT / 2, z: 1 }); // eased — never snaps
   const [leftOpen, setLeftOpen] = useState(true); // Run Build panel (collapsible)
   const [rightOpen, setRightOpen] = useState(true); // Status/Inspector panel (collapsible)
   const [evoOpen, setEvoOpen] = useState(false); // Hero Combat Console (auto-pauses the sim while open)
@@ -224,7 +236,7 @@ export function GameView({
         // Paused: keep the loop alive (so resume is instant) but skip the sim + render. Advancing
         // `last` here means resume doesn't fast-forward by the whole pause duration. The canvas
         // keeps its last-drawn frame; the React PAUSED overlay covers the board.
-        if (pausedRef.current) { last = now; raf = requestAnimationFrame(loop); return; }
+        if (pausedRef.current || tutPausedRef.current) { last = now; raf = requestAnimationFrame(loop); return; }
         const dt = (now - last) / 1000;
         last = now;
         // Hitstop: a brief view-loop freeze on a juicy event (a branch-tier purchase). The sim is
@@ -262,6 +274,21 @@ export function GameView({
           ctx.translate(WIDTH / 2, HEIGHT * 0.78);
           ctx.scale(dz, dz);
           ctx.translate(-WIDTH / 2, -HEIGHT * 0.78);
+        }
+        // Smart tutorial camera (docs/TUTORIAL.md): ease toward the lesson's focus point (or
+        // back to neutral) — exponential glide, so entering/leaving a step never snaps the view.
+        {
+          const cam = tutCamRef.current;
+          const want = tutFocusRef.current;
+          const k = Math.min(1, 1.6 * dt);
+          cam.x += ((want ? want.x : WIDTH / 2) - cam.x) * k;
+          cam.y += ((want ? want.y : HEIGHT / 2) - cam.y) * k;
+          cam.z += ((want ? want.zoom : 1) - cam.z) * k;
+          if (cam.z > 1.0005) {
+            ctx.translate(cam.x, cam.y);
+            ctx.scale(cam.z, cam.z);
+            ctx.translate(-cam.x, -cam.y);
+          }
         }
         const rs = game.getRenderState();
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers);
@@ -404,14 +431,16 @@ export function GameView({
   onReadyRef.current = onReady;
   useEffect(() => { onReadyRef.current?.(game); }, [game]);
 
-  // Restore the persisted auto-start preference for this run.
+  // Restore the persisted auto-start preference for this run — but never inside the tutorial,
+  // where the director owns every wave start (a veteran's replay must not auto-fire waves).
   useEffect(() => {
+    if (tutorial) return;
     try {
       game.setAutoStart(localStorage.getItem(AUTOSTART_KEY) === '1');
     } catch {
       /* storage unavailable */
     }
-  }, [game]);
+  }, [game, tutorial]);
 
   // ── Desktop keyboard shortcuts (1-N towers · Q ability · Space wave · Esc) ──
   useEffect(() => {
@@ -421,6 +450,8 @@ export function GameView({
       // Board hotkeys only during active play — the draft owns the keyboard while open.
       if (game.phase !== 'prep' && game.phase !== 'wave') return;
       const k = e.key;
+      // Tutorial: the director scripts wave starts and pins 1× speed — swallow their hotkeys.
+      if (tutorial && (k === ' ' || k === 'Spacebar' || k === 'f' || k === 'F')) { e.preventDefault(); return; }
       if (k === 'p' || k === 'P') { togglePause(); return; }
       if (k >= '1' && k <= String(TOWER_ORDER.length)) {
         const kind = TOWER_ORDER[Number(k) - 1];
@@ -445,7 +476,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause, setSpeed]);
+  }, [game, togglePause, setSpeed, tutorial]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -458,7 +489,7 @@ export function GameView({
 
   return (
     <div className="game">
-      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} />
+      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} />
       <PowerToaster />
       <MasteryToaster />
       <div className="stage">
@@ -517,8 +548,8 @@ export function GameView({
             refresh();
           }}
         />
-        <BuildControls game={game} hud={hud} refresh={refresh} />
-        {(hud.phase === 'prep' || hud.phase === 'wave') && (
+        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} />
+        {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <div className="speed-ctl" role="group" aria-label="Game speed (F)">
             {[1, 2, 5].map((x) => (
               <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
@@ -653,6 +684,7 @@ export function GameView({
           <DraftModal
             options={hud.draft}
             clearedWave={hud.wave}
+            forceManual={!!tutorial}
             onPick={(id) => {
               game.chooseCard(id);
               refresh();

@@ -178,6 +178,13 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 
 ### Onboarding & UX
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **Onboarding overhaul (full audit + rebuild)** — GATED Combat Tutorial (`game.tutorialMode`:
+  director scripts every wave, holds/releases the draft at its lesson, locked console/speed/hotkeys,
+  sim-freezing pause, exact-element arrows, canvas-focus camera, mid-flow milestone rewards with
+  idempotent ledger, skip≠completion); HUD Tour rebuilt as anchored **Field Orientation**
+  (what/why/when/later per element, skip never pays, replayable from Help/Settings); mechanics
+  registry +5 systems (wave-rhythm, speed, emergency-defense, adaptation, hero-evolution) + a
+  "Watch out" mistakes row — TUTORIAL-AUDIT.md (findings), TUTORIAL.md, HELP.md
 - ✅ Progress Prediction (self-calibrating) — PREDICTION.md
 - ✅ UI motion language, reward presentation — UI-MOTION.md, REWARD-PRESENTATION.md
 - ✅ Identity pass: LEXICON, ◈ star glyph, rarity grades, currency renames — LEXICON.md, IDENTITY-AUDIT.md

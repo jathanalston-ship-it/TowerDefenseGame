@@ -73,7 +73,7 @@ const GROUP_ACCENT: Record<string, string> = {
 };
 
 /** Settings screen — save data management, the destructive reset, and audio preferences. */
-function SettingsScreen({ onReplayTutorial }: { onReplayTutorial: () => void }): JSX.Element {
+function SettingsScreen({ onReplayTutorial, onReplayTour }: { onReplayTutorial: () => void; onReplayTour: () => void }): JSX.Element {
   const [autoGene, setAutoGene] = useState(autoGenePref());
   const toggleAutoGene = (): void => {
     const next = !autoGene;
@@ -101,6 +101,7 @@ function SettingsScreen({ onReplayTutorial }: { onReplayTutorial: () => void }):
           <div className="panel-title">Help</div>
           <div className="panel-sub">Re-learn the basics any time.</div>
           <button className="set-switch" onClick={onReplayTutorial}>▶ Replay Combat Tutorial</button>
+          <button className="set-switch" onClick={onReplayTour}>▶ Replay Field Orientation</button>
         </div>
         <div className="panel">
           <div className="panel-title">Danger Zone</div>
@@ -125,6 +126,7 @@ export function Hub({
   last,
   onSeenLast,
   onReplayTutorial,
+  onReplayTour,
   difficultyRef,
   doctrineRef,
 }: {
@@ -134,6 +136,7 @@ export function Hub({
   last: { result: RunResult; outcome: RunOutcome } | null;
   onSeenLast: () => void;
   onReplayTutorial: () => void;
+  onReplayTour: () => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -175,6 +178,7 @@ export function Hub({
                 return (
                   <button
                     key={n.key}
+                    data-nav={n.key}
                     className={`hub-navitem ${nav === n.key ? 'on' : ''}`}
                     onClick={() => go(n.key)}
                     onPointerEnter={() => audio.cue('hover')}
@@ -201,13 +205,13 @@ export function Hub({
             </div>
           ))}
         </div>
-        <div className="hub-power">
+        <div className="hub-power" data-tour="power">
           <PowerBadge />
         </div>
       </nav>
 
       <div className="hub-main">
-        <header className="hub-topbar">
+        <header className="hub-topbar" data-tour="topbar">
           <button className="hub-burger" onClick={() => setNavOpen((v) => !v)} aria-label="Open navigation" aria-expanded={navOpen}>
             ☰ <span className="hub-burger-l">Menu</span>
           </button>
@@ -233,8 +237,8 @@ export function Hub({
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
-          {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} />}
-          {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} />}
+          {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} />}
+          {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}
         </section>
       </div>
     </div>

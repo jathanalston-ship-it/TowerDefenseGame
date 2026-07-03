@@ -28,3 +28,45 @@ describe('tutorial completion rewards (idempotent on replay)', () => {
     expect(meta.get().pendingContainers.length).toBe(afterFirst.pendingContainers.length);
   });
 });
+
+describe('mid-lesson milestone rewards (idempotent per checkpoint)', () => {
+  it('grants each milestone exactly once, keyed tutorial:checkpoint', () => {
+    meta.reset();
+    const before = meta.get();
+    const m1 = meta.grantTutorialMilestone('combat', 'wave-1', { cores: 25 });
+    expect(m1).toEqual({ cores: 25, essence: 0 });
+    const after1 = meta.get();
+    expect(after1.shards).toBe(before.shards + 25);
+    expect(after1.tutorial.milestones).toContain('combat:wave-1');
+
+    // A replayed lesson (same key) never re-grants; a DIFFERENT checkpoint still can.
+    expect(meta.grantTutorialMilestone('combat', 'wave-1', { cores: 25 })).toBeNull();
+    expect(meta.get().shards).toBe(after1.shards);
+    const m2 = meta.grantTutorialMilestone('combat', 'gene-card', { essence: 10 });
+    expect(m2).toEqual({ cores: 0, essence: 10 });
+    expect(meta.get().geneEssence).toBe(after1.geneEssence + 10);
+  });
+});
+
+describe('HUD Tour completion (skip is seen, never paid)', () => {
+  it('a skip marks the tour done without the container; a later finish cannot double-dip', () => {
+    meta.reset();
+    meta.completeTutorial('combat');
+    const before = meta.get();
+    expect(meta.completeHudTour(false)).toBeNull(); // skip: no grant …
+    const after = meta.get();
+    expect(after.help.hudTour).toBe(true); // … but it never re-forces
+    expect(after.pendingContainers.length).toBe(before.pendingContainers.length);
+    expect(meta.completeHudTour(true)).toBeNull(); // already done — a replay finish grants nothing
+  });
+
+  it('a genuine finish grants the one-time container', () => {
+    meta.reset();
+    meta.completeTutorial('combat');
+    const before = meta.get();
+    const r = meta.completeHudTour(true);
+    expect(r).not.toBeNull();
+    expect(meta.get().pendingContainers.length).toBe(before.pendingContainers.length + 1);
+    expect(meta.completeHudTour(true)).toBeNull(); // idempotent
+  });
+});

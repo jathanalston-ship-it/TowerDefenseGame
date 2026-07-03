@@ -10,7 +10,7 @@ import type { MechanicCategory, MechanicDef } from '../state/mechanics';
 
 const CATEGORY_ORDER: MechanicCategory[] = ['Basics', 'Towers', 'Heroes', 'Progression', 'Modes', 'World'];
 
-export function HelpWiki({ onNavigate }: { onNavigate?: (nav: string) => void }): JSX.Element {
+export function HelpWiki({ onNavigate, onReplayTour }: { onNavigate?: (nav: string) => void; onReplayTour?: () => void }): JSX.Element {
   meta.use();
   const all = meta.helpMechanics();
   const [query, setQuery] = useState('');
@@ -24,7 +24,14 @@ export function HelpWiki({ onNavigate }: { onNavigate?: (nav: string) => void })
 
   return (
     <div className="panel help-wiki">
-      <div className="panel-title">Help · Field Manual <span className="help-count">{all.length} unlocked</span></div>
+      <div className="panel-title">
+        Help · Field Manual <span className="help-count">{all.length} unlocked</span>
+        {onReplayTour && (
+          <button className="help-tour-replay" onClick={onReplayTour} title="Re-run the anchored walkthrough of the Command Center">
+            ▶ Field Orientation
+          </button>
+        )}
+      </div>
       <div className="panel-sub">A living guide — new systems appear here the moment you unlock them.</div>
       <input className="help-search" placeholder="Search mechanics…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search Help" />
 
@@ -51,6 +58,7 @@ export function HelpWiki({ onNavigate }: { onNavigate?: (nav: string) => void })
               <div className="help-row"><span className="help-k">Why</span><span className="help-v">{sel.why}</span></div>
               <div className="help-row"><span className="help-k">Where</span><span className="help-v">{sel.where}</span></div>
               <div className="help-row"><span className="help-k">Next</span><span className="help-v">{sel.next}</span></div>
+              {sel.mistakes && <div className="help-row is-mistake"><span className="help-k">Watch out</span><span className="help-v">{sel.mistakes}</span></div>}
             </div>
             {sel.nav && onNavigate && (
               <button className="help-goto" onClick={() => onNavigate(sel.nav!)}>Open {sel.title} ▸</button>
