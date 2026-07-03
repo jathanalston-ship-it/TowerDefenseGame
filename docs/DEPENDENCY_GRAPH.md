@@ -115,7 +115,7 @@ graph TD
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` | — | — | `docs/BIOMES.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
-| **Rendering & VFX** (`rendering`) | `engine` | — | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` |
+| **Rendering & VFX** (`rendering`) | `engine` | — | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` |
 | **Audio** (`audio`) | — | — | — | — | `docs/GAME-FEEL.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` | — | — | — | `docs/DEV-RESET.md` |
 | **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` |
@@ -136,7 +136,7 @@ graph TD
 - **HUD surfaces:** `Hud` · `Toolbar` · `BuildControls` · `Inspector` · `BuildPanel` · **UI screens:** `GameView`
 - **Collection:** kills/usage feed collection tiers · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md`
+- **Docs to update on change:** `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/BOSS-DESIGN.md` · `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md`
 
 ### Content Infrastructure (`content-infra`)
 
@@ -560,9 +560,9 @@ graph TD
 
 ### Rendering & VFX (`rendering`)
 
-*Canvas2D battlefield, tower visual evolution, particles/vfx, theme.*
+*Canvas2D battlefield, tower visual evolution, particles/vfx, theme, danger-camera state machine.*
 
-- **Files:** `src/render/*`
+- **Files:** `src/render/*` · `src/core/dangerCamera.ts`
 - **Depends on:** `engine`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
@@ -571,7 +571,7 @@ graph TD
 - **HUD surfaces:** `the battlefield itself` · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md`
+- **Docs to update on change:** `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md`
 
 ### Audio (`audio`)
 

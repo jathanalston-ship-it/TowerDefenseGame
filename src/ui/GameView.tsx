@@ -22,6 +22,7 @@ import { PowerToaster } from './components/PowerToaster';
 import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
+import { dangerCurve } from '../core/dangerCamera';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
 import { Hud } from './Hud';
@@ -253,6 +254,15 @@ export function GameView({
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.save();
         ctx.translate(dx, dy);
+        // Danger zoom (docs/CAMERA.md): a ≤1.5% cinematic pull toward the Hive, driven by the
+        // SMOOTHED danger intensity — it can only glide in and exhale out, never throb. Subtle
+        // by design (a tension cue, not a gameplay mechanic); composes under the hit-shake.
+        const dz = 1 + 0.015 * dangerCurve(game.dangerCam.intensity);
+        if (dz > 1.0005) {
+          ctx.translate(WIDTH / 2, HEIGHT * 0.78);
+          ctx.scale(dz, dz);
+          ctx.translate(-WIDTH / 2, -HEIGHT * 0.78);
+        }
         const rs = game.getRenderState();
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
@@ -277,9 +287,14 @@ export function GameView({
         ctx.restore();
 
         // Dynamic music intensity (audio/music.ts): battlefield pressure — enemies massing +
-        // a wounded core — breathes the track's layers in and out. Throttled to real changes.
+        // a wounded core — breathes the track's layers in and out. Danger mode swells the mix
+        // on the SMOOTHED camera intensity (docs/CAMERA.md §audio), so the low layers fade in
+        // and out with the tension instead of stepping. Throttled to real changes.
         const intRatio = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;
-        const pressure = Math.min(1, (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6);
+        const pressure = Math.min(1, Math.max(
+          (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6,
+          game.dangerCam.intensity * 0.9,
+        ));
         const intensity = game.phase === 'won' || game.phase === 'lost' ? 0 : 0.25 + pressure * 0.75;
         if (Math.abs(intensity - intensityRef.current) > 0.04) {
           intensityRef.current = intensity;

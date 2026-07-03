@@ -7,10 +7,11 @@
 // Pacing judgments (how FAST is right) are deliberately NOT asserted — that's design's call,
 // made on the generated report (docs/PROGRESSION-LOOP.md §time).
 
-import { describe, it, expect, afterAll } from 'vitest';
+import { describe, it, expect, afterAll, vi } from 'vitest';
 import { detectProblems, simulateAccount } from './progressionSim';
 import type { SimCheckpoint } from './progressionSim';
 import { meta } from '../state/meta';
+import { Rng } from '../core/rng';
 
 function cp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
   return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, ...p };
@@ -47,6 +48,12 @@ describe('live mini-simulation (real meta layer)', () => {
   afterAll(() => meta.reset()); // leave a clean account for whatever runs next
 
   it('the loop functions: progression moves, both phases occur, no structural pathologies', () => {
+    // The meta loot layer rolls unseeded Math.random, so an unlucky account occasionally
+    // tripped a detector and flaked CI. Pin it to the repo's seeded PRNG: CI asserts ONE
+    // reproducible account; luck-variance exploration belongs to `npm run sim:report`.
+    const lootRng = new Rng(0x51ce);
+    const rnd = vi.spyOn(Math, 'random').mockImplementation(() => lootRng.next());
+    try {
     const trace = simulateAccount(0xc0ffee, [5, 15, 30]);
     const last = trace.checkpoints[trace.checkpoints.length - 1];
     expect(trace.checkpoints.length).toBe(3);
@@ -67,5 +74,8 @@ describe('live mini-simulation (real meta layer)', () => {
     expect(last.molts).toBeGreaterThanOrEqual(2); // …but the milestone gate must not freeze early
     expect(last.molts).toBeLessThanOrEqual(30);
     expect(last.stage).toBeLessThanOrEqual(130); // the requirement curve still bites at CI scale
+    } finally {
+      rnd.mockRestore();
+    }
   }, 60_000);
 });

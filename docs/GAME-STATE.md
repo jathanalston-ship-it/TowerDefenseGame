@@ -56,6 +56,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   achievements); campaign gates at 15/30/50; battlefield FORM stages 1–3; priced stage-gated respec;
   a new tower's tree = one `TOWER_THEMES` row (`core/adaptation.ts`) — ADAPTATION.md
 - ✅ Range identity + Final Defense Zone — RANGE.md
+- ✅ **Danger Camera** (`core/dangerCamera.ts`) — hysteresis-gated state machine (calm→rising→
+  danger→easing: confirmation window, min-hold, release confirmation, asymmetric ease) turning a
+  weighted threat fold (proximity ramp × tier × health) into ONE smooth intensity that every
+  tension effect keys on (vignette+heartbeat, red edge, saturation dip, ≤1.5% zoom, banner, music);
+  render-only (goldens untouched), targeting override stays instantaneous — CAMERA.md
 
 ### Heroes
 - ✅ Roster slots (campaign-gated), per-hero equipment, mastery — HEROES.md, HERO-FRAMEWORK.md

@@ -246,10 +246,10 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/DIFFICULTY.md', 'docs/DIFFICULTY_DIRECTOR.md'],
   },
   {
-    id: 'rendering', name: 'Rendering & VFX', purpose: 'Canvas2D battlefield, tower visual evolution, particles/vfx, theme.',
-    files: ['src/render/*'],
+    id: 'rendering', name: 'Rendering & VFX', purpose: 'Canvas2D battlefield, tower visual evolution, particles/vfx, theme, danger-camera state machine.',
+    files: ['src/render/*', 'src/core/dangerCamera.ts'],
     dependsOn: ['engine'], powerScore: null, save: [], tutorial: [], help: [], hud: ['the battlefield itself'], ui: [],
-    collection: null, achievements: [], localization: 'none', docs: ['docs/RENDER-PIPELINE.md', 'docs/TOWER-VISUAL-EVOLUTION.md', 'docs/GAME-FEEL.md'],
+    collection: null, achievements: [], localization: 'none', docs: ['docs/RENDER-PIPELINE.md', 'docs/TOWER-VISUAL-EVOLUTION.md', 'docs/GAME-FEEL.md', 'docs/CAMERA.md'],
   },
   {
     id: 'audio', name: 'Audio', purpose: 'Synthesized SFX/music bus — cues, heartbeat tempo, reward stingers.',

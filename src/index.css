@@ -679,7 +679,13 @@ button:disabled {
   background: var(--danger);
   border-radius: var(--r-xs);
   padding: 1px 8px;
-  animation: emergency-flash 0.8s ease-in-out infinite;
+  /* Mounted only on COMMITTED danger (state machine, docs/CAMERA.md) — fades in, then the
+     slow flash; the min-hold upstream means it can never strobe on threshold blips. */
+  animation: emergency-in 0.5s ease-out, emergency-flash 1.4s ease-in-out 0.5s infinite;
+}
+@keyframes emergency-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 0.72; transform: none; }
 }
 @keyframes emergency-flash {
   0%, 100% { opacity: 0.72; box-shadow: 0 0 6px rgba(255, 93, 115, 0.4); }

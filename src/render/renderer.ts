@@ -42,6 +42,7 @@ import {
 } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
+import { dangerCurve } from '../core/dangerCamera';
 
 export interface Pointer {
   x: number;
@@ -83,12 +84,13 @@ export function drawGame(
 ): void {
   const t = rs.time;
 
-  // How hard is the hive being pressed right now? (enemies near/into the zone +
-  // how wounded the core is) — drives the danger glow + vignette.
-  let nearLine = 0;
-  for (const e of rs.enemies) if (e.y > DEFENSE_TOP_Y - CELL * 2) nearLine++;
+  // How hard is the hive being pressed right now? Two SMOOTH components (docs/CAMERA.md):
+  // the danger-camera intensity (hysteresis-gated, eased — it can never flicker when an
+  // enemy blips across the zone edge) and the wounded-core ratio (changes only on a breach).
+  // The old per-frame enemy count is gone — that was the source of the vignette throbbing.
   const intRatio = rs.maxIntegrity > 0 ? rs.integrity / rs.maxIntegrity : 1;
-  const pressure = Math.min(1, (nearLine / 14) * 0.7 + (1 - intRatio) * 0.7);
+  const danger = dangerCurve(rs.dangerIntensity); // blend curve: zero-derivative entry/exit
+  const pressure = Math.min(1, danger * 0.8 + (1 - intRatio) * 0.5);
 
   drawBackground(ctx);
   drawTiles(ctx);
@@ -140,7 +142,7 @@ export function drawGame(
   }
   ctx.textAlign = 'left';
 
-  drawPressureVignette(ctx, pressure, t);
+  drawPressureVignette(ctx, pressure, danger, t);
   drawBiomeFx(ctx, rs, t); // hazard-pulse vignette + transition flash, over everything
 }
 
@@ -1155,14 +1157,43 @@ function drawParticles(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   ctx.globalAlpha = 1;
 }
 
-function drawPressureVignette(ctx: CanvasRenderingContext2D, pressure: number, t: number): void {
-  if (pressure <= 0.02) return;
-  const a = pressure * (0.35 + 0.1 * Math.sin(t * 6)); // throb when pressed hard
+/** The danger-mode screen treatment (docs/CAMERA.md §channels) — deliberately RESTRAINED:
+ *  a soft vignette, a faint red edge glow, a one-rect saturation dip, and an extremely
+ *  subtle heartbeat swell at high danger. Everything keys on the SMOOTHED inputs (the raw
+ *  sin-throb is gone), so nothing here can flicker. No shake, no flashes. */
+function drawPressureVignette(ctx: CanvasRenderingContext2D, pressure: number, danger: number, t: number): void {
+  if (pressure <= 0.02 && danger <= 0.02) return;
+  // Heartbeat (optional, per spec): a quiet lub-dub swelling the vignette ±4% — only once
+  // danger is well established, never a strobe.
+  let heart = 0;
+  if (danger > 0.5) {
+    const ph = (t * 1.05) % 1;
+    const lub = Math.max(0, Math.sin(ph * Math.PI * 2)) ** 8;
+    const dub = Math.max(0, Math.sin((ph - 0.16) * Math.PI * 2)) ** 8;
+    heart = (lub + 0.55 * dub) * (danger - 0.5) * 2;
+  }
+  const a = pressure * (0.34 + 0.04 * heart);
   const g = ctx.createRadialGradient(WIDTH / 2, HEIGHT * 0.62, HEIGHT * 0.3, WIDTH / 2, HEIGHT * 0.62, HEIGHT * 0.75);
   g.addColorStop(0, rgba(THEME.vignette, 0));
-  g.addColorStop(1, rgba(THEME.vignette, Math.min(0.55, a)));
+  g.addColorStop(1, rgba(THEME.vignette, Math.min(0.5, a)));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  if (danger > 0.03) {
+    // Slight red edge glow — the danger hue bleeding in from the frame, low alpha.
+    const r = ctx.createRadialGradient(WIDTH / 2, HEIGHT * 0.62, HEIGHT * 0.52, WIDTH / 2, HEIGHT * 0.62, HEIGHT * 0.8);
+    r.addColorStop(0, 'rgba(255, 62, 76, 0)');
+    r.addColorStop(1, `rgba(255, 62, 76, ${(0.12 * danger).toFixed(3)})`);
+    ctx.fillStyle = r;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // Minor saturation dip — one rect through the 'saturation' blend (gray source pulls the
+    // backdrop toward monochrome by its alpha). Cheap, and reads as the world tensing up.
+    ctx.save();
+    ctx.globalCompositeOperation = 'saturation';
+    ctx.globalAlpha = 0.14 * danger;
+    ctx.fillStyle = '#8a8a92';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.restore();
+  }
 }
 
 // ── Range visualization (docs/RANGE.md §6) ──────────────────────────────────

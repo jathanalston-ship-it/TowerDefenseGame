@@ -9,6 +9,7 @@ import { SpatialGrid } from './spatial';
 import {
   CELL,
   DEFENSE_TOP_Y,
+  FINAL_DEFENSE_TOP_Y,
   HEIGHT,
   REACH_Y,
   WIDTH,
@@ -51,6 +52,8 @@ import {
   MINION_CAP,
 } from './config';
 import type { EnemyDef, HeroDef } from './config';
+import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
+import type { DangerCameraState } from './dangerCamera';
 import {
   CARD_POOL,
   applyCard,
@@ -231,6 +234,7 @@ export interface RenderState {
   maxIntegrity: number;
   // Emergency Defense Mode (docs/RANGE.md §4) — render-only.
   emergency: boolean; // an enemy is in the Final Defense Zone (drives the alert visuals)
+  dangerIntensity: number; // danger-camera smoothed 0..1 (docs/CAMERA.md) — every tension effect keys on this
   emergencyRamp: number; // 0..1 eased intensity so the visuals fade in/out, never pop
   emergencyFocusX: number; // the in-zone enemy nearest the core — beams converge here
   emergencyFocusY: number;
@@ -324,6 +328,8 @@ export class Game {
   particles: Particle[] = [];
   minions: Minion[] = []; // summoned friendly units (empty on the golden path → byte-identical)
   enemyShells: EnemyShell[] = []; // artillery shells in flight (empty on the golden path)
+  /** Danger-camera state machine (docs/CAMERA.md) — RENDER-ONLY; no sim system reads it. */
+  readonly dangerCam: DangerCameraState = initialDangerCamera();
   // The active hero roster. One today (the selected hero); the array is the seam for
   // future hero slots (HEROES.md) — slot unlocks just push more heroes in.
   heroes: Hero[];
@@ -1574,6 +1580,9 @@ export class Game {
   }
 
   private step(dt: number): void {
+    // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
+    // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
+    this.dangerCameraSystem(dt);
     // ── Combat→Build SETTLE beat ── the wave is cleared and the simulation is PAUSED: the sim
     // clock, run-buff + minion timers, and every combat system are frozen, so all downstream
     // deterministic state (enemy steering jitter keyed off `this.time`, the spawn schedule, buff
@@ -2042,11 +2051,37 @@ export class Game {
       this.emergencyFocusX = list[0].x;
       this.emergencyFocusY = list[0].y;
     }
-    // Render-only ease: snap in fast (alarm), relax out slow. Never read by the sim, so it
-    // cannot perturb a fixed-seed outcome.
-    const target = this.emergencyActive ? 1 : 0;
-    const rate = this.emergencyActive ? 8 : 3;
-    this.emergencyRamp += (target - this.emergencyRamp) * Math.min(1, rate * dt);
+    // Render-only ease, GATED by the danger-camera state machine (docs/CAMERA.md): the zone
+    // wash/beams may only light up once danger has COMMITTED (confirmation window passed), and
+    // they exhale slowly — an in-zone blip that dies before confirming never flashes the screen,
+    // and successive leakers inside the hold window don't re-flash it. Never read by the sim.
+    const zoneTarget = this.emergencyActive && this.dangerCam.phase === 'danger' ? 1 : 0;
+    const rate = zoneTarget > this.emergencyRamp ? 5 : 0.9;
+    this.emergencyRamp += (zoneTarget - this.emergencyRamp) * Math.min(1, rate * dt);
+  }
+
+  /** RENDER-ONLY (docs/CAMERA.md): fold the battlefield into one raw THREAT SCORE — every
+   *  enemy past the defensive edge, weighted by proximity (approach band → zone → core),
+   *  tier (boss ≫ elite ≫ normal) and remaining health (dying enemies fade out of the
+   *  score) — then advance the danger-camera state machine. One pass, no allocation; no
+   *  sim system reads any of it, so fixed-seed outcomes are untouched. */
+  private dangerCameraSystem(dt: number): void {
+    let raw = 0;
+    if (this.enemies.length > 0) {
+      const bandTop = DEFENSE_TOP_Y;
+      const zoneTop = FINAL_DEFENSE_TOP_Y;
+      const coreSpan = Math.max(1, HEIGHT - zoneTop);
+      for (const e of this.enemies) {
+        if (!e.alive || e.y <= bandTop) continue;
+        const w = e.y < zoneTop
+          ? DANGER_CAM.wApproach * ((e.y - bandTop) / (zoneTop - bandTop))
+          : DANGER_CAM.wZone + (DANGER_CAM.wCore - DANGER_CAM.wZone) * Math.min(1, (e.y - zoneTop) / coreSpan);
+        const tier = e.boss ? DANGER_CAM.tier.boss : e.elite ? DANGER_CAM.tier.elite : DANGER_CAM.tier.normal;
+        const hp = e.maxHp > 0 ? e.hp / e.maxHp : 1;
+        raw += w * tier * (DANGER_CAM.hpFloor + (1 - DANGER_CAM.hpFloor) * hp);
+      }
+    }
+    stepDangerCamera(this.dangerCam, raw, dt);
   }
 
   private towerSystem(dt: number): void {
@@ -3634,6 +3669,7 @@ export class Game {
       integrity: this.integrity,
       maxIntegrity: this.maxIntegrity,
       emergency: this.emergencyActive,
+      dangerIntensity: this.dangerCam.intensity,
       emergencyRamp: this.emergencyRamp,
       emergencyFocusX: this.emergencyFocusX,
       emergencyFocusY: this.emergencyFocusY,
@@ -3711,7 +3747,9 @@ export class Game {
         abilityCdMax: this.heroAbilityCooldownFor(h),
       },
       enemiesAlive: this.enemies.length,
-      emergency: this.emergencyActive,
+      // Banner rides the danger-camera STATE (deliberate entry + min-hold + smooth exit,
+      // docs/CAMERA.md) — the targeting override keeps its own instantaneous in-zone list.
+      emergency: this.dangerCam.phase === 'danger',
       draft: this.draft ? this.draft.map(cardToOption) : null,
       selectedTower: this.selectedTower,
       selectedPlaced: this.selectedPlacedView(),
