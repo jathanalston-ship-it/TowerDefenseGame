@@ -21,7 +21,7 @@ interface TourStop {
   later: string;
 }
 
-const TOUR: TourStop[] = [
+export const TOUR: TourStop[] = [
   { area: 'Resource Bar', anchor: '[data-tour="topbar"]',
     what: 'Your permanent account currencies — Genome Cores, Ascendant Cells, and crafting materials.',
     why: 'Unlike in-run Biomass, these never reset. Everything here compounds across every future run.',

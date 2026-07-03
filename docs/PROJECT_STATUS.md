@@ -3,10 +3,10 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-02 (balance-architecture arc + tuning pass, Player Profile
-> dashboard (registry-driven, save v22), and the full Tower Adaptation / Antigen system:
-> per-tower generated trees, multi-source capped Antigen, campaign-gated depth, FORM stages,
-> priced respec, lab UI — `docs/ADAPTATION.md`).
+> **Last updated:** 2026-07-03 (enemy/boss battlefield revamp + artillery shells, deployment
+> interstitial, Wave Briefing console, BALANCE_REPORT amendment pass (26→9 signals), the
+> **Danger Camera** state machine (`docs/CAMERA.md`), and the **onboarding overhaul**: gated
+> Combat Tutorial + anchored Field Orientation + milestone rewards — `docs/TUTORIAL-AUDIT.md`).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -49,7 +49,13 @@ widget zones over pure read-models; living World Status canvas organism, command
 unlock roadmap, forecast, live army — `docs/COMMAND-CENTER.md`)** · **Permanent simulation
 framework (11 personas over the real meta layer, dopamine-cadence ledger, 8 bottleneck
 detectors with diagnosis, `npm run sim:report` → report-only `docs/BALANCE_REPORT.md` —
-`docs/SIMULATION-FRAMEWORK.md`)**.
+`docs/SIMULATION-FRAMEWORK.md`)** · Enemy/boss battlefield language (trait-on-body visuals,
+artillery shells, boss runtime tells — `docs/ENEMIES.md` §8–9) · Deployment interstitial +
+Wave Briefing threat console · **Danger Camera (hysteresis state machine → ONE smoothed
+intensity for every tension effect; render-only, golden-safe — `docs/CAMERA.md`)** ·
+**Onboarding overhaul (gated Combat Tutorial via `game.tutorialMode` + director-scripted
+beats, milestone-reward ledger, anchored what/why/when/later Field Orientation, Help
+"Watch out" rows + 5 new mechanic entries — audit record `docs/TUTORIAL-AUDIT.md`)**.
 
 ## Systems in progress
 
@@ -96,7 +102,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 808 tests / 125 files green; golden sim byte-identical; typecheck strict; build clean.
+- 830 tests / 127 files green; golden sim byte-identical; typecheck strict; build clean.
 - Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.

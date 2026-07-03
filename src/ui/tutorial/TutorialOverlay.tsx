@@ -61,6 +61,9 @@ export function TutorialOverlay(): JSX.Element | null {
       )}
 
       <Callout rect={calloutRect} side={cue?.callout?.side}>
+        {/* Narrow shells hide the floating objective pill (no room beside callouts/controls) —
+            the counter rides inside the callout there instead. Desktop hides this line. */}
+        <div className="tut-callout-step" aria-hidden>Step {step} of {total}</div>
         <div className="tut-callout-text">{calloutText}</div>
         {advanceKind === 'continue' && <ContinuePrompt onContinue={() => tutorial.advance()} />}
         {advanceKind === 'event' && <div className="tut-waiting">Complete the objective to continue…</div>}
