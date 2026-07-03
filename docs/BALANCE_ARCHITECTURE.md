@@ -119,3 +119,16 @@ Changes went through the §4 protocol (named constants → simulate before/after
 **Guardrails:** goldens byte-identical (all changes live in the meta/report layers); the CI
 pacing envelope (`progressionSim.test.ts`) passed unmodified; the consolation contract is
 pinned in `meta.test.ts` (frontier-only, depth-scaled, superseded on the clear).
+
+**Measured results** (persona matrix 11×4×400h, before → after the amendment):
+signals **26 → 15**, reported **top-20 → top-15**. Median finals — Efficient power
+**10.2M → 24.5M**, acquisitions **606 → 755** (Antigen picks now spent + counted + the
+ladder); Campaign-Focused stage **193 → 211** with failed pushes **265 → 233** (the
+consolation converts failed time into catch-up, which raises later win odds — the
+self-correction predicted); Equipment-Focused acquisitions **532 → 694**. Power-spike
+flags fell from 9 (mostly band-width artifacts) to 3 true cohort outliers. Residuals for
+the next review round: deep-band cadence still ~0.40–0.48/h against the 0.5 threshold
+(the deepest beats belong to prestige layers 2+ content — the reserved seam), and the
+dead-zone entries at 25–50% frequency carry the gear-swap metric-variance caveat: the
+in-game item score (`itemPowerScore`) and the Power meter's equipment fold can rank a
+swap oppositely — worth a dedicated audit if frequency rises.

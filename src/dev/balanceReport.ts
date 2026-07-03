@@ -158,11 +158,11 @@ const DIAGNOSIS: Record<BottleneckKind, Diagnosis> = {
     difficulty: 'Medium',
   },
   'dopamine-gap': {
-    rootCause: 'Acquisition cadence collapses: everything cheap is owned and the next unlock is a long single goal with no intermediate beats.',
+    rootCause: 'Acquisition cadence collapses: everything cheap is owned and the next unlock is a long single goal with no intermediate beats. (Amendment №1 shipped the deep-band achievement ladder + Antigen spending in the meter; residual gaps are what remains after those beats.)',
     systems: 'Unlock pacing · achievements · next-goal engine · container cadence',
-    fixes: ['Author micro-milestones (achievements/timeline beats) across the gap band.',
+    fixes: ['Tilt container cadence slightly richer in the band (LOOT_EARN; simulate first).',
       'Split one large unlock into staged partial unlocks (visible progress).',
-      'Tilt container cadence slightly richer in the band (LOOT_EARN; simulate first).'],
+      'Reserve the deepest beats for prestige layers 2+ content (the planned seam).'],
     difficulty: 'Low',
   },
   'sink-exhaustion': {
@@ -196,11 +196,10 @@ const DIAGNOSIS: Record<BottleneckKind, Diagnosis> = {
     difficulty: 'Medium',
   },
   'push-futility': {
-    rootCause: 'Under-ready frontier attempts carry near-zero win chance with full time cost — impatient players pay a heavy invisible tax.',
+    rootCause: 'Under-ready frontier attempts risk the run\'s time on a low win chance. (Amendment №1 shipped the mitigations: failed frontier attempts now pay depth-scaled field-data consolation, and readiness is surfaced on the deploy button + interstitial — the residual frequency is the persona\'s own risk appetite on an informed, partially-paid gamble.)',
     systems: 'Campaign difficulty at the frontier · failure feedback',
-    fixes: ['Surface the readiness estimate harder at mission start (UI, zero balance risk).',
-      'Grant partial consolation rewards on failed frontier attempts.',
-      'Slightly widen the winnable readiness window at low stages only.'],
+    fixes: ['Slightly widen the winnable readiness window at low stages only (deferred — reshapes campaign gating).',
+      'Raise attemptFrac if campaign-persona pacing still lags the cohort (simulate first).'],
     difficulty: 'Low',
   },
 };

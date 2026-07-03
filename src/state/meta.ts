@@ -1351,7 +1351,10 @@ export const meta = {
     if (view.pointsAvailable <= 0 || !canPickAdapt(nodeId, chosen, view.campaignStage)) return false;
     const powerBefore = meta.power().score;
     persist({ ...save, adaptation: { ...save.adaptation, [key]: [...chosen, nodeId] } });
-    announcePower('Adaptation unlocked', powerBefore, meta.power().score);
+    // expectGain false: BEHAVIORAL picks (pierce/range/rate) deliberately rewrite conduct, not
+    // the damage index — legitimate no-gain (the lab inspector says so up front). Damage picks
+    // still toast their gain.
+    announcePower('Adaptation unlocked', powerBefore, meta.power().score, false);
     return true;
   },
   /** Refund every adaptation pick for a unit. Identity changes are allowed but PRICED
