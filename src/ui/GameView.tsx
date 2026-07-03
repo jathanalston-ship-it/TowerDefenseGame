@@ -302,15 +302,9 @@ export function GameView({
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.save();
         ctx.translate(dx, dy);
-        // Danger zoom (docs/CAMERA.md): a ≤1.5% cinematic pull toward the Hive, driven by the
-        // SMOOTHED danger intensity — it can only glide in and exhale out, never throb. Subtle
-        // by design (a tension cue, not a gameplay mechanic); composes under the hit-shake.
-        const dz = 1 + 0.015 * dangerCurve(game.dangerCam.intensity);
-        if (dz > 1.0005) {
-          ctx.translate(WIDTH / 2, HEIGHT * 0.78);
-          ctx.scale(dz, dz);
-          ctx.translate(-WIDTH / 2, -HEIGHT * 0.78);
-        }
+        // NOTE: danger mode deliberately applies NO view scaling (docs/CAMERA.md §5) — any
+        // zoom keyed to the zone boundary reads as the screen changing size (player feedback).
+        // Its tension channels are non-geometric: vignette, red edge, saturation, banner, music.
         // Wave/boss push-in: a small eased zoom pulse that decays over ~1s — the launch has
         // physical weight without ever disorienting (composes under the danger zoom).
         if (wavePushRef.current > 0.002) {

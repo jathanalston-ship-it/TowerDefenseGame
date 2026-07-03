@@ -703,7 +703,7 @@ button:disabled {
 .hud[data-hphase='combat'] .wm-num,
 .hud[data-hphase='danger'] .wm-num { color: var(--hph); text-shadow: 0 0 14px color-mix(in srgb, var(--hph) 45%, transparent); }
 .wm-of { font-size: 13px; font-weight: 800; color: var(--muted); }
-.wm-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 3px; }
+.wm-chips { display: flex; flex-wrap: nowrap; justify-content: center; gap: 5px; margin-top: 3px; max-width: 100%; overflow: hidden; }
 .wm-chip {
   display: inline-flex;
   align-items: baseline;
@@ -809,8 +809,15 @@ button:disabled {
    Appears only while an enemy is in the Final Defense Zone; deliberately small + central
    so it reads instantly without adding battlefield noise. */
 .phase-emergency {
-  margin-top: 3px;
-  display: inline-block;
+  /* OVERLAY, never in flow: the HUD bar's height sizes the battlefield (100vh column), so a
+     banner that grew the bar would shrink the board — the exact "screen changes size when
+     enemies reach the zone" flicker this replaces. Floats just below the bar instead. */
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 3;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -823,8 +830,8 @@ button:disabled {
   animation: emergency-in 0.5s ease-out, emergency-flash 1.4s ease-in-out 0.5s infinite;
 }
 @keyframes emergency-in {
-  from { opacity: 0; transform: translateY(-3px); }
-  to { opacity: 0.72; transform: none; }
+  from { opacity: 0; transform: translateX(-50%) translateY(-3px); }
+  to { opacity: 0.72; transform: translateX(-50%); }
 }
 @keyframes emergency-flash {
   0%, 100% { opacity: 0.72; box-shadow: 0 0 6px rgba(255, 93, 115, 0.4); }
@@ -832,7 +839,13 @@ button:disabled {
 }
 /* ── Biome (docs/BIOMES.md): the active-ecosystem chip + transition banner in the HUD center ── */
 .biome-enter {
-  margin-top: 4px;
+  /* Overlay for the same reason as .phase-emergency — transient banners must not resize the bar. */
+  position: absolute;
+  top: calc(100% + 30px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 3;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.2em;
@@ -841,10 +854,10 @@ button:disabled {
   animation: biome-enter 2.6s ease-out forwards;
 }
 @keyframes biome-enter {
-  0% { opacity: 0; transform: translateY(-6px) scale(0.96); }
-  14% { opacity: 1; transform: translateY(0) scale(1); }
+  0% { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.96); }
+  14% { opacity: 1; transform: translateX(-50%) scale(1); }
   78% { opacity: 1; }
-  100% { opacity: 0; }
+  100% { opacity: 0; transform: translateX(-50%); }
 }
 
 /* ── Run Identity (docs/RUN-IDENTITY.md): the run headline chip + the per-wave beat banner ── */

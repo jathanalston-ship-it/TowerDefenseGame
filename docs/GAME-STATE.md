@@ -64,7 +64,7 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Danger Camera** (`core/dangerCamera.ts`) — hysteresis-gated state machine (calm→rising→
   danger→easing: confirmation window, min-hold, release confirmation, asymmetric ease) turning a
   weighted threat fold (proximity ramp × tier × health) into ONE smooth intensity that every
-  tension effect keys on (vignette+heartbeat, red edge, saturation dip, ≤1.5% zoom, banner, music);
+  tension effect keys on (vignette+heartbeat, red edge, saturation dip, banner, music — NO view scaling, retired on feedback);
   render-only (goldens untouched), targeting override stays instantaneous — CAMERA.md
 
 ### Heroes

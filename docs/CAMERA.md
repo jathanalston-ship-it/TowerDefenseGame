@@ -2,7 +2,7 @@
 
 The state machine + threat model behind combat "Danger Mode": how the game decides the Home
 Base is genuinely threatened, and how that decision drives every tension effect (vignette,
-zoom, saturation, heartbeat, HUD banner, music) through ONE smooth signal.
+saturation, heartbeat, HUD banner, music — never view scaling) through ONE smooth signal.
 
 **Files:** `src/core/dangerCamera.ts` (pure state machine + tunables), `game.dangerCameraSystem`
 (threat fold), consumers in `src/render/renderer.ts`, `src/ui/GameView.tsx`, `src/index.css`,
@@ -99,7 +99,6 @@ step) and is **never assigned across a phase flip** — by construction it canno
 | Vignette + heartbeat | `renderer.drawPressureVignette` | alpha ≤ 0.5; lub-dub pulse ±4 %, gated d > 0.5 |
 | Red edge glow | same | radial `rgba(255,62,76)` · 0.12·d |
 | Saturation dip | same | one `saturation` composite rect, 0.14·d |
-| Subtle zoom | `GameView` canvas transform | `1 + 0.015·d`, anchored at the zone (max 1.5 %) |
 | Zone wash + beams | `game.emergencyRamp` | target 1 only while `phase === 'danger'` (rates 5 in / 0.9 out) |
 | HUD banner | `HudSnapshot.emergency` | `phase === 'danger'` — rides the committed state, cannot strobe |
 | Banner CSS | `.phase-emergency` | `emergency-in` fade, then slow 1.4 s flash |
@@ -135,6 +134,12 @@ is deliberate. This split is the framework's core contract.
 
 ## 8. Extending the framework
 
+- **NO VIEW SCALING in danger mode** (retired 2026-07 on player feedback): any zoom keyed to
+  the zone boundary — however smooth — reads as "the screen changes size when enemies get
+  close" and disorients. The same applies to LAYOUT: the HUD's emergency banner is an
+  absolutely-positioned overlay because the bar's height sizes the battlefield (100 vh
+  column) — an in-flow banner literally shrank the board on every commit. Danger channels
+  must be non-geometric and layout-stable.
 - **New camera/tension effect** (screen tint, DOF, ambience layer…): read
   `rs.dangerIntensity` (renderer) or `game.dangerCam.intensity` (UI), shape with
   `dangerCurve`, keep amplitudes subtle (this is tension, not a mechanic). Never read enemy
