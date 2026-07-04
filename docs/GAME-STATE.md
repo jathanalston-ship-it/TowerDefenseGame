@@ -104,6 +104,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 
 ### Modes & progression
 - ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director), Quick Skirmish — MODE-IDENTITY.md, CAMPAIGN.md
+- ✅ **Early-campaign difficulty contract** (2026-07): flat leak damage + EHP threat costs + per-wave
+  unit/dmg/elite ramps + grace window (budget/pace/start-aid/mini-boss gate) + biome-ratchet
+  `recommendedPower`; probe-verified ×0.75/×1.0/×1.25/×1.7 across stages 1–24 — DIFFICULTY.md §contract, CAMPAIGN.md §grace
 - ✅ Next-Goal engine + Results cliffhanger — ONE-MORE-RUN.md
 - ✅ Prestige (MOLT → Ascendant) — 1 layer of a designed 6 (PROGRESSION-REDESIGN)
 - ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md

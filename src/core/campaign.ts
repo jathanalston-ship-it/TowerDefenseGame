@@ -25,14 +25,26 @@ export { BIOMES } from './biomes';
 // ── Tunables (all smooth/continuous in `stage` ⇒ no spikes) ──────────────────────────────────
 const C = {
   baseWaves: 6, waveIncEvery: 4, waveMax: 14, // wave count grows a step every few stages
-  hpGrowth: 0.07, dmgGrowth: 0.05, // geometric per-stage scaling
+  hpGrowth: 0.05, dmgGrowth: 0, // per-stage growth: EHP only. Leak/contact damage is a UNIT property
+  // (classic TD): integrity never scales, so a leak must cost the same at stage 1 and stage 40 —
+  // stage danger is expressed through hp/speed/count/elites instead (docs/DIFFICULTY.md §contract).
   speedGrowth: 0.012, speedCap: 1.6, // capped so fast enemies stay fair
   spawnGrowth: 0.01, spawnCap: 1.5,
   rewardGrowth: 0.05,
   eliteBase: 0.04, elitePerStage: 0.012, eliteCap: 0.45,
-  mbBase: 0.1, mbPerStage: 0.03, mbCap: 0.8, mbTierFrac: 0.5, // mini-boss
-  baseBudget: 56, stageBudgetGrowth: 0.1, intraBudget: 0.14, // wave threat budget
+  mbBase: 0.1, mbPerStage: 0.03, mbCap: 0.8, mbTierFrac: 0.5, mbMinStage: 4, // mini-boss (never in the grace window — a wave-3 summoner vs an opening build is unanswerable)
+  baseBudget: 34, stageBudgetGrowth: 0, budgetCap: 2.2, // wave threat budget: density is FLAT across stages (mirrors ENDLESS-SCALING) — per-enemy hp growth carries the whole curve, so recommendedPower stays an HONEST difficulty index
   threatDivisor: 28, groupMax: 16,
+  regenWeight: 12, armorWeight: 6, // EHP terms: 1 regen/s ≈ 12 hp, 1 armor ≈ 6 hp of threat
+  unitCapBase: 3, unitCapRamp: 22, dmgCapBase: 8, dmgCapRamp: 40, // per-wave unit gates (ramp over wave progress t)
+  // ── Early-stage GRACE (docs/CAMPAIGN.md §grace): the first stages are a fresh account's first
+  // minutes — the difficulty CONTRACT (docs/DIFFICULTY.md §contract) says a player AT the
+  // recommended Power clears with chip damage. Wave budgets, spawn pacing, and the opening
+  // economy all ramp to the full curve over the first stages instead of starting there.
+  graceFloor: 0.3, graceStages: 8, // stage-1 waves spend 30% of the (rebased) budget; full by stage 8
+  openBudget: 11, openCreep: 0, openCap: 24, rampExp: 1.15, // wave-1 anchor: in-run economy RESETS each stage, so wave 1 is answerable by the SAME 220-Biomass opening build at EVERY stage (creep 0 — probes showed any wave-1 growth = systematic chip at all power levels); the stage's difficulty lives in the ramp + hp scaling
+  gracePaceStages: 5, gracePaceMax: 0.7, // stage-1 spawns are 70% slower; normal by stage 5
+  startAidBase: 170, startAidFade: 5, // +170 opening Biomass at stage 1 (a full 3-tower opening), fading by stage 6
   baseHp: 20, hpPerTier: 72, // enemy unlock-stage gating (tougher enemies arrive later)
   signatureBoost: 3, // a biome's signature kinds are heavily up-weighted in their home biome
 } as const;
@@ -45,7 +57,20 @@ const BOSS_VISUAL_KIND: EnemyKind = 'tyrant'; // reserved as the framework-boss 
 // its mechanical modifiers (roster bias / signatures / elite / boss flavour) during generation.
 
 function unlockStage(e: EnemyDef): number {
-  return clamp(1 + Math.floor((e.hp - C.baseHp) / C.hpPerTier), 1, 80);
+  const hpTier = clamp(1 + Math.floor((effectiveHp(e) - C.baseHp) / C.hpPerTier), 1, 80);
+  // MECHANICS gate (docs/CAMPAIGN.md §grace): special roles are learning cliffs, so they enter
+  // the campaign staggered — a stage-3 player should not face artillery + shields + summoners
+  // at once just because those kinds have low HP. Derived from the def's traits (no authoring).
+  let mech = 1;
+  if (e.behavior.flying) mech = Math.max(mech, 3);
+  if (e.explodeDamage) mech = Math.max(mech, 3);
+  if (e.regenPerSec) mech = Math.max(mech, 4);
+  if (e.shieldHp) mech = Math.max(mech, 5);
+  if (e.behavior.burrowing) mech = Math.max(mech, 6);
+  if (e.siege) mech = Math.max(mech, 7);
+  if (e.auraRegenPerSec || e.auraShield) mech = Math.max(mech, 8);
+  if (e.summon) mech = Math.max(mech, 9);
+  return Math.max(hpTier, mech);
 }
 function spacingFor(cat: BiomeCategory): number {
   return cat === 'swarm' ? 0.5 : cat === 'fast' ? 0.45 : cat === 'heavy' ? 1.3 : 0.9;
@@ -85,6 +110,8 @@ export interface StageConfig {
   eliteFrequency: number;
   miniBoss: BossDef | null;
   miniBossWave: number;
+  /** Early-stage opening-economy aid (docs/CAMPAIGN.md §grace) — extra starting Biomass. */
+  startBiomassBonus: number;
   boss: BossDef;
   scaling: DifficultyDef; // combined variant×stage → Game's `this.diff`
   enemySpeedMult: number;
@@ -117,8 +144,22 @@ function weightedPick(rng: Rng, pool: EnemyKind[], weights: number[]): EnemyKind
   return pool[pool.length - 1];
 }
 
-/** Spend a threat budget on weighted picks from the pool → an ordered WaveDef. */
-function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: number[], eliteFreq: number): WaveDef {
+/** EFFECTIVE HP: raw hp + what regen/armor/shields deny in practice. Regen is brutal against
+ *  the low DPS of an opening build; armor subtracts per hit — both must eat wave budget, or a
+ *  "cost 5" knitter walls like a "cost 17" tank (the stage-5 wipe bug this model fixed). */
+function effectiveHp(def: EnemyDef): number {
+  return def.hp + C.regenWeight * (def.regenPerSec ?? 0) + C.armorWeight * (def.armor ?? 0) + (def.shieldHp ?? 0);
+}
+
+/** Speed-aware threat cost: EHP × √(speed/60) — a 150-speed darter grants half the reaction
+ *  time of a 60-speed walker, so it eats more of the wave's budget. Budget units ≈ "chaff". */
+function threatCost(def: EnemyDef): number {
+  return Math.max(1, Math.round((effectiveHp(def) / C.threatDivisor) * Math.sqrt(Math.max(20, def.speed) / 60)));
+}
+
+/** Spend a threat budget on weighted picks from the pool → an ordered WaveDef.
+ *  `pace` (≥1) stretches spacing + inter-group gaps — the early-stage breathing room. */
+function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: number[], eliteFreq: number, pace = 1): WaveDef {
   const groups: SpawnGroup[] = [];
   let remaining = budget;
   let delay = rng.range(0.4, 0.7);
@@ -126,14 +167,41 @@ function composeWave(rng: Rng, budget: number, pool: EnemyKind[], weights: numbe
   while (remaining > 0 && guard++ < 10) {
     const kind = weightedPick(rng, pool, weights);
     const def = ENEMY_DEFS[kind];
-    const cost = Math.max(1, Math.round(def.hp / C.threatDivisor));
-    const count = clamp(Math.min(C.groupMax, Math.floor(remaining / cost), rng.range(3, 9)), 1, C.groupMax);
+    const cost = threatCost(def);
+    // Counts are INTEGERS (rng.range is a float — flooring also fixes fractional group sizes
+    // that previously leaked into spawn math).
+    let count = clamp(Math.min(C.groupMax, Math.floor(remaining / cost), Math.floor(rng.range(3, 9))), 1, C.groupMax);
     remaining -= count * cost;
-    groups.push({ kind, count, spacing: spacingFor(categoryOf(def)), delay, elite: rng.chance(eliteFreq) || undefined });
-    delay += rng.range(1.6, 3.2);
+    // Elites are FEWER-BUT-STRONGER: an elite group halves its count, and exploders never
+    // roll elite at all — a full squad of elite suicide bombers was a one-hit run ender.
+    const elite = !def.explodeDamage && rng.chance(eliteFreq);
+    if (elite) count = Math.max(1, Math.ceil(count / 2));
+    groups.push({ kind, count, spacing: spacingFor(categoryOf(def)) * pace, delay, elite: elite || undefined });
+    delay += rng.range(1.6, 3.2) * pace;
   }
-  if (groups.length === 0) groups.push({ kind: pool[0], count: 6, spacing: 0.6, delay: 0.5 });
+  if (groups.length === 0) groups.push({ kind: pool[0], count: 6, spacing: 0.6 * pace, delay: 0.5 });
   return groups;
+}
+
+/** Early-stage budget grace: stage 1 spends `graceFloor` of the base budget, ramping to the
+ *  full curve by `graceStages` (linear). ×1 from there — the long curve is untouched. */
+function budgetGrace(stage: number): number {
+  if (stage >= C.graceStages) return 1;
+  return C.graceFloor + (1 - C.graceFloor) * ((stage - 1) / (C.graceStages - 1));
+}
+
+/** Early-stage pacing stretch (≥1): stage 1 spawns are `1+gracePaceMax`× slower, normal by
+ *  `gracePaceStages`. */
+function paceGrace(stage: number): number {
+  if (stage >= C.gracePaceStages) return 1;
+  return 1 + C.gracePaceMax * (1 - (stage - 1) / (C.gracePaceStages - 1));
+}
+
+/** Opening-economy aid for the first stages: bonus starting Biomass so the answer to the
+ *  opening wave is buildable (the Power multiplier can't help a player who can only afford
+ *  one tower). Fades to 0 by `startAidFade` stages in. */
+export function stageStartAid(stage: number): number {
+  return Math.max(0, Math.round(C.startAidBase * (1 - (stage - 1) / C.startAidFade)));
 }
 
 /**
@@ -159,19 +227,41 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const eliteFrequency = clamp((C.eliteBase + C.elitePerStage * st) * biome.mods.eliteMult, 0, C.eliteCap) * base.eliteChanceMult;
   const miniBossChance = clamp(C.mbBase + C.mbPerStage * st, 0, C.mbCap) * base.bossFrequencyMult;
 
-  const budget0 = C.baseBudget * (1 + C.stageBudgetGrowth * (st - 1));
+  // OPENING-ANCHORED wave budgets (docs/CAMPAIGN.md §grace): the run economy resets every
+  // stage, so wave 1 must always be answerable by an opening build — near-constant across
+  // stages. Each stage then RAMPS to its true budget (top), which carries the stage identity
+  // together with the per-enemy hp/dmg scaling that recommendedPower tracks.
+  const top = C.baseBudget * Math.min(C.budgetCap, 1 + C.stageBudgetGrowth * (st - 1)) * budgetGrace(st);
+  const open = Math.min(top, Math.min(C.openCap, C.openBudget + C.openCreep * (st - 1)));
+  const pace = paceGrace(st);
   const waves: WaveDef[] = [];
   for (let w = 1; w <= waveCount; w++) {
     const finale = w === waveCount;
-    const budget = budget0 * (1 + C.intraBudget * (w - 1)) * (finale ? 0.55 : 1); // boss carries the finale
-    waves.push(composeWave(rng, budget, pool, weights, eliteFrequency));
+    const t = waveCount > 1 ? (w - 1) / (waveCount - 1) : 1;
+    const budget = (open + (top - open) * Math.pow(t, C.rampExp)) * (finale ? 0.55 : 1); // boss carries the finale
+    // Per-wave UNIT gates (the granularity ramp): early waves are fought with the opening build,
+    // so they must be made of SMALL units — budget alone can't see that one 25-cost apex ≠
+    // 25 mites against two towers. Unit size (threat cost) and leak punishment (damage) both
+    // ramp with wave progress; wave 1 additionally excludes fast/siege kinds (still building).
+    const unitCap = C.unitCapBase + Math.round(t * C.unitCapRamp);
+    const dmgCap = C.dmgCapBase + Math.round(t * C.dmgCapRamp);
+    const idx = pool.map((_, i) => i).filter((i) => {
+      const d = ENEMY_DEFS[pool[i]];
+      if (threatCost(d) > unitCap || d.damage > dmgCap) return false;
+      return w > 1 || (d.speed <= 100 && !d.siege);
+    });
+    const wavePool = idx.length > 0 ? idx.map((i) => pool[i]) : pool;
+    const waveWeights = idx.length > 0 ? idx.map((i) => weights[i]) : weights;
+    // Elites ramp in with the same progress axis: a ×3-HP body in wave 1–2 meets a 2–3 tower
+    // build (an auto-leak at ANY power ratio); by mid-stage the defense has the DPS to answer.
+    waves.push(composeWave(rng, budget, wavePool, waveWeights, eliteFrequency * Math.min(1, t / 0.35), pace));
   }
 
   // Mini-boss (a middle wave) + the finale boss — both via the framework boss assembler, so the
   // pool/selection/difficulty all come from boss.ts (difficulty rides the tier `tl`).
   const rngFn = (): number => rng.next();
   // Bosses carry the biome's chassis flavour (juggernaut in Frostbound, swarmlord in Verdant, …).
-  const hasMiniBoss = rng.chance(miniBossChance) && waveCount >= 3;
+  const hasMiniBoss = rng.chance(miniBossChance) && waveCount >= 3 && st >= C.mbMinStage;
   const miniBoss = hasMiniBoss ? assembleBoss(rngFn, Math.max(1, st * C.mbTierFrac), biome.mods.bossChassisBias) : null;
   const miniBossWave = Math.max(2, Math.ceil(waveCount / 2));
   // Always roll the procedural finale (keeps the rng stream identical), then let an authored
@@ -197,6 +287,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
     scaling: combineDifficulty(base, sc),
     enemySpeedMult: sc.speedMult, // stage's own speed scaling; the DIFFICULTY speed axis is applied in the sim
     rewardMult: sc.rewardMult * base.rewardMult,
+    startBiomassBonus: stageStartAid(st),
   };
 }
 
@@ -218,8 +309,20 @@ export function biomeForStage(stage: number): Biome {
 export function recommendedPower(stage: number, difficultyId = 'standard'): number {
   const sc = stageScaling(Math.max(1, Math.floor(stage)));
   const base = resolveDifficulty(difficultyId);
-  // × the difficulty's power target so a harder track raises the "am I strong enough?" bar.
-  return Math.sqrt(sc.hpMult * base.enemyHealthMult * sc.damageMult * base.enemyDamageMult) * base.powerTargetMult;
+  // The index answers "what damage multiple keeps time-to-kill stage-invariant?" — that is the
+  // stage's EHP growth (hpMult; stage dmgGrowth is 0 — leaks cost the same at every depth), times
+  // the VARIANT's combined hazard (√(hp×dmg) heuristic) × its power target (a harder track raises
+  // the "am I strong enough?" bar). At ratio r of recommended, kill speed is r× at EVERY stage —
+  // the difficulty contract (docs/DIFFICULTY.md §contract) holds by construction.
+  // × the biome toughness RATCHET — the hardest region encountered so far. A harsh region
+  // (Frostbound armor/hazard ≈ ×1.22) raises the bar the player sees instead of silently running
+  // ~25% over its index (the stage-12 probe finding); the ratchet (not the current biome's own
+  // factor) keeps the ladder strictly rising — a softer region after a harsh one reads as a
+  // small power cushion, never as "this later stage needs less power" (the safe error direction).
+  const seen = Math.min(Math.floor((Math.max(1, Math.floor(stage)) - 1) / BIOME_REGION) + 1, BIOMES.length);
+  let biomeBar = 1;
+  for (let i = 0; i < seen; i++) biomeBar = Math.max(biomeBar, BIOMES[i].mods.difficulty);
+  return sc.hpMult * biomeBar * Math.sqrt(sc.damageMult * base.enemyHealthMult * base.enemyDamageMult) * base.powerTargetMult;
 }
 
 /** Recommended Power on the UNIVERSAL index (docs/POWER-SCORE.md) — POWER_BASE × the damage-multiple

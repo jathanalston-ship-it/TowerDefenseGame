@@ -58,6 +58,11 @@ export interface BiomeModifiers {
   signature: EnemyKind[]; // biome-DOMINANT kinds (up-weighted + guaranteed present)
   eliteMult: number; // × elite frequency
   bossChassisBias: Partial<Record<BossChassis, number>>; // biome-flavoured boss body plan
+  /** The biome's OVERALL toughness as a damage-multiple (1 = neutral) — folded into
+   *  recommendedPower so a harsh region raises the player-facing bar instead of silently
+   *  breaking the difficulty contract (docs/DIFFICULTY.md §contract). Authored, not derived:
+   *  hazards/bias/armor interact too nonlinearly for a formula to stay honest. */
+  difficulty: number;
   // Environment
   hazard: BiomeHazard;
 }
@@ -84,7 +89,7 @@ export const NEUTRAL_BIOME: Biome = {
     enemyHpMult: 1, enemySpeedMult: 1, enemyDamageMult: 1, enemyArmorBonus: 0, enemyRegenFrac: 0, bountyMult: 1,
     towerClassMult: {}, towerFireRateMult: 1,
     heroDamageMult: 1, heroCooldownMult: 1,
-    bias: {}, signature: [], eliteMult: 1, bossChassisBias: {},
+    bias: {}, signature: [], eliteMult: 1, bossChassisBias: {}, difficulty: 1,
     hazard: NO_HAZARD,
   },
 };
@@ -98,7 +103,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 0.9, enemySpeedMult: 1.12, enemyDamageMult: 1, enemyArmorBonus: 0, enemyRegenFrac: 0, bountyMult: 1,
       towerClassMult: { Caustic: 1.1, Kinetic: 0.96 }, towerFireRateMult: 1,
       heroDamageMult: 1.05, heroCooldownMult: 1,
-      bias: { swarm: 1.3, fast: 1.15 }, signature: ['mite', 'larva'], eliteMult: 0.9, bossChassisBias: { swarmlord: 3 },
+      bias: { swarm: 1.3, fast: 1.15 }, signature: ['mite', 'larva'], eliteMult: 0.9, bossChassisBias: { swarmlord: 3 }, difficulty: 1,
       hazard: { name: 'Spore Bloom', desc: 'The hive blooms — the swarm surges forward.', period: 18, duration: 3, enemySpeedMult: 1.18, towerRateMult: 1 },
     },
   },
@@ -109,7 +114,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.08, enemySpeedMult: 0.96, enemyDamageMult: 1, enemyArmorBonus: 0, enemyRegenFrac: 0.018, bountyMult: 1.08,
       towerClassMult: { Viral: 1.15, Vital: 0.92 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 1.05,
-      bias: { special: 1.6, swarm: 1.1 }, signature: ['knitter', 'revenant'], eliteMult: 1.1, bossChassisBias: { controller: 3 },
+      bias: { special: 1.6, swarm: 1.1 }, signature: ['knitter', 'revenant'], eliteMult: 1.1, bossChassisBias: { controller: 3 }, difficulty: 1.08,
       // Miasma is a PASSIVE hazard (period 0 ⇒ no pulse) — the ambient regen IS the threat; the
       // name/desc still surface on the Campaign ladder + HUD telegraph.
       hazard: { name: 'Miasma', desc: 'Rot seeps through the mire — the swarm regenerates.', period: 0, duration: 0, enemySpeedMult: 1, towerRateMult: 1 },
@@ -122,7 +127,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.12, enemySpeedMult: 0.86, enemyDamageMult: 1, enemyArmorBonus: 5, enemyRegenFrac: 0, bountyMult: 1,
       towerClassMult: { Kinetic: 1.12 }, towerFireRateMult: 0.95,
       heroDamageMult: 1, heroCooldownMult: 1.06,
-      bias: { heavy: 1.5 }, signature: ['golem', 'bulwark'], eliteMult: 1, bossChassisBias: { juggernaut: 3 },
+      bias: { heavy: 1.5 }, signature: ['golem', 'bulwark'], eliteMult: 1, bossChassisBias: { juggernaut: 3 }, difficulty: 1.22,
       hazard: { name: 'Deep Freeze', desc: 'Towers ice over — fire rate drops.', period: 20, duration: 3.5, enemySpeedMult: 1, towerRateMult: 0.85 },
     },
   },
@@ -133,7 +138,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 0.88, enemySpeedMult: 1.15, enemyDamageMult: 1.06, enemyArmorBonus: 0, enemyRegenFrac: 0, bountyMult: 1,
       towerClassMult: { Neural: 1.08, Caustic: 0.95 }, towerFireRateMult: 1,
       heroDamageMult: 1.05, heroCooldownMult: 1,
-      bias: { fast: 1.7, swarm: 1.2 }, signature: ['rusher', 'darter'], eliteMult: 1, bossChassisBias: { bruiser: 3 },
+      bias: { fast: 1.7, swarm: 1.2 }, signature: ['rusher', 'darter'], eliteMult: 1, bossChassisBias: { bruiser: 3 }, difficulty: 1.08,
       hazard: { name: 'Firestorm', desc: 'A firestorm whips the swarm into a sprint.', period: 16, duration: 3, enemySpeedMult: 1.25, towerRateMult: 1 },
     },
   },
@@ -144,7 +149,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 1.1, enemySpeedMult: 0.92, enemyDamageMult: 1, enemyArmorBonus: 6, enemyRegenFrac: 0, bountyMult: 1.05,
       towerClassMult: { Kinetic: 1.12, Caustic: 0.9 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 1,
-      bias: { heavy: 1.6, special: 1.3 }, signature: ['bulwark', 'warden'], eliteMult: 1, bossChassisBias: { juggernaut: 3 },
+      bias: { heavy: 1.6, special: 1.3 }, signature: ['bulwark', 'warden'], eliteMult: 1, bossChassisBias: { juggernaut: 3 }, difficulty: 1.15,
       hazard: { name: 'Shellquake', desc: 'The ground heaves — towers misfire.', period: 22, duration: 4, enemySpeedMult: 1, towerRateMult: 0.9 },
     },
   },
@@ -155,7 +160,7 @@ export const BIOMES: Biome[] = [
       enemyHpMult: 0.94, enemySpeedMult: 1.05, enemyDamageMult: 1.1, enemyArmorBonus: 0, enemyRegenFrac: 0, bountyMult: 1.1,
       towerClassMult: { Neural: 1.12, Vital: 1.05 }, towerFireRateMult: 1,
       heroDamageMult: 1, heroCooldownMult: 0.95,
-      bias: { fast: 1.2, special: 1.4 }, signature: ['wisp', 'darter'], eliteMult: 1.1, bossChassisBias: { controller: 3 },
+      bias: { fast: 1.2, special: 1.4 }, signature: ['wisp', 'darter'], eliteMult: 1.1, bossChassisBias: { controller: 3 }, difficulty: 1.1,
       hazard: { name: 'Static Field', desc: 'A static surge — the swarm jolts, towers stutter.', period: 14, duration: 2.5, enemySpeedMult: 1.2, towerRateMult: 0.92 },
     },
   },

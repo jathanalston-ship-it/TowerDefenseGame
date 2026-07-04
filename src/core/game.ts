@@ -528,7 +528,9 @@ export class Game {
     // capped at SLOTS.permanentMax. Persists across runs via the saved upgrade ladder; the
     // run-only gene-card slots layer on top in the `unlockedSlots` getter. docs/SLOTS.md.
     this.permanentSlots = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + meta.bonusSlots);
-    this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus;
+    // Campaign early-stage opening aid (docs/CAMPAIGN.md §grace) rides the stage config —
+    // 0 for every other mode and from stage ~5 on, so nothing else moves.
+    this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus + (this.stage?.startBiomassBonus ?? 0);
     this.foldHeroEquip(roster, opts.heroEquip); // build per-hero gear mods BEFORE heroes (makeHero reads them)
     this.heroes = roster.map((k) => this.makeHero(k));
     // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts): equipped cards auto-activate NOW,
@@ -697,6 +699,17 @@ export class Game {
         return best;
       },
       fireProjectile: (x, y, target, tx, ty, behavior, damage, speed, splash) => {
+        // PREDICTIVE LEAD for positional (non-homing) shots at a live target: aim where the
+        // enemy WILL be, not where it was — enemies advance down-lane at `speed`, so a slow
+        // arcing shell aimed at the fire-time position lands behind fast movers ("tracking
+        // feels slow"). One refinement iteration; pure math, deterministic.
+        if (behavior !== 'homing' && behavior !== 'parasite' && target && speed > 0) {
+          let t = Math.hypot(tx - x, ty - y) / speed;
+          let py = ty + target.speed * 0.85 * t; // dominant motion is +y (toward the core)
+          t = Math.hypot(tx - x, py - y) / speed;
+          py = Math.min(HEIGHT - 8, ty + target.speed * 0.85 * t);
+          ty = py;
+        }
         this.spawnProjectile(x, y, tx, ty, speed, target ? target.id : -1, damage, behavior, splash, this.abilitySourceKind);
       },
       dealDamage: (e, raw, flash) => {

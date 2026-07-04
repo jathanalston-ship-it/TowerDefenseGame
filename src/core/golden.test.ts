@@ -15,14 +15,20 @@ import { autoplay } from './sim.testutil';
 // integrity are UNCHANGED for every seed** — only end-of-run biomass shifts ~1% from the
 // boundary-economy timing. Every seed still WINS at wave 12. Any FURTHER drift is unintended.
 //
-// (Prior baseline: TOWER-SLOT PROGRESSION rework, docs/SLOTS.md → GENE CARD EXPANSION, docs/CARDS.md.)
+// Re-pinned 2026-07 for PREDICTIVE MORTAR LEAD (game.ts fireProjectile): positional 'splash'
+// shots now aim where the target WILL be instead of where it was (player feedback: "tower
+// projectile tracking is too slow"). Wave/kills/integrity/phase are IDENTICAL on every seed —
+// only biomass shifts ~1% (led shells land at slightly different spots → overkill/pool-timing
+// economy noise). Every seed still WINS at wave 12. Any FURTHER drift is unintended.
+//
+// (Prior baselines: COMBAT→BUILD SETTLE; TOWER-SLOT PROGRESSION rework; GENE CARD EXPANSION.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 190, integrity: 261, biomass: 8109, phase: 'won' },
-  7: { wave: 12, kills: 194, integrity: 137, biomass: 8028, phase: 'won' },
-  42: { wave: 12, kills: 188, integrity: 68, biomass: 8290, phase: 'won' },
-  777: { wave: 12, kills: 186, integrity: 60, biomass: 6708, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12296, phase: 'won' },
-  12345: { wave: 12, kills: 193, integrity: 88, biomass: 7493, phase: 'won' },
+  1: { wave: 12, kills: 190, integrity: 261, biomass: 8156, phase: 'won' },
+  7: { wave: 12, kills: 194, integrity: 137, biomass: 7936, phase: 'won' },
+  42: { wave: 12, kills: 188, integrity: 68, biomass: 7870, phase: 'won' },
+  777: { wave: 12, kills: 186, integrity: 60, biomass: 6647, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12113, phase: 'won' },
+  12345: { wave: 12, kills: 193, integrity: 88, biomass: 7503, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

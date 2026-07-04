@@ -69,6 +69,32 @@ on top of those curves, keeping `standard` as the calibrated baseline:
   through the currency/loot/XP streams above, so scaling those streams rebalances acquisition rate
   without touching the (golden-locked) base combat numbers.
 
+## The difficulty contract (§contract)
+
+The player-facing promise that all campaign tuning serves (retuned 2026-07 on player
+feedback — "stage 1 unclearable at 1700/1000 power"):
+
+| Power vs recommended | Experience |
+|---|---|
+| **above** (≥ ~1.25×) | pretty much no damage — a rare leak at worst |
+| **even** (~1.0×) | a bit of early-run chip damage and/or some boss-round damage |
+| **≤ 0.75×** | a bad time — heavy integrity loss, real risk of failure |
+
+**How it holds by construction.** `recommendedPower(stage) = hpMult × biomeBar × variant`:
+the exact damage multiple that keeps time-to-kill stage-invariant (stage `dmgGrowth` is 0 —
+a leak costs the same integrity at every depth, so "chip damage" means the same thing at
+stage 1 and stage 40). `biomeBar` is a RATCHET — the hardest biome region encountered so far
+(Frostbound ≈ ×1.22) — so the bar never understates a harsh region and never tells the
+player a later stage needs *less* power (strictly rising, tested). Density is FLAT across
+stages; wave budgets are opening-anchored (docs/CAMPAIGN.md §grace) because the in-run
+economy resets every stage.
+
+**Verified empirically**, not by formula alone: an autopilot probe plays real generated
+stages at ×0.75 / ×1.0 / ×1.25 / ×1.7 of `recommendedPower` (5 seeds × stages 1–24). As of
+the 2026-07 retune: all ratios win everywhere; avg integrity lost at ×1.0 ranges 0 (stages
+1–3, 24) to ~35 (Frostbound); ×0.75 loses 33–74 mid-band. Re-run the probe after any change
+to campaign scaling, wave composition, enemy stats, or tower balance.
+
 ## Balancing assumptions & limitations
 
 - **`standard` is the calibrated baseline** and stays identity — all rebalancing is relative to it,

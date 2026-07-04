@@ -3,10 +3,12 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-03 (enemy/boss battlefield revamp + artillery shells, deployment
-> interstitial, Wave Briefing console, BALANCE_REPORT amendment pass (26→9 signals), the
-> **Danger Camera** state machine (`docs/CAMERA.md`), and the **onboarding overhaul**: gated
-> Combat Tutorial + anchored Field Orientation + milestone rewards — `docs/TUTORIAL-AUDIT.md`).
+> **Last updated:** 2026-07-04 (combat-HUD premium redesign + game-feel dopamine pass, the
+> zone-flicker fix (layout-stable banners, danger zoom retired — `docs/CAMERA.md` §8), and the
+> **early-campaign difficulty contract**: EHP threat costs, per-wave unit/elite ramps, grace
+> window, flat leak damage, biome-ratchet `recommendedPower`, mortar predictive lead —
+> probe-calibrated ×0.75/×1.0/×1.25/×1.7 across stages 1–24; `docs/DIFFICULTY.md` §contract,
+> `docs/CAMPAIGN.md` §grace).
 
 ## Completed systems (shipped + tested + documented)
 
@@ -55,7 +57,13 @@ Wave Briefing threat console · **Danger Camera (hysteresis state machine → ON
 intensity for every tension effect; render-only, golden-safe — `docs/CAMERA.md`)** ·
 **Onboarding overhaul (gated Combat Tutorial via `game.tutorialMode` + director-scripted
 beats, milestone-reward ledger, anchored what/why/when/later Field Orientation, Help
-"Watch out" rows + 5 new mechanic entries — audit record `docs/TUTORIAL-AUDIT.md`)**.
+"Watch out" rows + 5 new mechanic entries — audit record `docs/TUTORIAL-AUDIT.md`)** ·
+Combat HUD v3 (phase-state skins, clustered zones, power celebration, HERO OPS, focal Start
+Wave — `docs/HUD.md` §0) + game-feel pass (wave banner/camera push, boss arrival, crit pops,
+placement tendrils — `docs/GAME-FEEL.md` §0) · **Early-campaign difficulty contract
+(`docs/DIFFICULTY.md` §contract: >rec ≈ no damage · =rec ≈ chip/boss · ≤0.75 ≈ bad time;
+EHP-priced waves, granularity ramps, §grace window, stage-flat leak damage, biome-ratchet
+recommendedPower, mortar lead — goldens deliberately re-pinned, biomass-only drift)**.
 
 ## Systems in progress
 

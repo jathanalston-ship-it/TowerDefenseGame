@@ -70,6 +70,7 @@ points; adding/removing a biome is one data row. Knobs (identity value in parens
 | `signature` | biome-DOMINANT enemy kinds (heavily up-weighted, and force-present) | [] |
 | `eliteMult` | × elite frequency in this biome | 1 |
 | `bossChassisBias` | weights the procedural boss's chassis (body plan) toward a biome flavour | {} ⇒ uniform |
+| `difficulty` | the biome's OVERALL toughness as a damage-multiple, folded into `recommendedPower` as a ratchet (docs/DIFFICULTY.md §contract) — authored, since hazards/bias/armor interact too nonlinearly to derive | 1 |
 
 > **"Exclusive" = dominant, not hard-locked.** Signatures are heavily up-weighted and
 > guaranteed to appear, but not the *only* spawns — hard locking risks empty/invalid

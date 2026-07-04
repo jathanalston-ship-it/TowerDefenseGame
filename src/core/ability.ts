@@ -194,7 +194,9 @@ function execProjectile(ctx: AbilityContext, comp: ProjectileAbility, cast: Abil
   if (comp.behavior === 'splash') {
     const target = cast.target ?? ctx.pickTargets(cast.x, cast.y, range, 1)[0];
     if (!target) return false;
-    ctx.fireProjectile(cast.x, cast.y, null, target.x, target.y, 'splash', dmg, comp.speed, (comp.splash ?? 0) * ctx.splashMult);
+    // The target reference rides along so the sim can LEAD the shot (aim where the enemy will
+    // be) — flight stays positional: nothing on the 'splash' path reads the projectile's id.
+    ctx.fireProjectile(cast.x, cast.y, target, target.x, target.y, 'splash', dmg, comp.speed, (comp.splash ?? 0) * ctx.splashMult);
     return true;
   }
   const count = (comp.count ?? 1) + (comp.behavior === 'homing' ? ctx.extraProjectiles : 0);

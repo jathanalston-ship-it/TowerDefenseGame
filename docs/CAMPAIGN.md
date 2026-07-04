@@ -50,12 +50,20 @@ All scaling is **continuous + monotonic** in `stage` (geometric or capped-linear
 step jump), then multiplied by the chosen difficulty variant and the biome modifier:
 
 ```
-hpMult     = (1 + HP_GROWTH)   ^ (stage-1)              // geometric, gentle (HP_GROWTH≈0.07)
-damageMult = (1 + DMG_GROWTH)  ^ (stage-1)              // ≈0.05
+hpMult     = (1 + HP_GROWTH)   ^ (stage-1)              // geometric, gentle (HP_GROWTH≈0.05)
+damageMult = 1                                          // DMG_GROWTH = 0 — see below
 speedMult  = min(SPEED_CAP,  1 + SPEED_GROWTH *(stage-1))  // capped — fast enemies stay fair
 spawnMult  = min(SPAWN_CAP,  1 + SPAWN_GROWTH *(stage-1))
 rewardMult = 1 + REWARD_GROWTH*(stage-1)
 ```
+
+**Leak/contact damage does not scale with stage** (`dmgGrowth: 0`): player integrity never
+grows, so a scaled leak would make "a bit of chip damage" cost 3× more integrity at stage 24
+than at stage 1 — breaking the difficulty contract (docs/DIFFICULTY.md §contract). A leak is
+a UNIT property (mite −2, apex −18); stage danger is expressed through hp/speed/count/elites.
+The **recommendedPower index** is therefore exactly `hpMult × biome-toughness ratchet ×
+variant` — the damage multiple that keeps time-to-kill stage-invariant, so a player at ratio
+r of recommended kills at speed r on EVERY stage.
 
 Each is a **pure function of stage** ⇒ strictly monotonic and spike-free (no biome term, so a
 low-flavor biome can never dip the curve). `scaling` is then `combineDifficulty(diff,
@@ -76,13 +84,17 @@ The pool is derived from `ENEMY_DEFS` — **no manual per-stage lists** (future-
 enemy auto-slots by its stats):
 
 ```
-unlockStage(e) = clamp(1 + floor((e.hp - BASE_HP) / HP_PER_TIER), 1, …)  // tougher ⇒ later
+effectiveHp(e) = hp + 12·regen/s + 6·armor + shield     // what the unit ACTUALLY denies
+unlockStage(e) = max( clamp(1 + floor((effectiveHp(e) - BASE_HP) / HP_PER_TIER), 1, …),
+                      mechanicsGate(e) )                // tougher ⇒ later
+mechanicsGate  = flying/explode ≥ 3 · regen ≥ 4 · shield ≥ 5 · burrow ≥ 6 · siege ≥ 7
+               | aura ≥ 8 · summon ≥ 9                  // learning cliffs enter staggered
 category(e)    = special (has a trait: shield/regen/summon/siege/explode/aura)
                | heavy   (hp ≥ HEAVY_HP or armor ≥ HEAVY_ARMOR)
                | fast    (speed ≥ FAST_SPEED)
                | swarm   (otherwise)
 pool   = { e ∈ ENEMY_KINDS \ {boss-visual 'tyrant'} : unlockStage(e) ≤ stage }
-weight(e) = biome.bias[category(e)] ?? 1
+weight(e) = biome.bias[category(e)] ?? 1 · SIGNATURE_BOOST if biome-signature
 ```
 
 So early stages field swarm/fast chaff; heavy + special enemies phase in as the curve rises,
@@ -94,18 +106,48 @@ and each biome leans its mix (e.g. a heavy biome over-weights `heavy`).
 
 ```
 waveCount = min(WAVE_MAX, BASE_WAVES + floor((stage-1)/WAVE_INC_EVERY))
-budget0   = BASE_BUDGET * (1 + STAGE_BUDGET_GROWTH*(stage-1))
-for w in 1..waveCount:
-  budget_w = budget0 * (1 + INTRA_BUDGET*(w-1))         // pressure ramps across the stage
-  spend budget_w on weighted picks from the pool → SpawnGroup[]:
-     cost(e) = max(1, round(e.hp / THREAT_DIVISOR))
-     count   = clamp(round(share / cost), 1, GROUP_MAX); spacing/delay by category
-  each group is promoted to ELITE with probability eliteFrequency (rng) — reusing the
-  Director's in-place elite buff (no new archetype).
+top       = BASE_BUDGET × budgetGrace(stage)            // STAGE_BUDGET_GROWTH = 0: density is
+                                                        // FLAT — per-enemy hp growth carries
+                                                        // the curve (recommendedPower honest)
+open      = OPEN_BUDGET                                 // the wave-1 anchor (see §grace)
+for w in 1..waveCount, t = (w-1)/(waveCount-1):
+  budget_w = open + (top - open) · t^RAMP_EXP           // ramps to the stage's true pressure
+             (× 0.55 on the finale — the boss carries it)
+  unitCap  = UNIT_CAP_BASE + t·UNIT_CAP_RAMP            // early waves: SMALL units only —
+  dmgCap   = DMG_CAP_BASE  + t·DMG_CAP_RAMP             // budget alone can't see that one
+                                                        // 25-cost apex ≠ 25 mites vs 2 towers
+  wavePool = { e : cost(e) ≤ unitCap, e.damage ≤ dmgCap }
+             (w = 1 additionally requires speed ≤ 100 and no siege — still building)
+  spend budget_w on weighted picks from wavePool → SpawnGroup[]:
+     cost(e) = max(1, round(effectiveHp(e)/THREAT_DIVISOR · √(speed/60)))  // fast+regen+armor
+     count   = clamp(floor(share/cost), 1, GROUP_MAX); spacing/delay by category
+  each group rolls ELITE with probability eliteFrequency · min(1, t/0.35) — elites ramp in
+  with the same progress axis (a ×3-HP body vs a 2-tower build is an auto-leak at any power);
+  an elite group HALVES its count (fewer-but-stronger); exploders never roll elite.
 ```
 
 The finale wave's boss + any mini-boss are spawned by the Game (framework bosses aren't
 enemy-kinds), escorted by that wave's chaff.
+
+---
+
+## 5b. The grace window (§grace)
+
+The in-run economy **resets every stage**, so wave 1 is always fought with the same
+~220-Biomass opening build (2 towers) — while stage number keeps rising. Every opening aid
+below exists to keep "start of ANY campaign run" answerable; all fade within a few stages:
+
+| Mechanism | Shape | Gone by |
+|---|---|---|
+| `budgetGrace` | stage-1 waves spend 30 % of the base budget, linear → 100 % | stage 8 |
+| `paceGrace` | spawn spacing/delays ×1.7 at stage 1, easing to ×1 | stage 5 |
+| `stageStartAid` | +170 starting Biomass at stage 1, fading linearly | stage 6 |
+| `openBudget` anchor | wave 1 ≈ 11 threat (≈ a dozen chaff) at EVERY stage (creep 0) | never |
+| mini-boss gate | no mini-bosses before `MB_MIN_STAGE` (4) — a wave-3 summoner vs an opening build is unanswerable | stage 4 |
+| unit/dmg caps + elite ramp | every stage's early waves are small-unit, low-leak, elite-free (see §5) | per-wave t |
+
+Calibrated empirically (autopilot probe at ×0.75/×1.0/×1.25/×1.7 of `recommendedPower`
+across stages 1–24) to the contract in docs/DIFFICULTY.md §contract.
 
 ---
 
@@ -114,7 +156,8 @@ enemy-kinds), escorted by that wave's chaff.
 ```
 eliteFrequency = clamp(ELITE_BASE + ELITE_PER_STAGE*stage, 0, ELITE_CAP) * diff.eliteChanceMult
 miniBossChance = clamp(MB_BASE   + MB_PER_STAGE  *stage, 0, MB_CAP)     * diff.bossFrequencyMult
-miniBoss       = rng.chance(miniBossChance) ? assembleBoss(rng, stage*MB_TIER_FRAC) : null
+miniBoss       = stage ≥ MB_MIN_STAGE && rng.chance(miniBossChance)
+                 ? assembleBoss(rng, stage*MB_TIER_FRAC) : null   // §grace: none before stage 4
 miniBossWave   = a middle wave (≈ ceil(waveCount/2))
 boss           = assembleBoss(rng, stage)        // finale; boss difficulty scales via the tier `tl`
 ```
