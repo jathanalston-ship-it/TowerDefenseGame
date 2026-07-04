@@ -220,6 +220,78 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'Cerebral Storm', desc: 'A standing storm: a searing field and relentless forking lightning.', damageMult: 1.3, rangeMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 320, damage: 26, status: { kind: 'Disruption', amount: 2 }, react: true, particle: 'disrupt' }, { type: 'chain', jumps: 6, range: 190, damage: 30 }] }, { t: 'cosmetic', id: 'storm' }] },
     ],
   },
+
+  // ════════════ CARRION MAW (Kinetic, short-reach cleave) ════════════
+  {
+    id: 'maw_butcher', tower: 'maw', name: "Butcher's Row",
+    theme: 'Pure carnage — the jaws grow, the bites crush, the crust becomes a grinder.',
+    tiers: [
+      { tier: 1, name: 'Serrated Rows', desc: 'An inner grinding ring chews whatever presses closest.', damageMult: 1.15, particle: 'shred', sfx: 'br_maw', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 90, damage: 9, react: true, particle: 'shred' }] }] },
+      { tier: 2, name: 'Double Snap', desc: 'Bites land faster, each ending in a concussive crunch.', fireRateMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 110, damage: 12, react: true, particle: 'shred' }] }] },
+      { tier: 3, name: 'Rending Fangs', desc: 'Every bite rips armor plating loose (Fracture).', damageMult: 1.15, impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, status: { kind: 'Fracture', amount: 2 }, particle: 'shred' }] }] },
+      { tier: 4, name: 'Gore Engine', desc: 'Heavier, faster jaws; the crunch deepens.', damageMult: 1.2, fireRateMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 130, damage: 20, react: true, particle: 'shred' }] }] },
+      { tier: 5, name: 'The Ossuary', desc: 'Everything near it is meat: a massive crunch and armor stripped to bone.', damageMult: 1.35, particle: 'gore', impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 170, damage: 44, react: true, particle: 'shred' }, { type: 'aura', radius: 180, status: { kind: 'Fracture', amount: 1 }, particle: 'shred' }] }, { t: 'cosmetic', id: 'ossuary' }] },
+    ],
+  },
+  {
+    id: 'maw_gullet', tower: 'maw', name: 'Tidal Gullet',
+    theme: 'A patient undertow — it drags, slows, and swallows the crust whole.',
+    tiers: [
+      { tier: 1, name: 'Sucking Undertow', desc: 'A wide, dragging current disrupts everything near the jaws.', particle: 'disrupt', sfx: 'br_gullet', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 190, damage: 4, status: { kind: 'Disruption', amount: 1 }, particle: 'disrupt' }] }] },
+      { tier: 2, name: 'Tenderizing Slam', desc: 'The current softens shells (Fracture) as it pulls.', fireRateMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 190, status: { kind: 'Fracture', amount: 1 }, particle: 'disrupt' }] }] },
+      { tier: 3, name: 'Swallow Whole', desc: 'Bigger gulps — the bite hits far harder.', damageMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 120, damage: 16, react: true, particle: 'shred' }] }] },
+      { tier: 4, name: 'Riptide Maw', desc: 'The undertow widens and deepens — prey cannot leave.', rangeMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 220, damage: 6, status: { kind: 'Disruption', amount: 2 }, react: true, particle: 'disrupt' }] }] },
+      { tier: 5, name: 'The Drowning Deep', desc: 'A drowning tide: a vast disrupting current and a crushing swallow.', damageMult: 1.25, rangeMult: 1.15, particle: 'disrupt', impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 190, damage: 32, status: { kind: 'Disruption', amount: 2 }, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'gullet' }] },
+    ],
+  },
+
+  // ════════════ AMBER CHRYSALIS (Caustic, single-target encasement) ════════════
+  {
+    id: 'chrysalis_deepfreeze', tower: 'chrysalis', name: 'Deep Freeze',
+    theme: 'The perfect specimen jar — longer, harder encasements that end in splinters.',
+    tiers: [
+      { tier: 1, name: 'Quickset Resin', desc: 'Encasements set harder and hold longer.', damageMult: 1.1, particle: 'acid', sfx: 'br_amber', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 1.8 } }] }] },
+      { tier: 2, name: 'Splinter Facets', desc: 'Each casing bursts into razor shards around the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 95, damage: 16, react: true, particle: 'shred' }] }] },
+      { tier: 3, name: 'Deep Set', desc: 'The amber thickens — victims hold far longer.', damageMult: 1.15, impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.3 } }] }] },
+      { tier: 4, name: 'Warden of Giants', desc: 'It hunts bosses first, striking preserved prey with brutal force.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'bossPriority' }, { t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 2.5, damage: 20 }] }] },
+      { tier: 5, name: 'Perfect Preservation', desc: 'Museum-grade: the longest hold in the game, ending in a shard nova.', damageMult: 1.3, particle: 'acid', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.8 } }, { type: 'explosion', radius: 135, damage: 34, react: true, particle: 'shred' }] }, { t: 'cosmetic', id: 'reliquary' }] },
+    ],
+  },
+  {
+    id: 'chrysalis_amber', tower: 'chrysalis', name: 'Preserving Amber',
+    theme: 'The grove keeper — weeping sap that slows, melts, and mires the approach.',
+    tiers: [
+      { tier: 1, name: 'Weeping Resin', desc: 'Each cast drenches the area around the victim in Corrosion.', particle: 'acid', sfx: 'br_sap', impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 2, name: 'Amber Veil', desc: 'The warden watches farther; the sap spreads wider.', rangeMult: 1.12, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 170, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 3, name: 'Thickened Sap', desc: 'A dripping moat gathers at its roots, melting what wades in.', damageMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 7, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Golden Tomb', desc: 'Longer entombments; the sap pools farther still.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.0 } }, { type: 'debuff', radius: 190, status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 5, name: 'The Amber Grove', desc: 'The whole approach mires: disrupting sap and a bursting golden bloom.', damageMult: 1.25, rangeMult: 1.15, particle: 'acid', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 230, status: { kind: 'Disruption', amount: 1 } }, { type: 'explosion', radius: 150, damage: 26, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'grove' }] },
+    ],
+  },
+
+  // ════════════ WAILING EFFIGY (Neural, dread field — pure tempo) ════════════
+  {
+    id: 'effigy_choir', tower: 'effigy', name: 'Choir of Sorrow',
+    theme: 'The dread carries — wider, layered, until the whole crust hears it.',
+    tiers: [
+      { tier: 1, name: 'Sorrow Carries', desc: 'The wail reaches farther and leaves minds Disrupted.', rangeMult: 1.12, particle: 'disrupt', sfx: 'br_choir', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 300, status: { kind: 'Disruption', amount: 1 } }] }] },
+      { tier: 2, name: 'Second Voice', desc: 'The pulse quickens — panic comes in rounds.', fireRateMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 240, status: { kind: 'Disruption', amount: 1 } }] }] },
+      { tier: 3, name: 'Dirge of Rot', desc: 'The note begins to CUT — psychic damage rides the wail.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 260, damage: 7, react: true, particle: 'disrupt' }] }] },
+      { tier: 4, name: 'Chorus Swell', desc: 'A second panic wave rolls even farther out.', rangeMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 330, status: { kind: 'Fear', amount: 1.4 } }] }] },
+      { tier: 5, name: 'Requiem', desc: 'The full choir: a crushing psychic toll and dread across the whole approach.', fireRateMult: 1.15, rangeMult: 1.1, particle: 'disrupt', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 240, damage: 30, react: true, particle: 'disrupt' }, { type: 'debuff', radius: 350, status: { kind: 'Disruption', amount: 2 } }] }, { t: 'cosmetic', id: 'requiem' }] },
+    ],
+  },
+  {
+    id: 'effigy_malice', tower: 'effigy', name: 'Totem of Malice',
+    theme: 'The scream turns predatory — terror that wounds as it scatters.',
+    tiers: [
+      { tier: 1, name: 'Spiteful Note', desc: 'The wail cuts — psychic damage in a tight ring.', particle: 'disrupt', sfx: 'br_malice', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 220, damage: 8, react: true, particle: 'disrupt' }] }] },
+      { tier: 2, name: 'Malice Focus', desc: 'Faster keening, a wider wound.', fireRateMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, damage: 8, react: true, particle: 'disrupt' }] }] },
+      { tier: 3, name: 'Terror Harvest', desc: 'It feeds on panic — the cut deepens and the dread lingers.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, damage: 11, react: true, particle: 'disrupt' }, { type: 'debuff', radius: 250, status: { kind: 'Fear', amount: 1.3 } }] }] },
+      { tier: 4, name: 'Doom Toll', desc: 'A tolling psychic blast rocks the crust.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 210, damage: 26, react: true, particle: 'disrupt' }] }] },
+      { tier: 5, name: 'The Black Bell', desc: 'Every toll is a catastrophe: massive psychic ruin and rolling dread.', fireRateMult: 1.2, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 260, damage: 46, react: true, particle: 'disrupt' }, { type: 'aura', radius: 260, damage: 12, status: { kind: 'Disruption', amount: 1 }, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'bell' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

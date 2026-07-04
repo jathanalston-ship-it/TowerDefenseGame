@@ -136,6 +136,57 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     color: '#6e7bff',
     blurb: 'Wide control field — slows + makes enemies take more from ALL sources.',
   },
+  // ── Expansion roster (docs/TOWERS.md §expansion): three niches the launch five don't own.
+  //    Each composes the shared ability blocks directly (`abilities`) — no new firing modes. ──
+  maw: {
+    kind: 'maw',
+    name: 'Carrion Maw',
+    combatClass: 'Kinetic',
+    firing: 'field', // gnash cadence — the bite is an all-in-reach cleave, no projectile
+    cost: 140,
+    range: 170, // BRAWLER — the shortest combat reach in the game; its range IS its jaws
+    fireInterval: 1.25,
+    damage: 26, // heavy per-bite — but ONLY what stands inside the jaws gets bitten
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#ff4d6b',
+    blurb: 'Short-reach jaws — CLEAVES everything inside them. The last line eats well.',
+    abilities: [{ type: 'aura', radius: 170, damage: 26, react: true, particle: 'shred' }],
+  },
+  chrysalis: {
+    kind: 'chrysalis',
+    name: 'Amber Chrysalis',
+    combatClass: 'Caustic',
+    firing: 'homing', // a resin bolt seeks the target it will encase
+    cost: 155,
+    range: 430, // WARDEN — mid engagement; it guards the approach, not the spawn line
+    fireInterval: 3.4, // very slow, deliberate casts — each one is a lockdown decision
+    damage: 18,
+    projectileSpeed: 520,
+    splash: 0,
+    color: '#ffc36e',
+    blurb: 'Encases the BIGGEST threat in amber — frozen solid, briefly out of the fight.',
+    targeting: 'highestHealth', // the elite-hunter identity: it always picks the monster
+    abilities: [
+      { type: 'projectile', behavior: 'homing', damage: 18, speed: 520, range: 430 },
+      { type: 'status', status: { kind: 'Freeze', amount: 1.4 } },
+    ],
+  },
+  effigy: {
+    kind: 'effigy',
+    name: 'Wailing Effigy',
+    combatClass: 'Neural',
+    firing: 'field', // periodic dread pulse — no projectile, no damage
+    cost: 150,
+    range: 300, // DREAD — a crust-guard footprint; place it where the siege lands
+    fireInterval: 2.6,
+    damage: 0, // pure tempo: it converts nothing into damage, everything into TIME
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#b892ff',
+    blurb: 'A shrieking totem — panics attackers into FLEEING the Hive. Buys time, not kills.',
+    abilities: [{ type: 'debuff', radius: 300, status: { kind: 'Fear', amount: 1.6 } }],
+  },
 };
 
 /** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
@@ -176,6 +227,9 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   reactor: [800, 3200, 13000, 48000, 175000],
   parasite: [750, 3200, 13000, 48000, 180000],
   obelisk: [900, 3800, 15000, 55000, 200000],
+  maw: [850, 3500, 14000, 52000, 190000],
+  chrysalis: [900, 3800, 15000, 55000, 200000],
+  effigy: [800, 3400, 14000, 50000, 185000],
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────

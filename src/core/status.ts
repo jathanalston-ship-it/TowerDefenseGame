@@ -33,6 +33,9 @@ export interface StatusEffectDef {
   damageTakenMult?: number; // +incoming-damage fraction per stack (Vulnerability)
   armorShred?: number; // flat armor removed per stack (Armor Break / Corrosion)
   disablesAttack?: boolean; // Stun / Freeze / Fear / Silence — can't act
+  flees?: boolean; // Fear — the victim breaks off and scatters AWAY from the Hive while active
+  refractorySec?: number; // post-expiry immunity window: the SAME effect can't reapply for this
+  // long after it ends (kills perma-CC loops — chain-freeze/fear from stacked towers)
   hastePct?: number; // +action speed (buff: Haste)
   regenPerSec?: number; // heal per second (buff: Regeneration)
   shield?: number; // absorb pool (buff: Shield)
@@ -71,8 +74,8 @@ export const STATUS_EFFECTS = {
   // STRAIN static charge (docs/STRAIN.md — Neural Obelisk ladder): a pure ACCUMULATOR the
   // obelisk's discharge reads at its threshold. No aggregate fields ⇒ inert to move/vuln folds.
   charge: def({ id: 'charge', name: 'Static Charge', category: 'debuff', stack: 'stack', maxStacks: 12, baseDuration: 5.0, color: '#ffd24d', icon: 'CH' }),
-  freeze: def({ id: 'freeze', name: 'Freeze', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 1.5, color: '#7fe9ff', icon: 'FZ', disablesAttack: true, slowPct: 1 }),
-  fear: def({ id: 'fear', name: 'Fear', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 1.5, color: '#c08aff', icon: 'FE', disablesAttack: true }),
+  freeze: def({ id: 'freeze', name: 'Freeze', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 1.5, color: '#7fe9ff', icon: 'FZ', disablesAttack: true, slowPct: 1, refractorySec: 3.5 }),
+  fear: def({ id: 'fear', name: 'Fear', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 1.5, color: '#c08aff', icon: 'FE', disablesAttack: true, flees: true, refractorySec: 4.0 }),
   silence: def({ id: 'silence', name: 'Silence', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 2.0, color: '#b0b0c0', icon: 'SI', disablesAttack: true }),
   regen: def({ id: 'regen', name: 'Regeneration', category: 'buff', stack: 'refresh', maxStacks: 1, baseDuration: 5.0, color: '#7cfc9b', icon: 'RE', regenPerSec: 8 }),
   shield: def({ id: 'shield', name: 'Shield', category: 'buff', stack: 'refresh', maxStacks: 1, baseDuration: 6.0, color: '#9ad0ff', icon: 'SH', shield: 50 }),
@@ -93,6 +96,9 @@ export function applyStatus(list: ActiveStatus[], d: StatusEffectDef, amount = 1
   const dur = d.baseDuration > 0 ? d.baseDuration : Infinity;
   const add = Math.max(1, amount);
   const cur = list.find((s) => s.id === d.id);
+  // Refractory window (stacks 0 = the expired-effect marker counting down its immunity):
+  // the same effect bounces off until the marker clears — perma-CC is impossible by design.
+  if (cur && cur.stacks === 0 && d.refractorySec !== undefined) return;
   if (!cur) {
     list.push({ id: d.id, stacks: Math.min(d.maxStacks, add), remaining: dur });
     return;
@@ -120,6 +126,10 @@ export interface StatusTick {
   dotDamage: number; // armor-respecting DoT this tick
   trueDamage: number; // armor-ignoring DoT this tick
   heal: number; // regen this tick
+  /** Effect ids that JUST ended this tick (expired or entered refractory) — the on-break
+   *  channel expiry verbs ride (resin slicks, shatter bursts, death knells). Allocated only
+   *  when something actually expires, so the common path stays allocation-free. */
+  expired?: string[];
 }
 
 /** Count effects down, drop expired, and return this tick's damage/heal deltas. */
@@ -127,6 +137,7 @@ export function tickStatuses(list: ActiveStatus[], dt: number): StatusTick {
   let dotDamage = 0;
   let trueDamage = 0;
   let heal = 0;
+  let expired: string[] | undefined;
   for (let i = list.length - 1; i >= 0; i--) {
     const s = list[i];
     const d = statusRegistry.get(s.id);
@@ -142,10 +153,21 @@ export function tickStatuses(list: ActiveStatus[], dt: number): StatusTick {
     if (d.regenPerSec) heal += d.regenPerSec * dt;
     if (s.remaining !== Infinity) {
       s.remaining -= dt;
-      if (s.remaining <= 0) list.splice(i, 1);
+      if (s.remaining <= 0) {
+        if (d.refractorySec !== undefined && s.stacks > 0) {
+          s.stacks = 0; // becomes the inert refractory marker (aggregate/DoT skip stacks 0)
+          s.remaining = d.refractorySec;
+          (expired ??= []).push(s.id);
+        } else if (s.stacks > 0) {
+          list.splice(i, 1);
+          (expired ??= []).push(s.id);
+        } else {
+          list.splice(i, 1); // a refractory marker quietly clearing — not an expiry event
+        }
+      }
     }
   }
-  return { dotDamage, trueDamage, heal };
+  return { dotDamage, trueDamage, heal, expired };
 }
 
 /** Combined control/debuff state the sim reads each tick (movement, gating, vuln). */
@@ -154,6 +176,7 @@ export interface StatusAggregate {
   damageTakenMult: number; // additive vulnerability (sums across effects/stacks)
   armorShred: number; // total flat armor removed
   disabled: boolean; // any control effect prevents acting
+  fleeing: boolean; // a flees-effect (Fear) is active — scatter away from the Hive
   hastePct: number;
 }
 
@@ -162,15 +185,18 @@ export function aggregate(list: ActiveStatus[]): StatusAggregate {
   let damageTakenMult = 0;
   let armorShred = 0;
   let disabled = false;
+  let fleeing = false;
   let hastePct = 0;
   for (const s of list) {
+    if (s.stacks <= 0) continue; // inert refractory marker — no potency while it counts down
     const d = statusRegistry.get(s.id);
     if (!d) continue;
     if (d.slowPct) slowPct = Math.max(slowPct, d.slowPct);
     if (d.damageTakenMult) damageTakenMult += d.damageTakenMult * s.stacks;
     if (d.armorShred) armorShred += d.armorShred * s.stacks;
     if (d.disablesAttack) disabled = true;
+    if (d.flees) fleeing = true;
     if (d.hastePct) hastePct = Math.max(hastePct, d.hastePct);
   }
-  return { slowPct, damageTakenMult, armorShred, disabled, hastePct };
+  return { slowPct, damageTakenMult, armorShred, disabled, fleeing, hastePct };
 }

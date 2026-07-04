@@ -57,6 +57,30 @@ export interface StrainHooks {
   chargeStun?: number;
   /** Each discharge FORKS to this many extra victims. */
   arcForks?: number;
+  /** Kills by the Maw FEED it: GLUT stacks that widen the next bites (reset each wave). */
+  gorge?: { maxStacks: number; reachPerStack: number };
+  /** The bite GRIPS — everything caught in the jaws is held (framework `stun`, brief). */
+  cleaveGrip?: { seconds: number };
+  /** Every `every`th bite REGURGITATES a bone volley at prey beyond the jaws. */
+  refluxVolley?: { every: number; count: number; range: number; damageFrac: number };
+  /** At FULL glut each bite is followed by a wider second sweep; glut survives wave resets. */
+  apexGorge?: { reachFrac: number; damageFrac: number };
+  /** A broken casing leaves a RESIN SLICK — a slowing patch around the victim. */
+  resinSlick?: { radius: number; seconds: number };
+  /** The casing SHATTERS when it breaks (expiry or death) — shard damage around the victim. */
+  shatterBurst?: { radius: number; damage: number };
+  /** The Warden refuses to re-cast into preserved bodies — it locks a SECOND victim instead. */
+  dualCasing?: boolean;
+  /** Encased victims are SIPHONED: true damage while held, a stored burst when it breaks. */
+  amberSiphon?: { dps: number; burst: number };
+  /** Panic leaves the body CHILLED — a slow on the victim when fear fades. */
+  fearChill?: { seconds: number };
+  /** A feared enemy DYING spreads its panic to a nearby mind. */
+  fearContagion?: { range: number; seconds: number };
+  /** The Effigy FEEDS on terror — its pulse wounds feared enemies in the field. */
+  terrorFeed?: { damagePerPulse: number };
+  /** When the panic fades, a psychic BACKLASH wounds the victim and its neighbors. */
+  deathKnell?: { damage: number; radius: number };
 }
 
 export interface StrainDef {
@@ -186,6 +210,69 @@ strainRegistry.register({
   desc: 'The lightning permanently FORKS — every discharge splits to new victims.',
   hooks: { arcForks: 2 },
 });
+// ── Carrion Maw: the appetite itself evolves ──
+strainRegistry.register({
+  id: 'maw:2', tower: 'maw', level: 2, name: 'Gorging Gullet',
+  desc: 'Kills FEED it — each meal swells the jaws wider for the rest of the wave.',
+  hooks: { gorge: { maxStacks: 8, reachPerStack: 0.035 } },
+});
+strainRegistry.register({
+  id: 'maw:3', tower: 'maw', level: 3, name: 'Bone Vice',
+  desc: 'The bite GRIPS — everything caught in the jaws is held mid-swing.',
+  hooks: { cleaveGrip: { seconds: 0.3 } },
+});
+strainRegistry.register({
+  id: 'maw:4', tower: 'maw', level: 4, name: 'Acid Reflux',
+  desc: 'Every fourth bite REGURGITATES a bone volley at prey beyond the jaws.',
+  hooks: { refluxVolley: { every: 4, count: 3, range: 460, damageFrac: 0.5 } },
+});
+strainRegistry.register({
+  id: 'maw:5', tower: 'maw', level: 5, name: 'Apex Devourer',
+  desc: 'At full glut the hunger never fades — every bite is followed by a wider second sweep.',
+  hooks: { apexGorge: { reachFrac: 1.35, damageFrac: 0.5 } },
+});
+// ── Amber Chrysalis: the preservation deepens ──
+strainRegistry.register({
+  id: 'chrysalis:2', tower: 'chrysalis', level: 2, name: 'Setting Resin',
+  desc: 'A broken casing leaves a RESIN SLICK — the ground itself slows around the specimen.',
+  hooks: { resinSlick: { radius: 80, seconds: 1.8 } },
+});
+strainRegistry.register({
+  id: 'chrysalis:3', tower: 'chrysalis', level: 3, name: 'Splinter Shards',
+  desc: 'Casings SHATTER when they break — razor amber wounds everything near the victim.',
+  hooks: { shatterBurst: { radius: 90, damage: 30 } },
+});
+strainRegistry.register({
+  id: 'chrysalis:4', tower: 'chrysalis', level: 4, name: 'Twin Cocoon',
+  desc: 'The Warden refuses preserved bodies — it locks a SECOND victim instead.',
+  hooks: { dualCasing: true },
+});
+strainRegistry.register({
+  id: 'chrysalis:5', tower: 'chrysalis', level: 5, name: 'Living Amber',
+  desc: 'The amber FEEDS — encased victims are siphoned, and the casing bursts with what it took.',
+  hooks: { amberSiphon: { dps: 26, burst: 36 } },
+});
+// ── Wailing Effigy: the dread turns predatory ──
+strainRegistry.register({
+  id: 'effigy:2', tower: 'effigy', level: 2, name: 'Creeping Dread',
+  desc: 'Panic leaves the body CHILLED — victims crawl as the fear fades.',
+  hooks: { fearChill: { seconds: 1.6 } },
+});
+strainRegistry.register({
+  id: 'effigy:3', tower: 'effigy', level: 3, name: 'Contagious Panic',
+  desc: 'A feared enemy DYING spreads its panic to a nearby mind.',
+  hooks: { fearContagion: { range: 160, seconds: 1.2 } },
+});
+strainRegistry.register({
+  id: 'effigy:4', tower: 'effigy', level: 4, name: 'Nightmare Feast',
+  desc: 'The Effigy FEEDS on terror — its wail wounds every feared mind in the field.',
+  hooks: { terrorFeed: { damagePerPulse: 14 } },
+});
+strainRegistry.register({
+  id: 'effigy:5', tower: 'effigy', level: 5, name: 'Death Knell',
+  desc: 'When the panic fades a psychic BACKLASH tears the victim and everything beside it.',
+  hooks: { deathKnell: { damage: 30, radius: 90 } },
+});
 
 const EMPTY_HOOKS: StrainHooks = {};
 
@@ -217,6 +304,18 @@ export function resolveStrain(kind: TowerKind, level: number): StrainHooks {
     if (d.hooks.chargeArc !== undefined) out.chargeArc = d.hooks.chargeArc;
     if (d.hooks.chargeStun !== undefined) out.chargeStun = d.hooks.chargeStun;
     if (d.hooks.arcForks !== undefined) out.arcForks = d.hooks.arcForks;
+    if (d.hooks.gorge !== undefined) out.gorge = d.hooks.gorge;
+    if (d.hooks.cleaveGrip !== undefined) out.cleaveGrip = d.hooks.cleaveGrip;
+    if (d.hooks.refluxVolley !== undefined) out.refluxVolley = d.hooks.refluxVolley;
+    if (d.hooks.apexGorge !== undefined) out.apexGorge = d.hooks.apexGorge;
+    if (d.hooks.resinSlick !== undefined) out.resinSlick = d.hooks.resinSlick;
+    if (d.hooks.shatterBurst !== undefined) out.shatterBurst = d.hooks.shatterBurst;
+    if (d.hooks.dualCasing !== undefined) out.dualCasing = d.hooks.dualCasing;
+    if (d.hooks.amberSiphon !== undefined) out.amberSiphon = d.hooks.amberSiphon;
+    if (d.hooks.fearChill !== undefined) out.fearChill = d.hooks.fearChill;
+    if (d.hooks.fearContagion !== undefined) out.fearContagion = d.hooks.fearContagion;
+    if (d.hooks.terrorFeed !== undefined) out.terrorFeed = d.hooks.terrorFeed;
+    if (d.hooks.deathKnell !== undefined) out.deathKnell = d.hooks.deathKnell;
   }
   return out ?? EMPTY_HOOKS;
 }

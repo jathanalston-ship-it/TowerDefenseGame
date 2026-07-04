@@ -298,7 +298,85 @@ const REACTOR: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR]);
+// ── Expansion paths (docs/TOWERS.md §expansion) — same rhythm: ★1/2 identity, ★3 fork,
+// ★4 interaction, ★5 fork, ★7 power step, ★9 capstone. Existing vocabulary only. ──
+
+const MAW: StarPath = {
+  tower: 'maw',
+  steps: [
+    { star: 1, name: 'Grinding Rows', kind: 'attack', desc: 'An inner ring of teeth chews what presses closest.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 100, damage: 6, react: true, particle: 'shred' }] }] },
+    { star: 2, name: 'Wide Gape', kind: 'interaction', desc: 'Bites strip armor plating (Fracture) from everything held.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, status: { kind: 'Fracture', amount: 1 }, particle: 'shred' }] }] },
+    {
+      star: 3, name: 'Feeding Habit', kind: 'fork', desc: 'Choose the Maw’s appetite (re-pick any run).',
+      fork: [
+        { id: 'crusher', name: 'Crusher', desc: 'Each bite ends in a concussive crunch.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 110, damage: 14, react: true, particle: 'shred' }] }] },
+        { id: 'dragnet', name: 'Dragnet', desc: 'A dragging undertow Disrupts everything near the jaws.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 190, damage: 3, status: { kind: 'Disruption', amount: 1 }, particle: 'disrupt' }] }] },
+      ],
+    },
+    { star: 4, name: 'Bone Mulch', kind: 'attack', desc: 'A second grinding ring — nothing survives the middle.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 9, react: true, particle: 'shred' }] }] },
+    {
+      star: 5, name: 'Apex Gullet', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'abattoir', name: 'Abattoir', desc: 'A massive rending crunch with every bite.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 150, damage: 26, react: true, particle: 'shred' }] }] },
+        { id: 'maelstrom', name: 'Maelstrom', desc: 'The undertow becomes a drowning current.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 210, damage: 7, status: { kind: 'Disruption', amount: 2 }, react: true, particle: 'disrupt' }] }] },
+      ],
+    },
+    { star: 7, name: 'Carrion Reek', kind: 'interaction', desc: 'The stench of the feast weakens armor across a wide ring.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 220, status: { kind: 'Fracture', amount: 2 } }] }] },
+    { star: 9, name: 'The Endless Hunger', kind: 'capstone', desc: 'Everything near it is food: a devastating crunch and deep shredding.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 180, damage: 40, react: true, particle: 'shred' }, { type: 'aura', radius: 200, status: { kind: 'Fracture', amount: 1 }, particle: 'shred' }] }, { t: 'cosmetic', id: 'hunger' }] },
+  ],
+};
+
+const CHRYSALIS: StarPath = {
+  tower: 'chrysalis',
+  steps: [
+    { star: 1, name: 'Harder Set', kind: 'attack', desc: 'Encasements hold noticeably longer.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 1.7 } }] }] },
+    { star: 2, name: 'Weeping Sap', kind: 'interaction', desc: 'Each cast drips Corrosion around the victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
+    {
+      star: 3, name: 'Curation', kind: 'fork', desc: 'Choose what the Warden preserves (re-pick any run).',
+      fork: [
+        { id: 'splinter', name: 'Splinter', desc: 'Casings burst into razor shards.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 95, damage: 14, react: true, particle: 'shred' }] }] },
+        { id: 'longwatch', name: 'Long Watch', desc: 'Farther reach; the sap spreads wider.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 170, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Amber Bite', kind: 'attack', desc: 'Bolts hit far harder on the way in.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.2, damage: 10 }] }] },
+    {
+      star: 5, name: 'Reliquary Frame', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'vice', name: 'Vice', desc: 'It hunts the true monsters first.', grants: [{ t: 'targeting', profile: 'bossPriority' }, { t: 'ability', components: [{ type: 'crit', chance: 0.4, mult: 2.6, damage: 16 }] }] },
+        { id: 'tomb', name: 'Tomb', desc: 'The deepest hold — victims stay preserved.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.4 } }] }] },
+      ],
+    },
+    { star: 7, name: 'Golden Moat', kind: 'interaction', desc: 'A melting sap moat gathers at its roots.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 6, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+    { star: 9, name: 'The Perfect Collection', kind: 'capstone', desc: 'Every specimen preserved: the hardest set, ending in a shard nova.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Freeze', amount: 2.6 } }, { type: 'explosion', radius: 140, damage: 30, react: true, particle: 'shred' }] }, { t: 'cosmetic', id: 'collection' }] },
+  ],
+};
+
+const EFFIGY: StarPath = {
+  tower: 'effigy',
+  steps: [
+    { star: 1, name: 'Carrying Wail', kind: 'attack', desc: 'The dread leaves minds Disrupted (slow + vulnerability).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 300, status: { kind: 'Disruption', amount: 1 } }] }] },
+    { star: 2, name: 'Cutting Note', kind: 'attack', desc: 'The wail begins to wound — psychic damage in its field.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 240, damage: 5, react: true, particle: 'disrupt' }] }] },
+    {
+      star: 3, name: 'Timbre', kind: 'fork', desc: 'Choose the Effigy’s voice (re-pick any run).',
+      fork: [
+        { id: 'dirge', name: 'Dirge', desc: 'The cut deepens — terror that wounds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 250, damage: 8, react: true, particle: 'disrupt' }] }] },
+        { id: 'lament', name: 'Lament', desc: 'A second dread wave rolls farther out.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 340, status: { kind: 'Fear', amount: 1.3 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Sorrow Sink', kind: 'interaction', desc: 'The field saps will — heavier Disruption layers on.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 300, status: { kind: 'Disruption', amount: 1 } }] }] },
+    {
+      star: 5, name: 'Icon of Dread', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'bell', name: 'The Bell', desc: 'A tolling psychic blast rocks the crust.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 210, damage: 22, react: true, particle: 'disrupt' }] }] },
+        { id: 'chorus', name: 'The Chorus', desc: 'The dread carries across the whole approach.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 380, status: { kind: 'Fear', amount: 1.5 } }] }] },
+      ],
+    },
+    { star: 7, name: 'Feast of Panic', kind: 'attack', desc: 'The wail cuts deeper into every mind it reaches.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 280, damage: 9, react: true, particle: 'disrupt' }] }] },
+    { star: 9, name: 'All Things End', kind: 'capstone', desc: 'The final note: a crushing toll and dread without horizon.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 250, damage: 38, react: true, particle: 'disrupt' }, { type: 'debuff', radius: 380, status: { kind: 'Disruption', amount: 2 } }] }, { t: 'cosmetic', id: 'end' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

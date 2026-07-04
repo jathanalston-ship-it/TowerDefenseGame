@@ -6,7 +6,7 @@ import type { CardOption, CardRarity, CardCategory, CardSubject, StatusType, Tow
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
-import { SELL } from './config';
+import { SELL, TOWER_ORDER } from './config';
 import { GENE_UPGRADES } from './geneUpgrades';
 import { effectsPower } from './power'; // type-only back-edges elsewhere ⇒ no runtime cycle
 
@@ -29,6 +29,9 @@ export interface RunModifiers {
   parasiteInfectionMult: number; // scales Infection DoT + ramp speed
   obeliskVulnerabilityBonus: number; // adds to the Disruption damage-taken amp
   obeliskSlowBonus: number; // adds to the Disruption slow
+  mawCleaveRadiusMult: number; // scales the Carrion Maw's bite reach (its range IS its cleave)
+  chrysalisFreezeDurationMult: number; // scales the Amber Chrysalis encasement (Freeze) seconds
+  effigyDreadDurationMult: number; // scales the Wailing Effigy panic (Fear) seconds
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -101,6 +104,9 @@ export function defaultRunModifiers(): RunModifiers {
     parasiteInfectionMult: 1,
     obeliskVulnerabilityBonus: 0,
     obeliskSlowBonus: 0,
+    mawCleaveRadiusMult: 1,
+    chrysalisFreezeDurationMult: 1,
+    effigyDreadDurationMult: 1,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -539,13 +545,14 @@ function effectSubject(e: CardEffect): SubjectTag {
 export function cardSubject(def: CardDef): CardSubject {
   const specific = [...new Set(def.effects.map(effectSubject))].filter((t) => t !== 'global');
   const tag: SubjectTag = specific.length === 1 ? specific[0] : 'global';
+  // Registry-driven: any TowerKind tag is a tower subject — no hardcoded kind ladder, so a
+  // new tower's identity fields badge correctly the moment FIELD_SUBJECT maps them.
+  if ((TOWER_ORDER as readonly string[]).includes(tag)) return { kind: 'tower', tower: tag as TowerKind };
   switch (tag) {
-    case 'needle': case 'mortar': case 'reactor': case 'parasite': case 'obelisk':
-      return { kind: 'tower', tower: tag };
     case 'hero': return { kind: 'hero' };
     case 'economy': return { kind: 'economy' };
     case 'hive': return { kind: 'hive' };
-    case 'global': return { kind: 'global' };
+    default: return { kind: 'global' };
   }
 }
 

@@ -74,8 +74,8 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // the five launch towers + three heroes are registered
-    expect(towerRegistry.size).toBe(5);
+    // the launch five + the expansion three towers; three heroes
+    expect(towerRegistry.size).toBe(8);
     expect(heroRegistry.size).toBe(3);
   });
 

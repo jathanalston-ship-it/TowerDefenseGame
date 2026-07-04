@@ -152,6 +152,9 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   reactor: 'circle', // pulsing vital core
   parasite: 'circle', // bulbous egg-sac nest (egg speckles drawn over it)
   obelisk: 'diamond', // tall psionic monolith (orbiting glyphs drawn over it)
+  maw: 'hex', // a ringed feeding mouth — the hex reads as clenched jaw plates
+  chrysalis: 'diamond', // a faceted amber crystal (warm hue separates it from the obelisk)
+  effigy: 'triangle', // a gaunt totem spike (violet, apex-up like a shrine)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

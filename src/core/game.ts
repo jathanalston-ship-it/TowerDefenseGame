@@ -51,7 +51,7 @@ import {
   MINION_DEFS,
   MINION_CAP,
 } from './config';
-import type { EnemyDef, HeroDef } from './config';
+import type { EnemyDef, HeroDef, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
 import {
@@ -442,7 +442,8 @@ export class Game {
   private emergencyFocusY = 0;
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
-  private castRangeMult = 1; // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
+  private castRangeMult = 1;
+  private castExcludeFrozen = false; // Chrysalis Twin Cocoon: current cast skips frozen victims // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
   private castProjectileSkinTier = 0;
@@ -456,6 +457,8 @@ export class Game {
   // Cross-cut strain kits (docs/STRAIN.md): the plague/wave verbs act outside a tower's own
   // cast, so the MAX-strain kit per kind is cached on the same cadence as the tower caches.
   private parasiteKit: StrainHooks = {};
+  private chrysalisKit: StrainHooks = {}; // cross-cut expiry verbs (resin/shatter/siphon)
+  private effigyKit: StrainHooks = {}; // cross-cut fear verbs (chill/contagion/knell)
   private reactorKit: StrainHooks = {};
   private readonly arcScratch: Enemy[] = []; // obelisk discharge neighbor scratch (zero-alloc)
   // ── Biomorph Conveyor (docs/STRAIN.md §conveyor). DEDICATED rng stream: rolls never touch
@@ -870,6 +873,23 @@ export class Game {
       case 'Disruption':
         e.disrupt = status.amount;
         break;
+      // The expansion statuses ride the universal framework (status.ts): amount is SECONDS,
+      // scaled by the owning tower's identity run-mod. A refractory marker (stacks 0) means
+      // the application bounces — perma-CC is impossible by construction (status.ts).
+      case 'Freeze': {
+        if (this.applyEffect(e, 'freeze')) {
+          const st = e.statuses?.find((x) => x.id === 'freeze');
+          if (st && st.stacks > 0) st.remaining = status.amount * this.mods.chrysalisFreezeDurationMult;
+        }
+        break;
+      }
+      case 'Fear': {
+        if (this.applyEffect(e, 'fear')) {
+          const st = e.statuses?.find((x) => x.id === 'fear');
+          if (st && st.stacks > 0) st.remaining = status.amount * this.mods.effigyDreadDurationMult;
+        }
+        break;
+      }
     }
   }
 
@@ -978,6 +998,13 @@ export class Game {
       if (surged > 0) {
         this.biomass += surged;
         this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 30, text: `+${Math.round(surged)}`, color: '#b6e84a', life: 1.0 });
+      }
+    }
+    // Maw GLUT decay (docs/STRAIN.md — Gorging Gullet): hunger resets each wave unless the
+    // Apex Devourer (V) has made it permanent. Non-maws never carry glut — zero work.
+    for (const t of this.towers) {
+      if (t.kind === 'maw' && t.glut !== undefined && t.glut > 0) {
+        if (resolveStrain('maw', t.strain).apexGorge === undefined) t.glut = 0;
       }
     }
     if (rk.waveStartReset === true) {
@@ -2368,12 +2395,18 @@ export class Game {
     // not a stat: only linked reactors get the extended radius. Empty kit ⇒ base behaviour.
     let maxReactorStrain = 1;
     let maxParasiteStrain = 1;
+    let maxChrysalisStrain = 1;
+    let maxEffigyStrain = 1;
     for (const t of this.towers) {
       if (t.kind === 'reactor' && t.strain > maxReactorStrain) maxReactorStrain = t.strain;
       if (t.kind === 'parasite' && t.strain > maxParasiteStrain) maxParasiteStrain = t.strain;
+      if (t.kind === 'chrysalis' && t.strain > maxChrysalisStrain) maxChrysalisStrain = t.strain;
+      if (t.kind === 'effigy' && t.strain > maxEffigyStrain) maxEffigyStrain = t.strain;
     }
     this.reactorKit = resolveStrain('reactor', maxReactorStrain);
     this.parasiteKit = resolveStrain('parasite', maxParasiteStrain);
+    this.chrysalisKit = resolveStrain('chrysalis', maxChrysalisStrain);
+    this.effigyKit = resolveStrain('effigy', maxEffigyStrain);
     const weave = this.reactorKit.reactorLink === true;
     const linked: boolean[] = [];
     if (weave) {
@@ -2532,6 +2565,7 @@ export class Game {
       this.castExtraProjectiles = (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0);
       this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
       this.castRangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+      if (t.kind === 'maw') this.castRangeMult *= this.mods.mawCleaveRadiusMult; // bite reach (cards/affixes)
       this.castProjectileMutators =
         bk && bk.projectileMutators.length
           ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
@@ -2546,6 +2580,12 @@ export class Game {
       // STRAIN hooks (docs/STRAIN.md §framework): resolved per cast, EMPTY at Strain I (zero
       // rng, zero work ⇒ pre-strain runs byte-identical). Fragmentation rides the projectile.
       const sk = resolveStrain(t.kind, t.strain);
+      // Maw GLUT (docs/STRAIN.md — Gorging Gullet): this wave's meals widen the jaws NOW.
+      if (sk.gorge !== undefined && t.glut !== undefined && t.glut > 0) {
+        this.castRangeMult *= 1 + Math.min(sk.gorge.maxStacks, t.glut) * sk.gorge.reachPerStack;
+      }
+      // Chrysalis Twin Cocoon: the warden refuses preserved bodies — its pick skips them.
+      this.castExcludeFrozen = sk.dualCasing === true;
       this.castFragment = sk.fragmentOnImpact ?? null;
       this.castRicochet = sk.ricochetOnKill ?? null;
       this.castKnockback = sk.impactKnockback ?? 0;
@@ -2565,6 +2605,12 @@ export class Game {
           runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
         }
       }
+      // Expansion strain verbs (docs/STRAIN.md): each executes ONCE here, gated on its hook —
+      // an empty kit is zero work, so pre-strain and legacy-roster runs are byte-identical.
+      if (acted && (sk.cleaveGrip !== undefined || sk.refluxVolley !== undefined || sk.apexGorge !== undefined)) {
+        this.mawStrainBite(t, sk, dmgMult, def);
+      }
+      if (acted && sk.terrorFeed !== undefined) this.effigyTerrorFeed(t, sk.terrorFeed.damagePerPulse * dmgMult, def);
       // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
       // Branch-granted attacks (shrapnel crits, infection, neural bolts …) on the same cadence.
@@ -2590,6 +2636,55 @@ export class Game {
     this.castProjectileMutators = EMPTY_STR;
     this.castProjectileSkin = undefined;
     this.castProjectileSkinTier = 0;
+    this.castExcludeFrozen = false;
+  }
+
+  /** Carrion Maw strain verbs on a landed bite (docs/STRAIN.md): Bone Vice grips everything in
+   *  the jaws; Acid Reflux regurgitates a bone volley every Nth bite; the Apex Devourer follows
+   *  every full-glut bite with a wider half-strength sweep. */
+  private mawStrainBite(t: Tower, sk: StrainHooks, dmgMult: number, def: TowerDef): void {
+    const reach = def.range * this.castRangeMult;
+    if (sk.cleaveGrip !== undefined) {
+      const grip = sk.cleaveGrip.seconds;
+      this.grid.forNeighbors(t.x, t.y, reach, (o) => {
+        if (!o.alive || dist2(t.x, t.y, o.x, o.y) > reach * reach) return;
+        if (this.applyEffect(o, 'stun')) {
+          const st = o.statuses?.find((x) => x.id === 'stun');
+          if (st && st.stacks > 0 && st.remaining < grip) st.remaining = grip;
+        }
+      });
+    }
+    if (sk.refluxVolley !== undefined) {
+      const rv = sk.refluxVolley;
+      t.strainCd += 1; // the bite counter (maws never birth — the field is free here)
+      if (t.strainCd >= rv.every) {
+        t.strainCd = 0;
+        const prey = this.pickTargets(t.x, t.y, rv.range, rv.count, 'farthest');
+        for (const o of prey) {
+          this.spawnProjectile(t.x, t.y, o.x, o.y, 520, o.id, def.damage * rv.damageFrac * dmgMult, 'homing', 0, 'maw');
+        }
+        if (prey.length > 0) this.pushSfx('shot');
+      }
+    }
+    if (sk.apexGorge !== undefined && sk.gorge !== undefined && (t.glut ?? 0) >= sk.gorge.maxStacks) {
+      const wide = reach * sk.apexGorge.reachFrac;
+      const dmg = def.damage * sk.apexGorge.damageFrac * dmgMult;
+      this.grid.forNeighbors(t.x, t.y, wide, (o) => {
+        if (!o.alive || dist2(t.x, t.y, o.x, o.y) > wide * wide) return;
+        this.applyDamage(o, dmg, 'maw', false);
+      });
+      this.spawnParticles(t.x, t.y, PARTICLE.mutate, TOWER_DEFS.maw.color, 0.8);
+    }
+  }
+
+  /** Wailing Effigy — Nightmare Feast (docs/STRAIN.md): the pulse WOUNDS feared minds only. */
+  private effigyTerrorFeed(t: Tower, damage: number, def: TowerDef): void {
+    const reach = def.range * this.castRangeMult;
+    this.grid.forNeighbors(t.x, t.y, reach, (o) => {
+      if (!o.alive || dist2(t.x, t.y, o.x, o.y) > reach * reach) return;
+      const feared = o.statuses?.some((x) => x.id === 'fear' && x.stacks > 0);
+      if (feared) this.applyDamage(o, damage, 'effigy', true);
+    });
   }
 
   /** A branched SUPPORT tower (Flesh Reactor) runs its branch abilities — auras, summons,
@@ -2663,8 +2758,11 @@ export class Game {
     const r2 = range * range;
     const out = this.targetScratch;
     out.length = 0;
+    const skipFrozen = this.castExcludeFrozen; // Chrysalis Twin Cocoon (docs/STRAIN.md)
     this.grid.forNeighbors(x, y, range, (e) => {
-      if (e.alive && dist2(x, y, e.x, e.y) <= r2) out.push(e);
+      if (!e.alive || dist2(x, y, e.x, e.y) > r2) return;
+      if (skipFrozen && e.statuses !== undefined && e.statuses.some((s) => s.id === 'freeze')) return;
+      out.push(e);
     });
     sortByProfile(out, profile, { tx: x, ty: y, goalDistance: goalDistanceAt, rng: this.targetRng });
     return out.slice(0, n);
@@ -2894,6 +2992,12 @@ export class Game {
       // apply this tick's deltas. Inert on the historical path (no framework statuses).
       // DoT is applied precisely (no per-tick floor) and scaled by vulnerability.
       if (e.statuses !== undefined && e.statuses.length > 0) {
+        // STRAIN Living Amber (docs/STRAIN.md — chrysalis V): encased victims are SIPHONED.
+        // Gated on the kit AND an active freeze — zero work on every other path.
+        const siph = this.chrysalisKit.amberSiphon;
+        if (siph !== undefined && e.statuses.some((s) => s.id === 'freeze' && s.stacks > 0)) {
+          this.applyDamage(e, siph.dps * dt, 'chrysalis', false);
+        }
         const fx = tickStatuses(e.statuses, dt);
         const dmg = (fx.dotDamage + fx.trueDamage) * this.vulnMult(e);
         if (dmg > 0) {
@@ -2902,6 +3006,13 @@ export class Game {
           this.statDamageDealt += dmg;
         }
         if (fx.heal > 0) e.hp = Math.min(e.maxHp, e.hp + fx.heal);
+        // On-break verbs (docs/STRAIN.md): a casing or panic ENDING is itself an event.
+        if (fx.expired !== undefined) {
+          for (const id of fx.expired) {
+            if (id === 'freeze') this.onCasingBreak(e);
+            else if (id === 'fear') this.onPanicFade(e);
+          }
+        }
       }
       if (e.shredFlash > 0) e.shredFlash = Math.max(0, e.shredFlash - dt);
       if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
@@ -2942,19 +3053,29 @@ export class Game {
       if (e.corrosion > 0) slow = slowBase;
       if (e.disrupt > 0) slow = Math.max(slow, STATUS.disruptSlow + this.mods.obeliskSlowBonus);
       let disabled = false;
+      let fleeing = false;
       if (e.statuses !== undefined && e.statuses.length > 0) {
         const ag = aggregateStatuses(e.statuses); // framework Slow/Freeze/Stun fold in here
         slow = Math.max(slow, ag.slowPct);
         disabled = ag.disabled;
+        fleeing = ag.fleeing;
       }
       if (slow > 0.85) slow = 0.85;
       if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
       // SIEGING (docs/HIVE-SIEGE.md): the Hive Core is the target. Hold the crust ring, spread
       // along it, and run the attack loop until killed — enemies never despawn at a line.
       if (e.sieging) {
-        this.siegeCrustTick(e, def, dt);
-        this.siegeAttackTick(e, def, dt, slow, disabled);
-        continue;
+        if (fleeing && !disabled) {
+          // Fear (docs/HIVE-SIEGE.md §status): the attacker breaks off the crust and scatters.
+          // It falls through to the normal move step, whose flee branch carries it up-lane;
+          // when the panic fades it converges and re-sieges through the standard arrival path.
+          e.sieging = false;
+          e.windup = -1;
+        } else {
+          this.siegeCrustTick(e, def, dt);
+          this.siegeAttackTick(e, def, dt, slow, disabled);
+          continue;
+        }
       }
       // Artillery: advance to a standoff line, THEN halt and bombard the Nucleus. The
       // standoff is at least 2/3 of the way down the lane so towers can actually engage it;
@@ -2997,7 +3118,14 @@ export class Game {
       // 1. seek
       let vx: number;
       let vy: number;
-      if (b.flying || b.burrowing || e.y >= HIVE.convergeY) {
+      if (fleeing && !disabled) {
+        // Panic (status.ts `flees`): scramble AWAY from the Core at reduced coordination.
+        const fx = e.x - nucleusPoint.x;
+        const fy = e.y - REACH_Y;
+        const fl = Math.hypot(fx, fy) || 1;
+        vx = (fx / fl) * b.seek * 0.7;
+        vy = (fy / fl) * b.seek * 0.7;
+      } else if (b.flying || b.burrowing || e.y >= HIVE.convergeY) {
         // Final approach (docs/HIVE-SIEGE.md §movement): below the Final Defense line every
         // enemy leaves the lane field and converges on the Core ITSELF — the crust forms
         // around the organism, not along an invisible finish line.
@@ -3607,6 +3735,42 @@ export class Game {
         this.statKillsByEnemy[e.kind]++; // lifetime-stats observation
         if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1); // a boss fell
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
+        // Expansion strain death verbs (docs/STRAIN.md) — all kit-gated (zero work pre-strain):
+        // a Maw meal feeds the nearest gorging jaws; a feared death spreads its panic; a body
+        // dying INSIDE its casing still shatters.
+        if (e.lastHitKind === 'maw') {
+          let feeder: Tower | null = null;
+          let fd = Infinity;
+          for (const t of this.towers) {
+            if (t.kind !== 'maw' || t.strain < 2) continue;
+            const d2m = dist2(t.x, t.y, e.x, e.y);
+            if (d2m < fd) { fd = d2m; feeder = t; }
+          }
+          if (feeder !== null) {
+            const gk = resolveStrain('maw', feeder.strain).gorge;
+            if (gk !== undefined) feeder.glut = Math.min(gk.maxStacks, (feeder.glut ?? 0) + 1);
+          }
+        }
+        if (e.statuses !== undefined && e.statuses.length > 0) {
+          const fearedDeath = e.statuses.some((x) => x.id === 'fear' && x.stacks > 0);
+          const frozenDeath = e.statuses.some((x) => x.id === 'freeze' && x.stacks > 0);
+          const cont = this.effigyKit.fearContagion;
+          if (fearedDeath && cont !== undefined) {
+            let near: Enemy | null = null;
+            let bd = cont.range * cont.range;
+            this.grid.forNeighbors(e.x, e.y, cont.range, (o) => {
+              if (!o.alive || o.statuses?.some((x) => x.id === 'fear')) return;
+              const d2f = dist2(e.x, e.y, o.x, o.y);
+              if (d2f < bd) { bd = d2f; near = o; }
+            });
+            if (near !== null && this.applyEffect(near, 'fear')) {
+              const nf = (near as Enemy).statuses?.find((x) => x.id === 'fear');
+              if (nf && nf.stacks > 0) nf.remaining = cont.seconds;
+              this.spawnParticles((near as Enemy).x, (near as Enemy).y, PARTICLE.disrupt, TOWER_DEFS.effigy.color, 0.5);
+            }
+          }
+          if (frozenDeath) this.onCasingBreak(e);
+        }
         if (e.infection > 0) {
           this.spreadInfection(e); // Viral: the plague jumps to the living
           // STRAIN plague verbs (docs/STRAIN.md — Spore Bloat / Leaping Broodworm): the nest's
@@ -3928,6 +4092,55 @@ export class Game {
    * (burn, slow, stun, regen, …) flow through. The four legacy statuses keep their fast
    * fields; everything else lives in the generic container, ticked in statusSystem and
    * read by enemyMoveSystem/vulnMult. Returns false for an unknown id. */
+  /** A Freeze casing just broke on `e` (expiry or death): Setting Resin slicks the ground,
+   *  Splinter Shards burst, Living Amber releases its stored siphon (docs/STRAIN.md). */
+  private onCasingBreak(e: Enemy): void {
+    const kit = this.chrysalisKit;
+    const slick = kit.resinSlick;
+    if (slick !== undefined) {
+      this.grid.forNeighbors(e.x, e.y, slick.radius, (o) => {
+        if (!o.alive || dist2(e.x, e.y, o.x, o.y) > slick.radius * slick.radius) return;
+        if (this.applyEffect(o, 'slow')) {
+          const sl = o.statuses?.find((x) => x.id === 'slow');
+          if (sl && sl.stacks > 0 && sl.remaining < slick.seconds) sl.remaining = slick.seconds;
+        }
+      });
+    }
+    const burst = kit.shatterBurst;
+    if (burst !== undefined) {
+      this.grid.forNeighbors(e.x, e.y, burst.radius, (o) => {
+        if (!o.alive || dist2(e.x, e.y, o.x, o.y) > burst.radius * burst.radius) return;
+        this.applyDamage(o, burst.damage, 'chrysalis', true);
+      });
+    }
+    if (kit.amberSiphon !== undefined && e.alive) {
+      this.applyDamage(e, kit.amberSiphon.burst, 'chrysalis', true);
+    }
+    if (slick !== undefined || burst !== undefined || kit.amberSiphon !== undefined) {
+      this.spawnParticles(e.x, e.y, PARTICLE.mutate, TOWER_DEFS.chrysalis.color, 0.7);
+    }
+  }
+
+  /** Fear just faded on `e`: Creeping Dread chills the body, the Death Knell tears the mind
+   *  and everything beside it (docs/STRAIN.md — effigy II / V). */
+  private onPanicFade(e: Enemy): void {
+    const kit = this.effigyKit;
+    const chill = kit.fearChill;
+    if (chill !== undefined && e.alive && this.applyEffect(e, 'slow')) {
+      const sl = e.statuses?.find((x) => x.id === 'slow');
+      if (sl && sl.stacks > 0 && sl.remaining < chill.seconds) sl.remaining = chill.seconds;
+    }
+    const knell = kit.deathKnell;
+    if (knell !== undefined) {
+      this.grid.forNeighbors(e.x, e.y, knell.radius, (o) => {
+        if (!o.alive || dist2(e.x, e.y, o.x, o.y) > knell.radius * knell.radius) return;
+        this.applyDamage(o, knell.damage, 'effigy', true);
+      });
+      this.applyDamage(e, knell.damage, 'effigy', true);
+      this.spawnParticles(e.x, e.y, PARTICLE.mutate, TOWER_DEFS.effigy.color, 0.8);
+    }
+  }
+
   applyEffect(e: Enemy, id: string, amount = 1): boolean {
     const d = statusRegistry.get(id);
     if (!d) return false;

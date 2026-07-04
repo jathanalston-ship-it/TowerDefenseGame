@@ -7,8 +7,8 @@ import type { AbilityComponent } from './ability';
 import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
-export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk';
+export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -179,7 +179,8 @@ export interface Tower {
   /** STRAIN level 1..5 (docs/STRAIN.md) — the in-run evolution layer. Run-temporary like the
    *  branch; 1 = unmutated baseline (empty kit, zero rng ⇒ golden-safe by construction). */
   strain: number;
-  strainCd: number; // generic strain cadence (harvester births, brood swarms …); 0 when unused
+  strainCd: number;
+  glut?: number; // Carrion Maw GLUT stacks (docs/STRAIN.md — Gorging Gullet); absent = 0 // generic strain cadence (harvester births, brood swarms …); 0 when unused
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)

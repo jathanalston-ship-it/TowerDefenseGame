@@ -20,7 +20,7 @@
 
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
-| Towers | 5 | 100 | each with stars + branches + mastery + Adaptation |
+| Towers | 8 | 100 | each with stars + branches + mastery + Adaptation |
 | Heroes | 3 | 30 | per-hero equipment loadouts |
 | Enemies | ~30 | 100 | + elites |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |

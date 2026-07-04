@@ -81,6 +81,39 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' },
     ],
   },
+  // Carrion Maw (Kinetic) — snapping mouth → apex devourer.
+  maw: {
+    growth: 0.024, // the hungriest silhouette in the game — it visibly fattens
+    parts: [
+      { at: 1, kind: 'fangs', count: 4 }, // snapping mandibles
+      { at: 3, kind: 'limbs', count: 3 }, // dragging feeder limbs
+      { at: 5, kind: 'armor', count: 4 }, // scarred jaw plates
+      { at: 7, kind: 'spikes', count: 6 }, // a bristling gullet
+      { at: 9, kind: 'nova' },
+    ],
+  },
+  // Amber Chrysalis (Caustic) — resin bud → living reliquary.
+  chrysalis: {
+    growth: 0.018,
+    parts: [
+      { at: 1, kind: 'halo' }, // the amber sheen
+      { at: 3, kind: 'biomass', count: 3 }, // welling resin sacs
+      { at: 5, kind: 'armor', count: 5 }, // crystalline facets
+      { at: 7, kind: 'pods', count: 3 }, // encased trophies
+      { at: 9, kind: 'nova' },
+    ],
+  },
+  // Wailing Effigy (Neural) — gaunt totem → chorus of dread.
+  effigy: {
+    growth: 0.016, // it grows the least — its presence is the aura, not the body
+    parts: [
+      { at: 1, kind: 'halo' },
+      { at: 3, kind: 'tendrils', count: 3 }, // mourning shrouds
+      { at: 5, kind: 'glyphRing' }, // the wailing sigils
+      { at: 7, kind: 'ripples', count: 2 }, // dread waves
+      { at: 9, kind: 'nova' },
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at

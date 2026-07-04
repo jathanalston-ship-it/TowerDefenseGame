@@ -23,6 +23,9 @@ export const BRANCH_COLOR: Record<string, string> = {
   reactor_heart: '#ff6f91', reactor_brood: '#b58cff',
   parasite_apex: '#e24dff', parasite_ravager: '#d83a4a',
   obelisk_tyrant: '#9aa6ff', obelisk_mindrender: '#7cdcff',
+  maw_butcher: '#ff5c5c', maw_gullet: '#5ccdd8',
+  chrysalis_deepfreeze: '#ffd98a', chrysalis_amber: '#e8b04a',
+  effigy_choir: '#c9a6ff', effigy_malice: '#ff7ad9',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -176,6 +179,69 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'spikes', count: 4 }, // conductive spines
       { at: 4, kind: 'limbs', count: 2 }, // tesla arms
       { at: 5, kind: 'nova' }, // cerebral storm
+    ],
+  },
+  // MAW ──────────────────────────────────────────────────────────────────────
+  maw_butcher: {
+    color: BRANCH_COLOR.maw_butcher, growth: 0.065, // the hungriest growth in the roster
+    parts: [
+      { at: 1, kind: 'fangs', count: 4, per: 1 }, // the rows keep serrating
+      { at: 2, kind: 'limbs', count: 2 }, // feeder claws
+      { at: 3, kind: 'spikes', count: 4 }, // rending fangs
+      { at: 4, kind: 'organs', count: 3 }, // the gore engine
+      { at: 5, kind: 'nova' }, // the ossuary
+    ],
+  },
+  maw_gullet: {
+    color: BRANCH_COLOR.maw_gullet, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'ripples', count: 1, per: 1 }, // the undertow rings widen
+      { at: 2, kind: 'tendrils', count: 3 }, // dragging cilia
+      { at: 3, kind: 'fangs', count: 3 }, // swallowing rows
+      { at: 4, kind: 'biomass', count: 3 }, // the riptide bladders
+      { at: 5, kind: 'nova' }, // the drowning deep
+    ],
+  },
+  // CHRYSALIS ────────────────────────────────────────────────────────────────
+  chrysalis_deepfreeze: {
+    color: BRANCH_COLOR.chrysalis_deepfreeze, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' }, // the amber sheen hardens
+      { at: 2, kind: 'spikes', count: 4 }, // splinter facets
+      { at: 3, kind: 'armor', count: 4 }, // deep-set casing
+      { at: 4, kind: 'crown', count: 5 }, // warden of giants
+      { at: 5, kind: 'nova' }, // perfect preservation
+    ],
+  },
+  chrysalis_amber: {
+    color: BRANCH_COLOR.chrysalis_amber, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'biomass', count: 2, per: 1 }, // weeping resin sacs
+      { at: 2, kind: 'halo' }, // the amber veil
+      { at: 3, kind: 'ripples', count: 2 }, // the sap moat
+      { at: 4, kind: 'pods', count: 3 }, // golden tombs
+      { at: 5, kind: 'nova' }, // the amber grove
+    ],
+  },
+  // EFFIGY ───────────────────────────────────────────────────────────────────
+  effigy_choir: {
+    color: BRANCH_COLOR.effigy_choir, growth: 0.045, // its power is presence, not mass
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // sorrow sigils
+      { at: 2, kind: 'ripples', count: 2, per: 1 }, // the carrying wail
+      { at: 3, kind: 'tendrils', count: 3 }, // mourning shrouds
+      { at: 4, kind: 'organs', count: 3 }, // the second voice
+      { at: 5, kind: 'nova' }, // requiem
+    ],
+  },
+  effigy_malice: {
+    color: BRANCH_COLOR.effigy_malice, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'spikes', count: 3, per: 1 }, // spiteful barbs
+      { at: 2, kind: 'arcs', count: 2 }, // keening discharge
+      { at: 3, kind: 'crown', count: 5 }, // the malice crown
+      { at: 4, kind: 'organs', count: 3 }, // the doom toll
+      { at: 5, kind: 'nova' }, // the black bell
     ],
   },
 };
