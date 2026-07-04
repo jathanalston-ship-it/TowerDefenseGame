@@ -26,6 +26,17 @@
 > strain saturation — the lever is belt throughput (`growMin`), not `strainGrowth`. Goldens
 > re-pinned deliberately (recycler drip ≈ +900 biomass over the 12-wave autoplay).
 
+> **AMENDMENT 2026-07-04 — TOWER EXPANSION (player-directed, docs/TOWERS.md §expansion).**
+> Three towers joined the roster (Carrion Maw crust brawler · Amber Chrysalis elite warden ·
+> Wailing Effigy dread totem) with full progression (branches/stars/adaptation/strains/cards/
+> affixes). Engine additions: Freeze/Fear statuses with a REFRACTORY window (perma-CC
+> impossible by construction) and the `flees` semantic (feared siegers scatter, then
+> re-converge). Probes: the difficulty contract held unchanged at 8 kinds; mono-boards of the
+> new kinds win 2–3/5 at s5 ×1.0 (vs mixed 5/5) — niches, not clones, not dead. Goldens
+> re-pinned deliberately (the larger gene-card pool shifts autoplay drafts; every seed still
+> wins wave 12 at 196 kills). Watch item: the belt now rolls 8 kinds — early boards see any
+> given kind ~20% less often; conveyor bias weights are the lever if variety starves openings.
+
 Matrix: 11 personas × 4 seeds · bands 10 / 50 / 150 / 400 hours · world model + policy in `src/dev/progressionSim.ts`.
 
 ## Personas

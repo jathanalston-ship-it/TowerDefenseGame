@@ -134,7 +134,9 @@ The audit rule: any surface that renders a tower's identity must render its stra
   `towerBestStrain` — additive save schema, statistics rows, Tower Lab + Results per-kind
   display), strain achievements (Mutagenesis · Apex Strain · lifetime-evolution ladder), the
   tutorial graduation step now points at the conveyor/strain loop.
-- ⏳ three new towers (separate expansion — must inherit Strain for free).
+- ✅ three new towers (docs/TOWERS.md §expansion): Carrion Maw / Amber Chrysalis / Wailing
+  Effigy inherited the conveyor + Strain for free (registry-driven) and shipped full II–V
+  ladders (12 new unique verbs — the identity table above covers all eight towers).
 
 ## 9. Simulation & validation report (§report — PROMPT 8)
 

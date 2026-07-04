@@ -470,3 +470,12 @@ clears, so perma-CC from stacked towers is impossible by construction. Identity 
 `mawCleaveRadiusMult` · `chrysalisFreezeDurationMult` · `effigyDreadDurationMult` (cards
 `wider_jaws`/`gnashing_hunger`, `thick_amber`/`crystalline_matrix`, `lingering_dread`/
 `chorus_of_grief`, epic `total_lockdown`; affixes `gnashing`/`preserving`/`dreadful`).
+
+**Balance verification (probe, 5 seeds × stages 1/5/8 × ×0.75/×1.0/×1.7):** the DIFFICULTY.md
+§contract bands held unchanged at the 8-kind roster (s8: 3/5 wins at ×0.75, 5/5 + chip at
+×1.0, 5/5 + 0 lost at ×1.7; the s5 mid-stage keeps its structural ~20-integrity artillery chip
+at every ratio — pre-expansion baseline). Mono-board checks at s5 ×1.0: MONO-maw 2/5 wins
+(lost 101) and MONO-chrysalis 3/5 (lost 107) vs the mixed board's 5/5 (lost ~24) — the new
+kinds anchor nothing alone (niches, not clones) but function (needle-mono is 0/5 by
+comparison). The Effigy is zero-damage by definition and was probe-capped alongside the
+reactor in the instrument's deploy policy (max 2 zero-damage towers per board).

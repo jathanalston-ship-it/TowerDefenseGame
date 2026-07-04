@@ -3054,18 +3054,20 @@ export class Game {
       if (e.disrupt > 0) slow = Math.max(slow, STATUS.disruptSlow + this.mods.obeliskSlowBonus);
       let disabled = false;
       let fleeing = false;
+      let hardStop = false;
       if (e.statuses !== undefined && e.statuses.length > 0) {
         const ag = aggregateStatuses(e.statuses); // framework Slow/Freeze/Stun fold in here
         slow = Math.max(slow, ag.slowPct);
         disabled = ag.disabled;
         fleeing = ag.fleeing;
+        hardStop = ag.hardStop;
       }
       if (slow > 0.85) slow = 0.85;
-      if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
+      if (hardStop) slow = 1; // hard control (Stun/Freeze) pins the body; Fear keeps it RUNNING
       // SIEGING (docs/HIVE-SIEGE.md): the Hive Core is the target. Hold the crust ring, spread
       // along it, and run the attack loop until killed — enemies never despawn at a line.
       if (e.sieging) {
-        if (fleeing && !disabled) {
+        if (fleeing && !hardStop) {
           // Fear (docs/HIVE-SIEGE.md §status): the attacker breaks off the crust and scatters.
           // It falls through to the normal move step, whose flee branch carries it up-lane;
           // when the panic fades it converges and re-sieges through the standard arrival path.
@@ -3118,7 +3120,7 @@ export class Game {
       // 1. seek
       let vx: number;
       let vy: number;
-      if (fleeing && !disabled) {
+      if (fleeing && !hardStop) {
         // Panic (status.ts `flees`): scramble AWAY from the Core at reduced coordination.
         const fx = e.x - nucleusPoint.x;
         const fy = e.y - REACH_Y;

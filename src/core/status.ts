@@ -177,6 +177,7 @@ export interface StatusAggregate {
   armorShred: number; // total flat armor removed
   disabled: boolean; // any control effect prevents acting
   fleeing: boolean; // a flees-effect (Fear) is active — scatter away from the Hive
+  hardStop: boolean; // a NON-flees control (Stun/Freeze) pins the body — movement fully stops
   hastePct: number;
 }
 
@@ -186,6 +187,7 @@ export function aggregate(list: ActiveStatus[]): StatusAggregate {
   let armorShred = 0;
   let disabled = false;
   let fleeing = false;
+  let hardStop = false;
   let hastePct = 0;
   for (const s of list) {
     if (s.stacks <= 0) continue; // inert refractory marker — no potency while it counts down
@@ -194,9 +196,12 @@ export function aggregate(list: ActiveStatus[]): StatusAggregate {
     if (d.slowPct) slowPct = Math.max(slowPct, d.slowPct);
     if (d.damageTakenMult) damageTakenMult += d.damageTakenMult * s.stacks;
     if (d.armorShred) armorShred += d.armorShred * s.stacks;
-    if (d.disablesAttack) disabled = true;
+    if (d.disablesAttack) {
+      disabled = true;
+      if (!d.flees) hardStop = true; // fear disables the ATTACK but the body still runs
+    }
     if (d.flees) fleeing = true;
     if (d.hastePct) hastePct = Math.max(hastePct, d.hastePct);
   }
-  return { slowPct, damageTakenMult, armorShred, disabled, fleeing, hastePct };
+  return { slowPct, damageTakenMult, armorShred, disabled, fleeing, hardStop, hastePct };
 }

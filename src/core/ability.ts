@@ -197,12 +197,14 @@ function execProjectile(ctx: AbilityContext, comp: ProjectileAbility, cast: Abil
     // The target reference rides along so the sim can LEAD the shot (aim where the enemy will
     // be) — flight stays positional: nothing on the 'splash' path reads the projectile's id.
     ctx.fireProjectile(cast.x, cast.y, target, target.x, target.y, 'splash', dmg, comp.speed, (comp.splash ?? 0) * ctx.splashMult);
+    cast.target = target; // trailing components (status/crit) act on the struck target
     return true;
   }
   const count = (comp.count ?? 1) + (comp.behavior === 'homing' ? ctx.extraProjectiles : 0);
   const targets = cast.target ? [cast.target] : ctx.pickTargets(cast.x, cast.y, range, count);
   if (targets.length === 0) return false;
   for (const e of targets) ctx.fireProjectile(cast.x, cast.y, e, e.x, e.y, comp.behavior, dmg, comp.speed, 0);
+  cast.target = targets[0]; // the PRIMARY victim — "projectile + status" pairings tag it
   return true;
 }
 
