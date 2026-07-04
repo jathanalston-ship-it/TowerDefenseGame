@@ -4,6 +4,16 @@
 > **Report-only:** nothing here was auto-applied. Every bottleneck below awaits human review;
 > the change protocol remains docs/BALANCE_ARCHITECTURE.md §4 (propose → simulate → record).
 
+> **AMENDMENT 2026-07-04 — HIVE SIEGE contact rebalance (player-directed, docs/HIVE-SIEGE.md §9).**
+> Enemies now attack the Core (damage/interval DPS until killed) instead of one breach burst.
+> Every enemy received a role-derived attack profile (the full DPS-by-archetype table, boss
+> chassis cadences, attackers-reaching-Core metrics, campaign-contract sweep and endless
+> survivability band live in HIVE-SIEGE.md §9); the ×0.75/×1.0/×1.25/×1.7 contract was
+> re-verified by the stage probe after tuning (melee per-hit ×1.5 pass; endless SHAPE_DEPTH /
+> EHP-gate / swarmMinDepth guards). Watch items: the endless DIRECTOR.cost table still prices
+> raw HP; minion-blocker durability now rides attacker DPS. Goldens re-pinned deliberately
+> (kills 196/196 — former leakers die credited).
+
 Matrix: 11 personas × 4 seeds · bands 10 / 50 / 150 / 400 hours · world model + policy in `src/dev/progressionSim.ts`.
 
 ## Personas

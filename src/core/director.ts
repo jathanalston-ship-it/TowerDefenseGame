@@ -7,7 +7,8 @@
 // Stage Mode keeps the authored WAVES (so the golden run is untouched); Endless Mode
 // drives spawning entirely through this Director. Same enemy/boss data feeds both.
 
-import { DIRECTOR } from './config';
+import { DIRECTOR, ENEMY_DEFS } from './config';
+import { effectiveHp } from './campaign';
 import { STANDARD } from './difficulty';
 import type { DifficultyDef } from './difficulty';
 import type { Biome } from './biomes';
@@ -42,6 +43,13 @@ const ROSTER: Record<Exclude<WaveShape, 'boss'>, EnemyKind[]> = {
   horror: ['broodmother', 'hivecaller', 'mender', 'cantor', 'bomber', 'popper'],
 };
 const SHAPE_ROTATION: Exclude<WaveShape, 'boss'>[] = ['swarm', 'armored', 'mixed', 'rush', 'elite', 'air', 'siege', 'horror'];
+// Depth gate per shape (docs/HIVE-SIEGE.md §ranged/§balance): under siege combat a heavy the
+// opening build can't kill doesn't leak once and vanish — it PARKS at the Core and chews. So
+// the punishing shapes wait until the board can actually answer them (mirrors the campaign's
+// staggered unlocks). Depth 1–2 is chaff; heavies from 6; the elite shape from 8.
+const SHAPE_DEPTH: Record<Exclude<WaveShape, 'boss'>, number> = {
+  swarm: 1, rush: 1, mixed: 3, air: 3, siege: 5, horror: 5, armored: 6, elite: 8,
+};
 
 type Rng = () => number;
 const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)];
@@ -70,27 +78,39 @@ export class Director {
 
     // Boss cadence: a procedural (mini)boss caps the wave, escorted by light chaff.
     if (depth % bossEvery === 0) {
-      const escort = this.spend(budget * 0.4, 'mixed', eliteChance, biome);
+      const escort = this.spend(budget * 0.4, 'mixed', eliteChance, biome, depth);
       this.lastShape = 'boss';
       return { depth, shape: 'boss', groups: escort, spawnBoss: true, swarmEvent: false, eliteChance };
     }
 
-    // Anti-monotony: never repeat the previous shape (STAGES §13 wave-shape rotation).
-    let shape: Exclude<WaveShape, 'boss'> = pick(this.rng, SHAPE_ROTATION);
+    // Anti-monotony: never repeat the previous shape (STAGES §13 wave-shape rotation),
+    // drawing only from the shapes this depth has unlocked (see SHAPE_DEPTH).
+    const unlocked = SHAPE_ROTATION.filter((sh) => depth >= SHAPE_DEPTH[sh]);
+    let shape: Exclude<WaveShape, 'boss'> = pick(this.rng, unlocked);
     let guard = 0;
-    while (shape === this.lastShape && guard++ < 8) shape = pick(this.rng, SHAPE_ROTATION);
+    while (shape === this.lastShape && guard++ < 8) shape = pick(this.rng, unlocked);
     this.lastShape = shape;
 
-    const swarmEvent = depth % DIRECTOR.swarmEvery === 0;
-    const groups = this.spend(budget, shape, shape === 'elite' ? Math.max(eliteChance, 0.5) : eliteChance, biome);
+    // Swarm events wait for a real board (docs/HIVE-SIEGE.md §balance): under siege combat a
+    // chaff flood a young defense can't out-kill doesn't leak once — it stacks on the Core and
+    // chews it down. From swarmMinDepth the flood is a fair "spike" test, not a scripted loss.
+    const swarmEvent = depth >= DIRECTOR.swarmMinDepth && depth % DIRECTOR.swarmEvery === 0;
+    const groups = this.spend(budget, shape, shape === 'elite' ? Math.max(eliteChance, 0.5) : eliteChance, biome, depth);
     return { depth, shape, groups, spawnBoss: false, swarmEvent, eliteChance };
   }
 
   /** Greedily spend a threat budget on a shape's roster into enemy groups. The biome's signature
    *  kinds are appended to the shape roster so biome-exclusive enemies surface in Infinite waves. */
-  private spend(budget: number, shape: Exclude<WaveShape, 'boss'>, eliteChance: number, biome?: Biome): DirectorGroup[] {
+  private spend(budget: number, shape: Exclude<WaveShape, 'boss'>, eliteChance: number, biome?: Biome, depth = 99): DirectorGroup[] {
     const sig = biome?.mods.signature ?? [];
-    const roster = sig.length > 0 ? [...ROSTER[shape], ...sig] : ROSTER[shape];
+    const base = sig.length > 0 ? [...ROSTER[shape], ...sig] : ROSTER[shape];
+    // EHP depth gate (docs/HIVE-SIEGE.md §balance): under siege combat, a unit whose effective
+    // HP (regen/armor/shields folded) out-tanks the current board's plausible DPS doesn't leak
+    // once and vanish — it PARKS at the Core and chews forever (a fresh board literally cannot
+    // out-damage a depth-3 knitter's regen). Units phase in as depth grows.
+    const cap = DIRECTOR.ehpBase + DIRECTOR.ehpPerDepth * depth;
+    const roster = base.filter((k) => effectiveHp(ENEMY_DEFS[k]) <= cap);
+    if (roster.length === 0) roster.push('runner');
     const counts = new Map<EnemyKind, { n: number; elite: number }>();
     let remaining = budget;
     let guard = 0;

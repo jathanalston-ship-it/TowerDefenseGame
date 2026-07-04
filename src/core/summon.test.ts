@@ -85,7 +85,9 @@ describe('Shepherd Bloom summon (the summon ability primitive)', () => {
     const e = g.enemies.find((x) => x.kind === 'colossus')!;
     castUlt(g, e.x, e.y);
     expect(g.minions.length).toBe(2);
-    for (let i = 0; i < 90; i++) {
+    // Blockers are chewed at the enemy's TRUE sustained DPS (damage/interval — Hive Siege
+    // per-hit semantics), so a colossus grinds ~20/s: give it a few seconds of contact.
+    for (let i = 0; i < 300; i++) {
       for (const m of g.minions) { m.x = e.x; m.y = e.y; } // hold Wisps in contact
       g.advance(SIM_DT);
     }

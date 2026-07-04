@@ -13,6 +13,7 @@ describe('validateContent', () => {
         {
           kind: 'runner', name: 'X', hp: 0, armor: 0, speed: 0, bounty: 1, damage: 1, radius: 0, color: '#fff',
           behavior: { seek: 1, avoidTowers: 0, avoidHero: 0, separation: 0, jitter: 0 },
+          attack: { interval: 1, windup: 0.3 },
         },
       ],
       towers: [],

@@ -602,6 +602,64 @@ button:disabled {
 .hud-vital-row .bar {
   flex: 1;
 }
+/* ── Hive Siege pressure (docs/HIVE-SIEGE.md §UI): the Core cell REACTS to being chewed ── */
+.hud-vital-bar {
+  position: relative;
+  flex: 1;
+}
+.hud-vital-bar .bar {
+  width: 100%;
+}
+.hud-vital-ghost {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: var(--r-xs);
+  background: color-mix(in srgb, var(--danger) 55%, transparent);
+  animation: hive-ghost-throb 0.7s ease-in-out infinite;
+  pointer-events: none;
+}
+.hud-siege-flag {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  letter-spacing: var(--track-wide);
+  color: #fff;
+  background: color-mix(in srgb, var(--danger) 80%, #000);
+  animation: hive-flag-blink 1.1s ease-in-out infinite;
+}
+.hud-siege-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 3px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--danger);
+}
+.hud-siege-stat.is-danger {
+  animation: hud-heartbeat 1.1s ease-in-out infinite; /* the survival clock POUNDS when short */
+}
+.hud-vital.is-siege {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent);
+}
+.hud-vital.is-critical {
+  animation: hive-critical-pulse 1.1s ease-in-out infinite;
+}
+@keyframes hive-ghost-throb {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.4; }
+}
+@keyframes hive-flag-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@keyframes hive-critical-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 60%, transparent), 0 0 14px color-mix(in srgb, var(--danger) 30%, transparent); }
+  50% { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--danger) 90%, transparent), 0 0 22px color-mix(in srgb, var(--danger) 55%, transparent); }
+}
 .hud-hero {
   min-width: 150px;
 }

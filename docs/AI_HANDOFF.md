@@ -4,103 +4,120 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-04 04:36 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 760d97a
+- **Generated:** 2026-07-04 05:23 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 1927331
 
 ## Summary of work completed
 
-Early-campaign difficulty contract (player report: "can't get past campaign stage 1 at 1700/1000
-recommended power"). Wave generation was restructured around the contract ">rec ≈ no damage ·
-=rec ≈ chip/boss damage · ≤0.75 ≈ bad time": EHP-based speed-aware threat costs, per-wave
-unit/leak-damage caps + an elite-frequency ramp on wave progress, a constant wave-1 budget anchor,
-mini-bosses gated to stage ≥ 4, flat leak damage (campaign `dmgGrowth: 0`), and `recommendedPower`
-redefined as `hpMult × biome-toughness ratchet × variant` so time-to-kill at ×1.0 is
-stage-invariant by construction. Mortars now LEAD their shots (predictive aim — the "tracking
-feels slow" half of the report), which required a deliberate golden re-pin (biomass-only drift).
-The one thing to know: the contract is calibrated **empirically** — re-run the scratchpad
-autopilot probe (stages 1–24 × ratios 0.75/1.0/1.25/1.7 of recommendedPower) after ANY change to
-campaign scaling, wave composition, enemy stats, or tower balance (see DIFFICULTY.md §contract).
+**HIVE SIEGE** — the core combat model changed: enemies no longer despawn at a finish line;
+they converge on the Hive Core, lock onto crust rings, and run real windup/cycle attack loops
+(all statuses gate them; artillery unified onto the same gating; suicide kinds fuse-and-burst;
+bosses swing on chassis cadence) until killed. Includes the complete contact-damage rebalance
+(role-derived per-hit profiles on every enemy, probe-held to the DIFFICULTY.md §contract),
+endless-director depth gates (shapes, EHP roster cap, swarm events — an unkillable camper is a
+scripted loss under siege rules), and the full under-attack presentation (Core damage states,
+impact shudder + rings, attacker lunges, groans/heartbeat audio, reactive HUD integrity cell
+with UNDER ATTACK flag / ghost bar / ⚔ count / −DPS/s / survival clock). Goldens were
+**deliberately re-pinned** (every seed now kills 196/196 — former leakers die credited; all
+still win at wave 12). The one thing to know: `docs/HIVE-SIEGE.md` is the canonical reference —
+its §9 balance table + probe protocol must be re-run after ANY touch to enemy stats, attack
+profiles, campaign scaling, or endless gating.
 
 ## Files modified
 
-- Source (4): `src/core/ability.ts`, `src/core/biomes.ts`, `src/core/campaign.ts`, `src/core/game.ts`
-- Tests (2): `src/core/golden.test.ts`, `src/dev/progressionSim.test.ts`
-- Docs (6): `docs/BIOMES.md`, `docs/BUGFIX-LOG.md`, `docs/CAMPAIGN.md`, `docs/DIFFICULTY.md`, `docs/GAME-STATE.md`, `docs/VALIDATION_REPORT.md`
+- Source (12): `src/audio/sound.ts`, `src/core/boss.ts`, `src/core/campaign.ts`, `src/core/config.ts`, `src/core/director.ts`, `src/core/game.ts`, `src/core/types.ts`, `src/index.css`, `src/render/renderer.ts`, `src/state/mechanics.ts`, `src/ui/GameView.tsx`, `src/ui/Hud.tsx`
+- Tests (6): `src/core/ability.test.ts`, `src/core/director.test.ts`, `src/core/golden.test.ts`, `src/core/summon.test.ts`, `src/core/validate.test.ts`, `src/core/hiveSiege.test.ts`
+- Docs (6): `docs/BALANCE_REPORT.md`, `docs/DIFFICULTY.md`, `docs/GAME-STATE.md`, `docs/PROJECT_STATUS.md`, `docs/HIVE-SIEGE.md`, `docs/AI_HANDOFF.md`
 
 ## Systems affected (from the dependency registry)
 
-- **biomes** — `src/core/biomes.ts`
+- **audio** — `src/audio/sound.ts`
+- **bosses** — `src/core/boss.ts`
 - **campaign** — `src/core/campaign.ts`
-- **engine** — `src/core/ability.ts`, `src/core/game.ts`
-- Consumer ring (verify, unchanged): bosses, gene-cards, heroes, infinite, loot, onboarding, prestige, rendering, run-ui, towers
+- **content-infra** — `src/core/config.ts`, `src/core/types.ts`
+- **engine** — `src/core/director.ts`, `src/core/game.ts`
+- **onboarding** — `src/state/mechanics.ts`
+- **rendering** — `src/render/renderer.ts`
+- **run-ui** — `src/ui/GameView.tsx`, `src/ui/Hud.tsx`
+- Consumer ring (verify, unchanged): biomes, collection, currencies, difficulty, equipment, evolution-hq, gene-cards, heroes, infinite, loot, mastery, meta-store, power, prestige, towers
 
 ## Power Score changes
 
-The Power SCALE is untouched (meta.powerScore unchanged); what moved is the campaign's
-**recommendedPower index** it is compared against: now `hpMult(1.05^s) × biome ratchet ×
-variant` (was `√(hp×dmg)` growth). Displayed recommended scores rise at biome-region borders
-(e.g. stage 12: 1710 → 2087; stage 24: 3072 → 3747). `progressionLoop.test.ts` pins the
-strictly-rising invariant; the ratchet keeps it monotone across soft regions.
+None — the Power scale, buckets, and recommendedPower index are untouched this session (the
+index changes shipped in the previous commit). `progressionLoop.test.ts` still pins the
+strictly-rising invariant; the full suite passes.
 
 ## UI changes
 
-None authored — the same CampaignScreen/HUD surfaces simply display the new recommended scores
-and the regenerated stages. Headless smoke (`scratchpad/camp-live.mjs`): campaign deploy → prep →
-towers placed → wave cleared at 100/100 integrity, zero page/console errors, screenshot verified.
+- `Hud.tsx`: the Hive Core cell is now siege-reactive (UNDER ATTACK flag, recent-damage ghost
+  segment behind the bar, `⚔ N · −DPS/s · ~Ns` readout row, critical pulse ≤25%). Two new
+  snapshot fields drive it (`hiveAttackers`, `hiveDps`, `hiveRecentDamage`).
+- `GameView.tsx`: per-bite screen-shake trauma (`hiveHit: 0.055` — sustained siege = low
+  rumble), groan cues on damage-state falls (75/50/25/10%), heartbeat loop while critical.
+- Battlefield (`renderer.ts`): Core damage states (cracks → wounds/ichor → emergency flicker →
+  collapse strobe), impact shudder + flash ring (core-local translate only — CAMERA.md §8
+  honored), attacker rear-back/lunge through the windup.
+- Headless smoke: full-suite green incl. `uiStandards` and `tutorialAnchors`; live-browser
+  campaign run verified (see Known edge cases for coverage note).
 
 ## Documentation changes
 
-- `docs/CAMPAIGN.md` — §3/§4/§5 formulas rewritten to the new model; new **§grace** (5b) table.
-- `docs/DIFFICULTY.md` — new **§contract** (the ratio table, how it holds, probe protocol).
-- `docs/BIOMES.md` — `difficulty` modifier row (authored toughness, ratcheted into the index).
-- `docs/BUGFIX-LOG.md` — row 11 (symptom → root cause → fix for the stage-1 wall).
-- `docs/GAME-STATE.md` — difficulty-contract line under Modes & progression.
-- Others in the registry ring: no change needed (endless scaling, towers, heroes untouched).
+- NEW `docs/HIVE-SIEGE.md` — the system doc (movement/crust/attack-loop/status/ranged/suicide/
+  feedback/states/audio/UI/balance + the full report tables). All code § references land here.
+- `docs/DIFFICULTY.md` §contract — siege semantics note (integrity lost = DPS × survival).
+- `docs/BALANCE_REPORT.md` — dated amendment (player-directed rebalance; watch items).
+- `docs/GAME-STATE.md`, `docs/PROJECT_STATUS.md` — status lines.
+- `docs/ENDLESS-SCALING.md`: **no change needed** (budget/hp curves untouched; the new depth
+  gates are documented in HIVE-SIEGE.md §9 and referenced from director.ts).
+- Registry ring (towers/heroes/genes/etc.): no change needed — their systems are consumers of
+  the enemy loop, not definers of it.
 
 ## Save changes
 
-None — save layer untouched.
+None — save layer untouched (siege state is run-transient; enemies are never serialized).
 
 ## Known edge cases
 
-- `golden.test.ts` was **deliberately re-pinned** (mortar lead): wave/kills/integrity/phase
-  identical on all 6 seeds, biomass ±~1%. Any FURTHER drift is unintended.
-- The lead only engages for non-homing shots with a live target (`ability.ts` now passes the
-  target through for 'splash'); splash flight stays positional — nothing on that path reads
-  `targetId` (mortarImpact even reports `targetId: -1`).
-- Elite groups: exploders never roll elite; elite frequency is 0 at wave 1 (ramp `t/0.35`).
-- Mini-bosses never spawn before stage 4 (`C.mbMinStage`) — a wave-3 summoner vs a 2-tower
-  opening build was an unanswerable wipe (probe finding, stage 1 seed 33).
-- `unlockStage` tiers by **effectiveHp** (hp + 12·regen + 6·armor + shield), so regen/armor
-  bruisers (knitter/revenant/apex) arrive stages later than their raw HP suggests.
+- `golden.test.ts` deliberately re-pinned for the SECOND time this branch (mortar lead, then
+  siege). Kills are now a constant 196 across seeds — if a future change makes kills drift
+  below that, an enemy is escaping uncredited again.
+- Stun/freeze INTERRUPTS a windup (the swing is lost). A permanently-stunned attacker deals
+  zero forever — control effects are now strictly stronger at the Core than they were.
+- Suicide detonation bypasses hp-death: `detonate` mirrors the old breach bookkeeping
+  (bossCount, armorBreak cleanup). Any future "remove enemy without hp-death" path must do
+  the same or leak bookkeeping.
+- The renderer's damage-state branches (<50%, <25%, <10%) only render when a run is actually
+  bleeding — the live smoke exercised the healthy path; wounded-state visuals were reviewed
+  at the code level and in the sim only. First real playtest at low integrity should eyeball
+  them.
+- The endless autopilot probe is high-variance (fresh fall band waves 16–32); the
+  progression-loop tests remain the real endless gate.
 
 ## Remaining technical debt
 
-- The calibration instrument (`scratchpad/stage1probe.ts` + `stage5diag.ts`) lives in the
-  session scratchpad — it should graduate into `src/dev/` as a maintained probe next time it's
-  needed (it re-derives the autopilot each session otherwise).
-- The probe autopilot is a fixed-strategy player (no ability casts, draft[0] picks, no meta
-  slots/integrity at high ratios) — deep-stage ×0.75 reads easier than a real stalled account's
-  experience; don't over-tune deep stages against it.
-- `C.budgetCap`/`C.stageBudgetGrowth` are live tuning seams currently at identity (growth 0).
+- `DIRECTOR.cost` (endless unit pricing) still prices raw HP; the EHP depth gate compensates
+  early but deep-endless composition would benefit from an EHP-based retune (watch item in
+  BALANCE_REPORT).
+- The difficulty probe still lives in the session scratchpad; it should graduate into a
+  maintained dev probe module (same note as last session — now doubly earned).
+- `Enemy` gained six plain fields; if the roster ever hits the 600-cap regularly, a
+  struct-of-arrays layout is the known escape hatch (ENGINEERING-AUDIT §perf).
 
 ## Recommended next tasks
 
-1. Graduate the difficulty probe into `src/dev/difficultyProbe.ts` with a thin CLI
-   (`npm run probe -- --stage 8`), sharing the autopilot with `progressionSim`.
-2. Watch real-play feedback on mid-band ×1.0 chip (stages 8–16 average ~20–35 integrity) —
-   if it still reads harsh, the next lever is `C.dmgCapRamp` (slower heavy-leaker entry), not
-   budgets.
-3. Consider surfacing the biome ratchet on the campaign map (a "region toughness" chip at
-   region borders) — the data is already in `BIOMES[i].mods.difficulty`.
+1. **STRAIN system** (user-directed, queued): in-run tower evolution framework (Strain I–V),
+   per-tower unique mechanics, Biomorph Conveyor acquisition, merging, economy, UI, full
+   integration + simulation. Start at the framework (sim-side, `src/core/`), design doc first.
+2. Endless `DIRECTOR.cost` EHP retune (small, report-flagged).
+3. Eyeball the wounded Core states in a real low-power run and tune crack/ichor amplitudes.
 
 ## Future expansion hooks
 
-- `BiomeModifiers.difficulty` (`src/core/biomes.ts`) — authored per-region toughness; new
-  biomes declare it and `recommendedPower` folds it in automatically.
-- `threatCost` / `effectiveHp` (`src/core/campaign.ts`) — the single place unit threat is
-  priced; new enemy traits (e.g. teleport) get a term here, not a special case in composition.
-- `C.unitCap*/dmgCap*` (`src/core/campaign.ts`) — the per-wave granularity ramp; tune these to
-  reshape how fast heavies/leak-punishers enter a stage.
-- `stageStartAid` / `budgetGrace` / `paceGrace` (`src/core/campaign.ts`) — the §grace window,
-  all constants in `C`.
+- `EnemyDef.attack` + `CHASSIS[..].attack` — the authored cadence surface for all future
+  enemies/bosses.
+- `hiveStrike` (game.ts) — the single Core damage event; "tunnel into the Hive" or
+  "corrosive latch" mechanics branch at the arrival block in `enemyMoveSystem`.
+- `HIVE` config block — geometry/rings/feedback windows, all in one place.
+- `SHAPE_DEPTH` / `DIRECTOR.ehpBase/ehpPerDepth` / `swarmMinDepth` — endless pacing dials.
+- `hud.hiveAttackers/hiveDps/hiveRecentDamage` + `rs.hiveHitPulse` — presentation channels
+  any future "hive under attack" UI (e.g. Command Center world status) can read.

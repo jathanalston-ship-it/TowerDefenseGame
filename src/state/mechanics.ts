@@ -43,7 +43,7 @@ export const MECHANICS: MechanicDef[] = [
     why: 'If its integrity hits zero, the run ends — everything you build exists to keep it alive.',
     where: 'The bottom-centre of the battlefield, tracked in the top HUD.',
     next: 'Place towers and field your Hero to hold the line.',
-    mistakes: 'Integrity does not regenerate between waves — a run can bleed out across several small leaks, so treat every breach as real damage.' },
+    mistakes: 'Integrity does not regenerate between waves, and enemies that reach the Core ATTACK it until killed — a lone survivor chewing on the Hive bleeds you dry. Clear attackers off the Core immediately (your towers focus them automatically).' },
   { id: 'gene-essence', title: 'Gene Essence', category: 'Progression', nav: 'genes', links: ['gene-cards', 'gene-archive'],
     summary: 'Permanent currency that upgrades Gene Cards.',
     what: 'Gene Essence is the permanent currency for upgrading Gene Cards in the Gene Archive. Its main source is AUTO-CONVERSION: once a tower or hero hits max Star (Evolution), any further duplicate Shards from Bio-Containers convert straight into Gene Essence — more for rarer duplicates. A small bonus also drops rarely from Bio-Containers.',

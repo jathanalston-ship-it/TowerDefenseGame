@@ -338,10 +338,15 @@ function drawHiveTendrils(ctx: CanvasRenderingContext2D, rs: RenderState, t: num
 }
 
 function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
-  const { x, y } = nucleusPoint;
   const intRatio = rs.maxIntegrity > 0 ? rs.integrity / rs.maxIntegrity : 1;
-  // heartbeat — faster + more frantic as the hive is wounded
-  const beat = pulse(t, 3 + (1 - intRatio) * 4, 0.85, 1.15);
+  const hurt = 1 - intRatio;
+  // Impact SHUDDER (docs/HIVE-SIEGE.md §feedback): every landed bite kicks hiveHitPulse; the
+  // whole organism jolts and settles. Core-local translate only — never the view (CAMERA.md §8).
+  const p = rs.hiveHitPulse;
+  const x = nucleusPoint.x + (p > 0.01 ? Math.sin(t * 91) * 3.2 * p : 0);
+  const y = nucleusPoint.y + (p > 0.01 ? Math.cos(t * 83) * 2.6 * p : 0);
+  // heartbeat — faster + more frantic as the hive is wounded; below 25% it POUNDS
+  const beat = pulse(t, 3 + hurt * 4 + (intRatio < 0.25 ? 3 : 0), 0.85 - hurt * 0.05, 1.15 + hurt * 0.1);
   const R = 36 * beat;
 
   glowDisc(ctx, x, y, R, THEME.hive.glow[0]);
@@ -351,6 +356,11 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   if (emr > 0.01) {
     const flare = 0.85 + 0.15 * pulse(t, 7, 0, 1);
     glowDisc(ctx, x, y, R * (1.5 + 0.6 * emr) * flare, rgba(THEME.defense.zone, 0.5 * emr));
+  }
+  // Critical condition (≤25%): emergency lighting — a red under-flicker independent of the
+  // committed danger state; the organism itself is failing.
+  if (intRatio <= 0.25) {
+    glowDisc(ctx, x, y, R * 1.7, rgba(hexRgb('#ff3e4c'), 0.1 + 0.1 * pulse(t, 9, 0, 1)));
   }
 
   // a slowly rotating containment shell around the core
@@ -367,7 +377,47 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
 
   // core body + bright nucleus
   drawShape(ctx, 'circle', x, y, 15 * beat, THEME.hive.body);
+
+  // ── DAMAGE STATES (docs/HIVE-SIEGE.md §states): the shell visibly fails as integrity falls.
+  //    Deterministic geometry (id-hashed angles, no rng) — stable frame to frame.
+  if (intRatio < 0.98) {
+    const cracks = Math.min(9, 1 + Math.floor(hurt * 9)); // hairlines → ruptures
+    ctx.strokeStyle = rgba(hexRgb('#1a0d12'), 0.35 + 0.45 * hurt);
+    for (let i = 0; i < cracks; i++) {
+      const a = i * 2.399 + 0.7; // golden-angle spread — organic, non-repeating
+      const wob = Math.sin(i * 7.31) * 0.35;
+      const r0 = 4 + (i % 3) * 3;
+      const r1 = 6 + (0.35 + 0.65 * hurt) * (11 + (i % 4) * 3); // deeper wounds reach further
+      ctx.lineWidth = i < 3 ? 1 + hurt * 1.6 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0);
+      ctx.lineTo(x + Math.cos(a + wob * 0.3) * r1, y + Math.sin(a + wob * 0.3) * r1);
+      ctx.stroke();
+    }
+  }
+  // Open wounds + ichor seep from 50% down; severe rupture glow near collapse.
+  if (intRatio < 0.5) {
+    const wounds = intRatio < 0.25 ? 4 : 2;
+    for (let i = 0; i < wounds; i++) {
+      const a = 1.1 + i * 1.7;
+      const wx = x + Math.cos(a) * 11;
+      const wy = y + Math.sin(a) * 11;
+      const drip = (t * 3 + i) % 1; // slow ichor pulse
+      drawShape(ctx, 'circle', wx, wy, 2.5 + hurt * 2 + drip * 0.8, rgba(hexRgb('#7a1f2b'), 0.7));
+      drawShape(ctx, 'circle', wx, wy + drip * 4, 1.1, rgba(hexRgb('#a83242'), 0.55 * (1 - drip)));
+    }
+  }
+  if (intRatio <= 0.1) {
+    // Near collapse: the whole body flickers — an organism losing coherence.
+    glowDisc(ctx, x, y, R * (1 + 0.25 * pulse(t, 13, 0, 1)), rgba(hexRgb('#ff3e4c'), 0.18));
+  }
+
   drawShape(ctx, 'circle', x, y, 5 * beat, THEME.hive.core);
+
+  // Impact flash ring — expands and fades with the hit pulse.
+  if (p > 0.03) {
+    ring(ctx, x, y, 17 + (1 - p) * 14, rgba(hexRgb('#ffd9a0'), 0.5 * p), 1.5 + p * 2);
+  }
 
   ctx.fillStyle = THEME.hive.label;
   ctx.font = '700 10px system-ui, sans-serif';
@@ -881,6 +931,22 @@ function drawEnemy(
   const shape = ENEMY_SHAPE[e.kind];
   const tier = ENEMY_TIER[e.kind];
 
+  // Siege attack animation (docs/HIVE-SIEGE.md §feedback): while winding up, the body REARS
+  // BACK then LUNGES into the Core, snapping home as the hit lands. Driven purely by the
+  // sim's windup timer — deterministic, no state, one translate.
+  let lunged = false;
+  if (e.sieging && e.windup >= 0 && e.attackWindup > 0) {
+    const k = 1 - Math.max(0, e.windup) / e.attackWindup; // 0 → 1 across the windup
+    const amp = k < 0.55 ? -0.35 * (k / 0.55) : (k - 0.55) / 0.45; // rear back, then strike
+    const dx = nucleusPoint.x - e.x;
+    const dy = nucleusPoint.y - e.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const reach = Math.min(9, r * 0.8);
+    ctx.save();
+    ctx.translate((dx / d) * reach * amp, (dy / d) * reach * amp);
+    lunged = true;
+  }
+
   if (detail) {
     // airborne units cast a shadow on the arena floor below them
     if (flying) {
@@ -1069,6 +1135,7 @@ function drawEnemy(
       }
     }
   }
+  if (lunged) ctx.restore();
 }
 
 // Presentation-only afterimage buffer (primary hero) — never read by sim.

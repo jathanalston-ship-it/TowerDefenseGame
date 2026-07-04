@@ -58,12 +58,12 @@ export interface BossDef {
 }
 
 /** Chassis base profile — the "body plan" that biases stats before modules/phases. */
-export const CHASSIS: Record<BossChassis, { hp: number; radius: number; speed: number; color: string }> = {
-  bruiser: { hp: 1.0, radius: 30, speed: 34, color: '#ff5d73' },
-  artillery: { hp: 0.8, radius: 28, speed: 26, color: '#b6e84a' },
-  swarmlord: { hp: 0.9, radius: 32, speed: 30, color: '#d98cff' },
-  controller: { hp: 0.85, radius: 28, speed: 30, color: '#6e7bff' },
-  juggernaut: { hp: 1.4, radius: 36, speed: 22, color: '#5fd0c6' },
+export const CHASSIS: Record<BossChassis, { hp: number; radius: number; speed: number; color: string; attack: { interval: number; windup: number } }> = {
+  bruiser: { hp: 1.0, radius: 30, speed: 34, color: '#ff5d73', attack: { interval: 2.4, windup: 0.8 } },
+  artillery: { hp: 0.8, radius: 28, speed: 26, color: '#b6e84a', attack: { interval: 3.0, windup: 1.0 } },
+  swarmlord: { hp: 0.9, radius: 32, speed: 30, color: '#d98cff', attack: { interval: 2.0, windup: 0.7 } },
+  controller: { hp: 0.85, radius: 28, speed: 30, color: '#6e7bff', attack: { interval: 2.6, windup: 0.9 } },
+  juggernaut: { hp: 1.4, radius: 36, speed: 22, color: '#5fd0c6', attack: { interval: 3.2, windup: 1.1 } },
 };
 
 // ── Authored bosses (the designed band; same code path as procedural) ────────

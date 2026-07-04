@@ -74,7 +74,7 @@ export interface Enemy {
   baseArmor: number;
   speed: number; // px/sec at full speed
   bounty: number; // biomass on death
-  damage: number; // integrity damage if it reaches the bottom edge (the line)
+  damage: number; // integrity damage PER ATTACK while sieging the Hive Core (docs/HIVE-SIEGE.md)
   // status
   fracture: number; // stacks
   corrosion: number; // remaining seconds of corrosion
@@ -85,6 +85,14 @@ export interface Enemy {
   dmgAccum: number; // damage banked toward the next aggregated damage number (visual)
   dmgTimer: number; // throttle until the banked damage may pop as a float (visual)
   alive: boolean;
+  // ── Hive Siege combat (docs/HIVE-SIEGE.md): enemies ATTACK the Hive Core instead of
+  //    despawning at a finish line. All plain fields (hot path — no optional checks).
+  sieging: boolean; // reached the Hive: locked onto the attack ring, running the attack loop
+  ring: number; // which crust ring it fights from (0 = contact; assigned on arrival)
+  attackCd: number; // seconds until the next attack may START (recovery + cadence)
+  windup: number; // <0 idle; ≥0 = attack in progress, damage lands when it reaches 0
+  attackInterval: number; // resolved cadence (def.attack, or the boss chassis's) — spawn-time constant
+  attackWindup: number; // resolved windup/fuse — spawn-time constant
   lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
   boss: BossRuntime | null; // present only for framework bosses (null for normal enemies)
   elite: boolean; // director-promoted elite (buffed) — drives elite-priority targeting
@@ -460,6 +468,10 @@ export interface HudSnapshot {
   biomass: number;
   integrity: number;
   maxIntegrity: number;
+  // Hive Siege pressure readouts (docs/HIVE-SIEGE.md §UI) — how hard the Core is being hit NOW.
+  hiveAttackers: number; // enemies currently attacking the Hive (sieging + alive)
+  hiveDps: number; // their summed damage/interval — the incoming-DPS estimate the HUD shows
+  hiveRecentDamage: number; // integrity lost in the last ~3s (drives the ghost bar + under-attack state)
   kills: number;
   hero: {
     kind: HeroKind;

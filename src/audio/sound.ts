@@ -95,6 +95,15 @@ function sKill(): void {
 }
 function sShred(): void { tone(900, 0.18, 'sawtooth', 0.14, 180); noise(0.1, 0.07, 3000); }
 function sBreach(): void { tone(90, 0.35, 'sine', 0.3, 55); noise(0.3, 0.18, 700); }
+// ── Hive Siege voices (docs/HIVE-SIEGE.md §audio) ──
+function sHiveHit(): void { tone(72, 0.14, 'sine', 0.16, 48); noise(0.07, 0.07, 420, 90); } // a wet chitin THUD — one per landed bite (capped per tick)
+function sHiveGroan(): void { // the organism groans as a damage state fails (75/50/25/10%)
+  tone(110, 0.9, 'sawtooth', 0.1, 62); tone(74, 1.1, 'sine', 0.14, 46); noise(0.8, 0.05, 260, 60);
+}
+function sHeartbeat(): void { // lub-DUB at critical integrity (second thump via a slow slide)
+  tone(58, 0.12, 'sine', 0.24, 50);
+  tone(64, 0.34, 'sine', 0.17, 40);
+}
 function sAbility(): void { noise(0.3, 0.16, 400, 3500); tone(120, 0.4, 'sine', 0.22, 320); }
 function sPlace(): void { tone(200, 0.16, 'sine', 0.18, 130); tone(330, 0.1, 'triangle', 0.08); }
 function sSelect(): void { tone(520, 0.05, 'square', 0.05); }
@@ -203,6 +212,9 @@ export const audio = {
         case 'kill': for (let i = 0; i < Math.min(5, n); i++) sKill(); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;
         case 'breach': sBreach(); break;
+        case 'hiveHit': for (let i = 0; i < Math.min(2, n); i++) sHiveHit(); break;
+        case 'hiveGroan': sHiveGroan(); break;
+        case 'heartbeat': sHeartbeat(); break;
         case 'ability': sAbility(); break;
         case 'place': sPlace(); break;
         case 'select': sSelect(); break;

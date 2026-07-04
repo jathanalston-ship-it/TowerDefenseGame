@@ -43,7 +43,10 @@ import type { RunResult } from '../state/meta';
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
   hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34, dissolve: 0.14,
+  hiveHit: 0.055, // per landed bite: a sustained siege reads as a low rumble, a burst as a jolt
 };
+// Hive damage-state thresholds (docs/HIVE-SIEGE.md §states) — a GROAN marks each failure.
+const HIVE_STATES = [0.75, 0.5, 0.25, 0.1];
 const BOSS_TRAUMA = 0.32; // arrival impact (the sting + banner land together)
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
@@ -204,6 +207,8 @@ export function GameView({
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
+  const hiveStateRef = useRef(0); // deepest damage-state index announced (0 = healthy … 4 = collapsing)
+  const heartbeatRef = useRef(0); // seconds until the next critical-integrity heartbeat
   // ── Live Mastery projection (docs/MASTERY.md §live) — the EXACT banking math, watched
   //    per HUD tick: banked XP (run-start snapshot; mastery only banks at finishRun) +
   //    this run's accrual × the run-constant multipliers. Level-ups celebrate instantly.
@@ -292,6 +297,21 @@ export function GameView({
           audio.cueBatch(tally);
         }
         traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
+
+        // ── Hive vital audio (docs/HIVE-SIEGE.md §audio): a GROAN as each damage state fails
+        //    (75/50/25/10%), a pounding heartbeat while critical. Heals re-arm silently.
+        const intFrac = game.maxIntegrity > 0 ? game.integrity / game.maxIntegrity : 1;
+        let stateIdx = HIVE_STATES.findIndex((th) => intFrac > th); // 0 healthy … 
+        if (stateIdx < 0) stateIdx = HIVE_STATES.length; // … 4 collapsing
+        if (stateIdx > hiveStateRef.current) audio.cue('hiveGroan');
+        hiveStateRef.current = stateIdx;
+        if (intFrac <= 0.25 && game.phase === 'wave') {
+          heartbeatRef.current -= dt;
+          if (heartbeatRef.current <= 0) {
+            heartbeatRef.current = intFrac <= 0.1 ? 0.85 : 1.3; // pounds harder near collapse
+            audio.cue('heartbeat');
+          }
+        }
 
         // Render with shake (pre-fill covers the shake margin so no gap shows).
         const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;

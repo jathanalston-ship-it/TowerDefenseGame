@@ -37,9 +37,10 @@ describe('AI Director', () => {
     const w1 = d.next(1);
     const w9 = d.next(9);
     expect(w1.groups.length).toBeGreaterThan(0);
-    const n1 = w1.groups.reduce((a, g) => a + g.count, 0);
-    const n9 = w9.groups.reduce((a, g) => a + g.count, 0);
-    expect(n9).toBeGreaterThanOrEqual(n1);
+    // Depth gating shifts composition toward fewer-but-heavier bodies, so raw COUNT is no
+    // longer monotone — the spent THREAT BUDGET is the invariant that must grow.
+    const spent = (w: typeof w1): number => w.groups.reduce((a, g) => a + g.count * (DIRECTOR.cost[g.kind] ?? 2), 0);
+    expect(spent(w9)).toBeGreaterThanOrEqual(spent(w1));
   });
 
   it('is deterministic from the rng seed', () => {

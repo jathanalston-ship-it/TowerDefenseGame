@@ -3,7 +3,9 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-04 (combat-HUD premium redesign + game-feel dopamine pass, the
+> **Last updated:** 2026-07-04 (**HIVE SIEGE combat model** — enemies attack the Core as a live
+> target; full contact rebalance + endless depth gates + under-attack presentation, goldens
+> re-pinned — `docs/HIVE-SIEGE.md`; plus the combat-HUD premium redesign + game-feel pass, the
 > zone-flicker fix (layout-stable banners, danger zoom retired — `docs/CAMERA.md` §8), and the
 > **early-campaign difficulty contract**: EHP threat costs, per-wave unit/elite ramps, grace
 > window, flat leak damage, biome-ratchet `recommendedPower`, mortar predictive lead —
@@ -63,7 +65,12 @@ Wave — `docs/HUD.md` §0) + game-feel pass (wave banner/camera push, boss arri
 placement tendrils — `docs/GAME-FEEL.md` §0) · **Early-campaign difficulty contract
 (`docs/DIFFICULTY.md` §contract: >rec ≈ no damage · =rec ≈ chip/boss · ≤0.75 ≈ bad time;
 EHP-priced waves, granularity ramps, §grace window, stage-flat leak damage, biome-ratchet
-recommendedPower, mortar lead — goldens deliberately re-pinned, biomass-only drift)**.
+recommendedPower, mortar lead — goldens deliberately re-pinned, biomass-only drift)** ·
+**Hive Siege (docs/HIVE-SIEGE.md): the Core is a COMBAT TARGET — converge/crust/attack-loop
+enemy AI (statuses gate everything, artillery unified, suicide fuses, chassis boss cadence),
+role-derived per-hit rebalance probe-held to the §contract, endless shape/EHP/swarm depth
+gates, and the under-siege presentation (damage states, impact shudder, groans + heartbeat,
+reactive integrity cell: UNDER ATTACK flag, ghost bar, ⚔ count, −DPS/s, survival clock)**.
 
 ## Systems in progress
 

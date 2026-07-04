@@ -50,6 +50,9 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
   });
   // Threat = a readable pressure %, derived from the live swarm size (presentation only).
   const threatPct = Math.min(100, Math.round((hud.enemiesAlive / 40) * 100));
+  // Hive Siege pressure (docs/HIVE-SIEGE.md §UI): who's chewing, how fast, how long we last.
+  const underAttack = hud.hiveAttackers > 0 && hud.phase === 'wave';
+  const survivalS = hud.hiveDps > 0.5 ? Math.max(0, Math.round(hud.integrity / hud.hiveDps)) : 999;
 
   // pulse the biomass readout whenever it ticks up (resource-gain feedback)
   const prevBiomass = useRef(hud.biomass);
@@ -129,24 +132,63 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
     <div className="hud" data-hphase={hphase}>
       {/* ── LEFT zone: survival — the run's life, with loot progress riding beneath ── */}
       <div className="hz hz-l">
-        <div className="hud-cell hud-vital tt" tabIndex={0} data-tut="hive-core" style={{ ['--hud-acc' as string]: integrityColor(intPct) }}>
-          <div className="hud-k">Hive Core</div>
+        <div
+          className={`hud-cell hud-vital tt${underAttack ? ' is-siege' : ''}${intPct <= 0.25 ? ' is-critical' : ''}`}
+          tabIndex={0}
+          data-tut="hive-core"
+          style={{ ['--hud-acc' as string]: integrityColor(intPct) }}
+        >
+          <div className="hud-k">
+            Hive Core
+            {underAttack && (
+              <span className="hud-siege-flag" role="status" aria-label={`${hud.hiveAttackers} enemies attacking the Hive`}>
+                UNDER ATTACK
+              </span>
+            )}
+          </div>
           <div className="hud-vital-row">
-            <ProgressBar
-              value={hud.integrity}
-              max={hud.maxIntegrity}
-              color={integrityColor(intPct)}
-              height={12}
-              segments={Math.max(1, Math.min(20, Math.round(hud.maxIntegrity / 25)))}
-              className="bar-strong"
-              label="Hive Core integrity"
-            />
+            <div className="hud-vital-bar">
+              <ProgressBar
+                value={hud.integrity}
+                max={hud.maxIntegrity}
+                color={integrityColor(intPct)}
+                height={12}
+                segments={Math.max(1, Math.min(20, Math.round(hud.maxIntegrity / 25)))}
+                className="bar-strong"
+                label="Hive Core integrity"
+              />
+              {/* recent-damage GHOST: the chunk just chewed off, draining behind the live bar */}
+              {hud.hiveRecentDamage > 0.5 && (
+                <span
+                  className="hud-vital-ghost"
+                  style={{
+                    left: `${Math.max(0, intPct) * 100}%`,
+                    width: `${Math.min(1 - intPct, hud.hiveRecentDamage / Math.max(1, hud.maxIntegrity)) * 100}%`,
+                  }}
+                  aria-hidden
+                />
+              )}
+            </div>
             <span className={`hud-v ${intPct < 0.34 ? 'is-danger' : ''}`}>
               {hud.integrity}
               <span className="hud-sub">/{hud.maxIntegrity}</span>
             </span>
           </div>
-          <span className="tt-bubble">Hive Core integrity — the run ends if it reaches 0.</span>
+          {underAttack && (
+            <div className="hud-siege-row">
+              <span className="hud-siege-stat">⚔ {hud.hiveAttackers}</span>
+              <span className="hud-siege-stat">−{Math.round(hud.hiveDps)}/s</span>
+              {hud.hiveDps > 0.5 && (
+                <span className={`hud-siege-stat${survivalS <= 10 ? ' is-danger' : ''}`}>~{survivalS}s</span>
+              )}
+            </div>
+          )}
+          <span className="tt-bubble">
+            Hive Core integrity — the run ends if it reaches 0.
+            {underAttack
+              ? ` ${hud.hiveAttackers} enemies are attacking it right now (−${Math.round(hud.hiveDps)}/s; ~${survivalS}s of integrity at this rate).`
+              : ' Enemies that reach it ATTACK it until killed — clear them off.'}
+          </span>
         </div>
         <LootMeter />
       </div>

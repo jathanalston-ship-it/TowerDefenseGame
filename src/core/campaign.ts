@@ -147,7 +147,7 @@ function weightedPick(rng: Rng, pool: EnemyKind[], weights: number[]): EnemyKind
 /** EFFECTIVE HP: raw hp + what regen/armor/shields deny in practice. Regen is brutal against
  *  the low DPS of an opening build; armor subtracts per hit — both must eat wave budget, or a
  *  "cost 5" knitter walls like a "cost 17" tank (the stage-5 wipe bug this model fixed). */
-function effectiveHp(def: EnemyDef): number {
+export function effectiveHp(def: EnemyDef): number {
   return def.hp + C.regenWeight * (def.regenPerSec ?? 0) + C.armorWeight * (def.armor ?? 0) + (def.shieldHp ?? 0);
 }
 

@@ -17,7 +17,6 @@ import {
   goalDistanceAt,
   inFinalDefenseZone,
   nucleusPoint,
-  reachedBottom,
   slotAt,
   topSpawn,
   towerSlots,
@@ -35,6 +34,7 @@ import {
   MOVE,
   PARTICLE,
   PERF,
+  HIVE,
   SETTLE,
   SIM_DT,
   SLOTS,
@@ -230,6 +230,8 @@ export interface RenderState {
   armedAbility: boolean;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
+  hiveAttackers: number; // enemies locked onto the Core (siege-crust rendering intensity)
+  hiveHitPulse: number; // 0..1 impact accumulator — the renderer's shudder/flash signal
   integrity: number;
   maxIntegrity: number;
   // Emergency Defense Mode (docs/RANGE.md §4) — render-only.
@@ -419,6 +421,13 @@ export class Game {
   // In-zone enemies, recomputed ONCE per tick (sorted nearest-to-core) and shared by every
   // tower — no per-tower re-scan. Drives the targeting override + the emergency visuals.
   private readonly emergencyEnemies: Enemy[] = [];
+  // ── Hive Siege pressure (docs/HIVE-SIEGE.md §UI): folded once per tick, read by HUD/renderer.
+  hiveAttackers = 0; // enemies currently locked onto the Core
+  hiveDps = 0; // their summed damage/interval — the incoming-DPS estimate
+  hiveRecentDamage = 0; // leaky window of integrity lost (last ~HIVE.recentWindow seconds)
+  hiveHitPulse = 0; // render accumulator: kicks on every landed hit, decays fast (shudder/flash)
+  private hiveFloatAccum = 0; // banked hive damage toward ONE aggregated float per beat
+  private hiveFloatTimer = 0;
   private emergencyActive = false; // any enemy inside the Final Defense Zone right now
   private emergencyRamp = 0; // render-only eased intensity (0..1) for the visual fade in/out
   private emergencyFocusX = 0; // render-only: in-zone enemy nearest the core (beam convergence)
@@ -1725,6 +1734,12 @@ export class Game {
       infection: 0,
       disrupt: 0,
       alive: true,
+      sieging: false,
+      ring: 0,
+      attackCd: 0,
+      windup: -1,
+      attackInterval: def.attack.interval,
+      attackWindup: def.attack.windup,
       lastHitKind: null,
       boss: null,
       elite,
@@ -1765,6 +1780,12 @@ export class Game {
       dmgAccum: 0,
       dmgTimer: 0,
       alive: true,
+      sieging: false,
+      ring: 0,
+      attackCd: 0,
+      windup: -1,
+      attackInterval: CHASSIS[def.chassis].attack.interval,
+      attackWindup: CHASSIS[def.chassis].attack.windup,
       lastHitKind: null,
       elite: false,
       boss: {
@@ -1922,7 +1943,9 @@ export class Game {
         speed: CHASSIS[def.chassis].speed * 1.08, bounty: Math.round(def.bounty * 0.35),
         damage: Math.max(1, Math.round(def.damage * 0.6)),
         fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0,
-        alive: true, lastHitKind: null, elite: false,
+        alive: true, sieging: false, ring: 0, attackCd: 0, windup: -1,
+        attackInterval: CHASSIS[def.chassis].attack.interval * 0.8, attackWindup: CHASSIS[def.chassis].attack.windup * 0.8,
+        lastHitKind: null, elite: false,
         boss: {
           defId: def.id, name: def.name, phase: 0, phases: def.phases.length,
           moduleCd: def.modules.map((m) => m.cooldown * 0.6), shielded: 0, enrage: 0, channel: 0, charge: 0,
@@ -1940,7 +1963,9 @@ export class Game {
     this.enemies.push({
       id: this.nextId++, kind, x: Math.max(12, Math.min(WIDTH - 12, x + (this.rng.next() - 0.5) * 60)), y: y + 12,
       hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed, bounty: def.bounty, damage: def.damage,
-      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true, lastHitKind: null, boss: null, elite: false,
+      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true,
+      sieging: false, ring: 0, attackCd: 0, windup: -1, attackInterval: def.attack.interval, attackWindup: def.attack.windup,
+      lastHitKind: null, boss: null, elite: false,
       shield: def.shieldHp, summonCd: def.summon?.interval, siegeCd: def.siege?.interval,
     });
   }
@@ -2056,9 +2081,22 @@ export class Game {
   private emergencySystem(dt: number): void {
     const list = this.emergencyEnemies;
     list.length = 0;
+    let atk = 0;
+    let dps = 0;
     for (const e of this.enemies) {
-      if (e.alive && inFinalDefenseZone(e.y)) list.push(e);
+      if (!e.alive) continue;
+      if (inFinalDefenseZone(e.y)) list.push(e);
+      if (e.sieging) {
+        atk++;
+        dps += e.damage / e.attackInterval;
+      }
     }
+    this.hiveAttackers = atk;
+    this.hiveDps = dps;
+    // Presentation decay (render-only accumulators — same precedent as emergencyRamp below).
+    this.hiveRecentDamage = Math.max(0, this.hiveRecentDamage - this.hiveRecentDamage * (dt / HIVE.recentWindow) - 0.02 * dt);
+    this.hiveHitPulse = Math.max(0, this.hiveHitPulse - dt * 2.4);
+    if (this.hiveFloatTimer > 0) this.hiveFloatTimer -= dt;
     // Priority 2: nearest enemy to the Hive Core first (priority 1 — being in-zone — is the
     // membership test above). The list is just the leakers, so this sort is cheap.
     if (list.length > 1) {
@@ -2456,11 +2494,28 @@ export class Game {
     const hero = this.primaryHero; // enemies steer around the lead hero
     for (const e of this.enemies) {
       if (!e.alive) continue;
-      if (reachedBottom(e.y)) {
-        this.hitNucleus(e);
+      const def = ENEMY_DEFS[e.kind];
+      // Status fold FIRST — the melee attack loop, the artillery battery and movement all obey
+      // the SAME control effects (docs/HIVE-SIEGE.md §status): stun interrupts, slow stretches.
+      // Corrosion and Disruption both slow; take the stronger, capped at 0.85.
+      let slow = 0;
+      if (e.corrosion > 0) slow = slowBase;
+      if (e.disrupt > 0) slow = Math.max(slow, STATUS.disruptSlow + this.mods.obeliskSlowBonus);
+      let disabled = false;
+      if (e.statuses !== undefined && e.statuses.length > 0) {
+        const ag = aggregateStatuses(e.statuses); // framework Slow/Freeze/Stun fold in here
+        slow = Math.max(slow, ag.slowPct);
+        disabled = ag.disabled;
+      }
+      if (slow > 0.85) slow = 0.85;
+      if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
+      // SIEGING (docs/HIVE-SIEGE.md): the Hive Core is the target. Hold the crust ring, spread
+      // along it, and run the attack loop until killed — enemies never despawn at a line.
+      if (e.sieging) {
+        this.siegeCrustTick(e, def, dt);
+        this.siegeAttackTick(e, def, dt, slow, disabled);
         continue;
       }
-      const def = ENEMY_DEFS[e.kind];
       // Artillery: advance to a standoff line, THEN halt and bombard the Nucleus. The
       // standoff is at least 2/3 of the way down the lane so towers can actually engage it;
       // `siege.range` is how far above the defense line it prefers to stop, clamped to that
@@ -2471,7 +2526,9 @@ export class Game {
       if (def.siege) {
         const standoffY = Math.max(HEIGHT * (2 / 3), DEFENSE_TOP_Y - def.siege.range);
         if (e.y >= standoffY) {
-          e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
+          // Same combat framework as the melee loop (docs/HIVE-SIEGE.md §ranged): hard
+          // control pauses the battery, slows stretch its cadence — no special-case rules.
+          e.siegeCd = (e.siegeCd ?? def.siege.interval) - (disabled ? 0 : dt * (1 - slow));
           if (e.siegeCd <= 0) {
             e.siegeCd = def.siege.interval;
             // Launch a VISIBLE shell (docs/ENEMIES.md §artillery) — damage lands on IMPACT,
@@ -2491,18 +2548,6 @@ export class Game {
       // whole check is gated on minions existing ⇒ enemyMoveSystem is byte-identical on golden.
       if (this.minions.length > 0 && !def.behavior.flying && !def.behavior.burrowing && this.minionBlock(e, def, dt)) continue;
       const b = def.behavior;
-      // Corrosion and Disruption both slow; take the stronger, capped at 0.85.
-      let slow = 0;
-      if (e.corrosion > 0) slow = slowBase;
-      if (e.disrupt > 0) slow = Math.max(slow, STATUS.disruptSlow + this.mods.obeliskSlowBonus);
-      let disabled = false;
-      if (e.statuses !== undefined && e.statuses.length > 0) {
-        const ag = aggregateStatuses(e.statuses); // framework Slow/Freeze/Stun fold in here
-        slow = Math.max(slow, ag.slowPct);
-        disabled = ag.disabled;
-      }
-      if (slow > 0.85) slow = 0.85;
-      if (disabled) slow = 1; // hard control (Stun/Freeze) fully stops movement
       // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
       const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
       // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
@@ -2512,7 +2557,10 @@ export class Game {
       // 1. seek
       let vx: number;
       let vy: number;
-      if (b.flying || b.burrowing) {
+      if (b.flying || b.burrowing || e.y >= HIVE.convergeY) {
+        // Final approach (docs/HIVE-SIEGE.md §movement): below the Final Defense line every
+        // enemy leaves the lane field and converges on the Core ITSELF — the crust forms
+        // around the organism, not along an invisible finish line.
         const dx = nucleusPoint.x - e.x;
         const dy = REACH_Y - e.y;
         const l = Math.hypot(dx, dy) || 1;
@@ -2586,22 +2634,136 @@ export class Game {
       const r = def.radius;
       if (e.x < r) e.x = r;
       else if (e.x > WIDTH - r) e.x = WIDTH - r;
-      if (reachedBottom(e.y)) this.hitNucleus(e);
+      if (e.y > REACH_Y) e.y = REACH_Y; // never past the Core line — there is nothing beyond it
+      // ── ARRIVAL (docs/HIVE-SIEGE.md §movement): lock onto the crust — ring chosen by current
+      //    attacker pressure so late arrivals surround the crowd instead of clipping into it.
+      //    A deterministic id-hash stagger keeps a simultaneous wave from attacking in lockstep.
+      let ring = 0;
+      let cum = HIVE.ringCapacity;
+      while (this.hiveAttackers >= cum && ring < HIVE.maxRings - 1) {
+        ring++;
+        cum += HIVE.ringCapacity + ring * HIVE.ringGrowth; // outer rings hold more (longer arcs)
+      }
+      const rd = HIVE.coreRadius + def.radius + HIVE.contactPad + ring * HIVE.ringGap;
+      if (dist2(e.x, e.y, nucleusPoint.x, nucleusPoint.y) <= rd * rd) {
+        e.sieging = true;
+        e.ring = ring;
+        e.windup = -1;
+        e.attackCd = (e.id % 7) * 0.09;
+        this.hiveAttackers++; // count it NOW so same-tick arrivals stack outward deterministically
+      }
     }
   }
 
-  private hitNucleus(e: Enemy): void {
+  /** Crust hold (docs/HIVE-SIEGE.md §positioning): a sieging enemy stops advancing and holds
+   *  its attack ring. Neighbor separation still pushes it, then it re-projects onto the ring —
+   *  so the crust SLIDES APART along its arc instead of stacking, with no slot bookkeeping,
+   *  no deadlocks and zero allocation (same grid scratch the move loop uses). */
+  private siegeCrustTick(e: Enemy, def: EnemyDef, dt: number): void {
+    const near = this.neighborScratch;
+    this.grid.queryInto(e.x, e.y, MOVE.separationRadius, near);
+    const sepR = MOVE.separationRadius;
+    const sepR2 = sepR * sepR;
+    let sx = 0;
+    let sy = 0;
+    for (let k = 0; k < near.length; k++) {
+      const o = near[k];
+      if (o === e || !o.alive) continue;
+      const d2 = dist2(e.x, e.y, o.x, o.y);
+      if (d2 > 0 && d2 < sepR2) {
+        const w = (sepR - Math.sqrt(d2)) / sepR;
+        sx += (e.x - o.x) * w;
+        sy += (e.y - o.y) * w;
+      }
+    }
+    const sl = Math.hypot(sx, sy);
+    if (sl > 0) {
+      e.x += (sx / sl) * HIVE.crustSeparation * dt;
+      e.y += (sy / sl) * HIVE.crustSeparation * dt;
+    }
+    // Re-project onto the ring: the bite stays locked to the Core's surface.
+    const rd = HIVE.coreRadius + def.radius + HIVE.contactPad + e.ring * HIVE.ringGap;
+    const dx = e.x - nucleusPoint.x;
+    const dy = e.y - nucleusPoint.y;
+    const d = Math.hypot(dx, dy) || 1;
+    e.x = nucleusPoint.x + (dx / d) * rd;
+    e.y = nucleusPoint.y + (dy / d) * rd;
+    const r = def.radius;
+    if (e.x < r) e.x = r;
+    else if (e.x > WIDTH - r) e.x = WIDTH - r;
+    if (e.y > REACH_Y) e.y = REACH_Y;
+  }
+
+  /** The Hive attack loop (docs/HIVE-SIEGE.md §attack-loop): cooldown → windup → DAMAGE EVENT →
+   *  recovery, repeating until the attacker dies. Stun/Freeze INTERRUPTS the swing (windup is
+   *  lost); slows stretch both timers. Suicide kinds run the same loop once — their windup is
+   *  the fuse and the damage event is `detonate`. */
+  private siegeAttackTick(e: Enemy, def: EnemyDef, dt: number, slow: number, disabled: boolean): void {
+    if (disabled) {
+      e.windup = -1; // hard control interrupts the attack — the swing is lost, not banked
+      return;
+    }
+    const rate = 1 - slow;
+    if (e.windup >= 0) {
+      e.windup -= dt * rate;
+      if (e.windup <= 0) {
+        e.windup = -1;
+        if (def.explodeDamage) {
+          this.detonate(e, def);
+          return;
+        }
+        this.hiveStrike(e);
+        // `interval` is the FULL start-to-start cycle (recovery = interval − windup), so an
+        // attacker's sustained DPS is exactly damage/interval — the number the HUD estimates.
+        e.attackCd = Math.max(0.05, e.attackInterval - e.attackWindup);
+      }
+    } else {
+      e.attackCd -= dt * rate;
+      if (e.attackCd <= 0) e.windup = e.attackWindup;
+    }
+  }
+
+  /** One landed hit on the Hive Core — THE damage event. Integrity, the recent-damage window
+   *  and the render pulse move together; the float is AGGREGATED (one readable total per beat)
+   *  so a hundred attackers read as pressure, not confetti. */
+  private hiveStrike(e: Enemy): void {
+    if (!this.god) {
+      this.integrity -= e.damage;
+      this.hiveRecentDamage += e.damage;
+      this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.25 + e.damage * 0.012);
+    }
+    this.pushSfx('hiveHit');
+    // Impact FX at the bite point on the Core's surface (toward the attacker).
+    const dx = e.x - nucleusPoint.x;
+    const dy = e.y - nucleusPoint.y;
+    const d = Math.hypot(dx, dy) || 1;
+    this.spawnParticles(nucleusPoint.x + (dx / d) * HIVE.coreRadius, nucleusPoint.y + (dy / d) * HIVE.coreRadius, PARTICLE.breach);
+    this.hiveFloatAccum += e.damage;
+    if (this.hiveFloatTimer <= 0 && this.hiveFloatAccum >= 1) {
+      this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 16, text: `-${Math.round(this.hiveFloatAccum)}`, color: '#ff5d73', life: 0.8 });
+      this.hiveFloatAccum = 0;
+      this.hiveFloatTimer = 0.6;
+    }
+  }
+
+  /** Suicide detonation at the Core (docs/HIVE-SIEGE.md §suicide): one burst — integrity + a
+   *  hero-catching blast — then the attacker is GONE (no lingering melee). Mirrors the manual
+   *  bookkeeping the old breach removal did, since this bypasses an hp-death. */
+  private detonate(e: Enemy, def: EnemyDef): void {
     if (!e.alive) return;
-    if (!this.god) this.integrity -= e.damage;
+    if (!this.god) {
+      this.integrity -= e.damage;
+      this.hiveRecentDamage += e.damage;
+      this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.4 + e.damage * 0.012);
+    }
     e.alive = false;
+    e.sieging = false;
     if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1);
     this.armorBreakUntil.delete(e.id);
     this.pushSfx('breach');
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
-    // Suicide: a detonation that also catches the hero in its blast (gated on `explodeRadius`,
-    // which the historical roster never sets — so this is a no-op there).
-    const def = ENEMY_DEFS[e.kind];
+    // The blast also catches the hero (gated on `explodeRadius` — unset on the historical roster).
     if (def.explodeRadius && def.explodeDamage) {
       const h = this.primaryHero;
       if (!h.down && !this.god && dist2(e.x, e.y, h.x, h.y) <= def.explodeRadius * def.explodeRadius) {
@@ -3645,7 +3807,7 @@ export class Game {
       if (d2 <= reach * reach && d2 < bd) { bd = d2; blocker = m; }
     }
     if (!blocker) return false;
-    blocker.hp -= e.damage * dt;
+    blocker.hp -= (e.damage / e.attackInterval) * dt; // its true DPS — damage is per-hit now
     blocker.hitFlash = FX.hitFlash; // white shimmer while it's being chewed
     if (blocker.hp <= 0) {
       blocker.alive = false; // minionSystem culls it next tick
@@ -3701,6 +3863,8 @@ export class Game {
       unlockedSlots: this.unlockedSlots,
       time: this.time,
       integrity: this.integrity,
+      hiveAttackers: this.hiveAttackers,
+      hiveHitPulse: this.hiveHitPulse,
       maxIntegrity: this.maxIntegrity,
       emergency: this.emergencyActive,
       dangerIntensity: this.dangerCam.intensity,
@@ -3768,6 +3932,9 @@ export class Game {
       biomass: Math.floor(this.biomass),
       integrity: Math.ceil(this.integrity),
       maxIntegrity: this.maxIntegrity,
+      hiveAttackers: this.hiveAttackers,
+      hiveDps: this.hiveDps,
+      hiveRecentDamage: this.hiveRecentDamage,
       kills: this.kills,
       hero: {
         kind: h.kind,

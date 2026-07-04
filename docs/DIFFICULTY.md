@@ -89,6 +89,11 @@ player a later stage needs *less* power (strictly rising, tested). Density is FL
 stages; wave budgets are opening-anchored (docs/CAMPAIGN.md §grace) because the in-run
 economy resets every stage.
 
+**Siege semantics (2026-07, docs/HIVE-SIEGE.md):** enemies no longer deal one breach burst —
+they ATTACK the Core (damage/interval DPS until killed), so "integrity lost" = sustained
+pressure × how long attackers survive. The same contract table holds (re-verified below);
+per-hit damage remains a stage-flat unit property.
+
 **Verified empirically**, not by formula alone: an autopilot probe plays real generated
 stages at ×0.75 / ×1.0 / ×1.25 / ×1.7 of `recommendedPower` (5 seeds × stages 1–24). As of
 the 2026-07 retune: all ratios win everywhere; avg integrity lost at ×1.0 ranges 0 (stages
