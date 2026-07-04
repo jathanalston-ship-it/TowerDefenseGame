@@ -3,14 +3,15 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-04 (**HIVE SIEGE combat model** — enemies attack the Core as a live
-> target; full contact rebalance + endless depth gates + under-attack presentation, goldens
-> re-pinned — `docs/HIVE-SIEGE.md`; plus the combat-HUD premium redesign + game-feel pass, the
-> zone-flicker fix (layout-stable banners, danger zoom retired — `docs/CAMERA.md` §8), and the
-> **early-campaign difficulty contract**: EHP threat costs, per-wave unit/elite ramps, grace
-> window, flat leak damage, biome-ratchet `recommendedPower`, mortar predictive lead —
-> probe-calibrated ×0.75/×1.0/×1.25/×1.7 across stages 1–24; `docs/DIFFICULTY.md` §contract,
-> `docs/CAMPAIGN.md` §grace).
+> **Last updated:** 2026-07-04 (evening session — **STRAIN + BIOMORPH CONVEYOR complete**:
+> all 8 prompts shipped incl. the PROMPT-8 simulation report + economy retune (deploy
+> 100·1.11ⁿ, strain 100·1.05ⁿ×[3,4,5,6]) and the integration long-tail (lifetime ledgers,
+> achievements, tutorial nod) — `docs/STRAIN.md` §9; and the **TOWER EXPANSION**: Carrion Maw
+> / Amber Chrysalis / Wailing Effigy with every progression layer (branches, stars,
+> adaptation, organs, Strain II–V ×12 verbs, cards, affixes, sounds), Freeze/Fear statuses
+> with the engine refractory window + flees semantics, contract probes green at 8 kinds,
+> goldens re-pinned twice deliberately — `docs/TOWERS.md` §expansion. Earlier the same day:
+> HIVE SIEGE combat model + contact rebalance + presentation — `docs/HIVE-SIEGE.md`).
 
 ## Completed systems (shipped + tested + documented)
 
