@@ -21,6 +21,12 @@ export interface StrainHooks {
   twinCastChance?: number;
   /** Positional shells FRAGMENT on impact into sub-munitions around the crater. */
   fragmentOnImpact?: { count: number; damageFrac: number; radius: number };
+  /** Homing shots that KILL leap to another victim (kill-chaining — distinct from pierce,
+   *  which passes through regardless). Once per shot. */
+  ricochetOnKill?: { range: number; damageFrac: number };
+  /** Blast STAGGER: enemies caught in a splash impact are knocked back up-lane (px) — even
+   *  off the Hive crust. No other system grants displacement. */
+  impactKnockback?: number;
 }
 
 export interface StrainDef {
@@ -51,6 +57,16 @@ strainRegistry.register({
   hooks: { twinCastChance: 0.25 },
 });
 strainRegistry.register({
+  id: 'needle:3', tower: 'needle', level: 3, name: 'Hungering Barbs',
+  desc: 'Needles that KILL leap to another victim — the barb is not done feeding.',
+  hooks: { ricochetOnKill: { range: 140, damageFrac: 0.6 } },
+});
+strainRegistry.register({
+  id: 'mortar:2', tower: 'mortar', level: 2, name: 'Concussive Marrow',
+  desc: 'Shells STAGGER — the blast hurls enemies back up-lane, even off the Hive itself.',
+  hooks: { impactKnockback: 34 },
+});
+strainRegistry.register({
   id: 'mortar:3', tower: 'mortar', level: 3, name: 'Calcified Clusters',
   desc: 'Shells FRAGMENT on impact — bone shrapnel bursts around the crater.',
   hooks: { fragmentOnImpact: { count: 3, damageFrac: 0.35, radius: 42 } },
@@ -69,6 +85,8 @@ export function resolveStrain(kind: TowerKind, level: number): StrainHooks {
     out ??= {};
     if (d.hooks.twinCastChance !== undefined) out.twinCastChance = d.hooks.twinCastChance;
     if (d.hooks.fragmentOnImpact !== undefined) out.fragmentOnImpact = d.hooks.fragmentOnImpact;
+    if (d.hooks.ricochetOnKill !== undefined) out.ricochetOnKill = d.hooks.ricochetOnKill;
+    if (d.hooks.impactKnockback !== undefined) out.impactKnockback = d.hooks.impactKnockback;
   }
   return out ?? EMPTY_HOOKS;
 }

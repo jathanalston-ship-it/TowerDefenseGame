@@ -27,7 +27,7 @@ Canonical per-tower ladders (authored in `strains.ts`, PROMPT-2 scope):
 | Tower | II | III | IV | V |
 |---|---|---|---|---|
 | Needle Spitter | secondary firing organ: chance to TWIN-CAST | needles RICOCHET to a 2nd victim | twin organ matures: twin-casts also fork | APEX: sustained-fire frenzy windows |
-| Bone Mortar | shells leave bone SHRAPNEL pools | shells FRAGMENT into sub-munitions | fragments inherit corrosion pools | orbital double-shell (echo barrage) |
+| Bone Mortar | concussive STAGGER: blasts knock enemies back up-lane | shells FRAGMENT into sub-munitions | fragments inherit the knockback | orbital double-shell (echo barrage) |
 | Flesh Reactor | overcharge pulses HEAL the Hive 1/wave | biomass surge on wave start | adjacency ring widens: pulses LINK reactors | reactor births a harvester organism |
 | Parasite Nest | infected enemies SLOW others on death | parasites JUMP once on host death | parasites mature into ELITE variants | nest becomes a brood: periodic swarm |
 | Neural Obelisk | control field applies static CHARGE stacks | charged enemies ARC to neighbors | arcs STUN at charge threshold | chain lightning permanently FORKS |

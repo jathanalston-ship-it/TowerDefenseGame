@@ -209,6 +209,10 @@ export interface Projectile {
   fade?: number;
   /** STRAIN fragmentation payload (docs/STRAIN.md) — splash shells split on impact. */
   fragment?: { count: number; damageFrac: number; radius: number };
+  /** STRAIN kill-chaining (docs/STRAIN.md) — a killing shot leaps once to a new victim. */
+  ricochet?: { range: number; damageFrac: number };
+  /** STRAIN concussive stagger (docs/STRAIN.md) — splash knocks survivors back up-lane (px). */
+  knockback?: number;
 }
 
 export interface Pool {

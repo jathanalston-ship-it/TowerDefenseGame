@@ -439,7 +439,9 @@ export class Game {
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
   private castProjectileSkinTier = 0;
-  private castFragment: { count: number; damageFrac: number; radius: number } | null = null; // STRAIN §framework: splash shells fragment on impact // branch tier tagged onto shots (drives projectile evolution; 0 = base)
+  private castFragment: { count: number; damageFrac: number; radius: number } | null = null; // STRAIN §framework: splash shells fragment on impact
+  private castRicochet: { range: number; damageFrac: number } | null = null; // STRAIN: kill-chaining needles
+  private castKnockback = 0; // STRAIN: concussive splash stagger (px up-lane) // branch tier tagged onto shots (drives projectile evolution; 0 = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -2247,6 +2249,8 @@ export class Game {
       // rng, zero work ⇒ pre-strain runs byte-identical). Fragmentation rides the projectile.
       const sk = resolveStrain(t.kind, t.strain);
       this.castFragment = sk.fragmentOnImpact ?? null;
+      this.castRicochet = sk.ricochetOnKill ?? null;
+      this.castKnockback = sk.impactKnockback ?? 0;
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
       // Secondary firing organ (twin-cast): the WHOLE cast repeats once on the proc — a new
       // volley, not extra projectiles (that axis belongs to stars/branches).
@@ -2266,6 +2270,8 @@ export class Game {
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
     this.castFragment = null;
+    this.castRicochet = null;
+    this.castKnockback = 0;
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
     this.castRangeMult = 1;
@@ -2394,6 +2400,25 @@ export class Game {
           this.pushSfx('hit');
           if (p.skin) this.spawnBranchImpact(p.x, p.y, p.skin, p.skinTier ?? 1); // branch-flavoured landing (cosmetic; un-skinned golden shots skip it)
           if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: p.targetId, byTower: p.sourceKind });
+          // STRAIN kill-chaining (docs/STRAIN.md §identity — Hungering Barbs): a shot that
+          // KILLS leaps once to the nearest living victim (distinct from pierce, which passes
+          // through regardless of the outcome).
+          if (p.ricochet && !target.alive) {
+            const rr = p.ricochet;
+            p.ricochet = undefined; // once per shot
+            let next: Enemy | null = null;
+            let bd = rr.range * rr.range;
+            this.grid.forNeighbors(p.x, p.y, rr.range, (o) => {
+              if (!o.alive || o.id === target.id) return;
+              const d2n = dist2(p.x, p.y, o.x, o.y);
+              if (d2n < bd) { bd = d2n; next = o; }
+            });
+            if (next !== null) {
+              p.targetId = (next as Enemy).id;
+              p.damage *= rr.damageFrac;
+              continue; // stays alive — the barb leaps instead of dying
+            }
+          }
           // Pierce (mutators.ts): pass THROUGH to the next unhit foe instead of dying. A
           // projectile with no pierce (the default) dies here exactly as before (golden-safe).
           if (p.pierce && p.pierce > 0) {
@@ -2464,6 +2489,16 @@ export class Game {
         e.corrosion = STATUS.corrosionDuration;
         if (this.mods.mortarAppliesFracture) this.addFracture(e, 1);
         this.maybeReact(e);
+        // STRAIN concussive stagger (docs/STRAIN.md §identity — Concussive Marrow): the blast
+        // hurls survivors back UP-LANE — displacement no other system grants. Bosses hold
+        // their ground; a knocked attacker loses its crust lock and must re-approach.
+        if (p.knockback && e.alive && !e.boss) {
+          e.y = Math.max(24, e.y - p.knockback);
+          if (e.sieging) {
+            e.sieging = false;
+            e.windup = -1;
+          }
+        }
       }
     });
     this.pools.push({
@@ -3290,6 +3325,8 @@ export class Game {
       p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
       if (p.hitIds) p.hitIds.length = 0;
       if (this.castFragment && behavior === 'splash') p.fragment = this.castFragment;
+      if (this.castKnockback > 0 && behavior === 'splash') p.knockback = this.castKnockback;
+      if (this.castRicochet && behavior === 'homing') p.ricochet = this.castRicochet;
       this.projectiles.push(p);
       this.applyProjectileMutators(p);
     } else {

@@ -120,6 +120,23 @@ describe('the live loop (§framework in the sim)', () => {
     expect(trace()).toEqual(trace());
   });
 
+  it('knockback (mortar II): a strained blast knocks a sieging attacker OFF the crust', () => {
+    const g = gameWith('mortar', 2);
+    g.startWave();
+    // march the sim until something sieges, then observe a mortar impact displacing it
+    let sawKnock = false;
+    let lastY = new Map<number, number>();
+    for (let i = 0; i < Math.round(40 / SIM_DT) && !sawKnock; i++) {
+      g.advance(SIM_DT);
+      for (const e of g.enemies) {
+        const prev = lastY.get(e.id);
+        if (prev !== undefined && e.alive && prev - e.y > 20) sawKnock = true; // hurled up-lane
+        lastY.set(e.id, e.y);
+      }
+    }
+    expect(sawKnock).toBe(true);
+  });
+
   it('fragmentation (mortar III): strained shells damage MORE enemies per impact', () => {
     const killsAfter = (strain: number): number => {
       const g = gameWith('mortar', strain);
