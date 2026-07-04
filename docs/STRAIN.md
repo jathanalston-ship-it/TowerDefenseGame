@@ -22,15 +22,15 @@ tiers, Stars, Mastery, Equipment, Hero or Global upgrades. The framework enforce
 vocabulary: `StrainHooks` fields are NEW verbs the executor implements only for strains.
 Multipliers are forbidden in hooks (power comes as a side effect of the mechanic).
 
-Canonical per-tower ladders (authored in `strains.ts`, PROMPT-2 scope):
+The authored ladders (all 20 in `strains.ts`; each verb implemented ONCE in the sim):
 
 | Tower | II | III | IV | V |
 |---|---|---|---|---|
-| Needle Spitter | secondary firing organ: chance to TWIN-CAST | needles RICOCHET to a 2nd victim | twin organ matures: twin-casts also fork | APEX: sustained-fire frenzy windows |
-| Bone Mortar | concussive STAGGER: blasts knock enemies back up-lane | shells FRAGMENT into sub-munitions | fragments inherit the knockback | orbital double-shell (echo barrage) |
-| Flesh Reactor | overcharge pulses HEAL the Hive 1/wave | biomass surge on wave start | adjacency ring widens: pulses LINK reactors | reactor births a harvester organism |
-| Parasite Nest | infected enemies SLOW others on death | parasites JUMP once on host death | parasites mature into ELITE variants | nest becomes a brood: periodic swarm |
-| Neural Obelisk | control field applies static CHARGE stacks | charged enemies ARC to neighbors | arcs STUN at charge threshold | chain lightning permanently FORKS |
+| Needle Spitter | **Secondary Spinneret** — casts TWIN-FIRE on a proc | **Hungering Barbs** — killing shots LEAP to a new victim | **Venom Ducts** — marks DETONATE at 3 stacks | **Apex Spinneret** — rhythmic FRENZY windows (twin-fire guaranteed) |
+| Bone Mortar | **Concussive Marrow** — blasts STAGGER enemies up-lane (even off the Hive crust) | **Calcified Clusters** — shells FRAGMENT into sub-munitions | **Shockbone Lattice** — the fragments stagger too | **Echoing Howitzer** — every shell chased by a slower ECHO |
+| Flesh Reactor | **Adrenal Glands** — overcharged towers open waves with reset cooldowns | **Glut Sacs** — biomass SURGE at each wave start | **Synaptic Weave** — chained reactors project a WIDER overcharge ring | **Womb of the Colony** — BIRTHS a harvester organism |
+| Parasite Nest | **Spore Bloat** — infected deaths burst a SLOWING cloud | **Leaping Broodworm** — the plague LEAPS to a distant host on death | **Neural Infestation** — full infection SEIZES the host (stun, once) | **Brood Nest** — BIRTHS broodling swarms |
+| Neural Obelisk | **Static Ganglia** — the field CHARGES enemies stack by stack | **Arc Synapse** — at 6 stacks the host DISCHARGES into neighbors | **Overload Cortex** — discharges STUN their arc victims | **Storm Crown** — every discharge FORKS to 2 extra victims |
 
 ## 2. Framework (§framework)
 
@@ -99,7 +99,10 @@ The audit rule: any surface that renders a tower's identity must render its stra
 
 ## 8. Status
 
-- ✅ Framework (this doc §2–§3): types, registry, resolution, power, cast-path reference hooks
-  (twin-cast, fragmentation), renderer organ ladder, Inspector display, tests.
-- ⏳ PROMPT 2 ladders · ⏳ §conveyor · ⏳ §merge · ⏳ §economy · ⏳ §integration · ⏳ simulation
-  report (PROMPT 8) · ⏳ three new towers (separate expansion — must inherit Strain for free).
+- ✅ Framework (this doc §2–§3): types, registry, resolution, power, cast-path hooks, renderer
+  organ ladder, Inspector display, tests.
+- ✅ PROMPT 2 ladders: all 20 defs, 16 unique verbs live in the executor (cast path, impacts,
+  wave-start, tower caches topology, infection paths, obelisk field), contract-tested.
+  Per-tower SIGNATURE organs (beyond the shared II–V ladder) remain a polish hook (§visuals).
+- ⏳ §conveyor · ⏳ §merge · ⏳ §economy · ⏳ §integration · ⏳ simulation report (PROMPT 8) ·
+  ⏳ three new towers (separate expansion — must inherit Strain for free).

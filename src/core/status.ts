@@ -68,6 +68,9 @@ export const STATUS_EFFECTS = {
   slow: def({ id: 'slow', name: 'Slow', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 2.0, color: '#8fd6ff', icon: 'SL', slowPct: 0.4 }),
   armorBreak: def({ id: 'armorBreak', name: 'Armor Break', category: 'debuff', stack: 'refresh', maxStacks: 1, baseDuration: 3.0, color: '#ffd24d', icon: 'AB', armorShred: 999 }),
   stun: def({ id: 'stun', name: 'Stun', category: 'control', stack: 'ignore', maxStacks: 1, baseDuration: 1.0, color: '#ffe066', icon: 'ST', disablesAttack: true, slowPct: 1 }),
+  // STRAIN static charge (docs/STRAIN.md — Neural Obelisk ladder): a pure ACCUMULATOR the
+  // obelisk's discharge reads at its threshold. No aggregate fields ⇒ inert to move/vuln folds.
+  charge: def({ id: 'charge', name: 'Static Charge', category: 'debuff', stack: 'stack', maxStacks: 12, baseDuration: 5.0, color: '#ffd24d', icon: 'CH' }),
   freeze: def({ id: 'freeze', name: 'Freeze', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 1.5, color: '#7fe9ff', icon: 'FZ', disablesAttack: true, slowPct: 1 }),
   fear: def({ id: 'fear', name: 'Fear', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 1.5, color: '#c08aff', icon: 'FE', disablesAttack: true }),
   silence: def({ id: 'silence', name: 'Silence', category: 'control', stack: 'refresh', maxStacks: 1, baseDuration: 2.0, color: '#b0b0c0', icon: 'SI', disablesAttack: true }),

@@ -106,6 +106,8 @@ export interface Enemy {
   shieldFlash?: number; // seconds of shield-SHATTER flash remaining (visual; set when it breaks)
   summonCd?: number; // seconds until the next add spawns (Summoner)
   siegeCd?: number; // seconds until the next bombardment volley (Artillery)
+  venom?: number; // STRAIN venom marks (docs/STRAIN.md — Venom Ducts); undefined on the base path
+  seized?: boolean; // STRAIN infestation latch (one seize per host); undefined on the base path
 }
 
 /** An ARTILLERY shell in flight (Siege Maw / Acid Spitter bombardment — docs/ENEMIES.md
@@ -177,6 +179,7 @@ export interface Tower {
   /** STRAIN level 1..5 (docs/STRAIN.md) — the in-run evolution layer. Run-temporary like the
    *  branch; 1 = unmutated baseline (empty kit, zero rng ⇒ golden-safe by construction). */
   strain: number;
+  strainCd: number; // generic strain cadence (harvester births, brood swarms …); 0 when unused
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
@@ -213,6 +216,10 @@ export interface Projectile {
   ricochet?: { range: number; damageFrac: number };
   /** STRAIN concussive stagger (docs/STRAIN.md) — splash knocks survivors back up-lane (px). */
   knockback?: number;
+  /** STRAIN venom payload (docs/STRAIN.md) — hits mark the host; marks detonate at threshold. */
+  venom?: { threshold: number; burstFrac: number };
+  /** STRAIN fragment stagger (docs/STRAIN.md) — sub-munitions inherit the knockback. */
+  fragKnockback?: number;
 }
 
 export interface Pool {

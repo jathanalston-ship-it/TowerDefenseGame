@@ -8,7 +8,7 @@ import { SIM_DT } from './config';
 import { towerSlots } from './map';
 import { resolveStrain, strainRegistry, strainsFor, strainPowerEffects, STRAIN_LEVEL_POWER } from './strains';
 import { effectsPower } from './power';
-import type { MetaModifiers } from './types';
+import type { MetaModifiers, TowerKind } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
@@ -62,12 +62,13 @@ describe('power (§power)', () => {
 });
 
 describe('the live loop (§framework in the sim)', () => {
-  function gameWith(kind: 'needle' | 'mortar', strain: number): Game {
-    const g = new Game(7, NO_META);
+  function gameWith(kind: TowerKind, strain: number, seed = 7): Game {
+    const g = new Game(seed, NO_META);
     const slot = towerSlots[0];
     expect(g.placeTower(kind, slot.x, slot.y)).toBe(true);
     const t = g.towers[0];
     t.strain = strain; // framework-level test seam (acquisition is the conveyor's job)
+    (g as unknown as { recomputeTowerCaches: () => void }).recomputeTowerCaches(); // refresh cross-cut kits
     return g;
   }
 
@@ -145,5 +146,85 @@ describe('the live loop (§framework in the sim)', () => {
       return g.kills;
     };
     expect(killsAfter(3)).toBeGreaterThanOrEqual(killsAfter(1)); // fragments only add damage
+  });
+
+  it('births (parasite V): the Brood Nest produces broodlings on its own cadence', () => {
+    const g = gameWith('parasite', 5);
+    g.startWave();
+    let sawBrood = false;
+    for (let i = 0; i < Math.round(14 / SIM_DT) && !sawBrood; i++) {
+      g.advance(SIM_DT);
+      if (g.minions.some((m) => m.kind === 'broodling')) sawBrood = true;
+    }
+    expect(sawBrood).toBe(true);
+  });
+
+  it('seize (parasite IV): a fully infected host is STUNNED once (latched)', () => {
+    const g = gameWith('parasite', 4);
+    g.startWave();
+    let sawSeize = false;
+    for (let i = 0; i < Math.round(30 / SIM_DT) && !sawSeize; i++) {
+      g.advance(SIM_DT);
+      for (const e of g.enemies) {
+        if (e.seized) {
+          sawSeize = true;
+          expect(e.statuses?.some((x) => x.id === 'stun')).toBe(true);
+        }
+      }
+    }
+    expect(sawSeize).toBe(true);
+  });
+
+  it('static field (obelisk II+): enemies inside the field accumulate CHARGE stacks', () => {
+    const g = gameWith('obelisk', 2);
+    g.startWave();
+    let sawCharge = false;
+    for (let i = 0; i < Math.round(15 / SIM_DT) && !sawCharge; i++) {
+      g.advance(SIM_DT);
+      if (g.enemies.some((e) => e.statuses?.some((x) => x.id === 'charge' && x.stacks > 0))) sawCharge = true;
+    }
+    expect(sawCharge).toBe(true);
+  });
+
+  it('adrenal jolt (reactor II): overcharged towers open the wave with cooldown 0', () => {
+    const g = new Game(7, NO_META);
+    // a reactor + the nearest orthogonal slot (within the 90px support radius)
+    const s0 = towerSlots[0];
+    expect(g.placeTower('reactor', s0.x, s0.y)).toBe(true);
+    const near = towerSlots.find((sl) => sl.index !== s0.index && Math.hypot(sl.x - s0.x, sl.y - s0.y) < 90)!;
+    expect(g.placeTower('needle', near.x, near.y)).toBe(true);
+    const reactor = g.towers.find((t) => t.kind === 'reactor')!;
+    const needle = g.towers.find((t) => t.kind === 'needle')!;
+    reactor.strain = 2;
+    (g as unknown as { recomputeTowerCaches: () => void }).recomputeTowerCaches();
+    expect(needle.overcharged).toBe(true);
+    needle.cooldown = 3; // pretend it just fired
+    g.startWave();
+    expect(needle.cooldown).toBe(0); // the jolt reset it as the wave opened
+  });
+
+  it('synaptic weave (reactor IV): chained reactors overcharge FARTHER than a lone one', () => {
+    const g = new Game(7, NO_META);
+    g.biomass = 10000; // fund the three placements — geometry is what's under test
+    const s0 = towerSlots[0];
+    expect(g.placeTower('reactor', s0.x, s0.y)).toBe(true);
+    // a second reactor within chain reach (≤ 2× support radius) and a tower in the
+    // extended-but-not-base band (90 < d ≤ ~130) of the first reactor
+    const s1 = towerSlots.find((sl) => sl.index !== s0.index && Math.hypot(sl.x - s0.x, sl.y - s0.y) <= 180 && Math.hypot(sl.x - s0.x, sl.y - s0.y) > 60)!;
+    expect(g.placeTower('reactor', s1.x, s1.y)).toBe(true);
+    const band = towerSlots.find((sl) => {
+      const d0 = Math.hypot(sl.x - s0.x, sl.y - s0.y);
+      const d1 = Math.hypot(sl.x - s1.x, sl.y - s1.y);
+      return sl.index !== s0.index && sl.index !== s1.index && Math.min(d0, d1) > 92 && Math.min(d0, d1) < 128;
+    })!;
+    expect(band).toBeDefined();
+    expect(g.placeTower('needle', band.x, band.y)).toBe(true);
+    const needle = g.towers.find((t) => t.kind === 'needle')!;
+    const rc = (g as unknown as { recomputeTowerCaches: () => void });
+    rc.recomputeTowerCaches();
+    expect(needle.overcharged).toBe(false); // out of base reach
+    for (const t of g.towers) if (t.kind === 'reactor') t.strain = 4;
+    rc.recomputeTowerCaches();
+    expect(needle.overcharged).toBe(true); // the weave extends the chained ring
   });
 });

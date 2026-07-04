@@ -100,6 +100,7 @@ import { applyMutators } from './mutators';
 import { gameEvents } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
 import { resolveStrain, strainRegistry, strainPowerEffects } from './strains';
+import type { StrainHooks } from './strains';
 import type { Branch, ResolvedBranchKit } from './branches';
 import { BRANCH_COSTS } from './config';
 
@@ -441,7 +442,16 @@ export class Game {
   private castProjectileSkinTier = 0;
   private castFragment: { count: number; damageFrac: number; radius: number } | null = null; // STRAIN §framework: splash shells fragment on impact
   private castRicochet: { range: number; damageFrac: number } | null = null; // STRAIN: kill-chaining needles
-  private castKnockback = 0; // STRAIN: concussive splash stagger (px up-lane) // branch tier tagged onto shots (drives projectile evolution; 0 = base)
+  private castKnockback = 0; // STRAIN: concussive splash stagger (px up-lane)
+  private castVenom: { threshold: number; burstFrac: number } | null = null; // STRAIN: venom-mark detonation
+  private castEcho: { speedFrac: number; damageFrac: number } | null = null; // STRAIN: echo shells
+  private castFragKnockback = false; // STRAIN: fragments inherit the stagger
+  private echoing = false; // re-entrancy guard: an echo never spawns its own echo
+  // Cross-cut strain kits (docs/STRAIN.md): the plague/wave verbs act outside a tower's own
+  // cast, so the MAX-strain kit per kind is cached on the same cadence as the tower caches.
+  private parasiteKit: StrainHooks = {};
+  private reactorKit: StrainHooks = {};
+  private readonly arcScratch: Enemy[] = []; // obelisk discharge neighbor scratch (zero-alloc) // branch tier tagged onto shots (drives projectile evolution; 0 = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -933,6 +943,85 @@ export class Game {
     return 'ok';
   }
 
+  /** STRAIN reactor wave-openers (docs/STRAIN.md — Adrenal Glands / Glut Sacs): fires as each
+   *  wave starts. Empty kit (no strained reactor) ⇒ complete no-op, golden-safe. */
+  private applyWaveStartStrains(): void {
+    const rk = this.reactorKit;
+    if (rk.waveSurge !== undefined) {
+      let surged = 0;
+      for (const t of this.towers) {
+        if (t.kind === 'reactor' && t.strain >= 3) {
+          surged += rk.waveSurge;
+          this.spawnParticles(t.x, t.y, PARTICLE.bloom, TOWER_DEFS.reactor.color, 0.6);
+        }
+      }
+      if (surged > 0) {
+        this.biomass += surged;
+        this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 30, text: `+${Math.round(surged)}`, color: '#b6e84a', life: 1.0 });
+      }
+    }
+    if (rk.waveStartReset === true) {
+      for (const t of this.towers) {
+        if (t.overcharged) t.cooldown = 0; // the jolt: an opening alpha-strike
+      }
+    }
+  }
+
+  /** STRAIN births (docs/STRAIN.md — Womb of the Colony / Brood Nest): the organism produces
+   *  friendly units on its own cadence. Runs only for towers past Strain I with a births verb. */
+  private strainBirthTick(t: Tower, dt: number): void {
+    const sk = resolveStrain(t.kind, t.strain);
+    const b = sk.births;
+    if (!b) return;
+    t.strainCd -= dt;
+    if (t.strainCd > 0) return;
+    t.strainCd = b.interval;
+    this.summonMinions(b.unit, b.count, t.x, t.y - 14);
+  }
+
+  /** STRAIN static field (docs/STRAIN.md — obelisk ladder): each control pulse CHARGES every
+   *  enemy in the field; at the arc threshold the host DISCHARGES — damage (and stun) leaping
+   *  to its neighbors, forking wider at Storm Crown. One pass per pulse, gameplay-rng-free. */
+  private obeliskStrainPulse(t: Tower, sk: StrainHooks): void {
+    const chargeDef = statusRegistry.get('charge');
+    if (!chargeDef || sk.staticCharge === undefined) return;
+    const def = TOWER_DEFS.obelisk;
+    const r = (this.towerEffectiveRange.obelisk ?? def.range) * this.castRangeMult;
+    const r2 = r * r;
+    const stacksPerPulse = Math.max(1, Math.round(sk.staticCharge.perSec * def.fireInterval));
+    const arc = sk.chargeArc;
+    this.grid.forNeighbors(t.x, t.y, r, (e) => {
+      if (!e.alive || dist2(t.x, t.y, e.x, e.y) > r2) return;
+      e.statuses ??= [];
+      applyStatusInstance(e.statuses, chargeDef, stacksPerPulse);
+      if (arc === undefined) return;
+      const st = e.statuses.find((x) => x.id === 'charge');
+      if (!st || st.stacks < arc.threshold) return;
+      st.stacks = 0; // the discharge consumes the charge
+      st.remaining = 0.01;
+      this.applyDamage(e, arc.damage, 'obelisk');
+      this.spawnParticles(e.x, e.y, PARTICLE.shred, TOWER_DEFS.obelisk.color, 0.8);
+      // Arc to the nearest victims — 1 leap, +forks at Storm Crown.
+      const jumps = 1 + (sk.arcForks ?? 0);
+      const near = this.arcScratch;
+      this.grid.queryInto(e.x, e.y, arc.radius, near);
+      near.sort((a, b) => dist2(e.x, e.y, a.x, a.y) - dist2(e.x, e.y, b.x, b.y));
+      let hit = 0;
+      for (let i = 0; i < near.length && hit < jumps; i++) {
+        const o = near[i];
+        if (!o.alive || o === e) continue;
+        if (dist2(e.x, e.y, o.x, o.y) > arc.radius * arc.radius) break;
+        this.applyDamage(o, arc.damage, 'obelisk');
+        if (sk.chargeStun !== undefined && this.applyEffect(o, 'stun')) {
+          const stn = o.statuses?.find((x) => x.id === 'stun');
+          if (stn) stn.remaining = sk.chargeStun;
+        }
+        this.spawnParticles(o.x, o.y, PARTICLE.shred, TOWER_DEFS.obelisk.color, 0.5);
+        hit++;
+      }
+    });
+  }
+
   /** The branch-tier purchase MOMENT: a brief view-freeze, a mutation burst, biomass visibly
    *  absorbed into the tower, a cost float, a meaty cue (which also shakes the screen), and a
    *  transient upgrade banner. Cosmetic only — FX rng + sfx queue + presentation fields, so the
@@ -1263,6 +1352,7 @@ export class Game {
       branchId: null,
       tier: 0,
       strain: 1, // Strain I — the unmutated baseline (docs/STRAIN.md)
+      strainCd: 0,
       pulseCd: 0,
       mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
       movedAt: -100, // never relocated ⇒ no landing-impact FX
@@ -1391,6 +1481,7 @@ export class Game {
     this.applyRunEvent(this.waveIndex); // Run Identity: fold this wave's beat + anomaly (no-op in Stage)
     this.spawnedAll = false;
     this.waveStartIntegrity = this.integrity;
+    this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
@@ -1416,6 +1507,7 @@ export class Game {
     );
     this.spawnedAll = false;
     this.waveStartIntegrity = this.integrity;
+    this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth);
     this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
@@ -2093,7 +2185,34 @@ export class Game {
     // any reactor is overcharged. At the base 90px this catches orthogonal lattice neighbours
     // (80px) and excludes diagonals (≈113px) — reproducing the former slot-adjacency exactly —
     // and the upgrade widens the reach to support farther towers.
-    const supportR2 = this.towerEffectiveRange.reactor * this.towerEffectiveRange.reactor;
+    const supportR = this.towerEffectiveRange.reactor;
+    const supportR2 = supportR * supportR;
+    // STRAIN Synaptic Weave (docs/STRAIN.md — reactor IV): CHAINED reactors amplify each other —
+    // a reactor with another reactor in weave reach projects a wider overcharge ring. Topology,
+    // not a stat: only linked reactors get the extended radius. Empty kit ⇒ base behaviour.
+    let maxReactorStrain = 1;
+    let maxParasiteStrain = 1;
+    for (const t of this.towers) {
+      if (t.kind === 'reactor' && t.strain > maxReactorStrain) maxReactorStrain = t.strain;
+      if (t.kind === 'parasite' && t.strain > maxParasiteStrain) maxParasiteStrain = t.strain;
+    }
+    this.reactorKit = resolveStrain('reactor', maxReactorStrain);
+    this.parasiteKit = resolveStrain('parasite', maxParasiteStrain);
+    const weave = this.reactorKit.reactorLink === true;
+    const linked: boolean[] = [];
+    if (weave) {
+      const weaveR2 = supportR2 * 4; // chain reach: 2× the support radius
+      for (let i = 0; i < reactors.length; i++) {
+        linked[i] = false;
+        for (let j = 0; j < reactors.length; j++) {
+          if (i !== j && dist2(reactors[i].x, reactors[i].y, reactors[j].x, reactors[j].y) <= weaveR2) {
+            linked[i] = true;
+            break;
+          }
+        }
+      }
+    }
+    const linkedR2 = supportR * 1.45 * (supportR * 1.45);
     for (const t of this.towers) {
       if (t.kind === 'reactor') {
         t.overcharged = false;
@@ -2101,8 +2220,10 @@ export class Game {
       }
       const slot = towerSlots[t.slot];
       let oc = false;
-      for (const rc of reactors) {
-        if (dist2(rc.x, rc.y, slot.x, slot.y) <= supportR2) {
+      for (let i = 0; i < reactors.length; i++) {
+        const rc = reactors[i];
+        const reach = weave && linked[i] ? linkedR2 : supportR2;
+        if (dist2(rc.x, rc.y, slot.x, slot.y) <= reach) {
           oc = true;
           break;
         }
@@ -2187,6 +2308,7 @@ export class Game {
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
+      if (t.strain > 1) this.strainBirthTick(t, dt); // STRAIN births (harvester / brood) — any kind
       if (def.firing === 'support') {
         if (t.tier > 0) this.supportBranchPulse(t, dt); // branched reactor: pulse its mutations
         continue; // base economy/overcharge handled in economySystem
@@ -2251,17 +2373,28 @@ export class Game {
       this.castFragment = sk.fragmentOnImpact ?? null;
       this.castRicochet = sk.ricochetOnKill ?? null;
       this.castKnockback = sk.impactKnockback ?? 0;
+      this.castVenom = sk.venomMark ?? null;
+      this.castEcho = sk.echoShell ?? null;
+      this.castFragKnockback = sk.fragmentsKnockback === true;
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
       // Secondary firing organ (twin-cast): the WHOLE cast repeats once on the proc — a new
-      // volley, not extra projectiles (that axis belongs to stars/branches).
-      if (acted && sk.twinCastChance !== undefined && this.rng.next() < sk.twinCastChance) {
-        runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
+      // volley, not extra projectiles (that axis belongs to stars/branches). During an APEX
+      // FRENZY window (docs/STRAIN.md — Apex Spinneret) the proc is GUARANTEED: a readable
+      // rhythmic burst beat, still consuming the roll so the rng stream stays uniform.
+      if (acted && sk.twinCastChance !== undefined) {
+        const roll = this.rng.next();
+        const fw = sk.frenzyWindow;
+        const frenzied = fw !== undefined && this.time % fw.period < fw.duration;
+        if (frenzied || roll < sk.twinCastChance) {
+          runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
+        }
       }
       // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
       // Branch-granted attacks (shrapnel crits, infection, neural bolts …) on the same cadence.
       if (bk && bk.extraAbilities.length) acted = runAbilities(this.actx, bk.extraAbilities, this.castScratch) || acted;
       if (acted) {
+        if (sk.staticCharge !== undefined) this.obeliskStrainPulse(t, sk); // STRAIN static field rides the pulse
         t.cooldown = def.fireInterval / rateMult;
         // Branch sensory signature (TOWER-BRANCHES.md §1): a muzzle spray + sound on every shot.
         // Cosmetic only (FX rng + sfx queue) ⇒ golden-safe; bk is null on the unbranched/autoplay path.
@@ -2272,6 +2405,9 @@ export class Game {
     this.castFragment = null;
     this.castRicochet = null;
     this.castKnockback = 0;
+    this.castVenom = null;
+    this.castEcho = null;
+    this.castFragKnockback = false;
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
     this.castRangeMult = 1;
@@ -2391,6 +2527,16 @@ export class Game {
         const d = Math.hypot(dx, dy); // one sqrt for both the arrival test and the move
         if (d <= step + COMBAT.projectileHitEpsilon) {
           this.applyDamage(target, p.damage, p.sourceKind);
+          // STRAIN venom marks (docs/STRAIN.md — Venom Ducts): each hit brands the host; the
+          // Nth mark DETONATES for a burst scaled off this hit. Optional field ⇒ base path free.
+          if (p.venom && target.alive) {
+            target.venom = (target.venom ?? 0) + 1;
+            if (target.venom >= p.venom.threshold) {
+              target.venom = 0;
+              this.applyDamage(target, p.damage * p.venom.burstFrac, p.sourceKind);
+              this.spawnParticles(target.x, target.y, PARTICLE.shred, TOWER_DEFS.needle.color, 0.7);
+            }
+          }
           if (p.behavior === 'parasite') {
             this.infect(target, STATUS.infectionOnHit); // Viral payload (no Fracture)
           } else {
@@ -2474,7 +2620,17 @@ export class Game {
         const r2f = f.radius * f.radius * 0.25;
         this.grid.forNeighbors(fx, fy, f.radius * 0.5, (e) => {
           if (!e.alive) return;
-          if (dist2(fx, fy, e.x, e.y) <= r2f) this.applyDamage(e, p.damage * f.damageFrac, p.sourceKind);
+          if (dist2(fx, fy, e.x, e.y) <= r2f) {
+            this.applyDamage(e, p.damage * f.damageFrac, p.sourceKind);
+            // STRAIN Shockbone Lattice: the shrapnel itself staggers (docs/STRAIN.md).
+            if (p.fragKnockback && e.alive && !e.boss) {
+              e.y = Math.max(24, e.y - p.fragKnockback);
+              if (e.sieging) {
+                e.sieging = false;
+                e.windup = -1;
+              }
+            }
+          }
         });
         this.spawnParticles(fx, fy, PARTICLE.breach, TOWER_DEFS.mortar.color, 0.5);
       }
@@ -2544,6 +2700,17 @@ export class Game {
       if (e.infection > 0) {
         // Viral: ramp toward the cap, then bleed armor-ignoring DoT scaled by stacks.
         e.infection = Math.min(STATUS.infectionMaxStacks, e.infection + STATUS.infectionRampPerSec * dt);
+        // STRAIN Neural Infestation (docs/STRAIN.md): at FULL infection the parasite seizes the
+        // host once — the body stops obeying. Latched per enemy; empty kit ⇒ no-op.
+        const seize = this.parasiteKit.infectionSeize;
+        if (seize !== undefined && !e.seized && e.infection >= STATUS.infectionMaxStacks - 1e-9) {
+          e.seized = true;
+          if (this.applyEffect(e, 'stun')) {
+            const stn = e.statuses?.find((x) => x.id === 'stun');
+            if (stn) stn.remaining = seize.stunSeconds;
+          }
+          this.spawnParticles(e.x, e.y, PARTICLE.mutate, TOWER_DEFS.parasite.color, 0.9);
+        }
         this.applyInfectionDamage(e, e.infection * STATUS.infectionDpsPerStack * this.mods.parasiteInfectionMult * dt);
       }
       if (e.disrupt > 0) e.disrupt = Math.max(0, e.disrupt - dt); // Neural slow + vulnerability decays
@@ -3264,7 +3431,37 @@ export class Game {
         this.statKillsByEnemy[e.kind]++; // lifetime-stats observation
         if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1); // a boss fell
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
-        if (e.infection > 0) this.spreadInfection(e); // Viral: the plague jumps to the living
+        if (e.infection > 0) {
+          this.spreadInfection(e); // Viral: the plague jumps to the living
+          // STRAIN plague verbs (docs/STRAIN.md — Spore Bloat / Leaping Broodworm): the nest's
+          // evolution empowers the infection itself. Empty kit ⇒ zero work (golden-safe).
+          const pk = this.parasiteKit;
+          if (pk.infectionDeathBurst !== undefined) {
+            const b = pk.infectionDeathBurst;
+            this.grid.forNeighbors(e.x, e.y, b.radius, (o) => {
+              if (!o.alive || dist2(e.x, e.y, o.x, o.y) > b.radius * b.radius) return;
+              if (this.applyEffect(o, 'slow')) {
+                const sl = o.statuses?.find((x) => x.id === 'slow');
+                if (sl) sl.remaining = b.seconds;
+              }
+            });
+            this.spawnParticles(e.x, e.y, PARTICLE.mutate, TOWER_DEFS.parasite.color, 0.7);
+          }
+          if (pk.infectionLeap !== undefined) {
+            const lp = pk.infectionLeap;
+            let far: Enemy | null = null;
+            let bd = lp.range * lp.range;
+            this.grid.forNeighbors(e.x, e.y, lp.range, (o) => {
+              if (!o.alive || o.infection > 0) return;
+              const d2l = dist2(e.x, e.y, o.x, o.y);
+              if (d2l < bd) { bd = d2l; far = o; }
+            });
+            if (far !== null) {
+              this.infect(far, lp.stacks);
+              this.spawnParticles((far as Enemy).x, (far as Enemy).y, PARTICLE.mutate, TOWER_DEFS.parasite.color, 0.5);
+            }
+          }
+        }
         const gain = e.bounty * this.mods.biomassMult;
         this.biomass += gain;
         this.statBiomassEarned += gain;
@@ -3326,8 +3523,17 @@ export class Game {
       if (p.hitIds) p.hitIds.length = 0;
       if (this.castFragment && behavior === 'splash') p.fragment = this.castFragment;
       if (this.castKnockback > 0 && behavior === 'splash') p.knockback = this.castKnockback;
+      if (this.castFragKnockback && p.fragment && p.knockback) p.fragKnockback = p.knockback * 0.6;
       if (this.castRicochet && behavior === 'homing') p.ricochet = this.castRicochet;
+      if (this.castVenom && behavior === 'homing') p.venom = this.castVenom;
       this.projectiles.push(p);
+      // STRAIN echo shell (docs/STRAIN.md — Echoing Howitzer): a slower twin chases the first
+      // shell to the same crater. Guarded so an echo never breeds an echo.
+      if (this.castEcho && behavior === 'splash' && !this.echoing) {
+        this.echoing = true;
+        this.spawnProjectile(x, y, tx, ty, speed * this.castEcho.speedFrac, targetId, damage * this.castEcho.damageFrac, behavior, splash, sourceKind);
+        this.echoing = false;
+      }
       this.applyProjectileMutators(p);
     } else {
       const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0, skin: this.castProjectileSkin, skinTier: this.castProjectileSkinTier };

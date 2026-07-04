@@ -879,6 +879,9 @@ export interface MinionDef {
 }
 export const MINION_DEFS: Record<string, MinionDef> = {
   wisp: { id: 'wisp', name: 'Vital Wisp', hp: 30, damage: 7, attackInterval: 0.7, range: 300, speed: 130, life: 5, radius: 7, color: '#ffd0a6' },
+  // STRAIN organisms (docs/STRAIN.md): the Flesh Reactor's harvester + the Parasite Nest's brood.
+  harvester: { id: 'harvester', name: 'Harvester Polyp', hp: 55, damage: 5, attackInterval: 1.1, range: 220, speed: 90, life: 9, radius: 8, color: '#ffb35d' },
+  broodling: { id: 'broodling', name: 'Broodling', hp: 22, damage: 6, attackInterval: 0.6, range: 160, speed: 150, life: 6, radius: 6, color: '#e24dff' },
 };
 export const MINION_CAP = 16; // global cap on live minions (perf + visual bound)
 
