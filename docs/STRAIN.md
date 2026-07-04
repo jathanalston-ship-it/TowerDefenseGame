@@ -112,5 +112,11 @@ The audit rule: any surface that renders a tower's identity must render its stra
   same-kind tower (tier → strain → seniority), branches/mastery untouched.
 - ✅ §economy (core): universal `deployCost = 100·1.16ⁿ` (favorite + conveyor deploys),
   strain cost = current deploy cost × [3,4,5,6]. Pacing simulation + probe re-run = PROMPT 8.
-- ⏳ §integration (PROMPT 7) · ⏳ simulation report (PROMPT 8) · ⏳ three new towers
-  (separate expansion — must inherit Strain for free).
+- ✅ Ceremony + polish (PROMPT 6 core): the strain moment rides the mutation spectacle
+  (hitstop, burst, absorption, splice + shake, banner with the mutation's name); conveyor slots
+  arrive with a pop, pulse while ready, show live costs + merge-target tooltips.
+- ✅ §integration (first wave): Results shows the run's Deepest Strain (celebrates at V);
+  RunStats.maxStrain (additive); Help wiki entries; favorite rides save import/export/reset
+  automatically. Remaining: achievements, collection/stat ledgers, a tutorial lesson.
+- ⏳ simulation report (PROMPT 8) · ⏳ three new towers (separate expansion — must inherit
+  Strain for free).

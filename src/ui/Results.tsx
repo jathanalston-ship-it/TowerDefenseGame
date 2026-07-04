@@ -97,6 +97,17 @@ export function Results({
     { id: 'kills', label: 'Enemies Eliminated', value: result.kills },
     { id: 'damage', label: 'Damage Dealt', value: Math.round(result.stats.damageDealt) },
   ];
+  // Deepest STRAIN evolution reached (docs/STRAIN.md §integration) — a run trophy when > I.
+  if ((result.stats.maxStrain ?? 1) > 1) {
+    combatStats.push({
+      id: 'strain',
+      label: 'Deepest Strain',
+      value: result.stats.maxStrain ?? 1,
+      format: (n) => `Strain ${['I', 'II', 'III', 'IV', 'V'][Math.max(0, Math.min(4, Math.round(n) - 1))]}`,
+      accent: 'var(--gold)',
+      celebrate: (result.stats.maxStrain ?? 1) >= 5,
+    });
+  }
   categories.push({
     id: 'combat',
     title: 'Combat Report',

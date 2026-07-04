@@ -621,6 +621,10 @@ button:disabled {
   border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--cv) 8%, rgba(10, 14, 18, 0.85));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 35%, transparent);
+  animation: cv-arrive 0.35s var(--ease-out, ease-out); /* the organism POPS onto the belt */
+}
+.cv-slot.is-ready {
+  animation: cv-ready-pulse 1.6s ease-in-out infinite; /* alive and waiting for a decision */
 }
 .cv-slot.is-armed {
   box-shadow: inset 0 0 0 2px var(--cv), 0 0 14px color-mix(in srgb, var(--cv) 45%, transparent);
@@ -719,6 +723,15 @@ button:disabled {
 @keyframes cv-pulse {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 0.6; }
+}
+@keyframes cv-arrive {
+  from { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.06); }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes cv-ready-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 45%, transparent), 0 0 6px color-mix(in srgb, var(--cv) 25%, transparent); }
+  50% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 80%, transparent), 0 0 16px color-mix(in srgb, var(--cv) 50%, transparent); }
 }
 
 /* STRAIN identity line in the Inspector (docs/STRAIN.md §framework) */

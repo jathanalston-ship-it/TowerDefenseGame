@@ -373,6 +373,7 @@ export interface RunStats {
   towerBuilds: Record<TowerKind, number>; // towers grown this run, per kind
   cardIds: string[]; // gene cards drafted this run (ids; may repeat)
   heroId: string; // hero fielded this run
+  maxStrain?: number; // the deepest STRAIN evolution reached this run (docs/STRAIN.md; absent/1 = none — additive for old fixtures)
 }
 
 /** Persistent lifetime statistics (in SaveData). The accumulation reducer in
