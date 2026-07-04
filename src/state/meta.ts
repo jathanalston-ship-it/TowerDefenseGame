@@ -1536,6 +1536,16 @@ export const meta = {
     persist({ ...save, prediction: { ...save.prediction, [mode]: { ...save.prediction[mode], lastEstimate: est } } });
   },
 
+  /** The Biomorph Conveyor's FAVORITE tower (docs/STRAIN.md §conveyor) — always deployable. */
+  favoriteTower(): TowerKind {
+    return store.get().favoriteTower;
+  },
+
+  /** Choose the conveyor favorite (Tower Lab). */
+  setFavoriteTower(kind: TowerKind): void {
+    persist({ ...store.get(), favoriteTower: kind });
+  },
+
   /** The slot-1 hero the next run fields (back-compat; = fieldedLoadout()[0]). */
   selectedHero(): HeroKind {
     return fieldedLoadout(store.get())[0];

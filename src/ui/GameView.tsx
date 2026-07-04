@@ -100,6 +100,7 @@ export function GameView({
   const gameRef = useRef<Game | null>(null);
   const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip,
+    favorite: meta.favoriteTower(), // Biomorph Conveyor favorite (docs/STRAIN.md §conveyor)
     geneLevels: meta.geneLevels(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),

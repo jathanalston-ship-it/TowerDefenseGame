@@ -202,7 +202,7 @@ graph TD
 
 *Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.*
 
-- **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/core/strains.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
+- **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/core/strains.ts` · `src/core/conveyor.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
 - **Depends on:** `content-infra` · `shards-economy` · `campaign`
 - **Consumers — what breaks if you change this:** `engine`
 - **Power Score:** stars/branches feed permanent + temporary buckets

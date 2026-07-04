@@ -243,6 +243,15 @@ export function TowerLab(): JSX.Element {
               <div className="tl2-name-row">
                 <span className="tl2-name" style={{ color: m.color }}>{m.name}</span>
                 <button className={`tl2-favbtn${favorites.has(selected) ? ' on' : ''}`} onClick={() => toggleFav(selected)} title="Favorite (leads the rail)">★</button>
+                <button
+                  className={`tl2-convbtn${save.favoriteTower === selected ? ' on' : ''}`}
+                  onClick={() => { meta.setFavoriteTower(selected); }}
+                  title={save.favoriteTower === selected
+                    ? 'Your CONVEYOR FAVORITE — always deployable in every run (docs: Biomorph Conveyor)'
+                    : 'Set as your CONVEYOR FAVORITE — the one tower always deployable; all others arrive via the Biomorph Conveyor'}
+                >
+                  {save.favoriteTower === selected ? '◉ Conveyor Favorite' : '○ Set Conveyor Favorite'}
+                </button>
               </div>
               <div className="tl2-class">{m.combatClass}{m.mastery.rank ? ` · ${m.mastery.rank}` : ''}</div>
               <div className="tl-pips tl2-pips" aria-label={`${m.stars} of ${m.maxStars} stars`}>

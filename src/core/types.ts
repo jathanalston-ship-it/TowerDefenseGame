@@ -491,6 +491,14 @@ export interface HudSnapshot {
   hiveDps: number; // their summed damage/interval — the incoming-DPS estimate the HUD shows
   hiveRecentDamage: number; // integrity lost in the last ~3s (drives the ghost bar + under-attack state)
   kills: number;
+  /** Biomorph Conveyor (docs/STRAIN.md §conveyor) — the deployment surface the Toolbar renders. */
+  conveyor: {
+    favorite: TowerKind;
+    deployCost: number; // the universal compounding cost of the NEXT deployment
+    recycleValue: number; // flat recycler payout (overflow / discard)
+    strainCostFrom: [number, number, number, number]; // merge cost from Strain I..IV at current deployments
+    items: { id: number; kind: TowerKind; rarity: string; strain: number; growFrac: number; readyIn: number }[];
+  };
   hero: {
     kind: HeroKind;
     down: boolean;

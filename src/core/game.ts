@@ -101,6 +101,8 @@ import { gameEvents } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
 import { resolveStrain, strainRegistry, strainPowerEffects } from './strains';
 import type { StrainHooks } from './strains';
+import { CONVEYOR, deployCost, strainCost, recycleValue, rollKind, rollRarity, growDuration } from './conveyor';
+import type { ConveyorItem } from './conveyor';
 import type { Branch, ResolvedBranchKit } from './branches';
 import { BRANCH_COSTS } from './config';
 
@@ -121,6 +123,7 @@ export interface RunOptions {
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
   geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
+  favorite?: TowerKind; // the account's FAVORITE tower (docs/STRAIN.md §conveyor) — always deployable; default 'needle'
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
 }
 
@@ -451,7 +454,15 @@ export class Game {
   // cast, so the MAX-strain kit per kind is cached on the same cadence as the tower caches.
   private parasiteKit: StrainHooks = {};
   private reactorKit: StrainHooks = {};
-  private readonly arcScratch: Enemy[] = []; // obelisk discharge neighbor scratch (zero-alloc) // branch tier tagged onto shots (drives projectile evolution; 0 = base)
+  private readonly arcScratch: Enemy[] = []; // obelisk discharge neighbor scratch (zero-alloc)
+  // ── Biomorph Conveyor (docs/STRAIN.md §conveyor). DEDICATED rng stream: rolls never touch
+  //    the gameplay rng, so a run that ignores the belt is byte-identical to one without it. ──
+  private readonly conveyorRng: Rng;
+  readonly conveyor: ConveyorItem[] = []; // growing (readyAt > time, ≤1) + ready (≤ queueMax)
+  favoriteTower: TowerKind;
+  deployments = 0; // player deployments this run — drives the universal cost curve
+  selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
+  private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -479,6 +490,8 @@ export class Game {
   ) {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
+    this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
+    this.favoriteTower = opts.favorite ?? 'needle';
     this.towerProgress = towerProgress;
     this.towerEffectiveRange = {} as Record<TowerKind, number>;
     for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1);
@@ -861,6 +874,7 @@ export class Game {
 
   selectTower(kind: TowerKind | null): void {
     this.selectedTower = kind;
+    this.selectedConveyorId = null; // arming a KIND disarms any conveyor organism (and vice versa)
     this.armedAbility = false;
     if (kind) { this.selectedPlacedId = null; this.movingTowerId = null; } // arming placement clears inspect/move
   }
@@ -965,6 +979,122 @@ export class Game {
         if (t.overcharged) t.cooldown = 0; // the jolt: an opening alpha-strike
       }
     }
+  }
+
+  /** BIOMORPH CONVEYOR tick (docs/STRAIN.md §conveyor): keep exactly one organism growing;
+   *  at maturity it joins the ready queue — or, if the belt is already full, auto-enters the
+   *  Biomass Recycler (flat payout — nothing is wasted, nothing compounds). Dedicated rng. */
+  private conveyorTick(): void {
+    let growing: ConveyorItem | null = null;
+    let ready = 0;
+    for (const c of this.conveyor) {
+      if (c.readyAt > this.time) growing = c;
+      else ready++;
+    }
+    if (growing === null) {
+      // did one just mature against a full belt? (ready > queueMax means the maturing one)
+      if (ready > CONVEYOR.queueMax) {
+        // recycle the NEWEST arrival (highest readyAt)
+        let newest = 0;
+        for (let i = 1; i < this.conveyor.length; i++) {
+          if (this.conveyor[i].readyAt > this.conveyor[newest].readyAt) newest = i;
+        }
+        const [gone] = this.conveyor.splice(newest, 1);
+        this.biomass += recycleValue();
+        this.floats.push({ x: WIDTH - 60, y: HEIGHT - 40, text: `+${recycleValue()}`, color: '#b6e84a', life: 0.9 });
+        this.pushSfx('dissolve');
+        if (gone) ready = Math.min(ready, CONVEYOR.queueMax);
+      }
+      // start the next growth (the belt never stops)
+      const deployed = new Set<TowerKind>();
+      for (const t of this.towers) deployed.add(t.kind);
+      const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower);
+      const rar = rollRarity(this.conveyorRng, this.waveIndex);
+      this.conveyor.push({
+        id: ++this.conveyorSeq,
+        kind,
+        rarity: rar.id,
+        strain: rar.strain,
+        bornAt: this.time,
+        readyAt: this.time + growDuration(this.waveIndex),
+      });
+    }
+  }
+
+  /** Deploy the FAVORITE tower (docs/STRAIN.md §economy): the universal compounding cost —
+   *  no per-tower prices. The conveyor covers every other kind. */
+  deployTower(kind: TowerKind, px: number, py: number): boolean {
+    if (this.phase === 'won' || this.phase === 'lost') return false;
+    const slot = slotAt(px, py);
+    if (!slot || slot.index >= this.unlockedSlots || this.occupied.has(slot.index)) return false;
+    const cost = deployCost(this.deployments);
+    if (this.biomass < cost) return false;
+    this.biomass -= cost;
+    this.deployments++;
+    this.placeCore(kind, slot);
+    return true;
+  }
+
+  /** Deploy a READY conveyor organism onto a slot — it arrives at its rolled strain level. */
+  deployFromConveyor(itemId: number, px: number, py: number): boolean {
+    const idx = this.conveyor.findIndex((c) => c.id === itemId && c.readyAt <= this.time);
+    if (idx < 0 || this.phase === 'won' || this.phase === 'lost') return false;
+    const slot = slotAt(px, py);
+    if (!slot || slot.index >= this.unlockedSlots || this.occupied.has(slot.index)) return false;
+    const cost = deployCost(this.deployments);
+    if (this.biomass < cost) return false;
+    const item = this.conveyor[idx];
+    this.biomass -= cost;
+    this.deployments++;
+    const powerBefore = item.strain > 1 ? effectsPower(this.powerEffects()) : 0;
+    const t = this.placeCore(item.kind, slot);
+    if (item.strain > 1) {
+      t.strain = Math.min(5, item.strain);
+      t.mutatedAt = this.time;
+      this.recomputeTowerCaches();
+      this.auditTempPower(powerBefore, `Deployed Strain-${t.strain} organism (${t.kind})`);
+    }
+    this.conveyor.splice(idx, 1);
+    return true;
+  }
+
+  /** STRAIN-MERGE a ready organism (docs/STRAIN.md §merge): consumes it, raises the highest-
+   *  Power deployed tower of the same kind one level. Branches/Mastery/Genes are untouched. */
+  strainFromConveyor(itemId: number): 'ok' | 'noTarget' | 'poor' | 'badItem' {
+    const idx = this.conveyor.findIndex((c) => c.id === itemId && c.readyAt <= this.time);
+    if (idx < 0) return 'badItem';
+    const item = this.conveyor[idx];
+    // highest-Power eligible: branch tier is the dominant power axis among same-kind towers,
+    // then current strain, then seniority (stable, deterministic).
+    let target: Tower | null = null;
+    for (const t of this.towers) {
+      if (t.kind !== item.kind || t.strain >= 5) continue;
+      if (
+        target === null ||
+        t.tier > target.tier ||
+        (t.tier === target.tier && t.strain > target.strain) ||
+        (t.tier === target.tier && t.strain === target.strain && t.id < target.id)
+      ) {
+        target = t;
+      }
+    }
+    if (target === null) return 'noTarget';
+    const cost = strainCost(this.deployments, target.strain);
+    if (this.biomass < cost) return 'poor';
+    this.biomass -= cost;
+    this.conveyor.splice(idx, 1);
+    this.raiseStrain(target.id);
+    return 'ok';
+  }
+
+  /** Discard a ready organism into the Biomass Recycler — the flat payout, instantly. */
+  discardConveyor(itemId: number): boolean {
+    const idx = this.conveyor.findIndex((c) => c.id === itemId && c.readyAt <= this.time);
+    if (idx < 0) return false;
+    this.conveyor.splice(idx, 1);
+    this.biomass += recycleValue();
+    this.pushSfx('dissolve');
+    return true;
   }
 
   /** STRAIN births (docs/STRAIN.md — Womb of the Colony / Brood Nest): the organism produces
@@ -1094,6 +1224,20 @@ export class Game {
     this.primaryHero.rally = { x: px, y: py };
   }
 
+  /** Arm a READY conveyor organism for placement (docs/STRAIN.md §conveyor). Sets the classic
+   *  kind selection too so the placement ghost/range preview renders for free; `click` checks
+   *  the conveyor arm FIRST so the deploy consumes the organism. null disarms both. */
+  selectConveyorItem(id: number | null): void {
+    if (id === null) {
+      this.selectedConveyorId = null;
+      return;
+    }
+    const item = this.conveyor.find((c) => c.id === id && c.readyAt <= this.time);
+    if (!item) return;
+    this.selectedConveyorId = id;
+    this.selectedTower = item.kind; // preview only — click() routes to deployFromConveyor
+  }
+
   /** Route a canvas click based on what is currently armed. `shift` keeps the build tool armed for
    *  rapid placement (docs/TOWER-MANAGEMENT.md §4). */
   click(px: number, py: number, opts: { shift?: boolean } = {}): void {
@@ -1115,8 +1259,21 @@ export class Game {
       // tool would shadow inspection entirely. Redirect it to the Mutation panel.
       const occupant = this.towerAt(px, py);
       if (occupant) { this.selectPlacedTower(occupant.id); return; }
+      // Conveyor organism armed → deploying CONSUMES it (universal economy). Otherwise the
+      // favorite deploys on the same universal curve — the tutorial keeps the legacy def-cost
+      // sandbox (its lessons and grants are authored against it).
+      if (this.selectedConveyorId !== null) {
+        if (this.deployFromConveyor(this.selectedConveyorId, px, py)) {
+          this.selectedConveyorId = null;
+          if (!opts.shift) this.selectedTower = null;
+        }
+        return;
+      }
       // One-shot placement by default; holding Shift keeps the tool armed for rapid building.
-      if (this.placeTower(this.selectedTower, px, py) && !opts.shift) this.selectedTower = null;
+      const placed = this.tutorialMode
+        ? this.placeTower(this.selectedTower, px, py)
+        : this.deployTower(this.selectedTower, px, py);
+      if (placed && !opts.shift) this.selectedTower = null;
       return;
     }
     // Nothing armed: a tap on a HERO selects it (non-modal — the run keeps running). Heroes roam the
@@ -1338,6 +1495,14 @@ export class Game {
     const def = TOWER_DEFS[kind];
     if (this.biomass < def.cost) return false;
     this.biomass -= def.cost;
+    this.placeCore(kind, slot);
+    return true;
+  }
+
+  /** Placement CORE (charging already done by the caller): the tower body, caches, FX, events,
+   *  auto-start arming. `placeTower` (legacy def-cost path — tests/autoplay) and the Biomorph
+   *  Conveyor paths (universal economy, docs/STRAIN.md §economy) share it exactly. */
+  private placeCore(kind: TowerKind, slot: TowerSlot): Tower {
     this.occupied.add(slot.index);
     this.towers.push({
       id: this.nextId++,
@@ -1371,7 +1536,7 @@ export class Game {
     if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
       this.prepCountdown = AUTO_START_FIRST_DELAY;
     }
-    return true;
+    return this.towers[this.towers.length - 1];
   }
 
   /** Grant `n` additional TEMPORARY tower slots for this run — the future hook for in-run slot
@@ -1741,6 +1906,9 @@ export class Game {
     // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
     // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
     this.dangerCameraSystem(dt);
+    // Biomorph Conveyor (docs/STRAIN.md §conveyor): the belt lives through build AND combat.
+    // Dedicated rng + refunds only on overflow, so an untouched belt costs the sim nothing.
+    if (!this.tutorialMode && (this.phase === 'prep' || this.phase === 'wave')) this.conveyorTick();
     // ── Combat→Build SETTLE beat ── the wave is cleared and the simulation is PAUSED: the sim
     // clock, run-buff + minion timers, and every combat system are frozen, so all downstream
     // deterministic state (enemy steering jitter keyed off `this.time`, the spawn schedule, buff
@@ -4242,6 +4410,20 @@ export class Game {
       hiveDps: this.hiveDps,
       hiveRecentDamage: this.hiveRecentDamage,
       kills: this.kills,
+      conveyor: {
+        favorite: this.favoriteTower,
+        deployCost: deployCost(this.deployments),
+        recycleValue: recycleValue(),
+        strainCostFrom: [strainCost(this.deployments, 1), strainCost(this.deployments, 2), strainCost(this.deployments, 3), strainCost(this.deployments, 4)],
+        items: this.conveyor.map((c) => ({
+          id: c.id,
+          kind: c.kind,
+          rarity: c.rarity,
+          strain: c.strain,
+          growFrac: c.readyAt <= this.time ? 1 : Math.min(1, Math.max(0, (this.time - c.bornAt) / Math.max(0.01, c.readyAt - c.bornAt))),
+          readyIn: Math.max(0, c.readyAt - this.time),
+        })),
+      },
       hero: {
         kind: h.kind,
         down: h.down,

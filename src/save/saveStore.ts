@@ -40,6 +40,7 @@ export interface SaveData {
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
   heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
   selectedHero: HeroKind; // slot-1 hero (back-compat mirror of heroLoadout[0]); see meta.setSelectedHero
+  favoriteTower: TowerKind; // the Biomorph Conveyor's always-available FAVORITE (docs/STRAIN.md §conveyor)
   // ── Hero Slot roster (HEROES.md) — the heroes fielded per slot; index i = slot i+1. Length grows
   //    with unlocked slots (heroSlotsUnlocked). Clamped to unlocked slots + distinct kinds at run
   //    start. Migrated from selectedHero for pre-slot saves. ──
@@ -267,6 +268,7 @@ export function defaultSave(): SaveData {
     heroStars: zeroByHeroKind(),
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
+    favoriteTower: 'needle',
     heroLoadout: ['ravager'],
     heroUnlocked: starterHeroes(),
     adaptation: {},
@@ -366,6 +368,8 @@ function withDefaults(data: SaveData): SaveData {
     // Resolve the fielded hero through the registry (honors aliases for renamed ids)
     // and fall back to the default if it's unknown — a corrupt/removed id can't crash.
     selectedHero: (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero,
+    // Conveyor favorite (docs/STRAIN.md §conveyor): validate against the roster; additive default.
+    favoriteTower: TOWER_ORDER.includes(data.favoriteTower as TowerKind) ? (data.favoriteTower as TowerKind) : d.favoriteTower,
     // Hero Slot roster (HEROES.md): resolve each entry through the registry (honors aliases),
     // dedupe, and drop junk. A pre-slot save (no heroLoadout) seeds from the migrated selectedHero
     // so slot 1 carries over unchanged — additive, no data loss.

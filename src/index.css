@@ -602,6 +602,125 @@ button:disabled {
 .hud-vital-row .bar {
   flex: 1;
 }
+/* ── BIOMORPH CONVEYOR (docs/STRAIN.md §conveyor): the living deployment rail ── */
+.conveyor {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-left: 8px;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--caustic) 30%, transparent);
+}
+.cv-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 128px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--cv) 8%, rgba(10, 14, 18, 0.85));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 35%, transparent);
+}
+.cv-slot.is-armed {
+  box-shadow: inset 0 0 0 2px var(--cv), 0 0 14px color-mix(in srgb, var(--cv) 45%, transparent);
+}
+.cv-slot.rare { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--r-rare, #6e7bff) 70%, transparent); }
+.cv-slot.epic { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--r-epic, #d98cff) 80%, transparent); }
+.cv-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+.cv-name {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--cv);
+}
+.cv-strain {
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  letter-spacing: var(--track-wide);
+  color: var(--gold);
+}
+.cv-grow {
+  position: relative;
+  height: 18px;
+  border-radius: var(--r-xs);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+.cv-grow-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--grow));
+  background: color-mix(in srgb, var(--cv) 55%, transparent);
+  animation: cv-pulse 1.4s ease-in-out infinite;
+}
+.cv-timer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.cv-actions {
+  display: flex;
+  gap: 4px;
+}
+.cv-btn {
+  flex: 1;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  cursor: pointer;
+  color: #08110d;
+  background: color-mix(in srgb, var(--cv) 70%, #fff 10%);
+}
+.cv-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.cv-btn.cv-deploy.is-on {
+  outline: 2px solid #fff;
+}
+.cv-btn.cv-strainb {
+  background: color-mix(in srgb, var(--gold, #ffd24d) 75%, #fff 8%);
+}
+.cv-btn.cv-discard {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--muted);
+}
+.tl2-convbtn {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+}
+.tl2-convbtn.on {
+  color: #10130a;
+  background: var(--gold, #ffd24d);
+}
+.tcard-fav {
+  color: var(--gold);
+  font-size: var(--fs-xs);
+}
+@keyframes cv-pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+}
+
 /* STRAIN identity line in the Inspector (docs/STRAIN.md §framework) */
 .insp-strain {
   display: flex;

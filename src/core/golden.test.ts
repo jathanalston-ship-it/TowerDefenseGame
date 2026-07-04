@@ -15,21 +15,20 @@ import { autoplay } from './sim.testutil';
 // integrity are UNCHANGED for every seed** — only end-of-run biomass shifts ~1% from the
 // boundary-economy timing. Every seed still WINS at wave 12. Any FURTHER drift is unintended.
 //
-// Re-pinned 2026-07 for HIVE SIEGE (docs/HIVE-SIEGE.md): enemies no longer despawn at a
-// finish line — they converge on the Hive Core and ATTACK it until killed. Deliberate,
-// design-changing re-pin: every seed now records kills = 196 (ALL spawned enemies die — the
-// former leakers despawned uncredited), integrity outcomes shift (mostly UP: sustained chewing
-// gives the defense time to respond where an instant breach burst didn't), and biomass shifts
-// with the reclaimed bounties. Every seed still WINS at wave 12. Any FURTHER drift is unintended.
+// Re-pinned 2026-07 for the BIOMORPH CONVEYOR (docs/STRAIN.md §conveyor): the belt runs in
+// every non-tutorial mode on a DEDICATED rng stream, and an ignored belt periodically overflows
+// into the Biomass Recycler (flat payout). Wave/kills/integrity/phase are IDENTICAL to the
+// Hive-Siege baseline on every seed — only biomass rose by the recycler drip. Every seed still
+// WINS at wave 12. Any FURTHER drift is unintended.
 //
-// (Prior baselines: PREDICTIVE MORTAR LEAD; COMBAT→BUILD SETTLE; TOWER-SLOT PROGRESSION; GENE CARDS.)
+// (Prior baselines: HIVE SIEGE re-model; PREDICTIVE MORTAR LEAD; SETTLE; SLOTS; GENE CARDS.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 196, integrity: 252, biomass: 8193, phase: 'won' },
-  7: { wave: 12, kills: 196, integrity: 142, biomass: 8062, phase: 'won' },
-  42: { wave: 12, kills: 196, integrity: 97, biomass: 8274, phase: 'won' },
-  777: { wave: 12, kills: 196, integrity: 91, biomass: 6976, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12078, phase: 'won' },
-  12345: { wave: 12, kills: 196, integrity: 94, biomass: 7805, phase: 'won' },
+  1: { wave: 12, kills: 196, integrity: 252, biomass: 9043, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 142, biomass: 8912, phase: 'won' },
+  42: { wave: 12, kills: 196, integrity: 97, biomass: 9074, phase: 'won' },
+  777: { wave: 12, kills: 196, integrity: 91, biomass: 7602, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 170, biomass: 12573, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 94, biomass: 8605, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

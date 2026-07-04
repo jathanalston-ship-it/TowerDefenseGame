@@ -5,6 +5,20 @@ import type { HudSnapshot } from '../core/types';
 import { meta, masteryLevel } from '../state/meta';
 import { BiomassIcon, BoltIcon, HeroIcon } from './components/Icon';
 
+/** Best strain-merge target for `kind` (mirrors Game.strainFromConveyor's pick) + its cost. */
+function mergeTargetOf(game: Game, kind: string): { strain: number; cost: number } | null {
+  let best: { tier: number; strain: number; id: number } | null = null;
+  for (const t of game.towers) {
+    if (t.kind !== kind || t.strain >= 5) continue;
+    if (best === null || t.tier > best.tier || (t.tier === best.tier && t.strain > best.strain) || (t.tier === best.tier && t.strain === best.strain && t.id < best.id)) {
+      best = { tier: t.tier, strain: t.strain, id: t.id };
+    }
+  }
+  return best === null ? null : { strain: best.strain, cost: 0 };
+}
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+
 export function Toolbar({
   game,
   hud,
@@ -17,14 +31,17 @@ export function Toolbar({
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
   const heroDef = HERO_DEFS[hud.hero.kind];
   const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
+  const conveyorMode = !game.tutorialMode; // the tutorial keeps the classic full rail (its lessons are authored on it)
+  const railKinds = conveyorMode ? [hud.conveyor.favorite] : TOWER_ORDER;
 
   return (
     <div className="toolbar">
       <div className="tower-rail" data-tut="tower-rail">
-        {TOWER_ORDER.map((kind, i) => {
+        {railKinds.map((kind, i) => {
           const def = TOWER_DEFS[kind];
-          const sel = hud.selectedTower === kind;
-          const afford = hud.biomass >= def.cost;
+          const sel = hud.selectedTower === kind && game.selectedConveyorId === null;
+          const cost = conveyorMode ? hud.conveyor.deployCost : def.cost;
+          const afford = hud.biomass >= cost;
           const dps = def.fireInterval > 0 ? Math.round(def.damage / def.fireInterval) : 0;
           const stars = save.towerStars[kind] ?? 0;
           const mastery = masteryLevel(save.towerMasteryXp[kind] ?? 0);
@@ -46,6 +63,7 @@ export function Toolbar({
               <span className="tcard-sheen" aria-hidden />
               <span className="tcard-head">
                 <span className="tcard-name">{def.name}</span>
+                {conveyorMode && <span className="tcard-fav" title="Favorite — always available (change it in the Tower Lab)">★</span>}
                 {mastery > 0 && (
                   <span
                     className="tcard-mring"
@@ -66,7 +84,7 @@ export function Toolbar({
               <span className="tcard-blurb">{def.blurb}</span>
               <span className="tcard-foot">
                 <span className={`cost-chip ${afford ? 'is-afford' : 'is-broke'}`}>
-                  <BiomassIcon /> {def.cost}
+                  <BiomassIcon /> {cost}
                 </span>
                 {dps > 0 && <span className="tcard-dps">{dps} dps</span>}
                 {placed > 0 && <span className="tcard-placed" title={`${placed} deployed this run`}>×{placed}</span>}
@@ -85,6 +103,77 @@ export function Toolbar({
             </button>
           );
         })}
+
+        {conveyorMode && (
+          <div className="conveyor" data-tut="conveyor" aria-label="Biomorph Conveyor">
+            {hud.conveyor.items.map((c) => {
+              const def = TOWER_DEFS[c.kind];
+              const ready = c.growFrac >= 1;
+              const armed = game.selectedConveyorId === c.id;
+              const target = mergeTargetOf(game, c.kind);
+              const mergeCost = target ? hud.conveyor.strainCostFrom[Math.max(0, Math.min(3, target.strain - 1))] : 0;
+              return (
+                <div
+                  key={c.id}
+                  className={`cv-slot ${c.rarity}${ready ? ' is-ready' : ' is-growing'}${armed ? ' is-armed' : ''}`}
+                  style={{ ['--cv' as string]: def.color, ['--grow' as string]: c.growFrac }}
+                >
+                  <div className="cv-head">
+                    <span className="cv-name">{def.name}</span>
+                    {c.strain > 1 && <span className="cv-strain">Strain {ROMAN[c.strain - 1]}</span>}
+                  </div>
+                  {!ready && (
+                    <div className="cv-grow" role="progressbar" aria-label={`Growing — ${Math.ceil(c.readyIn)}s`}>
+                      <span className="cv-grow-fill" />
+                      <span className="cv-timer">{Math.ceil(c.readyIn)}s</span>
+                    </div>
+                  )}
+                  {ready && (
+                    <div className="cv-actions">
+                      <button
+                        className={`cv-btn cv-deploy${armed ? ' is-on' : ''}`}
+                        disabled={!playable || hud.biomass < hud.conveyor.deployCost}
+                        title={`Deploy — ${hud.conveyor.deployCost} Biomass${c.strain > 1 ? ` (arrives at Strain ${ROMAN[c.strain - 1]})` : ''}`}
+                        onClick={() => {
+                          audio.resume();
+                          game.selectConveyorItem(armed ? null : c.id);
+                          if (!armed) audio.cue('select');
+                          refresh();
+                        }}
+                      >
+                        Deploy {hud.conveyor.deployCost}
+                      </button>
+                      <button
+                        className="cv-btn cv-strainb"
+                        disabled={!playable || target === null || hud.biomass < mergeCost}
+                        title={target === null ? `No ${def.name} on the field below Strain V` : `Strain — consume to evolve your strongest ${def.name} to Strain ${ROMAN[Math.min(4, target.strain)]} (${mergeCost} Biomass)`}
+                        onClick={() => {
+                          audio.resume();
+                          if (game.strainFromConveyor(c.id) === 'ok') audio.cue('splice');
+                          refresh();
+                        }}
+                      >
+                        Strain{target ? ` ${mergeCost}` : ''}
+                      </button>
+                      <button
+                        className="cv-btn cv-discard"
+                        disabled={!playable}
+                        title={`Discard — recycle for ${hud.conveyor.recycleValue} Biomass`}
+                        onClick={() => {
+                          audio.resume();
+                          if (game.discardConveyor(c.id)) audio.cue('dissolve');
+                          refresh();
+                        }}
+                      >
+                        ♻ {hud.conveyor.recycleValue}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="spacer" />

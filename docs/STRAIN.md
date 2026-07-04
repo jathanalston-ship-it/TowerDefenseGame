@@ -104,5 +104,13 @@ The audit rule: any surface that renders a tower's identity must render its stra
 - ✅ PROMPT 2 ladders: all 20 defs, 16 unique verbs live in the executor (cast path, impacts,
   wave-start, tower caches topology, infection paths, obelisk field), contract-tested.
   Per-tower SIGNATURE organs (beyond the shared II–V ladder) remain a polish hook (§visuals).
-- ⏳ §conveyor · ⏳ §merge · ⏳ §economy · ⏳ §integration · ⏳ simulation report (PROMPT 8) ·
-  ⏳ three new towers (separate expansion — must inherit Strain for free).
+- ✅ §conveyor: sim-owned belt (dedicated rng — golden-safe), growth → 3-slot ready queue,
+  overflow → FLAT recycler payout (never compounds — the exploit rule), Deploy (arrival strain)
+  / Strain / Discard intents, undeployed-kind bias, favorite on the account save (Tower Lab
+  picker), Toolbar conveyor rail, click-router arming; tutorial keeps the classic rail.
+- ✅ §merge: `strainFromConveyor` — consumes the duplicate, auto-targets the highest-Power
+  same-kind tower (tier → strain → seniority), branches/mastery untouched.
+- ✅ §economy (core): universal `deployCost = 100·1.16ⁿ` (favorite + conveyor deploys),
+  strain cost = current deploy cost × [3,4,5,6]. Pacing simulation + probe re-run = PROMPT 8.
+- ⏳ §integration (PROMPT 7) · ⏳ simulation report (PROMPT 8) · ⏳ three new towers
+  (separate expansion — must inherit Strain for free).
