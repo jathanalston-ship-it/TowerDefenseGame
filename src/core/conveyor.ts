@@ -18,8 +18,10 @@ export const CONVEYOR = {
   favoriteBias: 0.4, // the favorite still appears (fuel for strain-merging) but rarely
   // Universal deployment economy (docs/STRAIN.md §economy): ONE curve, no per-tower prices.
   baseCost: 100,
-  costGrowth: 1.16, // per deployment this run — smooth compounding
-  strainCostMult: [3, 4, 5, 6], // I→II · II→III · III→IV · IV→V, × the CURRENT deploy cost
+  costGrowth: 1.11, // per deployment this run — smooth compounding (1.16 priced strain merges out of campaign runs entirely — PROMPT-8 probe finding)
+  strainCostMult: [3, 4, 5, 6], // I→II · II→III · III→IV · IV→V, × the strain base below
+  strainGrowth: 1.05, // strain costs escalate with deployments on their OWN gentler curve —
+  // riding the full deploy compound priced merges out of campaign runs (PROMPT-8 probe)
   recycleFrac: 0.5, // recycler refund = this × baseCost (flat — a compounding refund would be an idle money printer)
   // Rarity ladder: how evolved an organism arrives. Weights shift gently with wave depth.
   rarities: [
@@ -52,10 +54,12 @@ export function recycleValue(): number {
   return Math.round(CONVEYOR.baseCost * CONVEYOR.recycleFrac);
 }
 
-/** The cost to raise a tower FROM `strain` (1..4) via a conveyor merge — × the current deploy cost. */
+/** The cost to raise a tower FROM `strain` (1..4) via a conveyor merge: the ×3/4/5/6 ladder on
+ *  the base cost, escalating gently with this run's deployment count. Late-game sink by design
+ *  (Strain V is a run trophy), but reachable — see docs/STRAIN.md §economy. */
 export function strainCost(deployments: number, fromStrain: number): number {
   const mult = CONVEYOR.strainCostMult[Math.max(0, Math.min(3, fromStrain - 1))];
-  return Math.round(deployCost(deployments) * mult);
+  return Math.round(CONVEYOR.baseCost * Math.pow(CONVEYOR.strainGrowth, deployments) * mult);
 }
 
 /** Roll the next organism's kind: mild bias toward kinds not on the board, the favorite

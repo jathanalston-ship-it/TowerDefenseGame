@@ -28,10 +28,13 @@ describe('the universal economy (§economy)', () => {
     expect(Math.abs(r1 - r2)).toBeLessThan(0.03);
   });
 
-  it('strain costs ride the CURRENT deploy cost × the 3/4/5/6 ladder', () => {
+  it('strain costs: the ×3/4/5/6 ladder on a GENTLER deployment escalator', () => {
     for (const [from, mult] of [[1, 3], [2, 4], [3, 5], [4, 6]] as const) {
-      expect(strainCost(0, from)).toBe(Math.round(deployCost(0) * mult));
-      expect(strainCost(7, from)).toBe(Math.round(deployCost(7) * mult));
+      expect(strainCost(0, from)).toBe(Math.round(CONVEYOR.baseCost * mult));
+      // escalates with deployments — but slower than the deploy compound, so merges stay
+      // reachable inside a campaign run (the PROMPT-8 probe finding)
+      expect(strainCost(8, from)).toBeGreaterThan(strainCost(0, from));
+      expect(strainCost(8, from) / strainCost(0, from)).toBeLessThan(deployCost(8) / deployCost(0));
     }
   });
 

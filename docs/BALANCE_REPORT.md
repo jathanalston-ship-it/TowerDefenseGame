@@ -14,6 +14,18 @@
 > raw HP; minion-blocker durability now rides attacker DPS. Goldens re-pinned deliberately
 > (kills 196/196 — former leakers die credited).
 
+> **AMENDMENT 2026-07-04 — STRAIN + BIOMORPH CONVEYOR economy (player-directed, docs/STRAIN.md §9).**
+> Deployment moved to ONE universal compounding curve (`100·1.11ⁿ`) — the favorite always
+> available, every other organism arriving on the 3-slot belt; strain merges price on a
+> decoupled gentler escalator (`100·1.05ⁿ × [3,4,5,6]`) after probes showed "current deploy
+> cost × mult" bought ZERO campaign merges. Final probes: campaign 0.2–2.4 merges/run (max
+> Strain III–IV by s8) with the difficulty contract intact at ×0.75/×1.0/×1.7; endless
+> mid-accounts saturate all-Strain-V at waves 39–50 and still fall at 51–57 (≈ +20 waves vs
+> never merging); mono-favorite boards lose 0/5 at recommended power (favorite ≠ dominant).
+> Overflow/discard recycler pays FLAT 50 — never compounds. Watch item: deep-endless (60+)
+> strain saturation — the lever is belt throughput (`growMin`), not `strainGrowth`. Goldens
+> re-pinned deliberately (recycler drip ≈ +900 biomass over the 12-wave autoplay).
+
 Matrix: 11 personas × 4 seeds · bands 10 / 50 / 150 / 400 hours · world model + policy in `src/dev/progressionSim.ts`.
 
 ## Personas

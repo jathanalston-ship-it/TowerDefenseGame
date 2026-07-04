@@ -8,10 +8,11 @@ is **run-only** (never persisted on the tower), acquired by consuming conveyor d
 > Strain does NOT replace Stars, Mastery, Branches, Gene Cards, Equipment, or Hero buffs.
 > It stacks with all of them. Branches are never removed by straining; Mastery never resets.
 
-**Files:** framework `src/core/strains.ts`; sim hooks in `src/core/game.ts` (cast path,
-`raiseStrain`); conveyor (its own core module when §conveyor lands); UI `src/ui/Toolbar.tsx` (conveyor
-rail), `src/ui/Inspector.tsx` (strain display); visuals `src/render/renderer.ts` (§visuals).
-Tests: `src/core/strains.test.ts`. **Owner:** towers + engine + run-ui.
+**Files:** framework `src/core/strains.ts`; belt data + economy `src/core/conveyor.ts`; sim
+hooks in `src/core/game.ts` (cast path, `raiseStrain`, belt tick); UI `src/ui/Toolbar.tsx`
+(conveyor rail), `src/ui/Inspector.tsx` (strain display); visuals `src/render/renderer.ts`
+(§visuals). Tests: `src/core/strains.test.ts`, `src/core/conveyor.test.ts`.
+**Owner:** towers + engine + run-ui.
 
 ---
 
@@ -66,13 +67,17 @@ Replaces "all towers always available": ONE permanent **favorite** (chosen in th
 saved on the account) is always deployable; every other tower arrives on a living conveyor.
 
 - Queue max 3; each slot shows portrait, rarity, strain-level offer, animated growth, and the
-  remaining arrival timer. New organisms grow on a cadence (`CONVEYOR.arriveEvery`, wave-scaled).
+  remaining arrival timer. One organism grows at a time (`CONVEYOR.growSeconds` 14 s,
+  ×`growWaveFactor` 0.94 per wave, floored at `growMin` 7 s from wave ~12).
 - Choices per organism: **Deploy** (place it) · **Strain** (consume it to raise a deployed
   tower of the same kind one level — §merge) · **Discard** (instant recycle).
 - Overflow: when the queue is full the newest organism auto-enters the **Biomass Recycler** —
   the player receives the current base deployment value. Nothing is wasted.
-- Weights: kinds not currently deployed get a mild boost (`CONVEYOR.undeployedBias`); never
-  deterministic-only — every run reads differently. Rolls ride the gameplay rng.
+- Weights: kinds not currently deployed get a mild boost (`CONVEYOR.undeployedBias` 1.6); the
+  favorite is down-weighted ×0.4 (always deployable anyway — on the belt it is mostly strain
+  fuel); never deterministic-only — every run reads differently. Rolls ride a DEDICATED rng
+  stream (`seed ^ 0xb10c0de5`): an untouched belt never perturbs gameplay rng (golden safety,
+  contract-tested).
 
 ## 5. Merging (§merge — PROMPT 4 scope)
 
@@ -83,11 +88,13 @@ Equipment interactions are untouched — everything stacks.
 ## 6. Economy (§economy — PROMPT 5 scope)
 
 ONE universal deployment curve — no per-tower prices:
-`deployCost(n) = CONVEYOR.baseCost · CONVEYOR.costGrowth^n` (n = deployments this run;
-base 100, growth ~1.18 — smooth compounding). Strain cost = **current deployment cost ×
-strain multiplier**: I→II ×3 · II→III ×4 · III→IV ×5 · IV→V ×6 (the late-game biomass sink;
-Strain V is a run achievement, not a routine). Campaign/Infinite scaling must be re-probed
-(DIFFICULTY.md §contract) after the economy lands; simulate before finalizing numbers.
+`deployCost(n) = 100 · 1.11ⁿ` (n = deployments this run — smooth compounding). Strain cost =
+`100 · 1.05ⁿ × [3, 4, 5, 6]` (I→II ×3 · II→III ×4 · III→IV ×5 · IV→V ×6): the design brief's
+ladder on its OWN gentler escalator — pricing merges off the live deploy compound bought ZERO
+campaign merges in probes (§9 adjustments). Discard/overflow payout: FLAT 50 (a compounding
+refund would be an idle money printer). Strain V stays a run trophy in campaign (max III–IV by
+stage 8); deep endless completes the ladder (§9). Numbers were simulated before finalizing —
+probe data, probability tables, and the DIFFICULTY.md §contract re-verification live in §9.
 
 ## 7. Integration map (§integration — PROMPT 7 scope)
 
@@ -110,13 +117,109 @@ The audit rule: any surface that renders a tower's identity must render its stra
   picker), Toolbar conveyor rail, click-router arming; tutorial keeps the classic rail.
 - ✅ §merge: `strainFromConveyor` — consumes the duplicate, auto-targets the highest-Power
   same-kind tower (tier → strain → seniority), branches/mastery untouched.
-- ✅ §economy (core): universal `deployCost = 100·1.16ⁿ` (favorite + conveyor deploys),
-  strain cost = current deploy cost × [3,4,5,6]. Pacing simulation + probe re-run = PROMPT 8.
+- ✅ §economy: universal `deployCost = 100·1.11ⁿ` (favorite + conveyor deploys), strain cost
+  `100·1.05ⁿ × [3,4,5,6]`, flat recycler 50 — simulated + retuned in the PROMPT-8 pass (§9).
 - ✅ Ceremony + polish (PROMPT 6 core): the strain moment rides the mutation spectacle
   (hitstop, burst, absorption, splice + shake, banner with the mutation's name); conveyor slots
   arrive with a pop, pulse while ready, show live costs + merge-target tooltips.
 - ✅ §integration (first wave): Results shows the run's Deepest Strain (celebrates at V);
   RunStats.maxStrain (additive); Help wiki entries; favorite rides save import/export/reset
   automatically. Remaining: achievements, collection/stat ledgers, a tutorial lesson.
-- ⏳ simulation report (PROMPT 8) · ⏳ three new towers (separate expansion — must inherit
-  Strain for free).
+- ✅ simulation & validation report (PROMPT 8): §9 — campaign/endless/mono-favorite probes,
+  the economy retune, and the verdict checklist.
+- ⏳ integration long-tail: achievements, collection/stat lifetime ledgers, a tutorial lesson.
+- ⏳ three new towers (separate expansion — must inherit Strain for free).
+
+## 9. Simulation & validation report (§report — PROMPT 8)
+
+Probes (vite-node instruments, scratchpad): a conveyor-aware campaign probe playing REAL stages
+the way a player must (favorite opening + belt deploys/merges/discards, branch buys, 5 seeds ×
+stages 1/5/8 × power ratios ×0.75/×1.0/×1.7); an endless mid-account probe (damage ×3, +4
+slots, +100 integrity) with merge-on/merge-off arms; a mono-favorite degenerate probe; and the
+autoplay goldens.
+
+### Cost curves (final)
+
+| deployments n | deployCost | I→II | II→III | III→IV | IV→V |
+|---|---|---|---|---|---|
+| 0 | 100 | 300 | 400 | 500 | 600 |
+| 5 | 169 | 383 | 511 | 638 | 766 |
+| 9 | 256 | 465 | 621 | 776 | 931 |
+| 14 | 431 | 594 | 792 | 990 | 1188 |
+
+`deployCost(n) = 100·1.11ⁿ` · `strainCost(n, from) = 100·1.05ⁿ·[3,4,5,6]` · recycler flat 50.
+A full 9-deploy board totals ≈ 1 416 biomass; one tower's full I→V ladder at that board ≈ 2 793;
+saturating a 10-tower endless board ≈ 30–36 k (deep-endless income covers it by ~wave 40).
+
+### Conveyor probabilities
+
+- **Kind** (dedicated rng stream): deployed 1.0 · undeployed 1.6 · favorite ×0.4. Opening board
+  (favorite + one other kind down): each undeployed kind 25.8%, the deployed non-favorite 16.1%,
+  favorite 6.5%. All five kinds deployed: non-favorites 22.7% each, favorite 9.1%.
+- **Rarity** (wave-drifted; the drift weights sum to zero, so totals stay 100): wave 1 ≈
+  69.4 / 24.2 / 5.3 / 1.1 (common/uncommon/rare/epic) → wave 12 ≈ 62.8 / 26.4 / 8.6 / 2.2 →
+  wave 20 ≈ 58 / 28 / 11 / 3. Rare arrives at Strain II, epic at Strain III.
+- **Throughput:** one organism at a time; 14 s base, ×0.94 per wave, 7 s floor from ~wave 12.
+
+### Biomass economy assumptions
+
+- Wave income is untouched by the belt; the only new inflow is the FLAT recycler drip (≤ 50 per
+  maturity). Autoplay measures ≈ +900 over a 12-wave run (the golden re-pin delta, ~10% of run
+  income) — bounded, and flat-vs-compounding means overflow can never be farmed (test-enforced).
+- The universal curve replaces per-tower prices; the calibration assumption is contract-level,
+  not list-level: total board spend must keep the DIFFICULTY.md §contract bands without
+  recalibration — re-verified below.
+- Merges compete with branch tiers for the same biomass; the probe policy banks for strains once
+  the board is developed, which is the intended late-run decision shape.
+
+### Campaign contract re-verification (5 seeds each; merges active)
+
+| Stage | ×0.75 | ×1.0 | ×1.7 |
+|---|---|---|---|
+| s1 | 5/5 wins · lost 4 · strains 0.4 | 5/5 · lost 1 · strains 0.2 | 5/5 · lost 0 · strains 0.2 |
+| s5 | 5/5 · lost 22 · strains 1.2 | 5/5 · lost 20 · strains 1.6 | 5/5 · lost 20 · strains 0.6 |
+| s8 | 4/5 · lost 45 · strains 2.2 | 5/5 · lost 19 · strains 2.4 | 5/5 · lost 0 · strains 2.2 |
+
+Contract shape intact (≥rec ≈ no/chip damage; ×0.75 ≈ bad time at depth). Merge pacing ramps
+0.2 → 2.4 per run across the campaign; max Strain III–IV by stage 8 — the run-trophy target.
+
+### Endless (mid-account, seeds 5/13)
+
+| Arm | Fell wave | Merges | Board | All-V at wave |
+|---|---|---|---|---|
+| merging | 57 / 51 | 40 / 40 | 10× Strain V | 50 / 39 |
+| never merging | 36 / 32 | 0 | 10× Strain I | — |
+
+Strain merging extends endless depth ≈ +20 waves (~58%) — a proportionate ceiling lift for THE
+designated late-game layer, and depth pressure still ends the run (no immortal board). The
+all-V board completes only in the final quarter; the binding limiter deep is belt throughput
+(7 s floor + kind roll), not price.
+
+### Favorite dominance check
+
+Mono-favorite boards (deploy ONLY needle, merge only needle duplicates, recycle the rest):
+**0/5 wins at s5 AND s8 ×1.0** (lost 128 / 114 vs the mixed board's 20 / 19). Siege role
+coverage punishes single-kind boards — the favorite is a convenience anchor, not a strategy.
+
+### Balance adjustments made during testing
+
+1. `costGrowth` 1.16 → **1.11** — at 1.16 the deploy compound crowded out every other sink;
+   probes recorded 0.0 merges at every stage/ratio.
+2. Strain cost DECOUPLED from the live deploy cost — the design brief's "current deployment
+   cost × multiplier" still bought 0.0 campaign merges even at 1.11 (IV→V ≈ 6×deployCost(9) ≈
+   1.5 k+ mid-stage). Shipped `100·1.05ⁿ·mult`: the ×3/4/5/6 ladder preserved on a gentler
+   escalator (the PROMPT-8 rebalance mandate).
+3. Endless saturation ASSESSED and ACCEPTED at `strainGrowth` 1.05 (evidence above). Watch
+   item: if deep-endless (wave 60+) ever trivializes, the lever is belt throughput
+   (`growMin`), NOT `strainGrowth` — campaign merge pacing is the fragile side.
+
+### Verdict checklist (the PROMPT-8 list)
+
+Pacing bands ✓ (0.2→2.4 merges s1→s8; V completes only deep endless) · economy supports strain
+decisions without starving deploys ✓ (boards reach 7.4–9.0 towers AND merge on top) · favorite
+impactful-not-dominant ✓ (mono check) · kind frequency healthy ✓ (bias contract test; discards
+0.0–2.2/run — the belt output is usable, not spam) · overflow not exploitable ✓ (flat payout,
+test-enforced) · no duplicate mechanics ✓ (identity test rejects multiplier hooks; 16 unique
+verbs, each implemented once) · power scaling audited ✓ (0.05/level temp-power bucket, zero
+audit warnings across probes/tests) · loop intact ✓ (goldens byte-stable — autoplay never
+merges; untouched-belt rng trace test).
