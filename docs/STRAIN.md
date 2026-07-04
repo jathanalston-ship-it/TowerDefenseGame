@@ -127,7 +127,10 @@ The audit rule: any surface that renders a tower's identity must render its stra
   automatically. Remaining: achievements, collection/stat ledgers, a tutorial lesson.
 - ✅ simulation & validation report (PROMPT 8): §9 — campaign/endless/mono-favorite probes,
   the economy retune, and the verdict checklist.
-- ⏳ integration long-tail: achievements, collection/stat lifetime ledgers, a tutorial lesson.
+- ✅ integration long-tail: lifetime ledgers (`stats.bestStrain` / `strainsEvolved` /
+  `towerBestStrain` — additive save schema, statistics rows, Tower Lab + Results per-kind
+  display), strain achievements (Mutagenesis · Apex Strain · lifetime-evolution ladder), the
+  tutorial graduation step now points at the conveyor/strain loop.
 - ⏳ three new towers (separate expansion — must inherit Strain for free).
 
 ## 9. Simulation & validation report (§report — PROMPT 8)

@@ -246,7 +246,7 @@ export interface MasteryPanelModel {
   need: number;
   totalXp: number;
   bonusPct: number; // permanent damage bonus from mastery levels (MASTERY.damagePerLevel)
-  lifetime: { kills: number; damage: number; deployments: number; bestWave: number };
+  lifetime: { kills: number; damage: number; deployments: number; bestWave: number; bestStrain: number };
   next: { at: number; name: string; kind: MasteryRewardKind | 'perk' | 'rank' };
   milestones: { at: number; name: string; kind: MasteryRewardKind | 'perk'; reached: boolean }[];
 }
@@ -266,6 +266,7 @@ export function masteryPanelModel(save: SaveData, kind: TowerKind): MasteryPanel
       damage: save.stats.towerDamage[kind] ?? 0,
       deployments: save.stats.towerUsage[kind] ?? 0,
       bestWave: save.stats.towerBestWave[kind] ?? 0,
+      bestStrain: save.stats.towerBestStrain[kind] ?? 0,
     },
     next: nextMasteryUnlock('tower', kind, mp.level),
     milestones: masteryMilestones(kind, mp.level),

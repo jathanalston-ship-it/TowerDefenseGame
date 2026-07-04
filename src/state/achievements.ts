@@ -69,6 +69,16 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'collector', name: 'Gene Collector', desc: 'Collect 12 distinct Gene Cards.', reward: 40, test: (c) => c.save.stats.uniqueCards.length >= 12, progress: (c) => ({ cur: c.save.stats.uniqueCards.length, max: 12 }) },
   { id: 'persistent', name: 'Persistence', desc: 'Complete 5 runs to extraction.', reward: 40, test: (c) => c.save.stats.runsCompleted >= 5, progress: (c) => ({ cur: c.save.stats.runsCompleted, max: 5 }) },
 
+  // ── Strain evolution (docs/STRAIN.md §7 — the in-run conveyor-merge layer) ──
+  { id: 'first_strain', name: 'Mutagenesis', desc: 'Evolve a tower to Strain II.', reward: 20, test: (c) => c.save.stats.bestStrain >= 2 },
+  { id: 'strain5', name: 'Apex Strain', desc: 'Evolve a tower to Strain V.', reward: 75, test: (c) => c.save.stats.bestStrain >= 5, progress: (c) => ({ cur: Math.max(1, c.save.stats.bestStrain), max: 5 }) },
+  ...([10, 50] as const).map((n, i): AchievementDef => ({
+    id: `strains${n}`, name: ['Serial Mutator', 'Colony Alchemist'][i],
+    desc: `Commit ${n} strain evolutions (lifetime).`, reward: 40 + i * 50,
+    test: (c) => c.save.stats.strainsEvolved >= n,
+    progress: (c) => ({ cur: c.save.stats.strainsEvolved, max: n }),
+  })),
+
   // ── Hidden (surprise milestones — concealed until earned) ──
   { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },

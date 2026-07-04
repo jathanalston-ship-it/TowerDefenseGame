@@ -113,6 +113,11 @@ describe('the belt (§conveyor)', () => {
     expect(g.towers[1].strain).toBe(1);
     expect(leader.tier).toBe(2); // branches NEVER removed
     expect(bio0 - g.biomass).toBe(strainCost(g.deployments, 1));
+    // the run-stat ledgers saw the evolution (docs/STRAIN.md §7 — stats/achievements ride these)
+    const rs = g.getRunStats();
+    expect(rs.strains).toBe(1);
+    expect(rs.maxStrain).toBe(2);
+    expect(rs.strainByKind?.needle).toBe(2);
     // no eligible target → refused cleanly
     const g2 = new Game(12, NO_META);
     g2.startWave();

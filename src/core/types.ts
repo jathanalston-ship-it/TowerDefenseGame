@@ -374,6 +374,8 @@ export interface RunStats {
   cardIds: string[]; // gene cards drafted this run (ids; may repeat)
   heroId: string; // hero fielded this run
   maxStrain?: number; // the deepest STRAIN evolution reached this run (docs/STRAIN.md; absent/1 = none — additive for old fixtures)
+  strains?: number; // STRAIN evolutions committed this run (raiseStrain successes — additive)
+  strainByKind?: Partial<Record<TowerKind, number>>; // deepest strain per kind this run (entries only when > I)
 }
 
 /** Persistent lifetime statistics (in SaveData). The accumulation reducer in
@@ -393,6 +395,10 @@ export interface LifetimeStats {
   // ── Per-tower combat depth (schema v20) — the Mastery panel's lifetime ledger ──
   towerDamage: Record<TowerKind, number>; // lifetime damage dealt per kind
   towerBestWave: Record<TowerKind, number>; // deepest wave reached in a run that DEPLOYED the kind
+  // ── Strain ledgers (docs/STRAIN.md §7) — additive; 0/zeroed for old saves ──
+  bestStrain: number; // deepest strain ever reached on any tower (1 = never past I)
+  strainsEvolved: number; // lifetime strain evolutions committed (conveyor merges)
+  towerBestStrain: Record<TowerKind, number>; // deepest strain per kind (0 = never past I)
   // ── Player Profile ledgers (schema v22, docs/PROFILE.md) — additive; 0/{} for old saves ──
   playtimeSec: number; // total sim-seconds across settled runs (RunResult.durationSec)
   longestRunSec: number; // the single longest settled run

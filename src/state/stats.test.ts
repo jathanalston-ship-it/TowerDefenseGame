@@ -34,6 +34,24 @@ describe('lifetime statistics', () => {
     expect(s.heroUsage.ravager).toBe(1);
   });
 
+  it('folds the strain ledgers: deepest-ever, lifetime evolutions, per-kind bests', () => {
+    let s = accumulateStats(defaultLifetimeStats(), run({ maxStrain: 3, strains: 2, strainByKind: { needle: 3, mortar: 2 } }));
+    expect(s.bestStrain).toBe(3);
+    expect(s.strainsEvolved).toBe(2);
+    expect(s.towerBestStrain.needle).toBe(3);
+    expect(s.towerBestStrain.mortar).toBe(2);
+    expect(s.towerBestStrain.reactor).toBe(0); // never past I → untouched
+    // a shallower later run never regresses the bests, but evolutions keep counting
+    s = accumulateStats(s, run({ maxStrain: 2, strains: 1, strainByKind: { needle: 2 } }));
+    expect(s.bestStrain).toBe(3);
+    expect(s.strainsEvolved).toBe(3);
+    expect(s.towerBestStrain.needle).toBe(3);
+    // a strain-free run (old fixture shape — fields absent) is a no-op on the ledgers
+    s = accumulateStats(s, run());
+    expect(s.bestStrain).toBe(3);
+    expect(s.strainsEvolved).toBe(3);
+  });
+
   it('keeps the max wave, tallies losses, and resolves the favorite tower', () => {
     let s = accumulateStats(defaultLifetimeStats(), run({ wave: 8, won: true }));
     s = accumulateStats(s, run({ wave: 3, won: false }));

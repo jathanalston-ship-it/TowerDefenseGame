@@ -27,6 +27,16 @@ describe('achievements', () => {
     expect(ids).not.toContain('first_run');
   });
 
+  it('strain milestones ride the lifetime ledgers (bestStrain, strainsEvolved)', () => {
+    const base = defaultSave();
+    const save = { ...base, stats: { ...base.stats, bestStrain: 5, strainsEvolved: 10 } };
+    const ids = checkAchievements({ save }).map((a) => a.id);
+    expect(ids).toContain('first_strain');
+    expect(ids).toContain('strain5');
+    expect(ids).toContain('strains10');
+    expect(ids).not.toContain('strains50');
+  });
+
   it('every achievement id is unique', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);

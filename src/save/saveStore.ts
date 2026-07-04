@@ -243,6 +243,9 @@ export function defaultLifetimeStats(): LifetimeStats {
     heroUsage: zeroByHero(),
     towerDamage: zeroByTower(),
     towerBestWave: zeroByTower(),
+    bestStrain: 0,
+    strainsEvolved: 0,
+    towerBestStrain: zeroByTower(),
     playtimeSec: 0,
     longestRunSec: 0,
     waveSum: 0,
@@ -544,6 +547,8 @@ function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): Lifetime
     // v19→v20: per-tower damage/best-wave ledgers — zeroed for older saves (additive).
     towerDamage: { ...base.towerDamage, ...s.towerDamage },
     towerBestWave: { ...base.towerBestWave, ...s.towerBestWave },
+    // Strain ledgers (docs/STRAIN.md §7) — zeroed for older saves (additive; scalars ride the spread).
+    towerBestStrain: { ...base.towerBestStrain, ...s.towerBestStrain },
     // v21→v22: profile ledgers — zeroed/empty for older saves (additive).
     doctrineRuns: { ...base.doctrineRuns, ...s.doctrineRuns },
     cardDrafts: { ...base.cardDrafts, ...s.cardDrafts },

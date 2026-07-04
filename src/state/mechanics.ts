@@ -58,7 +58,7 @@ export const MECHANICS: MechanicDef[] = [
     what: 'Every tower starts a run at Strain I and can evolve to Strain V by consuming conveyor organisms of the SAME kind. Each level grants a brand-new mechanic — twin-firing organs, fragmenting shells, static-charge discharges — that no Gene Card, Branch or Star can grant, and the tower visibly mutates.',
     why: 'Once your board is full, Strain is what you optimize: the late game becomes evolving your strongest organisms instead of waiting.',
     where: 'The STRAIN button on a ready conveyor organism; the level shows on the tower and its Inspector panel.',
-    next: 'Strain costs ride the current deployment cost (×3/×4/×5/×6 per level) — plan the biomass sink.',
+    next: 'Strain costs climb ×3/×4/×5/×6 per level and escalate gently as you deploy more — plan the biomass sink.',
     mistakes: 'Merging never removes Branch tiers, Mastery or Gene effects — everything stacks. The strongest same-kind tower is auto-selected, so branch the tower you intend to evolve FIRST.' },
   { id: 'gene-essence', title: 'Gene Essence', category: 'Progression', nav: 'genes', links: ['gene-cards', 'gene-archive'],
     summary: 'Permanent currency that upgrades Gene Cards.',

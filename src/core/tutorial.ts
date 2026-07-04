@@ -149,7 +149,7 @@ export const COMBAT_TUTORIAL: TutorialDef = {
       cue: { spotlight: '.side-panel.inspector',
         callout: { text: 'We’ve selected your Needle Spitter. The Inspector shows its stats, live Mastery, and — as you push deeper — Branch mutations that re-author how it fires. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },
     { id: 'graduation', title: 'Hold the line', advance: { kind: 'event', event: 'wave-completed' },
-      cue: { callout: { text: 'You have the fundamentals — towers, Biomass, your Hero, Gene Cards. One more wave, on your own. Hold the line and graduate.' } } },
+      cue: { callout: { text: 'You have the fundamentals — towers, Biomass, your Hero, Gene Cards. Beyond this trial, new organisms arrive on the BIOMORPH CONVEYOR: deploy them, or consume duplicates to evolve a tower’s Strain (Help explains both). One more wave, on your own. Hold the line and graduate.' } } },
   ],
 };
 

@@ -84,6 +84,7 @@ function MasteryPanel({ kind, color, contribution }: { kind: TowerKind; color: s
         <span className="tl2-mstat"><b>{num(m.lifetime.damage)}</b>lifetime damage</span>
         <span className="tl2-mstat"><b>{num(m.lifetime.deployments)}</b>deployments</span>
         <span className="tl2-mstat"><b>{m.lifetime.bestWave || '—'}</b>best wave</span>
+        <span className="tl2-mstat"><b>{m.lifetime.bestStrain > 1 ? ['I', 'II', 'III', 'IV', 'V'][m.lifetime.bestStrain - 1] : '—'}</b>deepest strain</span>
       </div>
       <div className="tl2-mbonus">
         <span>Permanent bonus <b style={{ color }}>+{m.bonusPct.toFixed(1)}% damage</b></span>

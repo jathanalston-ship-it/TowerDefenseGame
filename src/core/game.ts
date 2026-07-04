@@ -433,6 +433,8 @@ export class Game {
   hiveHitPulse = 0; // render accumulator: kicks on every landed hit, decays fast (shudder/flash)
   private hiveFloatAccum = 0; // banked hive damage toward ONE aggregated float per beat
   private statMaxStrain = 1; // deepest strain reached this run (latched — survives sells)
+  private statStrains = 0; // strain evolutions committed this run (raiseStrain successes)
+  private readonly statStrainByKind: Partial<Record<TowerKind, number>> = {}; // per-kind latch (docs/STRAIN.md §7 ledgers)
   private hiveFloatTimer = 0;
   private emergencyActive = false; // any enemy inside the Final Defense Zone right now
   private emergencyRamp = 0; // render-only eased intensity (0..1) for the visual fade in/out
@@ -940,6 +942,8 @@ export class Game {
     const powerBefore = effectsPower(this.powerEffects());
     t.strain += 1;
     this.statMaxStrain = Math.max(this.statMaxStrain, t.strain);
+    this.statStrains += 1;
+    this.statStrainByKind[t.kind] = Math.max(this.statStrainByKind[t.kind] ?? 1, t.strain);
     t.mutatedAt = this.time; // the strain grow-in rides the same flash channel as a splice
     const d = strainRegistry.get(`${t.kind}:${t.strain}`);
     const color = TOWER_DEFS[t.kind].color;
@@ -1053,6 +1057,7 @@ export class Game {
     if (item.strain > 1) {
       t.strain = Math.min(5, item.strain);
       this.statMaxStrain = Math.max(this.statMaxStrain, t.strain);
+      this.statStrainByKind[t.kind] = Math.max(this.statStrainByKind[t.kind] ?? 1, t.strain);
       t.mutatedAt = this.time;
       this.recomputeTowerCaches();
       this.auditTempPower(powerBefore, `Deployed Strain-${t.strain} organism (${t.kind})`);
@@ -4574,6 +4579,8 @@ export class Game {
       cardIds: this.chosenCards.map((c) => c.id),
       heroId: this.primaryHero.kind,
       maxStrain: this.towers.reduce((m, t) => Math.max(m, t.strain), this.statMaxStrain),
+      strains: this.statStrains,
+      strainByKind: { ...this.statStrainByKind },
     };
   }
 }

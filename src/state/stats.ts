@@ -43,6 +43,13 @@ export function accumulateStats(
     }
   }
 
+  // Strain ledgers (docs/STRAIN.md §7): deepest-ever, lifetime evolutions, per-kind deepest.
+  const towerBestStrain = { ...prev.towerBestStrain };
+  for (const [k, v] of Object.entries(run.strainByKind ?? {})) {
+    const kind = k as TowerKind;
+    if ((v ?? 0) > (towerBestStrain[kind] ?? 0)) towerBestStrain[kind] = v as number;
+  }
+
   // Profile ledgers (schema v22): duration, doctrine, and per-card draft counts.
   const doctrineRuns = { ...prev.doctrineRuns };
   if (extra?.doctrine && extra.doctrine !== 'none') doctrineRuns[extra.doctrine] = (doctrineRuns[extra.doctrine] ?? 0) + 1;
@@ -64,6 +71,9 @@ export function accumulateStats(
     heroUsage,
     towerDamage,
     towerBestWave,
+    bestStrain: Math.max(prev.bestStrain, run.maxStrain ?? 1),
+    strainsEvolved: prev.strainsEvolved + (run.strains ?? 0),
+    towerBestStrain,
     playtimeSec: prev.playtimeSec + dur,
     longestRunSec: Math.max(prev.longestRunSec, dur),
     waveSum: prev.waveSum + run.wave,
@@ -106,4 +116,6 @@ export const STAT_ROWS: StatRow[] = [
   { label: 'Favorite tower', value: (s) => favoriteTowerName(s) },
   { label: 'Cards collected', value: (s) => String(s.uniqueCards.length) },
   { label: 'Cards drafted', value: (s) => s.cardsDrafted.toLocaleString() },
+  { label: 'Deepest Strain', value: (s) => (s.bestStrain > 1 ? ['I', 'II', 'III', 'IV', 'V'][s.bestStrain - 1] : '—') },
+  { label: 'Strain evolutions', value: (s) => s.strainsEvolved.toLocaleString() },
 ];

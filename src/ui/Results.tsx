@@ -163,7 +163,7 @@ export function Results({
                   {powerGained > 0 ? ` · ▲ +${num(powerGained)} Power` : ''}
                 </span>
               )}
-              <span className="mg-life">lifetime {num(save.towerKills[k] ?? 0)} kills · best wave {save.stats.towerBestWave[k] || '—'}</span>
+              <span className="mg-life">lifetime {num(save.towerKills[k] ?? 0)} kills · best wave {save.stats.towerBestWave[k] || '—'}{(save.stats.towerBestStrain[k] ?? 0) > 1 ? ` · strain ${['I', 'II', 'III', 'IV', 'V'][save.stats.towerBestStrain[k] - 1]}` : ''}</span>
             </div>
           );
         })}
