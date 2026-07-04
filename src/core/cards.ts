@@ -278,10 +278,16 @@ export const CARD_POOL: CardDef[] = [
   { id: 'biomass_surge', name: 'Biomass Surge', rarity: 'common', category: 'economy', description: 'Gain 180 biomass now.', effects: [{ op: 'biomass', value: 180 }] },
   { id: 'thick_marrow', name: 'Thick Marrow', rarity: 'common', category: 'economy', description: '+45 max & current Integrity.', effects: [{ op: 'integrity', value: 45 }] },
   { id: 'twin_fang', name: 'Twin Fang', rarity: 'common', category: 'tower', description: 'Needle Spitter fires +1 extra needle.', effects: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }] },
+  { id: 'wider_jaws', name: 'Wider Jaws', rarity: 'common', category: 'tower', description: 'Carrion Maw bites reach +10% farther.', effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.1 }] },
+  { id: 'thick_amber', name: 'Thick Amber', rarity: 'common', category: 'control', description: 'Amber Chrysalis encasements hold +15% longer.', effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.15 }] },
+  { id: 'lingering_dread', name: 'Lingering Dread', rarity: 'common', category: 'control', description: 'Wailing Effigy panic lasts +15% longer.', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.15 }] },
   { id: 'battle_stims', name: 'Battle Stims', rarity: 'common', category: 'hero', description: '+60 hero max & current HP.', effects: [{ op: 'heroHp', value: 60 }] },
   { id: 'toxic_coating', name: 'Toxic Coating', rarity: 'common', category: 'poison', description: '+15% Infection & Corrosion damage.', effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.15 }, { op: 'mul', field: 'poolDpsMult', value: 1.15 }] },
   { id: 'caustic_edge', name: 'Caustic Edge', rarity: 'common', category: 'poison', description: 'Corrosion slows enemies +8% more.', effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.08 }] },
   { id: 'numbing_field', name: 'Numbing Field', rarity: 'common', category: 'control', description: 'Disruption slow is +8% stronger.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.08 }] },
+  { id: 'gnashing_hunger', name: 'Gnashing Hunger', rarity: 'rare', category: 'tower', description: 'Carrion Maw bites reach +16% farther; +10% tower fire rate.', effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.16 }, { op: 'mul', field: 'towerFireRateMult', value: 1.1 }] },
+  { id: 'crystalline_matrix', name: 'Crystalline Matrix', rarity: 'rare', category: 'control', description: 'Encasements hold +20% longer; +8% tower damage.', effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'chorus_of_grief', name: 'Chorus of Grief', rarity: 'rare', category: 'control', description: 'Panic lasts +20% longer; +6% tower fire rate.', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.2 }, { op: 'mul', field: 'towerFireRateMult', value: 1.06 }] },
   { id: 'disorient', name: 'Disorient', rarity: 'common', category: 'control', description: 'Disrupted enemies take +6% more damage.', effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.06 }] },
   { id: 'thick_hide', name: 'Thick Hide', rarity: 'common', category: 'hero', description: '+80 hero max & current HP.', effects: [{ op: 'heroHp', value: 80 }] },
   { id: 'combat_stims', name: 'Combat Stims', rarity: 'common', category: 'hero', description: '−10% hero ability cooldown.', effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.9 }] },
@@ -317,6 +323,7 @@ export const CARD_POOL: CardDef[] = [
   { id: 'catalyst_engine', name: 'Catalyst Engine', rarity: 'epic', category: 'mutation', description: 'Status reactions re-fire once; +10% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }] },
   { id: 'overcharged_grid', name: 'Overcharged Grid', rarity: 'epic', category: 'economy', description: '+0.40 reactor overcharge, +50% reactor biomass, +10% tower damage.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.4 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.5 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }] },
   { id: 'gravity_well', name: 'Gravity Well', rarity: 'epic', category: 'control', description: 'Disruption slows +20% harder and adds +20% vulnerability.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.2 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.2 }] },
+  { id: 'total_lockdown', name: 'Total Lockdown', rarity: 'epic', category: 'control', description: 'Encasements AND panic last +25% longer; Disruption slows +10% harder.', effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.25 }, { op: 'mul', field: 'effigyDreadDurationMult', value: 1.25 }, { op: 'add', field: 'obeliskSlowBonus', value: 0.1 }] },
 
   // ════════════════ Legendary — rule-bending ════════════════
   { id: 'glass_genome', name: 'Glass Genome', rarity: 'legendary', category: 'tower', description: '×2 tower damage — but every enemy has +25% HP.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 2.0 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.25 }] },
@@ -498,6 +505,9 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   parasiteInfectionMult: 'parasite',
   obeliskVulnerabilityBonus: 'obelisk',
   obeliskSlowBonus: 'obelisk',
+  mawCleaveRadiusMult: 'maw',
+  chrysalisFreezeDurationMult: 'chrysalis',
+  effigyDreadDurationMult: 'effigy',
   reactorBiomassMult: 'reactor',
   reactorOverchargeBonus: 'reactor',
   // hero kit (numbers + behaviour)
@@ -518,6 +528,7 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
 // On-hit status → the tower whose identity that status is (for spread-on-event relic hooks).
 const STATUS_SUBJECT: Partial<Record<StatusType, SubjectTag>> = {
   Fracture: 'needle', Corrosion: 'mortar', Infection: 'parasite', Disruption: 'obelisk',
+  Freeze: 'chrysalis', Fear: 'effigy',
 };
 
 function effectSubject(e: CardEffect): SubjectTag {

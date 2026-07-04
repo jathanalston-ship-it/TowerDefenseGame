@@ -23,7 +23,7 @@ tiers, Stars, Mastery, Equipment, Hero or Global upgrades. The framework enforce
 vocabulary: `StrainHooks` fields are NEW verbs the executor implements only for strains.
 Multipliers are forbidden in hooks (power comes as a side effect of the mechanic).
 
-The authored ladders (all 20 in `strains.ts`; each verb implemented ONCE in the sim):
+The authored ladders (all 32 in `strains.ts` — every tower II–V; each verb implemented ONCE in the sim):
 
 | Tower | II | III | IV | V |
 |---|---|---|---|---|
@@ -32,6 +32,9 @@ The authored ladders (all 20 in `strains.ts`; each verb implemented ONCE in the 
 | Flesh Reactor | **Adrenal Glands** — overcharged towers open waves with reset cooldowns | **Glut Sacs** — biomass SURGE at each wave start | **Synaptic Weave** — chained reactors project a WIDER overcharge ring | **Womb of the Colony** — BIRTHS a harvester organism |
 | Parasite Nest | **Spore Bloat** — infected deaths burst a SLOWING cloud | **Leaping Broodworm** — the plague LEAPS to a distant host on death | **Neural Infestation** — full infection SEIZES the host (stun, once) | **Brood Nest** — BIRTHS broodling swarms |
 | Neural Obelisk | **Static Ganglia** — the field CHARGES enemies stack by stack | **Arc Synapse** — at 6 stacks the host DISCHARGES into neighbors | **Overload Cortex** — discharges STUN their arc victims | **Storm Crown** — every discharge FORKS to 2 extra victims |
+| Carrion Maw | **Gorging Gullet** — kills FEED it (glut widens the jaws) | **Bone Vice** — the bite GRIPS everything it catches | **Acid Reflux** — every 4th bite REGURGITATES a bone volley | **Apex Devourer** — glut never fades; full-glut bites sweep TWICE |
+| Amber Chrysalis | **Setting Resin** — broken casings leave a SLOWING slick | **Splinter Shards** — casings SHATTER into shard damage | **Twin Cocoon** — refuses preserved prey (locks a SECOND victim) | **Living Amber** — encased victims are SIPHONED; the casing bursts |
+| Wailing Effigy | **Creeping Dread** — fading panic leaves the body CHILLED | **Contagious Panic** — a feared death SPREADS its panic | **Nightmare Feast** — the pulse WOUNDS feared minds | **Death Knell** — fading panic detonates a psychic BACKLASH |
 
 ## 2. Framework (§framework)
 

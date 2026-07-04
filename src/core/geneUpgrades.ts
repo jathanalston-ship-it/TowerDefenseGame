@@ -16,6 +16,47 @@
 import type { GeneUpgradeLevel } from './cards';
 
 export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
+  // ════════════════ Expansion towers (docs/TOWERS.md §expansion) ════════════════
+  wider_jaws: [
+    { effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.06 }], note: 'Unhinged — +6% bite reach.' },
+    { effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.08 }], note: 'Distended gullet — +8% bite reach.' },
+    { effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Grinding rows — +6% reach, +5% tower damage.' },
+  ],
+  thick_amber: [
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.08 }], note: 'Slow pour — +8% encasement duration.' },
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.08 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Caustic set — +8% duration, +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.1 }], note: 'Museum grade — +10% encasement duration.' },
+  ],
+  lingering_dread: [
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.08 }], note: 'Long echo — +8% panic duration.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.08 }, { op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Urgent keening — +8% duration, +4% fire rate.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }], note: 'The unending note — +10% panic duration.' },
+  ],
+  gnashing_hunger: [
+    { effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.06 }], note: 'Hungrier — +6% bite reach.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Snapping tendons — +6% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.08 }], note: 'The open grave — +8% bite reach.' },
+    { effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Feeding frenzy — +6% reach, +6% tower damage.' },
+  ],
+  crystalline_matrix: [
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.06 }], note: 'Denser lattice — +6% encasement duration.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Razor facets — +5% tower damage.' },
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.08 }], note: 'Perfect clarity — +8% encasement duration.' },
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'The reliquary — +6% duration, +6% damage.' },
+  ],
+  chorus_of_grief: [
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.06 }], note: 'A second mourner — +6% panic duration.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Swelling dirge — +5% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.08 }], note: 'Grief carries — +8% panic duration.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.06 }, { op: 'add', field: 'obeliskSlowBonus', value: 0.04 }], note: 'All things mourn — +6% duration, Disruption slows +4% harder.' },
+  ],
+  total_lockdown: [
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.06 }, { op: 'mul', field: 'effigyDreadDurationMult', value: 1.06 }], note: 'Twin clamps — +6% encasement AND panic duration.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.05 }], note: 'Heavier field — +5% Disruption vulnerability.' },
+    { effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.08 }, { op: 'mul', field: 'effigyDreadDurationMult', value: 1.08 }], note: 'The stillness — +8% to both holds.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.08 }], note: 'Nothing moves, everything breaks — +8% Disruption vulnerability.' },
+  ],
+
   // ════════════════ Common (3 levels) ════════════════
   sharpened_needles: [
     { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Honed edges — +6% tower damage.' },

@@ -170,6 +170,10 @@ function sBrPlague(d = 0): void { noise(0.12, 0.05 * up(d), 2400 * lo(d), 700); 
 function sBrGore(d = 0): void { noise(0.07, 0.07 * up(d), 1500 * lo(d), 400); tone(160 * lo(d), 0.07, 'sawtooth', 0.04 * up(d), 80); sub(d, 70); } // vicious wet crunch
 function sBrPsi(d = 0): void { tone(180 * lo(d), 0.18, 'sine', 0.05 * up(d), 120); tone(270 * lo(d), 0.16, 'triangle', 0.025 * up(d), 200); } // ominous psionic hum
 function sBrStorm(d = 0): void { noise(0.05, 0.05 * up(d), 5000 * lo(d), 1500); tone(1500 * lo(d), 0.05, 'sawtooth', 0.04 * up(d), 400); sub(d, 110); } // crackling neural zap
+function sBrMaw(d = 0): void { noise(0.06, 0.08 * up(d), 900 * lo(d), 260); tone(110 * lo(d), 0.1, 'sawtooth', 0.05 * up(d), 55); sub(d, 65); } // heavy wet jaw crunch
+function sBrGullet(d = 0): void { noise(0.14, 0.05 * up(d), 700 * lo(d), 200); tone(85 * lo(d), 0.14, 'sine', 0.05 * up(d), 48); } // dragging undertow glug
+function sBrAmber(d = 0): void { tone(980 * lo(d), 0.07, 'triangle', 0.045 * up(d), 640); tone(310 * lo(d), 0.1, 'sine', 0.03 * up(d), 210); sub(d, 95); } // crystalline resin set
+function sBrWail(d = 0): void { tone(520 * lo(d), 0.2, 'sine', 0.04 * up(d), 340); tone(392 * lo(d), 0.22, 'triangle', 0.03 * up(d), 260); sub(d, 80); } // mournful psychic wail
 
 // Ecosystem-transition sting — an airy rising sweep that says "new biome" (BIOMES.md §5).
 function sBiome(): void {
@@ -247,6 +251,10 @@ export const audio = {
         case 'br_gore': for (let i = 0; i < Math.min(2, n); i++) sBrGore(d); break;
         case 'br_psi': sBrPsi(d); break;
         case 'br_storm': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(d); break;
+        case 'br_maw': for (let i = 0; i < Math.min(2, n); i++) sBrMaw(d); break;
+        case 'br_gullet': sBrGullet(d); break;
+        case 'br_amber': case 'br_sap': sBrAmber(d); break;
+        case 'br_choir': case 'br_malice': sBrWail(d); break;
       }
     }
   },

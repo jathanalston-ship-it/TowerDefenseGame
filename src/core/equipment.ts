@@ -89,6 +89,9 @@ export const AFFIXES: AffixDef[] = [
   { id: 'corrosive', name: 'Corrosive', bias: 'relic', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }] },
   { id: 'reactive', name: 'Reactive', bias: 'any', effects: [{ op: 'mul', field: 'reactorBiomassMult', value: 1.1 }] },
   { id: 'twinned', name: 'Twinned', bias: 'any', effects: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }] },
+  { id: 'gnashing', name: 'Gnashing', bias: 'relic', effects: [{ op: 'mul', field: 'mawCleaveRadiusMult', value: 1.06 }] },
+  { id: 'preserving', name: 'Preserving', bias: 'armor', effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.08 }] },
+  { id: 'dreadful', name: 'Dreadful', bias: 'relic', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.08 }] },
   // Behavioral affixes (scale by tier) — they sharpen a PLAYSTYLE, not a stat: lifesteal,
   // mobility, thorns, hero auras, ability reach. These keep the reroll chase build-relevant.
   { id: 'leeching', name: 'Leeching', bias: 'weapon', effects: [{ op: 'add', field: 'heroLifestealFrac', value: 0.04 }] },
@@ -110,6 +113,7 @@ export function affixDef(id: string): AffixDef | undefined {
  *  stat in plain words ("+5% Tower Damage") instead of showing a raw field key. Unlisted fields fall
  *  back to a camelCase→words humanizer, so new content reads sensibly without a hand-edit. */
 const FIELD_LABEL: Record<string, string> = {
+  mawCleaveRadiusMult: 'Bite Reach', chrysalisFreezeDurationMult: 'Encasement Duration', effigyDreadDurationMult: 'Panic Duration',
   towerDamageMult: 'Tower Damage', towerFireRateMult: 'Fire Rate', splashRadiusMult: 'Splash Radius',
   fractureBonusStacks: 'max Fracture', heroDamageMult: 'Hero Damage', heroCooldownMult: 'Ability Cooldown',
   heroMaxHpMult: 'Hero Health', integrityMult: 'Nucleus Integrity', reactorOverchargeBonus: 'Reactor Overcharge',

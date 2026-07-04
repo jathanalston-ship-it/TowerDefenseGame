@@ -102,8 +102,9 @@ towers (+damage, +fire-rate). Its "range" is realized as **slot adjacency** (the
 band possible; the renderer shows a small ~90px support radius that matches the adjacent
 slots). Anchored to the backline cluster it buffs.
 
-> Distinct bands, smallest → largest: **Reactor 90 < Parasite 280 < Obelisk 360 < Needle
-> 700 < Mortar 960.** No two towers share a footprint, so placement and range upgrades now
+> Distinct bands, smallest → largest: **Reactor 90 < Maw 170 < Parasite 280 < Effigy 300 <
+> Obelisk 360 < Chrysalis 430 < Needle 700 < Mortar 960** (docs/TOWERS.md §expansion for the
+> three expansion bands: jaws / crust-guard dread / mid warden).
 > carry real, legible meaning.
 
 ## 4. The Final Defense Zone & Emergency Defense Mode

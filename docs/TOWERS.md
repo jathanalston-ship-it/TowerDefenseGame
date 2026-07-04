@@ -1,4 +1,4 @@
-# TOWERS.md — The Five Launch Towers (canonical spec)
+# TOWERS.md — The Tower Roster (canonical spec: five launch + three expansion)
 
 Detailed design of the five launch towers. Companion to `DESIGN.md` (vision) and
 `PROGRESSION.md` (scaling math). **This doc is canonical for tower names, classes,
@@ -440,3 +440,33 @@ build-defining response.
 
 No two share a role, a status, a scaling axis, or a failure mode — they are
 **completely distinct**, and the reaction matrix makes every *pair* a third thing.
+
+
+---
+
+## Expansion roster (§expansion) — Carrion Maw · Amber Chrysalis · Wailing Effigy
+
+Three niches the launch five deliberately do not own, added post-siege (enemies attack the
+Core — docs/HIVE-SIEGE.md), where "the last 170 px" and "who is attacking RIGHT NOW" became
+real design space. All three compose the shared ability blocks (`TowerDef.abilities`) — no new
+firing modes, no per-tower sim forks. Registry-driven systems (conveyor, stars, mastery,
+adaptation, codex, loot, prediction, Strain) inherited them with zero per-system code.
+
+| | Carrion Maw | Amber Chrysalis | Wailing Effigy |
+|---|---|---|---|
+| Class / status | Kinetic (no status — raw meat) | Caustic / **Freeze** (encase) | Neural / **Fear** (flee) |
+| Niche | crust BRAWLER — cleaves everything inside its jaws | elite WARDEN — hard-locks the biggest threat | dread TOTEM — pure tempo, panics attackers off the crust |
+| Range band | **170** (the shortest in the game — its range IS its jaws) | **430** (mid warden) | **300** (crust guard) |
+| Cost / cadence / hit | 140 · 1.25 s · 26 to ALL in reach | 155 · 3.4 s · 18 + Freeze 1.4 s (highestHealth) | 150 · 2.6 s · 0 — Fear 1.6 s in the field |
+| Counter-play | useless at range; wants chokes/crust | single-target; swarms walk past it | zero damage; needs killers behind it |
+| Branches | Butcher's Row (carnage) / Tidal Gullet (undertow control) | Deep Freeze (lockdown) / Preserving Amber (sap utility) | Choir of Sorrow (wide dread) / Totem of Malice (psychic wounds) |
+| Strain II–V | Gorging Gullet · Bone Vice · Acid Reflux · Apex Devourer | Setting Resin · Splinter Shards · Twin Cocoon · Living Amber | Creeping Dread · Contagious Panic · Nightmare Feast · Death Knell |
+
+**Status semantics (engine-level, shared):** Freeze = full stop + attack-disabled; Fear =
+attack-disabled + **flees** (a feared sieger breaks off the crust and scatters up-lane,
+re-converging when it fades). Both carry a **refractory window** (freeze 3.5 s, fear 4.0 s —
+`status.ts`): after the effect ends, the same effect bounces off that enemy until the window
+clears, so perma-CC from stacked towers is impossible by construction. Identity run-mods:
+`mawCleaveRadiusMult` · `chrysalisFreezeDurationMult` · `effigyDreadDurationMult` (cards
+`wider_jaws`/`gnashing_hunger`, `thick_amber`/`crystalline_matrix`, `lingering_dread`/
+`chorus_of_grief`, epic `total_lockdown`; affixes `gnashing`/`preserving`/`dreadful`).

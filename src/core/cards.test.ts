@@ -53,6 +53,9 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
   const EXPECT: Record<string, string> = {
     sharpened_needles: 'global', rapid_glands: 'global', fertile_decay: 'economy',
     biomass_surge: 'economy', thick_marrow: 'hive', twin_fang: 'needle',
+    wider_jaws: 'maw', thick_amber: 'chrysalis', lingering_dread: 'effigy',
+    gnashing_hunger: 'maw', crystalline_matrix: 'chrysalis', chorus_of_grief: 'effigy',
+    total_lockdown: 'global',
     battle_stims: 'hero', toxic_coating: 'global', caustic_edge: 'mortar',
     numbing_field: 'obelisk', disorient: 'obelisk', thick_hide: 'hero',
     combat_stims: 'hero', fleet_step: 'hero', fracture_point: 'global',

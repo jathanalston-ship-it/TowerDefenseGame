@@ -45,6 +45,9 @@ const FIELD_WEIGHT: Record<string, number> = {
   enemyHpRunMult: -0.4, // softer enemies ⇒ more effective damage
   heroSpeedMult: 0.15, // mobility ⇒ survival + uptime
   heroAggroRangeMult: 0.1, // wider engagement ⇒ more effective DPS
+  mawCleaveRadiusMult: 0.4, // wider jaws ⇒ more victims per bite
+  chrysalisFreezeDurationMult: 0.35, // control uptime (encasement)
+  effigyDreadDurationMult: 0.35, // control uptime (panic)
 };
 // `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
@@ -86,6 +89,8 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'heroCooldownMult', 'enemyHpRunMult', 'heroSpeedMult', 'heroAggroRangeMult', 'sellRefundFrac',
   // Hero Evolution axes (in-run biomass sink; every one moves Power — docs/HERO-EVOLUTION.md):
   'heroAttackSpeedMult', 'heroCritChance', 'heroCritDamageBonus', 'heroHealingMult', 'heroArmor',
+  // Expansion tower identities (docs/TOWERS.md §expansion):
+  'mawCleaveRadiusMult', 'chrysalisFreezeDurationMult', 'effigyDreadDurationMult',
 ];
 
 /** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */
