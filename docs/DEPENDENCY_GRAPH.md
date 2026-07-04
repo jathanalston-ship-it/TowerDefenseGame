@@ -91,7 +91,7 @@ graph TD
 | **Power Score** (`power`) | `content-infra` | `campaign` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `towers` · `heroes` · `loot` · `gene-cards` · `prestige` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
-| **Towers, Stars, Branches & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` |
+| **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
 | **Equipment & Armory** (`equipment`) | `content-infra` · `loot` · `power` · `heroes` | `crafting` | ⚡ equipped items score via itemPower into the gear bucket | `equipment` | `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` |
@@ -151,7 +151,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/BIOMES.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md`
+- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/BIOMES.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md`
 
 ### Power Score (`power`)
 
@@ -181,7 +181,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `CampaignScreen` · `CommandCenter`
 - **Collection:** biome discovery · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md`
+- **Docs to update on change:** `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md`
 
 ### Infinite Mode (`infinite`)
 
@@ -198,11 +198,11 @@ graph TD
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md`
 
-### Towers, Stars, Branches & Codex (`towers`)
+### Towers, Stars, Branches, Strain & Codex (`towers`)
 
-*Tower roster; permanent Star evolutions; in-run Branch specialization; the Codex.*
+*Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.*
 
-- **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
+- **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/core/strains.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
 - **Depends on:** `content-infra` · `shards-economy` · `campaign`
 - **Consumers — what breaks if you change this:** `engine`
 - **Power Score:** stars/branches feed permanent + temporary buckets
@@ -211,7 +211,7 @@ graph TD
 - **HUD surfaces:** `tower rail` · `Inspector` · **UI screens:** `TowerLab` · `TowerCodex` · `StarCeremony`
 - **Collection:** towers category (usage tiers) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md`
+- **Docs to update on change:** `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md`
 
 ### Mastery / Adaptation (`mastery`)
 
@@ -316,7 +316,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `TowerLab` · `HeroLab`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md`
+- **Docs to update on change:** `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md`
 
 ### Collections / Codex (`collection`)
 

@@ -602,6 +602,27 @@ button:disabled {
 .hud-vital-row .bar {
   flex: 1;
 }
+/* STRAIN identity line in the Inspector (docs/STRAIN.md §framework) */
+.insp-strain {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+.insp-strain-k {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: var(--track-wide);
+  color: var(--caustic);
+}
+.insp-strain.is-apex .insp-strain-k {
+  color: var(--gold);
+}
+.insp-strain-n {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
 /* ── Hive Siege pressure (docs/HIVE-SIEGE.md §UI): the Core cell REACTS to being chewed ── */
 .hud-vital-bar {
   position: relative;

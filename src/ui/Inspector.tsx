@@ -164,6 +164,12 @@ export function Inspector({
           {stats.shots > 1 && <StatRow k="Targets" v={`×${stats.shots}`} />}
         </div>
 
+        {/* STRAIN (docs/STRAIN.md): the in-run evolution level — Strain V is the run's trophy. */}
+        <div className={`insp-strain${sp.strain >= 5 ? ' is-apex' : ''}`} title="Strain — this run's evolution level (docs: consume conveyor duplicates to evolve)">
+          <span className="insp-strain-k">Strain {['I', 'II', 'III', 'IV', 'V'][sp.strain - 1]}</span>
+          {sp.strainName && <span className="insp-strain-n">{sp.strainName}</span>}
+        </div>
+
         {/* Live Mastery — the craft grows WHILE you watch (docs/MASTERY.md §live). */}
         <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
 

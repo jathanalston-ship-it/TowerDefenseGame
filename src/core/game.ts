@@ -99,6 +99,7 @@ import type { TargetingProfile } from './targeting';
 import { applyMutators } from './mutators';
 import { gameEvents } from './events';
 import { branchesFor, branchRegistry, resolveBranchKit } from './branches';
+import { resolveStrain, strainRegistry, strainPowerEffects } from './strains';
 import type { Branch, ResolvedBranchKit } from './branches';
 import { BRANCH_COSTS } from './config';
 
@@ -437,7 +438,8 @@ export class Game {
   private castRangeMult = 1; // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
-  private castProjectileSkinTier = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
+  private castProjectileSkinTier = 0;
+  private castFragment: { count: number; damageFrac: number; radius: number } | null = null; // STRAIN §framework: splash shells fragment on impact // branch tier tagged onto shots (drives projectile evolution; 0 = base)
   // Run-start behavioral grants/hooks collected at boot from equipment (the §3 verbs).
   // Empty by default ⇒ a gear-less run is byte-identical (golden invariant).
   private readonly grantedTowerMutators: string[] = []; // projectile mutators applied to EVERY shot
@@ -900,6 +902,35 @@ export class Game {
     return 'ok';
   }
 
+  /** Raise a tower's STRAIN level (docs/STRAIN.md §framework) — the single mutation point.
+   *  Acquisition (the Biomorph Conveyor, §conveyor) is the only in-game caller; the framework
+   *  validates, fires the ceremony surface, and audits the Power bucket like every other
+   *  in-run strength grant. Branches/Mastery/Genes are untouched — everything stacks. */
+  raiseStrain(towerId: number): 'ok' | 'maxed' | 'badTower' {
+    const t = this.towers.find((tw) => tw.id === towerId);
+    if (!t) return 'badTower';
+    if (t.strain >= 5) return 'maxed';
+    const powerBefore = effectsPower(this.powerEffects());
+    t.strain += 1;
+    t.mutatedAt = this.time; // the strain grow-in rides the same flash channel as a splice
+    const d = strainRegistry.get(`${t.kind}:${t.strain}`);
+    const color = TOWER_DEFS[t.kind].color;
+    this.hitstop = BRANCH_HITSTOP;
+    this.spawnParticles(t.x, t.y, PARTICLE.mutate, color);
+    this.spawnAbsorption(t.x, t.y);
+    this.pushSfx('splice');
+    this.mutation = {
+      id: ++this.mutationSeq,
+      title: d?.name ?? `Strain ${['I', 'II', 'III', 'IV', 'V'][t.strain - 1]}`,
+      sub: `${TOWER_DEFS[t.kind].name} · Strain ${['I', 'II', 'III', 'IV', 'V'][t.strain - 1]}`,
+      branchId: t.branchId ?? '',
+      color,
+      at: this.time,
+    };
+    this.auditTempPower(powerBefore, `Strain ${t.strain} (${t.kind})`);
+    return 'ok';
+  }
+
   /** The branch-tier purchase MOMENT: a brief view-freeze, a mutation burst, biomass visibly
    *  absorbed into the tower, a cost float, a meaty cue (which also shakes the screen), and a
    *  transient upgrade banner. Cosmetic only — FX rng + sfx queue + presentation fields, so the
@@ -954,6 +985,8 @@ export class Game {
       sell: { investment: q.investment, towerRefund: q.towerRefund, branchRefund: q.branchRefund, total: q.total },
       canMove: this.phase === 'prep', // relocation is Build-Phase only
       moving: this.movingTowerId === t.id,
+      strain: t.strain,
+      strainName: strainRegistry.get(`${t.kind}:${t.strain}`)?.name ?? null,
     };
   }
 
@@ -1227,6 +1260,7 @@ export class Game {
       disabledUntil: 0,
       branchId: null,
       tier: 0,
+      strain: 1, // Strain I — the unmutated baseline (docs/STRAIN.md)
       pulseCd: 0,
       mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
       movedAt: -100, // never relocated ⇒ no landing-impact FX
@@ -1531,7 +1565,8 @@ export class Game {
     // Purchased branch tiers are real strength — scored via the heuristic vehicle (POWER-AUDIT.md;
     // this fixed the "branches raise strength without raising Power" bug).
     const branchTiers = this.towers.reduce((n, t) => n + t.tier, 0);
-    return [...this.chosenCardEffects, ...heroEvoEffects(this.heroEvoLevels), ...branchPowerEffects(branchTiers)];
+    const strainLevels = this.towers.reduce((n, t) => n + (t.strain - 1), 0); // docs/STRAIN.md §power
+    return [...this.chosenCardEffects, ...heroEvoEffects(this.heroEvoLevels), ...branchPowerEffects(branchTiers), ...strainPowerEffects(strainLevels)];
   }
 
   // ── Power-integration runtime validator (docs/POWER-AUDIT.md) ────────────────────────────────
@@ -2208,7 +2243,16 @@ export class Game {
       this.castScratch.damageMult = dmgMult;
       this.castScratch.target = null;
       this.castScratch.pierce = 0;
+      // STRAIN hooks (docs/STRAIN.md §framework): resolved per cast, EMPTY at Strain I (zero
+      // rng, zero work ⇒ pre-strain runs byte-identical). Fragmentation rides the projectile.
+      const sk = resolveStrain(t.kind, t.strain);
+      this.castFragment = sk.fragmentOnImpact ?? null;
       let acted = runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
+      // Secondary firing organ (twin-cast): the WHOLE cast repeats once on the proc — a new
+      // volley, not extra projectiles (that axis belongs to stars/branches).
+      if (acted && sk.twinCastChance !== undefined && this.rng.next() < sk.twinCastChance) {
+        runAbilities(this.actx, TOWER_ABILITIES[t.kind], this.castScratch);
+      }
       // Star-granted attacks (auras / chains / debuffs) run on the same cadence as the base.
       if (prog.extraAbilities) acted = runAbilities(this.actx, prog.extraAbilities, this.castScratch) || acted;
       // Branch-granted attacks (shrapnel crits, infection, neural bolts …) on the same cadence.
@@ -2221,6 +2265,7 @@ export class Game {
       }
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.
+    this.castFragment = null;
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
     this.castRangeMult = 1;
@@ -2392,6 +2437,23 @@ export class Game {
 
   private mortarImpact(p: Projectile): void {
     this.pushSfx('hit');
+    // STRAIN fragmentation (docs/STRAIN.md §framework): the shell splits into sub-munitions —
+    // deterministic ring offsets, each a small splash of its own. Only strained shells carry
+    // `fragment`, so the base path is untouched.
+    if (p.fragment) {
+      const f = p.fragment;
+      for (let i = 0; i < f.count; i++) {
+        const a = (i / f.count) * Math.PI * 2 + 0.6;
+        const fx = p.x + Math.cos(a) * f.radius * 0.7;
+        const fy = p.y + Math.sin(a) * f.radius * 0.7;
+        const r2f = f.radius * f.radius * 0.25;
+        this.grid.forNeighbors(fx, fy, f.radius * 0.5, (e) => {
+          if (!e.alive) return;
+          if (dist2(fx, fy, e.x, e.y) <= r2f) this.applyDamage(e, p.damage * f.damageFrac, p.sourceKind);
+        });
+        this.spawnParticles(fx, fy, PARTICLE.breach, TOWER_DEFS.mortar.color, 0.5);
+      }
+    }
     if (p.skin) this.spawnBranchImpact(p.x, p.y, p.skin, p.skinTier ?? 1); // siege fireball / acid splash, by branch+tier
     if (gameEvents.hasListeners('projectileHit')) gameEvents.emit('projectileHit', { x: p.x, y: p.y, damage: p.damage, targetId: -1, byTower: p.sourceKind });
     const r2 = p.splash * p.splash;
@@ -3227,6 +3289,7 @@ export class Game {
       p.skinTier = this.castProjectileSkinTier; // branch shot-tier (renderer-only)
       p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
       if (p.hitIds) p.hitIds.length = 0;
+      if (this.castFragment && behavior === 'splash') p.fragment = this.castFragment;
       this.projectiles.push(p);
       this.applyProjectileMutators(p);
     } else {

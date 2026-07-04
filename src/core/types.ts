@@ -174,6 +174,9 @@ export interface Tower {
   //    branch abilities (Reactor); `branchKit` caches the resolved kit (recomputed on buy). ──
   branchId: string | null;
   tier: number;
+  /** STRAIN level 1..5 (docs/STRAIN.md) — the in-run evolution layer. Run-temporary like the
+   *  branch; 1 = unmutated baseline (empty kit, zero rng ⇒ golden-safe by construction). */
+  strain: number;
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
@@ -204,6 +207,8 @@ export interface Projectile {
   // the renderer fades it instead of popping it instantly. Undefined ⇒ fully opaque / live
   // (the historical behavior, golden-safe — fading shots never re-acquire or deal damage).
   fade?: number;
+  /** STRAIN fragmentation payload (docs/STRAIN.md) — splash shells split on impact. */
+  fragment?: { count: number; damageFrac: number; radius: number };
 }
 
 export interface Pool {
@@ -416,6 +421,8 @@ export interface SelectedPlacedTower {
   name: string;
   combatClass: CombatClass;
   tier: number; // current branch tier (0 = unbranched)
+  strain: number; // STRAIN level 1..5 (docs/STRAIN.md) — the in-run evolution layer
+  strainName: string | null; // current strain mutation's name (null at Strain I)
   branchName: string | null; // committed branch's display name (null = unbranched)
   branches: BranchOffer[];
   // ── Tower management (docs/TOWER-MANAGEMENT.md) ──

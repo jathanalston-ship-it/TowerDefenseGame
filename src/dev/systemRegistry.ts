@@ -79,12 +79,12 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/ENDLESS-SCALING.md', 'docs/MODE-IDENTITY.md'],
   },
   {
-    id: 'towers', name: 'Towers, Stars, Branches & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the Codex.',
-    files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
+    id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',
+    files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
     dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerShards', 'towerMasteryXp', 'towerForks'],
     tutorial: ['combat'], help: ['towers', 'tower-stars', 'tower-branches'], hud: ['tower rail', 'Inspector'], ui: ['TowerLab', 'TowerCodex', 'StarCeremony'],
     collection: 'towers category (usage tiers)', achievements: [], localization: 'inline-en',
-    docs: ['docs/TOWER-STARS.md', 'docs/TOWER-BRANCHES.md', 'docs/TOWER-LAB.md', 'docs/TOWER-CODEX.md', 'docs/TOWERS.md'],
+    docs: ['docs/TOWER-STARS.md', 'docs/TOWER-BRANCHES.md', 'docs/TOWER-LAB.md', 'docs/TOWER-CODEX.md', 'docs/TOWERS.md', 'docs/STRAIN.md'],
   },
   {
     id: 'mastery', name: 'Mastery / Adaptation', purpose: 'Identity-through-use: titles, procedural ranks, halos, Antigen-Point decision trees.',

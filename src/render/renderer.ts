@@ -714,6 +714,10 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // differently by path AND tier. Per-instance; tier 0 renders nothing (golden-safe look).
   if (tw.tier > 0) drawTowerEvolution(ctx, tw, now, r, def.color, fresh);
 
+  // STRAIN organs (docs/STRAIN.md §visuals): the IN-RUN evolution ladder — each level above I
+  // grows an unmistakable new structure. Strain 1 renders nothing (golden-safe look).
+  if (tw.strain > 1) drawStrainOrgans(ctx, tw, now, r, def.color);
+
   // Mutation FLASH: a one-shot shockwave + white pop the instant a tier is purchased (driven by
   // tw.mutatedAt). A settled or unbranched tower (mutatedAt ≪ now) draws nothing.
   const sinceMut = now - tw.mutatedAt;
@@ -732,6 +736,55 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
 
 // Branch cosmetics (the per-instance "evolved silhouette") now live in towerEvolution.ts as a
 // data-driven organ system — see drawTowerEvolution, called from drawTower above.
+
+/** STRAIN visual ladder (docs/STRAIN.md §visuals) — deterministic, class-tinted, escalating:
+ *  II eye cluster · III chitin spines · IV animated tentacle fringe · V crowned apex organ.
+ *  A Strain V tower must read across the arena. */
+function drawStrainOrgans(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, r: number, color: string): void {
+  const c = hexRgb(color);
+  const lvl = tw.strain;
+  // II — budding eye cluster (three unblinking eyes orbit-fixed on the shell)
+  for (let i = 0; i < 3; i++) {
+    const a = tw.id * 1.3 + (i / 3) * Math.PI * 2;
+    const ex = tw.x + Math.cos(a) * r * 0.85;
+    const ey = tw.y + Math.sin(a) * r * 0.85;
+    drawShape(ctx, 'circle', ex, ey, 2.6, rgba(c, 0.95));
+    drawShape(ctx, 'circle', ex, ey, 1.1, 'rgba(10,6,10,0.95)');
+  }
+  if (lvl >= 3) {
+    // III — chitin spines (a hardened crown of thorns)
+    ctx.strokeStyle = rgba(c, 0.8);
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) {
+      const a = tw.id * 0.9 + (i / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(tw.x + Math.cos(a) * r * 1.0, tw.y + Math.sin(a) * r * 1.0);
+      ctx.lineTo(tw.x + Math.cos(a) * r * 1.45, tw.y + Math.sin(a) * r * 1.45);
+      ctx.stroke();
+    }
+  }
+  if (lvl >= 4) {
+    // IV — tentacle fringe (living, writhing)
+    ctx.strokeStyle = rgba(c, 0.55);
+    ctx.lineWidth = 1.6;
+    for (let i = 0; i < 5; i++) {
+      const a = tw.id * 2.1 + (i / 5) * Math.PI * 2 + Math.sin(now * 1.8 + i) * 0.2;
+      const reach = r * (1.5 + 0.25 * Math.sin(now * 2.4 + i * 1.9));
+      ctx.beginPath();
+      ctx.moveTo(tw.x + Math.cos(a) * r * 0.9, tw.y + Math.sin(a) * r * 0.9);
+      ctx.quadraticCurveTo(
+        tw.x + Math.cos(a + 0.35) * reach * 0.7, tw.y + Math.sin(a + 0.35) * reach * 0.7,
+        tw.x + Math.cos(a) * reach, tw.y + Math.sin(a) * reach,
+      );
+      ctx.stroke();
+    }
+  }
+  if (lvl >= 5) {
+    // V — crowned apex organ + a slow recognition aura
+    glowDisc(ctx, tw.x, tw.y, r * 2.6 * pulse(now + tw.id, 0.9, 0.92, 1.08), rgba(c, 0.12));
+    spikeCrown(ctx, tw.x, tw.y - r * 1.15, r * 0.55, r * 0.35, 5, rgba(c, 0.95), now * 0.4);
+  }
+}
 
 function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
   // A target-less shot fades out (game settle / mid-combat fizzle) instead of popping.
