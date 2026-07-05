@@ -141,13 +141,13 @@ is a pure read-model returning two shapes from the rolled `ChestResult`s:
 
 **Presentation.** `ui/VaultReveal` renders both, as a **fullscreen fixed overlay portaled
 to `document.body`** (escapes the Hub's `isolation: isolate` stacking context — covers
-everything, nothing clips; same fix pattern as BUGFIX-LOG #6). Two modes:
-- **Cinematic** (default) — face-down card → flip → reward → Continue → next, with a bottom
-  HUD (container name + "Pull i/N" + pips). Rarity scales the pace/spectacle.
-- **Reveal All** — one button skips straight to the summary.
+everything, nothing clips; same fix pattern as BUGFIX-LOG #6). The ceremony is a diegetic
+**four-act HATCHING** (see §hatching below), not a card pack: INCUBATE → RUPTURE → EMERGE
+(one specimen sac per pull) → HARVEST. Skip All jumps straight to the harvest.
 
-The summary is **categorized, merged, animated** (row stagger + Power count-up) and **never
-auto-closes** — the player dismisses via Open More (N) / Return / Collect. Props
+The harvest summary is **categorized, merged, animated** (prize banner + rarity tally + row
+stagger + Power count-up) and **never auto-closes** — the player dismisses via Hatch Another
+(N) / Return / Collect. Props
 (`chest, title, color, onClose, onOpenMore, remaining`) serve both run caches and loot-queue
 boxes; `GeneticVault` is the sole caller and keys the reveal per crack so Open More replays.
 
@@ -179,6 +179,33 @@ next, so the second copy in a multi-open batch is correctly not new); the reveal
 it (PullView/SummaryRow `isNew`) and the ceremony badges it — a pulsing gold "✦ NEW DISCOVERY"
 ribbon on the pull face and a gold NEW chip on the summary row.
 
+
+## §hatching (2026-07) — the ceremony REDONE as a four-act hatching
+
+Supersedes §opening-flow's presentation (the FIRST DISCOVERY stamping is unchanged). The
+card-pack metaphor (charge → face-down card → flip) is gone; the ceremony is now diegetic
+to the bio-horror identity — the container is an EGG and the pulls are BORN:
+
+1. **INCUBATE** — a living egg breathes with an accelerating heartbeat (audio chain,
+   `beatDelay ×0.84` per beat), curved capillary veins brighten across the shell, a dim
+   embryo silhouette stirs inside, glowing hairline cracks spread, spore motes drift. The
+   light LEAKING through the cracks is the rarity tell (`--leak`, tier-tinted; epic+ charges
+   the whole membrane). Duration `1700 + tier·350`ms; tap to force the hatch early.
+2. **RUPTURE** — the shell tears in half (clip-path shell halves fly), flash + spore burst +
+   shockwave ring + a backdrop quake. Brief, decisive, automatic (~680ms).
+3. **EMERGE** — one wobbling SPECIMEN SAC per pull rises from the afterbirth, embryo dimly
+   visible + umbilical cord; it auto-bursts after a rarity-paced beat (`700 + tier·260`ms) —
+   membrane shreds fly, pop ring, the reward face appears (shard cues; jackpot at epic+;
+   conic beams behind rare+). Tap opens/advances early · **Fast** auto-deals (460ms cadence)
+   · **Skip All** jumps straight to the harvest. HUD: container name + "Specimen i/N" + pips.
+4. **HARVEST** — the summary, led by the **PRIZE SPECIMEN banner** (first pull at the top
+   rarity, INERT tag on commons) and a per-rarity tally (rendered only when >1 distinct
+   rarity), then the categorized/merged ledger with Power count-up. Never auto-closes:
+   **Hatch Another (N)** / Return / Collect.
+
+Reduced-motion collapses every hatch animation to instant. The egg/sac silhouettes use the
+sanctioned ORGANIC BLOB border-radius category (docs/UI-STANDARDS.md: 8 slash-syntax values,
+each 30–70%).
 
 ## §meter (2026-07) — live HUD bar contract + earn ceremony
 

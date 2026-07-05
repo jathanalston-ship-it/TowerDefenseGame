@@ -18,9 +18,18 @@ function radiusValueAllowed(v: string): boolean {
   if (parts.length === 1) return false;
   // Compounds: every part a token or 0 (e.g. `var(--r-md) var(--r-md) 0 0`)…
   if (parts.every((p) => RADIUS_TOKEN.test(p) || p === '0')) return true;
-  // …or a large decorative arc `Npx Npx 0 0` (N ≥ 20 — sculpted panel tops, not drift).
+  // …or a large decorative arc `Npx Npx 0 0` (N ≥ 20 — sculpted panel tops, not drift)…
   const arc = v.match(/^(\d+)px \1px 0 0$/);
-  return !!arc && Number(arc[1]) >= 20;
+  if (arc && Number(arc[1]) >= 20) return true;
+  // …or an ORGANIC BLOB `A% B% C% D% / E% F% G% H%` with every radius 30–70% — the sanctioned
+  // bio-form category (eggs, sacs, membranes: the hatching ceremony, docs/UI-STANDARDS.md
+  // §Corners). The band keeps blobs near-elliptical and sculpted, not arbitrary drift.
+  const blob = v.match(/^(\d+% ){3}\d+% \/ (\d+% ){3}\d+%$/);
+  if (blob) {
+    const nums = [...v.matchAll(/(\d+)%/g)].map((m) => Number(m[1]));
+    return nums.length === 8 && nums.every((n) => n >= 30 && n <= 70);
+  }
+  return false;
 }
 
 describe('UI standards — the stylesheet stays on the design scale', () => {

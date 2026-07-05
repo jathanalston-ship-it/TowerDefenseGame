@@ -55,7 +55,9 @@
 
 - **Variants:** default (panel button), `.primary` (the one dominant action per view — filled
   accent), destructive (red-accented, behind a confirm per the safeguards pattern), chip/pill
-  toggles (`border-radius: 999px`).
+  toggles (`border-radius: 999px`). **Organic blobs** — eggs, sacs, membranes (the
+Bio-Container hatching) — use the eight-value elliptical form `A% B% C% D% / E% F% G% H%`
+with every radius in **30–70%** (near-elliptical, sculpted; enforced by uiStandards).
 - Heights: default controls ~28–32px; hero CTAs (Deploy/Continue) may be larger but consistent
   within their bar. Disabled: reduced opacity + `cursor: default` + a `title` explaining WHY
   (see the Gene Archive's gated Upgrade button).
