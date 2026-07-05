@@ -65,8 +65,7 @@ export function BossRushScreen({
   const bandPct = Math.round(((save.rushBestBoss % ICHOR.rushBossBand) / ICHOR.rushBossBand) * 100);
 
   const start = (): void => {
-    const entry = meta.spendRushEntry();
-    if (!entry.ok) return; // out of stamina — the button is disabled, this is belt-and-braces
+    if (!canEnter) return; // the CTA is disabled — belt-and-braces (App.startBossRush pays the entry)
     audio.resume();
     audio.cue('ui');
     meta.notePredictionBaseline('bossRush', difficultyPref('bossrush'));

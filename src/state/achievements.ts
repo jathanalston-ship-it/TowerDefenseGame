@@ -84,6 +84,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'rush_wave5', name: 'Five Sieges Deep', desc: 'Reach wave 5 in Boss Rush.', reward: 30, test: (c) => c.save.rushBestWave >= 5, progress: (c) => ({ cur: c.save.rushBestWave, max: 5 }) },
   { id: 'rush_wave10', name: 'Decimation Line', desc: 'Reach wave 10 in Boss Rush.', reward: 75, test: (c) => c.save.rushBestWave >= 10, progress: (c) => ({ cur: c.save.rushBestWave, max: 10 }) },
   { id: 'rush_boss15', name: 'Fifteen Skulls', desc: 'Defeat 15 bosses in a single Boss Rush run.', reward: 50, test: (c) => c.save.rushBestBoss >= 15, progress: (c) => ({ cur: c.save.rushBestBoss, max: 15 }) },
+  { id: 'roulette_first', name: 'Spore Bearer', desc: 'Launch a Bio-Spore into the Bio-Roulette.', reward: 15, test: (c) => c.save.stats.rouletteSpores >= 1 },
+  { id: 'roulette_50', name: 'Wheel of Flesh', desc: 'Absorb 50 lifetime Bio-Spores.', reward: 40, test: (c) => c.save.stats.rouletteSpores >= 50, progress: (c) => ({ cur: c.save.stats.rouletteSpores, max: 50 }) },
   ...([50, 250] as const).map((n, i): AchievementDef => ({
     id: `rush_bosses${n}`, name: ['Boss Breaker', 'Extinction Event'][i],
     desc: `Defeat ${n} bosses in Boss Rush (lifetime).`, reward: 40 + i * 60,

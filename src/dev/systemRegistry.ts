@@ -80,9 +80,9 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'boss-rush', name: 'Boss Rush', purpose: 'The gauntlet: wave N = N assembled bosses (staggered column + thinned escort); rewards pay per boss defeated; own records/prediction channel.',
-    files: ['src/ui/BossRushScreen.tsx'],
-    dependsOn: ['engine', 'bosses', 'loot', 'difficulty'], powerScore: null, save: ['rushBestWave', 'rushBestBoss', 'rushStamina'], tutorial: [], help: ['boss-rush'],
-    hud: [], ui: ['BossRushScreen', 'CommandCenter'], collection: null, achievements: ['rush_first', 'rush_wave5', 'rush_wave10', 'rush_boss15', 'rush_bosses50', 'rush_bosses250'],
+    files: ['src/ui/BossRushScreen.tsx', 'src/state/bioRoulette.ts', 'src/ui/BioRoulette.tsx'],
+    dependsOn: ['engine', 'bosses', 'loot', 'difficulty'], powerScore: null, save: ['rushBestWave', 'rushBestBoss', 'rushStamina'], tutorial: [], help: ['boss-rush', 'bio-roulette'],
+    hud: [], ui: ['BossRushScreen', 'BioRoulette', 'CommandCenter'], collection: null, achievements: ['rush_first', 'rush_wave5', 'rush_wave10', 'rush_boss15', 'rush_bosses50', 'rush_bosses250', 'roulette_first', 'roulette_50'],
     localization: 'inline-en', docs: ['docs/BOSS-RUSH.md', 'docs/MODE-IDENTITY.md'],
   },
   {

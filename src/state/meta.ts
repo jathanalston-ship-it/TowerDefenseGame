@@ -66,6 +66,7 @@ import { resolveDifficulty } from '../core/difficulty';
 import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
 import { coreShardIncome, lootPointIncome } from '../core/economyDirector';
 import { predictBossRush, predictCampaign, predictInfinite, calibrate } from '../core/predict';
+import type { RouletteReward } from './bioRoulette';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
@@ -693,7 +694,7 @@ export interface RunOutcome {
   rewardBlocked?: { reason: 'campaign-loss' | 'infinite-short' | 'rush-short'; qualifyWave: number };
   // Boss Rush lifetime-record bands (docs/BOSS-RUSH.md §ichor): this run's band payouts + the
   // updated record and the next Ichor milestone — the Results progress line. Absent off-rush.
-  rushProgress?: { bossKills: number; bestBoss: number; nextIchorAt: number; ichor: number; vaults: number };
+  rushProgress?: { bossKills: number; bestBoss: number; nextIchorAt: number; ichor: number; vaults: number; newRecordBosses: number };
 }
 
 /** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
@@ -1181,6 +1182,7 @@ export const meta = {
             nextIchorAt: nextRushIchorAt(Math.max(save.rushBestBoss, bossKills)),
             ichor: rushIchor,
             vaults: rushVaultBank.length,
+            newRecordBosses: Math.max(0, bossKills - save.rushBestBoss), // Bio-Roulette's record spore lane
           } }
         : {}),
     };
@@ -1911,6 +1913,51 @@ export const meta = {
     if (value < RUSH.staminaCost) return { ok: false, free: false };
     persist({ ...save, rushStamina: { ...save.rushStamina, value: value - RUSH.staminaCost, updatedAt: materializedAt } });
     return { ok: true, free: false };
+  },
+
+  /** One-click Bio-Roulette collection (docs/BOSS-RUSH.md §roulette): fold every landed pod
+   *  into the account in a single persist, advance the lifetime spore ledger, then re-poll
+   *  achievements (the roulette ladder unlocks + toasts through the normal channel). */
+  grantRouletteRewards(rewards: RouletteReward[], spores: number): void {
+    const save = store.get();
+    let next: SaveData = {
+      ...save,
+      stats: { ...save.stats, rouletteSpores: save.stats.rouletteSpores + Math.max(0, Math.floor(spores)) },
+      timeline: pushTimeline(save.timeline, '✺', `Bio-Roulette — ${spores} spore${spores === 1 ? '' : 's'} absorbed`),
+    };
+    for (const r of rewards) {
+      switch (r.kind) {
+        case 'cores':
+          next = { ...next, shards: next.shards + r.qty, lifetimeShards: next.lifetimeShards + r.qty };
+          break;
+        case 'ichor':
+          next = { ...next, ichor: next.ichor + r.qty, lifetimeIchor: next.lifetimeIchor + r.qty };
+          break;
+        case 'towerShards':
+          next = { ...next, towerShards: { ...next.towerShards, [r.tower]: (next.towerShards[r.tower] ?? 0) + r.qty } };
+          break;
+        case 'heroShards':
+          next = { ...next, heroShards: { ...next.heroShards, [r.hero]: (next.heroShards[r.hero] ?? 0) + r.qty } };
+          break;
+        case 'scrap':
+          next = { ...next, mats: { ...next.mats, scrap: next.mats.scrap + r.qty } };
+          break;
+        case 'geneEssence':
+          next = { ...next, geneEssence: next.geneEssence + r.qty };
+          break;
+        case 'equipment': {
+          const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+          const item = rollItem(Math.random, def, r.rarity, undefined, 'Bio-Roulette');
+          next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
+          break;
+        }
+        case 'container':
+          next = { ...next, pendingContainers: [...next.pendingContainers, { kind: 'loot', rarity: r.rarity }] };
+          break;
+      }
+    }
+    persist(next);
+    this.evaluateAchievements();
   },
 
   /** Grant stamina (market packs, future daily rewards) — overflow-capped, regen state kept. */

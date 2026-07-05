@@ -416,6 +416,7 @@ export interface LifetimeStats {
   // ── Boss Rush ledgers (docs/BOSS-RUSH.md) — additive; 0 for old saves ──
   rushRuns: number; // Boss Rush runs settled
   rushBossKills: number; // lifetime bosses defeated across all Boss Rush runs
+  rouletteSpores: number; // lifetime Bio-Spores launched into the Bio-Roulette (docs/BOSS-RUSH.md §roulette)
 }
 
 /** One account milestone on the Profile timeline (schema v22, docs/PROFILE.md) — newest LAST. */

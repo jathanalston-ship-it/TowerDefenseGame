@@ -287,6 +287,7 @@ export function defaultLifetimeStats(): LifetimeStats {
     cardDrafts: {},
     rushRuns: 0,
     rushBossKills: 0,
+    rouletteSpores: 0,
   };
 }
 

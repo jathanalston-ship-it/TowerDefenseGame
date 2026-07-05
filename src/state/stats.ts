@@ -82,6 +82,7 @@ export function accumulateStats(
     // Boss Rush ledgers (docs/BOSS-RUSH.md): only a bossRush run advances them.
     rushRuns: prev.rushRuns + (extra?.bossRush ? 1 : 0),
     rushBossKills: prev.rushBossKills + (extra?.bossRush ? (run.bossKills ?? 0) : 0),
+    rouletteSpores: prev.rouletteSpores, // advanced by meta.grantRouletteRewards, not by run settle
   };
 }
 

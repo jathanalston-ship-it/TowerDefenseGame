@@ -210,14 +210,14 @@ graph TD
 
 *The gauntlet: wave N = N assembled bosses (staggered column + thinned escort); rewards pay per boss defeated; own records/prediction channel.*
 
-- **Files:** `src/ui/BossRushScreen.tsx`
+- **Files:** `src/ui/BossRushScreen.tsx` · `src/state/bioRoulette.ts` · `src/ui/BioRoulette.tsx`
 - **Depends on:** `engine` · `bosses` · `loot` · `difficulty`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
 - **Save fields:** `rushBestWave` · `rushBestBoss` · `rushStamina`
-- **Tutorial:** — · **Help mechanics:** `boss-rush`
-- **HUD surfaces:** — · **UI screens:** `BossRushScreen` · `CommandCenter`
-- **Collection:** — · **Achievements:** `rush_first` · `rush_wave5` · `rush_wave10` · `rush_boss15` · `rush_bosses50` · `rush_bosses250`
+- **Tutorial:** — · **Help mechanics:** `boss-rush` · `bio-roulette`
+- **HUD surfaces:** — · **UI screens:** `BossRushScreen` · `BioRoulette` · `CommandCenter`
+- **Collection:** — · **Achievements:** `rush_first` · `rush_wave5` · `rush_wave10` · `rush_boss15` · `rush_bosses50` · `rush_bosses250` · `roulette_first` · `roulette_50`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md`
 

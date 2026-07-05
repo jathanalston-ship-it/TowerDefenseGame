@@ -24,13 +24,15 @@ import type { EvolutionUnlockData } from './EvolutionUnlock';
 import { HeroSlotUnlock } from './HeroSlotUnlock';
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
+import { BioRoulette } from './BioRoulette';
+import { sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
 import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
 
-type Screen = 'menu' | 'deploying' | 'playing' | 'results' | 'tutorial';
+type Screen = 'menu' | 'deploying' | 'playing' | 'results' | 'tutorial' | 'roulette';
 
 /** How long the deployment interstitial breathes before the battlefield mounts. */
 const DEPLOY_MS = 1600;
@@ -87,6 +89,9 @@ export function App(): JSX.Element {
   meta.use(); // subscribe App so the HUD Tour / What's New react to save changes (unlocks, tour completion)
 
   const [deployInfo, setDeployInfo] = useState<DeployInfo | null>(null);
+  // Bio-Roulette (docs/BOSS-RUSH.md §roulette): spores earned by the LAST settled rush run —
+  // Results routes through the ceremony while this is pending; its exit clears it.
+  const [roulette, setRoulette] = useState<{ spores: number } | null>(null);
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
@@ -137,6 +142,13 @@ export function App(): JSX.Element {
   }, [begin]);
   // Boss Rush uses its OWN persisted difficulty (chosen inside the gauntlet terminal).
   const startBossRush = useCallback(() => {
+    // The stamina entry is paid HERE so every launch path (terminal CTA, Results replay) pays
+    // exactly once (docs/BOSS-RUSH.md §stamina). The terminal disables its CTA when short;
+    // a short replay falls back to the menu instead of a free run.
+    if (!meta.spendRushEntry().ok) {
+      setScreen('menu');
+      return;
+    }
     difficultyRef.current = difficultyPref('bossrush');
     begin('bossRush');
   }, [begin]);
@@ -160,6 +172,14 @@ export function App(): JSX.Element {
       result.difficulty = difficultyRef.current;
     }
     const outcome = meta.finishRun(result);
+    // Bio-Roulette spores (docs/BOSS-RUSH.md §roulette): record delta + volume, from the parts
+    // finishRun just computed. Zero spores ⇒ no ceremony (Results exits straight to the menu).
+    if (outcome.rushProgress) {
+      const spores = sporesFromParts(outcome.rushProgress.newRecordBosses, outcome.rushProgress.bossKills);
+      setRoulette(spores > 0 ? { spores } : null);
+    } else {
+      setRoulette(null);
+    }
     setLast({ result, outcome });
     // Crossed Campaign milestones play their cinematics over Results. Hero Slot is the bigger
     // milestone → it shows first; the Evolution Unlock follows once it's dismissed.
@@ -176,6 +196,9 @@ export function App(): JSX.Element {
   }, []);
 
   const toMenu = useCallback(() => setScreen('menu'), []);
+  // While a roulette is pending, EVERY Results exit passes through the ceremony (rewards are
+  // collected there — even Skip collects; nothing earned is ever lost).
+  const afterResults = useCallback(() => setScreen(roulette ? 'roulette' : 'menu'), [roulette]);
   // One-tap "Infect Again" from Results — re-run the SAME mode without a menu round-trip. The run
   // re-snapshots the now-updated save (begin() reads meta fresh), so the replay uses the progression
   // just earned. Campaign replays the same host stage; the map is where you advance to the next.
@@ -242,9 +265,12 @@ export function App(): JSX.Element {
         />
       )}
       {screen === 'results' && last && (
-        <Results result={last.result} outcome={last.outcome} onContinue={toMenu} onReplay={replayRun} />
+        <Results result={last.result} outcome={last.outcome} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} />
       )}
       {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
+      {screen === 'roulette' && roulette && (
+        <BioRoulette spores={roulette.spores} onExit={() => { setRoulette(null); setScreen('menu'); }} />
+      )}
       {/* Hero Slot Unlock — the biggest milestone; shows first, over Results. Dismiss → reveals the
           Evolution Unlock beneath it (if this run also raised the Star Cap). */}
       {screen === 'results' && heroSlotUnlock && (

@@ -143,9 +143,35 @@ Infinite depth lane:
   next +2 Ichor**), the Profile's Boss Rush section, and Results (`outcome.rushProgress` —
   record line + an "Ichor Bled" row on a new record).
 
+## §roulette — the Bio-Roulette (2026-07)
+
+The Boss Rush-exclusive SECOND reward screen (after Results): an enormous living wheel of
+flesh — twelve reward pods ring a central orifice that launches the run's **Bio-Spores** one
+by one. Model: `state/bioRoulette.ts` (pure); ceremony: `ui/BioRoulette.tsx` (canvas);
+collection: `meta.grantRouletteRewards`.
+
+- **Spores** (`sporesFor` / `sporesFromParts`): **1 per NEW lifetime-record boss** (the
+  `rushBestBoss` delta finishRun already computes — `rushProgress.newRecordBosses`) **+ 1 per
+  5 bosses felled that run** (volume lane), capped at 40. Zero spores ⇒ no ceremony.
+- **The board is FRESH every run** (`rollBoard`): 12 weighted pods — tower/hero shards
+  dominate, cores/scrap/essence fill the middle, a small Ichor pod tempts, **Bio-Gear is VERY
+  rare (weight 2)** and a **Bio-Container EXTREMELY rare (weight 1)**. Pod count and reward
+  vocabulary are extension points (the renderer + outcome roll are count-agnostic).
+- **Pre-rolled outcomes** (`rollOutcomes`): the physics is presentation — spheres launch
+  ~0.55s apart, spin the organ under cubic-decel momentum, wobble to rest at their pod, get
+  ABSORBED (pod flare + tally tick). **Reveal All** resolves the remainder instantly; **Absorb
+  All** collects in one persist. Even "Collect & Skip" collects — spores are never lost.
+- **Flow:** `App.handleEnd` arms the ceremony from `rushProgress`; while pending, EVERY
+  Results exit routes through it; its exit returns to the menu. The stamina entry pay moved to
+  `App.startBossRush` so terminal launches and Results replays pay exactly once.
+- **Ledgers:** `stats.rouletteSpores` (lifetime, additive) + achievements `roulette_first` /
+  `roulette_50` + a timeline beat; Help entry `bio-roulette` (auto What's New).
+- Tests: `state/bioRoulette.test.ts` (spore math, board composition/weights, 20k-roll
+  distribution, collection grants incl. the achievements composite).
+
 ## Extension seams (deliberate)
 
-- **P4 — Bio-Roulette:** post-Results ceremony for `result.bossRush` runs; spore math reads
-  `RunStats.bossKills` + the `rushBestBoss` record delta.
+- Weekly gauntlet modifiers, chassis-banned weeks, leaderboards — all parameterize
+  `startBossRushWave`'s TL curve + escort policy; the roulette board grows by pushing pods.
 - Future: weekly gauntlet modifiers, chassis-banned weeks, leaderboards — all parameterize
   `startBossRushWave`'s TL curve + escort policy.
