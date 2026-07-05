@@ -297,7 +297,8 @@ function Roadmap({ save, go }: WidgetCtx): ReactNode {
   );
 }
 
-/** The live army — every strain (stars · mastery · FORM) and champion, each a door to its lab. */
+/** The live army — every strain (stars · mastery · FORM; dormant strains show LOCKED) and
+ *  champion, each a door to its lab. */
 function Army({ save, go }: WidgetCtx): ReactNode {
   const army = armyView(save);
   return (
@@ -305,11 +306,11 @@ function Army({ save, go }: WidgetCtx): ReactNode {
       <span className="cc-panel-h">❖ LIVE ARMY</span>
       <div className="cc-army-row">
         {army.towers.map((u) => (
-          <button className="cc-unit" key={u.kind} style={{ ['--u' as string]: u.color }} onClick={() => go('towers')}
-            title={`${u.name} — ◈${u.stars} · Mastery ${u.mastery}${u.form > 0 ? ` · FORM ${u.form}` : ''}`}>
+          <button className={`cc-unit${u.unlocked ? '' : ' is-locked'}`} key={u.kind} style={{ ['--u' as string]: u.color }} onClick={() => go('towers')}
+            title={u.unlocked ? `${u.name} — ◈${u.stars} · Mastery ${u.mastery}${u.form > 0 ? ` · FORM ${u.form}` : ''}` : `${u.name} — dormant strain (synthesize in the Tower Lab)`}>
             <span className="cc-unit-orb" aria-hidden>{u.form > 0 && <i className="cc-unit-form" />}</span>
             <span className="cc-unit-n">{u.name}</span>
-            <span className="cc-unit-s">◈{u.stars}{u.mastery > 0 ? ` · L${u.mastery}` : ''}</span>
+            <span className="cc-unit-s">{u.unlocked ? `◈${u.stars}${u.mastery > 0 ? ` · L${u.mastery}` : ''}` : '🔒'}</span>
           </button>
         ))}
         <span className="cc-army-div" aria-hidden />

@@ -42,7 +42,8 @@ without its renderer is inert, never a crash). `main`+`side` share a responsive 
 `worldStatus(save)` (pure) folds the account into an organism: the **era** (NASCENT →
 ASCENDANT via `homeBaseTiers.labScore/labEra` — the same development model the lab
 atmosphere uses), ambient **intensity**, campaign stage / best wave / molts / Power,
-frontier biome, and one **organ per strain** (color, Stars, Adaptation FORM stage).
+frontier biome, and one **organ per OWNED strain** (color, Stars, Adaptation FORM stage) —
+dormant (shard-gated, unsynthesized) strains are not part of the organism yet.
 
 `WorldStatus.tsx` renders it as one rAF canvas: a wobbling membrane nucleus that grows with
 the era (molts add faint shells; the iris glows gold when Power meets the campaign
@@ -60,7 +61,8 @@ gate, each with % complete, "N to go", and a deep link.
 
 ## 4. Live army
 
-`armyView(save)` (pure): every strain (Stars · Mastery level · FORM stage) and every
+`armyView(save)` (pure): every strain (Stars · Mastery level · FORM stage; a dormant
+shard-gated strain shows 🔒 via `isTowerUnlocked`, dimmed like a locked champion) and every
 champion (unlocked / FIELDED / reserve), each chip tinted its class hue and linking to its
 lab. The FORM ring on a strain's orb mirrors its battlefield Adaptation stage.
 
@@ -74,8 +76,10 @@ achievements pushed by the meta layer, cap 60) newest-first with human recency l
 
 1. Every model is total on a FRESH save (no crashes, no dead panels — `when` guards hide
    empty widgets instead).
-2. `worldStatus` organs cover the full tower roster; FORM stages mirror `adaptVisualTier`.
+2. `worldStatus` organs cover exactly the OWNED tower roster; FORM stages mirror
+   `adaptVisualTier`.
 3. `commandFeed` sorts newest-first and speaks human recency at all scales.
-4. `armyView` covers the full roster with faithful unlock/fielded state.
+4. `armyView` covers the full roster with faithful unlock/fielded state for heroes AND
+   towers (dormant strains locked, never fielded).
 5. The registry is OPEN (registering a widget surfaces it in zone order) and `when` guards
    are honored per-save.

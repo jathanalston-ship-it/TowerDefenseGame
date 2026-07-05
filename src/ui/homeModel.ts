@@ -9,7 +9,7 @@ import type { SaveData } from '../save/saveStore';
 import type { TimelineEvent } from '../core/types';
 import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { adaptVisualTier } from '../core/adaptation';
-import { masteryLevel, accountPowerParts } from '../state/meta';
+import { isTowerUnlocked, masteryLevel, accountPowerParts } from '../state/meta';
 import { composePower } from '../core/power';
 import { highestCampaignStage } from '../save/derive';
 import { labEra, labIntensity, labScore } from './homeBaseTiers';
@@ -52,7 +52,8 @@ export function worldStatus(save: SaveData): WorldStatusView {
     ready,
     readiness: ready ? 'PRIMED FOR DESCENT' : 'GATHERING STRENGTH',
     frontierBiome: generateStage(frontier, diff).biome.name,
-    organs: TOWER_ORDER.map((kind) => ({
+    // the organism only carries organs it has actually synthesized — dormant strains are absent
+    organs: TOWER_ORDER.filter((kind) => isTowerUnlocked(save, kind)).map((kind) => ({
       kind,
       color: TOWER_DEFS[kind].color,
       stars: save.towerStars[kind] ?? 0,
@@ -93,22 +94,25 @@ export interface ArmyUnit {
   stars: number;
   mastery: number; // mastery level
   form: number; // adaptation FORM stage (towers)
-  fielded: boolean; // heroes: in the loadout; towers: always true (all deploy)
+  fielded: boolean; // heroes: in the loadout; towers: owned (every owned kind rides the conveyor)
   unlocked: boolean;
 }
 
 export function armyView(save: SaveData): { towers: ArmyUnit[]; heroes: ArmyUnit[] } {
   return {
-    towers: TOWER_ORDER.map((kind) => ({
-      kind,
-      name: TOWER_DEFS[kind].name,
-      color: TOWER_DEFS[kind].color,
-      stars: save.towerStars[kind] ?? 0,
-      mastery: masteryLevel(save.towerMasteryXp[kind] ?? 0),
-      form: adaptVisualTier(save.adaptation?.[`tower:${kind}`] ?? []),
-      fielded: true,
-      unlocked: true,
-    })),
+    towers: TOWER_ORDER.map((kind) => {
+      const owned = isTowerUnlocked(save, kind); // dormant strains show LOCKED, not fielded
+      return {
+        kind,
+        name: TOWER_DEFS[kind].name,
+        color: TOWER_DEFS[kind].color,
+        stars: save.towerStars[kind] ?? 0,
+        mastery: masteryLevel(save.towerMasteryXp[kind] ?? 0),
+        form: adaptVisualTier(save.adaptation?.[`tower:${kind}`] ?? []),
+        fielded: owned,
+        unlocked: owned,
+      };
+    }),
     heroes: HERO_ORDER.map((kind) => ({
       kind,
       name: HERO_DEFS[kind].name,

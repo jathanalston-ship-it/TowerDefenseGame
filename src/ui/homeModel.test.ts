@@ -8,13 +8,16 @@ import { defaultSave } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 
 describe('worldStatus — the organism vitals', () => {
-  it('fresh account: NASCENT, calm, one organ per strain, all dormant', () => {
-    const ws = worldStatus(defaultSave());
+  it('fresh account: NASCENT, calm, one organ per OWNED strain (dormant strains absent)', () => {
+    const s = defaultSave();
+    const ws = worldStatus(s);
     expect(ws.era).toBe(0);
     expect(ws.eraName).toBe('NASCENT');
     expect(ws.stage).toBe(0);
     expect(ws.molts).toBe(0);
-    expect(ws.organs.length).toBe(TOWER_ORDER.length);
+    // the organism only carries synthesized organs — locked expansion strains don't render
+    expect(ws.organs.map((o) => o.kind)).toEqual(TOWER_ORDER.filter((k) => s.towerUnlocked.includes(k)));
+    expect(ws.organs.length).toBeLessThan(TOWER_ORDER.length);
     expect(ws.organs.every((o) => o.stars === 0 && o.form === 0)).toBe(true);
     expect(ws.intensity).toBeGreaterThan(0); // floored — a fresh lab still breathes
     expect(ws.frontierBiome.length).toBeGreaterThan(0);
@@ -64,6 +67,14 @@ describe('armyView — every strain + champion', () => {
     const fielded = army.heroes.filter((h) => h.fielded);
     expect(fielded.length).toBe(s.heroLoadout.length);
     expect(army.heroes.every((h) => h.unlocked === s.heroUnlocked.includes(h.kind as never))).toBe(true);
+  });
+
+  it('towers carry ownership: a fresh profile shows dormant strains LOCKED, never fielded', () => {
+    const s = defaultSave();
+    const army = armyView(s);
+    expect(army.towers.every((t) => t.unlocked === s.towerUnlocked.includes(t.kind as never))).toBe(true);
+    expect(army.towers.every((t) => t.fielded === t.unlocked)).toBe(true); // owned kinds ride the conveyor
+    expect(army.towers.some((t) => !t.unlocked)).toBe(true); // the shard-gated expansion trio starts dormant
   });
 });
 
