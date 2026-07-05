@@ -505,7 +505,7 @@ export interface HudSnapshot {
     deployCost: number; // the universal compounding cost of the NEXT deployment
     recycleValue: number; // flat recycler payout (overflow / discard)
     strainCostFrom: [number, number, number, number]; // merge cost from Strain I..IV at current deployments
-    items: { id: number; kind: TowerKind; rarity: string; strain: number; growFrac: number; readyIn: number }[];
+    items: { id: number; kind: TowerKind; rarity: string; strain: number; growFrac: number; readyIn: number; free: boolean }[];
   };
   hero: {
     kind: HeroKind;

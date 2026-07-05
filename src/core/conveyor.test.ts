@@ -45,6 +45,57 @@ describe('the universal economy (§economy)', () => {
   });
 });
 
+describe('the run-start gift + anti-farm (§conveyor)', () => {
+  it('the FIRST organism is instantly ready and deploys for FREE without moving the curve', () => {
+    const g = new Game(11, NO_META);
+    g.advance(SIM_DT); // the first tick seeds the gift
+    expect(g.conveyor.length).toBe(1);
+    const gift = g.conveyor[0];
+    expect(gift.free).toBe(true);
+    expect(gift.readyAt).toBeLessThanOrEqual((g as unknown as { time: number }).time);
+    const free = towerSlots.find((sl) => sl.index < g.unlockedSlots && !g.towers.some((t) => t.slot === sl.index))!;
+    const bio0 = g.biomass;
+    expect(g.deployFromConveyor(gift.id, free.x, free.y)).toBe(true);
+    expect(g.biomass).toBe(bio0); // FREE — no biomass spent
+    expect(g.deployments).toBe(0); // and the universal curve did not advance
+  });
+
+  it('the gift recycles for 0 — free in, free out', () => {
+    const g = new Game(11, NO_META);
+    g.advance(SIM_DT);
+    const bio0 = g.biomass;
+    expect(g.discardConveyor(g.conveyor[0].id)).toBe(true);
+    expect(g.biomass).toBe(bio0); // no payout — the gift can't feed the recycler
+  });
+
+  it('ANTI-FARM: idling in prep grows NOTHING and prints NOTHING (the exploit is dead)', () => {
+    const g = new Game(11, NO_META);
+    const bio0 = g.biomass;
+    run(g, 120); // two minutes parked in prep, wave never started (auto-wave off)
+    expect(g.conveyor.length).toBe(1); // just the gift — no new growth without combat
+    expect(g.biomass).toBe(bio0); // zero recycler income while idle
+  });
+
+  it('an in-flight organism FINISHES in prep, but the next starts only with the next wave', () => {
+    const g = new Game(11, NO_META);
+    g.startWave();
+    // fight wave 1 to the end (prep follows); capture what was growing as it ended
+    let guard = 0;
+    while (g.phase === 'wave' && guard++ < Math.round(240 / SIM_DT)) g.advance(SIM_DT);
+    expect(g.phase).not.toBe('wave');
+    if (g.phase === 'draft' && g.draft?.length) g.chooseCard(g.draft[0].id); // land in PREP (draft freezes time)
+    const t = () => (g as unknown as { time: number }).time;
+    const growingAtEnd = g.conveyor.filter((c) => c.readyAt > t()).length; // ≤ 1 by design
+    const count0 = g.conveyor.length;
+    run(g, 60); // idle the whole prep
+    // the in-flight one (if any) matured or overflowed; NOTHING NEW was born in prep
+    expect(g.conveyor.filter((c) => c.readyAt > t()).length).toBe(0);
+    expect(g.conveyor.length).toBeLessThanOrEqual(Math.max(count0, growingAtEnd + CONVEYOR.queueMax));
+    const born = g.conveyor.filter((c) => c.bornAt > t() - 59.5 && c.readyAt > c.bornAt);
+    expect(born.length).toBe(0);
+  });
+});
+
 describe('the belt (§conveyor)', () => {
   it('grows organisms continuously; the queue holds at most queueMax ready + one growing', () => {
     const g = new Game(11, NO_META);
@@ -79,6 +130,7 @@ describe('the belt (§conveyor)', () => {
     // mature one organism
     while (g.conveyor.length === 0 || g.conveyor[0].readyAt > (g as unknown as { time: number }).time) g.advance(SIM_DT);
     const item = g.conveyor[0];
+    item.free = undefined; // the PAID path is under test (the gift has its own contract above)
     item.strain = 3; // pretend an epic arrived (framework seam)
     const free = towerSlots.find((sl) => sl.index < g.unlockedSlots && !g.towers.some((t) => t.slot === sl.index))!;
     const bio0 = g.biomass;
@@ -125,12 +177,14 @@ describe('the belt (§conveyor)', () => {
     expect(g2.strainFromConveyor(g2.conveyor[0].id)).toBe('noTarget');
   });
 
-  it('discard refunds the flat value instantly', () => {
+  it('discard refunds the flat value instantly (belt-grown organisms — not the gift)', () => {
     const g = new Game(11, NO_META);
     g.startWave();
     while (g.conveyor.length === 0 || g.conveyor[0].readyAt > (g as unknown as { time: number }).time) g.advance(SIM_DT);
+    const item = g.conveyor[0];
+    item.free = undefined; // the gift's zero-payout has its own contract above
     const bio0 = g.biomass;
-    expect(g.discardConveyor(g.conveyor[0].id)).toBe(true);
+    expect(g.discardConveyor(item.id)).toBe(true);
     expect(g.biomass - bio0).toBe(recycleValue());
   });
 

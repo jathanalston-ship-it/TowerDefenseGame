@@ -131,9 +131,11 @@ export function Toolbar({
                   {ready && (
                     <div className="cv-actions">
                       <button
-                        className={`cv-btn cv-deploy${armed ? ' is-on' : ''}`}
-                        disabled={!playable || hud.biomass < hud.conveyor.deployCost}
-                        title={`Deploy — ${hud.conveyor.deployCost} Biomass${c.strain > 1 ? ` (arrives at Strain ${ROMAN[c.strain - 1]})` : ''}`}
+                        className={`cv-btn cv-deploy${armed ? ' is-on' : ''}${c.free ? ' is-free' : ''}`}
+                        disabled={!playable || (!c.free && hud.biomass < hud.conveyor.deployCost)}
+                        title={c.free
+                          ? `Deploy — FREE (the run-start gift)${c.strain > 1 ? ` (arrives at Strain ${ROMAN[c.strain - 1]})` : ''}`
+                          : `Deploy — ${hud.conveyor.deployCost} Biomass${c.strain > 1 ? ` (arrives at Strain ${ROMAN[c.strain - 1]})` : ''}`}
                         onClick={() => {
                           audio.resume();
                           game.selectConveyorItem(armed ? null : c.id);
@@ -141,7 +143,7 @@ export function Toolbar({
                           refresh();
                         }}
                       >
-                        Deploy {hud.conveyor.deployCost}
+                        {c.free ? 'Deploy FREE' : `Deploy ${hud.conveyor.deployCost}`}
                       </button>
                       <button
                         className="cv-btn cv-strainb"

@@ -1023,6 +1023,19 @@ export class Game {
    *  at maturity it joins the ready queue — or, if the belt is already full, auto-enters the
    *  Biomass Recycler (flat payout — nothing is wasted, nothing compounds). Dedicated rng. */
   private conveyorTick(): void {
+    // Run-start GIFT (docs/STRAIN.md §conveyor): the very first organism is instantly ready
+    // and FREE — the belt opens with a decision, not a 14-second wait. Seeded on the first
+    // tick (tutorials never tick the belt), latched by conveyorSeq.
+    if (this.conveyorSeq === 0) {
+      const deployed = new Set<TowerKind>();
+      const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower, this.unlockedKinds);
+      const rar = rollRarity(this.conveyorRng, 0);
+      this.conveyor.push({
+        id: ++this.conveyorSeq, kind, rarity: rar.id, strain: rar.strain,
+        bornAt: this.time, readyAt: this.time, free: true,
+      });
+      return;
+    }
     let growing: ConveyorItem | null = null;
     let ready = 0;
     for (const c of this.conveyor) {
@@ -1038,12 +1051,18 @@ export class Game {
           if (this.conveyor[i].readyAt > this.conveyor[newest].readyAt) newest = i;
         }
         const [gone] = this.conveyor.splice(newest, 1);
-        this.biomass += recycleValue();
-        this.floats.push({ x: WIDTH - 60, y: HEIGHT - 40, text: `+${recycleValue()}`, color: '#b6e84a', life: 0.9 });
+        const value = gone !== undefined && gone.free === true ? 0 : recycleValue();
+        if (value > 0) {
+          this.biomass += value;
+          this.floats.push({ x: WIDTH - 60, y: HEIGHT - 40, text: `+${value}`, color: '#b6e84a', life: 0.9 });
+        }
         this.pushSfx('dissolve');
         if (gone) ready = Math.min(ready, CONVEYOR.queueMax);
       }
-      // start the next growth (the belt never stops)
+      // Start the next growth ONLY under combat pressure (docs/STRAIN.md §conveyor anti-farm):
+      // an in-flight organism finishes its remaining seconds in prep, but a NEW one never
+      // starts there — idling between waves can't farm the belt into recycler income.
+      if (this.phase !== 'wave') return;
       const deployed = new Set<TowerKind>();
       for (const t of this.towers) deployed.add(t.kind);
       const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower, this.unlockedKinds);
@@ -1080,11 +1099,12 @@ export class Game {
     if (idx < 0 || this.phase === 'won' || this.phase === 'lost') return false;
     const slot = slotAt(px, py);
     if (!slot || slot.index >= this.unlockedSlots || this.occupied.has(slot.index)) return false;
-    const cost = deployCost(this.deployments);
-    if (this.biomass < cost) return false;
     const item = this.conveyor[idx];
+    // The run-start gift deploys for FREE and never advances the universal curve (§conveyor).
+    const cost = item.free === true ? 0 : deployCost(this.deployments);
+    if (this.biomass < cost) return false;
     this.biomass -= cost;
-    this.deployments++;
+    if (item.free !== true) this.deployments++;
     const powerBefore = item.strain > 1 ? effectsPower(this.powerEffects()) : 0;
     const t = this.placeCore(item.kind, slot);
     if (item.strain > 1) {
@@ -1132,8 +1152,9 @@ export class Game {
   discardConveyor(itemId: number): boolean {
     const idx = this.conveyor.findIndex((c) => c.id === itemId && c.readyAt <= this.time);
     if (idx < 0) return false;
-    this.conveyor.splice(idx, 1);
-    this.biomass += recycleValue();
+    const [gone] = this.conveyor.splice(idx, 1);
+    // Free in, free out: the gift organism recycles for 0 — it can never feed the economy.
+    if (gone === undefined || gone.free !== true) this.biomass += recycleValue();
     this.pushSfx('dissolve');
     return true;
   }
@@ -4652,6 +4673,7 @@ export class Game {
           strain: c.strain,
           growFrac: c.readyAt <= this.time ? 1 : Math.min(1, Math.max(0, (this.time - c.bornAt) / Math.max(0.01, c.readyAt - c.bornAt))),
           readyIn: Math.max(0, c.readyAt - this.time),
+          free: c.free === true,
         })),
       },
       hero: {

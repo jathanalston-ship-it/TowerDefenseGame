@@ -42,6 +42,10 @@ export interface ConveyorItem {
   strain: number; // the strain level it arrives at (deploy) — merging always grants +1 instead
   bornAt: number; // sim time growth began (drives the growth animation)
   readyAt: number; // sim time it matures (≤ now ⇒ ready for Deploy/Strain/Discard)
+  /** The run-start GIFT organism (docs/STRAIN.md §conveyor): instantly ready, deploys for 0
+   *  without advancing the universal cost curve, and recycles for 0 (free in, free out — it
+   *  can never feed the recycler economy). Absent on every belt-grown organism. */
+  free?: boolean;
 }
 
 /** The universal deployment cost (docs/STRAIN.md §economy): the nth deployment this run. */

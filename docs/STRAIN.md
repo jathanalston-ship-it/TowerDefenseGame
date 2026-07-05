@@ -72,6 +72,13 @@ saved on the account) is always deployable; every other tower arrives on a livin
 - Queue max 3; each slot shows portrait, rarity, strain-level offer, animated growth, and the
   remaining arrival timer. One organism grows at a time (`CONVEYOR.growSeconds` 14 s,
   ×`growWaveFactor` 0.94 per wave, floored at `growMin` 7 s from wave ~12).
+- **The run-start GIFT:** the very first organism is instantly ready and deploys FREE (no
+  biomass, no advance on the universal curve) — it also recycles for 0, so it can never feed
+  the economy. The belt opens with a decision, not a wait.
+- **Anti-farm rule:** new growth STARTS only during waves. An organism already in flight
+  finishes its remaining seconds in the build phase, but nothing new is born there — with
+  auto-wave off, idling between waves yields zero belt income (the flat recycler payout plus
+  wave-gated growth closes the infinite-biomass loop; contract-tested).
 - Choices per organism: **Deploy** (place it) · **Strain** (consume it to raise a deployed
   tower of the same kind one level — §merge) · **Discard** (instant recycle).
 - Overflow: when the queue is full the newest organism auto-enters the **Biomass Recycler** —

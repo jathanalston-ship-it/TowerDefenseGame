@@ -2997,6 +2997,7 @@ kbd {
 .tl2-mlevel { display: flex; align-items: baseline; justify-content: space-between; font-size: 16px; }
 .tl2-mxp { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 /* ── Tower unlock gate (docs/TOWERS.md §expansion): the dormant-strain synthesis bar ── */
+.cv-deploy.is-free { border-color: var(--gold); color: var(--gold); text-shadow: 0 0 8px color-mix(in srgb, var(--gold) 50%, transparent); }
 .tl2-lockbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); margin-top: var(--s2); padding: 6px 10px; border: 1px dashed var(--line); border-radius: var(--r-md); background: color-mix(in srgb, var(--tw, var(--muted)) 8%, transparent); }
 .tl2-lockbar-txt { font-size: 11px; letter-spacing: var(--track-wide); text-transform: uppercase; color: var(--muted); }
 .tl2-lockbar-progress { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }

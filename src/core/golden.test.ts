@@ -15,22 +15,21 @@ import { autoplay } from './sim.testutil';
 // integrity are UNCHANGED for every seed** — only end-of-run biomass shifts ~1% from the
 // boundary-economy timing. Every seed still WINS at wave 12. Any FURTHER drift is unintended.
 //
-// Re-pinned 2026-07 for the TOWER EXPANSION card packages (docs/TOWERS.md §expansion): seven
-// new Gene Cards joined the draft pool, so autoplay's blind draft-first-card picks different
-// cards on the same seeds. The three new tower KINDS are inert here (autoplay never builds
-// them; all their statuses/verbs are kit-gated) — the drift is draft-composition only.
-// **Wave/kills/phase are UNCHANGED on every seed (196 kills, wave-12 win)** — only integrity/
-// biomass moved with the different card mix. Any FURTHER drift is unintended.
+// Re-pinned 2026-07 for the CONVEYOR ANTI-FARM model (docs/STRAIN.md §conveyor): the belt now
+// opens with a FREE instant gift organism and STARTS new growth only during waves (an in-flight
+// organism still finishes in prep). Autoplay never deploys from the belt, so the drift is pure
+// recycler-drip timing: **wave/kills/integrity are UNCHANGED on every seed (196 kills, wave-12
+// win, same integrity)** — only end-of-run biomass moved. Any FURTHER drift is unintended.
 //
-// (Prior baselines: BIOMORPH CONVEYOR; HIVE SIEGE re-model; PREDICTIVE MORTAR LEAD; SETTLE;
-// SLOTS; GENE CARDS.)
+// (Prior baselines: TOWER EXPANSION card pool; BIOMORPH CONVEYOR; HIVE SIEGE re-model;
+// PREDICTIVE MORTAR LEAD; SETTLE; SLOTS; GENE CARDS.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 196, integrity: 227, biomass: 7945, phase: 'won' },
-  7: { wave: 12, kills: 196, integrity: 97, biomass: 8039, phase: 'won' },
-  42: { wave: 12, kills: 196, integrity: 97, biomass: 10451, phase: 'won' },
-  777: { wave: 12, kills: 196, integrity: 91, biomass: 7954, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 170, biomass: 8952, phase: 'won' },
-  12345: { wave: 12, kills: 196, integrity: 139, biomass: 8630, phase: 'won' },
+  1: { wave: 12, kills: 196, integrity: 227, biomass: 7991, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 97, biomass: 7919, phase: 'won' },
+  42: { wave: 12, kills: 196, integrity: 97, biomass: 10083, phase: 'won' },
+  777: { wave: 12, kills: 196, integrity: 91, biomass: 7943, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 170, biomass: 8759, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 139, biomass: 8798, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {
