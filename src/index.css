@@ -5480,7 +5480,7 @@ kbd {
 .al-head { display: flex; align-items: center; gap: var(--s2); }
 .al-slotno { font-size: 10px; letter-spacing: var(--track-wide); text-transform: uppercase; color: var(--muted); }
 .al-name { font-weight: 800; font-size: 13px; color: var(--hc, var(--text)); flex: 1; }
-.al-gearing { font-size: 9px; font-weight: 800; letter-spacing: var(--track-wide); padding: 2px 6px; border-radius: var(--r-xs); border: 1px solid var(--hc, var(--gold)); color: var(--hc, var(--gold)); }
+.al-gearing { font-size: 10px; font-weight: 800; letter-spacing: var(--track-wide); padding: 2px 6px; border-radius: var(--r-xs); border: 1px solid var(--hc, var(--gold)); color: var(--hc, var(--gold)); }
 .al-card .hero-loadout { margin-bottom: 0; }
 .hl-slot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 9px; border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
 .hl-k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
