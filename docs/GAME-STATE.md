@@ -113,6 +113,13 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Early-campaign difficulty contract** (2026-07): flat leak damage + EHP threat costs + per-wave
   unit/dmg/elite ramps + grace window (budget/pace/start-aid/mini-boss gate) + biome-ratchet
   `recommendedPower`; probe-verified ×0.75/×1.0/×1.25/×1.7 across stages 1–24 — DIFFICULTY.md §contract, CAMPAIGN.md §grace
+- ✅ **BOSS RUSH** (2026-07): the third pillar — wave N = N procedural bosses (staggered siege
+  column, thinned director escort, TL curve `RUSH.bossTlBase + bossTlPerWave·(N−1)`), Gene Card
+  every 2nd wave, never-won; per-boss Core/loot bounty in `finishRun` under token mode mults;
+  own records (`rushBestWave`/`rushBestBoss`), rush-short qualify gate, `prediction.bossRush`
+  channel, lifetime ledgers (`rushRuns`/`rushBossKills`), 6 achievements, gauntlet terminal
+  (`BossRushScreen`: ladder artwork, contract, forecast, milestones), Command Center tile,
+  Help entry; proc-boss id uniquify fixes a latent concurrent-def collision — BOSS-RUSH.md
 - ✅ Next-Goal engine + Results cliffhanger — ONE-MORE-RUN.md
 - ✅ Prestige (MOLT → Ascendant) — 1 layer of a designed 6 (PROGRESSION-REDESIGN)
 - ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md

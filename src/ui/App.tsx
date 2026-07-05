@@ -117,7 +117,9 @@ export function App(): JSX.Element {
         ? { title: `STAGE ${campaignStageRef.current} — ${stage.biome.name.toUpperCase()}`, sub: `The Descent · ${diffName}`, accent: stage.biome.accent, warn: campaignWarn() }
         : mode === 'endless'
           ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}`, accent: 'var(--viral, #c98bff)' }
-          : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
+          : mode === 'bossRush'
+            ? { title: 'BOSS RUSH', sub: `The gauntlet · wave N = N bosses · ${diffName}`, accent: 'var(--danger, #ff5d73)' }
+            : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
     );
     setScreen('deploying');
   }, []);
@@ -132,6 +134,11 @@ export function App(): JSX.Element {
   const startEndless = useCallback(() => {
     difficultyRef.current = difficultyPref('infinite');
     begin('endless');
+  }, [begin]);
+  // Boss Rush uses its OWN persisted difficulty (chosen inside the gauntlet terminal).
+  const startBossRush = useCallback(() => {
+    difficultyRef.current = difficultyPref('bossrush');
+    begin('bossRush');
   }, [begin]);
   // Campaign uses its OWN persisted difficulty; generate the chosen stage deterministically and play it.
   const startCampaign = useCallback((stage: number) => {
@@ -148,6 +155,9 @@ export function App(): JSX.Element {
       result.rewardMult = stageRef.current?.rewardMult;
     } else if (modeRef.current === 'endless') {
       result.difficulty = difficultyRef.current; // Infinite's difficulty drives its run-end economy
+    } else if (modeRef.current === 'bossRush') {
+      result.bossRush = true; // Boss Rush: per-boss payout lanes + rush records (docs/BOSS-RUSH.md)
+      result.difficulty = difficultyRef.current;
     }
     const outcome = meta.finishRun(result);
     setLast({ result, outcome });
@@ -171,9 +181,10 @@ export function App(): JSX.Element {
   // just earned. Campaign replays the same host stage; the map is where you advance to the next.
   const replayRun = useCallback(() => {
     if (modeRef.current === 'endless') startEndless();
+    else if (modeRef.current === 'bossRush') startBossRush();
     else if (modeRef.current === 'campaign') startCampaign(campaignStageRef.current);
     else startRun();
-  }, [startEndless, startCampaign, startRun]);
+  }, [startEndless, startBossRush, startCampaign, startRun]);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
@@ -201,6 +212,7 @@ export function App(): JSX.Element {
         <Hub
           onStart={startRun}
           onStartEndless={startEndless}
+          onStartBossRush={startBossRush}
           onStartCampaign={startCampaign}
           last={last}
           onSeenLast={clearLast}

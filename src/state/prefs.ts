@@ -22,9 +22,10 @@ export function setAutoGenePref(on: boolean): void {
   }
 }
 
-// Per-mode difficulty — Campaign and Infinite each remember their OWN choice, independently
-// (selection lives inside each mode, not the Main Menu). Default 'standard' (identity/golden-safe).
-const DIFF_KEY = { campaign: 'assimilate.diff.campaign', infinite: 'assimilate.diff.infinite' } as const;
+// Per-mode difficulty — Campaign, Infinite and Boss Rush each remember their OWN choice,
+// independently (selection lives inside each mode, not the Main Menu). Default 'standard'
+// (identity/golden-safe).
+const DIFF_KEY = { campaign: 'assimilate.diff.campaign', infinite: 'assimilate.diff.infinite', bossrush: 'assimilate.diff.bossrush' } as const;
 export type DiffMode = keyof typeof DIFF_KEY;
 
 export function difficultyPref(mode: DiffMode): string {

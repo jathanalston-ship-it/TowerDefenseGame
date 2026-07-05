@@ -383,6 +383,7 @@ export interface RunStats {
   maxStrain?: number; // the deepest STRAIN evolution reached this run (docs/STRAIN.md; absent/1 = none — additive for old fixtures)
   strains?: number; // STRAIN evolutions committed this run (raiseStrain successes — additive)
   strainByKind?: Partial<Record<TowerKind, number>>; // deepest strain per kind this run (entries only when > I)
+  bossKills?: number; // bosses defeated this run (docs/BOSS-RUSH.md rewards key off it — additive for old fixtures)
 }
 
 /** Persistent lifetime statistics (in SaveData). The accumulation reducer in
@@ -412,6 +413,9 @@ export interface LifetimeStats {
   waveSum: number; // Σ final waves across settled runs → average wave = waveSum / totalRuns
   doctrineRuns: Record<string, number>; // runs settled per doctrine id ('none' excluded)
   cardDrafts: Record<string, number>; // lifetime drafts per gene-card id (argmax = most drafted)
+  // ── Boss Rush ledgers (docs/BOSS-RUSH.md) — additive; 0 for old saves ──
+  rushRuns: number; // Boss Rush runs settled
+  rushBossKills: number; // lifetime bosses defeated across all Boss Rush runs
 }
 
 /** One account milestone on the Profile timeline (schema v22, docs/PROFILE.md) — newest LAST. */
@@ -535,6 +539,7 @@ export interface HudSnapshot {
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
   mutation: MutationBanner | null; // a transient "tier purchased" banner (the branch-upgrade moment)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
+  bossRush: boolean; // true in Boss Rush mode (HUD shows the boss-count wave identity, docs/BOSS-RUSH.md)
   // Active biome (docs/BIOMES.md) — the HUD shows its name/accent + a hazard telegraph. In Stage
   // mode this is the NEUTRAL identity (the HUD suppresses the chip when there is no real biome).
   biome: { id: string; name: string; accent: string; modifier: string; hazardName: string; hazardActive: boolean };

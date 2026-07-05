@@ -11,7 +11,7 @@ const TREND = {
 } as const;
 
 export function PredictionPanel({ mode, difficultyId, label }: {
-  mode: 'campaign' | 'infinite';
+  mode: 'campaign' | 'infinite' | 'bossRush';
   difficultyId?: string;
   label: string; // e.g. 'Campaign Stage' / 'Infinite Wave'
 }): JSX.Element {

@@ -381,7 +381,7 @@ export function Inspector({
 
       <div className="side-k">Run</div>
       <div className="ins-stats">
-        <StatRow k="Wave" v={`${Math.max(1, hud.wave)}/${hud.totalWaves}`} />
+        <StatRow k="Wave" v={hud.endless || hud.bossRush ? `${Math.max(1, hud.wave)}` : `${Math.max(1, hud.wave)}/${hud.totalWaves}`} />
         <StatRow k="Kills" v={hud.kills} />
         <StatRow k="Threat" v={`${hud.enemiesAlive} alive`} />
         <StatRow k="Biomass" v={hud.biomass} />

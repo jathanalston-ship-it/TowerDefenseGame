@@ -965,12 +965,15 @@ export const ECON = {
 // golden-pinned) is ×1 across the board, so the characterization tests never move.
 export const MODE_REWARDS = {
   // Genome Cores (account currency) — Campaign-primary, biggest on a FIRST clear; Infinite gives a
-  // token amount so depth can't be farmed for currency.
-  core: { campaignFirst: 1.0, campaignReplay: 0.3, endless: 0.2, stage: 1.0 },
-  // Loot points (Loot Box Meter → Tower/Hero Shards) — Infinite is the farm; Campaign a trickle.
-  loot: { campaign: 0.35, endless: 1.0, stage: 1.0 },
+  // token amount so depth can't be farmed for currency. Boss Rush's wave/kill lane is also a token —
+  // its real payout is RUSH.corePerBoss (bosses defeated), so the mode rewards boss-slaying, not depth.
+  core: { campaignFirst: 1.0, campaignReplay: 0.3, endless: 0.2, stage: 1.0, bossRush: 0.25 },
+  // Loot points (Loot Box Meter → Tower/Hero Shards) — Infinite is the farm; Campaign a trickle;
+  // Boss Rush's base lane sits between (its per-boss bonus is the scaling lane).
+  loot: { campaign: 0.35, endless: 1.0, stage: 1.0, bossRush: 0.5 },
   // Mastery XP (from use) — Infinite earns an endurance bonus, cementing it as the mastery venue.
-  mastery: { campaign: 1.0, endless: 1.35, stage: 1.0 },
+  // Boss Rush pays a smaller intensity bonus (short runs, dense fights).
+  mastery: { campaign: 1.0, endless: 1.35, stage: 1.0, bossRush: 1.2 },
 };
 
 // Infinite-mode reward GATE (docs/MODE-IDENTITY.md): an Infinite run must reach at least this
@@ -1370,6 +1373,30 @@ export const BOSS = {
   addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
   chargeSpeedMult: 2.6, // charger module: movement multiplier during a telegraphed dash
   gripExposeMult: 1.25, // corecrush counterplay: damage TAKEN while gripping the Nucleus (burst it off)
+};
+
+// ── Boss Rush (docs/BOSS-RUSH.md) — the third pillar: wave N deploys N procedural bosses ──────
+// The escort chaff rides the endless intensity curves; the bosses themselves scale by Threat
+// Level (assembleBoss quality: modules/phases/HP/damage), so depth raises QUALITY as the count
+// raises pressure. Rewards are keyed to bosses defeated (meta.finishRun), not depth survived.
+export const RUSH = {
+  bossTlBase: 2, // Threat Level of wave 1's boss
+  bossTlPerWave: 3.2, // + per wave — bosses assemble stronger as their number grows (probe-tuned: shallow curves let built accounts cruise past wave 15)
+  bossStagger: 2.6, // seconds between boss deployments inside a wave (a readable siege COLUMN, not a wall)
+  escortKeepEvery: 2, // keep every Nth scheduled escort spawn — the chaff is a screen, the bosses ARE the wave
+  draftEvery: 2, // Gene Card draft cadence: every 2nd cleared wave (denser than deep Infinite, leaner than Campaign)
+  corePerBoss: 2, // run-end Genome Cores per boss defeated — the mode's primary payout lane …
+  lootPerBoss: 18, // … + loot points per boss defeated (secondary lane; both scale ~N² with depth)
+  // Strength curve (probe-tuned): boss HP + contact damage × min(cap, base + perWave·(N−1)).
+  // One curve does both jobs — waves 1–3 field REDUCED bosses (a stage-finale boss vs an opening
+  // board is a coin-flip wipe) and deep columns OVERLOAD past ×1 so a wall always forms (TL alone
+  // saturates: modules/phases cap and its bounty used to self-fund the defense).
+  strengthBase: 0.4, // wave 1 bosses at 40% …
+  strengthPerWave: 0.2, // … +20%/wave → ×1.0 at wave 4, then keeps climbing …
+  strengthCap: 2.6, // … to ×2.6 (~wave 12+)
+  damageCap: 1.5, // contact damage stops climbing here — deep walls should be OUT-TANKED-then-out-DPSed, not one-shot roulette (keeps account power meaningful, probe)
+  openingBiomass: 170, // extra starting biomass — the hive fortifies BEFORE the first column (a boss duel needs a real board, probe-verified)
+  bossBounty: 95, // FLAT biomass per rush boss — TL-scaled bounty made every difficulty lever self-funding (the column paid for the board that kills it); flat pay ⇒ income grows with N, costs grow with N×TL ⇒ a real wall forms (probe)
 };
 
 // ── AI Director / run modes (director.ts) ───────────────────────────────────

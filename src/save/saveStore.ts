@@ -26,6 +26,9 @@ export interface SaveData {
   shards: number;
   upgrades: Record<string, number>; // upgradeId -> level
   bestWave: number;
+  // ── Boss Rush records (docs/BOSS-RUSH.md) — additive; 0 for older saves ──
+  rushBestWave: number; // deepest Boss Rush wave reached (reward-qualify gate + prediction floor)
+  rushBestBoss: number; // most bosses defeated in a SINGLE rush run (the lifetime-record band base)
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -99,7 +102,7 @@ export interface SaveData {
   tutorial: TutorialSave;
   // ── Progress prediction (docs/PREDICTION.md) — self-calibrating per-mode estimators. Additive;
   //    withDefaults fills defaults for older saves. Never affects the sim (golden-safe). ──
-  prediction: { campaign: PredictCalib; infinite: PredictCalib };
+  prediction: { campaign: PredictCalib; infinite: PredictCalib; bossRush: PredictCalib };
   // ── Help / What's New (docs/HELP.md): `seen` = mechanic ids already announced (archived into the
   //    Help wiki); `primed` guards a one-time seed so existing saves don't flood on first load. Also
   //    tracks whether the first-launch HUD Tour has run. Additive; golden-safe. ──
@@ -279,6 +282,8 @@ export function defaultLifetimeStats(): LifetimeStats {
     waveSum: 0,
     doctrineRuns: {},
     cardDrafts: {},
+    rushRuns: 0,
+    rushBossKills: 0,
   };
 }
 
@@ -287,6 +292,8 @@ export function defaultSave(): SaveData {
     shards: 0,
     upgrades: {},
     bestWave: 0,
+    rushBestWave: 0,
+    rushBestBoss: 0,
     totalRuns: 0,
     lifetimeShards: 0,
     cardsSeen: 0,
@@ -321,7 +328,7 @@ export function defaultSave(): SaveData {
     prestige: defaultPrestige(),
     campaign: { cleared: {}, bestTime: {} },
     tutorial: { completed: [], rewarded: [], milestones: [], progress: null },
-    prediction: { campaign: defaultCalib(), infinite: defaultCalib() },
+    prediction: { campaign: defaultCalib(), infinite: defaultCalib(), bossRush: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
     genes: {},
     geneSlots: 1,
@@ -372,7 +379,7 @@ function sanitizeCalib(raw: unknown): PredictCalib {
 }
 function sanitizePrediction(raw: unknown): SaveData['prediction'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
-  return { campaign: sanitizeCalib(o.campaign), infinite: sanitizeCalib(o.infinite) };
+  return { campaign: sanitizeCalib(o.campaign), infinite: sanitizeCalib(o.infinite), bossRush: sanitizeCalib(o.bossRush) };
 }
 function sanitizeHelp(raw: unknown): SaveData['help'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
@@ -493,6 +500,9 @@ function withDefaults(data: SaveData): SaveData {
     antigen: Math.max(0, Math.floor(Number((data as { antigen?: unknown }).antigen) || 0)),
     // Splice Market (docs/MARKET.md): pre-market saves ⇒ 0 Ichor + a fresh window record.
     ichor: Math.max(0, Math.floor(Number((data as { ichor?: unknown }).ichor) || 0)),
+    // Boss Rush records (docs/BOSS-RUSH.md): pre-rush saves ⇒ 0 (additive).
+    rushBestWave: Math.max(0, Math.floor(Number((data as { rushBestWave?: unknown }).rushBestWave) || 0)),
+    rushBestBoss: Math.max(0, Math.floor(Number((data as { rushBestBoss?: unknown }).rushBestBoss) || 0)),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
   };

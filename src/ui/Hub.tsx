@@ -15,6 +15,7 @@ import { notifications } from '../state/notifications';
 import '../state/notificationSources'; // registers the default menu badges (side-effect import)
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
+import { BossRushScreen } from './BossRushScreen';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
@@ -33,7 +34,7 @@ import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
-  | 'home' | 'campaign' | 'infinite'
+  | 'home' | 'campaign' | 'infinite' | 'bossrush'
   | 'towers' | 'heroes' | 'evolution' | 'genes'
   | 'vault' | 'market' | 'equipment' | 'collection'
   | 'profile' | 'settings' | 'help';
@@ -48,6 +49,7 @@ const NAV_GROUPS: NavGroup[] = [
     { key: 'home', label: 'Home', mono: '⌂' },
     { key: 'campaign', label: 'Campaign', mono: '⬡' },
     { key: 'infinite', label: 'Infinite', mono: '∞' },
+    { key: 'bossrush', label: 'Boss Rush', mono: '☠' },
   ] },
   { title: 'Progression', items: [
     { key: 'towers', label: 'Towers', mono: 'T' },
@@ -124,6 +126,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour }: { onReplayTutorial: 
 export function Hub({
   onStart,
   onStartEndless,
+  onStartBossRush,
   onStartCampaign,
   last,
   onSeenLast,
@@ -134,6 +137,7 @@ export function Hub({
 }: {
   onStart: () => void;
   onStartEndless: () => void;
+  onStartBossRush: () => void;
   onStartCampaign: (stage: number) => void;
   last: { result: RunResult; outcome: RunOutcome } | null;
   onSeenLast: () => void;
@@ -231,6 +235,9 @@ export function Hub({
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'infinite' && (
             <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
+          )}
+          {nav === 'bossrush' && (
+            <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && <HeroLab />}

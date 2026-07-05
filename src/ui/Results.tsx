@@ -70,9 +70,9 @@ export function Results({
   const owned = meta.pendingContainers().length;
   // Reward eligibility (docs/MODE-IDENTITY.md): a run that didn't qualify for its cache says why.
   const blockedNote = outcome.rewardBlocked
-    ? outcome.rewardBlocked.reason === 'infinite-short'
-      ? `Run too short to qualify for Stage Cache rewards — reach Wave ${outcome.rewardBlocked.qualifyWave} (50% of your best) to bank rewards.`
-      : 'Stage failed — no Stage Cache awarded. Clear the stage to earn its cache.'
+    ? outcome.rewardBlocked.reason === 'campaign-loss'
+      ? 'Stage failed — no Stage Cache awarded. Clear the stage to earn its cache.'
+      : `Run too short to qualify for Stage Cache rewards — reach Wave ${outcome.rewardBlocked.qualifyWave} (50% of your ${outcome.rewardBlocked.reason === 'rush-short' ? 'Boss Rush record' : 'best'}) to bank rewards.`
     : null;
   const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
   const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
@@ -202,7 +202,7 @@ export function Results({
     icon: '◈',
     accent: 'var(--r-legendary)',
     summary: blockedNote
-      ? (outcome.rewardBlocked?.reason === 'infinite-short' ? 'Run too short — no rewards' : 'Stage failed — no cache')
+      ? (outcome.rewardBlocked?.reason === 'campaign-loss' ? 'Stage failed — no cache' : 'Run too short — no rewards')
       : earned > 0 ? `${earned} recovered · ${owned} in vault` : 'None this run',
     stats: [
       { id: 'recovered', label: 'Containers Recovered', value: earned },

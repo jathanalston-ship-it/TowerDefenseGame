@@ -45,7 +45,7 @@ export function BuildControls({
    * launch controls held so the game can never outrun the lesson. */
   tutorialLock?: boolean;
 }): JSX.Element {
-  const visible = hud.phase === 'prep' && hud.wave < hud.totalWaves;
+  const visible = hud.phase === 'prep' && (hud.endless || hud.bossRush || hud.wave < hud.totalWaves);
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
   const preview = useMemo(
     () => (visible ? game.getNextWavePreview() : null),
@@ -56,7 +56,7 @@ export function BuildControls({
   // automations are toggled together (and in-run, not only from the Hub's Settings). Both
   // persist to localStorage; the DraftModal reads the pref when the next draft opens.
   const [autoGene, setAutoGene] = useState(autoGenePref());
-  const nextWave = Math.min(hud.totalWaves, hud.wave + 1);
+  const nextWave = hud.endless || hud.bossRush ? hud.wave + 1 : Math.min(hud.totalWaves, hud.wave + 1);
   // Launch sweep: a one-shot full-board energy band when the wave fires (keyed per launch).
   const [sweepAt, setSweepAt] = useState(0);
   // Encounter forecast — expected biomass (Σ bounty) + the heaviest tier present, from the
@@ -80,8 +80,8 @@ export function BuildControls({
         <div className="wb-brief">
           <div className="wb-head">
             <span className="wb-eyebrow">◉ INCOMING</span>
-            <span className="wb-wave">{hud.endless ? `DEPTH ${nextWave}` : `WAVE ${nextWave}`}</span>
-            {!hud.endless && <span className="wb-of">/ {hud.totalWaves}</span>}
+            <span className="wb-wave">{hud.endless ? `DEPTH ${nextWave}` : hud.bossRush ? `WAVE ${nextWave} — ${nextWave} ${nextWave === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${nextWave}`}</span>
+            {!hud.endless && !hud.bossRush && <span className="wb-of">/ {hud.totalWaves}</span>}
             {hostiles > 0 && <span className="wb-count">{hostiles} hostiles</span>}
             {forecast && forecast.biomass > 0 && (
               <span className="wb-forecast tt" tabIndex={visible ? 0 : -1}>

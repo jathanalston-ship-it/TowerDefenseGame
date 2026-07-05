@@ -158,22 +158,24 @@ export function composeStageDifficulty(
 }
 
 /** Mode reward identity — account-currency multiplier (docs/MODE-IDENTITY.md). */
-export function modeCoreMult(flags: { endless: boolean; campaign: boolean; firstClear: boolean }): number {
-  return flags.endless
-    ? MODE_REWARDS.core.endless
-    : flags.campaign
-      ? (flags.firstClear ? MODE_REWARDS.core.campaignFirst : MODE_REWARDS.core.campaignReplay)
-      : MODE_REWARDS.core.stage;
+export function modeCoreMult(flags: { endless: boolean; campaign: boolean; firstClear: boolean; bossRush?: boolean }): number {
+  return flags.bossRush
+    ? MODE_REWARDS.core.bossRush
+    : flags.endless
+      ? MODE_REWARDS.core.endless
+      : flags.campaign
+        ? (flags.firstClear ? MODE_REWARDS.core.campaignFirst : MODE_REWARDS.core.campaignReplay)
+        : MODE_REWARDS.core.stage;
 }
 
 /** Mode reward identity — loot-point multiplier (Infinite is the farm). */
-export function modeLootMult(flags: { endless: boolean; campaign: boolean }): number {
-  return flags.endless ? MODE_REWARDS.loot.endless : flags.campaign ? MODE_REWARDS.loot.campaign : MODE_REWARDS.loot.stage;
+export function modeLootMult(flags: { endless: boolean; campaign: boolean; bossRush?: boolean }): number {
+  return flags.bossRush ? MODE_REWARDS.loot.bossRush : flags.endless ? MODE_REWARDS.loot.endless : flags.campaign ? MODE_REWARDS.loot.campaign : MODE_REWARDS.loot.stage;
 }
 
 /** Mode reward identity — Mastery XP multiplier (Infinite pays an endurance bonus). */
-export function modeMasteryMult(flags: { endless: boolean; campaign: boolean }): number {
-  return flags.endless ? MODE_REWARDS.mastery.endless : flags.campaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
+export function modeMasteryMult(flags: { endless: boolean; campaign: boolean; bossRush?: boolean }): number {
+  return flags.bossRush ? MODE_REWARDS.mastery.bossRush : flags.endless ? MODE_REWARDS.mastery.endless : flags.campaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
 }
 
 /** A doctrine's run-END economy: reward multiplier + Gene Essence payout for waves survived. */

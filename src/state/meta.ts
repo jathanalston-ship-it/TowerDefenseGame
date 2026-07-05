@@ -14,7 +14,7 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, upgradeEffectUnits } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -65,7 +65,7 @@ import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
 import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
 import { coreShardIncome, lootPointIncome } from '../core/economyDirector';
-import { predictCampaign, predictInfinite, calibrate } from '../core/predict';
+import { predictBossRush, predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
@@ -246,7 +246,7 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
 
 /** Up to two soft guidance lines for the prediction panel — surfaces the weakest lever without ever
  *  dictating a move (docs/PREDICTION.md). Priority order; capped at two so it never overwhelms. */
-function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite', estimate: number): string[] {
+function predictionRecommendations(save: SaveData, mode: 'campaign' | 'infinite' | 'bossRush', estimate: number): string[] {
   const out: string[] = [];
   const cleared = highestCampaignStage(save);
   const maxTowerStars = Math.max(0, ...TOWER_ORDER.map((k) => save.towerStars[k] ?? 0));
@@ -317,13 +317,13 @@ export function masteryXpRaw(c: { kills: number; damage: number; activeTime: num
  * Snapshot once at run start for the live projection; finishRun derives the same product. */
 export function masteryXpMults(
   save: SaveData,
-  mode: { endless?: boolean; campaign?: boolean },
+  mode: { endless?: boolean; campaign?: boolean; bossRush?: boolean },
   difficulty: string | undefined,
 ): { tower: number; hero: number } {
   const asc = ascendantBonuses(save.prestige.nodes);
   const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save)));
   const econDiff = economyFor(difficulty);
-  const modeMult = modeMasteryMult({ endless: !!mode.endless, campaign: !!mode.campaign });
+  const modeMult = modeMasteryMult({ endless: !!mode.endless, campaign: !!mode.campaign, bossRush: !!mode.bossRush });
   const base = modeMult * econDiff.xpMult * asc.masteryXpMult;
   return { tower: base * cb.towerXpMult, hero: base * cb.heroXpMult };
 }
@@ -630,6 +630,7 @@ export interface RunResult {
   heroMastery: HeroMasteryCounts; // per-hero usage (from Game.getHeroMasteryAccrual)
   stats: RunStats; // raw run statistics (from Game.getRunStats) — folded into lifetime stats
   endless?: boolean; // Endless (AI Director) mode run
+  bossRush?: boolean; // Boss Rush gauntlet run (docs/BOSS-RUSH.md) — rewards key off stats.bossKills
   // ── Campaign (procedural progression) — set by App for a 'campaign' run ──
   campaignStage?: number; // the stage number played (winning it unlocks the next)
   difficulty?: string; // the difficulty variant id (the per-difficulty campaign track)
@@ -684,7 +685,7 @@ export interface RunOutcome {
   // Reward eligibility (docs/MODE-IDENTITY.md): present when the run FAILED to qualify for its reward
   // cache — a lost Campaign stage, or an Infinite run shorter than qualifyWave (50% of the prior
   // personal best). No cache/loot was banked; Results shows the reason. Absent on a qualifying run.
-  rewardBlocked?: { reason: 'campaign-loss' | 'infinite-short'; qualifyWave: number };
+  rewardBlocked?: { reason: 'campaign-loss' | 'infinite-short' | 'rush-short'; qualifyWave: number };
 }
 
 /** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
@@ -887,12 +888,13 @@ export const meta = {
     // legacy quick-run) stays neutral (×1) so the golden/meta tests don't move.
     const campDiff = result.difficulty ?? 'standard';
     const prevCleared = save.campaign.cleared[campDiff] ?? 0;
-    const isCampaign = result.campaignStage != null && !result.endless;
+    const isRush = !!result.bossRush;
+    const isCampaign = result.campaignStage != null && !result.endless && !isRush;
     const stageNo = result.campaignStage ?? 0;
     const firstClear = isCampaign && result.won && stageNo > prevCleared;
-    const coreMult = modeCoreMult({ endless: !!result.endless, campaign: isCampaign, firstClear });
-    const lootMult = modeLootMult({ endless: !!result.endless, campaign: isCampaign });
-    const xpMults = masteryXpMults(save, { endless: result.endless, campaign: isCampaign }, result.difficulty);
+    const coreMult = modeCoreMult({ endless: !!result.endless, campaign: isCampaign, firstClear, bossRush: isRush });
+    const lootMult = modeLootMult({ endless: !!result.endless, campaign: isCampaign, bossRush: isRush });
+    const xpMults = masteryXpMults(save, { endless: result.endless, campaign: isCampaign, bossRush: isRush }, result.difficulty);
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
       ? Math.round(
@@ -911,6 +913,12 @@ export const meta = {
             Math.min(1, result.wave / stageWaveCount(stageNo)),
         )
       : 0;
+    // Boss Rush pays per boss DEFEATED (docs/BOSS-RUSH.md): wave N fields N bosses, so both
+    // lanes scale ~N² with depth — slaying is the mode's payout, not surviving. Difficulty's
+    // economy scalar rides both; prestige core gain rides the currency lane.
+    const bossKills = result.stats.bossKills ?? 0;
+    const rushCoreBonus = isRush ? Math.round(RUSH.corePerBoss * bossKills * econDiff.rewardMult * asc.coreGainMult) : 0;
+    const rushLootBonus = isRush ? Math.round(RUSH.lootPerBoss * bossKills * econDiff.containerRateMult * asc.lootGainMult) : 0;
 
     // 1. global shards + run records
     // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps (director policy).
@@ -927,8 +935,10 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
-    }).total()) + firstClearBonus + attemptBonus;
-    const newBest = result.wave > save.bestWave;
+    }).total()) + firstClearBonus + attemptBonus + rushCoreBonus;
+    // Boss Rush keeps its OWN depth record (rush waves are dense, short numbers — folding them
+    // into the Infinite record would warp that mode's qualify gate + prediction floor).
+    const newBest = isRush ? result.wave > save.rushBestWave : result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
     const towerMasteryXp = { ...save.towerMasteryXp };
@@ -961,14 +971,18 @@ export const meta = {
     //    it banks NO cache and NO loot ("exploit") containers — INCLUDING any banked LIVE this run —
     //    and Results shows why. The neutral quick-run is unchanged (golden/meta-test safe). Centralized
     //    here so every mode inherits it. ──
-    const infiniteQualifyWave = result.endless ? Math.floor(save.bestWave * INFINITE_REWARD_QUALIFY_FRAC) : 0;
-    const cacheEligible = result.endless ? result.wave >= infiniteQualifyWave : isCampaign ? result.won : true;
+    const infiniteQualifyWave = result.endless
+      ? Math.floor(save.bestWave * INFINITE_REWARD_QUALIFY_FRAC)
+      : isRush
+        ? Math.floor(save.rushBestWave * INFINITE_REWARD_QUALIFY_FRAC) // Boss Rush inherits the same anti-farm rule, keyed to ITS record
+        : 0;
+    const cacheEligible = result.endless || isRush ? result.wave >= infiniteQualifyWave : isCampaign ? result.won : true;
     // Infinite also forfeits its loot when short; campaign/quick keep loot earned by progress (only the
     // cache is gated for them). rewardBlocked drives the Results "why you got nothing" message.
-    const lootEligible = result.endless ? cacheEligible : true;
+    const lootEligible = result.endless || isRush ? cacheEligible : true;
     const rewardBlocked: RunOutcome['rewardBlocked'] = cacheEligible
       ? undefined
-      : { reason: result.endless ? 'infinite-short' : 'campaign-loss', qualifyWave: infiniteQualifyWave };
+      : { reason: result.endless ? 'infinite-short' : isRush ? 'rush-short' : 'campaign-loss', qualifyWave: infiniteQualifyWave };
 
     // 4. Loot: the run-end cache AND every loot-queue container this run completed bank
     //    UNOPENED into the Genetic Vault — nothing opens at run end. Rewards (tower/hero
@@ -985,7 +999,7 @@ export const meta = {
       modeLootMult: lootMult,
       containerRateMult: econDiff.containerRateMult,
       bossLootMult: cb.bossLootMult, // Bosses codex: +Boss Loot
-    }).total());
+    }).total()) + rushLootBonus;
     const lootAdv = lootEligible
       ? addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty))
       : { state: save.lootQueue, awarded: [] as string[] }; // unqualified: no run-end loot, meter frozen (no RNG spent)
@@ -1067,16 +1081,19 @@ export const meta = {
 
     // Prediction calibration (docs/PREDICTION.md): fold this run's ACTUAL depth into the mode's
     // estimator so future predictions quietly get more accurate. Only campaign/infinite runs calibrate.
-    const predMode: 'campaign' | 'infinite' | null = result.endless ? 'infinite' : (result.campaignStage != null ? 'campaign' : null);
+    const predMode: 'campaign' | 'infinite' | 'bossRush' | null = isRush ? 'bossRush' : result.endless ? 'infinite' : (result.campaignStage != null ? 'campaign' : null);
     const prediction = predMode
-      ? { ...save.prediction, [predMode]: calibrate(save.prediction[predMode], predMode === 'infinite' ? result.wave : (result.campaignStage ?? 0), composePower(accountPowerParts(save)).mult) }
+      ? { ...save.prediction, [predMode]: calibrate(save.prediction[predMode], predMode === 'campaign' ? (result.campaignStage ?? 0) : result.wave, composePower(accountPowerParts(save)).mult) }
       : save.prediction;
 
     // Player Profile (docs/PROFILE.md): stamp the account clock on the FIRST settle and record
     // the run's milestone moments on the timeline (new-best depth bands, every 10th stage).
     let timeline = save.createdAt === 0 ? pushTimeline(save.timeline, '◈', 'Specimen line established') : save.timeline;
-    if (newBest && Math.floor(result.wave / 25) > Math.floor(save.bestWave / 25)) {
+    if (!isRush && newBest && Math.floor(result.wave / 25) > Math.floor(save.bestWave / 25)) {
       timeline = pushTimeline(timeline, '∞', `Infinite record — Depth ${result.wave}`);
+    }
+    if (isRush && newBest && Math.floor(result.wave / 5) > Math.floor(save.rushBestWave / 5)) {
+      timeline = pushTimeline(timeline, '☠', `Boss Rush record — Wave ${result.wave}`);
     }
     if (firstClear && stageNo % 10 === 0) timeline = pushTimeline(timeline, '◆', `Reached Campaign Stage ${stageNo}`);
 
@@ -1099,14 +1116,16 @@ export const meta = {
       lifetimeShards: save.lifetimeShards + shardsEarned,
       ichor: save.ichor + ichorGain,
       lifetimeIchor: save.lifetimeIchor + ichorGain,
-      bestWave: Math.max(save.bestWave, result.wave),
+      bestWave: isRush ? save.bestWave : Math.max(save.bestWave, result.wave),
+      rushBestWave: isRush ? Math.max(save.rushBestWave, result.wave) : save.rushBestWave,
+      rushBestBoss: isRush ? Math.max(save.rushBestBoss, bossKills) : save.rushBestBoss,
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
       towerKills,
       heroMasteryXp,
       heroKills,
       heroFavEquip,
-      stats: accumulateStats(save.stats, result.stats, result.mastery, { durationSec: result.durationSec, doctrine: result.doctrine }),
+      stats: accumulateStats(save.stats, result.stats, result.mastery, { durationSec: result.durationSec, doctrine: result.doctrine, bossRush: isRush }),
       geneEssence: save.geneEssence + doctrineEssence, // Corrupted Genome pays essence per wave (0 otherwise)
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
@@ -1564,19 +1583,21 @@ export const meta = {
   /** Progress prediction (docs/PREDICTION.md) — an intelligent, self-calibrating ESTIMATE (never a
    *  guarantee) of how far the account can expect to reach in a mode, + 1–2 guidance recommendations.
    *  `difficultyId` is the mode's currently selected difficulty (harder ⇒ lower reach). */
-  predict(mode: 'campaign' | 'infinite', difficultyId?: string): { p: Prediction; recommendations: string[] } {
+  predict(mode: 'campaign' | 'infinite' | 'bossRush', difficultyId?: string): { p: Prediction; recommendations: string[] } {
     const save = store.get();
     const powerMult = composePower(accountPowerParts(save)).mult;
     const diffMult = resolveDifficulty(difficultyId).enemyHealthMult;
     const p = mode === 'campaign'
       ? predictCampaign(powerMult, highestCampaignStage(save), diffMult, save.prediction.campaign)
-      : predictInfinite(powerMult, save.bestWave, diffMult, save.prediction.infinite);
+      : mode === 'bossRush'
+        ? predictBossRush(powerMult, save.rushBestWave, diffMult, save.prediction.bossRush)
+        : predictInfinite(powerMult, save.bestWave, diffMult, save.prediction.infinite);
     return { p, recommendations: predictionRecommendations(save, mode, p.estimate) };
   },
 
   /** Record the estimate shown at run START so the next finishRun can calibrate against the actual
    *  result. Called by the Play screens when a run launches. Quietly improves future predictions. */
-  notePredictionBaseline(mode: 'campaign' | 'infinite', difficultyId?: string): void {
+  notePredictionBaseline(mode: 'campaign' | 'infinite' | 'bossRush', difficultyId?: string): void {
     const save = store.get();
     const est = this.predict(mode, difficultyId).p.estimate;
     persist({ ...save, prediction: { ...save.prediction, [mode]: { ...save.prediction[mode], lastEstimate: est } } });

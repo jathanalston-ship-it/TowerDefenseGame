@@ -329,11 +329,16 @@ function Army({ save, go }: WidgetCtx): ReactNode {
 }
 
 /** Operations — the secondary run modes beneath the campaign. */
-function Modes({ start, onStart, onStartEndless }: WidgetCtx): ReactNode {
+function Modes({ start, onStart, onStartEndless, go }: WidgetCtx): ReactNode {
   const infiniteRewards: PreviewChip[] = [
     { label: 'Containers', color: 'var(--r-epic)' },
     { label: 'Mastery', color: 'var(--r-rare)' },
     { label: 'Genome Cores', color: 'var(--gold)' },
+  ];
+  const rushRewards: PreviewChip[] = [
+    { label: 'Cores / boss', color: 'var(--gold)' },
+    { label: 'Loot / boss', color: 'var(--r-epic)' },
+    { label: 'Gene draft ×2', color: 'var(--r-rare)' },
   ];
   return (
     <section className="mc-secondary" aria-label="Other modes">
@@ -343,6 +348,14 @@ function Modes({ start, onStart, onStartEndless }: WidgetCtx): ReactNode {
           <span className="mc-sec-t">Infinite Mode</span>
           <span className="mc-sec-d">Quick endless run · AI Director, infinite depth</span>
           <RewardPreview chips={infiniteRewards} className="mc-sec-rwp" />
+        </span>
+      </button>
+      <button className="mc-sec mc-sec-rush" onClick={() => go('bossrush')}>
+        <span className="mc-sec-i" aria-hidden>☠</span>
+        <span className="mc-sec-body">
+          <span className="mc-sec-t">Boss Rush</span>
+          <span className="mc-sec-d">The gauntlet · wave N = N bosses, paid per kill</span>
+          <RewardPreview chips={rushRewards} className="mc-sec-rwp" />
         </span>
       </button>
       <button className="mc-sec" onClick={() => start(onStart)}>

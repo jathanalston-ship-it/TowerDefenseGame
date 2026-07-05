@@ -13,7 +13,7 @@ export function accumulateStats(
   prev: LifetimeStats,
   run: RunStats,
   towerCombat?: MasteryCounts,
-  extra?: { durationSec?: number; doctrine?: string },
+  extra?: { durationSec?: number; doctrine?: string; bossRush?: boolean },
 ): LifetimeStats {
   const killsByEnemy = { ...prev.killsByEnemy };
   for (const k of ENEMY_KINDS) killsByEnemy[k] = (killsByEnemy[k] ?? 0) + (run.killsByEnemy[k] ?? 0);
@@ -79,6 +79,9 @@ export function accumulateStats(
     waveSum: prev.waveSum + run.wave,
     doctrineRuns,
     cardDrafts,
+    // Boss Rush ledgers (docs/BOSS-RUSH.md): only a bossRush run advances them.
+    rushRuns: prev.rushRuns + (extra?.bossRush ? 1 : 0),
+    rushBossKills: prev.rushBossKills + (extra?.bossRush ? (run.bossKills ?? 0) : 0),
   };
 }
 

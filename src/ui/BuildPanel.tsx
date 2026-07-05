@@ -121,7 +121,7 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
         <ul className="obj-list">
           <li className="obj-row">
             <i className="obj-dot" aria-hidden />
-            {hud.endless ? `Hold the line · depth ${Math.max(1, hud.wave)}` : wavesLeft > 0 ? `Survive ${wavesLeft} more wave${wavesLeft === 1 ? '' : 's'}` : 'Final wave — finish it'}
+            {hud.endless ? `Hold the line · depth ${Math.max(1, hud.wave)}` : hud.bossRush ? `Fell the column · wave ${Math.max(1, hud.wave)}` : wavesLeft > 0 ? `Survive ${wavesLeft} more wave${wavesLeft === 1 ? '' : 's'}` : 'Final wave — finish it'}
           </li>
           {hud.anticipation.slice(0, 2).map((a) => (
             <li className="obj-row is-next" key={a}>

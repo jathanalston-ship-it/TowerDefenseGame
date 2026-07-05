@@ -79,6 +79,18 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (c) => ({ cur: c.save.stats.strainsEvolved, max: n }),
   })),
 
+  // ── Boss Rush (docs/BOSS-RUSH.md — the gauntlet's own ladder) ──
+  { id: 'rush_first', name: 'Gauntlet Runner', desc: 'Settle a Boss Rush run.', reward: 15, test: (c) => c.save.stats.rushRuns >= 1 },
+  { id: 'rush_wave5', name: 'Five Sieges Deep', desc: 'Reach wave 5 in Boss Rush.', reward: 30, test: (c) => c.save.rushBestWave >= 5, progress: (c) => ({ cur: c.save.rushBestWave, max: 5 }) },
+  { id: 'rush_wave10', name: 'Decimation Line', desc: 'Reach wave 10 in Boss Rush.', reward: 75, test: (c) => c.save.rushBestWave >= 10, progress: (c) => ({ cur: c.save.rushBestWave, max: 10 }) },
+  { id: 'rush_boss15', name: 'Fifteen Skulls', desc: 'Defeat 15 bosses in a single Boss Rush run.', reward: 50, test: (c) => c.save.rushBestBoss >= 15, progress: (c) => ({ cur: c.save.rushBestBoss, max: 15 }) },
+  ...([50, 250] as const).map((n, i): AchievementDef => ({
+    id: `rush_bosses${n}`, name: ['Boss Breaker', 'Extinction Event'][i],
+    desc: `Defeat ${n} bosses in Boss Rush (lifetime).`, reward: 40 + i * 60,
+    test: (c) => c.save.stats.rushBossKills >= n,
+    progress: (c) => ({ cur: c.save.stats.rushBossKills, max: n }),
+  })),
+
   // ── Hidden (surprise milestones — concealed until earned) ──
   { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },

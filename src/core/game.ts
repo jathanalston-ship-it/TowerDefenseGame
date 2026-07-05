@@ -71,7 +71,7 @@ import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS, CHESTS, chestForWave, spawnCount } from './config';
+import { BOSS, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -111,12 +111,12 @@ const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's 
 const BRANCH_HITSTOP = 0.12; // seconds the view-loop freezes on a tier purchase (a juicy "impact" beat)
 const MUTATION_BANNER_LIFE = 2.4; // seconds the tier-purchase banner is surfaced to the HUD
 
-export type RunMode = 'stage' | 'endless' | 'campaign';
+export type RunMode = 'stage' | 'endless' | 'campaign' | 'bossRush';
 
 /** Options a run can boot with. */
 export interface RunOptions {
   runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
-  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage
+  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage; 'bossRush' = escalating boss gauntlet (docs/BOSS-RUSH.md)
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
@@ -415,6 +415,8 @@ export class Game {
   private waveStartIntegrity = 0; // integrity when the current wave began (drives FLAWLESS)
   private prepCountdown = AUTO_START_DELAY; // prep seconds left before an auto-start fires
   private wavesSinceDraft = 0; // endless cadence: waves cleared since the last Gene Card draft
+  private rushPending: { at: number; tl: number; ramp: number }[] = []; // Boss Rush: staggered boss deployments still due this wave (time-sorted; ramp = the strength curve's HP/damage scale)
+  private runBossKills = 0; // bosses defeated this run (RunStats.bossKills; Boss Rush rewards key off it)
   private nextId = 1;
   private armorBreakUntil = new Map<number, number>();
   private acc = 0; // fixed-timestep accumulator
@@ -529,16 +531,18 @@ export class Game {
     // Enemy speed = the stage's own scaling (campaign) × the DIFFICULTY speed axis (both modes).
     // standard ⇒ ×1 → golden-safe.
     this.stageSpeedMult = this.dd.enemySpeedStatic();
-    // Biome: Campaign uses the stage's fixed biome; Infinite seeds the first biome (rotates as the
-    // run deepens — see startEndlessWave); Stage uses the identity biome (golden-safe).
-    this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' ? biomeForDepth(1) : NEUTRAL_BIOME;
+    // Biome: Campaign uses the stage's fixed biome; Infinite + Boss Rush seed the first biome
+    // (rotating as the run deepens — see startEndlessWave / startBossRushWave); Stage uses the
+    // identity biome (golden-safe).
+    this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' || this.mode === 'bossRush' ? biomeForDepth(1) : NEUTRAL_BIOME;
     this.geneLevels = opts.geneLevels ?? {}; // permanent gene levels; empty ⇒ base effects (golden-safe)
-    if (this.mode === 'endless') this.director = new Director(() => this.rng.next(), this.diff);
+    if (this.mode === 'endless' || this.mode === 'bossRush') this.director = new Director(() => this.rng.next(), this.diff);
     // Run Identity: a DEDICATED rng stream (decoupled from this.rng ⇒ base run unperturbed) + the plan.
-    // Stage ⇒ null plan (golden-safe). Campaign uses the stage's wave count (finale reserved for its
-    // boss); Endless plans over a horizon. Rare Invasions draw OUT of the active biome's signature.
+    // Stage ⇒ null plan (golden-safe), and so does Boss Rush — its bosses ARE the run identity
+    // (docs/BOSS-RUSH.md); anomalies stay Infinite's. Campaign uses the stage's wave count (finale
+    // reserved for its boss); Endless plans over a horizon. Rare Invasions draw OUT of the biome signature.
     this.runEventRng = new Rng((seed ^ 0x52554e21) >>> 0);
-    this.runPlan = this.mode === 'stage' ? null : generateRunPlan(seed, {
+    this.runPlan = this.mode === 'stage' || this.mode === 'bossRush' ? null : generateRunPlan(seed, {
       mode: this.mode,
       waveCount: this.mode === 'endless' ? 50 : this.totalWaves,
       reserveFinale: this.mode === 'campaign',
@@ -579,7 +583,8 @@ export class Game {
     this.permanentSlots = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + meta.bonusSlots);
     // Campaign early-stage opening aid (docs/CAMPAIGN.md §grace) rides the stage config —
     // 0 for every other mode and from stage ~5 on, so nothing else moves.
-    this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus + (this.stage?.startBiomassBonus ?? 0);
+    this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus + (this.stage?.startBiomassBonus ?? 0)
+      + (this.mode === 'bossRush' ? RUSH.openingBiomass : 0); // the gauntlet fortifies before wave 1's boss duel (docs/BOSS-RUSH.md)
     this.foldHeroEquip(roster, opts.heroEquip); // build per-hero gear mods BEFORE heroes (makeHero reads them)
     this.heroes = roster.map((k) => this.makeHero(k));
     // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts): equipped cards auto-activate NOW,
@@ -1690,6 +1695,10 @@ export class Game {
       this.startEndlessWave();
       return;
     }
+    if (this.mode === 'bossRush') {
+      this.startBossRushWave();
+      return;
+    }
     if (this.waveIndex >= this.totalWaves) return;
     this.waveIndex++;
     const def = this.waves[this.waveIndex - 1];
@@ -1746,6 +1755,40 @@ export class Game {
     this.applyRunEvent(depth); // Run Identity: fold this depth's beat + anomaly
     this.pushSfx('wave');
     if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: true });
+  }
+
+  /** Boss Rush wave (docs/BOSS-RUSH.md): wave N deploys N procedural bosses in a staggered siege
+   * column, screened by a THINNED director squad. The escort rides the endless intensity curves;
+   * the bosses scale by Threat Level, so depth raises boss QUALITY as the count raises pressure. */
+  private startBossRushWave(): void {
+    this.waveIndex++; // = Depth = boss count this wave
+    const depth = this.waveIndex;
+    this.enterBiome(biomeForDepth(depth)); // rotate ecosystems like Infinite
+    const w = this.director!.next(depth, this.activeBiome);
+    this.spawnQueue = this.spawner.scheduleDirected(
+      w,
+      this.time,
+      this.endlessHpMult(depth),
+      this.endlessBountyMult(depth),
+      this.diff.spawnRateMult,
+    );
+    // Thin the escort to a skirmish screen (deterministic keep-every-Nth) — the bosses ARE the wave.
+    this.spawnQueue = this.spawnQueue.filter((_, i) => i % RUSH.escortKeepEvery === 0);
+    // The siege column: N bosses at this depth's Threat Level, deployed on a stagger so each
+    // arrival reads (and the Nucleus never eats one simultaneous wall of grips).
+    const tl = RUSH.bossTlBase + RUSH.bossTlPerWave * (depth - 1);
+    // Strength curve: early columns field REDUCED bosses (ease-in), deep columns OVERLOAD past
+    // ×1 so a wall always forms — one curve, probe-tuned (docs/BOSS-RUSH.md §balance).
+    const ramp = Math.min(RUSH.strengthCap, RUSH.strengthBase + RUSH.strengthPerWave * (depth - 1));
+    this.rushPending = [];
+    for (let i = 0; i < depth; i++) this.rushPending.push({ at: this.time + i * RUSH.bossStagger, tl, ramp });
+    this.spawnedAll = false;
+    this.waveStartIntegrity = this.integrity;
+    this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
+    this.phase = 'wave';
+    this.applyDoctrineWarp(); // doctrine protocols reshape the escort queue (no-op without a warp)
+    this.pushSfx('wave');
+    if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: depth, endless: false });
   }
 
   /** Run Identity (docs/RUN-IDENTITY.md): fold this wave's scheduled event + the run anomaly onto the
@@ -1996,6 +2039,7 @@ export class Game {
     if (this.minions.length > 0) this.minionSystem(dt); // empty on the golden path → skipped
     if (this.phase === 'wave') {
       this.spawnSystem();
+      if (this.rushPending.length > 0) this.rushSpawnSystem(); // Boss Rush only — empty otherwise
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
       if (this.corruptionPools.length > 0) {
       for (const cp of this.corruptionPools) cp.t -= dt;
@@ -2064,6 +2108,15 @@ export class Game {
     if (this.spawnQueue.length === 0) this.spawnedAll = true;
   }
 
+  /** Boss Rush (docs/BOSS-RUSH.md): deploy any bosses whose stagger time has arrived. Only ever
+   * populated in bossRush mode — every other mode sees a zero-length no-op (golden-safe). */
+  private rushSpawnSystem(): void {
+    while (this.rushPending.length > 0 && this.rushPending[0].at <= this.time) {
+      const p = this.rushPending.shift()!;
+      this.spawnProceduralBoss(p.tl, p.ramp);
+    }
+  }
+
   private spawnOne(kind: EnemyKind, hpMult: number, bountyMult: number, elite = false): void {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const def = ENEMY_DEFS[kind];
@@ -2077,9 +2130,10 @@ export class Game {
     // biome's stats after an Infinite transition. Identity under NEUTRAL_BIOME ⇒ golden-safe.
     const bm = this.activeBiome.mods;
     const hp = def.hp * hpMult * eHp * bm.enemyHpMult;
-    // Endless-only intensity: enemies get gradually faster + hit harder with depth. Mode-gated so a
-    // stage spawn is byte-identical (×1). Keyed on the current depth (= waveIndex during this wave).
-    const endless = this.mode === 'endless';
+    // Endless-only intensity: enemies get gradually faster + hit harder with depth (Boss Rush
+    // escorts ride the same curves). Mode-gated so a stage spawn is byte-identical (×1). Keyed
+    // on the current depth (= waveIndex during this wave).
+    const endless = this.mode === 'endless' || this.mode === 'bossRush';
     const eSpeed = endless ? this.endlessSpeedMult(this.waveIndex) : 1;
     const eDmgWave = endless ? this.endlessDamageMult(this.waveIndex) : 1;
     this.enemies.push({
@@ -3984,7 +4038,10 @@ export class Game {
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
         this.pushSfx('kill');
-        if (e.boss) this.bossDeathSpectacle(e); // a boss death is an event, not a pop
+        if (e.boss) {
+          this.bossDeathSpectacle(e); // a boss death is an event, not a pop
+          this.runBossKills++; // RunStats.bossKills — Boss Rush rewards + lifetime ledgers key off it
+        }
         if (e.boss && e.boss.splitsLeft > 0) this.splitBoss(e); // Mitotic Horror: cleave into smaller copies
         if (e.bounty >= 20) {
           this.floats.push({ x: e.x, y: e.y - 14, text: `+${Math.round(gain)}`, color: '#b6e84a', life: 0.8 });
@@ -4185,7 +4242,7 @@ export class Game {
 
   private checkWaveEnd(): void {
     if (this.phase !== 'wave' || this.settleTimer > 0) return; // already winding down
-    if (this.spawnedAll && this.spawnQueue.length === 0 && this.enemies.length === 0) {
+    if (this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
@@ -4193,9 +4250,9 @@ export class Game {
       // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
       // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
       // options aren't shown until the phase is 'draft' (the modal is phase-gated).
-      // Endless never "wins" — it only ends when the Nucleus falls. Stage + campaign clear when
-      // their (authored / generated) wave count is reached.
-      if (this.mode !== 'endless' && this.waveIndex >= this.totalWaves) {
+      // Endless + Boss Rush never "win" — they only end when the Nucleus falls. Stage + campaign
+      // clear when their (authored / generated) wave count is reached.
+      if (this.mode !== 'endless' && this.mode !== 'bossRush' && this.waveIndex >= this.totalWaves) {
         this.stageClearCrescendo();
       } else {
         this.waveCompleteFlourish(flawless);
@@ -4214,6 +4271,16 @@ export class Game {
    * last draft and fires once it reaches the depth's interval, so the gap only ever widens. Mutates
    * the since-last-draft counter, so call exactly once per cleared wave. */
   private shouldDraftThisWave(): boolean {
+    // Boss Rush: a FIXED every-2nd-wave cadence (docs/BOSS-RUSH.md) — steady power injections
+    // against the linearly growing boss count, without Campaign's every-wave generosity.
+    if (this.mode === 'bossRush') {
+      this.wavesSinceDraft++;
+      if (this.wavesSinceDraft >= RUSH.draftEvery) {
+        this.wavesSinceDraft = 0;
+        return true;
+      }
+      return false;
+    }
     if (this.mode !== 'endless') return true;
     this.wavesSinceDraft++;
     if (this.wavesSinceDraft >= endlessDraftInterval(this.waveIndex)) {
@@ -4228,8 +4295,8 @@ export class Game {
    * Pure phase flip; the battlefield is now wound down. */
   private endWave(): void {
     this.settleTimer = 0;
-    // Stage + campaign clear (win) when their wave count is reached; endless never wins.
-    if (this.mode !== 'endless' && this.waveIndex >= this.totalWaves) {
+    // Stage + campaign clear (win) when their wave count is reached; endless + Boss Rush never win.
+    if (this.mode !== 'endless' && this.mode !== 'bossRush' && this.waveIndex >= this.totalWaves) {
       this.phase = 'won';
     } else if (this.draft && this.draft.length > 0) {
       this.phase = 'draft';
@@ -4852,6 +4919,7 @@ export class Game {
           ? { id: this.mutation.id, title: this.mutation.title, sub: this.mutation.sub, branchId: this.mutation.branchId, color: this.mutation.color }
           : null,
       endless: this.mode === 'endless',
+      bossRush: this.mode === 'bossRush',
       biome: {
         id: this.activeBiome.id,
         name: this.activeBiome.name,
@@ -4876,6 +4944,16 @@ export class Game {
   private nextAnticipation(): string[] {
     if (this.phase === 'won' || this.phase === 'lost') return [];
     const out: string[] = [];
+    if (this.mode === 'bossRush') {
+      // Wave N = N bosses — the next siege line is ALWAYS worth dreading (docs/BOSS-RUSH.md).
+      const nextWave = this.waveIndex + 1;
+      out.push(`${nextWave} ${nextWave === 1 ? 'boss' : 'bosses'} at wave ${nextWave}`);
+      let since = this.wavesSinceDraft;
+      let w = this.phase === 'wave' ? this.waveIndex - 1 : this.waveIndex;
+      do { w++; since++; } while (since < RUSH.draftEvery);
+      out.push(`Gene Card at wave ${w}`);
+      return out;
+    }
     if (this.mode === 'endless') {
       const nextBoss = (Math.floor(this.waveIndex / DIRECTOR.bossEvery) + 1) * DIRECTOR.bossEvery;
       out.push(`Boss at depth ${nextBoss}`);
@@ -4927,15 +5005,37 @@ export class Game {
   }
 
   /** Assemble + register + spawn a procedural boss at a Threat Level (director/endless). */
-  spawnProceduralBoss(tl: number): void {
-    const def = assembleBoss(() => this.rng.next(), tl, this.activeBiome.mods.bossChassisBias);
+  spawnProceduralBoss(tl: number, strengthScale = 1): void {
+    let def = assembleBoss(() => this.rng.next(), tl, this.activeBiome.mods.bossChassisBias);
+    // Boss Rush entry columns (ramped waves 1–3): re-roll a burrower vanguard — tunneling under
+    // the WHOLE defense line is uncounterable on an opening board (probe-verified wipe). From
+    // wave 4 every module is legal. Deterministic (same rng stream), bounded.
+    if (strengthScale < 1) {
+      let guard = 0;
+      while (def.modules.some((m) => m.kind === 'burrower') && guard++ < 6) {
+        def = assembleBoss(() => this.rng.next(), tl, this.activeBiome.mods.bossChassisBias);
+      }
+    }
+    // Same chassis + same ⌊TL⌋ assemble under the same id — uniquify so concurrent bosses
+    // (Boss Rush fields many at once) never swap each other's def resolution mid-fight.
+    if (this.procBosses.has(def.id)) def.id = `${def.id}_${this.nextId}`;
+    if (strengthScale !== 1) {
+      // Boss Rush strength curve: HP + contact damage ease in early, overload deep — but damage
+      // caps sooner (RUSH.damageCap) so deep walls are out-tanked, not one-shot roulette.
+      def.hpMult *= strengthScale;
+      def.damage = Math.round(def.damage * Math.min(RUSH.damageCap, strengthScale));
+    }
+    // Boss Rush: FLAT bounty — the assembled TL-scaled bounty made the column fund the very
+    // board that kills it (every difficulty lever self-cancelling, probe-verified). Flat pay
+    // decouples income (∝N) from threat (∝N×TL). Endless/debug keep the assembled value.
+    if (this.mode === 'bossRush') def.bounty = RUSH.bossBounty;
     this.procBosses.set(def.id, def);
     this.spawnBoss(def);
   }
 
   /** Composition of the wave that Start Wave will launch next (null if none left). */
   getNextWavePreview(): WavePreviewEntry[] | null {
-    if (this.mode === 'endless' || this.waveIndex >= this.totalWaves) return null;
+    if (this.mode === 'endless' || this.mode === 'bossRush' || this.waveIndex >= this.totalWaves) return null;
     return wavePreview(this.waves[this.waveIndex]);
   }
 
@@ -4974,6 +5074,7 @@ export class Game {
       maxStrain: this.towers.reduce((m, t) => Math.max(m, t.strain), this.statMaxStrain),
       strains: this.statStrains,
       strainByKind: { ...this.statStrainByKind },
+      bossKills: this.runBossKills,
     };
   }
 }

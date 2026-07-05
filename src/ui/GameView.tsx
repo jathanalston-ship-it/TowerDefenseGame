@@ -430,7 +430,7 @@ export function GameView({
           // throttle back to 1× — ONCE each per run; the control stays free to re-raise.
           if (game.timeScale > 1) {
             const fired = autoSlowFired.current;
-            if (!fired.finale && game.mode !== 'endless' && game.waveIndex >= game.totalWaves && game.phase === 'wave') {
+            if (!fired.finale && game.mode !== 'endless' && game.mode !== 'bossRush' && game.waveIndex >= game.totalWaves && game.phase === 'wave') {
               fired.finale = true;
               setSpeed(1);
               setSpeedNote('Final wave — speed returned to 1×. Raise it again if you dare.');
@@ -440,6 +440,13 @@ export function GameView({
                 fired.record = true;
                 setSpeed(1);
                 setSpeedNote(`Approaching your record (wave ${best}) — speed returned to 1×.`);
+              }
+            } else if (!fired.record && game.mode === 'bossRush') {
+              const best = meta.get().rushBestWave;
+              if (best >= 4 && game.waveIndex >= Math.ceil(best * 0.95)) {
+                fired.record = true;
+                setSpeed(1);
+                setSpeedNote(`Approaching your Boss Rush record (wave ${best}) — speed returned to 1×.`);
               }
             }
           }
@@ -452,7 +459,7 @@ export function GameView({
         if (over && !outroRef.current && !endedRef.current) {
           outroRef.current = { won: game.phase === 'won', startedAt: now };
           setHud(game.getSnapshot());
-          setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' });
+          setOutro({ won: game.phase === 'won', endless: game.mode === 'endless' || game.mode === 'bossRush' });
         }
         // After the linger (or a tap), hand off to the End-of-Run Summary.
         if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= OUTRO_HOLD_MS)) {
@@ -616,7 +623,7 @@ export function GameView({
         <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} />
         {waveBanner && !bossIntro && (
           <div className="wave-banner" key={waveBanner.at} aria-hidden>
-            <span className="wave-banner-t">{waveBanner.endless ? `DEPTH ${waveBanner.n}` : `WAVE ${waveBanner.n}`}</span>
+            <span className="wave-banner-t">{waveBanner.endless ? `DEPTH ${waveBanner.n}` : hud.bossRush ? `WAVE ${waveBanner.n} — ${waveBanner.n} ${waveBanner.n === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${waveBanner.n}`}</span>
           </div>
         )}
         {bossIntro && (
@@ -664,7 +671,7 @@ export function GameView({
               <div className="pause-eyebrow">Simulation held</div>
               <div className="pause-title">PAUSED</div>
               <div className="pause-vitals">
-                <span><i>Wave</i><b>{Math.max(1, hud.wave)}{hud.endless ? '' : `/${hud.totalWaves}`}</b></span>
+                <span><i>Wave</i><b>{Math.max(1, hud.wave)}{hud.endless || hud.bossRush ? '' : `/${hud.totalWaves}`}</b></span>
                 <span><i>Kills</i><b>{hud.kills}</b></span>
                 <span><i>Biomass</i><b>{hud.biomass}</b></span>
                 <span><i>Integrity</i><b>{hud.integrity}/{hud.maxIntegrity}</b></span>

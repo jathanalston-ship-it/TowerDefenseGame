@@ -198,10 +198,11 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
         <div className="wm-eyebrow">
           {PHASE_TITLE[hud.phase]}
           {hud.endless && <span className="wm-endless">∞</span>}
+          {hud.bossRush && <span className="wm-endless">☠</span>}
         </div>
         <div className="wm-main" data-tut="wave">
-          {hud.endless ? (
-            <span className="wm-num" style={{ color: 'var(--viral)' }}>{Math.max(1, hud.phase === 'prep' ? hud.wave + 1 : hud.wave)}</span>
+          {hud.endless || hud.bossRush ? (
+            <span className="wm-num" style={{ color: hud.bossRush ? 'var(--danger)' : 'var(--viral)' }}>{Math.max(1, hud.phase === 'prep' ? hud.wave + 1 : hud.wave)}</span>
           ) : (
             <>
               <span className="wm-num">{displayWave}</span>
@@ -209,7 +210,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
             </>
           )}
         </div>
-        {!hud.endless && (
+        {!hud.endless && !hud.bossRush && (
           <div className="wave-pips" aria-hidden>
             {Array.from({ length: hud.totalWaves }, (_, i) => {
               const n = i + 1;

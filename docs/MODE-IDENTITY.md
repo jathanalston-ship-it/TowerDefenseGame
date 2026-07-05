@@ -140,3 +140,22 @@ The Infinite screen is the EXPERIMENT TERMINAL: doctrine cards with full readout
 composite HAZARD rating (difficulty × protocol), and the forecast panel (HP ramp, boss
 cadence every DIRECTOR.bossEvery, biome rotation, speed cap, loot rate). Weekly challenges /
 season modifiers / mutators / leaderboards are parameterizations of this same terminal.
+
+---
+
+## §boss-rush (2026-07) — the THIRD pillar
+
+The two-mode loop above grew a third lane: **Boss Rush** (docs/BOSS-RUSH.md). Wave N deploys N
+procedurally assembled bosses (staggered column + thinned escort); a Gene Card drafts every 2nd
+wave; the run never wins. Its reward identity keeps the triangle honest:
+
+- **Per-boss bounty, not per-wave survival:** `RUSH.corePerBoss` Genome Cores + `RUSH.lootPerBoss`
+  loot points per boss DEFEATED (~N² with depth). The wave/kill lanes run under token mults
+  (`MODE_REWARDS.*.bossRush`: core ×0.25, loot ×0.5, mastery ×1.2) so it can't out-farm
+  Campaign's currency lane or Infinite's meter lane.
+- **Own records:** `rushBestWave` / `rushBestBoss` — never folded into `bestWave`, so Infinite's
+  qualify gate + prediction floor stay clean. Boss Rush runs its own qualify gate (≥50% of
+  `rushBestWave`, reason `rush-short`) and its own prediction channel.
+- **The triangle:** Campaign pays Cores → power → push Infinite for Shards/Mastery → your built
+  board gets stress-tested in Boss Rush for burst payouts (and, next: the primary Ichor faucet) →
+  its wall sends you back to Campaign. Each mode feeds a hunger the other two can't.

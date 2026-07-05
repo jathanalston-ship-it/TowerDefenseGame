@@ -29,6 +29,7 @@ export interface Prediction {
 // Tunables (placeholder balance; the calibration bias corrects the base over time).
 const POW_TO_STAGE = 6; // stages per doubling of power
 const POW_TO_WAVE = 9; // infinite waves per doubling of power
+const POW_TO_RUSH = 3; // boss-rush waves per doubling of power (wave N = N bosses ⇒ compressed depth)
 const LEARN_RATE = 0.35; // how fast the bias tracks new results
 
 /** log2(1 + x), guarded ≥ 0. The universal "how many doublings of power" axis. */
@@ -76,6 +77,14 @@ export function predictCampaign(powerMult: number, clearedStage: number, difficu
 export function predictInfinite(powerMult: number, bestWave: number, difficultyMult: number, calib: PredictCalib): Prediction {
   const reach = (POW_TO_WAVE * doublings(powerMult)) / Math.max(1, difficultyMult);
   const raw = Math.max(bestWave * 0.9, 5 + reach);
+  return assemble(raw, 1, calib, powerMult);
+}
+
+/** Estimated Boss Rush WAVE (docs/BOSS-RUSH.md). Wave N fields N bosses, so depth is far
+ *  shallower than Infinite — a compressed reach curve with the same self-calibration. */
+export function predictBossRush(powerMult: number, rushBestWave: number, difficultyMult: number, calib: PredictCalib): Prediction {
+  const reach = (POW_TO_RUSH * doublings(powerMult)) / Math.max(1, difficultyMult);
+  const raw = Math.max(rushBestWave * 0.9, 3 + reach);
   return assemble(raw, 1, calib, powerMult);
 }
 
