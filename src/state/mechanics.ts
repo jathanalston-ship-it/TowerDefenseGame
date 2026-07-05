@@ -5,7 +5,7 @@
 // SaveData — never touches the sim.
 
 import type { SaveData } from '../save/saveStore';
-import { highestCampaignStage } from '../save/derive'; // cycle-free (never import meta here)
+import { highestCampaignStage, isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive'; // cycle-free (never import meta here)
 
 export type MechanicCategory = 'Basics' | 'Towers' | 'Heroes' | 'Progression' | 'Modes' | 'World';
 
@@ -74,14 +74,14 @@ export const MECHANICS: MechanicDef[] = [
     where: 'Boss Rush in the Play group (or the Boss Rush tile on the Command Center). Its terminal shows your record wave, best single run, lifetime bosses felled, and the estimated wave for your Power Score.',
     next: 'Reach at least half your record wave or the run banks no containers — push honestly, then bank the column.',
     mistakes: 'Waves 1–2 feel easy by design; the column compounds fast. Do not sell down your opener — the wave after next is already two bosses bigger.',
-    unlock: (s) => (s.stats?.rushRuns ?? 0) > 0 || s.totalRuns >= 1 },
+    unlock: (s) => isBossRushUnlocked(s) },
   { id: 'bio-roulette', title: 'Bio-Roulette & Bio-Spores', category: 'Basics', nav: 'bossrush', links: ['boss-rush'],
     summary: 'The gauntlet\u2019s second reward screen: launch earned Bio-Spores into a living wheel of reward pods.',
     what: 'After a Boss Rush run settles, the BIO-ROULETTE opens — a living biomechanical wheel of twelve reward pods around a central orifice. Every BIO-SPORE you earned (one per NEW lifetime-record boss, plus one per 5 bosses felled that run) launches in turn, spins the organ with real momentum, and settles into a pod: Tower Samples, Hero Genome, Genome Cores, Scrap, Gene Essence, a taste of Ichor — with Bio-Gear VERY rare and a whole Bio-Container the near-mythic jackpot. The board is fresh every run.',
     why: 'Every spore pays SOMETHING — the wheel only decides how much. It turns a record push into a second celebration and gives volume runs a steady trickle.',
     where: 'Automatically after the Boss Rush results summary (only when you earned spores). Reveal All resolves the rest instantly; Absorb All collects everything in one click.',
     next: 'New records are the fat spore payday — every boss past your best is +1 spore on top of the volume lane.',
-    unlock: (s) => (s.stats?.rouletteSpores ?? 0) > 0 || (s.stats?.rushRuns ?? 0) > 0 },
+    unlock: (s) => isBossRushUnlocked(s) },
   { id: 'gene-essence', title: 'Gene Essence', category: 'Progression', nav: 'genes', links: ['gene-cards', 'gene-archive'],
     summary: 'Permanent currency that upgrades Gene Cards.',
     what: 'Gene Essence is the permanent currency for upgrading Gene Cards in the Gene Archive. Its main source is AUTO-CONVERSION: once a tower or hero hits max Star (Evolution), any further duplicate Shards from Bio-Containers convert straight into Gene Essence — more for rarer duplicates. A small bonus also drops rarely from Bio-Containers.',
@@ -269,8 +269,9 @@ export const MECHANICS: MechanicDef[] = [
     summary: 'Endless, escalating waves — chase a best.', media: 'GIF: a deep Infinite run',
     what: 'Infinite is an endless mode where an AI Director escalates the threat forever.',
     why: 'It is the ultimate test of a build — and pays the Loot Meter richly the deeper you hold.',
-    where: 'The Infinite screen.',
-    next: 'Push your best wave; Ascendant Infinity boosts its rewards.' },
+    where: 'The Infinite screen — sealed until Campaign Stage 3 falls (docs/MODE-IDENTITY.md §gates).',
+    next: 'Push your best wave; Ascendant Infinity boosts its rewards.',
+    unlock: (s) => isInfiniteUnlocked(s) },
   // ── World ──
   { id: 'biomes', title: 'Biomes', category: 'World', links: ['infinite'],
     unlock: (s) => s.bestWave >= 10,

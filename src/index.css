@@ -7539,3 +7539,17 @@ kbd {
 .roulette-hint { margin: var(--s2) 0 0; font-size: 11px; line-height: 1.5; color: var(--dim); }
 @media (max-width: 860px) { .roulette-screen { grid-template-columns: 1fr; } .roulette-side { align-self: stretch; } }
 @media (prefers-reduced-motion: reduce) { .roulette-collect.is-ready { animation: none; } }
+
+/* Campaign-sealed modes (docs/MODE-IDENTITY.md §gates) — visible but sealed until the stage falls. */
+.hub-navitem.is-locked { opacity: 0.6; }
+.hub-navitem.is-locked .hub-mono { filter: saturate(0.4); }
+.hub-lock { margin-left: auto; font-size: 10px; opacity: 0.8; }
+.mode-locked-panel { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 22px; text-align: center; border-color: color-mix(in srgb, var(--danger) 30%, var(--line)); }
+.mode-locked-glyph { font-size: 58px; line-height: 1; opacity: 0.5; filter: saturate(0.5); }
+.mode-locked-k { font-size: 11px; font-weight: 800; letter-spacing: 0.24em; color: var(--danger); }
+.mode-locked-body { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.mode-locked-body b { color: var(--text); }
+.mode-locked-bar { width: min(360px, 80%); height: 6px; }
+.mode-locked-pct { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; letter-spacing: 0.08em; }
+.mc-sec.is-locked { opacity: 0.65; border-style: dashed; }
+.mc-sec.is-locked .mc-sec-i { filter: saturate(0.35); }

@@ -104,7 +104,7 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Destruction safeguards + Undo Salvage** (tiered confirms, higher-Power WARNING, NEW badge) — EQUIPMENT.md §safeguards
 
 ### Modes & progression
-- ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director), Quick Skirmish — MODE-IDENTITY.md, CAMPAIGN.md
+- ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director; **campaign-gated: unlocks at Stage 3**), Quick Skirmish — MODE-IDENTITY.md §gates, CAMPAIGN.md
 - ✅ **HIVE SIEGE combat model** (2026-07): enemies attack the Hive Core as a live combat target
   (converge → crust rings → windup/cycle attack loops under all statuses; suicide fuses, artillery
   on the same gating, chassis boss cadence) + full contact-damage rebalance + under-attack
@@ -113,7 +113,7 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Early-campaign difficulty contract** (2026-07): flat leak damage + EHP threat costs + per-wave
   unit/dmg/elite ramps + grace window (budget/pace/start-aid/mini-boss gate) + biome-ratchet
   `recommendedPower`; probe-verified ×0.75/×1.0/×1.25/×1.7 across stages 1–24 — DIFFICULTY.md §contract, CAMPAIGN.md §grace
-- ✅ **BOSS RUSH** (2026-07): the third pillar — wave N = N procedural bosses (staggered siege
+- ✅ **BOSS RUSH** (2026-07; **campaign-gated: unlocks at Stage 10**): the third pillar — wave N = N procedural bosses (staggered siege
   column, thinned director escort, TL curve `RUSH.bossTlBase + bossTlPerWave·(N−1)`), Gene Card
   every 2nd wave, never-won; per-boss Core/loot bounty in `finishRun` under token mode mults;
   own records (`rushBestWave`/`rushBestBoss`), rush-short qualify gate, `prediction.bossRush`

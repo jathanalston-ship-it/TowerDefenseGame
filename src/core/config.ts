@@ -976,6 +976,14 @@ export const MODE_REWARDS = {
   mastery: { campaign: 1.0, endless: 1.35, stage: 1.0, bossRush: 1.2 },
 };
 
+// Mode unlock gates (docs/MODE-IDENTITY.md §gates): the secondary pillars open as Campaign
+// proves the account. Enforced at the META/UI layer only (save/derive.ts helpers) — the sim
+// stays ungated so tests, the tutorial, and debug tooling can construct any mode directly.
+export const MODE_UNLOCKS = {
+  infinite: 3, // Infinite opens after clearing Campaign Stage 3
+  bossRush: 10, // Boss Rush opens after clearing Campaign Stage 10
+};
+
 // Infinite-mode reward GATE (docs/MODE-IDENTITY.md): an Infinite run must reach at least this
 // fraction of the player's PRIOR personal-best depth (save.bestWave, pre-run) to bank ANY reward
 // container — its run cache AND its loot ("exploit") boxes. Below the threshold the run qualifies

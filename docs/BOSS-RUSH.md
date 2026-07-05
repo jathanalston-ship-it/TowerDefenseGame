@@ -11,7 +11,8 @@
 (`RUSH.bossStagger` seconds apart — readable arrivals, never one simultaneous wall), screened by a
 THINNED AI-Director escort (every `RUSH.escortKeepEvery`-th scheduled spawn survives the cut; the
 bosses ARE the wave). A Gene Card drafts every **2nd** cleared wave (`RUSH.draftEvery`). The run
-never "wins" — like Infinite it only ends when the Nucleus falls.
+never "wins" — like Infinite it only ends when the Nucleus falls. The mode is **sealed until
+Campaign Stage 10 falls** (docs/MODE-IDENTITY.md §gates).
 
 Mode identity next to the other pillars (docs/MODE-IDENTITY.md):
 

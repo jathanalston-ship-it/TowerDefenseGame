@@ -16,6 +16,8 @@ import '../state/notificationSources'; // registers the default menu badges (sid
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
+import { highestCampaignStage, isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { MODE_UNLOCKS } from '../core/config';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
@@ -75,6 +77,36 @@ const NAV_GROUPS: NavGroup[] = [
 const GROUP_ACCENT: Record<string, string> = {
   Play: 'var(--vital)', Progression: 'var(--kinetic)', Collection: 'var(--gold)', Account: 'var(--muted)',
 };
+
+/** A campaign-sealed mode's unlock briefing (docs/MODE-IDENTITY.md §gates) — the mode stays
+ * VISIBLE for anticipation; the briefing names the gate, shows live progress, and routes to
+ * the Campaign instead of dead-ending. */
+function ModeLocked({ title, glyph, blurb, stage, current, go }: {
+  title: string;
+  glyph: string;
+  blurb: string;
+  stage: number; // the campaign stage that opens this mode
+  current: number; // the account's highest cleared stage
+  go: (k: NavKey) => void;
+}): JSX.Element {
+  const pct = Math.min(100, Math.round((current / stage) * 100));
+  return (
+    <div className="menu mode-locked">
+      <h1 className="title">{title}</h1>
+      <p className="subtitle">{blurb}</p>
+      <div className="panel mode-locked-panel">
+        <div className="mode-locked-glyph" aria-hidden>{glyph}</div>
+        <div className="mode-locked-k">SEALED BY THE CAMPAIGN</div>
+        <p className="mode-locked-body">
+          Clear <b>Campaign Stage {stage}</b> to open this front — you are at <b>Stage {current}</b>.
+        </p>
+        <div className="rush-mile-bar mode-locked-bar" aria-hidden><i style={{ width: `${pct}%` }} /></div>
+        <div className="mode-locked-pct">{current}/{stage} stages</div>
+        <button className="primary" onClick={() => go('campaign')}>⬡ Continue the Campaign</button>
+      </div>
+    </div>
+  );
+}
 
 /** Settings screen — save data management, the destructive reset, and audio preferences. */
 function SettingsScreen({ onReplayTutorial, onReplayTour }: { onReplayTutorial: () => void; onReplayTour: () => void }): JSX.Element {
@@ -153,6 +185,12 @@ export function Hub({
   const cells = meta.prestigeView().cells;
   const badges = notifications.badges(save);
   const progress = navProgress(save); // 0..1 completion rings per menu
+  // Campaign gates (docs/MODE-IDENTITY.md §gates): locked modes stay VISIBLE (anticipation) —
+  // the nav shows a seal and the screen becomes the unlock briefing instead of the terminal.
+  const modeLocked: Partial<Record<NavKey, boolean>> = {
+    infinite: !isInfiniteUnlocked(save),
+    bossrush: !isBossRushUnlocked(save),
+  };
 
   // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset).
   useEffect(() => { notifications.sync(save); }, [save]);
@@ -181,11 +219,12 @@ export function Hub({
               {group.items.map((n) => {
                 const badge = badges[n.key] ?? 0;
                 const ring = progress[n.key];
+                const locked = modeLocked[n.key] === true;
                 return (
                   <button
                     key={n.key}
                     data-nav={n.key}
-                    className={`hub-navitem ${nav === n.key ? 'on' : ''}`}
+                    className={`hub-navitem ${nav === n.key ? 'on' : ''}${locked ? ' is-locked' : ''}`}
                     onClick={() => go(n.key)}
                     onPointerEnter={() => audio.cue('hover')}
                     aria-current={nav === n.key ? 'page' : undefined}
@@ -199,6 +238,7 @@ export function Hub({
                       {n.mono}
                     </span>
                     <span className="hub-navlabel">{n.label}</span>
+                    {locked && <span className="hub-lock" aria-hidden>🔒</span>}
                     {ring != null && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
                     {badge > 0 && (
                       <span className="nav-badge" aria-hidden>
@@ -234,10 +274,16 @@ export function Hub({
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
           {nav === 'infinite' && (
-            <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
+            modeLocked.infinite
+              ? <ModeLocked title="INFINITE" glyph="∞" stage={MODE_UNLOCKS.infinite} current={highestCampaignStage(save)}
+                  blurb="Endless, escalating waves under the AI Director — the account's endurance chase." go={go} />
+              : <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
           )}
           {nav === 'bossrush' && (
-            <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />
+            modeLocked.bossrush
+              ? <ModeLocked title="BOSS RUSH" glyph="☠" stage={MODE_UNLOCKS.bossRush} current={highestCampaignStage(save)}
+                  blurb="The gauntlet: wave N deploys N assembled bosses, and every kill pays. Prove the hive first." go={go} />
+              : <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && <HeroLab />}

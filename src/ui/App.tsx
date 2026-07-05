@@ -25,6 +25,7 @@ import { HeroSlotUnlock } from './HeroSlotUnlock';
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
 import { BioRoulette } from './BioRoulette';
+import { isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
 import { TutorialRunner } from './TutorialRunner';
@@ -137,11 +138,13 @@ export function App(): JSX.Element {
   const startRun = useCallback(() => begin('stage'), [begin]);
   // Infinite uses its OWN persisted difficulty (chosen inside Infinite, not the Main Menu).
   const startEndless = useCallback(() => {
+    if (!isInfiniteUnlocked(meta.get())) return; // campaign-gated (docs/MODE-IDENTITY.md §gates); the UI never offers this locked
     difficultyRef.current = difficultyPref('infinite');
     begin('endless');
   }, [begin]);
   // Boss Rush uses its OWN persisted difficulty (chosen inside the gauntlet terminal).
   const startBossRush = useCallback(() => {
+    if (!isBossRushUnlocked(meta.get())) return; // campaign-gated (docs/MODE-IDENTITY.md §gates)
     // The stamina entry is paid HERE so every launch path (terminal CTA, Results replay) pays
     // exactly once (docs/BOSS-RUSH.md §stamina). The terminal disables its CTA when short;
     // a short replay falls back to the menu instead of a free run.

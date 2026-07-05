@@ -9,6 +9,8 @@
 
 import { useEffect, useState, type MutableRefObject, type ReactNode } from 'react';
 import { meta } from '../state/meta';
+import { isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { MODE_UNLOCKS } from '../core/config';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { SaveData } from '../save/saveStore';
 import { audio } from '../audio/sound';
@@ -329,7 +331,10 @@ function Army({ save, go }: WidgetCtx): ReactNode {
 }
 
 /** Operations — the secondary run modes beneath the campaign. */
-function Modes({ start, onStart, onStartEndless, go }: WidgetCtx): ReactNode {
+function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNode {
+  const infUnlocked = isInfiniteUnlocked(save);
+  const rushUnlocked = isBossRushUnlocked(save);
+  const stage = highestCampaignStage(save);
   const infiniteRewards: PreviewChip[] = [
     { label: 'Containers', color: 'var(--r-epic)' },
     { label: 'Mastery', color: 'var(--r-rare)' },
@@ -342,19 +347,33 @@ function Modes({ start, onStart, onStartEndless, go }: WidgetCtx): ReactNode {
   ];
   return (
     <section className="mc-secondary" aria-label="Other modes">
-      <button className="mc-sec mc-sec-endless" onClick={() => start(onStartEndless)}>
+      <button
+        className={`mc-sec mc-sec-endless${infUnlocked ? '' : ' is-locked'}`}
+        onClick={() => (infUnlocked ? start(onStartEndless) : go('campaign'))}
+      >
         <span className="mc-sec-i" aria-hidden>∞</span>
         <span className="mc-sec-body">
           <span className="mc-sec-t">Infinite Mode</span>
-          <span className="mc-sec-d">Quick endless run · AI Director, infinite depth</span>
+          <span className="mc-sec-d">
+            {infUnlocked
+              ? 'Quick endless run · AI Director, infinite depth'
+              : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.infinite} — you're at ${stage}`}
+          </span>
           <RewardPreview chips={infiniteRewards} className="mc-sec-rwp" />
         </span>
       </button>
-      <button className="mc-sec mc-sec-rush" onClick={() => go('bossrush')}>
+      <button
+        className={`mc-sec mc-sec-rush${rushUnlocked ? '' : ' is-locked'}`}
+        onClick={() => go(rushUnlocked ? 'bossrush' : 'campaign')}
+      >
         <span className="mc-sec-i" aria-hidden>☠</span>
         <span className="mc-sec-body">
           <span className="mc-sec-t">Boss Rush</span>
-          <span className="mc-sec-d">The gauntlet · wave N = N bosses, paid per kill</span>
+          <span className="mc-sec-d">
+            {rushUnlocked
+              ? 'The gauntlet · wave N = N bosses, paid per kill'
+              : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.bossRush} — you're at ${stage}`}
+          </span>
           <RewardPreview chips={rushRewards} className="mc-sec-rwp" />
         </span>
       </button>

@@ -9,10 +9,10 @@
 import { meta, nextStarCost } from '../state/meta';
 import { audio } from '../audio/sound';
 import { notifications } from '../state/notifications';
-import { TOWER_ORDER, CAMPAIGN_REWARDS } from '../core/config';
+import { TOWER_ORDER, CAMPAIGN_REWARDS, MODE_UNLOCKS } from '../core/config';
 import { costOf, rarityRank, rarityRegistry } from '../core/loot';
 import type { NavKey } from './Hub';
-import { highestCampaignStage } from '../save/derive';
+import { highestCampaignStage, isInfiniteUnlocked } from '../save/derive';
 
 interface DashCard {
   key: string;
@@ -46,7 +46,9 @@ export function ProgressDashboard({
   const campProgress = (campCleared - (nextMilestone - ms)) / ms;
   const milestoneNext = (campCleared + 1) % ms === 0; // clearing the next stage unlocks a tier
 
-  // Infinite — best depth + the next round-number personal goal.
+  // Infinite — best depth + the next round-number personal goal. Sealed until the campaign
+  // gate falls (docs/MODE-IDENTITY.md §gates) — the card then routes to the Campaign instead.
+  const infUnlocked = isInfiniteUnlocked(save);
   const best = save.bestWave;
   const nextGoal = (Math.floor(best / 10) + 1) * 10;
 
@@ -95,11 +97,17 @@ export function ProgressDashboard({
       big: `Stage ${campCleared}`, sub: `Next unlock · Stage ${nextMilestone}`,
       progress: campProgress, hot: milestoneNext, cta: 'Unlock Next', onClick: () => nav('campaign'),
     },
-    {
-      key: 'infinite', title: 'Infinite', accent: 'var(--r-rare)',
-      big: `Wave ${best}`, sub: `Next goal · Wave ${nextGoal}`,
-      progress: (best % 10) / 10, onClick: () => { audio.cue('ui'); onStartEndless(); },
-    },
+    infUnlocked
+      ? {
+          key: 'infinite', title: 'Infinite', accent: 'var(--r-rare)',
+          big: `Wave ${best}`, sub: `Next goal · Wave ${nextGoal}`,
+          progress: (best % 10) / 10, onClick: () => { audio.cue('ui'); onStartEndless(); },
+        }
+      : {
+          key: 'infinite', title: 'Infinite', accent: 'var(--r-rare)',
+          big: '🔒 Sealed', sub: `Unlocks at Campaign Stage ${MODE_UNLOCKS.infinite}`,
+          progress: Math.min(1, campCleared / MODE_UNLOCKS.infinite), onClick: () => nav('campaign'),
+        },
     {
       key: 'vault', title: 'Genetic Vault', accent: 'var(--gold)',
       big: pending > 0 ? `${pending} Ready` : `${Math.round(fillPct * 100)}%`,

@@ -156,6 +156,13 @@ wave; the run never wins. Its reward identity keeps the triangle honest:
 - **Own records:** `rushBestWave` / `rushBestBoss` — never folded into `bestWave`, so Infinite's
   qualify gate + prediction floor stay clean. Boss Rush runs its own qualify gate (≥50% of
   `rushBestWave`, reason `rush-short`) and its own prediction channel.
+- **Gates (`MODE_UNLOCKS`, 2026-07):** the pillars open in order — **Infinite unlocks after
+  Campaign Stage 3**, **Boss Rush after Campaign Stage 10** (`save/derive.ts`
+  `isInfiniteUnlocked`/`isBossRushUnlocked`; enforced at the meta/UI layer only, the sim stays
+  ungated for tests/tutorial/debug). Locked modes stay VISIBLE (sealed nav item, unlock briefing
+  screen, sealed Command Center tiles/dashboard card all routing to the Campaign). Pre-gate Boss
+  Rush accounts grandfather in via their rush ledgers; Infinite has no bestWave grandfather —
+  that record also moves on campaign runs, so the stage gate is authoritative.
 - **The triangle:** Campaign pays Cores → power → push Infinite for Shards/Mastery → your built
   board gets stress-tested in Boss Rush for burst payouts (and, next: the primary Ichor faucet) →
   its wall sends you back to Campaign. Each mode feeds a hunger the other two can't.
