@@ -5471,6 +5471,17 @@ kbd {
 
 /* Loadout */
 .hero-loadout { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+/* ── Armory: Current Loadouts — one card per FIELDED hero (equipped vs empty at a glance);
+   clicking focuses that hero for gearing. Scales 1→3 cards with hero-slot progression. ── */
+.armory-loadouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--s2); margin: var(--s2) 0; }
+.al-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 8px 10px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out); }
+.al-card:hover { border-color: color-mix(in srgb, var(--hc, var(--muted)) 55%, var(--line)); }
+.al-card.on { border-color: var(--hc, var(--gold)); box-shadow: 0 0 12px color-mix(in srgb, var(--hc, var(--gold)) 25%, transparent); }
+.al-head { display: flex; align-items: center; gap: var(--s2); }
+.al-slotno { font-size: 10px; letter-spacing: var(--track-wide); text-transform: uppercase; color: var(--muted); }
+.al-name { font-weight: 800; font-size: 13px; color: var(--hc, var(--text)); flex: 1; }
+.al-gearing { font-size: 9px; font-weight: 800; letter-spacing: var(--track-wide); padding: 2px 6px; border-radius: var(--r-xs); border: 1px solid var(--hc, var(--gold)); color: var(--hc, var(--gold)); }
+.al-card .hero-loadout { margin-bottom: 0; }
 .hl-slot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 9px; border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
 .hl-k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .hl-item { font-weight: 700; font-size: 13px; }

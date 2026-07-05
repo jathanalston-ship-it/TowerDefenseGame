@@ -9,7 +9,7 @@ import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
 import {
-  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore, rarityLabelOf,
+  EQUIP_SLOTS, RARITY_ORDER, SETS, SLOT_LABELS, activeSets, affixDef, emptyLoadout, itemDef, itemScore, loadoutScore, rarityColorOf, rarityLabelOf,
 } from '../core/equipment';
 import type { EquipSlot, OwnedItem, Rarity } from '../core/equipment';
 import { ItemArt, rarityColor } from './components/ItemArt';
@@ -150,21 +150,49 @@ export function EquipmentPanel(): JSX.Element {
         </div>
       )}
 
-      {/* Hero focus — pick which fielded hero you're gearing (per-hero loadouts). */}
-      {roster.length > 1 && (
-        <div className="armory-heroes">
-          {roster.map((k, i) => {
-            const hs = loadoutScore(inventory, save.equipment.loadouts[k] ?? emptyLoadout());
-            return (
-              <button key={k} className={`armory-hero${k === focus ? ' on' : ''}`} onClick={() => setFocusHero(k)}>
-                <span className="ah-slot">Slot {i + 1}</span>
-                <span className="ah-name">{HERO_DEFS[k]?.name ?? 'Hero'}</span>
+      {/* Current Loadouts — the heroes tab's at-a-glance section, integrated here: EVERY
+          fielded hero's equipped-vs-empty slots (1–3 cards as hero slots unlock). Clicking a
+          card focuses that hero for gearing — it replaces the old thin focus strip. */}
+      <div className="armory-loadouts">
+        {roster.map((k, i) => {
+          const lo = save.equipment.loadouts[k] ?? emptyLoadout();
+          const hs = loadoutScore(inventory, lo);
+          const hd = HERO_DEFS[k];
+          return (
+            <button
+              key={k}
+              className={`al-card${k === focus ? ' on' : ''}`}
+              style={{ ['--hc' as string]: hd?.color }}
+              onClick={() => setFocusHero(k)}
+              title={k === focus ? `Gearing ${hd?.name ?? 'Hero'}` : `Switch to gearing ${hd?.name ?? 'Hero'}`}
+            >
+              <span className="al-head">
+                <span className="al-slotno">Slot {i + 1}</span>
+                <span className="al-name">{hd?.name ?? 'Hero'}</span>
+                {k === focus && <span className="al-gearing">GEARING</span>}
                 <span className="ah-score" title="Equipment Score">⚙ {hs}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+              </span>
+              <span className="hero-loadout">
+                {EQUIP_SLOTS.map((s) => {
+                  const uid = lo[s];
+                  const it = uid ? inventory.find((x) => x.uid === uid) : undefined;
+                  const def = it ? itemDef(it.defId) : undefined;
+                  return (
+                    <span className="hl-slot" key={s}>
+                      <span className="hl-k">{SLOT_LABELS[s]}</span>
+                      {def ? (
+                        <span className="hl-item" style={{ color: it ? rarityColorOf(it.rarity) : undefined }}>{def.name}</span>
+                      ) : (
+                        <span className="hl-empty">— empty —</span>
+                      )}
+                    </span>
+                  );
+                })}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Active set bonuses */}
       {sets.length > 0 && (
