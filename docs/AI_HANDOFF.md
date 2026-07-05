@@ -4,110 +4,107 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-04 19:26 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** d9c0daa (this fill lands as the P4 commit)
+- **Generated:** 2026-07-05 18:55 UTC · **Diff scope:** the four-part Boss Rush saga (02fea1e → eae0eda)
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** eae0eda
 
 ## Summary of work completed
 
-This session closed the STRAIN mega-task and shipped the three-tower expansion end to end.
-STRAIN: the PROMPT-8 simulation pass retuned the merge economy (deploy 100·1.11ⁿ; strain cost
-decoupled to 100·1.05ⁿ×[3,4,5,6] after probes showed the design-brief formula bought ZERO
-campaign merges) and produced the full report (STRAIN.md §9); the integration long-tail added
-lifetime strain ledgers (bestStrain/strainsEvolved/towerBestStrain), four achievements, and a
-tutorial graduation mention. EXPANSION: Carrion Maw (crust cleave brawler), Amber Chrysalis
-(elite-encasing warden, Freeze) and Wailing Effigy (zero-damage dread totem, Fear) shipped
-with every progression layer — branches ×2, star paths, adaptation themes, organ ladders,
-Strain II–V (12 new verbs), cards + gene upgrade ladders, affixes, sounds, docs — plus two
-engine-level status semantics: a REFRACTORY window (perma-CC impossible) and `flees` (feared
-siegers scatter, then re-converge). The one thing to know: goldens were re-pinned TWICE
-deliberately this session (conveyor recycler drip, then the larger card pool shifting autoplay
-drafts) — every seed still wins wave 12 at 196 kills; any further drift is unintended.
+Shipped the full four-prompt Boss Rush saga: (P1, 02fea1e) boss siege behaviors + multi-phase
+AI on the registry; (P2, f7dd7fe) **Boss Rush mode** — the third pillar, wave N = N procedural
+bosses in a staggered column with a thinned escort, gene draft every 2nd wave, per-boss
+Core/loot payout, own records/prediction/qualify gate, gauntlet terminal + full HUD/Results
+integration, probe-tuned (strength curve, flat boss bounty, opening biomass — see BOSS-RUSH.md
+§balance); (P3, 1c7830d) **stamina** (100 cap, 20/entry, +1/3min lazy, first-of-day FREE,
+market packs overflow to 120) + the **primary Ichor lane** (2 per NEW 5-boss single-run record
+band, weighted-common Bio-Container per 10-band); (P4, eae0eda) the **Bio-Roulette** second
+reward ceremony (spores = record delta + volume/5, fresh 12-pod weighted board, momentum
+physics over pre-rolled outcomes, one-click collection). The one thing to know: everything is
+mode-gated — the goldens never moved (`wave 12 / kills 196` across all six seeds).
 
 ## Files modified
 
-- Source (3 in this final slice): `src/core/ability.ts`, `src/core/game.ts`, `src/core/status.ts`
-- Tests (1): `src/core/expansion.test.ts` (9 behavioral contracts for the trio + refractory)
-- Docs (4): `docs/BALANCE_REPORT.md`, `docs/STRAIN.md`, `docs/TOWERS.md`, `docs/VALIDATION_REPORT.md`
-- (Earlier commits this session: strains/conveyor economy, stats/achievements, config/types/
-  branches/stars/adaptation/starEvolution/towerEvolution/cards/geneUpgrades/equipment/power/
-  sound + their tests — see `git log d6d7d3d..` for the phase breakdown.)
+- Source (12): `src/core/types.ts`, `src/dev/systemRegistry.ts`, `src/index.css`, `src/save/saveStore.ts`, `src/state/achievements.ts`, `src/state/bioRoulette.ts`, `src/state/mechanics.ts`, `src/state/meta.ts`, `src/state/stats.ts`, `src/ui/App.tsx`, `src/ui/BioRoulette.tsx`, `src/ui/BossRushScreen.tsx`
+- Tests (1): `src/state/bioRoulette.test.ts` (saga total: +4 test files, 29 new tests → 952)
+- Docs (4): `docs/BOSS-RUSH.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/GAME-STATE.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
-- **engine** — `src/core/ability.ts` (execProjectile now records its PRIMARY target so
-  trailing status/crit components act on the struck enemy — this also revives every existing
-  branch tier that paired projectile + status), `src/core/status.ts` (refractorySec,
-  flees, hardStop aggregate, StatusTick.expired channel), `src/core/game.ts` (Freeze/Fear
-  application, flee movement, expansion strain verbs, kit caches).
-- Consumer ring verified by the full suite + goldens: bosses, campaign, heroes, infinite,
-  onboarding, rendering, run-ui all green (877 tests).
+- **achievements** — `src/state/achievements.ts` (8 new: rush ladder ×6 + roulette ×2)
+- **boss-rush** — `src/state/bioRoulette.ts`, `src/ui/BioRoulette.tsx`, `src/ui/BossRushScreen.tsx`
+- **content-infra** — `src/core/types.ts` (RunStats.bossKills, LifetimeStats rush/roulette ledgers, HudState.bossRush)
+- **dev-registry** — `src/dev/systemRegistry.ts` (boss-rush system entry)
+- **hub-shell** — `src/ui/App.tsx` (bossRush mode wiring, roulette screen, single stamina pay point)
+- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts` (records, stamina, bands, roulette grants)
+- **onboarding** — `src/state/mechanics.ts` (boss-rush + bio-roulette Help entries)
+- **stats** — `src/state/stats.ts` (rushRuns/rushBossKills fold + rouletteSpores pass-through)
+- Consumer ring (verified unchanged): biomes, bosses, collection, currencies, devtools, difficulty, engine, equipment, evolution-hq, gene-cards, heroes, loot, mastery, notifications, power, profile, run-ui, towers
 
 ## Power Score changes
 
-Three new strength fields joined FIELD_WEIGHT + POWER_RELEVANT_FIELDS (`mawCleaveRadiusMult`
-0.4, `chrysalisFreezeDurationMult` 0.35, `effigyDreadDurationMult` 0.35) so the new cards/
-affixes are scored; STRAIN_LEVEL_POWER (0.05/level) unchanged. Pinned by power coverage tests
-(`uncoveredPowerFields` empty) and geneUpgrades' strictly-rising-power contract.
+None by design (`boss-rush` registers `powerScore: null`, like Infinite). Rewards feed Power
+only through the currencies they grant (shards/gear), which the existing pins already cover.
 
 ## UI changes
 
-No layout changes this slice. The trio renders through existing data seams: TOWER_SHAPE
-(hex/diamond/triangle), STAR_EVOLUTION/BRANCH_EVOLUTION organ ladders, the shared strain
-organ ladder, Toolbar/conveyor/Inspector/Codex all registry-driven (verified by suite; the
-Tower Lab mastery grid gained a "deepest strain" cell earlier this session, auto-fit grid).
+New: `BossRushScreen` (skull-ladder artwork, contract rules, stamina bar + FREE chip,
+prediction, records, Ichor-bleed panel, milestone bars), `BioRoulette` (canvas organ wheel),
+Command Center Boss Rush tile, Profile "Boss Rush" career section, Results rush rows +
+`rush-short` copy, mode-aware HUD (wave banner "WAVE N — N BOSSES", totals dropped in
+meter/pause/Inspector/BuildControls). Fixed latent ENDLESS bugs: the Start Wave console and
+wave meter clamped at `totalWaves` past depth 12. Headless-smoke covered: terminal render,
+run launch, wave-1 fight, Results, the roulette ceremony end-to-end (screenshots in scratchpad).
 
 ## Documentation changes
 
-Updated where the change demanded it: `docs/TOWERS.md` (expansion roster + probe verdicts),
-`docs/RANGE.md` (band ladder with Maw 170 / Effigy 300 / Chrysalis 430), `docs/STRAIN.md`
-(§9 report, all-eight identity table, status flips), `docs/GAME-STATE.md` (tower/card
-anchors 8/52), `docs/BALANCE_REPORT.md` (three amendments). The registry's broader move-with
-list (ARCHITECTURE/CODEMAP/HEROES/…) — no change needed: no API shapes, hero behavior, or
-pipeline structure moved; doc-sync + anchors pass in validate.
+`docs/BOSS-RUSH.md` (new — the system's canonical doc: contract, sim, rewards, stamina, ichor,
+roulette, probe-tuned balance table), `docs/MODE-IDENTITY.md` §boss-rush (third pillar),
+`docs/MARKET.md` (faucet row + stamina pack note), `docs/GAME-STATE.md` (mode entry),
+`docs/DEPENDENCY_GRAPH.md` (regenerated). The wide registry list beyond these: no change
+needed (nothing in their systems moved).
 
 ## Save changes
 
-None in this slice. Earlier this session (additive, defaulted, migration-tested):
-LifetimeStats gained bestStrain/strainsEvolved/towerBestStrain (saveStore defaults +
-mergeStats spread; old saves zero-fill).
+Additive only, no schema-version bump needed (sanitizer-covered): `rushBestWave`,
+`rushBestBoss` (numeric coerce), `rushStamina {value, updatedAt, freeDay}`
+(`sanitizeRushStamina`, pre-stamina saves start full), `prediction.bossRush` (defaultCalib),
+`LifetimeStats.rushRuns/rushBossKills/rouletteSpores` (mergeStats spread covers old saves).
+Pinned by `bossrushMeta.test.ts`, `rushStamina.test.ts`, `bioRoulette.test.ts`.
 
 ## Known edge cases
 
-- Fear + hard control: a feared AND stunned/frozen enemy stands (hardStop wins over flees) —
-  intended; encoded in `aggregate()`.
-- A fleeing enemy that leaves the converge band re-enters through the normal arrival path and
-  is re-ring-assigned; `hiveAttackers` self-corrects (per-tick recount).
-- Freeze/Fear application uses the remaining-override pattern and MUST check `stacks > 0`
-  first — a stacks-0 entry is the refractory marker; overriding its remaining would extend
-  immunity, not the hold (see game.ts applyStatus cases).
-- Maw reflux reuses `t.strainCd` as its bite counter — fine while maws never birth; if a maw
-  ladder ever gains `births`, give reflux its own counter.
-- The s5 campaign stage carries a structural ~20-integrity artillery chip at ANY power ratio
-  (pre-expansion baseline; re-confirmed across 8 fresh seeds) — don't "fix" it as a regression.
+- Rush boss ids uniquify per spawn (`spawnProceduralBoss`) — two same-chassis/⌊TL⌋ bosses used
+  to swap defs mid-fight via `procBosses` collision (latent Endless bug, fixed at the seam).
+- Waves 1–3 re-roll `burrower` vanguards (uncounterable on an opening board); wave 4+ all legal.
+- `bestWave` is NEVER moved by rush runs (Infinite's qualify gate + prediction floor stay clean).
+- Stamina regen PAUSES above the 100 ceiling (overflow packs don't bank regen time).
+- The Bio-Roulette collects on EVERY exit path (Skip included) — spores can't be lost; Results
+  replays route through the ceremony while it's pending.
+- `Results` replay for rush pays stamina via `App.startBossRush`; a short wallet falls back to
+  the menu instead of a free run.
 
 ## Remaining technical debt
 
-- Branch sfx tags br_amber/br_sap and br_choir/br_malice share one synth each (distinct
-  voices are polish; sound.ts cue switch).
-- Per-tower SIGNATURE strain organs (beyond the shared II–V ladder) remain the STRAIN.md
-  §visuals polish hook.
-- Stun has no refractory (only freeze/fear) — obelisk chargeStun chains are still possible by
-  design; watch item if deep-endless CC stacking ever degenerates.
+- The saveStore stamina clamp bound (120) duplicates `RUSH.staminaOverflowMax` as a literal
+  (sanitizer convention, like the 999 container cap) — fine until the knob moves.
+- The roulette ceremony has no vitest DOM coverage (canvas; jsdom not in the toolchain) — the
+  pure model + meta grants are fully pinned, presentation is smoke-verified only.
+- Boss Rush reward-per-minute at the fresh-account floor is mildly rich vs Infinite
+  (~600 loot-pts/10min vs ~65/min) — P3's stamina gates frequency; revisit after live telemetry.
 
 ## Recommended next tasks
 
-1. Watch item from BALANCE_REPORT: belt variety at 8 kinds (early boards see any given kind
-   ~20% less often) — if openings starve, tune `CONVEYOR.undeployedBias` (src/core/conveyor.ts).
-2. Deep-endless strain saturation (STRAIN.md §9 adjustment 3): if wave-60+ boards trivialize,
-   raise `CONVEYOR.growMin`, not `strainGrowth`.
-3. Sound polish: dedicated synths for br_sap and br_malice (src/audio/sound.ts).
+1. Wire the daily-reward seam to stamina (`meta.grantRushStamina` is grant-ready) if/when a
+   daily system ships.
+2. Boss Rush leaderboard/weekly modifiers — parameterize `startBossRushWave`'s TL curve +
+   escort policy (deliberate seam, BOSS-RUSH.md §seams).
+3. Consider surfacing `rushStamina` in the Command Center tile once a cheap staleness-free
+   read exists (the terminal owns it today).
 
 ## Future expansion hooks
 
-- `TowerDef.abilities` + `targeting` — a NEW tower is one def entry; the trio proved every
-  layer (conveyor/stars/mastery/adaptation/codex/loot/prediction/strain) inherits via
-  TOWER_ORDER with zero per-system code.
-- `StatusEffectDef.refractorySec` / `flees` — any future status gets anti-perma-CC and
-  scatter semantics for free (src/core/status.ts).
-- `StatusTick.expired` — the on-break event channel (resin/shatter/knell ride it; any future
-  "when X ends" verb plugs in at game.ts onCasingBreak/onPanicFade).
+- `RUSH` config block (`src/core/config.ts`) — every gauntlet knob in one place.
+- `spawnProceduralBoss(tl, strengthScale)` (`src/core/game.ts`) — per-spawn boss scaling seam.
+- `rollBoard` (`src/state/bioRoulette.ts`) — push pods to grow the roulette; renderer +
+  outcome roll are count-agnostic.
+- `rushProgress` on `RunOutcome` (`src/state/meta.ts`) — the post-run rush payload any future
+  ceremony can read.

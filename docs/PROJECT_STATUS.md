@@ -3,7 +3,18 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-04 (evening session — **STRAIN + BIOMORPH CONVEYOR complete**:
+> **Last updated:** 2026-07-05 (**BOSS RUSH SAGA complete — all four prompts shipped**:
+> P1 boss siege behaviors + multi-phase AI (16-kind module library, canonical 100/70/40/15
+> phase arc, desperation finales — `docs/BOSS-DESIGN.md` §siege); P2 **Boss Rush mode**, the
+> third pillar (wave N = N procedural bosses, staggered column + thinned escort, draft every
+> 2nd wave, per-boss Core/loot payout, own records + prediction + qualify gate, gauntlet
+> terminal, probe-tuned fresh w7 / mid w8 / late w10); P3 **stamina** (100 cap, 20/entry,
+> +1/3min lazy, first-of-day FREE, market packs) + the **primary Ichor lane** (2 per NEW
+> 5-boss record band, container per 10-band); P4 **Bio-Roulette** second reward ceremony
+> (Bio-Spores, fresh 12-pod weighted board, momentum physics, one-click Absorb) — all in
+> `docs/BOSS-RUSH.md`; goldens byte-identical throughout; suite 952. Previous session below.)
+>
+> **2026-07-04** (evening session — **STRAIN + BIOMORPH CONVEYOR complete**:
 > all 8 prompts shipped incl. the PROMPT-8 simulation report + economy retune (deploy
 > 100·1.11ⁿ, strain 100·1.05ⁿ×[3,4,5,6]) and the integration long-tail (lifetime ledgers,
 > achievements, tutorial nod) — `docs/STRAIN.md` §9; and the **TOWER EXPANSION**: Carrion Maw
