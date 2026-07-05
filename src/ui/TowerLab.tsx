@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from 'react';
 import { meta, towerProgress } from '../state/meta';
+import { audio } from '../audio/sound';
 import { STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { forksOf } from '../core/stars';
 import type { TowerKind } from '../core/types';
@@ -217,7 +218,8 @@ export function TowerLab(): JSX.Element {
                   <span className="tl2-item-badges">
                     {recent && <i className="tl2-b tl2-b-recent" title="Recently upgraded">NEW</i>}
                     {r.affordable && <i className="tl2-b tl2-b-up" title="Next star affordable">▲</i>}
-                    {r.capLocked && <i className="tl2-b tl2-b-cap" title="Campaign-gated">🔒</i>}
+                    {r.locked && <i className="tl2-b tl2-b-lock" title={`Locked — synthesize for ${r.unlockCost} Strain Samples`}>🔒</i>}
+                    {r.capLocked && !r.locked && <i className="tl2-b tl2-b-cap" title="Campaign-gated">🔒</i>}
                     {meta.adaptation('tower', k).pointsAvailable > 0 && <i className="tl2-b tl2-b-pts" title="Adaptation points to spend">{meta.adaptation('tower', k).pointsAvailable}</i>}
                   </span>
                 </button>
@@ -246,14 +248,40 @@ export function TowerLab(): JSX.Element {
                 <button className={`tl2-favbtn${favorites.has(selected) ? ' on' : ''}`} onClick={() => toggleFav(selected)} title="Favorite (leads the rail)">★</button>
                 <button
                   className={`tl2-convbtn${save.favoriteTower === selected ? ' on' : ''}`}
+                  disabled={m.locked}
                   onClick={() => { meta.setFavoriteTower(selected); }}
-                  title={save.favoriteTower === selected
-                    ? 'Your CONVEYOR FAVORITE — always deployable in every run (docs: Biomorph Conveyor)'
-                    : 'Set as your CONVEYOR FAVORITE — the one tower always deployable; all others arrive via the Biomorph Conveyor'}
+                  title={m.locked
+                    ? 'Synthesize this tower first — locked organisms cannot anchor the conveyor'
+                    : save.favoriteTower === selected
+                      ? 'Your CONVEYOR FAVORITE — always deployable in every run (docs: Biomorph Conveyor)'
+                      : 'Set as your CONVEYOR FAVORITE — the one tower always deployable; all others arrive via the Biomorph Conveyor'}
                 >
                   {save.favoriteTower === selected ? '◉ Conveyor Favorite' : '○ Set Conveyor Favorite'}
                 </button>
               </div>
+              {m.locked && (
+                <div className="tl2-lockbar" data-can={m.canUnlock || undefined}>
+                  <span className="tl2-lockbar-txt">
+                    🔒 DORMANT STRAIN — synthesize to add it to the Biomorph Conveyor
+                  </span>
+                  <span className="tl2-lockbar-progress">
+                    {m.shards} / {m.unlockCost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="Strain Samples" />
+                  </span>
+                  <button
+                    className="tl2-unlockbtn"
+                    disabled={!m.canUnlock}
+                    onClick={() => {
+                      if (meta.unlockTower(selected)) {
+                        audio.cue('jackpot');
+                        setChamberFlash((n) => n + 1); // the chamber celebrates the synthesis
+                      }
+                    }}
+                    title={m.canUnlock ? `Spend ${m.unlockCost} Strain Samples to synthesize` : `Bank ${m.unlockCost} of this tower's Strain Samples (containers drop them) to synthesize`}
+                  >
+                    {m.canUnlock ? `Synthesize · ${m.unlockCost}` : `Requires ${m.unlockCost}`}
+                  </button>
+                </div>
+              )}
               <div className="tl2-class">{m.combatClass}{m.mastery.rank ? ` · ${m.mastery.rank}` : ''}</div>
               <div className="tl-pips tl2-pips" aria-label={`${m.stars} of ${m.maxStars} stars`}>
                 {Array.from({ length: m.maxStars }, (_, i) => {
@@ -321,10 +349,10 @@ export function TowerLab(): JSX.Element {
               <button
                 className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
                 disabled={m.maxed || !m.affordable}
-                onClick={() => upgrade(selected, m.stars)}
-                title={m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
+                onClick={() => { if (!m.locked) upgrade(selected, m.stars); }}
+                title={m.locked ? 'Synthesize this tower first' : m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
               >
-                {m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
+                {m.locked ? '🔒 Dormant' : m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
               </button>
               <span className="tl-shards" title="Strain Samples">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
             </div>

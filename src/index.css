@@ -2996,6 +2996,16 @@ kbd {
 .tl2-rank { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .tl2-mlevel { display: flex; align-items: baseline; justify-content: space-between; font-size: 16px; }
 .tl2-mxp { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* ── Tower unlock gate (docs/TOWERS.md §expansion): the dormant-strain synthesis bar ── */
+.tl2-lockbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); margin-top: var(--s2); padding: 6px 10px; border: 1px dashed var(--line); border-radius: var(--r-md); background: color-mix(in srgb, var(--tw, var(--muted)) 8%, transparent); }
+.tl2-lockbar-txt { font-size: 11px; letter-spacing: var(--track-wide); text-transform: uppercase; color: var(--muted); }
+.tl2-lockbar-progress { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
+.tl2-lockbar[data-can] { border-style: solid; border-color: var(--tw, var(--gold)); }
+.tl2-unlockbtn { padding: 4px 12px; border-radius: var(--r-sm); border: 1px solid var(--tw, var(--line)); background: color-mix(in srgb, var(--tw, var(--panel-2)) 22%, transparent); color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out); }
+.tl2-unlockbtn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 0 14px color-mix(in srgb, var(--tw, var(--gold)) 45%, transparent); }
+.tl2-unlockbtn:disabled { opacity: 0.55; cursor: default; }
+.tl2-b-lock { color: var(--muted); }
+.tl2-convbtn:disabled { opacity: 0.5; cursor: default; }
 .tl2-mgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--s2); }
 .tl2-mstat { display: flex; flex-direction: column; gap: 1px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .tl2-mstat b { font-size: 14px; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0; text-transform: none; }

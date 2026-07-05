@@ -76,6 +76,8 @@ saved on the account) is always deployable; every other tower arrives on a livin
   tower of the same kind one level — §merge) · **Discard** (instant recycle).
 - Overflow: when the queue is full the newest organism auto-enters the **Biomass Recycler** —
   the player receives the current base deployment value. Nothing is wasted.
+- The belt rolls only kinds the ACCOUNT OWNS (docs/TOWERS.md §expansion — dormant expansion
+  towers join the pool the moment they're synthesized in the Tower Lab).
 - Weights: kinds not currently deployed get a mild boost (`CONVEYOR.undeployedBias` 1.6); the
   favorite is down-weighted ×0.4 (always deployable anyway — on the belt it is mostly strain
   fuel); never deterministic-only — every run reads differently. Rolls ride a DEDICATED rng

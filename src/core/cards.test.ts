@@ -17,10 +17,10 @@ import {
   rollCardRarity,
 } from './cards';
 import type { CardContext } from './cards';
-import type { CardRarity, CardSubject } from './types';
+import type { CardRarity, CardSubject, TowerKind } from './types';
 import { Rng } from './rng';
 import { Game } from './game';
-import { SIM_DT } from './config';
+import { SIM_DT, TOWER_ORDER } from './config';
 import { towerSlots } from './map';
 import type { MetaModifiers } from './types';
 
@@ -176,5 +176,24 @@ describe('effect application', () => {
       for (const p of game.projectiles) if ((p.pierce ?? 0) > 0) { sawPierce = true; break; }
     }
     expect(sawPierce).toBe(true); // the card's grant reached the live projectile path
+  });
+});
+
+describe('draft roster filter (docs/TOWERS.md §expansion)', () => {
+  it('never offers a card whose subject tower is off the run roster — and a full roster is stream-identical', () => {
+    const owned = new Set<TowerKind>(['needle', 'mortar', 'reactor', 'parasite', 'obelisk']); // trio locked
+    for (let seed = 0; seed < 60; seed++) {
+      for (const c of draftCards(new Rng(seed), 3, 5, owned)) {
+        const s = cardSubject(c);
+        expect(s.kind !== 'tower' || owned.has(s.tower)).toBe(true); // no dead drafts
+      }
+    }
+    // GOLDEN GUARD: an all-inclusive roster reproduces the historical unfiltered draft
+    const full = new Set<TowerKind>(TOWER_ORDER);
+    for (let seed = 0; seed < 60; seed++) {
+      const a = draftCards(new Rng(seed), 3, 5).map((c) => c.id);
+      const b = draftCards(new Rng(seed), 3, 5, full).map((c) => c.id);
+      expect(b).toEqual(a);
+    }
   });
 });

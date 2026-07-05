@@ -25,6 +25,11 @@ export interface TowerLabModel {
   shards: number;
   cost: number | null; // null = maxed
   affordable: boolean;
+  // ── Unlock gate (docs/TOWERS.md §expansion): a gated tower is LOCKED until its shards are
+  //    spent on the synthesis; while locked, stars/favorite/conveyor are all off-limits. ──
+  locked: boolean;
+  unlockCost: number; // 0 for starters
+  canUnlock: boolean; // locked AND enough shards banked
   maxed: boolean;
   mastery: { level: number; into: number; need: number; rank: string | null };
   specialization: string; // the ◈3 fork choice once reached, else the combat class
@@ -88,6 +93,8 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
   const cost = nextStarCost(save, kind);
   const maxed = cost === null;
   const shards = save.towerShards[kind] ?? 0;
+  const unlockCost = def.unlockShards ?? 0;
+  const locked = unlockCost > 0 && !(save.towerUnlocked ?? []).includes(kind);
   const mp = masteryProgress(save.towerMasteryXp[kind] ?? 0);
 
   // Latest named mutation ≤ current stars (forks resolve to the chosen option).
@@ -167,7 +174,10 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
     maxStars: STAR.maxTowerStars,
     shards,
     cost,
-    affordable: cost !== null && shards >= cost && !capLocked,
+    affordable: !locked && (cost !== null && shards >= cost && !capLocked),
+    locked,
+    unlockCost,
+    canUnlock: locked && shards >= unlockCost,
     maxed,
     mastery: { level: mp.level, into: mp.into, need: mp.need, rank: mp.level >= MASTERY_RANK_EVERY ? masteryRankTitle(mp.level) : null },
     specialization,

@@ -48,6 +48,36 @@ describe('SaveStore', () => {
   });
 });
 
+describe('tower unlock gate (docs/TOWERS.md §expansion)', () => {
+  it('a fresh profile owns ONLY the starters — the expansion trio is dormant', () => {
+    const d = defaultSave();
+    expect(d.towerUnlocked).not.toContain('maw');
+    expect(d.towerUnlocked).not.toContain('chrysalis');
+    expect(d.towerUnlocked).not.toContain('effigy');
+    expect(d.towerUnlocked).toContain('needle'); // the launch five are starters
+    expect(d.towerUnlocked).toContain('obelisk');
+  });
+
+  it('a pre-gate save (no field) migrates to starters + grandfathers engaged towers', () => {
+    const legacy = { ...defaultSave() } as Record<string, unknown>;
+    delete legacy.towerUnlocked;
+    (legacy.towerStars as Record<string, number>).maw = 2; // the player had starred it
+    const r = parseImport(JSON.stringify(legacy));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.towerUnlocked).toContain('maw'); // no access stripped
+      expect(r.data.towerUnlocked).not.toContain('chrysalis'); // untouched stays dormant
+    }
+  });
+
+  it('a LOCKED conveyor favorite falls back to the starter default on load', () => {
+    const tampered = { ...defaultSave(), favoriteTower: 'effigy' } as Record<string, unknown>;
+    const r = parseImport(JSON.stringify(tampered));
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data.favoriteTower).toBe('needle'); // locked kinds can't anchor the belt
+  });
+});
+
 describe('save export / import', () => {
   it('round-trips through serializeExport -> parseImport', () => {
     const data: SaveData = { ...defaultSave(), shards: 321, bestWave: 9, upgrades: { apex: 4 } };

@@ -63,22 +63,27 @@ export function strainCost(deployments: number, fromStrain: number): number {
 }
 
 /** Roll the next organism's kind: mild bias toward kinds not on the board, the favorite
- *  down-weighted (it is always deployable anyway — it appears mostly as strain fuel). */
-export function rollKind(rng: Rng, deployed: ReadonlySet<TowerKind>, favorite: TowerKind): TowerKind {
+ *  down-weighted (it is always deployable anyway — it appears mostly as strain fuel).
+ *  `allowed` restricts the pool to the account's OWNED roster (docs/TOWERS.md §expansion);
+ *  omitted or all-inclusive ⇒ the historical full-roster stream, byte-identical. */
+export function rollKind(rng: Rng, deployed: ReadonlySet<TowerKind>, favorite: TowerKind, allowed?: ReadonlySet<TowerKind>): TowerKind {
   let total = 0;
+  const kinds: TowerKind[] = [];
   const weights: number[] = [];
   for (const k of TOWER_ORDER) {
+    if (allowed !== undefined && !allowed.has(k)) continue; // locked kinds never grow on the belt
     let w = deployed.has(k) ? 1 : CONVEYOR.undeployedBias;
     if (k === favorite) w *= CONVEYOR.favoriteBias;
+    kinds.push(k);
     weights.push(w);
     total += w;
   }
   let u = rng.next() * total;
-  for (let i = 0; i < TOWER_ORDER.length; i++) {
+  for (let i = 0; i < kinds.length; i++) {
     u -= weights[i];
-    if (u < 0) return TOWER_ORDER[i];
+    if (u < 0) return kinds[i];
   }
-  return TOWER_ORDER[TOWER_ORDER.length - 1];
+  return kinds[kinds.length - 1];
 }
 
 /** Roll an organism's rarity (arrival strain) — deeper waves skew slightly richer. */

@@ -459,9 +459,17 @@ export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<Ca
 }
 
 /** Draft `count` distinct cards: roll a depth-scaled rarity, then pick within it (falling
- * back to any remaining card if that tier is exhausted). `wave` drives the depth scaling. */
-export function draftCards(rng: Rng, count = 3, wave = 0): CardDef[] {
-  const active = cardRegistry.active();
+ * back to any remaining card if that tier is exhausted). `wave` drives the depth scaling.
+ * `allowedTowers` drops cards whose SUBJECT tower is off the run's roster (docs/TOWERS.md
+ * §expansion — a card for a tower you cannot deploy is a dead draft); omitted or
+ * all-inclusive ⇒ the historical full pool, byte-identical. */
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>): CardDef[] {
+  const active = allowedTowers === undefined
+    ? cardRegistry.active()
+    : cardRegistry.active().filter((c) => {
+        const s = cardSubject(c);
+        return s.kind !== 'tower' || allowedTowers.has(s.tower);
+      });
   const available = new Set<CardRarity>(active.map((c) => c.rarity));
   const chosen: CardDef[] = [];
   const used = new Set<string>();

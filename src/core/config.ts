@@ -58,6 +58,11 @@ export interface TowerDef {
   abilities?: AbilityComponent[];
   /** Targeting profile (data-driven). Omitted ⇒ 'closestToBase' (historical default). */
   targeting?: TargetingProfile;
+  /** Tower Shards to unlock this tower in the Tower Lab (absent/0 ⇒ a STARTER, owned from the
+   *  start). A locked tower accumulates its shards toward this threshold; claiming spends them,
+   *  after which it joins the Biomorph Conveyor / favorite pool. Meta-owned gate — the sim only
+   *  sees the resulting roster via RunOptions.unlocked (docs/TOWERS.md §expansion). */
+  unlockShards?: number;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -143,6 +148,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     name: 'Carrion Maw',
     combatClass: 'Kinetic',
     firing: 'field', // gnash cadence — the bite is an all-in-reach cleave, no projectile
+    unlockShards: 80, // locked for new profiles — the first expansion goal (straightforward brawler)
     cost: 140,
     range: 170, // BRAWLER — the shortest combat reach in the game; its range IS its jaws
     fireInterval: 1.25,
@@ -158,6 +164,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     name: 'Amber Chrysalis',
     combatClass: 'Caustic',
     firing: 'homing', // a resin bolt seeks the target it will encase
+    unlockShards: 120, // locked — the specialist warden (mid goal)
     cost: 155,
     range: 430, // WARDEN — mid engagement; it guards the approach, not the spawn line
     fireInterval: 3.4, // very slow, deliberate casts — each one is a lockdown decision
@@ -177,6 +184,7 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     name: 'Wailing Effigy',
     combatClass: 'Neural',
     firing: 'field', // periodic dread pulse — no projectile, no damage
+    unlockShards: 150, // locked — the deepest goal (zero-damage tempo asks for game knowledge)
     cost: 150,
     range: 300, // DREAD — a crust-guard footprint; place it where the siege lands
     fireInterval: 2.6,

@@ -32,7 +32,7 @@ export function Toolbar({
   const heroDef = HERO_DEFS[hud.hero.kind];
   const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
   const conveyorMode = !game.tutorialMode; // the tutorial keeps the classic full rail (its lessons are authored on it)
-  const railKinds = conveyorMode ? [hud.conveyor.favorite] : TOWER_ORDER;
+  const railKinds = conveyorMode ? [hud.conveyor.favorite] : TOWER_ORDER.filter((k) => game.unlockedKinds.has(k)); // locked kinds never rail (docs/TOWERS.md §expansion)
 
   return (
     <div className="toolbar">

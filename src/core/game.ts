@@ -124,6 +124,9 @@ export interface RunOptions {
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
   geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
   favorite?: TowerKind; // the account's FAVORITE tower (docs/STRAIN.md §conveyor) — always deployable; default 'needle'
+  unlocked?: TowerKind[]; // the OWNED tower roster this run (docs/TOWERS.md §expansion unlock gate):
+  // gates placement, the conveyor's kind rolls, and the draft pool. Omitted ⇒ ALL kinds (the
+  // golden path — tests/autoplay/probes construct without it and are byte-identical).
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
 }
 
@@ -466,6 +469,7 @@ export class Game {
   private readonly conveyorRng: Rng;
   readonly conveyor: ConveyorItem[] = []; // growing (readyAt > time, ≤1) + ready (≤ queueMax)
   favoriteTower: TowerKind;
+  readonly unlockedKinds: ReadonlySet<TowerKind>; // the run roster (UI rails read this too)
   deployments = 0; // player deployments this run — drives the universal cost curve
   selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
   private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
@@ -498,6 +502,7 @@ export class Game {
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
     this.favoriteTower = opts.favorite ?? 'needle';
+    this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
     this.towerProgress = towerProgress;
     this.towerEffectiveRange = {} as Record<TowerKind, number>;
     for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1);
@@ -1041,7 +1046,7 @@ export class Game {
       // start the next growth (the belt never stops)
       const deployed = new Set<TowerKind>();
       for (const t of this.towers) deployed.add(t.kind);
-      const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower);
+      const kind = rollKind(this.conveyorRng, deployed, this.favoriteTower, this.unlockedKinds);
       const rar = rollRarity(this.conveyorRng, this.waveIndex);
       this.conveyor.push({
         id: ++this.conveyorSeq,
@@ -1057,6 +1062,7 @@ export class Game {
   /** Deploy the FAVORITE tower (docs/STRAIN.md §economy): the universal compounding cost —
    *  no per-tower prices. The conveyor covers every other kind. */
   deployTower(kind: TowerKind, px: number, py: number): boolean {
+    if (!this.unlockedKinds.has(kind)) return false; // not on this account's roster
     if (this.phase === 'won' || this.phase === 'lost') return false;
     const slot = slotAt(px, py);
     if (!slot || slot.index >= this.unlockedSlots || this.occupied.has(slot.index)) return false;
@@ -1523,6 +1529,7 @@ export class Game {
 
   placeTower(kind: TowerKind, px: number, py: number): boolean {
     if (this.phase === 'won' || this.phase === 'lost') return false;
+    if (!this.unlockedKinds.has(kind)) return false; // not on this account's roster
     const slot = slotAt(px, py);
     if (!slot) return false;
     if (slot.index >= this.unlockedSlots) return false; // slot still locked
@@ -4029,7 +4036,7 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex); // depth-scaled rarity (CARDS.md §2)
+          this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds); // depth-scaled rarity (CARDS.md §2)
         }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
@@ -4351,7 +4358,7 @@ export class Game {
    *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
   openTutorialDraft(): void {
     if (!this.tutorialMode || this.phase !== 'prep') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds);
     this.phase = 'draft';
   }
 
@@ -4364,7 +4371,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds);
     this.phase = 'draft';
   }
 

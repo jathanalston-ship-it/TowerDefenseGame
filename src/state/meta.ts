@@ -394,6 +394,15 @@ export function isHeroUnlocked(save: SaveData, kind: HeroKind): boolean {
   return (save.heroUnlocked ?? []).includes(kind);
 }
 
+/** Whether the account owns tower `kind` (docs/TOWERS.md §expansion). Starters (TowerDef without
+ *  an unlockShards gate — the launch five) are always owned; a gated tower is owned once claimed
+ *  with its own Tower Shards. Owned kinds ride the Biomorph Conveyor + favorite pool. */
+export function isTowerUnlocked(save: SaveData, kind: TowerKind): boolean {
+  const cost = TOWER_DEFS[kind]?.unlockShards ?? 0;
+  if (cost <= 0) return true; // starter
+  return (save.towerUnlocked ?? []).includes(kind);
+}
+
 /** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT + OWNED
  *  kinds. Always ≥1 (falls back to the selected hero, or the first owned hero). A locked hero can
  *  never be fielded even if a stale loadout entry names it. */
@@ -1543,7 +1552,36 @@ export const meta = {
 
   /** Choose the conveyor favorite (Tower Lab). */
   setFavoriteTower(kind: TowerKind): void {
+    if (!isTowerUnlocked(store.get(), kind)) return; // a locked tower can't anchor the conveyor
     persist({ ...store.get(), favoriteTower: kind });
+  },
+
+  /** Owned tower kinds, in roster order — the run roster (belt + favorite + placement). */
+  unlockedTowers(): TowerKind[] {
+    const save = store.get();
+    return TOWER_ORDER.filter((k) => isTowerUnlocked(save, k));
+  },
+
+  /** Whether the account owns tower `kind` (starters always; gated kinds once claimed). */
+  isTowerUnlocked(kind: TowerKind): boolean {
+    return isTowerUnlocked(store.get(), kind);
+  },
+
+  /** Claim a locked tower once enough of ITS Tower Shards are banked: spends the unlock cost,
+   *  marks it owned, and returns true — it immediately joins the Biomorph Conveyor pool and can
+   *  be starred / set as the favorite. False if already owned or unaffordable. */
+  unlockTower(kind: TowerKind): boolean {
+    const save = store.get();
+    if (isTowerUnlocked(save, kind)) return false;
+    const cost = TOWER_DEFS[kind].unlockShards ?? 0;
+    if ((save.towerShards[kind] ?? 0) < cost) return false;
+    persist({
+      ...save,
+      towerShards: { ...save.towerShards, [kind]: (save.towerShards[kind] ?? 0) - cost },
+      towerUnlocked: [...(save.towerUnlocked ?? []), kind],
+      timeline: pushTimeline(save.timeline, '◈', `Synthesized ${TOWER_DEFS[kind].name}`), // profile milestone
+    });
+    return true;
   },
 
   /** The slot-1 hero the next run fields (back-compat; = fieldedLoadout()[0]). */
@@ -1642,6 +1680,7 @@ export const meta = {
    *  the Campaign Evolution Cap (Shards are the fuel, Campaign is the permission). */
   buyStar(kind: TowerKind): boolean {
     const save = store.get();
+    if (!isTowerUnlocked(save, kind)) return false; // locked: shards bank toward the unlock
     const stars = save.towerStars[kind] ?? 0;
     if (stars >= STAR.maxTowerStars) return false;
     if (stars >= evolutionStarCap(save)) return false; // Campaign Evolution Cap not yet unlocked

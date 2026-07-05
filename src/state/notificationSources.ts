@@ -8,9 +8,9 @@
 
 import { registerNotification } from './notifications';
 import { geneArchiveRows } from './geneArchive';
-import { collectionContextOf, nextStarCost } from './meta';
+import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
-import { TOWER_ORDER } from '../core/config';
+import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -19,12 +19,17 @@ registerNotification({
   count: (s) => s.pendingContainers.length,
 });
 
-// Tower Lab — towers whose next star you can afford right now (drops as you buy them).
+// Tower Lab — towers whose next star you can afford right now (drops as you buy them),
+// plus DORMANT towers whose synthesis is claimable (docs/TOWERS.md §expansion unlock gate).
 registerNotification({
   id: 'towers.stars',
   channel: 'towers',
   count: (s) =>
     TOWER_ORDER.reduce((n, k) => {
+      if (!isTowerUnlocked(s, k)) {
+        const unlock = TOWER_DEFS[k].unlockShards ?? 0;
+        return n + ((s.towerShards[k] ?? 0) >= unlock ? 1 : 0); // synthesis ready
+      }
       const cost = nextStarCost(s, k);
       return n + (cost !== null && (s.towerShards[k] ?? 0) >= cost ? 1 : 0);
     }, 0),

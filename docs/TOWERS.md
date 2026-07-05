@@ -471,6 +471,16 @@ clears, so perma-CC from stacked towers is impossible by construction. Identity 
 `wider_jaws`/`gnashing_hunger`, `thick_amber`/`crystalline_matrix`, `lingering_dread`/
 `chorus_of_grief`, epic `total_lockdown`; affixes `gnashing`/`preserving`/`dreadful`).
 
+**Unlock gate (shard synthesis):** the expansion trio is **dormant on new profiles** —
+`TowerDef.unlockShards` (Maw 80 · Chrysalis 120 · Effigy 150, each in its OWN Tower Shards,
+which containers drop for locked kinds too — the same loop as hero unlocks at 60/100).
+Synthesis happens in the Tower Lab (the dormant-strain bar; spends the shards); until then the
+kind never rails, never grows on the Biomorph Conveyor, can't anchor it as the favorite, can't
+be starred, and its Gene Cards never appear in drafts. The save carries `towerUnlocked`
+(starters = every def without a gate); pre-gate saves grandfather in any kind they engaged
+with. The sim receives the roster per run (`RunOptions.unlocked`; omitted ⇒ ALL — the
+golden/tests path is untouched).
+
 **Balance verification (probe, 5 seeds × stages 1/5/8 × ×0.75/×1.0/×1.7):** the DIFFICULTY.md
 §contract bands held unchanged at the 8-kind roster (s8: 3/5 wins at ×0.75, 5/5 + chip at
 ×1.0, 5/5 + 0 lost at ×1.7; the s5 mid-stage keeps its structural ~20-integrity artillery chip

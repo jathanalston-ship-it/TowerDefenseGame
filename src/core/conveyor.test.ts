@@ -134,6 +134,32 @@ describe('the belt (§conveyor)', () => {
     expect(g.biomass - bio0).toBe(recycleValue());
   });
 
+  it('rolls ONLY owned kinds when a roster is given — and a full roster is stream-identical', () => {
+    const deployed = new Set<TowerKind>();
+    const allowed = new Set<TowerKind>(['needle', 'mortar', 'reactor', 'parasite', 'obelisk']); // trio locked
+    for (let i = 0; i < 2000; i++) {
+      const k = rollKind(new Rng(1000 + i), deployed, 'needle', allowed);
+      expect(allowed.has(k)).toBe(true); // a dormant strain never grows on the belt
+    }
+    // GOLDEN GUARD: an all-inclusive roster must reproduce the historical no-roster stream
+    const full = new Set<TowerKind>(TOWER_ORDER);
+    for (let i = 0; i < 500; i++) {
+      expect(rollKind(new Rng(i), deployed, 'needle', full)).toBe(rollKind(new Rng(i), deployed, 'needle'));
+    }
+  });
+
+  it('a restricted run: the game refuses locked placements and its belt stays on-roster', () => {
+    const owned: TowerKind[] = ['needle', 'mortar', 'reactor', 'parasite', 'obelisk'];
+    const g = new Game(11, NO_META, undefined, undefined, undefined, { unlocked: owned });
+    const free = towerSlots.filter((sl) => sl.index < g.unlockedSlots);
+    expect(g.placeTower('maw', free[0].x, free[0].y)).toBe(false); // dormant — refused
+    expect(g.deployTower('effigy', free[0].x, free[0].y)).toBe(false);
+    expect(g.placeTower('needle', free[0].x, free[0].y)).toBe(true); // starters unaffected
+    g.startWave();
+    run(g, CONVEYOR.growSeconds * 6);
+    for (const c of g.conveyor) expect(owned).toContain(c.kind); // the belt honors the roster
+  });
+
   it('kind rolls bias toward UNDEPLOYED kinds without removing randomness', () => {
     const rng = new Rng(99);
     const deployed = new Set<TowerKind>(['needle', 'mortar', 'reactor', 'parasite']);

@@ -364,3 +364,31 @@ describe('failed frontier attempt consolation (BALANCE_REPORT push-futility amen
     expect(won.reward.shardsEarned).toBeGreaterThanOrEqual(CAMPAIGN_REWARDS.firstClearCore + CAMPAIGN_REWARDS.firstClearCorePerStage * 6);
   });
 });
+
+describe('tower synthesis (docs/TOWERS.md §expansion unlock gate)', () => {
+  it('claims a dormant tower with its own shards; stars/favorite gates open with it', () => {
+    meta.reset();
+    expect(meta.isTowerUnlocked('maw')).toBe(false);
+    expect(meta.unlockedTowers()).not.toContain('maw');
+    // gates while dormant: no stars, no conveyor favorite, no claim without shards
+    expect(meta.buyStar('maw')).toBe(false);
+    meta.setFavoriteTower('maw');
+    expect(meta.get().favoriteTower).toBe('needle');
+    expect(meta.unlockTower('maw')).toBe(false); // 0 / 80 banked
+    // bank the synthesis cost (importText = the test-side save injector) and claim it
+    const banked = { ...meta.get(), towerShards: { ...meta.get().towerShards, maw: 80 } };
+    meta.importText(serializeExport(banked));
+    expect(meta.unlockTower('maw')).toBe(true);
+    expect(meta.isTowerUnlocked('maw')).toBe(true);
+    expect(meta.get().towerShards.maw).toBe(0); // the claim SPENT the shards
+    expect(meta.unlockTower('maw')).toBe(false); // idempotent
+    // everything opens: roster, favorite, stars (with fresh shards)
+    expect(meta.unlockedTowers()).toContain('maw');
+    meta.setFavoriteTower('maw');
+    expect(meta.get().favoriteTower).toBe('maw');
+    const starred = { ...meta.get(), towerShards: { ...meta.get().towerShards, maw: 10 } };
+    meta.importText(serializeExport(starred));
+    expect(meta.buyStar('maw')).toBe(true);
+    meta.reset(); // leave a clean store for the rest of the suite
+  });
+});

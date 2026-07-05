@@ -5,7 +5,7 @@
 // Storage is injectable so the core is testable headlessly; the browser uses
 // localStorage. No DOM/file APIs here (those live in saveFile.ts).
 
-import { ENEMY_KINDS, HERO_DEFS, HERO_ORDER, HERO_IDS, TOWER_ORDER, heroRegistry } from '../core/config';
+import { ENEMY_KINDS, HERO_DEFS, HERO_ORDER, HERO_IDS, TOWER_DEFS, TOWER_ORDER, heroRegistry, towerRegistry } from '../core/config';
 import type { EnemyKind, HeroKind, LifetimeStats, TimelineEvent, TowerKind } from '../core/types';
 import type { Loadout, OwnedItem } from '../core/equipment';
 import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
@@ -50,6 +50,7 @@ export interface SaveData {
   //    Selection/fielding is gated to this set. Pre-v14 saves grandfather in every hero the player
   //    already engaged with (stars / usage / loadout / selected) so no access is stripped. ──
   heroUnlocked: HeroKind[];
+  towerUnlocked: TowerKind[]; // owned tower kinds (docs/TOWERS.md §expansion) — starters + shard-claimed
   // ── Adaptation (schema v15, docs/PROGRESSION-REDESIGN §2). Chosen adaptation-node ids per unit,
   //    keyed `tower:<kind>` / `hero:<kind>`. Antigen Points (one per mastery Rank) are spent here.
   //    Empty for a fresh unit ⇒ zero run effects ⇒ golden-safe. Additive; pre-v15 saves default {}. ──
@@ -193,6 +194,26 @@ function emptyFavByHero(): Record<HeroKind, Record<string, number>> {
 function starterHeroes(): HeroKind[] {
   return HERO_ORDER.filter((k) => !(HERO_DEFS[k].unlockShards && HERO_DEFS[k].unlockShards! > 0));
 }
+/** Towers owned from the start — those with no `unlockShards` gate (the launch five). */
+function starterTowers(): TowerKind[] {
+  return TOWER_ORDER.filter((k) => !(TOWER_DEFS[k].unlockShards && TOWER_DEFS[k].unlockShards! > 0));
+}
+/** Resolve the owned-tower set (mirrors sanitizeHeroUnlocked). A save with the field honors its
+ *  persisted list (registry-resolved, deduped); a PRE-gate save has no field ⇒ grandfather in any
+ *  gated tower the player already engaged with (stars / lifetime deployments) UNION the starters,
+ *  so nobody loses access to a tower they were using. Stable TOWER_ORDER order. */
+function sanitizeTowerUnlocked(data: SaveData): TowerKind[] {
+  const set = new Set<TowerKind>(starterTowers());
+  const raw = (data as { towerUnlocked?: unknown }).towerUnlocked;
+  if (Array.isArray(raw)) {
+    for (const x of raw) { const k = towerRegistry.resolve(typeof x === 'string' ? x : '') as TowerKind | undefined; if (k) set.add(k); }
+  } else {
+    // Pre-gate migration: anything the player has touched stays owned.
+    for (const k of TOWER_ORDER) if ((data.towerStars?.[k] ?? 0) > 0 || (data.stats?.towerUsage?.[k] ?? 0) > 0) set.add(k);
+    const fav = data.favoriteTower as TowerKind | undefined; if (fav && TOWER_ORDER.includes(fav)) set.add(fav);
+  }
+  return TOWER_ORDER.filter((k) => set.has(k));
+}
 /** Resolve the owned-hero set. A v14+ save honors its persisted list (registry-resolved, deduped);
  *  a PRE-v14 save has no field ⇒ grandfather in every hero the player already engaged with (stars /
  *  fielded / selected / lifetime usage) UNION the starters, so an existing player never loses access
@@ -274,6 +295,7 @@ export function defaultSave(): SaveData {
     favoriteTower: 'needle',
     heroLoadout: ['ravager'],
     heroUnlocked: starterHeroes(),
+    towerUnlocked: starterTowers(),
     adaptation: {},
     heroKills: zeroByHeroKind(),
     heroFavEquip: emptyFavByHero(),
@@ -371,14 +393,17 @@ function withDefaults(data: SaveData): SaveData {
     // Resolve the fielded hero through the registry (honors aliases for renamed ids)
     // and fall back to the default if it's unknown — a corrupt/removed id can't crash.
     selectedHero: (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero,
-    // Conveyor favorite (docs/STRAIN.md §conveyor): validate against the roster; additive default.
-    favoriteTower: TOWER_ORDER.includes(data.favoriteTower as TowerKind) ? (data.favoriteTower as TowerKind) : d.favoriteTower,
+    // Conveyor favorite (docs/STRAIN.md §conveyor): must be a real, OWNED kind — a locked
+    // favorite (tampered/stale import) falls back to the starter default.
+    favoriteTower: sanitizeTowerUnlocked(data).includes(data.favoriteTower as TowerKind) ? (data.favoriteTower as TowerKind) : d.favoriteTower,
     // Hero Slot roster (HEROES.md): resolve each entry through the registry (honors aliases),
     // dedupe, and drop junk. A pre-slot save (no heroLoadout) seeds from the migrated selectedHero
     // so slot 1 carries over unchanged — additive, no data loss.
     heroLoadout: sanitizeLoadout(data.heroLoadout, (heroRegistry.resolve(data.selectedHero) as HeroKind | undefined) ?? d.selectedHero),
     // v13→v14: Hero Collection ownership. Pre-v14 saves grandfather in used heroes (no access lost).
     heroUnlocked: sanitizeHeroUnlocked(data),
+    // Tower unlock gate (docs/TOWERS.md §expansion): pre-gate saves grandfather in used towers.
+    towerUnlocked: sanitizeTowerUnlocked(data),
     // v14→v15: Adaptation node picks (empty for pre-v15 ⇒ golden-safe).
     adaptation: sanitizeAdaptation((data as { adaptation?: unknown }).adaptation),
     stats: mergeStats(d.stats, data.stats),
