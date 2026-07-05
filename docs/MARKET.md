@@ -20,6 +20,10 @@ Meta-layer only: no sim, save-checksum, or golden-pinned behavior changes. A fre
 
 ## The stock (5-minute windows, deterministic)
 
+> 2026-07: the premium pool grew a 5th authored row — a **Gauntlet Stamina pack**
+> (+20 Boss Rush stamina for 8 Ichor, overflow-capped; docs/BOSS-RUSH.md §stamina).
+> Windows still stock exactly 3 of the 5 premium rows.
+
 Stock is a **pure function of (profile seed, window index, owned roster)** — the seed derives
 from `createdAt` (no rolled save field; `defaultSave()` stays deterministic). Reloading
 mid-window shows identical stock; locked towers/heroes can never appear (roster-gated pools).
@@ -48,6 +52,7 @@ the CURRENT stock at buy time — a stale click across a refresh fails silently.
 | Collection rank-up | 5 per rank | session baseline never re-pays a rank (a rank earned but not polled that session pays on the NEXT promotion poll) |
 | Campaign milestone | 12 per FIRST clear of every 5th stage | first-clear only |
 | Infinite depth record | 2 per NEW 5-wave band of `bestWave` | record-keyed; replays pay 0 |
+| **Boss Rush record (the primary repeatable lane)** | 2 per NEW 5-boss band of `rushBestBoss` (+ a weighted-common Bio-Container per NEW 10-band) | single-run RECORD-keyed; matching it pays 0 — docs/BOSS-RUSH.md §ichor |
 | **Container bleed (the gamble)** | 10 @50% · 18 @30% · 26 @15% · 40 @5%, at **22%** per container (**26%** epic+) | independent, pity-less |
 
 Early accounts bleed fast (achievements/ranks/stages tick rapidly ≈ 2–4 containers' worth),

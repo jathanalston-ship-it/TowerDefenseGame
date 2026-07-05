@@ -6,6 +6,7 @@ import { meta } from './meta';
 import type { RunResult } from './meta';
 import { defaultLifetimeStats } from '../save/saveStore';
 import { HERO_ORDER, RUSH, TOWER_ORDER } from '../core/config';
+import { ICHOR, ichorForBossRecord, nextRushIchorAt, vaultsForBossRecord } from '../core/market';
 import type { RunStats } from '../core/types';
 
 function makeResult(over: Partial<RunResult>, bossKills = 0): RunResult {
@@ -90,5 +91,44 @@ describe('Boss Rush meta rewards (docs/BOSS-RUSH.md)', () => {
     expect(ids).toContain('rush_first');
     expect(ids).toContain('rush_wave5');
     expect(ids).toContain('rush_boss15');
+  });
+});
+
+describe('Boss Rush lifetime-record Ichor bands (docs/BOSS-RUSH.md §ichor)', () => {
+  it('pays per NEW 5-band of the record — the worked example', () => {
+    // Record 10: an 11-boss run pays nothing (band 15 not reached); a 15-boss run pays one band.
+    expect(ichorForBossRecord(10, 11)).toBe(0);
+    expect(ichorForBossRecord(10, 15)).toBe(ICHOR.rushBossPerBand);
+    // Multi-band jumps pay every band crossed; matching or trailing the record pays nothing.
+    expect(ichorForBossRecord(9, 21)).toBe(3 * ICHOR.rushBossPerBand); // 10, 15, 20
+    expect(ichorForBossRecord(21, 21)).toBe(0);
+    expect(ichorForBossRecord(21, 4)).toBe(0);
+    // Display base: "Lifetime Bosses 13/15".
+    expect(nextRushIchorAt(13)).toBe(15);
+    expect(nextRushIchorAt(15)).toBe(20);
+  });
+
+  it('drops a vault per NEW 10-band', () => {
+    expect(vaultsForBossRecord(9, 21)).toBe(2); // 10, 20
+    expect(vaultsForBossRecord(10, 19)).toBe(0);
+    expect(vaultsForBossRecord(10, 20)).toBe(1);
+  });
+
+  it('finishRun folds the bands: Ichor + vault on a record, nothing on a repeat', () => {
+    // Wallet assertions are DELTAS — the first run's achievements bleed their own Ichor too.
+    freshMeta();
+    const first = meta.finishRun(makeResult({ wave: 5, kills: 60, bossRush: true }, 16)); // record 0→16
+    expect(first.rushProgress).toMatchObject({ bossKills: 16, bestBoss: 16, nextIchorAt: 20, ichor: 3 * ICHOR.rushBossPerBand, vaults: 1 });
+    expect(first.loot.banked.filter((c) => c.kind === 'loot').length).toBeGreaterThanOrEqual(1); // the 10-band vault banked
+    const afterFirst = meta.get().ichor;
+
+    const repeat = meta.finishRun(makeResult({ wave: 4, kills: 40, bossRush: true }, 11)); // below record
+    expect(repeat.rushProgress).toMatchObject({ bestBoss: 16, ichor: 0, vaults: 0 });
+    expect(meta.get().ichor).toBe(afterFirst); // a repeat pays nothing
+
+    const record = meta.finishRun(makeResult({ wave: 6, kills: 70, bossRush: true }, 21)); // 16→21: band 20 (+its vault)
+    expect(record.rushProgress).toMatchObject({ bestBoss: 21, ichor: ICHOR.rushBossPerBand, vaults: 1 });
+    expect(meta.get().ichor).toBe(afterFirst + ICHOR.rushBossPerBand);
+    expect(meta.get().rushBestBoss).toBe(21);
   });
 });

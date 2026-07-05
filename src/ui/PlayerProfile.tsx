@@ -22,7 +22,7 @@ import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { formatPower } from '../core/power';
 
-const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'collection'];
+const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'collection'];
 
 function StatCell({ s }: { s: ProfileStat }): JSX.Element {
   return (

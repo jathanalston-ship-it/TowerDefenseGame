@@ -111,10 +111,40 @@ Intent holds: runs are SHORT and dense (~5–10 sim-minutes), records move in si
 per-boss payout makes every extra kill visible. Tune `strengthPerWave` first (the wall), then
 `bossBounty` (the snowball), then the payout lanes.
 
+## §stamina — the session fuel (2026-07)
+
+`save.rushStamina { value, updatedAt, freeDay }`, all math in `meta.rushStamina /
+spendRushEntry / grantRushStamina` (lazy — nothing ticks; the value derives from
+`updatedAt` on read):
+
+- **Ceiling 100** (`RUSH.staminaMax`), **+1 per 3 min** (`staminaRegenSec`), **entry 20**
+  (`staminaCost`). The **FIRST entry of each UTC day is FREE** (`freeDay` ledger) — the daily
+  hook. Grants (Splice Market pack: +20 for 8 Ichor, a 5th premium stock row) may **overflow
+  to 120** (`staminaOverflowMax`); above the ceiling regen pauses.
+- Tamper posture: negative elapsed clamps to zero regen; a forged future `freeDay` self-heals
+  by waiting (ISO keys compare lexically). Same leniency class as the market's max-window rule.
+- Surfaces: the terminal's stamina bar (live 1s countdown, FREE chip, disabled CTA when short);
+  `BossRushScreen.start()` pays via `spendRushEntry` before launching.
+- Tests: `state/rushStamina.test.ts` (regen, costs, free day, overflow, tamper, market pack).
+
+## §ichor — the lifetime-record bands (2026-07)
+
+Boss Rush is the **primary repeatable Ichor lane** (docs/MARKET.md §ichor). Keyed to the
+single-run boss RECORD (`save.rushBestBoss`) — the same un-farmable construction as the
+Infinite depth lane:
+
+- Every NEW **5-band** of the record bleeds **2 Ichor** (`ichorForBossRecord`); every NEW
+  **10-band** additionally drops a **weighted-common Bio-Container** (`vaultsForBossRecord`,
+  weights 55/28/12/4/1) banked unopened with the run's loot.
+- **Record semantics (the worked example, pinned in tests):** record 10 → an 11-boss run pays
+  nothing (band 15 unreached); a 15-boss run pays one band. Matching or trailing the record
+  pays zero, so the lane can't be farmed.
+- Progress shows everywhere: the terminal's "Ichor bleed" panel (**Lifetime Bosses 13/15 ·
+  next +2 Ichor**), the Profile's Boss Rush section, and Results (`outcome.rushProgress` —
+  record line + an "Ichor Bled" row on a new record).
+
 ## Extension seams (deliberate)
 
-- **P3 — Stamina + Ichor bands:** entry cost hooks into `BossRushScreen.start()`; the Ichor
-  faucet bands key on `rushBestBoss` record deltas (the `ichorForDepthRecord` pattern).
 - **P4 — Bio-Roulette:** post-Results ceremony for `result.bossRush` runs; spore math reads
   `RunStats.bossKills` + the `rushBestBoss` record delta.
 - Future: weekly gauntlet modifiers, chassis-banned weeks, leaderboards — all parameterize

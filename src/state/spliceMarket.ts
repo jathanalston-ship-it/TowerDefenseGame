@@ -51,6 +51,8 @@ function describeGood(item: MarketGood): { name: string; qtyLabel: string; curre
       const r = rarityRegistry.get(item.rarity);
       return { name: `${r?.name ?? item.rarity} Bio-Container`, qtyLabel: '', currencyId: null, color: r?.color ?? 'var(--r-common)', glyph: '◈' };
     }
+    case 'stamina':
+      return { name: 'Gauntlet Stamina', qtyLabel: `+${item.qty}`, currencyId: null, color: 'var(--danger, #ff5d73)', glyph: '☠' };
   }
 }
 

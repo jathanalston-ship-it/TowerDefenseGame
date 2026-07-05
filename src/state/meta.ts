@@ -44,7 +44,7 @@ import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
 import { ALL_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
-import { ICHOR, ichorForAchievement, ichorForDepthRecord, marketWindow, rollIchorDrop, rollStock } from '../core/market';
+import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
 import {
   canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
@@ -242,6 +242,11 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     collection: collectionView(collectionContextOf(save)).power,
     temporary,
   };
+}
+
+/** UTC day key (ISO date) — the Boss Rush free-daily-entry ledger (docs/BOSS-RUSH.md §stamina). */
+function dayKey(now: number): string {
+  return new Date(now).toISOString().slice(0, 10);
 }
 
 /** Up to two soft guidance lines for the prediction panel — surfaces the weakest lever without ever
@@ -686,6 +691,9 @@ export interface RunOutcome {
   // cache — a lost Campaign stage, or an Infinite run shorter than qualifyWave (50% of the prior
   // personal best). No cache/loot was banked; Results shows the reason. Absent on a qualifying run.
   rewardBlocked?: { reason: 'campaign-loss' | 'infinite-short' | 'rush-short'; qualifyWave: number };
+  // Boss Rush lifetime-record bands (docs/BOSS-RUSH.md §ichor): this run's band payouts + the
+  // updated record and the next Ichor milestone — the Results progress line. Absent off-rush.
+  rushProgress?: { bossKills: number; bestBoss: number; nextIchorAt: number; ichor: number; vaults: number };
 }
 
 /** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
@@ -918,6 +926,16 @@ export const meta = {
     // economy scalar rides both; prestige core gain rides the currency lane.
     const bossKills = result.stats.bossKills ?? 0;
     const rushCoreBonus = isRush ? Math.round(RUSH.corePerBoss * bossKills * econDiff.rewardMult * asc.coreGainMult) : 0;
+    // Lifetime-record bands (docs/BOSS-RUSH.md §ichor): Ichor per NEW 5-band of the single-run
+    // boss record, a weighted-common Bio-Container per NEW 10-band. Record-keyed — matching your
+    // best pays nothing, so the lane can't be farmed. (The Ichor folds in below with the faucets.)
+    const rushRecordBroken = isRush && bossKills > save.rushBestBoss;
+    const rushIchor = rushRecordBroken ? ichorForBossRecord(save.rushBestBoss, bossKills) : 0;
+    const rushVaultBank: PendingContainer[] = [];
+    if (rushRecordBroken) {
+      const vaults = vaultsForBossRecord(save.rushBestBoss, bossKills);
+      for (let i = 0; i < vaults; i++) rushVaultBank.push({ kind: 'loot', rarity: rollRushVaultRarity(Math.random) });
+    }
     const rushLootBonus = isRush ? Math.round(RUSH.lootPerBoss * bossKills * econDiff.containerRateMult * asc.lootGainMult) : 0;
 
     // 1. global shards + run records
@@ -1009,7 +1027,7 @@ export const meta = {
     // by the stage number so deeper first clears drop a richer cache.
     const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
     const cacheBank: PendingContainer[] = cacheEligible ? [runCache, ...stageCache] : [];
-    const newlyBanked: PendingContainer[] = [...queueRemainder, ...cacheBank];
+    const newlyBanked: PendingContainer[] = [...queueRemainder, ...cacheBank, ...rushVaultBank];
     // An unqualified Infinite run rolls back the containers it banked LIVE this run (syncRunLoot) —
     // the "no exploit rewards" rule. Reference-identity filter mirrors abandonRun. Other runs keep them.
     const forfeitLive = !lootEligible && runContainersBanked.length > 0;
@@ -1106,6 +1124,10 @@ export const meta = {
       timeline = pushTimeline(timeline, '◆', `Ichor bleed — Stage ${stageNo} milestone`);
     }
     if (result.endless && newBest) ichorGain += ichorForDepthRecord(save.bestWave, result.wave);
+    if (rushIchor > 0) {
+      ichorGain += rushIchor;
+      timeline = pushTimeline(timeline, '◆', `Ichor bleed — ${bossKills}-boss gauntlet record`);
+    }
 
     persist({
       ...save,
@@ -1152,6 +1174,15 @@ export const meta = {
       ...(evolutionUnlock ? { evolutionUnlock } : {}),
       ...(heroSlotUnlock ? { heroSlotUnlock } : {}),
       ...(rewardBlocked ? { rewardBlocked } : {}),
+      ...(isRush
+        ? { rushProgress: {
+            bossKills,
+            bestBoss: Math.max(save.rushBestBoss, bossKills),
+            nextIchorAt: nextRushIchorAt(Math.max(save.rushBestBoss, bossKills)),
+            ichor: rushIchor,
+            vaults: rushVaultBank.length,
+          } }
+        : {}),
     };
   },
 
@@ -1847,6 +1878,56 @@ export const meta = {
     });
   },
 
+  /** Boss Rush stamina, lazily regenerated (docs/BOSS-RUSH.md §stamina) — a pure read.
+   *  +1 per RUSH.staminaRegenSec up to staminaMax; grants may sit above it (overflow pauses
+   *  regen). `nextInMs` = time to the next point (0 at/above the ceiling). */
+  rushStamina(now = Date.now()): { value: number; nextInMs: number; freeAvailable: boolean } {
+    const s = store.get().rushStamina;
+    const regenMs = RUSH.staminaRegenSec * 1000;
+    const base = s.updatedAt > 0 ? s.updatedAt : now;
+    const elapsed = Math.max(0, now - base);
+    const value = s.value >= RUSH.staminaMax ? s.value : Math.min(RUSH.staminaMax, s.value + Math.floor(elapsed / regenMs));
+    return {
+      value,
+      nextInMs: value >= RUSH.staminaMax ? 0 : regenMs - (elapsed % regenMs),
+      freeAvailable: s.freeDay < dayKey(now), // ISO keys compare lexically; a forged future key self-heals by waiting
+    };
+  },
+
+  /** Pay a gauntlet entry: the FIRST of each day is free; afterwards RUSH.staminaCost. False
+   *  (and no mutation) when stamina is short. Materializes the lazy regen on every spend. */
+  spendRushEntry(now = Date.now()): { ok: boolean; free: boolean } {
+    const save = store.get();
+    const { value, freeAvailable } = this.rushStamina(now);
+    const regenMs = RUSH.staminaRegenSec * 1000;
+    const base = save.rushStamina.updatedAt > 0 ? save.rushStamina.updatedAt : now;
+    // Advance updatedAt by the WHOLE points consumed (the fractional remainder keeps ticking);
+    // at/above the ceiling regen was paused, so the next point starts counting from now.
+    const materializedAt = value >= RUSH.staminaMax ? now : base + Math.floor(Math.max(0, now - base) / regenMs) * regenMs;
+    if (freeAvailable) {
+      persist({ ...save, rushStamina: { value, updatedAt: materializedAt, freeDay: dayKey(now) } });
+      return { ok: true, free: true };
+    }
+    if (value < RUSH.staminaCost) return { ok: false, free: false };
+    persist({ ...save, rushStamina: { ...save.rushStamina, value: value - RUSH.staminaCost, updatedAt: materializedAt } });
+    return { ok: true, free: false };
+  },
+
+  /** Grant stamina (market packs, future daily rewards) — overflow-capped, regen state kept. */
+  grantRushStamina(n: number, now = Date.now()): void {
+    const amt = Math.max(0, Math.floor(n));
+    if (amt <= 0) return;
+    const save = store.get();
+    const { value } = this.rushStamina(now);
+    const regenMs = RUSH.staminaRegenSec * 1000;
+    const base = save.rushStamina.updatedAt > 0 ? save.rushStamina.updatedAt : now;
+    const materializedAt = value >= RUSH.staminaMax ? now : base + Math.floor(Math.max(0, now - base) / regenMs) * regenMs;
+    persist({
+      ...save,
+      rushStamina: { ...save.rushStamina, value: Math.min(RUSH.staminaOverflowMax, value + amt), updatedAt: materializedAt },
+    });
+  },
+
   /** Guarded Ichor spend — false (and no mutation) when unaffordable. */
   spendIchor(n: number): boolean {
     const amt = Math.max(0, Math.floor(n));
@@ -1939,6 +2020,18 @@ export const meta = {
           pendingContainers: [...next.pendingContainers, { kind: 'loot', rarity: it.rarity }],
           timeline: pushTimeline(next.timeline, '◈', `Splice Market — ${def?.name ?? it.rarity} Bio-Container acquired`),
         };
+        break;
+      }
+      case 'stamina': {
+        // Materialize the lazy regen, then add the pack (overflow-capped) — docs/BOSS-RUSH.md §stamina.
+        const regenMs = RUSH.staminaRegenSec * 1000;
+        const base = next.rushStamina.updatedAt > 0 ? next.rushStamina.updatedAt : now;
+        const elapsed = Math.max(0, now - base);
+        const cur = next.rushStamina.value >= RUSH.staminaMax
+          ? next.rushStamina.value
+          : Math.min(RUSH.staminaMax, next.rushStamina.value + Math.floor(elapsed / regenMs));
+        const materializedAt = cur >= RUSH.staminaMax ? now : base + Math.floor(elapsed / regenMs) * regenMs;
+        next = { ...next, rushStamina: { ...next.rushStamina, value: Math.min(RUSH.staminaOverflowMax, cur + it.qty), updatedAt: materializedAt } };
         break;
       }
     }

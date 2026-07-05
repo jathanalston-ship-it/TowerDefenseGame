@@ -119,7 +119,10 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   own records (`rushBestWave`/`rushBestBoss`), rush-short qualify gate, `prediction.bossRush`
   channel, lifetime ledgers (`rushRuns`/`rushBossKills`), 6 achievements, gauntlet terminal
   (`BossRushScreen`: ladder artwork, contract, forecast, milestones), Command Center tile,
-  Help entry; proc-boss id uniquify fixes a latent concurrent-def collision — BOSS-RUSH.md
+  Help entry; proc-boss id uniquify fixes a latent concurrent-def collision; STAMINA session
+  fuel (100 cap, 20/entry, +1/3min lazy regen, first-of-day FREE, market packs overflow to 120)
+  and the PRIMARY Ichor lane (2 per NEW 5-boss single-run record band, weighted-common
+  Bio-Container per 10-band, progress surfaced on terminal/Profile/Results) — BOSS-RUSH.md
 - ✅ Next-Goal engine + Results cliffhanger — ONE-MORE-RUN.md
 - ✅ Prestige (MOLT → Ascendant) — 1 layer of a designed 6 (PROGRESSION-REDESIGN)
 - ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md

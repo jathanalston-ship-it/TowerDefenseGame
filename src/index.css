@@ -7502,3 +7502,17 @@ kbd {
 /* Command Center tile accent. */
 .mc-sec-rush { border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
 .mc-sec-rush .mc-sec-i { color: var(--danger); }
+
+/* Boss Rush stamina + Ichor-bleed panels (docs/BOSS-RUSH.md §stamina, §ichor). */
+.rush-stamina { display: flex; flex-direction: column; gap: 5px; margin-top: var(--s3); padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--line)); border-radius: var(--r-sm); background: var(--panel-2); }
+.rush-stamina.is-empty { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+.rush-sta-head { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+.rush-sta-head b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.rush-sta-bar { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden; }
+.rush-sta-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), #ffe08a); transition: width var(--dur-3) var(--ease-out); }
+.rush-stamina.is-empty .rush-sta-bar i { background: var(--danger); }
+.rush-sta-foot { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.rush-sta-free { color: var(--vital); font-weight: 800; letter-spacing: 0.08em; }
+.rush-ichor { display: flex; flex-direction: column; gap: 8px; border-color: color-mix(in srgb, var(--viral) 25%, var(--line)); }
+.rush-ichor .rush-mile-bar i { background: linear-gradient(90deg, var(--viral), var(--gold)); }
+.play-start:disabled { opacity: 0.55; cursor: not-allowed; filter: saturate(0.5); }

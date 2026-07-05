@@ -1394,6 +1394,12 @@ export const RUSH = {
   strengthBase: 0.4, // wave 1 bosses at 40% …
   strengthPerWave: 0.2, // … +20%/wave → ×1.0 at wave 4, then keeps climbing …
   strengthCap: 2.6, // … to ×2.6 (~wave 12+)
+  // Stamina (docs/BOSS-RUSH.md §stamina): the gauntlet's session pacing. Lazy-computed —
+  // nothing ticks; the value derives from (stored value, updatedAt) on read.
+  staminaMax: 100, // regen ceiling …
+  staminaOverflowMax: 120, // … grants (market packs) may overflow to this hard cap
+  staminaCost: 20, // per gauntlet entry (the FIRST entry of each day is free)
+  staminaRegenSec: 180, // +1 stamina per 3 minutes
   damageCap: 1.5, // contact damage stops climbing here — deep walls should be OUT-TANKED-then-out-DPSed, not one-shot roulette (keeps account power meaningful, probe)
   openingBiomass: 170, // extra starting biomass — the hive fortifies BEFORE the first column (a boss duel needs a real board, probe-verified)
   bossBounty: 95, // FLAT biomass per rush boss — TL-scaled bounty made every difficulty lever self-funding (the column paid for the board that kills it); flat pay ⇒ income grows with N, costs grow with N×TL ⇒ a real wall forms (probe)

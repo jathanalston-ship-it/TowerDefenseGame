@@ -25,6 +25,20 @@ export const ICHOR = {
   campaignAmount: 12, // …pays this on FIRST clear only
   infiniteBand: 5, // every Nth Infinite wave…
   infinitePerBand: 2, // …pays this per NEW band of the best-wave RECORD (un-farmable)
+  // Boss Rush — the PRIMARY repeatable Ichor lane (docs/BOSS-RUSH.md §ichor). Keyed to the
+  // single-run boss RECORD (save.rushBestBoss), same un-farmable band construction: matching
+  // your record pays nothing; every NEW band of 5 bleeds Ichor, every NEW band of 10 also
+  // drops a weighted-common Bio-Container.
+  rushBossBand: 5, // every Nth NEW record boss…
+  rushBossPerBand: 2, // …pays this Ichor
+  rushVaultBand: 10, // every Nth NEW record boss additionally drops a Bio-Container…
+  rushVaultWeights: [
+    ['common', 55],
+    ['rare', 28],
+    ['epic', 12],
+    ['legendary', 4],
+    ['exotic', 1],
+  ] as const, // …of this rarity (weighted hard toward common)
   // The container gamble: an independent roll per opened Bio-Container. No pity — this is
   // the luck engine. Premium (epic+) containers bleed a little more often.
   dropChance: 0.22,
@@ -62,6 +76,36 @@ export function ichorForDepthRecord(prevBestWave: number, wave: number): number 
   return Math.max(0, now - prev) * ICHOR.infinitePerBand;
 }
 
+/** New-band Boss Rush payout: bands of `rushBossBand` bosses FIRST felled in a single run.
+ *  Record semantics: record 10 → an 11-boss run pays 0 (band 15 not reached); 15 pays once. */
+export function ichorForBossRecord(prevBestBoss: number, bosses: number): number {
+  const prev = Math.floor(Math.max(0, prevBestBoss) / ICHOR.rushBossBand);
+  const now = Math.floor(Math.max(0, bosses) / ICHOR.rushBossBand);
+  return Math.max(0, now - prev) * ICHOR.rushBossPerBand;
+}
+
+/** Bio-Containers owed for NEW `rushVaultBand` bands of the single-run boss record. */
+export function vaultsForBossRecord(prevBestBoss: number, bosses: number): number {
+  const prev = Math.floor(Math.max(0, prevBestBoss) / ICHOR.rushVaultBand);
+  return Math.max(0, Math.floor(Math.max(0, bosses) / ICHOR.rushVaultBand) - prev);
+}
+
+/** Roll one record-band vault's rarity (weighted hard toward common). `rng` is [0,1). */
+export function rollRushVaultRarity(rng: () => number): string {
+  const total = ICHOR.rushVaultWeights.reduce((a, [, w]) => a + w, 0);
+  let r = rng() * total;
+  for (const [rarity, w] of ICHOR.rushVaultWeights) {
+    r -= w;
+    if (r < 0) return rarity;
+  }
+  return ICHOR.rushVaultWeights[0][0];
+}
+
+/** The next record boss count that pays Ichor — the "Lifetime Bosses 13/15" display base. */
+export function nextRushIchorAt(bestBoss: number): number {
+  return (Math.floor(Math.max(0, bestBoss) / ICHOR.rushBossBand) + 1) * ICHOR.rushBossBand;
+}
+
 // ── The market itself ───────────────────────────────────────────────────────────────────────
 
 export const MARKET = {
@@ -82,6 +126,8 @@ export const MARKET = {
     ['legendary', 6],
   ] as const,
   equipPrice: { rare: 12, epic: 20, legendary: 34 } as Record<string, number>,
+  staminaPackPrice: 8, // Boss Rush stamina pack: +staminaPackQty entry fuel for Ichor…
+  staminaPackQty: 20, // …one extra gauntlet entry per pack (overflow-capped on grant)
   mtxEnabled: false, // the premium-acquire seam stays CLOSED — no payment code exists
 } as const;
 
@@ -91,7 +137,8 @@ export type MarketGood =
   | { good: 'scrap'; qty: number }
   | { good: 'geneEssence'; qty: number }
   | { good: 'equipment'; equipRarity: 'rare' | 'epic' | 'legendary' } // concrete item rolls at purchase
-  | { good: 'container'; rarity: string };
+  | { good: 'container'; rarity: string }
+  | { good: 'stamina'; qty: number }; // Boss Rush entry fuel (docs/BOSS-RUSH.md §stamina)
 
 export interface MarketSlot {
   id: string; // stable within its window: `${window}:${index}`
@@ -149,7 +196,7 @@ export function rollStock(seed: number, window: number, roster: MarketRoster): M
     }
   }
 
-  // Ichor tier — 3 distinct rows from the premium pool (4 authored rows).
+  // Ichor tier — 3 distinct rows from the premium pool (5 authored rows).
   const premiumPool: (() => { price: number; item: MarketGood })[] = [
     () => {
       const qty = 40 + rng.int(41); // 40–80
@@ -167,10 +214,13 @@ export function rollStock(seed: number, window: number, roster: MarketRoster): M
       const qty = 25 + rng.int(26); // 25–50
       return { price: Math.ceil(qty / 4), item: { good: 'geneEssence', qty } };
     },
+    () => ({ price: MARKET.staminaPackPrice, item: { good: 'stamina', qty: MARKET.staminaPackQty } }),
   ];
   // pick 3 distinct row indices, order-preserving
-  const drop = rng.int(premiumPool.length);
-  const premium = premiumPool.filter((_, i) => i !== drop).map((f) => f());
+  const dropA = rng.int(premiumPool.length);
+  let dropB = rng.int(premiumPool.length - 1);
+  if (dropB >= dropA) dropB++;
+  const premium = premiumPool.filter((_, i) => i !== dropA && i !== dropB).map((f) => f());
 
   // Container(s) — the premium centerpiece. A 2nd one replaces an ichor-goods row.
   const containers: { price: number; item: MarketGood }[] = [];

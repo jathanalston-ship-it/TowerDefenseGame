@@ -3,13 +3,14 @@
 // Rewards pay per boss DEFEATED, a Gene Card drafts every 2nd wave, and the run only ends when
 // the Nucleus falls. This terminal explains the contract, forecasts the escalation, and launches.
 
-import { useState, type MutableRefObject } from 'react';
+import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { DOCTRINES } from '../core/doctrines';
 import { RUSH } from '../core/config';
+import { ICHOR, nextRushIchorAt } from '../core/market';
 import { hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { ACHIEVEMENTS } from '../state/achievements';
@@ -48,8 +49,24 @@ export function BossRushScreen({
   const lootMult = modeLootMult({ endless: false, campaign: false, bossRush: true });
   const milestones = ACHIEVEMENTS.filter((a) => a.id.startsWith('rush_'));
   const unlocked = new Set(save.achievements);
+  // Stamina ticks in real time — a 1s clock keeps the bar + regen countdown live.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const stamina = meta.rushStamina(now);
+  const canEnter = stamina.freeAvailable || stamina.value >= RUSH.staminaCost;
+  const mm = Math.floor(stamina.nextInMs / 60000);
+  const ss = Math.floor((stamina.nextInMs % 60000) / 1000);
+  // Ichor bleed progress (docs/BOSS-RUSH.md §ichor): the single-run boss RECORD vs its next band.
+  const nextIchor = nextRushIchorAt(save.rushBestBoss);
+  const nextVault = (Math.floor(save.rushBestBoss / ICHOR.rushVaultBand) + 1) * ICHOR.rushVaultBand;
+  const bandPct = Math.round(((save.rushBestBoss % ICHOR.rushBossBand) / ICHOR.rushBossBand) * 100);
 
   const start = (): void => {
+    const entry = meta.spendRushEntry();
+    if (!entry.ok) return; // out of stamina — the button is disabled, this is belt-and-braces
     audio.resume();
     audio.cue('ui');
     meta.notePredictionBaseline('bossRush', difficultyPref('bossrush'));
@@ -63,12 +80,36 @@ export function BossRushScreen({
         <p className="subtitle">The gauntlet. Wave 1 is one apex organism. Wave 2 is two. Every wave, the siege column grows — and every boss you fell pays.</p>
 
         <div className="play-cta">
-          <button className="primary play-start rush-start" onClick={start} title="Wave N = N assembled bosses, forever">
-            ☠ Enter the Gauntlet
+          <button
+            className="primary play-start rush-start"
+            onClick={start}
+            disabled={!canEnter}
+            title={canEnter ? 'Wave N = N assembled bosses, forever' : 'Out of stamina — it regenerates over time'}
+          >
+            ☠ Enter the Gauntlet · {stamina.freeAvailable ? 'FREE today' : `${RUSH.staminaCost} stamina`}
           </button>
           <span className="inf-hazard" title="Composite difficulty of this configuration">
             HAZARD <b className="inf-skulls">{'◆'.repeat(hazard)}{'◇'.repeat(5 - hazard)}</b>
           </span>
+        </div>
+
+        {/* ── Stamina — the gauntlet's session fuel (docs/BOSS-RUSH.md §stamina) ── */}
+        <div className={`rush-stamina${!canEnter ? ' is-empty' : ''}`} role="group" aria-label="Gauntlet stamina">
+          <div className="rush-sta-head">
+            <span>⚡ Stamina</span>
+            <b>{stamina.value}/{RUSH.staminaMax}{stamina.value > RUSH.staminaMax ? ' (overflow)' : ''}</b>
+          </div>
+          <div className="rush-sta-bar">
+            <i style={{ width: `${Math.min(100, (stamina.value / RUSH.staminaMax) * 100)}%` }} />
+          </div>
+          <div className="rush-sta-foot">
+            {stamina.freeAvailable && <span className="rush-sta-free">FIRST RUSH TODAY: FREE</span>}
+            <span>
+              {stamina.nextInMs > 0
+                ? `+1 in ${mm}:${String(ss).padStart(2, '0')} · +1 / ${Math.round(RUSH.staminaRegenSec / 60)} min`
+                : 'Fully charged'}
+            </span>
+          </div>
         </div>
 
         <PredictionPanel mode="bossRush" difficultyId={diff} label="Boss Rush Wave" />
@@ -114,6 +155,20 @@ export function BossRushScreen({
           <div className="inf-fc-row"><span>Boss threat level</span><b>+{RUSH.bossTlPerWave} / wave</b></div>
           <div className="inf-fc-row"><span>Deploy stagger</span><b>{RUSH.bossStagger}s apart</b></div>
           <div className="inf-fc-row"><span>Loot rate</span><b>×{lootMult.toFixed(2)} + per-boss bonus</b></div>
+        </div>
+
+        {/* ── Ichor bleed — the lifetime-record bands (docs/BOSS-RUSH.md §ichor) ── */}
+        <div className="panel rush-ichor">
+          <div className="inf-fc-k">Ichor bleed — lifetime record</div>
+          <div className="rush-mile">
+            <div className="rush-mile-head">
+              <span>Lifetime Bosses {save.rushBestBoss}/{nextIchor}</span>
+              <b>next +{ICHOR.rushBossPerBand} Ichor</b>
+            </div>
+            <div className="rush-mile-bar"><i style={{ width: `${bandPct}%` }} /></div>
+          </div>
+          <div className="inf-fc-row"><span>Bio-Container band</span><b>at {nextVault} bosses</b></div>
+          <div className="inf-fc-row"><span>Rule</span><b>only NEW single-run records pay</b></div>
         </div>
 
         {/* ── Gauntlet milestones — the mode's own achievement ladder ── */}

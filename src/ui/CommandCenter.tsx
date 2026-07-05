@@ -338,7 +338,7 @@ function Modes({ start, onStart, onStartEndless, go }: WidgetCtx): ReactNode {
   const rushRewards: PreviewChip[] = [
     { label: 'Cores / boss', color: 'var(--gold)' },
     { label: 'Loot / boss', color: 'var(--r-epic)' },
-    { label: 'Gene draft ×2', color: 'var(--r-rare)' },
+    { label: 'Ichor / records', color: 'var(--viral)' },
   ];
   return (
     <section className="mc-secondary" aria-label="Other modes">

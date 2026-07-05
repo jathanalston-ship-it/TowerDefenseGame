@@ -97,7 +97,7 @@ graph TD
 | **Power Score** (`power`) | `content-infra` | `campaign` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `towers` · `heroes` · `loot` · `gene-cards` · `prestige` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
-| **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | — | — | `rushBestWave` · `rushBestBoss` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
+| **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | — | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
@@ -214,7 +214,7 @@ graph TD
 - **Depends on:** `engine` · `bosses` · `loot` · `difficulty`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
-- **Save fields:** `rushBestWave` · `rushBestBoss`
+- **Save fields:** `rushBestWave` · `rushBestBoss` · `rushStamina`
 - **Tutorial:** — · **Help mechanics:** `boss-rush`
 - **HUD surfaces:** — · **UI screens:** `BossRushScreen` · `CommandCenter`
 - **Collection:** — · **Achievements:** `rush_first` · `rush_wave5` · `rush_wave10` · `rush_boss15` · `rush_bosses50` · `rush_bosses250`

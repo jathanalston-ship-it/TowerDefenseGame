@@ -192,6 +192,18 @@ export function Results({
     stats: [
       { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon />, accent: 'var(--caustic)' },
       { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <CurrencyIcon id="genomeCores" />, accent: 'var(--gold)' },
+      // Boss Rush lifetime-record bands (docs/BOSS-RUSH.md §ichor): the record progress always
+      // shows on a rush run; the Ichor row appears only when a NEW record actually bled.
+      ...(outcome.rushProgress
+        ? [{
+            id: 'rush-record', label: 'Lifetime Bosses (record)', value: outcome.rushProgress.bestBoss,
+            format: (n: number) => `${n} / next Ichor at ${outcome.rushProgress!.nextIchorAt}`,
+            accent: 'var(--danger)', celebrate: outcome.rushProgress.ichor > 0,
+          }]
+        : []),
+      ...(outcome.rushProgress && outcome.rushProgress.ichor > 0
+        ? [{ id: 'rush-ichor', label: 'Ichor Bled (new record)', value: outcome.rushProgress.ichor, icon: <CurrencyIcon id="ichor" />, accent: 'var(--viral)', celebrate: true }]
+        : []),
     ],
   });
 

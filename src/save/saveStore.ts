@@ -29,6 +29,9 @@ export interface SaveData {
   // ── Boss Rush records (docs/BOSS-RUSH.md) — additive; 0 for older saves ──
   rushBestWave: number; // deepest Boss Rush wave reached (reward-qualify gate + prediction floor)
   rushBestBoss: number; // most bosses defeated in a SINGLE rush run (the lifetime-record band base)
+  // Boss Rush stamina (docs/BOSS-RUSH.md §stamina) — lazily regenerated from updatedAt; the
+  // day key records the last FREE daily entry (ISO date, UTC).
+  rushStamina: { value: number; updatedAt: number; freeDay: string };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -294,6 +297,7 @@ export function defaultSave(): SaveData {
     bestWave: 0,
     rushBestWave: 0,
     rushBestBoss: 0,
+    rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
     totalRuns: 0,
     lifetimeShards: 0,
     cardsSeen: 0,
@@ -503,6 +507,7 @@ function withDefaults(data: SaveData): SaveData {
     // Boss Rush records (docs/BOSS-RUSH.md): pre-rush saves ⇒ 0 (additive).
     rushBestWave: Math.max(0, Math.floor(Number((data as { rushBestWave?: unknown }).rushBestWave) || 0)),
     rushBestBoss: Math.max(0, Math.floor(Number((data as { rushBestBoss?: unknown }).rushBestBoss) || 0)),
+    rushStamina: sanitizeRushStamina((data as { rushStamina?: unknown }).rushStamina),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
   };
@@ -613,6 +618,17 @@ function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): Lifetime
     // v21→v22: profile ledgers — zeroed/empty for older saves (additive).
     doctrineRuns: { ...base.doctrineRuns, ...s.doctrineRuns },
     cardDrafts: { ...base.cardDrafts, ...s.cardDrafts },
+  };
+}
+
+/** Boss Rush stamina: numeric clamps + a plausible ISO day key; pre-stamina saves start FULL. */
+function sanitizeRushStamina(raw: unknown): SaveData['rushStamina'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const num = (v: unknown, d: number): number => (Number.isFinite(Number(v)) ? Number(v) : d);
+  return {
+    value: Math.max(0, Math.min(120, Math.floor(num(o.value, 100)))),
+    updatedAt: Math.max(0, Math.floor(num(o.updatedAt, 0))),
+    freeDay: typeof o.freeDay === 'string' ? o.freeDay.slice(0, 10) : '',
   };
 }
 

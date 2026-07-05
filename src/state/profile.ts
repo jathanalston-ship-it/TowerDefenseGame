@@ -25,6 +25,7 @@ import { favoriteTowerName } from './stats';
 import { accountPowerParts, collectionContextOf } from './meta';
 import { highestCampaignStage } from '../save/derive';
 import { difficultyPref, vaultLedger } from './prefs';
+import { nextRushIchorAt } from '../core/market';
 
 // ── The stat provider registry ────────────────────────────────────────────────
 
@@ -37,13 +38,14 @@ export interface ProfileStat {
   progress?: number; // 0..1 → renders a bar under the value
 }
 
-export type ProfileSectionId = 'combat' | 'economy' | 'campaign' | 'infinite' | 'collection' | 'analytics';
+export type ProfileSectionId = 'combat' | 'economy' | 'campaign' | 'infinite' | 'bossrush' | 'collection' | 'analytics';
 
 export const PROFILE_SECTION_TITLES: Record<ProfileSectionId, string> = {
   combat: 'Combat',
   economy: 'Economy',
   campaign: 'Campaign',
   infinite: 'Infinite',
+  bossrush: 'Boss Rush',
   collection: 'Collection',
   analytics: 'Performance Analytics',
 };
@@ -143,6 +145,16 @@ profileRegistry.registerAll([
       { id: 'avg-wave', label: 'Average Final Wave', value: s.totalRuns > 0 ? String(Math.round(s.stats.waveSum / s.totalRuns)) : '—', hint: 'Across every settled run, all modes.' },
       { id: 'avg-run', label: 'Average Run Length', value: s.totalRuns > 0 ? fmtDuration(s.stats.playtimeSec / s.totalRuns) : '—' },
       { id: 'longest', label: 'Longest Run', value: s.stats.longestRunSec > 0 ? fmtDuration(s.stats.longestRunSec) : '—' },
+    ],
+  },
+  {
+    id: 'bossrush-core', section: 'bossrush', order: 10,
+    stats: (s) => [
+      { id: 'rush-best', label: 'Deepest Wave', value: String(s.rushBestWave), color: 'var(--danger)' },
+      { id: 'rush-record', label: 'Best Single Run', value: `${s.rushBestBoss} bosses` },
+      { id: 'rush-lifetime', label: 'Lifetime Bosses Felled', value: String(s.stats.rushBossKills), color: 'var(--gold)' },
+      { id: 'rush-runs', label: 'Gauntlet Runs', value: String(s.stats.rushRuns) },
+      { id: 'rush-ichor', label: 'Next Ichor Band', value: `${s.rushBestBoss}/${nextRushIchorAt(s.rushBestBoss)}`, hint: 'Every NEW 5-boss single-run record bleeds Ichor; every 10th drops a Bio-Container.' },
     ],
   },
   {
