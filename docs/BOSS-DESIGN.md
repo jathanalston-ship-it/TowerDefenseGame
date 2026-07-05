@@ -181,3 +181,45 @@ stages. Enemy `armor` shipped as a `BossDef.armor` field; the "armor-facing" les
 
 **Definition of done per boss:** a new player who lost can articulate the lesson; the build
 that won differs from the previous boss's winning build; zero HP/damage-only phases.
+
+---
+
+## §siege (2026-07) — siege behaviors & the four-phase mutation arc
+
+**Bosses are encounters, not big HP bars.** The module library grew from 9 to 16 kinds — the
+seven SIEGE behaviors pressure placement, hero positioning, and biomass in ways normal enemies
+never do (each with an explicit counter):
+
+| Kind | What it does | Counter |
+|---|---|---|
+| `corecrush` | Grips the Nucleus AT the Hive, draining Integrity/s; EXPOSED while gripping (`BOSS.gripExposeMult` bonus damage taken) | Burst it off |
+| `burrower` | Submerges (untargetable, immobile), then ERUPTS beside the Hive | Keep a back line |
+| `bulwark` | Grows a bio-shield with real HP (rides the enemy `shield` absorb) | Sustained damage |
+| `corruptor` | Seeds a decaying pool ON the nearest tower cluster; towers inside deal `frac` less damage (strongest pool applies, no stacking) | Value outside the pool |
+| `gravitas` | Drags heroes toward itself (never inside 40px) | Hero mobility/positioning |
+| `dampener` | Aura window: nearby towers fire `frac` slower (soft suppressor — they still shoot) | Spread, long-range value |
+| `rally` | PHASE-ENTRY reinforcements, `amount + floor(missingHP × 3)` adds | Bank AoE for the shift |
+
+**Phases (canonical four-beat arc):** procedural assembly cuts the HP bar at
+**100 / 70 / 40 / 15%** (shorter fights truncate the same table), each phase adds a module,
+stamps a `visualTier`, and the FINAL phase of a 3+ arc is the **desperation beat**
+(×1.25 speed, ×1.2 siege damage via `bossPhaseDamageMult`). Every transition is a spectacle:
+`MUTATING!` float, splice cue, hit-flash, a `bossPhase` gameEvent (app-gated like
+`bossKilled`), and the renderer grows NEW anatomy per tier — orbiting limb-buds (t1+), a
+counter-rotating second spike crown (t2+), a wounded-red desperation halo (t3). Corruption
+pools render as seething violet ground-rot; a burrowed boss draws only its churning mound;
+a gripping boss shows a thick crushing tether into the Core plus an EXPOSED gold ring.
+
+**No hardcoded boss logic:** everything remains data (`BossDef` modules/phases through the
+existing `bossRegistry` + `bossProblems` validation, which now enforces the new kinds'
+params). `assembleBoss` composes 2–5 modules and up to 4 phases from the widened pool, rising
+with Threat Level — future bosses are one def or one procedural roll. The Purge Engine
+(stage 30) and The Progenitor now run full four-phase siege arcs (desperation CORE CRUSH
+finale on the Purge Engine); the Milestone-1 teaching bosses keep their single-lesson purity.
+
+**Golden safety:** framework bosses never spawn in the pinned standard runs, and every new
+fold is identity off the boss path (dampen ×1, corruption ×1 with no pools, phase damage ×1)
+— the golden suite stayed byte-identical with NO re-pin. Contract tests:
+`core/bossmodules.test.ts` §siege (grip drain + peel-break, burrow untargetability + eruption,
+bulwark soak, pool seed/decay/placement, hero drag, dampen window, rally + visualTier stamp,
+validation rejections).

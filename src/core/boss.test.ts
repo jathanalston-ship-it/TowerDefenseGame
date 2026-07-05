@@ -20,7 +20,7 @@ describe('boss framework', () => {
     const high = assembleBoss(mk(1), 40);
     expect(high.modules.length).toBeGreaterThanOrEqual(low.modules.length);
     expect(high.phases.length).toBeGreaterThanOrEqual(low.phases.length);
-    expect(high.phases.length).toBeLessThanOrEqual(3); // capped (fairness)
+    expect(high.phases.length).toBeLessThanOrEqual(4); // capped (fairness; §phases full arc)
   });
 
   it('every assembled boss has ≥2 modules and a from-full first phase (fair)', () => {
@@ -60,6 +60,6 @@ describe('Milestone-1 campaign boss line (docs/BOSS-DESIGN §4)', () => {
     expect(campaignBossFor(15)!.modules.some((m) => m.kind === 'healer')).toBe(true); // The Mender
     expect(campaignBossFor(20)!.modules.some((m) => m.kind === 'carapace')).toBe(true); // Chitin Colossus
     expect(campaignBossFor(25)!.modules.some((m) => m.kind === 'splitter')).toBe(true); // Mitotic Horror
-    expect(campaignBossFor(30)!.phases.length).toBe(3); // The Purge Engine — a real gauntlet
+    expect(campaignBossFor(30)!.phases.length).toBe(4); // The Purge Engine — the full siege arc (desperation CRUSH finale)
   });
 });

@@ -139,6 +139,10 @@ export interface BossRuntime {
   carapaceT: number; // seconds left on the carapace window (0 ⇒ carapace resets to 0)
   splitsLeft: number; // splitter: generations this lineage may still split into on death (0 = terminal)
   telegraph: string | null; // current telegraphed action (drives the banner)
+  // ── Siege behaviors (docs/BOSS-DESIGN.md §siege) — all 0 for pre-siege bosses ──
+  grip: number; // corecrush: seconds left crushing the Nucleus (exposed: takes bonus damage)
+  burrow: number; // burrower: seconds submerged (untargetable; emerges beside the Hive)
+  visualTier: number; // phase mutation stage the renderer draws (0 = base form)
 }
 
 /** A transient banner shown when a tower buys a branch tier (the "mutation" celebration). `id`
@@ -170,6 +174,8 @@ export interface Tower {
   overcharged: boolean; // buffed by an adjacent reactor this tick
   bornAt: number; // sim-time placed (drives the grow-in animation)
   disabledUntil: number; // sim-time a boss suppressor re-enables it (0 = active)
+  dampenedUntil: number; // sim-time a boss dampener aura releases its fire rate (0 = full speed)
+  dampenFrac: number; // fire-rate fraction LOST while dampened (0.3 ⇒ 30% slower cadence)
   // ── Per-instance branch upgrade (TOWER-BRANCHES.md). Run-temporary (never persisted);
   //    `branchId` locks on the Tier-1 purchase, `tier` climbs 1..5. 0/null ⇒ unbranched ⇒
   //    identical to a branch-less run (golden-safe). `pulseCd` paces a support tower's

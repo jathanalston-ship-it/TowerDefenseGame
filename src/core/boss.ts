@@ -22,16 +22,25 @@ export type BossModuleKind =
   | 'suppressor' // disables nearby towers for a window (counter: spread value)
   | 'healer' // pulses HP to itself + nearby adds (counter: KILL PRIORITY / burst it down)
   | 'carapace' // raises heavy bonus armor for a window (counter: Fracture → Shred cracks it)
-  | 'splitter'; // on death, splits into smaller copies (counter: spread damage, don't overkill)
+  | 'splitter' // on death, splits into smaller copies (counter: spread damage, don't overkill)
+  // ── Siege behaviors (docs/BOSS-DESIGN.md §siege) — the encounter-defining tier ──
+  | 'corecrush' // grabs the Nucleus and crushes it over time; EXPOSED while gripping (counter: burst the grip off)
+  | 'burrower' // submerges (untargetable) and erupts beside the Hive (counter: keep a back line)
+  | 'bulwark' // grows a biological shield with real HP (counter: sustained damage breaks it)
+  | 'corruptor' // seeds a corruption pool that weakens towers inside (counter: value outside the pool)
+  | 'gravitas' // drags heroes toward itself (counter: hero positioning / mobility)
+  | 'dampener' // an aura that slows tower fire rate nearby (counter: spread, long-range value)
+  | 'rally'; // PHASE-ENTRY reinforcements scaled by missing HP (counter: save AoE for the shift)
 
 export interface BossModule {
   kind: BossModuleKind;
   cooldown: number; // seconds between activations
-  amount?: number; // spawner: add count · channeler: Nucleus dmg · enrager: +frac · healer: HP/pulse · carapace: bonus armor · splitter: copies per split
-  addKind?: EnemyKind; // spawner add archetype
-  duration?: number; // shieldphase / channeler / carapace window length
-  radius?: number; // suppressor / healer reach (px)
+  amount?: number; // spawner/rally: add count · channeler: Nucleus dmg · enrager: +frac · healer: HP/pulse · carapace: bonus armor · splitter: copies · corecrush: Nucleus dmg/s · bulwark: shield HP · gravitas: pull px
+  addKind?: EnemyKind; // spawner / rally add archetype
+  duration?: number; // shieldphase / channeler / carapace / corecrush / burrower / corruptor / dampener window length
+  radius?: number; // suppressor / healer / corruptor / gravitas / dampener reach (px)
   generations?: number; // splitter: how many times a lineage may split before it stops (fair population cap)
+  frac?: number; // corruptor: tower damage LOST inside the pool · dampener: fire rate LOST in the aura
 }
 
 export interface BossPhase {
@@ -39,6 +48,9 @@ export interface BossPhase {
   modules: number[]; // indices into BossDef.modules active during this phase
   speedMult?: number; // phase modifier
   damageMult?: number;
+  /** Renderer mutation stage entered with this phase (extra limbs/armor/aura — docs/BOSS-DESIGN.md
+   *  §phases). Defaults to the phase index, so every shift visibly mutates the boss. */
+  visualTier?: number;
 }
 
 export interface BossDef {
@@ -80,13 +92,15 @@ export const BOSS_DEFS: Record<string, BossDef> = {
     modules: [
       { kind: 'spawner', cooldown: 5, amount: 4, addKind: 'runner' },
       { kind: 'enrager', cooldown: 9, amount: 1 },
-      { kind: 'shieldphase', cooldown: 14, duration: 3 },
+      { kind: 'bulwark', cooldown: 15, amount: 240 }, // a REAL bio-shield — sustained damage cracks it
       { kind: 'channeler', cooldown: 16, duration: 3.5, amount: 18 },
+      { kind: 'rally', cooldown: 999, amount: 4, addKind: 'runner' }, // phase-entry brood bursts
     ],
     phases: [
-      { threshold: 1, modules: [0, 1] }, // P1: summon + ramp
-      { threshold: 0.6, modules: [0, 1, 2] }, // P2: + shield windows
-      { threshold: 0.3, modules: [0, 2, 3], speedMult: 1.15 }, // P3: + Nucleus channel, faster
+      { threshold: 1, modules: [0, 1], visualTier: 0 }, // P1: summon + ramp
+      { threshold: 0.7, modules: [0, 1, 2, 4], visualTier: 1 }, // P2: + bio-shield, rally on entry
+      { threshold: 0.4, modules: [0, 2, 3, 4], speedMult: 1.12, visualTier: 2 }, // P3: + Nucleus channel
+      { threshold: 0.15, modules: [0, 3, 4], speedMult: 1.25, damageMult: 1.2, visualTier: 3 }, // desperation
     ],
     modifiers: ['regenerator'],
   },
@@ -167,13 +181,16 @@ export const BOSS_DEFS: Record<string, BossDef> = {
       { kind: 'spawner', cooldown: 6, amount: 4, addKind: 'runner' }, // echoes Brood Cyst
       { kind: 'carapace', cooldown: 8, amount: 30, duration: 3.5 }, // echoes Chitin Colossus
       { kind: 'healer', cooldown: 6, amount: 160, radius: 150 }, // echoes The Mender
-      { kind: 'enrager', cooldown: 10, amount: 1 },
+      { kind: 'dampener', cooldown: 9, duration: 5, radius: 160, frac: 0.3 }, // the purge field slows your guns
       { kind: 'channeler', cooldown: 14, duration: 3.5, amount: 24 }, // echoes The First Antibody
+      { kind: 'corecrush', cooldown: 14, amount: 7, duration: 4 }, // the endgame: it GRABS the Nucleus
+      { kind: 'rally', cooldown: 999, amount: 5, addKind: 'rusher' },
     ],
     phases: [
-      { threshold: 1, modules: [0] }, // P1: swarm
-      { threshold: 0.66, modules: [0, 1, 2] }, // P2: armor + heal — the mid-fight adaptation
-      { threshold: 0.33, modules: [0, 3, 4], speedMult: 1.15 }, // P3: enrage + Nucleus channel — the gauntlet
+      { threshold: 1, modules: [0], visualTier: 0 }, // P1: swarm
+      { threshold: 0.7, modules: [0, 1, 2, 6], visualTier: 1 }, // P2: armor + heal — the mid-fight adaptation
+      { threshold: 0.4, modules: [0, 3, 4, 6], speedMult: 1.12, visualTier: 2 }, // P3: dampen field + channel
+      { threshold: 0.15, modules: [0, 4, 5, 6], speedMult: 1.25, damageMult: 1.2, visualTier: 3 }, // desperation: CRUSH
     ],
     modifiers: ['regenerator'],
   },
@@ -208,9 +225,11 @@ export function bossProblems(d: BossDef): string[] {
   for (const p of d.phases) for (const mi of p.modules) if (mi < 0 || mi >= d.modules.length) errs.push(`phase references out-of-range module ${mi}`);
   for (const m of d.modules) {
     if (m.cooldown <= 0) errs.push(`${m.kind} needs a positive cooldown`);
-    if ((m.kind === 'spawner' || m.kind === 'healer' || m.kind === 'carapace' || m.kind === 'channeler' || m.kind === 'splitter') && !(m.amount && m.amount > 0)) errs.push(`${m.kind} needs a positive amount`);
-    if (m.kind === 'healer' && !(m.radius && m.radius > 0)) errs.push('healer needs a radius');
+    if ((m.kind === 'spawner' || m.kind === 'healer' || m.kind === 'carapace' || m.kind === 'channeler' || m.kind === 'splitter' || m.kind === 'corecrush' || m.kind === 'bulwark' || m.kind === 'gravitas' || m.kind === 'rally') && !(m.amount && m.amount > 0)) errs.push(`${m.kind} needs a positive amount`);
+    if ((m.kind === 'healer' || m.kind === 'corruptor' || m.kind === 'gravitas' || m.kind === 'dampener') && !(m.radius && m.radius > 0)) errs.push(`${m.kind} needs a radius`);
     if (m.kind === 'splitter' && !(m.generations && m.generations > 0)) errs.push('splitter needs generations ≥ 1');
+    if ((m.kind === 'corruptor' || m.kind === 'dampener') && !(m.frac && m.frac > 0 && m.frac < 1)) errs.push(`${m.kind} needs a frac in (0,1)`);
+    if ((m.kind === 'corecrush' || m.kind === 'burrower' || m.kind === 'corruptor' || m.kind === 'dampener') && !(m.duration && m.duration > 0)) errs.push(`${m.kind} needs a positive duration`);
   }
   return errs;
 }
@@ -226,6 +245,14 @@ const MODULE_POOL: BossModule[] = [
   { kind: 'suppressor', cooldown: 12, duration: 4, radius: 130 }, // disables nearby towers
   { kind: 'healer', cooldown: 5, amount: 130, radius: 160 }, // pulses HP to itself + nearby adds
   { kind: 'carapace', cooldown: 8, amount: 30, duration: 3.5 }, // hardens for a window
+  // ── Siege tier (docs/BOSS-DESIGN.md §siege) ──
+  { kind: 'corecrush', cooldown: 14, amount: 6, duration: 4 }, // 6 Integrity/s while gripping — but EXPOSED
+  { kind: 'burrower', cooldown: 16, duration: 2.4 }, // vanish → erupt beside the Hive
+  { kind: 'bulwark', cooldown: 15, amount: 260 }, // a biological shield with real HP
+  { kind: 'corruptor', cooldown: 13, duration: 6, radius: 95, frac: 0.35 }, // pool: towers inside hit 35% softer
+  { kind: 'gravitas', cooldown: 12, amount: 90, radius: 240 }, // drag heroes 90px toward itself
+  { kind: 'dampener', cooldown: 9, duration: 5, radius: 150, frac: 0.3 }, // nearby towers fire 30% slower
+  { kind: 'rally', cooldown: 999, amount: 4, addKind: 'runner' }, // phase-ENTRY reinforcements (missing-HP scaled)
 ];
 const CHASSIS_KINDS: BossChassis[] = ['bruiser', 'artillery', 'swarmlord', 'controller', 'juggernaut'];
 const MODIFIER_POOL = ['regenerator', 'bulwark', 'volatile', 'hastening'];
@@ -254,8 +281,8 @@ function pickChassis(rng: Rng, bias?: Partial<Record<BossChassis, number>>): Bos
 export function assembleBoss(rng: Rng, tl: number, chassisBias?: Partial<Record<BossChassis, number>>): BossDef {
   const chassis = pickChassis(rng, chassisBias);
   const base = CHASSIS[chassis];
-  const moduleCount = Math.max(2, Math.min(4, 2 + Math.floor(tl / 8)));
-  const phaseCount = Math.max(1, Math.min(3, 1 + Math.floor(tl / 6)));
+  const moduleCount = Math.max(2, Math.min(5, 2 + Math.floor(tl / 6)));
+  const phaseCount = Math.max(1, Math.min(4, 1 + Math.floor(tl / 5)));
 
   // unique modules
   const modules: BossModule[] = [];
@@ -268,12 +295,23 @@ export function assembleBoss(rng: Rng, tl: number, chassisBias?: Partial<Record<
     modules.push({ ...m });
   }
 
-  // phases split the HP bar; each adds a module so late phases are busier
+  // Phases split the HP bar on the canonical siege beats (docs/BOSS-DESIGN.md §phases:
+  // 100–70 / 70–40 / 40–15 / 15–0); shorter fights use the same table truncated. Each phase
+  // adds a module so late phases are busier, stamps a visual mutation tier, and the FINAL
+  // phase of a full arc is the desperation beat (faster, harder-hitting).
+  const THRESHOLDS: Record<number, number[]> = { 1: [1], 2: [1, 0.5], 3: [1, 0.6, 0.3], 4: [1, 0.7, 0.4, 0.15] };
+  const cuts = THRESHOLDS[phaseCount];
   const phases: BossPhase[] = [];
   for (let p = 0; p < phaseCount; p++) {
-    const threshold = p === 0 ? 1 : 1 - p / phaseCount;
+    const desperation = phaseCount >= 3 && p === phaseCount - 1;
     const active = modules.map((_, i) => i).slice(0, Math.min(modules.length, 1 + p + 1));
-    phases.push({ threshold, modules: active, speedMult: 1 + p * 0.08 });
+    phases.push({
+      threshold: cuts[p],
+      modules: active,
+      speedMult: desperation ? 1.25 : 1 + p * 0.08,
+      ...(desperation ? { damageMult: 1.2 } : {}),
+      visualTier: p,
+    });
   }
 
   const modCount = Math.min(MODIFIER_POOL.length, Math.floor(tl / 10));

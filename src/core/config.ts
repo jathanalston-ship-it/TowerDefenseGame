@@ -1369,6 +1369,7 @@ export const BOSS = {
   baseHp: 1600, // × BossDef.hpMult → boss HP
   addCap: 28, // fairness cap on a spawner boss's concurrent adds (uses the global maxEnemies too)
   chargeSpeedMult: 2.6, // charger module: movement multiplier during a telegraphed dash
+  gripExposeMult: 1.25, // corecrush counterplay: damage TAKEN while gripping the Nucleus (burst it off)
 };
 
 // ── AI Director / run modes (director.ts) ───────────────────────────────────

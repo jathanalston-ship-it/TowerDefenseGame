@@ -18,6 +18,7 @@ export interface GameEventMap {
   waveStarted: { wave: number; endless: boolean };
   waveCompleted: { wave: number; endless: boolean };
   bossKilled: { defId: string; name: string; x: number; y: number };
+  bossPhase: { defId: string; name: string; phase: number }; // a boss MUTATED into its next phase (docs/BOSS-DESIGN.md §phases)
   cardChosen: { id: string; rarity: string };
   equipmentEquipped: { slot: string; defId: string; rarity: string };
   heroSpawned: { kind: string };

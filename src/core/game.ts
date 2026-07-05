@@ -226,6 +226,7 @@ export interface RenderState {
   projectiles: Projectile[];
   enemyShells: EnemyShell[]; // artillery bombardment in flight (drawn as arcing lobs)
   pools: Pool[];
+  corruptionPools: { x: number; y: number; r: number; t: number; frac: number }[]; // boss corruptor zones (docs/BOSS-DESIGN.md §siege)
   floats: FloatingText[];
   particles: Particle[];
   heroes: Hero[];
@@ -402,6 +403,7 @@ export class Game {
   private reactorCount = 0; // cached on tower placement (economy), not per tick
   private bossCount = 0; // # framework bosses on the field (gates the boss system)
   private procBosses = new Map<string, BossDef>(); // assembled boss defs by id (lookup at runtime)
+  corruptionPools: { x: number; y: number; r: number; t: number; frac: number }[] = []; // boss corruptor zones (docs/BOSS-DESIGN.md §siege; renderer draws them)
   private targetRng = (): number => this.rng.next(); // stable closure for 'random' targeting
   private projPool: Projectile[] = [];
   private partPool: Particle[] = [];
@@ -1577,6 +1579,8 @@ export class Game {
       overcharged: false,
       bornAt: this.time,
       disabledUntil: 0,
+      dampenedUntil: 0,
+      dampenFrac: 0,
       branchId: null,
       tier: 0,
       strain: 1, // Strain I — the unmutated baseline (docs/STRAIN.md)
@@ -1993,7 +1997,11 @@ export class Game {
     if (this.phase === 'wave') {
       this.spawnSystem();
       this.rebuildGrid(); // one O(n) rebuild feeds every proximity query this tick
-      if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
+      if (this.corruptionPools.length > 0) {
+      for (const cp of this.corruptionPools) cp.t -= dt;
+      this.corruptionPools = this.corruptionPools.filter((cp) => cp.t > 0);
+    }
+    if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
       this.economySystem(dt);
       this.emergencySystem(dt); // before towers: builds the in-zone set towers may override to
       this.towerSystem(dt);
@@ -2160,6 +2168,9 @@ export class Game {
         charge: 0,
         carapace: 0,
         carapaceT: 0,
+        grip: 0,
+        burrow: 0,
+        visualTier: 0,
         splitsLeft: splitter ? splitter.generations ?? 1 : 0,
         telegraph: null,
       },
@@ -2184,6 +2195,23 @@ export class Game {
         b.phase++;
         b.shielded = 0;
         b.telegraph = 'PHASE SHIFT';
+        // The MUTATION beat (docs/BOSS-DESIGN.md §phases): the boss visibly evolves — a new
+        // visual tier, a burst + heavy cue — and any `rally` module in the phase it ENTERED
+        // calls reinforcements scaled by its missing HP (the deeper the wound, the bigger the call).
+        const entered = def.phases[b.phase];
+        b.visualTier = entered.visualTier ?? b.phase;
+        e.hitFlash = FX.hitFlash;
+        this.floats.push({ x: e.x, y: e.y - 26, text: 'MUTATING!', color: def.color, life: 1 });
+        this.pushSfx('splice');
+        if (gameEvents.hasListeners('bossPhase')) gameEvents.emit('bossPhase', { defId: b.defId, name: b.name, phase: b.phase });
+        for (const mi of entered.modules) {
+          const rm = def.modules[mi];
+          if (rm.kind !== 'rally') continue;
+          const call = (rm.amount ?? 4) + Math.floor((1 - hpFrac) * 3);
+          for (let i = 0; i < call && this.enemies.length < PERF.maxEnemies; i++) {
+            this.spawnNear(rm.addKind ?? 'runner', e.x, e.y);
+          }
+        }
       }
       const phase = def.phases[b.phase];
 
@@ -2245,11 +2273,103 @@ export class Game {
             b.carapaceT = m.duration ?? 3.5;
             b.telegraph = 'CARAPACE';
             break;
+          case 'corecrush':
+            // Only fires AT the Hive: grabs the Core and crushes it over time — but the grip
+            // EXPOSES it (applyDamage amplifies hits while gripping). Burst it off.
+            if (e.sieging && b.grip <= 0 && b.burrow <= 0) {
+              b.grip = m.duration ?? 4;
+              b.telegraph = 'CORE CRUSH';
+              this.pushSfx('breach');
+            } else if (b.grip <= 0) {
+              b.moduleCd[mi] = 1.5; // not in position yet — retry soon
+            }
+            break;
+          case 'burrower':
+            // Vanish beneath the field (untargetable), then ERUPT beside the Hive.
+            if (!e.sieging && b.burrow <= 0 && b.grip <= 0) {
+              b.burrow = m.duration ?? 2.4;
+              b.telegraph = 'BURROWED';
+              e.windup = -1;
+            }
+            break;
+          case 'bulwark':
+            e.shield = Math.max(e.shield ?? 0, m.amount ?? 220); // a REAL bio-shield — sustained damage breaks it
+            b.telegraph = 'BIO-SHIELD';
+            break;
+          case 'corruptor': {
+            // Seed a corruption pool on the nearest tower (else at its own feet): towers
+            // inside hit softer until it fades. Value OUTSIDE the pool is the counter.
+            let px = e.x;
+            let py = e.y;
+            let best = Infinity;
+            for (const ct of this.towers) {
+              const cd2 = dist2(e.x, e.y, ct.x, ct.y);
+              if (cd2 < best) { best = cd2; px = ct.x; py = ct.y; }
+            }
+            this.corruptionPools.push({ x: px, y: py, r: m.radius ?? 95, t: m.duration ?? 6, frac: m.frac ?? 0.35 });
+            b.telegraph = 'CORRUPTION';
+            break;
+          }
+          case 'gravitas': {
+            // Drag every hero in reach toward itself — positioning pressure nothing else applies.
+            const gr2 = (m.radius ?? 240) * (m.radius ?? 240);
+            const pull = m.amount ?? 90;
+            for (const h of this.heroes) {
+              if (h.down) continue;
+              const hd2 = dist2(e.x, e.y, h.x, h.y);
+              if (hd2 > gr2 || hd2 < 1) continue;
+              const hd = Math.sqrt(hd2);
+              const step = Math.min(pull, Math.max(0, hd - 40)); // never INTO the body
+              h.x += ((e.x - h.x) / hd) * step;
+              h.y += ((e.y - h.y) / hd) * step;
+            }
+            b.telegraph = 'DRAG';
+            this.pushSfx('dissolve');
+            break;
+          }
+          case 'dampener': {
+            // Suppression aura: towers in reach fire slower for a window (soft suppressor).
+            const dr2 = (m.radius ?? 150) * (m.radius ?? 150);
+            for (const dtw of this.towers) {
+              if (dist2(e.x, e.y, dtw.x, dtw.y) <= dr2) {
+                dtw.dampenedUntil = Math.max(dtw.dampenedUntil, this.time + (m.duration ?? 5));
+                dtw.dampenFrac = Math.max(dtw.dampenFrac, m.frac ?? 0.3);
+              }
+            }
+            b.telegraph = 'DAMPEN FIELD';
+            break;
+          }
+          case 'rally':
+            break; // phase-ENTRY behavior — fired by the transition above, never by cooldown
         }
       }
       if (b.carapaceT > 0) {
         b.carapaceT = Math.max(0, b.carapaceT - dt);
         if (b.carapaceT <= 0) b.carapace = 0; // window closed — soft again
+      }
+      // Core-crush grip: drains Integrity continuously while attached; ends when the duration
+      // lapses or it's knocked off the Hive. EXPOSED the whole time (see applyDamage).
+      if (b.grip > 0) {
+        b.grip = Math.max(0, b.grip - dt);
+        if (!e.sieging) b.grip = 0; // peeled off the Hive — the grip breaks
+        else {
+          const crush = def.modules.find((cm) => cm.kind === 'corecrush');
+          if (crush && !this.god) this.integrity = Math.max(0, this.integrity - (crush.amount ?? 6) * dt);
+          b.telegraph = 'CORE CRUSH';
+        }
+      }
+      // Burrow: submerged (untargetable, immobile) — then ERUPTS beside the Hive.
+      if (b.burrow > 0) {
+        b.burrow = Math.max(0, b.burrow - dt);
+        b.telegraph = 'BURROWED';
+        if (b.burrow <= 0) {
+          e.x = Math.max(24, Math.min(WIDTH - 24, nucleusPoint.x + (this.rng.next() - 0.5) * 180));
+          e.y = Math.max(24, nucleusPoint.y - 110 - this.rng.next() * 40);
+          b.telegraph = 'ERUPTED';
+          e.hitFlash = FX.hitFlash;
+          this.floats.push({ x: e.x, y: e.y - 24, text: 'ERUPTION!', color: def.color, life: 0.9 });
+          this.pushSfx('dissolve');
+        }
       }
       if (b.charge > 0) {
         b.charge = Math.max(0, b.charge - dt); // count the dash window down
@@ -2257,6 +2377,25 @@ export class Game {
       }
       if (phase.speedMult && b.enrage === 0) e.speed = CHASSIS[def.chassis].speed * phase.speedMult;
     }
+  }
+
+  /** Corruption-pool damage penalty for a tower (docs/BOSS-DESIGN.md §siege): the STRONGEST
+   *  overlapping pool applies (no stacking spiral). 1 with no pools ⇒ identical fold. */
+  private towerCorruptionMult(t: Tower): number {
+    if (this.corruptionPools.length === 0) return 1;
+    let worst = 0;
+    for (const cp of this.corruptionPools) {
+      if (cp.frac > worst && dist2(t.x, t.y, cp.x, cp.y) <= cp.r * cp.r) worst = cp.frac;
+    }
+    return 1 - worst;
+  }
+
+  /** The boss's current-phase damage multiplier (desperation phases hit harder). 1 for
+   *  normal enemies and phases without a damageMult ⇒ identical fold. */
+  private bossPhaseDamageMult(e: Enemy): number {
+    if (!e.boss) return 1;
+    const def = bossDef(e.boss.defId) ?? this.procBosses.get(e.boss.defId);
+    return def?.phases[e.boss.phase]?.damageMult ?? 1;
   }
 
   /** Boss suppressor module: disable every tower within `radius` for `duration` seconds. */
@@ -2309,7 +2448,7 @@ export class Game {
         boss: {
           defId: def.id, name: def.name, phase: 0, phases: def.phases.length,
           moduleCd: def.modules.map((m) => m.cooldown * 0.6), shielded: 0, enrage: 0, channel: 0, charge: 0,
-          carapace: 0, carapaceT: 0, splitsLeft: b.splitsLeft - 1, telegraph: null,
+          carapace: 0, carapaceT: 0, grip: 0, burrow: 0, visualTier: 0, splitsLeft: b.splitsLeft - 1, telegraph: null,
         },
       });
     }
@@ -2579,9 +2718,12 @@ export class Game {
       // shines, and a fire-rate × (steady + hazard pulse). Applied OUTSIDE combineMult so the
       // identity (×1 under NEUTRAL_BIOME) is IEEE-exact ⇒ Stage mode stays byte-identical.
       const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
-      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate();
+      // Boss dampener aura (docs/BOSS-DESIGN.md §siege): a dampened tower fires slower until
+      // the window lapses. 1 when never dampened ⇒ identical fold.
+      const dampenMult = this.time < t.dampenedUntil ? 1 - t.dampenFrac : 1;
+      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult;
       const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg;
+      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -2777,7 +2919,7 @@ export class Game {
       const focus = this.targetScratch;
       focus.length = 0;
       for (const e of this.emergencyEnemies) {
-        if (!e.alive) continue;
+        if (!e.alive || (e.boss !== null && e.boss.burrow > 0)) continue;
         focus.push(e);
         if (focus.length >= n) break;
       }
@@ -2789,6 +2931,7 @@ export class Game {
     const skipFrozen = this.castExcludeFrozen; // Chrysalis Twin Cocoon (docs/STRAIN.md)
     this.grid.forNeighbors(x, y, range, (e) => {
       if (!e.alive || dist2(x, y, e.x, e.y) > r2) return;
+      if (e.boss !== null && e.boss.burrow > 0) return; // submerged — untargetable
       if (skipFrozen && e.statuses !== undefined && e.statuses.some((s) => s.id === 'freeze')) return;
       out.push(e);
     });
@@ -3139,6 +3282,8 @@ export class Game {
       // whole check is gated on minions existing ⇒ enemyMoveSystem is byte-identical on golden.
       if (this.minions.length > 0 && !def.behavior.flying && !def.behavior.burrowing && this.minionBlock(e, def, dt)) continue;
       const b = def.behavior;
+      // A burrowed boss is beneath the field: no movement, no contact, no attacks.
+      if (e.boss !== null && e.boss.burrow > 0) { e.windup = -1; continue; }
       // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
       const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
       // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
@@ -3326,7 +3471,7 @@ export class Game {
    *  so a hundred attackers read as pressure, not confetti. */
   private hiveStrike(e: Enemy): void {
     if (!this.god) {
-      this.integrity -= e.damage;
+      this.integrity -= Math.round(e.damage * this.bossPhaseDamageMult(e));
       this.hiveRecentDamage += e.damage;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.25 + e.damage * 0.012);
     }
@@ -3350,7 +3495,7 @@ export class Game {
   private detonate(e: Enemy, def: EnemyDef): void {
     if (!e.alive) return;
     if (!this.god) {
-      this.integrity -= e.damage;
+      this.integrity -= Math.round(e.damage * this.bossPhaseDamageMult(e));
       this.hiveRecentDamage += e.damage;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.4 + e.damage * 0.012);
     }
@@ -4223,6 +4368,9 @@ export class Game {
       if (flash) e.hitFlash = FX.hitFlash; // sparks off the shield, but no HP lost
       return 0;
     }
+    if (e.boss && e.boss.burrow > 0) return 0; // submerged — beneath the field, untargetable
+    // Core-crush counterplay: a gripping boss is EXPOSED — hits land harder, so burst breaks it off.
+    if (e.boss && e.boss.grip > 0) raw *= BOSS.gripExposeMult;
     const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
     // Boss carapace: heavy bonus armor while the window is up — but a Shred (broken) cracks it too,
     // so Fracture answers the wall. Zero on every normal enemy ⇒ golden-safe.
@@ -4575,6 +4723,7 @@ export class Game {
       projectiles: this.projectiles,
       enemyShells: this.enemyShells,
       pools: this.pools,
+      corruptionPools: this.corruptionPools,
       floats: this.floats,
       particles: this.particles,
       heroes: this.heroes,

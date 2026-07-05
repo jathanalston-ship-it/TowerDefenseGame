@@ -113,6 +113,17 @@ export function drawGame(
     ctx.lineWidth = 1;
     ctx.stroke();
   }
+  // Boss corruption pools (docs/BOSS-DESIGN.md §siege): sick violet ground-rot — towers
+  // inside hit softer. The seething edge + fading alpha read the zone AND its lifetime.
+  for (const cp of rs.corruptionPools) {
+    const fade = Math.min(1, cp.t / 1.2); // last-second fade-out
+    ctx.beginPath();
+    ctx.arc(cp.x, cp.y, cp.r, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(hexRgb('#7a2fae'), 0.14 * fade);
+    ctx.fill();
+    ring(ctx, cp.x, cp.y, cp.r * pulse(t * 1.4, 3, 0.97, 1.02), rgba(hexRgb('#b64dff'), 0.5 * fade), 1.5, [5, 6]);
+    ring(ctx, cp.x, cp.y, cp.r * 0.55, rgba(hexRgb('#7a2fae'), 0.3 * fade), 1);
+  }
 
   drawOverchargeLinks(ctx, rs);
   for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
@@ -1016,10 +1027,25 @@ function drawEnemy(
 
   const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor
 
-  // ── Boss signature (behind the body): threat glow, spinning crown + ring ──
+  // Burrowed boss (docs/BOSS-DESIGN.md §siege): the body is BENEATH the field — draw the
+  // churning mound where it tunnels and skip everything else (it can't be seen or hit).
+  if (e.boss && e.boss.burrow > 0) {
+    if (detail) {
+      for (let i = 0; i < 3; i++) {
+        ring(ctx, e.x, e.y + r * 0.35, r * (0.5 + i * 0.35) * pulse(t * 1.6 + i, 3, 0.88, 1.12), rgba(hexRgb(def.color), 0.42 - i * 0.11), 2);
+      }
+      drawShape(ctx, 'circle', e.x, e.y + r * 0.35, r * 0.45 * pulse(t, 4, 0.8, 1.2), rgba(hexRgb('#40332a'), 0.85));
+    }
+    if (lunged) ctx.restore();
+    return;
+  }
+
+  // ── Boss signature (behind the body): threat glow, spinning crown + ring — every axis
+  //    scales with the phase MUTATION tier, and each tier grows NEW anatomy (§phases). ──
   if (tier === 'boss' && detail) {
-    glowDisc(ctx, e.x, drawY, r * 2.3 * pulse(t, 2.2, 0.92, 1.08), THEME.boss.glow);
-    spikeCrown(ctx, e.x, drawY, r * 1.02, r * 0.5, 8, THEME.boss.crown, t * 0.6);
+    const vt = e.boss?.visualTier ?? 0;
+    glowDisc(ctx, e.x, drawY, r * (2.3 + vt * 0.25) * pulse(t, 2.2, 0.92, 1.08), THEME.boss.glow);
+    spikeCrown(ctx, e.x, drawY, r * 1.02, r * (0.5 + vt * 0.16), 8 + vt * 3, THEME.boss.crown, t * 0.6);
     ctx.save();
     ctx.strokeStyle = THEME.boss.ring;
     ctx.lineWidth = 1.5;
@@ -1030,6 +1056,19 @@ function drawEnemy(
     ctx.stroke();
     ctx.restore();
     ctx.setLineDash([]);
+    // Tier 1+: orbiting limb-buds sprout. Tier 2+: a counter-rotating second spike row.
+    // Tier 3 (desperation): a wounded-red halo and a wider blood glow.
+    if (vt >= 1) {
+      for (let i = 0; i < 3 + vt; i++) {
+        const a = (i / (3 + vt)) * Math.PI * 2 + t * 0.9;
+        drawShape(ctx, 'circle', e.x + Math.cos(a) * r * 1.35, drawY + Math.sin(a) * r * 1.35, 2.5 + vt * 0.5, rgba(hexRgb(def.color), 0.75));
+      }
+    }
+    if (vt >= 2) spikeCrown(ctx, e.x, drawY, r * 1.32, r * 0.3, 6, rgba(hexRgb(def.color), 0.5), -t * 0.8);
+    if (vt >= 3) {
+      ring(ctx, e.x, drawY, r * (1.72 + 0.06 * Math.sin(t * 7)), rgba(hexRgb('#ff4d6d'), 0.55), 3);
+      glowDisc(ctx, e.x, drawY, r * 3.1 * pulse(t, 5, 0.9, 1.15), rgba(hexRgb('#ff4d6d'), 0.12));
+    }
   }
 
   // ── ROLE identity layer (docs/ENEMIES.md §visual language) — every optional trait reads
@@ -1148,6 +1187,18 @@ function drawEnemy(
         ctx.lineTo(nucleusPoint.x, nucleusPoint.y);
         ctx.stroke();
         ctx.setLineDash([]);
+      }
+      if (b.grip > 0) {
+        // Core-crush — a thick crushing tether INTO the Nucleus; the boss is EXPOSED while
+        // it squeezes (burst it off before the Integrity drains away).
+        ctx.strokeStyle = rgba(hexRgb('#ff4d6d'), pulse(t, 7, 0.55, 0.95));
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(e.x, drawY);
+        ctx.lineTo(nucleusPoint.x, nucleusPoint.y);
+        ctx.stroke();
+        ring(ctx, nucleusPoint.x, nucleusPoint.y, 14 * pulse(t, 6, 0.8, 1.25), rgba(hexRgb('#ff4d6d'), 0.85), 2.5);
+        ring(ctx, e.x, drawY, r + 5, rgba(hexRgb('#ffd24d'), pulse(t, 8, 0.4, 0.8)), 2); // the EXPOSED tell
       }
     }
   }
