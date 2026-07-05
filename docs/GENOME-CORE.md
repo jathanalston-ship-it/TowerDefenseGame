@@ -127,3 +127,13 @@ New `AscendantBonuses` stats: `damageMult`, `masteryXpMult`, `lootQualityMult`, 
 Named in the design but deferred (need their own seams): Boss Reward Multipliers, Tower Branch
 Discount, Equipment Quality, Hero Slot Efficiency, Enemy Modifier Rewards. Each is a one-node,
 one-seam addition when its target system grows a hook — the data shape already supports them.
+
+## §runaway (2026-07) — the uncapped tier
+
+`META_UPGRADES` gained six **Runaway** upgrades (one per category) with `infinite: true` +
+`maxLevel: Infinity` — the late-game **Genome Core sink**. Cumulative effect folds at
+**√level** via `upgradeEffectUnits(def, level)` (core/config) — diminishing but never zero,
+so every level still moves the Power Score; cost keeps compounding geometrically forever
+(validator requires `costMult ≥ 1.1` on infinite defs). Both fold seams route through the
+units helper (`metaModifiers` for `effect`, `genomeRunEffects` for `run`). Completion
+metrics everywhere count the capped catalog only. Full design: docs/EVOLUTION-HQ.md §runaway.

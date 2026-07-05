@@ -1,7 +1,10 @@
 // Evolution HQ (docs/EVOLUTION-HQ.md) — the permanent-progression headquarters. A living-lab
-// backdrop, a 9-stat account readout, the Genome Core upgrades grouped into category sections with
-// rich cards, the Ascension (Molt + Ascendant Tree) block, and a Future-Locked teaser. Presentation
-// only: reads the reactive save + meta selectors; purchases route through meta.buyUpgrade.
+// backdrop, a Genome Cores treasury banner, a sticky section jump rail, a 10-stat account
+// readout, the Genome Core upgrades grouped into category sections with rich cards — each
+// section capped catalog + ONE uncapped RUNAWAY sink card (§runaway: √level returns, geometric
+// cost, hold-to-repeat buying) — the Ascension (Molt + Ascendant Tree) block, and a
+// Future-Locked teaser. Presentation only: reads the reactive save + meta selectors; purchases
+// route through meta.buyUpgrade.
 
 import { useEffect, useRef, useState } from 'react';
 import { meta, metaModifiers, highestCampaignStage } from '../state/meta';
@@ -12,6 +15,7 @@ import { formatPower } from '../core/power';
 import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { usePressRepeat } from './components/usePressRepeat';
 import { PrestigePanel } from './PrestigePanel';
 
 /** The living-lab backdrop — drifting cells + a rotating DNA helix. Pure decoration. */
@@ -70,11 +74,53 @@ function GenomeCard({ card, curPower, onBuy, justBought }: {
   );
 }
 
-function SectionBlock({ section, curPower, onBuy, justBought }: {
-  section: GenomeSection; curPower: number; onBuy: (id: string) => void; justBought: string | null;
+/** The RUNAWAY sink card — uncapped, √level returns, geometric cost. Hold the buy button to
+ *  chain purchases (usePressRepeat); the decade bar gives level rhythm without a fake cap. */
+function RunawayCard({ card, curPower, onBuy, justBought }: {
+  card: GenomeCardView; curPower: number; onBuy: (id: string) => boolean; justBought: boolean;
+}): JSX.Element {
+  const save = meta.use();
+  const affordable = card.cost !== null && save.shards >= card.cost;
+  const nextPower = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [card.id]: card.level + 1 } })).score;
+  const hold = usePressRepeat(() => onBuy(card.id));
+  return (
+    <div className={`evohq-card is-runaway${justBought ? ' is-just-bought' : ''}`}>
+      <div className="evo-card-h">
+        <span className="evo-run-badge" aria-hidden>∞</span>
+        <span className="evo-card-name">{card.name}</span>
+        <span className="evo-card-lvl">Lv {card.level}</span>
+      </div>
+      <p className="evo-card-desc">{card.description}</p>
+      <ProgressBar value={card.level % 10} max={10} segments={10} height={6} color="var(--viral)" className="bar-upgrade" label={`${card.name} level (decade)`} />
+      <div className="evo-card-eff">
+        <span className="evo-eff-now">{card.effectNow}</span>
+        <span className="evo-eff-arrow">→</span>
+        <span className="evo-eff-next">{card.effectNext}</span>
+        <span className="evo-run-sunk" title="Genome Cores sunk into this mutation">{card.spent.toLocaleString()} <CurrencyIcon id="genomeCores" size={11} title="" /> sunk</span>
+      </div>
+      <div className="evo-card-foot">
+        {nextPower !== curPower && (
+          <span className="evo-card-power">Power <PowerPreview current={curPower} next={nextPower} /></span>
+        )}
+        <button
+          className={`shop-buy evo-card-buy evo-run-buy ${affordable ? 'is-afford' : ''}`}
+          disabled={!affordable}
+          title="Hold to buy repeatedly"
+          {...hold}
+        >
+          {card.cost?.toLocaleString()} <CurrencyIcon id="genomeCores" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SectionBlock({ section, curPower, onBuy, onBuyRunaway, justBought }: {
+  section: GenomeSection; curPower: number; onBuy: (id: string) => void;
+  onBuyRunaway: (id: string) => boolean; justBought: string | null;
 }): JSX.Element {
   return (
-    <section className="evo-hq-section">
+    <section className="evo-hq-section" id={`evo-sec-${section.category}`}>
       <div className="evo-sec-head">
         <span className="evo-sec-icon" aria-hidden>{section.icon}</span>
         <div className="evo-sec-title-wrap">
@@ -82,14 +128,19 @@ function SectionBlock({ section, curPower, onBuy, justBought }: {
           <div className="evo-sec-desc">{section.desc}</div>
         </div>
         <div className="evo-sec-prog">
-          <div className="evo-sec-pct">{section.completionPct}%</div>
+          <div className="evo-sec-pct">
+            {section.completionPct}%
+            {section.endlessLevels > 0 && <span className="evo-sec-endless" title="Runaway mutation levels (uncapped)">∞ {section.endlessLevels}</span>}
+          </div>
           <ProgressBar value={section.boughtLevels} max={section.totalLevels} height={5} color="var(--viral)" label={`${section.title} completion`} />
-          <div className="evo-sec-meta">{section.boughtLevels}/{section.totalLevels} levels · <CurrencyIcon id="genomeCores" size={11} title="" /> {section.coresSpent} spent</div>
+          <div className="evo-sec-meta">{section.boughtLevels}/{section.totalLevels} levels · <CurrencyIcon id="genomeCores" size={11} title="" /> {section.coresSpent.toLocaleString()} spent</div>
         </div>
       </div>
       <div className="evo-card-grid">
         {section.cards.map((c) => (
-          <GenomeCard key={c.id} card={c} curPower={curPower} onBuy={onBuy} justBought={justBought === c.id} />
+          c.infinite
+            ? <RunawayCard key={c.id} card={c} curPower={curPower} onBuy={onBuyRunaway} justBought={justBought === c.id} />
+            : <GenomeCard key={c.id} card={c} curPower={curPower} onBuy={onBuy} justBought={justBought === c.id} />
         ))}
       </div>
     </section>
@@ -108,13 +159,25 @@ export function EvolutionHQ(): JSX.Element {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setJustBought(null), 620);
   };
+  // The Runaway hold-to-buy loop needs the success signal back (false stops the hold).
+  const onBuyRunaway = (id: string): boolean => {
+    if (!meta.buyUpgrade(id)) return false;
+    setJustBought(id);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setJustBought(null), 620);
+    return true;
+  };
 
   const curPower = meta.power().score;
   const mm = metaModifiers(save);
   const sections = genomeSections(save);
   const prestige = meta.prestigeView();
   const towerCap = Math.min(SLOTS.permanentMax, SLOTS.initialUnlocked + mm.bonusSlots);
+  const runawayLevels = sections.reduce((a, s) => a + s.endlessLevels, 0);
   const pct = (m: number): string => `×${m.toFixed(2)}`;
+  const jumpTo = (id: string): void => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="evo-hq">
@@ -125,6 +188,27 @@ export function EvolutionHQ(): JSX.Element {
         <p className="evo-hq-sub">Sink Genome Cores into permanent mutations, then Molt to spend Ascendant Cells on levers that survive every reset.</p>
       </header>
 
+      {/* The treasury — every purchase decision needs its budget in view. */}
+      <section className="evo-treasury" aria-label="Genome Core treasury">
+        <span className="evo-treasury-bal"><CurrencyIcon id="genomeCores" size={20} /> {save.shards.toLocaleString()}</span>
+        <span className="evo-treasury-k">Genome Cores</span>
+        <span className="evo-treasury-life">{save.lifetimeShards.toLocaleString()} lifetime</span>
+        {runawayLevels > 0 && <span className="evo-treasury-run" title="Runaway mutation levels across all categories">∞ {runawayLevels} Runaway</span>}
+      </section>
+
+      {/* Jump rail — the HQ is long; every section is one tap away. */}
+      <nav className="evo-jump" aria-label="Section navigation">
+        {sections.map((s) => (
+          <button key={s.category} className="evo-jump-chip" onClick={() => jumpTo(`evo-sec-${s.category}`)}>
+            <span aria-hidden>{s.icon}</span> {s.title}
+            <i className="evo-jump-pct">{s.completionPct}%{s.endlessLevels > 0 ? ` · ∞${s.endlessLevels}` : ''}</i>
+          </button>
+        ))}
+        <button className="evo-jump-chip" onClick={() => jumpTo('evo-sec-ascension')}>
+          <span aria-hidden>✸</span> Ascension
+        </button>
+      </nav>
+
       {/* Account statistics — the permanent state at a glance. */}
       <section className="evo-stats" aria-label="Permanent statistics">
         <StatLine label="Total Power" value={formatPower(curPower)} accent="var(--gold)" />
@@ -133,18 +217,19 @@ export function EvolutionHQ(): JSX.Element {
         <StatLine label="Hero Strength" value={pct(mm.heroDamageMult)} />
         <StatLine label="Tower Capacity" value={`${towerCap}`} />
         <StatLine label="Prestige Multiplier" value={pct(prestige.mult)} accent="var(--viral)" />
+        <StatLine label="Runaway Levels" value={`∞ ${runawayLevels}`} accent="var(--viral)" />
         <StatLine label="Lifetime Genome Cores" value={`${save.lifetimeShards}`} />
         <StatLine label="Lifetime Ascendant Cells" value={`${save.prestige.lifetimeCells}`} accent="var(--viral)" />
         <StatLine label="Campaign Depth" value={`Stage ${highestCampaignStage(save)}`} />
       </section>
 
-      {/* Genome Core sections — one per category. */}
+      {/* Genome Core sections — one per category (capped catalog + the Runaway sink). */}
       {sections.map((sec) => (
-        <SectionBlock key={sec.category} section={sec} curPower={curPower} onBuy={onBuy} justBought={justBought} />
+        <SectionBlock key={sec.category} section={sec} curPower={curPower} onBuy={onBuy} onBuyRunaway={onBuyRunaway} justBought={justBought} />
       ))}
 
       {/* Ascension — Molt gate + Ascendant Tree (the existing panel, one source of truth). */}
-      <section className="evo-hq-section evo-ascension">
+      <section className="evo-hq-section evo-ascension" id="evo-sec-ascension">
         <div className="evo-sec-head">
           <span className="evo-sec-icon" aria-hidden>✸</span>
           <div className="evo-sec-title-wrap">

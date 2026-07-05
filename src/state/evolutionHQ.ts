@@ -2,7 +2,7 @@
 // into renderable sections + per-card views. Pure over SaveData + config: adding an upgrade or a
 // category needs nothing here. Power previews stay in the component (they call the reactive store).
 
-import { META_UPGRADES } from '../core/config';
+import { META_UPGRADES, upgradeEffectUnits } from '../core/config';
 import type { GenomeCategory, UpgradeDef } from '../core/config';
 import { upgradeCost, upgradeLevel } from './meta';
 import type { SaveData } from '../save/saveStore';
@@ -12,8 +12,10 @@ export interface GenomeCardView {
   name: string;
   description: string;
   level: number;
-  maxLevel: number;
-  cost: number | null; // null = maxed
+  maxLevel: number; // Infinity for the Runaway tier
+  infinite: boolean; // the uncapped Genome Core sink card (docs/EVOLUTION-HQ.md §runaway)
+  cost: number | null; // null = maxed (never null for infinite)
+  spent: number; // Genome Cores sunk into THIS card so far
   effectNow: string; // cumulative effect at the current level ('—' at 0)
   effectNext: string; // effect at level+1 ('' when maxed)
   completed: boolean;
@@ -25,10 +27,11 @@ export interface GenomeSection {
   title: string;
   desc: string;
   cards: GenomeCardView[];
-  boughtLevels: number;
-  totalLevels: number;
-  completionPct: number; // 0..100
-  coresSpent: number; // Genome Cores sunk into this section so far
+  boughtLevels: number; // capped catalog only — the Runaway tier can never complete
+  totalLevels: number; // capped catalog only
+  completionPct: number; // 0..100 (capped catalog)
+  endlessLevels: number; // Runaway levels bought in this section (uncapped)
+  coresSpent: number; // Genome Cores sunk into this section so far (Runaway included)
 }
 
 // Section identity (icon + blurb) — data, so a new category is one row. Order = display order.
@@ -52,13 +55,16 @@ function perLevelOf(u: UpgradeDef): number {
   return u.effect ? u.effect.perLevel : u.run!.perLevel;
 }
 
-/** Cumulative effect label at `level` (e.g. '+24%', '+75', '−10%'), or '—' at level 0. */
+/** Cumulative effect label at `level` (e.g. '+24%', '+75', '−10%'), or '—' at level 0.
+ *  Runaway (infinite) upgrades fold at √level and render one decimal — their marginal gain
+ *  shrinks every level, and the label must show that honestly (+6.3% → +6.6%). */
 export function effectLabel(u: UpgradeDef, level: number): string {
   if (level <= 0) return '—';
-  const raw = perLevelOf(u) * level;
-  if (FLAT_FIELDS.has(fieldOf(u))) return `+${Math.round(raw)}`;
-  const pct = Math.round(raw * 100);
-  return `${pct >= 0 ? '+' : ''}${pct}%`;
+  const raw = perLevelOf(u) * upgradeEffectUnits(u, level);
+  if (FLAT_FIELDS.has(fieldOf(u))) return `+${u.infinite ? raw.toFixed(1) : Math.round(raw)}`;
+  const pct = raw * 100;
+  if (u.infinite) return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+  return `${pct >= 0 ? '+' : ''}${Math.round(pct)}%`;
 }
 
 /** Total Genome Cores already spent to reach `level` (Σ cost of steps 0..level-1). */
@@ -83,24 +89,33 @@ export function genomeSections(save: SaveData): GenomeSection[] {
     let bought = 0;
     let total = 0;
     let coresSpent = 0;
+    let endlessLevels = 0;
     const cards: GenomeCardView[] = defs.map((u) => {
       const level = upgradeLevel(save, u.id);
-      const maxed = level >= u.maxLevel;
-      bought += level;
-      total += u.maxLevel;
-      coresSpent += spentTo(u, level);
+      const infinite = u.infinite === true;
+      const maxed = !infinite && level >= u.maxLevel;
+      // Completion is a CAPPED-catalog notion — the Runaway tier never completes, so it
+      // counts toward the section's core spend + its own endless tally, never the %.
+      if (infinite) endlessLevels += level;
+      else { bought += level; total += u.maxLevel; }
+      const spent = spentTo(u, level);
+      coresSpent += spent;
       return {
         id: u.id,
         name: u.name,
         description: u.description,
         level,
         maxLevel: u.maxLevel,
+        infinite,
         cost: maxed ? null : upgradeCost(u, level),
+        spent,
         effectNow: effectLabel(u, level),
         effectNext: maxed ? '' : effectLabel(u, level + 1),
         completed: maxed,
       };
     });
+    // The Runaway sink renders LAST in its section — the horizon after the capped catalog.
+    cards.sort((a, b) => Number(a.infinite) - Number(b.infinite));
     out.push({
       category,
       ...SECTION_META[category],
@@ -108,6 +123,7 @@ export function genomeSections(save: SaveData): GenomeSection[] {
       boughtLevels: bought,
       totalLevels: total,
       completionPct: total > 0 ? Math.round((bought / total) * 100) : 0,
+      endlessLevels,
       coresSpent,
     });
   }

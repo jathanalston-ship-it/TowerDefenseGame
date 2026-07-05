@@ -14,7 +14,7 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, STAR, TOWER_ORDER, campaignStarCap, chestForWave, upgradeEffectUnits } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -142,7 +142,8 @@ export function metaModifiers(save: SaveData): MetaModifiers {
   const m: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
   for (const u of META_UPGRADES) {
     const level = save.upgrades[u.id] ?? 0;
-    if (level > 0 && u.effect) m[u.effect.stat] += u.effect.perLevel * level; // `run`-seam upgrades fold via genomeRunEffects
+    // `run`-seam upgrades fold via genomeRunEffects; Runaway upgrades fold at √level (units)
+    if (level > 0 && u.effect) m[u.effect.stat] += u.effect.perLevel * upgradeEffectUnits(u, level);
   }
   // Prestige (P bucket): a permanent, compounding global damage multiplier from lifetime
   // Ascendant Cells. ×1 at 0 cells, so a fresh / un-prestiged account is byte-identical.
@@ -167,8 +168,9 @@ export function genomeRunEffects(save: SaveData): CardEffect[] {
     if (!u.run) continue;
     const level = save.upgrades[u.id] ?? 0;
     if (level <= 0) continue;
-    if (u.run.op === 'mul') out.push({ op: 'mul', field: u.run.field, value: 1 + u.run.perLevel * level });
-    else out.push({ op: 'add', field: u.run.field, value: u.run.perLevel * level });
+    const units = upgradeEffectUnits(u, level); // linear for capped, √level for Runaway
+    if (u.run.op === 'mul') out.push({ op: 'mul', field: u.run.field, value: 1 + u.run.perLevel * units });
+    else out.push({ op: 'add', field: u.run.field, value: u.run.perLevel * units });
   }
   return out;
 }

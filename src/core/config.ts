@@ -1040,6 +1040,10 @@ export const SLOTS = {
 //   • `run`     → a RunModifiers field, emitted as a CardEffect through the existing run-effects
 //                 seam (meta.genomeRunEffects → bootRunEffect). Zero new sim wiring per upgrade ⇒
 //                 the set scales to 50+ purely as data. Golden-safe: level 0 ⇒ no effect.
+// RUNAWAY (infinite) tier: `infinite: true` + `maxLevel: Infinity` marks an UNCAPPED upgrade —
+// the late-game Genome Core sink. Its cumulative effect folds at √level (diminishing returns,
+// unbounded but ever-slower) while the cost keeps compounding geometrically, and every level
+// still nudges the Power Score (docs/EVOLUTION-HQ.md §runaway).
 export type GenomeCategory = 'Combat' | 'Economy' | 'Hero' | 'Tower' | 'Infrastructure' | 'Utility';
 
 export interface UpgradeDef {
@@ -1050,11 +1054,20 @@ export interface UpgradeDef {
   maxLevel: number;
   baseCost: number;
   costMult: number;
+  /** Uncapped sink upgrade: maxLevel must be Infinity; effect folds at √level (see above). */
+  infinite?: boolean;
   /** Legacy seam: each level adds `perLevel` to `stat` of MetaModifiers (mults base 1, flats 0). */
   effect?: { stat: keyof MetaModifiers; perLevel: number };
   /** Run-effect seam: each level contributes to a RunModifiers `field` — 'mul' adds `perLevel` to a
    *  base-1 multiplier (so ×(1 + perLevel·level)); 'add' adds `perLevel·level` to a flat field. */
   run?: { field: RunModNumberKey; op: 'mul' | 'add'; perLevel: number };
+}
+
+/** The effect-units an upgrade contributes at `level`: linear for capped upgrades, √level for the
+ *  Runaway (infinite) tier — the ONE place the diminishing-returns curve lives. Every fold
+ *  (MetaModifiers, run-effects, labels, Power previews) must go through this. */
+export function upgradeEffectUnits(def: UpgradeDef, level: number): number {
+  return def.infinite ? Math.sqrt(Math.max(0, level)) : level;
 }
 
 export const META_UPGRADES: UpgradeDef[] = [
@@ -1094,13 +1107,27 @@ export const META_UPGRADES: UpgradeDef[] = [
   // ── Utility (run-effect seam) ───────────────────────────────────────────────
   { id: 'genetic_stability', name: 'Genetic Stability', description: '−2% enemy HP scaling per level', category: 'Utility', maxLevel: 5, baseCost: 55, costMult: 1.65, run: { field: 'enemyHpRunMult', op: 'mul', perLevel: -0.02 } },
   { id: 'adaptive_reflexes', name: 'Adaptive Reflexes', description: '+4% hero move speed per level', category: 'Utility', maxLevel: 5, baseCost: 35, costMult: 1.5, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.04 } },
+
+  // ── RUNAWAY tier — one UNCAPPED sink per category (docs/EVOLUTION-HQ.md §runaway) ──
+  // Cumulative effect = perLevel × √level (diminishing, unbounded); cost compounds forever.
+  // perLevel values are deliberately small: at level 25 a Runaway ≈ one capped upgrade's early
+  // levels, and every buy still moves the Power Score.
+  { id: 'runaway_lethality', name: 'Runaway Lethality', description: 'Tower damage grows without limit — +2% × √level', category: 'Combat', maxLevel: Infinity, baseCost: 200, costMult: 1.16, infinite: true, effect: { stat: 'towerDamageMult', perLevel: 0.02 } },
+  { id: 'runaway_metabolism', name: 'Runaway Metabolism', description: 'Biomass income grows without limit — +2% × √level', category: 'Economy', maxLevel: Infinity, baseCost: 180, costMult: 1.15, infinite: true, effect: { stat: 'biomassMult', perLevel: 0.02 } },
+  { id: 'runaway_genome', name: 'Runaway Genome', description: 'Hero damage grows without limit — +2% × √level', category: 'Hero', maxLevel: Infinity, baseCost: 200, costMult: 1.16, infinite: true, effect: { stat: 'heroDamageMult', perLevel: 0.02 } },
+  { id: 'runaway_synchrony', name: 'Runaway Synchrony', description: 'Hive link deepens without limit — +0.08% damage per active tower × √level', category: 'Tower', maxLevel: Infinity, baseCost: 220, costMult: 1.15, infinite: true, run: { field: 'damagePerTower', op: 'add', perLevel: 0.0008 } },
+  { id: 'runaway_ossification', name: 'Runaway Ossification', description: 'The Nucleus thickens without limit — +10 max Integrity × √level', category: 'Infrastructure', maxLevel: Infinity, baseCost: 160, costMult: 1.15, infinite: true, effect: { stat: 'integrityBonus', perLevel: 10 } },
+  { id: 'runaway_reflexes', name: 'Runaway Reflexes', description: 'Champion reflexes sharpen without limit — +1.2% hero speed × √level', category: 'Utility', maxLevel: Infinity, baseCost: 170, costMult: 1.15, infinite: true, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.012 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {
   const out: string[] = [];
   if (d.maxLevel <= 0) out.push('maxLevel must be > 0');
+  if (d.infinite === true && Number.isFinite(d.maxLevel)) out.push('infinite upgrades must have maxLevel Infinity');
+  if (d.infinite !== true && !Number.isFinite(d.maxLevel)) out.push('capped upgrades must have a finite maxLevel');
   if (d.baseCost <= 0) out.push('baseCost must be > 0');
   if (d.costMult < 1) out.push('costMult should be >= 1');
+  if (d.infinite === true && d.costMult < 1.1) out.push('infinite upgrades need a compounding costMult (>= 1.1) — they are sinks');
   if (!d.effect === !d.run) out.push('exactly one of effect | run must be set');
   return out;
 }

@@ -3369,9 +3369,9 @@ kbd {
 }
 
 /* ── Evolution HQ (docs/EVOLUTION-HQ.md) — the permanent-progression headquarters ── */
-.evo-hq { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 4px; overflow: hidden; border-radius: var(--r-lg); }
+.evo-hq { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 4px; border-radius: var(--r-lg); }
 /* Living-lab backdrop — drifting cells + a rotating DNA helix (decorative, behind content). */
-.evo-hq-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.evo-hq-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; border-radius: var(--r-lg); }
 .evo-cell {
   position: absolute; left: calc((var(--i) * 10%) - 4%); bottom: -40px; width: calc(18px + var(--i) * 5px); height: calc(18px + var(--i) * 5px);
   border-radius: 50%; background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--viral) 22%, transparent), transparent 70%);
@@ -3387,6 +3387,23 @@ kbd {
 .evo-hq-eyebrow { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--viral); }
 .evo-hq-title { margin: 2px 0; font-size: 26px; font-weight: 900; letter-spacing: 0.02em; }
 .evo-hq-sub { margin: 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+
+/* Treasury + jump rail + RUNAWAY sink cards (docs/EVOLUTION-HQ.md §runaway) */
+.evo-treasury { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line)); background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 10%, var(--panel-2)), var(--panel-2)); }
+.evo-treasury-bal { display: inline-flex; align-items: center; gap: 7px; font: 900 20px/1 'Chakra Petch', system-ui, sans-serif; color: var(--gold); }
+.evo-treasury-k { font: 700 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.evo-treasury-life { margin-left: auto; font-size: 12px; color: var(--muted); }
+.evo-treasury-run { font: 800 12px/1 system-ui, sans-serif; color: var(--viral); }
+.evo-jump { position: sticky; top: 6px; z-index: 3; display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border-radius: var(--r-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.evo-jump-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font: 700 12px/1 system-ui, sans-serif; cursor: pointer; transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+.evo-jump-chip:hover { border-color: color-mix(in srgb, var(--viral) 55%, var(--line)); transform: translateY(-1px); }
+.evo-jump-pct { font: 700 10px/1 system-ui, sans-serif; font-style: normal; color: var(--muted); }
+.evo-sec-endless { margin-left: 6px; font: 800 12px/1 system-ui, sans-serif; color: var(--viral); }
+.evohq-card.is-runaway { border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); background: linear-gradient(150deg, color-mix(in srgb, var(--viral) 9%, var(--panel-2)), var(--panel-2) 70%); }
+.evohq-card.is-runaway:hover { border-color: color-mix(in srgb, var(--viral) 70%, var(--line)); box-shadow: 0 8px 24px -12px var(--viral); }
+.evo-run-badge { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--viral); color: var(--viral); font: 900 13px/1 system-ui, sans-serif; }
+.evo-run-sunk { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--muted); }
+.evo-run-buy.is-afford { border-color: color-mix(in srgb, var(--viral) 60%, var(--line)); }
 
 /* Statistics — the permanent account state. */
 .evo-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px; }

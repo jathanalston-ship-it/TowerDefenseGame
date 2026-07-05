@@ -31,9 +31,12 @@ describe('navProgress', () => {
     expect(navProgress(s).heroes).toBe(1);
   });
 
-  it('evolution ring tracks meta-upgrade levels, reaching 1 when fully bought', () => {
+  it('evolution ring tracks CAPPED meta-upgrade levels, reaching 1 when fully bought', () => {
     const s = defaultSave();
-    for (const u of META_UPGRADES) s.upgrades[u.id] = u.maxLevel;
+    for (const u of META_UPGRADES) if (Number.isFinite(u.maxLevel)) s.upgrades[u.id] = u.maxLevel;
+    expect(navProgress(s).evolution).toBe(1);
+    // deep Runaway (uncapped) levels can neither inflate nor break the completion ring
+    s.upgrades[META_UPGRADES.find((u) => u.infinite === true)!.id] = 400;
     expect(navProgress(s).evolution).toBe(1);
   });
 

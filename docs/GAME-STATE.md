@@ -26,7 +26,7 @@
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
 | Cards (genes) | 52 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
-| Meta upgrades (Genome) | 21 | 1,000 | `META_UPGRADES` |
+| Meta upgrades (Genome) | 27 | 1,000 | `META_UPGRADES` |
 | Ascendant (prestige) nodes | 11 | 20 | `ASCENDANT_NODES` |
 
 Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The frameworks below hold

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
-import { meta, metaModifiers, upgradeCost, genomeRunEffects } from './meta';
+import { meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { stageWaveCount } from '../core/campaign';
@@ -53,9 +53,16 @@ describe('metaModifiers (data-driven upgrades)', () => {
     // Derive each stat's identity (base) from the no-upgrade modifiers, so the check stays
     // generic across multiplier stats (base 1) and flat stats like integrityBonus/bonusSlots (0).
     const identity = metaModifiers(defaultSave()) as unknown as Record<string, number>;
+    // A stat may be shared by several upgrades (e.g. Lethal Spores + Runaway Lethality), so the
+    // fold contract is the SUM of every declared per-level contribution (level 1 ⇒ 1 unit each,
+    // linear and √level alike).
+    const expected: Record<string, number> = {};
     for (const u of META_UPGRADES) {
       if (!u.effect) continue; // `run`-seam upgrades fold via genomeRunEffects, not MetaModifiers
-      expect(m[u.effect.stat]).toBeCloseTo(identity[u.effect.stat] + u.effect.perLevel, 10);
+      expected[u.effect.stat] = (expected[u.effect.stat] ?? 0) + u.effect.perLevel;
+    }
+    for (const [stat, add] of Object.entries(expected)) {
+      expect(m[stat]).toBeCloseTo(identity[stat] + add, 10);
     }
   });
 
@@ -90,6 +97,21 @@ describe('metaModifiers (data-driven upgrades)', () => {
     const ascended = metaModifiers({ ...defaultSave(), prestige: { ...defaultPrestige(), lifetimeCells: 100 } });
     expect(ascended.towerDamageMult).toBeCloseTo(2.0, 10); // ×(1 + 0.1·√100)
     expect(ascended.heroDamageMult).toBeCloseTo(2.0, 10);
+  });
+
+  it('Runaway (uncapped) upgrades fold at √level through BOTH seams and never hit a cap', () => {
+    const eff = META_UPGRADES.find((u) => u.infinite === true && u.effect?.stat === 'towerDamageMult')!;
+    const m = metaModifiers({ ...defaultSave(), upgrades: { [eff.id]: 16 } });
+    expect(m.towerDamageMult).toBeCloseTo(1 + eff.effect!.perLevel * 4, 10); // √16 units
+    const run = META_UPGRADES.find((u) => u.infinite === true && u.run?.op === 'add')!;
+    const effects = genomeRunEffects({ ...defaultSave(), upgrades: { [run.id]: 25 } });
+    expect(effects).toContainEqual({ op: 'add', field: run.run!.field, value: run.run!.perLevel * 5 }); // √25
+    // no cap gate: deep in the sink there is ALWAYS a next cost, and it still moves Power
+    expect(nextUpgradeCost({ ...defaultSave(), upgrades: { [eff.id]: 500 } }, eff)).not.toBeNull();
+    meta.reset();
+    const p100 = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [eff.id]: 100 } })).score;
+    const p101 = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [eff.id]: 101 } })).score;
+    expect(p101).toBeGreaterThan(p100); // diminishing, never zero — the "slight but real" contract
   });
 });
 

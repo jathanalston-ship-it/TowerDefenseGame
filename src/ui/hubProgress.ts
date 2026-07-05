@@ -14,14 +14,18 @@ import { geneLevel, geneMaxLevel } from '../core/geneCards';
 export function navProgress(save: SaveData): Partial<Record<string, number>> {
   const towerMax = TOWER_ORDER.length * STAR.maxTowerStars;
   const heroMax = HERO_ORDER.length * STAR.maxStars;
-  const upgradeMax = META_UPGRADES.reduce((a, u) => a + u.maxLevel, 0);
+  // Completion is a CAPPED-catalog notion — the Runaway (infinite) tier can never complete,
+  // so it stays out of both sides of the evolution ring.
+  const capped = META_UPGRADES.filter((u) => u.infinite !== true);
+  const upgradeMax = capped.reduce((a, u) => a + u.maxLevel, 0);
+  const upgradeNow = capped.reduce((a, u) => a + (save.upgrades[u.id] ?? 0), 0);
   const cards = cardRegistry.active();
   const geneMax = cards.reduce((a, c) => a + geneMaxLevel(c), 0);
   const geneNow = cards.reduce((a, c) => a + geneLevel(save.genes, c.id), 0);
   return {
     towers: towerMax > 0 ? clamp01(sumValues(save.towerStars) / towerMax) : 0,
     heroes: heroMax > 0 ? clamp01(sumValues(save.heroStars) / heroMax) : 0,
-    evolution: upgradeMax > 0 ? clamp01(sumValues(save.upgrades) / upgradeMax) : 0,
+    evolution: upgradeMax > 0 ? clamp01(upgradeNow / upgradeMax) : 0,
     genes: geneMax > 0 ? clamp01(geneNow / geneMax) : 0,
   };
 }
