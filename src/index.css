@@ -3405,6 +3405,39 @@ kbd {
 .evo-run-sunk { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--muted); }
 .evo-run-buy.is-afford { border-color: color-mix(in srgb, var(--viral) 60%, var(--line)); }
 
+/* ── Splice Market (docs/MARKET.md) — the organ-trade bazaar ── */
+.market { display: flex; flex-direction: column; gap: 14px; }
+.market-eyebrow { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #e0314b; }
+.market-title { margin: 2px 0; font-size: 26px; font-weight: 900; letter-spacing: 0.02em; }
+.market-sub { margin: 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+.market-bal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--panel); }
+.market-bal-chip { display: inline-flex; align-items: baseline; gap: 6px; font: 900 16px/1 'Chakra Petch', system-ui, sans-serif; color: var(--gold); }
+.market-bal-chip i { font: 700 10px/1 'Chakra Petch', system-ui, sans-serif; font-style: normal; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.market-bal-chip.is-ichor { color: #e0314b; }
+.market-mtx { margin-left: auto; padding: 6px 12px; border-radius: 999px; border: 1px dashed var(--line); background: transparent; color: var(--muted); font: 700 11px/1 system-ui, sans-serif; cursor: not-allowed; opacity: 0.7; }
+.market-refresh { display: flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); }
+.market-refresh-k { font: 700 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.market-refresh-t { font: 900 18px/1 'Chakra Petch', system-ui, sans-serif; color: var(--text); font-variant-numeric: tabular-nums; }
+.market-refresh-w { margin-left: auto; font-size: 10px; color: var(--muted); }
+.market-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 10px; }
+.market-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 12px 12px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid var(--line); transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+.market-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--mk, var(--gold)) 55%, var(--line)); box-shadow: 0 8px 24px -12px var(--mk, var(--gold)); }
+.market-card.is-premium { border-color: color-mix(in srgb, #e0314b 35%, var(--line)); background: linear-gradient(160deg, color-mix(in srgb, #e0314b 7%, var(--panel-2)), var(--panel-2) 70%); }
+.market-card.is-container { border-color: color-mix(in srgb, var(--mk, var(--r-common)) 55%, var(--line)); background: linear-gradient(160deg, color-mix(in srgb, var(--mk, var(--r-common)) 12%, var(--panel-2)), var(--panel-2) 75%); box-shadow: 0 0 22px -10px var(--mk, var(--r-common)); }
+.market-card.is-sold { opacity: 0.55; }
+.market-card.is-just-bought { animation: marketBought 0.55s var(--ease-out); }
+@keyframes marketBought { 30% { transform: scale(1.05); border-color: var(--success); } }
+.market-card-art { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--mk, var(--gold)) 45%, var(--line)); background: radial-gradient(circle, color-mix(in srgb, var(--mk, var(--gold)) 18%, transparent), transparent 72%); }
+.market-card-glyph { font-size: 20px; color: var(--mk, var(--gold)); }
+.market-card-name { font-size: 12px; font-weight: 800; color: var(--text); text-align: center; }
+.market-card-qty { font: 700 11px/1 system-ui, sans-serif; color: var(--mk, var(--gold)); }
+.market-buy { margin-top: auto; }
+.market-sold { margin-top: auto; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); font: 800 11px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.16em; color: var(--muted); transform: rotate(-4deg); }
+.market-src { padding: 12px 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 88%, transparent); }
+.market-src-h { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #e0314b; margin-bottom: 6px; }
+.market-src-list { margin: 0 0 8px; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text); }
+.market-src-note { font-size: 11px; color: var(--muted); }
+
 /* Statistics — the permanent account state. */
 .evo-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px; }
 .evo-stat { padding: 10px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel-2) 82%, transparent); border: 1px solid var(--line); }
@@ -3450,7 +3483,7 @@ kbd {
 .evo-future-card { padding: 12px; border-radius: var(--r-md); background: var(--panel-2); border: 1px dashed color-mix(in srgb, var(--line-strong) 70%, transparent); opacity: 0.8; }
 .evo-future-name { font-size: 13px; font-weight: 800; color: var(--muted); }
 .evo-future-desc { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
-@media (prefers-reduced-motion: reduce) { .evo-cell, .evo-dna-rung, .evohq-card.is-just-bought { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .evo-cell, .evo-dna-rung, .evohq-card.is-just-bought, .market-card.is-just-bought { animation: none !important; } }
 
 /* Progress prediction panel (docs/PREDICTION.md) — a futuristic capability readout with an animated band. */
 .predict-panel { position: relative; margin: 12px 0; padding: 14px 16px; border-radius: var(--r-md); background: linear-gradient(150deg, color-mix(in srgb, var(--viral) 8%, var(--panel-2)), var(--panel-2)); border: 1px solid color-mix(in srgb, var(--viral) 30%, var(--line)); overflow: hidden; }

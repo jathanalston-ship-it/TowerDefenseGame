@@ -9,7 +9,7 @@
 // keys would force a schema migration across the economy/prestige tests for zero player-visible
 // benefit). Tower/Hero Shards keep both their name AND their `towerShards` / `heroShards` keys.
 
-export type CurrencyId = 'genomeCores' | 'towerShards' | 'heroShards' | 'ascendantCells' | 'geneEssence' | 'antigen';
+export type CurrencyId = 'genomeCores' | 'towerShards' | 'heroShards' | 'ascendantCells' | 'geneEssence' | 'antigen' | 'ichor';
 
 export interface CurrencyDef {
   /** Stable framework id (see STORAGE NOTE — not always the save key). */
@@ -81,6 +81,17 @@ export const CURRENCIES: Record<CurrencyId, CurrencyDef> = {
     blurb: 'Adaptive specialization points. Earned from Mastery Ranks, campaign depth, rare container traces and achievements; spent in a unit’s Adaptation tree to rewrite its behavior.',
     color: 'var(--viral, #c98bff)',
     glow: 'rgba(201, 139, 255, 0.55)',
+  },
+  // Ichor — the PREMIUM currency (docs/MARKET.md). The organism's black blood: sparse, front-
+  // loaded rewards (achievements, collection ranks, campaign milestones, Infinite depth records,
+  // rare Bio-Container bleeds), spent in the Splice Market on rarer goods + more containers.
+  // Deliberately never farmable; the microtransaction seam exists but stays closed.
+  ichor: {
+    id: 'ichor',
+    name: 'Ichor',
+    blurb: 'The organism’s black blood — a rare, premium reserve. Bled from achievements, collection ranks, campaign milestones, Infinite depth records and lucky Bio-Containers; spent in the Splice Market.',
+    color: '#e0314b', // arterial crimson — deliberately unlike every other currency hue
+    glow: 'rgba(224, 49, 75, 0.6)',
   },
 };
 

@@ -55,6 +55,8 @@ graph TD
   prestige --> campaign
   prestige --> evolution_hq
   currencies --> content_infra
+  splice_market --> currencies
+  splice_market --> loot
   achievements --> stats
   profile --> stats
   profile --> power
@@ -96,13 +98,14 @@ graph TD
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
 | **Equipment & Armory** (`equipment`) | `content-infra` · `loot` · `power` · `heroes` | `crafting` | ⚡ equipped items score via itemPower into the gear bucket | `equipment` | `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` |
 | **Crafting / Reforge** (`crafting`) | `equipment` · `loot` | — | ⚡ reforged items re-score through the gear bucket | `mats` · `matPity` | `docs/REFORGE.md` |
-| **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `equipment` · `crafting` · `shards-economy` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
+| **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `equipment` · `crafting` · `shards-economy` · `splice-market` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
 | **Gene Cards (draft + permanent evolution)** (`gene-cards`) | `content-infra` · `power` · `campaign` · `shards-economy` | `engine` | ⚡ permanent levels fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility | `genes` · `geneEssence` · `geneSlots` · `geneLoadout` | `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` |
 | **Shards & Star Economy** (`shards-economy`) | `loot` | `towers` · `heroes` · `gene-cards` | ⚡ stars bought with shards move the permanent bucket | `shards` · `lifetimeShards` | `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` |
 | **Collections / Codex** (`collection`) | `content-infra` · `stats` | `profile` | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
 | **Evolution HQ (Genome Cores)** (`evolution-hq`) | `content-infra` · `prestige` | `prestige` | ⚡ META_UPGRADES fold into the permanent bucket | `upgrades` | `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` |
 | **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md` |
-| **Currencies & Economy Framework** (`currencies`) | `content-infra` | — | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
+| **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
+| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | — | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
@@ -279,14 +282,14 @@ graph TD
 
 - **Files:** `src/core/loot.ts` · `src/core/lootQueue.ts` · `src/core/progressionLoot.ts` · `src/state/lootbox.ts` · `src/state/vaultReveal.ts` · `src/ui/GeneticVault.tsx` · `src/ui/VaultReveal.tsx` · `src/ui/LootMeter.tsx` · `src/ui/LootToaster.tsx`
 - **Depends on:** `content-infra` · `power` · `campaign`
-- **Consumers — what breaks if you change this:** `infinite` · `equipment` · `crafting` · `shards-economy`
+- **Consumers — what breaks if you change this:** `infinite` · `equipment` · `crafting` · `shards-economy` · `splice-market`
 - **Power Score:** reads Power for catch-up bias; grants move account Power
 - **Save fields:** `lootQueue` · `pendingContainers`
 - **Tutorial:** — · **Help mechanics:** `containers`
 - **HUD surfaces:** `LootMeter` · `LootToaster` · **UI screens:** `GeneticVault` · `VaultReveal`
 - **Collection:** chests category · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/REFORGE.md` · `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md`
+- **Docs to update on change:** `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/REFORGE.md` · `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` · `docs/MARKET.md`
 
 ### Gene Cards (draft + permanent evolution) (`gene-cards`)
 
@@ -369,14 +372,29 @@ graph TD
 
 - **Files:** `src/core/currencies.ts` · `src/core/economyDirector.ts` · `src/ui/components/CurrencyIcon.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `splice-market`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** `gene-essence`
 - **HUD surfaces:** `top resource bar` · **UI screens:** `CurrencyIcon (everywhere)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md`
+- **Docs to update on change:** `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/MARKET.md`
+
+### Splice Market & Ichor (`splice-market`)
+
+*The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die.*
+
+- **Files:** `src/core/market.ts` · `src/state/spliceMarket.ts` · `src/ui/SpliceMarket.tsx`
+- **Depends on:** `currencies` · `loot`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** none by design (Ichor never feeds Power)
+- **Save fields:** `ichor` · `lifetimeIchor` · `market`
+- **Tutorial:** — · **Help mechanics:** `splice-market`
+- **HUD surfaces:** `top resource bar (Ichor chip)` · **UI screens:** `SpliceMarket` · `Hub nav (Collection group)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/MARKET.md`
 
 ### Achievements (`achievements`)
 

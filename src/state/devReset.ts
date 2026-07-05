@@ -51,7 +51,7 @@ export function applyDevReset(save: SaveData, id: string): SaveData {
     case 'infinite':
       return { ...save, bestWave: d.bestWave };
     case 'currency':
-      return { ...save, shards: d.shards, lifetimeShards: d.lifetimeShards, mats: d.mats };
+      return { ...save, shards: d.shards, lifetimeShards: d.lifetimeShards, mats: d.mats, ichor: d.ichor, lifetimeIchor: d.lifetimeIchor, market: d.market };
     case 'towers':
       return { ...save, towerStars: d.towerStars, towerForks: d.towerForks, towerShards: d.towerShards, towerKills: d.towerKills };
     case 'heroes':

@@ -42,8 +42,10 @@ import { DEVICE_PREF_KEYS } from './prefs';
 import { announcePower } from './powerEvents';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItemDrop, rollItemForPower } from '../core/equipment';
+import { ALL_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
+import { ICHOR, ichorForAchievement, ichorForDepthRecord, marketWindow, rollIchorDrop, rollStock } from '../core/market';
+import type { MarketSlot } from '../core/market';
 import {
   canAfford, enhance, opAvailable, randomizeAffix, reforge, reforgeCost, reroll, salvageValue, spend, toggleAffixLock, upgrade,
 } from '../core/reforge';
@@ -111,6 +113,11 @@ gameEvents.on('bossKilled', (e) => {
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
+
+// Splice Market stock seed (docs/MARKET.md): derived from the profile's createdAt stamp so
+// defaultSave() stays deterministic (no rolled field) while every real profile still gets its
+// own stock stream. 0 (pre-first-settle) is a valid seed.
+const marketSeedOf = (s: SaveData): number => (s.createdAt || 0) >>> 0;
 
 function persist(next: SaveData): void {
   store.set(next);
@@ -1073,6 +1080,16 @@ export const meta = {
     }
     if (firstClear && stageNo % 10 === 0) timeline = pushTimeline(timeline, '◆', `Reached Campaign Stage ${stageNo}`);
 
+    // ── Ichor faucets (docs/MARKET.md §ichor) — both un-farmable by construction: the campaign
+    //    milestone pays on FIRST clear of every 5th stage only; the Infinite trickle is keyed to
+    //    NEW bands of the best-wave RECORD (a replayed depth pays nothing). ──
+    let ichorGain = 0;
+    if (firstClear && stageNo % ICHOR.campaignEvery === 0) {
+      ichorGain += ICHOR.campaignAmount;
+      timeline = pushTimeline(timeline, '◆', `Ichor bleed — Stage ${stageNo} milestone`);
+    }
+    if (result.endless && newBest) ichorGain += ichorForDepthRecord(save.bestWave, result.wave);
+
     persist({
       ...save,
       prediction,
@@ -1080,6 +1097,8 @@ export const meta = {
       timeline,
       shards: save.shards + shardsEarned,
       lifetimeShards: save.lifetimeShards + shardsEarned,
+      ichor: save.ichor + ichorGain,
+      lifetimeIchor: save.lifetimeIchor + ichorGain,
       bestWave: Math.max(save.bestWave, result.wave),
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
@@ -1308,9 +1327,20 @@ export const meta = {
       antigen += 1;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'antigen', amount: 1, note: 'Antigen Trace' });
     }
+    // ── Ichor bleed (docs/MARKET.md §gamble): an independent, pity-less roll per container —
+    //    the luck engine. Its EV sits deliberately UNDER the cheapest market container price
+    //    (marketEconomy.test pins it), so a lucky streak briefly self-funds more openings but
+    //    always dies out. Rendered at epic emphasis so the reveal's jackpot plumbing fires.
+    const premiumBox = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
+    const ichorBleed = rollIchorDrop(Math.random, premiumBox);
+    if (ichorBleed > 0) {
+      chest.items.push({ type: 'event', rarity: 'epic', currency: 'ichor', amount: ichorBleed, note: 'Ichor Bleed' });
+    }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
       geneEssence: save.geneEssence + essenceGained,
+      ichor: save.ichor + ichorBleed,
+      lifetimeIchor: save.lifetimeIchor + ichorBleed,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
     });
@@ -1323,12 +1353,17 @@ export const meta = {
     const newly = checkAchievements({ save, run });
     if (newly.length === 0) return [];
     const reward = rewardFor(newly); // Shards granted for the unlock(s)
+    // Ichor faucet (docs/MARKET.md §ichor): every achievement bleeds a little premium
+    // currency, tiered by its core reward — achievements fire once, so this can't re-pay.
+    const ichorReward = newly.reduce((n, a) => n + ichorForAchievement(a.reward ?? 0), 0);
     let timeline = save.timeline;
     for (const a of newly) timeline = pushTimeline(timeline, '✦', `Achievement — ${a.name}`); // profile milestones
     persist({
       ...save,
       shards: save.shards + reward,
       lifetimeShards: save.lifetimeShards + reward,
+      ichor: save.ichor + ichorReward,
+      lifetimeIchor: save.lifetimeIchor + ichorReward,
       achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)],
       timeline,
     });
@@ -1745,6 +1780,20 @@ export const meta = {
     const powerGain = v.power > 0 ? Math.max(0, Math.round(score * (1 - lastCollectionMult / v.power))) : 0;
     lastCollectionRanks = snapshot;
     lastCollectionMult = v.power;
+    // Ichor faucet (docs/MARKET.md §ichor): each rank promotion bleeds premium currency. The
+    // session baseline seeds from the CURRENT save at load, so a reload can never re-pay an
+    // already-earned rank (a rank-up in a session where the Codex is never opened is simply
+    // celebrated — and paid — on the next promotion poll).
+    if (rankUps.length > 0) {
+      const s2 = store.get();
+      const gain = rankUps.length * ICHOR.collectionRank;
+      persist({
+        ...s2,
+        ichor: s2.ichor + gain,
+        lifetimeIchor: s2.lifetimeIchor + gain,
+        timeline: pushTimeline(s2.timeline, '◆', `Ichor bleed — Collection rank up (+${gain})`),
+      });
+    }
     return { rankUps, powerGain };
   },
 
@@ -1758,6 +1807,122 @@ export const meta = {
    * (docs/GENOME-CORE.md). Empty for a fresh save ⇒ golden-safe. */
   genomeRunEffects(): CardEffect[] {
     return genomeRunEffects(store.get());
+  },
+
+  // ── Splice Market (docs/MARKET.md) — the refreshing store + the Ichor premium seams ────────
+
+  /** External Ichor grant seam (starter vial, future store/analytics — every source is tagged).
+   *  In-run faucets (finishRun / achievements / rank-ups / container bleeds) fold Ichor into
+   *  their own persists; this is the seam for everything else. */
+  grantIchor(source: string, n: number): void {
+    const amt = Math.max(0, Math.floor(n));
+    if (amt <= 0) return;
+    const save = store.get();
+    persist({
+      ...save,
+      ichor: save.ichor + amt,
+      lifetimeIchor: save.lifetimeIchor + amt,
+      timeline: amt >= 10 ? pushTimeline(save.timeline, '◆', `Ichor acquired — ${source}`) : save.timeline,
+    });
+  },
+
+  /** Guarded Ichor spend — false (and no mutation) when unaffordable. */
+  spendIchor(n: number): boolean {
+    const amt = Math.max(0, Math.floor(n));
+    const save = store.get();
+    if (amt <= 0 || save.ichor < amt) return false;
+    persist({ ...save, ichor: save.ichor - amt });
+    return true;
+  },
+
+  /** The market's effective window + deterministic stock + this window's purchase record.
+   *  Window = max(clock window, recorded window): rewinding the clock re-shows the SAME
+   *  recorded stock with its purchases intact (nothing becomes re-buyable); rolling it
+   *  forward is equivalent to waiting. Stock is a pure function of (profile, window, owned
+   *  roster) — reloading mid-window shows identical slots. */
+  marketState(now = Date.now()): { window: number; stock: MarketSlot[]; bought: string[] } {
+    const save = store.get();
+    const window = Math.max(marketWindow(now), save.market.window);
+    const stock = rollStock(marketSeedOf(save), window, {
+      towers: TOWER_ORDER.filter((k) => isTowerUnlocked(save, k)),
+      heroes: save.heroUnlocked,
+    });
+    return { window, stock, bought: save.market.window === window ? save.market.bought : [] };
+  },
+
+  /** Call when the Splice Market screen mounts: pays the ONE-TIME starter vial (everyone can
+   *  afford their first premium container) and stamps the seen-window (clears the nav badge). */
+  openMarket(now = Date.now()): void {
+    const save = store.get();
+    const window = Math.max(marketWindow(now), save.market.window);
+    const starterDue = !save.market.starter;
+    if (!starterDue && save.market.seenWindow === window && save.market.window === window) return;
+    const bought = save.market.window === window ? save.market.bought : [];
+    persist({
+      ...save,
+      ichor: save.ichor + (starterDue ? ICHOR.starterVial : 0),
+      lifetimeIchor: save.lifetimeIchor + (starterDue ? ICHOR.starterVial : 0),
+      market: { window, bought, seenWindow: window, starter: true },
+      timeline: starterDue ? pushTimeline(save.timeline, '◆', 'Splice Market opened — a starter vial of Ichor') : save.timeline,
+    });
+  },
+
+  /** Buy one stock slot by id. False (no mutation) when: the id isn't in the CURRENT window's
+   *  stock (stale click across a refresh), already bought, unaffordable in its currency, or a
+   *  container buy would overflow the pending queue. All effects land in ONE persist. */
+  buyMarketSlot(slotId: string, now = Date.now()): boolean {
+    const save = store.get();
+    const window = Math.max(marketWindow(now), save.market.window);
+    const bought = save.market.window === window ? save.market.bought : [];
+    if (bought.includes(slotId)) return false;
+    const stock = rollStock(marketSeedOf(save), window, {
+      towers: TOWER_ORDER.filter((k) => isTowerUnlocked(save, k)),
+      heroes: save.heroUnlocked,
+    });
+    const slot = stock.find((s) => s.id === slotId);
+    if (!slot) return false;
+    if (slot.pay === 'cores' ? save.shards < slot.price : save.ichor < slot.price) return false;
+    if (slot.item.good === 'container' && save.pendingContainers.length >= 999) return false; // queue cap (save sanitizer's bound)
+    let next: SaveData = {
+      ...save,
+      shards: slot.pay === 'cores' ? save.shards - slot.price : save.shards,
+      ichor: slot.pay === 'ichor' ? save.ichor - slot.price : save.ichor,
+      market: { ...save.market, window, bought: [...bought, slotId], seenWindow: window },
+    };
+    const it = slot.item;
+    switch (it.good) {
+      case 'towerShards':
+        next = { ...next, towerShards: { ...next.towerShards, [it.kind]: (next.towerShards[it.kind] ?? 0) + it.qty } };
+        break;
+      case 'heroShards':
+        next = { ...next, heroShards: { ...next.heroShards, [it.hero]: (next.heroShards[it.hero] ?? 0) + it.qty } };
+        break;
+      case 'scrap':
+        next = { ...next, mats: { ...next.mats, scrap: next.mats.scrap + it.qty } };
+        break;
+      case 'geneEssence':
+        next = { ...next, geneEssence: next.geneEssence + it.qty };
+        break;
+      case 'equipment': {
+        // The SLOT (rarity + price) is deterministic per window; the concrete piece rolls at
+        // purchase like every other equipment grant (meta layer, Math.random).
+        const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+        const item = rollItem(Math.random, def, it.equipRarity, undefined, 'Splice Market');
+        next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
+        break;
+      }
+      case 'container': {
+        const def = rarityRegistry.get(it.rarity);
+        next = {
+          ...next,
+          pendingContainers: [...next.pendingContainers, { kind: 'loot', rarity: it.rarity }],
+          timeline: pushTimeline(next.timeline, '◈', `Splice Market — ${def?.name ?? it.rarity} Bio-Container acquired`),
+        };
+        break;
+      }
+    }
+    persist(next);
+    return true;
   },
 
   /** Equip (or clear, uid=null) an owned item into `hero`'s `slot`. PER-HERO: gear never overwrites

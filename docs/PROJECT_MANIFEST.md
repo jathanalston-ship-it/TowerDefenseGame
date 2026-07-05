@@ -36,6 +36,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 [Equipment](#equipment) · [Crafting / Reforging](#crafting--reforging) · [Loot](#loot) ·
 [Collections](#collections) · [Evolution (Genome Cores)](#evolution-genome-cores) ·
 [Prestige (Molt / Ascendant)](#prestige-molt--ascendant) · [Currencies](#currencies) ·
+[Splice Market (Ichor)](#splice-market-ichor) ·
 [Achievements](#achievements) · [Tutorials & Onboarding](#tutorials--onboarding) · [HUD](#hud) ·
 [Audio](#audio) · [Visual Effects](#visual-effects) · [Save Data](#save-data)
 
@@ -370,6 +371,26 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Future expansion:** a new currency is ONE def row — icon/tooltip/collection entry ride free.
 - **Known limitations:** `ECONOMY.md` still contains aspirational currencies (marked as such).
 - **Developer tips:** never hardcode a currency name/icon in UI — render `<CurrencyIcon id …>`.
+
+## Splice Market (Ichor)
+
+- **Purpose:** the refreshing store (deterministic 5-minute stock windows: 4 core-priced small
+  bundles + a premium shelf + rotating Bio-Containers) and ICHOR, the premium currency —
+  front-loaded faucets, an under-water container-gamble EV, a closed MTX seam.
+- **Dependencies:** Currencies (identity), Loot (containers land in the Vault queue),
+  Equipment (`rollItem` for gear slots), Achievements/Collection/Campaign/Infinite (faucets).
+- **Files:** `core/market.ts` (tunables + pure stock/gamble rolls), `state/spliceMarket.ts`
+  (read-model), `state/meta.ts` (seams + faucet folds), `ui/SpliceMarket.tsx`.
+  Docs: `MARKET.md` (canonical). Tests: `core/market.test.ts`, `state/marketEconomy.test.ts`
+  (EV bound + 100k-trial chain-death Monte Carlo).
+- **Related:** Loot, Currencies, Achievements, Collections, Campaign, Infinite.
+- **Future expansion:** a new good = one stock-pool row + a `describeGood` case; a new faucet =
+  one tagged `grantIchor` call; MTX = flip `MARKET.mtxEnabled` and attach a payment flow to the
+  existing seam.
+- **Known limitations:** collection-rank Ichor pays at the promotion poll (Codex open), not the
+  instant the rank is earned; the gamble is deliberately pity-less.
+- **Developer tips:** never grant Ichor outside `grantIchor`/the audited faucet folds — the
+  economy tests recompute their bounds from `ICHOR`/`MARKET`, so retunes break tests, not players.
 
 ## Achievements
 

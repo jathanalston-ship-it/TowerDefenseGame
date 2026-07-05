@@ -13,7 +13,7 @@ import { HERO_ORDER } from '../core/config';
 const CHANGED: Record<string, (keyof SaveData)[]> = {
   campaign: ['campaign'],
   infinite: ['bestWave'],
-  currency: ['shards', 'lifetimeShards', 'mats'],
+  currency: ['shards', 'lifetimeShards', 'mats', 'ichor', 'lifetimeIchor', 'market'],
   towers: ['towerStars', 'towerForks', 'towerShards', 'towerKills'],
   heroes: ['heroStars', 'heroShards', 'heroKills', 'heroFavEquip', 'selectedHero'],
   equipment: ['equipment'],
@@ -28,6 +28,7 @@ const CHANGED: Record<string, (keyof SaveData)[]> = {
 function dirtySave(): SaveData {
   const s = defaultSave();
   s.shards = 999; s.lifetimeShards = 1234; s.mats = { mutagen: 5, scrap: 5, catalyst: 5 };
+  s.ichor = 77; s.lifetimeIchor = 90; s.market = { window: 3, bought: ['3:1'], seenWindow: 3, starter: true };
   s.bestWave = 42; s.totalRuns = 10; s.cardsSeen = 7;
   s.campaign = { cleared: { standard: 7, brutal: 3 }, bestTime: {} };
   s.towerStars = { ...s.towerStars, needle: 3 }; s.towerForks = { ...s.towerForks, needle: { '3': 'x' } };

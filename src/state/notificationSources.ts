@@ -11,12 +11,22 @@ import { geneArchiveRows } from './geneArchive';
 import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { marketWindow } from '../core/market';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
   id: 'vault.containers',
   channel: 'vault',
   count: (s) => s.pendingContainers.length,
+});
+
+// Splice Market — a stock window the player hasn't seen yet (fresh goods landed). Uses the
+// max-window rule so a rewound clock can't strobe the badge; viewing the market stamps
+// seenWindow (meta.openMarket) and clears it.
+registerNotification({
+  id: 'market.stock',
+  channel: 'market',
+  count: (s) => (Math.max(marketWindow(Date.now()), s.market.window) > s.market.seenWindow ? 1 : 0),
 });
 
 // Tower Lab — towers whose next star you can afford right now (drops as you buy them),

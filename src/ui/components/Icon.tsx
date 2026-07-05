@@ -123,6 +123,17 @@ export const AntigenIcon = (p: IconProps): JSX.Element =>
     p,
   );
 
+/** Ichor — a heavy globule of the organism's black blood, caught mid-drip (premium currency). */
+export const IchorIcon = (p: IconProps): JSX.Element =>
+  svg(
+    <>
+      <path d="M13.8 2.4c-.4 2 .2 3.2 1.6 4.6 2 2 3.1 3.9 3.1 6.2a6.5 6.5 0 1 1-13 0c0-2.6 1.5-4.7 3.6-6.4 1.7-1.4 3.5-2.5 4.7-4.4z" opacity="0.95" />
+      <path d="M9 13.6a3.6 3.6 0 0 0 2.4 3.4" fill="none" stroke="rgba(0,0,0,0.4)" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="15" cy="12.4" r="1.1" fill="rgba(255,255,255,0.35)" />
+    </>,
+    p,
+  );
+
 /** Lightning bolt — the Apex Leap ability (replaces ⚡). */
 export const BoltIcon = (p: IconProps): JSX.Element => svg(<path d="M13 2L4 14h6l-1 8 9-12h-6z" />, p);
 

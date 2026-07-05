@@ -126,6 +126,13 @@ export interface SaveData {
   // ── Adaptation (v22, docs/ADAPTATION.md) — Antigen granted by legendary+ containers.
   //    Consumed as a CAPPED budget source (core/adaptation ANTIGEN.containerCap). ──
   antigen: number;
+  // ── Splice Market (docs/MARKET.md) — the Ichor premium currency + the market's window
+  //    record. `market.window` is the MAX stock window ever observed (clock-tamper rule);
+  //    `bought` holds THAT window's consumed slot ids; `seenWindow` clears the nav badge;
+  //    `starter` marks the one-time 30-Ichor vial. Additive: pre-market saves default all. ──
+  ichor: number;
+  lifetimeIchor: number;
+  market: { window: number; bought: string[]; seenWindow: number; starter: boolean };
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -325,6 +332,21 @@ export function defaultSave(): SaveData {
     profileFrame: 'membrane',
     timeline: [],
     antigen: 0,
+    ichor: 0,
+    lifetimeIchor: 0,
+    market: { window: 0, bought: [], seenWindow: 0, starter: false },
+  };
+}
+
+/** Coerce a loaded market record (docs/MARKET.md): finite ints, string ids, capped list. */
+function sanitizeMarket(raw: unknown): SaveData['market'] {
+  const o = (raw && typeof raw === 'object' ? raw : {}) as Partial<SaveData['market']>;
+  const int = (v: unknown): number => Math.max(0, Math.floor(Number(v) || 0));
+  return {
+    window: int(o.window),
+    bought: Array.isArray(o.bought) ? o.bought.filter((x): x is string => typeof x === 'string').slice(0, 32) : [],
+    seenWindow: int(o.seenWindow),
+    starter: o.starter === true,
   };
 }
 
@@ -469,6 +491,10 @@ function withDefaults(data: SaveData): SaveData {
     profileFrame: typeof (data as { profileFrame?: unknown }).profileFrame === 'string' ? ((data as { profileFrame?: unknown }).profileFrame as string) : d.profileFrame,
     timeline: sanitizeTimeline((data as { timeline?: unknown }).timeline),
     antigen: Math.max(0, Math.floor(Number((data as { antigen?: unknown }).antigen) || 0)),
+    // Splice Market (docs/MARKET.md): pre-market saves ⇒ 0 Ichor + a fresh window record.
+    ichor: Math.max(0, Math.floor(Number((data as { ichor?: unknown }).ichor) || 0)),
+    lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
+    market: sanitizeMarket((data as { market?: unknown }).market),
   };
 }
 

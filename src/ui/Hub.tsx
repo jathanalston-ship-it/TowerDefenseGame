@@ -20,6 +20,7 @@ import { TowerLab } from './TowerLab';
 import { HeroLab } from './HeroLab';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
+import { SpliceMarket } from './SpliceMarket';
 import { EvolutionHQ } from './EvolutionHQ';
 import { HelpWiki } from './HelpWiki';
 import { CollectionScreen } from './CollectionPanel';
@@ -34,7 +35,7 @@ import { PowerBadge } from './components/PowerScore';
 export type NavKey =
   | 'home' | 'campaign' | 'infinite'
   | 'towers' | 'heroes' | 'evolution' | 'genes'
-  | 'vault' | 'equipment' | 'collection'
+  | 'vault' | 'market' | 'equipment' | 'collection'
   | 'profile' | 'settings' | 'help';
 
 interface NavItem { key: NavKey; label: string; mono: string }
@@ -56,6 +57,7 @@ const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: 'Collection', items: [
     { key: 'vault', label: 'Genetic Vault', mono: '◈' },
+    { key: 'market', label: 'Splice Market', mono: '◆' },
     { key: 'equipment', label: 'Equipment', mono: '⛨' },
     { key: 'collection', label: 'Collection', mono: '▤' },
   ] },
@@ -216,6 +218,7 @@ export function Hub({
             ☰ <span className="hub-burger-l">Menu</span>
           </button>
           <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
+          <span className="hub-cur"><CurrencyIcon id="ichor" size={15} /> {save.ichor} <span className="hub-cur-l">Ichor</span></span>
           <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>
           <span className="hub-cur" title="Mutagen · Scrap · Catalyst">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>
           <span className="hub-cur hub-cur-r">Best Wave <b>{save.bestWave}</b> · Runs <b>{save.totalRuns}</b></span>
@@ -234,6 +237,7 @@ export function Hub({
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}
           {nav === 'vault' && <GeneticVault />}
+          {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}

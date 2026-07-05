@@ -193,3 +193,24 @@ Matrix: 11 personas × 4 seeds · bands 10 / 50 / 150 / 400 hours · world model
 - Personas are policy modulations (luck, spend discipline, loop deviation) — never balance changes.
 - A frictionless bot underestimates real-player friction; treat absolute hours as lower bounds.
 - Detector thresholds live in `src/dev/balanceReport.ts`; they are part of the instrument and version with it.
+
+---
+
+## Amendment — Splice Market & Ichor (2026-07)
+
+**What shipped (docs/MARKET.md):** a refreshing 8-slot store (deterministic 5-minute windows;
+4 small core-priced bundles + a premium shelf + 1–2 rotating Bio-Containers) and ICHOR, the
+premium currency (achievements 3/5/8 · collection ranks 5 · every 5th campaign first-clear 12
+· new Infinite 5-wave record bands 2 · a 30 starter vial · a pity-less container bleed).
+
+**Simulated economy contracts (state/marketEconomy.test.ts, seeded):**
+- Gamble EV per opened container = 0.22 × 16.9 ≈ **3.7 Ichor ≈ 12%** of the cheapest
+  container (30) — pinned ≤ 15% (premium boxes ≤ 18%).
+- 100k-trial Monte Carlo from a 3-container bank: **median 3 boxes · P(≥6) < 3% ·
+  P(≥9) < 0.1% · max observed < 14** — lucky chains stretch to 6–8 openings and always die.
+- Early-account front-load: starter + 2 campaign milestones + 4 ranks ≈ **74+ Ichor ≥ 2
+  containers** before the tap tightens to depth records + the gamble.
+- Cores flow one way (no market slot grants Genome Cores); Ichor never moves the Power Score.
+
+**Sink note:** the market's core-priced shelf is a small perpetual Genome Core outlet on top
+of the Runaway tier (EVOLUTION-HQ.md §runaway) — complementary sinks, one steady-drip, one deep.

@@ -233,3 +233,11 @@ after banking, and what's now filling — the `lootContainerEarned` event carrie
 (progress ≥ cost — only reachable via legacy/tampered saves) even with zero new points.
 The invariant `0 ≤ progress < costOf(queue[0])` after every `addProgress` is stress-pinned
 (5000 randomized fills + conservation) in `core/lootQueue.test.ts`.
+
+## §ichor (2026-07) — the Ichor Bleed
+
+Every opened container rolls an independent, pity-less **Ichor Bleed** (docs/MARKET.md
+§gamble): 22% (26% on epic+) for 10/18/26/40 Ichor, shown on the reveal as an epic-emphasis
+event row ("Ichor Bleed") so the jackpot plumbing fires, and merged into the harvest summary
+like any currency. Its EV sits deliberately below the cheapest market container's price —
+lucky streaks briefly self-fund more openings and always die (marketEconomy.test pins it).
