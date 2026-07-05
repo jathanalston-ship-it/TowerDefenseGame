@@ -2,15 +2,17 @@
 // The reward set is already decided (a deterministic ChestResult from the meta layer); this only
 // CHOREOGRAPHS it, in four acts that stay diegetic to the bio-horror identity:
 //
-//   INCUBATE — a living egg breathes with an accelerating heartbeat; veins brighten, glowing
-//              hairline cracks spread, and the light LEAKING through the cracks is the rarity
-//              tell (epic+ content charges the whole membrane). Tap to force the hatch.
-//   RUPTURE  — the shell tears apart: flash, spore burst, shockwave, a backdrop quake. Brief,
-//              decisive, automatic.
+//   INCUBATE — a living egg SQUEEZES on every audible heartbeat (WAAPI per thump, so sight
+//              and sound never drift), harder as the accelerando peaks; veins brighten,
+//              cracks spread, and the light LEAKING through them is the rarity tell. In the
+//              last half-second the egg goes DEAD STILL — then gives. Tap to force the hatch.
+//   RUPTURE  — the shell tears apart: flash (the whole room lights up), shell shrapnel,
+//              falling goo, spore burst, shockwave, a backdrop quake. Brief, automatic.
 //   EMERGE   — each reward is BORN: a wobbling specimen sac rises from the afterbirth, its
-//              silhouette dimly visible inside, then bursts (membrane shreds fly) into the
-//              reward face. Rarity paces the drama; epic+ gets beams + a tinted flash. Tap
-//              opens/advances; Fast auto-deals; Skip All jumps to the harvest.
+//              silhouette dimly visible inside, then bursts (wet splice + membrane shreds)
+//              into the reward face. The sac itself telegraphs the tier — commons run small,
+//              epic+ swells and washes the backdrop, a legendary/exotic occupant STRUGGLES.
+//              Tap opens/advances; Fast auto-deals (and cuts the wobble); Skip All → harvest.
 //   HARVEST  — the summary: the PRIZE SPECIMEN banner (best pull), a rarity tally, then the
 //              categorized/merged reward ledger with the Power gain counted up. Never
 //              auto-closes; Open More hatches the next container in place.
@@ -19,7 +21,7 @@
 // shape serves both run caches and loot-queue boxes. The pull LIST is never collapsed
 // (state/vaultReveal builds it); this file is presentation only.
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCountUp } from './components/useCountUp';
 import { createPortal } from 'react-dom';
 import type { ChestResult } from '../state/lootbox';
@@ -125,6 +127,9 @@ export function VaultReveal({
   const [i, setI] = useState(0);
   const [open, setOpen] = useState(false); // the current sac has burst → the reward face shows
   const [fast, setFast] = useState(false); // auto-deal each sac after its reveal
+  const [beat, setBeat] = useState(0); // heartbeat counter — keys one visible pulse per audible thump
+  const [still, setStill] = useState(false); // the DEAD-STILL beat right before the shell gives
+  const podRef = useRef<HTMLDivElement | null>(null);
   const pull = model.pulls[i];
   const incubMs = 1700 + tier * 350; // the egg holds longer when something big is inside
 
@@ -133,18 +138,38 @@ export function VaultReveal({
   const hatch = useCallback(() => {
     setPhase((p) => (p === 'incubate' ? 'rupture' : p));
   }, []);
+  // The egg SQUEEZES on every audible thump (WAAPI, so sight and sound can't drift apart),
+  // harder as the rate climbs — then goes DEAD STILL for the last half-second before it gives.
   useEffect(() => {
     if (phase !== 'incubate') return undefined;
+    setStill(false);
     const t = setTimeout(hatch, incubMs);
+    const stillAt = incubMs - 460;
+    const stillT = setTimeout(() => setStill(true), stillAt);
+    const t0 = performance.now();
+    const noMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     let beatDelay = 560;
-    let beat: ReturnType<typeof setTimeout>;
+    let beatT: ReturnType<typeof setTimeout>;
     const thump = (): void => {
       audio.cue('heartbeat');
+      setBeat((b) => b + 1);
+      if (!noMotion) {
+        const k = (560 - beatDelay) / (560 - 180); // 0 → 1 as the accelerando peaks
+        const s = 0.028 + 0.055 * k; // the contraction grows with the rate
+        podRef.current?.animate(
+          [
+            { transform: 'scale(1, 1)' },
+            { transform: `scale(${1 + s}, ${1 - s * 0.55})`, offset: 0.32 },
+            { transform: 'scale(1, 1)' },
+          ],
+          { duration: Math.min(260, beatDelay * 0.8), easing: 'ease-out' },
+        );
+      }
       beatDelay = Math.max(180, beatDelay * 0.84); // the accelerando
-      beat = setTimeout(thump, beatDelay);
+      if (performance.now() - t0 + beatDelay < stillAt) beatT = setTimeout(thump, beatDelay);
     };
-    beat = setTimeout(thump, 220);
-    return () => { clearTimeout(t); clearTimeout(beat); };
+    beatT = setTimeout(thump, 220);
+    return () => { clearTimeout(t); clearTimeout(stillT); clearTimeout(beatT); };
   }, [phase, incubMs, hatch]);
 
   // ── RUPTURE: brief and decisive — the crack lands here, then the first birth begins.
@@ -156,21 +181,25 @@ export function VaultReveal({
     return () => { clearTimeout(goo); clearTimeout(t); };
   }, [phase]);
 
-  // ── EMERGE: the sac bursts on its own after a rarity-paced wobble (a tap bursts it early).
+  // ── EMERGE: the sac bursts on its own after a rarity-paced wobble (a tap bursts it early;
+  // Fast mode cuts the wobble short too — fast means FAST).
   useEffect(() => {
     if (phase !== 'emerge' || open) return undefined;
-    const pace = 700 + TIER.indexOf(pull?.rarity ?? 'common') * 260;
+    const pace = fast ? 340 : 700 + TIER.indexOf(pull?.rarity ?? 'common') * 260;
     const id = setTimeout(() => setOpen(true), pace);
     return () => clearTimeout(id);
-  }, [phase, open, i, pull]);
+  }, [phase, open, i, pull, fast]);
 
-  // Per-birth stinger: shards play their own cue; rarer pulls get the jackpot sting.
+  // Per-birth audio: the wet SPLICE of the membrane tearing, then the reward sting on top —
+  // shards play their own cue; rarer pulls get the jackpot.
   useEffect(() => {
-    if (phase !== 'emerge' || !open || !pull) return;
+    if (phase !== 'emerge' || !open || !pull) return undefined;
+    audio.cue('splice');
     const cue = pull.currency === 'heroShards' ? 'shard_hero'
       : pull.currency === 'towerShards' ? 'shard_tower'
       : TIER.indexOf(pull.rarity) >= 2 ? 'jackpot' : 'reveal';
-    audio.cue(cue);
+    const sting = setTimeout(() => audio.cue(cue), 90);
+    return () => clearTimeout(sting);
   }, [phase, open, i, pull]);
 
   const toSummary = useCallback(() => { setPhase('summary'); audio.cue('reveal'); }, []);
@@ -208,16 +237,19 @@ export function VaultReveal({
   // stacking context — it must cover EVERYTHING (nav included) with nothing clipping it.
   return createPortal(
     <div
-      className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' ? 'is-quake' : ''}`}
-      style={{ ['--vr-accent' as string]: accent }}
+      className={`vreveal-backdrop ${isRare ? 'is-rare' : ''} ${phase === 'rupture' ? 'is-quake' : ''}${phase === 'emerge' && open && pull && TIER.indexOf(pull.rarity) >= 2 ? ' is-shine' : ''}`}
+      style={{ ['--vr-accent' as string]: accent, ['--shine' as string]: pull?.color ?? accent }}
       onClick={phase === 'emerge' ? advance : phase === 'incubate' ? hatch : undefined}
       role="dialog"
       aria-modal="true"
     >
+      {/* Sibling of the modal shell so the RUPTURE lights the whole room, not just the box
+          (the shell scrolls/clips its own content — fullscreen FX can't live inside it). */}
+      {phase === 'rupture' && <span className="hatch-worldflash" aria-hidden />}
       <div className={`vreveal hatch tier-${model.topRarity} phase-${phase}`} onClick={(e) => e.stopPropagation()}>
         {phase === 'incubate' ? (
-          <div className={`hatch-stage t${tier}`} onClick={hatch} role="button" aria-label="Hatch now">
-            <div className="hatch-pod" style={{ ['--inc' as string]: `${incubMs}ms` }} aria-hidden>
+          <div className={`hatch-stage t${tier}${still ? ' is-still' : ''}`} onClick={hatch} role="button" aria-label="Hatch now">
+            <div ref={podRef} className="hatch-pod" style={{ ['--inc' as string]: `${incubMs}ms` }} aria-hidden>
               <span className="hatch-membrane" />
               <span className="hatch-fetus" />
               <span className="hatch-veins" />
@@ -227,9 +259,11 @@ export function VaultReveal({
               <span className="hatch-crack c3" />
               <span className="hatch-spores" />
               <span className="hatch-spores b" />
+              {/* one echo ring per heartbeat — the key remounts it so each thump replays it */}
+              {beat > 0 && !still && <span key={beat} className="hatch-pulse" />}
             </div>
             <div className="hatch-title" style={{ color: accent }}>{name}</div>
-            <div className="vreveal-tap">INCUBATING — TAP TO HATCH</div>
+            <div className="vreveal-tap">{still ? '…' : 'INCUBATING — TAP TO HATCH'}</div>
           </div>
         ) : phase === 'rupture' ? (
           <div className="hatch-stage" aria-label="Hatching">
@@ -240,6 +274,12 @@ export function VaultReveal({
               <span className="hatch-ring" />
               <span className="hatch-burst a" />
               <span className="hatch-burst b" />
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((k) => (
+                <i key={k} className={`hatch-bit${k % 2 ? ' s' : ''}`} style={{ ['--k' as string]: String(k) }} />
+              ))}
+              {[0, 1, 2, 3, 4].map((k) => (
+                <i key={`g${k}`} className="hatch-goo" style={{ ['--k' as string]: String(k) }} />
+              ))}
             </div>
           </div>
         ) : phase === 'emerge' && pull ? (

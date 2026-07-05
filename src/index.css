@@ -5113,7 +5113,7 @@ kbd {
 .mc-deploy::after { content: ''; position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.12), transparent); animation: cc-sheen 7s ease-in-out infinite; }
 @keyframes cc-sheen { 0%, 78% { left: -40%; } 92%, 100% { left: 120%; } }
 @media (prefers-reduced-motion: reduce) {
-  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .cchome > *, .cc-unit-orb, .mc-deploy, .mc-deploy::after, .hud-v.is-danger, .tl2-chamber::before, .tl2-ready-badge, .tl2-chamber[data-flash], .hcc-chamber::before, .hud-hero.has-upgrade, .inf-forecast::before, .infinite-start, .vault-obj-core, .hatch-spores, .hatch-beams, .vreveal-backdrop.is-rare { animation: none; }
+  .lab-fog-a, .lab-fog-b, .lab-vein, .cc-vitals-h, .cchome > *, .cc-unit-orb, .mc-deploy, .mc-deploy::after, .hud-v.is-danger, .tl2-chamber::before, .tl2-ready-badge, .tl2-chamber[data-flash], .hcc-chamber::before, .hud-hero.has-upgrade, .inf-forecast::before, .infinite-start, .vault-obj-core, .hatch-spores, .hatch-beams, .vreveal-backdrop.is-rare, .vreveal-backdrop.is-rare::before { animation: none; }
 }
 
 /* Loading tip — a one-line teacher at the foot of Mission Control (ui/tips.ts) */
@@ -6114,6 +6114,24 @@ kbd {
   --vr-accent: var(--gold);
 }
 @keyframes vreveal-fade { from { opacity: 0; } }
+.vreveal-backdrop.is-rare::before { /* epic+ ceremonies: the room itself breathes */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(80% 70% at 50% 40%, color-mix(in srgb, var(--vr-accent) 15%, transparent), transparent 78%);
+  animation: hatch-breathe 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hatch-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+.vreveal-backdrop.is-shine::after { /* an epic+ birth washes light over EVERYTHING for a beat */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(58% 50% at 50% 44%, color-mix(in srgb, var(--shine, var(--vr-accent)) 26%, transparent), transparent 74%);
+  animation: hatch-shineout 0.85s ease-out both;
+  pointer-events: none;
+}
+@keyframes hatch-shineout { from { opacity: 1; } to { opacity: 0; } }
 .vreveal {
   position: relative;
   width: min(560px, 94vw);
@@ -6151,19 +6169,33 @@ kbd {
     linear-gradient(168deg, #24343f, #101a26 62%, #0a121b);
   border: 1px solid color-mix(in srgb, var(--vr-accent) 45%, var(--line-strong));
   box-shadow: 0 26px 46px rgba(0, 0, 0, 0.55), inset 0 -20px 36px rgba(0, 0, 0, 0.5), 0 0 44px -14px var(--vr-accent);
-  animation: hatch-incubate var(--inc, 2s) cubic-bezier(0.3, 0, 0.4, 1) both;
+  animation: hatch-incubate var(--inc, 2s) ease-in both;
 }
-/* the accelerando: contractions grow in rate AND amplitude toward the rupture */
+/* this timeline only GLOWS — each contraction (transform) is fired per-beat from the
+   component via WAAPI, so the squeeze always lands ON the audible thump */
 @keyframes hatch-incubate {
-  0% { transform: scale(1); }
-  18% { transform: scale(1.012); } 24% { transform: scale(1); }
-  40% { transform: scale(1.02); } 46% { transform: scale(1); }
-  58% { transform: scale(1.032); } 63% { transform: scale(1.002); }
-  72% { transform: scale(1.045); } 76% { transform: scale(1.005); }
-  83% { transform: scale(1.06); } 86% { transform: scale(1.01); }
-  91% { transform: scale(1.075); } 93.5% { transform: scale(1.02); }
-  97% { transform: scale(1.095); } 100% { transform: scale(1.06); }
+  from { filter: brightness(0.92) saturate(0.88); }
+  to { filter: brightness(1.14) saturate(1.18); }
 }
+.hatch-pulse { /* one echo ring per heartbeat — the keyed remount replays it */
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--leak, var(--vr-accent)) 75%, transparent);
+  opacity: 0;
+  animation: hatch-pulseout 0.72s ease-out both;
+  pointer-events: none;
+}
+@keyframes hatch-pulseout {
+  from { transform: scale(1); opacity: 0.55; }
+  to { transform: scale(1.24); opacity: 0; }
+}
+/* the DEAD-STILL half-second before the shell gives — everything freezes, the light drops */
+.hatch-stage.is-still .hatch-pod,
+.hatch-stage.is-still .hatch-fetus,
+.hatch-stage.is-still .hatch-bulge,
+.hatch-stage.is-still .hatch-spores { animation-play-state: paused; }
+.hatch-stage.is-still .hatch-pod::after { animation: none; opacity: 0.22; }
 .hatch-pod::after { /* the late AURA — the leak floods the membrane as term approaches */
   content: '';
   position: absolute;
@@ -6330,6 +6362,49 @@ kbd {
 }
 .hatch-burst.b { transform: rotate(28deg) scale(0.7); animation-duration: 0.8s; opacity: 0.7; }
 @keyframes hatch-burstout { from { transform: scale(0.15); opacity: 1; } to { transform: scale(2.1); opacity: 0; } }
+.hatch-worldflash { /* the rupture lights the whole ROOM (sibling of the shell — never clipped) */
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(62% 56% at 50% 42%, color-mix(in srgb, var(--vr-accent) 38%, transparent), transparent 76%);
+  animation: hatch-worldout 0.6s ease-out both;
+  pointer-events: none;
+}
+@keyframes hatch-worldout { from { opacity: 1; } to { opacity: 0; } }
+.hatch-bit { /* shell shrapnel — spinning chitin flakes */
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 12px;
+  height: 15px;
+  clip-path: polygon(50% 0, 100% 62%, 26% 100%);
+  background: linear-gradient(160deg, #2e404e, #131e29);
+  animation: hatch-bitfly 0.85s cubic-bezier(0.18, 0.55, 0.45, 1) both;
+}
+.hatch-bit.s { width: 8px; height: 10px; animation-duration: 0.72s; }
+@keyframes hatch-bitfly {
+  from { transform: rotate(calc(var(--k, 0) * 45deg)) translateY(-28px) rotate(0deg); opacity: 1; }
+  70% { opacity: 1; }
+  to { transform: rotate(calc(var(--k, 0) * 45deg)) translateY(-152px) rotate(calc(var(--k, 0) * 90deg + 200deg)); opacity: 0; }
+}
+.hatch-goo { /* heavy droplets — flung up, then they FALL */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--leak, var(--vr-accent)) 72%, #0c141d);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--leak, var(--vr-accent)) 50%, transparent);
+  filter: blur(0.4px);
+  --dx: calc((var(--k, 0) - 2) * 40px);
+  animation: hatch-goofall 0.92s cubic-bezier(0.3, 0, 0.7, 1) both;
+  animation-delay: calc(var(--k, 0) * 28ms);
+}
+@keyframes hatch-goofall {
+  from { transform: translate(0, 0) scale(0.8); opacity: 0.95; }
+  38% { transform: translate(calc(var(--dx) * 0.7), -48px) scale(1, 1); opacity: 0.95; }
+  to { transform: translate(var(--dx), 98px) scale(0.9, 1.5); opacity: 0; }
+}
 .vreveal-backdrop.is-quake .vreveal { animation: hatch-quake 0.5s linear both; }
 @keyframes hatch-quake {
   0%, 100% { transform: translate(0, 0); }
@@ -6394,6 +6469,28 @@ kbd {
 .hatch-sac.tier-epic .hatch-sac-skin,
 .hatch-sac.tier-legendary .hatch-sac-skin,
 .hatch-sac.tier-exotic .hatch-sac-skin { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), inset 0 -14px 26px rgba(0, 0, 0, 0.45), 0 0 58px -8px var(--rw, var(--vr-accent)); }
+/* the sac ITSELF telegraphs the tier: commons run small, epic+ swells, and a legendary/exotic
+   occupant FIGHTS its way out (struggle is listed after the wobble so it owns transform while
+   it runs; default fill hands the wobble back when it ends) */
+.hatch-sac.tier-common .hatch-sac-skin { width: 146px; height: 176px; margin: -88px 0 0 -73px; }
+.hatch-sac.tier-epic .hatch-sac-skin { width: 180px; height: 214px; margin: -107px 0 0 -90px; }
+.hatch-sac.tier-legendary .hatch-sac-skin,
+.hatch-sac.tier-exotic .hatch-sac-skin {
+  width: 192px;
+  height: 228px;
+  margin: -114px 0 0 -96px;
+  animation:
+    hatch-rise 0.55s cubic-bezier(0.2, 1.25, 0.4, 1) both,
+    hatch-wobble 1.6s ease-in-out 0.55s infinite,
+    hatch-struggle 0.42s ease-in-out 0.85s 2;
+}
+@keyframes hatch-struggle {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  15% { transform: translate(-5px, 2px) rotate(-3deg); }
+  35% { transform: translate(6px, -2px) rotate(2.5deg); }
+  55% { transform: translate(-6px, 1px) rotate(-2deg) scale(1.03); }
+  75% { transform: translate(5px, 2px) rotate(3deg); }
+}
 .hatch-embryo { /* the dim silhouette floating inside — you can ALMOST see what it is */
   position: absolute;
   left: 50%;
@@ -6600,6 +6697,7 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .vreveal-backdrop, .vreveal, .vreveal-tap, .vreveal-power-total, .vreveal-row, .vreveal-new,
   .hatch-pod, .hatch-pod::after, .hatch-fetus, .hatch-veins, .hatch-bulge, .hatch-crack, .hatch-spores,
+  .hatch-pulse, .hatch-bit, .hatch-goo, .hatch-worldflash, .vreveal-backdrop.is-shine::after,
   .hatch-shell, .hatch-flash, .hatch-ring, .hatch-burst, .hatch-sac-skin, .hatch-embryo,
   .hatch-shred, .hatch-pop-ring, .hatch-face, .hatch-beams, .hatch-prize, .hatch-tally-chip {
     animation-duration: 0.01ms !important;

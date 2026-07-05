@@ -186,18 +186,28 @@ Supersedes §opening-flow's presentation (the FIRST DISCOVERY stamping is unchan
 card-pack metaphor (charge → face-down card → flip) is gone; the ceremony is now diegetic
 to the bio-horror identity — the container is an EGG and the pulls are BORN:
 
-1. **INCUBATE** — a living egg breathes with an accelerating heartbeat (audio chain,
-   `beatDelay ×0.84` per beat), curved capillary veins brighten across the shell, a dim
-   embryo silhouette stirs inside, glowing hairline cracks spread, spore motes drift. The
-   light LEAKING through the cracks is the rarity tell (`--leak`, tier-tinted; epic+ charges
-   the whole membrane). Duration `1700 + tier·350`ms; tap to force the hatch early.
-2. **RUPTURE** — the shell tears in half (clip-path shell halves fly), flash + spore burst +
-   shockwave ring + a backdrop quake. Brief, decisive, automatic (~680ms).
+1. **INCUBATE** — a living egg SQUEEZES on every audible heartbeat: each thump of the
+   accelerating chain (`beatDelay ×0.84`) fires a WAAPI contraction on the pod (amplitude
+   grows with the rate) plus a keyed echo ring, so sight and sound cannot drift apart; the
+   pod's CSS timeline only ramps glow. Curved capillary veins brighten, a dim embryo stirs,
+   hairline cracks spread, spore motes drift. The light LEAKING through the cracks is the
+   rarity tell (`--leak`, tier-tinted). In the last ~460ms the egg goes **DEAD STILL** —
+   beats stop, every animation pauses, the aura drops, the tap hint dims to "…" — then it
+   gives. Duration `1700 + tier·350`ms; tap to force the hatch early.
+2. **RUPTURE** — the shell tears in half (clip-path shell halves fly) with flash + spore
+   burst + shockwave ring + a backdrop quake, plus: a fullscreen `hatch-worldflash` (sibling
+   of the modal shell, so the whole ROOM lights up), 8 spinning chitin shrapnel bits, and 5
+   heavy goo droplets that arc up then FALL. Brief, decisive, automatic (~680ms).
 3. **EMERGE** — one wobbling SPECIMEN SAC per pull rises from the afterbirth, embryo dimly
-   visible + umbilical cord; it auto-bursts after a rarity-paced beat (`700 + tier·260`ms) —
-   membrane shreds fly, pop ring, the reward face appears (shard cues; jackpot at epic+;
-   conic beams behind rare+). Tap opens/advances early · **Fast** auto-deals (460ms cadence)
-   · **Skip All** jumps straight to the harvest. HUD: container name + "Specimen i/N" + pips.
+   visible + umbilical cord. The sac ITSELF telegraphs the tier: commons run small and dim,
+   epic+ swells with a stronger halo, and a legendary/exotic occupant visibly STRUGGLES
+   (violent shake) before the burst. It auto-bursts after a rarity-paced beat
+   (`700 + tier·260`ms; **340ms flat in Fast mode**) — wet `splice` cue, membrane shreds,
+   pop ring, then the reward sting ~90ms later (shard cues; jackpot at epic+; conic beams
+   behind rare+; an epic+ birth also washes the backdrop with the pull's color via
+   `is-shine`). Epic+ ceremonies keep the room breathing throughout (`is-rare::before`).
+   Tap opens/advances early · **Fast** auto-deals (460ms cadence) · **Skip All** jumps
+   straight to the harvest. HUD: container name + "Specimen i/N" + pips.
 4. **HARVEST** — the summary, led by the **PRIZE SPECIMEN banner** (first pull at the top
    rarity, INERT tag on commons) and a per-rarity tally (rendered only when >1 distinct
    rarity), then the categorized/merged ledger with Power count-up. Never auto-closes:
