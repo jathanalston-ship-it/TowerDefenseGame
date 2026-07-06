@@ -264,6 +264,20 @@ export function GameView({
     return m;
   }, []);
 
+  // Per-HERO permanent STAR count → visual evolution on the battlefield (docs/HERO-EVOLUTION.md
+  // §visuals). Fixed for the run (hero stars are bought in the Hero Lab between runs).
+  const heroStarTiers = useMemo(() => {
+    const s = meta.get();
+    const m: Record<string, number> = {};
+    for (const k of HERO_ORDER) m[k] = s.heroStars[k] ?? 0;
+    return m;
+  }, []);
+
+  // In-run Hero Evolution total (Hero Console) → the renderer's live "battle-dress" intensity. A
+  // ref (synced each render), so the long-lived RAF draw loop reads the CURRENT value as it climbs.
+  const heroEvoRef = useRef(0);
+  heroEvoRef.current = hud.heroEvo.totalOwned;
+
   // Live run Power Score = account × this run's temporary buffs (drafted genes + Hero Evolution).
   // Recomputed only when those change (not every frame) — account power is static mid-run.
   const power = useMemo(
@@ -359,7 +373,7 @@ export function GameView({
           }
         }
         const rs = game.getRenderState();
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
           const RING_MS = 900;

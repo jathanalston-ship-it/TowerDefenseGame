@@ -47,6 +47,25 @@ interrupts gameplay.
   Precision/Savagery apply to auto-attacks + signature abilities (role pulses take Lethality, not
   crit). Menu Power shows account × Evolution (gene-card temporary power isn't separately exposed).
 
+## §visuals — heroes MUTATE with investment (like towers)
+
+`src/render/heroEvolution.ts` mirrors `towerEvolution.ts`/`starEvolution.ts`: a THIRD consumer of
+the shared organ vocabulary (`PART_DRAWERS`), so a hero is one data row and needs no new draw code.
+Two independent signals drive the look, both no-ops at zero (★0/evo-0 heroes render byte-identically
+to before — golden/fresh-account safe; the sim is untouched, this is pure presentation):
+
+- **Permanent stars** (`save.heroStars`, ★0..★5) set the baseline **anatomy tier**: the body swells
+  (`heroEvolutionGrowth`) and identity organs grow in at ★1/2/3/4/5 — Ravager = predatory
+  blades/fangs→crown, Shepherd = a living heart + vital sacs + halo-crown, Overseer = psionic
+  glyphs→arcs→crown→nova. Per-hero organ sets keep each silhouette distinct (never homogenized).
+- **In-run Hero Evolution levels** (`heroEvoLevels` total, the Hero Console) add **battle-dress**: a
+  brightening aura ring + orbiting weapon-organs whose size/intensity scale with the run's spend
+  (saturating so a maxed console isn't a supernova).
+
+Threaded to the renderer the same way tower stars are: `GameView` passes `heroStarTiers` (per-kind,
+from the save) and a live `heroEvo` (from `hud.heroEvo.totalOwned`) into `drawGame`. Data contract
+pinned by `src/render/heroEvolution.test.ts`.
+
 
 ---
 

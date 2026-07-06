@@ -52,6 +52,52 @@ describe('favorite / lock', () => {
   });
 });
 
+describe('quick-salvage (batch) — guard predicate, batch execute, one-deep undo', () => {
+  it('canSalvage guards missing / locked / favorite / equipped items', () => {
+    meta.reset();
+    meta.grantItem(item('s1', 'w_coil', 'rare'));
+    expect(meta.canSalvage('s1')).toBe(true);
+    expect(meta.canSalvage('nope')).toBe(false); // missing
+    meta.toggleLock('s1'); expect(meta.canSalvage('s1')).toBe(false); meta.toggleLock('s1');
+    meta.toggleFavorite('s1'); expect(meta.canSalvage('s1')).toBe(false); meta.toggleFavorite('s1');
+    meta.equip('ravager', 'weapon', 's1'); expect(meta.canSalvage('s1')).toBe(false); // equipped
+    meta.equip('ravager', 'weapon', null);
+    expect(meta.canSalvage('s1')).toBe(true);
+  });
+
+  it('salvagePreview aggregates only SELECTABLE items (protected excluded)', () => {
+    meta.reset();
+    meta.grantItem(item('a', 'w_coil', 'rare'));
+    meta.grantItem(item('b', 'w_coil', 'epic'));
+    meta.grantItem(item('c', 'w_coil', 'rare'));
+    meta.toggleLock('c'); // protected → excluded from the preview
+    const p = meta.salvagePreview(['a', 'b', 'c']);
+    expect(p.count).toBe(2);
+    expect(p.refund.scrap).toBe((meta.salvageValueOf('a')?.scrap ?? 0) + (meta.salvageValueOf('b')?.scrap ?? 0));
+  });
+
+  it('salvageItems dismantles the batch in one write; the one-deep undo restores the LAST item', () => {
+    meta.reset();
+    meta.grantItem(item('a', 'w_coil', 'rare'));
+    meta.grantItem(item('b', 'w_coil', 'epic'));
+    meta.grantItem(item('c', 'w_coil', 'rare'));
+    meta.toggleFavorite('c'); // protected — must SURVIVE the batch
+    const scrap0 = meta.get().mats.scrap;
+    const preview = meta.salvagePreview(['a', 'b', 'c']);
+    const res = meta.salvageItems(['a', 'b', 'c']);
+    expect(res.count).toBe(2);
+    const inv = () => meta.get().equipment.inventory;
+    expect(inv().find((i) => i.uid === 'a')).toBeUndefined();
+    expect(inv().find((i) => i.uid === 'b')).toBeUndefined();
+    expect(inv().find((i) => i.uid === 'c')).toBeDefined(); // favorite untouched
+    expect(meta.get().mats.scrap).toBe(scrap0 + preview.refund.scrap); // aggregate scrap banked
+    expect(meta.get().lastSalvage?.item.uid).toBe('b'); // one-deep undo → the batch's last item
+    expect(meta.undoSalvage()).toBe(true);
+    expect(inv().find((i) => i.uid === 'b')).toBeDefined(); // restored
+    expect(meta.get().lastSalvage).toBeNull();
+  });
+});
+
 describe('heroDetail — equipment score + power rating', () => {
   it('rises when gear is equipped', () => {
     meta.reset();

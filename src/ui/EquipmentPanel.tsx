@@ -41,6 +41,23 @@ export function EquipmentPanel(): JSX.Element {
   const [sort, setSort] = useState<SortKey>('power');
   const [favOnly, setFavOnly] = useState(false);
   const [detailsUid, setDetailsUid] = useState<string | null>(null); // opens the Equipment Details screen
+  // Quick-Salvage mode: multi-select unlocked gear, then dismantle the batch in one action
+  // (docs/EQUIPMENT.md §safeguards — locked/favorite/equipped items are inert and never selectable).
+  const [salvageMode, setSalvageMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [confirmSalvage, setConfirmSalvage] = useState(false);
+  const exitSalvage = (): void => { setSalvageMode(false); setSelected(new Set()); setConfirmSalvage(false); };
+  const toggleSelect = (uid: string): void => {
+    setConfirmSalvage(false); // any change re-arms the confirm
+    setSelected((s) => { const n = new Set(s); if (n.has(uid)) n.delete(uid); else n.add(uid); return n; });
+  };
+  const salvagePreview = meta.salvagePreview([...selected]);
+  const runSalvage = (): void => {
+    if (salvagePreview.count === 0) return;
+    if (!confirmSalvage) { setConfirmSalvage(true); return; } // two-step: yield shown, then confirm
+    meta.salvageItems([...selected]);
+    exitSalvage();
+  };
 
   // Which fielded hero (if any) wears each item — items are single-instance, so an item shows
   // its owner and can be moved between heroes. Never overwrites another hero's loadout.
@@ -86,14 +103,25 @@ export function EquipmentPanel(): JSX.Element {
     const set = def.setId ? SETS[def.setId] : undefined;
     const setStatus = def.setId ? setActiveMap.get(def.setId) : undefined;
     const sig = def.signature && (item.rarity === 'legendary' || item.rarity === 'exotic') ? def.signature.name : null;
+    // Quick-Salvage selection state (only meaningful in salvage mode): protected items are inert.
+    const canSalv = meta.canSalvage(item.uid);
+    const chosen = selected.has(item.uid);
+    const protectReason = item.locked ? 'Locked' : item.favorite ? 'Favorite' : 'Equipped';
+    const salvClass = salvageMode ? (canSalv ? (chosen ? ' is-selectable is-selected' : ' is-selectable') : ' is-inert') : '';
     return (
-      <div className={`item-card${equipped ? ' is-equipped' : ''}${item.favorite ? ' is-fav' : ''}`} key={item.uid} style={{ ['--rc' as string]: c }}>
+      <div
+        className={`item-card${equipped ? ' is-equipped' : ''}${item.favorite ? ' is-fav' : ''}${salvClass}`}
+        key={item.uid}
+        style={{ ['--rc' as string]: c }}
+        onClick={salvageMode && canSalv ? () => toggleSelect(item.uid) : undefined}
+      >
         <div className="ic-frame">
           <ItemArt def={def} rarity={item.rarity} size={66} />
           {!item.seen && <span className="ic-new" title="Not yet inspected">NEW</span>}
           {item.locked && <span className="ic-lock" title="Locked (protected from salvage)">🔒</span>}
           {item.favorite && <span className="ic-star" title="Favorite">★</span>}
           {def.season && <span className="ic-season" title={`Seasonal: ${def.season}`}>{def.season}</span>}
+          {salvageMode && canSalv && <span className={`ic-sel${chosen ? ' on' : ''}`} aria-hidden>{chosen ? '✓' : ''}</span>}
         </div>
         <div className="ic-body">
           <div className="ic-name" style={{ color: c }}>{def.name}</div>
@@ -122,13 +150,21 @@ export function EquipmentPanel(): JSX.Element {
           )}
           {owner && <div className="ic-owner">Equipped · {HERO_DEFS[owner]?.name ?? 'Hero'}</div>}
         </div>
-        <div className="ic-actions">
-          <button className={`ic-equip ${equipped ? 'on' : ''}`} onClick={() => meta.equip(focus, def.slot, equipped ? null : item.uid)}>
-            {equipped ? 'Unequip' : owner ? 'Move here' : 'Equip'}
-          </button>
-          <button className="ic-mini ic-details" title="Details — compare, affixes, upgrade & salvage" onClick={() => setDetailsUid(item.uid)}>⤢ Details</button>
-          <button className={`ic-mini ${item.favorite ? 'is-on' : ''}`} title="Favorite (pins first; never auto-salvaged)" onClick={() => meta.toggleFavorite(item.uid)}>★</button>
-        </div>
+        {salvageMode ? (
+          <div className={`ic-actions ic-salv${canSalv ? '' : ' is-inert'}`}>
+            {canSalv
+              ? <span className="ic-salv-state">{chosen ? '✓ Selected' : 'Click to select'} · +{meta.salvageValueOf(item.uid)?.scrap ?? 0} ◳</span>
+              : <span className="ic-salv-state">🔒 Protected · {protectReason}</span>}
+          </div>
+        ) : (
+          <div className="ic-actions">
+            <button className={`ic-equip ${equipped ? 'on' : ''}`} onClick={() => meta.equip(focus, def.slot, equipped ? null : item.uid)}>
+              {equipped ? 'Unequip' : owner ? 'Move here' : 'Equip'}
+            </button>
+            <button className="ic-mini ic-details" title="Details — compare, affixes, upgrade & salvage" onClick={() => setDetailsUid(item.uid)}>⤢ Details</button>
+            <button className={`ic-mini ${item.favorite ? 'is-on' : ''}`} title="Favorite (pins first; never auto-salvaged)" onClick={() => meta.toggleFavorite(item.uid)}>★</button>
+          </div>
+        )}
       </div>
     );
   };
@@ -225,6 +261,7 @@ export function EquipmentPanel(): JSX.Element {
           </div>
         )}
         <div className="ac-group ac-right">
+          <button className={`${salvageMode ? 'on' : ''} ac-salv`} onClick={() => (salvageMode ? exitSalvage() : setSalvageMode(true))} title="Quick-Salvage — multi-select unlocked gear to dismantle in one go">◳ Salvage</button>
           <button className={favOnly ? 'on' : ''} onClick={() => setFavOnly((v) => !v)} title="Show favorites only">★ Favorites</button>
           <label className="ac-sort">Sort
             <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
@@ -239,6 +276,25 @@ export function EquipmentPanel(): JSX.Element {
         <div className="hint">{inventory.length === 0 ? 'No gear yet — finish a run for a drop, or grant some from the debug panel.' : 'No items match these filters.'}</div>
       ) : (
         <div className="armory-grid">{shown.map(cardFor)}</div>
+      )}
+
+      {/* Quick-Salvage sticky action bar — the batch yield shows BEFORE confirming; the one-deep
+          Undo restores the last item of the batch (the confirm copy says so, docs/EQUIPMENT.md). */}
+      {salvageMode && (
+        <div className="armory-salvagebar">
+          <span className="asb-count">{salvagePreview.count > 0 ? `${salvagePreview.count} selected` : 'Select unlocked gear to dismantle'}</span>
+          <button className="asb-cancel" onClick={exitSalvage}>Cancel</button>
+          <button
+            className="asb-go"
+            disabled={salvagePreview.count === 0}
+            onClick={runSalvage}
+            title={confirmSalvage ? 'Undo restores only the last item of the batch' : undefined}
+          >
+            {confirmSalvage
+              ? `Confirm — dismantle ${salvagePreview.count}? (Undo keeps the last)`
+              : `Salvage All (${salvagePreview.count}) — +${salvagePreview.refund.scrap} ◳`}
+          </button>
+        </div>
       )}
 
       {detailsUid && <ItemDetails uid={detailsUid} hero={focus} onClose={() => setDetailsUid(null)} />}

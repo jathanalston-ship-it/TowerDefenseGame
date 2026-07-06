@@ -4137,36 +4137,33 @@ export class Game {
     targetId: number, damage: number, behavior: ProjectileBehavior, splash: number,
     sourceKind: TowerKind | null,
   ): void {
-    const p = this.projPool.pop();
-    if (p) {
-      p.id = this.nextId++;
-      p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
-      p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
-      p.sourceKind = sourceKind;
-      p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
-      p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
-      p.skinTier = this.castProjectileSkinTier; // branch shot-tier (renderer-only)
-      p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
-      if (p.hitIds) p.hitIds.length = 0;
-      if (this.castFragment && behavior === 'splash') p.fragment = this.castFragment;
-      if (this.castKnockback > 0 && behavior === 'splash') p.knockback = this.castKnockback;
-      if (this.castFragKnockback && p.fragment && p.knockback) p.fragKnockback = p.knockback * 0.6;
-      if (this.castRicochet && behavior === 'homing') p.ricochet = this.castRicochet;
-      if (this.castVenom && behavior === 'homing') p.venom = this.castVenom;
-      this.projectiles.push(p);
-      // STRAIN echo shell (docs/STRAIN.md — Echoing Howitzer): a slower twin chases the first
-      // shell to the same crater. Guarded so an echo never breeds an echo.
-      if (this.castEcho && behavior === 'splash' && !this.echoing) {
-        this.echoing = true;
-        this.spawnProjectile(x, y, tx, ty, speed * this.castEcho.speedFrac, targetId, damage * this.castEcho.damageFrac, behavior, splash, sourceKind);
-        this.echoing = false;
-      }
-      this.applyProjectileMutators(p);
-    } else {
-      const np: Projectile = { id: this.nextId++, x, y, tx, ty, speed, targetId, damage, behavior, splash, alive: true, sourceKind, pierce: 0, skin: this.castProjectileSkin, skinTier: this.castProjectileSkinTier };
-      this.projectiles.push(np);
-      this.applyProjectileMutators(np);
+    // Pool or cold-allocate; EITHER way every field below is set explicitly, so a reused shot
+    // never inherits a prior cast's STRAIN modifier (the leak) and a cold allocation never drops
+    // one (docs/STRAIN.md §framework). Strain I leaves them all empty ⇒ byte-identical golden path.
+    const p: Projectile = this.projPool.pop() ?? ({} as Projectile);
+    p.id = this.nextId++;
+    p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
+    p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
+    p.sourceKind = sourceKind;
+    p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
+    p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
+    p.skinTier = this.castProjectileSkinTier; // branch shot-tier (renderer-only)
+    p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
+    if (p.hitIds) p.hitIds.length = 0;
+    p.fragment = this.castFragment !== null && behavior === 'splash' ? this.castFragment : undefined;
+    p.knockback = this.castKnockback > 0 && behavior === 'splash' ? this.castKnockback : undefined;
+    p.fragKnockback = this.castFragKnockback && p.fragment !== undefined && p.knockback !== undefined ? p.knockback * 0.6 : undefined;
+    p.ricochet = this.castRicochet !== null && behavior === 'homing' ? this.castRicochet : undefined;
+    p.venom = this.castVenom !== null && behavior === 'homing' ? this.castVenom : undefined;
+    this.projectiles.push(p);
+    // STRAIN echo shell (docs/STRAIN.md — Echoing Howitzer): a slower twin chases the first
+    // shell to the same crater. Guarded so an echo never breeds an echo.
+    if (this.castEcho !== null && behavior === 'splash' && !this.echoing) {
+      this.echoing = true;
+      this.spawnProjectile(x, y, tx, ty, speed * this.castEcho.speedFrac, targetId, damage * this.castEcho.damageFrac, behavior, splash, sourceKind);
+      this.echoing = false;
     }
+    this.applyProjectileMutators(p);
   }
 
   /** Apply the per-cast star-kit mutators + the run-wide granted mutators to a fresh shot. */

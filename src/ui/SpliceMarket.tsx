@@ -19,8 +19,11 @@ function countdown(ms: number): string {
 
 function SlotCard({ slot, justBought, onBuy }: { slot: MarketSlotView; justBought: boolean; onBuy: (id: string) => void }): JSX.Element {
   const cls = `market-card${slot.pay === 'ichor' ? ' is-premium' : ''}${slot.isContainer ? ' is-container' : ''}${slot.bought ? ' is-sold' : ''}${justBought ? ' is-just-bought' : ''}`;
+  // Rarity marker (containers) so the stylesheet can give the top tiers a premium frame —
+  // the EXOTIC Bio-Container gets the vault's --viral glow/shimmer instead of a flat card.
+  const rarity = slot.item.good === 'container' ? slot.item.rarity : undefined;
   return (
-    <div className={cls} style={{ ['--mk' as string]: slot.color }}>
+    <div className={cls} data-rarity={rarity} style={{ ['--mk' as string]: slot.color }}>
       <div className="market-card-art" aria-hidden>
         {slot.currencyId ? <CurrencyIcon id={slot.currencyId} color={slot.color} size={30} title="" /> : <span className="market-card-glyph">{slot.glyph}</span>}
       </div>

@@ -7,6 +7,7 @@ import type { MarketGood, MarketSlot } from '../core/market';
 import type { CurrencyId } from '../core/currencies';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { rarityRegistry } from '../core/loot';
+import { rarityColorOf } from '../core/equipment'; // THE canonical rarity→color map (has 'exotic')
 import { meta } from './meta';
 import type { SaveData } from '../save/saveStore';
 
@@ -48,8 +49,13 @@ function describeGood(item: MarketGood): { name: string; qtyLabel: string; curre
       return { name: `${r?.name ?? item.equipRarity} Bio-Gear`, qtyLabel: '', currencyId: null, color: r?.color ?? 'var(--r-rare)', glyph: '⛨' };
     }
     case 'container': {
+      // The loot rarityRegistry is the common…mythic ladder; a container can roll EXOTIC (its own
+      // top tier), which isn't in that registry — so resolve label + color canonically, or an
+      // exotic container falls back to a dull gray "exotic" (the reported bug). rarityColorOf is
+      // THE one map every rarity surface renders with (equipment.ts) and knows exotic → --viral.
       const r = rarityRegistry.get(item.rarity);
-      return { name: `${r?.name ?? item.rarity} Bio-Container`, qtyLabel: '', currencyId: null, color: r?.color ?? 'var(--r-common)', glyph: '◈' };
+      const label = r?.name ?? item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1);
+      return { name: `${label} Bio-Container`, qtyLabel: '', currencyId: null, color: rarityColorOf(item.rarity), glyph: '◈' };
     }
     case 'stamina':
       return { name: 'Gauntlet Stamina', qtyLabel: `+${item.qty}`, currencyId: null, color: 'var(--danger, #ff5d73)', glyph: '☠' };

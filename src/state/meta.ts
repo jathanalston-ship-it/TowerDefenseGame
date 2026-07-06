@@ -2245,6 +2245,62 @@ export const meta = {
     return true;
   },
 
+  /** Pure guard (docs/EQUIPMENT.md §safeguards): may this owned item be salvaged? False for a
+   *  missing, LOCKED, FAVORITE, or currently-EQUIPPED item — the same rule salvageItem enforces,
+   *  exposed so the Armory's Quick-Salvage can render protected cards as visually inert. */
+  canSalvage(uid: string): boolean {
+    const item = store.get().equipment.inventory.find((i) => i.uid === uid);
+    return !!item && !item.locked && !item.favorite && !this.isItemEquipped(uid);
+  },
+
+  /** The material refund an item WOULD yield (pre-confirm display); null if it's already gone. */
+  salvageValueOf(uid: string): { mutagen: number; scrap: number; catalyst: number } | null {
+    const item = store.get().equipment.inventory.find((i) => i.uid === uid);
+    return item ? salvageValue(item) : null;
+  },
+
+  /** Aggregate the yield of salvaging every SALVAGEABLE uid in `uids` (protected ones excluded) —
+   *  the "Salvage All (N) · +X scrap" preview the Armory shows BEFORE the player confirms. */
+  salvagePreview(uids: string[]): { count: number; refund: { mutagen: number; scrap: number; catalyst: number } } {
+    const inv = store.get().equipment.inventory;
+    const refund = { mutagen: 0, scrap: 0, catalyst: 0 };
+    let count = 0;
+    for (const uid of uids) {
+      if (!this.canSalvage(uid)) continue;
+      const item = inv.find((i) => i.uid === uid);
+      if (!item) continue;
+      const r = salvageValue(item);
+      refund.mutagen += r.mutagen; refund.scrap += r.scrap; refund.catalyst += r.catalyst;
+      count++;
+    }
+    return { count, refund };
+  },
+
+  /** Batch-dismantle in ONE write (docs/EQUIPMENT.md §safeguards): protected items are skipped
+   *  defensively. The one-deep Undo buffer holds the LAST item of the batch — undo restores that
+   *  one (the Armory's confirm copy says so). Returns the count salvaged + the aggregate refund. */
+  salvageItems(uids: string[]): { count: number; refund: { mutagen: number; scrap: number; catalyst: number } } {
+    const save = store.get();
+    const gone: OwnedItem[] = [];
+    for (const uid of uids) {
+      if (!this.canSalvage(uid)) continue;
+      const item = save.equipment.inventory.find((i) => i.uid === uid);
+      if (item) gone.push(item);
+    }
+    const refund = { mutagen: 0, scrap: 0, catalyst: 0 };
+    if (gone.length === 0) return { count: 0, refund };
+    for (const item of gone) { const r = salvageValue(item); refund.mutagen += r.mutagen; refund.scrap += r.scrap; refund.catalyst += r.catalyst; }
+    const goneSet = new Set(gone.map((i) => i.uid));
+    const last = gone[gone.length - 1];
+    persist({
+      ...save,
+      equipment: { ...save.equipment, inventory: save.equipment.inventory.filter((i) => !goneSet.has(i.uid)) },
+      mats: { mutagen: save.mats.mutagen + refund.mutagen, scrap: save.mats.scrap + refund.scrap, catalyst: save.mats.catalyst + refund.catalyst },
+      lastSalvage: { item: last, refund: salvageValue(last) }, // one-deep undo → the batch's last item
+    });
+    return { count: gone.length, refund };
+  },
+
   /** Mark an item as inspected (opening its Details) — clears its "NEW" card badge. Idempotent. */
   markItemSeen(uid: string): void {
     const save = store.get();

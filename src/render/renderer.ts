@@ -42,6 +42,7 @@ import {
 } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
+import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
 import { dangerCurve } from '../core/dangerCamera';
 
 export interface Pointer {
@@ -81,6 +82,8 @@ export function drawGame(
   cosmeticTiers: Partial<Record<string, number>> = {}, // per-kind mastery-rank visual tier (0 = none)
   starTiers: Partial<Record<string, number>> = {}, // per-kind permanent STAR count → visual evolution (0 = none)
   adaptTiers: Partial<Record<string, number>> = {}, // per-kind Adaptation FORM stage (docs/ADAPTATION.md; 0 = none)
+  heroStarTiers: Partial<Record<string, number>> = {}, // per-HERO permanent STAR count → visual evolution (0 = none)
+  heroEvo = 0, // run-wide Hero Evolution levels bought (Hero Console) → in-run battle-dress (0 = none)
 ): void {
   const t = rs.time;
 
@@ -139,7 +142,7 @@ export function drawGame(
 
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
-  drawHeroes(ctx, rs, cosmeticTiers);
+  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo);
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 
@@ -1252,11 +1255,11 @@ const MINION_LOW_RGB = hexRgb('#ff5d73');
 
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle' } as const;
 
-function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}): void {
-  for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0);
+function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0): void {
+  for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0, heroStarTiers[rs.heroes[i].kind] ?? 0, heroEvo);
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0): void {
+function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0): void {
   const t = rs.time;
   const def = HERO_DEFS[h.kind];
   const tint = hexRgb(def.color); // class-colored halo/locator/trail
@@ -1313,10 +1316,14 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
       }
     }
   }
-  // layered core: dark rim → class-colored body → bright nucleus (reads as a hero)
-  drawShape(ctx, shape, h.x, h.y, 16, THEME.hero.rim);
-  drawShape(ctx, shape, h.x, h.y, 13, def.color);
-  drawShape(ctx, shape, h.x, h.y - 2, 5, THEME.hero.core);
+  // layered core: dark rim → class-colored body → bright nucleus (reads as a hero). Permanent
+  // STARS swell the body (docs/HERO-EVOLUTION.md §visuals); ★0 ⇒ grow=1 ⇒ the classic silhouette.
+  const grow = heroEvolutionGrowth(h.kind, stars);
+  drawShape(ctx, shape, h.x, h.y, 16 * grow, THEME.hero.rim);
+  drawShape(ctx, shape, h.x, h.y, 13 * grow, def.color);
+  drawShape(ctx, shape, h.x, h.y - 2, 5 * grow, THEME.hero.core);
+  // Star anatomy organs + in-run Hero-Evolution battle-dress (both no-ops at ★0/evo-0 → classic look).
+  drawHeroEvolution(ctx, h, stars, heroEvo, 16 * grow, t, def.color, down);
   ctx.globalAlpha = 1;
 
   if (down) {
