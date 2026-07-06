@@ -21,6 +21,7 @@ function runResult(wave: number, kills: number): RunResult {
     won: true,
     biomassEarned: 0,
     damageDealt: 0,
+    integrityLost: 0,
     killsByEnemy: defaultLifetimeStats().killsByEnemy,
     towerBuilds: TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: 0 }), {}) as RunStats['towerBuilds'],
     cardIds: [],
@@ -334,6 +335,46 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     while (meta.openContainer()) { /* open them all */ }
     expect(reward(meta.get())).toBeGreaterThan(before);
     expect(meta.pendingContainers().length).toBe(0);
+  });
+});
+
+describe('campaign flawless first-clear bonus cache', () => {
+  // A campaign clear of `stage`, having taken `integrityLost` Nucleus damage (0 = flawless).
+  function campaignRun(stage: number, integrityLost: number): RunResult {
+    const r = runResult(12, 300);
+    r.campaignStage = stage;
+    r.difficulty = 'standard';
+    r.stats.integrityLost = integrityLost;
+    return r;
+  }
+  const cacheCount = (out: ReturnType<typeof meta.finishRun>): number =>
+    out.loot.banked.filter((c) => c.kind === 'cache').length;
+
+  it('grants a 2nd (Flawless) cache on a no-damage first clear', () => {
+    meta.reset();
+    const out = meta.finishRun(campaignRun(1, 0));
+    expect(cacheCount(out)).toBe(2); // guaranteed run cache + flawless bonus
+    expect(out.flawlessCache).toEqual({ earned: true, firstClear: true, noDamage: true });
+  });
+
+  it('grants only the guaranteed cache when the first clear took ANY damage', () => {
+    meta.reset();
+    const out = meta.finishRun(campaignRun(1, 5)); // regen can't redeem it — any hit forfeits the bonus
+    expect(cacheCount(out)).toBe(1);
+    expect(out.flawlessCache).toEqual({ earned: false, firstClear: true, noDamage: false });
+  });
+
+  it('never grants the Flawless cache on a replay, even a flawless one', () => {
+    meta.reset();
+    meta.finishRun(campaignRun(1, 0)); // clear stage 1 → now a completed stage
+    const out = meta.finishRun(campaignRun(1, 0)); // replay it flawlessly
+    expect(cacheCount(out)).toBe(1);
+    expect(out.flawlessCache).toEqual({ earned: false, firstClear: false, noDamage: true });
+  });
+
+  it('is null (not applicable) for a non-campaign run', () => {
+    meta.reset();
+    expect(meta.finishRun(runResult(12, 300)).flawlessCache).toBeNull();
   });
 });
 

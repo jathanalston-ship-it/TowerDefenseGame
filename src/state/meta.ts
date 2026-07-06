@@ -704,6 +704,10 @@ export interface RunOutcome {
   // Daily Run (docs/DAILY-RUN.md): this run's daily outcome — the once-per-day clear reward (0 on a
   // replay/loss) and the updated streak. Absent off-daily.
   dailyProgress?: { cores: number; streak: number; cleared: boolean };
+  // Campaign "Flawless first-clear" bonus-cache status, for the Results notice. null on non-campaign
+  // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
+  // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
+  flawlessCache: { earned: boolean; firstClear: boolean; noDamage: boolean } | null;
 }
 
 /** One granted line on a premium receipt — the reveal ceremony renders these. */
@@ -1081,9 +1085,15 @@ export const meta = {
       : { state: save.lootQueue, awarded: [] as string[] }; // unqualified: no run-end loot, meter frozen (no RNG spent)
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
-    // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
-    // by the stage number so deeper first clears drop a richer cache.
-    const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    // Flawless first-clear "Stage Cache": the bonus container is awarded ONLY when a campaign stage
+    // is cleared for the FIRST time WITHOUT the Nucleus taking any integrity damage. Regen does not
+    // redeem a hit — any damage taken forfeits the bonus — and replays never qualify. Scaled by the
+    // stage number so deeper flawless first clears drop a richer cache.
+    const noDamage = result.stats.integrityLost === 0;
+    const flawlessEarned = firstClear && noDamage;
+    const stageCache: PendingContainer[] = flawlessEarned ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    // Results notice (docs/REWARD-PRESENTATION.md): earned/missed status on a qualifying campaign win.
+    const flawlessCache = isCampaign && result.won ? { earned: flawlessEarned, firstClear, noDamage } : null;
     const cacheBank: PendingContainer[] = cacheEligible ? [runCache, ...stageCache] : [];
     const newlyBanked: PendingContainer[] = [...queueRemainder, ...cacheBank, ...rushVaultBank];
     // An unqualified Infinite run rolls back the containers it banked LIVE this run (syncRunLoot) —
@@ -1244,6 +1254,7 @@ export const meta = {
           } }
         : {}),
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
+      flawlessCache,
     };
   },
 

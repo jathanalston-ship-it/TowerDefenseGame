@@ -2519,6 +2519,34 @@ kbd {
   border: 1px solid rgba(240, 190, 90, 0.32);
   border-radius: var(--r-sm);
 }
+/* Flawless first-clear bonus-cache verdict: gold + glow when earned, quiet when missed. */
+.flawless-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--line);
+}
+.flawless-notice .fn-glyph {
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.flawless-notice.is-earned {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 16%, transparent), rgba(255, 255, 255, 0.03) 70%);
+}
+.flawless-notice.is-miss {
+  color: var(--muted);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+}
 @keyframes ve-row-in {
   from { opacity: 0; transform: translateY(6px); }
 }

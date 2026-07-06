@@ -392,6 +392,7 @@ export class Game {
   // mastery, these NEVER feed back into combat, so they can't alter a fixed seed.
   private statBiomassEarned = 0;
   private statDamageDealt = 0;
+  private statIntegrityLost = 0; // cumulative Nucleus integrity damage taken (0 = flawless run)
   private statKillsByEnemy: Record<EnemyKind, number> = zeroEnemyCounts();
   private statTowerBuilds: Record<TowerKind, number> = zeroTowerCounts();
 
@@ -2350,7 +2351,11 @@ export class Game {
         if (b.channel <= 0) {
           // the cast lands on the Nucleus unless the boss died mid-cast
           const chan = def.modules.find((m) => m.kind === 'channeler');
-          if (chan && !this.god) this.integrity = Math.max(0, this.integrity - (chan.amount ?? 12));
+          if (chan && !this.god) {
+            const before = this.integrity;
+            this.integrity = Math.max(0, this.integrity - (chan.amount ?? 12));
+            this.statIntegrityLost += before - this.integrity; // flawless-run tracking (regen can't redeem it)
+          }
           this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 16, text: 'BREACH!', color: '#ff5d73', life: 1 });
           b.telegraph = null;
         }
@@ -2482,7 +2487,11 @@ export class Game {
         if (!e.sieging) b.grip = 0; // peeled off the Hive — the grip breaks
         else {
           const crush = def.modules.find((cm) => cm.kind === 'corecrush');
-          if (crush && !this.god) this.integrity = Math.max(0, this.integrity - (crush.amount ?? 6) * dt);
+          if (crush && !this.god) {
+            const before = this.integrity;
+            this.integrity = Math.max(0, this.integrity - (crush.amount ?? 6) * dt);
+            this.statIntegrityLost += before - this.integrity; // flawless-run tracking (regen can't redeem it)
+          }
           b.telegraph = 'CORE CRUSH';
         }
       }
@@ -2648,7 +2657,7 @@ export class Game {
     for (const s of this.enemyShells) {
       s.t += dt / s.duration;
       if (s.t >= 1) {
-        if (!this.god) this.integrity -= s.damage;
+        if (!this.god) { this.integrity -= s.damage; this.statIntegrityLost += s.damage; } // flawless-run tracking (siege lands on impact)
         this.floats.push({ x: s.targetX, y: s.targetY - 18, text: `-${s.damage}`, color: '#ff8a3d', life: 0.9 });
         this.spawnParticles(s.targetX, s.targetY, PARTICLE.breach, s.color);
       }
@@ -3420,6 +3429,7 @@ export class Game {
             e.siegeCd = def.siege.interval;
             // Launch a VISIBLE shell (docs/ENEMIES.md §artillery) — damage lands on IMPACT,
             // so the bombardment reads as a dodgeable arc instead of an invisible tax.
+            // (Flawless-run tracking happens at impact — see enemyShellSystem.)
             const dist = Math.hypot(nucleusPoint.x - e.x, nucleusPoint.y - e.y);
             this.enemyShells.push({
               x: e.x, y: e.y, targetX: nucleusPoint.x, targetY: nucleusPoint.y,
@@ -3624,7 +3634,9 @@ export class Game {
    *  so a hundred attackers read as pressure, not confetti. */
   private hiveStrike(e: Enemy): void {
     if (!this.god) {
-      this.integrity -= Math.round(e.damage * this.bossPhaseDamageMult(e));
+      const dmg = Math.round(e.damage * this.bossPhaseDamageMult(e));
+      this.integrity -= dmg;
+      this.statIntegrityLost += dmg; // flawless-run tracking (regen can't redeem it)
       this.hiveRecentDamage += e.damage;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.25 + e.damage * 0.012);
     }
@@ -3648,7 +3660,9 @@ export class Game {
   private detonate(e: Enemy, def: EnemyDef): void {
     if (!e.alive) return;
     if (!this.god) {
-      this.integrity -= Math.round(e.damage * this.bossPhaseDamageMult(e));
+      const dmg = Math.round(e.damage * this.bossPhaseDamageMult(e));
+      this.integrity -= dmg;
+      this.statIntegrityLost += dmg; // flawless-run tracking (regen can't redeem it)
       this.hiveRecentDamage += e.damage;
       this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.4 + e.damage * 0.012);
     }
@@ -5170,6 +5184,7 @@ export class Game {
       won: this.phase === 'won',
       biomassEarned: this.statBiomassEarned,
       damageDealt: this.statDamageDealt,
+      integrityLost: this.statIntegrityLost,
       killsByEnemy: { ...this.statKillsByEnemy },
       towerBuilds: { ...this.statTowerBuilds },
       cardIds: this.chosenCards.map((c) => c.id),

@@ -37,7 +37,7 @@ function endlessResult(wave: number, towerKills: number): RunResult {
   mastery[TOWER_ORDER[0]] = { kills: towerKills, damage: 5000, activeTime: 300 }; // real accrual to bank
   const heroMastery = HERO_ORDER.reduce((o, k) => ({ ...o, [k]: { ...zero } }), {}) as RunResult['heroMastery'];
   const stats: RunStats = {
-    kills: towerKills, wave, won: false, biomassEarned: 0, damageDealt: 5000,
+    kills: towerKills, wave, won: false, biomassEarned: 0, damageDealt: 5000, integrityLost: 0,
     killsByEnemy: defaultLifetimeStats().killsByEnemy,
     towerBuilds: TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: 0 }), {}) as RunStats['towerBuilds'],
     cardIds: [], heroId: HERO_ORDER[0],
