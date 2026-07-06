@@ -59,7 +59,12 @@ export function Results({
       const def = rarityRegistry.get(id);
       return { key: id, name: def?.name ?? id, color: def?.color ?? 'var(--r-common)', n: lootCounts.get(id) as number, glyph: '◈', cache: false };
     });
-  if (cacheCount > 0) containerRows.push({ key: 'cache', name: 'Run Cache', color: 'var(--cache)', n: cacheCount, glyph: '⬢', cache: true });
+  // The Flawless first-clear bonus cache is banked as an extra 'cache' container; surface it as its
+  // own labeled row so the guaranteed run cache and the earned bonus read distinctly.
+  const flawlessEarned = outcome.flawlessCache?.earned ?? false;
+  const guaranteedCaches = flawlessEarned ? cacheCount - 1 : cacheCount;
+  if (guaranteedCaches > 0) containerRows.push({ key: 'cache', name: 'Run Cache', color: 'var(--cache)', n: guaranteedCaches, glyph: '⬢', cache: true });
+  if (flawlessEarned) containerRows.push({ key: 'flawless-cache', name: 'Flawless Cache', color: 'var(--gold)', n: 1, glyph: '⬢', cache: true });
   const earned = outcome.loot.banked.length;
   const lootBoxes = earned - cacheCount; // loot-queue boxes only (excludes the guaranteed cache)
   const owned = meta.pendingContainers().length;
@@ -67,6 +72,16 @@ export function Results({
   const next = rarityRegistry.get(outcome.loot.queue.queue[1]);
 
   const newMasteries = outcome.masteryUnlocks.titles.length + outcome.masteryUnlocks.lore.length;
+
+  // Flawless bonus-cache notice — tells the player whether the no-damage first-clear bonus landed,
+  // and why not when it didn't (took damage, or a replay). null → not a campaign clear, show nothing.
+  const fc = outcome.flawlessCache;
+  const flawlessNotice: { tone: 'earned' | 'miss'; text: string } | null =
+    !fc ? null
+    : fc.earned ? { tone: 'earned', text: 'Flawless clear — bonus Flawless Cache secured! No damage taken.' }
+    : fc.firstClear ? { tone: 'miss', text: 'Flawless bonus missed — the Nucleus took damage this run.' }
+    : fc.noDamage ? { tone: 'miss', text: 'Flawless run — but the bonus cache is first-clear only.' }
+    : null;
 
   const num = (n: number): string => Math.round(n).toLocaleString();
 
@@ -166,6 +181,12 @@ export function Results({
     ],
     extra: (
       <>
+        {flawlessNotice && (
+          <div className={`flawless-notice is-${flawlessNotice.tone}`}>
+            <span className="fn-glyph">{flawlessNotice.tone === 'earned' ? '⬢' : '◌'}</span>
+            <span>{flawlessNotice.text}</span>
+          </div>
+        )}
         {earned > 0 ? (
           <>
             <div className="vault-earned">

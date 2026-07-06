@@ -304,6 +304,10 @@ export interface RunOutcome {
   loot: { queue: LootQueueState; banked: PendingContainer[] }; // containers banked unopened this run (Vault)
   masteryUnlocks: { titles: string[]; lore: string[] }; // mastery identity earned this run (reward ids)
   achievements: AchievementDef[]; // milestones unlocked at run end — shown inline on Results, NOT toasted
+  // Campaign "Flawless first-clear" bonus-cache status, for the Results notice. null on non-campaign
+  // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
+  // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
+  flawlessCache: { earned: boolean; firstClear: boolean; noDamage: boolean } | null;
 }
 
 /** Roll each awarded loot-queue box's reward table, fold the shards into the running
@@ -523,9 +527,14 @@ export const meta = {
     const lootAdv = addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked));
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
-    // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
-    // by the stage number so deeper first clears drop a richer cache.
-    const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    // Flawless first-clear "Stage Cache": a one-time bonus container awarded ONLY when a campaign
+    // stage is cleared for the FIRST time WITHOUT the Nucleus taking any integrity damage. Regen
+    // does not redeem a hit — any damage taken forfeits the bonus — and replays never qualify. Scaled
+    // by the stage number so deeper flawless first clears drop a richer cache.
+    const noDamage = result.stats.integrityLost === 0;
+    const flawlessEarned = firstClear && noDamage;
+    const stageCache: PendingContainer[] = flawlessEarned ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    const flawlessCache = isCampaign && result.won ? { earned: flawlessEarned, firstClear, noDamage } : null;
     const newlyBanked: PendingContainer[] = [...queueRemainder, runCache, ...stageCache];
     const bankedThisRun: PendingContainer[] = [...runContainersBanked, ...newlyBanked];
 
@@ -598,6 +607,7 @@ export const meta = {
       loot: { queue: lootAdv.state, banked: bankedThisRun },
       masteryUnlocks: { titles: newTitles, lore: newLore },
       achievements: unlockedAchievements,
+      flawlessCache,
     };
   },
 

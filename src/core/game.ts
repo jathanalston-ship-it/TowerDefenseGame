@@ -305,6 +305,7 @@ export class Game {
   // mastery, these NEVER feed back into combat, so they can't alter a fixed seed.
   private statBiomassEarned = 0;
   private statDamageDealt = 0;
+  private statIntegrityLost = 0; // cumulative Nucleus integrity damage taken (0 = flawless run)
   private statKillsByEnemy: Record<EnemyKind, number> = zeroEnemyCounts();
   private statTowerBuilds: Record<TowerKind, number> = zeroTowerCounts();
 
@@ -1357,7 +1358,11 @@ export class Game {
         if (b.channel <= 0) {
           // the cast lands on the Nucleus unless the boss died mid-cast
           const chan = def.modules.find((m) => m.kind === 'channeler');
-          if (chan && !this.god) this.integrity = Math.max(0, this.integrity - (chan.amount ?? 12));
+          if (chan && !this.god) {
+            const before = this.integrity;
+            this.integrity = Math.max(0, this.integrity - (chan.amount ?? 12));
+            this.statIntegrityLost += before - this.integrity; // flawless-run tracking (regen can't redeem it)
+          }
           this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 16, text: 'BREACH!', color: '#ff5d73', life: 1 });
           b.telegraph = null;
         }
@@ -1895,7 +1900,7 @@ export class Game {
           e.siegeCd = (e.siegeCd ?? def.siege.interval) - dt;
           if (e.siegeCd <= 0) {
             e.siegeCd = def.siege.interval;
-            if (!this.god) this.integrity -= def.siege.damage;
+            if (!this.god) { this.integrity -= def.siege.damage; this.statIntegrityLost += def.siege.damage; }
             this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 18, text: `-${def.siege.damage}`, color: '#ff8a3d', life: 0.9 });
             this.pushSfx('breach');
           }
@@ -2008,7 +2013,7 @@ export class Game {
 
   private hitNucleus(e: Enemy): void {
     if (!e.alive) return;
-    if (!this.god) this.integrity -= e.damage;
+    if (!this.god) { this.integrity -= e.damage; this.statIntegrityLost += e.damage; }
     e.alive = false;
     if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1);
     this.armorBreakUntil.delete(e.id);
@@ -3157,6 +3162,7 @@ export class Game {
       won: this.phase === 'won',
       biomassEarned: this.statBiomassEarned,
       damageDealt: this.statDamageDealt,
+      integrityLost: this.statIntegrityLost,
       killsByEnemy: { ...this.statKillsByEnemy },
       towerBuilds: { ...this.statTowerBuilds },
       cardIds: this.chosenCards.map((c) => c.id),

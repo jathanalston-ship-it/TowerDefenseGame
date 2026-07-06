@@ -39,7 +39,7 @@ across the board so the characterization tests don't move.
 | **Genome Cores** (account currency) | `(wave·8 + kills·0.4)·…` | **×1.0 on first clear**, ×0.3 replay, **+ first-clear & milestone bonuses** | ×0.2 (token — can't be farmed for currency) | ×1.0 |
 | **Loot points** (Loot Box Meter → Tower/Hero Shards) | `(wave·14 + kills·1)·…` | ×0.35 (a trickle) | **×1.0 (the farm)** | ×1.0 |
 | **Mastery XP** (tower + hero, from use) | use-based | ×1.0 | **×1.35 (endurance bonus)** | ×1.0 |
-| **Run cache** (`chestForWave`) | per run | per run + **first-clear Stage Cache** | per run | per run |
+| **Run cache** (`chestForWave`) | per run | per run + **flawless first-clear Stage Cache** (no-damage clears only) | per run | per run |
 | **High score** (`bestWave`) | `max(wave)` | (tracks stage via `campaign.cleared`) | **the leaderboard metric** | — |
 | **Stage unlock** | — | **clearing unlocks the next** | — | — |
 | Lifetime stats · achievements · mastery titles/lore | all modes | all modes | all modes | all modes |
@@ -49,14 +49,16 @@ On a **brand-new** stage clear (`campaignStage > campaign.cleared[diff]`):
 - **First-clear Genome Cores** = `CAMPAIGN_REWARDS.firstClearCore + firstClearCorePerStage × stage`
   (deeper stages pay more — the discovery reward).
 - **Milestone bonus** every `milestoneEvery` (5) cleared stages: `+ milestoneCore` Genome Cores.
-- **A guaranteed Stage Cache** container (banked to the Vault).
+- **A Flawless Stage Cache** container (banked to the Vault) — awarded **only if the Nucleus took zero
+  integrity damage** all run (`RunStats.integrityLost === 0`). Regen can't redeem a hit; any damage
+  forfeits it, and replays never qualify. The Results screen shows an earned/missed verdict either way.
 - **Biome discovery + boss encounter** are surfaced here too — the boss is the stage finale, and the
   world map (§3) reveals the biome as you arrive. Replays grant loot/mastery but only ×0.3 currency
   (the completion reward is claimed), so progress — not grinding old stages — is what pays.
 
 ### Why this alternates (worked example, ~stage/depth 30)
 - Campaign stage 30 **first clear**: ~570 base + 175 first-clear + 150 milestone ≈ **~900 Genome
-  Cores** + a Stage Cache, little loot.
+  Cores** + a Flawless Stage Cache *if cleared without taking damage*, little loot.
 - Infinite depth 30: **~130 Genome Cores** (×0.2) but **full loot meter** (many containers →
   Tower/Hero Shards) + ×1.35 mastery.
 - ⇒ Currency ⇒ Campaign; shards/mastery/score ⇒ Infinite. Neither alone maxes the account.
@@ -84,7 +86,7 @@ plunging *deeper into an infected planet*, revealed as you clear it.
 - **Current location** — the frontier biome + stage, centered.
 - **Highest cleared** — the deepest lit node (per difficulty track).
 - **Upcoming biome** + **upcoming boss** — read off the next node(s).
-- Per node (focused): **stage rewards** (first-clear Genome Cores + Stage Cache), **difficulty**,
+- Per node (focused): **stage rewards** (first-clear Genome Cores + flawless-clear Stage Cache), **difficulty**,
   **Recommended Power** (`recommendedPower(stage)`, compared to the account’s Power Score), the
   biome **hazard**, boss + mini-boss, wave count, HP/damage scaling.
 

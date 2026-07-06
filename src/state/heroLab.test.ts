@@ -16,7 +16,7 @@ function runWithHeroKills(hero: string, kills: number): RunResult {
   const heroMastery = HERO_ORDER.reduce((o, k) => ({ ...o, [k]: { ...zero } }), {}) as RunResult['heroMastery'];
   heroMastery[hero as keyof typeof heroMastery] = { kills, damage: 0, activeTime: 0 };
   const stats: RunStats = {
-    kills, wave: 10, won: true, biomassEarned: 0, damageDealt: 0,
+    kills, wave: 10, won: true, biomassEarned: 0, damageDealt: 0, integrityLost: 0,
     killsByEnemy: defaultLifetimeStats().killsByEnemy,
     towerBuilds: TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: 0 }), {}) as RunStats['towerBuilds'],
     cardIds: [], heroId: hero,

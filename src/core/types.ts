@@ -313,6 +313,7 @@ export interface RunStats {
   won: boolean;
   biomassEarned: number; // total biomass income this run
   damageDealt: number; // total damage dealt (towers + hero + DoT)
+  integrityLost: number; // total Nucleus integrity damage taken this run (0 = flawless; later regen never redeems it)
   killsByEnemy: Record<EnemyKind, number>;
   towerBuilds: Record<TowerKind, number>; // towers grown this run, per kind
   cardIds: string[]; // gene cards drafted this run (ids; may repeat)
