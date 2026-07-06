@@ -54,12 +54,24 @@ const SHAPE_DEPTH: Record<Exclude<WaveShape, 'boss'>, number> = {
 type Rng = () => number;
 const pick = <T>(rng: Rng, a: readonly T[]): T => a[Math.floor(rng() * a.length)];
 
+// Heavy (slow, high-eHP) class set — the deep-tilt cap limits how much of a wave's budget these
+// bodies may claim (docs/ENDLESS-SCALING.md §deep-tilt). Built once from the data-driven config.
+const HEAVY = new Set<EnemyKind>(DIRECTOR.heavyKinds);
+
+/** Fraction of a wave's threat budget the HEAVY class may claim at a given depth — full at
+ *  heavyCapMinDepth, decaying to a floor deep. Pure data (DIRECTOR.heavyBudget*). */
+function heavyFrac(depth: number): number {
+  const over = Math.max(0, depth - DIRECTOR.heavyCapMinDepth);
+  return Math.max(DIRECTOR.heavyBudgetFracMin, DIRECTOR.heavyBudgetFracBase - DIRECTOR.heavyBudgetDecayPerDepth * over);
+}
+
 export class Director {
   private lastShape: WaveShape | null = null;
 
-  // The universal difficulty framework supplies the elite-chance and boss-frequency
-  // scalars; at Standard (identity) the Director behaves exactly as before.
-  constructor(private rng: Rng, private diff: DifficultyDef = STANDARD) {}
+  // The universal difficulty framework supplies the elite-chance and boss-frequency scalars; at
+  // Standard (identity) the Director behaves exactly as before. `deepTilt` enables the ENDLESS-ONLY
+  // deep-composition cap (set true only for mode 'endless'; Boss Rush leaves it false ⇒ untouched).
+  constructor(private rng: Rng, private diff: DifficultyDef = STANDARD, private deepTilt = false) {}
 
   /** Produce the next endless wave for a given depth (1-based). The active biome (Infinite mode,
    *  docs/BIOMES.md) scales elite frequency and injects its signature kinds into the roster;
@@ -111,16 +123,30 @@ export class Director {
     const cap = DIRECTOR.ehpBase + DIRECTOR.ehpPerDepth * depth;
     const roster = base.filter((k) => effectiveHp(ENEMY_DEFS[k]) <= cap);
     if (roster.length === 0) roster.push('runner');
+    // Deep-tilt cap (ENDLESS only, depth ≥ heavyCapMinDepth): once the wave's HEAVY-class spend
+    // reaches its budget share, the remainder buys FAST/mid bodies instead — pressure through pace,
+    // not a wall of sponges. Inactive ⇒ heavyBudget=∞ and fastPool=roster ⇒ byte-identical baseline
+    // (shallow endless + Boss Rush). See docs/ENDLESS-SCALING.md §deep-tilt.
+    const heavyCapActive = this.deepTilt && depth >= DIRECTOR.heavyCapMinDepth;
+    const heavyBudget = heavyCapActive ? budget * heavyFrac(depth) : Infinity;
+    let fastPool = roster;
+    if (heavyCapActive) {
+      const nonHeavy = roster.filter((k) => !HEAVY.has(k));
+      fastPool = nonHeavy.length > 0 ? nonHeavy : DIRECTOR.deepFastPool.filter((k) => effectiveHp(ENEMY_DEFS[k]) <= cap);
+      if (fastPool.length === 0) fastPool = ['rusher'];
+    }
     const counts = new Map<EnemyKind, { n: number; elite: number }>();
     let remaining = budget;
+    let heavySpent = 0;
     let guard = 0;
     while (remaining > 0 && guard++ < 400) {
-      const kind = pick(this.rng, roster);
+      const kind = pick(this.rng, heavySpent >= heavyBudget ? fastPool : roster);
       const cost = DIRECTOR.cost[kind] ?? 2;
       const elite = this.rng() < eliteChance;
       const realCost = elite ? cost * DIRECTOR.eliteHpMult * 0.6 : cost; // elites cost more (fewer of them)
       if (realCost > remaining && counts.size > 0) break;
       remaining -= realCost;
+      if (HEAVY.has(kind)) heavySpent += realCost; // track heavy-class spend against its cap
       const e = counts.get(kind) ?? { n: 0, elite: 0 };
       e.n++;
       if (elite) e.elite++;

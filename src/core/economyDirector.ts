@@ -98,6 +98,7 @@ export interface LootPointInputs {
   modeLootMult: number; // mode reward identity (Infinite is the farm)
   containerRateMult: number; // difficulty economy axis (containers fill faster)
   bossLootMult: number; // Bosses codex bonus (×1 on a fresh account)
+  endlessTaperMult?: number; // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind); omitted/1 ⇒ identity
   adaptive?: EconomyAdaptiveInputs;
 }
 
@@ -110,6 +111,7 @@ export function lootPointIncome(i: LootPointInputs): Income {
     { id: 'mode.loot', value: i.modeLootMult },
     { id: 'difficulty.containerRate', value: i.containerRateMult },
     { id: 'collection.bossLoot', value: i.bossLootMult },
+    { id: 'endless.taper', value: i.endlessTaperMult ?? 1 }, // Infinite depth-camping taper (identity elsewhere)
     { id: 'adaptive.income', value: adaptiveIncomeMult(i.adaptive) },
   ]);
 }

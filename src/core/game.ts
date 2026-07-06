@@ -542,7 +542,7 @@ export class Game {
     // identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' || this.mode === 'bossRush' ? biomeForDepth(1) : NEUTRAL_BIOME;
     this.geneLevels = opts.geneLevels ?? {}; // permanent gene levels; empty ⇒ base effects (golden-safe)
-    if (this.mode === 'endless' || this.mode === 'bossRush') this.director = new Director(() => this.rng.next(), this.diff);
+    if (this.mode === 'endless' || this.mode === 'bossRush') this.director = new Director(() => this.rng.next(), this.diff, this.mode === 'endless');
     // Run Identity: a DEDICATED rng stream (decoupled from this.rng ⇒ base run unperturbed) + the plan.
     // Stage ⇒ null plan (golden-safe), and so does Boss Rush — its bosses ARE the run identity
     // (docs/BOSS-RUSH.md); anomalies stay Infinite's. Campaign uses the stage's wave count (finale
@@ -1756,7 +1756,7 @@ export class Game {
     this.waveStartIntegrity = this.integrity;
     this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
-    if (w.spawnBoss) this.spawnProceduralBoss(depth);
+    if (w.spawnBoss) this.spawnProceduralBoss(depth, this.dd.endlessBossStrength(depth));
     this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(depth); // Run Identity: fold this depth's beat + anomaly
     this.pushSfx('wave');

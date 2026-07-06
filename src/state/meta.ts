@@ -14,7 +14,7 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, upgradeEffectUnits } from '../core/config';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -903,7 +903,12 @@ export const meta = {
     const firstClear = isCampaign && result.won && stageNo > prevCleared;
     const coreMult = modeCoreMult({ endless: !!result.endless, campaign: isCampaign, firstClear, bossRush: isRush });
     const lootMult = modeLootMult({ endless: !!result.endless, campaign: isCampaign, bossRush: isRush });
-    const xpMults = masteryXpMults(save, { endless: result.endless, campaign: isCampaign, bossRush: isRush }, result.difficulty);
+    // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind): a DEEP endless run's Mastery
+    // XP is scaled by the per-wave taper at its FINAL wave, so deep camps stop multiplying XP
+    // linearly. Identity for non-endless and for endless runs ≤ ENDLESS_TAPER.startWave.
+    const masteryTaper = result.endless ? endlessTaper(result.wave) : 1;
+    const xpMultsRaw = masteryXpMults(save, { endless: result.endless, campaign: isCampaign, bossRush: isRush }, result.difficulty);
+    const xpMults = { tower: xpMultsRaw.tower * masteryTaper, hero: xpMultsRaw.hero * masteryTaper };
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
       ? Math.round(
@@ -1018,6 +1023,9 @@ export const meta = {
       modeLootMult: lootMult,
       containerRateMult: econDiff.containerRateMult,
       bossLootMult: cb.bossLootMult, // Bosses codex: +Boss Loot
+      // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind) — same curve as the live
+      // meter, keyed on result.wave so run-end and live banking agree. Identity for non-endless.
+      endlessTaperMult: result.endless ? endlessLootTaper(result.wave) : 1,
     }).total()) + rushLootBonus;
     const lootAdv = lootEligible
       ? addProgress(save.lootQueue, Math.max(0, lootPoints - runLootBanked), Math.random, lootBiasFor(save, result.difficulty))
@@ -1218,10 +1226,16 @@ export const meta = {
    * totals immediately, persists, and remembers the box for the run-end reveal. A snapshot
    * reset (a new run back near 0) re-arms the cycle. Returns boxes opened by THIS call.
    */
-  syncRunLoot(wave: number, kills: number): string[] {
+  syncRunLoot(wave: number, kills: number, endless = false): string[] {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes);
-    const total = Math.floor(Math.max(0, wave * LOOT_EARN.pointsPerWave + kills * LOOT_EARN.pointsPerKill) * asc.lootGainMult);
+    // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind): endless runs bank the meter
+    // scaled by the AVERAGE per-wave taper — identity (×1) through ENDLESS_TAPER.startWave, then
+    // falling toward its floor — so per-wave banking shrinks the deeper you camp and depth-camping
+    // can't out-earn re-running. Non-endless callers pass 1 ⇒ byte-identical (the conservation test
+    // + every other mode are unchanged). Monotonic: the delta guard below is a high-water mark.
+    const taper = endless ? endlessLootTaper(wave) : 1;
+    const total = Math.floor(Math.max(0, wave * LOOT_EARN.pointsPerWave + kills * LOOT_EARN.pointsPerKill) * taper * asc.lootGainMult);
     if (total < runLootBanked) { runLootBanked = 0; runContainersBanked = []; } // a new run began → fresh cycle
     const delta = total - runLootBanked;
     // Self-heal (docs/LOOTBOX.md §meter): a save loaded with progress ≥ the front's cost is OWED

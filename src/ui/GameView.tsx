@@ -399,7 +399,7 @@ export function GameView({
         if (now - lastHud > 80) {
           const snap = game.getSnapshot();
           setHud(snap);
-          if (!tutorial) meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE (never in the tutorial)
+          if (!tutorial) meta.syncRunLoot(game.waveIndex, game.kills, snap.endless); // bank loot LIVE (never in the tutorial); endless applies the depth-camping taper (docs/MODE-IDENTITY.md §anti-grind)
           // Live Mastery: project every kind's level from the sim accrual; celebrate crossings.
           const accrual = game.getMasteryAccrual();
           const lm: Partial<Record<string, LiveMasteryView>> = {};

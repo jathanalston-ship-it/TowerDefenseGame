@@ -61,6 +61,24 @@ On a **brand-new** stage clear (`campaignStage > campaign.cleared[diff]`):
   Tower/Hero Shards) + ×1.35 mastery.
 - ⇒ Currency ⇒ Campaign; shards/mastery/score ⇒ Infinite. Neither alone maxes the account.
 
+### §anti-grind — the Infinite depth-camping taper
+
+Infinite is the loot/mastery farm (×1.0 loot, ×1.35 mastery), so a strong enough board could camp
+arbitrarily deep and grind the Loot Box meter + Mastery XP forever — deep-camping *out-earning*
+re-running. To close that, both Infinite reward streams **diminish past a depth** via one central
+curve (`config.ENDLESS_TAPER = { startWave: 30, floor: 0.25, halfLife: 15 }`, full spec +
+per-wave table in `docs/ENDLESS-SCALING.md §taper`):
+
+- **Loot meter** — live banking (`meta.syncRunLoot`, endless flag from `GameView`) and run-end
+  (`lootPointIncome`) scale by the average per-wave taper `endlessLootTaper(wave)`; the meter stays
+  monotonic while deep waves visibly bank *less per wave*.
+- **Mastery XP** — the endless XP multiplier is folded by `endlessTaper(result.wave)` at run end, so
+  a deep run keeps only a fraction of its Mastery multiplier.
+
+Identity (×1) at/below wave 30 ⇒ shallow Infinite and **every other mode are byte-unchanged**. Boss
+Rush reward lanes and `INFINITE_REWARD_QUALIFY_FRAC` are untouched. Net: past the wall a run still
+pays, but re-running from the top out-earns camping ever deeper.
+
 ---
 
 ## 3. Campaign World Map — a living, infected planet

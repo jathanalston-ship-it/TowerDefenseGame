@@ -1463,6 +1463,21 @@ export const DIRECTOR = {
     siegeworm: 6, spitter: 3.5,
     apex: 10, dreadnought: 16, tyrant: 20,
   } as Record<string, number>,
+  // ── Deep-composition policy (docs/ENDLESS-SCALING.md §deep-tilt) — ENDLESS ONLY. Gated by the
+  //    Director's `deepTilt` flag (set only for mode 'endless'; Boss Rush + shallow endless are
+  //    UNTOUCHED). Past `heavyCapMinDepth` the wave's HEAVY-class budget share is CAPPED and
+  //    decays with depth, so deep waves tilt toward FAST + mid bodies IN NUMBERS (pressure through
+  //    pace) instead of a wall of 2–3 geometric-HP sponges. The wave still fields SOME heavies
+  //    (up to the cap) — the boss is the intended durable centerpiece (ENDLESS.bossStrength*). ──
+  heavyKinds: ['brute', 'tank', 'golem', 'colossus', 'warden', 'revenant', 'dreadnought', 'tyrant', 'gargoyle', 'siegeworm'] as EnemyKind[],
+  heavyCapMinDepth: 20, // below this the cap is INACTIVE ⇒ shallow endless == baseline (and the director test's depth 1/9 budget check is unaffected)
+  heavyBudgetFracBase: 0.5, // at heavyCapMinDepth heavies may take ≤50% of the threat budget …
+  heavyBudgetFracMin: 0.2, // … decaying to a ≥20% floor deep — still SOME heavies (elites inflate HP share above this), never a sponge wall
+  heavyBudgetDecayPerDepth: 0.02, // −2 percentage-points of heavy budget share per depth past heavyCapMinDepth
+  // When the heavy budget is spent, the remainder buys from the shape's NON-heavy kinds — or this
+  // SPEEDIER, high-HP / high-damage pool when the shape is all-heavy (armored/elite). This is the
+  // "pace, not sponge" tilt: apex (fast bruiser) + rushers/darters/lashers + mid bodies in numbers.
+  deepFastPool: ['rusher', 'darter', 'lasher', 'apex', 'molerat', 'flyer', 'bomber'] as EnemyKind[],
 };
 
 // Endless INTENSITY curves (docs/ENDLESS-SCALING.md). Applied ONLY in endless mode — Stage keeps
@@ -1471,11 +1486,56 @@ export const DIRECTOR = {
 // deep enemies are biomass-inefficient (income falls on long runs instead of snowballing).
 export const ENDLESS = {
   hpGrowth: 1.12, // × enemy HP per depth (geometric → eventually outpaces any fixed DPS)
-  damageGrowth: 0.05, // +5% enemy damage per depth (linear, gradual)
-  speedGrowth: 0.004, // +0.4% enemy speed per depth …
-  speedCap: 1.5, // … clamped at +50% so the field stays readable
+  damageGrowth: 0.07, // +7% enemy damage per depth (linear) — deep LEAKS genuinely threaten integrity (was 0.05; ×3.7 at depth 40)
+  speedGrowth: 0.014, // +1.4% enemy speed per depth — deep waves press through PACE, not sponge (was 0.004)
+  speedCap: 1.85, // … clamped at +85% so pathing/animation stays readable (was 1.5) — speed keeps climbing meaningfully into deep waves (≈+55% at depth 40, cap ≈ depth 66)
   bountyGrowth: 0.03, // +3% per-enemy biomass per depth (slower than HP → diminishing income)
+  // Procedural boss depth-durability (docs/ENDLESS-SCALING.md §boss). Endless bosses ride the
+  // shared spawnProceduralBoss `strengthScale` param (× def.hpMult; contact damage × min(RUSH.damageCap,·)).
+  // Boss HP otherwise only scales +5%/TL (assembleBoss quality, ×3 at depth 40) while the trash wall
+  // is geometric (×83) — so a depth-40 boss was out-tanked by its own elite escort. This curve is ≈1
+  // at the first boss depth and grows so a deep boss is a REAL fight. Boss Rush passes its OWN ramp
+  // (RUSH.strength*) at its call site and is UNTOUCHED.
+  bossFirstDepth: 5, // the first procedural boss depth (mirrors DIRECTOR.bossEvery) — strength is ×1 here
+  bossStrengthPerDepth: 0.14, // +14% boss HP per depth past the first boss …
+  bossStrengthCap: 6, // … up to ×6 (a durable centerpiece; calibrated against the endless probe's boss-TTK)
 };
+
+// ── Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind, docs/ENDLESS-SCALING.md §taper) ──
+// ENDLESS ONLY. Loot-meter and Mastery-XP accrual earn FULL value through `startWave`, then a smooth
+// exponential decay toward `floor` — so camping ever deeper stops out-earning simply re-running. The
+// curve is identity (×1) at or below startWave, so shallow endless + every other mode are UNCHANGED.
+export const ENDLESS_TAPER = {
+  startWave: 30, // full value (×1) through here …
+  floor: 0.25, // … then decaying toward this residual floor (never zero — deep still pays a little) …
+  halfLife: 15, // … halving the above-floor part every this many waves past startWave
+};
+
+/** Per-wave diminishing-returns factor for DEEP endless farming. 1.0 through `startWave`, then a
+ *  smooth exponential decay toward `floor`. Endless ONLY; identity (×1) for wave ≤ startWave. */
+export function endlessTaper(wave: number): number {
+  const { startWave, floor, halfLife } = ENDLESS_TAPER;
+  if (wave <= startWave) return 1;
+  return floor + (1 - floor) * Math.pow(0.5, (wave - startWave) / halfLife);
+}
+
+/** Σ endlessTaper(w) for w = 1..wave — the "effective wave count" (tapered). Closed form: a flat run
+ *  of 1s to startWave + a floor line + a geometric tail. Strictly increasing ⇒ a monotonic meter. */
+export function endlessTaperedWaveSum(wave: number): number {
+  const { startWave, floor, halfLife } = ENDLESS_TAPER;
+  if (wave <= startWave) return Math.max(0, wave);
+  const n = wave - startWave; // waves past the taper start
+  const r = Math.pow(0.5, 1 / halfLife); // per-wave decay ratio ∈ (0,1)
+  const geo = (r * (1 - Math.pow(r, n))) / (1 - r); // Σ_{j=1}^{n} r^j
+  return startWave + floor * n + (1 - floor) * geo;
+}
+
+/** The one loot multiplier applied to endless run income (live meter AND run-end) — the AVERAGE
+ *  per-wave taper, S(wave)/wave. Identity ≤ startWave; falls toward `floor` deep. Using the average
+ *  keeps the live meter smooth + monotonic while the per-wave increment still ∝ endlessTaper(wave). */
+export function endlessLootTaper(wave: number): number {
+  return wave > 0 ? endlessTaperedWaveSum(wave) / wave : 1;
+}
 
 // ── Universal Difficulty Director: ADAPTIVE factor weights (docs/DIFFICULTY_DIRECTOR.md) ──
 // Player-relative scaling seams composed into the director's threat/reward chains. They SHIP

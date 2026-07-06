@@ -120,6 +120,16 @@ export class RunDirector {
     return (1 + ENDLESS.damageGrowth * ((depth - 1) * (this.warp.scalingRateMult ?? 1))) * this.adaptiveThreat;
   }
 
+  /** Procedural endless boss depth-durability (docs/ENDLESS-SCALING.md §boss). Fed to
+   *  spawnProceduralBoss as its `strengthScale` (× def.hpMult; contact damage × min(RUSH.damageCap,·)).
+   *  ≈1 at the first boss depth, then growing so a DEEP boss is a real centerpiece fight instead of
+   *  being out-tanked by its own elite escort (boss HP otherwise scales only +5%/TL). Boss Rush does
+   *  NOT use this — its call site passes its own RUSH.strength* ramp, so that mode stays untouched. */
+  endlessBossStrength(depth: number): number {
+    const past = Math.max(0, depth - ENDLESS.bossFirstDepth) * (this.warp.scalingRateMult ?? 1);
+    return Math.min(ENDLESS.bossStrengthCap, 1 + ENDLESS.bossStrengthPerDepth * past);
+  }
+
   // ── ECONOMY: the run-end settle view (docs/DIFFICULTY.md economy axes) ─────
 
   /** The difficulty's economy scalars (reward/xp/lootQuality/containerRate/equipQuality/powerTarget). */
