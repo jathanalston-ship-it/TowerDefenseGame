@@ -201,6 +201,25 @@ export function Toolbar({
                 : 'Recharging…'}
           </span>
         </button>
+        <button
+          className={`autocast-btn tt${hud.autocast.on ? ' is-on' : ''}`}
+          disabled={!playable || (!hud.autocast.unlocked && !hud.autocast.affordable)}
+          onClick={() => {
+            audio.resume();
+            if (hud.autocast.unlocked) game.toggleAutocast();
+            else game.buyAutocast();
+            refresh();
+          }}
+        >
+          {hud.autocast.unlocked ? (hud.autocast.on ? 'AUTO ON' : 'AUTO OFF') : `AUTO ⌁ ${hud.autocast.cost}`}
+          <span className="tt-bubble">
+            {hud.autocast.unlocked
+              ? hud.autocast.on
+                ? 'Auto-cast ON — the hero fires its ability automatically. Click to turn off.'
+                : 'Auto-cast OFF. Click to turn on.'
+              : `Unlock auto-cast for ${hud.autocast.cost} biomass — the hero then fires its ability on cooldown.`}
+          </span>
+        </button>
       </div>
     </div>
   );

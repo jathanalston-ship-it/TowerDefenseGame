@@ -25,6 +25,11 @@ export const FX = {
   floatRiseSpeed: 18, // px/sec floating-text drift
   hitFlash: 0.09, // seconds of white flash when an enemy takes a discrete hit
   dmgFloatInterval: 0.4, // min seconds between aggregated damage-number pops per enemy
+  // Screen-shake ceiling (docs/CAMERA.md): camera "trauma" is presentation-only (never read by the
+  // sim) and accumulates from combat cues. shakeCap is the HARD ceiling on concurrent trauma (0..1);
+  // new impulses also SATURATE toward it (add `impulse·cap/(cap+current)`), so late-game event
+  // density — 20 simultaneous boss deaths at wave 40 — stays readable while one death still thumps.
+  shakeCap: 0.72,
 };
 
 /** Combat→Build "settle": after the FINAL enemy of a wave dies, the battlefield winds DOWN for
@@ -46,6 +51,11 @@ export interface TowerDef {
   firing: TowerFiring; // how it attacks — drives the sim dispatch (data, not code)
   cost: number;
   range: number;
+  /** Minimum engagement radius (px). An enemy CLOSER than this cannot be targeted by the tower —
+   *  an artillery-style DEADZONE that gives short-range towers a role. Optional; absent = 0 (no
+   *  deadzone), which is identity for every non-artillery tower. Enforced in the targeting query
+   *  (docs/TOWERS.md §deadzone), never in projectile flight. */
+  minRange?: number;
   fireInterval: number; // seconds between actions
   damage: number;
   projectileSpeed: number; // px/sec (0 = no projectile)
@@ -90,6 +100,8 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     firing: 'splash',
     cost: 170, // premium: full-map area denial
     range: 960, // ARTILLERY — essentially full-map; suppresses from the spawn line
+    minRange: 100, // DEADZONE — shells can't be lobbed point-blank; enemies within 100px are safe
+    // from the mortar (short-range towers own the last line). See docs/TOWERS.md §deadzone.
     fireInterval: 2.1, // very slow cadence is the balance for unlimited reach
     damage: 8, // softens clusters from afar — it suppresses, the kill happens down-lane
     projectileSpeed: 420, // arcs across the lane in a few seconds
@@ -923,6 +935,11 @@ export const HERO_PULSE: Record<HeroKind, AuraAbility | null> = Object.fromEntri
 export const HERO_ULT: Record<HeroKind, AbilityComponent[]> = Object.fromEntries(
   HERO_ORDER.map((k) => [k, heroUltAbility(HERO_DEFS[k])]),
 ) as Record<HeroKind, AbilityComponent[]>;
+
+// In-run Biomass unlock for PRIMARY-hero AUTO-CAST (docs/HEROES.md): the fielded champions in
+// slots 2+ already auto-fire their signature ability; buying this lets the primary hero do the
+// same (then a free toggle). Off by default ⇒ the golden run never auto-casts. One-time purchase.
+export const HERO_AUTOCAST = { cost: 220 } as const;
 
 // ── Summoned friendly units (the `summon` ability primitive) ────────────────
 // Data for each conjurable unit; the SummonAbility references one by id. A new unit is one

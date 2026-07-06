@@ -156,6 +156,7 @@ export function Inspector({
         <div className="ins-stats">
           {stats.dps !== null && <StatRow k="DPS" v={`~${stats.dps}`} />}
           {stats.range > 0 && <StatRow k="Range" v={stats.range} />}
+          {(TOWER_DEFS[sp.kind].minRange ?? 0) > 0 && <StatRow k="Deadzone" v={`${TOWER_DEFS[sp.kind].minRange} (no-fire)`} />}
           {stats.rate !== null && stats.firing !== 'field' && stats.firing !== 'support' && (
             <StatRow k="Fire rate" v={`${stats.rate.toFixed(1)}/s`} />
           )}
@@ -294,6 +295,7 @@ export function Inspector({
         <div className="ins-stats">
           {dps > 0 && def.firing !== 'field' && <StatRow k="DPS" v={`~${dps}`} />}
           {def.range > 0 && <StatRow k="Range" v={def.range} />}
+          {(def.minRange ?? 0) > 0 && <StatRow k="Deadzone" v={`${def.minRange} (no-fire)`} />}
           {rate && def.firing !== 'field' && <StatRow k="Fire rate" v={`${rate}/s`} />}
           {def.firing === 'field' && rate && <StatRow k="Pulse" v={`${rate}/s`} />}
           {def.splash > 0 && <StatRow k="Splash" v={def.splash} />}

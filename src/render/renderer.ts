@@ -1432,6 +1432,7 @@ function drawRangeIndicator(
   firing: TowerFiring,
   tone: string,
   time: number,
+  minRange = 0,
 ): void {
   if (range <= 0) return;
   if (firing === 'support' || firing === 'field') {
@@ -1444,6 +1445,28 @@ function drawRangeIndicator(
   } else {
     drawRangeRing(ctx, x, y, range, tone, time);
   }
+  drawDeadzoneRing(ctx, x, y, minRange, tone, time); // artillery inner cutoff (mortar); no-op at 0
+}
+
+/** Artillery DEADZONE (docs/TOWERS.md §deadzone): a subtle INNER ring at the minimum engagement
+ * radius — enemies inside it are safe from this tower. Drawn for any def with `minRange > 0`. */
+function drawDeadzoneRing(ctx: CanvasRenderingContext2D, x: number, y: number, minRange: number, tone: string, time: number): void {
+  if (minRange <= 0) return;
+  const r = minRange * pulse(time, 2.2, 0.99, 1.01);
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = rgba(tone, 0.05); // faint "no-fire" wash
+  ctx.fill();
+  ctx.save();
+  ctx.strokeStyle = rgba(tone, 0.42);
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.lineDashOffset = (time * 12) % 14;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
 }
 
 /** Support towers: a soft filled aura showing the AREA they affect (clamped if a future
@@ -1525,7 +1548,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     const tone = invalid ? THEME.select.invalid : THEME.select.valid;
     // accurate, class-aware range preview (field disc / range ring / engagement frontier),
     // using the tower's EFFECTIVE range so mastery upgrades show in the preview
-    drawRangeIndicator(ctx, slot.x, slot.y, rs.effectiveRanges[rs.selectedTower] ?? def.range, def.firing, tone, rs.time);
+    drawRangeIndicator(ctx, slot.x, slot.y, rs.effectiveRanges[rs.selectedTower] ?? def.range, def.firing, tone, rs.time, def.minRange ?? 0);
 
     // animated selection frame on the target pad
     const sf = CELL - 8;
@@ -1543,7 +1566,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
   if (tower && rs.movingTowerId === null) {
     const def = TOWER_DEFS[tower.kind];
     // selection: show the selected tower's effective range in its class-appropriate form
-    drawRangeIndicator(ctx, tower.x, tower.y, rs.effectiveRanges[tower.kind] ?? def.range, def.firing, THEME.target.range, rs.time);
+    drawRangeIndicator(ctx, tower.x, tower.y, rs.effectiveRanges[tower.kind] ?? def.range, def.firing, THEME.target.range, rs.time, def.minRange ?? 0);
     labelAt(ctx, tower.x, tower.y - CELL / 2 - 6, def.name, def.color);
   }
 }

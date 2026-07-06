@@ -45,6 +45,7 @@ import {
   TOWER_ABILITIES,
   HERO_PULSE,
   HERO_ULT,
+  HERO_AUTOCAST,
   WAVES,
   AUTO_START_DELAY,
   AUTO_START_FIRST_DELAY,
@@ -324,6 +325,10 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  // Primary-hero AUTO-CAST (docs/HEROES.md): a one-time in-run Biomass unlock, then a free toggle.
+  // Both default OFF ⇒ the primary hero stays player-triggered and the golden run never auto-casts.
+  autocastUnlocked = false;
+  autocastOn = false;
   // TUTORIAL GATE (docs/TUTORIAL.md): set only by the TutorialRunner, never on a golden run.
   // While on, the game defers its self-driven beats to the tutorial director: natural post-wave
   // drafts are HELD (the director releases one exactly when the gene-card lesson teaches it) and
@@ -450,6 +455,7 @@ export class Game {
   private castExtraProjectiles = 0; // star-kit projectile bonus for the active tower cast (0 = base)
   private castSplashMult = 1; // star-kit splash multiplier for the active tower cast (1 = base)
   private castRangeMult = 1;
+  private castMinRange = 0; // artillery DEADZONE (px) for the active cast — enemies closer can't be targeted (0 = none; docs/TOWERS.md §deadzone)
   private castExcludeFrozen = false; // Chrysalis Twin Cocoon: current cast skips frozen victims // identity-range multiplier for the active tower cast (1 = base; docs/RANGE.md §8)
   private castProjectileMutators: readonly string[] = EMPTY_STR; // star-kit mutators for the active cast
   private castProjectileSkin: string | undefined = undefined; // branch cosmetic id tagged onto shots (undefined = base)
@@ -1882,6 +1888,24 @@ export class Game {
     if (on) this.prepCountdown = AUTO_START_DELAY; // start a fresh countdown when enabling
   }
 
+  /** Buy the primary-hero AUTO-CAST unlock (docs/HEROES.md): a one-time Biomass purchase that also
+   *  turns it ON. Returns false (no charge) if the run is over, it's already owned, or unaffordable —
+   *  so the caller can gate feedback on a real purchase. */
+  buyAutocast(): boolean {
+    if (this.phase === 'won' || this.phase === 'lost') return false;
+    if (this.autocastUnlocked) return false;
+    if (this.biomass < HERO_AUTOCAST.cost) return false;
+    this.biomass -= HERO_AUTOCAST.cost;
+    this.autocastUnlocked = true;
+    this.autocastOn = true;
+    return true;
+  }
+
+  /** Toggle primary-hero auto-cast on/off (free; no-op until unlocked). */
+  toggleAutocast(): void {
+    if (this.autocastUnlocked) this.autocastOn = !this.autocastOn;
+  }
+
   // ── Hero Evolution (docs/HERO-EVOLUTION.md) — the in-run BIOMASS sink ──────────
 
   /** Buy the next level of a Hero Evolution category. Deducts Biomass, applies the upgrade to EVERY
@@ -2081,7 +2105,10 @@ export class Game {
       // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
       // (the HUD shows "Waiting for first placement…") so the run never auto-fires on an empty board.
       if (this.autoStart && this.autoStartReady && this.phase === 'prep') {
-        this.prepCountdown -= dt;
+        // REAL-TIME countdown: dividing by timeScale cancels the fast-forward step multiplier, so the
+        // prep auto-start burns the same WALL time at 1×/2×/5×. timeScale is 1 on the golden path (and
+        // no combat runs in prep) ⇒ byte-identical. See docs/GAME-SPEED / AUTO_START_DELAY.
+        this.prepCountdown -= dt / this.timeScale;
         if (this.prepCountdown <= 0) this.startWave();
       }
     }
@@ -2737,6 +2764,7 @@ export class Game {
     const resoClass = this.mods.classResonanceBonus > 0 ? HERO_DEFS[this.heroes[0].kind].combatClass : null;
     for (const t of this.towers) {
       const def = TOWER_DEFS[t.kind];
+      this.castMinRange = def.minRange ?? 0; // artillery deadzone (mortar); 0 for every other tower ⇒ identity. Set for EVERY tower up front so a mortar's value never leaks into a later support-branch / strain sub-cast.
       this.masteryAccrual[t.kind].activeTime += dt; // usage signal (every deployed tower)
       if (t.strain > 1) this.strainBirthTick(t, dt); // STRAIN births (harvester / brood) — any kind
       if (def.firing === 'support') {
@@ -2857,6 +2885,7 @@ export class Game {
     this.castExtraProjectiles = 0;
     this.castSplashMult = 1;
     this.castRangeMult = 1;
+    this.castMinRange = 0;
     this.castProjectileMutators = EMPTY_STR;
     this.castProjectileSkin = undefined;
     this.castProjectileSkinTier = 0;
@@ -2963,34 +2992,57 @@ export class Game {
   /** Up to `n` in-range enemies chosen by the tower's targeting profile (data-driven).
    * The default 'closestToBase' reproduces the historical goal-distance sort exactly. */
   private pickTargets(x: number, y: number, range: number, n: number, profile: TargetingProfile = 'closestToBase'): Enemy[] {
-    // Emergency Defense Mode override (docs/RANGE.md §4): while an enemy is in the Final
-    // Defense Zone, every OFFENSIVE TOWER ignores its range against in-zone enemies and
-    // focuses the breach nearest the Hive Core. Scoped to tower casts — heroes (abilityHeroKind
-    // set) and the Obelisk's control field (no target pick) are excluded. The shared, already
-    // nearest-to-core-sorted list means no per-tower re-scan. Falls through to normal targeting
-    // if every in-zone enemy died this tick (priority 3).
-    if (this.emergencyActive && this.abilityHeroKind === null && this.abilitySourceKind !== null) {
-      const focus = this.targetScratch;
-      focus.length = 0;
-      for (const e of this.emergencyEnemies) {
-        if (!e.alive || (e.boss !== null && e.boss.burrow > 0)) continue;
-        focus.push(e);
-        if (focus.length >= n) break;
-      }
-      if (focus.length > 0) return focus.slice(0, n);
-    }
+    // Emergency Defense Mode (docs/RANGE.md §4): while an enemy is in the Final Defense Zone the
+    // breach nearest the Hive Core is the TOP-PRIORITY target — but only among enemies THIS tower
+    // can actually reach. A tower whose range spans the zone still focus-fires the breach; a
+    // short-range tower is NO LONGER yanked off a nearer enemy it can hit toward a breach it can't
+    // (that used to leave the enemy in front of it un-engaged while a straggler leaked — the
+    // "towers refuse to target the last enemy" bug). Scoped to tower casts — heroes (abilityHeroKind
+    // set) and the Obelisk's control field (no target pick) are excluded.
+    const emergency = this.emergencyActive && this.abilityHeroKind === null && this.abilitySourceKind !== null;
     const r2 = range * range;
+    const minR2 = this.castMinRange * this.castMinRange; // artillery deadzone (docs/TOWERS.md §deadzone); 0 ⇒ no inner cutoff
+    if (emergency) {
+      const focus = this.emergencyFocus(x, y, r2, minR2, n); // in-zone, in reach & outside the deadzone — nearest-core first
+      if (focus.length > 0) return focus;
+    }
     const out = this.targetScratch;
     out.length = 0;
     const skipFrozen = this.castExcludeFrozen; // Chrysalis Twin Cocoon (docs/STRAIN.md)
     this.grid.forNeighbors(x, y, range, (e) => {
-      if (!e.alive || dist2(x, y, e.x, e.y) > r2) return;
+      if (!e.alive) return;
+      const de2 = dist2(x, y, e.x, e.y);
+      if (de2 > r2 || de2 < minR2) return; // outside range, or inside the deadzone (minRange)
       if (e.boss !== null && e.boss.burrow > 0) return; // submerged — untargetable
       if (skipFrozen && e.statuses !== undefined && e.statuses.some((s) => s.id === 'freeze')) return;
       out.push(e);
     });
+    // Last stand (docs/RANGE.md §4): an otherwise-IDLE tower during a breach extends to the nearest
+    // in-zone enemy with UNLIMITED range — nothing else to shoot, so it reaches for the core's
+    // attacker. A tower already engaging its own sector (out non-empty) is never pulled away.
+    if (emergency && out.length === 0) {
+      const focus = this.emergencyFocus(x, y, Infinity, minR2, n); // in-zone, ANY range (still outside the deadzone)
+      if (focus.length > 0) return focus;
+    }
     sortByProfile(out, profile, { tx: x, ty: y, goalDistance: goalDistanceAt, rng: this.targetRng });
     return out.slice(0, n);
+  }
+
+  /** In-zone enemies (Final Defense Zone) this cast may focus, already sorted nearest-Hive-Core,
+   *  filtered to those within `r2` (squared reach — Infinity for the unlimited last-stand reach)
+   *  and outside `minR2` (squared artillery deadzone; 0 = none), capped at `n`. Skips submerged
+   *  bosses. Returns a fresh slice so the shared target scratch stays free for the normal scan. */
+  private emergencyFocus(x: number, y: number, r2: number, minR2: number, n: number): Enemy[] {
+    const focus = this.targetScratch;
+    focus.length = 0;
+    for (const e of this.emergencyEnemies) {
+      if (!e.alive || (e.boss !== null && e.boss.burrow > 0)) continue;
+      const de2 = dist2(x, y, e.x, e.y);
+      if (de2 > r2 || de2 < minR2) continue;
+      focus.push(e);
+      if (focus.length >= n) break;
+    }
+    return focus.slice(0, n);
   }
 
   private projectileSystem(dt: number): void {
@@ -3616,6 +3668,9 @@ export class Game {
     // cooldown; the primary (slot 1) stays PLAYER-triggered. The loop is empty for a single-hero run
     // ⇒ it never executes ⇒ byte-identical golden run.
     for (let i = 1; i < this.heroes.length; i++) this.autoCastHero(this.heroes[i]);
+    // Primary hero (slot 1): AUTO-CAST only when the player has bought AND enabled it — same
+    // decision + code path as the autonomous roster. Off by default ⇒ byte-identical golden run.
+    if (this.autocastOn && this.heroes.length > 0) this.autoCastHero(this.heroes[0]);
   }
 
   /** Autonomous ability cast for a non-primary hero: fire the signature ability the moment it's
@@ -4935,6 +4990,7 @@ export class Game {
       autoStart: this.autoStart,
       autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
       autoStartWaiting: this.autoStart && !this.autoStartReady,
+      autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },
       heroEvo: { levels: { ...this.heroEvoLevels }, totalOwned: heroEvoTotalOwned(this.heroEvoLevels) },
     };
   }

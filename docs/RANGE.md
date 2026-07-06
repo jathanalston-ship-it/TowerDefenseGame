@@ -122,15 +122,22 @@ past which a leak is about to breach the core.
 **Whenever any enemy is inside the Final Defense Zone, the Hive enters Emergency Defense
 Mode.** While active:
 
-- **Every offensive tower gains unlimited targeting range against enemies inside the
-  zone** — range is ignored for in-zone targets, so even back-row towers can fire on a
-  breacher anywhere in the band.
+- **A breach is the top-priority target *within a tower's reach*.** An in-zone enemy inside
+  a tower's range is picked ahead of anything else, so every tower whose range spans the zone
+  (all long/medium reach) swings onto the breach. A tower is **never yanked off a nearer enemy
+  it can actually hit** toward a breach it can't — that used to leave the enemy in front of a
+  short-range tower un-engaged while a straggler leaked (the "towers refuse to fire on the last
+  enemy" bug). Because every offensive tower sits in the defensive region and its range spans
+  the whole zone, this is identity for them; it only stops the pathological far-tower yank.
+- **The unlimited last-stand reach still exists — for otherwise-idle towers.** A tower with
+  *nothing else in range* during a breach extends to the nearest in-zone enemy with unlimited
+  range (a back-row short-range tower with an empty sector still throws everything at the core
+  attacker). A tower already engaging its own sector is left to do so.
 - **Target priority** becomes:
-  1. **Enemies inside the Final Defense Zone** (absolute priority — every offensive tower
-     redirects to the breach).
-  2. **Nearest enemy to the Hive Core** (among in-zone enemies — kill the deepest threat
-     first).
-  3. **Existing per-tower targeting behavior** (the normal, non-emergency path).
+  1. **In-zone enemies within reach** (absolute priority — nearest the Hive Core first).
+  2. **Existing per-tower targeting behavior** (the normal, non-emergency path).
+  3. **Idle last stand** — if the tower found nothing above, the nearest in-zone enemy at
+     unlimited range.
 - **Only in-zone enemies receive the override.** Enemies outside the zone keep using each
   tower's normal targeting/range. When the zone clears, towers instantly resume normal
   behavior.

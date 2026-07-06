@@ -193,7 +193,7 @@ export const MECHANICS: MechanicDef[] = [
   // ── Heroes ──
   { id: 'heroes', title: 'Heroes', category: 'Heroes', core: true, nav: 'heroes', links: ['hero-slots', 'equipment'],
     summary: 'A living unit that moves and fights on its own.', media: 'GIF: the hero fighting',
-    what: 'Your Hero patrols the field autonomously, attacks, and has a powerful Active Ability you trigger.',
+    what: 'Your Hero patrols the field autonomously, attacks, and has a powerful Active Ability you trigger. Buy AUTO-CAST in a run (the AUTO chip by the ability button) and the Hero fires that ability itself, on cooldown — toggle it off anytime.',
     why: 'A Hero is mobile burst + control the static towers can’t provide.',
     where: 'On the battlefield; developed in the Hero Lab.',
     next: 'Open the Hero Combat Console in a run (E, or tap the hero chip) to spend Biomass. Gear the Hero in the Armory and unlock more Hero Slots.',

@@ -163,6 +163,21 @@ poor single-target burst; predictable.
 splash + leaves a **Corrosion** pool (DoT + armor reduction) for several seconds;
 pools can merge and (late) drift toward enemies.
 
+### §deadzone — the artillery minimum range
+
+A mortar cannot lob a shell point-blank: it has a **deadzone** (`minRange` on the tower def,
+`100px`), a minimum engagement radius inside which enemies are simply **not targetable** by it.
+This is a real gameplay lever, not flavor — it hands the last line of defense to short-range
+towers (Carrion Maw, Parasite Nest, Neural Obelisk), so a mortar-heavy board still needs a
+close-quarters answer when a leaker slips under the guns.
+
+`minRange` is a general, optional `TowerDef` field (absent = `0` = no deadzone — identity for
+every other tower), so future artillery-style towers can adopt it. It is enforced in the
+**targeting query** (`Game.pickTargets`, deadzone filter — never in projectile flight), so a
+mortar with only a point-blank enemy in reach simply holds fire. The tower Inspector shows a
+`Deadzone` stat, and selecting a mortar draws a subtle **inner ring** at the cutoff radius. The
+last-stand Emergency Defense reach (docs/RANGE.md §4) also respects the deadzone.
+
 **Visual design.** Squat and ribbed, built from a fused spinal column with gurgling
 marrow sacs; belches yellow-green shells; craters bubble and hiss; the whole thing
 recoils and resettles like a heaving ribcage.

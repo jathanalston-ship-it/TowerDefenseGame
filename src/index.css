@@ -1400,6 +1400,26 @@ canvas.board {
   color: var(--kinetic);
   box-shadow: 0 0 0 1px var(--kinetic), 0 0 14px rgba(90, 209, 255, 0.25);
 }
+/* Primary-hero AUTO-CAST (docs/HEROES.md): a buy chip ("AUTO ⌁ <cost>") that becomes an ON/OFF
+   toggle once unlocked. Sits beside the ability button in the hero pod. */
+.autocast-btn {
+  position: relative;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
+}
+.autocast-btn:disabled { opacity: 0.5; }
+.autocast-btn.is-on {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}
 .start-btn {
   display: flex;
   align-items: center;

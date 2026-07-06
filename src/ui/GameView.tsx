@@ -14,7 +14,7 @@ import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
 import { MasteryToaster } from './components/MasteryToaster';
 import { AudioToggles } from './components/AudioToggles';
-import { MASTERY, TOWER_DEFS } from '../core/config';
+import { MASTERY, TOWER_DEFS, FX } from '../core/config';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { masteryProgress, masteryXpMults, masteryXpRaw } from '../state/meta';
 import { music } from '../audio/music';
@@ -50,6 +50,13 @@ const HIVE_STATES = [0.75, 0.5, 0.25, 0.1];
 const BOSS_TRAUMA = 0.32; // arrival impact (the sting + banner land together)
 const SHAKE_MAX = 16; // px
 const SHAKE_DECAY = 2.0; // trauma/sec
+// Saturating trauma add (docs/CAMERA.md): each impulse contributes LESS as trauma nears FX.shakeCap
+// and never exceeds it — so a lone boss death still thumps, but 20 simultaneous deaths deep in a run
+// stop stacking into an unreadable quake. Presentation-only (trauma never feeds the sim).
+function addTrauma(current: number, impulse: number): number {
+  const cap = FX.shakeCap;
+  return Math.min(cap, current + impulse * (cap / (cap + current)));
+}
 
 // How long the battlefield outro lingers before the summary takes over (a beat, then auto-advance;
 // a tap skips it). Shorter under reduced-motion — still a pause, never a hard cut.
@@ -154,7 +161,7 @@ export function GameView({
   //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
   const [speed, setSpeedState] = useState(1);
   const [speedNote, setSpeedNote] = useState<string | null>(null);
-  const autoSlowFired = useRef({ finale: false, record: false });
+  const autoSlowFired = useRef({ finale: false, record: false, danger: false }); // finale/record: once per RUN; danger: once per WAVE (re-armed in prep)
   const setSpeed = useCallback((x: number) => {
     game.timeScale = x;
     setSpeedState(x);
@@ -195,7 +202,7 @@ export function GameView({
     if (live && !bossWasLive.current && hud.bossBanner) {
       setBossIntro({ name: hud.bossBanner.name, phases: hud.bossBanner.phases, at: Date.now() });
       audio.cue('boss');
-      traumaRef.current = Math.min(1, traumaRef.current + BOSS_TRAUMA);
+      traumaRef.current = addTrauma(traumaRef.current, BOSS_TRAUMA);
       wavePushRef.current = 1;
     }
     bossWasLive.current = live;
@@ -294,7 +301,7 @@ export function GameView({
           const tally: Record<string, number> = {};
           for (const c of cues) {
             tally[c] = (tally[c] ?? 0) + 1;
-            traumaRef.current = Math.min(1, traumaRef.current + (TRAUMA[c] ?? 0));
+            traumaRef.current = addTrauma(traumaRef.current, TRAUMA[c] ?? 0);
           }
           audio.cueBatch(tally);
         }
@@ -390,7 +397,8 @@ export function GameView({
         }
 
         if (now - lastHud > 80) {
-          setHud(game.getSnapshot());
+          const snap = game.getSnapshot();
+          setHud(snap);
           if (!tutorial) meta.syncRunLoot(game.waveIndex, game.kills); // bank loot LIVE (never in the tutorial)
           // Live Mastery: project every kind's level from the sim accrual; celebrate crossings.
           const accrual = game.getMasteryAccrual();
@@ -421,15 +429,24 @@ export function GameView({
               // The organisms themselves celebrate: a ring blooms from every deployed unit
               // of the kind, and the field registers a heartbeat of impact.
               for (const t of game.towers) if (t.kind === k) celebRef.current.push({ x: t.x, y: t.y, color: TOWER_DEFS[k].color, start: now });
-              traumaRef.current = Math.min(1, traumaRef.current + 0.06);
+              traumaRef.current = addTrauma(traumaRef.current, 0.06);
             }
           }
           masteryPrevRef.current = nextPrev;
           setLiveMastery(lm);
           // AUTO-SLOW (docs/HUD.md §speed): the moments that deserve full attention pull the
-          // throttle back to 1× — ONCE each per run; the control stays free to re-raise.
+          // throttle back to 1× — finale/record ONCE each per run; the breach guard once PER WAVE.
+          // The control stays free to re-raise after each.
+          if (game.phase === 'prep') autoSlowFired.current.danger = false; // re-arm the breach guard every wave
           if (game.timeScale > 1) {
             const fired = autoSlowFired.current;
+            // BREACH guard (per wave): an enemy reached the red Final Defense Zone or is sieging the
+            // Hive — drop to 1× so the player can react. Independent of the finale/record triggers.
+            if (!fired.danger && game.phase === 'wave' && (snap.emergency || snap.hiveAttackers > 0)) {
+              fired.danger = true;
+              setSpeed(1);
+              setSpeedNote('Breach — speed returned to 1×.');
+            }
             if (!fired.finale && game.mode !== 'endless' && game.mode !== 'bossRush' && game.waveIndex >= game.totalWaves && game.phase === 'wave') {
               fired.finale = true;
               setSpeed(1);
