@@ -473,6 +473,7 @@ export function isHeroUnlocked(save: SaveData, kind: HeroKind): boolean {
 function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
   switch (req.kind) {
     case 'bossSlain': return save.bossesSlain.length > 0;
+    case 'infiniteDepth': return save.bestWave >= req.wave; // Revenant — earned from the endless deep
   }
 }
 

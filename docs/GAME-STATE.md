@@ -21,7 +21,7 @@
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
 | Towers | 10 | 100 | each with stars + branches + mastery + Adaptation; the Coil + Siphon are locked/gated (below) |
-| Heroes | 4 | 30 | Vitriol (Caustic siege) added; per-hero equipment loadouts |
+| Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts |
 | Enemies | 32 | 100 | + elites (Cyst Wraith fly+regen · Cinder Sapper burrow+suicide) |
 | **Bosses** | **10 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Milestone-2 siege line (stages 35/40/45) |
 | **Mega Bosses** | **2 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
@@ -80,6 +80,12 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   render-only (goldens untouched), targeting override stays instantaneous — CAMERA.md
 
 ### Heroes
+- ✅ **Revenant** (5th hero, Viral) — a phase-stalking ASSASSIN with a NEW behavior `'phase'`: instead
+  of walking it BLINKS (teleports) to the biggest threat (boss → elite → highest-HP), strikes hard, and
+  injects spreading Infection (`game.updatePhaseHero`). The only single-target boss-deleter + only Viral
+  hero. Passive `viralVuln` (infected enemies take +18% from all sources). **Uniquely gated** — reach
+  **Infinite Depth 40** (`unlock: infiniteDepth`), a distinct axis from Vitriol's boss-slain + the Shard
+  heroes; auto-unlocks account-wide (works in campaign/infinite/daily, any of the 3 slots). HEROES.md
 - ✅ Roster slots (campaign-gated), per-hero equipment, mastery — HEROES.md, HERO-FRAMEWORK.md
 - ✅ Adaptation for heroes (legacy shared 3-branch tree; per-hero trees are a later content pass — ADAPTATION.md)
 - ✅ **In-run hero selection** — click a hero → non-modal live-state + profile panel — HERO-SELECTION.md

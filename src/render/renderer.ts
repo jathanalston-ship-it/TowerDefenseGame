@@ -23,7 +23,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, HERO_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import { ENEMY_DEFS, HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, hexRgb, rgba } from './theme';
@@ -1365,7 +1365,7 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square' } as const;
+const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle' } as const;
 
 function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0): void {
   for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0, heroStarTiers[rs.heroes[i].kind] ?? 0, heroEvo);
@@ -1386,6 +1386,22 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // Vitriol's siege envelope — a faint ranging ring marking the bombardment reach.
   if (!down && def.behavior === 'siege' && def.attackRange > 0) {
     ring(ctx, h.x, h.y, def.attackRange, rgba(tint, pulse(t, 1.4, 0.05, 0.12)), 1, [4, 10]);
+  }
+  // Revenant blink arc (behavior 'phase') — a fading spectral streak from where it teleported FROM,
+  // and a dissipating after-image at the origin. phaseT / phaseFrom* are render-only fields the sim
+  // sets on each blink-strike (absent on every other hero ⇒ nothing drawn).
+  if (!down && (h.phaseT ?? 0) > 0 && h.phaseFromX !== undefined && h.phaseFromY !== undefined) {
+    const a = Math.min(1, (h.phaseT as number) / HERO_PHASE_FLASH);
+    ctx.save();
+    ctx.strokeStyle = rgba(tint, 0.5 * a);
+    ctx.lineWidth = 2 + 3 * a;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(h.phaseFromX, h.phaseFromY);
+    ctx.lineTo(h.x, h.y);
+    ctx.stroke();
+    glowDisc(ctx, h.phaseFromX, h.phaseFromY, 5 + 6 * a, def.color); // the after-image dissolving
+    ctx.restore();
   }
 
   // sample the primary hero's path into a short afterimage trail (slot-1 only)

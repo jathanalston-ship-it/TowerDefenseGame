@@ -38,7 +38,7 @@ export type EnemyKind =
   | 'siegeworm' | 'spitter'
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
@@ -301,6 +301,11 @@ export interface Hero {
   // never by sim math (so it stays golden-safe): the current target + what the hero is doing.
   targetId: number; // current target's Enemy.id, or -1 when none
   moveState: HeroMoveState;
+  // Revenant blink (behavior 'phase') — render-only flash timer set on each blink-strike (a fading
+  // teleport arc from the previous position). Absent on every other hero ⇒ golden-safe.
+  phaseT?: number; // seconds of blink-flash remaining
+  phaseFromX?: number; // where it blinked FROM (renderer draws the phase arc)
+  phaseFromY?: number;
 }
 
 /** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that

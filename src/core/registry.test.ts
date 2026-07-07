@@ -74,9 +74,9 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // launch five + expansion three + Resonance Coil + Marrow Siphon = ten towers; four heroes (Vitriol added)
+    // launch five + expansion three + Resonance Coil + Marrow Siphon = ten towers; five heroes (Vitriol + Revenant)
     expect(towerRegistry.size).toBe(10);
-    expect(heroRegistry.size).toBe(4);
+    expect(heroRegistry.size).toBe(5);
   });
 
   it('shipped content passes registry-driven validation', () => {

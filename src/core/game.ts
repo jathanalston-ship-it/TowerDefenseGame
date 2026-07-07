@@ -47,6 +47,8 @@ import {
   HERO_PULSE,
   HERO_ULT,
   HERO_AUTOCAST,
+  HERO_PHASE_FLASH,
+  REVENANT,
   WAVES,
   AUTO_START_DELAY,
   AUTO_START_FIRST_DELAY,
@@ -4439,6 +4441,18 @@ export class Game {
     return m;
   }
 
+  /** Revenant Virulent Presence + Virulence: INFECTED enemies take extra damage, deepening with depth.
+   *  Summed over the roster; 0 unless a Revenant (viralVuln passive) is fielded ⇒ golden-safe (no such
+   *  hero in Stage autoplay, so an infected enemy's damage taken is unchanged there). */
+  private heroInfectionVulnBonus(): number {
+    let m = 0;
+    for (const h of this.heroes) {
+      const id = this.idOf(h);
+      if (id.passive.kind === 'viralVuln') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+    }
+    return m;
+  }
+
   /** Ravager Bloodthirst + Killchain on an elite death: stack the chain, heal the hero, brief speed
    *  rush — PER Ravager in the roster. No-op unless a Ravager is fielded; elites never spawn in Stage
    *  autoplay ⇒ golden-safe (a single Ravager behaves byte-identically to the old singular state). */
@@ -4526,6 +4540,7 @@ export class Game {
         case 'guard': this.updateGuardHero(h, def, dt); break;
         case 'control': this.updateControlHero(h, def, dt); break;
         case 'siege': this.updateSiegeHero(h, def, dt); break;
+        case 'phase': this.updatePhaseHero(h, def, dt); break;
       }
       // MEGA raid-fire fallback (docs/MEGA-BOSS.md): the line is clear — strike a reachable organ.
       if (this.mega !== null && this.mega.deathT === 0 && h.attackCd <= 0 && this.enemies.length === 0) {
@@ -4740,6 +4755,65 @@ export class Game {
     const splash = (def.attackSplash ?? 0) * this.mods.splashRadiusMult;
     this.spawnProjectile(h.x, h.y, target.x, target.y, def.projectileSpeed ?? 440, -1, dmg, 'splash', splash, null);
     this.heroMasteryAccrual[h.kind].damage += dmg; // usage signal (mortarImpact has no hero source)
+  }
+
+  /**
+   * REVENANT (Viral phase-assassin). It does NOT walk to its prey: it BLINKS (teleports) to the
+   * biggest threat — boss > elite > highest-HP within aggro — lands a heavy strike, and injects a
+   * deep Infection (a ramping armor-ignoring DoT that SPREADS on the host's death). Between strikes
+   * it holds, "phased". The blink is its identity: it reaches anything, anywhere, to delete ONE fat
+   * target. Never fielded on the golden path (milestone-gated), so its teleport + Infection never
+   * touch the pinned autoplay.
+   */
+  private updatePhaseHero(h: Hero, def: HeroDef, dt: number): void {
+    if ((h.phaseT ?? 0) > 0) h.phaseT = Math.max(0, (h.phaseT as number) - dt); // decay the blink flash
+    const aggro2 = (def.aggroRange * this.hmods(h).heroAggroRangeMult) ** 2;
+    // The assassin hunts the BIGGEST threat: a boss first, then an elite, then the highest-HP body.
+    let target: Enemy | null = null;
+    let rank = 0; // 3 boss · 2 elite · 1 normal
+    let bestHp = -Infinity;
+    for (const e of this.enemies) {
+      if (!e.alive || dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
+      const r = e.boss !== null ? 3 : e.elite ? 2 : 1;
+      if (r > rank || (r === rank && e.hp > bestHp)) { rank = r; bestHp = e.hp; target = e; }
+    }
+    h.targetId = target ? target.id : -1;
+
+    if (!target) {
+      // Field clear: drift to the idle anchor (a normal walk — nothing to blink to).
+      h.moveState = 'idle';
+      const goal = this.heroIdleGoal(h);
+      const np = moveToward(h.x, h.y, goal.x, goal.y, this.heroSpeed(h) * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+      return;
+    }
+
+    if (h.attackCd > 0) { h.moveState = 'moving'; return; } // recovering between blinks (phased out)
+
+    // BLINK-STRIKE: teleport just off the target (from wherever it was), then strike hard.
+    const near = def.attackRange * 0.6;
+    const ang = Math.atan2(h.y - target.y, h.x - target.x); // land on the side it approached from
+    h.phaseFromX = h.x;
+    h.phaseFromY = h.y;
+    h.phaseT = HERO_PHASE_FLASH;
+    h.x = Math.max(0, Math.min(WIDTH, target.x + Math.cos(ang) * near));
+    h.y = Math.max(0, Math.min(HEIGHT, target.y + Math.sin(ang) * near));
+    h.moveState = 'attacking';
+    this.spawnParticles(h.x, h.y, PARTICLE.infect, def.color, 0.6); // a viral phase-in burst
+    this.pushSfx('ability'); // a sharp phase-in cue
+    // The strike: heavy single-target damage + a deep Infection injection (Plague Strike).
+    const crit = this.rollHeroCrit(h);
+    const dmg = def.attackDamage * this.heroDamageMult(h) * crit.mult;
+    const applied = this.applyDamage(target, dmg);
+    if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
+    this.heroMasteryAccrual[h.kind].damage += applied;
+    this.heroLifesteal(h, applied);
+    this.infect(target, REVENANT.infectPerStrike); // deep Infection — spreads on the host's death
+    for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount }); // weapon grants
+    this.maybeReact(target);
+    this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
+    h.attackCd = def.attackInterval / this.heroHaste(h);
   }
 
   /** Densest enemy (cheap proxy: most neighbours within `r`) — the Overseer's anchor. */
@@ -5246,6 +5320,7 @@ export class Game {
     if (this.mods.fullHealthDamageBonus > 0 && e.hp >= e.maxHp) m += this.mods.fullHealthDamageBonus; // Ambush Enzyme — first-strike bonus
     if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus + this.heroVulnBonus();
     if (e.corrosion > 0) m += this.heroCorrosionVulnBonus(); // Vitriol Solvent Rounds (0 unless fielded)
+    if (e.infection > 0) m += this.heroInfectionVulnBonus(); // Revenant Virulent Presence (0 unless fielded)
     // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
     // inert on the historical path (no framework statuses present).
     if (e.statuses !== undefined && e.statuses.length > 0) m += aggregateStatuses(e.statuses).damageTakenMult;

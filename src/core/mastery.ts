@@ -232,6 +232,13 @@ const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
       { at: 25, kind: 'title', id: 'title.vitriol.corrosive', name: 'The Corrosive' },
     ],
   },
+  {
+    unit: 'revenant',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.revenant.1', name: 'Revenant', text: 'It climbed back up from the deepest wave — the one nothing returns from. Now it steps between places that should not touch, and whatever it finds there, it infects.' },
+      { at: 25, kind: 'title', id: 'title.revenant.wraith', name: 'The Wraith' },
+    ],
+  },
 ];
 
 for (const t of TOWER_TRACKS) masteryTrackRegistry.register({ subject: 'tower', unit: t.unit, rewards: t.rewards, perks: t.perks });

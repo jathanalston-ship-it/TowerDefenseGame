@@ -857,13 +857,19 @@ export const TOWER_ABILITIES: Record<TowerKind, AbilityComponent[]> = Object.fro
 //   • 'control' — Overseer: floats to the densest crowd, Disruption field (Neural).
 //   • 'siege'   — Vitriol: holds the rear line, bombards the deepest threat with corrosive
 //                 shells that leave Corrosion pools (Caustic). The only ranged/area-denial hero.
+//   • 'phase'   — Revenant: a BLINK-stalking assassin (Viral). Teleports to the biggest threat
+//                 (boss → elite → highest-HP), strikes hard, and injects spreading Infection. The
+//                 only single-target boss-deleter + the only Viral hero. (game.ts updatePhaseHero)
 // The Ravager's numbers are unchanged from the original single-hero build, so the
 // base game (and the golden tests) play identically.
-export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege';
+export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege' | 'phase';
 
 /** How a hero is gated. Absent on a HeroDef ⇒ always available (the launch trio). Data only
- *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save. */
-export type HeroUnlockReq = { kind: 'bossSlain'; label: string };
+ *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save.
+ *  Each hero's gate is a DISTINCT axis: bossSlain (Vitriol) · infiniteDepth (Revenant). */
+export type HeroUnlockReq =
+  | { kind: 'bossSlain'; label: string }
+  | { kind: 'infiniteDepth'; wave: number; label: string };
 
 export interface HeroAbilityDef {
   name: string;
@@ -874,6 +880,7 @@ export interface HeroAbilityDef {
   fracture: number; // Kinetic stacks applied (Ravager)
   disrupt: number; // Disruption seconds applied (Overseer)
   corrode?: number; // Corrosion seconds applied by the blast (Vitriol); absent/0 ⇒ none
+  infect?: number; // Infection stacks applied by the blast (Revenant Plague Rupture); absent/0 ⇒ none
   heal: number; // Nucleus + self heal granted (Shepherd)
   shield?: number; // self-shield absorb pool granted to the caster (Shepherd Bloom); absent/0 ⇒ none
   shieldSeconds?: number; // how long that self-shield lasts (defaults alongside `shield`)
@@ -958,6 +965,18 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     unlock: { kind: 'bossSlain', label: 'Slay a Framework Boss' },
     ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5 },
   },
+  revenant: {
+    // The hive's WRAITH caste (Viral) — a phase-stalking ASSASSIN, the only single-target boss-deleter.
+    // It does not walk: it BLINKS (teleports) to the biggest threat (boss → elite → highest-HP), lands a
+    // heavy strike, and injects Infection (ramping armor-ignoring DoT that spreads on death). Uniquely
+    // progression-gated — bred only from the ENDLESS deep (reach Infinite Depth 40). Numbers are clay.
+    kind: 'revenant', name: 'Revenant', combatClass: 'Viral', behavior: 'phase', color: '#6ff2c4',
+    maxHp: 195, speed: 118, attackRange: 46, attackInterval: 0.7, attackDamage: 44, attackFracture: 0,
+    aggroRange: 1400, contactRange: 20, respawnTime: 9,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    unlock: { kind: 'infiniteDepth', wave: 40, label: 'Reach Infinite Depth 40' },
+    ability: { name: 'Plague Rupture', blurb: 'Blinks to the target zone and RUPTURES it: a viral detonation that savages everything caught and injects a deep, spreading Infection.', cooldown: 12, radius: 130, damage: 66, fracture: 0, disrupt: 0, infect: 5, heal: 0 },
+  },
 };
 
 export function heroProblems(d: HeroDef): string[] {
@@ -1022,7 +1041,9 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
       ? { kind: 'Fracture' as const, amount: ab.fracture }
       : (ab.corrode ?? 0) > 0
         ? { kind: 'Corrosion' as const, amount: ab.corrode as number }
-        : undefined;
+        : (ab.infect ?? 0) > 0
+          ? { kind: 'Infection' as const, amount: ab.infect as number }
+          : undefined;
     out.push({ type: 'explosion', radius: ab.radius, damage: ab.damage, status, react: true });
   } else if (ab.disrupt > 0) {
     // Pure control ult (Overseer Mass Override): flood Disruption, no damage/reaction.
@@ -1055,6 +1076,15 @@ export const HERO_ULT: Record<HeroKind, AbilityComponent[]> = Object.fromEntries
 // slots 2+ already auto-fire their signature ability; buying this lets the primary hero do the
 // same (then a free toggle). Off by default ⇒ the golden run never auto-casts. One-time purchase.
 export const HERO_AUTOCAST = { cost: 220 } as const;
+
+// Revenant blink (behavior 'phase'): seconds the teleport streak/after-image lingers. The sim sets
+// Hero.phaseT to this on each blink-strike + decays it; the renderer normalizes alpha by the same
+// value. Purely cosmetic (render-only fields) ⇒ never perturbs the pinned sim.
+export const HERO_PHASE_FLASH = 0.3;
+
+// Revenant tunables (docs/HEROES.md). `infectPerStrike` = Infection stacks each blink-strike injects
+// (its Plague Strike identity — a deep, spreading DoT on the assassinated target). Centralized clay.
+export const REVENANT = { infectPerStrike: 3 } as const;
 
 // ── Summoned friendly units (the `summon` ability primitive) ────────────────
 // Data for each conjurable unit; the SummonAbility references one by id. A new unit is one
