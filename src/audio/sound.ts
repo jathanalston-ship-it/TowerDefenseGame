@@ -127,6 +127,10 @@ function sMegaChoir(): void { // Meridia theme sting: a hollow choir — detuned
   tone(220, 1.4, 'triangle', 0.12, 218); tone(330, 1.4, 'triangle', 0.1, 327);
   tone(440, 1.2, 'sine', 0.08, 436); noise(1.2, 0.05, 5200, 2400); tone(55, 1.5, 'sine', 0.2);
 }
+function sMegaShepherd(): void { // Ossira theme sting: bone chimes over a hollow pastoral drone
+  tone(392, 0.5, 'sine', 0.1, 388); tone(587, 0.4, 'sine', 0.08, 583); tone(494, 0.45, 'sine', 0.07);
+  noise(0.12, 0.08, 5200); noise(0.12, 0.07, 4300); tone(49, 1.8, 'sine', 0.24, 46); tone(73, 1.6, 'triangle', 0.12, 70);
+}
 function sMegaAbility(): void { // telegraph riser: tension you can HEAR building — interrupt it
   tone(196, 0.8, 'sawtooth', 0.1, 392); noise(0.7, 0.06, 700, 2600); tone(49, 0.8, 'sine', 0.14);
 }
@@ -146,6 +150,9 @@ function sMegaDeath(): void { // the collapse: a long dying groan, structure fai
   tone(110, 2.2, 'sawtooth', 0.2, 24); tone(82, 2.0, 'sawtooth', 0.14, 20);
   noise(1.8, 0.14, 2200, 120); tone(30, 2.4, 'sine', 0.32, 18);
   tone(1046, 0.5, 'sine', 0.07, 523); // one thin gleam over the ruin — the reward is coming
+}
+function sMine(): void { // spore-mine burst: wet pop + acid fizz (docs/SOWER.md)
+  noise(0.22, 0.16, 1600, 300); tone(180, 0.18, 'sine', 0.2, 70); noise(0.3, 0.06, 5200, 2000);
 }
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
 // ── progression / reward dopamine cues ──
@@ -260,6 +267,8 @@ export const audio = {
         case 'mega': sMega(); break;
         case 'megaMaw': sMegaMaw(); break;
         case 'megaChoir': sMegaChoir(); break;
+        case 'megaShepherd': sMegaShepherd(); break;
+        case 'mine': for (let i = 0; i < Math.min(3, n); i++) sMine(); break;
         case 'megaAbility': sMegaAbility(); break;
         case 'megaPhase': sMegaPhase(); break;
         case 'wpOpen': sWpOpen(); break;

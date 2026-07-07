@@ -38,9 +38,9 @@ const ROSTER: Record<Exclude<WaveShape, 'boss'>, EnemyKind[]> = {
   mixed: ['runner', 'brute', 'flyer', 'rusher', 'knitter', 'molerat', 'burrower'],
   rush: ['rusher', 'darter', 'lasher', 'runner', 'molerat'],
   elite: ['brute', 'tank', 'revenant', 'gargoyle', 'apex', 'dreadnought'],
-  air: ['flyer', 'wisp', 'gargoyle', 'cystwraith'],
-  siege: ['siegeworm', 'spitter', 'warden'],
-  horror: ['broodmother', 'hivecaller', 'mender', 'cantor', 'bomber', 'popper', 'sapper'],
+  air: ['flyer', 'wisp', 'gargoyle', 'cystwraith', 'stratovore'],
+  siege: ['siegeworm', 'spitter', 'warden', 'stratovore'],
+  horror: ['broodmother', 'hivecaller', 'mender', 'cantor', 'bomber', 'popper', 'sapper', 'broodweaver', 'cataclyst'],
 };
 const SHAPE_ROTATION: Exclude<WaveShape, 'boss'>[] = ['swarm', 'armored', 'mixed', 'rush', 'elite', 'air', 'siege', 'horror'];
 // Depth gate per shape (docs/HIVE-SIEGE.md §ranged/§balance): under siege combat a heavy the

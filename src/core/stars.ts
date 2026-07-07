@@ -444,7 +444,42 @@ const COIL: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH]);
+// Blight Sower (trap): stars raise the FIELD — cap (+extraProjectiles = +max armed mines), blast
+// (splashMult), and detonation ride-alongs; `ability` grants fire AT each detonation point
+// (game.mineSystem), so aura/debuff organs bloom where the mine bursts. No targeting — mines
+// choose nobody; the lane walks into THEM.
+const SOWER_PATH: StarPath = {
+  tower: 'sower',
+  steps: [
+    { star: 1, name: 'Second Bud', kind: 'projectile', desc: '+1 max armed mine — a denser field.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    { star: 2, name: 'Fat Blooms', kind: 'projectile', desc: 'Detonations bloom 15% wider.', grants: [{ t: 'projectile', splashMult: 1.15 }] },
+    {
+      star: 3,
+      name: 'Cultivar',
+      kind: 'fork',
+      desc: 'Choose the strain this garden grows (re-pick any run).',
+      fork: [
+        { id: 'acidbloom', name: 'Acid Bloom', desc: 'Every detonation leaves a corroding wash on the survivors.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 110, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'shrapnel', name: 'Bone Shrapnel', desc: 'Detonations shear plating — Fracture on everything caught.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 120, status: { kind: 'Fracture', amount: 2 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Third Bud', kind: 'projectile', desc: '+1 max armed mine.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 5,
+      name: 'Apex Cultivar',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'blightfield', name: 'Blightfield', desc: 'Vast detonations — the garden owns the whole approach.', grants: [{ t: 'projectile', splashMult: 1.25 }, { t: 'ability', components: [{ type: 'aura', radius: 140, damage: 8, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'minefield', name: 'Minefield', desc: 'TWO more buds — saturation seeding.', grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+      ],
+    },
+    { star: 7, name: 'Deep Cellar', kind: 'interaction', desc: 'Each burst also shears armor in a wide ring (Fracture).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 160, status: { kind: 'Fracture', amount: 1 } }] }] },
+    { star: 9, name: 'The Hundred-Year Garden', kind: 'capstone', desc: 'A fourth bud and a devastating germination nova at every burst.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 150, damage: 30, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'garden' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

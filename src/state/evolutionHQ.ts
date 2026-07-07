@@ -4,7 +4,7 @@
 
 import { META_UPGRADES, upgradeEffectUnits } from '../core/config';
 import type { GenomeCategory, UpgradeDef } from '../core/config';
-import { upgradeCost, upgradeLevel } from './meta';
+import { upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
 import type { SaveData } from '../save/saveStore';
 
 export interface GenomeCardView {
@@ -19,6 +19,8 @@ export interface GenomeCardView {
   effectNow: string; // cumulative effect at the current level ('—' at 0)
   effectNext: string; // effect at level+1 ('' when maxed)
   completed: boolean;
+  locked: boolean; // progression-gated and not yet earned (visible, not purchasable)
+  unlockNote: string; // human requirement while locked ('' once earned / ungated)
 }
 
 export interface GenomeSection {
@@ -100,6 +102,7 @@ export function genomeSections(save: SaveData): GenomeSection[] {
       else { bought += level; total += u.maxLevel; }
       const spent = spentTo(u, level);
       coresSpent += spent;
+      const locked = !upgradeUnlocked(save, u);
       return {
         id: u.id,
         name: u.name,
@@ -112,6 +115,8 @@ export function genomeSections(save: SaveData): GenomeSection[] {
         effectNow: effectLabel(u, level),
         effectNext: maxed ? '' : effectLabel(u, level + 1),
         completed: maxed,
+        locked,
+        unlockNote: locked ? unlockLabel(u) : '',
       };
     });
     // The Runaway sink renders LAST in its section — the horizon after the capped catalog.
@@ -135,3 +140,18 @@ export const FUTURE_LOCKED: { name: string; desc: string }[] = [
   { name: 'Speciation', desc: 'Fuse two combat classes into a hybrid lineage — a build-space explosion.' },
   { name: 'Transcendence', desc: 'A second ascension layer beyond the Molt — for accounts that have mastered the Ascendant Tree.' },
 ];
+
+/** Human requirement text for a gated upgrade (docs/EVOLUTION-HQ.md §gates). */
+function unlockLabel(u: UpgradeDef): string {
+  const g = u.unlock;
+  if (!g) return '';
+  switch (g.kind) {
+    case 'campaignStage': return `Clear Campaign Stage ${g.stage}`;
+    case 'bestWave': return `Reach Depth ${g.wave} in any run`;
+    case 'towerUnlocked': return 'Claim the gated tower in the Tower Lab';
+    case 'totalRuns': return `Settle ${g.runs} runs`;
+    case 'lifetimeKills': return `Cull ${g.kills.toLocaleString('en-US')} enemies (lifetime)`;
+    case 'bossesSlain': return `Slay ${g.bosses} distinct boss archetypes`;
+    case 'totalBiomass': return `Harvest ${g.biomass.toLocaleString('en-US')} biomass (lifetime)`;
+  }
+}

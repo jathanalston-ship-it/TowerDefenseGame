@@ -342,6 +342,33 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'Prismatic Cascade', desc: 'A blooming lattice: two more channels and a drowning caustic field.', damageMult: 1.15, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'ability', components: [{ type: 'aura', radius: 150, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'prism' }] },
     ],
   },
+  // ════════════ BLIGHT SOWER (Caustic, spore-mine area denial) ════════════
+  // The trap loop honours damage/splash/rate ride-alongs (rate → a faster SEEDING cadence),
+  // `projectile.extraProjectiles` (+max armed mines), and `ability` grants fired AT each
+  // detonation point (game.mineSystem) — an aura/debuff/explosion grant blooms where the mine
+  // bursts. No pierce/targeting — the lane walks into the garden.
+  {
+    id: 'sower_bloom', tower: 'sower', name: 'Corrosive Bloom',
+    theme: 'Fewer, monstrous detonations — a garden of horrors that dissolves whole packs.',
+    tiers: [
+      { tier: 1, name: 'Swollen Pods', desc: 'Detonations bloom 20% wider and hit harder.', damageMult: 1.1, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'projectile', splashMult: 1.2 }] },
+      { tier: 2, name: 'Caustic Marrow', desc: 'Every burst leaves a corroding wash on the survivors.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 6, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 3, name: 'Deep Blight', desc: 'Heavier payloads; the wash shears armor (Fracture).', damageMult: 1.2, impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Overripe', desc: 'Vast detonations — +25% blast radius.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.25 }] },
+      { tier: 5, name: 'The Rotting Field', desc: 'Every burst is a caustic catastrophe: a second acid nova erupts from the crater.', damageMult: 1.25, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 140, damage: 32, react: true, particle: 'acid' }, { type: 'aura', radius: 160, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'rotfield' }] },
+    ],
+  },
+  {
+    id: 'sower_thicket', tower: 'sower', name: 'Choking Thicket',
+    theme: 'Saturation — more buds, faster seeding, the whole approach one continuous minefield.',
+    tiers: [
+      { tier: 1, name: 'Twin Buds', desc: '+1 max armed mine.', particle: 'spore', sfx: 'br_spore', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Quick Germination', desc: '+20% seeding cadence; slightly fatter blooms.', fireRateMult: 1.2, grants: [{ t: 'projectile', splashMult: 1.08 }] },
+      { tier: 3, name: 'Dense Planting', desc: '+1 more bud; bursts leave a corroding trace.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 110, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Rampant Growth', desc: '+25% seeding cadence, heavier payloads, wider blooms.', fireRateMult: 1.25, damageMult: 1.12, grants: [{ t: 'projectile', splashMult: 1.1 }] },
+      { tier: 5, name: 'The Choking Thicket', desc: 'TWO more buds — the lane is the trap.', damageMult: 1.1, particle: 'spore', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'cosmetic', id: 'thicket' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

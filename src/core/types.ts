@@ -8,7 +8,7 @@ import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -34,8 +34,14 @@ export type EnemyKind =
   | 'bomber' | 'popper'
   // burrowing + suicide hybrid (tunnels gaps, then detonates at the line)
   | 'sapper'
+  // heavy + suicide hybrid (a slow walking bomb — kill it BEFORE it arrives)
+  | 'cataclyst'
   // artillery
   | 'siegeworm' | 'spitter'
+  // flying + artillery hybrid (shells from above — demands AA reach, not just AA presence)
+  | 'stratovore'
+  // summoner + regenerating hybrid (a self-mending womb — chip damage can't stop the brood)
+  | 'broodweaver'
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
 export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant';
@@ -44,8 +50,10 @@ export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revena
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
  * 'field' = periodic in-range pulse (no projectile). 'beam' = a CONTINUOUS locked, RAMPING
  * channel (no projectile): the Resonance Coil melter (game.beamTowerSystem) and the Marrow
- * Siphon drain-into-Biomass (game.beamSystem) — routed by kind in towerSystem (docs/SIPHON.md). */
-export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam';
+ * Siphon drain-into-Biomass (game.beamSystem) — routed by kind in towerSystem (docs/SIPHON.md).
+ * 'trap' = plants ARMED SPORE MINES on the approach instead of attacking — pre-placed area denial
+ * (the Blight Sower, game.trapTowerSystem/mineSystem — docs/SOWER.md). */
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam' | 'trap';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
 export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 
@@ -128,6 +136,20 @@ export interface EnemyShell {
   duration: number; // total flight seconds
   damage: number; // integrity damage on impact
   color: string; // the firing enemy's hue (shell + trail tint)
+}
+
+/** An armed SPORE MINE planted by the Blight Sower (docs/SOWER.md) — pre-placed area denial.
+ *  Damage/blast are BAKED at plant time (that tower's mods then), so a detonation is a pure
+ *  proximity check. The array is empty on the golden path (no sower is ever fielded there). */
+export interface SporeMine {
+  id: number;
+  towerId: number; // the planting Sower (cap accounting; culled when it is sold/moved)
+  x: number;
+  y: number;
+  arm: number; // seconds until armed (safety fuse; also the renderer's grow-in)
+  blast: number; // detonation radius (px)
+  damage: number; // damage to every enemy in the blast
+  corrosion: number; // Corrosion seconds applied to every victim (the Caustic identity)
 }
 
 /** Live state a framework boss carries on top of its enemy body (see boss.ts). */

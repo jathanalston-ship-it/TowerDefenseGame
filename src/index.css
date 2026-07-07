@@ -7808,3 +7808,7 @@ kbd {
 }
 .wp-callout-name { font-size: 13px; font-weight: 900; letter-spacing: 0.12em; color: #ffd24d; }
 .wp-callout-note { font-size: 11px; color: #6effa8; letter-spacing: 0.04em; }
+
+/* Genome upgrade progression gates (docs/EVOLUTION-HQ.md §gates) */
+.evohq-card.is-locked { opacity: 0.62; filter: saturate(0.55); }
+.evo-card-gate { font-size: 11px; color: var(--gold); letter-spacing: 0.04em; margin: 2px 0 0; }

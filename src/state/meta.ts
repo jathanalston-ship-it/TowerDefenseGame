@@ -54,7 +54,7 @@ import {
 } from '../core/reforge';
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
-import type { CardDef, CardEffect } from '../core/cards';
+import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
 import { CARD_POOL, cardRegistry } from '../core/cards';
 import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
@@ -386,7 +386,7 @@ export function masteryXpMults(
   const econDiff = economyFor(difficulty);
   const modeMult = modeMasteryMult({ endless: !!mode.endless, campaign: !!mode.campaign, bossRush: !!mode.bossRush });
   const base = modeMult * econDiff.xpMult * asc.masteryXpMult;
-  return { tower: base * cb.towerXpMult, hero: base * cb.heroXpMult };
+  return { tower: base * cb.towerXpMult, hero: base * cb.heroXpMult * asc.heroMasteryXpMult }; // Legacy: a hero-only lever on the shared base
 }
 
 /** Resolve total lifetime XP into a level + progress toward the next (for the bar). */
@@ -503,7 +503,12 @@ export function towerShardPool(save: SaveData): TowerKind[] {
 /** Whether a gene card's progression gate is satisfied (ungated ⇒ always true). Drives which gated
  *  cards are injected into a run's draft pool (RunOptions.unlockedCardIds). */
 export function cardUnlocked(save: SaveData, def: CardDef): boolean {
-  const u = def.unlock;
+  return progressionUnlockMet(save, def.unlock);
+}
+
+/** THE shared progression-gate evaluator — gene cards AND Genome upgrades speak the same unlock
+ *  vocabulary (CardUnlock), so a new gate kind lands here once and every gated surface gains it. */
+export function progressionUnlockMet(save: SaveData, u: CardUnlock | undefined): boolean {
   if (!u) return true;
   switch (u.kind) {
     case 'campaignStage': return highestCampaignStage(save) >= u.stage;
@@ -514,6 +519,12 @@ export function cardUnlocked(save: SaveData, def: CardDef): boolean {
     case 'bossesSlain': return save.bossesSlain.length >= u.bosses;
     case 'totalBiomass': return save.stats.totalBiomass >= u.biomass;
   }
+}
+
+/** Whether a Genome upgrade's progression gate is satisfied (ungated ⇒ always). Purchase-enforced
+ *  in buyUpgrade; the Evolution HQ renders locked cards with their requirement. */
+export function upgradeUnlocked(save: SaveData, def: UpgradeDef): boolean {
+  return progressionUnlockMet(save, def.unlock);
 }
 
 /** The ids of GATED gene cards the account has unlocked — injected into a run so they can be drafted
@@ -723,7 +734,7 @@ export function adaptationView(save: SaveData, subject: 'tower' | 'hero', unit: 
     containers: Math.min(ANTIGEN.containerCap, save.antigen),
     achievements: Math.min(ANTIGEN.achievementCap, Math.floor(save.achievements.length / ANTIGEN.achievementsPer)),
   };
-  const pointsEarned = antigenEarned({ masteryLevel: level, campaignStage: stage, containerAntigen: save.antigen, achievementCount: save.achievements.length });
+  const pointsEarned = Math.floor(antigenEarned({ masteryLevel: level, campaignStage: stage, containerAntigen: save.antigen, achievementCount: save.achievements.length }) * ascendantBonuses(save.prestige.nodes).antigenGainMult); // × Ascendant Mutagenesis (×1 without it)
   return {
     subject, unit, pointsEarned, pointsSpent: chosen.length,
     pointsAvailable: Math.max(0, pointsEarned - chosen.length),
@@ -872,6 +883,7 @@ export const meta = {
     const save = store.get();
     const def = META_UPGRADES.find((u) => u.id === id);
     if (!def) return false;
+    if (!upgradeUnlocked(save, def)) return false; // progression-gated (docs/EVOLUTION-HQ.md §gates)
     const level = upgradeLevel(save, id);
     if (level >= def.maxLevel) return false;
     const cost = upgradeCost(def, level);
@@ -1065,7 +1077,7 @@ export const meta = {
     // lanes scale ~N² with depth — slaying is the mode's payout, not surviving. Difficulty's
     // economy scalar rides both; prestige core gain rides the currency lane.
     const bossKills = result.stats.bossKills ?? 0;
-    const rushCoreBonus = isRush ? Math.round(RUSH.corePerBoss * bossKills * econDiff.rewardMult * asc.coreGainMult) : 0;
+    const rushCoreBonus = isRush ? Math.round(RUSH.corePerBoss * bossKills * econDiff.rewardMult * asc.coreGainMult * asc.rushBonusMult) : 0;
     // Lifetime-record bands (docs/BOSS-RUSH.md §ichor): Ichor per NEW 5-band of the single-run
     // boss record, a weighted-common Bio-Container per NEW 10-band. Record-keyed — matching your
     // best pays nothing, so the lane can't be farmed. (The Ichor folds in below with the faucets.)
@@ -1088,7 +1100,7 @@ export const meta = {
       ? (isPrevDayKey(save.daily.rewardedKey, dailyKey) ? save.daily.streak + 1 : 1)
       : save.daily.streak;
     const dailyCoreBonus = dailyRewarded
-      ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult)
+      ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult * asc.dailyBonusMult)
       : 0;
     const nextDaily: SaveData['daily'] = isDaily
       ? {
@@ -1337,7 +1349,7 @@ export const meta = {
       heroKills,
       heroFavEquip,
       stats: accumulateStats(save.stats, result.stats, result.mastery, { durationSec: result.durationSec, doctrine: result.doctrine, bossRush: isRush }),
-      geneEssence: save.geneEssence + doctrineEssence, // Corrupted Genome pays essence per wave (0 otherwise)
+      geneEssence: save.geneEssence + Math.round(doctrineEssence * asc.essenceGainMult), // Corrupted Genome essence × Ascendant Alchemy (both ×1/0 by default)
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
       unlockedTitles,
@@ -1516,13 +1528,15 @@ export const meta = {
     // pity-protected RARE catalyst — scaled by Power + campaign progress + this container's rarity.
     // Applied to BOTH container kinds so every Vault container can feed crafting (equipment stays
     // primary). Folded into the reveal + save; matPity persists the guarantee across containers.
+    const ascOpen = ascendantBonuses(save.prestige.nodes); // Alchemy/Forgeblood income levers (×1 without nodes)
     const { drop, pity } = rollMaterialDrop({
       containerRarity: chest.topRarity, power, campaignStage: highestCampaignStage(save), pity: save.matPity, rng: Math.random,
     });
     if (drop) {
-      chest.items.push({ type: 'material', rarity: drop.rarity, mat: drop.mat, amount: drop.amount });
-      chest.materials[drop.mat] += drop.amount;
-      mats = { ...mats, [drop.mat]: mats[drop.mat] + drop.amount };
+      const matAmt = Math.max(1, Math.round(drop.amount * ascOpen.matGainMult)); // × Ascendant Forgeblood
+      chest.items.push({ type: 'material', rarity: drop.rarity, mat: drop.mat, amount: matAmt });
+      chest.materials[drop.mat] += matAmt;
+      mats = { ...mats, [drop.mat]: mats[drop.mat] + matAmt };
     }
     // ── Gene Essence — duplicate conversion (docs/GENE-EVOLUTION.md §Economy). A tower/hero at MAX
     //    Star progression can't spend more shards, so the shards GRANTED by this open (diffed from the
@@ -1552,12 +1566,12 @@ export const meta = {
     }
     const rName = rarityRegistry.get(containerRarity)?.name ?? containerRarity;
     if (towerDupes > 0) {
-      const amt = essenceForDuplicates(containerRarity, towerDupes);
+      const amt = Math.round(essenceForDuplicates(containerRarity, towerDupes) * ascOpen.essenceGainMult);
       essenceGained += amt;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Tower` });
     }
     if (heroDupes > 0) {
-      const amt = essenceForDuplicates(containerRarity, heroDupes);
+      const amt = Math.round(essenceForDuplicates(containerRarity, heroDupes) * ascOpen.essenceGainMult);
       essenceGained += amt;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Hero` });
     }
@@ -1565,7 +1579,7 @@ export const meta = {
     //    replaces a guaranteed reward), scaled by the container's rarity + slightly by Campaign
     //    progress and Power Score. Duplicate conversion above stays the dominant source (simulated
     //    in docs/GENE-EVOLUTION.md §Economy). ──
-    const essenceDrop = rollEssenceDrop({ containerRarity, power, campaignStage: highestCampaignStage(save), rng: Math.random });
+    const essenceDrop = Math.round(rollEssenceDrop({ containerRarity, power, campaignStage: highestCampaignStage(save), rng: Math.random }) * ascOpen.essenceGainMult);
     if (essenceDrop > 0) {
       essenceGained += essenceDrop;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceDrop, note: 'Essence Trace' });

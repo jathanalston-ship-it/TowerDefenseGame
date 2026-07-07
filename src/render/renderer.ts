@@ -132,6 +132,17 @@ export function drawGame(
     ring(ctx, cp.x, cp.y, cp.r * 0.55, rgba(hexRgb('#7a2fae'), 0.3 * fade), 1);
   }
 
+  // Blight Sower spore mines (docs/SOWER.md): armed pods dotted on the approach — a growing
+  // bud (arm fuse), then a slow pulse with a faint trigger ring. Empty on every other run.
+  for (const m of rs.mines) {
+    const c = hexRgb(TOWER_DEFS.sower.color);
+    const grow = m.arm > 0 ? Math.max(0.25, 1 - m.arm / 0.8) : 1;
+    const puls = m.arm > 0 ? 1 : pulse(t * 2 + m.id, 1, 0.85, 1.15);
+    glowDisc(ctx, m.x, m.y, 9 * grow * puls, rgba(c, m.arm > 0 ? 0.18 : 0.3));
+    drawShape(ctx, 'circle', m.x, m.y, 4.5 * grow * puls, rgba(c, m.arm > 0 ? 0.55 : 0.95));
+    drawShape(ctx, 'circle', m.x, m.y - 1, 1.6 * grow, 'rgba(255,255,255,0.5)');
+    if (m.arm <= 0) ring(ctx, m.x, m.y, 13 * puls, rgba(c, 0.28), 1, [3, 4]);
+  }
   drawOverchargeLinks(ctx, rs);
   for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
   drawLandingImpacts(ctx, rs, t); // relocation landing impact

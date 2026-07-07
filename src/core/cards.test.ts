@@ -86,6 +86,9 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     // Behavioral gated pool (docs/CARDS.md §gates) — distinct-axis unlocks
     regenerative_carapace: 'hive', ambush_enzyme: 'global', culling_instinct: 'global',
     viral_payload: 'global', toxic_aura: 'hero',
+    // Blight Sower signature set + the expansion gated trio
+    mycelial_carpet: 'sower', seed_hoard: 'sower',
+    war_rhythm: 'global', apex_hunger: 'economy', trophy_takers: 'economy',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 

@@ -36,6 +36,8 @@ export interface RunModifiers {
   coilBeamTargets: number; // +simultaneous beam targets (the Coil's beam forks to additional foes)
   siphonRampMult: number; // scales how fast the Marrow Siphon's beam GORGES (its ramping DPS) — docs/SIPHON.md
   siphonDrainMult: number; // scales the biomass the Marrow Siphon siphons from damage dealt (its economy return)
+  sowerBlastRadiusMult: number; // scales the Blight Sower's mine DETONATION radius — docs/SOWER.md
+  sowerExtraMines: number; // +max armed mines each Blight Sower may keep planted (its field density)
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -122,6 +124,8 @@ export function defaultRunModifiers(): RunModifiers {
     coilBeamTargets: 0,
     siphonRampMult: 1,
     siphonDrainMult: 1,
+    sowerBlastRadiusMult: 1,
+    sowerExtraMines: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -420,6 +424,16 @@ export const CARD_POOL: CardDef[] = [
   { id: 'culling_instinct', name: 'Culling Instinct', rarity: 'rare', category: 'mutation', description: 'Instantly kill non-boss enemies that drop below 10% health.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.1 }], unlock: { kind: 'lifetimeKills', kills: 1000 } },
   { id: 'viral_payload', name: 'Viral Payload', rarity: 'rare', category: 'mutation', description: 'Every kill spreads 2 Fracture to nearby enemies.', effects: [{ op: 'add', field: 'killFractureSplash', value: 2 }], unlock: { kind: 'bossesSlain', bosses: 3 } },
   { id: 'toxic_aura', name: 'Toxic Aura', rarity: 'rare', category: 'poison', description: 'The hero exudes Corrosion, infecting nearby enemies.', effects: [{ op: 'flag', field: 'heroCorrosionAura' }], unlock: { kind: 'totalBiomass', biomass: 50000 } },
+
+  // ════════════════ Blight Sower cards (2) — gated by OWNING the Sower ════════════════
+  // Tower-SUBJECT cards (sowerBlastRadiusMult / sowerExtraMines ⇒ subject 'sower'), kept out of
+  // the default pool exactly like the Coil/Siphon signature sets (docs/SOWER.md).
+  { id: 'mycelial_carpet', name: 'Mycelial Carpet', rarity: 'rare', category: 'aoe', description: 'Blight Sower detonations bloom 35% wider.', effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.35 }], unlock: { kind: 'towerUnlocked', tower: 'sower' } },
+  { id: 'seed_hoard', name: 'Seed Hoard', rarity: 'epic', category: 'tower', description: 'Every Blight Sower keeps +2 more mines armed.', effects: [{ op: 'add', field: 'sowerExtraMines', value: 2 }], unlock: { kind: 'towerUnlocked', tower: 'sower' } },
+  // ════════════════ Expansion gated trio — each on a UNIQUE progression gate ════════════════
+  { id: 'war_rhythm', name: 'War Rhythm', rarity: 'rare', category: 'tower', description: '+18% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.18 }], unlock: { kind: 'campaignStage', stage: 50 } },
+  { id: 'apex_hunger', name: 'Apex Hunger', rarity: 'epic', category: 'economy', description: '+30% biomass from kills and +8% tower damage.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.3 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'lifetimeKills', kills: 5000 } },
+  { id: 'trophy_takers', name: 'Trophy Takers', rarity: 'legendary', category: 'economy', description: 'Status reactions re-fire once more; +20% biomass from kills.', effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'biomassMult', value: 1.2 }], unlock: { kind: 'bossesSlain', bosses: 5 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */
@@ -611,6 +625,8 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   effigyDreadDurationMult: 'effigy',
   coilRampMult: 'coil',
   coilBeamTargets: 'coil',
+  sowerBlastRadiusMult: 'sower',
+  sowerExtraMines: 'sower',
   siphonRampMult: 'siphon',
   siphonDrainMult: 'siphon',
   reactorBiomassMult: 'reactor',

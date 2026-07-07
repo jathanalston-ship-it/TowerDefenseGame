@@ -201,6 +201,13 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 75, name: 'Runaway Resonance', desc: 'Mastery 75: +20% fire rate — resonance builds faster, so the melt ramps sooner.', fireRateMult: 1.2 },
     ],
   },
+  {
+    unit: 'sower',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.sower.1', name: 'Gardener Doctrine', text: 'The Sower never fights. It PREPARES — and the wave arrives at a battlefield that was decided before the first scream.' },
+      { at: 25, kind: 'title', id: 'title.sower.cultivator', name: 'Cultivator' },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [

@@ -48,6 +48,7 @@ const TRAUMA: Record<string, number> = {
   // Mega Boss camera events (docs/MEGA-BOSS.md §visuals): arrival quake, phase crunch, weak-point
   // rupture payoff, and the long collapse — the biggest impulses in the game, by design.
   mega: 0.5, megaPhase: 0.3, wpOpen: 0.05, wpBreak: 0.24, megaDeath: 0.6, megaAbility: 0.06,
+  mine: 0.02, // spore-mine bursts: a light patter even when a field chains
 };
 // Hive damage-state thresholds (docs/HIVE-SIEGE.md §states) — a GROAN marks each failure.
 const HIVE_STATES = [0.75, 0.5, 0.25, 0.1];

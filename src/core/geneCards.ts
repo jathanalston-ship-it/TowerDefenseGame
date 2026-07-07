@@ -61,7 +61,7 @@ export const DEFAULT_GENE_STATE: Readonly<GeneCardSave> = { level: 0 };
  *  a completed library at ≈×2.45 on the meta bucket — a major pillar (comparable to stars/prestige),
  *  not a runaway dominator; a mid-game third of the library reads ≈×1.5. Re-measure when the library
  *  grows again (geneArchive.test pins the ×2–2.6 band). */
-export const GENE_POWER_SCALE = 0.11;
+export const GENE_POWER_SCALE = 0.105;
 
 /** The permanent upgrade ceiling for a card (base-only = 1 until Task 4 authors levels). */
 export function geneMaxLevel(def: CardDef): number {

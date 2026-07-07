@@ -75,6 +75,7 @@ import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
+import { MINES } from './config';
 import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
 import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaRuntime, MegaWeakPoint } from './megaboss';
 import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
@@ -158,6 +159,7 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
 import type {
   CombatClass,
   Enemy,
+  SporeMine,
   EnemyKind,
   Hero,
   HeroKind,
@@ -281,6 +283,7 @@ export interface RenderState {
   // Mega Boss (docs/MEGA-BOSS.md) — null on every run without one (the overwhelming majority).
   megaBoss: MegaBossView | null;
   megaShots: MegaShot[]; // raid-fire tracers (tower/hero → weak point / body); empty otherwise
+  mines: SporeMine[]; // Blight Sower spore mines (docs/SOWER.md); empty on every other run
 }
 
 /** An instant raid-fire tracer (tower/hero → weak point / body chip). Presentation-only. */
@@ -470,6 +473,9 @@ export class Game {
   private mega: MegaRuntime | null = null;
   private megaFx: MegaFieldFx = { ...NEUTRAL_MEGA_FX };
   private megaShots: MegaShot[] = [];
+  // Blight Sower spore mines (docs/SOWER.md) — empty on every run without one (golden-safe).
+  mines: SporeMine[] = [];
+  private nextMineId = 1;
   private megaRng!: Rng; // dedicated stream (reinforcement mixes / corrupt picks) — never touches this.rng
   private megaDailyEnc: MegaEncounter | null = null; // the Daily Mega variant (opts.megaDaily)
   private runMegaKills: MegaKillStat[] = [];
@@ -1557,6 +1563,7 @@ export class Game {
     this.biomass += refund;
     this.occupied.delete(t.slot); // free the placement slot IMMEDIATELY
     this.towers.splice(idx, 1); // remove the tower (its in-flight shots/pools coast out on their own)
+    if (t.kind === 'sower' && this.mines.length > 0) this.witherMines(t.id); // its garden dies with it
     if (this.selectedPlacedId === id) this.selectedPlacedId = null; // selling closes Inspect
     if (this.movingTowerId === id) this.movingTowerId = null;
     this.recomputeTowerCaches(); // overcharge adjacency + reactor count stay coherent
@@ -1633,6 +1640,7 @@ export class Game {
     t.x = slot.x;
     t.y = slot.y;
     t.movedAt = this.time; // landing-impact FX
+    if (t.kind === 'sower' && this.mines.length > 0) this.witherMines(t.id); // uprooted — it reseeds from the new plot
     this.movingTowerId = null;
     this.recomputeTowerCaches(); // overcharge adjacency changed → refresh
     this.spawnParticles(t.x, t.y, PARTICLE.mutate, TOWER_DEFS[t.kind].color); // land burst
@@ -2201,6 +2209,7 @@ export class Game {
     }
     if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
       if (this.mega !== null) this.megaBossSystem(dt); // gated: zero cost on every other run
+      if (this.mines.length > 0) this.mineSystem(dt); // Blight Sower fields only — empty otherwise
       this.economySystem(dt);
       // Daily per-second modifiers (docs/DAILY-RUN.md) — both gated (0 without the modifier ⇒
       // golden-safe): Blood Frenzy bleeds the fielded heroes; Regeneration knits the Hive.
@@ -3342,6 +3351,16 @@ export class Game {
         else this.beamTowerSystem(t, dt, def, bprog, bbk, bmods.dmgMult, bmods.rateMult);
         continue;
       }
+      // Trap towers (Blight Sower, firing 'trap'): no attack — it SEEDS armed spore mines up-lane
+      // on its cadence (docs/SOWER.md). Shares the exact damage/rate fold; detonation stats are
+      // baked at PLANT time. No trap tower ⇒ never reached (golden-safe).
+      if (def.firing === 'trap') {
+        const sprog = this.towerProgress[t.kind];
+        const sbk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
+        const smods = this.towerAttackMods(t, def, sprog, sbk, ksDmg, runBuffDmg, resoClass);
+        this.trapTowerSystem(t, dt, def, sprog, sbk, smods.dmgMult, smods.rateMult);
+        continue;
+      }
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
@@ -3739,6 +3758,113 @@ export class Game {
       this.castSplashMult = 1;
     }
     if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier);
+  }
+
+  // ════════════════════════ BLIGHT SOWER (firing 'trap' — docs/SOWER.md) ════════════════════════
+  // The roster's PRE-PLACED damage tower: it never attacks — it SEEDS armed spore mines up-lane on
+  // its cadence, and the wave walks into them. Detonation stats are BAKED at plant time (that
+  // moment's damage/splash folds), so a burst is a pure proximity event. Genuinely different from
+  // every firing before it: the player buys area DENIAL, not a reaction.
+
+  /** Seed one mine per cadence while below the tower's cap (stars/branches/cards raise it). */
+  private trapTowerSystem(t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): void {
+    t.cooldown -= dt;
+    if (t.cooldown > 0) return;
+    const cap = MINES.maxPerTower + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0) + Math.max(0, Math.floor(this.mods.sowerExtraMines));
+    let owned = 0;
+    for (const m of this.mines) if (m.towerId === t.id) owned++;
+    if (owned >= cap) {
+      t.cooldown = Math.min(0.25, def.fireInterval * 0.1); // full garden — re-check soon, don't bank a volley
+      return;
+    }
+    // Plant UP-LANE of the tower, inside its reach, spread apart (min spacing). The lane flows
+    // downward globally, so anything above the tower is on the approach. Deterministic: the run rng
+    // (a sower never exists on the golden path) with a bounded retry for spacing.
+    const range = def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+    let px = t.x;
+    let py = t.y;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const cx = t.x + (this.rng.next() * 2 - 1) * range * 0.55;
+      const cy = t.y - (0.35 + this.rng.next() * 0.5) * range;
+      px = Math.max(16, Math.min(WIDTH - 16, cx));
+      py = Math.max(80, Math.min(t.y - 30, cy));
+      let clear = true;
+      for (const m of this.mines) {
+        if (dist2(m.x, m.y, px, py) < MINES.minSpacing * MINES.minSpacing) { clear = false; break; }
+      }
+      if (clear) break;
+    }
+    const blast = def.splash * (prog.splashMult ?? 1) * (bk?.splashMult ?? 1) * this.mods.splashRadiusMult * this.mods.sowerBlastRadiusMult;
+    this.mines.push({
+      id: this.nextMineId++, towerId: t.id, x: px, y: py,
+      arm: MINES.armSec, blast, damage: def.damage * dmgMult, corrosion: MINES.corrosionSec,
+    });
+    this.spawnParticles(px, py, PARTICLE.spore, def.color, 0.5); // the bud takes root
+    t.cooldown = def.fireInterval / rateMult;
+    if (bk) this.emitBranchSignature(bk, px, py, t.tier); // the garden grows in branch matter
+  }
+
+  /** Arm + trigger every planted mine. Gated on mines existing, so every other run pays nothing. */
+  private mineSystem(dt: number): void {
+    for (let i = this.mines.length - 1; i >= 0; i--) {
+      const m = this.mines[i];
+      if (m.arm > 0) { m.arm -= dt; continue; }
+      // Proximity trigger: the first living, targetable enemy inside the trigger ring sets it off.
+      let tripped = false;
+      this.grid.forNeighbors(m.x, m.y, MINES.triggerRadius + 24, (e) => {
+        if (tripped || !e.alive) return;
+        if (e.boss !== null && e.boss.burrow > 0) return; // submerged — passes beneath the garden
+        if (dist2(m.x, m.y, e.x, e.y) <= (MINES.triggerRadius + 6) * (MINES.triggerRadius + 6)) tripped = true;
+      });
+      if (!tripped) continue;
+      this.detonateMine(m);
+      this.mines[i] = this.mines[this.mines.length - 1];
+      this.mines.pop();
+    }
+  }
+
+  /** The burst: full damage + Corrosion to everything in the blast, then the tower's star/branch
+   *  grants (auras / debuffs / novas) fire AT the crater — upgrades bloom where the mine bursts. */
+  private detonateMine(m: SporeMine): void {
+    const owner = this.towers.find((t) => t.id === m.towerId);
+    const r2 = m.blast * m.blast;
+    this.grid.forNeighbors(m.x, m.y, m.blast, (e) => {
+      if (!e.alive || dist2(m.x, m.y, e.x, e.y) > r2) return;
+      this.applyDamage(e, m.damage, 'sower');
+      this.applyStatus(e, { kind: 'Corrosion', amount: m.corrosion });
+      this.maybeReact(e);
+    });
+    this.spawnParticles(m.x, m.y, PARTICLE.acid, TOWER_DEFS.sower.color); // the burst
+    this.pushSfx('mine');
+    if (owner) {
+      const prog = this.towerProgress.sower;
+      const bk = owner.tier > 0 ? resolveBranchKit(owner.branchId, owner.tier) : null;
+      if ((prog.extraAbilities?.length ?? 0) + (bk?.extraAbilities.length ?? 0) > 0) {
+        this.abilitySourceKind = 'sower';
+        this.abilityHeroKind = null;
+        this.abilityCaster = null;
+        this.abilityTargeting = 'closestToBase';
+        this.castSplashMult = 1;
+        this.castRangeMult = 1;
+        this.castScratch.x = m.x;
+        this.castScratch.y = m.y;
+        this.castScratch.damageMult = 1; // grant components carry their own numbers
+        this.castScratch.target = null;
+        this.castScratch.pierce = 0;
+        if (prog.extraAbilities) runAbilities(this.actx, prog.extraAbilities, this.castScratch);
+        if (bk && bk.extraAbilities.length) runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+      }
+    }
+  }
+
+  /** A sold/uprooted Sower's field withers (no detonation — the player chose to remove it). */
+  private witherMines(towerId: number): void {
+    for (let i = this.mines.length - 1; i >= 0; i--) {
+      if (this.mines[i].towerId !== towerId) continue;
+      this.spawnParticles(this.mines[i].x, this.mines[i].y, PARTICLE.death, TOWER_DEFS.sower.color, 0.4);
+      this.mines[i] = this.mines[this.mines.length - 1];
+      this.mines.pop();
+    }
   }
 
   /** Spray a branched tower's signature particle + sound on an attack/pulse, ESCALATED by tier
@@ -5826,6 +5952,7 @@ export class Game {
       hazardActive: hazardActive(this.activeBiome, this.time),
       megaBoss: this.megaBossView(),
       megaShots: this.megaShots,
+      mines: this.mines,
     };
   }
 

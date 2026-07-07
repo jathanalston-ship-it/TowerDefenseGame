@@ -20,15 +20,15 @@
 
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
-| Towers | 10 | 100 | each with stars + branches + mastery + Adaptation; the Coil + Siphon are locked/gated (below) |
+| Towers | 11 | 100 | each with stars + branches + mastery + Adaptation; Coil + Siphon + Blight Sower are locked/gated (below) |
 | Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts |
-| Enemies | 32 | 100 | + elites (Cyst Wraith fly+regen · Cinder Sapper burrow+suicide) |
+| Enemies | 35 | 100 | + elites (fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide) |
 | **Bosses** | **10 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Milestone-2 siege line (stages 35/40/45) |
-| **Mega Bosses** | **2 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
-| Cards (genes) | 82 | 500 | effect DSL (mul/add/flag/set/grant/hook); 24 progression-`unlock`-gated (below) |
+| **Mega Bosses** | **3 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
+| Cards (genes) | 87 | 500 | effect DSL (mul/add/flag/set/grant/hook); 29 progression-`unlock`-gated (below) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
-| Meta upgrades (Genome) | 57 | 1,000 | `META_UPGRADES` |
-| Ascendant (prestige) nodes | 11 | 20 | `ASCENDANT_NODES` |
+| Meta upgrades (Genome) | 87 | 1,000 | `META_UPGRADES` (Deep Genome tier: 20 open + 10 progression-`unlock`-gated) |
+| Ascendant (prestige) nodes | 19 | 20 | `ASCENDANT_NODES` (9 expansion nodes: 3 deep stackers + 6 new income levers) |
 
 Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The frameworks below hold
 20× this.
@@ -64,6 +64,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   drain pulse (0.4). DOUBLE-gated — shards only drop after Campaign Stage 15 (`unlockStage`) and 200
   must then bank (`unlockShards`). Ships a 7-node star path, two branches (Insatiable Gorge / Bloodwell),
   and a 7-card Deep-Strain gene set behind the same gate. **SIPHON.md**
+- ✅ **Blight Sower** (11th tower; Caustic) — the roster's first `firing: 'trap'`: it never attacks — it
+  SEEDS armed spore mines up-lane (cap + cadence + blast all upgradeable) and the wave walks into
+  them; detonations corrode (feeds Shred) and star/branch organs bloom AT the crater. Pre-placed
+  area DENIAL vs. everyone else's reaction. DOUBLE-gated (Campaign 20 → 360 shards); two signature
+  gene cards gate on owning it. **SOWER.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +
@@ -114,7 +119,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **MEGA BOSSES** (`core/megaboss.ts` + `render/megaboss.ts` — docs/MEGA-BOSS.md): battlefield-scale
   RAID organisms — anchored across the top of the field, ability rotation manipulating the whole
   battle (12 modular verbs), 10-kind weak-point library where every destruction CHANGES the fight,
-  encounter cadence in all four modes + the rare Daily Mega variant, efficiency-scaled guaranteed
+  encounter cadence in all four modes + the rare Daily Mega variant (roster: Voraxis the aggression
+  mega · Meridia the suppression mega · Ossira the FORTIFICATION mega — it armors/shields/mends the
+  horde itself), efficiency-scaled guaranteed
   Ichor, `megaBosses` collection category (Slain/Mastered/Dominated) + 11 achievements — compressed
   summary below
 - 📋 Milestones 3–4 (biome/prestige/∞ bosses + elite-variant overlay); per-boss Bestiary + first-kill

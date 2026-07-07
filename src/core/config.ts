@@ -3,7 +3,7 @@
 // Every value is an illustrative starting point for the vertical slice.
 
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
-import type { RunModNumberKey } from './cards';
+import type { CardUnlock, RunModNumberKey } from './cards'; // type-only (erased) — no runtime cycle
 import { Registry } from './registry';
 import type { AbilityComponent, AuraAbility } from './ability';
 import type { TargetingProfile } from './targeting';
@@ -257,6 +257,23 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     targeting: 'lowestHealth', // the harvester identity: it FINISHES the weakest (opposite the Coil's toughest-target melt)
     abilities: [], // the beam is bespoke (game.beamSystem); star/branch grants pulse on its cadence
   },
+  sower: {
+    kind: 'sower',
+    name: 'Blight Sower',
+    combatClass: 'Caustic',
+    firing: 'trap', // plants ARMED SPORE MINES up-lane instead of attacking (docs/SOWER.md)
+    unlockShards: 360, // a deep synthesis goal — the third locked expansion organ
+    unlockStage: 20, // its shards do not drop until Campaign Stage 20 is cleared (the gate)
+    cost: 130,
+    range: 300, // PLANTING reach — how far up-lane it can seed the approach
+    fireInterval: 2.8, // seeding cadence: one mine grown per interval (while below its cap)
+    damage: 46, // per-mine detonation damage (baked at PLANT time with that moment's mods)
+    projectileSpeed: 0, // no projectile — the mines ARE the attack
+    splash: 88, // detonation radius (× splash/sower mods at plant time)
+    color: '#a4e04a',
+    blurb: 'Seeds the approach with ARMED spore mines — pre-placed detonations that corrode everything they catch.',
+    abilities: [], // the trap loop is bespoke (game.trapTowerSystem/mineSystem); star/branch grants fire AT detonations
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -285,6 +302,12 @@ export function towerProblems(d: TowerDef): string[] {
   if (d.firing === 'field' && d.range <= 0) out.push('a field tower needs range > 0');
   // A beam tower reaches out to LOCK a target (no projectile flight), so it needs range only.
   if (d.firing === 'beam' && d.range <= 0) out.push('a beam tower needs range > 0');
+  // A trap tower needs planting reach AND a real detonation (its splash IS the attack).
+  if (d.firing === 'trap') {
+    if (d.range <= 0) out.push('a trap tower needs range > 0 (planting reach)');
+    if (d.splash <= 0) out.push('a trap tower needs splash > 0 (the detonation radius)');
+    if (d.damage <= 0) out.push('a trap tower needs damage > 0 (the detonation payload)');
+  }
   return out;
 }
 
@@ -316,6 +339,19 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   effigy: [800, 3400, 14000, 50000, 185000],
   coil: [850, 3600, 14000, 52000, 190000], // premium single-target melter — sits with obelisk/mortar
   siphon: [950, 4000, 16000, 58000, 210000], // premium drain melter — the priciest capstone ladder
+  sower: [820, 3500, 14000, 51000, 188000], // area-denial seeder — sits with the effigy/coil band
+};
+
+/** Spore-mine tunables (Blight Sower, firing 'trap' — docs/SOWER.md). A Sower keeps up to
+ *  `maxPerTower` (+sowerExtraMines/stars) mines ARMED on the approach; each arms after `armSec`,
+ *  triggers when an enemy comes within `triggerRadius`, and detonates for the tower's baked
+ *  damage/blast, applying `corrosionSec` of Corrosion (the Caustic identity — feeds Shred). */
+export const MINES = {
+  maxPerTower: 4,
+  armSec: 0.8,
+  triggerRadius: 26,
+  corrosionSec: 1.5,
+  minSpacing: 34, // planting keeps mines apart so the field SPREADS (px)
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────
@@ -525,6 +561,14 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     behavior: { seek: 1.1, avoidTowers: 0.6, avoidHero: 0.1, separation: 0.25, jitter: 0.1, burrowing: true }, // tunnels the gaps, then blows
     attack: { interval: 1.4, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
+  // ── HEAVY + SUICIDE — a slow walking bomb: huge HP, huge blast. The wave you CANNOT let
+  //    arrive — forces kill-before-the-line pressure instead of line-holding attrition. ──
+  cataclyst: {
+    kind: 'cataclyst', name: 'Cataclyst', hp: 330, armor: 10, speed: 26, bounty: 68, damage: 10, radius: 18, color: '#e0483a',
+    explodeRadius: 120, explodeDamage: 58,
+    behavior: { seek: 1, avoidTowers: 0.05, avoidHero: 0, separation: 0.3, jitter: 0.03 }, // a slow, unswerving bomb
+    attack: { interval: 2.2, windup: 0.9 }, // SUICIDE: the long fuse IS the counterplay window
+  },
   // ── ARTILLERY — halt short of the line and bombard the Nucleus from range ──
   siegeworm: {
     kind: 'siegeworm', name: 'Siege Maw', hp: 240, armor: 8, speed: 30, bounty: 75, damage: 9, radius: 17, color: '#c0d080',
@@ -537,6 +581,22 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     siege: { range: 180, damage: 4, interval: 1.2 },
     behavior: { seek: 1.05, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08 }, // nimble standoff → mid-field DPS
     attack: { interval: 1.5, windup: 0.5 }, // ARTILLERY: melee fallback only (it standoffs)
+  },
+  // ── FLYING + ARTILLERY — bombards from the AIR: path answers don't apply AND range answers
+  //    must reach altitude. The coverage puzzle squared. ──
+  stratovore: {
+    kind: 'stratovore', name: 'Stratovore', hp: 190, armor: 4, speed: 42, bounty: 72, damage: 8, radius: 15, color: '#9a7ce0',
+    siege: { range: 260, damage: 5, interval: 1.8 },
+    behavior: { seek: 1, avoidTowers: 0.15, avoidHero: 0.3, separation: 0.3, jitter: 0.1, flying: true }, // drifts high, shells far
+    attack: { interval: 1.6, windup: 0.6 }, // ARTILLERY FLYER: pecks if forced to the line
+  },
+  // ── SUMMONER + REGENERATING — a self-mending womb: chip damage can't stop the brood.
+  //    Demands a real BURST answer, not attrition. ──
+  broodweaver: {
+    kind: 'broodweaver', name: 'Brood Weaver', hp: 240, armor: 5, speed: 33, bounty: 92, damage: 12, radius: 17, color: '#8ae06a', regenPerSec: 22,
+    summon: { kind: 'larva', count: 2, interval: 4 },
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06 }, // waddles + weaves the swarm back
+    attack: { interval: 2.0, windup: 0.7 }, // SUMMONER: slow slams (the brood is the threat)
   },
   // ── ELITE / APEX — premium multi-threats that fuse several roles ──
   apex: {
@@ -844,6 +904,10 @@ function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
       // Beam towers (Resonance Coil / Marrow Siphon): the beam DAMAGE + ramp are driven directly by
       // beamTowerSystem / beamSystem (game.ts), not by an ability component — so the base kit is empty.
       // Star/branch grants (crit/status/aura) still layer on via prog/branch extraAbilities on the pulse.
+      return [];
+    case 'trap':
+      // Trap towers (Blight Sower): planting + detonation are bespoke (game.trapTowerSystem /
+      // mineSystem) — the base kit is empty; star/branch extraAbilities fire AT each detonation.
       return [];
   }
 }
@@ -1261,6 +1325,10 @@ export interface UpgradeDef {
   /** Run-effect seam: each level contributes to a RunModifiers `field` — 'mul' adds `perLevel` to a
    *  base-1 multiplier (so ×(1 + perLevel·level)); 'add' adds `perLevel·level` to a flat field. */
   run?: { field: RunModNumberKey; op: 'mul' | 'add'; perLevel: number };
+  /** Progression GATE (docs/EVOLUTION-HQ.md §gates): a gated upgrade is VISIBLE in the HQ but
+   *  cannot be bought until the account clears its condition — the same unlock vocabulary gene
+   *  cards use. Absent ⇒ purchasable from the start (every pre-expansion upgrade). */
+  unlock?: CardUnlock;
 }
 
 /** The effect-units an upgrade contributes at `level`: linear for capped upgrades, √level for the
@@ -1361,6 +1429,44 @@ export const META_UPGRADES: UpgradeDef[] = [
   // ── Economy ──
   { id: 'enzyme_cascade', name: 'Enzyme Cascade', description: '+4% Flesh Reactor biomass per level', category: 'Economy', maxLevel: 5, baseCost: 64, costMult: 1.5, run: { field: 'reactorBiomassMult', op: 'mul', perLevel: 0.04 } },
   { id: 'seed_vault', name: 'Seed Vault', description: '+15 starting biomass per level', category: 'Economy', maxLevel: 5, baseCost: 64, costMult: 1.5, run: { field: 'startBiomassBonus', op: 'add', perLevel: 15 } },
+
+  // ════════════════ Deep Genome tier — 30 more CAPPED sinks (20 open + 10 progression-GATED) ════════════════
+  // The long-horizon expansion: 20 premium-priced deepeners on proven axes + fresh levers, and 10
+  // upgrades behind UNIQUE progression gates (`unlock` — the gene-card vocabulary, purchase-enforced
+  // in meta.buyUpgrade, rendered locked in the HQ). All Power-scored; the runaway six stay the only
+  // infinite sinks. Balanced against the five-persona premium guardrails (Whale/F2P ≤ ×1.6).
+  // ── Open tier (20) ──
+  { id: 'deep_lethality', name: 'Deep Lethality', description: '+4% tower damage per level (stacks with Lethal Spores)', category: 'Combat', maxLevel: 5, baseCost: 195, costMult: 1.7, effect: { stat: 'towerDamageMult', perLevel: 0.04 } },
+  { id: 'deep_metabolism', name: 'Deep Metabolism', description: '+5% biomass income per level (stacks with Rich Biomass)', category: 'Economy', maxLevel: 5, baseCost: 180, costMult: 1.7, effect: { stat: 'biomassMult', perLevel: 0.05 } },
+  { id: 'deep_cadence', name: 'Deep Cadence', description: '+2% tower fire rate per level', category: 'Combat', maxLevel: 4, baseCost: 195, costMult: 1.7, run: { field: 'towerFireRateMult', op: 'mul', perLevel: 0.02 } },
+  { id: 'hardened_nucleus', name: 'Hardened Nucleus', description: '+40 max Integrity per level', category: 'Infrastructure', maxLevel: 5, baseCost: 142, costMult: 1.6, effect: { stat: 'integrityBonus', perLevel: 40 } },
+  { id: 'executioners_edge', name: "Executioner's Edge", description: 'Execute non-elites below +0.4% max HP per level', category: 'Combat', maxLevel: 4, baseCost: 150, costMult: 1.65, run: { field: 'executeThreshold', op: 'add', perLevel: 0.004 } },
+  { id: 'hive_synergy', name: 'Hive Synergy', description: '+0.2% tower damage per active tower, per level', category: 'Tower', maxLevel: 4, baseCost: 150, costMult: 1.65, run: { field: 'damagePerTower', op: 'add', perLevel: 0.002 } },
+  { id: 'splash_doctrine', name: 'Splash Doctrine', description: '+2.5% splash radius per level', category: 'Combat', maxLevel: 4, baseCost: 142, costMult: 1.6, run: { field: 'splashRadiusMult', op: 'mul', perLevel: 0.025 } },
+  { id: 'corrosive_mastery', name: 'Corrosive Mastery', description: '+4% acid-pool damage per level', category: 'Tower', maxLevel: 5, baseCost: 117, costMult: 1.55, run: { field: 'poolDpsMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'viral_mastery', name: 'Viral Mastery', description: '+4% Infection damage per level (stacks with Virulent Strain)', category: 'Tower', maxLevel: 5, baseCost: 117, costMult: 1.55, run: { field: 'parasiteInfectionMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'neural_mastery', name: 'Neural Mastery', description: '+1.2% Disruption vulnerability per level', category: 'Tower', maxLevel: 4, baseCost: 128, costMult: 1.6, run: { field: 'obeliskVulnerabilityBonus', op: 'add', perLevel: 0.012 } },
+  { id: 'glacial_mastery', name: 'Glacial Mastery', description: '+3% Amber encasement duration per level', category: 'Tower', maxLevel: 4, baseCost: 117, costMult: 1.55, run: { field: 'chrysalisFreezeDurationMult', op: 'mul', perLevel: 0.03 } },
+  { id: 'dread_mastery', name: 'Dread Mastery', description: '+3% Effigy panic duration per level', category: 'Tower', maxLevel: 4, baseCost: 117, costMult: 1.55, run: { field: 'effigyDreadDurationMult', op: 'mul', perLevel: 0.03 } },
+  { id: 'maw_mastery', name: 'Maw Mastery', description: '+2.5% Carrion Maw bite reach per level', category: 'Tower', maxLevel: 4, baseCost: 117, costMult: 1.55, run: { field: 'mawCleaveRadiusMult', op: 'mul', perLevel: 0.025 } },
+  { id: 'crimson_pact', name: 'Crimson Pact', description: '+2% hero lifesteal per level', category: 'Hero', maxLevel: 4, baseCost: 135, costMult: 1.6, run: { field: 'heroLifestealFrac', op: 'add', perLevel: 0.02 } },
+  { id: 'aegis_pact', name: 'Aegis Pact', description: '+3% hero thorns per level', category: 'Hero', maxLevel: 4, baseCost: 120, costMult: 1.55, run: { field: 'heroThornsFrac', op: 'add', perLevel: 0.03 } },
+  { id: 'first_strike_doctrine', name: 'First-Strike Doctrine', description: '+6% damage to full-health enemies, per level', category: 'Combat', maxLevel: 4, baseCost: 142, costMult: 1.6, run: { field: 'fullHealthDamageBonus', op: 'add', perLevel: 0.06 } },
+  { id: 'reactor_mastery', name: 'Reactor Mastery', description: '+4% Flesh Reactor biomass per level', category: 'Economy', maxLevel: 4, baseCost: 128, costMult: 1.55, run: { field: 'reactorBiomassMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'quartermaster', name: 'Quartermaster', description: '+2% tower sell refund per level', category: 'Economy', maxLevel: 3, baseCost: 105, costMult: 1.5, run: { field: 'sellRefundFrac', op: 'add', perLevel: 0.02 } },
+  { id: 'warcry_lattice', name: 'Warcry Lattice', description: "+1.5% damage for towers matching your hero's class, per level", category: 'Combat', maxLevel: 4, baseCost: 142, costMult: 1.6, run: { field: 'classResonanceBonus', op: 'add', perLevel: 0.015 } },
+  { id: 'swift_champion', name: 'Swift Champion', description: '+2.5% hero move speed per level', category: 'Utility', maxLevel: 4, baseCost: 105, costMult: 1.5, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.025 } },
+  // ── Gated tier (10) — each behind a UNIQUE progression gate ──
+  { id: 'gorge_doctrine', name: 'Gorge Doctrine', description: '+4% Marrow Siphon ramp per level', category: 'Tower', maxLevel: 4, baseCost: 142, costMult: 1.6, run: { field: 'siphonRampMult', op: 'mul', perLevel: 0.04 }, unlock: { kind: 'towerUnlocked', tower: 'siphon' } },
+  { id: 'bloodletting', name: 'Bloodletting', description: '+6% Marrow Siphon biomass return per level', category: 'Economy', maxLevel: 4, baseCost: 128, costMult: 1.55, run: { field: 'siphonDrainMult', op: 'mul', perLevel: 0.06 }, unlock: { kind: 'totalBiomass', biomass: 100000 } },
+  { id: 'garden_doctrine', name: 'Garden Doctrine', description: '+4% Blight Sower blast radius per level', category: 'Tower', maxLevel: 4, baseCost: 142, costMult: 1.6, run: { field: 'sowerBlastRadiusMult', op: 'mul', perLevel: 0.04 }, unlock: { kind: 'towerUnlocked', tower: 'sower' } },
+  { id: 'seedbank', name: 'Seedbank', description: 'Every Blight Sower keeps +1 more mine armed, per level', category: 'Tower', maxLevel: 2, baseCost: 225, costMult: 1.8, run: { field: 'sowerExtraMines', op: 'add', perLevel: 1 }, unlock: { kind: 'campaignStage', stage: 30 } },
+  { id: 'resonant_overdrive', name: 'Resonant Overdrive', description: '+4% Resonance Coil ramp per level (stacks with Overtuning)', category: 'Tower', maxLevel: 4, baseCost: 150, costMult: 1.65, run: { field: 'coilRampMult', op: 'mul', perLevel: 0.04 }, unlock: { kind: 'towerUnlocked', tower: 'coil' } },
+  { id: 'veterans_arsenal', name: "Veteran's Arsenal", description: '+3% tower damage per level', category: 'Combat', maxLevel: 5, baseCost: 165, costMult: 1.65, effect: { stat: 'towerDamageMult', perLevel: 0.03 }, unlock: { kind: 'totalRuns', runs: 15 } },
+  { id: 'cullers_creed', name: "Culler's Creed", description: 'Execute non-elites below +0.5% max HP per level', category: 'Combat', maxLevel: 3, baseCost: 180, costMult: 1.7, run: { field: 'executeThreshold', op: 'add', perLevel: 0.005 }, unlock: { kind: 'lifetimeKills', kills: 10000 } },
+  { id: 'slayers_focus', name: "Slayer's Focus", description: '+1.5% hero crit chance per level', category: 'Hero', maxLevel: 4, baseCost: 142, costMult: 1.6, run: { field: 'heroCritChance', op: 'add', perLevel: 0.015 }, unlock: { kind: 'bossesSlain', bosses: 4 } },
+  { id: 'abyssal_doctrine', name: 'Abyssal Doctrine', description: '−0.8% enemy HP scaling per level', category: 'Utility', maxLevel: 4, baseCost: 165, costMult: 1.7, run: { field: 'enemyHpRunMult', op: 'mul', perLevel: -0.008 }, unlock: { kind: 'bestWave', wave: 40 } },
+  { id: 'legend_carver', name: 'Legend Carver', description: '+12% hero crit damage per level', category: 'Hero', maxLevel: 3, baseCost: 165, costMult: 1.65, run: { field: 'heroCritDamageBonus', op: 'add', perLevel: 0.12 }, unlock: { kind: 'campaignStage', stage: 45 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {

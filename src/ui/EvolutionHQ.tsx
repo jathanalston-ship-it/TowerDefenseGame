@@ -47,12 +47,13 @@ function GenomeCard({ card, curPower, onBuy, justBought }: {
   const nextPower = card.completed ? curPower
     : meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [card.id]: card.level + 1 } })).score;
   return (
-    <div className={`evohq-card${card.completed ? ' is-complete' : ''}${justBought ? ' is-just-bought' : ''}`}>
+    <div className={`evohq-card${card.completed ? ' is-complete' : ''}${card.locked ? ' is-locked' : ''}${justBought ? ' is-just-bought' : ''}`}>
       <div className="evo-card-h">
-        <span className="evo-card-name">{card.name}</span>
+        <span className="evo-card-name">{card.locked ? '🔒 ' : ''}{card.name}</span>
         <span className="evo-card-lvl">{card.completed ? 'MAX' : `Lv ${card.level}/${card.maxLevel}`}</span>
       </div>
       <p className="evo-card-desc">{card.description}</p>
+      {card.locked && <p className="evo-card-gate">🔒 {card.unlockNote}</p>}
       <ProgressBar value={card.level} max={card.maxLevel} segments={card.maxLevel} height={6} color="var(--gold)" className="bar-upgrade" label={`${card.name} level`} />
       <div className="evo-card-eff">
         <span className="evo-eff-now">{card.effectNow}</span>
@@ -63,11 +64,12 @@ function GenomeCard({ card, curPower, onBuy, justBought }: {
           <span className="evo-card-power">Power <PowerPreview current={curPower} next={nextPower} /></span>
         )}
         <button
-          className={`shop-buy evo-card-buy ${affordable ? 'is-afford' : ''}`}
-          disabled={card.completed || !affordable}
+          className={`shop-buy evo-card-buy ${affordable && !card.locked ? 'is-afford' : ''}`}
+          disabled={card.completed || !affordable || card.locked}
           onClick={() => onBuy(card.id)}
+          title={card.locked ? card.unlockNote : undefined}
         >
-          {card.completed ? '✓ Complete' : <>{card.cost} <CurrencyIcon id="genomeCores" /></>}
+          {card.completed ? '✓ Complete' : card.locked ? 'Locked' : <>{card.cost} <CurrencyIcon id="genomeCores" /></>}
         </button>
       </div>
     </div>

@@ -242,6 +242,49 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     reward: { ichor: 30 },
     themeCue: 'megaChoir',
   },
+
+  // OSSIRA — the FORTIFICATION mega: it makes the HORDE unkillable. Where Voraxis feeds the wave
+  // and Meridia disarms you, Ossira armors, shields and mends everything that walks beneath it —
+  // an attrition fight your chip damage loses. Weak points teach ANSWER PRIORITY: the twin
+  // Armored Growths are its own plating (strip it or bounce), the Shield Generator and Nerve
+  // Bundle turn the flock mortal again, and the Regeneration Organ is the kill switch on its
+  // deep-phase self-mending.
+  ossira: {
+    id: 'ossira',
+    name: 'OSSIRA',
+    title: 'The Pale Shepherd',
+    lore: 'It does not hate you. It simply keeps its flock — and everything that crawls toward your Hive is its flock. Bone chimes hang from its crook. Where its shadow falls, nothing you shoot stays down.',
+    codex: 'Anchored above the drift. Armors and shields every enemy on the field, seeds Mender organisms, and knits itself back in its deep phases. Crack the twin Armored Growths early (its own plating), sever the Nerve Bundle to drop the chitin choir, burst the Shield Generator before a weave, and DESTROY the Regeneration Organ the moment it descends — or the attrition war is unwinnable.',
+    hp: 7200,
+    armor: 20,
+    bodyFrac: 0.34,
+    palette: { body: '#4a4238', glow: '#e8d5a0', accent: '#c7b27a' },
+    abilities: [
+      { kind: 'chitinize', cooldown: 15, telegraph: 2.4, duration: 10, magnitude: 12 }, // 0
+      { kind: 'shieldWeave', cooldown: 20, telegraph: 2.6, duration: 0, magnitude: 80 }, // 1
+      { kind: 'menders', cooldown: 22, telegraph: 2.6, duration: 0, count: 2, addKind: 'mender' }, // 2
+      { kind: 'brood', cooldown: 16, telegraph: 2.2, duration: 0, count: 3, addKind: 'warden' }, // 3
+      { kind: 'corrupt', cooldown: 28, telegraph: 3.0, duration: 7, count: 2 }, // 4
+      { kind: 'haste', cooldown: 21, telegraph: 2.4, duration: 7, magnitude: 1.22 }, // 5
+    ],
+    phases: [
+      { threshold: 1, abilities: [0, 3], visualTier: 0 }, // P1: the chitin lesson
+      { threshold: 0.7, abilities: [0, 1, 3], passive: { kind: 'chitinize', magnitude: 5 }, entrySurge: { count: 3, addKind: 'bulwark' }, visualTier: 1 },
+      { threshold: 0.42, abilities: [0, 1, 2, 4], passive: { kind: 'chitinize', magnitude: 8 }, entrySurge: { count: 4, addKind: 'warden' }, regenPerSec: 8, visualTier: 2 },
+      { threshold: 0.16, abilities: [1, 2, 3, 5], passive: { kind: 'chitinize', magnitude: 10 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 14, visualTier: 3 }, // desperation: the flock stampedes
+    ],
+    weakPoints: [
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.35, y: 460 },
+      { kind: 'armored_growth', on: 'hpBelow', at: 0.7, x: 0.65, y: 460 },
+      { kind: 'nerve_bundle', on: 'timer', every: 25, x: 0.2, y: 440 },
+      { kind: 'shield_generator', on: 'abilityCast', ability: 'shieldWeave', x: 0.8, y: 480 },
+      { kind: 'heart', on: 'hpBelow', at: 0.42, x: 0.5, y: 545 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.42, x: 0.42, y: 505 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.55, x: 0.85, y: 500 },
+    ],
+    reward: { ichor: 34 },
+    themeCue: 'megaShepherd',
+  },
 };
 
 /** Content-validate a Mega Boss (registered defs fail loudly at dev boot). */
