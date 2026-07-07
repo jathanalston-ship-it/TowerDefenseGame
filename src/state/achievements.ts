@@ -13,6 +13,7 @@
 
 import { TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
 import { highestCampaignStage } from '../save/derive';
 import type { SaveData } from '../save/saveStore';
 
@@ -137,6 +138,20 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     test: (c) => c.save.stats.lifetimeKills >= n,
     progress: (c) => ({ cur: c.save.stats.lifetimeKills, max: n }),
   })),
+
+  // ── Mega Bosses + Weak Points (docs/MEGA-BOSS.md §achievements). All read the megaProgress
+  //    ledger; the roster/kind goals are REGISTRY-driven so future content raises them itself. ──
+  { id: 'mega_first', name: 'Leviathan Slayer', desc: 'Fell your first Mega Boss.', reward: 75, test: (c) => c.save.megaProgress.kills >= 1 },
+  { id: 'mega_perfect', name: 'Untouchable', desc: 'Fell a Mega Boss without losing a point of Integrity.', reward: 100, test: (c) => c.save.megaProgress.perfect.length >= 1 },
+  { id: 'mega_speed', name: 'Swift Execution', desc: 'Fell a Mega Boss faster than expected of your Power.', reward: 100, test: (c) => c.save.megaProgress.speed.length >= 1 },
+  { id: 'mega_all', name: 'Apex Extinction', desc: 'Fell every known Mega Boss.', reward: 150, test: (c) => megaBossRegistry.active().every((d) => c.save.megaProgress.slain.includes(d.id)), progress: (c) => ({ cur: c.save.megaProgress.slain.length, max: megaBossRegistry.active().length }) },
+  { id: 'mega_10', name: 'Leviathan Hunter', desc: 'Fell 10 Mega Bosses (lifetime).', reward: 120, test: (c) => c.save.megaProgress.kills >= 10, progress: (c) => ({ cur: c.save.megaProgress.kills, max: 10 }) },
+  { id: 'wp_first', name: 'Surgical Strike', desc: 'Destroy your first Weak Point.', reward: 20, test: (c) => c.save.megaProgress.weakPoints >= 1 },
+  { id: 'wp_100', name: 'Vivisectionist', desc: 'Destroy 100 Weak Points (lifetime).', reward: 80, test: (c) => c.save.megaProgress.weakPoints >= 100, progress: (c) => ({ cur: c.save.megaProgress.weakPoints, max: 100 }) },
+  { id: 'wp_all_kinds', name: 'Complete Anatomy', desc: 'Destroy every kind of Weak Point.', reward: 100, test: (c) => Object.keys(WEAK_POINT_DEFS).every((k) => c.save.megaProgress.wpKinds.includes(k)), progress: (c) => ({ cur: c.save.megaProgress.wpKinds.length, max: Object.keys(WEAK_POINT_DEFS).length }) },
+  { id: 'interrupt_50', name: 'Silence the Chorus', desc: 'Interrupt 50 Mega Boss abilities (lifetime).', reward: 90, test: (c) => c.save.megaProgress.interrupts >= 50, progress: (c) => ({ cur: c.save.megaProgress.interrupts, max: 50 }) },
+  { id: 'mega_attrition', name: 'War of Attrition', desc: 'Outlast a Mega Boss in a battle of ten minutes or more.', hidden: true, reward: 90, test: (c) => Object.values(c.save.megaProgress.fastestSec).some((s) => s >= 600) },
+  { id: 'mega_survivor', name: 'Weathered the Storm', desc: 'Survive 100 Mega Boss abilities (lifetime).', reward: 60, test: (c) => c.save.megaProgress.abilitiesSurvived >= 100, progress: (c) => ({ cur: c.save.megaProgress.abilitiesSurvived, max: 100 }) },
 ];
 
 /** Achievements whose condition is now met but which aren't yet unlocked. */

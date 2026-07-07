@@ -7748,3 +7748,63 @@ kbd {
 .ps-reveal-h { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 800; color: var(--ps, var(--gold)); text-shadow: 0 0 16px color-mix(in srgb, var(--ps, var(--gold)) 55%, transparent); }
 .ps-reveal-sub { margin-top: 2px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .ps-reveal-foot { margin-top: 12px; }
+
+/* ═══════════ MEGA BOSS (docs/MEGA-BOSS.md) — raid bar, arrival card, weak-point callouts ═══════════ */
+.mega-banner {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  width: min(480px, 92%); padding: 9px 14px; border-radius: var(--r-sm);
+  background: rgba(8, 6, 12, 0.88);
+  border: 1px solid var(--mega, #ff5d73);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 26px color-mix(in srgb, var(--mega, #ff5d73) 30%, transparent);
+  z-index: 41; /* over the standard boss banner — the mega owns the encounter */
+  animation: achv-in 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.mega-banner.is-exposed { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 40px color-mix(in srgb, var(--mega, #ff5d73) 65%, transparent); }
+.mega-banner.is-stunned { filter: saturate(0.6); }
+.mega-banner-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.mega-name { font-weight: 900; letter-spacing: 0.1em; color: var(--mega, #ff5d73); font-size: 14px; }
+.mega-title { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; flex: 1; }
+.mega-phase { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+.mega-hp { height: 8px; border-radius: var(--r-xs); background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.mega-hp-fill { height: 100%; border-radius: var(--r-xs); background: linear-gradient(90deg, color-mix(in srgb, var(--mega, #ff5d73) 70%, black 20%), var(--mega, #ff5d73)); transition: width 0.25s ease-out; /* bespoke */ }
+.mega-banner-row2 { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.mega-chip {
+  position: relative; overflow: hidden; font-size: 10px; letter-spacing: 0.08em; padding: 2px 7px;
+  border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.18); color: var(--muted);
+}
+.mega-chip-cast { border-color: var(--mega, #ff5d73); color: #fff; }
+.mega-cast-fill { position: absolute; inset: 0; background: color-mix(in srgb, var(--mega, #ff5d73) 35%, transparent); transition: width 0.1s linear; /* bespoke */ z-index: -1; }
+.mega-chip-stun { border-color: #ffd24d; color: #ffd24d; animation: mega-chip-pulse 0.5s ease-in-out infinite alternate; }
+.mega-chip-exposed { border-color: #6effa8; color: #6effa8; animation: mega-chip-pulse 0.4s ease-in-out infinite alternate; }
+@keyframes mega-chip-pulse { from { opacity: 0.7; } to { opacity: 1; } }
+.mega-wps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mega-wp { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: var(--mega, #ff5d73); letter-spacing: 0.04em; }
+.mega-wp-hp { display: inline-block; width: 40px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.mega-wp-hp b { display: block; height: 100%; background: #fff; transition: width 0.15s linear; /* bespoke */ }
+
+.mega-intro {
+  position: absolute; top: 24%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 18px 34px; border-radius: var(--r-md); text-align: center; z-index: 60;
+  background: rgba(6, 4, 10, 0.85); border: 1px solid var(--mega, #ff5d73);
+  box-shadow: 0 0 60px color-mix(in srgb, var(--mega, #ff5d73) 40%, transparent);
+  animation: mega-intro-in 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both, gene-splash-out 0.6s ease-in 3.1s forwards;
+  pointer-events: none;
+}
+.mega-intro-eyebrow { font-size: 10px; letter-spacing: 0.28em; color: var(--mega, #ff5d73); }
+.mega-intro-name { font-size: 26px; font-weight: 900; letter-spacing: 0.16em; color: #fff; text-shadow: 0 0 24px var(--mega, #ff5d73); }
+.mega-intro-title { font-size: 13px; letter-spacing: 0.12em; color: var(--mega, #ff5d73); }
+.mega-intro-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
+@keyframes mega-intro-in { from { opacity: 0; transform: translateX(-50%) scale(1.4); filter: blur(6px); } to { opacity: 1; transform: translateX(-50%) scale(1); filter: blur(0); } }
+
+.wp-callout {
+  position: absolute; top: 30%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 22px; border-radius: var(--r-sm); text-align: center; z-index: 55;
+  background: rgba(6, 12, 8, 0.88); border: 1px solid #6effa8;
+  box-shadow: 0 0 30px rgba(110, 255, 168, 0.35);
+  animation: achv-in 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both, gene-splash-out 0.5s ease-in 2.6s forwards;
+  pointer-events: none;
+}
+.wp-callout-name { font-size: 13px; font-weight: 900; letter-spacing: 0.12em; color: #ffd24d; }
+.wp-callout-note { font-size: 11px; color: #6effa8; letter-spacing: 0.04em; }

@@ -25,6 +25,11 @@ export interface GameEventMap {
   heroAbilityUsed: { kind: string }; // a hero's active ability was cast (drives the Combat Tutorial)
   lootContainerEarned: { rarity: string; banked: number; next: string }; // a bio-container completed on the LIVE loot meter (banked = vault count including it; next = the box now filling) — drives the fill toast + meter ceremony
   projectileHit: { x: number; y: number; damage: number; targetId: number; byTower: TowerKind | null };
+  // ── Mega Boss encounters (docs/MEGA-BOSS.md) — collection/achievements/HUD subscribe. ──
+  megaSpawned: { defId: string; name: string; tier: number; encounter: string };
+  megaPhase: { defId: string; phase: number };
+  megaWeakPointDown: { defId: string; kind: string; note: string; interrupted: boolean };
+  megaKilled: { defId: string; tier: number; encounter: string; killSec: number; perfect: boolean; weakPoints: number; interrupts: number };
 }
 
 export type GameEventType = keyof GameEventMap;

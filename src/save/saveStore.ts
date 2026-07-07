@@ -100,6 +100,10 @@ export interface SaveData {
   // ── Collection: framework-boss chassis archetypes ever slain (drives the Bestiary's boss
   //    codex). Recorded from the bossKilled event; additive (withDefaults fills [] for old saves). ──
   bossesSlain: string[];
+  // ── Mega Boss lifetime ledger (docs/MEGA-BOSS.md) — the megaBosses collection category +
+  //    achievements read this. Recorded from megaKilled/megaWeakPointDown events; additive
+  //    (withDefaults zero-fills for old saves; sanitizer coerces junk). ──
+  megaProgress: MegaProgress;
   // ── Prestige (schema v7) — MOLT: Ascendant Cells + the permanent P-bucket multiplier ──
   prestige: PrestigeState;
   // ── Campaign progression (schema v10) — highest stage CLEARED per difficulty id (0 = none).
@@ -153,6 +157,42 @@ export interface SaveData {
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
  *  completion rewards (idempotent on replay), + any resumable in-progress run. */
+/** Lifetime Mega Boss ledger (docs/MEGA-BOSS.md §collection). Every field additive/idempotent. */
+export interface MegaProgress {
+  slain: string[]; // mega def ids ever defeated
+  perfect: string[]; // defs ever defeated with ZERO Nucleus integrity lost
+  speed: string[]; // defs ever defeated faster than the expected kill time
+  kills: number; // lifetime mega kills (variants included)
+  weakPoints: number; // lifetime weak points destroyed
+  wpKinds: string[]; // DISTINCT weak point kinds ever destroyed
+  interrupts: number; // lifetime telegraph interrupts (perfect interrupts)
+  abilitiesSurvived: number; // lifetime mega abilities that completed against the player
+  fastestSec: Record<string, number>; // fastest kill per def id (seconds)
+}
+
+export function defaultMegaProgress(): MegaProgress {
+  return { slain: [], perfect: [], speed: [], kills: 0, weakPoints: 0, wpKinds: [], interrupts: 0, abilitiesSurvived: 0, fastestSec: {} };
+}
+
+function sanitizeMegaProgress(raw: unknown): MegaProgress {
+  const d = defaultMegaProgress();
+  if (!raw || typeof raw !== 'object') return d;
+  const o = raw as Record<string, unknown>;
+  const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 999) : []);
+  const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);
+  const fastest: Record<string, number> = {};
+  if (o.fastestSec && typeof o.fastestSec === 'object') {
+    for (const [k, v] of Object.entries(o.fastestSec as Record<string, unknown>)) {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) fastest[k] = v;
+    }
+  }
+  return {
+    slain: strs(o.slain), perfect: strs(o.perfect), speed: strs(o.speed),
+    kills: num(o.kills), weakPoints: num(o.weakPoints), wpKinds: strs(o.wpKinds),
+    interrupts: num(o.interrupts), abilitiesSurvived: num(o.abilitiesSurvived), fastestSec: fastest,
+  };
+}
+
 export interface TutorialSave {
   completed: string[];
   rewarded: string[]; // tutorial ids whose one-time rewards were granted (never re-granted on replay)
@@ -342,6 +382,7 @@ export function defaultSave(): SaveData {
     equippedTitle: null,
     unlockedLore: [],
     bossesSlain: [],
+    megaProgress: defaultMegaProgress(),
     prestige: defaultPrestige(),
     campaign: { cleared: {}, bestTime: {} },
     tutorial: { completed: [], rewarded: [], milestones: [], progress: null },
@@ -490,6 +531,8 @@ function withDefaults(data: SaveData): SaveData {
     equippedTitle: typeof data.equippedTitle === 'string' ? data.equippedTitle : null,
     unlockedLore: Array.isArray(data.unlockedLore) ? data.unlockedLore : [],
     bossesSlain: Array.isArray(data.bossesSlain) ? data.bossesSlain : [],
+    // Mega Boss ledger (docs/MEGA-BOSS.md) — zero-filled for old saves (additive).
+    megaProgress: sanitizeMegaProgress(data.megaProgress),
     // v6→v7: prestige (MOLT). Zeroed for a pre-v7 save; each field guarded against junk.
     prestige: { ...d.prestige, ...sanitizePrestige(data.prestige) },
     // v9→v10: campaign progression. Empty for an old save; coerce the cleared map to finite ≥0 ints.

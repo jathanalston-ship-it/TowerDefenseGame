@@ -114,6 +114,39 @@ function sBoss(): void { // apex-threat sting: falling tritone over a sub thump 
   tone(220, 0.5, 'sawtooth', 0.22, 156); tone(156, 0.7, 'sawtooth', 0.16, 110);
   tone(55, 0.6, 'sine', 0.3, 41); noise(0.5, 0.1, 500, 150);
 }
+// ── Mega Boss suite (docs/MEGA-BOSS.md §audio) — the raid encounter's sonic identity ──
+function sMega(): void { // arrival: a continental roar — sub quake + descending double saw + long hiss
+  tone(41, 1.6, 'sine', 0.34, 27); tone(110, 1.1, 'sawtooth', 0.2, 55);
+  tone(165, 0.9, 'sawtooth', 0.14, 62); noise(1.4, 0.14, 900, 90);
+}
+function sMegaMaw(): void { // Voraxis theme sting: grinding jaws — low saw chews + bone clicks
+  tone(65, 1.0, 'sawtooth', 0.22, 49); tone(98, 0.7, 'square', 0.1, 73);
+  noise(0.18, 0.12, 2400); noise(0.18, 0.1, 1800); tone(37, 1.2, 'sine', 0.26, 30);
+}
+function sMegaChoir(): void { // Meridia theme sting: a hollow choir — detuned fifths swell + shimmer
+  tone(220, 1.4, 'triangle', 0.12, 218); tone(330, 1.4, 'triangle', 0.1, 327);
+  tone(440, 1.2, 'sine', 0.08, 436); noise(1.2, 0.05, 5200, 2400); tone(55, 1.5, 'sine', 0.2);
+}
+function sMegaAbility(): void { // telegraph riser: tension you can HEAR building — interrupt it
+  tone(196, 0.8, 'sawtooth', 0.1, 392); noise(0.7, 0.06, 700, 2600); tone(49, 0.8, 'sine', 0.14);
+}
+function sMegaPhase(): void { // mutation crunch: the organism SHIFTS — wet crack + falling growl
+  noise(0.3, 0.16, 3000, 300); tone(180, 0.7, 'sawtooth', 0.18, 90); tone(60, 0.9, 'sine', 0.24, 45);
+}
+function sWpOpen(): void { // an organ descends: wet dilation + a heartbeat under it
+  noise(0.35, 0.1, 1200, 300); tone(70, 0.16, 'sine', 0.2, 55); tone(70, 0.16, 'sine', 0.16, 55);
+  tone(523, 0.25, 'sine', 0.06, 660);
+}
+function sWpBreak(): void { // the rupture payoff: burst + creature shriek + a reward gleam
+  noise(0.4, 0.2, 4000, 400); tone(600, 0.35, 'sawtooth', 0.14, 140);
+  tone(880, 0.12, 'triangle', 0.12); tone(1175, 0.3, 'sine', 0.12);
+  tone(45, 0.5, 'sine', 0.22, 34);
+}
+function sMegaDeath(): void { // the collapse: a long dying groan, structure failing, final boom
+  tone(110, 2.2, 'sawtooth', 0.2, 24); tone(82, 2.0, 'sawtooth', 0.14, 20);
+  noise(1.8, 0.14, 2200, 120); tone(30, 2.4, 'sine', 0.32, 18);
+  tone(1046, 0.5, 'sine', 0.07, 523); // one thin gleam over the ruin — the reward is coming
+}
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
 // ── progression / reward dopamine cues ──
 function sClear(): void { // wave-cleared fanfare (rising major triad)
@@ -224,6 +257,14 @@ export const audio = {
         case 'select': sSelect(); break;
         case 'wave': sWave(); break;
         case 'boss': sBoss(); break;
+        case 'mega': sMega(); break;
+        case 'megaMaw': sMegaMaw(); break;
+        case 'megaChoir': sMegaChoir(); break;
+        case 'megaAbility': sMegaAbility(); break;
+        case 'megaPhase': sMegaPhase(); break;
+        case 'wpOpen': sWpOpen(); break;
+        case 'wpBreak': sWpBreak(); break;
+        case 'megaDeath': sMegaDeath(); break;
         case 'draft': sDraft(); break;
         case 'ui': sSelect(); break;
         case 'hover': sHover(); break;

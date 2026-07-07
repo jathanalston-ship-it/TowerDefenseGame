@@ -194,12 +194,72 @@ export const BOSS_DEFS: Record<string, BossDef> = {
     ],
     modifiers: ['regenerator'],
   },
+
+  // ── EA Milestone 2: the Act-2 boss line (stages 35/40/45). Each composes SIEGE-tier primitives
+  //    the Act-1 line only hinted at — positioning (gravitas/burrower), layered defenses
+  //    (bulwark+carapace), and full tower-suppression siegecraft. Registered + pinned exactly like
+  //    the Milestone-1 line: codex/collection/rush integration is automatic (chassis + registry). ──
+  sunken_chorus: {
+    id: 'sunken_chorus', name: 'The Sunken Chorus', chassis: 'controller',
+    hpMult: 8.5, radius: 32, color: '#7ce8d5', bounty: 560, damage: 60,
+    modules: [
+      { kind: 'burrower', cooldown: 14, duration: 2.6 }, // vanishes — erupts beside the Hive
+      { kind: 'gravitas', cooldown: 11, amount: 110, radius: 260 }, // drags your champions off their line
+      { kind: 'healer', cooldown: 5, amount: 200, radius: 180 }, // the chorus knits the pack
+      { kind: 'spawner', cooldown: 7, amount: 3, addKind: 'knitter' },
+      { kind: 'rally', cooldown: 999, amount: 4, addKind: 'rusher' },
+    ],
+    phases: [
+      { threshold: 1, modules: [2, 3], visualTier: 0 }, // P1: the mend — kill-priority lesson at scale
+      { threshold: 0.65, modules: [0, 2, 3, 4], visualTier: 1 }, // P2: + the vanish (keep a back line)
+      { threshold: 0.3, modules: [0, 1, 2, 4], speedMult: 1.18, damageMult: 1.15, visualTier: 2 }, // P3: drags YOUR heroes into the pit
+    ],
+    modifiers: ['regenerator'],
+  },
+  vault_of_teeth: {
+    id: 'vault_of_teeth', name: 'Vault of Teeth', chassis: 'juggernaut',
+    hpMult: 10, radius: 38, color: '#e8c47c', bounty: 640, damage: 70, armor: 26,
+    modules: [
+      { kind: 'bulwark', cooldown: 13, amount: 420 }, // a REAL bio-shield — sustain cracks it
+      { kind: 'carapace', cooldown: 8, amount: 40, duration: 4.5 }, // …under it, hardened chitin
+      { kind: 'corecrush', cooldown: 15, amount: 8, duration: 4.5 }, // the endgame grip — EXPOSED while crushing
+      { kind: 'charger', cooldown: 12, duration: 1.5 },
+      { kind: 'rally', cooldown: 999, amount: 5, addKind: 'brute' },
+    ],
+    phases: [
+      { threshold: 1, modules: [0, 3], visualTier: 0 }, // P1: shield + dash
+      { threshold: 0.6, modules: [0, 1, 4], visualTier: 1 }, // P2: LAYERED defense — Shred or stall
+      { threshold: 0.25, modules: [1, 2, 4], speedMult: 1.15, damageMult: 1.25, visualTier: 2 }, // P3: it goes for the throat
+    ],
+    modifiers: ['bulwark'],
+  },
+  unmaker: {
+    id: 'unmaker', name: 'The Unmaker', chassis: 'artillery',
+    hpMult: 12, radius: 34, color: '#c98cff', bounty: 720, damage: 78, armor: 20,
+    modules: [
+      { kind: 'corruptor', cooldown: 12, duration: 7, radius: 110, frac: 0.4 }, // rots the ground your guns stand on
+      { kind: 'dampener', cooldown: 9, duration: 6, radius: 180, frac: 0.35 }, // slows the survivors
+      { kind: 'channeler', cooldown: 13, duration: 3.2, amount: 30 }, // and takes the Core apart
+      { kind: 'suppressor', cooldown: 16, duration: 4, radius: 150 },
+      { kind: 'spawner', cooldown: 8, amount: 3, addKind: 'warden' },
+      { kind: 'rally', cooldown: 999, amount: 5, addKind: 'rusher' },
+    ],
+    phases: [
+      { threshold: 1, modules: [1, 4], visualTier: 0 }, // P1: the dampen field
+      { threshold: 0.7, modules: [0, 1, 4, 5], visualTier: 1 }, // P2: + ground corruption (reposition!)
+      { threshold: 0.4, modules: [0, 2, 4, 5], speedMult: 1.1, visualTier: 2 }, // P3: + the core channel
+      { threshold: 0.15, modules: [0, 2, 3, 5], speedMult: 1.22, damageMult: 1.2, visualTier: 3 }, // desperation: total suppression
+    ],
+    modifiers: ['regenerator', 'hastening'],
+  },
 };
 
 /** Campaign stage → authored boss id (docs/BOSS-DESIGN §4, Milestone 1). The generator replaces the
  *  procedural FINALE with the pinned boss at these stages; every other stage stays procedural. */
 export const CAMPAIGN_BOSSES: Record<number, string> = {
   5: 'first_antibody', 10: 'brood_cyst', 15: 'the_mender', 20: 'chitin_colossus', 25: 'mitotic_horror', 30: 'purge_engine',
+  // Milestone 2 — the Act-2 siege line (positioning / layered defense / total suppression).
+  35: 'sunken_chorus', 40: 'vault_of_teeth', 45: 'unmaker',
 };
 
 /** The authored boss pinned to a campaign stage, if any (else undefined ⇒ keep the procedural finale). */
