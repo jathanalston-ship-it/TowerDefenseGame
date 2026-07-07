@@ -44,6 +44,7 @@ import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
+import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { dangerCurve } from '../core/dangerCamera';
 
 export interface Pointer {
@@ -1153,12 +1154,16 @@ function drawEnemy(
 
   const drawY = flying && detail ? e.y - 4 : e.y; // lift fliers off the floor
 
+  // Boss visual identity (render/bossChassis.ts): a framework boss renders in its OWN def
+  // palette (not the borrowed tyrant body's) — burrow mound, crown, buds and body all tint.
+  const bcol = e.boss ? bossColorOf(e.boss.defId) : def.color;
+
   // Burrowed boss (docs/BOSS-DESIGN.md §siege): the body is BENEATH the field — draw the
   // churning mound where it tunnels and skip everything else (it can't be seen or hit).
   if (e.boss && e.boss.burrow > 0) {
     if (detail) {
       for (let i = 0; i < 3; i++) {
-        ring(ctx, e.x, e.y + r * 0.35, r * (0.5 + i * 0.35) * pulse(t * 1.6 + i, 3, 0.88, 1.12), rgba(hexRgb(def.color), 0.42 - i * 0.11), 2);
+        ring(ctx, e.x, e.y + r * 0.35, r * (0.5 + i * 0.35) * pulse(t * 1.6 + i, 3, 0.88, 1.12), rgba(hexRgb(bcol), 0.42 - i * 0.11), 2);
       }
       drawShape(ctx, 'circle', e.x, e.y + r * 0.35, r * 0.45 * pulse(t, 4, 0.8, 1.2), rgba(hexRgb('#40332a'), 0.85));
     }
@@ -1171,7 +1176,8 @@ function drawEnemy(
   if (tier === 'boss' && detail) {
     const vt = e.boss?.visualTier ?? 0;
     glowDisc(ctx, e.x, drawY, r * (2.3 + vt * 0.25) * pulse(t, 2.2, 0.92, 1.08), THEME.boss.glow);
-    spikeCrown(ctx, e.x, drawY, r * 1.02, r * (0.5 + vt * 0.16), 8 + vt * 3, THEME.boss.crown, t * 0.6);
+    if (e.boss) drawBossCrown(ctx, e.boss.defId, e.x, drawY, r, vt, t); // chassis-keyed signature
+    else spikeCrown(ctx, e.x, drawY, r * 1.02, r * (0.5 + vt * 0.16), 8 + vt * 3, THEME.boss.crown, t * 0.6);
     ctx.save();
     ctx.strokeStyle = THEME.boss.ring;
     ctx.lineWidth = 1.5;
@@ -1187,10 +1193,10 @@ function drawEnemy(
     if (vt >= 1) {
       for (let i = 0; i < 3 + vt; i++) {
         const a = (i / (3 + vt)) * Math.PI * 2 + t * 0.9;
-        drawShape(ctx, 'circle', e.x + Math.cos(a) * r * 1.35, drawY + Math.sin(a) * r * 1.35, 2.5 + vt * 0.5, rgba(hexRgb(def.color), 0.75));
+        drawShape(ctx, 'circle', e.x + Math.cos(a) * r * 1.35, drawY + Math.sin(a) * r * 1.35, 2.5 + vt * 0.5, rgba(hexRgb(bcol), 0.75));
       }
     }
-    if (vt >= 2) spikeCrown(ctx, e.x, drawY, r * 1.32, r * 0.3, 6, rgba(hexRgb(def.color), 0.5), -t * 0.8);
+    if (vt >= 2) spikeCrown(ctx, e.x, drawY, r * 1.32, r * 0.3, 6, rgba(hexRgb(bcol), 0.5), -t * 0.8);
     if (vt >= 3) {
       ring(ctx, e.x, drawY, r * (1.72 + 0.06 * Math.sin(t * 7)), rgba(hexRgb('#ff4d6d'), 0.55), 3);
       glowDisc(ctx, e.x, drawY, r * 3.1 * pulse(t, 5, 0.9, 1.15), rgba(hexRgb('#ff4d6d'), 0.12));
@@ -1238,12 +1244,18 @@ function drawEnemy(
     }
   }
 
-  // body + a tier-weighted rim so it reads as a solid, threat-ranked unit
-  drawShape(ctx, shape, e.x, drawY, r, def.color);
+  // body + a tier-weighted rim so it reads as a solid, threat-ranked unit. A framework boss
+  // renders its CHASSIS body plan (render/bossChassis.ts — five silhouettes, own palette,
+  // per-def markings) instead of the borrowed tyrant disc; at low LOD it stays a cheap flat
+  // shape but keeps its own color so the identity survives zoom-out.
+  if (e.boss && detail) drawBossBody(ctx, e.boss.defId, e.x, drawY, r, t);
+  else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
   if (detail) {
-    const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
-    strokeShape(ctx, shape, e.x, drawY, r, rim, tier === 'normal' ? 1.5 : 2.25);
-    drawShape(ctx, shape, e.x, drawY - r * 0.32, r * 0.4, THEME.enemy.gloss); // sheen = volume
+    if (!e.boss) {
+      const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
+      strokeShape(ctx, shape, e.x, drawY, r, rim, tier === 'normal' ? 1.5 : 2.25);
+      drawShape(ctx, shape, e.x, drawY - r * 0.32, r * 0.4, THEME.enemy.gloss); // sheen = volume
+    }
 
     // Shield bubble — a front-arc barrier facing the descent, alpha by remaining charge;
     // it SHATTERS visibly the instant it breaks (sim sets shieldFlash at 0-cross).

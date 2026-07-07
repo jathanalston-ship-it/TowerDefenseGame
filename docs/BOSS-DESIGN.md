@@ -210,6 +210,17 @@ counter-rotating second spike crown (t2+), a wounded-red desperation halo (t3). 
 pools render as seething violet ground-rot; a burrowed boss draws only its churning mound;
 a gripping boss shows a thick crushing tether into the Core plus an EXPOSED gold ring.
 
+**Visual identity (`render/bossChassis.ts`):** every framework boss renders its CHASSIS body
+plan and its OWN `BossDef.color` — before this layer the sim's borrowed `'tyrant'` body made
+all bosses the same red disc. Five silhouettes (bruiser wedge-and-knuckles · artillery
+hull/braces/dorsal barrel with a live muzzle charge · swarmlord pod-ringed mother-mass ·
+controller hooded bell with a scanning iris and NO spikes · juggernaut banded plate slab),
+five chassis-keyed threat crowns (same `visualTier` growth contract), a stable per-def hide
+marking (the tiebreaker when chassis AND palette collide — the Progenitor vs. the Brood Cyst),
+and procedural bosses resolve their family palette through the `proc_<chassis>_<tl>` id.
+Render-only and LOD-gated: at low detail a boss stays a cheap flat shape in its own color, and
+the sim never reads any of it — golden-safe by layer.
+
 **No hardcoded boss logic:** everything remains data (`BossDef` modules/phases through the
 existing `bossRegistry` + `bossProblems` validation, which now enforces the new kinds'
 params). `assembleBoss` composes 2–5 modules and up to 4 phases from the widened pool, rising
