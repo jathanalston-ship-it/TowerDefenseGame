@@ -255,6 +255,8 @@ export const audio = {
         case 'br_gullet': sBrGullet(d); break;
         case 'br_amber': case 'br_sap': sBrAmber(d); break;
         case 'br_choir': case 'br_malice': sBrWail(d); break;
+        case 'br_siphon': sBrStorm(d); break; // Marrow Siphon — a searing drain hum
+        case 'br_well': sBrVital(d); break; // Bloodwell — a wet, vital pulse
       }
     }
   },

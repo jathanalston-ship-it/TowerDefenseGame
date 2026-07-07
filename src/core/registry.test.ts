@@ -74,8 +74,8 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // the launch five + the expansion three towers; three heroes
-    expect(towerRegistry.size).toBe(8);
+    // the launch five + the expansion three + the Deep-Strain Marrow Siphon; three heroes
+    expect(towerRegistry.size).toBe(9);
     expect(heroRegistry.size).toBe(3);
   });
 

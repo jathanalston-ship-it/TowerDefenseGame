@@ -376,7 +376,42 @@ const EFFIGY: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY]);
+// Marrow Siphon (Vital, firing 'beam') — the drain ray. `extraProjectiles` FORKS the beam to more
+// targets; `ability` grants pulse on the beam's cadence (game.beamSystem); `targeting` picks what it
+// fastens onto. No projectile mutators — a continuous ray has nothing to pierce. Its economy identity
+// (biomass siphon) is bespoke; the path SHARPENS the drain and widens it into a field.
+const SIPHON_PATH: StarPath = {
+  tower: 'siphon',
+  steps: [
+    { star: 1, name: 'Predator’s Eye', kind: 'targeting', desc: 'Fastens onto ELITES and bosses first — the ramp goes where it matters.', grants: [{ t: 'targeting', profile: 'elitePriority' }] },
+    { star: 2, name: 'Split Ray', kind: 'projectile', desc: 'The beam forks to a second target.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 3,
+      name: 'Feeding Habit',
+      kind: 'fork',
+      desc: 'Choose what the drain does to the flesh around it (re-pick any run).',
+      fork: [
+        { id: 'corroder', name: 'Corroder', desc: 'The beam’s backwash melts everything near the victim.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'render', name: 'Render', desc: 'The drain strips armor plating (Fracture) from the fed-upon.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 150, status: { kind: 'Fracture', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Sympathetic Drain', kind: 'interaction', desc: 'A draining field chips every host near the beam.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 7, react: true, particle: 'bloom' }] }] },
+    {
+      star: 5,
+      name: 'Apex Organ',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'devourer', name: 'Devourer', desc: 'A THIRD fork and a heavier drain field — it eats the whole line.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 150, damage: 10, react: true, particle: 'bloom' }] }] },
+        { id: 'leech', name: 'Leech Field', desc: 'A wide melting bloom saturates everything it touches.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, damage: 8, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }] },
+      ],
+    },
+    { star: 7, name: 'Marrow Flood', kind: 'interaction', desc: 'The gorging spreads — Corrosion floods a wide ring each pulse.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 200, status: { kind: 'Corrosion', amount: 2 } }] }] },
+    { star: 9, name: 'The Insatiable', kind: 'capstone', desc: 'A fourth fork and a devouring nova — nothing near it keeps its marrow.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 160, damage: 34, react: true, particle: 'bloom' }, { type: 'aura', radius: 190, status: { kind: 'Corrosion', amount: 1 }, particle: 'acid' }] }, { t: 'cosmetic', id: 'insatiable' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, SIPHON_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

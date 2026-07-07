@@ -69,6 +69,10 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     cull_the_weak: 'global', avatar_of_war: 'hero', catalyst_engine: 'global',
     overcharged_grid: 'reactor', gravity_well: 'obelisk', glass_genome: 'global',
     executioners_law: 'global', last_bastion: 'global', apex_predator: 'hero',
+    // Deep-Strain (docs/SIPHON.md §gate) — the five general gated cards + the two siphon identities.
+    deep_overclock: 'global', marrow_feast: 'economy', neural_dominion: 'obelisk',
+    hollow_bastion: 'hive', apex_ascendant: 'hero',
+    gorging_instinct: 'siphon', hemophage: 'siphon',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 

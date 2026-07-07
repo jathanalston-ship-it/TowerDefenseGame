@@ -73,6 +73,12 @@ export interface TowerDef {
    *  after which it joins the Biomorph Conveyor / favorite pool. Meta-owned gate — the sim only
    *  sees the resulting roster via RunOptions.unlocked (docs/TOWERS.md §expansion). */
   unlockShards?: number;
+  /** Campaign stage that must be cleared before this tower's shards even BEGIN to drop from loot
+   *  (docs/TOWERS.md §deep-gate). Absent/0 ⇒ shards drop from the start (every launch + expansion
+   *  tower). A gated tower is DOUBLE-locked: its shards don't appear until the progression gate is
+   *  met, and it stays locked until enough banked shards claim it — the meta layer filters the
+   *  loot pool via `eligibleTowerShardPool` (state/meta.ts). */
+  shardGateStage?: number;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -207,6 +213,29 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'A shrieking totem — panics attackers into FLEEING the Hive. Buys time, not kills.',
     abilities: [{ type: 'debuff', radius: 300, status: { kind: 'Fear', amount: 1.6 } }],
   },
+  // ── Deep-Strain roster (docs/SIPHON.md): the account's first genuinely NEW delivery mode.
+  //    DOUBLE-gated — its shards only start dropping after Campaign Stage 15 (shardGateStage), and
+  //    it stays locked until enough shards bank (unlockShards). A CONTINUOUS drain beam that ramps
+  //    on a held target and siphons damage into biomass (game.beamSystem). Vital = it feeds the
+  //    Hive; the first Vital ATTACKER (the Flesh Reactor never fires). ──
+  siphon: {
+    kind: 'siphon',
+    name: 'Marrow Siphon',
+    combatClass: 'Vital',
+    firing: 'beam', // a continuous drain ray — no projectile, no discrete shots (docs/SIPHON.md)
+    unlockShards: 200, // the deepest synthesis goal — a premium, late-unlock organ
+    shardGateStage: 15, // its shards do not drop until Campaign Stage 15 is cleared (the gate)
+    cost: 175, // premium: a single-target melter that pays for itself in biomass
+    range: 340, // FIXATOR — a long, deliberate lock; it reaches deep to fasten onto a threat
+    fireInterval: 0.5, // the beam's PULSE cadence: biomass payout + granted-ability ticks (not a shot)
+    damage: 34, // per-second base drain (dt-scaled, continuous) BEFORE the Gorge ramp multiplies it
+    projectileSpeed: 0, // no projectile — the ray is instantaneous
+    splash: 0,
+    color: '#ff5c8a',
+    blurb: 'Latches a draining ray onto ONE threat — RAMPS the longer it holds, and siphons the kill into Biomass.',
+    targeting: 'highestHealth', // the melter identity: it fastens onto the biggest threat and gorges
+    abilities: [], // the beam is bespoke (game.beamSystem); star/branch grants pulse on its cadence
+  },
 };
 
 /** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
@@ -221,6 +250,8 @@ export function towerProblems(d: TowerDef): string[] {
     if (d.projectileSpeed <= 0) out.push('a projectile tower needs projectileSpeed > 0');
   }
   if (d.firing === 'field' && d.range <= 0) out.push('a field tower needs range > 0');
+  // A beam tower reaches out to LOCK a target (no projectile flight), so it needs range only.
+  if (d.firing === 'beam' && d.range <= 0) out.push('a beam tower needs range > 0');
   return out;
 }
 
@@ -250,6 +281,7 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   maw: [850, 3500, 14000, 52000, 190000],
   chrysalis: [900, 3800, 15000, 55000, 200000],
   effigy: [800, 3400, 14000, 50000, 185000],
+  siphon: [950, 4000, 16000, 58000, 210000], // premium melter — the priciest capstone ladder
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────
@@ -759,6 +791,8 @@ function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
       }];
     case 'support':
       return []; // economy/aura only — no attack
+    case 'beam':
+      return []; // the drain ray is bespoke (game.beamSystem); star/branch grants pulse on top
   }
 }
 
@@ -1003,6 +1037,25 @@ export const MODE_UNLOCKS = {
   daily: 5, // Daily Run opens after clearing Campaign Stage 5 (docs/DAILY-RUN.md §gates)
   bossRush: 10, // Boss Rush opens after clearing Campaign Stage 10
 };
+
+// Deep-Strain content gate (docs/SIPHON.md §gate): clearing Campaign Stage 15 is the SINGLE
+// milestone that opens the deep roster — the five Deep-Strain gene cards enter the draft AND the
+// Marrow Siphon's shards begin dropping (before this, the tower is invisible to the loot pool). A
+// pure META/progression gate: the sim is handed the resulting draft/roster via RunOptions, so it
+// stays ungated (autoplay with progressStage 0 drafts the historical pool ⇒ golden byte-identical).
+export const DEEP_STRAIN_STAGE = 15;
+
+// ── Marrow Siphon beam tunables (docs/SIPHON.md) — the one place its numbers live. A continuous
+//    drain ray: `damage` (TOWER_DEFS.siphon) is the base DPS; Gorge ramps it while the beam holds
+//    the SAME target, and a fraction of damage dealt returns to the Hive as biomass. ──
+export const SIPHON = {
+  gorgeRampPerSec: 0.5, // Gorge builds this much (of the 0..1 heat) per second held on one target
+  gorgeDecayPerSec: 1.5, // …and bleeds off this fast once the beam loses / switches its target
+  gorgeMaxBonus: 1.6, // heat 1.0 multiplies beam damage by (1 + this) — a fully-gorged ×2.6 melt
+  drainFrac: 0.06, // biomass returned per point of beam damage dealt (before card/branch scaling)
+  forkDamageFrac: 0.5, // a secondary (forked) beam target takes this fraction of the primary drain
+  switchGrace: 0.25, // seconds the lock survives with no valid target before Gorge starts decaying
+} as const;
 
 // Infinite-mode reward GATE (docs/MODE-IDENTITY.md): an Infinite run must reach at least this
 // fraction of the player's PRIOR personal-best depth (save.bestWave, pre-run) to bank ANY reward

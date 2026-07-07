@@ -292,6 +292,33 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Black Bell', desc: 'Every toll is a catastrophe: massive psychic ruin and rolling dread.', fireRateMult: 1.2, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 260, damage: 46, react: true, particle: 'disrupt' }, { type: 'aura', radius: 260, damage: 12, status: { kind: 'Disruption', amount: 1 }, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'bell' }] },
     ],
   },
+
+  // ════════════ MARROW SIPHON (Vital, continuous drain beam) ════════════
+  // The beam honours damage/rate/range ride-alongs (rate → a FASTER Gorge ramp), `targeting` (its
+  // lock), `projectile.extraProjectiles` (extra FORKED drain targets), and `ability` grants pulsed on
+  // its cadence (game.beamSystem). No pierce/crit/single-target status — a ray has no projectile.
+  {
+    id: 'siphon_gorge', tower: 'siphon', name: 'Insatiable Gorge',
+    theme: 'A single-minded melter — it fastens on the biggest thing alive and ramps until it is gone.',
+    tiers: [
+      { tier: 1, name: 'Superheated Ray', desc: 'The beam runs hotter and hunts the DEADLIEST target.', damageMult: 1.2, particle: 'bloom', sfx: 'br_siphon', impact: 'bloom', grants: [{ t: 'targeting', profile: 'bossPriority' }] },
+      { tier: 2, name: 'Rending Draw', desc: 'The drain strips armor plating (Fracture) from everything near the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Fracture', amount: 2 } }] }] },
+      { tier: 3, name: 'Boiling Blood', desc: 'A faster Gorge, and the backwash melts the flesh around the beam.', fireRateMult: 1.2, impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 8, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Marrow Boil', desc: 'A searing drain field engulfs the kill zone.', damageMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 150, damage: 14, react: true, particle: 'bloom' }] }] },
+      { tier: 5, name: 'The Devouring Star', desc: 'An unbearable ray: a devouring nova erupts from the fed-upon and acid drowns the field.', damageMult: 1.3, fireRateMult: 1.15, particle: 'bloom', impact: 'bloom', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 160, damage: 38, react: true, particle: 'bloom' }, { type: 'aura', radius: 180, damage: 10, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'devourstar' }] },
+    ],
+  },
+  {
+    id: 'siphon_well', tower: 'siphon', name: 'Bloodwell',
+    theme: 'The organ swells into a well of the hive — forking rays that drink the swarm and mend the Nucleus.',
+    tiers: [
+      { tier: 1, name: 'Branching Feelers', desc: 'The beam forks to a second target.', particle: 'vital', sfx: 'br_well', impact: 'bloom', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Vital Return', desc: 'Every pulse channels siphoned life back into the Nucleus.', grants: [{ t: 'ability', components: [{ type: 'heal', nucleus: 2 }] }] },
+      { tier: 3, name: 'Spreading Roots', desc: 'A third fork; the drain leaves Corrosion where it feeds.', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 150, damage: 6, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Transfusion', desc: 'A stronger mend, and a draining field chips the whole cluster.', grants: [{ t: 'ability', components: [{ type: 'heal', nucleus: 3 }, { type: 'aura', radius: 150, damage: 9, react: true, particle: 'bloom' }] }] },
+      { tier: 5, name: 'The Bloodwell', desc: 'A well of the hive: four forking rays, a constant mend, and a wide melting drain.', particle: 'vitalcore', impact: 'bloom', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'heal', nucleus: 4 }, { type: 'aura', radius: 170, damage: 12, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'bloom' }] }, { t: 'cosmetic', id: 'bloodwell' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

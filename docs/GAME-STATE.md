@@ -20,11 +20,11 @@
 
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
-| Towers | 8 | 100 | each with stars + branches + mastery + Adaptation |
+| Towers | 9 | 100 | each with stars + branches + mastery + Adaptation |
 | Heroes | 3 | 30 | per-hero equipment loadouts |
 | Enemies | ~30 | 100 | + elites |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
-| Cards (genes) | 52 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
+| Cards (genes) | 59 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
 | Meta upgrades (Genome) | 27 | 1,000 | `META_UPGRADES` |
 | Ascendant (prestige) nodes | 11 | 20 | `ASCENDANT_NODES` |
@@ -50,6 +50,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md
 
 ### Towers
+- ✅ **Marrow Siphon** (9th tower; Vital) — the first NEW delivery mode `firing: 'beam'`: a
+  CONTINUOUS drain ray that locks ONE target, RAMPS ("Gorge") while held, and siphons damage into
+  Biomass (`game.beamSystem`). DOUBLE-gated — shards only drop after Campaign Stage 15
+  (`shardGateStage`) and 200 must then bank (`unlockShards`). Ships a 7-node star path, two branches
+  (Insatiable Gorge / Bloodwell), and a 7-card Deep-Strain gene set behind the same gate. **SIPHON.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +

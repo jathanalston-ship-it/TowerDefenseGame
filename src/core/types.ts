@@ -8,7 +8,7 @@ import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'siphon';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -38,8 +38,10 @@ export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
- * 'field' = periodic in-range pulse (no projectile). */
-export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field';
+ * 'field' = periodic in-range pulse (no projectile). 'beam' = a CONTINUOUS drain ray
+ * locked on one target that RAMPS while held and siphons damage into biomass (docs/
+ * SIPHON.md) — the one delivery mode with its own dedicated sim path (game.beamSystem). */
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
 export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 
@@ -190,6 +192,17 @@ export interface Tower {
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
+  // ── Marrow Siphon beam state (docs/SIPHON.md — firing 'beam'). All optional/absent on every
+  //    OTHER tower and on the golden path (the siphon is shard-locked), so a run without it is
+  //    byte-identical. `beamTarget` is the locked enemy id (-1/absent = no lock); `beamHeat` is the
+  //    0..1 Gorge ramp built while holding the SAME target (resets on switch); `beamBank` accrues
+  //    siphoned biomass paid out on the pulse cadence; `beamX/beamY` cache the target point so the
+  //    renderer draws the ray without an enemy lookup (render-only — never feeds sim math). ──
+  beamTarget?: number;
+  beamHeat?: number;
+  beamBank?: number;
+  beamX?: number;
+  beamY?: number;
 }
 
 export interface Projectile {

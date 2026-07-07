@@ -48,6 +48,8 @@ const FIELD_WEIGHT: Record<string, number> = {
   mawCleaveRadiusMult: 0.4, // wider jaws ⇒ more victims per bite
   chrysalisFreezeDurationMult: 0.35, // control uptime (encasement)
   effigyDreadDurationMult: 0.35, // control uptime (panic)
+  siphonRampMult: 0.4, // faster Gorge ⇒ the beam reaches its damage ceiling sooner (offense)
+  siphonDrainMult: 0.25, // more biomass siphoned per hit (economy — the Vital return)
 };
 // `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
@@ -91,6 +93,8 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'heroAttackSpeedMult', 'heroCritChance', 'heroCritDamageBonus', 'heroHealingMult', 'heroArmor',
   // Expansion tower identities (docs/TOWERS.md §expansion):
   'mawCleaveRadiusMult', 'chrysalisFreezeDurationMult', 'effigyDreadDurationMult',
+  // Deep-Strain tower identity (docs/SIPHON.md — the Marrow Siphon beam):
+  'siphonRampMult', 'siphonDrainMult',
 ];
 
 /** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */

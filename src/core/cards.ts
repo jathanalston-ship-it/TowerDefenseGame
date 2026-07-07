@@ -6,7 +6,7 @@ import type { CardOption, CardRarity, CardCategory, CardSubject, StatusType, Tow
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
-import { SELL, TOWER_ORDER } from './config';
+import { DEEP_STRAIN_STAGE, SELL, TOWER_ORDER } from './config';
 import { GENE_UPGRADES } from './geneUpgrades';
 import { effectsPower } from './power'; // type-only back-edges elsewhere ⇒ no runtime cycle
 
@@ -32,6 +32,8 @@ export interface RunModifiers {
   mawCleaveRadiusMult: number; // scales the Carrion Maw's bite reach (its range IS its cleave)
   chrysalisFreezeDurationMult: number; // scales the Amber Chrysalis encasement (Freeze) seconds
   effigyDreadDurationMult: number; // scales the Wailing Effigy panic (Fear) seconds
+  siphonRampMult: number; // scales how fast the Marrow Siphon's beam GORGES (its ramping DPS) — docs/SIPHON.md
+  siphonDrainMult: number; // scales the biomass the Marrow Siphon siphons from damage dealt (its economy return)
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -107,6 +109,8 @@ export function defaultRunModifiers(): RunModifiers {
     mawCleaveRadiusMult: 1,
     chrysalisFreezeDurationMult: 1,
     effigyDreadDurationMult: 1,
+    siphonRampMult: 1,
+    siphonDrainMult: 1,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -247,6 +251,11 @@ export interface CardDef {
   ascension?: GeneAscension; // ascension backend (Task 10) — no gameplay.
   skins?: GeneSkin[]; // future artwork variants.
   art?: string; // base artwork key (procedural fallback if absent).
+  // ── Progression gate (docs/SIPHON.md §gate) — the highest Campaign stage that must be cleared
+  //    before this card enters the draft pool. Absent ⇒ ungated (the historical pool). A GATED card
+  //    is dropped from `draftCards` unless the run's `progressStage` clears it — so autoplay
+  //    (progressStage 0) never drafts it and the golden draft stays byte-identical. ──
+  unlock?: number;
 }
 
 /** Apply a card's declarative effects to the run. The only card interpreter. */
@@ -330,6 +339,19 @@ export const CARD_POOL: CardDef[] = [
   { id: 'executioners_law', name: "Executioner's Law", rarity: 'legendary', category: 'crit', description: 'Execute non-elite enemies below 20% HP; +15% tower damage.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }] },
   { id: 'last_bastion', name: 'Last Bastion', rarity: 'legendary', category: 'tower', description: 'Below 50% Nucleus, towers deal ×2.5 — and +4% per tower fielded.', effects: [{ op: 'add', field: 'lastStandThreshold', value: 0.5 }, { op: 'mul', field: 'lastStandMult', value: 2.5 }, { op: 'add', field: 'damagePerTower', value: 0.04 }] },
   { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
+
+  // ════════════════ Deep-Strain gene cards (docs/SIPHON.md §gate) — GATED behind Campaign Stage 15
+  //    (unlock: DEEP_STRAIN_STAGE). Absent from the draft until the milestone is cleared, so autoplay
+  //    (progressStage 0) never sees them and the golden draft is byte-identical. Deep unlocks ⇒ they
+  //    hit at Epic/Legendary weight. The last two are the Marrow Siphon's own identity cards. ════
+  { id: 'deep_overclock', name: 'Deep Overclock', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +12% tower damage.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
+  { id: 'marrow_feast', name: 'Marrow Feast', rarity: 'epic', category: 'economy', description: '+35% biomass from kills; gain 150 biomass now.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'biomassMult', value: 1.35 }, { op: 'biomass', value: 150 }] },
+  { id: 'neural_dominion', name: 'Neural Dominion', rarity: 'epic', category: 'control', description: 'Disruption slows +15% more and exposes +15%; +8% tower damage.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.15 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'hollow_bastion', name: 'Hollow Bastion', rarity: 'epic', category: 'mutation', description: '+90 max & current Integrity; +3% tower damage per tower fielded.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'integrity', value: 90 }, { op: 'add', field: 'damagePerTower', value: 0.03 }] },
+  { id: 'apex_ascendant', name: 'Apex Ascendant', rarity: 'legendary', category: 'hero', description: 'Hero damage ×2.2, +180 max HP, −18% ability cooldown.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'heroDamageMult', value: 2.2 }, { op: 'heroHp', value: 180 }, { op: 'mul', field: 'heroCooldownMult', value: 0.82 }] },
+  // ── Marrow Siphon identity cards (subject = siphon; roster-gated to owning the tower AND stage-gated) ──
+  { id: 'gorging_instinct', name: 'Gorging Instinct', rarity: 'rare', category: 'tower', description: 'The Marrow Siphon gorges +25% faster — its beam reaches full melt sooner.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.25 }] },
+  { id: 'hemophage', name: 'Hemophage', rarity: 'epic', category: 'economy', description: 'The Marrow Siphon siphons +45% more Biomass and gorges +10% faster.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.45 }, { op: 'mul', field: 'siphonRampMult', value: 1.1 }] },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */
@@ -463,13 +485,19 @@ export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<Ca
  * `allowedTowers` drops cards whose SUBJECT tower is off the run's roster (docs/TOWERS.md
  * §expansion — a card for a tower you cannot deploy is a dead draft); omitted or
  * all-inclusive ⇒ the historical full pool, byte-identical. */
-export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>): CardDef[] {
-  const active = allowedTowers === undefined
-    ? cardRegistry.active()
-    : cardRegistry.active().filter((c) => {
-        const s = cardSubject(c);
-        return s.kind !== 'tower' || allowedTowers.has(s.tower);
-      });
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, progressStage = 0): CardDef[] {
+  const active = cardRegistry.active().filter((c) => {
+    // Progression gate (docs/SIPHON.md §gate): a gated card only drafts once the run's campaign
+    // progress clears it. progressStage 0 (autoplay/tests) ⇒ every gated card is excluded ⇒ the
+    // draft pool equals the historical ungated pool ⇒ golden byte-identical.
+    if (c.unlock !== undefined && progressStage < c.unlock) return false;
+    // Roster gate: a card for a tower this run cannot deploy is a dead draft (docs/TOWERS.md §expansion).
+    if (allowedTowers !== undefined) {
+      const s = cardSubject(c);
+      if (s.kind === 'tower' && !allowedTowers.has(s.tower)) return false;
+    }
+    return true;
+  });
   const available = new Set<CardRarity>(active.map((c) => c.rarity));
   const chosen: CardDef[] = [];
   const used = new Set<string>();
@@ -516,6 +544,8 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   mawCleaveRadiusMult: 'maw',
   chrysalisFreezeDurationMult: 'chrysalis',
   effigyDreadDurationMult: 'effigy',
+  siphonRampMult: 'siphon',
+  siphonDrainMult: 'siphon',
   reactorBiomassMult: 'reactor',
   reactorOverchargeBonus: 'reactor',
   // hero kit (numbers + behaviour)

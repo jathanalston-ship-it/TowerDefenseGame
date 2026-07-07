@@ -599,6 +599,40 @@ function drawLandingImpacts(ctx: CanvasRenderingContext2D, rs: RenderState, t: n
 
 const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
 
+/** The Marrow Siphon's continuous drain ray (docs/SIPHON.md). A tapered glowing beam from the organ
+ *  to its locked target, thickening + whitening with the Gorge `heat` (0..1); corpuscles flow BACK
+ *  along it toward the tower (the drain direction) and an impact bloom marks where it bites. Pure
+ *  presentation — driven by the sim's render-only beam fields; never affects gameplay. */
+function drawSiphonBeam(ctx: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, heat: number, now: number, color: string, id: number): void {
+  const rgb = hexRgb(color);
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = dx / len;
+  const ny = dy / len;
+  const width = 2 + heat * 4;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = rgba(rgb, 0.12 + heat * 0.18); // outer glow
+  ctx.lineWidth = width * 2.6;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = rgba(rgb, 0.5 + heat * 0.4); // core
+  ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  if (heat > 0.5) { // a superheated white centre once gorged
+    ctx.strokeStyle = rgba('255,255,255', (heat - 0.5) * 0.9);
+    ctx.lineWidth = Math.max(1, width * 0.4);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+  const beads = 4; // corpuscles drawn flowing target→tower (the drain)
+  for (let i = 0; i < beads; i++) {
+    const f = (now * (0.6 + heat) + i / beads) % 1;
+    drawShape(ctx, 'circle', x1 - nx * len * f, y1 - ny * len * f, 1.6 + heat * 1.6, rgba('255,255,255', 0.8));
+  }
+  glowDisc(ctx, x1, y1, 5 + heat * 8 + Math.sin(now * 12 + id) * 1.5, color); // impact bloom
+  ctx.restore();
+}
+
 function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0): void {
   const def = TOWER_DEFS[tw.kind];
   const shape = TOWER_SHAPE[tw.kind];
@@ -662,6 +696,13 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.7 + fresh + tw.tier * 0.08), def.color);
   }
 
+  // Marrow Siphon (docs/SIPHON.md): the live drain ray, drawn UNDER the body so the organ sits over
+  // the socket while the beam reaches out over the swarm. beamX/Y are set only while a lock is live
+  // (render-only fields), so an idle siphon — and every non-siphon tower — draws nothing here.
+  if (tw.kind === 'siphon' && tw.beamX !== undefined && tw.beamY !== undefined) {
+    drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, def.color, tw.id);
+  }
+
   drawShape(ctx, shape, tw.x, tw.y, r, def.color);
   strokeShape(ctx, shape, tw.x, tw.y, r, 'rgba(6,8,14,0.55)', 1.5);
   drawShape(ctx, shape, tw.x, tw.y - r * 0.18, r * 0.42, 'rgba(255,255,255,0.18)'); // top gloss
@@ -681,6 +722,20 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     // orbiting glyph ring + a bright psionic core eye
     ring(ctx, tw.x, tw.y, r * 1.35, rgba(THEME.field.edge, pulse(now + tw.id, 3, 0.3, 0.6)), 1.2, [4, 5]);
     drawShape(ctx, 'diamond', tw.x, tw.y - r * 0.1, r * 0.32 * breathe, 'rgba(255,255,255,0.45)');
+  } else if (tw.kind === 'siphon') {
+    // a lidded ocular pod: a socket ring + a crimson iris that leans toward the locked prey and
+    // dilates with the Gorge heat — a drinking pupil at its centre.
+    const heat = tw.beamHeat ?? 0;
+    ring(ctx, tw.x, tw.y, r * 1.25, rgba(hexRgb(def.color), 0.22 + heat * 0.4), 1.4);
+    let ix = tw.x;
+    let iy = tw.y - r * 0.05;
+    if (tw.beamX !== undefined && tw.beamY !== undefined) {
+      const a = Math.atan2(tw.beamY - tw.y, tw.beamX - tw.x);
+      ix = tw.x + Math.cos(a) * r * 0.32;
+      iy = tw.y + Math.sin(a) * r * 0.32;
+    }
+    glowDisc(ctx, ix, iy, r * (0.34 + heat * 0.16) * breathe, def.color);
+    drawShape(ctx, 'circle', ix, iy, r * 0.16 * breathe, 'rgba(10,6,10,0.85)'); // the drinking pupil
   }
 
   // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md

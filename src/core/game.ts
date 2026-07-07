@@ -36,6 +36,7 @@ import {
   PERF,
   HIVE,
   SETTLE,
+  SIPHON,
   SIM_DT,
   SLOTS,
   STATUS,
@@ -131,6 +132,7 @@ export interface RunOptions {
   // gates placement, the conveyor's kind rolls, and the draft pool. Omitted ⇒ ALL kinds (the
   // golden path — tests/autoplay/probes construct without it and are byte-identical).
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
+  progressStage?: number; // highest Campaign stage cleared (docs/SIPHON.md §gate) — gates which gene cards can draft. Omitted/0 ⇒ the ungated historical pool (autoplay/tests ⇒ golden byte-identical)
   // Daily Run (docs/DAILY-RUN.md): the day's TWO modifier ids, resolved once at boot into the
   // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
   // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
@@ -145,6 +147,7 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
   else if (e.op === 'set') mods[e.field] = e.value;
 }
 import type {
+  CombatClass,
   Enemy,
   EnemyKind,
   Hero,
@@ -491,6 +494,7 @@ export class Game {
   readonly conveyor: ConveyorItem[] = []; // growing (readyAt > time, ≤1) + ready (≤ queueMax)
   favoriteTower: TowerKind;
   readonly unlockedKinds: ReadonlySet<TowerKind>; // the run roster (UI rails read this too)
+  private readonly progressStage: number; // Campaign progress (docs/SIPHON.md §gate) — gates which gene cards draft; 0 ⇒ ungated pool (golden)
   deployments = 0; // player deployments this run — drives the universal cost curve
   selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
   private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
@@ -524,6 +528,7 @@ export class Game {
     this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
     this.favoriteTower = opts.favorite ?? 'needle';
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
+    this.progressStage = opts.progressStage ?? 0;
     // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
     // struct every hook reads (mults 1 / adds 0 without them ⇒ every read below is golden-safe).
     // The dedicated rng paces Infestation's elite rolls — consumed ONLY when that modifier is live.
@@ -2818,6 +2823,10 @@ export class Game {
         if (t.tier > 0) this.supportBranchPulse(t, dt); // branched reactor: pulse its mutations
         continue; // base economy/overcharge handled in economySystem
       }
+      if (def.firing === 'beam') {
+        this.beamSystem(t, dt, ksDmg, runBuffDmg, resoClass); // the Marrow Siphon's continuous drain ray
+        continue; // it runs its own bespoke path — no projectile cast loop (docs/SIPHON.md)
+      }
       if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
@@ -3011,6 +3020,116 @@ export class Game {
       runAbilities(this.actx, bk.extraAbilities, this.castScratch);
     }
     this.emitBranchSignature(bk, t.x, t.y, t.tier); // the reactor's pulse throws its branch matter too
+  }
+
+  /** The Marrow Siphon's CONTINUOUS drain beam (docs/SIPHON.md — firing 'beam'). Unlike every other
+   *  tower it does not fire discrete shots: it LOCKS a single target chosen by its targeting profile
+   *  and drains it every tick (dt-scaled). The lock has MEMORY — a Gorge ramp builds while it holds
+   *  the SAME target (0→1 over a few seconds, resets on a switch), multiplying the drain up to
+   *  ×(1+gorgeMaxBonus). A fraction of all damage dealt is SIPHONED into Biomass (the Vital return),
+   *  banked and paid out on the pulse cadence. Star/branch grants (targeting, damage/rate/range,
+   *  extra "forks", and pulsed auras/debuffs) fold in via the SAME kits as every other tower, so the
+   *  upgrade paths are fully wired with zero bespoke plumbing. Never reached on the golden path (the
+   *  siphon is shard-locked), and its run-mod scalars default neutral ⇒ byte-identical when absent. */
+  private beamSystem(t: Tower, dt: number, ksDmg: number, runBuffDmg: number, resoClass: CombatClass | null): void {
+    const def = TOWER_DEFS[t.kind];
+    const bk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
+    // Suppressed by a boss: the beam cuts out — bleed the Gorge and drop the lock, but keep paying
+    // any banked siphon so income already earned isn't lost.
+    const suppressed = this.time < t.disabledUntil;
+
+    const prog = this.towerProgress[t.kind];
+    const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
+    const starOc = this.towerProgress.reactor.reactorOverchargeBonus ?? 0;
+    const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus + starOc : 1;
+    // Hero SUPPORT aura (haste/damage) — folded exactly as the projectile path (×1 without aura gear).
+    let heroHaste = 1;
+    let heroDmgAura = 1;
+    if (this.mods.heroAuraRadius > 0) {
+      const r2 = this.mods.heroAuraRadius * this.mods.heroAuraRadius;
+      if (this.heroes.some((ph) => !ph.down && dist2(t.x, t.y, ph.x, ph.y) <= r2)) {
+        heroHaste = 1 + this.mods.heroTowerHasteAura;
+        heroDmgAura = 1 + this.mods.heroTowerDamageAura;
+      }
+    }
+    const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
+    const dampenMult = this.time < t.dampenedUntil ? 1 - t.dampenFrac : 1;
+    const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
+    const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult;
+    const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t);
+    const rangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+    const range = def.range * rangeMult;
+    const targeting = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'highestHealth';
+    const forks = 1 + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0); // extra beam targets
+
+    // Acquire / maintain the locked target. Scope the target pick as a TOWER cast so emergency
+    // focus + deadzone behave identically to every other tower.
+    this.abilitySourceKind = t.kind;
+    this.abilityHeroKind = null;
+    this.castMinRange = def.minRange ?? 0;
+    this.castExcludeFrozen = false;
+    const targets: Enemy[] = suppressed ? [] : this.pickTargets(t.x, t.y, range, forks, targeting);
+    const primary = targets.length > 0 ? targets[0] : null;
+
+    let heat = t.beamHeat ?? 0;
+    if (primary === null) {
+      heat = Math.max(0, heat - SIPHON.gorgeDecayPerSec * dt); // no lock: the Gorge bleeds off
+      t.beamTarget = -1;
+      t.beamX = undefined;
+      t.beamY = undefined;
+    } else {
+      const held = primary.id === t.beamTarget;
+      heat = held
+        ? Math.min(1, heat + SIPHON.gorgeRampPerSec * this.mods.siphonRampMult * rateMult * dt) // holding: gorge builds
+        : Math.max(0, heat - SIPHON.gorgeDecayPerSec * dt); // switched targets: the ramp resets down
+      t.beamTarget = primary.id;
+      t.beamX = primary.x;
+      t.beamY = primary.y;
+      const heatMult = 1 + SIPHON.gorgeMaxBonus * heat;
+      const primaryDps = def.damage * dmgMult * heatMult; // per-second drain BEFORE dt
+      let drained = this.applyDamage(primary, primaryDps * dt, t.kind, false); // continuous → no strobe
+      for (let k = 1; k < targets.length; k++) {
+        drained += this.applyDamage(targets[k], primaryDps * SIPHON.forkDamageFrac * dt, t.kind, false);
+      }
+      // Siphon: bank a fraction of the drain as Biomass (the Vital return), paid on the pulse cadence.
+      t.beamBank = (t.beamBank ?? 0) + drained * SIPHON.drainFrac * this.mods.siphonDrainMult;
+    }
+    t.beamHeat = heat;
+
+    // Pulse cadence: pay out the banked siphon, run any star/branch granted abilities, throw FX.
+    t.cooldown -= dt;
+    if (t.cooldown > 0) return;
+    t.cooldown = def.fireInterval / rateMult;
+    if ((t.beamBank ?? 0) > 0) {
+      const gain = t.beamBank as number;
+      this.biomass += gain;
+      this.statBiomassEarned += gain;
+      if (gain >= 1) this.floats.push({ x: t.x, y: t.y - 16, text: `+${Math.round(gain)}`, color: def.color, life: 0.7 });
+      this.spawnMotes(t.x, t.y); // siphoned income flies up off the organ
+      t.beamBank = 0;
+    }
+    // Star- and branch-granted attacks (auras / debuffs / chains) pulse on the beam's cadence — the
+    // same grant vocabulary every other tower uses, so upgrade paths need no beam-specific code.
+    const granted = ((prog.extraAbilities?.length ?? 0) + (bk?.extraAbilities.length ?? 0)) > 0;
+    if (!suppressed && granted) {
+      this.abilitySourceKind = t.kind;
+      this.abilityHeroKind = null;
+      this.abilityCaster = null;
+      this.abilityTargeting = targeting;
+      this.castExtraProjectiles = 0;
+      this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
+      this.castRangeMult = rangeMult;
+      this.castScratch.x = t.x;
+      this.castScratch.y = t.y;
+      this.castScratch.damageMult = dmgMult;
+      this.castScratch.target = null;
+      this.castScratch.pierce = 0;
+      if (prog.extraAbilities) runAbilities(this.actx, prog.extraAbilities, this.castScratch);
+      if (bk && bk.extraAbilities.length) runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+      this.castRangeMult = 1;
+      this.castSplashMult = 1;
+    }
+    if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier);
   }
 
   /** Spray a branched tower's signature particle + sound on an attack/pulse, ESCALATED by tier
@@ -4358,7 +4477,7 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds); // depth-scaled rarity (CARDS.md §2)
+          this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.progressStage); // depth-scaled rarity (CARDS.md §2)
         }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
@@ -4696,7 +4815,7 @@ export class Game {
    *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
   openTutorialDraft(): void {
     if (!this.tutorialMode || this.phase !== 'prep') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.progressStage);
     this.phase = 'draft';
   }
 
@@ -4709,7 +4828,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.progressStage);
     this.phase = 'draft';
   }
 

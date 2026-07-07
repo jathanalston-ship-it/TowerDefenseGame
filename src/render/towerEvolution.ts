@@ -26,6 +26,7 @@ export const BRANCH_COLOR: Record<string, string> = {
   maw_butcher: '#ff5c5c', maw_gullet: '#5ccdd8',
   chrysalis_deepfreeze: '#ffd98a', chrysalis_amber: '#e8b04a',
   effigy_choir: '#c9a6ff', effigy_malice: '#ff7ad9',
+  siphon_gorge: '#ff5c8a', siphon_well: '#ff8ab0',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -242,6 +243,27 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'crown', count: 5 }, // the malice crown
       { at: 4, kind: 'organs', count: 3 }, // the doom toll
       { at: 5, kind: 'nova' }, // the black bell
+    ],
+  },
+  // SIPHON ───────────────────────────────────────────────────────────────────
+  siphon_gorge: {
+    color: BRANCH_COLOR.siphon_gorge, growth: 0.065, // it engorges as it drinks — a swelling melter
+    parts: [
+      { at: 1, kind: 'heart' }, // the superheated draining gullet
+      { at: 2, kind: 'organs', count: 2, per: 1 }, // swelling vein-nodes
+      { at: 3, kind: 'biomass', count: 3 }, // boiling blood sacs
+      { at: 4, kind: 'spikes', count: 5 }, // searing barbs
+      { at: 5, kind: 'nova' }, // the devouring star
+    ],
+  },
+  siphon_well: {
+    color: BRANCH_COLOR.siphon_well, growth: 0.06,
+    parts: [
+      { at: 1, kind: 'tendrils', count: 3, per: 1 }, // branching feeders thicken each tier
+      { at: 2, kind: 'heart' }, // the vital-return organ
+      { at: 3, kind: 'pods', count: 3 }, // spreading roots
+      { at: 4, kind: 'ripples', count: 2 }, // the transfusion pulse
+      { at: 5, kind: 'nova' }, // the bloodwell
     ],
   },
 };

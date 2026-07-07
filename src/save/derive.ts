@@ -3,7 +3,7 @@
 // (which would create meta ↔ reader cycles) — it depends only on the save schema's types.
 // Add a derivation here the moment a second module needs it; never re-inline.
 
-import { MODE_UNLOCKS } from '../core/config';
+import { DEEP_STRAIN_STAGE, MODE_UNLOCKS } from '../core/config';
 import type { SaveData } from './saveStore';
 
 /** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress.
@@ -36,4 +36,10 @@ export function isBossRushUnlocked(save: SaveData): boolean {
  *  history are grandfathered in via their ledger. */
 export function isDailyUnlocked(save: SaveData): boolean {
   return highestCampaignStage(save) >= MODE_UNLOCKS.daily || save.daily.completions > 0 || save.daily.lastKey !== '';
+}
+
+/** Deep-Strain unlock (docs/SIPHON.md §gate): clear Campaign Stage 15. The single milestone that
+ *  opens the deep gene cards to the draft AND starts the Marrow Siphon's shards dropping. */
+export function isDeepStrainUnlocked(save: SaveData): boolean {
+  return highestCampaignStage(save) >= DEEP_STRAIN_STAGE;
 }

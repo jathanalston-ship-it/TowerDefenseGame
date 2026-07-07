@@ -421,6 +421,16 @@ export function isTowerUnlocked(save: SaveData, kind: TowerKind): boolean {
   return (save.towerUnlocked ?? []).includes(kind);
 }
 
+/** The towers whose shards are ELIGIBLE to drop from loot right now (docs/SIPHON.md §gate). A
+ *  DEEP-gated tower (`shardGateStage` set) is kept OUT of the loot pool until the account clears its
+ *  gate stage — so the Marrow Siphon's shards simply do not appear before Campaign Stage 15. Every
+ *  launch + expansion tower (no gate) is always eligible. Pure over the save; used to bias the
+ *  container-crack rolls (openContainer). */
+export function eligibleTowerShardPool(save: SaveData): TowerKind[] {
+  const stage = highestCampaignStage(save);
+  return TOWER_ORDER.filter((k) => (TOWER_DEFS[k].shardGateStage ?? 0) <= stage);
+}
+
 /** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT + OWNED
  *  kinds. Always ≥1 (falls back to the selected hero, or the first owned hero). A locked hero can
  *  never be fielded even if a stale loadout entry names it. */
@@ -740,12 +750,13 @@ function openLootBoxes(
   towerShards: Record<TowerKind, number>,
   heroShards: Record<string, number>,
   heroPool?: readonly string[],
+  towerPool?: readonly TowerKind[],
 ): LootBoxAward[] {
   const out: LootBoxAward[] = [];
   for (const rarity of awarded) {
     const def = rarityRegistry.get(rarity);
     if (!def) continue;
-    const box = rollLoot(def, Math.random, heroPool);
+    const box = rollLoot(def, Math.random, heroPool, towerPool);
     for (const k of TOWER_ORDER) towerShards[k] += box.towerShards[k] ?? 0;
     for (const id of Object.keys(box.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + box.heroShards[id];
     out.push({ rarity, chest: box });
@@ -1338,13 +1349,14 @@ export const meta = {
     // Bias hero-shard pulls toward still-LOCKED heroes so their "42 / 100" unlock bar fills visibly
     // (empty ⇒ every hero owned ⇒ shards distribute normally for stars).
     const lockedPool = HERO_ORDER.filter((k) => !isHeroUnlocked(save, k));
+    const eligibleTowers = eligibleTowerShardPool(save); // deep-gated towers stay out until their gate (docs/SIPHON.md §gate)
     let mats = save.mats;
     let chest: ChestResult;
     let label: string;
     let color: string;
     if (c.kind === 'cache') {
       const def = CHESTS[c.chestId] ?? CHESTS[RUN_CHEST];
-      chest = rollChest(def, Math.random, lockedPool);
+      chest = rollChest(def, Math.random, lockedPool, eligibleTowers);
       for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
       for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
       mats = {
@@ -1355,7 +1367,7 @@ export const meta = {
       label = def?.name ?? 'Reward Cache';
       color = 'var(--gold)';
     } else if (rarityRegistry.has(c.rarity)) {
-      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool);
+      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool, eligibleTowers);
       chest = award.chest;
       const def = rarityRegistry.get(c.rarity);
       label = `${def?.name ?? c.rarity} Container`;
@@ -1998,7 +2010,9 @@ export const meta = {
           lines.push({ icon: '⚒', label: `Materials — ⊕${g.mutagen ?? 0} · ◳${g.scrap ?? 0} · ✷${g.catalyst ?? 0}` });
           break;
         case 'towerShardsAll':
-          for (const k of TOWER_ORDER) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
+          // Gate-eligible towers only (docs/SIPHON.md §gate): a purchase accelerates toward gates, it
+          // never crosses one — a deep-gated tower's shards stay sealed until its progression gate.
+          for (const k of eligibleTowerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
           lines.push({ icon: '✦', label: `${g.qtyEach} Strain Samples × every tower` });
           break;
         case 'heroShardsAll':
@@ -2597,7 +2611,7 @@ export const meta = {
     const CORES = 150, TSHARD = 15, HSHARD = 20;
     const hero = save.selectedHero;
     const towerShards = { ...save.towerShards };
-    for (const k of TOWER_ORDER) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every tower currency
+    for (const k of eligibleTowerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every gate-eligible tower's currency
     const heroShards = { ...save.heroShards, [hero]: (save.heroShards[hero] ?? 0) + HSHARD };
     const container: PendingContainer = { kind: 'loot', rarity: 'rare' }; // the guaranteed Tutorial Bio-Container
     const item: OwnedItem = { uid: `tut-${Date.now().toString(36)}`, defId: 'w_quill', rarity: 'rare', affixes: [] };

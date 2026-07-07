@@ -114,6 +114,18 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' },
     ],
   },
+  // Marrow Siphon (Vital) — ocular drain-pod → engorged gorging organism. It visibly SWELLS as it
+  // drinks (the hungriest Vital silhouette), growing feeder tendrils and a beating fed heart.
+  siphon: {
+    growth: 0.024,
+    parts: [
+      { at: 1, kind: 'heart' }, // the draining gullet-sac beats behind the eye
+      { at: 3, kind: 'tendrils', count: 3 }, // feeder proboscides reaching out
+      { at: 5, kind: 'organs', count: 3 }, // swollen vein-nodes, engorged with siphoned marrow
+      { at: 7, kind: 'ripples', count: 2 }, // the siphon pulse radiating from the socket
+      { at: 9, kind: 'nova' },
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at
