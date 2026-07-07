@@ -189,6 +189,18 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
     ],
     perks: [{ at: 75, name: 'Mycelial Network', desc: 'Mastery 75: +30% support radius — the Reactor overcharges farther towers.', rangeMult: 1.3 }],
   },
+  {
+    unit: 'coil',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.coil.1', name: 'Resonant Doctrine', text: 'The Coil does not strike — it FOCUSES. Given a moment on one host, it unmakes anything that holds still.' },
+      { at: 25, kind: 'title', id: 'title.coil.harmonist', name: 'Harmonist' },
+      { at: 50, kind: 'title', id: 'title.coil.annihilator', name: 'Annihilator' },
+    ],
+    perks: [
+      { at: 50, name: 'Wide Aperture', desc: 'Mastery 50: the beam melts one MORE target at once.', extraProjectiles: 1 },
+      { at: 75, name: 'Runaway Resonance', desc: 'Mastery 75: +20% fire rate — resonance builds faster, so the melt ramps sooner.', fireRateMult: 1.2 },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [

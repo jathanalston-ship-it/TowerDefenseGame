@@ -73,6 +73,11 @@ export interface TowerDef {
    *  after which it joins the Biomorph Conveyor / favorite pool. Meta-owned gate — the sim only
    *  sees the resulting roster via RunOptions.unlocked (docs/TOWERS.md §expansion). */
   unlockShards?: number;
+  /** Progression GATE — the highest Campaign stage that must be cleared before this locked tower's
+   *  unlock shards even begin DROPPING (meta.towerShardPool gates the loot rollers). Absent / 0 ⇒ no
+   *  gate (shards drop from the start, like maw/chrysalis/effigy). Pairs with unlockShards so the
+   *  Resonance Coil is DOUBLY gated: reach the stage, THEN grind its shards to unlock. */
+  unlockStage?: number;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -207,7 +212,41 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'A shrieking totem — panics attackers into FLEEING the Hive. Buys time, not kills.',
     abilities: [{ type: 'debuff', radius: 300, status: { kind: 'Fear', amount: 1.6 } }],
   },
+  // Resonance Coil (Resonant) — the roster's first sustained-focus MELTER. A locked, ramping BEAM
+  // (firing 'beam', game.ts beamTowerSystem): while it holds ONE target its resonance HEAT climbs,
+  // scaling damage up to BEAM.rampBonus× — it starts weak and melts elites/bosses that stand in it.
+  // LOCKED by default (unlockShards) AND progression-gated (unlockStage): its shards only drop once
+  // the campaign gate is cleared. A brand-new mechanic, so its identity is the ramp, not a stat line.
+  coil: {
+    kind: 'coil',
+    name: 'Resonance Coil',
+    combatClass: 'Resonant',
+    firing: 'beam',
+    unlockShards: 320, // locked: a mid-game chase, funded only AFTER the unlockStage gate is cleared
+    unlockStage: 15, // Tower Shards for the Coil begin dropping once Campaign Stage 15 is cleared
+    cost: 150,
+    range: 340, // SKIRMISHER — a focused emitter; place FORWARD so a target stays in the beam to ramp
+    fireInterval: 0.5, // beam PULSE cadence — paces star/branch procs (crit/status); the DAMAGE is continuous
+    damage: 26, // base beam DPS at zero resonance; ramps to BEAM.rampBonus× on a sustained lock
+    projectileSpeed: 0, // hitscan channel — no projectile
+    splash: 0,
+    color: '#f5b83d',
+    targeting: 'highestHealth', // by default it bites the toughest thing in reach (the melt payoff)
+    blurb: 'Locks a beam onto ONE target; damage RAMPS the longer it holds — melts elites & bosses.',
+  },
 };
+
+/** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
+ *  tick (base `TowerDef.damage` as DPS) to its locked target(s), scaled by the resonance ramp: heat
+ *  climbs while focus holds the SAME target and resets on a switch. Centralized so the melt curve is
+ *  tuned in one place. Inert unless a Resonance Coil is fielded ⇒ golden-safe. */
+export const BEAM = {
+  heatPerSec: 0.42, // resonance charge/sec while locked — ~2.4s from cold to full melt
+  heatDecayPerSec: 1.1, // charge bled off/sec when the beam has no valid target
+  rampBonus: 3.0, // damage bonus at full resonance: ×(1 + rampBonus) ⇒ up to ×4 on a held target
+  corrosionHeat: 0.6, // once heat ≥ this, the beam sears Corrosion into its target (status synergy)
+  corrosionAmount: 1, // Corrosion seconds applied per pulse at/above corrosionHeat
+} as const;
 
 /** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
 export function towerProblems(d: TowerDef): string[] {
@@ -221,6 +260,7 @@ export function towerProblems(d: TowerDef): string[] {
     if (d.projectileSpeed <= 0) out.push('a projectile tower needs projectileSpeed > 0');
   }
   if (d.firing === 'field' && d.range <= 0) out.push('a field tower needs range > 0');
+  if (d.firing === 'beam' && d.range <= 0) out.push('a beam tower needs range > 0');
   return out;
 }
 
@@ -250,6 +290,7 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   maw: [850, 3500, 14000, 52000, 190000],
   chrysalis: [900, 3800, 15000, 55000, 200000],
   effigy: [800, 3400, 14000, 50000, 185000],
+  coil: [850, 3600, 14000, 52000, 190000], // premium single-target melter — sits with obelisk/mortar
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────
@@ -774,6 +815,11 @@ function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
       }];
     case 'support':
       return []; // economy/aura only — no attack
+    case 'beam':
+      // Resonance Coil: the beam DAMAGE + resonance ramp are driven directly by beamTowerSystem
+      // (game.ts), not by an ability component — so the base kit is empty. Star/branch grants
+      // (crit/status/aura) still layer on via prog/branch extraAbilities on the beam pulse.
+      return [];
   }
 }
 
@@ -1195,6 +1241,49 @@ export const META_UPGRADES: UpgradeDef[] = [
   { id: 'runaway_synchrony', name: 'Runaway Synchrony', description: 'Hive link deepens without limit — +0.08% damage per active tower × √level', category: 'Tower', maxLevel: Infinity, baseCost: 220, costMult: 1.15, infinite: true, run: { field: 'damagePerTower', op: 'add', perLevel: 0.0008 } },
   { id: 'runaway_ossification', name: 'Runaway Ossification', description: 'The Nucleus thickens without limit — +10 max Integrity × √level', category: 'Infrastructure', maxLevel: Infinity, baseCost: 160, costMult: 1.15, infinite: true, effect: { stat: 'integrityBonus', perLevel: 10 } },
   { id: 'runaway_reflexes', name: 'Runaway Reflexes', description: 'Champion reflexes sharpen without limit — +1.2% hero speed × √level', category: 'Utility', maxLevel: Infinity, baseCost: 170, costMult: 1.15, infinite: true, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.012 } },
+
+  // ════════════════ Expansion — 30 CAPPED Genome-Core sinks (deeper build levers) ════════════════
+  // Each targets a Power-scored RunModifiers field ⇒ every purchase raises Power; magnitudes are
+  // deliberately MODEST (a fully-maxed axis is a single-digit-% swing, never a spike) and costs
+  // escalate so the tier is a long-horizon SINK, not a cheap-breadth power dump. The runaway (∞) tier
+  // stays exactly the six above (docs/EVOLUTION-HQ.md §runaway — one uncapped sink per category); this
+  // block is all CAPPED depth. Balanced against the five-persona premium guardrail (Whale/F2P ≤ ×1.6).
+  // ── Combat ──
+  { id: 'barbed_genome', name: 'Barbed Genome', description: '+1 max Fracture stack per level (deeper armor shred)', category: 'Combat', maxLevel: 3, baseCost: 80, costMult: 1.6, run: { field: 'fractureBonusStacks', op: 'add', perLevel: 1 } },
+  { id: 'cascade_genome', name: 'Cascade Genome', description: 'Status reactions re-fire once more (a rare capstone)', category: 'Combat', maxLevel: 1, baseCost: 255, costMult: 1.9, run: { field: 'reactionRepeats', op: 'add', perLevel: 1 } },
+  { id: 'resonant_command', name: 'Resonant Command', description: "+2% damage for towers matching your hero's class, per level", category: 'Combat', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'classResonanceBonus', op: 'add', perLevel: 0.02 } },
+  { id: 'diverse_arsenal', name: 'Diverse Arsenal', description: '+2% tower damage per DISTINCT tower class fielded, per level', category: 'Combat', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'diversityBonus', op: 'add', perLevel: 0.02 } },
+  { id: 'void_lattice', name: 'Void Lattice', description: '+0.4% tower damage per EMPTY build slot, per level', category: 'Combat', maxLevel: 4, baseCost: 90, costMult: 1.6, run: { field: 'damagePerEmptySlot', op: 'add', perLevel: 0.004 } },
+  { id: 'multi_spinneret', name: 'Multi-Spinneret', description: 'Needle Spitter fires +1 extra needle (a rare capstone)', category: 'Combat', maxLevel: 1, baseCost: 240, costMult: 1.9, run: { field: 'needleExtraProjectiles', op: 'add', perLevel: 1 } },
+  { id: 'siege_saturation', name: 'Siege Saturation', description: '+3% splash radius per level (a deeper AoE sink)', category: 'Combat', maxLevel: 4, baseCost: 95, costMult: 1.6, run: { field: 'splashRadiusMult', op: 'mul', perLevel: 0.03 } },
+  // ── Tower identities ──
+  { id: 'virulent_strain', name: 'Virulent Strain', description: '+3% Parasite Infection damage per level', category: 'Tower', maxLevel: 5, baseCost: 72, costMult: 1.55, run: { field: 'parasiteInfectionMult', op: 'mul', perLevel: 0.03 } },
+  { id: 'neural_dominion', name: 'Neural Dominion', description: '+1.5% Disruption vulnerability per level', category: 'Tower', maxLevel: 4, baseCost: 80, costMult: 1.55, run: { field: 'obeliskVulnerabilityBonus', op: 'add', perLevel: 0.015 } },
+  { id: 'overcharge_grid', name: 'Overcharge Grid', description: '+0.02 Flesh Reactor overcharge per level', category: 'Tower', maxLevel: 4, baseCost: 80, costMult: 1.55, run: { field: 'reactorOverchargeBonus', op: 'add', perLevel: 0.02 } },
+  { id: 'gaping_maw', name: 'Gaping Maw', description: '+3% Carrion Maw bite reach per level', category: 'Tower', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'mawCleaveRadiusMult', op: 'mul', perLevel: 0.03 } },
+  { id: 'deep_amber', name: 'Deep Amber', description: '+3.5% Amber Chrysalis encasement duration per level', category: 'Tower', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'chrysalisFreezeDurationMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'eternal_wail', name: 'Eternal Wail', description: '+3.5% Wailing Effigy panic duration per level', category: 'Tower', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'effigyDreadDurationMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'harmonic_overtuning', name: 'Harmonic Overtuning', description: '+3.5% Resonance Coil beam ramp per level', category: 'Tower', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'coilRampMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'prismatic_conduits', name: 'Prismatic Conduits', description: 'Resonance Coil beam forks to +1 more target (a rare capstone)', category: 'Tower', maxLevel: 1, baseCost: 240, costMult: 1.9, run: { field: 'coilBeamTargets', op: 'add', perLevel: 1 } },
+  // ── Hero ──
+  { id: 'predators_eye', name: "Predator's Eye", description: '+2% hero crit chance per level', category: 'Hero', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'heroCritChance', op: 'add', perLevel: 0.02 } },
+  { id: 'savage_instinct', name: 'Savage Instinct', description: '+10% hero crit damage per level', category: 'Hero', maxLevel: 3, baseCost: 90, costMult: 1.6, run: { field: 'heroCritDamageBonus', op: 'add', perLevel: 0.10 } },
+  { id: 'frenzied_metabolism', name: 'Frenzied Metabolism', description: '+2% hero attack speed per level', category: 'Hero', maxLevel: 4, baseCost: 90, costMult: 1.6, run: { field: 'heroAttackSpeedMult', op: 'mul', perLevel: 0.02 } },
+  { id: 'expansive_mind', name: 'Expansive Mind', description: '+3.5% hero ability radius per level', category: 'Hero', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'heroAbilityRadiusMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'regenerative_biology', name: 'Regenerative Biology', description: '+6% hero healing received per level', category: 'Hero', maxLevel: 4, baseCost: 64, costMult: 1.5, run: { field: 'heroHealingMult', op: 'mul', perLevel: 0.06 } },
+  { id: 'chitin_plating', name: 'Chitin Plating', description: '+2% hero contact-damage reduction per level', category: 'Hero', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'heroArmor', op: 'add', perLevel: 0.02 } },
+  { id: 'warlord_resonance', name: 'Warlord Resonance', description: '+2% damage to towers near your hero, per level', category: 'Hero', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'heroTowerDamageAura', op: 'add', perLevel: 0.02 } },
+  { id: 'quickening_aura', name: 'Quickening Aura', description: '+2% fire rate to towers near your hero, per level', category: 'Hero', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'heroTowerHasteAura', op: 'add', perLevel: 0.02 } },
+  // ── Infrastructure / support ──
+  { id: 'last_bastion_meta', name: 'Last Bastion Doctrine', description: '+4% Last Stand tower damage while the Nucleus is low, per level', category: 'Infrastructure', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'lastStandMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'sclerotic_hull', name: 'Sclerotic Hull', description: '+3% max Integrity (multiplicative) per level', category: 'Infrastructure', maxLevel: 5, baseCost: 72, costMult: 1.55, run: { field: 'integrityMult', op: 'mul', perLevel: 0.03 } },
+  // ── Utility (trade-off + tempo levers) ──
+  { id: 'genetic_purge', name: 'Genetic Purge', description: '−1.2% enemy HP scaling per level', category: 'Utility', maxLevel: 4, baseCost: 96, costMult: 1.65, run: { field: 'enemyHpRunMult', op: 'mul', perLevel: -0.012 } },
+  { id: 'synaptic_overclock', name: 'Synaptic Overclock', description: '−1.5% hero ability cooldown per level', category: 'Utility', maxLevel: 4, baseCost: 88, costMult: 1.6, run: { field: 'heroCooldownMult', op: 'mul', perLevel: -0.015 } },
+  { id: 'kinetic_priming', name: 'Kinetic Priming', description: '+3% hero move speed per level', category: 'Utility', maxLevel: 4, baseCost: 64, costMult: 1.5, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.03 } },
+  // ── Economy ──
+  { id: 'enzyme_cascade', name: 'Enzyme Cascade', description: '+4% Flesh Reactor biomass per level', category: 'Economy', maxLevel: 5, baseCost: 64, costMult: 1.5, run: { field: 'reactorBiomassMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'seed_vault', name: 'Seed Vault', description: '+15 starting biomass per level', category: 'Economy', maxLevel: 5, baseCost: 64, costMult: 1.5, run: { field: 'startBiomassBonus', op: 'add', perLevel: 15 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {

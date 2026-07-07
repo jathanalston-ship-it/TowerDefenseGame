@@ -15,7 +15,7 @@ function stubCtx(): CanvasRenderingContext2D {
 }
 
 function makeTower(branchId: string, tier: number): Tower {
-  return { id: 1, kind: 'needle', x: 100, y: 100, slot: 0, cooldown: 0, overcharged: false, bornAt: 0, disabledUntil: 0, dampenedUntil: 0, dampenFrac: 0, branchId, tier, strain: 1, strainCd: 0, pulseCd: 0, mutatedAt: -100, movedAt: -100 };
+  return { id: 1, kind: 'needle', x: 100, y: 100, slot: 0, cooldown: 0, overcharged: false, bornAt: 0, disabledUntil: 0, dampenedUntil: 0, dampenFrac: 0, branchId, tier, strain: 1, strainCd: 0, pulseCd: 0, mutatedAt: -100, movedAt: -100, beamTarget: -1, beamHeat: 0 };
 }
 
 const branchIds = branchRegistry.all().map((b) => b.id);

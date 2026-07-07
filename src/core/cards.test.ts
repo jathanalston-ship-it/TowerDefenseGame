@@ -16,7 +16,7 @@ import {
   draftCards,
   rollCardRarity,
 } from './cards';
-import type { CardContext } from './cards';
+import type { CardContext, CardUnlock } from './cards';
 import type { CardRarity, CardSubject, TowerKind } from './types';
 import { Rng } from './rng';
 import { Game } from './game';
@@ -70,6 +70,18 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     overcharged_grid: 'reactor', gravity_well: 'obelisk', glass_genome: 'global',
     executioners_law: 'global', last_bastion: 'global', apex_predator: 'hero',
     carrion_bloom: 'economy', // +biomassMult (economy) + on-kill biomass hook (economy) ⇒ ECONOMY
+    // Resonance Coil cards + progression-gated general pool
+    harmonic_overload: 'coil', prismatic_split: 'coil',
+    viral_bloom: 'parasite', neural_overclock: 'hero', siege_protocol: 'global',
+    overclocked_matrix: 'global', unstable_genome: 'global',
+    // Expansion pool (5 ungated + 5 gated)
+    barbed_carapace: 'hero', concussive_rounds: 'global', gestating_brood: 'economy',
+    corroded_fangs: 'mortar', tempered_instincts: 'hero',
+    apex_swarm: 'economy', corrosive_deluge: 'mortar', phalanx_protocol: 'global',
+    dread_resonance: 'effigy', singularity_core: 'global',
+    // Behavioral gated pool (docs/CARDS.md §gates) — distinct-axis unlocks
+    regenerative_carapace: 'hive', ambush_enzyme: 'global', culling_instinct: 'global',
+    viral_payload: 'global', toxic_aura: 'hero',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 
@@ -177,6 +189,61 @@ describe('effect application', () => {
       for (const p of game.projectiles) if ((p.pierce ?? 0) > 0) { sawPierce = true; break; }
     }
     expect(sawPierce).toBe(true); // the card's grant reached the live projectile path
+  });
+});
+
+describe('behavioral gated Gene Cards (docs/CARDS.md §gates)', () => {
+  const GATED = ['regenerative_carapace', 'ambush_enzyme', 'culling_instinct', 'viral_payload', 'toxic_aura'];
+  // Each behavioral card gates on ITS OWN distinct lifetime axis — the account earns them by playing
+  // different ways (meta.cardUnlocked maps each axis to the matching save record; see coil.test.ts).
+  const AXIS: Record<string, CardUnlock['kind']> = {
+    regenerative_carapace: 'totalRuns', ambush_enzyme: 'bestWave', culling_instinct: 'lifetimeKills',
+    viral_payload: 'bossesSlain', toxic_aura: 'totalBiomass',
+  };
+
+  it('every behavioral card carries an unlock on its own DISTINCT axis; ungated cards have none', () => {
+    for (const id of GATED) {
+      const u = cardRegistry.get(id)!.unlock;
+      expect(u, `${id} unlock`).toBeDefined();
+      expect(u!.kind, `${id} axis`).toBe(AXIS[id]);
+    }
+    expect(cardRegistry.get('sharpened_needles')!.unlock).toBeUndefined(); // a base card is never gated
+    expect(new Set(GATED.map((id) => AXIS[id])).size, 'all five axes are distinct').toBe(GATED.length);
+  });
+
+  it('the default draft excludes every behavioral gated card; unlocking an id injects exactly it', () => {
+    const draw = (unlocked?: Set<string>): Set<string> =>
+      new Set(draftCards(new Rng(1), 200, 40, undefined, unlocked).map((c) => c.id)); // big count ⇒ whole draftable pool
+    const base = draw();
+    for (const id of GATED) expect(base.has(id), `${id} gated out of the default pool`).toBe(false);
+    const withOne = draw(new Set(['ambush_enzyme']));
+    expect(withOne.has('ambush_enzyme'), 'the earned card is injected').toBe(true);
+    expect(withOne.has('viral_payload'), 'a still-gated card stays out').toBe(false);
+  });
+
+  it('NO unlock set ⇒ gated cards locked ⇒ the ungated draft is byte-identical (golden-safe)', () => {
+    for (let seed = 0; seed < 60; seed++) {
+      const bare = draftCards(new Rng(seed), 3, 20).map((c) => c.id); // no unlock arg (tests/autoplay)
+      const emptySet = draftCards(new Rng(seed), 3, 20, undefined, new Set<string>()).map((c) => c.id);
+      expect(emptySet).toEqual(bare); // an empty unlock set draws the same pool as "no set"
+      for (const id of bare) expect(GATED.includes(id)).toBe(false); // never a gated card
+    }
+  });
+
+  it('drives the sim: a gated card FIRES its effect once drafted (Regenerative Carapace heals on clear)', () => {
+    const game = new Game(3, NO_META);
+    game.debugAddBiomass(500);
+    for (const s of towerSlots) if (game.placeTower('needle', s.x, s.y)) break;
+    // Inject the drafted card (drafts are RNG — this tests the wiring, not luck).
+    game.phase = 'draft';
+    game.draft = [cardRegistry.get('regenerative_carapace')!];
+    game.chooseCard('regenerative_carapace');
+    game.startWave();
+    game.integrity = 40; // wound the Nucleus so the +30 regen is observable (and below max)
+    game.debugSkipWave(); // empty the wave → checkWaveEnd fires next tick
+    let guard = 0;
+    while ((game.phase as string) === 'wave' && guard++ < 10_000) game.advance(SIM_DT);
+    expect(game.integrity).toBeGreaterThan(40); // the cleared wave regrew Integrity (+30, capped at max)
   });
 });
 

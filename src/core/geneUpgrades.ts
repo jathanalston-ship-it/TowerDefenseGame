@@ -57,6 +57,38 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.08 }], note: 'Nothing moves, everything breaks — +8% Disruption vulnerability.' },
   ],
 
+  // ════════════════ Progression-gated (docs/CARDS.md §gates) — rare, 4 levels ════════════════
+  regenerative_carapace: [
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 10 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Faster knit — +10 Integrity/wave, +5% biomass.' },
+    { effects: [{ op: 'integrity', value: 25 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Hardened plating — +25 Integrity now, +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 15 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Living carapace — +15 more Integrity per wave.' },
+    { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Reclaimed plates — +5% sell refund, +6% tower damage.' },
+  ],
+  ambush_enzyme: [
+    { effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.15 }], note: 'Sharper ambush — +15% first-strike damage.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Coiled strike — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.2 }], note: 'Perfect opening — +20% first-strike damage.' },
+    { effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.15 }, { op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Killing tempo — +15% first-strike, +6% fire rate.' },
+  ],
+  culling_instinct: [
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.02 }], note: 'Sharper cull — execute below 12% HP.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Culling edge — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.03 }], note: 'No stragglers — execute below 15% HP.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.03 }, { op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Law of the hive — execute below 18% HP, +1 Fracture cap.' },
+  ],
+  viral_payload: [
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Deeper cracks — +1 max Fracture stack.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Weaponized rot — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'killFractureSplash', value: 1 }, { op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Wider bloom — +1 Fracture spread, +1 cap.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'The plague CHAINS — status reactions re-fire once more.' },
+  ],
+  toxic_aura: [
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Thicker miasma — Corrosion ticks +10% harder.' },
+    { effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.06 }, { op: 'mul', field: 'poolDpsMult', value: 1.06 }], note: 'Clinging fumes — Corrosion slows +6% more.' },
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.1 }], note: 'Necrotic haze — +10% Infection damage.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.12 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.04 }], note: 'The reeking field — Corrosion ticks +12% harder.' },
+  ],
+
   // ════════════════ Common (3 levels) ════════════════
   sharpened_needles: [
     { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Honed edges — +6% tower damage.' },
@@ -327,5 +359,117 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'add', field: 'heroLifestealFrac', value: 0.08 }], note: 'Feeds on the kill — heal 8% of damage dealt.' },
     { effects: [{ op: 'mul', field: 'enemyHpRunMult', value: 0.95 }], note: 'Prey weakens — enemies gain 5% LESS bonus HP.' },
     { effects: [{ op: 'add', field: 'heroCritChance', value: 0.1 }, { op: 'add', field: 'heroCritDamageBonus', value: 0.5 }], note: 'THE APEX STRIKES TRUE — +10% crit chance, crits hit +50% harder.' },
+  ],
+
+  // ════════════════ Resonance Coil cards (gated by owning the Coil) ════════════════
+  // Modest permanent bumps (the base DRAFT effect carries the card's strength; upgrades are a gentle
+  // permanent nudge that keeps the whole gene library within its calibrated ≤2.6× power band).
+  harmonic_overload: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.039 }], note: 'Tighter tuning — +6% beam ramp.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.01 }], note: 'Sympathetic resonance — +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.052 }], note: 'Runaway harmonics — +8% beam ramp.' },
+    { effects: [{ op: 'add', field: 'coilBeamTargets', value: 1 }, { op: 'mul', field: 'coilRampMult', value: 1.032 }], note: 'Overtone SPLIT — the beam melts one more target, +5% ramp.' },
+  ],
+  prismatic_split: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.039 }], note: 'Refracted focus — +6% beam ramp.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.01 }], note: 'Brighter lattice — +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.052 }], note: 'Deeper prism — +8% beam ramp.' },
+    { effects: [{ op: 'add', field: 'coilBeamTargets', value: 1 }], note: 'FULL SPECTRUM — the beam forks to yet another target.' },
+  ],
+
+  // ════════════════ Progression-gated general cards ════════════════
+  viral_bloom: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.039 }], note: 'Virulent strain — +6% Infection.' },
+    { effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Infection', amount: 1 } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.026 }], note: 'The hero carries it — hero hits apply Infection.' },
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.052 }], note: 'Mutation drift — +8% Infection.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 1, radius: 110 } } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.032 }], note: 'Second bloom — kills spread Infection wider.' },
+  ],
+  neural_overclock: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.016 }], note: 'Overclocked synapses — +5% hero damage.' },
+    { effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.96 }], note: 'Faster firing — a further −4% ability cooldown.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.02 }], note: 'Neural surge — +6% hero damage.' },
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.04 }, { op: 'mul', field: 'heroCooldownMult', value: 0.96 }], note: 'Precision burst — +4% crit chance, −4% cooldown.' },
+  ],
+  siege_protocol: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.052 }], note: 'Wider shells — +8% splash radius.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.01 }], note: 'Heavier payload — +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.052 }], note: 'Saturation spread — +8% splash radius.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.013 }, { op: 'mul', field: 'splashRadiusMult', value: 1.032 }], note: 'Total bombardment — +4% damage, +5% splash.' },
+  ],
+  overclocked_matrix: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.013 }], note: 'Tighter cadence — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.013 }], note: 'Denser output — +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.016 }], note: 'Red-line matrix — +5% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.013 }, { op: 'mul', field: 'towerFireRateMult', value: 1.013 }], note: 'Overclock ascendant — +4% damage, +4% fire rate.' },
+  ],
+  unstable_genome: [ // legendary → 5
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.016 }], note: 'Volatile splice — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'Cracking chitin — +2 max Fracture stacks.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.02 }], note: 'Runaway mutation — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Reactions CASCADE further — re-fire once more.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.02 }, { op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'GENOME UNBOUND — +6% damage, +2 max Fracture.' },
+  ],
+
+  // ── Expansion base pool (5, ungated) ──
+  barbed_carapace: [ // common → 3
+    { effects: [{ op: 'heroHp', value: 40 }, { op: 'add', field: 'heroThornsFrac', value: 0.04 }], note: 'Denser plating — +40 hero HP, +4% thorns.' },
+    { effects: [{ op: 'add', field: 'heroThornsFrac', value: 0.05 }, { op: 'mul', field: 'heroHealingMult', value: 1.08 }], note: 'Reactive spines — +5% thorns, +8% healing received.' },
+    { effects: [{ op: 'heroHp', value: 60 }, { op: 'add', field: 'heroThornsFrac', value: 0.05 }], note: 'Living bulwark — +60 hero HP, +5% thorns.' },
+  ],
+  concussive_rounds: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Denser payload — +5% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.12 }, { op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Wider burst — +12% splash, +4% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Shaped charge — +6% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Overpressure — +15% splash, +5% tower damage.' },
+  ],
+  gestating_brood: [ // common → 3
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Fecund spores — +6% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }, { op: 'add', field: 'reactorOverchargeBonus', value: 0.08 }], note: 'Nutrient glut — +6% biomass, +0.08 reactor overcharge.' },
+    { effects: [{ op: 'biomass', value: 200 }, { op: 'mul', field: 'biomassMult', value: 1.08 }], note: 'Bloom — 200 biomass now, +8% biomass income.' },
+  ],
+  corroded_fangs: [ // common → 3
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.08 }], note: 'Sharper acid — +8% Corrosion damage.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.08 }, { op: 'add', field: 'corrosionSlowBonus', value: 0.06 }], note: 'Etching bite — +8% Corrosion, +6% slow.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.08 }], note: 'Necrotic venom — +10% Corrosion, +8% Infection.' },
+  ],
+  tempered_instincts: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Honed strikes — +6% hero damage.' },
+    { effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.94 }, { op: 'mul', field: 'heroAttackSpeedMult', value: 1.05 }], note: 'Fluid kata — −6% cooldown, +5% attack speed.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.08 }], note: 'Killer focus — +8% hero damage.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.08 }, { op: 'mul', field: 'heroCooldownMult', value: 0.92 }], note: 'Apex tempo — +8% hero damage, −8% cooldown.' },
+  ],
+
+  // ── Expansion gated pool (5, unique gates) ──
+  apex_swarm: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Ravenous — +6% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.07 }, { op: 'add', field: 'sellRefundFrac', value: 0.03 }], note: 'Efficient reclaim — +7% biomass, +3% sell refund.' },
+    { effects: [{ op: 'biomass', value: 200 }, { op: 'mul', field: 'biomassMult', value: 1.07 }], note: 'Swarm feast — 200 biomass now, +7% biomass income.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.08 }, { op: 'add', field: 'reactorOverchargeBonus', value: 0.1 }], note: 'Hive gorge — +8% biomass, +0.1 reactor overcharge.' },
+  ],
+  corrosive_deluge: [ // epic → 5
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Caustic flood — +10% Corrosion damage.' },
+    { effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.2 }, { op: 'mul', field: 'poolDpsMult', value: 1.05 }], note: 'Lingering mire — pools +20% longer, +5% Corrosion.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }, { op: 'add', field: 'corrosionSlowBonus', value: 0.08 }], note: 'Viscous acid — +10% Corrosion, +8% slow.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.12 }], note: 'Hyper-etchant — +12% Corrosion damage.' },
+    { effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.25 }, { op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Deluge — pools +25% longer, +10% Corrosion.' },
+  ],
+  phalanx_protocol: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Drilled cadence — +5% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Disciplined volley — +5% fire rate, +4% damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Locked formation — +6% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Shield wall — +6% fire rate, +5% damage.' },
+  ],
+  dread_resonance: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }], note: 'Deeper wail — +10% panic duration.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }, { op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Terror cadence — +10% panic, +5% fire rate.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.12 }], note: 'Soul-rattling — +12% panic duration.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.12 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.08 }], note: 'Broken minds — +12% panic; disrupted foes take +8%.' },
+  ],
+  singularity_core: [ // legendary → 5
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Gravitic lensing — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Event horizon — status reactions re-fire once more.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.08 }], note: 'Collapsing core — +8% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.15 }, { op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Accretion — +15% splash, +6% fire rate.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], note: 'SINGULARITY — reactions re-fire once more, +8% tower damage.' },
   ],
 };

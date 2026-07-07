@@ -30,13 +30,20 @@ import { autoplay } from './sim.testutil';
 //
 // (Prior baselines: TOWER EXPANSION card pool; BIOMORPH CONVEYOR; HIVE SIEGE re-model;
 // PREDICTIVE MORTAR LEAD; SETTLE; SLOTS; GENE CARDS.)
+//
+// Re-pinned 2026-07 for the EXPANSION BASE POOL (5 new ungated genes: Barbed Carapace, Concussive
+// Rounds, Gestating Brood, Corroded Fangs, Tempered Instincts). The larger pool shifts which cards
+// autoplay drafts per seed, moving end-of-run integrity + biomass (the new set includes hero-survival
+// AND economy genes). **wave (12), kills (196), and the 'won' outcome are IDENTICAL on every seed** —
+// the run structure is unchanged; only drafted-buff-dependent integrity/biomass moved. The 5 GATED
+// expansion genes stay OUT of the default pool ⇒ no sim-logic change. Any FURTHER drift is unintended.
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
-  1: { wave: 12, kills: 196, integrity: 227, biomass: 7991, phase: 'won' },
-  7: { wave: 12, kills: 196, integrity: 97, biomass: 8179, phase: 'won' },
-  42: { wave: 12, kills: 196, integrity: 97, biomass: 10083, phase: 'won' },
-  777: { wave: 12, kills: 196, integrity: 91, biomass: 7943, phase: 'won' },
-  2024: { wave: 12, kills: 196, integrity: 170, biomass: 8759, phase: 'won' },
-  12345: { wave: 12, kills: 196, integrity: 139, biomass: 10044, phase: 'won' },
+  1: { wave: 12, kills: 196, integrity: 112, biomass: 8638, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 142, biomass: 8216, phase: 'won' },
+  42: { wave: 12, kills: 196, integrity: 97, biomass: 9267, phase: 'won' },
+  777: { wave: 12, kills: 196, integrity: 231, biomass: 9206, phase: 'won' },
+  2024: { wave: 12, kills: 196, integrity: 100, biomass: 8505, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 139, biomass: 8563, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

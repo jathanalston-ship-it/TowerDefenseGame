@@ -118,6 +118,9 @@ export function GameView({
     geneLevels: meta.geneLevels(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),
+    // Progression-gated gene cards the account has earned (campaign depth / best wave / owning the
+    // Coil) — injected into the draft pool. A fresh account passes none ⇒ ungated catalog only.
+    unlockedCardIds: meta.unlockedCardIds(),
   }));
   // The starting-genes CINEMATIC: a brief splash naming the genes that just activated (auto-fades).
   const [geneSplash, setGeneSplash] = useState<string[]>(() => (tutorial ? [] : meta.startingGenes()));

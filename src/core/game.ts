@@ -72,7 +72,7 @@ import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
-import { BOSS, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
+import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
 import { Director } from './director';
@@ -112,6 +112,8 @@ import { BRANCH_COSTS } from './config';
 const EMPTY_STR: readonly string[] = []; // shared no-alloc default for per-cast mutator lists
 const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's (Reactor) ability pulses
 const BRANCH_HITSTOP = 0.12; // seconds the view-loop freezes on a tier purchase (a juicy "impact" beat)
+const KILL_FRACTURE_RANGE = 78; // Viral Payload — on-kill Fracture-splash radius (px)
+const HERO_CORROSION_RANGE = 92; // Toxic Aura — the hero's passive Corrosion aura radius (px)
 const MUTATION_BANNER_LIFE = 2.4; // seconds the tier-purchase banner is surfaced to the HUD
 
 export type RunMode = 'stage' | 'endless' | 'campaign' | 'bossRush' | 'daily';
@@ -131,6 +133,7 @@ export interface RunOptions {
   // gates placement, the conveyor's kind rolls, and the draft pool. Omitted ⇒ ALL kinds (the
   // golden path — tests/autoplay/probes construct without it and are byte-identical).
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
+  unlockedCardIds?: readonly string[]; // PROGRESSION-gated gene-card ids (CardDef.unlock) the account has earned — injected into the draft pool. Omitted ⇒ only ungated cards (golden path)
   // Daily Run (docs/DAILY-RUN.md): the day's TWO modifier ids, resolved once at boot into the
   // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
   // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
@@ -145,6 +148,7 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
   else if (e.op === 'set') mods[e.field] = e.value;
 }
 import type {
+  CombatClass,
   Enemy,
   EnemyKind,
   Hero,
@@ -169,6 +173,7 @@ import type {
   StatusType,
   Tower,
   TowerKind,
+  TowerMods,
   TowerProgress,
   FloatingText,
   EnemyShell,
@@ -492,6 +497,7 @@ export class Game {
   readonly conveyor: ConveyorItem[] = []; // growing (readyAt > time, ≤1) + ready (≤ queueMax)
   favoriteTower: TowerKind;
   readonly unlockedKinds: ReadonlySet<TowerKind>; // the run roster (UI rails read this too)
+  private readonly unlockedCardIds: ReadonlySet<string>; // progression-gated gene cards the account has earned (draft injection)
   deployments = 0; // player deployments this run — drives the universal cost curve
   selectedConveyorId: number | null = null; // a READY organism armed for placement (docs/STRAIN.md §conveyor)
   private conveyorSeq = 0; // branch tier tagged onto shots (drives projectile evolution; 0 = base)
@@ -525,6 +531,9 @@ export class Game {
     this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
     this.favoriteTower = opts.favorite ?? 'needle';
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
+    // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
+    // is draftable, so a fresh account / the golden sim is byte-identical).
+    this.unlockedCardIds = new Set(opts.unlockedCardIds ?? []);
     // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
     // struct every hook reads (mults 1 / adds 0 without them ⇒ every read below is golden-safe).
     // The dedicated rng paces Infestation's elite rolls — consumed ONLY when that modifier is live.
@@ -742,11 +751,12 @@ export class Game {
   private heroAbilityRadiusFor(h: Hero): number {
     return this.hmods(h).heroAbilityRadiusMult * this.evo.abilityRadiusMult;
   }
-  /** Heal a hero by `n`, scaled by Evolution Regeneration (healing RECEIVED), clamped to max HP.
-   *  No-op when down or n≤0. healingMult=1 ⇒ a plain clamp (golden-safe). */
+  /** Heal a hero by `n`, scaled by Evolution Regeneration + the run's healing-received modifier
+   *  (gear / gene cards / Genome meta), clamped to max HP. No-op when down or n≤0. Both factors
+   *  are 1 in a neutral run ⇒ a plain clamp (golden-safe). */
   private healHeroBy(h: Hero, n: number): void {
     if (h.down || n <= 0) return;
-    h.hp = Math.min(h.maxHp, h.hp + n * this.evo.healingMult);
+    h.hp = Math.min(h.maxHp, h.hp + n * this.evo.healingMult * this.hmods(h).heroHealingMult);
   }
   /** Roll a hero crit for one damage instance → the damage multiplier (1 = no crit) + whether it
    *  crit. GATED on crit chance > 0 so a run with no Precision spends NO rng (golden byte-identical). */
@@ -1625,6 +1635,8 @@ export class Game {
       pulseCd: 0,
       mutatedAt: -100, // never mutated ⇒ no grow-in / flash (a fresh, unbranched silhouette)
       movedAt: -100, // never relocated ⇒ no landing-impact FX
+      beamTarget: -1, // Resonance Beam: not channeling (inert for every non-coil kind)
+      beamHeat: 0, // resonance charge (0..1)
     });
     this.statTowerBuilds[kind]++; // lifetime-stats observation
     this.recomputeTowerCaches();
@@ -2829,40 +2841,26 @@ export class Game {
         continue; // base economy/overcharge handled in economySystem
       }
       if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
+      // Resonance Coil (firing 'beam'): a CONTINUOUS, locked, ramping channel — it deals damage every
+      // tick (not on the projectile cooldown), so it's handled in its own system before the cooldown
+      // gate. It shares the EXACT damage/rate fold (towerAttackMods) so overcharge, hero auras, biome,
+      // class resonance, dampeners, corruption and branches all apply identically. No coil ⇒ never reached.
+      if (def.firing === 'beam') {
+        const bprog = this.towerProgress[t.kind];
+        const bbk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
+        const bmods = this.towerAttackMods(t, def, bprog, bbk, ksDmg, runBuffDmg, resoClass);
+        this.beamTowerSystem(t, dt, def, bprog, bbk, bmods.dmgMult, bmods.rateMult);
+        continue;
+      }
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
       // Per-instance branch upgrade kit (TOWER-BRANCHES.md). Null when unbranched ⇒ every
       // fold below reduces to the base path ⇒ golden byte-identical (autoplay never branches).
       const bk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
-      // Bonus math flows through the universal modifier framework (combineMult — the
-      // canonical multiplier fold, bit-identical to the previous a*b*c product).
-      const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
-      // Reactor STAR evolution: its kit adds to the overcharge it projects onto neighbors.
-      const starOc = this.towerProgress.reactor.reactorOverchargeBonus ?? 0; // 0 for a fresh save
-      const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus + starOc : 1;
-      // SUPPORT gear: a hero aura hastes/empowers towers within range (×1 ⇒ golden-safe without aura gear).
-      let heroHaste = 1;
-      let heroDmgAura = 1;
-      if (this.mods.heroAuraRadius > 0) {
-        const r2 = this.mods.heroAuraRadius * this.mods.heroAuraRadius;
-        // A tower is buffed if near ANY living hero projecting the aura (per-roster; single-hero
-        // iterates just the primary ⇒ byte-identical golden run).
-        if (this.heroes.some((ph) => !ph.down && dist2(t.x, t.y, ph.x, ph.y) <= r2)) {
-          heroHaste = 1 + this.mods.heroTowerHasteAura;
-          heroDmgAura = 1 + this.mods.heroTowerDamageAura;
-        }
-      }
-      // Biome efficiency (docs/BIOMES.md): a per-combat-class damage × that shifts which class
-      // shines, and a fire-rate × (steady + hazard pulse). Applied OUTSIDE combineMult so the
-      // identity (×1 under NEUTRAL_BIOME) is IEEE-exact ⇒ Stage mode stays byte-identical.
-      const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
-      // Boss dampener aura (docs/BOSS-DESIGN.md §siege): a dampened tower fires slower until
-      // the window lapses. 1 when never dampened ⇒ identical fold.
-      const dampenMult = this.time < t.dampenedUntil ? 1 - t.dampenFrac : 1;
-      const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult;
-      const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
-      const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t);
+      // Bonus math flows through the universal modifier framework (combineMult). Factored into
+      // towerAttackMods so the beam path shares the EXACT math; the projectile result is bit-identical.
+      const { dmgMult, rateMult } = this.towerAttackMods(t, def, prog, bk, ksDmg, runBuffDmg, resoClass);
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -2947,6 +2945,123 @@ export class Game {
     this.castProjectileSkin = undefined;
     this.castProjectileSkinTier = 0;
     this.castExcludeFrozen = false;
+  }
+
+  /** The combined tower DAMAGE + FIRE-RATE fold (overcharge · hero aura · biome class · dampener ·
+   *  corruption · class resonance · keystones · run buffs · branch ride-along). Extracted so the
+   *  projectile loop AND the Resonance Beam share the EXACT same math — the projectile path's result
+   *  is bit-identical to the previous inline computation (golden-safe). `ksDmg`/`runBuffDmg`/`resoClass`
+   *  are hoisted once per tick by the caller (loop-invariant). */
+  private towerAttackMods(
+    t: Tower, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null,
+    ksDmg: number, runBuffDmg: number, resoClass: CombatClass | null,
+  ): { dmgMult: number; rateMult: number } {
+    const ocRate = t.overcharged ? 1 + ECON.overchargeRate : 1;
+    // Reactor STAR evolution: its kit adds to the overcharge it projects onto neighbors.
+    const starOc = this.towerProgress.reactor.reactorOverchargeBonus ?? 0; // 0 for a fresh save
+    const ocDmg = t.overcharged ? 1 + ECON.overchargeDamage + this.mods.reactorOverchargeBonus + starOc : 1;
+    // SUPPORT gear: a hero aura hastes/empowers towers within range (×1 ⇒ golden-safe without aura gear).
+    let heroHaste = 1;
+    let heroDmgAura = 1;
+    if (this.mods.heroAuraRadius > 0) {
+      const r2 = this.mods.heroAuraRadius * this.mods.heroAuraRadius;
+      if (this.heroes.some((ph) => !ph.down && dist2(t.x, t.y, ph.x, ph.y) <= r2)) {
+        heroHaste = 1 + this.mods.heroTowerHasteAura;
+        heroDmgAura = 1 + this.mods.heroTowerDamageAura;
+      }
+    }
+    // Biome efficiency (docs/BIOMES.md): per-combat-class damage × + fire-rate ×; identity (×1) under
+    // NEUTRAL_BIOME is IEEE-exact ⇒ Stage mode stays byte-identical.
+    const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
+    // Boss dampener aura (docs/BOSS-DESIGN.md §siege): a dampened tower fires slower. 1 when never dampened.
+    const dampenMult = this.time < t.dampenedUntil ? 1 - t.dampenFrac : 1;
+    const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult;
+    const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
+    const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t);
+    return { dmgMult, rateMult };
+  }
+
+  /** RESONANCE BEAM (Resonance Coil, firing 'beam') — the roster's sustained-focus MELTER, and a
+   *  genuinely different mechanic: instead of discrete shots, the Coil channels a CONTINUOUS beam at
+   *  one locked target and RAMPS. `beamHeat` (0..1) climbs while focus holds the SAME target and
+   *  resets on a switch; damage per tick = base DPS × dmgMult × (1 + heat · rampBonus · coilRampMult),
+   *  so it starts weak and melts anything that stands in it — elites and bosses especially. It honors
+   *  `extraProjectiles` (stars/branches) + the `coilBeamTargets` card knob as EXTRA simultaneous beam
+   *  targets, and fires star/branch grants (crit/status/aura) on the tower's PULSE cadence. Runs every
+   *  tick (dt-scaled ⇒ deterministic). Inert unless a Coil is fielded ⇒ the golden run never sees it. */
+  private beamTowerSystem(
+    t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null,
+    dmgMult: number, rateMult: number,
+  ): void {
+    const profile: TargetingProfile = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'closestToBase';
+    const rangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+    const range = def.range * rangeMult;
+    const extra = (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0) + Math.max(0, Math.floor(this.mods.coilBeamTargets));
+    const nTargets = 1 + Math.max(0, extra);
+    this.abilitySourceKind = t.kind;
+    this.abilityHeroKind = null;
+    this.abilityCaster = null;
+    this.abilityTargeting = profile;
+    const r2 = range * range;
+    // STICKY lock: hold the current target while it's alive + in reach — THAT is what lets resonance
+    // ramp (a fresh profile-pick every tick would reset heat constantly). Re-pick by profile only when
+    // the lock is empty or lost, so the beam bites the toughest, then MELTS it to death before moving on.
+    let primary: Enemy | null = null;
+    if (t.beamTarget >= 0) {
+      const held = this.enemyById.get(t.beamTarget);
+      if (held && held.alive && dist2(t.x, t.y, held.x, held.y) <= r2) primary = held;
+    }
+    const picks = this.pickTargets(t.x, t.y, range, nTargets, profile);
+    if (!primary) primary = picks[0] ?? null;
+    if (!primary) {
+      // Nothing in reach: the beam sputters — resonance bleeds off and the lock drops.
+      t.beamTarget = -1;
+      t.beamHeat = Math.max(0, t.beamHeat - BEAM.heatDecayPerSec * dt);
+      t.cooldown = Math.max(0, t.cooldown - dt); // keep the proc pulse ticking down
+      return;
+    }
+    // Sustained focus RAMPS; a NEW lock starts cold. Fire rate speeds the ramp.
+    if (primary.id !== t.beamTarget) { t.beamTarget = primary.id; t.beamHeat = 0; }
+    else t.beamHeat = Math.min(1, t.beamHeat + BEAM.heatPerSec * rateMult * dt);
+    const heatMult = 1 + t.beamHeat * BEAM.rampBonus * this.mods.coilRampMult;
+    const perTick = def.damage * dmgMult * heatMult * dt; // def.damage = base DPS; × dt = this tick's slice
+    const hot = t.beamHeat >= 0.5; // only flash white once the beam bites, to keep the read clean
+    // The beamed set = the held primary + up to (nTargets-1) other profile picks (extra channels ride
+    // the SAME resonance heat — an extraProjectiles/coilBeamTargets upgrade fans the melt across foes).
+    const beamed: Enemy[] = [primary];
+    for (const e of picks) { if (beamed.length >= nTargets) break; if (e.id !== primary.id) beamed.push(e); }
+    for (const e of beamed) {
+      this.applyDamage(e, perTick, t.kind, hot);
+      this.maybeReact(e);
+    }
+    // Proc pulse: star/branch grants (crit / status / aura) + the Corrosion sear fire on the tower's
+    // cadence, NOT every tick — so a beam with a crit branch crits a few times a second, not 60×.
+    t.cooldown -= dt;
+    if (t.cooldown > 0) return;
+    t.cooldown = def.fireInterval / rateMult;
+    if (t.beamHeat >= BEAM.corrosionHeat) this.applyStatus(primary, { kind: 'Corrosion', amount: BEAM.corrosionAmount });
+    if (prog.extraAbilities || (bk && bk.extraAbilities.length)) {
+      this.castExtraProjectiles = extra;
+      this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
+      this.castRangeMult = rangeMult;
+      this.castProjectileMutators = bk && bk.projectileMutators.length
+        ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
+        : prog.projectileMutators ?? EMPTY_STR;
+      this.castProjectileSkin = undefined; // the beam draws itself; no projectile skin
+      this.castProjectileSkinTier = 0;
+      this.castScratch.x = t.x;
+      this.castScratch.y = t.y;
+      this.castScratch.damageMult = dmgMult * heatMult; // grants scale with the beam's current resonance
+      this.castScratch.target = primary;
+      this.castScratch.pierce = 0;
+      if (prog.extraAbilities) runAbilities(this.actx, prog.extraAbilities, this.castScratch);
+      if (bk && bk.extraAbilities.length) runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+      this.castExtraProjectiles = 0;
+      this.castSplashMult = 1;
+      this.castRangeMult = 1;
+      this.castProjectileMutators = EMPTY_STR;
+    }
+    if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier); // branch matter on the pulse
   }
 
   /** Carrion Maw strain verbs on a landed bite (docs/STRAIN.md): Bone Vice grips everything in
@@ -3820,6 +3935,22 @@ export class Game {
     }
 
     this.heroContactDamage(h, def, dt);
+    if (this.mods.heroCorrosionAura) this.heroCorrosionField(h); // Toxic Aura (gene card)
+  }
+
+  /** Toxic Aura (gene card) — the hero passively drenches nearby enemies in Corrosion, which can
+   *  SHRED (the Corrosion→Fracture reaction) via maybeReact. Gated on the mod ⇒ off on the golden
+   *  path (autoplay never drafts it), and a no-op with no enemies in range. */
+  private heroCorrosionField(h: Hero): void {
+    if (h.down) return;
+    const near = this.neighborScratch;
+    this.grid.queryInto(h.x, h.y, HERO_CORROSION_RANGE, near);
+    for (let k = 0; k < near.length; k++) {
+      const e = near[k];
+      if (!e.alive || dist(h.x, h.y, e.x, e.y) > HERO_CORROSION_RANGE) continue;
+      e.corrosion = STATUS.corrosionDuration;
+      this.maybeReact(e);
+    }
   }
 
   /**
@@ -4237,6 +4368,11 @@ export class Game {
           gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y });
         }
         if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
+        if (this.mods.killFractureSplash > 0) { // Viral Payload (gene card) — the kill seeds Fracture nearby
+          this.grid.forNeighbors(e.x, e.y, KILL_FRACTURE_RANGE, (o) => {
+            if (o.alive && o.id !== e.id) this.addFracture(o, this.mods.killFractureSplash);
+          });
+        }
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -4426,6 +4562,9 @@ export class Game {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
+      if (this.mods.integrityRegenPerWave > 0) { // Regenerative Carapace (gene card)
+        this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
+      }
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
       // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
       // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
@@ -4439,7 +4578,7 @@ export class Game {
         // Gene Card cadence (CARDS.md §1): campaign drafts every wave (generous); endless slows
         // the drip with depth so cards stay exciting and deep runs lean on permanent progression.
         if (!this.tutorialMode && this.shouldDraftThisWave()) {
-          this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds); // depth-scaled rarity (CARDS.md §2)
+          this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.unlockedCardIds); // depth-scaled rarity (CARDS.md §2)
         }
       }
       this.settleTimer = SETTLE.duration; // begin the wind-down; endWave() reveals the result
@@ -4501,6 +4640,7 @@ export class Game {
    * so undisrupted/unfractured enemies take damage exactly as before. */
   private vulnMult(e: Enemy): number {
     let m = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
+    if (this.mods.fullHealthDamageBonus > 0 && e.hp >= e.maxHp) m += this.mods.fullHealthDamageBonus; // Ambush Enzyme — first-strike bonus
     if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus + this.heroVulnBonus();
     if (e.corrosion > 0) m += this.heroCorrosionVulnBonus(); // Vitriol Solvent Rounds (0 unless fielded)
     // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
@@ -4778,7 +4918,7 @@ export class Game {
    *  gene-card lesson releases the held draft here, from prep, exactly when it teaches drafting. */
   openTutorialDraft(): void {
     if (!this.tutorialMode || this.phase !== 'prep') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.unlockedCardIds);
     this.phase = 'draft';
   }
 
@@ -4791,7 +4931,7 @@ export class Game {
   /** Open the 1-of-3 draft now (abandons any in-progress wave). */
   debugOpenDraft(): void {
     if (this.phase === 'won' || this.phase === 'lost') return;
-    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds);
+    this.draft = draftCards(this.rng, 3, this.waveIndex, this.unlockedKinds, this.unlockedCardIds);
     this.phase = 'draft';
   }
 

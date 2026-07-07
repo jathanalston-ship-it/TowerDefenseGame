@@ -144,6 +144,33 @@ unless noted):
   them and reactions.
 - **Corruptions** — risk/reward enemy buffs improve card rarity weighting in-run.
 
+### 3.gates — Progression-gated cards (shipped)
+
+A card may carry an optional **`unlock`** — a `CardUnlock` condition the meta layer evaluates
+(`cardUnlocked` → `meta.unlockedCardIds()`), so the card enters the draft pool **only once the
+account clears its milestone**. The earned ids are threaded into the run
+(`RunOptions.unlockedCardIds`) and `draftCards` filters on them before rarity weighting, so
+gating is pure data — it scales with the pool and never branches per-card. **A fresh account
+earns none**, so headless/autoplay draws the ungated baseline (golden-safe). The `CardUnlock`
+axes are `campaignStage` / `bestWave` / `towerUnlocked` (campaign depth, run depth, tower
+ownership — the Coil and campaign-gated pools) plus the lifetime axes `totalRuns` /
+`lifetimeKills` / `bossesSlain` / `totalBiomass`.
+
+Five **behavioral** gated cards each open a NEW sim behavior (a live-knob hook, not just
+numbers) and gate on their OWN distinct lifetime axis — the account earns them by playing
+different ways:
+
+| Card | Effect | Unlock (axis) |
+|---|---|---|
+| **Regenerative Carapace** | +30 Integrity each cleared wave | Finish 5 runs (`totalRuns`) |
+| **Ambush Enzyme** | +45% damage vs full-health enemies | Reach wave 8 (`bestWave`) |
+| **Culling Instinct** | Execute non-boss enemies < 10% HP | 1,000 lifetime kills (`lifetimeKills`) |
+| **Viral Payload** | Kills spread 2 Fracture nearby | Slay 3 bosses (`bossesSlain`) |
+| **Toxic Aura** | Hero radiates Corrosion (SHRED synergy) | Harvest 50,000 biomass (`totalBiomass`) |
+
+They're **rare-tier** (the "unique" property is the *gate*, not a new rarity — epic/legendary
+already exist here) and each carries a full 4-level permanent upgrade ladder like every card.
+
 ---
 
 ## 4. Synergy architecture (why cards *heavily* synergize)

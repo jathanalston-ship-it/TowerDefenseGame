@@ -155,6 +155,7 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   maw: 'hex', // a ringed feeding mouth — the hex reads as clenched jaw plates
   chrysalis: 'diamond', // a faceted amber crystal (warm hue separates it from the obelisk)
   effigy: 'triangle', // a gaunt totem spike (violet, apex-up like a shrine)
+  coil: 'hex', // a faceted resonance crystal (amber; a focusing lens + live beam drawn over it)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
