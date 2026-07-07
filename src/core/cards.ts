@@ -32,6 +32,8 @@ export interface RunModifiers {
   mawCleaveRadiusMult: number; // scales the Carrion Maw's bite reach (its range IS its cleave)
   chrysalisFreezeDurationMult: number; // scales the Amber Chrysalis encasement (Freeze) seconds
   effigyDreadDurationMult: number; // scales the Wailing Effigy panic (Fear) seconds
+  coilRampMult: number; // scales the Resonance Coil beam's ramp bonus (harder melt at full resonance)
+  coilBeamTargets: number; // +simultaneous beam targets (the Coil's beam forks to additional foes)
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -107,6 +109,8 @@ export function defaultRunModifiers(): RunModifiers {
     mawCleaveRadiusMult: 1,
     chrysalisFreezeDurationMult: 1,
     effigyDreadDurationMult: 1,
+    coilRampMult: 1,
+    coilBeamTargets: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -232,6 +236,16 @@ export interface GeneSkin {
   art?: string;
 }
 
+/** Progression GATE for a gene card (CARDS.md §3 "Pool unlocks"). A card WITH an `unlock` is excluded
+ *  from the default draft pool until the account satisfies its condition (evaluated in meta —
+ *  `cardUnlocked`; unlocked ids injected into a run). Tower-SUBJECT cards are already gated by
+ *  ownership via draftCards' `allowedTowers`, so this exists for GENERAL cards gated on campaign depth
+ *  / best wave. A fresh account (and the golden sim) draws exactly the ungated catalog ⇒ byte-identical. */
+export type CardUnlock =
+  | { kind: 'campaignStage'; stage: number } // clear this Campaign stage (any difficulty)
+  | { kind: 'bestWave'; wave: number } // reach this wave/depth in any run
+  | { kind: 'towerUnlocked'; tower: TowerKind }; // own a specific (locked) tower — e.g. the Coil's cards
+
 export interface CardDef {
   id: string; // PERMANENT unique id — the save key for this card's progression. Never reuse/rename.
   name: string;
@@ -239,6 +253,7 @@ export interface CardDef {
   category: CardCategory; // synergy tag; CARD_CATEGORY_LABEL maps it to the display string
   description: string;
   effects: CardEffect[]; // BASE (level-0) effects
+  unlock?: CardUnlock; // absent ⇒ a BASE card, always in the pool; present ⇒ progression-gated
   // ── Permanent progression scaffolding (docs/GENE-EVOLUTION.md). ALL OPTIONAL — a card with none of
   //    these behaves exactly as before (base-only, no upgrades) so existing gameplay is preserved.
   //    Populated by later tasks; the architecture reads them through core/geneCards.ts. ──
@@ -331,6 +346,22 @@ export const CARD_POOL: CardDef[] = [
   { id: 'executioners_law', name: "Executioner's Law", rarity: 'legendary', category: 'crit', description: 'Execute non-elite enemies below 20% HP; +15% tower damage.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }] },
   { id: 'last_bastion', name: 'Last Bastion', rarity: 'legendary', category: 'tower', description: 'Below 50% Nucleus, towers deal ×2.5 — and +4% per tower fielded.', effects: [{ op: 'add', field: 'lastStandThreshold', value: 0.5 }, { op: 'mul', field: 'lastStandMult', value: 2.5 }, { op: 'add', field: 'damagePerTower', value: 0.04 }] },
   { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
+
+  // ════════════════ Resonance Coil cards (2) — gated by OWNING the Coil ════════════════
+  // Tower-SUBJECT cards (coilRampMult/coilBeamTargets ⇒ subject 'coil'). Gated via `unlock` on Coil
+  // ownership so they stay OUT of the default pool (the golden Game's roster includes all kinds, so an
+  // ungated coil card would leak in) — the meta layer injects them once the Coil is claimed.
+  { id: 'harmonic_overload', name: 'Harmonic Overload', rarity: 'rare', category: 'tower', description: '+40% Resonance Coil ramp — the beam melts far harder at full resonance.', effects: [{ op: 'mul', field: 'coilRampMult', value: 1.4 }], unlock: { kind: 'towerUnlocked', tower: 'coil' } },
+  { id: 'prismatic_split', name: 'Prismatic Split', rarity: 'epic', category: 'tower', description: 'The Resonance Coil beam forks to +1 additional target.', effects: [{ op: 'add', field: 'coilBeamTargets', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'coil' } },
+
+  // ════════════════ Progression-GATED general pool (5) — CARDS.md §3 "Pool unlocks" ════════════════
+  // `unlock` ⇒ excluded from the default draw pool; the account earns them in (campaign depth / best
+  // wave), and the meta layer injects the unlocked ids into a run. Golden-safe (default pool unchanged).
+  { id: 'viral_bloom', name: 'Viral Bloom', rarity: 'rare', category: 'poison', description: '+35% Infection damage & spread.', effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.35 }], unlock: { kind: 'campaignStage', stage: 10 } },
+  { id: 'neural_overclock', name: 'Neural Overclock', rarity: 'epic', category: 'hero', description: '+40% hero damage and −20% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.4 }, { op: 'mul', field: 'heroCooldownMult', value: 0.8 }], unlock: { kind: 'campaignStage', stage: 20 } },
+  { id: 'siege_protocol', name: 'Siege Protocol', rarity: 'rare', category: 'aoe', description: '+40% splash radius and +10% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.4 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'campaignStage', stage: 25 } },
+  { id: 'overclocked_matrix', name: 'Overclocked Matrix', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +10% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'bestWave', wave: 30 } },
+  { id: 'unstable_genome', name: 'Unstable Genome', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +15% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }], unlock: { kind: 'campaignStage', stage: 40 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */
@@ -462,15 +493,18 @@ export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<Ca
 /** Draft `count` distinct cards: roll a depth-scaled rarity, then pick within it (falling
  * back to any remaining card if that tier is exhausted). `wave` drives the depth scaling.
  * `allowedTowers` drops cards whose SUBJECT tower is off the run's roster (docs/TOWERS.md
- * §expansion — a card for a tower you cannot deploy is a dead draft); omitted or
- * all-inclusive ⇒ the historical full pool, byte-identical. */
-export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>): CardDef[] {
-  const active = allowedTowers === undefined
-    ? cardRegistry.active()
-    : cardRegistry.active().filter((c) => {
-        const s = cardSubject(c);
-        return s.kind !== 'tower' || allowedTowers.has(s.tower);
-      });
+ * §expansion — a card for a tower you cannot deploy is a dead draft). `unlockedCardIds` re-admits
+ * PROGRESSION-gated cards (CardDef.unlock) the account has earned; a gated card NOT in the set is
+ * dropped, so a fresh account (and the golden sim) draws only the ungated catalog ⇒ byte-identical. */
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>): CardDef[] {
+  const active = cardRegistry.active().filter((c) => {
+    if (c.unlock && !unlockedCardIds?.has(c.id)) return false; // progression-gated & not yet earned
+    if (allowedTowers !== undefined) {
+      const s = cardSubject(c);
+      if (s.kind === 'tower' && !allowedTowers.has(s.tower)) return false; // tower off the run roster
+    }
+    return true;
+  });
   const available = new Set<CardRarity>(active.map((c) => c.rarity));
   const chosen: CardDef[] = [];
   const used = new Set<string>();
@@ -517,6 +551,8 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   mawCleaveRadiusMult: 'maw',
   chrysalisFreezeDurationMult: 'chrysalis',
   effigyDreadDurationMult: 'effigy',
+  coilRampMult: 'coil',
+  coilBeamTargets: 'coil',
   reactorBiomassMult: 'reactor',
   reactorOverchargeBonus: 'reactor',
   // hero kit (numbers + behaviour)

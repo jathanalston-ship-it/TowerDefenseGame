@@ -292,6 +292,30 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Black Bell', desc: 'Every toll is a catastrophe: massive psychic ruin and rolling dread.', fireRateMult: 1.2, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 260, damage: 46, react: true, particle: 'disrupt' }, { type: 'aura', radius: 260, damage: 12, status: { kind: 'Disruption', amount: 1 }, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'bell' }] },
     ],
   },
+
+  // ════════════ RESONANCE COIL (Resonant, ramping single-target beam) ════════════
+  {
+    id: 'coil_overload', tower: 'coil', name: 'Overcharge Lattice',
+    theme: 'All power to one point — a runaway beam that deletes elites and bosses.',
+    tiers: [
+      { tier: 1, name: 'Focusing Array', desc: 'Bites the single biggest threat and melts +10% harder.', damageMult: 1.1, particle: 'spark', sfx: 'br_storm', impact: 'spark', grants: [{ t: 'targeting', profile: 'highestHealth' }] },
+      { tier: 2, name: 'Overtuned Emitter', desc: 'Faster resonance build; the beam rips Fracture as it melts.', fireRateMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 2 } }] }] },
+      { tier: 3, name: 'Meltdown Core', desc: 'Overheating criticals savage the held target.', damageMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.35, mult: 3, damage: 18 }] }] },
+      { tier: 4, name: 'Executioner Beam', desc: 'Locks bosses first; devastating critical resonance.', damageMult: 1.15, grants: [{ t: 'targeting', profile: 'bossPriority' }, { t: 'ability', components: [{ type: 'crit', chance: 0.5, mult: 3.5, damage: 24 }] }] },
+      { tier: 5, name: 'Annihilation Lens', desc: 'A singularity of focus: crushing crits and deep armor-melt vaporize anything it holds.', damageMult: 1.35, fireRateMult: 1.15, particle: 'railburst', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.6, mult: 5, damage: 30 }, { type: 'status', status: { kind: 'Fracture', amount: 3 } }] }, { t: 'cosmetic', id: 'singularity' }] },
+    ],
+  },
+  {
+    id: 'coil_prism', tower: 'coil', name: 'Refraction Prism',
+    theme: 'One beam becomes many — a splitting lattice that melts the whole crowd.',
+    tiers: [
+      { tier: 1, name: 'Split Prism', desc: 'The beam forks to a second target and reaches farther.', damageMult: 1.05, rangeMult: 1.1, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Dispersion Field', desc: 'Caustic light sprays Corrosion around the beam’s targets.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 3, name: 'Triple Refraction', desc: 'A third channel melts another foe at once.', damageMult: 1.1, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 4, name: 'Caustic Lattice', desc: 'A fourth channel; every beam drenches its target in Corrosion.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 5, name: 'Prismatic Cascade', desc: 'A blooming lattice: two more channels and a drowning caustic field.', damageMult: 1.15, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'ability', components: [{ type: 'aura', radius: 150, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'prism' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

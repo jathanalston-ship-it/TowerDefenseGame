@@ -6,9 +6,9 @@ import type { ActiveStatus } from './status';
 import type { AbilityComponent } from './ability';
 import type { TargetingProfile } from './targeting';
 
-export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
+export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -39,7 +39,7 @@ export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol';
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
  * 'field' = periodic in-range pulse (no projectile). */
-export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field';
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
 export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 
@@ -190,6 +190,11 @@ export interface Tower {
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
+  // ── Resonance Beam (Resonance Coil, firing 'beam'). `beamTarget` is the held enemy id (-1 = none),
+  //    `beamHeat` (0..1) climbs while focus holds the SAME target and resets on a switch, ramping the
+  //    beam's damage. Inert (-1 / 0) for every OTHER tower kind ⇒ golden-safe. Run-only. ──
+  beamTarget: number; // enemy id the beam is locked onto (-1 = not channeling)
+  beamHeat: number; // resonance charge (0..1) — ramps the beam's damage on sustained focus
 }
 
 export interface Projectile {

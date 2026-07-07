@@ -73,6 +73,11 @@ export interface TowerDef {
    *  after which it joins the Biomorph Conveyor / favorite pool. Meta-owned gate — the sim only
    *  sees the resulting roster via RunOptions.unlocked (docs/TOWERS.md §expansion). */
   unlockShards?: number;
+  /** Progression GATE — the highest Campaign stage that must be cleared before this locked tower's
+   *  unlock shards even begin DROPPING (meta.towerShardPool gates the loot rollers). Absent / 0 ⇒ no
+   *  gate (shards drop from the start, like maw/chrysalis/effigy). Pairs with unlockShards so the
+   *  Resonance Coil is DOUBLY gated: reach the stage, THEN grind its shards to unlock. */
+  unlockStage?: number;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -207,7 +212,41 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'A shrieking totem — panics attackers into FLEEING the Hive. Buys time, not kills.',
     abilities: [{ type: 'debuff', radius: 300, status: { kind: 'Fear', amount: 1.6 } }],
   },
+  // Resonance Coil (Resonant) — the roster's first sustained-focus MELTER. A locked, ramping BEAM
+  // (firing 'beam', game.ts beamTowerSystem): while it holds ONE target its resonance HEAT climbs,
+  // scaling damage up to BEAM.rampBonus× — it starts weak and melts elites/bosses that stand in it.
+  // LOCKED by default (unlockShards) AND progression-gated (unlockStage): its shards only drop once
+  // the campaign gate is cleared. A brand-new mechanic, so its identity is the ramp, not a stat line.
+  coil: {
+    kind: 'coil',
+    name: 'Resonance Coil',
+    combatClass: 'Resonant',
+    firing: 'beam',
+    unlockShards: 320, // locked: a mid-game chase, funded only AFTER the unlockStage gate is cleared
+    unlockStage: 15, // Tower Shards for the Coil begin dropping once Campaign Stage 15 is cleared
+    cost: 150,
+    range: 340, // SKIRMISHER — a focused emitter; place FORWARD so a target stays in the beam to ramp
+    fireInterval: 0.5, // beam PULSE cadence — paces star/branch procs (crit/status); the DAMAGE is continuous
+    damage: 26, // base beam DPS at zero resonance; ramps to BEAM.rampBonus× on a sustained lock
+    projectileSpeed: 0, // hitscan channel — no projectile
+    splash: 0,
+    color: '#f5b83d',
+    targeting: 'highestHealth', // by default it bites the toughest thing in reach (the melt payoff)
+    blurb: 'Locks a beam onto ONE target; damage RAMPS the longer it holds — melts elites & bosses.',
+  },
 };
+
+/** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
+ *  tick (base `TowerDef.damage` as DPS) to its locked target(s), scaled by the resonance ramp: heat
+ *  climbs while focus holds the SAME target and resets on a switch. Centralized so the melt curve is
+ *  tuned in one place. Inert unless a Resonance Coil is fielded ⇒ golden-safe. */
+export const BEAM = {
+  heatPerSec: 0.42, // resonance charge/sec while locked — ~2.4s from cold to full melt
+  heatDecayPerSec: 1.1, // charge bled off/sec when the beam has no valid target
+  rampBonus: 3.0, // damage bonus at full resonance: ×(1 + rampBonus) ⇒ up to ×4 on a held target
+  corrosionHeat: 0.6, // once heat ≥ this, the beam sears Corrosion into its target (status synergy)
+  corrosionAmount: 1, // Corrosion seconds applied per pulse at/above corrosionHeat
+} as const;
 
 /** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
 export function towerProblems(d: TowerDef): string[] {
@@ -221,6 +260,7 @@ export function towerProblems(d: TowerDef): string[] {
     if (d.projectileSpeed <= 0) out.push('a projectile tower needs projectileSpeed > 0');
   }
   if (d.firing === 'field' && d.range <= 0) out.push('a field tower needs range > 0');
+  if (d.firing === 'beam' && d.range <= 0) out.push('a beam tower needs range > 0');
   return out;
 }
 
@@ -250,6 +290,7 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   maw: [850, 3500, 14000, 52000, 190000],
   chrysalis: [900, 3800, 15000, 55000, 200000],
   effigy: [800, 3400, 14000, 50000, 185000],
+  coil: [850, 3600, 14000, 52000, 190000], // premium single-target melter — sits with obelisk/mortar
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────
@@ -759,6 +800,11 @@ function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
       }];
     case 'support':
       return []; // economy/aura only — no attack
+    case 'beam':
+      // Resonance Coil: the beam DAMAGE + resonance ramp are driven directly by beamTowerSystem
+      // (game.ts), not by an ability component — so the base kit is empty. Star/branch grants
+      // (crit/status/aura) still layer on via prog/branch extraAbilities on the beam pulse.
+      return [];
   }
 }
 

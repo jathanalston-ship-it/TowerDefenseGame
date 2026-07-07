@@ -26,6 +26,7 @@ export const BRANCH_COLOR: Record<string, string> = {
   maw_butcher: '#ff5c5c', maw_gullet: '#5ccdd8',
   chrysalis_deepfreeze: '#ffd98a', chrysalis_amber: '#e8b04a',
   effigy_choir: '#c9a6ff', effigy_malice: '#ff7ad9',
+  coil_overload: '#ffcf4d', coil_prism: '#6fe0c0',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -244,6 +245,29 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 5, kind: 'nova' }, // the black bell
     ],
   },
+  // COIL ─────────────────────────────────────────────────────────────────────
+  coil_overload: {
+    color: BRANCH_COLOR.coil_overload, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // a focusing lens
+      { at: 1, kind: 'barrel' }, // the emitter spire, lengthening each tier
+      { at: 2, kind: 'organs', count: 3 }, // charge coils
+      { at: 3, kind: 'spikes', count: 4 }, // heat vents
+      { at: 4, kind: 'armor', count: 4 }, // reinforced housing
+      { at: 5, kind: 'nova' }, // annihilation flare
+    ],
+  },
+  coil_prism: {
+    color: BRANCH_COLOR.coil_prism, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // a prism ring
+      { at: 1, kind: 'organs', count: 2, per: 1 }, // refraction nodes multiply each tier
+      { at: 2, kind: 'ripples', count: 2 }, // dispersion waves
+      { at: 3, kind: 'limbs', count: 3 }, // prism arms
+      { at: 4, kind: 'biomass', count: 3 }, // caustic sacs
+      { at: 5, kind: 'nova', color: '#6fe0c0' }, // prismatic cascade
+    ],
+  },
 };
 
 /** Body-silhouette scale for a branched tower (the "growth" example) — a T5 tower is visibly
@@ -278,7 +302,7 @@ export function drawBranchPortrait(
 ): void {
   const tw: Tower = {
     id: 0, kind: 'needle', x, y, slot: 0, cooldown: 0, overcharged: false, bornAt: -100,
-    disabledUntil: 0, dampenedUntil: 0, dampenFrac: 0, branchId, tier, strain: 1, strainCd: 0, pulseCd: 0, mutatedAt: -100, movedAt: -100,
+    disabledUntil: 0, dampenedUntil: 0, dampenFrac: 0, branchId, tier, strain: 1, strainCd: 0, pulseCd: 0, mutatedAt: -100, movedAt: -100, beamTarget: -1, beamHeat: 0,
   };
   drawTowerEvolution(ctx, tw, now, r, BRANCH_EVOLUTION[branchId]?.color ?? '#ffffff', 0);
 }

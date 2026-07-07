@@ -140,6 +140,7 @@ export function drawGame(
   const detail = rs.enemies.length < PERF.lodEnemyCount;
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
+  drawBeams(ctx, rs, t); // Resonance Coil channels (over enemies, so the melt reads on the target)
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
   drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo);
@@ -681,6 +682,14 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     // orbiting glyph ring + a bright psionic core eye
     ring(ctx, tw.x, tw.y, r * 1.35, rgba(THEME.field.edge, pulse(now + tw.id, 3, 0.3, 0.6)), 1.2, [4, 5]);
     drawShape(ctx, 'diamond', tw.x, tw.y - r * 0.1, r * 0.32 * breathe, 'rgba(255,255,255,0.45)');
+  } else if (tw.kind === 'coil') {
+    // a focusing lens whose core EYE brightens with resonance heat (the melt "charging up"), plus a
+    // slow rotating lens ring. beamHeat is 0 when idle ⇒ a cool, dim emitter.
+    const heat = tw.beamHeat;
+    const c = hexRgb(def.color);
+    ring(ctx, tw.x, tw.y, r * 1.25, rgba(c, 0.24 + heat * 0.5), 1.2 + heat * 1.2, [3, 4]);
+    glowDisc(ctx, tw.x, tw.y, r * (0.7 + heat * 0.9), rgba(c, 0.35 + heat * 0.5));
+    drawShape(ctx, 'circle', tw.x, tw.y, r * (0.26 + heat * 0.14) * breathe, rgba('255, 255, 255', 0.7 + heat * 0.25));
   }
 
   // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md
@@ -797,6 +806,36 @@ function drawStrainOrgans(ctx: CanvasRenderingContext2D, tw: RenderState['towers
     // V — crowned apex organ + a slow recognition aura
     glowDisc(ctx, tw.x, tw.y, r * 2.6 * pulse(now + tw.id, 0.9, 0.92, 1.08), rgba(c, 0.12));
     spikeCrown(ctx, tw.x, tw.y - r * 1.15, r * 0.55, r * 0.35, 5, rgba(c, 0.95), now * 0.4);
+  }
+}
+
+/** RESONANCE BEAM channels — a live line from each Resonance Coil to its locked target, brightening
+ *  and fattening with the tower's resonance HEAT (the visible "melt ramp"). Purely presentational:
+ *  reads Tower.beamTarget/beamHeat + the enemy positions. No coil on the field ⇒ nothing drawn. */
+function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number): void {
+  let byId: Map<number, RenderState['enemies'][number]> | null = null;
+  for (const tw of rs.towers) {
+    if (tw.kind !== 'coil' || tw.beamTarget < 0) continue;
+    if (!byId) { byId = new Map(); for (const e of rs.enemies) if (e.alive) byId.set(e.id, e); }
+    const target = byId.get(tw.beamTarget);
+    if (!target) continue;
+    const c = hexRgb(TOWER_DEFS.coil.color);
+    const heat = tw.beamHeat;
+    const sx = tw.x;
+    const sy = tw.y - 4; // muzzle sits just above the lens
+    ctx.lineCap = 'round';
+    // outer resonance glow
+    ctx.strokeStyle = rgba(c, 0.16 + heat * 0.34);
+    ctx.lineWidth = 2.5 + heat * 6;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(target.x, target.y); ctx.stroke();
+    // bright inner core
+    ctx.strokeStyle = rgba('255, 255, 255', 0.45 + heat * 0.45);
+    ctx.lineWidth = 1 + heat * 2.2;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(target.x, target.y); ctx.stroke();
+    ctx.lineCap = 'butt';
+    // impact bloom that pulses harder as resonance climbs — the "melting" point
+    const bloom = (5 + heat * 11) * pulse(now * 8 + tw.id, 1, 0.82, 1.18);
+    glowDisc(ctx, target.x, target.y, bloom, rgba(c, 0.3 + heat * 0.45));
   }
 }
 

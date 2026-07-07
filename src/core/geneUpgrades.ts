@@ -328,4 +328,53 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'mul', field: 'enemyHpRunMult', value: 0.95 }], note: 'Prey weakens — enemies gain 5% LESS bonus HP.' },
     { effects: [{ op: 'add', field: 'heroCritChance', value: 0.1 }, { op: 'add', field: 'heroCritDamageBonus', value: 0.5 }], note: 'THE APEX STRIKES TRUE — +10% crit chance, crits hit +50% harder.' },
   ],
+
+  // ════════════════ Resonance Coil cards (gated by owning the Coil) ════════════════
+  // Modest permanent bumps (the base DRAFT effect carries the card's strength; upgrades are a gentle
+  // permanent nudge that keeps the whole gene library within its calibrated ≤2.6× power band).
+  harmonic_overload: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.039 }], note: 'Tighter tuning — +6% beam ramp.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.01 }], note: 'Sympathetic resonance — +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.052 }], note: 'Runaway harmonics — +8% beam ramp.' },
+    { effects: [{ op: 'add', field: 'coilBeamTargets', value: 1 }, { op: 'mul', field: 'coilRampMult', value: 1.032 }], note: 'Overtone SPLIT — the beam melts one more target, +5% ramp.' },
+  ],
+  prismatic_split: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.039 }], note: 'Refracted focus — +6% beam ramp.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.01 }], note: 'Brighter lattice — +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'coilRampMult', value: 1.052 }], note: 'Deeper prism — +8% beam ramp.' },
+    { effects: [{ op: 'add', field: 'coilBeamTargets', value: 1 }], note: 'FULL SPECTRUM — the beam forks to yet another target.' },
+  ],
+
+  // ════════════════ Progression-gated general cards ════════════════
+  viral_bloom: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.039 }], note: 'Virulent strain — +6% Infection.' },
+    { effects: [{ op: 'grant', grant: { kind: 'heroAttackStatus', status: 'Infection', amount: 1 } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.026 }], note: 'The hero carries it — hero hits apply Infection.' },
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.052 }], note: 'Mutation drift — +8% Infection.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'spreadStatus', status: 'Infection', amount: 1, radius: 110 } } }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.032 }], note: 'Second bloom — kills spread Infection wider.' },
+  ],
+  neural_overclock: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.016 }], note: 'Overclocked synapses — +5% hero damage.' },
+    { effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.96 }], note: 'Faster firing — a further −4% ability cooldown.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.02 }], note: 'Neural surge — +6% hero damage.' },
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.04 }, { op: 'mul', field: 'heroCooldownMult', value: 0.96 }], note: 'Precision burst — +4% crit chance, −4% cooldown.' },
+  ],
+  siege_protocol: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.052 }], note: 'Wider shells — +8% splash radius.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.01 }], note: 'Heavier payload — +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.052 }], note: 'Saturation spread — +8% splash radius.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.013 }, { op: 'mul', field: 'splashRadiusMult', value: 1.032 }], note: 'Total bombardment — +4% damage, +5% splash.' },
+  ],
+  overclocked_matrix: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.013 }], note: 'Tighter cadence — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.013 }], note: 'Denser output — +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.016 }], note: 'Red-line matrix — +5% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.013 }, { op: 'mul', field: 'towerFireRateMult', value: 1.013 }], note: 'Overclock ascendant — +4% damage, +4% fire rate.' },
+  ],
+  unstable_genome: [ // legendary → 5
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.016 }], note: 'Volatile splice — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'Cracking chitin — +2 max Fracture stacks.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.02 }], note: 'Runaway mutation — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Reactions CASCADE further — re-fire once more.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.02 }, { op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'GENOME UNBOUND — +6% damage, +2 max Fracture.' },
+  ],
 };

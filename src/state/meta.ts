@@ -54,8 +54,8 @@ import {
 } from '../core/reforge';
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
-import type { CardEffect } from '../core/cards';
-import { cardRegistry } from '../core/cards';
+import type { CardDef, CardEffect } from '../core/cards';
+import { CARD_POOL, cardRegistry } from '../core/cards';
 import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
@@ -433,6 +433,38 @@ export function isTowerUnlocked(save: SaveData, kind: TowerKind): boolean {
   return (save.towerUnlocked ?? []).includes(kind);
 }
 
+/** Whether a locked tower's progression GATE is cleared — i.e. its unlock shards may DROP. Towers with
+ *  no `unlockStage` (maw/chrysalis/effigy) are always met; the Resonance Coil needs its campaign stage
+ *  cleared first ("shards only start dropping once the gate is met"). */
+export function towerShardGateMet(save: SaveData, kind: TowerKind): boolean {
+  const stage = TOWER_DEFS[kind]?.unlockStage ?? 0;
+  return stage <= 0 || highestCampaignStage(save) >= stage;
+}
+
+/** The tower kinds whose shards may drop from loot right now: everything whose campaign gate is met.
+ *  Passed to the loot rollers so a gated Coil's shards never leak before the player reaches its stage. */
+export function towerShardPool(save: SaveData): TowerKind[] {
+  return TOWER_ORDER.filter((k) => towerShardGateMet(save, k));
+}
+
+/** Whether a gene card's progression gate is satisfied (ungated ⇒ always true). Drives which gated
+ *  cards are injected into a run's draft pool (RunOptions.unlockedCardIds). */
+export function cardUnlocked(save: SaveData, def: CardDef): boolean {
+  const u = def.unlock;
+  if (!u) return true;
+  switch (u.kind) {
+    case 'campaignStage': return highestCampaignStage(save) >= u.stage;
+    case 'bestWave': return save.bestWave >= u.wave;
+    case 'towerUnlocked': return isTowerUnlocked(save, u.tower);
+  }
+}
+
+/** The ids of GATED gene cards the account has unlocked — injected into a run so they can be drafted
+ *  (ungated cards are always in the pool). Empty for a fresh account ⇒ the golden pool is unchanged. */
+export function unlockedCardIds(save: SaveData): string[] {
+  return CARD_POOL.filter((c) => c.unlock && cardUnlocked(save, c)).map((c) => c.id);
+}
+
 /** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT + OWNED
  *  kinds. Always ≥1 (falls back to the selected hero, or the first owned hero). A locked hero can
  *  never be fielded even if a stale loadout entry names it. */
@@ -760,12 +792,13 @@ function openLootBoxes(
   towerShards: Record<TowerKind, number>,
   heroShards: Record<string, number>,
   heroPool?: readonly string[],
+  towerPool?: readonly TowerKind[],
 ): LootBoxAward[] {
   const out: LootBoxAward[] = [];
   for (const rarity of awarded) {
     const def = rarityRegistry.get(rarity);
     if (!def) continue;
-    const box = rollLoot(def, Math.random, heroPool);
+    const box = rollLoot(def, Math.random, heroPool, towerPool);
     for (const k of TOWER_ORDER) towerShards[k] += box.towerShards[k] ?? 0;
     for (const id of Object.keys(box.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + box.heroShards[id];
     out.push({ rarity, chest: box });
@@ -1365,13 +1398,16 @@ export const meta = {
     // Bias hero-shard pulls toward still-LOCKED heroes so their "42 / 100" unlock bar fills visibly
     // (empty ⇒ every hero owned ⇒ shards distribute normally for stars).
     const lockedPool = HERO_ORDER.filter((k) => !isHeroUnlocked(save, k));
+    // Tower-shard drops are GATED: a locked tower's shards drop only after its campaign gate is met,
+    // so the Coil's shards never leak before the player clears Stage 15 (docs/SHARD-ECONOMY.md).
+    const towerPool = towerShardPool(save);
     let mats = save.mats;
     let chest: ChestResult;
     let label: string;
     let color: string;
     if (c.kind === 'cache') {
       const def = CHESTS[c.chestId] ?? CHESTS[RUN_CHEST];
-      chest = rollChest(def, Math.random, lockedPool);
+      chest = rollChest(def, Math.random, lockedPool, towerPool);
       for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
       for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
       mats = {
@@ -1382,7 +1418,7 @@ export const meta = {
       label = def?.name ?? 'Reward Cache';
       color = 'var(--gold)';
     } else if (rarityRegistry.has(c.rarity)) {
-      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool);
+      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool, towerPool);
       chest = award.chest;
       const def = rarityRegistry.get(c.rarity);
       label = `${def?.name ?? c.rarity} Container`;
@@ -1750,12 +1786,19 @@ export const meta = {
     return isTowerUnlocked(store.get(), kind);
   },
 
+  /** The gated gene-card ids the account has unlocked — threaded into a run so they can be drafted
+   *  (RunOptions.unlockedCardIds). Empty for a fresh account ⇒ the golden draft pool is unchanged. */
+  unlockedCardIds(): string[] {
+    return unlockedCardIds(store.get());
+  },
+
   /** Claim a locked tower once enough of ITS Tower Shards are banked: spends the unlock cost,
    *  marks it owned, and returns true — it immediately joins the Biomorph Conveyor pool and can
    *  be starred / set as the favorite. False if already owned or unaffordable. */
   unlockTower(kind: TowerKind): boolean {
     const save = store.get();
     if (isTowerUnlocked(save, kind)) return false;
+    if (!towerShardGateMet(save, kind)) return false; // its campaign gate isn't cleared — no shards yet
     const cost = TOWER_DEFS[kind].unlockShards ?? 0;
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
@@ -2625,7 +2668,7 @@ export const meta = {
     const CORES = 150, TSHARD = 15, HSHARD = 20;
     const hero = save.selectedHero;
     const towerShards = { ...save.towerShards };
-    for (const k of TOWER_ORDER) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every tower currency
+    for (const k of towerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every UNGATED tower currency
     const heroShards = { ...save.heroShards, [hero]: (save.heroShards[hero] ?? 0) + HSHARD };
     const container: PendingContainer = { kind: 'loot', rarity: 'rare' }; // the guaranteed Tutorial Bio-Container
     const item: OwnedItem = { uid: `tut-${Date.now().toString(36)}`, defId: 'w_quill', rarity: 'rare', affixes: [] };
