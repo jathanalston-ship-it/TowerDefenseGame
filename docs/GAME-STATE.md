@@ -164,7 +164,15 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   2 achievements) — BOSS-RUSH.md
 - ✅ Next-Goal engine + Results cliffhanger — ONE-MORE-RUN.md
 - ✅ Prestige (MOLT → Ascendant) — 1 layer of a designed 6 (PROGRESSION-REDESIGN)
-- ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md
+- ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md; registry-driven, so the
+  recent content (Coil/Siphon beam towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)
+  joins the codex automatically (guarded by `collection.test.ts`)
+- ✅ Achievements — data-driven milestone framework (`state/achievements.ts`: Genome-Core rewards,
+  progress bars, hidden reveals; recognition-only, never touches the sim). **+10 content-tied unlocks**
+  for the recent roster: the beam towers (Resonance Cascade / Exsanguination / Directed Energy /
+  Focused Fire), the gated heroes (Scorched Earth · The Wraith Walks), and "collect it all" goals
+  (Full Menagerie · Complete Arsenal · Deep Genome · Return from the Deep) — all read lifetime
+  usage/ownership, so a fresh save unlocks none
 - 📋 "Custom Challenge" / "Training" modes — hidden behind `core/features.ts` flags until built
 
 ### Balance architecture (the mathematical backbone) — BALANCE_ARCHITECTURE.md

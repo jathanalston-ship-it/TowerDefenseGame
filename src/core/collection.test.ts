@@ -30,6 +30,21 @@ describe('collection layer', () => {
     expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests']);
   });
 
+  it('the codex enumerates the recent content (Coil/Siphon towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)', () => {
+    const v = collectionView(freshCtx());
+    const idsIn = (cat: string) => new Set(v.categories.find((c) => c.id === cat)!.entries.map((e) => e.id));
+    const towers = idsIn('towers');
+    expect(towers.has('coil')).toBe(true); // Resonance Coil
+    expect(towers.has('siphon')).toBe(true); // Marrow Siphon
+    const heroes = idsIn('heroes');
+    expect(heroes.has('revenant')).toBe(true); // the phase-assassin
+    expect(heroes.has('vitriol')).toBe(true); // the siege caste
+    const cards = idsIn('cards');
+    expect(cards.has('deep_overclock')).toBe(true); // a general Deep-Strain gene card
+    expect(cards.has('gorging_instinct')).toBe(true); // a Marrow Siphon identity card
+    expect(v.categories.find((c) => c.id === 'megaBosses')!.total).toBeGreaterThan(0); // Mega Bosses are a category
+  });
+
   it('a fresh save is golden-safe — no bonus effects, neutral economy, Power exactly 1', () => {
     const v = collectionView(freshCtx());
     expect(collectionBonusEffects(v)).toEqual([]);

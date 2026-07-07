@@ -11,10 +11,11 @@
 //   • test     — the unlock predicate. Reads `save` (incl. lifetime `save.stats`,
 //                the statistics-system integration) and the optional run summary.
 
-import { TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
 import { highestCampaignStage } from '../save/derive';
+import type { TowerKind } from '../core/types';
 import type { SaveData } from '../save/saveStore';
 
 /** Minimal run summary (structurally a subset of RunResult — avoids a meta import). */
@@ -47,6 +48,10 @@ export interface AchievementDef {
 
 const maxStars = (s: SaveData): number => Math.max(0, ...TOWER_ORDER.map((k) => s.towerStars[k] ?? 0));
 const maxMastery = (s: SaveData): number => Math.max(0, ...TOWER_ORDER.map((k) => s.towerMasteryXp[k] ?? 0));
+const towerUse = (s: SaveData, k: TowerKind): number => s.stats.towerUsage[k] ?? 0;
+const heroUse = (s: SaveData, k: string): number => s.stats.heroUsage[k] ?? 0;
+const towersOwned = (s: SaveData): number => TOWER_ORDER.filter((k) => (TOWER_DEFS[k].unlockShards ?? 0) <= 0 || (s.towerUnlocked ?? []).includes(k)).length;
+const heroesFielded = (s: SaveData): number => HERO_ORDER.filter((k) => heroUse(s, k) >= 1).length;
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Milestones (visible, save/run based) ──
@@ -152,6 +157,20 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'interrupt_50', name: 'Silence the Chorus', desc: 'Interrupt 50 Mega Boss abilities (lifetime).', reward: 90, test: (c) => c.save.megaProgress.interrupts >= 50, progress: (c) => ({ cur: c.save.megaProgress.interrupts, max: 50 }) },
   { id: 'mega_attrition', name: 'War of Attrition', desc: 'Outlast a Mega Boss in a battle of ten minutes or more.', hidden: true, reward: 90, test: (c) => Object.values(c.save.megaProgress.fastestSec).some((s) => s >= 600) },
   { id: 'mega_survivor', name: 'Weathered the Storm', desc: 'Survive 100 Mega Boss abilities (lifetime).', reward: 60, test: (c) => c.save.megaProgress.abilitiesSurvived >= 100, progress: (c) => ({ cur: c.save.megaProgress.abilitiesSurvived, max: 100 }) },
+
+  // ── Deep-Strain roster (docs/SIPHON.md · HEROES.md) — the recent beam towers, the gated heroes,
+  //    and the "collect it all" goals raised past the new content. All read lifetime usage/ownership
+  //    (towerUsage / heroUsage / towerUnlocked / uniqueCards), so a fresh save unlocks none. ──
+  { id: 'deploy_coil', name: 'Resonance Cascade', desc: 'Deploy the Resonance Coil in a run.', reward: 30, test: (c) => towerUse(c.save, 'coil') >= 1 },
+  { id: 'deploy_siphon', name: 'Exsanguination', desc: 'Deploy the Marrow Siphon in a run.', reward: 30, test: (c) => towerUse(c.save, 'siphon') >= 1 },
+  { id: 'beam_arsenal', name: 'Directed Energy', desc: 'Deploy BOTH beam towers — the Resonance Coil and the Marrow Siphon.', reward: 50, test: (c) => towerUse(c.save, 'coil') >= 1 && towerUse(c.save, 'siphon') >= 1, progress: (c) => ({ cur: (towerUse(c.save, 'coil') >= 1 ? 1 : 0) + (towerUse(c.save, 'siphon') >= 1 ? 1 : 0), max: 2 }) },
+  { id: 'beam_veteran', name: 'Focused Fire', desc: 'Deploy a beam tower 25 times (the Coil or Siphon Veteran tier).', reward: 55, test: (c) => towerUse(c.save, 'coil') >= 25 || towerUse(c.save, 'siphon') >= 25, progress: (c) => ({ cur: Math.max(towerUse(c.save, 'coil'), towerUse(c.save, 'siphon')), max: 25 }) },
+  { id: 'field_vitriol', name: 'Scorched Earth', desc: 'Field Vitriol, the siege caste, in a run.', reward: 30, test: (c) => heroUse(c.save, 'vitriol') >= 1 },
+  { id: 'field_revenant', name: 'The Wraith Walks', desc: 'Field the Revenant — the phase-stalking assassin.', reward: 40, test: (c) => heroUse(c.save, 'revenant') >= 1 },
+  { id: 'full_menagerie', name: 'Full Menagerie', desc: 'Field every hero at least once (lifetime).', reward: 75, test: (c) => heroesFielded(c.save) >= HERO_ORDER.length, progress: (c) => ({ cur: heroesFielded(c.save), max: HERO_ORDER.length }) },
+  { id: 'complete_arsenal', name: 'Complete Arsenal', desc: 'Unlock every tower — the launch five, the expansion three, and both beam towers.', reward: 80, test: (c) => towersOwned(c.save) >= TOWER_ORDER.length, progress: (c) => ({ cur: towersOwned(c.save), max: TOWER_ORDER.length }) },
+  { id: 'deep_genome', name: 'Deep Genome', desc: 'Collect 25 distinct Gene Cards (the Deep-Strain set and beyond).', reward: 60, test: (c) => c.save.stats.uniqueCards.length >= 25, progress: (c) => ({ cur: c.save.stats.uniqueCards.length, max: 25 }) },
+  { id: 'return_from_deep', name: 'Return from the Deep', desc: 'Reach Infinite Depth 40 — the abyss that awakens the Revenant.', reward: 45, test: (c) => c.save.bestWave >= 40, progress: (c) => ({ cur: c.save.bestWave, max: 40 }) },
 ];
 
 /** Achievements whose condition is now met but which aren't yet unlocked. */
