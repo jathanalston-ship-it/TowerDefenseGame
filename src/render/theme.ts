@@ -158,6 +158,8 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   coil: 'hex', // a faceted resonance crystal (amber; a focusing lens + live beam drawn over it)
   siphon: 'hex', // a fleshy ocular pod — the hex reads as a lidded socket around its draining eye
   sower: 'circle', // a swollen seed-pod (blight-green; its planted mines dot the lane around it)
+  spire: 'diamond', // a needle-thin synaptic antenna (violet-blue, arcs leap off its tip)
+  polyp: 'circle', // a rooted undertow mouth (deep teal, the drag rings ripple around it)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

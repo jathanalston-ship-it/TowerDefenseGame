@@ -479,7 +479,73 @@ const SOWER_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH]);
+// Synapse Spire (chain): the path lengthens the LIGHTNING — extraProjectiles = +hops; ability
+// grants ride the cast (they fire from the spire alongside the arc).
+const SPIRE_PATH: StarPath = {
+  tower: 'spire',
+  steps: [
+    { star: 1, name: 'Fifth Synapse', kind: 'projectile', desc: '+1 arc hop.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    { star: 2, name: 'Insulated Core', kind: 'interaction', desc: 'Each cast also disrupts around the first victim.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 110, status: { kind: 'Disruption', amount: 1.2 } }] }] },
+    {
+      star: 3,
+      name: 'Storm Doctrine',
+      kind: 'fork',
+      desc: 'Choose the storm (re-pick any run).',
+      fork: [
+        { id: 'tempest', name: 'Tempest', desc: 'A SIXTH hop — the lightning goes on.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+        { id: 'thunderhead', name: 'Thunderhead', desc: 'The first strike lands a stunning overload (Disruption).', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 2 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Grounded Array', kind: 'interaction', desc: 'A static field chips everything near the spire.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 6, react: true, particle: 'spark' }] }] },
+    {
+      star: 5,
+      name: 'Apex Pylon',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'skywire', name: 'Skywire', desc: 'TWO more hops — a horizon-spanning arc.', grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+        { id: 'ballast', name: 'Ballast', desc: 'A crushing static bloom on every cast.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 130, damage: 24, react: true, particle: 'spark' }] }] },
+      ],
+    },
+    { star: 7, name: 'Neural Cascade', kind: 'interaction', desc: 'Casts also disrupt a wide ring (the storm SLOWS the sea).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 170, status: { kind: 'Disruption', amount: 1.5 } }] }] },
+    { star: 9, name: 'The Standing Storm', kind: 'capstone', desc: 'A seventh hop and a permanent crackling nova.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 150, damage: 30, react: true, particle: 'spark' }] }, { t: 'cosmetic', id: 'storm' }] },
+  ],
+};
+
+// Undertow Polyp (pull-field): the path deepens the CHURN — wider basins, harder drags (extra pull
+// auras STACK displacement), and the maelstrom capstone.
+const POLYP_PATH: StarPath = {
+  tower: 'polyp',
+  steps: [
+    { star: 1, name: 'Wider Basin', kind: 'interaction', desc: 'A wider outer ring joins the churn.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 200, damage: 3, particle: 'disrupt' }] }] },
+    { star: 2, name: 'Second Current', kind: 'interaction', desc: 'A second undertow drags the caught again.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 150, pull: 22, particle: 'disrupt' }] }] },
+    {
+      star: 3,
+      name: 'Tide Doctrine',
+      kind: 'fork',
+      desc: 'Choose the tide (re-pick any run).',
+      fork: [
+        { id: 'grinder', name: 'Grinder', desc: 'The churn BITES — heavy chip on everything held.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, damage: 9, react: true }] }] },
+        { id: 'deadweight', name: 'Deadweight', desc: 'The held are DISRUPTED (slow + vulnerable).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, status: { kind: 'Disruption', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Third Current', kind: 'interaction', desc: 'Another stacked drag.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, pull: 24, particle: 'disrupt' }] }] },
+    {
+      star: 5,
+      name: 'Apex Tide',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'maelstrom', name: 'Maelstrom', desc: 'A DEEP drag — the wave loses whole seconds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 175, pull: 40, particle: 'disrupt' }] }] },
+        { id: 'abyss', name: 'Abyss', desc: 'The basin crushes — real damage on the held.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 175, damage: 14, react: true, particle: 'disrupt' }] }] },
+      ],
+    },
+    { star: 7, name: 'Breakwater', kind: 'interaction', desc: 'Fracture shears off everything the tide grinds.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 170, status: { kind: 'Fracture', amount: 1 } }] }] },
+    { star: 9, name: 'The Drowning Deep', kind: 'capstone', desc: 'The full maelstrom: a vast basin and a merciless drag.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 190, pull: 46, damage: 10, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'deep' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

@@ -285,6 +285,88 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     reward: { ichor: 34 },
     themeCue: 'megaShepherd',
   },
+
+  // VESPERINE — the TEMPO mega: it owns TIME. Where the others push one axis, Vesperine
+  // ALTERNATES — hanging your shots in the air, then hurling the wave forward, then jamming your
+  // champions — so the fight is a rhythm the player must read. Eyes rule its choreography: every
+  // interrupt matters more here than anywhere (its telegraphs ARE the tempo).
+  vesperine: {
+    id: 'vesperine',
+    name: 'VESPERINE',
+    title: 'The Tidebinder',
+    lore: 'A cathedral jellyfish moored in the sky, its bells tolling hours that do not exist. Time near Vesperine is a suggestion — your shots hang like flies in amber while the tide beneath it never once arrives late.',
+    codex: 'Anchored in the upper dark. Alternates battlefield TEMPO: slowed projectiles, surged waves, jammed hero clocks. Its Lidless Eyes open on every major telegraph — interrupt the rhythm or be played by it. The Resonant Heart at half tide is the commit window.',
+    hp: 6800,
+    armor: 10,
+    bodyFrac: 0.35,
+    palette: { body: '#1e2a4a', glow: '#6ad4e8', accent: '#b48ae0' },
+    abilities: [
+      { kind: 'slowShots', cooldown: 15, telegraph: 2.2, duration: 8, magnitude: 0.55 }, // 0 — the amber tide
+      { kind: 'haste', cooldown: 17, telegraph: 2.4, duration: 7, magnitude: 1.3 }, // 1 — the surge tide
+      { kind: 'jam', cooldown: 22, telegraph: 2.8, duration: 9, magnitude: 1.7 }, // 2 — stolen hours
+      { kind: 'brood', cooldown: 14, telegraph: 2.0, duration: 0, count: 4, addKind: 'darter' }, // 3 — the tide's teeth
+      { kind: 'eliteSurge', cooldown: 27, telegraph: 3.0, duration: 0, count: 2, addKind: 'lasher' }, // 4
+      { kind: 'suppressRange', cooldown: 20, telegraph: 2.5, duration: 7, magnitude: 0.8 }, // 5 — the horizon closes
+    ],
+    phases: [
+      { threshold: 1, abilities: [0, 3], visualTier: 0 }, // P1: learn the amber tide
+      { threshold: 0.72, abilities: [0, 1, 3], visualTier: 1 }, // P2: the ALTERNATION begins
+      { threshold: 0.45, abilities: [0, 1, 2, 4], passive: { kind: 'slowShots', magnitude: 0.9 }, entrySurge: { count: 4, addKind: 'darter' }, visualTier: 2 },
+      { threshold: 0.18, abilities: [1, 2, 4, 5], passive: { kind: 'haste', magnitude: 1.12 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 6, visualTier: 3 },
+    ],
+    weakPoints: [
+      { kind: 'eye', on: 'abilityCast', ability: 'slowShots', x: 0.3, y: 435 },
+      { kind: 'eye', on: 'abilityCast', ability: 'haste', x: 0.7, y: 435 },
+      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.15, y: 470 },
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.85, y: 495 },
+      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 550 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.4, y: 505 },
+      { kind: 'energy_core', on: 'timer', every: 27, x: 0.62, y: 515 },
+    ],
+    reward: { ichor: 32 },
+    themeCue: 'megaTide',
+  },
+
+  // MOLOCH-AMA — the TITHE mega: an ECONOMY PREDATOR. It barely raises the wave's teeth — it
+  // eats your MEANS instead: leeched income, corrupted emplacements, elite tax-collectors. Its
+  // spore clusters are the counter-ledger: burst them and the tithe flows BACK. The long game:
+  // strangle it before it bankrupts you.
+  moloch_ama: {
+    id: 'moloch_ama',
+    name: 'MOLOCH-AMA',
+    title: 'The Tithe',
+    lore: 'Older than hunger, it never eats what fights back — it eats what you would have built. Every drop of biomass that vanishes uncounted, every emplacement that goes quiet without a wound: the Tithe was collected.',
+    codex: 'Anchored over the harvest. Drinks your economy (deep leech), corrupts your emplacements, and sends elite collectors. Its Spore Clusters hold the stolen tithe — burst them to claim it BACK (and shut the leech off); the Armored Growth guards its gullet. Kill it before the ledger kills you.',
+    hp: 7600,
+    armor: 16,
+    bodyFrac: 0.33,
+    palette: { body: '#3a2e1e', glow: '#e8b84a', accent: '#a06a30' },
+    abilities: [
+      { kind: 'leech', cooldown: 14, telegraph: 2.0, duration: 11, magnitude: 0.5 }, // 0 — the tithe
+      { kind: 'corrupt', cooldown: 24, telegraph: 2.8, duration: 8, count: 2 }, // 1 — quiet emplacements
+      { kind: 'eliteSurge', cooldown: 22, telegraph: 2.6, duration: 0, count: 2, addKind: 'brute' }, // 2 — the collectors
+      { kind: 'chitinize', cooldown: 18, telegraph: 2.4, duration: 9, magnitude: 8 }, // 3 — gilded hides
+      { kind: 'brood', cooldown: 15, telegraph: 2.2, duration: 0, count: 4, addKind: 'runner' }, // 4
+      { kind: 'dampen', cooldown: 21, telegraph: 2.6, duration: 8, magnitude: 0.72 }, // 5 — bought silence
+    ],
+    phases: [
+      { threshold: 1, abilities: [0, 4], passive: { kind: 'leech', magnitude: 0.92 }, visualTier: 0 }, // P1: the ledger opens
+      { threshold: 0.7, abilities: [0, 1, 2], passive: { kind: 'leech', magnitude: 0.88 }, visualTier: 1 },
+      { threshold: 0.42, abilities: [0, 1, 2, 3], passive: { kind: 'leech', magnitude: 0.85 }, entrySurge: { count: 4, addKind: 'brute' }, regenPerSec: 7, visualTier: 2 },
+      { threshold: 0.16, abilities: [1, 2, 3, 5], passive: { kind: 'dampen', magnitude: 0.9 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 10, visualTier: 3 },
+    ],
+    weakPoints: [
+      { kind: 'spore_cluster', on: 'abilityCast', ability: 'leech', x: 0.35, y: 480 }, // the counter-ledger
+      { kind: 'spore_cluster', on: 'timer', every: 24, x: 0.65, y: 480 },
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 455 },
+      { kind: 'nerve_bundle', on: 'hpBelow', at: 0.7, x: 0.82, y: 445 }, // severs the standing tithe
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'eliteSurge', x: 0.18, y: 500 },
+      { kind: 'heart', on: 'hpBelow', at: 0.42, x: 0.5, y: 548 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.3, x: 0.3, y: 515 },
+    ],
+    reward: { ichor: 36 },
+    themeCue: 'megaTithe',
+  },
 };
 
 /** Content-validate a Mega Boss (registered defs fail loudly at dev boot). */

@@ -3386,6 +3386,8 @@ export class Game {
       this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
       this.castRangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1) * this.megaFx.towerRange;
       if (t.kind === 'maw') this.castRangeMult *= this.mods.mawCleaveRadiusMult; // bite reach (cards/affixes)
+      if (t.kind === 'polyp') this.castRangeMult *= this.mods.polypFieldMult; // a wider undertow (cards)
+      if (t.kind === 'spire') this.castExtraProjectiles += Math.max(0, Math.floor(this.mods.spireChainJumps)); // +arc hops (cards)
       this.castProjectileMutators =
         bk && bk.projectileMutators.length
           ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]

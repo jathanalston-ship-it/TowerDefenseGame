@@ -208,6 +208,20 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 25, kind: 'title', id: 'title.sower.cultivator', name: 'Cultivator' },
     ],
   },
+  {
+    unit: 'spire',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.spire.1', name: 'Storm Doctrine', text: 'The Spire does not aim. It ASKS the pack a question — and the answer travels body to body until nothing is left to carry it.' },
+      { at: 25, kind: 'title', id: 'title.spire.stormcaller', name: 'Stormcaller' },
+    ],
+  },
+  {
+    unit: 'polyp',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.polyp.1', name: 'Tide Doctrine', text: 'Every step they take is a loan. The Polyp is the collector — and the tide always forecloses.' },
+      { at: 25, kind: 'title', id: 'title.polyp.tidewarden', name: 'Tidewarden' },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [

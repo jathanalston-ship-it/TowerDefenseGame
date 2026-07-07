@@ -52,12 +52,14 @@ const FIELD_WEIGHT: Record<string, number> = {
   siphonRampMult: 0.4, // faster Gorge ⇒ the beam reaches its damage ceiling sooner (offense)
   siphonDrainMult: 0.25, // more biomass siphoned per hit (economy — the Vital return)
   sowerBlastRadiusMult: 0.35, // wider mine detonations — a single-tower AoE lever (per-tower band)
+  polypFieldMult: 0.3, // a wider undertow — single-tower control reach (delay = survival)
 };
 // `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
   needleExtraProjectiles: 0.08, // each extra projectile ≈ +8% offense
   coilBeamTargets: 0.08,
-  sowerExtraMines: 0.06, // each extra armed mine ≈ +6% of one tower's offense (denser denial field) // each extra beam target — a single-tower channel (weighted below needleExtraProjectiles's army-wide 0.08 in impact via the 0.35 ramp)
+  sowerExtraMines: 0.06, // each extra armed mine ≈ +6% of one tower's offense (denser denial field)
+  spireChainJumps: 0.07, // each extra arc hop ≈ +7% of one tower's offense (longer lightning) // each extra beam target — a single-tower channel (weighted below needleExtraProjectiles's army-wide 0.08 in impact via the 0.35 ramp)
   heroLifestealFrac: 0.5,
   heroThornsFrac: 0.2,
   heroCritChance: 0.5, // Hero Evolution — expected-damage from crit rate
@@ -104,6 +106,8 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'siphonRampMult', 'siphonDrainMult',
   // Blight Sower (spore-mine area denial):
   'sowerBlastRadiusMult', 'sowerExtraMines',
+  // Synapse Spire (chain-arc) + Undertow Polyp (pull-field):
+  'spireChainJumps', 'polypFieldMult',
 ];
 
 /** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */

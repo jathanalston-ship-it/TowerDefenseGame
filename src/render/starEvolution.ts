@@ -138,6 +138,28 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' }, // the garden apex — a permanent bloom corona
     ],
   },
+  // Synapse Spire (Neural) — antenna → storm pylon: glyphs, charge nodes, a lengthening spire.
+  spire: {
+    growth: 0.02,
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // synaptic sigils orbit the tip
+      { at: 3, kind: 'organs', count: 3 }, // charge ganglia
+      { at: 5, kind: 'barrel' }, // the spire LENGTHENS
+      { at: 7, kind: 'ripples', count: 2 }, // standing static field
+      { at: 9, kind: 'nova' }, // the storm pylon apex
+    ],
+  },
+  // Undertow Polyp (Kinetic) — mouth → maelstrom: tendrils, rings, the churn deepens.
+  polyp: {
+    growth: 0.022,
+    parts: [
+      { at: 1, kind: 'ripples', count: 1 }, // the first drag ring
+      { at: 3, kind: 'tendrils', count: 3 }, // anchor roots
+      { at: 5, kind: 'ripples', count: 2 }, // the churn deepens
+      { at: 7, kind: 'organs', count: 3 }, // swallowed mass
+      { at: 9, kind: 'nova' }, // the maelstrom apex
+    ],
+  },
   // Resonance Coil (Resonant) — focusing lens → resonance singularity.
   coil: {
     growth: 0.019,

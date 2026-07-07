@@ -32,6 +32,9 @@ export interface AuraAbility {
   status?: StatusApplication;
   react?: boolean; // whether damage can trigger reactions (e.g. Shred). Default false.
   particle?: ParticleKind;
+  /** DISPLACEMENT: drag every caught non-boss enemy this many px UP-LANE (toward spawn) and break
+   *  its siege lock — the Undertow Polyp's anti-progress identity (docs/POLYP.md). Absent ⇒ no-op. */
+  pull?: number;
 }
 /** An instant AoE burst centered at the cast point (hero leaps, bloom, override). */
 export interface ExplosionAbility {
@@ -49,6 +52,7 @@ export interface ChainAbility {
   range: number;
   damage: number;
   falloff?: number; // per-jump damage multiplier (default 0.7)
+  particle?: ParticleKind; // per-hop matter (the Synapse Spire's arc signature)
 }
 /** Apply a status to the cast's primary target. */
 export interface StatusAbility {
@@ -227,6 +231,12 @@ function execAura(ctx: AbilityContext, comp: AuraAbility, cast: AbilityCast): bo
       ctx.dealDamage(e, comp.damage * cast.damageMult, true);
       if (comp.react) ctx.reactOnHit(e);
     }
+    // The undertow: drag the caught BACK up-lane (mirrors the projectile knockback verb —
+    // bosses hold their ground; a yanked sieger loses its bite lock). Absent ⇒ zero work.
+    if (comp.pull && !e.boss) {
+      e.y = Math.max(24, e.y - comp.pull);
+      if (e.sieging) { e.sieging = false; e.windup = -1; }
+    }
     hit = true;
   });
   if (hit && comp.particle) ctx.particles(cast.x, cast.y, comp.particle);
@@ -247,16 +257,21 @@ function execExplosion(ctx: AbilityContext, comp: ExplosionAbility, cast: Abilit
 function execChain(ctx: AbilityContext, comp: ChainAbility, cast: AbilityCast): boolean {
   const falloff = comp.falloff ?? 0.7;
   const hit = new Set<number>();
-  let from = cast.target ?? ctx.nearestEnemy(cast.x, cast.y, comp.range, hit);
+  const reach = comp.range * ctx.rangeMult; // identity-range (arc acquisition + hop reach — spire mastery/themes)
+  let from = cast.target ?? ctx.nearestEnemy(cast.x, cast.y, reach, hit);
+  if (from) cast.target ??= from; // the PRIMARY victim — "chain + status/crit" pairings tag it (mirrors execProjectile)
   let dmg = comp.damage * cast.damageMult;
   let any = false;
-  for (let j = 0; j < comp.jumps && from; j++) {
+  // Star/branch/card hop bonuses ride the extraProjectiles channel — the Spire's "+arc" axis.
+  const jumps = comp.jumps + ctx.extraProjectiles;
+  for (let j = 0; j < jumps && from; j++) {
     hit.add(from.id);
     ctx.dealDamage(from, dmg, true);
     ctx.reactOnHit(from);
+    if (comp.particle) ctx.particles(from.x, from.y, comp.particle); // the arc bites HERE
     any = true;
     dmg *= falloff;
-    from = ctx.nearestEnemy(from.x, from.y, comp.range, hit);
+    from = ctx.nearestEnemy(from.x, from.y, reach, hit);
   }
   return any;
 }

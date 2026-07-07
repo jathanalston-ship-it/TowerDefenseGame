@@ -38,6 +38,8 @@ export interface RunModifiers {
   siphonDrainMult: number; // scales the biomass the Marrow Siphon siphons from damage dealt (its economy return)
   sowerBlastRadiusMult: number; // scales the Blight Sower's mine DETONATION radius — docs/SOWER.md
   sowerExtraMines: number; // +max armed mines each Blight Sower may keep planted (its field density)
+  spireChainJumps: number; // +arc hops for every Synapse Spire cast (rides the extraProjectiles channel) — docs/SPIRE.md
+  polypFieldMult: number; // scales the Undertow Polyp's field radius (its identity-range) — docs/POLYP.md
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -126,6 +128,8 @@ export function defaultRunModifiers(): RunModifiers {
     siphonDrainMult: 1,
     sowerBlastRadiusMult: 1,
     sowerExtraMines: 0,
+    spireChainJumps: 0,
+    polypFieldMult: 1,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -638,6 +642,8 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   coilBeamTargets: 'coil',
   sowerBlastRadiusMult: 'sower',
   sowerExtraMines: 'sower',
+  spireChainJumps: 'spire',
+  polypFieldMult: 'polyp',
   siphonRampMult: 'siphon',
   siphonDrainMult: 'siphon',
   reactorBiomassMult: 'reactor',

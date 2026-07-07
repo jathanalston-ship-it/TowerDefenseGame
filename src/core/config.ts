@@ -274,6 +274,42 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'Seeds the approach with ARMED spore mines — pre-placed detonations that corrode everything they catch.',
     abilities: [], // the trap loop is bespoke (game.trapTowerSystem/mineSystem); star/branch grants fire AT detonations
   },
+  spire: {
+    kind: 'spire',
+    name: 'Synapse Spire',
+    combatClass: 'Neural',
+    firing: 'field', // no projectile — its kit IS the attack (the first tower composed via def.abilities)
+    unlockShards: 400,
+    unlockStage: 25, // shards drop only past Campaign Stage 25
+    cost: 150,
+    range: 210, // the first arc's acquisition reach (hops leap the same span victim-to-victim)
+    fireInterval: 1.15,
+    damage: 30, // first-hop damage (falls off 25% per hop)
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#7c9aff',
+    blurb: 'Casts a synaptic ARC that leaps victim to victim — the tighter the pack, the longer the lightning.',
+    // The designed composition escape-hatch, used by a tower for the first time: the whole attack
+    // is one reusable chain component (stars/branches/cards add hops via the extraProjectiles channel).
+    abilities: [{ type: 'chain', jumps: 4, range: 210, damage: 30, falloff: 0.75, particle: 'spark' }],
+  },
+  polyp: {
+    kind: 'polyp',
+    name: 'Undertow Polyp',
+    combatClass: 'Kinetic',
+    firing: 'field',
+    unlockShards: 440,
+    unlockStage: 30, // the deepest tower gate yet
+    cost: 140,
+    range: 165, // its pulse field (identity-range: polypFieldMult/stars widen it)
+    fireInterval: 1.6,
+    damage: 5, // chip — the PULL is the product
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#3ec8b8',
+    blurb: 'A rooted undertow that DRAGS the wave back up-lane with every pulse — progress itself becomes the resource you deny.',
+    abilities: [{ type: 'aura', radius: 165, damage: 5, pull: 46, particle: 'disrupt' }],
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -340,6 +376,8 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   coil: [850, 3600, 14000, 52000, 190000], // premium single-target melter — sits with obelisk/mortar
   siphon: [950, 4000, 16000, 58000, 210000], // premium drain melter — the priciest capstone ladder
   sower: [820, 3500, 14000, 51000, 188000], // area-denial seeder — sits with the effigy/coil band
+  spire: [900, 3800, 15000, 55000, 200000], // premium arc-caster
+  polyp: [860, 3650, 14500, 53000, 195000], // the anti-progress organ
 };
 
 /** Spore-mine tunables (Blight Sower, firing 'trap' — docs/SOWER.md). A Sower keeps up to

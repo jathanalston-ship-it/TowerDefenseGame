@@ -25,8 +25,8 @@ function firstMobs(stage: ReturnType<typeof generateStage>): Game['enemies'] {
 }
 
 describe('new biomes — registration + identity', () => {
-  it('both are registered, resolvable, and appended as the two DEEP biomes (indices 6 & 7)', () => {
-    expect(BIOMES.length).toBe(8);
+  it('both are registered, resolvable, and appended as DEEP biomes (indices 6 & 7 of 10)', () => {
+    expect(BIOMES.length).toBe(10); // molten+tempest, then the ossuary/umbral expansion
     for (const id of NEW) {
       expect(biomeById(id).id).toBe(id); // resolvable
       expect(BIOMES.some((b) => b.id === id)).toBe(true);
@@ -59,7 +59,10 @@ describe('Campaign pillar — deep biome regions + real in-sim reach', () => {
     // the generator and the map agree, and the world map wraps back after the new bands
     expect(generateStage(31, 'standard').biome.id).toBe('molten');
     expect(generateStage(36, 'standard').biome.id).toBe('tempest');
-    expect(biomeForStage(8 * BIOME_REGION + 1).id).toBe('verdant'); // wraps
+    // The Ossuary/Umbral expansion extends the world: regions 9 & 10, THEN the wrap.
+    for (let st = 8 * BIOME_REGION + 1; st <= 9 * BIOME_REGION; st++) expect(biomeForStage(st).id).toBe('ossuary');
+    for (let st = 9 * BIOME_REGION + 1; st <= 10 * BIOME_REGION; st++) expect(biomeForStage(st).id).toBe('umbral');
+    expect(biomeForStage(10 * BIOME_REGION + 1).id).toBe('verdant'); // wraps
   });
 
   it('Molten enemies carry its armour (+4) and slow (×0.88) in a live campaign run', () => {
@@ -88,7 +91,9 @@ describe('Infinite + Boss Rush pillars — depth rotation (both select via biome
   it('rotates the new biomes into depths 31–40, then wraps', () => {
     for (let d = 6 * BIOME_PERIOD + 1; d <= 7 * BIOME_PERIOD; d++) expect(biomeForDepth(d).id).toBe('molten');
     for (let d = 7 * BIOME_PERIOD + 1; d <= 8 * BIOME_PERIOD; d++) expect(biomeForDepth(d).id).toBe('tempest');
-    expect(biomeForDepth(8 * BIOME_PERIOD + 1).id).toBe('verdant'); // wraps forever
+    for (let d = 8 * BIOME_PERIOD + 1; d <= 9 * BIOME_PERIOD; d++) expect(biomeForDepth(d).id).toBe('ossuary');
+    for (let d = 9 * BIOME_PERIOD + 1; d <= 10 * BIOME_PERIOD; d++) expect(biomeForDepth(d).id).toBe('umbral');
+    expect(biomeForDepth(10 * BIOME_PERIOD + 1).id).toBe('verdant'); // wraps forever
   });
 
   it('an endless run enters the rotation live and its biome mods reach spawned enemies', () => {
