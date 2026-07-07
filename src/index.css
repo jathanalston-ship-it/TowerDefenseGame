@@ -32,6 +32,11 @@
   --neural: #6e7bff;
   --vital: #ff7a59;
 
+  /* biome accents that aren't a class hue (docs/BIOMES.md) — the renderer resolves these
+     from :root via getComputedStyle, so they must live here to tint the arena wash. */
+  --molten: #ff5030;
+  --tempest: #a774ff;
+
   /* state */
   --gold: #ffd24d;
   --success: #3fe08a;

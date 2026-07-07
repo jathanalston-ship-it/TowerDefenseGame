@@ -164,6 +164,35 @@ export const BIOMES: Biome[] = [
       hazard: { name: 'Static Field', desc: 'A static surge — the swarm jolts, towers stutter.', period: 14, duration: 2.5, enemySpeedMult: 1.2, towerRateMult: 0.92 },
     },
   },
+  {
+    // Deep volcanic siege-front: slow, armoured, HARD-HITTING bombardment — the line holds, but every
+    // breach scorches. The first biome to field the `artillery` boss chassis. Threat-balanced: tankier
+    // ⇒ slower. Splash/DoT (Caustic) chews the grouped siege; control (Neural) matters less vs slow tanks.
+    id: 'molten', name: 'Molten Verge', accent: 'var(--molten)', modifierName: 'Eruption',
+    ambient: { root: 58.3, fifth: 87.3, cutoff: 280, wave: 'sawtooth' },
+    mods: {
+      enemyHpMult: 1.12, enemySpeedMult: 0.88, enemyDamageMult: 1.1, enemyArmorBonus: 4, enemyRegenFrac: 0, bountyMult: 1.06,
+      towerClassMult: { Caustic: 1.12, Neural: 0.95 }, towerFireRateMult: 1,
+      heroDamageMult: 1, heroCooldownMult: 1.04, // heat saps the hero's abilities
+      bias: { heavy: 1.5, special: 1.3 }, signature: ['brute', 'spitter'], eliteMult: 1, bossChassisBias: { artillery: 3 }, difficulty: 1.2,
+      hazard: { name: 'Eruption', desc: 'A lava surge whips the slow siege into a charge.', period: 19, duration: 3, enemySpeedMult: 1.2, towerRateMult: 1 },
+    },
+  },
+  {
+    // A charged ionosphere: the ambient static OVERCLOCKS your towers (the only biome to buff global
+    // fire rate) — but the storm-hardened hosts are tanky, armoured, shielded and shrug it off. A
+    // different rhythm: your towers scream while a durable host grinds in. Neural (control) shines;
+    // abilities come faster in the charge. Threat-balanced: the +rate is offset by tankier enemies.
+    id: 'tempest', name: 'Tempest Reach', accent: 'var(--tempest)', modifierName: 'Ionstorm',
+    ambient: { root: 82.4, fifth: 123.5, cutoff: 680, wave: 'square' },
+    mods: {
+      enemyHpMult: 1.1, enemySpeedMult: 0.94, enemyDamageMult: 1, enemyArmorBonus: 3, enemyRegenFrac: 0, bountyMult: 1.05,
+      towerClassMult: { Neural: 1.05 }, towerFireRateMult: 1.08, // the charged air quickens every tower
+      heroDamageMult: 1.05, heroCooldownMult: 0.96, // abilities recharge faster in the storm
+      bias: { special: 1.4, heavy: 1.2 }, signature: ['warden', 'cantor'], eliteMult: 1, bossChassisBias: { controller: 3 }, difficulty: 1.12,
+      hazard: { name: 'Gale', desc: 'A gale rips through — the swarm surges on the wind.', period: 17, duration: 3, enemySpeedMult: 1.15, towerRateMult: 1 },
+    },
+  },
 ];
 
 // Self-register into the content registry (id + name); the mechanical payload lives on `Biome`.
