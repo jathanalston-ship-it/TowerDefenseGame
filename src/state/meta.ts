@@ -14,7 +14,8 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, upgradeEffectUnits } from '../core/config';
+import { isPrevDayKey } from '../core/daily';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -643,6 +644,9 @@ export interface RunResult {
   rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
   durationSec?: number; // run length (sim seconds) — drives the campaign fastest-clear ledger
   doctrine?: string; // the run's doctrine — protocols pay run-end rewards (docs/MODE-IDENTITY.md §doctrines)
+  // ── Daily Run (docs/DAILY-RUN.md) — set by App for a 'daily' run: the day's UTC key. Drives the
+  //    daily ledger (best wave / completions / streak) + the once-per-day clear reward. ──
+  dailyKey?: string;
 }
 
 export interface RunReward {
@@ -695,6 +699,9 @@ export interface RunOutcome {
   // Boss Rush lifetime-record bands (docs/BOSS-RUSH.md §ichor): this run's band payouts + the
   // updated record and the next Ichor milestone — the Results progress line. Absent off-rush.
   rushProgress?: { bossKills: number; bestBoss: number; nextIchorAt: number; ichor: number; vaults: number; newRecordBosses: number };
+  // Daily Run (docs/DAILY-RUN.md): this run's daily outcome — the once-per-day clear reward (0 on a
+  // replay/loss) and the updated streak. Absent off-daily.
+  dailyProgress?: { cores: number; streak: number; cleared: boolean };
 }
 
 /** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
@@ -944,6 +951,29 @@ export const meta = {
     }
     const rushLootBonus = isRush ? Math.round(RUSH.lootPerBoss * bossKills * econDiff.containerRateMult * asc.lootGainMult) : 0;
 
+    // Daily Run (docs/DAILY-RUN.md §rewards): ledger + the ONCE-per-day clear reward. The clear pays
+    // Genome Cores exactly once per UTC day (rewardedKey gate) with a capped consecutive-day streak
+    // kicker; replays still record the day's deepest wave. No dailyKey ⇒ everything stays as-is.
+    const dailyKey = result.dailyKey ?? null;
+    const isDaily = dailyKey !== null;
+    const dailyRewarded = isDaily && result.won && save.daily.rewardedKey !== dailyKey;
+    const dailyStreak = dailyRewarded
+      ? (isPrevDayKey(save.daily.rewardedKey, dailyKey) ? save.daily.streak + 1 : 1)
+      : save.daily.streak;
+    const dailyCoreBonus = dailyRewarded
+      ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult)
+      : 0;
+    const nextDaily: SaveData['daily'] = isDaily
+      ? {
+          lastKey: dailyKey,
+          lastWave: save.daily.lastKey === dailyKey ? Math.max(save.daily.lastWave, result.wave) : result.wave,
+          bestWave: Math.max(save.daily.bestWave, result.wave),
+          completions: save.daily.completions + (dailyRewarded ? 1 : 0),
+          streak: dailyStreak,
+          rewardedKey: dailyRewarded ? dailyKey : save.daily.rewardedKey,
+        }
+      : save.daily;
+
     // 1. global shards + run records
     // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps (director policy).
     const docEcon = doctrineEconomy(result.doctrine);
@@ -959,10 +989,12 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
-    }).total()) + firstClearBonus + attemptBonus + rushCoreBonus;
+    }).total()) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus;
     // Boss Rush keeps its OWN depth record (rush waves are dense, short numbers — folding them
     // into the Infinite record would warp that mode's qualify gate + prediction floor).
-    const newBest = isRush ? result.wave > save.rushBestWave : result.wave > save.bestWave;
+    // Mode-scoped records: Boss Rush + Daily keep their OWN depth ledgers — neither pollutes the
+    // Infinite bestWave (its qualify gate + prediction floor are calibrated on Infinite depths).
+    const newBest = isRush ? result.wave > save.rushBestWave : isDaily ? result.wave > save.daily.bestWave : result.wave > save.bestWave;
 
     // 2. mastery: counts → XP, tracking the level delta per kind for the UI
     const towerMasteryXp = { ...save.towerMasteryXp };
@@ -1147,9 +1179,10 @@ export const meta = {
       lifetimeShards: save.lifetimeShards + shardsEarned,
       ichor: save.ichor + ichorGain,
       lifetimeIchor: save.lifetimeIchor + ichorGain,
-      bestWave: isRush ? save.bestWave : Math.max(save.bestWave, result.wave),
+      bestWave: isRush || isDaily ? save.bestWave : Math.max(save.bestWave, result.wave),
       rushBestWave: isRush ? Math.max(save.rushBestWave, result.wave) : save.rushBestWave,
       rushBestBoss: isRush ? Math.max(save.rushBestBoss, bossKills) : save.rushBestBoss,
+      daily: nextDaily,
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
       towerKills,
@@ -1193,6 +1226,7 @@ export const meta = {
             newRecordBosses: Math.max(0, bossKills - save.rushBestBoss), // Bio-Roulette's record spore lane
           } }
         : {}),
+      ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
     };
   },
 

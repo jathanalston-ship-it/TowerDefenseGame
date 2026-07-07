@@ -31,3 +31,9 @@ export function isBossRushUnlocked(save: SaveData): boolean {
     (save.stats?.rushRuns ?? 0) > 0
   );
 }
+
+/** Daily Run unlock (docs/DAILY-RUN.md §gates): clear Campaign Stage 5. Accounts with any daily
+ *  history are grandfathered in via their ledger. */
+export function isDailyUnlocked(save: SaveData): boolean {
+  return highestCampaignStage(save) >= MODE_UNLOCKS.daily || save.daily.completions > 0 || save.daily.lastKey !== '';
+}

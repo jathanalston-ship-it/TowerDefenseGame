@@ -36,7 +36,7 @@ import { BuildPanel } from './BuildPanel';
 import { HeroEvolutionPanel } from './HeroEvolutionPanel';
 import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
-import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerProgress } from '../core/types';
+import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { RunResult } from '../state/meta';
 
@@ -81,6 +81,7 @@ export function GameView({
   stage,
   difficulty,
   doctrine,
+  daily,
   onEnd,
   onAbandon,
   tutorial,
@@ -98,6 +99,7 @@ export function GameView({
   stage?: StageConfig;
   difficulty?: string;
   doctrine?: string;
+  daily?: { modifierIds: string[]; towerPool: TowerKind[] }; // Daily Run (docs/DAILY-RUN.md): the day's modifiers + trial Conveyor pool
   onEnd: (r: RunResult) => void;
   onAbandon: () => void;
   tutorial?: boolean; // TUTORIAL mode: don't bank loot + don't auto-hand-off on run end (the tutorial director drives completion)
@@ -107,8 +109,12 @@ export function GameView({
   const gameRef = useRef<Game | null>(null);
   const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip,
-    favorite: meta.favoriteTower(), // Biomorph Conveyor favorite (docs/STRAIN.md §conveyor)
-    unlocked: meta.unlockedTowers(), // the owned roster gates placement/belt/drafts (docs/TOWERS.md §expansion)
+    // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
+    // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
+    // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.
+    favorite: daily ? daily.towerPool[0] : meta.favoriteTower(), // Biomorph Conveyor favorite (docs/STRAIN.md §conveyor)
+    unlocked: daily ? [...new Set(daily.towerPool)] : meta.unlockedTowers(), // gates placement/belt/drafts (docs/TOWERS.md §expansion)
+    ...(daily ? { daily: { modifierIds: daily.modifierIds } } : {}),
     geneLevels: meta.geneLevels(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),

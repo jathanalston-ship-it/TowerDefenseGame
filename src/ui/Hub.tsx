@@ -16,7 +16,8 @@ import '../state/notificationSources'; // registers the default menu badges (sid
 import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
-import { highestCampaignStage, isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { DailyScreen } from './DailyScreen';
+import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { MODE_UNLOCKS } from '../core/config';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
@@ -36,7 +37,7 @@ import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
-  | 'home' | 'campaign' | 'infinite' | 'bossrush'
+  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily'
   | 'towers' | 'heroes' | 'evolution' | 'genes'
   | 'vault' | 'market' | 'equipment' | 'collection'
   | 'profile' | 'settings' | 'help';
@@ -52,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
     { key: 'campaign', label: 'Campaign', mono: '⬡' },
     { key: 'infinite', label: 'Infinite', mono: '∞' },
     { key: 'bossrush', label: 'Boss Rush', mono: '☠' },
+    { key: 'daily', label: 'Daily Run', mono: '☀' },
   ] },
   { title: 'Progression', items: [
     { key: 'towers', label: 'Towers', mono: 'T' },
@@ -160,6 +162,7 @@ export function Hub({
   onStartEndless,
   onStartBossRush,
   onStartCampaign,
+  onStartDaily,
   last,
   onSeenLast,
   onReplayTutorial,
@@ -171,6 +174,7 @@ export function Hub({
   onStartEndless: () => void;
   onStartBossRush: () => void;
   onStartCampaign: (stage: number) => void;
+  onStartDaily: () => void;
   last: { result: RunResult; outcome: RunOutcome } | null;
   onSeenLast: () => void;
   onReplayTutorial: () => void;
@@ -190,6 +194,7 @@ export function Hub({
   const modeLocked: Partial<Record<NavKey, boolean>> = {
     infinite: !isInfiniteUnlocked(save),
     bossrush: !isBossRushUnlocked(save),
+    daily: !isDailyUnlocked(save),
   };
 
   // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset).
@@ -284,6 +289,12 @@ export function Hub({
               ? <ModeLocked title="BOSS RUSH" glyph="☠" stage={MODE_UNLOCKS.bossRush} current={highestCampaignStage(save)}
                   blurb="The gauntlet: wave N deploys N assembled bosses, and every kill pays. Prove the hive first." go={go} />
               : <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />
+          )}
+          {nav === 'daily' && (
+            modeLocked.daily
+              ? <ModeLocked title="DAILY RUN" glyph="☀" stage={MODE_UNLOCKS.daily} current={highestCampaignStage(save)}
+                  blurb="One seed per day — the same 20-wave gauntlet worldwide, under the day's modifiers." go={go} />
+              : <DailyScreen onStartDaily={onStartDaily} />
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && <HeroLab />}

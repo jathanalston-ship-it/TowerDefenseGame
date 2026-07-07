@@ -25,7 +25,10 @@ import { HeroSlotUnlock } from './HeroSlotUnlock';
 import type { HeroSlotUnlockData } from './HeroSlotUnlock';
 import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
 import { BioRoulette } from './BioRoulette';
-import { isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { dailyKey, generateDaily, pickDailyHero } from '../core/daily';
+import type { DailyPlan } from '../core/daily';
+import { HERO_ORDER } from '../core/config';
 import { sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
 import { TutorialRunner } from './TutorialRunner';
@@ -58,6 +61,7 @@ export function App(): JSX.Element {
   const modeRef = useRef<RunMode>('stage');
   const stageRef = useRef<StageConfig | null>(null); // campaign: the generated stage being played
   const campaignStageRef = useRef(0); // campaign: the stage number (winning it unlocks the next)
+  const dailyPlanRef = useRef<DailyPlan | null>(null); // daily: the day's rolled plan (docs/DAILY-RUN.md)
   // Run setup the player picks on the Play screen (uncontrolled → read at run start). Defaults are
   // identity ('standard' / 'none'), so an untouched menu plays exactly the baseline run.
   const difficultyRef = useRef('standard');
@@ -125,7 +129,9 @@ export function App(): JSX.Element {
           ? { title: 'INFINITE MODE', sub: `AI Director · infinite depth · ${diffName}`, accent: 'var(--viral, #c98bff)' }
           : mode === 'bossRush'
             ? { title: 'BOSS RUSH', sub: `The gauntlet · wave N = N bosses · ${diffName}`, accent: 'var(--danger, #ff5d73)' }
-            : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
+            : mode === 'daily' && stage
+              ? { title: `DAILY RUN — ${stage.biome.name.toUpperCase()}`, sub: 'One seed · one world · 20 waves', accent: stage.biome.accent }
+              : { title: 'QUICK SKIRMISH', sub: 'The authored 12-wave defense', accent: 'var(--kinetic, #5ad1ff)' },
     );
     setScreen('deploying');
   }, []);
@@ -161,6 +167,22 @@ export function App(): JSX.Element {
     campaignStageRef.current = stage;
     begin('campaign', generateStage(stage, difficultyRef.current));
   }, [begin]);
+  // Daily Run (docs/DAILY-RUN.md): ONE deterministic plan per UTC day — the same run worldwide.
+  // The run seed is the DAY seed (not the usual random roll) and the day dictates the fielded hero,
+  // so every player faces the identical gauntlet; the difficulty is the shared 'standard' ruleset.
+  const startDaily = useCallback(() => {
+    if (!isDailyUnlocked(meta.get())) return; // campaign-gated (docs/MODE-IDENTITY.md §gates)
+    const plan = generateDaily(dailyKey());
+    dailyPlanRef.current = plan;
+    difficultyRef.current = 'standard';
+    begin('daily', plan.stage);
+    // Post-begin overrides (begin() snapshots the ACCOUNT defaults synchronously; the run mounts
+    // after the deploy interstitial, so these land before the Game constructs):
+    seedRef.current = plan.seed; // the DAY seed ⇒ byte-identical run worldwide
+    const hero = pickDailyHero(plan.seed, HERO_ORDER);
+    heroRef.current = hero;
+    rosterRef.current = [hero]; // the day's single champion — slots don't apply to the shared gauntlet
+  }, [begin]);
 
   const handleEnd = useCallback((result: RunResult) => {
     // Campaign: tag the result so finishRun unlocks the next stage + scales the rewards.
@@ -173,6 +195,11 @@ export function App(): JSX.Element {
     } else if (modeRef.current === 'bossRush') {
       result.bossRush = true; // Boss Rush: per-boss payout lanes + rush records (docs/BOSS-RUSH.md)
       result.difficulty = difficultyRef.current;
+    } else if (modeRef.current === 'daily') {
+      // Daily: tag the day key (ledger + once-per-day clear reward) + the plan's reward scalar.
+      result.dailyKey = dailyPlanRef.current?.key;
+      result.rewardMult = stageRef.current?.rewardMult;
+      result.difficulty = 'standard';
     }
     const outcome = meta.finishRun(result);
     // Bio-Roulette spores (docs/BOSS-RUSH.md §roulette): record delta + volume, from the parts
@@ -209,8 +236,9 @@ export function App(): JSX.Element {
     if (modeRef.current === 'endless') startEndless();
     else if (modeRef.current === 'bossRush') startBossRush();
     else if (modeRef.current === 'campaign') startCampaign(campaignStageRef.current);
+    else if (modeRef.current === 'daily') startDaily(); // same UTC day ⇒ the same plan (reward stays once/day)
     else startRun();
-  }, [startEndless, startBossRush, startCampaign, startRun]);
+  }, [startEndless, startBossRush, startCampaign, startDaily, startRun]);
   // Clear the last-run recap once the Home screen has shown it (so it doesn't re-appear).
   const clearLast = useCallback(() => setLast(null), []);
   // First-launch HUD Tour: latch it ON when eligible (after the tutorial, on the menu). Latched
@@ -240,6 +268,7 @@ export function App(): JSX.Element {
           onStartEndless={startEndless}
           onStartBossRush={startBossRush}
           onStartCampaign={startCampaign}
+          onStartDaily={startDaily}
           last={last}
           onSeenLast={clearLast}
           onReplayTutorial={launchTutorial}
@@ -263,6 +292,9 @@ export function App(): JSX.Element {
           stage={stageRef.current ?? undefined}
           difficulty={difficultyRef.current}
           doctrine={doctrineRef.current}
+          daily={modeRef.current === 'daily' && dailyPlanRef.current
+            ? { modifierIds: dailyPlanRef.current.modifierIds, towerPool: dailyPlanRef.current.towerPool }
+            : undefined}
           onEnd={handleEnd}
           onAbandon={handleAbandon}
         />

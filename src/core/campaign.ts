@@ -110,6 +110,10 @@ export interface StageConfig {
   eliteFrequency: number;
   miniBoss: BossDef | null;
   miniBossWave: number;
+  /** OPTIONAL per-wave boss overrides (docs/DAILY-RUN.md §bosses): the Game spawns the boss mapped
+   *  to a wave index when that wave starts. Campaign leaves this undefined (boss+miniBoss suffice);
+   *  the Daily Run uses it for its mid-boss roster. Undefined/empty ⇒ no extra spawns (golden-safe). */
+  bossWaves?: Record<number, BossDef>;
   /** Early-stage opening-economy aid (docs/CAMPAIGN.md §grace) — extra starting Biomass. */
   startBiomassBonus: number;
   boss: BossDef;
@@ -118,7 +122,9 @@ export interface StageConfig {
   rewardMult: number; // end-of-run shard/loot multiplier (currency + loot quality)
 }
 
-function hashStr(s: string): number {
+/** FNV-1a string hash → uint32. Exported so sibling generators (daily.ts) seed from the same
+ *  primitive rather than re-implementing it. */
+export function hashStr(s: string): number {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return h >>> 0;
@@ -204,16 +210,13 @@ export function stageStartAid(stage: number): number {
   return Math.max(0, Math.round(C.startAidBase * (1 - (stage - 1) / C.startAidFade)));
 }
 
-/**
- * Generate a campaign stage. Pure + deterministic in (stage, difficultyId). See CAMPAIGN.md.
- */
-export function generateStage(stage: number, difficultyId = 'standard'): StageConfig {
-  const st = Math.max(1, Math.floor(stage));
-  const rng = new Rng(stageSeed(st, difficultyId));
-  const biome = biomeForStage(st); // contiguous biome regions (BIOME_REGION stages each)
-  const base = resolveDifficulty(difficultyId);
-  const sc = stageScaling(st);
-
+/** The wave-composition core shared by Campaign (`generateStage`) and the Daily Run (daily.ts):
+ *  spend per-wave threat budgets over a stage-gated, biome-biased roster into ordered WaveDefs.
+ *  Extracted verbatim from generateStage (same rng sequence + math ⇒ campaign generation unchanged)
+ *  so daily waves feel authored, not parallel. `waveCount` is an OVERRIDE — campaign passes
+ *  stageWaveCount(st); daily passes DAILY.waveCount (20). Pure + deterministic in `rng`. */
+export interface StagePlan { waves: WaveDef[]; enemyPool: EnemyKind[]; eliteFrequency: number }
+export function composeStagePlan(rng: Rng, st: number, biome: Biome, base: DifficultyDef, waveCount: number): StagePlan {
   // Roster: stage-gated, biome-biased (exclude the boss-visual kind).
   const pool = (ENEMY_KINDS as EnemyKind[]).filter((k) => k !== BOSS_VISUAL_KIND && unlockStage(ENEMY_DEFS[k]) <= st);
   if (pool.length === 0) pool.push('runner');
@@ -222,10 +225,8 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const sig = new Set<EnemyKind>(biome.mods.signature);
   const weights = pool.map((k) => (biome.mods.bias[categoryOf(ENEMY_DEFS[k])] ?? 1) * (sig.has(k) ? C.signatureBoost : 1));
 
-  const waveCount = stageWaveCount(st);
   // Elite frequency: the biome eliteMult is applied BEFORE the cap, so the 0.45 invariant holds.
   const eliteFrequency = clamp((C.eliteBase + C.elitePerStage * st) * biome.mods.eliteMult, 0, C.eliteCap) * base.eliteChanceMult;
-  const miniBossChance = clamp(C.mbBase + C.mbPerStage * st, 0, C.mbCap) * base.bossFrequencyMult;
 
   // OPENING-ANCHORED wave budgets (docs/CAMPAIGN.md §grace): the run economy resets every
   // stage, so wave 1 must always be answerable by an opening build — near-constant across
@@ -256,6 +257,22 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
     // build (an auto-leak at ANY power ratio); by mid-stage the defense has the DPS to answer.
     waves.push(composeWave(rng, budget, wavePool, waveWeights, eliteFrequency * Math.min(1, t / 0.35), pace));
   }
+  return { waves, enemyPool: pool, eliteFrequency };
+}
+
+/**
+ * Generate a campaign stage. Pure + deterministic in (stage, difficultyId). See CAMPAIGN.md.
+ */
+export function generateStage(stage: number, difficultyId = 'standard'): StageConfig {
+  const st = Math.max(1, Math.floor(stage));
+  const rng = new Rng(stageSeed(st, difficultyId));
+  const biome = biomeForStage(st); // contiguous biome regions (BIOME_REGION stages each)
+  const base = resolveDifficulty(difficultyId);
+  const sc = stageScaling(st);
+
+  const waveCount = stageWaveCount(st);
+  const { waves, enemyPool: pool, eliteFrequency } = composeStagePlan(rng, st, biome, base, waveCount);
+  const miniBossChance = clamp(C.mbBase + C.mbPerStage * st, 0, C.mbCap) * base.bossFrequencyMult;
 
   // Mini-boss (a middle wave) + the finale boss — both via the framework boss assembler, so the
   // pool/selection/difficulty all come from boss.ts (difficulty rides the tier `tl`).

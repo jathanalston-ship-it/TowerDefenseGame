@@ -7614,3 +7614,32 @@ kbd {
 .mode-locked-pct { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; letter-spacing: 0.08em; }
 .mc-sec.is-locked { opacity: 0.65; border-style: dashed; }
 .mc-sec.is-locked .mc-sec-i { filter: saturate(0.35); }
+
+/* ── DAILY RUN terminal (docs/DAILY-RUN.md) — the day card + ledger ── */
+.daily-cols { align-items: start; }
+.daily-card { border-color: color-mix(in srgb, var(--biome, var(--gold)) 35%, var(--line)); background: linear-gradient(165deg, color-mix(in srgb, var(--biome, var(--gold)) 7%, var(--panel-2)), var(--panel-2) 65%); }
+.daily-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.daily-date { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.daily-diff { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--text-dim); }
+.daily-diff.d-tense { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+.daily-diff.d-harsh { color: #ff9d73; border-color: color-mix(in srgb, #ff9d73 55%, var(--line)); }
+.daily-diff.d-brutal { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 60%, var(--line)); }
+.daily-biome { margin-top: 8px; font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 26px; font-weight: 800; letter-spacing: 0.04em; text-shadow: 0 0 14px color-mix(in srgb, var(--biome, var(--gold)) 45%, transparent); }
+.daily-sub { margin-top: 3px; font-size: 12px; color: var(--muted); }
+.daily-mods { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+.daily-mod { padding: 8px 11px; border-radius: var(--r-sm, 8px); background: rgba(0, 0, 0, 0.25); border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--line)); border-left: 3px solid var(--danger); }
+.daily-mod-name { display: block; font-weight: 800; font-size: 13px; color: var(--danger); }
+.daily-mod-blurb { display: block; margin-top: 1px; font-size: 11px; color: var(--muted); }
+.daily-pool { margin-top: 11px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+.daily-pool-k { color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
+.daily-pool-t { font-weight: 800; }
+.daily-power { margin-top: 11px; font-size: 12px; color: var(--muted); }
+.daily-power b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.daily-power-you { margin-left: 8px; font-variant-numeric: tabular-nums; }
+.daily-power.ok .daily-power-you { color: var(--good, #57d98a); }
+.daily-power.low .daily-power-you { color: var(--danger); }
+.daily-deploy { margin-top: 14px; width: 100%; padding: 12px; font-size: 16px; letter-spacing: 0.08em; }
+.daily-note { margin-top: 8px; font-size: 11px; color: var(--good, #57d98a); text-align: center; }
+.daily-led { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 12px; color: var(--muted); border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent); }
+.daily-led:last-child { border-bottom: 0; }
+.daily-led b { color: var(--text); font-variant-numeric: tabular-nums; }

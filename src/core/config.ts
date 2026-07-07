@@ -984,13 +984,15 @@ export const MODE_REWARDS = {
   // Genome Cores (account currency) — Campaign-primary, biggest on a FIRST clear; Infinite gives a
   // token amount so depth can't be farmed for currency. Boss Rush's wave/kill lane is also a token —
   // its real payout is RUSH.corePerBoss (bosses defeated), so the mode rewards boss-slaying, not depth.
-  core: { campaignFirst: 1.0, campaignReplay: 0.3, endless: 0.2, stage: 1.0, bossRush: 0.25 },
+  // Daily's core/loot/mastery lanes sit AT-OR-BELOW campaign here (a modest base) — the mode's
+  // real payout is a Phase-2 spore/cache lane keyed to the shared-seed clear, not these formulas.
+  core: { campaignFirst: 1.0, campaignReplay: 0.3, endless: 0.2, stage: 1.0, bossRush: 0.25, daily: 0.3 },
   // Loot points (Loot Box Meter → Tower/Hero Shards) — Infinite is the farm; Campaign a trickle;
   // Boss Rush's base lane sits between (its per-boss bonus is the scaling lane).
-  loot: { campaign: 0.35, endless: 1.0, stage: 1.0, bossRush: 0.5 },
+  loot: { campaign: 0.35, endless: 1.0, stage: 1.0, bossRush: 0.5, daily: 0.35 },
   // Mastery XP (from use) — Infinite earns an endurance bonus, cementing it as the mastery venue.
   // Boss Rush pays a smaller intensity bonus (short runs, dense fights).
-  mastery: { campaign: 1.0, endless: 1.35, stage: 1.0, bossRush: 1.2 },
+  mastery: { campaign: 1.0, endless: 1.35, stage: 1.0, bossRush: 1.2, daily: 1.0 },
 };
 
 // Mode unlock gates (docs/MODE-IDENTITY.md §gates): the secondary pillars open as Campaign
@@ -998,6 +1000,7 @@ export const MODE_REWARDS = {
 // stays ungated so tests, the tutorial, and debug tooling can construct any mode directly.
 export const MODE_UNLOCKS = {
   infinite: 3, // Infinite opens after clearing Campaign Stage 3
+  daily: 5, // Daily Run opens after clearing Campaign Stage 5 (docs/DAILY-RUN.md §gates)
   bossRush: 10, // Boss Rush opens after clearing Campaign Stage 10
 };
 
@@ -1429,6 +1432,50 @@ export const RUSH = {
   openingBiomass: 170, // extra starting biomass — the hive fortifies BEFORE the first column (a boss duel needs a real board, probe-verified)
   bossBounty: 95, // FLAT biomass per rush boss — TL-scaled bounty made every difficulty lever self-funding (the column paid for the board that kills it); flat pay ⇒ income grows with N, costs grow with N×TL ⇒ a real wall forms (probe)
 };
+
+// ── Daily Run (docs/DAILY-RUN.md) — the fourth pillar: one deterministic seed per UTC day
+// generates the SAME 20-wave run worldwide. A rolled biome, a seeded boss roster/order, TWO
+// gameplay modifiers, and a 3-tower trial Conveyor pool rolled from the FULL registry. No
+// difficulty selector — one shared ruleset. Centralized tunables so a daily is data, not code;
+// dailyModifiers.ts reads its magnitude numbers from DAILY.mod (never inline literals). Golden-
+// safe by construction: the sim only ever sees these values through the neutral ResolvedEffects
+// (mults 1 / adds 0) unless a run boots in 'daily' mode with modifier ids.
+export const DAILY = {
+  waveCount: 20, // win by clearing wave 20 (finite, like Campaign — no endless extension)
+  bossWaves: [7, 14, 20] as const, // two mid-bosses + the finale (order comes from the seed)
+  poolSize: 3, // trial-tower Conveyor pool kinds (duplicates allowed — independent rolls)
+  modifierCount: 2, // TWO distinct gameplay modifiers per day
+  unlockStage: 5, // Campaign stage that opens the Daily pillar (MODE_UNLOCKS.daily)
+  // Scaling: an effective campaign-stage band (drives roster gating + HP/reward scaling via the
+  // campaign machinery) and a rolled HP-scaling scalar — the day-to-day difficulty variance.
+  stageMin: 12,
+  stageMax: 20,
+  waveScalingMin: 0.9,
+  waveScalingMax: 1.25,
+  musicTrackCount: 3, // seeded combat/boss track index the audio layer maps (core stores a plain number)
+  // Clear reward (docs/DAILY-RUN.md §rewards) — Genome Cores paid ONCE per day on the first clear;
+  // a consecutive-day streak adds a capped kicker (streak day 2 ⇒ +1×bonus, …).
+  reward: {
+    clearCores: 45,
+    streakBonus: 8, // extra cores per consecutive streak day beyond the first
+    streakBonusCap: 5, // the kicker stops growing past 5 streak days (45 + 40 = 85/day at cap)
+  },
+  // ── Modifier magnitudes (read by dailyModifiers.ts) — tuned dramatic-but-clearable ──
+  mod: {
+    enemySpeedMult: 1.3, // #1 Overrun
+    heroDamageMult: 2.0, // #2 Blood Frenzy — double damage …
+    heroDrainFrac: 0.02, // … but drain 2% of hero max-HP per second
+    incomeMult: 0.65, // #3 Famine — ~-35% biomass income
+    towerRangeMult: 0.75, // #4 Myopia — ~-25% tower range
+    branchCostMult: 1.5, // #5 Scarcity — +50% branch-tier cost
+    enemyArmorAdd: 8, // #6 Ironhide — flat armor add
+    draftEveryWaves: 3, // #7 Dormancy — gene cards draft every 3 waves
+    eliteChance: 0.12, // #8 Infestation — per-spawn elite promotion chance
+    towerRateMult: 1.35, // #9 Overclock — +attack speed …
+    towerDamageMult: 0.75, // … −damage trade
+    hiveRegenFrac: 0.01, // #10 Regeneration — the friendly one: +1% max-integrity per second
+  },
+} as const;
 
 // ── AI Director / run modes (director.ts) ───────────────────────────────────
 // The Director generates Endless waves from a threat budget; Stage mode stays the

@@ -86,6 +86,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/BOSS-RUSH.md', 'docs/MODE-IDENTITY.md'],
   },
   {
+    id: 'daily', name: 'Daily Run', purpose: 'The fourth pillar: one deterministic seed per UTC day ⇒ the SAME 20-wave run worldwide — rolled biome, seeded 3-boss roster, TWO gameplay modifiers, a 3-tower Conveyor pool.',
+    files: ['src/core/daily.ts', 'src/core/dailyModifiers.ts', 'src/ui/DailyScreen.tsx'],
+    dependsOn: ['engine', 'campaign', 'biomes', 'bosses', 'towers'], powerScore: 'recommended-power readiness on the day card', save: ['daily'], tutorial: [], help: [],
+    hud: [], ui: ['CommandCenter'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/DAILY-RUN.md', 'docs/MODE-IDENTITY.md'],
+  },
+  {
     id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',
     files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/core/conveyor.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
     dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerShards', 'towerMasteryXp', 'towerForks'],

@@ -104,6 +104,8 @@ import { resolveStrain, strainRegistry, strainPowerEffects } from './strains';
 import type { StrainHooks } from './strains';
 import { CONVEYOR, deployCost, strainCost, recycleValue, rollKind, rollRarity, growDuration } from './conveyor';
 import type { ConveyorItem } from './conveyor';
+import { NEUTRAL_EFFECTS, combinedEffects } from './dailyModifiers';
+import type { ResolvedEffects } from './dailyModifiers';
 import type { Branch, ResolvedBranchKit } from './branches';
 import { BRANCH_COSTS } from './config';
 
@@ -112,12 +114,12 @@ const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's 
 const BRANCH_HITSTOP = 0.12; // seconds the view-loop freezes on a tier purchase (a juicy "impact" beat)
 const MUTATION_BANNER_LIFE = 2.4; // seconds the tier-purchase banner is surfaced to the HUD
 
-export type RunMode = 'stage' | 'endless' | 'campaign' | 'bossRush';
+export type RunMode = 'stage' | 'endless' | 'campaign' | 'bossRush' | 'daily';
 
 /** Options a run can boot with. */
 export interface RunOptions {
   runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
-  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage; 'bossRush' = escalating boss gauntlet (docs/BOSS-RUSH.md)
+  mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage; 'bossRush' = escalating boss gauntlet (docs/BOSS-RUSH.md); 'daily' = the day's shared challenge (docs/DAILY-RUN.md)
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
@@ -129,6 +131,10 @@ export interface RunOptions {
   // gates placement, the conveyor's kind rolls, and the draft pool. Omitted ⇒ ALL kinds (the
   // golden path — tests/autoplay/probes construct without it and are byte-identical).
   startingGenes?: string[]; // Starting Gene Loadout: card ids that AUTO-ACTIVATE at run boot (each at its permanent level). Empty/omitted ⇒ nothing applied (golden path)
+  // Daily Run (docs/DAILY-RUN.md): the day's TWO modifier ids, resolved once at boot into the
+  // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
+  // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
+  daily?: { modifierIds: string[] };
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -294,6 +300,11 @@ export class Game {
   private runPlan: RunPlan | null = null;
   private runEventRng: Rng;
   private activeRunEvent: { name: string; desc: string; kind: string } | null = null; // current wave's beat (HUD telegraph)
+  // Daily Run (docs/DAILY-RUN.md): the day's two modifiers resolved into ONE neutral-defaulted
+  // struct (mults 1 / adds 0 ⇒ every hook read is golden-safe without them) + a dedicated rng for
+  // Infestation's elite rolls (never consumed unless that modifier is live).
+  private readonly dailyFx: ResolvedEffects;
+  private readonly dailyRng: Rng;
   // Universal difficulty (global scalars layered on the base curves); 'standard' = identity.
   private readonly diff: DifficultyDef;
   // The Universal Difficulty Director — the run's whole scaling policy (difficulty × doctrine
@@ -513,9 +524,14 @@ export class Game {
     this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
     this.favoriteTower = opts.favorite ?? 'needle';
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
+    // Daily Run (docs/DAILY-RUN.md): resolve the day's modifiers ONCE into the neutral-defaulted
+    // struct every hook reads (mults 1 / adds 0 without them ⇒ every read below is golden-safe).
+    // The dedicated rng paces Infestation's elite rolls — consumed ONLY when that modifier is live.
+    this.dailyFx = opts.daily ? combinedEffects(opts.daily.modifierIds) : NEUTRAL_EFFECTS;
+    this.dailyRng = new Rng((seed ^ 0xda11f00d) >>> 0);
     this.towerProgress = towerProgress;
     this.towerEffectiveRange = {} as Record<TowerKind, number>;
-    for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1);
+    for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1) * this.dailyFx.towerRangeMult;
     this.heroProgress = heroProgress;
     this.mode = opts.mode ?? 'stage';
     // Campaign runs a procedurally GENERATED stage: its combined difficulty (variant × per-stage
@@ -548,7 +564,8 @@ export class Game {
     // (docs/BOSS-RUSH.md); anomalies stay Infinite's. Campaign uses the stage's wave count (finale
     // reserved for its boss); Endless plans over a horizon. Rare Invasions draw OUT of the biome signature.
     this.runEventRng = new Rng((seed ^ 0x52554e21) >>> 0);
-    this.runPlan = this.mode === 'stage' || this.mode === 'bossRush' ? null : generateRunPlan(seed, {
+    // …and the Daily has NO run-identity plan either: its identity IS the day's two modifiers.
+    this.runPlan = this.mode === 'stage' || this.mode === 'bossRush' || this.mode === 'daily' ? null : generateRunPlan(seed, {
       mode: this.mode,
       waveCount: this.mode === 'endless' ? 50 : this.totalWaves,
       reserveFinale: this.mode === 'campaign',
@@ -567,6 +584,13 @@ export class Game {
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
     for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
     if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
+    // Daily modifiers — boot-time folds into the SAME run buckets doctrine/gear use (×1 neutral ⇒
+    // byte-identical without them). Per-tick knobs (drain/regen/armor/speed/elites/costs/cadence)
+    // are read at their hooks from this.dailyFx.
+    this.mods.heroDamageMult *= this.dailyFx.heroDamageMult;
+    this.mods.biomassMult *= this.dailyFx.incomeMult;
+    this.mods.towerDamageMult *= this.dailyFx.towerDamageMult;
+    this.mods.towerFireRateMult *= this.dailyFx.towerRateMult;
     // Hero identity (docs/HERO-FRAMEWORK.md): field the ROSTER — 1–3 distinct heroes (opts.heroRoster,
     // defaulting to the single selected hero ⇒ golden-safe). Cache each hero's kit and fold its innate
     // PASSIVE where it's a mod (Shepherd's Symbiosis grants a tower aura). The Ravager's passive is
@@ -935,7 +959,7 @@ export class Game {
       const owned = t.branchId === b.id ? t.tier : 0;
       const nextTier = owned + 1;
       const td = b.tiers[nextTier - 1];
-      const cost = nextTier <= 5 ? BRANCH_COSTS[t.kind][nextTier - 1] : 0;
+      const cost = nextTier <= 5 ? Math.round(BRANCH_COSTS[t.kind][nextTier - 1] * this.dailyFx.branchCostMult) : 0; // ×1 without Scarcity
       return {
         branchId: b.id, name: b.name, theme: b.theme,
         locked: t.branchId === b.id, tier: owned,
@@ -955,7 +979,7 @@ export class Game {
     if (!b || b.tower !== t.kind) return 'badTower';
     if (t.branchId && t.branchId !== branchId) return 'locked'; // committed elsewhere
     if (t.tier >= 5) return 'maxed';
-    const cost = BRANCH_COSTS[t.kind][t.tier]; // next tier's cost (t.tier is 0-based into the ladder)
+    const cost = Math.round(BRANCH_COSTS[t.kind][t.tier] * this.dailyFx.branchCostMult); // next tier's cost (0-based ladder; ×1 without Scarcity)
     if (this.biomass < cost) return 'poor';
     const powerBefore = effectsPower(this.powerEffects()); // runtime Power validator (cold path)
     this.biomass -= cost;
@@ -1630,7 +1654,7 @@ export class Game {
 
   /** Enemy-HP multiplier for a 0-based wave index (director curve × the run's own HP mod). */
   private hpMultFor(idx0: number): number {
-    return this.dd.waveHpMult(idx0) * this.mods.enemyHpRunMult;
+    return this.dd.waveHpMult(idx0) * this.mods.enemyHpRunMult * this.dailyFx.enemyHpMult; // ×1 without a daily HP modifier
   }
 
   /** Bounty/biomass multiplier for a 0-based wave index. */
@@ -1723,6 +1747,10 @@ export class Game {
     if (this.stage) {
       if (this.waveIndex === this.totalWaves) this.spawnBoss(this.stage.boss);
       else if (this.stage.miniBoss && this.waveIndex === this.stage.miniBossWave) this.spawnBoss(this.stage.miniBoss);
+      // Per-wave boss overrides (docs/DAILY-RUN.md §bosses): the Daily's seeded mid-boss roster.
+      // Campaign leaves bossWaves undefined ⇒ this lookup never fires (golden-safe).
+      const extraBoss = this.stage.bossWaves?.[this.waveIndex];
+      if (extraBoss) this.spawnBoss(extraBoss);
     }
     this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(this.waveIndex); // Run Identity: fold this wave's beat + anomaly (no-op in Stage)
@@ -2071,6 +2099,22 @@ export class Game {
     }
     if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
       this.economySystem(dt);
+      // Daily per-second modifiers (docs/DAILY-RUN.md) — both gated (0 without the modifier ⇒
+      // golden-safe): Blood Frenzy bleeds the fielded heroes; Regeneration knits the Hive.
+      if (this.dailyFx.heroDrainFrac > 0 && !this.god) {
+        for (const h of this.heroes) {
+          if (h.down) continue;
+          h.hp -= h.maxHp * this.dailyFx.heroDrainFrac * dt;
+          if (h.hp <= 0) {
+            h.down = true;
+            h.respawn = HERO_DEFS[h.kind].respawnTime;
+            this.floats.push({ x: h.x, y: h.y - 20, text: 'DOWN', color: '#ff5d73', life: 1.2 });
+          }
+        }
+      }
+      if (this.dailyFx.hiveRegenFrac > 0 && this.integrity > 0) {
+        this.integrity = Math.min(this.maxIntegrity, this.integrity + this.maxIntegrity * this.dailyFx.hiveRegenFrac * dt);
+      }
       this.emergencySystem(dt); // before towers: builds the in-zone set towers may override to
       this.towerSystem(dt);
       this.projectileSystem(dt);
@@ -2148,6 +2192,9 @@ export class Game {
     if (this.enemies.length >= PERF.maxEnemies) return; // entity budget
     const def = ENEMY_DEFS[kind];
     const spawn = topSpawn(this.rng.next());
+    // Daily Infestation: per-spawn elite promotion off the DEDICATED daily rng (never consumed at
+    // chance 0 ⇒ every other mode's rng sequence is untouched).
+    if (this.dailyFx.eliteChance > 0 && !elite && this.dailyRng.next() < this.dailyFx.eliteChance) elite = true;
     // Director-promoted elites are buffed in place (no new archetype) — endless only,
     // so a stage run (elite=false) is byte-identical.
     const eHp = elite ? DIRECTOR.eliteHpMult : 1;
@@ -2170,8 +2217,8 @@ export class Game {
       y: spawn.y,
       hp,
       maxHp: hp,
-      baseArmor: def.armor + bm.enemyArmorBonus,
-      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult * (this.warp.speedMult ?? 1), // ×endless ×stage ×biome ×doctrine (all ×1 otherwise → golden-safe)
+      baseArmor: def.armor + bm.enemyArmorBonus + this.dailyFx.enemyArmorAdd, // +0 without Ironhide → golden-safe
+      speed: def.speed * eSpeed * this.stageSpeedMult * bm.enemySpeedMult * (this.warp.speedMult ?? 1) * this.dailyFx.enemySpeedMult, // ×endless ×stage ×biome ×doctrine ×daily (all ×1 otherwise → golden-safe)
       bounty: def.bounty * bountyMult * eBounty * bm.bountyMult,
       damage: def.damage * eDmg * this.diff.enemyDamageMult * eDmgWave * bm.enemyDamageMult,
       fracture: 0,
@@ -4323,6 +4370,9 @@ export class Game {
    * last draft and fires once it reaches the depth's interval, so the gap only ever widens. Mutates
    * the since-last-draft counter, so call exactly once per cleared wave. */
   private shouldDraftThisWave(): boolean {
+    // Daily Dormancy (docs/DAILY-RUN.md): a positive cadence override drafts only every Nth wave.
+    // 0 (the neutral default) ⇒ fall through to the mode's own cadence — golden-safe.
+    if (this.dailyFx.draftEveryWaves > 0) return this.waveIndex % this.dailyFx.draftEveryWaves === 0;
     // Boss Rush: a FIXED every-2nd-wave cadence (docs/BOSS-RUSH.md) — steady power injections
     // against the linearly growing boss count, without Campaign's every-wave generosity.
     if (this.mode === 'bossRush') {

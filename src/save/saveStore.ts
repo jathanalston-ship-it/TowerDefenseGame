@@ -32,6 +32,11 @@ export interface SaveData {
   // Boss Rush stamina (docs/BOSS-RUSH.md §stamina) — lazily regenerated from updatedAt; the
   // day key records the last FREE daily entry (ISO date, UTC).
   rushStamina: { value: number; updatedAt: number; freeDay: string };
+  // ── Daily Run ledger (docs/DAILY-RUN.md) — additive; a fresh ledger for older saves.
+  //    lastKey/lastWave: the most recent attempt day + its deepest wave; bestWave: lifetime record;
+  //    completions: lifetime cleared dailies; streak: consecutive-day clears; rewardedKey: the day
+  //    whose clear reward was already granted (the once-per-day gate). ──
+  daily: { lastKey: string; lastWave: number; bestWave: number; completions: number; streak: number; rewardedKey: string };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -299,6 +304,7 @@ export function defaultSave(): SaveData {
     rushBestWave: 0,
     rushBestBoss: 0,
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
+    daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '' },
     totalRuns: 0,
     lifetimeShards: 0,
     cardsSeen: 0,
@@ -509,6 +515,8 @@ function withDefaults(data: SaveData): SaveData {
     rushBestWave: Math.max(0, Math.floor(Number((data as { rushBestWave?: unknown }).rushBestWave) || 0)),
     rushBestBoss: Math.max(0, Math.floor(Number((data as { rushBestBoss?: unknown }).rushBestBoss) || 0)),
     rushStamina: sanitizeRushStamina((data as { rushStamina?: unknown }).rushStamina),
+    // Daily Run ledger (docs/DAILY-RUN.md): pre-daily saves ⇒ a fresh ledger (additive).
+    daily: sanitizeDaily((data as { daily?: unknown }).daily),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
   };
@@ -630,6 +638,21 @@ function sanitizeRushStamina(raw: unknown): SaveData['rushStamina'] {
     value: Math.max(0, Math.min(120, Math.floor(num(o.value, 100)))),
     updatedAt: Math.max(0, Math.floor(num(o.updatedAt, 0))),
     freeDay: typeof o.freeDay === 'string' ? o.freeDay.slice(0, 10) : '',
+  };
+}
+
+/** Coerce a loaded Daily Run ledger (docs/DAILY-RUN.md) — a fresh ledger for pre-daily saves. */
+function sanitizeDaily(raw: unknown): SaveData['daily'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const num = (v: unknown): number => Math.max(0, Math.floor(Number.isFinite(Number(v)) ? Number(v) : 0));
+  const key = (v: unknown): string => (typeof v === 'string' ? v.slice(0, 10) : '');
+  return {
+    lastKey: key(o.lastKey),
+    lastWave: num(o.lastWave),
+    bestWave: num(o.bestWave),
+    completions: num(o.completions),
+    streak: num(o.streak),
+    rewardedKey: key(o.rewardedKey),
   };
 }
 
