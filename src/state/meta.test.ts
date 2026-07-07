@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
-import { meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
+import { isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { stageWaveCount } from '../core/campaign';
@@ -21,6 +21,7 @@ function runResult(wave: number, kills: number): RunResult {
     won: true,
     biomassEarned: 0,
     damageDealt: 0,
+    integrityLost: 0,
     killsByEnemy: defaultLifetimeStats().killsByEnemy,
     towerBuilds: TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: 0 }), {}) as RunStats['towerBuilds'],
     cardIds: [],
@@ -112,6 +113,30 @@ describe('metaModifiers (data-driven upgrades)', () => {
     const p100 = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [eff.id]: 100 } })).score;
     const p101 = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [eff.id]: 101 } })).score;
     expect(p101).toBeGreaterThan(p100); // diminishing, never zero — the "slight but real" contract
+  });
+});
+
+describe('hero unlock gating (isHeroUnlocked)', () => {
+  it('starters are free; Shard heroes lock until claimed; Vitriol is the milestone-gated exception', () => {
+    const fresh = defaultSave();
+    expect(isHeroUnlocked(fresh, 'ravager')).toBe(true); // starter — always owned
+    expect(isHeroUnlocked(fresh, 'shepherd')).toBe(false); // Shard-gated, unclaimed
+    expect(isHeroUnlocked(fresh, 'overseer')).toBe(false); // Shard-gated, unclaimed
+    expect(isHeroUnlocked(fresh, 'vitriol')).toBe(false); // milestone unmet (no boss slain)
+    // Vitriol is EARNED by a feat, not bought — slaying a Framework Boss unlocks it (no Shards),
+    // the unique gate distinct from the Shard-claimed heroes.
+    expect(isHeroUnlocked({ ...fresh, bossesSlain: ['brood_tyrant'] }, 'vitriol')).toBe(true);
+  });
+
+  it('Vitriol can never be claimed with Shards (milestone-only) and auto-unlocks on the feat', () => {
+    meta.reset();
+    expect(meta.unlockHero('vitriol')).toBe(false); // milestone hero — not claimable with Shards
+    meta.setSelectedHero('vitriol'); // locked on a fresh save → rejected, slot-1 stays the starter
+    expect(meta.selectedHero()).toBe('ravager');
+    meta.debugUnlockHeroes(); // records a boss kill → Vitriol earned (+ claims the Shard heroes)
+    meta.setSelectedHero('vitriol');
+    expect(meta.selectedHero()).toBe('vitriol');
+    meta.reset();
   });
 });
 
@@ -334,6 +359,46 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     while (meta.openContainer()) { /* open them all */ }
     expect(reward(meta.get())).toBeGreaterThan(before);
     expect(meta.pendingContainers().length).toBe(0);
+  });
+});
+
+describe('campaign flawless first-clear bonus cache', () => {
+  // A campaign clear of `stage`, having taken `integrityLost` Nucleus damage (0 = flawless).
+  function campaignRun(stage: number, integrityLost: number): RunResult {
+    const r = runResult(12, 300);
+    r.campaignStage = stage;
+    r.difficulty = 'standard';
+    r.stats.integrityLost = integrityLost;
+    return r;
+  }
+  const cacheCount = (out: ReturnType<typeof meta.finishRun>): number =>
+    out.loot.banked.filter((c) => c.kind === 'cache').length;
+
+  it('grants a 2nd (Flawless) cache on a no-damage first clear', () => {
+    meta.reset();
+    const out = meta.finishRun(campaignRun(1, 0));
+    expect(cacheCount(out)).toBe(2); // guaranteed run cache + flawless bonus
+    expect(out.flawlessCache).toEqual({ earned: true, firstClear: true, noDamage: true });
+  });
+
+  it('grants only the guaranteed cache when the first clear took ANY damage', () => {
+    meta.reset();
+    const out = meta.finishRun(campaignRun(1, 5)); // regen can't redeem it — any hit forfeits the bonus
+    expect(cacheCount(out)).toBe(1);
+    expect(out.flawlessCache).toEqual({ earned: false, firstClear: true, noDamage: false });
+  });
+
+  it('never grants the Flawless cache on a replay, even a flawless one', () => {
+    meta.reset();
+    meta.finishRun(campaignRun(1, 0)); // clear stage 1 → now a completed stage
+    const out = meta.finishRun(campaignRun(1, 0)); // replay it flawlessly
+    expect(cacheCount(out)).toBe(1);
+    expect(out.flawlessCache).toEqual({ earned: false, firstClear: false, noDamage: true });
+  });
+
+  it('is null (not applicable) for a non-campaign run', () => {
+    meta.reset();
+    expect(meta.finishRun(runResult(12, 300)).flawlessCache).toBeNull();
   });
 });
 

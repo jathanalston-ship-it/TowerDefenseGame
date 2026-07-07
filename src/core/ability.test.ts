@@ -26,11 +26,12 @@ interface Log {
   healCaster: number;
   buffs: { stat: string; amount: number; seconds: number }[];
   summons: { unit: string; count: number; x: number; y: number }[];
+  pools: { x: number; y: number; radius: number; dps: number; seconds: number }[];
   particles: string[];
 }
 
 function recorder(enemies: Enemy[]): { ctx: AbilityContext; log: Log; rollValue: { v: number } } {
-  const log: Log = { projectiles: 0, damage: [], statuses: [], reactions: 0, healNucleus: 0, healCaster: 0, buffs: [], summons: [], particles: [] };
+  const log: Log = { projectiles: 0, damage: [], statuses: [], reactions: 0, healNucleus: 0, healCaster: 0, buffs: [], summons: [], pools: [], particles: [] };
   const rollValue = { v: 0.5 };
   const ctx: AbilityContext = {
     pickTargets: (_x, _y, _r, n) => enemies.slice(0, n),
@@ -45,6 +46,7 @@ function recorder(enemies: Enemy[]): { ctx: AbilityContext; log: Log; rollValue:
     grantShield: () => {},
     grantBuff: (stat, amount, seconds) => { log.buffs.push({ stat, amount, seconds }); },
     summon: (unit, count, x, y) => { log.summons.push({ unit, count, x, y }); },
+    spawnPool: (x, y, radius, dps, seconds) => { log.pools.push({ x, y, radius, dps, seconds }); },
     extraProjectiles: 0,
     splashMult: 1,
     rangeMult: 1,
@@ -131,5 +133,12 @@ describe('ability executors', () => {
     const r = recorder([]);
     expect(runAbility(r.ctx, { type: 'summon', unit: 'wisp', count: 2 }, cast({ x: 50, y: 60 }))).toBe(true);
     expect(r.log.summons).toEqual([{ unit: 'wisp', count: 2, x: 50, y: 60 }]);
+  });
+
+  it('pool drops a corrosion pool at the cast point — dps scales with damageMult, radius with rangeMult', () => {
+    const r = recorder([]);
+    // cast() sets damageMult 2; the recorder's rangeMult is 1.
+    expect(runAbility(r.ctx, { type: 'pool', radius: 100, dps: 20, seconds: 5 }, cast({ x: 30, y: 40 }))).toBe(true);
+    expect(r.log.pools).toEqual([{ x: 30, y: 40, radius: 100, dps: 40, seconds: 5 }]);
   });
 });

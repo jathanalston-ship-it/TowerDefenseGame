@@ -2519,6 +2519,34 @@ kbd {
   border: 1px solid rgba(240, 190, 90, 0.32);
   border-radius: var(--r-sm);
 }
+/* Flawless first-clear bonus-cache verdict: gold + glow when earned, quiet when missed. */
+.flawless-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--line);
+}
+.flawless-notice .fn-glyph {
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.flawless-notice.is-earned {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 16%, transparent), rgba(255, 255, 255, 0.03) 70%);
+}
+.flawless-notice.is-miss {
+  color: var(--muted);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+}
 @keyframes ve-row-in {
   from { opacity: 0; transform: translateY(6px); }
 }
@@ -2607,6 +2635,14 @@ kbd {
 .lab-item.is-selected {
   border-color: var(--gold);
   box-shadow: var(--ring-in) var(--gold), 0 0 12px rgba(255, 210, 77, 0.12);
+}
+/* A progression-gated hero (e.g. Vitriol) not yet unlocked — dimmed, with its requirement shown. */
+.lab-item.is-locked { opacity: 0.62; }
+.lab-locked {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted, #9aa4b2);
+  letter-spacing: 0.02em;
 }
 .lab-class {
   font-weight: 600;
@@ -6841,6 +6877,8 @@ kbd {
 .hlk-tag { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
 .hlk-class { margin: 2px 0; }
 .hlk-mystery { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 2px 0 6px; }
+/* Milestone-gated hero (Vitriol): the feat that awakens it, shown in place of a Shard bar. */
+.hlk-requirement { font-size: 14px; color: var(--text); margin: 4px 0 10px; }
 .hlk-progress { display: flex; flex-direction: column; gap: 7px; }
 .hlk-count { display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--text); }
 .hlk-need { color: var(--muted); }

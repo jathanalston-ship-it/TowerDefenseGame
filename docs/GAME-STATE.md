@@ -21,7 +21,7 @@
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
 | Towers | 8 | 100 | each with stars + branches + mastery + Adaptation |
-| Heroes | 3 | 30 | per-hero equipment loadouts |
+| Heroes | 4 | 30 | Vitriol (Caustic siege) added; per-hero equipment loadouts |
 | Enemies | ~30 | 100 | + elites |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
 | Cards (genes) | 53 | 500 | effect DSL (mul/add/flag/set/grant/hook) |

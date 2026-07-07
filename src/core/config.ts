@@ -771,9 +771,15 @@ export const TOWER_ABILITIES: Record<TowerKind, AbilityComponent[]> = Object.fro
 //   • 'dive'    — Ravager: charges the deepest threat, melee + Fracture (Kinetic).
 //   • 'guard'   — Shepherd: holds the core, regenerates Integrity + vital pulse (Vital).
 //   • 'control' — Overseer: floats to the densest crowd, Disruption field (Neural).
+//   • 'siege'   — Vitriol: holds the rear line, bombards the deepest threat with corrosive
+//                 shells that leave Corrosion pools (Caustic). The only ranged/area-denial hero.
 // The Ravager's numbers are unchanged from the original single-hero build, so the
 // base game (and the golden tests) play identically.
-export type HeroBehavior = 'dive' | 'guard' | 'control';
+export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege';
+
+/** How a hero is gated. Absent on a HeroDef ⇒ always available (the launch trio). Data only
+ *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save. */
+export type HeroUnlockReq = { kind: 'bossSlain'; label: string };
 
 export interface HeroAbilityDef {
   name: string;
@@ -783,6 +789,7 @@ export interface HeroAbilityDef {
   damage: number; // AoE damage at the cast point (0 = pure utility)
   fracture: number; // Kinetic stacks applied (Ravager)
   disrupt: number; // Disruption seconds applied (Overseer)
+  corrode?: number; // Corrosion seconds applied by the blast (Vitriol); absent/0 ⇒ none
   heal: number; // Nucleus + self heal granted (Shepherd)
   shield?: number; // self-shield absorb pool granted to the caster (Shepherd Bloom); absent/0 ⇒ none
   shieldSeconds?: number; // how long that self-shield lasts (defaults alongside `shield`)
@@ -791,6 +798,9 @@ export interface HeroAbilityDef {
   buffSeconds?: number; // how long the run buff lasts (defaults to 5s)
   summonUnit?: string; // friendly unit (MINION_DEFS key) this ult conjures; absent ⇒ none
   summonCount?: number; // how many to summon (absent/0 ⇒ no summon emitted)
+  poolRadius?: number; // lingering corrosion pool this ult drops (Vitriol); absent/0 ⇒ no pool
+  poolDps?: number; // that pool's damage/sec
+  poolSeconds?: number; // how long the pool lasts (defaults to 4s)
 }
 
 export interface HeroDef {
@@ -805,9 +815,12 @@ export interface HeroDef {
   attackInterval: number;
   attackDamage: number;
   attackFracture: number;
+  attackSplash?: number; // ranged splash radius (Vitriol siege shells); absent/0 ⇒ single-target/melee
+  projectileSpeed?: number; // shell travel speed for a ranged hero (Vitriol); absent ⇒ melee/no projectile
   aggroRange: number; // effectively the whole arena — heroes roam freely
   contactRange: number; // enemies this close damage the hero
   respawnTime: number;
+  unlock?: HeroUnlockReq; // progression gate; absent ⇒ available from the start (the launch trio)
   // Role pulse — 'guard'/'control' emit a periodic AoE; 'dive' leaves these at 0.
   pulseInterval: number; // seconds between pulses (0 = none)
   pulseRadius: number; // AoE / field radius
@@ -848,6 +861,18 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
     ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5 },
+  },
+  vitriol: {
+    // The hive's SIEGE caste (Caustic) — the only ranged / area-denial hero. Holds the rear line
+    // and lobs corrosive shells at the deepest threat; each impact splashes, applies Corrosion,
+    // and leaves a lingering pool. Progression-gated: bred only after the hive assimilates a
+    // major threat (slay a Framework Boss). Numbers are centralized here (tuning clay).
+    kind: 'vitriol', name: 'Vitriol', combatClass: 'Caustic', behavior: 'siege', color: '#b6e13a',
+    maxHp: 210, speed: 96, attackRange: 560, attackInterval: 1.5, attackDamage: 30, attackFracture: 0, attackSplash: 62, projectileSpeed: 440,
+    aggroRange: 1400, contactRange: 22, respawnTime: 9,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    unlock: { kind: 'bossSlain', label: 'Slay a Framework Boss' },
+    ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5 },
   },
 };
 
@@ -909,10 +934,12 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   if (ab.heal > 0) out.push({ type: 'heal', nucleus: ab.heal, self: ab.heal });
   if ((ab.shield ?? 0) > 0) out.push({ type: 'shield', amount: ab.shield as number, seconds: ab.shieldSeconds ?? 6 });
   if (ab.damage > 0) {
-    out.push({
-      type: 'explosion', radius: ab.radius, damage: ab.damage,
-      status: ab.fracture > 0 ? { kind: 'Fracture', amount: ab.fracture } : undefined, react: true,
-    });
+    const status = ab.fracture > 0
+      ? { kind: 'Fracture' as const, amount: ab.fracture }
+      : (ab.corrode ?? 0) > 0
+        ? { kind: 'Corrosion' as const, amount: ab.corrode as number }
+        : undefined;
+    out.push({ type: 'explosion', radius: ab.radius, damage: ab.damage, status, react: true });
   } else if (ab.disrupt > 0) {
     // Pure control ult (Overseer Mass Override): flood Disruption, no damage/reaction.
     out.push({ type: 'debuff', radius: ab.radius, status: { kind: 'Disruption', amount: ab.disrupt } });
@@ -925,6 +952,10 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   const summonCount = ab.summonCount ?? 0;
   if (ab.summonUnit && summonCount > 0) {
     out.push({ type: 'summon', unit: ab.summonUnit, count: summonCount });
+  }
+  // Drop a lingering corrosion pool (e.g. Vitriol's Corrosive Cataclysm).
+  if ((ab.poolRadius ?? 0) > 0 && (ab.poolDps ?? 0) > 0) {
+    out.push({ type: 'pool', radius: ab.poolRadius as number, dps: ab.poolDps as number, seconds: ab.poolSeconds ?? 4 });
   }
   return out;
 }

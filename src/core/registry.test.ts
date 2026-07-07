@@ -74,9 +74,9 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // the launch five + the expansion three towers; three heroes
+    // the launch five + the expansion three towers; four heroes (Vitriol added)
     expect(towerRegistry.size).toBe(8);
-    expect(heroRegistry.size).toBe(3);
+    expect(heroRegistry.size).toBe(4);
   });
 
   it('shipped content passes registry-driven validation', () => {

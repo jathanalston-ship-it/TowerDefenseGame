@@ -34,7 +34,7 @@ export type EnemyKind =
   | 'siegeworm' | 'spitter'
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
@@ -376,6 +376,7 @@ export interface RunStats {
   won: boolean;
   biomassEarned: number; // total biomass income this run
   damageDealt: number; // total damage dealt (towers + hero + DoT)
+  integrityLost: number; // total Nucleus integrity damage taken this run (0 = flawless; later regen never redeems it)
   killsByEnemy: Record<EnemyKind, number>;
   towerBuilds: Record<TowerKind, number>; // towers grown this run, per kind
   cardIds: string[]; // gene cards drafted this run (ids; may repeat)
