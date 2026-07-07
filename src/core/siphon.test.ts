@@ -6,16 +6,18 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { CARD_POOL, cardSubject, draftCards } from './cards';
+import { CARD_POOL } from './cards';
 import { DEEP_STRAIN_STAGE, SIM_DT, TOWER_DEFS } from './config';
 import { towerSlots } from './map';
-import { Rng } from './rng';
 import type { MetaModifiers } from './types';
 import { defaultSave } from '../save/saveStore';
-import { eligibleTowerShardPool, isTowerUnlocked } from '../state/meta';
+import { cardUnlocked, towerShardPool, unlockedCardIds, isTowerUnlocked } from '../state/meta';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
-const GATED_IDS = CARD_POOL.filter((c) => c.unlock !== undefined).map((c) => c.id);
+// The five general Deep-Strain cards + the two Marrow Siphon identity cards this feature ships.
+const GENERAL_IDS = ['deep_overclock', 'marrow_feast', 'neural_dominion', 'hollow_bastion', 'apex_ascendant'];
+const SIPHON_CARD_IDS = ['gorging_instinct', 'hemophage'];
+const card = (id: string) => CARD_POOL.find((c) => c.id === id)!;
 
 describe('Marrow Siphon — the tower definition + gate', () => {
   it('is a beam tower, double-gated (shard-locked AND deep-gated), not a starter', () => {
@@ -23,44 +25,46 @@ describe('Marrow Siphon — the tower definition + gate', () => {
     expect(d.firing).toBe('beam');
     expect(d.combatClass).toBe('Vital');
     expect(d.unlockShards).toBeGreaterThan(0); // locked by default
-    expect(d.shardGateStage).toBe(DEEP_STRAIN_STAGE); // shards don't drop until the gate
+    expect(d.unlockStage).toBe(DEEP_STRAIN_STAGE); // shards don't drop until the gate
     expect(isTowerUnlocked(defaultSave(), 'siphon')).toBe(false); // a fresh account does not own it
   });
 
-  it('the tower ships 5 gated gene cards + 2 siphon-subject cards (all gated at the deep stage)', () => {
-    expect(GATED_IDS.length).toBe(7);
-    for (const c of CARD_POOL) if (c.unlock !== undefined) expect(c.unlock).toBe(DEEP_STRAIN_STAGE);
-    const siphonCards = CARD_POOL.filter((c) => { const s = cardSubject(c); return s.kind === 'tower' && s.tower === 'siphon'; });
-    expect(siphonCards.length).toBe(2);
-    for (const c of siphonCards) expect(c.unlock).toBe(DEEP_STRAIN_STAGE); // roster- AND stage-gated
+  it('the five general cards gate on the deep campaign stage; the two identity cards gate on OWNING the siphon', () => {
+    for (const id of GENERAL_IDS) {
+      const u = card(id).unlock;
+      expect(u).toEqual({ kind: 'campaignStage', stage: DEEP_STRAIN_STAGE });
+    }
+    for (const id of SIPHON_CARD_IDS) {
+      expect(card(id).unlock).toEqual({ kind: 'towerUnlocked', tower: 'siphon' });
+    }
   });
 });
 
 describe('shard-drop gate — the siphon is invisible to the loot pool until the stage clears', () => {
-  it('eligibleTowerShardPool excludes the siphon below the gate and includes it at/above', () => {
+  it('towerShardPool excludes the siphon below the gate and includes it at/above', () => {
     const fresh = defaultSave();
-    expect(eligibleTowerShardPool(fresh)).not.toContain('siphon');
+    expect(towerShardPool(fresh)).not.toContain('siphon');
     // every OTHER (ungated) tower is always eligible, even on a fresh account
-    for (const k of ['needle', 'maw', 'chrysalis', 'effigy'] as const) expect(eligibleTowerShardPool(fresh)).toContain(k);
+    for (const k of ['needle', 'maw', 'chrysalis', 'effigy'] as const) expect(towerShardPool(fresh)).toContain(k);
     const deep = defaultSave();
     deep.campaign.cleared.standard = DEEP_STRAIN_STAGE;
-    expect(eligibleTowerShardPool(deep)).toContain('siphon');
+    expect(towerShardPool(deep)).toContain('siphon');
   });
 });
 
 describe('draft gate — the deep gene cards only enter the pool once unlocked', () => {
-  it('progressStage 0 NEVER drafts a gated card; the deep stage lets them appear', () => {
-    const roster = new Set(['needle', 'mortar', 'reactor', 'parasite', 'obelisk', 'maw', 'chrysalis', 'effigy', 'siphon'] as const);
-    // Ungated: sample a lot of drafts at progressStage 0 — a gated id must never surface.
-    const rng0 = new Rng(12345);
-    for (let i = 0; i < 400; i++) {
-      for (const c of draftCards(rng0, 3, i % 40, roster, 0)) expect(GATED_IDS).not.toContain(c.id);
-    }
-    // Unlocked: at the deep stage the gated cards DO appear across enough draws.
-    const rng1 = new Rng(777);
-    const seen = new Set<string>();
-    for (let i = 0; i < 2000; i++) for (const c of draftCards(rng1, 3, 30, roster, DEEP_STRAIN_STAGE)) if (c.unlock !== undefined) seen.add(c.id);
-    expect(seen.size).toBeGreaterThan(0); // the gate opened
+  it('a fresh account NEVER earns a Deep-Strain card; the deep stage unlocks the five general cards', () => {
+    const fresh = defaultSave();
+    for (const id of [...GENERAL_IDS, ...SIPHON_CARD_IDS]) expect(cardUnlocked(fresh, card(id))).toBe(false);
+    const deep = defaultSave();
+    deep.campaign.cleared.standard = DEEP_STRAIN_STAGE;
+    for (const id of GENERAL_IDS) expect(cardUnlocked(deep, card(id))).toBe(true); // stage-gated open
+    for (const id of SIPHON_CARD_IDS) expect(cardUnlocked(deep, card(id))).toBe(false); // still need to OWN the siphon
+    const owned = { ...deep, towerUnlocked: [...deep.towerUnlocked, 'siphon' as const] };
+    for (const id of SIPHON_CARD_IDS) expect(cardUnlocked(owned, card(id))).toBe(true);
+    // the unlocked-id set (fed to draftCards) reflects it
+    expect(unlockedCardIds(fresh)).not.toContain('deep_overclock');
+    expect(unlockedCardIds(deep)).toContain('deep_overclock');
   });
 });
 
@@ -77,8 +81,8 @@ describe('the beam mechanic — lock, Gorge ramp, continuous drain, kill', () =>
     let maxHeat = 0;
     for (let i = 0; i < 3600 && game.phase === 'wave'; i++) { // up to ~60s of wave 1
       game.advance(SIM_DT);
-      if ((t.beamTarget ?? -1) >= 0) sawLock = true;
-      maxHeat = Math.max(maxHeat, t.beamHeat ?? 0);
+      if (t.beamTarget >= 0) sawLock = true;
+      maxHeat = Math.max(maxHeat, t.beamHeat);
     }
     expect(sawLock).toBe(true); // the beam fastened onto a target
     expect(maxHeat).toBeGreaterThan(0); // the Gorge ramp built while it held

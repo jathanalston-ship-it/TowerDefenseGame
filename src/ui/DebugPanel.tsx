@@ -80,6 +80,7 @@ export function DebugPanel(): JSX.Element {
             <div className="debug-row">
               <button onClick={() => meta.debugAddHeroShards(20)}>+20 ✦ each hero</button>
               <button onClick={() => meta.debugAddHeroMasteryXp(500)}>+500 Hero Mastery</button>
+              <button onClick={() => meta.debugUnlockHeroes()}>Unlock heroes</button>
             </div>
           </div>
 

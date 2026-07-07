@@ -1,8 +1,11 @@
 # SIPHON.md — the Marrow Siphon (Deep-Strain tower) + the Deep-Strain gate
 
 Compressed system summary (CLAUDE.md "compressed system summaries"). The Marrow Siphon is the
-account's **ninth tower** and its **first genuinely new delivery mode** (`firing: 'beam'`), plus a
-seven-card **Deep-Strain gene set**, all locked behind a single Campaign milestone.
+account's **tenth tower** and the **second `firing: 'beam'` tower** (alongside the Resonance Coil),
+plus a seven-card **Deep-Strain gene set**, all locked behind a single Campaign milestone. It shares
+the Coil's beam delivery + the shared `towerAttackMods` fold, but has a DISTINCT identity — it is
+**Vital** and siphons damage into **Biomass** (its bespoke `game.beamSystem`, routed by kind in
+`towerSystem`; the Coil uses `beamTowerSystem`).
 
 ## The gate (`DEEP_STRAIN_STAGE = 15`, config.ts)
 
@@ -15,20 +18,23 @@ One milestone — clearing **Campaign Stage 15** — opens everything:
   loot pool). The tower is **also shard-locked** (`unlockShards: 200`) — so it is DOUBLE-gated:
   shards can't drop until stage 15, and 200 must then bank to claim it.
 
-**Enforcement seams:**
-- `draftCards(rng, n, wave, allowedTowers, progressStage)` drops any card whose `unlock >
-  progressStage`. `progressStage` is threaded RunOptions → Game → draft; **omitted/0 (autoplay,
-  tests) excludes every gated card ⇒ the golden draft is byte-identical.** GameView passes
-  `highestCampaignStage(save)`.
-- `TowerDef.shardGateStage` + `eligibleTowerShardPool(save)` (state/meta.ts) filter the tower-shard
-  loot pool. Threaded into `rollChest`/`rollLoot`/`rollOne`/`openLootBoxes` as an optional
+**Enforcement seams** (the shared `CardUnlock` framework — cards.ts / meta.ts):
+- `CardDef.unlock` is a condition DSL (`campaignStage` / `bestWave` / `towerUnlocked` / lifetime
+  feats). The five general cards gate on `{ campaignStage: DEEP_STRAIN_STAGE }`; the two siphon
+  identity cards gate on `{ towerUnlocked: 'siphon' }`. `draftCards(rng, n, wave, allowedTowers,
+  unlockedCardIds)` drops any gated card NOT in `unlockedCardIds`; **omitted (autoplay, tests)
+  excludes every gated card ⇒ the golden draft is byte-identical.** GameView passes
+  `meta.unlockedCardIds()` = `unlockedCardIds(save)` (evaluates `cardUnlocked` per card).
+- `TowerDef.unlockStage` + `towerShardPool(save)` (state/meta.ts, via `towerShardGateMet`) filter the
+  tower-shard loot pool. Threaded into `rollChest`/`rollLoot`/`rollOne`/`openLootBoxes` as an optional
   `towerPool` (defaults to `TOWER_ORDER`). Every shard faucet is gated: container cracks
   (`openContainer`), the tutorial reward, and the premium `towerShardsAll` grant. (`debug*` helpers
-  are ungated by design.) `isDeepStrainUnlocked(save)` is the derive helper.
+  are ungated by design.) `isDeepStrainUnlocked(save)` is a convenience derive helper.
 
 ## The mechanic — a continuous drain beam (`game.beamSystem`)
 
-Dispatched from `towerSystem` (`if (def.firing === 'beam') { this.beamSystem(...); continue; }`).
+Dispatched from `towerSystem`: the `firing === 'beam'` branch computes the shared `towerAttackMods`
+(dmg/rate) once, then routes by kind — `siphon` → `beamSystem`, else (`coil`) → `beamTowerSystem`.
 Unlike every other tower it fires **no discrete shots**:
 
 - **Lock**: picks ONE target by its targeting profile (base `highestHealth`), plus `forks` extra

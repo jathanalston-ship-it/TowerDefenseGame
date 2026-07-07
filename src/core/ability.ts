@@ -102,6 +102,15 @@ export interface SummonAbility {
   unit: string;
   count: number;
 }
+/** Drop a lingering damaging ground pool at the cast point — the Caustic area-denial primitive
+ *  (shared with the Bone Mortar's corrosion pools). Live via Game.spawnPool → the Pool system,
+ *  which ticks `dps` and applies Corrosion to anything standing in `radius` for `seconds`. */
+export interface PoolAbility {
+  type: 'pool';
+  radius: number;
+  dps: number;
+  seconds: number;
+}
 
 export type AbilityComponent =
   | ProjectileAbility
@@ -115,7 +124,8 @@ export type AbilityComponent =
   | ShieldAbility
   | BuffAbility
   | DebuffAbility
-  | SummonAbility;
+  | SummonAbility
+  | PoolAbility;
 
 /** A status applied by a component. `kind` names the effect; `amount` is stacks (for
  * stacking statuses like Fracture/Infection) or seconds (for timed ones). Concrete
@@ -175,6 +185,7 @@ export interface AbilityContext {
   grantShield(amount: number, seconds: number): void;
   grantBuff(stat: string, amount: number, seconds: number): void; // timed run-wide friendly buff
   summon(unit: string, count: number, x: number, y: number): void; // spawn friendly units at (x,y)
+  spawnPool(x: number, y: number, radius: number, dps: number, seconds: number): void; // drop a corrosion pool
   readonly extraProjectiles: number; // adds to a homing projectile's `count`
   readonly splashMult: number; // scales a projectile's splash radius
   readonly rangeMult: number; // identity-range: scales targeting range + aura/field radius (1 = base)
@@ -291,6 +302,10 @@ function execSummon(ctx: AbilityContext, comp: SummonAbility, cast: AbilityCast)
   ctx.summon(comp.unit, comp.count, cast.x, cast.y);
   return true;
 }
+function execPool(ctx: AbilityContext, comp: PoolAbility, cast: AbilityCast): boolean {
+  ctx.spawnPool(cast.x, cast.y, comp.radius * ctx.rangeMult, comp.dps * cast.damageMult, comp.seconds);
+  return true;
+}
 function execPierce(_ctx: AbilityContext, comp: PierceAbility, cast: AbilityCast): boolean {
   // Modifier: projectiles fired LATER in this cast pass through `extra` more enemies. The
   // sim reads `cast.pierce` at spawn (see Game.spawnProjectile) and applies it to the shot.
@@ -313,6 +328,7 @@ const EXECUTORS: { [K in AbilityComponent['type']]: Executor<Extract<AbilityComp
   buff: execBuff,
   debuff: execDebuff,
   summon: execSummon,
+  pool: execPool,
 };
 
 /** Run one component; returns whether it acted (fired / pulsed / healed …). */

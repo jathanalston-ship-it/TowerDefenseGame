@@ -126,6 +126,17 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' },
     ],
   },
+  // Resonance Coil (Resonant) — focusing lens → resonance singularity.
+  coil: {
+    growth: 0.019,
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // a focusing lens ring
+      { at: 3, kind: 'organs', count: 3 }, // resonance nodes
+      { at: 5, kind: 'barrel' }, // a lengthening emitter spire
+      { at: 7, kind: 'arcs', count: 3 }, // resonant discharge
+      { at: 9, kind: 'nova' }, // singularity
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at

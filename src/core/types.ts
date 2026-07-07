@@ -6,9 +6,9 @@ import type { ActiveStatus } from './status';
 import type { AbilityComponent } from './ability';
 import type { TargetingProfile } from './targeting';
 
-export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital';
+export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'siphon';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -24,23 +24,27 @@ export type EnemyKind =
   | 'burrower' | 'molerat'
   // flying
   | 'flyer' | 'wisp' | 'gargoyle'
+  // flying + regenerating hybrid (out-heals burst; demands sustained anti-air)
+  | 'cystwraith'
   // summoner
   | 'broodmother' | 'hivecaller'
   // support
   | 'mender' | 'cantor'
   // suicide
   | 'bomber' | 'popper'
+  // burrowing + suicide hybrid (tunnels gaps, then detonates at the line)
+  | 'sapper'
   // artillery
   | 'siegeworm' | 'spitter'
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
- * 'field' = periodic in-range pulse (no projectile). 'beam' = a CONTINUOUS drain ray
- * locked on one target that RAMPS while held and siphons damage into biomass (docs/
- * SIPHON.md) — the one delivery mode with its own dedicated sim path (game.beamSystem). */
+ * 'field' = periodic in-range pulse (no projectile). 'beam' = a CONTINUOUS locked, RAMPING
+ * channel (no projectile): the Resonance Coil melter (game.beamTowerSystem) and the Marrow
+ * Siphon drain-into-Biomass (game.beamSystem) — routed by kind in towerSystem (docs/SIPHON.md). */
 export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
 export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
@@ -192,14 +196,14 @@ export interface Tower {
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
-  // ── Marrow Siphon beam state (docs/SIPHON.md — firing 'beam'). All optional/absent on every
-  //    OTHER tower and on the golden path (the siphon is shard-locked), so a run without it is
-  //    byte-identical. `beamTarget` is the locked enemy id (-1/absent = no lock); `beamHeat` is the
-  //    0..1 Gorge ramp built while holding the SAME target (resets on switch); `beamBank` accrues
-  //    siphoned biomass paid out on the pulse cadence; `beamX/beamY` cache the target point so the
-  //    renderer draws the ray without an enemy lookup (render-only — never feeds sim math). ──
-  beamTarget?: number;
-  beamHeat?: number;
+  // ── Beam state (firing 'beam' — Resonance Coil + Marrow Siphon). `beamTarget` is the held enemy id
+  //    (-1 = not channeling), `beamHeat` (0..1) climbs while focus holds the SAME target and resets on
+  //    a switch, ramping the beam's damage. Inert (-1 / 0) for every OTHER kind ⇒ golden-safe. ──
+  beamTarget: number; // enemy id the beam is locked onto (-1 = not channeling)
+  beamHeat: number; // resonance/Gorge charge (0..1) — ramps the beam's damage on sustained focus
+  // Marrow Siphon extras (docs/SIPHON.md) — absent on the Coil + every non-siphon tower: banked
+  // siphoned biomass between pulse payouts, and the cached lock point so the renderer draws the drain
+  // ray without an enemy lookup (render-only — never feeds sim math).
   beamBank?: number;
   beamX?: number;
   beamY?: number;
@@ -389,6 +393,7 @@ export interface RunStats {
   won: boolean;
   biomassEarned: number; // total biomass income this run
   damageDealt: number; // total damage dealt (towers + hero + DoT)
+  integrityLost: number; // total Nucleus integrity damage taken this run (0 = flawless; later regen never redeems it)
   killsByEnemy: Record<EnemyKind, number>;
   towerBuilds: Record<TowerKind, number>; // towers grown this run, per kind
   cardIds: string[]; // gene cards drafted this run (ids; may repeat)

@@ -411,7 +411,40 @@ const SIPHON_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, SIPHON_PATH]);
+// Resonance Coil (Resonant) — the beam MELTER. Stars are behavior-only: for the beam, projectile
+// `extraProjectiles` = extra simultaneous beam CHANNELS (they ride the same resonance heat), and
+// `ability` grants fire on the beam's PULSE cadence aimed at the locked target. The path leans into
+// its identity — deeper single-target melt (crits, armor-shred) with a spread FORK for crowd melt.
+const COIL: StarPath = {
+  tower: 'coil',
+  steps: [
+    { star: 1, name: 'Bifurcated Lens', kind: 'projectile', desc: 'The beam splits — it now sears a SECOND target at once.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    { star: 2, name: 'Searing Coil', kind: 'interaction', desc: 'The beam rips Fracture into its target — armor shred that pairs with its Corrosion (Shred).', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Fracture', amount: 1 } }] }] },
+    {
+      star: 3,
+      name: 'Specialization',
+      kind: 'fork',
+      desc: 'Choose the Resonance Coil’s identity (re-pick any run).',
+      fork: [
+        { id: 'overload', name: 'Overload', desc: 'Focus the melt: brutal critical resonance on the held target.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.5, damage: 14 }] }] },
+        { id: 'diffusion', name: 'Diffusion', desc: 'Spread the melt: the beam forks to a THIRD target.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      ],
+    },
+    { star: 4, name: 'Corrosive Bloom', kind: 'attack', desc: 'Resonance blooms — Corrosion sprays to enemies around the beam’s target.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 120, status: { kind: 'Corrosion', amount: 1 } }] }] },
+    {
+      star: 5,
+      name: 'Apex Frame',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'singularity', name: 'Singularity Lens', desc: 'A boss-deleter: devastating crits and deep Fracture on the melting target.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.5, mult: 4, damage: 22 }, { type: 'status', status: { kind: 'Fracture', amount: 2 } }] }] },
+        { id: 'prism', name: 'Prism Array', desc: 'The beam fans wide — two MORE channels melt the crowd at once.', grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+      ],
+    },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

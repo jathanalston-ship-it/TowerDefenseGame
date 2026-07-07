@@ -100,6 +100,7 @@ function makeResult(opts: {
       won: opts.won,
       biomassEarned: opts.kills * 6,
       damageDealt: opts.kills * 30,
+      integrityLost: 0,
       killsByEnemy,
       towerBuilds,
       cardIds,

@@ -14,7 +14,7 @@ function makeResult(over: Partial<RunResult>, bossKills = 0): RunResult {
   const mastery = TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: { ...zero } }), {}) as RunResult['mastery'];
   const heroMastery = HERO_ORDER.reduce((o, k) => ({ ...o, [k]: { ...zero } }), {}) as RunResult['heroMastery'];
   const stats: RunStats = {
-    kills: 0, wave: 0, won: false, biomassEarned: 0, damageDealt: 0,
+    kills: 0, wave: 0, won: false, biomassEarned: 0, damageDealt: 0, integrityLost: 0,
     killsByEnemy: defaultLifetimeStats().killsByEnemy,
     towerBuilds: TOWER_ORDER.reduce((o, k) => ({ ...o, [k]: 0 }), {}) as RunStats['towerBuilds'],
     cardIds: [], heroId: HERO_ORDER[0], bossKills,

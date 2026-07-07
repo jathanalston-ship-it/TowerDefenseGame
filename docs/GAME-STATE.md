@@ -20,13 +20,13 @@
 
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
-| Towers | 9 | 100 | each with stars + branches + mastery + Adaptation |
-| Heroes | 3 | 30 | per-hero equipment loadouts |
-| Enemies | ~30 | 100 | + elites |
+| Towers | 10 | 100 | each with stars + branches + mastery + Adaptation; the Coil + Siphon are locked/gated (below) |
+| Heroes | 4 | 30 | Vitriol (Caustic siege) added; per-hero equipment loadouts |
+| Enemies | 32 | 100 | + elites (Cyst Wraith fly+regen · Cinder Sapper burrow+suicide) |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
-| Cards (genes) | 59 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
+| Cards (genes) | 82 | 500 | effect DSL (mul/add/flag/set/grant/hook); 24 progression-`unlock`-gated (below) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
-| Meta upgrades (Genome) | 27 | 1,000 | `META_UPGRADES` |
+| Meta upgrades (Genome) | 57 | 1,000 | `META_UPGRADES` |
 | Ascendant (prestige) nodes | 11 | 20 | `ASCENDANT_NODES` |
 
 Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The frameworks below hold
@@ -50,11 +50,17 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md
 
 ### Towers
-- ✅ **Marrow Siphon** (9th tower; Vital) — the first NEW delivery mode `firing: 'beam'`: a
-  CONTINUOUS drain ray that locks ONE target, RAMPS ("Gorge") while held, and siphons damage into
-  Biomass (`game.beamSystem`). DOUBLE-gated — shards only drop after Campaign Stage 15
-  (`shardGateStage`) and 200 must then bank (`unlockShards`). Ships a 7-node star path, two branches
-  (Insatiable Gorge / Bloodwell), and a 7-card Deep-Strain gene set behind the same gate. **SIPHON.md**
+- ✅ **Resonance Coil** (9th tower, new `Resonant` class) — a `firing: 'beam'` MELTER: a locked,
+  ramping channel on ONE target (heat 0→1 while focus holds, resets on switch; damage ×(1+heat·3)).
+  The first new firing since launch; full stars + 2 branches + mastery + Adaptation. **Locked by
+  default** (`unlockShards`) and **progression-gated** (`unlockStage`) — its shards only drop after
+  Campaign Stage 15. See the compressed summary below.
+- ✅ **Marrow Siphon** (10th tower; Vital) — the SECOND `firing: 'beam'` tower but a distinct identity:
+  a CONTINUOUS drain ray that locks ONE target, RAMPS ("Gorge") while held, and siphons damage into
+  Biomass (`game.beamSystem`, routed by kind alongside the Coil's `beamTowerSystem`). DOUBLE-gated —
+  shards only drop after Campaign Stage 15 (`unlockStage`) and 200 must then bank (`unlockShards`).
+  Ships a 7-node star path, two branches (Insatiable Gorge / Bloodwell), and a 7-card Deep-Strain gene
+  set behind the same gate. **SIPHON.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +
@@ -224,6 +230,42 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 ### Not built (structural)
 - 📋 No backend → no cloud save, dailies/seasons, analytics, remote config (EA-DESIGN-AUDIT §9). This
   forecloses the live-service/1,000-hr framing until it becomes a platform decision.
+
+---
+
+## Compressed system summary — Resonance Beam + content unlock gating
+
+**Architecture.** The 9th tower, **Resonance Coil** (`coil`, `Resonant` class, amber `#f5b83d`), adds
+the first new *firing* since launch: `firing: 'beam'`. `Game.beamTowerSystem` (peer of `towerSystem`'s
+projectile loop, dispatched before the cooldown gate like `support`) runs a CONTINUOUS, dt-scaled
+channel: it STICKY-locks one target (held via `Tower.beamTarget`, the id map), ramps `Tower.beamHeat`
+0→1 while focus holds (resets on a switch), and deals
+`def.damage(DPS)·dmgMult·(1+heat·rampBonus·coilRampMult)·dt` to the primary + up to `extraProjectiles`
+extra channels. Star/branch grants (crit/status/aura) fire on the tower's PULSE cadence. The
+damage/rate fold is shared with the projectile path via the extracted `towerAttackMods` (projectile
+result bit-identical ⇒ golden-safe). Tunables: `config.BEAM`. Renderer: a heat-reactive lens overlay
+(`drawTower` coil branch) + a live `drawBeams` pass (tower→target line, brightness by heat). Its
+full-weight adaptation tree is one `TOWER_THEMES` row; stars/branches/mastery/visuals are data rows.
+
+**Two-layer gating (built on the existing expansion-unlock infra).**
+- *Tower unlock* reuses the maw/chrysalis/effigy model — `TowerDef.unlockShards` + `save.towerUnlocked`
+  + `RunOptions.unlocked` + `meta.unlockTower`/`isTowerUnlocked` — and ADDS `TowerDef.unlockStage`: a
+  campaign gate so the Coil's shards only DROP after Stage 15 (`meta.towerShardPool` → the loot
+  rollers' new `towerPool` arg; `meta.unlockTower` also checks the gate). Doubly gated: reach the
+  stage, then grind the shards.
+- *Card unlock*: `CardDef.unlock` (`campaignStage | bestWave | towerUnlocked`) marks a card GATED ⇒
+  `draftCards` drops it unless its id is in the run's `unlockedCardIds` (from `meta.unlockedCardIds` →
+  `RunOptions.unlockedCardIds`). The 2 Coil cards gate on Coil ownership; the 5 general cards on
+  campaign/best-wave. Every card also carries authored `GENE_UPGRADES` (their per-card upgrade system).
+
+**Invariants / golden-safety.** New `Tower` fields neutral (`beamTarget:-1`,`beamHeat:0`); gated cards
+excluded from the default draw pool; the Coil never built by autoplay. Golden run byte-identical
+(verified). Pinned by `core/coil.test.ts`. Coil-only knobs `coilRampMult`/`coilBeamTargets` are
+FIELD_SUBJECT-mapped (→ subject `coil`) and Power-scored; the maxed gene library stays within its
+calibrated ≤2.6× band.
+
+**Known limitations.** Coil DPS in the Tower Lab reads base (pre-ramp); the ramp is the identity.
+Numbers (`BEAM`, `unlockShards:320`/`unlockStage:15`, card gates) are first-pass tunables.
 
 ---
 

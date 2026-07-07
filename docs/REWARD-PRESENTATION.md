@@ -65,5 +65,7 @@ the "replay milestone" affordance), `prefers-reduced-motion` → instant.
 - Discoveries surfaces achievements + new masteries today; **collection entries
   and unlocked-content** slot in as more `RewardStat`s/`extra` with no engine
   change.
-- "Highest Threat" is derived from `killsByEnemy` (toughest enemy felled);
-  "Flawless" awaits an integrity-lost stat in `RunStats`.
+- "Highest Threat" is derived from `killsByEnemy` (toughest enemy felled). Flawless is now
+  tracked (`RunStats.integrityLost`, 0 = no Nucleus damage): the Bio-Containers category shows a
+  Flawless first-clear bonus-cache verdict (earned/missed) driven by `RunOutcome.flawlessCache`. A
+  standalone "Flawless" combat stat could still slot in as a `RewardStat` with no engine change.

@@ -198,3 +198,25 @@ describe('determinism under siege', () => {
     expect(trace()).toEqual(trace());
   });
 });
+
+// Flawless-run tracking (docs/MODE-IDENTITY.md §flawless cache): RunStats.integrityLost must
+// accumulate EVERY point of Nucleus damage — it's what gates the 2nd campaign cache. Pinned on
+// the siege path so a future damage-path change can't silently let a hit slip past the counter.
+describe('flawless-run damage tracking (RunStats.integrityLost)', () => {
+  it('starts at zero and a clean run stays flawless', () => {
+    const g = lab();
+    expect(g.getRunStats().integrityLost).toBe(0);
+    run(g, 2); // nothing injected → the Core takes no hits
+    expect(g.getRunStats().integrityLost).toBe(0);
+  });
+
+  it('accumulates exactly the integrity the Core lost to a siege', () => {
+    const g = lab();
+    inject(g, 'runner', nucleusPoint.x, HIVE.convergeY + 20);
+    const int0 = g.integrity;
+    run(g, 6); // the runner locks on and bites the Core repeatedly
+    const lost = int0 - g.integrity;
+    expect(lost).toBeGreaterThan(0); // the siege actually landed
+    expect(g.getRunStats().integrityLost).toBe(lost); // counter == real damage (no double-count, no miss)
+  });
+});

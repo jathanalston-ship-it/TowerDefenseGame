@@ -103,7 +103,10 @@ heard* before it bites.
 
 ## 3. The biomes (full modifier table)
 
-Six biomes (the rotation order). All stat mods are threat-balanced (see §1.2).
+Eight biomes (the rotation order). All stat mods are threat-balanced (see §1.2). Biomes 7–8 are
+the **deep** biomes: in Campaign/Infinite/Boss-Rush rotation they first appear at stage/depth 31–40
+(regions 7–8), so their harsher character lands when the player is stronger; the Daily rolls any of
+the eight uniformly.
 
 ### 1. Verdant Hive — `verdant` · accent `--caustic` (green)
 Lush, fast-breeding swarms — many fragile bodies, fast.
@@ -157,6 +160,33 @@ High-pressure, erratic, overcharged — richest economy, fastest abilities, chao
 - Roster: fast ×1.2, special ×1.4; signature `wisp`, `darter`; elite ×1.1.
 - Boss: `controller` flavour.
 - Hazard **Static Field** — period 14s, dur 2.5s, enemy speed ×1.2 AND tower rate ×0.92. *"A static surge — the swarm jolts, towers stutter."*
+
+### 7. Molten Verge — `molten` · accent `--molten` (crimson)
+Deep volcanic siege-front — slow, armoured, **hard-hitting** bombardment. The line holds, but every
+breach scorches. The first biome to field the **`artillery`** boss chassis.
+- Enemy: hp **×1.12**, speed **×0.88**, **damage ×1.10**, **armour +4**, bounty ×1.06.
+- Towers: **Caustic ×1.12** (splash/DoT chews the grouped siege), Neural ×0.95.
+- Hero: cooldown ×1.04 (heat saps abilities).
+- Roster: heavy ×1.5, special ×1.3; signature `brute`, `spitter`; elite ×1.0.
+- Boss: **`artillery`** flavour (the bombardier body plan — previously unused by any biome).
+- Difficulty ×1.20 (tanky + armour + hard-hitting = the harshest region).
+- Hazard **Eruption** — period 19s, dur 3s, enemy speed ×1.20. *"A lava surge whips the slow siege into a charge."* (a surge on a normally-slow biome — the inverse of the fast biomes' hazards.)
+
+### 8. Tempest Reach — `tempest` · accent `--tempest` (electric violet)
+A charged ionosphere — the ambient static **overclocks your towers** (the only biome to buff global
+fire rate), but the storm-hardened hosts are tanky, armoured, shielded and shrug it off. A different
+rhythm: your towers scream while a durable host grinds in.
+- Enemy: hp **×1.10**, speed **×0.94**, **armour +3**, bounty ×1.05.
+- Towers: **all towers fire-rate ×1.08** (the charged air quickens every tower), Neural ×1.05.
+- Hero: damage ×1.05, cooldown **×0.96** (abilities recharge faster in the storm).
+- Roster: special ×1.4, heavy ×1.2; signature `warden`, `cantor`; elite ×1.0.
+- Boss: `controller` flavour.
+- Difficulty ×1.12 (tanky/armoured, but the tower-rate buff nets it moderate).
+- Hazard **Gale** — period 17s, dur 3s, enemy speed ×1.15. *"A gale rips through — the swarm surges on the wind."*
+
+> **Both new biomes cover fresh ground:** Molten Verge is the first user of the `artillery` boss
+> chassis; Tempest Reach is the first biome with a **net-positive tower passive** (global fire-rate
+> buff) balanced by tankier enemies — so neither duplicates an existing biome's feel.
 
 ---
 

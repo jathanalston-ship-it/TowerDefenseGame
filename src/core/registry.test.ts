@@ -74,9 +74,9 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // the launch five + the expansion three + the Deep-Strain Marrow Siphon; three heroes
-    expect(towerRegistry.size).toBe(9);
-    expect(heroRegistry.size).toBe(3);
+    // launch five + expansion three + Resonance Coil + Marrow Siphon = ten towers; four heroes (Vitriol added)
+    expect(towerRegistry.size).toBe(10);
+    expect(heroRegistry.size).toBe(4);
   });
 
   it('shipped content passes registry-driven validation', () => {

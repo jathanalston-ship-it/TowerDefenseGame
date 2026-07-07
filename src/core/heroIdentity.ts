@@ -13,19 +13,22 @@ import type { HeroKind } from './types';
 export type HeroPassiveKind =
   | 'eliteDamage' // + hero damage vs elite enemies (Ravager)
   | 'towerAura' // innate aura: nearby towers gain fire-rate + damage (Shepherd)
-  | 'vulnField'; // disrupted enemies take extra damage from all sources (Overseer)
+  | 'vulnField' // disrupted enemies take extra damage from all sources (Overseer)
+  | 'causticVuln'; // CORRODED enemies take extra damage from all sources (Vitriol)
 
 /** A hero's defining identity rule (flavour + a light mechanical lean). */
 export type HeroTraitKind =
   | 'eliteHunter' // elite kills heal + briefly haste the hero (Ravager)
   | 'broodTender' // summons/pulse lean to crowd control (Shepherd)
-  | 'targetHijack'; // the control field drags + denies the lane (Overseer)
+  | 'targetHijack' // the control field drags + denies the lane (Overseer)
+  | 'groundDenial'; // every shell leaves a lingering acid pool (Vitriol)
 
 /** How a hero scales WITHIN a run so it stays relevant to endgame. */
 export type HeroScalingKind =
   | 'killchain' // stacking bonus vs-elite damage per elite slain this run (Ravager)
   | 'livingHive' // the tower aura strengthens per nearby tower (Shepherd)
-  | 'overload'; // the vulnerability field deepens with depth (Overseer)
+  | 'overload' // the vulnerability field deepens with depth (Overseer)
+  | 'saturation'; // the Corrosion vulnerability deepens with depth (Vitriol)
 
 /** AI repositioning profile (game.ts hero brains): aggressive never retreats (a weakness). */
 export type HeroSurvival = 'aggressive' | 'cautious' | 'evasive';
@@ -76,6 +79,16 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     trait: { name: 'Hijack', desc: 'The field drags enemies — denying the lane and scattering their advance.', kind: 'targetHijack' },
     scaling: { name: 'Overload', desc: 'The vulnerability field deepens the deeper the run (up to +40%).', kind: 'overload', perStack: 0.02, cap: 0.4 },
     survival: 'evasive',
+  },
+  vitriol: {
+    kind: 'vitriol',
+    role: 'Ranged siege artillery — holds the rear line and saturates the field with corrosive bombardment and acid pools.',
+    strengths: ['Safe ranged DPS', 'Area denial (Corrosion pools)', 'Melts armor + softens the whole field'],
+    weaknesses: ['No sustain, control, or burst', 'Fragile if the line collapses to its rear', 'Damage-over-time — slow vs single burst threats'],
+    passive: { name: 'Solvent Rounds', desc: 'CORRODED enemies take extra damage from ALL sources — the bombardment softens everything it touches.', kind: 'causticVuln', amount: 0.18 },
+    trait: { name: 'Ground Denial', desc: 'Every shell leaves a lingering acid pool that melts armor and chokes the lane.', kind: 'groundDenial' },
+    scaling: { name: 'Saturation', desc: 'The deeper the run, the more its Corrosion softens targets (up to +30%).', kind: 'saturation', perStack: 0.015, cap: 0.3 },
+    survival: 'cautious',
   },
 };
 

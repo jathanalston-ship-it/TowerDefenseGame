@@ -9,7 +9,6 @@ import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta } from '../state/meta';
-import { highestCampaignStage } from '../save/derive';
 import { announcePower } from '../state/powerEvents';
 import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
@@ -117,11 +116,11 @@ export function GameView({
     unlocked: daily ? [...new Set(daily.towerPool)] : meta.unlockedTowers(), // gates placement/belt/drafts (docs/TOWERS.md §expansion)
     ...(daily ? { daily: { modifierIds: daily.modifierIds } } : {}),
     geneLevels: meta.geneLevels(),
-    // Campaign progress gates the deep gene-card pool (docs/SIPHON.md §gate) — a card unlocks once its
-    // stage is cleared. The tutorial's clean sandbox stays ungated (stage 0).
-    progressStage: tutorial ? 0 : highestCampaignStage(meta.get()),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),
+    // Progression-gated gene cards the account has earned (campaign depth / best wave / owning the
+    // Coil) — injected into the draft pool. A fresh account passes none ⇒ ungated catalog only.
+    unlockedCardIds: meta.unlockedCardIds(),
   }));
   // The starting-genes CINEMATIC: a brief splash naming the genes that just activated (auto-fades).
   const [geneSplash, setGeneSplash] = useState<string[]>(() => (tutorial ? [] : meta.startingGenes()));

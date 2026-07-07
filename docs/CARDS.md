@@ -40,9 +40,13 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 >   `biomass/integrity/heroHp`) now also covers the behavioral **verbs** `grant`/`hook` for
 >   cards — a drafted card can add a projectile mutator or a battlefield rule mid-run, sharing
 >   equipment's live arrays. New content is a data row, no code.
-> - **Catalog:** **44 cards** ship now (the original 14 + **30 new** across all rarities/
->   categories — §5 lists the full ~200-card design target). Golden outcomes were re-pinned
->   deliberately (the draft pool grew).
+> - **Catalog:** **53 cards** ship now, spanning all four rarities + the expansion-tower identities
+>   (§5 lists the full ~200-card design target). **Every shipped card carries 3–5 permanent upgrade
+>   levels** (`geneUpgrades.ts`; docs/GENE-EVOLUTION.md) — enforced by `cardProblems`, so no card
+>   bypasses the upgrade system. Newest: **Carrion Bloom** (Epic · Economy) — *the swarm's death
+>   feeds the hive*: +20% biomass and +2 biomass per kill, evolving to shed even more and to regrow
+>   the Nucleus each wave (only the 2nd card to use the on-event behavioral-hook verbs). Golden
+>   outcomes were re-pinned deliberately (the draft pool grew).
 > - **Seams left open (designed, not yet built):** per-card weights, **pity timers**, **pool
 >   unlocks** via Mutation Fragments (§3), Gene Lab floors, reroll/banish, and the category-wide
 >   *multiplier* engine (waits on the systems some categories reference — crits, summons, strains).
@@ -139,6 +143,33 @@ unless noted):
   slower macro-draft, `DESIGN §6.4`); the **Mutation Synergy** card category amplifies
   them and reactions.
 - **Corruptions** — risk/reward enemy buffs improve card rarity weighting in-run.
+
+### 3.gates — Progression-gated cards (shipped)
+
+A card may carry an optional **`unlock`** — a `CardUnlock` condition the meta layer evaluates
+(`cardUnlocked` → `meta.unlockedCardIds()`), so the card enters the draft pool **only once the
+account clears its milestone**. The earned ids are threaded into the run
+(`RunOptions.unlockedCardIds`) and `draftCards` filters on them before rarity weighting, so
+gating is pure data — it scales with the pool and never branches per-card. **A fresh account
+earns none**, so headless/autoplay draws the ungated baseline (golden-safe). The `CardUnlock`
+axes are `campaignStage` / `bestWave` / `towerUnlocked` (campaign depth, run depth, tower
+ownership — the Coil and campaign-gated pools) plus the lifetime axes `totalRuns` /
+`lifetimeKills` / `bossesSlain` / `totalBiomass`.
+
+Five **behavioral** gated cards each open a NEW sim behavior (a live-knob hook, not just
+numbers) and gate on their OWN distinct lifetime axis — the account earns them by playing
+different ways:
+
+| Card | Effect | Unlock (axis) |
+|---|---|---|
+| **Regenerative Carapace** | +30 Integrity each cleared wave | Finish 5 runs (`totalRuns`) |
+| **Ambush Enzyme** | +45% damage vs full-health enemies | Reach wave 8 (`bestWave`) |
+| **Culling Instinct** | Execute non-boss enemies < 10% HP | 1,000 lifetime kills (`lifetimeKills`) |
+| **Viral Payload** | Kills spread 2 Fracture nearby | Slay 3 bosses (`bossesSlain`) |
+| **Toxic Aura** | Hero radiates Corrosion (SHRED synergy) | Harvest 50,000 biomass (`totalBiomass`) |
+
+They're **rare-tier** (the "unique" property is the *gate*, not a new rarity — epic/legendary
+already exist here) and each carries a full 4-level permanent upgrade ladder like every card.
 
 ---
 

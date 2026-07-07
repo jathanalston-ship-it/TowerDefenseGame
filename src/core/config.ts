@@ -73,12 +73,11 @@ export interface TowerDef {
    *  after which it joins the Biomorph Conveyor / favorite pool. Meta-owned gate — the sim only
    *  sees the resulting roster via RunOptions.unlocked (docs/TOWERS.md §expansion). */
   unlockShards?: number;
-  /** Campaign stage that must be cleared before this tower's shards even BEGIN to drop from loot
-   *  (docs/TOWERS.md §deep-gate). Absent/0 ⇒ shards drop from the start (every launch + expansion
-   *  tower). A gated tower is DOUBLE-locked: its shards don't appear until the progression gate is
-   *  met, and it stays locked until enough banked shards claim it — the meta layer filters the
-   *  loot pool via `eligibleTowerShardPool` (state/meta.ts). */
-  shardGateStage?: number;
+  /** Progression GATE — the highest Campaign stage that must be cleared before this locked tower's
+   *  unlock shards even begin DROPPING (meta.towerShardPool gates the loot rollers). Absent / 0 ⇒ no
+   *  gate (shards drop from the start, like maw/chrysalis/effigy). Pairs with unlockShards so a gated
+   *  tower (Resonance Coil, Marrow Siphon) is DOUBLY gated: reach the stage, THEN grind its shards. */
+  unlockStage?: number;
 }
 
 export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
@@ -213,18 +212,38 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'A shrieking totem — panics attackers into FLEEING the Hive. Buys time, not kills.',
     abilities: [{ type: 'debuff', radius: 300, status: { kind: 'Fear', amount: 1.6 } }],
   },
-  // ── Deep-Strain roster (docs/SIPHON.md): the account's first genuinely NEW delivery mode.
-  //    DOUBLE-gated — its shards only start dropping after Campaign Stage 15 (shardGateStage), and
-  //    it stays locked until enough shards bank (unlockShards). A CONTINUOUS drain beam that ramps
-  //    on a held target and siphons damage into biomass (game.beamSystem). Vital = it feeds the
-  //    Hive; the first Vital ATTACKER (the Flesh Reactor never fires). ──
+  // Resonance Coil (Resonant) — the roster's first sustained-focus MELTER. A locked, ramping BEAM
+  // (firing 'beam', game.ts beamTowerSystem): while it holds ONE target its resonance HEAT climbs,
+  // scaling damage up to BEAM.rampBonus× — it starts weak and melts elites/bosses that stand in it.
+  // LOCKED by default (unlockShards) AND progression-gated (unlockStage): its shards only drop once
+  // the campaign gate is cleared. A brand-new mechanic, so its identity is the ramp, not a stat line.
+  coil: {
+    kind: 'coil',
+    name: 'Resonance Coil',
+    combatClass: 'Resonant',
+    firing: 'beam',
+    unlockShards: 320, // locked: a mid-game chase, funded only AFTER the unlockStage gate is cleared
+    unlockStage: 15, // Tower Shards for the Coil begin dropping once Campaign Stage 15 is cleared
+    cost: 150,
+    range: 340, // SKIRMISHER — a focused emitter; place FORWARD so a target stays in the beam to ramp
+    fireInterval: 0.5, // beam PULSE cadence — paces star/branch procs (crit/status); the DAMAGE is continuous
+    damage: 26, // base beam DPS at zero resonance; ramps to BEAM.rampBonus× on a sustained lock
+    projectileSpeed: 0, // hitscan channel — no projectile
+    splash: 0,
+    color: '#f5b83d',
+    targeting: 'highestHealth', // by default it bites the toughest thing in reach (the melt payoff)
+    blurb: 'Locks a beam onto ONE target; damage RAMPS the longer it holds — melts elites & bosses.',
+  },
+  // ── Deep-Strain roster (docs/SIPHON.md): the second beam melter, but a distinct IDENTITY — it
+  //    siphons damage into Biomass (Vital; the first Vital ATTACKER). Shares the beam delivery; its
+  //    bespoke drain path is game.beamSystem. DOUBLE-gated (unlockStage + unlockShards). ──
   siphon: {
     kind: 'siphon',
     name: 'Marrow Siphon',
     combatClass: 'Vital',
     firing: 'beam', // a continuous drain ray — no projectile, no discrete shots (docs/SIPHON.md)
     unlockShards: 200, // the deepest synthesis goal — a premium, late-unlock organ
-    shardGateStage: 15, // its shards do not drop until Campaign Stage 15 is cleared (the gate)
+    unlockStage: 15, // its shards do not drop until Campaign Stage 15 is cleared (the gate)
     cost: 175, // premium: a single-target melter that pays for itself in biomass
     range: 340, // FIXATOR — a long, deliberate lock; it reaches deep to fasten onto a threat
     fireInterval: 0.5, // the beam's PULSE cadence: biomass payout + granted-ability ticks (not a shot)
@@ -237,6 +256,18 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     abilities: [], // the beam is bespoke (game.beamSystem); star/branch grants pulse on its cadence
   },
 };
+
+/** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
+ *  tick (base `TowerDef.damage` as DPS) to its locked target(s), scaled by the resonance ramp: heat
+ *  climbs while focus holds the SAME target and resets on a switch. Centralized so the melt curve is
+ *  tuned in one place. Inert unless a Resonance Coil is fielded ⇒ golden-safe. */
+export const BEAM = {
+  heatPerSec: 0.42, // resonance charge/sec while locked — ~2.4s from cold to full melt
+  heatDecayPerSec: 1.1, // charge bled off/sec when the beam has no valid target
+  rampBonus: 3.0, // damage bonus at full resonance: ×(1 + rampBonus) ⇒ up to ×4 on a held target
+  corrosionHeat: 0.6, // once heat ≥ this, the beam sears Corrosion into its target (status synergy)
+  corrosionAmount: 1, // Corrosion seconds applied per pulse at/above corrosionHeat
+} as const;
 
 /** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
 export function towerProblems(d: TowerDef): string[] {
@@ -281,7 +312,8 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   maw: [850, 3500, 14000, 52000, 190000],
   chrysalis: [900, 3800, 15000, 55000, 200000],
   effigy: [800, 3400, 14000, 50000, 185000],
-  siphon: [950, 4000, 16000, 58000, 210000], // premium melter — the priciest capstone ladder
+  coil: [850, 3600, 14000, 52000, 190000], // premium single-target melter — sits with obelisk/mortar
+  siphon: [950, 4000, 16000, 58000, 210000], // premium drain melter — the priciest capstone ladder
 };
 
 // ── Enemies ───────────────────────────────────────────────────────────────
@@ -437,6 +469,13 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0.1, separation: 0.25, jitter: 0.06, flying: true }, // armored air → shred AA
     attack: { interval: 1.6, windup: 0.55 }, // ARMORED: stone talons
   },
+  // ── FLYING + REGENERATING — an airborne leech that re-knits itself; burst can't out-race the
+  //    heal before it re-forms, so anti-air must SUSTAIN. The first flyer with a self-heal. ──
+  cystwraith: {
+    kind: 'cystwraith', name: 'Cyst Wraith', hp: 140, armor: 3, speed: 66, bounty: 40, damage: 8, radius: 13, color: '#5fe0b0', regenPerSec: 28,
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // drifting air-regen → sustained AA
+    attack: { interval: 1.3, windup: 0.5 }, // REGEN FLYER: leeching bites
+  },
   // ── SUMMONER — spawns adds on a timer; priority-kill or drown in swarm ──
   broodmother: {
     kind: 'broodmother', name: 'Brood Matron', hp: 200, armor: 6, speed: 38, bounty: 80, damage: 13, radius: 17, color: '#e070c0',
@@ -475,6 +514,14 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     explodeRadius: 96, explodeDamage: 40,
     behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.1, separation: 0.25, jitter: 0.05 }, // a slow walking mine → kill it clear
     attack: { interval: 1.5, windup: 0.65 }, // SUICIDE: windup = the FUSE; one burst, then gone
+  },
+  // ── BURROWING + SUICIDE — a tunnelling incendiary that skirts tower kill-zones (hunts gaps),
+  //    then surfaces and detonates at the line. Demands EVEN coverage AND early interception. ──
+  sapper: {
+    kind: 'sapper', name: 'Cinder Sapper', hp: 80, armor: 2, speed: 70, bounty: 26, damage: 6, radius: 12, color: '#e07a30',
+    explodeRadius: 84, explodeDamage: 34,
+    behavior: { seek: 1.1, avoidTowers: 0.6, avoidHero: 0.1, separation: 0.25, jitter: 0.1, burrowing: true }, // tunnels the gaps, then blows
+    attack: { interval: 1.4, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
   // ── ARTILLERY — halt short of the line and bombard the Nucleus from range ──
   siegeworm: {
@@ -792,7 +839,10 @@ function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
     case 'support':
       return []; // economy/aura only — no attack
     case 'beam':
-      return []; // the drain ray is bespoke (game.beamSystem); star/branch grants pulse on top
+      // Beam towers (Resonance Coil / Marrow Siphon): the beam DAMAGE + ramp are driven directly by
+      // beamTowerSystem / beamSystem (game.ts), not by an ability component — so the base kit is empty.
+      // Star/branch grants (crit/status/aura) still layer on via prog/branch extraAbilities on the pulse.
+      return [];
   }
 }
 
@@ -805,9 +855,15 @@ export const TOWER_ABILITIES: Record<TowerKind, AbilityComponent[]> = Object.fro
 //   • 'dive'    — Ravager: charges the deepest threat, melee + Fracture (Kinetic).
 //   • 'guard'   — Shepherd: holds the core, regenerates Integrity + vital pulse (Vital).
 //   • 'control' — Overseer: floats to the densest crowd, Disruption field (Neural).
+//   • 'siege'   — Vitriol: holds the rear line, bombards the deepest threat with corrosive
+//                 shells that leave Corrosion pools (Caustic). The only ranged/area-denial hero.
 // The Ravager's numbers are unchanged from the original single-hero build, so the
 // base game (and the golden tests) play identically.
-export type HeroBehavior = 'dive' | 'guard' | 'control';
+export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege';
+
+/** How a hero is gated. Absent on a HeroDef ⇒ always available (the launch trio). Data only
+ *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save. */
+export type HeroUnlockReq = { kind: 'bossSlain'; label: string };
 
 export interface HeroAbilityDef {
   name: string;
@@ -817,6 +873,7 @@ export interface HeroAbilityDef {
   damage: number; // AoE damage at the cast point (0 = pure utility)
   fracture: number; // Kinetic stacks applied (Ravager)
   disrupt: number; // Disruption seconds applied (Overseer)
+  corrode?: number; // Corrosion seconds applied by the blast (Vitriol); absent/0 ⇒ none
   heal: number; // Nucleus + self heal granted (Shepherd)
   shield?: number; // self-shield absorb pool granted to the caster (Shepherd Bloom); absent/0 ⇒ none
   shieldSeconds?: number; // how long that self-shield lasts (defaults alongside `shield`)
@@ -825,6 +882,9 @@ export interface HeroAbilityDef {
   buffSeconds?: number; // how long the run buff lasts (defaults to 5s)
   summonUnit?: string; // friendly unit (MINION_DEFS key) this ult conjures; absent ⇒ none
   summonCount?: number; // how many to summon (absent/0 ⇒ no summon emitted)
+  poolRadius?: number; // lingering corrosion pool this ult drops (Vitriol); absent/0 ⇒ no pool
+  poolDps?: number; // that pool's damage/sec
+  poolSeconds?: number; // how long the pool lasts (defaults to 4s)
 }
 
 export interface HeroDef {
@@ -839,9 +899,12 @@ export interface HeroDef {
   attackInterval: number;
   attackDamage: number;
   attackFracture: number;
+  attackSplash?: number; // ranged splash radius (Vitriol siege shells); absent/0 ⇒ single-target/melee
+  projectileSpeed?: number; // shell travel speed for a ranged hero (Vitriol); absent ⇒ melee/no projectile
   aggroRange: number; // effectively the whole arena — heroes roam freely
   contactRange: number; // enemies this close damage the hero
   respawnTime: number;
+  unlock?: HeroUnlockReq; // progression gate; absent ⇒ available from the start (the launch trio)
   // Role pulse — 'guard'/'control' emit a periodic AoE; 'dive' leaves these at 0.
   pulseInterval: number; // seconds between pulses (0 = none)
   pulseRadius: number; // AoE / field radius
@@ -882,6 +945,18 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
     ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5 },
+  },
+  vitriol: {
+    // The hive's SIEGE caste (Caustic) — the only ranged / area-denial hero. Holds the rear line
+    // and lobs corrosive shells at the deepest threat; each impact splashes, applies Corrosion,
+    // and leaves a lingering pool. Progression-gated: bred only after the hive assimilates a
+    // major threat (slay a Framework Boss). Numbers are centralized here (tuning clay).
+    kind: 'vitriol', name: 'Vitriol', combatClass: 'Caustic', behavior: 'siege', color: '#b6e13a',
+    maxHp: 210, speed: 96, attackRange: 560, attackInterval: 1.5, attackDamage: 30, attackFracture: 0, attackSplash: 62, projectileSpeed: 440,
+    aggroRange: 1400, contactRange: 22, respawnTime: 9,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    unlock: { kind: 'bossSlain', label: 'Slay a Framework Boss' },
+    ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5 },
   },
 };
 
@@ -943,10 +1018,12 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   if (ab.heal > 0) out.push({ type: 'heal', nucleus: ab.heal, self: ab.heal });
   if ((ab.shield ?? 0) > 0) out.push({ type: 'shield', amount: ab.shield as number, seconds: ab.shieldSeconds ?? 6 });
   if (ab.damage > 0) {
-    out.push({
-      type: 'explosion', radius: ab.radius, damage: ab.damage,
-      status: ab.fracture > 0 ? { kind: 'Fracture', amount: ab.fracture } : undefined, react: true,
-    });
+    const status = ab.fracture > 0
+      ? { kind: 'Fracture' as const, amount: ab.fracture }
+      : (ab.corrode ?? 0) > 0
+        ? { kind: 'Corrosion' as const, amount: ab.corrode as number }
+        : undefined;
+    out.push({ type: 'explosion', radius: ab.radius, damage: ab.damage, status, react: true });
   } else if (ab.disrupt > 0) {
     // Pure control ult (Overseer Mass Override): flood Disruption, no damage/reaction.
     out.push({ type: 'debuff', radius: ab.radius, status: { kind: 'Disruption', amount: ab.disrupt } });
@@ -959,6 +1036,10 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
   const summonCount = ab.summonCount ?? 0;
   if (ab.summonUnit && summonCount > 0) {
     out.push({ type: 'summon', unit: ab.summonUnit, count: summonCount });
+  }
+  // Drop a lingering corrosion pool (e.g. Vitriol's Corrosive Cataclysm).
+  if ((ab.poolRadius ?? 0) > 0 && (ab.poolDps ?? 0) > 0) {
+    out.push({ type: 'pool', radius: ab.poolRadius as number, dps: ab.poolDps as number, seconds: ab.poolSeconds ?? 4 });
   }
   return out;
 }
@@ -1202,6 +1283,49 @@ export const META_UPGRADES: UpgradeDef[] = [
   { id: 'runaway_synchrony', name: 'Runaway Synchrony', description: 'Hive link deepens without limit — +0.08% damage per active tower × √level', category: 'Tower', maxLevel: Infinity, baseCost: 220, costMult: 1.15, infinite: true, run: { field: 'damagePerTower', op: 'add', perLevel: 0.0008 } },
   { id: 'runaway_ossification', name: 'Runaway Ossification', description: 'The Nucleus thickens without limit — +10 max Integrity × √level', category: 'Infrastructure', maxLevel: Infinity, baseCost: 160, costMult: 1.15, infinite: true, effect: { stat: 'integrityBonus', perLevel: 10 } },
   { id: 'runaway_reflexes', name: 'Runaway Reflexes', description: 'Champion reflexes sharpen without limit — +1.2% hero speed × √level', category: 'Utility', maxLevel: Infinity, baseCost: 170, costMult: 1.15, infinite: true, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.012 } },
+
+  // ════════════════ Expansion — 30 CAPPED Genome-Core sinks (deeper build levers) ════════════════
+  // Each targets a Power-scored RunModifiers field ⇒ every purchase raises Power; magnitudes are
+  // deliberately MODEST (a fully-maxed axis is a single-digit-% swing, never a spike) and costs
+  // escalate so the tier is a long-horizon SINK, not a cheap-breadth power dump. The runaway (∞) tier
+  // stays exactly the six above (docs/EVOLUTION-HQ.md §runaway — one uncapped sink per category); this
+  // block is all CAPPED depth. Balanced against the five-persona premium guardrail (Whale/F2P ≤ ×1.6).
+  // ── Combat ──
+  { id: 'barbed_genome', name: 'Barbed Genome', description: '+1 max Fracture stack per level (deeper armor shred)', category: 'Combat', maxLevel: 3, baseCost: 80, costMult: 1.6, run: { field: 'fractureBonusStacks', op: 'add', perLevel: 1 } },
+  { id: 'cascade_genome', name: 'Cascade Genome', description: 'Status reactions re-fire once more (a rare capstone)', category: 'Combat', maxLevel: 1, baseCost: 255, costMult: 1.9, run: { field: 'reactionRepeats', op: 'add', perLevel: 1 } },
+  { id: 'resonant_command', name: 'Resonant Command', description: "+2% damage for towers matching your hero's class, per level", category: 'Combat', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'classResonanceBonus', op: 'add', perLevel: 0.02 } },
+  { id: 'diverse_arsenal', name: 'Diverse Arsenal', description: '+2% tower damage per DISTINCT tower class fielded, per level', category: 'Combat', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'diversityBonus', op: 'add', perLevel: 0.02 } },
+  { id: 'void_lattice', name: 'Void Lattice', description: '+0.4% tower damage per EMPTY build slot, per level', category: 'Combat', maxLevel: 4, baseCost: 90, costMult: 1.6, run: { field: 'damagePerEmptySlot', op: 'add', perLevel: 0.004 } },
+  { id: 'multi_spinneret', name: 'Multi-Spinneret', description: 'Needle Spitter fires +1 extra needle (a rare capstone)', category: 'Combat', maxLevel: 1, baseCost: 240, costMult: 1.9, run: { field: 'needleExtraProjectiles', op: 'add', perLevel: 1 } },
+  { id: 'siege_saturation', name: 'Siege Saturation', description: '+3% splash radius per level (a deeper AoE sink)', category: 'Combat', maxLevel: 4, baseCost: 95, costMult: 1.6, run: { field: 'splashRadiusMult', op: 'mul', perLevel: 0.03 } },
+  // ── Tower identities ──
+  { id: 'virulent_strain', name: 'Virulent Strain', description: '+3% Parasite Infection damage per level', category: 'Tower', maxLevel: 5, baseCost: 72, costMult: 1.55, run: { field: 'parasiteInfectionMult', op: 'mul', perLevel: 0.03 } },
+  { id: 'neural_dominion', name: 'Neural Dominion', description: '+1.5% Disruption vulnerability per level', category: 'Tower', maxLevel: 4, baseCost: 80, costMult: 1.55, run: { field: 'obeliskVulnerabilityBonus', op: 'add', perLevel: 0.015 } },
+  { id: 'overcharge_grid', name: 'Overcharge Grid', description: '+0.02 Flesh Reactor overcharge per level', category: 'Tower', maxLevel: 4, baseCost: 80, costMult: 1.55, run: { field: 'reactorOverchargeBonus', op: 'add', perLevel: 0.02 } },
+  { id: 'gaping_maw', name: 'Gaping Maw', description: '+3% Carrion Maw bite reach per level', category: 'Tower', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'mawCleaveRadiusMult', op: 'mul', perLevel: 0.03 } },
+  { id: 'deep_amber', name: 'Deep Amber', description: '+3.5% Amber Chrysalis encasement duration per level', category: 'Tower', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'chrysalisFreezeDurationMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'eternal_wail', name: 'Eternal Wail', description: '+3.5% Wailing Effigy panic duration per level', category: 'Tower', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'effigyDreadDurationMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'harmonic_overtuning', name: 'Harmonic Overtuning', description: '+3.5% Resonance Coil beam ramp per level', category: 'Tower', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'coilRampMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'prismatic_conduits', name: 'Prismatic Conduits', description: 'Resonance Coil beam forks to +1 more target (a rare capstone)', category: 'Tower', maxLevel: 1, baseCost: 240, costMult: 1.9, run: { field: 'coilBeamTargets', op: 'add', perLevel: 1 } },
+  // ── Hero ──
+  { id: 'predators_eye', name: "Predator's Eye", description: '+2% hero crit chance per level', category: 'Hero', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'heroCritChance', op: 'add', perLevel: 0.02 } },
+  { id: 'savage_instinct', name: 'Savage Instinct', description: '+10% hero crit damage per level', category: 'Hero', maxLevel: 3, baseCost: 90, costMult: 1.6, run: { field: 'heroCritDamageBonus', op: 'add', perLevel: 0.10 } },
+  { id: 'frenzied_metabolism', name: 'Frenzied Metabolism', description: '+2% hero attack speed per level', category: 'Hero', maxLevel: 4, baseCost: 90, costMult: 1.6, run: { field: 'heroAttackSpeedMult', op: 'mul', perLevel: 0.02 } },
+  { id: 'expansive_mind', name: 'Expansive Mind', description: '+3.5% hero ability radius per level', category: 'Hero', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'heroAbilityRadiusMult', op: 'mul', perLevel: 0.035 } },
+  { id: 'regenerative_biology', name: 'Regenerative Biology', description: '+6% hero healing received per level', category: 'Hero', maxLevel: 4, baseCost: 64, costMult: 1.5, run: { field: 'heroHealingMult', op: 'mul', perLevel: 0.06 } },
+  { id: 'chitin_plating', name: 'Chitin Plating', description: '+2% hero contact-damage reduction per level', category: 'Hero', maxLevel: 4, baseCost: 72, costMult: 1.55, run: { field: 'heroArmor', op: 'add', perLevel: 0.02 } },
+  { id: 'warlord_resonance', name: 'Warlord Resonance', description: '+2% damage to towers near your hero, per level', category: 'Hero', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'heroTowerDamageAura', op: 'add', perLevel: 0.02 } },
+  { id: 'quickening_aura', name: 'Quickening Aura', description: '+2% fire rate to towers near your hero, per level', category: 'Hero', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'heroTowerHasteAura', op: 'add', perLevel: 0.02 } },
+  // ── Infrastructure / support ──
+  { id: 'last_bastion_meta', name: 'Last Bastion Doctrine', description: '+4% Last Stand tower damage while the Nucleus is low, per level', category: 'Infrastructure', maxLevel: 4, baseCost: 80, costMult: 1.6, run: { field: 'lastStandMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'sclerotic_hull', name: 'Sclerotic Hull', description: '+3% max Integrity (multiplicative) per level', category: 'Infrastructure', maxLevel: 5, baseCost: 72, costMult: 1.55, run: { field: 'integrityMult', op: 'mul', perLevel: 0.03 } },
+  // ── Utility (trade-off + tempo levers) ──
+  { id: 'genetic_purge', name: 'Genetic Purge', description: '−1.2% enemy HP scaling per level', category: 'Utility', maxLevel: 4, baseCost: 96, costMult: 1.65, run: { field: 'enemyHpRunMult', op: 'mul', perLevel: -0.012 } },
+  { id: 'synaptic_overclock', name: 'Synaptic Overclock', description: '−1.5% hero ability cooldown per level', category: 'Utility', maxLevel: 4, baseCost: 88, costMult: 1.6, run: { field: 'heroCooldownMult', op: 'mul', perLevel: -0.015 } },
+  { id: 'kinetic_priming', name: 'Kinetic Priming', description: '+3% hero move speed per level', category: 'Utility', maxLevel: 4, baseCost: 64, costMult: 1.5, run: { field: 'heroSpeedMult', op: 'mul', perLevel: 0.03 } },
+  // ── Economy ──
+  { id: 'enzyme_cascade', name: 'Enzyme Cascade', description: '+4% Flesh Reactor biomass per level', category: 'Economy', maxLevel: 5, baseCost: 64, costMult: 1.5, run: { field: 'reactorBiomassMult', op: 'mul', perLevel: 0.04 } },
+  { id: 'seed_vault', name: 'Seed Vault', description: '+15 starting biomass per level', category: 'Economy', maxLevel: 5, baseCost: 64, costMult: 1.5, run: { field: 'startBiomassBonus', op: 'add', perLevel: 15 } },
 ];
 
 export function upgradeProblems(d: UpgradeDef): string[] {

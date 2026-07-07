@@ -189,6 +189,18 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
     ],
     perks: [{ at: 75, name: 'Mycelial Network', desc: 'Mastery 75: +30% support radius — the Reactor overcharges farther towers.', rangeMult: 1.3 }],
   },
+  {
+    unit: 'coil',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.coil.1', name: 'Resonant Doctrine', text: 'The Coil does not strike — it FOCUSES. Given a moment on one host, it unmakes anything that holds still.' },
+      { at: 25, kind: 'title', id: 'title.coil.harmonist', name: 'Harmonist' },
+      { at: 50, kind: 'title', id: 'title.coil.annihilator', name: 'Annihilator' },
+    ],
+    perks: [
+      { at: 50, name: 'Wide Aperture', desc: 'Mastery 50: the beam melts one MORE target at once.', extraProjectiles: 1 },
+      { at: 75, name: 'Runaway Resonance', desc: 'Mastery 75: +20% fire rate — resonance builds faster, so the melt ramps sooner.', fireRateMult: 1.2 },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
@@ -211,6 +223,13 @@ const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
     rewards: [
       { at: 10, kind: 'lore', id: 'lore.overseer.1', name: 'The Overseer', text: 'A thousand eyes, one intent. It sees the wave before the wave begins.' },
       { at: 25, kind: 'title', id: 'title.overseer.hand', name: 'Overseer’s Hand' },
+    ],
+  },
+  {
+    unit: 'vitriol',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.vitriol.1', name: 'Vitriol', text: 'The hive learned patience from a siege it lost. Now it answers every wall with acid, and every charge with a sea of it.' },
+      { at: 25, kind: 'title', id: 'title.vitriol.corrosive', name: 'The Corrosive' },
     ],
   },
 ];

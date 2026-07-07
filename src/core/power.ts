@@ -48,12 +48,14 @@ const FIELD_WEIGHT: Record<string, number> = {
   mawCleaveRadiusMult: 0.4, // wider jaws ⇒ more victims per bite
   chrysalisFreezeDurationMult: 0.35, // control uptime (encasement)
   effigyDreadDurationMult: 0.35, // control uptime (panic)
+  coilRampMult: 0.35, // scales the Resonance Beam's ramp — a single-tower lever (weighted like the other per-tower mults)
   siphonRampMult: 0.4, // faster Gorge ⇒ the beam reaches its damage ceiling sooner (offense)
   siphonDrainMult: 0.25, // more biomass siphoned per hit (economy — the Vital return)
 };
 // `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
   needleExtraProjectiles: 0.08, // each extra projectile ≈ +8% offense
+  coilBeamTargets: 0.08, // each extra beam target — a single-tower channel (weighted below needleExtraProjectiles's army-wide 0.08 in impact via the 0.35 ramp)
   heroLifestealFrac: 0.5,
   heroThornsFrac: 0.2,
   heroCritChance: 0.5, // Hero Evolution — expected-damage from crit rate
@@ -62,6 +64,7 @@ const ADD_POWER: Record<string, number> = {
   heroTowerHasteAura: 0.3,
   heroTowerDamageAura: 0.4,
   executeThreshold: 1.5,
+  fullHealthDamageBonus: 0.3, // Ambush Enzyme — conditional (first-strike) damage; partial offense
   damagePerTower: 3,
   damagePerEmptySlot: 3,
   classResonanceBonus: 0.5,
@@ -86,13 +89,15 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'biomassMult', 'reactorBiomassMult', 'needleExtraProjectiles', 'heroLifestealFrac', 'heroThornsFrac',
   'heroTowerHasteAura', 'heroTowerDamageAura', 'executeThreshold', 'damagePerTower', 'damagePerEmptySlot',
   'classResonanceBonus', 'diversityBonus', 'fractureBonusStacks', 'reactionRepeats', 'obeliskVulnerabilityBonus',
-  'reactorOverchargeBonus', 'startBiomassBonus',
+  'reactorOverchargeBonus', 'startBiomassBonus', 'fullHealthDamageBonus',
   // Permanent-upgrade axes (inverse fields scored with negative weights; mobility/economy lightly):
   'heroCooldownMult', 'enemyHpRunMult', 'heroSpeedMult', 'heroAggroRangeMult', 'sellRefundFrac',
   // Hero Evolution axes (in-run biomass sink; every one moves Power — docs/HERO-EVOLUTION.md):
   'heroAttackSpeedMult', 'heroCritChance', 'heroCritDamageBonus', 'heroHealingMult', 'heroArmor',
   // Expansion tower identities (docs/TOWERS.md §expansion):
   'mawCleaveRadiusMult', 'chrysalisFreezeDurationMult', 'effigyDreadDurationMult',
+  // Resonance Coil (beam melter):
+  'coilRampMult', 'coilBeamTargets',
   // Deep-Strain tower identity (docs/SIPHON.md — the Marrow Siphon beam):
   'siphonRampMult', 'siphonDrainMult',
 ];

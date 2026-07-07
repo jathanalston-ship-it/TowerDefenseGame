@@ -38,7 +38,7 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
 
   // ── Hero Release (locked heroes accumulating Apex Genome) ──
   for (const e of heroCollection(save)) {
-    if (e.unlocked) continue;
+    if (e.unlocked || e.requirement) continue; // milestone-gated heroes (Vitriol) are EARNED, not released with Shards
     goals.push({
       id: `release:${e.kind}`, kind: 'hero-release',
       label: `Release ${e.name}`,

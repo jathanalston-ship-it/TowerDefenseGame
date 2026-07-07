@@ -18,7 +18,7 @@ import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, H
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import type { PremiumOfferDef } from '../core/premium';
-import type { UpgradeDef } from '../core/config';
+import type { HeroUnlockReq, UpgradeDef } from '../core/config';
 import type {
   HeroKind,
   HeroMasteryCounts,
@@ -45,7 +45,7 @@ import { DEVICE_PREF_KEYS } from './prefs';
 import { announcePower } from './powerEvents';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { ALL_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
+import { CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -54,8 +54,8 @@ import {
 } from '../core/reforge';
 import type { ReforgeOp } from '../core/reforge';
 import { gameEvents } from '../core/events';
-import type { CardEffect } from '../core/cards';
-import { cardRegistry } from '../core/cards';
+import type { CardDef, CardEffect } from '../core/cards';
+import { CARD_POOL, cardRegistry } from '../core/cards';
 import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
 import type { GeneSave } from '../core/geneCards';
@@ -407,9 +407,21 @@ export function heroSlotsUnlocked(save: SaveData): number {
 /** Whether the account owns `kind`. Starters (HeroDef without an unlockShards gate) are always
  *  owned; a locked hero is owned once it appears in `save.heroUnlocked` (claimed with Hero Shards). */
 export function isHeroUnlocked(save: SaveData, kind: HeroKind): boolean {
-  const cost = HERO_DEFS[kind]?.unlockShards ?? 0;
+  const def = HERO_DEFS[kind];
+  // Milestone-gated hero (Vitriol): EARNED by a feat, not bought — owned the moment its
+  // requirement is met (no Shard claim). The unique gate, distinct from the Shard heroes.
+  if (def?.unlock) return heroMilestoneMet(save, def.unlock);
+  const cost = def?.unlockShards ?? 0;
   if (cost <= 0) return true; // starter
   return (save.heroUnlocked ?? []).includes(kind);
+}
+
+/** Whether a hero's data-driven unlock milestone (HeroDef.unlock) is satisfied by the save. A
+ *  new gate kind is one `case` here (+ one HeroUnlockReq variant in config) — future-proof. */
+function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
+  switch (req.kind) {
+    case 'bossSlain': return save.bossesSlain.length > 0;
+  }
 }
 
 /** Whether the account owns tower `kind` (docs/TOWERS.md §expansion). Starters (TowerDef without
@@ -421,14 +433,40 @@ export function isTowerUnlocked(save: SaveData, kind: TowerKind): boolean {
   return (save.towerUnlocked ?? []).includes(kind);
 }
 
-/** The towers whose shards are ELIGIBLE to drop from loot right now (docs/SIPHON.md §gate). A
- *  DEEP-gated tower (`shardGateStage` set) is kept OUT of the loot pool until the account clears its
- *  gate stage — so the Marrow Siphon's shards simply do not appear before Campaign Stage 15. Every
- *  launch + expansion tower (no gate) is always eligible. Pure over the save; used to bias the
- *  container-crack rolls (openContainer). */
-export function eligibleTowerShardPool(save: SaveData): TowerKind[] {
-  const stage = highestCampaignStage(save);
-  return TOWER_ORDER.filter((k) => (TOWER_DEFS[k].shardGateStage ?? 0) <= stage);
+/** Whether a locked tower's progression GATE is cleared — i.e. its unlock shards may DROP. Towers with
+ *  no `unlockStage` (maw/chrysalis/effigy) are always met; a deep-gated tower (Resonance Coil / Marrow
+ *  Siphon) needs its campaign stage cleared first ("shards only start dropping once the gate is met"). */
+export function towerShardGateMet(save: SaveData, kind: TowerKind): boolean {
+  const stage = TOWER_DEFS[kind]?.unlockStage ?? 0;
+  return stage <= 0 || highestCampaignStage(save) >= stage;
+}
+
+/** The tower kinds whose shards may drop from loot right now: everything whose campaign gate is met.
+ *  Passed to the loot rollers so a gated tower's shards never leak before the player reaches its stage. */
+export function towerShardPool(save: SaveData): TowerKind[] {
+  return TOWER_ORDER.filter((k) => towerShardGateMet(save, k));
+}
+
+/** Whether a gene card's progression gate is satisfied (ungated ⇒ always true). Drives which gated
+ *  cards are injected into a run's draft pool (RunOptions.unlockedCardIds). */
+export function cardUnlocked(save: SaveData, def: CardDef): boolean {
+  const u = def.unlock;
+  if (!u) return true;
+  switch (u.kind) {
+    case 'campaignStage': return highestCampaignStage(save) >= u.stage;
+    case 'bestWave': return save.bestWave >= u.wave;
+    case 'towerUnlocked': return isTowerUnlocked(save, u.tower);
+    case 'totalRuns': return save.totalRuns >= u.runs;
+    case 'lifetimeKills': return save.stats.lifetimeKills >= u.kills;
+    case 'bossesSlain': return save.bossesSlain.length >= u.bosses;
+    case 'totalBiomass': return save.stats.totalBiomass >= u.biomass;
+  }
+}
+
+/** The ids of GATED gene cards the account has unlocked — injected into a run so they can be drafted
+ *  (ungated cards are always in the pool). Empty for a fresh account ⇒ the golden pool is unchanged. */
+export function unlockedCardIds(save: SaveData): string[] {
+  return CARD_POOL.filter((c) => c.unlock && cardUnlocked(save, c)).map((c) => c.id);
 }
 
 /** The heroes fielded next run — the saved loadout clamped to unlocked slots + DISTINCT + OWNED
@@ -454,26 +492,30 @@ export interface HeroCollectionEntry {
   color: string;
   unlocked: boolean;
   isStarter: boolean;
-  cost: number; // Hero Shards to unlock (0 for starters / already-owned)
+  cost: number; // Hero Shards to unlock (0 for starters / already-owned / milestone-gated)
   shards: number; // Hero Shards banked toward this hero
   progress: number; // 0..1 toward the unlock threshold (1 when owned)
-  canUnlock: boolean; // locked AND enough shards banked to claim now
+  canUnlock: boolean; // locked AND enough shards banked to claim now (never for milestone heroes)
+  requirement?: string; // milestone-gated heroes (Vitriol): the feat that unlocks it, not Shards
 }
 
 /** The Hero Collection roster view: every hero with ownership + unlock progress ("42 / 100"), so
  *  a locked hero reads as a concrete, visible goal. Pure over the save; future-proof (reads the
- *  registry order, so a new hero just appears). */
+ *  registry order, so a new hero just appears). A milestone-gated hero (HeroDef.unlock) shows its
+ *  `requirement` feat instead of a Shard bar and auto-unlocks — it can't be claimed with Shards. */
 export function heroCollection(save: SaveData): HeroCollectionEntry[] {
   return HERO_ORDER.map((kind) => {
     const def = HERO_DEFS[kind];
+    const milestone = def.unlock; // milestone-gated (Vitriol) — earned, not bought
     const cost = def.unlockShards ?? 0;
-    const isStarter = cost <= 0;
+    const isStarter = !milestone && cost <= 0;
     const unlocked = isHeroUnlocked(save, kind);
     const shards = save.heroShards[kind] ?? 0;
     return {
       kind, name: def.name, color: def.color, unlocked, isStarter, cost, shards,
-      progress: unlocked ? 1 : cost > 0 ? Math.min(1, shards / cost) : 1,
-      canUnlock: !unlocked && shards >= cost,
+      progress: unlocked ? 1 : milestone ? 0 : cost > 0 ? Math.min(1, shards / cost) : 1,
+      canUnlock: !unlocked && !milestone && shards >= cost, // milestone heroes auto-unlock (no claim)
+      requirement: milestone?.label,
     };
   });
 }
@@ -714,6 +756,10 @@ export interface RunOutcome {
   // Daily Run (docs/DAILY-RUN.md): this run's daily outcome — the once-per-day clear reward (0 on a
   // replay/loss) and the updated streak. Absent off-daily.
   dailyProgress?: { cores: number; streak: number; cleared: boolean };
+  // Campaign "Flawless first-clear" bonus-cache status, for the Results notice. null on non-campaign
+  // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
+  // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
+  flawlessCache: { earned: boolean; firstClear: boolean; noDamage: boolean } | null;
 }
 
 /** One granted line on a premium receipt — the reveal ceremony renders these. */
@@ -1092,9 +1138,15 @@ export const meta = {
       : { state: save.lootQueue, awarded: [] as string[] }; // unqualified: no run-end loot, meter frozen (no RNG spent)
     const queueRemainder: PendingContainer[] = lootAdv.awarded.map((rarity) => ({ kind: 'loot', rarity }));
     const runCache: PendingContainer = { kind: 'cache', chestId: chestForWave(result.wave) };
-    // First-clear "Stage Cache": a one-time bonus container per never-cleared campaign stage, scaled
-    // by the stage number so deeper first clears drop a richer cache.
-    const stageCache: PendingContainer[] = firstClear ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    // Flawless first-clear "Stage Cache": the bonus container is awarded ONLY when a campaign stage
+    // is cleared for the FIRST time WITHOUT the Nucleus taking any integrity damage. Regen does not
+    // redeem a hit — any damage taken forfeits the bonus — and replays never qualify. Scaled by the
+    // stage number so deeper flawless first clears drop a richer cache.
+    const noDamage = result.stats.integrityLost === 0;
+    const flawlessEarned = firstClear && noDamage;
+    const stageCache: PendingContainer[] = flawlessEarned ? [{ kind: 'cache', chestId: chestForWave(stageNo) }] : [];
+    // Results notice (docs/REWARD-PRESENTATION.md): earned/missed status on a qualifying campaign win.
+    const flawlessCache = isCampaign && result.won ? { earned: flawlessEarned, firstClear, noDamage } : null;
     const cacheBank: PendingContainer[] = cacheEligible ? [runCache, ...stageCache] : [];
     const newlyBanked: PendingContainer[] = [...queueRemainder, ...cacheBank, ...rushVaultBank];
     // An unqualified Infinite run rolls back the containers it banked LIVE this run (syncRunLoot) —
@@ -1255,6 +1307,7 @@ export const meta = {
           } }
         : {}),
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
+      flawlessCache,
     };
   },
 
@@ -1349,14 +1402,16 @@ export const meta = {
     // Bias hero-shard pulls toward still-LOCKED heroes so their "42 / 100" unlock bar fills visibly
     // (empty ⇒ every hero owned ⇒ shards distribute normally for stars).
     const lockedPool = HERO_ORDER.filter((k) => !isHeroUnlocked(save, k));
-    const eligibleTowers = eligibleTowerShardPool(save); // deep-gated towers stay out until their gate (docs/SIPHON.md §gate)
+    // Tower-shard drops are GATED: a locked tower's shards drop only after its campaign gate is met,
+    // so a deep-gated tower's shards never leak before its stage (Coil/Siphon — docs/SIPHON.md §gate).
+    const towerPool = towerShardPool(save);
     let mats = save.mats;
     let chest: ChestResult;
     let label: string;
     let color: string;
     if (c.kind === 'cache') {
       const def = CHESTS[c.chestId] ?? CHESTS[RUN_CHEST];
-      chest = rollChest(def, Math.random, lockedPool, eligibleTowers);
+      chest = rollChest(def, Math.random, lockedPool, towerPool);
       for (const k of TOWER_ORDER) towerShards[k] += chest.towerShards[k] ?? 0;
       for (const id of Object.keys(chest.heroShards)) heroShards[id] = (heroShards[id] ?? 0) + chest.heroShards[id];
       mats = {
@@ -1367,7 +1422,7 @@ export const meta = {
       label = def?.name ?? 'Reward Cache';
       color = 'var(--gold)';
     } else if (rarityRegistry.has(c.rarity)) {
-      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool, eligibleTowers);
+      const [award] = openLootBoxes([c.rarity], towerShards, heroShards, lockedPool, towerPool);
       chest = award.chest;
       const def = rarityRegistry.get(c.rarity);
       label = `${def?.name ?? c.rarity} Container`;
@@ -1735,12 +1790,19 @@ export const meta = {
     return isTowerUnlocked(store.get(), kind);
   },
 
+  /** The gated gene-card ids the account has unlocked — threaded into a run so they can be drafted
+   *  (RunOptions.unlockedCardIds). Empty for a fresh account ⇒ the golden draft pool is unchanged. */
+  unlockedCardIds(): string[] {
+    return unlockedCardIds(store.get());
+  },
+
   /** Claim a locked tower once enough of ITS Tower Shards are banked: spends the unlock cost,
    *  marks it owned, and returns true — it immediately joins the Biomorph Conveyor pool and can
    *  be starred / set as the favorite. False if already owned or unaffordable. */
   unlockTower(kind: TowerKind): boolean {
     const save = store.get();
     if (isTowerUnlocked(save, kind)) return false;
+    if (!towerShardGateMet(save, kind)) return false; // its campaign gate isn't cleared — no shards yet
     const cost = TOWER_DEFS[kind].unlockShards ?? 0;
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     persist({
@@ -1810,6 +1872,7 @@ export const meta = {
   unlockHero(kind: HeroKind): boolean {
     const save = store.get();
     if (isHeroUnlocked(save, kind)) return false;
+    if (HERO_DEFS[kind].unlock) return false; // milestone-gated (Vitriol) — earned by a feat, never claimed with Shards
     const cost = HERO_DEFS[kind].unlockShards ?? 0;
     if ((save.heroShards[kind] ?? 0) < cost) return false;
     persist({
@@ -2012,7 +2075,7 @@ export const meta = {
         case 'towerShardsAll':
           // Gate-eligible towers only (docs/SIPHON.md §gate): a purchase accelerates toward gates, it
           // never crosses one — a deep-gated tower's shards stay sealed until its progression gate.
-          for (const k of eligibleTowerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
+          for (const k of towerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
           lines.push({ icon: '✦', label: `${g.qtyEach} Strain Samples × every tower` });
           break;
         case 'heroShardsAll':
@@ -2032,7 +2095,7 @@ export const meta = {
           // account's depth so drops read on-curve, never ahead of it.
           const names: string[] = [];
           for (let i = 0; i < g.count; i++) {
-            const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+            const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
             const item = rollItem(Math.random, def, g.rarity, Math.max(1, save.bestWave));
             inventory.push(item);
             names.push(itemDef(item.defId)?.name ?? item.defId);
@@ -2178,7 +2241,7 @@ export const meta = {
           next = { ...next, geneEssence: next.geneEssence + r.qty };
           break;
         case 'equipment': {
-          const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+          const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
           const item = rollItem(Math.random, def, r.rarity, undefined, 'Bio-Roulette');
           next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
           break;
@@ -2287,7 +2350,7 @@ export const meta = {
       case 'equipment': {
         // The SLOT (rarity + price) is deterministic per window; the concrete piece rolls at
         // purchase like every other equipment grant (meta layer, Math.random).
-        const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+        const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
         const item = rollItem(Math.random, def, it.equipRarity, undefined, 'Splice Market');
         next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
         break;
@@ -2611,7 +2674,7 @@ export const meta = {
     const CORES = 150, TSHARD = 15, HSHARD = 20;
     const hero = save.selectedHero;
     const towerShards = { ...save.towerShards };
-    for (const k of eligibleTowerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every gate-eligible tower's currency
+    for (const k of towerShardPool(save)) towerShards[k] = (towerShards[k] ?? 0) + TSHARD; // a little of every gate-eligible tower currency
     const heroShards = { ...save.heroShards, [hero]: (save.heroShards[hero] ?? 0) + HSHARD };
     const container: PendingContainer = { kind: 'loot', rarity: 'rare' }; // the guaranteed Tutorial Bio-Container
     const item: OwnedItem = { uid: `tut-${Date.now().toString(36)}`, defId: 'w_quill', rarity: 'rare', affixes: [] };
@@ -2785,6 +2848,16 @@ export const meta = {
     const heroMasteryXp = { ...save.heroMasteryXp };
     for (const k of HERO_ORDER) heroMasteryXp[k] = Math.max(0, (heroMasteryXp[k] ?? 0) + n);
     persist({ ...save, heroMasteryXp });
+  },
+
+  /** Own every hero — the debug shortcut for testing gated content. Claims the Shard-gated heroes
+   *  (into heroUnlocked) AND satisfies the milestone gate (records a boss kill → unlocks Vitriol). */
+  debugUnlockHeroes(): void {
+    const save = store.get();
+    const shardGated = HERO_ORDER.filter((k) => (HERO_DEFS[k].unlockShards ?? 0) > 0 && !HERO_DEFS[k].unlock);
+    const heroUnlocked = [...new Set([...(save.heroUnlocked ?? []), ...shardGated])];
+    const bossesSlain = save.bossesSlain.length === 0 ? ['brood_tyrant'] : save.bossesSlain;
+    persist({ ...save, heroUnlocked, bossesSlain });
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */

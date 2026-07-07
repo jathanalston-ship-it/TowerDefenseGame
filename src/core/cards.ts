@@ -32,6 +32,8 @@ export interface RunModifiers {
   mawCleaveRadiusMult: number; // scales the Carrion Maw's bite reach (its range IS its cleave)
   chrysalisFreezeDurationMult: number; // scales the Amber Chrysalis encasement (Freeze) seconds
   effigyDreadDurationMult: number; // scales the Wailing Effigy panic (Fear) seconds
+  coilRampMult: number; // scales the Resonance Coil beam's ramp bonus (harder melt at full resonance)
+  coilBeamTargets: number; // +simultaneous beam targets (the Coil's beam forks to additional foes)
   siphonRampMult: number; // scales how fast the Marrow Siphon's beam GORGES (its ramping DPS) — docs/SIPHON.md
   siphonDrainMult: number; // scales the biomass the Marrow Siphon siphons from damage dealt (its economy return)
   heroDamageMult: number;
@@ -87,6 +89,13 @@ export interface RunModifiers {
   // Tower SELL refund fraction (docs/TOWER-MANAGEMENT.md §2). The single extensibility point for
   // refund-rate mechanics — cards/equipment/prestige bump it via the normal effect pipeline.
   sellRefundFrac: number; // default SELL.refundFrac (0.75); ≤ 1 so selling is never exploitable
+  // ── Progression-gated Gene Card knobs (docs/CARDS.md §gates) — LIVE knobs (folded by applyCard, so
+  //    they work on a MID-run draft, unlike boot-only grant/hook verbs). Neutral defaults ⇒ a run that
+  //    drafts none is byte-identical (golden). Read live at the sim seams (game.ts). ──
+  integrityRegenPerWave: number; // Regenerative Carapace — Integrity restored each cleared wave
+  fullHealthDamageBonus: number; // Ambush Enzyme — +damage fraction to enemies still at full health
+  killFractureSplash: number; // Viral Payload — Fracture stacks spread to nearby enemies on every kill
+  heroCorrosionAura: boolean; // Toxic Aura — the hero passively corrodes nearby enemies (Culling reuses executeThreshold)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -109,6 +118,8 @@ export function defaultRunModifiers(): RunModifiers {
     mawCleaveRadiusMult: 1,
     chrysalisFreezeDurationMult: 1,
     effigyDreadDurationMult: 1,
+    coilRampMult: 1,
+    coilBeamTargets: 0,
     siphonRampMult: 1,
     siphonDrainMult: 1,
     heroDamageMult: 1,
@@ -142,6 +153,10 @@ export function defaultRunModifiers(): RunModifiers {
     diversityBonus: 0,
     bonusTowerSlots: 0,
     sellRefundFrac: SELL.refundFrac,
+    integrityRegenPerWave: 0,
+    fullHealthDamageBonus: 0,
+    killFractureSplash: 0,
+    heroCorrosionAura: false,
   };
 }
 
@@ -236,6 +251,21 @@ export interface GeneSkin {
   art?: string;
 }
 
+/** Progression GATE for a gene card (CARDS.md §3 "Pool unlocks"). A card WITH an `unlock` is excluded
+ *  from the default draft pool until the account satisfies its condition (evaluated in meta —
+ *  `cardUnlocked`; unlocked ids injected into a run). Tower-SUBJECT cards are already gated by
+ *  ownership via draftCards' `allowedTowers`, so this exists for GENERAL cards gated on account depth
+ *  (campaign / best wave) or lifetime feats (runs / kills / bosses / biomass). A fresh account (and the
+ *  golden sim) earns none, so it draws exactly the ungated catalog ⇒ byte-identical. */
+export type CardUnlock =
+  | { kind: 'campaignStage'; stage: number } // clear this Campaign stage (any difficulty)
+  | { kind: 'bestWave'; wave: number } // reach this wave/depth in any run
+  | { kind: 'towerUnlocked'; tower: TowerKind } // own a specific (locked) tower — e.g. the Coil's cards
+  | { kind: 'totalRuns'; runs: number } // finish this many runs (any outcome) — rewards persistence
+  | { kind: 'lifetimeKills'; kills: number } // cull this many enemies across all runs
+  | { kind: 'bossesSlain'; bosses: number } // slay this many DISTINCT framework bosses
+  | { kind: 'totalBiomass'; biomass: number }; // harvest this much biomass across all runs
+
 export interface CardDef {
   id: string; // PERMANENT unique id — the save key for this card's progression. Never reuse/rename.
   name: string;
@@ -243,6 +273,7 @@ export interface CardDef {
   category: CardCategory; // synergy tag; CARD_CATEGORY_LABEL maps it to the display string
   description: string;
   effects: CardEffect[]; // BASE (level-0) effects
+  unlock?: CardUnlock; // absent ⇒ a BASE card, always in the pool; present ⇒ progression-gated
   // ── Permanent progression scaffolding (docs/GENE-EVOLUTION.md). ALL OPTIONAL — a card with none of
   //    these behaves exactly as before (base-only, no upgrades) so existing gameplay is preserved.
   //    Populated by later tasks; the architecture reads them through core/geneCards.ts. ──
@@ -251,11 +282,6 @@ export interface CardDef {
   ascension?: GeneAscension; // ascension backend (Task 10) — no gameplay.
   skins?: GeneSkin[]; // future artwork variants.
   art?: string; // base artwork key (procedural fallback if absent).
-  // ── Progression gate (docs/SIPHON.md §gate) — the highest Campaign stage that must be cleared
-  //    before this card enters the draft pool. Absent ⇒ ungated (the historical pool). A GATED card
-  //    is dropped from `draftCards` unless the run's `progressStage` clears it — so autoplay
-  //    (progressStage 0) never drafts it and the golden draft stays byte-identical. ──
-  unlock?: number;
 }
 
 /** Apply a card's declarative effects to the run. The only card interpreter. */
@@ -333,6 +359,7 @@ export const CARD_POOL: CardDef[] = [
   { id: 'overcharged_grid', name: 'Overcharged Grid', rarity: 'epic', category: 'economy', description: '+0.40 reactor overcharge, +50% reactor biomass, +10% tower damage.', effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.4 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.5 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }] },
   { id: 'gravity_well', name: 'Gravity Well', rarity: 'epic', category: 'control', description: 'Disruption slows +20% harder and adds +20% vulnerability.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.2 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.2 }] },
   { id: 'total_lockdown', name: 'Total Lockdown', rarity: 'epic', category: 'control', description: 'Encasements AND panic last +25% longer; Disruption slows +10% harder.', effects: [{ op: 'mul', field: 'chrysalisFreezeDurationMult', value: 1.25 }, { op: 'mul', field: 'effigyDreadDurationMult', value: 1.25 }, { op: 'add', field: 'obeliskSlowBonus', value: 0.1 }] },
+  { id: 'carrion_bloom', name: 'Carrion Bloom', rarity: 'epic', category: 'economy', description: '+20% biomass from kills; each slain enemy sheds +2 biomass — the swarm feeds the hive.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.2 }, { op: 'hook', hook: { on: 'enemyKilled', action: { do: 'biomass', value: 2 } } }] },
 
   // ════════════════ Legendary — rule-bending ════════════════
   { id: 'glass_genome', name: 'Glass Genome', rarity: 'legendary', category: 'tower', description: '×2 tower damage — but every enemy has +25% HP.', effects: [{ op: 'mul', field: 'towerDamageMult', value: 2.0 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.25 }] },
@@ -340,18 +367,59 @@ export const CARD_POOL: CardDef[] = [
   { id: 'last_bastion', name: 'Last Bastion', rarity: 'legendary', category: 'tower', description: 'Below 50% Nucleus, towers deal ×2.5 — and +4% per tower fielded.', effects: [{ op: 'add', field: 'lastStandThreshold', value: 0.5 }, { op: 'mul', field: 'lastStandMult', value: 2.5 }, { op: 'add', field: 'damagePerTower', value: 0.04 }] },
   { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
 
-  // ════════════════ Deep-Strain gene cards (docs/SIPHON.md §gate) — GATED behind Campaign Stage 15
-  //    (unlock: DEEP_STRAIN_STAGE). Absent from the draft until the milestone is cleared, so autoplay
-  //    (progressStage 0) never sees them and the golden draft is byte-identical. Deep unlocks ⇒ they
-  //    hit at Epic/Legendary weight. The last two are the Marrow Siphon's own identity cards. ════
-  { id: 'deep_overclock', name: 'Deep Overclock', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +12% tower damage.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
-  { id: 'marrow_feast', name: 'Marrow Feast', rarity: 'epic', category: 'economy', description: '+35% biomass from kills; gain 150 biomass now.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'biomassMult', value: 1.35 }, { op: 'biomass', value: 150 }] },
-  { id: 'neural_dominion', name: 'Neural Dominion', rarity: 'epic', category: 'control', description: 'Disruption slows +15% more and exposes +15%; +8% tower damage.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.15 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
-  { id: 'hollow_bastion', name: 'Hollow Bastion', rarity: 'epic', category: 'mutation', description: '+90 max & current Integrity; +3% tower damage per tower fielded.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'integrity', value: 90 }, { op: 'add', field: 'damagePerTower', value: 0.03 }] },
-  { id: 'apex_ascendant', name: 'Apex Ascendant', rarity: 'legendary', category: 'hero', description: 'Hero damage ×2.2, +180 max HP, −18% ability cooldown.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'heroDamageMult', value: 2.2 }, { op: 'heroHp', value: 180 }, { op: 'mul', field: 'heroCooldownMult', value: 0.82 }] },
-  // ── Marrow Siphon identity cards (subject = siphon; roster-gated to owning the tower AND stage-gated) ──
-  { id: 'gorging_instinct', name: 'Gorging Instinct', rarity: 'rare', category: 'tower', description: 'The Marrow Siphon gorges +25% faster — its beam reaches full melt sooner.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.25 }] },
-  { id: 'hemophage', name: 'Hemophage', rarity: 'epic', category: 'economy', description: 'The Marrow Siphon siphons +45% more Biomass and gorges +10% faster.', unlock: DEEP_STRAIN_STAGE, effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.45 }, { op: 'mul', field: 'siphonRampMult', value: 1.1 }] },
+  // ════════════════ Deep-Strain gene cards (docs/SIPHON.md §gate) — GATED via the CardUnlock DSL: the
+  //    five general cards open at Campaign Stage 15 (DEEP_STRAIN_STAGE); the two Marrow Siphon identity
+  //    cards gate on OWNING the siphon. Absent from the default pool ⇒ golden draft byte-identical. ════
+  { id: 'deep_overclock', name: 'Deep Overclock', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +12% tower damage.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
+  { id: 'marrow_feast', name: 'Marrow Feast', rarity: 'epic', category: 'economy', description: '+35% biomass from kills; gain 150 biomass now.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'mul', field: 'biomassMult', value: 1.35 }, { op: 'biomass', value: 150 }] },
+  { id: 'neural_dominion', name: 'Neural Dominion', rarity: 'epic', category: 'control', description: 'Disruption slows +15% more and exposes +15%; +8% tower damage.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.15 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'hollow_bastion', name: 'Hollow Bastion', rarity: 'epic', category: 'mutation', description: '+90 max & current Integrity; +3% tower damage per tower fielded.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'integrity', value: 90 }, { op: 'add', field: 'damagePerTower', value: 0.03 }] },
+  { id: 'apex_ascendant', name: 'Apex Ascendant', rarity: 'legendary', category: 'hero', description: 'Hero damage ×2.2, +180 max HP, −18% ability cooldown.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'mul', field: 'heroDamageMult', value: 2.2 }, { op: 'heroHp', value: 180 }, { op: 'mul', field: 'heroCooldownMult', value: 0.82 }] },
+  // ── Marrow Siphon identity cards (subject = siphon; gated on OWNING the siphon, like the Coil's cards) ──
+  { id: 'gorging_instinct', name: 'Gorging Instinct', rarity: 'rare', category: 'tower', description: 'The Marrow Siphon gorges +25% faster — its beam reaches full melt sooner.', unlock: { kind: 'towerUnlocked', tower: 'siphon' }, effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.25 }] },
+  { id: 'hemophage', name: 'Hemophage', rarity: 'epic', category: 'economy', description: 'The Marrow Siphon siphons +45% more Biomass and gorges +10% faster.', unlock: { kind: 'towerUnlocked', tower: 'siphon' }, effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.45 }, { op: 'mul', field: 'siphonRampMult', value: 1.1 }] },
+
+  // ════════════════ Expansion base pool (5) — ungated, always draftable ════════════════
+  // New always-in-pool genes spanning fresh subjects (hero survivability, AoE, economy, corrosion,
+  // hero tempo). Each carries authored permanent upgrades; adding them to the pool shifts the
+  // deterministic autoplay draft ⇒ the golden baseline is re-pinned for this content (golden.test).
+  { id: 'barbed_carapace', name: 'Barbed Carapace', rarity: 'common', category: 'hero', description: '+70 hero max & current HP; reflects 12% of contact damage.', effects: [{ op: 'heroHp', value: 70 }, { op: 'add', field: 'heroThornsFrac', value: 0.12 }] },
+  { id: 'concussive_rounds', name: 'Concussive Rounds', rarity: 'rare', category: 'aoe', description: '+30% splash radius and +8% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.3 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'gestating_brood', name: 'Gestating Brood', rarity: 'common', category: 'economy', description: '+16% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.16 }] },
+  { id: 'corroded_fangs', name: 'Corroded Fangs', rarity: 'common', category: 'poison', description: '+18% Corrosion pool damage.', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.18 }] },
+  { id: 'tempered_instincts', name: 'Tempered Instincts', rarity: 'epic', category: 'hero', description: '+28% hero damage and −15% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.28 }, { op: 'mul', field: 'heroCooldownMult', value: 0.85 }] },
+
+  // ════════════════ Resonance Coil cards (2) — gated by OWNING the Coil ════════════════
+  // Tower-SUBJECT cards (coilRampMult/coilBeamTargets ⇒ subject 'coil'). Gated via `unlock` on Coil
+  // ownership so they stay OUT of the default pool (the golden Game's roster includes all kinds, so an
+  // ungated coil card would leak in) — the meta layer injects them once the Coil is claimed.
+  { id: 'harmonic_overload', name: 'Harmonic Overload', rarity: 'rare', category: 'tower', description: '+40% Resonance Coil ramp — the beam melts far harder at full resonance.', effects: [{ op: 'mul', field: 'coilRampMult', value: 1.4 }], unlock: { kind: 'towerUnlocked', tower: 'coil' } },
+  { id: 'prismatic_split', name: 'Prismatic Split', rarity: 'epic', category: 'tower', description: 'The Resonance Coil beam forks to +1 additional target.', effects: [{ op: 'add', field: 'coilBeamTargets', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'coil' } },
+
+  // ════════════════ Progression-GATED general pool (5) — CARDS.md §3 "Pool unlocks" ════════════════
+  // `unlock` ⇒ excluded from the default draw pool; the account earns them in (campaign depth / best
+  // wave), and the meta layer injects the unlocked ids into a run. Golden-safe (default pool unchanged).
+  { id: 'viral_bloom', name: 'Viral Bloom', rarity: 'rare', category: 'poison', description: '+35% Infection damage & spread.', effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.35 }], unlock: { kind: 'campaignStage', stage: 10 } },
+  { id: 'neural_overclock', name: 'Neural Overclock', rarity: 'epic', category: 'hero', description: '+40% hero damage and −20% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.4 }, { op: 'mul', field: 'heroCooldownMult', value: 0.8 }], unlock: { kind: 'campaignStage', stage: 20 } },
+  { id: 'siege_protocol', name: 'Siege Protocol', rarity: 'rare', category: 'aoe', description: '+40% splash radius and +10% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.4 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'campaignStage', stage: 25 } },
+  { id: 'overclocked_matrix', name: 'Overclocked Matrix', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +10% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'bestWave', wave: 30 } },
+  { id: 'unstable_genome', name: 'Unstable Genome', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +15% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }], unlock: { kind: 'campaignStage', stage: 40 } },
+  // ── Expansion gated pool (5) — each on a UNIQUE progression gate (campaign depth / best wave) ──
+  { id: 'apex_swarm', name: 'Apex Swarm', rarity: 'rare', category: 'economy', description: '+25% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.25 }], unlock: { kind: 'campaignStage', stage: 15 } },
+  { id: 'corrosive_deluge', name: 'Corrosive Deluge', rarity: 'epic', category: 'poison', description: '+35% Corrosion pool damage; pools last +40% longer.', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.35 }, { op: 'mul', field: 'mortarPoolDurationMult', value: 1.4 }], unlock: { kind: 'bestWave', wave: 20 } },
+  { id: 'phalanx_protocol', name: 'Phalanx Protocol', rarity: 'rare', category: 'tower', description: '+20% tower fire rate and +8% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 30 } },
+  { id: 'dread_resonance', name: 'Dread Resonance', rarity: 'epic', category: 'control', description: 'Wailing Effigy panic lasts +25% longer; +8% tower damage.', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.25 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 35 } },
+  { id: 'singularity_core', name: 'Singularity Core', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +12% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }], unlock: { kind: 'bestWave', wave: 45 } },
+
+  // ════════════════ Behavioral gated pool (5) — rare rewards on a DISTINCT lifetime axis each ════════
+  // Unlike the numeric gated cards above, each opens a NEW sim hook (a behavior, not just a multiplier)
+  // and gates on its own lifetime axis (runs / wave / kills / bosses / biomass), so the account earns
+  // them by playing different ways. Drafted mid-run via the live-knob pipeline (RunModifiers reads).
+  { id: 'regenerative_carapace', name: 'Regenerative Carapace', rarity: 'rare', category: 'economy', description: 'Restore 30 Integrity each time you clear a wave.', effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 30 }], unlock: { kind: 'totalRuns', runs: 5 } },
+  { id: 'ambush_enzyme', name: 'Ambush Enzyme', rarity: 'rare', category: 'crit', description: '+45% damage to enemies still at full health.', effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.45 }], unlock: { kind: 'bestWave', wave: 8 } },
+  { id: 'culling_instinct', name: 'Culling Instinct', rarity: 'rare', category: 'mutation', description: 'Instantly kill non-boss enemies that drop below 10% health.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.1 }], unlock: { kind: 'lifetimeKills', kills: 1000 } },
+  { id: 'viral_payload', name: 'Viral Payload', rarity: 'rare', category: 'mutation', description: 'Every kill spreads 2 Fracture to nearby enemies.', effects: [{ op: 'add', field: 'killFractureSplash', value: 2 }], unlock: { kind: 'bossesSlain', bosses: 3 } },
+  { id: 'toxic_aura', name: 'Toxic Aura', rarity: 'rare', category: 'poison', description: 'The hero exudes Corrosion, infecting nearby enemies.', effects: [{ op: 'flag', field: 'heroCorrosionAura' }], unlock: { kind: 'totalBiomass', biomass: 50000 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */
@@ -483,18 +551,15 @@ export function rollCardRarity(rng: Rng, wave: number, available: ReadonlySet<Ca
 /** Draft `count` distinct cards: roll a depth-scaled rarity, then pick within it (falling
  * back to any remaining card if that tier is exhausted). `wave` drives the depth scaling.
  * `allowedTowers` drops cards whose SUBJECT tower is off the run's roster (docs/TOWERS.md
- * §expansion — a card for a tower you cannot deploy is a dead draft); omitted or
- * all-inclusive ⇒ the historical full pool, byte-identical. */
-export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, progressStage = 0): CardDef[] {
+ * §expansion — a card for a tower you cannot deploy is a dead draft). `unlockedCardIds` re-admits
+ * PROGRESSION-gated cards (CardDef.unlock) the account has earned; a gated card NOT in the set is
+ * dropped, so a fresh account (and the golden sim) draws only the ungated catalog ⇒ byte-identical. */
+export function draftCards(rng: Rng, count = 3, wave = 0, allowedTowers?: ReadonlySet<TowerKind>, unlockedCardIds?: ReadonlySet<string>): CardDef[] {
   const active = cardRegistry.active().filter((c) => {
-    // Progression gate (docs/SIPHON.md §gate): a gated card only drafts once the run's campaign
-    // progress clears it. progressStage 0 (autoplay/tests) ⇒ every gated card is excluded ⇒ the
-    // draft pool equals the historical ungated pool ⇒ golden byte-identical.
-    if (c.unlock !== undefined && progressStage < c.unlock) return false;
-    // Roster gate: a card for a tower this run cannot deploy is a dead draft (docs/TOWERS.md §expansion).
+    if (c.unlock && !unlockedCardIds?.has(c.id)) return false; // progression-gated & not yet earned
     if (allowedTowers !== undefined) {
       const s = cardSubject(c);
-      if (s.kind === 'tower' && !allowedTowers.has(s.tower)) return false;
+      if (s.kind === 'tower' && !allowedTowers.has(s.tower)) return false; // tower off the run roster
     }
     return true;
   });
@@ -544,6 +609,8 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   mawCleaveRadiusMult: 'maw',
   chrysalisFreezeDurationMult: 'chrysalis',
   effigyDreadDurationMult: 'effigy',
+  coilRampMult: 'coil',
+  coilBeamTargets: 'coil',
   siphonRampMult: 'siphon',
   siphonDrainMult: 'siphon',
   reactorBiomassMult: 'reactor',
@@ -554,10 +621,11 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   heroSpeedMult: 'hero', heroLifestealFrac: 'hero', heroThornsFrac: 'hero',
   heroAbilityRadiusMult: 'hero', heroAuraRadius: 'hero',
   heroTowerHasteAura: 'hero', heroTowerDamageAura: 'hero',
+  heroCorrosionAura: 'hero', // Toxic Aura — the hero radiates the effect
   // economy (biomass income / stockpile)
   biomassMult: 'economy', startBiomassBonus: 'economy',
   // the Hive itself (the Nucleus + its build structure)
-  integrityMult: 'hive', bonusTowerSlots: 'hive',
+  integrityMult: 'hive', bonusTowerSlots: 'hive', integrityRegenPerWave: 'hive', // Regenerative Carapace — restores the Nucleus
   // (towerDamageMult, towerFireRateMult, splashRadiusMult, fractureBonusStacks, reactionRepeats,
   //  executeThreshold, diversityBonus, damagePer*, lastStand*, classResonanceBonus, enemyHpRunMult)
   //  are army-wide ⇒ 'global' via the default — intentionally unlisted.

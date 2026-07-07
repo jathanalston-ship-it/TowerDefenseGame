@@ -4,7 +4,7 @@
 // and every limit (lifetime / once-per-day / rotation) binds. Runs the REAL purchase pipeline.
 
 import { describe, it, expect } from 'vitest';
-import { eligibleTowerShardPool, meta } from './meta';
+import { towerShardPool, meta } from './meta';
 import { ICHOR_BUNDLES, PERMANENT_PACKS, ROTATING_PACKS, todaysRotatingOffer } from '../core/premium';
 import { RARITY_ORDER, itemDef } from '../core/equipment';
 import { dailyKey } from '../core/daily';
@@ -23,7 +23,7 @@ describe('purchase pipeline — grants land through the normal systems', () => {
     expect(s1.ichor - s0.ichor).toBe(120);
     // Gate-eligible towers get 15 each; a DEEP-gated tower (Marrow Siphon, docs/SIPHON.md §gate) stays
     // sealed on a fresh save — money accelerates toward gates, it never crosses one.
-    const eligible = new Set(eligibleTowerShardPool(s1));
+    const eligible = new Set(towerShardPool(s1));
     for (const k of Object.keys(s1.towerShards)) {
       const kk = k as keyof typeof s1.towerShards;
       expect(s1.towerShards[kk] - (s0.towerShards[kk] ?? 0)).toBe(eligible.has(kk) ? 15 : 0);
