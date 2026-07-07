@@ -3,9 +3,12 @@
 Compressed system summary (CLAUDE.md "compressed system summaries"). The Marrow Siphon is the
 account's **tenth tower** and the **second `firing: 'beam'` tower** (alongside the Resonance Coil),
 plus a seven-card **Deep-Strain gene set**, all locked behind a single Campaign milestone. It shares
-the Coil's beam delivery + the shared `towerAttackMods` fold, but has a DISTINCT identity — it is
-**Vital** and siphons damage into **Biomass** (its bespoke `game.beamSystem`, routed by kind in
-`towerSystem`; the Coil uses `beamTowerSystem`).
+the Coil's beam DELIVERY + the shared `towerAttackMods` fold, but is the Coil's **OPPOSITE** in role.
+The Coil is a single-target FOCUS melter (hold the toughest, heat ramps on holding, **hard-resets** on
+a switch — a boss deleter). The Siphon is a **Vital multi-tether HARVESTER**: it finishes the WOUNDED
+(`lowestHealth`), spreads a **drain WEB** across several targets at once, gorges on **VOLUME** (feeding
+throughput + kills, not focus — the Gorge never hard-resets), and siphons the swarm into **Biomass**.
+Bespoke `game.beamSystem`, routed by kind in `towerSystem`; the Coil uses `beamTowerSystem`.
 
 ## The gate (`DEEP_STRAIN_STAGE = 15`, config.ts)
 
@@ -37,13 +40,16 @@ Dispatched from `towerSystem`: the `firing === 'beam'` branch computes the share
 (dmg/rate) once, then routes by kind — `siphon` → `beamSystem`, else (`coil`) → `beamTowerSystem`.
 Unlike every other tower it fires **no discrete shots**:
 
-- **Lock**: picks ONE target by its targeting profile (base `highestHealth`), plus `forks` extra
-  targets from `extraProjectiles` (stars/branches). Uses the same emergency-focus + deadzone path.
-- **Gorge ramp** (`Tower.beamHeat`, 0..1): builds while HELD on the same target
-  (`SIPHON.gorgeRampPerSec × siphonRampMult × rateMult`), decays on switch/no-target. Multiplies
-  beam damage up to `×(1 + SIPHON.gorgeMaxBonus)` — the anti-boss identity: commitment = melt.
-- **Continuous drain**: `applyDamage(target, dps·dt, 'siphon', false)` every tick (forks at
-  `forkDamageFrac`). Kills reap through the normal `deathSystem` (bounty, mastery credit).
+- **Lock (a WEB, not a lock)**: picks its targets by profile (base `lowestHealth` — it finishes the
+  wounded), draining `SIPHON.baseForks` (2) at once + any `extraProjectiles` forks (stars/branches).
+  Same emergency-focus + deadzone path; the primary tether drives the main-ray visual.
+- **Gorge = gluttony** (`Tower.beamHeat`, 0..1): NOT the Coil's focus-heat. It builds from total
+  FEEDING — drain throughput (`× SIPHON.gorgeThroughputPerSec`, a floor so a lone drain still ramps)
+  **plus** a per-kill bonus (`× SIPHON.gorgePerKill`), all scaled by `siphonRampMult` — and bleeds off
+  SLOWLY (`gorgeDecayPerSec`). Target-agnostic: switching prey never resets it, so it rewards feeding a
+  kill-rich lane. Multiplies drain up to `×(1 + SIPHON.gorgeMaxBonus)`.
+- **Continuous drain**: `applyDamage(target, dps·dt, 'siphon', false)` every tick across all tethers
+  (forks at `forkDamageFrac`). Kills reap through the normal `deathSystem` (bounty, mastery credit).
 - **Siphon economy** (the Vital identity): a fraction of damage (`SIPHON.drainFrac ×
   siphonDrainMult`) banks in `Tower.beamBank` and pays into biomass on the `fireInterval` pulse.
 - Star/branch **granted abilities** (auras/debuffs/heals) pulse on that same cadence — so upgrade
@@ -51,10 +57,11 @@ Unlike every other tower it fires **no discrete shots**:
 
 ## Upgrade paths (fully wired)
 
-- **Stars** (`stars.ts` `SIPHON_PATH`): ★1 targeting → ★2 fork → ★3 fork (Corroder/Render) → ★4
-  drain field → ★5 fork (Devourer/Leech) → ★7 Corrosion flood → ★9 capstone nova.
-- **Branches** (`branches.ts`): `siphon_gorge` (Insatiable Gorge — single-target melter, damage/rate
-  + auras + nova) and `siphon_well` (Bloodwell — wide forks + Nucleus heal + economy). `BRANCH_COSTS.siphon`.
+- **Stars** (`stars.ts` `SIPHON_PATH`): ★1 targeting (`lowestHealth` — finish the weakest) → ★2 fork →
+  ★3 fork (Corroder/Render) → ★4 drain field → ★5 fork (Devourer/Leech) → ★7 Corrosion flood → ★9 capstone nova.
+- **Branches** (`branches.ts`): `siphon_gorge` (Insatiable Gorge — the gorge/offense line: damage/rate +
+  drain-field auras + nova, still finishing the wounded) and `siphon_well` (Bloodwell — wide forks +
+  Nucleus heal + economy). `BRANCH_COSTS.siphon`.
 - **Adaptation** (`adaptation.ts` `TOWER_THEMES.siphon`), **star-visual** (`starEvolution.ts`),
   **branch-visual** (`towerEvolution.ts` `BRANCH_EVOLUTION.siphon_*` + `BRANCH_COLOR`), and the
   ocular-pod + beam **renderer** flourish (`renderer.ts` `drawSiphonBeam`).

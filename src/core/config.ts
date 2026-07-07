@@ -234,8 +234,10 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     targeting: 'highestHealth', // by default it bites the toughest thing in reach (the melt payoff)
     blurb: 'Locks a beam onto ONE target; damage RAMPS the longer it holds — melts elites & bosses.',
   },
-  // ── Deep-Strain roster (docs/SIPHON.md): the second beam melter, but a distinct IDENTITY — it
-  //    siphons damage into Biomass (Vital; the first Vital ATTACKER). Shares the beam delivery; its
+  // ── Deep-Strain roster (docs/SIPHON.md): the second `firing: 'beam'` tower, but the OPPOSITE role
+  //    to the Coil. Where the Coil is a single-target FOCUS melter (hold the toughest, hard-reset
+  //    heat), the Siphon is a multi-tether HARVESTER — a Vital drain WEB that finishes the WOUNDED,
+  //    gorges on VOLUME (throughput + kills, not focus), and siphons the swarm into Biomass. Its
   //    bespoke drain path is game.beamSystem. DOUBLE-gated (unlockStage + unlockShards). ──
   siphon: {
     kind: 'siphon',
@@ -244,15 +246,15 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     firing: 'beam', // a continuous drain ray — no projectile, no discrete shots (docs/SIPHON.md)
     unlockShards: 200, // the deepest synthesis goal — a premium, late-unlock organ
     unlockStage: 15, // its shards do not drop until Campaign Stage 15 is cleared (the gate)
-    cost: 175, // premium: a single-target melter that pays for itself in biomass
-    range: 340, // FIXATOR — a long, deliberate lock; it reaches deep to fasten onto a threat
-    fireInterval: 0.5, // the beam's PULSE cadence: biomass payout + granted-ability ticks (not a shot)
-    damage: 34, // per-second base drain (dt-scaled, continuous) BEFORE the Gorge ramp multiplies it
+    cost: 175, // premium: an economy engine that pays for itself in siphoned biomass
+    range: 300, // HARVESTER — a close, hungry web; place it AT the kill-zone where the swarm dies
+    fireInterval: 0.4, // a quick drain PULSE: biomass payout + granted-ability ticks (not a shot)
+    damage: 22, // per-TETHER base drain (dt-scaled, continuous) BEFORE Gorge — modest per-target, wide
     projectileSpeed: 0, // no projectile — the ray is instantaneous
     splash: 0,
     color: '#ff5c8a',
-    blurb: 'Latches a draining ray onto ONE threat — RAMPS the longer it holds, and siphons the kill into Biomass.',
-    targeting: 'highestHealth', // the melter identity: it fastens onto the biggest threat and gorges
+    blurb: 'Splits a draining WEB across the wounded — GORGES fatter the more the lane dies, siphoning the swarm into Biomass.',
+    targeting: 'lowestHealth', // the harvester identity: it FINISHES the weakest (opposite the Coil's toughest-target melt)
     abilities: [], // the beam is bespoke (game.beamSystem); star/branch grants pulse on its cadence
   },
 };
@@ -1157,15 +1159,18 @@ export const MODE_UNLOCKS = {
 export const DEEP_STRAIN_STAGE = 15;
 
 // ── Marrow Siphon beam tunables (docs/SIPHON.md) — the one place its numbers live. A continuous
-//    drain ray: `damage` (TOWER_DEFS.siphon) is the base DPS; Gorge ramps it while the beam holds
-//    the SAME target, and a fraction of damage dealt returns to the Hive as biomass. ──
+//    drain WEB: `damage` (TOWER_DEFS.siphon) is the per-tether base DPS. Its "Gorge" is GLUTTONY, not
+//    focus — it builds from total FEEDING (drain throughput + a bonus per kill) and bleeds off slowly,
+//    so switching prey never resets it (the OPPOSITE of the Coil's focus-heat). A fraction of the
+//    drain returns to the Hive as biomass. ──
 export const SIPHON = {
-  gorgeRampPerSec: 0.5, // Gorge builds this much (of the 0..1 heat) per second held on one target
-  gorgeDecayPerSec: 1.5, // …and bleeds off this fast once the beam loses / switches its target
-  gorgeMaxBonus: 1.6, // heat 1.0 multiplies beam damage by (1 + this) — a fully-gorged ×2.6 melt
+  gorgePerKill: 0.2, // Gorge (0..1) gained per enemy the drain KILLS — the harvester's momentum
+  gorgeThroughputPerSec: 0.32, // Gorge gained per "second of base-DPS" drained — a floor so it always ramps while eating
+  gorgeDecayPerSec: 0.25, // …bleeds off this slowly when it stops feeding (momentum lingers — NO hard reset)
+  gorgeMaxBonus: 1.6, // heat 1.0 multiplies beam damage by (1 + this) — a fully-gorged ×2.6 drain
+  baseForks: 2, // the drain WEB: simultaneous tethers before star/branch forks (vs the Coil's single lock)
   drainFrac: 0.06, // biomass returned per point of beam damage dealt (before card/branch scaling)
-  forkDamageFrac: 0.5, // a secondary (forked) beam target takes this fraction of the primary drain
-  switchGrace: 0.25, // seconds the lock survives with no valid target before Gorge starts decaying
+  forkDamageFrac: 0.6, // a forked tether drains this fraction of the primary (wide, not deep)
 } as const;
 
 // Infinite-mode reward GATE (docs/MODE-IDENTITY.md): an Infinite run must reach at least this

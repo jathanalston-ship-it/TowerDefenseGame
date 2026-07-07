@@ -29,6 +29,15 @@ describe('Marrow Siphon — the tower definition + gate', () => {
     expect(isTowerUnlocked(defaultSave(), 'siphon')).toBe(false); // a fresh account does not own it
   });
 
+  it('is the Coil’s OPPOSITE beam — a wide wounded-HARVESTER, not a single-target focus melter', () => {
+    const s = TOWER_DEFS.siphon;
+    const c = TOWER_DEFS.coil;
+    expect(s.targeting).toBe('lowestHealth'); // finishes the weakest …
+    expect(c.targeting).toBe('highestHealth'); // … while the Coil melts the toughest
+    expect(s.range).toBeLessThan(c.range); // close harvester vs long-range melter
+    expect(s.fireInterval).toBeLessThan(c.fireInterval); // faster drain pulse (harvest cadence)
+  });
+
   it('the five general cards gate on the deep campaign stage; the two identity cards gate on OWNING the siphon', () => {
     for (const id of GENERAL_IDS) {
       const u = card(id).unlock;
@@ -68,8 +77,8 @@ describe('draft gate — the deep gene cards only enter the pool once unlocked',
   });
 });
 
-describe('the beam mechanic — lock, Gorge ramp, continuous drain, kill', () => {
-  it('locks a target, RAMPS its heat while held, and melts the lane', () => {
+describe('the beam mechanic — drain web, Gorge on feeding, continuous drain, kill', () => {
+  it('fastens onto prey, GORGES as it feeds, and melts the lane', () => {
     const game = new Game(2, NO_META);
     game.debugAddBiomass(1_000_000);
     let placed = false;
@@ -84,8 +93,8 @@ describe('the beam mechanic — lock, Gorge ramp, continuous drain, kill', () =>
       if (t.beamTarget >= 0) sawLock = true;
       maxHeat = Math.max(maxHeat, t.beamHeat);
     }
-    expect(sawLock).toBe(true); // the beam fastened onto a target
-    expect(maxHeat).toBeGreaterThan(0); // the Gorge ramp built while it held
+    expect(sawLock).toBe(true); // the beam fastened a tether onto prey
+    expect(maxHeat).toBeGreaterThan(0); // the Gorge built as it fed (throughput + kills), not by holding
     expect(game.kills).toBeGreaterThan(0); // the continuous drain actually kills
   });
 

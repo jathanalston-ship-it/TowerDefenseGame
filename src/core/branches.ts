@@ -299,9 +299,9 @@ const BRANCHES: Branch[] = [
   // its cadence (game.beamSystem). No pierce/crit/single-target status — a ray has no projectile.
   {
     id: 'siphon_gorge', tower: 'siphon', name: 'Insatiable Gorge',
-    theme: 'A single-minded melter — it fastens on the biggest thing alive and ramps until it is gone.',
+    theme: 'A ravenous tide — it finishes the wounded and gorges FATTER the more the lane dies around it.',
     tiers: [
-      { tier: 1, name: 'Superheated Ray', desc: 'The beam runs hotter and hunts the DEADLIEST target.', damageMult: 1.2, particle: 'bloom', sfx: 'br_siphon', impact: 'bloom', grants: [{ t: 'targeting', profile: 'bossPriority' }] },
+      { tier: 1, name: 'Ravenous Draw', desc: 'The beam runs hotter and hunts the WEAKEST — finishing what the swarm started.', damageMult: 1.2, particle: 'bloom', sfx: 'br_siphon', impact: 'bloom', grants: [{ t: 'targeting', profile: 'lowestHealth' }] },
       { tier: 2, name: 'Rending Draw', desc: 'The drain strips armor plating (Fracture) from everything near the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Fracture', amount: 2 } }] }] },
       { tier: 3, name: 'Boiling Blood', desc: 'A faster Gorge, and the backwash melts the flesh around the beam.', fireRateMult: 1.2, impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 8, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
       { tier: 4, name: 'Marrow Boil', desc: 'A searing drain field engulfs the kill zone.', damageMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 150, damage: 14, react: true, particle: 'bloom' }] }] },

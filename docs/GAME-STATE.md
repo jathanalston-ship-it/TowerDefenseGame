@@ -56,12 +56,14 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   The first new firing since launch; full stars + 2 branches + mastery + Adaptation. **Locked by
   default** (`unlockShards`) and **progression-gated** (`unlockStage`) — its shards only drop after
   Campaign Stage 15. See the compressed summary below.
-- ✅ **Marrow Siphon** (10th tower; Vital) — the SECOND `firing: 'beam'` tower but a distinct identity:
-  a CONTINUOUS drain ray that locks ONE target, RAMPS ("Gorge") while held, and siphons damage into
-  Biomass (`game.beamSystem`, routed by kind alongside the Coil's `beamTowerSystem`). DOUBLE-gated —
-  shards only drop after Campaign Stage 15 (`unlockStage`) and 200 must then bank (`unlockShards`).
-  Ships a 7-node star path, two branches (Insatiable Gorge / Bloodwell), and a 7-card Deep-Strain gene
-  set behind the same gate. **SIPHON.md**
+- ✅ **Marrow Siphon** (10th tower; Vital) — the SECOND `firing: 'beam'` tower, deliberately the Coil's
+  OPPOSITE: a multi-tether HARVESTER, not a focus melter. It finishes the WOUNDED (`lowestHealth`),
+  spreads a drain WEB across `baseForks` (2)+ targets, gorges on VOLUME (feeding throughput + kills,
+  slow decay, never hard-resets — vs the Coil's hold-heat), and siphons the swarm into Biomass
+  (`game.beamSystem`, routed by kind alongside the Coil's `beamTowerSystem`). Close range (300), fast
+  drain pulse (0.4). DOUBLE-gated — shards only drop after Campaign Stage 15 (`unlockStage`) and 200
+  must then bank (`unlockShards`). Ships a 7-node star path, two branches (Insatiable Gorge / Bloodwell),
+  and a 7-card Deep-Strain gene set behind the same gate. **SIPHON.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +

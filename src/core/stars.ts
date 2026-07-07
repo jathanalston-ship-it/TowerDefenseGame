@@ -383,7 +383,7 @@ const EFFIGY: StarPath = {
 const SIPHON_PATH: StarPath = {
   tower: 'siphon',
   steps: [
-    { star: 1, name: 'Predator’s Eye', kind: 'targeting', desc: 'Fastens onto ELITES and bosses first — the ramp goes where it matters.', grants: [{ t: 'targeting', profile: 'elitePriority' }] },
+    { star: 1, name: 'Scavenger’s Instinct', kind: 'targeting', desc: 'Fastens onto the WEAKEST prey first — it finishes the wounded and gorges on the kill.', grants: [{ t: 'targeting', profile: 'lowestHealth' }] },
     { star: 2, name: 'Split Ray', kind: 'projectile', desc: 'The beam forks to a second target.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
     {
       star: 3,

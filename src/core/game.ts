@@ -3663,7 +3663,7 @@ export class Game {
     const rangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
     const range = def.range * rangeMult;
     const targeting = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'highestHealth';
-    const forks = 1 + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0); // extra beam targets
+    const forks = SIPHON.baseForks + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0); // the drain WEB — several tethers at once (vs the Coil's single lock)
 
     // Acquire / maintain the locked target. Scope the target pick as a TOWER cast so emergency
     // focus + deadzone behave identically to every other tower.
@@ -3674,26 +3674,32 @@ export class Game {
     const targets: Enemy[] = this.pickTargets(t.x, t.y, range, forks, targeting);
     const primary = targets.length > 0 ? targets[0] : null;
 
-    let heat = t.beamHeat ?? 0;
+    // GORGE = gluttony (docs/SIPHON.md), NOT the Coil's focus-heat: it builds from total FEEDING —
+    // drain throughput (a floor so a lone drain still ramps) + a bonus per KILL — and bleeds off
+    // slowly. Target-agnostic: switching prey never resets it, so it rewards feeding a kill-rich lane.
+    let heat = Math.max(0, (t.beamHeat ?? 0) - SIPHON.gorgeDecayPerSec * dt);
     if (primary === null) {
-      heat = Math.max(0, heat - SIPHON.gorgeDecayPerSec * dt); // no lock: the Gorge bleeds off
       t.beamTarget = -1;
       t.beamX = undefined;
       t.beamY = undefined;
     } else {
-      const held = primary.id === t.beamTarget;
-      heat = held
-        ? Math.min(1, heat + SIPHON.gorgeRampPerSec * this.mods.siphonRampMult * rateMult * dt) // holding: gorge builds
-        : Math.max(0, heat - SIPHON.gorgeDecayPerSec * dt); // switched targets: the ramp resets down
-      t.beamTarget = primary.id;
+      t.beamTarget = primary.id; // the primary tether drives the main ray visual
       t.beamX = primary.x;
       t.beamY = primary.y;
       const heatMult = 1 + SIPHON.gorgeMaxBonus * heat;
-      const primaryDps = def.damage * dmgMult * heatMult; // per-second drain BEFORE dt
-      let drained = this.applyDamage(primary, primaryDps * dt, t.kind, false); // continuous → no strobe
-      for (let k = 1; k < targets.length; k++) {
-        drained += this.applyDamage(targets[k], primaryDps * SIPHON.forkDamageFrac * dt, t.kind, false);
+      const primaryDps = def.damage * dmgMult * heatMult; // per-tether drain/second BEFORE dt
+      let drained = 0;
+      let fed = 0; // enemies THIS drain finished — each kill fattens the Gorge
+      for (let k = 0; k < targets.length; k++) {
+        const e = targets[k];
+        const live = e.hp > 0;
+        const dps = k === 0 ? primaryDps : primaryDps * SIPHON.forkDamageFrac; // forks drain wide, not deep
+        drained += this.applyDamage(e, dps * dt, t.kind, false); // continuous → no strobe
+        if (live && e.hp <= 0) fed++; // the drain landed the killing blow
       }
+      // Gorge climbs with feeding VOLUME (throughput floor) + a per-kill bonus, scaled by siphonRampMult.
+      const gain = (drained / Math.max(1, def.damage)) * SIPHON.gorgeThroughputPerSec + fed * SIPHON.gorgePerKill;
+      heat = Math.min(1, heat + gain * this.mods.siphonRampMult);
       // Siphon: bank a fraction of the drain as Biomass (the Vital return), paid on the pulse cadence.
       t.beamBank = (t.beamBank ?? 0) + drained * SIPHON.drainFrac * this.mods.siphonDrainMult;
     }
