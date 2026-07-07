@@ -347,6 +347,16 @@ export const CARD_POOL: CardDef[] = [
   { id: 'last_bastion', name: 'Last Bastion', rarity: 'legendary', category: 'tower', description: 'Below 50% Nucleus, towers deal ×2.5 — and +4% per tower fielded.', effects: [{ op: 'add', field: 'lastStandThreshold', value: 0.5 }, { op: 'mul', field: 'lastStandMult', value: 2.5 }, { op: 'add', field: 'damagePerTower', value: 0.04 }] },
   { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
 
+  // ════════════════ Expansion base pool (5) — ungated, always draftable ════════════════
+  // New always-in-pool genes spanning fresh subjects (hero survivability, AoE, economy, corrosion,
+  // hero tempo). Each carries authored permanent upgrades; adding them to the pool shifts the
+  // deterministic autoplay draft ⇒ the golden baseline is re-pinned for this content (golden.test).
+  { id: 'barbed_carapace', name: 'Barbed Carapace', rarity: 'common', category: 'hero', description: '+70 hero max & current HP; reflects 12% of contact damage.', effects: [{ op: 'heroHp', value: 70 }, { op: 'add', field: 'heroThornsFrac', value: 0.12 }] },
+  { id: 'concussive_rounds', name: 'Concussive Rounds', rarity: 'rare', category: 'aoe', description: '+30% splash radius and +8% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.3 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'gestating_brood', name: 'Gestating Brood', rarity: 'common', category: 'economy', description: '+16% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.16 }] },
+  { id: 'corroded_fangs', name: 'Corroded Fangs', rarity: 'common', category: 'poison', description: '+18% Corrosion pool damage.', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.18 }] },
+  { id: 'tempered_instincts', name: 'Tempered Instincts', rarity: 'epic', category: 'hero', description: '+28% hero damage and −15% ability cooldown.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.28 }, { op: 'mul', field: 'heroCooldownMult', value: 0.85 }] },
+
   // ════════════════ Resonance Coil cards (2) — gated by OWNING the Coil ════════════════
   // Tower-SUBJECT cards (coilRampMult/coilBeamTargets ⇒ subject 'coil'). Gated via `unlock` on Coil
   // ownership so they stay OUT of the default pool (the golden Game's roster includes all kinds, so an
@@ -362,6 +372,12 @@ export const CARD_POOL: CardDef[] = [
   { id: 'siege_protocol', name: 'Siege Protocol', rarity: 'rare', category: 'aoe', description: '+40% splash radius and +10% tower damage.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.4 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'campaignStage', stage: 25 } },
   { id: 'overclocked_matrix', name: 'Overclocked Matrix', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +10% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.1 }], unlock: { kind: 'bestWave', wave: 30 } },
   { id: 'unstable_genome', name: 'Unstable Genome', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +15% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.15 }], unlock: { kind: 'campaignStage', stage: 40 } },
+  // ── Expansion gated pool (5) — each on a UNIQUE progression gate (campaign depth / best wave) ──
+  { id: 'apex_swarm', name: 'Apex Swarm', rarity: 'rare', category: 'economy', description: '+25% biomass from kills.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.25 }], unlock: { kind: 'campaignStage', stage: 15 } },
+  { id: 'corrosive_deluge', name: 'Corrosive Deluge', rarity: 'epic', category: 'poison', description: '+35% Corrosion pool damage; pools last +40% longer.', effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.35 }, { op: 'mul', field: 'mortarPoolDurationMult', value: 1.4 }], unlock: { kind: 'bestWave', wave: 20 } },
+  { id: 'phalanx_protocol', name: 'Phalanx Protocol', rarity: 'rare', category: 'tower', description: '+20% tower fire rate and +8% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 30 } },
+  { id: 'dread_resonance', name: 'Dread Resonance', rarity: 'epic', category: 'control', description: 'Wailing Effigy panic lasts +25% longer; +8% tower damage.', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.25 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 35 } },
+  { id: 'singularity_core', name: 'Singularity Core', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +12% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }], unlock: { kind: 'bestWave', wave: 45 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */

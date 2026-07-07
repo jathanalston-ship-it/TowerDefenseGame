@@ -377,4 +377,67 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Reactions CASCADE further — re-fire once more.' },
     { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.02 }, { op: 'add', field: 'fractureBonusStacks', value: 2 }], note: 'GENOME UNBOUND — +6% damage, +2 max Fracture.' },
   ],
+
+  // ── Expansion base pool (5, ungated) ──
+  barbed_carapace: [ // common → 3
+    { effects: [{ op: 'heroHp', value: 40 }, { op: 'add', field: 'heroThornsFrac', value: 0.04 }], note: 'Denser plating — +40 hero HP, +4% thorns.' },
+    { effects: [{ op: 'add', field: 'heroThornsFrac', value: 0.05 }, { op: 'mul', field: 'heroHealingMult', value: 1.08 }], note: 'Reactive spines — +5% thorns, +8% healing received.' },
+    { effects: [{ op: 'heroHp', value: 60 }, { op: 'add', field: 'heroThornsFrac', value: 0.05 }], note: 'Living bulwark — +60 hero HP, +5% thorns.' },
+  ],
+  concussive_rounds: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Denser payload — +5% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.12 }, { op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Wider burst — +12% splash, +4% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Shaped charge — +6% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Overpressure — +15% splash, +5% tower damage.' },
+  ],
+  gestating_brood: [ // common → 3
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Fecund spores — +6% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }, { op: 'add', field: 'reactorOverchargeBonus', value: 0.08 }], note: 'Nutrient glut — +6% biomass, +0.08 reactor overcharge.' },
+    { effects: [{ op: 'biomass', value: 200 }, { op: 'mul', field: 'biomassMult', value: 1.08 }], note: 'Bloom — 200 biomass now, +8% biomass income.' },
+  ],
+  corroded_fangs: [ // common → 3
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.08 }], note: 'Sharper acid — +8% Corrosion damage.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.08 }, { op: 'add', field: 'corrosionSlowBonus', value: 0.06 }], note: 'Etching bite — +8% Corrosion, +6% slow.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }, { op: 'mul', field: 'parasiteInfectionMult', value: 1.08 }], note: 'Necrotic venom — +10% Corrosion, +8% Infection.' },
+  ],
+  tempered_instincts: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Honed strikes — +6% hero damage.' },
+    { effects: [{ op: 'mul', field: 'heroCooldownMult', value: 0.94 }, { op: 'mul', field: 'heroAttackSpeedMult', value: 1.05 }], note: 'Fluid kata — −6% cooldown, +5% attack speed.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.08 }], note: 'Killer focus — +8% hero damage.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.08 }, { op: 'mul', field: 'heroCooldownMult', value: 0.92 }], note: 'Apex tempo — +8% hero damage, −8% cooldown.' },
+  ],
+
+  // ── Expansion gated pool (5, unique gates) ──
+  apex_swarm: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Ravenous — +6% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.07 }, { op: 'add', field: 'sellRefundFrac', value: 0.03 }], note: 'Efficient reclaim — +7% biomass, +3% sell refund.' },
+    { effects: [{ op: 'biomass', value: 200 }, { op: 'mul', field: 'biomassMult', value: 1.07 }], note: 'Swarm feast — 200 biomass now, +7% biomass income.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.08 }, { op: 'add', field: 'reactorOverchargeBonus', value: 0.1 }], note: 'Hive gorge — +8% biomass, +0.1 reactor overcharge.' },
+  ],
+  corrosive_deluge: [ // epic → 5
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Caustic flood — +10% Corrosion damage.' },
+    { effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.2 }, { op: 'mul', field: 'poolDpsMult', value: 1.05 }], note: 'Lingering mire — pools +20% longer, +5% Corrosion.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }, { op: 'add', field: 'corrosionSlowBonus', value: 0.08 }], note: 'Viscous acid — +10% Corrosion, +8% slow.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.12 }], note: 'Hyper-etchant — +12% Corrosion damage.' },
+    { effects: [{ op: 'mul', field: 'mortarPoolDurationMult', value: 1.25 }, { op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Deluge — pools +25% longer, +10% Corrosion.' },
+  ],
+  phalanx_protocol: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Drilled cadence — +5% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Disciplined volley — +5% fire rate, +4% damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Locked formation — +6% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Shield wall — +6% fire rate, +5% damage.' },
+  ],
+  dread_resonance: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }], note: 'Deeper wail — +10% panic duration.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.1 }, { op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Terror cadence — +10% panic, +5% fire rate.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.12 }], note: 'Soul-rattling — +12% panic duration.' },
+    { effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.12 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.08 }], note: 'Broken minds — +12% panic; disrupted foes take +8%.' },
+  ],
+  singularity_core: [ // legendary → 5
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Gravitic lensing — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'Event horizon — status reactions re-fire once more.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.08 }], note: 'Collapsing core — +8% tower damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.15 }, { op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Accretion — +15% splash, +6% fire rate.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], note: 'SINGULARITY — reactions re-fire once more, +8% tower damage.' },
+  ],
 };

@@ -74,6 +74,11 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     harmonic_overload: 'coil', prismatic_split: 'coil',
     viral_bloom: 'parasite', neural_overclock: 'hero', siege_protocol: 'global',
     overclocked_matrix: 'global', unstable_genome: 'global',
+    // Expansion pool (5 ungated + 5 gated)
+    barbed_carapace: 'hero', concussive_rounds: 'global', gestating_brood: 'economy',
+    corroded_fangs: 'mortar', tempered_instincts: 'hero',
+    apex_swarm: 'economy', corrosive_deluge: 'mortar', phalanx_protocol: 'global',
+    dread_resonance: 'effigy', singularity_core: 'global',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 
