@@ -586,4 +586,66 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Emboldened — +5% tower damage.' },
     { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'LEGENDS NOW — reactions re-fire once more, +5% biomass.' },
   ],
+  // ── Expansion III: Spire/Polyp signature sets + the six fresh-gated ──
+  surplus_synapse: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.03 }], note: 'Primed relays — +3% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Hot current — +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Synaptic haste — +4% tower fire rate.' },
+    { effects: [{ op: 'add', field: 'spireChainJumps', value: 1 }], note: 'The arc goes ON — +1 further victim.' },
+  ],
+  standing_wave: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Resonant hum — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Amplitude — +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'spireChainJumps', value: 1 }], note: 'Constructive interference — +1 arc hop.' },
+    { effects: [{ op: 'add', field: 'spireChainJumps', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'The wave never breaks — +1 hop, +3% damage.' },
+  ],
+  spring_tide: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.06 }], note: 'Rising water — +6% field reach.' },
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Undertow teeth — +6% reach, +3% damage.' },
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.08 }], note: 'Flood mark — +8% field reach.' },
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.08 }, { op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'The spring SURGES — +8% reach, +4% pulse rate.' },
+  ],
+  kings_tide: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.06 }], note: 'Court of water — +6% field reach.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Royal cadence — +4% pulse rate.' },
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.08 }], note: 'Dominion — +8% field reach.' },
+    { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'The crown DROWNS — +6% reach, +4% damage.' },
+  ],
+  unmakers_lesson: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'First lesson — +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.01 }], note: 'Sharper doctrine — unmake below +1% more health.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Efficient erasure — +4% tower fire rate.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.02 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Nothing remains — +2% unmake threshold, +3% damage.' },
+  ],
+  tyrants_grip: [ // epic → 4
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.04 }], note: 'Tightening — Disruption exposes +4% more.' },
+    { effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.05 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.02 }], note: 'Leaden limbs — Disruption slows +5% and exposes +2% more.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Punish the held — +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.05 }, { op: 'add', field: 'obeliskSlowBonus', value: 0.04 }], note: 'ABSOLUTE grip — +5% exposure, +4% slow.' },
+  ],
+  saturation_doctrine: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.05 }], note: 'Wider payload — +5% splash radius.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.08 }], note: 'Hotter runoff — +8% pool damage.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.06 }], note: 'Blanket pattern — +6% splash radius.' },
+    { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.05 }, { op: 'mul', field: 'poolDpsMult', value: 1.06 }], note: 'TOTAL saturation — +5% radius, +6% pool damage.' },
+  ],
+  veterans_lattice: [ // rare → 4
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 5 }, { op: 'mul', field: 'biomassMult', value: 1.04 }], note: 'Knitting scars — +5 Integrity/wave, +4% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Old economies — +5% biomass.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 5 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Deep lattice — +5 Integrity/wave, +3% tower damage.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 5 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Unbreakable habit — +5 regen, +5% biomass.' },
+  ],
+  harvest_of_ten_thousand: [ // epic → 4
+    { effects: [{ op: 'add', field: 'killFractureSplash', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Wider shrapnel — +1 Fracture on kills, +3% damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Practiced slaughter — +4% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Counting bones — +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'killFractureSplash', value: 1 }, { op: 'mul', field: 'towerFireRateMult', value: 1.03 }], note: 'Ten thousand MORE — +1 Fracture, +3% rate.' },
+  ],
+  golden_rot: [ // legendary → 5
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Gilded spores — +5% biomass.' },
+    { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.03 }], note: 'Nothing wasted — sell refunds +3%.' },
+    { effects: [{ op: 'add', field: 'damagePerTower', value: 0.01 }], note: 'Rich colonies — +1% damage per tower fielded.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Veins of gold — +6% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }, { op: 'add', field: 'damagePerTower', value: 0.01 }], note: 'The rot is WEALTH — +5% biomass, +1% per tower.' },
+  ],
 };
