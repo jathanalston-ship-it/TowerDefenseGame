@@ -293,7 +293,7 @@ export function App(): JSX.Element {
           difficulty={difficultyRef.current}
           doctrine={doctrineRef.current}
           daily={modeRef.current === 'daily' && dailyPlanRef.current
-            ? { modifierIds: dailyPlanRef.current.modifierIds, towerPool: dailyPlanRef.current.towerPool }
+            ? { modifierIds: dailyPlanRef.current.modifierIds, towerPool: dailyPlanRef.current.towerPool, megaBoss: dailyPlanRef.current.megaBoss }
             : undefined}
           onEnd={handleEnd}
           onAbandon={handleAbandon}

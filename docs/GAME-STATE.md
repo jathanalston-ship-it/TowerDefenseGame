@@ -23,7 +23,8 @@
 | Towers | 10 | 100 | each with stars + branches + mastery + Adaptation; the Coil + Siphon are locked/gated (below) |
 | Heroes | 4 | 30 | Vitriol (Caustic siege) added; per-hero equipment loadouts |
 | Enemies | 32 | 100 | + elites (Cyst Wraith fly+regen · Cinder Sapper burrow+suicide) |
-| **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
+| **Bosses** | **10 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Milestone-2 siege line (stages 35/40/45) |
+| **Mega Bosses** | **2 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
 | Cards (genes) | 82 | 500 | effect DSL (mul/add/flag/set/grant/hook); 24 progression-`unlock`-gated (below) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
 | Meta upgrades (Genome) | 57 | 1,000 | `META_UPGRADES` |
@@ -99,7 +100,16 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   between the Command Center and the battlefield (biome-tinted, spore loader, loading tip)
 - ✅ **Milestone-1 line (bosses 1–6)** pinned to Campaign stages via `CAMPAIGN_BOSSES`; module spine
   `healer` / `carapace` / `splitter` fully sim-wired
-- 📋 Milestones 2–4 (biome/prestige/∞ bosses + elite-variant overlay); per-boss Bestiary + first-kill
+- ✅ **Milestone-2 siege line (bosses 7–9, stages 35/40/45)** — The Sunken Chorus (burrower+gravitas+
+  healer: positioning), Vault of Teeth (bulwark+carapace+corecrush: layered defense), The Unmaker
+  (corruptor+dampener+channeler: total suppression); same registry/codex/collection path as Act 1
+- ✅ **MEGA BOSSES** (`core/megaboss.ts` + `render/megaboss.ts` — docs/MEGA-BOSS.md): battlefield-scale
+  RAID organisms — anchored across the top of the field, ability rotation manipulating the whole
+  battle (12 modular verbs), 10-kind weak-point library where every destruction CHANGES the fight,
+  encounter cadence in all four modes + the rare Daily Mega variant, efficiency-scaled guaranteed
+  Ichor, `megaBosses` collection category (Slain/Mastered/Dominated) + 11 achievements — compressed
+  summary below
+- 📋 Milestones 3–4 (biome/prestige/∞ bosses + elite-variant overlay); per-boss Bestiary + first-kill
   capability rewards (see BACKLOG)
 
 ### Economy & loot
@@ -280,3 +290,38 @@ architecture, Essence economy, upgrade content, Archive UI, gates, loadouts, sor
 integration, the Ascension backend, and this onboarding/docs pass (Combat Tutorial + HUD Tour +
 Help mechanics + loading tips + Collection labels + CARDS/ECONOMY/CODEMAP/PROGRESSION-SYSTEMS
 reconciliation).
+
+---
+
+## Compressed system summary — Mega Bosses + Weak Points (docs/MEGA-BOSS.md)
+
+**Architecture.** A sibling of the boss framework, not an extension: `core/megaboss.ts` is pure
+data + registries + scheduling + rewards (`MegaBossDef`, 12 `MegaAbilityKind` verbs, 10-kind
+`WEAK_POINT_DEFS`, `megaBossRegistry`/`weakPointRegistry`, `MEGA` tunables); `game.ts
+megaBossSystem` executes (one anchored `MegaRuntime`, telegraphed rotation, weak-point lifecycle,
+raid targeting, the Daily loop); `render/megaboss.ts` draws everything procedurally from the def
+palette; progression rides `save.megaProgress` + the `megaBosses` collection category.
+
+**Public APIs.** `game.spawnMegaBoss(enc, encounter)` · `campaignMegaFor(stage)` /
+`infiniteMegaFor(wave)` / `rushMegaFor(wave)` (registry-CYCLING, tier-scaling — no hardcoded
+count) · `megaExpectedKillSec`/`megaKillEfficiency`/`megaBossIchor` (rewards) ·
+`RenderState.megaBoss` + `HudSnapshot.megaBanner` (views) · events `megaSpawned`/`megaPhase`/
+`megaWeakPointDown`/`megaKilled` · `RunOptions.megaDaily` + `DailyPlan.megaBoss` (the variant).
+
+**Extension points.** New manipulation verb = union member + switch arm in `castMegaAbility` +
+`foldMegaFx`. New weak point = one `WEAK_POINT_DEFS` row (consequence is data). New Mega Boss =
+one `MegaBossDef` — rotation slots, codex, achievements ceilings, daily pool, renderer, raid bar
+and audio pick it up automatically (add a theme sting in `sound.ts` if `themeCue` is new).
+
+**Assumptions.** All battlefield manipulation folds through `MegaFieldFx` at existing sim
+chokepoints with ×1/+0 neutral defaults — a run without a mega (incl. golden) is byte-identical.
+One mega at a time (`spawnMegaBoss` ignores a second). Weak points must descend to
+`MEGA.minWeakPointY` so towers reach them (validator-enforced). Rotation runs only in the wave
+phase. Rewards are paid at `finishRun` from `RunStats.megaKills`; ledger records land live via
+events (mirrors `bossKilled`).
+
+**Future hooks.** Scripted tutorial beat for the first encounter; per-mega codex art; weak-point
+"accuracy" stats; assembled/procedural megas (the pool + validator already support composition).
+
+**Known limitations.** Ability windows lapse across the inter-wave settle; slow-motion kills are
+presentation-side only (determinism); heroes only strike organs on an empty field.

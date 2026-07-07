@@ -43,6 +43,7 @@ import {
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
+import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { dangerCurve } from '../core/dangerCamera';
 
 export interface Pointer {
@@ -104,6 +105,9 @@ export function drawGame(
 
   const occupied = new Set(rs.towers.map((tw) => tw.slot));
   drawHiveTendrils(ctx, rs, t);
+  // MEGA BOSS body (docs/MEGA-BOSS.md §visuals): the battlefield-scale organism anchored across
+  // the top — UNDER every entity, so the field visibly exists beneath it. Null on ordinary runs.
+  if (rs.megaBoss) drawMegaBody(ctx, rs.megaBoss, t);
   drawSlots(ctx, rs, occupied);
   drawBase(ctx, rs, t);
 
@@ -140,6 +144,11 @@ export function drawGame(
   const detail = rs.enemies.length < PERF.lodEnemyCount;
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
+  // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
+  if (rs.megaBoss) {
+    drawMegaOrgans(ctx, rs.megaBoss, t);
+    drawMegaShots(ctx, rs);
+  }
   drawBeams(ctx, rs, t); // Resonance Coil channels (over enemies, so the melt reads on the target)
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
@@ -179,6 +188,7 @@ export function drawGame(
   ctx.textAlign = 'left';
 
   drawPressureVignette(ctx, pressure, danger, t);
+  if (rs.megaBoss) drawMegaVignette(ctx, rs.megaBoss, t); // the organism's screen-space presence
   drawBiomeFx(ctx, rs, t); // hazard-pulse vignette + transition flash, over everything
 }
 
@@ -870,9 +880,17 @@ function drawStrainOrgans(ctx: CanvasRenderingContext2D, tw: RenderState['towers
 function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number): void {
   let byId: Map<number, RenderState['enemies'][number]> | null = null;
   for (const tw of rs.towers) {
-    if (tw.kind !== 'coil' || tw.beamTarget < 0) continue;
-    if (!byId) { byId = new Map(); for (const e of rs.enemies) if (e.alive) byId.set(e.id, e); }
-    const target = byId.get(tw.beamTarget);
+    if (tw.kind !== 'coil' || (tw.beamTarget < 0 && tw.beamTarget > -1000)) continue;
+    // Mega weak-point channel (docs/MEGA-BOSS.md): the lock encodes as -1000 - spec — resolve the
+    // organ's live coordinates from the mega view instead of the enemy map.
+    let target: { x: number; y: number } | undefined;
+    if (tw.beamTarget <= -1000) {
+      const spec = -1000 - tw.beamTarget;
+      target = rs.megaBoss?.weakPoints.find((w) => w.spec === spec && w.state === 'open');
+    } else {
+      if (!byId) { byId = new Map(); for (const e of rs.enemies) if (e.alive) byId.set(e.id, e); }
+      target = byId.get(tw.beamTarget);
+    }
     if (!target) continue;
     const c = hexRgb(TOWER_DEFS.coil.color);
     const heat = tw.beamHeat;

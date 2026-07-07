@@ -262,6 +262,14 @@ export const SYSTEMS: SystemDef[] = [
     docs: ['docs/BOSS-DESIGN.md'],
   },
   {
+    id: 'mega-bosses', name: 'Mega Bosses', purpose: 'Battlefield-scale RAID organisms: anchored ability rotation manipulating the field, modular weak points, encounter cadence across every mode, the Daily Mega variant, efficiency-scaled Ichor.',
+    files: ['src/core/megaboss.ts', 'src/render/megaboss.ts'],
+    dependsOn: ['engine', 'content-infra', 'bosses'], powerScore: 'megaBosses collection category weight', save: ['megaProgress'],
+    tutorial: [], help: [], hud: ['mega raid bar', 'weak-point callouts', 'arrival card'], ui: ['DailyScreen (variant brief)'],
+    collection: 'megaBosses category (Slain/Mastered/Dominated)', achievements: ['mega_first', 'mega_perfect', 'mega_speed', 'mega_all', 'mega_10', 'wp_first', 'wp_100', 'wp_all_kinds', 'interrupt_50', 'mega_attrition', 'mega_survivor'], localization: 'inline-en',
+    docs: ['docs/MEGA-BOSS.md'],
+  },
+  {
     id: 'biomes', name: 'Biomes', purpose: 'Environmental zones with modifiers/hazards rotating with depth.',
     files: ['src/core/biomes.ts'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: ['biomes'], hud: ['biome banner'], ui: ['CampaignScreen'],

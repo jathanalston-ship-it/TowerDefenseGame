@@ -170,6 +170,22 @@ export interface BossBannerSnapshot {
   telegraph: string | null;
 }
 
+/** The Mega Boss raid bar (docs/MEGA-BOSS.md §hud): identity + HP + phase + the live telegraph,
+ *  the active battlefield manipulations, and every OPEN weak point with the mechanic it controls. */
+export interface MegaBannerSnapshot {
+  name: string;
+  title: string;
+  hpPct: number;
+  phase: number;
+  phases: number;
+  telegraph: { kind: string; frac: number } | null;
+  stunned: boolean;
+  exposed: boolean;
+  effects: string[]; // live manipulation chips (e.g. 'HASTE', 'LEECH'; '*' = passive)
+  weakPoints: { kind: string; name: string; hpPct: number; note: string }[]; // OPEN organs
+  glow: string; // palette glow hex (bar tinting)
+}
+
 export interface Tower {
   id: number;
   kind: TowerKind;
@@ -402,6 +418,24 @@ export interface RunStats {
   strains?: number; // STRAIN evolutions committed this run (raiseStrain successes — additive)
   strainByKind?: Partial<Record<TowerKind, number>>; // deepest strain per kind this run (entries only when > I)
   bossKills?: number; // bosses defeated this run (docs/BOSS-RUSH.md rewards key off it — additive for old fixtures)
+  // ── Mega Boss encounters (docs/MEGA-BOSS.md) — additive for old fixtures. ──
+  megaKills?: MegaKillStat[]; // one entry per Mega Boss defeated this run (rewards + collection)
+  weakPointsDestroyed?: number; // weak points burst this run (collection + achievements)
+  weakPointKinds?: string[]; // DISTINCT weak point kinds destroyed this run
+  megaInterrupts?: number; // telegraphs cancelled via eye weak points this run
+  megaAbilitiesSurvived?: number; // mega abilities that completed against you this run
+}
+
+/** One defeated Mega Boss (docs/MEGA-BOSS.md §rewards): everything the reward formula +
+ *  collection milestones need, recorded at the moment of the kill. */
+export interface MegaKillStat {
+  defId: string;
+  tier: number;
+  encounter: string; // 'campaign' | 'infinite' | 'bossRush' | 'daily'
+  killSec: number; // spawn → death seconds (the efficiency input)
+  perfect: boolean; // zero Nucleus integrity lost during the encounter
+  weakPoints: number; // weak points destroyed during this encounter
+  interrupts: number; // telegraphs interrupted during this encounter
 }
 
 /** Persistent lifetime statistics (in SaveData). The accumulation reducer in
@@ -556,6 +590,7 @@ export interface HudSnapshot {
   cards: CardOption[]; // gene cards drafted this run (build panel)
   buffs: string[]; // human-readable active run modifiers
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
+  megaBanner: MegaBannerSnapshot | null; // the Mega Boss raid bar (docs/MEGA-BOSS.md §hud)
   mutation: MutationBanner | null; // a transient "tier purchased" banner (the branch-upgrade moment)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
   bossRush: boolean; // true in Boss Rush mode (HUD shows the boss-count wave identity, docs/BOSS-RUSH.md)

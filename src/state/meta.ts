@@ -77,8 +77,10 @@ import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
 import { BIOMES } from '../core/biomes';
-import { BIOME_REGION, stageWaveCount } from '../core/campaign';
+import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/campaign';
 import { bossDef } from '../core/boss';
+import { MEGA, megaBossDef, megaBossIchor, megaExpectedKillSec, megaKillEfficiency } from '../core/megaboss';
+import type { MegaKillStat } from '../core/types';
 
 /** Biome ids the account has reached in Campaign, derived from campaign depth (biomes occupy
  *  contiguous BIOME_REGION-stage bands that rotate through BIOMES). No new save field. */
@@ -99,6 +101,9 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     ownedDefIds: new Set(save.equipment.inventory.map((i) => i.defId)),
     bestWave: save.bestWave,
     bossesSlain: new Set(save.bossesSlain),
+    megaSlain: new Set(save.megaProgress.slain),
+    megaPerfect: new Set(save.megaProgress.perfect),
+    megaSpeed: new Set(save.megaProgress.speed),
     biomesSeen: biomesSeenOf(save),
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
   };
@@ -113,6 +118,53 @@ gameEvents.on('bossKilled', (e) => {
   const save = store.get();
   if (save.bossesSlain.includes(chassis)) return;
   persist({ ...save, bossesSlain: [...save.bossesSlain, chassis] });
+});
+
+/** The account's expected kill time + efficiency for one mega kill (docs/MEGA-BOSS.md §rewards).
+ *  The expectation is content-anchored (tier → the campaign band hosting that tier) and POWER-
+ *  adjusted, so raw Power RAISES the bar instead of trivially clearing it. */
+function megaKillExpectation(save: SaveData, k: MegaKillStat): { expected: number; efficiency: number } {
+  const power = composePower(accountPowerParts(save)).score;
+  const rec = recommendedPowerScore(Math.max(1, Math.round(k.tier)) * MEGA.campaignEvery, 'standard');
+  const expected = megaExpectedKillSec(k.tier, power, rec);
+  return { expected, efficiency: megaKillEfficiency(expected, k.killSec) };
+}
+
+// Mega Boss ledger (docs/MEGA-BOSS.md §collection) — recorded the moment it happens, mirroring the
+// bossKilled pattern: kills / perfect / speed / fastest per def. Idempotent set-adds.
+gameEvents.on('megaKilled', (e) => {
+  const save = store.get();
+  const mp = save.megaProgress;
+  const { expected } = megaKillExpectation(save, e);
+  const speed = e.killSec > 0 && e.killSec <= expected;
+  const fastestSec = { ...mp.fastestSec };
+  if (!(e.defId in fastestSec) || e.killSec < fastestSec[e.defId]) fastestSec[e.defId] = e.killSec;
+  persist({
+    ...save,
+    megaProgress: {
+      ...mp,
+      slain: mp.slain.includes(e.defId) ? mp.slain : [...mp.slain, e.defId],
+      perfect: e.perfect && !mp.perfect.includes(e.defId) ? [...mp.perfect, e.defId] : mp.perfect,
+      speed: speed && !mp.speed.includes(e.defId) ? [...mp.speed, e.defId] : mp.speed,
+      kills: mp.kills + 1,
+      interrupts: mp.interrupts + e.interrupts,
+      fastestSec,
+    },
+  });
+});
+
+// Weak-point telemetry (docs/MEGA-BOSS.md §weak-points): lifetime count + distinct kinds.
+gameEvents.on('megaWeakPointDown', (e) => {
+  const save = store.get();
+  const mp = save.megaProgress;
+  persist({
+    ...save,
+    megaProgress: {
+      ...mp,
+      weakPoints: mp.weakPoints + 1,
+      wpKinds: mp.wpKinds.includes(e.kind) ? mp.wpKinds : [...mp.wpKinds, e.kind],
+    },
+  });
 });
 
 const saveStore = new SaveStore();
@@ -1249,6 +1301,16 @@ export const meta = {
       ichorGain += rushIchor;
       timeline = pushTimeline(timeline, '◆', `Ichor bleed — ${bossKills}-boss gauntlet record`);
     }
+    // Mega Boss bounty (docs/MEGA-BOSS.md §rewards): EVERY defeated mega guarantees Ichor —
+    // base bounty × tier × encounter-type × kill EFFICIENCY (expected/actual, power-adjusted),
+    // so outperforming your own expectation pays and stalling never does.
+    for (const k of result.stats.megaKills ?? []) {
+      const megaDef = megaBossDef(k.defId);
+      if (!megaDef) continue;
+      const { efficiency } = megaKillExpectation(save, k);
+      ichorGain += megaBossIchor(megaDef, k.tier, k.encounter, efficiency);
+      timeline = pushTimeline(timeline, '◆', `Ichor bleed — ${megaDef.name} felled`);
+    }
 
     persist({
       ...save,
@@ -1260,6 +1322,10 @@ export const meta = {
       ichor: save.ichor + ichorGain,
       lifetimeIchor: save.lifetimeIchor + ichorGain,
       bestWave: isRush || isDaily ? save.bestWave : Math.max(save.bestWave, result.wave),
+      // Mega ledger: fold the run's abilities-survived count (kill/WP records land via events).
+      megaProgress: (result.stats.megaAbilitiesSurvived ?? 0) > 0
+        ? { ...save.megaProgress, abilitiesSurvived: save.megaProgress.abilitiesSurvived + (result.stats.megaAbilitiesSurvived ?? 0) }
+        : save.megaProgress,
       rushBestWave: isRush ? Math.max(save.rushBestWave, result.wave) : save.rushBestWave,
       rushBestBoss: isRush ? Math.max(save.rushBestBoss, bossKills) : save.rushBestBoss,
       daily: nextDaily,
