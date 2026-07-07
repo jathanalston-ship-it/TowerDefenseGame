@@ -286,6 +286,12 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'hook', hook: { on: 'waveStarted', action: { do: 'biomass', value: 30 } } }, { op: 'mul', field: 'reactorBiomassMult', value: 1.1 }], note: 'The grid SURGES as each wave breaks — +30 biomass per wave.' },
     { effects: [{ op: 'add', field: 'reactorOverchargeBonus', value: 0.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], note: 'Total overcharge — +0.15 overcharge, +8% tower damage.' },
   ],
+  carrion_bloom: [
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Fertile spores — +6% biomass from kills.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }, { op: 'mul', field: 'reactorBiomassMult', value: 1.08 }], note: 'Deep mycelium — +5% biomass, +8% reactor biomass.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'biomass', value: 1 } } }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Gorging bloom — each kill sheds +1 MORE biomass, +5% biomass.' },
+    { effects: [{ op: 'hook', hook: { on: 'waveCleared', action: { do: 'heal', value: 25 } } }, { op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Bloom cycle — surviving a wave regrows +25 Nucleus integrity, +6% biomass.' },
+  ],
   gravity_well: [
     { effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.06 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.03 }], note: 'Heavier pull — Disruption slows +6% more.' },
     { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.08 }], note: 'Crushing weight — +8% damage taken while Disrupted.' },

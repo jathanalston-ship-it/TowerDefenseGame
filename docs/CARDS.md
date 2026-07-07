@@ -40,9 +40,13 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 >   `biomass/integrity/heroHp`) now also covers the behavioral **verbs** `grant`/`hook` for
 >   cards — a drafted card can add a projectile mutator or a battlefield rule mid-run, sharing
 >   equipment's live arrays. New content is a data row, no code.
-> - **Catalog:** **44 cards** ship now (the original 14 + **30 new** across all rarities/
->   categories — §5 lists the full ~200-card design target). Golden outcomes were re-pinned
->   deliberately (the draft pool grew).
+> - **Catalog:** **53 cards** ship now, spanning all four rarities + the expansion-tower identities
+>   (§5 lists the full ~200-card design target). **Every shipped card carries 3–5 permanent upgrade
+>   levels** (`geneUpgrades.ts`; docs/GENE-EVOLUTION.md) — enforced by `cardProblems`, so no card
+>   bypasses the upgrade system. Newest: **Carrion Bloom** (Epic · Economy) — *the swarm's death
+>   feeds the hive*: +20% biomass and +2 biomass per kill, evolving to shed even more and to regrow
+>   the Nucleus each wave (only the 2nd card to use the on-event behavioral-hook verbs). Golden
+>   outcomes were re-pinned deliberately (the draft pool grew).
 > - **Seams left open (designed, not yet built):** per-card weights, **pity timers**, **pool
 >   unlocks** via Mutation Fragments (§3), Gene Lab floors, reroll/banish, and the category-wide
 >   *multiplier* engine (waits on the systems some categories reference — crits, summons, strains).

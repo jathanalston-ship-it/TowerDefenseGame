@@ -21,15 +21,22 @@ import { autoplay } from './sim.testutil';
 // recycler-drip timing: **wave/kills/integrity are UNCHANGED on every seed (196 kills, wave-12
 // win, same integrity)** — only end-of-run biomass moved. Any FURTHER drift is unintended.
 //
+// Re-pinned for the CARRION BLOOM gene card (a new Epic economy card in the draft pool). Autoplay
+// drafts every wave, so a larger pool shifts which economy card is picked in a couple of seeds —
+// and Carrion Bloom's +biomass / on-kill biomass raises the leftover biomass. Autoplay places a
+// fixed 3 towers/prep regardless of biomass, so the extra income is never spent: **wave/kills/
+// integrity are UNCHANGED on every seed (196 kills, wave-12 win, same integrity)** — only end-of-run
+// biomass moved on seeds 7 & 12345. Any FURTHER drift is unintended.
+//
 // (Prior baselines: TOWER EXPANSION card pool; BIOMORPH CONVEYOR; HIVE SIEGE re-model;
 // PREDICTIVE MORTAR LEAD; SETTLE; SLOTS; GENE CARDS.)
 const GOLDEN: Record<number, { wave: number; kills: number; integrity: number; biomass: number; phase: string }> = {
   1: { wave: 12, kills: 196, integrity: 227, biomass: 7991, phase: 'won' },
-  7: { wave: 12, kills: 196, integrity: 97, biomass: 7919, phase: 'won' },
+  7: { wave: 12, kills: 196, integrity: 97, biomass: 8179, phase: 'won' },
   42: { wave: 12, kills: 196, integrity: 97, biomass: 10083, phase: 'won' },
   777: { wave: 12, kills: 196, integrity: 91, biomass: 7943, phase: 'won' },
   2024: { wave: 12, kills: 196, integrity: 170, biomass: 8759, phase: 'won' },
-  12345: { wave: 12, kills: 196, integrity: 139, biomass: 8798, phase: 'won' },
+  12345: { wave: 12, kills: 196, integrity: 139, biomass: 10044, phase: 'won' },
 };
 
 describe('golden outcomes (gameplay must not drift)', () => {

@@ -69,6 +69,7 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     cull_the_weak: 'global', avatar_of_war: 'hero', catalyst_engine: 'global',
     overcharged_grid: 'reactor', gravity_well: 'obelisk', glass_genome: 'global',
     executioners_law: 'global', last_bastion: 'global', apex_predator: 'hero',
+    carrion_bloom: 'economy', // +biomassMult (economy) + on-kill biomass hook (economy) ⇒ ECONOMY
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 

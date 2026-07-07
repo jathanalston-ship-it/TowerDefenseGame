@@ -24,7 +24,7 @@
 | Heroes | 3 | 30 | per-hero equipment loadouts |
 | Enemies | ~30 | 100 | + elites |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
-| Cards (genes) | 52 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
+| Cards (genes) | 53 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
 | Meta upgrades (Genome) | 27 | 1,000 | `META_UPGRADES` |
 | Ascendant (prestige) nodes | 11 | 20 | `ASCENDANT_NODES` |
