@@ -52,6 +52,8 @@ const towerUse = (s: SaveData, k: TowerKind): number => s.stats.towerUsage[k] ??
 const heroUse = (s: SaveData, k: string): number => s.stats.heroUsage[k] ?? 0;
 const towersOwned = (s: SaveData): number => TOWER_ORDER.filter((k) => (TOWER_DEFS[k].unlockShards ?? 0) <= 0 || (s.towerUnlocked ?? []).includes(k)).length;
 const heroesFielded = (s: SaveData): number => HERO_ORDER.filter((k) => heroUse(s, k) >= 1).length;
+// The Deep-Fauna fusion strains — the 'deep_fauna' Bestiary achievement tracks slaying each one.
+const DEEP_FAUNA_KINDS = ['zealot', 'carrier', 'entrencher', 'oracle', 'glutling'] as const;
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Milestones (visible, save/run based) ──
@@ -102,6 +104,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // ── Hidden (surprise milestones — concealed until earned) ──
   { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },
+  // Bestiary milestone (docs/COLLECTION.md): hunt every Deep-Fauna fusion strain at least once.
+  { id: 'deep_fauna', name: 'Deep Fauna', desc: 'Slay all five Deep-Fauna strains.', hidden: true, reward: 90,
+    test: (c) => DEEP_FAUNA_KINDS.every((k) => (c.save.stats.killsByEnemy[k] ?? 0) >= 1),
+    progress: (c) => ({ cur: DEEP_FAUNA_KINDS.filter((k) => (c.save.stats.killsByEnemy[k] ?? 0) >= 1).length, max: DEEP_FAUNA_KINDS.length }) },
 
   // ── Deep-band ladder (BALANCE_REPORT unlock-cadence gap: the 150–400h band had almost no
   //    authored beats — every unlock below is a mid/late-game milestone with a progress bar,

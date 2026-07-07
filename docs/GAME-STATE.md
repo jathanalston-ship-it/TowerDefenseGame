@@ -22,7 +22,7 @@
 |---|---:|---:|---|
 | Towers | 11 | 100 | each with stars + branches + mastery + Adaptation; Coil + Siphon + Blight Sower are locked/gated (below) |
 | Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts |
-| Enemies | 35 | 100 | + elites (fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide) |
+| Enemies | 40 | 100 | + elites; role fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide · Aegis Zealot shield+regen · Carrion Zeppelin fly+summon · Bastion Spitter siege+regen · Hollow Oracle heal+shield · Bloat Cluster swarm+bomb |
 | **Bosses** | **10 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Milestone-2 siege line (stages 35/40/45) |
 | **Mega Bosses** | **3 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
 | Cards (genes) | 92 | 500 | effect DSL (mul/add/flag/set/grant/hook); 34 progression-`unlock`-gated (below) |

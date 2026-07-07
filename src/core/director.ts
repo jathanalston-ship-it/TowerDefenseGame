@@ -34,13 +34,13 @@ export interface DirectorWave {
 // expanded roster pulls in the new roles so endless waves cycle through the full bestiary.
 const ROSTER: Record<Exclude<WaveShape, 'boss'>, EnemyKind[]> = {
   swarm: ['runner', 'mite', 'larva', 'rusher'],
-  armored: ['brute', 'tank', 'golem', 'warden', 'bulwark', 'colossus'],
-  mixed: ['runner', 'brute', 'flyer', 'rusher', 'knitter', 'molerat', 'burrower'],
+  armored: ['brute', 'tank', 'golem', 'warden', 'bulwark', 'colossus', 'zealot'],
+  mixed: ['runner', 'brute', 'flyer', 'rusher', 'knitter', 'molerat', 'burrower', 'glutling'],
   rush: ['rusher', 'darter', 'lasher', 'runner', 'molerat'],
-  elite: ['brute', 'tank', 'revenant', 'gargoyle', 'apex', 'dreadnought'],
-  air: ['flyer', 'wisp', 'gargoyle', 'cystwraith', 'stratovore'],
-  siege: ['siegeworm', 'spitter', 'warden', 'stratovore'],
-  horror: ['broodmother', 'hivecaller', 'mender', 'cantor', 'bomber', 'popper', 'sapper', 'broodweaver', 'cataclyst'],
+  elite: ['brute', 'tank', 'revenant', 'gargoyle', 'apex', 'dreadnought', 'zealot'],
+  air: ['flyer', 'wisp', 'gargoyle', 'cystwraith', 'stratovore', 'carrier'],
+  siege: ['siegeworm', 'spitter', 'warden', 'stratovore', 'entrencher', 'oracle'],
+  horror: ['broodmother', 'hivecaller', 'mender', 'cantor', 'bomber', 'popper', 'sapper', 'broodweaver', 'cataclyst', 'carrier', 'oracle', 'glutling'],
 };
 const SHAPE_ROTATION: Exclude<WaveShape, 'boss'>[] = ['swarm', 'armored', 'mixed', 'rush', 'elite', 'air', 'siege', 'horror'];
 // Depth gate per shape (docs/HIVE-SIEGE.md §ranged/§balance): under siege combat a heavy the

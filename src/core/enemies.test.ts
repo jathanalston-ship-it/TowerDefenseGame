@@ -40,6 +40,34 @@ describe('enemy roster (~30, role-trait driven)', () => {
     expect(ENEMY_DEFS.broodweaver.regenPerSec).toBeGreaterThan(0); // … AND regenerating (burst or drown)
     expect(ENEMY_DEFS.cataclyst.explodeDamage).toBeGreaterThan(40); // Cataclyst: a WALKING bomb …
     expect(ENEMY_DEFS.cataclyst.hp).toBeGreaterThan(300); // … with heavy bulk (kill it BEFORE the line)
+    // Deep-Fauna (5 new FUSIONS) — each pairs two existing gated hooks into a fresh counter-puzzle.
+    expect(ENEMY_DEFS.zealot.shieldHp).toBeGreaterThan(0); // Aegis Zealot: shielded …
+    expect(ENEMY_DEFS.zealot.regenPerSec).toBeGreaterThan(0); // … AND regenerating (a self-repairing wall)
+    expect(ENEMY_DEFS.carrier.behavior.flying).toBe(true); // Carrion Zeppelin: flying …
+    expect(ENEMY_DEFS.carrier.summon?.kind).toBeDefined(); // … AND a summoner (airborne spawner)
+    expect(ENEMY_DEFS.entrencher.siege?.range).toBeGreaterThan(0); // Bastion Spitter: artillery …
+    expect(ENEMY_DEFS.entrencher.regenPerSec).toBeGreaterThan(0); // … AND regenerating (durable bombarder)
+    expect(ENEMY_DEFS.oracle.auraRegenPerSec).toBeGreaterThan(0); // Hollow Oracle: heal aura …
+    expect(ENEMY_DEFS.oracle.auraShield).toBeGreaterThan(0); // … AND shield aura (double-support keystone)
+    expect(ENEMY_DEFS.glutling.explodeDamage).toBeGreaterThan(0); // Bloat Cluster: suicide …
+    expect(ENEMY_DEFS.glutling.speed).toBeGreaterThan(100); // … AND a fast swarm (a kamikaze cloud)
+  });
+
+  it('a Deep-Fauna fusion fires BOTH its hooks — the Aegis Zealot soaks a shield AND re-knits HP', () => {
+    const g = new Game(1, NO_META);
+    g.startWave();
+    g.debugSpawn('zealot', 1);
+    const z = g.enemies.find((e) => e.kind === 'zealot')!;
+    expect(z.shield).toBe(ENEMY_DEFS.zealot.shieldHp); // shield hook wired from the def …
+    z.hp = 60; // wound the body below its 150 max (no incoming damage)
+    for (let i = 0; i < 60; i++) g.advance(SIM_DT); // ~1s out of any tower range
+    expect((g.enemies.find((e) => e.kind === 'zealot')?.hp ?? 0)).toBeGreaterThan(60); // … AND the regen hook fired
+    // The other three fusions reuse hooks the base kinds already prove; spawning each is clean.
+    for (const k of ['carrier', 'entrencher', 'oracle', 'glutling'] as const) {
+      const gg = new Game(1, NO_META);
+      expect(() => gg.debugSpawn(k, 1)).not.toThrow();
+      expect(gg.enemies[0]?.kind).toBe(k);
+    }
   });
 
   it('the Cyst Wraith re-knits itself in flight — regen fires on a flyer (the novel fusion)', () => {

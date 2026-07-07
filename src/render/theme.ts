@@ -186,6 +186,8 @@ export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
   siegeworm: 'square', spitter: 'square', stratovore: 'diamond',
   // summoner hybrid — womb bulk
   broodweaver: 'hex',
+  // deep-fauna fusions — shape reads the DOMINANT trait (wall=hex, air=diamond, siege=square, bomb=triangle)
+  zealot: 'hex', carrier: 'diamond', entrencher: 'square', oracle: 'diamond', glutling: 'triangle',
   // elite / apex
   apex: 'hex', dreadnought: 'square', tyrant: 'hex',
 };
@@ -204,6 +206,8 @@ export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
   brute: 'elite', tank: 'elite', golem: 'elite', warden: 'elite',
   revenant: 'elite', gargoyle: 'elite', broodmother: 'elite', hivecaller: 'elite',
   siegeworm: 'elite', apex: 'elite', cystwraith: 'elite', stratovore: 'elite', broodweaver: 'elite', cataclyst: 'elite',
+  // deep-fauna fusions — premium multi-trait specials
+  zealot: 'elite', carrier: 'elite', entrencher: 'elite', oracle: 'elite', glutling: 'normal',
   // boss — capstones get the crown + glow + containment ring
   colossus: 'boss', dreadnought: 'boss', tyrant: 'boss',
 };
