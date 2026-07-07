@@ -1253,7 +1253,7 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle' } as const;
+const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square' } as const;
 
 function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0): void {
   for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0, heroStarTiers[rs.heroes[i].kind] ?? 0, heroEvo);
@@ -1270,6 +1270,10 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   if (!down && def.pulseRadius > 0) {
     const reach = def.pulseRadius * pulse(t, h.kind === 'overseer' ? 2.4 : 1.6, 0.95, 1.05);
     ring(ctx, h.x, h.y, reach, rgba(tint, pulse(t, 2, 0.1, 0.22)), 1.2, [5, 6]);
+  }
+  // Vitriol's siege envelope — a faint ranging ring marking the bombardment reach.
+  if (!down && def.behavior === 'siege' && def.attackRange > 0) {
+    ring(ctx, h.x, h.y, def.attackRange, rgba(tint, pulse(t, 1.4, 0.05, 0.12)), 1, [4, 10]);
   }
 
   // sample the primary hero's path into a short afterimage trail (slot-1 only)

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
-import { meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
+import { isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { stageWaveCount } from '../core/campaign';
@@ -113,6 +113,30 @@ describe('metaModifiers (data-driven upgrades)', () => {
     const p100 = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [eff.id]: 100 } })).score;
     const p101 = meta.previewPower((s) => ({ ...s, upgrades: { ...s.upgrades, [eff.id]: 101 } })).score;
     expect(p101).toBeGreaterThan(p100); // diminishing, never zero — the "slight but real" contract
+  });
+});
+
+describe('hero unlock gating (isHeroUnlocked)', () => {
+  it('starters are free; Shard heroes lock until claimed; Vitriol is the milestone-gated exception', () => {
+    const fresh = defaultSave();
+    expect(isHeroUnlocked(fresh, 'ravager')).toBe(true); // starter — always owned
+    expect(isHeroUnlocked(fresh, 'shepherd')).toBe(false); // Shard-gated, unclaimed
+    expect(isHeroUnlocked(fresh, 'overseer')).toBe(false); // Shard-gated, unclaimed
+    expect(isHeroUnlocked(fresh, 'vitriol')).toBe(false); // milestone unmet (no boss slain)
+    // Vitriol is EARNED by a feat, not bought — slaying a Framework Boss unlocks it (no Shards),
+    // the unique gate distinct from the Shard-claimed heroes.
+    expect(isHeroUnlocked({ ...fresh, bossesSlain: ['brood_tyrant'] }, 'vitriol')).toBe(true);
+  });
+
+  it('Vitriol can never be claimed with Shards (milestone-only) and auto-unlocks on the feat', () => {
+    meta.reset();
+    expect(meta.unlockHero('vitriol')).toBe(false); // milestone hero — not claimable with Shards
+    meta.setSelectedHero('vitriol'); // locked on a fresh save → rejected, slot-1 stays the starter
+    expect(meta.selectedHero()).toBe('ravager');
+    meta.debugUnlockHeroes(); // records a boss kill → Vitriol earned (+ claims the Shard heroes)
+    meta.setSelectedHero('vitriol');
+    expect(meta.selectedHero()).toBe('vitriol');
+    meta.reset();
   });
 });
 

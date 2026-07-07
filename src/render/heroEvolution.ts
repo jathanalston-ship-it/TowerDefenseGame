@@ -64,10 +64,21 @@ export const HERO_EVOLUTION: Record<HeroKind, HeroEvolution> = {
       { at: 5, kind: 'nova' }, // ascendant mind
     ],
   },
+  // Vitriol (Caustic siege) — the corrosive engine accretes: ranging halo → glands → acid sacs → shell shards → a siege crown.
+  vitriol: {
+    growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' }, // the bombardment envelope
+      { at: 2, kind: 'organs', count: 3 }, // corrosive glands
+      { at: 3, kind: 'biomass', count: 3 }, // acid sacs
+      { at: 4, kind: 'spikes', count: 5 }, // spent shell casings / crust shards
+      { at: 5, kind: 'crown', count: 6 }, // the siege caste's crown
+    ],
+  },
 };
 
 /** Stable per-kind phase offset so two heroes of different kinds don't pulse in lockstep. */
-const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3 };
+const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4 };
 
 /** Body-silhouette scale from permanent STARS (the "bigger, prestige hero" read). Identity (1) at
  *  ★0; gentle per star so the marker never dwarfs the field (★5 ≈ 1.2–1.25×). */

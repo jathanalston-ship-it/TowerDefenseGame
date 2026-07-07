@@ -18,7 +18,7 @@ import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, H
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import type { PremiumOfferDef } from '../core/premium';
-import type { UpgradeDef } from '../core/config';
+import type { HeroUnlockReq, UpgradeDef } from '../core/config';
 import type {
   HeroKind,
   HeroMasteryCounts,
@@ -407,9 +407,21 @@ export function heroSlotsUnlocked(save: SaveData): number {
 /** Whether the account owns `kind`. Starters (HeroDef without an unlockShards gate) are always
  *  owned; a locked hero is owned once it appears in `save.heroUnlocked` (claimed with Hero Shards). */
 export function isHeroUnlocked(save: SaveData, kind: HeroKind): boolean {
-  const cost = HERO_DEFS[kind]?.unlockShards ?? 0;
+  const def = HERO_DEFS[kind];
+  // Milestone-gated hero (Vitriol): EARNED by a feat, not bought — owned the moment its
+  // requirement is met (no Shard claim). The unique gate, distinct from the Shard heroes.
+  if (def?.unlock) return heroMilestoneMet(save, def.unlock);
+  const cost = def?.unlockShards ?? 0;
   if (cost <= 0) return true; // starter
   return (save.heroUnlocked ?? []).includes(kind);
+}
+
+/** Whether a hero's data-driven unlock milestone (HeroDef.unlock) is satisfied by the save. A
+ *  new gate kind is one `case` here (+ one HeroUnlockReq variant in config) — future-proof. */
+function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
+  switch (req.kind) {
+    case 'bossSlain': return save.bossesSlain.length > 0;
+  }
 }
 
 /** Whether the account owns tower `kind` (docs/TOWERS.md §expansion). Starters (TowerDef without
@@ -444,26 +456,30 @@ export interface HeroCollectionEntry {
   color: string;
   unlocked: boolean;
   isStarter: boolean;
-  cost: number; // Hero Shards to unlock (0 for starters / already-owned)
+  cost: number; // Hero Shards to unlock (0 for starters / already-owned / milestone-gated)
   shards: number; // Hero Shards banked toward this hero
   progress: number; // 0..1 toward the unlock threshold (1 when owned)
-  canUnlock: boolean; // locked AND enough shards banked to claim now
+  canUnlock: boolean; // locked AND enough shards banked to claim now (never for milestone heroes)
+  requirement?: string; // milestone-gated heroes (Vitriol): the feat that unlocks it, not Shards
 }
 
 /** The Hero Collection roster view: every hero with ownership + unlock progress ("42 / 100"), so
  *  a locked hero reads as a concrete, visible goal. Pure over the save; future-proof (reads the
- *  registry order, so a new hero just appears). */
+ *  registry order, so a new hero just appears). A milestone-gated hero (HeroDef.unlock) shows its
+ *  `requirement` feat instead of a Shard bar and auto-unlocks — it can't be claimed with Shards. */
 export function heroCollection(save: SaveData): HeroCollectionEntry[] {
   return HERO_ORDER.map((kind) => {
     const def = HERO_DEFS[kind];
+    const milestone = def.unlock; // milestone-gated (Vitriol) — earned, not bought
     const cost = def.unlockShards ?? 0;
-    const isStarter = cost <= 0;
+    const isStarter = !milestone && cost <= 0;
     const unlocked = isHeroUnlocked(save, kind);
     const shards = save.heroShards[kind] ?? 0;
     return {
       kind, name: def.name, color: def.color, unlocked, isStarter, cost, shards,
-      progress: unlocked ? 1 : cost > 0 ? Math.min(1, shards / cost) : 1,
-      canUnlock: !unlocked && shards >= cost,
+      progress: unlocked ? 1 : milestone ? 0 : cost > 0 ? Math.min(1, shards / cost) : 1,
+      canUnlock: !unlocked && !milestone && shards >= cost, // milestone heroes auto-unlock (no claim)
+      requirement: milestone?.label,
     };
   });
 }
@@ -1809,6 +1825,7 @@ export const meta = {
   unlockHero(kind: HeroKind): boolean {
     const save = store.get();
     if (isHeroUnlocked(save, kind)) return false;
+    if (HERO_DEFS[kind].unlock) return false; // milestone-gated (Vitriol) — earned by a feat, never claimed with Shards
     const cost = HERO_DEFS[kind].unlockShards ?? 0;
     if ((save.heroShards[kind] ?? 0) < cost) return false;
     persist({
@@ -2782,6 +2799,16 @@ export const meta = {
     const heroMasteryXp = { ...save.heroMasteryXp };
     for (const k of HERO_ORDER) heroMasteryXp[k] = Math.max(0, (heroMasteryXp[k] ?? 0) + n);
     persist({ ...save, heroMasteryXp });
+  },
+
+  /** Own every hero — the debug shortcut for testing gated content. Claims the Shard-gated heroes
+   *  (into heroUnlocked) AND satisfies the milestone gate (records a boss kill → unlocks Vitriol). */
+  debugUnlockHeroes(): void {
+    const save = store.get();
+    const shardGated = HERO_ORDER.filter((k) => (HERO_DEFS[k].unlockShards ?? 0) > 0 && !HERO_DEFS[k].unlock);
+    const heroUnlocked = [...new Set([...(save.heroUnlocked ?? []), ...shardGated])];
+    const bossesSlain = save.bossesSlain.length === 0 ? ['brood_tyrant'] : save.bossesSlain;
+    persist({ ...save, heroUnlocked, bossesSlain });
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */

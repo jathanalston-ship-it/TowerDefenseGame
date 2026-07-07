@@ -822,6 +822,7 @@ export class Game {
       },
       grantBuff: (stat, amount, seconds) => this.grantRunBuff(stat, amount, seconds),
       summon: (unit, count, x, y) => this.summonMinions(unit, count, x, y),
+      spawnPool: (x, y, radius, dps, seconds) => this.spawnCorrosionPool(x, y, radius, dps, seconds),
       particles: (x, y, kind: ParticleKind) => this.spawnParticles(x, y, PARTICLE[kind]),
       sfx: (k) => this.pushSfx(k),
       roll: () => this.rng.next(),
@@ -3275,6 +3276,13 @@ export class Game {
     });
   }
 
+  /** Drop a lingering Corrosion pool at (x,y) — the `pool` ability primitive (Vitriol's
+   *  Corrosive Cataclysm; future Caustic content). Hero/ability-sourced, so sourceKind is null
+   *  (no tower-mastery credit). The pool system ticks its dps + applies Corrosion each frame. */
+  private spawnCorrosionPool(x: number, y: number, radius: number, dps: number, seconds: number): void {
+    this.pools.push({ id: this.nextId++, x, y, radius, dps, remaining: seconds, sourceKind: null });
+  }
+
   private poolSystem(dt: number): void {
     for (const pool of this.pools) {
       const r2 = pool.radius * pool.radius;
@@ -3709,6 +3717,18 @@ export class Game {
     return m;
   }
 
+  /** Vitriol Solvent Rounds + Saturation: CORRODED enemies take extra damage, deepening with depth.
+   *  Summed over the roster; 0 unless a Vitriol is fielded ⇒ golden-safe (no causticVuln hero in
+   *  Stage autoplay, so a corroded enemy's damage taken is unchanged there). */
+  private heroCorrosionVulnBonus(): number {
+    let m = 0;
+    for (const h of this.heroes) {
+      const id = this.idOf(h);
+      if (id.passive.kind === 'causticVuln') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+    }
+    return m;
+  }
+
   /** Ravager Bloodthirst + Killchain on an elite death: stack the chain, heal the hero, brief speed
    *  rush — PER Ravager in the roster. No-op unless a Ravager is fielded; elites never spawn in Stage
    *  autoplay ⇒ golden-safe (a single Ravager behaves byte-identically to the old singular state). */
@@ -3795,6 +3815,7 @@ export class Game {
         case 'dive': this.updateDiveHero(h, def, dt); break;
         case 'guard': this.updateGuardHero(h, def, dt); break;
         case 'control': this.updateControlHero(h, def, dt); break;
+        case 'siege': this.updateSiegeHero(h, def, dt); break;
       }
     }
 
@@ -3943,6 +3964,52 @@ export class Game {
       this.heroPulse(h);
       h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
     }
+  }
+
+  /**
+   * VITRIOL (Caustic siege). Holds a rear standoff line and rains corrosive artillery on the
+   * deepest threat within its long bombardment range — each shell splashes, applies Corrosion,
+   * and leaves a pool (area denial). Slides horizontally to keep the biggest threat lined up;
+   * never advances into melee. The hive's only ranged / area-denial hero.
+   */
+  private updateSiegeHero(h: Hero, def: HeroDef, dt: number): void {
+    const aggro2 = (def.aggroRange * this.mods.heroAggroRangeMult) ** 2;
+    const range2 = def.attackRange * def.attackRange;
+    let target: Enemy | null = null; // deepest enemy within firing range → the bombardment target
+    let bestInRange = Infinity;
+    let lineup: Enemy | null = null; // deepest enemy anywhere in aggro → drives repositioning
+    let bestAny = Infinity;
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const d2 = dist2(h.x, h.y, e.x, e.y);
+      if (d2 > aggro2) continue;
+      const gd = goalDistanceAt(e.x, e.y);
+      if (gd < bestAny) { bestAny = gd; lineup = e; }
+      if (d2 <= range2 && gd < bestInRange) { bestInRange = gd; target = e; }
+    }
+
+    // Hold a rear standoff line (protected, long sightlines up-field); slide X to line up the
+    // biggest threat, or drift to the idle anchor when the field is clear.
+    const standY = DEFENSE_TOP_Y + CELL * 2;
+    const goalX = lineup ? lineup.x : this.heroIdleGoal(h).x;
+    const np = moveToward(h.x, h.y, goalX, standY, def.speed * this.mods.heroSpeedMult * dt);
+    h.x = Math.max(0, Math.min(WIDTH, np.x));
+    h.y = Math.max(DEFENSE_TOP_Y - CELL, Math.min(HEIGHT, np.y)); // never chases up-field
+
+    if (target && h.attackCd <= 0) {
+      this.fireSiegeShell(h, def, target);
+      h.attackCd = def.attackInterval;
+    }
+  }
+
+  /** Lob a corrosive siege shell at a target — a splash projectile routed through the shared
+   *  mortar-impact path (splash damage + Corrosion + a Corrosion pool). Credits hero mastery at
+   *  fire time (base damage) since the deferred impact carries no hero source. */
+  private fireSiegeShell(h: Hero, def: HeroDef, target: Enemy): void {
+    const dmg = def.attackDamage * this.mods.heroDamageMult * this.heroProgress[h.kind].damageMult;
+    const splash = (def.attackSplash ?? 0) * this.mods.splashRadiusMult;
+    this.spawnProjectile(h.x, h.y, target.x, target.y, def.projectileSpeed ?? 440, -1, dmg, 'splash', splash, null);
+    this.heroMasteryAccrual[h.kind].damage += dmg; // usage signal (mortarImpact has no hero source)
   }
 
   /** Densest enemy (cheap proxy: most neighbours within `r`) — the Overseer's anchor. */
@@ -4435,6 +4502,7 @@ export class Game {
   private vulnMult(e: Enemy): number {
     let m = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus + this.heroVulnBonus();
+    if (e.corrosion > 0) m += this.heroCorrosionVulnBonus(); // Vitriol Solvent Rounds (0 unless fielded)
     // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
     // inert on the historical path (no framework statuses present).
     if (e.statuses !== undefined && e.statuses.length > 0) m += aggregateStatuses(e.statuses).damageTakenMult;

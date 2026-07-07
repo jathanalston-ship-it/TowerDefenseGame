@@ -93,21 +93,36 @@ function HeroLockedPage({ entry, onUnlock }: { entry: HeroCollectionEntry; onUnl
         <div className="hlk-tag">◈ Dormant Strain</div>
         <h2 className="hero-name" style={{ color: def.color }}>{def.name}</h2>
         <div className="hlk-class"><span className="class-badge" style={{ background: def.color }}>{def.combatClass}</span></div>
-        <p className="hlk-mystery">
-          This strain is dormant. Collect its Apex Genome to bring it online — its dossier, kit, and
-          lore are sealed until release.
-        </p>
-        <div className="hlk-progress">
-          <ProgressBar value={entry.shards} max={entry.cost} color={def.color} height={12} label={`${def.name} unlock progress`} />
-          <div className="hlk-count">
-            <CurrencyIcon id="heroShards" color={def.color} size={16} title="" />
-            <b style={{ color: def.color }}>{entry.shards}</b> / {entry.cost} Apex Genome
-            {!entry.canUnlock && <span className="hlk-need"> · {remaining} to go</span>}
-          </div>
-        </div>
-        <button className={`primary hlk-unlock ${entry.canUnlock ? 'is-ready' : ''}`} disabled={!entry.canUnlock} onClick={onUnlock}>
-          {entry.canUnlock ? `◈ Release ${def.name}` : 'Locked — keep collecting shards'}
-        </button>
+        {entry.requirement ? (
+          // Milestone-gated strain (Vitriol): EARNED by a feat, not bought — no Shard bar, no
+          // claim. It auto-unlocks the instant the feat is done, so we show the objective.
+          <>
+            <p className="hlk-mystery">
+              This strain is dormant — and it can’t be bought. It awakens only when the hive proves
+              itself in battle. Its dossier, kit, and lore are sealed until then.
+            </p>
+            <div className="hlk-requirement">🏆 Awakens on: <b style={{ color: def.color }}>{entry.requirement}</b></div>
+            <button className="primary hlk-unlock" disabled>Locked — {entry.requirement}</button>
+          </>
+        ) : (
+          <>
+            <p className="hlk-mystery">
+              This strain is dormant. Collect its Apex Genome to bring it online — its dossier, kit, and
+              lore are sealed until release.
+            </p>
+            <div className="hlk-progress">
+              <ProgressBar value={entry.shards} max={entry.cost} color={def.color} height={12} label={`${def.name} unlock progress`} />
+              <div className="hlk-count">
+                <CurrencyIcon id="heroShards" color={def.color} size={16} title="" />
+                <b style={{ color: def.color }}>{entry.shards}</b> / {entry.cost} Apex Genome
+                {!entry.canUnlock && <span className="hlk-need"> · {remaining} to go</span>}
+              </div>
+            </div>
+            <button className={`primary hlk-unlock ${entry.canUnlock ? 'is-ready' : ''}`} disabled={!entry.canUnlock} onClick={onUnlock}>
+              {entry.canUnlock ? `◈ Release ${def.name}` : 'Locked — keep collecting shards'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -161,11 +176,15 @@ export function HeroLab(): JSX.Element {
               <span className="rc-body">
                 <span className="rc-name" style={{ color: locked ? 'var(--muted)' : def.color }}>{def.name}</span>
                 {locked ? (
-                  <span className="rc-sub">◈ {entry.shards}/{entry.cost}{entry.canUnlock ? ' · Ready!' : ''}</span>
+                  entry.requirement ? (
+                    <span className="rc-sub">🏆 {entry.requirement}</span>
+                  ) : (
+                    <span className="rc-sub">◈ {entry.shards}/{entry.cost}{entry.canUnlock ? ' · Ready!' : ''}</span>
+                  )
                 ) : (
                   <span className="rc-sub">{def.combatClass} · {stars}◈{rank > 0 ? ` · R${rank}` : ''}</span>
                 )}
-                {locked && <span className="rc-lockbar" aria-hidden><i style={{ width: `${Math.round(entry.progress * 100)}%`, background: def.color }} /></span>}
+                {locked && !entry.requirement && <span className="rc-lockbar" aria-hidden><i style={{ width: `${Math.round(entry.progress * 100)}%`, background: def.color }} /></span>}
               </span>
               {!locked && fielded && <span className="rc-deployed" title="Currently fielded">●</span>}
             </button>

@@ -34,7 +34,7 @@ export type EnemyKind =
   | 'siegeworm' | 'spitter'
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,

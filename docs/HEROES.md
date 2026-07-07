@@ -9,11 +9,14 @@ Heroes share the five Combat Classes with towers (`TOWERS.md`).
 > optional move/focus ping), but does not micro every step. They are the
 > **active-skill** layer over the **placement** layer of towers.
 
-> **Implementation status (vertical slice):** all **three** launch heroes are built
-> as data-driven `HeroDef`s with distinct autonomous AI — **Ravager** (`dive`: charges
-> the deepest threat, melee + Fracture), **Shepherd** (`guard`: holds the zone, mends
-> Nucleus Integrity + vital pulse), **Overseer** (`control`: floats to the densest crowd,
-> fields Disruption). Each has its signature ability (Apex Leap / Bloom / Mass Override) —
+> **Implementation status (vertical slice):** **four** heroes are built as data-driven
+> `HeroDef`s with distinct autonomous AI — **Ravager** (`dive`: charges the deepest threat,
+> melee + Fracture), **Shepherd** (`guard`: holds the zone, mends Nucleus Integrity + vital
+> pulse), **Overseer** (`control`: floats to the densest crowd, fields Disruption), and
+> **Vitriol** (`siege`: the Caustic siege caste — holds the rear line and bombards the deepest
+> threat with corrosive shells that leave Corrosion pools; the only ranged / area-denial hero,
+> and the first **progression-gated** one — see §4). Each has its signature ability (Apex Leap /
+> Bloom / Mass Override / Corrosive Cataclysm) —
 > the Shepherd's **Bloom** now also grants the protector a brief **self-shield** (absorb
 > pool soaked before HP), the first consumer of the `shield` ability component.
 > Each has unique movement + targeting, per-hero **Stars + infinite Mastery** (Hero Lab), and an
@@ -224,18 +227,58 @@ needs a damage core; fragile/expensive; useless in a vacuum.
 
 ---
 
-## Hero triad summary
+## 4. VITRIOL — Caustic (siege / area-denial artillery) · **progression-gated**
+
+**Lore.** The hive's answer to a siege it once lost. Grown from assimilated demolition
+rigs and a refinery's worth of caustic sludge, Vitriol does not charge and does not mend —
+it *saturates*. Every wall becomes acid, every charge a sea of it. The hive breeds this
+caste only after it has assimilated a true threat, and it has been patient ever since.
+
+**Role.** Ranged siege / area-denial DoT. The **only ranged-DPS hero**: holds a rear standoff
+line and rains corrosive shells on the deepest threat — each impact splashes, applies
+**Corrosion** (Caustic), and leaves a lingering acid pool. Melts armor, denies ground, and
+sets up Caustic reactions (**Dissolve** with Fracture) for the whole build.
+
+**Base abilities (implemented).**
+- *Bombardment* (auto, `siege` AI) — lobs a splash shell at the deepest enemy in its long reach;
+  each shell splashes, corrodes, and seeds a Corrosion pool (area denial).
+- **Ult — Corrosive Cataclysm** — a wide caustic blast (AoE damage + heavy Corrosion) that
+  then drops a large lingering acid pool at the target zone.
+
+**Progression gate (unique).** Vitriol is the roster's only **milestone-gated** hero — *earned*,
+not bought. The Ravager is a starter and the Shepherd/Overseer are **Shard-claimed** (`unlockShards`,
+banked + spent); Vitriol instead **auto-unlocks the moment you slay a Framework Boss**
+(`save.bossesSlain` non-empty) and can never be claimed with Shards. The gate is data-driven
+(`HeroDef.unlock`, a `HeroUnlockReq`) and evaluated in one place (`state/meta.ts` `isHeroUnlocked`),
+which the Hero Lab, the selection guard, `unlockHero` (rejects it), and run start all read — so a
+locked hero can never be fielded, and the Hero Collection surfaces the feat instead of a Shard bar.
+
+**Strengths.** Safe ranged DPS; persistent area denial melts packs and armored lines; Corrosion
+feeds Caustic reactions and pairs with the Bone Mortar's pools; excellent at holding a lane.
+**Weaknesses.** No sustain, no control, no melee burst; fragile if the line collapses to its rear
+standoff; its value is damage-over-time, so it's weak against single high-HP burst threats it
+can't out-tick.
+
+**Synergy.**
+- **Bone Mortar** — shared Caustic pools stack into a killing field; both feed pool-damage mods.
+- **Needle Spitter / Ravager** — their Fracture + Vitriol's Corrosion = **Dissolve** / SHRED.
+- **Overseer** — Disrupted, slowed packs sit in the acid and take amplified DoT.
+
+---
+
+## Hero roster summary
 
 | Hero | Class | Identity | Personal DPS | Carries the team via |
 |---|---|---|---|---|
 | **Ravager** | Kinetic | dive bruiser | **High** | killing + Fracture setup |
 | **Shepherd** | Vital | support/summoner | Low | sustain + drones + overcharge |
 | **Overseer** | Neural | controller | ~None | vulnerability + hijack (amplifies *your* damage) |
+| **Vitriol** | Caustic | siege / area-denial | **High (DoT)** | Corrosion pools + armor melt (gated) |
 
-Distinct roles, distinct classes, distinct failure modes. The "ideal" trio
-(Ravager + Shepherd + Overseer) is a classic damage/sustain/control core — but
-since slots unlock over time and classes are shared with towers, players build
-toward many other combinations.
+Distinct roles, distinct classes, distinct failure modes. The "ideal" core
+(Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and
+Vitriol adds a ranged Caustic zone-denial option once earned. Since slots unlock over
+time and classes are shared with towers, players build toward many other combinations.
 
 ---
 

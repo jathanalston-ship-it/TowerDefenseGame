@@ -2636,6 +2636,14 @@ kbd {
   border-color: var(--gold);
   box-shadow: var(--ring-in) var(--gold), 0 0 12px rgba(255, 210, 77, 0.12);
 }
+/* A progression-gated hero (e.g. Vitriol) not yet unlocked — dimmed, with its requirement shown. */
+.lab-item.is-locked { opacity: 0.62; }
+.lab-locked {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted, #9aa4b2);
+  letter-spacing: 0.02em;
+}
 .lab-class {
   font-weight: 600;
   font-size: 12px;
@@ -6869,6 +6877,8 @@ kbd {
 .hlk-tag { font: 800 12px/1 'Chakra Petch', system-ui, sans-serif; letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
 .hlk-class { margin: 2px 0; }
 .hlk-mystery { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 2px 0 6px; }
+/* Milestone-gated hero (Vitriol): the feat that awakens it, shown in place of a Shard bar. */
+.hlk-requirement { font-size: 14px; color: var(--text); margin: 4px 0 10px; }
 .hlk-progress { display: flex; flex-direction: column; gap: 7px; }
 .hlk-count { display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--text); }
 .hlk-need { color: var(--muted); }

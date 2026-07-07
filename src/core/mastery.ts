@@ -213,6 +213,13 @@ const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
       { at: 25, kind: 'title', id: 'title.overseer.hand', name: 'Overseer’s Hand' },
     ],
   },
+  {
+    unit: 'vitriol',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.vitriol.1', name: 'Vitriol', text: 'The hive learned patience from a siege it lost. Now it answers every wall with acid, and every charge with a sea of it.' },
+      { at: 25, kind: 'title', id: 'title.vitriol.corrosive', name: 'The Corrosive' },
+    ],
+  },
 ];
 
 for (const t of TOWER_TRACKS) masteryTrackRegistry.register({ subject: 'tower', unit: t.unit, rewards: t.rewards, perks: t.perks });
