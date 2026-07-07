@@ -36,6 +36,8 @@ const listeners = new Set<() => void>();
 
 export function setActiveGame(g: Game | null): void {
   active = g;
+  // Debug-gated window handle so headless playtests (and the console) can drive the live run.
+  if (isDebugEnabled()) (globalThis as { __game?: Game | null }).__game = g;
   for (const l of listeners) l();
 }
 

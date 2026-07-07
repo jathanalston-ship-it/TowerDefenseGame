@@ -30,7 +30,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## System index
 
-[Campaign](#campaign) · [Infinite](#infinite) · [Power Score](#power-score) ·
+[Campaign](#campaign) · [Infinite](#infinite) · [Mega Bosses](#mega-bosses) · [Power Score](#power-score) ·
 [Tower Stars](#tower-stars) · [Tower Mastery / Adaptation](#tower-mastery--adaptation) ·
 [Heroes](#heroes) · [Hero Equipment](#hero-equipment) · [Gene Cards](#gene-cards) ·
 [Equipment](#equipment) · [Crafting / Reforging](#crafting--reforging) · [Loot](#loot) ·
@@ -74,6 +74,31 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Known limitations:** depth is bounded in practice by the entity budget cap (intentional).
 - **Developer tips:** endless tuning lives in config scaling constants — verify with the
   depth/biomass empirical tests (`draftcadence.test.ts`, endless scaling tests), not by feel.
+
+## Mega Bosses
+
+- **Purpose:** battlefield-scale RAID organisms — an anchored, persistent presence across the top
+  of the field that manipulates the whole battle (enemy auras, tower suppression, economy leech,
+  summons) while the player defeats it through modular WEAK POINTS whose destruction always
+  changes the fight (interrupt / expose / disable — never just damage).
+- **Dependencies:** engine chokepoints (`MegaFieldFx` folds, all ×1/+0 neutral ⇒ golden-safe),
+  the boss framework (sibling pattern), registries, events bus, Daily generator, collection +
+  achievements frameworks, Ichor economy.
+- **Files:** `core/megaboss.ts` (defs · ability pool · `WEAK_POINT_DEFS` · registries ·
+  scheduling · rewards), `game.ts` `megaBossSystem` (execution), `render/megaboss.ts`
+  (procedural presentation), `save.megaProgress` (ledger). Docs: `MEGA-BOSS.md`.
+- **Related:** Campaign (every 10th stage, forever), Infinite (every 20 waves), Boss Rush (every
+  5 waves), Daily (the rare Mega variant replaces the wave plan), Collections (`megaBosses`
+  category: Slain/Mastered/Dominated + passives + Power), Achievements (`mega_*`/`wp_*`),
+  Splice Market (efficiency-scaled guaranteed Ichor).
+- **Future expansion:** scripted first-encounter tutorial beat; per-mega codex art; procedural
+  mega assembly from the verb/weak-point pools.
+- **Known limitations:** rotation runs only during the wave phase; slow-motion payoffs are
+  presentation-side (determinism is non-negotiable).
+- **Developer tips:** a new mega is ONE `MegaBossDef` — the validator enforces telegraphs,
+  reachable organs and a real reward; rotation slots, codex, achievements ceilings, daily pool,
+  renderer and raid bar all pick it up automatically. Never bypass `MegaFieldFx` for a new
+  manipulation — that seam is what keeps every other run byte-identical.
 
 ## Difficulty & the Universal Difficulty Director
 

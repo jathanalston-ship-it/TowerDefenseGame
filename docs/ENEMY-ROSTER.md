@@ -62,9 +62,11 @@ enemies reach the field through the **registry** (Bestiary codex), the **AI Dire
 - **wisp** — Mind Wisp — fast fragile air → responsive anti-air.
 - **gargoyle** — Bone Gargoyle — **armored** air → anti-air must shred/penetrate, not chip.
 - **cystwraith** — Cyst Wraith — a **regenerating** flyer (re-knits 28/s in flight) → anti-air must SUSTAIN, not chip; burst that can't finish it lets it re-form. *(flying + regenerating fusion.)*
+- **stratovore** — Stratovore — an **artillery** flyer: shells the Nucleus from 260px at altitude → path answers don't apply AND range answers must reach the air; the coverage puzzle squared. *(flying + artillery fusion.)*
 
 ### Summoner — spawns adds on a timer → priority-kill or drown
 - **broodmother** — Brood Matron — births mites every 3.5s → focus it down or the swarm compounds.
+- **broodweaver** — Brood Weaver — a **self-mending** womb (22/s regen while birthing larvae) → chip damage can't stop the brood; demands a real BURST answer. *(summoner + regenerating fusion.)*
 - **hivecaller** — Hive Caller — **shielded** caller flooding larvae → crack the shield fast to stop the tide.
 
 ### Support — auras that heal/shield allies → kill the support FIRST
@@ -75,6 +77,7 @@ enemies reach the field through the **registry** (Bestiary codex), the **AI Dire
 - **bomber** — Bile Bomber — fast bomb; reaching the line detonates (heavy Nucleus + hero AoE) → kill it en route.
 - **popper** — Spore Popper — a slow walking mine with a huge blast → kill it well clear of the line.
 - **sapper** — Cinder Sapper — a **burrowing** bomb: skirts tower kill-zones (high avoidTowers) to reach the line through gaps, then detonates → demands EVEN coverage *and* early interception. *(burrowing + suicide fusion.)*
+- **cataclyst** — Cataclyst — a **heavy** walking bomb: 330 HP of armored bulk carrying a 58-damage blast → the one wave you CANNOT let arrive; forces kill-before-the-line burst instead of line attrition. *(heavy + suicide fusion.)*
 
 ### Artillery — halt short and bombard the Nucleus from range → reach it mid-field
 - **siegeworm** — Siege Maw — stops 220px out and shells the core (6/volley) → project DPS mid-field.

@@ -9,6 +9,7 @@ import { meta } from '../state/meta';
 import { formatPower } from '../core/power';
 import { dailyKey, generateDaily, msUntilDailyReset, pickDailyHero } from '../core/daily';
 import { dailyModifierById } from '../core/dailyModifiers';
+import { megaBossDef } from '../core/megaboss';
 import { biomeById } from '../core/biomes';
 import { DAILY, HERO_DEFS, HERO_ORDER, TOWER_DEFS } from '../core/config';
 
@@ -57,7 +58,16 @@ export function DailyScreen({ onStartDaily }: { onStartDaily: () => void }): JSX
             <span className={`daily-diff d-${plan.difficultyEstimate.label.toLowerCase()}`}>{plan.difficultyEstimate.label}</span>
           </div>
           <div className="daily-biome" style={{ color: biome.accent }}>{biome.name}</div>
-          <div className="daily-sub">{DAILY.waveCount} waves · bosses at {DAILY.bossWaves.join(' / ')} · champion: <b style={{ color: hero.color }}>{hero.name}</b></div>
+          {plan.megaBoss ? (
+            // The rare MEGA variant (docs/MEGA-BOSS.md §daily): the wave plan is REPLACED by one
+            // evolving battlefield-scale organism — say so loudly before the player commits.
+            <div className="daily-sub daily-mega" style={{ color: megaBossDef(plan.megaBoss.defId)?.palette.glow }}>
+              ▼ MEGA ENCOUNTER — {megaBossDef(plan.megaBoss.defId)?.name ?? plan.megaBoss.defId} has replaced today&apos;s gauntlet.
+              It evolves the longer it lives; the battle ends only when one of you falls. Champion: <b style={{ color: hero.color }}>{hero.name}</b>
+            </div>
+          ) : (
+            <div className="daily-sub">{DAILY.waveCount} waves · bosses at {DAILY.bossWaves.join(' / ')} · champion: <b style={{ color: hero.color }}>{hero.name}</b></div>
+          )}
 
           <div className="daily-mods">
             {modifiers.map((m) => (

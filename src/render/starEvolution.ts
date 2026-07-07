@@ -114,6 +114,30 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' },
     ],
   },
+  // Marrow Siphon (Vital) — ocular drain-pod → engorged gorging organism. It visibly SWELLS as it
+  // drinks (the hungriest Vital silhouette), growing feeder tendrils and a beating fed heart.
+  siphon: {
+    growth: 0.024,
+    parts: [
+      { at: 1, kind: 'heart' }, // the draining gullet-sac beats behind the eye
+      { at: 3, kind: 'tendrils', count: 3 }, // feeder proboscides reaching out
+      { at: 5, kind: 'organs', count: 3 }, // swollen vein-nodes, engorged with siphoned marrow
+      { at: 7, kind: 'ripples', count: 2 }, // the siphon pulse radiating from the socket
+      { at: 9, kind: 'nova' },
+    ],
+  },
+  // Blight Sower (Caustic) — swollen seed-pod → armed blight garden. It ripens visibly: budding
+  // nodules, a thorned husk, a full clutch of spore sacs, then a germination corona.
+  sower: {
+    growth: 0.022, // stays under the ~1.25× ★10 silhouette cap (starEvolution.test)
+    parts: [
+      { at: 1, kind: 'organs', count: 2 }, // seed nodules budding off the pod
+      { at: 3, kind: 'barbs', count: 4 }, // thorned husk — the pod arms itself
+      { at: 5, kind: 'biomass', count: 4 }, // a full clutch of ripening spore sacs
+      { at: 7, kind: 'ripples', count: 2 }, // germination pulse rolling off the husk
+      { at: 9, kind: 'nova' }, // the garden apex — a permanent bloom corona
+    ],
+  },
   // Resonance Coil (Resonant) — focusing lens → resonance singularity.
   coil: {
     growth: 0.019,

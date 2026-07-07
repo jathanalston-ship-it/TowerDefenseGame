@@ -4,7 +4,7 @@
 // and every limit (lifetime / once-per-day / rotation) binds. Runs the REAL purchase pipeline.
 
 import { describe, it, expect } from 'vitest';
-import { meta } from './meta';
+import { towerShardPool, meta } from './meta';
 import { ICHOR_BUNDLES, PERMANENT_PACKS, ROTATING_PACKS, todaysRotatingOffer } from '../core/premium';
 import { RARITY_ORDER, itemDef } from '../core/equipment';
 import { dailyKey } from '../core/daily';
@@ -21,7 +21,13 @@ describe('purchase pipeline — grants land through the normal systems', () => {
     expect(receipt!.sandbox).toBe(true); // no real charge exists until a provider is wired
     const s1 = meta.get();
     expect(s1.ichor - s0.ichor).toBe(120);
-    for (const k of Object.keys(s1.towerShards)) expect(s1.towerShards[k as keyof typeof s1.towerShards] - (s0.towerShards[k as keyof typeof s0.towerShards] ?? 0)).toBe(15);
+    // Gate-eligible towers get 15 each; a DEEP-gated tower (Marrow Siphon, docs/SIPHON.md §gate) stays
+    // sealed on a fresh save — money accelerates toward gates, it never crosses one.
+    const eligible = new Set(towerShardPool(s1));
+    for (const k of Object.keys(s1.towerShards)) {
+      const kk = k as keyof typeof s1.towerShards;
+      expect(s1.towerShards[kk] - (s0.towerShards[kk] ?? 0)).toBe(eligible.has(kk) ? 15 : 0);
+    }
     for (const k of Object.keys(s1.heroShards)) expect(s1.heroShards[k as keyof typeof s1.heroShards] - (s0.heroShards[k as keyof typeof s0.heroShards] ?? 0)).toBe(20);
     expect(s1.pendingContainers.length - s0.pendingContainers.length).toBe(1); // the run cache
     expect(s1.equipment.inventory.length - s0.equipment.inventory.length).toBe(2); // 2 rare rolls

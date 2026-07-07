@@ -75,10 +75,22 @@ export const HERO_EVOLUTION: Record<HeroKind, HeroEvolution> = {
       { at: 5, kind: 'crown', count: 6 }, // the siege caste's crown
     ],
   },
+  // Revenant (Viral assassin) — the wraith sharpens: a spectral halo → phase arcs → plague nodes →
+  // striking limbs → a nova as it fully phases into a killing apparition.
+  revenant: {
+    growth: 0.045,
+    parts: [
+      { at: 1, kind: 'halo' }, // the phase shimmer
+      { at: 2, kind: 'arcs', count: 2, per: 1 }, // blink arcs, wilder each star
+      { at: 3, kind: 'organs', count: 3 }, // plague glands
+      { at: 4, kind: 'limbs', count: 2 }, // spectral striking limbs
+      { at: 5, kind: 'nova' }, // fully phased — a killing apparition
+    ],
+  },
 };
 
 /** Stable per-kind phase offset so two heroes of different kinds don't pulse in lockstep. */
-const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4 };
+const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5 };
 
 /** Body-silhouette scale from permanent STARS (the "bigger, prestige hero" read). Identity (1) at
  *  ★0; gentle per star so the marker never dwarfs the field (★5 ≈ 1.2–1.25×). */

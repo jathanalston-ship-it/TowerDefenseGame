@@ -376,6 +376,41 @@ const EFFIGY: StarPath = {
   ],
 };
 
+// Marrow Siphon (Vital, firing 'beam') — the drain ray. `extraProjectiles` FORKS the beam to more
+// targets; `ability` grants pulse on the beam's cadence (game.beamSystem); `targeting` picks what it
+// fastens onto. No projectile mutators — a continuous ray has nothing to pierce. Its economy identity
+// (biomass siphon) is bespoke; the path SHARPENS the drain and widens it into a field.
+const SIPHON_PATH: StarPath = {
+  tower: 'siphon',
+  steps: [
+    { star: 1, name: 'Scavenger’s Instinct', kind: 'targeting', desc: 'Fastens onto the WEAKEST prey first — it finishes the wounded and gorges on the kill.', grants: [{ t: 'targeting', profile: 'lowestHealth' }] },
+    { star: 2, name: 'Split Ray', kind: 'projectile', desc: 'The beam forks to a second target.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 3,
+      name: 'Feeding Habit',
+      kind: 'fork',
+      desc: 'Choose what the drain does to the flesh around it (re-pick any run).',
+      fork: [
+        { id: 'corroder', name: 'Corroder', desc: 'The beam’s backwash melts everything near the victim.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'render', name: 'Render', desc: 'The drain strips armor plating (Fracture) from the fed-upon.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 150, status: { kind: 'Fracture', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Sympathetic Drain', kind: 'interaction', desc: 'A draining field chips every host near the beam.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 7, react: true, particle: 'bloom' }] }] },
+    {
+      star: 5,
+      name: 'Apex Organ',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'devourer', name: 'Devourer', desc: 'A THIRD fork and a heavier drain field — it eats the whole line.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 150, damage: 10, react: true, particle: 'bloom' }] }] },
+        { id: 'leech', name: 'Leech Field', desc: 'A wide melting bloom saturates everything it touches.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, damage: 8, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }] },
+      ],
+    },
+    { star: 7, name: 'Marrow Flood', kind: 'interaction', desc: 'The gorging spreads — Corrosion floods a wide ring each pulse.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 200, status: { kind: 'Corrosion', amount: 2 } }] }] },
+    { star: 9, name: 'The Insatiable', kind: 'capstone', desc: 'A fourth fork and a devouring nova — nothing near it keeps its marrow.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 160, damage: 34, react: true, particle: 'bloom' }, { type: 'aura', radius: 190, status: { kind: 'Corrosion', amount: 1 }, particle: 'acid' }] }, { t: 'cosmetic', id: 'insatiable' }] },
+  ],
+};
+
 // Resonance Coil (Resonant) — the beam MELTER. Stars are behavior-only: for the beam, projectile
 // `extraProjectiles` = extra simultaneous beam CHANNELS (they ride the same resonance heat), and
 // `ability` grants fire on the beam's PULSE cadence aimed at the locked target. The path leans into
@@ -409,7 +444,42 @@ const COIL: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL]);
+// Blight Sower (trap): stars raise the FIELD — cap (+extraProjectiles = +max armed mines), blast
+// (splashMult), and detonation ride-alongs; `ability` grants fire AT each detonation point
+// (game.mineSystem), so aura/debuff organs bloom where the mine bursts. No targeting — mines
+// choose nobody; the lane walks into THEM.
+const SOWER_PATH: StarPath = {
+  tower: 'sower',
+  steps: [
+    { star: 1, name: 'Second Bud', kind: 'projectile', desc: '+1 max armed mine — a denser field.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    { star: 2, name: 'Fat Blooms', kind: 'projectile', desc: 'Detonations bloom 15% wider.', grants: [{ t: 'projectile', splashMult: 1.15 }] },
+    {
+      star: 3,
+      name: 'Cultivar',
+      kind: 'fork',
+      desc: 'Choose the strain this garden grows (re-pick any run).',
+      fork: [
+        { id: 'acidbloom', name: 'Acid Bloom', desc: 'Every detonation leaves a corroding wash on the survivors.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 110, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'shrapnel', name: 'Bone Shrapnel', desc: 'Detonations shear plating — Fracture on everything caught.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 120, status: { kind: 'Fracture', amount: 2 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Third Bud', kind: 'projectile', desc: '+1 max armed mine.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 5,
+      name: 'Apex Cultivar',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'blightfield', name: 'Blightfield', desc: 'Vast detonations — the garden owns the whole approach.', grants: [{ t: 'projectile', splashMult: 1.25 }, { t: 'ability', components: [{ type: 'aura', radius: 140, damage: 8, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+        { id: 'minefield', name: 'Minefield', desc: 'TWO more buds — saturation seeding.', grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+      ],
+    },
+    { star: 7, name: 'Deep Cellar', kind: 'interaction', desc: 'Each burst also shears armor in a wide ring (Fracture).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 160, status: { kind: 'Fracture', amount: 1 } }] }] },
+    { star: 9, name: 'The Hundred-Year Garden', kind: 'capstone', desc: 'A fourth bud and a devastating germination nova at every burst.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 150, damage: 30, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'garden' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

@@ -101,7 +101,9 @@ function accrue(res: ChestResult, item: RewardItem): void {
 
 /** Roll one pull from a weighted pool into a RewardItem. `heroPool` biases which hero a hero-shard
  *  pull lands on (the meta layer passes still-LOCKED heroes so shards visibly fund the next unlock;
- *  defaults to every hero). */
+ *  defaults to every hero). `towerPool` restricts which towers a tower-shard pull can land on — the
+ *  meta layer passes the gate-eligible roster so a deep-gated tower's shards never drop before its
+ *  progression gate (docs/SIPHON.md §gate); defaults to every tower. */
 function rollOne(rng: Rng, wp: WeightedPool, heroPool: readonly string[] = HERO_IDS, towerPool: readonly TowerKind[] = TOWER_ORDER): RewardItem {
   const r = wp.rarity ?? 'common';
   const s = wp.spec;
@@ -126,7 +128,8 @@ function rollOne(rng: Rng, wp: WeightedPool, heroPool: readonly string[] = HERO_
 }
 
 /** Roll a chest into an ordered reveal list + aggregated per-system totals (pools model). `heroPool`
- *  (optional) biases hero-shard pulls toward still-locked heroes; defaults to every hero. */
+ *  (optional) biases hero-shard pulls toward still-locked heroes; defaults to every hero. `towerPool`
+ *  (optional) restricts tower-shard pulls to the gate-eligible roster (docs/SIPHON.md §gate). */
 export function rollChest(def: ChestDef, rng: Rng = Math.random, heroPool?: readonly string[], towerPool?: readonly TowerKind[]): ChestResult {
   const res = emptyResult(def.id);
   for (let i = 0; i < def.rolls; i++) accrue(res, rollOne(rng, weightedPool(rng, def.pools), heroPool, towerPool));

@@ -8,7 +8,7 @@ import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -34,16 +34,26 @@ export type EnemyKind =
   | 'bomber' | 'popper'
   // burrowing + suicide hybrid (tunnels gaps, then detonates at the line)
   | 'sapper'
+  // heavy + suicide hybrid (a slow walking bomb — kill it BEFORE it arrives)
+  | 'cataclyst'
   // artillery
   | 'siegeworm' | 'spitter'
+  // flying + artillery hybrid (shells from above — demands AA reach, not just AA presence)
+  | 'stratovore'
+  // summoner + regenerating hybrid (a self-mending womb — chip damage can't stop the brood)
+  | 'broodweaver'
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
- * 'field' = periodic in-range pulse (no projectile). */
-export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam';
+ * 'field' = periodic in-range pulse (no projectile). 'beam' = a CONTINUOUS locked, RAMPING
+ * channel (no projectile): the Resonance Coil melter (game.beamTowerSystem) and the Marrow
+ * Siphon drain-into-Biomass (game.beamSystem) — routed by kind in towerSystem (docs/SIPHON.md).
+ * 'trap' = plants ARMED SPORE MINES on the approach instead of attacking — pre-placed area denial
+ * (the Blight Sower, game.trapTowerSystem/mineSystem — docs/SOWER.md). */
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam' | 'trap';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
 export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
 
@@ -128,6 +138,20 @@ export interface EnemyShell {
   color: string; // the firing enemy's hue (shell + trail tint)
 }
 
+/** An armed SPORE MINE planted by the Blight Sower (docs/SOWER.md) — pre-placed area denial.
+ *  Damage/blast are BAKED at plant time (that tower's mods then), so a detonation is a pure
+ *  proximity check. The array is empty on the golden path (no sower is ever fielded there). */
+export interface SporeMine {
+  id: number;
+  towerId: number; // the planting Sower (cap accounting; culled when it is sold/moved)
+  x: number;
+  y: number;
+  arm: number; // seconds until armed (safety fuse; also the renderer's grow-in)
+  blast: number; // detonation radius (px)
+  damage: number; // damage to every enemy in the blast
+  corrosion: number; // Corrosion seconds applied to every victim (the Caustic identity)
+}
+
 /** Live state a framework boss carries on top of its enemy body (see boss.ts). */
 export interface BossRuntime {
   defId: string;
@@ -168,6 +192,22 @@ export interface BossBannerSnapshot {
   telegraph: string | null;
 }
 
+/** The Mega Boss raid bar (docs/MEGA-BOSS.md §hud): identity + HP + phase + the live telegraph,
+ *  the active battlefield manipulations, and every OPEN weak point with the mechanic it controls. */
+export interface MegaBannerSnapshot {
+  name: string;
+  title: string;
+  hpPct: number;
+  phase: number;
+  phases: number;
+  telegraph: { kind: string; frac: number } | null;
+  stunned: boolean;
+  exposed: boolean;
+  effects: string[]; // live manipulation chips (e.g. 'HASTE', 'LEECH'; '*' = passive)
+  weakPoints: { kind: string; name: string; hpPct: number; note: string }[]; // OPEN organs
+  glow: string; // palette glow hex (bar tinting)
+}
+
 export interface Tower {
   id: number;
   kind: TowerKind;
@@ -194,11 +234,17 @@ export interface Tower {
   pulseCd: number; // support-tower branch-ability cadence (0 for projectile towers)
   mutatedAt: number; // sim-time of the last tier purchase (drives the grow-in + mutation flash); -∞-ish when unbranched
   movedAt: number; // sim-time of the last RELOCATION (drives the landing-impact FX); -∞-ish when never moved (docs/TOWER-MANAGEMENT.md §3)
-  // ── Resonance Beam (Resonance Coil, firing 'beam'). `beamTarget` is the held enemy id (-1 = none),
-  //    `beamHeat` (0..1) climbs while focus holds the SAME target and resets on a switch, ramping the
-  //    beam's damage. Inert (-1 / 0) for every OTHER tower kind ⇒ golden-safe. Run-only. ──
+  // ── Beam state (firing 'beam' — Resonance Coil + Marrow Siphon). `beamTarget` is the held enemy id
+  //    (-1 = not channeling), `beamHeat` (0..1) climbs while focus holds the SAME target and resets on
+  //    a switch, ramping the beam's damage. Inert (-1 / 0) for every OTHER kind ⇒ golden-safe. ──
   beamTarget: number; // enemy id the beam is locked onto (-1 = not channeling)
-  beamHeat: number; // resonance charge (0..1) — ramps the beam's damage on sustained focus
+  beamHeat: number; // resonance/Gorge charge (0..1) — ramps the beam's damage on sustained focus
+  // Marrow Siphon extras (docs/SIPHON.md) — absent on the Coil + every non-siphon tower: banked
+  // siphoned biomass between pulse payouts, and the cached lock point so the renderer draws the drain
+  // ray without an enemy lookup (render-only — never feeds sim math).
+  beamBank?: number;
+  beamX?: number;
+  beamY?: number;
 }
 
 export interface Projectile {
@@ -277,6 +323,11 @@ export interface Hero {
   // never by sim math (so it stays golden-safe): the current target + what the hero is doing.
   targetId: number; // current target's Enemy.id, or -1 when none
   moveState: HeroMoveState;
+  // Revenant blink (behavior 'phase') — render-only flash timer set on each blink-strike (a fading
+  // teleport arc from the previous position). Absent on every other hero ⇒ golden-safe.
+  phaseT?: number; // seconds of blink-flash remaining
+  phaseFromX?: number; // where it blinked FROM (renderer draws the phase arc)
+  phaseFromY?: number;
 }
 
 /** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that
@@ -394,6 +445,24 @@ export interface RunStats {
   strains?: number; // STRAIN evolutions committed this run (raiseStrain successes — additive)
   strainByKind?: Partial<Record<TowerKind, number>>; // deepest strain per kind this run (entries only when > I)
   bossKills?: number; // bosses defeated this run (docs/BOSS-RUSH.md rewards key off it — additive for old fixtures)
+  // ── Mega Boss encounters (docs/MEGA-BOSS.md) — additive for old fixtures. ──
+  megaKills?: MegaKillStat[]; // one entry per Mega Boss defeated this run (rewards + collection)
+  weakPointsDestroyed?: number; // weak points burst this run (collection + achievements)
+  weakPointKinds?: string[]; // DISTINCT weak point kinds destroyed this run
+  megaInterrupts?: number; // telegraphs cancelled via eye weak points this run
+  megaAbilitiesSurvived?: number; // mega abilities that completed against you this run
+}
+
+/** One defeated Mega Boss (docs/MEGA-BOSS.md §rewards): everything the reward formula +
+ *  collection milestones need, recorded at the moment of the kill. */
+export interface MegaKillStat {
+  defId: string;
+  tier: number;
+  encounter: string; // 'campaign' | 'infinite' | 'bossRush' | 'daily'
+  killSec: number; // spawn → death seconds (the efficiency input)
+  perfect: boolean; // zero Nucleus integrity lost during the encounter
+  weakPoints: number; // weak points destroyed during this encounter
+  interrupts: number; // telegraphs interrupted during this encounter
 }
 
 /** Persistent lifetime statistics (in SaveData). The accumulation reducer in
@@ -548,6 +617,7 @@ export interface HudSnapshot {
   cards: CardOption[]; // gene cards drafted this run (build panel)
   buffs: string[]; // human-readable active run modifiers
   bossBanner: BossBannerSnapshot | null; // a live framework-boss banner (name/hp/phase)
+  megaBanner: MegaBannerSnapshot | null; // the Mega Boss raid bar (docs/MEGA-BOSS.md §hud)
   mutation: MutationBanner | null; // a transient "tier purchased" banner (the branch-upgrade moment)
   endless: boolean; // true in Endless mode (HUD shows Depth instead of Wave N/12)
   bossRush: boolean; // true in Boss Rush mode (HUD shows the boss-count wave identity, docs/BOSS-RUSH.md)

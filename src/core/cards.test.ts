@@ -69,6 +69,10 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     cull_the_weak: 'global', avatar_of_war: 'hero', catalyst_engine: 'global',
     overcharged_grid: 'reactor', gravity_well: 'obelisk', glass_genome: 'global',
     executioners_law: 'global', last_bastion: 'global', apex_predator: 'hero',
+    // Deep-Strain (docs/SIPHON.md §gate) — the five general gated cards + the two siphon identities.
+    deep_overclock: 'global', marrow_feast: 'economy', neural_dominion: 'obelisk',
+    hollow_bastion: 'hive', apex_ascendant: 'hero',
+    gorging_instinct: 'siphon', hemophage: 'siphon',
     carrion_bloom: 'economy', // +biomassMult (economy) + on-kill biomass hook (economy) ⇒ ECONOMY
     // Resonance Coil cards + progression-gated general pool
     harmonic_overload: 'coil', prismatic_split: 'coil',
@@ -82,6 +86,9 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     // Behavioral gated pool (docs/CARDS.md §gates) — distinct-axis unlocks
     regenerative_carapace: 'hive', ambush_enzyme: 'global', culling_instinct: 'global',
     viral_payload: 'global', toxic_aura: 'hero',
+    // Blight Sower signature set + the expansion gated trio
+    mycelial_carpet: 'sower', seed_hoard: 'sower',
+    war_rhythm: 'global', apex_hunger: 'economy', trophy_takers: 'economy',
     // Expansion II gated pool — fresh scored axes (crit / per-empty-slot / composition / mitigation / salvage)
     predator_instinct: 'hero', // crit fields are global; heroDamageMult pins it HERO
     entrenchment: 'global', vanguard_doctrine: 'global', // army-wide levers

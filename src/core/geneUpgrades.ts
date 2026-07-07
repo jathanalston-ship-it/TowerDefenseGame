@@ -361,6 +361,55 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'add', field: 'heroCritChance', value: 0.1 }, { op: 'add', field: 'heroCritDamageBonus', value: 0.5 }], note: 'THE APEX STRIKES TRUE — +10% crit chance, crits hit +50% harder.' },
   ],
 
+  // ════════════════ Deep-Strain (docs/SIPHON.md §gate) — GATED cards; deep unlocks run 4–5 levels ════════════════
+  deep_overclock: [
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Redlined glands — +6% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Denser output — +6% tower damage.' },
+    { effects: [{ op: 'grant', grant: { kind: 'towerProjectileMutator', id: 'pierce1' } }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Overclocked penetrators — all tower shots pierce +1 enemy.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.08 }], note: 'Runaway cadence — +8% tower fire rate.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'The overclock ECHOES — status reactions re-fire once more.' },
+  ],
+  marrow_feast: [
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.08 }], note: 'Richer marrow — +8% biomass from kills.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'biomass', value: 2 } } }, { op: 'mul', field: 'biomassMult', value: 1.04 }], note: 'Every corpse feeds — +2 biomass on EVERY kill.' },
+    { effects: [{ op: 'biomass', value: 120 }, { op: 'mul', field: 'biomassMult', value: 1.04 }], note: 'A glut — +120 more biomass now.' },
+    { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.06 }, { op: 'mul', field: 'biomassMult', value: 1.04 }], note: 'Nothing wasted — +6% tower sell refund.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.1 }], note: 'The endless feast — +10% biomass from kills.' },
+  ],
+  neural_dominion: [
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.05 }], note: 'Deeper exposure — Disrupted enemies take +5% more damage.' },
+    { effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.08 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.02 }], note: 'Crushing field — Disruption slows +8% more.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Focused ruin — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.06 }], note: 'Total exposure — +6% more damage taken while Disrupted.' },
+    { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Dominion absolute — +5% vulnerability and +5% tower damage.' },
+  ],
+  hollow_bastion: [
+    { effects: [{ op: 'integrity', value: 40 }, { op: 'add', field: 'damagePerTower', value: 0.01 }], note: '+40 more Integrity; the network tightens (+1% per tower).' },
+    { effects: [{ op: 'add', field: 'damagePerTower', value: 0.02 }], note: 'Fortress network — +2% tower damage per tower fielded.' },
+    { effects: [{ op: 'integrity', value: 40 }, { op: 'add', field: 'sellRefundFrac', value: 0.05 }], note: 'Reclaimed chitin — +40 Integrity, +5% sell refund.' },
+    { effects: [{ op: 'hook', hook: { on: 'waveCleared', action: { do: 'heal', value: 8 } } }, { op: 'add', field: 'damagePerTower', value: 0.01 }], note: 'The bastion REGROWS — +8 Integrity every cleared wave.' },
+    { effects: [{ op: 'add', field: 'damagePerTower', value: 0.02 }, { op: 'add', field: 'damagePerEmptySlot', value: 0.02 }], note: 'Every wall a weapon — +2% per tower AND +2% per empty slot.' },
+  ],
+  apex_ascendant: [
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.12 }], note: 'Sharper apex — +12% hero damage.' },
+    { effects: [{ op: 'heroHp', value: 90 }, { op: 'mul', field: 'heroHealingMult', value: 1.1 }], note: 'Ascendant bulk — +90 hero HP, +10% healing received.' },
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.1 }], note: 'Perfect aim — +10% hero crit chance.' },
+    { effects: [{ op: 'add', field: 'heroLifestealFrac', value: 0.08 }], note: 'Feeds on ruin — heal 8% of damage dealt.' },
+    { effects: [{ op: 'mul', field: 'heroDamageMult', value: 1.15 }, { op: 'add', field: 'heroCritDamageBonus', value: 0.5 }], note: 'THE ASCENDANT — +15% damage, crits hit +50% harder.' },
+  ],
+  gorging_instinct: [
+    { effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.08 }], note: 'Hungrier — the beam gorges +8% faster.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Searing draw — +5% tower damage.' },
+    { effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.1 }], note: 'Ravenous — the beam gorges +10% faster.' },
+    { effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.15 }, { op: 'mul', field: 'siphonRampMult', value: 1.06 }], note: 'Instinct to feed — +15% Biomass siphoned, +6% Gorge.' },
+  ],
+  hemophage: [
+    { effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.1 }], note: 'Thirstier — +10% Biomass siphoned.' },
+    { effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.08 }], note: 'Faster feed — the beam gorges +8% faster.' },
+    { effects: [{ op: 'hook', hook: { on: 'enemyKilled', action: { do: 'biomass', value: 2 } } }, { op: 'mul', field: 'siphonDrainMult', value: 1.06 }], note: 'Every kill bleeds — +2 biomass on EVERY kill.' },
+    { effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.15 }], note: 'Hemorrhage — +15% Biomass siphoned.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.08 }, { op: 'mul', field: 'siphonDrainMult', value: 1.08 }], note: 'The hive gorges — +8% all biomass and +8% siphoned.' },
+  ],
   // ════════════════ Resonance Coil cards (gated by owning the Coil) ════════════════
   // Modest permanent bumps (the base DRAFT effect carries the card's strength; upgrades are a gentle
   // permanent nudge that keeps the whole gene library within its calibrated ≤2.6× power band).
@@ -504,5 +553,37 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.03 }, { op: 'add', field: 'reactorOverchargeBonus', value: 0.08 }], note: 'Reclaimers — sell refunds +3%, +0.08 reactor overcharge.' },
     { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Enzymatic bloom — +6% biomass from kills.' },
     { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }, { op: 'add', field: 'sellRefundFrac', value: 0.03 }], note: 'Total recycling — +5% biomass, sell refunds +3%.' },
+  ],
+  // ── Blight Sower signature set (docs/SOWER.md) ──
+  mycelial_carpet: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.06 }], note: 'Creeping weave — +6% blast radius.' },
+    { effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Dense mat — +6% radius, +3% tower damage.' },
+    { effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.08 }], note: 'Field-spanning hyphae — +8% blast radius.' },
+    { effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.08 }, { op: 'mul', field: 'poolDpsMult', value: 1.06 }], note: 'The carpet SEETHES — +8% radius, +6% Corrosion damage.' },
+  ],
+  seed_hoard: [ // epic → 4
+    { effects: [{ op: 'add', field: 'sowerExtraMines', value: 1 }], note: 'Deeper cellar — +1 more armed mine.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Eager germination — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.08 }], note: 'Fat seeds — +8% blast radius.' },
+    { effects: [{ op: 'add', field: 'sowerExtraMines', value: 1 }], note: 'The hoard OVERFLOWS — +1 more armed mine.' },
+  ],
+  war_rhythm: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Quickening drums — +4% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'Marching cadence — +4% rate, +3% damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Battle tempo — +5% fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Total war — +5% rate, +4% damage.' },
+  ],
+  apex_hunger: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Sharper appetite — +5% biomass.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }, { op: 'add', field: 'sellRefundFrac', value: 0.02 }], note: 'Waste nothing — +5% biomass, +2% sell refund.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Fed and lethal — +5% tower damage.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.07 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'The apex FEEDS — +7% biomass, +4% damage.' },
+  ],
+  trophy_takers: [ // legendary → 5
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'First trophies — +5% biomass.' },
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Bone-splitting pride — +1 max Fracture stack.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Mounting spoils — +6% biomass.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Emboldened — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'LEGENDS NOW — reactions re-fire once more, +5% biomass.' },
   ],
 };

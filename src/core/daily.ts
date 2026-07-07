@@ -17,6 +17,8 @@ import { resolveDifficulty } from './difficulty';
 import { assembleBoss } from './boss';
 import type { BossDef } from './boss';
 import { dailyModifierRegistry, dailyModifierById } from './dailyModifiers';
+import { MEGA, megaBossRegistry } from './megaboss';
+import type { MegaEncounter } from './megaboss';
 
 // XOR constants seeding each sub-stream (distinct per concern — the Game-ctor convention).
 const S_STAGE = 0x5764a6e1;
@@ -27,6 +29,7 @@ const S_POOL = 0x70010e04;
 const S_MOD = 0x0d1f0f05;
 const S_MUSIC = 0x0405c610;
 const S_HERO = 0x4845524f; // 'HERO'
+const S_MEGA = 0x4d454741; // 'MEGA' — the rare Mega variant roll (docs/MEGA-BOSS.md §daily)
 
 /** The fully-rolled plan for one UTC day. All fields are plain data (no live entities), so it
  *  serializes, ships to the UI, and drives the Phase-2 reward/ownership gating unchanged. */
@@ -40,6 +43,9 @@ export interface DailyPlan {
   musicTrack: number; // seeded combat/boss track index the audio layer maps
   difficultyEstimate: { label: string; scalar: number };
   recommendedPower: number; // recommendedPowerScore scaled by the difficulty scalar
+  /** The rare Daily MEGA variant (docs/MEGA-BOSS.md §daily): ~1-in-MEGA.dailyMegaOdds days the
+   *  standard 20-wave gauntlet is REPLACED by one evolving Mega Boss encounter. Absent ⇒ normal. */
+  megaBoss?: MegaEncounter;
 }
 
 /** UTC ISO date key (YYYY-MM-DD) — the identity of a day's run worldwide. */
@@ -148,6 +154,15 @@ export function generateDaily(key: string): DailyPlan {
   const modifierIds = rollModifiers(modRng, DAILY.modifierCount);
   const musicTrack = musicRng.int(DAILY.musicTrackCount);
 
+  // The rare Daily MEGA variant (docs/MEGA-BOSS.md §daily): its own stream, so the roll never
+  // perturbs any other field. Registry-driven pick ⇒ future megas rotate in automatically; the
+  // tier rides the day's effective stage so the encounter scales with the band.
+  const megaRng = new Rng((seed ^ S_MEGA) >>> 0);
+  const megaRolled = megaRng.int(MEGA.dailyMegaOdds) === 0;
+  const megaBoss: MegaEncounter | undefined = megaRolled
+    ? { defId: megaRng.pick(megaBossRegistry.active()).id, tier: 1 + effectiveStage / 12 }
+    : undefined;
+
   // Difficulty heuristic: the rolled HP scalar × the modifier severities → a scalar + a label. The
   // recommended Power rides recommendedPowerScore(effectiveStage) scaled by it (readiness gate).
   const sevSum = modifierIds.reduce((s, id) => s + (dailyModifierById(id)?.severity ?? 0), 0);
@@ -165,6 +180,7 @@ export function generateDaily(key: string): DailyPlan {
     musicTrack,
     difficultyEstimate: { label, scalar },
     recommendedPower,
+    ...(megaBoss ? { megaBoss } : {}),
   };
 }
 

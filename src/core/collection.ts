@@ -16,10 +16,11 @@ import { cardRegistry } from './cards';
 import type { CardEffect } from './cards';
 import { ALL_ITEMS } from './equipment';
 import { CHASSIS } from './boss';
+import { megaBossRegistry } from './megaboss';
 import { BIOMES } from './biomes';
 import type { LifetimeStats } from './types';
 
-export type CollectionCategoryId = 'enemies' | 'bosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests';
+export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests';
 
 export interface CollectionEntry {
   id: string;
@@ -61,6 +62,9 @@ export interface CollectionContext {
   ownedDefIds: Set<string>; // equipment definition ids the player owns ≥1 of
   bestWave: number;
   bossesSlain: Set<string>; // framework-boss chassis archetypes ever slain
+  megaSlain: Set<string>; // Mega Boss def ids ever defeated (docs/MEGA-BOSS.md §collection)
+  megaPerfect: Set<string>; // …defeated with zero Nucleus integrity lost
+  megaSpeed: Set<string>; // …defeated faster than the expected kill time
   biomesSeen: Set<string>; // biome ids the account has reached in Campaign
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
@@ -176,6 +180,14 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id, name: `${id[0].toUpperCase()}${id.slice(1)}`, tier, maxTier: 1, tierLabel: tier ? 'Slain' : 'Unencountered' };
   });
 
+  // Mega Bosses (docs/MEGA-BOSS.md §collection): registry-driven — a future mega joins the codex
+  // automatically. Tiered MASTERY, not mere discovery: Slain → Perfect Kill → Swift Execution.
+  const megaBosses = megaBossRegistry.active().map((d): CollectionEntry => {
+    const tier = ctx.megaSlain.has(d.id) ? 1 + (ctx.megaPerfect.has(d.id) ? 1 : 0) + (ctx.megaSpeed.has(d.id) ? 1 : 0) : 0;
+    const label = tier === 0 ? 'Undisturbed' : tier === 1 ? 'Slain' : tier === 2 ? 'Mastered' : 'Dominated';
+    return { id: d.id, name: `${d.name} — ${d.title}`, tier, maxTier: 3, tierLabel: label };
+  });
+
   // Biomes: discovered once the account has reached that biome's region in Campaign (derived from
   // campaign depth by meta.ts, no new tracking).
   const biomes = BIOMES.map((b): CollectionEntry => {
@@ -186,6 +198,7 @@ export function collectionView(ctx: CollectionContext): CollectionView {
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
+    makeCategory('megaBosses', 'Mega Bosses', megaBosses),
     makeCategory('towers', 'Towers', towers),
     makeCategory('heroes', 'Heroes', heroes),
     makeCategory('cards', 'Mutations', cards),
@@ -219,6 +232,9 @@ interface CategoryBonusSpec { effects: EffectSpec[]; econ: EconSpec[]; powerWeig
 const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   enemies: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.12, label: 'Biomass' }], econ: [], powerWeight: 0.03 },
   bosses: { effects: [], econ: [{ key: 'bossLootMult', max: 0.15, label: 'Boss Loot' }], powerWeight: 0.03 },
+  // Mega mastery pays PERMANENT passives (docs/MEGA-BOSS.md §collection): a small run-wide damage
+  // edge + deeper boss loot + the largest single-category Power weight (it is the hardest codex).
+  megaBosses: { effects: [{ op: 'mul', field: 'towerDamageMult', max: 1.06, label: 'Tower Damage' }], econ: [{ key: 'bossLootMult', max: 0.1, label: 'Boss Loot' }], powerWeight: 0.04 },
   towers: { effects: [{ op: 'mul', field: 'towerDamageMult', max: 1.08, label: 'Tower Damage' }], econ: [{ key: 'towerXpMult', max: 0.25, label: 'Tower XP' }], powerWeight: 0.03 },
   heroes: { effects: [], econ: [{ key: 'heroXpMult', max: 0.25, label: 'Hero XP' }], powerWeight: 0.03 },
   cards: { effects: [], econ: [], powerWeight: 0.03 },

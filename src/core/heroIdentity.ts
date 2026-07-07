@@ -14,21 +14,24 @@ export type HeroPassiveKind =
   | 'eliteDamage' // + hero damage vs elite enemies (Ravager)
   | 'towerAura' // innate aura: nearby towers gain fire-rate + damage (Shepherd)
   | 'vulnField' // disrupted enemies take extra damage from all sources (Overseer)
-  | 'causticVuln'; // CORRODED enemies take extra damage from all sources (Vitriol)
+  | 'causticVuln' // CORRODED enemies take extra damage from all sources (Vitriol)
+  | 'viralVuln'; // INFECTED enemies take extra damage from all sources (Revenant)
 
 /** A hero's defining identity rule (flavour + a light mechanical lean). */
 export type HeroTraitKind =
   | 'eliteHunter' // elite kills heal + briefly haste the hero (Ravager)
   | 'broodTender' // summons/pulse lean to crowd control (Shepherd)
   | 'targetHijack' // the control field drags + denies the lane (Overseer)
-  | 'groundDenial'; // every shell leaves a lingering acid pool (Vitriol)
+  | 'groundDenial' // every shell leaves a lingering acid pool (Vitriol)
+  | 'plagueStrike'; // blink-strikes inject Infection that spreads on the host's death (Revenant)
 
 /** How a hero scales WITHIN a run so it stays relevant to endgame. */
 export type HeroScalingKind =
   | 'killchain' // stacking bonus vs-elite damage per elite slain this run (Ravager)
   | 'livingHive' // the tower aura strengthens per nearby tower (Shepherd)
   | 'overload' // the vulnerability field deepens with depth (Overseer)
-  | 'saturation'; // the Corrosion vulnerability deepens with depth (Vitriol)
+  | 'saturation' // the Corrosion vulnerability deepens with depth (Vitriol)
+  | 'virulence'; // the Infection vulnerability deepens with depth (Revenant)
 
 /** AI repositioning profile (game.ts hero brains): aggressive never retreats (a weakness). */
 export type HeroSurvival = 'aggressive' | 'cautious' | 'evasive';
@@ -89,6 +92,16 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     trait: { name: 'Ground Denial', desc: 'Every shell leaves a lingering acid pool that melts armor and chokes the lane.', kind: 'groundDenial' },
     scaling: { name: 'Saturation', desc: 'The deeper the run, the more its Corrosion softens targets (up to +30%).', kind: 'saturation', perStack: 0.015, cap: 0.3 },
     survival: 'cautious',
+  },
+  revenant: {
+    kind: 'revenant',
+    role: 'Phase-stalking assassin — BLINKS to the biggest threat (boss → elite → highest-HP) and deletes it with heavy, spreading Infection.',
+    strengths: ['Deletes single elites & bosses', 'Teleport mobility — reaches anything, anywhere', 'Amplifies all Infection damage on the field'],
+    weaknesses: ['Fragile — a glass assassin', 'No crowd clear, control, or sustain for the line', 'Wasted on a swarm — it wants ONE fat target'],
+    passive: { name: 'Virulent Presence', desc: 'INFECTED enemies take extra damage from ALL sources — everything the Revenant touches rots faster.', kind: 'viralVuln', amount: 0.18 },
+    trait: { name: 'Plague Strike', desc: 'Its blink-strikes inject a deep Infection; an infected host bursts the plague to its neighbors on death.', kind: 'plagueStrike' },
+    scaling: { name: 'Virulence', desc: 'The deeper the run, the more its Infection softens targets (up to +30%).', kind: 'virulence', perStack: 0.015, cap: 0.3 },
+    survival: 'evasive',
   },
 };
 

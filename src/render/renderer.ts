@@ -23,7 +23,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, HERO_DEFS, PERF, TOWER_DEFS } from '../core/config';
+import { ENEMY_DEFS, HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, hexRgb, rgba } from './theme';
@@ -43,6 +43,7 @@ import {
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
+import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { dangerCurve } from '../core/dangerCamera';
 
 export interface Pointer {
@@ -104,6 +105,9 @@ export function drawGame(
 
   const occupied = new Set(rs.towers.map((tw) => tw.slot));
   drawHiveTendrils(ctx, rs, t);
+  // MEGA BOSS body (docs/MEGA-BOSS.md §visuals): the battlefield-scale organism anchored across
+  // the top — UNDER every entity, so the field visibly exists beneath it. Null on ordinary runs.
+  if (rs.megaBoss) drawMegaBody(ctx, rs.megaBoss, t);
   drawSlots(ctx, rs, occupied);
   drawBase(ctx, rs, t);
 
@@ -128,6 +132,17 @@ export function drawGame(
     ring(ctx, cp.x, cp.y, cp.r * 0.55, rgba(hexRgb('#7a2fae'), 0.3 * fade), 1);
   }
 
+  // Blight Sower spore mines (docs/SOWER.md): armed pods dotted on the approach — a growing
+  // bud (arm fuse), then a slow pulse with a faint trigger ring. Empty on every other run.
+  for (const m of rs.mines) {
+    const c = hexRgb(TOWER_DEFS.sower.color);
+    const grow = m.arm > 0 ? Math.max(0.25, 1 - m.arm / 0.8) : 1;
+    const puls = m.arm > 0 ? 1 : pulse(t * 2 + m.id, 1, 0.85, 1.15);
+    glowDisc(ctx, m.x, m.y, 9 * grow * puls, rgba(c, m.arm > 0 ? 0.18 : 0.3));
+    drawShape(ctx, 'circle', m.x, m.y, 4.5 * grow * puls, rgba(c, m.arm > 0 ? 0.55 : 0.95));
+    drawShape(ctx, 'circle', m.x, m.y - 1, 1.6 * grow, 'rgba(255,255,255,0.5)');
+    if (m.arm <= 0) ring(ctx, m.x, m.y, 13 * puls, rgba(c, 0.28), 1, [3, 4]);
+  }
   drawOverchargeLinks(ctx, rs);
   for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
@@ -140,6 +155,11 @@ export function drawGame(
   const detail = rs.enemies.length < PERF.lodEnemyCount;
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
+  // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
+  if (rs.megaBoss) {
+    drawMegaOrgans(ctx, rs.megaBoss, t);
+    drawMegaShots(ctx, rs);
+  }
   drawBeams(ctx, rs, t); // Resonance Coil channels (over enemies, so the melt reads on the target)
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
@@ -179,6 +199,7 @@ export function drawGame(
   ctx.textAlign = 'left';
 
   drawPressureVignette(ctx, pressure, danger, t);
+  if (rs.megaBoss) drawMegaVignette(ctx, rs.megaBoss, t); // the organism's screen-space presence
   drawBiomeFx(ctx, rs, t); // hazard-pulse vignette + transition flash, over everything
 }
 
@@ -600,6 +621,40 @@ function drawLandingImpacts(ctx: CanvasRenderingContext2D, rs: RenderState, t: n
 
 const TOWER_GROW = 0.35; // seconds for a placed tower to scale up to full size
 
+/** The Marrow Siphon's continuous drain ray (docs/SIPHON.md). A tapered glowing beam from the organ
+ *  to its locked target, thickening + whitening with the Gorge `heat` (0..1); corpuscles flow BACK
+ *  along it toward the tower (the drain direction) and an impact bloom marks where it bites. Pure
+ *  presentation — driven by the sim's render-only beam fields; never affects gameplay. */
+function drawSiphonBeam(ctx: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, heat: number, now: number, color: string, id: number): void {
+  const rgb = hexRgb(color);
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = dx / len;
+  const ny = dy / len;
+  const width = 2 + heat * 4;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = rgba(rgb, 0.12 + heat * 0.18); // outer glow
+  ctx.lineWidth = width * 2.6;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = rgba(rgb, 0.5 + heat * 0.4); // core
+  ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  if (heat > 0.5) { // a superheated white centre once gorged
+    ctx.strokeStyle = rgba('255,255,255', (heat - 0.5) * 0.9);
+    ctx.lineWidth = Math.max(1, width * 0.4);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+  const beads = 4; // corpuscles drawn flowing target→tower (the drain)
+  for (let i = 0; i < beads; i++) {
+    const f = (now * (0.6 + heat) + i / beads) % 1;
+    drawShape(ctx, 'circle', x1 - nx * len * f, y1 - ny * len * f, 1.6 + heat * 1.6, rgba('255,255,255', 0.8));
+  }
+  glowDisc(ctx, x1, y1, 5 + heat * 8 + Math.sin(now * 12 + id) * 1.5, color); // impact bloom
+  ctx.restore();
+}
+
 function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0): void {
   const def = TOWER_DEFS[tw.kind];
   const shape = TOWER_SHAPE[tw.kind];
@@ -663,6 +718,13 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.7 + fresh + tw.tier * 0.08), def.color);
   }
 
+  // Marrow Siphon (docs/SIPHON.md): the live drain ray, drawn UNDER the body so the organ sits over
+  // the socket while the beam reaches out over the swarm. beamX/Y are set only while a lock is live
+  // (render-only fields), so an idle siphon — and every non-siphon tower — draws nothing here.
+  if (tw.kind === 'siphon' && tw.beamX !== undefined && tw.beamY !== undefined) {
+    drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, def.color, tw.id);
+  }
+
   drawShape(ctx, shape, tw.x, tw.y, r, def.color);
   strokeShape(ctx, shape, tw.x, tw.y, r, 'rgba(6,8,14,0.55)', 1.5);
   drawShape(ctx, shape, tw.x, tw.y - r * 0.18, r * 0.42, 'rgba(255,255,255,0.18)'); // top gloss
@@ -690,6 +752,20 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     ring(ctx, tw.x, tw.y, r * 1.25, rgba(c, 0.24 + heat * 0.5), 1.2 + heat * 1.2, [3, 4]);
     glowDisc(ctx, tw.x, tw.y, r * (0.7 + heat * 0.9), rgba(c, 0.35 + heat * 0.5));
     drawShape(ctx, 'circle', tw.x, tw.y, r * (0.26 + heat * 0.14) * breathe, rgba('255, 255, 255', 0.7 + heat * 0.25));
+  } else if (tw.kind === 'siphon') {
+    // a lidded ocular pod: a socket ring + a crimson iris that leans toward the locked prey and
+    // dilates with the Gorge heat — a drinking pupil at its centre.
+    const heat = tw.beamHeat;
+    ring(ctx, tw.x, tw.y, r * 1.25, rgba(hexRgb(def.color), 0.22 + heat * 0.4), 1.4);
+    let ix = tw.x;
+    let iy = tw.y - r * 0.05;
+    if (tw.beamX !== undefined && tw.beamY !== undefined) {
+      const a = Math.atan2(tw.beamY - tw.y, tw.beamX - tw.x);
+      ix = tw.x + Math.cos(a) * r * 0.32;
+      iy = tw.y + Math.sin(a) * r * 0.32;
+    }
+    glowDisc(ctx, ix, iy, r * (0.34 + heat * 0.16) * breathe, def.color);
+    drawShape(ctx, 'circle', ix, iy, r * 0.16 * breathe, 'rgba(10,6,10,0.85)'); // the drinking pupil
   }
 
   // Mastery cosmetic: a veteran "halo" that grows with the tower's mastery RANK (MASTERY.md
@@ -815,9 +891,17 @@ function drawStrainOrgans(ctx: CanvasRenderingContext2D, tw: RenderState['towers
 function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number): void {
   let byId: Map<number, RenderState['enemies'][number]> | null = null;
   for (const tw of rs.towers) {
-    if (tw.kind !== 'coil' || tw.beamTarget < 0) continue;
-    if (!byId) { byId = new Map(); for (const e of rs.enemies) if (e.alive) byId.set(e.id, e); }
-    const target = byId.get(tw.beamTarget);
+    if (tw.kind !== 'coil' || (tw.beamTarget < 0 && tw.beamTarget > -1000)) continue;
+    // Mega weak-point channel (docs/MEGA-BOSS.md): the lock encodes as -1000 - spec — resolve the
+    // organ's live coordinates from the mega view instead of the enemy map.
+    let target: { x: number; y: number } | undefined;
+    if (tw.beamTarget <= -1000) {
+      const spec = -1000 - tw.beamTarget;
+      target = rs.megaBoss?.weakPoints.find((w) => w.spec === spec && w.state === 'open');
+    } else {
+      if (!byId) { byId = new Map(); for (const e of rs.enemies) if (e.alive) byId.set(e.id, e); }
+      target = byId.get(tw.beamTarget);
+    }
     if (!target) continue;
     const c = hexRgb(TOWER_DEFS.coil.color);
     const heat = tw.beamHeat;
@@ -1292,7 +1376,7 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square' } as const;
+const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle' } as const;
 
 function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0): void {
   for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0, heroStarTiers[rs.heroes[i].kind] ?? 0, heroEvo);
@@ -1313,6 +1397,22 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // Vitriol's siege envelope — a faint ranging ring marking the bombardment reach.
   if (!down && def.behavior === 'siege' && def.attackRange > 0) {
     ring(ctx, h.x, h.y, def.attackRange, rgba(tint, pulse(t, 1.4, 0.05, 0.12)), 1, [4, 10]);
+  }
+  // Revenant blink arc (behavior 'phase') — a fading spectral streak from where it teleported FROM,
+  // and a dissipating after-image at the origin. phaseT / phaseFrom* are render-only fields the sim
+  // sets on each blink-strike (absent on every other hero ⇒ nothing drawn).
+  if (!down && (h.phaseT ?? 0) > 0 && h.phaseFromX !== undefined && h.phaseFromY !== undefined) {
+    const a = Math.min(1, (h.phaseT as number) / HERO_PHASE_FLASH);
+    ctx.save();
+    ctx.strokeStyle = rgba(tint, 0.5 * a);
+    ctx.lineWidth = 2 + 3 * a;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(h.phaseFromX, h.phaseFromY);
+    ctx.lineTo(h.x, h.y);
+    ctx.stroke();
+    glowDisc(ctx, h.phaseFromX, h.phaseFromY, 5 + 6 * a, def.color); // the after-image dissolving
+    ctx.restore();
   }
 
   // sample the primary hero's path into a short afterimage trail (slot-1 only)

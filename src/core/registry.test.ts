@@ -74,9 +74,9 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // the launch five + the expansion three + the Resonance Coil = nine towers; four heroes (Vitriol added)
-    expect(towerRegistry.size).toBe(9);
-    expect(heroRegistry.size).toBe(4);
+    // launch five + expansion three + Coil + Siphon + Blight Sower = eleven towers; five heroes (Vitriol + Revenant)
+    expect(towerRegistry.size).toBe(11);
+    expect(heroRegistry.size).toBe(5);
   });
 
   it('shipped content passes registry-driven validation', () => {

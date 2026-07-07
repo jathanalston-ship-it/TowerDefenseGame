@@ -293,6 +293,32 @@ const BRANCHES: Branch[] = [
     ],
   },
 
+  // ════════════ MARROW SIPHON (Vital, continuous drain beam) ════════════
+  // The beam honours damage/rate/range ride-alongs (rate → a FASTER Gorge ramp), `targeting` (its
+  // lock), `projectile.extraProjectiles` (extra FORKED drain targets), and `ability` grants pulsed on
+  // its cadence (game.beamSystem). No pierce/crit/single-target status — a ray has no projectile.
+  {
+    id: 'siphon_gorge', tower: 'siphon', name: 'Insatiable Gorge',
+    theme: 'A ravenous tide — it finishes the wounded and gorges FATTER the more the lane dies around it.',
+    tiers: [
+      { tier: 1, name: 'Ravenous Draw', desc: 'The beam runs hotter and hunts the WEAKEST — finishing what the swarm started.', damageMult: 1.2, particle: 'bloom', sfx: 'br_siphon', impact: 'bloom', grants: [{ t: 'targeting', profile: 'lowestHealth' }] },
+      { tier: 2, name: 'Rending Draw', desc: 'The drain strips armor plating (Fracture) from everything near the victim.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 140, status: { kind: 'Fracture', amount: 2 } }] }] },
+      { tier: 3, name: 'Boiling Blood', desc: 'A faster Gorge, and the backwash melts the flesh around the beam.', fireRateMult: 1.2, impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 130, damage: 8, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Marrow Boil', desc: 'A searing drain field engulfs the kill zone.', damageMult: 1.25, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 150, damage: 14, react: true, particle: 'bloom' }] }] },
+      { tier: 5, name: 'The Devouring Star', desc: 'An unbearable ray: a devouring nova erupts from the fed-upon and acid drowns the field.', damageMult: 1.3, fireRateMult: 1.15, particle: 'bloom', impact: 'bloom', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 160, damage: 38, react: true, particle: 'bloom' }, { type: 'aura', radius: 180, damage: 10, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'devourstar' }] },
+    ],
+  },
+  {
+    id: 'siphon_well', tower: 'siphon', name: 'Bloodwell',
+    theme: 'The organ swells into a well of the hive — forking rays that drink the swarm and mend the Nucleus.',
+    tiers: [
+      { tier: 1, name: 'Branching Feelers', desc: 'The beam forks to a second target.', particle: 'vital', sfx: 'br_well', impact: 'bloom', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Vital Return', desc: 'Every pulse channels siphoned life back into the Nucleus.', grants: [{ t: 'ability', components: [{ type: 'heal', nucleus: 2 }] }] },
+      { tier: 3, name: 'Spreading Roots', desc: 'A third fork; the drain leaves Corrosion where it feeds.', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 150, damage: 6, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Transfusion', desc: 'A stronger mend, and a draining field chips the whole cluster.', grants: [{ t: 'ability', components: [{ type: 'heal', nucleus: 3 }, { type: 'aura', radius: 150, damage: 9, react: true, particle: 'bloom' }] }] },
+      { tier: 5, name: 'The Bloodwell', desc: 'A well of the hive: four forking rays, a constant mend, and a wide melting drain.', particle: 'vitalcore', impact: 'bloom', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'heal', nucleus: 4 }, { type: 'aura', radius: 170, damage: 12, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'bloom' }] }, { t: 'cosmetic', id: 'bloodwell' }] },
+    ],
+  },
   // ════════════ RESONANCE COIL (Resonant, ramping single-target beam) ════════════
   {
     id: 'coil_overload', tower: 'coil', name: 'Overcharge Lattice',
@@ -314,6 +340,33 @@ const BRANCHES: Branch[] = [
       { tier: 3, name: 'Triple Refraction', desc: 'A third channel melts another foe at once.', damageMult: 1.1, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
       { tier: 4, name: 'Caustic Lattice', desc: 'A fourth channel; every beam drenches its target in Corrosion.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
       { tier: 5, name: 'Prismatic Cascade', desc: 'A blooming lattice: two more channels and a drowning caustic field.', damageMult: 1.15, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'ability', components: [{ type: 'aura', radius: 150, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'prism' }] },
+    ],
+  },
+  // ════════════ BLIGHT SOWER (Caustic, spore-mine area denial) ════════════
+  // The trap loop honours damage/splash/rate ride-alongs (rate → a faster SEEDING cadence),
+  // `projectile.extraProjectiles` (+max armed mines), and `ability` grants fired AT each
+  // detonation point (game.mineSystem) — an aura/debuff/explosion grant blooms where the mine
+  // bursts. No pierce/targeting — the lane walks into the garden.
+  {
+    id: 'sower_bloom', tower: 'sower', name: 'Corrosive Bloom',
+    theme: 'Fewer, monstrous detonations — a garden of horrors that dissolves whole packs.',
+    tiers: [
+      { tier: 1, name: 'Swollen Pods', desc: 'Detonations bloom 20% wider and hit harder.', damageMult: 1.1, particle: 'acid', sfx: 'br_acid', impact: 'acid', grants: [{ t: 'projectile', splashMult: 1.2 }] },
+      { tier: 2, name: 'Caustic Marrow', desc: 'Every burst leaves a corroding wash on the survivors.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 6, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 3, name: 'Deep Blight', desc: 'Heavier payloads; the wash shears armor (Fracture).', damageMult: 1.2, impact: 'acid', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Overripe', desc: 'Vast detonations — +25% blast radius.', damageMult: 1.1, grants: [{ t: 'projectile', splashMult: 1.25 }] },
+      { tier: 5, name: 'The Rotting Field', desc: 'Every burst is a caustic catastrophe: a second acid nova erupts from the crater.', damageMult: 1.25, particle: 'dissolve', impact: 'dissolve', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 140, damage: 32, react: true, particle: 'acid' }, { type: 'aura', radius: 160, status: { kind: 'Corrosion', amount: 2 }, react: true, particle: 'acid' }] }, { t: 'cosmetic', id: 'rotfield' }] },
+    ],
+  },
+  {
+    id: 'sower_thicket', tower: 'sower', name: 'Choking Thicket',
+    theme: 'Saturation — more buds, faster seeding, the whole approach one continuous minefield.',
+    tiers: [
+      { tier: 1, name: 'Twin Buds', desc: '+1 max armed mine.', particle: 'spore', sfx: 'br_spore', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Quick Germination', desc: '+20% seeding cadence; slightly fatter blooms.', fireRateMult: 1.2, grants: [{ t: 'projectile', splashMult: 1.08 }] },
+      { tier: 3, name: 'Dense Planting', desc: '+1 more bud; bursts leave a corroding trace.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 110, damage: 5, status: { kind: 'Corrosion', amount: 1 }, react: true, particle: 'acid' }] }] },
+      { tier: 4, name: 'Rampant Growth', desc: '+25% seeding cadence, heavier payloads, wider blooms.', fireRateMult: 1.25, damageMult: 1.12, grants: [{ t: 'projectile', splashMult: 1.1 }] },
+      { tier: 5, name: 'The Choking Thicket', desc: 'TWO more buds — the lane is the trap.', damageMult: 1.1, particle: 'spore', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'cosmetic', id: 'thicket' }] },
     ],
   },
 ];

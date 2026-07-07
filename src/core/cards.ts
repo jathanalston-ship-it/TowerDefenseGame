@@ -6,7 +6,7 @@ import type { CardOption, CardRarity, CardCategory, CardSubject, StatusType, Tow
 import type { AbilityComponent } from './ability';
 import type { Rng } from './rng';
 import { Registry } from './registry';
-import { SELL, TOWER_ORDER } from './config';
+import { DEEP_STRAIN_STAGE, SELL, TOWER_ORDER } from './config';
 import { GENE_UPGRADES } from './geneUpgrades';
 import { effectsPower } from './power'; // type-only back-edges elsewhere ⇒ no runtime cycle
 
@@ -34,6 +34,10 @@ export interface RunModifiers {
   effigyDreadDurationMult: number; // scales the Wailing Effigy panic (Fear) seconds
   coilRampMult: number; // scales the Resonance Coil beam's ramp bonus (harder melt at full resonance)
   coilBeamTargets: number; // +simultaneous beam targets (the Coil's beam forks to additional foes)
+  siphonRampMult: number; // scales how fast the Marrow Siphon's beam GORGES (its ramping DPS) — docs/SIPHON.md
+  siphonDrainMult: number; // scales the biomass the Marrow Siphon siphons from damage dealt (its economy return)
+  sowerBlastRadiusMult: number; // scales the Blight Sower's mine DETONATION radius — docs/SOWER.md
+  sowerExtraMines: number; // +max armed mines each Blight Sower may keep planted (its field density)
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -118,6 +122,10 @@ export function defaultRunModifiers(): RunModifiers {
     effigyDreadDurationMult: 1,
     coilRampMult: 1,
     coilBeamTargets: 0,
+    siphonRampMult: 1,
+    siphonDrainMult: 1,
+    sowerBlastRadiusMult: 1,
+    sowerExtraMines: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -363,6 +371,18 @@ export const CARD_POOL: CardDef[] = [
   { id: 'last_bastion', name: 'Last Bastion', rarity: 'legendary', category: 'tower', description: 'Below 50% Nucleus, towers deal ×2.5 — and +4% per tower fielded.', effects: [{ op: 'add', field: 'lastStandThreshold', value: 0.5 }, { op: 'mul', field: 'lastStandMult', value: 2.5 }, { op: 'add', field: 'damagePerTower', value: 0.04 }] },
   { id: 'apex_predator', name: 'Apex Predator', rarity: 'legendary', category: 'hero', description: 'Hero damage ×3 and +150 HP — but every enemy has +15% HP.', effects: [{ op: 'mul', field: 'heroDamageMult', value: 3.0 }, { op: 'heroHp', value: 150 }, { op: 'mul', field: 'enemyHpRunMult', value: 1.15 }] },
 
+  // ════════════════ Deep-Strain gene cards (docs/SIPHON.md §gate) — GATED via the CardUnlock DSL: the
+  //    five general cards open at Campaign Stage 15 (DEEP_STRAIN_STAGE); the two Marrow Siphon identity
+  //    cards gate on OWNING the siphon. Absent from the default pool ⇒ golden draft byte-identical. ════
+  { id: 'deep_overclock', name: 'Deep Overclock', rarity: 'epic', category: 'tower', description: '+20% tower fire rate and +12% tower damage.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }] },
+  { id: 'marrow_feast', name: 'Marrow Feast', rarity: 'epic', category: 'economy', description: '+35% biomass from kills; gain 150 biomass now.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'mul', field: 'biomassMult', value: 1.35 }, { op: 'biomass', value: 150 }] },
+  { id: 'neural_dominion', name: 'Neural Dominion', rarity: 'epic', category: 'control', description: 'Disruption slows +15% more and exposes +15%; +8% tower damage.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.15 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.15 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }] },
+  { id: 'hollow_bastion', name: 'Hollow Bastion', rarity: 'epic', category: 'mutation', description: '+90 max & current Integrity; +3% tower damage per tower fielded.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'integrity', value: 90 }, { op: 'add', field: 'damagePerTower', value: 0.03 }] },
+  { id: 'apex_ascendant', name: 'Apex Ascendant', rarity: 'legendary', category: 'hero', description: 'Hero damage ×2.2, +180 max HP, −18% ability cooldown.', unlock: { kind: 'campaignStage', stage: DEEP_STRAIN_STAGE }, effects: [{ op: 'mul', field: 'heroDamageMult', value: 2.2 }, { op: 'heroHp', value: 180 }, { op: 'mul', field: 'heroCooldownMult', value: 0.82 }] },
+  // ── Marrow Siphon identity cards (subject = siphon; gated on OWNING the siphon, like the Coil's cards) ──
+  { id: 'gorging_instinct', name: 'Gorging Instinct', rarity: 'rare', category: 'tower', description: 'The Marrow Siphon gorges +25% faster — its beam reaches full melt sooner.', unlock: { kind: 'towerUnlocked', tower: 'siphon' }, effects: [{ op: 'mul', field: 'siphonRampMult', value: 1.25 }] },
+  { id: 'hemophage', name: 'Hemophage', rarity: 'epic', category: 'economy', description: 'The Marrow Siphon siphons +45% more Biomass and gorges +10% faster.', unlock: { kind: 'towerUnlocked', tower: 'siphon' }, effects: [{ op: 'mul', field: 'siphonDrainMult', value: 1.45 }, { op: 'mul', field: 'siphonRampMult', value: 1.1 }] },
+
   // ════════════════ Expansion base pool (5) — ungated, always draftable ════════════════
   // New always-in-pool genes spanning fresh subjects (hero survivability, AoE, economy, corrosion,
   // hero tempo). Each carries authored permanent upgrades; adding them to the pool shifts the
@@ -404,6 +424,16 @@ export const CARD_POOL: CardDef[] = [
   { id: 'culling_instinct', name: 'Culling Instinct', rarity: 'rare', category: 'mutation', description: 'Instantly kill non-boss enemies that drop below 10% health.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.1 }], unlock: { kind: 'lifetimeKills', kills: 1000 } },
   { id: 'viral_payload', name: 'Viral Payload', rarity: 'rare', category: 'mutation', description: 'Every kill spreads 2 Fracture to nearby enemies.', effects: [{ op: 'add', field: 'killFractureSplash', value: 2 }], unlock: { kind: 'bossesSlain', bosses: 3 } },
   { id: 'toxic_aura', name: 'Toxic Aura', rarity: 'rare', category: 'poison', description: 'The hero exudes Corrosion, infecting nearby enemies.', effects: [{ op: 'flag', field: 'heroCorrosionAura' }], unlock: { kind: 'totalBiomass', biomass: 50000 } },
+
+  // ════════════════ Blight Sower cards (2) — gated by OWNING the Sower ════════════════
+  // Tower-SUBJECT cards (sowerBlastRadiusMult / sowerExtraMines ⇒ subject 'sower'), kept out of
+  // the default pool exactly like the Coil/Siphon signature sets (docs/SOWER.md).
+  { id: 'mycelial_carpet', name: 'Mycelial Carpet', rarity: 'rare', category: 'aoe', description: 'Blight Sower detonations bloom 35% wider.', effects: [{ op: 'mul', field: 'sowerBlastRadiusMult', value: 1.35 }], unlock: { kind: 'towerUnlocked', tower: 'sower' } },
+  { id: 'seed_hoard', name: 'Seed Hoard', rarity: 'epic', category: 'tower', description: 'Every Blight Sower keeps +2 more mines armed.', effects: [{ op: 'add', field: 'sowerExtraMines', value: 2 }], unlock: { kind: 'towerUnlocked', tower: 'sower' } },
+  // ════════════════ Expansion gated trio — each on a UNIQUE progression gate ════════════════
+  { id: 'war_rhythm', name: 'War Rhythm', rarity: 'rare', category: 'tower', description: '+18% tower fire rate.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.18 }], unlock: { kind: 'campaignStage', stage: 50 } },
+  { id: 'apex_hunger', name: 'Apex Hunger', rarity: 'epic', category: 'economy', description: '+30% biomass from kills and +8% tower damage.', effects: [{ op: 'mul', field: 'biomassMult', value: 1.3 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'lifetimeKills', kills: 5000 } },
+  { id: 'trophy_takers', name: 'Trophy Takers', rarity: 'legendary', category: 'economy', description: 'Status reactions re-fire once more; +20% biomass from kills.', effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'biomassMult', value: 1.2 }], unlock: { kind: 'bossesSlain', bosses: 5 } },
 
   // ════════════════ Expansion II gated pool (5) — fresh scored axes, one DISTINCT unlock each ════════
   // Each opens a design axis no prior card used (hero crit / dug-in per-empty-slot / composition
@@ -606,6 +636,10 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   effigyDreadDurationMult: 'effigy',
   coilRampMult: 'coil',
   coilBeamTargets: 'coil',
+  sowerBlastRadiusMult: 'sower',
+  sowerExtraMines: 'sower',
+  siphonRampMult: 'siphon',
+  siphonDrainMult: 'siphon',
   reactorBiomassMult: 'reactor',
   reactorOverchargeBonus: 'reactor',
   // hero kit (numbers + behaviour)

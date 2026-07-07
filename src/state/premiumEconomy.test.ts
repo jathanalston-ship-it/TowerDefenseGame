@@ -9,7 +9,7 @@
 // gates the Evolution Cap, so money accelerates THROUGH the same gates it cannot skip.
 
 import { describe, it, expect } from 'vitest';
-import { meta, towerStarCost, heroStarCost, upgradeCost, evolutionStarCap } from './meta';
+import { meta, towerStarCost, heroStarCost, upgradeCost, upgradeUnlocked, evolutionStarCap } from './meta';
 import type { SaveData } from '../save/saveStore';
 import { defaultSave } from '../save/saveStore';
 import { HERO_ORDER, META_UPGRADES, STAR, TOWER_ORDER } from '../core/config';
@@ -81,6 +81,7 @@ function spend(s: SaveData): void {
     for (const u of META_UPGRADES) {
       const lvl = s.upgrades[u.id] ?? 0;
       if (lvl >= u.maxLevel) continue;
+      if (!upgradeUnlocked(s, u)) continue; // the REAL purchase rule: gated upgrades wait for their unlock
       const c = upgradeCost(u, lvl);
       if (c <= s.shards && (!best || c < best.cost)) best = { id: u.id, cost: c };
     }

@@ -38,12 +38,17 @@ import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
 import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
+import type { MegaEncounter } from '../core/megaboss';
 import type { RunResult } from '../state/meta';
 
 // Per-cue camera "trauma" (screen-shake) contribution; shake = trauma² · SHAKE_MAX.
 const TRAUMA: Record<string, number> = {
   hit: 0.0036, kill: 0.015, shred: 0.1, breach: 0.45, ability: 0.3, wave: 0.08, place: 0.03, splice: 0.34, dissolve: 0.14,
   hiveHit: 0.055, // per landed bite: a sustained siege reads as a low rumble, a burst as a jolt
+  // Mega Boss camera events (docs/MEGA-BOSS.md §visuals): arrival quake, phase crunch, weak-point
+  // rupture payoff, and the long collapse — the biggest impulses in the game, by design.
+  mega: 0.5, megaPhase: 0.3, wpOpen: 0.05, wpBreak: 0.24, megaDeath: 0.6, megaAbility: 0.06,
+  mine: 0.02, // spore-mine bursts: a light patter even when a field chains
 };
 // Hive damage-state thresholds (docs/HIVE-SIEGE.md §states) — a GROAN marks each failure.
 const HIVE_STATES = [0.75, 0.5, 0.25, 0.1];
@@ -99,7 +104,7 @@ export function GameView({
   stage?: StageConfig;
   difficulty?: string;
   doctrine?: string;
-  daily?: { modifierIds: string[]; towerPool: TowerKind[] }; // Daily Run (docs/DAILY-RUN.md): the day's modifiers + trial Conveyor pool
+  daily?: { modifierIds: string[]; towerPool: TowerKind[]; megaBoss?: MegaEncounter }; // Daily Run (docs/DAILY-RUN.md): modifiers + trial pool + the rare Mega variant (docs/MEGA-BOSS.md §daily)
   onEnd: (r: RunResult) => void;
   onAbandon: () => void;
   tutorial?: boolean; // TUTORIAL mode: don't bank loot + don't auto-hand-off on run end (the tutorial director drives completion)
@@ -115,6 +120,7 @@ export function GameView({
     favorite: daily ? daily.towerPool[0] : meta.favoriteTower(), // Biomorph Conveyor favorite (docs/STRAIN.md §conveyor)
     unlocked: daily ? [...new Set(daily.towerPool)] : meta.unlockedTowers(), // gates placement/belt/drafts (docs/TOWERS.md §expansion)
     ...(daily ? { daily: { modifierIds: daily.modifierIds } } : {}),
+    ...(daily?.megaBoss ? { megaDaily: daily.megaBoss } : {}), // the Daily MEGA variant replaces the wave plan
     geneLevels: meta.geneLevels(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),
@@ -134,7 +140,7 @@ export function GameView({
   const [crashed, setCrashed] = useState<string | null>(null);
   // Run soundtrack: combat by default, boss while a boss banner is live, victory/defeat cadence
   // at run end (one-shots). Categories only — the manager owns all playback (audio/music.ts).
-  const bossLive = hud.bossBanner !== null;
+  const bossLive = hud.bossBanner !== null || hud.megaBanner !== null; // a Mega Boss IS a boss theme
   useEffect(() => {
     if (hud.phase === 'won') { music.play('victory'); return; }
     if (hud.phase === 'lost') { music.play('defeat'); return; }
@@ -221,6 +227,34 @@ export function GameView({
     const id = setTimeout(() => setBossIntro(null), 3000);
     return () => clearTimeout(id);
   }, [bossIntro]);
+  // MEGA BOSS arrival spectacle (docs/MEGA-BOSS.md): the raid banner flipping null→present IS the
+  // arrival — a grander card than the boss intro (the audio roar + quake ride the sfx queue).
+  const [megaIntro, setMegaIntro] = useState<{ name: string; title: string; glow: string; at: number } | null>(null);
+  const megaWasLive = useRef(false);
+  useEffect(() => {
+    const live = hud.megaBanner !== null;
+    if (live && !megaWasLive.current && hud.megaBanner) {
+      setMegaIntro({ name: hud.megaBanner.name, title: hud.megaBanner.title, glow: hud.megaBanner.glow, at: Date.now() });
+      wavePushRef.current = 1;
+    }
+    megaWasLive.current = live;
+  }, [hud.megaBanner]);
+  useEffect(() => {
+    if (!megaIntro) return undefined;
+    const id = setTimeout(() => setMegaIntro(null), 3800);
+    return () => clearTimeout(id);
+  }, [megaIntro]);
+  // Weak-point consequence callouts (docs/MEGA-BOSS.md §hud): the player must always know WHY
+  // that organ mattered — "Shield Generator Destroyed — shields purged".
+  const [wpCallout, setWpCallout] = useState<{ name: string; note: string; at: number } | null>(null);
+  useEffect(() => gameEvents.on('megaWeakPointDown', (e) => {
+    setWpCallout({ name: e.kind.replace(/_/g, ' ').toUpperCase(), note: e.note, at: Date.now() });
+  }), []);
+  useEffect(() => {
+    if (!wpCallout) return undefined;
+    const id = setTimeout(() => setWpCallout(null), 3200);
+    return () => clearTimeout(id);
+  }, [wpCallout]);
   const pointerRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -666,11 +700,25 @@ export function GameView({
             <span className="wave-banner-t">{waveBanner.endless ? `DEPTH ${waveBanner.n}` : hud.bossRush ? `WAVE ${waveBanner.n} — ${waveBanner.n} ${waveBanner.n === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${waveBanner.n}`}</span>
           </div>
         )}
-        {bossIntro && (
+        {bossIntro && !megaIntro && (
           <div className="boss-intro" key={bossIntro.at} role="alert">
             <span className="boss-intro-eyebrow">◆ APEX THREAT DETECTED ◆</span>
             <span className="boss-intro-name">{bossIntro.name}</span>
             <span className="boss-intro-sub">{bossIntro.phases > 1 ? `${bossIntro.phases}-phase organism — read the telegraphs` : 'Hold the line'}</span>
+          </div>
+        )}
+        {megaIntro && (
+          <div className="mega-intro" key={megaIntro.at} role="alert" style={{ ['--mega']: megaIntro.glow } as CSSProperties}>
+            <span className="mega-intro-eyebrow">▼ BATTLEFIELD-SCALE ORGANISM ▼</span>
+            <span className="mega-intro-name">{megaIntro.name}</span>
+            <span className="mega-intro-title">{megaIntro.title}</span>
+            <span className="mega-intro-sub">Burst its weak points — the battle continues beneath it</span>
+          </div>
+        )}
+        {wpCallout && (
+          <div className="wp-callout" key={wpCallout.at} role="status">
+            <span className="wp-callout-name">{wpCallout.name} DESTROYED</span>
+            <span className="wp-callout-note">{wpCallout.note}</span>
           </div>
         )}
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
@@ -739,6 +787,38 @@ export function GameView({
                 </>
               )}
             </div>
+          </div>
+        )}
+        {hud.megaBanner && (
+          <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
+            <div className="mega-banner-row">
+              <span className="mega-name">{hud.megaBanner.name}</span>
+              <span className="mega-title">{hud.megaBanner.title}</span>
+              <span className="mega-phase">PHASE {hud.megaBanner.phase}/{hud.megaBanner.phases}</span>
+            </div>
+            <div className="mega-hp">
+              <div className="mega-hp-fill" style={{ width: `${hud.megaBanner.hpPct * 100}%` }} />
+            </div>
+            <div className="mega-banner-row2">
+              {hud.megaBanner.stunned && <span className="mega-chip mega-chip-stun">STUNNED</span>}
+              {hud.megaBanner.exposed && <span className="mega-chip mega-chip-exposed">EXPOSED</span>}
+              {hud.megaBanner.telegraph && (
+                <span className="mega-chip mega-chip-cast">
+                  {hud.megaBanner.telegraph.kind.toUpperCase()}
+                  <i className="mega-cast-fill" style={{ width: `${hud.megaBanner.telegraph.frac * 100}%` }} />
+                </span>
+              )}
+              {hud.megaBanner.effects.map((fx) => <span key={fx} className="mega-chip">{fx}</span>)}
+            </div>
+            {hud.megaBanner.weakPoints.length > 0 && (
+              <div className="mega-wps">
+                {hud.megaBanner.weakPoints.map((w) => (
+                  <span key={w.kind} className="mega-wp" title={w.note}>
+                    ⊙ {w.name} <i className="mega-wp-hp"><b style={{ width: `${w.hpPct * 100}%` }} /></i>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {hud.bossBanner && (

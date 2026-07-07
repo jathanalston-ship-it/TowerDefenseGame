@@ -36,6 +36,7 @@ import {
   PERF,
   HIVE,
   SETTLE,
+  SIPHON,
   SIM_DT,
   SLOTS,
   STATUS,
@@ -46,6 +47,8 @@ import {
   HERO_PULSE,
   HERO_ULT,
   HERO_AUTOCAST,
+  HERO_PHASE_FLASH,
+  REVENANT,
   WAVES,
   AUTO_START_DELAY,
   AUTO_START_FIRST_DELAY,
@@ -72,6 +75,9 @@ import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
+import { MINES } from './config';
+import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
+import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaRuntime, MegaWeakPoint } from './megaboss';
 import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
@@ -138,6 +144,9 @@ export interface RunOptions {
   // neutral-defaulted ResolvedEffects struct the sim reads. Omitted ⇒ NEUTRAL (golden path).
   // The day's 3-tower Conveyor pool rides the existing `unlocked` + `favorite` options.
   daily?: { modifierIds: string[] };
+  // Daily MEGA variant (docs/MEGA-BOSS.md §daily): the run IS one evolving Mega Boss encounter —
+  // no wave plan, periodic reinforcements, ends when the Hive or the boss dies. Omitted ⇒ normal.
+  megaDaily?: MegaEncounter;
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -150,6 +159,7 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
 import type {
   CombatClass,
   Enemy,
+  SporeMine,
   EnemyKind,
   Hero,
   HeroKind,
@@ -168,6 +178,7 @@ import type {
   Projectile,
   ProjectileBehavior,
   RunStats,
+  MegaKillStat,
   SelectedPlacedTower,
   TowerSellQuote,
   StatusType,
@@ -269,6 +280,38 @@ export interface RenderState {
   biome: { id: string; name: string; accent: string };
   biomeFlash: number; // 0..1 transition flash (Infinite); 0 in Stage/Campaign steady state
   hazardActive: boolean; // the biome's hazard pulse is firing right now (telegraph)
+  // Mega Boss (docs/MEGA-BOSS.md) — null on every run without one (the overwhelming majority).
+  megaBoss: MegaBossView | null;
+  megaShots: MegaShot[]; // raid-fire tracers (tower/hero → weak point / body); empty otherwise
+  mines: SporeMine[]; // Blight Sower spore mines (docs/SOWER.md); empty on every other run
+}
+
+/** An instant raid-fire tracer (tower/hero → weak point / body chip). Presentation-only. */
+export interface MegaShot {
+  x0: number; y0: number; x1: number; y1: number;
+  life: number; // seconds left (fades out)
+  color: string;
+}
+
+/** The renderer/HUD view of the live Mega Boss (a snapshot of MegaRuntime + its def identity). */
+export interface MegaBossView {
+  defId: string;
+  name: string;
+  title: string;
+  palette: { body: string; glow: string; accent: string };
+  bodyFrac: number;
+  anchorY: number;
+  hp: number;
+  maxHp: number;
+  phase: number;
+  phases: number;
+  visualTier: number;
+  telegraph: { kind: string; frac: number } | null; // frac 0→1 across the windup (the counterplay read)
+  stunned: number; // seconds of rotation stun left (eye interrupt feedback)
+  exposed: boolean; // heart window — the renderer floods the body with glow
+  deathT: number; // > 0: the death sequence is playing
+  weakPoints: MegaWeakPoint[];
+  effects: string[]; // short HUD labels for the live manipulations (e.g. 'HASTE', 'LEECH')
 }
 
 /** A timed, run-wide friendly buff (the `buff` ability primitive). Keyed by `stat`; the
@@ -425,6 +468,22 @@ export class Game {
   private reactorCount = 0; // cached on tower placement (economy), not per tick
   private bossCount = 0; // # framework bosses on the field (gates the boss system)
   private procBosses = new Map<string, BossDef>(); // assembled boss defs by id (lookup at runtime)
+  // ── Mega Boss (docs/MEGA-BOSS.md). Null on every run without one; megaFx stays NEUTRAL then,
+  //    so every fold point multiplies by 1 / adds 0 — IEEE-exact ⇒ golden byte-identical. ──
+  private mega: MegaRuntime | null = null;
+  private megaFx: MegaFieldFx = { ...NEUTRAL_MEGA_FX };
+  private megaShots: MegaShot[] = [];
+  // Blight Sower spore mines (docs/SOWER.md) — empty on every run without one (golden-safe).
+  mines: SporeMine[] = [];
+  private nextMineId = 1;
+  private megaRng!: Rng; // dedicated stream (reinforcement mixes / corrupt picks) — never touches this.rng
+  private megaDailyEnc: MegaEncounter | null = null; // the Daily Mega variant (opts.megaDaily)
+  private runMegaKills: MegaKillStat[] = [];
+  private statMegaSeen = false; // any mega encountered this run (gates the RunStats block)
+  private statWpDestroyed = 0;
+  private statWpKinds = new Set<string>();
+  private statMegaInterrupts = 0;
+  private statMegaSurvived = 0; // mega abilities that COMPLETED against you
   corruptionPools: { x: number; y: number; r: number; t: number; frac: number }[] = []; // boss corruptor zones (docs/BOSS-DESIGN.md §siege; renderer draws them)
   private targetRng = (): number => this.rng.next(); // stable closure for 'random' targeting
   private projPool: Projectile[] = [];
@@ -574,6 +633,8 @@ export class Game {
     // (docs/BOSS-RUSH.md); anomalies stay Infinite's. Campaign uses the stage's wave count (finale
     // reserved for its boss); Endless plans over a horizon. Rare Invasions draw OUT of the biome signature.
     this.runEventRng = new Rng((seed ^ 0x52554e21) >>> 0);
+    this.megaRng = new Rng((seed ^ 0x4d454741) >>> 0); // 'MEGA' — mega reinforcement/corrupt stream
+    this.megaDailyEnc = opts.megaDaily ?? null;
     // …and the Daily has NO run-identity plan either: its identity IS the day's two modifiers.
     this.runPlan = this.mode === 'stage' || this.mode === 'bossRush' || this.mode === 'daily' ? null : generateRunPlan(seed, {
       mode: this.mode,
@@ -745,7 +806,7 @@ export class Game {
   }
   /** Effective ability cooldown (s): base × gear × biome × mastery × Evolution Overdrive. */
   private heroAbilityCooldownFor(h: Hero): number {
-    return HERO_DEFS[h.kind].ability.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult * this.evo.cooldownMult;
+    return HERO_DEFS[h.kind].ability.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult * this.evo.cooldownMult * this.megaFx.heroCd;
   }
   /** Effective ability AoE multiplier: gear × Evolution Amplitude. */
   private heroAbilityRadiusFor(h: Hero): number {
@@ -1502,6 +1563,7 @@ export class Game {
     this.biomass += refund;
     this.occupied.delete(t.slot); // free the placement slot IMMEDIATELY
     this.towers.splice(idx, 1); // remove the tower (its in-flight shots/pools coast out on their own)
+    if (t.kind === 'sower' && this.mines.length > 0) this.witherMines(t.id); // its garden dies with it
     if (this.selectedPlacedId === id) this.selectedPlacedId = null; // selling closes Inspect
     if (this.movingTowerId === id) this.movingTowerId = null;
     this.recomputeTowerCaches(); // overcharge adjacency + reactor count stay coherent
@@ -1578,6 +1640,7 @@ export class Game {
     t.x = slot.x;
     t.y = slot.y;
     t.movedAt = this.time; // landing-impact FX
+    if (t.kind === 'sower' && this.mines.length > 0) this.witherMines(t.id); // uprooted — it reseeds from the new plot
     this.movingTowerId = null;
     this.recomputeTowerCaches(); // overcharge adjacency changed → refresh
     this.spawnParticles(t.x, t.y, PARTICLE.mutate, TOWER_DEFS[t.kind].color); // land burst
@@ -1743,6 +1806,20 @@ export class Game {
       this.startBossRushWave();
       return;
     }
+    // Daily MEGA variant (docs/MEGA-BOSS.md §daily): the run IS the encounter — no wave plan.
+    // One "wave" opens, the boss arrives, and megaBossSystem drives evolution + reinforcements
+    // until the Hive or the organism dies. checkWaveEnd never settles while it lives.
+    if (this.megaDailyEnc !== null) {
+      this.waveIndex++;
+      this.spawnQueue = [];
+      this.spawnedAll = true;
+      if (this.mega === null) this.spawnMegaBoss(this.megaDailyEnc, 'daily');
+      this.waveStartIntegrity = this.integrity;
+      this.phase = 'wave';
+      this.pushSfx('wave');
+      if (gameEvents.hasListeners('waveStarted')) gameEvents.emit('waveStarted', { wave: this.waveIndex, endless: false });
+      return;
+    }
     if (this.waveIndex >= this.totalWaves) return;
     this.waveIndex++;
     const def = this.waves[this.waveIndex - 1];
@@ -1765,6 +1842,13 @@ export class Game {
       // Campaign leaves bossWaves undefined ⇒ this lookup never fires (golden-safe).
       const extraBoss = this.stage.bossWaves?.[this.waveIndex];
       if (extraBoss) this.spawnBoss(extraBoss);
+      // Mega Boss stages (docs/MEGA-BOSS.md): every MEGA.campaignEvery-th campaign stage hosts one.
+      // It ARRIVES with wave 1 and persists across the whole stage; the stage cannot be cleared
+      // until it falls (checkWaveEnd holds the finale open with overtime reinforcements).
+      if (this.mode === 'campaign' && this.waveIndex === 1 && this.mega === null) {
+        const enc = campaignMegaFor(this.stage.stage);
+        if (enc) this.spawnMegaBoss(enc, 'campaign');
+      }
     }
     this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(this.waveIndex); // Run Identity: fold this wave's beat + anomaly (no-op in Stage)
@@ -1799,6 +1883,12 @@ export class Game {
     this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
     this.phase = 'wave';
     if (w.spawnBoss) this.spawnProceduralBoss(depth, this.dd.endlessBossStrength(depth));
+    // Mega Boss cadence (docs/MEGA-BOSS.md): one every MEGA.infiniteEvery waves — but never two at
+    // once (a surviving mega simply keeps dominating; the next window is skipped).
+    if (this.mega === null) {
+      const enc = infiniteMegaFor(depth);
+      if (enc) this.spawnMegaBoss(enc, 'infinite');
+    }
     this.applyDoctrineWarp(); // doctrine protocols reshape the queue first (no-op without a warp)
     this.applyRunEvent(depth); // Run Identity: fold this depth's beat + anomaly
     this.pushSfx('wave');
@@ -1830,6 +1920,12 @@ export class Game {
     const ramp = Math.min(RUSH.strengthCap, RUSH.strengthBase + RUSH.strengthPerWave * (depth - 1));
     this.rushPending = [];
     for (let i = 0; i < depth; i++) this.rushPending.push({ at: this.time + i * RUSH.bossStagger, tl, ramp });
+    // Mega Boss cadence in the gauntlet (docs/MEGA-BOSS.md): every MEGA.rushEvery-th column is
+    // ALSO overseen by a mega — the ultimate rush pressure. Never two at once (window skipped).
+    if (this.mega === null) {
+      const enc = rushMegaFor(depth);
+      if (enc) this.spawnMegaBoss(enc, 'bossRush');
+    }
     this.spawnedAll = false;
     this.waveStartIntegrity = this.integrity;
     this.applyWaveStartStrains(); // STRAIN reactor verbs (adrenal jolt / glut surge)
@@ -2112,6 +2208,8 @@ export class Game {
       this.corruptionPools = this.corruptionPools.filter((cp) => cp.t > 0);
     }
     if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
+      if (this.mega !== null) this.megaBossSystem(dt); // gated: zero cost on every other run
+      if (this.mines.length > 0) this.mineSystem(dt); // Blight Sower fields only — empty otherwise
       this.economySystem(dt);
       // Daily per-second modifiers (docs/DAILY-RUN.md) — both gated (0 without the modifier ⇒
       // golden-safe): Blood Frenzy bleeds the fielded heroes; Regeneration knits the Hive.
@@ -2619,6 +2717,404 @@ export class Game {
     });
   }
 
+  // ════════════════════════ MEGA BOSS (docs/MEGA-BOSS.md) ════════════════════════
+  // A battlefield-scale RAID organism anchored across the top of the field. It never walks and
+  // (almost) never touches the Hive: its ability rotation manipulates everything else, folded into
+  // this.megaFx at the sim's chokepoints. The player defeats it through WEAK POINTS — independent
+  // objects with their own HP whose destruction always CHANGES the fight. Every method below is
+  // reached only while this.mega !== null, so every other run pays nothing.
+
+  /** Anchor a Mega Boss over the battlefield. One at a time — a second call is ignored. */
+  spawnMegaBoss(enc: MegaEncounter, encounter: MegaRuntime['encounter']): void {
+    const def = megaBossDef(enc.defId);
+    if (!def || this.mega !== null) return;
+    const rt = createMegaRuntime(def, enc, encounter);
+    rt.spawnedAt = this.time;
+    rt.integrityAtSpawn = this.statIntegrityLost;
+    this.mega = rt;
+    this.statMegaSeen = true;
+    this.openPhaseWeakPoints(def, rt);
+    foldMegaFx(def, rt, this.time, this.megaFx);
+    // Arrival ceremony: the field shakes, the name lands, the theme stings.
+    this.floats.push({ x: WIDTH / 2, y: 250, text: `${def.name} — ${def.title.toUpperCase()}`, color: def.palette.glow, life: 3 });
+    this.spawnParticles(WIDTH / 2, MEGA.anchorY + 60, PARTICLE.bossfall, def.palette.glow);
+    this.pushSfx('mega');
+    this.pushSfx(def.themeCue);
+    if (gameEvents.hasListeners('megaSpawned')) gameEvents.emit('megaSpawned', { defId: def.id, name: def.name, tier: enc.tier, encounter });
+  }
+
+  /** Drive the anchored organism: rotation, weak-point lifecycle, phases, regen, the daily
+   *  evolution loop, and the megaFx fold. Called once per tick while a mega is present. */
+  private megaBossSystem(dt: number): void {
+    const rt = this.mega!;
+    const def = megaBossDef(rt.defId);
+    if (!def) { this.mega = null; return; }
+    // Tracer decay (presentation) — runs during the death sequence too.
+    for (let i = this.megaShots.length - 1; i >= 0; i--) {
+      this.megaShots[i].life -= dt;
+      if (this.megaShots[i].life <= 0) { this.megaShots[i] = this.megaShots[this.megaShots.length - 1]; this.megaShots.pop(); }
+    }
+    // Death sequence: the rotation is over; the renderer plays the collapse, then the body clears.
+    if (rt.deathT > 0) {
+      rt.deathT -= dt;
+      if (rt.deathT <= 0) {
+        this.mega = null;
+        this.megaShots.length = 0;
+        if (this.megaDailyEnc !== null) this.phase = 'won'; // the Daily Mega variant ends HERE
+      }
+      return;
+    }
+    const phase = def.phases[rt.phase];
+    rt.stunned = Math.max(0, rt.stunned - dt);
+    // Self-regeneration (phase trait + daily evolution stacks; the regen organ cancels it).
+    const regen = (phase.regenPerSec ?? 0) * (1 + (rt.tier - 1) * 0.25) + rt.evolveStacks * MEGA.dailyEvolveRegen;
+    if (regen > 0 && this.time >= rt.regenOffUntil && rt.hp < rt.maxHp) rt.hp = Math.min(rt.maxHp, rt.hp + regen * dt);
+    rt.armor = this.time < rt.armorOffUntil ? 0 : rt.baseArmor;
+    // Expired aura effects fall off.
+    for (let i = rt.active.length - 1; i >= 0; i--) if (this.time >= rt.active[i].until) rt.active.splice(i, 1);
+    // ── Ability rotation: telegraph → cast. A stun (eye interrupt) freezes the whole rotation. ──
+    if (rt.stunned <= 0) {
+      if (rt.telegraph !== null) {
+        rt.telegraph.t -= dt;
+        if (rt.telegraph.t <= 0) {
+          this.castMegaAbility(def, rt, rt.telegraph.ability);
+          rt.telegraph = null;
+        }
+      } else {
+        for (const ai of phase.abilities) {
+          rt.abilityCd[ai] -= dt;
+          if (rt.abilityCd[ai] <= 0 && rt.telegraph === null) {
+            const a = def.abilities[ai];
+            rt.telegraph = { ability: ai, t: a.telegraph, total: a.telegraph };
+            rt.abilityCd[ai] = a.cooldown; // pay the cooldown at telegraph START (interrupts don't refund)
+            this.openTriggeredWeakPoints(def, rt, 'abilityCast', a.kind);
+            this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 90, text: `${a.kind.toUpperCase()} CHANNELING`, color: def.palette.accent, life: a.telegraph });
+            this.pushSfx('megaAbility');
+          }
+        }
+      }
+    }
+    // ── Weak point lifecycle ──
+    for (let i = 0; i < def.weakPoints.length; i++) {
+      const spec = def.weakPoints[i];
+      if (spec.on === 'hpBelow' && !rt.hpTriggered[i] && rt.hp / rt.maxHp <= (spec.at ?? 0)) {
+        rt.hpTriggered[i] = true;
+        this.openWeakPoint(def, rt, i);
+      } else if (spec.on === 'timer') {
+        rt.timerT[i] -= dt;
+        if (rt.timerT[i] <= 0) {
+          rt.timerT[i] = spec.every ?? 20;
+          this.openWeakPoint(def, rt, i);
+        }
+      }
+    }
+    for (const wp of rt.weakPoints) {
+      if (wp.hitFlash > 0) wp.hitFlash -= dt;
+      if (wp.state === 'open') {
+        if (wp.emergeT < 1) wp.emergeT = Math.min(1, wp.emergeT + dt * 2); // the organ descends (0.5s)
+        if (wp.window > 0) {
+          wp.window -= dt;
+          if (wp.window <= 0) { // sealed itself — regen kinds regrow, one-shot kinds stay gone
+            wp.state = 'closed';
+            wp.regrow = WEAK_POINT_DEFS[wp.kind].regen ? MEGA.weakPointRegrowSec : Infinity;
+          }
+        }
+      } else if (wp.state === 'closed' && wp.regrow !== Infinity) {
+        wp.regrow -= dt;
+        if (wp.regrow <= 0) {
+          wp.state = 'open';
+          wp.hp = wp.maxHp;
+          wp.window = WEAK_POINT_DEFS[wp.kind].window;
+          wp.emergeT = 0;
+          this.pushSfx('wpOpen');
+        }
+      }
+    }
+    // ── Reinforcement loop: the Daily variant ALWAYS pulses; every other encounter pulses only
+    //    when the field has gone quiet (overtime — the organism refuses to let the fight stall). ──
+    const quiet = this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0;
+    if (rt.encounter === 'daily' || quiet) {
+      rt.reinforceT += dt;
+      if (rt.reinforceT >= MEGA.dailyReinforceSec) {
+        rt.reinforceT = 0;
+        const n = MEGA.dailyReinforceBase + rt.evolveStacks;
+        const pool: EnemyKind[] = rt.evolveStacks >= 4 ? ['rusher', 'lasher', 'warden'] : rt.evolveStacks >= 2 ? ['runner', 'rusher', 'lasher'] : ['runner', 'rusher'];
+        for (let i = 0; i < n; i++) this.spawnNear(this.megaRng.pick(pool), 60 + this.megaRng.next() * (WIDTH - 120), 28);
+      }
+    }
+    // Daily evolution: the encounter gets harder the longer it lasts (haste + regen stacks).
+    if (rt.encounter === 'daily') {
+      rt.evolveT += dt;
+      if (rt.evolveT >= MEGA.dailyEvolveSec) {
+        rt.evolveT = 0;
+        rt.evolveStacks++;
+        this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 70, text: 'IT EVOLVES', color: def.palette.glow, life: 1.6 });
+        this.pushSfx('megaPhase');
+      }
+    }
+    // ── Phase transitions (HP-gated; mutation_node suppresses the entry surge once). ──
+    while (rt.phase + 1 < def.phases.length && rt.hp / rt.maxHp <= def.phases[rt.phase + 1].threshold) {
+      rt.phase++;
+      const p = def.phases[rt.phase];
+      if (p.entrySurge && !rt.weakenNextPhase && this.time >= rt.summonsOffUntil) {
+        for (let i = 0; i < p.entrySurge.count; i++) this.spawnNear(p.entrySurge.addKind, 80 + this.megaRng.next() * (WIDTH - 160), 30);
+      }
+      rt.weakenNextPhase = false; // consumed (or unused) either way — one node suppresses ONE shift
+      this.openPhaseWeakPoints(def, rt);
+      this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 80, text: 'IT MUTATES', color: def.palette.glow, life: 2 });
+      this.spawnParticles(WIDTH / 2, MEGA.anchorY + 50, PARTICLE.bossfall, def.palette.body);
+      this.pushSfx('megaPhase');
+      if (gameEvents.hasListeners('megaPhase')) gameEvents.emit('megaPhase', { defId: def.id, phase: rt.phase });
+    }
+    foldMegaFx(def, rt, this.time, this.megaFx);
+    if (rt.hp <= 0) this.beginMegaDeath(def, rt);
+  }
+
+  /** Resolve a completed telegraph into its battlefield effect. */
+  private castMegaAbility(def: MegaBossDef, rt: MegaRuntime, ai: number): void {
+    const a: MegaAbility = def.abilities[ai];
+    rt.abilitiesCast++;
+    this.statMegaSurvived++;
+    switch (a.kind) {
+      case 'brood':
+      case 'menders':
+      case 'eliteSurge': {
+        if (this.time < rt.summonsOffUntil) {
+          this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 90, text: 'SUMMONS HALTED', color: '#6effa8', life: 1.2 });
+          return;
+        }
+        const n = a.count ?? 1;
+        for (let i = 0; i < n; i++) {
+          this.spawnNear(a.addKind ?? 'runner', 70 + this.megaRng.next() * (WIDTH - 140), 26);
+          if (a.kind === 'eliteSurge') {
+            const e = this.enemies[this.enemies.length - 1];
+            if (e) { e.elite = true; e.hp *= 2.2; e.maxHp *= 2.2; e.bounty = Math.round(e.bounty * 2); }
+          }
+        }
+        break;
+      }
+      case 'shieldWeave': {
+        if (this.time < rt.weaveOffUntil) return; // generator destroyed — the weave fizzles
+        for (const e of this.enemies) if (e.alive && e.boss === null) e.shield = (e.shield ?? 0) + (a.magnitude ?? 40);
+        break;
+      }
+      case 'corrupt': {
+        // Corrupt occupied emplacements: those towers go dark for the window (existing seam).
+        const candidates = this.towers.filter((t) => this.time >= t.disabledUntil);
+        for (let i = 0; i < (a.count ?? 1) && candidates.length > 0; i++) {
+          const idx = this.megaRng.int(candidates.length);
+          const t = candidates.splice(idx, 1)[0];
+          t.disabledUntil = this.time + (a.duration || 6);
+          this.floats.push({ x: t.x, y: t.y - 16, text: 'CORRUPTED', color: def.palette.accent, life: 1.4 });
+        }
+        break;
+      }
+      default:
+        // Aura verbs fold through megaFx while active.
+        rt.active.push({ kind: a.kind, until: this.time + a.duration, magnitude: a.magnitude ?? 1 });
+        break;
+    }
+  }
+
+  /** Open every phaseEntry weak point of the CURRENT phase (spawn + phase shifts). */
+  private openPhaseWeakPoints(def: MegaBossDef, rt: MegaRuntime): void {
+    for (let i = 0; i < def.weakPoints.length; i++) {
+      if (def.weakPoints[i].on === 'phaseEntry') this.openWeakPoint(def, rt, i);
+    }
+  }
+
+  private openTriggeredWeakPoints(def: MegaBossDef, rt: MegaRuntime, on: 'abilityCast', ability: string): void {
+    for (let i = 0; i < def.weakPoints.length; i++) {
+      const w = def.weakPoints[i];
+      if (w.on === on && w.ability === ability) this.openWeakPoint(def, rt, i);
+    }
+  }
+
+  /** Materialize spec `i` as a live organ (one instance per spec; destroyed specs never return). */
+  private openWeakPoint(def: MegaBossDef, rt: MegaRuntime, i: number): void {
+    const existing = rt.weakPoints.find((w) => w.spec === i);
+    if (existing) {
+      if (existing.state === 'closed' && WEAK_POINT_DEFS[existing.kind].regen) {
+        existing.state = 'open';
+        existing.hp = existing.maxHp;
+        existing.window = WEAK_POINT_DEFS[existing.kind].window;
+        existing.emergeT = 0;
+        this.pushSfx('wpOpen');
+      }
+      return; // open already, or destroyed forever
+    }
+    const spec = def.weakPoints[i];
+    const wd = WEAK_POINT_DEFS[spec.kind];
+    const hp = Math.max(30, Math.round(rt.maxHp * wd.hpFrac));
+    rt.weakPoints.push({
+      spec: i, kind: spec.kind, x: spec.x * WIDTH, y: spec.y,
+      hp, maxHp: hp, armor: wd.armor, state: 'open', window: wd.window,
+      regrow: 0, emergeT: 0, hitFlash: 0,
+    });
+    this.floats.push({ x: spec.x * WIDTH, y: spec.y - 26, text: `WEAK POINT — ${wd.name.toUpperCase()}`, color: def.palette.glow, life: 1.8 });
+    this.pushSfx('wpOpen');
+  }
+
+  /** Nearest OPEN weak point within `range` of (x,y), or null. */
+  private megaWeakPointInRange(x: number, y: number, range: number): MegaWeakPoint | null {
+    const rt = this.mega;
+    if (rt === null || rt.deathT > 0) return null;
+    const r2 = range * range;
+    let best: MegaWeakPoint | null = null;
+    let bd = Infinity;
+    for (const wp of rt.weakPoints) {
+      if (wp.state !== 'open' || wp.emergeT < 1) continue; // still descending — untargetable
+      const d = dist2(x, y, wp.x, wp.y);
+      if (d <= r2 && d < bd) { bd = d; best = wp; }
+    }
+    return best;
+  }
+
+  /** Tower raid-fire: burst an open weak point (priority) or chip the anchored body when the field
+   *  is empty. Returns true when the shot was consumed (the caller skips its normal cast). */
+  private towerMegaFire(t: Tower, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): boolean {
+    const range = def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1) * this.megaFx.towerRange;
+    const wp = this.megaWeakPointInRange(t.x, t.y, range);
+    if (wp !== null) {
+      this.megaHitWeakPoint(wp, def.damage * dmgMult, t.x, t.y, TOWER_DEFS[t.kind].color);
+      this.masteryAccrual[t.kind].damage += def.damage * dmgMult; // raid damage still earns mastery
+      t.cooldown = def.fireInterval / rateMult;
+      return true;
+    }
+    // Body chip: only when there is NOTHING else to shoot (the raid's between-window sustain).
+    if (this.enemies.length === 0) {
+      const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
+      if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= range * range) {
+        this.megaHitBody(def.damage * dmgMult * MEGA.bodyChipMult, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS[t.kind].color);
+        t.cooldown = def.fireInterval / rateMult;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Apply a hit to a weak point (its own armor; no boss armor). Destruction fires the consequence. */
+  private megaHitWeakPoint(wp: MegaWeakPoint, raw: number, sx: number, sy: number, color: string): void {
+    const applied = damageAfter(raw, 1, wp.armor);
+    wp.hp -= applied;
+    wp.hitFlash = 0.15;
+    this.statDamageDealt += applied;
+    this.megaShots.push({ x0: sx, y0: sy, x1: wp.x, y1: wp.y, life: 0.14, color });
+    if (wp.hp <= 0 && wp.state === 'open') this.destroyWeakPoint(wp);
+  }
+
+  /** Apply a hit to the anchored body: boss armor (unless broken), heart-exposure vulnerability. */
+  private megaHitBody(raw: number, sx: number, sy: number, tx: number, ty: number, color: string): void {
+    const rt = this.mega!;
+    const vuln = this.time < rt.exposedUntil ? 1 + rt.exposedFrac : 1;
+    const applied = damageAfter(raw, vuln, rt.armor);
+    rt.hp -= applied;
+    this.statDamageDealt += applied;
+    this.megaShots.push({ x0: sx, y0: sy, x1: tx, y1: ty, life: 0.14, color });
+  }
+
+  /** A weak point falls: a chunk of boss HP + its mapped consequence + the full ceremony. */
+  private destroyWeakPoint(wp: MegaWeakPoint): void {
+    const rt = this.mega!;
+    const def = megaBossDef(rt.defId)!;
+    const wd = WEAK_POINT_DEFS[wp.kind];
+    wp.state = 'destroyed';
+    rt.wpDestroyed++;
+    this.statWpDestroyed++;
+    this.statWpKinds.add(wp.kind);
+    if (!rt.wpKinds.includes(wp.kind)) rt.wpKinds.push(wp.kind);
+    rt.hp -= wp.maxHp * 1.5; // the rupture tears INTO the organism — destruction always hurts it
+    const c = wd.consequence;
+    let interrupted = false;
+    switch (c.effect) {
+      case 'interrupt':
+        if (rt.telegraph !== null) { rt.telegraph = null; rt.interrupts++; this.statMegaInterrupts++; interrupted = true; }
+        rt.stunned = Math.max(rt.stunned, c.seconds ?? 4);
+        break;
+      case 'expose':
+        rt.exposedUntil = this.time + (c.seconds ?? 8);
+        rt.exposedFrac = c.frac ?? MEGA.exposeFallback;
+        break;
+      case 'haltSummons':
+        rt.summonsOffUntil = this.time + (c.seconds ?? 10);
+        for (const e of this.enemies) if (e.alive && e.boss === null) e.hp -= e.hp * (c.frac ?? 0.3);
+        break;
+      case 'armorBreak':
+        rt.armorOffUntil = this.time + (c.seconds ?? 10);
+        break;
+      case 'purgeShields':
+        for (const e of this.enemies) if ((e.shield ?? 0) > 0) { e.shield = 0; e.shieldFlash = 0.3; }
+        rt.weaveOffUntil = this.time + (c.seconds ?? 12);
+        break;
+      case 'disablePassive':
+        rt.passiveOffUntil = this.time + (c.seconds ?? 10);
+        break;
+      case 'stopRegen':
+        rt.regenOffUntil = this.time + (c.seconds ?? 12);
+        break;
+      case 'biomassBurst': {
+        const amt = Math.round((c.amount ?? 100) * (0.7 + 0.3 * rt.tier));
+        this.biomass += amt;
+        this.statBiomassEarned += amt;
+        rt.leechOffUntil = this.time + (c.seconds ?? 10);
+        this.floats.push({ x: wp.x, y: wp.y - 12, text: `+${amt}`, color: '#b6e84a', life: 1.2 });
+        break;
+      }
+      case 'towerBuff':
+        rt.towerBuffUntil = this.time + (c.seconds ?? 8);
+        rt.towerBuffFrac = c.frac ?? 0.25;
+        break;
+      case 'weakenPhase':
+        rt.weakenNextPhase = true;
+        break;
+    }
+    // The payoff ceremony: rupture burst, roar, and the "what changed" callout (HUD reads the event).
+    this.spawnParticles(wp.x, wp.y, PARTICLE.bossfall, megaBossDef(rt.defId)!.palette.glow);
+    this.floats.push({ x: wp.x, y: wp.y - 28, text: `${wd.name.toUpperCase()} DESTROYED`, color: '#ffd24d', life: 2 });
+    this.floats.push({ x: wp.x, y: wp.y - 10, text: wd.hudNote, color: '#6effa8', life: 2.2 });
+    this.pushSfx('wpBreak');
+    if (gameEvents.hasListeners('megaWeakPointDown')) {
+      gameEvents.emit('megaWeakPointDown', { defId: def.id, kind: wp.kind, note: wd.hudNote, interrupted });
+    }
+  }
+
+  /** The organism falls: record the kill (rewards ride RunStats → meta), start the collapse. */
+  private beginMegaDeath(def: MegaBossDef, rt: MegaRuntime): void {
+    rt.hp = 0;
+    rt.deathT = 3.5; // the renderer's multi-stage collapse window
+    rt.telegraph = null;
+    rt.active.length = 0;
+    this.megaFx = { ...NEUTRAL_MEGA_FX }; // its grip on the battlefield releases IMMEDIATELY
+    const killSec = this.time - rt.spawnedAt;
+    const perfect = this.statIntegrityLost === rt.integrityAtSpawn;
+    this.runMegaKills.push({
+      defId: rt.defId, tier: rt.tier, encounter: rt.encounter,
+      killSec, perfect, weakPoints: rt.wpDestroyed, interrupts: rt.interrupts,
+    });
+    this.runBossKills++; // a mega counts toward boss-kill ledgers (Boss Rush bands included)
+    this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 100, text: `${def.name} FALLS`, color: '#ffd24d', life: 3 });
+    this.spawnParticles(WIDTH / 2, MEGA.anchorY + 40, PARTICLE.bossfall, def.palette.glow);
+    this.spawnParticles(WIDTH * 0.3, MEGA.anchorY + 70, PARTICLE.bossfall, def.palette.body);
+    this.spawnParticles(WIDTH * 0.7, MEGA.anchorY + 70, PARTICLE.bossfall, def.palette.accent);
+    this.pushSfx('megaDeath');
+    if (gameEvents.hasListeners('megaKilled')) {
+      gameEvents.emit('megaKilled', {
+        defId: rt.defId, tier: rt.tier, encounter: rt.encounter,
+        killSec, perfect, weakPoints: rt.wpDestroyed, interrupts: rt.interrupts,
+      });
+    }
+  }
+
+  /** Hero raid-fire fallback: with no enemy engaged, an attacking hero strikes a reachable open
+   *  weak point (heroes hold the line first — towers own the burst windows). */
+  private heroMegaStrike(h: Hero, def: HeroDef): void {
+    if (def.attackRange <= 0 || def.attackDamage <= 0) return;
+    const wp = this.megaWeakPointInRange(h.x, h.y, Math.max(def.attackRange, 140));
+    if (wp === null) return;
+    this.megaHitWeakPoint(wp, def.attackDamage * this.heroDamageMult(h), h.x, h.y, HERO_DEFS[h.kind].color);
+    h.attackCd = def.attackInterval / this.heroHaste(h);
+  }
+
   private economySystem(dt: number): void {
     if (this.reactorCount > 0) {
       // Reactor STAR evolution (support-tower path): its kit scales biomass generation.
@@ -2633,6 +3129,7 @@ export class Game {
           if (bMult > 1) gain += ECON.reactorBiomassPerSec * this.mods.reactorBiomassMult * (bMult - 1) * dt;
         }
       }
+      gain *= this.megaFx.biomass; // mega leech drinks reactor output too (×1 without one)
       this.biomass += gain;
       this.statBiomassEarned += gain;
     }
@@ -2841,15 +3338,27 @@ export class Game {
         continue; // base economy/overcharge handled in economySystem
       }
       if (this.time < t.disabledUntil) continue; // suppressed by a boss — can't fire
-      // Resonance Coil (firing 'beam'): a CONTINUOUS, locked, ramping channel — it deals damage every
-      // tick (not on the projectile cooldown), so it's handled in its own system before the cooldown
-      // gate. It shares the EXACT damage/rate fold (towerAttackMods) so overcharge, hero auras, biome,
-      // class resonance, dampeners, corruption and branches all apply identically. No coil ⇒ never reached.
+      // Beam towers (firing 'beam'): a CONTINUOUS, locked, ramping channel — damage every tick (not on
+      // the projectile cooldown), so handled before the cooldown gate. Both share the EXACT damage/rate
+      // fold (towerAttackMods) so overcharge, hero auras, biome, class resonance, dampeners, corruption
+      // and branches apply identically. Routed by kind: the Resonance Coil melts (beamTowerSystem); the
+      // Marrow Siphon melts AND siphons the drain into Biomass (beamSystem). No beam tower ⇒ never reached.
       if (def.firing === 'beam') {
         const bprog = this.towerProgress[t.kind];
         const bbk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
         const bmods = this.towerAttackMods(t, def, bprog, bbk, ksDmg, runBuffDmg, resoClass);
-        this.beamTowerSystem(t, dt, def, bprog, bbk, bmods.dmgMult, bmods.rateMult);
+        if (t.kind === 'siphon') this.beamSystem(t, dt, def, bprog, bbk, bmods.dmgMult, bmods.rateMult);
+        else this.beamTowerSystem(t, dt, def, bprog, bbk, bmods.dmgMult, bmods.rateMult);
+        continue;
+      }
+      // Trap towers (Blight Sower, firing 'trap'): no attack — it SEEDS armed spore mines up-lane
+      // on its cadence (docs/SOWER.md). Shares the exact damage/rate fold; detonation stats are
+      // baked at PLANT time. No trap tower ⇒ never reached (golden-safe).
+      if (def.firing === 'trap') {
+        const sprog = this.towerProgress[t.kind];
+        const sbk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
+        const smods = this.towerAttackMods(t, def, sprog, sbk, ksDmg, runBuffDmg, resoClass);
+        this.trapTowerSystem(t, dt, def, sprog, sbk, smods.dmgMult, smods.rateMult);
         continue;
       }
       t.cooldown -= dt;
@@ -2861,6 +3370,10 @@ export class Game {
       // Bonus math flows through the universal modifier framework (combineMult). Factored into
       // towerAttackMods so the beam path shares the EXACT math; the projectile result is bit-identical.
       const { dmgMult, rateMult } = this.towerAttackMods(t, def, prog, bk, ksDmg, runBuffDmg, resoClass);
+      // MEGA raid-fire (docs/MEGA-BOSS.md): an OPEN weak point inside this tower's reach takes
+      // absolute priority over normal targets; with none and an empty field, the tower chips the
+      // anchored body instead. Handles its own cooldown; gated ⇒ zero cost without a mega.
+      if (this.mega !== null && this.mega.deathT === 0 && this.towerMegaFire(t, def, prog, bk, dmgMult, rateMult)) continue;
       // The tower's attack is a list of reusable AbilityComponents (data), run by the
       // shared executor — no per-firing branches. The targeting profile drives which
       // enemies its projectiles pick; cooldown resets only if it acted (no target = wait).
@@ -2871,7 +3384,7 @@ export class Game {
       this.abilityTargeting = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'closestToBase';
       this.castExtraProjectiles = (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0);
       this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
-      this.castRangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+      this.castRangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1) * this.megaFx.towerRange;
       if (t.kind === 'maw') this.castRangeMult *= this.mods.mawCleaveRadiusMult; // bite reach (cards/affixes)
       this.castProjectileMutators =
         bk && bk.projectileMutators.length
@@ -2975,7 +3488,7 @@ export class Game {
     const biomeClassDmg = this.activeBiome.mods.towerClassMult[def.combatClass] ?? 1;
     // Boss dampener aura (docs/BOSS-DESIGN.md §siege): a dampened tower fires slower. 1 when never dampened.
     const dampenMult = this.time < t.dampenedUntil ? 1 - t.dampenFrac : 1;
-    const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult;
+    const rateMult = combineMult(this.mods.towerFireRateMult, prog.fireRateMult, ocRate, heroHaste, bk ? bk.fireRateMult : 1) * this.biomeTowerRate() * dampenMult * this.megaFx.towerRate;
     const reso = resoClass !== null && def.combatClass === resoClass ? 1 + this.mods.classResonanceBonus : 1;
     const dmgMult = combineMult(this.mods.towerDamageMult, prog.damageMult, ocDmg, ksDmg, reso, heroDmgAura, runBuffDmg, bk ? bk.damageMult : 1) * biomeClassDmg * this.towerCorruptionMult(t);
     return { dmgMult, rateMult };
@@ -2995,7 +3508,7 @@ export class Game {
   ): void {
     const profile: TargetingProfile = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'closestToBase';
     const rangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
-    const range = def.range * rangeMult;
+    const range = def.range * rangeMult * this.megaFx.towerRange; // ×1 without a mega suppression field
     const extra = (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0) + Math.max(0, Math.floor(this.mods.coilBeamTargets));
     const nTargets = 1 + Math.max(0, extra);
     this.abilitySourceKind = t.kind;
@@ -3006,6 +3519,22 @@ export class Game {
     // STICKY lock: hold the current target while it's alive + in reach — THAT is what lets resonance
     // ramp (a fresh profile-pick every tick would reset heat constantly). Re-pick by profile only when
     // the lock is empty or lost, so the beam bites the toughest, then MELTS it to death before moving on.
+    // MEGA raid channel (docs/MEGA-BOSS.md): an open weak point in reach takes the beam. The lock
+    // encodes as -1000 - spec so resonance HOLDS across ticks (same organ = same heat ramp);
+    // the renderer resolves the coordinates from the mega view. Gated ⇒ never reached otherwise.
+    if (this.mega !== null && this.mega.deathT === 0) {
+      const wp = this.megaWeakPointInRange(t.x, t.y, range);
+      if (wp !== null) {
+        const lock = -1000 - wp.spec;
+        if (t.beamTarget !== lock) { t.beamTarget = lock; t.beamHeat = 0; }
+        else t.beamHeat = Math.min(1, t.beamHeat + BEAM.heatPerSec * rateMult * dt);
+        const wpHeat = 1 + t.beamHeat * BEAM.rampBonus * this.mods.coilRampMult;
+        this.megaHitWeakPoint(wp, def.damage * dmgMult * wpHeat * dt, t.x, t.y, TOWER_DEFS.coil.color);
+        t.cooldown = Math.max(0, t.cooldown - dt);
+        return;
+      }
+      if (t.beamTarget <= -1000) { t.beamTarget = -1; t.beamHeat = 0; } // organ gone — the lock drops cold
+    }
     let primary: Enemy | null = null;
     if (t.beamTarget >= 0) {
       const held = this.enemyById.get(t.beamTarget);
@@ -3138,6 +3667,206 @@ export class Game {
     this.emitBranchSignature(bk, t.x, t.y, t.tier); // the reactor's pulse throws its branch matter too
   }
 
+  /** The Marrow Siphon's CONTINUOUS drain beam (docs/SIPHON.md — firing 'beam'). Unlike every other
+   *  tower it does not fire discrete shots: it LOCKS a single target chosen by its targeting profile
+   *  and drains it every tick (dt-scaled). The lock has MEMORY — a Gorge ramp builds while it holds
+   *  the SAME target (0→1 over a few seconds, resets on a switch), multiplying the drain up to
+   *  ×(1+gorgeMaxBonus). A fraction of all damage dealt is SIPHONED into Biomass (the Vital return),
+   *  banked and paid out on the pulse cadence. Star/branch grants (targeting, damage/rate/range,
+   *  extra "forks", and pulsed auras/debuffs) fold in via the SAME kits as every other tower, so the
+   *  upgrade paths are fully wired with zero bespoke plumbing. Never reached on the golden path (the
+   *  siphon is shard-locked), and its run-mod scalars default neutral ⇒ byte-identical when absent. */
+  private beamSystem(t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): void {
+    // dmgMult / rateMult come pre-folded from towerAttackMods (overcharge · hero aura · biome · class
+    // resonance · dampener · corruption · branch) — the SAME math the projectile + Coil paths share.
+    const rangeMult = (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+    const range = def.range * rangeMult;
+    const targeting = bk?.targeting ?? prog.targeting ?? def.targeting ?? 'highestHealth';
+    const forks = SIPHON.baseForks + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0); // the drain WEB — several tethers at once (vs the Coil's single lock)
+
+    // Acquire / maintain the locked target. Scope the target pick as a TOWER cast so emergency
+    // focus + deadzone behave identically to every other tower.
+    this.abilitySourceKind = t.kind;
+    this.abilityHeroKind = null;
+    this.castMinRange = def.minRange ?? 0;
+    this.castExcludeFrozen = false;
+    const targets: Enemy[] = this.pickTargets(t.x, t.y, range, forks, targeting);
+    const primary = targets.length > 0 ? targets[0] : null;
+
+    // GORGE = gluttony (docs/SIPHON.md), NOT the Coil's focus-heat: it builds from total FEEDING —
+    // drain throughput (a floor so a lone drain still ramps) + a bonus per KILL — and bleeds off
+    // slowly. Target-agnostic: switching prey never resets it, so it rewards feeding a kill-rich lane.
+    let heat = Math.max(0, (t.beamHeat ?? 0) - SIPHON.gorgeDecayPerSec * dt);
+    if (primary === null) {
+      t.beamTarget = -1;
+      t.beamX = undefined;
+      t.beamY = undefined;
+    } else {
+      t.beamTarget = primary.id; // the primary tether drives the main ray visual
+      t.beamX = primary.x;
+      t.beamY = primary.y;
+      const heatMult = 1 + SIPHON.gorgeMaxBonus * heat;
+      const primaryDps = def.damage * dmgMult * heatMult; // per-tether drain/second BEFORE dt
+      let drained = 0;
+      let fed = 0; // enemies THIS drain finished — each kill fattens the Gorge
+      for (let k = 0; k < targets.length; k++) {
+        const e = targets[k];
+        const live = e.hp > 0;
+        const dps = k === 0 ? primaryDps : primaryDps * SIPHON.forkDamageFrac; // forks drain wide, not deep
+        drained += this.applyDamage(e, dps * dt, t.kind, false); // continuous → no strobe
+        if (live && e.hp <= 0) fed++; // the drain landed the killing blow
+      }
+      // Gorge climbs with feeding VOLUME (throughput floor) + a per-kill bonus, scaled by siphonRampMult.
+      const gain = (drained / Math.max(1, def.damage)) * SIPHON.gorgeThroughputPerSec + fed * SIPHON.gorgePerKill;
+      heat = Math.min(1, heat + gain * this.mods.siphonRampMult);
+      // Siphon: bank a fraction of the drain as Biomass (the Vital return), paid on the pulse cadence.
+      t.beamBank = (t.beamBank ?? 0) + drained * SIPHON.drainFrac * this.mods.siphonDrainMult;
+    }
+    t.beamHeat = heat;
+
+    // Pulse cadence: pay out the banked siphon, run any star/branch granted abilities, throw FX.
+    t.cooldown -= dt;
+    if (t.cooldown > 0) return;
+    t.cooldown = def.fireInterval / rateMult;
+    if ((t.beamBank ?? 0) > 0) {
+      const gain = t.beamBank as number;
+      this.biomass += gain;
+      this.statBiomassEarned += gain;
+      if (gain >= 1) this.floats.push({ x: t.x, y: t.y - 16, text: `+${Math.round(gain)}`, color: def.color, life: 0.7 });
+      this.spawnMotes(t.x, t.y); // siphoned income flies up off the organ
+      t.beamBank = 0;
+    }
+    // Star- and branch-granted attacks (auras / debuffs / chains) pulse on the beam's cadence — the
+    // same grant vocabulary every other tower uses, so upgrade paths need no beam-specific code.
+    const granted = ((prog.extraAbilities?.length ?? 0) + (bk?.extraAbilities.length ?? 0)) > 0;
+    if (granted) {
+      this.abilitySourceKind = t.kind;
+      this.abilityHeroKind = null;
+      this.abilityCaster = null;
+      this.abilityTargeting = targeting;
+      this.castExtraProjectiles = 0;
+      this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
+      this.castRangeMult = rangeMult;
+      this.castScratch.x = t.x;
+      this.castScratch.y = t.y;
+      this.castScratch.damageMult = dmgMult;
+      this.castScratch.target = null;
+      this.castScratch.pierce = 0;
+      if (prog.extraAbilities) runAbilities(this.actx, prog.extraAbilities, this.castScratch);
+      if (bk && bk.extraAbilities.length) runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+      this.castRangeMult = 1;
+      this.castSplashMult = 1;
+    }
+    if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier);
+  }
+
+  // ════════════════════════ BLIGHT SOWER (firing 'trap' — docs/SOWER.md) ════════════════════════
+  // The roster's PRE-PLACED damage tower: it never attacks — it SEEDS armed spore mines up-lane on
+  // its cadence, and the wave walks into them. Detonation stats are BAKED at plant time (that
+  // moment's damage/splash folds), so a burst is a pure proximity event. Genuinely different from
+  // every firing before it: the player buys area DENIAL, not a reaction.
+
+  /** Seed one mine per cadence while below the tower's cap (stars/branches/cards raise it). */
+  private trapTowerSystem(t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): void {
+    t.cooldown -= dt;
+    if (t.cooldown > 0) return;
+    const cap = MINES.maxPerTower + (prog.extraProjectiles ?? 0) + (bk?.extraProjectiles ?? 0) + Math.max(0, Math.floor(this.mods.sowerExtraMines));
+    let owned = 0;
+    for (const m of this.mines) if (m.towerId === t.id) owned++;
+    if (owned >= cap) {
+      t.cooldown = Math.min(0.25, def.fireInterval * 0.1); // full garden — re-check soon, don't bank a volley
+      return;
+    }
+    // Plant UP-LANE of the tower, inside its reach, spread apart (min spacing). The lane flows
+    // downward globally, so anything above the tower is on the approach. Deterministic: the run rng
+    // (a sower never exists on the golden path) with a bounded retry for spacing.
+    const range = def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1);
+    let px = t.x;
+    let py = t.y;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const cx = t.x + (this.rng.next() * 2 - 1) * range * 0.55;
+      const cy = t.y - (0.35 + this.rng.next() * 0.5) * range;
+      px = Math.max(16, Math.min(WIDTH - 16, cx));
+      py = Math.max(80, Math.min(t.y - 30, cy));
+      let clear = true;
+      for (const m of this.mines) {
+        if (dist2(m.x, m.y, px, py) < MINES.minSpacing * MINES.minSpacing) { clear = false; break; }
+      }
+      if (clear) break;
+    }
+    const blast = def.splash * (prog.splashMult ?? 1) * (bk?.splashMult ?? 1) * this.mods.splashRadiusMult * this.mods.sowerBlastRadiusMult;
+    this.mines.push({
+      id: this.nextMineId++, towerId: t.id, x: px, y: py,
+      arm: MINES.armSec, blast, damage: def.damage * dmgMult, corrosion: MINES.corrosionSec,
+    });
+    this.spawnParticles(px, py, PARTICLE.spore, def.color, 0.5); // the bud takes root
+    t.cooldown = def.fireInterval / rateMult;
+    if (bk) this.emitBranchSignature(bk, px, py, t.tier); // the garden grows in branch matter
+  }
+
+  /** Arm + trigger every planted mine. Gated on mines existing, so every other run pays nothing. */
+  private mineSystem(dt: number): void {
+    for (let i = this.mines.length - 1; i >= 0; i--) {
+      const m = this.mines[i];
+      if (m.arm > 0) { m.arm -= dt; continue; }
+      // Proximity trigger: the first living, targetable enemy inside the trigger ring sets it off.
+      let tripped = false;
+      this.grid.forNeighbors(m.x, m.y, MINES.triggerRadius + 24, (e) => {
+        if (tripped || !e.alive) return;
+        if (e.boss !== null && e.boss.burrow > 0) return; // submerged — passes beneath the garden
+        if (dist2(m.x, m.y, e.x, e.y) <= (MINES.triggerRadius + 6) * (MINES.triggerRadius + 6)) tripped = true;
+      });
+      if (!tripped) continue;
+      this.detonateMine(m);
+      this.mines[i] = this.mines[this.mines.length - 1];
+      this.mines.pop();
+    }
+  }
+
+  /** The burst: full damage + Corrosion to everything in the blast, then the tower's star/branch
+   *  grants (auras / debuffs / novas) fire AT the crater — upgrades bloom where the mine bursts. */
+  private detonateMine(m: SporeMine): void {
+    const owner = this.towers.find((t) => t.id === m.towerId);
+    const r2 = m.blast * m.blast;
+    this.grid.forNeighbors(m.x, m.y, m.blast, (e) => {
+      if (!e.alive || dist2(m.x, m.y, e.x, e.y) > r2) return;
+      this.applyDamage(e, m.damage, 'sower');
+      this.applyStatus(e, { kind: 'Corrosion', amount: m.corrosion });
+      this.maybeReact(e);
+    });
+    this.spawnParticles(m.x, m.y, PARTICLE.acid, TOWER_DEFS.sower.color); // the burst
+    this.pushSfx('mine');
+    if (owner) {
+      const prog = this.towerProgress.sower;
+      const bk = owner.tier > 0 ? resolveBranchKit(owner.branchId, owner.tier) : null;
+      if ((prog.extraAbilities?.length ?? 0) + (bk?.extraAbilities.length ?? 0) > 0) {
+        this.abilitySourceKind = 'sower';
+        this.abilityHeroKind = null;
+        this.abilityCaster = null;
+        this.abilityTargeting = 'closestToBase';
+        this.castSplashMult = 1;
+        this.castRangeMult = 1;
+        this.castScratch.x = m.x;
+        this.castScratch.y = m.y;
+        this.castScratch.damageMult = 1; // grant components carry their own numbers
+        this.castScratch.target = null;
+        this.castScratch.pierce = 0;
+        if (prog.extraAbilities) runAbilities(this.actx, prog.extraAbilities, this.castScratch);
+        if (bk && bk.extraAbilities.length) runAbilities(this.actx, bk.extraAbilities, this.castScratch);
+      }
+    }
+  }
+
+  /** A sold/uprooted Sower's field withers (no detonation — the player chose to remove it). */
+  private witherMines(towerId: number): void {
+    for (let i = this.mines.length - 1; i >= 0; i--) {
+      if (this.mines[i].towerId !== towerId) continue;
+      this.spawnParticles(this.mines[i].x, this.mines[i].y, PARTICLE.death, TOWER_DEFS.sower.color, 0.4);
+      this.mines[i] = this.mines[this.mines.length - 1];
+      this.mines.pop();
+    }
+  }
+
   /** Spray a branched tower's signature particle + sound on an attack/pulse, ESCALATED by tier
    *  (BRANCH-EVOLUTION.md §3a/§3d): a higher tier erupts denser, faster matter and a deeper cue,
    *  so every purchased upgrade visibly + audibly grows. Cosmetic only — the FX rng and sfx queue
@@ -3219,7 +3948,7 @@ export class Game {
 
   private projectileSystem(dt: number): void {
     for (const p of this.projectiles) {
-      const step = p.speed * dt;
+      const step = p.speed * this.megaFx.projSpeed * dt; // ×1 without a mega slow-shots field
       // Fading out (lost its target): coast along the last heading while the renderer fades it,
       // then release — a graceful wind-down instead of an instant pop. Deals no damage / no rng.
       if (p.fade !== undefined) {
@@ -3574,7 +4303,7 @@ export class Game {
       const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
       // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
       // 1 when no hazard is active / Stage mode ⇒ golden-safe.
-      const step = e.speed * chargeMult * this.biomeHazardEnemySpeed() * (1 - slow) * dt;
+      const step = e.speed * chargeMult * this.biomeHazardEnemySpeed() * this.megaFx.enemyHaste * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -3844,6 +4573,18 @@ export class Game {
     return m;
   }
 
+  /** Revenant Virulent Presence + Virulence: INFECTED enemies take extra damage, deepening with depth.
+   *  Summed over the roster; 0 unless a Revenant (viralVuln passive) is fielded ⇒ golden-safe (no such
+   *  hero in Stage autoplay, so an infected enemy's damage taken is unchanged there). */
+  private heroInfectionVulnBonus(): number {
+    let m = 0;
+    for (const h of this.heroes) {
+      const id = this.idOf(h);
+      if (id.passive.kind === 'viralVuln') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+    }
+    return m;
+  }
+
   /** Ravager Bloodthirst + Killchain on an elite death: stack the chain, heal the hero, brief speed
    *  rush — PER Ravager in the roster. No-op unless a Ravager is fielded; elites never spawn in Stage
    *  autoplay ⇒ golden-safe (a single Ravager behaves byte-identically to the old singular state). */
@@ -3931,6 +4672,11 @@ export class Game {
         case 'guard': this.updateGuardHero(h, def, dt); break;
         case 'control': this.updateControlHero(h, def, dt); break;
         case 'siege': this.updateSiegeHero(h, def, dt); break;
+        case 'phase': this.updatePhaseHero(h, def, dt); break;
+      }
+      // MEGA raid-fire fallback (docs/MEGA-BOSS.md): the line is clear — strike a reachable organ.
+      if (this.mega !== null && this.mega.deathT === 0 && h.attackCd <= 0 && this.enemies.length === 0) {
+        this.heroMegaStrike(h, def);
       }
     }
 
@@ -4143,6 +4889,65 @@ export class Game {
     this.heroMasteryAccrual[h.kind].damage += dmg; // usage signal (mortarImpact has no hero source)
   }
 
+  /**
+   * REVENANT (Viral phase-assassin). It does NOT walk to its prey: it BLINKS (teleports) to the
+   * biggest threat — boss > elite > highest-HP within aggro — lands a heavy strike, and injects a
+   * deep Infection (a ramping armor-ignoring DoT that SPREADS on the host's death). Between strikes
+   * it holds, "phased". The blink is its identity: it reaches anything, anywhere, to delete ONE fat
+   * target. Never fielded on the golden path (milestone-gated), so its teleport + Infection never
+   * touch the pinned autoplay.
+   */
+  private updatePhaseHero(h: Hero, def: HeroDef, dt: number): void {
+    if ((h.phaseT ?? 0) > 0) h.phaseT = Math.max(0, (h.phaseT as number) - dt); // decay the blink flash
+    const aggro2 = (def.aggroRange * this.hmods(h).heroAggroRangeMult) ** 2;
+    // The assassin hunts the BIGGEST threat: a boss first, then an elite, then the highest-HP body.
+    let target: Enemy | null = null;
+    let rank = 0; // 3 boss · 2 elite · 1 normal
+    let bestHp = -Infinity;
+    for (const e of this.enemies) {
+      if (!e.alive || dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
+      const r = e.boss !== null ? 3 : e.elite ? 2 : 1;
+      if (r > rank || (r === rank && e.hp > bestHp)) { rank = r; bestHp = e.hp; target = e; }
+    }
+    h.targetId = target ? target.id : -1;
+
+    if (!target) {
+      // Field clear: drift to the idle anchor (a normal walk — nothing to blink to).
+      h.moveState = 'idle';
+      const goal = this.heroIdleGoal(h);
+      const np = moveToward(h.x, h.y, goal.x, goal.y, this.heroSpeed(h) * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+      return;
+    }
+
+    if (h.attackCd > 0) { h.moveState = 'moving'; return; } // recovering between blinks (phased out)
+
+    // BLINK-STRIKE: teleport just off the target (from wherever it was), then strike hard.
+    const near = def.attackRange * 0.6;
+    const ang = Math.atan2(h.y - target.y, h.x - target.x); // land on the side it approached from
+    h.phaseFromX = h.x;
+    h.phaseFromY = h.y;
+    h.phaseT = HERO_PHASE_FLASH;
+    h.x = Math.max(0, Math.min(WIDTH, target.x + Math.cos(ang) * near));
+    h.y = Math.max(0, Math.min(HEIGHT, target.y + Math.sin(ang) * near));
+    h.moveState = 'attacking';
+    this.spawnParticles(h.x, h.y, PARTICLE.infect, def.color, 0.6); // a viral phase-in burst
+    this.pushSfx('ability'); // a sharp phase-in cue
+    // The strike: heavy single-target damage + a deep Infection injection (Plague Strike).
+    const crit = this.rollHeroCrit(h);
+    const dmg = def.attackDamage * this.heroDamageMult(h) * crit.mult;
+    const applied = this.applyDamage(target, dmg);
+    if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
+    this.heroMasteryAccrual[h.kind].damage += applied;
+    this.heroLifesteal(h, applied);
+    this.infect(target, REVENANT.infectPerStrike); // deep Infection — spreads on the host's death
+    for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount }); // weapon grants
+    this.maybeReact(target);
+    this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
+    h.attackCd = def.attackInterval / this.heroHaste(h);
+  }
+
   /** Densest enemy (cheap proxy: most neighbours within `r`) — the Overseer's anchor. */
   private densestCluster(r: number): Enemy | null {
     let best: Enemy | null = null;
@@ -4345,7 +5150,7 @@ export class Game {
             }
           }
         }
-        const gain = e.bounty * this.mods.biomassMult;
+        const gain = e.bounty * this.mods.biomassMult * this.megaFx.biomass; // ×1 without a mega leech
         this.biomass += gain;
         this.statBiomassEarned += gain;
         this.armorBreakUntil.delete(e.id);
@@ -4558,6 +5363,10 @@ export class Game {
 
   private checkWaveEnd(): void {
     if (this.phase !== 'wave' || this.settleTimer > 0) return; // already winding down
+    // A living Mega Boss HOLDS its encounter open (docs/MEGA-BOSS.md): the Daily variant never
+    // wave-clears at all, and a campaign mega-stage cannot present its finale until the organism
+    // falls — megaBossSystem keeps overtime reinforcements arriving instead of the wave plan.
+    if (this.mega !== null && (this.megaDailyEnc !== null || (this.mode === 'campaign' && this.waveIndex >= this.totalWaves))) return;
     if (this.spawnedAll && this.spawnQueue.length === 0 && this.rushPending.length === 0 && this.enemies.length === 0) {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
@@ -4643,6 +5452,7 @@ export class Game {
     if (this.mods.fullHealthDamageBonus > 0 && e.hp >= e.maxHp) m += this.mods.fullHealthDamageBonus; // Ambush Enzyme — first-strike bonus
     if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus + this.heroVulnBonus();
     if (e.corrosion > 0) m += this.heroCorrosionVulnBonus(); // Vitriol Solvent Rounds (0 unless fielded)
+    if (e.infection > 0) m += this.heroInfectionVulnBonus(); // Revenant Virulent Presence (0 unless fielded)
     // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
     // inert on the historical path (no framework statuses present).
     if (e.statuses !== undefined && e.statuses.length > 0) m += aggregateStatuses(e.statuses).damageTakenMult;
@@ -4765,7 +5575,7 @@ export class Game {
     const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
     // Boss carapace: heavy bonus armor while the window is up — but a Shred (broken) cracks it too,
     // so Fracture answers the wall. Zero on every normal enemy ⇒ golden-safe.
-    const armor = effectiveArmor(e, broken) + (broken ? 0 : e.boss?.carapace ?? 0);
+    const armor = effectiveArmor(e, broken) + (broken ? 0 : e.boss?.carapace ?? 0) + this.megaFx.enemyArmorAdd; // mega chitinize (+0 without one)
     const applied = damageAfter(raw, this.vulnMult(e), armor);
     // Shielded enemies soak the hit into the front shield first; only the overflow reaches HP.
     // The shield is undefined/0 on the historical roster, so this is a no-op there (golden-safe).
@@ -5140,6 +5950,42 @@ export class Game {
       biome: { id: this.activeBiome.id, name: this.activeBiome.name, accent: this.activeBiome.accent },
       biomeFlash: this.biomeFlash,
       hazardActive: hazardActive(this.activeBiome, this.time),
+      megaBoss: this.megaBossView(),
+      megaShots: this.megaShots,
+      mines: this.mines,
+    };
+  }
+
+  /** Snapshot the live Mega Boss for the renderer/HUD (null on every run without one). */
+  private megaBossView(): MegaBossView | null {
+    const rt = this.mega;
+    if (rt === null) return null;
+    const def = megaBossDef(rt.defId);
+    if (!def) return null;
+    const phase = def.phases[rt.phase];
+    const effects: string[] = [];
+    for (const a of rt.active) if (this.time < a.until) effects.push(a.kind.toUpperCase());
+    if (phase.passive && this.time >= rt.passiveOffUntil) effects.push(`${phase.passive.kind.toUpperCase()}*`);
+    return {
+      defId: def.id,
+      name: def.name,
+      title: def.title,
+      palette: def.palette,
+      bodyFrac: def.bodyFrac,
+      anchorY: MEGA.anchorY,
+      hp: Math.max(0, rt.hp),
+      maxHp: rt.maxHp,
+      phase: rt.phase,
+      phases: def.phases.length,
+      visualTier: phase.visualTier ?? rt.phase,
+      telegraph: rt.telegraph !== null
+        ? { kind: def.abilities[rt.telegraph.ability].kind, frac: 1 - rt.telegraph.t / rt.telegraph.total }
+        : null,
+      stunned: rt.stunned,
+      exposed: this.time < rt.exposedUntil,
+      deathT: rt.deathT,
+      weakPoints: rt.weakPoints,
+      effects,
     };
   }
 
@@ -5238,6 +6084,7 @@ export class Game {
       cards: this.chosenCards,
       buffs: this.activeBuffs(),
       bossBanner: this.bossBanner(),
+      megaBanner: this.megaBanner(),
       mutation:
         this.mutation && this.time - this.mutation.at < MUTATION_BANNER_LIFE
           ? { id: this.mutation.id, title: this.mutation.title, sub: this.mutation.sub, branchId: this.mutation.branchId, color: this.mutation.color }
@@ -5324,6 +6171,35 @@ export class Game {
     };
   }
 
+  /** The Mega Boss raid bar (docs/MEGA-BOSS.md §hud) — null on every run without one. */
+  private megaBanner(): HudSnapshot['megaBanner'] {
+    const rt = this.mega;
+    if (rt === null || rt.deathT > 0) return null;
+    const def = megaBossDef(rt.defId);
+    if (!def) return null;
+    const view = this.megaBossView()!;
+    return {
+      name: def.name,
+      title: def.title,
+      hpPct: Math.max(0, rt.hp / rt.maxHp),
+      phase: rt.phase + 1,
+      phases: def.phases.length,
+      telegraph: view.telegraph,
+      stunned: rt.stunned > 0,
+      exposed: this.time < rt.exposedUntil,
+      effects: view.effects,
+      weakPoints: rt.weakPoints
+        .filter((w) => w.state === 'open')
+        .map((w) => ({ kind: w.kind, name: WEAK_POINT_DEFS[w.kind].name, hpPct: Math.max(0, w.hp / w.maxHp), note: WEAK_POINT_DEFS[w.kind].hudNote })),
+      glow: def.palette.glow,
+    };
+  }
+
+  /** Deal direct damage to the live Mega Boss (tests / balance probes only — bypasses armor). */
+  debugDamageMega(n: number): void {
+    if (this.mega !== null && this.mega.deathT === 0) this.mega.hp -= n;
+  }
+
   /** Spawn an authored boss (debug / director). */
   debugSpawnBoss(): void {
     this.spawnBoss(bossDef('progenitor')!);
@@ -5401,6 +6277,17 @@ export class Game {
       strains: this.statStrains,
       strainByKind: { ...this.statStrainByKind },
       bossKills: this.runBossKills,
+      // Mega Boss block — present only when a mega was ENCOUNTERED this run, so every existing
+      // fixture (and every ordinary run) serializes exactly as before.
+      ...(this.statMegaSeen
+        ? {
+            megaKills: [...this.runMegaKills],
+            weakPointsDestroyed: this.statWpDestroyed,
+            weakPointKinds: [...this.statWpKinds],
+            megaInterrupts: this.statMegaInterrupts,
+            megaAbilitiesSurvived: this.statMegaSurvived,
+          }
+        : {}),
     };
   }
 }

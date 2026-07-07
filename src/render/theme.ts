@@ -156,6 +156,8 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   chrysalis: 'diamond', // a faceted amber crystal (warm hue separates it from the obelisk)
   effigy: 'triangle', // a gaunt totem spike (violet, apex-up like a shrine)
   coil: 'hex', // a faceted resonance crystal (amber; a focusing lens + live beam drawn over it)
+  siphon: 'hex', // a fleshy ocular pod — the hex reads as a lidded socket around its draining eye
+  sower: 'circle', // a swollen seed-pod (blight-green; its planted mines dot the lane around it)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
@@ -177,10 +179,13 @@ export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
   broodmother: 'hex', hivecaller: 'hex',
   // support
   mender: 'circle', cantor: 'diamond',
-  // suicide (sapper is a directional charging bomb → triangle, like the bomber)
-  bomber: 'triangle', popper: 'circle', sapper: 'triangle',
-  // artillery
-  siegeworm: 'square', spitter: 'square',
+  // suicide (sapper is a directional charging bomb → triangle, like the bomber; the cataclyst
+  // is a WALKING bomb — heavy square bulk in detonation-red)
+  bomber: 'triangle', popper: 'circle', sapper: 'triangle', cataclyst: 'square',
+  // artillery (the stratovore flies — diamond like the air wing, in bombard-violet)
+  siegeworm: 'square', spitter: 'square', stratovore: 'diamond',
+  // summoner hybrid — womb bulk
+  broodweaver: 'hex',
   // elite / apex
   apex: 'hex', dreadnought: 'square', tyrant: 'hex',
 };
@@ -198,7 +203,7 @@ export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
   // elite — heavies + premium specials get a gilded rim
   brute: 'elite', tank: 'elite', golem: 'elite', warden: 'elite',
   revenant: 'elite', gargoyle: 'elite', broodmother: 'elite', hivecaller: 'elite',
-  siegeworm: 'elite', apex: 'elite', cystwraith: 'elite',
+  siegeworm: 'elite', apex: 'elite', cystwraith: 'elite', stratovore: 'elite', broodweaver: 'elite', cataclyst: 'elite',
   // boss — capstones get the crown + glow + containment ring
   colossus: 'boss', dreadnought: 'boss', tyrant: 'boss',
 };

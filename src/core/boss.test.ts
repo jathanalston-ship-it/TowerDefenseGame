@@ -48,12 +48,21 @@ describe('boss framework', () => {
   });
 });
 
-describe('Milestone-1 campaign boss line (docs/BOSS-DESIGN §4)', () => {
-  it('pins six authored bosses to their campaign stages (5/10/15/20/25/30)', () => {
-    expect(Object.keys(CAMPAIGN_BOSSES).map(Number).sort((a, b) => a - b)).toEqual([5, 10, 15, 20, 25, 30]);
+describe('campaign boss line (docs/BOSS-DESIGN §4 — Milestones 1 + 2)', () => {
+  it('pins nine authored bosses to their campaign stages (5..30 Act-1, 35/40/45 Act-2)', () => {
+    expect(Object.keys(CAMPAIGN_BOSSES).map(Number).sort((a, b) => a - b)).toEqual([5, 10, 15, 20, 25, 30, 35, 40, 45]);
     expect(campaignBossFor(5)!.id).toBe('first_antibody');
     expect(campaignBossFor(30)!.id).toBe('purge_engine');
     expect(campaignBossFor(12)).toBeUndefined(); // non-milestone stages stay procedural
+    // The Act-2 siege line: positioning / layered defense / total suppression.
+    expect(campaignBossFor(35)!.id).toBe('sunken_chorus');
+    expect(campaignBossFor(35)!.modules.some((m) => m.kind === 'gravitas')).toBe(true); // drags YOUR heroes
+    expect(campaignBossFor(40)!.id).toBe('vault_of_teeth');
+    expect(campaignBossFor(40)!.modules.some((m) => m.kind === 'bulwark')).toBe(true); // layered defense
+    expect(campaignBossFor(40)!.modules.some((m) => m.kind === 'corecrush')).toBe(true); // the endgame grip
+    expect(campaignBossFor(45)!.id).toBe('unmaker');
+    expect(campaignBossFor(45)!.modules.some((m) => m.kind === 'corruptor')).toBe(true); // ground rot
+    expect(campaignBossFor(45)!.phases.length).toBe(4); // the full suppression arc
   });
 
   it('each teaches its lesson through a real module (not just more HP)', () => {
