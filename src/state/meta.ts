@@ -45,7 +45,7 @@ import { DEVICE_PREF_KEYS } from './prefs';
 import { announcePower } from './powerEvents';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { ALL_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
+import { CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -2046,7 +2046,7 @@ export const meta = {
           // account's depth so drops read on-curve, never ahead of it.
           const names: string[] = [];
           for (let i = 0; i < g.count; i++) {
-            const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+            const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
             const item = rollItem(Math.random, def, g.rarity, Math.max(1, save.bestWave));
             inventory.push(item);
             names.push(itemDef(item.defId)?.name ?? item.defId);
@@ -2192,7 +2192,7 @@ export const meta = {
           next = { ...next, geneEssence: next.geneEssence + r.qty };
           break;
         case 'equipment': {
-          const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+          const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
           const item = rollItem(Math.random, def, r.rarity, undefined, 'Bio-Roulette');
           next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
           break;
@@ -2301,7 +2301,7 @@ export const meta = {
       case 'equipment': {
         // The SLOT (rarity + price) is deterministic per window; the concrete piece rolls at
         // purchase like every other equipment grant (meta layer, Math.random).
-        const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+        const def = CAPPED_GRANT_ITEMS[Math.floor(Math.random() * CAPPED_GRANT_ITEMS.length)];
         const item = rollItem(Math.random, def, it.equipRarity, undefined, 'Splice Market');
         next = { ...next, equipment: { ...next.equipment, inventory: [...next.equipment.inventory, item] } };
         break;

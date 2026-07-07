@@ -406,6 +406,13 @@ export const RELICS: EquipDef[] = [
 
 export const ALL_ITEMS: EquipDef[] = [...WEAPONS, ...ARMOR, ...RELICS];
 
+/** Items eligible for a rarity-CAPPED grant (premium packs, Splice Market, Bio-Roulette). Excludes
+ *  exotic-locked defs: rollItem force-upgrades those to Exotic regardless of the requested rarity,
+ *  so granting one would breach the premium safeguard "no legendary+ gear direct from money"
+ *  (docs/PREMIUM-STORE.md §philosophy; src/state/premiumSafeguards.test.ts). Exotics stay
+ *  drop-luck only — rollItemDrop still surfaces them. */
+export const CAPPED_GRANT_ITEMS: EquipDef[] = ALL_ITEMS.filter((d) => !d.exotic);
+
 // Equipment self-registers under the content-registry framework (lookups/validation/
 // modding flow through it; `itemDef` below stays as the fast id index the sim uses).
 export const equipmentRegistry = new Registry<EquipDef>('equipment', {
