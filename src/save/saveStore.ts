@@ -32,6 +32,11 @@ export interface SaveData {
   // Boss Rush stamina (docs/BOSS-RUSH.md §stamina) — lazily regenerated from updatedAt; the
   // day key records the last FREE daily entry (ISO date, UTC).
   rushStamina: { value: number; updatedAt: number; freeDay: string };
+  // ── Premium Store ledger (docs/PREMIUM-STORE.md) — additive; a fresh ledger for older saves.
+  //    purchases: lifetime count per offer id (enforces one-time packs); lastRotatingBuyKey: the UTC
+  //    day the rotating slot was last bought (once/day); seenKey: last day the store was OPENED (the
+  //    nav badge); totalSpentUsd: display-price bookkeeping for the support/economy views. ──
+  premium: { purchases: Record<string, number>; lastRotatingBuyKey: string; seenKey: string; totalSpentUsd: number };
   // ── Daily Run ledger (docs/DAILY-RUN.md) — additive; a fresh ledger for older saves.
   //    lastKey/lastWave: the most recent attempt day + its deepest wave; bestWave: lifetime record;
   //    completions: lifetime cleared dailies; streak: consecutive-day clears; rewardedKey: the day
@@ -305,6 +310,7 @@ export function defaultSave(): SaveData {
     rushBestBoss: 0,
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '' },
+    premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0 },
     totalRuns: 0,
     lifetimeShards: 0,
     cardsSeen: 0,
@@ -517,6 +523,8 @@ function withDefaults(data: SaveData): SaveData {
     rushStamina: sanitizeRushStamina((data as { rushStamina?: unknown }).rushStamina),
     // Daily Run ledger (docs/DAILY-RUN.md): pre-daily saves ⇒ a fresh ledger (additive).
     daily: sanitizeDaily((data as { daily?: unknown }).daily),
+    // Premium Store ledger (docs/PREMIUM-STORE.md): pre-store saves ⇒ a fresh ledger (additive).
+    premium: sanitizePremium((data as { premium?: unknown }).premium),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
   };
@@ -653,6 +661,25 @@ function sanitizeDaily(raw: unknown): SaveData['daily'] {
     completions: num(o.completions),
     streak: num(o.streak),
     rewardedKey: key(o.rewardedKey),
+  };
+}
+
+/** Coerce a loaded Premium Store ledger (docs/PREMIUM-STORE.md) — fresh for pre-store saves. */
+function sanitizePremium(raw: unknown): SaveData['premium'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const purchases: Record<string, number> = {};
+  if (typeof o.purchases === 'object' && o.purchases !== null) {
+    for (const [k, v] of Object.entries(o.purchases as Record<string, unknown>)) {
+      const n = Math.max(0, Math.floor(Number(v) || 0));
+      if (n > 0) purchases[k] = n;
+    }
+  }
+  const key = (v: unknown): string => (typeof v === 'string' ? v.slice(0, 10) : '');
+  return {
+    purchases,
+    lastRotatingBuyKey: key(o.lastRotatingBuyKey),
+    seenKey: key(o.seenKey),
+    totalSpentUsd: Math.max(0, Number(o.totalSpentUsd) || 0),
   };
 }
 

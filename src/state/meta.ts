@@ -15,7 +15,9 @@ import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
 import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, upgradeEffectUnits } from '../core/config';
-import { isPrevDayKey } from '../core/daily';
+import { dailyKey, isPrevDayKey } from '../core/daily';
+import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
+import type { PremiumOfferDef } from '../core/premium';
 import type { UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -702,6 +704,21 @@ export interface RunOutcome {
   // Daily Run (docs/DAILY-RUN.md): this run's daily outcome — the once-per-day clear reward (0 on a
   // replay/loss) and the updated streak. Absent off-daily.
   dailyProgress?: { cores: number; streak: number; cleared: boolean };
+}
+
+/** One granted line on a premium receipt — the reveal ceremony renders these. */
+export interface PremiumReceiptLine {
+  icon: string;
+  label: string;
+  rarity?: string; // tint for container/equipment lines
+}
+/** What meta.purchaseOffer returns — everything the confirmation + reveal UI needs. */
+export interface PremiumReceipt {
+  offer: PremiumOfferDef;
+  lines: PremiumReceiptLine[];
+  valueIchor: number; // à-la-carte worth (docs/PREMIUM-STORE.md §value)
+  powerPotential: number; // "up to +N Power when invested" (0 = pure economy offer)
+  sandbox: boolean; // true until a real payment provider is wired at the checkout seam
 }
 
 /** The one-time Combat Tutorial completion payout, for the reward reveal (docs/TUTORIAL.md). */
@@ -1916,6 +1933,159 @@ export const meta = {
   /** External Ichor grant seam (starter vial, future store/analytics — every source is tagged).
    *  In-run faucets (finishRun / achievements / rank-ups / container bleeds) fold Ichor into
    *  their own persists; this is the seam for everything else. */
+  // ── Premium Store (docs/PREMIUM-STORE.md) ─────────────────────────────────
+
+  /** Open the store — stamps today's key so the "new rotating pack" nav badge clears. */
+  openStore(now?: Date): void {
+    const save = store.get();
+    const key = dailyKey(now);
+    if (save.premium.seenKey === key) return;
+    persist({ ...save, premium: { ...save.premium, seenKey: key } });
+  },
+
+  /**
+   * Purchase a premium offer. Runs the full pipeline — availability → CHECKOUT SEAM → grants →
+   * ledger — and returns the receipt the reveal ceremony renders (null = refused/unavailable).
+   *
+   * PAYMENTS: `PREMIUM.checkout` is 'sandbox' — the charge step below is a stub that always
+   * clears. A production provider (Stripe / Steam / App Store) replaces ONLY that step with its
+   * real flow (async checkout → verify → then the grant block runs unchanged). No payment
+   * secrets or processing exist in this client.
+   *
+   * SAFEGUARDS (state/premiumSafeguards.test.ts): grants flow through the game's normal
+   * pipelines; purchased Cores deliberately do NOT feed prestige.cycleShards (money never mints
+   * Ascendant Cells); equipment grants are rarity-capped by the type system; nothing here can
+   * touch campaign progress, evolution caps, or hero slots.
+   */
+  purchaseOffer(offerId: string, now?: Date): PremiumReceipt | null {
+    const save = store.get();
+    const offer = premiumOfferById(offerId);
+    if (!offer) return null;
+    const key = dailyKey(now);
+    if (!offerAvailable(offer, key, save.premium.purchases, save.premium.lastRotatingBuyKey)) return null;
+    // ── checkout seam (sandbox: always clears; a real provider awaits verification here) ──
+    const sandbox = true;
+    // ── grant interpreter — one pass builds the next save + the receipt lines ──
+    let ichor = save.ichor;
+    let lifetimeIchor = save.lifetimeIchor;
+    let shards = save.shards;
+    let lifetimeShards = save.lifetimeShards;
+    let geneEssence = save.geneEssence;
+    const mats = { ...save.mats };
+    const towerShards = { ...save.towerShards };
+    const heroShards = { ...save.heroShards };
+    const pending = [...save.pendingContainers];
+    const inventory = [...save.equipment.inventory];
+    let stamina = 0;
+    const lines: PremiumReceiptLine[] = [];
+    for (const g of offer.grants) {
+      switch (g.grant) {
+        case 'ichor':
+          ichor += g.qty; lifetimeIchor += g.qty;
+          lines.push({ icon: '◆', label: `${g.qty} Ichor` });
+          break;
+        case 'cores':
+          // NOT prestige.cycleShards: purchased Cores never count toward the Molt mint (safeguard).
+          shards += g.qty; lifetimeShards += g.qty;
+          lines.push({ icon: '⬡', label: `${g.qty} Genome Cores` });
+          break;
+        case 'geneEssence':
+          geneEssence += g.qty;
+          lines.push({ icon: '⌬', label: `${g.qty} Gene Essence` });
+          break;
+        case 'mats':
+          mats.mutagen += g.mutagen ?? 0; mats.scrap += g.scrap ?? 0; mats.catalyst += g.catalyst ?? 0;
+          lines.push({ icon: '⚒', label: `Materials — ⊕${g.mutagen ?? 0} · ◳${g.scrap ?? 0} · ✷${g.catalyst ?? 0}` });
+          break;
+        case 'towerShardsAll':
+          for (const k of TOWER_ORDER) towerShards[k] = (towerShards[k] ?? 0) + g.qtyEach;
+          lines.push({ icon: '✦', label: `${g.qtyEach} Strain Samples × every tower` });
+          break;
+        case 'heroShardsAll':
+          for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + g.qtyEach;
+          lines.push({ icon: '✦', label: `${g.qtyEach} Apex Genome × every hero` });
+          break;
+        case 'container':
+          for (let i = 0; i < g.count; i++) pending.push({ kind: 'loot', rarity: g.rarity });
+          lines.push({ icon: '◈', label: `${g.count}× ${g.rarity} Bio-Container`, rarity: g.rarity });
+          break;
+        case 'runCache':
+          for (let i = 0; i < g.count; i++) pending.push({ kind: 'cache', chestId: RUN_CHEST });
+          lines.push({ icon: '⬢', label: `${g.count}× Run Cache` });
+          break;
+        case 'equipment': {
+          // Rolled by the NORMAL generator at the offer's (epic-capped) rarity; ilvl rides the
+          // account's depth so drops read on-curve, never ahead of it.
+          const names: string[] = [];
+          for (let i = 0; i < g.count; i++) {
+            const def = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+            const item = rollItem(Math.random, def, g.rarity, Math.max(1, save.bestWave));
+            inventory.push(item);
+            names.push(itemDef(item.defId)?.name ?? item.defId);
+          }
+          lines.push({ icon: '⛨', label: `${g.count}× ${g.rarity} Equipment — ${names.join(', ')}`, rarity: g.rarity });
+          break;
+        }
+        case 'rushStamina':
+          stamina += g.qty; // granted after the persist via the existing capped pipeline
+          lines.push({ icon: '☠', label: `${g.qty} Rush Stamina` });
+          break;
+      }
+    }
+    persist({
+      ...save,
+      ichor, lifetimeIchor, shards, lifetimeShards, geneEssence, mats, towerShards, heroShards,
+      pendingContainers: pending,
+      equipment: { ...save.equipment, inventory },
+      premium: {
+        ...save.premium,
+        purchases: { ...save.premium.purchases, [offer.id]: (save.premium.purchases[offer.id] ?? 0) + 1 },
+        lastRotatingBuyKey: offer.kind === 'rotating' ? key : save.premium.lastRotatingBuyKey,
+        totalSpentUsd: save.premium.totalSpentUsd + offer.priceUsd,
+      },
+      timeline: pushTimeline(save.timeline, '✷', `Premium — ${offer.name}`),
+    });
+    if (stamina > 0) this.grantRushStamina(stamina); // capped by the existing pipeline
+    return { offer, lines, valueIchor: offerValueIchor(offer), sandbox, powerPotential: this.offerPowerPotential(offerId) };
+  },
+
+  /** Honest Power estimate for an offer: purchases alone move Power by ZERO (nothing auto-equips,
+   *  shards must still be SPENT at normal prices) — this previews the score if the granted shards
+   *  were invested in the stars they can afford right now. "Up to +N when invested." */
+  offerPowerPotential(offerId: string): number {
+    const offer = premiumOfferById(offerId);
+    if (!offer) return 0;
+    let towerGrant = 0;
+    let heroGrant = 0;
+    for (const g of offer.grants) {
+      if (g.grant === 'towerShardsAll') towerGrant += g.qtyEach;
+      if (g.grant === 'heroShardsAll') heroGrant += g.qtyEach;
+    }
+    if (towerGrant === 0 && heroGrant === 0) return 0;
+    const before = this.power().score;
+    const after = this.previewPower((s) => {
+      const towerStars = { ...s.towerStars };
+      const heroStars = { ...s.heroStars };
+      const cap = evolutionStarCap(s);
+      for (const k of TOWER_ORDER) {
+        let budget = (s.towerShards[k] ?? 0) + towerGrant;
+        let stars = towerStars[k] ?? 0;
+        // Greedy: buy every star the granted+banked shards afford, still honouring the CAMPAIGN
+        // Evolution Cap — money cannot cross that gate (the safeguard the cap exists for).
+        while (stars < cap && budget >= towerStarCost(stars)) { budget -= towerStarCost(stars); stars++; }
+        towerStars[k] = stars;
+      }
+      for (const k of HERO_ORDER) {
+        let budget = (s.heroShards[k] ?? 0) + heroGrant;
+        let stars = heroStars[k] ?? 0;
+        while (stars < STAR.maxStars && budget >= heroStarCost(stars)) { budget -= heroStarCost(stars); stars++; }
+        heroStars[k] = stars;
+      }
+      return { ...s, towerStars, heroStars };
+    }).score;
+    return Math.max(0, after - before);
+  },
+
   grantIchor(source: string, n: number): void {
     const amt = Math.max(0, Math.floor(n));
     if (amt <= 0) return;

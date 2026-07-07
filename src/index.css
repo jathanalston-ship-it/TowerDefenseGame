@@ -7648,3 +7648,65 @@ kbd {
 .daily-led { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 12px; color: var(--muted); border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent); }
 .daily-led:last-child { border-bottom: 0; }
 .daily-led b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* ── PREMIUM STORE (docs/PREMIUM-STORE.md) — offer cards, confirmation, reveal ceremony ── */
+.pstore .subtitle b { color: var(--gold); }
+.ps-section-h { margin: 18px 0 10px; font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+.ps-rot { margin-left: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: none; color: var(--muted); }
+.ps-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; }
+.ps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.ps-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md, 12px); overflow: hidden;
+  background: linear-gradient(168deg, color-mix(in srgb, var(--ps, var(--gold)) 9%, var(--panel-2)), var(--panel-2) 62%);
+  border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 35%, var(--line));
+  transition: transform var(--dur-2) ease, box-shadow var(--dur-2) ease, border-color var(--dur-2) ease; }
+.ps-card:hover { transform: translateY(-3px); border-color: var(--ps, var(--gold)); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 22px -8px var(--ps, var(--gold)); }
+.ps-card.is-hero { flex: 1 1 340px; min-width: 300px; }
+.ps-card.is-off { opacity: 0.62; }
+.ps-card.is-off:hover { transform: none; box-shadow: none; }
+.ps-art { position: relative; display: grid; place-items: center; height: 86px; overflow: hidden;
+  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--ps, var(--gold)) 30%, #0a0e16), #070a11 80%); }
+.ps-card.is-hero .ps-art { height: 110px; }
+.ps-glyph { font-size: 40px; line-height: 1; color: var(--ps, var(--gold)); text-shadow: 0 0 22px var(--ps, var(--gold)); animation: ps-breathe 3.2s ease-in-out infinite; }
+.ps-card.is-hero .ps-glyph { font-size: 58px; }
+@keyframes ps-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+.ps-sheen { position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent 0%, color-mix(in srgb, var(--ps, var(--gold)) 45%, transparent) 16%, transparent 32%); opacity: 0.5; animation: hp-spin 7s linear infinite; }
+.ps-body { flex: 1; padding: 12px 13px 8px; }
+.ps-name { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: var(--text); }
+.ps-tag { margin-top: 2px; font-size: 11px; color: var(--muted); }
+.ps-aud { margin-top: 4px; display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ps, var(--gold)); border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 50%, var(--line)); border-radius: 999px; padding: 1px 8px; }
+.ps-grants { margin-top: 9px; display: flex; flex-direction: column; gap: 3px; }
+.ps-grant { font-size: 12px; color: var(--text-dim); }
+.ps-meta { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.ps-bonus { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.ps-bonus.on { color: var(--good, #57d98a); border-color: color-mix(in srgb, var(--good, #57d98a) 55%, var(--line)); }
+.ps-worth { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ps-power { font-size: 11px; font-weight: 700; color: var(--gold); }
+.ps-power.dim { color: var(--muted); font-weight: 400; }
+.ps-buy { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 13px 12px; border-top: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 20%, var(--line)); }
+.ps-note { font-size: 11px; color: var(--muted); }
+.ps-btn { padding: 8px 18px; border-radius: var(--r-sm); font-weight: 800; font-size: 14px; letter-spacing: 0.04em; cursor: pointer; color: #0a0e16;
+  background: linear-gradient(160deg, var(--ps, var(--gold)), color-mix(in srgb, var(--ps, var(--gold)) 60%, #fff)); border: 0;
+  transition: transform var(--dur-1) ease, filter var(--dur-1) ease; }
+.ps-btn:hover:not(:disabled) { transform: scale(1.05); filter: brightness(1.1); }
+.ps-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.ps-foot { margin-top: 20px; font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 760px; }
+/* Confirmation + reveal */
+.ps-overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(4, 8, 12, 0.78); backdrop-filter: blur(4px); padding: 20px; animation: ps-fade 0.16s ease-out; }
+@keyframes ps-fade { from { opacity: 0; } to { opacity: 1; } }
+.ps-box { width: min(440px, 94vw); border-radius: var(--r-md); padding: 20px; background: linear-gradient(165deg, color-mix(in srgb, var(--ps, var(--gold)) 8%, #131c26), #0b1219 70%); border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 45%, var(--line-strong)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65); }
+.ps-box-h { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.ps-box-name { margin-top: 6px; font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 800; color: var(--ps, var(--gold)); }
+.ps-box-grants { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; min-height: 24px; }
+.ps-box-line { font-size: 13px; color: var(--text); }
+.ps-box-line span { display: inline-block; width: 20px; }
+.ps-pop { animation: ps-pop 0.32s cubic-bezier(0.2, 1.4, 0.4, 1); }
+@keyframes ps-pop { 0% { opacity: 0; transform: translateY(8px) scale(0.92); } 100% { opacity: 1; transform: none; } }
+.ps-box-price { margin-top: 14px; font-size: 26px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.ps-sandbox { margin-top: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+.ps-box-btns { margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end; }
+.ps-box-btns button { padding: 9px 18px; border-radius: var(--r-sm); font-weight: 800; cursor: pointer; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); }
+.ps-box-btns button.primary { background: linear-gradient(160deg, var(--ps, var(--gold)), color-mix(in srgb, var(--ps, var(--gold)) 60%, #fff)); color: #0a0e16; border: 0; }
+.ps-box-btns button:disabled { opacity: 0.5; cursor: wait; }
+.ps-reveal-h { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 800; color: var(--ps, var(--gold)); text-shadow: 0 0 16px color-mix(in srgb, var(--ps, var(--gold)) 55%, transparent); }
+.ps-reveal-sub { margin-top: 2px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.ps-reveal-foot { margin-top: 12px; }
