@@ -12,6 +12,7 @@ import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
+import { dailyKey } from '../core/daily';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -27,6 +28,14 @@ registerNotification({
   id: 'market.stock',
   channel: 'market',
   count: (s) => (Math.max(marketWindow(Date.now()), s.market.window) > s.market.seenWindow ? 1 : 0),
+});
+
+// Premium Store — today's rotating pack hasn't been SEEN yet (opening the store stamps
+// seenKey via meta.openStore; the badge re-lights at the next UTC rotation).
+registerNotification({
+  id: 'store.rotation',
+  channel: 'store',
+  count: (s) => (s.premium.seenKey === dailyKey() ? 0 : 1),
 });
 
 // Tower Lab — towers whose next star you can afford right now (drops as you buy them),

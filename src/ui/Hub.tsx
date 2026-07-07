@@ -17,6 +17,7 @@ import { CommandCenter } from './CommandCenter';
 import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
 import { DailyScreen } from './DailyScreen';
+import { PremiumStore } from './PremiumStore';
 import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { MODE_UNLOCKS } from '../core/config';
 import { CampaignScreen } from './CampaignScreen';
@@ -40,6 +41,7 @@ export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily'
   | 'towers' | 'heroes' | 'evolution' | 'genes'
   | 'vault' | 'market' | 'equipment' | 'collection'
+  | 'store'
   | 'profile' | 'settings' | 'help';
 
 interface NavItem { key: NavKey; label: string; mono: string }
@@ -67,6 +69,11 @@ const NAV_GROUPS: NavGroup[] = [
     { key: 'equipment', label: 'Equipment', mono: '⛨' },
     { key: 'collection', label: 'Collection', mono: '▤' },
   ] },
+  // The Premium Store sits in its OWN group — monetization stays visibly separate from
+  // gameplay progression (docs/PREMIUM-STORE.md §philosophy).
+  { title: 'Store', items: [
+    { key: 'store', label: 'Premium Store', mono: '✷' },
+  ] },
   { title: 'Account', items: [
     { key: 'profile', label: 'Profile', mono: '◑' },
     { key: 'help', label: 'Help', mono: '?' },
@@ -77,7 +84,7 @@ const NAV_GROUPS: NavGroup[] = [
 // Accent tint per group — the rail reads as zones, and each group's selected item / ring glows
 // in its own hue (CSS consumes `--nav-accent`).
 const GROUP_ACCENT: Record<string, string> = {
-  Play: 'var(--vital)', Progression: 'var(--kinetic)', Collection: 'var(--gold)', Account: 'var(--muted)',
+  Play: 'var(--vital)', Progression: 'var(--kinetic)', Collection: 'var(--gold)', Store: 'var(--viral)', Account: 'var(--muted)',
 };
 
 /** A campaign-sealed mode's unlock briefing (docs/MODE-IDENTITY.md §gates) — the mode stays
@@ -304,6 +311,7 @@ export function Hub({
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'collection' && <CollectionScreen />}
+          {nav === 'store' && <PremiumStore />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}

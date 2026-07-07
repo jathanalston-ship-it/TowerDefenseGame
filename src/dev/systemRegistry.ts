@@ -93,6 +93,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/DAILY-RUN.md', 'docs/MODE-IDENTITY.md'],
   },
   {
+    id: 'premium', name: 'Premium Store', purpose: 'Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, and windowed event offers on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).',
+    files: ['src/core/premium.ts', 'src/ui/PremiumStore.tsx'],
+    dependsOn: ['content-infra', 'splice-market', 'daily', 'power'], powerScore: 'offerPowerPotential — the honest "up to +N when invested" estimate', save: ['premium'], tutorial: [], help: [],
+    hud: [], ui: ['PremiumStore'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/PREMIUM-STORE.md', 'docs/PREMIUM-ECONOMY-REPORT.md'],
+  },
+  {
     id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',
     files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/core/conveyor.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
     dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerShards', 'towerMasteryXp', 'towerForks'],

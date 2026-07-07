@@ -34,6 +34,10 @@ graph TD
   daily --> biomes
   daily --> bosses
   daily --> towers
+  premium --> content_infra
+  premium --> splice_market
+  premium --> daily
+  premium --> power
   towers --> content_infra
   towers --> shards_economy
   towers --> campaign
@@ -98,12 +102,13 @@ graph TD
 | System | Depends on | Consumers (break first) | Power Score | Save fields | Docs |
 |---|---|---|---|---|---|
 | **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` | `campaign` · `infinite` · `boss-rush` · `daily` · `heroes` · `onboarding` · `run-ui` · `bosses` · `rendering` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
-| **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `biomes` · `difficulty` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
-| **Power Score** (`power`) | `content-infra` | `campaign` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
+| **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `biomes` · `difficulty` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
+| **Power Score** (`power`) | `content-infra` | `campaign` · `premium` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | — | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
-| **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | — | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
+| **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
+| **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | — | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
@@ -116,7 +121,7 @@ graph TD
 | **Evolution HQ (Genome Cores)** (`evolution-hq`) | `content-infra` · `prestige` | `prestige` | ⚡ META_UPGRADES fold into the permanent bucket | `upgrades` | `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` |
 | **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md` |
 | **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
-| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | — | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` | `docs/MARKET.md` |
+| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
@@ -158,14 +163,14 @@ graph TD
 
 - **Files:** `src/core/registry.ts` · `src/core/validate.ts` · `src/core/config.ts` · `src/core/types.ts` · `src/core/math.ts` · `src/core/rng.ts` · `src/core/spatial.ts` · `src/core/features.ts` · `src/vite-env.d.ts`
 - **Depends on:** —
-- **Consumers — what breaks if you change this:** `engine` · `power` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `biomes` · `difficulty`
+- **Consumers — what breaks if you change this:** `engine` · `power` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `biomes` · `difficulty`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/BIOMES.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md`
+- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/BIOMES.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md`
 
 ### Power Score (`power`)
 
@@ -173,14 +178,14 @@ graph TD
 
 - **Files:** `src/core/power.ts` · `src/state/itemPower.ts` · `src/state/powerEvents.ts` · `src/ui/components/PowerScore.tsx` · `src/ui/components/PowerDelta.tsx` · `src/ui/components/PowerToaster.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `campaign` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction`
+- **Consumers — what breaks if you change this:** `campaign` · `premium` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction`
 - **Power Score:** IS the model (buckets, effectsPower, FIELD_WEIGHT)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** `power-score`
 - **HUD surfaces:** `Hud (live run Power)` · **UI screens:** `ProgressDashboard` · `CommandCenter (recommended power)`
 - **Collection:** collection completion feeds a bucket · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROFILE.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
+- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROFILE.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
 
 ### Campaign (`campaign`)
 
@@ -233,14 +238,29 @@ graph TD
 
 - **Files:** `src/core/daily.ts` · `src/core/dailyModifiers.ts` · `src/ui/DailyScreen.tsx`
 - **Depends on:** `engine` · `campaign` · `biomes` · `bosses` · `towers`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `premium`
 - **Power Score:** recommended-power readiness on the day card
 - **Save fields:** `daily`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `CommandCenter`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md`
+- **Docs to update on change:** `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md`
+
+### Premium Store (`premium`)
+
+*Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, and windowed event offers on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).*
+
+- **Files:** `src/core/premium.ts` · `src/ui/PremiumStore.tsx`
+- **Depends on:** `content-infra` · `splice-market` · `daily` · `power`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** offerPowerPotential — the honest "up to +N when invested" estimate
+- **Save fields:** `premium`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `PremiumStore`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md`
 
 ### Towers, Stars, Branches, Strain & Codex (`towers`)
 
@@ -428,14 +448,14 @@ graph TD
 
 - **Files:** `src/core/market.ts` · `src/state/spliceMarket.ts` · `src/ui/SpliceMarket.tsx`
 - **Depends on:** `currencies` · `loot`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `premium`
 - **Power Score:** none by design (Ichor never feeds Power)
 - **Save fields:** `ichor` · `lifetimeIchor` · `market`
 - **Tutorial:** — · **Help mechanics:** `splice-market`
 - **HUD surfaces:** `top resource bar (Ichor chip)` · **UI screens:** `SpliceMarket` · `Hub nav (Collection group)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/MARKET.md`
+- **Docs to update on change:** `docs/MARKET.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md`
 
 ### Achievements (`achievements`)
 
