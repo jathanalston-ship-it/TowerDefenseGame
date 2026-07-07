@@ -749,11 +749,12 @@ export class Game {
   private heroAbilityRadiusFor(h: Hero): number {
     return this.hmods(h).heroAbilityRadiusMult * this.evo.abilityRadiusMult;
   }
-  /** Heal a hero by `n`, scaled by Evolution Regeneration (healing RECEIVED), clamped to max HP.
-   *  No-op when down or n≤0. healingMult=1 ⇒ a plain clamp (golden-safe). */
+  /** Heal a hero by `n`, scaled by Evolution Regeneration + the run's healing-received modifier
+   *  (gear / gene cards / Genome meta), clamped to max HP. No-op when down or n≤0. Both factors
+   *  are 1 in a neutral run ⇒ a plain clamp (golden-safe). */
   private healHeroBy(h: Hero, n: number): void {
     if (h.down || n <= 0) return;
-    h.hp = Math.min(h.maxHp, h.hp + n * this.evo.healingMult);
+    h.hp = Math.min(h.maxHp, h.hp + n * this.evo.healingMult * this.hmods(h).heroHealingMult);
   }
   /** Roll a hero crit for one damage instance → the damage multiplier (1 = no crit) + whether it
    *  crit. GATED on crit chance > 0 so a run with no Precision spends NO rng (golden byte-identical). */
