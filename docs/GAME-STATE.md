@@ -42,7 +42,7 @@ updated whenever a system lands.
 | Status + SHRED reaction engine | ✅ | `game.ts`, `config.ts STATUS` | DESIGN |
 | Wave Composer (themes/elites/bosses/scripted) | ✅ | `core/wavecomposer.ts` | WAVES |
 | Elites (buffed champions) | ✅ | `wavecomposer.ts`, `config.ts ELITE` | WAVES |
-| Gene Cards — roguelite draft (30) | ✅ | `core/cards.ts`, `ui/DraftModal.tsx` | CARDS |
+| Gene Cards — roguelite draft (35, 5 progression-gated) | ✅ | `core/cards.ts`, `ui/DraftModal.tsx` | CARDS |
 | Procedural stage generation | ✅ | `core/stage.ts` | STAGES |
 | Biomes (5, data-driven theming) | ✅ | `core/biomes.ts`, `render/renderer.ts` | STAGES |
 | Endless mode + leaderboard score | ✅ | `core/game.ts`, `core/stage.ts` | STAGES |
@@ -77,7 +77,7 @@ updated whenever a system lands.
 | Heroes | 2 | Ravager (Kinetic, Apex Leap) · Bulwark (Vital, Seismic Slam); distinct stats + abilities, class-tinted, menu picker |
 | Enemies | 11 | runner, brute, tyrant, rusher, tank, flyer, burrower, splitter, spitter, mender, warden |
 | Bosses | 12 | phased build-checks across 5 faction-biomes; 9 ability verbs, 7 silhouette forms, 6 modifiers |
-| Gene Cards | 30 | common + rare; ~12 behavioral |
+| Gene Cards | 35 | common + rare; ~17 behavioral; 5 progression-gated (account milestones) |
 | Biomes | 5 | wasteland, corporate, marsh, bone, machine |
 | Authored waves | 12 | Classic/Stage; Endless waves are procedural |
 | Meta upgrades | 13 | 4 Core · 3 Mastery · 3 Equipment · 3 Prestige |

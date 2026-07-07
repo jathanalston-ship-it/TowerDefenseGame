@@ -10,13 +10,16 @@ permanent (shaped by **Mutation Fragments**, `ECONOMY.md`); the *draw* is per-ru
 > your *draft upgrades* — all bought with **Mutation Fragments**. This keeps runs
 > wild and experimental without inflating permanent power (`PROGRESSION.md §1`).
 
-> **Implemented status (see `GAME-STATE.md`):** ✅ a **30-card** pool with the
+> **Implemented status (see `GAME-STATE.md`):** ✅ a **35-card** pool with the
 > rarity-weighted 1-of-3 **draft between waves** is live (`core/cards.ts`,
-> `ui/DraftModal.tsx`), including ~12 *behavioral* cards via the `RunModifiers`
+> `ui/DraftModal.tsx`), including ~17 *behavioral* cards via the `RunModifiers`
 > hook pattern (`CONTENT-GUIDE.md §Gene Cards`). Cards drafted are recorded in the
-> **Codex** (`COLLECTION.md`). The permanent **pool-unlock / weighting / draft-
-> upgrade** economy (Mutation Fragments) described below is **designed, not yet
-> built** — today the full pool is always available.
+> **Codex** (`COLLECTION.md`). **Progression gating is live for 5 cards:** each
+> carries a data-driven `gate` (a `CardProgress` predicate) and enters the pool only
+> once the account clears its milestone — the first slice of the pool-unlock system
+> below, keyed off play milestones rather than currency. The broader **weighting /
+> draft-upgrade** economy (Mutation Fragments) is still **designed, not yet built**;
+> all ungated cards remain always-available.
 
 ---
 

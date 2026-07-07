@@ -48,7 +48,7 @@ import {
 import type { AffixDef, MasteryUnit } from '../core/config';
 import type { UpgradeDef, LootRarity, LootBoxType, StarStat } from '../core/config';
 import type { Currency, MetaModifiers, TowerKind, GearItem, GearSlot } from '../core/types';
-import type { RunModifiers } from '../core/cards';
+import type { CardProgress, RunModifiers } from '../core/cards';
 import type { RunFold } from '../core/game';
 import type { RunResult } from '../core/game';
 import {
@@ -501,6 +501,19 @@ export const meta = {
         for (const item of worn) applyGear(item, m);
         applyHeroMastery(s.mastery.hero ?? 0, m); // hero's uncapped mastery
       },
+    };
+  },
+
+  /** Progression snapshot the run's draft reads to unlock gated Gene Cards
+   *  (cards.ts CardProgress) — the same persisted records the achievement checks use. */
+  cardProgress(): CardProgress {
+    const s = store.get();
+    return {
+      totalRuns: s.totalRuns,
+      bestWave: s.bestWave,
+      bestStage: s.bestStage,
+      stagesCleared: s.stagesCleared,
+      bestEndlessWave: s.bestEndlessWave,
     };
   },
 

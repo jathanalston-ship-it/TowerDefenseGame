@@ -13,6 +13,10 @@
 //   2) read it at the relevant hook in game.ts,
 //   3) append a CardDef here.
 // Rarity weighting + distinct-draft logic below stay unchanged as the pool grows.
+// A card may also carry an optional `gate` (a CardProgress predicate): such cards
+// enter the draft pool only once the account hits a progression milestone. Gating
+// is pure data (no per-card branching), so it scales with the pool like everything
+// else — draftCards filters by it before rarity weighting.
 
 import type { CardOption, CardRarity } from './types';
 import type { Rng } from './rng';
@@ -52,6 +56,12 @@ export interface RunModifiers {
   shredExplosion: boolean; // SHRED detonates an AoE
   apexKillReset: number; // kills shave this many seconds off Apex Leap
   heroLifestealOnKill: number; // hero heals this much per kill
+  // ── progression-gated knobs (unlocked by account milestones; see CardProgress) ──
+  integrityRegenPerWave: number; // Integrity restored each time a wave is cleared
+  firstStrikeBonus: number; // +damage fraction to enemies still at full health
+  executeThreshold: number; // instantly kill non-boss enemies below this HP fraction
+  killFractureSplash: number; // Fracture applied to nearby enemies on every kill
+  heroCorrosionAura: boolean; // the hero passively corrodes nearby enemies
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -87,6 +97,11 @@ export function defaultRunModifiers(): RunModifiers {
     shredExplosion: false,
     apexKillReset: 0,
     heroLifestealOnKill: 0,
+    integrityRegenPerWave: 0,
+    firstStrikeBonus: 0,
+    executeThreshold: 0,
+    killFractureSplash: 0,
+    heroCorrosionAura: false,
   };
 }
 
@@ -98,6 +113,25 @@ export interface CardContext {
   healHero: (maxBonus: number) => void;
 }
 
+/** The account-progression snapshot a gated card's unlock test reads — a small
+ *  subset of the save (built by `meta.cardProgress()`). Kept local to cards.ts so
+ *  the sim core stays free of the meta/achievement layer. When absent (headless /
+ *  tests), gated cards stay locked, preserving the deterministic draft baseline. */
+export interface CardProgress {
+  totalRuns: number;
+  bestWave: number; // deepest classic wave reached
+  bestStage: number; // highest Stage cleared
+  stagesCleared: number; // lifetime Stage clears
+  bestEndlessWave: number; // deepest Endless wave reached
+}
+
+/** A progression gate on a card: human `requirement` copy (for the Codex/UI) plus the
+ *  predicate the unlock check runs. Ungated cards (no `gate`) are always in the pool. */
+export interface CardGate {
+  requirement: string;
+  test: (p: CardProgress) => boolean;
+}
+
 export interface CardDef {
   id: string;
   name: string;
@@ -105,6 +139,14 @@ export interface CardDef {
   category: string;
   description: string;
   apply: (ctx: CardContext) => void;
+  gate?: CardGate; // progression-gated cards enter the pool only once `gate.test` passes
+}
+
+/** Is a card draftable right now? Ungated → always. Gated → only when a progress
+ *  snapshot is present AND its test passes (no snapshot ⇒ locked). */
+export function isCardUnlocked(def: CardDef, progress?: CardProgress): boolean {
+  if (!def.gate) return true;
+  return progress ? def.gate.test(progress) : false;
 }
 
 export const CARD_POOL: CardDef[] = [
@@ -144,24 +186,36 @@ export const CARD_POOL: CardDef[] = [
   { id: 'predator_instinct', name: 'Predator Instinct', rarity: 'common', category: 'Hero Buff', description: '+18% hero move speed.', apply: (c) => { c.mods.heroSpeedMult *= 1.18; } },
   { id: 'barbed_needles', name: 'Barbed Needles', rarity: 'common', category: 'Crits', description: 'Needle Spitter applies +1 Fracture per hit.', apply: (c) => { c.mods.needleBonusFracture += 1; } },
   { id: 'adrenal_surge', name: 'Adrenal Surge', rarity: 'common', category: 'Hero Buff', description: '+20% hero attack speed.', apply: (c) => { c.mods.heroAttackRateMult *= 1.2; } },
-];
 
-const BY_RARITY: Record<CardRarity, CardDef[]> = {
-  common: CARD_POOL.filter((c) => c.rarity === 'common'),
-  rare: CARD_POOL.filter((c) => c.rarity === 'rare'),
-};
+  // ── Progression-gated — rare-tier rewards that enter the pool only once the
+  //    account clears a distinct milestone (meta.cardProgress → draftCards filter).
+  //    Each opens a new HOOK, so they're behavioral, not just bigger numbers. ──
+  { id: 'regenerative_carapace', name: 'Regenerative Carapace', rarity: 'rare', category: 'Survival', description: 'Restore 30 Integrity each time you clear a wave.', gate: { requirement: 'Finish 5 runs', test: (p) => p.totalRuns >= 5 }, apply: (c) => { c.mods.integrityRegenPerWave += 30; } },
+  { id: 'ambush_enzyme', name: 'Ambush Enzyme', rarity: 'rare', category: 'Crits', description: '+45% damage to enemies still at full health.', gate: { requirement: 'Reach wave 8', test: (p) => p.bestWave >= 8 }, apply: (c) => { c.mods.firstStrikeBonus += 0.45; } },
+  { id: 'culling_instinct', name: 'Culling Instinct', rarity: 'rare', category: 'Mutation Synergy', description: 'Instantly kill non-boss enemies that drop below 10% health.', gate: { requirement: 'Clear Stage 5', test: (p) => p.bestStage >= 5 }, apply: (c) => { c.mods.executeThreshold += 0.1; } },
+  { id: 'viral_payload', name: 'Viral Payload', rarity: 'rare', category: 'Mutation Synergy', description: 'Every kill spreads 2 Fracture to nearby enemies.', gate: { requirement: 'Clear 15 Stages total', test: (p) => p.stagesCleared >= 15 }, apply: (c) => { c.mods.killFractureSplash += 2; } },
+  { id: 'toxic_aura', name: 'Toxic Aura', rarity: 'rare', category: 'Poison', description: 'The hero exudes Corrosion, infecting nearby enemies.', gate: { requirement: 'Reach Endless wave 20', test: (p) => p.bestEndlessWave >= 20 }, apply: (c) => { c.mods.heroCorrosionAura = true; } },
+];
 
 const RARE_CHANCE = 0.32;
 
-/** Draft `count` distinct cards, rarity-weighted. */
-export function draftCards(rng: Rng, count = 3): CardDef[] {
+/** Draft `count` distinct cards, rarity-weighted, from the pool currently UNLOCKED
+ *  for `progress` (ungated cards always; gated cards once their milestone is met).
+ *  Omitting `progress` yields the ungated baseline — identical to the pre-gating
+ *  draft, so headless/tests stay deterministic. */
+export function draftCards(rng: Rng, count = 3, progress?: CardProgress): CardDef[] {
+  const available = CARD_POOL.filter((c) => isCardUnlocked(c, progress));
+  const byRarity: Record<CardRarity, CardDef[]> = {
+    common: available.filter((c) => c.rarity === 'common'),
+    rare: available.filter((c) => c.rarity === 'rare'),
+  };
   const chosen: CardDef[] = [];
   const used = new Set<string>();
   let guard = 0;
   while (chosen.length < count && guard++ < 100) {
     const rarity: CardRarity = rng.chance(RARE_CHANCE) ? 'rare' : 'common';
-    const pool = BY_RARITY[rarity].filter((c) => !used.has(c.id));
-    const fallback = CARD_POOL.filter((c) => !used.has(c.id));
+    const pool = byRarity[rarity].filter((c) => !used.has(c.id));
+    const fallback = available.filter((c) => !used.has(c.id));
     const source = pool.length > 0 ? pool : fallback;
     if (source.length === 0) break;
     const card = rng.pick(source);

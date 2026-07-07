@@ -240,6 +240,8 @@ export const CARD_FX = {
   deathBurstDamage: 12,
   shredExplosionRadius: 58, // Detonation Cascade
   shredExplosionDamage: 24,
+  killFractureRange: 78, // Viral Payload — on-kill Fracture splash radius
+  heroAuraRadius: 92, // Toxic Aura — the hero's Corrosion aura radius
 };
 
 // ── Heroes ──────────────────────────────────────────────────────────────────

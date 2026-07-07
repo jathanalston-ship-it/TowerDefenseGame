@@ -67,7 +67,7 @@ import {
   defaultRunModifiers,
   draftCards,
 } from './cards';
-import type { CardContext, CardDef, RunModifiers } from './cards';
+import type { CardContext, CardDef, CardProgress, RunModifiers } from './cards';
 import type {
   Enemy,
   EnemyKind,
@@ -127,6 +127,7 @@ export interface GameConfig {
   stage?: StageDef; // required for 'stage'
   biome?: BiomeId; // optional starting biome for 'endless'
   heroId?: HeroId; // selected hero (defaults to the Ravager; omitted in tests)
+  cardProgress?: CardProgress; // account progression that unlocks gated Gene Cards (omitted in tests → ungated baseline)
 }
 
 /** Permanent per-run fold applied at run start: per-tower Star stats + a RunModifiers
@@ -175,6 +176,7 @@ export class Game {
 
   private stageMods: StageMods;
   private readonly seed: number;
+  private readonly cardProgress?: CardProgress; // gates which Gene Cards can be drafted (openDraft)
   private readonly heroDef: HeroDef; // the selected hero's tunables (config.heroId)
   private starStat: Record<TowerKind, StarStat> | null = null; // per-kind Star stat fold
 
@@ -220,6 +222,7 @@ export class Game {
     this.rng = new Rng(seed);
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.mode = config.mode;
+    this.cardProgress = config.cardProgress;
     this.heroDef = HEROES[config.heroId ?? DEFAULT_HERO_ID] ?? HEROES[DEFAULT_HERO_ID];
     this.stage = config.stage ?? null;
     this.stageMods = defaultStageMods();
@@ -1095,6 +1098,7 @@ export class Game {
     if (m.heroLifestealOnKill > 0 && !h.down) h.hp = Math.min(h.maxHp, h.hp + m.heroLifestealOnKill); // Sanguine Coil
     if (m.apexKillReset > 0 && h.abilityCd > 0) h.abilityCd = Math.max(0, h.abilityCd - m.apexKillReset); // Apex Hunger
     if (m.corrosionSpread && e.corrosion > 0) this.areaEffect(e, CARD_FX.corrosionSpreadRange, (o) => { o.corrosion = STATUS.corrosionDuration; }); // Viral Bloom
+    if (m.killFractureSplash > 0) this.areaEffect(e, CARD_FX.killFractureRange, (o) => this.addFracture(o, m.killFractureSplash)); // Viral Payload
     if (m.deathBurst) this.areaEffect(e, CARD_FX.deathBurstRadius, (o) => this.applyDamage(o, CARD_FX.deathBurstDamage)); // Volatile Decay
     if (m.deathPools) {
       this.pools.push({ // Acidic Remains
@@ -1355,6 +1359,19 @@ export class Game {
       this.spawnParticles(target.x, target.y, PARTICLE.heroHit);
     }
 
+    // Toxic Aura — the hero passively corrodes (and can SHRED) enemies around it.
+    if (this.mods.heroCorrosionAura && !h.down) {
+      const auraR2 = CARD_FX.heroAuraRadius * CARD_FX.heroAuraRadius;
+      const aura = this.neighborScratch;
+      this.grid.queryInto(h.x, h.y, CARD_FX.heroAuraRadius, aura);
+      for (let k = 0; k < aura.length; k++) {
+        const e = aura[k];
+        if (!e.alive || dist2(h.x, h.y, e.x, e.y) > auraR2) continue;
+        e.corrosion = STATUS.corrosionDuration;
+        this.maybeShred(e);
+      }
+    }
+
     // Contact damage to the hero from nearby enemies (grid-local).
     let incoming = 0;
     const near = this.neighborScratch;
@@ -1524,6 +1541,9 @@ export class Game {
       // Snapshot the just-cleared wave for the Build-Phase summary.
       this.lastWaveSummary = { wave: this.waveIndex, kills: this.waveKills, biomass: Math.round(this.waveBiomass) };
       this.lootProgress += LOOT.perWave; // persistent loot meter (completed wave)
+      if (this.mods.integrityRegenPerWave > 0) { // Regenerative Carapace
+        this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
+      }
       if (this.waveIndex >= this.totalWaves) {
         this.phase = 'won'; // finite modes only; endless has totalWaves = Infinity
       } else {
@@ -1553,9 +1573,14 @@ export class Game {
     let mult = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
     if (e.weakenUntil > this.time) mult += ECON.reactorWeaken; // reactor aura mark
     if (e.corrosion > 0 && this.mods.corrodedAmp > 0) mult += this.mods.corrodedAmp; // Brittle Rot
+    if (this.mods.firstStrikeBonus > 0 && e.hp >= e.maxHp) mult += this.mods.firstStrikeBonus; // Ambush Enzyme
     // Boss weakness/resistance by SOURCE class — the "bring the right damage" lever.
     if (e.boss) mult *= bossDamageMult(ENEMY_DEFS[e.kind].boss!, e.boss, srcClass);
     this.hurt(e, Math.max(1, raw * mult - this.effectiveArmor(e)));
+    // Culling Instinct — execute low-health non-boss enemies (their shield must be down first).
+    if (this.mods.executeThreshold > 0 && !e.boss && e.alive && e.shield <= 0 && e.hp > 0 && e.hp <= e.maxHp * this.mods.executeThreshold) {
+      this.hurt(e, e.hp);
+    }
   }
 
   /** Apply post-mitigation damage, draining the shield first and stamping the hit
@@ -1642,7 +1667,7 @@ export class Game {
   /** Roll a 1-of-3 draft, record the offered cards for the Codex, and enter draft
    *  phase. Single choke point so card discovery is tracked wherever a draft opens. */
   private openDraft(): void {
-    this.draft = draftCards(this.rng, 3);
+    this.draft = draftCards(this.rng, 3, this.cardProgress);
     for (const c of this.draft) this.seenCards.add(c.id);
     this.phase = 'draft';
   }

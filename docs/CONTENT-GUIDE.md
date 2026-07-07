@@ -144,6 +144,15 @@ weighting and distinct-draft logic scale automatically.
 
 Tunable constants for behavioral cards live in `CARD_FX` (`config.ts`).
 
+**Progression-gated card (optional 4th step):** add a `gate: { requirement, test }`
+to the `CardDef`, where `test(p: CardProgress)` reads the account snapshot
+(`totalRuns` / `bestWave` / `bestStage` / `stagesCleared` / `bestEndlessWave`, built
+by `meta.cardProgress()`). Gated cards enter the draft only once `test` passes;
+`draftCards` filters them out otherwise (and always in headless/tests, which pass no
+progress — preserving the deterministic baseline). No engine changes: the gate is
+pure data. To gate on a *new* progression axis, add the field to `CardProgress` and
+populate it in `meta.cardProgress()`.
+
 ---
 
 ## Equipment — `*_UPGRADES` (`config.ts`)
