@@ -170,14 +170,14 @@ export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {
   knitter: 'circle', revenant: 'hex',
   // burrowing — tunnellers (color sets them apart from flyers)
   burrower: 'diamond', molerat: 'diamond',
-  // flying — airborne drifters
-  flyer: 'diamond', wisp: 'diamond', gargoyle: 'diamond',
+  // flying — airborne drifters (cystwraith's regen-teal color sets it apart from the others)
+  flyer: 'diamond', wisp: 'diamond', gargoyle: 'diamond', cystwraith: 'diamond',
   // summoner
   broodmother: 'hex', hivecaller: 'hex',
   // support
   mender: 'circle', cantor: 'diamond',
-  // suicide
-  bomber: 'triangle', popper: 'circle',
+  // suicide (sapper is a directional charging bomb → triangle, like the bomber)
+  bomber: 'triangle', popper: 'circle', sapper: 'triangle',
   // artillery
   siegeworm: 'square', spitter: 'square',
   // elite / apex
@@ -193,11 +193,11 @@ export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
   rusher: 'normal', darter: 'normal', lasher: 'normal',
   bulwark: 'normal', knitter: 'normal', burrower: 'normal', molerat: 'normal',
   flyer: 'normal', wisp: 'normal', mender: 'normal', cantor: 'normal',
-  bomber: 'normal', popper: 'normal', spitter: 'normal',
+  bomber: 'normal', popper: 'normal', spitter: 'normal', sapper: 'normal',
   // elite — heavies + premium specials get a gilded rim
   brute: 'elite', tank: 'elite', golem: 'elite', warden: 'elite',
   revenant: 'elite', gargoyle: 'elite', broodmother: 'elite', hivecaller: 'elite',
-  siegeworm: 'elite', apex: 'elite',
+  siegeworm: 'elite', apex: 'elite', cystwraith: 'elite',
   // boss — capstones get the crown + glow + containment ring
   colossus: 'boss', dreadnought: 'boss', tyrant: 'boss',
 };

@@ -1,4 +1,4 @@
-# ENEMY-ROSTER.md — the implemented bestiary (~30 archetypes, 12 roles)
+# ENEMY-ROSTER.md — the implemented bestiary (~32 archetypes, 12 roles)
 
 The IMPLEMENTATION reference for `ENEMY_DEFS` (`src/core/config.ts`). Companion to the
 higher-level faction *design* spec in `ENEMIES.md` (fantasy / build-pressure). Every enemy here
@@ -61,6 +61,7 @@ enemies reach the field through the **registry** (Bestiary codex), the **AI Dire
 - **flyer** — Spore Drifter — drifts over obstacles for the core.
 - **wisp** — Mind Wisp — fast fragile air → responsive anti-air.
 - **gargoyle** — Bone Gargoyle — **armored** air → anti-air must shred/penetrate, not chip.
+- **cystwraith** — Cyst Wraith — a **regenerating** flyer (re-knits 28/s in flight) → anti-air must SUSTAIN, not chip; burst that can't finish it lets it re-form. *(flying + regenerating fusion.)*
 
 ### Summoner — spawns adds on a timer → priority-kill or drown
 - **broodmother** — Brood Matron — births mites every 3.5s → focus it down or the swarm compounds.
@@ -73,6 +74,7 @@ enemies reach the field through the **registry** (Bestiary codex), the **AI Dire
 ### Suicide — fragile bombs that detonate at the line → intercept early
 - **bomber** — Bile Bomber — fast bomb; reaching the line detonates (heavy Nucleus + hero AoE) → kill it en route.
 - **popper** — Spore Popper — a slow walking mine with a huge blast → kill it well clear of the line.
+- **sapper** — Cinder Sapper — a **burrowing** bomb: skirts tower kill-zones (high avoidTowers) to reach the line through gaps, then detonates → demands EVEN coverage *and* early interception. *(burrowing + suicide fusion.)*
 
 ### Artillery — halt short and bombard the Nucleus from range → reach it mid-field
 - **siegeworm** — Siege Maw — stops 220px out and shells the core (6/volley) → project DPS mid-field.

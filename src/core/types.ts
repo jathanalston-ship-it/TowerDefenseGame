@@ -24,12 +24,16 @@ export type EnemyKind =
   | 'burrower' | 'molerat'
   // flying
   | 'flyer' | 'wisp' | 'gargoyle'
+  // flying + regenerating hybrid (out-heals burst; demands sustained anti-air)
+  | 'cystwraith'
   // summoner
   | 'broodmother' | 'hivecaller'
   // support
   | 'mender' | 'cantor'
   // suicide
   | 'bomber' | 'popper'
+  // burrowing + suicide hybrid (tunnels gaps, then detonates at the line)
+  | 'sapper'
   // artillery
   | 'siegeworm' | 'spitter'
   // elite / apex

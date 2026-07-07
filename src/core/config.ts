@@ -405,6 +405,13 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     behavior: { seek: 1, avoidTowers: 0.08, avoidHero: 0.1, separation: 0.25, jitter: 0.06, flying: true }, // armored air → shred AA
     attack: { interval: 1.6, windup: 0.55 }, // ARMORED: stone talons
   },
+  // ── FLYING + REGENERATING — an airborne leech that re-knits itself; burst can't out-race the
+  //    heal before it re-forms, so anti-air must SUSTAIN. The first flyer with a self-heal. ──
+  cystwraith: {
+    kind: 'cystwraith', name: 'Cyst Wraith', hp: 140, armor: 3, speed: 66, bounty: 40, damage: 8, radius: 13, color: '#5fe0b0', regenPerSec: 28,
+    behavior: { seek: 1, avoidTowers: 0.12, avoidHero: 0.35, separation: 0.3, jitter: 0.12, flying: true }, // drifting air-regen → sustained AA
+    attack: { interval: 1.3, windup: 0.5 }, // REGEN FLYER: leeching bites
+  },
   // ── SUMMONER — spawns adds on a timer; priority-kill or drown in swarm ──
   broodmother: {
     kind: 'broodmother', name: 'Brood Matron', hp: 200, armor: 6, speed: 38, bounty: 80, damage: 13, radius: 17, color: '#e070c0',
@@ -443,6 +450,14 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     explodeRadius: 96, explodeDamage: 40,
     behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.1, separation: 0.25, jitter: 0.05 }, // a slow walking mine → kill it clear
     attack: { interval: 1.5, windup: 0.65 }, // SUICIDE: windup = the FUSE; one burst, then gone
+  },
+  // ── BURROWING + SUICIDE — a tunnelling incendiary that skirts tower kill-zones (hunts gaps),
+  //    then surfaces and detonates at the line. Demands EVEN coverage AND early interception. ──
+  sapper: {
+    kind: 'sapper', name: 'Cinder Sapper', hp: 80, armor: 2, speed: 70, bounty: 26, damage: 6, radius: 12, color: '#e07a30',
+    explodeRadius: 84, explodeDamage: 34,
+    behavior: { seek: 1.1, avoidTowers: 0.6, avoidHero: 0.1, separation: 0.25, jitter: 0.1, burrowing: true }, // tunnels the gaps, then blows
+    attack: { interval: 1.4, windup: 0.5 }, // SUICIDE: windup = the FUSE; one burst, then gone
   },
   // ── ARTILLERY — halt short of the line and bombard the Nucleus from range ──
   siegeworm: {

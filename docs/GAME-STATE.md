@@ -22,7 +22,7 @@
 |---|---:|---:|---|
 | Towers | 8 | 100 | each with stars + branches + mastery + Adaptation |
 | Heroes | 4 | 30 | Vitriol (Caustic siege) added; per-hero equipment loadouts |
-| Enemies | ~30 | 100 | + elites |
+| Enemies | 32 | 100 | + elites (Cyst Wraith fly+regen · Cinder Sapper burrow+suicide) |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
 | Cards (genes) | 53 | 500 | effect DSL (mul/add/flag/set/grant/hook) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |

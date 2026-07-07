@@ -29,6 +29,27 @@ describe('enemy roster (~30, role-trait driven)', () => {
     expect(ENEMY_DEFS.gargoyle.behavior.flying).toBe(true); // Flying
     expect(ENEMY_DEFS.apex.behavior.avoidHero).toBeLessThan(0); // Elite: hunts the hero
     expect(ENEMY_DEFS.dreadnought.shieldHp).toBeGreaterThan(0); // Elite: fused traits
+    // Hybrids (fresh role FUSIONS, not new traits) — each reuses two existing gated hooks.
+    expect(ENEMY_DEFS.cystwraith.behavior.flying).toBe(true); // Cyst Wraith: flying …
+    expect(ENEMY_DEFS.cystwraith.regenPerSec).toBeGreaterThan(0); // … AND regenerating
+    expect(ENEMY_DEFS.sapper.behavior.burrowing).toBe(true); // Cinder Sapper: burrowing …
+    expect(ENEMY_DEFS.sapper.explodeDamage).toBeGreaterThan(0); // … AND suicide
+  });
+
+  it('the Cyst Wraith re-knits itself in flight — regen fires on a flyer (the novel fusion)', () => {
+    const g = new Game(1, NO_META);
+    g.startWave(); // regen ticks during a live wave (as the knitter case does)
+    g.debugSpawn('cystwraith', 1);
+    const w = g.enemies.find((e) => e.kind === 'cystwraith')!;
+    expect(w).toBeDefined();
+    w.hp = 40; // wound it well below its 140 max, no incoming damage
+    for (let i = 0; i < 60; i++) g.advance(SIM_DT); // ~1s out of any tower range
+    expect((g.enemies.find((e) => e.kind === 'cystwraith')?.hp ?? 0)).toBeGreaterThan(40); // regen hook fired
+    // The Cinder Sapper reuses the SAME burrow + suicide gated hooks the base kinds prove; its def
+    // carries both (asserted above), so it wires identically — spawning it is clean.
+    const g2 = new Game(1, NO_META);
+    expect(() => g2.debugSpawn('sapper', 1)).not.toThrow();
+    expect(g2.enemies[0]?.kind).toBe('sapper');
   });
 
   it('spawn wires the trait runtime from the def', () => {
