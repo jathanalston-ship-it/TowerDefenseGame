@@ -106,4 +106,17 @@ describe('gated gene cards — draft-pool injection', () => {
     expect(earned.has('harmonic_overload')).toBe(true); // owns the Coil
     expect(earned.has('unstable_genome')).toBe(false); // campaign 40 not reached
   });
+
+  it('meta.unlockedCardIds earns each behavioral card on its OWN lifetime axis (docs/CARDS.md §gates)', () => {
+    const fresh = defaultSave();
+    const BEHAVIORAL = ['regenerative_carapace', 'ambush_enzyme', 'culling_instinct', 'viral_payload', 'toxic_aura'];
+    for (const id of BEHAVIORAL) expect(unlockedCardIds(fresh).includes(id), `${id} locked on a fresh account`).toBe(false);
+    // Every axis met at exactly its threshold ⇒ all five earned (runs / wave / kills / bosses / biomass).
+    const veteran = { ...fresh, totalRuns: 5, bestWave: 8, bossesSlain: ['a', 'b', 'c'], stats: { ...fresh.stats, lifetimeKills: 1000, totalBiomass: 50000 } };
+    const earned = new Set(unlockedCardIds(veteran));
+    for (const id of BEHAVIORAL) expect(earned.has(id), `${id} earned once its axis is met`).toBe(true);
+    // The axes don't cross-talk: drop ONE below threshold ⇒ only that card relocks.
+    expect(new Set(unlockedCardIds({ ...veteran, bossesSlain: ['a', 'b'] })).has('viral_payload')).toBe(false);
+    expect(new Set(unlockedCardIds({ ...veteran, totalRuns: 4 })).has('regenerative_carapace')).toBe(false);
+  });
 });

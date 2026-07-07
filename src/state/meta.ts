@@ -456,6 +456,10 @@ export function cardUnlocked(save: SaveData, def: CardDef): boolean {
     case 'campaignStage': return highestCampaignStage(save) >= u.stage;
     case 'bestWave': return save.bestWave >= u.wave;
     case 'towerUnlocked': return isTowerUnlocked(save, u.tower);
+    case 'totalRuns': return save.totalRuns >= u.runs;
+    case 'lifetimeKills': return save.stats.lifetimeKills >= u.kills;
+    case 'bossesSlain': return save.bossesSlain.length >= u.bosses;
+    case 'totalBiomass': return save.stats.totalBiomass >= u.biomass;
   }
 }
 

@@ -62,6 +62,7 @@ const ADD_POWER: Record<string, number> = {
   heroTowerHasteAura: 0.3,
   heroTowerDamageAura: 0.4,
   executeThreshold: 1.5,
+  fullHealthDamageBonus: 0.3, // Ambush Enzyme — conditional (first-strike) damage; partial offense
   damagePerTower: 3,
   damagePerEmptySlot: 3,
   classResonanceBonus: 0.5,
@@ -86,7 +87,7 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'biomassMult', 'reactorBiomassMult', 'needleExtraProjectiles', 'heroLifestealFrac', 'heroThornsFrac',
   'heroTowerHasteAura', 'heroTowerDamageAura', 'executeThreshold', 'damagePerTower', 'damagePerEmptySlot',
   'classResonanceBonus', 'diversityBonus', 'fractureBonusStacks', 'reactionRepeats', 'obeliskVulnerabilityBonus',
-  'reactorOverchargeBonus', 'startBiomassBonus',
+  'reactorOverchargeBonus', 'startBiomassBonus', 'fullHealthDamageBonus',
   // Permanent-upgrade axes (inverse fields scored with negative weights; mobility/economy lightly):
   'heroCooldownMult', 'enemyHpRunMult', 'heroSpeedMult', 'heroAggroRangeMult', 'sellRefundFrac',
   // Hero Evolution axes (in-run biomass sink; every one moves Power — docs/HERO-EVOLUTION.md):

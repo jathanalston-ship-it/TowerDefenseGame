@@ -57,6 +57,38 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.08 }], note: 'Nothing moves, everything breaks — +8% Disruption vulnerability.' },
   ],
 
+  // ════════════════ Progression-gated (docs/CARDS.md §gates) — rare, 4 levels ════════════════
+  regenerative_carapace: [
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 10 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Faster knit — +10 Integrity/wave, +5% biomass.' },
+    { effects: [{ op: 'integrity', value: 25 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Hardened plating — +25 Integrity now, +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 15 }, { op: 'mul', field: 'biomassMult', value: 1.05 }], note: 'Living carapace — +15 more Integrity per wave.' },
+    { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Reclaimed plates — +5% sell refund, +6% tower damage.' },
+  ],
+  ambush_enzyme: [
+    { effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.15 }], note: 'Sharper ambush — +15% first-strike damage.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Coiled strike — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.2 }], note: 'Perfect opening — +20% first-strike damage.' },
+    { effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.15 }, { op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Killing tempo — +15% first-strike, +6% fire rate.' },
+  ],
+  culling_instinct: [
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.02 }], note: 'Sharper cull — execute below 12% HP.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Culling edge — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.03 }], note: 'No stragglers — execute below 15% HP.' },
+    { effects: [{ op: 'add', field: 'executeThreshold', value: 0.03 }, { op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Law of the hive — execute below 18% HP, +1 Fracture cap.' },
+  ],
+  viral_payload: [
+    { effects: [{ op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Deeper cracks — +1 max Fracture stack.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Weaponized rot — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'killFractureSplash', value: 1 }, { op: 'add', field: 'fractureBonusStacks', value: 1 }], note: 'Wider bloom — +1 Fracture spread, +1 cap.' },
+    { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }], note: 'The plague CHAINS — status reactions re-fire once more.' },
+  ],
+  toxic_aura: [
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.1 }], note: 'Thicker miasma — Corrosion ticks +10% harder.' },
+    { effects: [{ op: 'add', field: 'corrosionSlowBonus', value: 0.06 }, { op: 'mul', field: 'poolDpsMult', value: 1.06 }], note: 'Clinging fumes — Corrosion slows +6% more.' },
+    { effects: [{ op: 'mul', field: 'parasiteInfectionMult', value: 1.1 }], note: 'Necrotic haze — +10% Infection damage.' },
+    { effects: [{ op: 'mul', field: 'poolDpsMult', value: 1.12 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.04 }], note: 'The reeking field — Corrosion ticks +12% harder.' },
+  ],
+
   // ════════════════ Common (3 levels) ════════════════
   sharpened_needles: [
     { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'Honed edges — +6% tower damage.' },

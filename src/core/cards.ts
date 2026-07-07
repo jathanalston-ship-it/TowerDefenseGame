@@ -87,6 +87,13 @@ export interface RunModifiers {
   // Tower SELL refund fraction (docs/TOWER-MANAGEMENT.md §2). The single extensibility point for
   // refund-rate mechanics — cards/equipment/prestige bump it via the normal effect pipeline.
   sellRefundFrac: number; // default SELL.refundFrac (0.75); ≤ 1 so selling is never exploitable
+  // ── Progression-gated Gene Card knobs (docs/CARDS.md §gates) — LIVE knobs (folded by applyCard, so
+  //    they work on a MID-run draft, unlike boot-only grant/hook verbs). Neutral defaults ⇒ a run that
+  //    drafts none is byte-identical (golden). Read live at the sim seams (game.ts). ──
+  integrityRegenPerWave: number; // Regenerative Carapace — Integrity restored each cleared wave
+  fullHealthDamageBonus: number; // Ambush Enzyme — +damage fraction to enemies still at full health
+  killFractureSplash: number; // Viral Payload — Fracture stacks spread to nearby enemies on every kill
+  heroCorrosionAura: boolean; // Toxic Aura — the hero passively corrodes nearby enemies (Culling reuses executeThreshold)
 }
 
 export function defaultRunModifiers(): RunModifiers {
@@ -142,6 +149,10 @@ export function defaultRunModifiers(): RunModifiers {
     diversityBonus: 0,
     bonusTowerSlots: 0,
     sellRefundFrac: SELL.refundFrac,
+    integrityRegenPerWave: 0,
+    fullHealthDamageBonus: 0,
+    killFractureSplash: 0,
+    heroCorrosionAura: false,
   };
 }
 
@@ -239,12 +250,17 @@ export interface GeneSkin {
 /** Progression GATE for a gene card (CARDS.md §3 "Pool unlocks"). A card WITH an `unlock` is excluded
  *  from the default draft pool until the account satisfies its condition (evaluated in meta —
  *  `cardUnlocked`; unlocked ids injected into a run). Tower-SUBJECT cards are already gated by
- *  ownership via draftCards' `allowedTowers`, so this exists for GENERAL cards gated on campaign depth
- *  / best wave. A fresh account (and the golden sim) draws exactly the ungated catalog ⇒ byte-identical. */
+ *  ownership via draftCards' `allowedTowers`, so this exists for GENERAL cards gated on account depth
+ *  (campaign / best wave) or lifetime feats (runs / kills / bosses / biomass). A fresh account (and the
+ *  golden sim) earns none, so it draws exactly the ungated catalog ⇒ byte-identical. */
 export type CardUnlock =
   | { kind: 'campaignStage'; stage: number } // clear this Campaign stage (any difficulty)
   | { kind: 'bestWave'; wave: number } // reach this wave/depth in any run
-  | { kind: 'towerUnlocked'; tower: TowerKind }; // own a specific (locked) tower — e.g. the Coil's cards
+  | { kind: 'towerUnlocked'; tower: TowerKind } // own a specific (locked) tower — e.g. the Coil's cards
+  | { kind: 'totalRuns'; runs: number } // finish this many runs (any outcome) — rewards persistence
+  | { kind: 'lifetimeKills'; kills: number } // cull this many enemies across all runs
+  | { kind: 'bossesSlain'; bosses: number } // slay this many DISTINCT framework bosses
+  | { kind: 'totalBiomass'; biomass: number }; // harvest this much biomass across all runs
 
 export interface CardDef {
   id: string; // PERMANENT unique id — the save key for this card's progression. Never reuse/rename.
@@ -378,6 +394,16 @@ export const CARD_POOL: CardDef[] = [
   { id: 'phalanx_protocol', name: 'Phalanx Protocol', rarity: 'rare', category: 'tower', description: '+20% tower fire rate and +8% tower damage.', effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.2 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 30 } },
   { id: 'dread_resonance', name: 'Dread Resonance', rarity: 'epic', category: 'control', description: 'Wailing Effigy panic lasts +25% longer; +8% tower damage.', effects: [{ op: 'mul', field: 'effigyDreadDurationMult', value: 1.25 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 35 } },
   { id: 'singularity_core', name: 'Singularity Core', rarity: 'legendary', category: 'mutation', description: 'Status reactions re-fire twice more; +12% tower damage.', effects: [{ op: 'add', field: 'reactionRepeats', value: 2 }, { op: 'mul', field: 'towerDamageMult', value: 1.12 }], unlock: { kind: 'bestWave', wave: 45 } },
+
+  // ════════════════ Behavioral gated pool (5) — rare rewards on a DISTINCT lifetime axis each ════════
+  // Unlike the numeric gated cards above, each opens a NEW sim hook (a behavior, not just a multiplier)
+  // and gates on its own lifetime axis (runs / wave / kills / bosses / biomass), so the account earns
+  // them by playing different ways. Drafted mid-run via the live-knob pipeline (RunModifiers reads).
+  { id: 'regenerative_carapace', name: 'Regenerative Carapace', rarity: 'rare', category: 'economy', description: 'Restore 30 Integrity each time you clear a wave.', effects: [{ op: 'add', field: 'integrityRegenPerWave', value: 30 }], unlock: { kind: 'totalRuns', runs: 5 } },
+  { id: 'ambush_enzyme', name: 'Ambush Enzyme', rarity: 'rare', category: 'crit', description: '+45% damage to enemies still at full health.', effects: [{ op: 'add', field: 'fullHealthDamageBonus', value: 0.45 }], unlock: { kind: 'bestWave', wave: 8 } },
+  { id: 'culling_instinct', name: 'Culling Instinct', rarity: 'rare', category: 'mutation', description: 'Instantly kill non-boss enemies that drop below 10% health.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.1 }], unlock: { kind: 'lifetimeKills', kills: 1000 } },
+  { id: 'viral_payload', name: 'Viral Payload', rarity: 'rare', category: 'mutation', description: 'Every kill spreads 2 Fracture to nearby enemies.', effects: [{ op: 'add', field: 'killFractureSplash', value: 2 }], unlock: { kind: 'bossesSlain', bosses: 3 } },
+  { id: 'toxic_aura', name: 'Toxic Aura', rarity: 'rare', category: 'poison', description: 'The hero exudes Corrosion, infecting nearby enemies.', effects: [{ op: 'flag', field: 'heroCorrosionAura' }], unlock: { kind: 'totalBiomass', biomass: 50000 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */
@@ -577,10 +603,11 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   heroSpeedMult: 'hero', heroLifestealFrac: 'hero', heroThornsFrac: 'hero',
   heroAbilityRadiusMult: 'hero', heroAuraRadius: 'hero',
   heroTowerHasteAura: 'hero', heroTowerDamageAura: 'hero',
+  heroCorrosionAura: 'hero', // Toxic Aura — the hero radiates the effect
   // economy (biomass income / stockpile)
   biomassMult: 'economy', startBiomassBonus: 'economy',
   // the Hive itself (the Nucleus + its build structure)
-  integrityMult: 'hive', bonusTowerSlots: 'hive',
+  integrityMult: 'hive', bonusTowerSlots: 'hive', integrityRegenPerWave: 'hive', // Regenerative Carapace — restores the Nucleus
   // (towerDamageMult, towerFireRateMult, splashRadiusMult, fractureBonusStacks, reactionRepeats,
   //  executeThreshold, diversityBonus, damagePer*, lastStand*, classResonanceBonus, enemyHpRunMult)
   //  are army-wide ⇒ 'global' via the default — intentionally unlisted.

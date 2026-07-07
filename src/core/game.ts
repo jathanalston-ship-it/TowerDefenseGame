@@ -112,6 +112,8 @@ import { BRANCH_COSTS } from './config';
 const EMPTY_STR: readonly string[] = []; // shared no-alloc default for per-cast mutator lists
 const SUPPORT_BRANCH_PULSE = 2.0; // seconds between a branched support tower's (Reactor) ability pulses
 const BRANCH_HITSTOP = 0.12; // seconds the view-loop freezes on a tier purchase (a juicy "impact" beat)
+const KILL_FRACTURE_RANGE = 78; // Viral Payload — on-kill Fracture-splash radius (px)
+const HERO_CORROSION_RANGE = 92; // Toxic Aura — the hero's passive Corrosion aura radius (px)
 const MUTATION_BANNER_LIFE = 2.4; // seconds the tier-purchase banner is surfaced to the HUD
 
 export type RunMode = 'stage' | 'endless' | 'campaign' | 'bossRush' | 'daily';
@@ -3933,6 +3935,22 @@ export class Game {
     }
 
     this.heroContactDamage(h, def, dt);
+    if (this.mods.heroCorrosionAura) this.heroCorrosionField(h); // Toxic Aura (gene card)
+  }
+
+  /** Toxic Aura (gene card) — the hero passively drenches nearby enemies in Corrosion, which can
+   *  SHRED (the Corrosion→Fracture reaction) via maybeReact. Gated on the mod ⇒ off on the golden
+   *  path (autoplay never drafts it), and a no-op with no enemies in range. */
+  private heroCorrosionField(h: Hero): void {
+    if (h.down) return;
+    const near = this.neighborScratch;
+    this.grid.queryInto(h.x, h.y, HERO_CORROSION_RANGE, near);
+    for (let k = 0; k < near.length; k++) {
+      const e = near[k];
+      if (!e.alive || dist(h.x, h.y, e.x, e.y) > HERO_CORROSION_RANGE) continue;
+      e.corrosion = STATUS.corrosionDuration;
+      this.maybeReact(e);
+    }
   }
 
   /**
@@ -4350,6 +4368,11 @@ export class Game {
           gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y });
         }
         if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
+        if (this.mods.killFractureSplash > 0) { // Viral Payload (gene card) — the kill seeds Fracture nearby
+          this.grid.forNeighbors(e.x, e.y, KILL_FRACTURE_RANGE, (o) => {
+            if (o.alive && o.id !== e.id) this.addFracture(o, this.mods.killFractureSplash);
+          });
+        }
       }
       if (!e.alive) {
         es[i] = es[es.length - 1];
@@ -4539,6 +4562,9 @@ export class Game {
       this.minions.length = 0; // temporary summons don't outlive the wave they were called into
       if (gameEvents.hasListeners('waveCompleted')) gameEvents.emit('waveCompleted', { wave: this.waveIndex, endless: this.mode === 'endless' });
       if (this.relicHooks.length) this.fireRelicHooks('waveCleared', null); // relic rule on a cleared wave
+      if (this.mods.integrityRegenPerWave > 0) { // Regenerative Carapace (gene card)
+        this.integrity = Math.min(this.maxIntegrity, this.integrity + this.mods.integrityRegenPerWave);
+      }
       const flawless = this.integrity >= this.waveStartIntegrity; // held the line without a breach
       // Fire the clear feedback NOW (and roll the draft at the unchanged RNG point), but hold the
       // phase flip for the settle beat (endWave) so the battlefield winds down first. The draft
@@ -4614,6 +4640,7 @@ export class Game {
    * so undisrupted/unfractured enemies take damage exactly as before. */
   private vulnMult(e: Enemy): number {
     let m = 1 + e.fracture * STATUS.fractureDamageTakenPerStack;
+    if (this.mods.fullHealthDamageBonus > 0 && e.hp >= e.maxHp) m += this.mods.fullHealthDamageBonus; // Ambush Enzyme — first-strike bonus
     if (e.disrupt > 0) m += STATUS.disruptVulnerability + this.mods.obeliskVulnerabilityBonus + this.heroVulnBonus();
     if (e.corrosion > 0) m += this.heroCorrosionVulnBonus(); // Vitriol Solvent Rounds (0 unless fielded)
     // Framework debuffs (e.g. Armor Break amp, generic Vulnerability) add in here too —
