@@ -171,6 +171,18 @@ different ways:
 They're **rare-tier** (the "unique" property is the *gate*, not a new rarity — epic/legendary
 already exist here) and each carries a full 4-level permanent upgrade ladder like every card.
 
+A second **Expansion II** gated pool opens design axes no prior card used — each rides an
+already-wired, Power-scored `RunModifiers` field, so it needed zero new sim code, and each gates
+on its own distinct axis:
+
+| Card | Effect | Fresh axis | Unlock (axis) |
+|---|---|---|---|
+| **Predator Instinct** (epic) | +25% crit chance, +60% crit dmg, +10% hero dmg | hero crit | Reach wave 18 (`bestWave`) |
+| **Entrenchment** (rare) | +6% tower dmg per EMPTY build slot, +5% tower dmg | per-empty-slot | Clear stage 22 (`campaignStage`) |
+| **Vanguard Doctrine** (epic) | +class-resonance, +per-distinct-class, +6% tower dmg | composition | Slay 4 bosses (`bossesSlain`) |
+| **Second Wind** (rare) | +90 hero HP, 12% damage reduction, +25% healing | hero mitigation | 2,000 lifetime kills (`lifetimeKills`) |
+| **Salvage Enzymes** (rare) | tower sell refunds +10%, +15% biomass | salvage economy | Finish 15 runs (`totalRuns`) |
+
 ---
 
 ## 4. Synergy architecture (why cards *heavily* synergize)

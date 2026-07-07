@@ -404,6 +404,17 @@ export const CARD_POOL: CardDef[] = [
   { id: 'culling_instinct', name: 'Culling Instinct', rarity: 'rare', category: 'mutation', description: 'Instantly kill non-boss enemies that drop below 10% health.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.1 }], unlock: { kind: 'lifetimeKills', kills: 1000 } },
   { id: 'viral_payload', name: 'Viral Payload', rarity: 'rare', category: 'mutation', description: 'Every kill spreads 2 Fracture to nearby enemies.', effects: [{ op: 'add', field: 'killFractureSplash', value: 2 }], unlock: { kind: 'bossesSlain', bosses: 3 } },
   { id: 'toxic_aura', name: 'Toxic Aura', rarity: 'rare', category: 'poison', description: 'The hero exudes Corrosion, infecting nearby enemies.', effects: [{ op: 'flag', field: 'heroCorrosionAura' }], unlock: { kind: 'totalBiomass', biomass: 50000 } },
+
+  // ════════════════ Expansion II gated pool (5) — fresh scored axes, one DISTINCT unlock each ════════
+  // Each opens a design axis no prior card used (hero crit / dug-in per-empty-slot / composition
+  // resonance / hero mitigation / salvage economy) via already-wired, Power-scored RunModifiers
+  // fields, and gates on its own axis (best wave / campaign / bosses / kills / runs). Gated ⇒ out of
+  // the default pool ⇒ the golden run is byte-identical; the meta layer injects each once earned.
+  { id: 'predator_instinct', name: 'Predator Instinct', rarity: 'epic', category: 'crit', description: 'The hero hunts for the kill: +25% crit chance, +60% crit damage, +10% hero damage.', effects: [{ op: 'add', field: 'heroCritChance', value: 0.25 }, { op: 'add', field: 'heroCritDamageBonus', value: 0.6 }, { op: 'mul', field: 'heroDamageMult', value: 1.1 }], unlock: { kind: 'bestWave', wave: 18 } },
+  { id: 'entrenchment', name: 'Entrenchment', rarity: 'rare', category: 'tower', description: 'A lean, dug-in battery: +6% tower damage for every EMPTY build slot, +5% tower damage.', effects: [{ op: 'add', field: 'damagePerEmptySlot', value: 0.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.05 }], unlock: { kind: 'campaignStage', stage: 22 } },
+  { id: 'vanguard_doctrine', name: 'Vanguard Doctrine', rarity: 'epic', category: 'tower', description: 'Disciplined ranks: +10% damage to towers of your hero’s class, +5% per distinct tower class fielded, +6% tower damage.', effects: [{ op: 'add', field: 'classResonanceBonus', value: 0.1 }, { op: 'add', field: 'diversityBonus', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.06 }], unlock: { kind: 'bossesSlain', bosses: 4 } },
+  { id: 'second_wind', name: 'Second Wind', rarity: 'rare', category: 'hero', description: 'A body that refuses to fall: +90 hero HP, 12% damage reduction, +25% healing received.', effects: [{ op: 'heroHp', value: 90 }, { op: 'add', field: 'heroArmor', value: 0.12 }, { op: 'mul', field: 'heroHealingMult', value: 1.25 }], unlock: { kind: 'lifetimeKills', kills: 2000 } },
+  { id: 'salvage_enzymes', name: 'Salvage Enzymes', rarity: 'rare', category: 'economy', description: 'Reclaim the fallen: tower sell refunds +10%, and +15% biomass from kills.', effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.1 }, { op: 'mul', field: 'biomassMult', value: 1.15 }], unlock: { kind: 'totalRuns', runs: 15 } },
 ];
 
 /** Per-effect invariants — shared by base effects AND every authored upgrade level. */

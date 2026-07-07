@@ -472,4 +472,37 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.15 }, { op: 'mul', field: 'towerFireRateMult', value: 1.06 }], note: 'Accretion — +15% splash, +6% fire rate.' },
     { effects: [{ op: 'add', field: 'reactionRepeats', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], note: 'SINGULARITY — reactions re-fire once more, +8% tower damage.' },
   ],
+
+  // ════════════════ Expansion II gated pool (docs/CARDS.md §gates) — fresh scored axes ════════════════
+  predator_instinct: [ // epic → 5
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.06 }], note: 'Killer’s eye — +6% crit chance.' },
+    { effects: [{ op: 'add', field: 'heroCritDamageBonus', value: 0.15 }], note: 'Deeper cut — +15% crit damage.' },
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.06 }, { op: 'mul', field: 'heroAttackSpeedMult', value: 1.05 }], note: 'Bloodscent — +6% crit chance, +5% attack speed.' },
+    { effects: [{ op: 'add', field: 'heroCritDamageBonus', value: 0.2 }], note: 'Rend — +20% crit damage.' },
+    { effects: [{ op: 'add', field: 'heroCritChance', value: 0.05 }, { op: 'mul', field: 'heroDamageMult', value: 1.06 }], note: 'Apex hunter — +5% crit chance, +6% hero damage.' },
+  ],
+  entrenchment: [ // rare → 4
+    { effects: [{ op: 'add', field: 'damagePerEmptySlot', value: 0.01 }], note: 'Deeper trench — +1% tower damage per empty slot.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Zeroed sights — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'damagePerEmptySlot', value: 0.01 }], note: 'Hardpoints — +1% tower damage per empty slot.' },
+    { effects: [{ op: 'add', field: 'damagePerEmptySlot', value: 0.01 }, { op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Dug in — +1% per empty slot, +5% fire rate.' },
+  ],
+  vanguard_doctrine: [ // epic → 4
+    { effects: [{ op: 'add', field: 'classResonanceBonus', value: 0.04 }], note: 'Shared drills — +4% class-resonance damage.' },
+    { effects: [{ op: 'add', field: 'diversityBonus', value: 0.03 }], note: 'Combined arms — +3% damage per distinct class.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.06 }], note: 'War college — +6% tower damage.' },
+    { effects: [{ op: 'add', field: 'classResonanceBonus', value: 0.05 }, { op: 'add', field: 'diversityBonus', value: 0.03 }], note: 'Grand strategy — +5% resonance, +3% per class.' },
+  ],
+  second_wind: [ // rare → 4
+    { effects: [{ op: 'add', field: 'heroArmor', value: 0.05 }], note: 'Scar tissue — +5% damage reduction.' },
+    { effects: [{ op: 'mul', field: 'heroHealingMult', value: 1.1 }], note: 'Fast clotting — +10% healing received.' },
+    { effects: [{ op: 'add', field: 'heroThornsFrac', value: 0.08 }], note: 'Barbed hide — reflect +8% of contact damage.' },
+    { effects: [{ op: 'add', field: 'heroArmor', value: 0.05 }, { op: 'add', field: 'heroLifestealFrac', value: 0.05 }], note: 'Undying — +5% damage reduction, heal 5% of damage dealt.' },
+  ],
+  salvage_enzymes: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Richer marrow — +6% biomass from kills.' },
+    { effects: [{ op: 'add', field: 'sellRefundFrac', value: 0.03 }, { op: 'add', field: 'reactorOverchargeBonus', value: 0.08 }], note: 'Reclaimers — sell refunds +3%, +0.08 reactor overcharge.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.06 }], note: 'Enzymatic bloom — +6% biomass from kills.' },
+    { effects: [{ op: 'mul', field: 'biomassMult', value: 1.05 }, { op: 'add', field: 'sellRefundFrac', value: 0.03 }], note: 'Total recycling — +5% biomass, sell refunds +3%.' },
+  ],
 };

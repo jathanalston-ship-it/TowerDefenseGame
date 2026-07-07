@@ -50,8 +50,8 @@ golden run is byte-identical.
 
 ### Power integration (audited + calibrated, Task 9)
 Permanent gene upgrades are account strength → folded into the account `meta` Power bucket via
-`geneCollectionPowerMult(save.genes)`. **Calibration:** `GENE_POWER_SCALE = 0.11` — the 70-card
-library's per-card deltas sum to ≈13.2 fully maxed, so a completed library reads ≈**×2.45** on the
+`geneCollectionPowerMult(save.genes)`. **Calibration:** `GENE_POWER_SCALE = 0.098` — the 80-card
+library's per-card deltas sum to ≈15.18 fully maxed, so a completed library reads ≈**×2.49** on the
 meta bucket (a major pillar, comparable to stars/prestige; a mid-game third ≈×1.5). Linear aggregation
 keeps it sane at 500+ cards; re-measure the sum when the library grows (the test pins the ×2–2.6 band).
 

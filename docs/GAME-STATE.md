@@ -24,7 +24,7 @@
 | Heroes | 4 | 30 | Vitriol (Caustic siege) added; per-hero equipment loadouts |
 | Enemies | 32 | 100 | + elites (Cyst Wraith fly+regen · Cinder Sapper burrow+suicide) |
 | **Bosses** | **7 authored** | 50 | Progenitor + Milestone-1 line (6, pinned to Campaign stages 5–30) |
-| Cards (genes) | 75 | 500 | effect DSL (mul/add/flag/set/grant/hook); 17 progression-`unlock`-gated (below) |
+| Cards (genes) | 80 | 500 | effect DSL (mul/add/flag/set/grant/hook); 22 progression-`unlock`-gated (below) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
 | Meta upgrades (Genome) | 57 | 1,000 | `META_UPGRADES` |
 | Ascendant (prestige) nodes | 11 | 20 | `ASCENDANT_NODES` |

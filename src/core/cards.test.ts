@@ -16,7 +16,7 @@ import {
   draftCards,
   rollCardRarity,
 } from './cards';
-import type { CardContext, CardUnlock } from './cards';
+import type { CardContext, CardUnlock, RunModifiers } from './cards';
 import type { CardRarity, CardSubject, TowerKind } from './types';
 import { Rng } from './rng';
 import { Game } from './game';
@@ -82,6 +82,11 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     // Behavioral gated pool (docs/CARDS.md §gates) — distinct-axis unlocks
     regenerative_carapace: 'hive', ambush_enzyme: 'global', culling_instinct: 'global',
     viral_payload: 'global', toxic_aura: 'hero',
+    // Expansion II gated pool — fresh scored axes (crit / per-empty-slot / composition / mitigation / salvage)
+    predator_instinct: 'hero', // crit fields are global; heroDamageMult pins it HERO
+    entrenchment: 'global', vanguard_doctrine: 'global', // army-wide levers
+    second_wind: 'hero', // heroHp grant pins it HERO (armor/healing are global-tagged)
+    salvage_enzymes: 'economy', // biomassMult pins it ECONOMY (sellRefund is global-tagged)
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 
@@ -166,6 +171,22 @@ describe('effect application', () => {
     expect(mods.poolDpsMult).toBeCloseTo(1.5, 10);
     expect(mods.mortarPoolDurationMult).toBeCloseTo(1.5, 10);
     expect(mods.mortarAppliesFracture).toBe(true);
+  });
+
+  it('the Expansion II cards fold their fresh scored axes into the run modifiers', () => {
+    // Each new card drives an axis no prior card used — prove every one reaches RunModifiers via the
+    // one interpreter (applyCard), so the drafted card genuinely changes the run (not just the pool).
+    const base = defaultRunModifiers();
+    const apply = (id: string): RunModifiers => {
+      const mods = defaultRunModifiers();
+      applyCard(cardRegistry.get(id)!, { mods, grantBiomass: () => {}, grantIntegrity: () => {}, healHero: () => {} });
+      return mods;
+    };
+    expect(apply('predator_instinct').heroCritChance).toBeGreaterThan(0); // fresh: hero crit
+    expect(apply('entrenchment').damagePerEmptySlot).toBeGreaterThan(0); // fresh: per-empty-slot
+    expect(apply('vanguard_doctrine').classResonanceBonus).toBeGreaterThan(0); // fresh: class resonance
+    expect(apply('second_wind').heroArmor).toBeGreaterThan(0); // fresh: hero mitigation
+    expect(apply('salvage_enzymes').sellRefundFrac).toBeGreaterThan(base.sellRefundFrac); // fresh: salvage
   });
 
   it('a drafted GRANT card adds its run verb mid-run (Pierce Protocol → piercing shots)', () => {
