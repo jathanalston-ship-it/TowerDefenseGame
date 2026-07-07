@@ -3,7 +3,21 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-05 (**BOSS RUSH SAGA complete — all four prompts shipped**:
+> **Last updated:** 2026-07-07 (**MEGA BOSS SAGA + three content batches complete**:
+> the MEGA BOSS raid framework (battlefield-scale anchored organisms, 12-verb ability registry,
+> 10-kind consequence-mapped Weak Point framework, campaign /10 · infinite /20 · rush /5
+> cadence + the rare Daily Mega, Power-vs-kill-time efficiency rewards, collection category,
+> `docs/MEGA-BOSS.md`) with FIVE authored megas (Voraxis / Meridia / Ossira / Vesperine /
+> Moloch-Ama); SIX new campaign bosses — the Act-2 siege line (35/40/45) and the Act-3
+> graduation line (50/55/60); THREE new towers, each a new firing verb (Blight Sower `'trap'`
+> mine gardener — `docs/SOWER.md`; Synapse Spire chain-arc, first pure `TowerDef.abilities`
+> composition — `docs/SPIRE.md`; Undertow Polyp pull-field displacement — `docs/POLYP.md`);
+> 15 gene cards (pool 102, 44 gated) + 30 meta upgrades (87) + 9 Ascendant nodes (19) + 8
+> enemies + 2 biomes (10) + the boss visual distinction overhaul
+> (`render/bossChassis.ts` — five chassis body plans, authored palettes). Goldens
+> byte-identical throughout; suite 1137; validate PASS. Previous sessions below.)
+>
+> **2026-07-05** (**BOSS RUSH SAGA complete — all four prompts shipped**:
 > P1 boss siege behaviors + multi-phase AI (16-kind module library, canonical 100/70/40/15
 > phase arc, desperation finales — `docs/BOSS-DESIGN.md` §siege); P2 **Boss Rush mode**, the
 > third pillar (wave N = N procedural bosses, staggered column + thinned escort, draft every

@@ -4,107 +4,84 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-05 18:55 UTC · **Diff scope:** the four-part Boss Rush saga (02fea1e → eae0eda)
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** eae0eda
+- **Generated:** 2026-07-07 14:36 UTC · **Diff scope:** batch-3 session (commits `f77ef66`, `c69a005`, `3129638` + this doc pass)
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 3129638
 
 ## Summary of work completed
 
-Shipped the full four-prompt Boss Rush saga: (P1, 02fea1e) boss siege behaviors + multi-phase
-AI on the registry; (P2, f7dd7fe) **Boss Rush mode** — the third pillar, wave N = N procedural
-bosses in a staggered column with a thinned escort, gene draft every 2nd wave, per-boss
-Core/loot payout, own records/prediction/qualify gate, gauntlet terminal + full HUD/Results
-integration, probe-tuned (strength curve, flat boss bounty, opening biomass — see BOSS-RUSH.md
-§balance); (P3, 1c7830d) **stamina** (100 cap, 20/entry, +1/3min lazy, first-of-day FREE,
-market packs overflow to 120) + the **primary Ichor lane** (2 per NEW 5-boss single-run record
-band, weighted-common Bio-Container per 10-band); (P4, eae0eda) the **Bio-Roulette** second
-reward ceremony (spores = record delta + volume/5, fresh 12-pod weighted board, momentum
-physics over pre-rolled outcomes, one-click collection). The one thing to know: everything is
-mode-gated — the goldens never moved (`wave 12 / kills 196` across all six seeds).
+Batch 3 shipped in full: two biomes (Ossuary, Umbral Reach), the Act-3 campaign boss line
+(Hollow Matriarch / Null Tyrant / Worldbreaker at stages 50/55/60), two Mega Bosses (Vesperine
+the tempo predator, Moloch-Ama the economy predator), two towers with complete kits (Synapse
+Spire — chain-arc, the first kit composed purely via `TowerDef.abilities`; Undertow Polyp —
+pull-field displacement via `AuraAbility.pull`), the Expansion III gene pool (10 gated cards +
+upgrade tracks), and a boss visual distinction overhaul (`render/bossChassis.ts` — five chassis
+body plans, authored palettes, per-def markings). The one thing to know: **the chain executor
+now tags its first victim as `cast.target` and honors `ctx.rangeMult`** — status/crit pairings
+and arc-reach rungs compose with chains everywhere (no chain executes on the golden path, so
+goldens were untouched). Everything verified: 1137/1137 tests, `npm run validate` PASS, and a
+live headless playtest (all five chassis, both new megas, both new towers engaging a pack, zero
+console errors).
 
 ## Files modified
 
-- Source (12): `src/core/types.ts`, `src/dev/systemRegistry.ts`, `src/index.css`, `src/save/saveStore.ts`, `src/state/achievements.ts`, `src/state/bioRoulette.ts`, `src/state/mechanics.ts`, `src/state/meta.ts`, `src/state/stats.ts`, `src/ui/App.tsx`, `src/ui/BioRoulette.tsx`, `src/ui/BossRushScreen.tsx`
-- Tests (1): `src/state/bioRoulette.test.ts` (saga total: +4 test files, 29 new tests → 952)
-- Docs (4): `docs/BOSS-RUSH.md`, `docs/DEPENDENCY_GRAPH.md`, `docs/GAME-STATE.md`, `docs/VALIDATION_REPORT.md`
+- Source: `core/{biomes,boss,megaboss,config,stars,branches,adaptation,mastery,cards,geneUpgrades,power,ability,game,types}.ts`, `render/{bossChassis,renderer,theme,starEvolution,towerEvolution}.ts`, `state/meta.ts`, `audio/sound.ts`, `index.css`
+- Tests: `core/{spire,polyp}.test.ts` (new), `core/{boss,branches,registry,conveyor,cards,biomesNew}.test.ts`, `state/{stats,geneStress}.test.ts` re-pins
+- Docs: `SPIRE.md`, `POLYP.md` (new), `BOSS-DESIGN.md` §visual identity, `CARDS.md` Expansion III, `GAME-STATE.md`, `DEPENDENCY_GRAPH.md`, `VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
-- **achievements** — `src/state/achievements.ts` (8 new: rush ladder ×6 + roulette ×2)
-- **boss-rush** — `src/state/bioRoulette.ts`, `src/ui/BioRoulette.tsx`, `src/ui/BossRushScreen.tsx`
-- **content-infra** — `src/core/types.ts` (RunStats.bossKills, LifetimeStats rush/roulette ledgers, HudState.bossRush)
-- **dev-registry** — `src/dev/systemRegistry.ts` (boss-rush system entry)
-- **hub-shell** — `src/ui/App.tsx` (bossRush mode wiring, roulette screen, single stamina pay point)
-- **meta-store** — `src/save/saveStore.ts`, `src/state/meta.ts` (records, stamina, bands, roulette grants)
-- **onboarding** — `src/state/mechanics.ts` (boss-rush + bio-roulette Help entries)
-- **stats** — `src/state/stats.ts` (rushRuns/rushBossKills fold + rouletteSpores pass-through)
-- Consumer ring (verified unchanged): biomes, bosses, collection, currencies, devtools, difficulty, engine, equipment, evolution-hq, gene-cards, heroes, loot, mastery, notifications, power, profile, run-ui, towers
+Bosses · Mega Bosses · Towers (roster 13) · Gene cards (102) · Biomes (10) · Rendering.
 
 ## Power Score changes
 
-None by design (`boss-rush` registers `powerScore: null`, like Infinite). Rewards feed Power
-only through the currencies they grant (shards/gear), which the existing pins already cover.
+`spireChainJumps` (add 0.07) and `polypFieldMult` (mul 0.3) were already scored with the
+towers; Expansion III cards ride existing scored fields. Maxed gene library stays inside the
+(2, 2.9) band — no `GENE_POWER_SCALE` recalibration was needed this batch (0.081).
 
 ## UI changes
 
-New: `BossRushScreen` (skull-ladder artwork, contract rules, stamina bar + FREE chip,
-prediction, records, Ichor-bleed panel, milestone bars), `BioRoulette` (canvas organ wheel),
-Command Center Boss Rush tile, Profile "Boss Rush" career section, Results rush rows +
-`rush-short` copy, mode-aware HUD (wave banner "WAVE N — N BOSSES", totals dropped in
-meter/pause/Inspector/BuildControls). Fixed latent ENDLESS bugs: the Start Wave console and
-wave meter clamped at `totalWaves` past depth 12. Headless-smoke covered: terminal render,
-run launch, wave-1 fight, Results, the roulette ceremony end-to-end (screenshots in scratchpad).
+Render-only boss overhaul (`render/bossChassis.ts` + `renderer.ts` hookups). No HUD/menu changes.
 
 ## Documentation changes
 
-`docs/BOSS-RUSH.md` (new — the system's canonical doc: contract, sim, rewards, stamina, ichor,
-roulette, probe-tuned balance table), `docs/MODE-IDENTITY.md` §boss-rush (third pillar),
-`docs/MARKET.md` (faucet row + stamina pack note), `docs/GAME-STATE.md` (mode entry),
-`docs/DEPENDENCY_GRAPH.md` (regenerated). The wide registry list beyond these: no change
-needed (nothing in their systems moved).
+All synced this session: GAME-STATE counts (13 towers · 13 bosses · 5 megas · 102 cards/44
+gated · 40 enemies), SPIRE/POLYP docs, CARDS.md Expansion III table, BOSS-DESIGN §visual
+identity, DEPENDENCY_GRAPH regenerated.
 
 ## Save changes
 
-Additive only, no schema-version bump needed (sanitizer-covered): `rushBestWave`,
-`rushBestBoss` (numeric coerce), `rushStamina {value, updatedAt, freeDay}`
-(`sanitizeRushStamina`, pre-stamina saves start full), `prediction.bossRush` (defaultCalib),
-`LifetimeStats.rushRuns/rushBossKills/rouletteSpores` (mergeStats spread covers old saves).
-Pinned by `bossrushMeta.test.ts`, `rushStamina.test.ts`, `bioRoulette.test.ts`.
+None — save schema untouched (v22). All new content is inert-by-default / progression-gated.
 
 ## Known edge cases
 
-- Rush boss ids uniquify per spawn (`spawnProceduralBoss`) — two same-chassis/⌊TL⌋ bosses used
-  to swap defs mid-fight via `procBosses` collision (latent Endless bug, fixed at the seam).
-- Waves 1–3 re-roll `burrower` vanguards (uncounterable on an opening board); wave 4+ all legal.
-- `bestWave` is NEVER moved by rush runs (Infinite's qualify gate + prediction floor stay clean).
-- Stamina regen PAUSES above the 100 ceiling (overflow packs don't bank regen time).
-- The Bio-Roulette collects on EVERY exit path (Skip included) — spores can't be lost; Results
-  replays route through the ceremony while it's pending.
-- `Results` replay for rush pays stamina via `App.startBossRush`; a short wallet falls back to
-  the menu instead of a free run.
+- `execChain` sets `cast.target` only when it was null (`??=`) — a projectile's tag always wins.
+- The polyp's pull skips bosses (`e.boss` guard) and floors at y=24; branch/star pull grants
+  STACK as separate aura components, not one summed magnitude.
+- Boss chassis resolution falls back to `bruiser` for unknown ids; procedural ids must keep the
+  `proc_<chassis>_<tl>` encoding or their family palette degrades to bruiser red.
+- The gene stress test's first rung rides `CARD_POOL.length + 25` — never re-pin it to a constant.
+- `obeliskSlowBonus`, `integrityRegenPerWave`, `killFractureSplash` are deliberately unscored;
+  any upgrade level using them must ride a scored rider or `cardProblems` rejects it.
 
 ## Remaining technical debt
 
-- The saveStore stamina clamp bound (120) duplicates `RUSH.staminaOverflowMax` as a literal
-  (sanitizer convention, like the 999 container cap) — fine until the knob moves.
-- The roulette ceremony has no vitest DOM coverage (canvas; jsdom not in the toolchain) — the
-  pure model + meta grants are fully pinned, presentation is smoke-verified only.
-- Boss Rush reward-per-minute at the fresh-account floor is mildly rich vs Infinite
-  (~600 loot-pts/10min vs ~65/min) — P3's stamina gates frequency; revisit after live telemetry.
+- The spire/polyp signature cards' knobs are sim-tested via the tower suites, but no test drives
+  a DRAFTED signature card end-to-end (draft → fold → cast delta).
+- `towers_live` playtest confirms engagement but a still can't prove the per-hop spark visual;
+  fine while `spire.test.ts` pins multi-victim damage.
 
 ## Recommended next tasks
 
-1. Wire the daily-reward seam to stamina (`meta.grantRushStamina` is grant-ready) if/when a
-   daily system ships.
-2. Boss Rush leaderboard/weekly modifiers — parameterize `startBossRushWave`'s TL curve +
-   escort policy (deliberate seam, BOSS-RUSH.md §seams).
-3. Consider surfacing `rushStamina` in the Command Center tile once a cheap staleness-free
-   read exists (the terminal owns it today).
+1. Campaign content past stage 60 (the Act-3 line ends at Worldbreaker; `CAMPAIGN_BOSSES` and
+   the mega cadence both extend by data).
+2. A second wave of Adaptation capstones for the five newest towers once mastery telemetry
+   exists (entry: `core/adaptation.ts` `TOWER_THEMES`).
+3. Boss-rush-specific mega tiers (entry: `megaEncounterFor` cycling in `core/megaboss.ts`).
 
 ## Future expansion hooks
 
-- `RUSH` config block (`src/core/config.ts`) — every gauntlet knob in one place.
-- `spawnProceduralBoss(tl, strengthScale)` (`src/core/game.ts`) — per-spawn boss scaling seam.
-- `rollBoard` (`src/state/bioRoulette.ts`) — push pods to grow the roulette; renderer +
-  outcome roll are count-agnostic.
-- `rushProgress` on `RunOutcome` (`src/state/meta.ts`) — the post-run rush payload any future
-  ceremony can read.
+- `TowerDef.abilities` (config.ts) — any future tower can be pure data; `deriveTowerAbilities`
+  honors the override.
+- `WEAK_POINT_DEFS` / `MEGA_ABILITIES` registries (core/megaboss.ts) — new megas are one def.
+- `render/bossChassis.ts` `lookOf` — new chassis = one CHASSIS row + one silhouette case.
+- `UpgradeDef.unlock` / `CardUnlock` — shared progression-gate vocabulary for future content.
