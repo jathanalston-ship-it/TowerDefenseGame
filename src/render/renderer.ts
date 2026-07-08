@@ -26,10 +26,11 @@ import {
 import { ENEMY_DEFS, HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring, EnemyKind } from '../core/types';
-import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, TOWER_SHAPE, hexRgb, rgba } from './theme';
+import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba } from './theme';
 import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
 import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
+import { drawTowerForm } from './towerForms';
 import {
   chevronDown,
   drawShape,
@@ -41,7 +42,6 @@ import {
   ring,
   roundRectPath,
   spikeCrown,
-  strokeShape,
 } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
@@ -674,7 +674,6 @@ function drawSiphonBeam(ctx: CanvasRenderingContext2D, x0: number, y0: number, x
 
 function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0): void {
   const def = TOWER_DEFS[tw.kind];
-  const shape = TOWER_SHAPE[tw.kind];
 
   // grow-on-place → idle breathing → a recoil punch right after firing.
   const grow = easeOutCubic(Math.min(1, Math.max(0, (now - tw.bornAt) / TOWER_GROW)));
@@ -742,9 +741,10 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, def.color, tw.id);
   }
 
-  drawShape(ctx, shape, tw.x, tw.y, r, def.color);
-  strokeShape(ctx, shape, tw.x, tw.y, r, 'rgba(6,8,14,0.55)', 1.5);
-  drawShape(ctx, shape, tw.x, tw.y - r * 0.18, r * 0.42, 'rgba(255,255,255,0.18)'); // top gloss
+  // The procedural TURRET body (render/towerForms.ts) — a rooted structure + firing apparatus that
+  // recoils on `fresh` and idles with `breathe`. Replaces the flat placeholder shape; the per-kind
+  // organs + all evolution layers below still draw over it.
+  drawTowerForm(ctx, tw.kind, tw.x, tw.y, r, def.color, now, fresh, breathe);
 
   if (tw.kind === 'reactor') {
     drawShape(ctx, 'circle', tw.x, tw.y, 5 * grow * breathe, 'rgba(255,255,255,0.3)');
@@ -959,19 +959,31 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   const len = Math.hypot(ux, uy) || 1;
   ux /= len;
   uy /= len;
-  const trailLen = splash ? 11 : parasite ? 8 : 9;
+  const head = splash ? 3.7 : parasite ? 2.9 : 2.4;
+  const tlen = splash ? 15 : parasite ? 9 : 13;
 
-  ctx.strokeStyle = rgba(trail, 0.5);
-  ctx.lineWidth = splash ? 3 : 2;
+  // A tapered COMET trail (a few fading segments, fat near the head → thin) reads as speed +
+  // energy far better than a single flat line.
   ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(p.x - ux * trailLen, p.y - uy * trailLen);
-  ctx.lineTo(p.x, p.y);
-  ctx.stroke();
+  for (let s = 0; s < 3; s++) {
+    const f = s / 3; // 0 = nearest the head
+    ctx.strokeStyle = rgba(trail, 0.5 * (1 - f));
+    ctx.lineWidth = head * (1.15 - f * 0.75);
+    ctx.beginPath();
+    ctx.moveTo(p.x - ux * tlen * f, p.y - uy * tlen * f);
+    ctx.lineTo(p.x - ux * tlen * (f + 0.34), p.y - uy * tlen * (f + 0.34));
+    ctx.stroke();
+  }
   ctx.lineCap = 'butt';
 
-  glowDisc(ctx, p.x, p.y, splash ? 7 : 5, rgba(trail, 0.6));
-  drawShape(ctx, 'circle', p.x, p.y, splash ? 3.5 : parasite ? 2.6 : 2.3, core);
+  // A layered glowing head: a soft halo, the core, and a white-hot leading edge. The parasite spore
+  // WOBBLES (organic), the splash glob PULSES — both keyed off position so no per-projectile state.
+  glowDisc(ctx, p.x, p.y, head * 2.5, rgba(trail, 0.42));
+  const wob = parasite ? 1 + Math.sin((p.x + p.y) * 0.45) * 0.22 : splash ? 1 + Math.sin((p.x - p.y) * 0.3) * 0.12 : 1;
+  ctx.fillStyle = core;
+  ctx.beginPath(); ctx.arc(p.x, p.y, head * wob, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath(); ctx.arc(p.x + ux * head * 0.35, p.y + uy * head * 0.35, head * 0.45, 0, Math.PI * 2); ctx.fill();
   if (fading) ctx.globalAlpha = 1;
 }
 

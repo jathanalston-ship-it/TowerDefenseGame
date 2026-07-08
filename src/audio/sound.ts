@@ -105,6 +105,13 @@ function sEdSplat(i: number): void { noise(0.15, 0.11 - i * 0.012, 680 - i * 60,
 // A soft, addictive ABSORB shimmer as gibs coalesce into the meters (render/gore.ts). Very quiet, a
 // gentle rising sine — it reads as "the kill is being assimilated." `i` staggers stacked deaths.
 function sAssimilate(i: number): void { tone(540 + i * 70, 0.1, 'sine', 0.032, 960 + i * 90); }
+// BASE tower firing timbres (config.towerFireCue) — an unbranched tower was silent; these give each
+// firing character its own snap. Quiet + throttled (firing is frequent); `i` detunes stacked shots.
+function sTfTick(i: number): void { tone(820 - i * 40, 0.04, 'square', 0.045, 560); noise(0.02, 0.035, 4200 - i * 200); } // kinetic/synaptic snap
+function sTfThud(i: number): void { tone(120 - i * 6, 0.13, 'sine', 0.11, 58); noise(0.06, 0.07, 480, 200); } // heavy lob thud
+function sTfWet(i: number): void { noise(0.05, 0.06, 1400 - i * 120, 500); tone(300 - i * 15, 0.05, 'triangle', 0.045, 170); } // wet organic blip
+function sTfZap(i: number): void { tone(640 + i * 45, 0.07, 'sawtooth', 0.05, 1500); noise(0.03, 0.03, 5200); } // psionic zap
+function sTfTing(i: number): void { tone(1400 - i * 60, 0.09, 'sine', 0.045, 1900); tone(2050 - i * 80, 0.06, 'sine', 0.025); } // crystalline ting
 // ── Hive Siege voices (docs/HIVE-SIEGE.md §audio) ──
 function sHiveHit(): void { tone(72, 0.14, 'sine', 0.16, 48); noise(0.07, 0.07, 420, 90); } // a wet chitin THUD — one per landed bite (capped per tick)
 function sHiveGroan(): void { // the organism groans as a damage state fails (75/50/25/10%)
@@ -278,6 +285,11 @@ export const audio = {
         case 'edie_pop': for (let i = 0; i < Math.min(4, n); i++) sEdPop(i); break;
         case 'edie_splat': for (let i = 0; i < Math.min(3, n); i++) sEdSplat(i); break;
         case 'assimilate': for (let i = 0; i < Math.min(3, n); i++) sAssimilate(i); break;
+        case 'tfire_tick': for (let i = 0; i < Math.min(3, n); i++) sTfTick(i); break;
+        case 'tfire_thud': for (let i = 0; i < Math.min(2, n); i++) sTfThud(i); break;
+        case 'tfire_wet': for (let i = 0; i < Math.min(3, n); i++) sTfWet(i); break;
+        case 'tfire_zap': for (let i = 0; i < Math.min(3, n); i++) sTfZap(i); break;
+        case 'tfire_ting': for (let i = 0; i < Math.min(2, n); i++) sTfTing(i); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;
         case 'breach': sBreach(); break;
         case 'hiveHit': for (let i = 0; i < Math.min(2, n); i++) sHiveHit(); break;

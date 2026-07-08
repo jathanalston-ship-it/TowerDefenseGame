@@ -27,6 +27,7 @@ import {
   ECON,
   ENEMY_DEFS,
   enemyDeathCue,
+  towerFireCue,
   ENEMY_KINDS,
   EVO,
   FX,
@@ -3525,6 +3526,7 @@ export class Game {
         // Branch sensory signature (TOWER-BRANCHES.md §1): a muzzle spray + sound on every shot.
         // Cosmetic only (FX rng + sfx queue) ⇒ golden-safe; bk is null on the unbranched/autoplay path.
         if (bk) this.emitBranchSignature(bk, t.x, t.y - 6, t.tier);
+        else { const fc = towerFireCue(t.kind); if (fc) this.pushSfx(fc); } // BASE firing cue (unbranched towers were silent)
       }
     }
     // Reset the per-cast kit so later systems (hero casts) see base values, not a tower's.

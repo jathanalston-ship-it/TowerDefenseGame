@@ -449,6 +449,20 @@ export function enemyDeathCue(def: EnemyDef): string {
   return 'edie_squelch'; // soft-bodied chaff / support / summoner
 }
 
+/** Presentation-only: the BASE firing sound for an UNBRANCHED tower (a branched tower plays its
+ *  branch kit's cue instead). Keyed by the tower's firing character; beam + support kinds return ''
+ *  (no per-shot cue). Golden-safe: a cue never touches wave/kills/integrity/biomass. */
+export function towerFireCue(kind: TowerKind): string {
+  switch (kind) {
+    case 'needle': case 'spire': return 'tfire_tick'; // a sharp kinetic/synaptic snap
+    case 'mortar': return 'tfire_thud'; // a heavy lobbed thud
+    case 'parasite': case 'maw': case 'polyp': case 'sower': return 'tfire_wet'; // a wet organic blip
+    case 'obelisk': case 'effigy': return 'tfire_zap'; // a psionic zap
+    case 'chrysalis': return 'tfire_ting'; // a crystalline ting
+    default: return ''; // coil/siphon beams + reactor support have their own continuous identity
+  }
+}
+
 // ~30 archetypes across 12 ROLES. Every entry trades on a distinct battlefield identity that
 // forces a DIFFERENT placement decision (coverage geometry, focus vs spread, intercept timing),
 // not a stat slide. The historical seven (runner/brute/tyrant/rusher/tank/flyer/burrower) keep
