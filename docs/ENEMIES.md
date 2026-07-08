@@ -277,6 +277,34 @@ seven set no traits, so the golden-era look is untouched):
 | **Artillery** (Siege Maw, Acid Spitter) | dug-in stance braces + a muzzle charge that betrays the next volley (§9) |
 | **Boss runtime** (`BossRuntime`) | invulnerability = hard golden shell; carapace = rotating bone plating; enrage = deepening blood rim; charge = flashing dash vector + chevron; Nucleus channel = feeding tether; **phase pips** under the health bar |
 
+### 8.1 Creature body forms — the roster reads as distinct organisms
+
+At full detail, non-boss enemies no longer render as one of five flat polygons. `src/render/enemyForms.ts`
+draws **12 procedural CREATURE body-forms** — a shaded silhouette + anatomy (legs / wings / eyes /
+segments) + a subtle idle animation — keyed per kind by `ENEMY_BODY` (`render/theme.ts`):
+
+| Form | Archetype | Silhouette |
+|---|---|---|
+| `grub` | swarm | plump segmented larva, wiggling leg nubs |
+| `dart` | fast | sleek arrowhead + swept fins + motion streaks |
+| `beetle` | heavy | domed plated carapace, ridge, braced legs (colossus = a colossal beetle) |
+| `crab` | shielded | low shell with a lit **front shield-plate** + claws |
+| `polyp` | regen | pulsating gelatinous sac with knitting cilia + a nucleus |
+| `mole` | burrow | torpedo body + big digging claws |
+| `moth` | flying | **flapping** wings + segmented body |
+| `broodsac` | summoner | translucent egg-sac with pulsing embryos |
+| `frond` | support | floating anemone with waving healing tendrils |
+| `bulb` | suicide | swollen bulb with a glowing **unstable core** + fuse |
+| `mortar` | artillery | dug-in base with a raised, charging barrel |
+| `maw` | apex/elite | fanged bruiser mass with back-spikes + a gaping maw |
+
+Per-kind **colour** + a stable `ENEMY_VARIANT` seed vary the build within a form (segment/leg/plate/
+eye counts), so variants (runner vs mite vs larva) differ structurally, not just in hue. The trait
+tells above LAYER on top. **Cosmetic only** (the renderer is outside the deterministic sim — no golden
+impact) and **LOD-gated**: below `PERF.lodEnemyCount` (220) enemies get the full body; a huge swarm
+falls back to the flat `ENEMY_SHAPE` (also the bestiary icon). Each form is ~8–14 canvas ops, no
+per-enemy gradients (shading is memoized by colour).
+
 ## 9. Artillery shells — bombardment is visible and lands on impact
 
 Siege enemies previously deducted Nucleus integrity **instantly** on their timer, with only

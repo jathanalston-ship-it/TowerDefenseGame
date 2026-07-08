@@ -7,6 +7,7 @@
 // React/CSS UI theme (src/index.css) — retheming the arena touches only this file.
 
 import type { EnemyKind, TowerKind } from '../core/types';
+import type { BodyForm } from './enemyForms';
 import type { ShapeKind } from './vfx';
 
 /** Compose an `rgba()` string from an "r, g, b" token and an alpha. */
@@ -215,3 +216,46 @@ export const ENEMY_TIER: Record<EnemyKind, EnemyTier> = {
   // boss — capstones get the crown + glow + containment ring
   colossus: 'boss', dreadnought: 'boss', tyrant: 'boss',
 };
+
+// ── Creature BODY FORMS (render/enemyForms.ts) — the procedural silhouette each kind renders as at
+//    full detail (the flat ENEMY_SHAPE above is the low-LOD fallback + the bestiary icon). Grouped by
+//    archetype; per-kind colour + ENEMY_VARIANT drive the variation within a form. ──
+export const ENEMY_BODY: Record<EnemyKind, BodyForm> = {
+  // swarm — soft segmented larvae
+  runner: 'grub', mite: 'grub', larva: 'grub',
+  // fast — sleek arrowheads
+  rusher: 'dart', darter: 'dart', lasher: 'dart',
+  // heavy — domed armoured carapaces (colossus = a colossal beetle juggernaut)
+  brute: 'beetle', tank: 'beetle', golem: 'beetle', colossus: 'beetle',
+  // shielded — front-plated shells
+  bulwark: 'crab', warden: 'crab',
+  // regenerating — pulsating knit-sacs
+  knitter: 'polyp', revenant: 'polyp',
+  // burrowing — clawed tunnellers
+  burrower: 'mole', molerat: 'mole',
+  // flying — flapping winged drifters (stratovore/carrier fly ⇒ moth reads their dominant trait)
+  flyer: 'moth', wisp: 'moth', gargoyle: 'moth', cystwraith: 'moth', stratovore: 'moth', carrier: 'moth',
+  // summoner — embryo-laden egg-sacs
+  broodmother: 'broodsac', hivecaller: 'broodsac', broodweaver: 'broodsac',
+  // support — floating healing anemones
+  mender: 'frond', cantor: 'frond', oracle: 'frond',
+  // suicide — volatile unstable bulbs
+  bomber: 'bulb', popper: 'bulb', sapper: 'bulb', cataclyst: 'bulb', glutling: 'bulb',
+  // artillery — dug-in bombards with a raised barrel
+  siegeworm: 'mortar', spitter: 'mortar', entrencher: 'mortar',
+  // shielded + regen fusion — a plated shell (regen shows as a trait VFX)
+  zealot: 'crab',
+  // elite / apex — fanged bruiser mass
+  apex: 'maw', dreadnought: 'maw', tyrant: 'maw',
+};
+
+/** Stable per-kind structural variant (feature counts) — so variants within a form differ in build,
+ *  not just hue. A cheap string hash: deterministic, computed once. */
+function variantOf(kind: string): number {
+  let h = 0;
+  for (let i = 0; i < kind.length; i++) h = (Math.imul(h, 31) + kind.charCodeAt(i)) >>> 0;
+  return h;
+}
+export const ENEMY_VARIANT: Record<EnemyKind, number> = Object.fromEntries(
+  (Object.keys(ENEMY_BODY) as EnemyKind[]).map((k) => [k, variantOf(k)]),
+) as Record<EnemyKind, number>;

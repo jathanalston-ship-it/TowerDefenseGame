@@ -26,7 +26,8 @@ import {
 import { ENEMY_DEFS, HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring } from '../core/types';
-import { THEME, ENEMY_SHAPE, ENEMY_TIER, TOWER_SHAPE, hexRgb, rgba } from './theme';
+import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, TOWER_SHAPE, hexRgb, rgba } from './theme';
+import { drawEnemyBody } from './enemyForms';
 import {
   chevronDown,
   drawShape,
@@ -1248,14 +1249,14 @@ function drawEnemy(
   // renders its CHASSIS body plan (render/bossChassis.ts — five silhouettes, own palette,
   // per-def markings) instead of the borrowed tyrant disc; at low LOD it stays a cheap flat
   // shape but keeps its own color so the identity survives zoom-out.
+  const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
   if (e.boss && detail) drawBossBody(ctx, e.boss.defId, e.x, drawY, r, t);
+  // Full-detail non-boss enemies render a procedural CREATURE body (render/enemyForms.ts) — a shaded
+  // silhouette + anatomy + idle animation that owns its own rim/shading, keyed by archetype so the
+  // roster reads as distinct organisms. Low-LOD (huge swarm) + bosses fall back to the flat shape.
+  else if (detail) drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, r, def.color, t, { seed: ENEMY_VARIANT[e.kind], phase: e.id, rim, flying });
   else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
   if (detail) {
-    if (!e.boss) {
-      const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
-      strokeShape(ctx, shape, e.x, drawY, r, rim, tier === 'normal' ? 1.5 : 2.25);
-      drawShape(ctx, shape, e.x, drawY - r * 0.32, r * 0.4, THEME.enemy.gloss); // sheen = volume
-    }
 
     // Shield bubble — a front-arc barrier facing the descent, alpha by remaining charge;
     // it SHATTERS visibly the instant it breaks (sim sets shieldFlash at 0-cross).
