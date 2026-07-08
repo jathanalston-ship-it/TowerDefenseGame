@@ -32,7 +32,7 @@ function inject(g: Game, kind: keyof typeof ENEMY_DEFS, x: number, y: number): E
   const def = ENEMY_DEFS[kind];
   const e: Enemy = {
     id: nextId++, kind, x, y, hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed,
-    bounty: def.bounty, damage: def.damage, fracture: 0, corrosion: 0, infection: 0, disrupt: 0,
+    bounty: def.bounty, damage: def.damage, fracture: 0, corrosion: 0, infection: 0, disrupt: 0, mark: 0, resonance: 0,
     shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true,
     sieging: false, ring: 0, attackCd: 0, windup: -1,
     attackInterval: def.attack.interval, attackWindup: def.attack.windup,

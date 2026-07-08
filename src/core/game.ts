@@ -1020,6 +1020,12 @@ export class Game {
       case 'Disruption':
         e.disrupt = status.amount;
         break;
+      case 'Mark': // Vital reaction fuel (Marrow Siphon) — capped stacks, harvested in reactions
+        e.mark = Math.min(STATUS.markMax, e.mark + status.amount);
+        break;
+      case 'Resonance': // Resonant reaction fuel (Resonance Coil) — capped stacks, shattered in reactions
+        e.resonance = Math.min(STATUS.resonanceMax, e.resonance + status.amount);
+        break;
       // The expansion statuses ride the universal framework (status.ts): amount is SECONDS,
       // scaled by the owning tower's identity run-mod. A refractory marker (stacks 0) means
       // the application bounces — perma-CC is impossible by construction (status.ts).
@@ -2373,6 +2379,8 @@ export class Game {
       dmgTimer: 0,
       infection: 0,
       disrupt: 0,
+      mark: 0,
+      resonance: 0,
       alive: true,
       sieging: false,
       ring: 0,
@@ -2415,6 +2423,8 @@ export class Game {
       corrosion: 0,
       infection: 0,
       disrupt: 0,
+      mark: 0,
+      resonance: 0,
       shredFlash: 0,
       hitFlash: 0,
       dmgAccum: 0,
@@ -2721,7 +2731,7 @@ export class Game {
         hp: childHp, maxHp: childHp, baseArmor: def.armor ?? 14,
         speed: CHASSIS[def.chassis].speed * 1.08, bounty: Math.round(def.bounty * 0.35),
         damage: Math.max(1, Math.round(def.damage * 0.6)),
-        fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0,
+        fracture: 0, corrosion: 0, infection: 0, disrupt: 0, mark: 0, resonance: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0,
         alive: true, sieging: false, ring: 0, attackCd: 0, windup: -1,
         attackInterval: CHASSIS[def.chassis].attack.interval * 0.8, attackWindup: CHASSIS[def.chassis].attack.windup * 0.8,
         lastHitKind: null, elite: false,
@@ -2742,7 +2752,7 @@ export class Game {
     this.enemies.push({
       id: this.nextId++, kind, x: Math.max(12, Math.min(WIDTH - 12, x + (this.rng.next() - 0.5) * 60)), y: y + 12,
       hp: def.hp, maxHp: def.hp, baseArmor: def.armor, speed: def.speed, bounty: def.bounty, damage: def.damage,
-      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true,
+      fracture: 0, corrosion: 0, infection: 0, disrupt: 0, mark: 0, resonance: 0, shredFlash: 0, hitFlash: 0, dmgAccum: 0, dmgTimer: 0, alive: true,
       sieging: false, ring: 0, attackCd: 0, windup: -1, attackInterval: def.attack.interval, attackWindup: def.attack.windup,
       lastHitKind: null, boss: null, elite: false,
       shield: def.shieldHp, summonCd: def.summon?.interval, siegeCd: def.siege?.interval,
@@ -3602,7 +3612,7 @@ export class Game {
     t.cooldown -= dt;
     if (t.cooldown > 0) return;
     t.cooldown = def.fireInterval / rateMult;
-    if (t.beamHeat >= BEAM.corrosionHeat) this.applyStatus(primary, { kind: 'Corrosion', amount: BEAM.corrosionAmount });
+    this.applyStatus(primary, { kind: 'Resonance', amount: STATUS.resonancePerHit }); // the Coil's OWN Resonant status (reaction fuel) — builds each pulse as it channels; maybeReact (per tick above) combusts it
     if (prog.extraAbilities || (bk && bk.extraAbilities.length)) {
       this.castExtraProjectiles = extra;
       this.castSplashMult = (prog.splashMult ?? 1) * (bk?.splashMult ?? 1);
@@ -3769,6 +3779,12 @@ export class Game {
       if (gain >= 1) this.floats.push({ x: t.x, y: t.y - 16, text: `+${Math.round(gain)}`, color: def.color, life: 0.7 });
       this.spawnMotes(t.x, t.y); // siphoned income flies up off the organ
       t.beamBank = 0;
+    }
+    // Vital Mark (docs/REACTIONS): tag the primary tether on the cadence pulse, then combust — the
+    // Siphon's entry into the reaction matrix (Mark fuels Harvest/Ferment/Bloom Rot/Synaptic Bloom).
+    if (primary !== null && primary.hp > 0) {
+      this.applyStatus(primary, { kind: 'Mark', amount: STATUS.markPerHit });
+      this.maybeReact(primary);
     }
     // Star- and branch-granted attacks (auras / debuffs / chains) pulse on the beam's cadence — the
     // same grant vocabulary every other tower uses, so upgrade paths need no beam-specific code.
@@ -5711,8 +5727,87 @@ export class Game {
         this.spreadInfection(e); // jumps to neighbours now (also bursts infect particles)
         break;
       }
+      // ── Vital (Mark) — HARVEST family: the marked affliction is rendered into a burst + Biomass. ──
+      case 'harvest': { // Mark + Fracture
+        e.hp -= REACTIONS.markBurst;
+        this.harvestBiomass(REACTIONS.markBiomass);
+        e.fracture = 0; e.mark = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('hit');
+        this.spawnParticles(e.x, e.y, PARTICLE.shred);
+        break;
+      }
+      case 'ferment': { // Mark + Corrosion
+        e.hp -= REACTIONS.markBurst;
+        this.harvestBiomass(REACTIONS.markBiomass);
+        e.corrosion = 0; e.mark = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('hit');
+        this.spawnParticles(e.x, e.y, PARTICLE.infect);
+        break;
+      }
+      case 'bloomrot': { // Mark + Infection
+        e.hp -= REACTIONS.markBurst;
+        this.harvestBiomass(REACTIONS.markBiomass);
+        e.infection = 0; e.mark = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('hit');
+        this.spawnParticles(e.x, e.y, PARTICLE.infect);
+        break;
+      }
+      case 'synapticbloom': { // Mark + Disruption
+        e.hp -= REACTIONS.markBurst;
+        this.harvestBiomass(REACTIONS.markBiomass);
+        e.disrupt = 0; e.mark = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('hit');
+        this.spawnParticles(e.x, e.y, PARTICLE.disrupt);
+        break;
+      }
+      // ── Resonant (Resonance) — SHATTER family: the beam's resonance shatters the co-present status. ──
+      case 'resonantshear': { // Resonance + Fracture (scales with Fracture) + armor break
+        e.hp -= REACTIONS.resoBurst + REACTIONS.resoPerStack * e.fracture;
+        this.armorBreakUntil.set(e.id, this.time + STATUS.shredArmorBreak);
+        e.fracture = 0; e.resonance = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.shred);
+        break;
+      }
+      case 'resonantmelt': { // Resonance + Corrosion → armor melts (dissolve-like)
+        e.hp -= REACTIONS.resoBurst;
+        this.armorBreakUntil.set(e.id, this.time + REACTIONS.dissolveBreak);
+        e.corrosion = 0; e.resonance = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.disrupt);
+        break;
+      }
+      case 'resonantrupture': { // Resonance + Infection (scales with Infection)
+        e.hp -= REACTIONS.resoBurst + REACTIONS.resoPerStack * Math.floor(e.infection);
+        e.infection = 0; e.resonance = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.infect);
+        break;
+      }
+      case 'resonantovertone': { // Resonance + Disruption
+        e.hp -= REACTIONS.resoBurst;
+        e.disrupt = 0; e.resonance = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.disrupt);
+        break;
+      }
+      // ── Mark + Resonance — SYNTHESIS: the two newest castes combine (heavy burst + Biomass). ──
+      case 'synthesis': {
+        e.hp -= REACTIONS.synthesisBurst;
+        this.harvestBiomass(REACTIONS.synthesisBiomass);
+        e.mark = 0; e.resonance = 0; e.shredFlash = STATUS.shredFlash;
+        this.pushSfx('shred');
+        this.spawnParticles(e.x, e.y, PARTICLE.shred);
+        break;
+      }
     }
     this.floats.push({ x: e.x, y: e.y - 16, text: r.name, color: r.color, life: 0.7 });
+  }
+
+  /** Biomass returned to the hive by a Vital (Mark) reaction — the harvest payoff (Vital = economy). */
+  private harvestBiomass(n: number): void {
+    this.biomass += n;
+    this.statBiomassEarned += n;
   }
 
   // ── Debug API (driven by the debug panel; no effect on normal play) ──────

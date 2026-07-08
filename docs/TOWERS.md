@@ -18,9 +18,10 @@ reaction framework** — it supersedes the placeholder tower names used in the e
 > placeable, each with its ★1–★3 core mechanic, status, projectile/field, visuals, and
 > the data-driven hooks for the rest (`firing` dispatch, `RunModifiers` card hooks,
 > auto Stars + Mastery via `TOWER_ORDER`). Implemented statuses: **Fracture, Corrosion,
-> Infection, Disruption (slow + Vulnerability)**. The ★4–★10 unlocks, A/B forks,
-> Evolutions, class keystones, and 9 of the 10 reactions (only **Shred** is wired) are
-> the designed-but-future content this spec also covers. Balance values live in
+> Infection, Disruption (slow + Vulnerability), Mark (Vital — Marrow Siphon), and Resonance
+> (Resonant — Resonance Coil)**. The reaction matrix is now **complete**: all **15** unordered
+> pairings of those six statuses are wired (C(6,2) — see §reactions). The ★4–★10 unlocks, A/B forks,
+> Evolutions, and class keystones are the designed-but-future content this spec also covers. Balance values live in
 > `src/core/config.ts`.
 >
 > **Roster now: eleven built towers.** Beyond the launch five, the placeable roster runs to
@@ -48,10 +49,13 @@ rewards mixing classes (the core of build variety). Classes are shared with hero
 | **Caustic** | Bone Mortar | **Corrosion** | acid DoT + armor melt + ground pools |
 | **Viral** | Parasite Nest | **Infection** | spreading, ramping DoT |
 | **Neural** | Neural Obelisk | **Disruption** | slow / stun / vulnerability / hijack |
-| **Vital** | Flesh Reactor | **Mark** | biomass marks + amplify + sustain |
+| **Vital** | Flesh Reactor · Marrow Siphon | **Mark** | reaction fuel — harvested into a burst + Biomass |
+| **Resonant** | Resonance Coil | **Resonance** | reaction fuel — shattered against the co-present status |
 
-**Reaction matrix** (C(5,2) = 10 reactions; ★6 of each tower unlocks its
-participation). Marquee combos in **bold**.
+**Reaction matrix — now COMPLETE across all six status classes.** C(6,2) = **15** reactions, and
+**every one is wired** (`reactions.ts` / `game.runReaction`). The 5×5 grid below is the launch core;
+**Mark** (Vital, from the Marrow Siphon) and **Resonance** (Resonant, from the Resonance Coil) add
+their pairings — listed under the grid. Marquee combos in **bold**.
 
 | + | Kinetic | Caustic | Viral | Neural | Vital |
 |---|---|---|---|---|---|
@@ -73,6 +77,19 @@ participation). Marquee combos in **bold**.
 | **Mind Rot** (Vir+Neu) | hijacked enemies become infection super-spreaders |
 | Bloom Rot (Vir+Vit) | infected deaths spawn friendly spores / heal hive |
 | Synaptic Bloom (Neu+Vit) | disrupted/hijacked enemies buff your towers |
+| **Shear** (Res+Kin) | the fractured shell shears apart — a burst scaling with Fracture (+ armor break) |
+| **Melt** (Res+Cau) | resonance melts the corroded plating entirely (armor break) |
+| **Rupture** (Res+Vir) | the plague ruptures on the resonant note — a burst scaling with Infection |
+| **Overtone** (Res+Neu) | the destabilized shell rings itself apart |
+| **Synthesis** (Mark+Res) | the two newest castes combine — a heavy burst + a Biomass windfall |
+
+> **Shipped behavior (`reactions.ts` / `game.runReaction`).** The Vital (**Mark**) family — Harvest ·
+> Ferment · Bloom Rot · Synaptic Bloom — renders the marked affliction into a **true-damage burst +
+> Biomass** (Vital = economy). The Resonant (**Resonance**) family shatters the co-present status for a
+> burst (scaling with Fracture/Infection stacks). The **Marrow Siphon** applies Mark on its drain pulse;
+> the **Resonance Coil** applies Resonance on its beam — it no longer borrows Corrosion, it has its own
+> status now. **Golden-safe:** both statuses require those two gated beam towers, which autoplay never
+> fields, so the pinned golden sim is byte-identical.
 
 **Role coverage (deliberately one each):** single-target DPS · AoE artillery ·
 DoT/spread/summon · control/hijack · economy/support. Any 3-of-5 pick is viable;
@@ -82,9 +99,10 @@ each plays completely differently.
 > canonical **launch** mapping (one tower per class, a clean C(5,2) reaction matrix). Later towers
 > extend it without redrawing it: the **Marrow Siphon** is a *second* **Vital** tower — but the
 > first Vital *attacker* (the Flesh Reactor is economy/support), so Vital finally has an offensive
-> body. The **Resonance Coil** carries a new **Resonant** class (a sustained beam-focus melter);
-> at high resonance heat its beam also sears **Corrosion** into the locked target, so it plugs into
-> the existing Caustic reaction line rather than needing a new matrix row. The **Blight Sower** is
+> body. The **Resonance Coil** carries a new **Resonant** class (a sustained beam-focus melter); its
+> beam applies the **Resonance** status, a full participant in the reaction matrix — it *shatters* the
+> co-present status (Fracture/Corrosion/Infection/Disruption) for a burst, so Resonant has its own
+> reaction family (§reactions) rather than borrowing another class's status. The **Blight Sower** is
 > a *second* **Caustic** tower (with the Bone Mortar) — its spore-mine detonations apply Corrosion,
 > so it too feeds **Shred**. Full specs in §deep-strain and §trap below.
 
@@ -542,7 +560,7 @@ mechanics: **`SIPHON.md`** (the compressed system summary, canonical for both).
 
 | | Resonance Coil | Marrow Siphon |
 |---|---|---|
-| Class / status | **Resonant** / sears **Corrosion** at high heat (plugs into the Caustic line) | **Vital** / no status — it *drains* (the first Vital **attacker**) |
+| Class / status | **Resonant** / applies **Resonance** — its own reaction status (shattered against any co-present status) | **Vital** / applies **Mark** — reaction fuel harvested into a burst + Biomass (the first Vital **attacker**) |
 | Identity | single-target **melter**: resonance **HEAT** ramps damage to **×4** while it holds ONE target (resets on switch) | multi-tether **harvester**: a drain **WEB** (2+ tethers) that finishes the wounded; **Gorge** ramps to **×2.6** on VOLUME (slow decay, no hard reset) + siphons kills into **Biomass** |
 | Sim path | `game.beamTowerSystem` (BEAM tunables) | bespoke `game.beamSystem` (SIPHON tunables) |
 | Range band | **340** (SKIRMISHER — place FORWARD so the target stays in the beam to ramp) | **300** (HARVESTER — close; place AT the kill-zone where the swarm dies) |
@@ -552,9 +570,9 @@ mechanics: **`SIPHON.md`** (the compressed system summary, canonical for both).
 
 **Identity run-mods:** `coilRampMult` · `coilBeamTargets` (cards *Harmonic Overtuning* /
 *Prismatic Conduits*) for the Coil; the Siphon rides its **`SIPHON`** tunables (Gorge ramp, drain
-fraction, fork share) plus the two identity Gene Cards *Gorging Instinct* / *Hemophage*. The Coil
-sears **Corrosion** into its locked target above `BEAM.corrosionHeat`, so it feeds the existing
-Caustic reactions without needing a new matrix row.
+fraction, fork share) plus the two identity Gene Cards *Gorging Instinct* / *Hemophage*. On the beam
+pulse the Coil applies **Resonance** and the Siphon applies **Mark** — their own reaction statuses —
+completing the six-class reaction matrix (§reactions); the Coil no longer borrows Corrosion.
 
 **Unlock gate (double — the deepest in the game):** both are **doubly progression-gated**. Clearing
 **Campaign Stage 15** (`DEEP_STRAIN_STAGE`) is the single milestone that opens the Deep-Strain

@@ -133,7 +133,7 @@ export function simulateBattle(cfg: SimConfig): SimReport {
   let prevAlive = new Set<number>(); // ids alive last sample (to detect resolutions)
   let lifetimeSum = 0;
   let lifetimeCount = 0;
-  const statusSeconds: Record<StatusType, number> = { Fracture: 0, Corrosion: 0, Infection: 0, Disruption: 0, Freeze: 0, Fear: 0 };
+  const statusSeconds: Record<StatusType, number> = { Fracture: 0, Corrosion: 0, Infection: 0, Disruption: 0, Freeze: 0, Fear: 0, Mark: 0, Resonance: 0 };
   let enemyAliveSeconds = 0;
 
   // Wave-phase edge tracking (durations + per-wave kills/biomass).
@@ -268,7 +268,7 @@ export function simulateBattle(cfg: SimConfig): SimReport {
   const stillAlive = game.enemies.filter((e) => e.alive).length;
   const enemiesLeaked = Math.max(0, enemiesSpawned - enemiesKilled - stillAlive);
 
-  const statusUptime: Record<StatusType, number> = { Fracture: 0, Corrosion: 0, Infection: 0, Disruption: 0, Freeze: 0, Fear: 0 };
+  const statusUptime: Record<StatusType, number> = { Fracture: 0, Corrosion: 0, Infection: 0, Disruption: 0, Freeze: 0, Fear: 0, Mark: 0, Resonance: 0 };
   for (const s of STATUS_TYPES) statusUptime[s] = enemyAliveSeconds > 0 ? statusSeconds[s] / enemyAliveSeconds : 0;
 
   return {
@@ -321,7 +321,7 @@ export function sweepSeeds(seeds: number[], base: Omit<SimConfig, 'seed'> = {}):
 
   const avgTowerDps = zeroTowerRecord();
   for (const k of TOWER_ORDER) avgTowerDps[k] = sum((r) => r.towerDps[k]) / n;
-  const avgStatusUptime: Record<StatusType, number> = { Fracture: 0, Corrosion: 0, Infection: 0, Disruption: 0, Freeze: 0, Fear: 0 };
+  const avgStatusUptime: Record<StatusType, number> = { Fracture: 0, Corrosion: 0, Infection: 0, Disruption: 0, Freeze: 0, Fear: 0, Mark: 0, Resonance: 0 };
   for (const s of STATUS_TYPES) avgStatusUptime[s] = sum((r) => r.statusUptime[s]) / n;
 
   return {

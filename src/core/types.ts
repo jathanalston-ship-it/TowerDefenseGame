@@ -7,7 +7,7 @@ import type { AbilityComponent } from './ability';
 import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
-export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
+export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear' | 'Mark' | 'Resonance';
 export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp';
 export type EnemyKind =
   // swarm
@@ -101,6 +101,8 @@ export interface Enemy {
   corrosion: number; // remaining seconds of corrosion
   infection: number; // Viral infection stacks — ramping armor-ignoring DoT; spreads on death
   disrupt: number; // remaining seconds of Neural Disruption (slow + vulnerability)
+  mark: number; // Vital Mark stacks (Marrow Siphon) — reaction fuel, harvested for Biomass; never in the golden run
+  resonance: number; // Resonant stacks (Resonance Coil) — reaction fuel, shattered in reactions; never in the golden run
   shredFlash: number; // seconds of reaction flash remaining (visual)
   hitFlash: number; // seconds of white hit-flash remaining (visual)
   dmgAccum: number; // damage banked toward the next aggregated damage number (visual)

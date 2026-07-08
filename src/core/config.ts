@@ -320,8 +320,8 @@ export const BEAM = {
   heatPerSec: 0.42, // resonance charge/sec while locked — ~2.4s from cold to full melt
   heatDecayPerSec: 1.1, // charge bled off/sec when the beam has no valid target
   rampBonus: 3.0, // damage bonus at full resonance: ×(1 + rampBonus) ⇒ up to ×4 on a held target
-  corrosionHeat: 0.6, // once heat ≥ this, the beam sears Corrosion into its target (status synergy)
-  corrosionAmount: 1, // Corrosion seconds applied per pulse at/above corrosionHeat
+  // (The beam applies its own Resonant status — STATUS.resonancePerHit — each pulse, its entry into
+  //  the reaction matrix; it no longer borrows Corrosion. See reactions.ts / docs/TOWERS.md §reactions.)
 } as const;
 
 /** Per-def invariants (shared by validate.ts and the registry's own `validate()`). */
@@ -924,13 +924,24 @@ export const STATUS = {
   disruptDuration: 1.6, // seconds, refreshed each pulse while in the field
   disruptSlow: 0.35, // -35% speed while disrupted
   disruptVulnerability: 0.25, // +25% damage taken from all sources while disrupted
+
+  // ── Mark (Vital — Marrow Siphon) & Resonance (Resonant — Resonance Coil) ─────
+  // Pure REACTION FUEL: capped stacks that combust with the other statuses (reactions.ts). Neither
+  // carries a DoT of its own — the payoff IS the reaction. Applied only by the Siphon / Coil (gated
+  // content, never fielded by autoplay), so both are 0 on the golden run ⇒ the pinned sim never sees them.
+  markMax: 6, // Vital Mark stack cap
+  markPerHit: 1, // Mark stacks applied per Marrow Siphon pulse
+  resonanceMax: 6, // Resonant stack cap
+  resonancePerHit: 1, // Resonance stacks applied per Resonance Coil pulse
 };
 
 // ── Reaction matrix (reactions.ts) — co-present statuses combust ──────────────
-// Generalizes the original Shred into the 6 pairings of the 4 statuses. Shred itself keeps
-// the STATUS.shred* numbers (unchanged); the other five reactions are new. All placeholder
-// starting points. Reactions only ever involve Infection/Disruption beyond Shred, so a run
-// without Parasite/Obelisk (e.g. the golden run) only ever produces Shred — byte-identical.
+// Generalizes the original Shred to ALL 15 unordered pairings of the SIX statuses (Fracture,
+// Corrosion, Infection, Disruption, Mark, Resonance). Shred keeps the STATUS.shred* numbers
+// (unchanged) and stays first in priority. Every reaction beyond Shred needs Infection / Disruption /
+// Mark / Resonance to be present — none of which the golden run (needle + mortar + Ravager) ever
+// creates — so that run only ever produces Shred, byte-identical. Mark/Resonance reactions in
+// particular require the Siphon/Coil, which autoplay never fields.
 export const REACTIONS = {
   virulenceBase: 14, // Fracture+Infection: wounds feed the plague (true burst)
   virulencePerStack: 4,
@@ -942,6 +953,15 @@ export const REACTIONS = {
   dissolveBreak: 3.0, // seconds of zero armor
   plagueBase: 18, // Infection+Disruption: vulnerable plague blooms + leaps
   plaguePerStack: 5,
+  // Vital (Mark) — HARVEST family: render the marked affliction into a burst + Biomass (Vital = economy).
+  markBurst: 20, // true-damage burst per Mark reaction
+  markBiomass: 8, // Biomass returned to the hive per Mark reaction
+  // Resonant (Resonance) — SHATTER family: a burst scaling with the shattered stacking status.
+  resoBurst: 16, // base resonant shatter burst
+  resoPerStack: 6, // + per stack of the paired stacking status (Fracture / Infection)
+  // Mark + Resonance — SYNTHESIS capstone: the two newest castes combine (heavy burst + Biomass windfall).
+  synthesisBurst: 40,
+  synthesisBiomass: 16,
 };
 
 // ── Tower ability kits (Part 2: towers built from reusable ability components) ──
