@@ -333,6 +333,38 @@ choice). Relics are **not** part of sets.
 | **Berserker's Wake** (low-HP, cross-class) | +dmg below 50% HP | +lifesteal | survive 2s after lethal, then heal |
 | **Architect** (economy/idle) | +biomass | towers cost less | passive biomass even between waves |
 
+### Implemented sets (`core/equipment.ts` `SETS`) — the built roster
+
+**16 sets ship today**, each ENABLING a distinct build (one per class/playstyle lever). Bonuses are
+plain `CardEffect[]` folded through the run like any card, and read **only Power-weighted run fields**
+(`power.ts` `FIELD_WEIGHT`) so `power-coverage` stays green. **Reachability:** a hero loadout is
+weapon + armor + relic and relics aren't set pieces, so **the 2-piece is the reachable build-definer
+today**; the 4-piece is a forward-compat capstone (mirrors the launch trio, which already ship a
+`bonus4`) for when itemization pools across the 3-hero roster. Each set has **2 weapons + 2 armor**
+wired via `setId`.
+
+| Set | Build it enables | 2-piece | 4-piece (capstone) |
+|---|---|---|---|
+| **Apex Predator** | Kinetic aggro | +Fracture stack | +tower fire rate |
+| **Caustic Foundry** | Corrosion / pools | +splash radius | +pool DPS |
+| **Lifebloom** | Vital / reactor economy | +reactor biomass | +overcharge |
+| **Hive Dominion** | Neural control / hijack | +Disruption vulnerability | +vuln, +tower fire rate |
+| **Contagion** | Viral / plague spread | +Infection damage | +Infection, +biomass |
+| **Killing Instinct** | Crit assassin | +hero crit chance | +crit damage, +hero attack speed |
+| **Living Bulwark** | Guardian tank | +max integrity | +hero HP, +Last Stand |
+| **Windrunner** | Skirmisher mobility | +hero move speed | +attack speed, +aggro range |
+| **Bloodrage** | Berserker lifesteal | +hero damage | +hero healing, +hero HP |
+| **Overcharge** | Tower-buff support | +tower fire rate | +tower damage, +overcharge |
+| **Resonance** | Beam melters (Coil/Siphon) | +Coil beam ramp | +Siphon ramp, +1 beam target |
+| **Siege Engine** | Artillery / AoE reach | +splash radius | +Sower blast, +Maw cleave |
+| **Executioner** | Single-target hero burst | +hero damage | +attack speed, +crit damage |
+| **Harvest** | Biomass economy | +biomass | +reactor biomass, +hero healing |
+| **Tempest** | Ability / chain caster | +hero ability radius | +attack speed, +hero damage |
+| **Paralytic** | Freeze/Fear/Disrupt lockdown | +Chrysalis freeze duration | +Effigy dread, +Disruption vuln |
+
+New set = one `SETS` row + tag ≥1 weapon and ≥1 armor with its `setId` (2-piece then reachable). The
+codex, Sets panel (`activeSets`), and Power all pick it up with no other code.
+
 ---
 
 ## 13. How equipment delivers depth without stat-sticks

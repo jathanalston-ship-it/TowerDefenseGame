@@ -26,7 +26,7 @@
 | **Bosses** | **13 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Act-2 siege line (35/40/45) + Act-3 graduation line (50/55/60) |
 | **Mega Bosses** | **5 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
 | Cards (genes) | 102 | 500 | effect DSL (mul/add/flag/set/grant/hook); 44 progression-`unlock`-gated (below) |
-| Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
+| Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + **16 build-enabling sets** (EQUIPMENT.md §12) |
 | Meta upgrades (Genome) | 87 | 1,000 | `META_UPGRADES` (Deep Genome tier: 20 open + 10 progression-`unlock`-gated) |
 | Ascendant (prestige) nodes | 19 | 20 | `ASCENDANT_NODES` (9 expansion nodes: 3 deep stackers + 6 new income levers) |
 
