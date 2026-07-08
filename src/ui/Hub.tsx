@@ -7,6 +7,7 @@ import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
 import { useEffect, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
+import type { ReplayRecord } from '../core/replay';
 import { audio } from '../audio/sound';
 import { AudioToggles } from './components/AudioToggles';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
@@ -197,6 +198,7 @@ export function Hub({
   onReplayTutorial,
   onReplayTour,
   onReplayIntro,
+  onSpectate,
   difficultyRef,
   doctrineRef,
 }: {
@@ -210,6 +212,7 @@ export function Hub({
   onReplayTutorial: () => void;
   onReplayTour: () => void;
   onReplayIntro: () => void;
+  onSpectate: (r: ReplayRecord) => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -326,7 +329,7 @@ export function Hub({
             modeLocked.daily
               ? <ModeLocked title="DAILY RUN" glyph="☀" stage={MODE_UNLOCKS.daily} current={highestCampaignStage(save)}
                   blurb="One seed per day — the same 20-wave gauntlet worldwide, under the day's modifiers." go={go} />
-              : <DailyScreen onStartDaily={onStartDaily} />
+              : <DailyScreen onStartDaily={onStartDaily} onSpectate={onSpectate} />
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'heroes' && <HeroLab />}

@@ -16,6 +16,7 @@ import { LoopDirective, NextGoalCliffhanger } from './NextGoalBanner';
 import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { FieldResearchCard } from './components/FieldResearch';
+import { ShareReplayButton } from './components/ShareReplay';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function Results({
@@ -336,6 +337,12 @@ export function Results({
           <>
             {/* The macro-loop routing — the wall/breakthrough moment lands HERE (PROGRESSION-LOOP.md) */}
             <LoopDirective difficultyId={result.difficulty} />
+            {/* Daily runs recorded an input log — offer the share code right at the result. */}
+            {result.dailyReplay && (
+              <div className="rr-share">
+                <ShareReplayButton blob={result.dailyReplay} labelKey="results.shareReplay" />
+              </div>
+            )}
             <FieldResearchCard category="sample" note="Bank a specimen sample while the field is fresh." />
             <NextGoalCliffhanger />
           </>

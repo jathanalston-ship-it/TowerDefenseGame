@@ -14,6 +14,9 @@ import { WhatsNew } from './WhatsNew';
 import { CommanderName } from './components/CommanderName';
 import { InitCutscene, introSeen } from './InitCutscene';
 import { UpdateToast } from './components/UpdateToast';
+import { SpectateView } from './SpectateView';
+import { decodeReplayCode } from '../net/replayShare';
+import type { ReplayRecord } from '../core/replay';
 import { startAutoCloudSync } from '../net/autoSync';
 import { HudTour } from './HudTour';
 import { isDebugEnabled } from '../debug/debug';
@@ -48,6 +51,14 @@ import { DIFFICULTIES } from '../core/difficulty';
 
 type Screen = 'menu' | 'deploying' | 'playing' | 'results' | 'tutorial' | 'roulette';
 
+/** Drop only the ?replay= param (other params — e.g. ?debug — survive untouched). */
+function clearReplayParam(): void {
+  const u = new URL(window.location.href);
+  if (!u.searchParams.has('replay')) return;
+  u.searchParams.delete('replay');
+  window.history.replaceState(null, '', u.pathname + (u.searchParams.size > 0 ? `?${u.searchParams}` : '') + u.hash);
+}
+
 /** How long the deployment interstitial breathes before the battlefield mounts. */
 const DEPLOY_MS = 1600;
 
@@ -57,6 +68,9 @@ export function App(): JSX.Element {
   // The cold-open cinematic: first boot on this device (before even the tutorial),
   // replayable from Settings → Help. Overlays whatever screen is behind it.
   const [introActive, setIntroActive] = useState(() => !introSeen());
+  // Replay Theater (docs/REPLAY-SHARE.md): a decoded ReplayRecord being watched — set by a
+  // shared ?replay= link on boot or by the Daily screen's watch/paste actions.
+  const [spectate, setSpectate] = useState<ReplayRecord | null>(null);
   const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
   // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
@@ -104,6 +118,19 @@ export function App(): JSX.Element {
 
   // Boot the tutorial session if this is a first launch (screen was auto-set to 'tutorial').
   useEffect(() => { if (meta.shouldAutoTutorial()) tutorial.start('combat'); }, []);
+  // A shared replay link (?replay=<code>) opens the theater on arrival. The param is kept
+  // until the theater CLOSES (not stripped up front): the service worker's first-install
+  // reload (controllerchange) would otherwise land on a param-less URL and eat the show —
+  // and first-ever visitors from a shared link are exactly this path. Exit cleans the URL
+  // so later reloads/bookmarks don't re-run someone else's game forever.
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('replay');
+    if (!code) return;
+    void decodeReplayCode(code).then((r) => {
+      if (r) setSpectate(r);
+      else clearReplayParam(); // undecodable — clean the URL now, nothing to show
+    });
+  }, []);
   // Prime the Help archive once so existing saves don't flood with "What's New" on first load.
   useEffect(() => { meta.primeHelp(); }, []);
   meta.use(); // subscribe App so the HUD Tour / What's New react to save changes (unlocks, tour completion)
@@ -327,6 +354,7 @@ export function App(): JSX.Element {
           onReplayTutorial={launchTutorial}
           onReplayTour={() => setTourActive(true)}
           onReplayIntro={() => setIntroActive(true)}
+          onSpectate={setSpectate}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />
@@ -359,6 +387,11 @@ export function App(): JSX.Element {
         <Results result={last.result} outcome={last.outcome} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} />
       )}
       {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
+      {/* Replay Theater — a full-screen overlay; never mounts over a LIVE run (the daily
+          screen and shared links are menu-side surfaces, but guard it anyway). */}
+      {spectate && screen !== 'playing' && (
+        <SpectateView record={spectate} onExit={() => { setSpectate(null); clearReplayParam(); }} />
+      )}
       {introActive && <InitCutscene onDone={() => setIntroActive(false)} />}
       <UpdateToast />
       {screen === 'roulette' && roulette && (

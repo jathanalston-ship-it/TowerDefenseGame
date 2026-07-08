@@ -124,7 +124,7 @@ graph TD
 | **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
 | **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | `field-research` · `net-backend` | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
-| **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | — | — | `premium` | `docs/DEPLOYMENT.md` |
+| **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | — | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
@@ -204,7 +204,7 @@ graph TD
 - **HUD surfaces:** `Hud (live run Power)` · **UI screens:** `ProgressDashboard` · `CommandCenter (recommended power)`
 - **Collection:** collection completion feeds a bucket · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/DEPLOYMENT.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROFILE.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
+- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/PROFILE.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
 
 ### Campaign (`campaign`)
 
@@ -264,7 +264,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `CommandCenter`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/LIVEOPS.md`
+- **Docs to update on change:** `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md`
 
 ### Premium Store (`premium`)
 
@@ -279,7 +279,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `PremiumStore`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md`
 
 ### Field Research (rewarded studies) (`field-research`)
 
@@ -300,16 +300,16 @@ graph TD
 
 *The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.*
 
-- **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/autoSync.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
+- **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/autoSync.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/net/replayShare.ts` · `src/ui/SpectateView.tsx` · `src/ui/components/ShareReplay.tsx` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
 - **Depends on:** `premium` · `meta-store` · `daily` · `power`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
 - **Save fields:** `premium`
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `CloudBackup` · `LeaderboardBlock`
+- **HUD surfaces:** — · **UI screens:** `CloudBackup` · `LeaderboardBlock` · `SpectateView` · `DailyScreen (Replay Theater)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md`
 
 ### Towers, Stars, Branches, Strain & Codex (`towers`)
 
@@ -669,7 +669,7 @@ graph TD
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/LIVEOPS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
 
 ### Bosses (`bosses`)
 

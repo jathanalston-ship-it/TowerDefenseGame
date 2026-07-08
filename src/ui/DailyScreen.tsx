@@ -6,6 +6,10 @@
 
 import { useEffect, useState } from 'react';
 import { meta } from '../state/meta';
+import type { ReplayRecord } from '../core/replay';
+import { decodeReplayCode } from '../net/replayShare';
+import { t, useLocale } from '../i18n';
+import { ShareReplayButton } from './components/ShareReplay';
 import { LeaderboardBlock } from './components/LeaderboardBlock';
 import { FieldResearchCard } from './components/FieldResearch';
 import { formatPower } from '../core/power';
@@ -22,8 +26,12 @@ function fmtCountdown(ms: number): string {
   return `${h}h ${String(m).padStart(2, '0')}m`;
 }
 
-export function DailyScreen({ onStartDaily }: { onStartDaily: () => void }): JSX.Element {
+export function DailyScreen({ onStartDaily, onSpectate }: { onStartDaily: () => void; onSpectate: (r: ReplayRecord) => void }): JSX.Element {
+  useLocale();
   const save = meta.use();
+  // Replay Theater (docs/REPLAY-SHARE.md): share today's best / watch any pasted code.
+  const [shareCode, setShareCode] = useState('');
+  const [badCode, setBadCode] = useState(false);
   // Tick a real-time clock so the reset countdown is live — and REGENERATE the plan when the UTC
   // day flips mid-session (the key is state, so the flip re-renders everything below).
   const [key, setKey] = useState(() => dailyKey());
@@ -117,6 +125,47 @@ export function DailyScreen({ onStartDaily }: { onStartDaily: () => void }): JSX
             <p className="panel-sub">A fixed 20-wave stage under two gameplay modifiers, on a 3-tower Conveyor with the day's champion. No difficulty selector — one shared ruleset, one leaderboard-of-honour: the streak.</p>
           </div>
           <LeaderboardBlock mode="daily" />
+          {/* Replay Theater — watch/share today's best, or watch any pasted code. */}
+          <div className="panel">
+            <div className="panel-title">{t('daily.theater.title')}</div>
+            {save.daily.lastReplay ? (
+              <div className="theater-row">
+                <button
+                  className="theater-btn"
+                  onClick={() => {
+                    try {
+                      const r = JSON.parse(save.daily.lastReplay!) as ReplayRecord;
+                      if (r?.v === 1) onSpectate(r);
+                    } catch { /* corrupt stored replay — nothing to watch */ }
+                  }}
+                >
+                  {t('daily.theater.watch')}
+                </button>
+                <ShareReplayButton blob={save.daily.lastReplay} />
+              </div>
+            ) : (
+              <p className="panel-sub">{t('daily.theater.empty')}</p>
+            )}
+            <div className="theater-paste">
+              <input
+                className="theater-input"
+                value={shareCode}
+                onChange={(e) => { setShareCode(e.target.value); setBadCode(false); }}
+                placeholder={t('daily.theater.paste')}
+                aria-label={t('daily.theater.paste')}
+              />
+              <button
+                className="theater-btn"
+                disabled={shareCode.trim().length === 0}
+                onClick={() => {
+                  void decodeReplayCode(shareCode).then((r) => (r ? onSpectate(r) : setBadCode(true)));
+                }}
+              >
+                {t('daily.theater.watchCode')}
+              </button>
+            </div>
+            {badCode && <div className="theater-bad">{t('daily.theater.bad')}</div>}
+          </div>
           <FieldResearchCard category="boost" note="Arm an observation boost before today's contract." />
         </div>
       </div>
