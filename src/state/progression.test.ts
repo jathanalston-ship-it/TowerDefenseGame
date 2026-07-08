@@ -36,7 +36,7 @@ describe('mastery curve (infinite, ever-slower requirements)', () => {
   });
 });
 
-describe('star cost — separate tower (★10) and hero (★5) ladders', () => {
+describe('star cost — tower (★10) and hero (★10) ladders', () => {
   it('tower stars: smooth doubling exponential, capped at maxTowerStars', () => {
     expect(towerStarCost(0)).toBe(STAR.towerBaseCost); // ★1 = 10
     expect(towerStarCost(2)).toBe(Math.round(STAR.towerBaseCost * STAR.towerCostMult ** 2)); // ★3 = 40
@@ -54,15 +54,17 @@ describe('star cost — separate tower (★10) and hero (★5) ladders', () => {
     expect(nextStarCost(defaultSave(), 'needle')).toBe(STAR.towerBaseCost);
   });
 
-  it('hero stars: a gentler, shorter ★5 ladder, capped at maxStars', () => {
+  it('hero stars: the ★10 ladder — gentle early (unchanged ★1-5), steepening late, capped at maxStars', () => {
+    expect(STAR.maxStars).toBe(10);
     const curve = Array.from({ length: STAR.maxStars }, (_, s) => heroStarCost(s));
-    expect(curve).toEqual([8, 14, 26, 47, 84]);
-    expect(curve.reduce((a, b) => a + b, 0)).toBe(179); // total Hero Shards ★0→★5
+    expect(curve.slice(0, 5)).toEqual([8, 14, 26, 47, 84]); // the gentle ★0→★5 band is unchanged
+    expect(curve[9]).toBeGreaterThan(curve[4]); // …then the ★6-10 band steepens
 
     const hero = HERO_ORDER[0];
     const maxed = defaultSave();
     maxed.heroStars[hero] = STAR.maxStars;
-    expect(nextHeroStarCost(maxed, hero)).toBeNull();
+    expect(nextHeroStarCost(maxed, hero)).toBeNull(); // ★10 is the cap
+    expect(nextHeroStarCost({ ...maxed, heroStars: { ...maxed.heroStars, [hero]: 8 } }, hero)).not.toBeNull(); // ★8 can still climb
     expect(nextHeroStarCost(defaultSave(), hero)).toBe(STAR.heroBaseCost);
   });
 

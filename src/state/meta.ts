@@ -14,13 +14,13 @@ import {
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
 import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroSkillCount, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, researchRewardById, researchScale, specimenRarity } from '../core/research';
 import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef } from '../core/research';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
-import type { HeroUnlockReq, UpgradeDef } from '../core/config';
+import type { HeroForkTier, HeroUnlockReq, ResolvedHeroKit, UpgradeDef } from '../core/config';
 import type {
   HeroKind,
   HeroMasteryCounts,
@@ -1681,6 +1681,23 @@ export const meta = {
     persist({ ...save, towerForks: { ...save.towerForks, [kind]: forKind } });
   },
 
+  /** The ability-fork tiers a hero has UNLOCKED at its current star (empty until ★5). Drives the
+   * Hero Lab fork picker; pairs with the hero's saved picks (heroForks). */
+  heroForkTiers(kind: HeroKind): HeroForkTier[] {
+    return heroForkTiers(kind, store.get().heroStars[kind] ?? 0);
+  },
+  /** The hero's current fork picks (star → optionId); unset stars default to their first option. */
+  heroForkPicks(kind: HeroKind): Record<string, string> {
+    return store.get().heroForks[kind] ?? {};
+  },
+  /** Choose an ability-fork option for a hero (keyed by the fork's star). Re-selectable any time;
+   * takes effect on the next run (resolved by heroAbilityKits). Mirrors setTowerFork. */
+  setHeroFork(kind: HeroKind, star: number, optionId: string): void {
+    const save = store.get();
+    const forKind = { ...(save.heroForks[kind] ?? {}), [String(star)]: optionId };
+    persist({ ...save, heroForks: { ...save.heroForks, [kind]: forKind } });
+  },
+
   /** The Adaptation tree for a unit (nodes + spendable Antigen Points). */
   adaptation(subject: 'tower' | 'hero', unit: string): AdaptView {
     return adaptationView(store.get(), subject, unit);
@@ -2069,6 +2086,16 @@ export const meta = {
   fieldedSetEffects(): CardEffect[] {
     const save = store.get();
     return teamSetEffects(save.equipment.inventory, fieldedLoadout(save).map((k) => loadoutOf(save, k)));
+  },
+
+  /** Per-hero EFFECTIVE ability kits for the fielded roster — the star-gated ult/skills patched by
+   *  the hero's chosen ★5/★8 forks (App threads this into RunOptions.heroAbilityKits). A fresh hero
+   *  (0 stars, no fork picks) resolves to its base kit ⇒ byte-identical to the static consts. */
+  heroAbilityKits(): Partial<Record<HeroKind, ResolvedHeroKit>> {
+    const save = store.get();
+    const out: Partial<Record<HeroKind, ResolvedHeroKit>> = {};
+    for (const kind of fieldedLoadout(save)) out[kind] = resolveHeroKit(kind, save.heroStars[kind] ?? 0, save.heroForks[kind]);
+    return out;
   },
 
   // ── Collection (codex + completion rewards) ────────────────────────────────

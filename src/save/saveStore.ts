@@ -75,6 +75,7 @@ export interface SaveData {
   heroShards: Record<string, number>; // per-hero shards (earned from chests)
   // ── Hero progression + roster (per kind) — added in schema v3 ──
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
+  heroForks: Record<HeroKind, Record<string, string>>; // per-hero ability-fork picks (star → optionId); mirrors towerForks
   heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
   selectedHero: HeroKind; // slot-1 hero (back-compat mirror of heroLoadout[0]); see meta.setSelectedHero
   favoriteTower: TowerKind; // the Biomorph Conveyor's always-available FAVORITE (docs/STRAIN.md §conveyor)
@@ -261,6 +262,11 @@ function emptyForksByTower(): Record<TowerKind, Record<string, string>> {
   for (const k of TOWER_ORDER) r[k] = {};
   return r;
 }
+function emptyForksByHero(): Record<HeroKind, Record<string, string>> {
+  const r = {} as Record<HeroKind, Record<string, string>>;
+  for (const k of HERO_ORDER) r[k] = {};
+  return r;
+}
 function zeroByHero(): Record<string, number> {
   const r: Record<string, number> = {};
   for (const id of HERO_IDS) r[id] = 0;
@@ -385,6 +391,7 @@ export function defaultSave(): SaveData {
     towerKills: zeroByTower(),
     heroShards: zeroByHero(),
     heroStars: zeroByHeroKind(),
+    heroForks: emptyForksByHero(),
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
     favoriteTower: 'needle',
@@ -497,6 +504,9 @@ function withDefaults(data: SaveData): SaveData {
     towerKills: { ...d.towerKills, ...data.towerKills }, // v8→v9: additive, zeroed for old saves
     heroShards: { ...d.heroShards, ...data.heroShards },
     heroStars: { ...d.heroStars, ...data.heroStars },
+    // Per-hero ability-fork picks fill empty for a pre-fork save (⇒ each fork defaults to its
+    // first option). Shallow-merge keeps known heroes' picks and defaults the rest.
+    heroForks: { ...d.heroForks, ...(data.heroForks && typeof data.heroForks === 'object' ? data.heroForks : {}) },
     heroMasteryXp: { ...d.heroMasteryXp, ...data.heroMasteryXp },
     // v8→v9: per-hero ownership stats. Zeroed/empty for a pre-v9 save (deep-filled per hero).
     heroKills: { ...d.heroKills, ...data.heroKills },

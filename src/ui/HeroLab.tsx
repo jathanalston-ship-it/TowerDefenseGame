@@ -33,6 +33,44 @@ function Section({ title, accent, children }: { title: string; accent?: string; 
   );
 }
 
+/** Re-pickable ability forks (★5/★8, HEROES.md) — each option REWORKS one of the hero's already-
+ *  unlocked abilities (not a bolt-on). Re-selectable any time; applied on the next run. Renders
+ *  nothing until the first fork tier is reached, so pre-★5 heroes see no empty section. */
+function HeroForkPaths({ kind, color }: { kind: HeroKind; color: string }): JSX.Element | null {
+  meta.use(); // re-render on pick
+  const tiers = meta.heroForkTiers(kind);
+  if (tiers.length === 0) return null;
+  const picks = meta.heroForkPicks(kind);
+  return (
+    <Section title="Ability Forks" accent={color}>
+      <p className="hsec-desc">Divergent evolutions that reshape an unlocked ability. Re-pickable; applied next run.</p>
+      <div className="hl-forks">
+        {tiers.map((t) => {
+          const picked = picks[String(t.star)] ?? t.options[0].id;
+          return (
+            <div className="hl-fork" key={t.star}>
+              <span className="hl-fork-k" style={{ color }}>◈{t.star}</span>
+              <div className="hl-fork-opts">
+                {t.options.map((o) => (
+                  <button
+                    key={o.id}
+                    className={`hl-fork-opt${picked === o.id ? ' on' : ''}`}
+                    style={picked === o.id ? { borderColor: color } : undefined}
+                    onClick={() => meta.setHeroFork(kind, t.star, o.id)}
+                  >
+                    <b style={picked === o.id ? { color } : undefined}>{o.name}</b>
+                    <span>{o.blurb}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
 /** Hero Slots (HEROES.md) — the account's 1 → 2 → 3 roster. Unlocked slots show their fielded hero
  *  and assign the focused one; LOCKED slots show their prestige unlock + progress, so "the next hero
  *  slot" reads as a visible long-horizon milestone. */
@@ -296,6 +334,9 @@ export function HeroLab(): JSX.Element {
               </div>
             )}
           </Section>
+
+          {/* Ability Forks (★5/★8) — divergent reworks of the hero's unlocked abilities */}
+          <HeroForkPaths kind={focus} color={c} />
 
           {/* Mastery */}
           <Section title="Mastery" accent={c}>

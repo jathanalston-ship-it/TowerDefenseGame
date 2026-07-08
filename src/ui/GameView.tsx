@@ -7,6 +7,7 @@ import type { Pointer } from '../render/renderer';
 import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
 import { masteryLevel, meta } from '../state/meta';
 import { announcePower } from '../state/powerEvents';
@@ -83,6 +84,7 @@ export function GameView({
   runEffects,
   heroEquip,
   setEffects,
+  heroAbilityKits,
   mode,
   stage,
   difficulty,
@@ -102,6 +104,7 @@ export function GameView({
   runEffects?: CardEffect[];
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>;
   setEffects?: CardEffect[]; // TEAM set bonuses pooled across the fielded roster (2pc/4pc)
+  heroAbilityKits?: Partial<Record<HeroKind, ResolvedHeroKit>>; // ★5/★8 fork-resolved ability kits
   mode?: RunMode;
   stage?: StageConfig;
   difficulty?: string;
@@ -115,7 +118,7 @@ export function GameView({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, {
-    runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects,
+    runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
     // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.

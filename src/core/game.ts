@@ -57,7 +57,7 @@ import {
   MINION_DEFS,
   MINION_CAP,
 } from './config';
-import type { EnemyDef, HeroAbilityDef, HeroDef, TowerDef } from './config';
+import type { EnemyDef, HeroAbilityDef, HeroDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
 import {
@@ -136,6 +136,7 @@ export interface RunOptions {
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
   setEffects?: CardEffect[]; // TEAM set bonuses — set pieces pooled across the fielded roster (2pc/4pc), folded ONCE. Empty ⇒ golden-safe
+  heroAbilityKits?: Partial<Record<HeroKind, ResolvedHeroKit>>; // per-hero EFFECTIVE abilities (base + star forks). Absent ⇒ the base kit (golden-safe)
   geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
   favorite?: TowerKind; // the account's FAVORITE tower (docs/STRAIN.md §conveyor) — always deployable; default 'needle'
   unlocked?: TowerKind[]; // the OWNED tower roster this run (docs/TOWERS.md §expansion unlock gate):
@@ -585,6 +586,9 @@ export class Game {
   // attack verbs; a hero WITHOUT gear falls back to the global values ⇒ a single-hero / gear-less
   // run is byte-identical (golden-safe). Keyed by kind (the roster is distinct).
   private readonly heroHmods: Partial<Record<HeroKind, RunModifiers>> = {};
+  // Per-hero EFFECTIVE abilities (base kit + the ★5/★8 fork upgrades the player picked). Absent for a
+  // hero ⇒ the static base kit (HERO_ULT / HERO_SKILLS), so a fork-less / golden run is byte-identical.
+  private readonly heroAbilityKits: Partial<Record<HeroKind, ResolvedHeroKit>> = {};
   private readonly heroKits: Partial<Record<HeroKind, AbilityComponent[]>> = {};
   private readonly heroStatuses: Partial<Record<HeroKind, { status: StatusType; amount: number }[]>> = {};
   private readonly relicHooks: HookSpec[] = []; // relic battlefield rules (run events → actions)
@@ -616,6 +620,7 @@ export class Game {
     this.towerEffectiveRange = {} as Record<TowerKind, number>;
     for (const k of TOWER_ORDER) this.towerEffectiveRange[k] = TOWER_DEFS[k].range * (towerProgress[k].rangeMult ?? 1) * this.dailyFx.towerRangeMult;
     this.heroProgress = heroProgress;
+    if (opts.heroAbilityKits) Object.assign(this.heroAbilityKits, opts.heroAbilityKits); // fork-resolved abilities (empty on the golden path)
     this.mode = opts.mode ?? 'stage';
     // Campaign runs a procedurally GENERATED stage: its combined difficulty (variant × per-stage
     // scaling) becomes `this.diff`, its waves replace the authored WAVES, and its speed scalar
@@ -4701,7 +4706,7 @@ export class Game {
     if (h.down) return;
     const n = this.heroProgress[h.kind].skillCount ?? 0;
     if (n === 0) return;
-    const defs = HERO_SKILL_DEFS[h.kind];
+    const defs = this.heroAbilityKits[h.kind]?.skills ?? HERO_SKILL_DEFS[h.kind]; // fork-resolved skill defs (else base)
     if (defs.length === 0) return;
     if (h.skillCd === undefined) h.skillCd = new Array(defs.length).fill(0) as number[];
     const def = HERO_DEFS[h.kind];
@@ -4748,8 +4753,9 @@ export class Game {
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     this.castRangeMult = this.heroAbilityRadiusFor(h);
-    runAbilities(this.actx, HERO_SKILLS[h.kind][i], this.castScratch);
+    runAbilities(this.actx, this.heroAbilityKits[h.kind]?.skillComps[i] ?? HERO_SKILLS[h.kind][i], this.castScratch);
     this.castRangeMult = 1;
+    if (sk.particle) this.spawnParticles(px, py, PARTICLE[sk.particle], sk.fxColor); // the skill's unique cast VFX (fork-recoloured)
     (h.skillCd as number[])[i] = sk.cooldown * this.heroProgress[h.kind].cooldownMult; // stars/gear shave skill cds too
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null);
     this.pushSfx('ability');
@@ -5175,7 +5181,8 @@ export class Game {
   private castHeroAbility(h: Hero, px: number, py: number): void {
     if (h.down || h.abilityCd > 0) return;
     const def = HERO_DEFS[h.kind];
-    const ab = def.ability;
+    const kit = this.heroAbilityKits[h.kind]; // fork-resolved abilities (absent ⇒ base kit)
+    const ab = kit?.ult ?? def.ability;
     h.x = px;
     h.y = py;
     h.rally = { x: px, y: py };
@@ -5191,8 +5198,9 @@ export class Game {
     this.castScratch.target = null;
     this.castScratch.pierce = 0;
     this.castRangeMult = this.heroAbilityRadiusFor(h); // gear × Evolution Amplitude scales the ability AoE
-    runAbilities(this.actx, HERO_ULT[h.kind], this.castScratch);
+    runAbilities(this.actx, kit?.ultComps ?? HERO_ULT[h.kind], this.castScratch);
     this.castRangeMult = 1;
+    if (ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured)
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null); // relic rule on ability cast
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.pushSfx('ability');
@@ -6205,10 +6213,11 @@ export class Game {
     if (!h) return null;
     const def = HERO_DEFS[h.kind];
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
-    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: def.ability.name, remaining: Math.max(0, h.abilityCd), total: def.ability.cooldown }];
+    const ultDef = this.heroAbilityKits[h.kind]?.ult ?? def.ability; // fork-resolved names read on the HUD
+    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: def.ability.cooldown }];
     // Star-gated kit skills (HEROES.md) — surface a cooldown gauge for each UNLOCKED one (none at 0 stars).
     const unlockedSkills = this.heroProgress[h.kind].skillCount ?? 0;
-    const skillDefs = HERO_SKILL_DEFS[h.kind];
+    const skillDefs = this.heroAbilityKits[h.kind]?.skills ?? HERO_SKILL_DEFS[h.kind];
     for (let i = 0; i < unlockedSkills && i < skillDefs.length; i++) {
       cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown });
     }

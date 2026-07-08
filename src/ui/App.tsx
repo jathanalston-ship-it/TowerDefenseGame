@@ -20,6 +20,7 @@ import type { RunOutcome, RunResult } from '../state/meta';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
+import type { ResolvedHeroKit } from '../core/config';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
 import { formatPower } from '../core/power';
@@ -63,6 +64,7 @@ export function App(): JSX.Element {
   const effectsRef = useRef<CardEffect[]>([]);
   const heroEquipRef = useRef<Partial<Record<HeroKind, CardEffect[]>>>({}); // per-hero gear effects (HEROES.md)
   const setEffectsRef = useRef<CardEffect[]>([]); // TEAM set bonuses pooled across the fielded roster (2pc/4pc)
+  const heroAbilityKitsRef = useRef<Partial<Record<HeroKind, ResolvedHeroKit>>>({}); // per-hero fork-resolved abilities (★5/★8)
   const modeRef = useRef<RunMode>('stage');
   const stageRef = useRef<StageConfig | null>(null); // campaign: the generated stage being played
   const campaignStageRef = useRef(0); // campaign: the stage number (winning it unlocks the next)
@@ -115,6 +117,7 @@ export function App(): JSX.Element {
     // (run-effect seam) + collection completion bonuses stay battlefield-global run effects.
     heroEquipRef.current = meta.heroRosterEquip();
     setEffectsRef.current = meta.fieldedSetEffects(); // set pieces pool team-wide → the 4-piece tier can activate
+    heroAbilityKitsRef.current = meta.heroAbilityKits(); // ★5/★8 forks patch each fielded hero's ability kit
 
     effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects()];
     modeRef.current = mode;
@@ -322,6 +325,7 @@ export function App(): JSX.Element {
           runEffects={effectsRef.current}
           heroEquip={heroEquipRef.current}
           setEffects={setEffectsRef.current}
+          heroAbilityKits={heroAbilityKitsRef.current}
           mode={modeRef.current}
           stage={stageRef.current ?? undefined}
           difficulty={difficultyRef.current}

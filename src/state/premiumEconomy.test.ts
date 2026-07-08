@@ -153,7 +153,9 @@ describe('premium economy — five personas, 30 days, the same game', () => {
     expect(by.Whale.power / by.F2P.power).toBeLessThanOrEqual(1.6);
     // 4. Campaign remains necessary: money buys a bounded HEADSTART through the same gates —
     //    the Whale finishes ahead, but within a handful of stages, and every persona progressed.
-    expect(by.Whale.stage - by.F2P.stage).toBeLessThanOrEqual(6);
+    //    (≤7 since the hero star cap rose ★5→★10 — a new purchasable axis — but the POWER-ratio
+    //    guardrails #2/#3 above, the real pay-to-win bounds, are UNCHANGED and still hold.)
+    expect(by.Whale.stage - by.F2P.stage).toBeLessThanOrEqual(7);
     for (const r of rows) expect(r.stage).toBeGreaterThan(8); // everyone advanced from the start
     // 5. Whale liquidity is acceleration, not a skip: even ~$375 of Ichor buys market loot that
     //    still rolls normal odds — assert the sim never minted prestige or crossed a star cap.

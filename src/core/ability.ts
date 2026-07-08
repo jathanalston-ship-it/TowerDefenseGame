@@ -159,7 +159,9 @@ export type ParticleKind =
   | 'shrapnel' // Necrotic Siege apex — bone shrapnel burst
   | 'dissolve' // Corrosive Cauldron apex — fungal melt bloom
   | 'pandemic' // Viral Apex T5 — an outbreak spore burst
-  | 'vitalcore'; // Symbiotic Heart T5 — vital-nova motes
+  | 'vitalcore' // Symbiotic Heart T5 — vital-nova motes
+  // ── Hero ability cast SHAPES (docs/HEROES.md) — tinted per-ability by HeroAbilityDef.fxColor. ──
+  | 'heroSlash' | 'heroBurst' | 'heroSpray' | 'heroMote' | 'heroBloom' | 'heroLance';
 
 // ── The world API executors are given (implemented by the Game) ──────────────
 

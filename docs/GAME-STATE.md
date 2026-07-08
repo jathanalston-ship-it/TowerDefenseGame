@@ -21,7 +21,7 @@
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
 | Towers | 13 | 100 | each with stars + branches + mastery + Adaptation; Coil/Siphon/Sower/Spire/Polyp are locked/gated (below) |
-| Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts |
+| Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts; ★10 cap + ★5/★8 ability forks |
 | Enemies | 40 | 100 | + elites; role fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide · Aegis Zealot shield+regen · Carrion Zeppelin fly+summon · Bastion Spitter siege+regen · Hollow Oracle heal+shield · Bloat Cluster swarm+bomb |
 | **Bosses** | **13 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Act-2 siege line (35/40/45) + Act-3 graduation line (50/55/60) |
 | **Mega Bosses** | **5 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
@@ -110,6 +110,21 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   `HERO_SKILLS`) on their own cooldowns, on top of its ult + auto-attack (HEROES.md). A fresh hero
   (0 stars) is still one-verb — the kit is progression depth; a fresh account (golden) casts none, so
   the pinned sim is byte-identical. Roster of 3 still caps team-comp breadth
+- ✅ **Hero ability FORKS (★5/★8)** — the hero star cap rose ★5→**★10** (`STAR.maxStars`), unlocking two
+  A/B fork tiers per hero (20 total: 5 heroes × ★5/★8 × A/B). A fork **reworks an already-unlocked
+  ability in place** (patch its damage/radius/cooldown/statuses, rename it, or reshape it — e.g. Ravager
+  ★8 turns Rend into a wide *Reaving Cleave* or a focused *Slayer's Rend*; Shepherd ★8 turns Bloom into
+  *Crimson Bloom*), never a bolt-on verb. **Architecture:** data-driven `HeroForkTier`/`HeroForkOption`/
+  `HeroAbilityUpgrade` on `HeroDef.forks`; `resolveHeroKit(kind, stars, picks)` folds every unlocked
+  tier's chosen `HeroAbilityUpgrade`s onto the base ult/skill defs and compiles them → `ResolvedHeroKit`
+  (`ult`/`ultComps`/`skills`/`skillComps`). **Save:** `save.heroForks: Record<HeroKind, Record<star,
+  optionId>>` (mirrors `towerForks`; withDefaults-migrated). **Meta/UI:** `meta.setHeroFork` persists a
+  pick, `meta.heroForkTiers`/`heroForkPicks` drive the **Hero Lab → Ability Forks** picker; `meta.
+  heroAbilityKits()` resolves per fielded hero → App → `RunOptions.heroAbilityKits` → sim (falls back to
+  the static `HERO_ULT`/`HERO_SKILLS` when absent). **VFX:** every ability carries `particle`/`fxColor`,
+  spawned on cast via the isolated `fxRng` (cosmetic — never perturbs the sim). **Golden-safe:** 0 stars
+  / no picks resolves to the exact base kit; `neutralHeroProgress` + `NO_META` pass no kits ⇒ byte-
+  identical (heroForks.test.ts pins identity + patch math + the HUD-level end-to-end)
 
 ### Bosses
 - ✅ Module/phase framework + procedural assembly (`core/boss.ts`) — BOSS-DESIGN.md, STAGES.md §10

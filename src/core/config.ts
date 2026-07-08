@@ -5,7 +5,7 @@
 import type { CombatClass, EnemyKind, HeroKind, MetaModifiers, TowerFiring, TowerKind } from './types';
 import type { CardUnlock, RunModNumberKey } from './cards'; // type-only (erased) — no runtime cycle
 import { Registry } from './registry';
-import type { AbilityComponent, AuraAbility } from './ability';
+import type { AbilityComponent, AuraAbility, ParticleKind } from './ability';
 import type { TargetingProfile } from './targeting';
 
 export const SIM_DT = 1 / 60; // fixed simulation timestep (seconds)
@@ -754,6 +754,14 @@ export const PARTICLE = {
   dissolve: { count: 9, speed: 80, life: 0.72, size: 2.6, color: '#b6f060' }, // fungal melt bloom
   pandemic: { count: 11, speed: 95, life: 0.66, size: 2.5, color: '#f06dff' }, // an outbreak spore burst
   vitalcore: { count: 10, speed: 115, life: 0.7, size: 2.6, color: '#ffc6d6' }, // vital-nova motes
+  // ── Hero ability cast VFX (docs/HEROES.md) — SHAPES tinted per-ability by HeroAbilityDef.fxColor, so
+  //    every ult / kit skill / fork upgrade reads distinctly. No fixed color ⇒ the spawn tint decides. ──
+  heroSlash: { count: 8, speed: 240, life: 0.32, size: 2.6 }, // fast sharp shrapnel — Kinetic strikes
+  heroBurst: { count: 16, speed: 150, life: 0.5, size: 2.8 }, // a round detonation — AoE nukes
+  heroSpray: { count: 12, speed: 120, life: 0.62, size: 2.5 }, // a wide droplet fan — Caustic / pools
+  heroMote: { count: 10, speed: 55, life: 0.7, size: 2.2 }, // slow floating motes — Neural control
+  heroBloom: { count: 12, speed: 80, life: 0.6, size: 2.6 }, // a soft outward bloom — Vital heal / summon
+  heroLance: { count: 14, speed: 300, life: 0.4, size: 2.4 }, // a piercing spear of matter — execute / focus
   // ── Reward-moment spectacle (cosmetic; never affects the pinned sim outcomes) ──
   mutate: { count: 20, speed: 175, life: 0.6, size: 2.9 }, // branch tier purchased — a big burst (tinted by tower color)
   bossfall: { count: 30, speed: 190, life: 0.95, size: 3.6, color: '#ffd24d' }, // a boss detonating into biomass
@@ -1048,7 +1056,25 @@ export interface HeroAbilityDef {
   // ── Kit-skill auto-cast (a `skills[]` entry only; ignored on the player-armed ult). ──
   castOn?: 'target' | 'self'; // 'target' = the deepest enemy in range (default); 'self' = the hero (support / self-buff)
   minEnemies?: number; // only auto-cast when ≥ this many enemies are near the aim point (default 1; 0 = always)
+  particle?: ParticleKind; // the ability's cast VFX SHAPE — a particle burst spawned at the aim point
+  fxColor?: string; // tints that burst — a per-ability hue, so every ability reads distinctly on screen
 }
+
+// ── Hero ability FORKS (HEROES.md §5/★8) — the A/B star choices that UPGRADE the abilities the hero
+//    already unlocked (they patch the ult / kit skills; higher stars make the abilities themselves
+//    stronger or transformed, not new verbs). ──────────────────────────────────────────────────────
+export interface HeroAbilityUpgrade {
+  target: 'ult' | 0 | 1; // which ability to upgrade — the ult, or kit skill index 0 / 1
+  name?: string; // rename the upgraded ability (e.g. Rend → "Reaving Cleave")
+  mulDamage?: number; mulRadius?: number; mulCooldown?: number; // scale numbers (cooldown <1 = faster)
+  addFracture?: number; addCorrode?: number; addInfect?: number; addDisrupt?: number; // deepen statuses
+  addHeal?: number; addShield?: number;
+  mulPoolRadius?: number; mulPoolDps?: number; // scale a pool-dropping ability (Vitriol's Mire)
+  setMinEnemies?: number; // e.g. an execute fork re-focuses onto one target
+  particle?: ParticleKind; fxColor?: string; // the upgraded ability's NEW visual signature (the upgrade reads on screen)
+}
+export interface HeroForkOption { id: string; name: string; blurb: string; upgrades: HeroAbilityUpgrade[]; }
+export interface HeroForkTier { star: number; options: HeroForkOption[]; } // exactly two options (A/B)
 
 export interface HeroDef {
   kind: HeroKind;
@@ -1079,6 +1105,9 @@ export interface HeroDef {
    *  unlocked (HERO_SKILL_STARS — ★3 unlocks skill 0, ★7 unlocks skill 1). Absent ⇒ no kit. The ult
    *  (`ability`) stays the player-armed signature; the kit is the always-on depth on top of it. */
   skills?: HeroAbilityDef[];
+  /** Ability FORKS — the A/B star choices (★5, ★8) that UPGRADE the unlocked abilities (HEROES.md).
+   *  Absent ⇒ no forks. Resolved per-run by `resolveHeroAbilities` against the hero's stars + picks. */
+  forks?: HeroForkTier[];
   /** Hero Shards to unlock this hero from the Collection (absent/0 ⇒ a STARTER, owned from the
    *  start). A locked hero accumulates its shards toward this threshold; claiming spends them and
    *  unlocks it. Meta-only (the sim ignores it) — a data-driven gate, so a new hero is one field. */
@@ -1091,10 +1120,20 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 230, speed: 115, attackRange: 32, attackInterval: 0.55, attackDamage: 19, attackFracture: 1,
     aggroRange: 1400, contactRange: 26, respawnTime: 8,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
-    ability: { name: 'Apex Leap', blurb: 'AoE leap that fractures enemies.', cooldown: 8, radius: 72, damage: 62, fracture: 2, disrupt: 0, heal: 0 },
+    ability: { name: 'Apex Leap', blurb: 'AoE leap that fractures enemies.', cooldown: 8, radius: 72, damage: 62, fracture: 2, disrupt: 0, heal: 0, particle: 'heroBurst', fxColor: '#ffe066' },
     skills: [
-      { name: 'Rend', blurb: 'A gap-close strike that bursts Fracture onto the target and everything near it.', cooldown: 5, radius: 56, damage: 36, fracture: 2, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 1 },
-      { name: 'Cleave Wave', blurb: 'A sweeping cleave — a wide arc that fractures the whole pack.', cooldown: 11, radius: 104, damage: 24, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 3 },
+      { name: 'Rend', blurb: 'A gap-close strike that bursts Fracture onto the target and everything near it.', cooldown: 5, radius: 56, damage: 36, fracture: 2, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSlash', fxColor: '#ffb03d' },
+      { name: 'Cleave Wave', blurb: 'A sweeping cleave — a wide arc that fractures the whole pack.', cooldown: 11, radius: 104, damage: 24, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 3, particle: 'heroBurst', fxColor: '#ff8a3d' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'berserker', name: 'Berserker', blurb: 'Glass-cannon fury — every ability of the kit hits markedly harder.', upgrades: [{ target: 'ult', mulDamage: 1.25, fxColor: '#ff5252' }, { target: 0, mulDamage: 1.3, addFracture: 1, fxColor: '#ff5252' }, { target: 1, mulDamage: 1.2 }] },
+        { id: 'juggernaut', name: 'Juggernaut', blurb: 'An unstoppable wall — the strikes widen and shatter more armor.', upgrades: [{ target: 0, mulRadius: 1.4, setMinEnemies: 2, fxColor: '#c9a227' }, { target: 1, mulRadius: 1.3, addFracture: 1, mulCooldown: 0.85 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'reaver', name: 'Reaver', blurb: 'Rend becomes a sweeping AoE cleave — trades single-target punch for reach.', upgrades: [{ target: 0, name: 'Reaving Cleave', mulRadius: 1.9, mulDamage: 0.85, setMinEnemies: 2, particle: 'heroBurst', fxColor: '#ff7a3d' }] },
+        { id: 'slayer', name: 'Slayer', blurb: 'Rend becomes a single-target executioner strike — huge focused damage.', upgrades: [{ target: 0, name: "Slayer's Rend", mulDamage: 2.4, mulRadius: 0.5, setMinEnemies: 1, addFracture: 2, particle: 'heroLance', fxColor: '#ff3d3d' }] },
+      ] },
     ],
   },
   shepherd: {
@@ -1105,10 +1144,20 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 300, speed: 95, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 24, respawnTime: 8,
     pulseInterval: 1.2, pulseRadius: 92, pulseDamage: 8, pulseDisrupt: 0, nucleusRegen: 1.2,
-    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, sprouts two Vital Wisps, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6, summonUnit: 'wisp', summonCount: 2 },
+    ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, sprouts two Vital Wisps, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6, summonUnit: 'wisp', summonCount: 2, particle: 'heroBloom', fxColor: '#8affc0' },
     skills: [
-      { name: 'Graft', blurb: 'Grafts vital tissue onto itself — a burst heal and a brief self-shield.', cooldown: 8, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 30, shield: 60, shieldSeconds: 5, castOn: 'self', minEnemies: 0 },
-      { name: 'Flock', blurb: 'Sprouts a flock of Vital Wisps to fight beside it.', cooldown: 16, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'wisp', summonCount: 2, castOn: 'self', minEnemies: 0 },
+      { name: 'Graft', blurb: 'Grafts vital tissue onto itself — a burst heal and a brief self-shield.', cooldown: 8, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 30, shield: 60, shieldSeconds: 5, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#7affb0' },
+      { name: 'Flock', blurb: 'Sprouts a flock of Vital Wisps to fight beside it.', cooldown: 16, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'wisp', summonCount: 2, castOn: 'self', minEnemies: 0, particle: 'heroBloom', fxColor: '#b6ff9c' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'lifewarden', name: 'Lifewarden', blurb: 'Doubles down on protection — heals and shields swell.', upgrades: [{ target: 'ult', addHeal: 25, addShield: 50, fxColor: '#8affe0' }, { target: 0, addHeal: 20, addShield: 45 }] },
+        { id: 'warcaller', name: 'Warcaller', blurb: 'Turns the caretaker militant — the bloom detonates far harder.', upgrades: [{ target: 'ult', mulDamage: 1.5, mulRadius: 1.2, fxColor: '#ffd166' }, { target: 0, mulCooldown: 0.7 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'grovemind', name: 'Grovemind', blurb: 'Graft becomes a relentless shield engine.', upgrades: [{ target: 0, name: 'Symbiosis', addShield: 90, addHeal: 15, mulCooldown: 0.7, particle: 'heroBloom', fxColor: '#6affb0' }] },
+        { id: 'bloodgrove', name: 'Bloodgrove', blurb: 'Bloom turns crimson — a savage viral detonation.', upgrades: [{ target: 'ult', name: 'Crimson Bloom', mulDamage: 1.9, addInfect: 2, particle: 'heroSpray', fxColor: '#ff6b9c' }] },
+      ] },
     ],
   },
   overseer: {
@@ -1119,10 +1168,20 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     maxHp: 200, speed: 108, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
-    ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5 },
+    ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5, particle: 'heroMote', fxColor: '#9aa6ff' },
     skills: [
-      { name: 'Static Field', blurb: 'Projects a psionic field that slows and destabilizes the cluster.', cooldown: 7, radius: 104, damage: 0, fracture: 0, disrupt: 2.5, heal: 0, castOn: 'target', minEnemies: 2 },
-      { name: 'Synaptic Overload', blurb: 'Overloads the pack — a neural blast that damages AND disrupts everything caught.', cooldown: 13, radius: 124, damage: 28, fracture: 0, disrupt: 2, heal: 0, castOn: 'target', minEnemies: 2 },
+      { name: 'Static Field', blurb: 'Projects a psionic field that slows and destabilizes the cluster.', cooldown: 7, radius: 104, damage: 0, fracture: 0, disrupt: 2.5, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroMote', fxColor: '#8ab4ff' },
+      { name: 'Synaptic Overload', blurb: 'Overloads the pack — a neural blast that damages AND disrupts everything caught.', cooldown: 13, radius: 124, damage: 28, fracture: 0, disrupt: 2, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#6f8cff' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'dominus', name: 'Dominus', blurb: 'Total control — the fields slow and destabilize far harder.', upgrades: [{ target: 0, addDisrupt: 1.5, mulRadius: 1.3, fxColor: '#a58bff' }, { target: 1, addDisrupt: 1.5 }] },
+        { id: 'saboteur', name: 'Saboteur', blurb: 'Weaponized disruption — the neural blast now truly hurts.', upgrades: [{ target: 1, mulDamage: 1.7, fxColor: '#ff6fae' }, { target: 0, mulRadius: 1.2 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'overmind', name: 'Overmind', blurb: 'Static Field becomes a battlefield-wide dominion field.', upgrades: [{ target: 0, name: 'Dominion Field', mulRadius: 1.7, addDisrupt: 2, particle: 'heroMote', fxColor: '#a58bff' }] },
+        { id: 'neurostorm', name: 'Neurostorm', blurb: 'Synaptic Overload becomes a devastating neural storm.', upgrades: [{ target: 1, name: 'Neural Storm', mulDamage: 1.9, mulRadius: 1.4, addDisrupt: 1, particle: 'heroBurst', fxColor: '#6f8cff' }] },
+      ] },
     ],
   },
   vitriol: {
@@ -1135,10 +1194,20 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'bossSlain', label: 'Slay a Framework Boss' },
-    ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5 },
+    ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5, particle: 'heroSpray', fxColor: '#cdea6a' },
     skills: [
-      { name: 'Acid Barrage', blurb: 'A rapid salvo of corrosive shells — splash damage that douses the target in Corrosion.', cooldown: 6, radius: 84, damage: 30, fracture: 0, disrupt: 0, corrode: 4, heal: 0, castOn: 'target', minEnemies: 1 },
-      { name: 'Corrosive Mire', blurb: 'Floods the target zone with a wide, lingering acid mire.', cooldown: 13, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, poolRadius: 104, poolDps: 18, poolSeconds: 5, castOn: 'target', minEnemies: 2 },
+      { name: 'Acid Barrage', blurb: 'A rapid salvo of corrosive shells — splash damage that douses the target in Corrosion.', cooldown: 6, radius: 84, damage: 30, fracture: 0, disrupt: 0, corrode: 4, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#b6e84a' },
+      { name: 'Corrosive Mire', blurb: 'Floods the target zone with a wide, lingering acid mire.', cooldown: 13, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, poolRadius: 104, poolDps: 18, poolSeconds: 5, castOn: 'target', minEnemies: 2, particle: 'heroSpray', fxColor: '#9be84a' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'corroder', name: 'Corroder', blurb: 'Deepens the acid — everything it touches rots faster.', upgrades: [{ target: 0, addCorrode: 3, mulDamage: 1.2, fxColor: '#8ae04a' }, { target: 'ult', addCorrode: 3 }] },
+        { id: 'bombardier', name: 'Bombardier', blurb: 'Heavier shells — the blasts widen and hit harder.', upgrades: [{ target: 0, mulRadius: 1.4, mulDamage: 1.3, fxColor: '#d6f04a' }, { target: 'ult', mulRadius: 1.2 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'dissolver', name: 'Dissolver', blurb: 'Acid Barrage becomes an armor-melting dissolution salvo.', upgrades: [{ target: 0, name: 'Dissolution Salvo', mulDamage: 1.6, addCorrode: 4, mulRadius: 1.2, particle: 'heroBurst', fxColor: '#c6f04a' }] },
+        { id: 'saturator', name: 'Saturator', blurb: 'Corrosive Mire becomes a vast, deadly acid lake.', upgrades: [{ target: 1, name: 'Endless Mire', mulPoolRadius: 1.6, mulPoolDps: 1.5, particle: 'heroSpray', fxColor: '#9be84a' }] },
+      ] },
     ],
   },
   revenant: {
@@ -1151,10 +1220,20 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 20, respawnTime: 9,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'infiniteDepth', wave: 40, label: 'Reach Infinite Depth 40' },
-    ability: { name: 'Plague Rupture', blurb: 'Blinks to the target zone and RUPTURES it: a viral detonation that savages everything caught and injects a deep, spreading Infection.', cooldown: 12, radius: 130, damage: 66, fracture: 0, disrupt: 0, infect: 5, heal: 0 },
+    ability: { name: 'Plague Rupture', blurb: 'Blinks to the target zone and RUPTURES it: a viral detonation that savages everything caught and injects a deep, spreading Infection.', cooldown: 12, radius: 130, damage: 66, fracture: 0, disrupt: 0, infect: 5, heal: 0, particle: 'heroBurst', fxColor: '#c86bff' },
     skills: [
-      { name: 'Contagion', blurb: 'Lashes the target with a viral spray — injects deep, spreading Infection.', cooldown: 6, radius: 78, damage: 30, fracture: 0, disrupt: 0, infect: 3, heal: 0, castOn: 'target', minEnemies: 1 },
-      { name: 'Virulent Burst', blurb: 'Ruptures the accumulated plague — a wide viral detonation that savages the pack.', cooldown: 12, radius: 108, damage: 40, fracture: 0, disrupt: 0, infect: 5, heal: 0, castOn: 'target', minEnemies: 2 },
+      { name: 'Contagion', blurb: 'Lashes the target with a viral spray — injects deep, spreading Infection.', cooldown: 6, radius: 78, damage: 30, fracture: 0, disrupt: 0, infect: 3, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroSpray', fxColor: '#e24dff' },
+      { name: 'Virulent Burst', blurb: 'Ruptures the accumulated plague — a wide viral detonation that savages the pack.', cooldown: 12, radius: 108, damage: 40, fracture: 0, disrupt: 0, infect: 5, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#ff5cc4' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'pestilent', name: 'Pestilent', blurb: 'The plague deepens — Infection bites harder and spreads more.', upgrades: [{ target: 0, addInfect: 3, mulDamage: 1.2, fxColor: '#f06dff' }, { target: 1, addInfect: 2 }] },
+        { id: 'stalker', name: 'Stalker', blurb: 'The assassin sharpens — single-target strikes for lethal burst.', upgrades: [{ target: 'ult', mulDamage: 1.3, fxColor: '#ff5cc4' }, { target: 0, mulDamage: 1.4, setMinEnemies: 1 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'outbreak', name: 'Outbreak', blurb: 'Virulent Burst becomes a wide, self-sustaining outbreak.', upgrades: [{ target: 1, name: 'Outbreak', mulRadius: 1.6, addInfect: 4, particle: 'heroSpray', fxColor: '#e24dff' }] },
+        { id: 'assassin', name: 'Assassin', blurb: 'Contagion becomes a lethal single-target death mark.', upgrades: [{ target: 0, name: 'Death Mark', mulDamage: 2.2, addInfect: 3, mulRadius: 0.6, setMinEnemies: 1, particle: 'heroLance', fxColor: '#c86bff' }] },
+      ] },
     ],
   },
 };
@@ -1268,6 +1347,57 @@ export const HERO_SKILL_STARS = [3, 7] as const; // skill 0 unlocks at ★3, ski
 /** How many kit skills a hero with `stars` stars has unlocked (0 on a fresh account). */
 export function heroSkillCount(stars: number): number {
   return HERO_SKILL_STARS.filter((s) => stars >= s).length;
+}
+
+// ── Hero ability FORKS (HEROES.md §forks) — resolve a hero's EFFECTIVE abilities from its stars + the
+//    player's A/B picks. Each unlocked fork tier PATCHES the ult / kit skills (the abilities upgrade
+//    in place, not new verbs). 0 stars / no picks ⇒ the base kit, so the golden run is byte-identical. ─
+/** Apply one fork upgrade to an ability def, returning a patched COPY (never mutates the base). */
+function applyHeroUpgrade(ab: HeroAbilityDef, up: HeroAbilityUpgrade): HeroAbilityDef {
+  const out: HeroAbilityDef = { ...ab };
+  if (up.name) out.name = up.name;
+  if (up.mulDamage) out.damage = Math.round(out.damage * up.mulDamage);
+  if (up.mulRadius) out.radius = Math.round(out.radius * up.mulRadius);
+  if (up.mulCooldown) out.cooldown = Math.round(out.cooldown * up.mulCooldown * 10) / 10;
+  if (up.addFracture) out.fracture = out.fracture + up.addFracture;
+  if (up.addDisrupt) out.disrupt = out.disrupt + up.addDisrupt;
+  if (up.addCorrode) out.corrode = (out.corrode ?? 0) + up.addCorrode;
+  if (up.addInfect) out.infect = (out.infect ?? 0) + up.addInfect;
+  if (up.addHeal) out.heal = out.heal + up.addHeal;
+  if (up.addShield) out.shield = (out.shield ?? 0) + up.addShield;
+  if (up.mulPoolRadius && out.poolRadius) out.poolRadius = Math.round(out.poolRadius * up.mulPoolRadius);
+  if (up.mulPoolDps && out.poolDps) out.poolDps = Math.round(out.poolDps * up.mulPoolDps);
+  if (up.setMinEnemies !== undefined) out.minEnemies = up.setMinEnemies;
+  if (up.particle) out.particle = up.particle;
+  if (up.fxColor) out.fxColor = up.fxColor;
+  return out;
+}
+/** The fork option chosen for a tier (`picks` maps star→optionId); defaults to the FIRST option (A). */
+export function heroForkOption(tier: HeroForkTier, picks: Record<string, string>): HeroForkOption {
+  return tier.options.find((o) => o.id === picks[String(tier.star)]) ?? tier.options[0];
+}
+export interface ResolvedHeroKit {
+  ult: HeroAbilityDef; ultComps: AbilityComponent[];
+  skills: HeroAbilityDef[]; skillComps: AbilityComponent[][];
+}
+/** A hero's EFFECTIVE abilities: the base defs with every UNLOCKED fork tier's chosen upgrades applied,
+ *  compiled to components. `stars` < the first fork star ⇒ the base kit unchanged (golden-safe). */
+export function resolveHeroKit(kind: HeroKind, stars: number, picks: Record<string, string> = {}): ResolvedHeroKit {
+  const def = HERO_DEFS[kind];
+  let ult = def.ability;
+  const skills = (def.skills ?? []).map((s) => ({ ...s }));
+  for (const tier of def.forks ?? []) {
+    if (stars < tier.star) continue; // fork tier not yet reached
+    for (const up of heroForkOption(tier, picks).upgrades) {
+      if (up.target === 'ult') ult = applyHeroUpgrade(ult, up);
+      else if (skills[up.target]) skills[up.target] = applyHeroUpgrade(skills[up.target], up);
+    }
+  }
+  return { ult, ultComps: heroAbilityComponents(ult), skills, skillComps: skills.map(heroAbilityComponents) };
+}
+/** The fork tiers a hero with `stars` has REACHED (for UI + selection). */
+export function heroForkTiers(kind: HeroKind, stars: number): HeroForkTier[] {
+  return (HERO_DEFS[kind].forks ?? []).filter((t) => stars >= t.star);
 }
 
 // In-run Biomass unlock for PRIMARY-hero AUTO-CAST (docs/HEROES.md): the fielded champions in
@@ -1628,7 +1758,7 @@ upgradeRegistry.registerAll(META_UPGRADES);
 
 /** Star upgrades: capped, shard-bought, modest per-star buff. */
 export const STAR = {
-  maxStars: 5, // heroes: ★0..★5 (hero star paths author evolutions to ★5)
+  maxStars: 10, // heroes: ★0..★10 — ★3/★7 unlock the ability kit, ★5/★8 are the A/B ability FORKS (HEROES.md), ★6-10 ascension power
   maxTowerStars: 10, // towers: ★0..★10 — ★1-5 unlock evolutions (stars.ts); ★6-10 are ASCENSION power
   // tiers. Milestones at 3/5/7/10★ are the long-term goal; a steep cost curve gates the late grind.
   // TWO SEPARATE shard ladders (docs/SHARD-ECONOMY.md): Tower Shards drive the long ★10 PRIMARY

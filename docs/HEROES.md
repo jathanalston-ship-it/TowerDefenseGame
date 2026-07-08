@@ -29,8 +29,13 @@ progression-gated), hero-slot progression, and the autonomous-unit model. Compan
 > secondary skills (unlocked at ★3 and ★7, `HERO_SKILLS` / `HERO_SKILL_DEFS`) that fire on their own
 > cooldowns on top of the ult + auto-attack, so a progressed hero fights with a full kit, not one verb
 > (a fresh hero is still one-verb — the kit is progression depth; a 0-star account casts none, keeping
-> the golden run byte-identical). The ★5/★8 ability **forks**, ★10 signature, and the slot-unlock
-> economy remain designed-but-future. Balance values live in `src/core/config.ts`.
+> the golden run byte-identical). **The ★5/★8 ability forks are now live** — each is an A/B choice
+> that **reworks an already-unlocked ability in place** (e.g. Ravager's ★8 turns Rend into a wide
+> *Reaving Cleave* or a focused *Slayer's Rend*), not a bolt-on verb; picks live in `save.heroForks`,
+> resolve through `resolveHeroKit`, and every new/altered ability carries its own cast VFX
+> (`particle`/`fxColor`). The **hero star cap is now ★10** (`STAR.maxStars`), so both fork tiers +
+> the ★7 skill are reachable. The ★10 signature ability and the slot-unlock economy remain
+> designed-but-future. Balance values live in `src/core/config.ts`.
 
 ---
 
