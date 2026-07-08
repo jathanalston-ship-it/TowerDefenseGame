@@ -25,7 +25,9 @@ drafts, tests. Your part is accounts + secrets + one command:
    `VITE_CHECKOUT_PROVIDER=stripe`), commit + push. No dashboard forms needed;
    the dashboard env screen still works and overrides the file if you prefer it.
 4b. Ads, whenever you want them: `npm run set-ads -- google --client ca-pub-…`
-   + two env vars (step 19). Ships hidden until then.
+   (repo-side is 100% wired — the ONLY external gate is AdSense/H5 Games approval
+   on your live domain). `npm run set-ads -- status` audits all four surfaces;
+   preflight checks coherence too. Ships hidden until enabled.
 5. `npm run set-domain -- play.yourdomain.com --contact you@yourdomain.com`
    → commit + push (fills every domain/contact string incl. the legal pages;
    the one string left for a human is `PLACEHOLDER_JURISDICTION` in terms.html).

@@ -37,6 +37,17 @@ function patchCsp(target: string): void {
   console.log(`  ✓ ${f} — CSP ${target === BASE_CSP ? 'restored to strict' : 'augmented for Google ads'}`);
 }
 
+/** The committed public build config carries the VITE_ ad values — one command, all surfaces. */
+function patchEnvProduction(provider: string, client: string): void {
+  const f = '.env.production';
+  if (!existsSync(f)) return;
+  let s = readFileSync(f, 'utf8');
+  s = s.replace(/^VITE_ADS_PROVIDER=.*$/m, `VITE_ADS_PROVIDER=${provider}`);
+  s = s.replace(/^VITE_ADS_GOOGLE_CLIENT=.*$/m, `VITE_ADS_GOOGLE_CLIENT=${client}`);
+  writeFileSync(f, s);
+  console.log(`  ✓ ${f} — VITE_ADS_PROVIDER=${provider}`);
+}
+
 function patchSiteAds(provider: string, id: string): void {
   const f = 'public/welcome/ads.js';
   let s = readFileSync(f, 'utf8');
@@ -53,28 +64,49 @@ if (mode === 'google') {
     process.exit(1);
   }
   patchCsp(GOOGLE_CSP);
+  patchEnvProduction('google', client);
   writeFileSync('public/ads.txt', `google.com, ${client.replace('ca-', '')}, DIRECT, f08c47fec0942fa0\n`);
   console.log('  ✓ public/ads.txt written (AdSense authorization — crawled at yourdomain/ads.txt)');
   patchSiteAds('adsense', client);
   console.log(`
-Next (Cloudflare Pages → Settings → Environment variables → Production):
-  VITE_ADS_PROVIDER        = google
-  VITE_ADS_GOOGLE_CLIENT   = ${client}
-then redeploy. The in-game Field Research lane goes live once AdSense approves the
+All four surfaces are set (CSP, ads.txt, site ads.js, .env.production) — commit + push
+to deploy; no dashboard fields needed. The in-game Field Research lane goes live once AdSense approves the
 site for H5 Games Ads; until approval, studies quietly report 'unavailable'.
 Site display slots additionally need their numeric unit ids mapped in
 public/welcome/ads.js (create units in AdSense → copy each data-ad-slot number).
 Test the reward loop any time with VITE_ADS_PROVIDER=simulated on a preview.`);
+} else if (mode === 'status') {
+  const headers = readFileSync('public/_headers', 'utf8');
+  const adsJs = readFileSync('public/welcome/ads.js', 'utf8');
+  const provider = /var AD_PROVIDER = '([^']*)'/.exec(adsJs)?.[1] ?? '?';
+  const client = /var AD_CLIENT = '([^']*)'/.exec(adsJs)?.[1] ?? '';
+  const googleCsp = headers.includes('pagead2.googlesyndication.com');
+  const adsTxt = existsSync('public/ads.txt');
+  const envProd = existsSync('.env.production') ? readFileSync('.env.production', 'utf8') : '';
+  const viteProvider = /^VITE_ADS_PROVIDER=(\S*)/m.exec(envProd)?.[1] ?? '(unset)';
+  const viteClient = /^VITE_ADS_GOOGLE_CLIENT=(\S*)/m.exec(envProd)?.[1] ?? '';
+  console.log(`Ads wiring status:
+  site provider (welcome/ads.js): ${provider}${client ? ` · ${client}` : ''}
+  CSP (public/_headers):          ${googleCsp ? 'Google-augmented' : 'strict (no ad hosts)'}
+  ads.txt:                        ${adsTxt ? 'present' : 'absent'}
+  .env.production:                VITE_ADS_PROVIDER=${viteProvider}${viteClient ? ` · client ${viteClient}` : ''}`);
+  const coherentOn = googleCsp && adsTxt && provider === 'adsense' && viteProvider === 'google';
+  const coherentOff = !googleCsp && !adsTxt && provider === 'none' && (viteProvider === 'none' || viteProvider === '(unset)' || viteProvider === '');
+  console.log(coherentOn ? '\n  ✓ COHERENT: ads ON everywhere — only AdSense/H5 approval remains external.'
+    : coherentOff ? '\n  ✓ COHERENT: ads fully OFF (the shipped default).'
+    : '\n  ✗ MIXED state — run `npm run set-ads -- google --client ca-pub-…` or `-- off` to realign all four surfaces.');
+  process.exit(coherentOn || coherentOff ? 0 : 1);
 } else if (mode === 'off') {
   patchCsp(BASE_CSP);
+  patchEnvProduction('none', '');
   if (existsSync('public/ads.txt')) {
     unlinkSync('public/ads.txt');
     console.log('  ✓ public/ads.txt removed');
   }
   patchSiteAds('none', '');
-  console.log('\nAds disabled. Also set VITE_ADS_PROVIDER=none (or remove it) in Pages env and redeploy.');
+  console.log('\nAds disabled on all four surfaces. Commit + push to deploy.');
 } else {
-  console.error('usage: npm run set-ads -- google --client ca-pub-… | off');
+  console.error('usage: npm run set-ads -- google --client ca-pub-… | off | status');
   process.exit(1);
 }
 console.log('\nReview with `git diff`, commit + push.');

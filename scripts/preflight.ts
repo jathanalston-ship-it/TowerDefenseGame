@@ -64,6 +64,23 @@ if (existsSync('.env.production')) {
   }
 } else warn('.env.production missing', 'restore it - it carries the public VITE_ build values');
 
+// Rewarded-ads coherence (optional feature — all four surfaces must agree; the only
+// external gate is AdSense/H5 approval on the live domain)
+{
+  const headers = readFileSync('public/_headers', 'utf8');
+  const adsJs = existsSync('public/welcome/ads.js') ? readFileSync('public/welcome/ads.js', 'utf8') : '';
+  const provider = /var AD_PROVIDER = '([^']*)'/.exec(adsJs)?.[1] ?? 'none';
+  const googleCsp = headers.includes('pagead2.googlesyndication.com');
+  const adsTxt = existsSync('public/ads.txt');
+  const envProd = existsSync('.env.production') ? readFileSync('.env.production', 'utf8') : '';
+  const viteProv = /^VITE_ADS_PROVIDER=(\S*)/m.exec(envProd)?.[1] ?? '';
+  const on = provider === 'adsense' && googleCsp && adsTxt && viteProv === 'google';
+  const off = provider === 'none' && !googleCsp && !adsTxt && (viteProv === '' || viteProv === 'none');
+  if (on) ok('rewarded ads: ON and coherent (external gate: AdSense/H5 approval)');
+  else if (off) ok('rewarded ads: OFF (shipped default) — enable any time with npm run set-ads');
+  else warn('rewarded ads: surfaces disagree (CSP/ads.txt/ads.js/.env.production)', 'realign with npm run set-ads -- google --client ca-pub-… (or -- off); check with npm run set-ads -- status');
+}
+
 // Secrets hygiene: nothing sensitive committed
 for (const f of ['.dev.vars', '.env', '.env.local']) {
   if (existsSync(f)) {
