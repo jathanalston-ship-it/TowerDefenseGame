@@ -12,6 +12,7 @@ import { DEFAULT_PROFILE_NAME } from '../../save/saveStore';
 import { startAutoCloudSync } from '../../net/autoSync';
 import { backupToCloud } from '../../net/cloudSave';
 import { audio } from '../../audio/sound';
+import { t, useLocale } from '../../i18n';
 
 const LATER_KEY = 'assimilate.nameLater';
 
@@ -24,6 +25,7 @@ function deferredThisSession(): boolean {
 }
 
 export function CommanderName(): JSX.Element | null {
+  useLocale();
   const save = meta.use();
   const [draft, setDraft] = useState('');
   const [deferred, setDeferred] = useState(deferredThisSession);
@@ -61,11 +63,13 @@ export function CommanderName(): JSX.Element | null {
   return (
     <div className="cmdname" role="dialog" aria-modal="true" aria-labelledby="cmdname-title">
       <div className="cmdname-card">
-        <div className="cmdname-eyebrow">◈ FIELD COMMAND REGISTRY</div>
-        <h2 id="cmdname-title" className="cmdname-title">Designate your Commander</h2>
+        <div className="cmdname-eyebrow">{t('cmdname.eyebrow')}</div>
+        <h2 id="cmdname-title" className="cmdname-title">{t('cmdname.title')}</h2>
         <p className="cmdname-sub">
-          You fight as <b>{DEFAULT_PROFILE_NAME}</b> — make it yours. This is how you
-          appear on the daily standings, and it links your save to the cloud.
+          {/* split on the literal {name} slot so the placeholder stays bold in every locale */}
+          {t('cmdname.sub').split('{name}')[0]}
+          <b>{DEFAULT_PROFILE_NAME}</b>
+          {t('cmdname.sub').split('{name}')[1]}
         </p>
         <input
           className="cmdname-input"
@@ -75,28 +79,28 @@ export function CommanderName(): JSX.Element | null {
             if (e.key === 'Enter') confirm();
           }}
           maxLength={20}
-          placeholder="Commander name (2–20)"
+          placeholder={t('cmdname.placeholder')}
           aria-label="Commander name"
           autoFocus
         />
         <div className="cmdname-hint">
           {draft.length === 0
-            ? 'Letters, numbers, spaces — 2 to 20 characters.'
+            ? t('cmdname.hint.rules')
             : cleaned === null
-              ? 'Too short after cleanup — 2 characters minimum.'
+              ? t('cmdname.hint.short')
               : cleaned !== draft.trim()
-                ? `Will appear as “${cleaned}”`
+                ? t('cmdname.hint.preview', { name: cleaned })
                 : ' '}
         </div>
         <div className="cmdname-actions">
           <button className="primary cmdname-confirm" disabled={cleaned === null} onClick={confirm}>
-            Confirm designation
+            {t('cmdname.confirm')}
           </button>
           <button className="cmdname-later" onClick={later}>
-            Later
+            {t('cmdname.later')}
           </button>
         </div>
-        <div className="cmdname-cloud">☁ Cloud backup arms automatically once designated.</div>
+        <div className="cmdname-cloud">{t('cmdname.cloud')}</div>
       </div>
     </div>
   );

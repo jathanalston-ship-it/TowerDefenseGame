@@ -3,8 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import { applyUpdate, SW_UPDATE_EVENT } from '../../net/swRegister';
+import { t, useLocale } from '../../i18n';
 
 export function UpdateToast(): JSX.Element | null {
+  useLocale();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const on = (): void => setReady(true);
@@ -14,8 +16,8 @@ export function UpdateToast(): JSX.Element | null {
   if (!ready) return null;
   return (
     <div className="swtoast" role="status">
-      <span className="swtoast-t">A new version of ASSIMILATE is ready.</span>
-      <button className="primary swtoast-btn" onClick={applyUpdate}>↻ Refresh</button>
+      <span className="swtoast-t">{t('sw.ready')}</span>
+      <button className="primary swtoast-btn" onClick={applyUpdate}>{t('sw.refresh')}</button>
       <button className="swtoast-later" onClick={() => setReady(false)} aria-label="Dismiss">✕</button>
     </div>
   );

@@ -141,6 +141,7 @@ graph TD
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
 | **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | — | — | — | `docs/LIVEOPS.md` |
+| **Localization Core** (`i18n`) | — | — | — | — | `docs/I18N.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | — | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
 | **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
@@ -549,6 +550,21 @@ graph TD
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/LIVEOPS.md`
+
+### Localization Core (`i18n`)
+
+*Typed t()/locale layer (docs/I18N.md): the EN literal catalog defines MsgKey, ES/PT are Record<MsgKey, string> so a missing translation is a compile error; locale persists to localStorage and re-renders via useLocale. Chrome strings migrate through it; content registries stay English for now.*
+
+- **Files:** `src/i18n/index.ts`
+- **Depends on:** —
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** —
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `Hub (settings language picker)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** no player-facing strings
+- **Docs to update on change:** `docs/I18N.md`
 
 ### Player Profile (`profile`)
 

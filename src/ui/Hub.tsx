@@ -3,6 +3,7 @@
 // area that swaps one dedicated screen per progression system. Nothing scrolls at the shell
 // level; dense screens lay out in columns and the content area is the only scroll region.
 
+import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
 import { useEffect, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
@@ -50,35 +51,35 @@ interface NavGroup { title: string; items: NavItem[] }
 
 // The nav is GROUPED by intent (the user-facing IA): Play / Progression / Collection / Account.
 // Adding a screen is one row in the right group — the renderer, badges, and rings are generic.
-const NAV_GROUPS: NavGroup[] = [
-  { title: 'Play', items: [
-    { key: 'home', label: 'Home', mono: '⌂' },
-    { key: 'campaign', label: 'Campaign', mono: '⬡' },
-    { key: 'infinite', label: 'Infinite', mono: '∞' },
-    { key: 'bossrush', label: 'Boss Rush', mono: '☠' },
-    { key: 'daily', label: 'Daily Run', mono: '☀' },
+const navGroups = (): NavGroup[] => [
+  { title: t('nav.group.play'), items: [
+    { key: 'home', label: t('nav.home'), mono: '⌂' },
+    { key: 'campaign', label: t('nav.campaign'), mono: '⬡' },
+    { key: 'infinite', label: t('nav.infinite'), mono: '∞' },
+    { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
+    { key: 'daily', label: t('nav.daily'), mono: '☀' },
   ] },
-  { title: 'Progression', items: [
-    { key: 'towers', label: 'Towers', mono: 'T' },
-    { key: 'heroes', label: 'Heroes', mono: 'H' },
-    { key: 'evolution', label: 'Evolution', mono: '✷' },
-    { key: 'genes', label: 'Gene Archive', mono: '⌬' },
+  { title: t('nav.group.progression'), items: [
+    { key: 'towers', label: t('nav.towers'), mono: 'T' },
+    { key: 'heroes', label: t('nav.heroes'), mono: 'H' },
+    { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
+    { key: 'genes', label: t('nav.genes'), mono: '⌬' },
   ] },
-  { title: 'Collection', items: [
-    { key: 'vault', label: 'Genetic Vault', mono: '◈' },
-    { key: 'market', label: 'Splice Market', mono: '◆' },
-    { key: 'equipment', label: 'Equipment', mono: '⛨' },
-    { key: 'collection', label: 'Collection', mono: '▤' },
+  { title: t('nav.group.collection'), items: [
+    { key: 'vault', label: t('nav.vault'), mono: '◈' },
+    { key: 'market', label: t('nav.market'), mono: '◆' },
+    { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
+    { key: 'collection', label: t('nav.collection'), mono: '▤' },
   ] },
   // The Premium Store sits in its OWN group — monetization stays visibly separate from
   // gameplay progression (docs/PREMIUM-STORE.md §philosophy).
-  { title: 'Store', items: [
-    { key: 'store', label: 'Premium Store', mono: '✷' },
+  { title: t('nav.group.store'), items: [
+    { key: 'store', label: t('nav.store'), mono: '✷' },
   ] },
-  { title: 'Account', items: [
-    { key: 'profile', label: 'Profile', mono: '◑' },
-    { key: 'help', label: 'Help', mono: '?' },
-    { key: 'settings', label: 'Settings', mono: '⚙' },
+  { title: t('nav.group.account'), items: [
+    { key: 'profile', label: t('nav.profile'), mono: '◑' },
+    { key: 'help', label: t('nav.help'), mono: '?' },
+    { key: 'settings', label: t('nav.settings'), mono: '⚙' },
   ] },
 ];
 
@@ -120,6 +121,7 @@ function ModeLocked({ title, glyph, blurb, stage, current, go }: {
 
 /** Settings screen — save data management, the destructive reset, and audio preferences. */
 function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onReplayTutorial: () => void; onReplayTour: () => void; onReplayIntro: () => void }): JSX.Element {
+  useLocale(); // language switch re-renders this panel live
   const [autoGene, setAutoGene] = useState(autoGenePref());
   const toggleAutoGene = (): void => {
     const next = !autoGene;
@@ -133,8 +135,21 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
       </div>
       <div className="hub-col-stack">
         <div className="panel">
-          <div className="panel-title">Preferences</div>
-          <div className="panel-sub">Stored in this browser.</div>
+          <div className="panel-title">{t('settings.title')}</div>
+          <div className="panel-sub">{t('settings.sub')}</div>
+          <label className="set-toggle">
+            <span>{t('settings.language')}<small>{t('settings.language.sub')}</small></span>
+            <select
+              className="set-select"
+              value={getLocale()}
+              onChange={(e) => setLocale(e.target.value as (typeof LOCALES)[number])}
+              aria-label={t('settings.language')}
+            >
+              {LOCALES.map((l) => (
+                <option key={l} value={l}>{l === 'en' ? 'English' : l === 'es' ? 'Español' : 'Português'}</option>
+              ))}
+            </select>
+          </label>
           <AudioToggles />
           <label className="set-toggle">
             <span>Auto Gene Selection<small>Auto-draft the ◆ PICK card after a 10s countdown.</small></span>
@@ -144,25 +159,25 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
           </label>
         </div>
         <div className="panel">
-          <div className="panel-title">Help</div>
-          <div className="panel-sub">Re-learn the basics any time.</div>
-          <button className="set-switch" onClick={onReplayTutorial}>▶ Replay Combat Tutorial</button>
-          <button className="set-switch" onClick={onReplayTour}>▶ Replay Field Orientation</button>
-          <button className="set-switch" onClick={onReplayIntro}>▶ Replay Initialization</button>
+          <div className="panel-title">{t('settings.help.title')}</div>
+          <div className="panel-sub">{t('settings.help.sub')}</div>
+          <button className="set-switch" onClick={onReplayTutorial}>{t('settings.replayTutorial')}</button>
+          <button className="set-switch" onClick={onReplayTour}>{t('settings.replayTour')}</button>
+          <button className="set-switch" onClick={onReplayIntro}>{t('settings.replayIntro')}</button>
         </div>
         <div className="panel">
-          <div className="panel-title">Cloud Backup</div>
+          <div className="panel-title">{t('settings.cloud.title')}</div>
           <div className="panel-sub">One manual slot per sync code. Your code works like a password — it restores this account on any device.</div>
           <CloudBackup />
         </div>
         <div className="panel">
-          <div className="panel-title">Danger Zone</div>
-          <div className="panel-sub">Permanently erase all progress on this device.</div>
+          <div className="panel-title">{t('settings.danger.title')}</div>
+          <div className="panel-sub">{t('settings.danger.sub')}</div>
           <button
             className="set-danger"
             onClick={() => { if (confirm('Erase all permanent progress?')) { meta.reset(); onReplayTutorial(); } }}
           >
-            Reset Save
+            {t('settings.reset')}
           </button>
         </div>
         <DevTools />
@@ -199,6 +214,7 @@ export function Hub({
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
   const [nav, setNav] = useState<NavKey>('home');
+  useLocale(); // nav labels re-resolve on language switch
   const [navOpen, setNavOpen] = useState(false); // narrow-shell drawer (docs/RESPONSIVE-DESIGN.md)
   const save = meta.use();
   notifications.use(); // re-render when a badge is acknowledged
@@ -230,7 +246,7 @@ export function Hub({
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
-          {NAV_GROUPS.map((group) => (
+          {navGroups().map((group) => (
             <div
               className="hub-navgroup"
               key={group.title}

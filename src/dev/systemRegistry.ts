@@ -35,8 +35,8 @@ export interface SystemDef {
   collection: string | null;
   /** Achievement ids referencing it. */
   achievements: string[];
-  /** Localization surfaces. The game has NO i18n layer yet — every entry is 'inline-en' so the
-   *  day i18n lands, this field already enumerates each system's string surface. */
+  /** Localization surfaces. The typed t() layer lives in src/i18n (docs/I18N.md); 'inline-en'
+   *  marks systems whose strings have not fully migrated through it yet. */
   localization: 'inline-en' | 'none';
   /** Canonical docs (the ones that must move when this system moves). */
   docs: string[];
@@ -225,6 +225,13 @@ export const SYSTEMS: SystemDef[] = [
     dependsOn: ['meta-store', 'daily'], powerScore: null, save: [], tutorial: [], help: [], hud: [],
     ui: ['LiveEventsStrip'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/LIVEOPS.md'],
+  },
+  {
+    id: 'i18n', name: 'Localization Core', purpose: 'Typed t()/locale layer (docs/I18N.md): the EN literal catalog defines MsgKey, ES/PT are Record<MsgKey, string> so a missing translation is a compile error; locale persists to localStorage and re-renders via useLocale. Chrome strings migrate through it; content registries stay English for now.',
+    files: ['src/i18n/index.ts'],
+    dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: [],
+    ui: ['Hub (settings language picker)'], collection: null, achievements: [],
+    localization: 'none', docs: ['docs/I18N.md'],
   },
   {
     id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',

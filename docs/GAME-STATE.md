@@ -299,9 +299,20 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 - ✅ UI motion language, reward presentation — UI-MOTION.md, REWARD-PRESENTATION.md
 - ✅ Identity pass: LEXICON, ◈ star glyph, rarity grades, currency renames — LEXICON.md, IDENTITY-AUDIT.md
 
+### Platform & release frameworks
+- ✅ Production backend (Cloudflare Pages Functions + D1 + Stripe + Turnstile): purchases
+  (exactly-once), cloud save + auto sync, daily seed, leaderboard + replay verification,
+  aggregate analytics — DEPLOYMENT.md, SECURITY-AUDIT.md, LEADERBOARD-INTEGRITY.md
+- ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition
+- ✅ Service worker: offline shell, versioned caches, player-controlled update toast — DEPLOYMENT.md §sw
+- ✅ LiveOps calendar: deterministic UTC events (weekend surge + weekly spotlights) folding ×1-baseline
+  reward multipliers into finishRun; hub strip — LIVEOPS.md
+- ✅ Localization core: typed `t()` layer, EN source-of-truth keys, ES/PT catalogs (missing key =
+  compile error), Settings language picker, live re-render — I18N.md
+
 ### Not built (structural)
-- 📋 No backend → no cloud save, dailies/seasons, analytics, remote config (EA-DESIGN-AUDIT §9). This
-  forecloses the live-service/1,000-hr framing until it becomes a platform decision.
+- 📋 Content-string localization (tower/card/enemy names, help wiki) — chrome is on `t()` via
+  I18N.md's convention; registries stay English until `nameKey` columns are worth the volume.
 
 ---
 
