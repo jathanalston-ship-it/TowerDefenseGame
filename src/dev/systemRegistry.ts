@@ -100,6 +100,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/PREMIUM-STORE.md', 'docs/PREMIUM-ECONOMY-REPORT.md'],
   },
   {
+    id: 'field-research', name: 'Field Research (rewarded studies)', purpose: 'The OPTIONAL rewarded-ad lane, in-fiction: daily field studies pay small progression-scaled samples, one-run boosts, a sealed specimen, rush stamina, and a once-daily player-chosen emergency payout. Registry-driven (a holiday reward is one data row), provider-agnostic (VITE_ADS_PROVIDER; hidden when none), menus-only, never optimal (validator + tests cap ichor and boost magnitudes).',
+    files: ['src/core/research.ts', 'src/ads/provider.ts', 'src/ui/components/FieldResearch.tsx', 'src/net/events.ts'],
+    dependsOn: ['premium', 'meta-store', 'splice-market', 'boss-rush', 'daily'], powerScore: null, save: ['research'], tutorial: [], help: ['field-research'],
+    hud: [], ui: ['FieldResearchPanel', 'FieldResearchCard'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/RESEARCH.md', 'docs/WEBSITE.md'],
+  },
+  {
     id: 'net-backend', name: 'Backend lanes (net/)', purpose: 'The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.',
     files: ['src/net/identity.ts', 'src/net/checkout.ts', 'src/net/cloudSave.ts', 'src/net/leaderboard.ts', 'src/net/turnstile.ts', 'src/ui/components/CloudBackup.tsx', 'src/ui/components/LeaderboardBlock.tsx'],
     dependsOn: ['premium', 'meta-store', 'daily', 'power'], powerScore: null, save: ['premium'], tutorial: [], help: [],

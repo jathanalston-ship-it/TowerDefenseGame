@@ -12,12 +12,14 @@ import {
   serializeExport,
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
-import { highestCampaignStage } from '../save/derive';
+import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked } from '../save/derive';
 import { downloadText, readTextFile } from '../save/saveFile';
 import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
-import type { PremiumOfferDef } from '../core/premium';
+import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, researchRewardById, researchScale, specimenRarity } from '../core/research';
+import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef } from '../core/research';
+import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
 import type { HeroUnlockReq, UpgradeDef } from '../core/config';
 import type {
   HeroKind,
@@ -220,6 +222,12 @@ export function metaModifiers(save: SaveData): MetaModifiers {
   m.towerDamageMult *= ab.damageMult;
   m.heroDamageMult *= ab.damageMult;
   m.integrityBonus += ECON.baseIntegrity * (ab.integrityMult - 1); // Ascendant Vitality: permanent max Integrity
+  // Field Research boosts (docs/RESEARCH.md §boosts): an armed one-run biomass boost folds
+  // here; finishRun consumes the arm, so exactly one FINISHED run benefits. ×1 when none.
+  for (const id of save.research.pendingBoosts) {
+    const b = researchRewardById(id)?.boost;
+    if (b?.biomassMult) m.biomassMult *= b.biomassMult;
+  }
   return m;
 }
 
@@ -1063,7 +1071,17 @@ export const meta = {
     // linearly. Identity for non-endless and for endless runs ≤ ENDLESS_TAPER.startWave.
     const masteryTaper = result.endless ? endlessTaper(result.wave) : 1;
     const xpMultsRaw = masteryXpMults(save, { endless: result.endless, campaign: isCampaign, bossRush: isRush }, result.difficulty);
-    const xpMults = { tower: xpMultsRaw.tower * masteryTaper, hero: xpMultsRaw.hero * masteryTaper };
+    // Field Research one-run boosts (docs/RESEARCH.md §boosts): armed multipliers apply to THIS
+    // finishing run and the arms clear below — consumed exactly once. All ×1 with none armed.
+    const researchBoost: Required<ResearchBoost> = { towerXpMult: 1, heroXpMult: 1, coresMult: 1, biomassMult: 1 };
+    for (const id of save.research.pendingBoosts) {
+      const b = researchRewardById(id)?.boost;
+      if (!b) continue;
+      researchBoost.towerXpMult *= b.towerXpMult ?? 1;
+      researchBoost.heroXpMult *= b.heroXpMult ?? 1;
+      researchBoost.coresMult *= b.coresMult ?? 1;
+    }
+    const xpMults = { tower: xpMultsRaw.tower * masteryTaper * researchBoost.towerXpMult, hero: xpMultsRaw.hero * masteryTaper * researchBoost.heroXpMult };
     // One-time discovery payout on a brand-new stage clear (+ a milestone kicker every Nth stage).
     const firstClearBonus = firstClear
       ? Math.round(
@@ -1137,7 +1155,7 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
-    }).total()) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus;
+    }).total() * researchBoost.coresMult) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus;
     // Boss Rush keeps its OWN depth record (rush waves are dense, short numbers — folding them
     // into the Infinite record would warp that mode's qualify gate + prediction floor).
     // Mode-scoped records: Boss Rush + Daily keep their OWN depth ledgers — neither pollutes the
@@ -1353,6 +1371,7 @@ export const meta = {
       daily: nextDaily,
       totalRuns: save.totalRuns + 1,
       towerMasteryXp,
+      research: { ...save.research, pendingBoosts: [] }, // one-run boosts consumed by THIS finish (docs/RESEARCH.md)
       towerKills,
       heroMasteryXp,
       heroKills,
@@ -2186,6 +2205,140 @@ export const meta = {
   beginPendingCheckout(offerId: string, sessionId: string): void {
     const save = store.get();
     persist({ ...save, premium: { ...save.premium, pendingCheckout: { offerId, sessionId, startedAt: Date.now() } } });
+  },
+
+  // ── FIELD RESEARCH (docs/RESEARCH.md) — the optional rewarded-ad lane ─────────
+
+  /** Today's research board: rows (mode-gated, windowed), per-reward/pool claim counts
+   *  (stale days read as zero), the progression scale, and the armed boosts. Pure read. */
+  researchView(now?: Date): {
+    day: string;
+    scale: number;
+    rows: (ResearchRewardDef & { claimed: number; cap: number; poolLeft: number })[];
+    pools: Record<ResearchCategory, { used: number; cap: number }>;
+    pendingBoosts: ResearchRewardDef[];
+    lifetimeViews: number;
+  } {
+    const save = store.get();
+    const day = researchDayKey(now);
+    const fresh = save.research.day === day ? save.research.claims : {};
+    const scale = this.researchScaleFor(save);
+    const pools = {} as Record<ResearchCategory, { used: number; cap: number }>;
+    const rows = activeResearchRewards(day).filter((d) => this.researchRewardVisible(d, save));
+    for (const cat of Object.keys(RESEARCH.pools) as ResearchCategory[]) {
+      const used = rows.filter((r) => r.category === cat).reduce((n, r) => n + (fresh[r.id] ?? 0), 0);
+      pools[cat] = { used, cap: RESEARCH.pools[cat] };
+    }
+    return {
+      day,
+      scale,
+      rows: rows.map((r) => ({
+        ...r,
+        claimed: fresh[r.id] ?? 0,
+        cap: Math.min(r.dailyCap ?? RESEARCH.pools[r.category], RESEARCH.pools[r.category]),
+        poolLeft: Math.max(0, RESEARCH.pools[r.category] - pools[r.category].used),
+      })),
+      pools,
+      pendingBoosts: save.research.pendingBoosts
+        .map((id) => researchRewardById(id))
+        .filter((d): d is ResearchRewardDef => !!d),
+      lifetimeViews: save.research.lifetime.views,
+    };
+  },
+
+  researchRewardVisible(d: ResearchRewardDef, save: SaveData): boolean {
+    if (d.requires === 'bossRush') return isBossRushUnlocked(save);
+    if (d.requires === 'daily') return isDailyUnlocked(save);
+    return true;
+  },
+
+  /** The progression scale (docs/RESEARCH.md §scaling): campaign + prestige + collection. */
+  researchScaleFor(save: SaveData): number {
+    const view = collectionView(collectionContextOf(save));
+    return researchScale({ stage: highestCampaignStage(save), molts: save.prestige.molts, collectionFrac: view.completion });
+  },
+
+  /** Record a completed field-study VIEW (the provider finished). Local, privacy-friendly. */
+  recordResearchView(): void {
+    const save = store.get();
+    persist({
+      ...save,
+      research: { ...save.research, lifetime: { ...save.research.lifetime, views: save.research.lifetime.views + 1 } },
+    });
+  },
+
+  /**
+   * Claim a Field Research reward AFTER the provider confirms a completed study.
+   * Enforces the daily category pools + per-reward caps (UTC rollover), scales sample
+   * payouts, routes grants through the SAME interpreter as the Premium Store, arms
+   * boosts, and books the day's ledger. Returns the receipt for the reveal — null =
+   * refused (capped / unknown / gated).
+   */
+  claimResearch(rewardId: string, pick?: EmergencyPick, now?: Date): PremiumReceipt | null {
+    const save = store.get();
+    const def = researchRewardById(rewardId);
+    if (!def) return null;
+    const day = researchDayKey(now);
+    if (!activeResearchRewards(day).some((d) => d.id === rewardId)) return null; // windowed row off-season
+    if (!this.researchRewardVisible(def, save)) return null;
+    const claims = save.research.day === day ? { ...save.research.claims } : {};
+    const rows = activeResearchRewards(day);
+    const poolUsed = rows.filter((r) => r.category === def.category).reduce((n, r) => n + (claims[r.id] ?? 0), 0);
+    if (poolUsed >= RESEARCH.pools[def.category]) return null; // category pool spent
+    if ((claims[def.id] ?? 0) >= (def.dailyCap ?? RESEARCH.pools[def.category])) return null; // per-reward cap
+
+    const scale = this.researchScaleFor(save);
+    let boosts = save.research.pendingBoosts;
+    let grants: PremiumGrant[] = [];
+    if (def.category === 'emergency') {
+      // The player chose the payout (docs/RESEARCH.md §emergency).
+      const choice = pick ?? 'cores';
+      if (!EMERGENCY_PICKS.some((p) => p.pick === choice)) return null;
+      if (choice === 'ichor') grants = [{ grant: 'ichor', qty: 3 }];
+      else if (choice === 'container') grants = [{ grant: 'container', rarity: specimenRarity(day), count: 1 }];
+      else if (choice === 'cores') grants = def.grants!(scale);
+      else boosts = boosts.length < 8 ? [...boosts, 'mastery_focus'] : boosts;
+    } else if (def.boost) {
+      if (boosts.length >= 8) return null; // pathological hoarding guard
+      boosts = [...boosts, def.id];
+    } else if (def.grants) {
+      grants = def.grants(scale);
+      // The specimen pod's rarity is a deterministic per-day roll (no reroll-scumming).
+      if (def.id === 'sealed_specimen') grants = [{ grant: 'container', rarity: specimenRarity(day), count: 1 }];
+    }
+
+    // Grants flow through the Premium Store interpreter — same pipelines, same safeguards.
+    const synthetic = grants.length
+      ? { id: `research:${def.id}`, kind: 'ichor' as const, name: def.name, tagline: def.blurb, priceUsd: 0.01, grants, accent: def.accent, art: def.icon }
+      : null;
+    const applied = synthetic ? this.interpretGrants(save, synthetic) : { next: save, lines: [] as PremiumReceiptLine[], stamina: 0 };
+    const lines = synthetic
+      ? applied.lines
+      : [{ icon: def.icon, label: `${def.name} armed — applies to your next completed run` }];
+
+    persist({
+      ...applied.next,
+      research: {
+        day,
+        claims: { ...claims, [def.id]: (claims[def.id] ?? 0) + 1 },
+        pendingBoosts: boosts,
+        lifetime: {
+          views: save.research.lifetime.views,
+          claims: { ...save.research.lifetime.claims, [def.id]: (save.research.lifetime.claims[def.id] ?? 0) + 1 },
+        },
+      },
+      timeline: pushTimeline(save.timeline, '⌬', `Field Research — ${def.name}`),
+    });
+    if (applied.stamina > 0) this.grantRushStamina(applied.stamina);
+    const receipt: PremiumOfferDef = synthetic ?? { id: `research:${def.id}`, kind: 'ichor', name: def.name, tagline: def.blurb, priceUsd: 0.01, grants: [], accent: def.accent, art: def.icon };
+    return { offer: receipt, lines, valueIchor: 0, sandbox: false, powerPotential: 0 };
+  },
+
+  /** Consume nothing, clear armed boosts (dev/reset hygiene). */
+  clearResearchBoosts(): void {
+    const save = store.get();
+    if (save.research.pendingBoosts.length === 0) return;
+    persist({ ...save, research: { ...save.research, pendingBoosts: [] } });
   },
 
   /** Clear the pending marker (cancelled / expired / claimed-elsewhere). */

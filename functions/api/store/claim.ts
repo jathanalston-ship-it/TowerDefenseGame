@@ -14,7 +14,7 @@ import { clientIp, crossOrigin, err, json, readJson } from '../../lib/http';
 import { rateLimit } from '../../lib/rateLimit';
 import { isPlayerId, isSessionId } from '../../lib/validate';
 import { retrieveSession } from '../../lib/stripeApi';
-import { getPurchase, paidSessionProblem, recordPaidSession, tryFulfill } from '../../lib/purchases';
+import { bumpCounter, getPurchase, paidSessionProblem, recordPaidSession, tryFulfill } from '../../lib/purchases';
 
 interface Body {
   sessionId?: string;
@@ -51,6 +51,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (purchase.status === 'refunded') return json({ status: 'refunded' });
 
   const grantedNow = await tryFulfill(env.DB, purchase.session_id, purchase.player_id, purchase.offer_id);
+  if (grantedNow) await bumpCounter(env.DB, 'purchase_fulfilled');
   return json({
     status: 'paid',
     offerId: purchase.offer_id,

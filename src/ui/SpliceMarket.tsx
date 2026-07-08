@@ -4,6 +4,7 @@
 // meta.marketState/buyMarketSlot own the window record, the clock-tamper rule, and grants.
 // Mounting pays the one-time starter vial + stamps the seen-window (clears the nav badge).
 
+import { FieldResearchPanel } from './components/FieldResearch';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { marketView } from '../state/spliceMarket';
@@ -103,6 +104,8 @@ export function SpliceMarket(): JSX.Element {
           <SlotCard key={s.id} slot={s} justBought={justBought === s.id} onBuy={onBuy} />
         ))}
       </div>
+
+      <FieldResearchPanel />
 
       <section className="market-src" aria-label="Where Ichor comes from">
         <div className="market-src-h">Where does Ichor come from?</div>

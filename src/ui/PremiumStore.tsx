@@ -10,6 +10,7 @@ import { meta } from '../state/meta';
 import type { PremiumReceipt } from '../state/meta';
 import { audio } from '../audio/sound';
 import { CHECKOUT_PROVIDER, beginCheckout, takePendingReveal } from '../net/checkout';
+import { trackEvent } from '../net/events';
 import {
   ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerValueIchor,
   offerValueMultiple, todaysRotatingOffer,
@@ -181,6 +182,7 @@ export function PremiumStore(): JSX.Element {
   // A purchase delivered while the store was closed (Stripe return claimed on
   // boot) plays its reveal ceremony the next time the store opens.
   useEffect(() => {
+    trackEvent('store_open');
     const r = takePendingReveal();
     if (r) { audio.cue('draft'); setReceipt(r); }
   }, []);
@@ -192,6 +194,7 @@ export function PremiumStore(): JSX.Element {
       // on RETURN, after /api/store/claim verifies payment (never client-alone).
       setBusy(true);
       setError(null);
+      trackEvent('checkout_start', `checkout_start:${confirm.id}`);
       void beginCheckout(confirm).then((r) => {
         if (!r.ok) { setBusy(false); setError(storeErrorCopy(r.error)); }
         // On success the page navigates away — no state to update.

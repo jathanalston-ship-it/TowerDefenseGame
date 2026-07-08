@@ -7836,3 +7836,41 @@ kbd {
 .lb-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; max-width: 160px; white-space: nowrap; }
 .lb-score { text-align: right; color: var(--gold); font-weight: 700; }
 .lb-you { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--text); }
+
+/* ── Field Research (docs/RESEARCH.md) — the Market's Research Samples section ── */
+.market-research { margin-top: 14px; }
+.fr-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.fr-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.fr-claims, .fr-reset, .fr-scale { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); background: var(--panel-3); }
+.fr-scale { color: var(--gold); }
+.fr-armed { margin-top: 8px; padding: 7px 10px; font-size: 12px; color: var(--text); background: var(--panel-3); border: 1px solid var(--line); border-radius: var(--r-xs); }
+.fr-group { margin-top: 12px; }
+.fr-group-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.fr-group-h b { color: var(--text); }
+.fr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.fr-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); cursor: pointer; color: var(--text); }
+.fr-card:hover:not(:disabled) { border-color: var(--fr, var(--gold)); }
+.fr-card:disabled { cursor: default; }
+.fr-card.spent { opacity: 0.5; }
+.fr-card b { font-size: 13px; }
+.fr-card small { font-size: 11px; color: var(--muted); }
+.fr-ic { font-size: 16px; color: var(--fr, var(--gold)); }
+.fr-cta { margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fr, var(--gold)); }
+.fr-card-wide { width: 100%; }
+.fr-compact { margin-top: 10px; }
+.fr-em-sub { margin-top: 4px; font-size: 12px; color: var(--muted); }
+.fr-em-grid { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fr-em-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); cursor: pointer; color: var(--text); text-align: left; }
+.fr-em-opt:hover { border-color: var(--gold); }
+.fr-em-opt small { font-size: 11px; color: var(--muted); }
+.fr-em-ic { font-size: 16px; color: var(--gold); }
+
+/* ── The simulated field-study overlay (src/ads/provider.ts — dev/preview builds) ── */
+.study-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(4, 8, 14, 0.82); }
+.study-box { width: min(360px, 88vw); padding: 20px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); text-align: center; }
+.study-h { font-size: 13px; font-weight: 800; letter-spacing: 0.1em; color: var(--gold); }
+.study-sub { margin-top: 4px; font-size: 12px; color: var(--muted); }
+.study-bar { margin: 14px 0 10px; height: 6px; border-radius: 999px; background: var(--panel-3); overflow: hidden; }
+.study-bar i { display: block; height: 100%; width: 0; background: var(--gold); animation: studyfill 3s linear forwards; }
+@keyframes studyfill { to { width: 100%; } }
+.study-abort { background: none; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--muted); font-size: 11px; padding: 5px 14px; cursor: pointer; }

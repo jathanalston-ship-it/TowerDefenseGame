@@ -48,6 +48,16 @@ export interface SaveData {
     claimedReceipts: string[];
     pendingCheckout: { offerId: string; sessionId: string; startedAt: number } | null;
   };
+  // ── Field Research ledger (v24, docs/RESEARCH.md) — the optional rewarded-ad lane.
+  //    day: the UTC key the daily counters belong to (stale day ⇒ counters read as 0 and are
+  //    reset on the next claim); claims: per-reward claims today; pendingBoosts: one-run boost
+  //    ids armed for the next FINISHED run; lifetime: privacy-friendly local analytics. ──
+  research: {
+    day: string;
+    claims: Record<string, number>;
+    pendingBoosts: string[];
+    lifetime: { views: number; claims: Record<string, number> };
+  };
   // ── Daily Run ledger (docs/DAILY-RUN.md) — additive; a fresh ledger for older saves.
   //    lastKey/lastWave: the most recent attempt day + its deepest wave; bestWave: lifetime record;
   //    completions: lifetime cleared dailies; streak: consecutive-day clears; rewardedKey: the day
@@ -214,9 +224,9 @@ export interface TutorialSave {
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). v21→v22: Player Profile (identity fields + milestone
 // timeline + profile stat ledgers). v22→v23: verified-purchase ledger (claimedReceipts +
-// pendingCheckout — docs/DEPLOYMENT.md §purchases). All additive — withDefaults() deep-fills,
-// migrate() passes through.
-export const CURRENT_VERSION = 23;
+// pendingCheckout — docs/DEPLOYMENT.md §purchases). v23→v24: Field Research ledger
+// (docs/RESEARCH.md). All additive — withDefaults() deep-fills, migrate() passes through.
+export const CURRENT_VERSION = 24;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -362,6 +372,7 @@ export function defaultSave(): SaveData {
     rushBestWave: 0,
     rushBestBoss: 0,
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
+    research: { day: '', claims: {}, pendingBoosts: [], lifetime: { views: 0, claims: {} } },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '' },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
@@ -578,6 +589,7 @@ function withDefaults(data: SaveData): SaveData {
     rushBestBoss: Math.max(0, Math.floor(Number((data as { rushBestBoss?: unknown }).rushBestBoss) || 0)),
     rushStamina: sanitizeRushStamina((data as { rushStamina?: unknown }).rushStamina),
     // Daily Run ledger (docs/DAILY-RUN.md): pre-daily saves ⇒ a fresh ledger (additive).
+    research: sanitizeResearch((data as { research?: unknown }).research),
     daily: sanitizeDaily((data as { daily?: unknown }).daily),
     // Premium Store ledger (docs/PREMIUM-STORE.md): pre-store saves ⇒ a fresh ledger (additive).
     premium: sanitizePremium((data as { premium?: unknown }).premium),
@@ -702,6 +714,32 @@ function sanitizeRushStamina(raw: unknown): SaveData['rushStamina'] {
     value: Math.max(0, Math.min(120, Math.floor(num(o.value, 100)))),
     updatedAt: Math.max(0, Math.floor(num(o.updatedAt, 0))),
     freeDay: typeof o.freeDay === 'string' ? o.freeDay.slice(0, 10) : '',
+  };
+}
+
+/** Coerce a loaded Field Research ledger (docs/RESEARCH.md) — fresh for pre-v24 saves.
+ *  Unknown reward ids are kept in counters (harmless, day-scoped) but pendingBoosts are
+ *  id-checked lazily at consumption (meta), so junk can never arm anything. */
+function sanitizeResearch(raw: unknown): SaveData['research'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const counts = (v: unknown): Record<string, number> => {
+    const out: Record<string, number> = {};
+    if (typeof v === 'object' && v !== null) {
+      for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
+        const c = Math.max(0, Math.floor(Number(n) || 0));
+        if (c > 0 && k.length <= 64) out[k] = c;
+      }
+    }
+    return out;
+  };
+  const lt = (typeof o.lifetime === 'object' && o.lifetime !== null ? o.lifetime : {}) as Record<string, unknown>;
+  return {
+    day: typeof o.day === 'string' ? o.day.slice(0, 10) : '',
+    claims: counts(o.claims),
+    pendingBoosts: Array.isArray(o.pendingBoosts)
+      ? o.pendingBoosts.filter((b): b is string => typeof b === 'string' && b.length <= 64).slice(0, 8)
+      : [],
+    lifetime: { views: Math.max(0, Math.floor(Number(lt.views) || 0)), claims: counts(lt.claims) },
   };
 }
 

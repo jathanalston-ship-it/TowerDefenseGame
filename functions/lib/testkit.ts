@@ -15,6 +15,7 @@ export class FakeD1 {
   fulfillments = new Map<string, Row>();
   webhookEvents = new Map<string, Row>();
   cloudSaves = new Map<string, Row>();
+  analytics = new Map<string, Row>(); // key: day|kind
   leaderboard = new Map<string, Row>(); // key: mode|day|player
   rateLimits = new Map<string, Row>();
 
@@ -50,6 +51,15 @@ class FakeStatement {
     if (sql.startsWith('DELETE FROM rate_limits')) {
       for (const [k, v] of db.rateLimits) if (Number(v.window_start) < Number(args[0])) db.rateLimits.delete(k);
       return { rows: [], changes: 0 };
+    }
+    // ── analytics counters ──
+    if (sql.startsWith('INSERT INTO analytics_counters')) {
+      const key = `${args[0]}|${args[1]}`;
+      const existing = db.analytics.get(key);
+      db.analytics.set(key, existing
+        ? { ...existing, count: Number(existing.count) + Number(args[2]) }
+        : { day: args[0], kind: args[1], count: args[2] });
+      return { rows: [], changes: 1 };
     }
     // ── webhook_events dedupe ──
     if (sql.startsWith('INSERT INTO webhook_events')) {

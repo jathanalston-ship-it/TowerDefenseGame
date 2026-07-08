@@ -6,6 +6,7 @@
 import { useEffect, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { LeaderboardBlock } from './components/LeaderboardBlock';
+import { FieldResearchCard } from './components/FieldResearch';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
@@ -188,6 +189,7 @@ export function BossRushScreen({
         </div>
 
         <LeaderboardBlock mode="bossRush" />
+        <FieldResearchCard category="stamina" note="A one-a-day adrenal extract for the gauntlet." />
 
         <div className="panel how-to play-howto">
           <b style={{ color: 'var(--text)' }}>Boss Rush.</b> No win condition — the column grows until

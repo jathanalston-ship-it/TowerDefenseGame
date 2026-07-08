@@ -15,6 +15,7 @@ import type { AchievementItem, RewardCategory, RewardStat } from './RewardReveal
 import { LoopDirective, NextGoalCliffhanger } from './NextGoalBanner';
 import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { FieldResearchCard } from './components/FieldResearch';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
 export function Results({
@@ -335,6 +336,7 @@ export function Results({
           <>
             {/* The macro-loop routing — the wall/breakthrough moment lands HERE (PROGRESSION-LOOP.md) */}
             <LoopDirective difficultyId={result.difficulty} />
+            <FieldResearchCard category="sample" note="Bank a specimen sample while the field is fresh." />
             <NextGoalCliffhanger />
           </>
         }

@@ -8,6 +8,23 @@
 import type { StripeSession } from './stripeApi';
 import { premiumOfferById } from '../../src/core/premium';
 
+/** Server-side aggregate analytics (docs/WEBSITE.md §analytics): purchase counters are
+ *  bumped by the webhook/claim handlers themselves — client-independent truth, zero PII.
+ *  Best-effort: a missing analytics table must never break a money path. */
+export async function bumpCounter(db: D1Database, kind: string, n = 1): Promise<void> {
+  try {
+    await db
+      .prepare(
+        `INSERT INTO analytics_counters (day, kind, count) VALUES (?1, ?2, ?3)
+         ON CONFLICT(day, kind) DO UPDATE SET count = count + ?3`,
+      )
+      .bind(new Date().toISOString().slice(0, 10), kind, n)
+      .run();
+  } catch {
+    /* analytics never gates fulfillment */
+  }
+}
+
 export function offerPriceCents(offerId: string): number | null {
   const offer = premiumOfferById(offerId);
   return offer ? Math.round(offer.priceUsd * 100) : null;

@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Hub } from './Hub';
 import { resumePendingClaims } from '../net/checkout';
+import { initEvents, trackEvent } from '../net/events';
 import { GameView } from './GameView';
 import { Results } from './Results';
 // Debug tooling is dev/opt-in only (?debug) — lazy-loaded so production players
@@ -257,6 +258,7 @@ export function App(): JSX.Element {
   // builds and sessions with nothing pending resolve to 'none' with zero network.
   const [purchaseNote, setPurchaseNote] = useState<string | null>(null);
   useEffect(() => {
+    initEvents(); // privacy-friendly aggregate counters (docs/WEBSITE.md §analytics)
     void resumePendingClaims().then((o) => {
       if (o.kind === 'delivered') setPurchaseNote(`✷ Purchase delivered — ${o.receipt.offer.name}. Open the Premium Store to view it.`);
       else if (o.kind === 'cancelled') setPurchaseNote('Checkout cancelled — nothing was charged.');
@@ -269,6 +271,11 @@ export function App(): JSX.Element {
   // Menu soundtrack (audio/music.ts): the Hive theme plays across the whole Command Center.
   // Autoplay policy: the FIRST start is armed on the first pointer gesture; category switches
   // afterwards are immediate. GameView drives combat/boss/victory/defeat itself.
+  useEffect(() => {
+    if (screen === 'playing') trackEvent('run_start');
+    if (screen === 'results') trackEvent('run_end');
+  }, [screen]);
+
   useEffect(() => {
     if (screen !== 'menu') return;
     const start = (): void => music.play('menu');

@@ -12,12 +12,48 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta
       name="description"
-      content="ASSIMILATE — a cyberpunk bio-horror tower defense. Grow, mutate, and assimilate."
+      content="ASSIMILATE — a cyberpunk bio-horror tower defense. Grow, mutate, and assimilate. Deterministic tactics, deep progression, plays free in your browser."
     />
     <title>ASSIMILATE — Bio-Horror Tower Defense</title>
+
+    <!-- PWA (docs/WEBSITE.md §branding): installable identity + home-screen icons. -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Social cards (Open Graph + Twitter). og:url is set to the canonical production
+         domain at launch — update BOTH tags when the custom domain is decided. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ASSIMILATE" />
+    <meta property="og:title" content="ASSIMILATE — Bio-Horror Tower Defense" />
+    <meta property="og:description" content="Grow. Mutate. Assimilate. A cyberpunk bio-horror tower defense that plays free in your browser." />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ASSIMILATE — Bio-Horror Tower Defense" />
+    <meta name="twitter:description" content="Grow. Mutate. Assimilate. A cyberpunk bio-horror tower defense that plays free in your browser." />
+    <meta name="twitter:image" content="/og.png" />
+
+    <!-- Boot shell (loading/splash): shows instantly on a cold start; React clears it on
+         mount (createRoot replaces #root's children). Inline by design — zero requests. -->
+    <style>
+      .bootshell { position: fixed; inset: 0; display: grid; place-items: center; background: #0a121b; }
+      .bootshell-inner { text-align: center; font-family: system-ui, sans-serif; }
+      .bootshell img { width: 72px; height: 72px; animation: bootpulse 1.6s ease-in-out infinite; }
+      .bootshell-t { margin-top: 14px; font-size: 13px; font-weight: 700; letter-spacing: 0.28em; color: #9fb0c8; }
+      .bootshell-s { margin-top: 4px; font-size: 11px; letter-spacing: 0.1em; color: #5a6a80; }
+      @keyframes bootpulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.08); opacity: 1; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="bootshell" aria-label="Loading">
+        <div class="bootshell-inner">
+          <img src="/favicon.svg" alt="" />
+          <div class="bootshell-t">ASSIMILATE</div>
+          <div class="bootshell-s">THE HIVE STIRS…</div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

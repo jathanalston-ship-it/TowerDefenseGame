@@ -3,10 +3,24 @@
 > Read together with docs/PROJECT_STATUS.md and the latest docs/VALIDATION_REPORT.md.
 > Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-08 · **Diff scope:** batch-4 (production deployment)
+- **Generated:** 2026-07-08 · **Diff scope:** batch-5 (public-release package; batch-4 summary below still applies)
 - **Branch:** claude/zen-hawking-rh1gxl
 
 ## Summary of work completed
+
+**Batch 5 (this session):** the public-release package. Marketing site at `/welcome/`
+(+news/privacy/terms skeletons, hidden modular ad slots via `ads.js`), branding/PWA
+(manifest + generated icons + OG card + boot splash + full social meta), aggregate
+analytics (`/api/events` → D1 `analytics_counters`, client beacon `src/net/events.ts`,
+server-truth purchase counters in webhook/claim), and FIELD RESEARCH — the optional
+rewarded-ad lane (core/research.ts registry + save v24 `research` block +
+meta.claimResearch/researchView + one-run boosts folded at finishRun/metaModifiers +
+src/ads/provider.ts with `VITE_ADS_PROVIDER` none/simulated). Ships HIDDEN by default.
+Sharp corner: research grants reuse meta.interpretGrants — any store-safeguard change
+covers research automatically. docs/RELEASE-GUIDE.md + docs/PRODUCTION-READINESS.md are
+the launch handoffs; readiness blockers: legal pages, live-Stripe smoke, domain strings.
+
+--- batch-4 record follows ---
 
 Production deployment prep, end to end. The static SPA gained a thin,
 fail-soft Cloudflare backend (Pages Functions + D1) for exactly the surfaces a

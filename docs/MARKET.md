@@ -90,3 +90,12 @@ and the economy tests recompute their bounds from the same constants.
 Collection rank Ichor pays at the promotion POLL (Codex open); a rank earned and never polled
 in a session pays on the next promotion instead of instantly. Stock names in `describeGood`
 use framework fallbacks for unknown ids (tamper-safe). The gamble is intentionally pity-less.
+
+## Research Samples (Field Research)
+
+The Market hosts the OPTIONAL rewarded-study lane — full design in **docs/RESEARCH.md**.
+The section shows remaining daily claims per category, the UTC reset countdown, the
+progression yield badge, and armed observation boosts. Hidden entirely when no ad
+provider is configured (`VITE_ADS_PROVIDER=none`). Its Ichor trickle (≤5/day, flat
+forever) is accounted in the faucet philosophy above: a supplement that never rivals
+either the earn lanes or the store.

@@ -9,7 +9,7 @@
 import type { Env } from '../../lib/env';
 import { err, json } from '../../lib/http';
 import { parseEvent, verifyStripeSignature } from '../../lib/stripeWebhook';
-import { paidSessionProblem, recordPaidSession } from '../../lib/purchases';
+import { bumpCounter, paidSessionProblem, recordPaidSession } from '../../lib/purchases';
 import type { StripeSession } from '../../lib/stripeApi';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
@@ -39,7 +39,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       // Only PAID sessions with a catalog-true amount become purchases. An unpaid
       // 'completed' (delayed payment methods) simply isn't recorded yet — the
       // async_payment_succeeded event will land later and record it.
-      if (paidSessionProblem(session) === null) await recordPaidSession(env.DB, session, event.id);
+      if (paidSessionProblem(session) === null) {
+        await recordPaidSession(env.DB, session, event.id);
+        await bumpCounter(env.DB, 'purchase_paid');
+        await bumpCounter(env.DB, `purchase_paid:${session.metadata?.offer_id ?? 'unknown'}`);
+      }
       break;
     }
     case 'charge.refunded':
@@ -51,6 +55,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         )
           .bind(charge.payment_intent, Math.floor(Date.now() / 1000))
           .run();
+        await bumpCounter(env.DB, 'purchase_refunded');
       }
       break;
     }
