@@ -1045,6 +1045,9 @@ export interface HeroAbilityDef {
   poolRadius?: number; // lingering corrosion pool this ult drops (Vitriol); absent/0 ⇒ no pool
   poolDps?: number; // that pool's damage/sec
   poolSeconds?: number; // how long the pool lasts (defaults to 4s)
+  // ── Kit-skill auto-cast (a `skills[]` entry only; ignored on the player-armed ult). ──
+  castOn?: 'target' | 'self'; // 'target' = the deepest enemy in range (default); 'self' = the hero (support / self-buff)
+  minEnemies?: number; // only auto-cast when ≥ this many enemies are near the aim point (default 1; 0 = always)
 }
 
 export interface HeroDef {
@@ -1072,6 +1075,10 @@ export interface HeroDef {
   pulseDisrupt: number; // Disruption seconds applied per pulse (control)
   nucleusRegen: number; // Integrity/sec restored while alive (guard)
   ability: HeroAbilityDef;
+  /** Star-gated ability KIT (HEROES.md): secondary abilities that AUTO-CAST on their own cooldown once
+   *  unlocked (HERO_SKILL_STARS — ★3 unlocks skill 0, ★7 unlocks skill 1). Absent ⇒ no kit. The ult
+   *  (`ability`) stays the player-armed signature; the kit is the always-on depth on top of it. */
+  skills?: HeroAbilityDef[];
   /** Hero Shards to unlock this hero from the Collection (absent/0 ⇒ a STARTER, owned from the
    *  start). A locked hero accumulates its shards toward this threshold; claiming spends them and
    *  unlocks it. Meta-only (the sim ignores it) — a data-driven gate, so a new hero is one field. */
@@ -1085,6 +1092,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 26, respawnTime: 8,
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     ability: { name: 'Apex Leap', blurb: 'AoE leap that fractures enemies.', cooldown: 8, radius: 72, damage: 62, fracture: 2, disrupt: 0, heal: 0 },
+    skills: [
+      { name: 'Rend', blurb: 'A gap-close strike that bursts Fracture onto the target and everything near it.', cooldown: 5, radius: 56, damage: 36, fracture: 2, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 1 },
+      { name: 'Cleave Wave', blurb: 'A sweeping cleave — a wide arc that fractures the whole pack.', cooldown: 11, radius: 104, damage: 24, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 3 },
+    ],
   },
   shepherd: {
     kind: 'shepherd', name: 'Shepherd', combatClass: 'Vital', behavior: 'guard', color: '#ff9f6b',
@@ -1095,6 +1106,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 24, respawnTime: 8,
     pulseInterval: 1.2, pulseRadius: 92, pulseDamage: 8, pulseDisrupt: 0, nucleusRegen: 1.2,
     ability: { name: 'Bloom', blurb: 'A vital bloom: heals + self-shields the Shepherd, sprouts two Vital Wisps, then an AoE burst.', cooldown: 12, radius: 110, damage: 40, fracture: 0, disrupt: 0, heal: 40, shield: 100, shieldSeconds: 6, summonUnit: 'wisp', summonCount: 2 },
+    skills: [
+      { name: 'Graft', blurb: 'Grafts vital tissue onto itself — a burst heal and a brief self-shield.', cooldown: 8, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 30, shield: 60, shieldSeconds: 5, castOn: 'self', minEnemies: 0 },
+      { name: 'Flock', blurb: 'Sprouts a flock of Vital Wisps to fight beside it.', cooldown: 16, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, summonUnit: 'wisp', summonCount: 2, castOn: 'self', minEnemies: 0 },
+    ],
   },
   overseer: {
     kind: 'overseer', name: 'Overseer', combatClass: 'Neural', behavior: 'control', color: '#8a93ff',
@@ -1105,6 +1120,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     aggroRange: 1400, contactRange: 22, respawnTime: 9,
     pulseInterval: 0.6, pulseRadius: 110, pulseDamage: 3, pulseDisrupt: STATUS.disruptDuration, nucleusRegen: 0,
     ability: { name: 'Mass Override', blurb: 'Floods deep Disruption (slow + heavy vulnerability) and overclocks your towers (+20% damage, 5s).', cooldown: 11, radius: 132, damage: 0, fracture: 0, disrupt: 3.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.2, buffSeconds: 5 },
+    skills: [
+      { name: 'Static Field', blurb: 'Projects a psionic field that slows and destabilizes the cluster.', cooldown: 7, radius: 104, damage: 0, fracture: 0, disrupt: 2.5, heal: 0, castOn: 'target', minEnemies: 2 },
+      { name: 'Synaptic Overload', blurb: 'Overloads the pack — a neural blast that damages AND disrupts everything caught.', cooldown: 13, radius: 124, damage: 28, fracture: 0, disrupt: 2, heal: 0, castOn: 'target', minEnemies: 2 },
+    ],
   },
   vitriol: {
     // The hive's SIEGE caste (Caustic) — the only ranged / area-denial hero. Holds the rear line
@@ -1117,6 +1136,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'bossSlain', label: 'Slay a Framework Boss' },
     ability: { name: 'Corrosive Cataclysm', blurb: 'Saturates the target zone: a caustic blast that heavily corrodes everything caught, then a wide acid pool that lingers.', cooldown: 12, radius: 120, damage: 70, fracture: 0, disrupt: 0, corrode: 6, heal: 0, poolRadius: 120, poolDps: 22, poolSeconds: 5 },
+    skills: [
+      { name: 'Acid Barrage', blurb: 'A rapid salvo of corrosive shells — splash damage that douses the target in Corrosion.', cooldown: 6, radius: 84, damage: 30, fracture: 0, disrupt: 0, corrode: 4, heal: 0, castOn: 'target', minEnemies: 1 },
+      { name: 'Corrosive Mire', blurb: 'Floods the target zone with a wide, lingering acid mire.', cooldown: 13, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, poolRadius: 104, poolDps: 18, poolSeconds: 5, castOn: 'target', minEnemies: 2 },
+    ],
   },
   revenant: {
     // The hive's WRAITH caste (Viral) — a phase-stalking ASSASSIN, the only single-target boss-deleter.
@@ -1129,6 +1152,10 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
     pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
     unlock: { kind: 'infiniteDepth', wave: 40, label: 'Reach Infinite Depth 40' },
     ability: { name: 'Plague Rupture', blurb: 'Blinks to the target zone and RUPTURES it: a viral detonation that savages everything caught and injects a deep, spreading Infection.', cooldown: 12, radius: 130, damage: 66, fracture: 0, disrupt: 0, infect: 5, heal: 0 },
+    skills: [
+      { name: 'Contagion', blurb: 'Lashes the target with a viral spray — injects deep, spreading Infection.', cooldown: 6, radius: 78, damage: 30, fracture: 0, disrupt: 0, infect: 3, heal: 0, castOn: 'target', minEnemies: 1 },
+      { name: 'Virulent Burst', blurb: 'Ruptures the accumulated plague — a wide viral detonation that savages the pack.', cooldown: 12, radius: 108, damage: 40, fracture: 0, disrupt: 0, infect: 5, heal: 0, castOn: 'target', minEnemies: 2 },
+    ],
   },
 };
 
@@ -1184,8 +1211,7 @@ function heroPulseAbility(d: HeroDef): AuraAbility | null {
     particle: d.behavior === 'control' ? 'disrupt' : 'bloom',
   };
 }
-function heroUltAbility(d: HeroDef): AbilityComponent[] {
-  const ab = d.ability;
+function heroAbilityComponents(ab: HeroAbilityDef): AbilityComponent[] {
   const out: AbilityComponent[] = [];
   if (ab.heal > 0) out.push({ type: 'heal', nucleus: ab.heal, self: ab.heal });
   if ((ab.shield ?? 0) > 0) out.push({ type: 'shield', amount: ab.shield as number, seconds: ab.shieldSeconds ?? 6 });
@@ -1198,6 +1224,9 @@ function heroUltAbility(d: HeroDef): AbilityComponent[] {
           ? { kind: 'Infection' as const, amount: ab.infect as number }
           : undefined;
     out.push({ type: 'explosion', radius: ab.radius, damage: ab.damage, status, react: true });
+    // A kit SKILL can damage AND disrupt (e.g. Overseer's Synaptic Overload). No shipped ULT sets both
+    // (each is damage-only or disrupt-only), so HERO_ULT stays byte-identical — this only adds skill effects.
+    if (ab.disrupt > 0) out.push({ type: 'debuff', radius: ab.radius, status: { kind: 'Disruption', amount: ab.disrupt } });
   } else if (ab.disrupt > 0) {
     // Pure control ult (Overseer Mass Override): flood Disruption, no damage/reaction.
     out.push({ type: 'debuff', radius: ab.radius, status: { kind: 'Disruption', amount: ab.disrupt } });
@@ -1222,8 +1251,24 @@ export const HERO_PULSE: Record<HeroKind, AuraAbility | null> = Object.fromEntri
   HERO_ORDER.map((k) => [k, heroPulseAbility(HERO_DEFS[k])]),
 ) as Record<HeroKind, AuraAbility | null>;
 export const HERO_ULT: Record<HeroKind, AbilityComponent[]> = Object.fromEntries(
-  HERO_ORDER.map((k) => [k, heroUltAbility(HERO_DEFS[k])]),
+  HERO_ORDER.map((k) => [k, heroAbilityComponents(HERO_DEFS[k].ability)]),
 ) as Record<HeroKind, AbilityComponent[]>;
+
+// ── Hero ability KIT (HEROES.md) — the star-gated auto-cast skills layered on top of the ult. ──
+// HERO_SKILL_DEFS drives cooldowns + the HUD; HERO_SKILLS is the compiled effect payload (reuses the
+// ult builder). Star thresholds unlock them one at a time; a fresh account (0 stars, the golden run)
+// has NONE, so autoplay never casts a skill ⇒ the pinned sim is byte-identical.
+export const HERO_SKILL_DEFS: Record<HeroKind, HeroAbilityDef[]> = Object.fromEntries(
+  HERO_ORDER.map((k) => [k, HERO_DEFS[k].skills ?? []]),
+) as Record<HeroKind, HeroAbilityDef[]>;
+export const HERO_SKILLS: Record<HeroKind, AbilityComponent[][]> = Object.fromEntries(
+  HERO_ORDER.map((k) => [k, (HERO_DEFS[k].skills ?? []).map(heroAbilityComponents)]),
+) as Record<HeroKind, AbilityComponent[][]>;
+export const HERO_SKILL_STARS = [3, 7] as const; // skill 0 unlocks at ★3, skill 1 at ★7
+/** How many kit skills a hero with `stars` stars has unlocked (0 on a fresh account). */
+export function heroSkillCount(stars: number): number {
+  return HERO_SKILL_STARS.filter((s) => stars >= s).length;
+}
 
 // In-run Biomass unlock for PRIMARY-hero AUTO-CAST (docs/HEROES.md): the fielded champions in
 // slots 2+ already auto-fire their signature ability; buying this lets the primary hero do the

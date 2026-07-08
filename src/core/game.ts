@@ -46,6 +46,8 @@ import {
   TOWER_ABILITIES,
   HERO_PULSE,
   HERO_ULT,
+  HERO_SKILLS,
+  HERO_SKILL_DEFS,
   HERO_AUTOCAST,
   HERO_PHASE_FLASH,
   REVENANT,
@@ -55,7 +57,7 @@ import {
   MINION_DEFS,
   MINION_CAP,
 } from './config';
-import type { EnemyDef, HeroDef, TowerDef } from './config';
+import type { EnemyDef, HeroAbilityDef, HeroDef, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
 import {
@@ -4692,6 +4694,68 @@ export class Game {
     else if (def.behavior === 'guard') this.castHeroAbility(h, h.x, h.y); // support self-casts (heal / shield / mend)
   }
 
+  /** The star-gated ability KIT (HEROES.md) — each UNLOCKED skill auto-casts on its own cooldown, so a
+   *  progressed hero fights with a full kit (auto-attack + skills + ult), not one verb. Zero unlocked
+   *  skills ⇒ this returns immediately, so a fresh account (the golden run) never casts one. */
+  private updateHeroSkills(h: Hero, dt: number): void {
+    if (h.down) return;
+    const n = this.heroProgress[h.kind].skillCount ?? 0;
+    if (n === 0) return;
+    const defs = HERO_SKILL_DEFS[h.kind];
+    if (defs.length === 0) return;
+    if (h.skillCd === undefined) h.skillCd = new Array(defs.length).fill(0) as number[];
+    const def = HERO_DEFS[h.kind];
+    for (let i = 0; i < n && i < defs.length; i++) {
+      if (h.skillCd[i] > 0) { h.skillCd[i] -= dt; continue; }
+      const sk = defs[i];
+      let px = h.x;
+      let py = h.y;
+      if ((sk.castOn ?? 'target') === 'target') {
+        // Aim at the deepest enemy in aggro range (the same target sense as the auto-cast ult).
+        const r2 = (def.aggroRange * this.hmods(h).heroAggroRangeMult) ** 2;
+        let target: Enemy | null = null;
+        let best = Infinity;
+        for (const e of this.enemies) {
+          if (!e.alive || dist2(h.x, h.y, e.x, e.y) > r2) continue;
+          const gd = goalDistanceAt(e.x, e.y);
+          if (gd < best) { best = gd; target = e; }
+        }
+        if (target === null) continue; // nothing to hit — hold (no cooldown paid until it fires)
+        px = target.x;
+        py = target.y;
+      }
+      // Don't waste an AoE skill on an empty zone; self-cast utility (Graft/Flock) sets minEnemies 0.
+      const need = sk.minEnemies ?? 1;
+      if (need > 0) {
+        const rr = Math.max(48, sk.radius) ** 2;
+        let near = 0;
+        for (const e of this.enemies) if (e.alive && dist2(px, py, e.x, e.y) <= rr && ++near >= need) break;
+        if (near < need) continue;
+      }
+      this.castHeroSkill(h, i, px, py, sk);
+    }
+  }
+
+  /** Fire one kit skill: reuse the ult's effect pipeline with the skill's compiled components. Unlike
+   *  the ult it does NOT reposition the hero — the skill fires from where it stands, at the aim point. */
+  private castHeroSkill(h: Hero, i: number, px: number, py: number, sk: HeroAbilityDef): void {
+    this.abilitySourceKind = null;
+    this.abilityHeroKind = h.kind;
+    this.abilityCaster = h;
+    this.castScratch.x = px;
+    this.castScratch.y = py;
+    this.castScratch.damageMult = this.heroDamageMult(h); // no crit roll — the auto-cast kit stays rng-free
+    this.castScratch.target = null;
+    this.castScratch.pierce = 0;
+    this.castRangeMult = this.heroAbilityRadiusFor(h);
+    runAbilities(this.actx, HERO_SKILLS[h.kind][i], this.castScratch);
+    this.castRangeMult = 1;
+    (h.skillCd as number[])[i] = sk.cooldown * this.heroProgress[h.kind].cooldownMult; // stars/gear shave skill cds too
+    if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null);
+    this.pushSfx('ability');
+    this.floats.push({ x: px, y: py - 18, text: sk.name, color: HERO_DEFS[h.kind].color, life: 0.7 });
+  }
+
   /** Autonomous battlefield unit. Shared lifecycle (respawn, cooldowns, usage
    * accrual, contact damage); the per-behavior brain — move + target + act — is
    * dispatched by the hero's data-driven profile so each plays completely
@@ -4714,6 +4778,7 @@ export class Game {
     if (h.attackCd > 0) h.attackCd -= dt;
     if (h.abilityCd > 0) h.abilityCd -= dt;
     if (h.pulseCd > 0) h.pulseCd -= dt;
+    this.updateHeroSkills(h, dt); // star-gated ability kit (auto-casts on cooldown). No-op at 0 skills ⇒ golden-safe.
     if (h.shieldTime > 0) {
       h.shieldTime -= dt;
       if (h.shieldTime <= 0) { h.shieldTime = 0; h.shield = 0; } // window lapsed → drop the pool
@@ -6141,6 +6206,12 @@ export class Game {
     const def = HERO_DEFS[h.kind];
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
     const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: def.ability.name, remaining: Math.max(0, h.abilityCd), total: def.ability.cooldown }];
+    // Star-gated kit skills (HEROES.md) — surface a cooldown gauge for each UNLOCKED one (none at 0 stars).
+    const unlockedSkills = this.heroProgress[h.kind].skillCount ?? 0;
+    const skillDefs = HERO_SKILL_DEFS[h.kind];
+    for (let i = 0; i < unlockedSkills && i < skillDefs.length; i++) {
+      cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown });
+    }
     if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: def.attackInterval });
     if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: def.pulseInterval });
     // Buffs from live hero state (extensible — a new hero status appends a chip). Debuffs: none yet.

@@ -106,7 +106,10 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **In-run hero selection** — click a hero → non-modal live-state + profile panel — HERO-SELECTION.md
 - ✅ **Hero Evolution** — in-run Biomass sink: 10 axes × 10 levels, all-heroes/new-heroes-inherit,
   Power-integrated, run-only — HERO-EVOLUTION.md
-- 🟨 Hero abilities are largely one-verb; roster of 3 caps team-comp depth
+- ✅ **Hero ability KITS** — each hero auto-casts **2 star-gated skills** (unlocked at ★3 / ★7,
+  `HERO_SKILLS`) on their own cooldowns, on top of its ult + auto-attack (HEROES.md). A fresh hero
+  (0 stars) is still one-verb — the kit is progression depth; a fresh account (golden) casts none, so
+  the pinned sim is byte-identical. Roster of 3 still caps team-comp breadth
 
 ### Bosses
 - ✅ Module/phase framework + procedural assembly (`core/boss.ts`) — BOSS-DESIGN.md, STAGES.md §10

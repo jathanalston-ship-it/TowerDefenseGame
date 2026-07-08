@@ -318,6 +318,7 @@ export interface Hero {
   rally: Vec2;
   attackCd: number;
   abilityCd: number;
+  skillCd?: number[]; // per-skill cooldowns for the star-gated ability kit (HERO_SKILLS); lazy — absent ⇒ no kit fielded
   pulseCd: number; // role pulse timer (Shepherd vital pulse / Overseer disrupt field)
   // Absorb-shield (Shepherd's Bloom; future support gear). `shield` = remaining absorb
   // pool, soaked before HP; `shieldTime` = seconds until it lapses. 0/0 ⇒ no shield, so
@@ -433,6 +434,7 @@ export type HeroMasteryCounts = Record<HeroKind, MasteryCount>;
 export interface HeroMods {
   damageMult: number;
   cooldownMult: number;
+  skillCount?: number; // kit skills unlocked from stars (HERO_SKILL_STARS: ★3→1, ★7→2). Absent/0 ⇒ no kit (golden-safe)
 }
 export type HeroProgress = Record<HeroKind, HeroMods>;
 

@@ -25,8 +25,12 @@ progression-gated), hero-slot progression, and the autonomous-unit model. Compan
 > Each has unique movement + targeting, per-hero **Stars + infinite Mastery** (Hero Lab), and an
 > **equipment fold seam** (`HeroMods`) ready for `EQUIPMENT.md`. You **field one** hero
 > per run (pick it in the Hero Lab); the engine carries a hero **roster** (`Game.heroes[]`)
-> so slot 2/3 is "push another hero in." ★4–★10, forks, and the slot-unlock economy remain
-> designed-but-future. Balance values live in `src/core/config.ts`.
+> so slot 2/3 is "push another hero in." **Each hero now auto-casts a star-gated ability KIT** — two
+> secondary skills (unlocked at ★3 and ★7, `HERO_SKILLS` / `HERO_SKILL_DEFS`) that fire on their own
+> cooldowns on top of the ult + auto-attack, so a progressed hero fights with a full kit, not one verb
+> (a fresh hero is still one-verb — the kit is progression depth; a 0-star account casts none, keeping
+> the golden run byte-identical). The ★5/★8 ability **forks**, ★10 signature, and the slot-unlock
+> economy remain designed-but-future. Balance values live in `src/core/config.ts`.
 
 ---
 
