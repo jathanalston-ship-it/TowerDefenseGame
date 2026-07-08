@@ -2,6 +2,7 @@
 // Persisted through SaveStore; exposed to React as a reactive store. Also fronts
 // the save-management surface (export/import/backup) and debug seeding.
 
+import { liveopsMods } from '../core/liveops';
 import { createStore } from './store';
 import { applyDevReset } from './devReset';
 import {
@@ -1138,8 +1139,11 @@ export const meta = {
     const dailyStreak = dailyRewarded
       ? (isPrevDayKey(save.daily.rewardedKey, dailyKey) ? save.daily.streak + 1 : 1)
       : save.daily.streak;
+    // LiveOps calendar (docs/LIVEOPS.md): scheduled windows fold ×1-baseline multipliers
+    // into the mode-matched reward lanes (clock pinned to a weekday under tests).
+    const lo = liveopsMods();
     const dailyCoreBonus = dailyRewarded
-      ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult * asc.dailyBonusMult)
+      ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult * asc.dailyBonusMult * lo.dailyCoreMult)
       : 0;
     const nextDaily: SaveData['daily'] = isDaily
       ? {
@@ -1171,7 +1175,10 @@ export const meta = {
       endlessRewardMult,
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
-    }).total() * researchBoost.coresMult) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus;
+    }).total() * researchBoost.coresMult
+      // LiveOps spotlight weeks: the live mode's lane gets its window multiplier.
+      * (result.bossRush ? lo.rushShardMult : result.endless ? lo.endlessShardMult : result.campaignStage !== undefined ? lo.campaignShardMult : 1)
+    ) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus;
     // Boss Rush keeps its OWN depth record (rush waves are dense, short numbers — folding them
     // into the Infinite record would warp that mode's qualify gate + prediction floor).
     // Mode-scoped records: Boss Rush + Daily keep their OWN depth ledgers — neither pollutes the

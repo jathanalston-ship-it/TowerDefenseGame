@@ -160,6 +160,7 @@ export const homeRegistry = new HomeRegistry();
 homeRegistry.register({ id: 'vitals', zone: 'strip', order: 10 });
 homeRegistry.register({ id: 'world-status', zone: 'world', order: 10 });
 homeRegistry.register({ id: 'next-goal', zone: 'main', order: 5 });
+homeRegistry.register({ id: 'live-events', zone: 'main', order: 7 }); // LiveOps calendar strip (docs/LIVEOPS.md)
 homeRegistry.register({ id: 'mission-control', zone: 'main', order: 10 });
 homeRegistry.register({ id: 'forecast', zone: 'side', order: 10, when: (s) => s.totalRuns > 0 });
 homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });

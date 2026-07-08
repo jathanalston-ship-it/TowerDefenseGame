@@ -220,6 +220,13 @@ export const SYSTEMS: SystemDef[] = [
     collection: 'usage counts drive tiers', achievements: ['collector'], localization: 'inline-en', docs: ['docs/PROGRESSION-SYSTEMS.md'],
   },
   {
+    id: 'liveops', name: 'LiveOps calendar', purpose: 'Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge + rotating weekly mode spotlights fold ×1-baseline reward multipliers into finishRun; the hub strip shows what is live. Clock pinned under tests.',
+    files: ['src/core/liveops.ts', 'src/ui/components/LiveEventsStrip.tsx'],
+    dependsOn: ['meta-store', 'daily'], powerScore: null, save: [], tutorial: [], help: [], hud: [],
+    ui: ['LiveEventsStrip'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/LIVEOPS.md'],
+  },
+  {
     id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',
     files: ['src/state/profile.ts', 'src/ui/PlayerProfile.tsx', 'src/ui/components/CommanderName.tsx'],
     dependsOn: ['stats', 'power', 'achievements', 'collection', 'prestige', 'hub-shell'], powerScore: null,

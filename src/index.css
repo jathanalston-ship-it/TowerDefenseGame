@@ -8200,3 +8200,22 @@ kbd {
 .swtoast-t { font-size: 13px; color: var(--text); }
 .swtoast-btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
 .swtoast-later { padding: 8px 10px; font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: var(--r-md); }
+
+/* ── LiveOps strip (components/LiveEventsStrip.tsx) ───────────────────────── */
+.liveops { padding: 10px 12px; }
+.liveops-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.liveops-k { font-size: 11px; letter-spacing: 0.16em; font-weight: 800; color: var(--gold); }
+.liveops-next { font-size: 11px; color: var(--muted); }
+.liveops-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.liveops-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  min-height: 24px;
+  font-size: 12px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--lo, var(--gold)) 45%, var(--line));
+  background: color-mix(in srgb, var(--lo, var(--gold)) 10%, transparent);
+}
+.liveops-chip i { color: var(--lo, var(--gold)); }

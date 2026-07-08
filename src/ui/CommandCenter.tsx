@@ -34,6 +34,7 @@ import type { PreviewChip } from './RewardPreview';
 import { NextGoalBanner } from './NextGoalBanner';
 import { PredictionPanel } from './PredictionPanel';
 import { WorldStatus } from './WorldStatus';
+import { LiveEventsStrip } from './components/LiveEventsStrip';
 import { armyView, commandFeed, homeRegistry } from './homeModel';
 import type { HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
@@ -137,6 +138,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'vitals': Vitals,
   'world-status': () => <WorldStatus />,
   'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} />,
+  'live-events': () => <LiveEventsStrip />,
   'mission-control': MissionControl,
   'forecast': () => (
     <div className="cc-forecast">
