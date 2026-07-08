@@ -175,3 +175,13 @@ now uses god-mode instead of a +100000 integrity bonus).
   floor; wave-banner 100vw clamp + full shrink/wrap chain; conveyor self-scrolls.
   Latent bug fixed: the ≤640 build-bar clamp (line ~2188) was silently dead — the
   BASE rule later in the file overrode it; the clamp now lives on the base rule.
+
+## Audio + accounts batch (2026-07-08, same session)
+
+- Colossus Hymn: TRACKS.mega composed piece + music.duck() sidechain + GameView
+  mega/boss/combat handoff (deps include hud.megaBanner presence).
+- Commander designation: fires while profileName === DEFAULT_PROFILE_NAME ('OVERMIND',
+  now exported from saveStore) and no assimilate.designated flag; setProfileName mirrors
+  the server sanitizer (sanitizeCommanderName, tested) and sets the flag.
+- Auto cloud sync: net/autoSync.ts (pure shouldAutoSync gate tested; 150s cadence +
+  visibilitychange flush; unnamed accounts never sync). CloudBackup shows last mirror.

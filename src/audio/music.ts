@@ -19,7 +19,7 @@
 
 // ── The pure composition core ────────────────────────────────────────────────────────────────
 
-export type MusicCategory = 'menu' | 'combat' | 'boss' | 'victory' | 'defeat' | 'events';
+export type MusicCategory = 'menu' | 'combat' | 'boss' | 'mega' | 'victory' | 'defeat' | 'events';
 export type LayerId = 'bass' | 'drums' | 'arp' | 'lead' | 'pad' | 'texture';
 
 export interface Note {
@@ -105,6 +105,26 @@ export const TRACKS: Record<MusicCategory, TrackDef> = {
       { id: 'lead', gain: [0.45, 0.65] },
       { id: 'pad', gain: [0.2, 0.3] },
       { id: 'texture', gain: [0.2, 0.35] },
+    ],
+  },
+  mega: {
+    // THE COLOSSUS HYMN — the composed Mega Boss piece (docs/MEGA-BOSS.md §audio).
+    // Half-time dread at 84bpm in C harmonic minor: a 16-bar processional that walks
+    // i → bVI → bII(neapolitan) → V, twice, the second pass darkening to iv → V. The
+    // motif is a long cantus line with breaths — a hymn sung AT the player — and the
+    // intensity seam swells texture/lead (the "choir") as the raid escalates, so
+    // burning a weak point audibly angers the piece.
+    id: 'mega_colossus', category: 'mega', bpm: 84, root: 36, scale: [0, 2, 3, 5, 7, 8, 11],
+    progression: [0, 0, 5, 5, 1, 1, 4, 4, 0, 0, 5, 3, 1, 4, 4, 4],
+    introBars: 2,
+    motif: [0, -1, -1, 2, 3, -1, 2, 0, 5, -1, 4, 3, 2, -1, -1, -1, 0, -1, 2, 3, 7, -1, 5, 4, 3, -1, 2, 1, 0, -1, -1, -1],
+    layers: [
+      { id: 'bass', gain: [0.7, 0.9] },
+      { id: 'drums', gain: [0.55, 0.85] },
+      { id: 'arp', gain: [0.25, 0.45] },
+      { id: 'lead', gain: [0.5, 0.75] },
+      { id: 'pad', gain: [0.35, 0.45] },
+      { id: 'texture', gain: [0.25, 0.5] },
     ],
   },
   victory: {
@@ -310,6 +330,20 @@ class MusicManager {
       const g = this.active.layers[l.id];
       g.gain.linearRampToValueAtTime(l.gain[0] + (l.gain[1] - l.gain[0]) * this.intensity, this.ctx.currentTime + 0.4);
     }
+  }
+
+  /** MIX GLUE: dip the score under a heavyweight SFX sting (mega arrival, weak-point
+   *  rupture, splice ceremony) and ease back — the classic sidechain duck, driven by
+   *  the cue layer so callers never touch WebAudio. Depth 0..1 (fraction removed). */
+  duck(depth: number, seconds = 0.8): void {
+    if (!this.ctx || !this.master || !this.enabled) return;
+    const now = this.ctx.currentTime;
+    const g = this.master.gain;
+    const floor = this.volume * (1 - Math.min(0.9, Math.max(0, depth)));
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(floor, now + 0.05); // fast dip — the sting owns the moment
+    g.linearRampToValueAtTime(this.volume, now + Math.max(0.2, seconds)); // eased recovery
   }
 
   /** Direct layer override (future adaptive hooks — e.g. mute the lead during dialogue). */

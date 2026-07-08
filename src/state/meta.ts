@@ -896,9 +896,16 @@ function openLootBoxes(
   return out;
 }
 
+/** Client mirror of the server's leaderboard name rules — ONE truth for what survives. */
+export function sanitizeCommanderName(v: string): string | null {
+  const cleaned = v.replace(/[\u0000-\u001f<>&"'`\\]/g, '').trim().slice(0, 20);
+  return cleaned.length >= 2 ? cleaned : null;
+}
+
 export const meta = {
   use: store.use,
   get: store.get,
+  subscribe: store.subscribe, // non-React consumers (auto cloud sync) watch save changes here
   upgrades: META_UPGRADES,
 
   buyUpgrade(id: string): boolean {
@@ -1435,11 +1442,20 @@ export const meta = {
     persist({ ...save, equippedTitle: id });
   },
 
-  /** Rename the specimen line (Player Profile banner). Trimmed, 1–24 chars; junk is a no-op. */
+  /** Rename the Commander (Player Profile banner + leaderboards). Mirrors the SERVER's
+   *  sanitizeName exactly (functions/lib/validate.ts): control/markup chars stripped,
+   *  trimmed, ≤20 chars, minimum 2 — so the name a player picks is the name others see.
+   *  Junk that sanitizes below 2 chars is a no-op (the UI disables Confirm first). */
   setProfileName(name: string): void {
-    const trimmed = name.trim().slice(0, 24);
-    if (trimmed.length === 0) return;
-    persist({ ...store.get(), profileName: trimmed });
+    const cleaned = sanitizeCommanderName(name);
+    if (cleaned === null) return;
+    try {
+      // An EXPLICIT choice (even re-choosing the default) ends the designation prompt.
+      localStorage.setItem('assimilate.designated', '1');
+    } catch {
+      /* storage unavailable — the prompt gates on the name value alone */
+    }
+    persist({ ...store.get(), profileName: cleaned });
   },
 
   /** Select an unlockable profile banner frame (docs/PROFILE.md). The UI only offers unlocked

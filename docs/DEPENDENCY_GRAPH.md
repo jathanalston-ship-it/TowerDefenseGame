@@ -296,7 +296,7 @@ graph TD
 
 *The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.*
 
-- **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
+- **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/autoSync.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
 - **Depends on:** `premium` · `meta-store` · `daily` · `power`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
@@ -536,7 +536,7 @@ graph TD
 
 *The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.*
 
-- **Files:** `src/state/profile.ts` · `src/ui/PlayerProfile.tsx`
+- **Files:** `src/state/profile.ts` · `src/ui/PlayerProfile.tsx` · `src/ui/components/CommanderName.tsx`
 - **Depends on:** `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

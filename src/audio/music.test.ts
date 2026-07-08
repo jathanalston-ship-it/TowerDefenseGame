@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { TRACKS, barNotes, chordAt } from './music';
 import type { MusicCategory } from './music';
 
-const CATEGORIES: MusicCategory[] = ['menu', 'combat', 'boss', 'victory', 'defeat', 'events'];
+const CATEGORIES: MusicCategory[] = ['menu', 'combat', 'boss', 'mega', 'victory', 'defeat', 'events'];
 const menu = TRACKS.menu;
 
 describe('music tracks — the data contract', () => {
@@ -97,5 +97,21 @@ describe('the menu track is a composition (NOT a drone)', () => {
         expect(menu.scale.includes(pc) || approach, `bar ${b} bass midi ${n.midi}`).toBe(true);
       }
     }
+  });
+});
+
+describe('the Colossus Hymn (mega category)', () => {
+  it('is its own composition: slowest combat tempo, deepest root, longest processional', () => {
+    const m = TRACKS.mega;
+    expect(m.bpm).toBeLessThan(TRACKS.combat.bpm);
+    expect(m.bpm).toBeLessThan(TRACKS.boss.bpm);
+    expect(m.root).toBeLessThanOrEqual(TRACKS.boss.root);
+    expect(m.progression.length).toBeGreaterThanOrEqual(16); // a hymn, not a vamp
+    expect(m.oneShot).toBeUndefined(); // raids can run long — it loops
+  });
+  it('renders real bars for every layer at the loop start', () => {
+    const b = barNotes(TRACKS.mega, TRACKS.mega.introBars);
+    expect(b.layers.bass.length).toBeGreaterThan(0);
+    expect(b.layers.lead.length + b.layers.pad.length).toBeGreaterThan(0);
   });
 });

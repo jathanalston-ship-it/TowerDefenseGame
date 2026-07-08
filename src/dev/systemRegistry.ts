@@ -108,7 +108,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'net-backend', name: 'Backend lanes (net/)', purpose: 'The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.',
-    files: ['src/net/identity.ts', 'src/net/checkout.ts', 'src/net/cloudSave.ts', 'src/net/leaderboard.ts', 'src/net/turnstile.ts', 'src/core/replay.ts', 'src/ui/components/CloudBackup.tsx', 'src/ui/components/LeaderboardBlock.tsx'],
+    files: ['src/net/identity.ts', 'src/net/checkout.ts', 'src/net/cloudSave.ts', 'src/net/autoSync.ts', 'src/net/leaderboard.ts', 'src/net/turnstile.ts', 'src/core/replay.ts', 'src/ui/components/CloudBackup.tsx', 'src/ui/components/LeaderboardBlock.tsx'],
     dependsOn: ['premium', 'meta-store', 'daily', 'power'], powerScore: null, save: ['premium'], tutorial: [], help: [],
     hud: [], ui: ['CloudBackup', 'LeaderboardBlock'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/DEPLOYMENT.md'],
@@ -221,7 +221,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',
-    files: ['src/state/profile.ts', 'src/ui/PlayerProfile.tsx'],
+    files: ['src/state/profile.ts', 'src/ui/PlayerProfile.tsx', 'src/ui/components/CommanderName.tsx'],
     dependsOn: ['stats', 'power', 'achievements', 'collection', 'prestige', 'hub-shell'], powerScore: null,
     save: ['createdAt', 'profileName', 'profileFrame', 'timeline'], tutorial: [], help: [], hud: [],
     ui: ['PlayerProfile'], collection: 'per-category completion rendered', achievements: [],

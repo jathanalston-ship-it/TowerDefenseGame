@@ -7956,3 +7956,94 @@ kbd {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* ── Commander designation (components/CommanderName.tsx) — the first post-tutorial
+   prompt: name yourself, arm cloud sync. Sits ABOVE What's New (92). ─────────── */
+.cmdname {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: radial-gradient(120% 90% at 50% 30%, rgba(16, 24, 34, 0.82), rgba(3, 6, 10, 0.97));
+  backdrop-filter: blur(6px);
+  animation: fade-in var(--dur-3) ease both;
+}
+.cmdname-card {
+  width: min(440px, 100%);
+  padding: 26px 24px 20px;
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line));
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: var(--shadow-lg);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+.cmdname-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: var(--gold);
+  font-weight: 800;
+}
+.cmdname-title {
+  margin-top: 8px;
+  font-size: 26px;
+  letter-spacing: 0.02em;
+}
+.cmdname-sub {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.cmdname-input {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 18px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: rgba(4, 8, 14, 0.8);
+  color: var(--text);
+}
+.cmdname-input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.cmdname-hint {
+  margin-top: 6px;
+  min-height: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cmdname-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cmdname-confirm {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+.cmdname-later {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.cmdname-cloud {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.cloudbk-auto {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}

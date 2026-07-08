@@ -228,6 +228,10 @@ export interface TutorialSave {
 // pendingCheckout — docs/DEPLOYMENT.md §purchases). v23→v24: Field Research ledger
 // (docs/RESEARCH.md). All additive — withDefaults() deep-fills, migrate() passes through.
 export const CURRENT_VERSION = 25;
+
+/** The placeholder every save is born with — the Commander designation prompt fires
+ *  while the name is still exactly this (components/CommanderName.tsx). */
+export const DEFAULT_PROFILE_NAME = 'OVERMIND';
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -424,7 +428,7 @@ export function defaultSave(): SaveData {
     geneLoadout: [null, null, null, null, null],
     geneEssence: 0,
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
-    profileName: 'OVERMIND',
+    profileName: DEFAULT_PROFILE_NAME,
     profileFrame: 'membrane',
     timeline: [],
     antigen: 0,

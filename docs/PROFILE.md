@@ -65,3 +65,14 @@ and honest about the model's actual shape. New power buckets appear by extending
 - `Containers Opened` reads the device-local vault ledger (labeled as such in its tooltip).
 - Ledgers added in v22 (`playtime`, drafts, doctrines) start counting from v22 onward for
   existing accounts; the timeline starts at the first post-v22 settle.
+
+## Commander designation (post-tutorial prompt)
+
+Every save is born as the placeholder (`saveStore.DEFAULT_PROFILE_NAME`). The FIRST
+hub visit after the tutorial ends (complete or skipped; the HUD tour, if any, goes
+first) shows the designation ceremony (`components/CommanderName.tsx`): pick the 2–20
+char name the leaderboards will show — validation mirrors the server's `sanitizeName`
+exactly, with a live "will appear as" preview. Confirming sets the name, marks the
+device designated (`localStorage assimilate.designated`), arms auto cloud sync, and
+takes the first backup. "Later" defers for the session; the Profile rename (which also
+sets the designated flag) remains the permanent editor.

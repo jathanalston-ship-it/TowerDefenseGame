@@ -186,3 +186,13 @@ progression · rhythm · percussion · bass · evolving structure — all TEST-P
   one layer (future: prestige melody layer). Wired: App plays `menu` across the Command Center
   (first-gesture autoplay unlock); GameView drives combat/boss (live boss banner) and the
   victory/defeat cadences; the Hub audio toggle governs it.
+
+## Music addendum — the Colossus Hymn + mix glue
+
+Mega raids own a dedicated composed piece (`TRACKS.mega`, "the Colossus Hymn"):
+84bpm half-time processional in C harmonic minor (i→bVI→bII→V twice, darkening),
+a long cantus motif, and intensity swelling the choir layers — burning a weak point
+audibly angers it. GameView hands off mega→boss→combat per banner state. The cue
+layer now sidechain-DUCKS the score under heavyweight stings (mega arrival/death,
+phase cracks, weak-point ruptures, splices) via `music.duck(depth, seconds)` — one
+soundtrack, not two layers.

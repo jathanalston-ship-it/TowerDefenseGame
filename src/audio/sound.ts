@@ -7,6 +7,15 @@
 type AnyWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
 let ctx: AudioContext | null = null;
+import { music } from './music';
+
+/** Stings heavy enough to DUCK the score under (depth removed, recovery seconds) —
+ *  the mix glue that makes the big moments read as one soundtrack, not two layers. */
+const DUCK: Record<string, [number, number]> = {
+  mega: [0.45, 1.4], megaDeath: [0.5, 1.8], megaPhase: [0.3, 0.9],
+  wpBreak: [0.28, 0.7], splice: [0.3, 0.8], breach: [0.25, 0.6],
+};
+
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
@@ -275,6 +284,8 @@ export const audio = {
       // that deepens the synth per tier (BRANCH-EVOLUTION.md §3d). Non-suffixed cues ⇒ d=0, unchanged.
       const at = rawTag.indexOf('@');
       const tag = at < 0 ? rawTag : rawTag.slice(0, at);
+      const duck = DUCK[tag];
+      if (duck) music.duck(duck[0], duck[1]);
       const d = at < 0 ? 0 : Math.min(1, Math.max(0, (Number(rawTag.slice(at + 1)) - 1) / 4));
       switch (tag) {
         case 'hit': for (let i = 0; i < Math.min(3, n); i++) sHit(i); break;

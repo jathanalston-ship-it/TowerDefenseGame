@@ -11,6 +11,8 @@ import { AchievementToaster } from './AchievementToaster';
 import { PowerToaster } from './components/PowerToaster';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
+import { CommanderName } from './components/CommanderName';
+import { startAutoCloudSync } from '../net/autoSync';
 import { HudTour } from './HudTour';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
@@ -293,6 +295,7 @@ export function App(): JSX.Element {
 
   useEffect(() => {
     if (screen !== 'menu') return;
+    startAutoCloudSync(); // named accounts mirror to the cloud quietly (net/autoSync.ts)
     const start = (): void => music.play('menu');
     start(); // no-op until the AudioContext may run…
     window.addEventListener('pointerdown', start, { once: true }); // …then the first click unlocks it
@@ -373,6 +376,9 @@ export function App(): JSX.Element {
           "What's New?" queue announces each newly-unlocked mechanic. */}
       {screen === 'menu' && tourActive && <HudTour onClose={() => setTourActive(false)} />}
       {screen === 'menu' && !tourActive && <WhatsNew />}
+      {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
+          (i.e. immediately after the tutorial completes or is skipped). */}
+      {screen === 'menu' && !tourActive && <CommanderName />}
     </div>
   );
 }

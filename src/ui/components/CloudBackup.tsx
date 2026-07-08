@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import { backupToCloud, deleteCloudSave, restoreFromCloud } from '../../net/cloudSave';
+import { lastAutoSyncAt } from '../../net/autoSync';
+import { meta } from '../../state/meta';
 import { adoptSyncCode, syncCode } from '../../net/identity';
 
 export function CloudBackup(): JSX.Element {
@@ -29,8 +31,15 @@ export function CloudBackup(): JSX.Element {
     run(restoreFromCloud, 'Restored from cloud.');
   };
 
+  const named = meta.use().profileName.length > 0;
+  const lastAuto = lastAutoSyncAt();
   return (
     <div className="cloudbk">
+      <div className="cloudbk-auto">
+        {named
+          ? `☁ Auto-sync armed${lastAuto > 0 ? ` — last mirror ${new Date(lastAuto).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' — first mirror on the next checkpoint'}`
+          : '☁ Auto-sync arms once you designate a Commander name (Profile).'}
+      </div>
       <div className="cloudbk-row">
         <button className="set-switch" disabled={busy} onClick={() => run(backupToCloud, 'Backed up to cloud.')}>▲ Back up now</button>
         <button className="set-switch" disabled={busy} onClick={() => { if (confirm('Replace this device’s save with the cloud backup? A local backup is kept.')) run(restoreFromCloud, 'Restored from cloud.'); }}>▼ Restore</button>

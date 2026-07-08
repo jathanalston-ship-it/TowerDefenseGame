@@ -176,9 +176,9 @@ export function GameView({
   useEffect(() => {
     if (hud.phase === 'won') { music.play('victory'); return; }
     if (hud.phase === 'lost') { music.play('defeat'); return; }
-    music.play(bossLive ? 'boss' : 'combat');
+    music.play(hud.megaBanner !== null ? 'mega' : bossLive ? 'boss' : 'combat'); // the Colossus Hymn owns mega raids
     // Intensity is driven LIVE by the run loop (pressure → layers); the floor rises for bosses.
-  }, [hud.phase, bossLive]);
+  }, [hud.phase, bossLive, hud.megaBanner !== null]); // mega → boss handoff mid-wave must re-pick the track
   // Pause: freezes the sim (the rAF loop skips advance) — both a hotkey (P) and a button drive it.
   // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
   const pausedRef = useRef(false);

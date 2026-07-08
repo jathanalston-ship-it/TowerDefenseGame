@@ -269,3 +269,12 @@ Everything from the static era still applies (blank page ⇒ wrong output dir
   lost.
 - **Turnstile always failing** — site key/secret from different Turnstile
   sites, or the domain isn't listed on the Turnstile site config.
+
+### Auto cloud sync (accounts-lite)
+
+Once a Commander name is designated, `src/net/autoSync.ts` mirrors the save to the
+cloud slot automatically: any change marks dirty; flushes at most every 150s (≤4 of the
+server's 12 PUTs/10min) plus an immediate flush when the tab hides (the mobile
+"closed the game" moment). Unnamed saves never sync; offline/unconfigured backends
+fail soft. The Settings → Cloud panel shows the last automatic mirror time, and the
+existing sync-code flow is the cross-device recovery path.

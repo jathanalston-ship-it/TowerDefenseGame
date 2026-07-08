@@ -103,7 +103,7 @@ async function dismiss(page: import('playwright-core').Page): Promise<void> {
   for (let i = 0; i < 6; i++) {
     const acted = await page.evaluate(() => {
       const btns = [...document.querySelectorAll('button')];
-      const pat = /^(continue|got it|close|claim|collect|skip tutorial|skip|onward|begin|ok|✕|×)$/i;
+      const pat = /^(continue|got it|close|claim|collect|skip tutorial|skip|onward|begin|ok|later|✕|×)$/i;
       const b = btns.find((x) => pat.test(x.textContent?.trim() ?? '') && (x as HTMLElement).offsetParent !== null);
       if (b) { (b as HTMLElement).click(); return true; }
       return false;
