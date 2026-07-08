@@ -60,7 +60,7 @@ Do these **only when the dependent batch needs them**; none is a major framework
 
 | Prereq | Why | Blocks | Effort |
 |---|---|---|:--:|
-| **Campaign-event seam** | Stages are fully procedural (`generateStage`); there is *no* authoring hook. Add a tiny `CampaignEventDef` registry that `generateStage` samples (elite-rush / boss-gauntlet / cache / mutation-choice) — a data registry, not a mode. | Campaign-events batch | S |
+| **Campaign-event seam** ✅ **LANDED** | ~~Stages are fully procedural (`generateStage`); there is *no* authoring hook.~~ Shipped: `src/core/campaignEvents.ts` — a `CampaignEventDef` registry `generateStage` samples (eliteRush / gauntlet / cache / mutation), layered onto separate `StageConfig.event` fields + existing levers so the base curve + golden stay intact. Docs: `docs/CAMPAIGN-EVENTS.md`. | Campaign-events batch | S |
 | **B1 de-union** (`docs/AUTHORING.md`) | Collapses Tower/Enemy/Hero from 2-file → 1-file by deriving the union from the def map. | makes the Tower/Hero/Enemy batches cheaper & safer | M |
 | **Power weighting** | Any card/set/upgrade touching a *strength* field must extend `POWER_RELEVANT_FIELDS` + `FIELD_WEIGHT` or `power-coverage` fails. | every strength batch | XS (per field) |
 

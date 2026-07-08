@@ -65,11 +65,11 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/POWER-SCORE.md', 'docs/POWER-AUDIT.md'],
   },
   {
-    id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate.',
-    files: ['src/core/campaign.ts', 'src/core/hash.ts', 'src/ui/CampaignScreen.tsx'],
+    id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate. Authored EVENTS (Elite Rush / Boss Gauntlet / Genome Cache / Mutation choice) punctuate the ladder via a data registry.',
+    files: ['src/core/campaign.ts', 'src/core/campaignEvents.ts', 'src/core/hash.ts', 'src/ui/CampaignScreen.tsx'],
     dependsOn: ['engine', 'biomes', 'bosses', 'difficulty', 'power'], powerScore: 'recommended-power display; first-clear rewards move account Power indirectly', save: ['campaign'],
     tutorial: [], help: ['campaign'], hud: [], ui: ['CampaignScreen', 'CommandCenter'], collection: 'biome discovery', achievements: [],
-    localization: 'inline-en', docs: ['docs/CAMPAIGN.md', 'docs/MODE-IDENTITY.md', 'docs/STAGES.md'],
+    localization: 'inline-en', docs: ['docs/CAMPAIGN.md', 'docs/CAMPAIGN-EVENTS.md', 'docs/MODE-IDENTITY.md', 'docs/STAGES.md'],
   },
   {
     id: 'infinite', name: 'Infinite Mode', purpose: 'Endless AI-Director escalation; personal bests + richest loot meter.',

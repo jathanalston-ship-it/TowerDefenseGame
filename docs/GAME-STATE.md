@@ -167,6 +167,19 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 
 ### Modes & progression
 - ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director; **campaign-gated: unlocks at Stage 3**), Quick Skirmish — MODE-IDENTITY.md §gates, CAMPAIGN.md
+- ✅ **Campaign EVENTS** (`core/campaignEvents.ts`, CAMPAIGN-EVENTS.md) — the authoring SEAM that ends
+  "every stage is the same board with bigger numbers." A `CampaignEventDef` registry (9 defs, 4
+  archetypes: **eliteRush / gauntlet / cache / mutation**) that `generateStage` samples deterministically
+  (dedicated seed stream; sparse ~34% of ELIGIBLE stages; skips onboarding<4, milestone, authored-boss
+  stages). **Discipline (like runEvents):** events LAYER onto separate `StageConfig.event` fields +
+  existing sim levers — group `elite` flags (eliteRush, clamped to the 0.45 cap), `bossWaves` (gauntlet,
+  the Daily lever), `startBiomassBonus` + an `event.rewardMult` stamp (cache), and a `CardEffect[]` boon
+  (mutation) — **never** the base scaling/reward curve, so campaign.test's smooth-progression invariants
+  + golden stay green. **Consumption:** sim reads bossWaves/startBiomass/elite already; App folds
+  `event.rewardMult` at payout + the chosen mutation boon into run effects via `startCampaign(stage,
+  boonId?)`. **UI:** descent-map node badge (`CampaignMapNode.event`) + mission-card telegraph + a
+  Mutation A/B picker. **Extend:** one `CAMPAIGN_EVENTS` row per new archetype. **Golden-safe:** only
+  campaign/daily call generateStage; the golden autoplay passes no stage. campaignEvents.test.ts (11)
 - ✅ **HIVE SIEGE combat model** (2026-07): enemies attack the Hive Core as a live combat target
   (converge → crust rings → windup/cycle attack loops under all statuses; suicide fuses, artillery
   on the same gating, chassis boss cadence) + full contact-damage rebalance + under-attack

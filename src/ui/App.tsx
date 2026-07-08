@@ -22,6 +22,7 @@ import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
 import type { ResolvedHeroKit } from '../core/config';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
+import { resolveCampaignBoon } from '../core/campaignEvents';
 import type { StageConfig } from '../core/campaign';
 import { formatPower } from '../core/power';
 import { EvolutionUnlock } from './EvolutionUnlock';
@@ -104,7 +105,7 @@ export function App(): JSX.Element {
   // Bio-Roulette (docs/BOSS-RUSH.md §roulette): spores earned by the LAST settled rush run —
   // Results routes through the ceremony while this is pending; its exit clears it.
   const [roulette, setRoulette] = useState<{ spores: number } | null>(null);
-  const begin = useCallback((mode: RunMode, stage: StageConfig | null = null) => {
+  const begin = useCallback((mode: RunMode, stage: StageConfig | null = null, extraRunEffects: CardEffect[] = []) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
     // (the run stays deterministic from this snapshot).
@@ -119,7 +120,9 @@ export function App(): JSX.Element {
     setEffectsRef.current = meta.fieldedSetEffects(); // set pieces pool team-wide → the 4-piece tier can activate
     heroAbilityKitsRef.current = meta.heroAbilityKits(); // ★5/★8 forks patch each fielded hero's ability kit
 
-    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects()];
+    // Battlefield-global run effects: Genome Core seam + collection bonuses + any Campaign-event
+    // Mutation boon the player chose before deploying (docs/CAMPAIGN-EVENTS.md).
+    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...extraRunEffects];
     modeRef.current = mode;
     stageRef.current = stage;
     // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of
@@ -172,10 +175,14 @@ export function App(): JSX.Element {
     begin('bossRush');
   }, [begin]);
   // Campaign uses its OWN persisted difficulty; generate the chosen stage deterministically and play it.
-  const startCampaign = useCallback((stage: number) => {
+  const startCampaign = useCallback((stage: number, boonId?: string) => {
     difficultyRef.current = difficultyPref('campaign');
     campaignStageRef.current = stage;
-    begin('campaign', generateStage(stage, difficultyRef.current));
+    const cfg = generateStage(stage, difficultyRef.current);
+    // A Mutation event offers a run-scoped boon CHOICE (mission card); resolve the pick (else the
+    // default first option) and fold it into the run's global effects. No event / no pick ⇒ [].
+    const boon = resolveCampaignBoon(cfg.event?.boons, boonId);
+    begin('campaign', cfg, boon?.effects ?? []);
   }, [begin]);
   // Daily Run (docs/DAILY-RUN.md): ONE deterministic plan per UTC day — the same run worldwide.
   // The run seed is the DAY seed (not the usual random roll) and the day dictates the fielded hero,
@@ -199,7 +206,9 @@ export function App(): JSX.Element {
     if (modeRef.current === 'campaign') {
       result.campaignStage = campaignStageRef.current;
       result.difficulty = difficultyRef.current;
-      result.rewardMult = stageRef.current?.rewardMult;
+      // Campaign-event payout (docs/CAMPAIGN-EVENTS.md): a Cache/Gauntlet stage folds its reward × on
+      // top of the base stage reward — an authored bonus, kept off the base scaling curve.
+      result.rewardMult = (stageRef.current?.rewardMult ?? 1) * (stageRef.current?.event?.rewardMult ?? 1);
     } else if (modeRef.current === 'endless') {
       result.difficulty = difficultyRef.current; // Infinite's difficulty drives its run-end economy
     } else if (modeRef.current === 'bossRush') {

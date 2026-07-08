@@ -27,7 +27,7 @@ export function CampaignScreen({
   onStart,
   difficultyRef,
 }: {
-  onStart: (stage: number) => void;
+  onStart: (stage: number, boonId?: string) => void;
   difficultyRef: MutableRefObject<string>;
 }): JSX.Element {
   const save = meta.use();
@@ -40,6 +40,10 @@ export function CampaignScreen({
   const [viewStart, setViewStart] = useState(() => Math.max(1, frontier - 2));
   const [focus, setFocus] = useState(frontier);
   useEffect(() => { setViewStart(Math.max(1, cleared + 1 - 2)); setFocus(cleared + 1); }, [cleared, diff]);
+  // Mutation-event boon choice (docs/CAMPAIGN-EVENTS.md): the picked option id for the focused stage
+  // (null = the default first option). Cleared whenever the focus moves to a different stage.
+  const [boonPick, setBoonPick] = useState<string | null>(null);
+  useEffect(() => { setBoonPick(null); }, [focus]);
 
   const nodes = campaignMapView(cleared, diff, viewStart, WINDOW);
   const svgH = TOP * 2 + (WINDOW - 1) * ROW;
@@ -53,7 +57,7 @@ export function CampaignScreen({
     else bands.push({ id: n.biome.id, name: n.biome.name, accent: n.biome.accent, y0: y - ROW / 2 + 8, y1: y + ROW / 2 });
   });
 
-  const deploy = (n: number): void => { audio.resume(); audio.cue('ui'); difficultyRef.current = diff; meta.notePredictionBaseline('campaign', diff); onStart(n); };
+  const deploy = (n: number): void => { audio.resume(); audio.cue('ui'); difficultyRef.current = diff; meta.notePredictionBaseline('campaign', diff); onStart(n, boonPick ?? undefined); };
 
   // Focused stage — one full generation (the selected node only).
   const cfg = generateStage(focus, diff);
@@ -140,6 +144,12 @@ export function CampaignScreen({
                   {n.stage === focus && <circle cx={p.x} cy={p.y} r={r + 4} className="camp-node-focus" />}
                   <circle cx={p.x} cy={p.y} r={r} className="camp-node-dot" />
                   {n.milestone && <text x={p.x} y={p.y - r - 5} className="camp-node-ms" textAnchor="middle">◈</text>}
+                  {n.event && (
+                    <g className="camp-node-evt">
+                      <circle cx={p.x + r - 2} cy={p.y - r + 2} r="8" fill={n.event.accent} />
+                      <text x={p.x + r - 2} y={p.y - r + 5} textAnchor="middle" className="camp-node-evt-i">{n.event.icon}</text>
+                    </g>
+                  )}
                   <text x={p.x} y={p.y + 5} className="camp-node-n" textAnchor="middle">{n.stage}</text>
                 </g>
               );
@@ -160,6 +170,31 @@ export function CampaignScreen({
             <span className="camp-mod" title="Biome modifier">{cfg.modifierName}</span>
             <span className="camp-mod hazard" title={cfg.hazardDesc}>⚠ {cfg.hazardName}</span>
           </div>
+
+          {/* Authored campaign event (docs/CAMPAIGN-EVENTS.md): telegraph + the Mutation choice. */}
+          {cfg.event && (
+            <div className="camp-event" style={{ ['--ev' as string]: cfg.event.accent }}>
+              <div className="camp-event-h">
+                <span className="camp-event-i">{cfg.event.icon}</span>
+                <span className="camp-event-n">{cfg.event.name}</span>
+                {cfg.event.rewardMult && <span className="camp-event-r">rewards ×{cfg.event.rewardMult.toFixed(1)}</span>}
+              </div>
+              <p className="camp-event-d">{cfg.event.desc}</p>
+              {cfg.event.kind === 'mutation' && cfg.event.boons && (
+                <div className="camp-event-boons">
+                  {cfg.event.boons.map((b) => {
+                    const on = (boonPick ?? cfg.event!.boons![0].id) === b.id;
+                    return (
+                      <button key={b.id} className={`camp-boon${on ? ' on' : ''}`} onClick={() => setBoonPick(b.id)} type="button">
+                        <b>{b.name}</b>
+                        <span>{b.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {(() => {
             const threat = Math.min(5, 1 + Math.floor(((cfg.scaling.enemyHealthMult - 1) + (cfg.scaling.enemyDamageMult - 1)) * 1.6));

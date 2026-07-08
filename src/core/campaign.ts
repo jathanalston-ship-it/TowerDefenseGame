@@ -17,6 +17,8 @@ import { composeStageDifficulty } from './difficultyDirector';
 import { BIOMES, categoryOf } from './biomes';
 import type { Biome, BiomeCategory } from './biomes';
 import { POWER_BASE } from './power';
+import { campaignEventForStage, campaignEventStamp } from './campaignEvents';
+import type { CampaignEventDef, CampaignEventStamp } from './campaignEvents';
 
 // Biomes are the shared ecosystem layer (docs/BIOMES.md), used by BOTH Campaign and Infinite
 // mode. Re-exported here for the campaign test + any campaign-facing consumer.
@@ -120,6 +122,11 @@ export interface StageConfig {
   scaling: DifficultyDef; // combined variant×stage → Game's `this.diff`
   enemySpeedMult: number;
   rewardMult: number; // end-of-run shard/loot multiplier (currency + loot quality)
+  /** OPTIONAL authored campaign event (docs/CAMPAIGN-EVENTS.md) — an Elite Rush / Boss Gauntlet /
+   *  Genome Cache / Mutation choice this stage carries. Undefined on most stages (and always on the
+   *  golden/stage path). Its mechanical levers are already folded into the fields above; this stamp
+   *  carries what the renderer / payout / mission-card choice still need. */
+  event?: CampaignEventStamp;
 }
 
 // hashStr lives in core/hash.ts (shared with the Pages Functions backend) and is
@@ -284,7 +291,7 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
   const generatedBoss = assembleBoss(rngFn, st, biome.mods.bossChassisBias);
   const boss = campaignBossFor(st) ?? generatedBoss;
 
-  return {
+  const cfg: StageConfig = {
     stage: st,
     difficulty: difficultyId,
     biome,
@@ -303,6 +310,48 @@ export function generateStage(stage: number, difficultyId = 'standard'): StageCo
     rewardMult: sc.rewardMult * base.rewardMult,
     startBiomassBonus: stageStartAid(st),
   };
+
+  // Authored campaign event (docs/CAMPAIGN-EVENTS.md): sampled deterministically, folded through a
+  // DEDICATED rng so the base wave/scaling stream above is untouched (a no-event stage is unchanged).
+  const event = campaignEventForStage(st, difficultyId);
+  if (event) applyCampaignEvent(cfg, event, new Rng((stageSeed(st, difficultyId) ^ 0x7ea51001) >>> 0));
+  return cfg;
+}
+
+/** Fold an authored event's mechanical levers onto a finished StageConfig — writing ONLY separate
+ *  event fields + the group-elite / bossWaves / startBiomass levers the sim already consumes, never
+ *  the base scaling/rewardMult curve (so the smooth-progression invariants hold). `rng` is dedicated. */
+function applyCampaignEvent(cfg: StageConfig, def: CampaignEventDef, rng: Rng): void {
+  if (def.kind === 'eliteRush') {
+    // Force-promote composed groups (the REAL in-sim lever — elites are baked into group flags) with
+    // the standard fewer-but-stronger tradeoff; exploders never roll elite (a squad of elite bombers
+    // is an instant wipe — the same rule composeWave enforces).
+    const promote = def.elitePromote ?? 0.5;
+    for (const wave of cfg.waves) {
+      for (const g of wave) {
+        if (g.elite || ENEMY_DEFS[g.kind].explodeDamage) continue;
+        if (rng.chance(promote)) { g.elite = true; g.count = Math.max(1, Math.ceil(g.count / 2)); }
+      }
+    }
+    if (def.eliteMult) cfg.eliteFrequency = clamp(cfg.eliteFrequency * def.eliteMult, 0, C.eliteCap);
+  } else if (def.kind === 'gauntlet' && def.gauntletBosses) {
+    // Extra mid-stage bosses via the existing per-wave boss lever (StageConfig.bossWaves, from Daily).
+    const n = def.gauntletBosses;
+    const tierFrac = def.gauntletTierFrac ?? 0.45;
+    const rngFn = (): number => rng.next();
+    const bossWaves: Record<number, BossDef> = { ...(cfg.bossWaves ?? {}) };
+    for (let i = 1; i <= n; i++) {
+      const wave = Math.max(2, Math.round((cfg.waveCount * i) / (n + 1)));
+      if (wave >= cfg.waveCount || bossWaves[wave]) continue; // leave the finale to the stage boss
+      bossWaves[wave] = assembleBoss(rngFn, Math.max(1, cfg.stage * tierFrac), cfg.biome.mods.bossChassisBias);
+    }
+    cfg.bossWaves = bossWaves;
+  } else if (def.kind === 'cache' && def.startBiomassBonus) {
+    // A fat opening economy (the reward × rides the stamp, folded at payout by App — not the base curve).
+    cfg.startBiomassBonus += def.startBiomassBonus;
+  }
+  // mutation: purely a player CHOICE resolved at launch — no wave/boss change here.
+  cfg.event = campaignEventStamp(def);
 }
 
 // ── World-map read models (CAMPAIGN-MAP / docs/MODE-IDENTITY.md §3) ────────────────────────────
@@ -352,6 +401,8 @@ export interface CampaignMapNode {
   state: 'cleared' | 'current' | 'locked';
   milestone: boolean; // a CAMPAIGN_REWARDS.milestoneEvery checkpoint (bonus reward + a map landmark)
   recommendedPower: number;
+  /** OPTIONAL authored event this stage carries (docs/CAMPAIGN-EVENTS.md) — drives the map node badge. */
+  event?: { id: string; kind: string; name: string; icon: string; accent: string };
 }
 
 /** A WINDOWED slice of the campaign for the map — `cleared` = highest cleared on this difficulty
@@ -362,12 +413,14 @@ export function campaignMapView(cleared: number, difficultyId: string, viewStart
   for (let i = 0; i < count; i++) {
     const stage = start + i;
     const b = biomeForStage(stage);
+    const ev = campaignEventForStage(stage, difficultyId); // authored event (or null) — a node badge
     out.push({
       stage,
       biome: { id: b.id, name: b.name, accent: b.accent },
       state: stage <= cleared ? 'cleared' : stage === cleared + 1 ? 'current' : 'locked',
       milestone: stage % CAMPAIGN_REWARDS.milestoneEvery === 0,
       recommendedPower: recommendedPower(stage, difficultyId),
+      ...(ev ? { event: { id: ev.id, kind: ev.kind, name: ev.name, icon: ev.icon, accent: ev.accent } } : {}),
     });
   }
   return out;

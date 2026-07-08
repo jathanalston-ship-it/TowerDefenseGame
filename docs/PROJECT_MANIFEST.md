@@ -51,12 +51,18 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   (recommended-power display), save (`campaign.cleared` per difficulty).
 - **Files:** `core/campaign.ts` (stage generation, star caps, recommended power),
   `ui/CampaignScreen.tsx` (world map), `core/biomes.ts`, `core/boss.ts` + `CAMPAIGN_BOSSES`.
-  Docs: `CAMPAIGN.md`, `MODE-IDENTITY.md`, `STAGES.md`.
+  Docs: `CAMPAIGN.md`, `CAMPAIGN-EVENTS.md`, `MODE-IDENTITY.md`, `STAGES.md`.
 - **Related:** Infinite (shares the sim), Prestige (stage requirements), Gene Cards (level
   gates at stages 15/30/50/75), Heroes (slot gates at 25/90).
-- **Future expansion:** milestone bosses 2–4, biome-specific mechanics, difficulty tracks beyond
-  the current set. The stage generator is seeded + windowed — deeper content is data.
-- **Known limitations:** stages are procedural variations, not hand-authored set-pieces.
+- **Campaign events (`campaignEvents.ts`):** the authoring seam — a `CampaignEventDef` registry
+  `generateStage` samples deterministically so specific stages carry an authored identity (Elite
+  Rush / Boss Gauntlet / Genome Cache / Mutation choice). Events LAYER on separate `StageConfig.event`
+  fields + existing levers (`bossWaves`/`startBiomassBonus`/group-elite flags), never the base curve.
+- **Future expansion:** more event archetypes (one registry row each), milestone bosses 2–4,
+  biome-specific mechanics, difficulty tracks. The stage generator is seeded + windowed — deeper
+  content is data.
+- **Known limitations:** base stages are still procedural scaling between the authored events; a
+  Mutation choice is pre-stage (mission card), not an in-run modal; events don't yet feed codex/achievements.
 - **Developer tips:** the *one* way to read campaign progress is
   `highestCampaignStage(save)` from `save/derive.ts` — never re-derive from `campaign.cleared`.
 
