@@ -740,6 +740,7 @@ export function GameView({
           }}
         />
         <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} />
+        {waveBanner && <div className="wave-breach" key={`br${waveBanner.at}`} aria-hidden />}
         {waveBanner && !bossIntro && (
           <div className="wave-banner" key={waveBanner.at} aria-hidden>
             <span className="wave-banner-t">{waveBanner.endless ? `DEPTH ${waveBanner.n}` : hud.bossRush ? `WAVE ${waveBanner.n} — ${waveBanner.n} ${waveBanner.n === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${waveBanner.n}`}</span>

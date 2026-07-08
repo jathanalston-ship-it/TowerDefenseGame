@@ -12,6 +12,7 @@ import { PowerToaster } from './components/PowerToaster';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
 import { CommanderName } from './components/CommanderName';
+import { InitCutscene, introSeen } from './InitCutscene';
 import { startAutoCloudSync } from '../net/autoSync';
 import { HudTour } from './HudTour';
 import { isDebugEnabled } from '../debug/debug';
@@ -52,6 +53,9 @@ const DEPLOY_MS = 1600;
 export function App(): JSX.Element {
   // First launch / after an Account Reset → open straight into the Combat Tutorial (its own mode).
   const [screen, setScreen] = useState<Screen>(() => (meta.shouldAutoTutorial() ? 'tutorial' : 'menu'));
+  // The cold-open cinematic: first boot on this device (before even the tutorial),
+  // replayable from Settings → Help. Overlays whatever screen is behind it.
+  const [introActive, setIntroActive] = useState(() => !introSeen());
   const [last, setLast] = useState<{ result: RunResult; outcome: RunOutcome } | null>(null);
   // A Campaign milestone that raised the Star Cap this run → the Evolution Unlock sequence (over Results).
   const [evoUnlock, setEvoUnlock] = useState<EvolutionUnlockData | null>(null);
@@ -321,6 +325,7 @@ export function App(): JSX.Element {
           onSeenLast={clearLast}
           onReplayTutorial={launchTutorial}
           onReplayTour={() => setTourActive(true)}
+          onReplayIntro={() => setIntroActive(true)}
           difficultyRef={difficultyRef}
           doctrineRef={doctrineRef}
         />
@@ -353,6 +358,7 @@ export function App(): JSX.Element {
         <Results result={last.result} outcome={last.outcome} onContinue={afterResults} onReplay={roulette ? afterResults : replayRun} />
       )}
       {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
+      {introActive && <InitCutscene onDone={() => setIntroActive(false)} />}
       {screen === 'roulette' && roulette && (
         <BioRoulette spores={roulette.spores} onExit={() => { setRoulette(null); setScreen('menu'); }} />
       )}

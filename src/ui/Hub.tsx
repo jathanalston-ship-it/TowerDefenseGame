@@ -119,7 +119,7 @@ function ModeLocked({ title, glyph, blurb, stage, current, go }: {
 }
 
 /** Settings screen — save data management, the destructive reset, and audio preferences. */
-function SettingsScreen({ onReplayTutorial, onReplayTour }: { onReplayTutorial: () => void; onReplayTour: () => void }): JSX.Element {
+function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onReplayTutorial: () => void; onReplayTour: () => void; onReplayIntro: () => void }): JSX.Element {
   const [autoGene, setAutoGene] = useState(autoGenePref());
   const toggleAutoGene = (): void => {
     const next = !autoGene;
@@ -148,6 +148,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour }: { onReplayTutorial: 
           <div className="panel-sub">Re-learn the basics any time.</div>
           <button className="set-switch" onClick={onReplayTutorial}>▶ Replay Combat Tutorial</button>
           <button className="set-switch" onClick={onReplayTour}>▶ Replay Field Orientation</button>
+          <button className="set-switch" onClick={onReplayIntro}>▶ Replay Initialization</button>
         </div>
         <div className="panel">
           <div className="panel-title">Cloud Backup</div>
@@ -180,6 +181,7 @@ export function Hub({
   onSeenLast,
   onReplayTutorial,
   onReplayTour,
+  onReplayIntro,
   difficultyRef,
   doctrineRef,
 }: {
@@ -192,6 +194,7 @@ export function Hub({
   onSeenLast: () => void;
   onReplayTutorial: () => void;
   onReplayTour: () => void;
+  onReplayIntro: () => void;
   difficultyRef: MutableRefObject<string>;
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
@@ -319,7 +322,7 @@ export function Hub({
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'store' && <PremiumStore />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
-          {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} />}
+          {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} onReplayIntro={onReplayIntro} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}
         </section>
       </div>
