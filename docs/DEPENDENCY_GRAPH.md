@@ -551,7 +551,7 @@ graph TD
 
 *Combat Tutorial over a live sim, HUD Tour, mechanics-registry Help wiki, What's New, loading tips.*
 
-- **Files:** `src/core/tutorial.ts` · `src/state/tutorial.ts` · `src/state/mechanics.ts` · `src/ui/TutorialRunner.tsx` · `src/ui/tutorial/*` · `src/ui/HelpWiki.tsx` · `src/ui/WhatsNew.tsx` · `src/ui/HudTour.tsx` · `src/ui/tips.ts`
+- **Files:** `src/ui/InitCutscene.tsx` · `src/core/tutorial.ts` · `src/state/tutorial.ts` · `src/state/mechanics.ts` · `src/ui/TutorialRunner.tsx` · `src/ui/tutorial/*` · `src/ui/HelpWiki.tsx` · `src/ui/WhatsNew.tsx` · `src/ui/HudTour.tsx` · `src/ui/tips.ts`
 - **Depends on:** `engine` · `meta-store`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
