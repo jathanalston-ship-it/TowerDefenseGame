@@ -1,15 +1,20 @@
-// TOWER FORMS (docs/RENDER-PIPELINE.md, docs/TOWERS.md) — procedural bio-mechanical TURRET bodies
-// that replace the flat placeholder shapes. Each kind is a rooted structure (a planted mount + a
-// firing apparatus — barrel / cannon / maw / lens / antenna …) with idle motion + a FIRING recoil,
-// so the arsenal reads as distinct living weapons. The tower's OTHER layers (rooting tendrils, the
-// per-kind organs, mastery/adaptation/star/branch/strain evolutions) still draw over this base.
+// TOWER FORMS (docs/RENDER-PIPELINE.md, docs/TOWERS.md) — procedural, LIT bio-mechanical turrets.
+// A full-fidelity pass: every body is volumetrically shaded (radial/linear gradients under one
+// consistent key light, up-and-left), with rim light on lit edges, ambient-occlusion contact
+// shadows, metallic speculars, glowing energy cores with bloom, and greeble detail (panels, bolts,
+// vents, conduits). Idle motion breathes the cores; `fire` recoils the apparatus + flares the muzzle.
 //
 // Towers fire UP-field (the swarm descends), so barrels point up (−y) and recoil kicks DOWN on `fire`.
-// Cosmetic + render-only (never read by the sim ⇒ golden-safe). Towers are few ⇒ always full detail.
+// The tower's OTHER layers (rooting tendrils, per-kind organs, star/branch/strain/mastery/adaptation
+// evolutions) still draw OVER this base. Cosmetic + render-only ⇒ golden-safe. Towers are few (≤~12)
+// ⇒ always full detail; per-frame gradient allocation is comfortably within the 60 fps budget.
 
 import type { TowerKind } from '../core/types';
 
 type Ctx = CanvasRenderingContext2D;
+const TAU = Math.PI * 2;
+const LX = -0.4, LY = -0.92; // key light direction (up-and-left), unit-ish
+const LANG = Math.atan2(LY, LX);
 
 export type TowerForm = 'barrel' | 'cannon' | 'core' | 'nest' | 'monolith' | 'crystal' | 'maw' | 'lens' | 'pod' | 'antenna';
 
@@ -29,169 +34,245 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   polyp: 'maw',       // a rooted undertow mouth
 };
 
-// ── memoized colour shading (palette is per-kind — a handful of keys) ────────────────────────────
-const shadeCache = new Map<string, string>();
-function shade(hex: string, f: number): string {
-  const key = hex + f; const hit = shadeCache.get(key); if (hit) return hit;
+// ── colour: one memoized helper. `lit`>0 lightens toward white, <0 darkens; `a`<1 ⇒ rgba. ────────
+const triCache = new Map<string, [number, number, number]>();
+function tri(hex: string): [number, number, number] {
+  const hit = triCache.get(hex); if (hit) return hit;
   const h = hex.replace('#', ''); const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
-  const n = parseInt(full, 16); let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  if (f >= 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; } else { const k = 1 + f; r *= k; g *= k; b *= k; }
-  const out = `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`; shadeCache.set(key, out); return out;
+  const n = parseInt(full, 16); const out: [number, number, number] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  triCache.set(hex, out); return out;
 }
-const RIM = 'rgba(6,8,14,0.6)';
+const colCache = new Map<string, string>();
+function C(hex: string, lit: number, a = 1): string {
+  const key = `${hex}|${lit}|${a}`; const hit = colCache.get(key); if (hit) return hit;
+  let [r, g, b] = tri(hex);
+  if (lit >= 0) { r += (255 - r) * lit; g += (255 - g) * lit; b += (255 - b) * lit; } else { const k = 1 + lit; r *= k; g *= k; b *= k; }
+  r = Math.round(r); g = Math.round(g); b = Math.round(b);
+  const out = a >= 1 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},${a})`;
+  colCache.set(key, out); return out;
+}
+const RIM = 'rgba(4,6,12,0.7)';
 
-/** The shared planted BASE — a rooted trapezoidal mount, so every turret reads as grown into the floor. */
-function mount(ctx: Ctx, x: number, y: number, r: number, c: string): void {
+// ── shading primitives ───────────────────────────────────────────────────────────────────────
+/** A volumetric sphere/dome: radial gradient with the highlight offset toward the key light. */
+function orb(ctx: Ctx, x: number, y: number, r: number, hex: string, litAmt = 0.6): void {
+  const hx = x + LX * r * 0.5, hy = y + LY * r * 0.5;
+  const g = ctx.createRadialGradient(hx, hy, r * 0.05, x, y, r * 1.02);
+  g.addColorStop(0, C(hex, litAmt));
+  g.addColorStop(0.5, C(hex, 0.02));
+  g.addColorStop(1, C(hex, -0.5));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+}
+/** A bright arc of rim light on the light-facing edge — the single biggest "it's 3D" cue. */
+function rim(ctx: Ctx, x: number, y: number, r: number, hex: string, a = 0.6): void {
+  ctx.strokeStyle = C(hex, 0.75, a); ctx.lineWidth = Math.max(1, r * 0.09);
+  ctx.beginPath(); ctx.arc(x, y, r * 0.95, LANG - 1.15, LANG + 1.15); ctx.stroke();
+}
+/** A soft additive-looking bloom disc. */
+function bloom(ctx: Ctx, x: number, y: number, r: number, hex: string, a: number): void {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, C(hex, 0.2, a)); g.addColorStop(0.6, C(hex, 0, a * 0.4)); g.addColorStop(1, C(hex, 0, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+}
+/** A glowing energy core: outer bloom + a white-hot centre grading to the hue. */
+function energyCore(ctx: Ctx, x: number, y: number, r: number, hex: string, intensity: number): void {
+  bloom(ctx, x, y, r * 2.4, hex, 0.5 * intensity);
+  const g = ctx.createRadialGradient(x - r * 0.2, y - r * 0.2, 0, x, y, r);
+  g.addColorStop(0, `rgba(255,255,255,${0.95 * intensity})`);
+  g.addColorStop(0.45, C(hex, 0.35));
+  g.addColorStop(1, C(hex, -0.2));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+}
+/** Fill an already-built path with a vertical light→dark gradient + a dark rim; returns nothing. */
+function bevelFill(ctx: Ctx, hex: string, yTop: number, yBot: number, lw: number): void {
+  const g = ctx.createLinearGradient(0, yTop, 0, yBot);
+  g.addColorStop(0, C(hex, 0.5)); g.addColorStop(0.5, C(hex, 0.0)); g.addColorStop(1, C(hex, -0.42));
+  ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = RIM; ctx.lineWidth = lw; ctx.stroke();
+}
+/** A shaded metallic bar (vertical) with an off-centre specular streak. */
+function metalBar(ctx: Ctx, x: number, yTop: number, yBot: number, w: number, hex: string): void {
+  const g = ctx.createLinearGradient(x - w, 0, x + w, 0);
+  g.addColorStop(0, C(hex, -0.45)); g.addColorStop(0.32, C(hex, 0.15)); g.addColorStop(0.46, C(hex, 0.65));
+  g.addColorStop(0.6, C(hex, 0.05)); g.addColorStop(1, C(hex, -0.48));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.rect(x - w, yTop, w * 2, yBot - yTop); ctx.fill();
+  ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1, w * 0.28); ctx.stroke();
+}
+/** The shared planted BASE — an AO contact shadow + a shaded riveted plinth grown into the floor. */
+function mount(ctx: Ctx, x: number, y: number, r: number, hex: string): void {
+  const sg = ctx.createRadialGradient(x, y + r * 0.9, 0, x, y + r * 0.9, r * 1.35);
+  sg.addColorStop(0, 'rgba(0,0,0,0.4)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(x, y + r * 0.9, r * 1.25, r * 0.5, 0, 0, TAU); ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(x - r * 0.85, y + r * 0.9);
-  ctx.lineTo(x - r * 0.6, y + r * 0.2);
-  ctx.lineTo(x + r * 0.6, y + r * 0.2);
-  ctx.lineTo(x + r * 0.85, y + r * 0.9);
-  ctx.closePath();
-  ctx.fillStyle = shade(c, -0.45); ctx.fill();
-  ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.2, r * 0.1); ctx.stroke();
+  ctx.moveTo(x - r * 0.92, y + r * 0.98); ctx.lineTo(x - r * 0.64, y + r * 0.16);
+  ctx.lineTo(x + r * 0.64, y + r * 0.16); ctx.lineTo(x + r * 0.92, y + r * 0.98); ctx.closePath();
+  bevelFill(ctx, hex, y + r * 0.16, y + r * 0.98, Math.max(1.2, r * 0.09));
+  ctx.strokeStyle = C(hex, 0.35, 0.5); ctx.lineWidth = Math.max(1, r * 0.05); // top edge highlight
+  ctx.beginPath(); ctx.moveTo(x - r * 0.62, y + r * 0.17); ctx.lineTo(x + r * 0.62, y + r * 0.17); ctx.stroke();
+  for (const bx of [-0.72, 0.72]) { ctx.fillStyle = C(hex, -0.5); ctx.beginPath(); ctx.arc(x + bx * r, y + r * 0.62, r * 0.075, 0, TAU); ctx.fill(); ctx.fillStyle = C(hex, 0.4, 0.6); ctx.beginPath(); ctx.arc(x + bx * r - r * 0.02, y + r * 0.6, r * 0.03, 0, TAU); ctx.fill(); }
 }
-
-/** A muzzle flare at (mx,my) scaled by the firing pulse — a sharp cross-spark + a hot core. */
-function muzzle(ctx: Ctx, mx: number, my: number, r: number, c: string, fire: number): void {
-  if (fire <= 0.02) return;
-  const f = fire;
-  ctx.fillStyle = `rgba(255,240,200,${0.9 * f})`;
-  ctx.beginPath(); ctx.arc(mx, my, r * 0.32 * (0.6 + f), 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = `rgba(${shadeToken(c, 0.4)},${0.7 * f})`; ctx.lineWidth = Math.max(1.5, r * 0.14);
-  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + Math.cos(a) * r * (0.4 + f * 0.6), my + Math.sin(a) * r * (0.4 + f * 0.6)); ctx.stroke(); }
-}
-// a lighter shade returned as an "r,g,b" token for rgba() (muzzle sparks)
-function shadeToken(hex: string, f: number): string { return shade(hex, f).slice(4, -1).split(',').join(','); }
 
 // ── per-form drawers ─────────────────────────────────────────────────────────────────────────
 function barrel(ctx: Ctx, x: number, y: number, r: number, c: string, _now: number, fire: number, br: number): void {
   mount(ctx, x, y, r, c);
-  const recoil = fire * r * 0.28; // kicks down into the mount
-  const bx = x, by = y + recoil, len = r * 1.15, w = r * 0.34;
-  ctx.fillStyle = shade(c, -0.15); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.2, r * 0.1);
-  ctx.beginPath(); ctx.rect(bx - w, by - len, w * 2, len + r * 0.3); ctx.fill(); ctx.stroke(); // the barrel
-  ctx.fillStyle = shade(c, 0.1); // a bright spike tip
-  ctx.beginPath(); ctx.moveTo(bx - w, by - len); ctx.lineTo(bx, by - len - r * 0.5); ctx.lineTo(bx + w, by - len); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(x, y + r * 0.1, r * 0.7 * br, r * 0.5, 0, 0, Math.PI * 2); // the housing
-  ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = RIM; ctx.stroke();
-  ctx.fillStyle = shade(c, 0.45); ctx.beginPath(); ctx.arc(x - r * 0.18, y - r * 0.02, r * 0.16, 0, Math.PI * 2); ctx.fill();
-  muzzle(ctx, bx, by - len - r * 0.5, r, c, fire);
+  const recoil = fire * r * 0.3;
+  const by = y + recoil, len = r * 1.2, w = r * 0.32;
+  metalBar(ctx, x, by - len, by + r * 0.28, w, c); // the machined barrel
+  ctx.fillStyle = C(c, -0.6); ctx.beginPath(); ctx.ellipse(x, by - len, w, r * 0.1, 0, 0, TAU); ctx.fill(); // dark bore
+  ctx.beginPath(); ctx.moveTo(x - w * 1.15, by - len + r * 0.06); ctx.lineTo(x, by - len - r * 0.5); ctx.lineTo(x + w * 1.15, by - len + r * 0.06); ctx.closePath(); // spike tip
+  bevelFill(ctx, c, by - len - r * 0.5, by - len, Math.max(1, r * 0.07));
+  orb(ctx, x, y + r * 0.06, r * 0.66 * br, c); rim(ctx, x, y + r * 0.06, r * 0.66 * br, c, 0.55); // housing
+  ctx.fillStyle = C(c, -0.55); ctx.beginPath(); ctx.arc(x, y + r * 0.06, r * 0.2, 0, TAU); ctx.fill(); // recessed port
+  bloom(ctx, x, y + r * 0.06, r * 0.35, c, 0.25 + fire * 0.4); // breech glow
+  muzzle(ctx, x, by - len - r * 0.5, r, c, fire);
 }
 
 function cannon(ctx: Ctx, x: number, y: number, r: number, c: string, _now: number, fire: number, br: number): void {
-  mount(ctx, x, y, r * 1.05, c);
-  const recoil = fire * r * 0.34;
+  mount(ctx, x, y, r * 1.08, c);
+  const recoil = fire * r * 0.36;
   const by = y + recoil;
-  ctx.save(); ctx.translate(x, by); ctx.rotate(-0.16); // angled up-field
-  ctx.fillStyle = shade(c, -0.25); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.4, r * 0.12);
-  ctx.beginPath(); ctx.rect(-r * 0.42, -r * 1.15, r * 0.84, r * 1.25); ctx.fill(); ctx.stroke(); // fat tube
-  ctx.fillStyle = shade(c, -0.5); ctx.beginPath(); ctx.ellipse(0, -r * 1.15, r * 0.42, r * 0.2, 0, 0, Math.PI * 2); ctx.fill(); // dark bore
+  ctx.save(); ctx.translate(x, by); ctx.rotate(-0.15);
+  const g = ctx.createLinearGradient(-r * 0.5, 0, r * 0.5, 0); // fat tube, cross-lit
+  g.addColorStop(0, C(c, -0.5)); g.addColorStop(0.4, C(c, 0.25)); g.addColorStop(0.5, C(c, 0.6)); g.addColorStop(0.62, C(c, 0.05)); g.addColorStop(1, C(c, -0.52));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.rect(-r * 0.44, -r * 1.2, r * 0.88, r * 1.35); ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.4, r * 0.1); ctx.stroke();
+  for (const yy of [-0.95, -0.55]) { ctx.strokeStyle = C(c, -0.35); ctx.lineWidth = Math.max(1, r * 0.09); ctx.beginPath(); ctx.moveTo(-r * 0.44, yy * r); ctx.lineTo(r * 0.44, yy * r); ctx.stroke(); } // reinforcing bands
+  ctx.fillStyle = C(c, -0.62); ctx.beginPath(); ctx.ellipse(0, -r * 1.2, r * 0.44, r * 0.16, 0, 0, TAU); ctx.fill(); // dark bore
+  bloom(ctx, 0, -r * 1.2, r * 0.5, c, fire * 0.6); // heat
   ctx.restore();
-  ctx.beginPath(); ctx.ellipse(x, y + r * 0.15, r * 0.8 * br, r * 0.55, 0, 0, Math.PI * 2); // armored breech
-  ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = RIM; ctx.stroke();
-  ctx.fillStyle = shade(c, -0.35); ctx.lineWidth = Math.max(1, r * 0.08); ctx.strokeStyle = shade(c, -0.35);
-  ctx.beginPath(); ctx.moveTo(x - r * 0.5, y + r * 0.15); ctx.lineTo(x + r * 0.5, y + r * 0.15); ctx.stroke(); // bolt seam
-  const mA = -0.16; muzzle(ctx, x + Math.sin(mA) * r * 1.15, by - Math.cos(mA) * r * 1.15, r * 1.2, c, fire);
+  orb(ctx, x, y + r * 0.18, r * 0.82 * br, c); rim(ctx, x, y + r * 0.18, r * 0.82 * br, c, 0.5); // armored breech
+  muzzle(ctx, x + Math.sin(-0.15) * r * 1.2, by - Math.cos(-0.15) * r * 1.2, r * 1.25, c, fire);
 }
 
 function core(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, _fire: number, br: number): void {
   mount(ctx, x, y, r, c);
-  const p = 0.9 + 0.12 * Math.sin(now * 3); // reactor throb
-  for (let i = 0; i < 2; i++) { ctx.strokeStyle = `rgba(${shadeToken(c, 0.2)},${0.3 - i * 0.12})`; ctx.lineWidth = Math.max(1, r * 0.09); ctx.beginPath(); ctx.arc(x, y, r * (0.8 + i * 0.3) * p, 0, Math.PI * 2); ctx.stroke(); } // coolant rings
-  ctx.beginPath(); ctx.arc(x, y, r * 0.7 * br, 0, Math.PI * 2); ctx.fillStyle = shade(c, -0.2); ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.11); ctx.stroke(); // shell
-  ctx.beginPath(); ctx.arc(x, y, r * 0.4 * p, 0, Math.PI * 2); ctx.fillStyle = shade(c, 0.4); ctx.fill(); // glowing core (the white core overlays)
-  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2 + now * 0.4; ctx.fillStyle = shade(c, -0.4); ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * 0.7, y + Math.sin(a) * r * 0.7, r * 0.08, 0, Math.PI * 2); ctx.fill(); } // bolt studs
+  const p = 0.85 + 0.15 * (0.5 + 0.5 * Math.sin(now * 3)); // reactor throb
+  const shell = ctx.createRadialGradient(x + LX * r * 0.4, y + LY * r * 0.4, r * 0.1, x, y, r * 0.82 * br); // dark metallic shell
+  shell.addColorStop(0, C(c, -0.15)); shell.addColorStop(1, C(c, -0.62));
+  ctx.fillStyle = shell; ctx.beginPath(); ctx.arc(x, y, r * 0.82 * br, 0, TAU); ctx.fill();
+  ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.1); ctx.stroke();
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + now * 0.3; ctx.fillStyle = C(c, -0.6); ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * 0.68, y + Math.sin(a) * r * 0.68, r * 0.075, 0, TAU); ctx.fill(); ctx.fillStyle = C(c, 0.5, 0.5); ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * 0.68 - r * 0.02, y + Math.sin(a) * r * 0.68 - r * 0.02, r * 0.03, 0, TAU); ctx.fill(); } // bolts
+  ctx.strokeStyle = C(c, 0.4, 0.35 + 0.25 * p); ctx.lineWidth = Math.max(1, r * 0.06); // containment window ring
+  ctx.beginPath(); ctx.arc(x, y, r * 0.5, 0, TAU); ctx.stroke();
+  energyCore(ctx, x, y, r * 0.4 * p, c, 0.85); // the plasma core (the white overlay adds on top)
+  rim(ctx, x, y, r * 0.82 * br, c, 0.4);
 }
 
 function nest(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, _fire: number, br: number): void {
   mount(ctx, x, y, r, c);
-  // a lumpy organic mound of fused sacs (the churning egg-sac overlay animates on top)
-  ctx.fillStyle = c; ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.2, r * 0.1);
+  bloom(ctx, x, y, r * 1.3, c, 0.2 + 0.08 * Math.sin(now * 1.5)); // subsurface glow
   ctx.beginPath();
-  for (let i = 0; i <= 10; i++) { const a = (i / 10) * Math.PI * 2; const rr = r * (0.72 + 0.12 * Math.sin(a * 3 + now * 0.8)) * br; const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * 0.9; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
-  ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = shade(c, 0.35); ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.ellipse(x - r * 0.25, y - r * 0.25, r * 0.25, r * 0.18, -0.4, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+  for (let i = 0; i <= 12; i++) { const a = (i / 12) * TAU; const rr = r * (0.74 + 0.1 * Math.sin(a * 3 + now * 0.8)) * br; const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * 0.92; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
+  ctx.closePath();
+  const g = ctx.createRadialGradient(x + LX * r * 0.4, y + LY * r * 0.4, r * 0.1, x, y, r);
+  g.addColorStop(0, C(c, 0.45)); g.addColorStop(0.55, C(c, 0.0)); g.addColorStop(1, C(c, -0.4));
+  ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.2, r * 0.09); ctx.stroke();
+  ctx.strokeStyle = C(c, -0.35, 0.7); ctx.lineWidth = Math.max(1, r * 0.06); // pulsing veins
+  for (let i = 0; i < 4; i++) { const a = i * 1.7 + 0.5; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + Math.cos(a) * r * 0.4, y + Math.sin(a) * r * 0.5, x + Math.cos(a) * r * 0.7, y + Math.sin(a) * r * 0.6); ctx.stroke(); }
+  ctx.fillStyle = C(c, 0.55, 0.4); ctx.beginPath(); ctx.ellipse(x - r * 0.28, y - r * 0.3, r * 0.22, r * 0.14, -0.4, 0, TAU); ctx.fill(); // membrane sheen
 }
 
 function monolith(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, _fire: number, _br: number): void {
   mount(ctx, x, y, r * 0.9, c);
-  const sway = Math.sin(now * 1.2) * r * 0.03;
-  ctx.beginPath(); // a tall faceted spike
-  ctx.moveTo(x + sway, y - r * 1.5);
-  ctx.lineTo(x + r * 0.5, y - r * 0.2);
-  ctx.lineTo(x + r * 0.3, y + r * 0.5);
-  ctx.lineTo(x - r * 0.3, y + r * 0.5);
-  ctx.lineTo(x - r * 0.5, y - r * 0.2);
-  ctx.closePath();
-  ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.11); ctx.stroke();
-  ctx.strokeStyle = shade(c, -0.35); ctx.lineWidth = Math.max(1, r * 0.09); // facet seam
-  ctx.beginPath(); ctx.moveTo(x + sway, y - r * 1.5); ctx.lineTo(x, y + r * 0.5); ctx.stroke();
-  ctx.fillStyle = shade(c, 0.5 + 0.3 * Math.sin(now * 2)); // lit apex crystal
-  ctx.beginPath(); ctx.arc(x + sway, y - r * 1.2, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  bloom(ctx, x, y - r * 1.15, r * 0.7, c, 0.35 + 0.15 * Math.sin(now * 2)); // apex glow behind
+  const sway = Math.sin(now * 1.1) * r * 0.03;
+  const facesL: [number, number][] = [[x + sway, y - r * 1.5], [x - 0.06 * r, y + r * 0.5], [x - r * 0.42, y - r * 0.15]];
+  const facesR: [number, number][] = [[x + sway, y - r * 1.5], [x + r * 0.42, y - r * 0.15], [x - 0.06 * r, y + r * 0.5]];
+  ctx.beginPath(); facesL.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+  ctx.fillStyle = C(c, 0.28); ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.2, r * 0.09); ctx.stroke(); // lit face
+  ctx.beginPath(); facesR.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+  ctx.fillStyle = C(c, -0.32); ctx.fill(); ctx.stroke(); // shadowed face
+  ctx.strokeStyle = C(c, 0.6, 0.35 + 0.3 * Math.sin(now * 2.4)); ctx.lineWidth = Math.max(1, r * 0.05); // glowing glyph seam
+  ctx.beginPath(); ctx.moveTo(x + sway, y - r * 1.3); ctx.lineTo(x, y + r * 0.3); ctx.stroke();
+  energyCore(ctx, x + sway, y - r * 1.22, r * 0.18, c, 0.9); // lit apex crystal
 }
 
 function crystal(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, _fire: number, _br: number): void {
   mount(ctx, x, y, r * 0.85, c);
-  const glow = 0.8 + 0.2 * Math.sin(now * 2.2); // a cluster of amber shards
-  const shards = [[0, -1.35, 0.5], [-0.7, -0.5, 0.42], [0.7, -0.5, 0.42], [-0.3, -0.9, 0.34], [0.3, -0.9, 0.34]];
+  bloom(ctx, x, y - r * 0.5, r * 1.1, c, 0.22 + 0.1 * Math.sin(now * 2.2)); // inner refraction glow
+  const shards: [number, number, number][] = [[0, -1.4, 0.5], [-0.72, -0.5, 0.42], [0.72, -0.5, 0.42], [-0.32, -0.95, 0.32], [0.32, -0.95, 0.32]];
   for (const [dx, dy, sw] of shards) {
-    ctx.beginPath(); ctx.moveTo(x + dx * r, y + dy * r); ctx.lineTo(x + (dx - sw) * r, y + (dy + 0.6) * r); ctx.lineTo(x + (dx + sw) * r, y + (dy + 0.6) * r); ctx.closePath();
-    ctx.fillStyle = shade(c, -0.1 + 0.3 * glow); ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1, r * 0.08); ctx.stroke();
+    const tipY = y + dy * r, baseY = y + (dy + 0.62) * r;
+    ctx.beginPath(); ctx.moveTo(x + dx * r, tipY); ctx.lineTo(x + (dx - sw) * r, baseY); ctx.lineTo(x + (dx + sw) * r, baseY); ctx.closePath();
+    const g = ctx.createLinearGradient(0, tipY, 0, baseY);
+    g.addColorStop(0, C(c, 0.6)); g.addColorStop(0.5, C(c, 0.05)); g.addColorStop(1, C(c, -0.4));
+    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1, r * 0.07); ctx.stroke();
+    ctx.strokeStyle = C(c, 0.8, 0.5); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + dx * r, tipY); ctx.lineTo(x + (dx - sw * 0.4) * r, (tipY + baseY) / 2); ctx.stroke(); // caustic edge
   }
-  ctx.fillStyle = `rgba(${shadeToken(c, 0.6)},${glow * 0.5})`; ctx.beginPath(); ctx.arc(x, y - r * 0.5, r * 0.28, 0, Math.PI * 2); ctx.fill();
+  energyCore(ctx, x, y - r * 0.5, r * 0.24, c, 0.7 + 0.2 * Math.sin(now * 3)); // core glint
 }
 
 function maw(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, br: number): void {
   mount(ctx, x, y, r, c);
-  const gape = r * (0.32 + fire * 0.35 + 0.05 * Math.sin(now * 2)); // gapes wider on fire
-  ctx.beginPath(); ctx.arc(x, y, r * 0.85 * br, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.4, r * 0.12); ctx.stroke(); // ring lip
-  ctx.beginPath(); ctx.ellipse(x, y, r * 0.55, gape, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(15,6,12,0.92)'; ctx.fill(); // gullet
-  ctx.fillStyle = shade(c, 0.6); // ring of teeth
-  const teeth = 10;
-  for (let i = 0; i < teeth; i++) { const a = (i / teeth) * Math.PI * 2; const ir = r * 0.55, or2 = r * 0.75; ctx.beginPath(); ctx.moveTo(x + Math.cos(a - 0.12) * or2, y + Math.sin(a - 0.12) * or2); ctx.lineTo(x + Math.cos(a) * ir, y + Math.sin(a) * ir); ctx.lineTo(x + Math.cos(a + 0.12) * or2, y + Math.sin(a + 0.12) * or2); ctx.closePath(); ctx.fill(); }
+  const gape = r * (0.32 + fire * 0.35 + 0.05 * Math.sin(now * 2));
+  orb(ctx, x, y, r * 0.9 * br, c, 0.4); // fleshy lip ring, wet-shaded
+  const gg = ctx.createRadialGradient(x, y, 0, x, y, gape * 1.4); // deep gullet
+  gg.addColorStop(0, 'rgba(2,0,2,1)'); gg.addColorStop(0.7, C(c, -0.75)); gg.addColorStop(1, C(c, -0.55));
+  ctx.fillStyle = gg; ctx.beginPath(); ctx.ellipse(x, y, r * 0.56, gape, 0, 0, TAU); ctx.fill();
+  bloom(ctx, x, y, gape * 1.3, c, 0.3 + fire * 0.4); // throat glow
+  const teeth = 11;
+  for (let i = 0; i < teeth; i++) { const a = (i / teeth) * TAU; const ir = r * 0.54, or2 = r * 0.78; ctx.beginPath(); ctx.moveTo(x + Math.cos(a - 0.12) * or2, y + Math.sin(a - 0.12) * or2); ctx.lineTo(x + Math.cos(a) * ir, y + Math.sin(a) * ir); ctx.lineTo(x + Math.cos(a + 0.12) * or2, y + Math.sin(a + 0.12) * or2); ctx.closePath(); ctx.fillStyle = i % 2 ? C(c, 0.65) : C(c, 0.45); ctx.fill(); } // fangs
+  rim(ctx, x, y, r * 0.9 * br, c, 0.55);
+  ctx.fillStyle = C(c, 0.7, 0.5); ctx.beginPath(); ctx.ellipse(x - r * 0.3, y - r * 0.4, r * 0.16, r * 0.09, -0.5, 0, TAU); ctx.fill(); // wet highlight
 }
 
 function lens(ctx: Ctx, x: number, y: number, r: number, c: string, _now: number, _fire: number, br: number): void {
   mount(ctx, x, y, r, c);
-  // a faceted crystalline emitter housing (the heat/iris organ overlays draw the live core)
-  const facets = 6;
+  const facets = 6, rr = r * 0.86 * br;
   ctx.beginPath();
-  for (let i = 0; i < facets; i++) { const a = (Math.PI * 2 / facets) * i - Math.PI / 2; const px = x + Math.cos(a) * r * 0.85 * br, py = y + Math.sin(a) * r * 0.85 * br; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
-  ctx.closePath(); ctx.fillStyle = shade(c, -0.25); ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.11); ctx.stroke();
-  ctx.strokeStyle = shade(c, 0.2); ctx.lineWidth = Math.max(1, r * 0.07); // inner facet lines
-  for (let i = 0; i < facets; i++) { const a = (Math.PI * 2 / facets) * i - Math.PI / 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r * 0.85, y + Math.sin(a) * r * 0.85); ctx.stroke(); }
+  for (let i = 0; i < facets; i++) { const a = (TAU / facets) * i - Math.PI / 2; const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
+  ctx.closePath();
+  const g = ctx.createRadialGradient(x + LX * r * 0.4, y + LY * r * 0.4, r * 0.1, x, y, rr);
+  g.addColorStop(0, C(c, 0.3)); g.addColorStop(0.6, C(c, -0.2)); g.addColorStop(1, C(c, -0.55));
+  ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.1); ctx.stroke();
+  ctx.strokeStyle = C(c, 0.35, 0.6); ctx.lineWidth = Math.max(1, r * 0.05); // facet seams catching light
+  for (let i = 0; i < facets; i++) { const a = (TAU / facets) * i - Math.PI / 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); ctx.stroke(); }
+  bloom(ctx, x, y, r * 0.7, c, 0.28); // lens has an inner light (the heat/iris organ overlays the live core)
 }
 
 function pod(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, br: number): void {
   mount(ctx, x, y, r, c);
-  const swell = 1 + 0.05 * Math.sin(now * 1.6); // a swollen seed-pod
-  ctx.beginPath(); ctx.ellipse(x, y - r * 0.05, r * 0.72 * br, r * 0.85 * swell, 0, 0, Math.PI * 2);
-  ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.11); ctx.stroke();
-  ctx.strokeStyle = shade(c, -0.35); ctx.lineWidth = Math.max(1, r * 0.09); // ridges
-  for (const s of [-0.35, 0, 0.35]) { ctx.beginPath(); ctx.moveTo(x + s * r, y - r * 0.8); ctx.quadraticCurveTo(x + s * r * 1.5, y, x + s * r, y + r * 0.7); ctx.stroke(); }
-  // a top vent that flashes when it lobs a mine
-  ctx.fillStyle = fire > 0.02 ? `rgba(180,255,120,${0.5 + fire * 0.5})` : shade(c, -0.4);
-  ctx.beginPath(); ctx.ellipse(x, y - r * 0.85, r * 0.24, r * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+  bloom(ctx, x, y, r * 1.2, c, 0.18); // subsurface
+  const swell = 1 + 0.05 * Math.sin(now * 1.6);
+  const bx = r * 0.72 * br, byr = r * 0.86 * swell;
+  ctx.beginPath(); ctx.ellipse(x, y - r * 0.05, bx, byr, 0, 0, TAU);
+  const g = ctx.createRadialGradient(x + LX * r * 0.4, y - r * 0.05 + LY * r * 0.4, r * 0.1, x, y - r * 0.05, byr);
+  g.addColorStop(0, C(c, 0.5)); g.addColorStop(0.55, C(c, 0.0)); g.addColorStop(1, C(c, -0.42));
+  ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = RIM; ctx.lineWidth = Math.max(1.3, r * 0.1); ctx.stroke();
+  ctx.strokeStyle = C(c, -0.4); ctx.lineWidth = Math.max(1, r * 0.08); // ridges
+  for (const s of [-0.4, 0, 0.4]) { ctx.beginPath(); ctx.moveTo(x + s * r * 0.8, y - r * 0.8); ctx.quadraticCurveTo(x + s * r * 1.5, y, x + s * r * 0.8, y + r * 0.68); ctx.stroke(); }
+  const vent = fire > 0.02;
+  bloom(ctx, x, y - r * 0.85, r * (0.4 + fire * 0.5), vent ? '#b6ff78' : c, vent ? 0.6 : 0.15);
+  ctx.fillStyle = vent ? C('#b6ff78', 0.3, 0.6 + fire * 0.4) : C(c, -0.45); ctx.beginPath(); ctx.ellipse(x, y - r * 0.85, r * 0.24, r * 0.13, 0, 0, TAU); ctx.fill();
 }
 
 function antenna(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, _br: number): void {
   mount(ctx, x, y, r * 0.8, c);
-  ctx.strokeStyle = shade(c, -0.1); ctx.lineWidth = Math.max(1.6, r * 0.16); ctx.lineCap = 'round'; // the thin mast
-  ctx.beginPath(); ctx.moveTo(x, y + r * 0.3); ctx.lineTo(x, y - r * 1.4); ctx.stroke();
-  ctx.strokeStyle = shade(c, 0.2); ctx.lineWidth = Math.max(1, r * 0.08); // cross struts
-  for (const sy of [-1.1, -0.7, -0.3]) { ctx.beginPath(); ctx.moveTo(x - r * 0.3, y + sy * r); ctx.lineTo(x + r * 0.3, y + sy * r); ctx.stroke(); }
+  metalBar(ctx, x, y - r * 1.45, y + r * 0.3, r * 0.09, c); // the mast
+  ctx.strokeStyle = C(c, 0.25); ctx.lineWidth = Math.max(1.2, r * 0.09); ctx.lineCap = 'round'; // insulator struts
+  for (const sy of [-1.15, -0.75, -0.35]) { ctx.beginPath(); ctx.moveTo(x - r * 0.32, y + sy * r); ctx.lineTo(x + r * 0.32, y + sy * r); ctx.stroke(); }
   ctx.lineCap = 'butt';
-  const spark = 0.6 + 0.4 * Math.sin(now * 6); // arcing tip
-  ctx.fillStyle = `rgba(${shadeToken(c, 0.6)},${spark})`; ctx.beginPath(); ctx.arc(x, y - r * 1.4, r * 0.2 + fire * r * 0.2, 0, Math.PI * 2); ctx.fill();
-  if (spark > 0.85 || fire > 0.02) { ctx.strokeStyle = `rgba(${shadeToken(c, 0.5)},0.7)`; ctx.lineWidth = 1.5; for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2; ctx.beginPath(); ctx.moveTo(x, y - r * 1.4); ctx.lineTo(x + Math.cos(a) * r * 0.5, y - r * 1.4 + Math.sin(a) * r * 0.5); ctx.stroke(); } }
+  const spark = 0.55 + 0.45 * Math.sin(now * 6); // energy climbing to the tip
+  ctx.strokeStyle = C(c, 0.6, spark * 0.6); ctx.lineWidth = Math.max(1, r * 0.05);
+  ctx.beginPath(); ctx.moveTo(x, y + r * 0.2); ctx.lineTo(x, y - r * 1.4); ctx.stroke();
+  energyCore(ctx, x, y - r * 1.42, r * 0.16 + fire * r * 0.16, c, 0.7 + spark * 0.3); // arcing tip
+  if (spark > 0.8 || fire > 0.02) { ctx.strokeStyle = C(c, 0.7, 0.7); ctx.lineWidth = 1.4; for (let i = 0; i < 3; i++) { const a = Math.random() * TAU; ctx.beginPath(); ctx.moveTo(x, y - r * 1.42); ctx.lineTo(x + Math.cos(a) * r * 0.5, y - r * 1.42 + Math.sin(a) * r * 0.5); ctx.stroke(); } }
+}
+
+/** A muzzle flare — a hot core + a directional cross-spark, scaled by the firing pulse. */
+function muzzle(ctx: Ctx, mx: number, my: number, r: number, c: string, fire: number): void {
+  if (fire <= 0.02) return;
+  const f = fire;
+  bloom(ctx, mx, my, r * (0.6 + f * 0.9), '#ffe6b0', 0.8 * f);
+  ctx.fillStyle = `rgba(255,245,215,${0.95 * f})`; ctx.beginPath(); ctx.arc(mx, my, r * 0.28 * (0.6 + f), 0, TAU); ctx.fill();
+  ctx.strokeStyle = C(c, 0.5, 0.7 * f); ctx.lineWidth = Math.max(1.5, r * 0.13);
+  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + Math.cos(a) * r * (0.45 + f * 0.7), my + Math.sin(a) * r * (0.45 + f * 0.7)); ctx.stroke(); }
 }
 
 const DRAWERS: Record<TowerForm, (ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, br: number) => void> = {
   barrel, cannon, core, nest, monolith, crystal, maw, lens, pod, antenna,
 };
 
-/** Draw a tower's procedural turret body. `fire` (0..1) is the recoil/muzzle pulse (from `fresh`),
+/** Draw a tower's LIT procedural turret body. `fire` (0..1) is the recoil/muzzle pulse (from `fresh`),
  *  `br` the idle breathe scale. Replaces the flat placeholder shape; other layers draw over it. */
 export function drawTowerForm(ctx: Ctx, kind: TowerKind, x: number, y: number, r: number, color: string, now: number, fire: number, br: number): void {
   DRAWERS[TOWER_FORM[kind]](ctx, x, y, r, color, now, fire, br);
