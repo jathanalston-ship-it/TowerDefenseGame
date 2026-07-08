@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { defaultLifetimeStats, defaultSave, serializeExport } from '../save/saveStore';
-import { isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
+import { heroShardUnlockPool, isHeroUnlocked, meta, metaModifiers, upgradeCost, nextUpgradeCost, genomeRunEffects } from './meta';
 import type { RunResult } from './meta';
 import { CAMPAIGN_REWARDS, HERO_ORDER, META_UPGRADES, TOWER_ORDER } from '../core/config';
 import { stageWaveCount } from '../core/campaign';
 import { costOf, isLootRarity } from '../core/loot';
-import type { RunStats } from '../core/types';
+import type { HeroKind, RunStats } from '../core/types';
 import { defaultPrestige } from '../core/prestige';
 import { gameEvents } from '../core/events';
 
@@ -136,6 +136,34 @@ describe('hero unlock gating (isHeroUnlocked)', () => {
     meta.debugUnlockHeroes(); // records a boss kill → Vitriol earned (+ claims the Shard heroes)
     meta.setSelectedHero('vitriol');
     expect(meta.selectedHero()).toBe('vitriol');
+    meta.reset();
+  });
+});
+
+describe('hero Shard economy — Vitriol upgrades with Shards like the rest', () => {
+  it('the unlock-shard pool holds only Shard-unlockable locked heroes (milestone heroes excluded)', () => {
+    const pool = heroShardUnlockPool(defaultSave());
+    expect(pool).toContain('shepherd'); // Shard-gated + locked → accumulates unlock shards
+    expect(pool).toContain('overseer');
+    expect(pool).not.toContain('vitriol'); // milestone — can't spend unlock shards, must not soak the pool
+    expect(pool).not.toContain('revenant');
+    expect(pool).not.toContain('ravager'); // starter — already owned
+  });
+
+  it('once the Shard-unlock queue drains, the pool is empty so drops fund EVERY hero (incl. Vitriol) for Stars', () => {
+    const owned = { ...defaultSave(), heroUnlocked: ['shepherd', 'overseer'] as HeroKind[], bossesSlain: ['brood_tyrant'], bestWave: 99999 };
+    expect(heroShardUnlockPool(owned)).toEqual([]); // empty ⇒ rollLoot falls back to HERO_IDS (all heroes)
+  });
+
+  it('Vitriol earns + spends Hero Shards on Stars to the SAME cap as a Shard hero', () => {
+    meta.reset();
+    meta.debugUnlockHeroes(); // own every hero (Vitriol via its feat)
+    meta.debugAddHeroShards(1000); // Shards land on every hero, Vitriol included
+    const buyAll = (k: 'vitriol' | 'shepherd'): number => { let n = 0; while (meta.buyHeroStar(k)) n++; return n; };
+    const vitriolStars = buyAll('vitriol');
+    const shepherdStars = buyAll('shepherd');
+    expect(vitriolStars).toBeGreaterThan(0); // Vitriol CAN be upgraded with Shards …
+    expect(vitriolStars).toBe(shepherdStars); // … to the same Star cap as a Shard hero — "like the rest"
     meta.reset();
   });
 });
