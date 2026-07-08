@@ -40,3 +40,16 @@ export async function restoreFromCloud(): Promise<CloudResult> {
     return { ok: false, error: 'network' };
   }
 }
+
+/** Erase the cloud slot entirely (Settings → the privacy deletion right). Local
+ *  saves are untouched — this only removes the server copy. */
+export async function deleteCloudSave(): Promise<CloudResult> {
+  try {
+    const res = await fetch(`/api/save?playerId=${encodeURIComponent(playerId())}&token=${encodeURIComponent(syncToken())}`, { method: 'DELETE' });
+    const body = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+    if (!res.ok || !body?.ok) return { ok: false, error: body?.error ?? `delete failed (${res.status})` };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'network' };
+  }
+}

@@ -123,6 +123,10 @@ class FakeStatement {
       const row = db.cloudSaves.get(String(args[0]));
       return { rows: row ? [row] : [], changes: 0 };
     }
+    if (sql.startsWith('DELETE FROM cloud_saves')) {
+      const existed = db.cloudSaves.delete(String(args[0]));
+      return { rows: [], changes: existed ? 1 : 0 };
+    }
     if (sql.startsWith('INSERT INTO cloud_saves')) {
       db.cloudSaves.set(String(args[0]), {
         player_id: args[0], token_hash: args[1], blob: args[2], size: args[3], updated_at: args[4],

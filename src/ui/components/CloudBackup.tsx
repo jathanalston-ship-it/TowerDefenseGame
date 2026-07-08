@@ -2,7 +2,7 @@
 // existing local file/backup tools. docs/DEPLOYMENT.md §cloud-save.
 
 import { useState } from 'react';
-import { backupToCloud, restoreFromCloud } from '../../net/cloudSave';
+import { backupToCloud, deleteCloudSave, restoreFromCloud } from '../../net/cloudSave';
 import { adoptSyncCode, syncCode } from '../../net/identity';
 
 export function CloudBackup(): JSX.Element {
@@ -50,6 +50,15 @@ export function CloudBackup(): JSX.Element {
           </button>
         </div>
       )}
+      <div className="cloudbk-row">
+        <button
+          className="set-switch"
+          disabled={busy}
+          onClick={() => { if (confirm('Erase the CLOUD copy of your save? Your local save stays on this device.')) run(deleteCloudSave, 'Cloud data erased.'); }}
+        >
+          ✕ Delete cloud data
+        </button>
+      </div>
       {msg && <div className="cloudbk-msg" role="status">{msg}</div>}
     </div>
   );

@@ -2,7 +2,7 @@
   "name": "assimilate",
   "private": true,
   "engines": { "node": ">=20" },
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "ASSIMILATE — a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
   "scripts": {
@@ -14,6 +14,9 @@
     "deploy": "npm run build && npx wrangler@3 pages deploy dist --project-name assimilate",
     "db:migrate": "npx wrangler@3 d1 migrations apply assimilate-db --remote",
     "db:migrate:local": "npx wrangler@3 d1 migrations apply assimilate-db --local",
+    "db:backup": "npx wrangler@3 d1 export assimilate-db --remote --output backups/assimilate-$(date +%Y%m%d-%H%M).sql",
+    "set-domain": "vite-node scripts/set-domain.ts",
+    "preflight": "vite-node scripts/preflight.ts",
     "test": "vitest run",
     "docs:graph": "vite-node scripts/gen-depgraph.ts",
     "docs:check": "vite-node scripts/doc-sync.ts",

@@ -8,6 +8,18 @@
 
 ## Summary of work completed
 
+**Batch 5b (release-simplification pass):** everything doable without the operator's
+accounts is now done. Complete review-ready legal drafts (privacy/terms describe actual
+behavior; only contact + governing-law tokens remain) backed by a NEW cloud-data
+deletion lane (DELETE /api/save + Settings button + test — the policy's deletion right
+is real). `npm run set-domain -- <domain> --contact <email>` fills every domain/contact
+string in one command (og/canonical/robots/sitemap/legal; round-trip tested).
+`npm run preflight [-- --url …]` prints ✓/–/✗ launch state with exact next actions;
+`npm run db:backup` snapshots D1. robots.txt + sitemap.xml added. Accessibility raised
+to B− (app-wide prefers-reduced-motion, labeled battlefield canvas; :focus-visible
+already existed). v1.0.0 stamped. Operator's remaining list: accounts/keys, one
+set-domain run, legal sign-off, live purchase smoke.
+
 **Batch 5 (this session):** the public-release package. Marketing site at `/welcome/`
 (+news/privacy/terms skeletons, hidden modular ad slots via `ads.js`), branding/PWA
 (manifest + generated icons + OG card + boot splash + full social meta), aggregate

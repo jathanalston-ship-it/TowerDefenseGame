@@ -8,6 +8,27 @@ docs/PRODUCTION-READINESS.md (the scorecard).
 
 Total time: ~2–3 hours the first time, most of it account signups and DNS waiting.
 
+## The fast path (what YOU actually type/click — everything else is already done)
+
+Repo-side work is complete: build, backend, store, site, branding, analytics, legal
+drafts, tests. Your part is accounts + secrets + one command:
+
+1. Sign up: GitHub · Cloudflare · Stripe (Phase 0).
+2. Create the Pages project from the repo (step 4) — the game is live.
+3. `npx wrangler@3 d1 create assimilate-db` → paste id into wrangler.toml →
+   `npm run db:migrate` → bind as `DB` (steps 5–6).
+4. Paste the six env values (Turnstile ×2, Stripe ×2, `DAY_TICKET_SECRET`,
+   `ENVIRONMENT`) into Pages settings (steps 7–10).
+5. `npm run set-domain -- play.yourdomain.com --contact you@yourdomain.com`
+   → commit + push (fills every domain/contact string incl. the legal pages;
+   the one string left for a human is `PLACEHOLDER_JURISDICTION` in terms.html).
+6. `npm run preflight -- --url https://your-deployment` — it prints ✓/–/✗ with
+   the exact next action for anything unfinished.
+7. Test-card purchase on a preview (step 11), live purchase + refund (step 17),
+   read the legal drafts once (they describe real behavior), launch (step 24).
+
+The numbered phases below are the same journey with full detail and links.
+
 ---
 
 ## Phase 0 — accounts (free)
@@ -118,6 +139,9 @@ Total time: ~2–3 hours the first time, most of it account signups and DNS wait
     site ads per docs/WEBSITE.md §3; rewarded studies per docs/RESEARCH.md §providers
     (adapter + env value + CSP hosts). Verify with `VITE_ADS_PROVIDER=simulated` on a
     preview first — the whole reward loop runs against the themed stub.
+19b. **Preflight**: `npm run preflight -- --url https://<your-domain>` — every ✓
+    is verified, every – tells you the exact remaining step. `npm run db:backup`
+    exports a timestamped D1 snapshot (run it before risky ops and on a calendar).
 20. **SEO check**: share the URL in a Discord/Twitter DM to yourself — the OG card
     (og.png) should render. Validate at https://cards-dev.twitter.com/validator and
     https://developers.facebook.com/tools/debug/. Confirm `/welcome/` renders and
@@ -125,8 +149,10 @@ Total time: ~2–3 hours the first time, most of it account signups and DNS wait
 
 ## Phase 6 — launch
 
-21. **Legal placeholders → real**: complete `/welcome/privacy.html` and
-    `/welcome/terms.html` (counsel review; the skeletons state actual behavior).
+21. **Legal review**: the privacy policy + terms are COMPLETE drafts that state the
+    software's actual behavior; `set-domain --contact` filled the contact. Read them
+    once, set `PLACEHOLDER_JURISDICTION` (terms §8) with counsel, remove the
+    "draft" italics lines, done.
 22. **Final sweep**: run every box in docs/DEPLOYMENT.md §10 (deployment verification)
     against production, and skim docs/PRODUCTION-READINESS.md for open items.
 23. **Fill the placeholders you're ready for**: trailer embed, newsletter form,

@@ -2,7 +2,7 @@
 // Same real-handlers-over-fakes approach as purchases.test.ts.
 
 import { describe, expect, it } from 'vitest';
-import { onRequestPut as savePut, onRequestGet as saveGet } from './api/save';
+import { onRequestPut as savePut, onRequestGet as saveGet, onRequestDelete as saveDel } from './api/save';
 import { onRequestGet as dailySeed, mintDayTicket, serverDailySeed, utcDayKey } from './api/daily/seed';
 import { onRequestPost as lbSubmit } from './api/leaderboard/submit';
 import { onRequestGet as lbTop } from './api/leaderboard/top';
@@ -34,6 +34,22 @@ describe('/api/save', () => {
     expect(((await get.json()) as { blob: string }).blob).toBe(blob);
     const getWrong = await saveGet(ctx(new Request(`https://g.test/api/save?playerId=${PLAYER}&token=${'c'.repeat(64)}`), e));
     expect(getWrong.status).toBe(403);
+  });
+
+  it('DELETE erases the slot with the right token only (idempotent)', async () => {
+    const e = makeEnv();
+    await savePut(ctx(new Request('https://g.test/api/save', {
+      method: 'PUT', headers: { 'content-type': 'application/json', 'cf-connecting-ip': '1.2.3.4' },
+      body: JSON.stringify({ playerId: PLAYER, token: TOKEN, blob }),
+    }), e));
+    const wrong = await saveDel(ctx(new Request(`https://g.test/api/save?playerId=${PLAYER}&token=${'d'.repeat(64)}`, { method: 'DELETE', headers: { 'cf-connecting-ip': '1.2.3.4' } }), e));
+    expect(wrong.status).toBe(403);
+    const del = await saveDel(ctx(new Request(`https://g.test/api/save?playerId=${PLAYER}&token=${TOKEN}`, { method: 'DELETE', headers: { 'cf-connecting-ip': '1.2.3.4' } }), e));
+    expect(((await del.json()) as { existed: boolean }).existed).toBe(true);
+    const gone = await saveGet(ctx(new Request(`https://g.test/api/save?playerId=${PLAYER}&token=${TOKEN}`), e));
+    expect(gone.status).toBe(404);
+    const again = await saveDel(ctx(new Request(`https://g.test/api/save?playerId=${PLAYER}&token=${TOKEN}`, { method: 'DELETE', headers: { 'cf-connecting-ip': '1.2.3.4' } }), e));
+    expect(((await again.json()) as { existed: boolean }).existed).toBe(false); // idempotent
   });
 
   it('rejects non-JSON blobs, wrong envelopes, and oversized payloads', async () => {

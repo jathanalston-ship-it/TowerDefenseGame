@@ -52,6 +52,27 @@ export const onRequestPut: PagesFunction<Env> = async ({ request, env }) => {
   return json({ ok: true, size: blob.length });
 };
 
+/** Erase the cloud slot (the privacy policy's deletion right). Same token auth as
+ *  reads/writes; deleting a non-existent slot succeeds (idempotent). Purchase records
+ *  are deliberately NOT deleted here — they are retained for refund/accounting duties
+ *  (see /welcome/privacy.html §retention). */
+export const onRequestDelete: PagesFunction<Env> = async ({ request, env }) => {
+  if (crossOrigin(request)) return err(403, 'cross-origin');
+  const ip = clientIp(request);
+  if (!(await rateLimit(env.DB, 'save-del', ip, { limit: 10, windowSec: 600 }))) return err(429, 'rate-limited');
+  const url = new URL(request.url);
+  const playerId = url.searchParams.get('playerId');
+  const token = url.searchParams.get('token');
+  if (!isPlayerId(playerId) || !isSyncToken(token)) return err(400, 'bad-request');
+  const row = await env.DB.prepare('SELECT token_hash FROM cloud_saves WHERE player_id = ?1')
+    .bind(playerId)
+    .first<{ token_hash: string }>();
+  if (!row) return json({ ok: true, existed: false });
+  if (!timingSafeEqualStr(row.token_hash, await sha256Hex(token))) return err(403, 'wrong-token');
+  await env.DB.prepare('DELETE FROM cloud_saves WHERE player_id = ?1').bind(playerId).run();
+  return json({ ok: true, existed: true });
+};
+
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const ip = clientIp(request);
   if (!(await rateLimit(env.DB, 'save-get', ip, { limit: 30, windowSec: 600 }))) return err(429, 'rate-limited');

@@ -15,17 +15,67 @@
     </header>
     <section class="block">
       <h2>Privacy Policy</h2>
-      <p><b>PLACEHOLDER — have this reviewed and completed before launch.</b> The statements below
-         describe how the software actually behaves and are the honest starting point for counsel.</p>
-      <p>· Game progress is stored on your device (browser storage). Optional cloud backup stores an
-         anonymous copy keyed by a random identifier you control — no name, email, or profile exists.</p>
-      <p>· Payments are processed entirely by Stripe; we never see or store card details. Purchase
-         receipts are retained (offer, amount, timestamp, anonymous player id) for support and refunds.</p>
-      <p>· Analytics are aggregate counters (how many sessions/runs/claims per day) with no user
-         identifiers, no cookies, and no cross-site tracking. Page analytics uses Cloudflare Web
-         Analytics, which is cookie-free.</p>
-      <p>· Leaderboards store the display name you choose and your scores.</p>
-      <p>· Contact: <a href="#">PLACEHOLDER contact address</a>.</p>
+      <p><i>Effective date: at launch · Draft prepared for review — every statement below
+         describes how the software actually behaves. Give it (and your jurisdiction's
+         requirements) a legal read before publishing.</i></p>
+
+      <h2>The short version</h2>
+      <p>ASSIMILATE has no accounts and collects no personal information. Your game lives in
+         your browser. The optional online features are keyed by a random identifier that we
+         cannot connect to you. Our analytics count events, not people — no cookies, no
+         fingerprinting, no tracking across sites. Payments are handled entirely by Stripe.</p>
+
+      <h2>What is stored, where, and why</h2>
+      <p><b>Game progress (your device).</b> Saves live in your browser's local storage. They
+         never leave your device unless you use cloud backup. Clearing site data erases them —
+         the Settings screen offers export and backup tools.</p>
+      <p><b>Cloud backup (optional).</b> If you press "Back up now", a copy of your save is
+         stored on our servers keyed by a random identifier ("sync code") generated on your
+         device. It contains game progress only. Anyone with your sync code can access this
+         backup — treat the code like a password. You can erase the server copy at any time
+         with Settings → Cloud Backup → <b>Delete cloud data</b>, and it is deleted immediately.</p>
+      <p><b>Purchases.</b> Checkout happens on Stripe's site; we never see or store your card
+         details, name, or billing address. We keep a purchase record (random player
+         identifier, the pack bought, amount, timestamp, and Stripe's transaction reference)
+         because we must: it powers delivery, restores, refunds, and our legal/accounting
+         obligations. These records are retained for as long as those obligations require and
+         are not deleted with cloud data. Stripe's own processing is covered by the
+         <a href="https://stripe.com/privacy" rel="noopener">Stripe Privacy Policy</a>.</p>
+      <p><b>Leaderboards (optional).</b> Submitting a score stores the display name you chose,
+         the score, and your random identifier. Display names are visible to other players;
+         choose one accordingly.</p>
+      <p><b>Analytics.</b> We keep aggregate daily counters (for example: "sessions started
+         today: 1,204") with no identifiers of any kind attached. Page analytics uses
+         Cloudflare Web Analytics, which is cookie-free and does not profile visitors. We
+         cannot single you out in either system, and neither can anyone we could hand data to
+         — the individual-level data simply does not exist.</p>
+      <p><b>Bot protection.</b> Purchase and leaderboard requests run a Cloudflare Turnstile
+         check (<a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare's
+         privacy policy</a>). Our servers see your IP address transiently to rate-limit abuse;
+         we do not store it.</p>
+
+      <h2>What we do NOT do</h2>
+      <p>No accounts, no emails (unless you later join the newsletter, which is separate and
+         opt-in), no advertising identifiers, no selling or sharing of data, no cross-site
+         tracking, no profiling, no third-party analytics SDKs inside the game.</p>
+
+      <h2>Your controls</h2>
+      <p>· Erase local data: your browser's site-data controls, or Settings → Reset Save.<br />
+         · Erase cloud data: Settings → Cloud Backup → Delete cloud data (immediate).<br />
+         · Leaderboard removal or purchase-record questions: contact us with your sync code
+         or receipt id.<br />
+         · Data portability: Settings → Export JSON gives you your complete save at any time.</p>
+
+      <h2>Children</h2>
+      <p>The game is not directed at children under 13 (or the equivalent age in your
+         jurisdiction), and we knowingly collect no personal information from anyone.</p>
+
+      <h2>Changes</h2>
+      <p>Material changes to this policy will be announced on the
+         <a href="/welcome/news.html">news page</a> with the effective date above updated.</p>
+
+      <h2>Contact</h2>
+      <p>PLACEHOLDER_CONTACT</p>
     </section>
   </div>
 </body>

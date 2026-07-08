@@ -654,6 +654,8 @@ export function GameView({
         <canvas
           ref={canvasRef}
           className="board"
+          role="img"
+          aria-label="Battlefield — enemies descend from the top toward your Hive Core; towers on the defensive line hold them"
           width={WIDTH}
           height={HEIGHT}
           onPointerMove={(e) => {
