@@ -41,6 +41,9 @@ row, live headless verification, and the batch-4/5 audits.
 - R1 leaderboard replay verification; R2 D1 export cadence (SECURITY-AUDIT §4).
 - Low-end device performance matrix; PWA service-worker decision revisit.
 
+**RC pass (2026-07-08):** the full 12-phase release-candidate audit lives in
+`docs/RELEASE-CANDIDATE.md` — scorecard, fixes, and the ranked top-10 remaining items.
+
 **Verdict:** with the three blockers cleared, ASSIMILATE is production-ready: every
 money path is server-verified and failure-tested, the game is fully playable offline
 with zero backend, and every optional lane (cloud, standings, studies, ads) fails soft.

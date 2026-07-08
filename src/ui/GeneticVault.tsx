@@ -4,7 +4,7 @@
 // the stockpile, the incubating meter shows the container filling now, the pre-determined
 // next, and pity guarantees. Self-contained (inline-styled) to stay conflict-light.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import type { CrackedContainer } from '../state/meta';
 import { RARITIES, costOf, rarityRegistry } from '../core/loot';
@@ -81,7 +81,14 @@ export function GeneticVault(): JSX.Element {
   }
   const grouped = rarityRegistry.ids().filter((id) => lootCounts.has(id)).map((id) => ({ id, n: lootCounts.get(id) as number }));
 
+  // A double-tap (or jittery mouse) must never burn extra vaults mid-ceremony: all the
+  // clicks of one physical burst land before React re-renders, so state alone can't gate
+  // them — a ref-based window turns any burst into exactly one crack.
+  const lastCrackRef = useRef(0);
   const crack = (count = 1): void => {
+    const now = performance.now();
+    if (now - lastCrackRef.current < 600) return;
+    lastCrackRef.current = now;
     const opened: CrackedContainer[] = [];
     for (let i = 0; i < count; i++) {
       const award = meta.openContainer(); // applies the reward + removes it from the stockpile

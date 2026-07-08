@@ -152,3 +152,14 @@ R5 R2 for save history). No open criticals.
   to the preview env); `ENVIRONMENT` ships in `wrangler.toml` `[vars]`/`[env.preview.vars]`;
   public build values live in the COMMITTED `.env.production` (dashboard vars still
   override). Preflight validates the file and refuses committed secrets.
+
+## RC pass addendum (2026-07-08, same session)
+
+Full 12-phase release-candidate audit → `docs/RELEASE-CANDIDATE.md` (scorecard, top-10).
+Live-probe recipes (all against `npm run preview`, headless chromium, mature-profile
+storageState): 17-screen crawl at 1280/390/320 with overflow + console tripwires;
+click-spam dup probes (vault: found + fixed a burst multi-open — ref-window guard in
+GeneticVault.crack); localStorage corruption fuzz (5 shapes, all recover);
+frame/heap profiling (sim-only `g.advance` timing isolates engine from raster);
+cold-start FTUE walk (found + fixed the tutorial "100100/100100" readout — TutorialRunner
+now uses god-mode instead of a +100000 integrity bonus).

@@ -25,13 +25,15 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
   const [reward, setReward] = useState<TutorialRewardSummary | null>(null);
   useTutorialDirector(game);
 
-  // Snapshot the fail-safe run config ONCE: the player's real progression + a huge Integrity bonus
-  // so the Hive Core can never fall during the lesson (the tutorial can't be "lost").
+  // Snapshot the fail-safe run config ONCE: the player's real progression, unmodified — the
+  // lesson's "can't be lost" guarantee comes from god-mode below, NOT from inflating the core
+  // (a +100000 bonus used to make the HUD read "100100/100100" right as the spotlight says
+  // "your one life", which read as a bug to the very player being taught).
   const cfg = useRef<RunConfig | null>(null);
   if (!cfg.current) {
     const base = metaModifiers(meta.get());
     cfg.current = {
-      mods: { ...base, integrityBonus: base.integrityBonus + 100000 },
+      mods: base,
       progress: meta.towerProgress(),
       heroKind: meta.selectedHero(),
       heroProgress: meta.heroProgress(),
@@ -40,6 +42,11 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
 
   // Completion detection: the session goes active→null when the final step advances (or on Skip).
   // Rewards are gated on the store's end reason — a Skip (even on the last step) never pays out.
+  // Fail-safe: the Hive Core (and hero) cannot take lethal damage during the lesson.
+  useEffect(() => {
+    if (game) game.god = true;
+  }, [game]);
+
   const wasActive = useRef(false);
   useEffect(() => {
     if (session) {

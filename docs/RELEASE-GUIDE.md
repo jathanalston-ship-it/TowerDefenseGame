@@ -110,8 +110,9 @@ The numbered phases below are the same journey with full detail and links.
     → enter `play.yourgame.com` (or the apex). If the domain's DNS is on Cloudflare,
     records are created automatically; otherwise add the shown CNAME at your registrar.
     **HTTPS is automatic** (certificate issues within minutes; `_headers` already sends
-    HSTS). Update `og:url`-adjacent tags: `index.html` + `public/welcome/index.html`
-    canonical/OG comments (search "og:url"). Add the domain to the Turnstile site (step 7).
+    HSTS). Then `npm run set-domain -- play.yourgame.com --contact you@…` rewrites every
+    URL-bearing tag (og:url/canonical/robots/sitemap/legal contact) in one shot — commit
+    + push. Add the domain to the Turnstile site (step 7).
     Saves are per-domain — pick the final domain BEFORE sharing widely.
     Docs: https://developers.cloudflare.com/pages/configuration/custom-domains/
 

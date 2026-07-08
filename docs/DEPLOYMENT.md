@@ -160,7 +160,12 @@ production and preview get **different** Stripe keys (live vs test mode).
   `npm run dev:full` (build + `wrangler pages dev dist` = static + functions +
   local D1; put dev secrets in `.dev.vars`).
 - Rollback: Pages → Deployments → ⋯ → Rollback (static + functions revert
-  together; D1 is append-mostly and migrations are additive).
+  together; D1 is append-mostly and migrations are additive). Code-level:
+  `git revert <sha> && git push` redeploys the previous behavior. Data-level:
+  `npm run db:backup` exports every table to timestamped JSON — restore by
+  replaying the export with `wrangler d1 execute` (schema never drops columns,
+  so old exports stay loadable). Secrets: re-run `npm run setup-secrets`
+  (rotation is one command; takes effect next deploy).
 
 ## 6. Build pipeline facts (verified)
 

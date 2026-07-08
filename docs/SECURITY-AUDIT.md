@@ -182,3 +182,25 @@ covered by automated failure-mode tests. Every surface that stays on the
 device is honestly classified as self-owned. The one Medium item (leaderboard
 claims) is disclosed, bounded, and has a designed upgrade path that does not
 compromise the client-side simulation constraint.
+
+### RC re-audit (2026-07-08, release-candidate pass)
+
+Surfaces added since the batch-4 audit, re-reviewed:
+
+- **`DELETE /api/save`** — sync-token auth (TOFU hash), idempotent, rate-limited
+  (10/10min/IP) — same posture as PUT/GET. No new trust boundary.
+- **Committed `.env.production`** — PUBLIC build values only by contract;
+  `npm run preflight` hard-fails if `sk_live|sk_test|whsec_` patterns ever appear
+  in it. Server secrets flow exclusively through `wrangler pages secret put`
+  (`npm run setup-secrets`), never through the repo.
+- **Field Research (rewarded ads)** — all grants are CLIENT-side save mutations
+  routed through `interpretGrants` day-caps; there is no server value at stake, so
+  the cheat ceiling equals ordinary local-save editing (accepted, documented risk
+  class — leaderboards remain the only competitive surface and carry their own
+  server-side envelope checks).
+- **Analytics `/api/events`** — aggregate counters only; no identifiers beyond the
+  coarse event name; rate-limited; nothing PII-shaped to leak.
+
+Verdict unchanged: no criticals; residual risks remain the §4 ranked list
+(R1 leaderboard replay verification first). Exactly-once purchase pipeline is
+still pinned by the 33-scenario backend suite (runs in `npm test`).

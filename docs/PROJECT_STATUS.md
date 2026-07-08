@@ -170,7 +170,7 @@ already registered per system) · platform decision on backend (cloud saves, dai
 
 ## Architecture health
 
-- 830 tests / 127 files green; golden sim byte-identical; typecheck strict; build clean.
-- Zero runtime import cycles (type-only back-edges by design); near-zero dead exports.
+- 1223 tests / 172 files green; golden sim byte-identical; typecheck strict; build clean.
+- Zero runtime import cycles (type-only back-edges by design); RC sweep verified ZERO orphan modules (209 files, all imported) and zero TODO/FIXME in shipping code.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.
