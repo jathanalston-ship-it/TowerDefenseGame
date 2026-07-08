@@ -95,6 +95,13 @@ function sKill(): void {
 }
 function sShred(): void { tone(900, 0.18, 'sawtooth', 0.14, 180); noise(0.1, 0.07, 3000); }
 function sBreach(): void { tone(90, 0.35, 'sine', 0.3, 55); noise(0.3, 0.18, 700); }
+// Per-archetype enemy DEATH timbres (config.enemyDeathCue) — the body-specific IMPACT layered under
+// the kill-streak ping. `i` detunes + softens stacked deaths so a swarm-wipe doesn't blow out.
+function sEdSquelch(i: number): void { noise(0.11, 0.08 - i * 0.012, 850 - i * 90, 300); tone(190 - i * 12, 0.09, 'sine', 0.045, 110); } // soft wet — chaff/support/summoner
+function sEdCrack(i: number): void { noise(0.05, 0.12 - i * 0.014, 3200 - i * 250, 900); tone(440 - i * 30, 0.05, 'square', 0.05, 200); } // chitin crack — plated/shielded
+function sEdScreech(i: number): void { tone(1150 - i * 90, 0.13, 'sawtooth', 0.06, 300); noise(0.09, 0.045, 3800 - i * 300, 1600); } // airy screech — flying
+function sEdPop(i: number): void { noise(0.08, 0.12 - i * 0.015, 1500 - i * 120, 380); tone(280 - i * 20, 0.06, 'triangle', 0.06, 90); } // wet burst — suicide
+function sEdSplat(i: number): void { noise(0.15, 0.11 - i * 0.012, 680 - i * 60, 200); tone(130 - i * 8, 0.13, 'sine', 0.06, 65); } // deep splat — heavy bruisers
 // ── Hive Siege voices (docs/HIVE-SIEGE.md §audio) ──
 function sHiveHit(): void { tone(72, 0.14, 'sine', 0.16, 48); noise(0.07, 0.07, 420, 90); } // a wet chitin THUD — one per landed bite (capped per tick)
 function sHiveGroan(): void { // the organism groans as a damage state fails (75/50/25/10%)
@@ -262,6 +269,11 @@ export const audio = {
       switch (tag) {
         case 'hit': for (let i = 0; i < Math.min(3, n); i++) sHit(i); break;
         case 'kill': for (let i = 0; i < Math.min(5, n); i++) sKill(); break;
+        case 'edie_squelch': for (let i = 0; i < Math.min(4, n); i++) sEdSquelch(i); break;
+        case 'edie_crack': for (let i = 0; i < Math.min(4, n); i++) sEdCrack(i); break;
+        case 'edie_screech': for (let i = 0; i < Math.min(3, n); i++) sEdScreech(i); break;
+        case 'edie_pop': for (let i = 0; i < Math.min(4, n); i++) sEdPop(i); break;
+        case 'edie_splat': for (let i = 0; i < Math.min(3, n); i++) sEdSplat(i); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;
         case 'breach': sBreach(); break;
         case 'hiveHit': for (let i = 0; i < Math.min(2, n); i++) sHiveHit(); break;

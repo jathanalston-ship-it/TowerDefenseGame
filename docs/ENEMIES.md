@@ -305,6 +305,20 @@ impact) and **LOD-gated**: below `PERF.lodEnemyCount` (220) enemies get the full
 falls back to the flat `ENEMY_SHAPE` (also the bestiary icon). Each form is ~8–14 canvas ops, no
 per-enemy gradients (shading is memoized by colour).
 
+**Lifecycle animation** (`renderer.ts` — a presentation-only per-id **motion tracker**, like `heroTrail`,
+never read by the sim): the tracker derives each enemy's smoothed screen **velocity** + **spawn age**,
+so bodies **bank + walking-bob** as they move (idle wing-flap / leg-wiggle / core-pulse always run),
+**emerge** with a scale-in when they spawn, and leave a **crumple echo** (splay + squash-flat + fade)
+where they die. Grounded units get a contact **shadow** (fliers already had one); a per-instance size
+jitter keeps a swarm from looking stamped. All render-side ⇒ golden-safe (the crumple is capped at 48
+and fades in 0.3 s; a >200 px id jump re-emerges rather than banking, so a new run never cross-contaminates).
+
+**Death audio** (`config.enemyDeathCue` → `audio/sound.ts`): a kill now layers a body-specific IMPACT
+timbre — trait-derived into 5 classes (`squelch` soft-bodied · `crack` plated/shielded · `screech`
+flying · `pop` suicide · `splat` heavy bruiser) — UNDER the kept rising kill-streak reward ping. The
+sim pushes the cue on death (and a suicide's `pop` under the Core-breach); throttled per class so a
+swarm-wipe never blows out. Golden-safe: a cue never touches wave/kills/integrity/biomass.
+
 ## 9. Artillery shells — bombardment is visible and lands on impact
 
 Siege enemies previously deducted Nucleus integrity **instantly** on their timer, with only

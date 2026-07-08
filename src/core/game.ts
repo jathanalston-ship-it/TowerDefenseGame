@@ -26,6 +26,7 @@ import {
   COMBAT,
   ECON,
   ENEMY_DEFS,
+  enemyDeathCue,
   ENEMY_KINDS,
   EVO,
   FX,
@@ -4595,6 +4596,7 @@ export class Game {
     if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1);
     this.armorBreakUntil.delete(e.id);
     this.pushSfx('breach');
+    if (!e.boss) this.pushSfx('edie_pop'); // the suicide's own volatile burst, under the Core-breach
     this.spawnParticles(e.x, e.y, PARTICLE.breach);
     this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 14, text: `-${e.damage}`, color: '#ff5d73', life: 0.9 });
     // The blast also catches the hero (gated on `explodeRadius` — unset on the historical roster).
@@ -5294,7 +5296,8 @@ export class Game {
         this.armorBreakUntil.delete(e.id);
         this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
         this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
-        this.pushSfx('kill');
+        this.pushSfx('kill'); // the rising kill-streak reward ping
+        if (!e.boss) this.pushSfx(enemyDeathCue(ENEMY_DEFS[e.kind])); // + a body-specific death IMPACT timbre
         if (e.boss) {
           this.bossDeathSpectacle(e); // a boss death is an event, not a pop
           this.runBossKills++; // RunStats.bossKills — Boss Rush rewards + lifetime ledgers key off it

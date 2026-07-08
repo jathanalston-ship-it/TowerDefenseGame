@@ -437,6 +437,18 @@ export interface EnemyDef {
   attack: { interval: number; windup: number };
 }
 
+/** Presentation-only: the death-SOUND timbre for an enemy, DERIVED from its role traits (a new
+ *  enemy auto-classifies — no per-kind table to maintain). The sim pushes this UNDER the kept
+ *  kill-streak ping, so a kill reads as body-specific IMPACT + reward. Golden-safe: a cue never
+ *  touches wave/kills/integrity/biomass. */
+export function enemyDeathCue(def: EnemyDef): string {
+  if (def.explodeDamage) return 'edie_pop'; // suicide — a wet volatile burst
+  if (def.behavior.flying) return 'edie_screech'; // flying — an airy screech
+  if ((def.shieldHp ?? 0) > 0 || def.armor >= 6) return 'edie_crack'; // plated / shielded — a chitin crack
+  if (def.hp >= 650) return 'edie_splat'; // heavy bruisers — a deep wet splat
+  return 'edie_squelch'; // soft-bodied chaff / support / summoner
+}
+
 // ~30 archetypes across 12 ROLES. Every entry trades on a distinct battlefield identity that
 // forces a DIFFERENT placement decision (coverage geometry, focus vs spread, intercept timing),
 // not a stat slide. The historical seven (runner/brute/tyrant/rusher/tank/flyer/burrower) keep

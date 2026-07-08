@@ -30,6 +30,9 @@ export interface BodyOpts {
   phase: number; // per-INSTANCE animation offset (e.id) so a swarm doesn't animate in lockstep
   rim: string;   // tier-keyed outline colour (normal / elite / boss)
   flying?: boolean;
+  vx?: number;   // per-frame screen velocity (renderer motion tracker) → bank + walking bob
+  vy?: number;
+  emerge?: number; // 0..1 spawn-emerge scale (1 = fully born)
 }
 
 // ── Colour shading (memoized — colours are per-kind, so ~40 distinct keys, not per-enemy) ──────────
@@ -437,9 +440,22 @@ const DRAWERS: Record<BodyForm, (ctx: Ctx, x: number, y: number, r: number, c: s
   grub, dart, beetle, crab, polyp, mole, moth, broodsac, frond, bulb, mortar, maw,
 };
 
-/** Draw a procedural creature body of `form` at (x,y), radius `r`, in `color`. Cosmetic + LOD-gated. */
+/** Draw a procedural creature body of `form` at (x,y), radius `r`, in `color`. Applies LOCOMOTION
+ *  (a lateral bank + a walking bob, from the renderer's motion tracker) and the spawn-EMERGE scale.
+ *  Cosmetic + LOD-gated. Still enemies (no velocity, fully born) take a transform-free fast path. */
 export function drawEnemyBody(
   ctx: Ctx, form: BodyForm, x: number, y: number, r: number, color: string, t: number, o: BodyOpts,
 ): void {
-  DRAWERS[form](ctx, x, y, r, color, t, o);
+  const vx = o.vx ?? 0, vy = o.vy ?? 0;
+  const emerge = o.emerge ?? 1;
+  const moving = Math.min(1, Math.hypot(vx, vy) / 2.2); // px/frame reference (rAF-steady)
+  const bank = Math.max(-0.38, Math.min(0.38, vx * 0.09)); // lean into lateral travel
+  const bob = moving > 0.03 ? Math.sin(t * 9 + o.phase) * r * 0.05 * moving : 0;
+  if (bank === 0 && bob === 0 && emerge === 1) { DRAWERS[form](ctx, x, y, r, color, t, o); return; } // fast path
+  ctx.save();
+  ctx.translate(x, y + bob);
+  if (bank) ctx.rotate(bank);
+  if (emerge !== 1) ctx.scale(emerge, emerge); // spawn EMERGE reads as a scale-in (alpha would fight the forms' own globalAlpha)
+  DRAWERS[form](ctx, 0, 0, r, color, t, o);
+  ctx.restore();
 }

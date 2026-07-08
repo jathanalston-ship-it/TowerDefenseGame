@@ -25,9 +25,10 @@ import {
 } from '../core/map';
 import { ENEMY_DEFS, HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
-import type { TowerFiring } from '../core/types';
+import type { TowerFiring, EnemyKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, TOWER_SHAPE, hexRgb, rgba } from './theme';
 import { drawEnemyBody } from './enemyForms';
+import type { BodyForm } from './enemyForms';
 import {
   chevronDown,
   drawShape,
@@ -155,6 +156,8 @@ export function drawGame(
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
   const detail = rs.enemies.length < PERF.lodEnemyCount;
+  updateEnemyMotion(rs.enemies, t); // per-id velocity + spawn age + death reaping (presentation only)
+  if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
 
   // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
@@ -1111,6 +1114,57 @@ function drawEnemyShells(ctx: CanvasRenderingContext2D, rs: RenderState): void {
   }
 }
 
+// ── Enemy MOTION tracker (presentation-only, like heroTrail) — per-id smoothed screen velocity +
+//    spawn age, so bodies BANK/BOB as they move, EMERGE on spawn, and leave a crumple ECHO on death.
+//    Keyed by enemy id, pruned each frame. Never read by the sim (golden-safe). ─────────────────────
+interface EnemyMotion { x: number; y: number; vx: number; vy: number; spawnT: number; seen: number; kind: EnemyKind }
+const enemyMotion = new Map<number, EnemyMotion>();
+interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; phase: number; t0: number }
+const deathEchoes: DeathEcho[] = [];
+let motionFrame = 0;
+const EMERGE_T = 0.34; // seconds to fully emerge from the spawn membrane
+const ECHO_T = 0.3; // seconds a death crumple lingers
+
+/** Refresh the tracker from this frame's live enemies; reap the vanished into death echoes. */
+function updateEnemyMotion(enemies: RenderState['enemies'], t: number): void {
+  motionFrame++;
+  for (const e of enemies) {
+    if (e.boss) continue; // framework bosses use the chassis renderer, not body-forms
+    const m = enemyMotion.get(e.id);
+    if (!m) { enemyMotion.set(e.id, { x: e.x, y: e.y, vx: 0, vy: 0, spawnT: t, seen: motionFrame, kind: e.kind }); continue; }
+    const dx = e.x - m.x, dy = e.y - m.y;
+    if (dx * dx + dy * dy > 40000) { // >200px jump ⇒ id reuse (new run) or a blink ⇒ re-emerge, not velocity
+      m.x = e.x; m.y = e.y; m.vx = 0; m.vy = 0; m.spawnT = t; m.kind = e.kind; m.seen = motionFrame; continue;
+    }
+    m.vx += (dx - m.vx) * 0.35; m.vy += (dy - m.vy) * 0.35; // smoothed per-frame delta
+    m.x = e.x; m.y = e.y; m.seen = motionFrame;
+  }
+  for (const [id, m] of enemyMotion) {
+    if (m.seen === motionFrame) continue;
+    if (deathEchoes.length < 48) { // a vanished enemy died — leave a fading crumple
+      const def = ENEMY_DEFS[m.kind];
+      deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], phase: id, t0: t });
+    }
+    enemyMotion.delete(id);
+  }
+}
+
+/** Draw the death crumples — the body splays + squashes flat + fades over ECHO_T. */
+function drawDeathEchoes(ctx: CanvasRenderingContext2D, t: number): void {
+  for (let i = deathEchoes.length - 1; i >= 0; i--) {
+    const d = deathEchoes[i];
+    const age = (t - d.t0) / ECHO_T;
+    if (age >= 1 || age < 0) { deathEchoes.splice(i, 1); continue; }
+    ctx.save();
+    ctx.globalAlpha = (1 - age) * 0.85;
+    ctx.translate(d.x, d.y + age * d.r * 0.4); // sink into the floor
+    ctx.scale(1 + age * 0.35, 1 - age * 0.55); // splay wide + squash flat
+    drawEnemyBody(ctx, d.form, 0, 0, d.r, d.color, t, { seed: d.seed, phase: d.phase, rim: THEME.enemy.rim });
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+}
+
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
   e: RenderState['enemies'][number],
@@ -1140,11 +1194,17 @@ function drawEnemy(
   }
 
   if (detail) {
-    // airborne units cast a shadow on the arena floor below them
+    // airborne units cast a shadow further below them; grounded units get a tight contact shadow
+    // that anchors them to the floor (depth) — both cheap solid-alpha ellipses.
     if (flying) {
       ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.beginPath();
       ctx.ellipse(e.x, e.y + 9, r * 0.8, r * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (!e.boss) {
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.beginPath();
+      ctx.ellipse(e.x, e.y + r * 0.82, r * 0.72, r * 0.24, 0, 0, Math.PI * 2);
       ctx.fill();
     }
     // a faint advance-trail above (they descend) — solid alpha; avoids a
@@ -1253,8 +1313,14 @@ function drawEnemy(
   if (e.boss && detail) drawBossBody(ctx, e.boss.defId, e.x, drawY, r, t);
   // Full-detail non-boss enemies render a procedural CREATURE body (render/enemyForms.ts) — a shaded
   // silhouette + anatomy + idle animation that owns its own rim/shading, keyed by archetype so the
-  // roster reads as distinct organisms. Low-LOD (huge swarm) + bosses fall back to the flat shape.
-  else if (detail) drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, r, def.color, t, { seed: ENEMY_VARIANT[e.kind], phase: e.id, rim, flying });
+  // roster reads as distinct organisms. The motion tracker feeds velocity (bank + walking bob) and
+  // spawn age (emerge). Low-LOD (huge swarm) + bosses fall back to the flat shape.
+  else if (detail) {
+    const mo = enemyMotion.get(e.id);
+    const emerge = easeOutCubic(mo ? Math.min(1, (t - mo.spawnT) / EMERGE_T) : 1);
+    const bodyR = r * (0.93 + (e.id % 5) * 0.028); // per-instance size jitter (body only — rings stay true)
+    drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, bodyR, def.color, t, { seed: ENEMY_VARIANT[e.kind], phase: e.id, rim, flying, vx: mo?.vx ?? 0, vy: mo?.vy ?? 0, emerge });
+  }
   else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
   if (detail) {
 
