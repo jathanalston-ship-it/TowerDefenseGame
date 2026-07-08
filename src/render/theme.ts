@@ -90,6 +90,8 @@ export const THEME = {
     disrupt: '120, 135, 255', // psionic stutter (Neural Obelisk)
     fracture: '90, 209, 255',
     shred: '255, 255, 255',
+    mark: '255, 120, 160', // Vital Mark (Marrow Siphon) — harvest tag; alpha scales with stacks
+    resonance: '245, 184, 61', // Resonant charge (Resonance Coil) — alpha scales with stacks
     danger: '255, 70, 90',
     rim: 'rgba(6, 8, 14, 0.55)', // dark outline so a flat fill reads as a solid unit
     gloss: 'rgba(255, 255, 255, 0.22)', // top highlight (volume)

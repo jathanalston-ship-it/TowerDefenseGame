@@ -1352,6 +1352,10 @@ function drawEnemy(
     if (e.fracture > 0) {
       ring(ctx, e.x, drawY, r + 4, rgba(THEME.enemy.fracture, Math.min(0.9, 0.25 + e.fracture * 0.12)), 2);
     }
+    // Beam-tower "charge" statuses — tight inner rings that intensify with stacks (reaction fuel:
+    // Mark from the Marrow Siphon, Resonance from the Resonance Coil). Neither appears on the golden path.
+    if (e.mark > 0) ring(ctx, e.x, drawY, r + 1, rgba(THEME.enemy.mark, Math.min(0.9, 0.35 + e.mark * 0.09)), 2);
+    if (e.resonance > 0) ring(ctx, e.x, drawY, r + 1.5, rgba(THEME.enemy.resonance, Math.min(0.9, 0.35 + e.resonance * 0.09)), 2);
     if (e.shredFlash > 0) {
       ctx.fillStyle = rgba(THEME.enemy.shred, Math.min(0.8, e.shredFlash * 2));
       ctx.beginPath();
