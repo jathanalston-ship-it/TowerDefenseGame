@@ -13,6 +13,8 @@
 // auto-play), never in combat (the UI only mounts in menus), and a study that
 // fails/aborts grants nothing.
 
+import { GoogleAdPlacementProvider } from './googleAdapter';
+
 export type StudyResult = 'completed' | 'aborted' | 'unavailable';
 
 export interface RewardedAdProvider {
@@ -66,8 +68,13 @@ class NoProvider implements RewardedAdProvider {
 function resolveProvider(): RewardedAdProvider {
   const id = import.meta.env.VITE_ADS_PROVIDER ?? 'none';
   if (id === 'simulated') return new SimulatedProvider();
-  // Future real adapters (each also needs its script hosts in public/_headers CSP):
-  //   if (id === 'someNetwork') return new SomeNetworkProvider();
+  if (id === 'google') {
+    // Google H5 Games Ads (Ad Placement API). Enable end-to-end with
+    // `npm run set-ads -- google --client ca-pub-…` (CSP + ads.txt) and the
+    // VITE_ADS_GOOGLE_CLIENT env var. docs/RESEARCH.md §providers.
+    return new GoogleAdPlacementProvider(import.meta.env.VITE_ADS_GOOGLE_CLIENT ?? '');
+  }
+  // Further adapters: one class + one branch here + set-ads CSP hosts.
   return new NoProvider();
 }
 

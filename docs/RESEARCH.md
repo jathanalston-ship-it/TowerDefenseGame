@@ -53,8 +53,15 @@ aborted | unavailable`). `VITE_ADS_PROVIDER` selects the adapter:
   zero ad code paths for players.
 - `simulated` — a themed in-page observation timer for dev/preview: exercises caps,
   claims, reveals and analytics end-to-end with zero network.
-- Real networks: one adapter class + one env value + their script hosts added to the
-  CSP in `public/_headers`. No game-code changes (registry + provider seam).
+- `google` — Google H5 Games Ads (Ad Placement API), fully wired
+  (`src/ads/googleAdapter.ts`): rewarded `adBreak` flow, defensive against blockers /
+  no-fill / caps (all resolve 'unavailable' and grant nothing). Enable with
+  `npm run set-ads -- google --client ca-pub-…` (swaps CSP, writes ads.txt, configures
+  the site slots) + the two `VITE_ADS_*` env vars. Requires an APPROVED AdSense account
+  — until approval, studies quietly report unavailable. End-to-end network verification
+  can only happen on the approved domain; `simulated` remains the loop's test path.
+- Other networks (Applixir, AdinPlay, …): one adapter class + a provider branch +
+  set-ads CSP hosts. No game-code changes beyond the adapter (registry + seam).
 
 An aborted or failed study grants nothing. Claims happen strictly AFTER `completed`.
 

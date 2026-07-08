@@ -17,8 +17,12 @@ Static, dependency-free pages served by the same Pages deployment (zero extra in
 
 The game stays at `/` (players' bookmarks, PWA start_url). Point marketing links at
 `/welcome/`; optionally add a Cloudflare redirect rule from a `www.` host to it.
-Placeholders to fill at launch: trailer embed, newsletter form action, Discord invite,
-both legal pages, and the `og:url` canonical domain in `index.html`.
+The trailer is REAL: `/welcome/trailer.webm` — a ~45s scripted gameplay take (Command
+Center → siege → apex boss → the Vesperine mega raid and its death) recorded headlessly
+from the actual build; muted by design (web video etiquette + the recorder captures no
+audio). Re-record after big visual updates with the recipe in the repo history.
+Remaining placeholders: newsletter form action, Discord invite, the governing-law line
+in terms.html, and the `og:url` domain (one `npm run set-domain` command).
 
 ## 2. Branding / PWA
 
@@ -46,8 +50,10 @@ Placement contract:
   (`news-top`, `news-inline`). Future guide pages reuse the same class.
 - `public/welcome/ads.js` is the single mount point: with `AD_PROVIDER = 'none'`
   (launch default) every slot hides itself — no empty boxes, no layout shift, no
-  third-party requests. Wiring a network = set the provider, implement `mount`, and
-  allowlist its hosts in the site CSP (`public/_headers`).
+  third-party requests. `npm run set-ads -- google --client ca-pub-…` flips the whole
+  stack on (CSP hosts, ads.txt, site provider) and `-- off` restores it; AdSense
+  display slots additionally need their numeric unit ids mapped in ads.js once the
+  units exist in the dashboard.
 - "Loading between menu navigation" interstitials: deliberately NOT implemented —
   they violate the never-interrupt rule this project ships with. The seam, if ever
   wanted, is a menu-transition surface in `Hub.tsx`; keep it out unless data demands it.

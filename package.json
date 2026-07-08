@@ -16,6 +16,8 @@
     "db:migrate:local": "npx wrangler@3 d1 migrations apply assimilate-db --local",
     "db:backup": "npx wrangler@3 d1 export assimilate-db --remote --output backups/assimilate-$(date +%Y%m%d-%H%M).sql",
     "set-domain": "vite-node scripts/set-domain.ts",
+    "set-ads": "vite-node scripts/set-ads.ts",
+    "setup-db": "vite-node scripts/setup-db.ts",
     "preflight": "vite-node scripts/preflight.ts",
     "test": "vitest run",
     "docs:graph": "vite-node scripts/gen-depgraph.ts",

@@ -6,6 +6,7 @@
 // Every check prints ✓ / ✗ / – (not applicable yet) with the exact next action.
 // Exit code 1 only on hard failures (✗), so it can gate CI if wanted.
 
+import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 
 const args = process.argv.slice(2).filter((a) => a !== '--');
@@ -85,7 +86,7 @@ async function live(): Promise<void> {
         stripe: 'set STRIPE_SECRET_KEY — RELEASE-GUIDE steps 9/16',
         webhook: 'set STRIPE_WEBHOOK_SECRET — RELEASE-GUIDE steps 10/16',
         turnstile: 'set TURNSTILE_SECRET_KEY (+ VITE_TURNSTILE_SITE_KEY) — step 7',
-        dayTickets: 'set DAY_TICKET_SECRET — step 8',
+        dayTickets: `set DAY_TICKET_SECRET — step 8. Ready-to-paste value: ${randomBytes(32).toString('hex')}`,
       })) {
         if (h[key] === true) ok(`health: ${key}`);
         else warn(`health: ${key} not configured`, fix);

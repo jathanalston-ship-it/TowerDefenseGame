@@ -101,7 +101,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'field-research', name: 'Field Research (rewarded studies)', purpose: 'The OPTIONAL rewarded-ad lane, in-fiction: daily field studies pay small progression-scaled samples, one-run boosts, a sealed specimen, rush stamina, and a once-daily player-chosen emergency payout. Registry-driven (a holiday reward is one data row), provider-agnostic (VITE_ADS_PROVIDER; hidden when none), menus-only, never optimal (validator + tests cap ichor and boost magnitudes).',
-    files: ['src/core/research.ts', 'src/ads/provider.ts', 'src/ui/components/FieldResearch.tsx', 'src/net/events.ts'],
+    files: ['src/core/research.ts', 'src/ads/provider.ts', 'src/ads/googleAdapter.ts', 'src/ui/components/FieldResearch.tsx', 'src/net/events.ts'],
     dependsOn: ['premium', 'meta-store', 'splice-market', 'boss-rush', 'daily'], powerScore: null, save: ['research'], tutorial: [], help: ['field-research'],
     hud: [], ui: ['FieldResearchPanel', 'FieldResearchCard'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/RESEARCH.md', 'docs/WEBSITE.md'],

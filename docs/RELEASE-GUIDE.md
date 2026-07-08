@@ -15,10 +15,14 @@ drafts, tests. Your part is accounts + secrets + one command:
 
 1. Sign up: GitHub · Cloudflare · Stripe (Phase 0).
 2. Create the Pages project from the repo (step 4) — the game is live.
-3. `npx wrangler@3 d1 create assimilate-db` → paste id into wrangler.toml →
-   `npm run db:migrate` → bind as `DB` (steps 5–6).
+3. `npx wrangler@3 login` then `npm run setup-db` (creates the database, writes
+   the id, applies the schema — everything except the dashboard binding, which it
+   prints). Bind as `DB`, redeploy (step 6).
 4. Paste the six env values (Turnstile ×2, Stripe ×2, `DAY_TICKET_SECRET`,
-   `ENVIRONMENT`) into Pages settings (steps 7–10).
+   `ENVIRONMENT`) into Pages settings (steps 7–10). `npm run preflight -- --url …`
+   prints a ready-to-paste `DAY_TICKET_SECRET` if you haven't set one.
+4b. Ads, whenever you want them: `npm run set-ads -- google --client ca-pub-…`
+   + two env vars (step 19). Ships hidden until then.
 5. `npm run set-domain -- play.yourdomain.com --contact you@yourdomain.com`
    → commit + push (fills every domain/contact string incl. the legal pages;
    the one string left for a human is `PLACEHOLDER_JURISDICTION` in terms.html).
@@ -53,10 +57,10 @@ The numbered phases below are the same journey with full detail and links.
 5. **Create the database**: on your machine —
    ```bash
    npx wrangler@3 login
-   npx wrangler@3 d1 create assimilate-db
+   npm run setup-db
    ```
-   Paste the printed `database_id` into `wrangler.toml`, commit + push, then apply the
-   schema: `npm run db:migrate`.
+   That creates `assimilate-db` (or finds it), writes its id into `wrangler.toml`,
+   and applies the schema locally + remotely. Commit the wrangler.toml change.
    Docs: https://developers.cloudflare.com/d1/get-started/
 
 6. **Bind the database**: Pages project → **Settings → Functions → D1 database
@@ -134,11 +138,20 @@ The numbered phases below are the same journey with full detail and links.
     npx wrangler@3 d1 execute assimilate-db --remote \\
       --command "SELECT * FROM analytics_counters ORDER BY day DESC, kind LIMIT 50"
     ```
-19. **Ads** (optional, later): the game ships with the Field Research lane HIDDEN
-    (`VITE_ADS_PROVIDER=none`) and site ad slots hidden. When you choose a network:
-    site ads per docs/WEBSITE.md §3; rewarded studies per docs/RESEARCH.md §providers
-    (adapter + env value + CSP hosts). Verify with `VITE_ADS_PROVIDER=simulated` on a
-    preview first — the whole reward loop runs against the themed stub.
+19. **Ads** (optional — everything is pre-wired; you bring the account):
+    1. Sign up at https://adsense.google.com → **Add site** with your domain →
+       complete the approval process (days to weeks; the game runs fine meanwhile).
+    2. Copy your publisher id (Account → Account information, `ca-pub-…`).
+    3. `npm run set-ads -- google --client ca-pub-…` → commit + push (CSP,
+       ads.txt, site slots — all handled).
+    4. Pages env (Production): `VITE_ADS_PROVIDER=google`,
+       `VITE_ADS_GOOGLE_CLIENT=ca-pub-…` → redeploy.
+    5. Until approval lands, in-game studies quietly report "unavailable" — test
+       the full reward loop any time with `VITE_ADS_PROVIDER=simulated` on a preview.
+    6. `npm run set-ads -- off` reverts everything.
+    Game-focused alternates (often friendlier terms for web games): Applixir
+    (https://www.applixir.com) and AdinPlay (https://www.adinplay.com) — each is one
+    adapter class in `src/ads/` per docs/RESEARCH.md §providers.
 19b. **Preflight**: `npm run preflight -- --url https://<your-domain>` — every ✓
     is verified, every – tells you the exact remaining step. `npm run db:backup`
     exports a timestamped D1 snapshot (run it before risky ops and on a calendar).

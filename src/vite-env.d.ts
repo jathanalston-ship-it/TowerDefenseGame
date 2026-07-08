@@ -9,7 +9,9 @@ interface ImportMetaEnv {
   readonly VITE_TURNSTILE_SITE_KEY?: string;
   /** Rewarded-ad provider: 'none' (hide the Field Research lane — launch default) or
    *  'simulated' (dev/preview themed stub). Real adapters register in src/ads/provider.ts. */
-  readonly VITE_ADS_PROVIDER?: 'none' | 'simulated';
+  readonly VITE_ADS_PROVIDER?: 'none' | 'simulated' | 'google';
+  /** AdSense publisher id (ca-pub-…) — required when VITE_ADS_PROVIDER='google'. Public. */
+  readonly VITE_ADS_GOOGLE_CLIENT?: string;
 }
 
 interface ImportMeta {

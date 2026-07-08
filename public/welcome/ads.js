@@ -11,7 +11,8 @@
 // rewarded ads live behind src/ads/provider.ts inside non-combat menus.
 
 (function () {
-  var AD_PROVIDER = 'none'; // 'none' hides all slots
+  var AD_PROVIDER = 'none';
+  var AD_CLIENT = ''; // AdSense publisher id (set-ads) // 'none' hides all slots
 
   var slots = document.querySelectorAll('.ad-slot[data-ad-slot]');
   if (AD_PROVIDER === 'none') {

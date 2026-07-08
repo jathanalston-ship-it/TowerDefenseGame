@@ -8,6 +8,15 @@
 
 ## Summary of work completed
 
+**Batch 5c (operator-zero pass):** a REAL 45s gameplay trailer recorded headlessly from
+the build (playwright recordVideo + the playwright ffmpeg component symlinked 1011→1010
+in /opt/pw-browsers) now lives at /welcome/trailer.webm and plays on the landing page.
+Google H5 Games Ads is fully wired (src/ads/googleAdapter.ts — defensive adBreak reward
+flow) behind `npm run set-ads -- google --client ca-pub-…` (CSP swap + ads.txt + site
+slots) and `-- off`. `npm run setup-db` collapses D1 setup to one command; preflight
+prints a ready-to-paste DAY_TICKET_SECRET. Operator remainder: accounts/keys, AdSense
+approval (if ads wanted), legal sign-off, live purchase smoke.
+
 **Batch 5b (release-simplification pass):** everything doable without the operator's
 accounts is now done. Complete review-ready legal drafts (privacy/terms describe actual
 behavior; only contact + governing-law tokens remain) backed by a NEW cloud-data

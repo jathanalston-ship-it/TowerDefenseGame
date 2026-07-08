@@ -281,7 +281,7 @@ graph TD
 
 *The OPTIONAL rewarded-ad lane, in-fiction: daily field studies pay small progression-scaled samples, one-run boosts, a sealed specimen, rush stamina, and a once-daily player-chosen emergency payout. Registry-driven (a holiday reward is one data row), provider-agnostic (VITE_ADS_PROVIDER; hidden when none), menus-only, never optimal (validator + tests cap ichor and boost magnitudes).*
 
-- **Files:** `src/core/research.ts` · `src/ads/provider.ts` · `src/ui/components/FieldResearch.tsx` · `src/net/events.ts`
+- **Files:** `src/core/research.ts` · `src/ads/provider.ts` · `src/ads/googleAdapter.ts` · `src/ui/components/FieldResearch.tsx` · `src/net/events.ts`
 - **Depends on:** `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
