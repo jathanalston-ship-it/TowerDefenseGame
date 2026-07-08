@@ -13,6 +13,7 @@ import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
 import { CommanderName } from './components/CommanderName';
 import { InitCutscene, introSeen } from './InitCutscene';
+import { UpdateToast } from './components/UpdateToast';
 import { startAutoCloudSync } from '../net/autoSync';
 import { HudTour } from './HudTour';
 import { isDebugEnabled } from '../debug/debug';
@@ -359,6 +360,7 @@ export function App(): JSX.Element {
       )}
       {screen === 'tutorial' && <TutorialRunner onExit={toMenu} />}
       {introActive && <InitCutscene onDone={() => setIntroActive(false)} />}
+      <UpdateToast />
       {screen === 'roulette' && roulette && (
         <BioRoulette spores={roulette.spores} onExit={() => { setRoulette(null); setScreen('menu'); }} />
       )}

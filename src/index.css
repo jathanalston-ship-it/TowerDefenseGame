@@ -8178,3 +8178,25 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .wave-breach::before, .wave-breach::after { animation-duration: 0.25s; }
 }
+
+/* ── Service-worker update toast (components/UpdateToast.tsx) ─────────────── */
+.swtoast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + var(--safe-b));
+  transform: translateX(-50%);
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(480px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line));
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: var(--shadow-lg);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+.swtoast-t { font-size: 13px; color: var(--text); }
+.swtoast-btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+.swtoast-later { padding: 8px 10px; font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: var(--r-md); }

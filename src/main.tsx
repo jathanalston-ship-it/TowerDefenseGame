@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { registerServiceWorker } from './net/swRegister';
 import { App } from './ui/App';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { validateAllContentReport, formatReport } from './core/validate';
@@ -26,3 +27,5 @@ createRoot(rootEl).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+registerServiceWorker(); // PROD-only offline shell + update toast (docs/DEPLOYMENT.md §sw)

@@ -7,7 +7,7 @@
   "description": "ASSIMILATE — a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json && vite build",
+    "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json && vite build && node scripts/stamp-sw.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json",
     "dev:full": "npm run build && npx wrangler@3 pages dev dist",
