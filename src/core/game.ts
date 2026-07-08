@@ -412,6 +412,9 @@ export class Game {
 
   // debug-only knobs — no effect at their defaults (driven by the debug panel)
   god = false;
+  /** Monotonic fixed-step counter — THE sim clock for input recording/replay
+   *  (docs/SECURITY-AUDIT.md R1). Purely observational: nothing reads it. */
+  stepCount = 0;
   timeScale = 1;
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
@@ -2254,6 +2257,7 @@ export class Game {
   }
 
   private step(dt: number): void {
+    this.stepCount++;
     // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
     // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
     this.dangerCameraSystem(dt);

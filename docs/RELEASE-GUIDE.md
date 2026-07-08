@@ -185,6 +185,9 @@ The numbered phases below are the same journey with full detail and links.
 
 ### The 60-second daily operations loop after launch
 
+0. `npm run verify-leaderboard` — re-simulates today's top daily claims and hides
+   any that don't reproduce (see docs/SECURITY-AUDIT.md R1). A few seconds.
+
 - Cloudflare: Deployments green? Web Analytics trend?
 - Stripe: payments/disputes/webhook failures?
 - `analytics_counters`: sessions, funnel, research usage.

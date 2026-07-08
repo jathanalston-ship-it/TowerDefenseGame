@@ -783,6 +783,7 @@ export interface RunResult {
   rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
   durationSec?: number; // run length (sim seconds) — drives the campaign fastest-clear ledger
   doctrine?: string; // the run's doctrine — protocols pay run-end rewards (docs/MODE-IDENTITY.md §doctrines)
+  dailyReplay?: string; // daily runs: the recorded input log (docs/SECURITY-AUDIT.md R1) — persisted with the day's best
   // ── Daily Run (docs/DAILY-RUN.md) — set by App for a 'daily' run: the day's UTC key. Drives the
   //    daily ledger (best wave / completions / streak) + the once-per-day clear reward. ──
   dailyKey?: string;
@@ -1141,6 +1142,10 @@ export const meta = {
           completions: save.daily.completions + (dailyRewarded ? 1 : 0),
           streak: dailyStreak,
           rewardedKey: dailyRewarded ? dailyKey : save.daily.rewardedKey,
+          // The replay follows the wave it backs: a new daily best carries its own recording.
+          lastReplay: save.daily.lastKey !== dailyKey || result.wave >= save.daily.lastWave
+            ? (result.dailyReplay ?? null)
+            : save.daily.lastReplay,
         }
       : save.daily;
 

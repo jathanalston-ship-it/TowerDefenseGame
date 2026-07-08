@@ -29,6 +29,8 @@ import { gameEvents } from '../core/events';
 import { currentCheckpoint } from '../core/tutorial';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
+import { attachRecorder, MAX_REPLAY_BYTES } from '../core/replay';
+import type { Recorder, ReplayCtorArgs } from '../core/replay';
 import { Hud } from './Hud';
 import { HeroSelectPanel } from './HeroSelectPanel';
 import { Toolbar } from './Toolbar';
@@ -74,6 +76,29 @@ const OUTRO_HOLD_MS = reducedMotion ? 1200 : 3400;
 // or moves the rally point by accident.
 const CLICK_SLOP = 8;
 
+/** Serialize a finished recording for submission — undefined when not recording or oversized. */
+function packReplay(rec: Recorder | null, game: Game): string | undefined {
+  if (!rec) return undefined;
+  try {
+    const blob = JSON.stringify(rec.finish({ wave: game.waveIndex, kills: game.kills }));
+    return blob.length <= MAX_REPLAY_BYTES ? blob : undefined;
+  } catch {
+    return undefined; // a non-serializable arg — the entry simply stays unverifiable
+  }
+}
+
+/** Construct the run's Game from its FULL argument tuple; for competitive (daily) runs,
+ *  wrap the input surface with the replay recorder BEFORE any input can land. */
+function newRecordedGame(
+  recorderRef: { current: Recorder | null },
+  record: boolean,
+  ...args: ReplayCtorArgs
+): Game {
+  const g = new Game(...args);
+  if (record) recorderRef.current = attachRecorder(g, args);
+  return g;
+}
+
 export function GameView({
   seed,
   mods,
@@ -117,7 +142,9 @@ export function GameView({
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
-  const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, {
+  // Daily runs record their input log for leaderboard replay verification (core/replay.ts).
+  const recorderRef = useRef<Recorder | null>(null);
+  const game = (gameRef.current ??= newRecordedGame(recorderRef, !!daily && !tutorial, seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
@@ -554,7 +581,7 @@ export function GameView({
         // After the linger (or a tap), hand off to the End-of-Run Summary.
         if (outroRef.current && !endedRef.current && (skipRef.current || now - outroRef.current.startedAt >= OUTRO_HOLD_MS)) {
           endedRef.current = true;
-          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless', durationSec: game.time, doctrine });
+          onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: game.phase === 'won', mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless', durationSec: game.time, doctrine, dailyReplay: packReplay(recorderRef.current, game) });
         }
         raf = requestAnimationFrame(loop);
       } catch (err) {
@@ -923,7 +950,7 @@ export function GameView({
               onClick={() => {
                 if (endedRef.current) return;
                 endedRef.current = true;
-                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless' });
+                onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: game.mode === 'endless', dailyReplay: packReplay(recorderRef.current, game) });
               }}
             >
               End Run

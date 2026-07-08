@@ -204,3 +204,22 @@ Surfaces added since the batch-4 audit, re-reviewed:
 Verdict unchanged: no criticals; residual risks remain the §4 ranked list
 (R1 leaderboard replay verification first). Exactly-once purchase pipeline is
 still pinned by the 33-scenario backend suite (runs in `npm test`).
+
+### R1 — IMPLEMENTED (2026-07-08): leaderboard replay verification
+
+The sim's fixed-step accumulator makes `Game.stepCount` a complete timeline, so daily
+runs now RECORD their full input log (`src/core/replay.ts`: every UI→sim call with its
+step index + the exact constructor args + the end step). The blob (~10KB, 256KB cap)
+persists with the day's best (save v25 `daily.lastReplay`), ships with the submission,
+and lands in D1 (`migrations/0003_replay.sql`: `replay`, `verified`).
+
+`npm run verify-leaderboard` re-simulates the day's unverified top claims with the real
+sim and stamps verdicts: match → `verified=1` (a ✓ the client can render); mismatch →
+`verified=-1` and the row VANISHES from `/api/leaderboard/top`. A better score resets
+verification — every claim earns its own re-run. Debug-assisted runs (god mode, spawn
+cheats) diverge on replay by construction, so they flag themselves.
+
+Proven by `src/core/replay.test.ts`: exact outcome reproduction through the recorded UI
+funnel, honest-claim acceptance, forged-claim + tampered-log rejection, and
+record-vs-unrecorded observational equality. Residual: entries without a blob (old
+clients) stay `verified=0` — visible but unbadged; the operator loop runs it daily.

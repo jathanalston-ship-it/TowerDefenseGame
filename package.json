@@ -19,6 +19,8 @@
     "set-ads": "vite-node scripts/set-ads.ts",
     "setup-db": "vite-node scripts/setup-db.ts",
     "setup-secrets": "vite-node scripts/setup-secrets.ts",
+    "verify-leaderboard": "vite-node scripts/verify-leaderboard.ts",
+    "mobilecheck": "vite-node scripts/mobilecheck.ts",
     "preflight": "vite-node scripts/preflight.ts",
     "test": "vitest run",
     "docs:graph": "vite-node scripts/gen-depgraph.ts",

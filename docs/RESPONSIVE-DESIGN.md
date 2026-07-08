@@ -105,3 +105,17 @@ No layout thrash, no extra renders on rotation — the browser does the work.
 Validation state: probe matrix (12 screens × 13 viewports) — **0 horizontal overflow,
 0 unreachable controls** (closed-drawer nav items are intentionally off-canvas); run surfaces
 verified at 4K/Deck/720p/iPad/phones with the board dominant and all chrome reachable.
+
+## Machine enforcement (added with the mobile pass)
+
+- **`npm run mobilecheck`** (also a `npm run validate` stage): serves the build and
+  walks every hub screen + a live in-run board at 390×844 and 320×700, failing on
+  horizontal overflow, clipped text (non-ellipsized), sub-24px touch targets, and
+  unreachable interactives. Drawer/tooltip "parked geometry" is exempt via the
+  visibility pattern; scroll rails count as reachable.
+- **Global floors** (`index.css` tail): ≤520px every interactive control gets
+  `min-height: 24px` (WCAG 2.5.8); `body{overflow-x:hidden}`; tooltips clamp to the
+  viewport; the wave banner clamps to `100vw` and every section shrinks/wraps.
+- **Content caps** (`src/dev/mobileContent.test.ts`): names ≤26 chars, descriptions
+  ≤240 across towers/heroes/enemies/cards/upgrades/biomes/megas — new content that
+  would break a phone layout fails `npm test` the moment it's added.

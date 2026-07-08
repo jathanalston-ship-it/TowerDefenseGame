@@ -19,11 +19,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const playerId = url.searchParams.get('playerId');
 
   const top = await env.DB.prepare(
-    `SELECT player_id, name, score, wave, power FROM leaderboard
-     WHERE mode = ?1 AND day_key = ?2 ORDER BY score DESC, submitted_at ASC LIMIT ${TOP_N}`,
+    `SELECT player_id, name, score, wave, power, verified FROM leaderboard
+     WHERE mode = ?1 AND day_key = ?2 AND verified >= 0 ORDER BY score DESC, submitted_at ASC LIMIT ${TOP_N}`,
   )
     .bind(mode, dayKey)
-    .all<{ player_id: string; name: string; score: number; wave: number; power: number }>();
+    .all<{ player_id: string; name: string; score: number; wave: number; power: number; verified: number }>();
 
   const total = await env.DB.prepare('SELECT COUNT(*) AS n FROM leaderboard WHERE mode = ?1 AND day_key = ?2')
     .bind(mode, dayKey)
@@ -48,7 +48,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     mode,
     dayKey,
     total: total?.n ?? 0,
-    entries: (top.results ?? []).map((r, i) => ({ rank: i + 1, name: r.name, score: r.score, wave: r.wave, power: r.power })),
+    entries: (top.results ?? []).map((r, i) => ({ rank: i + 1, name: r.name, score: r.score, wave: r.wave, power: r.power, verified: r.verified === 1 })),
     you,
   });
 };

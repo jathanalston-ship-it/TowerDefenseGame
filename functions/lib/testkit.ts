@@ -140,6 +140,7 @@ class FakeStatement {
       const next = {
         mode: args[0], day_key: args[1], player_id: args[2], name: args[3],
         score: args[4], wave: args[5], power: args[6], submitted_at: args[7],
+        replay: args[8] ?? null, verified: 0,
       };
       if (!existing) db.leaderboard.set(key, next);
       else if (Number(next.score) > Number(existing.score)) db.leaderboard.set(key, next);
@@ -160,7 +161,7 @@ class FakeStatement {
       const n = [...db.leaderboard.values()].filter((r) => r.mode === args[0] && r.day_key === args[1]).length;
       return { rows: [{ n }], changes: 0 };
     }
-    if (sql.startsWith('SELECT player_id, name, score, wave, power FROM leaderboard')) {
+    if (sql.startsWith('SELECT player_id, name, score, wave, power, verified FROM leaderboard')) {
       const rows = [...db.leaderboard.values()]
         .filter((r) => r.mode === args[0] && r.day_key === args[1])
         .sort((a, b) => Number(b.score) - Number(a.score) || Number(a.submitted_at) - Number(b.submitted_at))

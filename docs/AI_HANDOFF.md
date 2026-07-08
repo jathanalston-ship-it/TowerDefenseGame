@@ -163,3 +163,15 @@ GeneticVault.crack); localStorage corruption fuzz (5 shapes, all recover);
 frame/heap profiling (sim-only `g.advance` timing isolates engine from raster);
 cold-start FTUE walk (found + fixed the tutorial "100100/100100" readout — TutorialRunner
 now uses god-mode instead of a +100000 integrity bonus).
+
+## R1 + mobile batch (2026-07-08, same session)
+
+- Replay verification shipped end-to-end (see SECURITY-AUDIT §R1 — IMPLEMENTED):
+  `core/replay.ts` (recorder wraps the 21-method UI→sim funnel; step-indexed log;
+  `end` step pins the claim), GameView records daily runs, save v25 `daily.lastReplay`,
+  submit/top/migration 0003, `npm run verify-leaderboard` (wrangler-auth, no new API).
+- Mobile: `npm run mobilecheck` gate (in validate) + `mobileContent.test.ts` caps.
+  CSS: body overflow-x hidden; drawer + tooltip visibility pattern; ≤520px 24px tap
+  floor; wave-banner 100vw clamp + full shrink/wrap chain; conveyor self-scrolls.
+  Latent bug fixed: the ≤640 build-bar clamp (line ~2188) was silently dead — the
+  BASE rule later in the file overrode it; the clamp now lives on the base rule.

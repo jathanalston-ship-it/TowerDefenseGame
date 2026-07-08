@@ -16,6 +16,7 @@ export interface LbEntry {
   score: number;
   wave: number;
   power: number;
+  verified?: boolean; // replay re-simulated server-side and matched (docs/SECURITY-AUDIT.md R1)
 }
 
 export interface LbView {
@@ -88,6 +89,9 @@ export async function maybeSubmitBest(mode: LbMode): Promise<void> {
         power: Math.round(meta.power().score),
         ticket,
         turnstileToken: await turnstileToken(),
+        // Daily: today's best-run input log (docs/SECURITY-AUDIT.md R1) — lets the
+        // operator re-run the claim server-side. Absent ⇒ the entry stays unverifiable.
+        replay: mode === 'daily' ? save.daily.lastReplay ?? undefined : undefined,
       }),
     });
     if (res.ok) rememberSent(sentKey, claim.score);

@@ -62,7 +62,7 @@ export interface SaveData {
   //    lastKey/lastWave: the most recent attempt day + its deepest wave; bestWave: lifetime record;
   //    completions: lifetime cleared dailies; streak: consecutive-day clears; rewardedKey: the day
   //    whose clear reward was already granted (the once-per-day gate). ──
-  daily: { lastKey: string; lastWave: number; bestWave: number; completions: number; streak: number; rewardedKey: string };
+  daily: { lastKey: string; lastWave: number; bestWave: number; completions: number; streak: number; rewardedKey: string; lastReplay: string | null }; // lastReplay: the recorded input log backing today's best (v25, docs/SECURITY-AUDIT.md R1)
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -227,7 +227,7 @@ export interface TutorialSave {
 // timeline + profile stat ledgers). v22→v23: verified-purchase ledger (claimedReceipts +
 // pendingCheckout — docs/DEPLOYMENT.md §purchases). v23→v24: Field Research ledger
 // (docs/RESEARCH.md). All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 24;
+export const CURRENT_VERSION = 25;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -379,7 +379,7 @@ export function defaultSave(): SaveData {
     rushBestBoss: 0,
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
     research: { day: '', claims: {}, pendingBoosts: [], lifetime: { views: 0, claims: {} } },
-    daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '' },
+    daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -765,6 +765,8 @@ function sanitizeDaily(raw: unknown): SaveData['daily'] {
     completions: num(o.completions),
     streak: num(o.streak),
     rewardedKey: key(o.rewardedKey),
+    // v25: today's best-run replay blob — a bounded string or nothing (pre-v25 saves: null).
+    lastReplay: typeof o.lastReplay === 'string' && o.lastReplay.length <= 300_000 ? o.lastReplay : null,
   };
 }
 

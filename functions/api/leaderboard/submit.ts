@@ -32,6 +32,7 @@ interface Body {
   power?: number;
   ticket?: string;
   turnstileToken?: string;
+  replay?: string; // daily: recorded input log (R1) — stored verbatim, verified offline
 }
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
@@ -39,7 +40,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const ip = clientIp(request);
   if (!(await rateLimit(env.DB, 'lb-submit', ip, { limit: 12, windowSec: 3_600 }))) return err(429, 'rate-limited');
 
-  const body = await readJson<Body>(request, 4_096);
+  const body = await readJson<Body>(request, 300_000); // roomy: replay blobs are ~10KB, capped at 256KB
   if (!body || !isPlayerId(body.playerId)) return err(400, 'bad-request');
   if (typeof body.mode !== 'string' || !MODES.has(body.mode)) return err(400, 'bad-mode');
   if (!isIntInRange(body.score, 1, MAX_SCORE) || !isIntInRange(body.wave, 0, MAX_WAVE) || !isIntInRange(body.power, 0, MAX_POWER)) {
@@ -61,14 +62,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const name = sanitizeName(body.name);
+  // Replay blob (daily only): stored verbatim for offline re-simulation. A better score
+  // replaces the blob and RESETS verification — the new claim must earn its own ✓.
+  const replay = body.mode === 'daily' && typeof body.replay === 'string' && body.replay.length <= 262_144 ? body.replay : null;
   await env.DB.prepare(
-    `INSERT INTO leaderboard (mode, day_key, player_id, name, score, wave, power, submitted_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+    `INSERT INTO leaderboard (mode, day_key, player_id, name, score, wave, power, submitted_at, replay, verified)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 0)
      ON CONFLICT(mode, day_key, player_id) DO UPDATE
-       SET name = ?4, score = ?5, wave = ?6, power = ?7, submitted_at = ?8
+       SET name = ?4, score = ?5, wave = ?6, power = ?7, submitted_at = ?8, replay = ?9, verified = 0
        WHERE ?5 > leaderboard.score`,
   )
-    .bind(body.mode, dayKey, body.playerId, name, body.score, body.wave, body.power, Math.floor(Date.now() / 1000))
+    .bind(body.mode, dayKey, body.playerId, name, body.score, body.wave, body.power, Math.floor(Date.now() / 1000), replay)
     .run();
 
   const rank = await env.DB.prepare(

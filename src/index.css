@@ -109,6 +109,9 @@ html {
 }
 
 body {
+  /* The app shell never scrolls sideways: parked drawers / closed tooltips keep their
+     geometry (visibility pattern) and must not hand phones a horizontal rubber-band. */
+  overflow-x: hidden;
   background:
     radial-gradient(1200px 700px at 50% -10%, #0d1320 0%, var(--bg) 60%) fixed;
   color: var(--text);
@@ -269,8 +272,8 @@ button:disabled {
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  min-width: 140px;
-  max-width: 240px;
+  min-width: min(140px, 80vw);
+  max-width: min(240px, calc(100vw - 16px)); /* never wider than the phone that shows it */
   padding: 8px 10px;
   background: var(--panel-deep);
   border: 1px solid var(--line-strong);
@@ -2182,7 +2185,12 @@ canvas.board {
   .tcard-blurb { display: none; }
   .build-panel { order: 1; }
   .inspector { order: 2; }
-  .build-bar { flex-wrap: wrap; gap: 6px; padding: 6px 8px; max-width: calc(100% - 96px); } /* clears the Pause chip */
+  .build-bar { flex-wrap: wrap; gap: 6px; padding: 6px 8px; max-width: min(calc(100% - 96px), calc(100vw - 48px)); } /* clears the Pause chip AND the phone's right edge (the stage box can be wider than the visual viewport) */
+  /* Flex children default to min-width:auto and would hold their desktop content width,
+     poking out of the clamped bar — let every banner section shrink and wrap instead. */
+  .build-bar * { min-width: 0; } /* nothing in the banner may hold desktop content width */
+  .build-bar .wb-brief, .build-bar .wb-actions, .build-bar .wb-head, .build-bar .wb-threats, .build-bar .wb-autos { max-width: 100%; flex-wrap: wrap; }
+  .build-bar .start-btn { width: 100%; }
   .gene-splash { top: 42%; } /* below the wrapped prep bar — never under other chrome */
   .game { padding-left: var(--safe-l); padding-right: var(--safe-r); }
 }
@@ -3736,7 +3744,7 @@ kbd {
   align-items: stretch;
   gap: 14px;
   padding: 10px 12px;
-  max-width: min(860px, calc(100% - 24px));
+  max-width: min(860px, calc(100% - 24px), calc(100vw - 44px)); /* the stage box can exceed the visual viewport on phones — never follow it past the glass */
   border-radius: var(--r-md);
   background: linear-gradient(180deg, rgba(14, 20, 30, 0.88), rgba(8, 12, 20, 0.94));
   border: 1px solid var(--line);
@@ -5004,11 +5012,15 @@ kbd {
     z-index: 700; /* above toasts; below nothing it shouldn't be (modals 900+) */
     width: min(300px, 84vw);
     transform: translateX(-102%);
-    transition: transform var(--dur-3) var(--ease-out);
+    /* Closed = truly gone: visibility drops it from the tab order + a11y tree so
+       off-canvas nav items can't be focused/announced. The 0s delay on close lets
+       the slide-out finish before the panel vanishes; opening is instant. */
+    visibility: hidden;
+    transition: transform var(--dur-3) var(--ease-out), visibility 0s var(--dur-3);
     box-shadow: var(--shadow-lg);
     padding-left: var(--safe-l);
   }
-  .hub > .hub-nav.is-open { transform: translateX(0); }
+  .hub > .hub-nav.is-open { transform: translateX(0); visibility: visible; transition: transform var(--dur-3) var(--ease-out), visibility 0s; }
   .hub-nav-veil { position: fixed; inset: 0; z-index: 690; background: rgba(4, 7, 12, 0.55); }
   .hub-topbar { padding: 0 12px; gap: 10px; overflow-x: auto; }
   .hub-screen { padding: 12px; padding-bottom: calc(12px + var(--safe-b)); }
@@ -7911,5 +7923,36 @@ kbd {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ── Mobile touch-target floor (docs/RESPONSIVE-DESIGN.md · enforced by `npm run
+   mobilecheck`) ─ every interactive control on a phone meets the WCAG 2.5.8 24px
+   minimum. A generic floor (not per-component patches) so FUTURE controls inherit
+   it automatically — the layout gate fails any screen where this stops holding. */
+@media (max-width: 520px) {
+  button,
+  select,
+  input[type='checkbox'],
+  [role='button'] {
+    min-height: 24px;
+  }
+  /* Components that opt out of the desktop floor still meet the phone floor
+     (class specificity would otherwise beat the generic rule above). */
+  .panel-collapse {
+    min-height: 24px;
+    min-width: 26px;
+  }
+}
+
+/* Phone-width battlefield chrome: rows that can outgrow the shell scroll INSIDE
+   their own box instead of widening the page (flex min-width:auto would otherwise
+   let the belt push the document past the viewport). */
+@media (max-width: 640px) {
+  .conveyor {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
