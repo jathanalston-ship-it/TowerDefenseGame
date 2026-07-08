@@ -23,7 +23,7 @@ row, live headless verification, and the batch-4/5 audits.
 | Accessibility | **B−** | Semantic buttons/labels/roles, global :focus-visible ring, prefers-reduced-motion honored app-wide + boot shell, labeled battlefield canvas, color-scheme meta | Canvas combat remains pointer-first; colorblind palettes unverified; full screen-reader journey untested — schedule a dedicated pass |
 | Analytics | **A−** | Cookie-free: CF Web Analytics (pages) + aggregate D1 counters (game/store/research) + server-truth purchase funnel | Enable dashboard toggle at launch (guide step 18) |
 | Rewarded ads (Field Research) | **A−** | Complete, themed, capped, tested; Google H5 Games Ads adapter fully wired + `set-ads` one-command enabler (CSP/ads.txt/site slots) — ships HIDDEN | Needs an approved AdSense account for live verification; `simulated` covers the loop until then |
-| Website / branding | **A−** | Landing + news + REAL gameplay trailer (45s recorded from the build) + complete legal drafts, PWA manifest/icons, OG cards, boot splash, robots/sitemap, hidden ad slots | Newsletter action + Discord invite when they exist; legal sign-off below |
+| Website / branding | **A** | Landing + news + cinema trailer v2 (46s frame-stepped @DPR2, VP8) + three directed Hi-DPI screenshots (WebP) + complete legal drafts, PWA manifest/icons, OG cards, boot splash, robots/sitemap, hidden ad slots | Newsletter action + Discord invite when they exist; legal sign-off below |
 | Documentation | **A** | Deployment, Stripe, security, research, website, release guide, readiness (this), manifest/graph/state all synced | — |
 
 ## Must complete before public launch (the honest blockers)

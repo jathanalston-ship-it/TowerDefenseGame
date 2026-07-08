@@ -10,17 +10,21 @@ Static, dependency-free pages served by the same Pages deployment (zero extra in
 
 | Page | Purpose |
 |---|---|
-| `/welcome/` | Landing: hero + CTA, trailer placeholder, real gameplay screenshots (`shots/`), features, progression pitch, Daily Run + Boss Rush, newsletter + Discord placeholders |
+| `/welcome/` | Landing: hero + CTA, the real trailer, three staged Hi-DPI gameplay shots (`shots/*.webp`), features, progression pitch, Daily Run + Boss Rush, newsletter + Discord placeholders |
 | `/welcome/news.html` | News & patch notes (append one `<article>` per release) |
 | `/welcome/privacy.html` | Privacy Policy — honest behavioral skeleton, **must be completed by counsel before launch** |
 | `/welcome/terms.html` | Terms of Service — topic skeleton, **must be completed before launch** |
 
 The game stays at `/` (players' bookmarks, PWA start_url). Point marketing links at
 `/welcome/`; optionally add a Cloudflare redirect rule from a `www.` host to it.
-The trailer is REAL: `/welcome/trailer.webm` — a ~45s scripted gameplay take (Command
-Center → siege → apex boss → the Vesperine mega raid and its death) recorded headlessly
-from the actual build; muted by design (web video etiquette + the recorder captures no
-audio). Re-record after big visual updates with the recipe in the repo history.
+The trailer is REAL: `/welcome/trailer.webm` — a ~46s cinema cut (title cards →
+garrison siege → apex boss + hero → the Vesperine mega raid, weak-point kill and death)
+captured FRAME-BY-FRAME from the actual build (Playwright fake-clock stepping at 30fps,
+devicePixelRatio 2, reaction-word floaters suppressed for legibility) and assembled with
+ffmpeg (VP8/WebM, hard cuts + card fades); muted by design. The screenshots in
+`/welcome/shots/*.webp` come from the same directed staging at DPR 2 (1200w WebP).
+Re-shoot both after big visual updates — the capture scripts live in the repo history
+(batch 5c) and docs/AI_HANDOFF.md carries the recipe.
 Remaining placeholders: newsletter form action, Discord invite, the governing-law line
 in terms.html, and the `og:url` domain (one `npm run set-domain` command).
 

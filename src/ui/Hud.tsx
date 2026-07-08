@@ -170,8 +170,8 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
               )}
             </div>
             <span className={`hud-v ${intPct < 0.34 ? 'is-danger' : ''}`}>
-              {hud.integrity}
-              <span className="hud-sub">/{hud.maxIntegrity}</span>
+              {Math.min(Math.round(hud.integrity), Math.round(hud.maxIntegrity))}
+              <span className="hud-sub">/{Math.round(hud.maxIntegrity)}</span>
             </span>
           </div>
           {underAttack && (
@@ -323,8 +323,8 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
                 label="Hero HP"
               />
               <span className="hud-v hud-v-sm">
-                {hud.hero.hp}
-                <span className="hud-sub">/{hud.hero.maxHp}</span>
+                {Math.round(hud.hero.hp)}
+                <span className="hud-sub">/{Math.round(hud.hero.maxHp)}</span>
               </span>
             </div>
           )}

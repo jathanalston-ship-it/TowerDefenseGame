@@ -211,7 +211,7 @@ export function HeroEvolutionPanel({
           {hero && (hero.down
             ? <div className="hcc-down">DOWN · revives in {Math.ceil(hud.hero.respawn)}s</div>
             : <ProgressBar value={Math.round(hero.hp)} max={hero.maxHp} color={def.color} height={8} label={`${def.name} HP`} />)}
-          {hero && !hero.down && <div className="hcc-hp">{Math.round(hero.hp)} / {hero.maxHp}{hud.hero.shield > 0 && def.kind === hud.hero.kind ? ` · ⛨${hud.hero.shield}` : ''}</div>}
+          {hero && !hero.down && <div className="hcc-hp">{Math.round(hero.hp)} / {Math.round(hero.maxHp)}{hud.hero.shield > 0 && def.kind === hud.hero.kind ? ` · ⛨${hud.hero.shield}` : ''}</div>}
           <div className="hcc-stats">
             <span><i>Damage</i><b>{Math.round(def.attackDamage * mods.damageMult)}</b></span>
             <span><i>Atk / s</i><b>{(mods.attackSpeedMult / def.attackInterval).toFixed(1)}</b></span>

@@ -18,9 +18,12 @@ drafts, tests. Your part is accounts + secrets + one command:
 3. `npx wrangler@3 login` then `npm run setup-db` (creates the database, writes
    the id, applies the schema — everything except the dashboard binding, which it
    prints). Bind as `DB`, redeploy (step 6).
-4. Paste the six env values (Turnstile ×2, Stripe ×2, `DAY_TICKET_SECRET`,
-   `ENVIRONMENT`) into Pages settings (steps 7–10). `npm run preflight -- --url …`
-   prints a ready-to-paste `DAY_TICKET_SECRET` if you haven't set one.
+4. `npm run setup-secrets -- --turnstile-secret 0x… --stripe-key sk_… --webhook-secret whsec_…`
+   — pushes all server secrets with wrangler (`DAY_TICKET_SECRET` is auto-generated,
+   `ENVIRONMENT` already ships in wrangler.toml). Public values live in the committed
+   `.env.production`: paste your Turnstile SITE key there (and later flip
+   `VITE_CHECKOUT_PROVIDER=stripe`), commit + push. No dashboard forms needed;
+   the dashboard env screen still works and overrides the file if you prefer it.
 4b. Ads, whenever you want them: `npm run set-ads -- google --client ca-pub-…`
    + two env vars (step 19). Ships hidden until then.
 5. `npm run set-domain -- play.yourdomain.com --contact you@yourdomain.com`
@@ -69,29 +72,30 @@ The numbered phases below are the same journey with full detail and links.
 
 7. **Bot protection (Turnstile)**: dashboard → **Turnstile** → **Add site** → name it,
    add `<project>.pages.dev` (add your custom domain here later too), widget mode
-   **Managed** → copy both keys. Pages → **Settings → Environment variables** →
-   Production (and Preview):
-   - `VITE_TURNSTILE_SITE_KEY` = the site key
-   - `TURNSTILE_SECRET_KEY` = the secret key (mark as Secret)
+   **Managed** → copy both keys. Then:
+   - SITE key (public) → `.env.production` → `VITE_TURNSTILE_SITE_KEY=0x…` → commit + push
+   - SECRET key → `npm run setup-secrets -- --turnstile-secret 0x…`
    Docs: https://developers.cloudflare.com/turnstile/get-started/
 
-8. **Day tickets**: same env screen —
-   - `DAY_TICKET_SECRET` = output of `openssl rand -hex 32` (Secret)
-   - `ENVIRONMENT` = `production` (Production env) / `preview` (Preview env)
-   Redeploy. ✅ `/api/health` now shows `turnstile: true, dayTickets: true`.
+8. **Day tickets + environment**: nothing to do — `setup-secrets` auto-generates
+   `DAY_TICKET_SECRET` the first time it runs, and `ENVIRONMENT` ships in
+   `wrangler.toml` (`production` / `preview`). Redeploy after step 7.
+   ✅ `/api/health` now shows `turnstile: true, dayTickets: true`.
 
 ## Phase 2 — payments (test mode first, ALWAYS)
 
 9. **Stripe test keys**: Stripe dashboard, **Test mode** toggle ON → **Developers →
-   API keys** → copy the Secret key (`sk_test_…`) → Pages env (Preview environment):
-   `STRIPE_SECRET_KEY` = it (Secret), and set `VITE_CHECKOUT_PROVIDER` = `stripe`
-   (Preview). Docs: https://docs.stripe.com/keys
+   API keys** → copy the Secret key (`sk_test_…`) →
+   `npm run setup-secrets -- --stripe-key sk_test_… --preview` (`--preview` writes the
+   preview env too, which is where test purchases run). Flip
+   `VITE_CHECKOUT_PROVIDER=stripe` in `.env.production`, commit + push.
+   Docs: https://docs.stripe.com/keys
 
 10. **Test webhook**: Stripe → **Developers → Webhooks → Add endpoint** →
     URL `https://<project>.pages.dev/api/stripe/webhook` → select exactly these events:
     `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
     `charge.refunded`, `charge.refund.updated` → Add → reveal **Signing secret**
-    (`whsec_…`) → Pages Preview env: `STRIPE_WEBHOOK_SECRET` = it (Secret). Redeploy.
+    (`whsec_…`) → `npm run setup-secrets -- --webhook-secret whsec_… --preview`. Redeploy.
     Docs: https://docs.stripe.com/webhooks
 
 11. **Test purchases** (docs/STRIPE-SETUP.md §6 is the full script): on a PREVIEW
@@ -123,9 +127,11 @@ The numbered phases below are the same journey with full detail and links.
 
 15. **Finish Stripe verification** (Test mode OFF): complete the business profile.
 16. **Live keys**: repeat steps 9–10 in LIVE mode against the production domain —
-    live `sk_live_…` + a NEW live webhook endpoint + its `whsec_…` → put both in the
-    **Production** environment only. Set `VITE_CHECKOUT_PROVIDER=stripe` (Production).
-    Redeploy production. The backend REFUSES test keys in production by design.
+    live `sk_live_…` + a NEW live webhook endpoint + its `whsec_…` →
+    `npm run setup-secrets -- --stripe-key sk_live_… --webhook-secret whsec_…`
+    (no `--preview`: production only). `.env.production` already says
+    `VITE_CHECKOUT_PROVIDER=stripe` from step 9. Redeploy production.
+    The backend REFUSES test keys in production by design.
 17. **One real purchase**: buy the $1.99 vial with a real card, verify delivery, then
     refund it from the Stripe dashboard (both sides of the money path proven live).
 

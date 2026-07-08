@@ -51,6 +51,19 @@ if (terms.includes('PLACEHOLDER_JURISDICTION')) {
   warn('governing law not set in terms.html', 'set PLACEHOLDER_JURISDICTION with counsel before launch');
 } else ok('governing law set');
 
+// Public build config (.env.production — committed by design, no secrets)
+if (existsSync('.env.production')) {
+  const envProd = readFileSync('.env.production', 'utf8');
+  if (/^VITE_TURNSTILE_SITE_KEY=.+$/m.test(envProd)) ok('.env.production: Turnstile site key set');
+  else warn('.env.production: Turnstile site key empty', 'paste the SITE key (RELEASE-GUIDE step 7); the secret half goes via npm run setup-secrets');
+  const prov = /^VITE_CHECKOUT_PROVIDER=(\S+)/m.exec(envProd)?.[1] ?? 'sandbox';
+  if (prov === 'stripe') ok('.env.production: checkout provider = stripe');
+  else warn(`.env.production: checkout provider = ${prov} (sandbox store)`, 'flip to stripe after steps 9-10 - RELEASE-GUIDE');
+  if (/sk_live|sk_test|whsec_/.test(envProd)) {
+    bad('.env.production may contain a server secret', 'this file is COMMITTED - server secrets go via npm run setup-secrets only');
+  }
+} else warn('.env.production missing', 'restore it - it carries the public VITE_ build values');
+
 // Secrets hygiene: nothing sensitive committed
 for (const f of ['.dev.vars', '.env', '.env.local']) {
   if (existsSync(f)) {

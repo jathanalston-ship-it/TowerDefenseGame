@@ -63,11 +63,11 @@ export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onC
       </div>
 
       {/* Health (with a shield overlay) */}
-      <div className="hp-bar" title={`${hero.hp} / ${hero.maxHp}${hero.shield ? ` (+${hero.shield} shield)` : ''}`}>
+      <div className="hp-bar" title={`${Math.round(hero.hp)} / ${Math.round(hero.maxHp)}${hero.shield ? ` (+${hero.shield} shield)` : ''}`}>
         <div className="hp-bar-fill" style={{ width: `${hpPct * 100}%` }} />
         {hero.shield > 0 && <div className="hp-bar-shield" style={{ width: `${shieldPct * 100}%` }} />}
         <span className="hp-bar-num">
-          {hero.down ? `Down · respawn ${Math.ceil(hero.respawn)}s` : `${hero.hp} / ${hero.maxHp}`}
+          {hero.down ? `Down · respawn ${Math.ceil(hero.respawn)}s` : `${Math.round(hero.hp)} / ${Math.round(hero.maxHp)}`}
           {hero.shield > 0 && !hero.down ? ` +${hero.shield}` : ''}
         </span>
       </div>

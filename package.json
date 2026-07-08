@@ -18,6 +18,7 @@
     "set-domain": "vite-node scripts/set-domain.ts",
     "set-ads": "vite-node scripts/set-ads.ts",
     "setup-db": "vite-node scripts/setup-db.ts",
+    "setup-secrets": "vite-node scripts/setup-secrets.ts",
     "preflight": "vite-node scripts/preflight.ts",
     "test": "vitest run",
     "docs:graph": "vite-node scripts/gen-depgraph.ts",

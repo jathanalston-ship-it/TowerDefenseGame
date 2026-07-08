@@ -15,4 +15,13 @@ binding = "DB"
 database_name = "assimilate-db"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 
+# ── Plain (non-secret) runtime vars. Server secrets are NOT set here — use
+#    `npm run setup-secrets` (wrangler pages secret put). Public VITE_ build
+#    values live in .env.production.
+[vars]
+ENVIRONMENT = "production"
+
+[env.preview.vars]
+ENVIRONMENT = "preview"
+
 # Local dev secrets live in .dev.vars (gitignored) — see .env.example for keys.

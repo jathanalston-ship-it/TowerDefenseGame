@@ -338,7 +338,18 @@ export function GameView({
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
+    if (!ctx || !canvas) return;
+    // Hi-DPI battlefield: back the canvas at devicePixelRatio (clamped ×3) so retina /
+    // zoomed / high-res-capture displays render CRISP instead of CSS-upscaling a 720×960
+    // store. Every draw stays in sim coordinates — this one base transform maps them to
+    // device pixels, and the renderer's save/restore pairs compose on top of it. Pointer
+    // math (toCoords) is bounding-rect based and unaffected. dpr=1 is byte-identical.
+    const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    if (dpr !== 1) {
+      canvas.width = Math.round(WIDTH * dpr);
+      canvas.height = Math.round(HEIGHT * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
     let raf = 0;
     let last = performance.now();
     let lastHud = 0;
@@ -388,7 +399,7 @@ export function GameView({
         const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;
         const dx = mag ? (Math.random() * 2 - 1) * mag : 0;
         const dy = mag ? (Math.random() * 2 - 1) * mag : 0;
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // re-assert the Hi-DPI base transform each frame
         ctx.fillStyle = '#070a10';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.save();
@@ -769,7 +780,7 @@ export function GameView({
                 <span><i>Wave</i><b>{Math.max(1, hud.wave)}{hud.endless || hud.bossRush ? '' : `/${hud.totalWaves}`}</b></span>
                 <span><i>Kills</i><b>{hud.kills}</b></span>
                 <span><i>Biomass</i><b>{hud.biomass}</b></span>
-                <span><i>Integrity</i><b>{hud.integrity}/{hud.maxIntegrity}</b></span>
+                <span><i>Integrity</i><b>{Math.min(Math.round(hud.integrity), Math.round(hud.maxIntegrity))}/{Math.round(hud.maxIntegrity)}</b></span>
               </div>
               {confirmAbandon ? (
                 <>

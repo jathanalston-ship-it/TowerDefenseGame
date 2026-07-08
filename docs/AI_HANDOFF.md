@@ -123,3 +123,32 @@ R5 R2 for save history). No open criticals.
   same checkout with zero backend change; future cosmetics/expansions are
   catalog rows.
 - `wrangler.toml` — R2 bucket binding slot documented for save history.
+
+## Batch 5c — media pipeline + last-mile setup (2026-07-08)
+
+- **Hi-DPI battlefield**: `GameView` backs the canvas at `devicePixelRatio` (clamped ×3)
+  and re-asserts the DPR base transform EVERY frame (the render loop's per-frame
+  `setTransform` reset must use `dpr`, never identity). `canvas.board` CSS caps at the
+  logical 720×960 via `min(100%, …)` so the bigger backing store can't inflate layout.
+  DPR=1 is byte-identical; node/jsdom tests never enter the branch.
+- **Display-only rounding**: integrity + hero HP text render sites use `Math.round`
+  (hive current additionally clamps ≤ max — regen float overshoot read "823/822").
+- **Capture recipe (stills + trailer)**: Playwright fake clock (`page.clock.install`
+  BEFORE goto) + `clock.runFor(step)` frame-stepping at deviceScaleFactor 2.
+  `page.screenshot` internally waits on a rAF the frozen clock never fires — start the
+  screenshot, `runFor` the second half-step to release it, then await (≈10× faster).
+  Legibility art direction: filter `g.floats` to numerics (+ mega narrative lines
+  `WEAK POINT|CHANNELING|DESTROYED`) and monkey-patch `floats.push` with the same
+  predicate while capturing — reaction words (SHRED/FERMENT/…) fire in cadence-tick
+  bursts and otherwise bury the board. Force mega drama deterministically:
+  `g.mega.abilityCd = cds.map(() => 0.1)` (casts → weak points + banners), keep at most
+  one tide zone (`g.mega.active` radius entries), `debugDamageMega` for phase pushes.
+- **Media encoding**: playwright's bundled ffmpeg decodes MJPEG but NOT PNG — trailer
+  frames are JPEG q90, assembled with `libvpx` VP8 into WebM; stills are downscaled to
+  1200w WebP via a browser canvas (`toDataURL('image/webp')`). Landing uses
+  `shots/{command,combat,megaraid}.webp`; poster = combat.webp.
+- **Last-mile setup**: `npm run setup-secrets` pushes the four server secrets with
+  `wrangler pages secret put` (auto-generates `DAY_TICKET_SECRET`; `--preview` mirrors
+  to the preview env); `ENVIRONMENT` ships in `wrangler.toml` `[vars]`/`[env.preview.vars]`;
+  public build values live in the COMMITTED `.env.production` (dashboard vars still
+  override). Preflight validates the file and refuses committed secrets.

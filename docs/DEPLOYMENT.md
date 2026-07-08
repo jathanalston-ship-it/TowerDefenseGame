@@ -98,8 +98,12 @@ Design rules this deployment follows:
 
 ## 3. Environment variables
 
-Client variables ship in the bundle (public); server variables are secrets and
-live ONLY in the Pages project settings (or `.dev.vars` locally, gitignored).
+Client variables ship in the bundle (public) and live in the COMMITTED
+`.env.production` (a Pages dashboard variable of the same name overrides the file).
+Server variables are secrets: `npm run setup-secrets` pushes them with
+`wrangler pages secret put` (add `--preview` to mirror the preview env); locally they
+go in `.dev.vars` (gitignored). `ENVIRONMENT` needs no setup — it ships in
+`wrangler.toml` (`[vars]` production / `[env.preview.vars]` preview).
 
 | Variable | Side | Required | Purpose |
 |---|---|---|---|
