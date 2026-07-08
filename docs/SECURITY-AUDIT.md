@@ -151,7 +151,30 @@ cosmetic).
 5. **R5 — R2 for save history** (versioned backups) if cloud saves outgrow the
    single D1 slot.
 
-## 5. Verdict
+## 5. Independent diff review (pre-release pass)
+
+A focused second-pass security review of the full backend diff (payment flow,
+webhook crypto, auth models, SQL surface, CSRF reasoning, CSP) confirmed **no
+exploitable findings at the ≥0.7-confidence reporting bar**. Specific attacks
+verified unexploitable: foreign-session minting via claim (our-key retrieval
+404s foreign sessions; player binding from server-set metadata), price/offer
+tampering (catalog re-asserted at webhook AND claim), idempotency-key
+collisions (player-scoped), signature forgery/replay (raw-body HMAC,
+tolerance, constant-time, event dedupe), Turnstile skip forcing, cloud-save
+token timing, SQL injection (all statements parameterized), FakeD1 reachability
+(test-only), leaderboard cross-player id leakage (ids never emitted), and CSP
+weakening (none — strictly additive).
+
+Four sub-threshold observations (0.25–0.40 confidence, all gated on
+unguessable UUIDs) were recorded; one was fixed anyway for auth-model
+consistency: `GET /api/store/history` now requires the sync token whenever the
+player has a cloud slot (previously UUID scope alone). The remainder map to
+accepted risks A1–A3 above. One business rule was noted and accepted: a
+player who completes two checkouts for a limit-1 pack in different rate
+windows pays twice and receives twice — full-price both times, refundable via
+the standard support path; not an entitlement or money-theft vector.
+
+## 6. Verdict
 
 **Cleared for public release.** Every surface where real value moves (money,
 receipts, refunds, backups) is server-verified, replay-safe, idempotent, and

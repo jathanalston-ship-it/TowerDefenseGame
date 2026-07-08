@@ -180,7 +180,7 @@ production and preview get **different** Stripe keys (live vs test mode).
 | `POST /api/store/checkout` | create a Stripe Checkout Session for one catalog offer | origin check, rate limit, Turnstile, server-side price + offer caps |
 | `POST /api/stripe/webhook` | Stripe events → purchases/refunds | HMAC signature + 5-min tolerance, event-id dedupe, catalog amount check |
 | `POST /api/store/claim` | verify + fulfill exactly once | rate limit, id validation, player binding, fulfillments PK idempotency |
-| `GET /api/store/history` | receipts for support/restore | rate limit, UUID scoping |
+| `GET /api/store/history` | receipts for support/restore | rate limit, sync-token auth (falls back to UUID scope pre-cloud-slot) |
 | `PUT/GET /api/save` | cloud save backup/restore | token hash (TOFU), size cap, envelope check, rate limit |
 | `GET /api/daily/seed` | day authority + HMAC day ticket | rate limit (the seed itself is public by design) |
 | `POST /api/leaderboard/submit` | score claim | origin, rate limit, Turnstile, bounds, day ticket, keep-best upsert |

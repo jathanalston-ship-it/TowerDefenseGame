@@ -3,7 +3,20 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-07 (**MEGA BOSS SAGA + three content batches complete**:
+> **Last updated:** 2026-07-08 (**PRODUCTION DEPLOYMENT complete** — the game is
+> launch-ready on Cloudflare Pages + Pages Functions + D1 + Stripe Checkout +
+> Turnstile (docs/DEPLOYMENT.md: architecture/diagram/env-vars/checklists;
+> docs/STRIPE-SETUP.md: operator checklist). Thin fail-soft backend only where a
+> client must never decide alone: server-verified purchases (webhook HMAC +
+> event dedupe + catalog-priced sessions + exactly-once fulfillments + refunds),
+> cloud saves (sync-code TOFU), daily day-tickets, leaderboards (Turnstile +
+> bounds + keep-best), health check. Sim stays 100% client-side/offline. Save
+> v23 (claimedReceipts + pendingCheckout). 29 new failure-mode tests (dup
+> webhooks, forged signatures, refunds, power-loss claims…); suite 1173.
+> docs/SECURITY-AUDIT.md: cleared for release, no criticals; independent diff
+> review clean at the reporting bar. Previous sessions below.)
+>
+> **2026-07-07** (**MEGA BOSS SAGA + three content batches complete**:
 > the MEGA BOSS raid framework (battlefield-scale anchored organisms, 12-verb ability registry,
 > 10-kind consequence-mapped Weak Point framework, campaign /10 · infinite /20 · rush /5
 > cadence + the rare Daily Mega, Power-vs-kill-time efficiency rewards, collection category,

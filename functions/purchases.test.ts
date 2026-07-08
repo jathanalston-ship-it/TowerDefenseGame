@@ -257,7 +257,7 @@ describe('GET /api/store/history', () => {
   it('returns the player-scoped receipt trail', async () => {
     const e = env();
     await signedWebhook(e, { id: 'evt_1', type: 'checkout.session.completed', data: { object: paidSession() } });
-    const res = await history(ctx(new Request(`https://game.test/api/store/history?playerId=${PLAYER}`), e));
+    const res = await history(ctx(new Request(`https://game.test/api/store/history?playerId=${PLAYER}&token=${'a'.repeat(64)}`), e));
     const body = (await res.json()) as { purchases: { offerId: string; status: string }[] };
     expect(body.purchases).toHaveLength(1);
     expect(body.purchases[0].offerId).toBe(OFFER.id);
