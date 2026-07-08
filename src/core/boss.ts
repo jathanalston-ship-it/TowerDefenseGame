@@ -233,6 +233,61 @@ export const BOSS_DEFS: Record<string, BossDef> = {
     ],
     modifiers: ['bulwark'],
   },
+  // ── EA Milestone 3: the Act-3 boss line (stages 50/55/60). The graduation exams: each pairs
+  //    module combos no earlier boss fused, at HP bands past the Act-2 wall. Registered + pinned
+  //    like both earlier lines — codex/collection/rush ride the same registry path. ──
+  hollow_matriarch: {
+    id: 'hollow_matriarch', name: 'The Hollow Matriarch', chassis: 'swarmlord',
+    hpMult: 14, radius: 34, color: '#e08ae0', bounty: 840, damage: 74,
+    modules: [
+      { kind: 'spawner', cooldown: 4.5, amount: 5, addKind: 'runner' },
+      { kind: 'spawner', cooldown: 7, amount: 3, addKind: 'lasher' },
+      { kind: 'healer', cooldown: 5, amount: 260, radius: 190 }, // she mends the brood AND herself
+      { kind: 'splitter', cooldown: 999, amount: 3, generations: 2 }, // death births THREE daughters
+      { kind: 'rally', cooldown: 999, amount: 6, addKind: 'rusher' },
+    ],
+    phases: [
+      { threshold: 1, modules: [0, 2], visualTier: 0 }, // P1: brood + mend
+      { threshold: 0.6, modules: [0, 1, 2, 4], visualTier: 1 }, // P2: twin broods
+      { threshold: 0.25, modules: [0, 1, 2, 4], speedMult: 1.15, damageMult: 1.15, visualTier: 2 }, // P3: the flood — and her death is not the end
+    ],
+    modifiers: ['regenerator'],
+  },
+  null_tyrant: {
+    id: 'null_tyrant', name: 'The Null Tyrant', chassis: 'controller',
+    hpMult: 16, radius: 34, color: '#8a9aff', bounty: 940, damage: 80, armor: 22,
+    modules: [
+      { kind: 'shieldphase', cooldown: 14, duration: 3.5 }, // total nullity windows
+      { kind: 'suppressor', cooldown: 11, duration: 4.5, radius: 170 }, // your guns go dark
+      { kind: 'gravitas', cooldown: 12, amount: 120, radius: 280 }, // your champions are DRAGGED
+      { kind: 'channeler', cooldown: 13, duration: 3.4, amount: 34 },
+      { kind: 'rally', cooldown: 999, amount: 5, addKind: 'warden' },
+    ],
+    phases: [
+      { threshold: 1, modules: [0, 1], visualTier: 0 }, // P1: nullity + suppression
+      { threshold: 0.65, modules: [0, 1, 2, 4], visualTier: 1 }, // P2: + the drag
+      { threshold: 0.3, modules: [0, 2, 3, 4], speedMult: 1.12, damageMult: 1.2, visualTier: 2 }, // P3: it takes the Core apart
+    ],
+    modifiers: ['hastening'],
+  },
+  worldbreaker: {
+    id: 'worldbreaker', name: 'Worldbreaker', chassis: 'juggernaut',
+    hpMult: 19, radius: 40, color: '#ffb060', bounty: 1100, damage: 92, armor: 30,
+    modules: [
+      { kind: 'burrower', cooldown: 15, duration: 2.8 }, // the ground itself betrays you
+      { kind: 'corecrush', cooldown: 13, amount: 10, duration: 5 }, // it GRIPS the Nucleus
+      { kind: 'carapace', cooldown: 8, amount: 46, duration: 4.5 },
+      { kind: 'enrager', cooldown: 10, amount: 1 },
+      { kind: 'rally', cooldown: 999, amount: 6, addKind: 'brute' },
+    ],
+    phases: [
+      { threshold: 1, modules: [2, 3], visualTier: 0 }, // P1: the armored ramp
+      { threshold: 0.65, modules: [0, 2, 3, 4], visualTier: 1 }, // P2: + the burrow
+      { threshold: 0.3, modules: [0, 1, 2, 4], speedMult: 1.1, visualTier: 2 }, // P3: THE GRIP
+      { threshold: 0.12, modules: [1, 2, 3, 4], speedMult: 1.25, damageMult: 1.25, visualTier: 3 }, // desperation
+    ],
+    modifiers: ['regenerator', 'bulwark'],
+  },
   unmaker: {
     id: 'unmaker', name: 'The Unmaker', chassis: 'artillery',
     hpMult: 12, radius: 34, color: '#c98cff', bounty: 720, damage: 78, armor: 20,
@@ -260,6 +315,8 @@ export const CAMPAIGN_BOSSES: Record<number, string> = {
   5: 'first_antibody', 10: 'brood_cyst', 15: 'the_mender', 20: 'chitin_colossus', 25: 'mitotic_horror', 30: 'purge_engine',
   // Milestone 2 — the Act-2 siege line (positioning / layered defense / total suppression).
   35: 'sunken_chorus', 40: 'vault_of_teeth', 45: 'unmaker',
+  // Milestone 3 — the Act-3 graduation line (brood flood / control lockdown / the final siege).
+  50: 'hollow_matriarch', 55: 'null_tyrant', 60: 'worldbreaker',
 };
 
 /** The authored boss pinned to a campaign stage, if any (else undefined ⇒ keep the procedural finale). */

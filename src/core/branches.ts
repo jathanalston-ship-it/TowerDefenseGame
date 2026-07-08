@@ -369,6 +369,55 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Choking Thicket', desc: 'TWO more buds — the lane is the trap.', damageMult: 1.1, particle: 'spore', impact: 'acid', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'cosmetic', id: 'thicket' }] },
     ],
   },
+  // ════════════ SYNAPSE SPIRE (Neural, chain arc-caster) ════════════
+  // The arc honours damage/rate ride-alongs, extraProjectiles (+hops), and ability grants on the
+  // cast. No pierce — the arc IS the multi-hit.
+  {
+    id: 'spire_storm', tower: 'spire', name: 'Stormcall',
+    theme: 'One arc to end them — fewer, harder strikes that stun what they touch.',
+    tiers: [
+      { tier: 1, name: 'High Tension', desc: 'Arcs hit 20% harder, and the entry strike can OVERLOAD (×3).', damageMult: 1.2, particle: 'spark', sfx: 'br_storm', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.2, mult: 3, damage: 10 }] }] },
+      { tier: 2, name: 'Overload Relay', desc: 'First strikes DISRUPT the victim.', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Disruption', amount: 1.5 } }] }] },
+      { tier: 3, name: 'Storm Front', desc: 'Harder arcs; a static ring chips the near field.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 120, damage: 7, react: true, particle: 'spark' }] }] },
+      { tier: 4, name: 'Thundering Verdict', desc: '+1 hop and heavier voltage.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 5, name: 'The Stormcall', desc: 'A detonating overload erupts from every first strike.', damageMult: 1.25, particle: 'railburst', impact: 'spark', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 140, damage: 34, react: true, particle: 'spark' }] }, { t: 'cosmetic', id: 'stormcall' }] },
+    ],
+  },
+  {
+    id: 'spire_web', tower: 'spire', name: 'Synaptic Web',
+    theme: 'The lightning goes ON — a web of hops that owns the whole pack.',
+    tiers: [
+      { tier: 1, name: 'Sixth Synapse', desc: '+1 arc hop.', particle: 'spark', sfx: 'br_psi', impact: 'spark', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Fast Relay', desc: '+20% cast cadence, and a relay spark arcs out beside the main bolt.', fireRateMult: 1.2, grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 2, range: 210, damage: 9, falloff: 0.75, particle: 'spark' }] }] },
+      { tier: 3, name: 'Seventh Synapse', desc: '+1 more hop; hops leave Disruption.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'aura', radius: 130, status: { kind: 'Disruption', amount: 0.8 } }] }] },
+      { tier: 4, name: 'Humming Grid', desc: '+25% cast cadence, hotter current — an eighth synapse joins the web.', fireRateMult: 1.25, damageMult: 1.1, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 5, name: 'The Synaptic Web', desc: 'TWO more hops — the pack is one circuit.', damageMult: 1.1, particle: 'railburst', impact: 'spark', grants: [{ t: 'projectile', extraProjectiles: 2 }, { t: 'cosmetic', id: 'web' }] },
+    ],
+  },
+  // ════════════ UNDERTOW POLYP (Kinetic, pull-field) ════════════
+  // Displacement magnitude STACKS via extra pull auras (the branch grant currency here).
+  {
+    id: 'polyp_riptide', tower: 'polyp', name: 'Riptide Engine',
+    theme: 'The drag becomes a verdict — deeper, harder undertows that unmake progress.',
+    tiers: [
+      { tier: 1, name: 'Strong Current', desc: 'A second drag current joins each pulse.', particle: 'disrupt', sfx: 'br_maw', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 155, pull: 20 }] }] },
+      { tier: 2, name: 'Cold Depth', desc: 'The held are Disrupted (slow + vulnerable).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 155, status: { kind: 'Disruption', amount: 0.8 } }] }] },
+      { tier: 3, name: 'Deep Riptide', desc: 'A THIRD current — whole seconds stolen.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, pull: 26, particle: 'disrupt' }] }] },
+      { tier: 4, name: 'Millstone', desc: 'The churn grinds — real damage on the held.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 165, damage: 11, react: true }] }] },
+      { tier: 5, name: 'The Riptide Engine', desc: 'A monstrous drag: the wave near it simply stops arriving.', damageMult: 1.15, particle: 'dissolve', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 180, pull: 44, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'riptide' }] },
+    ],
+  },
+  {
+    id: 'polyp_gorge', tower: 'polyp', name: 'Grinding Gorge',
+    theme: 'What the tide holds, the gorge EATS — the churn becomes a killing floor.',
+    tiers: [
+      { tier: 1, name: 'Toothed Basin', desc: 'The churn bites: +8 damage per pulse.', particle: 'gore', sfx: 'br_gullet', impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, damage: 8, react: true }] }] },
+      { tier: 2, name: 'Shearing Stones', desc: 'Fracture shears off everything held.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 160, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 3, name: 'Faster Wheel', desc: '+20% pulse cadence and a harder bite.', fireRateMult: 1.2, damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 165, damage: 5, react: true }] }] },
+      { tier: 4, name: 'Marrow Mill', desc: 'The gorge crushes — heavy chip on the held.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, damage: 13, react: true, particle: 'gore' }] }] },
+      { tier: 5, name: 'The Grinding Gorge', desc: 'A killing floor: massive churn damage and one last deep drag.', damageMult: 1.2, particle: 'gore', impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 180, damage: 16, pull: 24, react: true, particle: 'gore' }] }, { t: 'cosmetic', id: 'gorge' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

@@ -48,9 +48,9 @@ describe('boss framework', () => {
   });
 });
 
-describe('campaign boss line (docs/BOSS-DESIGN §4 — Milestones 1 + 2)', () => {
-  it('pins nine authored bosses to their campaign stages (5..30 Act-1, 35/40/45 Act-2)', () => {
-    expect(Object.keys(CAMPAIGN_BOSSES).map(Number).sort((a, b) => a - b)).toEqual([5, 10, 15, 20, 25, 30, 35, 40, 45]);
+describe('campaign boss line (docs/BOSS-DESIGN §4 — Milestones 1–3)', () => {
+  it('pins twelve authored bosses to their campaign stages (Act-1 5..30, Act-2 35..45, Act-3 50..60)', () => {
+    expect(Object.keys(CAMPAIGN_BOSSES).map(Number).sort((a, b) => a - b)).toEqual([5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60]);
     expect(campaignBossFor(5)!.id).toBe('first_antibody');
     expect(campaignBossFor(30)!.id).toBe('purge_engine');
     expect(campaignBossFor(12)).toBeUndefined(); // non-milestone stages stay procedural
@@ -63,6 +63,13 @@ describe('campaign boss line (docs/BOSS-DESIGN §4 — Milestones 1 + 2)', () =>
     expect(campaignBossFor(45)!.id).toBe('unmaker');
     expect(campaignBossFor(45)!.modules.some((m) => m.kind === 'corruptor')).toBe(true); // ground rot
     expect(campaignBossFor(45)!.phases.length).toBe(4); // the full suppression arc
+    // Act-3: the graduation line — brood flood / control lockdown / the final siege.
+    expect(campaignBossFor(50)!.id).toBe('hollow_matriarch');
+    expect(campaignBossFor(50)!.modules.some((m) => m.kind === 'splitter')).toBe(true); // her death is not the end
+    expect(campaignBossFor(55)!.id).toBe('null_tyrant');
+    expect(campaignBossFor(55)!.modules.some((m) => m.kind === 'gravitas')).toBe(true); // champions DRAGGED
+    expect(campaignBossFor(60)!.id).toBe('worldbreaker');
+    expect(campaignBossFor(60)!.modules.some((m) => m.kind === 'corecrush')).toBe(true); // THE GRIP
   });
 
   it('each teaches its lesson through a real module (not just more HP)', () => {

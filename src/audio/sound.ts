@@ -131,6 +131,14 @@ function sMegaShepherd(): void { // Ossira theme sting: bone chimes over a hollo
   tone(392, 0.5, 'sine', 0.1, 388); tone(587, 0.4, 'sine', 0.08, 583); tone(494, 0.45, 'sine', 0.07);
   noise(0.12, 0.08, 5200); noise(0.12, 0.07, 4300); tone(49, 1.8, 'sine', 0.24, 46); tone(73, 1.6, 'triangle', 0.12, 70);
 }
+function sMegaTide(): void { // Vesperine theme sting: submerged bells — detuned tolls in slowed air
+  tone(311, 1.6, 'sine', 0.12, 308); tone(415, 1.3, 'sine', 0.09, 411); tone(233, 1.8, 'triangle', 0.1, 230);
+  noise(1.4, 0.04, 900, 300); tone(52, 2.0, 'sine', 0.22, 49);
+}
+function sMegaTithe(): void { // Moloch-Ama theme sting: coins into a drum — hollow gold over a greedy pulse
+  tone(880, 0.1, 'triangle', 0.1); tone(1174, 0.1, 'triangle', 0.09); tone(740, 0.12, 'triangle', 0.08);
+  tone(58, 0.5, 'sine', 0.26, 44); tone(58, 0.5, 'sine', 0.2, 44); noise(0.8, 0.07, 700, 150);
+}
 function sMegaAbility(): void { // telegraph riser: tension you can HEAR building — interrupt it
   tone(196, 0.8, 'sawtooth', 0.1, 392); noise(0.7, 0.06, 700, 2600); tone(49, 0.8, 'sine', 0.14);
 }
@@ -268,6 +276,8 @@ export const audio = {
         case 'megaMaw': sMegaMaw(); break;
         case 'megaChoir': sMegaChoir(); break;
         case 'megaShepherd': sMegaShepherd(); break;
+        case 'megaTide': sMegaTide(); break;
+        case 'megaTithe': sMegaTithe(); break;
         case 'mine': for (let i = 0; i < Math.min(3, n); i++) sMine(); break;
         case 'megaAbility': sMegaAbility(); break;
         case 'megaPhase': sMegaPhase(); break;

@@ -94,6 +94,12 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     entrenchment: 'global', vanguard_doctrine: 'global', // army-wide levers
     second_wind: 'hero', // heroHp grant pins it HERO (armor/healing are global-tagged)
     salvage_enzymes: 'economy', // biomassMult pins it ECONOMY (sellRefund is global-tagged)
+    // Expansion III — Spire/Polyp signature sets + six fresh-gated
+    surplus_synapse: 'spire', standing_wave: 'spire',
+    spring_tide: 'polyp', kings_tide: 'polyp',
+    unmakers_lesson: 'global', tyrants_grip: 'obelisk',
+    saturation_doctrine: 'mortar', // poolDpsMult is mortar-tagged; splash is global
+    veterans_lattice: 'hive', harvest_of_ten_thousand: 'global', golden_rot: 'economy',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 

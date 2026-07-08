@@ -1,9 +1,10 @@
-# TOWERS.md — The Tower Roster (canonical spec: five launch + three expansion)
+# TOWERS.md — The Tower Roster (canonical spec: five launch + three expansion + three late-unlock)
 
-Detailed design of the five launch towers. Companion to `DESIGN.md` (vision) and
-`PROGRESSION.md` (scaling math). **This doc is canonical for tower names, classes,
-and the reaction framework** — it supersedes the placeholder tower names used in
-the earlier bible.
+Detailed design of the eleven towers — the five launch towers, the three expansion niches
+(§expansion), the two Deep-Strain **beam** towers (§deep-strain: Resonance Coil · Marrow
+Siphon), and the **trap** tower (§trap: Blight Sower). Companion to `DESIGN.md` (vision) and
+`PROGRESSION.md` (scaling math). **This doc is canonical for tower names, classes, and the
+reaction framework** — it supersedes the placeholder tower names used in the earlier bible.
 
 > **Reconciliation note (read once):** the launch towers are pure bio-horror
 > (flesh/bone/parasite/nerve/biomass) and include **no ice unit**, so the **Cryo**
@@ -21,6 +22,16 @@ the earlier bible.
 > Evolutions, class keystones, and 9 of the 10 reactions (only **Shred** is wired) are
 > the designed-but-future content this spec also covers. Balance values live in
 > `src/core/config.ts`.
+>
+> **Roster now: eleven built towers.** Beyond the launch five, the placeable roster runs to
+> **eleven**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
+> Wailing Effigy), the two **Deep-Strain beam** towers (§deep-strain — **Resonance Coil**, a
+> single-target resonance melter; **Marrow Siphon**, a Vital multi-tether *harvester* that drains a
+> dying swarm into Biomass), and the **Blight Sower** (§trap — a Caustic `firing: 'trap'` that
+> seeds armed spore mines up-lane). Each new tower adds a delivery mode (`beam`, `trap`) and is
+> **doubly progression-gated** (a Campaign-stage gate → then its own Tower Shards). All are
+> registry-driven — stars, mastery, conveyor, codex, loot, and Strain inherited them with no
+> per-system code.
 
 ---
 
@@ -66,6 +77,16 @@ participation). Marquee combos in **bold**.
 **Role coverage (deliberately one each):** single-target DPS · AoE artillery ·
 DoT/spread/summon · control/hijack · economy/support. Any 3-of-5 pick is viable;
 each plays completely differently.
+
+> **Beyond the launch five (§expansion, §deep-strain, §trap).** The class table above is the
+> canonical **launch** mapping (one tower per class, a clean C(5,2) reaction matrix). Later towers
+> extend it without redrawing it: the **Marrow Siphon** is a *second* **Vital** tower — but the
+> first Vital *attacker* (the Flesh Reactor is economy/support), so Vital finally has an offensive
+> body. The **Resonance Coil** carries a new **Resonant** class (a sustained beam-focus melter);
+> at high resonance heat its beam also sears **Corrosion** into the locked target, so it plugs into
+> the existing Caustic reaction line rather than needing a new matrix row. The **Blight Sower** is
+> a *second* **Caustic** tower (with the Bone Mortar) — its spore-mine detonations apply Corrosion,
+> so it too feeds **Shred**. Full specs in §deep-strain and §trap below.
 
 Each tower below follows `PROGRESSION.md` rules: **stat per star is light (+10%);
 the point of a star is a *mechanic*.** ★5 and ★8 are re-selectable A/B **forks**
@@ -504,3 +525,56 @@ at every ratio — pre-expansion baseline). Mono-board checks at s5 ×1.0: MONO-
 kinds anchor nothing alone (niches, not clones) but function (needle-mono is 0/5 by
 comparison). The Effigy is zero-damage by definition and was probe-capped alongside the
 reactor in the instrument's deploy policy (max 2 zero-damage towers per board).
+
+---
+
+## Deep-Strain roster (§deep-strain) — Resonance Coil · Marrow Siphon
+
+The two **beam** towers — the roster's ninth and tenth towers, and the first two to add the
+`firing: 'beam'` delivery mode (a hitscan channel, no projectile). They share the beam plumbing
+(`towerAttackMods` fold; star/branch grants pulse on each beam's cadence) but are deliberately
+**opposite identities**: the **Coil** is a single-target **melter** (locks ONE target; resonance
+HEAT ramps its damage the longer it holds, resetting on a switch), while the **Siphon** is a
+multi-tether **harvester** (spreads a drain WEB across the wounded, finishing the weakest and
+gorging FATTER the more the lane dies — momentum that never hard-resets). One deletes the fat
+target the AoE/DoT launch kit can't; the other turns a dying swarm into Biomass. Full spec + gate
+mechanics: **`SIPHON.md`** (the compressed system summary, canonical for both).
+
+| | Resonance Coil | Marrow Siphon |
+|---|---|---|
+| Class / status | **Resonant** / sears **Corrosion** at high heat (plugs into the Caustic line) | **Vital** / no status — it *drains* (the first Vital **attacker**) |
+| Identity | single-target **melter**: resonance **HEAT** ramps damage to **×4** while it holds ONE target (resets on switch) | multi-tether **harvester**: a drain **WEB** (2+ tethers) that finishes the wounded; **Gorge** ramps to **×2.6** on VOLUME (slow decay, no hard reset) + siphons kills into **Biomass** |
+| Sim path | `game.beamTowerSystem` (BEAM tunables) | bespoke `game.beamSystem` (SIPHON tunables) |
+| Range band | **340** (SKIRMISHER — place FORWARD so the target stays in the beam to ramp) | **300** (HARVESTER — close; place AT the kill-zone where the swarm dies) |
+| Cost / cadence / hit | 150 · 0.5 s pulse · 26 base DPS → ramps ×4 (highestHealth — bites the toughest) | 175 · 0.4 s pulse · 22 DPS per tether × 2+ → Gorge ×2.6 + Biomass drain (lowestHealth — finishes the weakest) |
+| Counter-play | cold-start weak; a swarm with no fat target never lets HEAT climb | wants VOLUME — a lone elite with no dying lane starves the Gorge (the Coil's mirror) |
+| Branches | Overcharge Lattice (runaway single-target delete) / Refraction Prism (splitting beam → crowd) | Insatiable Gorge (finish-the-wounded tide) / Bloodwell (forking rays + Nucleus mend) |
+
+**Identity run-mods:** `coilRampMult` · `coilBeamTargets` (cards *Harmonic Overtuning* /
+*Prismatic Conduits*) for the Coil; the Siphon rides its **`SIPHON`** tunables (Gorge ramp, drain
+fraction, fork share) plus the two identity Gene Cards *Gorging Instinct* / *Hemophage*. The Coil
+sears **Corrosion** into its locked target above `BEAM.corrosionHeat`, so it feeds the existing
+Caustic reactions without needing a new matrix row.
+
+**Unlock gate (double — the deepest in the game):** both are **doubly progression-gated**. Clearing
+**Campaign Stage 15** (`DEEP_STRAIN_STAGE`) is the single milestone that opens the Deep-Strain
+roster — only then do their Tower Shards even begin dropping — **and** each is shard-locked
+(`unlockShards`: Coil 320 · Siphon 200), which must then bank to claim it. Before the stage gate
+their shards are invisible to the loot pool. The same Stage-15 milestone also releases the
+seven-card Deep-Strain gene set. Data-driven (`TowerDef.unlockStage` + `unlockShards`) and sim-blind
+(the roster arrives via `RunOptions.unlocked`; omitted ⇒ ALL, so the golden/tests path is
+untouched) — see `SIPHON.md §gate`.
+
+---
+
+## Trap roster (§trap) — Blight Sower
+
+The roster's **eleventh tower** and the first `firing: 'trap'` — it **never attacks**. Instead the
+**Blight Sower** (Caustic) *plants* **armed spore mines** up-lane and the wave walks into them: a
+pre-placed **area-denial** identity, the inverse of everyone else's reactive fire. Detonations apply
+**Corrosion** (so it feeds **Shred** with any Kinetic partner), and star/branch organs bloom AT the
+crater. Its numbers are baked at **plant time** with that moment's mods (a distinct scaling axis):
+Caustic · range 300 (planting reach) · one mine per 2.8 s up to a cap · 46 dmg + splash 88 per
+detonation · bespoke `game.trapTowerSystem`/`mineSystem`. **Doubly gated** — its Tower Shards only
+drop after **Campaign Stage 20**, then **360** must bank (`unlockStage` 20 · `unlockShards` 360);
+two signature Gene Cards gate on owning it. Full spec: **`SOWER.md`** (canonical).

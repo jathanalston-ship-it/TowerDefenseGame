@@ -220,9 +220,17 @@ describe('the belt (§conveyor)', () => {
     let obelisks = 0;
     const N = 3000;
     for (let i = 0; i < N; i++) if (rollKind(rng, deployed, 'needle') === 'obelisk') obelisks++;
-    const flat = N / TOWER_ORDER.length;
-    expect(obelisks).toBeGreaterThan(flat * 1.15); // biased up…
-    expect(obelisks).toBeLessThan(N * 0.6); // …but far from deterministic
+    // Roster-size-proof: derive the weight model's exact share for ONE undeployed kind (the
+    // favorite 'needle' is deployed ⇒ weight favoriteBias; other deployed 1; undeployed B).
+    // A flat-count threshold here would break every time the roster grows — the bias is
+    // toward undeployed kinds as a GROUP, so each one's share dilutes as kinds are added.
+    const B = CONVEYOR.undeployedBias;
+    const total = CONVEYOR.favoriteBias + (deployed.size - 1) + (TOWER_ORDER.length - deployed.size) * B;
+    const expected = (N * B) / total;
+    expect(expected).toBeGreaterThan(N / TOWER_ORDER.length); // the model biases undeployed ABOVE a flat roll
+    expect(obelisks).toBeGreaterThan(expected * 0.8); // the rng tracks the model…
+    expect(obelisks).toBeLessThan(expected * 1.2);
+    expect(obelisks).toBeLessThan(N * 0.6); // …and stays far from deterministic
   });
 
   it('GOLDEN SAFETY: an untouched belt never perturbs the gameplay rng stream', () => {

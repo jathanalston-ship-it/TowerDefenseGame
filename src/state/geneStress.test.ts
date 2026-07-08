@@ -63,7 +63,10 @@ function timed<T>(fn: () => T): { out: T; ms: number } {
   return { out, ms: performance.now() - t0 };
 }
 
-describe.each([100, 250, 500])('Gene architecture at %i cards (stress)', (total) => {
+// The first rung RIDES the live pool (+25 synthetics) so it stays a real stress tier as content
+// grows — a fixed 100 fell BELOW the real pool once the library crossed it (no synthetics ⇒ the
+// stress_gene_0 probe vanished). 250/500 are the CLAUDE.md content-target checkpoints.
+describe.each([CARD_POOL.length + 25, 250, 500])('Gene architecture at %i cards (stress)', (total) => {
   it('validates, renders, folds Power, sorts, and sanitizes — correct and fast', () => {
     growRegistryTo(total);
     expect(cardRegistry.ids().length).toBeGreaterThanOrEqual(total);

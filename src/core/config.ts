@@ -274,6 +274,42 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'Seeds the approach with ARMED spore mines — pre-placed detonations that corrode everything they catch.',
     abilities: [], // the trap loop is bespoke (game.trapTowerSystem/mineSystem); star/branch grants fire AT detonations
   },
+  spire: {
+    kind: 'spire',
+    name: 'Synapse Spire',
+    combatClass: 'Neural',
+    firing: 'field', // no projectile — its kit IS the attack (the first tower composed via def.abilities)
+    unlockShards: 400,
+    unlockStage: 25, // shards drop only past Campaign Stage 25
+    cost: 150,
+    range: 210, // the first arc's acquisition reach (hops leap the same span victim-to-victim)
+    fireInterval: 1.15,
+    damage: 30, // first-hop damage (falls off 25% per hop)
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#7c9aff',
+    blurb: 'Casts a synaptic ARC that leaps victim to victim — the tighter the pack, the longer the lightning.',
+    // The designed composition escape-hatch, used by a tower for the first time: the whole attack
+    // is one reusable chain component (stars/branches/cards add hops via the extraProjectiles channel).
+    abilities: [{ type: 'chain', jumps: 4, range: 210, damage: 30, falloff: 0.75, particle: 'spark' }],
+  },
+  polyp: {
+    kind: 'polyp',
+    name: 'Undertow Polyp',
+    combatClass: 'Kinetic',
+    firing: 'field',
+    unlockShards: 440,
+    unlockStage: 30, // the deepest tower gate yet
+    cost: 140,
+    range: 165, // its pulse field (identity-range: polypFieldMult/stars widen it)
+    fireInterval: 1.6,
+    damage: 5, // chip — the PULL is the product
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#3ec8b8',
+    blurb: 'A rooted undertow that DRAGS the wave back up-lane with every pulse — progress itself becomes the resource you deny.',
+    abilities: [{ type: 'aura', radius: 165, damage: 5, pull: 46, particle: 'disrupt' }],
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -340,6 +376,8 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   coil: [850, 3600, 14000, 52000, 190000], // premium single-target melter — sits with obelisk/mortar
   siphon: [950, 4000, 16000, 58000, 210000], // premium drain melter — the priciest capstone ladder
   sower: [820, 3500, 14000, 51000, 188000], // area-denial seeder — sits with the effigy/coil band
+  spire: [900, 3800, 15000, 55000, 200000], // premium arc-caster
+  polyp: [860, 3650, 14500, 53000, 195000], // the anti-progress organ
 };
 
 /** Spore-mine tunables (Blight Sower, firing 'trap' — docs/SOWER.md). A Sower keeps up to
@@ -597,6 +635,35 @@ export const ENEMY_DEFS: Record<EnemyKind, EnemyDef> = {
     summon: { kind: 'larva', count: 2, interval: 4 },
     behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.25, jitter: 0.06 }, // waddles + weaves the swarm back
     attack: { interval: 2.0, windup: 0.7 }, // SUMMONER: slow slams (the brood is the threat)
+  },
+  // ── DEEP-FAUNA — fresh role FUSIONS (each reuses TWO existing gated hooks; pure data, golden-safe).
+  //    A new placement puzzle apiece: a self-repairing wall, an air spawner, a durable bombarder, a
+  //    double-aura keystone, a kamikaze cloud. Campaign entry-stage auto-derives from their traits
+  //    (unlockStage), so they arrive STAGGERED, never all at once. ──
+  zealot: {
+    kind: 'zealot', name: 'Aegis Zealot', hp: 150, armor: 8, speed: 42, bounty: 50, damage: 13, radius: 14, color: '#6fe0d0', shieldHp: 130, regenPerSec: 20,
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.15, separation: 0.3, jitter: 0.05 }, // shield soaks burst, flesh re-knits → answer with SUSTAINED shred
+    attack: { interval: 1.7, windup: 0.6 }, // SHIELDED REGEN: measured bashes
+  },
+  carrier: {
+    kind: 'carrier', name: 'Carrion Zeppelin', hp: 210, armor: 6, speed: 32, bounty: 90, damage: 9, radius: 18, color: '#b28cff', summon: { kind: 'mite', count: 2, interval: 4 },
+    behavior: { seek: 1, avoidTowers: 0.1, avoidHero: 0.2, separation: 0.25, jitter: 0.08, flying: true }, // drifts over defenses, seeding mites behind the line → anti-air + focus
+    attack: { interval: 1.8, windup: 0.6 }, // FLYING SUMMONER: ponderous (its brood is the threat)
+  },
+  entrencher: {
+    kind: 'entrencher', name: 'Bastion Spitter', hp: 210, armor: 8, speed: 30, bounty: 76, damage: 8, radius: 16, color: '#8ac06a', regenPerSec: 22, siege: { range: 200, damage: 6, interval: 1.5 },
+    behavior: { seek: 1, avoidTowers: 0.06, avoidHero: 0, separation: 0.2, jitter: 0.03 }, // parks mid-field, out-heals chip while it shells → reach it / burst it
+    attack: { interval: 1.9, windup: 0.65 }, // ARTILLERY REGEN: melee fallback (it standoffs)
+  },
+  oracle: {
+    kind: 'oracle', name: 'Hollow Oracle', hp: 150, armor: 4, speed: 40, bounty: 82, damage: 5, radius: 14, color: '#8ce0c0', auraRadius: 108, auraRegenPerSec: 16, auraShield: 50,
+    behavior: { seek: 1, avoidTowers: 0.22, avoidHero: 0.5, separation: 0.35, jitter: 0.08 }, // heals AND shields the pack from the backline → kill the keystone FIRST
+    attack: { interval: 1.6, windup: 0.5 }, // DOUBLE SUPPORT: half-hearted prods (its auras are the threat)
+  },
+  glutling: {
+    kind: 'glutling', name: 'Bloat Cluster', hp: 26, armor: 0, speed: 106, bounty: 7, damage: 4, radius: 8, color: '#ff8a4d', explodeRadius: 52, explodeDamage: 16,
+    behavior: { seek: 1.2, avoidTowers: 0.05, avoidHero: 0, separation: 0.5, jitter: 0.18 }, // a fast, spread cloud of bomblets → AoE it early or the swarm detonates together
+    attack: { interval: 1.2, windup: 0.45 }, // SWARM SUICIDE: windup = the FUSE; one burst, then gone
   },
   // ── ELITE / APEX — premium multi-threats that fuse several roles ──
   apex: {
@@ -1834,7 +1901,7 @@ export const DIRECTOR = {
   //    decays with depth, so deep waves tilt toward FAST + mid bodies IN NUMBERS (pressure through
   //    pace) instead of a wall of 2–3 geometric-HP sponges. The wave still fields SOME heavies
   //    (up to the cap) — the boss is the intended durable centerpiece (ENDLESS.bossStrength*). ──
-  heavyKinds: ['brute', 'tank', 'golem', 'colossus', 'warden', 'revenant', 'dreadnought', 'tyrant', 'gargoyle', 'siegeworm'] as EnemyKind[],
+  heavyKinds: ['brute', 'tank', 'golem', 'colossus', 'warden', 'revenant', 'dreadnought', 'tyrant', 'gargoyle', 'siegeworm', 'zealot', 'carrier', 'entrencher'] as EnemyKind[],
   heavyCapMinDepth: 20, // below this the cap is INACTIVE ⇒ shallow endless == baseline (and the director test's depth 1/9 budget check is unaffected)
   heavyBudgetFracBase: 0.5, // at heavyCapMinDepth heavies may take ≤50% of the threat budget …
   heavyBudgetFracMin: 0.2, // … decaying to a ≥20% floor deep — still SOME heavies (elites inflate HP share above this), never a sponge wall

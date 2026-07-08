@@ -1,22 +1,25 @@
 # HEROES.md — Hero System (canonical spec)
 
-Detailed design of the three launch heroes, hero-slot progression, and the
-autonomous-unit model. Companion to `DESIGN.md`, `PROGRESSION.md`, `TOWERS.md`.
-Heroes share the five Combat Classes with towers (`TOWERS.md`).
+Detailed design of the five heroes (three launch + Vitriol and Revenant, both
+progression-gated), hero-slot progression, and the autonomous-unit model. Companion to
+`DESIGN.md`, `PROGRESSION.md`, `TOWERS.md`. Heroes share the five Combat Classes with towers
+(`TOWERS.md`).
 
 > Heroes are **autonomous battlefield units** — they move, target, and fight on
 > their own; the player *steers* them (abilities, an ultimate, a stance, and an
 > optional move/focus ping), but does not micro every step. They are the
 > **active-skill** layer over the **placement** layer of towers.
 
-> **Implementation status (vertical slice):** **four** heroes are built as data-driven
+> **Implementation status (vertical slice):** **five** heroes are built as data-driven
 > `HeroDef`s with distinct autonomous AI — **Ravager** (`dive`: charges the deepest threat,
 > melee + Fracture), **Shepherd** (`guard`: holds the zone, mends Nucleus Integrity + vital
-> pulse), **Overseer** (`control`: floats to the densest crowd, fields Disruption), and
+> pulse), **Overseer** (`control`: floats to the densest crowd, fields Disruption),
 > **Vitriol** (`siege`: the Caustic siege caste — holds the rear line and bombards the deepest
 > threat with corrosive shells that leave Corrosion pools; the only ranged / area-denial hero,
-> and the first **progression-gated** one — see §4). Each has its signature ability (Apex Leap /
-> Bloom / Mass Override / Corrosive Cataclysm) —
+> and the first **progression-gated** one — see §4), and **Revenant** (`phase`: the Viral
+> phase-assassin — **blinks** to the biggest threat, strikes it, and injects Infection; a
+> single-target boss-deleter, **progression-gated on Infinite Depth** — see §5). Each has its
+> signature ability (Apex Leap / Bloom / Mass Override / Corrosive Cataclysm / Plague Rupture) —
 > the Shepherd's **Bloom** now also grants the protector a brief **self-shield** (absorb
 > pool soaked before HP), the first consumer of the `shield` ability component.
 > Each has unique movement + targeting, per-hero **Stars + infinite Mastery** (Hero Lab), and an
@@ -266,6 +269,52 @@ can't out-tick.
 
 ---
 
+## 5. REVENANT — Viral (phase-assassin / single-target boss-deleter) · **progression-gated**
+
+**Lore.** The hive's WRAITH caste, bred only from the endless deep. Where the Ravager charges and
+Vitriol saturates, the Revenant simply *arrives* — it does not walk the field, it folds through it,
+surfacing beside whatever is largest and leaving a spreading rot behind. The hive grows this caste
+after it has learned patience the hard way: some threats you cannot out-mass, you can only delete.
+
+**Role.** Single-target assassin / boss-deleter. The **only phase (blink) hero** and the **only Viral
+hero**: it **teleports** to the biggest threat (boss → elite → highest-HP), lands a heavy strike, and
+injects **Infection** (Viral) — a ramping, armor-ignoring DoT that spreads on death. It ignores the
+swarm and hunts the one target that matters, then amplifies every other Infection source on the field.
+
+**Base abilities (implemented).**
+- *Blink-strike* (auto, `phase` AI) — instead of pathing, it **blinks** (teleports) to the biggest
+  threat, strikes hard, and injects `REVENANT.infectPerStrike` Infection stacks (its **Plague Strike**
+  identity). The teleport is real movement in the sim; the streak/after-image is render-only
+  (`Hero.phaseT`, `HERO_PHASE_FLASH`) so the pinned golden sim is untouched.
+- **Ult — Plague Rupture** — blinks to the target zone and **ruptures** it: a viral detonation (AoE
+  damage + heavy Infection) that seeds the plague across everything caught, turning one kill into a
+  spreading outbreak.
+
+**Progression gate (unique — a distinct axis).** The Revenant is **earned from the deep**, never
+bought: it **auto-unlocks the moment you reach Infinite Depth 40** (`save.bestWave ≥ 40`) and can
+never be claimed with Hero Shards. This is a *different* unlock axis from every other hero — the
+Ravager is a starter, Shepherd/Overseer are **Shard-claimed**, and Vitriol is **boss-slain** — so the
+roster's four gates (starter · Shards · boss-slain · Infinite Depth) are all distinct. The gate is
+data-driven (`HeroDef.unlock` = `{ kind: 'infiniteDepth', wave: 40 }`, a `HeroUnlockReq`) and
+evaluated in one place (`state/meta.ts` `isHeroUnlocked` → `heroMilestoneMet`), which the Hero Lab,
+the selection guard, `unlockHero` (rejects it), and run start all read — so a locked hero can never be
+fielded, and the Hero Collection surfaces the Infinite-Depth feat instead of a Shard bar.
+
+**Strengths.** Deletes single elites & bosses on demand; teleport mobility reaches anything, anywhere;
+amplifies **all** Infection damage on the field (its own strikes + the Parasite Nest).
+**Weaknesses.** Fragile — a glass assassin; no crowd clear, control, or sustain for the line; **wasted
+on a swarm** — it wants ONE fat target, and a wide wave with no elite starves it.
+
+**Synergy.**
+- **Parasite Nest** — the other Viral source; the Revenant's strikes stack onto the Nest's Infection,
+  and its on-field amplification boosts every Infection tick — the plague snowballs.
+- **Ravager / Needle Spitter** — their Fracture + the Revenant's Infection = **Virulence** (wounds feed
+  the plague for true burst).
+- **Overseer** — Disruption + Infection = **Plague** (a vulnerable bloom that leaps between bodies).
+- **Vitriol / Bone Mortar** — Corrosion + Infection = **Putrefy** (acid rot accelerates the plague).
+
+---
+
 ## Hero roster summary
 
 | Hero | Class | Identity | Personal DPS | Carries the team via |
@@ -274,11 +323,14 @@ can't out-tick.
 | **Shepherd** | Vital | support/summoner | Low | sustain + drones + overcharge |
 | **Overseer** | Neural | controller | ~None | vulnerability + hijack (amplifies *your* damage) |
 | **Vitriol** | Caustic | siege / area-denial | **High (DoT)** | Corrosion pools + armor melt (gated) |
+| **Revenant** | Viral | phase-assassin / boss-deleter | **Burst (single-target)** | teleport-deletes elites + spreads Infection (gated) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and
-Vitriol adds a ranged Caustic zone-denial option once earned. Since slots unlock over
-time and classes are shared with towers, players build toward many other combinations.
+Vitriol adds a ranged Caustic zone-denial option once earned, while the Revenant adds a
+Viral single-target executioner for the elites and bosses the trinity can't burst down. Since
+slots unlock over time and classes are shared with towers, players build toward many other
+combinations.
 
 ---
 

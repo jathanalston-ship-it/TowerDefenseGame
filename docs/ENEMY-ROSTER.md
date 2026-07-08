@@ -1,4 +1,4 @@
-# ENEMY-ROSTER.md — the implemented bestiary (~32 archetypes, 12 roles)
+# ENEMY-ROSTER.md — the implemented bestiary (~40 archetypes, 12 roles)
 
 The IMPLEMENTATION reference for `ENEMY_DEFS` (`src/core/config.ts`). Companion to the
 higher-level faction *design* spec in `ENEMIES.md` (fantasy / build-pressure). Every enemy here
@@ -82,6 +82,17 @@ enemies reach the field through the **registry** (Bestiary codex), the **AI Dire
 ### Artillery — halt short and bombard the Nucleus from range → reach it mid-field
 - **siegeworm** — Siege Maw — stops 220px out and shells the core (6/volley) → project DPS mid-field.
 - **spitter** — Acid Spitter — a nimble standoff lobber from 180px → pressures mid-field coverage.
+
+### Deep-Fauna — fresh role FUSIONS (each pairs two existing gated hooks into a new counter-puzzle)
+Like the Cyst Wraith (fly+regen) and Cinder Sapper (burrow+suicide), these reuse existing traits — no
+new sim code — but each fuses two into a distinct placement puzzle. Their campaign entry-stage auto-
+derives from their traits (`unlockStage`), so they arrive staggered. All draftable in every mode, and
+the Bestiary tracks each (the hidden **Deep Fauna** achievement rewards slaying all five).
+- **zealot** — Aegis Zealot — a **shielded + regenerating** wall: the shield soaks burst, the flesh re-knits → answer with SUSTAINED shred/anti-regen, not one big hit. *(shield + regen fusion.)*
+- **carrier** — Carrion Zeppelin — a **flying + summoner** carrier: drifts over defenses seeding mites behind the line → anti-air + focus it before it floods the backfield. *(flying + summon fusion.)*
+- **entrencher** — Bastion Spitter — a **siege + regenerating** bombarder: parks mid-field and out-heals chip while it shells the core → reach it (long range) or burst it down. *(artillery + regen fusion.)*
+- **oracle** — Hollow Oracle — a **double-support** keystone: heals AND shields the pack from the backline → kill the keystone FIRST or nothing else dies. *(aura-heal + aura-shield fusion.)*
+- **glutling** — Bloat Cluster — a **swarm + suicide** cloud: fast, fragile bomblets that arrive together and detonate as one → AoE them early and keep spacing. *(swarm + explode fusion.)*
 
 ### Elite / Apex — premium multi-threats that fuse several roles
 - **apex** — Apex Predator — regenerates **and** hunts the hero (avoidHero < 0) — a roaming premium threat.

@@ -193,6 +193,28 @@ export const BIOMES: Biome[] = [
       hazard: { name: 'Gale', desc: 'A gale rips through — the swarm surges on the wind.', period: 17, duration: 3, enemySpeedMult: 1.15, towerRateMult: 1 },
     },
   },
+  {
+    id: 'ossuary', name: 'Ossuary Fields', accent: 'var(--ossuary)', modifierName: 'Bonechoke',
+    ambient: { root: 49, fifth: 73.4, cutoff: 300, wave: 'triangle' }, // a hollow marrow drone
+    mods: {
+      enemyHpMult: 1.05, enemySpeedMult: 0.92, enemyDamageMult: 1.05, enemyArmorBonus: 6, enemyRegenFrac: 0, bountyMult: 1.1,
+      towerClassMult: { Kinetic: 1.08, Vital: 0.95 }, towerFireRateMult: 1, // shattering bone favors raw impact
+      heroDamageMult: 1, heroCooldownMult: 1,
+      bias: { heavy: 1.4, special: 1.1 }, signature: ['warden', 'cataclyst'], eliteMult: 1.1, bossChassisBias: { juggernaut: 2, bruiser: 2 }, difficulty: 1.28,
+      hazard: { name: 'Bone Storm', desc: 'Marrow dust chokes the guns — towers fire slower.', period: 20, duration: 4, enemySpeedMult: 1, towerRateMult: 0.85 },
+    },
+  },
+  {
+    id: 'umbral', name: 'Umbral Depths', accent: 'var(--umbral)', modifierName: 'Lightless',
+    ambient: { root: 41.2, fifth: 61.7, cutoff: 220, wave: 'sine' }, // near-subsonic dark
+    mods: {
+      enemyHpMult: 1, enemySpeedMult: 1.08, enemyDamageMult: 1, enemyArmorBonus: 0, enemyRegenFrac: 0.003, bountyMult: 1.08,
+      towerClassMult: { Resonant: 1.08, Caustic: 0.96 }, towerFireRateMult: 1, // resonance carries in the dark
+      heroDamageMult: 1, heroCooldownMult: 1.05, // the lightless deep slows minds
+      bias: { fast: 1.3, special: 1.2 }, signature: ['cystwraith', 'stratovore'], eliteMult: 1.05, bossChassisBias: { artillery: 2, controller: 2 }, difficulty: 1.3,
+      hazard: { name: 'Lightless Surge', desc: 'The dark DEEPENS — the swarm pours through it.', period: 16, duration: 3, enemySpeedMult: 1.22, towerRateMult: 1 },
+    },
+  },
 ];
 
 // Self-register into the content registry (id + name); the mechanical payload lives on `Biome`.

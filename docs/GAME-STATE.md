@@ -20,12 +20,12 @@
 
 | Axis | Built | Target | Notes |
 |---|---:|---:|---|
-| Towers | 11 | 100 | each with stars + branches + mastery + Adaptation; Coil + Siphon + Blight Sower are locked/gated (below) |
+| Towers | 13 | 100 | each with stars + branches + mastery + Adaptation; Coil/Siphon/Sower/Spire/Polyp are locked/gated (below) |
 | Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts |
-| Enemies | 35 | 100 | + elites (fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide) |
-| **Bosses** | **10 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Milestone-2 siege line (stages 35/40/45) |
-| **Mega Bosses** | **3 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
-| Cards (genes) | 92 | 500 | effect DSL (mul/add/flag/set/grant/hook); 34 progression-`unlock`-gated (below) |
+| Enemies | 40 | 100 | + elites; role fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide · Aegis Zealot shield+regen · Carrion Zeppelin fly+summon · Bastion Spitter siege+regen · Hollow Oracle heal+shield · Bloat Cluster swarm+bomb |
+| **Bosses** | **13 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Act-2 siege line (35/40/45) + Act-3 graduation line (50/55/60) |
+| **Mega Bosses** | **5 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
+| Cards (genes) | 102 | 500 | effect DSL (mul/add/flag/set/grant/hook); 44 progression-`unlock`-gated (below) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + sets |
 | Meta upgrades (Genome) | 87 | 1,000 | `META_UPGRADES` (Deep Genome tier: 20 open + 10 progression-`unlock`-gated) |
 | Ascendant (prestige) nodes | 19 | 20 | `ASCENDANT_NODES` (9 expansion nodes: 3 deep stackers + 6 new income levers) |
@@ -69,6 +69,14 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   them; detonations corrode (feeds Shred) and star/branch organs bloom AT the crater. Pre-placed
   area DENIAL vs. everyone else's reaction. DOUBLE-gated (Campaign 20 → 360 shards); two signature
   gene cards gate on owning it. **SOWER.md**
+- ✅ **Synapse Spire** (12th tower; Neural) — the chain-ARC caster and the first kit composed purely
+  via `TowerDef.abilities` (zero bespoke firing code): each cast is one `ChainAbility` leaping
+  victim-to-victim (4 hops base, 25% falloff); hops are the upgrade currency (stars/branches/
+  `spireChainJumps` all ride `extraProjectiles`). DOUBLE-gated (Campaign 25 → 400 shards). **SPIRE.md**
+- ✅ **Undertow Polyp** (13th tower; Kinetic) — the DISPLACEMENT tower (`AuraAbility.pull`): every
+  pulse drags caught non-bosses 46px back up-lane and tears active siege locks off the Hive — it
+  denies PROGRESS, not health bars; stacked pull auras are its investment currency. DOUBLE-gated
+  behind the deepest tower gate yet (Campaign 30 → 440 shards). **POLYP.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +
@@ -164,7 +172,15 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   2 achievements) — BOSS-RUSH.md
 - ✅ Next-Goal engine + Results cliffhanger — ONE-MORE-RUN.md
 - ✅ Prestige (MOLT → Ascendant) — 1 layer of a designed 6 (PROGRESSION-REDESIGN)
-- ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md
+- ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md; registry-driven, so the
+  recent content (Coil/Siphon beam towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)
+  joins the codex automatically (guarded by `collection.test.ts`)
+- ✅ Achievements — data-driven milestone framework (`state/achievements.ts`: Genome-Core rewards,
+  progress bars, hidden reveals; recognition-only, never touches the sim). **+10 content-tied unlocks**
+  for the recent roster: the beam towers (Resonance Cascade / Exsanguination / Directed Energy /
+  Focused Fire), the gated heroes (Scorched Earth · The Wraith Walks), and "collect it all" goals
+  (Full Menagerie · Complete Arsenal · Deep Genome · Return from the Deep) — all read lifetime
+  usage/ownership, so a fresh save unlocks none
 - 📋 "Custom Challenge" / "Training" modes — hidden behind `core/features.ts` flags until built
 
 ### Balance architecture (the mathematical backbone) — BALANCE_ARCHITECTURE.md

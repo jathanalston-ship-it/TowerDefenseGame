@@ -8,7 +8,7 @@ import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -42,6 +42,13 @@ export type EnemyKind =
   | 'stratovore'
   // summoner + regenerating hybrid (a self-mending womb — chip damage can't stop the brood)
   | 'broodweaver'
+  // ── DEEP-FAUNA fusions — each reuses TWO existing gated hooks (pure data, no new sim), a fresh
+  //    role FUSION with its OWN counter (like cystwraith = fly+regen, sapper = burrow+suicide) ──
+  | 'zealot' // shielded + regenerating: a self-repairing wall (burst + shred to break it)
+  | 'carrier' // flying + summoner: an airborne spawner (anti-air + focus before it seeds the line)
+  | 'entrencher' // artillery + regenerating: a durable standoff bombarder (reach it / burst it fast)
+  | 'oracle' // support (heal + shield auras): a double-aura backline keystone (kill it FIRST)
+  | 'glutling' // swarm + suicide: a fragile kamikaze cloud (AoE it early, spacing)
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
 export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant';

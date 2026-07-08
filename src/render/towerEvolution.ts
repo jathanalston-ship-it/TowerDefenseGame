@@ -29,6 +29,8 @@ export const BRANCH_COLOR: Record<string, string> = {
   coil_overload: '#ffcf4d', coil_prism: '#6fe0c0',
   siphon_gorge: '#ff5c8a', siphon_well: '#ff8ab0',
   sower_bloom: '#c8e04a', sower_thicket: '#7ac040',
+  spire_storm: '#7c9aff', spire_web: '#a9baff',
+  polyp_riptide: '#3ec8b8', polyp_gorge: '#2fa090',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -287,6 +289,48 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'barbs', count: 4 }, // the thicket arms itself
       { at: 4, kind: 'biomass', count: 3 }, // rampant growth
       { at: 5, kind: 'nova' }, // the choking thicket
+    ],
+  },
+  // SPIRE ────────────────────────────────────────────────────────────────────
+  spire_storm: {
+    color: BRANCH_COLOR.spire_storm, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'spikes', count: 3 }, // tension vanes
+      { at: 2, kind: 'glyphRing' }, // the overload relay
+      { at: 3, kind: 'ripples', count: 2 }, // the standing front
+      { at: 4, kind: 'organs', count: 2 }, // charge reservoirs
+      { at: 5, kind: 'nova' }, // the stormcall
+    ],
+  },
+  spire_web: {
+    color: BRANCH_COLOR.spire_web, growth: 0.045,
+    parts: [
+      { at: 1, kind: 'tendrils', count: 3, per: 1 }, // web filaments multiply per tier
+      { at: 2, kind: 'glyphRing' },
+      { at: 3, kind: 'organs', count: 3 }, // relay ganglia
+      { at: 4, kind: 'ripples', count: 2 },
+      { at: 5, kind: 'nova' }, // the web complete
+    ],
+  },
+  // POLYP ────────────────────────────────────────────────────────────────────
+  polyp_riptide: {
+    color: BRANCH_COLOR.polyp_riptide, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'ripples', count: 2, per: 1 }, // currents deepen per tier
+      { at: 2, kind: 'tendrils', count: 3 }, // anchor roots
+      { at: 3, kind: 'organs', count: 2 }, // swallowed ballast
+      { at: 4, kind: 'biomass', count: 3 },
+      { at: 5, kind: 'nova' }, // the engine
+    ],
+  },
+  polyp_gorge: {
+    color: BRANCH_COLOR.polyp_gorge, growth: 0.06,
+    parts: [
+      { at: 1, kind: 'spikes', count: 4 }, // the toothed rim
+      { at: 2, kind: 'barbs', count: 4 },
+      { at: 3, kind: 'ripples', count: 2 },
+      { at: 4, kind: 'organs', count: 3 }, // the mill stones
+      { at: 5, kind: 'nova' }, // the killing floor
     ],
   },
   // COIL ─────────────────────────────────────────────────────────────────────

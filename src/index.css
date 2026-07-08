@@ -36,6 +36,8 @@
      from :root via getComputedStyle, so they must live here to tint the arena wash. */
   --molten: #ff5030;
   --tempest: #a774ff;
+  --ossuary: #d8cfa8;
+  --umbral: #5a4a8f;
 
   /* state */
   --gold: #ffd24d;

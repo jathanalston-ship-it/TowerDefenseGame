@@ -183,6 +183,23 @@ on its own distinct axis:
 | **Second Wind** (rare) | +90 hero HP, 12% damage reduction, +25% healing | hero mitigation | 2,000 lifetime kills (`lifetimeKills`) |
 | **Salvage Enzymes** (rare) | tower sell refunds +10%, +15% biomass | salvage economy | Finish 15 runs (`totalRuns`) |
 
+The **Expansion III** pool (10) pairs the Spire/Polyp signature sets with six more distinct-value
+gates — every unlock VALUE is one no prior card used, so each is earned at a different moment of
+an account's life:
+
+| Card | Effect | Unlock |
+|---|---|---|
+| **Surplus Synapse** (rare) | +1 Spire arc hop | own the Spire (`towerUnlocked`) |
+| **Standing Wave** (epic) | +2 Spire arc hops | own the Spire (`towerUnlocked`) |
+| **Spring Tide** (rare) | Polyp fields ×1.3 reach | own the Polyp (`towerUnlocked`) |
+| **King's Tide** (epic) | Polyp fields ×1.5 reach, +8% fire rate | own the Polyp (`towerUnlocked`) |
+| **The Unmaker's Lesson** (epic) | +5% execute threshold, +8% tower dmg | Clear stage 45 (`campaignStage`) |
+| **Tyrant's Grip** (epic) | Disruption +20% slow, +10% exposure | Clear stage 55 (`campaignStage`) |
+| **Saturation Doctrine** (rare) | +30% splash radius, +15% pool damage | Reach wave 25 (`bestWave`) |
+| **Veteran's Lattice** (rare) | +45 Integrity, +15 regen per wave | Finish 25 runs (`totalRuns`) |
+| **Harvest of Ten Thousand** (epic) | kills splinter 2 Fracture, +10% fire rate | 10,000 lifetime kills (`lifetimeKills`) |
+| **Golden Rot** (legendary) | +30% biomass, +2%/tower dmg, +10% sell refund | Harvest 150,000 biomass (`totalBiomass`) |
+
 ---
 
 ## 4. Synergy architecture (why cards *heavily* synergize)

@@ -477,6 +477,15 @@ function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
   }
 }
 
+/** The heroes hero-Shard drops accumulate toward: still-LOCKED heroes that unlock WITH Shards, so
+ *  their "42 / 100" bar fills visibly. MILESTONE heroes (Vitriol/Revenant — earned by a feat, never
+ *  bought) are excluded — they can't spend unlock-shards, so pooling them would only starve the real
+ *  Shard-unlock heroes. When this is empty (the unlock queue is drained), hero-Shard drops fall back
+ *  to EVERY hero (HERO_IDS) and fund Stars — so a milestone hero earns Star shards like the rest. */
+export function heroShardUnlockPool(save: SaveData): HeroKind[] {
+  return HERO_ORDER.filter((k) => !isHeroUnlocked(save, k) && (HERO_DEFS[k].unlockShards ?? 0) > 0);
+}
+
 /** Whether the account owns tower `kind` (docs/TOWERS.md §expansion). Starters (TowerDef without
  *  an unlockShards gate — the launch five) are always owned; a gated tower is owned once claimed
  *  with its own Tower Shards. Owned kinds ride the Biomorph Conveyor + favorite pool. */
@@ -1478,9 +1487,10 @@ export const meta = {
     if (!c) return null;
     const towerShards = { ...save.towerShards };
     const heroShards = { ...save.heroShards };
-    // Bias hero-shard pulls toward still-LOCKED heroes so their "42 / 100" unlock bar fills visibly
-    // (empty ⇒ every hero owned ⇒ shards distribute normally for stars).
-    const lockedPool = HERO_ORDER.filter((k) => !isHeroUnlocked(save, k));
+    // Hero-shard pulls bias toward still-locked, Shard-UNLOCKABLE heroes (see heroShardUnlockPool):
+    // milestone heroes are excluded so they don't soak unlock-shards, and once the queue drains the
+    // pool empties ⇒ shards fund Stars for EVERY hero (Vitriol included) — the HERO_IDS fallback.
+    const lockedPool = heroShardUnlockPool(save);
     // Tower-shard drops are GATED: a locked tower's shards drop only after its campaign gate is met,
     // so a deep-gated tower's shards never leak before its stage (Coil/Siphon — docs/SIPHON.md §gate).
     const towerPool = towerShardPool(save);
