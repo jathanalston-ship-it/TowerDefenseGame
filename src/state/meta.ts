@@ -2129,8 +2129,77 @@ export const meta = {
     if (!offer) return null;
     const key = dailyKey(now);
     if (!offerAvailable(offer, key, save.premium.purchases, save.premium.lastRotatingBuyKey)) return null;
-    // ── checkout seam (sandbox: always clears; a real provider awaits verification here) ──
+    // ── checkout seam: this path is the SANDBOX (dev/offline) charge stub. Production
+    //    builds route real money through Stripe Checkout → /api/store/claim →
+    //    applyVerifiedPurchase below (docs/DEPLOYMENT.md §purchases) — the grant
+    //    interpreter is shared, so both paths grant identically. ──
     const sandbox = true;
+    const { lines, stamina, next } = this.interpretGrants(save, offer);
+    persist({
+      ...next,
+      premium: {
+        ...save.premium,
+        purchases: { ...save.premium.purchases, [offer.id]: (save.premium.purchases[offer.id] ?? 0) + 1 },
+        lastRotatingBuyKey: offer.kind === 'rotating' ? key : save.premium.lastRotatingBuyKey,
+        totalSpentUsd: save.premium.totalSpentUsd + offer.priceUsd,
+      },
+      timeline: pushTimeline(save.timeline, '✷', `Premium — ${offer.name}`),
+    });
+    if (stamina > 0) this.grantRushStamina(stamina); // capped by the existing pipeline
+    return { offer, lines, valueIchor: offerValueIchor(offer), sandbox, powerPotential: this.offerPowerPotential(offerId) };
+  },
+
+  /**
+   * Apply a SERVER-VERIFIED purchase (docs/DEPLOYMENT.md §purchases). Called after
+   * /api/store/claim confirms the Stripe Checkout Session is paid and awards this
+   * client the fulfillment. `receiptId` (the session id) is the apply-once guard:
+   * a receipt already in the ledger is never granted again — double clicks, second
+   * tabs, refreshes and re-claims all collapse to one application. Availability is
+   * deliberately NOT re-checked here: the money moved and the SERVER enforced offer
+   * caps at checkout creation — a paid receipt always delivers.
+   */
+  applyVerifiedPurchase(offerId: string, receiptId: string): PremiumReceipt | null {
+    const save = store.get();
+    if (save.premium.claimedReceipts.includes(receiptId)) return null; // already applied
+    const offer = premiumOfferById(offerId);
+    if (!offer) return null; // unknown catalog id (server validates; defensive)
+    const { lines, stamina, next } = this.interpretGrants(save, offer);
+    const pending = save.premium.pendingCheckout;
+    persist({
+      ...next,
+      premium: {
+        ...save.premium,
+        purchases: { ...save.premium.purchases, [offer.id]: (save.premium.purchases[offer.id] ?? 0) + 1 },
+        lastRotatingBuyKey: offer.kind === 'rotating' ? dailyKey() : save.premium.lastRotatingBuyKey,
+        totalSpentUsd: save.premium.totalSpentUsd + offer.priceUsd,
+        claimedReceipts: [...save.premium.claimedReceipts, receiptId].slice(-200),
+        pendingCheckout: pending && pending.sessionId === receiptId ? null : pending,
+      },
+      timeline: pushTimeline(save.timeline, '✷', `Premium — ${offer.name}`),
+    });
+    if (stamina > 0) this.grantRushStamina(stamina);
+    return { offer, lines, valueIchor: offerValueIchor(offer), sandbox: false, powerPotential: this.offerPowerPotential(offerId) };
+  },
+
+  /** Record an in-flight redirect checkout so a refresh / power loss / closed tab
+   *  can resume the claim on next boot (docs/DEPLOYMENT.md §purchases). */
+  beginPendingCheckout(offerId: string, sessionId: string): void {
+    const save = store.get();
+    persist({ ...save, premium: { ...save.premium, pendingCheckout: { offerId, sessionId, startedAt: Date.now() } } });
+  },
+
+  /** Clear the pending marker (cancelled / expired / claimed-elsewhere). */
+  clearPendingCheckout(): void {
+    const save = store.get();
+    if (!save.premium.pendingCheckout) return;
+    persist({ ...save, premium: { ...save.premium, pendingCheckout: null } });
+  },
+
+  /** The ONE grant pipeline both purchase paths share (sandbox purchaseOffer;
+   *  verified applyVerifiedPurchase): interpret an offer's grants over a save
+   *  snapshot. Pure — no persist, no ledger; callers own both. Stamina is
+   *  returned for the caller's capped grantRushStamina pipeline. */
+  interpretGrants(save: SaveData, offer: PremiumOfferDef): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number } {
     // ── grant interpreter — one pass builds the next save + the receipt lines ──
     let ichor = save.ichor;
     let lifetimeIchor = save.lifetimeIchor;
@@ -2200,21 +2269,16 @@ export const meta = {
           break;
       }
     }
-    persist({
-      ...save,
-      ichor, lifetimeIchor, shards, lifetimeShards, geneEssence, mats, towerShards, heroShards,
-      pendingContainers: pending,
-      equipment: { ...save.equipment, inventory },
-      premium: {
-        ...save.premium,
-        purchases: { ...save.premium.purchases, [offer.id]: (save.premium.purchases[offer.id] ?? 0) + 1 },
-        lastRotatingBuyKey: offer.kind === 'rotating' ? key : save.premium.lastRotatingBuyKey,
-        totalSpentUsd: save.premium.totalSpentUsd + offer.priceUsd,
+    return {
+      lines,
+      stamina,
+      next: {
+        ...save,
+        ichor, lifetimeIchor, shards, lifetimeShards, geneEssence, mats, towerShards, heroShards,
+        pendingContainers: pending,
+        equipment: { ...save.equipment, inventory },
       },
-      timeline: pushTimeline(save.timeline, '✷', `Premium — ${offer.name}`),
-    });
-    if (stamina > 0) this.grantRushStamina(stamina); // capped by the existing pipeline
-    return { offer, lines, valueIchor: offerValueIchor(offer), sandbox, powerPotential: this.offerPowerPotential(offerId) };
+    };
   },
 
   /** Honest Power estimate for an offer: purchases alone move Power by ZERO (nothing auto-equips,

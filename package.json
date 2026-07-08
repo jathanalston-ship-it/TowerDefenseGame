@@ -1,14 +1,19 @@
 {
   "name": "assimilate",
   "private": true,
+  "engines": { "node": ">=20" },
   "version": "0.1.0",
   "type": "module",
   "description": "ASSIMILATE — a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json",
+    "dev:full": "npm run build && npx wrangler@3 pages dev dist",
+    "deploy": "npm run build && npx wrangler@3 pages deploy dist --project-name assimilate",
+    "db:migrate": "npx wrangler@3 d1 migrations apply assimilate-db --remote",
+    "db:migrate:local": "npx wrangler@3 d1 migrations apply assimilate-db --local",
     "test": "vitest run",
     "docs:graph": "vite-node scripts/gen-depgraph.ts",
     "docs:check": "vite-node scripts/doc-sync.ts",
@@ -22,6 +27,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@types/node": "^26.1.0",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",

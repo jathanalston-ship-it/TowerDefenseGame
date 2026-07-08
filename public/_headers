@@ -3,8 +3,26 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Sensible defaults for all responses. index.html keeps Pages' default (short)
-# cache so new deploys are picked up immediately — do not long-cache it here.
+# API responses are dynamic — never cache them at the browser or a shared cache.
+/api/*
+  Cache-Control: no-store
+
+# Security + caching defaults for every response. index.html keeps Pages' default
+# (short) cache so new deploys are picked up immediately — do not long-cache it here.
+#
+# CSP allowances, and why each exists:
+#   script-src  'self' + Cloudflare Turnstile + Cloudflare Web Analytics beacon
+#   frame-src   Turnstile renders its (invisible) challenge in an iframe
+#   connect-src 'self' (our /api/*) + the Analytics beacon endpoint
+#   style-src   'unsafe-inline' — React styles elements via inline style attributes
+#   img-src     data: — procedural art uses data URIs; everything else is bundled
+# Stripe Checkout is a full-page REDIRECT to checkout.stripe.com — it needs NO
+# script/frame allowance here (deliberate: keeps js.stripe.com out of the page).
 /*
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests

@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { meta } from '../state/meta';
+import { LeaderboardBlock } from './components/LeaderboardBlock';
 import { formatPower } from '../core/power';
 import { dailyKey, generateDaily, msUntilDailyReset, pickDailyHero } from '../core/daily';
 import { dailyModifierById } from '../core/dailyModifiers';
@@ -114,6 +115,7 @@ export function DailyScreen({ onStartDaily }: { onStartDaily: () => void }): JSX
             <div className="panel-title">The Contract</div>
             <p className="panel-sub">A fixed 20-wave stage under two gameplay modifiers, on a 3-tower Conveyor with the day's champion. No difficulty selector — one shared ruleset, one leaderboard-of-honour: the streak.</p>
           </div>
+          <LeaderboardBlock mode="daily" />
         </div>
       </div>
     </div>

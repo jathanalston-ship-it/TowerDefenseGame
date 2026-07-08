@@ -36,7 +36,18 @@ export interface SaveData {
   //    purchases: lifetime count per offer id (enforces one-time packs); lastRotatingBuyKey: the UTC
   //    day the rotating slot was last bought (once/day); seenKey: last day the store was OPENED (the
   //    nav badge); totalSpentUsd: display-price bookkeeping for the support/economy views. ──
-  premium: { purchases: Record<string, number>; lastRotatingBuyKey: string; seenKey: string; totalSpentUsd: number };
+  //    v23 adds the VERIFIED-purchase ledger (docs/DEPLOYMENT.md §purchases): claimedReceipts —
+  //    server receipt ids (Stripe session ids) whose grants were already applied, the client-side
+  //    apply-once guard; pendingCheckout — an in-flight redirect checkout to resume/claim on boot
+  //    (power loss / refresh / closed-tab recovery). Sandbox purchases never touch either. ──
+  premium: {
+    purchases: Record<string, number>;
+    lastRotatingBuyKey: string;
+    seenKey: string;
+    totalSpentUsd: number;
+    claimedReceipts: string[];
+    pendingCheckout: { offerId: string; sessionId: string; startedAt: number } | null;
+  };
   // ── Daily Run ledger (docs/DAILY-RUN.md) — additive; a fresh ledger for older saves.
   //    lastKey/lastWave: the most recent attempt day + its deepest wave; bestWave: lifetime record;
   //    completions: lifetime cleared dailies; streak: consecutive-day clears; rewardedKey: the day
@@ -202,8 +213,10 @@ export interface TutorialSave {
 
 // v11→v12: tutorial (completion + resumable progress). v12→v13: PER-HERO equipment loadouts
 // (migrated from the shared loadout). v21→v22: Player Profile (identity fields + milestone
-// timeline + profile stat ledgers). All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 22;
+// timeline + profile stat ledgers). v22→v23: verified-purchase ledger (claimedReceipts +
+// pendingCheckout — docs/DEPLOYMENT.md §purchases). All additive — withDefaults() deep-fills,
+// migrate() passes through.
+export const CURRENT_VERSION = 23;
 const SAVE_KEY = 'assimilate.save';
 const BAK_PREFIX = 'assimilate.save.bak.';
 const BAK_INDEX = 'assimilate.save.baklist';
@@ -350,7 +363,7 @@ export function defaultSave(): SaveData {
     rushBestBoss: 0,
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '' },
-    premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0 },
+    premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
     cardsSeen: 0,
@@ -718,11 +731,25 @@ function sanitizePremium(raw: unknown): SaveData['premium'] {
     }
   }
   const key = (v: unknown): string => (typeof v === 'string' ? v.slice(0, 10) : '');
+  // v23: verified-purchase ledger — receipt ids are bounded strings, capped in count (the
+  // oldest fall off; the SERVER's fulfillments table remains the permanent record).
+  const claimedReceipts = Array.isArray(o.claimedReceipts)
+    ? o.claimedReceipts.filter((r): r is string => typeof r === 'string' && r.length > 0 && r.length <= 200).slice(-200)
+    : [];
+  const pc = (typeof o.pendingCheckout === 'object' && o.pendingCheckout !== null ? o.pendingCheckout : null) as
+    | { offerId?: unknown; sessionId?: unknown; startedAt?: unknown }
+    | null;
+  const pendingCheckout =
+    pc && typeof pc.offerId === 'string' && typeof pc.sessionId === 'string' && pc.sessionId.length <= 200
+      ? { offerId: pc.offerId.slice(0, 64), sessionId: pc.sessionId, startedAt: Math.max(0, Number(pc.startedAt) || 0) }
+      : null;
   return {
     purchases,
     lastRotatingBuyKey: key(o.lastRotatingBuyKey),
     seenKey: key(o.seenKey),
     totalSpentUsd: Math.max(0, Number(o.totalSpentUsd) || 0),
+    claimedReceipts,
+    pendingCheckout,
   };
 }
 

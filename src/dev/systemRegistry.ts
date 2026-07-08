@@ -66,7 +66,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'campaign', name: 'Campaign', purpose: 'Procedural authored-feeling stages; depth is the master progression gate.',
-    files: ['src/core/campaign.ts', 'src/ui/CampaignScreen.tsx'],
+    files: ['src/core/campaign.ts', 'src/core/hash.ts', 'src/ui/CampaignScreen.tsx'],
     dependsOn: ['engine', 'biomes', 'bosses', 'difficulty', 'power'], powerScore: 'recommended-power display; first-clear rewards move account Power indirectly', save: ['campaign'],
     tutorial: [], help: ['campaign'], hud: [], ui: ['CampaignScreen', 'CommandCenter'], collection: 'biome discovery', achievements: [],
     localization: 'inline-en', docs: ['docs/CAMPAIGN.md', 'docs/MODE-IDENTITY.md', 'docs/STAGES.md'],
@@ -98,6 +98,13 @@ export const SYSTEMS: SystemDef[] = [
     dependsOn: ['content-infra', 'splice-market', 'daily', 'power'], powerScore: 'offerPowerPotential — the honest "up to +N when invested" estimate', save: ['premium'], tutorial: [], help: [],
     hud: [], ui: ['PremiumStore'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/PREMIUM-STORE.md', 'docs/PREMIUM-ECONOMY-REPORT.md'],
+  },
+  {
+    id: 'net-backend', name: 'Backend lanes (net/)', purpose: 'The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.',
+    files: ['src/net/identity.ts', 'src/net/checkout.ts', 'src/net/cloudSave.ts', 'src/net/leaderboard.ts', 'src/net/turnstile.ts', 'src/ui/components/CloudBackup.tsx', 'src/ui/components/LeaderboardBlock.tsx'],
+    dependsOn: ['premium', 'meta-store', 'daily', 'power'], powerScore: null, save: ['premium'], tutorial: [], help: [],
+    hud: [], ui: ['CloudBackup', 'LeaderboardBlock'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/DEPLOYMENT.md'],
   },
   {
     id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',

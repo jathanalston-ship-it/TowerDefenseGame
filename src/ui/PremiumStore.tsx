@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import type { PremiumReceipt } from '../state/meta';
 import { audio } from '../audio/sound';
+import { CHECKOUT_PROVIDER, beginCheckout, takePendingReveal } from '../net/checkout';
 import {
   ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerValueIchor,
   offerValueMultiple, todaysRotatingOffer,
@@ -25,6 +26,18 @@ function fmtCountdown(ms: number): string {
 }
 
 /** Human line per grant — the card preview (the receipt carries its own resolved lines). */
+/** Player-facing copy for checkout failures (machine codes stay in the console). */
+function storeErrorCopy(code: string): string {
+  switch (code) {
+    case 'offer-cap-reached': return 'You already own this pack (or bought today\u2019s).';
+    case 'turnstile-failed': return 'Bot check failed \u2014 please try again.';
+    case 'rate-limited': return 'Too many attempts \u2014 wait a minute and try again.';
+    case 'store-unavailable': return 'The store is not available right now.';
+    case 'network': return 'No connection \u2014 check your network and try again.';
+    default: return 'Checkout could not start \u2014 please try again.';
+  }
+}
+
 function grantLine(g: PremiumGrant): { icon: string; label: string; rarity?: string } {
   switch (g.grant) {
     case 'ichor': return { icon: '◆', label: `${g.qty} Ichor` };
@@ -82,7 +95,7 @@ function OfferCard({ offer, unavailable, note, hero, onBuy }: {
 }
 
 // ── Confirmation — the trust beat: full recap, price, and the sandbox notice ──
-function ConfirmModal({ offer, onConfirm, onClose }: { offer: PremiumOfferDef; onConfirm: () => void; onClose: () => void }): JSX.Element {
+function ConfirmModal({ offer, busy, error, onConfirm, onClose }: { offer: PremiumOfferDef; busy: boolean; error: string | null; onConfirm: () => void; onClose: () => void }): JSX.Element {
   return (
     <div className="ps-overlay" onClick={onClose} role="dialog" aria-label="Confirm purchase">
       <div className="ps-box" onClick={(e) => e.stopPropagation()} style={{ ['--ps' as string]: offer.accent }}>
@@ -95,10 +108,15 @@ function ConfirmModal({ offer, onConfirm, onClose }: { offer: PremiumOfferDef; o
           })}
         </div>
         <div className="ps-box-price">{fmtUsd(offer.priceUsd)}</div>
-        <div className="ps-sandbox">Sandbox checkout — no real charge is made in this build.</div>
+        {CHECKOUT_PROVIDER === 'stripe'
+          ? <div className="ps-sandbox">Secure checkout by Stripe — you'll be redirected and returned here.</div>
+          : <div className="ps-sandbox">Sandbox checkout — no real charge is made in this build.</div>}
+        {error && <div className="ps-error" role="alert">{error}</div>}
         <div className="ps-box-btns">
-          <button onClick={onClose}>Cancel</button>
-          <button className="primary" onClick={onConfirm}>Purchase {fmtUsd(offer.priceUsd)}</button>
+          <button onClick={onClose} disabled={busy}>Cancel</button>
+          <button className="primary" onClick={onConfirm} disabled={busy}>
+            {busy ? 'Contacting checkout…' : `Purchase ${fmtUsd(offer.priceUsd)}`}
+          </button>
         </div>
       </div>
     </div>
@@ -158,9 +176,28 @@ export function PremiumStore(): JSX.Element {
   const rotating = todaysRotatingOffer(key);
   const events = activeEventOffers(key);
   const boughtToday = save.premium.lastRotatingBuyKey === key;
-  const buy = (o: PremiumOfferDef): void => setConfirm(o);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // A purchase delivered while the store was closed (Stripe return claimed on
+  // boot) plays its reveal ceremony the next time the store opens.
+  useEffect(() => {
+    const r = takePendingReveal();
+    if (r) { audio.cue('draft'); setReceipt(r); }
+  }, []);
+  const buy = (o: PremiumOfferDef): void => { setError(null); setConfirm(o); };
   const doPurchase = (): void => {
-    if (!confirm) return;
+    if (!confirm || busy) return;
+    if (CHECKOUT_PROVIDER === 'stripe') {
+      // Real money: create the session server-side and redirect. The grant happens
+      // on RETURN, after /api/store/claim verifies payment (never client-alone).
+      setBusy(true);
+      setError(null);
+      void beginCheckout(confirm).then((r) => {
+        if (!r.ok) { setBusy(false); setError(storeErrorCopy(r.error)); }
+        // On success the page navigates away — no state to update.
+      });
+      return;
+    }
     const r = meta.purchaseOffer(confirm.id);
     setConfirm(null);
     if (r) { audio.cue('draft'); setReceipt(r); }
@@ -205,7 +242,7 @@ export function PremiumStore(): JSX.Element {
         they remain drops. Campaign gates cannot be bought. See the Help wiki for the full fairness contract.
       </p>
 
-      {confirm && <ConfirmModal offer={confirm} onConfirm={doPurchase} onClose={() => setConfirm(null)} />}
+      {confirm && <ConfirmModal offer={confirm} busy={busy} error={error} onConfirm={doPurchase} onClose={() => { if (!busy) setConfirm(null); }} />}
       {receipt && <RevealCeremony receipt={receipt} onClose={() => setReceipt(null)} />}
     </div>
   );

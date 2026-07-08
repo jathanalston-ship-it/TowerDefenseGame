@@ -1,0 +1,18 @@
+# Cloudflare Pages configuration (used by `wrangler pages dev` locally and by
+# CLI deploys; the git-integrated Pages build reads Build settings from the
+# dashboard instead — keep the two in sync via docs/DEPLOYMENT.md).
+name = "assimilate"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-06-01"
+
+# ── D1: the transactional store (purchases, fulfillments, cloud saves,
+#    leaderboards, rate limits). Create it once:
+#      npx wrangler d1 create assimilate-db
+#    then paste the printed database_id below AND bind it in the Pages project
+#    (Settings → Functions → D1 database bindings → variable name DB).
+[[d1_databases]]
+binding = "DB"
+database_name = "assimilate-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Local dev secrets live in .dev.vars (gitignored) — see .env.example for keys.

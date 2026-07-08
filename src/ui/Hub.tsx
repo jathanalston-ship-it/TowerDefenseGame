@@ -31,6 +31,7 @@ import { HelpWiki } from './HelpWiki';
 import { CollectionScreen } from './CollectionPanel';
 import { PlayerProfile } from './PlayerProfile';
 import { SaveManager } from './SaveManager';
+import { CloudBackup } from './components/CloudBackup';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { GeneArchive } from './GeneArchive';
@@ -147,6 +148,11 @@ function SettingsScreen({ onReplayTutorial, onReplayTour }: { onReplayTutorial: 
           <div className="panel-sub">Re-learn the basics any time.</div>
           <button className="set-switch" onClick={onReplayTutorial}>▶ Replay Combat Tutorial</button>
           <button className="set-switch" onClick={onReplayTour}>▶ Replay Field Orientation</button>
+        </div>
+        <div className="panel">
+          <div className="panel-title">Cloud Backup</div>
+          <div className="panel-sub">One manual slot per sync code. Your code works like a password — it restores this account on any device.</div>
+          <CloudBackup />
         </div>
         <div className="panel">
           <div className="panel-title">Danger Zone</div>

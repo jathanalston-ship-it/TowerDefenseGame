@@ -10,6 +10,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'es2020',
-    sourcemap: false,
+    // Public client, no secrets in the bundle: real source maps make production
+    // errors debuggable. They're separate files — only fetched by DevTools.
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        // React never changes between our deploys — a stable vendor chunk stays
+        // browser-cached across releases while the app chunk turns over. The game
+        // itself ships as ONE app chunk on purpose: the sim/content/UI are all
+        // needed at boot, and slicing them only adds request waterfalls.
+        manualChunks: { vendor: ['react', 'react-dom'] },
+      },
+    },
   },
 });

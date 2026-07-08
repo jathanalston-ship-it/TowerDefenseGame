@@ -7743,6 +7743,7 @@ kbd {
 @keyframes ps-pop { 0% { opacity: 0; transform: translateY(8px) scale(0.92); } 100% { opacity: 1; transform: none; } }
 .ps-box-price { margin-top: 14px; font-size: 26px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 .ps-sandbox { margin-top: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+.ps-error { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--danger, #ff4d6d); }
 .ps-box-btns { margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end; }
 .ps-box-btns button { padding: 9px 18px; border-radius: var(--r-sm); font-weight: 800; cursor: pointer; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); }
 .ps-box-btns button.primary { background: linear-gradient(160deg, var(--ps, var(--gold)), color-mix(in srgb, var(--ps, var(--gold)) 60%, #fff)); color: #0a0e16; border: 0; }
@@ -7814,3 +7815,24 @@ kbd {
 /* Genome upgrade progression gates (docs/EVOLUTION-HQ.md §gates) */
 .evohq-card.is-locked { opacity: 0.62; filter: saturate(0.55); }
 .evo-card-gate { font-size: 11px; color: var(--gold); letter-spacing: 0.04em; margin: 2px 0 0; }
+
+/* ── Purchase recovery note (App menu; docs/DEPLOYMENT.md §purchases) ── */
+.purchase-note { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); font-size: 13px; color: var(--text); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
+.purchase-note-x { background: none; border: 0; color: var(--muted); font-size: 13px; cursor: pointer; padding: 2px 4px; }
+.purchase-note-x:hover { color: var(--text); }
+
+/* ── Cloud Backup panel (Settings; docs/DEPLOYMENT.md §cloud-save) ── */
+.cloudbk { display: flex; flex-direction: column; gap: 8px; }
+.cloudbk-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cloudbk-code { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--panel-3); border: 1px solid var(--line); border-radius: var(--r-xs); }
+.cloudbk-code code { font-size: 11px; color: var(--muted); word-break: break-all; user-select: all; }
+.cloudbk-msg { font-size: 12px; color: var(--muted); }
+
+/* ── Global standings block (Daily / Boss Rush; docs/DEPLOYMENT.md §leaderboards) ── */
+.lbblock .lb-note { font-size: 12px; color: var(--muted); }
+.lb-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.lb-table td { padding: 3px 6px; font-size: 12px; border-bottom: 1px solid var(--line); }
+.lb-rank { color: var(--muted); width: 42px; }
+.lb-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; max-width: 160px; white-space: nowrap; }
+.lb-score { text-align: right; color: var(--gold); font-weight: 700; }
+.lb-you { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--text); }

@@ -1,287 +1,262 @@
-# DEPLOYMENT.md — Deploying to Cloudflare Pages
+# DEPLOYMENT.md — Production deployment (Cloudflare Pages + Functions)
 
-Exact, step-by-step instructions to put this game online with **Cloudflare Pages**,
-written for someone who has **never deployed a Cloudflare Pages app before**. No
-prior Cloudflare experience assumed.
-
-> **What you're deploying:** a 100% **static** single-page app (React + TypeScript +
-> Vite). There is **no backend, no server, no database, and no environment
-> variables**. Cloudflare just serves the files Vite builds, worldwide, for free on
-> the Pages free tier. Game progress saves in the player's own browser
-> (`localStorage`).
+Step-by-step instructions to put ASSIMILATE online, written for someone who has
+**never deployed on Cloudflare before**. The game is a **static SPA** (React +
+TypeScript + Vite) with a **thin serverless backend** (Cloudflare Pages
+Functions + D1) for exactly the things a client must never decide alone:
+payment verification, purchase fulfillment, cloud save, day authority, and
+leaderboards. **Gameplay simulation stays 100% client-side and fully playable
+offline** — every backend lane fails soft.
 
 ---
 
-## 0. What you need first (prerequisites)
-
-1. **A GitHub account** — https://github.com (free).
-2. **A Cloudflare account** — https://dash.cloudflare.com/sign-up (free).
-3. **This project pushed to a GitHub repository** (Section 1).
-4. *(Optional, to test locally first)* **Node.js 20+** — https://nodejs.org. Then:
-   ```bash
-   npm install
-   npm run dev      # play at http://localhost:5173
-   npm run build    # produces the dist/ folder Cloudflare will serve
-   ```
-
-You do **not** need a credit card, a custom domain, or the Cloudflare CLI.
-
----
-
-## 1. Get the code onto GitHub
-
-Cloudflare Pages deploys *from a GitHub repository*. If your code is already on
-GitHub, skip to Section 2.
-
-If it is not on GitHub yet, from the project folder:
-
-```bash
-# one-time, if this folder isn't a git repo yet:
-git init
-git add -A
-git commit -m "Initial commit"
-
-# create an empty repo on github.com first (no README), then:
-git remote add origin https://github.com/<your-username>/<your-repo>.git
-git branch -M main
-git push -u origin main
-```
-
-Confirm on github.com that you can see `package.json`, `index.html`, the `src/`
-folder, and `package-lock.json` in the repo. **`package-lock.json` must be
-committed** — Cloudflare uses it for reproducible installs. (`node_modules/` and
-`dist/` are intentionally *not* committed; Cloudflare rebuilds them.)
-
----
-
-## 2. Repository structure (what Cloudflare cares about)
-
-You don't need to change anything — this is just what Pages looks for:
+## 1. Architecture
 
 ```
-<repo root>/              ← "Root directory" in Cloudflare = this folder
-├─ package.json           ← defines `npm run build`
-├─ package-lock.json      ← reproducible installs (committed)
-├─ index.html             ← Vite entry
-├─ vite.config.ts         ← build config (outputs to dist/)
-├─ .node-version          ← pins Node 20 for the build (already included)
+                        ┌──────────────────────────────┐
+                        │        Cloudflare CDN        │
+  Player's browser ───▶ │  Pages (static dist/)        │
+  · the whole game      │  _headers: CSP, HSTS, cache  │
+  · deterministic sim   │  Web Analytics (optional)    │
+  · localStorage saves  └──────────┬───────────────────┘
+        │                          │ same-origin /api/*
+        │                          ▼
+        │               ┌──────────────────────────────┐      ┌─────────────┐
+        │               │   Pages Functions (Workers)  │ ───▶ │ Cloudflare  │
+        └── /api/* ───▶ │  /api/store/checkout ─┐      │      │     D1      │
+                        │  /api/store/claim     │      │      │ purchases   │
+             Turnstile  │  /api/stripe/webhook ◀┼──────┼──┐   │ fulfillments│
+             (invisible │  /api/save            │      │  │   │ cloud_saves │
+              bot gate) │  /api/daily/seed      │      │  │   │ leaderboard │
+                        │  /api/leaderboard/*   │      │  │   │ rate_limits │
+                        │  /api/health          │      │  │   └─────────────┘
+                        └───────────┬───────────┘      │  │
+                                    │ create/retrieve  │  │ signed webhooks
+                                    ▼ session          │  │ (HMAC verified)
+                        ┌──────────────────────────────┐  │
+                        │        Stripe Checkout        │─┘
+                        │ (hosted page — full redirect; │
+                        │  card data never touches us)  │
+                        └──────────────────────────────┘
+```
+
+Design rules this deployment follows:
+
+- **Lowest cost**: everything runs on Cloudflare free tiers (Pages, Functions,
+  D1, Turnstile, Web Analytics). Stripe charges per transaction only. R2 is
+  deliberately NOT used — cloud saves are ≤256 KB JSON and live in D1; R2 is
+  the documented upgrade path if save blobs or downloadable asset packs ever
+  outgrow that.
+- **No gameplay on the server**: the sim is deterministic and client-side; the
+  backend only owns money, backups, day identity, and score claims.
+- **Fail-soft**: with zero backend configuration the game still builds, runs,
+  and plays offline (the store falls back to its sandbox stub, standings show a
+  quiet offline note).
+- **Fast cold starts**: the Functions bundle is dependency-free (hand-rolled
+  Stripe REST client over `fetch` + WebCrypto; no SDK), so a cold Worker start
+  is single-digit milliseconds of JS.
+
+## 2. Directory structure
+
+```
+<repo root>/
+├─ package.json            npm scripts (build / deploy / db:migrate)
+├─ package-lock.json       committed — reproducible installs (npm ci)
+├─ .node-version           pins Node 20 for Pages builds
+├─ .env.example            every env var documented (copy → .env.local)
+├─ wrangler.toml           Pages/Functions + D1 binding for local dev & CLI
+├─ index.html              Vite entry
+├─ vite.config.ts          build: hashed assets, vendor chunk, source maps
 ├─ public/
-│  ├─ _redirects          ← SPA routing fallback (already included)
-│  └─ _headers            ← caching/security headers (already included)
-└─ src/ …                 ← the app
-
-After a build, Vite creates:
-└─ dist/                  ← "Build output directory" in Cloudflare = this folder
-   ├─ index.html
-   ├─ _redirects          (copied from public/)
-   ├─ _headers            (copied from public/)
-   └─ assets/…            (hashed JS/CSS)
+│  ├─ _headers             CSP + security headers + immutable asset caching
+│  └─ _redirects           SPA fallback (/* → /index.html 200)
+├─ migrations/
+│  └─ 0001_init.sql        D1 schema (purchases/fulfillments/webhook_events/
+│                          cloud_saves/leaderboard/rate_limits)
+├─ functions/              Cloudflare Pages Functions (file-routed /api/*)
+│  ├─ tsconfig.json        workers-typed, strict
+│  ├─ lib/                 env, http, crypto, stripeApi, stripeWebhook,
+│  │                       turnstile, rateLimit, validate, purchases, testkit
+│  ├─ api/
+│  │  ├─ health.ts         GET  /api/health
+│  │  ├─ save.ts           GET/PUT /api/save
+│  │  ├─ daily/seed.ts     GET  /api/daily/seed
+│  │  ├─ store/checkout.ts POST /api/store/checkout
+│  │  ├─ store/claim.ts    POST /api/store/claim
+│  │  ├─ store/history.ts  GET  /api/store/history
+│  │  ├─ stripe/webhook.ts POST /api/stripe/webhook
+│  │  └─ leaderboard/      submit.ts · top.ts
+│  ├─ purchases.test.ts    the failure-mode suite (see §8)
+│  └─ backend.test.ts      save/daily/leaderboard suite
+├─ src/                    the game (sim core, UI, state) — unchanged model
+│  ├─ core/premium.ts      THE offer catalog — client display AND server truth
+│  ├─ core/hash.ts         shared seed primitive (client daily == server daily)
+│  └─ net/                 client side of every lane (identity, checkout,
+│                          cloudSave, leaderboard, turnstile) — all fail-soft
+└─ dist/                   build output (Pages serves this)
 ```
 
----
+## 3. Environment variables
 
-## 3. Create the Cloudflare Pages project
+Client variables ship in the bundle (public); server variables are secrets and
+live ONLY in the Pages project settings (or `.dev.vars` locally, gitignored).
 
-1. Go to the **Cloudflare dashboard**: https://dash.cloudflare.com
-2. In the left sidebar, click **Workers & Pages**.
-3. Click **Create application** → the **Pages** tab → **Connect to Git**.
-4. **Authorize Cloudflare to access GitHub** when prompted. Choose **Only select
-   repositories** and pick this repo (or "All repositories"), then **Install &
-   Authorize**.
-5. Back in Cloudflare, **select your repository** from the list and click **Begin
-   setup**.
+| Variable | Side | Required | Purpose |
+|---|---|---|---|
+| `VITE_CHECKOUT_PROVIDER` | client | for real store | `sandbox` (default — dev stub) or `stripe` |
+| `VITE_TURNSTILE_SITE_KEY` | client | recommended | Turnstile site key (public) |
+| `STRIPE_SECRET_KEY` | server | for real store | `sk_live_…` (production) / `sk_test_…` (preview) |
+| `STRIPE_WEBHOOK_SECRET` | server | for real store | `whsec_…` from the webhook endpoint |
+| `TURNSTILE_SECRET_KEY` | server | recommended | Turnstile secret; absent ⇒ bot checks skipped |
+| `DAY_TICKET_SECRET` | server | recommended | random 32+ bytes hex (`openssl rand -hex 32`) |
+| `ENVIRONMENT` | server | recommended | `production` / `preview` — production refuses `sk_test_` keys |
 
----
+Rules: **never** put a secret in a `VITE_` variable; never commit real values;
+production and preview get **different** Stripe keys (live vs test mode).
 
-## 4. Configure the build (the important screen)
+## 4. First-time setup (one-time, ~20 minutes)
 
-On the **Set up builds and deployments** screen, enter **exactly** this:
+1. **Repo on GitHub** — commit everything including `package-lock.json`.
+2. **Pages project** — dash.cloudflare.com → Workers & Pages → Create →
+   Pages → Connect to Git → pick the repo. Build settings:
 
-| Field | Value | Notes |
-|---|---|---|
-| **Project name** | e.g. `assimilate` | becomes `assimilate.pages.dev` |
-| **Production branch** | `main` | (or whichever branch holds your code) |
-| **Framework preset** | **Vite** | sets sensible defaults; if missing, choose **None** and fill the next two rows manually |
-| **Build command** | `npm run build` | |
-| **Build output directory** | `dist` | ⚠️ the single most common mistake — it must be `dist`, not `/` or `build` |
-| **Root directory** | *(leave blank / `/`)* | only change if the app is in a subfolder |
+   | Setting | Value |
+   |---|---|
+   | Framework preset | Vite |
+   | Build command | `npm run build` |
+   | Build output directory | `dist` |
+   | Root directory | *(blank)* |
 
-**Environment variables:** **none required.** Leave that section empty. (See
-Section 7 if you're curious.)
+   Node is pinned by `.node-version`. Save and deploy — the game is live
+   (static + functions; backend lanes stay dormant until configured).
+3. **D1 database** — locally: `npx wrangler@3 login`, then
+   `npx wrangler@3 d1 create assimilate-db`. Paste the printed `database_id`
+   into `wrangler.toml`. Apply the schema: `npm run db:migrate`. Then bind it
+   to Pages: project → Settings → Functions → **D1 database bindings** → add
+   binding, variable name **`DB`**, select `assimilate-db`. Redeploy.
+4. **Turnstile** — dash → Turnstile → Add site (your domains, Managed mode).
+   Put the **site key** in the Pages env as `VITE_TURNSTILE_SITE_KEY` and the
+   **secret key** as `TURNSTILE_SECRET_KEY`.
+5. **Stripe** — follow **docs/STRIPE-SETUP.md** (keys, webhook, test cards).
+6. **Day tickets** — set `DAY_TICKET_SECRET` to `openssl rand -hex 32` output.
+7. **Web Analytics** (optional) — Pages project → Settings → **Web Analytics**
+   → Enable. Zero code; the CSP in `public/_headers` already allows the beacon.
+8. **Custom domain** (optional) — Pages → Custom domains. Note: localStorage
+   saves are domain-scoped; pick the final domain before sharing widely.
 
-**Node version:** already pinned to **20** by the committed `.node-version` file —
-you don't need to set anything. (If you ever want to override it, add an
-environment variable `NODE_VERSION` = `20`.)
+## 5. Everyday deployment
 
-Click **Save and Deploy**.
+- `git push` to the production branch → Pages builds (`npm ci` +
+  `npm run build` = typecheck (app + functions) + Vite) and deploys atomically.
+  Every other branch/PR gets an isolated preview URL with the same functions.
+- CLI alternative: `npm run deploy` (wrangler direct upload).
+- Schema changes: add `migrations/000N_*.sql` → `npm run db:migrate`
+  (`db:migrate:local` for the local dev database).
+- Local full-stack dev: `npm run dev` (game only, sandbox store) or
+  `npm run dev:full` (build + `wrangler pages dev dist` = static + functions +
+  local D1; put dev secrets in `.dev.vars`).
+- Rollback: Pages → Deployments → ⋯ → Rollback (static + functions revert
+  together; D1 is append-mostly and migrations are additive).
 
----
+## 6. Build pipeline facts (verified)
 
-## 5. Watch the first deploy
-
-Cloudflare now runs, in order:
-
-1. **Clone** your repo.
-2. **Install** dependencies (`npm clean-install` from your lockfile).
-3. **Build** (`npm run build` → type-checks, then writes `dist/`).
-4. **Deploy** the contents of `dist/` to its global CDN.
-
-You'll see a live build log. A successful run ends with **"Success: Deployment
-complete"** and a URL like **`https://assimilate.pages.dev`**. Open it — the game
-should load. 🎉
-
-Builds typically take ~1–2 minutes.
-
----
-
-## 6. How future updates deploy (automatic)
-
-Once connected, Cloudflare Pages redeploys **automatically**:
-
-- **Every push to your production branch** (`main`) → a new **production** deploy.
-- **Every push to any other branch, and every Pull Request** → its own **preview**
-  deploy at a unique URL (great for testing before merging).
-
-You never have to manually upload anything again — just `git push`.
-
-```bash
-git add -A
-git commit -m "tweak balance"
-git push           # Cloudflare rebuilds and redeploys within ~1–2 min
-```
-
----
-
-## 7. Environment variables (you don't need any)
-
-This app uses **zero** environment variables and makes **no** network requests — it
-runs entirely in the browser. There is nothing to configure.
-
-If a *future* feature ever needs a build-time value, note that only Vite variables
-prefixed with **`VITE_`** are exposed to the browser (e.g. `VITE_API_URL`). Add them
-under **Settings → Environment variables** in the Pages project. **Never** put
-secrets (API keys, tokens) in a `VITE_`-prefixed variable or anywhere in a static
-frontend — they ship to every visitor. This game needs none of that.
-
----
-
-## 8. (Optional) Add a custom domain
-
-1. In your Pages project → **Custom domains** → **Set up a custom domain**.
-2. Enter your domain (e.g. `play.example.com`) and follow the prompts.
-3. If the domain is already on Cloudflare, DNS is configured automatically. If not,
-   add the shown **CNAME** record at your DNS provider.
-4. HTTPS certificates are issued automatically.
-
-> Tip: player saves (`localStorage`) are tied to the exact domain. Saves on
-> `your-project.pages.dev` will **not** carry over to a custom domain — that's normal
-> browser behavior, not a bug. Pick your final domain before sharing widely.
-
----
-
-## 9. Cloudflare compatibility review (verdict)
-
-A pass over each subsystem for Pages hosting:
-
-| Area | Status | Notes |
-|---|---|---|
-| **Build process** | ✅ | `npm run build` (tsc + vite) → `dist/`. Node pinned via `.node-version`. Reproducible install from `package-lock.json`. |
-| **Asset loading** | ✅ | Content-hashed assets under `/assets`, absolute base `/` (Pages serves from root). `_headers` sets `immutable` long-cache on them. |
-| **Save system** | ✅ | `localStorage` only; access is wrapped in `typeof`-guards + try/catch with an in-memory fallback, so private-mode / disabled storage never crashes the app. |
-| **Routing** | ✅ | Single page; `public/_redirects` (`/* /index.html 200`) covers any future client routes and direct-link refreshes. |
-| **Environment variables** | ✅ | None used or required. No secrets in the bundle. |
-| **Static asset management** | ✅ | All assets bundled by Vite or served from `public/`. No external CDNs/fonts (uses `system-ui`), no `process.env`, no `fetch`, no Node-only APIs in app code. |
-| **SSR / server** | ✅ N/A | Pure client SPA — nothing to render server-side, nothing to keep running. |
-
-**No blocking issues.** No corrections were required to make it deploy; the
-`_headers`, `_redirects`, `.node-version`, and inline favicon are hardening/quality
-improvements, all already committed.
-
----
-
-## 10. Common issues & troubleshooting
-
-**Build fails immediately / "could not determine how to build".**
-Set **Framework preset = Vite** (or **None** with Build command `npm run build`).
-Ensure **Root directory** points at the folder containing `package.json` (blank/`/`
-for this repo).
-
-**Build fails with a Node / "engine" / syntax error.**
-The build Node version is too old. This repo pins Node 20 via `.node-version`. If it's
-still wrong, add an environment variable **`NODE_VERSION` = `20`** (Settings →
-Environment variables) and redeploy.
-
-**Build fails: `npm ci` / lockfile out of sync.**
-Make sure **`package-lock.json` is committed and up to date.** Run `npm install`
-locally, commit the updated lockfile, and push.
-
-**Build succeeds but the site is a blank white page.**
-Almost always the **Build output directory** is wrong — it must be **`dist`**. Fix it
-in **Settings → Builds & deployments**, then **Retry deployment**. Also open the
-browser **DevTools → Console**; a red error there points to the cause.
-
-**`404` / "Nothing is here yet" when you refresh a page or open a deep link.**
-The SPA fallback isn't applying. Confirm `public/_redirects` exists and contains
-`/*    /index.html    200`, and that it appears in `dist/` after a build. (It's
-already in this repo.)
-
-**Assets fail to load / "Failed to load module script" / MIME errors.**
-Output directory is wrong (see blank-page above) or you set a custom Vite `base`.
-This project uses the default `base: '/'`, which is correct for Pages. Don't change
-it unless serving from a sub-path.
-
-**My game progress disappeared.**
-Saves live in the browser's `localStorage`, scoped to the exact domain. Expected
-causes: you switched between a `*.pages.dev` preview URL and the production/custom
-domain; you're in private/incognito mode; or you cleared site data. This is browser
-behavior, not a deploy failure.
-
-**I pushed a change but the site looks the same.**
-Check the **Deployments** tab — did the new build succeed? Then hard-refresh
-(Ctrl/Cmd-Shift-R). HTML is served with a short cache and assets are content-hashed,
-so a successful deploy is picked up quickly; a stale tab just needs a refresh.
-
-**Cloudflare can't see my repository.**
-Re-run the GitHub authorization: Cloudflare dashboard → **Workers & Pages** →
-**Settings** → **GitHub** (or the GitHub app at github.com → Settings → Applications
-→ Cloudflare Pages) and grant access to the repo.
-
----
-
-## 11. (Optional) Deploy from the command line instead
-
-If you prefer not to connect GitHub, you can deploy the built folder directly with
-Cloudflare's CLI, **Wrangler**:
-
-```bash
-npm install -g wrangler        # or: npx wrangler ...
-npm run build                  # produce dist/
-wrangler pages deploy dist     # follow the login prompt the first time
-```
-
-This uploads `dist/` straight to Pages. The GitHub method (Sections 3–6) is
-recommended because it redeploys automatically on every push.
-
----
-
-## 12. Rolling back a bad deploy
-
-In the Pages project → **Deployments**, find a previous good deployment → **⋯** menu
-→ **Rollback to this deployment**. Production instantly points back to it while you
-fix forward.
-
----
-
-### TL;DR
-
-| Setting | Value |
+| Concern | State |
 |---|---|
-| Connect | Workers & Pages → Create → Pages → Connect to Git |
-| Framework preset | Vite |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Root directory | *(blank / repo root)* |
-| Environment variables | none |
-| Node version | 20 (pinned via `.node-version`) |
+| Production build | `npm run build` — tsc strict (app + functions) then Vite |
+| Tree shaking / minification | Vite/Rollup + esbuild defaults (ES2020 target) |
+| Code splitting | stable `vendor` chunk (react) + lazy `DebugPanel`; the game ships as one app chunk on purpose (everything is needed at boot; more slicing = waterfalls, not wins) |
+| Asset hashing / versioning | all bundles content-hashed under `/assets/*` |
+| Browser caching | `_headers`: `/assets/*` immutable 1y; HTML short-cache; `/api/*` no-store |
+| Compression | Cloudflare serves Brotli/gzip at the edge automatically |
+| Source maps | emitted (`sourcemap: true`) — client has no secrets; production errors stay debuggable |
+| Env vars | typed via `src/vite-env.d.ts`; secrets never in the bundle (grep `sk_live` in `dist/` — nothing) |
+| Reproducibility | `package-lock.json` + `.node-version` + `npm ci`; no build-time timestamps |
+| Cold starts | functions bundle is dependency-free; D1 is the only binding |
 
-Push to `main` → Cloudflare builds and deploys automatically.
+## 7. Backend endpoints (the complete surface)
+
+| Endpoint | Purpose | Protections |
+|---|---|---|
+| `POST /api/store/checkout` | create a Stripe Checkout Session for one catalog offer | origin check, rate limit, Turnstile, server-side price + offer caps |
+| `POST /api/stripe/webhook` | Stripe events → purchases/refunds | HMAC signature + 5-min tolerance, event-id dedupe, catalog amount check |
+| `POST /api/store/claim` | verify + fulfill exactly once | rate limit, id validation, player binding, fulfillments PK idempotency |
+| `GET /api/store/history` | receipts for support/restore | rate limit, UUID scoping |
+| `PUT/GET /api/save` | cloud save backup/restore | token hash (TOFU), size cap, envelope check, rate limit |
+| `GET /api/daily/seed` | day authority + HMAC day ticket | rate limit (the seed itself is public by design) |
+| `POST /api/leaderboard/submit` | score claim | origin, rate limit, Turnstile, bounds, day ticket, keep-best upsert |
+| `GET /api/leaderboard/top` | standings | rate limit |
+| `GET /api/health` | deploy smoke check | booleans only, no values |
+
+## 8. Purchases (the money path)
+
+```
+click buy → confirm modal → POST /api/store/checkout (Turnstile, caps, price
+from src/core/premium.ts — the client never sends an amount)
+  → redirect to Stripe Checkout (hosted; card data never touches us)
+    → webhook: signature-verified, deduped, catalog-checked → purchases row
+    → return URL: /?checkout=success&session_id=…
+      → POST /api/store/claim → fulfillments PK decides the ONE winner
+        → meta.applyVerifiedPurchase(offerId, receiptId) applies grants ONCE
+          (claimedReceipts ledger) → reveal ceremony + timeline entry
+```
+
+Exactly-once is enforced **three times independently**: Stripe idempotency key
+on session creation, the `fulfillments` primary key on the server, and the
+`claimedReceipts` ledger on the client. Interruption recovery: the pending
+checkout is persisted BEFORE redirect and re-claimed on every boot until it
+resolves (paid → delivered; expired/refunded → cleared). Refunds flip the
+purchase row via webhook and claims stop granting immediately.
+
+Automated failure-mode suite (`functions/purchases.test.ts`,
+`functions/backend.test.ts`, `src/state/verifiedPurchase.test.ts`): cancelled
+payment, failed payment, duplicate webhook, different-event same-session,
+forged/stale signatures, refund, claim-before-webhook (network interruption),
+double click / second tab / refresh / power loss replays, amount tampering,
+player mismatch, offer caps, rate limiting, input validation, hostile names.
+Manual test flow with Stripe test cards: docs/STRIPE-SETUP.md §6.
+
+## 9. Production checklist
+
+- [ ] Pages project builds green from a fresh clone (`npm ci && npm run build`)
+- [ ] D1 created, `migrations/` applied, binding `DB` attached to Pages
+- [ ] `STRIPE_SECRET_KEY` = **live** key in production env only
+- [ ] Webhook endpoint added in Stripe (live mode) + `STRIPE_WEBHOOK_SECRET` set
+- [ ] `VITE_CHECKOUT_PROVIDER=stripe` set on production (preview can stay sandbox or test-mode)
+- [ ] Turnstile site + both keys configured
+- [ ] `DAY_TICKET_SECRET` set (random, unique per environment)
+- [ ] `ENVIRONMENT=production` set on production env (test-key refusal)
+- [ ] Web Analytics enabled (optional)
+- [ ] Custom domain attached + HTTPS active (automatic)
+- [ ] `docs/SECURITY-AUDIT.md` reviewed; no open criticals
+
+## 10. Deployment verification checklist (after every production deploy)
+
+- [ ] Game loads at the production URL; hard-refresh shows the new build
+- [ ] `GET /api/health` → `{ ok: true, db: true, stripe: true, webhook: true, turnstile: true, dayTickets: true, environment: "production" }`
+- [ ] DevTools → Network: `/assets/*` served with `cache-control: immutable`; response headers include the CSP
+- [ ] A **test-mode preview** purchase completes end-to-end (Stripe test card `4242 4242 4242 4242`) and delivers ONCE
+- [ ] Refreshing the return URL does NOT grant again (`alreadyGranted`)
+- [ ] Stripe Dashboard → Webhooks: recent deliveries all `200`
+- [ ] Cloud backup + restore round-trips from Settings
+- [ ] Daily screen shows standings; a submitted run appears with your profile name
+- [ ] Browser console: zero errors on the hub and in a run
+- [ ] Offline check: DevTools offline → the game still boots and plays; store/standings degrade quietly
+
+## 11. Troubleshooting
+
+Everything from the static era still applies (blank page ⇒ wrong output dir
+`dist`; SPA 404s ⇒ `_redirects`; stale tab ⇒ hard refresh). Backend additions:
+
+- **`/api/*` returns 404** — functions not deployed: confirm the `functions/`
+  directory is committed and the build log lists "Functions".
+- **`/api/health` says `db: false`** — the D1 binding is missing/misnamed: it
+  must be exactly `DB` (Settings → Functions → D1 bindings), then redeploy.
+- **Store button says unavailable** — `STRIPE_SECRET_KEY` unset, or production
+  is holding a `sk_test_` key (refused by design; see `ENVIRONMENT`).
+- **Webhook 400s in Stripe** — wrong `STRIPE_WEBHOOK_SECRET` (each endpoint has
+  its own `whsec_…`; live and test differ).
+- **Purchases stuck "processing"** — webhook unreachable AND claim's live
+  verify failing: check both keys; the client retries on every boot, nothing is
+  lost.
+- **Turnstile always failing** — site key/secret from different Turnstile
+  sites, or the domain isn't listed on the Turnstile site config.

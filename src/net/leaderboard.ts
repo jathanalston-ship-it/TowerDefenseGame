@@ -1,0 +1,108 @@
+// Leaderboard client (docs/DEPLOYMENT.md §leaderboards). Fail-soft everywhere:
+// offline or errored calls change nothing about the run experience. Submission
+// is best-per-player serverside; the client additionally remembers what it last
+// sent (localStorage, non-authoritative) to avoid noisy resubmits.
+
+import { meta } from '../state/meta';
+import { dailyKey } from '../core/daily';
+import { playerId } from './identity';
+import { turnstileToken } from './turnstile';
+
+export type LbMode = 'daily' | 'bossRush';
+
+export interface LbEntry {
+  rank: number;
+  name: string;
+  score: number;
+  wave: number;
+  power: number;
+}
+
+export interface LbView {
+  mode: LbMode;
+  dayKey: string;
+  total: number;
+  entries: LbEntry[];
+  you: { rank: number; score: number } | null;
+}
+
+const SENT_KEY = 'assimilate.lb.sent';
+
+function sentMap(): Record<string, number> {
+  try {
+    const o = JSON.parse(localStorage.getItem(SENT_KEY) ?? '{}');
+    return o && typeof o === 'object' ? (o as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function rememberSent(key: string, score: number): void {
+  try {
+    const m = sentMap();
+    m[key] = score;
+    localStorage.setItem(SENT_KEY, JSON.stringify(m));
+  } catch {
+    /* storage unavailable — resubmits are harmless (server keeps best) */
+  }
+}
+
+/** The player's current submittable claim for a mode, from the save ledgers. */
+export function currentClaim(mode: LbMode): { score: number; wave: number; dayKey: string } | null {
+  const save = meta.get();
+  if (mode === 'daily') {
+    const key = dailyKey();
+    if (save.daily.lastKey !== key || save.daily.lastWave <= 0) return null; // no attempt today
+    return { score: save.daily.lastWave, wave: save.daily.lastWave, dayKey: key };
+  }
+  if (save.rushBestBoss <= 0) return null;
+  return { score: save.rushBestBoss, wave: save.rushBestWave, dayKey: '' };
+}
+
+/** Submit the current best for `mode` if it improved since the last submission.
+ *  Daily entries fetch a day ticket first (server-authoritative day binding). */
+export async function maybeSubmitBest(mode: LbMode): Promise<void> {
+  const claim = currentClaim(mode);
+  if (!claim) return;
+  const sentKey = `${mode}:${claim.dayKey}`;
+  if ((sentMap()[sentKey] ?? 0) >= claim.score) return; // nothing new to say
+  try {
+    let ticket: string | undefined;
+    if (mode === 'daily') {
+      const seedRes = await fetch(`/api/daily/seed?playerId=${encodeURIComponent(playerId())}`);
+      const seed = (await seedRes.json().catch(() => null)) as { dayKey?: string; ticket?: string } | null;
+      if (!seedRes.ok || seed?.dayKey !== claim.dayKey) return; // clock disagreement — silently skip
+      ticket = seed.ticket;
+    }
+    const save = meta.get();
+    const res = await fetch('/api/leaderboard/submit', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        playerId: playerId(),
+        name: save.profileName || 'Anonymous',
+        mode,
+        dayKey: mode === 'daily' ? claim.dayKey : undefined,
+        score: claim.score,
+        wave: claim.wave,
+        power: Math.round(meta.power().score),
+        ticket,
+        turnstileToken: await turnstileToken(),
+      }),
+    });
+    if (res.ok) rememberSent(sentKey, claim.score);
+  } catch {
+    /* offline — try again next visit */
+  }
+}
+
+export async function fetchTop(mode: LbMode): Promise<LbView | null> {
+  try {
+    const day = mode === 'daily' ? `&dayKey=${dailyKey()}` : '';
+    const res = await fetch(`/api/leaderboard/top?mode=${mode}${day}&playerId=${encodeURIComponent(playerId())}`);
+    if (!res.ok) return null;
+    return (await res.json()) as LbView;
+  } catch {
+    return null;
+  }
+}

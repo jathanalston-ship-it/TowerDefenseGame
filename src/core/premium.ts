@@ -16,7 +16,7 @@
 // `purchaseOffer`'s checkout call) without touching offers, grants, or UI.
 
 import { Registry } from './registry';
-import { hashStr } from './campaign';
+import { hashStr } from './hash'; // lean import — functions/ shares this catalog (docs/DEPLOYMENT.md)
 import { MARKET } from './market';
 
 // ── Grant descriptors — the data language of every offer ─────────────────────

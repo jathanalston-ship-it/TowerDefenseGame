@@ -1,0 +1,28 @@
+// Pages Functions environment: bindings + secrets. All secrets are configured in
+// the Cloudflare Pages project (Settings → Environment variables) or .dev.vars
+// locally — NEVER in code or in any VITE_-prefixed variable. See .env.example.
+
+export interface Env {
+  DB: D1Database;
+  /** Stripe secret key (sk_test_… preview / sk_live_… production). Absent ⇒ store endpoints 503. */
+  STRIPE_SECRET_KEY?: string;
+  /** Webhook signing secret (whsec_…) for /api/stripe/webhook. Absent ⇒ webhook 503. */
+  STRIPE_WEBHOOK_SECRET?: string;
+  /** Turnstile secret. Absent ⇒ Turnstile checks are SKIPPED (local dev only). */
+  TURNSTILE_SECRET_KEY?: string;
+  /** HMAC secret for daily-run day tickets (leaderboard day binding). */
+  DAY_TICKET_SECRET?: string;
+  /** 'production' | 'preview' — production refuses sk_test_ keys. */
+  ENVIRONMENT?: string;
+}
+
+export type Ctx = EventContext<Env, string, unknown>;
+
+/** Production sanity: a live deployment must not run on test-mode Stripe keys. */
+export function stripeKeyProblem(env: Env): string | null {
+  if (!env.STRIPE_SECRET_KEY) return 'STRIPE_SECRET_KEY is not configured';
+  if (env.ENVIRONMENT === 'production' && env.STRIPE_SECRET_KEY.startsWith('sk_test_')) {
+    return 'production is configured with a TEST-mode Stripe key';
+  }
+  return null;
+}

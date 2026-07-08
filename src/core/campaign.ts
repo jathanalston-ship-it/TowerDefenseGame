@@ -122,13 +122,10 @@ export interface StageConfig {
   rewardMult: number; // end-of-run shard/loot multiplier (currency + loot quality)
 }
 
-/** FNV-1a string hash → uint32. Exported so sibling generators (daily.ts) seed from the same
- *  primitive rather than re-implementing it. */
-export function hashStr(s: string): number {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
+// hashStr lives in core/hash.ts (shared with the Pages Functions backend) and is
+// re-exported here so sibling generators (daily.ts) keep their original import path.
+export { hashStr } from './hash';
+import { hashStr } from './hash';
 
 /** Deterministic seed from (stage, difficulty) — same inputs ⇒ the same stage forever. */
 export function stageSeed(stage: number, difficultyId: string): number {

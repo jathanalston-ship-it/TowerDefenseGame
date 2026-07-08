@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Hub } from './Hub';
+import { resumePendingClaims } from '../net/checkout';
 import { GameView } from './GameView';
 import { Results } from './Results';
-import { DebugPanel } from './DebugPanel';
+// Debug tooling is dev/opt-in only (?debug) — lazy-loaded so production players
+// never download it and the boot chunk stays lean.
+const DebugPanel = lazy(() => import('./DebugPanel').then((m) => ({ default: m.DebugPanel })));
 import { AchievementToaster } from './AchievementToaster';
 import { PowerToaster } from './components/PowerToaster';
 import { LootToaster } from './LootToaster';
@@ -249,6 +252,20 @@ export function App(): JSX.Element {
 
   const debugOn = isDebugEnabled();
 
+  // Purchase recovery (docs/DEPLOYMENT.md §purchases): claim any Stripe return /
+  // interrupted checkout exactly once on boot, then surface the outcome. Sandbox
+  // builds and sessions with nothing pending resolve to 'none' with zero network.
+  const [purchaseNote, setPurchaseNote] = useState<string | null>(null);
+  useEffect(() => {
+    void resumePendingClaims().then((o) => {
+      if (o.kind === 'delivered') setPurchaseNote(`✷ Purchase delivered — ${o.receipt.offer.name}. Open the Premium Store to view it.`);
+      else if (o.kind === 'cancelled') setPurchaseNote('Checkout cancelled — nothing was charged.');
+      else if (o.kind === 'pending' && meta.get().premium.pendingCheckout) {
+        setPurchaseNote('◌ A purchase is still processing — it will be delivered automatically.');
+      }
+    });
+  }, []);
+
   // Menu soundtrack (audio/music.ts): the Hive theme plays across the whole Command Center.
   // Autoplay policy: the FIRST start is armed on the first pointer gesture; category switches
   // afterwards are immediate. GameView drives combat/boss/victory/defeat itself.
@@ -262,6 +279,12 @@ export function App(): JSX.Element {
 
   return (
     <div className="app">
+      {screen === 'menu' && purchaseNote && (
+        <div className="purchase-note" role="status">
+          <span>{purchaseNote}</span>
+          <button className="purchase-note-x" onClick={() => setPurchaseNote(null)} aria-label="Dismiss">✕</button>
+        </div>
+      )}
       {screen === 'menu' && (
         <Hub
           onStart={startRun}
@@ -315,7 +338,7 @@ export function App(): JSX.Element {
       {screen === 'results' && !heroSlotUnlock && evoUnlock && (
         <EvolutionUnlock unlock={evoUnlock} onClose={() => setEvoUnlock(null)} />
       )}
-      {debugOn && <DebugPanel />}
+      {debugOn && <Suspense fallback={null}><DebugPanel /></Suspense>}
       {/* Off-menu, run-end milestones are shown inline on Results — suppress the floating toast so
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
       <AchievementToaster suppressed={screen !== 'menu'} />
