@@ -440,22 +440,86 @@ const DRAWERS: Record<BodyForm, (ctx: Ctx, x: number, y: number, r: number, c: s
   grub, dart, beetle, crab, polyp, mole, moth, broodsac, frond, bulb, mortar, maw,
 };
 
-/** Draw a procedural creature body of `form` at (x,y), radius `r`, in `color`. Applies LOCOMOTION
- *  (a lateral bank + a walking bob, from the renderer's motion tracker) and the spawn-EMERGE scale.
- *  Cosmetic + LOD-gated. Still enemies (no velocity, fully born) take a transform-free fast path. */
+// ── SPAWN INTROS (docs/ENEMIES.md §8.2) — each archetype BIRTHS with its own animation: a mode-
+//    specific entrance transform + a birth VFX, driven by the emerge progress p∈[0,1]. Distinct per
+//    archetype so a spawn reads as a crafted moment, not a uniform scale-in. ─────────────────────────
+type SpawnMode = 'hatch' | 'erupt' | 'bloom' | 'assemble' | 'phase' | 'ignite';
+const SPAWN_MODE: Record<BodyForm, SpawnMode> = {
+  grub: 'hatch', dart: 'phase', beetle: 'assemble', crab: 'assemble', polyp: 'bloom', mole: 'erupt',
+  moth: 'phase', broodsac: 'bloom', frond: 'bloom', bulb: 'ignite', mortar: 'assemble', maw: 'erupt',
+};
+/** easeOutBack — a slight overshoot so births POP into place instead of easing in limply. */
+function back(p: number): number { const k = p - 1; return 1 + 2.70158 * k * k * k + 1.70158 * k * k; }
+
+function drawSpawnIntro(ctx: Ctx, form: BodyForm, x: number, y: number, r: number, c: string, t: number, p: number, o: BodyOpts): void {
+  const rgb = shade(c, 0); // "r,g,b" for the translucent birth VFX
+  const fade = 1 - p; // the birth VFX fades as the body settles
+  ctx.save();
+  ctx.translate(x, y);
+  switch (SPAWN_MODE[form]) {
+    case 'hatch': { // grub — a spore shell cracks open and the larva squirms out
+      const gap = p * r * 0.7;
+      ctx.strokeStyle = `rgba(${shade(c, -0.35)},${fade})`; ctx.lineWidth = Math.max(1.5, r * 0.16);
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * gap, 0, r * 0.95, s > 0 ? -Math.PI * 0.5 : Math.PI * 0.5, s > 0 ? Math.PI * 0.5 : Math.PI * 1.5); ctx.stroke(); }
+      ctx.scale(back(p), back(p));
+      break;
+    }
+    case 'erupt': { // mole/maw — bursts UP out of the ground through a mound of debris
+      ctx.fillStyle = `rgba(${shade(c, -0.5)},${fade * 0.8})`;
+      for (let i = 0; i < 7; i++) { const a = Math.PI + (i / 6) * Math.PI; const d = r * (0.6 + p * 1.1); ctx.beginPath(); ctx.arc(Math.cos(a) * d, r * 0.7 + Math.sin(a) * d * 0.4, r * 0.16 * fade + 1, 0, Math.PI * 2); ctx.fill(); }
+      ctx.translate(0, (1 - p) * r * 0.9); // rise from below the surface
+      ctx.scale(1, p); // stretch up out of the ground
+      break;
+    }
+    case 'bloom': { // polyp/broodsac/frond — inflates from a point inside an expanding soft ring
+      ctx.strokeStyle = `rgba(${rgb},${fade * 0.6})`; ctx.lineWidth = Math.max(1.5, r * 0.14);
+      ctx.beginPath(); ctx.arc(0, 0, r * (0.4 + p * 1.3), 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = `rgba(${shade(c, 0.5)},${fade * 0.5})`; ctx.beginPath(); ctx.arc(0, 0, r * 0.5 * fade, 0, Math.PI * 2); ctx.fill();
+      ctx.scale(back(p), back(p));
+      break;
+    }
+    case 'assemble': { // beetle/crab/mortar — carapace PLATES snap inward and lock together
+      ctx.strokeStyle = `rgba(${shade(c, 0.2)},${fade})`; ctx.lineWidth = Math.max(1.5, r * 0.12);
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; const d = r * (1 + fade * 1.4); ctx.beginPath(); ctx.moveTo(Math.cos(a) * d, Math.sin(a) * d); ctx.lineTo(Math.cos(a) * (d - r * 0.4), Math.sin(a) * (d - r * 0.4)); ctx.stroke(); }
+      ctx.scale(p, p);
+      break;
+    }
+    case 'phase': { // dart/moth — drops in from above through a phase-ripple + motion streaks
+      ctx.strokeStyle = `rgba(${shade(c, 0.4)},${fade * 0.7})`; ctx.lineWidth = Math.max(1, r * 0.1);
+      for (const sx of [-0.4, 0, 0.4]) { ctx.beginPath(); ctx.moveTo(sx * r, -(1 - p) * r * 2 - r); ctx.lineTo(sx * r, -(1 - p) * r * 2 - r * 2.2); ctx.stroke(); }
+      ctx.strokeStyle = `rgba(${rgb},${fade * 0.6})`; ctx.beginPath(); ctx.ellipse(0, 0, r * (1 + p * 0.6), r * 0.3 * fade + 1, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.translate(0, -(1 - p) * r * 1.5); ctx.scale(0.7 + 0.3 * p, 0.7 + 0.3 * p);
+      break;
+    }
+    case 'ignite': { // bulb — swells as its volatile core IGNITES in a bright flash of sparks
+      const fl = Math.sin(Math.min(1, p * 1.4) * Math.PI); // flash peaks mid-birth
+      ctx.fillStyle = `rgba(255,210,120,${fl * 0.7})`; ctx.beginPath(); ctx.arc(0, 0, r * (0.6 + p), 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = `rgba(255,200,90,${fl * 0.8})`; ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2 + p * 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5); ctx.lineTo(Math.cos(a) * r * (1 + p * 0.6), Math.sin(a) * r * (1 + p * 0.6)); ctx.stroke(); }
+      ctx.scale(back(p), back(p));
+      break;
+    }
+  }
+  DRAWERS[form](ctx, 0, 0, r, c, t, o);
+  ctx.restore();
+}
+
+/** Draw a procedural creature body of `form` at (x,y), radius `r`, in `color`. A spawning enemy
+ *  (emerge<1) plays its archetype's BIRTH intro; otherwise it applies LOCOMOTION (bank + walking
+ *  bob, from the renderer's motion tracker). Cosmetic + LOD-gated; still enemies take a fast path. */
 export function drawEnemyBody(
   ctx: Ctx, form: BodyForm, x: number, y: number, r: number, color: string, t: number, o: BodyOpts,
 ): void {
-  const vx = o.vx ?? 0, vy = o.vy ?? 0;
   const emerge = o.emerge ?? 1;
+  if (emerge < 1) { drawSpawnIntro(ctx, form, x, y, r, color, t, Math.max(0, emerge), o); return; } // BIRTH
+  const vx = o.vx ?? 0, vy = o.vy ?? 0;
   const moving = Math.min(1, Math.hypot(vx, vy) / 2.2); // px/frame reference (rAF-steady)
   const bank = Math.max(-0.38, Math.min(0.38, vx * 0.09)); // lean into lateral travel
   const bob = moving > 0.03 ? Math.sin(t * 9 + o.phase) * r * 0.05 * moving : 0;
-  if (bank === 0 && bob === 0 && emerge === 1) { DRAWERS[form](ctx, x, y, r, color, t, o); return; } // fast path
+  if (bank === 0 && bob === 0) { DRAWERS[form](ctx, x, y, r, color, t, o); return; } // fast path
   ctx.save();
   ctx.translate(x, y + bob);
   if (bank) ctx.rotate(bank);
-  if (emerge !== 1) ctx.scale(emerge, emerge); // spawn EMERGE reads as a scale-in (alpha would fight the forms' own globalAlpha)
   DRAWERS[form](ctx, 0, 0, r, color, t, o);
   ctx.restore();
 }

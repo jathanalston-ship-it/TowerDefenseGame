@@ -29,6 +29,7 @@ import type { TowerFiring, EnemyKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, TOWER_SHAPE, hexRgb, rgba } from './theme';
 import { drawEnemyBody } from './enemyForms';
 import type { BodyForm } from './enemyForms';
+import { ingestDeaths, updateGore, drawGoreFloor, drawGorePieces, goreThrob } from './gore';
 import {
   chevronDown,
   drawShape,
@@ -146,8 +147,18 @@ export function drawGame(
     drawShape(ctx, 'circle', m.x, m.y - 1, 1.6 * grow, 'rgba(255,255,255,0.5)');
     if (m.arm <= 0) ring(ctx, m.x, m.y, 13 * puls, rgba(c, 0.28), 1, [3, 4]);
   }
+  // ASSIMILATION gore (render/gore.ts): ingest this frame's deaths + advance the pieces, then lay the
+  // settled viscera/juice DECALS on the floor (under towers + bodies). Flying pieces draw over, below.
+  ingestDeaths(rs);
+  updateGore(t);
+  drawGoreFloor(ctx);
   drawOverchargeLinks(ctx, rs);
-  for (const tw of rs.towers) drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
+  for (const tw of rs.towers) {
+    const fed = goreThrob(`t${tw.id}`); // XP shards just coalesced in ⇒ a satisfying feed-throb
+    if (fed > 0.01) { ctx.save(); ctx.translate(tw.x, tw.y); const s = 1 + fed * 0.13; ctx.scale(s, s); ctx.translate(-tw.x, -tw.y); }
+    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
+    if (fed > 0.01) ctx.restore();
+  }
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
@@ -159,6 +170,7 @@ export function drawGame(
   updateEnemyMotion(rs.enemies, t); // per-id velocity + spawn age + death reaping (presentation only)
   if (detail) drawDeathEchoes(ctx, t); // fading crumples UNDER the living bodies
   for (const e of rs.enemies) drawEnemy(ctx, e, detail, t);
+  drawGorePieces(ctx); // gibs + juice + coalescing streams, OVER the bodies
 
   // MEGA weak-point organs + raid-fire tracers — over enemies (they are the priority targets).
   if (rs.megaBoss) {
@@ -1122,7 +1134,7 @@ const enemyMotion = new Map<number, EnemyMotion>();
 interface DeathEcho { form: BodyForm; x: number; y: number; r: number; color: string; seed: number; phase: number; t0: number }
 const deathEchoes: DeathEcho[] = [];
 let motionFrame = 0;
-const EMERGE_T = 0.34; // seconds to fully emerge from the spawn membrane
+const EMERGE_T = 0.55; // seconds for the archetype BIRTH intro (enemyForms drawSpawnIntro) to play out
 const ECHO_T = 0.3; // seconds a death crumple lingers
 
 /** Refresh the tracker from this frame's live enemies; reap the vanished into death echoes. */
@@ -1462,7 +1474,13 @@ const MINION_LOW_RGB = hexRgb('#ff5d73');
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle' } as const;
 
 function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0): void {
-  for (let i = 0; i < rs.heroes.length; i++) drawHero(ctx, rs, rs.heroes[i], i === 0, cosmeticTiers[rs.heroes[i].kind] ?? 0, heroStarTiers[rs.heroes[i].kind] ?? 0, heroEvo);
+  for (let i = 0; i < rs.heroes.length; i++) {
+    const h = rs.heroes[i];
+    const fed = goreThrob(`h${h.kind}`); // XP shards just coalesced in ⇒ a feed-throb
+    if (fed > 0.01) { ctx.save(); ctx.translate(h.x, h.y); const s = 1 + fed * 0.11; ctx.scale(s, s); ctx.translate(-h.x, -h.y); }
+    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo);
+    if (fed > 0.01) ctx.restore();
+  }
 }
 
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0): void {

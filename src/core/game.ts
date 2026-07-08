@@ -300,6 +300,21 @@ export interface RenderState {
   megaBoss: MegaBossView | null;
   megaShots: MegaShot[]; // raid-fire tracers (tower/hero → weak point / body); empty otherwise
   mines: SporeMine[]; // Blight Sower spore mines (docs/SOWER.md); empty on every other run
+  deathEvents: DeathEvent[]; // one-shot ENEMY-DEATH descriptors for the assimilation VFX (render/gore.ts)
+}
+
+/** A single enemy death, surfaced for the ASSIMILATION gore system (render/gore.ts) — the renderer
+ *  seq-ingests these to explode gibs + route coalescing chunks. Presentation-only: the buffer never
+ *  affects wave/kills/integrity/biomass, so the golden sim is unperturbed. */
+export interface DeathEvent {
+  seq: number; // monotonic id — the renderer ingests each event exactly once (decoupled from draw rate)
+  x: number;
+  y: number;
+  color: string; // the enemy's body colour (viscera tint)
+  overkill: number; // 0..~1.5 — how far past 0 the killing blow drove hp ⇒ burst strength
+  bounty: number; // base biomass value ⇒ the relative-scale reference for piece counts
+  killerKind: TowerKind | null; // credited tower kind (nearest instance = the visual XP target); null ⇒ hero/other
+  flying: boolean;
 }
 
 /** An instant raid-fire tracer (tower/hero → weak point / body chip). Presentation-only. */
@@ -422,6 +437,8 @@ export class Game {
   pools: Pool[] = [];
   floats: FloatingText[] = [];
   particles: Particle[] = [];
+  deathEvents: DeathEvent[] = []; // presentation-only ENEMY-DEATH buffer for the assimilation gore VFX
+  private deathSeq = 0; // monotonic id for one-shot render ingest
   minions: Minion[] = []; // summoned friendly units (empty on the golden path → byte-identical)
   enemyShells: EnemyShell[] = []; // artillery shells in flight (empty on the golden path)
   /** Danger-camera state machine (docs/CAMERA.md) — RENDER-ONLY; no sim system reads it. */
@@ -5294,10 +5311,21 @@ export class Game {
         this.biomass += gain;
         this.statBiomassEarned += gain;
         this.armorBreakUntil.delete(e.id);
-        this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
-        this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
+        if (e.boss) {
+          this.spawnParticles(e.x, e.y, PARTICLE.death, ENEMY_DEFS[e.kind].color);
+          this.spawnMotes(e.x, e.y); // biomass income "flies" up off the kill
+        } else {
+          // ASSIMILATION VFX (render/gore.ts): the renderer explodes gibs + routes coalescing chunks
+          // to the biomass HUD / the killing tower-hero / the container meter. Metadata only — a
+          // one-shot descriptor the renderer seq-ingests; the pinned outputs are untouched.
+          const dd = ENEMY_DEFS[e.kind];
+          this.deathEvents.push({ seq: this.deathSeq++, x: e.x, y: e.y, color: dd.color,
+            overkill: Math.min(1.5, -e.hp / Math.max(1, e.maxHp)), bounty: e.bounty,
+            killerKind: e.lastHitKind, flying: dd.behavior.flying === true });
+          if (this.deathEvents.length > 160) this.deathEvents.splice(0, this.deathEvents.length - 160);
+        }
         this.pushSfx('kill'); // the rising kill-streak reward ping
-        if (!e.boss) this.pushSfx(enemyDeathCue(ENEMY_DEFS[e.kind])); // + a body-specific death IMPACT timbre
+        if (!e.boss) { this.pushSfx(enemyDeathCue(ENEMY_DEFS[e.kind])); this.pushSfx('assimilate'); } // body-impact + a soft absorb shimmer
         if (e.boss) {
           this.bossDeathSpectacle(e); // a boss death is an event, not a pop
           this.runBossKills++; // RunStats.bossKills — Boss Rush rewards + lifetime ledgers key off it
@@ -6173,6 +6201,7 @@ export class Game {
       megaBoss: this.megaBossView(),
       megaShots: this.megaShots,
       mines: this.mines,
+      deathEvents: this.deathEvents,
     };
   }
 

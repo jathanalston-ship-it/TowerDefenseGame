@@ -102,6 +102,9 @@ function sEdCrack(i: number): void { noise(0.05, 0.12 - i * 0.014, 3200 - i * 25
 function sEdScreech(i: number): void { tone(1150 - i * 90, 0.13, 'sawtooth', 0.06, 300); noise(0.09, 0.045, 3800 - i * 300, 1600); } // airy screech — flying
 function sEdPop(i: number): void { noise(0.08, 0.12 - i * 0.015, 1500 - i * 120, 380); tone(280 - i * 20, 0.06, 'triangle', 0.06, 90); } // wet burst — suicide
 function sEdSplat(i: number): void { noise(0.15, 0.11 - i * 0.012, 680 - i * 60, 200); tone(130 - i * 8, 0.13, 'sine', 0.06, 65); } // deep splat — heavy bruisers
+// A soft, addictive ABSORB shimmer as gibs coalesce into the meters (render/gore.ts). Very quiet, a
+// gentle rising sine — it reads as "the kill is being assimilated." `i` staggers stacked deaths.
+function sAssimilate(i: number): void { tone(540 + i * 70, 0.1, 'sine', 0.032, 960 + i * 90); }
 // ── Hive Siege voices (docs/HIVE-SIEGE.md §audio) ──
 function sHiveHit(): void { tone(72, 0.14, 'sine', 0.16, 48); noise(0.07, 0.07, 420, 90); } // a wet chitin THUD — one per landed bite (capped per tick)
 function sHiveGroan(): void { // the organism groans as a damage state fails (75/50/25/10%)
@@ -274,6 +277,7 @@ export const audio = {
         case 'edie_screech': for (let i = 0; i < Math.min(3, n); i++) sEdScreech(i); break;
         case 'edie_pop': for (let i = 0; i < Math.min(4, n); i++) sEdPop(i); break;
         case 'edie_splat': for (let i = 0; i < Math.min(3, n); i++) sEdSplat(i); break;
+        case 'assimilate': for (let i = 0; i < Math.min(3, n); i++) sAssimilate(i); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;
         case 'breach': sBreach(); break;
         case 'hiveHit': for (let i = 0; i < Math.min(2, n); i++) sHiveHit(); break;

@@ -308,8 +308,8 @@ per-enemy gradients (shading is memoized by colour).
 **Lifecycle animation** (`renderer.ts` — a presentation-only per-id **motion tracker**, like `heroTrail`,
 never read by the sim): the tracker derives each enemy's smoothed screen **velocity** + **spawn age**,
 so bodies **bank + walking-bob** as they move (idle wing-flap / leg-wiggle / core-pulse always run),
-**emerge** with a scale-in when they spawn, and leave a **crumple echo** (splay + squash-flat + fade)
-where they die. Grounded units get a contact **shadow** (fliers already had one); a per-instance size
+play their archetype's **BIRTH intro** (§8.2) when they spawn, and leave a **crumple echo** (splay +
+squash-flat + fade) where they die. Grounded units get a contact **shadow** (fliers already had one); a per-instance size
 jitter keeps a swarm from looking stamped. All render-side ⇒ golden-safe (the crumple is capped at 48
 and fades in 0.3 s; a >200 px id jump re-emerges rather than banking, so a new run never cross-contaminates).
 
@@ -318,6 +318,35 @@ timbre — trait-derived into 5 classes (`squelch` soft-bodied · `crack` plated
 flying · `pop` suicide · `splat` heavy bruiser) — UNDER the kept rising kill-streak reward ping. The
 sim pushes the cue on death (and a suicide's `pop` under the Core-breach); throttled per class so a
 swarm-wipe never blows out. Golden-safe: a cue never touches wave/kills/integrity/biomass.
+
+### 8.2 Assimilation — the death is a payoff, the birth is a moment
+
+**Death → ASSIMILATION gore** (`render/gore.ts`, fed by the sim's one-shot `DeathEvent` buffer —
+seq-ingested so each death fires exactly once, decoupled from draw rate). An enemy shatters into
+**colour-CODED pieces routed to organized destinations**, so the payoff of a kill is legible, not a mess:
+
+| Piece | Colour | Goes to | Count scales with |
+|---|---|---|---|
+| **Viscera gibs** | body colour (dark) | burst out, gravity, **settle as fading floor decals** ("stay in place") | overkill |
+| **Juice spray** | body colour (light, translucent) | **OCCASIONAL** bio-juice droplets (chance ∝ overkill) that arc + splat | overkill |
+| **Biomass motes** | biomass green | coalesce **up into the biomass HUD readout** | relative bounty |
+| **XP shards** | the killer's colour | **home into the killing tower/hero and THROB it** (a feed-pulse scale) | relative bounty |
+| **Assim chunks** | container violet | coalesce **toward the bio-container meter** | relative bounty |
+
+Explosion strength scales with **overkill** (`-hp/maxHp` at the killing blow) and piece counts with the
+enemy's **relative value** (`bounty / GORE_REF`), so a fat elite showers where chaff pops. Coalescers
+fly as short-trailed comets, shrink as they're absorbed, and **snap** into the target (bumping the
+tower/hero throb the renderer reads via `goreThrob`). A soft **`assimilate`** shimmer plays under the
+death timbre. Cosmetic + render-only (never read by the sim ⇒ golden-safe), pooled + capped (≤520
+pieces / ≤130 decals). The biomass/container HUD readouts already pulse on gain, completing the loop
+without DOM coupling.
+
+**Spawn → BIRTH intro** (`enemyForms.ts` `drawSpawnIntro`): each archetype is *born* with its own
+animation over ~0.55 s (a mode + a birth VFX), not a uniform scale-in — **hatch** (grub cracks from a
+spore shell), **erupt** (mole/maw burst up through a debris mound), **bloom** (polyp/broodsac/frond
+inflate inside an expanding ring), **assemble** (beetle/crab/mortar carapace plates snap inward),
+**phase** (dart/moth drop in from above through a ripple + motion streaks), **ignite** (bulb swells as
+its core flashes alight). Driven by the motion tracker's spawn age; render-side ⇒ golden-safe.
 
 ## 9. Artillery shells — bombardment is visible and lands on impact
 
