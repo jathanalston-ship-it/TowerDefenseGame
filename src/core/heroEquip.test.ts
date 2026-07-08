@@ -5,6 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { HERO_DEFS, HERO_ORDER } from './config';
+import { loadoutEffects, rollItem, itemDef } from './equipment';
+import { Rng } from './rng';
 import type { MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = {
@@ -38,5 +40,56 @@ describe('per-hero equipment application', () => {
       expect(omitted.heroes[i].maxHp).toBe(HERO_DEFS[HERO_ORDER[i]].maxHp);
       expect(empty.heroes[i].maxHp).toBe(HERO_DEFS[HERO_ORDER[i]].maxHp);
     }
+  });
+});
+
+// The battlefield half of equipment: item bases AND SET BONUSES that are tower/economy-scoped must
+// reach the shared run mods the towers/economy read — a hero's gear is NOT purely self-buffing. This
+// is what makes SET bonuses work at all (every SETS bonus is a tower/economy field), and it must hold
+// with a full multi-hero roster (each geared hero contributes; the sim matches the Power product).
+describe('equipment scope — global gear + set bonuses reach the board (multi-hero)', () => {
+  const [h1, h2] = HERO_ORDER;
+
+  it('a hero’s GLOBAL-scoped gear folds into the shared mods the towers/economy read', () => {
+    const g = new Game(1, NO_META, undefined, h1, undefined, {
+      heroEquip: { [h1]: [
+        { op: 'add', field: 'needleExtraProjectiles', value: 2 }, // tower field (towers read this.mods)
+        { op: 'mul', field: 'reactorBiomassMult', value: 1.5 },   // economy field
+      ] },
+    });
+    expect(g.mods.needleExtraProjectiles).toBe(2); // reaches the battlefield — no longer dead
+    expect(g.mods.reactorBiomassMult).toBeCloseTo(1.5);
+  });
+
+  it('a SET bonus (2× Apex → +fractureBonusStacks) reaches the board via loadoutEffects → heroEquip', () => {
+    const rng = (() => { const r = new Rng(7); return () => r.next(); })();
+    const weapon = rollItem(rng, itemDef('w_quill')!, 'common'); // set 'apex'
+    const armor = rollItem(rng, itemDef('a_chitin')!, 'common'); // set 'apex' → 2 pieces = bonus2
+    const eff = loadoutEffects([weapon, armor], { weapon: weapon.uid, armor: armor.uid, relic: null });
+    const base = new Game(1, NO_META, undefined, h1);
+    const geared = new Game(1, NO_META, undefined, h1, undefined, { heroEquip: { [h1]: eff } });
+    // the apex 2-piece bonus (+1 fractureBonusStacks, a global field) now lands on the shared board
+    expect(geared.mods.fractureBonusStacks).toBe(base.mods.fractureBonusStacks + 1);
+  });
+
+  it('global gear STACKS across the fielded roster (each geared hero contributes to the board)', () => {
+    const g = new Game(1, NO_META, undefined, h1, undefined, {
+      heroRoster: [h1, h2],
+      heroEquip: {
+        [h1]: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }],
+        [h2]: [{ op: 'add', field: 'needleExtraProjectiles', value: 1 }],
+      },
+    });
+    expect(g.mods.needleExtraProjectiles).toBe(2); // both heroes' tower gear stacks (matches the Power product)
+  });
+
+  it('HERO-scoped gear stays private — applied to that hero, never the shared board', () => {
+    const g = new Game(1, NO_META, undefined, h1, undefined, {
+      heroRoster: [h1, h2],
+      heroEquip: { [h1]: [{ op: 'mul', field: 'heroMaxHpMult', value: 2 }] },
+    });
+    expect(g.heroes[0].maxHp).toBeCloseTo(HERO_DEFS[h1].maxHp * 2); // h1 gets it
+    expect(g.heroes[1].maxHp).toBeCloseTo(HERO_DEFS[h2].maxHp);     // h2 untouched
+    expect(g.mods.heroMaxHpMult).toBe(1); // …and it never leaks into the shared/global bucket
   });
 });

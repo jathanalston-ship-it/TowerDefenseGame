@@ -156,6 +156,17 @@ function applyRunEffect(mods: RunModifiers, e: CardEffect): void {
   else if (e.op === 'flag') mods[e.field] = true;
   else if (e.op === 'set') mods[e.field] = e.value;
 }
+
+/** RunModifier fields the sim reads PER-HERO (via the hmods(h) accessors / heroMaxHpFor). A hero's
+ *  equipment effect on one of these folds into THAT hero's private bundle; EVERY other field is
+ *  battlefield-GLOBAL (towers, economy, and the hero AURA read this.mods — note the hero-prefixed
+ *  aura fields are global, not per-hero) and folds into the shared bucket so a hero's gear — item
+ *  bases AND set bonuses — reaches the board. Keep in sync with the hmods(h) read sites below. */
+const HERO_SCOPED_FIELDS: ReadonlySet<keyof RunModifiers> = new Set<keyof RunModifiers>([
+  'heroDamageMult', 'heroSpeedMult', 'heroAttackSpeedMult', 'heroCooldownMult', 'heroAbilityRadiusMult',
+  'heroHealingMult', 'heroCritChance', 'heroCritDamageBonus', 'heroAnchor', 'heroAggroRangeMult',
+  'heroRetreatThreshold', 'heroLifestealFrac', 'heroThornsFrac', 'heroArmor', 'heroMaxHpMult',
+]);
 import type {
   CombatClass,
   Enemy,
@@ -676,6 +687,10 @@ export class Game {
         this.mods.heroTowerDamageAura += id.passive.amount;
       }
     }
+    // Equipment folds HERE — before integrity/biomass (below) and heroes (makeHero) consume the mods.
+    // Pass 1 puts each fielded hero's GLOBAL gear (tower/economy fields + SET bonuses) into this.mods
+    // so the board sees it; pass 2 builds each hero's private bundle. Gear-less roster ⇒ no-op (golden).
+    this.foldHeroEquip(roster, opts.heroEquip);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
     // Permanent tower slots: initial allotment + Hive Emplacements upgrades (meta.bonusSlots),
@@ -686,7 +701,6 @@ export class Game {
     // 0 for every other mode and from stage ~5 on, so nothing else moves.
     this.biomass = ECON.startingBiomass + this.mods.startBiomassBonus + (this.stage?.startBiomassBonus ?? 0)
       + (this.mode === 'bossRush' ? RUSH.openingBiomass : 0); // the gauntlet fortifies before wave 1's boss duel (docs/BOSS-RUSH.md)
-    this.foldHeroEquip(roster, opts.heroEquip); // build per-hero gear mods BEFORE heroes (makeHero reads them)
     this.heroes = roster.map((k) => this.makeHero(k));
     // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts): equipped cards auto-activate NOW,
     //    through the exact same path as a mid-run draft (applyCard + live verb collection + the run's
@@ -712,20 +726,38 @@ export class Game {
    *  (opts.heroEquip omitted / empty) ⇒ the golden run is byte-identical. */
   private foldHeroEquip(roster: HeroKind[], heroEquip?: Partial<Record<HeroKind, CardEffect[]>>): void {
     if (!heroEquip) return;
+    // Pass 1 — GLOBAL-scoped gear (tower/economy fields, the hero AURA, and ALL SET bonuses) folds
+    // into the shared this.mods so it reaches the battlefield systems: towers/economy/auras read
+    // this.mods, never a per-hero bundle. Each fielded hero contributes, so gear STACKS across the
+    // roster (a fuller geared roster = a stronger board — the same product the Power model counts in
+    // equipmentPower). Tower projectile-mutator grants + relic hooks are battlefield-global too.
+    for (const k of roster) {
+      const effects = heroEquip[k];
+      if (!effects) continue;
+      for (const e of effects) {
+        if (e.op === 'grant') {
+          if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id);
+        } else if (e.op === 'hook') {
+          this.relicHooks.push(e.hook);
+        } else if ((e.op === 'mul' || e.op === 'add' || e.op === 'flag' || e.op === 'set') && !HERO_SCOPED_FIELDS.has(e.field)) {
+          applyRunEffect(this.mods, e);
+        }
+      }
+    }
+    // Pass 2 — HERO-scoped gear folds into each hero's PRIVATE bundle (cloned AFTER pass 1 so every
+    // hero also inherits the shared/global gear), plus its on-hit attack verbs (kit/statuses). Read
+    // via hmods(h)/hkit(h) — so a hero's stat gear affects only that hero, never another's loadout.
     for (const k of roster) {
       const effects = heroEquip[k];
       if (!effects || effects.length === 0) continue;
-      const hm: RunModifiers = { ...this.mods }; // start from the global (meta × doctrine × collection)
+      const hm: RunModifiers = { ...this.mods };
       const kit = [...this.heroAttackKit];
       const statuses = [...this.heroAttackStatuses];
       for (const e of effects) {
         if (e.op === 'grant') {
-          if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id); // battlefield-global
-          else if (e.grant.kind === 'heroAttackStatus') statuses.push({ status: e.grant.status, amount: e.grant.amount });
+          if (e.grant.kind === 'heroAttackStatus') statuses.push({ status: e.grant.status, amount: e.grant.amount });
           else if (e.grant.kind === 'heroAttackAbility') kit.push(e.grant.component);
-        } else if (e.op === 'hook') {
-          this.relicHooks.push(e.hook); // relic rules are battlefield-global
-        } else {
+        } else if ((e.op === 'mul' || e.op === 'add' || e.op === 'flag' || e.op === 'set') && HERO_SCOPED_FIELDS.has(e.field)) {
           applyRunEffect(hm, e);
         }
       }

@@ -405,13 +405,17 @@ per-hero; equipment now joins them.
 migration (`sanitizeLoadouts`) moves the legacy single loadout onto the slot-1 hero and resolves hero
 aliases. Reset-Equipment clears all `loadouts` together (no orphan uid).
 
-**Run application (the seam).** Each hero's gear folds into a *per-hero* modifier bundle at run
-construction — `game.foldHeroEquip(roster, opts.heroEquip)` builds `heroHmods[kind]` (a clone of the
-global `mods` + that hero's gear), `heroKits[kind]` (on-hit ability verbs), and `heroStatuses[kind]`
-(on-hit statuses). Every hero-method stat read goes through `hmods(h)` / `hkit(h)` / `hstatuses(h)`,
-which fall back to the global `this.mods` when a hero has no gear — so a gear-less roster is
-byte-identical (golden-safe). Battlefield-GLOBAL grants (tower projectile mutators, relic hooks) stay
-global; only hero-scoped stats/verbs are per-hero.
+**Run application (the seam).** `game.foldHeroEquip(roster, opts.heroEquip)` folds each fielded hero's
+gear in TWO passes, split by SCOPE. **Pass 1 — battlefield-GLOBAL:** stat fields the towers/economy/
+aura read from the shared `this.mods` (everything NOT in `HERO_SCOPED_FIELDS` — and therefore ALL
+**set bonuses**, which are tower/economy effects), plus tower projectile-mutator grants and relic
+hooks, fold into `this.mods` so they actually reach the board; every geared hero contributes, so gear
+**stacks across the roster** (the same product `equipmentPower` scores). **Pass 2 — hero-scoped:** the
+`HERO_SCOPED_FIELDS` stats (damage/speed/crit/armor/lifesteal/… read via `hmods(h)`) and on-hit
+ability/status verbs fold into that hero's private `heroHmods[kind]`/`heroKits[kind]`/`heroStatuses[kind]`
+(cloned AFTER pass 1, so a hero also inherits the shared gear). Reads fall back to `this.mods` for a
+gearless hero, so a gear-less roster is byte-identical (golden-safe). Folded BEFORE integrity/biomass
+so boot-only survivability/economy gear (`integrityMult`, `startBiomassBonus`) lands too.
 
 **Systems modified (this feature):**
 - `core/equipment.ts` — `EQUIP_SLOTS`, `emptyLoadout()` (shared slot list + empty-loadout helper).
