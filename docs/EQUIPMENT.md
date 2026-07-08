@@ -337,11 +337,13 @@ choice). Relics are **not** part of sets.
 
 **16 sets ship today**, each ENABLING a distinct build (one per class/playstyle lever). Bonuses are
 plain `CardEffect[]` folded through the run like any card, and read **only Power-weighted run fields**
-(`power.ts` `FIELD_WEIGHT`) so `power-coverage` stays green. **Reachability:** a hero loadout is
-weapon + armor + relic and relics aren't set pieces, so **the 2-piece is the reachable build-definer
-today**; the 4-piece is a forward-compat capstone (mirrors the launch trio, which already ship a
-`bonus4`) for when itemization pools across the 3-hero roster. Each set has **2 weapons + 2 armor**
-wired via `setId`.
+(`power.ts` `FIELD_WEIGHT`) so `power-coverage` stays green. **Reachability:** set pieces pool
+**team-wide across the fielded roster** (`teamSetEffects` / `RunOptions.setEffects`), not per hero — a
+loadout is weapon + armor + relic and relics aren't set pieces (2 pieces/hero), so pooling the 1–3
+fielded heroes reaches up to **6** pieces. So **both the 2-piece AND the 4-piece are reachable**: the
+2pc off a single geared hero, the 4pc by assembling the set across the roster. The team bonus folds
+**once** into the run (never per hero, so it can't double-count), and hero-scoped set fields propagate
+to every fielded hero. Each set has **2 weapons + 2 armor** wired via `setId`.
 
 | Set | Build it enables | 2-piece | 4-piece (capstone) |
 |---|---|---|---|

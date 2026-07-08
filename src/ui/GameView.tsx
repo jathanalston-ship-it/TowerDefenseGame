@@ -82,6 +82,7 @@ export function GameView({
   heroProgress,
   runEffects,
   heroEquip,
+  setEffects,
   mode,
   stage,
   difficulty,
@@ -100,6 +101,7 @@ export function GameView({
   heroProgress: HeroProgress;
   runEffects?: CardEffect[];
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>;
+  setEffects?: CardEffect[]; // TEAM set bonuses pooled across the fielded roster (2pc/4pc)
   mode?: RunMode;
   stage?: StageConfig;
   difficulty?: string;
@@ -113,7 +115,7 @@ export function GameView({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   const game = (gameRef.current ??= new Game(seed, mods, progress, heroKind, heroProgress, {
-    runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip,
+    runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects,
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
     // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.

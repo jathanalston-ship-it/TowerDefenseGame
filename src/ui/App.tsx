@@ -62,6 +62,7 @@ export function App(): JSX.Element {
   const heroProgRef = useRef<HeroProgress>(meta.heroProgress());
   const effectsRef = useRef<CardEffect[]>([]);
   const heroEquipRef = useRef<Partial<Record<HeroKind, CardEffect[]>>>({}); // per-hero gear effects (HEROES.md)
+  const setEffectsRef = useRef<CardEffect[]>([]); // TEAM set bonuses pooled across the fielded roster (2pc/4pc)
   const modeRef = useRef<RunMode>('stage');
   const stageRef = useRef<StageConfig | null>(null); // campaign: the generated stage being played
   const campaignStageRef = useRef(0); // campaign: the stage number (winning it unlocks the next)
@@ -113,6 +114,8 @@ export function App(): JSX.Element {
     // Per-hero equipment folds in per hero (never overwrites another's loadout); Genome Core
     // (run-effect seam) + collection completion bonuses stay battlefield-global run effects.
     heroEquipRef.current = meta.heroRosterEquip();
+    setEffectsRef.current = meta.fieldedSetEffects(); // set pieces pool team-wide → the 4-piece tier can activate
+
     effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects()];
     modeRef.current = mode;
     stageRef.current = stage;
@@ -318,6 +321,7 @@ export function App(): JSX.Element {
           heroProgress={heroProgRef.current}
           runEffects={effectsRef.current}
           heroEquip={heroEquipRef.current}
+          setEffects={setEffectsRef.current}
           mode={modeRef.current}
           stage={stageRef.current ?? undefined}
           difficulty={difficultyRef.current}

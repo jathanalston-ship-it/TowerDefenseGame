@@ -8,6 +8,7 @@ import {
   itemDef,
   itemEffects,
   loadoutEffects,
+  teamSetEffects,
   rerollAffixes,
   rollItem,
   rollItemForPower,
@@ -46,13 +47,33 @@ describe('equipment', () => {
     expect(loadoutEffects([], { weapon: null, armor: null, relic: null })).toEqual([]);
   });
 
-  it('a 2-piece set adds its bonus on top of the items', () => {
+  it('set bonuses are NOT baked into per-loadout item effects (they pool team-wide)', () => {
     const r = mk(4);
-    const a = rollItem(r, itemDef('w_quill')!, 'common'); // set 'apex'
-    const b = rollItem(r, itemDef('a_chitin')!, 'common'); // set 'apex'
+    const a = rollItem(r, itemDef('w_quill')!, 'common'); // apex weapon
+    const b = rollItem(r, itemDef('a_chitin')!, 'common'); // apex armor
     const eff = loadoutEffects([a, b], { weapon: a.uid, armor: b.uid, relic: null });
-    // apex 2-piece grants +1 fracture stack
-    expect(eff.some((e) => e.op === 'add' && e.field === 'fractureBonusStacks')).toBe(true);
+    // The apex 2pc (+1 fracture stack) is NOT here — it's emitted by teamSetEffects instead, folded once.
+    expect(eff.some((e) => e.op === 'add' && e.field === 'fractureBonusStacks')).toBe(false);
+  });
+
+  it('teamSetEffects: 2 pooled pieces → 2pc only; 4 pieces SPLIT across loadouts → 2pc AND the 4pc unlocks', () => {
+    const r = mk(4);
+    const w1 = rollItem(r, itemDef('w_quill')!, 'common');     // apex weapon
+    const a1 = rollItem(r, itemDef('a_chitin')!, 'common');    // apex armor
+    const w2 = rollItem(r, itemDef('w_ricochet')!, 'common');  // apex weapon
+    const a2 = rollItem(r, itemDef('a_spineback')!, 'common'); // apex armor
+    const inv = [w1, a1, w2, a2];
+    const loA = { weapon: w1.uid, armor: a1.uid, relic: null };
+    const loB = { weapon: w2.uid, armor: a2.uid, relic: null };
+    const has = (eff: ReturnType<typeof teamSetEffects>, op: string, field: string) => eff.some((e) => e.op === op && (e as { field?: string }).field === field);
+    // 2 pooled (one loadout): apex 2pc present, 4pc absent.
+    const two = teamSetEffects(inv, [loA]);
+    expect(has(two, 'add', 'fractureBonusStacks')).toBe(true);  // bonus2
+    expect(has(two, 'mul', 'towerFireRateMult')).toBe(false);   // bonus4 not yet
+    // 4 pooled ACROSS two heroes' loadouts — the point of team pooling: BOTH tiers now fire.
+    const four = teamSetEffects(inv, [loA, loB]);
+    expect(has(four, 'add', 'fractureBonusStacks')).toBe(true); // bonus2
+    expect(has(four, 'mul', 'towerFireRateMult')).toBe(true);   // bonus4 UNLOCKED across the roster
   });
 
   it('reroll keeps the affix count; transmute raises rarity + adds an affix', () => {

@@ -67,7 +67,9 @@ export function EquipmentPanel(): JSX.Element {
     if (!lo) continue;
     for (const s of EQUIP_SLOTS) { const u = lo[s]; if (u) ownerOf.set(u, k); }
   }
-  const sets = activeSets(inventory, loadout);
+  // Set bonuses pool TEAM-WIDE across the fielded roster (2pc/4pc), so show the pooled status — that's
+  // what actually activates in a run (a 4-piece can be assembled across heroes). See EQUIPMENT.md §12.
+  const sets = activeSets(inventory, roster.map((k) => save.equipment.loadouts[k] ?? emptyLoadout()));
   const setActiveMap = new Map(sets.map((s) => [s.id, s] as const));
   const focusName = HERO_DEFS[focus]?.name ?? 'Hero';
   const gearScore = loadoutScore(inventory, loadout);

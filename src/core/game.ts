@@ -133,6 +133,7 @@ export interface RunOptions {
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
+  setEffects?: CardEffect[]; // TEAM set bonuses — set pieces pooled across the fielded roster (2pc/4pc), folded ONCE. Empty ⇒ golden-safe
   geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
   favorite?: TowerKind; // the account's FAVORITE tower (docs/STRAIN.md §conveyor) — always deployable; default 'needle'
   unlocked?: TowerKind[]; // the OWNED tower roster this run (docs/TOWERS.md §expansion unlock gate):
@@ -690,7 +691,7 @@ export class Game {
     // Equipment folds HERE — before integrity/biomass (below) and heroes (makeHero) consume the mods.
     // Pass 1 puts each fielded hero's GLOBAL gear (tower/economy fields + SET bonuses) into this.mods
     // so the board sees it; pass 2 builds each hero's private bundle. Gear-less roster ⇒ no-op (golden).
-    this.foldHeroEquip(roster, opts.heroEquip);
+    this.foldHeroEquip(roster, opts.heroEquip, opts.setEffects);
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
     // Permanent tower slots: initial allotment + Hive Emplacements upgrades (meta.bonusSlots),
@@ -724,7 +725,21 @@ export class Game {
    *  hero's gear affects only that hero and never overwrites another's loadout (HEROES.md). Tower
    *  grants (projectile mutators) + relic hooks are battlefield-GLOBAL. No-op for a gear-less roster
    *  (opts.heroEquip omitted / empty) ⇒ the golden run is byte-identical. */
-  private foldHeroEquip(roster: HeroKind[], heroEquip?: Partial<Record<HeroKind, CardEffect[]>>): void {
+  private foldHeroEquip(roster: HeroKind[], heroEquip?: Partial<Record<HeroKind, CardEffect[]>>, setEffects?: CardEffect[]): void {
+    // Team SET bonuses (set pieces pooled across the fielded roster, 2pc/4pc) fold ONCE into the shared
+    // mods — BEFORE the per-hero clones in pass 2 — so tower/economy fields reach the battlefield AND
+    // hero-scoped set fields propagate to EVERY fielded hero via that clone. Empty roster ⇒ golden-safe.
+    if (setEffects) {
+      for (const e of setEffects) {
+        if (e.op === 'grant') {
+          if (e.grant.kind === 'towerProjectileMutator') this.grantedTowerMutators.push(e.grant.id);
+        } else if (e.op === 'hook') {
+          this.relicHooks.push(e.hook);
+        } else if (e.op === 'mul' || e.op === 'add' || e.op === 'flag' || e.op === 'set') {
+          applyRunEffect(this.mods, e);
+        }
+      }
+    }
     if (!heroEquip) return;
     // Pass 1 — GLOBAL-scoped gear (tower/economy fields, the hero AURA, and ALL SET bonuses) folds
     // into the shared this.mods so it reaches the battlefield systems: towers/economy/auras read

@@ -600,24 +600,43 @@ export function itemEffects(item: OwnedItem): CardEffect[] {
   return out;
 }
 
-/** Resolve a full loadout (equipped items + set bonuses) into CardEffects for the run. */
+/** CardEffects from ONE hero's equipped ITEMS (base + signature + affixes). Set bonuses are NOT here —
+ *  they pool TEAM-WIDE across the fielded roster (`teamSetEffects`) so a 4-piece set can be assembled
+ *  across heroes, and fold ONCE into the run (game.foldHeroEquip) so they never double-count. */
 export function loadoutEffects(inventory: OwnedItem[], loadout: Loadout): CardEffect[] {
   const byUid = new Map(inventory.map((i) => [i.uid, i] as const));
-  const equipped: OwnedItem[] = [];
+  const out: CardEffect[] = [];
   for (const slot of ['weapon', 'armor', 'relic'] as EquipSlot[]) {
     const uid = loadout[slot];
     const it = uid ? byUid.get(uid) : undefined;
-    if (it) equipped.push(it);
+    if (it) out.push(...itemEffects(it));
   }
-  const out: CardEffect[] = [];
-  for (const it of equipped) out.push(...itemEffects(it));
-  // Set bonuses — count equipped weapon+armor set pieces (relics aren't part of sets).
+  return out;
+}
+
+/** Pooled set-piece counts across one OR MORE loadouts (weapon+armor only; relics never count). The
+ *  team pool is what unlocks the **4-piece** tier — a set can be assembled across the fielded roster. */
+export function setPieceCounts(inventory: OwnedItem[], loadouts: Loadout[]): Map<string, number> {
+  const byUid = new Map(inventory.map((i) => [i.uid, i] as const));
   const counts = new Map<string, number>();
-  for (const it of equipped) {
-    const def = itemDef(it.defId);
-    if (def && def.slot !== 'relic' && def.setId) counts.set(def.setId, (counts.get(def.setId) ?? 0) + 1);
+  for (const loadout of loadouts) {
+    for (const slot of ['weapon', 'armor'] as EquipSlot[]) {
+      const uid = loadout[slot];
+      const it = uid ? byUid.get(uid) : undefined;
+      if (!it) continue;
+      const def = itemDef(it.defId);
+      if (def && def.setId) counts.set(def.setId, (counts.get(def.setId) ?? 0) + 1);
+    }
   }
-  for (const [setId, n] of counts) {
+  return counts;
+}
+
+/** Team set bonuses: pool set pieces across the given loadouts, then emit each set's 2-piece bonus at
+ *  ≥2 pooled pieces and the 4-piece at ≥4 — ONCE (never per hero). Empty for a gear-less roster ⇒
+ *  golden-safe (the autoplay run fields no equipment). */
+export function teamSetEffects(inventory: OwnedItem[], loadouts: Loadout[]): CardEffect[] {
+  const out: CardEffect[] = [];
+  for (const [setId, n] of setPieceCounts(inventory, loadouts)) {
     const set = SETS[setId];
     if (!set) continue;
     if (n >= 2) out.push(...set.bonus2);
@@ -675,13 +694,10 @@ export interface ActiveSet {
   bonus4: boolean; // 4-piece bonus active
 }
 
-/** Set membership of the equipped weapon+armor (relics aren't set pieces) — for the Sets panel. */
-export function activeSets(inventory: OwnedItem[], loadout: Loadout): ActiveSet[] {
-  const counts = new Map<string, number>();
-  for (const it of equippedItems(inventory, loadout)) {
-    const def = itemDef(it.defId);
-    if (def && def.slot !== 'relic' && def.setId) counts.set(def.setId, (counts.get(def.setId) ?? 0) + 1);
-  }
+/** Set membership + which tiers are active. Pass ONE loadout for a single hero, or the whole fielded
+ *  roster (an array) for the TEAM pool that actually drives 2-piece / 4-piece activation. */
+export function activeSets(inventory: OwnedItem[], loadouts: Loadout | Loadout[]): ActiveSet[] {
+  const counts = setPieceCounts(inventory, Array.isArray(loadouts) ? loadouts : [loadouts]);
   const out: ActiveSet[] = [];
   for (const [id, count] of counts) {
     const set = SETS[id];

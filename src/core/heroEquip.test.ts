@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
 import { HERO_DEFS, HERO_ORDER } from './config';
-import { loadoutEffects, rollItem, itemDef } from './equipment';
+import { teamSetEffects, rollItem, itemDef } from './equipment';
 import { Rng } from './rng';
 import type { MetaModifiers } from './types';
 
@@ -61,14 +61,15 @@ describe('equipment scope — global gear + set bonuses reach the board (multi-h
     expect(g.mods.reactorBiomassMult).toBeCloseTo(1.5);
   });
 
-  it('a SET bonus (2× Apex → +fractureBonusStacks) reaches the board via loadoutEffects → heroEquip', () => {
+  it('a SET bonus (2× Apex → +fractureBonusStacks) reaches the board via the team setEffects channel', () => {
     const rng = (() => { const r = new Rng(7); return () => r.next(); })();
     const weapon = rollItem(rng, itemDef('w_quill')!, 'common'); // set 'apex'
-    const armor = rollItem(rng, itemDef('a_chitin')!, 'common'); // set 'apex' → 2 pieces = bonus2
-    const eff = loadoutEffects([weapon, armor], { weapon: weapon.uid, armor: armor.uid, relic: null });
+    const armor = rollItem(rng, itemDef('a_chitin')!, 'common'); // set 'apex' → 2 pooled pieces = bonus2
+    // Set bonuses no longer ride per-hero loadoutEffects — they pool team-wide and fold once via setEffects.
+    const setEffects = teamSetEffects([weapon, armor], [{ weapon: weapon.uid, armor: armor.uid, relic: null }]);
     const base = new Game(1, NO_META, undefined, h1);
-    const geared = new Game(1, NO_META, undefined, h1, undefined, { heroEquip: { [h1]: eff } });
-    // the apex 2-piece bonus (+1 fractureBonusStacks, a global field) now lands on the shared board
+    const geared = new Game(1, NO_META, undefined, h1, undefined, { setEffects });
+    // the apex 2-piece bonus (+1 fractureBonusStacks, a global field) lands on the shared board
     expect(geared.mods.fractureBonusStacks).toBe(base.mods.fractureBonusStacks + 1);
   });
 

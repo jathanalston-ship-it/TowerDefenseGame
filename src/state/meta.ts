@@ -47,7 +47,7 @@ import { DEVICE_PREF_KEYS } from './prefs';
 import { announcePower } from './powerEvents';
 import { achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower } from '../core/equipment';
+import { CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower, teamSetEffects } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -267,6 +267,9 @@ function equipmentPower(save: SaveData): number {
       if (it) mult *= itemRarityPower(it.rarity, it.affixes.length);
     }
   }
+  // Team SET bonuses (pooled across the FIELDED roster — the sets a run can actually activate, incl.
+  // the 4-piece tier) fold in ONCE, mirroring how the sim applies them (game.foldHeroEquip).
+  mult *= effectsPower(teamSetEffects(inv, fieldedLoadout(save).map((k) => loadoutOf(save, k))));
   return mult;
 }
 
@@ -2058,6 +2061,13 @@ export const meta = {
     const out: Partial<Record<HeroKind, CardEffect[]>> = {};
     for (const kind of fieldedLoadout(save)) out[kind] = loadoutEffects(save.equipment.inventory, loadoutOf(save, kind));
     return out;
+  },
+
+  /** TEAM set bonuses — set pieces POOLED across the fielded roster (2pc at ≥2, 4pc at ≥4), folded
+   *  ONCE into the run (App threads this into RunOptions.setEffects). Empty roster ⇒ golden-safe. */
+  fieldedSetEffects(): CardEffect[] {
+    const save = store.get();
+    return teamSetEffects(save.equipment.inventory, fieldedLoadout(save).map((k) => loadoutOf(save, k)));
   },
 
   // ── Collection (codex + completion rewards) ────────────────────────────────
