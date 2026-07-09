@@ -30,7 +30,7 @@ const rgb = (c: [number, number, number]): string => `rgb(${c[0]},${c[1]},${c[2]
 /** Build a throwaway state at a fixed index (for previewing with no run active). */
 function previewState(index: number): AssimilationState {
   const { tier, progress } = tierAt(index);
-  return { index, target: index, tier: tier.index, tierProgress: progress, override: index };
+  return { index, target: index, tier: tier.index, tierProgress: progress, override: index, peakTier: tier.index, ascensionPulse: 0, ascendedTier: tier.index };
 }
 
 function Bar({ v, color, label, sub }: { v: number; color?: string; label: string; sub?: string }): JSX.Element {
@@ -101,6 +101,18 @@ export function AssimilationDebug(): JSX.Element {
         </div>
       </div>
       <div className="debug-note">{ASSIMILATION_TIERS[pres.tier].blurb}</div>
+      {state.ascensionPulse > 0.001 && (
+        <div className="debug-note" style={{ color: rgb(color) }}>▲ Ascension pulse {state.ascensionPulse.toFixed(2)} → {ASSIMILATION_TIERS[state.ascendedTier]?.name}</div>
+      )}
+
+      {/* Four-pillar overview — the group-normalized fold: each pillar's weighted-mean score, its
+          share of the final index, and its group weight. */}
+      <div style={{ marginTop: 4 }}>
+        <div style={{ fontSize: 10, textTransform: 'uppercase', opacity: 0.6, letterSpacing: 0.5 }}>Pillars (group-normalized)</div>
+        {breakdown.groups.map((g) => (
+          <Bar key={g.group} v={g.score} label={g.group} color={rgb(color)} sub={`${Math.round(g.share * 100)}% · w${g.weight}`} />
+        ))}
+      </div>
 
       {/* Contribution breakdown, grouped */}
       <div style={{ marginTop: 6 }}>

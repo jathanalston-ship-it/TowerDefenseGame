@@ -9,8 +9,9 @@
   veil), `src/ui/AssimilationDebug.tsx` (developer panel). Consumed by `src/ui/GameView.tsx` (the run
   loop) and `src/core/game.ts` (`assimilationSignals()`).
 - **System registry:** `assimilation` (see `docs/DEPENDENCY_GRAPH.md`).
-- **Status:** BUILT — framework + music/camera/screen/HUD channels wired; tower/hero/nucleus/enemy
-  channels are documented extension points (see §Extension).
+- **Status:** BUILT — group-normalized fold with an allocation-free hot path; music/camera/screen/HUD
+  channels wired; the **Ascension Moment** (tier-crossing flourish) is live. Tower/hero/nucleus/enemy
+  channels remain documented extension points (see §Extension).
 
 ---
 
@@ -36,7 +37,7 @@ rule 12). It is never saved; a fresh run starts at `0` (Contained).
 ```
 run state ──assimilationSignals()──▶ AssimilationSignals (flat bag)
                                           │
-                       computeAssimilation │  (weighted fold of ContributionProfiles)
+                 computeAssimilationTarget │  (allocation-free, group-normalized fold — the 8Hz hot path)
                                           ▼
                                    target 0..1  ──stepAssimilation(dt)──▶ AssimilationState.index
                                                                               │
@@ -59,17 +60,29 @@ run state ──assimilationSignals()──▶ AssimilationSignals (flat bag)
 
 ## Calculation
 
-`computeAssimilation(signals)` folds a flat `AssimilationSignals` bag through the
-`ContributionProfile` registry:
+The fold has **two entry points**, one number in common:
+
+- **`computeAssimilationTarget(signals): number`** — the **allocation-free hot path** the run loop
+  calls at ~8 Hz. It iterates the contributor arrays directly and accumulates into **reused scratch
+  scalars** (no arrays, no objects, no per-frame GC). Returns just the target index.
+- **`computeAssimilation(signals): AssimilationBreakdown`** — the cold path (the debug panel). Same
+  `raw`, plus a full per-contributor and **per-pillar** breakdown. Pinned to agree with the hot path.
+
+Both fold the same way:
 
 - Each profile reads one raw signal `≥ 0` and normalizes it with **soft saturation**
   `score = raw / (raw + half)` — smooth, monotonic, asymptotic to `1`, and never a step. `half` is
   the raw value that reads `0.5`.
-- The index is the **weight-normalized mean** of the sub-scores: `Σ(weight·score) / Σweight`, so it
-  is inherently bounded to `[0, 1]` no matter how many contributors are added.
+- **Group-normalized (the four pillars).** Each group — strength / tempo / conquest / battlefield —
+  yields its OWN weighted-mean sub-score, then the four group scores combine by `GROUP_WEIGHTS`:
+  `Σ(groupWeight · groupScore) / Σ groupWeight`. This keeps the pillars **balanced at any content
+  scale** — adding a battlefield contributor rebalances only *within* battlefield and can never swamp
+  conquest (100 towers won't drown the boss-kill signal). Inherently bounded to `[0, 1]`. Strength
+  stays the dominant single pillar because the Power Score is the universal contributor.
 - `stepAssimilation(state, target, dt)` eases the smoothed `index` toward the target — **asymmetric**
   (`ASSIM.riseRate > ASSIM.fallRate`): the organism grows briskly and relaxes slowly, so a combat
-  lull never collapses the mood. It settles exactly at rest and is safe at any `dt`.
+  lull never collapses the mood. It settles exactly at rest and is safe at any `dt`. It also detects
+  **tier crossings** and fires the Ascension pulse (see §Presentation).
 - The view recomputes the **target at ~8 Hz** (it folds run aggregates — event-ish, not per-frame)
   and **smooths every frame**, honoring the "avoid unnecessary per-frame calculation" guidance.
 
@@ -88,10 +101,16 @@ one place (`docs/GAME_CONSTITUTION.md` rule 15):
 | conquest | Total Biomass Reclaimed | 1.0 | biomass earned this run |
 | conquest | Bosses Broken | 1.6 | bosses defeated this run |
 | conquest | Mega Bosses Consumed | 2.0 | Mega Bosses defeated this run |
+| conquest | Weak Points Ruptured | 1.2 | weak points destroyed this run |
 | battlefield | Fielded Organisms | 1.0 | tower count |
 | battlefield | Champions Present | 0.6 | hero count |
 | battlefield | Strain Mutation | 1.0 | Σ (tower strain − 1) |
 | battlefield | Branch Specialization | 0.8 | Σ tower branch tier |
+
+The four pillars combine by **group weight** (`GROUP_WEIGHTS`): strength **3.0**, conquest **2.6**,
+tempo **2.0**, battlefield **2.0**. A row's `Weight` above is its pull *within its own pillar*; the
+pillar's share of the final index is fixed by its group weight, so contributors never inflate a
+pillar by sheer count — the scalability guarantee.
 
 > **The Power Score is the universal contributor.** Per `docs/GAME_CONSTITUTION.md` rule 1, *every*
 > progression system already folds into the Power Score (`docs/POWER-SCORE.md`) — prestige, gene
@@ -132,12 +151,21 @@ construction.
   scale, at `cameraHz` ~ 33→60 bpm) that deepens with the index. Composes under the danger/wave zoom;
   capped so it reads as a pulse, never a zoom (`docs/CAMERA.md`).
 - **Screen FX veil** (`src/render/assimilationFx.ts`, `drawAssimilationFx`) — a post-process drawn
-  over the finished frame: organic vignette that tightens, tier-tinted rim glow, drifting spores,
-  and a faint biome tint, all modulated by a slow cardiac envelope. A true no-op at the Contained
-  baseline (`index ≈ 0`), so early game is untouched.
-- **HUD glow** — the run loop publishes `--assim-glow` (0..1) and `--assim-color` (r,g,b) onto
-  `.canvas-wrap`; `src/index.css` reads them for a subtle living aura around the battlefield frame.
-  It rings the frame only (never overlaps HUD text), so readability is untouched.
+  over the finished frame: organic vignette that tightens, tier-tinted rim glow, drifting spores
+  (a minority blooming into brighter cells at high tiers), **membrane veins** that surface past
+  Dominance (the `vein` channel — the world becoming tissue), and a faint biome tint, all modulated
+  by a slow cardiac envelope. A true no-op at the Contained baseline (`index ≈ 0`), so early game is
+  untouched.
+- **The Ascension Moment** (`ascensionPulse`) — the payoff for the hidden heartbeat. The **first**
+  time a run crosses into a higher tier, `stepAssimilation` fires a decaying pulse (gated on a
+  strictly-increasing peak, so the slow relax never re-triggers it). The veil blooms in the new
+  tier's color, a shock ring expands from center, and the tier's **name rises and fades**
+  ("▲ DOMINANCE"). Brief, earned, unmistakable — the invisible system made momentarily visible at
+  the seam, with **no persistent HUD number** to grind.
+- **HUD glow** — the run loop publishes `--assim-glow` (0..1), `--assim-color` (r,g,b) and
+  `--assim-ascend` (0..1) onto `.canvas-wrap`; `src/index.css` reads them for a subtle living aura
+  around the battlefield frame that brightens on an Ascension crossing. It rings the frame only
+  (never overlaps HUD text), so readability is untouched.
 
 ---
 
@@ -182,8 +210,12 @@ audit the whole mood at any depth without playing to it. "Release" resumes the r
 
 - The `custom` signal seam and `registerAssimilationContribution` exist and are tested, but no
   content system registers a custom profile yet — everything routes through Power + run aggregates.
-- Elite-kill and campaign-stage contributors are intentionally omitted for now (no cheap run counter
-  exists); add them as profiles when the counters land.
+- **Weak Points Ruptured** (elite/boss dismantling) is now a live conquest contributor. A
+  campaign-stage contributor is still omitted (no cheap in-run counter); add it as a profile when the
+  counter lands.
 - Tower/hero/nucleus/enemy/Mega-Boss/run-cinematic presentation consumers are specified here but not
   yet wired — they are the next content pass and plug into `assimilationPresentation` with no
   framework change.
+- The hot fold is allocation-free via reused module-scope scratch scalars (`_num`/`_den`) — safe
+  because the fold is synchronous and single-threaded (filled and read within one call). If the fold
+  ever becomes re-entrant, give it local accumulators.

@@ -31,7 +31,7 @@ import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
 import { dangerCurve } from '../core/dangerCamera';
-import { computeAssimilation, stepAssimilation, assimilationPresentation } from '../core/assimilation';
+import { computeAssimilationTarget, stepAssimilation, assimilationPresentation } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
@@ -306,6 +306,7 @@ export function GameView({
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
   const assimTargetRef = useRef(0); // last Assimilation Index target (recomputed at ~8Hz; smoothed every frame)
   const assimHudRef = useRef(-1); // last HUD-glow value pushed to CSS (throttle)
+  const assimAscendRef = useRef(-1); // last Ascension-flourish pulse pushed to CSS (throttle)
   const hiveStateRef = useRef(0); // deepest damage-state index announced (0 = healthy … 4 = collapsing)
   const heartbeatRef = useRef(0); // seconds until the next critical-integrity heartbeat
   const graftPulseAtRef = useRef(0); // sim time of the next graft-organism heartbeat (docs/MULLIGANS.md §audio)
@@ -499,7 +500,7 @@ export function GameView({
         //    target at ~8Hz (it folds run aggregates — event-ish, not per-frame), smooth it every
         //    frame, and derive the ONE presentation bundle every dynamic system below keys on
         //    (music floor, camera breath, screen veil, HUD glow). Render-only — the sim never reads it.
-        if (now - assimAt >= 120) { assimTargetRef.current = computeAssimilation(game.assimilationSignals()).raw; assimAt = now; }
+        if (now - assimAt >= 120) { assimTargetRef.current = computeAssimilationTarget(game.assimilationSignals()); assimAt = now; }
         stepAssimilation(game.assimilation, assimTargetRef.current, dt);
         const assimPres = assimilationPresentation(game.assimilation);
 
@@ -621,6 +622,13 @@ export function GameView({
             root.style.setProperty('--assim-color', `${assimPres.color[0]},${assimPres.color[1]},${assimPres.color[2]}`);
             root.dataset.assimTier = String(assimPres.tier);
           }
+        }
+        // Ascension flourish (docs/ASSIMILATION.md §Ascension Moment): pulse the HUD frame in the new
+        // tier's color when the run crosses a boundary. Published while the pulse is live (it decays
+        // fast, so throttle on a coarse step) and once more when it returns to rest.
+        if (Math.abs(assimPres.ascensionPulse - assimAscendRef.current) > 0.02 || (assimPres.ascensionPulse === 0 && assimAscendRef.current !== 0)) {
+          assimAscendRef.current = assimPres.ascensionPulse;
+          canvas.parentElement?.style.setProperty('--assim-ascend', assimPres.ascensionPulse.toFixed(3));
         }
 
         if (now - lastHud > 80) {

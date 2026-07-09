@@ -27,6 +27,7 @@ export interface AssimilationSignals {
   kills: number; // enemies assimilated this run
   bossKills: number; // bosses defeated this run
   megaKills: number; // Mega Bosses defeated this run (battlefield-scale)
+  weakPoints: number; // weak points ruptured this run (elite/boss dismantling — a cheap monotonic counter)
   towerCount: number; // organisms fielded
   heroCount: number; // champions present
   strainSum: number; // Σ (tower strain − 1) — in-run mutation depth on the field
@@ -44,7 +45,7 @@ export interface AssimilationSignals {
 export function zeroSignals(): AssimilationSignals {
   return {
     wave: 0, totalWaves: 0, currentBiomass: 0, biomassGenerated: 0, kills: 0, bossKills: 0,
-    megaKills: 0, towerCount: 0, heroCount: 0, strainSum: 0, branchTierSum: 0, activeBuffs: 0,
+    megaKills: 0, weakPoints: 0, towerCount: 0, heroCount: 0, strainSum: 0, branchTierSum: 0, activeBuffs: 0,
     runPower: 0, integrityFrac: 1, time: 0,
   };
 }
@@ -83,6 +84,7 @@ export const CONTRIBUTIONS: readonly ContributionProfile[] = [
   { id: 'biomassGen', label: 'Total Biomass Reclaimed', group: 'conquest', weight: 1.0, half: 6000, read: (s) => s.biomassGenerated },
   { id: 'bosses', label: 'Bosses Broken', group: 'conquest', weight: 1.6, half: 3.5, read: (s) => s.bossKills },
   { id: 'megaBosses', label: 'Mega Bosses Consumed', group: 'conquest', weight: 2.0, half: 1.5, read: (s) => s.megaKills },
+  { id: 'weakPoints', label: 'Weak Points Ruptured', group: 'conquest', weight: 1.2, half: 14, read: (s) => s.weakPoints },
   // BATTLEFIELD — how developed the player's living infestation is on the field right now.
   { id: 'towers', label: 'Fielded Organisms', group: 'battlefield', weight: 1.0, half: 11, read: (s) => s.towerCount },
   { id: 'heroes', label: 'Champions Present', group: 'battlefield', weight: 0.6, half: 2.5, read: (s) => s.heroCount },
@@ -109,6 +111,20 @@ export function allContributions(): ContributionProfile[] {
   return [...CONTRIBUTIONS, ...EXTRA_CONTRIBUTIONS];
 }
 
+// ── The four pillars (group weighting) ───────────────────────────────────────────────────────────
+// The fold is GROUP-NORMALIZED: each group yields its OWN weighted-mean sub-score, then the four
+// group scores combine by these weights. This keeps the pillars balanced no matter how many
+// contributors each holds — adding a battlefield row rebalances only WITHIN battlefield and can
+// never swamp conquest (docs/GAME_CONSTITUTION.md — build for the target content scale). Strength
+// stays the dominant single pillar because the Power Score is the universal contributor (rule 1).
+
+export const GROUP_WEIGHTS: Record<ContributionGroup, number> = {
+  strength: 3.0, tempo: 2.0, conquest: 2.6, battlefield: 2.0,
+};
+const GROUP_ORDER: readonly ContributionGroup[] = ['strength', 'tempo', 'conquest', 'battlefield'];
+/** group id → dense index 0..3 (for the scratch accumulators). */
+const GI: Record<ContributionGroup, number> = { strength: 0, tempo: 1, conquest: 2, battlefield: 3 };
+
 // ── The fold ─────────────────────────────────────────────────────────────────────────────────────
 
 export interface ContributionResult {
@@ -120,31 +136,82 @@ export interface ContributionResult {
   share: number; // fraction of the final index this contributor supplied (0..1)
 }
 
-export interface AssimilationBreakdown {
-  /** The raw target index 0..1 (a weighted mean of sub-scores ⇒ inherently bounded). */
-  raw: number;
-  contributions: ContributionResult[];
+/** One pillar's aggregate (for the debug panel). */
+export interface GroupResult {
+  group: ContributionGroup;
+  score: number; // 0..1 weighted-mean sub-score of the group's contributors
+  weight: number; // the group's pull on the final index
+  share: number; // fraction of the final index this pillar supplied (0..1)
 }
 
-/** Pure fold of signals → target index + per-contributor breakdown. Cheap (a dozen ops); the caller
- *  may throttle it (event-driven), but it is safe to call per frame. */
+export interface AssimilationBreakdown {
+  /** The raw target index 0..1 (a group-normalized weighted mean ⇒ inherently bounded). */
+  raw: number;
+  contributions: ContributionResult[];
+  groups: GroupResult[];
+}
+
+// Reused scratch accumulators for the ZERO-ALLOCATION hot fold (single-threaded; filled and read
+// within one synchronous call, never retained). Indexed by GI: 0 strength · 1 tempo · 2 conquest ·
+// 3 battlefield. num = Σ weight·score, den = Σ weight within the group.
+const _num = [0, 0, 0, 0];
+const _den = [0, 0, 0, 0];
+
+/** ALLOCATION-FREE hot path: signals → the target index 0..1 ONLY (no breakdown). The run loop folds
+ *  this at ~8Hz, so it iterates the contributor arrays directly and accumulates into reused scratch
+ *  scalars — no arrays, no objects, no per-frame GC. Group-normalized (the four pillars stay balanced
+ *  at any content scale). computeAssimilation() returns the SAME `raw` plus a full breakdown for the
+ *  debug panel (cold path). */
+export function computeAssimilationTarget(s: AssimilationSignals): number {
+  _num[0] = _num[1] = _num[2] = _num[3] = 0;
+  _den[0] = _den[1] = _den[2] = _den[3] = 0;
+  for (const p of CONTRIBUTIONS) { const g = GI[p.group]; _num[g] += sat(p.read(s), p.half) * p.weight; _den[g] += p.weight; }
+  for (const p of EXTRA_CONTRIBUTIONS) { const g = GI[p.group]; _num[g] += sat(p.read(s), p.half) * p.weight; _den[g] += p.weight; }
+  let accN = 0;
+  let accD = 0;
+  for (let g = 0; g < 4; g++) {
+    if (_den[g] > 0) { const gw = GROUP_WEIGHTS[GROUP_ORDER[g]]; accN += (_num[g] / _den[g]) * gw; accD += gw; }
+  }
+  return accD > 0 ? Math.min(1, accN / accD) : 0;
+}
+
+/** Pure fold of signals → target index + per-contributor + per-pillar breakdown. Allocates (the cold
+ *  path — the debug panel). Its `raw` is identical to computeAssimilationTarget(s). */
 export function computeAssimilation(s: AssimilationSignals): AssimilationBreakdown {
   const profiles = allContributions();
-  let totalW = 0;
-  let acc = 0;
-  const parts: { p: ContributionProfile; score: number }[] = [];
+  const num = [0, 0, 0, 0];
+  const den = [0, 0, 0, 0];
+  const scoreById = new Map<string, number>();
   for (const p of profiles) {
-    const score = sat(Math.max(0, p.read(s)), p.half);
-    parts.push({ p, score });
-    acc += score * p.weight;
-    totalW += p.weight;
+    const score = sat(p.read(s), p.half);
+    scoreById.set(p.id, score);
+    const g = GI[p.group];
+    num[g] += score * p.weight;
+    den[g] += p.weight;
   }
-  const raw = totalW > 0 ? Math.min(1, acc / totalW) : 0;
-  const contributions: ContributionResult[] = parts.map(({ p, score }) => ({
-    id: p.id, label: p.label, group: p.group, score, weight: p.weight,
-    share: acc > 0 ? (score * p.weight) / acc : 0,
+  let accN = 0;
+  let accD = 0;
+  for (let g = 0; g < 4; g++) {
+    if (den[g] > 0) { const gw = GROUP_WEIGHTS[GROUP_ORDER[g]]; accN += (num[g] / den[g]) * gw; accD += gw; }
+  }
+  const raw = accD > 0 ? Math.min(1, accN / accD) : 0;
+  // A contributor's absolute pull on the (pre-clamp) index: (its group's weight / Σ active group
+  // weight) · (its weighted score / its group denom). These sum to `accN/accD`, so share = pull/Σpull.
+  const pullOf = (p: ContributionProfile): number => {
+    const g = GI[p.group];
+    return den[g] > 0 && accD > 0 ? (GROUP_WEIGHTS[p.group] / accD) * (((scoreById.get(p.id) ?? 0) * p.weight) / den[g]) : 0;
+  };
+  const totalPull = profiles.reduce((a, p) => a + pullOf(p), 0);
+  const contributions: ContributionResult[] = profiles.map((p) => ({
+    id: p.id, label: p.label, group: p.group, score: scoreById.get(p.id) ?? 0, weight: p.weight,
+    share: totalPull > 0 ? pullOf(p) / totalPull : 0,
   }));
-  return { raw, contributions };
+  const groups: GroupResult[] = GROUP_ORDER.map((grp, g) => {
+    const gw = GROUP_WEIGHTS[grp];
+    const gScore = den[g] > 0 ? num[g] / den[g] : 0;
+    return { group: grp, score: gScore, weight: gw, share: accN > 0 && den[g] > 0 ? (gScore * gw) / accN : 0 };
+  });
+  return { raw, contributions, groups };
 }
 
 // ── Evolution tiers ──────────────────────────────────────────────────────────────────────────────
@@ -211,16 +278,25 @@ export interface AssimilationState {
   /** Dev override 0..1 (debug panel). When non-null the state eases toward it instead of the run
    *  target — RENDER-ONLY, never persisted. */
   override: number | null;
+  /** Highest tier the run has ever reached — the Ascension Moment fires only on a NEW peak, so the
+   *  slow relax never re-triggers it. Monotonically non-decreasing across a run. */
+  peakTier: number;
+  /** 0..1 decaying pulse set to 1 the instant the run crosses into a higher tier; drives the
+   *  screen flourish (bloom + ring + tier-name). Eases to 0 over ASSIM.ascendHold seconds. */
+  ascensionPulse: number;
+  /** Which tier the current pulse is announcing (the flourish names it even as the index eases). */
+  ascendedTier: number;
 }
 
 export function initialAssimilation(): AssimilationState {
-  return { index: 0, target: 0, tier: 0, tierProgress: 0, override: null };
+  return { index: 0, target: 0, tier: 0, tierProgress: 0, override: null, peakTier: 0, ascensionPulse: 0, ascendedTier: 0 };
 }
 
 export const ASSIM = {
   riseRate: 0.9, // index ease-in per second toward a higher target (the organism grows briskly)
   fallRate: 0.3, // ease-out per second toward a lower target (it relaxes slowly — never snaps down)
   overrideRate: 2.4, // ease rate while a dev override is engaged (snappier, for previewing)
+  ascendHold: 2.6, // seconds the Ascension flourish takes to decay from 1 → 0
 };
 
 /** Advance the smoothed index toward `target` (or the dev override) by `dt` sim-seconds. Mutates
@@ -235,6 +311,16 @@ export function stepAssimilation(s: AssimilationState, target: number, dt: numbe
   const { tier, progress } = tierAt(s.index);
   s.tier = tier.index;
   s.tierProgress = progress;
+  // Ascension Moment: the FIRST time the run reaches a higher integer tier, fire a decaying pulse
+  // (the payoff for the hidden heartbeat — the veil blooms and names the new tier). Gated on a
+  // strictly-increasing peak so the slow relax never re-fires it; a dev override earns previews too.
+  if (tier.index > s.peakTier) {
+    s.peakTier = tier.index;
+    s.ascendedTier = tier.index;
+    s.ascensionPulse = 1;
+  } else if (s.ascensionPulse > 0) {
+    s.ascensionPulse = Math.max(0, s.ascensionPulse - dt / ASSIM.ascendHold);
+  }
 }
 
 // ── Derived presentation bundle (what consumers actually read) ────────────────────────────────────
@@ -256,12 +342,17 @@ export interface AssimilationPresentation {
   cameraAmp: number; // view-scale heartbeat amplitude (tiny — never disorienting)
   cameraHz: number; // heartbeat frequency (Hz)
   hudGlow: number; // 0..1 HUD organic-accent strength (CSS var)
+  vein: number; // 0..1 membrane-vein density (high-tier only — the world becomes tissue)
+  ascensionPulse: number; // 0..1 decaying flourish pulse (0 except right after a tier crossing)
+  ascendedTier: number; // the tier the current pulse announces (0..5)
+  ascendedName: string; // that tier's name (for the flourish caption)
 }
 
 export function assimilationPresentation(s: AssimilationState): AssimilationPresentation {
   const x = clamp01(s.index);
   const e = smoothstep(x); // ease the perceptual response so low index stays calm
   const { tier } = tierAt(x);
+  const at = Math.min(ASSIMILATION_TIERS.length - 1, Math.max(0, Math.round(s.ascendedTier)));
   return {
     index: x,
     tier: tier.index,
@@ -276,6 +367,10 @@ export function assimilationPresentation(s: AssimilationState): AssimilationPres
     cameraAmp: 0.0012 + 0.0030 * e, // ≤0.42% scale — a breath, not a zoom
     cameraHz: 0.55 + 0.45 * x, // resting ~33bpm → excited ~60bpm heartbeat
     hudGlow: e,
+    vein: smoothstep(clamp01((x - 0.42) / 0.58)), // membranes surface past ~Dominance
+    ascensionPulse: clamp01(s.ascensionPulse),
+    ascendedTier: at,
+    ascendedName: ASSIMILATION_TIERS[at].name,
   };
 }
 

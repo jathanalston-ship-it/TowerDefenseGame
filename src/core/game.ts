@@ -6254,6 +6254,7 @@ export class Game {
       kills: this.kills,
       bossKills: this.runBossKills,
       megaKills: this.runMegaKills.length,
+      weakPoints: this.statWpDestroyed,
       towerCount: this.towers.length,
       heroCount: this.heroes.length,
       strainSum,

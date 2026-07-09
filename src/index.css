@@ -8589,8 +8589,9 @@ kbd {
    this inset ring grows and tints with the master state. Readability-preserving by
    construction: it rings the FRAME only (never overlaps HUD text panels, which live
    outside .canvas-wrap), is pointer-transparent, and is invisible at the Contained
-   baseline (--assim-glow: 0). */
-.canvas-wrap { --assim-glow: 0; --assim-color: 70, 140, 150; }
+   baseline (--assim-glow: 0). On a tier crossing the run loop drives --assim-ascend (0..1),
+   which briefly brightens the frame in the new tier's color — the Ascension Moment. */
+.canvas-wrap { --assim-glow: 0; --assim-color: 70, 140, 150; --assim-ascend: 0; }
 .canvas-wrap::after {
   content: '';
   position: absolute;
@@ -8598,7 +8599,9 @@ kbd {
   pointer-events: none;
   border-radius: inherit;
   z-index: 2;
-  box-shadow: inset 0 0 calc(34px * var(--assim-glow)) rgba(var(--assim-color), calc(0.30 * var(--assim-glow)));
+  box-shadow:
+    inset 0 0 calc(34px * var(--assim-glow)) rgba(var(--assim-color), calc(0.30 * var(--assim-glow))),
+    inset 0 0 calc(64px * var(--assim-ascend)) rgba(var(--assim-color), calc(0.42 * var(--assim-ascend)));
   transition: box-shadow var(--dur-3) var(--ease-out);
 }
 
