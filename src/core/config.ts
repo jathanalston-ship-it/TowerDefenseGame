@@ -310,6 +310,45 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'A rooted undertow that DRAGS the wave back up-lane with every pulse — progress itself becomes the resource you deny.',
     abilities: [{ type: 'aura', radius: 165, damage: 5, pull: 46, particle: 'disrupt' }],
   },
+  // ── EASY EXPANSION (docs/TOWERS.md §expansion) — the gentlest gate: a straightforward single-target
+  //    DPS bruiser, the reliable "just deal damage" tower a new player wants. Reuses homing firing;
+  //    all upgrades ride existing channels (no new sim code / no new power field). ──
+  spitfang: {
+    kind: 'spitfang',
+    name: 'Spitfang Turret',
+    combatClass: 'Kinetic',
+    firing: 'homing',
+    unlockShards: 45, // the CHEAPEST unlock — a first, friendly expansion goal
+    unlockStage: 3, // the EASIEST gate — its shards begin dropping right after Campaign Stage 3
+    cost: 90,
+    range: 380, // MID band — it holds the middle of the lane where needle can't and mortar over-reaches
+    fireInterval: 0.6, // brisk, reliable cadence
+    damage: 12, // solid single-target punch (vs needle's chip) — the accessible DPS pick
+    projectileSpeed: 660,
+    splash: 0,
+    color: '#ff4f4f',
+    blurb: 'A reliable mid-range autocannon — brisk, punchy single-target fire. The dependable damage pick.',
+  },
+  // ── HARD EXPANSION — the DEEPEST gate in the game: a premium Neural gravity well. Anchors the wave
+  //    at a point and CRUSHES it with a pulling void field (aura + pull + heavy chip). Reuses the aura
+  //    verb; branches lean into collapse vs annihilation. ──
+  rift: {
+    kind: 'rift',
+    name: 'Rift Anchor',
+    combatClass: 'Neural',
+    firing: 'field',
+    unlockShards: 640, // the MOST EXPENSIVE unlock — a deep, deliberate grind
+    unlockStage: 40, // the DEEPEST gate yet (past polyp's 30) — its shards drop only past Campaign Stage 40
+    cost: 175,
+    range: 190, // its gravity-field radius (rangeMult/stars widen it)
+    fireInterval: 1.4, // a slow, heavy collapse pulse
+    damage: 20, // heavy crush on everything held — the pull denies progress while the well grinds
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#a24dff',
+    blurb: 'A premium void anchor — a psionic singularity that DRAGS the wave to its heart and crushes it. The deepest unlock.',
+    abilities: [{ type: 'aura', radius: 190, damage: 20, pull: 56, particle: 'disrupt' }],
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -378,6 +417,8 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   sower: [820, 3500, 14000, 51000, 188000], // area-denial seeder — sits with the effigy/coil band
   spire: [900, 3800, 15000, 55000, 200000], // premium arc-caster
   polyp: [860, 3650, 14500, 53000, 195000], // the anti-progress organ
+  spitfang: [600, 2700, 11500, 43000, 155000], // the accessible bruiser — the cheapest ladder (mirrors its easy unlock)
+  rift: [980, 4100, 16500, 60000, 215000], // the premium void anchor — the priciest ladder (mirrors its deep gate)
 };
 
 /** Spore-mine tunables (Blight Sower, firing 'trap' — docs/SOWER.md). A Sower keeps up to

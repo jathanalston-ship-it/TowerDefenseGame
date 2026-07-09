@@ -171,6 +171,30 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' }, // singularity
     ],
   },
+  // Spitfang Turret (Kinetic) — autocannon → barbed overkill battery. It fans out more barrels and
+  // bristles with spent-round spines as it masters its dependable single-target trade.
+  spitfang: {
+    growth: 0.022,
+    parts: [
+      { at: 1, kind: 'halo' }, // the muzzle-flash corona
+      { at: 3, kind: 'barbs', count: 5 }, // spent-round spines / heat vanes
+      { at: 5, kind: 'barrels', count: 4 }, // the rotary barrel bank widens
+      { at: 7, kind: 'spikes', count: 6 }, // a barbed recoil carapace
+      { at: 9, kind: 'nova' }, // the apex gunbeast
+    ],
+  },
+  // Rift Anchor (Neural) — void seed → collapsed singularity. Presence over bulk: it grows the
+  // least, but its glyphs, mass-nodes and event-horizon lightning intensify into a crowned well.
+  rift: {
+    growth: 0.018, // the densest silhouette — a singularity, not a sprawl
+    parts: [
+      { at: 1, kind: 'glyphRing' }, // the containment sigils
+      { at: 3, kind: 'organs', count: 3 }, // condensed mass-nodes orbiting the well
+      { at: 5, kind: 'arcs', count: 3 }, // event-horizon lightning
+      { at: 7, kind: 'crown', count: 6 }, // a crown of collapse spikes
+      { at: 9, kind: 'nova' }, // total collapse — the apex void
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at

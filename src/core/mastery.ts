@@ -222,6 +222,20 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 25, kind: 'title', id: 'title.polyp.tidewarden', name: 'Tidewarden' },
     ],
   },
+  {
+    unit: 'spitfang',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.spitfang.1', name: 'Gunner Doctrine', text: 'No mystery, no ritual — just a barrel that never stops and a round for every throat. The Spitfang is the promise the swarm learns to fear: it will always be enough.' },
+      { at: 25, kind: 'title', id: 'title.spitfang.deadeye', name: 'Deadeye' },
+    ],
+  },
+  {
+    unit: 'rift',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.rift.1', name: 'Void Doctrine', text: 'The Rift does not kill so much as EDIT. Where it anchors, the wave discovers that forward was never a direction the world agreed to keep.' },
+      { at: 25, kind: 'title', id: 'title.rift.voidcaller', name: 'Voidcaller' },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [

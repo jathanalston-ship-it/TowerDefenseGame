@@ -545,7 +545,73 @@ const POLYP_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH]);
+// Spitfang Turret (Kinetic, homing autocannon) — the dependable gunner. Mirrors the needle's
+// projectile-evolution shape: more barrels, pierce, and a scatter/marksman identity split.
+const SPITFANG_PATH: StarPath = {
+  tower: 'spitfang',
+  steps: [
+    { star: 1, name: 'Tracker', kind: 'targeting', desc: 'Locks onto the FASTEST enemy in range.', grants: [{ t: 'targeting', profile: 'fastest' }] },
+    { star: 2, name: 'Twin Barrel', kind: 'projectile', desc: 'Fires at a second target each burst.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 3,
+      name: 'Loadout',
+      kind: 'fork',
+      desc: 'Choose the Spitfang’s identity (re-pick any run).',
+      fork: [
+        { id: 'scatter', name: 'Scatter', desc: 'A third round every burst — saturate the crowd.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+        { id: 'marksman', name: 'Marksman', desc: 'Targets the TOUGHEST, punching through two hosts.', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce2'] }] },
+      ],
+    },
+    { star: 4, name: 'Serrated Rounds', kind: 'interaction', desc: 'Each shot Fractures nearby enemies (armour shred).', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 120, status: { kind: 'Fracture', amount: 1 } }] }] },
+    {
+      star: 5,
+      name: 'Apex Frame',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'gatling', name: 'Gatling', desc: 'Two more rounds per burst, punching THROUGH two foes.', grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce2'] }] },
+        { id: 'railgun', name: 'Railgun', desc: 'A piercing rail-round that arcs through a line of enemies.', grants: [{ t: 'ability', components: [{ type: 'chain', jumps: 4, range: 150, damage: 18, falloff: 0.7 }] }] },
+      ],
+    },
+    { star: 7, name: 'Overwatch', kind: 'interaction', desc: 'Vicious crits on prey held in the sights.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.2, damage: 8 }] }] },
+    { star: 9, name: 'The Warmachine', kind: 'capstone', desc: 'A ceaseless barrage: +2 rounds and they punch through three foes.', grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce3'] }, { t: 'cosmetic', id: 'warmachine' }] },
+  ],
+};
+
+// Rift Anchor (Neural, void PULL field) — the premium singularity. Mirrors the Polyp's aura-stack
+// shape: more currents, a crusher/warden split, then a devouring capstone.
+const RIFT_PATH: StarPath = {
+  tower: 'rift',
+  steps: [
+    { star: 1, name: 'Wider Well', kind: 'interaction', desc: 'A wider outer ring joins the pull.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 210, damage: 3, particle: 'disrupt' }] }] },
+    { star: 2, name: 'Second Current', kind: 'interaction', desc: 'A second drag hauls the caught again.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 160, pull: 22, particle: 'disrupt' }] }] },
+    {
+      star: 3,
+      name: 'Void Doctrine',
+      kind: 'fork',
+      desc: 'Choose the void (re-pick any run).',
+      fork: [
+        { id: 'crusher', name: 'Crusher', desc: 'The well BITES — heavy chip on everything held.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, damage: 9, react: true }] }] },
+        { id: 'warden', name: 'Warden', desc: 'The held are DISRUPTED (slowed + vulnerable).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, status: { kind: 'Disruption', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Third Current', kind: 'interaction', desc: 'Another stacked drag.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 175, pull: 26, particle: 'disrupt' }] }] },
+    {
+      star: 5,
+      name: 'Apex Void',
+      kind: 'fork',
+      desc: 'Signature transformation.',
+      fork: [
+        { id: 'singularity', name: 'Singularity', desc: 'A DEEP drag — the wave loses whole seconds.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 190, pull: 44, particle: 'disrupt' }] }] },
+        { id: 'collapse', name: 'Collapse', desc: 'The core crushes — real damage on the held.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 190, damage: 15, react: true, particle: 'disrupt' }] }] },
+      ],
+    },
+    { star: 7, name: 'Event Shear', kind: 'interaction', desc: 'Fracture shears off everything the void grinds.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 185, status: { kind: 'Fracture', amount: 1 } }] }] },
+    { star: 9, name: 'The Devouring Void', kind: 'capstone', desc: 'A vast, merciless well: the wave near it simply stops arriving.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 205, pull: 48, damage: 11, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'devour' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

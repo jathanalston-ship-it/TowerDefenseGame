@@ -418,6 +418,58 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Grinding Gorge', desc: 'A killing floor: massive churn damage and one last deep drag.', damageMult: 1.2, particle: 'gore', impact: 'gore', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 180, damage: 16, pull: 24, react: true, particle: 'gore' }] }, { t: 'cosmetic', id: 'gorge' }] },
     ],
   },
+
+  // ════════════ SPITFANG TURRET (Kinetic, mid-range homing autocannon) ════════════
+  // The dependable damage pick — a brisk single-target autocannon. Its two paths split the classic
+  // gunner fantasy: SATURATE a crowd with flechettes, or PUNCH one armoured target with a heavy slug.
+  {
+    id: 'spitfang_scatter', tower: 'spitfang', name: 'Flechette Storm',
+    theme: 'The autocannon opens up — a widening cone of self-guiding flechettes that shreds a crowd.',
+    tiers: [
+      { tier: 1, name: 'Split Rounds', desc: 'Fires a second flechette; locks onto the FASTEST target.', damageMult: 1.1, particle: 'ember', sfx: 'br_scatter', impact: 'shrapnel', grants: [{ t: 'targeting', profile: 'fastest' }, { t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 2, name: 'Open Bolt', desc: '+2 flechettes per burst, and it spins faster.', fireRateMult: 1.2, grants: [{ t: 'projectile', extraProjectiles: 2 }] },
+      { tier: 3, name: 'Serrated Tips', desc: 'Flechettes pierce 1 host and smear Corrosion — priming Shred.', damageMult: 1.1, particle: 'shrapnel', impact: 'shrapnel', grants: [{ t: 'projectile', mutators: ['pierce1'] }, { t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 4, name: 'Saturation Net', desc: '+2 more flechettes, pierce 2; hunt the most-corrupted prey.', damageMult: 1.15, grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce2'] }, { t: 'targeting', profile: 'mostCorrupted' }] },
+      { tier: 5, name: 'The Flechette Storm', desc: 'A ceaseless storm: +2 flechettes, pierce 3, and vicious crits on the swarm.', damageMult: 1.25, fireRateMult: 1.2, particle: 'barbstorm', impact: 'shrapnel', grants: [{ t: 'projectile', extraProjectiles: 2, mutators: ['pierce3'] }, { t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.4, damage: 6 }] }, { t: 'cosmetic', id: 'flechette' }] },
+    ],
+  },
+  {
+    id: 'spitfang_slug', tower: 'spitfang', name: 'Heavy Slug',
+    theme: 'One barrel, one enormous armour-piercing round — the answer to anything that walks tall.',
+    tiers: [
+      { tier: 1, name: 'Depleted Slug', desc: 'A heavy AP round that pierces 1; targets the TOUGHEST enemy.', damageMult: 1.2, particle: 'spark', sfx: 'br_slug', impact: 'ember', grants: [{ t: 'targeting', profile: 'highestHealth' }, { t: 'projectile', mutators: ['pierce1'] }] },
+      { tier: 2, name: 'Sabot Core', desc: 'Punches through 2 hosts and Fractures the struck (armour shred).', damageMult: 1.1, grants: [{ t: 'projectile', mutators: ['pierce2'] }, { t: 'ability', components: [{ type: 'debuff', radius: 90, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 3, name: 'Overpressure', desc: 'An overcharged round that detonates on impact — brutal crits.', damageMult: 1.2, particle: 'ember', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2, damage: 8 }] }] },
+      { tier: 4, name: 'Anti-Materiel', desc: 'Pierce 3 and a longer overwatch reach.', damageMult: 1.15, rangeMult: 1.1, grants: [{ t: 'projectile', mutators: ['pierce3'] }] },
+      { tier: 5, name: 'The Executioner', desc: 'A single devastating round — a massive execute crit on the toughest prey.', damageMult: 1.3, fireRateMult: 1.1, particle: 'shrapnel', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.4, mult: 3, damage: 14 }] }, { t: 'cosmetic', id: 'slug' }] },
+    ],
+  },
+
+  // ════════════ RIFT ANCHOR (Neural, void PULL field) ════════════
+  // The deepest unlock — a psionic singularity. A field tower (aura grants like the Polyp); its two
+  // paths split void identity: COLLAPSE holds the wave in a killing gravity, ANNIHILATE crushes it.
+  {
+    id: 'rift_collapse', tower: 'rift', name: 'Event Horizon',
+    theme: 'The anchor deepens into a well nothing escapes — the wave is dragged in and simply stops arriving.',
+    tiers: [
+      { tier: 1, name: 'Deepening Well', desc: 'A second inner current drags the caught again.', particle: 'disrupt', sfx: 'br_collapse', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, pull: 24 }] }] },
+      { tier: 2, name: 'Time Dilation', desc: 'The held are Disrupted (slowed + vulnerable).', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 170, status: { kind: 'Disruption', amount: 0.9 } }] }] },
+      { tier: 3, name: 'Gravity Shear', desc: 'A third current, and Fracture shears everything held.', damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 175, pull: 26, particle: 'disrupt' }, { type: 'debuff', radius: 175, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Singularity Grip', desc: 'A monstrous drag — whole seconds stolen from the wave.', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 180, pull: 34, particle: 'disrupt' }] }] },
+      { tier: 5, name: 'The Event Horizon', desc: 'Nothing escapes: an immense well that unmakes all forward progress.', damageMult: 1.15, particle: 'dissolve', impact: 'disrupt', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 200, pull: 52, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'horizon' }] },
+    ],
+  },
+  {
+    id: 'rift_annihilate', tower: 'rift', name: 'Annihilation Core',
+    theme: 'The singularity is turned outward — a crushing field that grinds the caught to nothing.',
+    tiers: [
+      { tier: 1, name: 'Crushing Field', desc: 'The well BITES: real damage on everything held each pulse.', particle: 'disrupt', sfx: 'br_annihilate', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 175, damage: 9, react: true }] }] },
+      { tier: 2, name: 'Tidal Force', desc: 'Fracture shears off everything the field grinds.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 175, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 3, name: 'Accretion', desc: '+20% collapse cadence and a harder crush.', fireRateMult: 1.2, damageMult: 1.1, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 180, damage: 6, react: true }] }] },
+      { tier: 4, name: 'Neutron Press', desc: 'The core presses down — heavy chip on the held.', damageMult: 1.15, grants: [{ t: 'ability', components: [{ type: 'aura', radius: 185, damage: 14, react: true, particle: 'disrupt' }] }] },
+      { tier: 5, name: 'The Annihilation Core', desc: 'Total collapse: catastrophic crush damage and one last deep drag.', damageMult: 1.2, particle: 'dissolve', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 200, damage: 18, pull: 26, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'annihilate' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

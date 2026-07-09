@@ -31,6 +31,8 @@ export const BRANCH_COLOR: Record<string, string> = {
   sower_bloom: '#c8e04a', sower_thicket: '#7ac040',
   spire_storm: '#7c9aff', spire_web: '#a9baff',
   polyp_riptide: '#3ec8b8', polyp_gorge: '#2fa090',
+  spitfang_scatter: '#ff9f3c', spitfang_slug: '#ffd166',
+  rift_collapse: '#9a5cff', rift_annihilate: '#d24dff',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -354,6 +356,48 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'limbs', count: 3 }, // prism arms
       { at: 4, kind: 'biomass', count: 3 }, // caustic sacs
       { at: 5, kind: 'nova', color: '#6fe0c0' }, // prismatic cascade
+    ],
+  },
+  // SPITFANG ──────────────────────────────────────────────────────────────────
+  spitfang_scatter: {
+    color: BRANCH_COLOR.spitfang_scatter, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'barrels', count: 2, per: 1 }, // the barrel bank widens each tier
+      { at: 2, kind: 'barbs', count: 4 }, // spent-flechette spines
+      { at: 3, kind: 'spikes', count: 4 }, // heat vanes
+      { at: 4, kind: 'organs', count: 2 }, // ammo drums
+      { at: 5, kind: 'nova' }, // the flechette storm
+    ],
+  },
+  spitfang_slug: {
+    color: BRANCH_COLOR.spitfang_slug, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'barrel' }, // one massive barrel, lengthening each tier
+      { at: 2, kind: 'armor', count: 4 }, // reinforced breech plating
+      { at: 3, kind: 'spikes', count: 3 }, // recoil bracing
+      { at: 4, kind: 'organs', count: 2 }, // magnum feed
+      { at: 5, kind: 'nova' }, // the executioner
+    ],
+  },
+  // RIFT ──────────────────────────────────────────────────────────────────────
+  rift_collapse: {
+    color: BRANCH_COLOR.rift_collapse, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'ripples', count: 2, per: 1 }, // gravity currents deepen per tier
+      { at: 2, kind: 'glyphRing' }, // the containment sigils
+      { at: 3, kind: 'arcs', count: 3 }, // event-horizon lightning
+      { at: 4, kind: 'organs', count: 2 }, // condensed mass-nodes
+      { at: 5, kind: 'nova' }, // the event horizon
+    ],
+  },
+  rift_annihilate: {
+    color: BRANCH_COLOR.rift_annihilate, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'crown', count: 5 }, // collapse spikes
+      { at: 2, kind: 'glyphRing' },
+      { at: 3, kind: 'arcs', count: 3 }, // accretion discharge
+      { at: 4, kind: 'organs', count: 3 }, // crushing mass-nodes
+      { at: 5, kind: 'nova' }, // total annihilation
     ],
   },
 };

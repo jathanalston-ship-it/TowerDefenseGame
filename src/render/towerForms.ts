@@ -16,7 +16,7 @@ const TAU = Math.PI * 2;
 const LX = -0.4, LY = -0.92; // key light direction (up-and-left), unit-ish
 const LANG = Math.atan2(LY, LX);
 
-export type TowerForm = 'barrel' | 'cannon' | 'core' | 'nest' | 'monolith' | 'crystal' | 'maw' | 'lens' | 'pod' | 'antenna';
+export type TowerForm = 'barrel' | 'cannon' | 'core' | 'nest' | 'monolith' | 'crystal' | 'maw' | 'lens' | 'pod' | 'antenna' | 'gatling' | 'singularity';
 
 export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   needle: 'barrel',   // a kinetic spike-barrel
@@ -32,6 +32,8 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   sower: 'pod',       // a swollen seed-pod that vents on a lob
   spire: 'antenna',   // a thin synaptic antenna, arcs off its tip
   polyp: 'maw',       // a rooted undertow mouth
+  spitfang: 'gatling',    // a multi-barrel kinetic autocannon
+  rift: 'singularity',    // a void anchor with an accretion ring
 };
 
 // ── colour: one memoized helper. `lit`>0 lightens toward white, <0 darkens; `a`<1 ⇒ rgba. ────────
@@ -268,8 +270,44 @@ function muzzle(ctx: Ctx, mx: number, my: number, r: number, c: string, fire: nu
   for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + Math.cos(a) * r * (0.45 + f * 0.7), my + Math.sin(a) * r * (0.45 + f * 0.7)); ctx.stroke(); }
 }
 
+function gatling(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, br: number): void {
+  mount(ctx, x, y, r, c);
+  const recoil = fire * r * 0.26, by = y + recoil, n = 4;
+  for (let i = 0; i < n; i++) { // a fan of spinning barrels
+    const bx = x + (i - (n - 1) / 2) * r * 0.36;
+    metalBar(ctx, bx, by - r * 1.15, by + r * 0.05, r * 0.13, c);
+    ctx.fillStyle = C(c, -0.62); ctx.beginPath(); ctx.ellipse(bx, by - r * 1.15, r * 0.13, r * 0.05, 0, 0, TAU); ctx.fill(); // bore
+  }
+  const sweep = ((now * 3) % 1) * n - 0.5; // a sheen sweeping across the rotating cluster
+  ctx.fillStyle = C(c, 0.65, 0.4); ctx.beginPath(); ctx.ellipse(x + (sweep - (n - 1) / 2) * r * 0.36, by - r * 0.5, r * 0.1, r * 0.5, 0, 0, TAU); ctx.fill();
+  orb(ctx, x, y + r * 0.12, r * 0.6 * br, c); rim(ctx, x, y + r * 0.12, r * 0.6 * br, c, 0.55); // hub
+  ctx.fillStyle = C(c, -0.55); ctx.beginPath(); ctx.arc(x, y + r * 0.12, r * 0.22, 0, TAU); ctx.fill();
+  ctx.fillStyle = C(c, 0.55, 0.7); ctx.beginPath(); ctx.arc(x - r * 0.08, y + r * 0.04, r * 0.08, 0, TAU); ctx.fill();
+  bloom(ctx, x, y + r * 0.12, r * 0.4, c, 0.2 + fire * 0.4);
+  if (fire > 0.02) { muzzle(ctx, x - r * 0.18, by - r * 1.15, r * 0.85, c, fire); muzzle(ctx, x + r * 0.18, by - r * 1.15, r * 0.8, c, fire * 0.8); }
+}
+
+function singularity(ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, br: number): void {
+  mount(ctx, x, y, r, c);
+  const pull = 0.5 + 0.5 * Math.sin(now * 2); // gravitic breathe
+  bloom(ctx, x, y, r * 1.8 * br, c, 0.32 + fire * 0.3); // the pulling field
+  for (let i = 0; i < 10; i++) { // accretion disc — motes spiralling in
+    const a = (i / 10) * TAU + now * 1.2;
+    const rr = r * (0.55 + 0.35 * ((i * 0.37 + now * 0.5) % 1));
+    ctx.fillStyle = C(c, 0.55, 0.85 * (1 - (rr / r - 0.55) / 0.35 * 0.6));
+    ctx.beginPath(); ctx.arc(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.5, r * 0.06, 0, TAU); ctx.fill();
+  }
+  ctx.strokeStyle = C(c, 0.4, 0.5 + pull * 0.3); ctx.lineWidth = Math.max(1.5, r * 0.1); // disc plane
+  ctx.beginPath(); ctx.ellipse(x, y, r * 0.9 * br, r * 0.42 * br, 0, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = C(c, 0.85, 0.8); ctx.lineWidth = Math.max(1.5, r * 0.09); // event-horizon rim
+  ctx.beginPath(); ctx.arc(x, y, r * 0.4, 0, TAU); ctx.stroke();
+  const cg = ctx.createRadialGradient(x, y, 0, x, y, r * 0.4); // the void core
+  cg.addColorStop(0, `rgba(255,255,255,${0.55 + fire * 0.45})`); cg.addColorStop(0.28, C(c, -0.1)); cg.addColorStop(1, 'rgba(2,0,6,1)');
+  ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(x, y, r * 0.4, 0, TAU); ctx.fill();
+}
+
 const DRAWERS: Record<TowerForm, (ctx: Ctx, x: number, y: number, r: number, c: string, now: number, fire: number, br: number) => void> = {
-  barrel, cannon, core, nest, monolith, crystal, maw, lens, pod, antenna,
+  barrel, cannon, core, nest, monolith, crystal, maw, lens, pod, antenna, gatling, singularity,
 };
 
 /** Draw a tower's LIT procedural turret body. `fire` (0..1) is the recoil/muzzle pulse (from `fresh`),

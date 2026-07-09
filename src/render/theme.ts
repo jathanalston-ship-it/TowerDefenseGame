@@ -163,6 +163,8 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   sower: 'circle', // a swollen seed-pod (blight-green; its planted mines dot the lane around it)
   spire: 'diamond', // a needle-thin synaptic antenna (violet-blue, arcs leap off its tip)
   polyp: 'circle', // a rooted undertow mouth (deep teal, the drag rings ripple around it)
+  spitfang: 'triangle', // a sharp kinetic autocannon (aggressive red)
+  rift: 'hex', // a faceted void anchor (deep violet, an accretion ring circles it)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

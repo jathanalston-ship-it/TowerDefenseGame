@@ -24,15 +24,18 @@ reaction framework** — it supersedes the placeholder tower names used in the e
 > Evolutions, and class keystones are the designed-but-future content this spec also covers. Balance values live in
 > `src/core/config.ts`.
 >
-> **Roster now: eleven built towers.** Beyond the launch five, the placeable roster runs to
-> **eleven**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
+> **Roster now: fifteen built towers.** Beyond the launch five, the placeable roster runs to
+> **fifteen**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
 > Wailing Effigy), the two **Deep-Strain beam** towers (§deep-strain — **Resonance Coil**, a
 > single-target resonance melter; **Marrow Siphon**, a Vital multi-tether *harvester* that drains a
-> dying swarm into Biomass), and the **Blight Sower** (§trap — a Caustic `firing: 'trap'` that
-> seeds armed spore mines up-lane). Each new tower adds a delivery mode (`beam`, `trap`) and is
-> **doubly progression-gated** (a Campaign-stage gate → then its own Tower Shards). All are
-> registry-driven — stars, mastery, conveyor, codex, loot, and Strain inherited them with no
-> per-system code.
+> dying swarm into Biomass), the **Blight Sower** (§trap — a Caustic `firing: 'trap'` that
+> seeds armed spore mines up-lane), the two **Neural field/chain** towers (**Synapse Spire**, a
+> chain arc-caster; **Undertow Polyp**, an anti-progress pull field), and the two newest
+> (§dependable-deep) — **Spitfang Turret**, the dependable Kinetic autocannon on the roster's
+> *easiest* gate, and **Rift Anchor**, a Neural void pull field on its *deepest*. Each new tower
+> adds or reuses a delivery mode (`beam`, `trap`, `field`) and is **doubly progression-gated** (a
+> Campaign-stage gate → then its own Tower Shards). All are registry-driven — stars, mastery,
+> conveyor, codex, loot, and Strain inherited them with no per-system code.
 
 ---
 
@@ -596,3 +599,43 @@ Caustic · range 300 (planting reach) · one mine per 2.8 s up to a cap · 46 dm
 detonation · bespoke `game.trapTowerSystem`/`mineSystem`. **Doubly gated** — its Tower Shards only
 drop after **Campaign Stage 20**, then **360** must bank (`unlockStage` 20 · `unlockShards` 360);
 two signature Gene Cards gate on owning it. Full spec: **`SOWER.md`** (canonical).
+
+---
+
+## Dependable & Deep roster (§dependable-deep) — Spitfang Turret · Rift Anchor
+
+Two towers deliberately placed at **opposite ends of the progression curve** — one the friendliest
+unlock on the board, the other the hardest — so a new account gets an early "next tower to chase"
+and a veteran gets a genuine long-haul goal. Both reuse existing delivery modes (no new sim code);
+each ships the full stack — two branches, a ★1–9 star path, a four-branch Adaptation tree, mastery
+lore, and a procedurally-lit battlefield form — inherited registry-wide with zero per-system work.
+
+### 14. SPITFANG TURRET — Kinetic (the dependable autocannon) · the EASY gate
+
+The **reliable damage pick**: a brisk mid-range `firing: 'homing'` autocannon that just *works* —
+no field, no ramp, no setup, punchy single-target fire from the moment it lands. It is intentionally
+the **most accessible non-launch tower** so a fresh player has an obvious first unlock to earn:
+Kinetic · cost **90** · range **380** · **0.6 s** cadence · **12** dmg · projectile speed 660 ·
+colour `#ff4f4f`. **Lightly gated** — Tower Shards drop after just **Campaign Stage 3**, then only
+**45** must bank (`unlockStage` 3 · `unlockShards` 45), the cheapest doubly-gated tower on the
+roster. **Branches** (`spitfang_*`): **Flechette Storm** (scatter — extra self-guiding rounds,
+pierce, Corrosion smear, crowd crits) vs **Heavy Slug** (a single armour-piercing round — pierce,
+Fracture, an execute crit vs the toughest prey). **Star path** forks Scatter/Marksman (★3) →
+Gatling/Railgun (★5) → *The Warmachine* (★9). **Visual**: the `gatling` form — four recoiling
+barrels with a muzzle-flare on fire and a red energy core; it fans more barrels and bristles with
+spent-round spines as it evolves.
+
+### 15. RIFT ANCHOR — Neural (the void singularity) · the DEEP gate
+
+The **premium capstone unlock** and the mirror of the Spitfang: a `firing: 'field'` psionic
+**pull field** (an `aura` with `pull`, like the Undertow Polyp) that **DRAGS the wave into its
+heart** and crushes it — pure area control, the deepest tower to earn on the board. Neural · cost
+**175** · field radius **190** · **1.4 s** pulse · **20** dmg · colour `#a24dff` · aura
+`{ radius 190, damage 20, pull 56 }`. **Deeply gated** — its Tower Shards only begin dropping after
+**Campaign Stage 40**, then a steep **640** must bank (`unlockStage` 40 · `unlockShards` 640), the
+highest gate on the roster. **Branches** (`rift_*`): **Event Horizon** (control — stacked currents,
+Disruption, Fracture, a monstrous drag that stops the wave arriving) vs **Annihilation Core**
+(damage — a crushing field that grinds the held to nothing). **Star path** forks Crusher/Warden
+(★3) → Singularity/Collapse (★5) → *The Devouring Void* (★9). **Visual**: the `singularity` form —
+orbiting mass-particles, an event-horizon ring and a white-hot core with a void bloom that swells as
+it fires; it crowns itself with collapse spikes and lightning as it evolves.

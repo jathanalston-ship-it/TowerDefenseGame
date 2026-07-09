@@ -356,6 +356,10 @@ export const audio = {
         case 'br_choir': case 'br_malice': sBrWail(d); break;
         case 'br_siphon': sBrStorm(d); break; // Marrow Siphon — a searing drain hum
         case 'br_well': sBrVital(d); break; // Bloodwell — a wet, vital pulse
+        case 'br_scatter': for (let i = 0; i < Math.min(2, n); i++) sBrSwarm(d); break; // Spitfang Flechette Storm — a rattling multi-shot
+        case 'br_slug': sBrSiege(d); break; // Spitfang Heavy Slug — a heavy AP boom
+        case 'br_collapse': sBrPsi(d); break; // Rift Event Horizon — a psionic void pull
+        case 'br_annihilate': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(d); break; // Rift Annihilation Core — a roaring crush
       }
     }
   },

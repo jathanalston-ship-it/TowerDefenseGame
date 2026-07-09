@@ -74,8 +74,8 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // launch five + expansion three + Coil/Siphon/Sower + Spire/Polyp = thirteen towers; five heroes
-    expect(towerRegistry.size).toBe(13);
+    // launch five + expansion three + Coil/Siphon/Sower + Spire/Polyp + Spitfang/Rift = fifteen towers; five heroes
+    expect(towerRegistry.size).toBe(15);
     expect(heroRegistry.size).toBe(5);
   });
 
