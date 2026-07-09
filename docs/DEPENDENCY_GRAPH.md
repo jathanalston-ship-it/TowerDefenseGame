@@ -631,9 +631,9 @@ graph TD
 
 ### Infestation Map (`infestation`)
 
-*The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target sector (wave-scaled, losses half, capped), regions pay run-effect passives scaled by LIVE fractions, and neglect decays lazily from wall-clock timestamps (nothing ticks). Home board with pinnable targets.*
+*The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER (overflow pours into the same region, then the emptiest anywhere), sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25). Passives scale by LIVE fractions; neglect decays lazily from wall-clock timestamps (nothing ticks). Pin a sector, a region (feeds its emptiest), or spread. A LIVING canvas territory map (render/infestationMap.ts): organic region lobes + creeping cell fills + pinned pulse + feed reticle + entrenchment auras, with an a11y button overlay.*
 
-- **Files:** `src/core/infestation.ts` · `src/ui/components/InfestationBoard.tsx`
+- **Files:** `src/core/infestation.ts` · `src/render/infestationMap.ts` · `src/ui/components/InfestationBoard.tsx`
 - **Depends on:** `meta-store` · `hub-shell`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

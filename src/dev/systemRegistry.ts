@@ -248,8 +248,8 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
   },
   {
-    id: 'infestation', name: 'Infestation Map', purpose: 'The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target sector (wave-scaled, losses half, capped), regions pay run-effect passives scaled by LIVE fractions, and neglect decays lazily from wall-clock timestamps (nothing ticks). Home board with pinnable targets.',
-    files: ['src/core/infestation.ts', 'src/ui/components/InfestationBoard.tsx'],
+    id: 'infestation', name: 'Infestation Map', purpose: 'The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target with SPILLOVER (overflow pours into the same region, then the emptiest anywhere), sectors climb named TIERS (Dormant->Foothold->Colony->Stronghold->Saturated), saturation halves decay, a fully-saturated region ENTRENCHES (bonus x1.25). Passives scale by LIVE fractions; neglect decays lazily from wall-clock timestamps (nothing ticks). Pin a sector, a region (feeds its emptiest), or spread. A LIVING canvas territory map (render/infestationMap.ts): organic region lobes + creeping cell fills + pinned pulse + feed reticle + entrenchment auras, with an a11y button overlay.',
+    files: ['src/core/infestation.ts', 'src/render/infestationMap.ts', 'src/ui/components/InfestationBoard.tsx'],
     dependsOn: ['meta-store', 'hub-shell'], powerScore: null, save: ['infestation'],
     tutorial: [], help: [], hud: [], ui: ['CommandCenter (infestation board)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/INFESTATION.md'],

@@ -15,7 +15,7 @@ import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById } from '../core/trophies';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
-import { ALL_SECTORS, SECTOR_CAP } from '../core/infestation';
+import { ALL_SECTORS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
@@ -678,7 +678,8 @@ function withDefaults(data: SaveData): SaveData {
       const raw = (data as { infestation?: { target?: unknown; sectors?: unknown } }).infestation;
       const out: SaveData['infestation'] = { target: null, sectors: {} };
       if (!raw || typeof raw !== 'object') return out;
-      if (typeof raw.target === 'string' && ALL_SECTORS.some((x) => x.id === raw.target)) out.target = raw.target;
+      // A pin may be a sector OR a region id (docs/INFESTATION.md §pins).
+      if (typeof raw.target === 'string' && isValidInfestTarget(raw.target)) out.target = raw.target;
       if (raw.sectors && typeof raw.sectors === 'object') {
         for (const [k, v] of Object.entries(raw.sectors as Record<string, unknown>)) {
           if (!ALL_SECTORS.some((x) => x.id === k)) continue;

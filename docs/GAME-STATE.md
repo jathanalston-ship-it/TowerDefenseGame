@@ -367,9 +367,14 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   phenotype; 10 tradeoff trophy organs, ONE mounted, derived ownership — NEMESIS.md
 - ✅ **Hero Expeditions**: benched heroes on 2h/6h/12h away-missions (absolute endsAt,
   offline-safe), star-scaled bundles, HeroLab panel — EXPEDITIONS.md
-- ✅ **Infestation Map**: 4 regions × 4 sectors; every run feeds the pinned/emptiest
-  sector, regions pay live-scaled run passives, lazy wall-clock decay, home conquest
-  board — INFESTATION.md
+- ✅ **Infestation Map** (**overhauled**): 4 regions × 4 sectors; every run feeds with
+  **spillover** (overflow → same region → emptiest anywhere), sectors climb named **tiers**
+  (Dormant→Foothold→Colony→Stronghold→Saturated), saturation **halves decay**, a full region
+  **entrenches** (bonus ×1.25); pin a sector/region/spread; regions pay live-scaled run
+  passives, lazy wall-clock decay. **LIVING canvas territory map** (`render/infestationMap.ts`):
+  organic region lobes + creeping cell fills + pinned pulse + feed reticle + entrenchment auras
+  + just-fed flashes, DPR-aware, visibility-paused, reduced-motion still, a11y button overlay;
+  richer `infestationView` with tiers + decay forecasts + map totals — INFESTATION.md
 
 ### Not built (structural)
 - 📋 Content-string localization (tower/card/enemy names, help wiki) — chrome is on `t()` via

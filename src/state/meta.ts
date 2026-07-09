@@ -87,7 +87,8 @@ import type { ContractRunFacts } from '../core/contracts';
 import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, scaleReward } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionReward } from '../core/expeditions';
-import { ALL_SECTORS, REGIONS, effectiveLevel, infestationEffects, regionFraction, runInfestGain, SECTOR_CAP } from '../core/infestation';
+import { ALL_SECTORS, REGIONS, effectiveLevel, feedInfestation, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays } from '../core/infestation';
+import type { SectorTier } from '../core/infestation';
 import type { TrophyDef } from '../core/trophies';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
@@ -876,6 +877,21 @@ export interface LootBoxAward {
   chest: ChestResult;
 }
 
+/** The Infestation territory read-model (docs/INFESTATION.md) — everything the living
+ * map renders: live levels, tiers, decay forecasts, passives, and the feed preview. */
+export interface InfestationMapView {
+  regions: { def: (typeof REGIONS)[number]; fraction: number; entrenched: boolean; bonusNow: string }[];
+  sectors: Record<string, number>;
+  sectorDetails: Record<string, {
+    id: string; name: string; level: number; tier: SectorTier;
+    zeroInDays: number | null; tierHoldDays: number | null; saturated: boolean;
+  }>;
+  target: string | null; // the pin as SAVED (sector id, region id, or null)
+  feedsInto: string; // the SECTOR the next run will actually feed (pin resolved)
+  completion: number; // 0..1 across the whole map
+  saturatedCount: number;
+}
+
 /** The result of cracking one container open in the Vault — the rolled rewards plus a
  * display label + accent for the reveal ceremony (rarity name, or the cache's name). */
 export interface CrackedContainer {
@@ -1485,19 +1501,11 @@ export const meta = {
     const infestGain = runInfestGain(result.wave, result.won);
     let nextInfestation = save.infestation;
     if (infestGain > 0) {
-      const targetId = (save.infestation.target !== null && ALL_SECTORS.some((x) => x.id === save.infestation.target))
-        ? save.infestation.target
-        : ALL_SECTORS.reduce((lo, x) =>
-            effectiveLevel(save.infestation.sectors[x.id], infestNow) < effectiveLevel(save.infestation.sectors[lo.id], infestNow) ? x : lo,
-          ALL_SECTORS[0]).id;
-      const cur = effectiveLevel(save.infestation.sectors[targetId], infestNow);
-      nextInfestation = {
-        ...save.infestation,
-        sectors: {
-          ...save.infestation.sectors,
-          [targetId]: { level: Math.min(SECTOR_CAP, cur + infestGain), updatedAt: infestNow },
-        },
-      };
+      // Pin may be a sector OR a region (feed its emptiest); overflow SPILLS instead of
+      // wasting — same region first, then the emptiest anywhere (docs/INFESTATION.md §spillover).
+      const targetId = resolveFeedTarget(save.infestation.target, save.infestation.sectors, infestNow);
+      const fedResult = feedInfestation(save.infestation.sectors, targetId, infestGain, infestNow);
+      nextInfestation = { ...save.infestation, sectors: fedResult.sectors };
     }
     persist({
       ...save,
@@ -2046,28 +2054,44 @@ export const meta = {
   // ── Phenotypes (docs/COSMETICS.md) — own/equip/cultivate. Pure presentation: the sim
   //    never reads any of this; equips only change what GameView threads to the renderer. ──
   // ── Infestation map (docs/INFESTATION.md) — the persistent conquest board. ──
-  infestationView(now = Date.now()): {
-    regions: { def: (typeof REGIONS)[number]; fraction: number; bonusNow: string }[];
-    sectors: Record<string, number>;
-    target: string | null;
-  } {
+  /** The full territory read-model: per-sector live level + tier + decay forecasts + the
+   *  feed destination preview, per-region live passive + entrenchment, and map totals. */
+  infestationView(now = Date.now()): InfestationMapView {
     const s = store.get();
+    const raw = s.infestation.sectors;
+    const feedsInto = resolveFeedTarget(s.infestation.target, raw, now);
     const sectors: Record<string, number> = {};
-    for (const x of ALL_SECTORS) sectors[x.id] = effectiveLevel(s.infestation.sectors[x.id], now);
+    const sectorDetails: InfestationMapView['sectorDetails'] = {};
+    for (const x of ALL_SECTORS) {
+      const lvl = effectiveLevel(raw[x.id], now);
+      sectors[x.id] = lvl;
+      sectorDetails[x.id] = {
+        id: x.id, name: x.name, level: lvl, tier: tierOf(lvl),
+        zeroInDays: zeroInDays(raw[x.id], now), tierHoldDays: tierHoldDays(raw[x.id], now),
+        saturated: lvl >= 99.995,
+      };
+    }
+    const regions = REGIONS.map((def) => {
+      const fraction = regionFraction(def, raw, now);
+      const entrenched = isEntrenched(def, raw, now);
+      const pct = Math.round((def.bonus.max - 1) * fraction * (entrenched ? 1.25 : 1) * 1000) / 10;
+      return { def, fraction, entrenched, bonusNow: `${def.bonus.label} +${pct}%` };
+    });
+    const total = ALL_SECTORS.reduce((a, x) => a + sectors[x.id], 0);
     return {
-      regions: REGIONS.map((def) => {
-        const fraction = regionFraction(def, s.infestation.sectors, now);
-        return { def, fraction, bonusNow: `${def.bonus.label} +${Math.round((def.bonus.max - 1) * fraction * 100)}%` };
-      }),
-      sectors,
+      regions, sectors, sectorDetails,
       target: s.infestation.target,
+      feedsInto,
+      completion: total / (ALL_SECTORS.length * 100),
+      saturatedCount: ALL_SECTORS.filter((x) => sectorDetails[x.id].saturated).length,
     };
   },
-  /** Pin the sector future runs feed (null = auto-spread to the emptiest). */
-  setInfestTarget(sectorId: string | null): boolean {
+  /** Pin where future runs feed: a SECTOR id, a REGION id (its emptiest sector), or null
+   *  (auto-spread to the emptiest anywhere). */
+  setInfestTarget(id: string | null): boolean {
     const s = store.get();
-    if (sectorId !== null && !ALL_SECTORS.some((x) => x.id === sectorId)) return false;
-    persist({ ...s, infestation: { ...s.infestation, target: sectorId } });
+    if (id !== null && !isValidInfestTarget(id)) return false;
+    persist({ ...s, infestation: { ...s.infestation, target: id } });
     return true;
   },
   /** The map's region passives, folded into every run like gear. [] on a fresh board. */
