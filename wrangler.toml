@@ -13,7 +13,7 @@ compatibility_date = "2026-06-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "assimilate-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "f01362d3-54a3-4a8a-ba20-e52872686d53"
 
 # ── Plain (non-secret) runtime vars. Server secrets are NOT set here — use
 #    `npm run setup-secrets` (wrangler pages secret put). Public VITE_ build
