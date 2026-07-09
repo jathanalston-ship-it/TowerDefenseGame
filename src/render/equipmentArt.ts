@@ -243,8 +243,11 @@ export function deriveHeroGear(items: { def: EquipDef; rarity: string }[], setBo
  * organs (veins/cloak/halo) → rarity particles. Everything idle-animated by `now`. `facing` (±1)
  * points the weapon; `tint` is the hero class hue (set-organ default).
  */
-export function drawHeroGear(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, spec: HeroGearSpec, now: number, tint = '#c8d0e0', facing = 1): void {
+export function drawHeroGear(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, spec: HeroGearSpec, now: number, tint = '#c8d0e0', facing = 1, spin = 0): void {
   if (!spec.hasGear && spec.setPower <= 0) return;
+  // `spin` (radians) revolves the attachments around the hero for the inspect TURNTABLE; spin === 0
+  // is the exact battlefield placement (in-game passes 0, so the live look is byte-identical).
+  const turning = spin !== 0;
   ctx.save();
   ctx.translate(x, y);
 
@@ -277,23 +280,29 @@ export function drawHeroGear(ctx: CanvasRenderingContext2D, x: number, y: number
     for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.4, -r * 0.2); ctx.lineTo(i * r * 0.55, -r * 1.5); ctx.lineTo(i * r * 0.25, -r * 0.2); ctx.closePath(); ctx.fill(); }
     ctx.restore();
   }
-  // Armor shoulder plates.
+  // Armor shoulder plates. On the turntable they REVOLVE (front larger/brighter, back smaller/dimmer);
+  // in-game (spin 0) they sit at both sides exactly as before.
   if (armor) {
     const flex = 1 + 0.05 * Math.sin(now * 3);
-    for (const sx of [-1, 1]) {
-      ctx.save(); ctx.translate(sx * r * 0.8, -r * 0.35); ctx.scale(flex, flex);
-      ctx.fillStyle = shade(armor.color, sx === facing ? 0.1 : -0.15);
+    const plates = turning
+      ? [0, Math.PI].map((base) => { const a = base + spin; const d = (Math.sin(a) + 1) / 2; return { px: Math.cos(a) * r * 0.85, depth: d, front: d > 0.5 }; }).sort((p, q) => p.depth - q.depth)
+      : [{ px: -r * 0.8, depth: 1, front: facing === -1 }, { px: r * 0.8, depth: 1, front: facing === 1 }];
+    for (const pl of plates) {
+      const sc = flex * (turning ? 0.7 + 0.4 * pl.depth : 1);
+      ctx.save(); ctx.translate(pl.px, -r * 0.35); ctx.scale(sc, sc);
+      ctx.globalAlpha = turning ? 0.5 + 0.5 * pl.depth : 1;
+      ctx.fillStyle = shade(armor.color, pl.front ? 0.1 : -0.15);
       polygon(ctx, 0, 0, r * 0.5, 5, now * 0.1); ctx.fill();
       if (armor.subtype === 'hide') { ctx.strokeStyle = rgba(armor.accent, 0.7); ctx.lineWidth = r * 0.06; polygon(ctx, 0, 0, r * 0.3, 5, 0); ctx.stroke(); }
       else { ctx.fillStyle = rgba('#ffffff', 0.25); ctx.beginPath(); ctx.arc(-r * 0.1, -r * 0.1, r * 0.12, 0, TAU); ctx.fill(); }
       ctx.restore();
     }
   }
-  // Orbiting relic(s) — orbit count grows with tier.
+  // Orbiting relic(s) — orbit count grows with tier. The turntable spin offsets the orbit phase.
   if (relic) {
     const n = 1 + Math.floor(relic.tier / 2);
     for (let i = 0; i < n; i++) {
-      const a = now * 1.2 + (i / n) * TAU;
+      const a = now * 1.2 + (i / n) * TAU + spin;
       const ox = Math.cos(a) * r * 1.7, oy = Math.sin(a) * r * 0.8 - r * 0.3;
       const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, r * 0.5);
       glow.addColorStop(0, '#ffffff'); glow.addColorStop(0.4, relic.color); glow.addColorStop(1, rgba(relic.color, 0));
@@ -301,11 +310,17 @@ export function drawHeroGear(ctx: CanvasRenderingContext2D, x: number, y: number
       ctx.fillStyle = relic.color; ctx.beginPath(); ctx.arc(ox, oy, r * 0.14, 0, TAU); ctx.fill();
     }
   }
-  // Weapon at the side — swayed idle; the head is the weaponType.
+  // Weapon at the side — swayed idle; the head is the weaponType. On the turntable it swings around
+  // the hero (x by cos(spin), depth-scaled) so you see it from every angle.
   if (weapon) {
     ctx.save();
-    ctx.translate(facing * r * 0.95, r * 0.15);
-    ctx.rotate(facing * (0.5 + Math.sin(now * 1.8) * 0.08));
+    const wDepth = turning ? (Math.sin(spin) + 1) / 2 : 1;
+    const wx = turning ? Math.cos(spin) * r * 1.05 : facing * r * 0.95;
+    const wSide = turning ? (Math.cos(spin) >= 0 ? 1 : -1) : facing;
+    ctx.translate(wx, r * 0.15);
+    ctx.scale(turning ? 0.7 + 0.4 * wDepth : 1, turning ? 0.7 + 0.4 * wDepth : 1);
+    ctx.globalAlpha = turning ? 0.5 + 0.5 * wDepth : 1;
+    ctx.rotate(wSide * (0.5 + Math.sin(now * 1.8) * 0.08));
     const L = r * 1.9;
     ctx.strokeStyle = shade(weapon.accent, -0.1); ctx.lineWidth = r * 0.16; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(0, r * 0.3); ctx.lineTo(0, -L * 0.55); ctx.stroke();

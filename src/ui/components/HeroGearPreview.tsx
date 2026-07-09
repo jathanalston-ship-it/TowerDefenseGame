@@ -5,6 +5,7 @@
 // render-only ⇒ golden-safe.
 
 import { useEffect, useMemo, useRef } from 'react';
+import type { PointerEvent as RPointerEvent } from 'react';
 import { HERO_DEFS } from '../../core/config';
 import type { HeroKind } from '../../core/types';
 import { meta } from '../../state/meta';
@@ -47,6 +48,10 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
     return deriveHeroGear(items, setBonuses);
   }, [heroKind, item]);
 
+  // Turntable: auto-rotate, or drag horizontally to spin. `spinRef` persists across frames.
+  const spinRef = useRef(0.6);
+  const dragRef = useRef<{ x: number } | null>(null);
+
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
@@ -61,18 +66,28 @@ export function HeroGearPreview({ heroKind, item, size = 180 }: { heroKind: Hero
     const t0 = performance.now();
     const loop = (): void => {
       const now = (performance.now() - t0) / 1000;
+      if (!dragRef.current) spinRef.current += 0.006; // idle auto-rotate
+      const spin = spinRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
-      // gear behind (halo/cloak), then the hero body, so attachments frame the silhouette.
-      drawHeroGear(ctx, cx, cy, r, spec, now, def.color, 1);
+      // A turntable base disc under the hero sells the rotation.
+      ctx.fillStyle = 'rgba(120,150,200,0.09)';
+      ctx.beginPath(); ctx.ellipse(cx, cy + r * 1.55, r * 1.5, r * 0.42, 0, 0, TAU); ctx.fill();
+      // hero body, then the gear revolving over/around it (turntable).
       bodyPath(ctx, shape, cx, cy, r * 1.25); ctx.fillStyle = '#22283a'; ctx.fill();
       bodyPath(ctx, shape, cx, cy, r); ctx.fillStyle = def.color; ctx.fill();
       ctx.fillStyle = '#eef3ff'; ctx.beginPath(); ctx.arc(cx, cy - r * 0.15, r * 0.32, 0, TAU); ctx.fill();
+      drawHeroGear(ctx, cx, cy, r, spec, now, def.color, 1, spin);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [spec, heroKind, size]);
 
-  return <canvas ref={ref} width={size} height={size} style={{ width: size, height: size, display: 'block' }} aria-hidden />;
+  const onDown = (e: RPointerEvent): void => { dragRef.current = { x: e.clientX }; (e.target as Element).setPointerCapture?.(e.pointerId); };
+  const onMove = (e: RPointerEvent): void => { if (dragRef.current) { spinRef.current += (e.clientX - dragRef.current.x) * 0.015; dragRef.current.x = e.clientX; } };
+  const onUp = (): void => { dragRef.current = null; };
+
+  return <canvas ref={ref} width={size} height={size} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
+    style={{ width: size, height: size, display: 'block', cursor: 'ew-resize', touchAction: 'none' }} title="Drag to rotate" />;
 }

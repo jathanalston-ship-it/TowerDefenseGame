@@ -208,8 +208,26 @@ export function ItemDetails({
           <div className="id-fact"><span className="id-fact-k">Upgrade potential</span><span className="id-fact-v">{headroom > 0 ? `${headroom} affix${headroom > 1 ? 'es' : ''} can climb to T${ceiling}` : `Maxed for i${item.ilvl ?? '?'} (T${ceiling})`}</span></div>
           <div className="id-fact"><span className="id-fact-k">Power contribution</span><span className="id-fact-v">⚙ {power}{equipped ? ` · ${share}% of ${heroName}'s gear` : ' · not equipped'}</span></div>
           <div className="id-fact"><span className="id-fact-k">Source</span><span className="id-fact-v">{item.source ?? 'Unknown'}</span></div>
-          <div className="id-fact"><span className="id-fact-k">Mod history</span><span className="id-fact-v">{item.history && item.history.length ? item.history.join(' → ') : 'Unmodified'}</span></div>
         </div>
+
+        {/* ── Equipment History — the item's full timeline: the drop, then every mod applied ── */}
+        {item.history && item.history.length > 0 && (
+          <div className="id-section">
+            <div className="id-sec-title">Equipment History</div>
+            <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {item.history.map((ev, i) => {
+                const last = i === item.history!.length - 1;
+                return (
+                  <li key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, opacity: last ? 1 : 0.7 }}>
+                    <span style={{ color: c, fontSize: 10 }}>{i === 0 ? '◆' : '▸'}</span>
+                    <span>{ev}</span>
+                    {last && i > 0 && <span style={{ marginLeft: 'auto', fontSize: 10, opacity: 0.5 }}>latest</span>}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
 
         {/* ── Tiered salvage confirm: rarity scales the ceremony; a higher-Power dismantle hard-warns ── */}
         {confirming && (() => {

@@ -519,6 +519,7 @@ export function rollItem(rng: Rng, def: EquipDef, rarity: Rarity, ilvl?: number,
   const cap = ilvl === undefined ? MAX_AFFIX_TIER : maxTierForIlvl(ilvl);
   const item: OwnedItem = { uid: newUid(), defId: def.id, rarity: fixed, affixes: rollAffixes(rng, def.slot, RARITY_AFFIXES[fixed], cap), source };
   if (ilvl !== undefined) item.ilvl = ilvl;
+  item.history = [`Discovered · ${fixed} · ${source}`]; // the first timeline entry (the drop); reforge ops append
   return item;
 }
 

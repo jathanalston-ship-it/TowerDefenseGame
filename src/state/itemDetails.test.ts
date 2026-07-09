@@ -19,7 +19,10 @@ describe('equipment Details: source + mod history', () => {
     }));
     expect(meta.reforgeOp(item.uid, 'enhance')).toBe(true);
     const after = meta.get().equipment.inventory.find((i) => i.uid === item.uid)!;
-    expect(after.history).toEqual(['Enhanced']); // one mod logged
+    // The timeline starts with the DROP (seeded at roll) and the reforge APPENDS its mod.
+    expect(after.history![0]).toContain('Discovered');
+    expect(after.history![after.history!.length - 1]).toBe('Enhanced');
+    expect(after.history!.length).toBe(2);
     expect(after.source).toBe('Genetic Vault'); // provenance survives the reforge (spread-preserved)
   });
 });
