@@ -80,6 +80,111 @@ function biomeRgb(accent: string): string {
   return rgb;
 }
 
+/** Cheap deterministic 0..1 hash — all ambient detail keys off this (render NEVER touches rng). */
+function hash01(n: number): number {
+  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+// ── Static floor cache (beauty + perf): the sky gradient, tile checker, grid lattice,
+//    organic mottling, dormant hive veins and the corner vignette never change during a
+//    run — render them ONCE into an offscreen layer at the ctx's device-pixel scale and
+//    blit a single image per frame instead of ~400 fills + a 50-segment path stroke.
+let floorCache: HTMLCanvasElement | null = null;
+let floorCacheScale = 0;
+
+function buildFloor(scale: number): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(WIDTH * scale));
+  c.height = Math.max(1, Math.round(HEIGHT * scale));
+  const g2 = c.getContext('2d')!;
+  g2.scale(scale, scale);
+  const [s0, s1, s2, s3] = THEME.arena.skyStops;
+  const sky = g2.createLinearGradient(0, 0, 0, HEIGHT);
+  sky.addColorStop(0, s0);
+  sky.addColorStop(0.45, s1);
+  sky.addColorStop(0.8, s2);
+  sky.addColorStop(1, s3);
+  g2.fillStyle = sky;
+  g2.fillRect(0, 0, WIDTH, HEIGHT);
+  g2.fillStyle = THEME.arena.tile;
+  for (let r = 0; r < ROWS; r++) {
+    for (let col = r % 2; col < COLS; col += 2) g2.fillRect(col * CELL, r * CELL, CELL, CELL);
+  }
+  // Organic mottling — hash-keyed dark blotches so the floor reads as grown chitin, not vinyl.
+  for (let i = 0; i < 70; i++) {
+    const bx = hash01(i * 3 + 1) * WIDTH;
+    const by = hash01(i * 3 + 2) * HEIGHT;
+    const br = 14 + hash01(i * 3 + 3) * 46;
+    const m = g2.createRadialGradient(bx, by, 0, bx, by, br);
+    m.addColorStop(0, `rgba(0,0,0,${0.05 + hash01(i * 7) * 0.06})`);
+    m.addColorStop(1, 'rgba(0,0,0,0)');
+    g2.fillStyle = m;
+    g2.beginPath();
+    g2.arc(bx, by, br, 0, Math.PI * 2);
+    g2.fill();
+  }
+  g2.strokeStyle = THEME.arena.grid;
+  g2.lineWidth = 1;
+  g2.beginPath();
+  for (let cc = 0; cc <= COLS; cc++) { g2.moveTo(cc * CELL, 0); g2.lineTo(cc * CELL, HEIGHT); }
+  for (let rr = 0; rr <= ROWS; rr++) { g2.moveTo(0, rr * CELL); g2.lineTo(WIDTH, rr * CELL); }
+  g2.stroke();
+  // Dormant hive veins radiating from the nucleus (static; the LIVE tendrils draw over them).
+  g2.strokeStyle = 'rgba(255,140,150,0.05)';
+  g2.lineWidth = 3;
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + 0.35;
+    const reach = 90 + hash01(i * 13) * 150;
+    g2.beginPath();
+    g2.moveTo(nucleusPoint.x, nucleusPoint.y);
+    g2.quadraticCurveTo(
+      nucleusPoint.x + Math.cos(a) * reach * 0.5 + (hash01(i * 5) - 0.5) * 60,
+      nucleusPoint.y + Math.sin(a) * reach * 0.5,
+      nucleusPoint.x + Math.cos(a) * reach,
+      nucleusPoint.y + Math.sin(a) * reach,
+    );
+    g2.stroke();
+  }
+  // Corner vignette — depth for free.
+  const vg = g2.createRadialGradient(WIDTH / 2, HEIGHT * 0.45, HEIGHT * 0.35, WIDTH / 2, HEIGHT * 0.5, HEIGHT * 0.82);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.17)'); // gentle — the LIVE pressure vignette stacks on top
+  g2.fillStyle = vg;
+  g2.fillRect(0, 0, WIDTH, HEIGHT);
+  return c;
+}
+
+function drawFloor(ctx: CanvasRenderingContext2D): void {
+  const raw = typeof ctx.getTransform === 'function' ? (ctx.getTransform() as { a?: unknown } | null)?.a : undefined;
+  const scale = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
+  if (typeof document === 'undefined' || scale === 0) {
+    // Headless/stubbed context (tests) — paint directly, no offscreen layer.
+    drawBackground(ctx);
+    drawTiles(ctx);
+    return;
+  }
+  if (!floorCache || floorCacheScale !== scale) {
+    floorCache = buildFloor(scale);
+    floorCacheScale = scale;
+  }
+  ctx.drawImage(floorCache, 0, 0, WIDTH, HEIGHT);
+}
+
+/** Slow ambient spore motes drifting the arena — the air itself is alive. All hash-keyed. */
+function drawAmbientMotes(ctx: CanvasRenderingContext2D, t: number): void {
+  for (let i = 0; i < 22; i++) {
+    const h = hash01(i * 11 + 4);
+    const drift = ((hash01(i * 17 + 2) * WIDTH) + Math.sin(t * (0.15 + h * 0.2) + i) * 30 + t * (i % 2 ? 2.5 : -2)) % WIDTH;
+    const x = drift < 0 ? drift + WIDTH : drift;
+    const y = (hash01(i * 23 + 6) * HEIGHT + t * (4 + h * 7)) % HEIGHT;
+    ctx.fillStyle = `rgba(190, 230, 210, ${0.05 + 0.06 * pulse(t, 0.4 + h, 0, 1)})`;
+    ctx.beginPath();
+    ctx.arc(x, y, 1 + h * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 export function drawGame(
   ctx: CanvasRenderingContext2D,
   rs: RenderState,
@@ -100,9 +205,9 @@ export function drawGame(
   const danger = dangerCurve(rs.dangerIntensity); // blend curve: zero-derivative entry/exit
   const pressure = Math.min(1, danger * 0.8 + (1 - intRatio) * 0.5);
 
-  drawBackground(ctx);
-  drawTiles(ctx);
+  drawFloor(ctx); // cached static layer: sky, tiles, mottling, dormant veins, vignette
   drawBiomeWash(ctx, rs); // biome accent wash, under the entities (skipped for NEUTRAL/Stage)
+  drawAmbientMotes(ctx, t); // drifting spores — the air is alive
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);
   drawObstacles(ctx);
@@ -115,14 +220,68 @@ export function drawGame(
   drawSlots(ctx, rs, occupied);
   drawBase(ctx, rs, t);
 
+  // ── Corrosive ground fields (the mortar's acid, docs/TOWERS.md) — a SEETHING pond:
+  //    layered toxic depths, a creeping wobble rim, hash-keyed bubbles rising + bursting
+  //    into ringlets, and fume wisps. Time/id-keyed only (zero per-pool state); the final
+  //    second visibly drains out instead of popping.
   for (const p of rs.pools) {
+    const fade = Math.min(1, p.remaining);
+    const acid = '158, 226, 60';
+    const deep = '61, 100, 20';
+    const g = ctx.createRadialGradient(p.x, p.y, p.radius * 0.1, p.x, p.y, p.radius);
+    g.addColorStop(0, rgba(acid, 0.32 * fade));
+    g.addColorStop(0.55, rgba(acid, 0.15 * fade));
+    g.addColorStop(1, rgba(deep, 0.3 * fade));
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fillStyle = THEME.pool.fill;
+    ctx.fillStyle = g;
     ctx.fill();
-    ctx.strokeStyle = THEME.pool.edge;
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = rgba(acid, 0.5 * fade);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i <= 26; i++) {
+      const a = (i / 26) * Math.PI * 2;
+      const rr = p.radius * (1 + 0.035 * Math.sin(a * 5 + t * 2.1 + p.id));
+      const px = p.x + Math.cos(a) * rr;
+      const py = p.y + Math.sin(a) * rr;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
     ctx.stroke();
+    ring(ctx, p.x, p.y, p.radius * 0.78, rgba(acid, 0.18 * fade), 1, [4, 7]);
+    const bubbles = p.radius > 40 ? 7 : 5;
+    for (let i = 0; i < bubbles; i++) {
+      const h1 = hash01(p.id * 37 + i * 11);
+      const h2 = hash01(p.id * 53 + i * 7);
+      const cyc = (t * (0.5 + h1 * 0.5) + h2) % 1;
+      const bx = p.x + Math.cos(h1 * Math.PI * 2) * h2 * p.radius * 0.75;
+      const by = p.y + Math.sin(h1 * Math.PI * 2) * h2 * p.radius * 0.75 - cyc * 4;
+      if (cyc < 0.8) {
+        const br = (0.6 + cyc * 2.6) * (0.8 + h1);
+        ctx.fillStyle = rgba(acid, (0.5 - cyc * 0.35) * fade);
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(235,255,210,${(0.5 - cyc * 0.4) * fade})`;
+        ctx.beginPath();
+        ctx.arc(bx - br * 0.3, by - br * 0.3, br * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        const k = (cyc - 0.8) / 0.2;
+        ring(ctx, bx, by, 2 + k * 5, rgba(acid, (1 - k) * 0.5 * fade), 1);
+      }
+    }
+    for (let i = 0; i < 2; i++) {
+      const h = hash01(p.id * 71 + i * 13);
+      const cyc = (t * 0.35 + h) % 1;
+      const fx = p.x + (h - 0.5) * p.radius * 0.9 + Math.sin(t * 1.3 + i * 2 + p.id) * 5 * cyc;
+      const fy = p.y - cyc * (18 + h * 10);
+      ctx.fillStyle = rgba(acid, (1 - cyc) * 0.1 * fade);
+      ctx.beginPath();
+      ctx.arc(fx, fy, 3 + cyc * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   // Boss corruption pools (docs/BOSS-DESIGN.md §siege): sick violet ground-rot — towers
   // inside hit softer. The seething edge + fading alpha read the zone AND its lifetime.
@@ -310,6 +469,29 @@ function drawSpawnZone(ctx: CanvasRenderingContext2D, t: number): void {
   }
   ctx.stroke();
 
+  // egg-sac bumps studding the seam (ride the same ripple; each carries a dim ovum glint)
+  for (let x = 24; x < WIDTH; x += 48) {
+    const yy = yb + Math.sin(x * 0.05 + t * 1.5) * 3;
+    ctx.fillStyle = rgba(THEME.spawn.membrane, 0.5);
+    ctx.beginPath();
+    ctx.arc(x, yy - 1, 3.2 + Math.sin(x * 1.7) * 1.2, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = rgba(THEME.spawn.edge, pulse(t * 1.3 + x, 2, 0.15, 0.5));
+    ctx.beginPath();
+    ctx.arc(x - 1, yy - 2.4, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // spore drizzle sifting out of the membrane — the swarm's breath
+  for (let i = 0; i < 10; i++) {
+    const h = hash01(i * 29 + 3);
+    const f = (t * (0.25 + h * 0.3) + h) % 1;
+    const sx = hash01(i * 31 + 8) * WIDTH + Math.sin(t + i) * 8;
+    ctx.fillStyle = rgba(THEME.spawn.edge, (1 - f) * 0.35);
+    ctx.beginPath();
+    ctx.arc(sx, yb + f * 46, 1.4 + h, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   // descending chevrons — the swarm's direction of advance (eased so they fall
   // with a little gravity before looping).
   ctx.fillStyle = THEME.spawn.chevron;
@@ -366,17 +548,43 @@ function drawDefenseZone(ctx: CanvasRenderingContext2D, t: number, pressure: num
 }
 
 function drawObstacles(ctx: CanvasRenderingContext2D): void {
+  // Chitin outcrops, not flat plates: base fill + a lit top-left bevel, a shadowed
+  // bottom-right edge, and a couple of hash-keyed growth nodules per cell.
   for (const o of obstacleCells) {
+    const x0 = o.x - CELL / 2;
+    const y0 = o.y - CELL / 2;
     ctx.fillStyle = THEME.obstacle.fill;
-    ctx.fillRect(o.x - CELL / 2, o.y - CELL / 2, CELL, CELL);
+    ctx.fillRect(x0, y0, CELL, CELL);
+    ctx.strokeStyle = 'rgba(200,220,255,0.1)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x0 + 1, y0 + CELL - 1);
+    ctx.lineTo(x0 + 1, y0 + 1);
+    ctx.lineTo(x0 + CELL - 1, y0 + 1);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.moveTo(x0 + CELL - 1, y0 + 1);
+    ctx.lineTo(x0 + CELL - 1, y0 + CELL - 1);
+    ctx.lineTo(x0 + 1, y0 + CELL - 1);
+    ctx.stroke();
     ctx.strokeStyle = THEME.obstacle.edge;
     ctx.lineWidth = 1;
-    ctx.strokeRect(o.x - CELL / 2 + 0.5, o.y - CELL / 2 + 0.5, CELL - 1, CELL - 1);
+    ctx.strokeRect(x0 + 0.5, y0 + 0.5, CELL - 1, CELL - 1);
+    for (let i = 0; i < 2; i++) {
+      const h1 = hash01(o.x * 7 + o.y * 13 + i * 29);
+      const h2 = hash01(o.x * 11 + o.y * 3 + i * 41);
+      ctx.fillStyle = `rgba(150,170,205,${0.05 + h1 * 0.05})`;
+      ctx.beginPath();
+      ctx.ellipse(x0 + 8 + h1 * (CELL - 16), y0 + 8 + h2 * (CELL - 16), 3 + h2 * 4, 2 + h1 * 3, h1 * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }
 
 function drawHiveTendrils(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
-  // Living veins from the core feeding its grown defenses.
+  // Living veins from the core feeding its grown defenses — with visible nutrient pulses
+  // traveling core→tower, so the supply line READS as a supply line.
   const { x: cx, y: cy } = nucleusPoint;
   ctx.lineWidth = 2;
   for (const tw of rs.towers) {
@@ -387,6 +595,14 @@ function drawHiveTendrils(ctx: CanvasRenderingContext2D, rs: RenderState, t: num
     const my = (cy + tw.y) / 2;
     ctx.quadraticCurveTo(mx, my, tw.x, tw.y);
     ctx.stroke();
+    const u = (t * 0.45 + tw.id * 0.37) % 1;
+    const iu = 1 - u;
+    const bx = iu * iu * cx + 2 * iu * u * mx + u * u * tw.x;
+    const by = iu * iu * cy + 2 * iu * u * my + u * u * tw.y;
+    ctx.fillStyle = rgba(THEME.hive.tendril, 0.55 * Math.sin(u * Math.PI));
+    ctx.beginPath();
+    ctx.arc(bx, by, 2.2, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 
@@ -402,6 +618,15 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   const beat = pulse(t, 3 + hurt * 4 + (intRatio < 0.25 ? 3 : 0), 0.85 - hurt * 0.05, 1.15 + hurt * 0.1);
   const R = 36 * beat;
 
+  // Warm caustic light pooling beneath the organism — grounds it in the arena.
+  const lp = ctx.createRadialGradient(x, y + 14, 2, x, y + 14, 52);
+  lp.addColorStop(0, rgba(hexRgb('#ff9a7a'), 0.12 + 0.05 * (beat - 0.85)));
+  lp.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = lp;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 14, 52, 24, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   glowDisc(ctx, x, y, R, THEME.hive.glow[0]);
 
   // Emergency Defense Mode: the core flares brighter — the heart of the alarm.
@@ -416,7 +641,8 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
     glowDisc(ctx, x, y, R * 1.7, rgba(hexRgb('#ff3e4c'), 0.1 + 0.1 * pulse(t, 9, 0, 1)));
   }
 
-  // a slowly rotating containment shell around the core
+  // a slowly rotating containment shell around the core — and a counter-rotating outer
+  // lattice, so the organism reads as layered machinery of flesh
   ctx.save();
   ctx.strokeStyle = THEME.hive.shell;
   ctx.lineWidth = 1.5;
@@ -425,11 +651,44 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   ctx.beginPath();
   ctx.arc(x, y, 23 * beat, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.strokeStyle = rgba(hexRgb('#ffb4a2'), 0.22);
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 11]);
+  ctx.lineDashOffset = (t * 26) % 14; // opposite direction
+  ctx.beginPath();
+  ctx.arc(x, y, 29 * beat, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
   ctx.setLineDash([]);
 
-  // core body + bright nucleus
-  drawShape(ctx, 'circle', x, y, 15 * beat, THEME.hive.body);
+  // orbiting mitochondria motes — tiny satellites feeding the heart
+  for (let i = 0; i < 3; i++) {
+    const a = t * (0.5 + i * 0.17) + i * 2.1;
+    const orbR = (27 + i * 4) * beat;
+    const mx = x + Math.cos(a) * orbR;
+    const my = y + Math.sin(a) * orbR * 0.8;
+    glowDisc(ctx, mx, my, 3.2, rgba(hexRgb('#ffd9a0'), 0.45));
+    drawShape(ctx, 'circle', mx, my, 1.3, 'rgba(255,240,220,0.9)');
+  }
+
+  // organic membrane body — two soft harmonics so the organ visibly SQUIRMS, never a hard
+  // circle; shaded from a lit upper-left toward a deep venous rim
+  ctx.beginPath();
+  for (let i = 0; i <= 20; i++) {
+    const a = (i / 20) * Math.PI * 2;
+    const rr = 15 * beat * (1 + 0.06 * Math.sin(a * 3 + t * 1.7) + 0.04 * Math.sin(a * 5 - t * 2.3));
+    const px = x + Math.cos(a) * rr;
+    const py = y + Math.sin(a) * rr;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  const bodyG = ctx.createRadialGradient(x - 5, y - 6, 2, x, y, 16 * beat);
+  bodyG.addColorStop(0, '#ff8ba0');
+  bodyG.addColorStop(0.55, THEME.hive.body);
+  bodyG.addColorStop(1, '#a5303f');
+  ctx.fillStyle = bodyG;
+  ctx.fill();
 
   // ── DAMAGE STATES (docs/HIVE-SIEGE.md §states): the shell visibly fails as integrity falls.
   //    Deterministic geometry (id-hashed angles, no rng) — stable frame to frame.
@@ -555,9 +814,15 @@ function drawSlots(ctx: CanvasRenderingContext2D, rs: RenderState, occupied: Set
       continue;
     }
 
-    // an inviting "build pad": soft plate, pulsing corner brackets, center cross.
+    // an inviting "build pad": soft plate, recessed socket shading, pulsing corner
+    // brackets, center cross — reads as a machined bio-socket, not a flat square.
     roundRectPath(ctx, x, y, s, s, 6);
     ctx.fillStyle = THEME.slot.pad;
+    ctx.fill();
+    const ig = ctx.createRadialGradient(slot.x, slot.y, 2, slot.x, slot.y, s * 0.7);
+    ig.addColorStop(0, 'rgba(0,0,0,0.2)');
+    ig.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = ig;
     ctx.fill();
     ctx.strokeStyle = THEME.slot.padEdge;
     ctx.lineWidth = 1;
@@ -924,19 +1189,37 @@ function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number):
     const heat = tw.beamHeat;
     const sx = tw.x;
     const sy = tw.y - 4; // muzzle sits just above the lens
+    // The beam WAVERS as resonance climbs — a superheated channel, not a laser pointer.
+    const midx = (sx + target.x) / 2 + Math.sin(now * 11 + tw.id) * 3 * heat;
+    const midy = (sy + target.y) / 2 + Math.cos(now * 9 + tw.id) * 3 * heat;
     ctx.lineCap = 'round';
     // outer resonance glow
     ctx.strokeStyle = rgba(c, 0.16 + heat * 0.34);
     ctx.lineWidth = 2.5 + heat * 6;
-    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(target.x, target.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(midx, midy, target.x, target.y); ctx.stroke();
     // bright inner core
     ctx.strokeStyle = rgba('255, 255, 255', 0.45 + heat * 0.45);
     ctx.lineWidth = 1 + heat * 2.2;
-    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(target.x, target.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(midx, midy, target.x, target.y); ctx.stroke();
     ctx.lineCap = 'butt';
+    // energy quanta racing down the channel toward the melt point
+    for (let i = 0; i < 3; i++) {
+      const f = (now * (1.2 + heat * 1.6) + i / 3) % 1;
+      const iu = 1 - f;
+      const px = iu * iu * sx + 2 * iu * f * midx + f * f * target.x;
+      const py = iu * iu * sy + 2 * iu * f * midy + f * f * target.y;
+      drawShape(ctx, 'circle', px, py, 1.3 + heat * 1.5, rgba('255, 255, 255', 0.45 + heat * 0.4));
+    }
     // impact bloom that pulses harder as resonance climbs — the "melting" point
     const bloom = (5 + heat * 11) * pulse(now * 8 + tw.id, 1, 0.82, 1.18);
     glowDisc(ctx, target.x, target.y, bloom, rgba(c, 0.3 + heat * 0.45));
+    if (heat > 0.4) { // molten spatter flicking off the wound once the melt takes hold
+      for (let i = 0; i < 3; i++) {
+        const a = hash01(Math.floor(now * 10) * 3 + i + tw.id) * Math.PI * 2;
+        const d = 4 + hash01(i * 17 + tw.id) * 8 * heat;
+        drawShape(ctx, 'circle', target.x + Math.cos(a) * d, target.y + Math.sin(a) * d, 1 + heat, rgba(c, 0.6 * heat));
+      }
+    }
   }
 }
 
@@ -962,16 +1245,22 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   const head = splash ? 3.7 : parasite ? 2.9 : 2.4;
   const tlen = splash ? 15 : parasite ? 9 : 13;
 
-  // A tapered COMET trail (a few fading segments, fat near the head → thin) reads as speed +
-  // energy far better than a single flat line.
+  // A tapered COMET trail (fading segments, fat near the head → thin) reads as speed +
+  // energy far better than a single flat line; a faint wide under-glow softens the streak.
   ctx.lineCap = 'round';
-  for (let s = 0; s < 3; s++) {
-    const f = s / 3; // 0 = nearest the head
+  ctx.strokeStyle = rgba(trail, 0.14);
+  ctx.lineWidth = head * 2.2;
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  ctx.lineTo(p.x - ux * tlen * 0.8, p.y - uy * tlen * 0.8);
+  ctx.stroke();
+  for (let s = 0; s < 4; s++) {
+    const f = s / 4; // 0 = nearest the head
     ctx.strokeStyle = rgba(trail, 0.5 * (1 - f));
-    ctx.lineWidth = head * (1.15 - f * 0.75);
+    ctx.lineWidth = head * (1.15 - f * 0.8);
     ctx.beginPath();
     ctx.moveTo(p.x - ux * tlen * f, p.y - uy * tlen * f);
-    ctx.lineTo(p.x - ux * tlen * (f + 0.34), p.y - uy * tlen * (f + 0.34));
+    ctx.lineTo(p.x - ux * tlen * (f + 0.28), p.y - uy * tlen * (f + 0.28));
     ctx.stroke();
   }
   ctx.lineCap = 'butt';

@@ -257,7 +257,8 @@ function antenna(ctx: Ctx, x: number, y: number, r: number, c: string, now: numb
   ctx.strokeStyle = C(c, 0.6, spark * 0.6); ctx.lineWidth = Math.max(1, r * 0.05);
   ctx.beginPath(); ctx.moveTo(x, y + r * 0.2); ctx.lineTo(x, y - r * 1.4); ctx.stroke();
   energyCore(ctx, x, y - r * 1.42, r * 0.16 + fire * r * 0.16, c, 0.7 + spark * 0.3); // arcing tip
-  if (spark > 0.8 || fire > 0.02) { ctx.strokeStyle = C(c, 0.7, 0.7); ctx.lineWidth = 1.4; for (let i = 0; i < 3; i++) { const a = Math.random() * TAU; ctx.beginPath(); ctx.moveTo(x, y - r * 1.42); ctx.lineTo(x + Math.cos(a) * r * 0.5, y - r * 1.42 + Math.sin(a) * r * 0.5); ctx.stroke(); } }
+  // deterministic crackle — re-rolls ~14×/s (render never touches Math.random)
+  if (spark > 0.8 || fire > 0.02) { ctx.strokeStyle = C(c, 0.7, 0.7); ctx.lineWidth = 1.4; const seed = Math.floor(now * 14); for (let i = 0; i < 3; i++) { const a = ((Math.sin((seed * 3 + i) * 127.1) * 43758.5453) % 1) * TAU; ctx.beginPath(); ctx.moveTo(x, y - r * 1.42); ctx.lineTo(x + Math.cos(a) * r * 0.5, y - r * 1.42 + Math.sin(a) * r * 0.5); ctx.stroke(); } }
 }
 
 /** A muzzle flare — a hot core + a directional cross-spark, scaled by the firing pulse. */
