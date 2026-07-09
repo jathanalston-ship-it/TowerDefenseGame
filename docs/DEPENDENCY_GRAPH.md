@@ -131,6 +131,7 @@ graph TD
   living_battlefield --> rendering
   living_battlefield --> engine
   living_battlefield --> audio
+  living_battlefield --> assimilation
   devtools --> meta_store
   devtools --> assimilation
 ```
@@ -184,9 +185,9 @@ graph TD
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` · `boss-rush` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
 | **Rendering & VFX** (`rendering`) | `engine` | `living-battlefield` | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` |
-| **Living Battlefield** (`living-battlefield`) | `rendering` · `engine` · `audio` | — | — | — | `docs/LIVING-BATTLEFIELD.md` |
+| **Living Battlefield** (`living-battlefield`) | `rendering` · `engine` · `audio` · `assimilation` | — | — | — | `docs/LIVING-BATTLEFIELD.md` |
 | **Audio** (`audio`) | — | `living-battlefield` | — | — | `docs/GAME-FEEL.md` |
-| **Assimilation Index** (`assimilation`) | — | `engine` · `run-ui` · `devtools` | ⚡ CONSUMES the live run Power Score as its dominant contributor (never feeds Power) | — | `docs/ASSIMILATION.md` |
+| **Assimilation Index** (`assimilation`) | — | `engine` · `run-ui` · `living-battlefield` · `devtools` | ⚡ CONSUMES the live run Power Score as its dominant contributor (never feeds Power) | — | `docs/ASSIMILATION.md` |
 | **Dev Tools & Debug** (`devtools`) | `meta-store` · `assimilation` | — | — | — | `docs/DEV-RESET.md` |
 | **Shared UI Component Kit** (`ui-kit`) | — | — | — | — | `docs/UI-STANDARDS.md` · `docs/STYLE-GUIDE.md` · `docs/UI-MOTION.md` · `docs/VISUAL_IDENTITY.md` · `docs/UI_STYLE_GUIDE.md` · `docs/DESIGN_LANGUAGE.md` · `docs/RESPONSIVE-DESIGN.md` |
 | **System Registry & Doc Tooling** (`dev-registry`) | — | — | — | — | `docs/DEPENDENCY_GRAPH.md` · `docs/ENGINEERING-AUDIT.md` · `docs/GAME_CONSTITUTION.md` · `docs/PROJECT_STATUS.md` · `docs/AI_HANDOFF.md` |
@@ -873,7 +874,7 @@ graph TD
 *A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe.*
 
 - **Files:** `src/render/livingBattlefield.ts`
-- **Depends on:** `rendering` · `engine` · `audio`
+- **Depends on:** `rendering` · `engine` · `audio` · `assimilation`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
@@ -904,14 +905,14 @@ graph TD
 
 - **Files:** `src/core/assimilation.ts` · `src/render/assimilationFx.ts` · `src/ui/AssimilationDebug.tsx`
 - **Depends on:** —
-- **Consumers — what breaks if you change this:** `engine` · `run-ui` · `devtools`
+- **Consumers — what breaks if you change this:** `engine` · `run-ui` · `living-battlefield` · `devtools`
 - **Power Score:** CONSUMES the live run Power Score as its dominant contributor (never feeds Power)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** `screen veil + camera heartbeat (GameView)` · `canvas-frame glow` · **UI screens:** `AssimilationDebug (DebugPanel section)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/ASSIMILATION.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/DEV-RESET.md`
+- **Docs to update on change:** `docs/ASSIMILATION.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/LIVING-BATTLEFIELD.md` · `docs/DEV-RESET.md`
 
 ### Dev Tools & Debug (`devtools`)
 

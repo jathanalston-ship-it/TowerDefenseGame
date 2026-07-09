@@ -31,6 +31,16 @@ The value maps to an **evolution stage 0–5** via `STAGE_THRESHOLDS`
 is the master alpha for the whole effect, so the arena deepens smoothly rather than popping between
 stages.
 
+**One source of truth.** In the live game the stage is *not* taken from this local biomass — it is
+taken from the canonical **Assimilation Index** (`core/assimilation.ts`, docs/ASSIMILATION.md), the
+run's hidden master state that already folds the Power Score + contribution profiles and drives the
+mood FX, music floor and HUD glow. `GameView` passes its eased `game.assimilation.index` down through
+`drawGame`; `computeAssimilation(rs, ctx, masterIndex)` reads its tier via `tierAt()`. So the terrain,
+the music and the HUD all deepen **together** — never one at "Planetary" while another lags. The local
+biomass accumulator is the **standalone fallback** (used by the unit tests and Spectate/replay, where
+the eased index isn't threaded); the **regional hotspots are always computed here**, since the scalar
+index can't carry per-tower placement.
+
 ## Environmental Influence Profiles (data-driven, future-proof)
 
 Each contributor declares **how** it mutates the ground via a *motif* (`vein · flesh · bone · crystal ·

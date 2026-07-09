@@ -557,7 +557,9 @@ export function GameView({
           graftPulseAtRef.current = rs.time + 5.5;
           audio.cue('graftPulse');
         }
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power);
+        // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
+        // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index);
         // Living Battlefield reactivity (docs/LIVING-BATTLEFIELD.md §audio): a subtle organic swell when the
         // arena deepens a stage — never on the first frame (avoids a cue on load), never on decrease.
         {

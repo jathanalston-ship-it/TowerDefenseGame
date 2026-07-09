@@ -8,6 +8,7 @@ import {
   computeAssimilation, profileForTower, profileForHero, profileForMulligan, profileForGene,
   setStageOverride, STAGE_NAMES, STAGE_COUNT,
 } from './livingBattlefield';
+import { tierAt } from '../core/assimilation';
 import type { RenderState } from '../core/game';
 import type { LBContext } from './livingBattlefield';
 
@@ -74,6 +75,18 @@ describe('Living Battlefield — assimilation accumulator', () => {
     }), ctx());
     expect(mega.regions.some((r) => r.kind === 'mega')).toBe(true);
     expect(base.regions.some((r) => r.kind === 'mega')).toBe(false);
+  });
+
+  it('takes the STAGE from the canonical Assimilation Index tier when supplied (one source of truth)', () => {
+    for (const idx of [0, 0.15, 0.35, 0.55, 0.72, 0.95]) {
+      const a = computeAssimilation(rs({ towers: towers(4) as RenderState['towers'] }), ctx(500), idx);
+      expect(a.stage).toBe(tierAt(idx).tier.index); // terrain stage == the mood-FX tier ⇒ coherent
+      expect(a.intensity).toBeCloseTo(idx, 5);
+      expect(a.regions.filter((r) => r.kind === 'tower')).toHaveLength(4); // regions still computed locally
+    }
+    setStageOverride(2); // the dev override still wins over the index
+    expect(computeAssimilation(rs(), ctx(), 0.95).stage).toBe(2);
+    setStageOverride(null);
   });
 
   it('the dev stage override forces a stage regardless of biomass', () => {

@@ -17,6 +17,7 @@
 import type { RenderState } from '../core/game';
 import { CELL, HEIGHT, WIDTH, nucleusPoint } from '../core/map';
 import { ENEMY_DEFS } from '../core/config';
+import { tierAt } from '../core/assimilation';
 
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
@@ -128,8 +129,13 @@ function towerWeight(kind: string, strain: number, branchTier: number, ctx: LBCo
   return 1 + Math.max(0, strain - 1) * 0.8 + branchTier * 0.5 + stars * 0.6 + mastery * 0.5 + graft;
 }
 
-/** Pure: fold the whole run into a hidden biomass value, a stage, and the regional hotspots. */
-export function computeAssimilation(rs: RenderState, ctx: LBContext): Assimilation {
+/** Pure: fold the whole run into a hidden biomass value, a stage, and the regional hotspots. When the
+ *  canonical Assimilation Index (docs/ASSIMILATION.md) is supplied (`masterIndex`, the live game's eased
+ *  0..1 master state), the STAGE is taken from its tier ⇒ ONE source of truth drives terrain + the mood
+ *  FX + HUD together. Absent (tests / spectate), the module's own biomass accumulator is the fallback.
+ *  The regional hotspots (towers/nucleus/combat/mega) are always computed here — the scalar index can't
+ *  carry per-tower placement. */
+export function computeAssimilation(rs: RenderState, ctx: LBContext, masterIndex?: number): Assimilation {
   const regions: Region[] = [];
   const motifWeight = new Map<Motif, number>();
   let value = 0;
@@ -154,10 +160,16 @@ export function computeAssimilation(rs: RenderState, ctx: LBContext): Assimilati
   value += Math.log2(1 + Math.max(0, ctx.power)) * 1.2; // power score, log-scaled so it never dominates
   if (rs.biome.id !== 'neutral') value *= 1.08; // an active biome accelerates assimilation slightly
 
-  const { stage: rawStage, progress: rawProg } = stageFor(value);
-  const stage = stageOverride != null ? stageOverride : rawStage;
-  const progress = stageOverride != null ? 1 : rawProg;
-  const intensity = Math.min(1, (stage + progress) / STAGE_COUNT);
+  // Stage: the dev override wins; else the canonical Assimilation Index tier (one source of truth);
+  // else the module's own biomass thresholds (standalone fallback).
+  let stage: number, progress: number, intensity: number;
+  if (stageOverride != null) {
+    stage = stageOverride; progress = 1; intensity = Math.min(1, (stage + 1) / STAGE_COUNT);
+  } else if (masterIndex != null) {
+    const r = tierAt(masterIndex); stage = r.tier.index; progress = r.progress; intensity = Math.min(1, Math.max(0, masterIndex));
+  } else {
+    const r = stageFor(value); stage = r.stage; progress = r.progress; intensity = Math.min(1, (stage + progress) / STAGE_COUNT);
+  }
 
   // The nucleus is the strongest anchor once the field wakes — it grows into the run's central organ.
   regions.push({ x: nucleusPoint.x, y: nucleusPoint.y, strength: 4 + value * 0.2, motif: 'vein', hue: CORE_HUE, kind: 'core', seed: 0x9e3779b1 });
@@ -301,8 +313,8 @@ function resolveAccent(accent: string): Col | null {
 // ══ Draw — the whole under-entity terrain layer ══════════════════════════════════════════════════
 /** Draws the living battlefield BENEATH the entities. Returns the computed assimilation (for the HUD/
  *  audio). Fully inert at Stage 0 ⇒ the original clean arena (and always render-only ⇒ golden-safe). */
-export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext, now: number, detail = true): Assimilation {
-  const a = computeAssimilation(rs, data);
+export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext, now: number, detail = true, masterIndex?: number): Assimilation {
+  const a = computeAssimilation(rs, data, masterIndex);
   lastAssim = a;
   if (!enabled) return a; // dev toggle: computed (readout still live) but nothing drawn
   // Self-reset on run restart (sim time rewound), then advance scar lifetimes by elapsed SIM time (so

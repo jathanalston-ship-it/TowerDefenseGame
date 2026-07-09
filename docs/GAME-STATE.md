@@ -464,7 +464,10 @@ presentation-side only (determinism); heroes only strike organs on an empty fiel
 `renderer.ts drawGame` (after `drawBiomeWash`) plus an over-entity ambient pass. A hidden per-run
 "biomass" (`computeAssimilation`) folds towers (count + strain/branch/stars/mastery/graft), heroes
 (+gear), kills/boss/mega, wave, log-scaled Power Score, and biome into an evolution **stage 0–5**
-(`STAGE_THRESHOLDS`, names `Dormant…Living`). `intensity=(stage+progress)/6` is the master alpha.
+(`STAGE_THRESHOLDS`, names `Dormant…Living`). In the live game the stage comes from the canonical
+**Assimilation Index** (`core/assimilation.ts`) via `tierAt(game.assimilation.index)` — ONE source of
+truth shared with the mood FX/music/HUD; the local biomass path is the standalone fallback
+(tests/spectate) and always supplies the regional hotspots. `intensity=(stage+progress)/6` is the master alpha.
 Draw layers: cached stage-keyed **membrane** (biome-tinted), **arteries** nucleus→towers with a
 heartbeat, per-motif **regional blooms**, a growing **nucleus organ** (roots/sacs/eyes/heartbeat),
 pooled **scars** (permanent boss/mega via render-side id-disappearance; fading combat scorch), and

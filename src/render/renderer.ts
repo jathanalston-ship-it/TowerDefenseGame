@@ -207,6 +207,7 @@ export function drawGame(
   mulligans: Partial<Record<string, MulliganRender>> = {}, // per-kind resolved Mulligan organism (docs/MULLIGANS.md; {} = none)
   heroGear: Partial<Record<string, HeroGearSpec>> = {}, // per-hero equipped gear (docs/EQUIPMENT.md §visuals; {} = starter look)
   power = 0, // live run Power Score → the Living Battlefield's biomass accumulator (docs/LIVING-BATTLEFIELD.md)
+  assimilationIndex = -1, // canonical Assimilation Index 0..1 (docs/ASSIMILATION.md); <0 ⇒ use the standalone fallback
 ): void {
   const t = rs.time;
 
@@ -223,7 +224,7 @@ export function drawGame(
   // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md): the run's hidden biomass terraforms the ground
   // BENEATH every entity — inert (clean arena) early, unmistakably alive late. Render-only ⇒ golden-safe.
   const lbDetail = rs.enemies.length < PERF.lodEnemyCount;
-  const lbAssim: Assimilation = drawLivingBattlefield(ctx, rs, { power, mulligans, heroGear, cosmeticTiers, starTiers }, t, lbDetail);
+  const lbAssim: Assimilation = drawLivingBattlefield(ctx, rs, { power, mulligans, heroGear, cosmeticTiers, starTiers }, t, lbDetail, assimilationIndex >= 0 ? assimilationIndex : undefined);
   drawAmbientMotes(ctx, t); // drifting spores — the air is alive
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);

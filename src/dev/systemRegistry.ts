@@ -360,7 +360,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'living-battlefield', name: 'Living Battlefield', purpose: 'A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe.',
     files: ['src/render/livingBattlefield.ts'],
-    dependsOn: ['rendering', 'engine', 'audio'], powerScore: null, save: [], tutorial: [], help: [], hud: ['the battlefield itself'], ui: [],
+    dependsOn: ['rendering', 'engine', 'audio', 'assimilation'], powerScore: null, save: [], tutorial: [], help: [], hud: ['the battlefield itself'], ui: [],
     collection: null, achievements: [], localization: 'none', docs: ['docs/LIVING-BATTLEFIELD.md'],
   },
   {
