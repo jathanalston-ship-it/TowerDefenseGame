@@ -241,6 +241,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
   },
   {
+    id: 'infestation', name: 'Infestation Map', purpose: 'The persistent conquest meta (docs/INFESTATION.md): four regions x four sectors; every finished run feeds a target sector (wave-scaled, losses half, capped), regions pay run-effect passives scaled by LIVE fractions, and neglect decays lazily from wall-clock timestamps (nothing ticks). Home board with pinnable targets.',
+    files: ['src/core/infestation.ts', 'src/ui/components/InfestationBoard.tsx'],
+    dependsOn: ['meta-store', 'hub-shell'], powerScore: null, save: ['infestation'],
+    tutorial: [], help: [], hud: [], ui: ['CommandCenter (infestation board)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/INFESTATION.md'],
+  },
+  {
     id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) and return star-scaled bundles of cores/essence/materials. HeroLab panel with countdowns, claims and the send flow.',
     files: ['src/core/expeditions.ts'],
     dependsOn: ['heroes', 'meta-store'], powerScore: null, save: ['expeditions'],

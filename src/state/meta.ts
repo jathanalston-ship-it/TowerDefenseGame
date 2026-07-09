@@ -85,6 +85,7 @@ import type { ContractRunFacts } from '../core/contracts';
 import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, scaleReward } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionReward } from '../core/expeditions';
+import { ALL_SECTORS, REGIONS, effectiveLevel, infestationEffects, regionFraction, runInfestGain, SECTOR_CAP } from '../core/infestation';
 import type { TrophyDef } from '../core/trophies';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
@@ -1457,6 +1458,27 @@ export const meta = {
         ? `The Nemesis deepens — ${nm} has slain you ${nextNemesis!.slain} times`
         : `Nemesis risen — ${nm} will remember you`);
     }
+    // INFESTATION (docs/INFESTATION.md): every finished run feeds the conquest board.
+    // Target = the pinned sector, else the emptiest (spread by default). Lazy decay is
+    // folded into the stored level at write time.
+    const infestNow = Date.now();
+    const infestGain = runInfestGain(result.wave, result.won);
+    let nextInfestation = save.infestation;
+    if (infestGain > 0) {
+      const targetId = (save.infestation.target !== null && ALL_SECTORS.some((x) => x.id === save.infestation.target))
+        ? save.infestation.target
+        : ALL_SECTORS.reduce((lo, x) =>
+            effectiveLevel(save.infestation.sectors[x.id], infestNow) < effectiveLevel(save.infestation.sectors[lo.id], infestNow) ? x : lo,
+          ALL_SECTORS[0]).id;
+      const cur = effectiveLevel(save.infestation.sectors[targetId], infestNow);
+      nextInfestation = {
+        ...save.infestation,
+        sectors: {
+          ...save.infestation.sectors,
+          [targetId]: { level: Math.min(SECTOR_CAP, cur + infestGain), updatedAt: infestNow },
+        },
+      };
+    }
     persist({
       ...save,
       prediction,
@@ -1466,6 +1488,7 @@ export const meta = {
         ? { completed: [...save.contracts.completed, ...contractHits.map((c) => `${contractWeek}:${c.id}`)] }
         : save.contracts,
       nemesis: nextNemesis ?? null,
+      infestation: nextInfestation,
       cosmetics: contractHits.some((c) => c.reward.cosmetic && !save.cosmetics.owned.includes(c.reward.cosmetic))
         ? { ...save.cosmetics, owned: [...save.cosmetics.owned, ...contractHits.map((c) => c.reward.cosmetic).filter((id): id is string => !!id && !save.cosmetics.owned.includes(id))] }
         : save.cosmetics,
@@ -1974,6 +1997,36 @@ export const meta = {
    *  "recently improved"). Returns success; a refusal never charges. */
   // ── Phenotypes (docs/COSMETICS.md) — own/equip/cultivate. Pure presentation: the sim
   //    never reads any of this; equips only change what GameView threads to the renderer. ──
+  // ── Infestation map (docs/INFESTATION.md) — the persistent conquest board. ──
+  infestationView(now = Date.now()): {
+    regions: { def: (typeof REGIONS)[number]; fraction: number; bonusNow: string }[];
+    sectors: Record<string, number>;
+    target: string | null;
+  } {
+    const s = store.get();
+    const sectors: Record<string, number> = {};
+    for (const x of ALL_SECTORS) sectors[x.id] = effectiveLevel(s.infestation.sectors[x.id], now);
+    return {
+      regions: REGIONS.map((def) => {
+        const fraction = regionFraction(def, s.infestation.sectors, now);
+        return { def, fraction, bonusNow: `${def.bonus.label} +${Math.round((def.bonus.max - 1) * fraction * 100)}%` };
+      }),
+      sectors,
+      target: s.infestation.target,
+    };
+  },
+  /** Pin the sector future runs feed (null = auto-spread to the emptiest). */
+  setInfestTarget(sectorId: string | null): boolean {
+    const s = store.get();
+    if (sectorId !== null && !ALL_SECTORS.some((x) => x.id === sectorId)) return false;
+    persist({ ...s, infestation: { ...s.infestation, target: sectorId } });
+    return true;
+  },
+  /** The map's region passives, folded into every run like gear. [] on a fresh board. */
+  infestationRunEffects(now = Date.now()): CardEffect[] {
+    return infestationEffects(store.get().infestation.sectors, now);
+  },
+
   // ── Hero Expeditions (docs/EXPEDITIONS.md) — the benched-hero idle lane. ──
   /** The full board: defs + live missions (+remaining ms) + whether each can start. */
   expeditionsView(now = Date.now()): {

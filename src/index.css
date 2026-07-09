@@ -8494,3 +8494,31 @@ kbd {
   border-radius: var(--r-md);
 }
 .exp-empty { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ── Infestation board (InfestationBoard.tsx, docs/INFESTATION.md) ── */
+.inf-board { padding: 10px 12px; }
+.inf-region { margin-top: 8px; }
+.inf-region-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.inf-region-name { font-size: 12px; font-weight: 800; color: var(--rc, var(--text)); }
+.inf-region-bonus { font-size: 11px; color: var(--muted); text-align: right; min-width: 0; }
+.inf-sectors { display: flex; gap: 6px; margin-top: 5px; }
+.inf-sector {
+  position: relative;
+  flex: 1;
+  height: 30px;
+  min-height: 24px;
+  overflow: hidden;
+  background: var(--panel-deep);
+  border: 1px solid color-mix(in srgb, var(--rc, var(--line)) 35%, var(--line));
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 10px;
+}
+.inf-sector.is-pinned { border-color: var(--rc, var(--gold)); box-shadow: 0 0 8px color-mix(in srgb, var(--rc, var(--gold)) 35%, transparent); }
+.inf-fill {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: color-mix(in srgb, var(--rc, var(--gold)) 30%, transparent);
+  pointer-events: none;
+}
+.inf-sector-n { position: relative; font-weight: 700; }

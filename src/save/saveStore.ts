@@ -15,6 +15,7 @@ import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById } from '../core/trophies';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
+import { ALL_SECTORS, SECTOR_CAP } from '../core/infestation';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
@@ -77,6 +78,8 @@ export interface SaveData {
   equippedTrophy: string | null;
   // ── Hero Expeditions (v26, docs/EXPEDITIONS.md) — active away-missions (absolute endsAt ms). ──
   expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[] };
+  // ── Infestation map (v26, docs/INFESTATION.md) — sector conquest {level, updatedAt} + target. ──
+  infestation: { target: string | null; sectors: Record<string, { level: number; updatedAt: number }> };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -404,6 +407,7 @@ export function defaultSave(): SaveData {
     nemesis: null,
     equippedTrophy: null,
     expeditions: { active: [] },
+    infestation: { target: null, sectors: {} },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -606,6 +610,22 @@ function withDefaults(data: SaveData): SaveData {
         .filter((e) => { if (seen.has(e.hero)) return false; seen.add(e.hero); return true; })
         .slice(0, EXPEDITION_SLOTS);
       return { active };
+    })(),
+    infestation: ((): SaveData['infestation'] => {
+      const raw = (data as { infestation?: { target?: unknown; sectors?: unknown } }).infestation;
+      const out: SaveData['infestation'] = { target: null, sectors: {} };
+      if (!raw || typeof raw !== 'object') return out;
+      if (typeof raw.target === 'string' && ALL_SECTORS.some((x) => x.id === raw.target)) out.target = raw.target;
+      if (raw.sectors && typeof raw.sectors === 'object') {
+        for (const [k, v] of Object.entries(raw.sectors as Record<string, unknown>)) {
+          if (!ALL_SECTORS.some((x) => x.id === k)) continue;
+          const o = v as { level?: unknown; updatedAt?: unknown };
+          const level = Math.max(0, Math.min(SECTOR_CAP, Number(o?.level) || 0));
+          const updatedAt = Number(o?.updatedAt) || 0;
+          if (level > 0) out.sectors[k] = { level, updatedAt };
+        }
+      }
+      return out;
     })(),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,

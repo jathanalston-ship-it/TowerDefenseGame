@@ -36,6 +36,7 @@ import { PredictionPanel } from './PredictionPanel';
 import { WorldStatus } from './WorldStatus';
 import { LiveEventsStrip } from './components/LiveEventsStrip';
 import { ContractsCard } from './components/ContractsCard';
+import { InfestationBoard } from './components/InfestationBoard';
 import { armyView, commandFeed, homeRegistry } from './homeModel';
 import type { HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
@@ -141,6 +142,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} />,
   'live-events': () => <LiveEventsStrip />,
   'contracts': () => <ContractsCard />,
+  'infestation': () => <InfestationBoard />,
   'mission-control': MissionControl,
   'forecast': () => (
     <div className="cc-forecast">

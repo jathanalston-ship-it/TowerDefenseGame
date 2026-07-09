@@ -82,7 +82,7 @@ describe('home widget registry — the shell renders THIS', () => {
   it('ships the launch board and honors `when` guards', () => {
     const fresh = defaultSave();
     expect(homeRegistry.zone(fresh, 'world').map((d) => d.id)).toEqual(['world-status']);
-    expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['next-goal', 'live-events', 'contracts', 'mission-control']);
+    expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['next-goal', 'live-events', 'contracts', 'infestation', 'mission-control']);
     // feed hides on an empty timeline; appears once history exists
     expect(homeRegistry.zone(fresh, 'feed').map((d) => d.id)).toEqual(['dashboard']);
     const vet = { ...fresh, timeline: [{ at: 1, icon: '★', label: 'x' }] };

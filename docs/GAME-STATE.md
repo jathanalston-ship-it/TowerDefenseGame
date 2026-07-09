@@ -310,6 +310,23 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 - ✅ Localization core: typed `t()` layer, EN source-of-truth keys, ES/PT catalogs (missing key =
   compile error), Settings language picker, live re-render — I18N.md
 
+### Retention & identity systems (the live-game batch)
+- ✅ **Phenotypes (cosmetics)**: 6 theme families × every tower/hero (generated; new kinds
+  inherit), save v26 owned/equipped, renderer re-expression + aura flourishes + themed
+  projectiles/beams + firing-sfx pitch variants, Phenotype Lab nav tab, Phenotypes
+  collection codex paying Biomass ×1.06 @100% — COSMETICS.md
+- ✅ **Champion Contracts**: weekly deterministic 3-contract board (LiveOps weekIndex),
+  data constraint vocabulary judged in finishRun, core payouts + Gilded exclusives,
+  home board + Results category — CONTRACTS.md
+- ✅ **Nemesis & Trophies**: losses seed a buffed, branded returning hunter (replay-
+  deterministic via RunOptions; dailies excluded); revenge pays scaled cores + Abyssal
+  phenotype; 10 tradeoff trophy organs, ONE mounted, derived ownership — NEMESIS.md
+- ✅ **Hero Expeditions**: benched heroes on 2h/6h/12h away-missions (absolute endsAt,
+  offline-safe), star-scaled bundles, HeroLab panel — EXPEDITIONS.md
+- ✅ **Infestation Map**: 4 regions × 4 sectors; every run feeds the pinned/emptiest
+  sector, regions pay live-scaled run passives, lazy wall-clock decay, home conquest
+  board — INFESTATION.md
+
 ### Not built (structural)
 - 📋 Content-string localization (tower/card/enemy names, help wiki) — chrome is on `t()` via
   I18N.md's convention; registries stay English until `nameKey` columns are worth the volume.
