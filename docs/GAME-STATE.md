@@ -319,7 +319,7 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 - ✅ Production backend (Cloudflare Pages Functions + D1 + Stripe + Turnstile): purchases
   (exactly-once), cloud save + auto sync, daily seed, leaderboard + replay verification,
   aggregate analytics — DEPLOYMENT.md, SECURITY-AUDIT.md, LEADERBOARD-INTEGRITY.md
-- ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition
+- ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition — **overhauled to full procedural canvas cinematics** (`render/introScenes.ts`): five deterministic set-pieces (deep-crust radar reacquisition, the swarm boiling up ember-lit strata, veins consuming a steel lattice, the breathing molten Hive Core, the title spore-field/aurora), film-style cross-dissolves, letterbox grade + grain, per-scene copy accents; reduced-motion shows a hand-picked still per scene; DPR-capped for mobile
 - ✅ Service worker: offline shell, versioned caches, player-controlled update toast — DEPLOYMENT.md §sw
 - ✅ LiveOps calendar: deterministic UTC events (weekend surge + weekly spotlights) folding ×1-baseline
   reward multipliers into finishRun; hub strip — LIVEOPS.md
