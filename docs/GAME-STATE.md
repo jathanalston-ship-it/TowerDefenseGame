@@ -457,3 +457,38 @@ events (mirrors `bossKilled`).
 
 **Known limitations.** Ability windows lapse across the inter-wave settle; slow-motion kills are
 presentation-side only (determinism); heroes only strike organs on an empty field.
+
+## Compressed system summary — Living Battlefield (docs/LIVING-BATTLEFIELD.md)
+
+**Architecture.** One render-only module, `render/livingBattlefield.ts`, drawn beneath the entities in
+`renderer.ts drawGame` (after `drawBiomeWash`) plus an over-entity ambient pass. A hidden per-run
+"biomass" (`computeAssimilation`) folds towers (count + strain/branch/stars/mastery/graft), heroes
+(+gear), kills/boss/mega, wave, log-scaled Power Score, and biome into an evolution **stage 0–5**
+(`STAGE_THRESHOLDS`, names `Dormant…Living`). `intensity=(stage+progress)/6` is the master alpha.
+Draw layers: cached stage-keyed **membrane** (biome-tinted), **arteries** nucleus→towers with a
+heartbeat, per-motif **regional blooms**, a growing **nucleus organ** (roots/sacs/eyes/heartbeat),
+pooled **scars** (permanent boss/mega via render-side id-disappearance; fading combat scorch), and
+edge-biased **ambient life** (stage ≥ 3). Inert at Stage 0.
+
+**Public APIs.** `drawLivingBattlefield(ctx, rs, {power,mulligans,heroGear,cosmeticTiers,starTiers},
+now, detail) → Assimilation` · `drawLivingBattlefieldAmbient(ctx, a, now, detail)` ·
+`computeAssimilation(rs, ctx)` · `profileForTower/Mulligan/Hero/Gene(id) → {motif,hue}` ·
+`getAssimilationDebug()` (dev readout + GameView's `bioStage` audio cue) · dev
+`setStageOverride`/`setLivingBattlefieldEnabled`. `RenderState.assimilation` surfaces
+`{wave,kills,bossKills,megaKills}` (pure snapshot reads). `drawGame` gained a trailing `power` param.
+
+**Extension points.** New tower/hero/mulligan-axis/gene needs **zero code here** — its motif resolves
+by a stable hash default; add a curated row in `TOWER_MOTIF`/`HERO_MOTIF`/`MULLIGAN_MOTIF`/`GENE_MOTIF`
+only to *tune* it. New motif = one `MOTIF_HUE` row + a `case` in `drawBloom`. Balance = the tunable
+constants (`STAGE_THRESHOLDS`, per-source weights) at the top of the module.
+
+**Assumptions.** Render-only — the sim never reads it, so golden runs are byte-identical (the
+`assimilation` snapshot fields don't touch sim math). Self-resets on sim-time rewind (new run). Scar
+lifetimes decay on **sim** time (hold while paused); animation keys on the renderer's `t`.
+
+**Future hooks.** Dedicated projectile-impact scar buffer; per-biome bespoke motifs (bone dunes,
+mutated trees) via a biome→motif bias map; optional HUD "assimilation" meter.
+
+**Known limitations.** Combat scars reuse the enemy death buffer (bosses excluded there → tracked by
+id-disappearance instead); the cached membrane is generic-per-stage (build character comes from the
+live regional blooms, not the base texture).

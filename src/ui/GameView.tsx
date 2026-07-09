@@ -4,6 +4,7 @@ import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
+import { getAssimilationDebug } from '../render/livingBattlefield';
 import { resolveMulligan } from '../core/mulligan';
 import type { MulliganState } from '../core/mulligan';
 import { deriveMulliganProjectile } from '../render/mulliganOrganism';
@@ -308,6 +309,7 @@ export function GameView({
   const hiveStateRef = useRef(0); // deepest damage-state index announced (0 = healthy … 4 = collapsing)
   const heartbeatRef = useRef(0); // seconds until the next critical-integrity heartbeat
   const graftPulseAtRef = useRef(0); // sim time of the next graft-organism heartbeat (docs/MULLIGANS.md §audio)
+  const lbStageRef = useRef(-1); // last Living-Battlefield stage seen (docs/LIVING-BATTLEFIELD.md) — cue on deepen
   // ── Live Mastery projection (docs/MASTERY.md §live) — the EXACT banking math, watched
   //    per HUD tick: banked XP (run-start snapshot; mastery only banks at finishRun) +
   //    this run's accrual × the run-constant multipliers. Level-ups celebrate instantly.
@@ -555,7 +557,14 @@ export function GameView({
           graftPulseAtRef.current = rs.time + 5.5;
           audio.cue('graftPulse');
         }
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power);
+        // Living Battlefield reactivity (docs/LIVING-BATTLEFIELD.md §audio): a subtle organic swell when the
+        // arena deepens a stage — never on the first frame (avoids a cue on load), never on decrease.
+        {
+          const st = getAssimilationDebug()?.stage ?? 0;
+          if (lbStageRef.current >= 0 && st > lbStageRef.current) audio.cue('bioStage');
+          lbStageRef.current = st;
+        }
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
           const RING_MS = 900;

@@ -1,9 +1,13 @@
-import { useReducer, useState, useSyncExternalStore } from 'react';
+import { useEffect, useReducer, useState, useSyncExternalStore } from 'react';
 import { disableDebug, getActiveGame, subscribeActiveGame } from '../debug/debug';
 import { meta } from '../state/meta';
 import { CARD_POOL } from '../core/cards';
 import type { Game } from '../core/game';
 import { AssimilationDebug } from './AssimilationDebug';
+import {
+  getAssimilationDebug, getStageOverride, setStageOverride,
+  isLivingBattlefieldEnabled, setLivingBattlefieldEnabled, STAGE_NAMES,
+} from '../render/livingBattlefield';
 
 export function DebugPanel(): JSX.Element {
   const game = useSyncExternalStore(subscribeActiveGame, getActiveGame, getActiveGame);
@@ -11,6 +15,15 @@ export function DebugPanel(): JSX.Element {
   const [open, setOpen] = useState(true);
   const [, force] = useReducer((x: number) => x + 1, 0);
   const [cardId, setCardId] = useState(CARD_POOL[0].id);
+
+  // Tick while open so the Living Battlefield readout (computed each render frame) stays live.
+  useEffect(() => {
+    if (!open) return;
+    const id = setInterval(force, 400);
+    return () => clearInterval(id);
+  }, [open]);
+  const lb = getAssimilationDebug();
+  const lbOverride = getStageOverride();
 
   const inRun = game !== null;
   const run = (fn: (g: Game) => void): void => {
@@ -200,6 +213,44 @@ export function DebugPanel(): JSX.Element {
               <button disabled={!inRun} onClick={() => run((g) => g.debugApplyCard(cardId))}>
                 Apply
               </button>
+            </div>
+          </div>
+
+          <div className="debug-sec">
+            <div className="h">
+              Living Battlefield{' '}
+              {lb ? (
+                <span className="debug-note">
+                  biomass {lb.value.toFixed(0)} · stage {lb.stage}/5 {STAGE_NAMES[lb.stage]} ·{' '}
+                  {(lb.progress * 100).toFixed(0)}% · {lb.dominant} · {lb.regions.length} regions
+                </span>
+              ) : (
+                <span className="debug-note">— start a run</span>
+              )}
+            </div>
+            <div className="debug-row">
+              <button
+                className={isLivingBattlefieldEnabled() ? 'on' : ''}
+                onClick={() => { setLivingBattlefieldEnabled(!isLivingBattlefieldEnabled()); force(); }}
+              >
+                {isLivingBattlefieldEnabled() ? 'On' : 'Off'}
+              </button>
+              <span className="debug-note">Force stage:</span>
+              <button
+                className={lbOverride === null ? 'on' : ''}
+                onClick={() => { setStageOverride(null); force(); }}
+              >
+                Auto
+              </button>
+              {[0, 1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  className={lbOverride === s ? 'on' : ''}
+                  onClick={() => { setStageOverride(s); force(); }}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
         </div>

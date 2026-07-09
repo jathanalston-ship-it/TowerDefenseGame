@@ -307,6 +307,10 @@ export interface RenderState {
   megaShots: MegaShot[]; // raid-fire tracers (tower/hero → weak point / body); empty otherwise
   mines: SporeMine[]; // Blight Sower spore mines (docs/SOWER.md); empty on every other run
   deathEvents: DeathEvent[]; // one-shot ENEMY-DEATH descriptors for the assimilation VFX (render/gore.ts)
+  // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md) — read-only run signals the render-side biomass
+  // accumulator folds (with rs.towers/heroes/biome + the render maps) into the arena's evolution
+  // stage. Pure snapshot reads of counters the sim already tracks ⇒ no sim math touched ⇒ golden-safe.
+  assimilation: { wave: number; kills: number; bossKills: number; megaKills: number };
 }
 
 /** A single enemy death, surfaced for the ASSIMILATION gore system (render/gore.ts) — the renderer
@@ -6227,6 +6231,7 @@ export class Game {
       megaShots: this.megaShots,
       mines: this.mines,
       deathEvents: this.deathEvents,
+      assimilation: { wave: this.waveIndex, kills: this.kills, bossKills: this.runBossKills, megaKills: this.runMegaKills.length },
     };
   }
 

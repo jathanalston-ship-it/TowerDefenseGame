@@ -204,6 +204,9 @@ function sGraftSquelch(): void { // wet tissue seating into the socket
 function sGraftCrack(): void { // bone crack + a rising vital swell — the upgrade takes
   noise(0.06, 0.12, 3400, 900); noise(0.05, 0.09, 2600, 700); tone(90, 0.22, 'sine', 0.1, 210); tone(523, 0.16, 'triangle', 0.06, 660);
 }
+function sBioStage(): void { // LIVING BATTLEFIELD deepens a stage — a low organic swell + soft rising shimmer (subtle, never abrupt)
+  tone(70, 0.55, 'sine', 0.055, 56); tone(210, 0.42, 'sine', 0.03, 300); tone(316, 0.5, 'triangle', 0.024, 430); noise(0.5, 0.012, 480, 150);
+}
 // ── progression / reward dopamine cues ──
 function sClear(): void { // wave-cleared fanfare (rising major triad)
   tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15); tone(659, 0.34, 'triangle', 0.16);
@@ -354,6 +357,7 @@ export const audio = {
         case 'graftPulse': sGraftPulse(); break;
         case 'graftSquelch': sGraftSquelch(); break;
         case 'graftCrack': sGraftCrack(); break;
+        case 'bioStage': sBioStage(); break;
         case 'ui': sSelect(); break;
         case 'hover': sHover(); break;
         case 'launch': sLaunch(); break;

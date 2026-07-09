@@ -51,6 +51,8 @@ import type { ResolvedMulligan } from '../core/mulligan';
 import { drawHeroGear } from './equipmentArt';
 import type { HeroGearSpec } from './equipmentArt';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
+import { drawLivingBattlefield, drawLivingBattlefieldAmbient } from './livingBattlefield';
+import type { Assimilation } from './livingBattlefield';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { dangerCurve } from '../core/dangerCamera';
@@ -204,6 +206,7 @@ export function drawGame(
   heroSkins: Partial<Record<string, CosmeticTheme>> = {},
   mulligans: Partial<Record<string, MulliganRender>> = {}, // per-kind resolved Mulligan organism (docs/MULLIGANS.md; {} = none)
   heroGear: Partial<Record<string, HeroGearSpec>> = {}, // per-hero equipped gear (docs/EQUIPMENT.md §visuals; {} = starter look)
+  power = 0, // live run Power Score → the Living Battlefield's biomass accumulator (docs/LIVING-BATTLEFIELD.md)
 ): void {
   const t = rs.time;
 
@@ -217,6 +220,10 @@ export function drawGame(
 
   drawFloor(ctx); // cached static layer: sky, tiles, mottling, dormant veins, vignette
   drawBiomeWash(ctx, rs); // biome accent wash, under the entities (skipped for NEUTRAL/Stage)
+  // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md): the run's hidden biomass terraforms the ground
+  // BENEATH every entity — inert (clean arena) early, unmistakably alive late. Render-only ⇒ golden-safe.
+  const lbDetail = rs.enemies.length < PERF.lodEnemyCount;
+  const lbAssim: Assimilation = drawLivingBattlefield(ctx, rs, { power, mulligans, heroGear, cosmeticTiers, starTiers }, t, lbDetail);
   drawAmbientMotes(ctx, t); // drifting spores — the air is alive
   drawSpawnZone(ctx, t);
   drawDefenseZone(ctx, t, pressure);
@@ -350,6 +357,7 @@ export function drawGame(
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
   drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins, heroGear);
+  drawLivingBattlefieldAmbient(ctx, lbAssim, t, lbDetail); // deep-stage atmosphere (over entities, under labels)
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 

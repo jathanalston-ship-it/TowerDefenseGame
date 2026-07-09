@@ -358,6 +358,12 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'none', docs: ['docs/RENDER-PIPELINE.md', 'docs/TOWER-VISUAL-EVOLUTION.md', 'docs/GAME-FEEL.md', 'docs/CAMERA.md'],
   },
   {
+    id: 'living-battlefield', name: 'Living Battlefield', purpose: 'A hidden per-run "biomass" (towers/strain/branches/stars/mastery/mulligans + heroes/gear + kills/boss/mega + wave + Power Score + biome) drives an evolution STAGE 0–5 that terraforms the arena beneath the entities: data-driven Environmental Influence Profiles per tower/mulligan/hero/gene (hash-default ⇒ new content needs no code), regional blooms from towers/nucleus/combat/mega, nucleus organ, biome adaptation, boss/mega scars, ambient life. Render-only + inert at Stage 0 ⇒ golden-safe.',
+    files: ['src/render/livingBattlefield.ts'],
+    dependsOn: ['rendering', 'engine', 'audio'], powerScore: null, save: [], tutorial: [], help: [], hud: ['the battlefield itself'], ui: [],
+    collection: null, achievements: [], localization: 'none', docs: ['docs/LIVING-BATTLEFIELD.md'],
+  },
+  {
     id: 'audio', name: 'Audio', purpose: 'Synthesized SFX/music bus — cues, heartbeat tempo, reward stingers.',
     files: ['src/audio/*'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: ['(audible)'], ui: [], collection: null, achievements: [],
