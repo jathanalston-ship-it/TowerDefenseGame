@@ -1607,6 +1607,23 @@ function drawEnemy(
   if (tier === 'boss' && detail) {
     const vt = e.boss?.visualTier ?? 0;
     glowDisc(ctx, e.x, drawY, r * (2.3 + vt * 0.25) * pulse(t, 2.2, 0.92, 1.08), THEME.boss.glow);
+    // NEMESIS mark (docs/NEMESIS.md): the boss hunting THIS account wears a black-red
+    // counter-rotating brand — you know it the moment it crests the membrane.
+    if (e.boss?.nemesis) {
+      glowDisc(ctx, e.x, drawY, r * 2.9 * pulse(t, 1.4, 0.9, 1.1), 'rgba(20,2,8,0.5)');
+      ring(ctx, e.x, drawY, r * (1.9 + 0.08 * Math.sin(t * 3)), rgba(hexRgb('#ff4d6d'), 0.7), 2.5, [10, 6]);
+      ctx.save();
+      ctx.strokeStyle = rgba(hexRgb('#2b0812'), 0.9);
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 10]);
+      ctx.lineDashOffset = (t * 30) % 14;
+      ctx.beginPath();
+      ctx.arc(e.x, drawY, r * 2.1, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      ctx.setLineDash([]);
+      labelAt(ctx, e.x, drawY - r * 2.5, '☠ NEMESIS', '#ff4d6d');
+    }
     if (e.boss) drawBossCrown(ctx, e.boss.defId, e.x, drawY, r, vt, t); // chassis-keyed signature
     else spikeCrown(ctx, e.x, drawY, r * 1.02, r * (0.5 + vt * 0.16), 8 + vt * 3, THEME.boss.crown, t * 0.6);
     ctx.save();

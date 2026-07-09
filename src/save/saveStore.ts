@@ -13,6 +13,7 @@ import type { LootQueueState } from '../core/lootQueue';
 import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
+import { trophyById } from '../core/trophies';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
@@ -69,6 +70,10 @@ export interface SaveData {
   cosmetics: { owned: string[]; towers: Partial<Record<TowerKind, string>>; heroes: Partial<Record<HeroKind, string>> };
   // ── Champion Contracts (v26, docs/CONTRACTS.md) — weekly completion ledger ('w<week>:<id>'). ──
   contracts: { completed: string[] };
+  // ── Nemesis + trophies (v26, docs/NEMESIS.md). nemesis: the boss currently hunting this
+  //    account (null = none); equippedTrophy: the ONE mounted trophy organ (null = none). ──
+  nemesis: { defId: string; slain: number } | null;
+  equippedTrophy: string | null;
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -393,6 +398,8 @@ export function defaultSave(): SaveData {
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
     cosmetics: { owned: [], towers: {}, heroes: {} },
     contracts: { completed: [] },
+    nemesis: null,
+    equippedTrophy: null,
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -571,6 +578,16 @@ function withDefaults(data: SaveData): SaveData {
     contracts: { completed: Array.isArray((data as { contracts?: { completed?: unknown } }).contracts?.completed)
       ? [...new Set(((data as { contracts: { completed: unknown[] } }).contracts.completed).filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 2000)
       : [] },
+    nemesis: ((): SaveData['nemesis'] => {
+      const n = (data as { nemesis?: unknown }).nemesis as { defId?: unknown; slain?: unknown } | null | undefined;
+      if (!n || typeof n !== 'object' || typeof n.defId !== 'string') return null;
+      const slain = Math.max(1, Math.min(50, Math.floor(Number(n.slain) || 1)));
+      return { defId: n.defId, slain };
+    })(),
+    equippedTrophy: typeof (data as { equippedTrophy?: unknown }).equippedTrophy === 'string'
+      && trophyById((data as { equippedTrophy: string }).equippedTrophy) !== undefined
+      ? (data as { equippedTrophy: string }).equippedTrophy
+      : null,
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {

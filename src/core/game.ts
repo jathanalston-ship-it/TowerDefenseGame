@@ -153,6 +153,9 @@ export interface RunOptions {
   // Daily MEGA variant (docs/MEGA-BOSS.md §daily): the run IS one evolving Mega Boss encounter —
   // no wave plan, periodic reinforcements, ends when the Hive or the boss dies. Omitted ⇒ normal.
   megaDaily?: MegaEncounter;
+  /** The account's NEMESIS (docs/NEMESIS.md): a boss with this defId spawns BUFFED (+15%/slay
+   *  hp, +10%/slay bounty, both capped) and marked. Excluded from Daily runs (shared gauntlet). */
+  nemesis?: { defId: string; slain: number };
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -439,6 +442,7 @@ export class Game {
   towers: Tower[] = [];
   projectiles: Projectile[] = [];
   pools: Pool[] = [];
+  private nemesisSpec: { defId: string; slain: number } | null = null; // docs/NEMESIS.md — spawn-time boss buff
   floats: FloatingText[] = [];
   particles: Particle[] = [];
   deathEvents: DeathEvent[] = []; // presentation-only ENEMY-DEATH buffer for the assimilation gore VFX
@@ -629,6 +633,7 @@ export class Game {
     this.fxRng = new Rng((seed ^ 0x9e3779b9) >>> 0);
     this.conveyorRng = new Rng((seed ^ 0xb10c0de5) >>> 0);
     this.favoriteTower = opts.favorite ?? 'needle';
+    this.nemesisSpec = opts.nemesis ?? null;
     this.unlockedKinds = new Set(opts.unlocked ?? TOWER_ORDER);
     // Progression-gated gene cards the account has earned (default = none ⇒ only the ungated catalog
     // is draftable, so a fresh account / the golden sim is byte-identical).
@@ -2449,7 +2454,13 @@ export class Game {
    * the director / endless / debug — never in the authored golden waves.
    */
   spawnBoss(def: BossDef): void {
-    const hp = BOSS.baseHp * def.hpMult;
+    // NEMESIS (docs/NEMESIS.md): the boss that killed you returns HARDER — hp/bounty scale
+    // with how many times it has slain this account (capped). Rides ctor opts ⇒ replays
+    // reproduce it exactly; absent (fresh saves, dailies) ⇒ identical to the base spawn.
+    const nem = this.nemesisSpec !== null && this.nemesisSpec.defId === def.id ? this.nemesisSpec : null;
+    const nemHpMult = nem ? Math.min(2.5, 1 + 0.15 * nem.slain) : 1;
+    const nemBountyMult = nem ? Math.min(2, 1 + 0.1 * nem.slain) : 1;
+    const hp = BOSS.baseHp * def.hpMult * nemHpMult;
     this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
     const splitter = def.modules.find((m) => m.kind === 'splitter');
@@ -2462,7 +2473,7 @@ export class Game {
       maxHp: hp,
       baseArmor: def.armor ?? 14,
       speed: CHASSIS[def.chassis].speed,
-      bounty: def.bounty,
+      bounty: Math.round(def.bounty * nemBountyMult),
       damage: def.damage,
       fracture: 0,
       corrosion: 0,
@@ -2498,6 +2509,7 @@ export class Game {
         grip: 0,
         burrow: 0,
         visualTier: 0,
+        ...(nem ? { nemesis: true } : {}),
         splitsLeft: splitter ? splitter.generations ?? 1 : 0,
         telegraph: null,
       },
@@ -6539,6 +6551,10 @@ export class Game {
       strains: this.statStrains,
       strainByKind: { ...this.statStrainByKind },
       bossKills: this.runBossKills,
+      // NEMESIS seed (docs/NEMESIS.md): only a LOSS records which bosses were still standing.
+      ...(this.phase === 'lost'
+        ? { bossesAtDefeat: this.enemies.filter((e) => e.alive && e.boss).map((e) => e.boss!.defId) }
+        : {}),
       // Mega Boss block — present only when a mega was ENCOUNTERED this run, so every existing
       // fixture (and every ordinary run) serializes exactly as before.
       ...(this.statMegaSeen

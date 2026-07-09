@@ -180,6 +180,7 @@ export interface BossRuntime {
   grip: number; // corecrush: seconds left crushing the Nucleus (exposed: takes bonus damage)
   burrow: number; // burrower: seconds submerged (untargetable; emerges beside the Hive)
   visualTier: number; // phase mutation stage the renderer draws (0 = base form)
+  nemesis?: boolean; // this boss is the account's NEMESIS this run (docs/NEMESIS.md) — buffed + marked
 }
 
 /** A transient banner shown when a tower buys a branch tier (the "mutation" celebration). `id`
@@ -455,7 +456,9 @@ export interface RunStats {
   maxStrain?: number; // the deepest STRAIN evolution reached this run (docs/STRAIN.md; absent/1 = none — additive for old fixtures)
   strains?: number; // STRAIN evolutions committed this run (raiseStrain successes — additive)
   strainByKind?: Partial<Record<TowerKind, number>>; // deepest strain per kind this run (entries only when > I)
-  bossKills?: number; // bosses defeated this run (docs/BOSS-RUSH.md rewards key off it — additive for old fixtures)
+  bossKills?: number;
+  /** Boss defIds still alive when the Nucleus fell (docs/NEMESIS.md) — empty/absent on wins. */
+  bossesAtDefeat?: string[]; // bosses defeated this run (docs/BOSS-RUSH.md rewards key off it — additive for old fixtures)
   // ── Mega Boss encounters (docs/MEGA-BOSS.md) — additive for old fixtures. ──
   megaKills?: MegaKillStat[]; // one entry per Mega Boss defeated this run (rewards + collection)
   weakPointsDestroyed?: number; // weak points burst this run (collection + achievements)

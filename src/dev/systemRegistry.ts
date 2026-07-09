@@ -241,6 +241,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
   },
   {
+    id: 'nemesis', name: 'Nemesis & Trophies', purpose: 'The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — it returns buffed (+15%/slay hp, capped, via RunOptions ⇒ replay-deterministic) and branded; revenge pays scaled cores + an Abyssal phenotype. Boss trophies: one organ per chassis/mega, DERIVED ownership, ONE equipped tradeoff pair folded like gear.',
+    files: ['src/core/trophies.ts'],
+    dependsOn: ['engine', 'bosses', 'meta-store', 'cosmetics'], powerScore: null, save: ['nemesis', 'equippedTrophy'],
+    tutorial: [], help: [], hud: ['NEMESIS brand (renderer)'], ui: ['PlayerProfile (Trophy Rack + hunt banner)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/NEMESIS.md'],
+  },
+  {
     id: 'cosmetics', name: 'Phenotypes (Cosmetics)', purpose: 'Data-driven visual skins (docs/COSMETICS.md): six theme families × every tower/hero (generator — new kinds inherit automatically); save v26 owned/equipped; renderer re-expression (palette/aura/projectiles/beams) + firing-sfx variants; Phenotype Lab hub screen; Phenotypes collection codex with a hive-wide passive.',
     files: ['src/core/cosmetics.ts', 'src/ui/PhenotypeLab.tsx'],
     dependsOn: ['meta-store', 'collection', 'hub-shell'], powerScore: 'via the collection codex weight', save: ['cosmetics'],

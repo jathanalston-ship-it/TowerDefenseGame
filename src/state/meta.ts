@@ -79,9 +79,11 @@ import type { MechanicDef } from './mechanics';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
-import { cosmeticById, cultivatePool, CULTIVATE_COST } from '../core/cosmetics';
+import { cosmeticById, cultivatePool, nemesisPool, CULTIVATE_COST } from '../core/cosmetics';
 import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
+import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
+import type { TrophyDef } from '../core/trophies';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
 import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/campaign';
@@ -145,6 +147,25 @@ gameEvents.on('bossKilled', (e) => {
   const save = store.get();
   if (save.bossesSlain.includes(chassis)) return;
   persist({ ...save, bossesSlain: [...save.bossesSlain, chassis] });
+});
+
+// NEMESIS revenge (docs/NEMESIS.md): killing YOUR nemesis pays blood-price cores + one
+// unowned ABYSSAL phenotype, then the hunt ends. Account-side only — the run is untouched.
+gameEvents.on('bossKilled', (e) => {
+  const save = store.get();
+  const nem = save.nemesis;
+  if (!nem || nem.defId !== e.defId) return;
+  const cores = 60 * nem.slain;
+  const pool = nemesisPool().filter((d) => !save.cosmetics.owned.includes(d.id));
+  const grant = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+  persist({
+    ...save,
+    shards: save.shards + cores,
+    lifetimeShards: save.lifetimeShards + cores,
+    nemesis: null,
+    timeline: pushTimeline(save.timeline, '☠', `Revenge — ${bossDef(e.defId)?.name ?? e.defId} repaid in kind (+${cores} Cores${grant ? ' · Abyssal phenotype claimed' : ''})`),
+    cosmetics: grant ? { ...save.cosmetics, owned: [...save.cosmetics.owned, grant.id] } : save.cosmetics,
+  });
 });
 
 /** The account's expected kill time + efficiency for one mega kill (docs/MEGA-BOSS.md §rewards).
@@ -1422,6 +1443,18 @@ export const meta = {
     if (contractHits.length > 0) {
       for (const c of contractHits) timeline = pushTimeline(timeline, '❖', `Contract honoured — ${c.name}`);
     }
+    // NEMESIS (docs/NEMESIS.md): a boss standing over the fallen Nucleus becomes — or
+    // deepens — the hunt. Wins never touch it; revenge clears it via the bossKilled lane.
+    const fallenTo = !result.won ? (result.stats.bossesAtDefeat ?? []) : [];
+    const nextNemesis = fallenTo.length > 0
+      ? { defId: fallenTo[0], slain: save.nemesis?.defId === fallenTo[0] ? Math.min(50, save.nemesis.slain + 1) : 1 }
+      : save.nemesis;
+    if (fallenTo.length > 0) {
+      const nm = bossDef(fallenTo[0])?.name ?? fallenTo[0];
+      timeline = pushTimeline(timeline, '☠', save.nemesis?.defId === fallenTo[0]
+        ? `The Nemesis deepens — ${nm} has slain you ${nextNemesis!.slain} times`
+        : `Nemesis risen — ${nm} will remember you`);
+    }
     persist({
       ...save,
       prediction,
@@ -1430,6 +1463,7 @@ export const meta = {
       contracts: contractHits.length > 0
         ? { completed: [...save.contracts.completed, ...contractHits.map((c) => `${contractWeek}:${c.id}`)] }
         : save.contracts,
+      nemesis: nextNemesis ?? null,
       cosmetics: contractHits.some((c) => c.reward.cosmetic && !save.cosmetics.owned.includes(c.reward.cosmetic))
         ? { ...save.cosmetics, owned: [...save.cosmetics.owned, ...contractHits.map((c) => c.reward.cosmetic).filter((id): id is string => !!id && !save.cosmetics.owned.includes(id))] }
         : save.cosmetics,
@@ -1938,6 +1972,32 @@ export const meta = {
    *  "recently improved"). Returns success; a refusal never charges. */
   // ── Phenotypes (docs/COSMETICS.md) — own/equip/cultivate. Pure presentation: the sim
   //    never reads any of this; equips only change what GameView threads to the renderer. ──
+  // ── Trophy Rack (docs/NEMESIS.md §trophies) — ownership derives from kill ledgers. ──
+  trophies(): { def: TrophyDef; owned: boolean; equipped: boolean }[] {
+    const s = store.get();
+    return TROPHY_DEFS.map((def) => ({
+      def,
+      owned: trophyOwned(def, s.bossesSlain, s.megaProgress.slain),
+      equipped: s.equippedTrophy === def.id,
+    }));
+  },
+  /** Mount ONE trophy (null clears). Refuses unowned organs. */
+  equipTrophy(id: string | null): boolean {
+    const s = store.get();
+    if (id !== null) {
+      const def = trophyById(id);
+      if (!def || !trophyOwned(def, s.bossesSlain, s.megaProgress.slain)) return false;
+    }
+    persist({ ...s, equippedTrophy: id });
+    return true;
+  },
+  /** The equipped trophy's tradeoff pair, folded into runs like gear. [] when nothing mounted. */
+  trophyRunEffects(): CardEffect[] {
+    const s = store.get();
+    const def = s.equippedTrophy ? trophyById(s.equippedTrophy) : undefined;
+    if (!def || !trophyOwned(def, s.bossesSlain, s.megaProgress.slain)) return [];
+    return def.effects;
+  },
   /** Grant a cosmetic by id (contracts/nemesis/cultivation all land here). Idempotent. */
   grantCosmetic(id: string): boolean {
     const save = store.get();

@@ -153,6 +153,8 @@ export function GameView({
     unlocked: daily ? [...new Set(daily.towerPool)] : meta.unlockedTowers(), // gates placement/belt/drafts (docs/TOWERS.md §expansion)
     ...(daily ? { daily: { modifierIds: daily.modifierIds } } : {}),
     ...(daily?.megaBoss ? { megaDaily: daily.megaBoss } : {}), // the Daily MEGA variant replaces the wave plan
+    // NEMESIS (docs/NEMESIS.md): the hunt rides every run EXCEPT the shared daily gauntlet.
+    ...(!daily && meta.get().nemesis ? { nemesis: meta.get().nemesis! } : {}),
     geneLevels: meta.geneLevels(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),

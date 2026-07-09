@@ -120,6 +120,11 @@ export function cultivatePool(): CosmeticDef[] {
   return cosmeticRegistry.all().filter((d) => d.source === 'cultivate');
 }
 
+/** The Abyssal revenge pool (docs/NEMESIS.md): nemesis-source phenotypes. */
+export function nemesisPool(): CosmeticDef[] {
+  return cosmeticRegistry.all().filter((d) => d.source === 'nemesis');
+}
+
 /** Cultivation price (Gene Essence) by rarity — the lab rolls a RANDOM unowned cultivate
  *  phenotype, so the price is flat per roll; rarer families simply exist in the same pool. */
 export const CULTIVATE_COST = 400;

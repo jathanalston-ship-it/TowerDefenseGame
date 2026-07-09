@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { meta } from '../state/meta';
+import { bossDef } from '../core/boss';
 import {
   PROFILE_SECTION_TITLES,
   achievementShowcase,
@@ -120,6 +121,35 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
           ))}
           {goals.length === 0 && <div className="pf-empty">Every tracked goal is complete — push the frontier.</div>}
         </div>
+      </section>
+
+      {/* ── 6b · NEMESIS + TROPHY RACK (docs/NEMESIS.md) — the hunt and the spoils ── */}
+      <section className="pf-block" aria-label="Nemesis and trophies">
+        <div className="pf-h">Nemesis &amp; Trophy Rack</div>
+        {save.nemesis ? (
+          <div className="pf-nemesis">
+            ☠ <b>{bossDef(save.nemesis.defId)?.name ?? save.nemesis.defId}</b> hunts you — it has ended
+            {' '}{save.nemesis.slain} of your runs. It returns STRONGER each time; kill it for
+            {' '}<b>+{60 * save.nemesis.slain} Cores</b> and an Abyssal phenotype.
+          </div>
+        ) : (
+          <div className="pf-nemesis dim">No nemesis stalks you. Lose a run to a boss and it will remember.</div>
+        )}
+        <div className="pf-trophies">
+          {meta.trophies().map(({ def, owned, equipped }) => (
+            <button
+              key={def.id}
+              className={`pf-trophy${equipped ? ' on' : ''}${owned ? '' : ' is-locked'}`}
+              disabled={!owned}
+              onClick={() => meta.equipTrophy(equipped ? null : def.id)}
+              title={owned ? `${def.organ} — ${def.up} / ${def.down}` : 'Slay its source to claim this organ'}
+            >
+              <b>{owned ? (equipped ? '◈ ' : '') : '🔒 '}{def.name}</b>
+              <span className="pf-trophy-fx"><i className="up">{def.up}</i> · <i className="down">{def.down}</i></span>
+            </button>
+          ))}
+        </div>
+        <div className="pf-trophy-note">One trophy may be mounted at a time — every organ pays AND costs.</div>
       </section>
 
       {/* ── 3 · POWER BREAKDOWN — where the strength comes from ── */}
