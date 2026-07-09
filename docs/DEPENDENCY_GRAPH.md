@@ -397,9 +397,9 @@ graph TD
 
 ### Equipment & Armory (`equipment`)
 
-*~180 behavioral items, affixes, sets; per-hero Weapon/Armor/Relic loadouts.*
+*~180 behavioral items, affixes, sets; per-hero Weapon/Armor/Relic loadouts. Bespoke PROCEDURAL card art (render/equipmentArt.ts) — a unique rarity-graded biomechanical emblem per item, derived from slot/subtype/set/rarity/affixes (no placeholder icons; scales to hundreds for free) — and, in-game, the equipped loadout draws as hero GEAR on the battlefield.*
 
-- **Files:** `src/core/equipment.ts` · `src/ui/EquipmentPanel.tsx` · `src/ui/ItemDetails.tsx` · `src/ui/components/ItemArt.tsx`
+- **Files:** `src/core/equipment.ts` · `src/render/equipmentArt.ts` · `src/ui/EquipmentPanel.tsx` · `src/ui/ItemDetails.tsx` · `src/ui/components/ItemArt.tsx`
 - **Depends on:** `content-infra` · `loot` · `power` · `heroes`
 - **Consumers — what breaks if you change this:** `crafting`
 - **Power Score:** equipped items score via itemPower into the gear bucket
