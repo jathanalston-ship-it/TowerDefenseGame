@@ -3,7 +3,8 @@ import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
-import type { Pointer } from '../render/renderer';
+import type { Pointer, MulliganRender } from '../render/renderer';
+import { resolveMulligan } from '../core/mulligan';
 import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
@@ -344,6 +345,20 @@ export function GameView({
     return m;
   }, []);
 
+  // Per-kind MULLIGAN organism (docs/MULLIGANS.md) — the resolved biomechanical creature grafted onto
+  // each tower, procedurally drawn from its modifiers' stat profile + seeds. Only ACTIVE organisms
+  // (all three slots filled) enter the map; a fresh account contributes none (renders identically).
+  const mulliganRender = useMemo(() => {
+    const s = meta.get();
+    const m: Record<string, MulliganRender> = {};
+    for (const k of TOWER_ORDER) {
+      const st = s.mulligans?.[k];
+      const resolved = resolveMulligan(st);
+      if (resolved.active && st) m[k] = { resolved, visualSeed: st.visualSeed, animSeed: st.animSeed };
+    }
+    return m;
+  }, []);
+
   // Per-HERO permanent STAR count → visual evolution on the battlefield (docs/HERO-EVOLUTION.md
   // §visuals). Fixed for the run (hero stars are bought in the Hero Lab between runs).
   const heroStarTiers = useMemo(() => {
@@ -475,7 +490,7 @@ export function GameView({
           }
         }
         const rs = game.getRenderState();
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
           const RING_MS = 900;

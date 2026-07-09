@@ -45,6 +45,8 @@ import {
 } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
+import { drawMulliganOrganism } from './mulliganOrganism';
+import type { ResolvedMulligan } from '../core/mulligan';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
@@ -197,6 +199,7 @@ export function drawGame(
   heroEvo = 0, // run-wide Hero Evolution levels bought (Hero Console) → in-run battle-dress (0 = none)
   towerSkins: Partial<Record<string, CosmeticTheme>> = {}, // equipped Phenotypes (docs/COSMETICS.md; {} = default dress)
   heroSkins: Partial<Record<string, CosmeticTheme>> = {},
+  mulligans: Partial<Record<string, MulliganRender>> = {}, // per-kind resolved Mulligan organism (docs/MULLIGANS.md; {} = none)
 ): void {
   const t = rs.time;
 
@@ -318,7 +321,7 @@ export function drawGame(
   for (const tw of rs.towers) {
     const fed = goreThrob(`t${tw.id}`); // XP shards just coalesced in ⇒ a satisfying feed-throb
     if (fed > 0.01) { ctx.save(); ctx.translate(tw.x, tw.y); const s = 1 + fed * 0.13; ctx.scale(s, s); ctx.translate(-tw.x, -tw.y); }
-    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind]);
+    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind], mulligans[tw.kind]);
     if (fed > 0.01) ctx.restore();
   }
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
@@ -988,7 +991,10 @@ function drawCosmeticAura(ctx: CanvasRenderingContext2D, x: number, y: number, r
   }
 }
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme): void {
+/** Per-kind resolved Mulligan the renderer needs to draw its organism (docs/MULLIGANS.md). */
+export interface MulliganRender { resolved: ResolvedMulligan; visualSeed: number; animSeed: number }
+
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme, mulligan?: MulliganRender): void {
   const def = TOWER_DEFS[tw.kind];
   // Phenotype re-expression (docs/COSMETICS.md): the equipped skin's primary replaces the
   // def color EVERYWHERE this body paints; absent skin ⇒ the exact pre-cosmetics look.
@@ -1153,6 +1159,11 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // STRAIN organs (docs/STRAIN.md §visuals): the IN-RUN evolution ladder — each level above I
   // grows an unmistakable new structure. Strain 1 renders nothing (golden-safe look).
   if (tw.strain > 1) drawStrainOrgans(ctx, tw, now, r, kcolor);
+
+  // MULLIGAN organism (docs/MULLIGANS.md): the biomechanical secondary creature grafted onto the
+  // tower — procedurally derived from its modifiers' stat profile + seeds. Inactive (fewer than
+  // three modifiers) draws NOTHING, so a fresh account renders identically (golden-safe look).
+  if (mulligan) drawMulliganOrganism(ctx, tw.x, tw.y, r, mulligan.resolved, mulligan.visualSeed, mulligan.animSeed, now, fresh);
 
   // Mutation FLASH: a one-shot shockwave + white pop the instant a tier is purchased (driven by
   // tw.mutatedAt). A settled or unbranched tower (mutatedAt ≪ now) draws nothing.

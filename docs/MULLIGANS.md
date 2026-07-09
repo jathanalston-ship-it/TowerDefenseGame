@@ -166,8 +166,11 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
 
 ## 10. Scale & known limitations
 
-- Built for **100 / 250 / 500+** modifiers: adding one never touches the generator or the resolver.
+- Built for **100 / 250 / 500+** modifiers: adding one never touches the generators or the resolver.
 - The resolver, Power, save sanitization, and generators are all `O(slots)` = `O(1)` per tower.
-- **Deferred (layering on this core):** the full procedural draw code, the player equip UI, the dev
-  Mulligan Lab, loot-table wiring, collections/achievements entries, and the tutorial nod. The
-  *framework* they plug into is complete and tested.
+- **BUILT:** framework + resolver + save + Power + sim fold + the procedural organism/animation/
+  projectile generators (`src/render/mulliganOrganism.ts`), drawn on the battlefield through the
+  renderer's per-kind Mulligan channel (`drawGame` → `drawTower`). Empty/inactive ⇒ nothing draws.
+- **Deferred (layering on this core):** the player equip UI, the dev Mulligan Lab, loot-table
+  wiring, collections/achievements entries, and the tutorial nod. The framework they plug into is
+  complete and tested.

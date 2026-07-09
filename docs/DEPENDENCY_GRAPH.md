@@ -294,13 +294,13 @@ graph TD
 
 *A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch).*
 
-- **Files:** `src/core/mulligan.ts`
+- **Files:** `src/core/mulligan.ts` · `src/render/mulliganOrganism.ts`
 - **Depends on:** `content-infra` · `towers` · `power` · `meta-store`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled
 - **Save fields:** `mulligans` · `mulliganDex` · `geneOverflow`
 - **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** —
+- **HUD surfaces:** — · **UI screens:** `GameView (organism overlay)`
 - **Collection:** discovered modifiers (mulliganDex) feed a Mulligan codex tier · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/MULLIGANS.md`
