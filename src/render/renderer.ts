@@ -47,6 +47,8 @@ import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
 import { drawMulliganOrganism } from './mulliganOrganism';
 import type { ResolvedMulligan } from '../core/mulligan';
+import { drawHeroGear } from './equipmentArt';
+import type { HeroGearSpec } from './equipmentArt';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
@@ -200,6 +202,7 @@ export function drawGame(
   towerSkins: Partial<Record<string, CosmeticTheme>> = {}, // equipped Phenotypes (docs/COSMETICS.md; {} = default dress)
   heroSkins: Partial<Record<string, CosmeticTheme>> = {},
   mulligans: Partial<Record<string, MulliganRender>> = {}, // per-kind resolved Mulligan organism (docs/MULLIGANS.md; {} = none)
+  heroGear: Partial<Record<string, HeroGearSpec>> = {}, // per-hero equipped gear (docs/EQUIPMENT.md §visuals; {} = starter look)
 ): void {
   const t = rs.time;
 
@@ -345,7 +348,7 @@ export function drawGame(
   drawBeams(ctx, rs, t, towerSkins); // Resonance Coil channels (over enemies, so the melt reads on the target)
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
-  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins);
+  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins, heroGear);
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 
@@ -1866,17 +1869,17 @@ const MINION_LOW_RGB = hexRgb('#ff5d73');
 
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle' } as const;
 
-function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}): void {
+function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}, heroGear: Partial<Record<string, HeroGearSpec>> = {}): void {
   for (let i = 0; i < rs.heroes.length; i++) {
     const h = rs.heroes[i];
     const fed = goreThrob(`h${h.kind}`); // XP shards just coalesced in ⇒ a feed-throb
     if (fed > 0.01) { ctx.save(); ctx.translate(h.x, h.y); const s = 1 + fed * 0.11; ctx.scale(s, s); ctx.translate(-h.x, -h.y); }
-    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo, heroSkins[h.kind]);
+    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo, heroSkins[h.kind], heroGear[h.kind]);
     if (fed > 0.01) ctx.restore();
   }
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0, skin?: CosmeticTheme): void {
+function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0, skin?: CosmeticTheme, gear?: HeroGearSpec): void {
   const t = rs.time;
   const def = HERO_DEFS[h.kind];
   const tint = hexRgb(skin?.primary ?? def.color); // class-colored halo/locator/trail (Phenotype re-tints)
@@ -1957,6 +1960,11 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // layered core: dark rim → class-colored body → bright nucleus (reads as a hero). Permanent
   // STARS swell the body (docs/HERO-EVOLUTION.md §visuals); ★0 ⇒ grow=1 ⇒ the classic silhouette.
   const grow = heroEvolutionGrowth(h.kind, stars);
+  // EQUIPMENT gear (docs/EQUIPMENT.md §visuals): the equipped loadout drawn ON the hero — energy
+  // halo + back/cloak behind, shoulder plates + weapon + orbiting relics + set prestige organs
+  // framing the body — so a geared veteran reads as a different biomechanical warrior. Drawn behind
+  // the body so the attachments frame it. A starter with no gear ⇒ nothing draws (golden-safe look).
+  if (gear && !down) drawHeroGear(ctx, h.x, h.y, 13 * grow, gear, t, skin?.primary ?? def.color, 1);
   drawShape(ctx, shape, h.x, h.y, 16 * grow, THEME.hero.rim);
   drawShape(ctx, shape, h.x, h.y, 13 * grow, def.color);
   drawShape(ctx, shape, h.x, h.y - 2, 5 * grow, THEME.hero.core);

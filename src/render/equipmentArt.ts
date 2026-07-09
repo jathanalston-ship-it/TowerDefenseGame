@@ -207,6 +207,164 @@ function drawEmblem(ctx: CanvasRenderingContext2D, s: number, spec: ItemArtSpec,
   ctx.restore();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// IN-GAME HERO GEAR — the equipped loadout drawn ON the hero during gameplay, so a
+// heavily-geared veteran reads as a dramatically different biomechanical warrior. Derived from the
+// same item data; rarity drives the effect complexity, active sets add prestige organs (veins /
+// cloak / halo / floating relics). Render-only ⇒ golden-safe (a starter with no gear draws nothing).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface GearAttachment { slot: 'weapon' | 'armor' | 'relic'; subtype: string; color: string; accent: string; tier: number; seed: number; }
+export interface HeroGearSpec {
+  attachments: GearAttachment[];
+  maxTier: number; // top rarity across equipped gear → energy halo / particle intensity
+  setPower: number; // active set-bonus count → prestige-organ intensity (veins/cloak/halo/relics)
+  hasGear: boolean;
+}
+
+/** Derive the hero's battlefield gear from the equipped items (each `{def, rarity}`) + the count of
+ *  active set bonuses. Pure + cheap; empty gear ⇒ `hasGear:false` (nothing draws). */
+export function deriveHeroGear(items: { def: EquipDef; rarity: string }[], setBonuses = 0): HeroGearSpec {
+  const attachments: GearAttachment[] = items.map(({ def, rarity }) => ({
+    slot: def.slot,
+    subtype: def.slot === 'weapon' ? (def.weaponType ?? 'ranged') : def.slot === 'armor' ? (def.armorType ?? 'carapace') : 'relic',
+    color: rarityHex(rarity),
+    accent: setHue(def.setId),
+    tier: rarityTier(rarity),
+    seed: artSeed(def.id),
+  }));
+  const maxTier = attachments.reduce((m, a) => Math.max(m, a.tier), 0);
+  return { attachments, maxTier, setPower: Math.max(0, setBonuses), hasGear: attachments.length > 0 };
+}
+
+/**
+ * Draw a hero's equipped gear at (x,y) of body-radius r. Layered back-to-front: energy halo →
+ * back/relic pack → armor plates (shoulders) → orbiting relics → weapon at the side → set prestige
+ * organs (veins/cloak/halo) → rarity particles. Everything idle-animated by `now`. `facing` (±1)
+ * points the weapon; `tint` is the hero class hue (set-organ default).
+ */
+export function drawHeroGear(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, spec: HeroGearSpec, now: number, tint = '#c8d0e0', facing = 1): void {
+  if (!spec.hasGear && spec.setPower <= 0) return;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // ── Energy halo — grows with the top rarity (rare glow → exotic reactive corona). ──
+  if (spec.maxTier >= 1) {
+    const top = spec.attachments.find((a) => a.tier === spec.maxTier)!;
+    const pulse = 0.6 + 0.4 * Math.sin(now * 2.5);
+    const rad = r * (2.1 + spec.maxTier * 0.22);
+    const halo = ctx.createRadialGradient(0, 0, r * 0.6, 0, 0, rad);
+    halo.addColorStop(0, rgba(top.color, 0));
+    halo.addColorStop(0.75, rgba(top.color, (0.05 + spec.maxTier * 0.03) * pulse));
+    halo.addColorStop(1, rgba(top.color, 0));
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(0, 0, rad, 0, TAU); ctx.fill();
+  }
+
+  // ── Set prestige organs — pure visual reward for build synergy. ──
+  if (spec.setPower >= 1) drawVeins(ctx, r, tint, now); // organic veins tracing the body
+  if (spec.setPower >= 2) drawCloak(ctx, r, tint, now, facing); // a living cloak sways behind
+  if (spec.setPower >= 3) drawSetHalo(ctx, r, tint, now); // an energy halo ring of runes
+
+  // ── Attachments (back-to-front) ──
+  const armor = spec.attachments.find((a) => a.slot === 'armor');
+  const relic = spec.attachments.find((a) => a.slot === 'relic');
+  const weapon = spec.attachments.find((a) => a.slot === 'weapon');
+
+  // Back/relic pack for legendary+ armor (a spined augmentation).
+  if (armor && armor.tier >= 3) {
+    ctx.save(); ctx.rotate(Math.sin(now * 1.5) * 0.04);
+    ctx.fillStyle = shade(armor.color, -0.1);
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * r * 0.4, -r * 0.2); ctx.lineTo(i * r * 0.55, -r * 1.5); ctx.lineTo(i * r * 0.25, -r * 0.2); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+  }
+  // Armor shoulder plates.
+  if (armor) {
+    const flex = 1 + 0.05 * Math.sin(now * 3);
+    for (const sx of [-1, 1]) {
+      ctx.save(); ctx.translate(sx * r * 0.8, -r * 0.35); ctx.scale(flex, flex);
+      ctx.fillStyle = shade(armor.color, sx === facing ? 0.1 : -0.15);
+      polygon(ctx, 0, 0, r * 0.5, 5, now * 0.1); ctx.fill();
+      if (armor.subtype === 'hide') { ctx.strokeStyle = rgba(armor.accent, 0.7); ctx.lineWidth = r * 0.06; polygon(ctx, 0, 0, r * 0.3, 5, 0); ctx.stroke(); }
+      else { ctx.fillStyle = rgba('#ffffff', 0.25); ctx.beginPath(); ctx.arc(-r * 0.1, -r * 0.1, r * 0.12, 0, TAU); ctx.fill(); }
+      ctx.restore();
+    }
+  }
+  // Orbiting relic(s) — orbit count grows with tier.
+  if (relic) {
+    const n = 1 + Math.floor(relic.tier / 2);
+    for (let i = 0; i < n; i++) {
+      const a = now * 1.2 + (i / n) * TAU;
+      const ox = Math.cos(a) * r * 1.7, oy = Math.sin(a) * r * 0.8 - r * 0.3;
+      const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, r * 0.5);
+      glow.addColorStop(0, '#ffffff'); glow.addColorStop(0.4, relic.color); glow.addColorStop(1, rgba(relic.color, 0));
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(ox, oy, r * 0.5, 0, TAU); ctx.fill();
+      ctx.fillStyle = relic.color; ctx.beginPath(); ctx.arc(ox, oy, r * 0.14, 0, TAU); ctx.fill();
+    }
+  }
+  // Weapon at the side — swayed idle; the head is the weaponType.
+  if (weapon) {
+    ctx.save();
+    ctx.translate(facing * r * 0.95, r * 0.15);
+    ctx.rotate(facing * (0.5 + Math.sin(now * 1.8) * 0.08));
+    const L = r * 1.9;
+    ctx.strokeStyle = shade(weapon.accent, -0.1); ctx.lineWidth = r * 0.16; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, r * 0.3); ctx.lineTo(0, -L * 0.55); ctx.stroke();
+    ctx.fillStyle = weapon.color;
+    if (weapon.subtype === 'melee') { ctx.beginPath(); ctx.moveTo(0, -L); ctx.lineTo(r * 0.24, -L * 0.5); ctx.lineTo(0, -L * 0.6); ctx.lineTo(-r * 0.24, -L * 0.5); ctx.closePath(); ctx.fill(); }
+    else if (weapon.subtype === 'ranged') { ctx.fillRect(-r * 0.14, -L, r * 0.28, L * 0.5); if (weapon.tier >= 3) { ctx.fillStyle = rgba(weapon.color, 0.6 + 0.4 * Math.sin(now * 6)); ctx.beginPath(); ctx.arc(0, -L, r * 0.18, 0, TAU); ctx.fill(); } }
+    else { for (let i = 0; i < 3; i++) { ctx.strokeStyle = rgba(weapon.color, 0.9); ctx.lineWidth = r * 0.08; ctx.beginPath(); ctx.arc(0, -L * 0.55, r * (0.2 + i * 0.14), -0.5, Math.PI + 0.5); ctx.stroke(); } }
+    ctx.restore();
+  }
+
+  // ── Rarity particles (epic+): motes rising off the hero. ──
+  if (spec.maxTier >= 2) {
+    const top = spec.attachments.find((a) => a.tier === spec.maxTier)!;
+    const cnt = (spec.maxTier - 1) * 3;
+    for (let i = 0; i < cnt; i++) {
+      const t = (now * 0.5 + i / cnt) % 1;
+      const px = Math.sin(i * 2.4 + now) * r * 1.2;
+      ctx.fillStyle = rgba(top.color, (1 - t) * 0.7);
+      ctx.beginPath(); ctx.arc(px, r * 0.6 - t * r * 2.4, r * (spec.maxTier >= 4 ? 0.12 : 0.08), 0, TAU); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawVeins(ctx: CanvasRenderingContext2D, r: number, tint: string, now: number): void {
+  ctx.save();
+  ctx.strokeStyle = rgba(tint, 0.5 + 0.2 * Math.sin(now * 2));
+  ctx.lineWidth = Math.max(1, r * 0.08);
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * TAU + 0.4;
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(Math.cos(a) * r * 0.9, Math.sin(a) * r * 0.5, Math.cos(a) * r * 1.1 + Math.sin(now * 2 + i) * r * 0.1, Math.sin(a) * r * 1.1);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawCloak(ctx: CanvasRenderingContext2D, r: number, tint: string, now: number, facing: number): void {
+  ctx.save();
+  const sway = Math.sin(now * 1.5) * r * 0.3;
+  const g = ctx.createLinearGradient(0, -r, 0, r * 2.2);
+  g.addColorStop(0, rgba(tint, 0.5)); g.addColorStop(1, rgba(tint, 0.05));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.7, -r * 0.5);
+  ctx.quadraticCurveTo(-r * 1.1 + sway, r, -r * 0.8 + sway - facing * r * 0.2, r * 2.1);
+  ctx.lineTo(r * 0.8 + sway - facing * r * 0.2, r * 2.1);
+  ctx.quadraticCurveTo(r * 1.1 + sway, r, r * 0.7, -r * 0.5);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function drawSetHalo(ctx: CanvasRenderingContext2D, r: number, tint: string, now: number): void {
+  ctx.save();
+  ctx.translate(0, -r * 1.6);
+  ctx.strokeStyle = rgba(tint, 0.7); ctx.lineWidth = Math.max(1, r * 0.06);
+  ctx.beginPath(); ctx.ellipse(0, 0, r * 0.8, r * 0.3, 0, 0, TAU); ctx.stroke();
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + now * 0.8; ctx.fillStyle = rgba(tint, 0.9); ctx.beginPath(); ctx.arc(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.3, r * 0.07, 0, TAU); ctx.fill(); }
+  ctx.restore();
+}
+
 // ── primitive helpers ────────────────────────────────────────────────────────
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
   ctx.beginPath();

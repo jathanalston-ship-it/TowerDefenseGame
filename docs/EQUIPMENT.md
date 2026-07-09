@@ -427,3 +427,34 @@ equippedName }`). The presentational `ui/components/PowerDelta` chip (▲ Strong
 reveal (equipment pull faces + summary rows, threaded via `VaultReveal.compareEquip` → `buildReveal`).
 `itemPowerScore` (rarity/affix weight × behavioral-effect offense) lives in `state/itemPower` so both
 the reveal and the Armory read it without a power↔equipment import cycle.
+
+---
+
+## §visuals — Equipment visualization (render/equipmentArt.ts)
+
+Equipment is a **visible** progression system, not invisible stats. One asset-free procedural
+framework drives BOTH surfaces; it is **derived** from item data, so hundreds of future items need
+zero new art (a new item is one data row) and it never touches the sim (render-only ⇒ golden-safe).
+
+**Card art (menus).** `deriveItemArt(def, rarity, affixCount, ilvl) → ItemArtSpec` + `drawItemArt`
+paint a UNIQUE biomechanical emblem per item: the FORM from the slot/subtype (weapon haft+blade /
+barrel / conduit-coil · armor hex-carapace · relic orbital core+rings), the ACCENT from the item's
+set family, embellishment count from rarity + affixes, and effects from the rarity TIER — **common**
+flat · **rare** glow · **epic** orbiting particles · **legendary** living (breathing) silhouette ·
+**exotic** complex particles + rising floating energy + swept sheen. `ui/components/ItemArt` renders
+it on an animated `<canvas>` (premium tiers animate; lower tiers draw once), same public API so the
+Armory grid, Item Details, and Compare all upgrade for free. No placeholder icons.
+
+**In-game hero gear (battlefield).** `deriveHeroGear(items, setBonuses) → HeroGearSpec` +
+`drawHeroGear` draw the equipped loadout ON the hero: an energy halo (rarity-scaled), shoulder
+plates (armor subtype), a side weapon (weaponType head, idle-swayed), orbiting relic(s), a
+back/spine pack at legendary+, and — from active **set bonuses** — pure-prestige organs (veins →
+living cloak → rune halo), plus rising rarity particles at epic+. Threaded through the renderer's
+`drawGame → drawHeroes → drawHero` via a per-hero `heroGear` channel built in `GameView` from the
+save's loadouts + `activeSets`. A starter with no gear draws nothing (identical to the classic look);
+a heavily-invested hero reads as a dramatically different biomechanical warrior.
+
+**Known follow-ups (deeper polish):** a rotatable large hero preview + visual-change/upgrade/reforge
+previews in the Inspect screen; equipment-history; a Collection gallery of unlocked art + set-bonus
+previews; and gear-sourced projectiles (a legendary rifle firing a unique shot). The framework these
+plug into is complete: the card art already flows into Item Details, and the hero gear is live in-run.

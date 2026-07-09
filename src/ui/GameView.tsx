@@ -5,6 +5,9 @@ import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
 import { resolveMulligan } from '../core/mulligan';
+import { deriveHeroGear } from '../render/equipmentArt';
+import type { HeroGearSpec } from '../render/equipmentArt';
+import { activeSets, itemDef } from '../core/equipment';
 import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
@@ -359,6 +362,28 @@ export function GameView({
     return m;
   }, []);
 
+  // Per-HERO equipped GEAR (docs/EQUIPMENT.md §visuals) — the equipped loadout + active set bonuses
+  // resolved into the on-battlefield gear spec, so a geared hero visibly wears its equipment. Fixed
+  // for the run (gear is changed in the Armory between runs). Empty loadout ⇒ omitted (classic look).
+  const heroGearRender = useMemo(() => {
+    const s = meta.get();
+    const inv = s.equipment.inventory;
+    const m: Record<string, HeroGearSpec> = {};
+    for (const k of HERO_ORDER) {
+      const lo = meta.loadoutOf(k);
+      const items = [lo.weapon, lo.armor, lo.relic].flatMap((uid) => {
+        if (!uid) return [];
+        const it = inv.find((x) => x.uid === uid);
+        const def = it && itemDef(it.defId);
+        return def ? [{ def, rarity: it!.rarity }] : [];
+      });
+      const setBonuses = activeSets(inv, lo).reduce((n, se) => n + (se.bonus2 ? 1 : 0) + (se.bonus4 ? 1 : 0), 0);
+      const spec = deriveHeroGear(items, setBonuses);
+      if (spec.hasGear || setBonuses > 0) m[k] = spec;
+    }
+    return m;
+  }, []);
+
   // Per-HERO permanent STAR count → visual evolution on the battlefield (docs/HERO-EVOLUTION.md
   // §visuals). Fixed for the run (hero stars are bought in the Hero Lab between runs).
   const heroStarTiers = useMemo(() => {
@@ -490,7 +515,7 @@ export function GameView({
           }
         }
         const rs = game.getRenderState();
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
           const RING_MS = 900;
