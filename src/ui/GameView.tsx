@@ -5,6 +5,8 @@ import type { StageConfig } from '../core/campaign';
 import { drawGame } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
 import { resolveMulligan } from '../core/mulligan';
+import type { MulliganState } from '../core/mulligan';
+import { deriveMulliganProjectile } from '../render/mulliganOrganism';
 import { deriveHeroGear } from '../render/equipmentArt';
 import type { HeroGearSpec } from '../render/equipmentArt';
 import { activeSets, itemDef } from '../core/equipment';
@@ -119,6 +121,7 @@ export function GameView({
   difficulty,
   doctrine,
   daily,
+  mulliganOverride,
   onEnd,
   onAbandon,
   tutorial,
@@ -139,6 +142,7 @@ export function GameView({
   difficulty?: string;
   doctrine?: string;
   daily?: { modifierIds: string[]; towerPool: TowerKind[]; megaBoss?: MegaEncounter }; // Daily Run (docs/DAILY-RUN.md): modifiers + trial pool + the rare Mega variant (docs/MEGA-BOSS.md §daily)
+  mulliganOverride?: Partial<Record<TowerKind, MulliganState>>; // Daily's seeded organisms (docs/MULLIGANS.md §daily) — substitutes the account's for this run
   onEnd: (r: RunResult) => void;
   onAbandon: () => void;
   tutorial?: boolean; // TUTORIAL mode: don't bank loot + don't auto-hand-off on run end (the tutorial director drives completion)
@@ -299,6 +303,7 @@ export function GameView({
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
   const hiveStateRef = useRef(0); // deepest damage-state index announced (0 = healthy … 4 = collapsing)
   const heartbeatRef = useRef(0); // seconds until the next critical-integrity heartbeat
+  const graftPulseAtRef = useRef(0); // sim time of the next graft-organism heartbeat (docs/MULLIGANS.md §audio)
   // ── Live Mastery projection (docs/MASTERY.md §live) — the EXACT banking math, watched
   //    per HUD tick: banked XP (run-start snapshot; mastery only banks at finishRun) +
   //    this run's accrual × the run-constant multipliers. Level-ups celebrate instantly.
@@ -355,11 +360,16 @@ export function GameView({
     const s = meta.get();
     const m: Record<string, MulliganRender> = {};
     for (const k of TOWER_ORDER) {
-      const st = s.mulligans?.[k];
+      // The Daily's seeded assignment substitutes the account's organisms for this run
+      // (docs/MULLIGANS.md §daily) — same fold, same visuals, same Inspect.
+      const st = mulliganOverride ? mulliganOverride[k] : s.mulligans?.[k];
       const resolved = resolveMulligan(st);
-      if (resolved.active && st) m[k] = { resolved, visualSeed: st.visualSeed, animSeed: st.animSeed };
+      if (resolved.active && st) {
+        m[k] = { resolved, visualSeed: st.visualSeed, animSeed: st.animSeed, projectile: deriveMulliganProjectile(resolved, st.visualSeed) };
+      }
     }
     return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- snapshotted once at run start, like every account visual
   }, []);
 
   // Per-HERO equipped GEAR (docs/EQUIPMENT.md §visuals) — the equipped loadout + active set bonuses
@@ -515,6 +525,14 @@ export function GameView({
           }
         }
         const rs = game.getRenderState();
+        // Graft ambience (docs/MULLIGANS.md §audio): a fielded ACTIVE organism audibly BREATHES —
+        // a soft wet pulse every few seconds while its host stands. Sim-time keyed (pause holds it);
+        // silent with no assembled organisms on the field.
+        if (game.phase === 'wave' && rs.time >= graftPulseAtRef.current
+          && rs.towers.some((tw) => mulliganRender[tw.kind])) {
+          graftPulseAtRef.current = rs.time + 5.5;
+          audio.cue('graftPulse');
+        }
         drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
@@ -1019,6 +1037,7 @@ export function GameView({
           <Inspector
             hud={hud}
             liveMastery={liveMastery}
+            mulliganStates={mulliganOverride ?? meta.get().mulligans}
             onCollapse={() => setRightOpen(false)}
             onBranchBuy={(towerId, branchId) => {
               audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)

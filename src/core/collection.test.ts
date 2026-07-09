@@ -9,9 +9,10 @@ import { CHASSIS } from './boss';
 import { megaBossRegistry } from './megaboss';
 import { BIOMES } from './biomes';
 import { cosmeticRegistry } from './cosmetics';
+import { mulliganRegistry } from './mulligan';
 import { validateEffects } from './validate';
 
-const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set() });
+const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), mulliganDex: {} });
 
 function fullCtx(): CollectionContext {
   const stats = defaultLifetimeStats();
@@ -20,15 +21,15 @@ function fullCtx(): CollectionContext {
   for (const id of HERO_IDS) stats.heroUsage[id] = 10_000;
   stats.uniqueCards = cardRegistry.ids();
   const megaIds = new Set(megaBossRegistry.ids());
-  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()) };
+  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])) };
 }
 
 describe('collection layer', () => {
   it('enumerates straight from the registries (scales with content)', () => {
     const v = collectionView(freshCtx());
-    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size;
+    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + mulliganRegistry.size;
     expect(v.total).toBe(expectedTotal);
-    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'cosmetics']);
+    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'cosmetics', 'mulligans']);
   });
 
   it('the codex enumerates the recent content (Coil/Siphon towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)', () => {

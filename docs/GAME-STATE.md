@@ -86,8 +86,13 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   bucket. The organism's appearance/animation/projectile are **procedurally generated** from the
   modifiers' stat profile (emergent — mixing ≠ stacking) and drawn grafted onto the turret. Earn loop
   via Bio-Container loot (Gene Overflow + modifier discovery); the **Mulligan Lab** (Hub → Progression)
-  is the equip/upgrade/ascend screen with a live organism preview; 3 achievements + dev tools. Fully
-  tested end-to-end. **MULLIGANS.md**
+  is the equip/upgrade/ascend screen with a live organism preview; 7 achievements + dev tools. Fully
+  tested end-to-end. **Reconciliation surfaces:** Daily Run pre-assembles the day's towers from the
+  player's OWN dex (loaner tutorial trio when empty; seeded, override-folded — §daily), Modifiers
+  collection codex (Discovered → Transcendent; +5% fire rate at completion), Inspector organism block,
+  organism-emitter projectiles wired into drawProjectile, container-reveal Overflow/discovery pulls,
+  organic audio (squelch/crack/field heartbeat), help-wiki entry, profile dex/Overflow rows, mobile
+  NAVS coverage. **MULLIGANS.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +

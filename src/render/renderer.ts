@@ -45,7 +45,8 @@ import {
 } from './vfx';
 import { drawTowerEvolution, evolutionGrowthAnimated, branchSkinColor } from './towerEvolution';
 import { drawStarEvolution, starEvolutionGrowth } from './starEvolution';
-import { drawMulliganOrganism } from './mulliganOrganism';
+import { drawMulliganOrganism, drawMulliganProjectile } from './mulliganOrganism';
+import type { MulliganProjectileSkin } from './mulliganOrganism';
 import type { ResolvedMulligan } from '../core/mulligan';
 import { drawHeroGear } from './equipmentArt';
 import type { HeroGearSpec } from './equipmentArt';
@@ -330,7 +331,7 @@ export function drawGame(
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
-  for (const p of rs.projectiles) drawProjectile(ctx, p, p.sourceKind ? towerSkins[p.sourceKind] : undefined, p.heroSource ? gearWeaponColor(heroGear[p.heroSource]) : undefined);
+  for (const p of rs.projectiles) drawProjectile(ctx, p, p.sourceKind ? towerSkins[p.sourceKind] : undefined, p.heroSource ? gearWeaponColor(heroGear[p.heroSource]) : undefined, p.sourceKind ? mulligans[p.sourceKind]?.projectile : undefined, t);
   drawEnemyShells(ctx, rs); // artillery bombardment arcs (empty array on the golden path)
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
@@ -995,7 +996,7 @@ function drawCosmeticAura(ctx: CanvasRenderingContext2D, x: number, y: number, r
 }
 
 /** Per-kind resolved Mulligan the renderer needs to draw its organism (docs/MULLIGANS.md). */
-export interface MulliganRender { resolved: ResolvedMulligan; visualSeed: number; animSeed: number }
+export interface MulliganRender { resolved: ResolvedMulligan; visualSeed: number; animSeed: number; projectile?: MulliganProjectileSkin | null }
 
 function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme, mulligan?: MulliganRender): void {
   const def = TOWER_DEFS[tw.kind];
@@ -1298,13 +1299,21 @@ function gearWeaponColor(spec?: HeroGearSpec): string | undefined {
   return spec?.attachments.find((a) => a.slot === 'weapon')?.color;
 }
 
-function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number], skin?: CosmeticTheme, heroWeapon?: string): void {
+function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number], skin?: CosmeticTheme, heroWeapon?: string, mulliganShot?: MulliganProjectileSkin | null, now = 0): void {
   // A target-less shot fades out (game settle / mid-combat fizzle) instead of popping.
   const fading = p.fade !== undefined && p.fade < 1;
   if (fading) ctx.globalAlpha = Math.max(0, p.fade!);
   if (p.skin && drawSkinnedProjectile(ctx, p)) {
     if (fading) ctx.globalAlpha = 1;
     return; // themed branch shot; else fall through to base
+  }
+  // Mulligan organism shot (docs/MULLIGANS.md §projectile): an ACTIVE organism's fire visibly
+  // comes from the graft — the derived skin replaces the base comet. Branch identities above
+  // still win; towers without an assembled organism keep the host's own shot.
+  if (mulliganShot) {
+    drawMulliganProjectile(ctx, p.x, p.y, Math.atan2(p.ty - p.y, p.tx - p.x), mulliganShot, 3, now);
+    if (fading) ctx.globalAlpha = 1;
+    return;
   }
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';

@@ -19,9 +19,11 @@ import { CHASSIS } from './boss';
 import { megaBossRegistry } from './megaboss';
 import { BIOMES } from './biomes';
 import { cosmeticRegistry } from './cosmetics';
+import { MULLIGAN_RARITY, mulliganRegistry, rarityAtLeast } from './mulligan';
+import type { MulliganRarity } from './mulligan';
 import type { LifetimeStats } from './types';
 
-export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests' | 'cosmetics';
+export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests' | 'cosmetics' | 'mulligans';
 
 export interface CollectionEntry {
   id: string;
@@ -68,6 +70,7 @@ export interface CollectionContext {
   megaSpeed: Set<string>; // …defeated faster than the expected kill time
   biomesSeen: Set<string>; // biome ids the account has reached in Campaign
   cosmeticsOwned: Set<string>; // Phenotype ids owned (docs/COSMETICS.md) — drives the Phenotypes codex
+  mulliganDex: Record<string, MulliganRarity>; // Mulligan modifier id → best DISCOVERED rarity — drives the Modifier codex
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
@@ -204,6 +207,17 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: c.id, name: c.name, tier, maxTier: 1, tierLabel: tier ? 'Expressed' : 'Dormant' };
   });
 
+  // Mulligan Modifiers (docs/MULLIGANS.md §collection): tiered MASTERY over the dex —
+  // discovering the modifier is tier 1, seeing it at Legendary-or-better is tier 2 — so the
+  // Modifier codex rewards both the hunt and the deep-rarity chase. Registry-driven: a future
+  // modifier row joins the codex (and its completion math) by itself.
+  const mulligans = mulliganRegistry.all().map((m): CollectionEntry => {
+    const rar = ctx.mulliganDex[m.id];
+    const tier = rar ? (rarityAtLeast(rar, 'legendary') ? 2 : 1) : 0;
+    const label = rar ? (tier === 2 ? 'Transcendent' : `Discovered — ${MULLIGAN_RARITY[rar].label}`) : 'Unsequenced';
+    return { id: m.id, name: m.name, tier, maxTier: 2, tierLabel: label };
+  });
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
@@ -215,6 +229,7 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('biomes', 'Biomes', biomes),
     makeCategory('chests', 'Caches', chests),
     makeCategory('cosmetics', 'Phenotypes', cosmetics),
+    makeCategory('mulligans', 'Modifiers', mulligans),
   ];
   const discovered = categories.reduce((a, c) => a + c.discovered, 0);
   const total = categories.reduce((a, c) => a + c.total, 0);
@@ -253,6 +268,9 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   chests: { effects: [], econ: [], powerWeight: 0 }, // caches are cosmetic (discovered on a fresh save → no bonus)
   // Phenotype expression pays a small hive-wide vigor edge — visual mastery with real teeth.
   cosmetics: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.06, label: 'Biomass' }], econ: [], powerWeight: 0.03 },
+  // Modifier mastery (docs/MULLIGANS.md §collection) quickens every graft host: run-wide fire
+  // rate at full completion — the set bonus for sequencing the whole modifier library.
+  mulligans: { effects: [{ op: 'mul', field: 'towerFireRateMult', max: 1.05, label: 'Fire Rate' }], econ: [], powerWeight: 0.03 },
 };
 
 const effVal = (op: 'mul' | 'add', max: number, c: number): number => (op === 'mul' ? 1 + (max - 1) * c : max * c);

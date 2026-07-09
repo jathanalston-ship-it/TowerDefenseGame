@@ -299,9 +299,9 @@ graph TD
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled
 - **Save fields:** `mulligans` · `mulliganDex` · `geneOverflow`
-- **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `GameView (organism overlay)` · `MulliganLab`
-- **Collection:** discovered modifiers (mulliganDex) feed a Mulligan codex tier · **Achievements:** `mulligan_grafted` · `mulligan_splicer` · `mulligan_transcendent`
+- **Tutorial:** — · **Help mechanics:** `mulligans`
+- **HUD surfaces:** — · **UI screens:** `GameView (organism overlay + emitter shots + graft ambience)` · `MulliganLab` · `Inspector (organism block)` · `DailyScreen (assignment briefing)` · `Vault reveal (Overflow + discovery pulls)` · `PlayerProfile (dex + Overflow rows)`
+- **Collection:** mulligans (Modifiers) — dex-driven codex: Discovered → Transcendent; +5% fire rate at completion · **Achievements:** `mulligan_grafted` · `mulligan_splicer` · `mulligan_transcendent` · `mulligan_dex` · `mulligan_perfected` · `mulligan_ascendant` · `mulligan_overlord`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/MULLIGANS.md`
 

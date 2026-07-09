@@ -105,3 +105,82 @@ describe('meta pipeline — discover → equip → upgrade → ascend', () => {
     meta.reset();
   });
 });
+
+// ── Reconciliation surfaces (docs/MULLIGANS.md §daily/§collection/§inspect) ──
+
+import { TOWER_ORDER } from '../core/config';
+import { TUTORIAL_MULLIGAN_IDS, dailyMulliganAssignment, isMulliganActive, mulliganRegistry, resolveMulligan } from '../core/mulligan';
+import { collectionView } from '../core/collection';
+import { collectionContextOf } from './meta';
+import { checkAchievements } from './achievements';
+
+describe('the Daily assignment (docs/MULLIGANS.md §daily)', () => {
+  it('is deterministic per seed, ACTIVE on every kind, and dex-drawn', () => {
+    const dex = { bone_spike: 'legendary', green_vein: 'rare', rapid_synapse: 'common' } as const;
+    const a = dailyMulliganAssignment(1234, TOWER_ORDER, { ...dex });
+    const b = dailyMulliganAssignment(1234, TOWER_ORDER, { ...dex });
+    expect(a).toEqual(b); // same day ⇒ identical organisms
+    expect(a.tutorial).toBe(false);
+    for (const k of TOWER_ORDER) {
+      const st = a.byKind[k]!;
+      expect(isMulliganActive(st)).toBe(true); // dailies always field awake organisms
+      for (const slot of st.slots) {
+        expect(slot).not.toBeNull();
+        expect(Object.keys(dex)).toContain(slot!.id); // drawn ONLY from the player's dex
+        expect(slot!.rarity).toBe(dex[slot!.id as keyof typeof dex]); // at the discovered rarity
+        expect(slot!.level).toBe(1);
+      }
+    }
+    expect(dailyMulliganAssignment(4321, TOWER_ORDER, { ...dex })).not.toEqual(a); // a new day reshuffles
+  });
+
+  it('an empty dex borrows the loaner tutorial trio', () => {
+    const a = dailyMulliganAssignment(99, TOWER_ORDER, {});
+    expect(a.tutorial).toBe(true);
+    for (const k of TOWER_ORDER) {
+      for (const slot of a.byKind[k]!.slots) expect([...TUTORIAL_MULLIGAN_IDS]).toContain(slot!.id);
+    }
+  });
+
+  it('the towerProgress override substitutes the account organisms for the fold only', () => {
+    const save = defaultSave();
+    save.mulligans.needle = assembleMulligan(['bone_spike', 'bone_spike', 'bone_spike'], 'legendary', 5, 'needle');
+    const own = towerProgress(save);
+    expect(own.needle.damageMult).toBeGreaterThan(1); // the account's own graft
+    const override = dailyMulliganAssignment(7, ['needle'], { rapid_synapse: 'common' }).byKind;
+    const daily = towerProgress(save, true, override);
+    const expected = resolveMulligan(override.needle);
+    expect(daily.needle.fireRateMult).toBeCloseTo(expected.fireRateMult, 9); // the day's organism
+    expect(daily.needle.damageMult).toBeLessThan(own.needle.damageMult); // the bone stack is benched
+    expect(towerProgress(save).needle.damageMult).toBe(own.needle.damageMult); // the save untouched
+  });
+});
+
+describe('the Modifier codex (docs/MULLIGANS.md §collection)', () => {
+  it('tiers Unsequenced → Discovered → Transcendent off the dex', () => {
+    const save = defaultSave();
+    save.mulliganDex = { bone_spike: 'rare', rapid_synapse: 'legendary' };
+    const cat = collectionView(collectionContextOf(save)).categories.find((c) => c.id === 'mulligans')!;
+    expect(cat.total).toBe(mulliganRegistry.size);
+    expect(cat.discovered).toBe(2);
+    expect(cat.entries.find((e) => e.id === 'bone_spike')!.tier).toBe(1);
+    expect(cat.entries.find((e) => e.id === 'rapid_synapse')!.tier).toBe(2); // legendary+ = Transcendent
+    expect(cat.entries.find((e) => e.id === 'green_vein')!.tierLabel).toBe('Unsequenced');
+  });
+});
+
+describe('the achievement ladder additions', () => {
+  it('reads dex completion, level caps, ascendant slots, and organism Power', () => {
+    const save = defaultSave();
+    const fresh = new Set(checkAchievements({ save }).map((a) => a.id));
+    for (const id of ['mulligan_dex', 'mulligan_perfected', 'mulligan_ascendant', 'mulligan_overlord']) {
+      expect(fresh.has(id)).toBe(false);
+    }
+    save.mulliganDex = Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'common' as const]));
+    for (const k of TOWER_ORDER) save.mulligans[k] = assembleMulligan(['bone_spike', 'green_vein', 'rapid_synapse'], 'ascendant', 20, k);
+    const ids = new Set(checkAchievements({ save }).map((a) => a.id));
+    for (const id of ['mulligan_dex', 'mulligan_perfected', 'mulligan_ascendant', 'mulligan_overlord']) {
+      expect(ids.has(id)).toBe(true);
+    }
+  });
+});

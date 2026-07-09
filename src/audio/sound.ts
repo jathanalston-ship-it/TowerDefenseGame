@@ -192,6 +192,18 @@ function sMine(): void { // spore-mine burst: wet pop + acid fizz (docs/SOWER.md
   noise(0.22, 0.16, 1600, 300); tone(180, 0.18, 'sine', 0.2, 70); noise(0.3, 0.06, 5200, 2000);
 }
 function sDraft(): void { tone(523, 0.12, 'triangle', 0.14); tone(784, 0.3, 'triangle', 0.14); }
+// ── Mulligan graft cues (docs/MULLIGANS.md §audio) — the organism is ALIVE: a soft wet
+//    heartbeat under fielded organisms in-run, tissue squelch on socketing a modifier,
+//    bone crack + vital swell on an upgrade. All QUIET by design — organic presence. ──
+function sGraftPulse(): void { // lub-dub + a faint wet sigh — the graft breathing
+  tone(58, 0.14, 'sine', 0.11, 46); tone(58, 0.12, 'sine', 0.08, 44); noise(0.22, 0.02, 600, 200);
+}
+function sGraftSquelch(): void { // wet tissue seating into the socket
+  noise(0.16, 0.09, 1100, 350); tone(120, 0.14, 'sine', 0.09, 66); tone(340, 0.08, 'triangle', 0.04, 220);
+}
+function sGraftCrack(): void { // bone crack + a rising vital swell — the upgrade takes
+  noise(0.06, 0.12, 3400, 900); noise(0.05, 0.09, 2600, 700); tone(90, 0.22, 'sine', 0.1, 210); tone(523, 0.16, 'triangle', 0.06, 660);
+}
 // ── progression / reward dopamine cues ──
 function sClear(): void { // wave-cleared fanfare (rising major triad)
   tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15); tone(659, 0.34, 'triangle', 0.16);
@@ -339,6 +351,9 @@ export const audio = {
         case 'wpBreak': sWpBreak(); break;
         case 'megaDeath': sMegaDeath(); break;
         case 'draft': sDraft(); break;
+        case 'graftPulse': sGraftPulse(); break;
+        case 'graftSquelch': sGraftSquelch(); break;
+        case 'graftCrack': sGraftCrack(); break;
         case 'ui': sSelect(); break;
         case 'hover': sHover(); break;
         case 'launch': sLaunch(); break;

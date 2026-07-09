@@ -8522,3 +8522,21 @@ kbd {
   pointer-events: none;
 }
 .inf-sector-n { position: relative; font-weight: 700; }
+
+/* ── Mulligan reconciliation surfaces (docs/MULLIGANS.md): Inspector block + Daily briefing ── */
+.insp-mg { margin: 8px 0; padding: 8px 10px; border-radius: var(--r-md); background: rgba(16, 22, 30, 0.72); border: 1px solid rgba(201, 139, 255, 0.22); }
+.insp-mg-h { display: flex; justify-content: space-between; align-items: baseline; }
+.insp-mg-k { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--viral, #c98bff); }
+.insp-mg-stage { font-size: 11px; color: var(--ink-dim, #8fa3b8); }
+.insp-mg-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 4px; }
+.insp-mg-chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--mg, #667); color: var(--mg, #cfe0f0); background: color-mix(in srgb, var(--mg, #223) 14%, transparent); }
+.insp-mg-pkg { font-size: 12px; color: var(--vital, #7fe07a); margin-top: 3px; }
+.insp-mg-abil { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.insp-mg-a { font-size: 11px; color: var(--ink-dim, #8fa3b8); }
+.insp-mg-a::before { content: '⊛ '; color: var(--viral, #c98bff); }
+.daily-grafts { margin-top: 8px; padding: 7px 10px; border-radius: var(--r-sm); background: rgba(201, 139, 255, 0.08); border: 1px solid rgba(201, 139, 255, 0.2); }
+.daily-grafts-t { font-size: 12px; color: var(--ink, #cfe0f0); line-height: 1.4; }
+
+@media (max-width: 520px) {
+  .insp-mg-chip { min-height: 24px; }
+}

@@ -26,6 +26,7 @@ import { accountPowerParts, collectionContextOf } from './meta';
 import { highestCampaignStage } from '../save/derive';
 import { difficultyPref, vaultLedger } from './prefs';
 import { nextRushIchorAt } from '../core/market';
+import { mulliganRegistry } from '../core/mulligan';
 
 // ── The stat provider registry ────────────────────────────────────────────────
 
@@ -119,6 +120,9 @@ profileRegistry.registerAll([
         { id: 'containers', label: 'Containers Opened', value: num(led.opened), hint: 'Vault openings on THIS device (the vault ledger is device-local).' },
         ...(equip ? [{ id: 'equip-found', label: 'Equipment Discovered', value: `${equip.discovered} / ${equip.total}`, progress: pctOf(equip.discovered, equip.total) }] : []),
         { id: 'mats', label: 'Materials Banked', value: num(s.mats.mutagen + s.mats.scrap + s.mats.catalyst) },
+        // Mulligan ledger (docs/MULLIGANS.md §statistics): the modifier hunt + the upgrade fuel.
+        { id: 'mg-dex', label: 'Modifiers Sequenced', value: `${Object.keys(s.mulliganDex).length} / ${mulliganRegistry.size}`, progress: pctOf(Object.keys(s.mulliganDex).length, mulliganRegistry.size), hint: 'Distinct Mulligan modifiers discovered from Bio-Containers (best rarity kept in the dex).' },
+        { id: 'mg-overflow', label: 'Gene Overflow Held', value: num(s.geneOverflow), hint: 'The Mulligan upgrade currency — every container bleeds a little.' },
       ];
     },
   },

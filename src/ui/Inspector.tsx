@@ -14,6 +14,8 @@ import { meta } from '../state/meta';
 import { itemDef } from '../core/equipment';
 import { masteryPanelModel } from './towerLabModel';
 import type { LiveMasteryView } from '../state/masteryEvents';
+import { MULLIGAN_RARITY, dominantAxis, mulliganRegistry, resolveMulligan } from '../core/mulligan';
+import type { MulliganState } from '../core/mulligan';
 import type { HudSnapshot, SelectedPlacedTower, TowerKind } from '../core/types';
 
 function StatRow({ k, v }: { k: string; v: string | number }): JSX.Element {
@@ -96,9 +98,48 @@ function MasteryLive({ kind, color, live }: { kind: TowerKind; color: string; li
   );
 }
 
+/** The organism riding this kind THIS run (docs/MULLIGANS.md §inspect): its three modifiers
+ * (rarity + level), the dominant-axis identity, the resolved package, and its Power. Hidden
+ * until all three slots are filled — a bare host renders nothing. */
+function MulliganLive({ state }: { state: MulliganState | undefined }): JSX.Element | null {
+  const resolved = resolveMulligan(state);
+  if (!resolved.active || !state) return null;
+  const dom = dominantAxis(resolved.profile);
+  const pct = (v: number): string => `+${Math.round((v - 1) * 100)}%`;
+  const lines = [
+    resolved.damageMult > 1 && `${pct(resolved.damageMult)} damage`,
+    resolved.fireRateMult > 1 && `${pct(resolved.fireRateMult)} fire rate`,
+    resolved.rangeMult > 1 && `${pct(resolved.rangeMult)} range`,
+    resolved.splashMult > 1 && `${pct(resolved.splashMult)} splash`,
+    resolved.extraProjectiles > 0 && `+${resolved.extraProjectiles} projectile${resolved.extraProjectiles > 1 ? 's' : ''}`,
+  ].filter((x): x is string => !!x);
+  return (
+    <div className="insp-mg" title="Mulligan organism — assembled in the Mulligan Lab; the Daily Run fields its own seeded assembly">
+      <div className="insp-mg-h">
+        <span className="insp-mg-k">Mulligan</span>
+        <span className="insp-mg-stage">{dom ? `${dom} organism` : 'organism'} · ×{resolved.power.toFixed(2)} Power</span>
+      </div>
+      <div className="insp-mg-chips">
+        {state.slots.map((slot, i) => slot && (
+          <span className="insp-mg-chip" key={`${slot.id}-${i}`} style={{ ['--mg' as string]: MULLIGAN_RARITY[slot.rarity].color }} title={mulliganRegistry.get(slot.id)?.desc ?? slot.id}>
+            {mulliganRegistry.get(slot.id)?.name ?? slot.id} · L{slot.level}
+          </span>
+        ))}
+      </div>
+      {lines.length > 0 && <div className="insp-mg-pkg">{lines.join(' · ')}</div>}
+      <div className="insp-mg-abil">
+        {state.slots.flatMap((slot) => (slot ? [mulliganRegistry.get(slot.id)?.desc ?? ''] : [])).filter(Boolean).slice(0, 3).map((d) => (
+          <span className="insp-mg-a" key={d}>{d}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Inspector({
   hud,
   liveMastery,
+  mulliganStates,
   onCollapse,
   onBranchBuy,
   onDeselect,
@@ -108,6 +149,7 @@ export function Inspector({
 }: {
   hud: HudSnapshot;
   liveMastery?: Partial<Record<string, LiveMasteryView>>;
+  mulliganStates?: Partial<Record<TowerKind, MulliganState>>; // this RUN's organisms (docs/MULLIGANS.md §inspect)
   onCollapse?: () => void;
   onBranchBuy?: (towerId: number, branchId: string) => void;
   onDeselect?: () => void;
@@ -172,6 +214,9 @@ export function Inspector({
         </div>
 
         {/* Live Mastery — the craft grows WHILE you watch (docs/MASTERY.md §live). */}
+        {/* Mulligan organism — the graft riding this kind THIS run (docs/MULLIGANS.md §inspect). */}
+        <MulliganLive state={mulliganStates?.[sp.kind]} />
+
         <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
 
         {/* Branch lock warning (pre-commit; the commit overlay re-warns on the click). */}

@@ -24,7 +24,7 @@ import { meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
-import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../core/types';
+import type { HeroKind, HeroProgress, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { RunMode } from '../core/game';
 import type { ResolvedHeroKit } from '../core/config';
@@ -40,8 +40,10 @@ import { difficultyPref, musicPref, sfxPref } from '../state/prefs';
 import { BioRoulette } from './BioRoulette';
 import { isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { dailyKey, generateDaily, pickDailyHero } from '../core/daily';
+import { dailyMulliganAssignment } from '../core/mulligan';
+import type { MulliganState } from '../core/mulligan';
 import type { DailyPlan } from '../core/daily';
-import { HERO_ORDER } from '../core/config';
+import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
 import { TutorialRunner } from './TutorialRunner';
@@ -91,6 +93,9 @@ export function App(): JSX.Element {
   const stageRef = useRef<StageConfig | null>(null); // campaign: the generated stage being played
   const campaignStageRef = useRef(0); // campaign: the stage number (winning it unlocks the next)
   const dailyPlanRef = useRef<DailyPlan | null>(null); // daily: the day's rolled plan (docs/DAILY-RUN.md)
+  // Daily only: the day's seeded Mulligan assignment (docs/MULLIGANS.md §daily) — substitutes the
+  // account's organisms for THIS run (fold + visuals + Inspect). Null on every other mode.
+  const dailyMulligansRef = useRef<Partial<Record<TowerKind, MulliganState>> | null>(null);
   // Run setup the player picks on the Play screen (uncontrolled → read at run start). Defaults are
   // identity ('standard' / 'none'), so an untouched menu plays exactly the baseline run.
   const difficultyRef = useRef('standard');
@@ -145,6 +150,7 @@ export function App(): JSX.Element {
     // (the run stays deterministic from this snapshot).
     modsRef.current = metaModifiers(meta.get());
     progRef.current = meta.towerProgress();
+    dailyMulligansRef.current = null; // non-daily runs field the account's own organisms
     heroRef.current = meta.selectedHero();
     rosterRef.current = meta.fieldedLoadout();
     heroProgRef.current = meta.heroProgress();
@@ -233,6 +239,12 @@ export function App(): JSX.Element {
     const hero = pickDailyHero(plan.seed, HERO_ORDER);
     heroRef.current = hero;
     rosterRef.current = [hero]; // the day's single champion — slots don't apply to the shared gauntlet
+    // The day's towers arrive with PRE-ASSEMBLED Mulligans drawn from the player's OWN discovered
+    // modifiers (loaner tutorial trio on an empty dex) — seeded by the day, so a rerun matches
+    // (docs/MULLIGANS.md §daily). Folded into the run's TowerProgress snapshot before mount.
+    const grafts = dailyMulliganAssignment(plan.seed, TOWER_ORDER, meta.get().mulliganDex);
+    dailyMulligansRef.current = grafts.byKind;
+    progRef.current = meta.towerProgress(grafts.byKind);
   }, [begin]);
 
   const handleEnd = useCallback((result: RunResult) => {
@@ -379,6 +391,7 @@ export function App(): JSX.Element {
           daily={modeRef.current === 'daily' && dailyPlanRef.current
             ? { modifierIds: dailyPlanRef.current.modifierIds, towerPool: dailyPlanRef.current.towerPool, megaBoss: dailyPlanRef.current.megaBoss }
             : undefined}
+          mulliganOverride={dailyMulligansRef.current ?? undefined}
           onEnd={handleEnd}
           onAbandon={handleAbandon}
         />

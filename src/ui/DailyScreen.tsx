@@ -95,6 +95,17 @@ export function DailyScreen({ onStartDaily, onSpectate }: { onStartDaily: () => 
             ))}
           </div>
 
+          {/* Mulligan briefing (docs/MULLIGANS.md §daily): today's towers arrive with organisms
+              PRE-ASSEMBLED from YOUR discovered modifiers — seeded by the day. A thin dex borrows
+              the loaner tutorial trio, so the system teaches itself here. */}
+          <div className="daily-grafts" title="Assembled at deploy from your discovered Mulligan modifiers — same seed, same organisms, all day">
+            {Object.keys(save.mulliganDex).length === 0 ? (
+              <span className="daily-grafts-t">⊛ Loaner organisms today — the tutorial modifier trio rides the trial towers. Sequence your own from Bio-Containers.</span>
+            ) : (
+              <span className="daily-grafts-t">⊛ Pre-assembled — today&apos;s towers carry Mulligans drawn from your {Object.keys(save.mulliganDex).length} sequenced modifier{Object.keys(save.mulliganDex).length === 1 ? '' : 's'}.</span>
+            )}
+          </div>
+
           <div className={`daily-power ${ready ? 'ok' : 'low'}`}>
             Recommended Power <b>{formatPower(plan.recommendedPower)}</b>
             <span className="daily-power-you">you {formatPower(power)} {ready ? '✓' : '⚠'}</span>

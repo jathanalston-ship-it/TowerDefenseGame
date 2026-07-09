@@ -362,3 +362,50 @@ export function assembleMulligan(ids: [string, string, string], rarity: Mulligan
   const slots = ids.map((id) => makeSlot(id, rarity, level));
   return { slots, ...seedFor(kind, slots) };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Daily Run assignment (docs/MULLIGANS.md §daily) — the day's towers arrive with
+// PRE-ASSEMBLED organisms drawn ONLY from the player's own discovered modifiers
+// (the dex, at each modifier's discovered rarity, level 1). A dex too thin to fill
+// three slots tops up from the loaner TUTORIAL trio — so a graft-less account still
+// meets the system on the daily, fully active, at the gentlest tuning. Seeded by the
+// day, so a rerun of the same daily fields identical organisms worldwide per-account.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** The loaner trio a thin dex borrows on dailies — three authored commons (the tutorial). */
+export const TUTORIAL_MULLIGAN_IDS: [string, string, string] = ['bone_spike', 'rapid_synapse', 'sensory_cilia'];
+
+export interface DailyMulliganAssignment {
+  byKind: Partial<Record<string, MulliganState>>;
+  tutorial: boolean; // true when loaner modifiers (an empty dex) are in play
+}
+
+export function dailyMulliganAssignment(
+  seed: number,
+  kinds: readonly string[],
+  dex: Record<string, MulliganRarity>,
+): DailyMulliganAssignment {
+  const owned = Object.keys(dex).filter((id) => mulliganRegistry.has(id));
+  const tutorial = owned.length === 0;
+  // The draw pool: discovered modifiers at their dex rarity, padded with the tutorial trio
+  // (at common) when the dex can't fill three slots by itself. Stacking is legal (the design
+  // explicitly supports Rapid Synapse ×3), so draws are with replacement.
+  const pool: { id: string; rarity: MulliganRarity }[] = owned.map((id) => ({ id, rarity: dex[id] }));
+  if (pool.length < MULLIGAN_SLOTS) for (const id of TUTORIAL_MULLIGAN_IDS) pool.push({ id, rarity: 'common' });
+  // A tiny deterministic PRNG over the daily seed — independent of the sim's rng streams.
+  let h = (seed ^ 0x6d756c67) >>> 0; // 'mulg'
+  const next = (): number => {
+    h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
+    return h / 0x1_0000_0000;
+  };
+  const byKind: Partial<Record<string, MulliganState>> = {};
+  for (const kind of kinds) {
+    const slots: (MulliganSlot | null)[] = [];
+    for (let i = 0; i < MULLIGAN_SLOTS; i++) {
+      const pick = pool[Math.floor(next() * pool.length)];
+      slots.push(makeSlot(pick.id, pick.rarity, 1));
+    }
+    byKind[kind] = { slots, ...seedFor(kind, slots) };
+  }
+  return { byKind, tutorial };
+}

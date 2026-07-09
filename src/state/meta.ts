@@ -21,7 +21,7 @@ import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premi
 import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, researchRewardById, researchScale, specimenRarity } from '../core/research';
 import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef } from '../core/research';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
-import type { HeroForkTier, HeroUnlockReq, ResolvedHeroKit, UpgradeDef } from '../core/config';
+import type { HeroForkTier, HeroUnlockReq, LootRarity, ResolvedHeroKit, UpgradeDef } from '../core/config';
 import type {
   HeroKind,
   HeroMasteryCounts,
@@ -66,7 +66,7 @@ import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../co
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
-import { MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, makeSlot, mulliganRegistry, nextRarity, rarityAtLeast, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import { MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, makeSlot, mulliganRegistry, nextRarity, rarityAtLeast, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
 import type { MulliganRarity, MulliganState, ResolvedMulligan } from '../core/mulligan';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
@@ -139,6 +139,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     megaSpeed: new Set(save.megaProgress.speed),
     biomesSeen: biomesSeenOf(save),
     cosmeticsOwned: new Set(save.cosmetics.owned),
+    mulliganDex: save.mulliganDex ?? {},
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
   };
 }
@@ -699,7 +700,7 @@ export function heroSlotView(save: SaveData): HeroSlotView[] {
  * stat (config.STAR) PLUS their evolution kit (targeting/projectiles/granted attacks,
  * resolved from the authored star path + the player's per-run fork picks). Identity for a
  * fresh save: 0 stars ⇒ empty kit ⇒ all kit fields undefined ⇒ a byte-identical run. */
-export function towerProgress(save: SaveData, includeMulligan = true): TowerProgress {
+export function towerProgress(save: SaveData, includeMulligan = true, mulliganOverride?: Partial<Record<TowerKind, MulliganState>>): TowerProgress {
   const out = {} as TowerProgress;
   for (const k of TOWER_ORDER) {
     const stars = save.towerStars[k] ?? 0;
@@ -732,7 +733,9 @@ export function towerProgress(save: SaveData, includeMulligan = true): TowerProg
     // identity unless all three slots are filled (isMulliganActive), so a fresh account stays
     // byte-identical (golden-safe). Excluded from the Power `towers` bucket (includeMulligan=false)
     // so its Power is attributed solely to the dedicated `mulligans` bucket — no double count.
-    const mull = includeMulligan ? resolveMulligan(save.mulligans?.[k]) : identityMulligan();
+    // `mulliganOverride` substitutes the account's organisms wholesale for THIS fold — the
+    // Daily Run's seeded, dex-drawn assignment (docs/MULLIGANS.md §daily); absent = the save's own.
+    const mull = includeMulligan ? resolveMulligan((mulliganOverride ?? save.mulligans)?.[k]) : identityMulligan();
     kit.projectileMutators.push(...mull.projectileMutators);
     kit.extraProjectiles += mull.extraProjectiles;
     kit.splashMult *= mull.splashMult;
@@ -1799,13 +1802,24 @@ export const meta = {
     const OVERFLOW_BY_RARITY: Record<string, number> = { common: 15, rare: 30, epic: 55, legendary: 90, exotic: 140, mythic: 200 };
     const overflowGained = Math.round((OVERFLOW_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6));
     let mulliganDex = save.mulliganDex;
+    // Surface the Overflow on the reveal (an event pull) so the spoils are never invisible.
+    chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneOverflow', amount: overflowGained, note: 'Gene Overflow' });
     const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
     if (premiumMull) {
       const modIds = mulliganRegistry.ids();
       const id = modIds[Math.floor(Math.random() * modIds.length)];
       const rar = rollRarity(Math.random());
       const cur = mulliganDex[id];
-      if (id && (!cur || !rarityAtLeast(cur, rar))) mulliganDex = { ...mulliganDex, [id]: rar };
+      if (id && (!cur || !rarityAtLeast(cur, rar))) {
+        mulliganDex = { ...mulliganDex, [id]: rar };
+        // The DISCOVERY moment (docs/MULLIGANS.md §loot): a first find — or a rarity upgrade —
+        // is a reveal-worthy pull; the ceremony names the modifier + its sequenced rarity.
+        const revealRarity: LootRarity = rar === 'ascendant' ? 'exotic' : rar === 'uncommon' ? 'common' : rar;
+        chest.items.push({
+          type: 'event', rarity: revealRarity, currency: 'mulliganModifier', amount: 1,
+          note: `${cur ? 'Modifier Ascended' : 'Modifier Sequenced'} — ${mulliganRegistry.get(id)?.name ?? id} (${MULLIGAN_RARITY[rar].label})`,
+        });
+      }
     }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
@@ -1843,9 +1857,10 @@ export const meta = {
     return newly.map((a) => a.id);
   },
 
-  /** Per-tower run multipliers from the current save (passed into a new Game). */
-  towerProgress(): TowerProgress {
-    return towerProgress(store.get());
+  /** Per-tower run multipliers from the current save (passed into a new Game).
+   * `mulliganOverride` substitutes the account's organisms — the Daily Run's loadout. */
+  towerProgress(mulliganOverride?: Partial<Record<TowerKind, MulliganState>>): TowerProgress {
+    return towerProgress(store.get(), true, mulliganOverride);
   },
 
   /** Choose a star-fork option for a tower (keyed by the fork's star). Re-selectable any

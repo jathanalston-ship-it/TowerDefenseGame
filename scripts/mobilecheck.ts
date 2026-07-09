@@ -21,7 +21,7 @@ const args = process.argv.slice(2).filter((a) => a !== '--');
 const PORT = Number(args[args.indexOf('--port') + 1] || 0) || 4310;
 const CHROME = process.env.MOBILECHECK_CHROMIUM ?? '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell';
 
-const NAVS = ['home', 'campaign', 'infinite', 'bossrush', 'daily', 'towers', 'heroes', 'evolution', 'genes', 'vault', 'market', 'equipment', 'phenotypes', 'collection', 'store', 'profile', 'help', 'settings'];
+const NAVS = ['home', 'campaign', 'infinite', 'bossrush', 'daily', 'towers', 'heroes', 'evolution', 'genes', 'mulligans', 'vault', 'market', 'equipment', 'phenotypes', 'collection', 'store', 'profile', 'help', 'settings'];
 const VIEWPORTS = [
   { name: '390', width: 390, height: 844 },
   { name: '320', width: 320, height: 700 },

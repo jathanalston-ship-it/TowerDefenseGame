@@ -13,7 +13,7 @@
 
 import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
-import { MULLIGAN_RARITY, isMulliganActive } from '../core/mulligan';
+import { MULLIGAN_RARITY, accountMulliganPower, isMaxLevel, isMulliganActive, mulliganRegistry } from '../core/mulligan';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
 import { highestCampaignStage } from '../save/derive';
 import type { TowerKind } from '../core/types';
@@ -75,6 +75,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'mulligan_grafted', name: 'Grafted', desc: 'Fully assemble a Mulligan (all three modifier slots) on a tower.', reward: 25, test: (c) => TOWER_ORDER.some((k) => isMulliganActive(c.save.mulligans?.[k])) },
   { id: 'mulligan_splicer', name: 'Gene Splicer', desc: 'Discover 12 distinct Mulligan modifiers.', reward: 40, test: (c) => Object.keys(c.save.mulliganDex ?? {}).length >= 12, progress: (c) => ({ cur: Object.keys(c.save.mulliganDex ?? {}).length, max: 12 }) },
   { id: 'mulligan_transcendent', name: 'Transcendent Graft', desc: 'Bring a slotted modifier to Legendary rarity or beyond.', reward: 60, hidden: true, test: (c) => TOWER_ORDER.some((k) => (c.save.mulligans?.[k]?.slots ?? []).some((s) => s && MULLIGAN_RARITY[s.rarity].tier >= MULLIGAN_RARITY.legendary.tier)) },
+  { id: 'mulligan_dex', name: 'Complete Sequence', desc: 'Discover every known Mulligan modifier.', reward: 100, test: (c) => mulliganRegistry.ids().every((id) => !!c.save.mulliganDex?.[id]), progress: (c) => ({ cur: Object.keys(c.save.mulliganDex ?? {}).length, max: mulliganRegistry.size }) },
+  { id: 'mulligan_perfected', name: 'Perfected Strain', desc: 'Grow a slotted modifier to its rarity level cap.', reward: 55, test: (c) => TOWER_ORDER.some((k) => (c.save.mulligans?.[k]?.slots ?? []).some((s) => s && isMaxLevel(s))) },
+  { id: 'mulligan_ascendant', name: 'Ascendant Symbiosis', desc: 'Slot an Ascendant-rarity modifier — the apex strain.', hidden: true, reward: 90, test: (c) => TOWER_ORDER.some((k) => (c.save.mulligans?.[k]?.slots ?? []).some((s) => s && s.rarity === 'ascendant')) },
+  { id: 'mulligan_overlord', name: 'Biomechanical Overlord', desc: 'Reach ×1.5 account Power from Mulligan organisms.', reward: 100, test: (c) => accountMulliganPower(TOWER_ORDER.map((k) => c.save.mulligans?.[k])) >= 1.5, progress: (c) => ({ cur: Math.round(accountMulliganPower(TOWER_ORDER.map((k) => c.save.mulligans?.[k])) * 100), max: 150 }) },
 
   // ── Statistics-driven (integrates with the lifetime stats system) ──
   { id: 'exterminator', name: 'Exterminator', desc: 'Kill 1,000 enemies (lifetime).', reward: 60, test: (c) => c.save.stats.lifetimeKills >= 1000, progress: (c) => ({ cur: c.save.stats.lifetimeKills, max: 1000 }) },

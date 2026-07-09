@@ -189,6 +189,53 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
   grow live. Reads `mulliganLabView`; writes only via the meta pipeline.
 - **Dev tools:** grant Overflow, discover-all, and auto-assemble a varied organism on every tower —
   exercise the entire pipeline without grinding loot.
-- **Known follow-ups (polish, non-blocking):** a bespoke reveal card for the Overflow / discovery
-  spoils (they currently surface in the Lab, not on the container reveal), a Collections codex tier
-  reading `mulliganDex`, and a tutorial nod.
+- **Container reveal (§reveal):** the Overflow bleed and every dex discovery surface ON the reveal
+  ceremony as event pulls — `Gene Overflow +N` and `Modifier Sequenced/Ascended — <name> (<rarity>)`
+  (ascendant reads at exotic emphasis) — so the spoils are never invisible.
+
+## Daily Run (§daily)
+
+`dailyMulliganAssignment(daySeed, TOWER_ORDER, mulliganDex)` pre-assembles the day's towers with
+organisms drawn ONLY from the player's **own sequenced modifiers** (at each modifier's dex rarity,
+level 1; stacking legal — the design supports ×3). A dex too thin for three slots borrows the
+loaner **tutorial trio** (`TUTORIAL_MULLIGAN_IDS`: Bone Spike / Rapid Synapse / Sensory Cilia at
+common, `tutorial: true`) — dailies always field AWAKE organisms, so the system teaches itself
+there. Own PRNG over the day seed ⇒ a rerun fields identical organisms. Wired as a
+`towerProgress(save, true, override)` substitution in `App.startDaily` (fold + battlefield visuals
++ Inspect all read the override); the account's own organisms are untouched. The Daily screen
+carries a briefing line.
+
+## Collection (§collection)
+
+Codex category **`mulligans` (Modifiers)**, dex-driven: tier 1 `Discovered — <rarity>` on first
+sequencing, tier 2 `Transcendent` at legendary-or-better. Set bonus at completion = **+5% tower
+fire rate** + the standard 0.03 Power weight (`CATEGORY_BONUS_SPECS`). Registry-driven — a future
+modifier joins the codex by itself.
+
+## Inspect (§inspect)
+
+Selecting a placed tower with an ACTIVE organism shows its **Mulligan block**: the three modifier
+chips (rarity-colored, with level), the dominant-axis identity, the resolved package
+(damage/fire-rate/range/splash/projectiles), and its ×Power. Daily runs show the day's assignment
+(GameView threads `mulliganOverride` → Inspector `mulliganStates`).
+
+## Battlefield projectiles (§projectile)
+
+`deriveMulliganProjectile` skins are now WIRED: GameView derives one per active kind into
+`MulliganRender.projectile`; `drawProjectile` fires it in place of the base comet (branch skins
+still take precedence — a branch IS an identity).
+
+## Audio (§audio)
+
+Three quiet organic cues (`sound.ts`): `graftSquelch` (socketing a modifier), `graftCrack`
+(an upgrade takes), and `graftPulse` — a soft wet heartbeat every ~5.5s of sim time while ANY
+active organism stands on the field (pause holds it; silent on graft-less boards).
+
+## Help + statistics
+
+Help-wiki mechanic `mulligans` (unlocks with the first sequenced modifier; nav → the Mulligan
+Lab). Profile → Economy carries `Modifiers Sequenced` (dex/registry) and `Gene Overflow Held`;
+the Power Breakdown's dedicated *Mulligans* slice was already live. Four achievement additions:
+`mulligan_dex` (complete sequence), `mulligan_perfected` (a rarity level-cap), `mulligan_ascendant`
+(an ascendant slot, hidden), `mulligan_overlord` (×1.5 organism Power). The Mulligan Lab screen
+joined the mobile enforcement lane (`scripts/mobilecheck.ts` NAVS).

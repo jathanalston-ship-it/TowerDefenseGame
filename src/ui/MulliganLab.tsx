@@ -50,8 +50,8 @@ export function MulliganLab(): JSX.Element {
   const tv = view.towers.find((t) => t.kind === selected)!;
 
   const refresh = (): void => force();
-  const equip = (slot: number, id: string): void => { if (meta.equipMulligan(selected, slot, id)) { audio.cue('place'); setPickSlot(null); refresh(); } };
-  const upgrade = (slot: number): void => { if (meta.upgradeMulligan(selected, slot)) { audio.cue('select'); refresh(); } };
+  const equip = (slot: number, id: string): void => { if (meta.equipMulligan(selected, slot, id)) { audio.cue('graftSquelch'); setPickSlot(null); refresh(); } };
+  const upgrade = (slot: number): void => { if (meta.upgradeMulligan(selected, slot)) { audio.cue('graftCrack'); refresh(); } };
   const ascend = (slot: number): void => { if (meta.ascendMulligan(selected, slot)) { audio.cue('splice'); refresh(); } };
   const unequip = (slot: number): void => { if (meta.unequipMulligan(selected, slot)) { audio.cue('select'); refresh(); } };
 
