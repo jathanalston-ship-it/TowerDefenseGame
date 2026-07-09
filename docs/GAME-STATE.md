@@ -470,10 +470,12 @@ presentation-side only (determinism); heroes only strike organs on an empty fiel
 **Assimilation Index** (`core/assimilation.ts`) via `tierAt(game.assimilation.index)` — ONE source of
 truth shared with the mood FX/music/HUD; the local biomass path is the standalone fallback
 (tests/spectate) and always supplies the regional hotspots. `intensity=(stage+progress)/6` is the master alpha.
-Draw layers: cached stage-keyed **membrane** (biome-tinted), **arteries** nucleus→towers with a
-heartbeat, per-motif **regional blooms**, a growing **nucleus organ** (roots/sacs/eyes/heartbeat),
-pooled **scars** (permanent boss/mega via render-side id-disappearance; fading combat scorch), and
-edge-biased **ambient life** (stage ≥ 3). Inert at Stage 0.
+**Optimization:** all stable terrain — membrane (multi-octave, biome+tier-tinted, with an assimilation
+FRONTIER that climbs the map), tubular veins, 2-tone shaded blooms, edge/grid overgrowth, permanent
+scars — is BAKED into one offscreen canvas keyed `(stage,biome,layout,permScars)`, rebuilt only on
+change and CROSSFADED (~0.85s). Per frame = one `drawImage` + cheap gradient-free live accents
+(heartbeat beads, nucleus organ, combat flare, mega bloom, fading scorch, ambient life). Headless
+fallback paints a direct wash. Inert at Stage 0.
 
 **Public APIs.** `drawLivingBattlefield(ctx, rs, {power,mulligans,heroGear,cosmeticTiers,starTiers},
 now, detail) → Assimilation` · `drawLivingBattlefieldAmbient(ctx, a, now, detail)` ·

@@ -62,20 +62,31 @@ Mutation blooms outward from **hotspots**, each in its own motif:
 `arteries` (pulsing veins with a travelling heartbeat) connect the nucleus to each tower, so the network
 literally follows the player's layout.
 
-## Layers (all beneath the entities, except ambient life)
+## The Terraform Layer (architecture + optimization)
 
-1. **Membrane** — a cached, stage-keyed fleshy ground texture (rebuilt only when stage or biome flips),
-   blitted with a breathing alpha. **Biome adaptation** tints it toward the biome accent (consume, don't
-   overwrite — e.g. a frozen biome yields icy-tinted flesh).
-2. **Arteries** — nucleus→tower veins + heartbeat beads.
-3. **Regional blooms** — per-motif geometry (bone spurs, crystal shards, spore pods, roots, chitin
-   plates, ember cracks, breathing sacs).
-4. **Nucleus organ** — spreading roots, pulsing sacs, blinking eyes (stage ≥ 3), a heartbeat ring; grows
-   with the run.
-5. **Scars** — permanent boss/mega craters (tracked render-side by boss-id disappearance, so no sim
-   change) + fading combat scorch on heavy-fought ground.
-6. **Ambient life** (over entities) — a few crawling parasites, drifting spores and rare blinking eyes,
-   **stage ≥ 3 only, low alpha, edge-biased** so the play-critical centre stays readable.
+All the **stable** terrain — membrane, tubular veins, shaded blooms, edge overgrowth and permanent
+scars — is **baked once** into an offscreen canvas, keyed by `(stage, biome, build layout, perm-scar
+count)`. It is rebuilt only when that key changes (a stage step, a biome flip, a tower placed/upgraded,
+a boss falling) and **crossfades** from the previous bake over ~0.85 s, so the arena *grows* instead of
+popping. Per frame the drawer does **one `drawImage`** plus a handful of cheap, gradient-free live
+accents. Baked in:
+
+1. **Membrane** — multi-octave fleshy mottling behind an **assimilation frontier** that advances from the
+   hive (bottom) toward the spawn line (top) as the run deepens — the map is *consumed*, not overlaid.
+   **Tinted** toward the biome accent (consume, don't overwrite) **and** the Assimilation-Index tier
+   colour, so the ground shares the mood-FX/HUD art direction.
+2. **Veins** — tubular nucleus→tower channels (dark casing, bright core, capillary offshoots) following
+   the real build.
+3. **Regional blooms** — 2-tone **shaded** per-motif geometry (bone spurs, crystal shards, spore pods,
+   roots, chitin plates, ember cracks, specular sacs), lit up-left to match the renderer.
+4. **Overgrowth** (stage ≥ 2) — a rising bottom crust, creeping edge tendrils and, at stage ≥ 4, chitin
+   plating snapping onto the tile lattice — this is what makes late-game *not the starting map*.
+5. **Permanent scars** — boss/mega craters (tracked render-side by boss-id disappearance, so no sim change).
+
+**Live accents** (cheap, over the blit): breathing blit-alpha, heartbeat beads travelling the veins, the
+**nucleus organ** (roots/sacs/blinking eyes/heartbeat ring), a **combat flare** where the line is pressed
+hardest, a mega bloom, fading combat scorch (two-arc fills, no gradients), and **ambient life** over the
+entities.
 
 ## Audio
 
@@ -84,10 +95,14 @@ load, never on a decrease. Quiet by design; the score is never interrupted.
 
 ## Performance
 
-- The expensive full-field texture is **cached** and rebuilt only on a stage/biome change.
-- Everything else is time/hash-keyed with no per-frame allocation churn; scars are **pooled + capped**.
-- **LOD**: under a large swarm (`PERF.lodEnemyCount`) artery/region counts drop and ambient life is
+- The entire terrain is a **cached blit** — rebuilt only on a real change, crossfaded, so a steady frame
+  costs one `drawImage` (two mid-crossfade) instead of dozens of per-region gradient allocations.
+- Live accents are gradient-free where it matters (heartbeat beads, combat scorch); scars are **pooled +
+  capped**; the bake is one-time and amortized.
+- **LOD**: under a large swarm (`PERF.lodEnemyCount`) live vein-bead counts drop and ambient life is
   skipped. Graceful — the field simplifies, it never stalls the frame.
+- **Headless fallback**: with no DOM (unit tests / jsdom) the drawer paints a cheap direct wash + simple
+  veins so the path still runs end-to-end without an offscreen canvas.
 
 ## Developer tools
 

@@ -17,7 +17,7 @@
 import type { RenderState } from '../core/game';
 import { CELL, HEIGHT, WIDTH, nucleusPoint } from '../core/map';
 import { ENEMY_DEFS } from '../core/config';
-import { tierAt } from '../core/assimilation';
+import { tierAt, tierColorAt } from '../core/assimilation';
 
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
@@ -27,7 +27,6 @@ const STAGE_THRESHOLDS = [0, 10, 24, 46, 80, 130] as const; // hidden biomass va
 export const STAGE_COUNT = 6; // stages 0..5
 export const STAGE_NAMES = ['Dormant', 'Seeded', 'Spreading', 'Infested', 'Assimilated', 'Living'] as const;
 const SCAR_CAP = 48; // pooled ground scars (perf ceiling)
-const REGION_CAP = 16; // most regional blooms drawn per frame (LOD drops this under load)
 
 // ── Local colour helpers (self-contained — the palette is a handful of hues, gore.ts does the same) ─
 type Col = [number, number, number];
@@ -95,6 +94,7 @@ export interface Assimilation {
   regions: Region[]; // regional evolution hotspots (towers / nucleus / combat / mega)
   dominant: Motif; // the build's overall character
   dominantHue: string;
+  tierColor: [number, number, number]; // the Assimilation Index tier accent — unifies terrain art-direction with the mood FX/HUD
 }
 /** Presence/tier maps the drawer already holds — kept loose so this module stays decoupled. */
 export interface LBContext {
@@ -183,7 +183,11 @@ export function computeAssimilation(rs: RenderState, ctx: LBContext, masterIndex
   let dominant: Motif = 'flesh';
   let best = -1;
   for (const [m, w] of motifWeight) if (w > best) { best = w; dominant = m; }
-  return { value, stage, progress, intensity, regions, dominant, dominantHue: MOTIF_HUE[dominant] };
+  // The tier accent (shared with the mood FX/HUD): exact on the live index path, approximated on the
+  // fallback so the terrain still reads a coherent colour without the eased master state.
+  const idx01 = stageOverride != null ? stage / (STAGE_COUNT - 1) : masterIndex != null ? masterIndex : intensity;
+  const tc = tierColorAt(idx01);
+  return { value, stage, progress, intensity, regions, dominant, dominantHue: MOTIF_HUE[dominant], tierColor: [tc[0], tc[1], tc[2]] };
 }
 
 let lastAssim: Assimilation | null = null;
@@ -200,6 +204,7 @@ let lastTime = 0;
 
 export function resetLivingBattlefield(): void {
   scars.length = 0; bossSeen.clear(); megaWasPresent = false; lastScarSeq = -1; lastTime = 0; lastAssim = null;
+  clearTerraform();
 }
 
 /** Update the scar pool from this frame: fading combat scars (a fraction of kills), and PERMANENT scars
@@ -248,51 +253,6 @@ function pushScar(s: Scar): void {
   scars.push(s);
 }
 
-// ══ Cached membrane (the expensive full-field flesh texture — rebuilt only when stage or biome flips) ═
-let membrane: HTMLCanvasElement | null = null;
-let membraneKey = '';
-const MEMB_SCALE = 0.5; // soft organic wash — half-res is invisible and halves the blit cost
-
-function buildMembrane(stage: number, tint: Col | null): HTMLCanvasElement {
-  const c = document.createElement('canvas');
-  c.width = Math.max(1, Math.round(WIDTH * MEMB_SCALE));
-  c.height = Math.max(1, Math.round(HEIGHT * MEMB_SCALE));
-  const g = c.getContext('2d')!;
-  g.scale(MEMB_SCALE, MEMB_SCALE);
-  let base: Col = [58, 26, 34]; // dark flesh
-  let hi: Col = [120, 46, 60];
-  if (tint) { base = mix(base, tint, 0.28); hi = mix(hi, tint, 0.34); } // biome adaptation: consume, don't overwrite
-  const blotches = 40 + stage * 26;
-  for (let i = 0; i < blotches; i++) {
-    const h1 = hash01(i * 1.7 + stage), h2 = hash01(i * 3.3 + 5), h3 = hash01(i * 5.1 + 9);
-    const x = h1 * WIDTH;
-    const y = h2 * HEIGHT;
-    // denser toward the bottom (the hive) and around the fixed nucleus point
-    const bottom = y / HEIGHT;
-    const dN = Math.hypot(x - nucleusPoint.x, y - nucleusPoint.y) / WIDTH;
-    const dens = 0.35 + bottom * 0.5 + Math.max(0, 0.4 - dN);
-    if (h3 > dens) continue;
-    const rr = (18 + h3 * 60) * (0.6 + stage * 0.12);
-    const rad = g.createRadialGradient(x, y, 0, x, y, rr);
-    const col = mix(base, hi, h1);
-    rad.addColorStop(0, css(col, 0.5));
-    rad.addColorStop(1, css(base, 0));
-    g.fillStyle = rad;
-    g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
-  }
-  // faint capillary filaments across the membrane
-  g.lineWidth = 1;
-  for (let i = 0; i < 10 + stage * 6; i++) {
-    const h = hash01(i * 8.1 + stage * 2);
-    let x = h * WIDTH, y = hash01(i * 2.7) * HEIGHT;
-    g.strokeStyle = css(shade(hi, 0.1), 0.12);
-    g.beginPath(); g.moveTo(x, y);
-    for (let k = 0; k < 5; k++) { x += (hash01(i + k * 3.1) - 0.5) * 70; y += (hash01(i + k * 7.7) - 0.5) * 70; g.lineTo(x, y); }
-    g.stroke();
-  }
-  return c;
-}
-
 /** Resolve a biome accent to a colour for adaptation. Handles `#hex` and `var(--x)` (via the DOM, cached). */
 const accentCache = new Map<string, Col | null>();
 function resolveAccent(accent: string): Col | null {
@@ -309,8 +269,231 @@ function resolveAccent(accent: string): Col | null {
   accentCache.set(accent, out);
   return out;
 }
+function motifIdx(m: Motif): number { return MOTIFS.indexOf(m); }
 
-// ══ Draw — the whole under-entity terrain layer ══════════════════════════════════════════════════
+// ══ TERRAFORM LAYER (the optimization) ═══════════════════════════════════════════════════════════
+// The whole stable terrain — membrane, tubular veins, shaded blooms, edge overgrowth, permanent scars —
+// is BAKED ONCE into an offscreen canvas keyed by (stage, biome, build layout, perm-scar count) and
+// blitted a single time per frame. It is rebuilt only when that key changes (a stage step, a biome
+// flip, a tower placed/upgraded, a boss falling) and CROSSFADES from the previous bake, so the arena
+// grows instead of popping. Per-frame cost collapses from dozens of gradient allocations to one
+// drawImage + a handful of cheap live accents (heartbeat beads, the nucleus organ, a combat flare).
+const FLESH_BASE: Col = [50, 21, 29];
+const FLESH_HI: Col = [128, 46, 62];
+const FADE_SECS = 0.85; // crossfade between two bakes on a stage/build change
+let curLayer: HTMLCanvasElement | null = null;
+let prevLayer: HTMLCanvasElement | null = null;
+let curKey = '';
+let fade = 1; // 0..1 crossfade progress (1 = current bake fully shown)
+let fadeAt = 0; // last `now` the fade advanced at
+
+function clearTerraform(): void { curLayer = null; prevLayer = null; curKey = ''; fade = 1; fadeAt = 0; }
+
+function layerKey(stage: number, biomeId: string, towers: Region[], permN: number): string {
+  let k = stage + '|' + biomeId + '|p' + permN;
+  for (const r of towers) k += '|' + (r.x | 0) + ',' + (r.y | 0) + ',' + motifIdx(r.motif) + ',' + Math.round(r.strength);
+  return k;
+}
+
+/** Ensure the current terraform bake matches (stage, biome, layout); on a change, roll the old bake
+ *  into `prevLayer` and start a crossfade to the fresh one. */
+function ensureLayer(a: Assimilation, tint: Col | null, towers: Region[], biomeId: string, permN: number): void {
+  const key = layerKey(a.stage, biomeId, towers, permN);
+  if (key === curKey && curLayer) return;
+  prevLayer = curLayer; // crossfade FROM the previous look (null on the very first bake)
+  fade = prevLayer ? 0 : 1;
+  curLayer = buildTerraform(a, tint, towers);
+  curKey = key;
+}
+
+function buildTerraform(a: Assimilation, tint: Col | null, towers: Region[]): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = WIDTH; c.height = HEIGHT;
+  const g = c.getContext('2d')!;
+  const tier = a.tierColor as Col;
+  // Palette: dark flesh, consuming the biome accent and pulled toward the tier accent (art-direction unity).
+  let base = FLESH_BASE, hi = FLESH_HI;
+  if (tint) { base = mix(base, tint, 0.26); hi = mix(hi, tint, 0.3); }
+  base = mix(base, tier, 0.12); hi = mix(hi, tier, 0.2);
+  paintMembrane(g, a.stage, base, hi);
+  paintOvergrowth(g, a.stage, hi, tier);
+  const core = nucleusPoint;
+  for (const t of towers) paintVein(g, core.x, core.y, t, base, hi);
+  for (const t of towers) paintBloom(g, t, a.stage);
+  for (const s of scars) if (s.perm) paintPermScar(g, s);
+  return c;
+}
+
+/** The living membrane: multi-octave fleshy mottling behind an assimilation FRONTIER that advances from
+ *  the hive (bottom) toward the spawn line (top) as the run deepens — the map is consumed, not overlaid. */
+function paintMembrane(g: Ctx, stage: number, base: Col, hi: Col): void {
+  const front = 0.16 + (stage / (STAGE_COUNT - 1)) * 0.96; // fraction of height reached from the bottom
+  const blotch = (count: number, rMin: number, rSpan: number, salt: number, a0: number): void => {
+    for (let i = 0; i < count; i++) {
+      const h1 = hash01(i * 1.7 + salt), h2 = hash01(i * 3.3 + salt * 2 + 5), h3 = hash01(i * 5.1 + salt + 9);
+      const x = h1 * WIDTH, y = h2 * HEIGHT;
+      const belowFront = Math.max(0, front - (HEIGHT - y) / HEIGHT + 0.25); // 0 above the frontier → dense at the hive
+      const dN = Math.hypot(x - nucleusPoint.x, y - nucleusPoint.y) / WIDTH;
+      const dens = belowFront * 1.1 + Math.max(0, 0.34 - dN);
+      if (h3 > dens) continue;
+      const rr = rMin + h3 * rSpan;
+      const rad = g.createRadialGradient(x, y, 0, x, y, rr);
+      rad.addColorStop(0, css(mix(base, hi, h1 * 0.9), a0));
+      rad.addColorStop(1, css(base, 0));
+      g.fillStyle = rad; g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
+    }
+  };
+  blotch(70 + stage * 26, 26, 78, 0, 0.5); // broad soft flesh
+  blotch(90 + stage * 30, 6, 20, 100, 0.32); // fine detail speckle
+  // capillary filaments threading the membrane
+  g.lineCap = 'round';
+  for (let i = 0; i < 14 + stage * 8; i++) {
+    let x = hash01(i * 8.1 + stage) * WIDTH, y = hash01(i * 2.7 + stage) * HEIGHT;
+    g.strokeStyle = css(shade(hi, 0.12), 0.10 + stage * 0.012); g.lineWidth = 0.8 + hash01(i) * 0.8;
+    g.beginPath(); g.moveTo(x, y);
+    for (let k = 0; k < 6; k++) { x += (hash01(i + k * 3.1) - 0.5) * 76; y += (hash01(i + k * 7.7) - 0.5) * 76; g.lineTo(x, y); }
+    g.stroke();
+  }
+}
+
+/** Edge + grid OVERGROWTH (stage ≥ 2): the infection creeps in from the screen edges and gnaws the tile
+ *  lattice, so by late-game the arena no longer reads as the clean starting map. */
+function paintOvergrowth(g: Ctx, stage: number, hi: Col, tier: Col): void {
+  if (stage < 2) return;
+  const reach = (stage - 1) / (STAGE_COUNT - 2); // 0..1
+  // bottom crust rising from the hive
+  const crust = HEIGHT * (0.1 + reach * 0.32);
+  const grad = g.createLinearGradient(0, HEIGHT, 0, HEIGHT - crust);
+  grad.addColorStop(0, css(mix(hi, tier, 0.3), 0.5)); grad.addColorStop(1, css(hi, 0));
+  g.fillStyle = grad; g.fillRect(0, HEIGHT - crust, WIDTH, crust);
+  // ragged frontier lip on the crust
+  g.fillStyle = css(mix(hi, tier, 0.25), 0.28);
+  g.beginPath(); g.moveTo(0, HEIGHT);
+  for (let x = 0; x <= WIDTH; x += 18) { const yy = HEIGHT - crust + Math.sin(x * 0.06) * 10 - hash01(x) * 22 * reach; g.lineTo(x, yy); }
+  g.lineTo(WIDTH, HEIGHT); g.closePath(); g.fill();
+  // creeping tendrils from the side edges
+  const tendrils = Math.round(6 * reach) + 2;
+  g.lineCap = 'round';
+  for (let i = 0; i < tendrils; i++) {
+    const left = i % 2 === 0; const ey = hash01(i * 5.7) * HEIGHT;
+    let x = left ? 0 : WIDTH, y = ey; let ang = left ? 0 : Math.PI;
+    const len = (40 + hash01(i) * 90) * reach;
+    g.strokeStyle = css(mix(hi, tier, 0.35), 0.22); g.lineWidth = 2.4 + hash01(i * 2) * 2;
+    g.beginPath(); g.moveTo(x, y);
+    const steps = 5;
+    for (let k = 0; k < steps; k++) { ang += (hash01(i * 3 + k) - 0.5) * 0.9; const d = len / steps; x += Math.cos(ang) * d; y += Math.sin(ang) * d; g.lineTo(x, y); }
+    g.stroke();
+  }
+  // gnaw the tile grid near the crust — chitin plates snapping onto the lattice
+  if (stage >= 4) {
+    g.fillStyle = css(mix(hi, tier, 0.4), 0.14);
+    for (let i = 0; i < 40; i++) {
+      const gx = Math.floor(hash01(i * 4.4) * (WIDTH / CELL)) * CELL;
+      const gy = HEIGHT - Math.floor(hash01(i * 9.1) * (crust / CELL) + 1) * CELL;
+      hexAt(g, gx + CELL / 2, gy + CELL / 2, CELL * 0.5); g.fill();
+    }
+  }
+}
+
+/** A tubular vein nucleus→tower: a dark casing, a bright inner core, and a couple of capillary offshoots. */
+function paintVein(g: Ctx, x0: number, y0: number, t: Region, base: Col, hi: Col): void {
+  const midx = (x0 + t.x) / 2 + (hash01(t.seed) - 0.5) * 46;
+  const midy = (y0 + t.y) / 2 + (hash01(t.seed * 3) - 0.5) * 46;
+  const hueCol = mix(hex(CORE_HUE), hex(t.hue), 0.5);
+  const w = 2.2 + Math.min(3.4, t.strength * 0.3);
+  g.lineCap = 'round';
+  g.strokeStyle = css(shade(base, -0.2), 0.5); g.lineWidth = w + 2; // casing
+  g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(midx, midy, t.x, t.y); g.stroke();
+  g.strokeStyle = css(mix(hueCol, hi, 0.3), 0.5); g.lineWidth = w; // wall
+  g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(midx, midy, t.x, t.y); g.stroke();
+  g.strokeStyle = css(shade(hueCol, 0.5), 0.55); g.lineWidth = Math.max(0.8, w * 0.4); // bright core
+  g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(midx, midy, t.x, t.y); g.stroke();
+  // capillary offshoots at the midpoint
+  for (let k = 0; k < 2; k++) {
+    const ang = hash01(t.seed + k * 7) * TAU; const len = 16 + hash01(t.seed + k) * 24;
+    g.strokeStyle = css(mix(hueCol, hi, 0.2), 0.3); g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(midx, midy); g.lineTo(midx + Math.cos(ang) * len, midy + Math.sin(ang) * len); g.stroke();
+  }
+}
+
+/** A shaded regional bloom — each motif grown out of the ground with a lit side + a shadow side (the key
+ *  light matches the renderer's up-left convention, so it sits in the same world). */
+function paintBloom(g: Ctx, r: Region, stage: number): void {
+  const grow = (0.6 + stage * 0.5) * (0.7 + Math.min(2.4, r.strength * 0.18));
+  const base = 11 * grow;
+  const a0 = 0.3 + stage * 0.05;
+  const col = hex(r.hue);
+  const lit = shade(col, 0.28), dark = shade(col, -0.34);
+  g.save(); g.translate(r.x, r.y);
+  switch (r.motif) {
+    case 'bone': {
+      for (let k = 0; k < 6; k++) { const ang = (k / 6) * TAU + r.seed; const len = base * (0.7 + hash01(r.seed + k) * 0.7);
+        const nx = Math.cos(ang), ny = Math.sin(ang);
+        g.strokeStyle = css(dark, a0); g.lineWidth = 3; g.beginPath(); g.moveTo(0, 0); g.lineTo(nx * len, ny * len); g.stroke();
+        g.strokeStyle = css(lit, a0); g.lineWidth = 1.2; g.beginPath(); g.moveTo(-0.6, -0.6); g.lineTo(nx * len - 0.6, ny * len - 0.6); g.stroke(); }
+      break;
+    }
+    case 'crystal': {
+      for (let k = 0; k < 5; k++) { const ang = (k / 5) * TAU + r.seed; const len = base * (0.6 + hash01(r.seed + k) * 0.8);
+        const tx = Math.cos(ang) * len, ty = Math.sin(ang) * len;
+        const bx = Math.cos(ang + 0.45) * len * 0.36, by = Math.sin(ang + 0.45) * len * 0.36;
+        const cx = Math.cos(ang - 0.45) * len * 0.36, cy = Math.sin(ang - 0.45) * len * 0.36;
+        g.fillStyle = css(dark, a0); g.beginPath(); g.moveTo(tx, ty); g.lineTo(bx, by); g.lineTo(cx, cy); g.closePath(); g.fill();
+        g.fillStyle = css(lit, a0 * 0.9); g.beginPath(); g.moveTo(tx, ty); g.lineTo(bx, by); g.lineTo(0, 0); g.closePath(); g.fill(); }
+      break;
+    }
+    case 'spore': {
+      for (let k = 0; k < 8; k++) { const ang = hash01(r.seed + k) * TAU; const d = base * (0.25 + hash01(r.seed + k * 3) * 0.9);
+        const pr = 2 + hash01(r.seed + k * 7) * 3.4; const px = Math.cos(ang) * d, py = Math.sin(ang) * d;
+        g.fillStyle = css(dark, a0); g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
+        g.fillStyle = css(lit, a0); g.beginPath(); g.arc(px - pr * 0.3, py - pr * 0.3, pr * 0.5, 0, TAU); g.fill(); }
+      break;
+    }
+    case 'root': {
+      for (let k = 0; k < 6; k++) { let ang = (k / 6) * TAU + r.seed; let x = 0, y = 0;
+        g.strokeStyle = css(dark, a0); g.lineWidth = 2.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, 0);
+        for (let s = 0; s < 4; s++) { ang += (hash01(r.seed + k * 5 + s) - 0.5) * 1.1; const d = base * 0.42; x += Math.cos(ang) * d; y += Math.sin(ang) * d; g.lineTo(x, y); } g.stroke(); }
+      break;
+    }
+    case 'chitin': {
+      for (let k = 0; k < 4; k++) { const ang = (k / 4) * TAU + r.seed; const d = base * 0.55;
+        const px = Math.cos(ang) * d, py = Math.sin(ang) * d;
+        g.fillStyle = css(dark, a0); hexAt(g, px, py, base * 0.5); g.fill();
+        g.fillStyle = css(lit, a0 * 0.7); hexAt(g, px - 1, py - 1, base * 0.32); g.fill(); }
+      break;
+    }
+    case 'ember': {
+      const rad = g.createRadialGradient(0, 0, 0, 0, 0, base);
+      rad.addColorStop(0, css(shade(col, 0.45), a0)); rad.addColorStop(0.6, css(col, a0 * 0.5)); rad.addColorStop(1, css(col, 0));
+      g.fillStyle = rad; g.beginPath(); g.arc(0, 0, base, 0, TAU); g.fill();
+      g.strokeStyle = css(shade(col, 0.5), a0 * 0.7); g.lineWidth = 1.3;
+      for (let k = 0; k < 4; k++) { const ang = hash01(r.seed + k) * TAU; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(ang) * base, Math.sin(ang) * base); g.stroke(); }
+      break;
+    }
+    default: { // vein / flesh — a shaded sac with a rim + a specular kiss
+      const rad = g.createRadialGradient(-base * 0.3, -base * 0.3, base * 0.15, 0, 0, base);
+      rad.addColorStop(0, css(lit, a0)); rad.addColorStop(0.7, css(col, a0 * 0.7)); rad.addColorStop(1, css(dark, 0));
+      g.fillStyle = rad; g.beginPath(); g.arc(0, 0, base, 0, TAU); g.fill();
+      g.strokeStyle = css(dark, a0 * 0.8); g.lineWidth = 1.2; g.beginPath(); g.arc(0, 0, base * 0.72, 0, TAU); g.stroke();
+    }
+  }
+  g.restore();
+}
+function hexAt(g: Ctx, x: number, y: number, r: number): void {
+  g.beginPath();
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (i === 0) g.moveTo(px, py); else g.lineTo(px, py); }
+  g.closePath();
+}
+/** Permanent boss/mega crater baked into the terrain memory. */
+function paintPermScar(g: Ctx, s: Scar): void {
+  const rad = g.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+  rad.addColorStop(0, css(shade(s.hue, -0.55), 0.42)); rad.addColorStop(0.55, css(shade(s.hue, -0.3), 0.24)); rad.addColorStop(1, css(s.hue, 0));
+  g.fillStyle = rad; g.beginPath(); g.arc(s.x, s.y, s.r, 0, TAU); g.fill();
+  g.strokeStyle = css(shade(s.hue, 0.25), 0.26); g.lineWidth = 1.6; g.beginPath(); g.arc(s.x, s.y, s.r * 0.78, 0, TAU); g.stroke();
+}
+function quad(a: number, b: number, c: number, t: number): number { const u = 1 - t; return u * u * a + 2 * u * t * b + t * t * c; }
+
+// ══ Draw — one cached blit + cheap live accents ══════════════════════════════════════════════════
 /** Draws the living battlefield BENEATH the entities. Returns the computed assimilation (for the HUD/
  *  audio). Fully inert at Stage 0 ⇒ the original clean arena (and always render-only ⇒ golden-safe). */
 export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext, now: number, detail = true, masterIndex?: number): Assimilation {
@@ -318,7 +501,7 @@ export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext
   lastAssim = a;
   if (!enabled) return a; // dev toggle: computed (readout still live) but nothing drawn
   // Self-reset on run restart (sim time rewound), then advance scar lifetimes by elapsed SIM time (so
-  // they hold while the game is paused). `now` (wall-clock seconds) drives animation; `rs.time` decay.
+  // they hold while the game is paused). `now` (renderer time) drives animation + the crossfade.
   if (rs.time + 0.001 < lastTime) resetLivingBattlefield();
   const simDt = Math.max(0, Math.min(0.2, rs.time - lastTime));
   lastTime = rs.time;
@@ -326,146 +509,80 @@ export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext
 
   if (a.stage <= 0 && scars.length === 0) return a; // Stage 0, no history ⇒ nothing drawn
 
-  drawScars(ctx, a, now);
-  if (a.stage <= 0) return a;
+  const towers = a.regions.filter((r) => r.kind === 'tower');
+  const breathe = 0.92 + 0.08 * Math.sin(now * 1.25); // the ground BREATHES (one sin, applied to the blit)
+  const alpha = Math.min(0.66, a.intensity * 0.78) * breathe;
 
-  drawMembrane(ctx, rs, a, now);
-  drawArteries(ctx, a, now, detail);
-  drawRegions(ctx, a, now, detail);
-  drawNucleusOrgan(ctx, a, now);
+  if (typeof document === 'undefined') { // headless/stubbed (tests): cheap direct wash, no offscreen cache
+    drawDirectFallback(ctx, rs, a, alpha, towers, now);
+    return a;
+  }
+  if (a.stage <= 0) { drawLiveScars(ctx, a); return a; } // scar history only, no woken field
+
+  let permN = 0; for (const s of scars) if (s.perm) permN++;
+  ensureLayer(a, resolveAccent(rs.biome.accent), towers, rs.biome.id, permN);
+  // advance the crossfade on renderer time; drop the previous bake once it has fully faded (no wasted blit)
+  if (fade < 1) { const dt = Math.max(0, Math.min(0.1, now - fadeAt)); fade = Math.min(1, fade + dt / FADE_SECS); if (fade >= 1) prevLayer = null; }
+  fadeAt = now;
+
+  ctx.save();
+  if (prevLayer && fade < 1) { ctx.globalAlpha = alpha * (1 - fade); ctx.drawImage(prevLayer, 0, 0); }
+  ctx.globalAlpha = alpha * (prevLayer ? fade : 1);
+  if (curLayer) ctx.drawImage(curLayer, 0, 0);
+  ctx.restore();
+
+  drawLiveScars(ctx, a); // fresh combat scorch, over the baked flesh
+  drawVeinBeats(ctx, a, towers, now, detail); // heartbeats travelling the baked veins
+  drawNucleusOrgan(ctx, a, now); // the central organ (blinks/pulses — kept live)
+  drawCombatFlare(ctx, a, now); // hot mutation where the line is pressed hardest
+  drawMegaBloom(ctx, a, now); // battlefield-scale bloom under a mega (rare)
   return a;
 }
 
-function drawMembrane(ctx: Ctx, rs: RenderState, a: Assimilation, now: number): void {
-  const tint = resolveAccent(rs.biome.accent);
-  const breathe = 0.9 + 0.1 * Math.sin(now * 1.3); // the ground BREATHES
-  const alpha = Math.min(0.6, a.intensity * 0.7) * breathe;
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  if (typeof document === 'undefined') { // headless/stubbed (tests): direct wash, no offscreen cache (mirrors drawFloor)
-    ctx.fillStyle = css(tint ? mix([58, 26, 34], tint, 0.28) : [58, 26, 34], 0.5);
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  } else {
-    const key = `${a.stage}:${rs.biome.id}`;
-    if (!membrane || membraneKey !== key) { membrane = buildMembrane(a.stage, tint); membraneKey = key; }
-    ctx.drawImage(membrane, 0, 0, WIDTH, HEIGHT);
-  }
-  ctx.restore();
-}
-
-/** Arteries: pulsing veins from the nucleus out to each tower region, with a heartbeat travelling along. */
-function drawArteries(ctx: Ctx, a: Assimilation, now: number, detail: boolean): void {
-  const core = a.regions.find((r) => r.kind === 'core')!;
-  const towers = a.regions.filter((r) => r.kind === 'tower');
+/** Heartbeat beads running nucleus→tower along the baked veins — the network pulses with the core. */
+function drawVeinBeats(ctx: Ctx, a: Assimilation, towers: Region[], now: number, detail: boolean): void {
   const max = detail ? towers.length : Math.min(6, towers.length);
-  const beat = (now % 1.15) / 1.15; // shared ~1.15s heartbeat
+  const beat = (now % 1.15) / 1.15;
+  const core = nucleusPoint;
   ctx.save();
-  ctx.lineCap = 'round';
   for (let i = 0; i < max; i++) {
     const t = towers[i];
-    const midx = (core.x + t.x) / 2 + Math.sin(now * 0.5 + t.seed) * 14;
-    const midy = (core.y + t.y) / 2 + Math.cos(now * 0.4 + t.seed) * 14;
-    const w = 0.8 + a.intensity * 2.2 + Math.min(2, t.strength * 0.18);
-    ctx.strokeStyle = css(mix(hex(CORE_HUE), hex(t.hue), 0.5), 0.14 + a.intensity * 0.16);
-    ctx.lineWidth = w;
-    ctx.beginPath(); ctx.moveTo(core.x, core.y); ctx.quadraticCurveTo(midx, midy, t.x, t.y); ctx.stroke();
-    // heartbeat pulse: a bright bead running core→tower
+    const midx = (core.x + t.x) / 2 + (hash01(t.seed) - 0.5) * 46;
+    const midy = (core.y + t.y) / 2 + (hash01(t.seed * 3) - 0.5) * 46;
     const bt = (beat + hash01(t.seed)) % 1;
     const bx = quad(core.x, midx, t.x, bt), by = quad(core.y, midy, t.y, bt);
-    ctx.fillStyle = css(shade(hex(t.hue), 0.4), (1 - bt) * 0.5 * (0.3 + a.intensity));
-    ctx.beginPath(); ctx.arc(bx, by, 1.5 + a.intensity * 1.5, 0, TAU); ctx.fill();
+    const glow = (1 - bt) * (0.35 + a.intensity * 0.4);
+    ctx.fillStyle = css(shade(hex(t.hue), 0.5), glow);
+    ctx.beginPath(); ctx.arc(bx, by, 1.6 + a.intensity * 1.8, 0, TAU); ctx.fill();
   }
   ctx.restore();
 }
-function quad(a: number, b: number, c: number, t: number): number { const u = 1 - t; return u * u * a + 2 * u * t * b + t * t * c; }
 
-/** Regional blooms — each hotspot grows its motif out of the ground, sized by strength × stage. */
-function drawRegions(ctx: Ctx, a: Assimilation, now: number, detail: boolean): void {
-  const list = a.regions.filter((r) => r.kind !== 'core');
-  const cap = detail ? REGION_CAP : 8;
-  const n = Math.min(cap, list.length);
-  for (let i = 0; i < n; i++) drawBloom(ctx, list[i], a, now);
-}
-
-function drawBloom(ctx: Ctx, r: Region, a: Assimilation, now: number): void {
-  const grow = (0.5 + a.stage * 0.5 + a.progress * 0.3) * (0.7 + Math.min(2.2, r.strength * 0.16));
-  const base = 10 * grow;
-  const alpha = 0.16 + a.intensity * 0.24;
-  const col = hex(r.hue);
-  const wob = Math.sin(now * 1.6 + r.seed) * 0.06;
-  ctx.save();
-  ctx.translate(r.x, r.y);
-  switch (r.motif) {
-    case 'bone': {
-      ctx.strokeStyle = css(col, alpha + 0.1); ctx.lineWidth = 1.4;
-      for (let k = 0; k < 5; k++) { const ang = (k / 5) * TAU + r.seed; const len = base * (0.7 + hash01(r.seed + k) * 0.6);
-        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(ang) * len, Math.sin(ang) * len); ctx.stroke(); }
-      break;
-    }
-    case 'crystal': {
-      ctx.fillStyle = css(shade(col, 0.1), alpha);
-      for (let k = 0; k < 4; k++) { const ang = (k / 4) * TAU + wob + r.seed; const len = base * (0.6 + hash01(r.seed + k) * 0.7);
-        ctx.beginPath(); ctx.moveTo(Math.cos(ang) * len, Math.sin(ang) * len);
-        ctx.lineTo(Math.cos(ang + 0.4) * len * 0.4, Math.sin(ang + 0.4) * len * 0.4);
-        ctx.lineTo(Math.cos(ang - 0.4) * len * 0.4, Math.sin(ang - 0.4) * len * 0.4); ctx.closePath(); ctx.fill(); }
-      break;
-    }
-    case 'spore': {
-      for (let k = 0; k < 6; k++) { const ang = hash01(r.seed + k) * TAU; const d = base * (0.3 + hash01(r.seed + k * 3) * 0.8);
-        const pr = 1.5 + hash01(r.seed + k * 7) * 3 + Math.sin(now * 2 + k) * 0.6;
-        ctx.fillStyle = css(col, alpha); ctx.beginPath(); ctx.arc(Math.cos(ang) * d, Math.sin(ang) * d, pr, 0, TAU); ctx.fill(); }
-      break;
-    }
-    case 'root': {
-      ctx.strokeStyle = css(col, alpha); ctx.lineWidth = 1.6; ctx.lineCap = 'round';
-      for (let k = 0; k < 5; k++) { let ang = (k / 5) * TAU + r.seed; let x = 0, y = 0; ctx.beginPath(); ctx.moveTo(0, 0);
-        for (let s = 0; s < 3; s++) { const step = base * 0.5; ang += (hash01(r.seed + k * 5 + s) - 0.5) * 1.2; x += Math.cos(ang) * step; y += Math.sin(ang) * step; ctx.lineTo(x, y); } ctx.stroke(); }
-      break;
-    }
-    case 'chitin': {
-      ctx.fillStyle = css(shade(col, -0.1), alpha);
-      for (let k = 0; k < 3; k++) { const ang = (k / 3) * TAU + wob; const d = base * 0.5;
-        hexPath(ctx, Math.cos(ang) * d, Math.sin(ang) * d, base * 0.5); ctx.fill(); }
-      break;
-    }
-    case 'ember': {
-      const puls = 0.7 + 0.3 * Math.sin(now * 3 + r.seed);
-      const rad = ctx.createRadialGradient(0, 0, 0, 0, 0, base);
-      rad.addColorStop(0, css(shade(col, 0.3), alpha * puls)); rad.addColorStop(1, css(col, 0));
-      ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(0, 0, base, 0, TAU); ctx.fill();
-      ctx.strokeStyle = css(shade(col, 0.4), alpha * 0.6 * puls); ctx.lineWidth = 1;
-      for (let k = 0; k < 3; k++) { const ang = hash01(r.seed + k) * TAU; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(ang) * base, Math.sin(ang) * base); ctx.stroke(); }
-      break;
-    }
-    default: { // vein / flesh — a breathing translucent sac with a rim
-      const rr = base * (1 + wob);
-      const rad = ctx.createRadialGradient(0, 0, rr * 0.2, 0, 0, rr);
-      rad.addColorStop(0, css(shade(col, 0.15), alpha)); rad.addColorStop(1, css(col, 0));
-      ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.fill();
-      ctx.strokeStyle = css(col, alpha * 0.8); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(0, 0, rr * 0.7, 0, TAU); ctx.stroke();
-    }
+/** Fading combat scorch — cheap two-arc fills (no per-frame gradients). Permanent scars are baked. */
+function drawLiveScars(ctx: Ctx, a: Assimilation): void {
+  const master = a.stage <= 0 ? 0.4 : 0.55 + a.intensity * 0.4;
+  for (const s of scars) {
+    if (s.perm) continue; // baked into the layer
+    const life = Math.min(1, s.life / s.max);
+    const rr = s.r * (0.6 + life * 0.4);
+    ctx.fillStyle = css(shade(s.hue, -0.4), 0.24 * life * master);
+    ctx.beginPath(); ctx.arc(s.x, s.y, rr, 0, TAU); ctx.fill();
+    ctx.fillStyle = css(shade(s.hue, -0.1), 0.16 * life * master);
+    ctx.beginPath(); ctx.arc(s.x, s.y, rr * 0.55, 0, TAU); ctx.fill();
   }
-  ctx.restore();
-}
-function hexPath(ctx: Ctx, x: number, y: number, r: number): void {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
-  ctx.closePath();
 }
 
-/** The nucleus grows into the run's central ORGAN: spreading roots, pulsing sacs, blinking eyes, a heartbeat. */
+/** The nucleus organ: spreading roots, pulsing sacs, blinking eyes, a heartbeat ring — one location, so
+ *  kept live (cheap) and gradient-free. */
 function drawNucleusOrgan(ctx: Ctx, a: Assimilation, now: number): void {
   const { x, y } = nucleusPoint;
-  const s = a.stage + a.progress; // 0..~5.x continuous growth
-  const beat = 1 + 0.05 * Math.sin(now * 5.2); // fast heartbeat scale
+  const s = a.stage + a.progress;
+  const beat = 1 + 0.05 * Math.sin(now * 5.2);
   const col = hex(CORE_HUE);
   ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(beat, beat);
-  // roots reaching outward (length grows with the run)
+  ctx.translate(x, y); ctx.scale(beat, beat);
   const roots = 6 + Math.floor(s * 2);
-  ctx.strokeStyle = css(col, 0.12 + a.intensity * 0.18); ctx.lineWidth = 1.5 + a.intensity * 2; ctx.lineCap = 'round';
+  ctx.strokeStyle = css(shade(col, 0.2), 0.14 + a.intensity * 0.2); ctx.lineWidth = 1.6 + a.intensity * 2; ctx.lineCap = 'round';
   for (let k = 0; k < roots; k++) {
     let ang = (k / roots) * TAU + Math.sin(now * 0.3 + k) * 0.1; let px = 0, py = 0;
     const len = (18 + s * 14) * (0.6 + hash01(k * 3.3) * 0.7);
@@ -473,51 +590,72 @@ function drawNucleusOrgan(ctx: Ctx, a: Assimilation, now: number): void {
     for (let seg = 1; seg <= 3; seg++) { ang += Math.sin(now * 0.6 + k + seg) * 0.18; const d = len / 3; px += Math.cos(ang) * d; py += Math.sin(ang) * d; ctx.lineTo(px, py); }
     ctx.stroke();
   }
-  // organ sacs
   const sacs = Math.floor(s);
   for (let k = 0; k < sacs; k++) {
     const ang = (k / Math.max(1, sacs)) * TAU + now * 0.2; const d = 14 + (k % 3) * 6;
-    const pr = 4 + 2 * Math.sin(now * 2 + k);
-    const rad = ctx.createRadialGradient(Math.cos(ang) * d, Math.sin(ang) * d, 0, Math.cos(ang) * d, Math.sin(ang) * d, pr + 4);
-    rad.addColorStop(0, css(shade(col, 0.2), 0.4 * a.intensity)); rad.addColorStop(1, css(col, 0));
-    ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(Math.cos(ang) * d, Math.sin(ang) * d, pr + 4, 0, TAU); ctx.fill();
+    const pr = 4 + 2 * Math.sin(now * 2 + k); const sx = Math.cos(ang) * d, sy = Math.sin(ang) * d;
+    ctx.fillStyle = css(col, 0.3 * a.intensity); ctx.beginPath(); ctx.arc(sx, sy, pr + 2, 0, TAU); ctx.fill();
+    ctx.fillStyle = css(shade(col, 0.4), 0.35 * a.intensity); ctx.beginPath(); ctx.arc(sx - pr * 0.3, sy - pr * 0.3, pr * 0.5, 0, TAU); ctx.fill();
   }
-  // blinking eyes (stage ≥ 3) — the core watches
-  if (a.stage >= 3) {
+  if (a.stage >= 3) { // blinking eyes — the core watches
     const eyes = a.stage - 1;
     for (let k = 0; k < eyes; k++) {
       const ang = hash01(k * 9.1) * TAU; const d = 10 + hash01(k * 2.2) * 12;
       const ex = Math.cos(ang) * d, ey = Math.sin(ang) * d;
-      const open = Math.max(0, Math.sin(now * 0.8 + k * 2)); // slow blink
+      const open = Math.max(0, Math.sin(now * 0.8 + k * 2));
       if (open < 0.12) continue;
-      ctx.fillStyle = css([240, 230, 220], 0.5 * open); ctx.beginPath(); ctx.ellipse(ex, ey, 3, 3 * open, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = css([240, 230, 220], 0.55 * open); ctx.beginPath(); ctx.ellipse(ex, ey, 3, 3 * open, 0, 0, TAU); ctx.fill();
       ctx.fillStyle = css([20, 8, 12], 0.9 * open); ctx.beginPath(); ctx.arc(ex, ey, 1.3, 0, TAU); ctx.fill();
     }
   }
-  // heartbeat ring
-  const pr = ((now % 1.15) / 1.15);
-  ctx.strokeStyle = css(col, (1 - pr) * 0.25 * a.intensity); ctx.lineWidth = 2;
+  const pr = (now % 1.15) / 1.15;
+  ctx.strokeStyle = css(col, (1 - pr) * 0.26 * a.intensity); ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(0, 0, 8 + pr * (20 + s * 6), 0, TAU); ctx.stroke();
   ctx.restore();
 }
 
-/** Ground scars — permanent boss/mega craters + fading combat scorch (drawn under everything). */
-function drawScars(ctx: Ctx, a: Assimilation, now: number): void {
-  const master = a.stage <= 0 ? 0.4 : 0.6 + a.intensity * 0.4; // faint if the field is barely awake
-  for (const s of scars) {
-    const life = s.perm ? 1 : Math.min(1, s.life / s.max);
-    const puls = s.perm ? 0.9 + 0.1 * Math.sin(now * 1.5 + s.seed) : 1;
-    const rr = s.r * (s.perm ? 1 : 0.6 + life * 0.4) * puls;
-    const rad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, rr);
-    rad.addColorStop(0, css(shade(s.hue, -0.4), 0.28 * life * master));
-    rad.addColorStop(0.6, css(shade(s.hue, -0.2), 0.16 * life * master));
-    rad.addColorStop(1, css(s.hue, 0));
-    ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(s.x, s.y, rr, 0, TAU); ctx.fill();
-    if (s.perm) { // permanent scars keep a biomechanical rim
-      ctx.strokeStyle = css(shade(s.hue, 0.2), 0.2 * master); ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(s.x, s.y, rr * 0.8, 0, TAU); ctx.stroke();
-    }
+/** A hot, pulsing mutation glow where the line is pressed hardest right now (the danger-camera focus). */
+function drawCombatFlare(ctx: Ctx, a: Assimilation, now: number): void {
+  const r = a.regions.find((rg) => rg.kind === 'combat');
+  if (!r) return;
+  const puls = 0.7 + 0.3 * Math.sin(now * 4);
+  const rr = 26 + r.strength * 3;
+  const rad = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, rr);
+  rad.addColorStop(0, css(hex(r.hue), 0.22 * puls * a.intensity)); rad.addColorStop(1, css(hex(r.hue), 0));
+  ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(r.x, r.y, rr, 0, TAU); ctx.fill();
+}
+
+/** A battlefield-scale bloom under a live mega organism (rare; drawn live since a mega comes and goes). */
+function drawMegaBloom(ctx: Ctx, a: Assimilation, now: number): void {
+  const r = a.regions.find((rg) => rg.kind === 'mega');
+  if (!r) return;
+  const puls = 0.85 + 0.15 * Math.sin(now * 1.6);
+  const rad = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, 220);
+  rad.addColorStop(0, css(hex(r.hue), 0.14 * puls * a.intensity)); rad.addColorStop(1, css(hex(r.hue), 0));
+  ctx.fillStyle = rad; ctx.beginPath(); ctx.ellipse(r.x, r.y, 220, 120, 0, 0, TAU); ctx.fill();
+}
+
+/** Headless / stubbed-context fallback (tests, jsdom): a cheap direct wash + simple veins/blooms so the
+ *  draw path still executes end-to-end without an offscreen canvas (mirrors renderer.ts drawFloor). */
+function drawDirectFallback(ctx: Ctx, rs: RenderState, a: Assimilation, alpha: number, towers: Region[], now: number): void {
+  if (a.stage <= 0 && scars.length === 0) return;
+  const tint = resolveAccent(rs.biome.accent);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = css(tint ? mix(FLESH_BASE, tint, 0.26) : FLESH_BASE, 0.5);
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.restore();
+  drawLiveScars(ctx, a);
+  if (a.stage <= 0) return;
+  ctx.save(); ctx.lineCap = 'round';
+  for (const t of towers) {
+    ctx.strokeStyle = css(mix(hex(CORE_HUE), hex(t.hue), 0.5), 0.2 + a.intensity * 0.2); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(nucleusPoint.x, nucleusPoint.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+    ctx.fillStyle = css(hex(t.hue), 0.24); ctx.beginPath(); ctx.arc(t.x, t.y, 6 + a.stage * 2, 0, TAU); ctx.fill();
   }
+  ctx.restore();
+  drawVeinBeats(ctx, a, towers, now, true);
+  drawNucleusOrgan(ctx, a, now);
 }
 
 // ══ Ambient life (OVER the entities — pure atmosphere, stage-gated so it never clutters readability) ═
@@ -525,7 +663,7 @@ function drawScars(ctx: Ctx, a: Assimilation, now: number): void {
  *  LOD-gated. Kept sparse + edge-biased so the play-critical centre stays readable. */
 export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: number, detail = true): void {
   if (a.stage < 3 || !detail) return;
-  const count = Math.min(10, (a.stage - 2) * 3);
+  const count = Math.min(12, (a.stage - 2) * 4);
   ctx.save();
   for (let i = 0; i < count; i++) {
     const speed = 0.05 + hash01(i * 3.1) * 0.06;
@@ -533,7 +671,7 @@ export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: num
     const x = 20 + hash01(i * 2.3) * (WIDTH - 40);
     const y = py * HEIGHT;
     const edge = Math.min(1, Math.min(x, WIDTH - x) / (WIDTH * 0.32)); // fade toward centre — protect readability
-    const alpha = 0.10 * (1 - edge * 0.7) * a.intensity;
+    const alpha = 0.11 * (1 - edge * 0.7) * a.intensity;
     if (alpha < 0.01) continue;
     const kind = i % 3;
     if (kind === 0) { // drifting spore
@@ -551,5 +689,3 @@ export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: num
   }
   ctx.restore();
 }
-
-void CELL; // reserved for future cell-aligned terraforming; kept imported for map-scale intent
