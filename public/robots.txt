@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://PLACEHOLDER_DOMAIN/sitemap.xml
+Sitemap: https://assimilation.pages.dev/sitemap.xml
