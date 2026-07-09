@@ -14,6 +14,7 @@ import type { EmergencyPick, ResearchCategory, ResearchRewardDef } from '../../c
 import { adProvider, researchLaneEnabled } from '../../ads/provider';
 import { audio } from '../../audio/sound';
 import { trackEvent } from '../../net/events';
+import { Popup } from './Popup';
 
 const CATEGORY_LABEL: Record<ResearchCategory, string> = {
   sample: 'Specimen Samples',
@@ -59,6 +60,7 @@ function Reveal({ receipt, onClose }: { receipt: PremiumReceipt; onClose: () => 
   }, [shown, receipt.lines.length]);
   const done = shown >= receipt.lines.length;
   return (
+    <Popup>
     <div className="ps-overlay ps-reveal" role="dialog" aria-label="Field study complete">
       <div className="ps-box" style={{ ['--ps' as string]: receipt.offer.accent }}>
         <div className="ps-reveal-h">⌬ {receipt.offer.name}</div>
@@ -75,11 +77,13 @@ function Reveal({ receipt, onClose }: { receipt: PremiumReceipt; onClose: () => 
         </div>
       </div>
     </div>
+    </Popup>
   );
 }
 
 function EmergencyChoice({ onPick, onClose }: { onPick: (p: EmergencyPick) => void; onClose: () => void }): JSX.Element {
   return (
+    <Popup>
     <div className="ps-overlay" role="dialog" aria-label="Emergency Protocol — choose your payout" onClick={onClose}>
       <div className="ps-box" onClick={(e) => e.stopPropagation()}>
         <div className="ps-box-h">Emergency Protocol</div>
@@ -96,6 +100,7 @@ function EmergencyChoice({ onPick, onClose }: { onPick: (p: EmergencyPick) => vo
         <div className="ps-box-btns"><button onClick={onClose}>Not now</button></div>
       </div>
     </div>
+    </Popup>
   );
 }
 

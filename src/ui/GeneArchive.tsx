@@ -5,17 +5,20 @@
 // power contribution, the Upgrade button). Nothing here is hardcoded per card: hundreds of future
 // cards render from the same rows. Task 8 layers search/sort on top of this state shape.
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import { geneArchiveRows, geneArchiveSummary } from '../state/geneArchive';
 import type { GeneArchiveRow } from '../state/geneArchive';
 import { CARD_CATEGORY_LABEL, cardRegistry, cardSubject } from '../core/cards';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
+import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import type { TowerKind } from '../core/types';
 import { affectsOf } from './cardAffects';
 import { GeneCardArt, geneRarityColor } from './components/GeneCardArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { highestCampaignStage } from '../save/derive';
+import { Popup } from './components/Popup';
 
 function levelPips(level: number, max: number, color: string): JSX.Element {
   return (
@@ -87,6 +90,7 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
   const rc = geneRarityColor(def.rarity);
   const buy = (): void => { if (meta.upgradeGene(id)) audio.cue('draft'); };
   return (
+    <Popup>
     <div className="cmp-overlay" onClick={onClose}>
       <div className="ga-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: rc, ['--acc' as string]: aff.color }}>
         <button className="id-close" onClick={onClose} title="Close">✕</button>
@@ -170,6 +174,7 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
         </div>
       </div>
     </div>
+    </Popup>
   );
 }
 
@@ -247,6 +252,29 @@ const SORTS: { key: GeneSort; label: string }[] = [
   { key: 'recentAcquired', label: 'Recently acquired' }, { key: 'recentImproved', label: 'Recently improved' },
 ];
 
+// ── Folder view — rows AUTO-FILE by their subject: one folder per tower (registry-driven,
+//    so new towers grow folders for free), plus Hero / Global / Economy / Hive. Search,
+//    filters and sort still apply INSIDE folders; folders with no matches hide; the
+//    'Full list' toggle restores the flat grid.
+function folderKey(r: GeneArchiveRow): string {
+  return r.subject.kind === 'tower' ? `t:${r.subject.tower}` : r.subject.kind;
+}
+const FOLDER_META: Record<string, { label: string; color: string }> = {
+  hero: { label: 'Hero Genes', color: '#ffb84d' },
+  global: { label: 'Global Genes', color: '#9ecbff' },
+  economy: { label: 'Economy Genes', color: '#b6e84a' },
+  hive: { label: 'Hive Genes', color: '#ff7a90' },
+};
+function folderMeta(key: string): { label: string; color: string } {
+  if (key.startsWith('t:')) {
+    const k = key.slice(2) as TowerKind;
+    return { label: TOWER_DEFS[k]?.name ?? k, color: TOWER_DEFS[k]?.color ?? 'inherit' };
+  }
+  return FOLDER_META[key] ?? { label: key, color: 'inherit' };
+}
+/** Stable folder order: towers in roster order, then the account-wide folders. */
+const FOLDER_ORDER: string[] = [...TOWER_ORDER.map((k) => `t:${k}`), 'hero', 'global', 'economy', 'hive'];
+
 function matchesFilter(r: GeneArchiveRow, f: GeneFilter): boolean {
   switch (f) {
     case 'all': return true;
@@ -285,7 +313,10 @@ export function GeneArchive(): JSX.Element {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<GeneFilter>('all');
   const [sort, setSort] = useState<GeneSort>('default');
-  const gridRef = useRef<HTMLDivElement>(null);
+  // Folder view is the default at this catalog size; searching always flattens (a search
+  // result split across collapsed folders would hide its own hits).
+  const [view, setView] = useState<'folders' | 'all'>('folders');
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -295,12 +326,35 @@ export function GeneArchive(): JSX.Element {
     return sortRows(filtered, sort);
   }, [rows, query, filter, sort]);
 
+  const flat = view === 'all' || query.trim() !== '';
+  const grouped = useMemo(() => {
+    const m = new Map<string, GeneArchiveRow[]>();
+    for (const r of shown) {
+      const k = folderKey(r);
+      const list = m.get(k);
+      if (list) list.push(r);
+      else m.set(k, [r]);
+    }
+    return m;
+  }, [shown]);
+
+  // Equip mode: an armed empty slot captures the next OWNED tile click (unowned refuse).
+  const openTile = (r: GeneArchiveRow): void => {
+    if (equipSlot !== null) {
+      if (r.owned && meta.setGeneSlot(equipSlot, r.def.id)) { audio.cue('draft'); setEquipSlot(null); }
+      return;
+    }
+    setInspectId(r.def.id);
+  };
+
   // Keyboard (and spatial-nav controller) navigation: arrows move focus across the tile grid,
   // Enter/Space activates (native button behavior), Escape backs out of equip mode.
   const onGridKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Escape') { setEquipSlot(null); return; }
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
-    const tiles = Array.from(gridRef.current?.querySelectorAll<HTMLButtonElement>('.ga-tile') ?? []);
+    // Tiles resolve from the grid that received the event — works in the flat view AND
+    // inside any folder's grid.
+    const tiles = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('.ga-tile'));
     const idx = tiles.indexOf(document.activeElement as HTMLButtonElement);
     if (idx < 0 || tiles.length === 0) return;
     e.preventDefault();
@@ -370,25 +424,49 @@ export function GeneArchive(): JSX.Element {
             {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
         </label>
+        <div className="ga-view" role="group" aria-label="Archive view">
+          <button className={`ga-chip${!flat ? ' on' : ''}`} onClick={() => setView('folders')} disabled={query.trim() !== ''} title={query.trim() !== '' ? 'Search shows a flat list' : undefined}>▤ Folders</button>
+          <button className={`ga-chip${flat ? ' on' : ''}`} onClick={() => setView('all')}>☰ Full list</button>
+        </div>
       </div>
 
       {shown.length === 0 && <div className="ga-hint">No genes match — clear the search or filters.</div>}
-      <div ref={gridRef} className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
-        {shown.map((r) => (
-          <GeneTile
-            key={r.def.id}
-            row={r}
-            onOpen={() => {
-              // Equip mode: an armed empty slot captures the next OWNED tile click (unowned refuse).
-              if (equipSlot !== null) {
-                if (r.owned && meta.setGeneSlot(equipSlot, r.def.id)) { audio.cue('draft'); setEquipSlot(null); }
-                return;
-              }
-              setInspectId(r.def.id);
-            }}
-          />
-        ))}
-      </div>
+      {flat ? (
+        <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
+          {shown.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => openTile(r)} />)}
+        </div>
+      ) : (
+        <div className="ga-folders">
+          {FOLDER_ORDER.map((key) => {
+            const list = grouped.get(key);
+            if (!list || list.length === 0) return null;
+            const fm = folderMeta(key);
+            const ups = list.reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0);
+            // A folder with an upgrade ready starts open — the ▲ is why the player came.
+            const isOpen = openFolders[key] ?? ups > 0;
+            const owned = list.reduce((n, r) => n + (r.owned ? 1 : 0), 0);
+            return (
+              <div className={`ga-folder${isOpen ? ' is-open' : ''}`} key={key}>
+                <button
+                  className="ga-folder-h"
+                  onClick={() => setOpenFolders((o) => ({ ...o, [key]: !isOpen }))}
+                  aria-expanded={isOpen}
+                >
+                  <span className="ga-folder-arrow" aria-hidden>{isOpen ? '▾' : '▸'}</span>
+                  <span className="ga-folder-name" style={{ color: fm.color }}>{fm.label}</span>
+                  <span className="ga-folder-count">{owned}/{list.length}</span>
+                  {ups > 0 && <span className="ga-folder-up">▲ {ups}</span>}
+                </button>
+                {isOpen && (
+                  <div className={`ga-grid${equipSlot !== null ? ' is-equipping' : ''}`} onKeyDown={onGridKeyDown}>
+                    {list.map((r) => <GeneTile key={r.def.id} row={r} onOpen={() => openTile(r)} />)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {inspectId && <GeneInspect id={inspectId} onClose={() => setInspectId(null)} />}
     </div>

@@ -20,6 +20,7 @@ import type { Mats } from '../core/reforge';
 import { ItemArt, rarityColor } from './components/ItemArt';
 import { PowerDelta } from './components/PowerDelta';
 import { compareItemPower } from '../state/itemPower';
+import { Popup } from './components/Popup';
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -96,6 +97,7 @@ export function ItemDetails({
   const doSalvage = (): void => { if (meta.salvageItem(uid)) onClose(); };
 
   return (
+    <Popup>
     <div className="cmp-overlay" onClick={onClose}>
       <div className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
         <button className="id-close" onClick={onClose} title="Close">✕</button>
@@ -217,5 +219,6 @@ export function ItemDetails({
         })()}
       </div>
     </div>
+    </Popup>
   );
 }

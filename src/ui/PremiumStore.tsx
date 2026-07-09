@@ -19,6 +19,7 @@ import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
 import { dailyKey, msUntilDailyReset } from '../core/daily';
 import { rarityColor } from './components/ItemArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { Popup } from './components/Popup';
 
 const fmtUsd = (v: number): string => `$${v.toFixed(2)}`;
 function fmtCountdown(ms: number): string {
@@ -98,6 +99,7 @@ function OfferCard({ offer, unavailable, note, hero, onBuy }: {
 // ── Confirmation — the trust beat: full recap, price, and the sandbox notice ──
 function ConfirmModal({ offer, busy, error, onConfirm, onClose }: { offer: PremiumOfferDef; busy: boolean; error: string | null; onConfirm: () => void; onClose: () => void }): JSX.Element {
   return (
+    <Popup>
     <div className="ps-overlay" onClick={onClose} role="dialog" aria-label="Confirm purchase">
       <div className="ps-box" onClick={(e) => e.stopPropagation()} style={{ ['--ps' as string]: offer.accent }}>
         <div className="ps-box-h">Confirm purchase</div>
@@ -121,6 +123,7 @@ function ConfirmModal({ offer, busy, error, onConfirm, onClose }: { offer: Premi
         </div>
       </div>
     </div>
+    </Popup>
   );
 }
 
@@ -135,6 +138,7 @@ function RevealCeremony({ receipt, onClose }: { receipt: PremiumReceipt; onClose
   }, [shown, receipt.lines.length]);
   const done = shown >= receipt.lines.length;
   return (
+    <Popup>
     <div className="ps-overlay ps-reveal" role="dialog" aria-label="Purchase complete">
       <div className="ps-box" style={{ ['--ps' as string]: receipt.offer.accent }}>
         <div className="ps-reveal-h">✷ {receipt.offer.name}</div>
@@ -158,6 +162,7 @@ function RevealCeremony({ receipt, onClose }: { receipt: PremiumReceipt; onClose
         </div>
       </div>
     </div>
+    </Popup>
   );
 }
 

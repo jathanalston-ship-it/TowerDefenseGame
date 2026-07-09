@@ -5757,7 +5757,7 @@ kbd {
 
 /* ── Compare overlay ── */
 .cmp-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(4, 8, 12, 0.74); backdrop-filter: blur(3px); padding: 20px; }
-.cmp-box { width: min(620px, 94vw); border-radius: var(--r-md); padding: 18px; background: linear-gradient(160deg, #131c26, var(--panel-deep)); border: 1px solid var(--line-strong); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.cmp-box { width: min(620px, 94vw); max-height: min(88vh, 880px); overflow-y: auto; border-radius: var(--r-md); padding: 18px; background: linear-gradient(160deg, #131c26, var(--panel-deep)); border: 1px solid var(--line-strong); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
 .cmp-h { font-family: 'Chakra Petch', system-ui, sans-serif; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 12px; }
 .cmp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .cmp-col { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 14px 12px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--rc) 40%, var(--line)); }
@@ -7772,7 +7772,7 @@ kbd {
 /* Confirmation + reveal */
 .ps-overlay { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(4, 8, 12, 0.78); backdrop-filter: blur(4px); padding: 20px; animation: ps-fade 0.16s ease-out; }
 @keyframes ps-fade { from { opacity: 0; } to { opacity: 1; } }
-.ps-box { width: min(440px, 94vw); border-radius: var(--r-md); padding: 20px; background: linear-gradient(165deg, color-mix(in srgb, var(--ps, var(--gold)) 8%, #131c26), #0b1219 70%); border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 45%, var(--line-strong)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65); }
+.ps-box { width: min(440px, 94vw); max-height: min(88vh, 880px); overflow-y: auto; border-radius: var(--r-md); padding: 20px; background: linear-gradient(165deg, color-mix(in srgb, var(--ps, var(--gold)) 8%, #131c26), #0b1219 70%); border: 1px solid color-mix(in srgb, var(--ps, var(--gold)) 45%, var(--line-strong)); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65); }
 .ps-box-h { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 .ps-box-name { margin-top: 6px; font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 800; color: var(--ps, var(--gold)); }
 .ps-box-grants { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; min-height: 24px; }
@@ -8339,3 +8339,34 @@ kbd {
 }
 .theater-bad { margin-top: 6px; font-size: 11px; color: var(--vital); }
 .rr-share { display: flex; justify-content: center; margin: 4px 0; }
+
+/* ── Gene Archive folders (GeneArchive.tsx) — auto-categorized subfolders ── */
+.ga-folders { display: flex; flex-direction: column; gap: 8px; }
+.ga-folder {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.ga-folder.is-open { border-color: var(--line-strong); }
+.ga-folder-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+}
+.ga-folder-h:hover { background: color-mix(in srgb, var(--line) 40%, transparent); }
+.ga-folder-arrow { color: var(--muted); font-size: 11px; width: 12px; }
+.ga-folder-name { letter-spacing: 0.04em; }
+.ga-folder-count { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--muted); }
+.ga-folder-up { font-size: 11px; font-weight: 800; color: var(--gold); }
+.ga-folder .ga-grid { padding: 0 10px 10px; }
+.ga-view { display: flex; gap: 6px; margin-left: auto; }
