@@ -37,58 +37,56 @@ import { CloudBackup } from './components/CloudBackup';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { GeneArchive } from './GeneArchive';
+import { PhenotypeLab } from './PhenotypeLab';
 import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily'
   | 'towers' | 'heroes' | 'evolution' | 'genes'
-  | 'vault' | 'market' | 'equipment' | 'collection'
+  | 'vault' | 'market' | 'equipment' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
 
 interface NavItem { key: NavKey; label: string; mono: string }
-interface NavGroup { title: string; items: NavItem[] }
+interface NavGroup { title: string; accent: string; items: NavItem[] }
 
 // The nav is GROUPED by intent (the user-facing IA): Play / Progression / Collection / Account.
 // Adding a screen is one row in the right group — the renderer, badges, and rings are generic.
 const navGroups = (): NavGroup[] => [
-  { title: t('nav.group.play'), items: [
+  { title: t('nav.group.play'), accent: 'var(--vital)', items: [
     { key: 'home', label: t('nav.home'), mono: '⌂' },
     { key: 'campaign', label: t('nav.campaign'), mono: '⬡' },
     { key: 'infinite', label: t('nav.infinite'), mono: '∞' },
     { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
     { key: 'daily', label: t('nav.daily'), mono: '☀' },
   ] },
-  { title: t('nav.group.progression'), items: [
+  { title: t('nav.group.progression'), accent: 'var(--kinetic)', items: [
     { key: 'towers', label: t('nav.towers'), mono: 'T' },
     { key: 'heroes', label: t('nav.heroes'), mono: 'H' },
     { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
     { key: 'genes', label: t('nav.genes'), mono: '⌬' },
   ] },
-  { title: t('nav.group.collection'), items: [
+  { title: t('nav.group.collection'), accent: 'var(--gold)', items: [
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
     { key: 'market', label: t('nav.market'), mono: '◆' },
     { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
+    { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },
     { key: 'collection', label: t('nav.collection'), mono: '▤' },
   ] },
   // The Premium Store sits in its OWN group — monetization stays visibly separate from
   // gameplay progression (docs/PREMIUM-STORE.md §philosophy).
-  { title: t('nav.group.store'), items: [
+  { title: t('nav.group.store'), accent: 'var(--viral)', items: [
     { key: 'store', label: t('nav.store'), mono: '✷' },
   ] },
-  { title: t('nav.group.account'), items: [
+  { title: t('nav.group.account'), accent: 'var(--muted)', items: [
     { key: 'profile', label: t('nav.profile'), mono: '◑' },
     { key: 'help', label: t('nav.help'), mono: '?' },
     { key: 'settings', label: t('nav.settings'), mono: '⚙' },
   ] },
 ];
 
-// Accent tint per group — the rail reads as zones, and each group's selected item / ring glows
-// in its own hue (CSS consumes `--nav-accent`).
-const GROUP_ACCENT: Record<string, string> = {
-  Play: 'var(--vital)', Progression: 'var(--kinetic)', Collection: 'var(--gold)', Store: 'var(--viral)', Account: 'var(--muted)',
-};
+// Accent tint per group rides the group row itself (localization-safe — titles translate).
 
 /** A campaign-sealed mode's unlock briefing (docs/MODE-IDENTITY.md §gates) — the mode stays
  * VISIBLE for anticipation; the briefing names the gate, shows live progress, and routes to
@@ -253,7 +251,7 @@ export function Hub({
             <div
               className="hub-navgroup"
               key={group.title}
-              style={{ ['--nav-accent' as string]: GROUP_ACCENT[group.title] } as CSSProperties}
+              style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
             >
               <div className="hub-navgroup-h" aria-hidden>{group.title}</div>
               {group.items.map((n) => {
@@ -338,6 +336,7 @@ export function Hub({
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}
+          {nav === 'phenotypes' && <PhenotypeLab />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'store' && <PremiumStore />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}

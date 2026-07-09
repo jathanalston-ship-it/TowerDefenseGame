@@ -18,9 +18,10 @@ import { ALL_ITEMS } from './equipment';
 import { CHASSIS } from './boss';
 import { megaBossRegistry } from './megaboss';
 import { BIOMES } from './biomes';
+import { cosmeticRegistry } from './cosmetics';
 import type { LifetimeStats } from './types';
 
-export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests';
+export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests' | 'cosmetics';
 
 export interface CollectionEntry {
   id: string;
@@ -66,6 +67,7 @@ export interface CollectionContext {
   megaPerfect: Set<string>; // …defeated with zero Nucleus integrity lost
   megaSpeed: Set<string>; // …defeated faster than the expected kill time
   biomesSeen: Set<string>; // biome ids the account has reached in Campaign
+  cosmeticsOwned: Set<string>; // Phenotype ids owned (docs/COSMETICS.md) — drives the Phenotypes codex
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
@@ -195,6 +197,13 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: b.id, name: b.name, tier, maxTier: 1, tierLabel: tier ? 'Charted' : 'Uncharted' };
   });
 
+  // Phenotypes (docs/COSMETICS.md): owned = expressed. Registry-driven like everything else,
+  // so new towers/heroes (and new theme families) extend the codex automatically.
+  const cosmetics = cosmeticRegistry.all().map((c) => {
+    const tier = ctx.cosmeticsOwned.has(c.id) ? 1 : 0;
+    return { id: c.id, name: c.name, tier, maxTier: 1, tierLabel: tier ? 'Expressed' : 'Dormant' };
+  });
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
@@ -205,6 +214,7 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('equipment', 'Armory', equipment),
     makeCategory('biomes', 'Biomes', biomes),
     makeCategory('chests', 'Caches', chests),
+    makeCategory('cosmetics', 'Phenotypes', cosmetics),
   ];
   const discovered = categories.reduce((a, c) => a + c.discovered, 0);
   const total = categories.reduce((a, c) => a + c.total, 0);
@@ -241,6 +251,8 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   equipment: { effects: [], econ: [{ key: 'lootQualityTier', max: 1.0, label: 'Loot Quality' }], powerWeight: 0.03 },
   biomes: { effects: [], econ: [{ key: 'campaignRewardMult', max: 0.2, label: 'Campaign Rewards' }], powerWeight: 0.03 },
   chests: { effects: [], econ: [], powerWeight: 0 }, // caches are cosmetic (discovered on a fresh save → no bonus)
+  // Phenotype expression pays a small hive-wide vigor edge — visual mastery with real teeth.
+  cosmetics: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.06, label: 'Biomass' }], econ: [], powerWeight: 0.03 },
 };
 
 const effVal = (op: 'mul' | 'add', max: number, c: number): number => (op === 'mul' ? 1 + (max - 1) * c : max * c);

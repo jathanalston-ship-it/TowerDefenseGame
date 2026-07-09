@@ -79,6 +79,8 @@ import type { MechanicDef } from './mechanics';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
+import { cosmeticById, cultivatePool, CULTIVATE_COST } from '../core/cosmetics';
+import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
 import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/campaign';
 import { bossDef } from '../core/boss';
@@ -98,6 +100,25 @@ function biomesSeenOf(save: SaveData): Set<string> {
 }
 
 /** Build the collection codex context from a save (read-only derivation). */
+/** The equipped Phenotype themes, resolved for the renderer (GameView threads these into
+ *  drawGame + the firing-cue variant map). Empty objects on a fresh save ⇒ default dress. */
+export function equippedCosmeticThemes(save: SaveData): {
+  towers: Partial<Record<TowerKind, CosmeticTheme>>;
+  heroes: Partial<Record<HeroKind, CosmeticTheme>>;
+} {
+  const towers: Partial<Record<TowerKind, CosmeticTheme>> = {};
+  const heroes: Partial<Record<HeroKind, CosmeticTheme>> = {};
+  for (const [k, id] of Object.entries(save.cosmetics.towers)) {
+    const def = id ? cosmeticById(id) : undefined;
+    if (def) towers[k as TowerKind] = def.theme;
+  }
+  for (const [h, id] of Object.entries(save.cosmetics.heroes)) {
+    const def = id ? cosmeticById(id) : undefined;
+    if (def) heroes[h as HeroKind] = def.theme;
+  }
+  return { towers, heroes };
+}
+
 export function collectionContextOf(save: SaveData): CollectionContext {
   return {
     stats: save.stats,
@@ -108,6 +129,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     megaPerfect: new Set(save.megaProgress.perfect),
     megaSpeed: new Set(save.megaProgress.speed),
     biomesSeen: biomesSeenOf(save),
+    cosmeticsOwned: new Set(save.cosmetics.owned),
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
   };
 }
@@ -1882,6 +1904,52 @@ export const meta = {
    *  must be registered + OWNED (drafted at least once), below its authored ceiling AND the global
    *  campaign-gate ceiling, and the Gene Essence cost must be covered. Stamps `upgradedAt` (drives
    *  "recently improved"). Returns success; a refusal never charges. */
+  // ── Phenotypes (docs/COSMETICS.md) — own/equip/cultivate. Pure presentation: the sim
+  //    never reads any of this; equips only change what GameView threads to the renderer. ──
+  /** Grant a cosmetic by id (contracts/nemesis/cultivation all land here). Idempotent. */
+  grantCosmetic(id: string): boolean {
+    const save = store.get();
+    if (!cosmeticById(id) || save.cosmetics.owned.includes(id)) return false;
+    persist({ ...save, cosmetics: { ...save.cosmetics, owned: [...save.cosmetics.owned, id] } });
+    return true;
+  },
+  /** Equip an owned phenotype on its target kind (null clears back to the default look). */
+  equipCosmetic(target: { kind: 'tower'; tower: TowerKind } | { kind: 'hero'; hero: HeroKind }, id: string | null): boolean {
+    const save = store.get();
+    if (id !== null) {
+      const def = cosmeticById(id);
+      if (!def || !save.cosmetics.owned.includes(id)) return false;
+      if (def.target.kind !== target.kind) return false;
+      if (target.kind === 'tower' && (def.target as { tower: TowerKind }).tower !== target.tower) return false;
+      if (target.kind === 'hero' && (def.target as { hero: HeroKind }).hero !== target.hero) return false;
+    }
+    const cosmetics = { ...save.cosmetics, towers: { ...save.cosmetics.towers }, heroes: { ...save.cosmetics.heroes } };
+    if (target.kind === 'tower') {
+      if (id === null) delete cosmetics.towers[target.tower];
+      else cosmetics.towers[target.tower] = id;
+    } else {
+      if (id === null) delete cosmetics.heroes[target.hero];
+      else cosmetics.heroes[target.hero] = id;
+    }
+    persist({ ...save, cosmetics });
+    return true;
+  },
+  /** Cultivate: spend Gene Essence to grow ONE random unowned cultivate-pool phenotype.
+   *  Returns the grown def (UI ceremony) or null (broke / pool exhausted). */
+  cultivateCosmetic(): CosmeticDef | null {
+    const save = store.get();
+    if (save.geneEssence < CULTIVATE_COST) return null;
+    const owned = new Set(save.cosmetics.owned);
+    const pool = cultivatePool().filter((d) => !owned.has(d.id));
+    if (pool.length === 0) return null;
+    const def = pool[Math.floor(Math.random() * pool.length)]; // meta-side roll (not the sim's rng)
+    persist({
+      ...save,
+      geneEssence: save.geneEssence - CULTIVATE_COST,
+      cosmetics: { ...save.cosmetics, owned: [...save.cosmetics.owned, def.id] },
+    });
+    return def;
+  },
   upgradeGene(id: string): boolean {
     const save = store.get();
     const def = cardRegistry.get(id);

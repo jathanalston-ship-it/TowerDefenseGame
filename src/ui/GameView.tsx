@@ -9,7 +9,7 @@ import { HEIGHT, WIDTH } from '../core/map';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY } from '../state/prefs';
-import { masteryLevel, meta } from '../state/meta';
+import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
 import { announcePower } from '../state/powerEvents';
 import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
@@ -320,6 +320,9 @@ export function GameView({
     for (const k of HERO_ORDER) m[k] = masteryRank(masteryLevel(s.heroMasteryXp[k] ?? 0));
     return m;
   }, []);
+  // Equipped Phenotypes (docs/COSMETICS.md) — snapshotted at run start like every other
+  // account visual; {} on a fresh save ⇒ the default dress + default firing timbre.
+  const skins = useMemo(() => equippedCosmeticThemes(meta.get()), []);
 
   // Per-kind permanent STAR count → visual evolution on the battlefield (docs/
   // TOWER-VISUAL-EVOLUTION.md). Fixed for the run (stars are bought in the Lab between runs).
@@ -400,8 +403,19 @@ export function GameView({
         if (cues.length) {
           const tally: Record<string, number> = {};
           for (const c of cues) {
-            tally[c] = (tally[c] ?? 0) + 1;
-            traumaRef.current = addTrauma(traumaRef.current, TRAUMA[c] ?? 0);
+            // Phenotype firing variants: a 'tfire_X:kind' cue re-keys to 'tfire_X~variant'
+            // when that kind's equipped skin carries one (sound.ts §variants); unthemed
+            // kinds strip back to the base cue. Trauma reads the base id either way.
+            let key = c;
+            let base = c;
+            const m = /^(tfire_\w+):(\w+)$/.exec(c);
+            if (m) {
+              base = m[1];
+              const th = skins.towers[m[2] as TowerKind];
+              key = th && th.sfx !== 'default' ? `${m[1]}~${th.sfx}` : m[1];
+            }
+            tally[key] = (tally[key] ?? 0) + 1;
+            traumaRef.current = addTrauma(traumaRef.current, TRAUMA[base] ?? 0);
           }
           audio.cueBatch(tally);
         }
@@ -459,7 +473,7 @@ export function GameView({
           }
         }
         const rs = game.getRenderState();
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes);
         // Mastery level-up rings — pure presentation over the sim frame (never sim state).
         if (celebRef.current.length > 0) {
           const RING_MS = 900;

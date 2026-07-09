@@ -89,6 +89,20 @@ const EN = {
   'daily.theater.watchCode': '▶ Watch',
   'daily.theater.bad': 'That code did not decode — check you copied the whole thing.',
   'results.shareReplay': '⧉ Share replay',
+  // ── Phenotype Lab (docs/COSMETICS.md) ──
+  'nav.phenotypes': 'Phenotypes',
+  'pheno.title': 'Phenotype Lab',
+  'pheno.sub': 'Express your strains — visual phenotypes for every tower and hero. Pure expression: no stats change.',
+  'pheno.cultivate': '⌬ Cultivate a phenotype',
+  'pheno.owned': '{owned}/{total} expressed',
+  'pheno.grown': 'A new phenotype expressed —',
+  'pheno.default': 'Default',
+  'pheno.towers': 'TOWER STRAINS',
+  'pheno.heroes': 'CHAMPION STRAINS',
+  'pheno.src.cultivate': 'grown in the Lab (Cultivate)',
+  'pheno.src.contract': 'Champion Contract exclusive',
+  'pheno.src.nemesis': 'Nemesis revenge exclusive',
+  'pheno.bonus.tip': 'The Phenotypes codex pays a hive-wide bonus as it fills — like every collection.',
 } as const;
 
 export type MsgKey = keyof typeof EN;
@@ -165,6 +179,19 @@ const ES: Record<MsgKey, string> = {
   'daily.theater.watchCode': '▶ Ver',
   'daily.theater.bad': 'Ese código no se pudo decodificar — comprueba que copiaste todo.',
   'results.shareReplay': '⧉ Compartir repetición',
+  'nav.phenotypes': 'Fenotipos',
+  'pheno.title': 'Laboratorio de Fenotipos',
+  'pheno.sub': 'Expresa tus cepas — fenotipos visuales para cada torre y héroe. Pura expresión: sin cambios de stats.',
+  'pheno.cultivate': '⌬ Cultivar un fenotipo',
+  'pheno.owned': '{owned}/{total} expresados',
+  'pheno.grown': 'Nuevo fenotipo expresado —',
+  'pheno.default': 'Original',
+  'pheno.towers': 'CEPAS DE TORRES',
+  'pheno.heroes': 'CEPAS DE CAMPEONES',
+  'pheno.src.cultivate': 'se cultiva en el Laboratorio',
+  'pheno.src.contract': 'exclusivo de Contratos de Campeón',
+  'pheno.src.nemesis': 'exclusivo de venganza Némesis',
+  'pheno.bonus.tip': 'El códice de Fenotipos paga un bono global al completarse — como toda colección.',
 };
 
 const PT: Record<MsgKey, string> = {
@@ -236,6 +263,19 @@ const PT: Record<MsgKey, string> = {
   'daily.theater.watchCode': '▶ Assistir',
   'daily.theater.bad': 'Esse código não pôde ser decodificado — confira se copiou tudo.',
   'results.shareReplay': '⧉ Compartilhar replay',
+  'nav.phenotypes': 'Fenótipos',
+  'pheno.title': 'Laboratório de Fenótipos',
+  'pheno.sub': 'Expresse suas cepas — fenótipos visuais para cada torre e herói. Pura expressão: sem mudanças de stats.',
+  'pheno.cultivate': '⌬ Cultivar um fenótipo',
+  'pheno.owned': '{owned}/{total} expressos',
+  'pheno.grown': 'Novo fenótipo expresso —',
+  'pheno.default': 'Original',
+  'pheno.towers': 'CEPAS DE TORRES',
+  'pheno.heroes': 'CEPAS DE CAMPEÕES',
+  'pheno.src.cultivate': 'cultivado no Laboratório',
+  'pheno.src.contract': 'exclusivo de Contratos de Campeão',
+  'pheno.src.nemesis': 'exclusivo de vingança Nêmesis',
+  'pheno.bonus.tip': 'O códice de Fenótipos paga um bônus global ao completar — como toda coleção.',
 };
 
 const CATALOGS: Record<Locale, Record<MsgKey, string>> = { en: EN, es: ES, pt: PT };

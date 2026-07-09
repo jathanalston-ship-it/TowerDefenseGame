@@ -234,6 +234,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'none', docs: ['docs/I18N.md'],
   },
   {
+    id: 'cosmetics', name: 'Phenotypes (Cosmetics)', purpose: 'Data-driven visual skins (docs/COSMETICS.md): six theme families × every tower/hero (generator — new kinds inherit automatically); save v26 owned/equipped; renderer re-expression (palette/aura/projectiles/beams) + firing-sfx variants; Phenotype Lab hub screen; Phenotypes collection codex with a hive-wide passive.',
+    files: ['src/core/cosmetics.ts', 'src/ui/PhenotypeLab.tsx'],
+    dependsOn: ['meta-store', 'collection', 'hub-shell'], powerScore: 'via the collection codex weight', save: ['cosmetics'],
+    tutorial: [], help: [], hud: [], ui: ['PhenotypeLab'], collection: 'cosmetics category (Phenotypes codex)', achievements: [],
+    localization: 'inline-en', docs: ['docs/COSMETICS.md'],
+  },
+  {
     id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',
     files: ['src/state/profile.ts', 'src/ui/PlayerProfile.tsx', 'src/ui/components/CommanderName.tsx'],
     dependsOn: ['stats', 'power', 'achievements', 'collection', 'prestige', 'hub-shell'], powerScore: null,

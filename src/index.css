@@ -8370,3 +8370,47 @@ kbd {
 .ga-folder-up { font-size: 11px; font-weight: 800; color: var(--gold); }
 .ga-folder .ga-grid { padding: 0 10px 10px; }
 .ga-view { display: flex; gap: 6px; margin-left: auto; }
+
+/* ── Phenotype Lab (PhenotypeLab.tsx, docs/COSMETICS.md) ── */
+.pl-top { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+.pl-cultivate { padding: 8px 14px; font-size: 13px; }
+.pl-count { font-size: 12px; color: var(--muted); }
+.pl-bonus { font-size: 11px; color: var(--gold); }
+.pl-grown {
+  margin: 6px 0 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--pc, var(--gold)) 50%, var(--line));
+  background: color-mix(in srgb, var(--pc, var(--gold)) 10%, transparent);
+  animation: ui-rise var(--dur-3) var(--ease-out) both;
+}
+.pl-sec { margin: 14px 0 8px; font-size: 11px; letter-spacing: 0.2em; font-weight: 800; color: var(--muted); }
+.pl-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.pl-preview { width: 48px; height: 48px; border-radius: var(--r-sm); border: 1px solid var(--line); flex: none; }
+.pl-hero-swatch { width: 22px; height: 22px; margin: 12px 13px; border-radius: 50%; flex: none; box-shadow: 0 0 10px color-mix(in srgb, currentColor 40%, transparent); }
+.pl-row-body { flex: 1; min-width: 0; }
+.pl-name { font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+.pl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  min-height: 24px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.pl-chip.on { border-color: var(--pc, var(--gold)); color: var(--pc, var(--text)); }
+.pl-chip.is-locked { opacity: 0.45; }
+.pl-chip .pl-swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--pc, var(--muted)); }
+.pl-chip .pl-lock { font-size: 10px; }

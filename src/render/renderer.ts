@@ -49,6 +49,7 @@ import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { dangerCurve } from '../core/dangerCamera';
+import type { CosmeticTheme } from '../core/cosmetics';
 
 export interface Pointer {
   x: number;
@@ -194,6 +195,8 @@ export function drawGame(
   adaptTiers: Partial<Record<string, number>> = {}, // per-kind Adaptation FORM stage (docs/ADAPTATION.md; 0 = none)
   heroStarTiers: Partial<Record<string, number>> = {}, // per-HERO permanent STAR count → visual evolution (0 = none)
   heroEvo = 0, // run-wide Hero Evolution levels bought (Hero Console) → in-run battle-dress (0 = none)
+  towerSkins: Partial<Record<string, CosmeticTheme>> = {}, // equipped Phenotypes (docs/COSMETICS.md; {} = default dress)
+  heroSkins: Partial<Record<string, CosmeticTheme>> = {},
 ): void {
   const t = rs.time;
 
@@ -298,7 +301,7 @@ export function drawGame(
   // Blight Sower spore mines (docs/SOWER.md): armed pods dotted on the approach — a growing
   // bud (arm fuse), then a slow pulse with a faint trigger ring. Empty on every other run.
   for (const m of rs.mines) {
-    const c = hexRgb(TOWER_DEFS.sower.color);
+    const c = hexRgb(towerSkins.sower?.primary ?? TOWER_DEFS.sower.color);
     const grow = m.arm > 0 ? Math.max(0.25, 1 - m.arm / 0.8) : 1;
     const puls = m.arm > 0 ? 1 : pulse(t * 2 + m.id, 1, 0.85, 1.15);
     glowDisc(ctx, m.x, m.y, 9 * grow * puls, rgba(c, m.arm > 0 ? 0.18 : 0.3));
@@ -315,13 +318,13 @@ export function drawGame(
   for (const tw of rs.towers) {
     const fed = goreThrob(`t${tw.id}`); // XP shards just coalesced in ⇒ a satisfying feed-throb
     if (fed > 0.01) { ctx.save(); ctx.translate(tw.x, tw.y); const s = 1 + fed * 0.13; ctx.scale(s, s); ctx.translate(-tw.x, -tw.y); }
-    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0);
+    drawTower(ctx, tw, t, cosmeticTiers[tw.kind] ?? 0, tw.id === rs.selectedPlacedId, starTiers[tw.kind] ?? 0, adaptTiers[tw.kind] ?? 0, towerSkins[tw.kind]);
     if (fed > 0.01) ctx.restore();
   }
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
-  for (const p of rs.projectiles) drawProjectile(ctx, p);
+  for (const p of rs.projectiles) drawProjectile(ctx, p, p.sourceKind ? towerSkins[p.sourceKind] : undefined);
   drawEnemyShells(ctx, rs); // artillery bombardment arcs (empty array on the golden path)
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
@@ -336,10 +339,10 @@ export function drawGame(
     drawMegaOrgans(ctx, rs.megaBoss, t);
     drawMegaShots(ctx, rs);
   }
-  drawBeams(ctx, rs, t); // Resonance Coil channels (over enemies, so the melt reads on the target)
+  drawBeams(ctx, rs, t, towerSkins); // Resonance Coil channels (over enemies, so the melt reads on the target)
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
-  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo);
+  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins);
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
 
@@ -937,8 +940,59 @@ function drawSiphonBeam(ctx: CanvasRenderingContext2D, x0: number, y0: number, x
   ctx.restore();
 }
 
-function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0): void {
+/** Phenotype idle AURA (docs/COSMETICS.md) — a family-keyed flourish around a themed unit.
+ *  Deterministic (time/id-keyed) and cheap (≤6 ops); drawn under the unit's organ layers. */
+function drawCosmeticAura(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, skin: CosmeticTheme, now: number, id: number): void {
+  const pc = hexRgb(skin.primary);
+  const gc = hexRgb(skin.glow);
+  switch (skin.aura) {
+    case 'ember': // cinders rising off the chassis
+      for (let i = 0; i < 3; i++) {
+        const f = (now * (0.4 + 0.2 * hash01(id * 7 + i)) + i / 3) % 1;
+        ctx.fillStyle = rgba(gc, (1 - f) * 0.55);
+        ctx.beginPath();
+        ctx.arc(x + Math.sin((now + i * 2.1) * 1.7) * r * 0.7, y - f * r * 1.9, 1 + (1 - f) * 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    case 'frost': // a slow crystalline ring + a glint
+      ring(ctx, x, y, r * 1.5 * pulse(now * 0.5 + id, 2, 0.97, 1.03), rgba(gc, 0.3), 1, [2, 6]);
+      drawShape(ctx, 'diamond', x + Math.cos(now * 0.6 + id) * r * 1.5, y + Math.sin(now * 0.6 + id) * r * 1.5, 1.8, rgba(gc, 0.8));
+      break;
+    case 'verdant': // drifting spores
+      for (let i = 0; i < 3; i++) {
+        const a = now * 0.4 + (i / 3) * Math.PI * 2 + id;
+        ctx.fillStyle = rgba(pc, 0.4 + 0.2 * Math.sin(now * 2 + i));
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(a) * r * (1.3 + 0.2 * Math.sin(now + i)), y + Math.sin(a) * r * (1.1 + 0.2 * Math.cos(now + i)), 1.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    case 'void': // a dark halo the light bends around + one orbiting mote
+      glowDisc(ctx, x, y, r * 1.9, 'rgba(8,4,18,0.4)');
+      ring(ctx, x, y, r * 1.45, rgba(pc, 0.35), 1.2, [8, 5]);
+      drawShape(ctx, 'circle', x + Math.cos(-now * 0.9 + id) * r * 1.45, y + Math.sin(-now * 0.9 + id) * r * 1.45, 1.6, rgba(gc, 0.9));
+      break;
+    case 'gilded': // laurels of living gold — a double ring + timed glints
+      ring(ctx, x, y, r * 1.4, rgba(pc, 0.45), 1.2);
+      ring(ctx, x, y, r * 1.6, rgba(pc, 0.2), 1);
+      if ((now + id) % 2 < 0.3) {
+        const k = ((now + id) % 2) / 0.3;
+        drawShape(ctx, 'diamond', x + r, y - r, 2.5 * (1 - k), rgba(gc, 1 - k));
+      }
+      break;
+    case 'abyss': // a wound in the light — pulsing dark-red rim + a slow inner throb
+      ring(ctx, x, y, r * (1.35 + 0.08 * Math.sin(now * 2.4 + id)), rgba(pc, 0.5), 1.6);
+      glowDisc(ctx, x, y, r * 1.1 * pulse(now, 1.2, 0.9, 1.1), 'rgba(30,8,20,0.5)');
+      break;
+  }
+}
+
+function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][number], now: number, tier = 0, selected = false, stars = 0, adaptTier = 0, skin?: CosmeticTheme): void {
   const def = TOWER_DEFS[tw.kind];
+  // Phenotype re-expression (docs/COSMETICS.md): the equipped skin's primary replaces the
+  // def color EVERYWHERE this body paints; absent skin ⇒ the exact pre-cosmetics look.
+  const kcolor = skin?.primary ?? def.color;
 
   // grow-on-place → idle breathing → a recoil punch right after firing.
   const grow = easeOutCubic(Math.min(1, Math.max(0, (now - tw.bornAt) / TOWER_GROW)));
@@ -951,7 +1005,7 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     const reach = (10 + 16 * easeOutCubic(rp)) * grow;
     ctx.save();
     ctx.globalAlpha = 0.65 * (1 - rp);
-    ctx.strokeStyle = def.color;
+    ctx.strokeStyle = kcolor;
     ctx.lineWidth = 1.5;
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * Math.PI * 2 + tw.id * 1.7; // stable per tower — no flicker
@@ -996,20 +1050,21 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // muzzle flash above firing towers (enemies are upfield) on the recoil frames — a branched
   // tower's flash grows with tier (attack-animation escalation, TOWER-BRANCHES.md §9).
   if (fresh > 0.01) {
-    glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.7 + fresh + tw.tier * 0.08), def.color);
+    glowDisc(ctx, tw.x, tw.y - r * 0.8, r * (0.7 + fresh + tw.tier * 0.08), skin?.glow ?? kcolor);
   }
 
   // Marrow Siphon (docs/SIPHON.md): the live drain ray, drawn UNDER the body so the organ sits over
   // the socket while the beam reaches out over the swarm. beamX/Y are set only while a lock is live
   // (render-only fields), so an idle siphon — and every non-siphon tower — draws nothing here.
   if (tw.kind === 'siphon' && tw.beamX !== undefined && tw.beamY !== undefined) {
-    drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, def.color, tw.id);
+    drawSiphonBeam(ctx, tw.x, tw.y - r * 0.2, tw.beamX, tw.beamY, tw.beamHeat ?? 0, now, kcolor, tw.id);
   }
 
   // The procedural TURRET body (render/towerForms.ts) — a rooted structure + firing apparatus that
   // recoils on `fresh` and idles with `breathe`. Replaces the flat placeholder shape; the per-kind
   // organs + all evolution layers below still draw over it.
-  drawTowerForm(ctx, tw.kind, tw.x, tw.y, r, def.color, now, fresh, breathe);
+  drawTowerForm(ctx, tw.kind, tw.x, tw.y, r, kcolor, now, fresh, breathe);
+  if (skin) drawCosmeticAura(ctx, tw.x, tw.y, r, skin, now, tw.id);
 
   if (tw.kind === 'reactor') {
     drawShape(ctx, 'circle', tw.x, tw.y, 5 * grow * breathe, 'rgba(255,255,255,0.3)');
@@ -1030,7 +1085,7 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     // a focusing lens whose core EYE brightens with resonance heat (the melt "charging up"), plus a
     // slow rotating lens ring. beamHeat is 0 when idle ⇒ a cool, dim emitter.
     const heat = tw.beamHeat;
-    const c = hexRgb(def.color);
+    const c = hexRgb(kcolor);
     ring(ctx, tw.x, tw.y, r * 1.25, rgba(c, 0.24 + heat * 0.5), 1.2 + heat * 1.2, [3, 4]);
     glowDisc(ctx, tw.x, tw.y, r * (0.7 + heat * 0.9), rgba(c, 0.35 + heat * 0.5));
     drawShape(ctx, 'circle', tw.x, tw.y, r * (0.26 + heat * 0.14) * breathe, rgba('255, 255, 255', 0.7 + heat * 0.25));
@@ -1038,7 +1093,7 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
     // a lidded ocular pod: a socket ring + a crimson iris that leans toward the locked prey and
     // dilates with the Gorge heat — a drinking pupil at its centre.
     const heat = tw.beamHeat;
-    ring(ctx, tw.x, tw.y, r * 1.25, rgba(hexRgb(def.color), 0.22 + heat * 0.4), 1.4);
+    ring(ctx, tw.x, tw.y, r * 1.25, rgba(hexRgb(kcolor), 0.22 + heat * 0.4), 1.4);
     let ix = tw.x;
     let iy = tw.y - r * 0.05;
     if (tw.beamX !== undefined && tw.beamY !== undefined) {
@@ -1046,7 +1101,7 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
       ix = tw.x + Math.cos(a) * r * 0.32;
       iy = tw.y + Math.sin(a) * r * 0.32;
     }
-    glowDisc(ctx, ix, iy, r * (0.34 + heat * 0.16) * breathe, def.color);
+    glowDisc(ctx, ix, iy, r * (0.34 + heat * 0.16) * breathe, kcolor);
     drawShape(ctx, 'circle', ix, iy, r * 0.16 * breathe, 'rgba(10,6,10,0.85)'); // the drinking pupil
   }
 
@@ -1054,12 +1109,12 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // visual mutations). Pure cosmetic — tier 0 (a fresh save) renders identically.
   if (tier > 0) {
     const a = pulse(now + tw.id, 1.6, 0.22, 0.5);
-    ring(ctx, tw.x, tw.y, r * 1.7, rgba(hexRgb(def.color), a), 1.4);
-    if (tier >= 2) ring(ctx, tw.x, tw.y, r * 2.05, rgba(hexRgb(def.color), a * 0.55), 1);
+    ring(ctx, tw.x, tw.y, r * 1.7, rgba(hexRgb(kcolor), a), 1.4);
+    if (tier >= 2) ring(ctx, tw.x, tw.y, r * 2.05, rgba(hexRgb(kcolor), a * 0.55), 1);
     const pips = Math.min(tier, 5); // orbiting rank pips
     for (let i = 0; i < pips; i++) {
       const ang = now * 0.8 + (i * Math.PI * 2) / pips;
-      drawShape(ctx, 'circle', tw.x + Math.cos(ang) * r * 1.7, tw.y + Math.sin(ang) * r * 1.7, 1.7, def.color);
+      drawShape(ctx, 'circle', tw.x + Math.cos(ang) * r * 1.7, tw.y + Math.sin(ang) * r * 1.7, 1.7, kcolor);
     }
   }
 
@@ -1088,23 +1143,23 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // tower grows a new identity organ each generation (★1/3/5/7/9), drawn from the SAME organ
   // vocabulary as branches and tinted its class hue, so star + branch read as one organism. 0
   // stars renders nothing (golden-safe look).
-  if (stars > 0) drawStarEvolution(ctx, tw, stars, r, now, def.color, fresh);
+  if (stars > 0) drawStarEvolution(ctx, tw, stars, r, now, kcolor, fresh);
 
   // Branch MUTATION (TOWER-BRANCHES.md §9): a DATA-DRIVEN evolved silhouette — every tier grows a
   // new organ (limbs / armor / barrels / biomass / organs …) so two same-kind towers read
   // differently by path AND tier. Per-instance; tier 0 renders nothing (golden-safe look).
-  if (tw.tier > 0) drawTowerEvolution(ctx, tw, now, r, def.color, fresh);
+  if (tw.tier > 0) drawTowerEvolution(ctx, tw, now, r, kcolor, fresh);
 
   // STRAIN organs (docs/STRAIN.md §visuals): the IN-RUN evolution ladder — each level above I
   // grows an unmistakable new structure. Strain 1 renders nothing (golden-safe look).
-  if (tw.strain > 1) drawStrainOrgans(ctx, tw, now, r, def.color);
+  if (tw.strain > 1) drawStrainOrgans(ctx, tw, now, r, kcolor);
 
   // Mutation FLASH: a one-shot shockwave + white pop the instant a tier is purchased (driven by
   // tw.mutatedAt). A settled or unbranched tower (mutatedAt ≪ now) draws nothing.
   const sinceMut = now - tw.mutatedAt;
   if (sinceMut >= 0 && sinceMut < MUTATE_FLASH) {
     const fade = 1 - sinceMut / MUTATE_FLASH;
-    const c = hexRgb(def.color);
+    const c = hexRgb(kcolor);
     ring(ctx, tw.x, tw.y, r * (1.1 + easeOutCubic(1 - fade) * 2.4), rgba(c, fade * 0.7), 1 + fade * 2.5);
     glowDisc(ctx, tw.x, tw.y, r * (1.3 + fade * 1.4), rgba(WHITE, fade * 0.5));
   }
@@ -1170,7 +1225,7 @@ function drawStrainOrgans(ctx: CanvasRenderingContext2D, tw: RenderState['towers
 /** RESONANCE BEAM channels — a live line from each Resonance Coil to its locked target, brightening
  *  and fattening with the tower's resonance HEAT (the visible "melt ramp"). Purely presentational:
  *  reads Tower.beamTarget/beamHeat + the enemy positions. No coil on the field ⇒ nothing drawn. */
-function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number): void {
+function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number, towerSkins: Partial<Record<string, CosmeticTheme>> = {}): void {
   let byId: Map<number, RenderState['enemies'][number]> | null = null;
   for (const tw of rs.towers) {
     if (tw.kind !== 'coil' || (tw.beamTarget < 0 && tw.beamTarget > -1000)) continue;
@@ -1185,7 +1240,7 @@ function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number):
       target = byId.get(tw.beamTarget);
     }
     if (!target) continue;
-    const c = hexRgb(TOWER_DEFS.coil.color);
+    const c = hexRgb(towerSkins.coil?.primary ?? TOWER_DEFS.coil.color);
     const heat = tw.beamHeat;
     const sx = tw.x;
     const sy = tw.y - 4; // muzzle sits just above the lens
@@ -1223,7 +1278,7 @@ function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number):
   }
 }
 
-function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number]): void {
+function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number], skin?: CosmeticTheme): void {
   // A target-less shot fades out (game settle / mid-combat fizzle) instead of popping.
   const fading = p.fade !== undefined && p.fade < 1;
   if (fading) ctx.globalAlpha = Math.max(0, p.fade!);
@@ -1233,8 +1288,10 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   }
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';
-  const core = splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
-  const trail = splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
+  // Phenotype shot light: the firing tower's equipped theme re-tints the base comet
+  // (branch skins above keep their authored identity — a branch IS an identity).
+  const core = skin ? skin.glow : splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
+  const trail = skin ? hexRgb(skin.primary) : splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
 
   // heading toward the target point — the trail streams out behind it
   let ux = p.tx - p.x;
@@ -1781,20 +1838,21 @@ const MINION_LOW_RGB = hexRgb('#ff5d73');
 
 const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle' } as const;
 
-function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0): void {
+function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}): void {
   for (let i = 0; i < rs.heroes.length; i++) {
     const h = rs.heroes[i];
     const fed = goreThrob(`h${h.kind}`); // XP shards just coalesced in ⇒ a feed-throb
     if (fed > 0.01) { ctx.save(); ctx.translate(h.x, h.y); const s = 1 + fed * 0.11; ctx.scale(s, s); ctx.translate(-h.x, -h.y); }
-    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo);
+    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo, heroSkins[h.kind]);
     if (fed > 0.01) ctx.restore();
   }
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0): void {
+function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0, skin?: CosmeticTheme): void {
   const t = rs.time;
   const def = HERO_DEFS[h.kind];
-  const tint = hexRgb(def.color); // class-colored halo/locator/trail
+  const tint = hexRgb(skin?.primary ?? def.color); // class-colored halo/locator/trail (Phenotype re-tints)
+  if (skin) drawCosmeticAura(ctx, h.x, h.y, 12, skin, t, h.kind.length);
   const shape = HERO_SHAPE[h.kind];
   const down = h.down;
 

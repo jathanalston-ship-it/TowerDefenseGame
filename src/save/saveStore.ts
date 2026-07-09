@@ -12,6 +12,7 @@ import { defaultLootQueue, sanitizeLootQueue } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
+import { cosmeticById } from '../core/cosmetics';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
@@ -63,6 +64,9 @@ export interface SaveData {
   //    completions: lifetime cleared dailies; streak: consecutive-day clears; rewardedKey: the day
   //    whose clear reward was already granted (the once-per-day gate). ──
   daily: { lastKey: string; lastWave: number; bestWave: number; completions: number; streak: number; rewardedKey: string; lastReplay: string | null }; // lastReplay: the recorded input log backing today's best (v25, docs/SECURITY-AUDIT.md R1)
+  // ── Phenotypes (schema v26, docs/COSMETICS.md) — owned cosmetic ids + per-kind equips.
+  //    PURE presentation: nothing here is read by the sim (golden-safe by construction). ──
+  cosmetics: { owned: string[]; towers: Partial<Record<TowerKind, string>>; heroes: Partial<Record<HeroKind, string>> };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -226,8 +230,9 @@ export interface TutorialSave {
 // (migrated from the shared loadout). v21→v22: Player Profile (identity fields + milestone
 // timeline + profile stat ledgers). v22→v23: verified-purchase ledger (claimedReceipts +
 // pendingCheckout — docs/DEPLOYMENT.md §purchases). v23→v24: Field Research ledger
-// (docs/RESEARCH.md). All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 25;
+// (docs/RESEARCH.md). v25→v26: Phenotypes (owned + equipped cosmetics — docs/COSMETICS.md).
+// All additive — withDefaults() deep-fills, migrate() passes through.
+export const CURRENT_VERSION = 26;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -384,6 +389,7 @@ export function defaultSave(): SaveData {
     rushStamina: { value: 100, updatedAt: 0, freeDay: '' },
     research: { day: '', claims: {}, pendingBoosts: [], lifetime: { views: 0, claims: {} } },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
+    cosmetics: { owned: [], towers: {}, heroes: {} },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -493,6 +499,32 @@ function sanitizeLastSalvage(raw: unknown): SaveData['lastSalvage'] {
  * records so every tower/hero key is present. This is the v1→v2 upgrade path:
  * a pre-progression save simply gains zeroed records.
  */
+/** v26 Phenotypes: keep only REAL registry ids; an equip must be owned AND target its kind.
+ *  Junk/tampered imports fall back to bare defaults — never a crash, never a phantom skin. */
+function sanitizeCosmetics(raw: unknown): SaveData['cosmetics'] {
+  const out: SaveData['cosmetics'] = { owned: [], towers: {}, heroes: {} };
+  if (!raw || typeof raw !== 'object') return out;
+  const o = raw as { owned?: unknown; towers?: unknown; heroes?: unknown };
+  if (Array.isArray(o.owned)) {
+    out.owned = [...new Set(o.owned.filter((x): x is string => typeof x === 'string' && cosmeticById(x) !== undefined))];
+  }
+  const ownedSet = new Set(out.owned);
+  const fill = <K extends string>(src: unknown, kind: 'tower' | 'hero', into: Partial<Record<K, string>>): void => {
+    if (!src || typeof src !== 'object') return;
+    for (const [k, v] of Object.entries(src as Record<string, unknown>)) {
+      if (typeof v !== 'string' || !ownedSet.has(v)) continue;
+      const def = cosmeticById(v);
+      if (!def || def.target.kind !== kind) continue;
+      if ((kind === 'tower' && (def.target as { tower: string }).tower === k) || (kind === 'hero' && (def.target as { hero: string }).hero === k)) {
+        into[k as K] = v;
+      }
+    }
+  };
+  fill(o.towers, 'tower', out.towers);
+  fill(o.heroes, 'hero', out.heroes);
+  return out;
+}
+
 function withDefaults(data: SaveData): SaveData {
   const d = defaultSave();
   return {
@@ -531,6 +563,8 @@ function withDefaults(data: SaveData): SaveData {
     towerUnlocked: sanitizeTowerUnlocked(data),
     // v14→v15: Adaptation node picks (empty for pre-v15 ⇒ golden-safe).
     adaptation: sanitizeAdaptation((data as { adaptation?: unknown }).adaptation),
+    // v25→v26: Phenotypes — empty for older saves (identity look ⇒ golden-safe).
+    cosmetics: sanitizeCosmetics((data as { cosmetics?: unknown }).cosmetics),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {

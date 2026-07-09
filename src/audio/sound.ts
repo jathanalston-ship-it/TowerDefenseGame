@@ -116,11 +116,14 @@ function sEdSplat(i: number): void { noise(0.15, 0.11 - i * 0.012, 680 - i * 60,
 function sAssimilate(i: number): void { tone(540 + i * 70, 0.1, 'sine', 0.032, 960 + i * 90); }
 // BASE tower firing timbres (config.towerFireCue) — an unbranched tower was silent; these give each
 // firing character its own snap. Quiet + throttled (firing is frequent); `i` detunes stacked shots.
-function sTfTick(i: number): void { tone(820 - i * 40, 0.04, 'square', 0.045, 560); noise(0.02, 0.035, 4200 - i * 200); } // kinetic/synaptic snap
-function sTfThud(i: number): void { tone(120 - i * 6, 0.13, 'sine', 0.11, 58); noise(0.06, 0.07, 480, 200); } // heavy lob thud
-function sTfWet(i: number): void { noise(0.05, 0.06, 1400 - i * 120, 500); tone(300 - i * 15, 0.05, 'triangle', 0.045, 170); } // wet organic blip
-function sTfZap(i: number): void { tone(640 + i * 45, 0.07, 'sawtooth', 0.05, 1500); noise(0.03, 0.03, 5200); } // psionic zap
-function sTfTing(i: number): void { tone(1400 - i * 60, 0.09, 'sine', 0.045, 1900); tone(2050 - i * 80, 0.06, 'sine', 0.025); } // crystalline ting
+// `vf` = Phenotype firing-variant pitch factor (docs/COSMETICS.md §sfx; 1 = default timbre).
+function sTfTick(i: number, vf = 1): void { tone((820 - i * 40) * vf, 0.04, 'square', 0.045, 560 * vf); noise(0.02, 0.035, (4200 - i * 200) * vf); } // kinetic/synaptic snap
+function sTfThud(i: number, vf = 1): void { tone((120 - i * 6) * vf, 0.13, 'sine', 0.11, 58 * vf); noise(0.06, 0.07, 480 * vf, 200 * vf); } // heavy lob thud
+function sTfWet(i: number, vf = 1): void { noise(0.05, 0.06, (1400 - i * 120) * vf, 500 * vf); tone((300 - i * 15) * vf, 0.05, 'triangle', 0.045, 170 * vf); } // wet organic blip
+function sTfZap(i: number, vf = 1): void { tone((640 + i * 45) * vf, 0.07, 'sawtooth', 0.05, 1500 * vf); noise(0.03, 0.03, 5200 * vf); } // psionic zap
+function sTfTing(i: number, vf = 1): void { tone((1400 - i * 60) * vf, 0.09, 'sine', 0.045, 1900 * vf); tone((2050 - i * 80) * vf, 0.06, 'sine', 0.025); } // crystalline ting
+/** Phenotype sfx variants → pitch factors (audible identity shift on the same synth). */
+const VARIANT_PITCH: Record<string, number> = { deep: 0.72, crisp: 1.32, wet: 0.86, aetheric: 1.16 };
 // ── Hive Siege voices (docs/HIVE-SIEGE.md §audio) ──
 function sHiveHit(): void { tone(72, 0.14, 'sine', 0.16, 48); noise(0.07, 0.07, 420, 90); } // a wet chitin THUD — one per landed bite (capped per tick)
 function sHiveGroan(): void { // the organism groans as a damage state fails (75/50/25/10%)
@@ -280,13 +283,25 @@ export const audio = {
     for (const rawTag in counts) {
       const n = counts[rawTag];
       if (n <= 0) continue;
-      // Branch cues carry a "tag@tier" suffix (game.pushSfx) → a depth d∈[0,1] (tier 1→0 … 5→1)
-      // that deepens the synth per tier (BRANCH-EVOLUTION.md §3d). Non-suffixed cues ⇒ d=0, unchanged.
-      const at = rawTag.indexOf('@');
-      const tag = at < 0 ? rawTag : rawTag.slice(0, at);
+      // Suffix grammar (game.pushSfx → GameView translate):
+      //   'tag@tier'    branch depth d∈[0,1] deepening the synth (BRANCH-EVOLUTION.md §3d)
+      //   'tag:kind'    the firing tower's kind (Phenotypes) — untranslated (e.g. the Replay
+      //                 Theater) it simply strips to the base cue
+      //   'tag~variant' a Phenotype firing variant → a pitch factor on the same synth
+      let core = rawTag;
+      const colon = core.indexOf(':');
+      if (colon >= 0) core = core.slice(0, colon);
+      let vf = 1;
+      const tilde = core.indexOf('~');
+      if (tilde >= 0) {
+        vf = VARIANT_PITCH[core.slice(tilde + 1)] ?? 1;
+        core = core.slice(0, tilde);
+      }
+      const at = core.indexOf('@');
+      const tag = at < 0 ? core : core.slice(0, at);
       const duck = DUCK[tag];
       if (duck) music.duck(duck[0], duck[1]);
-      const d = at < 0 ? 0 : Math.min(1, Math.max(0, (Number(rawTag.slice(at + 1)) - 1) / 4));
+      const d = at < 0 ? 0 : Math.min(1, Math.max(0, (Number(core.slice(at + 1)) - 1) / 4));
       switch (tag) {
         case 'hit': for (let i = 0; i < Math.min(3, n); i++) sHit(i); break;
         case 'kill': for (let i = 0; i < Math.min(5, n); i++) sKill(); break;
@@ -296,11 +311,11 @@ export const audio = {
         case 'edie_pop': for (let i = 0; i < Math.min(4, n); i++) sEdPop(i); break;
         case 'edie_splat': for (let i = 0; i < Math.min(3, n); i++) sEdSplat(i); break;
         case 'assimilate': for (let i = 0; i < Math.min(3, n); i++) sAssimilate(i); break;
-        case 'tfire_tick': for (let i = 0; i < Math.min(3, n); i++) sTfTick(i); break;
-        case 'tfire_thud': for (let i = 0; i < Math.min(2, n); i++) sTfThud(i); break;
-        case 'tfire_wet': for (let i = 0; i < Math.min(3, n); i++) sTfWet(i); break;
-        case 'tfire_zap': for (let i = 0; i < Math.min(3, n); i++) sTfZap(i); break;
-        case 'tfire_ting': for (let i = 0; i < Math.min(2, n); i++) sTfTing(i); break;
+        case 'tfire_tick': for (let i = 0; i < Math.min(3, n); i++) sTfTick(i, vf); break;
+        case 'tfire_thud': for (let i = 0; i < Math.min(2, n); i++) sTfThud(i, vf); break;
+        case 'tfire_wet': for (let i = 0; i < Math.min(3, n); i++) sTfWet(i, vf); break;
+        case 'tfire_zap': for (let i = 0; i < Math.min(3, n); i++) sTfZap(i, vf); break;
+        case 'tfire_ting': for (let i = 0; i < Math.min(2, n); i++) sTfTing(i, vf); break;
         case 'shred': for (let i = 0; i < Math.min(2, n); i++) sShred(); break;
         case 'breach': sBreach(); break;
         case 'hiveHit': for (let i = 0; i < Math.min(2, n); i++) sHiveHit(); break;
