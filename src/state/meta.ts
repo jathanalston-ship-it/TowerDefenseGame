@@ -80,6 +80,8 @@ import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
 import { cosmeticById, cultivatePool, CULTIVATE_COST } from '../core/cosmetics';
+import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
+import type { ContractRunFacts } from '../core/contracts';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
 import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/campaign';
@@ -865,6 +867,9 @@ export interface RunOutcome {
   // Daily Run (docs/DAILY-RUN.md): this run's daily outcome — the once-per-day clear reward (0 on a
   // replay/loss) and the updated streak. Absent off-daily.
   dailyProgress?: { cores: number; streak: number; cleared: boolean };
+  // Champion Contracts honoured by THIS run (docs/CONTRACTS.md) — cores already folded
+  // into the reward; cosmetic = the granted Gilded phenotype id (null for core-only rows).
+  contracts?: { id: string; name: string; cores: number; cosmetic: string | null }[];
   // Campaign "Flawless first-clear" bonus-cache status, for the Results notice. null on non-campaign
   // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
   // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
@@ -1163,6 +1168,23 @@ export const meta = {
       : save.daily.streak;
     // LiveOps calendar (docs/LIVEOPS.md): scheduled windows fold ×1-baseline multipliers
     // into the mode-matched reward lanes (clock pinned to a weekday under tests).
+    // Champion Contracts (docs/CONTRACTS.md): evaluate THIS run against the weekly board.
+    // Uncompleted satisfied contracts pay cores here + (marquee rows) a Gilded phenotype.
+    const contractFacts: ContractRunFacts = {
+      mode: isRush ? 'rush' : isDaily ? 'daily' : result.endless ? 'endless' : result.campaignStage !== undefined ? 'campaign' : 'stage',
+      won: result.won,
+      wave: result.wave,
+      kills: result.kills,
+      integrityLost: result.stats.integrityLost,
+      towerBuilds: result.stats.towerBuilds,
+      heroId: result.stats.heroId,
+    };
+    const contractWeek = contractWeekKey();
+    const contractHits = activeContracts().filter(
+      (c) => !save.contracts.completed.includes(`${contractWeek}:${c.id}`) && contractSatisfied(c, contractFacts),
+    );
+    const contractCores = contractHits.reduce((a, c) => a + c.reward.cores, 0);
+
     const lo = liveopsMods();
     const dailyCoreBonus = dailyRewarded
       ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult * asc.dailyBonusMult * lo.dailyCoreMult)
@@ -1200,7 +1222,7 @@ export const meta = {
     }).total() * researchBoost.coresMult
       // LiveOps spotlight weeks: the live mode's lane gets its window multiplier.
       * (result.bossRush ? lo.rushShardMult : result.endless ? lo.endlessShardMult : result.campaignStage !== undefined ? lo.campaignShardMult : 1)
-    ) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus;
+    ) + firstClearBonus + attemptBonus + rushCoreBonus + dailyCoreBonus + contractCores;
     // Boss Rush keeps its OWN depth record (rush waves are dense, short numbers — folding them
     // into the Infinite record would warp that mode's qualify gate + prediction floor).
     // Mode-scoped records: Boss Rush + Daily keep their OWN depth ledgers — neither pollutes the
@@ -1397,11 +1419,20 @@ export const meta = {
       timeline = pushTimeline(timeline, '◆', `Ichor bleed — ${megaDef.name} felled`);
     }
 
+    if (contractHits.length > 0) {
+      for (const c of contractHits) timeline = pushTimeline(timeline, '❖', `Contract honoured — ${c.name}`);
+    }
     persist({
       ...save,
       prediction,
       createdAt: save.createdAt || Date.now(),
       timeline,
+      contracts: contractHits.length > 0
+        ? { completed: [...save.contracts.completed, ...contractHits.map((c) => `${contractWeek}:${c.id}`)] }
+        : save.contracts,
+      cosmetics: contractHits.some((c) => c.reward.cosmetic && !save.cosmetics.owned.includes(c.reward.cosmetic))
+        ? { ...save.cosmetics, owned: [...save.cosmetics.owned, ...contractHits.map((c) => c.reward.cosmetic).filter((id): id is string => !!id && !save.cosmetics.owned.includes(id))] }
+        : save.cosmetics,
       shards: save.shards + shardsEarned,
       lifetimeShards: save.lifetimeShards + shardsEarned,
       ichor: save.ichor + ichorGain,
@@ -1459,6 +1490,7 @@ export const meta = {
           } }
         : {}),
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
+      ...(contractHits.length > 0 ? { contracts: contractHits.map((c) => ({ id: c.id, name: c.name, cores: c.reward.cores, cosmetic: c.reward.cosmetic })) } : {}),
       flawlessCache,
     };
   },

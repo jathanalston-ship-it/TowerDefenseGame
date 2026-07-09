@@ -82,6 +82,9 @@ graph TD
   achievements --> stats
   liveops --> meta_store
   liveops --> daily
+  contracts --> meta_store
+  contracts --> liveops
+  contracts --> cosmetics
   cosmetics --> meta_store
   cosmetics --> collection
   cosmetics --> hub_shell
@@ -143,16 +146,17 @@ graph TD
 | **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
-| **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | — | — | — | `docs/LIVEOPS.md` |
+| **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `contracts` | — | — | `docs/LIVEOPS.md` |
 | **Localization Core** (`i18n`) | — | — | — | — | `docs/I18N.md` |
-| **Phenotypes (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | — | ⚡ via the collection codex weight | `cosmetics` | `docs/COSMETICS.md` |
+| **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` | — | — | `contracts` | `docs/CONTRACTS.md` |
+| **Phenotypes (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `contracts` | ⚡ via the collection codex weight | `cosmetics` | `docs/COSMETICS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | — | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
 | **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `cosmetics` · `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `field-research` · `net-backend` · `liveops` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `field-research` · `net-backend` · `liveops` · `contracts` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | — | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
@@ -546,14 +550,14 @@ graph TD
 
 - **Files:** `src/core/liveops.ts` · `src/ui/components/LiveEventsStrip.tsx`
 - **Depends on:** `meta-store` · `daily`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `contracts`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `LiveEventsStrip`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/LIVEOPS.md`
+- **Docs to update on change:** `docs/LIVEOPS.md` · `docs/CONTRACTS.md`
 
 ### Localization Core (`i18n`)
 
@@ -570,20 +574,35 @@ graph TD
 - **Localization:** no player-facing strings
 - **Docs to update on change:** `docs/I18N.md`
 
+### Champion Contracts (`contracts`)
+
+*Weekly authored constraint runs (docs/CONTRACTS.md): a deterministic UTC 3-contract board (same weekIndex as LiveOps), a data constraint vocabulary evaluated against run facts in finishRun, core payouts folded into the run reward, and Gilded-phenotype marquee exclusives.*
+
+- **Files:** `src/core/contracts.ts` · `src/ui/components/ContractsCard.tsx`
+- **Depends on:** `meta-store` · `liveops` · `cosmetics`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** `contracts`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `CommandCenter (contracts board)` · `Results (contracts category)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/CONTRACTS.md`
+
 ### Phenotypes (Cosmetics) (`cosmetics`)
 
 *Data-driven visual skins (docs/COSMETICS.md): six theme families × every tower/hero (generator — new kinds inherit automatically); save v26 owned/equipped; renderer re-expression (palette/aura/projectiles/beams) + firing-sfx variants; Phenotype Lab hub screen; Phenotypes collection codex with a hive-wide passive.*
 
 - **Files:** `src/core/cosmetics.ts` · `src/ui/PhenotypeLab.tsx`
 - **Depends on:** `meta-store` · `collection` · `hub-shell`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `contracts`
 - **Power Score:** via the collection codex weight
 - **Save fields:** `cosmetics`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `PhenotypeLab`
 - **Collection:** cosmetics category (Phenotypes codex) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/COSMETICS.md`
+- **Docs to update on change:** `docs/COSMETICS.md` · `docs/CONTRACTS.md`
 
 ### Player Profile (`profile`)
 
@@ -681,14 +700,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `field-research` · `net-backend` · `liveops` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools`
+- **Consumers — what breaks if you change this:** `field-research` · `net-backend` · `liveops` · `contracts` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/COSMETICS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/COSMETICS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
 
 ### Bosses (`bosses`)
 

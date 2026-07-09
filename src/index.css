@@ -8414,3 +8414,16 @@ kbd {
 .pl-chip.is-locked { opacity: 0.45; }
 .pl-chip .pl-swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--pc, var(--muted)); }
 .pl-chip .pl-lock { font-size: 10px; }
+
+/* ── Champion Contracts (Results + home widget, docs/CONTRACTS.md) ── */
+.rr-contract-list { display: flex; flex-direction: column; gap: 6px; }
+.rr-contract { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.rr-contract b { color: var(--gold); }
+.rr-contract span { color: var(--muted); }
+.cc-contracts { padding: 10px 12px; }
+.cc-contract { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.cc-contract:first-of-type { border-top: 0; }
+.cc-contract-name { font-weight: 700; color: var(--text); white-space: nowrap; }
+.cc-contract-name.done { color: var(--caustic); }
+.cc-contract-blurb { color: var(--muted); min-width: 0; }
+.cc-contract-pay { margin-left: auto; white-space: nowrap; font-size: 11px; color: var(--gold); }

@@ -67,6 +67,8 @@ export interface SaveData {
   // ── Phenotypes (schema v26, docs/COSMETICS.md) — owned cosmetic ids + per-kind equips.
   //    PURE presentation: nothing here is read by the sim (golden-safe by construction). ──
   cosmetics: { owned: string[]; towers: Partial<Record<TowerKind, string>>; heroes: Partial<Record<HeroKind, string>> };
+  // ── Champion Contracts (v26, docs/CONTRACTS.md) — weekly completion ledger ('w<week>:<id>'). ──
+  contracts: { completed: string[] };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -390,6 +392,7 @@ export function defaultSave(): SaveData {
     research: { day: '', claims: {}, pendingBoosts: [], lifetime: { views: 0, claims: {} } },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
     cosmetics: { owned: [], towers: {}, heroes: {} },
+    contracts: { completed: [] },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -565,6 +568,9 @@ function withDefaults(data: SaveData): SaveData {
     adaptation: sanitizeAdaptation((data as { adaptation?: unknown }).adaptation),
     // v25→v26: Phenotypes — empty for older saves (identity look ⇒ golden-safe).
     cosmetics: sanitizeCosmetics((data as { cosmetics?: unknown }).cosmetics),
+    contracts: { completed: Array.isArray((data as { contracts?: { completed?: unknown } }).contracts?.completed)
+      ? [...new Set(((data as { contracts: { completed: unknown[] } }).contracts.completed).filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 2000)
+      : [] },
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {

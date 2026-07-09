@@ -234,6 +234,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'none', docs: ['docs/I18N.md'],
   },
   {
+    id: 'contracts', name: 'Champion Contracts', purpose: 'Weekly authored constraint runs (docs/CONTRACTS.md): a deterministic UTC 3-contract board (same weekIndex as LiveOps), a data constraint vocabulary evaluated against run facts in finishRun, core payouts folded into the run reward, and Gilded-phenotype marquee exclusives.',
+    files: ['src/core/contracts.ts', 'src/ui/components/ContractsCard.tsx'],
+    dependsOn: ['meta-store', 'liveops', 'cosmetics'], powerScore: null, save: ['contracts'],
+    tutorial: [], help: [], hud: [], ui: ['CommandCenter (contracts board)', 'Results (contracts category)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
+  },
+  {
     id: 'cosmetics', name: 'Phenotypes (Cosmetics)', purpose: 'Data-driven visual skins (docs/COSMETICS.md): six theme families × every tower/hero (generator — new kinds inherit automatically); save v26 owned/equipped; renderer re-expression (palette/aura/projectiles/beams) + firing-sfx variants; Phenotype Lab hub screen; Phenotypes collection codex with a hive-wide passive.',
     files: ['src/core/cosmetics.ts', 'src/ui/PhenotypeLab.tsx'],
     dependsOn: ['meta-store', 'collection', 'hub-shell'], powerScore: 'via the collection codex weight', save: ['cosmetics'],

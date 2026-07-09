@@ -272,6 +272,32 @@ export function Results({
     ),
   });
 
+  // 4b — CHAMPION CONTRACTS honoured this run (docs/CONTRACTS.md): cores are already in
+  // the Resources lane; this category makes the WIN itself visible + names the exclusive.
+  if (outcome.contracts && outcome.contracts.length > 0) {
+    categories.push({
+      id: 'contracts',
+      title: 'Champion Contracts',
+      icon: '❖',
+      accent: 'var(--gold)',
+      summary: outcome.contracts.map((c) => c.name).join(' · '),
+      stats: [
+        { id: 'ccount', label: 'Contracts Honoured', value: outcome.contracts.length, accent: 'var(--gold)', celebrate: true },
+        { id: 'ccores', label: 'Bonus Cores', value: outcome.contracts.reduce((a, c) => a + c.cores, 0), accent: 'var(--gold)' },
+      ],
+      extra: (
+        <div className="rr-contract-list">
+          {outcome.contracts.map((c) => (
+            <div className="rr-contract" key={c.id}>
+              <b>❖ {c.name}</b>
+              <span>+{c.cores} Cores{c.cosmetic ? ' · Gilded phenotype unlocked — equip it in the Phenotype Lab' : ''}</span>
+            </div>
+          ))}
+        </div>
+      ),
+    });
+  }
+
   // 5 — DISCOVERIES (only when there's something new — scales to collections / unlocks later)
   if (outcome.achievements.length > 0 || newMasteries > 0) {
     categories.push({
