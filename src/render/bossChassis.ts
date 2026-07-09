@@ -45,6 +45,28 @@ export function bossColorOf(defId: string): string {
 
 const DARK = rgba(hexRgb('#0a0d14'), 0.3); // plate/marking shade over any hide color
 
+// ── Volumetric hide (beauty pass): lighten/darken a def color (memoized — per-def key space)
+//    and build a key-lit radial fill. Bosses are ≤3 on field, so per-frame gradients are cheap.
+const litCache = new Map<string, string>();
+function lit(color: string, f: number): string {
+  const key = color + f;
+  const hit = litCache.get(key);
+  if (hit) return hit;
+  const [r, g, b] = hexRgb(color).split(',').map((s) => parseInt(s.trim(), 10));
+  const L = (v: number): number => Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f));
+  const out = `rgb(${L(r)},${L(g)},${L(b)})`;
+  litCache.set(key, out);
+  return out;
+}
+/** Key-lit hide fill (up-left highlight → base → deep venous rim). */
+function hideGrad(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string): CanvasGradient {
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.45, r * 0.12, x, y, r * 1.18);
+  g.addColorStop(0, lit(color, 0.35));
+  g.addColorStop(0.55, color);
+  g.addColorStop(1, lit(color, -0.42));
+  return g;
+}
+
 /** Per-def hide markings — the tiebreaker when chassis AND palette collide (e.g. the
  *  Progenitor and the Brood Cyst are both violet swarmlords). */
 function drawMarkings(ctx: CanvasRenderingContext2D, mark: number, x: number, y: number, r: number): void {
@@ -88,7 +110,7 @@ export function drawBossBody(
       ctx.lineTo(x, y + r * 1.06);
       ctx.lineTo(x - r * 0.6, y + r * 0.76);
       ctx.closePath();
-      ctx.fillStyle = color;
+      ctx.fillStyle = hideGrad(ctx, x, y, r, color);
       ctx.fill();
       ctx.strokeStyle = rim;
       ctx.lineWidth = 2.25;
@@ -117,12 +139,12 @@ export function drawBossBody(
       ctx.lineTo(x - r * 0.52, y + r * 0.72);
       ctx.lineTo(x - r * 0.72, y - r * 0.3);
       ctx.closePath();
-      ctx.fillStyle = color;
+      ctx.fillStyle = hideGrad(ctx, x, y, r, color);
       ctx.fill();
       ctx.strokeStyle = rim;
       ctx.lineWidth = 2.25;
       ctx.stroke();
-      ctx.fillStyle = color;
+      ctx.fillStyle = lit(color, -0.18);
       ctx.fillRect(x - r * 0.15, y + r * 0.3, r * 0.3, r * 0.95); // the barrel
       ctx.strokeStyle = rim;
       ctx.lineWidth = 1.5;
@@ -143,7 +165,10 @@ export function drawBossBody(
         drawShape(ctx, 'circle', px, py, pr, color);
         strokeShape(ctx, 'circle', px, py, pr, rim, 1.25);
       }
-      drawShape(ctx, 'circle', x, y, r * 0.72, color);
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.72, 0, Math.PI * 2);
+      ctx.fillStyle = hideGrad(ctx, x, y, r * 0.72, color);
+      ctx.fill();
       strokeShape(ctx, 'circle', x, y, r * 0.72, rim, 2.25);
       drawMarkings(ctx, mark, x, y, r * 0.8);
       drawShape(ctx, 'circle', x, y - r * 0.28, r * 0.28, THEME.enemy.gloss);
@@ -156,7 +181,7 @@ export function drawBossBody(
       ctx.lineTo(x + r * 0.98, y + r * 0.46);
       ctx.quadraticCurveTo(x, y + r * 0.92, x - r * 0.98, y + r * 0.46); // the skirt
       ctx.closePath();
-      ctx.fillStyle = color;
+      ctx.fillStyle = hideGrad(ctx, x, y, r, color);
       ctx.fill();
       ctx.strokeStyle = rim;
       ctx.lineWidth = 2.25;
@@ -170,7 +195,10 @@ export function drawBossBody(
     }
     case 'juggernaut': {
       // A layered plate slab — three welded armor bands and rivets; mass as menace.
-      drawShape(ctx, 'circle', x, y, r * 1.04, color);
+      ctx.beginPath();
+      ctx.arc(x, y, r * 1.04, 0, Math.PI * 2);
+      ctx.fillStyle = hideGrad(ctx, x, y, r * 1.04, color);
+      ctx.fill();
       strokeShape(ctx, 'circle', x, y, r * 1.04, rim, 2.5);
       ctx.strokeStyle = DARK;
       ctx.lineWidth = 3;

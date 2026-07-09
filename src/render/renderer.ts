@@ -1577,6 +1577,13 @@ function drawEnemy(
     }
   }
 
+  // ── Elite signature (beauty pass): a slow-turning thorn halo + a breathing under-glow,
+  //    so an elite reads as a threat tier at a glance — well before its rim color does. ──
+  if (tier === 'elite' && detail) {
+    glowDisc(ctx, e.x, drawY, r * 1.8 * pulse(t + e.id, 2.4, 0.92, 1.08), rgba(hexRgb(def.color), 0.1));
+    spikeCrown(ctx, e.x, drawY, r * 1.12, r * 0.26, 7, rgba(hexRgb(def.color), 0.5), t * 0.45);
+  }
+
   // ── ROLE identity layer (docs/ENEMIES.md §visual language) — every optional trait reads
   //    on the body BEFORE it acts. Keyed off def fields the historical seven never set and
   //    LOD-gated, so the golden look and the huge-swarm frame cost are both untouched. ──

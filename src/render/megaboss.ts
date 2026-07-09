@@ -82,6 +82,38 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
     ctx.fill();
   }
 
+  // Living emissions (beauty pass): spores sift down off the mass, and viscous ichor
+  // strands hang + drip from the lobe line — the organism sheds onto the battlefield.
+  if (!dead) {
+    for (let i = 0; i < 9; i++) {
+      const h = Math.abs(Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1;
+      const f = (now * (0.12 + h * 0.1) + h) % 1;
+      const sx = h * WIDTH + Math.sin(now * 0.5 + i) * 14;
+      ctx.fillStyle = rgba(glo, (1 - f) * 0.28 * alpha);
+      ctx.beginPath();
+      ctx.arc(sx, baseY - 10 + f * 120, 1.2 + h * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = rgba(body, 0.5 * alpha);
+    ctx.lineWidth = 1.6;
+    for (let i = 0; i < 3; i++) {
+      const h = Math.abs(Math.sin(i * 61.7 + 43.3) * 24634.6345) % 1;
+      const sx = (0.18 + h * 0.64) * WIDTH;
+      const sag2 = (14 + h * 22) * (1 + Math.sin(now * 0.7 + i * 2.4) * 0.25);
+      ctx.beginPath();
+      ctx.moveTo(sx, baseY - 6);
+      ctx.quadraticCurveTo(sx + 3, baseY + sag2 * 0.6, sx + Math.sin(now * 0.4 + i) * 4, baseY + sag2);
+      ctx.stroke();
+      const drip = (now * (0.3 + h * 0.25) + h) % 1;
+      if (drip > 0.7) {
+        ctx.fillStyle = rgba(body, (1 - (drip - 0.7) / 0.3) * 0.6 * alpha);
+        ctx.beginPath();
+        ctx.arc(sx, baseY + sag2 + ((drip - 0.7) / 0.3) * 46, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
   // Vein network: glowing channels crawling the front ridge; pulse rate rises with phase.
   const veinPulse = pulse(now, dead ? 0.4 : 2.4 - tier * 0.35, 0.25, 0.7) * (dead ? 1 - collapse : 1);
   ctx.strokeStyle = rgba(glo, veinPulse * alpha * (v.exposed ? 1 : 0.55));

@@ -504,6 +504,28 @@ function drawSpawnIntro(ctx: Ctx, form: BodyForm, x: number, y: number, r: numbe
   ctx.restore();
 }
 
+/** Universal VOLUME pass — a lit crescent (toward the arena key light, up-left) + a shadow
+ *  crescent (down-right) laid over any silhouette. Two arc strokes, no gradients, no clip:
+ *  the cheapest paint that makes a flat body read as a rounded, lit organism. Stays inside
+ *  the ~14-op LOD budget (adds 6). */
+function volumePass(ctx: Ctx, x: number, y: number, r: number, c: string): void {
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = shade(c, 0.55);
+  ctx.globalAlpha = 0.38;
+  ctx.lineWidth = Math.max(1, r * 0.16);
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.68, Math.PI * 1.05, Math.PI * 1.62);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgb(2,2,10)';
+  ctx.globalAlpha = 0.22;
+  ctx.lineWidth = Math.max(1, r * 0.2);
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.72, Math.PI * 0.12, Math.PI * 0.62);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.lineCap = 'butt';
+}
+
 /** Draw a procedural creature body of `form` at (x,y), radius `r`, in `color`. A spawning enemy
  *  (emerge<1) plays its archetype's BIRTH intro; otherwise it applies LOCOMOTION (bank + walking
  *  bob, from the renderer's motion tracker). Cosmetic + LOD-gated; still enemies take a fast path. */
@@ -516,10 +538,15 @@ export function drawEnemyBody(
   const moving = Math.min(1, Math.hypot(vx, vy) / 2.2); // px/frame reference (rAF-steady)
   const bank = Math.max(-0.38, Math.min(0.38, vx * 0.09)); // lean into lateral travel
   const bob = moving > 0.03 ? Math.sin(t * 9 + o.phase) * r * 0.05 * moving : 0;
-  if (bank === 0 && bob === 0) { DRAWERS[form](ctx, x, y, r, color, t, o); return; } // fast path
+  if (bank === 0 && bob === 0) {
+    DRAWERS[form](ctx, x, y, r, color, t, o); // fast path
+    volumePass(ctx, x, y, r, color);
+    return;
+  }
   ctx.save();
   ctx.translate(x, y + bob);
   if (bank) ctx.rotate(bank);
   DRAWERS[form](ctx, 0, 0, r, color, t, o);
+  volumePass(ctx, 0, 0, r, color);
   ctx.restore();
 }
