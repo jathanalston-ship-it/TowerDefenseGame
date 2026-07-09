@@ -92,7 +92,7 @@ describe('power breakdown attribution', () => {
     for (const k of TOWER_ORDER) s.towerMasteryXp[k] = 100000;
     const pb = powerBreakdown(s);
     expect(pb.base).toBe(POWER_BASE);
-    expect(pb.slices.map((x) => x.id).sort()).toEqual(['collection', 'equipment', 'heroes', 'meta', 'towers']);
+    expect(pb.slices.map((x) => x.id).sort()).toEqual(['collection', 'equipment', 'heroes', 'meta', 'mulligans', 'towers']);
     const sum = pb.slices.reduce((a, x) => a + x.share, 0);
     expect(Math.abs(sum - (pb.score - pb.base))).toBeLessThanOrEqual(pb.slices.length); // rounding only
     expect(pb.slices.find((x) => x.id === 'towers')!.share).toBeGreaterThan(0);

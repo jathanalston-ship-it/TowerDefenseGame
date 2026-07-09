@@ -267,6 +267,7 @@ export function powerBreakdown(save: SaveData): { score: number; base: number; s
     { id: 'equipment', label: 'Equipment', mult: parts.equipment, hint: 'Equipped loadouts across every hero (rarity + affixes + set bonuses).' },
     { id: 'meta', label: 'Permanent Evolution', mult: parts.meta, hint: 'Upgrades, Prestige, Ascendant tree, gene levels, collection bonuses, hero slots.' },
     { id: 'collection', label: 'Archive', mult: parts.collection, hint: 'Assimilation Archive completion power.' },
+    { id: 'mulligans', label: 'Mulligans', mult: parts.mulligans, hint: 'Biomechanical Mulligan organisms grafted onto your towers (modifiers × rarity × level).' },
   ];
   const logs = defs.map((d) => Math.log(Math.max(1, d.mult)));
   const logSum = logs.reduce((a, b) => a + b, 0);

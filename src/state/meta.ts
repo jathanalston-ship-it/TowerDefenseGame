@@ -66,6 +66,8 @@ import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../co
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
+import { MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, makeSlot, mulliganRegistry, nextRarity, rarityAtLeast, resolveMulligan, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import type { MulliganRarity, MulliganState, ResolvedMulligan } from '../core/mulligan';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
@@ -327,7 +329,9 @@ function equipmentPower(save: SaveData): number {
  * is already inside metaModifiers.towerDamageMult (the P bucket), so it counts via `meta`. */
 export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   const mm = metaModifiers(save);
-  const tp = towerProgress(save);
+  // Mulligan-EXCLUDED tower progress for the towers bucket: the Mulligan's Power is credited to its
+  // own dedicated bucket below, never double-counted through the towers geomean (docs/MULLIGANS.md).
+  const tp = towerProgress(save, false);
   const hp = heroProgress(save);
   // Prestige + Ascendant global damage is captured ONCE via mm.towerDamageMult; pass the UPGRADE-only
   // hero multiple to metaExtrasPower so Apex Genome / Rich Biomass / Reinforced Nucleus / Hive
@@ -356,6 +360,9 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     equipment: equipmentPower(save),
     // Codex completion across categories (1 on a fresh account ⇒ POWER_BASE preserved).
     collection: collectionView(collectionContextOf(save)).power,
+    // Mulligan organisms (docs/MULLIGANS.md) — a dedicated, separately-inspectable bucket. Each
+    // tower's Mulligan is 1 until all three slots are filled ⇒ 1 on a fresh account ⇒ POWER_BASE.
+    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => save.mulligans?.[k])),
     temporary,
   };
 }
@@ -692,7 +699,7 @@ export function heroSlotView(save: SaveData): HeroSlotView[] {
  * stat (config.STAR) PLUS their evolution kit (targeting/projectiles/granted attacks,
  * resolved from the authored star path + the player's per-run fork picks). Identity for a
  * fresh save: 0 stars ⇒ empty kit ⇒ all kit fields undefined ⇒ a byte-identical run. */
-export function towerProgress(save: SaveData): TowerProgress {
+export function towerProgress(save: SaveData, includeMulligan = true): TowerProgress {
   const out = {} as TowerProgress;
   for (const k of TOWER_ORDER) {
     const stars = save.towerStars[k] ?? 0;
@@ -721,8 +728,18 @@ export function towerProgress(save: SaveData): TowerProgress {
     rangeMult *= adapt.rangeMult;
     fireRateBonus *= adapt.fireRateMult;
     infectionSpreadMult *= adapt.infectionSpreadMult;
+    // Mulligan (docs/MULLIGANS.md) — the grafted organism folds through the SAME channels. It is
+    // identity unless all three slots are filled (isMulliganActive), so a fresh account stays
+    // byte-identical (golden-safe). Excluded from the Power `towers` bucket (includeMulligan=false)
+    // so its Power is attributed solely to the dedicated `mulligans` bucket — no double count.
+    const mull = includeMulligan ? resolveMulligan(save.mulligans?.[k]) : identityMulligan();
+    kit.projectileMutators.push(...mull.projectileMutators);
+    kit.extraProjectiles += mull.extraProjectiles;
+    kit.splashMult *= mull.splashMult;
+    rangeMult *= mull.rangeMult;
+    fireRateBonus *= mull.fireRateMult;
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * adapt.damageMult,
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * adapt.damageMult * mull.damageMult,
       fireRateMult: (1 + STAR.fireRatePerStar * stars) * fireRateBonus,
       rangeMult: rangeMult !== 1 ? rangeMult : undefined,
       infectionSpreadMult: infectionSpreadMult !== 1 ? infectionSpreadMult : undefined,
@@ -2179,6 +2196,99 @@ export const meta = {
       genes: { ...save.genes, [id]: { ...prev, level: next, upgradedAt: Date.now() } },
     });
     announcePower(`${def.name} — Gene Level ${next}`, powerBefore, meta.power().score);
+    return true;
+  },
+
+  // ── Mulligan system (docs/MULLIGANS.md) — the per-tower biomechanical organism. All mutations go
+  //    through the save; a Mulligan does nothing until all three slots are filled (resolveMulligan). ──
+
+  /** The persisted Mulligan for a tower kind (a fresh empty one if never touched). */
+  mulligan(kind: TowerKind): MulliganState {
+    return store.get().mulligans[kind] ?? emptyMulligan();
+  },
+  /** The RESOLVED Mulligan (folded kit + profile + power; identity unless all three slots filled). */
+  mulliganResolved(kind: TowerKind): ResolvedMulligan {
+    return resolveMulligan(store.get().mulligans[kind]);
+  },
+  /** Record a modifier discovery at a rarity (loot). Keeps the HIGHEST rarity seen; returns whether
+   *  the dex advanced (a new modifier, or a better rarity than before). */
+  discoverModifier(id: string, rarity: MulliganRarity): boolean {
+    const save = store.get();
+    if (!mulliganRegistry.has(id)) return false;
+    const cur = save.mulliganDex[id];
+    if (cur && rarityAtLeast(cur, rarity)) return false;
+    persist({ ...save, mulliganDex: { ...save.mulliganDex, [id]: rarity } });
+    return true;
+  },
+  /** Grant Gene Overflow (the modifier-upgrade currency) — loot / conversions. */
+  grantGeneOverflow(amount: number): void {
+    const save = store.get();
+    persist({ ...save, geneOverflow: Math.max(0, save.geneOverflow + Math.floor(amount)) });
+  },
+  /** Slot a DISCOVERED modifier into a tower's Mulligan (rarity ≤ the discovered ceiling; level 1).
+   *  Recomputes the organism seeds from the new composition. Returns success. */
+  equipMulligan(kind: TowerKind, slotIndex: number, modId: string, rarity?: MulliganRarity): boolean {
+    const save = store.get();
+    if (slotIndex < 0 || slotIndex >= MULLIGAN_SLOTS) return false;
+    const def = mulliganRegistry.get(modId);
+    if (!def) return false;
+    const owned = save.mulliganDex[modId];
+    if (!owned) return false; // must be discovered first
+    const useRarity: MulliganRarity = rarity && rarityAtLeast(owned, rarity) ? rarity : owned; // cap at discovered
+    const slot = makeSlot(modId, useRarity, 1);
+    if (!slot) return false;
+    const cur = save.mulligans[kind] ?? emptyMulligan();
+    const slots = cur.slots.slice();
+    slots[slotIndex] = slot;
+    const powerBefore = meta.power().score;
+    persist({ ...save, mulligans: { ...save.mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
+    // Power only moves once the organism ACTIVATES (all three slots) — announce the awakening jump,
+    // stay silent for the first two grafts (no partial activation ⇒ no Power change by design).
+    if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — ${def.name}`, powerBefore, meta.power().score);
+    return true;
+  },
+  /** Clear a slot (organism deactivates until refilled). Recomputes seeds. */
+  unequipMulligan(kind: TowerKind, slotIndex: number): boolean {
+    const save = store.get();
+    const cur = save.mulligans[kind];
+    if (!cur || slotIndex < 0 || slotIndex >= MULLIGAN_SLOTS || !cur.slots[slotIndex]) return false;
+    const slots = cur.slots.slice();
+    slots[slotIndex] = null;
+    persist({ ...save, mulligans: { ...save.mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
+    return true;
+  },
+  /** Spend Gene Overflow to raise a slot's level by one (within its rarity ceiling). */
+  upgradeMulligan(kind: TowerKind, slotIndex: number): boolean {
+    const save = store.get();
+    const cur = save.mulligans[kind];
+    const slot = cur?.slots[slotIndex];
+    if (!cur || !slot || isMaxLevel(slot)) return false;
+    const cost = mulliganUpgradeCost(slot.rarity, slot.level);
+    if (save.geneOverflow < cost) return false;
+    const slots = cur.slots.slice();
+    slots[slotIndex] = { ...slot, level: slot.level + 1 };
+    const powerBefore = meta.power().score;
+    persist({ ...save, geneOverflow: save.geneOverflow - cost, mulligans: { ...save.mulligans, [kind]: { ...cur, slots } } });
+    if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — Level ${slot.level + 1}`, powerBefore, meta.power().score);
+    return true;
+  },
+  /** Spend Gene Overflow to ASCEND a MAXED slot to the next rarity (Ascension-ready). Bumps the dex
+   *  so the modifier can be re-slotted at the new rarity; recomputes the (intensified) organism. */
+  ascendMulligan(kind: TowerKind, slotIndex: number): boolean {
+    const save = store.get();
+    const cur = save.mulligans[kind];
+    const slot = cur?.slots[slotIndex];
+    if (!cur || !slot || !isMaxLevel(slot)) return false;
+    const nxt = nextRarity(slot.rarity);
+    const cost = ascendCost(slot.rarity);
+    if (!nxt || cost == null || save.geneOverflow < cost) return false;
+    const slots = cur.slots.slice();
+    slots[slotIndex] = { id: slot.id, rarity: nxt, level: slot.level }; // level preserved (new cap ≥ old)
+    const dexCur = save.mulliganDex[slot.id];
+    const mulliganDex = dexCur && rarityAtLeast(dexCur, nxt) ? save.mulliganDex : { ...save.mulliganDex, [slot.id]: nxt };
+    const powerBefore = meta.power().score;
+    persist({ ...save, geneOverflow: save.geneOverflow - cost, mulliganDex, mulligans: { ...save.mulligans, [kind]: { ...cur, slots, ...seedFor(kind, slots) } } });
+    if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — ${nxt}`, powerBefore, meta.power().score);
     return true;
   },
 

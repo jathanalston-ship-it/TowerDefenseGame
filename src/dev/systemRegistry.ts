@@ -93,6 +93,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/DAILY-RUN.md', 'docs/MODE-IDENTITY.md'],
   },
   {
+    id: 'mulligans', name: 'Mulligan System', purpose: 'A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism\'s appearance, animation and projectile are PROCEDURALLY generated from the modifiers\' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch).',
+    files: ['src/core/mulligan.ts'],
+    dependsOn: ['content-infra', 'towers', 'power', 'meta-store'], powerScore: 'a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled', save: ['mulligans', 'mulliganDex', 'geneOverflow'], tutorial: [], help: [],
+    hud: [], ui: [], collection: 'discovered modifiers (mulliganDex) feed a Mulligan codex tier', achievements: [],
+    localization: 'inline-en', docs: ['docs/MULLIGANS.md'],
+  },
+  {
     id: 'premium', name: 'Premium Store', purpose: 'Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, and windowed event offers on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).',
     files: ['src/core/premium.ts', 'src/ui/PremiumStore.tsx'],
     dependsOn: ['content-infra', 'splice-market', 'daily', 'power'], powerScore: 'offerPowerPotential — the honest "up to +N when invested" estimate', save: ['premium'], tutorial: [], help: [],

@@ -25,6 +25,8 @@ import { adaptNode } from '../core/adaptation';
 import { sanitizeGeneSave } from '../core/geneCards';
 import { sanitizeGeneLoadout, sanitizeGeneSlots } from '../core/geneLoadout';
 import type { GeneSave } from '../core/geneCards';
+import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
+import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mulligan';
 
 export interface SaveData {
   shards: number;
@@ -192,6 +194,15 @@ export interface SaveData {
   ichor: number;
   lifetimeIchor: number;
   market: { window: number; bought: string[]; seenWindow: number; starter: boolean };
+  // ── Mulligan system (schema v26, docs/MULLIGANS.md) — the per-tower biomechanical organism. Each
+  //    tower kind permanently owns ONE Mulligan (three modifier slots + generated visual/anim seeds);
+  //    the organism does NOTHING until all three slots are filled, so a fresh account is byte-identical
+  //    (golden-safe). `mulliganDex` is the discovered-modifier collection (id → best rarity found), the
+  //    equip gate + Collections/Achievements source. `geneOverflow` is the modifier UPGRADE currency.
+  //    All additive: pre-v26 saves default empty Mulligans + empty dex + 0 overflow. ──
+  mulligans: Record<TowerKind, MulliganState>;
+  mulliganDex: Record<string, MulliganRarity>; // modifier id → highest rarity discovered (equip ceiling)
+  geneOverflow: number; // Gene Overflow — the Mulligan-modifier upgrade currency
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -243,7 +254,8 @@ export interface TutorialSave {
 // (migrated from the shared loadout). v21→v22: Player Profile (identity fields + milestone
 // timeline + profile stat ledgers). v22→v23: verified-purchase ledger (claimedReceipts +
 // pendingCheckout — docs/DEPLOYMENT.md §purchases). v23→v24: Field Research ledger
-// (docs/RESEARCH.md). v25→v26: Phenotypes (owned + equipped cosmetics — docs/COSMETICS.md).
+// (docs/RESEARCH.md). v25→v26: Phenotypes (owned + equipped cosmetics — docs/COSMETICS.md) +
+// Mulligans (per-tower organism: mulligans + mulliganDex + geneOverflow — docs/MULLIGANS.md).
 // All additive — withDefaults() deep-fills, migrate() passes through.
 export const CURRENT_VERSION = 26;
 
@@ -283,6 +295,54 @@ function emptyForksByTower(): Record<TowerKind, Record<string, string>> {
   const r = {} as Record<TowerKind, Record<string, string>>;
   for (const k of TOWER_ORDER) r[k] = {};
   return r;
+}
+function emptyMulligansByTower(): Record<TowerKind, MulliganState> {
+  const r = {} as Record<TowerKind, MulliganState>;
+  for (const k of TOWER_ORDER) r[k] = emptyMulligan();
+  return r;
+}
+/** Coerce one persisted Mulligan into valid shape: exactly MULLIGAN_SLOTS slots, each either null
+ *  or a known modifier at a valid rarity with its level clamped to the rarity ceiling; integer seeds.
+ *  Unknown modifier ids and malformed slots become null (the organism simply stays inactive). */
+function sanitizeMulligan(raw: unknown): MulliganState {
+  const base = emptyMulligan();
+  if (!raw || typeof raw !== 'object') return base;
+  const o = raw as { slots?: unknown; visualSeed?: unknown; animSeed?: unknown };
+  const slots: (MulliganSlot | null)[] = [];
+  const arr = Array.isArray(o.slots) ? o.slots : [];
+  for (let i = 0; i < MULLIGAN_SLOTS; i++) {
+    const s = arr[i] as { id?: unknown; rarity?: unknown; level?: unknown } | null | undefined;
+    if (!s || typeof s !== 'object' || typeof s.id !== 'string' || !mulliganRegistry.has(s.id) || typeof s.rarity !== 'string' || !(s.rarity in MULLIGAN_RARITY)) {
+      slots.push(null);
+      continue;
+    }
+    const rarity = s.rarity as MulliganRarity;
+    const level = Math.max(1, Math.min(levelCap(rarity), Math.floor(Number(s.level) || 1)));
+    slots.push({ id: s.id, rarity, level });
+  }
+  return {
+    slots,
+    visualSeed: Math.floor(Number(o.visualSeed) || 0) >>> 0,
+    animSeed: Math.floor(Number(o.animSeed) || 0) >>> 0,
+  };
+}
+function sanitizeMulligans(raw: unknown): Record<TowerKind, MulliganState> {
+  const out = emptyMulligansByTower();
+  if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>;
+    for (const k of TOWER_ORDER) if (k in o) out[k] = sanitizeMulligan(o[k]);
+  }
+  return out;
+}
+/** Discovered-modifier collection (id → best rarity). Drops unknown ids + invalid rarities. */
+function sanitizeMulliganDex(raw: unknown): Record<string, MulliganRarity> {
+  const out: Record<string, MulliganRarity> = {};
+  if (raw && typeof raw === 'object') {
+    for (const [id, r] of Object.entries(raw as Record<string, unknown>)) {
+      if (mulliganRegistry.has(id) && typeof r === 'string' && r in MULLIGAN_RARITY) out[id] = r as MulliganRarity;
+    }
+  }
+  return out;
 }
 function emptyForksByHero(): Record<HeroKind, Record<string, string>> {
   const r = {} as Record<HeroKind, Record<string, string>>;
@@ -459,6 +519,9 @@ export function defaultSave(): SaveData {
     ichor: 0,
     lifetimeIchor: 0,
     market: { window: 0, bought: [], seenWindow: 0, starter: false },
+    mulligans: emptyMulligansByTower(),
+    mulliganDex: {},
+    geneOverflow: 0,
   };
 }
 
@@ -705,6 +768,10 @@ function withDefaults(data: SaveData): SaveData {
     premium: sanitizePremium((data as { premium?: unknown }).premium),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
+    // Mulligan system (docs/MULLIGANS.md): pre-v26 saves ⇒ empty organisms + empty dex + 0 overflow.
+    mulligans: sanitizeMulligans((data as { mulligans?: unknown }).mulligans),
+    mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
+    geneOverflow: Math.max(0, Math.floor(Number((data as { geneOverflow?: unknown }).geneOverflow) || 0)),
   };
 }
 
