@@ -4,7 +4,7 @@
 // Reads the reactive save; selection/purchases go through meta. Equipment management lives in the
 // Armory (EquipmentPanel) below — this page shows the loadout and points there.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { masteryProgress, meta } from '../state/meta';
 import { heroDetail } from '../state/heroView';
 import { HERO_DEFS, HERO_ORDER } from '../core/config';
@@ -405,6 +405,83 @@ export function HeroLab(): JSX.Element {
         </div>
         </>)}
       </div>
+
+      {/* ── HERO EXPEDITIONS (docs/EXPEDITIONS.md): the benched-roster idle lane ── */}
+      <ExpeditionsPanel />
+    </div>
+  );
+}
+
+/** Away-missions for BENCHED heroes: live countdowns, claims, and a start flow.
+ *  Ticks once a minute — expedition time is hours, not frames. */
+function ExpeditionsPanel(): JSX.Element {
+  const save = meta.use();
+  const [, tick] = useState(0);
+  const [claimedNote, setClaimedNote] = useState<string | null>(null);
+  useEffect(() => {
+    const id = window.setInterval(() => tick((n) => n + 1), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+  void save;
+  const view = meta.expeditionsView();
+  const fmt = (ms: number): string => {
+    const m = Math.ceil(ms / 60_000);
+    return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`;
+  };
+  const claim = (hero: HeroKind): void => {
+    const r = meta.claimExpedition(hero);
+    if (!r) return;
+    audio.cue('chest');
+    setClaimedNote(`${HERO_DEFS[hero].name} returns — +${r.cores} Cores · +${r.essence} Essence · ⊕${r.mats.mutagen} ◳${r.mats.scrap} ✷${r.mats.catalyst}`);
+    window.setTimeout(() => setClaimedNote(null), 4000);
+  };
+  return (
+    <div className="panel exp-panel">
+      <div className="panel-title">Hero Expeditions</div>
+      <div className="panel-sub">
+        Benched heroes forage while you fight — {view.slotsFree} of {view.active.length + view.slotsFree} away-slots free.
+        Rewards scale with the hero's stars.
+      </div>
+      {claimedNote && <div className="exp-claimed" role="status">⇠ {claimedNote}</div>}
+      {view.active.map((e) => {
+        const def = view.defs.find((d) => d.id === e.defId)!;
+        return (
+          <div className="exp-row" key={e.hero}>
+            <span className="exp-hero" style={{ color: HERO_DEFS[e.hero].color }}>{HERO_DEFS[e.hero].name}</span>
+            <span className="exp-mission">{def.name}</span>
+            {e.claimable
+              ? <button className="primary exp-claim" onClick={() => claim(e.hero)}>⇠ Claim spoils</button>
+              : <span className="exp-eta">returns in {fmt(e.remainingMs)}</span>}
+          </div>
+        );
+      })}
+      {view.slotsFree > 0 && view.benched.length > 0 && (
+        <div className="exp-start">
+          {view.defs.map((d) => (
+            <div className="exp-offer" key={d.id}>
+              <div className="exp-offer-h">
+                <b>{d.name}</b>
+                <span className="exp-hours">{d.hours}h</span>
+              </div>
+              <p className="exp-blurb">{d.blurb}</p>
+              <div className="exp-pay">
+                +{d.reward.cores} Cores · +{d.reward.essence} Essence · ⊕{d.reward.mats.mutagen} ◳{d.reward.mats.scrap}{d.reward.mats.catalyst > 0 ? ` ✷${d.reward.mats.catalyst}` : ''}
+              </div>
+              <div className="exp-send">
+                {view.benched.map((h) => (
+                  <button key={h} className="exp-send-btn" style={{ ['--hc' as string]: HERO_DEFS[h].color }}
+                    onClick={() => { if (meta.startExpedition(d.id, h)) audio.cue('ui'); }}>
+                    ⇢ {HERO_DEFS[h].name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {view.slotsFree > 0 && view.benched.length === 0 && (
+        <p className="exp-empty">No benched heroes — unlock more champions, or free a roster slot.</p>
+      )}
     </div>
   );
 }

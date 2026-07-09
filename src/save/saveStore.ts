@@ -14,6 +14,7 @@ import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById } from '../core/trophies';
+import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
 import type { PrestigeState } from '../core/prestige';
 import { sanitizeProgress } from '../core/tutorial';
 import type { TutorialProgress } from '../core/tutorial';
@@ -74,6 +75,8 @@ export interface SaveData {
   //    account (null = none); equippedTrophy: the ONE mounted trophy organ (null = none). ──
   nemesis: { defId: string; slain: number } | null;
   equippedTrophy: string | null;
+  // ── Hero Expeditions (v26, docs/EXPEDITIONS.md) — active away-missions (absolute endsAt ms). ──
+  expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[] };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -400,6 +403,7 @@ export function defaultSave(): SaveData {
     contracts: { completed: [] },
     nemesis: null,
     equippedTrophy: null,
+    expeditions: { active: [] },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -588,6 +592,21 @@ function withDefaults(data: SaveData): SaveData {
       && trophyById((data as { equippedTrophy: string }).equippedTrophy) !== undefined
       ? (data as { equippedTrophy: string }).equippedTrophy
       : null,
+    expeditions: ((): SaveData['expeditions'] => {
+      const raw = (data as { expeditions?: { active?: unknown } }).expeditions?.active;
+      if (!Array.isArray(raw)) return { active: [] };
+      const seen = new Set<string>();
+      const active = raw
+        .filter((e): e is { defId: string; hero: HeroKind; endsAt: number } => {
+          const o = e as { defId?: unknown; hero?: unknown; endsAt?: unknown };
+          return typeof o.defId === 'string' && expeditionById(o.defId) !== undefined
+            && typeof o.hero === 'string' && HERO_ORDER.includes(o.hero as HeroKind)
+            && typeof o.endsAt === 'number' && Number.isFinite(o.endsAt);
+        })
+        .filter((e) => { if (seen.has(e.hero)) return false; seen.add(e.hero); return true; })
+        .slice(0, EXPEDITION_SLOTS);
+      return { active };
+    })(),
     stats: mergeStats(d.stats, data.stats),
     achievements: Array.isArray(data.achievements) ? data.achievements : d.achievements,
     equipment: {

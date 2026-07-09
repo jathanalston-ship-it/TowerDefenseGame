@@ -241,6 +241,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
   },
   {
+    id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) and return star-scaled bundles of cores/essence/materials. HeroLab panel with countdowns, claims and the send flow.',
+    files: ['src/core/expeditions.ts'],
+    dependsOn: ['heroes', 'meta-store'], powerScore: null, save: ['expeditions'],
+    tutorial: [], help: [], hud: [], ui: ['HeroLab (Expeditions panel)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/EXPEDITIONS.md'],
+  },
+  {
     id: 'nemesis', name: 'Nemesis & Trophies', purpose: 'The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — it returns buffed (+15%/slay hp, capped, via RunOptions ⇒ replay-deterministic) and branded; revenge pays scaled cores + an Abyssal phenotype. Boss trophies: one organ per chassis/mega, DERIVED ownership, ONE equipped tradeoff pair folded like gear.',
     files: ['src/core/trophies.ts'],
     dependsOn: ['engine', 'bosses', 'meta-store', 'cosmetics'], powerScore: null, save: ['nemesis', 'equippedTrophy'],

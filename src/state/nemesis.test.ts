@@ -45,7 +45,7 @@ describe('nemesis lifecycle', () => {
     meta.finishRun(lossTo('progenitor'));
     const before = meta.get();
     expect(before.nemesis?.slain).toBe(2);
-    gameEvents.emit('bossKilled', { defId: 'progenitor' });
+    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 360, y: 200 });
     const after = meta.get();
     expect(after.nemesis).toBeNull();
     expect(after.shards - before.shards).toBe(120); // 60 × slain(2)
@@ -88,7 +88,7 @@ describe('trophy rack', () => {
     meta.reset();
     expect(meta.trophies().every((t) => !t.owned)).toBe(true);
     expect(meta.equipTrophy('tr_bruiser')).toBe(false); // unowned refuses
-    gameEvents.emit('bossKilled', { defId: 'progenitor' }); // progenitor's chassis lands in bossesSlain
+    gameEvents.emit('bossKilled', { defId: 'progenitor', name: 'The Progenitor', x: 360, y: 200 }); // progenitor's chassis lands in bossesSlain
     const owned = meta.trophies().filter((t) => t.owned);
     expect(owned.length).toBeGreaterThan(0);
     const target = owned[0].def;

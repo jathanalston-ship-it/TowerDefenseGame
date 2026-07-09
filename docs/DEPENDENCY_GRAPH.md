@@ -85,6 +85,8 @@ graph TD
   contracts --> meta_store
   contracts --> liveops
   contracts --> cosmetics
+  expeditions --> heroes
+  expeditions --> meta_store
   nemesis --> engine
   nemesis --> bosses
   nemesis --> meta_store
@@ -137,7 +139,7 @@ graph TD
 | **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | — | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
-| **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
+| **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` · `expeditions` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
 | **Equipment & Armory** (`equipment`) | `content-infra` · `loot` · `power` · `heroes` | `crafting` | ⚡ equipped items score via itemPower into the gear bucket | `equipment` | `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` |
 | **Crafting / Reforge** (`crafting`) | `equipment` · `loot` | — | ⚡ reforged items re-score through the gear bucket | `mats` · `matPity` | `docs/REFORGE.md` |
 | **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `boss-rush` · `equipment` · `crafting` · `shards-economy` · `splice-market` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
@@ -153,6 +155,7 @@ graph TD
 | **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `contracts` | — | — | `docs/LIVEOPS.md` |
 | **Localization Core** (`i18n`) | — | — | — | — | `docs/I18N.md` |
 | **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` | — | — | `contracts` | `docs/CONTRACTS.md` |
+| **Hero Expeditions** (`expeditions`) | `heroes` · `meta-store` | — | — | `expeditions` | `docs/EXPEDITIONS.md` |
 | **Nemesis & Trophies** (`nemesis`) | `engine` · `bosses` · `meta-store` · `cosmetics` | — | — | `nemesis` · `equippedTrophy` | `docs/NEMESIS.md` |
 | **Phenotypes (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `contracts` · `nemesis` | ⚡ via the collection codex weight | `cosmetics` | `docs/COSMETICS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
@@ -161,7 +164,7 @@ graph TD
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `field-research` · `net-backend` · `liveops` · `contracts` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `field-research` · `net-backend` · `liveops` · `contracts` · `expeditions` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | — | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
@@ -360,14 +363,14 @@ graph TD
 
 - **Files:** `src/core/heroIdentity.ts` · `src/core/heroLore.ts` · `src/core/heroEvolution.ts` · `src/ui/HeroLab.tsx` · `src/ui/HeroSelectPanel.tsx` · `src/ui/HeroSlotUnlock.tsx` · `src/ui/HeroEvolutionPanel.tsx` · `src/state/heroView.ts` · `src/ui/components/HeroPortrait.tsx`
 - **Depends on:** `content-infra` · `engine` · `shards-economy` · `campaign`
-- **Consumers — what breaks if you change this:** `engine` · `equipment`
+- **Consumers — what breaks if you change this:** `engine` · `equipment` · `expeditions`
 - **Power Score:** hero stars/evolution feed permanent + temporary buckets
 - **Save fields:** `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp`
 - **Tutorial:** `combat` · **Help mechanics:** `heroes` · `hero-slots`
 - **HUD surfaces:** `ability button` · `HeroSelectPanel` · **UI screens:** `HeroLab`
 - **Collection:** heroes category (usage tiers) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md`
+- **Docs to update on change:** `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/EXPEDITIONS.md`
 
 ### Equipment & Armory (`equipment`)
 
@@ -594,6 +597,21 @@ graph TD
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/CONTRACTS.md`
 
+### Hero Expeditions (`expeditions`)
+
+*The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) and return star-scaled bundles of cores/essence/materials. HeroLab panel with countdowns, claims and the send flow.*
+
+- **Files:** `src/core/expeditions.ts`
+- **Depends on:** `heroes` · `meta-store`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** `expeditions`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `HeroLab (Expeditions panel)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/EXPEDITIONS.md`
+
 ### Nemesis & Trophies (`nemesis`)
 
 *The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — it returns buffed (+15%/slay hp, capped, via RunOptions ⇒ replay-deterministic) and branded; revenge pays scaled cores + an Abyssal phenotype. Boss trophies: one organ per chassis/mega, DERIVED ownership, ONE equipped tradeoff pair folded like gear.*
@@ -720,14 +738,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `field-research` · `net-backend` · `liveops` · `contracts` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools`
+- **Consumers — what breaks if you change this:** `field-research` · `net-backend` · `liveops` · `contracts` · `expeditions` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
 
 ### Bosses (`bosses`)
 
