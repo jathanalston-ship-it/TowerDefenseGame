@@ -25,6 +25,7 @@ import { MODE_UNLOCKS } from '../core/config';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { MulliganLab } from './MulliganLab';
+import { EquipmentCollection } from './EquipmentCollection';
 import { HeroLab } from './HeroLab';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
@@ -45,7 +46,7 @@ import { PowerBadge } from './components/PowerScore';
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily'
   | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans'
-  | 'vault' | 'market' | 'equipment' | 'phenotypes' | 'collection'
+  | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
 
@@ -73,6 +74,7 @@ const navGroups = (): NavGroup[] => [
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
     { key: 'market', label: t('nav.market'), mono: '◆' },
     { key: 'equipment', label: t('nav.equipment'), mono: '⛨' },
+    { key: 'gearcodex', label: t('nav.gearcodex'), mono: '❑' },
     { key: 'phenotypes', label: t('nav.phenotypes'), mono: '❖' },
     { key: 'collection', label: t('nav.collection'), mono: '▤' },
   ] },
@@ -333,6 +335,7 @@ export function Hub({
           )}
           {nav === 'towers' && <TowerLab />}
           {nav === 'mulligans' && <MulliganLab />}
+          {nav === 'gearcodex' && <EquipmentCollection />}
           {nav === 'heroes' && <HeroLab />}
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}

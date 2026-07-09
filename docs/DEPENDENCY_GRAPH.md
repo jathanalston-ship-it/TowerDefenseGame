@@ -399,14 +399,14 @@ graph TD
 
 *~180 behavioral items, affixes, sets; per-hero Weapon/Armor/Relic loadouts. Bespoke PROCEDURAL card art (render/equipmentArt.ts) — a unique rarity-graded biomechanical emblem per item, derived from slot/subtype/set/rarity/affixes (no placeholder icons; scales to hundreds for free) — and, in-game, the equipped loadout draws as hero GEAR on the battlefield.*
 
-- **Files:** `src/core/equipment.ts` · `src/render/equipmentArt.ts` · `src/ui/EquipmentPanel.tsx` · `src/ui/ItemDetails.tsx` · `src/ui/components/ItemArt.tsx`
+- **Files:** `src/core/equipment.ts` · `src/render/equipmentArt.ts` · `src/ui/EquipmentPanel.tsx` · `src/ui/ItemDetails.tsx` · `src/ui/EquipmentCollection.tsx` · `src/ui/components/ItemArt.tsx` · `src/ui/components/HeroGearPreview.tsx`
 - **Depends on:** `content-infra` · `loot` · `power` · `heroes`
 - **Consumers — what breaks if you change this:** `crafting`
 - **Power Score:** equipped items score via itemPower into the gear bucket
 - **Save fields:** `equipment`
 - **Tutorial:** — · **Help mechanics:** `equipment`
-- **HUD surfaces:** — · **UI screens:** `EquipmentPanel` · `ItemDetails`
-- **Collection:** equipment category (owned) · **Achievements:** —
+- **HUD surfaces:** — · **UI screens:** `EquipmentPanel` · `ItemDetails` · `EquipmentCollection (Equip Codex gallery)` · `HeroGearPreview`
+- **Collection:** equipment category (owned) + the Equip Codex art gallery · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/REFORGE.md`
 

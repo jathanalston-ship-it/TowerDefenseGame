@@ -5401,6 +5401,7 @@ export class Game {
     p.x = x; p.y = y; p.tx = tx; p.ty = ty; p.speed = speed;
     p.targetId = targetId; p.damage = damage; p.behavior = behavior; p.splash = splash; p.alive = true;
     p.sourceKind = sourceKind;
+    p.heroSource = this.abilityHeroKind ?? undefined; // cosmetic: hero-fired shots → gear-skinned (render-only, golden-safe)
     p.pierce = 0; // reset pooled mutator state before re-applying the kit's mutators
     p.skin = this.castProjectileSkin; // branch shot-skin (renderer-only; undefined on the base path)
     p.skinTier = this.castProjectileSkinTier; // branch shot-tier (renderer-only)

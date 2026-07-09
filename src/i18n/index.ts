@@ -92,6 +92,7 @@ const EN = {
   // ── Phenotype Lab (docs/COSMETICS.md) ──
   'nav.phenotypes': 'Phenotypes',
   'nav.mulligans': 'Mulligans',
+  'nav.gearcodex': 'Equip Codex',
   'pheno.title': 'Phenotype Lab',
   'pheno.sub': 'Express your strains — visual phenotypes for every tower and hero. Pure expression: no stats change.',
   'pheno.cultivate': '⌬ Cultivate a phenotype',
@@ -182,6 +183,7 @@ const ES: Record<MsgKey, string> = {
   'results.shareReplay': '⧉ Compartir repetición',
   'nav.phenotypes': 'Fenotipos',
   'nav.mulligans': 'Mulligans',
+  'nav.gearcodex': 'Códex de Equipo',
   'pheno.title': 'Laboratorio de Fenotipos',
   'pheno.sub': 'Expresa tus cepas — fenotipos visuales para cada torre y héroe. Pura expresión: sin cambios de stats.',
   'pheno.cultivate': '⌬ Cultivar un fenotipo',
@@ -267,6 +269,7 @@ const PT: Record<MsgKey, string> = {
   'results.shareReplay': '⧉ Compartilhar replay',
   'nav.phenotypes': 'Fenótipos',
   'nav.mulligans': 'Mulligans',
+  'nav.gearcodex': 'Códex de Equipamento',
   'pheno.title': 'Laboratório de Fenótipos',
   'pheno.sub': 'Expresse suas cepas — fenótipos visuais para cada torre e herói. Pura expressão: sem mudanças de stats.',
   'pheno.cultivate': '⌬ Cultivar um fenótipo',

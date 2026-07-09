@@ -278,6 +278,10 @@ export interface Projectile {
   // shot (barbed swarm needle, rail lance, acid glob…). Undefined ⇒ the base look (golden-safe).
   skin?: string;
   skinTier?: number; // the firing tower's branch tier (1..5) — drives projectile evolution (size/detail)
+  // Cosmetic: the HERO that fired this shot (ability projectiles) → the renderer skins it with that
+  // hero's equipped WEAPON (docs/EQUIPMENT.md §visuals). Render-only; never affects the sim ⇒
+  // golden-safe. Undefined for tower shots (the base look).
+  heroSource?: HeroKind;
   // Graceful fade-out OPACITY (1 → 0) once the projectile loses its target: it coasts out and
   // the renderer fades it instead of popping it instantly. Undefined ⇒ fully opaque / live
   // (the historical behavior, golden-safe — fading shots never re-acquire or deal damage).

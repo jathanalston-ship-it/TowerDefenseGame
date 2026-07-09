@@ -454,7 +454,20 @@ living cloak → rune halo), plus rising rarity particles at epic+. Threaded thr
 save's loadouts + `activeSets`. A starter with no gear draws nothing (identical to the classic look);
 a heavily-invested hero reads as a dramatically different biomechanical warrior.
 
-**Known follow-ups (deeper polish):** a rotatable large hero preview + visual-change/upgrade/reforge
-previews in the Inspect screen; equipment-history; a Collection gallery of unlocked art + set-bonus
-previews; and gear-sourced projectiles (a legendary rifle firing a unique shot). The framework these
-plug into is complete: the card art already flows into Item Details, and the hero gear is live in-run.
+**Inspect screen.** Item Details shows a LIVE hero preview (`ui/components/HeroGearPreview` — the hero
+wearing its loadout, drawn with the same `drawHeroGear`) that PREVIEWS the inspected item slotted in
+(the "visual change preview"), plus a **rarity-upgrade preview** (current art → next-rarity art) beside
+the existing Enhance/Reroll/Reforge/Upgrade-Rarity/Salvage ops with their live power deltas.
+
+**Equipment Codex** (`ui/EquipmentCollection`, Hub → Collection → Equip Codex). Every item shown as its
+procedural art card — discovered ones in full rarity color, undiscovered ones dimmed + locked — with a
+live completion tracker and a **Set Bonuses** grid previewing each set's (2)/(4) effects + owned count.
+
+**Gear-sourced projectiles.** A hero's ability shots are re-tinted by its equipped WEAPON (a cosmetic
+`Projectile.heroSource` marker set at spawn from `abilityHeroKind`, skinned in `drawProjectile` via the
+per-hero gear channel) — render-only, so the golden sim is untouched. A legendary rifle fires a
+legendary-hued bolt.
+
+**Remaining niceties (non-blocking):** a fully rotatable 3D-style hero turntable, item-drop/upgrade
+HISTORY, and distinct new equipment SLOTS (helmet/shoulders as separate slots — a data-model change,
+not visual polish; the current 3 slots already render shoulders/back/plates/organs).

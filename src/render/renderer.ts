@@ -330,7 +330,7 @@ export function drawGame(
   drawLandingImpacts(ctx, rs, t); // relocation landing impact
   drawMoveOverlay(ctx, rs, t); // move-mode targets + holographic pickup
 
-  for (const p of rs.projectiles) drawProjectile(ctx, p, p.sourceKind ? towerSkins[p.sourceKind] : undefined);
+  for (const p of rs.projectiles) drawProjectile(ctx, p, p.sourceKind ? towerSkins[p.sourceKind] : undefined, p.heroSource ? gearWeaponColor(heroGear[p.heroSource]) : undefined);
   drawEnemyShells(ctx, rs); // artillery bombardment arcs (empty array on the golden path)
 
   // LOD: drop per-enemy embellishments when the swarm is huge (perf headroom).
@@ -1292,7 +1292,13 @@ function drawBeams(ctx: CanvasRenderingContext2D, rs: RenderState, now: number, 
   }
 }
 
-function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number], skin?: CosmeticTheme): void {
+/** The equipped-weapon color of a hero's gear (docs/EQUIPMENT.md §visuals) — skins that hero's
+ *  ability shots so attacks visibly originate from the gear. Undefined ⇒ no weapon ⇒ base look. */
+function gearWeaponColor(spec?: HeroGearSpec): string | undefined {
+  return spec?.attachments.find((a) => a.slot === 'weapon')?.color;
+}
+
+function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectiles'][number], skin?: CosmeticTheme, heroWeapon?: string): void {
   // A target-less shot fades out (game settle / mid-combat fizzle) instead of popping.
   const fading = p.fade !== undefined && p.fade < 1;
   if (fading) ctx.globalAlpha = Math.max(0, p.fade!);
@@ -1303,9 +1309,10 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';
   // Phenotype shot light: the firing tower's equipped theme re-tints the base comet
-  // (branch skins above keep their authored identity — a branch IS an identity).
-  const core = skin ? skin.glow : splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt;
-  const trail = skin ? hexRgb(skin.primary) : splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
+  // (branch skins above keep their authored identity — a branch IS an identity). A HERO's shot is
+  // re-tinted by its equipped weapon (heroWeapon), so a legendary rifle fires a legendary-hued bolt.
+  const core = heroWeapon ?? (skin ? skin.glow : splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt);
+  const trail = heroWeapon ? hexRgb(heroWeapon) : skin ? hexRgb(skin.primary) : splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
 
   // heading toward the target point — the trail streams out behind it
   let ux = p.tx - p.x;

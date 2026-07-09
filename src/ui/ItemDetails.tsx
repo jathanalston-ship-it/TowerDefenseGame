@@ -18,6 +18,7 @@ import {
 } from '../core/reforge';
 import type { Mats } from '../core/reforge';
 import { ItemArt, rarityColor } from './components/ItemArt';
+import { HeroGearPreview } from './components/HeroGearPreview';
 import { PowerDelta } from './components/PowerDelta';
 import { compareItemPower } from '../state/itemPower';
 import { Popup } from './components/Popup';
@@ -102,9 +103,14 @@ export function ItemDetails({
       <div className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
         <button className="id-close" onClick={onClose} title="Close">✕</button>
 
-        {/* ── Identity: large art + name + Power + management ── */}
+        {/* ── Identity: large art + a LIVE preview of the hero wearing it + name + Power + management ── */}
         <div className="id-head">
           <div className="id-art"><ItemArt def={def} rarity={item.rarity} size={120} /></div>
+          <div className="id-hero-preview" title={`${heroName} wearing ${def.name}`}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, background: 'radial-gradient(circle,rgba(20,16,32,0.8),transparent)', borderRadius: 12 }}>
+            <HeroGearPreview heroKind={hero} item={item} size={116} />
+            <span style={{ fontSize: 10, opacity: 0.6, marginTop: -6 }}>{equipped ? `${heroName} equipped` : `${heroName} preview`}</span>
+          </div>
           <div className="id-head-info">
             <div className="id-name" style={{ color: c }}>{def.name}</div>
             <div className="id-sub">
@@ -179,6 +185,23 @@ export function ItemDetails({
             })}
           </div>
         </div>
+
+        {/* ── Visual UPGRADE preview: how this item's art evolves at the next rarity ── */}
+        {(() => {
+          const idx = RARITY_ORDER.indexOf(item.rarity);
+          const next = idx >= 0 && idx < RARITY_ORDER.length - 1 ? RARITY_ORDER[idx + 1] : null;
+          if (!next) return null;
+          return (
+            <div className="id-section">
+              <div className="id-sec-title">Rarity Preview <span className="id-mats">Upgrade Rarity to evolve the art</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center', padding: '4px 0' }}>
+                <div style={{ textAlign: 'center' }}><ItemArt def={def} rarity={item.rarity} size={70} /><div style={{ fontSize: 11, color: c, marginTop: 2 }}>{rarityLabelOf(item.rarity)}</div></div>
+                <span style={{ fontSize: 22, opacity: 0.5 }}>→</span>
+                <div style={{ textAlign: 'center' }}><ItemArt def={def} rarity={next} size={82} /><div style={{ fontSize: 11, color: rarityColor(next), marginTop: 2 }}>{rarityLabelOf(next)}</div></div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── The item's story: potential, contribution, source, history ── */}
         <div className="id-facts">
