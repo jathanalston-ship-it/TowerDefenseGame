@@ -46,16 +46,10 @@ export const MULLIGAN_RARITY: Record<MulliganRarity, MulliganRarityTier> = {
   ascendant: { tier: 5, label: 'Ascendant', color: '#ff6b8b', statMult: 3.7, powerMult: 5.0, visualIntensity: 1.5, animComplexity: 4, levelCap: 20 },
 };
 
-/** Gene Overflow — the modifier-upgrade currency's ONE visual identity. It is not a wallet
- *  `CurrencyId` (it persists as `save.geneOverflow`); this metadata gives the Mulligan Lab
- *  header, the container-reveal pulls, and the profile row the same name/glyph/color without
- *  widening the currency framework. ⊛ is the Mulligan system's canonical mark (nav, Inspector). */
-export const GENE_OVERFLOW = {
-  name: 'Gene Overflow',
-  glyph: '⊛',
-  color: '#5fe08a',
-  blurb: 'Raw genetic surplus bled from every Bio-Container. Spent in the Mulligan Lab to level and ascend grafted modifiers.',
-} as const;
+/** ⊛ — the Mulligan system's canonical mark (nav, Inspector chips, reveal pulls). Modifier
+ *  upgrades spend **Gene Essence** (`save.geneEssence`, `CURRENCIES.geneEssence`) — the SAME
+ *  currency Gene Cards level with — so there is no separate Mulligan wallet to track. */
+export const MULLIGAN_MARK = '⊛';
 
 /** Absolute upgrade ceiling (rarity caps sit at or below this) — kept generous for future Ascension. */
 export const MULLIGAN_MAX_LEVEL = 20;
@@ -317,8 +311,9 @@ export function accountMulliganPower(states: Iterable<MulliganState | undefined>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Upgrade economy — Gene Overflow currency. Level up within the rarity cap; ASCEND to
-// bump rarity a tier (Ascension-ready). Costs rise with level + rarity.
+// Upgrade economy — spends Gene Essence (the unified gene currency, shared with Gene Card
+// levels). Level up within the rarity cap; ASCEND to bump rarity a tier (Ascension-ready).
+// Costs rise with level + rarity.
 // ─────────────────────────────────────────────────────────────────────────────
 export function levelCap(rarity: MulliganRarity): number {
   return Math.min(MULLIGAN_MAX_LEVEL, MULLIGAN_RARITY[rarity].levelCap);
@@ -326,12 +321,12 @@ export function levelCap(rarity: MulliganRarity): number {
 export function isMaxLevel(slot: MulliganSlot): boolean {
   return slot.level >= levelCap(slot.rarity);
 }
-/** Gene Overflow cost to go level → level+1 at this rarity (rounded, monotonic). */
+/** Gene Essence cost to go level → level+1 at this rarity (rounded, monotonic). */
 export function upgradeCost(rarity: MulliganRarity, level: number): number {
   const r = MULLIGAN_RARITY[rarity];
   return Math.round(20 * (r.tier + 1) * Math.pow(1.35, Math.max(0, level - 1)));
 }
-/** Gene Overflow cost to ascend a maxed slot to the next rarity (null if already Ascendant). */
+/** Gene Essence cost to ascend a maxed slot to the next rarity (null if already Ascendant). */
 export function ascendCost(rarity: MulliganRarity): number | null {
   const nxt = nextRarity(rarity);
   if (!nxt) return null;

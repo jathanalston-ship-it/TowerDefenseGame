@@ -106,12 +106,12 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Mulligans** (`core/mulligan.ts`, `render/mulliganOrganism.ts`, `ui/MulliganLab.tsx`, save v26) —
   the endgame pillar: each tower kind permanently owns ONE biomechanical **Mulligan** organism
   assembled from THREE genetic modifiers (30 shipped: 10 offensive/10 utility/10 biological), 6-rarity
-  ladder (Common→Ascendant), Gene Overflow upgrade currency + ascension. Data-driven (a modifier = one
+  ladder (Common→Ascendant), Gene Essence (unified gene currency) upgrades + ascension. Data-driven (a modifier = one
   registry row); folds through existing TowerMods channels (**no new sim branch**); **inactive until
   all 3 slots fill ⇒ golden-safe**. Power: a DEDICATED, separately-inspectable `PowerParts.mulligans`
   bucket. The organism's appearance/animation/projectile are **procedurally generated** from the
   modifiers' stat profile (emergent — mixing ≠ stacking) and drawn grafted onto the turret. Earn loop
-  via Bio-Container loot (Gene Overflow + modifier discovery); the **Mulligan Lab** (Hub → Progression)
+  via Bio-Container loot (Gene Essence bleed + modifier discovery); the **Mulligan Lab** (Hub → Progression)
   is a design-language master–detail bench (host rail → live graft-chamber showcase, `.mgl-*` tokens,
   Power-previewed spends, auto-armed sites; rarity colors mirror the global `--r-*` ladder and the
   ⊛ `GENE_OVERFLOW` identity is shared with the reveal pulls); 7 achievements + dev tools. Fully

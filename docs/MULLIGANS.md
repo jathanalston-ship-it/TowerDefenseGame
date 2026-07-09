@@ -100,24 +100,28 @@ PlayerProfile) shows **"Mulligans"** as its own slice — the required *separate
 ## 6. Save (schema v26)
 
 `save.mulligans: Record<TowerKind, MulliganState>` · `save.mulliganDex: Record<string,
-MulliganRarity>` (discovered modifiers → best rarity, the equip ceiling + collection source) ·
-`save.geneOverflow: number` (the modifier upgrade currency). All **additive**: pre-v26 saves migrate
-to empty organisms + empty dex + 0 overflow. `saveStore.sanitizeMulligans` drops unknown modifier
-ids, clamps levels to the rarity ceiling, and coerces seeds — a malformed slot simply becomes `null`
-(the organism stays inactive), never a crash.
+MulliganRarity>` (discovered modifiers → best rarity, the equip ceiling + collection source).
+Modifier upgrades spend **`save.geneEssence`** — the SAME unified currency Gene Cards level with
+(the short-lived `geneOverflow` wallet was retired; a legacy balance folds into `geneEssence` 1:1
+on load, so nothing banked is lost). All **additive**: pre-v26 saves migrate to empty organisms +
+empty dex. `saveStore.sanitizeMulligans` drops unknown modifier ids, clamps levels to the rarity
+ceiling, and coerces seeds — a malformed slot simply becomes `null` (the organism stays inactive),
+never a crash.
 
 ### Pipeline (`meta` store methods)
 
-`discoverModifier(id, rarity)` (loot) · `grantGeneOverflow(amt)` · `equipMulligan(kind, slot, id,
+`discoverModifier(id, rarity)` (loot) · `grantGeneEssence(amt)` · `equipMulligan(kind, slot, id,
 rarity?)` (rarity capped at the discovered ceiling) · `unequipMulligan` · `upgradeMulligan` (spends
-Gene Overflow, +1 level within the rarity cap) · `ascendMulligan` (a **maxed** slot → next rarity,
+Gene Essence, +1 level within the rarity cap) · `ascendMulligan` (a **maxed** slot → next rarity,
 Ascension-ready) · reads `mulligan(kind)` / `mulliganResolved(kind)`.
 
 ---
 
-## 7. Upgrade economy (Gene Overflow)
+## 7. Upgrade economy (Gene Essence — the unified gene currency)
 
-- **Level** rises with Gene Overflow up to the rarity's `levelCap` (Common 5 … Ascendant 20;
+- Mulligans and Gene Cards spend the **same wallet** (`save.geneEssence`): one currency, two sinks
+  (Gene Archive card levels · Mulligan Lab modifier levels/ascensions) — a deliberate tension.
+- **Level** rises with Gene Essence up to the rarity's `levelCap` (Common 5 … Ascendant 20;
   `MULLIGAN_MAX_LEVEL = 20`, future-proofed).
 - **Ascend** a maxed slot to the next rarity (`ascendCost`) — the **Ascension seam**: higher rarity
   raises stat scaling, Power, upgrade ceiling, and the generator's visual/animation intensity.
@@ -172,7 +176,7 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
 - **BUILT (the whole pillar):** framework + resolver + save + Power + sim fold; the procedural
   organism/animation/projectile generators (`src/render/mulliganOrganism.ts`) drawn on the
   battlefield via the renderer's per-kind Mulligan channel (`drawGame` → `drawTower`); the **earn
-  loop** (every Bio-Container bleeds Gene Overflow, epic+ containers discover a modifier —
+  loop** (every Bio-Container bleeds Gene Essence, epic+ containers discover a modifier —
   `meta.openContainer`); the **Mulligan Lab** player screen (`ui/MulliganLab.tsx` over
   `state/mulliganLabModel.ts`, wired into the Hub Progression nav) with a live grafted-organism
   preview + equip/upgrade/ascend/unequip; **dev tools** (`meta.debugGrantOverflow` /
@@ -181,7 +185,7 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
 
 ## 11. Loot, UI & dev tooling
 
-- **Loot (`meta.openContainer`):** every container grants a rarity-scaled Gene Overflow bleed; epic+
+- **Loot (`meta.openContainer`):** every container grants a rarity-scaled Gene Essence bleed; epic+
   containers additionally DISCOVER a random modifier at a rolled rarity (best rarity kept in
   `mulliganDex`). Additive — a fresh account is unaffected.
 - **Mulligan Lab (Hub → Progression → Mulligans):** a master–detail bench in the Tower Lab's
@@ -200,7 +204,7 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
 - **Dev tools:** grant Overflow, discover-all, and auto-assemble a varied organism on every tower —
   exercise the entire pipeline without grinding loot.
 - **Container reveal (§reveal):** the Overflow bleed and every dex discovery surface ON the reveal
-  ceremony as event pulls — `Gene Overflow +N` and `Modifier Sequenced/Ascended — <name> (<rarity>)`
+  ceremony as event pulls — `Gene Essence +N` and `Modifier Sequenced/Ascended — <name> (<rarity>)`
   (ascendant reads at exotic emphasis) — so the spoils are never invisible. Both pulls wear the
   system's ⊛ glyph: the bleed in `GENE_OVERFLOW.color`, a discovery in its sequenced rarity's color.
 
@@ -245,7 +249,7 @@ active organism stands on the field (pause holds it; silent on graft-less boards
 ## Help + statistics
 
 Help-wiki mechanic `mulligans` (unlocks with the first sequenced modifier; nav → the Mulligan
-Lab). Profile → Economy carries `Modifiers Sequenced` (dex/registry) and `Gene Overflow Held`;
+Lab). Profile → Economy carries `Modifiers Sequenced` (dex/registry); upgrades spend the unified Gene Essence wallet;
 the Power Breakdown's dedicated *Mulligans* slice was already live. Four achievement additions:
 `mulligan_dex` (complete sequence), `mulligan_perfected` (a rarity level-cap), `mulligan_ascendant`
 (an ascendant slot, hidden), `mulligan_overlord` (×1.5 organism Power). The Mulligan Lab screen

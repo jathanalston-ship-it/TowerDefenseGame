@@ -1066,6 +1066,11 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   ctx.ellipse(tw.x, tw.y + r * 0.7, r * 0.85, r * 0.4, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  // MULLIGAN organism, BACK slice (docs/MULLIGANS.md §visuals): the graft's up-lane organs +
+  // containment aura paint BEHIND the turret body so the creature visibly wraps its host — the
+  // front slice drapes over the body below. Inactive organisms draw nothing (golden-safe look).
+  if (mulligan) drawMulliganOrganism(ctx, tw.x, tw.y, r, mulligan.resolved, mulligan.visualSeed, mulligan.animSeed, now, fresh, 'back');
+
   // muzzle flash above firing towers (enemies are upfield) on the recoil frames — a branched
   // tower's flash grows with tier (attack-animation escalation, TOWER-BRANCHES.md §9).
   if (fresh > 0.01) {
@@ -1173,10 +1178,12 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // grows an unmistakable new structure. Strain 1 renders nothing (golden-safe look).
   if (tw.strain > 1) drawStrainOrgans(ctx, tw, now, r, kcolor);
 
-  // MULLIGAN organism (docs/MULLIGANS.md): the biomechanical secondary creature grafted onto the
-  // tower — procedurally derived from its modifiers' stat profile + seeds. Inactive (fewer than
-  // three modifiers) draws NOTHING, so a fresh account renders identically (golden-safe look).
-  if (mulligan) drawMulliganOrganism(ctx, tw.x, tw.y, r, mulligan.resolved, mulligan.visualSeed, mulligan.animSeed, now, fresh);
+  // MULLIGAN organism, FRONT slice (docs/MULLIGANS.md §visuals): the down-lane organs + their graft
+  // sinews drape OVER the turret body (the back slice painted behind it above) — procedurally
+  // derived from the modifiers' stat profile + seeds, tethered to the chassis by living tissue,
+  // and reacting to the host's recoil (`fresh`). Inactive (fewer than three modifiers) draws
+  // NOTHING, so a fresh account renders identically (golden-safe look).
+  if (mulligan) drawMulliganOrganism(ctx, tw.x, tw.y, r, mulligan.resolved, mulligan.visualSeed, mulligan.animSeed, now, fresh, 'front');
 
   // Mutation FLASH: a one-shot shockwave + white pop the instant a tier is purchased (driven by
   // tw.mutatedAt). A settled or unbranched tower (mutatedAt ≪ now) draws nothing.

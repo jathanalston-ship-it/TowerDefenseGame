@@ -1795,15 +1795,15 @@ export const meta = {
     if (ichorBleed > 0) {
       chest.items.push({ type: 'event', rarity: 'epic', currency: 'ichor', amount: ichorBleed, note: 'Ichor Bleed' });
     }
-    // ── Mulligan spoils (docs/MULLIGANS.md §loot): every container bleeds a little Gene Overflow
-    //    (the modifier-upgrade currency), scaled by rarity; epic+ containers additionally DISCOVER a
-    //    random modifier at a rolled rarity (recording the best rarity seen in the dex). Purely
-    //    additive — surfaced in the Mulligan Lab (a fresh account is unaffected). ──
-    const OVERFLOW_BY_RARITY: Record<string, number> = { common: 15, rare: 30, epic: 55, legendary: 90, exotic: 140, mythic: 200 };
-    const overflowGained = Math.round((OVERFLOW_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6));
+    // ── Mulligan spoils (docs/MULLIGANS.md §loot): every container bleeds a little Gene Essence
+    //    (the unified gene currency — it levels Gene Cards AND Mulligan modifiers), scaled by
+    //    rarity; epic+ containers additionally DISCOVER a random modifier at a rolled rarity
+    //    (recording the best rarity seen in the dex). Purely additive — a fresh account is unaffected. ──
+    const BLEED_BY_RARITY: Record<string, number> = { common: 15, rare: 30, epic: 55, legendary: 90, exotic: 140, mythic: 200 };
+    const essenceBleed = Math.round((BLEED_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6));
     let mulliganDex = save.mulliganDex;
-    // Surface the Overflow on the reveal (an event pull) so the spoils are never invisible.
-    chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneOverflow', amount: overflowGained, note: 'Gene Overflow' });
+    // Surface the bleed on the reveal (an event pull) so the spoils are never invisible.
+    chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceBleed, note: 'Gene Bleed' });
     const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
     if (premiumMull) {
       const modIds = mulliganRegistry.ids();
@@ -1823,8 +1823,7 @@ export const meta = {
     }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
-      geneEssence: save.geneEssence + essenceGained,
-      geneOverflow: save.geneOverflow + overflowGained,
+      geneEssence: save.geneEssence + essenceGained + essenceBleed,
       mulliganDex,
       ichor: save.ichor + ichorBleed,
       lifetimeIchor: save.lifetimeIchor + ichorBleed,
@@ -2252,10 +2251,10 @@ export const meta = {
     persist({ ...save, mulliganDex: { ...save.mulliganDex, [id]: rarity } });
     return true;
   },
-  /** Grant Gene Overflow (the modifier-upgrade currency) — loot / conversions. */
-  grantGeneOverflow(amount: number): void {
+  /** Grant Gene Essence (the unified gene currency — cards AND modifiers) — loot / conversions. */
+  grantGeneEssence(amount: number): void {
     const save = store.get();
-    persist({ ...save, geneOverflow: Math.max(0, save.geneOverflow + Math.floor(amount)) });
+    persist({ ...save, geneEssence: Math.max(0, save.geneEssence + Math.floor(amount)) });
   },
   /** Slot a DISCOVERED modifier into a tower's Mulligan (rarity ≤ the discovered ceiling; level 1).
    *  Recomputes the organism seeds from the new composition. Returns success. */
@@ -2289,22 +2288,22 @@ export const meta = {
     persist({ ...save, mulligans: { ...save.mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
     return true;
   },
-  /** Spend Gene Overflow to raise a slot's level by one (within its rarity ceiling). */
+  /** Spend Gene Essence to raise a slot's level by one (within its rarity ceiling). */
   upgradeMulligan(kind: TowerKind, slotIndex: number): boolean {
     const save = store.get();
     const cur = save.mulligans[kind];
     const slot = cur?.slots[slotIndex];
     if (!cur || !slot || isMaxLevel(slot)) return false;
     const cost = mulliganUpgradeCost(slot.rarity, slot.level);
-    if (save.geneOverflow < cost) return false;
+    if (save.geneEssence < cost) return false;
     const slots = cur.slots.slice();
     slots[slotIndex] = { ...slot, level: slot.level + 1 };
     const powerBefore = meta.power().score;
-    persist({ ...save, geneOverflow: save.geneOverflow - cost, mulligans: { ...save.mulligans, [kind]: { ...cur, slots } } });
+    persist({ ...save, geneEssence: save.geneEssence - cost, mulligans: { ...save.mulligans, [kind]: { ...cur, slots } } });
     if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — Level ${slot.level + 1}`, powerBefore, meta.power().score);
     return true;
   },
-  /** Spend Gene Overflow to ASCEND a MAXED slot to the next rarity (Ascension-ready). Bumps the dex
+  /** Spend Gene Essence to ASCEND a MAXED slot to the next rarity (Ascension-ready). Bumps the dex
    *  so the modifier can be re-slotted at the new rarity; recomputes the (intensified) organism. */
   ascendMulligan(kind: TowerKind, slotIndex: number): boolean {
     const save = store.get();
@@ -2313,13 +2312,13 @@ export const meta = {
     if (!cur || !slot || !isMaxLevel(slot)) return false;
     const nxt = nextRarity(slot.rarity);
     const cost = ascendCost(slot.rarity);
-    if (!nxt || cost == null || save.geneOverflow < cost) return false;
+    if (!nxt || cost == null || save.geneEssence < cost) return false;
     const slots = cur.slots.slice();
     slots[slotIndex] = { id: slot.id, rarity: nxt, level: slot.level }; // level preserved (new cap ≥ old)
     const dexCur = save.mulliganDex[slot.id];
     const mulliganDex = dexCur && rarityAtLeast(dexCur, nxt) ? save.mulliganDex : { ...save.mulliganDex, [slot.id]: nxt };
     const powerBefore = meta.power().score;
-    persist({ ...save, geneOverflow: save.geneOverflow - cost, mulliganDex, mulligans: { ...save.mulligans, [kind]: { ...cur, slots, ...seedFor(kind, slots) } } });
+    persist({ ...save, geneEssence: save.geneEssence - cost, mulliganDex, mulligans: { ...save.mulligans, [kind]: { ...cur, slots, ...seedFor(kind, slots) } } });
     if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — ${nxt}`, powerBefore, meta.power().score);
     return true;
   },
@@ -3615,8 +3614,8 @@ export const meta = {
   },
 
   // ── Mulligan dev tools (docs/MULLIGANS.md §dev) — exercise the whole pipeline without loot. ──
-  debugGrantOverflow(n: number): void {
-    meta.grantGeneOverflow(n);
+  debugGrantEssence(n: number): void {
+    meta.grantGeneEssence(n);
   },
   /** Discover every modifier at Epic (headroom for upgrade/ascension testing). */
   debugDiscoverAllMulligans(): void {

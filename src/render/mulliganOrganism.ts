@@ -111,9 +111,23 @@ export function deriveOrganism(profile: StatProfile, visualSeed: number): Organi
 
 // ── Drawing ──────────────────────────────────────────────────────────────────
 
+/** Which depth slice of the organism to paint. The renderer sandwiches the tower body between a
+ *  'back' and a 'front' pass so the creature visibly WRAPS its host (organs pointing up-lane sit
+ *  behind the turret; the rest drape over it). 'all' (the default) is the single-pass form the
+ *  Mulligan Lab's graft chamber uses. */
+export type OrganismLayer = 'back' | 'front' | 'all';
+
+/** An organ points 'back' when its angle aims up-lane (negative screen-y) — behind the body. */
+function isBackOrgan(angle: number): boolean {
+  return Math.sin(angle) < -0.15;
+}
+
 /**
  * Draw a resolved Mulligan's organism grafted onto a tower at (x,y) of radius r. No-op unless the
- * organism is active. `now` drives the derived idle animation; `fired` [0..1] is the tower's recoil.
+ * organism is active. `now` drives the derived idle animation; `fired` [0..1] is the tower's recoil
+ * — the whole graft REACTS to its host firing (organs kick outward and flare, the aura surges).
+ * Every organ is tethered to the body by living graft tissue (a tapered sinew + attachment pucker),
+ * so the creature reads as grafted ONTO the tower rather than orbiting it.
  */
 export function drawMulliganOrganism(
   ctx: CanvasRenderingContext2D,
@@ -122,6 +136,7 @@ export function drawMulliganOrganism(
   visualSeed: number, animSeed: number,
   now: number,
   fired = 0,
+  layer: OrganismLayer = 'all',
 ): void {
   if (!resolved.active) return;
   const spec = deriveOrganism(resolved.profile, visualSeed);
@@ -134,27 +149,81 @@ export function drawMulliganOrganism(
   const burst = m.burst > 0.02 ? 1 + m.burst * 0.14 * burstWave(now * 1.1 + ph) : 1;
   const bodyScale = breathe * pulse * burst;
   const R = r * bodyScale;
+  const flare = Math.max(0, Math.min(1, fired)); // the host just fired — the graft reacts
 
   ctx.save();
-  ctx.translate(x, y + fired * r * 0.1);
-  // A faint containment aura reads the organism as one bound creature.
-  const aura = ctx.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 1.9);
-  aura.addColorStop(0, withAlpha(spec.tint, 0.0));
-  aura.addColorStop(0.7, withAlpha(spec.tint, 0.05 * spec.intensity));
-  aura.addColorStop(1, withAlpha(spec.tint, 0.16 * spec.intensity));
-  ctx.fillStyle = aura;
-  ctx.beginPath(); ctx.arc(0, 0, r * 1.9, 0, TAU); ctx.fill();
+  ctx.translate(x, y);
+  // A faint containment aura reads the organism as one bound creature. Drawn on the BACK pass so
+  // it halos the body from behind (never washes the turret out); it surges when the host fires.
+  if (layer !== 'front') {
+    const aura = ctx.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 1.9);
+    const surge = 1 + flare * 0.9;
+    aura.addColorStop(0, withAlpha(spec.tint, 0.0));
+    aura.addColorStop(0.7, withAlpha(spec.tint, 0.05 * spec.intensity * surge));
+    aura.addColorStop(1, withAlpha(spec.tint, 0.16 * spec.intensity * surge));
+    ctx.fillStyle = aura;
+    ctx.beginPath(); ctx.arc(0, 0, r * 1.9, 0, TAU); ctx.fill();
+  }
 
   for (const o of spec.organs) {
+    if (layer !== 'all' && (layer === 'back') !== isBackOrgan(o.angle)) continue; // not this pass's slice
     const twitch = m.twitch > 0.02 ? (Math.sin(now * 22 + o.phase * 5) * m.twitch * 0.05) : 0;
     const ooze = m.ooze > 0.02 ? (Math.sin(now * 1.3 + o.phase) * m.ooze * 0.12) : 0;
     const a = o.angle + twitch;
-    const reach = R * (1.0 + o.size * 0.55 + ooze);
+    const reach = R * (1.0 + o.size * 0.55 + ooze) + flare * r * 0.2; // recoil kicks the organ outward
     const ox = Math.cos(a) * reach;
     const oy = Math.sin(a) * reach;
-    const s = o.size * r * (0.6 + 0.4 * spec.intensity);
-    drawOrgan(ctx, o.kind, ox, oy, a, s, o.hue, now + o.phase, spec.intensity);
+    const s = o.size * r * (0.6 + 0.4 * spec.intensity) * (1 + flare * 0.14);
+    // GRAFT TISSUE: a living sinew tethering the organ to the host's body — the thing that makes
+    // the creature read as grafted ON rather than floating debris. Anchored at the body edge.
+    drawGraftSinew(ctx, a, r * 0.62, ox, oy, s, o.hue, now + o.phase, spec.intensity, m.breathe + m.ooze);
+    drawOrgan(ctx, o.kind, ox, oy, a, s, o.hue, now + o.phase, spec.intensity + flare * 0.4);
   }
+  ctx.restore();
+}
+
+/** The tapered sinew from the tower's edge to an organ, plus the attachment pucker where flesh
+ *  meets chassis. Filled as one two-curve shape (wide at the body, thin at the organ) with a
+ *  gentle perpendicular sway so the tissue visibly lives. */
+function drawGraftSinew(
+  ctx: CanvasRenderingContext2D,
+  angle: number, anchorR: number,
+  ox: number, oy: number,
+  organSize: number, hue: string,
+  now: number, intensity: number, liveliness: number,
+): void {
+  const ax = Math.cos(angle) * anchorR;
+  const ay = Math.sin(angle) * anchorR;
+  const dx = ox - ax, dy = oy - ay;
+  const len = Math.hypot(dx, dy);
+  if (len < 1) return;
+  // Perpendicular sway: the sinew breathes/oozes sideways at its midpoint.
+  const px = -dy / len, py = dx / len;
+  const sway = Math.sin(now * 1.8) * organSize * (0.18 + liveliness * 0.25);
+  const mx = ax + dx * 0.5 + px * sway;
+  const my = ay + dy * 0.5 + py * sway;
+  const wBase = Math.max(1.2, organSize * 0.5); // wide where it meets the body
+  const wTip = Math.max(0.8, organSize * 0.18); // thin where it feeds the organ
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, 0.5 + intensity * 0.3);
+  const g = ctx.createLinearGradient(ax, ay, ox, oy);
+  g.addColorStop(0, shade(hue, -0.5));
+  g.addColorStop(1, shade(hue, -0.15));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(ax + px * wBase, ay + py * wBase);
+  ctx.quadraticCurveTo(mx + px * (wBase + wTip) * 0.5, my + py * (wBase + wTip) * 0.5, ox + px * wTip, oy + py * wTip);
+  ctx.lineTo(ox - px * wTip, oy - py * wTip);
+  ctx.quadraticCurveTo(mx - px * (wBase + wTip) * 0.5, my - py * (wBase + wTip) * 0.5, ax - px * wBase, ay - py * wBase);
+  ctx.closePath();
+  ctx.fill();
+  // Attachment pucker: flesh gripping the chassis — a dark seam ringed by the organ's hue.
+  ctx.globalAlpha = Math.min(1, 0.6 + intensity * 0.3);
+  ctx.fillStyle = 'rgba(8,6,12,0.75)';
+  ctx.beginPath(); ctx.ellipse(ax, ay, wBase * 1.15, wBase * 0.8, angle, 0, TAU); ctx.fill();
+  ctx.strokeStyle = withAlpha(hue, 0.55);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(ax, ay, wBase * 1.15, wBase * 0.8, angle, 0, TAU); ctx.stroke();
   ctx.restore();
 }
 

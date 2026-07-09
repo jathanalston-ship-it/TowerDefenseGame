@@ -12,7 +12,9 @@ import { TOWER_DEFS } from '../core/config';
 import type { TowerKind } from '../core/types';
 import { mulliganLabView } from '../state/mulliganLabModel';
 import type { OwnedModifier, SlotView } from '../state/mulliganLabModel';
-import { GENE_OVERFLOW, MULLIGAN_RARITY, resolveMulligan } from '../core/mulligan';
+import { MULLIGAN_RARITY, resolveMulligan } from '../core/mulligan';
+import { CURRENCIES } from '../core/currencies';
+import { CurrencyIcon } from './components/CurrencyIcon';
 import { drawTowerForm } from '../render/towerForms';
 import { drawMulliganOrganism } from '../render/mulliganOrganism';
 import { TowerPortrait } from './TowerPortrait';
@@ -117,9 +119,9 @@ export function MulliganLab(): JSX.Element {
           </div>
         </div>
         <div className="mgl-wallet">
-          <span className="mgl-overflow" title={GENE_OVERFLOW.blurb}>
-            <i aria-hidden>{GENE_OVERFLOW.glyph}</i> {view.overflow.toLocaleString()}
-            <em>Gene Overflow</em>
+          <span className="mgl-overflow" title={CURRENCIES.geneEssence.blurb}>
+            <CurrencyIcon id="geneEssence" size={16} title="" /> {view.essence.toLocaleString()}
+            <em>Gene Essence</em>
           </span>
           <span className="mgl-dexcount" title="Modifiers sequenced — epic+ Bio-Containers discover new ones">
             {view.discovered} / {view.total} sequenced
@@ -188,7 +190,7 @@ export function MulliganLab(): JSX.Element {
           <div className="mgl-block">
             <div className="mgl-block-h">
               <span className="mgl-eyebrow">Graft Sites</span>
-              <span className="mgl-block-hint">level with {GENE_OVERFLOW.glyph} · ascend a maxed graft to the next rarity</span>
+              <span className="mgl-block-hint">level with <CurrencyIcon id="geneEssence" size={12} title="Gene Essence" /> Gene Essence · ascend a maxed graft to the next rarity</span>
             </div>
             <div className="mgl-slots">
               {tv.slots.map((s) => s.filled ? (
@@ -204,15 +206,15 @@ export function MulliganLab(): JSX.Element {
                   <div className="mgl-slot-actions">
                     {!s.maxed && (
                       <button className="mgl-btn" disabled={!s.canAfford} onClick={() => upgrade(s.index)}
-                        title={`${s.upgradeCost!.toLocaleString()} ${GENE_OVERFLOW.name}`}>
-                        Level up · {GENE_OVERFLOW.glyph} {s.upgradeCost!.toLocaleString()}
+                        title={`${s.upgradeCost!.toLocaleString()} Gene Essence`}>
+                        Level up · <CurrencyIcon id="geneEssence" size={12} title="" /> {s.upgradeCost!.toLocaleString()}
                       </button>
                     )}
                     {s.maxed && s.nextRarity && s.ascendCost != null && (
                       <button className="mgl-btn is-ascend" disabled={!s.ascendable} onClick={() => ascend(s.index)}
                         style={{ ['--mg' as string]: MULLIGAN_RARITY[s.nextRarity].color }}
-                        title={`${s.ascendCost.toLocaleString()} ${GENE_OVERFLOW.name}`}>
-                        Ascend → {MULLIGAN_RARITY[s.nextRarity].label} · {GENE_OVERFLOW.glyph} {s.ascendCost.toLocaleString()}
+                        title={`${s.ascendCost.toLocaleString()} Gene Essence`}>
+                        Ascend → {MULLIGAN_RARITY[s.nextRarity].label} · <CurrencyIcon id="geneEssence" size={12} title="" /> {s.ascendCost.toLocaleString()}
                       </button>
                     )}
                     {s.maxed && !s.nextRarity && <span className="mgl-apex">APEX — fully ascended</span>}
@@ -253,7 +255,7 @@ export function MulliganLab(): JSX.Element {
             {armedSite == null && <div className="mgl-arm-note is-full">All graft sites full — clear a site to re-graft.</div>}
             {view.owned.length === 0 ? (
               <p className="mgl-empty">
-                Nothing sequenced yet. Bio-Containers bleed {GENE_OVERFLOW.glyph} {GENE_OVERFLOW.name};
+                Nothing sequenced yet. Bio-Containers bleed <CurrencyIcon id="geneEssence" size={12} title="" /> Gene Essence;
                 epic-or-better containers sequence a new modifier.
               </p>
             ) : (

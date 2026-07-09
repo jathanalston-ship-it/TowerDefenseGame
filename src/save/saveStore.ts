@@ -198,11 +198,11 @@ export interface SaveData {
   //    tower kind permanently owns ONE Mulligan (three modifier slots + generated visual/anim seeds);
   //    the organism does NOTHING until all three slots are filled, so a fresh account is byte-identical
   //    (golden-safe). `mulliganDex` is the discovered-modifier collection (id → best rarity found), the
-  //    equip gate + Collections/Achievements source. `geneOverflow` is the modifier UPGRADE currency.
-  //    All additive: pre-v26 saves default empty Mulligans + empty dex + 0 overflow. ──
+  //    equip gate + Collections/Achievements source. Modifier upgrades spend `geneEssence` — the SAME
+  //    currency Gene Cards level with (unified; the retired `geneOverflow` wallet folds into it on load).
+  //    All additive: pre-v26 saves default empty Mulligans + empty dex. ──
   mulligans: Record<TowerKind, MulliganState>;
   mulliganDex: Record<string, MulliganRarity>; // modifier id → highest rarity discovered (equip ceiling)
-  geneOverflow: number; // Gene Overflow — the Mulligan-modifier upgrade currency
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -255,7 +255,8 @@ export interface TutorialSave {
 // timeline + profile stat ledgers). v22→v23: verified-purchase ledger (claimedReceipts +
 // pendingCheckout — docs/DEPLOYMENT.md §purchases). v23→v24: Field Research ledger
 // (docs/RESEARCH.md). v25→v26: Phenotypes (owned + equipped cosmetics — docs/COSMETICS.md) +
-// Mulligans (per-tower organism: mulligans + mulliganDex + geneOverflow — docs/MULLIGANS.md).
+// Mulligans (per-tower organism: mulligans + mulliganDex — docs/MULLIGANS.md). The short-lived
+// `geneOverflow` wallet was unified into `geneEssence` (its balance folds in on load).
 // All additive — withDefaults() deep-fills, migrate() passes through.
 export const CURRENT_VERSION = 26;
 
@@ -521,7 +522,6 @@ export function defaultSave(): SaveData {
     market: { window: 0, bought: [], seenWindow: 0, starter: false },
     mulligans: emptyMulligansByTower(),
     mulliganDex: {},
-    geneOverflow: 0,
   };
 }
 
@@ -608,7 +608,7 @@ function sanitizeCosmetics(raw: unknown): SaveData['cosmetics'] {
 
 function withDefaults(data: SaveData): SaveData {
   const d = defaultSave();
-  return {
+  return stripRetired({
     ...d,
     ...data,
     upgrades: { ...data.upgrades },
@@ -745,7 +745,11 @@ function withDefaults(data: SaveData): SaveData {
     // v18→v19: Starting Gene Loadout. Pre-v19 ⇒ 1 slot, empty loadout; junk ids/duplicates dropped.
     geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),
     geneLoadout: sanitizeGeneLoadout((data as { geneLoadout?: unknown }).geneLoadout),
-    geneEssence: Math.max(0, Math.floor(Number((data as { geneEssence?: unknown }).geneEssence) || 0)), // v18: permanent gene currency (pre-v18 ⇒ 0)
+    // v18: permanent gene currency (pre-v18 ⇒ 0). Unified wallet: a legacy save's `geneOverflow`
+    // (the short-lived Mulligan-upgrade currency) folds in 1:1 — one currency now levels Gene
+    // Cards AND Mulligan modifiers, and no banked balance is lost.
+    geneEssence: Math.max(0, Math.floor(Number((data as { geneEssence?: unknown }).geneEssence) || 0))
+      + Math.max(0, Math.floor(Number((data as { geneOverflow?: unknown }).geneOverflow) || 0)),
     // v21→v22: Player Profile — identity fields + the milestone timeline (pre-v22 ⇒ defaults;
     // createdAt stays 0 until the first settle stamps it).
     createdAt: Math.max(0, Math.floor(Number((data as { createdAt?: unknown }).createdAt) || 0)),
@@ -768,11 +772,19 @@ function withDefaults(data: SaveData): SaveData {
     premium: sanitizePremium((data as { premium?: unknown }).premium),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
-    // Mulligan system (docs/MULLIGANS.md): pre-v26 saves ⇒ empty organisms + empty dex + 0 overflow.
+    // Mulligan system (docs/MULLIGANS.md): pre-v26 saves ⇒ empty organisms + empty dex.
     mulligans: sanitizeMulligans((data as { mulligans?: unknown }).mulligans),
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
-    geneOverflow: Math.max(0, Math.floor(Number((data as { geneOverflow?: unknown }).geneOverflow) || 0)),
-  };
+  });
+}
+
+/** Retired top-level fields a legacy blob may still carry (they ride in through the `...data`
+ *  spread). Each was migrated into a live field above (geneOverflow → geneEssence), so the stale
+ *  key is stripped to keep re-serialized saves clean. */
+const RETIRED_FIELDS = ['geneOverflow'] as const;
+function stripRetired(save: SaveData): SaveData {
+  for (const k of RETIRED_FIELDS) delete (save as unknown as Record<string, unknown>)[k];
+  return save;
 }
 
 /** Coerce a loaded timeline into valid, capped shape (newest LAST preserved). */

@@ -24,7 +24,7 @@ export interface SlotView {
   level?: number;
   maxLevel?: number;
   maxed?: boolean;
-  upgradeCost?: number; // Gene Overflow to +1 level (absent when maxed)
+  upgradeCost?: number; // Gene Essence to +1 level (absent when maxed)
   canAfford?: boolean; // upgrade affordable now
   ascendable?: boolean; // maxed + a higher rarity exists + affordable
   ascendCost?: number | null;
@@ -53,7 +53,7 @@ export interface OwnedModifier {
 }
 
 export interface MulliganLabView {
-  overflow: number; // Gene Overflow balance
+  essence: number; // Gene Essence balance (the unified gene currency — cards AND modifiers)
   discovered: number;
   total: number; // total modifiers in the registry
   towers: TowerMulliganView[];
@@ -80,8 +80,8 @@ function slotView(save: SaveData, kind: TowerKind, index: number): SlotView {
     maxLevel: levelCap(slot.rarity),
     maxed,
     upgradeCost: cost,
-    canAfford: cost !== undefined && save.geneOverflow >= cost,
-    ascendable: maxed && !!nextRarity(slot.rarity) && asc != null && save.geneOverflow >= asc,
+    canAfford: cost !== undefined && save.geneEssence >= cost,
+    ascendable: maxed && !!nextRarity(slot.rarity) && asc != null && save.geneEssence >= asc,
     ascendCost: asc,
     nextRarity: nextRarity(slot.rarity),
   };
@@ -126,7 +126,7 @@ export function mulliganLabView(save: SaveData): MulliganLabView {
     .filter((x): x is OwnedModifier => !!x)
     .sort((a, b) => MULLIGAN_RARITY[b.rarity].tier - MULLIGAN_RARITY[a.rarity].tier || a.name.localeCompare(b.name));
   return {
-    overflow: save.geneOverflow ?? 0,
+    essence: save.geneEssence ?? 0,
     discovered: owned.length,
     total: mulliganRegistry.size,
     towers,

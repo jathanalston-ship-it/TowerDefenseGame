@@ -92,7 +92,7 @@ export function DebugPanel(): JSX.Element {
           <div className="debug-sec">
             <div className="h">Mulligans (meta)</div>
             <div className="debug-row">
-              <button onClick={() => meta.debugGrantOverflow(50000)}>+50k Gene Overflow</button>
+              <button onClick={() => meta.debugGrantEssence(50000)}>+50k Gene Essence</button>
               <button onClick={() => meta.debugDiscoverAllMulligans()}>Discover all modifiers</button>
               <button onClick={() => meta.debugAutoAssembleMulligans()}>Auto-assemble every tower</button>
             </div>

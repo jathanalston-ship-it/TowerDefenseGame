@@ -147,7 +147,7 @@ graph TD
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | `field-research` | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
 | **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
-| **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | — | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` · `geneOverflow` | `docs/MULLIGANS.md` |
+| **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | — | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
 | **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | `field-research` · `net-backend` | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
 | **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | — | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
@@ -307,7 +307,7 @@ graph TD
 - **Depends on:** `content-infra` · `towers` · `power` · `meta-store`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled
-- **Save fields:** `mulligans` · `mulliganDex` · `geneOverflow`
+- **Save fields:** `mulligans` · `mulliganDex`
 - **Tutorial:** — · **Help mechanics:** `mulligans`
 - **HUD surfaces:** — · **UI screens:** `GameView (organism overlay + emitter shots + graft ambience)` · `MulliganLab` · `Inspector (organism block)` · `DailyScreen (assignment briefing)` · `Vault reveal (Overflow + discovery pulls)` · `PlayerProfile (dex + Overflow rows)`
 - **Collection:** mulligans (Modifiers) — dex-driven codex: Discovered → Transcendent; +5% fire rate at completion · **Achievements:** `mulligan_grafted` · `mulligan_splicer` · `mulligan_transcendent` · `mulligan_dex` · `mulligan_perfected` · `mulligan_ascendant` · `mulligan_overlord`

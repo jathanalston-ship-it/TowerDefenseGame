@@ -9,24 +9,33 @@ import { assembleMulligan } from '../core/mulligan';
 import type { SaveData } from '../save/saveStore';
 
 describe('save schema v26', () => {
-  it('defaults: every tower owns an empty Mulligan; dex empty; 0 Gene Overflow', () => {
+  it('defaults: every tower owns an empty Mulligan; dex empty; no separate Mulligan wallet', () => {
     const d = defaultSave();
-    expect(d.geneOverflow).toBe(0);
+    expect('geneOverflow' in d).toBe(false); // unified: upgrades spend geneEssence
     expect(d.mulliganDex).toEqual({});
     expect(d.mulligans.needle.slots).toEqual([null, null, null]);
   });
 
-  it('migrates a pre-v26 save (no Mulligan fields) to empty organisms + 0 overflow', () => {
+  it('migrates a pre-v26 save (no Mulligan fields) to empty organisms', () => {
     const legacy = { ...defaultSave() } as Record<string, unknown>;
     delete legacy.mulligans;
     delete legacy.mulliganDex;
-    delete legacy.geneOverflow;
     const r = parseImport(JSON.stringify(legacy));
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.data.geneOverflow).toBe(0);
       expect(r.data.mulligans.mortar.slots).toEqual([null, null, null]);
       expect(r.data.mulliganDex).toEqual({});
+    }
+  });
+
+  it('unification migration: a legacy geneOverflow balance folds 1:1 into geneEssence (nothing lost)', () => {
+    const legacy = { ...defaultSave(), geneEssence: 120 } as Record<string, unknown>;
+    legacy.geneOverflow = 380; // the retired Mulligan wallet
+    const r = parseImport(JSON.stringify(legacy));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.geneEssence).toBe(500); // 120 + 380 — the banked Overflow became Essence
+      expect('geneOverflow' in r.data).toBe(false); // the old wallet is gone
     }
   });
 
@@ -71,9 +80,9 @@ describe('active Mulligan folds into the tower + its own Power bucket', () => {
 });
 
 describe('meta pipeline — discover → equip → upgrade → ascend', () => {
-  it('activates only at three slots, spends Gene Overflow, and gates ascension on max level', () => {
+  it('activates only at three slots, spends Gene Essence, and gates ascension on max level', () => {
     meta.reset();
-    expect(meta.get().geneOverflow).toBe(0);
+    expect(meta.get().geneEssence).toBe(0);
     // cannot equip an undiscovered modifier
     expect(meta.equipMulligan('needle', 0, 'siege_carapace')).toBe(false);
     meta.discoverModifier('siege_carapace', 'epic');
@@ -87,14 +96,14 @@ describe('meta pipeline — discover → equip → upgrade → ascend', () => {
     expect(meta.mulliganResolved('needle').active).toBe(true);
     expect(meta.power().score).toBeGreaterThan(before);
 
-    // upgrade needs currency
+    // upgrade needs currency — the UNIFIED Gene Essence wallet (shared with Gene Card levels)
     expect(meta.upgradeMulligan('needle', 0)).toBe(false);
-    meta.grantGeneOverflow(100000);
+    meta.grantGeneEssence(100000);
     const p0 = meta.power().score;
-    const spentBefore = meta.get().geneOverflow;
+    const spentBefore = meta.get().geneEssence;
     expect(meta.upgradeMulligan('needle', 0)).toBe(true);
     expect(meta.get().mulligans.needle.slots[0]!.level).toBe(2);
-    expect(meta.get().geneOverflow).toBeLessThan(spentBefore); // charged
+    expect(meta.get().geneEssence).toBeLessThan(spentBefore); // charged
     expect(meta.power().score).toBeGreaterThan(p0);
 
     // ascension requires a maxed slot
