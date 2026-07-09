@@ -62,6 +62,8 @@ import {
 import type { EnemyDef, HeroAbilityDef, HeroDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
+import { initialAssimilation } from './assimilation';
+import type { AssimilationState, AssimilationSignals } from './assimilation';
 import {
   CARD_POOL,
   applyCard,
@@ -451,6 +453,10 @@ export class Game {
   enemyShells: EnemyShell[] = []; // artillery shells in flight (empty on the golden path)
   /** Danger-camera state machine (docs/CAMERA.md) — RENDER-ONLY; no sim system reads it. */
   readonly dangerCam: DangerCameraState = initialDangerCamera();
+  /** Assimilation Index master state (docs/ASSIMILATION.md) — the run's hidden 0..1 "how thoroughly
+   *  have I taken the battlefield" signal that every dynamic presentation system keys on. RENDER-ONLY
+   *  (stepped by the view from assimilationSignals()); no sim system reads it ⇒ golden-safe. */
+  readonly assimilation: AssimilationState = initialAssimilation();
   // The active hero roster. One today (the selected hero); the array is the seam for
   // future hero slots (HEROES.md) — slot unlocks just push more heroes in.
   heroes: Hero[];
@@ -6221,6 +6227,36 @@ export class Game {
       megaShots: this.megaShots,
       mines: this.mines,
       deathEvents: this.deathEvents,
+    };
+  }
+
+  /** Live run signals for the Assimilation Index (docs/ASSIMILATION.md). Read-only fold of run state
+   *  the view feeds to computeAssimilation(); the Game is the source of truth for run signals, the
+   *  account baseline rides in through runPower (the Power Score folds nearly every strength bucket).
+   *  Cheap but allocates a couple of arrays (powerEffects/activeBuffs) ⇒ the view throttles it. */
+  assimilationSignals(): AssimilationSignals {
+    let strainSum = 0;
+    let branchTierSum = 0;
+    for (const t of this.towers) {
+      if (t.strain > 1) strainSum += t.strain - 1;
+      if (t.branchId) branchTierSum += t.tier;
+    }
+    return {
+      wave: this.waveIndex,
+      totalWaves: this.totalWaves,
+      currentBiomass: this.biomass,
+      biomassGenerated: this.statBiomassEarned,
+      kills: this.kills,
+      bossKills: this.runBossKills,
+      megaKills: this.runMegaKills.length,
+      towerCount: this.towers.length,
+      heroCount: this.heroes.length,
+      strainSum,
+      branchTierSum,
+      activeBuffs: this.activeBuffs().length,
+      runPower: effectsPower(this.powerEffects()),
+      integrityFrac: this.maxIntegrity > 0 ? this.integrity / this.maxIntegrity : 1,
+      time: this.time,
     };
   }
 

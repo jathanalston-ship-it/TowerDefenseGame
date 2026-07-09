@@ -15,6 +15,7 @@ import { ESSENCE_PER_SHARD, ESSENCE_COST } from '../core/geneEssence';
 import { CARD_POOL } from '../core/cards';
 import { TOWER_ORDER, HERO_ORDER } from '../core/config';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
+import { ASSIMILATION_TIERS } from '../core/assimilation';
 
 export const REPO_ROOT = join(__dirname, '..', '..');
 
@@ -45,6 +46,7 @@ export function docAnchors(): DocAnchor[] {
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${ESSENCE_COST.baseByCardRarity.common}`, why: 'essence cost base drifted (ESSENCE_COST.common)' },
     { doc: 'docs/GENE-EVOLUTION.md', contains: `${GENE_LOADOUT_SLOTS.length}`, why: 'loadout slot count drifted (GENE_LOADOUT_SLOTS)' },
     { doc: 'docs/PROJECT_MANIFEST.md', contains: 'gates at stages 15/30/50/75', why: 'manifest gene-gate summary drifted (GENE_LEVEL_GATES)' },
+    { doc: 'docs/ASSIMILATION.md', contains: `${ASSIMILATION_TIERS.length} evolution tiers`, why: 'tier count drifted (ASSIMILATION_TIERS)' },
     // Identity trilogy (docs/UI_STYLE_GUIDE.md) — pinned to the LIVE :root tokens.
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--kinetic ${cssToken('kinetic')}`, why: 'class-hue palette drifted (src/index.css --kinetic)' },
     { doc: 'docs/UI_STYLE_GUIDE.md', contains: `--viral ${cssToken('viral')}`, why: 'class-hue palette drifted (src/index.css --viral)' },

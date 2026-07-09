@@ -502,6 +502,31 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** particles live in the SIM (golden-relevant!) — visual-only tweaks belong
   in the renderer; adding sim particles changes goldens.
 
+## Assimilation Index
+
+- **Purpose:** the hidden per-run MASTER STATE — one continuous `0..1` index measuring how thoroughly
+  the player has assimilated the battlefield this run, and the single driver every dynamic
+  presentation system keys on (music intensity, camera heartbeat, screen veil, HUD glow), so the
+  whole game evolves together instead of each system inventing its own thresholds. 6 evolution tiers
+  (Contained → Planetary Assimilation) blend continuously.
+- **Dependencies:** consumes the live run **Power Score** (its universal contributor — so every
+  progression system raises it for free) + run aggregates; render-only, never saved.
+- **Files:** `core/assimilation.ts` (framework — signals, contribution profiles, tiers, step,
+  presentation), `render/assimilationFx.ts` (screen veil), `ui/AssimilationDebug.tsx` (dev panel);
+  consumed by `ui/GameView.tsx` (the run loop) + `core/game.ts` (`assimilationSignals()`). Docs:
+  `ASSIMILATION.md`.
+- **Related:** Power Score (contributor), Audio (music intensity), Visual Effects / Danger Camera
+  (composes under them), HUD.
+- **Future expansion:** a new system contributes with **no gameplay-code change** — implicitly via
+  the Power Score, or explicitly by `registerAssimilationContribution()` reading a `custom` signal.
+  New presentation consumers (towers/heroes/nucleus/enemies/mega/cinematics) read
+  `assimilationPresentation(game.assimilation)` — never a private threshold.
+- **Known limitations:** the `custom` seam is unused by content yet; several presentation consumers
+  are documented seams, not yet wired (see `ASSIMILATION.md` §Known limitations).
+- **Developer tips:** render-only by contract (the sim never reads it ⇒ golden-safe); the state is
+  stepped in the view loop, not `advance()`. Open the Debug panel → 🧬 Assimilation Index to preview
+  any depth via the manual override.
+
 ## Save Data
 
 - **Purpose:** versioned, checksummed, browser-local persistence with additive migrations,

@@ -3,6 +3,7 @@ import { disableDebug, getActiveGame, subscribeActiveGame } from '../debug/debug
 import { meta } from '../state/meta';
 import { CARD_POOL } from '../core/cards';
 import type { Game } from '../core/game';
+import { AssimilationDebug } from './AssimilationDebug';
 
 export function DebugPanel(): JSX.Element {
   const game = useSyncExternalStore(subscribeActiveGame, getActiveGame, getActiveGame);
@@ -183,6 +184,8 @@ export function DebugPanel(): JSX.Element {
               </button>
             </div>
           </div>
+
+          <AssimilationDebug />
 
           <div className="debug-sec">
             <div className="h">Force card</div>

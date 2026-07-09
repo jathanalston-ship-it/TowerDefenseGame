@@ -49,6 +49,32 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Data-driven registries + content validator (`core/registry.ts`, `core/validate.ts`)
 - ✅ Save: versioned blob, migrations, backups, export/import (`save/saveStore.ts`, UI `SaveManager`)
 - ✅ Power Score index + coverage enforcement (`core/power.ts`, `POWER_RELEVANT_FIELDS`) — POWER-SCORE.md
+- ✅ **Assimilation Index** — the hidden per-run MASTER STATE (`core/assimilation.ts`): one continuous
+  `0..1` index folded from weighted `ContributionProfile` rows (the live run **Power Score** is the
+  universal contributor, so every present/future strength system raises it for free), smoothed like
+  the danger-camera, driving every dynamic presentation channel — music-intensity floor
+  (`audio/music.ts`), camera heartbeat + screen veil (`render/assimilationFx.ts`), HUD frame glow
+  (`--assim-*` CSS) — through ONE derived `AssimilationPresentation` bundle. 6 evolution tiers
+  (Contained → Planetary Assimilation) blend continuously; future systems plug in via a data
+  contribution profile with no gameplay-code change. Render-only ⇒ golden-safe. Complete dev panel
+  (live index/breakdown/tier ladder/FX preview/manual override) in `ui/AssimilationDebug.tsx`.
+  **ASSIMILATION.md**
+
+<!-- COMPRESSED SUMMARY — Assimilation Index (≤500 words; prefer this over re-reading the code)
+  Architecture: pure zero-alloc state machine (mirrors core/dangerCamera.ts). AssimilationSignals
+  (flat bag, filled by Game.assimilationSignals()) → computeAssimilation() folds ContributionProfile
+  rows via soft-saturation raw/(raw+half), weight-normalized mean ⇒ target 0..1 (inherently bounded).
+  stepAssimilation(state,target,dt) eases index toward target, ASYMMETRIC (riseRate>fallRate). State
+  lives on game.assimilation (render-only, like dangerCam) but is STEPPED in the GameView loop ⇒ zero
+  sim impact. assimilationPresentation(state) derives ONE bundle every consumer reads.
+  Public API: initialAssimilation(); Game.assimilationSignals(); computeAssimilation(signals);
+  stepAssimilation(state,target,dt); assimilationPresentation(state); tierAt(index); tierColorAt(index);
+  ASSIMILATION_TIERS; CONTRIBUTIONS; registerAssimilationContribution(profile); drawAssimilationFx().
+  Extension: (1) implicit — feed Power Score, done. (2) explicit — registerAssimilationContribution()
+  reading signals.custom (open map). New presentation consumers read assimilationPresentation(), never
+  a private threshold. Invariants: render-only (sim never reads it), never saved, index∈[0,1].
+  Known limits: custom seam unused by content yet; elite/campaign-stage contributors + tower/hero/
+  nucleus/enemy/mega/cinematic presentation consumers are documented seams, not yet wired. -->
 
 ### Towers
 - ✅ **Resonance Coil** (9th tower, new `Resonant` class) — a `firing: 'beam'` MELTER: a locked,

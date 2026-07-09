@@ -8542,3 +8542,22 @@ kbd {
 @media (max-width: 520px) {
   .insp-mg-chip { min-height: 24px; }
 }
+
+/* ── ASSIMILATION HUD accent (docs/ASSIMILATION.md §HUD) ─────────────────────────
+   A subtle living aura around the battlefield frame, driven by the run's Assimilation
+   Index. The run loop sets --assim-glow (0..1) and --assim-color (r,g,b) on .canvas-wrap;
+   this inset ring grows and tints with the master state. Readability-preserving by
+   construction: it rings the FRAME only (never overlaps HUD text panels, which live
+   outside .canvas-wrap), is pointer-transparent, and is invisible at the Contained
+   baseline (--assim-glow: 0). */
+.canvas-wrap { --assim-glow: 0; --assim-color: 70, 140, 150; }
+.canvas-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 2;
+  box-shadow: inset 0 0 calc(34px * var(--assim-glow)) rgba(var(--assim-color), calc(0.30 * var(--assim-glow)));
+  transition: box-shadow var(--dur-3) var(--ease-out);
+}

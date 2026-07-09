@@ -30,6 +30,8 @@ import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
 import { dangerCurve } from '../core/dangerCamera';
+import { computeAssimilation, stepAssimilation, assimilationPresentation } from '../core/assimilation';
+import { drawAssimilationFx } from '../render/assimilationFx';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
 import { currentCheckpoint } from '../core/tutorial';
@@ -301,6 +303,8 @@ export function GameView({
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
+  const assimTargetRef = useRef(0); // last Assimilation Index target (recomputed at ~8Hz; smoothed every frame)
+  const assimHudRef = useRef(-1); // last HUD-glow value pushed to CSS (throttle)
   const hiveStateRef = useRef(0); // deepest damage-state index announced (0 = healthy … 4 = collapsing)
   const heartbeatRef = useRef(0); // seconds until the next critical-integrity heartbeat
   const graftPulseAtRef = useRef(0); // sim time of the next graft-organism heartbeat (docs/MULLIGANS.md §audio)
@@ -435,6 +439,7 @@ export function GameView({
     let raf = 0;
     let last = performance.now();
     let lastHud = 0;
+    let assimAt = 0; // wall-clock of the last Assimilation target recompute (throttle to ~8Hz)
 
     const loop = (now: number): void => {
       try {
@@ -488,6 +493,14 @@ export function GameView({
           }
         }
 
+        // ── ASSIMILATION INDEX (docs/ASSIMILATION.md): the run's MASTER STATE. Recompute the
+        //    target at ~8Hz (it folds run aggregates — event-ish, not per-frame), smooth it every
+        //    frame, and derive the ONE presentation bundle every dynamic system below keys on
+        //    (music floor, camera breath, screen veil, HUD glow). Render-only — the sim never reads it.
+        if (now - assimAt >= 120) { assimTargetRef.current = computeAssimilation(game.assimilationSignals()).raw; assimAt = now; }
+        stepAssimilation(game.assimilation, assimTargetRef.current, dt);
+        const assimPres = assimilationPresentation(game.assimilation);
+
         // Render with shake (pre-fill covers the shake margin so no gap shows).
         const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;
         const dx = mag ? (Math.random() * 2 - 1) * mag : 0;
@@ -507,6 +520,15 @@ export function GameView({
           const wz = 1 + 0.012 * dangerCurve(wavePushRef.current);
           ctx.translate(WIDTH / 2, HEIGHT * 0.5);
           ctx.scale(wz, wz);
+          ctx.translate(-WIDTH / 2, -HEIGHT * 0.5);
+        }
+        // Assimilation HEARTBEAT (docs/ASSIMILATION.md §Camera): a barely-perceptible view breath
+        // that deepens with the index — the battlefield feels ALIVE as the run assimilates. Capped
+        // at a fraction of a percent so it reads as a pulse, never a zoom; composes under the above.
+        if (assimPres.cameraAmp > 0.0001) {
+          const hb = 1 + assimPres.cameraAmp * Math.sin(game.time * assimPres.cameraHz * Math.PI * 2);
+          ctx.translate(WIDTH / 2, HEIGHT * 0.5);
+          ctx.scale(hb, hb);
           ctx.translate(-WIDTH / 2, -HEIGHT * 0.5);
         }
         // Smart tutorial camera (docs/TUTORIAL.md): ease toward the lesson's focus point (or
@@ -555,6 +577,12 @@ export function GameView({
         }
         ctx.restore();
 
+        // ASSIMILATION VEIL (docs/ASSIMILATION.md §Screen effects): the living-screen post-process
+        // — organic vignette, tier-tinted rim glow, drifting spores, faint biome tint, all breathing
+        // on the master state. Drawn over the finished frame in un-shaken screen space; a true no-op
+        // at the Contained baseline (index ≈ 0), so early game is untouched.
+        drawAssimilationFx(ctx, assimPres, game.time, WIDTH, HEIGHT);
+
         // Dynamic music intensity (audio/music.ts): battlefield pressure — enemies massing +
         // a wounded core — breathes the track's layers in and out. Danger mode swells the mix
         // on the SMOOTHED camera intensity (docs/CAMERA.md §audio), so the low layers fade in
@@ -564,10 +592,24 @@ export function GameView({
           (game.enemies.length / 30) * 0.6 + (1 - intRatio) * 0.6,
           game.dangerCam.intensity * 0.9,
         ));
-        const intensity = game.phase === 'won' || game.phase === 'lost' ? 0 : 0.25 + pressure * 0.75;
+        // The Assimilation Index raises the FLOOR: a deeply-assimilated run keeps the score grand
+        // even in a lull, while live combat pressure still spikes it (docs/ASSIMILATION.md §Music).
+        const intensity = game.phase === 'won' || game.phase === 'lost' ? 0 : Math.max(0.25 + pressure * 0.75, assimPres.musicIntensity);
         if (Math.abs(intensity - intensityRef.current) > 0.04) {
           intensityRef.current = intensity;
           music.setIntensity(intensity);
+        }
+        // HUD organic accent (docs/ASSIMILATION.md §HUD): publish the master state to CSS as
+        // variables the run HUD reads for a subtle living glow — throttled to real changes, and
+        // readability-preserving (the HUD styling only ever ADDS a faint tinted aura).
+        if (Math.abs(assimPres.hudGlow - assimHudRef.current) > 0.03) {
+          assimHudRef.current = assimPres.hudGlow;
+          const root = canvas.parentElement;
+          if (root) {
+            root.style.setProperty('--assim-glow', assimPres.hudGlow.toFixed(3));
+            root.style.setProperty('--assim-color', `${assimPres.color[0]},${assimPres.color[1]},${assimPres.color[2]}`);
+            root.dataset.assimTier = String(assimPres.tier);
+          }
         }
 
         if (now - lastHud > 80) {

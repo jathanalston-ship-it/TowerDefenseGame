@@ -46,7 +46,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'engine', name: 'Sim Engine', purpose: 'Deterministic fixed-timestep simulation — the Game, combat, statuses, targeting, spawning, run events.',
     files: ['src/core/game.ts', 'src/core/combat.ts', 'src/core/status.ts', 'src/core/targeting.ts', 'src/core/reactions.ts', 'src/core/spawndirector.ts', 'src/core/runEvents.ts', 'src/core/events.ts', 'src/core/map.ts', 'src/core/ability.ts', 'src/core/mutators.ts', 'src/core/modifiers.ts', 'src/core/simharness.ts', 'src/core/director.ts', 'src/core/sim.testutil.ts'],
-    dependsOn: ['content-infra', 'towers', 'heroes', 'gene-cards', 'bosses', 'biomes', 'difficulty'],
+    dependsOn: ['content-infra', 'towers', 'heroes', 'gene-cards', 'bosses', 'biomes', 'difficulty', 'assimilation'],
     powerScore: 'emits the TEMPORARY in-run bucket (game.powerEffects)', save: [], tutorial: ['combat'], help: ['hive-core', 'biomass'],
     hud: ['Hud', 'Toolbar', 'BuildControls', 'Inspector', 'BuildPanel'], ui: ['GameView'], collection: 'kills/usage feed collection tiers', achievements: [],
     localization: 'inline-en', docs: ['docs/ARCHITECTURE.md', 'docs/CODEMAP.md', 'docs/DESIGN.md'],
@@ -300,7 +300,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'run-ui', name: 'In-Run HUD & Results', purpose: 'The battlefield interface: HUD, toolbar, inspector, build panel, results + reward reveal.',
     files: ['src/ui/GameView.tsx', 'src/ui/Hud.tsx', 'src/ui/Toolbar.tsx', 'src/ui/BuildControls.tsx', 'src/ui/BuildPanel.tsx', 'src/ui/Inspector.tsx', 'src/ui/Results.tsx', 'src/ui/RewardReveal.tsx', 'src/ui/RewardPreview.tsx'],
-    dependsOn: ['engine', 'meta-store', 'power'], powerScore: 'renders live run Power', save: [],
+    dependsOn: ['engine', 'meta-store', 'power', 'assimilation'], powerScore: 'renders live run Power', save: [],
     tutorial: ['combat'], help: [], hud: ['ALL'], ui: ['Results'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/HUD.md', 'docs/READABILITY.md', 'docs/REWARD-PRESENTATION.md'],
   },
@@ -364,9 +364,17 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'none', docs: ['docs/GAME-FEEL.md'],
   },
   {
+    id: 'assimilation', name: 'Assimilation Index',
+    purpose: 'The hidden per-run MASTER STATE: one continuous 0..1 index folded from weighted contributions across every active system (the live run Power Score is the universal contributor, so nearly all present + future strength raises it for free), smoothed like the danger-camera, driving every dynamic presentation channel — music-intensity floor, camera heartbeat, screen veil, HUD glow — through ONE derived bundle. Six evolution tiers (Contained → Planetary Assimilation) blend continuously; future systems plug in via a data ContributionProfile with no gameplay-code change. Render-only ⇒ golden-safe.',
+    files: ['src/core/assimilation.ts', 'src/render/assimilationFx.ts', 'src/ui/AssimilationDebug.tsx'],
+    dependsOn: [], powerScore: 'CONSUMES the live run Power Score as its dominant contributor (never feeds Power)', save: [], tutorial: [], help: [],
+    hud: ['screen veil + camera heartbeat (GameView)', 'canvas-frame glow'], ui: ['AssimilationDebug (DebugPanel section)'], collection: null, achievements: [],
+    localization: 'none', docs: ['docs/ASSIMILATION.md'],
+  },
+  {
     id: 'devtools', name: 'Dev Tools & Debug', purpose: 'Debug flag/panel, dev seeding, developer reset UI.',
     files: ['src/debug/*', 'src/ui/DebugPanel.tsx', 'src/ui/DevTools.tsx'],
-    dependsOn: ['meta-store'], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: ['DebugPanel', 'DevTools'],
+    dependsOn: ['meta-store', 'assimilation'], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: ['DebugPanel', 'DevTools'],
     collection: null, achievements: [], localization: 'none', docs: ['docs/DEV-RESET.md'],
   },
   {
