@@ -6,8 +6,9 @@ the player **assembles from genetic modifiers**. The resulting organism grows a 
 generated** appearance, animation, and projectile from the modifiers it holds. The design bet:
 **modularity** — a future modifier is one registry row and needs *zero* new gameplay or draw code.
 
-> Status: **framework + 30 modifiers + save + Power + sim fold shipped and tested.** Procedural
-> appearance/animation/projectile generators and the player/dev surfaces layer on top of this core.
+> Status: **SHIPPED end-to-end.** Framework + 30 modifiers + save v26 + Power + sim fold + the
+> procedural organism/animation/projectile generators (drawn on the battlefield) + the earn loop
+> (Bio-Container loot) + the **Mulligan Lab** player screen + dev tools + achievements — all tested.
 
 ---
 
@@ -168,9 +169,26 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
 
 - Built for **100 / 250 / 500+** modifiers: adding one never touches the generators or the resolver.
 - The resolver, Power, save sanitization, and generators are all `O(slots)` = `O(1)` per tower.
-- **BUILT:** framework + resolver + save + Power + sim fold + the procedural organism/animation/
-  projectile generators (`src/render/mulliganOrganism.ts`), drawn on the battlefield through the
-  renderer's per-kind Mulligan channel (`drawGame` → `drawTower`). Empty/inactive ⇒ nothing draws.
-- **Deferred (layering on this core):** the player equip UI, the dev Mulligan Lab, loot-table
-  wiring, collections/achievements entries, and the tutorial nod. The framework they plug into is
-  complete and tested.
+- **BUILT (the whole pillar):** framework + resolver + save + Power + sim fold; the procedural
+  organism/animation/projectile generators (`src/render/mulliganOrganism.ts`) drawn on the
+  battlefield via the renderer's per-kind Mulligan channel (`drawGame` → `drawTower`); the **earn
+  loop** (every Bio-Container bleeds Gene Overflow, epic+ containers discover a modifier —
+  `meta.openContainer`); the **Mulligan Lab** player screen (`ui/MulliganLab.tsx` over
+  `state/mulliganLabModel.ts`, wired into the Hub Progression nav) with a live grafted-organism
+  preview + equip/upgrade/ascend/unequip; **dev tools** (`meta.debugGrantOverflow` /
+  `debugDiscoverAllMulligans` / `debugAutoAssembleMulligans` + DebugPanel buttons); and three
+  **achievements** (`mulligan_grafted` / `mulligan_splicer` / `mulligan_transcendent`).
+
+## 11. Loot, UI & dev tooling
+
+- **Loot (`meta.openContainer`):** every container grants a rarity-scaled Gene Overflow bleed; epic+
+  containers additionally DISCOVER a random modifier at a rolled rarity (best rarity kept in
+  `mulliganDex`). Additive — a fresh account is unaffected.
+- **Mulligan Lab (Hub → Progression → Mulligans):** pick a tower, fill its three slots from your
+  discovered modifiers, upgrade (Gene Overflow) / ascend (maxed → next rarity), watch the organism
+  grow live. Reads `mulliganLabView`; writes only via the meta pipeline.
+- **Dev tools:** grant Overflow, discover-all, and auto-assemble a varied organism on every tower —
+  exercise the entire pipeline without grinding loot.
+- **Known follow-ups (polish, non-blocking):** a bespoke reveal card for the Overflow / discovery
+  spoils (they currently surface in the Lab, not on the container reveal), a Collections codex tier
+  reading `mulliganDex`, and a tutorial nod.

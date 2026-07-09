@@ -66,7 +66,7 @@ import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../co
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
-import { MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, makeSlot, mulliganRegistry, nextRarity, rarityAtLeast, resolveMulligan, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import { MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, makeSlot, mulliganRegistry, nextRarity, rarityAtLeast, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
 import type { MulliganRarity, MulliganState, ResolvedMulligan } from '../core/mulligan';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
@@ -1792,9 +1792,26 @@ export const meta = {
     if (ichorBleed > 0) {
       chest.items.push({ type: 'event', rarity: 'epic', currency: 'ichor', amount: ichorBleed, note: 'Ichor Bleed' });
     }
+    // ── Mulligan spoils (docs/MULLIGANS.md §loot): every container bleeds a little Gene Overflow
+    //    (the modifier-upgrade currency), scaled by rarity; epic+ containers additionally DISCOVER a
+    //    random modifier at a rolled rarity (recording the best rarity seen in the dex). Purely
+    //    additive — surfaced in the Mulligan Lab (a fresh account is unaffected). ──
+    const OVERFLOW_BY_RARITY: Record<string, number> = { common: 15, rare: 30, epic: 55, legendary: 90, exotic: 140, mythic: 200 };
+    const overflowGained = Math.round((OVERFLOW_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6));
+    let mulliganDex = save.mulliganDex;
+    const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
+    if (premiumMull) {
+      const modIds = mulliganRegistry.ids();
+      const id = modIds[Math.floor(Math.random() * modIds.length)];
+      const rar = rollRarity(Math.random());
+      const cur = mulliganDex[id];
+      if (id && (!cur || !rarityAtLeast(cur, rar))) mulliganDex = { ...mulliganDex, [id]: rar };
+    }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
       geneEssence: save.geneEssence + essenceGained,
+      geneOverflow: save.geneOverflow + overflowGained,
+      mulliganDex,
       ichor: save.ichor + ichorBleed,
       lifetimeIchor: save.lifetimeIchor + ichorBleed,
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
@@ -3580,6 +3597,23 @@ export const meta = {
     const towerMasteryXp = { ...save.towerMasteryXp };
     for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
     persist({ ...save, towerMasteryXp });
+  },
+
+  // ── Mulligan dev tools (docs/MULLIGANS.md §dev) — exercise the whole pipeline without loot. ──
+  debugGrantOverflow(n: number): void {
+    meta.grantGeneOverflow(n);
+  },
+  /** Discover every modifier at Epic (headroom for upgrade/ascension testing). */
+  debugDiscoverAllMulligans(): void {
+    for (const m of mulliganRegistry.all()) meta.discoverModifier(m.id, 'epic');
+  },
+  /** Discover all + fill every tower's three slots with a VARIED triple (a live organism per kind). */
+  debugAutoAssembleMulligans(): void {
+    const ids = mulliganRegistry.ids();
+    meta.debugDiscoverAllMulligans();
+    TOWER_ORDER.forEach((k, i) => {
+      for (let s = 0; s < 3; s++) meta.equipMulligan(k, s, ids[(i * 3 + s) % ids.length], 'epic');
+    });
   },
 
   /** Set the highest cleared Campaign stage for a difficulty track — drives the Evolution Cap

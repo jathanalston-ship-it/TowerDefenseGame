@@ -24,6 +24,7 @@ import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUn
 import { MODE_UNLOCKS } from '../core/config';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
+import { MulliganLab } from './MulliganLab';
 import { HeroLab } from './HeroLab';
 import { EquipmentPanel } from './EquipmentPanel';
 import { GeneticVault } from './GeneticVault';
@@ -43,7 +44,7 @@ import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily'
-  | 'towers' | 'heroes' | 'evolution' | 'genes'
+  | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans'
   | 'vault' | 'market' | 'equipment' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
@@ -66,6 +67,7 @@ const navGroups = (): NavGroup[] => [
     { key: 'heroes', label: t('nav.heroes'), mono: 'H' },
     { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
     { key: 'genes', label: t('nav.genes'), mono: '⌬' },
+    { key: 'mulligans', label: t('nav.mulligans'), mono: '⊛' },
   ] },
   { title: t('nav.group.collection'), accent: 'var(--gold)', items: [
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
@@ -330,6 +332,7 @@ export function Hub({
               : <DailyScreen onStartDaily={onStartDaily} onSpectate={onSpectate} />
           )}
           {nav === 'towers' && <TowerLab />}
+          {nav === 'mulligans' && <MulliganLab />}
           {nav === 'heroes' && <HeroLab />}
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}

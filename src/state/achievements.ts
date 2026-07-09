@@ -13,6 +13,7 @@
 
 import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
+import { MULLIGAN_RARITY, isMulliganActive } from '../core/mulligan';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
 import { highestCampaignStage } from '../save/derive';
 import type { TowerKind } from '../core/types';
@@ -70,6 +71,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'star3', name: 'Star Forged', desc: 'Bring a tower to three stars.', reward: 30, test: (c) => maxStars(c.save) >= 3, progress: (c) => ({ cur: maxStars(c.save), max: 3 }) },
   { id: 'specialist', name: 'Specialist', desc: 'Reach 2,000 Mastery XP on a tower.', reward: 25, test: (c) => maxMastery(c.save) >= 2000, progress: (c) => ({ cur: maxMastery(c.save), max: 2000 }) },
   { id: 'hero_shard', name: 'Champion Fragment', desc: 'Collect a Hero Shard.', test: (c) => Object.values(c.save.heroShards).some((n) => n > 0) },
+  // ── Mulligans (docs/MULLIGANS.md) — the biomechanical organism pillar ──
+  { id: 'mulligan_grafted', name: 'Grafted', desc: 'Fully assemble a Mulligan (all three modifier slots) on a tower.', reward: 25, test: (c) => TOWER_ORDER.some((k) => isMulliganActive(c.save.mulligans?.[k])) },
+  { id: 'mulligan_splicer', name: 'Gene Splicer', desc: 'Discover 12 distinct Mulligan modifiers.', reward: 40, test: (c) => Object.keys(c.save.mulliganDex ?? {}).length >= 12, progress: (c) => ({ cur: Object.keys(c.save.mulliganDex ?? {}).length, max: 12 }) },
+  { id: 'mulligan_transcendent', name: 'Transcendent Graft', desc: 'Bring a slotted modifier to Legendary rarity or beyond.', reward: 60, hidden: true, test: (c) => TOWER_ORDER.some((k) => (c.save.mulligans?.[k]?.slots ?? []).some((s) => s && MULLIGAN_RARITY[s.rarity].tier >= MULLIGAN_RARITY.legendary.tier)) },
 
   // ── Statistics-driven (integrates with the lifetime stats system) ──
   { id: 'exterminator', name: 'Exterminator', desc: 'Kill 1,000 enemies (lifetime).', reward: 60, test: (c) => c.save.stats.lifetimeKills >= 1000, progress: (c) => ({ cur: c.save.stats.lifetimeKills, max: 1000 }) },

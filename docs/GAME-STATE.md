@@ -77,15 +77,17 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   pulse drags caught non-bosses 46px back up-lane and tears active siege locks off the Hive — it
   denies PROGRESS, not health bars; stacked pull auras are its investment currency. DOUBLE-gated
   behind the deepest tower gate yet (Campaign 30 → 440 shards). **POLYP.md**
-- 🟨 **Mulligans** (`core/mulligan.ts`, save v26) — the endgame pillar: each tower kind permanently owns
-  ONE biomechanical **Mulligan** organism assembled from THREE genetic modifiers (30 shipped: 10
-  offensive/10 utility/10 biological), 6-rarity ladder (Common→Ascendant), Gene Overflow upgrade
-  currency + ascension. Data-driven (a modifier = one registry row); folds through existing TowerMods
-  channels (**no new sim branch**); **inactive until all 3 slots fill ⇒ golden-safe**. Power: a
-  DEDICATED, separately-inspectable `PowerParts.mulligans` bucket. **BUILT:** framework + resolver +
-  save + meta pipeline + Power + fold, fully tested. **NEXT (in progress):** procedural
-  appearance/animation/projectile generators, player equip UI, dev Mulligan Lab, loot/collections/
-  achievements/tutorial wiring. **MULLIGANS.md**
+- ✅ **Mulligans** (`core/mulligan.ts`, `render/mulliganOrganism.ts`, `ui/MulliganLab.tsx`, save v26) —
+  the endgame pillar: each tower kind permanently owns ONE biomechanical **Mulligan** organism
+  assembled from THREE genetic modifiers (30 shipped: 10 offensive/10 utility/10 biological), 6-rarity
+  ladder (Common→Ascendant), Gene Overflow upgrade currency + ascension. Data-driven (a modifier = one
+  registry row); folds through existing TowerMods channels (**no new sim branch**); **inactive until
+  all 3 slots fill ⇒ golden-safe**. Power: a DEDICATED, separately-inspectable `PowerParts.mulligans`
+  bucket. The organism's appearance/animation/projectile are **procedurally generated** from the
+  modifiers' stat profile (emergent — mixing ≠ stacking) and drawn grafted onto the turret. Earn loop
+  via Bio-Container loot (Gene Overflow + modifier discovery); the **Mulligan Lab** (Hub → Progression)
+  is the equip/upgrade/ascend screen with a live organism preview; 3 achievements + dev tools. Fully
+  tested end-to-end. **MULLIGANS.md**
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +
