@@ -184,14 +184,25 @@ Hunter Ocelli · Web Filament · Resonance Antenna · Warp Anchor · Oracle Nexu
 - **Loot (`meta.openContainer`):** every container grants a rarity-scaled Gene Overflow bleed; epic+
   containers additionally DISCOVER a random modifier at a rolled rarity (best rarity kept in
   `mulliganDex`). Additive — a fresh account is unaffected.
-- **Mulligan Lab (Hub → Progression → Mulligans):** pick a tower, fill its three slots from your
-  discovered modifiers, upgrade (Gene Overflow) / ascend (maxed → next rarity), watch the organism
-  grow live. Reads `mulliganLabView`; writes only via the meta pipeline.
+- **Mulligan Lab (Hub → Progression → Mulligans):** a master–detail bench in the Tower Lab's
+  visual language (`.mgl-*`, token-driven — passes `uiStandards`). The HOST RAIL (one row per
+  tower: portrait, awake/dormant status, ×Power) selects a specimen for the SHOWCASE: a breathing
+  GRAFT CHAMBER (the live procedurally-generated organism on its turret — DPR-crisp, static frame
+  under reduced motion), the organism's dominant-axis identity + resolved package chips, three
+  GRAFT SITES (rarity-railed cards; level bar; level-up / ascend / clear — every spend shows a
+  `PowerPreview`), and the category-filterable sequenced-modifier library. The first empty site
+  auto-arms, so tapping a library modifier grafts immediately. Reads `mulliganLabView` (which
+  carries `filled` / `dominant` / `packageLines` per tower); writes only via the meta pipeline.
+- **Visual identity:** `MULLIGAN_RARITY` colors mirror the global rarity tokens (`--r-*`;
+  ascendant = the mythic register) so rarity reads identically across equipment, genes and
+  mulligans; `GENE_OVERFLOW` (core/mulligan.ts) is the currency's single name/glyph/color source
+  (⊛, gene-green) shared by the Lab wallet, the reveal pulls, and profile copy.
 - **Dev tools:** grant Overflow, discover-all, and auto-assemble a varied organism on every tower —
   exercise the entire pipeline without grinding loot.
 - **Container reveal (§reveal):** the Overflow bleed and every dex discovery surface ON the reveal
   ceremony as event pulls — `Gene Overflow +N` and `Modifier Sequenced/Ascended — <name> (<rarity>)`
-  (ascendant reads at exotic emphasis) — so the spoils are never invisible.
+  (ascendant reads at exotic emphasis) — so the spoils are never invisible. Both pulls wear the
+  system's ⊛ glyph: the bleed in `GENE_OVERFLOW.color`, a discovery in its sequenced rarity's color.
 
 ## Daily Run (§daily)
 

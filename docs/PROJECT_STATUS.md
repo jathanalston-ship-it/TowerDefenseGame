@@ -3,7 +3,16 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-08 · session 2 (**PUBLIC-RELEASE PACKAGE complete** —
+> **Last updated:** 2026-07-09 (**MULLIGAN PRESENTATION OVERHAUL** — the Mulligan Lab
+> rebuilt to the design language (token-driven `.mgl-*`; host rail → live graft-chamber
+> showcase → Power-previewed graft sites → category-filterable modifier library; auto-armed
+> first empty site; DPR/reduced-motion-aware preview canvas); `MULLIGAN_RARITY` colors now
+> mirror the global `--r-*` ladder; new `GENE_OVERFLOW` ⊛ identity shared by the Lab wallet
+> + reveal pulls; Inspector/Daily phantom CSS vars fixed. Suite 1328, validate PASS,
+> mobilecheck CLEAN, live headless equip/level/ascend loop verified. docs/MULLIGANS.md §UI
+> updated. Previous session below.)
+>
+> **2026-07-08** · session 2 (**PUBLIC-RELEASE PACKAGE complete** —
 > marketing site (`/welcome/`: hero/trailer/screenshots/features/modes/newsletter/legal
 > skeletons + hidden modular ad slots, docs/WEBSITE.md), full branding/PWA (manifest,
 > icons, OG card, boot splash, SEO/social meta), privacy-friendly analytics (D1

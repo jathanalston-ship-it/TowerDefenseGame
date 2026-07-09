@@ -23,6 +23,7 @@ import { itemPowerScore } from './itemPower';
 import type { PowerCompare } from './itemPower';
 import { CURRENCIES } from '../core/currencies';
 import type { CurrencyId } from '../core/currencies';
+import { GENE_OVERFLOW } from '../core/mulligan';
 
 export { itemPowerScore }; // re-exported for callers that import it from the reveal read-model
 
@@ -133,6 +134,20 @@ export function describePull(item: RewardItem, compare?: (i: OwnedItem) => Power
     case 'relic':
       return { key: `relic:${item.id}`, category: 'other', rarity: item.rarity, color: 'var(--r-legendary)', name: item.id, qty: 1, unit: 'Relic', amountLabel: 'Relic', glyph: '❈' };
     case 'event': {
+      // Mulligan-family spoils wear the system's ⊛ mark (docs/MULLIGANS.md §reveal): the Overflow
+      // bleed in its currency green, a modifier discovery in its sequenced rarity's color.
+      if (item.currency === 'geneOverflow' || item.currency === 'mulliganModifier') {
+        const isMod = item.currency === 'mulliganModifier';
+        return {
+          key: `evt:${item.currency}:${item.note ?? ''}`,
+          category: 'other', rarity: item.rarity,
+          color: isMod ? rarityColor(item.rarity) : GENE_OVERFLOW.color,
+          name: item.note ?? GENE_OVERFLOW.name,
+          qty: item.amount, unit: isMod ? 'Modifier' : GENE_OVERFLOW.name,
+          amountLabel: isMod ? rarityLabel(item.rarity) : `+${item.amount} ${GENE_OVERFLOW.name}`,
+          glyph: GENE_OVERFLOW.glyph,
+        };
+      }
       // Currency events (e.g. Gene Essence from duplicate conversion) render the animated currency
       // icon; `note` becomes the reason ("Duplicate Common Tower") so the player sees WHY it converted.
       const cur = CURRENCIES[item.currency as CurrencyId];

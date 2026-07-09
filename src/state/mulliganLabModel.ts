@@ -5,10 +5,10 @@
 
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import {
-  MULLIGAN_RARITY, ascendCost, isMaxLevel, levelCap, mulliganRegistry, nextRarity,
+  MULLIGAN_RARITY, ascendCost, dominantAxis, isMaxLevel, levelCap, mulliganRegistry, nextRarity,
   resolveMulligan, upgradeCost,
 } from '../core/mulligan';
-import type { MulliganRarity } from '../core/mulligan';
+import type { MulliganAxis, MulliganRarity, ResolvedMulligan } from '../core/mulligan';
 import type { TowerKind } from '../core/types';
 import type { SaveData } from '../save/saveStore';
 
@@ -17,6 +17,8 @@ export interface SlotView {
   filled: boolean;
   id?: string;
   name?: string;
+  desc?: string; // what the modifier does, in player words (shown on the slot card)
+  category?: 'offensive' | 'utility' | 'biological';
   rarity?: MulliganRarity;
   rarityColor?: string;
   level?: number;
@@ -26,6 +28,7 @@ export interface SlotView {
   canAfford?: boolean; // upgrade affordable now
   ascendable?: boolean; // maxed + a higher rarity exists + affordable
   ascendCost?: number | null;
+  nextRarity?: MulliganRarity | null; // the rarity an ascend would reach (null at the apex)
 }
 
 export interface TowerMulliganView {
@@ -33,7 +36,10 @@ export interface TowerMulliganView {
   name: string;
   color: string;
   active: boolean; // all three slots filled
+  filled: number; // slots holding a modifier (0..3) — the rail + dormancy copy read this
   power: number; // this organism's Power multiplier (≥1)
+  dominant: MulliganAxis | ''; // the organism's identity axis ('' until active)
+  packageLines: string[]; // the resolved stat package, display-ready ([] until active)
   slots: SlotView[];
 }
 
@@ -66,6 +72,8 @@ function slotView(save: SaveData, kind: TowerKind, index: number): SlotView {
     filled: true,
     id: slot.id,
     name: def?.name ?? slot.id,
+    desc: def?.desc,
+    category: def?.category,
     rarity: slot.rarity,
     rarityColor: MULLIGAN_RARITY[slot.rarity].color,
     level: slot.level,
@@ -75,20 +83,38 @@ function slotView(save: SaveData, kind: TowerKind, index: number): SlotView {
     canAfford: cost !== undefined && save.geneOverflow >= cost,
     ascendable: maxed && !!nextRarity(slot.rarity) && asc != null && save.geneOverflow >= asc,
     ascendCost: asc,
+    nextRarity: nextRarity(slot.rarity),
   };
+}
+
+/** The resolved organism's stat package as display lines (mirrors the Inspector's format). */
+function packageLines(r: ResolvedMulligan): string[] {
+  if (!r.active) return [];
+  const pct = (v: number): string => `+${Math.round((v - 1) * 100)}%`;
+  return [
+    r.damageMult > 1 && `${pct(r.damageMult)} damage`,
+    r.fireRateMult > 1 && `${pct(r.fireRateMult)} fire rate`,
+    r.rangeMult > 1 && `${pct(r.rangeMult)} range`,
+    r.splashMult > 1 && `${pct(r.splashMult)} splash`,
+    r.extraProjectiles > 0 && `+${r.extraProjectiles} projectile${r.extraProjectiles > 1 ? 's' : ''}`,
+  ].filter((x): x is string => !!x);
 }
 
 /** The whole Lab view for a save. */
 export function mulliganLabView(save: SaveData): MulliganLabView {
   const towers: TowerMulliganView[] = TOWER_ORDER.map((kind) => {
     const resolved = resolveMulligan(save.mulligans?.[kind]);
+    const slots = [0, 1, 2].map((i) => slotView(save, kind, i));
     return {
       kind,
       name: TOWER_DEFS[kind].name,
       color: TOWER_DEFS[kind].color,
       active: resolved.active,
+      filled: slots.filter((s) => s.filled).length,
       power: resolved.power,
-      slots: [0, 1, 2].map((i) => slotView(save, kind, i)),
+      dominant: dominantAxis(resolved.profile),
+      packageLines: packageLines(resolved),
+      slots,
     };
   });
   const dex = save.mulliganDex ?? {};

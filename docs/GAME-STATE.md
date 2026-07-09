@@ -112,7 +112,9 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   bucket. The organism's appearance/animation/projectile are **procedurally generated** from the
   modifiers' stat profile (emergent — mixing ≠ stacking) and drawn grafted onto the turret. Earn loop
   via Bio-Container loot (Gene Overflow + modifier discovery); the **Mulligan Lab** (Hub → Progression)
-  is the equip/upgrade/ascend screen with a live organism preview; 7 achievements + dev tools. Fully
+  is a design-language master–detail bench (host rail → live graft-chamber showcase, `.mgl-*` tokens,
+  Power-previewed spends, auto-armed sites; rarity colors mirror the global `--r-*` ladder and the
+  ⊛ `GENE_OVERFLOW` identity is shared with the reveal pulls); 7 achievements + dev tools. Fully
   tested end-to-end. **Reconciliation surfaces:** Daily Run pre-assembles the day's towers from the
   player's OWN dex (loaner tutorial trio when empty; seeded, override-folded — §daily), Modifiers
   collection codex (Discovered → Transcendent; +5% fire rate at completion), Inspector organism block,

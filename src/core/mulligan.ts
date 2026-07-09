@@ -34,14 +34,28 @@ export interface MulliganRarityTier {
   levelCap: number; // upgrade ceiling at this rarity (future-proofed by MULLIGAN_MAX_LEVEL)
 }
 
+// Colors mirror the global rarity tokens (src/index.css :root --r-*), so a Legendary modifier
+// wears the same gold as Legendary equipment/genes and Ascendant reads at the mythic register.
+// Raw hex (not var()) because the canvas generators and inline chip styles consume them directly.
 export const MULLIGAN_RARITY: Record<MulliganRarity, MulliganRarityTier> = {
-  common: { tier: 0, label: 'Common', color: '#9fb0c3', statMult: 1.0, powerMult: 1.0, visualIntensity: 0.6, animComplexity: 1, levelCap: 5 },
-  uncommon: { tier: 1, label: 'Uncommon', color: '#5fd38a', statMult: 1.35, powerMult: 1.4, visualIntensity: 0.78, animComplexity: 2, levelCap: 8 },
-  rare: { tier: 2, label: 'Rare', color: '#5aa9ff', statMult: 1.75, powerMult: 1.9, visualIntensity: 0.95, animComplexity: 2, levelCap: 11 },
-  epic: { tier: 3, label: 'Epic', color: '#c07bff', statMult: 2.25, powerMult: 2.6, visualIntensity: 1.12, animComplexity: 3, levelCap: 14 },
-  legendary: { tier: 4, label: 'Legendary', color: '#ffb347', statMult: 2.9, powerMult: 3.6, visualIntensity: 1.3, animComplexity: 3, levelCap: 17 },
-  ascendant: { tier: 5, label: 'Ascendant', color: '#ff5db1', statMult: 3.7, powerMult: 5.0, visualIntensity: 1.5, animComplexity: 4, levelCap: 20 },
+  common: { tier: 0, label: 'Common', color: '#9aa7b8', statMult: 1.0, powerMult: 1.0, visualIntensity: 0.6, animComplexity: 1, levelCap: 5 },
+  uncommon: { tier: 1, label: 'Uncommon', color: '#5fe08a', statMult: 1.35, powerMult: 1.4, visualIntensity: 0.78, animComplexity: 2, levelCap: 8 },
+  rare: { tier: 2, label: 'Rare', color: '#5ad1ff', statMult: 1.75, powerMult: 1.9, visualIntensity: 0.95, animComplexity: 2, levelCap: 11 },
+  epic: { tier: 3, label: 'Epic', color: '#c98bff', statMult: 2.25, powerMult: 2.6, visualIntensity: 1.12, animComplexity: 3, levelCap: 14 },
+  legendary: { tier: 4, label: 'Legendary', color: '#ffd24d', statMult: 2.9, powerMult: 3.6, visualIntensity: 1.3, animComplexity: 3, levelCap: 17 },
+  ascendant: { tier: 5, label: 'Ascendant', color: '#ff6b8b', statMult: 3.7, powerMult: 5.0, visualIntensity: 1.5, animComplexity: 4, levelCap: 20 },
 };
+
+/** Gene Overflow — the modifier-upgrade currency's ONE visual identity. It is not a wallet
+ *  `CurrencyId` (it persists as `save.geneOverflow`); this metadata gives the Mulligan Lab
+ *  header, the container-reveal pulls, and the profile row the same name/glyph/color without
+ *  widening the currency framework. ⊛ is the Mulligan system's canonical mark (nav, Inspector). */
+export const GENE_OVERFLOW = {
+  name: 'Gene Overflow',
+  glyph: '⊛',
+  color: '#5fe08a',
+  blurb: 'Raw genetic surplus bled from every Bio-Container. Spent in the Mulligan Lab to level and ascend grafted modifiers.',
+} as const;
 
 /** Absolute upgrade ceiling (rarity caps sit at or below this) — kept generous for future Ascension. */
 export const MULLIGAN_MAX_LEVEL = 20;
