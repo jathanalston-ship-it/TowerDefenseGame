@@ -31,7 +31,8 @@ import { cardRegistry } from '../core/cards';
 import { masteryRank } from '../core/mastery';
 import { adaptVisualTier } from '../core/adaptation';
 import { dangerCurve } from '../core/dangerCamera';
-import { computeAssimilationTarget, stepAssimilation, assimilationPresentation } from '../core/assimilation';
+import { computeAssimilationTarget, stepAssimilation, assimilationPresentation, assimilationPresentationInto } from '../core/assimilation';
+import type { AssimilationPresentation } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
@@ -307,6 +308,7 @@ export function GameView({
   const assimTargetRef = useRef(0); // last Assimilation Index target (recomputed at ~8Hz; smoothed every frame)
   const assimHudRef = useRef(-1); // last HUD-glow value pushed to CSS (throttle)
   const assimAscendRef = useRef(-1); // last Ascension-flourish pulse pushed to CSS (throttle)
+  const assimPresRef = useRef<AssimilationPresentation | null>(null); // reused presentation bundle (zero-alloc/frame)
   const hiveStateRef = useRef(0); // deepest damage-state index announced (0 = healthy … 4 = collapsing)
   const heartbeatRef = useRef(0); // seconds until the next critical-integrity heartbeat
   const graftPulseAtRef = useRef(0); // sim time of the next graft-organism heartbeat (docs/MULLIGANS.md §audio)
@@ -502,7 +504,10 @@ export function GameView({
         //    (music floor, camera breath, screen veil, HUD glow). Render-only — the sim never reads it.
         if (now - assimAt >= 120) { assimTargetRef.current = computeAssimilationTarget(game.assimilationSignals()); assimAt = now; }
         stepAssimilation(game.assimilation, assimTargetRef.current, dt);
-        const assimPres = assimilationPresentation(game.assimilation);
+        // One presentation bundle, reused every frame (overwritten wholesale by the Into variant) —
+        // the whole assimilation pipeline is allocation-free at 60fps. Consumed synchronously below.
+        assimPresRef.current ??= assimilationPresentation(game.assimilation);
+        const assimPres = assimilationPresentationInto(game.assimilation, assimPresRef.current);
 
         // Render with shake (pre-fill covers the shake margin so no gap shows).
         const mag = traumaRef.current * traumaRef.current * SHAKE_MAX;

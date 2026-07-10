@@ -73,12 +73,19 @@ Both fold the same way:
 - Each profile reads one raw signal `≥ 0` and normalizes it with **soft saturation**
   `score = raw / (raw + half)` — smooth, monotonic, asymptotic to `1`, and never a step. `half` is
   the raw value that reads `0.5`.
-- **Group-normalized (the four pillars).** Each group — strength / tempo / conquest / battlefield —
-  yields its OWN weighted-mean sub-score, then the four group scores combine by `GROUP_WEIGHTS`:
-  `Σ(groupWeight · groupScore) / Σ groupWeight`. This keeps the pillars **balanced at any content
-  scale** — adding a battlefield contributor rebalances only *within* battlefield and can never swamp
-  conquest (100 towers won't drown the boss-kill signal). Inherently bounded to `[0, 1]`. Strength
-  stays the dominant single pillar because the Power Score is the universal contributor.
+- **Mode-calibrated.** `half` is calibrated for stage runs; a profile may carry `halfByMode`
+  overrides keyed by `AssimilationSignals.mode` (the Game supplies its `RunMode`). Boss Rush is
+  calibrated today (`wave` 16→6 — a rush wave is N simultaneous bosses; `bosses` 3.5→12 — boss kills
+  are that mode's volume stat). **A future mode tunes its own feel with data rows, zero code**;
+  unknown modes fall back to the defaults.
+- **Group-normalized (the pillars).** Each group — declared in the single `ASSIMILATION_GROUPS`
+  table (id, label, weight) — yields its OWN weighted-mean sub-score, then the group scores combine
+  by their table weights: `Σ(groupWeight · groupScore) / Σ groupWeight`. This keeps the pillars
+  **balanced at any content scale** — adding a battlefield contributor rebalances only *within*
+  battlefield and can never swamp conquest (100 towers won't drown the boss-kill signal). Inherently
+  bounded to `[0, 1]`. Strength stays the dominant single pillar because the Power Score is the
+  universal contributor. Order, dense indices, scratch sizes and the debug panel's group list all
+  derive from the table — **adding a pillar is one row** (plus its `ContributionGroup` union member).
 - `stepAssimilation(state, target, dt)` eases the smoothed `index` toward the target — **asymmetric**
   (`ASSIM.riseRate > ASSIM.fallRate`): the organism grows briskly and relaxes slowly, so a combat
   lull never collapses the mood. It settles exactly at rest and is safe at any `dt`. It also detects
@@ -94,7 +101,7 @@ one place (`docs/GAME_CONSTITUTION.md` rule 15):
 | Group | Contributor | Weight | Reads |
 |---|---|---:|---|
 | **strength** | Assimilated Power | 3.0 | live run **Power Score** (`src/core/power.ts`) |
-| tempo | Wave Depth | 2.2 | current wave / Infinite / Rush depth |
+| tempo | Wave Depth | 2.2 | current wave / Infinite / Rush depth (half 16; bossRush 6) |
 | tempo | Live Biomass | 0.9 | biomass banked now |
 | tempo | Active Adaptations | 0.5 | run-wide buffs live |
 | conquest | Assimilated Enemies | 1.4 | kills this run |
@@ -144,6 +151,15 @@ tiers **blend continuously** (`tierColorAt` interpolates the accent by progress)
 thresholds), so the game evolves in lockstep. Every channel is readability-preserving by
 construction.
 
+- **The scalar channels are data** (`ASSIM_CHANNELS`): each is a `{ base, span, shape, from? }`
+  curve row (`eased` = smootherstep; `from` delays the channel's onset — e.g. veins begin past
+  ~Dominance). Tuning or adding a scalar channel is a row + a bundle field; the established values
+  are pinned by tests so retunes are deliberate.
+- **The hot path allocates nothing:** the run loop reuses ONE bundle via
+  `assimilationPresentationInto(state, out)` (overwritten wholesale each frame — consume
+  synchronously, never retain). `assimilationPresentation(state)` is the allocating convenience
+  wrapper for cold paths (debug panel, tests).
+
 - **Music** (`src/audio/music.ts` `setIntensity`) — the index raises the **floor** of the music
   intensity (`0.18 + 0.82·index`), while live combat pressure still spikes it. A deeply-assimilated
   run keeps the score grand even in a lull; the boss/mega tracks own their own category.
@@ -171,7 +187,18 @@ construction.
 
 ## Extension — plugging in future systems
 
-Two paths, **neither of which changes gameplay code**:
+Every likely addition is a **data row**, not a code change:
+
+| You are adding… | Do this |
+|---|---|
+| A new **strength/progression system** | Nothing — it feeds the Power Score (rule 1), which already contributes. |
+| A new **run signal** | Register a `ContributionProfile` reading a `custom` signal (below). |
+| A new **game mode** | `halfByMode: { yourMode: … }` rows on whichever profiles need recalibrating. |
+| A new **pillar** | One row in `ASSIMILATION_GROUPS` + its `ContributionGroup` union member. |
+| A new **scalar presentation channel** | One `ASSIM_CHANNELS` row + a bundle field + its assignment. |
+| A new **presentation consumer** | Read `assimilationPresentation(game.assimilation)` (or the bundle GameView already derives) — never invent a private threshold. |
+
+The registration path in detail — **neither branch changes gameplay code**:
 
 1. **Implicit (free):** if the new system feeds the Power Score (it must, per rule 1), its strength
    automatically raises the **Assimilated Power** contribution. Nothing else to do.
@@ -186,7 +213,10 @@ Two paths, **neither of which changes gameplay code**:
    ```
 
    The owning system injects its value into `AssimilationSignals.custom` (an open map, so the core
-   interface never changes), and `computeAssimilation` consumes it automatically.
+   interface never changes), and both fold paths consume it automatically. Registration **validates
+   loudly** (non-empty id, known group, finite positive weight/half, no canonical-id collision) so a
+   malformed row fails at module init instead of silently skewing the fold;
+   `unregisterAssimilationContribution(id)` removes a runtime row (tests/HMR).
 
 New **presentation** consumers (tower idle richness, hero implant glow, the Nucleus, enemy fear
 tells, Mega Boss escalation, run cinematics) should read `assimilationPresentation(game.assimilation)`

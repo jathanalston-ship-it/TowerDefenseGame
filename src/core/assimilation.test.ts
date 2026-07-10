@@ -1,22 +1,29 @@
 import { describe, it, expect } from 'vitest';
 import {
+  ASSIMILATION_GROUPS,
   ASSIMILATION_TIERS,
   ASSIM,
+  ASSIM_CHANNELS,
   GROUP_WEIGHTS,
   allContributions,
   assimilationPresentation,
+  assimilationPresentationInto,
+  channelValue,
   computeAssimilation,
   computeAssimilationTarget,
   initialAssimilation,
   registerAssimilationContribution,
+  smoothstep,
   stepAssimilation,
   tierAt,
   tierColorAt,
+  unregisterAssimilationContribution,
   zeroSignals,
   type AssimilationSignals,
 } from './assimilation';
 
 const richSignals = (): AssimilationSignals => ({
+  mode: 'stage',
   wave: 30, totalWaves: 30, currentBiomass: 3000, biomassGenerated: 12000, kills: 800, bossKills: 6,
   megaKills: 3, weakPoints: 12, towerCount: 14, heroCount: 3, strainSum: 40, branchTierSum: 24, activeBuffs: 4,
   runPower: 18000, integrityFrac: 0.8, time: 120,
@@ -149,6 +156,97 @@ describe('assimilation — the extension seam', () => {
     const after = computeAssimilation({ ...zeroSignals(), custom: { nucleusEvolution: 100 } }).raw;
     expect(after).toBeGreaterThan(before);
     expect(allContributions().some((c) => c.id === 'test-nucleus')).toBe(true);
+    // Clean up so later suites fold only the canonical registry.
+    expect(unregisterAssimilationContribution('test-nucleus')).toBe(true);
+    expect(unregisterAssimilationContribution('test-nucleus')).toBe(false);
+  });
+
+  it('rejects malformed profiles loudly at registration', () => {
+    const ok = { id: 'x', label: 'X', group: 'tempo' as const, weight: 1, half: 5, read: () => 0 };
+    expect(() => registerAssimilationContribution({ ...ok, id: '' })).toThrow(/non-empty id/);
+    expect(() => registerAssimilationContribution({ ...ok, group: 'meta' as never })).toThrow(/unknown group/);
+    expect(() => registerAssimilationContribution({ ...ok, weight: 0 })).toThrow(/weight/);
+    expect(() => registerAssimilationContribution({ ...ok, weight: Number.NaN })).toThrow(/weight/);
+    expect(() => registerAssimilationContribution({ ...ok, half: -1 })).toThrow(/half/);
+    expect(() => registerAssimilationContribution({ ...ok, id: 'power' })).toThrow(/canonical/);
+    expect(allContributions().some((c) => c.id === 'x' || c.id === '')).toBe(false); // nothing leaked in
+  });
+});
+
+describe('assimilation — mode calibration (halfByMode)', () => {
+  it('Boss Rush wave depth saturates faster than a stage run at the same wave', () => {
+    const stage = computeAssimilationTarget({ ...zeroSignals(), wave: 6 });
+    const rush = computeAssimilationTarget({ ...zeroSignals(), mode: 'bossRush', wave: 6 });
+    expect(rush).toBeGreaterThan(stage);
+  });
+
+  it('an unknown future mode falls back to the default calibration untouched', () => {
+    const stage = computeAssimilationTarget({ ...zeroSignals(), wave: 9, kills: 50 });
+    const future = computeAssimilationTarget({ ...zeroSignals(), mode: 'raid2029', wave: 9, kills: 50 });
+    expect(future).toBeCloseTo(stage, 12);
+  });
+
+  it('hot and cold paths agree under any mode', () => {
+    for (const mode of ['stage', 'endless', 'bossRush', 'somethingNew']) {
+      const s = { ...richSignals(), mode };
+      expect(computeAssimilationTarget(s)).toBeCloseTo(computeAssimilation(s).raw, 12);
+    }
+  });
+});
+
+describe('assimilation — the pillar table is the single source of truth', () => {
+  it('GROUP_WEIGHTS and the fold derive from ASSIMILATION_GROUPS', () => {
+    expect(ASSIMILATION_GROUPS.length).toBeGreaterThanOrEqual(4);
+    for (const g of ASSIMILATION_GROUPS) {
+      expect(GROUP_WEIGHTS[g.id]).toBe(g.weight);
+      expect(g.label.length).toBeGreaterThan(0);
+    }
+    // The breakdown reports pillars in table order with table weights.
+    const { groups } = computeAssimilation(richSignals());
+    expect(groups.map((g) => g.group)).toEqual(ASSIMILATION_GROUPS.map((g) => g.id));
+    expect(groups.map((g) => g.weight)).toEqual(ASSIMILATION_GROUPS.map((g) => g.weight));
+  });
+});
+
+describe('assimilation — presentation channels & the zero-alloc Into path', () => {
+  const stateAt = (index: number): ReturnType<typeof initialAssimilation> => ({
+    index, target: index, tier: tierAt(index).tier.index, tierProgress: tierAt(index).progress,
+    override: null, peakTier: tierAt(index).tier.index, ascensionPulse: 0.4, ascendedTier: 2,
+  });
+
+  it('assimilationPresentationInto reuses the bundle (identity) and matches the allocating variant', () => {
+    const out = assimilationPresentation(initialAssimilation()); // seed bundle
+    const color = out.color;
+    for (const x of [0, 0.2, 0.5, 0.83, 1]) {
+      const st = stateAt(x);
+      const filled = assimilationPresentationInto(st, out);
+      expect(filled).toBe(out); // no new bundle
+      expect(filled.color).toBe(color); // no new tuple
+      expect(filled).toEqual(assimilationPresentation(st)); // identical values
+    }
+  });
+
+  it('the channel table reproduces the established tuning (pinned at x=0.5)', () => {
+    const p = assimilationPresentation(stateAt(0.5));
+    expect(p.musicIntensity).toBeCloseTo(0.18 + 0.82 * 0.5, 10);
+    expect(p.vignette).toBeCloseTo(0.08 + 0.3 * smoothstep(0.5), 10);
+    expect(p.glow).toBeCloseTo(0.04 + 0.2 * smoothstep(0.5), 10);
+    expect(p.cameraHz).toBeCloseTo(0.55 + 0.45 * 0.5, 10);
+    expect(p.cameraAmp).toBeCloseTo(0.0012 + 0.003 * smoothstep(0.5), 10);
+    expect(p.vein).toBeCloseTo(smoothstep((0.5 - 0.42) / 0.58), 10);
+  });
+
+  it('every channel curve is monotonic non-decreasing and starts at its base', () => {
+    for (const c of Object.values(ASSIM_CHANNELS)) {
+      expect(channelValue(c, 0)).toBeCloseTo(c.base, 12);
+      let last = -Infinity;
+      for (let x = 0; x <= 1.0001; x += 0.05) {
+        const v = channelValue(c, x);
+        expect(v).toBeGreaterThanOrEqual(last - 1e-12);
+        last = v;
+      }
+      expect(last).toBeCloseTo(c.base + c.span, 6);
+    }
   });
 });
 

@@ -20,6 +20,9 @@
 /** The raw run signals the index folds. The Game fills these from live run state
  *  (game.assimilationSignals()); `custom` is the open seam for future systems (see below). */
 export interface AssimilationSignals {
+  /** The run mode id ('stage' | 'endless' | 'bossRush' | future modes). Kept a plain string so this
+   *  module stays import-free; profiles may calibrate per mode via `halfByMode` (data, not code). */
+  mode: string;
   wave: number; // current wave / Infinite depth / Boss-Rush depth
   totalWaves: number; // authored total (0 for open-ended modes)
   currentBiomass: number; // biomass banked right now (spendable pressure)
@@ -44,6 +47,7 @@ export interface AssimilationSignals {
 /** A neutral signal bag — every contributor reads 0 ⇒ index 0 (Contained). Used for tests/previews. */
 export function zeroSignals(): AssimilationSignals {
   return {
+    mode: 'stage',
     wave: 0, totalWaves: 0, currentBiomass: 0, biomassGenerated: 0, kills: 0, bossKills: 0,
     megaKills: 0, weakPoints: 0, towerCount: 0, heroCount: 0, strainSum: 0, branchTierSum: 0, activeBuffs: 0,
     runPower: 0, integrityFrac: 1, time: 0,
@@ -63,10 +67,17 @@ export interface ContributionProfile {
   group: ContributionGroup;
   weight: number; // relative pull on the index
   half: number; // soft-saturation half point (raw value → 0.5 sub-score)
+  /** Optional per-mode half overrides (keyed by AssimilationSignals.mode). The default `half` is
+   *  calibrated for stage runs; a mode whose signals run on a different scale (Boss Rush's wave N
+   *  = N simultaneous bosses) recalibrates HERE — a data row, never a code change. Unknown modes
+   *  fall back to `half`. */
+  halfByMode?: Readonly<Record<string, number>>;
   read: (s: AssimilationSignals) => number;
 }
 
 const sat = (x: number, half: number): number => (x <= 0 ? 0 : x / (x + half));
+/** The soft-saturation half point for this profile under the run's mode (data-calibrated). */
+const halfOf = (p: ContributionProfile, mode: string): number => p.halfByMode?.[mode] ?? p.half;
 
 /** The canonical contributors. Weights/half-points are tunables — rebalance freely here
  *  (docs/GAME_CONSTITUTION.md rule 15: balance lives in data, in one place). */
@@ -75,14 +86,17 @@ export const CONTRIBUTIONS: readonly ContributionProfile[] = [
   // equipment, mastery, stars, branches, mulligans, collection… so this ONE row makes every
   // present and future progression system raise Assimilation with no extra wiring.
   { id: 'power', label: 'Assimilated Power', group: 'strength', weight: 3.0, half: 4200, read: (s) => s.runPower },
-  // TEMPO — the moment-to-moment climb of a single run.
-  { id: 'wave', label: 'Wave Depth', group: 'tempo', weight: 2.2, half: 16, read: (s) => s.wave },
+  // TEMPO — the moment-to-moment climb of a single run. Wave depth is mode-calibrated: a Boss Rush
+  // wave is N simultaneous bosses, so reaching wave 6 there ≈ reaching wave 16 of a stage.
+  { id: 'wave', label: 'Wave Depth', group: 'tempo', weight: 2.2, half: 16, halfByMode: { bossRush: 6 }, read: (s) => s.wave },
   { id: 'biomass', label: 'Live Biomass', group: 'tempo', weight: 0.9, half: 1400, read: (s) => s.currentBiomass },
   { id: 'buffs', label: 'Active Adaptations', group: 'tempo', weight: 0.5, half: 5, read: (s) => s.activeBuffs },
   // CONQUEST — cumulative dominance over the wave.
   { id: 'kills', label: 'Assimilated Enemies', group: 'conquest', weight: 1.4, half: 260, read: (s) => s.kills },
   { id: 'biomassGen', label: 'Total Biomass Reclaimed', group: 'conquest', weight: 1.0, half: 6000, read: (s) => s.biomassGenerated },
-  { id: 'bosses', label: 'Bosses Broken', group: 'conquest', weight: 1.6, half: 3.5, read: (s) => s.bossKills },
+  // Boss kills are the VOLUME stat of Boss Rush (wave N pays N of them) — recalibrated there so the
+  // row doesn't peg within two waves and flatten the mode's whole climb.
+  { id: 'bosses', label: 'Bosses Broken', group: 'conquest', weight: 1.6, half: 3.5, halfByMode: { bossRush: 12 }, read: (s) => s.bossKills },
   { id: 'megaBosses', label: 'Mega Bosses Consumed', group: 'conquest', weight: 2.0, half: 1.5, read: (s) => s.megaKills },
   { id: 'weakPoints', label: 'Weak Points Ruptured', group: 'conquest', weight: 1.2, half: 14, read: (s) => s.weakPoints },
   // BATTLEFIELD — how developed the player's living infestation is on the field right now.
@@ -99,11 +113,25 @@ const EXTRA_CONTRIBUTIONS: ContributionProfile[] = [];
 
 /** Register a contribution profile at runtime (idempotent by id). The profile typically reads a
  *  `custom` signal the owning system injects into AssimilationSignals — so a new system contributes
- *  to the master state without editing this file or any gameplay code. */
+ *  to the master state without editing this file or any gameplay code. Malformed profiles throw
+ *  LOUDLY at registration (module init) rather than silently skewing the fold forever. */
 export function registerAssimilationContribution(p: ContributionProfile): void {
+  if (!p.id) throw new Error('assimilation: a contribution profile needs a non-empty id');
+  if (GI[p.group] === undefined) throw new Error(`assimilation: unknown group '${p.group}' — add it to ASSIMILATION_GROUPS first`);
+  if (!Number.isFinite(p.weight) || p.weight <= 0) throw new Error(`assimilation: profile '${p.id}' needs a finite weight > 0`);
+  if (!Number.isFinite(p.half) || p.half <= 0) throw new Error(`assimilation: profile '${p.id}' needs a finite half > 0`);
+  if (CONTRIBUTIONS.some((c) => c.id === p.id)) throw new Error(`assimilation: profile id '${p.id}' collides with a canonical contributor`);
   const at = EXTRA_CONTRIBUTIONS.findIndex((e) => e.id === p.id);
   if (at >= 0) EXTRA_CONTRIBUTIONS[at] = p;
   else EXTRA_CONTRIBUTIONS.push(p);
+}
+
+/** Remove a runtime-registered profile (tests / HMR teardown). True if it was present. */
+export function unregisterAssimilationContribution(id: string): boolean {
+  const at = EXTRA_CONTRIBUTIONS.findIndex((e) => e.id === id);
+  if (at < 0) return false;
+  EXTRA_CONTRIBUTIONS.splice(at, 1);
+  return true;
 }
 
 /** All active contributors (canonical + registered). */
@@ -111,19 +139,27 @@ export function allContributions(): ContributionProfile[] {
   return [...CONTRIBUTIONS, ...EXTRA_CONTRIBUTIONS];
 }
 
-// ── The four pillars (group weighting) ───────────────────────────────────────────────────────────
-// The fold is GROUP-NORMALIZED: each group yields its OWN weighted-mean sub-score, then the four
-// group scores combine by these weights. This keeps the pillars balanced no matter how many
-// contributors each holds — adding a battlefield row rebalances only WITHIN battlefield and can
-// never swamp conquest (docs/GAME_CONSTITUTION.md — build for the target content scale). Strength
-// stays the dominant single pillar because the Power Score is the universal contributor (rule 1).
+// ── The pillars (group weighting) ────────────────────────────────────────────────────────────────
+// The fold is GROUP-NORMALIZED: each group yields its OWN weighted-mean sub-score, then the group
+// scores combine by their weights. This keeps the pillars balanced no matter how many contributors
+// each holds — adding a battlefield row rebalances only WITHIN battlefield and can never swamp
+// conquest (docs/GAME_CONSTITUTION.md — build for the target content scale). Strength stays the
+// dominant single pillar because the Power Score is the universal contributor (rule 1).
 
-export const GROUP_WEIGHTS: Record<ContributionGroup, number> = {
-  strength: 3.0, tempo: 2.0, conquest: 2.6, battlefield: 2.0,
-};
-const GROUP_ORDER: readonly ContributionGroup[] = ['strength', 'tempo', 'conquest', 'battlefield'];
-/** group id → dense index 0..3 (for the scratch accumulators). */
-const GI: Record<ContributionGroup, number> = { strength: 0, tempo: 1, conquest: 2, battlefield: 3 };
+/** THE single pillar declaration. Adding a pillar is ONE row here (plus its ContributionGroup union
+ *  member) — order, dense indices, weights, scratch sizes and the debug panel all derive from it. */
+export interface AssimilationGroupDef { id: ContributionGroup; label: string; weight: number; }
+export const ASSIMILATION_GROUPS: readonly AssimilationGroupDef[] = [
+  { id: 'strength', label: 'Strength', weight: 3.0 },
+  { id: 'tempo', label: 'Tempo', weight: 2.0 },
+  { id: 'conquest', label: 'Conquest', weight: 2.6 },
+  { id: 'battlefield', label: 'Battlefield', weight: 2.0 },
+];
+/** Id-keyed view of the table above (docs/tests read this; the table is the source of truth). */
+export const GROUP_WEIGHTS = Object.fromEntries(ASSIMILATION_GROUPS.map((g) => [g.id, g.weight])) as Record<ContributionGroup, number>;
+const NG = ASSIMILATION_GROUPS.length;
+/** group id → dense index (its scratch-accumulator slot). */
+const GI = Object.fromEntries(ASSIMILATION_GROUPS.map((g, i) => [g.id, i])) as Record<ContributionGroup, number>;
 
 // ── The fold ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -152,25 +188,25 @@ export interface AssimilationBreakdown {
 }
 
 // Reused scratch accumulators for the ZERO-ALLOCATION hot fold (single-threaded; filled and read
-// within one synchronous call, never retained). Indexed by GI: 0 strength · 1 tempo · 2 conquest ·
-// 3 battlefield. num = Σ weight·score, den = Σ weight within the group.
-const _num = [0, 0, 0, 0];
-const _den = [0, 0, 0, 0];
+// within one synchronous call, never retained). Sized from the pillar table; indexed by GI.
+// num = Σ weight·score, den = Σ weight within the group.
+const _num = new Float64Array(NG);
+const _den = new Float64Array(NG);
 
 /** ALLOCATION-FREE hot path: signals → the target index 0..1 ONLY (no breakdown). The run loop folds
  *  this at ~8Hz, so it iterates the contributor arrays directly and accumulates into reused scratch
- *  scalars — no arrays, no objects, no per-frame GC. Group-normalized (the four pillars stay balanced
- *  at any content scale). computeAssimilation() returns the SAME `raw` plus a full breakdown for the
- *  debug panel (cold path). */
+ *  scalars — no arrays, no objects, no per-frame GC. Group-normalized (the pillars stay balanced
+ *  at any content scale) and mode-calibrated (halfOf). computeAssimilation() returns the SAME `raw`
+ *  plus a full breakdown for the debug panel (cold path). */
 export function computeAssimilationTarget(s: AssimilationSignals): number {
-  _num[0] = _num[1] = _num[2] = _num[3] = 0;
-  _den[0] = _den[1] = _den[2] = _den[3] = 0;
-  for (const p of CONTRIBUTIONS) { const g = GI[p.group]; _num[g] += sat(p.read(s), p.half) * p.weight; _den[g] += p.weight; }
-  for (const p of EXTRA_CONTRIBUTIONS) { const g = GI[p.group]; _num[g] += sat(p.read(s), p.half) * p.weight; _den[g] += p.weight; }
+  _num.fill(0);
+  _den.fill(0);
+  for (const p of CONTRIBUTIONS) { const g = GI[p.group]; _num[g] += sat(p.read(s), halfOf(p, s.mode)) * p.weight; _den[g] += p.weight; }
+  for (const p of EXTRA_CONTRIBUTIONS) { const g = GI[p.group]; _num[g] += sat(p.read(s), halfOf(p, s.mode)) * p.weight; _den[g] += p.weight; }
   let accN = 0;
   let accD = 0;
-  for (let g = 0; g < 4; g++) {
-    if (_den[g] > 0) { const gw = GROUP_WEIGHTS[GROUP_ORDER[g]]; accN += (_num[g] / _den[g]) * gw; accD += gw; }
+  for (let g = 0; g < NG; g++) {
+    if (_den[g] > 0) { const gw = ASSIMILATION_GROUPS[g].weight; accN += (_num[g] / _den[g]) * gw; accD += gw; }
   }
   return accD > 0 ? Math.min(1, accN / accD) : 0;
 }
@@ -179,11 +215,11 @@ export function computeAssimilationTarget(s: AssimilationSignals): number {
  *  path — the debug panel). Its `raw` is identical to computeAssimilationTarget(s). */
 export function computeAssimilation(s: AssimilationSignals): AssimilationBreakdown {
   const profiles = allContributions();
-  const num = [0, 0, 0, 0];
-  const den = [0, 0, 0, 0];
+  const num = new Array<number>(NG).fill(0);
+  const den = new Array<number>(NG).fill(0);
   const scoreById = new Map<string, number>();
   for (const p of profiles) {
-    const score = sat(p.read(s), p.half);
+    const score = sat(p.read(s), halfOf(p, s.mode));
     scoreById.set(p.id, score);
     const g = GI[p.group];
     num[g] += score * p.weight;
@@ -191,8 +227,8 @@ export function computeAssimilation(s: AssimilationSignals): AssimilationBreakdo
   }
   let accN = 0;
   let accD = 0;
-  for (let g = 0; g < 4; g++) {
-    if (den[g] > 0) { const gw = GROUP_WEIGHTS[GROUP_ORDER[g]]; accN += (num[g] / den[g]) * gw; accD += gw; }
+  for (let g = 0; g < NG; g++) {
+    if (den[g] > 0) { const gw = ASSIMILATION_GROUPS[g].weight; accN += (num[g] / den[g]) * gw; accD += gw; }
   }
   const raw = accD > 0 ? Math.min(1, accN / accD) : 0;
   // A contributor's absolute pull on the (pre-clamp) index: (its group's weight / Σ active group
@@ -206,10 +242,9 @@ export function computeAssimilation(s: AssimilationSignals): AssimilationBreakdo
     id: p.id, label: p.label, group: p.group, score: scoreById.get(p.id) ?? 0, weight: p.weight,
     share: totalPull > 0 ? pullOf(p) / totalPull : 0,
   }));
-  const groups: GroupResult[] = GROUP_ORDER.map((grp, g) => {
-    const gw = GROUP_WEIGHTS[grp];
+  const groups: GroupResult[] = ASSIMILATION_GROUPS.map((def, g) => {
     const gScore = den[g] > 0 ? num[g] / den[g] : 0;
-    return { group: grp, score: gScore, weight: gw, share: accN > 0 && den[g] > 0 ? (gScore * gw) / accN : 0 };
+    return { group: def.id, score: gScore, weight: def.weight, share: accN > 0 && den[g] > 0 ? (gScore * def.weight) / accN : 0 };
   });
   return { raw, contributions, groups };
 }
@@ -253,16 +288,20 @@ export function tierAt(index: number): { tier: AssimilationTier; progress: numbe
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
-/** The accent color at `index`, blended smoothly across the tier boundary (never a hard swap). */
-export function tierColorAt(index: number): [number, number, number] {
+/** As tierColorAt, but writes into a caller-owned tuple (the zero-alloc per-frame path). */
+export function tierColorInto(index: number, out: [number, number, number]): [number, number, number] {
   const { tier, progress } = tierAt(index);
   const next = ASSIMILATION_TIERS[tier.index + 1] ?? tier;
   const t = smoothstep(progress);
-  return [
-    Math.round(lerp(tier.color[0], next.color[0], t)),
-    Math.round(lerp(tier.color[1], next.color[1], t)),
-    Math.round(lerp(tier.color[2], next.color[2], t)),
-  ];
+  out[0] = Math.round(lerp(tier.color[0], next.color[0], t));
+  out[1] = Math.round(lerp(tier.color[1], next.color[1], t));
+  out[2] = Math.round(lerp(tier.color[2], next.color[2], t));
+  return out;
+}
+
+/** The accent color at `index`, blended smoothly across the tier boundary (never a hard swap). */
+export function tierColorAt(index: number): [number, number, number] {
+  return tierColorInto(index, [0, 0, 0]);
 }
 
 // ── The smoothed running state (caller-owned, zero-allocation step) ──────────────────────────────
@@ -348,30 +387,73 @@ export interface AssimilationPresentation {
   ascendedName: string; // that tier's name (for the flourish caption)
 }
 
-export function assimilationPresentation(s: AssimilationState): AssimilationPresentation {
+/** One scalar channel's response curve: value = base + span·shape(remap(index)). `shape: 'eased'`
+ *  applies smootherstep (calm start, calm finish); `from` remaps the input so the channel only
+ *  begins past that index (0 elsewhere). Tuning or ADDING a scalar channel is a data row here —
+ *  never a formula buried in code (docs/GAME_CONSTITUTION.md rule 15). */
+export interface ChannelCurve {
+  base: number;
+  span: number;
+  shape: 'linear' | 'eased';
+  from?: number; // input remap start (the channel stays at `base` until the index passes this)
+}
+
+/** The scalar presentation channels (the non-scalar fields — color, tier identity, ascension — are
+ *  derived alongside in assimilationPresentationInto). Values are pinned by tests so retunes here
+ *  are deliberate. */
+export const ASSIM_CHANNELS = {
+  musicIntensity: { base: 0.18, span: 0.82, shape: 'linear' }, // the music floor rides the raw index
+  vignette: { base: 0.08, span: 0.3, shape: 'eased' },
+  glow: { base: 0.04, span: 0.2, shape: 'eased' },
+  spore: { base: 0, span: 1, shape: 'eased' },
+  saturation: { base: 0, span: 0.05, shape: 'eased' },
+  cameraAmp: { base: 0.0012, span: 0.003, shape: 'eased' }, // ≤0.42% scale — a breath, not a zoom
+  cameraHz: { base: 0.55, span: 0.45, shape: 'linear' }, // resting ~33bpm → excited ~60bpm heartbeat
+  hudGlow: { base: 0, span: 1, shape: 'eased' },
+  vein: { base: 0, span: 1, shape: 'eased', from: 0.42 }, // membranes surface past ~Dominance
+} as const satisfies Record<string, ChannelCurve>;
+
+/** Evaluate one channel curve at index `x` (pure, allocation-free). */
+export function channelValue(c: ChannelCurve, x: number): number {
+  const t = c.from !== undefined ? clamp01((x - c.from) / (1 - c.from)) : clamp01(x);
+  return c.base + c.span * (c.shape === 'eased' ? smoothstep(t) : t);
+}
+
+/** Derive the presentation bundle INTO a caller-owned object — the zero-allocation per-frame path
+ *  (the run loop reuses one bundle; `out` is overwritten wholesale every call, so consume it
+ *  synchronously and never retain it across frames). Returns `out`. */
+export function assimilationPresentationInto(s: AssimilationState, out: AssimilationPresentation): AssimilationPresentation {
   const x = clamp01(s.index);
-  const e = smoothstep(x); // ease the perceptual response so low index stays calm
   const { tier } = tierAt(x);
   const at = Math.min(ASSIMILATION_TIERS.length - 1, Math.max(0, Math.round(s.ascendedTier)));
-  return {
-    index: x,
-    tier: tier.index,
-    tierName: tier.name,
-    tierProgress: s.tierProgress,
-    color: tierColorAt(x),
-    musicIntensity: 0.18 + 0.82 * x,
-    vignette: 0.08 + 0.30 * e,
-    glow: 0.04 + 0.20 * e,
-    spore: e,
-    saturation: 0.05 * e,
-    cameraAmp: 0.0012 + 0.0030 * e, // ≤0.42% scale — a breath, not a zoom
-    cameraHz: 0.55 + 0.45 * x, // resting ~33bpm → excited ~60bpm heartbeat
-    hudGlow: e,
-    vein: smoothstep(clamp01((x - 0.42) / 0.58)), // membranes surface past ~Dominance
-    ascensionPulse: clamp01(s.ascensionPulse),
-    ascendedTier: at,
-    ascendedName: ASSIMILATION_TIERS[at].name,
-  };
+  out.index = x;
+  out.tier = tier.index;
+  out.tierName = tier.name;
+  out.tierProgress = s.tierProgress;
+  tierColorInto(x, out.color);
+  out.musicIntensity = channelValue(ASSIM_CHANNELS.musicIntensity, x);
+  out.vignette = channelValue(ASSIM_CHANNELS.vignette, x);
+  out.glow = channelValue(ASSIM_CHANNELS.glow, x);
+  out.spore = channelValue(ASSIM_CHANNELS.spore, x);
+  out.saturation = channelValue(ASSIM_CHANNELS.saturation, x);
+  out.cameraAmp = channelValue(ASSIM_CHANNELS.cameraAmp, x);
+  out.cameraHz = channelValue(ASSIM_CHANNELS.cameraHz, x);
+  out.hudGlow = channelValue(ASSIM_CHANNELS.hudGlow, x);
+  out.vein = channelValue(ASSIM_CHANNELS.vein, x);
+  out.ascensionPulse = clamp01(s.ascensionPulse);
+  out.ascendedTier = at;
+  out.ascendedName = ASSIMILATION_TIERS[at].name;
+  return out;
+}
+
+/** Allocating convenience wrapper (cold paths: debug panel, tests, one-shot reads). */
+export function assimilationPresentation(s: AssimilationState): AssimilationPresentation {
+  return assimilationPresentationInto(s, {
+    index: 0, tier: 0, tierName: '', tierProgress: 0, color: [0, 0, 0],
+    musicIntensity: 0, vignette: 0, glow: 0, spore: 0, saturation: 0,
+    cameraAmp: 0, cameraHz: 0, hudGlow: 0, vein: 0,
+    ascensionPulse: 0, ascendedTier: 0, ascendedName: '',
+  });
 }
 
 // ── small pure helpers ───────────────────────────────────────────────────────────────────────────

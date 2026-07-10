@@ -8,6 +8,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { getActiveGame } from '../debug/debug';
 import {
+  ASSIMILATION_GROUPS,
   ASSIMILATION_TIERS,
   assimilationPresentation,
   computeAssimilation,
@@ -18,12 +19,8 @@ import {
 } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
 
-const GROUPS: { id: string; label: string }[] = [
-  { id: 'strength', label: 'Strength' },
-  { id: 'tempo', label: 'Tempo' },
-  { id: 'conquest', label: 'Conquest' },
-  { id: 'battlefield', label: 'Battlefield' },
-];
+// Group ids + labels come from the canonical pillar table — a new pillar shows up here for free.
+const GROUPS: { id: string; label: string }[] = ASSIMILATION_GROUPS.map((g) => ({ id: g.id, label: g.label }));
 
 const rgb = (c: [number, number, number]): string => `rgb(${c[0]},${c[1]},${c[2]})`;
 

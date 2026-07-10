@@ -6247,6 +6247,7 @@ export class Game {
       if (t.branchId) branchTierSum += t.tier;
     }
     return {
+      mode: this.mode,
       wave: this.waveIndex,
       totalWaves: this.totalWaves,
       currentBiomass: this.biomass,
