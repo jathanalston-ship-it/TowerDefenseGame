@@ -10,9 +10,11 @@ import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { TOWER_DEFS } from '../core/config';
 import type { TowerKind } from '../core/types';
-import { mulliganLabView } from '../state/mulliganLabModel';
+import { mulliganLabView, recommendModifiers } from '../state/mulliganLabModel';
 import type { OwnedModifier, SlotView } from '../state/mulliganLabModel';
-import { MULLIGAN_RARITY, resolveMulligan } from '../core/mulligan';
+import { CLASS_ADAPTATIONS, MULLIGAN_RARITY, adaptationOf, resolveMulligan } from '../core/mulligan';
+import { COMBAT_CLASSES, COMBAT_CLASS_ORDER } from '../core/combatClass';
+import type { CombatClass } from '../core/types';
 import type { MulliganReforgeMod } from '../core/mulliganReforge';
 import { REFORGE_RARITY } from '../core/mulliganReforge';
 import { angleForSegment, drawReforgeWheel } from '../render/reforgeWheel';
@@ -27,8 +29,12 @@ import { PowerPreview } from './components/PowerScore';
 import { audio } from '../audio/sound';
 
 const SITE = ['A', 'B', 'C'];
-type ModCategory = 'offensive' | 'utility' | 'biological';
-const CATEGORY_LABEL: Record<ModCategory, string> = { offensive: 'Offensive', utility: 'Utility', biological: 'Biological' };
+/** §sorting — the library's sort modes (docs/MULLIGANS.md §UI). */
+type ModSort = 'recommended' | 'class' | 'rarity' | 'power' | 'level' | 'host' | 'newest' | 'upgradeable';
+const SORT_LABEL: Record<ModSort, string> = {
+  recommended: 'Recommended', class: 'Class', rarity: 'Rarity', power: 'Power',
+  level: 'Upgrade Level', host: 'Host Compatibility', newest: 'Newest', upgradeable: 'Upgradeable',
+};
 
 /** The graft chamber: the actual turret body with the resolved organism grafted on, idle-animated.
  *  DPR-crisp; draws a single static frame under prefers-reduced-motion (the organism is information,
@@ -48,7 +54,7 @@ function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
       ctx.clearRect(0, 0, SIZE, SIZE);
       const cx = SIZE / 2, cy = SIZE / 2, r = 46;
       const st = meta.get().mulligans?.[kind];
-      const resolved = resolveMulligan(st);
+      const resolved = resolveMulligan(st, TOWER_DEFS[kind].combatClass);
       // The organism wraps the host: organs behind the body AND reaching over it (battlefield layering).
       if (st) drawMulliganOrganism(ctx, cx, cy, r, resolved, st.visualSeed, st.animSeed, now, 0);
       drawTowerForm(ctx, kind, cx, cy, r, TOWER_DEFS[kind].color, now, 0, 1);
@@ -131,8 +137,11 @@ export function MulliganLab(): JSX.Element {
   const view = mulliganLabView(save);
   const [selected, setSelected] = useState<TowerKind>(view.towers[0].kind);
   const [armed, setArmed] = useState<number | null>(null); // explicitly armed graft site
-  const [cat, setCat] = useState<'all' | ModCategory>('all');
+  const [cls, setCls] = useState<'all' | CombatClass>('all'); // §classes — the library's primary lens
+  const [sort, setSort] = useState<ModSort>('recommended');
   const [wheel, setWheel] = useState<MulliganReforgeMod | null>(null); // §reforge — the spinning ceremony
+  // §adaptations — the COMPLETE CLASS ADAPTATION ceremony (set on the equip that completes it).
+  const [adaptCeremony, setAdaptCeremony] = useState<{ cls: CombatClass; title: string; desc: string } | null>(null);
   const tv = view.towers.find((t) => t.kind === selected) ?? view.towers[0];
 
   // §gate — the pillar is sealed until three DISTINCT Mega Bosses have fallen (accounts
@@ -168,7 +177,19 @@ export function MulliganLab(): JSX.Element {
   const selectTower = (k: TowerKind): void => { setSelected(k); setArmed(null); };
   const equip = (id: string): void => {
     if (armedSite == null) return;
-    if (meta.equipMulligan(tv.kind, armedSite, id)) { audio.cue('graftSquelch'); setArmed(null); }
+    const hostCls = TOWER_DEFS[tv.kind].combatClass;
+    const before = adaptationOf(meta.get().mulligans?.[tv.kind], hostCls).tier;
+    if (meta.equipMulligan(tv.kind, armedSite, id)) {
+      setArmed(null);
+      const after = adaptationOf(meta.get().mulligans?.[tv.kind], hostCls).tier;
+      if (after === 'full' && before !== 'full') {
+        // The set completed — the organism SYNCHRONIZES (docs/MULLIGANS.md §adaptations).
+        audio.cue('adapt');
+        setAdaptCeremony({ cls: hostCls, title: CLASS_ADAPTATIONS[hostCls].title, desc: CLASS_ADAPTATIONS[hostCls].fullDesc });
+      } else {
+        audio.cue('graftSquelch');
+      }
+    }
   };
   const upgrade = (slot: number): void => { if (meta.upgradeMulligan(tv.kind, slot)) audio.cue('graftCrack'); };
   const ascend = (slot: number): void => { if (meta.ascendMulligan(tv.kind, slot)) audio.cue('splice'); };
@@ -197,7 +218,26 @@ export function MulliganLab(): JSX.Element {
     return { ...sv, mulligans: { ...sv.mulligans, [tv.kind]: { ...st, slots } } };
   }).score;
 
-  const mods = view.owned.filter((m) => cat === 'all' || m.category === cat);
+  // §recommendations — ranked for THIS host; the library highlights + sorts on it.
+  const recos = recommendModifiers(save, tv.kind, 3);
+  const recoRank = new Map(recos.map((r, i) => [r.id, i]));
+  const recoReason = new Map(recos.map((r) => [r.id, r.reason]));
+  const clsRank = (c: CombatClass): number => COMBAT_CLASS_ORDER.indexOf(c);
+  const hostCls = tv.hostClass;
+  const sorters: Record<ModSort, (a: OwnedModifier, b: OwnedModifier) => number> = {
+    recommended: (a, b) => (recoRank.get(a.id) ?? 99) - (recoRank.get(b.id) ?? 99) || MULLIGAN_RARITY[b.rarity].tier - MULLIGAN_RARITY[a.rarity].tier,
+    class: (a, b) => clsRank(a.cls) - clsRank(b.cls) || MULLIGAN_RARITY[b.rarity].tier - MULLIGAN_RARITY[a.rarity].tier,
+    rarity: (a, b) => MULLIGAN_RARITY[b.rarity].tier - MULLIGAN_RARITY[a.rarity].tier,
+    power: (a, b) => b.powerWeight * MULLIGAN_RARITY[b.rarity].powerMult - a.powerWeight * MULLIGAN_RARITY[a.rarity].powerMult,
+    level: (a, b) => b.level - a.level,
+    host: (a, b) => Number(b.cls === hostCls) - Number(a.cls === hostCls) || MULLIGAN_RARITY[b.rarity].tier - MULLIGAN_RARITY[a.rarity].tier,
+    newest: (a, b) => b.dexIndex - a.dexIndex,
+    upgradeable: (a, b) => Number(b.upgradeable) - Number(a.upgradeable) || b.level - a.level,
+  };
+  const mods = view.owned
+    .filter((m) => cls === 'all' || m.cls === cls)
+    .slice()
+    .sort((a, b) => sorters[sort](a, b) || a.name.localeCompare(b.name));
   const curPower = meta.power().score;
 
   return (
@@ -242,7 +282,12 @@ export function MulliganLab(): JSX.Element {
                   ? <span className="mgl-item-sub is-awake">● Awake · ×{t.power.toFixed(2)}</span>
                   : <span className="mgl-item-sub">{t.filled > 0 ? `${t.filled}/3 grafted` : 'Dormant'}</span>}
               </span>
-              {t.active && <span className="mgl-item-glyph" aria-hidden>⊛</span>}
+              {t.active && (
+                <span className={`mgl-item-glyph${t.adaptation.tier === 'full' ? ' is-adapted' : ''}`} aria-hidden
+                  style={t.adaptation.tier === 'full' ? { color: t.hostColor } : undefined}>
+                  {t.adaptation.tier === 'full' ? '⟡' : '⊛'}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -277,6 +322,22 @@ export function MulliganLab(): JSX.Element {
                   {tv.packageLines.map((l) => <span className="mgl-pkg-chip" key={l}>{l}</span>)}
                 </span>
               )}
+              {/* §adaptations — the host-class synergy panel: match pips, tier, the running
+                  bonus or the chase copy. THE reason to specialize (docs/MULLIGANS.md). */}
+              <span className={`mgl-adapt${tv.adaptation.tier ? ` is-${tv.adaptation.tier}` : ''}`} style={{ ['--cc' as string]: tv.hostColor }}>
+                <span className="mgl-adapt-head">
+                  <b className="mgl-adapt-cls">{tv.hostGlyph} {tv.hostClass}</b>
+                  <span className="mgl-adapt-pips" aria-label={`${tv.adaptation.matches} of 3 class matches`}>
+                    {[0, 1, 2].map((i) => <i key={i} className={i < tv.adaptation.matches ? 'on' : ''} />)}
+                  </span>
+                  {tv.adaptation.tier === 'full' && <b className="mgl-adapt-badge">⟡ {tv.adaptation.title.toUpperCase()} — SYNCHRONIZED</b>}
+                  {tv.adaptation.tier === 'minor' && <b className="mgl-adapt-badge is-minor">◐ MINOR ADAPTATION</b>}
+                </span>
+                <span className="mgl-adapt-line">
+                  {tv.adaptation.activeDesc
+                    ?? <>Match all three grafts to <b>{tv.hostClass}</b> for the Complete Adaptation: {tv.adaptation.goalDesc}</>}
+                </span>
+              </span>
             </div>
           </div>
 
@@ -291,6 +352,12 @@ export function MulliganLab(): JSX.Element {
                 <div key={s.index} className="mgl-slot is-filled" style={{ ['--mg' as string]: s.rarityColor }}>
                   <div className="mgl-slot-top">
                     <span className="mgl-slot-site">{SITE[s.index]}</span>
+                    {s.cls && (
+                      <span className={`mgl-cls-chip${s.clsMatch ? ' is-match' : ''}`} style={{ ['--cc' as string]: s.clsColor }}
+                        title={`${s.cls} — ${s.clsMatch ? 'matches the host class' : `host is ${tv.hostClass}`}`}>
+                        {s.clsGlyph}
+                      </span>
+                    )}
                     <span className="mgl-slot-name">{s.name}</span>
                     <span className="mgl-slot-tier">{MULLIGAN_RARITY[s.rarity!].label} · Lv {s.level}/{s.maxLevel}</span>
                     {!tv.locked && <button className="mgl-clear" title="Clear this graft site (the modifier stays sequenced)" aria-label={`Clear site ${SITE[s.index]}`} onClick={() => unequip(s.index)}>✕</button>}
@@ -368,12 +435,20 @@ export function MulliganLab(): JSX.Element {
           <div className="mgl-block">
             <div className="mgl-block-h">
               <span className="mgl-eyebrow">Sequenced Modifiers</span>
-              <div className="mgl-cats" role="group" aria-label="Filter by category">
-                {(['all', 'offensive', 'utility', 'biological'] as const).map((c) => (
-                  <button key={c} className={`mgl-chip${cat === c ? ' on' : ''}`} onClick={() => setCat(c)}>
-                    {c === 'all' ? 'All' : CATEGORY_LABEL[c]}
+              <div className="mgl-cats" role="group" aria-label="Filter by class">
+                <button className={`mgl-chip${cls === 'all' ? ' on' : ''}`} onClick={() => setCls('all')}>All</button>
+                {COMBAT_CLASS_ORDER.map((c) => (
+                  <button key={c} className={`mgl-chip mgl-chip-cls${cls === c ? ' on' : ''}`} style={{ ['--cc' as string]: COMBAT_CLASSES[c].color }}
+                    onClick={() => setCls(c)} title={COMBAT_CLASSES[c].role}>
+                    {COMBAT_CLASSES[c].glyph} {c}
                   </button>
                 ))}
+                <label className="mgl-sort">
+                  <span>Sort</span>
+                  <select value={sort} onChange={(e) => setSort(e.target.value as ModSort)} aria-label="Sort modifiers">
+                    {(Object.keys(SORT_LABEL) as ModSort[]).map((k) => <option key={k} value={k}>{SORT_LABEL[k]}</option>)}
+                  </select>
+                </label>
               </div>
             </div>
             {armedSite != null && view.owned.length > 0 && (
@@ -387,24 +462,53 @@ export function MulliganLab(): JSX.Element {
               </p>
             ) : (
               <div className="mgl-mods">
-                {mods.map((m: OwnedModifier) => (
-                  <button key={m.id} className={`mgl-mod${m.bound ? ' is-bound' : ''}`}
-                    disabled={armedSite == null || m.bound || tv.locked}
-                    onClick={() => equip(m.id)}
-                    style={{ ['--mg' as string]: m.rarityColor }}
-                    title={m.bound ? `${m.desc} — BOUND to ${m.hostName} (reforged)` : m.host && m.host !== tv.kind ? `${m.desc} — grafting here moves it off ${m.hostName}` : m.desc}>
-                    <span className="mgl-mod-name">{m.name}</span>
-                    <span className="mgl-mod-sub">{MULLIGAN_RARITY[m.rarity].label} · {CATEGORY_LABEL[m.category]}</span>
-                    {m.host && <span className={`mgl-mod-host${m.bound ? ' is-bound' : ''}`}>{m.bound ? '⊛ bound · ' : '→ '}{m.hostName}</span>}
-                  </button>
-                ))}
-                {mods.length === 0 && <p className="mgl-empty">No {cat} modifiers sequenced yet.</p>}
+                {mods.map((m: OwnedModifier) => {
+                  const reco = recoReason.get(m.id);
+                  const tip = [
+                    m.desc,
+                    `${m.cls}: ${m.role}`,
+                    reco ? `◎ ${reco}` : null,
+                    m.bound ? `BOUND to ${m.hostName} (reforged)` : m.host && m.host !== tv.kind ? `Grafting here moves it off ${m.hostName}` : null,
+                  ].filter(Boolean).join(' — ');
+                  return (
+                    <button key={m.id} className={`mgl-mod${m.bound ? ' is-bound' : ''}${reco ? ' is-reco' : ''}${m.cls === tv.hostClass ? ' is-match' : ''}`}
+                      disabled={armedSite == null || m.bound || tv.locked}
+                      onClick={() => equip(m.id)}
+                      style={{ ['--mg' as string]: m.rarityColor, ['--cc' as string]: m.clsColor }}
+                      title={tip}>
+                      <span className="mgl-mod-glyph" aria-hidden>{m.clsGlyph}</span>
+                      <span className="mgl-mod-name">{m.name}</span>
+                      <span className="mgl-mod-sub">
+                        <b className="mgl-mod-cls">{m.cls}</b> · {MULLIGAN_RARITY[m.rarity].label}
+                        {m.level > 0 && <> · Lv {m.level}</>}
+                        {m.upgradeable && <i className="mgl-mod-up" title="Upgrade affordable now"> ▲</i>}
+                      </span>
+                      {reco && <span className="mgl-mod-reco">◎ RECOMMENDED</span>}
+                      {m.host && <span className={`mgl-mod-host${m.bound ? ' is-bound' : ''}`}>{m.bound ? '⊛ bound · ' : '→ '}{m.hostName}</span>}
+                    </button>
+                  );
+                })}
+                {mods.length === 0 && <p className="mgl-empty">No {cls === 'all' ? '' : `${cls} `}modifiers sequenced yet.</p>}
               </div>
             )}
           </div>
         </div>
       </div>
       {wheel && <ReforgeWheelOverlay mod={wheel} onClose={() => setWheel(null)} />}
+      {adaptCeremony && (
+        <div className="evo-unlock mgl-adapt-cine" role="dialog" aria-label="Complete class adaptation" onClick={() => setAdaptCeremony(null)}>
+          <div className="evo-rays" aria-hidden />
+          <div className="evo-card mgl-adapt-card" onClick={(e) => e.stopPropagation()} style={{ ['--cc' as string]: COMBAT_CLASSES[adaptCeremony.cls].color }}>
+            <div className="evo-eyebrow">⟡ COMPLETE CLASS ADAPTATION ⟡</div>
+            <div className="mgl-adapt-cine-glyph" aria-hidden>{COMBAT_CLASSES[adaptCeremony.cls].glyph}</div>
+            <h2 className="evo-title">{adaptCeremony.cls.toUpperCase()} SYNCHRONIZED</h2>
+            <div className="mgl-adapt-cine-name">{adaptCeremony.title}</div>
+            <p className="evo-blurb">{adaptCeremony.desc}</p>
+            <p className="mgl-adapt-cine-foot">The organism has evolved — its crown is visible on the battlefield.</p>
+            <button className="primary evo-continue" onClick={() => setAdaptCeremony(null)}>Continue</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -68,7 +68,7 @@ import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../co
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
-import { MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import { MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, adaptationOf, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
 import { REFORGE_RARITY, reforgeCost as mulliganReforgeCost, reforgeModById, rollReforgeMod } from '../core/mulliganReforge';
 import { exchangeWindow, msToExchangeRefresh, rollExchange } from '../core/ichorExchange';
 import type { ExchangeOffer } from '../core/ichorExchange';
@@ -643,7 +643,7 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     collection: collectionView(collectionContextOf(save)).power,
     // Mulligan organisms (docs/MULLIGANS.md) — a dedicated, separately-inspectable bucket. Each
     // tower's Mulligan is 1 until all three slots are filled ⇒ 1 on a fresh account ⇒ POWER_BASE.
-    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => save.mulligans?.[k])),
+    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => [save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)),
     temporary,
   };
 }
@@ -1015,7 +1015,7 @@ export function towerProgress(save: SaveData, includeMulligan = true, mulliganOv
     // so its Power is attributed solely to the dedicated `mulligans` bucket — no double count.
     // `mulliganOverride` substitutes the account's organisms wholesale for THIS fold — the
     // Daily Run's seeded, dex-drawn assignment (docs/MULLIGANS.md §daily); absent = the save's own.
-    const mull = includeMulligan ? resolveMulligan((mulliganOverride ?? save.mulligans)?.[k]) : identityMulligan();
+    const mull = includeMulligan ? resolveMulligan((mulliganOverride ?? save.mulligans)?.[k], TOWER_DEFS[k].combatClass) : identityMulligan();
     kit.projectileMutators.push(...mull.projectileMutators);
     kit.extraProjectiles += mull.extraProjectiles;
     kit.splashMult *= mull.splashMult;
@@ -3055,7 +3055,7 @@ export const meta = {
   },
   /** The RESOLVED Mulligan (folded kit + profile + power; identity unless all three slots filled). */
   mulliganResolved(kind: TowerKind): ResolvedMulligan {
-    return resolveMulligan(store.get().mulligans[kind]);
+    return resolveMulligan(store.get().mulligans[kind], TOWER_DEFS[kind].combatClass);
   },
   /** Record a modifier discovery at a rarity (loot). Keeps the HIGHEST rarity seen; returns whether
    *  the dex advanced (a new modifier, or a better rarity than before). */
@@ -4494,6 +4494,9 @@ export const meta = {
       const m = save.mulligans[k];
       return m && m.slots.length >= MULLIGAN_SLOTS && m.slots.every((s) => s !== null);
     }).length;
+    // §adaptations (docs/MULLIGANS.md): fully class-synchronized organisms deepen the measure —
+    // assembling is half the mulligan journey, completing adaptations is the other half.
+    const adapted = TOWER_ORDER.filter((k) => adaptationOf(save.mulligans[k], TOWER_DEFS[k].combatClass).tier === 'full').length;
     const geneLevels = Object.keys(save.genes).reduce((a, id) => a + geneLevel(save.genes, id), 0);
     return {
       accountLevel: levelFromXp(save.accountXp.xp),
@@ -4508,7 +4511,7 @@ export const meta = {
       titles: save.unlockedTitles.length,
       towerStarRatio: sumRec(save.towerStars) / (towers * 10), // 10 = the evolution design target
       strainRatio: sumRec(save.stats.towerBestStrain) / (towers * 5),
-      mulliganRatio: assembled / towers,
+      mulliganRatio: (assembled + adapted) / (towers * 2),
       heroRatio: (save.heroUnlocked.length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
       gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,
       geneRatio: (save.stats.uniqueCards.length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,

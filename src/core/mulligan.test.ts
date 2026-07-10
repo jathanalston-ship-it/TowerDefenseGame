@@ -4,12 +4,13 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  MULLIGAN_AXES, MULLIGAN_RARITY, MULLIGAN_RARITY_ORDER, MULLIGAN_SLOTS,
-  ascendCost, assembleMulligan, dominantAxis, effectiveStats, emptyMulligan, identityMulligan,
-  isMulliganActive, levelCap, makeSlot, modifiersByCategory, mulliganPower, mulliganRegistry,
-  resolveMulligan, rollRarity, seedFor, upgradeCost,
+  CLASS_ADAPTATIONS, MULLIGAN_AXES, MULLIGAN_RARITY, MULLIGAN_RARITY_ORDER, MULLIGAN_SLOTS,
+  accountMulliganPower, adaptationOf, ascendCost, assembleMulligan, dominantAxis, effectiveStats,
+  emptyMulligan, identityMulligan, isMulliganActive, levelCap, makeSlot, modifiersByCategory,
+  modifiersByClass, mulliganPower, mulliganRegistry, resolveMulligan, rollRarity, seedFor, upgradeCost,
 } from './mulligan';
-import { TOWER_ORDER } from './config';
+import { COMBAT_CLASSES, COMBAT_CLASS_ORDER } from './combatClass';
+import { TOWER_DEFS, TOWER_ORDER } from './config';
 import type { MulliganState } from './mulligan';
 
 describe('catalog', () => {
@@ -139,5 +140,95 @@ describe('invariants', () => {
     const st = assembleMulligan(['apex_gland', 'oracle_nexus', 'genesis_organ'], 'ascendant', 20);
     expect(mulliganPower(st)).toBe(resolveMulligan(st).power);
     expect(mulliganPower(undefined)).toBe(1);
+  });
+});
+
+// ── Class synergy + Adaptations (docs/MULLIGANS.md §classes/§adaptations) ──
+
+describe('classes — every modifier classed, every host coverable', () => {
+  it('every modifier carries exactly one KNOWN CombatClass (the future-modifier contract)', () => {
+    for (const m of mulliganRegistry.all()) {
+      expect(m.cls, m.id).toBeDefined();
+      expect(Object.keys(COMBAT_CLASSES), m.id).toContain(m.cls);
+    }
+    expect(mulliganRegistry.validate()).toEqual([]); // the registry itself enforces it
+  });
+  it('every class fields ≥ 3 modifiers, so EVERY tower can assemble its full match', () => {
+    for (const cls of COMBAT_CLASS_ORDER) {
+      expect(modifiersByClass(cls).length, cls).toBeGreaterThanOrEqual(3);
+    }
+    for (const k of TOWER_ORDER) {
+      expect(modifiersByClass(TOWER_DEFS[k].combatClass).length, k).toBeGreaterThanOrEqual(3);
+    }
+    // …and every class has an authored adaptation with both tiers described.
+    for (const cls of COMBAT_CLASS_ORDER) {
+      const a = CLASS_ADAPTATIONS[cls];
+      expect(a.title.length, cls).toBeGreaterThan(0);
+      expect(a.fullDesc.length, cls).toBeGreaterThan(0);
+      expect(a.minorDesc.length, cls).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('adaptations — full at 3/3, minor at 2/3, hybrids untouched', () => {
+  const kin3: [string, string, string] = ['bone_spike', 'siege_carapace', 'shatter_lance']; // all Kinetic
+  const kin2: [string, string, string] = ['bone_spike', 'siege_carapace', 'oracle_nexus']; // 2 Kinetic + 1 Resonant
+  const mixed: [string, string, string] = ['bone_spike', 'oracle_nexus', 'genesis_organ']; // 1/1/1
+
+  it('adaptationOf counts matches and tiers only while ACTIVE', () => {
+    const full = adaptationOf(assembleMulligan(kin3, 'common', 1), 'Kinetic');
+    expect(full).toMatchObject({ matches: 3, tier: 'full' });
+    const minor = adaptationOf(assembleMulligan(kin2, 'common', 1), 'Kinetic');
+    expect(minor).toMatchObject({ matches: 2, tier: 'minor' });
+    expect(adaptationOf(assembleMulligan(mixed, 'common', 1), 'Kinetic').tier).toBeNull();
+    // partial fill: matches still count (the set-contribution display), but no tier ever
+    const partial: MulliganState = { slots: [makeSlot('bone_spike', 'common'), makeSlot('siege_carapace', 'common'), null], visualSeed: 0, animSeed: 0 };
+    expect(adaptationOf(partial, 'Kinetic')).toMatchObject({ matches: 2, tier: null });
+  });
+
+  it('the FULL bonus folds a capability; the MINOR bonus folds numbers only', () => {
+    const full = resolveMulligan(assembleMulligan(kin3, 'common', 1), 'Kinetic');
+    const bare = resolveMulligan(assembleMulligan(kin3, 'common', 1));
+    expect(full.adaptation).toEqual({ cls: 'Kinetic', tier: 'full' });
+    // Kinetic full grants pierce1 ON TOP of bone_spike's own — count them.
+    expect(full.projectileMutators.filter((m) => m === 'pierce1').length)
+      .toBe(bare.projectileMutators.filter((m) => m === 'pierce1').length + 1);
+    expect(full.damageMult).toBeGreaterThan(bare.damageMult);
+    expect(full.power).toBeGreaterThan(bare.power);
+
+    const minor = resolveMulligan(assembleMulligan(kin2, 'common', 1), 'Kinetic');
+    const minorBare = resolveMulligan(assembleMulligan(kin2, 'common', 1));
+    expect(minor.adaptation).toEqual({ cls: 'Kinetic', tier: 'minor' });
+    expect(minor.projectileMutators).toEqual(minorBare.projectileMutators); // no capability at minor
+    expect(minor.power).toBeGreaterThan(minorBare.power);
+    expect(full.power).toBeGreaterThan(minor.power * 0.99); // full ≥ minor at equal grafts (tier bonus dominates)
+  });
+
+  it('the Resonant full adaptation grants the echo target (extraProjectiles +1)', () => {
+    const res3 = assembleMulligan(['crystalline_core', 'resonance_antenna', 'oracle_nexus'] as [string, string, string], 'common', 1);
+    const withHost = resolveMulligan(res3, 'Resonant');
+    const bare = resolveMulligan(res3);
+    expect(withHost.extraProjectiles).toBe(bare.extraProjectiles + 1);
+  });
+
+  it('hybrids and mismatched hosts resolve EXACTLY as before (no hidden tax)', () => {
+    const st = assembleMulligan(mixed, 'epic', 5);
+    const noHost = resolveMulligan(st);
+    const wrongHost = resolveMulligan(st, 'Caustic'); // 0 matches
+    expect(wrongHost).toEqual({ ...noHost, adaptation: null });
+    expect(wrongHost.adaptation).toBeNull();
+  });
+
+  it('inactive stays IDENTITY even with a host class (golden safety)', () => {
+    expect(resolveMulligan(emptyMulligan(), 'Kinetic')).toEqual(identityMulligan());
+    expect(resolveMulligan(undefined, 'Resonant')).toEqual(identityMulligan());
+  });
+
+  it('accountMulliganPower scores host pairs (an adapted roster outranks the same roster unhosted)', () => {
+    const st = assembleMulligan(kin3, 'rare', 3);
+    const adapted = accountMulliganPower([[st, 'Kinetic'] as const]);
+    const mismatched = accountMulliganPower([[st, 'Vital'] as const]);
+    expect(adapted).toBeGreaterThan(mismatched);
+    expect(mismatched).toBe(resolveMulligan(st).power);
   });
 });

@@ -108,6 +108,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:genome-rank', kind: 'references', to: 'system:mastery', note: 'grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups' },
   { from: 'system:genome-rank', kind: 'conflictsWith', to: 'concept:golden-test', note: 'promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break' },
   { from: 'system:mega-bosses', kind: 'balances', to: 'system:towers', note: 'the ADAPT verb (Myriad) armors against the top-damage tower kind from a per-kind ledger at the raid-fire seams — single-kind stacking is punished by design; heroes bypass it' },
+  { from: 'system:mulligans', kind: 'consumes', to: 'system:towers', note: "ADAPTATIONS compare modifier classes to TowerDef.combatClass — resolveMulligan needs the HOST class everywhere (a class-less call silently drops the set bonus); COMBAT_CLASSES (core/combatClass.ts) is the ONE display table" },
+  { from: 'system:mulligans', kind: 'conflictsWith', to: 'concept:golden-test', note: 'adaptation bonuses fold ONLY through existing MulliganStats channels inside resolveMulligan — a new sim branch for a class bonus breaks the inactive⇒identity gate' },
 
   { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
   { from: 'system:prestige', kind: 'references', to: 'system:cutscenes', note: 'the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it' },

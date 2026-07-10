@@ -10,6 +10,7 @@
 
 import type { MulliganAxis, ResolvedMulligan, StatProfile } from '../core/mulligan';
 import { MULLIGAN_AXES } from '../core/mulligan';
+import { COMBAT_CLASSES } from '../core/combatClass';
 
 const TAU = Math.PI * 2;
 
@@ -178,6 +179,31 @@ export function drawMulliganOrganism(
     // the creature read as grafted ON rather than floating debris. Anchored at the body edge.
     drawGraftSinew(ctx, a, r * 0.62, ox, oy, s, o.hue, now + o.phase, spec.intensity, m.breathe + m.ooze);
     drawOrgan(ctx, o.kind, ox, oy, a, s, o.hue, now + o.phase, spec.intensity + flare * 0.4);
+  }
+  // §adaptations — the COMPLETE CLASS ADAPTATION crown (docs/MULLIGANS.md §adaptations): a
+  // slowly-orbiting ring of class-hued thorns around a breathing halo. THE "this organism is
+  // complete" mark, readable from across the battlefield. Front pass only (crowns the whole
+  // creature); the class hex comes from the shared COMBAT_CLASSES table.
+  if (resolved.adaptation?.tier === 'full' && layer !== 'back') {
+    const hex = COMBAT_CLASSES[resolved.adaptation.cls].hex;
+    const spin = now * 0.5 + ph;
+    const haloR = r * 1.45 + Math.sin(now * 2.1 + ph) * r * 0.05;
+    ctx.save();
+    ctx.globalAlpha = 0.45 + 0.2 * Math.sin(now * 2.1 + ph);
+    ctx.strokeStyle = withAlpha(hex, 0.55);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, haloR, 0, TAU); ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+      const a = spin + (i / 6) * TAU;
+      const bx = Math.cos(a) * haloR, by = Math.sin(a) * haloR;
+      const tx = Math.cos(a) * (haloR + r * 0.22), ty = Math.sin(a) * (haloR + r * 0.22);
+      const px = -Math.sin(a) * r * 0.06, py = Math.cos(a) * r * 0.06;
+      ctx.fillStyle = withAlpha(hex, 0.8);
+      ctx.beginPath();
+      ctx.moveTo(bx + px, by + py); ctx.lineTo(tx, ty); ctx.lineTo(bx - px, by - py);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
   }
   ctx.restore();
 }

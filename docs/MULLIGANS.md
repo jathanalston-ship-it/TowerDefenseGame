@@ -290,3 +290,43 @@ the Power Breakdown's dedicated *Mulligans* slice was already live. Four achieve
 `mulligan_dex` (complete sequence), `mulligan_perfected` (a rarity level-cap), `mulligan_ascendant`
 (an ascendant slot, hidden), `mulligan_overlord` (×1.5 organism Power). The Mulligan Lab screen
 joined the mobile enforcement lane (`scripts/mobilecheck.ts` NAVS).
+
+## §classes — biological modifier classes (v33)
+
+Every modifier carries exactly ONE `cls: CombatClass` — the SAME six-class taxonomy towers use
+(`Kinetic ✦ · Caustic ☣ · Viral ⬡ · Neural ◉ · Vital ✚ · Resonant ◈`, display metadata in
+`src/core/combatClass.ts` — the ONE table every surface reads; raw `hex` mirrors for canvas).
+The registry REJECTS a classless modifier (**the future-modifier contract**: class, adaptation
+interaction, visual identity, Power weight, dex registration and docs all come from the one
+row — an incomplete row fails `mulliganRegistry.validate()` and the content test).
+`modifiersByClass(cls)` powers the Lab filter, collections views and the recommender. Every
+class fields ≥ 3 modifiers so every tower can complete its match (content test).
+
+## §adaptations — host-class set bonuses (v33)
+
+A completed organism compares its three modifiers' classes to the HOST tower's class
+(`adaptationOf(state, hostClass)`):
+
+| Matches | Tier | Bonus |
+|---|---|---|
+| 3/3 | **Complete Class Adaptation** (`full`) | The class's CAPABILITY + numbers (below) |
+| 2/3 | Minor Adaptation (`minor`) | Numbers only |
+| ≤1 | none | Hybrids resolve exactly as before — no tax |
+
+`CLASS_ADAPTATIONS` (DATA): Kinetic *Ossified Momentum* (+pierce, +10% dmg) · Caustic
+*Runaway Dissolution* (+22% splash, +4% dmg) · Viral *Epidemic Cadence* (+10% rate, +6% dmg) ·
+Neural *Synaptic Overreach* (+10% range, +8% rate) · Vital *Perpetual Bloom* (+6/6/4%) ·
+Resonant *Harmonic Chorus* (+1 echo target, +5% range). Bonuses speak the EXISTING
+`MulliganStats` vocabulary and fold inside `resolveMulligan(state, hostClass?)` — zero new sim
+branches; inactive ⇒ identity (golden-safe). Capability grants (pierce, echo) are FULL-only.
+Power: full ×1.06, minor ×1.025 (`ADAPTATION_POWER`) through the same mulligans bucket —
+`accountMulliganPower` now takes `[state, hostClass]` pairs.
+
+**Presentation:** class chrome on every card (left accent + corner glyph + class label), the
+host-synergy panel (match pips + tier badge + running bonus / chase copy), 8 library sort
+modes, the per-host recommender (`recommendModifiers` — completing an adaptation ranks first),
+the ⟡ crown on adapted rail rows, the class-hued orbiting-thorn crown on the organism itself
+(`mulliganOrganism.ts` — the battlefield "this one is complete" mark), the in-run Inspector
+readout, and the COMPLETE CLASS ADAPTATION ceremony (dedicated `adapt` cue) on the equip that
+synchronizes. Genome Rank's mulligan measure now blends assembly + full adaptations
+(`(assembled + adapted) / (towers × 2)`).

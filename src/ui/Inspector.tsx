@@ -14,7 +14,8 @@ import { meta } from '../state/meta';
 import { itemDef } from '../core/equipment';
 import { masteryPanelModel } from './towerLabModel';
 import type { LiveMasteryView } from '../state/masteryEvents';
-import { MULLIGAN_RARITY, dominantAxis, mulliganRegistry, reforgeSlotCount, resolveMulligan } from '../core/mulligan';
+import { CLASS_ADAPTATIONS, MULLIGAN_RARITY, dominantAxis, mulliganRegistry, reforgeSlotCount, resolveMulligan } from '../core/mulligan';
+import { COMBAT_CLASSES } from '../core/combatClass';
 import { REFORGE_RARITY, reforgeModById } from '../core/mulliganReforge';
 import type { MulliganState } from '../core/mulligan';
 import type { HudSnapshot, SelectedPlacedTower, TowerKind } from '../core/types';
@@ -102,8 +103,8 @@ function MasteryLive({ kind, color, live }: { kind: TowerKind; color: string; li
 /** The organism riding this kind THIS run (docs/MULLIGANS.md §inspect): its three modifiers
  * (rarity + level), the dominant-axis identity, the resolved package, and its Power. Hidden
  * until all three slots are filled — a bare host renders nothing. */
-function MulliganLive({ state }: { state: MulliganState | undefined }): JSX.Element | null {
-  const resolved = resolveMulligan(state);
+function MulliganLive({ state, kind }: { state: MulliganState | undefined; kind: TowerKind }): JSX.Element | null {
+  const resolved = resolveMulligan(state, TOWER_DEFS[kind].combatClass);
   if (!resolved.active || !state) return null;
   const dom = dominantAxis(resolved.profile);
   const pct = (v: number): string => `+${Math.round((v - 1) * 100)}%`;
@@ -120,6 +121,15 @@ function MulliganLive({ state }: { state: MulliganState | undefined }): JSX.Elem
         <span className="insp-mg-k">Mulligan</span>
         <span className="insp-mg-stage">{dom ? `${dom} organism` : 'organism'} · ×{resolved.power.toFixed(2)} Power</span>
       </div>
+      {/* §adaptations — the live set-bonus readout (docs/MULLIGANS.md §adaptations). */}
+      {resolved.adaptation && (
+        <div className={`insp-mg-adapt is-${resolved.adaptation.tier}`} style={{ ['--cc' as string]: COMBAT_CLASSES[resolved.adaptation.cls].color }}>
+          {COMBAT_CLASSES[resolved.adaptation.cls].glyph}{' '}
+          {resolved.adaptation.tier === 'full'
+            ? <><b>{CLASS_ADAPTATIONS[resolved.adaptation.cls].title}</b> — {resolved.adaptation.cls} synchronized</>
+            : <>Minor {resolved.adaptation.cls} adaptation</>}
+        </div>
+      )}
       <div className="insp-mg-chips">
         {state.slots.map((slot, i) => slot && (
           <span className="insp-mg-chip" key={`${slot.id}-${i}`} style={{ ['--mg' as string]: MULLIGAN_RARITY[slot.rarity].color }} title={mulliganRegistry.get(slot.id)?.desc ?? slot.id}>
@@ -229,7 +239,7 @@ export function Inspector({
 
         {/* Live Mastery — the craft grows WHILE you watch (docs/MASTERY.md §live). */}
         {/* Mulligan organism — the graft riding this kind THIS run (docs/MULLIGANS.md §inspect). */}
-        <MulliganLive state={mulliganStates?.[sp.kind]} />
+        <MulliganLive state={mulliganStates?.[sp.kind]} kind={sp.kind} />
 
         <MasteryLive kind={sp.kind} color={`var(--${cls})`} live={liveMastery?.[sp.kind]} />
 

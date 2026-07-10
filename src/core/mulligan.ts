@@ -14,6 +14,8 @@
 
 import { Registry } from './registry';
 import { REFORGE_RARITY, reforgeModById } from './mulliganReforge';
+import { COMBAT_CLASSES } from './combatClass';
+import type { CombatClass } from './types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rarity ladder — six tiers. Rarity is a PER-SLOT property (a modifier can sit at
@@ -116,6 +118,10 @@ export interface MulliganModifier {
   id: string;
   name: string;
   category: 'offensive' | 'utility' | 'biological';
+  /** Biological CLASS (docs/MULLIGANS.md §classes) — the SAME taxonomy towers use
+   *  (TowerDef.combatClass). Drives class chrome, host synergy and ADAPTATIONS; the
+   *  registry REJECTS a modifier without one (the future-modifier contract). */
+  cls: CombatClass;
   desc: string; // what it does, in player words
   flavor: string; // atmosphere
   baseRarity: MulliganRarity; // the rarity it typically DROPS at (floor for loot + collections)
@@ -129,6 +135,7 @@ export const mulliganRegistry = new Registry<MulliganModifier>('mulligan', {
   validate: (m) => {
     const out: string[] = [];
     if (!m.name) out.push(`${m.id}: missing name`);
+    if (!m.cls || !(m.cls in COMBAT_CLASSES)) out.push(`${m.id}: missing/unknown class '${m.cls}' — every modifier requires a CombatClass (docs/MULLIGANS.md §classes)`);
     if (Object.keys(m.influence).length === 0) out.push(`${m.id}: an influence is required (the generator needs it)`);
     if (m.powerWeight <= 0) out.push(`${m.id}: powerWeight must be > 0 (every modifier contributes Power)`);
     for (const mut of m.stats.projectileMutators ?? []) {
@@ -144,67 +151,67 @@ export const mulliganRegistry = new Registry<MulliganModifier>('mulligan', {
 // authored at Common/L1; rarity + level scale the deltas. (docs/MULLIGANS.md §catalog)
 // ─────────────────────────────────────────────────────────────────────────────
 const OFFENSIVE: MulliganModifier[] = [
-  { id: 'bone_spike', name: 'Bone Spike', category: 'offensive', baseRarity: 'common', stats: { damageMult: 1.08, projectileMutators: ['pierce1'] }, influence: { pierce: 1, damage: 0.4 }, powerWeight: 0.05, desc: 'Grows a bone lance — shots pierce one extra host.', flavor: 'A blade of ossified hunger, sharpened by every kill it remembers.' },
-  { id: 'acid_gland', name: 'Acid Gland', category: 'offensive', baseRarity: 'uncommon', stats: { damageMult: 1.06, splashMult: 1.06 }, influence: { poison: 1, debuff: 0.5 }, powerWeight: 0.055, desc: 'A blister of caustic bile — corrodes what it touches.', flavor: 'It weeps constantly. The tower has learned not to mind.' },
-  { id: 'rapid_synapse', name: 'Rapid Synapse', category: 'offensive', baseRarity: 'common', stats: { fireRateMult: 1.1 }, influence: { attackSpeed: 1 }, powerWeight: 0.05, desc: 'A twitching nerve cluster — the tower fires faster.', flavor: 'It fires before the thought finishes forming.' },
-  { id: 'rupture_node', name: 'Rupture Node', category: 'offensive', baseRarity: 'rare', stats: { splashMult: 1.18, damageMult: 1.05 }, influence: { splash: 1, damage: 0.3 }, powerWeight: 0.07, desc: 'A swollen gland that detonates on impact — wider blasts.', flavor: 'Pressure with nowhere to go, gifted a direction.' },
-  { id: 'venom_barb', name: 'Venom Barb', category: 'offensive', baseRarity: 'uncommon', stats: { damageMult: 1.07, projectileMutators: ['pierce1'] }, influence: { poison: 0.7, pierce: 0.6 }, powerWeight: 0.058, desc: 'Envenomed lances that pierce and poison.', flavor: 'The barb is the mercy. The venom is the point.' },
-  { id: 'crystalline_core', name: 'Crystalline Core', category: 'offensive', baseRarity: 'epic', stats: { damageMult: 1.15 }, influence: { crit: 1, damage: 0.5 }, powerWeight: 0.085, desc: 'A faceted growth that focuses lethal critical strikes.', flavor: 'Light enters. Only violence leaves.' },
-  { id: 'overload_ganglion', name: 'Overload Ganglion', category: 'offensive', baseRarity: 'rare', stats: { fireRateMult: 1.12, damageMult: 1.05 }, influence: { attackSpeed: 0.8, damage: 0.5 }, powerWeight: 0.072, desc: 'An overclocked nerve knot — faster, harder fire.', flavor: 'It runs hot enough to cook. It does not stop.' },
-  { id: 'siege_carapace', name: 'Siege Carapace', category: 'offensive', baseRarity: 'epic', stats: { damageMult: 1.2 }, influence: { damage: 1 }, powerWeight: 0.09, desc: 'A heavy offensive shell — pure, brutal damage.', flavor: 'Built for one verb, conjugated forever.' },
-  { id: 'shatter_lance', name: 'Shatter Lance', category: 'offensive', baseRarity: 'legendary', stats: { damageMult: 1.18, projectileMutators: ['pierce2'] }, influence: { pierce: 1, crit: 0.6, damage: 0.6 }, powerWeight: 0.12, desc: 'A crystalline lance that punches through two hosts and crits.', flavor: 'A line drawn through a crowd, in their own language.' },
-  { id: 'apex_gland', name: 'Apex Predator Gland', category: 'offensive', baseRarity: 'ascendant', stats: { damageMult: 1.25, fireRateMult: 1.08 }, influence: { damage: 1, crit: 0.5, attackSpeed: 0.4 }, powerWeight: 0.16, desc: 'The pinnacle offensive organ — damage, crit, and cadence.', flavor: 'Everything it was grafted onto is now a delivery mechanism.' },
+  { id: 'bone_spike', name: 'Bone Spike', category: 'offensive', cls: 'Kinetic', baseRarity: 'common', stats: { damageMult: 1.08, projectileMutators: ['pierce1'] }, influence: { pierce: 1, damage: 0.4 }, powerWeight: 0.05, desc: 'Grows a bone lance — shots pierce one extra host.', flavor: 'A blade of ossified hunger, sharpened by every kill it remembers.' },
+  { id: 'acid_gland', name: 'Acid Gland', category: 'offensive', cls: 'Caustic', baseRarity: 'uncommon', stats: { damageMult: 1.06, splashMult: 1.06 }, influence: { poison: 1, debuff: 0.5 }, powerWeight: 0.055, desc: 'A blister of caustic bile — corrodes what it touches.', flavor: 'It weeps constantly. The tower has learned not to mind.' },
+  { id: 'rapid_synapse', name: 'Rapid Synapse', category: 'offensive', cls: 'Neural', baseRarity: 'common', stats: { fireRateMult: 1.1 }, influence: { attackSpeed: 1 }, powerWeight: 0.05, desc: 'A twitching nerve cluster — the tower fires faster.', flavor: 'It fires before the thought finishes forming.' },
+  { id: 'rupture_node', name: 'Rupture Node', category: 'offensive', cls: 'Caustic', baseRarity: 'rare', stats: { splashMult: 1.18, damageMult: 1.05 }, influence: { splash: 1, damage: 0.3 }, powerWeight: 0.07, desc: 'A swollen gland that detonates on impact — wider blasts.', flavor: 'Pressure with nowhere to go, gifted a direction.' },
+  { id: 'venom_barb', name: 'Venom Barb', category: 'offensive', cls: 'Viral', baseRarity: 'uncommon', stats: { damageMult: 1.07, projectileMutators: ['pierce1'] }, influence: { poison: 0.7, pierce: 0.6 }, powerWeight: 0.058, desc: 'Envenomed lances that pierce and poison.', flavor: 'The barb is the mercy. The venom is the point.' },
+  { id: 'crystalline_core', name: 'Crystalline Core', category: 'offensive', cls: 'Resonant', baseRarity: 'epic', stats: { damageMult: 1.15 }, influence: { crit: 1, damage: 0.5 }, powerWeight: 0.085, desc: 'A faceted growth that focuses lethal critical strikes.', flavor: 'Light enters. Only violence leaves.' },
+  { id: 'overload_ganglion', name: 'Overload Ganglion', category: 'offensive', cls: 'Neural', baseRarity: 'rare', stats: { fireRateMult: 1.12, damageMult: 1.05 }, influence: { attackSpeed: 0.8, damage: 0.5 }, powerWeight: 0.072, desc: 'An overclocked nerve knot — faster, harder fire.', flavor: 'It runs hot enough to cook. It does not stop.' },
+  { id: 'siege_carapace', name: 'Siege Carapace', category: 'offensive', cls: 'Kinetic', baseRarity: 'epic', stats: { damageMult: 1.2 }, influence: { damage: 1 }, powerWeight: 0.09, desc: 'A heavy offensive shell — pure, brutal damage.', flavor: 'Built for one verb, conjugated forever.' },
+  { id: 'shatter_lance', name: 'Shatter Lance', category: 'offensive', cls: 'Kinetic', baseRarity: 'legendary', stats: { damageMult: 1.18, projectileMutators: ['pierce2'] }, influence: { pierce: 1, crit: 0.6, damage: 0.6 }, powerWeight: 0.12, desc: 'A crystalline lance that punches through two hosts and crits.', flavor: 'A line drawn through a crowd, in their own language.' },
+  { id: 'apex_gland', name: 'Apex Predator Gland', category: 'offensive', cls: 'Kinetic', baseRarity: 'ascendant', stats: { damageMult: 1.25, fireRateMult: 1.08 }, influence: { damage: 1, crit: 0.5, attackSpeed: 0.4 }, powerWeight: 0.16, desc: 'The pinnacle offensive organ — damage, crit, and cadence.', flavor: 'Everything it was grafted onto is now a delivery mechanism.' },
 ];
 
 const UTILITY: MulliganModifier[] = [
-  { id: 'sensory_cilia', name: 'Sensory Cilia', category: 'utility', baseRarity: 'common', stats: { rangeMult: 1.1 }, influence: { support: 0.5, slow: 0.2 }, powerWeight: 0.045, desc: 'Fine sensory hairs — the tower reaches farther.', flavor: 'It feels the wave coming three heartbeats early.' },
-  { id: 'sticky_membrane', name: 'Sticky Membrane', category: 'utility', baseRarity: 'uncommon', stats: { rangeMult: 1.05, splashMult: 1.06 }, influence: { slow: 1 }, powerWeight: 0.05, desc: 'A tacky secretion that clings and slows.', flavor: 'Nothing leaves in a hurry. Nothing leaves at all.' },
-  { id: 'symbiotic_pod', name: 'Symbiotic Pod', category: 'utility', baseRarity: 'rare', stats: { fireRateMult: 1.06, rangeMult: 1.06 }, influence: { support: 1 }, powerWeight: 0.065, desc: 'A budding pod that shares its strength with the host.', flavor: 'Two organisms, one appetite.' },
-  { id: 'disruptor_sac', name: 'Disruptor Sac', category: 'utility', baseRarity: 'uncommon', stats: { damageMult: 1.05, rangeMult: 1.04 }, influence: { debuff: 1 }, powerWeight: 0.052, desc: 'A pulsing sac that fouls enemy defenses.', flavor: 'It hums on a frequency armor cannot ignore.' },
-  { id: 'frost_vesicle', name: 'Frost Vesicle', category: 'utility', baseRarity: 'rare', stats: { splashMult: 1.12 }, influence: { slow: 0.8, splash: 0.5 }, powerWeight: 0.066, desc: 'A supercooled bladder — chilling area bursts.', flavor: 'The cold is patient. The cold always wins.' },
-  { id: 'hunter_ocelli', name: 'Hunter Ocelli', category: 'utility', baseRarity: 'rare', stats: { rangeMult: 1.14, damageMult: 1.05 }, influence: { crit: 0.5, support: 0.3 }, powerWeight: 0.068, desc: 'A ring of hunting eyes — long reach and keen strikes.', flavor: 'It has already chosen where you will fall.' },
-  { id: 'web_filament', name: 'Web Filament', category: 'utility', baseRarity: 'epic', stats: { fireRateMult: 1.1, rangeMult: 1.06 }, influence: { slow: 0.7, attackSpeed: 0.6 }, powerWeight: 0.085, desc: 'Living threads that snare and quicken.', flavor: 'The loom never stops. You are already in the pattern.' },
-  { id: 'resonance_antenna', name: 'Resonance Antenna', category: 'utility', baseRarity: 'epic', stats: { rangeMult: 1.15, fireRateMult: 1.06 }, influence: { support: 1, slow: 0.3 }, powerWeight: 0.088, desc: 'A tuned organ that amplifies the whole tower.', flavor: 'It broadcasts a single note the battlefield obeys.' },
-  { id: 'warp_anchor', name: 'Warp Anchor', category: 'utility', baseRarity: 'legendary', stats: { rangeMult: 1.12, splashMult: 1.1 }, influence: { slow: 1, debuff: 0.7 }, powerWeight: 0.115, desc: 'A gravity organ that drags and disrupts a wide field.', flavor: 'Distance is a suggestion it declines to honor.' },
-  { id: 'oracle_nexus', name: 'Oracle Nexus', category: 'utility', baseRarity: 'ascendant', stats: { rangeMult: 1.18, fireRateMult: 1.08, splashMult: 1.08 }, influence: { support: 1, slow: 0.5, debuff: 0.5 }, powerWeight: 0.155, desc: 'The apex utility organ — reach, cadence, control.', flavor: 'It does not predict the wave. It authors it.' },
+  { id: 'sensory_cilia', name: 'Sensory Cilia', category: 'utility', cls: 'Resonant', baseRarity: 'common', stats: { rangeMult: 1.1 }, influence: { support: 0.5, slow: 0.2 }, powerWeight: 0.045, desc: 'Fine sensory hairs — the tower reaches farther.', flavor: 'It feels the wave coming three heartbeats early.' },
+  { id: 'sticky_membrane', name: 'Sticky Membrane', category: 'utility', cls: 'Neural', baseRarity: 'uncommon', stats: { rangeMult: 1.05, splashMult: 1.06 }, influence: { slow: 1 }, powerWeight: 0.05, desc: 'A tacky secretion that clings and slows.', flavor: 'Nothing leaves in a hurry. Nothing leaves at all.' },
+  { id: 'symbiotic_pod', name: 'Symbiotic Pod', category: 'utility', cls: 'Vital', baseRarity: 'rare', stats: { fireRateMult: 1.06, rangeMult: 1.06 }, influence: { support: 1 }, powerWeight: 0.065, desc: 'A budding pod that shares its strength with the host.', flavor: 'Two organisms, one appetite.' },
+  { id: 'disruptor_sac', name: 'Disruptor Sac', category: 'utility', cls: 'Neural', baseRarity: 'uncommon', stats: { damageMult: 1.05, rangeMult: 1.04 }, influence: { debuff: 1 }, powerWeight: 0.052, desc: 'A pulsing sac that fouls enemy defenses.', flavor: 'It hums on a frequency armor cannot ignore.' },
+  { id: 'frost_vesicle', name: 'Frost Vesicle', category: 'utility', cls: 'Neural', baseRarity: 'rare', stats: { splashMult: 1.12 }, influence: { slow: 0.8, splash: 0.5 }, powerWeight: 0.066, desc: 'A supercooled bladder — chilling area bursts.', flavor: 'The cold is patient. The cold always wins.' },
+  { id: 'hunter_ocelli', name: 'Hunter Ocelli', category: 'utility', cls: 'Resonant', baseRarity: 'rare', stats: { rangeMult: 1.14, damageMult: 1.05 }, influence: { crit: 0.5, support: 0.3 }, powerWeight: 0.068, desc: 'A ring of hunting eyes — long reach and keen strikes.', flavor: 'It has already chosen where you will fall.' },
+  { id: 'web_filament', name: 'Web Filament', category: 'utility', cls: 'Neural', baseRarity: 'epic', stats: { fireRateMult: 1.1, rangeMult: 1.06 }, influence: { slow: 0.7, attackSpeed: 0.6 }, powerWeight: 0.085, desc: 'Living threads that snare and quicken.', flavor: 'The loom never stops. You are already in the pattern.' },
+  { id: 'resonance_antenna', name: 'Resonance Antenna', category: 'utility', cls: 'Resonant', baseRarity: 'epic', stats: { rangeMult: 1.15, fireRateMult: 1.06 }, influence: { support: 1, slow: 0.3 }, powerWeight: 0.088, desc: 'A tuned organ that amplifies the whole tower.', flavor: 'It broadcasts a single note the battlefield obeys.' },
+  { id: 'warp_anchor', name: 'Warp Anchor', category: 'utility', cls: 'Neural', baseRarity: 'legendary', stats: { rangeMult: 1.12, splashMult: 1.1 }, influence: { slow: 1, debuff: 0.7 }, powerWeight: 0.115, desc: 'A gravity organ that drags and disrupts a wide field.', flavor: 'Distance is a suggestion it declines to honor.' },
+  { id: 'oracle_nexus', name: 'Oracle Nexus', category: 'utility', cls: 'Resonant', baseRarity: 'ascendant', stats: { rangeMult: 1.18, fireRateMult: 1.08, splashMult: 1.08 }, influence: { support: 1, slow: 0.5, debuff: 0.5 }, powerWeight: 0.155, desc: 'The apex utility organ — reach, cadence, control.', flavor: 'It does not predict the wave. It authors it.' },
 ];
 
 const BIOLOGICAL: MulliganModifier[] = [
-  { id: 'green_vein', name: 'Green Vein', category: 'biological', baseRarity: 'common', stats: { damageMult: 1.06 }, influence: { poison: 1 }, powerWeight: 0.048, desc: 'Toxin-swollen veins that seep into every wound.', flavor: 'The green is not decoration. It is intent.' },
-  { id: 'vascular_tissue', name: 'Vascular Tissue', category: 'biological', baseRarity: 'common', stats: { fireRateMult: 1.05, rangeMult: 1.04 }, influence: { healing: 1 }, powerWeight: 0.046, desc: 'Living vascular growth that sustains the graft.', flavor: 'It feeds the organism the organism feeds.' },
-  { id: 'parasite_sac', name: 'Parasite Sac', category: 'biological', baseRarity: 'uncommon', stats: { damageMult: 1.05, splashMult: 1.06 }, influence: { debuff: 0.8, poison: 0.4 }, powerWeight: 0.052, desc: 'A brood sac that seeds weakening parasites.', flavor: 'Every host is a nursery it has not opened yet.' },
-  { id: 'spore_bladder', name: 'Spore Bladder', category: 'biological', baseRarity: 'uncommon', stats: { splashMult: 1.14 }, influence: { poison: 0.8, splash: 0.6 }, powerWeight: 0.056, desc: 'A bladder that bursts into a toxic spore cloud.', flavor: 'Breathe in. That was the mistake.' },
-  { id: 'regenerative_node', name: 'Regenerative Node', category: 'biological', baseRarity: 'rare', stats: { fireRateMult: 1.06, rangeMult: 1.05 }, influence: { healing: 1, support: 0.4 }, powerWeight: 0.064, desc: 'A knot of self-repairing tissue that steadies the host.', flavor: 'Cut it and it thanks you for the surface area.' },
-  { id: 'toxin_reservoir', name: 'Toxin Reservoir', category: 'biological', baseRarity: 'rare', stats: { damageMult: 1.1 }, influence: { poison: 1, debuff: 0.4 }, powerWeight: 0.07, desc: 'A deep well of venom — potent, lingering poison.', flavor: 'It has never run dry. It has never tried.' },
-  { id: 'symbiont_cluster', name: 'Symbiont Cluster', category: 'biological', baseRarity: 'epic', stats: { rangeMult: 1.1, fireRateMult: 1.06 }, influence: { support: 0.8, healing: 0.8 }, powerWeight: 0.084, desc: 'A colony of helper organisms bound to the host.', flavor: 'A parliament of small hungers, voting to help.' },
-  { id: 'necrotic_bloom', name: 'Necrotic Bloom', category: 'biological', baseRarity: 'epic', stats: { damageMult: 1.12, splashMult: 1.08 }, influence: { poison: 1, debuff: 0.7 }, powerWeight: 0.088, desc: 'A blossom of rot that spreads decay outward.', flavor: 'It flowers only in the presence of an ending.' },
-  { id: 'living_hive', name: 'Living Hive', category: 'biological', baseRarity: 'legendary', stats: { splashMult: 1.16, damageMult: 1.06 }, influence: { poison: 0.8, splash: 0.7, support: 0.6 }, powerWeight: 0.118, desc: 'A self-sustaining hive that swarms the wave.', flavor: 'Not a tower with an organism. An organism with a tower.' },
-  { id: 'genesis_organ', name: 'Genesis Organ', category: 'biological', baseRarity: 'ascendant', stats: { damageMult: 1.14, fireRateMult: 1.08, splashMult: 1.08 }, influence: { poison: 0.8, healing: 0.8, support: 0.6, debuff: 0.5 }, powerWeight: 0.155, desc: 'The apex biological organ — a whole ecology in one graft.', flavor: 'It remembers being the first cell. It intends to be the last.' },
+  { id: 'green_vein', name: 'Green Vein', category: 'biological', cls: 'Viral', baseRarity: 'common', stats: { damageMult: 1.06 }, influence: { poison: 1 }, powerWeight: 0.048, desc: 'Toxin-swollen veins that seep into every wound.', flavor: 'The green is not decoration. It is intent.' },
+  { id: 'vascular_tissue', name: 'Vascular Tissue', category: 'biological', cls: 'Vital', baseRarity: 'common', stats: { fireRateMult: 1.05, rangeMult: 1.04 }, influence: { healing: 1 }, powerWeight: 0.046, desc: 'Living vascular growth that sustains the graft.', flavor: 'It feeds the organism the organism feeds.' },
+  { id: 'parasite_sac', name: 'Parasite Sac', category: 'biological', cls: 'Viral', baseRarity: 'uncommon', stats: { damageMult: 1.05, splashMult: 1.06 }, influence: { debuff: 0.8, poison: 0.4 }, powerWeight: 0.052, desc: 'A brood sac that seeds weakening parasites.', flavor: 'Every host is a nursery it has not opened yet.' },
+  { id: 'spore_bladder', name: 'Spore Bladder', category: 'biological', cls: 'Caustic', baseRarity: 'uncommon', stats: { splashMult: 1.14 }, influence: { poison: 0.8, splash: 0.6 }, powerWeight: 0.056, desc: 'A bladder that bursts into a toxic spore cloud.', flavor: 'Breathe in. That was the mistake.' },
+  { id: 'regenerative_node', name: 'Regenerative Node', category: 'biological', cls: 'Vital', baseRarity: 'rare', stats: { fireRateMult: 1.06, rangeMult: 1.05 }, influence: { healing: 1, support: 0.4 }, powerWeight: 0.064, desc: 'A knot of self-repairing tissue that steadies the host.', flavor: 'Cut it and it thanks you for the surface area.' },
+  { id: 'toxin_reservoir', name: 'Toxin Reservoir', category: 'biological', cls: 'Viral', baseRarity: 'rare', stats: { damageMult: 1.1 }, influence: { poison: 1, debuff: 0.4 }, powerWeight: 0.07, desc: 'A deep well of venom — potent, lingering poison.', flavor: 'It has never run dry. It has never tried.' },
+  { id: 'symbiont_cluster', name: 'Symbiont Cluster', category: 'biological', cls: 'Vital', baseRarity: 'epic', stats: { rangeMult: 1.1, fireRateMult: 1.06 }, influence: { support: 0.8, healing: 0.8 }, powerWeight: 0.084, desc: 'A colony of helper organisms bound to the host.', flavor: 'A parliament of small hungers, voting to help.' },
+  { id: 'necrotic_bloom', name: 'Necrotic Bloom', category: 'biological', cls: 'Viral', baseRarity: 'epic', stats: { damageMult: 1.12, splashMult: 1.08 }, influence: { poison: 1, debuff: 0.7 }, powerWeight: 0.088, desc: 'A blossom of rot that spreads decay outward.', flavor: 'It flowers only in the presence of an ending.' },
+  { id: 'living_hive', name: 'Living Hive', category: 'biological', cls: 'Viral', baseRarity: 'legendary', stats: { splashMult: 1.16, damageMult: 1.06 }, influence: { poison: 0.8, splash: 0.7, support: 0.6 }, powerWeight: 0.118, desc: 'A self-sustaining hive that swarms the wave.', flavor: 'Not a tower with an organism. An organism with a tower.' },
+  { id: 'genesis_organ', name: 'Genesis Organ', category: 'biological', cls: 'Vital', baseRarity: 'ascendant', stats: { damageMult: 1.14, fireRateMult: 1.08, splashMult: 1.08 }, influence: { poison: 0.8, healing: 0.8, support: 0.6, debuff: 0.5 }, powerWeight: 0.155, desc: 'The apex biological organ — a whole ecology in one graft.', flavor: 'It remembers being the first cell. It intends to be the last.' },
 ];
 
 // ── The expansion 15 (5 per category) — the catalog tracks the tower roster at exactly
 // THREE PIECES PER TOWER (content-integrity test), so every tower can host a full organism
 // with zero piece-sharing (each piece lives on ONE tower at a time — §exclusivity). ──
 const OFFENSIVE_2: MulliganModifier[] = [
-  { id: 'marrow_cannon', name: 'Marrow Cannon', category: 'offensive', baseRarity: 'rare', stats: { damageMult: 1.12, splashMult: 1.05 }, influence: { damage: 0.8, splash: 0.5 }, powerWeight: 0.07, desc: 'A bone mortar grown mid-graft — heavy, wide hits.', flavor: 'It was a femur once. It has ambitions now.' },
-  { id: 'twitch_fiber', name: 'Twitch Fiber', category: 'offensive', baseRarity: 'common', stats: { fireRateMult: 1.08, rangeMult: 1.03 }, influence: { attackSpeed: 1, support: 0.2 }, powerWeight: 0.048, desc: 'Fast-twitch muscle bundles — quicker cycling.', flavor: 'It practices between shots. There is no between.' },
-  { id: 'ember_sac', name: 'Ember Sac', category: 'offensive', baseRarity: 'uncommon', stats: { damageMult: 1.09 }, influence: { damage: 0.6, poison: 0.4 }, powerWeight: 0.056, desc: 'A smoldering chemical bladder — burning payloads.', flavor: 'Warm to the touch. Do not touch.' },
-  { id: 'lance_array', name: 'Lance Array', category: 'offensive', baseRarity: 'epic', stats: { damageMult: 1.08, fireRateMult: 1.05, projectileMutators: ['pierce1'] }, influence: { pierce: 0.8, attackSpeed: 0.5 }, powerWeight: 0.086, desc: 'A rack of ossified lances — piercing volleys.', flavor: 'Six spears, one argument.' },
-  { id: 'carnage_engine', name: 'Carnage Engine', category: 'offensive', baseRarity: 'legendary', stats: { damageMult: 1.16, fireRateMult: 1.06 }, influence: { damage: 0.9, crit: 0.5, attackSpeed: 0.3 }, powerWeight: 0.118, desc: 'A self-feeding violence loop — damage begets damage.', flavor: 'It idles at a murder. It does not idle long.' },
+  { id: 'marrow_cannon', name: 'Marrow Cannon', category: 'offensive', cls: 'Kinetic', baseRarity: 'rare', stats: { damageMult: 1.12, splashMult: 1.05 }, influence: { damage: 0.8, splash: 0.5 }, powerWeight: 0.07, desc: 'A bone mortar grown mid-graft — heavy, wide hits.', flavor: 'It was a femur once. It has ambitions now.' },
+  { id: 'twitch_fiber', name: 'Twitch Fiber', category: 'offensive', cls: 'Neural', baseRarity: 'common', stats: { fireRateMult: 1.08, rangeMult: 1.03 }, influence: { attackSpeed: 1, support: 0.2 }, powerWeight: 0.048, desc: 'Fast-twitch muscle bundles — quicker cycling.', flavor: 'It practices between shots. There is no between.' },
+  { id: 'ember_sac', name: 'Ember Sac', category: 'offensive', cls: 'Caustic', baseRarity: 'uncommon', stats: { damageMult: 1.09 }, influence: { damage: 0.6, poison: 0.4 }, powerWeight: 0.056, desc: 'A smoldering chemical bladder — burning payloads.', flavor: 'Warm to the touch. Do not touch.' },
+  { id: 'lance_array', name: 'Lance Array', category: 'offensive', cls: 'Kinetic', baseRarity: 'epic', stats: { damageMult: 1.08, fireRateMult: 1.05, projectileMutators: ['pierce1'] }, influence: { pierce: 0.8, attackSpeed: 0.5 }, powerWeight: 0.086, desc: 'A rack of ossified lances — piercing volleys.', flavor: 'Six spears, one argument.' },
+  { id: 'carnage_engine', name: 'Carnage Engine', category: 'offensive', cls: 'Kinetic', baseRarity: 'legendary', stats: { damageMult: 1.16, fireRateMult: 1.06 }, influence: { damage: 0.9, crit: 0.5, attackSpeed: 0.3 }, powerWeight: 0.118, desc: 'A self-feeding violence loop — damage begets damage.', flavor: 'It idles at a murder. It does not idle long.' },
 ];
 const UTILITY_2: MulliganModifier[] = [
-  { id: 'echo_bulb', name: 'Echo Bulb', category: 'utility', baseRarity: 'common', stats: { rangeMult: 1.06, fireRateMult: 1.03 }, influence: { support: 0.7, debuff: 0.2 }, powerWeight: 0.046, desc: 'A resonant bulb that sharpens the tower\'s senses.', flavor: 'It hears the shot land before the shot leaves.' },
-  { id: 'gravemind_knot', name: 'Gravemind Knot', category: 'utility', baseRarity: 'uncommon', stats: { rangeMult: 1.08, splashMult: 1.04 }, influence: { debuff: 0.8, slow: 0.4 }, powerWeight: 0.054, desc: 'A knotted neural mass that unsettles the wave.', flavor: 'It thinks about you. That is the weapon.' },
-  { id: 'prism_lens', name: 'Prism Lens', category: 'utility', baseRarity: 'rare', stats: { rangeMult: 1.1, damageMult: 1.05 }, influence: { crit: 0.8, support: 0.3 }, powerWeight: 0.068, desc: 'A crystalline eye that finds the killing angle.', flavor: 'Every refraction is a decision.' },
-  { id: 'tremor_bell', name: 'Tremor Bell', category: 'utility', baseRarity: 'epic', stats: { splashMult: 1.12, rangeMult: 1.06 }, influence: { splash: 0.8, slow: 0.5 }, powerWeight: 0.086, desc: 'A subsonic organ — wide, staggering impacts.', flavor: 'You do not hear it. Your bones do.' },
-  { id: 'chrono_polyp', name: 'Chrono Polyp', category: 'utility', baseRarity: 'legendary', stats: { fireRateMult: 1.12, rangeMult: 1.08 }, influence: { attackSpeed: 0.8, slow: 0.6, support: 0.4 }, powerWeight: 0.116, desc: 'A time-dilating growth — the tower lives faster.', flavor: 'It budgets your seconds. It skims a fee.' },
+  { id: 'echo_bulb', name: 'Echo Bulb', category: 'utility', cls: 'Resonant', baseRarity: 'common', stats: { rangeMult: 1.06, fireRateMult: 1.03 }, influence: { support: 0.7, debuff: 0.2 }, powerWeight: 0.046, desc: 'A resonant bulb that sharpens the tower\'s senses.', flavor: 'It hears the shot land before the shot leaves.' },
+  { id: 'gravemind_knot', name: 'Gravemind Knot', category: 'utility', cls: 'Neural', baseRarity: 'uncommon', stats: { rangeMult: 1.08, splashMult: 1.04 }, influence: { debuff: 0.8, slow: 0.4 }, powerWeight: 0.054, desc: 'A knotted neural mass that unsettles the wave.', flavor: 'It thinks about you. That is the weapon.' },
+  { id: 'prism_lens', name: 'Prism Lens', category: 'utility', cls: 'Resonant', baseRarity: 'rare', stats: { rangeMult: 1.1, damageMult: 1.05 }, influence: { crit: 0.8, support: 0.3 }, powerWeight: 0.068, desc: 'A crystalline eye that finds the killing angle.', flavor: 'Every refraction is a decision.' },
+  { id: 'tremor_bell', name: 'Tremor Bell', category: 'utility', cls: 'Caustic', baseRarity: 'epic', stats: { splashMult: 1.12, rangeMult: 1.06 }, influence: { splash: 0.8, slow: 0.5 }, powerWeight: 0.086, desc: 'A subsonic organ — wide, staggering impacts.', flavor: 'You do not hear it. Your bones do.' },
+  { id: 'chrono_polyp', name: 'Chrono Polyp', category: 'utility', cls: 'Neural', baseRarity: 'legendary', stats: { fireRateMult: 1.12, rangeMult: 1.08 }, influence: { attackSpeed: 0.8, slow: 0.6, support: 0.4 }, powerWeight: 0.116, desc: 'A time-dilating growth — the tower lives faster.', flavor: 'It budgets your seconds. It skims a fee.' },
 ];
 const BIOLOGICAL_2: MulliganModifier[] = [
-  { id: 'marrow_leech', name: 'Marrow Leech', category: 'biological', baseRarity: 'common', stats: { damageMult: 1.05, fireRateMult: 1.03 }, influence: { healing: 0.7, poison: 0.3 }, powerWeight: 0.047, desc: 'A feeding leech that returns strength to the host.', flavor: 'A fair trade, assessed by the leech.' },
-  { id: 'cyst_garden', name: 'Cyst Garden', category: 'biological', baseRarity: 'uncommon', stats: { splashMult: 1.08, rangeMult: 1.03 }, influence: { poison: 0.6, splash: 0.5 }, powerWeight: 0.054, desc: 'A bed of bursting cysts — spreading toxin pockets.', flavor: 'Something is always ripening.' },
-  { id: 'plague_heart', name: 'Plague Heart', category: 'biological', baseRarity: 'rare', stats: { damageMult: 1.08, splashMult: 1.06 }, influence: { poison: 0.9, debuff: 0.3 }, powerWeight: 0.069, desc: 'A second heart that pumps pestilence.', flavor: 'Two beats: one for the host, one for the harvest.' },
-  { id: 'mother_polyp', name: 'Mother Polyp', category: 'biological', baseRarity: 'epic', stats: { rangeMult: 1.08, fireRateMult: 1.07 }, influence: { support: 0.7, healing: 0.6, splash: 0.3 }, powerWeight: 0.087, desc: 'A brooding polyp that nurtures the whole graft.', flavor: 'Everything it touches, it raises.' },
-  { id: 'wombworks', name: 'Wombworks', category: 'biological', baseRarity: 'legendary', stats: { damageMult: 1.08, fireRateMult: 1.08, rangeMult: 1.06 }, influence: { healing: 0.8, support: 0.6, poison: 0.4 }, powerWeight: 0.12, desc: 'A living factory — the organism improves itself.', flavor: 'Version two is already gestating.' },
+  { id: 'marrow_leech', name: 'Marrow Leech', category: 'biological', cls: 'Vital', baseRarity: 'common', stats: { damageMult: 1.05, fireRateMult: 1.03 }, influence: { healing: 0.7, poison: 0.3 }, powerWeight: 0.047, desc: 'A feeding leech that returns strength to the host.', flavor: 'A fair trade, assessed by the leech.' },
+  { id: 'cyst_garden', name: 'Cyst Garden', category: 'biological', cls: 'Viral', baseRarity: 'uncommon', stats: { splashMult: 1.08, rangeMult: 1.03 }, influence: { poison: 0.6, splash: 0.5 }, powerWeight: 0.054, desc: 'A bed of bursting cysts — spreading toxin pockets.', flavor: 'Something is always ripening.' },
+  { id: 'plague_heart', name: 'Plague Heart', category: 'biological', cls: 'Viral', baseRarity: 'rare', stats: { damageMult: 1.08, splashMult: 1.06 }, influence: { poison: 0.9, debuff: 0.3 }, powerWeight: 0.069, desc: 'A second heart that pumps pestilence.', flavor: 'Two beats: one for the host, one for the harvest.' },
+  { id: 'mother_polyp', name: 'Mother Polyp', category: 'biological', cls: 'Vital', baseRarity: 'epic', stats: { rangeMult: 1.08, fireRateMult: 1.07 }, influence: { support: 0.7, healing: 0.6, splash: 0.3 }, powerWeight: 0.087, desc: 'A brooding polyp that nurtures the whole graft.', flavor: 'Everything it touches, it raises.' },
+  { id: 'wombworks', name: 'Wombworks', category: 'biological', cls: 'Vital', baseRarity: 'legendary', stats: { damageMult: 1.08, fireRateMult: 1.08, rangeMult: 1.06 }, influence: { healing: 0.8, support: 0.6, poison: 0.4 }, powerWeight: 0.12, desc: 'A living factory — the organism improves itself.', flavor: 'Version two is already gestating.' },
 ];
 
 mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL, ...OFFENSIVE_2, ...UTILITY_2, ...BIOLOGICAL_2]);
@@ -216,6 +223,98 @@ export const MULLIGAN_GATE_MEGAS = 3;
 /** All modifiers of a category (UI grouping / collections). */
 export function modifiersByCategory(cat: MulliganModifier['category']): MulliganModifier[] {
   return mulliganRegistry.all().filter((m) => m.category === cat);
+}
+
+/** All modifiers of a biological class (class chrome, collections, the recommender). */
+export function modifiersByClass(cls: CombatClass): MulliganModifier[] {
+  return mulliganRegistry.all().filter((m) => m.cls === cls);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLASS ADAPTATIONS (docs/MULLIGANS.md §adaptations) — the set bonus. A completed organism
+// compares its three modifiers' classes against the HOST tower's class: all three match ⇒ the
+// FULL adaptation (a capability, not just numbers); exactly two ⇒ the MINOR adaptation
+// (numbers only). Bonuses speak the EXISTING MulliganStats vocabulary and reinforce each
+// class's identity — no new sim branches, golden-safe by the same inactive⇒identity gate.
+// Hybrids stay viable: three strong mismatched grafts still beat two weak matched ones.
+// ─────────────────────────────────────────────────────────────────────────────
+export type AdaptationTier = 'full' | 'minor';
+
+export interface ClassAdaptation {
+  cls: CombatClass;
+  /** The ceremony name — "COMPLETE CLASS ADAPTATION · KINETIC SYNCHRONIZED". */
+  title: string;
+  fullDesc: string;
+  minorDesc: string;
+  full: MulliganStats;
+  minor: MulliganStats;
+}
+
+/** Power multiplier bonus for an active adaptation (rides the mulligans Power bucket). */
+export const ADAPTATION_POWER: Record<AdaptationTier, number> = { full: 0.06, minor: 0.025 };
+
+export const CLASS_ADAPTATIONS: Record<CombatClass, ClassAdaptation> = {
+  Kinetic: {
+    cls: 'Kinetic', title: 'Ossified Momentum',
+    fullDesc: 'Every shot punches through one additional host, and hits land 10% harder.',
+    minorDesc: 'Hits land 6% harder.',
+    full: { damageMult: 1.1, projectileMutators: ['pierce1'] },
+    minor: { damageMult: 1.06 },
+  },
+  Caustic: {
+    cls: 'Caustic', title: 'Runaway Dissolution',
+    fullDesc: 'Detonations bloom 22% wider and bite 4% deeper — packs dissolve together.',
+    minorDesc: 'Detonations bloom 10% wider.',
+    full: { splashMult: 1.22, damageMult: 1.04 },
+    minor: { splashMult: 1.1 },
+  },
+  Viral: {
+    cls: 'Viral', title: 'Epidemic Cadence',
+    fullDesc: 'The infection cycles 10% faster and wounds fester 6% deeper — contagion outruns the cure.',
+    minorDesc: 'The infection cycles 6% faster.',
+    full: { fireRateMult: 1.1, damageMult: 1.06 },
+    minor: { fireRateMult: 1.06 },
+  },
+  Neural: {
+    cls: 'Neural', title: 'Synaptic Overreach',
+    fullDesc: 'The lattice sees 10% farther and thinks 8% faster — control arrives before the wave does.',
+    minorDesc: 'The lattice sees 6% farther.',
+    full: { rangeMult: 1.1, fireRateMult: 1.08 },
+    minor: { rangeMult: 1.06 },
+  },
+  Vital: {
+    cls: 'Vital', title: 'Perpetual Bloom',
+    fullDesc: 'The organism sustains a relentless tempo — 6% faster, 6% farther, 4% harder, forever.',
+    minorDesc: 'The organism quickens by 5%.',
+    full: { fireRateMult: 1.06, rangeMult: 1.06, damageMult: 1.04 },
+    minor: { fireRateMult: 1.05 },
+  },
+  Resonant: {
+    cls: 'Resonant', title: 'Harmonic Chorus',
+    fullDesc: 'A harmonic echo strikes one additional target, and the note carries 5% farther.',
+    minorDesc: 'The note carries 8% farther.',
+    full: { extraProjectiles: 1, rangeMult: 1.05 },
+    minor: { rangeMult: 1.08 },
+  },
+};
+
+export interface AdaptationView {
+  hostClass: CombatClass;
+  matches: number; // filled slots whose class matches the host (0..3, counts even while inactive)
+  tier: AdaptationTier | null; // full (3/3) / minor (2/3) — only while the organism is ACTIVE
+  adaptation: ClassAdaptation; // the host class's definition (UI reads titles/descs from here)
+}
+
+/** The host-synergy read: how close is this organism to the host's Complete Class Adaptation? */
+export function adaptationOf(state: MulliganState | undefined | null, hostClass: CombatClass): AdaptationView {
+  let matches = 0;
+  for (const slot of state?.slots ?? []) {
+    const def = slot ? mulliganRegistry.get(slot.id) : undefined;
+    if (def && def.cls === hostClass) matches++;
+  }
+  const active = isMulliganActive(state);
+  const tier: AdaptationTier | null = active && matches >= MULLIGAN_SLOTS ? 'full' : active && matches === MULLIGAN_SLOTS - 1 ? 'minor' : null;
+  return { hostClass, matches, tier, adaptation: CLASS_ADAPTATIONS[hostClass] };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -305,10 +404,13 @@ export interface ResolvedMulligan {
   projectileMutators: string[];
   profile: StatProfile; // aggregated archetype vector (generators)
   power: number; // ≥ 1 Power multiplier contribution
+  /** Host-class set bonus (docs/MULLIGANS.md §adaptations) — null when no host class was
+   *  given (legacy callers) or nothing activated. Drives the evolved visual + UI badges. */
+  adaptation: { cls: CombatClass; tier: AdaptationTier } | null;
 }
 
 export function identityMulligan(): ResolvedMulligan {
-  return { active: false, damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1, extraProjectiles: 0, projectileMutators: [], profile: zeroProfile(), power: 1 };
+  return { active: false, damageMult: 1, fireRateMult: 1, rangeMult: 1, splashMult: 1, extraProjectiles: 0, projectileMutators: [], profile: zeroProfile(), power: 1, adaptation: null };
 }
 
 /** True only when every slot holds a known modifier — the activation gate. */
@@ -321,7 +423,7 @@ export function isMulliganActive(state: MulliganState | undefined | null): boole
   return true;
 }
 
-export function resolveMulligan(state: MulliganState | undefined | null): ResolvedMulligan {
+export function resolveMulligan(state: MulliganState | undefined | null, hostClass?: CombatClass): ResolvedMulligan {
   const out = identityMulligan();
   if (!isMulliganActive(state)) return out; // <3 filled ⇒ identity (golden-safe)
   out.active = true;
@@ -360,6 +462,22 @@ export function resolveMulligan(state: MulliganState | undefined | null): Resolv
     if (s?.projectileMutators) out.projectileMutators.push(...s.projectileMutators);
     out.power *= 1 + REFORGE_RARITY[rf.rarity].power;
   }
+  // §adaptations — the host-class set bonus folds through the SAME channels, last (order is
+  // cosmetic: everything multiplies). Capability grants (pierce, echo targets) are FULL-only.
+  if (hostClass) {
+    const a = adaptationOf(state, hostClass);
+    if (a.tier) {
+      const bonus = a.tier === 'full' ? a.adaptation.full : a.adaptation.minor;
+      if (bonus.damageMult) out.damageMult *= bonus.damageMult;
+      if (bonus.fireRateMult) out.fireRateMult *= bonus.fireRateMult;
+      if (bonus.rangeMult) out.rangeMult *= bonus.rangeMult;
+      if (bonus.splashMult) out.splashMult *= bonus.splashMult;
+      if (bonus.extraProjectiles) out.extraProjectiles += bonus.extraProjectiles;
+      if (bonus.projectileMutators) out.projectileMutators.push(...bonus.projectileMutators);
+      out.power *= 1 + ADAPTATION_POWER[a.tier];
+      out.adaptation = { cls: hostClass, tier: a.tier };
+    }
+  }
   return out;
 }
 
@@ -368,13 +486,14 @@ export function resolveMulligan(state: MulliganState | undefined | null): Resolv
 // It rides its own PowerParts bucket; a heuristic (like equipment rarity / branch tiers),
 // NOT a FIELD_WEIGHT field, so it never touches power coverage. 1 when inactive.
 // ─────────────────────────────────────────────────────────────────────────────
-export function mulliganPower(state: MulliganState | undefined | null): number {
-  return resolveMulligan(state).power;
+export function mulliganPower(state: MulliganState | undefined | null, hostClass?: CombatClass): number {
+  return resolveMulligan(state, hostClass).power;
 }
-/** Roster Power across all towers' Mulligans (each ≥ 1) — the account-level bucket. */
-export function accountMulliganPower(states: Iterable<MulliganState | undefined>): number {
+/** Roster Power across all towers' Mulligans (each ≥ 1) — the account-level bucket.
+ *  Pairs carry the HOST class so Adaptation bonuses score (docs/MULLIGANS.md §adaptations). */
+export function accountMulliganPower(pairs: Iterable<readonly [MulliganState | undefined, CombatClass]>): number {
   let mult = 1;
-  for (const s of states) mult *= mulliganPower(s);
+  for (const [s, cls] of pairs) mult *= mulliganPower(s, cls);
   return mult;
 }
 

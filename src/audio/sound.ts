@@ -401,6 +401,14 @@ function sLevelUp(): void {
   tone(880, 0.34, 'sine', 0.13, 932); // held bloom with a gentle upward bend
   noise(0.22, 0.035, 6500);
 }
+// COMPLETE CLASS ADAPTATION (docs/MULLIGANS.md §adaptations) — the organism SYNCHRONIZES:
+// a wet biological snap into a bright rising fifth that locks. Distinct from graftSquelch
+// (routine equips) — this is the set-complete moment.
+function sAdapt(): void {
+  noise(0.09, 0.09, 1400); // the wet snap — tissue locking into place
+  tone(392, 0.12, 'triangle', 0.11); tone(587, 0.3, 'sine', 0.13, 622); // the rising fifth, held
+  tone(1175, 0.24, 'sine', 0.07); // a thin harmonic sheen on top
+}
 // GENOME RANK PROMOTION (docs/GENOME-RANK.md §cinematic) — the biggest personal fanfare in the
 // kit: a low organic swell under a rising two-step into a held two-voice bloom. Rare by design.
 function sPromotion(): void {
@@ -533,6 +541,7 @@ export const audio = {
         case 'unlock': sUnlock(); break;
         case 'levelup': sLevelUp(); break;
         case 'promotion': sPromotion(); break;
+        case 'adapt': sAdapt(); break;
         case 'power': sPower(); break;
         case 'mastery': sMastery(); break;
         case 'rankup': sRankUp(); break;

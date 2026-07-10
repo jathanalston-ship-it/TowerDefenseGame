@@ -707,3 +707,18 @@ source (campaign) 17%; guard pins the 30h band to ranks IV–VI and rising ratin
 **Known limitations.** Snapshot recomputes collection+power on demand (ms-scale, event-driven
 only); rank-gated profile frames deferred (titles carry identity); promotion cinematic reuses
 the evo-unlock frame rather than bespoke per-rank art.
+
+## Addendum — Mulligan Class Synergy & Adaptations (docs/MULLIGANS.md §classes/§adaptations)
+
+Every modifier now carries a biological CLASS (the towers' six-class CombatClass taxonomy;
+shared display table `src/core/combatClass.ts`; registry rejects classless rows — the
+future-modifier contract). Matching all three grafts to the HOST tower's class activates the
+**Complete Class Adaptation** (per-class capability bonus through existing MulliganStats
+channels — Kinetic pierce, Resonant echo target, etc.; `CLASS_ADAPTATIONS` data), two matches
+a minor tier; hybrids untouched. `resolveMulligan(state, hostClass?)` folds it (golden-safe:
+inactive ⇒ identity); Power full ×1.06 / minor ×1.025 in the same bucket
+(`accountMulliganPower` takes [state, hostClass] pairs). Presentation: class chrome on all
+cards, host-synergy panel (pips/tier/chase copy), 8 sort modes, per-host recommender, ⟡ rail
+crowns, the organism's class-hued thorn crown (battlefield-visible), in-run Inspector readout,
+COMPLETE CLASS ADAPTATION ceremony + dedicated `adapt` cue. Genome mulligan measure blends
+assembly + full adaptations.

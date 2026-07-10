@@ -392,7 +392,7 @@ export function GameView({
       // The Daily's seeded assignment substitutes the account's organisms for this run
       // (docs/MULLIGANS.md §daily) — same fold, same visuals, same Inspect.
       const st = mulliganOverride ? mulliganOverride[k] : s.mulligans?.[k];
-      const resolved = resolveMulligan(st);
+      const resolved = resolveMulligan(st, TOWER_DEFS[k].combatClass);
       if (resolved.active && st) {
         m[k] = { resolved, visualSeed: st.visualSeed, animSeed: st.animSeed, projectile: deriveMulliganProjectile(resolved, st.visualSeed) };
       }
