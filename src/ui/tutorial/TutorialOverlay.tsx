@@ -58,6 +58,26 @@ export function TutorialOverlay(): JSX.Element | null {
     return () => clearTimeout(t);
   }, [session, cp?.id, advanceKind, advanceMs, paused, session?.progress.attempt]);
 
+  // ADAPTIVE REACHABILITY (docs/RESPONSIVE-DESIGN.md §tutorial): on small layouts the run column
+  // scrolls, so a step's target can start below the fold. Every checkpoint AUTO-SCROLLS its primary
+  // target into view (nested scroll containers included), and re-asserts shortly after in case the
+  // target mounted late or a panel transition moved it. A tutorial must never point at nothing.
+  const targetSel = cue?.arrow?.target ?? cue?.callout?.target ?? cue?.spotlight ?? null;
+  useEffect(() => {
+    if (!targetSel) return;
+    let tries = 0;
+    const bring = (): void => {
+      const el = document.querySelector(targetSel);
+      if (!el) { if (++tries < 10) t = window.setTimeout(bring, 250); return; } // late-mounting target
+      const r = el.getBoundingClientRect();
+      const out = r.top < 0 || r.bottom > window.innerHeight || r.left < 0 || r.right > window.innerWidth;
+      if (out) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+      if (++tries < 3) t = window.setTimeout(bring, 700); // re-assert after transitions settle
+    };
+    let t = window.setTimeout(bring, 60);
+    return () => clearTimeout(t);
+  }, [targetSel, cp?.id]);
+
   if (!session || !cp) return null;
 
   // ── The letterboxed cold open: RELAY 7 hands the film to the trial ──

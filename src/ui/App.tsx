@@ -52,6 +52,9 @@ import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
 import type { DeployInfo } from './DeployScreen';
 import { DIFFICULTIES } from '../core/difficulty';
+import { initLayoutProfile } from './layoutProfile';
+
+initLayoutProfile(); // stamp data-layout/data-coarse on <html> before first paint (docs/RESPONSIVE-DESIGN.md)
 
 type Screen = 'menu' | 'deploying' | 'playing' | 'results' | 'tutorial' | 'roulette';
 

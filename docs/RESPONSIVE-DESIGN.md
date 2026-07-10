@@ -6,6 +6,27 @@
 > additional responsive work**. Companion to `docs/UI_STYLE_GUIDE.md` (values) and
 > `docs/DESIGN_LANGUAGE.md` (application; its new-screen checklist references this guide).
 
+## 0. Layout profiles (the three intentional interfaces)
+
+The UI is not "one layout resized" — it is THREE interfaces sharing one identity, chosen by
+`src/ui/layoutProfile.ts` and stamped on `<html>` as `data-layout` (+ `data-coarse` for touch):
+
+| profile | rule | intent |
+|---|---|---|
+| `desktop` | everything else (incl. landscape tablets / Deck / ultrawide) | information-rich, pointer-first |
+| `landscape` | wider than tall AND height ≤ 520px | phone rotated: short viewport, board dominates, thumb-edge controls |
+| `portrait` | taller than wide AND width ≤ 900px | one column, readability first, secondary info collapses |
+
+Components branch via `useLayoutProfile()`; new CSS keys on `html[data-layout="…"]` /
+`html[data-coarse="1"]`. The legacy width bands below (860/900/640/Deck) remain the underlying
+implementation of the existing rules — new work should reach for the profile attributes first.
+One rAF-debounced resize listener feeds the store; profile reads are cached (free at frame rate).
+
+**The zero-list (hard contract, machine-enforced):** no UI beyond the viewport, no hidden or
+unreachable controls, no tutorial cues pointing at off-screen targets, no horizontal scrolling,
+no clipped text, no off-screen popups — at ANY supported size. `npm run mobilecheck` (in
+`npm run validate`) fails the build on each of these.
+
 ## 1. The platform matrix (what we design for and test at)
 
 | class | representative logical sizes |
@@ -58,6 +79,34 @@ chrome so the battlefield dominates). Prefer these four; don't invent new ones c
 - **Tap targets**: `@media (pointer: coarse)` floors `button, select, [role=button], inputs`
   at 44px min-height with `touch-action: manipulation`. Non-button interactive elements MUST
   carry `role="button"` to inherit the floor.
+
+## 4b. The run shell scrolls on portrait (the tutorial-blocker fix)
+
+The desktop run shell is a fixed 100vh "never scroll" RTS frame. On the ≤640px portrait band the
+stage promotes every panel into ONE column that is taller than a phone screen — so the shell there
+is `height:100dvh; overflow-y:auto` (2026-07: the old clipped shell made everything below the
+board UNREACHABLE, which blocked the tutorial). The board keeps `touch-action:none` for game
+gestures; scrolling rides the hud/panels/toolbar surfaces.
+
+## 4c. Tutorial reachability (adaptive, machine-enforced)
+
+Every checkpoint AUTO-SCROLLS its cue target into view (`TutorialOverlay` §reachability,
+re-asserted after transitions), arrows never render at off-viewport anchors, and callouts flip
+sides + clamp so the lesson text can never leave the screen (small viewports get an internal
+scroll instead of a clipped bubble). The gate's TUTORIAL WALK steps every checkpoint at
+375×812 and 844×390 on a fresh profile and fails the build if any cue target, callout, or
+control is off-screen — the "portrait couldn't finish the tutorial" class of bug is a CI failure now.
+
+## 4d. The responsive gate (`npm run mobilecheck`)
+
+Default (runs in `npm run validate`): every hub screen + a live board at one honest
+representative of each profile class — 1366×768 desktop, 390×844 + 320×568 portrait,
+**844×390 landscape phone**, 768×1024 tablet — plus the tutorial walk. Detectors: horizontal
+overflow, clipped text, sub-24px targets, off-screen interactives, **off-screen/oversize popups**
+(`[role="dialog"]` must fit or scroll), and tutorial reachability. `--full` sweeps the complete
+published matrix (desktop 1920/2560/3440-ultrawide, portrait 360/375/412/430, landscape
+568/640/932, tablets 820/1024). Debug tools: DebugPanel → 📐 Responsive (live profile/viewport/
+safe-area readout + the layout visualizer: tap-target outlines, safe-area bands, profile chip).
 - **Hold-to-repeat**: `src/ui/components/usePressRepeat.ts` — the shared primitive for buy
   buttons (click once; hold to repeat with a ramp; a failed buy halts the run = overspend
   guard; context-menu suppressed for long-press). Desktop modifiers (shift-multi) stay at

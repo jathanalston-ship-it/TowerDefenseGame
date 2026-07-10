@@ -1,0 +1,81 @@
+// LAYOUT PROFILES (docs/RESPONSIVE-DESIGN.md §profiles) — the three intentional interfaces:
+//   desktop   — information-rich, pointer-first (includes landscape tablets / Deck / ultrawide)
+//   landscape — phone-landscape band: short viewport, thumbs on the edges, board dominates
+//   portrait  — one-column touch layout: readability first, secondary info collapses
+//
+// The profile is STAMPED on <html> as data-layout (+ data-coarse for touch), so CSS reorganizes
+// per profile with plain attribute selectors and any component can branch via useLayoutProfile().
+// One resize listener, rAF-debounced, values cached — profile checks are free at frame rate.
+// The legacy width breakpoints (860/900/640/Deck) remain as the underlying implementation bands;
+// new responsive rules should key on the profile attributes instead.
+
+import { useSyncExternalStore } from 'react';
+
+export type LayoutProfile = 'desktop' | 'landscape' | 'portrait';
+
+export interface LayoutState {
+  profile: LayoutProfile;
+  coarse: boolean; // primary pointer is touch
+  vw: number;
+  vh: number;
+}
+
+function compute(): LayoutState {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  // Portrait: taller than wide AND phone/tablet-portrait width. Landscape: wider than tall
+  // with a SHORT viewport (phone rotated). Everything else is the desktop interface.
+  const profile: LayoutProfile = vh >= vw && vw <= 900 ? 'portrait' : vw > vh && vh <= 520 ? 'landscape' : 'desktop';
+  return { profile, coarse, vw, vh };
+}
+
+let state: LayoutState = typeof window === 'undefined'
+  ? { profile: 'desktop', coarse: false, vw: 1280, vh: 800 }
+  : compute();
+const listeners = new Set<() => void>();
+let raf = 0;
+
+function stamp(): void {
+  const el = document.documentElement;
+  if (el.dataset.layout !== state.profile) el.dataset.layout = state.profile;
+  const coarse = state.coarse ? '1' : '0';
+  if (el.dataset.coarse !== coarse) el.dataset.coarse = coarse;
+  // Feed the debug visualizer's chip while it's engaged (ResponsiveDebug toggles the attribute).
+  if (el.hasAttribute('data-debug-layout')) document.body?.setAttribute('data-debug-label', `${state.profile} ${state.vw}×${state.vh}`);
+}
+
+function refresh(): void {
+  const next = compute();
+  if (next.profile === state.profile && next.coarse === state.coarse && next.vw === state.vw && next.vh === state.vh) return;
+  state = next;
+  stamp();
+  for (const fn of listeners) fn();
+}
+
+/** Idempotent boot hook (App imports this module; the stamp lands before first paint). */
+export function initLayoutProfile(): void {
+  if (typeof window === 'undefined') return;
+  stamp();
+  const onChange = (): void => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(refresh);
+  };
+  window.addEventListener('resize', onChange);
+  window.addEventListener('orientationchange', onChange);
+}
+
+export const layout = {
+  get(): LayoutState {
+    return state;
+  },
+  subscribe(fn: () => void): () => void {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
+};
+
+/** React hook — components branch structure per profile (never re-derive from raw width). */
+export function useLayoutProfile(): LayoutState {
+  return useSyncExternalStore(layout.subscribe, layout.get);
+}

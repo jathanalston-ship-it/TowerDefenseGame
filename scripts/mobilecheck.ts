@@ -22,9 +22,39 @@ const PORT = Number(args[args.indexOf('--port') + 1] || 0) || 4310;
 const CHROME = process.env.MOBILECHECK_CHROMIUM ?? '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell';
 
 const NAVS = ['home', 'campaign', 'infinite', 'bossrush', 'daily', 'towers', 'heroes', 'evolution', 'genes', 'mulligans', 'vault', 'market', 'equipment', 'phenotypes', 'collection', 'store', 'profile', 'help', 'settings'];
-const VIEWPORTS = [
-  { name: '390', width: 390, height: 844 },
-  { name: '320', width: 320, height: 700 },
+
+// The LAYOUT-PROFILE matrix (docs/RESPONSIVE-DESIGN.md §gate). The default gate covers one
+// honest representative of every profile class — desktop, portrait phone (mainstream +
+// smallest), LANDSCAPE phone, tablet portrait — so `npm run validate` enforces all three
+// intentional interfaces on every run. `--full` sweeps the complete published matrix.
+const GATE_VIEWPORTS = [
+  { name: 'desktop-1366x768', width: 1366, height: 768 },
+  { name: 'portrait-390x844', width: 390, height: 844 },
+  { name: 'portrait-320x568', width: 320, height: 568 },
+  { name: 'landscape-844x390', width: 844, height: 390 },
+  { name: 'tablet-768x1024', width: 768, height: 1024 },
+];
+const FULL_VIEWPORTS = [
+  ...GATE_VIEWPORTS,
+  { name: 'desktop-1920x1080', width: 1920, height: 1080 },
+  { name: 'desktop-2560x1440', width: 2560, height: 1440 },
+  { name: 'ultrawide-3440x1440', width: 3440, height: 1440 },
+  { name: 'portrait-360x640', width: 360, height: 640 },
+  { name: 'portrait-375x812', width: 375, height: 812 },
+  { name: 'portrait-412x915', width: 412, height: 915 },
+  { name: 'portrait-430x932', width: 430, height: 932 },
+  { name: 'landscape-568x320', width: 568, height: 320 },
+  { name: 'landscape-640x360', width: 640, height: 360 },
+  { name: 'landscape-932x430', width: 932, height: 430 },
+  { name: 'tablet-820x1180', width: 820, height: 1180 },
+  { name: 'tablet-1024x1366', width: 1024, height: 1366 },
+];
+const VIEWPORTS = args.includes('--full') ? FULL_VIEWPORTS : GATE_VIEWPORTS;
+// The TUTORIAL WALK runs at the layouts where reachability historically broke (portrait +
+// landscape phones): every checkpoint's cue target, callout and controls must sit on-screen.
+const TUTORIAL_VIEWPORTS = [
+  { name: 'portrait-375x812', width: 375, height: 812 },
+  { name: 'landscape-844x390', width: 844, height: 390 },
 ];
 const TAP_MIN = 24; // px — WCAG 2.5.8 minimum target size
 
@@ -40,7 +70,10 @@ async function main(): Promise<void> {
     const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox', '--disable-gpu'] });
     const violations: Violation[] = [];
     for (const vp of VIEWPORTS) {
-      const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+      const touch = !vp.name.startsWith('desktop') && !vp.name.startsWith('ultrawide');
+      // isMobile ⇒ Chromium reports (pointer: coarse), so the 44px CSS floors apply in-probe
+      // exactly as on real devices (the tap-size measurements are honest).
+      const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: touch, isMobile: touch });
       const page = await ctx.newPage();
       const pageErrs: string[] = [];
       page.on('pageerror', (e) => pageErrs.push(String(e).slice(0, 120)));
@@ -52,7 +85,7 @@ async function main(): Promise<void> {
         await page.evaluate((n) => (document.querySelector(`[data-nav="${n}"]`) as HTMLElement | null)?.click(), nav);
         await page.waitForTimeout(650); // let ui-rise / panel transitions settle before measuring
         await dismiss(page);
-        violations.push(...(await audit(page, nav, vp.name)));
+        violations.push(...(await audit(page, nav, vp.name, touch)));
       }
       // Live board: deploy the frontier and audit the combat screen itself.
       await page.evaluate(() => (document.querySelector('[data-nav="home"]') as HTMLElement | null)?.click());
@@ -68,9 +101,70 @@ async function main(): Promise<void> {
       await dismiss(page);
       await page.waitForTimeout(900); // run intro + HUD settle
       const inRun = await page.evaluate(() => !!document.querySelector('canvas.board'));
-      if (inRun) violations.push(...(await audit(page, 'in-run', vp.name)));
+      if (inRun) violations.push(...(await audit(page, 'in-run', vp.name, touch)));
       else violations.push({ screen: 'in-run', vp: vp.name, kind: 'unreachable', detail: 'could not enter a run from Home' });
       if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
+      await ctx.close();
+    }
+
+    // ── TUTORIAL WALK (docs/RESPONSIVE-DESIGN.md §tutorial) — the reachability contract.
+    // Fresh profile → the combat tutorial auto-starts → step EVERY checkpoint and assert the
+    // cue target, callout and controls are on-screen. This is the regression gate for the
+    // "portrait couldn't finish the tutorial" class of bug: pointing at nothing FAILS the build.
+    for (const vp of TUTORIAL_VIEWPORTS) {
+      const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: true });
+      const page = await ctx.newPage();
+      await page.goto(`http://localhost:${PORT}/?debug`, { waitUntil: 'networkidle' });
+      await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
+      // First-launch gate → Continue as Guest (part of the real first-run path).
+      await page.waitForTimeout(700);
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').includes('Continue as Guest'));
+        (b as HTMLElement | undefined)?.click();
+      });
+      // Wait for the tutorial overlay (auto-starts on a fresh profile), dismiss the cold open.
+      const started = await page.waitForSelector('.tut-overlay', { timeout: 15_000 }).then(() => true).catch(() => false);
+      if (!started) {
+        violations.push({ screen: 'tutorial', vp: vp.name, kind: 'tutorial-walk', detail: 'tutorial did not auto-start on a fresh profile' });
+        await ctx.close();
+        continue;
+      }
+      await page.evaluate(() => (document.querySelector('.tut-cine-open') as HTMLElement | null)?.click());
+      for (let step = 0; step < 40; step++) {
+        await page.waitForTimeout(1300); // typewriter + auto-scroll settle
+        const check = await page.evaluate(() => {
+          const g = globalThis as unknown as { __tut?: { get(): { def: { checkpoints: { id: string; cue?: { arrow?: { target: string }; callout?: { target?: string }; spotlight?: string } }[]; }; progress: { checkpoint: number } } | null; advance(): void } };
+          const tut = g.__tut;
+          if (!tut) return { done: true, errs: ['__tut handle missing (debug flag not set?)'] };
+          const s = tut.get();
+          if (!s) return { done: true, errs: [] };
+          const cp = s.def.checkpoints[s.progress.checkpoint];
+          if (!cp) return { done: true, errs: [] };
+          const errs: string[] = [];
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          const onScreen = (r: DOMRect): boolean => r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+          const sel = cp.cue?.arrow?.target ?? cp.cue?.callout?.target ?? cp.cue?.spotlight;
+          if (sel) {
+            const el = document.querySelector(sel);
+            if (!el) errs.push(`${cp.id}: target '${sel}' not in DOM`);
+            else if (!onScreen(el.getBoundingClientRect())) errs.push(`${cp.id}: target '${sel}' OFF-SCREEN after auto-scroll`);
+          }
+          const callout = document.querySelector('.tut-callout');
+          if (callout) {
+            const r = callout.getBoundingClientRect();
+            if (r.top < -2 || r.bottom > vh + 2 || r.left < -2 || r.right > vw + 2) errs.push(`${cp.id}: callout leaves the viewport (${Math.round(r.top)}..${Math.round(r.bottom)} of ${vh})`);
+          }
+          for (const ctl of document.querySelectorAll('.tut-ctl')) {
+            const r = ctl.getBoundingClientRect();
+            if (!onScreen(r)) errs.push(`${cp.id}: control '${(ctl.textContent ?? '').trim()}' off-screen`);
+          }
+          tut.advance(); // presentation validated — move to the next checkpoint
+          return { done: false, errs };
+        });
+        for (const e of check.errs) violations.push({ screen: 'tutorial', vp: vp.name, kind: 'tutorial-walk', detail: e });
+        if (check.done) break;
+      }
       await ctx.close();
     }
     await browser.close();
@@ -80,7 +174,7 @@ async function main(): Promise<void> {
       process.exit(0);
     }
     console.error(`mobilecheck: ${violations.length} violation(s)`);
-    for (const v of violations.slice(0, 40)) console.error(`  ✗ [${v.vp}px] ${v.screen}: ${v.kind} — ${v.detail}`);
+    for (const v of violations.slice(0, 120)) console.error(`  ✗ [${v.vp}px] ${v.screen}: ${v.kind} — ${v.detail}`);
     process.exit(1);
   } finally {
     server.kill('SIGTERM');
@@ -113,8 +207,8 @@ async function dismiss(page: import('playwright-core').Page): Promise<void> {
   }
 }
 
-function audit(page: import('playwright-core').Page, screen: string, vp: string): Promise<Violation[]> {
-  return page.evaluate(({ screen, vp, TAP_MIN }) => {
+function audit(page: import('playwright-core').Page, screen: string, vp: string, touch = true): Promise<Violation[]> {
+  return page.evaluate(({ screen, vp, TAP_MIN, touch }) => {
     const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
     const doc = document.documentElement;
     if (doc.scrollWidth > window.innerWidth + 2) {
@@ -164,7 +258,7 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string)
       if (el.parentElement?.closest('button, a, [role="button"]')) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 && r.height === 0) continue;
-      if (r.height < TAP_MIN || r.width < TAP_MIN) {
+      if (touch && (r.height < TAP_MIN || r.width < TAP_MIN)) {
         out.push({ screen, vp, kind: 'tiny-target', detail: `<${el.tagName.toLowerCase()} class="${(el as HTMLElement).className}"> "${(el.textContent ?? '').trim().slice(0, 20)}" ${Math.round(r.width)}×${Math.round(r.height)}px` });
       }
       if (r.right < -2 || r.left > window.innerWidth + 2) {
@@ -183,6 +277,17 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string)
         if (!parked) out.push({ screen, vp, kind: 'offscreen-interactive', detail: `<${el.tagName.toLowerCase()}> "${(el.textContent ?? '').trim().slice(0, 20)}" at x=${Math.round(r.left)}` });
       }
     }
+    // Off-screen / oversize popups: a dialog must fit the viewport or scroll internally —
+    // one whose buttons render past the fold is unreachable (the zero-list contract).
+    for (const el of document.querySelectorAll('[role="dialog"]')) {
+      if (!visible(el)) continue;
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      const scrolls = (cs.overflowY === 'auto' || cs.overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 2;
+      if ((r.bottom > window.innerHeight + 2 || r.top < -2) && !scrolls) {
+        out.push({ screen, vp, kind: 'popup-overflow', detail: `<${el.tagName.toLowerCase()} class="${(el as HTMLElement).className}"> spans ${Math.round(r.top)}..${Math.round(r.bottom)} vs vh=${window.innerHeight}` });
+      }
+    }
     // De-duplicate identical findings (lists repeat the same template).
     const seen = new Set<string>();
     return out.filter((v) => {
@@ -191,7 +296,7 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string)
       seen.add(k);
       return true;
     });
-  }, { screen, vp, TAP_MIN });
+  }, { screen, vp, TAP_MIN, touch });
 }
 
 void main();

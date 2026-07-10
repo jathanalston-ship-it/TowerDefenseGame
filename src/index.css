@@ -1883,9 +1883,10 @@ canvas.board {
   border-radius: var(--r-sm);
   color: var(--muted);
   font-size: 12px;
+  min-width: 28px; /* tap-floor: the fold chevron was 24x18 — sub-WCAG everywhere (gate: tiny-target) */
+  min-height: 28px;
   line-height: 1;
   padding: 2px 7px;
-  min-height: 0;
 }
 .panel-collapse:hover:not(:disabled) {
   color: var(--text);
@@ -2192,7 +2193,22 @@ canvas.board {
   .build-bar .wb-brief, .build-bar .wb-actions, .build-bar .wb-head, .build-bar .wb-threats, .build-bar .wb-autos { max-width: 100%; flex-wrap: wrap; }
   .build-bar .start-btn { width: 100%; }
   .gene-splash { top: 42%; } /* below the wrapped prep bar — never under other chrome */
-  .game { padding-left: var(--safe-l); padding-right: var(--safe-r); }
+  /* THE portrait scroll fix: the promoted run column (hud -> board -> rail -> build panel ->
+     inspector) is TALLER than one screen — the desktop "never scroll" shell clipped everything
+     below the board with NO way to reach it (tutorial-blocking). The shell itself scrolls on
+     phones; 100dvh tracks mobile browser chrome so the fold is honest. The board keeps
+     touch-action:none (game gestures), so scrolling rides the hud/panels/toolbar surfaces —
+     and the tutorial auto-scrolls its target into view (ui/tutorial/TutorialOverlay). */
+  .game {
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding-left: var(--safe-l);
+    padding-right: var(--safe-r);
+  }
 }
 
 /* Coarse pointers (touch): comfortable 44px tap targets regardless of width. */
@@ -6306,7 +6322,7 @@ kbd {
 .tut-caret { font-style: normal; color: var(--vital); animation: tut-caret 0.7s steps(1) infinite; }
 @keyframes tut-caret { 50% { opacity: 0; } }
 /* Controls (bottom-right) */
-.tut-controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; }
+.tut-controls { position: fixed; bottom: calc(20px + var(--safe-b)); right: calc(20px + var(--safe-r)); display: flex; gap: 10px; }
 .tut-ctl { padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted); cursor: pointer; }
 .tut-ctl:hover { color: var(--text); border-color: var(--vital); }
 .tut-skip { color: var(--dim); }
@@ -7982,8 +7998,8 @@ kbd {
   /* Components that opt out of the desktop floor still meet the phone floor
      (class specificity would otherwise beat the generic rule above). */
   .panel-collapse {
-    min-height: 24px;
-    min-width: 26px;
+    min-height: 28px;
+    min-width: 28px;
   }
 }
 
@@ -8941,3 +8957,39 @@ kbd {
 .acct-conflict-btns, .acct-welcome-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .acct-welcome-h { font-size: 26px; font-weight: 800; letter-spacing: 0.28em; color: var(--viral); text-align: center; }
 .acct-welcome-btns { flex-direction: column; }
+
+/* ── RESPONSIVE DEBUG VISUALIZER (docs/RESPONSIVE-DESIGN.md §debug) — active only while the
+   DebugPanel stamps data-debug-layout on <html>. Never ships into normal play. */
+html[data-debug-layout] button, html[data-debug-layout] a, html[data-debug-layout] [role='button'],
+html[data-debug-layout] input, html[data-debug-layout] select {
+  outline: 1px dashed color-mix(in srgb, var(--vital) 70%, transparent) !important;
+  outline-offset: -1px;
+}
+html[data-debug-layout] body::before {
+  /* safe-area bands: what the notch/gesture chrome eats */
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99998;
+  border-style: solid;
+  border-color: rgba(255, 93, 115, 0.18);
+  border-width: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l);
+}
+html[data-debug-layout] body::after {
+  /* the layout-profile chip — always readable, always on top */
+  content: attr(data-debug-label);
+  position: fixed;
+  left: 8px;
+  bottom: calc(8px + var(--safe-b));
+  z-index: 99999;
+  pointer-events: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--vital);
+  background: rgba(4, 7, 12, 0.85);
+  border: 1px solid var(--vital);
+  border-radius: 999px;
+}

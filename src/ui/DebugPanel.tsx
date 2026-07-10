@@ -4,6 +4,7 @@ import { meta } from '../state/meta';
 import { CARD_POOL } from '../core/cards';
 import type { Game } from '../core/game';
 import { AssimilationDebug } from './AssimilationDebug';
+import { ResponsiveDebug } from './components/ResponsiveDebug';
 import {
   getAssimilationDebug, getStageOverride, setStageOverride,
   isLivingBattlefieldEnabled, setLivingBattlefieldEnabled, STAGE_NAMES,
@@ -52,6 +53,7 @@ export function DebugPanel(): JSX.Element {
 
       {open && (
         <div className="debug-body">
+          <ResponsiveDebug />
           <div className="debug-sec">
             <div className="h">Meta / Save · {save.shards} ◆</div>
             <div className="debug-row">

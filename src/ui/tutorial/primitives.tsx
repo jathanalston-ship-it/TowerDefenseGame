@@ -3,7 +3,7 @@
 // handled in CSS. These are the building blocks any future tutorial composes; none know anything
 // about combat or a specific lesson.
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 type Side = 'top' | 'bottom' | 'left' | 'right';
 
@@ -27,9 +27,19 @@ export function Spotlight({ rect, padding = 8 }: { rect: DOMRect | null; padding
   );
 }
 
+/** True when the rect is entirely outside the viewport — a stale anchor mid-scroll. */
+function offViewport(rect: DOMRect): boolean {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  return rect.bottom < 0 || rect.top > vh || rect.right < 0 || rect.left > vw;
+}
+
 /** Animated arrow pointing at the target from `from` side. */
 export function TutorialArrow({ rect, from = 'top' }: { rect: DOMRect | null; from?: Side }): JSX.Element | null {
   if (!rect) return null;
+  // Never point at nothing: while the overlay auto-scrolls an off-fold target into view
+  // (TutorialOverlay §reachability), an arrow at its stale position would aim off-screen.
+  if (offViewport(rect)) return null;
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
   const gap = 44;
@@ -51,27 +61,60 @@ export function Callout({
   side?: Side;
   children: ReactNode;
 }): JSX.Element {
+  // MEASURED-BOX POSITIONING (docs/RESPONSIVE-DESIGN.md §tutorial): the bubble's REAL width and
+  // height are read back after render (ResizeObserver — tracks typewriter growth and wrapping)
+  // and the position is computed with full viewport clamping from those exact dimensions. No
+  // estimates, no transforms, no correction races: the lesson text CANNOT leave the screen at any
+  // size, content length, or layout band; an extra-long lesson scrolls INSIDE the bubble.
+  const selfRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState<{ w: number; h: number }>({ w: 340, h: 160 });
+  useEffect(() => {
+    const el = selfRef.current;
+    if (!el) return undefined;
+    const read = (): void => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      setDims((d) => (Math.abs(d.w - w) > 1 || Math.abs(d.h - h) > 1 ? { w, h } : d));
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const pad = 8;
+  const clampX = (x: number): number => Math.max(pad, Math.min(x, vw - pad - dims.w));
+  const clampY = (y: number): number => Math.max(pad, Math.min(y, vh - pad - dims.h));
   let style: CSSProperties;
   let cls: string;
-  if (!rect) {
-    style = { left: '50%', top: '46%', transform: 'translate(-50%, -50%)' };
+  if (!rect || offViewport(rect)) {
+    // No target (placeholder lessons) OR a target the overlay is still scrolling toward —
+    // a centered bubble is always readable; it re-anchors the moment the target arrives.
+    style = { left: clampX((vw - dims.w) / 2), top: clampY(vh * 0.46 - dims.h / 2) };
     cls = 'side-center';
   } else {
-    // Clamp the anchor point so the bubble (max-width 340) can never leave the viewport —
-    // wide targets (the tower rail) and edge targets otherwise push it off-screen.
-    const half = 178;
-    const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
-    const cx = Math.max(half, Math.min(rect.left + rect.width / 2, vw - half));
-    const cy = rect.top + rect.height / 2;
     const gap = 14;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    // Flip when the preferred side genuinely lacks room (exact — dims are measured).
+    let s: Side = side;
+    if (s === 'bottom' && rect.bottom + gap + dims.h > vh - pad && rect.top - gap - dims.h >= pad) s = 'top';
+    if (s === 'top' && rect.top - gap - dims.h < pad && rect.bottom + gap + dims.h <= vh - pad) s = 'bottom';
+    if (s === 'left' && rect.left - gap - dims.w < pad && rect.right + gap + dims.w <= vw - pad) s = 'right';
+    if (s === 'right' && rect.right + gap + dims.w > vw - pad && rect.left - gap - dims.w >= pad) s = 'left';
     style =
-      side === 'top' ? { left: cx, top: rect.top - gap, transform: 'translate(-50%, -100%)' } :
-      side === 'bottom' ? { left: cx, top: rect.bottom + gap, transform: 'translate(-50%, 0)' } :
-      side === 'left' ? { left: rect.left - gap, top: cy, transform: 'translate(-100%, -50%)' } :
-      { left: rect.right + gap, top: cy, transform: 'translate(0, -50%)' };
-    cls = `side-${side}`;
+      s === 'top' ? { left: clampX(cx - dims.w / 2), top: clampY(rect.top - gap - dims.h) } :
+      s === 'bottom' ? { left: clampX(cx - dims.w / 2), top: clampY(rect.bottom + gap) } :
+      s === 'left' ? { left: clampX(rect.left - gap - dims.w), top: clampY(cy - dims.h / 2) } :
+      { left: clampX(rect.right + gap), top: clampY(cy - dims.h / 2) };
+    cls = `side-${s}`;
   }
-  return <div className={`tut-callout ${cls}`} style={style} role="dialog">{children}</div>;
+  // The hard ceiling is GEOMETRIC: the box may never cross the bottom edge, so its max height is
+  // whatever room exists below its computed top — airtight even while a measurement is one frame
+  // stale (typewriter growth, font swaps). Taller lessons scroll INSIDE the bubble.
+  const roomBelow = Math.max(96, vh - pad - (style.top as number));
+  return <div ref={selfRef} className={`tut-callout ${cls}`} style={{ ...style, maxHeight: roomBelow, overflowY: 'auto', transform: 'none' }} role="dialog">{children}</div>;
 }
 
 /** The temporary objective tracker — "Step X of N" + the current objective title, over an animated

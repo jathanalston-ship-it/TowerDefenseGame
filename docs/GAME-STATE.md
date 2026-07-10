@@ -209,6 +209,14 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Simplified cards (Equip/Details/Favorite) + full Details screen** (`ui/ItemDetails.tsx`) — EQUIPMENT.md §4b
 - ✅ **Destruction safeguards + Undo Salvage** (tiered confirms, higher-Power WARNING, NEW badge) — EQUIPMENT.md §safeguards
 
+### Multi-platform responsive (docs/RESPONSIVE-DESIGN.md)
+- ✅ **Layout profiles** (`src/ui/layoutProfile.ts`): desktop / landscape / portrait stamped on
+  `<html>` (`data-layout`, `data-coarse`) + `useLayoutProfile()` — three intentional interfaces
+- ✅ **Portrait run shell scrolls** (100dvh + overflow-y) — fixed the tutorial-blocking clipped column
+- ✅ **Adaptive tutorial**: auto scroll-into-view per checkpoint, callout flip+clamp, no off-screen arrows
+- ✅ **Responsive gate** (`npm run mobilecheck`, in validate): 5-profile representative matrix +
+  tutorial walk + popup detector; `--full` = 17-viewport published matrix; DebugPanel 📐 visualizer
+
 ### Account platform (docs/ACCOUNTS.md)
 - ✅ **Guest + Email/Password accounts** over the anonymous identity (same account_id ⇒ upgrade keeps
   saves/purchases; PBKDF2-SHA256, opaque sessions, reset seam) — `functions/api/account/*`, `src/account/`

@@ -121,3 +121,15 @@ export const tutorial = {
     store.set(null);
   },
 };
+
+// Debug-gated automation handle (scripts/mobilecheck.ts tutorial walk): lets the responsive
+// gate step through checkpoints and validate every cue's on-screen reachability. Guarded by
+// the same ?debug opt-in as the game handle — invisible in normal play.
+try {
+  // URL param checked directly: on a FRESH profile this module can evaluate before debug.ts
+  // persists the flag to localStorage — the query string is deterministic at module init.
+  if (typeof window !== 'undefined' && (window.location?.search.includes('debug') || window.localStorage?.getItem('assimilate.debug') === '1')) {
+    (globalThis as { __tut?: typeof tutorial }).__tut = tutorial;
+  }
+} catch { /* storage-less environments simply skip the handle */ }
+
