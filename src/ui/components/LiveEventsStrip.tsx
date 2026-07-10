@@ -5,11 +5,17 @@
 // honest without re-scanning the calendar (the forecast memoizes per UTC hour).
 
 import { useEffect, useMemo, useState } from 'react';
-import { eventBoosts, liveWindows, liveopsNow, untilText, upcomingWindows } from '../../core/liveops';
+import { CATEGORY_ORDER, eventBoosts, liveWindows, liveopsNow, untilText, upcomingWindows } from '../../core/liveops';
+import type { LiveEventCategory } from '../../core/liveops';
 import { t, useLocale } from '../../i18n';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 3_600_000;
+
+/** The headline band label the console leads with — the biggest-weight live event's category. */
+const CATEGORY_BAND: Record<LiveEventCategory, string> = {
+  peak: 'PEAK EVENT', spotlight: 'THIS WEEK', hunt: 'RAID HUNT', surge: 'LIVE SURGE',
+};
 
 export function LiveEventsStrip(): JSX.Element | null {
   useLocale();
@@ -23,9 +29,18 @@ export function LiveEventsStrip(): JSX.Element | null {
   // The forecast walks hour steps across the whole horizon — recompute once per UTC hour,
   // not per heartbeat (the countdown text below reads the memoized window edges live).
   const hourKey = Math.floor(now.getTime() / HOUR_MS);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const { live, next } = useMemo(() => ({ live: liveWindows(now), next: upcomingWindows(now).slice(0, 3) }), [hourKey]);
+  const { live, next } = useMemo(
+    // Sort live events by category weight (peak → spotlight → hunt → surge) so the console
+    // reads top-down by importance; the headline band names the heaviest live category.
+    () => ({
+      live: [...liveWindows(now)].sort((a, b) => CATEGORY_ORDER[a.def.category] - CATEGORY_ORDER[b.def.category]),
+      next: upcomingWindows(now).slice(0, 3),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hourKey],
+  );
   if (live.length === 0 && next.length === 0) return null;
+  const band = live.length > 0 ? CATEGORY_BAND[live[0].def.category] : null;
 
   return (
     <div className="liveops panel" aria-label="Live operations">
@@ -33,6 +48,7 @@ export function LiveEventsStrip(): JSX.Element | null {
         <span className="liveops-k">
           <i className="liveops-dot" aria-hidden /> {t('liveops.title')}
         </span>
+        {band && <span className="liveops-band">{band}</span>}
         <span className="liveops-utc">{t('liveops.utc')}</span>
       </div>
 

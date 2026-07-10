@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 32` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 33` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -381,13 +381,20 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   aggregate analytics — DEPLOYMENT.md, SECURITY-AUDIT.md, LEADERBOARD-INTEGRITY.md
 - ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition — **overhauled to full procedural canvas cinematics** (`render/introScenes.ts`): five deterministic set-pieces (deep-crust radar reacquisition, the swarm boiling up ember-lit strata, veins consuming a steel lattice, the breathing molten Hive Core, the title spore-field/aurora), film-style cross-dissolves, letterbox grade + grain, per-scene copy accents; reduced-motion shows a hand-picked still per scene; DPR-capped for mobile
 - ✅ Service worker: offline shell, versioned caches, player-controlled update toast — DEPLOYMENT.md §sw
-- ✅ LiveOps calendar — **overhauled**: 7 deterministic UTC events (weekend surge + weekly spotlights +
-  Mutation Wednesday + monthly Harvest Moon + quarterly Bloom Cycle) folding ×1-baseline lane
-  multipliers (cores / Gene Essence / materials) into finishRun + openContainer, each at the reward's
-  SOURCE scalar so reveals match grants; a generic schedule engine (`windowEnd`/`nextWindow`/
-  `upcomingWindows` — hour-scan over pure predicates) drives the hub's LIVE OPERATIONS console
-  (pulsing LIVE dot, accent event cards with data-driven boost chips + "ends in" countdowns, UP NEXT
-  forecast rail, reduced-motion-safe sheen) — LIVEOPS.md
+- ✅ LiveOps calendar — **overhauled again (2026-07)**: 11 deterministic UTC events across 4 weighted
+  categories (peak / spotlight / hunt / surge — sorted top-down, the heaviest live category names the
+  console's headline band) folding ×1-baseline lane multipliers (cores / Gene Essence / materials /
+  **mega-ichor / loot**) into finishRun + openContainer, each at the reward's SOURCE scalar so reveals
+  match grants; a generic schedule engine (`windowEnd`/`nextWindow`/`upcomingWindows` — hour-scan over
+  pure predicates) drives the unified LIVE OPERATIONS console (pulsing LIVE dot, category-sorted accent
+  event cards with data-driven boost chips + "ends in" countdowns, UP NEXT forecast rail,
+  reduced-motion-safe sheen) — LIVEOPS.md
+- ✅ **Weekly Directives** (LIVEOPS.md §directives): a cumulative objective ladder — 3 deterministic
+  UTC-weekly directives (drawn from a metric pool: kills / wins / waves / boss+mega kills / weak points /
+  damage / flawless / towers) with live progress banked from run facts at finishRun, a per-row claim
+  plus a shared CAPSTONE that unlocks when all three clear; rewards claim explicitly (guarded), progress
+  is golden-safe (meta-only, `save.directives {week, progress, claimed}`, v33). Home card gated on the
+  Daily reveal — DirectivesCard.tsx
 - ✅ Localization core: typed `t()` layer, EN source-of-truth keys, ES/PT catalogs (missing key =
   compile error), Settings language picker, live re-render — I18N.md
 

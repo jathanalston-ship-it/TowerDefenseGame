@@ -90,6 +90,9 @@ graph TD
   achievements --> stats
   liveops --> meta_store
   liveops --> daily
+  directives --> meta_store
+  directives --> liveops
+  directives --> daily
   contracts --> meta_store
   contracts --> liveops
   contracts --> cosmetics
@@ -179,7 +182,7 @@ graph TD
 | **Public Intelligence Layer** (`pil`) | `dev-registry` | — | — | — | `docs/PIL.md` |
 | **Account Platform** (`accounts`) | `meta-store` · `profile` | — | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | `field-research` | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
-| **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
+| **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` · `directives` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
 | **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | — | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
 | **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | `field-research` · `net-backend` · `battle-pass` | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
@@ -199,7 +202,8 @@ graph TD
 | **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` · `ichorExchange` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
-| **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `contracts` | — | — | `docs/LIVEOPS.md` |
+| **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `directives` · `contracts` | — | — | `docs/LIVEOPS.md` |
+| **Weekly Directives** (`directives`) | `meta-store` · `liveops` · `daily` | — | — | `directives` | `docs/LIVEOPS.md` |
 | **Localization Core** (`i18n`) | — | — | — | — | `docs/I18N.md` |
 | **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` | `quests` | — | `contracts` | `docs/CONTRACTS.md` |
 | **Infestation Map** (`infestation`) | `meta-store` · `hub-shell` | — | — | `infestation` | `docs/INFESTATION.md` |
@@ -218,7 +222,7 @@ graph TD
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | `cutscenes` | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | `quests` | — | — | `docs/CUTSCENES.md` |
@@ -362,7 +366,7 @@ graph TD
 
 - **Files:** `src/core/daily.ts` · `src/core/dailyModifiers.ts` · `src/ui/DailyScreen.tsx`
 - **Depends on:** `engine` · `campaign` · `biomes` · `bosses` · `towers`
-- **Consumers — what breaks if you change this:** `premium` · `field-research` · `net-backend` · `liveops`
+- **Consumers — what breaks if you change this:** `premium` · `field-research` · `net-backend` · `liveops` · `directives`
 - **Power Score:** recommended-power readiness on the day card
 - **Save fields:** `daily`
 - **Tutorial:** — · **Help mechanics:** —
@@ -658,11 +662,11 @@ graph TD
 
 ### LiveOps calendar (`liveops`)
 
-*Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, rotating weekly spotlights, Mutation Wednesday, monthly Harvest Moon + quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned under tests.*
+*Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.*
 
 - **Files:** `src/core/liveops.ts` · `src/ui/components/LiveEventsStrip.tsx`
 - **Depends on:** `meta-store` · `daily`
-- **Consumers — what breaks if you change this:** `contracts`
+- **Consumers — what breaks if you change this:** `directives` · `contracts`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
@@ -670,6 +674,21 @@ graph TD
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/LIVEOPS.md` · `docs/CONTRACTS.md`
+
+### Weekly Directives (`directives`)
+
+*The cumulative liveops engagement ladder (docs/LIVEOPS.md §directives): a deterministic UTC 3-directive board + shared capstone, progress banked across every run from run facts at finishRun (kills/wins/waves/boss+mega kills/weak-points/damage/flawless/towers), meta-only milestone + capstone rewards claimed in the console. Golden-safe (fresh save = 0 progress); the claim path is guarded by the security registry.*
+
+- **Files:** `src/core/directives.ts` · `src/ui/components/DirectivesCard.tsx`
+- **Depends on:** `meta-store` · `liveops` · `daily`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** `directives`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `CommandCenter (directives ladder)`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/LIVEOPS.md`
 
 ### Localization Core (`i18n`)
 
@@ -947,7 +966,7 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
+- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —

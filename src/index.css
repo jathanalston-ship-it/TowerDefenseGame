@@ -9195,6 +9195,50 @@ kbd {
 .cc-contract-blurb { color: var(--muted); min-width: 0; }
 .cc-contract-pay { margin-left: auto; white-space: nowrap; font-size: 11px; color: var(--gold); }
 
+/* ── LiveOps console headline band (docs/LIVEOPS.md) ── */
+.liveops-band {
+  font-size: 10px; letter-spacing: 0.14em; font-weight: 700; color: var(--gold);
+  padding: 1px 7px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+
+/* ── Weekly Directives ladder (docs/LIVEOPS.md §directives) ── */
+.dir { padding: 10px 12px; }
+.dir-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.dir-row:first-of-type { border-top: 0; }
+.dir-icon { font-size: 16px; width: 22px; text-align: center; color: var(--kinetic); flex: none; }
+.dir-row.is-complete .dir-icon { color: var(--caustic); }
+.dir-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.dir-name { font-weight: 700; font-size: 12px; color: var(--text); }
+.dir-blurb { font-size: 11px; color: var(--muted); }
+.dir-bar { display: block; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; margin-top: 2px; }
+.dir-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--kinetic) 60%, black 10%), var(--kinetic)); transition: width 0.3s ease-out; /* bespoke */ }
+.dir-row.is-complete .dir-bar i { background: var(--caustic); }
+.dir-side { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex: none; text-align: right; }
+.dir-count { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dir-reward { font-size: 11px; color: var(--gold); white-space: nowrap; }
+.dir-pay { opacity: 0.85; }
+.dir-claimed { font-size: 11px; color: var(--caustic); font-weight: 700; }
+.dir-claim {
+  font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; cursor: pointer;
+  color: #0a0d14; background: var(--gold); border: 0; white-space: nowrap;
+  animation: dir-claim-pulse 1.1s ease-in-out infinite alternate;
+}
+.dir-claim .dir-reward { color: #0a0d14; }
+@keyframes dir-claim-pulse { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 55%, transparent); } to { box-shadow: 0 0 0 5px transparent; } }
+.dir-capstone {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 10px;
+  border-radius: var(--r-sm); border: 1px dashed color-mix(in srgb, var(--viral) 45%, transparent);
+  background: color-mix(in srgb, var(--viral) 8%, transparent);
+}
+.dir-capstone.is-earned { border-style: solid; border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.dir-cap-icon { font-size: 18px; color: var(--viral); }
+.dir-capstone.is-earned .dir-cap-icon { color: var(--gold); }
+.dir-cap-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.dir-cap-name { font-weight: 800; font-size: 12px; letter-spacing: 0.04em; color: var(--text); }
+.dir-cap-hint { font-size: 10px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .dir-claim { animation: none; } }
+
 /* ── Nemesis + Trophy Rack (PlayerProfile, docs/NEMESIS.md) ── */
 .pf-nemesis {
   padding: 10px 12px;

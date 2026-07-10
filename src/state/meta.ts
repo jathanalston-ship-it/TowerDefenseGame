@@ -2,7 +2,7 @@
 // Persisted through SaveStore; exposed to React as a reactive store. Also fronts
 // the save-management surface (export/import/backup) and debug seeding.
 
-import { liveopsMods } from '../core/liveops';
+import { liveopsMods, liveopsNow } from '../core/liveops';
 import { createStore } from './store';
 import { applyDevReset } from './devReset';
 import {
@@ -107,6 +107,8 @@ import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, questById, questComple
 import type { QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { cutsceneBus } from './navBus';
+import { DIRECTIVE_CAPSTONE, accrueDirectives, activeDirectives, capstoneState, directiveBoard, directiveWeekKey } from '../core/directives';
+import type { DirectiveReward } from '../core/directives';
 import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
@@ -1679,6 +1681,19 @@ export const meta = {
     );
     const contractCores = contractHits.reduce((a, c) => a + c.reward.cores, 0);
 
+    // Weekly Directives (docs/LIVEOPS.md §directives): bank THIS run's facts into the cumulative
+    // ladder. A new UTC week resets the board (progress + claims) before accruing — no reward is
+    // granted here (milestones/capstone claim explicitly in the console), so this is a pure fold.
+    const dirWeek = directiveWeekKey();
+    const dirBase = save.directives.week === dirWeek
+      ? { progress: save.directives.progress, claimed: save.directives.claimed }
+      : { progress: {}, claimed: [] }; // week rolled over → fresh board
+    const nextDirectives: SaveData['directives'] = {
+      week: dirWeek,
+      progress: accrueDirectives(dirBase.progress, result.stats),
+      claimed: dirBase.claimed,
+    };
+
     const lo = liveopsMods();
     const dailyCoreBonus = dailyRewarded
       ? Math.round((DAILY.reward.clearCores + Math.min(DAILY.reward.streakBonusCap, dailyStreak - 1) * DAILY.reward.streakBonus) * asc.coreGainMult * asc.dailyBonusMult * lo.dailyCoreMult)
@@ -1779,7 +1794,7 @@ export const meta = {
       kills: result.kills,
       prestigeLootGainMult: asc.lootGainMult,
       stageRewardMult: rewardMult,
-      modeLootMult: lootMult,
+      modeLootMult: lootMult * lo.lootMult, // LiveOps Spore Tide / Reclamation fatten the haul (×1 off-window)
       containerRateMult: econDiff.containerRateMult,
       bossLootMult: cb.bossLootMult, // Bosses codex: +Boss Loot
       // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind) — same curve as the live
@@ -1909,7 +1924,8 @@ export const meta = {
       const megaDef = megaBossDef(k.defId);
       if (!megaDef) continue;
       const { efficiency } = megaKillExpectation(save, k);
-      ichorGain += megaBossIchor(megaDef, k.tier, k.encounter, efficiency);
+      // LiveOps raid windows (Apex Week / Prime Hunt / Bloom) fatten every mega bounty.
+      ichorGain += Math.round(megaBossIchor(megaDef, k.tier, k.encounter, efficiency) * lo.megaIchorMult);
       timeline = pushTimeline(timeline, '◆', `Ichor bleed — ${megaDef.name} felled`);
     }
 
@@ -1961,6 +1977,7 @@ export const meta = {
       contracts: contractHits.length > 0
         ? { completed: [...save.contracts.completed, ...contractHits.map((c) => `${contractWeek}:${c.id}`)] }
         : save.contracts,
+      directives: nextDirectives,
       nemesis: nextNemesis ?? null,
       infestation: nextInfestation,
       cosmetics: contractHits.some((c) => c.reward.cosmetic && !save.cosmetics.owned.includes(c.reward.cosmetic))
@@ -2622,6 +2639,65 @@ export const meta = {
    *  run beside the other permanent lanes. [] on a fresh save (golden-safe). */
   cutsceneRunEffects(): CardEffect[] {
     return cutsceneEffects(unlockedCutsceneIds(store.get()));
+  },
+
+  // ── Weekly Directives (docs/LIVEOPS.md §directives) — the cumulative objective ladder. ──
+  /** The console's board: this week's three directives (progress/complete/claimed) + the
+   *  capstone state. Reads the save's ledger scoped to the current UTC week (a stale week from
+   *  a save loaded across a boundary reads as an empty board — the next run re-accrues it). */
+  directivesView(): {
+    directives: { id: string; name: string; blurb: string; icon: string; target: number; progress: number; complete: boolean; claimed: boolean; reward: DirectiveReward }[];
+    capstone: { earned: boolean; claimed: boolean; reward: DirectiveReward & { name: string; icon: string } };
+    weekEndsInMs: number;
+  } {
+    const save = store.get();
+    const wk = directiveWeekKey();
+    const cur = save.directives.week === wk ? save.directives : { week: wk, progress: {}, claimed: [] };
+    const board = directiveBoard(cur.progress, cur.claimed);
+    const cap = capstoneState(cur.progress, cur.claimed);
+    // The week ends at the next UTC-Monday midnight (weekIndex rolls on Monday).
+    const now = liveopsNow();
+    const dow = (now.getUTCDay() + 6) % 7; // 0 = Monday
+    const weekEnd = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dow + 7);
+    return {
+      directives: board.map((b) => ({
+        id: b.def.id, name: b.def.name, blurb: b.def.blurb, icon: b.def.icon,
+        target: b.def.target, progress: b.progress, complete: b.complete, claimed: b.claimed, reward: b.def.reward,
+      })),
+      capstone: { ...cap, reward: DIRECTIVE_CAPSTONE },
+      weekEndsInMs: Math.max(0, weekEnd - now.getTime()),
+    };
+  },
+  /** Claim a completed directive's reward (or the capstone via id '__capstone'). Idempotent +
+   *  guarded; grants cores/essence/container and marks the '<week>:<id>' ledger entry. */
+  claimDirective(id: string): DirectiveReward | null {
+    if (!guardOk('directive.claim', id)) return null;
+    const save = store.get();
+    const wk = directiveWeekKey();
+    const cur = save.directives.week === wk ? save.directives : { week: wk, progress: {}, claimed: [] };
+    const key = `${wk}:${id}`;
+    if (cur.claimed.includes(key)) return null; // already claimed
+    let reward: DirectiveReward | null = null;
+    if (id === '__capstone') {
+      const cap = capstoneState(cur.progress, cur.claimed);
+      if (!cap.earned) return null;
+      reward = DIRECTIVE_CAPSTONE;
+    } else {
+      const b = directiveBoard(cur.progress, cur.claimed).find((x) => x.def.id === id);
+      if (!b || !b.complete) return null;
+      reward = b.def.reward;
+    }
+    const cache: PendingContainer[] = reward.container ? [{ kind: 'cache', chestId: RUN_CHEST }] : [];
+    persist({
+      ...save,
+      shards: save.shards + (reward.cores ?? 0),
+      lifetimeShards: save.lifetimeShards + (reward.cores ?? 0),
+      geneEssence: save.geneEssence + (reward.essence ?? 0),
+      pendingContainers: [...save.pendingContainers, ...cache],
+      directives: { week: wk, progress: cur.progress, claimed: [...cur.claimed, key] },
+      timeline: pushTimeline(save.timeline, '❇', `Directive claimed — ${id === '__capstone' ? DIRECTIVE_CAPSTONE.name : (activeDirectives().find((x) => x.id === id)?.name ?? id)}`),
+    });
+    return reward;
   },
 
   // ── Hero Expeditions (docs/EXPEDITIONS.md) — the benched-hero idle lane. ──

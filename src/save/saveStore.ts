@@ -79,6 +79,10 @@ export interface SaveData {
   cosmetics: { owned: string[]; towers: Partial<Record<TowerKind, string>>; heroes: Partial<Record<HeroKind, string>> };
   // ── Champion Contracts (v26, docs/CONTRACTS.md) — weekly completion ledger ('w<week>:<id>'). ──
   contracts: { completed: string[] };
+  // ── Weekly Directives (v33, docs/LIVEOPS.md §directives) — the cumulative objective ladder.
+  //    `week` scopes progress to the current UTC week (reset when it rolls over); `progress`
+  //    accumulates per directive id; `claimed` holds '<week>:<id>' + '<week>:__capstone'. ──
+  directives: { week: string; progress: Record<string, number>; claimed: string[] };
   // ── Nemesis + trophies (v26, docs/NEMESIS.md). nemesis: the boss currently hunting this
   //    account (null = none); equippedTrophy: the ONE mounted trophy organ (null = none). ──
   nemesis: { defId: string; slain: number } | null;
@@ -334,8 +338,10 @@ export interface TutorialSave {
 // docs/COSMETICS.md §wardrobe) + Battle Pass season record (docs/BATTLEPASS.md).
 // v31→v32: Quests & Missions (weekly window record + main questline ledgers + the once-granted
 // finale ledger — docs/QUESTS.md).
+// v32→v33: Weekly Directives (the cumulative liveops objective ladder — docs/LIVEOPS.md
+// §directives): save.directives { week, progress, claimed }.
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 32;
+export const CURRENT_VERSION = 33;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -568,6 +574,7 @@ export function defaultSave(): SaveData {
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
     cosmetics: { owned: [], towers: {}, heroes: {} },
     contracts: { completed: [] },
+    directives: { week: '', progress: {}, claimed: [] },
     nemesis: null,
     equippedTrophy: null,
     expeditions: { active: [], mastery: {} },
@@ -906,6 +913,22 @@ function withDefaults(data: SaveData): SaveData {
     contracts: { completed: Array.isArray((data as { contracts?: { completed?: unknown } }).contracts?.completed)
       ? [...new Set(((data as { contracts: { completed: unknown[] } }).contracts.completed).filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 2000)
       : [] },
+    // v32→v33: Weekly Directives ledger — a bounded {week, progress, claimed}. Absent/garbage
+    // on older saves ⇒ an empty board (rebuilds on the next run) ⇒ golden-safe.
+    directives: ((): SaveData['directives'] => {
+      const raw = (data as { directives?: unknown }).directives as { week?: unknown; progress?: unknown; claimed?: unknown } | undefined;
+      const week = typeof raw?.week === 'string' && /^w\d+$/.test(raw.week) ? raw.week : '';
+      const progress: Record<string, number> = {};
+      if (raw?.progress && typeof raw.progress === 'object') {
+        for (const [k, v] of Object.entries(raw.progress as Record<string, unknown>)) {
+          if (/^[a-z_]+$/.test(k) && Number.isFinite(Number(v)) && Number(v) > 0) progress[k] = Math.min(1e9, Math.floor(Number(v)));
+        }
+      }
+      const claimed = Array.isArray(raw?.claimed)
+        ? [...new Set((raw!.claimed as unknown[]).filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 500)
+        : [];
+      return { week, progress, claimed };
+    })(),
     nemesis: ((): SaveData['nemesis'] => {
       const n = (data as { nemesis?: unknown }).nemesis as { defId?: unknown; slain?: unknown } | null | undefined;
       if (!n || typeof n !== 'object' || typeof n.defId !== 'string') return null;

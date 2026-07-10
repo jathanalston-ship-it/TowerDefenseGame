@@ -81,6 +81,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'wardrobe.claim', category: 'claim', level: 'strict', limit: S(), cooldownMs: 800, dedupeMs: 2000,
     analytics: 'sec_wardrobe_claim', doc: 'Wardrobe milestone claim.', at: META,
   },
+  'directive.claim': {
+    id: 'directive.claim', category: 'claim', level: 'strict', limit: S({ count: 4 }), cooldownMs: 600, dedupeMs: 2000,
+    analytics: 'sec_directive_claim', doc: 'Weekly Directive / capstone reward claim (cores/essence/container).', at: META,
+  },
   'expedition.claim': {
     id: 'expedition.claim', category: 'claim', level: 'strict', limit: S(), cooldownMs: 800, dedupeMs: 2000,
     analytics: 'sec_exped_claim', doc: 'Expedition completion claim (timed mission payout).', at: META,
@@ -182,6 +186,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   claimPassLevel: 'pass.claim',
   adAdvancePass: 'pass.ad',
   claimWardrobeMilestone: 'wardrobe.claim',
+  claimDirective: 'directive.claim',
   claimExpedition: 'expedition.claim',
   claimQuestMission: 'quest.claim',
   claimQuestFinale: 'quest.claim',

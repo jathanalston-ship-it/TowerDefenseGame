@@ -19,7 +19,14 @@ export interface LiveEventMods {
   campaignShardMult?: number;
   essenceMult?: number; // Gene Essence income (container conversion/drops/bleed + doctrine essence)
   materialsMult?: number; // the container bonus material drop (mutagen/scrap/catalyst)
+  megaIchorMult?: number; // Ichor from Mega Boss kills (docs/MEGA-BOSS.md §rewards)
+  lootMult?: number; // in-run loot-point income → richer Bio-Containers
 }
+
+/** The broadcast band an event belongs to — the console groups + sorts by this, and a NEW
+ *  event lands in the right lane with zero UI work. `peak` events (festival/seasonal) sort
+ *  first, then `spotlight` (the always-live weekly), then the recurring `surge` beats. */
+export type LiveEventCategory = 'peak' | 'spotlight' | 'surge' | 'hunt';
 
 export interface LiveEventDef {
   id: string;
@@ -27,10 +34,14 @@ export interface LiveEventDef {
   desc: string;
   icon: string;
   accent: string; // CSS color token/value for the console card
+  category: LiveEventCategory;
   /** Pure UTC schedule — no state, no randomness. Day-granular (changes only at UTC midnight). */
   active: (d: Date) => boolean;
   mods: LiveEventMods;
 }
+
+/** Console sort weight — peaks headline, spotlights anchor, surges/hunts fill. */
+export const CATEGORY_ORDER: Record<LiveEventCategory, number> = { peak: 0, spotlight: 1, hunt: 2, surge: 3 };
 
 /** Short display label per lane — the console derives its "×1.5 Daily Cores" boost chips from
  *  the def's mods bag through this map, so a NEW lane surfaces in the UI with zero UI work. */
@@ -41,6 +52,8 @@ export const LANE_LABELS: Record<keyof LiveEventMods, string> = {
   campaignShardMult: 'Campaign Cores',
   essenceMult: 'Gene Essence',
   materialsMult: 'Materials',
+  megaIchorMult: 'Mega Ichor',
+  lootMult: 'Loot',
 };
 
 /** An event's boosts as display rows (label + multiplier), data-driven from its mods bag. */
@@ -54,8 +67,9 @@ const utcDay = (d: Date): number => d.getUTCDay(); // 0 Sun … 6 Sat
 /** ISO-ish week index — stable rotation key (days since epoch Monday / 7). */
 export const weekIndex = (d: Date): number => Math.floor((Math.floor(d.getTime() / 86_400_000) + 3) / 7);
 
-/** The rotating weekly SPOTLIGHT — one mode gets its week, forever, deterministically. */
-const SPOTLIGHTS = ['rush', 'depth', 'descent'] as const;
+/** The rotating weekly SPOTLIGHT — one mode gets its week, forever, deterministically. The
+ *  'apex' slot spotlights the raid roster (Mega Ichor) rather than a mode's core lane. */
+const SPOTLIGHTS = ['rush', 'depth', 'descent', 'apex'] as const;
 export const spotlightOf = (d: Date): (typeof SPOTLIGHTS)[number] => SPOTLIGHTS[weekIndex(d) % SPOTLIGHTS.length];
 
 /** All scheduled events — the calendar is DATA. */
@@ -66,6 +80,7 @@ export const LIVE_EVENTS: LiveEventDef[] = [
     desc: 'The hive feeds well: Daily Run clear rewards ×1.5 all weekend (UTC).',
     icon: '☀',
     accent: 'var(--gold)',
+    category: 'surge',
     active: (d) => utcDay(d) === 6 || utcDay(d) === 0,
     mods: { dailyCoreMult: 1.5 },
   },
@@ -75,6 +90,7 @@ export const LIVE_EVENTS: LiveEventDef[] = [
     desc: 'Boss Rush spotlight: gauntlet Genome Core rewards ×1.25 this week.',
     icon: '☠',
     accent: 'var(--vital)',
+    category: 'spotlight',
     active: (d) => spotlightOf(d) === 'rush',
     mods: { rushShardMult: 1.25 },
   },
@@ -84,6 +100,7 @@ export const LIVE_EVENTS: LiveEventDef[] = [
     desc: 'Infinite spotlight: descent Genome Core rewards ×1.25 this week.',
     icon: '∞',
     accent: 'var(--kinetic)',
+    category: 'spotlight',
     active: (d) => spotlightOf(d) === 'depth',
     mods: { endlessShardMult: 1.25 },
   },
@@ -93,8 +110,20 @@ export const LIVE_EVENTS: LiveEventDef[] = [
     desc: 'Campaign spotlight: stage Genome Core rewards ×1.15 this week.',
     icon: '⬡',
     accent: 'var(--caustic)',
+    category: 'spotlight',
     active: (d) => spotlightOf(d) === 'descent',
     mods: { campaignShardMult: 1.15 },
+  },
+  {
+    // The raid spotlight — the 4th rotation slot; the whole roster of Mega Bosses pays out heavier.
+    id: 'apex_week',
+    name: 'Apex Week',
+    desc: 'Raid spotlight: Mega Boss Ichor ×1.4 this week — hunt the big organisms.',
+    icon: '⬣',
+    accent: 'var(--viral)',
+    category: 'spotlight',
+    active: (d) => spotlightOf(d) === 'apex',
+    mods: { megaIchorMult: 1.4 },
   },
   {
     // The midweek beat — fills the Mon–Fri dead zone between weekends with a reason to log in.
@@ -103,8 +132,31 @@ export const LIVE_EVENTS: LiveEventDef[] = [
     desc: 'Midweek instability: Gene Essence from containers and runs ×1.5 today (UTC).',
     icon: '⌬',
     accent: 'var(--caustic)',
+    category: 'surge',
     active: (d) => utcDay(d) === 3,
     mods: { essenceMult: 1.5 },
+  },
+  {
+    // A second recurring surge (Tue/Thu) — the Living Battlefield's spore bloom fattens loot.
+    id: 'spore_tide',
+    name: 'Spore Tide',
+    desc: 'Drifting spores enrich every haul: in-run loot ×1.3 on Tuesday and Thursday (UTC).',
+    icon: '❋',
+    accent: 'var(--vital)',
+    category: 'surge',
+    active: (d) => utcDay(d) === 2 || utcDay(d) === 4,
+    mods: { lootMult: 1.3 },
+  },
+  {
+    // A Friday hunt beat — the raid roster gets a one-day teaser between spotlights.
+    id: 'prime_hunt',
+    name: 'Prime Hunt',
+    desc: 'Fridays belong to the raid: Mega Boss Ichor ×1.5 today (UTC).',
+    icon: '◈',
+    accent: 'var(--kinetic)',
+    category: 'hunt',
+    active: (d) => utcDay(d) === 5,
+    mods: { megaIchorMult: 1.5 },
   },
   {
     // The monthly peak — the first three days of every UTC month fatten crafting income.
@@ -113,25 +165,42 @@ export const LIVE_EVENTS: LiveEventDef[] = [
     desc: 'The month opens fat: container material drops ×1.5 on the 1st–3rd (UTC).',
     icon: '⊕',
     accent: 'var(--viral)',
+    category: 'peak',
     active: (d) => d.getUTCDate() <= 3,
     mods: { materialsMult: 1.5 },
+  },
+  {
+    // The mid-month materials + loot beat (11th–13th) — a second monthly reason to grind gear.
+    id: 'reclamation',
+    name: 'Reclamation Days',
+    desc: 'Mid-month salvage bloom: container materials ×1.35 and loot ×1.2 on the 11th–13th (UTC).',
+    icon: '⧗',
+    accent: 'var(--gold)',
+    category: 'peak',
+    active: (d) => d.getUTCDate() >= 11 && d.getUTCDate() <= 13,
+    mods: { materialsMult: 1.35, lootMult: 1.2 },
   },
   {
     // The quarterly season — the date-range seam made real. Stacks multiplicatively with
     // whatever weekly/daily windows it overlaps (that's the festival).
     id: 'bloom_cycle',
     name: 'Bloom Cycle',
-    desc: 'Quarterly bloom: every Genome Core lane ×1.1 and Gene Essence ×1.25, the 21st–27th of Mar/Jun/Sep/Dec (UTC).',
+    desc: 'Quarterly bloom: every Genome Core lane ×1.1, Gene Essence ×1.25 and Mega Ichor ×1.25, the 21st–27th of Mar/Jun/Sep/Dec (UTC).',
     icon: '✿',
     accent: 'var(--vital)',
+    category: 'peak',
     active: (d) => [2, 5, 8, 11].includes(d.getUTCMonth()) && d.getUTCDate() >= 21 && d.getUTCDate() <= 27,
-    mods: { dailyCoreMult: 1.1, rushShardMult: 1.1, endlessShardMult: 1.1, campaignShardMult: 1.1, essenceMult: 1.25 },
+    mods: { dailyCoreMult: 1.1, rushShardMult: 1.1, endlessShardMult: 1.1, campaignShardMult: 1.1, essenceMult: 1.25, megaIchorMult: 1.25 },
   },
 ];
 
-// Wall clock — pinned to a fixed TUESDAY under tests so no gameplay assertion ever
-// depends on which day CI runs (liveops' own tests pass explicit dates instead).
-const FIXED_TEST_NOW = Date.UTC(2026, 0, 6, 12, 0, 0); // Tue 2026-01-06 — no windows beyond the rotation
+// Wall clock — pinned to a fixed MONDAY under tests so no gameplay assertion ever depends on
+// which day CI runs (liveops' own tests pass explicit dates instead). The date is chosen so the
+// ONLY active window is the mode SPOTLIGHT — and specifically the 'depth' spotlight, whose sole
+// lane (endlessShardMult) a stage-mode gameplay run never reads. So liveopsMods() is effectively
+// gameplay-neutral here: golden/meta/persona runs see ×1 on every lane they actually consume.
+// (Every calendar addition MUST keep this Monday to that one spotlight — a pinned test asserts it.)
+const FIXED_TEST_NOW = Date.UTC(2026, 0, 19, 12, 0, 0); // Mon 2026-01-19 — 'depth' spotlight only
 const isTest = typeof import.meta !== 'undefined' && (import.meta as { env?: { MODE?: string } }).env?.MODE === 'test';
 export function liveopsNow(): Date {
   return new Date(isTest ? FIXED_TEST_NOW : Date.now());
@@ -147,7 +216,7 @@ export type LiveopsMods = Required<LiveEventMods>;
 /** Fold every live window into one multiplier bag (×1 baseline everywhere). Overlapping
  *  windows stack multiplicatively — a weekend inside the Bloom Cycle IS the festival. */
 export function liveopsMods(d: Date = liveopsNow()): LiveopsMods {
-  const m: LiveopsMods = { dailyCoreMult: 1, rushShardMult: 1, endlessShardMult: 1, campaignShardMult: 1, essenceMult: 1, materialsMult: 1 };
+  const m: LiveopsMods = { dailyCoreMult: 1, rushShardMult: 1, endlessShardMult: 1, campaignShardMult: 1, essenceMult: 1, materialsMult: 1, megaIchorMult: 1, lootMult: 1 };
   for (const e of activeEvents(d)) {
     for (const k of Object.keys(LANE_LABELS) as (keyof LiveEventMods)[]) m[k] *= e.mods[k] ?? 1;
   }

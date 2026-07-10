@@ -30,6 +30,7 @@ import { NextGoalBanner } from './NextGoalBanner';
 import { PredictionPanel } from './PredictionPanel';
 import { WorldStatus } from './WorldStatus';
 import { LiveEventsStrip } from './components/LiveEventsStrip';
+import { DirectivesCard } from './components/DirectivesCard';
 import { ContractsCard } from './components/ContractsCard';
 import { InfestationBoard } from './components/InfestationBoard';
 import { armyView, buildHomeView, commandFeed, homeRegistry } from './homeModel';
@@ -143,6 +144,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   // one goal, one surface (the pre-overhaul board showed the same goal three times).
   'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} goals={c.view.goals.slice(0, 1)} />,
   'live-events': () => <LiveEventsStrip />,
+  'directives': () => <DirectivesCard />,
   'contracts': () => <ContractsCard />,
   'infestation': () => <InfestationBoard />,
   'mission-control': MissionControl,

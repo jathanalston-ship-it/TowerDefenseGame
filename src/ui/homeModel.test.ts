@@ -116,7 +116,7 @@ describe('home widget registry — the shell renders THIS', () => {
     expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['mission-control', 'next-goal', 'live-events']);
     expect(homeRegistry.zone(fresh, 'ops').map((d) => d.id)).toEqual(['modes']);
     const midgame = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 5 } } };
-    expect(homeRegistry.zone(midgame, 'main').map((d) => d.id)).toEqual(['mission-control', 'next-goal', 'live-events', 'contracts']);
+    expect(homeRegistry.zone(midgame, 'main').map((d) => d.id)).toEqual(['mission-control', 'next-goal', 'live-events', 'directives', 'contracts']);
     expect(homeRegistry.zone(midgame, 'ops').map((d) => d.id)).toEqual(['modes', 'infestation']);
     // feed hides on an empty timeline; appears once history exists
     expect(homeRegistry.zone(fresh, 'feed').map((d) => d.id)).toEqual(['dashboard']);

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 688 nodes · 1172 edges, built from the live
+> **The project's brain** (docs/DIL.md). 690 nodes · 1181 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:expeditions` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · `achievement:centurion` · `achievement:veteran` · …75 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:directives` · `system:expeditions` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · `achievement:centurion` · …76 more
 
 ### Power Score Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -71,6 +71,7 @@ graph LR
   system_splice_market["Splice Market & Ichor"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_achievements["Achievements"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_directives["Weekly Directives"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_contracts["Champion Contracts"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_infestation["Infestation Map"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_chronicle["Chronicle (patch-note pipeline)"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -111,6 +112,7 @@ graph LR
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_directives["Weekly Directives"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
@@ -260,6 +262,10 @@ graph LR
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_liveops["LiveOps calendar"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_liveops["LiveOps calendar"] -->|dependsOn| system_daily["Daily Run"]
+  system_directives["Weekly Directives"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_directives["Weekly Directives"] -->|dependsOn| system_liveops["LiveOps calendar"]
+  system_directives["Weekly Directives"] -->|dependsOn| system_daily["Daily Run"]
+  system_directives["Weekly Directives"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_contracts["Champion Contracts"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_contracts["Champion Contracts"] -->|dependsOn| system_liveops["LiveOps calendar"]
   system_contracts["Champion Contracts"] -->|dependsOn| system_cosmetics["The Wardrobe (Cosmetics)"]
@@ -366,6 +372,7 @@ graph LR
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_security["Game Action Security Layer"] -->|consumes| concept_determinism["Determinism"]
+  system_directives["Weekly Directives"] -->|consumes| concept_determinism["Determinism"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
@@ -405,7 +412,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…19 more (query: `npm run dil -- node concept:power-score`)_
+  - _…20 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -419,6 +426,7 @@ A run is a pure function of seed + inputs — the invariant behind replays, fair
   - consumedBy ← `system:living-battlefield` — terrain evolution is render-side; inert at stage 0
   - requiredBy ← `system:prediction` — outcome prediction replays candidate futures
   - consumedBy ← `system:security` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
+  - consumedBy ← `system:directives` — the weekly board rotates on the same UTC weekIndex as liveops/contracts (no server); progress banks from run FACTS at finishRun — the pinned test Monday keeps it gameplay-neutral (fresh save = 0 progress, meta-only rewards ⇒ golden-safe)
 
 ### `concept:golden-test` — Golden Test
 
@@ -493,7 +501,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…75 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…76 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -542,7 +550,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (62)
+## Systems (63)
 
 ### `system:engine` — Sim Engine
 
@@ -735,6 +743,7 @@ _at: src/core/daily.ts, src/core/dailyModifiers.ts, src/ui/DailyScreen.tsx_
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:net-backend`
   - requiredBy ← `system:liveops`
+  - requiredBy ← `system:directives`
   - documentedBy ← `doc:DAILY-RUN.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `guide:daily`
@@ -1158,16 +1167,33 @@ _at: src/state/stats.ts_
 
 ### `system:liveops` — LiveOps calendar
 
-Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, rotating weekly spotlights, Mutation Wednesday, monthly Harvest Moon + quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned under tests.
+Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, a 4-way rotating weekly spotlight (rush/depth/campaign/apex-raid), recurring Mutation Wednesday / Spore Tide / Prime Hunt beats, monthly Harvest Moon + Reclamation peaks and the quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials/mega-ichor/loot, category-tagged) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned to a spotlight-only Monday under tests.
 
 _at: src/core/liveops.ts, src/ui/components/LiveEventsStrip.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:daily`
+  - balances → `concept:power-score` — event reward lanes (cores/essence/materials/mega-ichor/loot) fatten meta INCOME, never gameplay strength — ×1 baseline off-window so the calendar can never warp a run
+  - requiredBy ← `system:directives`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:LIVEOPS.md`
   - testedBy ← `test:src/core/liveops.test.ts`
   - plannedBy ← `system:website` — community spotlight + seasonal event pages once events ship
+
+### `system:directives` — Weekly Directives
+
+The cumulative liveops engagement ladder (docs/LIVEOPS.md §directives): a deterministic UTC 3-directive board + shared capstone, progress banked across every run from run facts at finishRun (kills/wins/waves/boss+mega kills/weak-points/damage/flawless/towers), meta-only milestone + capstone rewards claimed in the console. Golden-safe (fresh save = 0 progress); the claim path is guarded by the security registry.
+
+_at: src/core/directives.ts, src/ui/components/DirectivesCard.tsx_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:liveops`
+  - dependsOn → `system:daily`
+  - consumes → `system:meta-store` — owns save field 'directives'
+  - consumes → `concept:determinism` — the weekly board rotates on the same UTC weekIndex as liveops/contracts (no server); progress banks from run FACTS at finishRun — the pinned test Monday keeps it gameplay-neutral (fresh save = 0 progress, meta-only rewards ⇒ golden-safe)
+  - rewards → `currency:genome-cores` — milestone + capstone payouts (also Gene Essence + Bio-Containers) — claimed explicitly in the console, guarded by security directive.claim
+  - documentedBy ← `doc:LIVEOPS.md`
+  - testedBy ← `test:src/core/directives.test.ts`
 
 ### `system:i18n` — Localization Core
 
@@ -1500,7 +1526,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…92 more (query: `npm run dil -- node system:meta-store`)_
+  - _…94 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2702,7 +2728,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:IDENTITY-AUDIT.md` — project documentation
 - `doc:INFESTATION.md` — project documentation _(documents `system:infestation`)_
 - `doc:LEXICON.md` — project documentation _(documents `system:currencies`)_
-- `doc:LIVEOPS.md` — project documentation _(documents `system:liveops`)_
+- `doc:LIVEOPS.md` — project documentation _(documents `system:liveops`, documents `system:directives`)_
 - `doc:LIVING-BATTLEFIELD.md` — project documentation _(documents `system:living-battlefield`)_
 - `doc:LIVING-HIVE.md` — project documentation
 - `doc:LOOT-PROGRESSION.md` — project documentation _(documents `system:loot`)_
@@ -2783,7 +2809,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (217)
+## Tests (218)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2824,6 +2850,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/difficulty.test.ts` — automated validation _(tests `system:difficulty`)_
 - `test:src/core/difficultyDirector.test.ts` — automated validation _(tests `system:difficulty`)_
 - `test:src/core/difficultyEconomy.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/directives.test.ts` — automated validation _(tests `system:directives`)_
 - `test:src/core/director.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/doctrines.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
