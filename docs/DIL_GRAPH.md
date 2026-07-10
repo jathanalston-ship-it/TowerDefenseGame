@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 643 nodes · 1065 edges, built from the live
+> **The project's brain** (docs/DIL.md). 644 nodes · 1066 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -506,7 +506,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…159 more (query: `npm run dil -- node system:engine`)_
+  - _…160 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -676,9 +676,9 @@ _at: src/core/daily.ts, src/core/dailyModifiers.ts, src/ui/DailyScreen.tsx_
 
 ### `system:mulligans` — Mulligan System
 
-A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch).
+A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch). OVERHAUL (v29): pieces are EXCLUSIVE (one tower at a time; catalog pinned at 3× the tower roster), the pillar gates behind 3 distinct Mega Boss kills, duplicates dissolve to Gene Essence, and the REFORGE wheel (core/mulliganReforge.ts, ichor-fueled, 1–3 slots by combined rarity) permanently BINDS an organism to its host — legendary rolls grant GLOBAL passives.
 
-_at: src/core/mulligan.ts, src/render/mulliganOrganism.ts, src/state/mulliganLabModel.ts, src/ui/MulliganLab.tsx_
+_at: src/core/mulligan.ts, src/render/mulliganOrganism.ts, src/state/mulliganLabModel.ts, src/ui/MulliganLab.tsx, src/core/mulliganReforge.ts, src/render/reforgeWheel.ts_
 
   - dependsOn → `system:content-infra`
   - dependsOn → `system:towers`
@@ -2524,7 +2524,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (199)
+## Tests (200)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2702,6 +2702,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/modeGates.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mulligan.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mulliganLabModel.test.ts` — automated validation _(tests `system:mulligans`)_
+- `test:src/state/mulliganOverhaul.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nemesis.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nextGoal.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
