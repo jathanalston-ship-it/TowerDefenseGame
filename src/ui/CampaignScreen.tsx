@@ -9,12 +9,12 @@ import { meta } from '../state/meta';
 import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
 import { audio } from '../audio/sound';
-import { campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
+import { BIOME_REGION, campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
 import { ENEMY_DEFS } from '../core/config';
 import { nextGoals } from '../state/nextGoal';
 import { ProgressBar } from './components/ProgressBar';
 import { formatPower } from '../core/power';
-import { CAMPAIGN_REWARDS } from '../core/config';
+import { CAMPAIGN_REWARDS, CHESTS, chestForWave } from '../core/config';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -108,6 +108,17 @@ export function CampaignScreen({
       {/* ── The ROADMAP rail: what the descent is unlocking next (docs/MODE-IDENTITY.md §campaign).
           Goal chips (closest-first, the shared Next-Goal engine) + gate chips that JUMP the map. */}
       <div className="camp-rail" aria-label="Upcoming unlocks">
+        {(() => {
+          // The next ◈ milestone (every Nth clear pays a bonus core chunk) — a jumpable chip
+          // exactly like the gates, so the reward rhythm reads on the rail itself.
+          const ms = Math.ceil(frontier / CAMPAIGN_REWARDS.milestoneEvery) * CAMPAIGN_REWARDS.milestoneEvery;
+          return (
+            <button className="camp-gate is-milestone" title={`Every ${CAMPAIGN_REWARDS.milestoneEvery}th stage pays +${CAMPAIGN_REWARDS.milestoneCore} bonus Genome Cores on first clear — jump the map to Stage ${ms}`}
+                    onClick={() => { setViewStart(Math.max(1, ms - 2)); setFocus(ms); }}>
+              <i>Stage {ms}</i>◈ +{CAMPAIGN_REWARDS.milestoneCore} milestone
+            </button>
+          );
+        })()}
         {upcomingGates(cleared).map((g) => (
           <button key={`${g.kind}-${g.stage}`} className={`camp-gate is-${g.kind}`} title={`Jump the map to Stage ${g.stage}`}
                   onClick={() => { setViewStart(Math.max(1, g.stage - 2)); setFocus(g.stage); }}>
@@ -139,7 +150,9 @@ export function CampaignScreen({
               const r = n.milestone ? 19 : 14;
               return (
                 <g key={n.stage} className={`camp-node is-${n.state}${n.stage === focus ? ' is-focus' : ''}`}
-                   style={{ ['--biome' as string]: n.biome.accent }} onClick={() => setFocus(n.stage)} role="listitem">
+                   style={{ ['--biome' as string]: n.biome.accent }} onClick={() => setFocus(n.stage)} role="listitem"
+                   tabIndex={0} aria-label={`Stage ${n.stage}, ${n.biome.name}, ${n.state}`}
+                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocus(n.stage); } }}>
                   {n.state === 'current' && <circle cx={p.x} cy={p.y} r={r + 7} className="camp-node-pulse" />}
                   {n.stage === focus && <circle cx={p.x} cy={p.y} r={r + 4} className="camp-node-focus" />}
                   <circle cx={p.x} cy={p.y} r={r} className="camp-node-dot" />
@@ -161,7 +174,7 @@ export function CampaignScreen({
         {/* ── Focused stage ── */}
         <aside className="camp-detail" style={{ ['--biome' as string]: cfg.biome.accent }}>
           <div className="camp-detail-stage">
-            STAGE {focus}
+            SECTOR {Math.floor((focus - 1) / BIOME_REGION) + 1} · STAGE {focus}
             {focus === frontier && <span className="camp-here">◂ frontier</span>}
             {focusState === 'cleared' && <span className="camp-here cleared">✓ cleared</span>}
           </div>
@@ -219,6 +232,7 @@ export function CampaignScreen({
             <div className="cd-row"><span className="cd-k">Waves</span><span className="cd-v">{cfg.waveCount}</span></div>
             <div className="cd-row"><span className="cd-k">Enemy HP</span><span className="cd-v">+{Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}%</span></div>
             <div className="cd-row"><span className="cd-k">Enemy Damage</span><span className="cd-v">+{Math.round((cfg.scaling.enemyDamageMult - 1) * 100)}%</span></div>
+            {cfg.enemySpeedMult > 1 && <div className="cd-row"><span className="cd-k">Enemy Speed</span><span className="cd-v">+{Math.round((cfg.enemySpeedMult - 1) * 100)}%</span></div>}
             {(() => {
               const t = save.campaign.bestTime[diff]?.[String(focus)];
               return t ? <div className="cd-row"><span className="cd-k">Fastest clear</span><span className="cd-v">{Math.floor(t / 60)}:{String(t % 60).padStart(2, '0')}</span></div> : null;
@@ -241,13 +255,30 @@ export function CampaignScreen({
           <div className="camp-rewards">
             <span className="cd-k">{focusState === 'cleared' ? 'Replay' : 'First-clear reward'}</span>
             {focusState !== 'cleared'
-              ? <span className="cd-reward"><CurrencyIcon id="genomeCores" size={14} title="" /> +{firstClearCore} · Stage Cache <span style={{ color: cfg.biome.accent }}>◈</span></span>
+              ? <span className="cd-reward"><CurrencyIcon id="genomeCores" size={14} title="" /> +{firstClearCore}</span>
               : <span className="cd-reward dim">already claimed — replay for loot &amp; mastery</span>}
           </div>
+          {/* The Stage Cache is EARNED, not given (state/meta.ts finishRun): first clear AND zero
+              Nucleus damage — regen never redeems a hit, replays never qualify. Say so up front. */}
+          {focusState !== 'cleared' && (
+            <div className="camp-rewards is-flawless" title="Take zero Nucleus integrity damage on the first clear. Regeneration does not redeem a hit, and replays never qualify.">
+              <span className="cd-k">Flawless bonus</span>
+              <span className="cd-reward"><span style={{ color: cfg.biome.accent }}>◈</span> {CHESTS[chestForWave(focus)].name}</span>
+            </div>
+          )}
 
           <button className={`camp-deploy ${focusState === 'current' ? 'primary' : ''}`} disabled={focusState === 'locked'} onClick={() => deploy(focus)}>
             {focusState === 'locked' ? `Clear Stage ${frontier} first` : focusState === 'cleared' ? 'Replay ▸' : 'Deploy ▸'}
           </button>
+          {/* Frontier field note: a failed push is never wasted (CAMPAIGN_REWARDS.attemptFrac),
+              and the under-powered path names its remedy — the Infinite farm (the macro loop). */}
+          {focus === frontier && (
+            <div className="camp-fieldnote">
+              {ready
+                ? <>Failed attempts still recover up to {Math.round(CAMPAIGN_REWARDS.attemptFrac * 100)}% of the discovery data.</>
+                : <>Under-powered — farm <b>Infinite</b> to close the gap, or push anyway: failed attempts recover up to {Math.round(CAMPAIGN_REWARDS.attemptFrac * 100)}% of the discovery data.</>}
+            </div>
+          )}
         </aside>
       </div>
     </div>

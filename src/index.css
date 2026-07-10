@@ -6072,7 +6072,44 @@ kbd {
 .inf-fc-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--danger); }
 .inf-fc-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
 .inf-fc-row b { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+.inf-fc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.inf-fc-live { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); }
 .infinite-start { animation: cc-cta-breathe 5.5s ease-in-out infinite; }
+
+/* Descent-forecast LADDER — the director's real curves priced at depth checkpoints; the value
+   column is the anti-grind taper (docs/ENDLESS-SCALING.md §taper). ◈ row = the account record. */
+.inf-lad-grid { display: grid; grid-template-columns: 44px repeat(4, minmax(0, 1fr)); gap: 3px 8px; font-variant-numeric: tabular-nums; }
+.inf-lad-h { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: right; }
+.inf-lad-h.is-w { text-align: left; }
+.inf-lad-w { font-size: 11px; font-weight: 800; color: var(--muted); }
+.inf-lad-w.is-best { color: var(--viral); }
+.inf-lad-v { font-size: 11px; color: var(--text); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inf-lad-v.is-cap { color: var(--gold); }
+.inf-lad-v.is-taper { color: var(--dim); }
+.inf-lad-notes { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; padding-top: 7px; border-top: 1px dashed var(--line); }
+.inf-lad-notes span { font-size: 10px; color: var(--dim); line-height: 1.45; }
+
+/* Difficulty as a BRIEFING (blurb + moved axes), not a bare dropdown. */
+.inf-diff-brief { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; max-width: 560px; text-transform: none; letter-spacing: normal; }
+.inf-diff-blurb { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.inf-diff-fx { display: flex; flex-wrap: wrap; gap: 3px 12px; }
+.inf-diff-fx i { font-style: normal; font-size: 10px; font-weight: 700; color: var(--warn); font-variant-numeric: tabular-nums; }
+.inf-diff-fx i.is-gold { color: var(--gold); }
+
+/* Doctrine card header row: name + its hazard at the CURRENT difficulty (comparison at a glance). */
+.inf-doc-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.inf-doc-hz { flex: none; font-style: normal; font-size: 10px; letter-spacing: 0.1em; color: var(--danger); opacity: 0.85; }
+
+/* ── Prep-terminal SHELL (Infinite · Boss Rush share .play-*): hero column + side rail on
+   desktop, one column under 900px. Was unstyled block flow — one long scroll on every screen. ── */
+.play-screen { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s4); align-items: start; max-width: 1120px; }
+@media (max-width: 900px) { .play-screen { grid-template-columns: minmax(0, 1fr); } }
+.play-hero { min-width: 0; }
+.play-side { display: flex; flex-direction: column; gap: var(--s3); min-width: 0; }
+.play-side .records { grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: var(--s2); }
+.play-side .record .v { font-size: 20px; }
+.play-cta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: var(--s3) 0; }
+.play-setup { margin-top: var(--s3); }
 
 /* ── Campaign roadmap rail + mission-card enrichment (docs/MODE-IDENTITY.md §campaign) ── */
 .camp-rail { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); padding: 8px 10px; border-radius: var(--r-md); border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); }
@@ -6081,6 +6118,7 @@ kbd {
 .camp-gate.is-gene-tier { border-color: color-mix(in srgb, var(--caustic) 45%, var(--line)); }
 .camp-gate.is-hero-slot { border-color: color-mix(in srgb, var(--viral) 45%, var(--line)); }
 .camp-gate.is-evolution { border-color: color-mix(in srgb, var(--kinetic) 45%, var(--line)); }
+.camp-gate.is-milestone { border-color: color-mix(in srgb, var(--gold) 50%, var(--line)); color: var(--gold); }
 .camp-gate:hover:not(:disabled) { box-shadow: var(--halo) color-mix(in srgb, var(--gold) 30%, transparent); }
 .camp-goal { display: flex; flex-direction: column; gap: 3px; min-width: 150px; flex: 1 1 150px; max-width: 240px; }
 .camp-goal-l { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -6182,6 +6220,18 @@ kbd {
 .cd-reward.dim { color: var(--muted); font-weight: 600; font-size: 12px; }
 .camp-deploy { margin-top: 4px; padding: 9px; font-weight: 700; }
 .camp-deploy:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Flawless bonus callout — the Stage Cache is EARNED (no-damage first clear), not given. */
+.camp-rewards.is-flawless { padding: 6px 10px; border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: var(--r-sm); background: color-mix(in srgb, var(--gold) 5%, transparent); }
+.camp-rewards.is-flawless .cd-k { color: var(--gold); }
+/* Frontier field note: failed pushes recover partial discovery data (the macro loop's remedy). */
+.camp-fieldnote { font-size: 11px; color: var(--dim); line-height: 1.5; }
+.camp-fieldnote b { color: var(--viral); }
+/* Depth fog — the window's lower edge fades into the uncharted dark below. */
+.camp-map-svg { -webkit-mask-image: linear-gradient(180deg, #000 78%, rgba(0, 0, 0, 0.3) 100%); mask-image: linear-gradient(180deg, #000 78%, rgba(0, 0, 0, 0.3) 100%); }
+/* Map nodes are keyboard-reachable (tabIndex on each <g>): ring the dot, not the group box. */
+.camp-node:focus-visible { outline: none; }
+.camp-node:focus-visible .camp-node-dot { stroke: var(--gold); stroke-width: 3; }
 
 /* ── Power Score (docs/POWER-SCORE.md) — animated badge + upgrade delta ── */
 /* ── Power gain toasts (POWER-SCORE.md §feel): amount + SOURCE, near the live badge ── */

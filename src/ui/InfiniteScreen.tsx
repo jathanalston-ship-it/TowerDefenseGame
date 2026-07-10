@@ -1,19 +1,20 @@
 // INFINITE — the SURVIVAL EXPERIMENT terminal (docs/ENDLESS-SCALING.md, MODE-IDENTITY §doctrines).
 // Not "Campaign without an ending": you CONFIGURE an experiment (difficulty + a doctrine
-// PROTOCOL that reshapes the enemy world), read the forecast (scaling curves, biome rotation,
-// boss cadence, reward multipliers), and descend. Doctrine cards show their full effect
-// readouts — picking one is a strategic commitment, not a dropdown afterthought.
+// PROTOCOL that reshapes the enemy world), read the DESCENT FORECAST (the real director curves
+// evaluated at depth checkpoints, live under your exact configuration), and descend. Doctrine
+// cards show their full effect readouts — picking one is a strategic commitment, not a
+// dropdown afterthought.
 
-import { useState, type MutableRefObject } from 'react';
+import { Fragment, useMemo, useState, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
-import { DIFFICULTIES, DIFFICULTY_IDS } from '../core/difficulty';
+import { DIFFICULTIES, DIFFICULTY_IDS, resolveDifficulty } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
 import type { DoctrineDef } from '../core/doctrines';
 import { BIOMES } from '../core/biomes';
-import { DIRECTOR, ENDLESS } from '../core/config';
-import { doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
+import { DIRECTOR, ENDLESS, ENDLESS_TAPER, endlessTaper } from '../core/config';
+import { createDirector, doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
@@ -37,8 +38,20 @@ function doctrineLines(d: DoctrineDef): string[] {
   return out;
 }
 
-// Hazard rating + reward composition are Difficulty Director policy (core/difficultyDirector.ts) —
-// this terminal renders the same numbers any future mode picker would read.
+/** Compact ×-multiplier for the forecast ladder (deep HP walls reach ×10⁷ under fast protocols). */
+function fmtMult(v: number): string {
+  if (v >= 1e9) return `×${Number((v / 1e9).toPrecision(3))}B`;
+  if (v >= 1e6) return `×${Number((v / 1e6).toPrecision(3))}M`;
+  if (v >= 1e4) return `×${Number((v / 1e3).toPrecision(3))}k`;
+  if (v >= 100) return `×${Math.round(v)}`;
+  return `×${v.toFixed(v >= 10 ? 1 : 2)}`;
+}
+
+/** Forecast checkpoint depths; the account's own record is spliced in as its own rung. */
+const LADDER_DEPTHS = [5, 10, 20, 30, 40, 50, 75, 100];
+
+// Hazard rating + reward composition + every ladder number are Difficulty Director policy
+// (core/difficultyDirector.ts) — this terminal renders the same curves the sim will run.
 
 export function InfiniteScreen({
   onStartEndless,
@@ -55,6 +68,22 @@ export function InfiniteScreen({
   const active = DOCTRINES[doctrine] ?? DOCTRINES.none;
   const hazard = hazardRating(diff, active);
   const lootMult = modeLootMult({ endless: true, campaign: false }) * doctrineEconomy(active.id).rewardMult;
+  const dsel = DIFFICULTIES[diff] ?? resolveDifficulty(diff);
+
+  // The descent forecast: ONE director configured exactly like the run (difficulty × protocol),
+  // queried at checkpoint depths — switching either input re-prices the whole ladder live.
+  const director = useMemo(
+    () => createDirector({ difficulty: resolveDifficulty(diff), warp: active.warp }),
+    [diff, active],
+  );
+  const depths = useMemo(() => {
+    const out = [...LADDER_DEPTHS];
+    if (save.bestWave > LADDER_DEPTHS[0] && !out.includes(save.bestWave)) {
+      out.push(save.bestWave);
+      out.sort((a, b) => a - b);
+    }
+    return out;
+  }, [save.bestWave]);
 
   const start = (): void => {
     audio.resume();
@@ -97,6 +126,16 @@ export function InfiniteScreen({
               ))}
             </select>
           </label>
+          {/* The selected difficulty as a BRIEFING, not a bare dropdown: its blurb + the axes it moves. */}
+          <div className="inf-diff-brief">
+            <span className="inf-diff-blurb">{dsel.blurb}</span>
+            <span className="inf-diff-fx">
+              <i>Enemy HP ×{dsel.enemyHealthMult}</i>
+              <i>Damage ×{dsel.enemyDamageMult}</i>
+              <i className="is-gold">Rewards ×{dsel.rewardMult}</i>
+              <i className="is-gold">XP ×{dsel.xpMult}</i>
+            </span>
+          </div>
         </div>
 
         {/* ── PROTOCOL SELECTION — doctrine cards with full readouts (one commitment) ── */}
@@ -114,7 +153,10 @@ export function InfiniteScreen({
                 onClick={() => setDoctrine(id)}
                 title={d.blurb}
               >
-                <span className="inf-doc-name">{d.name}</span>
+                <span className="inf-doc-top">
+                  <span className="inf-doc-name">{d.name}</span>
+                  <i className="inf-doc-hz" title={`Hazard ${hazardRating(diff, d)}/5 at ${dsel.name}`}>{'◆'.repeat(hazardRating(diff, d))}</i>
+                </span>
                 {lines.length > 0
                   ? <span className="inf-doc-fx">{lines.slice(0, 3).map((l) => <i key={l}>{l}</i>)}</span>
                   : <span className="inf-doc-fx"><i className="is-dim">{id === 'none' ? 'No commitment' : 'Build-shaping'}</i></span>}
@@ -139,21 +181,52 @@ export function InfiniteScreen({
           <div className="record"><div className="k">Loot Rate</div><div className="v" style={{ color: 'var(--gold)' }}>×{lootMult.toFixed(2)}</div></div>
         </div>
 
-        {/* ── The FORECAST — what the descent will throw at you ── */}
+        {/* ── The DESCENT FORECAST — the run's actual scaling curves priced at depth checkpoints.
+            Every number comes from the same RunDirector the sim will construct; the taper column
+            is the anti-grind curve (docs/ENDLESS-SCALING.md §taper). ◈ marks the account record. ── */}
         <div className="panel inf-forecast">
-          <div className="inf-fc-k">Experiment forecast</div>
-          <div className="inf-fc-row"><span>Enemy HP ramp</span><b>×{ENDLESS.hpGrowth.toFixed(2)} / wave{active.warp?.scalingRateMult ? ` ×${active.warp.scalingRateMult} accel` : ''}</b></div>
-          <div className="inf-fc-row"><span>Boss cadence</span><b>every {DIRECTOR.bossEvery} waves</b></div>
-          <div className="inf-fc-row"><span>Biome rotation</span><b>{BIOMES.slice(0, 4).map((b) => b.name.split(' ')[0]).join(' → ')} …</b></div>
-          <div className="inf-fc-row"><span>Speed cap</span><b>×{ENDLESS.speedCap}</b></div>
+          <div className="inf-fc-head">
+            <span className="inf-fc-k">Descent forecast</span>
+            <span className="inf-fc-live" title="Re-priced live from your difficulty × protocol selection">live</span>
+          </div>
+          <div className="inf-lad-grid">
+            <span className="inf-lad-h is-w">Wave</span>
+            <span className="inf-lad-h">Enemy HP</span>
+            <span className="inf-lad-h">Speed</span>
+            <span className="inf-lad-h" title="Assembled-boss durability (capped ×6)">Boss</span>
+            <span className="inf-lad-h" title="Loot & Mastery value per wave — full through the taper start, then decaying to the floor">Value</span>
+            {depths.map((w) => {
+              const isBest = w === save.bestWave && !LADDER_DEPTHS.includes(w);
+              const speed = director.endlessSpeedMult(w);
+              const speedCapped = speed >= ENDLESS.speedCap - 1e-9;
+              const boss = director.endlessBossStrength(w);
+              const bossCapped = boss >= ENDLESS.bossStrengthCap - 1e-9;
+              const value = endlessTaper(w);
+              return (
+                <Fragment key={w}>
+                  <span className={`inf-lad-w${isBest ? ' is-best' : ''}`} title={isBest ? 'Your deepest wave' : undefined}>{isBest ? '◈' : ''}{w}</span>
+                  <span className="inf-lad-v">{fmtMult(director.endlessHpMult(w))}</span>
+                  <span className={`inf-lad-v${speedCapped ? ' is-cap' : ''}`} title={speedCapped ? 'Speed cap reached' : undefined}>×{speed.toFixed(2)}</span>
+                  <span className={`inf-lad-v${bossCapped ? ' is-cap' : ''}`} title={bossCapped ? 'Boss durability cap' : undefined}>×{boss.toFixed(1)}</span>
+                  <span className={`inf-lad-v${value < 1 ? ' is-taper' : ''}`}>{Math.round(value * 100)}%</span>
+                </Fragment>
+              );
+            })}
+          </div>
+          <div className="inf-lad-notes">
+            <span>◆ Assembled boss every {DIRECTOR.bossEvery} waves; durability caps ×{ENDLESS.bossStrengthCap}.</span>
+            <span>Value tapers past wave {ENDLESS_TAPER.startWave} toward a {Math.round(ENDLESS_TAPER.floor * 100)}% floor — deep camping stops out-earning a fresh run.</span>
+            <span>Past depth {DIRECTOR.heavyCapMinDepth} the Director tilts composition toward swarms.</span>
+            <span>Biomes rotate: {BIOMES.slice(0, 4).map((b) => b.name.split(' ')[0]).join(' → ')} …</span>
+          </div>
         </div>
 
         <div className="panel how-to play-howto">
           <b style={{ color: 'var(--text)' }}>Infinite mode.</b> No win condition — the swarm scales
           without end. Biomes rotate as you descend; assembled bosses anchor the cadence. The home of{' '}
           <b style={{ color: 'var(--viral)' }}>Mastery XP</b> and the{' '}
-          <b style={{ color: 'var(--gold)' }}>Loot Box Meter</b>. Future seams: weekly challenges,
-          season modifiers, mutators, leaderboards — all parameterize this same terminal.
+          <b style={{ color: 'var(--gold)' }}>Loot Box Meter</b>. When the deep waves stop paying,
+          bank the run and spend the power on the Campaign frontier.
         </div>
       </aside>
     </div>
