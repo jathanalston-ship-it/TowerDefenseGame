@@ -319,6 +319,16 @@ flying · `pop` suicide · `splat` heavy bruiser) — UNDER the kept rising kill
 sim pushes the cue on death (and a suicide's `pop` under the Core-breach); throttled per class so a
 swarm-wipe never blows out. Golden-safe: a cue never touches wave/kills/integrity/biomass.
 
+**Material + gait pass (v2, 2026-07)** — every form gained a **specular glint** on hard shells
+(beetle dome, crab shell, mortar barrel, maw brow via `glint()`), **antennae/feelers** on the
+insectile forms (`antennae()`: grub, moth), and a **locomotion character** scaled by the motion
+tracker's speed (`BodyOpts.moving`): grub inchworms, beetle scuttles on a tripod beat, crab
+pincers snap as it walks, mole digs with a soil spray, polyp streams refracted bubbles, broodsac
+shows surface veins, bulb leaks escape rays as it destabilizes, maw hangs a saliva strand. Taking
+a hit now lands **physically**: `BodyOpts.flinch` (fed by the sim's 0.09 s `hitFlash`) knocks the
+body up-lane with an impact squash on top of the white pop. Same budget rules as v1 (no per-enemy
+gradients, LOD-gated, render-only ⇒ golden-safe).
+
 ### 8.2 Assimilation — the death is a payoff, the birth is a moment
 
 **Death → ASSIMILATION gore** (`render/gore.ts`, fed by the sim's one-shot `DeathEvent` buffer —

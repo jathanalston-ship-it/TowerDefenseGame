@@ -16,6 +16,7 @@ import { gameEvents } from '../core/events';
 const DUCK: Record<string, [number, number]> = {
   mega: [0.45, 1.4], megaDeath: [0.5, 1.8], megaPhase: [0.3, 0.9],
   wpBreak: [0.28, 0.7], splice: [0.3, 0.8], breach: [0.25, 0.6],
+  boss_phase: [0.28, 0.8], mega_cast: [0.22, 0.6],
 };
 
 /** Reward cues that ALSO land a musical stinger (audio/music.ts STINGERS) — mapped here so every
@@ -164,6 +165,10 @@ function sBoss(): void { // apex-threat sting: falling tritone over a sub thump 
   tone(220, 0.5, 'sawtooth', 0.22, 156); tone(156, 0.7, 'sawtooth', 0.16, 110);
   tone(55, 0.6, 'sine', 0.3, 41); noise(0.5, 0.1, 500, 150);
 }
+function sBossPhase(): void { // boss MUTATION roar: chitin crack + a rising beast-throat sweep — evolution, not injury
+  noise(0.2, 0.13, 2800, 400); tone(140, 0.8, 'sawtooth', 0.15, 260);
+  tone(93, 0.7, 'sawtooth', 0.1, 175); tone(50, 0.8, 'sine', 0.2, 38);
+}
 // ── Mega Boss suite (docs/MEGA-BOSS.md §audio) — the raid encounter's sonic identity ──
 function sMega(): void { // arrival: a continental roar — sub quake + descending double saw + long hiss
   tone(41, 1.6, 'sine', 0.34, 27); tone(110, 1.1, 'sawtooth', 0.2, 55);
@@ -191,6 +196,10 @@ function sMegaTithe(): void { // Moloch-Ama theme sting: coins into a drum — h
 }
 function sMegaAbility(): void { // telegraph riser: tension you can HEAR building — interrupt it
   tone(196, 0.8, 'sawtooth', 0.1, 392); noise(0.7, 0.06, 700, 2600); tone(49, 0.8, 'sine', 0.14);
+}
+function sMegaCast(): void { // the riser RESOLVES: the strike lands — heavy sub thump + venting hiss
+  tone(60, 0.5, 'sine', 0.28, 32); tone(120, 0.3, 'sawtooth', 0.12, 58);
+  noise(0.55, 0.1, 3600, 480);
 }
 function sMegaPhase(): void { // mutation crunch: the organism SHIFTS — wet crack + falling growl
   noise(0.3, 0.16, 3000, 300); tone(180, 0.7, 'sawtooth', 0.18, 90); tone(60, 0.9, 'sine', 0.24, 45);
@@ -420,6 +429,8 @@ export const audio = {
         case 'select': sSelect(); break;
         case 'wave': sWave(); break;
         case 'boss': sBoss(); break;
+        case 'boss_phase': sBossPhase(); break;
+        case 'mega_cast': sMegaCast(); break;
         case 'mega': sMega(); break;
         case 'megaMaw': sMegaMaw(); break;
         case 'megaChoir': sMegaChoir(); break;

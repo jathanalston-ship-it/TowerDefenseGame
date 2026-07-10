@@ -1750,7 +1750,7 @@ function drawEnemy(
   // per-def markings) instead of the borrowed tyrant disc; at low LOD it stays a cheap flat
   // shape but keeps its own color so the identity survives zoom-out.
   const rim = tier === 'boss' ? THEME.boss.rim : tier === 'elite' ? THEME.elite.rim : THEME.enemy.rim;
-  if (e.boss && detail) drawBossBody(ctx, e.boss.defId, e.x, drawY, r, t);
+  if (e.boss && detail) drawBossBody(ctx, e.boss.defId, e.x, drawY, r, t, Math.max(0, Math.min(1, e.hp / e.maxHp)));
   // Full-detail non-boss enemies render a procedural CREATURE body (render/enemyForms.ts) — a shaded
   // silhouette + anatomy + idle animation that owns its own rim/shading, keyed by archetype so the
   // roster reads as distinct organisms. The motion tracker feeds velocity (bank + walking bob) and
@@ -1759,7 +1759,11 @@ function drawEnemy(
     const mo = enemyMotion.get(e.id);
     const emerge = easeOutCubic(mo ? Math.min(1, (t - mo.spawnT) / EMERGE_T) : 1);
     const bodyR = r * (0.93 + (e.id % 5) * 0.028); // per-instance size jitter (body only — rings stay true)
-    drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, bodyR, def.color, t, { seed: ENEMY_VARIANT[e.kind], phase: e.id, rim, flying, vx: mo?.vx ?? 0, vy: mo?.vy ?? 0, emerge });
+    drawEnemyBody(ctx, ENEMY_BODY[e.kind], e.x, drawY, bodyR, def.color, t, {
+      seed: ENEMY_VARIANT[e.kind], phase: e.id, rim, flying,
+      vx: mo?.vx ?? 0, vy: mo?.vy ?? 0, emerge,
+      flinch: Math.min(1, e.hitFlash * 9), // the 0.09s sim flash → a physical recoil
+    });
   }
   else drawShape(ctx, shape, e.x, drawY, r, e.boss ? bcol : def.color);
   if (detail) {

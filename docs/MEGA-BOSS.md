@@ -112,6 +112,21 @@ slots, collection entry, achievements ceiling, daily-roll pool, renderer (palett
 raid bar, and audio all pick it up automatically. Add a bespoke theme sting in `sound.ts` if
 `themeCue` is new.
 
+## Visuals v2 (2026-07) — `render/megaboss.ts`
+
+The presentation pass on top of the original layered body: a **carapace edge-light** (underglow +
+lit chitin rim riding the exact breathing lobe line) so the mass reads as armored anatomy;
+telegraphs **GATHER** — motes stream into the gaping maw across the windup while the vignette
+adds a top-edge warning band; the frame a telegraph resolves, a **CAST shock ring** slams out of
+the maw (module-scoped edge detect on `telegraph` — suppressed when the edge came from an eye
+INTERRUPT, i.e. `stunned > 0`, so the player's win never reads as a landed hit). Weak-point
+organs draw at **×1.25** through a transform (every per-kind painter inherits the scale), die
+with a one-shot **RUPTURE** burst (ring + ichor chunks, keyed on the open→destroyed transition
+per `spec`), and leave a torn, twitching, weeping scar. The same resolved-cast edge drives the
+`mega_cast` audio cue from GameView's banner snapshot-diff (`telegraph` present→gone while alive
+and not stunned); `megaAbility` remains the windup riser. All module state is render-side
+one-shot bookkeeping — the sim is never read back, golden-safe by layer.
+
 ## Performance
 
 One anchored runtime + O(weakPoints) per tick; `megaFx` folds are multiplications at existing

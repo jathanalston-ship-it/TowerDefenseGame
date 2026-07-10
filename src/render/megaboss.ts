@@ -40,6 +40,15 @@ function collapseOf(v: MegaView): number {
   return v.deathT > 0 ? Math.min(1, Math.max(0, 1 - v.deathT / 3.5)) : 0;
 }
 
+// ── Render-side one-shots (module state, render-only): the CAST flash fires the frame a
+//    telegraph resolves into its strike, and each weak point's RUPTURE burst fires on its
+//    open→destroyed edge. One mega exists at a time, so plain module scope is safe — and
+//    stale entries simply draw nothing on the next encounter.
+let lastTele = false;
+let castFlashT = -10; // renderer-now when the last telegraph resolved
+const wpPrevState = new Map<number, MegaWeakPoint['state']>(); // spec → last-frame state
+const wpRuptureT = new Map<number, number>(); // spec → renderer-now of the rupture
+
 // ── The body (under entities) ────────────────────────────────────────────────
 export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   const body = hexRgb(v.palette.body);
@@ -80,6 +89,29 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
     ctx.lineTo(WIDTH + 90, -40);
     ctx.closePath();
     ctx.fill();
+  }
+
+  // Carapace edge-light: the front lobe line wears a soft underglow + a lit chitin rim, so
+  // the mass reads as ARMORED anatomy, not a flat stack of silhouettes. Same math as the
+  // layer-0 fill above, so the rim rides the exact breathing edge.
+  {
+    const sway = Math.sin(now * 0.2) * 3;
+    const lobes = 6 + tier;
+    ctx.beginPath();
+    for (let i = 0; i <= lobes; i++) {
+      const x = -90 + ((WIDTH + 180) / lobes) * i + sway;
+      const drop = Math.sin(i * 2.1 + now * (dead ? 2.4 : 0.45)) * (14 + tier * 3) * breathe;
+      const y = baseY + drop - (dead ? Math.sin(i * 3.1) * collapse * 26 : 0);
+      const px = -90 + ((WIDTH + 180) / lobes) * (i - 0.5) + sway;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.quadraticCurveTo(px, y + 26 * breathe, x, y);
+    }
+    ctx.strokeStyle = rgba(glo, alpha * (dead ? 0.08 : 0.14 + pulse(now, 2.4 - tier * 0.35, 0, 0.1)));
+    ctx.lineWidth = 6;
+    ctx.stroke(); // underglow first (same path, wider)
+    ctx.strokeStyle = rgba(acc, alpha * (dead ? 0.22 : 0.45));
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
   }
 
   // Living emissions (beauty pass): spores sift down off the mass, and viscous ichor
@@ -176,6 +208,10 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   const blink = dead ? collapse : Math.max(0, Math.sin(now * 0.47) > 0.985 ? 1 : 0);
   const eyeOpen = 1 - blink * 0.9;
   const tele = v.telegraph;
+  // The windup just resolved — the strike lands NOW. A vanished telegraph with stun on it was
+  // an eye INTERRUPT (the player's win), so that edge must not flash like a landed cast.
+  if (lastTele && !tele && !dead && v.stunned <= 0) castFlashT = now;
+  lastTele = !!tele && !dead;
   const irisR = (7 + (tele ? 4 * tele.frac : 0)) * eyeOpen;
   ctx.fillStyle = rgba('12, 8, 10', alpha * 0.9);
   ctx.beginPath();
@@ -213,6 +249,36 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
     ctx.lineTo(tx + 4, mawY - 26 * gape);
     ctx.closePath();
     ctx.fill();
+  }
+
+  // Telegraph GATHER: motes of power stream INTO the gaping maw across the windup — the
+  // counterplay window is legible from body language alone, before any UI timer.
+  if (tele && !dead) {
+    for (let i = 0; i < 12; i++) {
+      const h = Math.abs(Math.sin(i * 91.7 + 7.3) * 10000) % 1;
+      const f = (now * (0.9 + h * 0.7) + h) % 1; // 0 = born far out → 1 = swallowed
+      const a2 = h * TAU + i * 0.7;
+      const d = (46 + h * 110) * (1 - f);
+      ctx.fillStyle = rgba(glo, (0.2 + 0.6 * f) * tele.frac * alpha);
+      ctx.beginPath();
+      ctx.arc(mawX + Math.cos(a2) * d, mawY + Math.sin(a2) * d * 0.5, 1.2 + h * 1.8, 0, TAU);
+      ctx.fill();
+    }
+  }
+  // CAST shock: the frame the telegraph resolves, a ground-plane ring slams out of the maw.
+  const castAge = now - castFlashT;
+  if (castAge >= 0 && castAge < 0.5 && !dead) {
+    const f = castAge / 0.5;
+    ctx.strokeStyle = rgba(glo, (1 - f) * 0.7 * alpha);
+    ctx.lineWidth = 1 + (1 - f) * 3;
+    ctx.beginPath();
+    ctx.ellipse(mawX, mawY, 24 + f * 170, (24 + f * 170) * 0.42, 0, 0, TAU);
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(255,250,240,${(1 - f) * 0.5})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(mawX, mawY, 12 + f * 120, (12 + f * 120) * 0.42, 0, 0, TAU);
+    ctx.stroke();
   }
 
   // Exposure flood (heart window): the whole mass runs hot — commit NOW.
@@ -254,12 +320,49 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
   if (collapse >= 1) return;
   const rootY = v.anchorY + 84;
   for (const wp of v.weakPoints) {
+    // Rupture edge-detect: the frame an organ dies, arm its one-shot burst (render-only).
+    const prev = wpPrevState.get(wp.spec);
+    if (prev !== undefined && prev !== 'destroyed' && wp.state === 'destroyed') wpRuptureT.set(wp.spec, now);
+    wpPrevState.set(wp.spec, wp.state);
     if (wp.state === 'destroyed') {
-      // A scar: the severed stump weeps at the body line.
-      glow(ctx, wp.x, rootY, 10, rgba(body, 0.5));
-      ctx.fillStyle = rgba('20, 10, 12', 0.8);
+      // The RUPTURE — one violent burst as it dies: a shock ring + ichor chunks arcing down.
+      const rt = wpRuptureT.get(wp.spec);
+      if (rt !== undefined && now - rt < 0.6) {
+        const f = (now - rt) / 0.6;
+        ctx.strokeStyle = rgba(glo, (1 - f) * 0.85);
+        ctx.lineWidth = 0.5 + (1 - f) * 2.5;
+        ctx.beginPath();
+        ctx.arc(wp.x, wp.y, 10 + f * 55, 0, TAU);
+        ctx.stroke();
+        ctx.fillStyle = rgba(body, (1 - f) * 0.9);
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * TAU + wp.spec;
+          const d = f * (30 + (i % 3) * 16);
+          ctx.beginPath();
+          ctx.arc(wp.x + Math.cos(a) * d, wp.y + Math.sin(a) * d * 0.7 + f * f * 40, 3.5 * (1 - f * 0.6), 0, TAU);
+          ctx.fill();
+        }
+        glow(ctx, wp.x, wp.y, 30 * (1 - f), rgba(glo, (1 - f) * 0.5));
+      }
+      // The scar it leaves: a torn stump at the body line, flaps twitching, weeping ichor.
+      glow(ctx, wp.x, rootY, 12, rgba(body, 0.5));
+      ctx.fillStyle = rgba('20, 10, 12', 0.85);
       ctx.beginPath();
-      ctx.arc(wp.x, rootY, 6, 0, TAU);
+      ctx.arc(wp.x, rootY, 7, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = rgba(body, 0.7);
+      ctx.beginPath();
+      ctx.moveTo(wp.x - 7, rootY);
+      ctx.lineTo(wp.x - 3, rootY + 9 + Math.sin(now * 1.3 + wp.spec) * 1.5);
+      ctx.lineTo(wp.x + 1, rootY + 2);
+      ctx.lineTo(wp.x + 4, rootY + 7 + Math.cos(now * 1.1 + wp.spec) * 1.5);
+      ctx.lineTo(wp.x + 7, rootY);
+      ctx.closePath();
+      ctx.fill();
+      const weep = (now * 0.4 + wp.spec * 0.31) % 1;
+      ctx.fillStyle = rgba(glo, (1 - weep) * 0.55);
+      ctx.beginPath();
+      ctx.arc(wp.x + Math.sin(wp.spec) * 2, rootY + 10 + weep * 42, 1.7, 0, TAU);
       ctx.fill();
       continue;
     }
@@ -283,11 +386,17 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
     ctx.lineCap = 'butt';
 
     const ox = wp.x + swing * 0.4;
-    drawOrgan(ctx, wp, ox, oy, glo, body, now, dim);
+    // Raid-scale anatomy: organs draw at ×1.25 through a transform, so every per-kind
+    // painter (and its beats/particles) inherits the presence without re-authoring.
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.scale(1.25, 1.25);
+    drawOrgan(ctx, wp, 0, 0, glo, body, now, dim);
+    ctx.restore();
 
     if (!closed) {
       // Vulnerability ring — the battlefield itself says SHOOT THIS.
-      const ringR = 26 + pulse(now, 0.9) * 5;
+      const ringR = 31 + pulse(now, 0.9) * 5;
       ctx.strokeStyle = rgba(glo, 0.5 + pulse(now, 0.9) * 0.3);
       ctx.lineWidth = 1.6;
       ctx.setLineDash([6, 5]);
@@ -300,9 +409,9 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       ctx.strokeStyle = rgba('255, 255, 255', 0.75);
       ctx.lineWidth = 2.6;
       ctx.beginPath();
-      ctx.arc(ox, oy, 20, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
+      ctx.arc(ox, oy, 25, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
       ctx.stroke();
-      if (wp.hitFlash > 0) glow(ctx, ox, oy, 24, `rgba(255,255,255,${Math.min(0.7, wp.hitFlash * 4)})`);
+      if (wp.hitFlash > 0) glow(ctx, ox, oy, 29, `rgba(255,255,255,${Math.min(0.7, wp.hitFlash * 4)})`);
     }
   }
 }
@@ -495,6 +604,16 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
   g.addColorStop(1, rgba(glo, Math.min(0.2, a)));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  // Telegraph warning band: the top of the frame — where the organism lives — heats up
+  // across the windup, hammering "look UP now" without blocking the field.
+  if (v.telegraph && collapse === 0) {
+    const f = v.telegraph.frac;
+    const bg = ctx.createLinearGradient(0, 0, 0, HEIGHT * 0.14);
+    bg.addColorStop(0, rgba(glo, 0.14 * f + pulse(now, 0.36, 0, 0.05 * f)));
+    bg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT * 0.14);
+  }
   // Death flash: one white gasp at the moment of collapse, then the light drains.
   if (collapse > 0 && collapse < 0.18) {
     ctx.fillStyle = `rgba(255, 250, 240, ${(0.18 - collapse) * 2.2})`;

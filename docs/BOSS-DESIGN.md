@@ -221,6 +221,18 @@ and procedural bosses resolve their family palette through the `proc_<chassis>_<
 Render-only and LOD-gated: at low detail a boss stays a cheap flat shape in its own color, and
 the sim never reads any of it — golden-safe by layer.
 
+**Anatomy v2 (2026-07):** each chassis gained an **attack/motion character** — the bruiser
+knuckle-drags on alternating beats behind under-jaw tusks; the artillery hull lives on a hard
+**sawtooth fire cycle** (charge climbs the barrel → muzzle FLASH → recoil kick against planted
+braces); the swarmlord's pods take turns **hatching** (rim flare + an embryo pressing the shell);
+the controller casts a translucent **scan cone** from its sweeping iris over drifting
+command-tendrils; the juggernaut arcs **pressure sparks** along its welded seams. `drawBossBody`
+now takes `hpFrac` (the renderer passes `e.hp / e.maxHp`): the hide **cracks below 60%**, and
+below 30% the wounds split open with ichor-heat under a failing-chassis **micro-tremor** — the
+fight's progress reads on the body, not just the bar. Phase shifts also roar: the `bossPhase`
+event drives the dedicated `boss_phase` mutation cue (GameView), layered over the sim's splice
+crunch.
+
 **No hardcoded boss logic:** everything remains data (`BossDef` modules/phases through the
 existing `bossRegistry` + `bossProblems` validation, which now enforces the new kinds'
 params). `assembleBoss` composes 2–5 modules and up to 4 phases from the widened pool, rising

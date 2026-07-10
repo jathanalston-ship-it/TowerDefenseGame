@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 661 nodes · 1097 edges, built from the live
+> **The project's brain** (docs/DIL.md). 661 nodes · 1099 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -30,7 +30,7 @@
 
 ### Audio Index
 
-`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
+`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
 
 ### Teaching Index
 
@@ -336,6 +336,8 @@ graph LR
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|triggers| system_audio["Audio"]
   system_cosmetics["Phenotypes (Cosmetics)"] -->|modifies| system_audio["Audio"]
+  system_bosses["Bosses"] -->|triggers| system_audio["Audio"]
+  system_mega_bosses["Mega Bosses"] -->|triggers| system_audio["Audio"]
 ```
 
 ## Concepts (6)
@@ -1356,6 +1358,7 @@ _at: src/core/boss.ts_
   - dependsOn → `system:engine`
   - dependsOn → `system:content-infra`
   - consumes → `system:meta-store` — owns save field 'bossesSlain'
+  - triggers → `system:audio` — bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:boss-rush`
@@ -1381,6 +1384,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - dependsOn → `system:bosses`
   - provides → `concept:power-score` — megaBosses collection category weight
   - consumes → `system:meta-store` — owns save field 'megaProgress'
+  - triggers → `system:audio` — the telegraph-resolve edge (banner snapshot-diff, stun-guarded so eye interrupts stay silent) fires mega_cast — the SAME edge drives the render-side CAST shock ring in megaboss.ts
   - gates → `system:cutscenes` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - requiredBy ← `system:cutscenes`
   - contains ← `mega:voraxis`
@@ -1531,7 +1535,7 @@ _at: src/audio/*, src/ui/MusicDebug.tsx_
   - contains ← `music:cinema`
   - documentedBy ← `doc:MUSIC.md`
   - documentedBy ← `doc:GAME-FEEL.md`
-  - _…3 more (query: `npm run dil -- node system:audio`)_
+  - _…5 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 

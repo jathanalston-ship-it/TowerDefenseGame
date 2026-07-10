@@ -33,6 +33,8 @@ export interface BodyOpts {
   vx?: number;   // per-frame screen velocity (renderer motion tracker) → bank + walking bob
   vy?: number;
   emerge?: number; // 0..1 spawn-emerge scale (1 = fully born)
+  flinch?: number; // 0..1 just-took-a-hit (renderer hitFlash) → recoil squash away from the line
+  moving?: number; // 0..1 locomotion intensity (set internally from vx/vy; drawers read it for gaits)
 }
 
 // ── Colour shading (memoized — colours are per-kind, so ~40 distinct keys, not per-enemy) ──────────
@@ -76,24 +78,59 @@ function fillRim(ctx: Ctx, body: string, rim: string, lw: number): void {
   ctx.stroke();
 }
 
+/** One specular GLINT stroke — the wet-chitin highlight that sells a hard shell (2 ops). */
+function glint(ctx: Ctx, x: number, y: number, r: number, c: string, tilt = -0.6): void {
+  ctx.strokeStyle = shade(c, 0.65);
+  ctx.globalAlpha = 0.55;
+  ctx.lineWidth = Math.max(1, r * 0.09);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.62, tilt - 0.55, tilt + 0.25);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.lineCap = 'butt';
+}
+
+/** Paired antennae — two arcing feelers with tip-buds; `sway` animates them (4 ops). */
+function antennae(ctx: Ctx, x: number, y: number, r: number, c: string, sway: number): void {
+  ctx.strokeStyle = shade(c, -0.3);
+  ctx.lineWidth = Math.max(1, r * 0.08);
+  for (const s of [-1, 1]) {
+    const tx = x + s * r * (0.5 + 0.12 * Math.sin(sway + s));
+    const ty = y - r * (1.1 + 0.1 * Math.cos(sway * 1.3 + s));
+    ctx.beginPath();
+    ctx.moveTo(x + s * r * 0.16, y - r * 0.42);
+    ctx.quadraticCurveTo(x + s * r * 0.55, y - r * 0.9, tx, ty);
+    ctx.stroke();
+    ctx.fillStyle = shade(c, 0.45);
+    ctx.beginPath();
+    ctx.arc(tx, ty, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 // ── Per-form drawers ───────────────────────────────────────────────────────────────────────────
 
 function grub(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
   const segs = 2 + (o.seed % 3); // runner/mite/larva differ in segment count
-  const wig = Math.sin(t * 7 + o.phase) * r * 0.12;
-  // little leg nubs down each side, wiggling
+  const move = o.moving ?? 0;
+  const wig = Math.sin(t * 7 + o.phase) * r * 0.12 * (0.5 + 0.5 * move);
+  // INCHWORM gait: the body compresses and extends along the crawl axis with speed
+  const inch = 1 + move * 0.14 * Math.sin(t * 8 + o.phase);
+  // little leg nubs down each side, wiggling harder at speed
   ctx.strokeStyle = shade(c, -0.4);
   ctx.lineWidth = Math.max(1, r * 0.16);
   for (let i = 0; i < segs + 1; i++) {
     const ly = y - r * 0.5 + (i / segs) * r;
-    const lw = Math.sin(t * 9 + o.phase + i) * r * 0.18;
+    const lw = Math.sin(t * 9 + o.phase + i) * r * (0.1 + 0.14 * move);
     ctx.beginPath(); ctx.moveTo(x - r * 0.6, ly); ctx.lineTo(x - r * 0.95, ly + lw + r * 0.2);
     ctx.moveTo(x + r * 0.6, ly); ctx.lineTo(x + r * 0.95, ly + lw + r * 0.2); ctx.stroke();
   }
-  // plump body (taller than wide), leaning with the wiggle
+  // plump body (taller than wide), leaning with the wiggle, breathing with the crawl
   ctx.beginPath();
-  ctx.ellipse(x + wig, y, r * 0.7, r, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + wig, y, r * 0.7 * (2 - inch), r * inch, 0, 0, Math.PI * 2);
   fillRim(ctx, c, o.rim, Math.max(1.2, r * 0.12));
+  antennae(ctx, x + wig, y - r * 0.4, r * 0.7, c, t * 3 + o.phase);
   // segmentation rings
   ctx.strokeStyle = shade(c, -0.3);
   ctx.lineWidth = Math.max(1, r * 0.1);
@@ -137,13 +174,14 @@ function dart(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
 
 function beetle(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
   const plates = 3 + (o.seed % 3);
-  // stubby legs, braced
+  const move = o.moving ?? 0;
+  // stubby legs — braced at rest, SCUTTLING at speed (alternating tripod rhythm)
   ctx.strokeStyle = shade(c, -0.45);
   ctx.lineWidth = Math.max(1.2, r * 0.16);
   for (const s of [-1, 1]) {
     for (let i = 0; i < 3; i++) {
       const ly = y - r * 0.4 + i * r * 0.42;
-      const kick = Math.sin(t * 5 + o.phase + i) * r * 0.06;
+      const kick = Math.sin(t * (5 + move * 9) + o.phase + i * 2.1 + (s > 0 ? Math.PI : 0)) * r * (0.06 + 0.16 * move);
       ctx.beginPath(); ctx.moveTo(x + s * r * 0.75, ly); ctx.lineTo(x + s * r * 1.15, ly + r * 0.28 + kick); ctx.stroke();
     }
   }
@@ -169,11 +207,12 @@ function beetle(ctx: Ctx, x: number, y: number, r: number, c: string, t: number,
     const py = y - r * 0.7 + (i / plates) * r * 1.3;
     ctx.beginPath(); ctx.moveTo(x - r * 0.75, py); ctx.quadraticCurveTo(x, py + r * 0.14, x + r * 0.75, py); ctx.stroke();
   }
-  // dome highlight
+  // dome highlight + a wet-chitin glint sweeping the carapace
   ctx.fillStyle = shade(c, 0.4);
   ctx.globalAlpha = 0.5;
   ctx.beginPath(); ctx.ellipse(x - r * 0.28, y - r * 0.42, r * 0.28, r * 0.16, -0.5, 0, Math.PI * 2); ctx.fill();
   ctx.globalAlpha = 1;
+  glint(ctx, x, y - r * 0.1, r, c);
   // apex variants get a brow horn
   if (o.seed % 4 === 0) {
     ctx.fillStyle = shade(c, -0.3);
@@ -182,14 +221,20 @@ function beetle(ctx: Ctx, x: number, y: number, r: number, c: string, t: number,
 }
 
 function crab(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
-  // two claws framing the shell
+  const move = o.moving ?? 0;
+  // two claws framing the shell — SNAPPING open/shut as it advances
   ctx.fillStyle = shade(c, -0.2);
   ctx.strokeStyle = o.rim;
   ctx.lineWidth = Math.max(1, r * 0.09);
   for (const s of [-1, 1]) {
     const cx = x + s * r * 0.95, cy = y + r * 0.1 + Math.sin(t * 4 + o.phase) * r * 0.05;
+    const snap = Math.max(0, Math.sin(t * (3 + move * 6) + o.phase + s)) * (0.4 + 0.6 * move);
     ctx.beginPath(); ctx.arc(cx, cy, r * 0.32, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx + s * r * 0.1, cy - r * 0.3); ctx.lineTo(cx + s * r * 0.35, cy - r * 0.05); ctx.lineTo(cx + s * r * 0.1, cy); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + s * r * 0.1, cy - r * 0.3);
+    ctx.lineTo(cx + s * r * (0.35 + snap * 0.14), cy - r * (0.05 + snap * 0.14));
+    ctx.lineTo(cx + s * r * 0.1, cy);
+    ctx.closePath(); ctx.fill();
   }
   // low wide carapace
   ctx.beginPath();
@@ -210,6 +255,7 @@ function crab(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
   ctx.strokeStyle = `rgba(150,210,255,${0.5 * flick})`;
   ctx.lineWidth = Math.max(1.5, r * 0.14);
   ctx.beginPath(); ctx.arc(x, y + r * 0.2, r * 0.92, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+  glint(ctx, x - r * 0.2, y - r * 0.2, r * 0.9, c);
   eyes(ctx, x, y - r * 0.15, r * 0.26, r * 0.1, shade(c, 0.6));
 }
 
@@ -233,11 +279,20 @@ function polyp(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, 
   ctx.arc(x, y, r * p, 0, Math.PI * 2);
   fillRim(ctx, shade(c, 0.1), o.rim, Math.max(1.2, r * 0.12));
   ctx.globalAlpha = 1;
-  // inner nucleus (the regenerating heart)
+  // inner nucleus (the regenerating heart) + refracted bubbles drifting inside the jelly
   ctx.fillStyle = shade(c, -0.35);
   ctx.beginPath(); ctx.arc(x, y, r * 0.42 * p, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = shade(c, 0.5);
   ctx.beginPath(); ctx.arc(x - r * 0.12, y - r * 0.12, r * 0.16, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shade(c, 0.6);
+  ctx.globalAlpha = 0.5;
+  for (let i = 0; i < 2; i++) {
+    const bp = ((t * 0.25 + i * 0.5 + o.phase * 0.1) % 1);
+    ctx.beginPath();
+    ctx.arc(x + Math.sin(i * 4 + o.phase) * r * 0.35, y + r * 0.55 - bp * r * 1.1, r * 0.07 * (1 - bp * 0.4), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function mole(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -256,8 +311,9 @@ function mole(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
     const sy = y - r * 0.4 + i * r * 0.42;
     ctx.beginPath(); ctx.moveTo(x - r * 0.5, sy); ctx.quadraticCurveTo(x, sy + r * 0.12, x + r * 0.5, sy); ctx.stroke();
   }
-  // big digging claws at the front, scooping
-  const dig = Math.sin(t * 6 + o.phase) * r * 0.16;
+  // big digging claws at the front, scooping HARD at speed — with kicked-up soil
+  const move = o.moving ?? 0;
+  const dig = Math.sin(t * (6 + move * 6) + o.phase) * r * (0.1 + 0.2 * move);
   ctx.fillStyle = shade(c, 0.3);
   ctx.strokeStyle = o.rim; ctx.lineWidth = Math.max(1, r * 0.08);
   for (const s of [-1, 1]) {
@@ -266,6 +322,15 @@ function mole(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
     ctx.lineTo(x + s * (r * 0.85 + dig), y + r * 1.15);
     ctx.lineTo(x + s * r * 0.45, y + r * 0.95);
     ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  if (move > 0.25) {
+    ctx.fillStyle = 'rgba(64,51,42,0.6)';
+    for (let i = 0; i < 3; i++) {
+      const sp = ((t * 1.6 + i / 3 + o.phase * 0.2) % 1);
+      ctx.beginPath();
+      ctx.arc(x + Math.sin(i * 5 + o.phase) * r * 0.8, y + r * 1.05 + sp * r * 0.5, 1.5 * (1 - sp), 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   eyes(ctx, x, y - r * 0.2, r * 0.2, r * 0.08, '#ffcf6a');
 }
@@ -295,9 +360,10 @@ function moth(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
   ctx.beginPath();
   ctx.ellipse(x, y, r * 0.32, r * 0.85, 0, 0, Math.PI * 2);
   fillRim(ctx, shade(c, -0.15), o.rim, Math.max(1.1, r * 0.11));
-  // segmentation + eyes
+  // segmentation + feathered antennae + eyes
   ctx.strokeStyle = shade(c, -0.4); ctx.lineWidth = Math.max(1, r * 0.08);
   for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(x - r * 0.3, y + i * r * 0.3); ctx.lineTo(x + r * 0.3, y + i * r * 0.3); ctx.stroke(); }
+  antennae(ctx, x, y - r * 0.45, r * 0.6, c, t * 4 + o.phase);
   eyes(ctx, x, y - r * 0.55, r * 0.18, r * 0.09, shade(c, 0.6));
 }
 
@@ -308,9 +374,19 @@ function broodsac(ctx: Ctx, x: number, y: number, r: number, c: string, t: numbe
   ctx.beginPath();
   ctx.ellipse(x, y, r * 0.95 * p, r * p, 0, 0, Math.PI * 2);
   fillRim(ctx, shade(c, 0.05), o.rim, Math.max(1.4, r * 0.13));
-  // membrane sheen
+  // membrane sheen + surface veins feeding the brood
   ctx.fillStyle = shade(c, 0.4); ctx.globalAlpha = 0.4;
   ctx.beginPath(); ctx.ellipse(x - r * 0.3, y - r * 0.4, r * 0.3, r * 0.5, -0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = shade(c, -0.3);
+  ctx.globalAlpha = 0.6;
+  ctx.lineWidth = Math.max(1, r * 0.06);
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(x + s * r * 0.2, y - r * 0.85);
+    ctx.quadraticCurveTo(x + s * r * 0.75, y - r * 0.3, x + s * r * 0.45, y + r * 0.5);
+    ctx.stroke();
+  }
   ctx.globalAlpha = 1;
   // embryos inside, pulsing toward the next birth
   ctx.fillStyle = shade(c, -0.4);
@@ -371,9 +447,20 @@ function bulb(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o
     ctx.lineTo(x + s * r * 0.15, y + r * 0.5);
     ctx.stroke();
   }
-  // glowing unstable core
+  // glowing unstable core + light rays escaping through the shell at peak throb
   ctx.fillStyle = `rgba(255,${Math.round(120 + 100 * unst)},50,${0.7 + 0.3 * unst})`;
   ctx.beginPath(); ctx.arc(x, y, r * (0.28 + 0.1 * unst), 0, Math.PI * 2); ctx.fill();
+  if (unst > 0.6) {
+    ctx.strokeStyle = `rgba(255,220,120,${(unst - 0.6) * 1.4})`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + t * 0.7 + o.phase;
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(a) * r * 0.4, y + Math.sin(a) * r * 0.4);
+      ctx.lineTo(x + Math.cos(a) * r * (0.95 + unst * 0.3), y + Math.sin(a) * r * (0.95 + unst * 0.3));
+      ctx.stroke();
+    }
+  }
 }
 
 function mortar(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o: BodyOpts): void {
@@ -400,6 +487,7 @@ function mortar(ctx: Ctx, x: number, y: number, r: number, c: string, t: number,
   fillRim(ctx, c, o.rim, Math.max(1.4, r * 0.14));
   ctx.strokeStyle = shade(c, -0.35); ctx.lineWidth = Math.max(1, r * 0.09);
   ctx.beginPath(); ctx.moveTo(x - r * 0.7, y + r * 0.25); ctx.lineTo(x + r * 0.7, y + r * 0.25); ctx.stroke();
+  glint(ctx, x - r * 0.15, y + r * 0.1, r * 0.8, c);
   eyes(ctx, x, y + r * 0.1, r * 0.24, r * 0.09, '#ffb84d');
 }
 
@@ -423,11 +511,19 @@ function maw(ctx: Ctx, x: number, y: number, r: number, c: string, t: number, o:
   ctx.fillStyle = shade(c, -0.3);
   ctx.beginPath(); ctx.moveTo(x - r * 0.75, y - r * 0.1); ctx.quadraticCurveTo(x, y - r * 0.5, x + r * 0.75, y - r * 0.1);
   ctx.lineTo(x + r * 0.7, y + r * 0.1); ctx.quadraticCurveTo(x, y - r * 0.25, x - r * 0.7, y + r * 0.1); ctx.closePath(); ctx.fill();
+  glint(ctx, x - r * 0.1, y - r * 0.25, r * 0.9, c);
   eyes(ctx, x, y - r * 0.05, r * 0.32, r * 0.11, '#ff4d4d');
-  // gaping fanged maw (facing the line)
+  // gaping fanged maw (facing the line) — with a hanging saliva strand
   const gape = r * (0.32 + 0.06 * Math.sin(t * 3 + o.phase));
   ctx.fillStyle = 'rgba(20,6,10,0.9)';
   ctx.beginPath(); ctx.ellipse(x, y + r * 0.55, r * 0.6, gape, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(210,225,235,0.4)';
+  ctx.lineWidth = 1;
+  const sal = r * (0.2 + 0.12 * Math.abs(Math.sin(t * 1.7 + o.phase)));
+  ctx.beginPath();
+  ctx.moveTo(x - r * 0.2, y + r * 0.55 - gape * 0.5);
+  ctx.quadraticCurveTo(x - r * 0.18, y + r * 0.55 + sal * 0.5, x - r * 0.22, y + r * 0.55 + sal);
+  ctx.stroke();
   ctx.fillStyle = shade(c, 0.7);
   for (let i = -2; i <= 2; i++) {
     const fx = x + i * r * 0.24;
@@ -536,16 +632,22 @@ export function drawEnemyBody(
   if (emerge < 1) { drawSpawnIntro(ctx, form, x, y, r, color, t, Math.max(0, emerge), o); return; } // BIRTH
   const vx = o.vx ?? 0, vy = o.vy ?? 0;
   const moving = Math.min(1, Math.hypot(vx, vy) / 2.2); // px/frame reference (rAF-steady)
+  o.moving = moving; // drawers key their GAITS off this (leg cadence, claw snap, dig churn)
   const bank = Math.max(-0.38, Math.min(0.38, vx * 0.09)); // lean into lateral travel
   const bob = moving > 0.03 ? Math.sin(t * 9 + o.phase) * r * 0.05 * moving : 0;
-  if (bank === 0 && bob === 0) {
+  // FLINCH — a hit knocks the body back up-lane with a brief squash; reads as impact even
+  // before the damage number lands. Driven by the renderer's hitFlash (0.09s), stateless.
+  const flinch = o.flinch ?? 0;
+  const knock = flinch * r * 0.14;
+  if (bank === 0 && bob === 0 && flinch === 0) {
     DRAWERS[form](ctx, x, y, r, color, t, o); // fast path
     volumePass(ctx, x, y, r, color);
     return;
   }
   ctx.save();
-  ctx.translate(x, y + bob);
+  ctx.translate(x, y + bob - knock);
   if (bank) ctx.rotate(bank);
+  if (flinch > 0) ctx.scale(1 + flinch * 0.09, 1 - flinch * 0.07); // impact squash
   DRAWERS[form](ctx, 0, 0, r, color, t, o);
   volumePass(ctx, 0, 0, r, color);
   ctx.restore();

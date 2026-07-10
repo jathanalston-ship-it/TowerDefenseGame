@@ -275,6 +275,9 @@ export function GameView({
     const id = setTimeout(() => setBossIntro(null), 3000);
     return () => clearTimeout(id);
   }, [bossIntro]);
+  // Boss PHASE SHIFT roar (docs/BOSS-DESIGN.md §phases): the sim's splice-crunch marks the cut;
+  // this dedicated mutation roar gives the evolution a throat. Rides the bossPhase event.
+  useEffect(() => gameEvents.on('bossPhase', () => audio.cue('boss_phase')), []);
   // MEGA BOSS arrival spectacle (docs/MEGA-BOSS.md): the raid banner flipping null→present IS the
   // arrival — a grander card than the boss intro (the audio roar + quake ride the sfx queue).
   const [megaIntro, setMegaIntro] = useState<{ name: string; title: string; glow: string; at: number } | null>(null);
@@ -286,6 +289,19 @@ export function GameView({
       wavePushRef.current = 1;
     }
     megaWasLive.current = live;
+  }, [hud.megaBanner]);
+  // Mega CAST impact: the banner's telegraph resolving (present → gone while alive and NOT
+  // stunned) is the strike landing — the riser (sim's megaAbility cue) finally pays off.
+  // A stunned edge is an eye INTERRUPT, the player's win: it must not thump like a hit.
+  const megaTeleWas = useRef(false);
+  useEffect(() => {
+    const b = hud.megaBanner;
+    const tele = !!b?.telegraph;
+    if (megaTeleWas.current && b && !tele && !b.stunned) {
+      audio.cue('mega_cast');
+      traumaRef.current = addTrauma(traumaRef.current, 0.12);
+    }
+    megaTeleWas.current = tele;
   }, [hud.megaBanner]);
   useEffect(() => {
     if (!megaIntro) return undefined;
