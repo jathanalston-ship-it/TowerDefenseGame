@@ -67,3 +67,7 @@
 - `2d85a17` **[Towers]** Mulligan class synergy: classed modifiers, Complete Class Adaptations, visual overhaul
 - `cb70528` **[Security]** Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts
 - `941618b` **[Gameplay]** Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)
+- `84604ce` **[Gameplay]** Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)
+- `225834d` **[Gameplay]** Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge
+- `115b5be` **[Gameplay]** LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console
+- `f5373f6` **[Gameplay]** Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge

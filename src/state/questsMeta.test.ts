@@ -47,6 +47,13 @@ describe('crediting', () => {
     expect(Object.keys(q.main.progress).some((id) => id.startsWith('mq_choirs:'))).toBe(false);
   });
 
+  it('creditQuests returns the missions COMPLETED by the event (Results surfaces them)', () => {
+    const first = meta.creditQuests({ type: 'containers', n: 3 }, T0);
+    expect(first.map((m) => m.id).sort()).toEqual(['mq_awakening:larder', 'wk_red_harvest:crack']);
+    expect(meta.creditQuests({ type: 'containers', n: 1 }, T0)).toEqual([]); // already done — no re-report
+    expect(meta.creditQuests(run({ kills: 10 }), T0).map((m) => m.id)).not.toContain('wk_red_harvest:reap'); // moved, not completed
+  });
+
   it('meta seams credit their own verbs; completion enters the lifetime missionsDone codex', () => {
     meta.creditQuests({ type: 'containers', n: 3 }, T0);
     const q = meta.get().quests;
@@ -144,8 +151,13 @@ describe('the weekly finale', () => {
     expect(s.quests.questCompletions['wk_red_harvest']).toBe(2);
     expect(s.quests.once.filter((k) => k === 'cutscene:wk_red_harvest')).toHaveLength(1);
     expect(s.wardrobe.owned.filter((id) => id === 'wd_projectiletrail_reaper_s_wake')).toHaveLength(1);
-    // The auto-claimed flawless mission (14) + finale ichor (30) + the substitution (40).
-    expect(s.ichor - ichorBefore).toBe(14 + 30 + QUESTS.repeatFinale.ichor);
+    // The receipt itemizes: the auto-claimed flawless mission (14), the finale's 30, and the
+    // substitution bundle. (Wallet delta stays ≥ their sum — evaluateAchievements may add
+    // cross-system payouts on top, e.g. a lifetime-cores threshold crossing.)
+    expect(lines.filter((l) => l.label === '14 Ichor')).toHaveLength(1);
+    expect(lines.filter((l) => l.label === '30 Ichor')).toHaveLength(1);
+    expect(lines.some((l) => l.label.includes(`→ ${QUESTS.repeatFinale.ichor} Ichor + ${QUESTS.repeatFinale.cores} Cores`))).toBe(true);
+    expect(s.ichor - ichorBefore).toBeGreaterThanOrEqual(14 + 30 + QUESTS.repeatFinale.ichor);
   });
 });
 
@@ -153,15 +165,20 @@ describe('rotation: rollover mail, reset, tamper', () => {
   it('rollover auto-claims earned unclaimed rewards (finale included), then resets clean', () => {
     completeWeekly(T0); // everything earned, NOTHING claimed
     const coresBefore = meta.get().shards;
+    expect(meta.get().battlePass.xp).toBe(0); // pure credits bank no season XP
     meta.pollWeeklyQuest(T0 + WEEK);
     const s = meta.get();
     // Mail: all six missions + the finale paid out…
     expect(s.shards).toBeGreaterThan(coresBefore + 700);
     expect(s.quests.once).toContain('cutscene:wk_red_harvest');
     expect(s.quests.questCompletions['wk_red_harvest']).toBe(1);
-    // …and the incoming week is pristine: progress NEVER carries over.
+    // …at the SAME season-XP rates manual claims pay (deferring a claim costs nothing)…
+    expect(s.battlePass.xp).toBe(6 * 40 + 150);
+    // …and the incoming week starts clean: outgoing progress NEVER carries over. (The mail
+    // XP's own level-up correctly credits the NEW week's passLevels mission — that is fresh
+    // progress earned in the new window, not carry-over.)
     expect(s.quests.weekly.window).toBe(1);
-    expect(s.quests.weekly.progress).toEqual({});
+    expect(s.quests.weekly.progress).toEqual({ 'wk_deep_signals:season': 1 });
     expect(s.quests.weekly.claimed).toEqual([]);
     expect(s.quests.weekly.completionClaimed).toBe(false);
     expect(meta.quests(T0 + WEEK).weekly.quest.id).toBe('wk_deep_signals');
@@ -169,13 +186,29 @@ describe('rotation: rollover mail, reset, tamper', () => {
 
   it('partial progress is mailed only for EARNED missions; the rest evaporates with the window', () => {
     meta.creditQuests({ type: 'containers', n: 3 }, T0); // crack earned; reap sits at 0
-    meta.creditQuests(run({ kills: 50 }), T0); // reap 50/400 — unearned
+    meta.creditQuests(run({ kills: 50 }), T0); // reap 50/400 — unearned (but 'clean' lands flawless)
     const coresBefore = meta.get().shards;
     meta.pollWeeklyQuest(T0 + WEEK);
     const s = meta.get();
     expect(s.shards).toBe(coresBefore + 150); // only crack's 150 cores mailed
+    expect(s.battlePass.xp).toBe(2 * 40); // crack + clean — earned missions only
     expect(s.quests.weekly.progress).toEqual({});
     expect(s.quests.questCompletions['wk_red_harvest']).toBeUndefined();
+  });
+
+  it("the mail's pass level-up re-enters creditQuests SAFELY: no re-mail, credit lands on the NEW week", () => {
+    // Bank the pass to the brink of a level so the mail XP forces a level-up mid-poll
+    // (grantPassXp → creditQuests(passLevels) → pollWeeklyQuest re-entry).
+    meta.grantPassXp('test', 319, T0); // level 1 needs 320
+    completeWeekly(T0);
+    const coresBefore = meta.get().shards;
+    meta.pollWeeklyQuest(T0 + WEEK);
+    const s = meta.get();
+    expect(s.quests.questCompletions['wk_red_harvest']).toBe(1); // mailed exactly once
+    expect(s.quests.weekly.window).toBe(1);
+    // The re-entrant passLevels credit landed on the INCOMING quest (Deep Signals' antenna).
+    expect(s.quests.weekly.progress['wk_deep_signals:season']).toBeGreaterThanOrEqual(1);
+    expect(s.shards).toBeGreaterThan(coresBefore + 700); // paid once, not twice
   });
 
   it('the max-window rule: a rolled-back clock can neither regress nor re-mail', () => {
@@ -263,5 +296,20 @@ describe('collections & sanitizer', () => {
       main: { progress: {}, claimed: [], completions: [] },
       once: [], missionsDone: [], questCompletions: {},
     });
+  });
+});
+
+describe('the nav badge', () => {
+  it("the 'quests' channel counts claimable missions + finales and clears on claim", async () => {
+    await import('./notificationSources'); // side-effect registration (as the Hub does)
+    const { notifications } = await import('./notifications');
+    expect(notifications.badges(meta.get()).quests).toBeUndefined(); // fresh: nothing claimable
+    meta.creditQuests({ type: 'containers', n: 3 }, T0); // earns crack (weekly) + larder (main)
+    notifications.sync(meta.get());
+    expect(notifications.badges(meta.get()).quests).toBe(2);
+    meta.claimQuestMission('wk_red_harvest:crack', T0); // claiming drops the count itself
+    expect(notifications.badges(meta.get()).quests).toBe(1);
+    notifications.markSeen('quests', meta.get()); // viewing the board acknowledges the rest
+    expect(notifications.badges(meta.get()).quests).toBeUndefined();
   });
 });

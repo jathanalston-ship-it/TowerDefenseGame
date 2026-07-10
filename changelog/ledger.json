@@ -1,6 +1,6 @@
 {
-  "lastSha": "941618b9c9e322fb739e557907b28cfc6e1f4e8d",
-  "commitsSinceDraft": 0,
+  "lastSha": "f5373f603a6bc55e1a5b77b0a306bdd8e9eb773c",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -207,6 +207,7 @@
       "achievements",
       "stats",
       "liveops",
+      "directives",
       "i18n",
       "contracts",
       "infestation",
@@ -1447,6 +1448,11 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Weekly Directives",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Game Action Security Layer",
           "major": true
         },
@@ -1677,6 +1683,14 @@
         {
           "cat": "Security",
           "text": "Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console"
         }
       ]
     }
@@ -2151,6 +2165,38 @@
       "date": "2026-07-10",
       "cat": "Gameplay",
       "text": "Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "84604cef553537d3c7c91e2ebd7fd1ee8bb15688",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "225834d19b0733c8fe71a81da3790fc48c07c95f",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "115b5beae24a25d10c460d7049b8dad63e11ecad",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f5373f603a6bc55e1a5b77b0a306bdd8e9eb773c",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge",
       "internal": false,
       "needsReview": false
     }

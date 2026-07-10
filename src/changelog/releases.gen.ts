@@ -12,6 +12,11 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Weekly Directives",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Game Action Security Layer",
         "major": true
       },
@@ -242,6 +247,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Security",
         "text": "Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console"
       }
     ]
   },

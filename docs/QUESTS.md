@@ -38,8 +38,11 @@ the one-time unlocks against the FOREVER ledger `save.quests.once`
 (`'cutscene:<questId>'` / `'cosmetic:<questId>'`): first time grants the film (premiered via
 `cutsceneBus` → App's cutscene queue) + the wardrobe item (owned + reveal ceremony); repeats
 pay the substitution. Ledgers: `questCompletions[questId]++` (collections tiering), weekly
-`completionClaimed` / main `completions` (chapter gate). Claims feed the pass (+40 XP mission,
-+150 finale).
+`completionClaimed` / main `completions` (chapter gate). Every claim path feeds the pass at
+ONE rate table (`QUEST_PASS_XP`: +40 mission / +150 finale) — manual claims, the finale's
+auto-claimed missions, and rollover mail all pay identically, so deferring a claim never
+costs season progress. Mail XP is granted AFTER the reset persists: its level-up's re-entrant
+`passLevels` credit lands on the INCOMING week (re-entrancy-safe, never re-mails).
 
 ## Cross-registry contracts (test-pinned)
 
@@ -69,7 +72,10 @@ with progress bars + claims, finale strip previewing the cutscene + cosmetic or 
 substitution), the three chapter cards (done/active/locked; active expands), and Champion
 Contracts mounted on the same board (the quest-adjacent weekly skill checks —
 docs/CONTRACTS.md). Receipts reuse the Battle-Pass toast. Gating: FEATURES `quests`
-(stage 4, order 13) + mechanics teach row.
+(stage 4, order 13) + mechanics teach row. Movement is surfaced everywhere it happens:
+run-driven completions appear as a Results category (`outcome.questMissions` — claim on the
+board), and a `quests` nav badge counts claimable missions + finales across both lanes
+(notificationSources — claims drop it, viewing the board acknowledges it).
 
 ## Extension points
 
@@ -82,6 +88,8 @@ docs/CONTRACTS.md). Receipts reuse the Battle-Pass toast. Gating: FEATURES `ques
 
 - Weekly quests share one epoch with the pass; there is no per-player stagger (deliberate —
   every player sees the same week, no server).
-- Rollover mail pays rewards but not pass XP (claims only) — avoids recursive XP loops.
 - Mission progress inside a window is client-clock honest: the max-window rule blocks farm-
   by-rollback, but within a window the clock is trusted (same stance as the pass/markets).
+- Rollover mail unlocks (cutscene/cosmetic) land silently in the Archive/Wardrobe — only
+  hub claims premiere the film (a surprise premiere at boot would collide with the briefing
+  queue).

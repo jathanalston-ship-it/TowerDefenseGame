@@ -352,6 +352,31 @@ export function Results({
     });
   }
 
+  // 4c — QUEST MISSIONS this run completed (docs/QUESTS.md §credit): rewards claim on the
+  // Quest Board — this names the movement and routes the player there.
+  if (outcome.questMissions && outcome.questMissions.length > 0) {
+    categories.push({
+      id: 'quests',
+      title: 'Quest Missions',
+      icon: '✪',
+      accent: 'var(--vital)',
+      summary: outcome.questMissions.map((m) => m.name).join(' · '),
+      stats: [
+        { id: 'qcount', label: 'Missions Accomplished', value: outcome.questMissions.length, accent: 'var(--vital)', celebrate: true },
+      ],
+      extra: (
+        <div className="rr-contract-list">
+          {outcome.questMissions.map((m) => (
+            <div className="rr-contract" key={m.id}>
+              <b>✪ {m.name}</b>
+              <span>{m.quest} — claim the reward on the Quest Board</span>
+            </div>
+          ))}
+        </div>
+      ),
+    });
+  }
+
   // 5 — DISCOVERIES (only when there's something new — scales to collections / unlocks later)
   if (outcome.achievements.length > 0 || newMasteries > 0) {
     categories.push({

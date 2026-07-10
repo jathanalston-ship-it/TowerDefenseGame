@@ -14,6 +14,7 @@ import { collectionView } from '../core/collection';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
+import { MAIN_QUESTLINE, questComplete, weeklyQuestFor } from '../core/quests';
 
 // Genetic Vault — unopened bio-containers banked from runs, waiting to be cracked.
 registerNotification({
@@ -88,4 +89,24 @@ registerNotification({
   id: 'genes.upgradeable',
   channel: 'genes',
   count: (s) => geneArchiveRows(s).reduce((n, r) => n + (r.upgradeable ? 1 : 0), 0),
+});
+
+// Quest Board — missions + finales claimable RIGHT NOW across both lanes (docs/QUESTS.md).
+// Claims drop the count; the weekly reset lowers it and the watermark clamps down with it.
+// Pure over the save: the RECORDED window's quest is the one holding claimable progress.
+registerNotification({
+  id: 'quests.claimable',
+  channel: 'quests',
+  count: (s) => {
+    const q = s.quests;
+    const weekly = weeklyQuestFor(q.weekly.window);
+    let n = weekly.missions.reduce((a, m) => a + ((q.weekly.progress[m.id] ?? 0) >= m.target && !q.weekly.claimed.includes(m.id) ? 1 : 0), 0);
+    if (questComplete(weekly, q.weekly.progress) && !q.weekly.completionClaimed) n++;
+    const chapter = MAIN_QUESTLINE.find((c) => !q.main.completions.includes(c.id));
+    if (chapter) {
+      n += chapter.missions.reduce((a, m) => a + ((q.main.progress[m.id] ?? 0) >= m.target && !q.main.claimed.includes(m.id) ? 1 : 0), 0);
+      if (questComplete(chapter, q.main.progress)) n++;
+    }
+    return n;
+  },
 });

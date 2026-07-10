@@ -428,9 +428,11 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   finale's FIRST completion grants a story cutscene (quest-unlock kind resolved off the
   `once` ledger; premiered from the hub via cutsceneBus) + an exclusive quest-source
   wardrobe cosmetic — both cross-links test-pinned. Rewards reuse the Battle-Pass
-  interpreter (shared `applyRewardList`); claims feed pass XP. Save v32 `quests` record;
+  interpreter (shared `applyRewardList`); every claim path (manual, finale auto-claims,
+  rollover mail) feeds pass XP at one rate table. Save v32 `quests` record;
   `quests`+`missions` collection codices (fresh-save zero); Quest Board nav screen
-  (stage-4 reveal) hosting Champion Contracts as its third section — QUESTS.md
+  (stage-4 reveal) hosting Champion Contracts as its third section; run completions
+  surface as a Results category + a claimable-count nav badge — QUESTS.md
 - ✅ **Champion Contracts**: weekly deterministic 3-contract board (LiveOps weekIndex),
   data constraint vocabulary judged in finishRun, core payouts + Gilded exclusives,
   home board + Results category (now surfaced on the Quest Board) — CONTRACTS.md

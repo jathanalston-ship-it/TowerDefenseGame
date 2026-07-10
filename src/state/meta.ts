@@ -104,7 +104,7 @@ import type { PassReward, SeasonDef } from '../core/battlePass';
 import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
-import type { QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
+import type { MissionDef, QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
 import { cutsceneDef } from '../core/cutscenes';
 import { cutsceneBus } from './navBus';
 import { DIRECTIVE_CAPSTONE, accrueDirectives, activeDirectives, capstoneState, directiveBoard, directiveWeekKey } from '../core/directives';
@@ -357,6 +357,10 @@ function applyRewardList(
   }
   return { next, lines, stamina };
 }
+
+/** Pass XP a quest claim banks (docs/QUESTS.md §credit) — manual claims and rollover mail
+ *  pay the SAME rates, so deferring a claim never costs season progress. */
+const QUEST_PASS_XP = { mission: 40, finale: 150 } as const;
 
 /** Apply a quest FINALE to a draft (no persist): the repeatable reward list plus — FIRST
  *  completion only — the guaranteed story cutscene + exclusive cosmetic (the `once` ledger).
@@ -1331,6 +1335,9 @@ export interface RunOutcome {
   // Champion Contracts honoured by THIS run (docs/CONTRACTS.md) — cores already folded
   // into the reward; cosmetic = the granted Gilded phenotype id (null for core-only rows).
   contracts?: { id: string; name: string; cores: number; cosmetic: string | null }[];
+  // Quest missions COMPLETED by this run's credit (docs/QUESTS.md §credit) — rewards claim
+  // on the Quest Board; this names the movement. `quest` is the owning quest's display name.
+  questMissions?: { id: string; name: string; quest: string }[];
   // Story cutscene premieres earned by THIS run — mega bosses first-defeated here
   // (docs/CUTSCENES.md §autoplay). The App plays them after the Results summary, in order.
   megaCutscenes?: string[];
@@ -2034,15 +2041,15 @@ export const meta = {
     );
     const passLevelUp = this.grantPassXp('run', passXp);
     // Quests (docs/QUESTS.md §credit): the settled run feeds both lanes' missions — the same
-    // facts the contracts judge saw, plus the depth extras.
-    this.creditQuests({
+    // facts the contracts judge saw, plus the depth extras. Completions surface on Results.
+    const questMissions = this.creditQuests({
       type: 'run',
       facts: {
         ...contractFacts,
         bossKills: result.stats.bossKills ?? 0,
         megaKills: result.stats.megaKills?.length ?? 0,
       },
-    });
+    }).map((mi) => ({ id: mi.id, name: mi.name, quest: questById(mi.id.slice(0, mi.id.indexOf(':')))?.name ?? '' }));
     // Wardrobe auto-unlocks ride the same seam (new stage/depth/daily/rush/roulette records).
     this.pollWardrobeUnlocks();
     // Genome Rank promotions (docs/GENOME-RANK.md): the settle may have crossed a rank —
@@ -2082,6 +2089,7 @@ export const meta = {
         : {}),
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
       ...(contractHits.length > 0 ? { contracts: contractHits.map((c) => ({ id: c.id, name: c.name, cores: c.reward.cores, cosmetic: c.reward.cosmetic })) } : {}),
+      ...(questMissions.length > 0 ? { questMissions } : {}),
       // First-defeat story premieres queued by the megaKilled lane — drained here so they
       // play exactly once, after THIS run's reward summary (docs/CUTSCENES.md §autoplay).
       ...(pendingMegaCutscenes.length > 0 ? { megaCutscenes: pendingMegaCutscenes.splice(0) } : {}),
@@ -3237,35 +3245,39 @@ export const meta = {
   /** Advance the weekly rotation window (max-window tamper rule, the Battle-Pass pattern).
    *  On rollover, the OUTGOING week's earned-but-unclaimed missions — and, if every mission
    *  landed, its finale — auto-claim first (mail: progress is never lost), then the weekly
-   *  record resets for the incoming quest. Repeat finales substitute currency (§once). */
+   *  record resets for the incoming quest. Repeat finales substitute currency (§once). Mail
+   *  pays the SAME pass XP manual claims would have — granted AFTER the reset persists, so
+   *  the level-up's re-entrant credit lands on the incoming week (never re-mails). */
   pollWeeklyQuest(now = Date.now()): void {
     const save = store.get();
     const w = weeklyWindow(now);
     if (w <= save.quests.weekly.window) return;
     const quest = weeklyQuestFor(save.quests.weekly.window);
     let draft = save;
-    let mailed = 0;
+    let mailXp = 0;
     for (const mi of quest.missions) {
       if ((draft.quests.weekly.progress[mi.id] ?? 0) < mi.target || draft.quests.weekly.claimed.includes(mi.id)) continue;
       draft = applyRewardList(draft, mi.rewards, QUESTS.repeatFinale, null).next;
       draft = { ...draft, quests: { ...draft.quests, weekly: { ...draft.quests.weekly, claimed: [...draft.quests.weekly.claimed, mi.id] } } };
-      mailed++;
+      mailXp += QUEST_PASS_XP.mission;
     }
     if (questComplete(quest, draft.quests.weekly.progress) && !draft.quests.weekly.completionClaimed) {
       draft = grantQuestFinale(draft, quest).next;
-      mailed++;
+      mailXp += QUEST_PASS_XP.finale;
     }
     persist({
       ...draft,
-      timeline: mailed > 0 ? pushTimeline(draft.timeline, quest.glyph, `${quest.name} concluded — unclaimed rewards delivered`) : draft.timeline,
+      timeline: mailXp > 0 ? pushTimeline(draft.timeline, quest.glyph, `${quest.name} concluded — unclaimed rewards delivered`) : draft.timeline,
       quests: { ...draft.quests, weekly: { window: w, progress: {}, claimed: [], completionClaimed: false } },
     });
+    if (mailXp > 0) this.grantPassXp('quest', mailXp, now);
   },
 
   /** Fold one credit event (a settled run, or a meta act) into BOTH lanes: the live weekly
    *  quest and the ACTIVE main chapter (locked/finished chapters never accrue). Missions that
-   *  reach their target here enter the lifetime `missionsDone` codex (docs/QUESTS.md §credit). */
-  creditQuests(ev: { type: 'run'; facts: QuestRunFacts } | QuestMetaEvent, now = Date.now()): void {
+   *  reach their target here enter the lifetime `missionsDone` codex (docs/QUESTS.md §credit).
+   *  Returns the missions COMPLETED by this event (finishRun surfaces them on Results). */
+  creditQuests(ev: { type: 'run'; facts: QuestRunFacts } | QuestMetaEvent, now = Date.now()): MissionDef[] {
     this.pollWeeklyQuest(now);
     const save = store.get();
     const q = save.quests;
@@ -3273,7 +3285,7 @@ export const meta = {
     const chapter = MAIN_QUESTLINE.find((c) => !q.main.completions.includes(c.id)) ?? null;
     const wk = foldCredit(weekly.missions, q.weekly.progress, ev);
     const mn = chapter ? foldCredit(chapter.missions, q.main.progress, ev) : { next: q.main.progress, moved: [] as string[] };
-    if (wk.moved.length === 0 && mn.moved.length === 0) return;
+    if (wk.moved.length === 0 && mn.moved.length === 0) return [];
     const nowDone = [...wk.moved, ...mn.moved].filter((id) => {
       const mi = missionById(id);
       const p = wk.moved.includes(id) ? wk.next[id] : mn.next[id];
@@ -3288,6 +3300,7 @@ export const meta = {
         missionsDone: nowDone.length > 0 ? [...q.missionsDone, ...nowDone] : q.missionsDone,
       },
     });
+    return nowDone.map((id) => missionById(id)).filter((mi): mi is MissionDef => mi !== undefined);
   },
 
   /** Claim one earned mission's rewards → receipt lines (null = not claimable). Weekly
@@ -3319,7 +3332,7 @@ export const meta = {
       },
     });
     if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
-    this.grantPassXp('quest', 40, now); // directives feed the season (docs/BATTLEPASS.md §xp)
+    this.grantPassXp('quest', QUEST_PASS_XP.mission, now); // directives feed the season (docs/BATTLEPASS.md §xp)
     return res.lines;
   },
 
@@ -3342,6 +3355,7 @@ export const meta = {
     if (!questComplete(quest, lane.progress)) return null;
     const lines: PremiumReceiptLine[] = [];
     let draft = save;
+    let autoClaimed = 0;
     for (const mi of quest.missions) {
       const cur = quest.lane === 'weekly' ? draft.quests.weekly : draft.quests.main;
       if (cur.claimed.includes(mi.id)) continue;
@@ -3360,6 +3374,7 @@ export const meta = {
         },
       };
       lines.push(...res.lines);
+      autoClaimed++;
     }
     const fin = grantQuestFinale(draft, quest);
     draft = fin.next;
@@ -3369,7 +3384,8 @@ export const meta = {
       timeline: pushTimeline(draft.timeline, quest.glyph, `Quest complete — ${quest.name}`),
     });
     if (fin.premiere) cutsceneBus.premiere([quest.finaleCutscene]);
-    this.grantPassXp('quest', 150, now);
+    // Auto-claimed missions pay their mission XP too — same rates as claiming them one by one.
+    this.grantPassXp('quest', QUEST_PASS_XP.finale + autoClaimed * QUEST_PASS_XP.mission, now);
     this.evaluateAchievements();
     return lines;
   },
