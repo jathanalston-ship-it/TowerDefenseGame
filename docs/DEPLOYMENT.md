@@ -71,7 +71,9 @@ Design rules this deployment follows:
 │  ├─ _headers             CSP + security headers + immutable asset caching
 │  └─ _redirects           front door (/ → /welcome/ 302) + SPA fallback (/* → /index.html 200; game at /play)
 ├─ migrations/
-│  └─ 0001_init.sql        D1 schema (purchases/fulfillments/webhook_events/
+│  └─ 0001…0004_*.sql      D1 schema + migrations (0004 = accounts/sessions/reset_tokens
+│                          + cloud_saves rev/meta — docs/ACCOUNTS.md)
+│     0001_init.sql        base schema (purchases/fulfillments/webhook_events/
 │                          cloud_saves/leaderboard/rate_limits)
 ├─ functions/              Cloudflare Pages Functions (file-routed /api/*)
 │  ├─ tsconfig.json        workers-typed, strict
@@ -190,7 +192,14 @@ production and preview get **different** Stripe keys (live vs test mode).
 | `POST /api/stripe/webhook` | Stripe events → purchases/refunds | HMAC signature + 5-min tolerance, event-id dedupe, catalog amount check |
 | `POST /api/store/claim` | verify + fulfill exactly once | rate limit, id validation, player binding, fulfillments PK idempotency |
 | `GET /api/store/history` | receipts for support/restore | rate limit, sync-token auth (falls back to UUID scope pre-cloud-slot) |
-| `PUT/GET /api/save` | cloud save backup/restore | token hash (TOFU), size cap, envelope check, rate limit |
+| `PUT/GET/DELETE /api/save` | versioned cloud save (rev + meta headline; `baseRev` ⇒ 409 conflict contract; `?meta=1` probe) | token hash (TOFU) OR account session, size cap, envelope check, rate limit |
+| `POST /api/account/guest` | formalize the device identity as a Guest Account | TOFU token claim, rate limit |
+| `POST /api/account/register` | email/password account — always a guest UPGRADE (same account_id keeps saves + purchases) | PBKDF2-SHA256 (210k), email uniqueness, password policy, rate limit 6/h |
+| `POST /api/account/login` | cross-device sign-in → 90-day opaque session | uniform errors (no enumeration), rate limit 10/10min |
+| `POST /api/account/logout` | revoke one session | rate limit |
+| `GET/POST /api/account/me` | account view + cloud headline / profile + monotonic playtime | session or token auth, rate limit |
+| `POST /api/account/password` | change password (requires current) + session rotation | rate limit 6/10min |
+| `POST /api/account/reset` | password reset request/confirm (single-use 30-min tokens) | email seam (`RESET_EMAIL_WEBHOOK`, unset ⇒ 503), rate limit 5/h |
 | `GET /api/daily/seed` | day authority + HMAC day ticket | rate limit (the seed itself is public by design) |
 | `POST /api/leaderboard/submit` | score claim | origin, rate limit, Turnstile, bounds, day ticket, keep-best upsert |
 | `GET /api/leaderboard/top` | standings | rate limit |
@@ -272,7 +281,7 @@ Everything from the static era still applies (blank page ⇒ wrong output dir
 
 ### Auto cloud sync (accounts-lite)
 
-Once a Commander name is designated, `src/net/autoSync.ts` mirrors the save to the
+The account sync engine (`src/net/syncEngine.ts`, docs/ACCOUNTS.md) mirrors the save to the
 cloud slot automatically: any change marks dirty; flushes at most every 150s (≤4 of the
 server's 12 PUTs/10min) plus an immediate flush when the tab hides (the mobile
 "closed the game" moment). Unnamed saves never sync; offline/unconfigured backends

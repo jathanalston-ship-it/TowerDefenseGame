@@ -18,7 +18,15 @@ export type EventKind =
   | 'research_abort'
   | 'research_claim'
   | 'store_open'
-  | 'checkout_start';
+  | 'checkout_start'
+  | 'account_guest'
+  | 'account_register'
+  | 'account_login'
+  | 'sync_push'
+  | 'sync_pull'
+  | 'sync_conflict'
+  | 'sync_fail'
+  | 'offline_session';
 
 const pending = new Map<string, number>();
 let timer: number | null = null;

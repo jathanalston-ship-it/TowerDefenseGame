@@ -79,6 +79,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/ENDLESS-SCALING.md', 'docs/MODE-IDENTITY.md'],
   },
   {
+    id: 'accounts', name: 'Account Platform', purpose: 'Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating.',
+    files: ['src/account/accountStore.ts', 'src/account/providers.ts', 'src/save/envelope.ts', 'src/save/merge.ts', 'src/net/syncEngine.ts', 'src/net/connectivity.ts', 'src/ui/components/AccountPanel.tsx'],
+    dependsOn: ['meta-store', 'profile'], powerScore: null, save: [], tutorial: [], help: [],
+    hud: [], ui: ['AccountPanel', 'WelcomeGate', 'ConflictModal', 'PlayerProfile', 'Hub'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/ACCOUNTS.md', 'docs/DEPLOYMENT.md'],
+  },
+  {
     id: 'boss-rush', name: 'Boss Rush', purpose: 'The gauntlet: wave N = N assembled bosses (staggered column + thinned escort); rewards pay per boss defeated; own records/prediction channel.',
     files: ['src/ui/BossRushScreen.tsx', 'src/state/bioRoulette.ts', 'src/ui/BioRoulette.tsx'],
     dependsOn: ['engine', 'bosses', 'loot', 'difficulty'], powerScore: null, save: ['rushBestWave', 'rushBestBoss', 'rushStamina'], tutorial: [], help: ['boss-rush', 'bio-roulette'],
@@ -115,7 +122,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'net-backend', name: 'Backend lanes (net/)', purpose: 'The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.',
-    files: ['src/net/identity.ts', 'src/net/checkout.ts', 'src/net/cloudSave.ts', 'src/net/autoSync.ts', 'src/net/leaderboard.ts', 'src/net/turnstile.ts', 'src/core/replay.ts', 'src/net/replayShare.ts', 'src/ui/SpectateView.tsx', 'src/ui/components/ShareReplay.tsx', 'src/ui/components/CloudBackup.tsx', 'src/ui/components/LeaderboardBlock.tsx'],
+    files: ['src/net/identity.ts', 'src/net/checkout.ts', 'src/net/cloudSave.ts', 'src/net/syncEngine.ts', 'src/net/connectivity.ts', 'src/net/leaderboard.ts', 'src/net/turnstile.ts', 'src/core/replay.ts', 'src/net/replayShare.ts', 'src/ui/SpectateView.tsx', 'src/ui/components/ShareReplay.tsx', 'src/ui/components/CloudBackup.tsx', 'src/ui/components/LeaderboardBlock.tsx'],
     dependsOn: ['premium', 'meta-store', 'daily', 'power'], powerScore: null, save: ['premium'], tutorial: [], help: [],
     hud: [], ui: ['CloudBackup', 'LeaderboardBlock', 'SpectateView', 'DailyScreen (Replay Theater)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/DEPLOYMENT.md', 'docs/REPLAY-SHARE.md'],

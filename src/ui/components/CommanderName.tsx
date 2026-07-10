@@ -9,8 +9,7 @@
 import { useState } from 'react';
 import { meta, sanitizeCommanderName } from '../../state/meta';
 import { DEFAULT_PROFILE_NAME } from '../../save/saveStore';
-import { startAutoCloudSync } from '../../net/autoSync';
-import { backupToCloud } from '../../net/cloudSave';
+import { startSyncEngine, syncEngine } from '../../net/syncEngine';
 import { audio } from '../../audio/sound';
 import { t, useLocale } from '../../i18n';
 
@@ -48,8 +47,8 @@ export function CommanderName(): JSX.Element | null {
     if (cleaned === null) return;
     meta.setProfileName(cleaned);
     audio.cue('rankup'); // a designation is a promotion
-    startAutoCloudSync();
-    void backupToCloud(); // first mirror now — fail-soft offline
+    startSyncEngine();
+    void syncEngine.syncNow(); // first mirror now — fail-soft offline
   };
   const later = (): void => {
     try {

@@ -209,6 +209,15 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Simplified cards (Equip/Details/Favorite) + full Details screen** (`ui/ItemDetails.tsx`) — EQUIPMENT.md §4b
 - ✅ **Destruction safeguards + Undo Salvage** (tiered confirms, higher-Power WARNING, NEW badge) — EQUIPMENT.md §safeguards
 
+### Account platform (docs/ACCOUNTS.md)
+- ✅ **Guest + Email/Password accounts** over the anonymous identity (same account_id ⇒ upgrade keeps
+  saves/purchases; PBKDF2-SHA256, opaque sessions, reset seam) — `functions/api/account/*`, `src/account/`
+- ✅ **Versioned modular save envelope** (17 modules + structural catch-all, checksum, headline meta)
+  — `src/save/envelope.ts`; conservative conflict **merge** — `src/save/merge.ts`
+- ✅ **Bidirectional sync engine** (pure decideSync core; auto pull/push, baseRev ⇒ 409 conflict flow,
+  backoff, manual sync) — `src/net/syncEngine.ts`; offline-first gating — `src/net/connectivity.ts`
+- ✅ **UI**: WelcomeGate (first launch), Settings Account panel, ConflictModal, Profile account card
+
 ### Modes & progression
 - ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director; **campaign-gated: unlocks at Stage 3**), Quick Skirmish — MODE-IDENTITY.md §gates, CAMPAIGN.md
 - ✅ **Campaign EVENTS** (`core/campaignEvents.ts`, CAMPAIGN-EVENTS.md) — the authoring SEAM that ends

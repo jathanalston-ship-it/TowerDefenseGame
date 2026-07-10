@@ -7,6 +7,7 @@
 // components rather than duplicating them.
 
 import { useState } from 'react';
+import { AccountCard } from './components/AccountPanel';
 import { meta } from '../state/meta';
 import { bossDef } from '../core/boss';
 import {
@@ -106,6 +107,9 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
           ))}
         </div>
       </section>
+
+      {/* ── ACCOUNT & SYNC — where this life lives (docs/ACCOUNTS.md) ── */}
+      <AccountCard />
 
       {/* ── 6 · NEXT MILESTONES — what should they do next? (macro loop + micro goals) ── */}
       <section className="pf-block" aria-label="Next milestones">

@@ -36,6 +36,7 @@ import { CollectionScreen } from './CollectionPanel';
 import { PlayerProfile } from './PlayerProfile';
 import { SaveManager } from './SaveManager';
 import { CloudBackup } from './components/CloudBackup';
+import { AccountPanel } from './components/AccountPanel';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { GeneArchive } from './GeneArchive';
@@ -167,6 +168,11 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
           <button className="set-switch" onClick={onReplayTutorial}>{t('settings.replayTutorial')}</button>
           <button className="set-switch" onClick={onReplayTour}>{t('settings.replayTour')}</button>
           <button className="set-switch" onClick={onReplayIntro}>{t('settings.replayIntro')}</button>
+        </div>
+        <div className="panel">
+          <div className="panel-title">Account</div>
+          <div className="panel-sub">One account, every platform — guest today, permanent whenever you choose. Everything transfers.</div>
+          <AccountPanel />
         </div>
         <div className="panel">
           <div className="panel-title">{t('settings.cloud.title')}</div>

@@ -17,8 +17,9 @@ import { UpdateToast } from './components/UpdateToast';
 import { SpectateView } from './SpectateView';
 import { decodeReplayCode } from '../net/replayShare';
 import type { ReplayRecord } from '../core/replay';
-import { startAutoCloudSync } from '../net/autoSync';
+import { startSyncEngine } from '../net/syncEngine';
 import { HudTour } from './HudTour';
+import { WelcomeGate, ConflictModal } from './components/AccountPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
@@ -339,7 +340,7 @@ export function App(): JSX.Element {
 
   useEffect(() => {
     if (screen !== 'menu') return;
-    startAutoCloudSync(); // named accounts mirror to the cloud quietly (net/autoSync.ts)
+    startSyncEngine(); // the account sync engine mirrors + pulls quietly (net/syncEngine.ts)
     const start = (): void => music.play('menu');
     start(); // no-op until the AudioContext may run…
     window.addEventListener('pointerdown', start, { once: true }); // …then the first click unlocks it
@@ -442,6 +443,10 @@ export function App(): JSX.Element {
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}
       {screen === 'menu' && !tourActive && <CommanderName />}
+      {/* Account platform (docs/ACCOUNTS.md): first-launch choice + the sync engine's
+          conflict resolution — the modal can surface during ANY screen (a push can 409). */}
+      {screen === 'menu' && <WelcomeGate />}
+      <ConflictModal />
     </div>
   );
 }

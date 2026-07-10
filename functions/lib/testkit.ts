@@ -18,6 +18,9 @@ export class FakeD1 {
   analytics = new Map<string, Row>(); // key: day|kind
   leaderboard = new Map<string, Row>(); // key: mode|day|player
   rateLimits = new Map<string, Row>();
+  accounts = new Map<string, Row>(); // key: account_id
+  sessions = new Map<string, Row>(); // key: token_hash
+  resetTokens = new Map<string, Row>(); // key: token_hash
 
   prepare(sql: string): FakeStatement {
     return new FakeStatement(this, sql.replace(/\s+/g, ' ').trim());
@@ -119,6 +122,14 @@ class FakeStatement {
       const row = db.cloudSaves.get(String(args[0]));
       return { rows: row ? [{ token_hash: row.token_hash }] : [], changes: 0 };
     }
+    if (sql.startsWith('SELECT token_hash, blob, updated_at, rev, meta FROM cloud_saves')) {
+      const row = db.cloudSaves.get(String(args[0]));
+      return { rows: row ? [row] : [], changes: 0 };
+    }
+    if (sql.startsWith('SELECT rev, meta, size, updated_at FROM cloud_saves')) {
+      const row = db.cloudSaves.get(String(args[0]));
+      return { rows: row ? [row] : [], changes: 0 };
+    }
     if (sql.startsWith('SELECT token_hash, blob, updated_at FROM cloud_saves')) {
       const row = db.cloudSaves.get(String(args[0]));
       return { rows: row ? [row] : [], changes: 0 };
@@ -130,8 +141,82 @@ class FakeStatement {
     if (sql.startsWith('INSERT INTO cloud_saves')) {
       db.cloudSaves.set(String(args[0]), {
         player_id: args[0], token_hash: args[1], blob: args[2], size: args[3], updated_at: args[4],
+        rev: args[5] ?? 1, meta: args[6] ?? '{}',
       });
       return { rows: [], changes: 1 };
+    }
+    // ── accounts ──
+    if (sql.startsWith('SELECT * FROM accounts WHERE account_id')) {
+      const row = db.accounts.get(String(args[0]));
+      return { rows: row ? [row] : [], changes: 0 };
+    }
+    if (sql.startsWith('SELECT * FROM accounts WHERE email')) {
+      const row = [...db.accounts.values()].find((r) => r.email === args[0]);
+      return { rows: row ? [row] : [], changes: 0 };
+    }
+    if (sql.startsWith('INSERT INTO accounts')) {
+      db.accounts.set(String(args[0]), {
+        account_id: args[0], provider: 'guest', email: null, pass_hash: null, pass_salt: null, pass_iters: null,
+        guest_token_hash: args[1], display_name: '', icon: '', created_at: args[2], last_login: args[2],
+        playtime_sec: 0, platforms: args[3],
+      });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('UPDATE accounts SET last_login')) {
+      const row = db.accounts.get(String(args[0]));
+      if (row) { row.last_login = args[1]; row.platforms = args[2]; }
+      return { rows: [], changes: row ? 1 : 0 };
+    }
+    if (sql.startsWith("UPDATE accounts SET provider = 'email'")) {
+      const row = db.accounts.get(String(args[0]));
+      if (row) {
+        row.provider = 'email'; row.email = args[1]; row.pass_hash = args[2];
+        row.pass_salt = args[3]; row.pass_iters = args[4]; row.display_name = args[5];
+      }
+      return { rows: [], changes: row ? 1 : 0 };
+    }
+    if (sql.startsWith('UPDATE accounts SET pass_hash')) {
+      const row = db.accounts.get(String(args[0]));
+      if (row) { row.pass_hash = args[1]; row.pass_salt = args[2]; row.pass_iters = args[3]; }
+      return { rows: [], changes: row ? 1 : 0 };
+    }
+    if (sql.startsWith('UPDATE accounts SET display_name')) {
+      const row = db.accounts.get(String(args[0]));
+      if (row) { row.display_name = args[1]; row.icon = args[2]; row.playtime_sec = args[3]; }
+      return { rows: [], changes: row ? 1 : 0 };
+    }
+    // ── sessions ──
+    if (sql.startsWith('INSERT INTO sessions')) {
+      db.sessions.set(String(args[0]), {
+        token_hash: args[0], account_id: args[1], platform: args[2], created_at: args[3], expires_at: args[4],
+      });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('SELECT account_id, expires_at FROM sessions')) {
+      const row = db.sessions.get(String(args[0]));
+      return { rows: row ? [row] : [], changes: 0 };
+    }
+    if (sql.startsWith('DELETE FROM sessions WHERE token_hash')) {
+      const existed = db.sessions.delete(String(args[0]));
+      return { rows: [], changes: existed ? 1 : 0 };
+    }
+    if (sql.startsWith('DELETE FROM sessions WHERE account_id')) {
+      let changes = 0;
+      for (const [k, v] of db.sessions) if (v.account_id === args[0]) { db.sessions.delete(k); changes++; }
+      return { rows: [], changes };
+    }
+    // ── reset_tokens ──
+    if (sql.startsWith('INSERT INTO reset_tokens')) {
+      db.resetTokens.set(String(args[0]), { token_hash: args[0], account_id: args[1], created_at: args[2], expires_at: args[3] });
+      return { rows: [], changes: 1 };
+    }
+    if (sql.startsWith('SELECT account_id, expires_at FROM reset_tokens')) {
+      const row = db.resetTokens.get(String(args[0]));
+      return { rows: row ? [row] : [], changes: 0 };
+    }
+    if (sql.startsWith('DELETE FROM reset_tokens')) {
+      const existed = db.resetTokens.delete(String(args[0]));
+      return { rows: [], changes: existed ? 1 : 0 };
     }
     // ── leaderboard ──
     if (sql.startsWith('INSERT INTO leaderboard')) {

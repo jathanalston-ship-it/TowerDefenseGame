@@ -25,6 +25,16 @@ export function isIntInRange(v: unknown, min: number, max: number): v is number 
   return typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max;
 }
 
+/** Email address: pragmatic RFC-lite shape check, length-bounded, lowercased by callers. */
+export function isEmail(v: unknown): v is string {
+  return typeof v === 'string' && v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+}
+
+/** Platform id reported by clients (bounded allowlist keeps the history column clean). */
+export function isPlatform(v: unknown): v is string {
+  return typeof v === 'string' && ['web', 'steam', 'android', 'ios', 'desktop'].includes(v);
+}
+
 /** Display name: trimmed, control/markup characters stripped, length-capped.
  *  (Defense in depth — the client renders names as React text nodes, never HTML.) */
 export function sanitizeName(v: unknown): string {

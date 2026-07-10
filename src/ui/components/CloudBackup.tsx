@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { backupToCloud, deleteCloudSave, restoreFromCloud } from '../../net/cloudSave';
-import { lastAutoSyncAt } from '../../net/autoSync';
+import { account } from '../../account/accountStore';
 import { meta } from '../../state/meta';
 import { adoptSyncCode, syncCode } from '../../net/identity';
 
@@ -32,7 +32,7 @@ export function CloudBackup(): JSX.Element {
   };
 
   const named = meta.use().profileName.length > 0;
-  const lastAuto = lastAutoSyncAt();
+  const lastAuto = account.get().lastSyncedAt;
   return (
     <div className="cloudbk">
       <div className="cloudbk-auto">

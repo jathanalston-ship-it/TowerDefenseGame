@@ -62,6 +62,16 @@ export function syncCode(): string {
   return `${playerId()}.${syncToken()}`;
 }
 
+/** Mint a brand-new device identity (docs/ACCOUNTS.md §sign-out): fresh UUID +
+ *  fresh token, so progress made after signing out never rides the old account. */
+export function resetIdentity(): { playerId: string; token: string } {
+  memoryId = crypto.randomUUID();
+  memoryToken = randomHex(32);
+  write(ID_KEY, memoryId);
+  write(TOKEN_KEY, memoryToken);
+  return { playerId: memoryId, token: memoryToken };
+}
+
 /** Adopt a sync code from another device (restores identity BEFORE a cloud pull).
  *  Returns false when the code doesn't parse. */
 export function adoptSyncCode(code: string): boolean {

@@ -8869,3 +8869,53 @@ kbd {
 .mgl-mod-name { font-size: 12px; font-weight: 800; color: var(--mg); }
 .mgl-mod-sub { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .mgl-empty { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ── ACCOUNT PLATFORM (docs/ACCOUNTS.md) — settings panel, profile card, conflict
+   modal, welcome gate. Tokens only; all text sizes from the sanctioned scale. */
+.acct { display: flex; flex-direction: column; gap: 10px; }
+.acct-status { display: flex; align-items: center; gap: 10px; }
+.acct-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--panel-3); white-space: nowrap; }
+.acct-badge.email { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+.acct-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.acct-who b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; }
+.acct-who small { font-size: 11px; color: var(--muted); }
+.acct-sync { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--panel-3); border: 1px solid var(--line); border-radius: var(--r-xs); }
+.acct-sync-text { flex: 1; font-size: 12px; color: var(--muted); }
+.acct-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--muted); flex: none; }
+.acct-dot.on { background: var(--ok, #61d095); }
+.acct-dot.busy { background: var(--gold); }
+.acct-dot.warn { background: var(--bad, #ff5d73); }
+.acct-dot.off { background: var(--muted); opacity: 0.6; }
+.acct-form { display: flex; flex-direction: column; gap: 8px; }
+.acct-form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.acct-input { padding: 8px 10px; font-size: 13px; background: var(--panel-3); border: 1px solid var(--line); border-radius: var(--r-xs); color: inherit; width: 100%; }
+.acct-input:focus { outline: none; border-color: var(--viral); }
+.acct-btn { padding: 7px 12px; font-size: 12px; font-weight: 700; background: var(--panel-3); border: 1px solid var(--line); border-radius: var(--r-xs); color: inherit; cursor: pointer; transition: border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out); }
+.acct-btn:hover:not(:disabled) { border-color: var(--viral); }
+.acct-btn:disabled { opacity: 0.45; cursor: default; }
+.acct-btn.primary { border-color: color-mix(in srgb, var(--viral) 60%, transparent); background: color-mix(in srgb, var(--viral) 14%, var(--panel-3)); }
+.acct-btn.danger { border-color: color-mix(in srgb, var(--bad, #ff5d73) 50%, transparent); }
+.acct-btn.ghost { background: transparent; }
+.acct-btn.on { border-color: var(--viral); }
+.acct-btn.big { padding: 12px 18px; font-size: 14px; }
+.acct-note { font-size: 12px; color: var(--muted); }
+.acct-error { font-size: 12px; color: var(--bad, #ff5d73); }
+
+/* profile card */
+.pf-account { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--panel-2, var(--panel-3)); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.pf-account-rows { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pf-account-rows span { font-size: 13px; }
+.pf-account-rows small { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* conflict modal + welcome gate */
+.acct-scrim { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(4, 6, 10, 0.78); backdrop-filter: blur(3px); }
+.acct-conflict, .acct-welcome { width: min(480px, calc(100vw - 32px)); padding: 20px; background: var(--panel, #0b0f16); border: 1px solid var(--line); border-radius: var(--r-md); display: flex; flex-direction: column; gap: 12px; }
+.acct-conflict-h { font-size: 16px; font-weight: 800; letter-spacing: 0.12em; color: var(--gold); }
+.acct-conflict-sub, .acct-welcome-sub { font-size: 12px; color: var(--muted); margin: 0; }
+.acct-conflict-table { width: 100%; border-collapse: collapse; }
+.acct-conflict-table th, .acct-conflict-table td { font-size: 12px; text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.acct-conflict-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+.acct-conflict-table td:first-child { color: var(--muted); }
+.acct-conflict-btns, .acct-welcome-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.acct-welcome-h { font-size: 26px; font-weight: 800; letter-spacing: 0.28em; color: var(--viral); text-align: center; }
+.acct-welcome-btns { flex-direction: column; }

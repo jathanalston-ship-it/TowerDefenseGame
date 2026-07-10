@@ -26,6 +26,8 @@ graph TD
   infinite --> engine
   infinite --> loot
   infinite --> difficulty
+  accounts --> meta_store
+  accounts --> profile
   boss_rush --> engine
   boss_rush --> bosses
   boss_rush --> loot
@@ -145,6 +147,7 @@ graph TD
 | **Power Score** (`power`) | `content-infra` | `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
+| **Account Platform** (`accounts`) | `meta-store` · `profile` | — | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | `field-research` | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
 | **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
 | **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | — | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
@@ -173,13 +176,13 @@ graph TD
 | **Hero Expeditions** (`expeditions`) | `heroes` · `meta-store` | — | — | `expeditions` | `docs/EXPEDITIONS.md` |
 | **Nemesis & Trophies** (`nemesis`) | `engine` · `bosses` · `meta-store` · `cosmetics` | — | — | `nemesis` · `equippedTrophy` | `docs/NEMESIS.md` |
 | **Phenotypes (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `contracts` · `nemesis` | ⚡ via the collection codex weight | `cosmetics` | `docs/COSMETICS.md` |
-| **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | — | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
+| **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | — | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
 | **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `infestation` · `cosmetics` · `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `expeditions` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `expeditions` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | — | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
@@ -269,6 +272,21 @@ graph TD
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md`
 
+### Account Platform (`accounts`)
+
+*Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating.*
+
+- **Files:** `src/account/accountStore.ts` · `src/account/providers.ts` · `src/save/envelope.ts` · `src/save/merge.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/ui/components/AccountPanel.tsx`
+- **Depends on:** `meta-store` · `profile`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** —
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `AccountPanel` · `WelcomeGate` · `ConflictModal` · `PlayerProfile` · `Hub`
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md`
+
 ### Boss Rush (`boss-rush`)
 
 *The gauntlet: wave N = N assembled bosses (staggered column + thinned escort); rewards pay per boss defeated; own records/prediction channel.*
@@ -348,7 +366,7 @@ graph TD
 
 *The client side of the Cloudflare Pages Functions backend (docs/DEPLOYMENT.md): anonymous identity + sync codes, Stripe Checkout begin/claim with exactly-once local application, manual cloud save backup/restore, day-ticketed leaderboard submission, and the invisible Turnstile challenge. Everything fail-soft — offline play never depends on any of it.*
 
-- **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/autoSync.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/net/replayShare.ts` · `src/ui/SpectateView.tsx` · `src/ui/components/ShareReplay.tsx` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
+- **Files:** `src/net/identity.ts` · `src/net/checkout.ts` · `src/net/cloudSave.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/net/leaderboard.ts` · `src/net/turnstile.ts` · `src/core/replay.ts` · `src/net/replayShare.ts` · `src/ui/SpectateView.tsx` · `src/ui/components/ShareReplay.tsx` · `src/ui/components/CloudBackup.tsx` · `src/ui/components/LeaderboardBlock.tsx`
 - **Depends on:** `premium` · `meta-store` · `daily` · `power`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
@@ -695,14 +713,14 @@ graph TD
 
 - **Files:** `src/state/profile.ts` · `src/ui/PlayerProfile.tsx` · `src/ui/components/CommanderName.tsx`
 - **Depends on:** `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `accounts`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `createdAt` · `profileName` · `profileFrame` · `timeline`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `PlayerProfile`
 - **Collection:** per-category completion rendered · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PROFILE.md`
+- **Docs to update on change:** `docs/PROFILE.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md`
 
 ### Tutorials, Help & Onboarding (`onboarding`)
 
@@ -785,14 +803,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `expeditions` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools`
+- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `expeditions` · `nemesis` · `cosmetics` · `onboarding` · `hub-shell` · `run-ui` · `notifications` · `devtools`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md`
 
 ### Bosses (`bosses`)
 

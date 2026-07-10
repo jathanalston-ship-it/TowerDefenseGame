@@ -12,6 +12,9 @@ export interface Env {
   TURNSTILE_SECRET_KEY?: string;
   /** HMAC secret for daily-run day tickets (leaderboard day binding). */
   DAY_TICKET_SECRET?: string;
+  /** Password-reset email delivery webhook (any provider accepting POST {to, token}).
+   *  Absent ⇒ /api/account/reset request-step returns 503 'email-not-configured'. */
+  RESET_EMAIL_WEBHOOK?: string;
   /** 'production' | 'preview' — production refuses sk_test_ keys. */
   ENVIRONMENT?: string;
 }
