@@ -1503,7 +1503,7 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx_
 
   - documentedBy ← `doc:UI-STANDARDS.md`
   - documentedBy ← `doc:STYLE-GUIDE.md`
