@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 651 nodes · 1082 edges, built from the live
+> **The project's brain** (docs/DIL.md). 659 nodes · 1093 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:campaign` · `system:towers` · `system:gene-cards` · `system:mega-bosses` · `system:cutscenes` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
+`system:campaign` · `system:towers` · `system:gene-cards` · `system:progression-gating` · `system:hub-shell` · `system:mega-bosses` · `system:cutscenes` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
 
 ### Economy / Reward Index
 
@@ -30,15 +30,15 @@
 
 ### Audio Index
 
-`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
+`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:cosmetics` · `system:onboarding` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:campaign` · `help:infinite` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · `guide:collections` · `guide:mastery` · `guide:prestige`
+`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · `guide:collections` · `guide:mastery` · `guide:prestige`
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -79,6 +79,7 @@ graph LR
   system_cosmetics["Phenotypes (Cosmetics)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_profile["Player Profile"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_progression_gating["Progression Gating & Director"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prediction["Progress Prediction"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_meta_store["Meta Store & Save"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_bosses["Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -276,6 +277,10 @@ graph LR
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_engine["Sim Engine"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_progression_gating["Progression Gating & Director"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_progression_gating["Progression Gating & Director"] -->|dependsOn| system_campaign["Campaign"]
+  system_progression_gating["Progression Gating & Director"] -->|dependsOn| system_onboarding["Tutorials, Help & Onboarding"]
+  system_progression_gating["Progression Gating & Director"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_notifications["Notifications"]
   system_hub_shell["Hub Shell & Home"] -->|dependsOn| system_prediction["Progress Prediction"]
@@ -307,7 +312,6 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|dependsOn| system_engine["Sim Engine"]
   system_living_battlefield["Living Battlefield"] -->|dependsOn| system_audio["Audio"]
   system_living_battlefield["Living Battlefield"] -->|dependsOn| system_assimilation["Assimilation Index"]
-  system_audio["Audio"] -->|dependsOn| system_engine["Sim Engine"]
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_assimilation["Assimilation Index"]
   concept_replays["Replays"] -->|dependsOn| concept_determinism["Determinism"]
@@ -483,7 +487,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (56)
+## Systems (57)
 
 ### `system:engine` — Sim Engine
 
@@ -513,7 +517,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…164 more (query: `npm run dil -- node system:engine`)_
+  - _…162 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -579,13 +583,13 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
   - requiredBy ← `system:prestige`
+  - requiredBy ← `system:progression-gating`
   - taughtBy ← `help:campaign`
   - documentedBy ← `doc:CAMPAIGN.md`
   - documentedBy ← `doc:CAMPAIGN-EVENTS.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `doc:STAGES.md`
-  - documentedBy ← `guide:campaign`
-  - _…5 more (query: `npm run dil -- node system:campaign`)_
+  - _…6 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -997,7 +1001,6 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/ui/PrestigePanel.tsx_
   - dependsOn → `system:evolution-hq`
   - provides → `concept:power-score` — the P bucket (log fold of Cells + tree)
   - consumes → `system:meta-store` — owns save field 'prestige'
-  - references → `system:cutscenes` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
   - extends → `system:meta-store` — Ascendant nodes multiply the permanent buckets
   - requiredBy ← `system:evolution-hq`
   - requiredBy ← `system:profile`
@@ -1219,6 +1222,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - consumes → `system:meta-store` — owns save field 'tutorial'
   - consumes → `system:meta-store` — owns save field 'help'
   - triggers → `system:audio` — the opening cinematic scores itself via the cinema track + cin_* beat cues
+  - requiredBy ← `system:progression-gating`
   - contains ← `tutorial:combat`
   - contains ← `help:hive-core`
   - contains ← `help:biomorph-conveyor`
@@ -1230,8 +1234,24 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:field-research`
   - contains ← `help:splice-market`
   - contains ← `help:gene-archive`
-  - contains ← `help:gene-loadout`
-  - _…33 more (query: `npm run dil -- node system:onboarding`)_
+  - _…40 more (query: `npm run dil -- node system:onboarding`)_
+
+### `system:progression-gating` — Progression Gating & Director
+
+The reveal framework: one registry deciding when every hub screen/currency unlocks, teasers + unlock briefings, reveal latching, exposure tracking, cognitive-load bands.
+
+_at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:campaign`
+  - dependsOn → `system:onboarding`
+  - consumes → `system:meta-store` — owns save field 'director'
+  - gates → `system:hub-shell` — nav entries, wallet chips and home widgets reveal via the FEATURES registry (teasers = next two reveals)
+  - extends → `system:onboarding` — screen-linked mechanics rows delegate unlock predicates to featureRevealed — What's New fires exactly when a wing reveals
+  - documentedBy ← `doc:PROGRESSION-GATING.md`
+  - documentedBy ← `doc:UNLOCK-TREE.md`
+  - testedBy ← `test:src/state/progressionDirector.test.ts`
+  - testedBy ← `test:src/state/unlocks.test.ts`
 
 ### `system:hub-shell` — Hub Shell & Home
 
@@ -1257,7 +1277,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - testedBy ← `test:src/state/progressionLoop.test.ts`
   - testedBy ← `test:src/ui/homeBaseTiers.test.ts`
   - testedBy ← `test:src/ui/homeModel.test.ts`
-  - _…1 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…2 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1323,7 +1343,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…78 more (query: `npm run dil -- node system:meta-store`)_
+  - _…80 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1387,7 +1407,6 @@ _at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.
   - documentedBy ← `doc:CUTSCENES.md`
   - testedBy ← `test:src/core/cutscenes.test.ts`
   - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
-  - referencedBy ← `system:prestige` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
 
 ### `system:biomes` — Biomes
 
@@ -1491,11 +1510,10 @@ _at: src/render/livingBattlefield.ts_
 
 ### `system:audio` — Audio
 
-Synthesized SFX bus + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.
+Synthesized SFX/music bus — cues, heartbeat tempo, reward stingers.
 
-_at: src/audio/*, src/ui/MusicDebug.tsx_
+_at: src/audio/*_
 
-  - dependsOn → `system:engine`
   - visualizes → `system:assimilation` — music intensity floor rides the index (sonifies the same state the terrain draws)
   - requiredBy ← `system:cutscenes`
   - requiredBy ← `system:living-battlefield`
@@ -1507,9 +1525,9 @@ _at: src/audio/*, src/ui/MusicDebug.tsx_
   - contains ← `music:defeat`
   - contains ← `music:events`
   - contains ← `music:cinema`
-  - documentedBy ← `doc:MUSIC.md`
   - documentedBy ← `doc:GAME-FEEL.md`
-  - _…3 more (query: `npm run dil -- node system:audio`)_
+  - testedBy ← `test:src/audio/music.test.ts`
+  - _…2 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 
@@ -2129,7 +2147,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (36)
+## Help Topics (41)
 
 - `help:hive-core` — Your one life — defend it. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:biomorph-conveyor` — Towers arrive on a living belt — Deploy, Strain, or Discard. _(partOf `system:onboarding`)_
@@ -2159,12 +2177,17 @@ _at: src/core/tutorial.ts_
 - `help:hero-slots` — Field 2, then 3 heroes at once. _(partOf `system:onboarding`, teaches `system:heroes`)_
 - `help:equipment` — Weapons, armor, and relics for your heroes. _(partOf `system:onboarding`, teaches `system:equipment`)_
 - `help:equipment-reforge` — Improve and reroll gear with materials. _(partOf `system:onboarding`, teaches `system:crafting`)_
+- `help:gear-codex` — The full equipment gallery — sets, silhouettes, and set bonuses. _(partOf `system:onboarding`)_
 - `help:genome-core` — Permanent account upgrades, by category. _(partOf `system:onboarding`, teaches `system:evolution-hq`)_
 - `help:prestige` — Reset the Genome engine for permanent power. _(partOf `system:onboarding`, teaches `system:prestige`)_
 - `help:ascension` — Permanent nodes that survive every Molt. _(partOf `system:onboarding`, teaches `system:prestige`)_
 - `help:containers` — Loot boxes you crack open in the Vault. _(partOf `system:onboarding`, teaches `system:loot`)_
+- `help:collection-codex` — Rank badges, bonuses and Power for everything you catalogue. _(partOf `system:onboarding`)_
+- `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
+- `help:premium-store` — Optional support — never the path. _(partOf `system:onboarding`)_
 - `help:campaign` — The main progression path — descend, stage by stage. _(partOf `system:onboarding`, teaches `system:campaign`)_
 - `help:infinite` — Endless, escalating waves — chase a best. _(partOf `system:onboarding`, teaches `system:infinite`)_
+- `help:daily-run` — One seed per day — the same gauntlet worldwide. _(partOf `system:onboarding`)_
 - `help:biomes` — Shifting environments with their own modifiers. _(partOf `system:onboarding`, teaches `system:biomes`)_
 - `help:bosses` — Multi-phase threats with big rewards. _(partOf `system:onboarding`, teaches `system:bosses`)_
 
@@ -2405,7 +2428,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (147)
+## Documentation (148)
 
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
 - `doc:ADAPTATION.md` — project documentation _(documents `system:mastery`)_
@@ -2488,7 +2511,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:MEGA-BOSS.md` — project documentation _(documents `system:mega-bosses`)_
 - `doc:MODE-IDENTITY.md` — project documentation _(documents `system:campaign`, documents `system:infinite`, documents `system:boss-rush`)_
 - `doc:MULLIGANS.md` — project documentation _(documents `system:mulligans`)_
-- `doc:MUSIC.md` — project documentation _(documents `system:audio`)_
 - `doc:NEMESIS.md` — project documentation _(documents `system:nemesis`)_
 - `doc:NOTIFICATIONS.md` — project documentation _(documents `system:notifications`)_
 - `doc:ONE-MORE-RUN.md` — project documentation _(documents `system:hub-shell`)_
@@ -2504,6 +2526,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:PREMIUM-STORE.md` — project documentation _(documents `system:premium`)_
 - `doc:PRODUCTION-READINESS.md` — project documentation
 - `doc:PROFILE.md` — project documentation _(documents `system:profile`)_
+- `doc:PROGRESSION-GATING.md` — project documentation _(documents `system:progression-gating`)_
 - `doc:PROGRESSION-LOOP.md` — project documentation _(documents `system:hub-shell`)_
 - `doc:PROGRESSION-PHILOSOPHY.md` — project documentation _(documents `system:prestige`)_
 - `doc:PROGRESSION-REDESIGN.md` — project documentation _(documents `system:prestige`)_
@@ -2550,12 +2573,13 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:UI-MOTION.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:UI-STANDARDS.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:UI_STYLE_GUIDE.md` — project documentation _(documents `system:ui-kit`)_
+- `doc:UNLOCK-TREE.md` — project documentation _(documents `system:progression-gating`)_
 - `doc:VALIDATION_REPORT.md` — project documentation
 - `doc:VISUAL-AUDIT.md` — project documentation
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (204)
+## Tests (205)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2745,15 +2769,16 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/powerIntegration.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumSafeguards.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/state/prestigeView.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/profile.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/state/progression.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/progressionDirector.test.ts` — automated validation _(tests `system:progression-gating`)_
 - `test:src/state/progressionLoop.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/research.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardEligibility.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rushStamina.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/stats.test.ts` — automated validation _(tests `system:stats`)_
 - `test:src/state/tutorialRewards.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/unlocks.test.ts` — automated validation _(tests `system:progression-gating`)_
 - `test:src/state/vaultReveal.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
