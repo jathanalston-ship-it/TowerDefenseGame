@@ -8,6 +8,9 @@ import { HERO_ORDER, META_UPGRADES, STAR, TOWER_ORDER } from '../core/config';
 import { cardRegistry } from '../core/cards';
 import { geneLevel, geneMaxLevel } from '../core/geneCards';
 import { mulliganRegistry } from '../core/mulligan';
+import { cosmeticRegistry } from '../core/cosmetics';
+import { wardrobeRegistry } from '../core/wardrobe';
+import { BP, levelOf } from '../core/battlePass';
 
 
 
@@ -30,5 +33,9 @@ export function navProgress(save: SaveData): Partial<Record<string, number>> {
     genes: geneMax > 0 ? clamp01(geneNow / geneMax) : 0,
     // Pieces sequenced / catalog — the Mulligan ring the other progression menus already wear.
     mulligans: mulliganRegistry.size > 0 ? clamp01(Object.keys(save.mulliganDex).length / mulliganRegistry.size) : 0,
+    // The Wardrobe ring: everything collectible-cosmetic (Phenotypes + Wardrobe items) owned.
+    phenotypes: clamp01((save.cosmetics.owned.length + save.wardrobe.owned.length) / Math.max(1, cosmeticRegistry.size + wardrobeRegistry.size)),
+    // The season ring: pass level / 100 (docs/BATTLEPASS.md).
+    season: clamp01(levelOf(save.battlePass.xp).level / BP.levels),
   };
 }

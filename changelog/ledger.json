@@ -1,6 +1,6 @@
 {
-  "lastSha": "4b29f33761918277acca194cd185deb9b612c034",
-  "commitsSinceDraft": 8,
+  "lastSha": "8db81613397047ffb1b408b8563691723285c5d8",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -212,8 +212,10 @@
       "expeditions",
       "nemesis",
       "cosmetics",
+      "battle-pass",
       "profile",
       "onboarding",
+      "progression-gating",
       "hub-shell",
       "run-ui",
       "notifications",
@@ -221,6 +223,7 @@
       "meta-store",
       "bosses",
       "mega-bosses",
+      "cutscenes",
       "biomes",
       "difficulty",
       "website",
@@ -1438,6 +1441,21 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Story Cutscenes & Memory Archive",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New system: Progression Gating & Director",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New system: Battle Pass (Season)",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Public Intelligence Layer",
           "major": true
         },
@@ -1563,6 +1581,38 @@
         {
           "cat": "Gameplay",
           "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Market: Ichor Exchange — reserve-scaled 30-min barter lots for cores, essence & scrap"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Story cutscenes — unlockable animated films, the Memory Archive, and THE RULE"
+        },
+        {
+          "cat": "Music",
+          "text": "Complete adaptive soundtrack overhaul — motif score, boss themes, stingers, console"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Prestige overhaul — the Molt Chamber: live chamber, decision support, ceremony, tree wings"
+        },
+        {
+          "cat": "Framework",
+          "text": "Progression gating framework — the game reveals itself one beat at a time"
+        },
+        {
+          "cat": "Music",
+          "text": "Css: tap-floor for dev-panel inputs (Music Console under ?debug on touch)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons"
+        },
+        {
+          "cat": "Audio",
+          "text": "Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX"
         }
       ]
     }
@@ -1853,6 +1903,110 @@
       "date": "2026-07-10",
       "cat": "Gameplay",
       "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bd303fa0e0518a1c69bfd8a01c687a7de5ccec64",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Market: Ichor Exchange — reserve-scaled 30-min barter lots for cores, essence & scrap",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "71e06a9a2c1e9f57cb7e05f7b3156c2cec704bbd",
+      "date": "2026-07-10",
+      "cat": "Gene Cards",
+      "text": "Story cutscenes — unlockable animated films, the Memory Archive, and THE RULE",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a5d61821251a583b29711f690db790d961ec07d4",
+      "date": "2026-07-10",
+      "cat": "Music",
+      "text": "Complete adaptive soundtrack overhaul — motif score, boss themes, stingers, console",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d65feb5b9cef5b1a302bcbcd3a85ac4ada20d7cc",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Prestige overhaul — the Molt Chamber: live chamber, decision support, ceremony, tree wings",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bc7108d302bf1f03e7a8b8eddfc18bb2cc8600d4",
+      "date": "2026-07-10",
+      "cat": "Framework",
+      "text": "Progression gating framework — the game reveals itself one beat at a time",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b62a49b827c220e26d92d833d47a5a4f7e1349af",
+      "date": "2026-07-10",
+      "cat": "UI",
+      "text": "Dil+docs: regen graphs over the merged tree (menu overhaul + cutscenes rebase)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ec9c36d453407f6fccd8ff351c256dccff649c15",
+      "date": "2026-07-10",
+      "cat": "Framework",
+      "text": "Validate: refresh VALIDATION_REPORT over the merged tree",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "9899e354cc9be56df1958863fefc271494f5244c",
+      "date": "2026-07-10",
+      "cat": "Music",
+      "text": "Regen graphs + validation report over the soundtrack-rebase tree",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "52ad8b128ab1ad2edd48b795d9f17a5cb15e9b80",
+      "date": "2026-07-10",
+      "cat": "Music",
+      "text": "Css: tap-floor for dev-panel inputs (Music Console under ?debug on touch)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9ef3ff5972508b9d8401763b0c96e96eb34d73e9",
+      "date": "2026-07-10",
+      "cat": "Framework",
+      "text": "Regen graphs + validation over the Molt Chamber rebase",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "cb9a1c8c4140b2e98fda285cde58f6960b634f12",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "c15ba09acf83f70216df36188c9a63b99f7a1d9d",
+      "date": "2026-07-10",
+      "cat": "Audio",
+      "text": "Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8db81613397047ffb1b408b8563691723285c5d8",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons",
       "internal": false,
       "needsReview": false
     }

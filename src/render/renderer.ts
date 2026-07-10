@@ -23,7 +23,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { ENEMY_DEFS, HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
+import { HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring, EnemyKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba } from './theme';
@@ -57,6 +57,7 @@ import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from '.
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { dangerCurve } from '../core/dangerCamera';
 import type { CosmeticTheme } from '../core/cosmetics';
+import { themedBossColor, themedEnemyDef, wardrobeKit } from './wardrobeFx';
 
 export interface Pointer {
   x: number;
@@ -221,6 +222,7 @@ export function drawGame(
 
   drawFloor(ctx); // cached static layer: sky, tiles, mottling, dormant veins, vignette
   drawBiomeWash(ctx, rs); // biome accent wash, under the entities (skipped for NEUTRAL/Stage)
+  drawWardrobeWash(ctx); // equipped battlefield theme tint (no-op without one — classic arena)
   // LIVING BATTLEFIELD (docs/LIVING-BATTLEFIELD.md): the run's hidden biomass terraforms the ground
   // BENEATH every entity — inert (clean arena) early, unmistakably alive late. Render-only ⇒ golden-safe.
   const lbDetail = rs.enemies.length < PERF.lodEnemyCount;
@@ -601,6 +603,18 @@ function drawObstacles(ctx: CanvasRenderingContext2D): void {
   }
 }
 
+/** Wardrobe battlefield theme (docs/COSMETICS.md §wardrobe): a soft two-stop tint over the
+ *  floor — deep `bg` pooling at the edges, `accent` breathing at the center. Render-only. */
+function drawWardrobeWash(ctx: CanvasRenderingContext2D): void {
+  const bf = wardrobeKit().battlefieldTheme;
+  if (!bf?.bg || !bf.accent) return;
+  const g = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 60, WIDTH / 2, HEIGHT / 2, Math.max(WIDTH, HEIGHT) * 0.62);
+  g.addColorStop(0, rgba(hexRgb(bf.accent), 0.05));
+  g.addColorStop(1, rgba(hexRgb(bf.bg), 0.22));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
 function drawHiveTendrils(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
   // Living veins from the core feeding its grown defenses — with visible nutrient pulses
   // traveling core→tower, so the supply line READS as a supply line.
@@ -637,16 +651,33 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   const beat = pulse(t, 3 + hurt * 4 + (intRatio < 0.25 ? 3 : 0), 0.85 - hurt * 0.05, 1.15 + hurt * 0.1);
   const R = 36 * beat;
 
+  // Wardrobe nucleus skin (docs/COSMETICS.md §wardrobe): re-grows the heart in the equipped
+  // palette. Absent ⇒ every literal below is the exact classic organ.
+  const nuc = wardrobeKit().nucleusSkin;
+
   // Warm caustic light pooling beneath the organism — grounds it in the arena.
   const lp = ctx.createRadialGradient(x, y + 14, 2, x, y + 14, 52);
-  lp.addColorStop(0, rgba(hexRgb('#ff9a7a'), 0.12 + 0.05 * (beat - 0.85)));
+  lp.addColorStop(0, rgba(hexRgb(nuc?.glow ?? '#ff9a7a'), 0.12 + 0.05 * (beat - 0.85)));
   lp.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = lp;
   ctx.beginPath();
   ctx.ellipse(x, y + 14, 52, 24, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  glowDisc(ctx, x, y, R, THEME.hive.glow[0]);
+  glowDisc(ctx, x, y, R, nuc?.accent ? rgba(hexRgb(nuc.accent), 0.5) : THEME.hive.glow[0]);
+  if (nuc) {
+    // The skin's signature halo — a slow counter-rotating accent ring (reads at a glance).
+    ctx.save();
+    ctx.strokeStyle = rgba(hexRgb(nuc.glow ?? nuc.accent ?? '#ffffff'), 0.35);
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([2, 10]);
+    ctx.lineDashOffset = (t * 30) % 12;
+    ctx.beginPath();
+    ctx.arc(x, y, 34 * beat, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+  }
 
   // Emergency Defense Mode: the core flares brighter — the heart of the alarm.
   const emr = rs.emergencyRamp;
@@ -686,7 +717,7 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
     const orbR = (27 + i * 4) * beat;
     const mx = x + Math.cos(a) * orbR;
     const my = y + Math.sin(a) * orbR * 0.8;
-    glowDisc(ctx, mx, my, 3.2, rgba(hexRgb('#ffd9a0'), 0.45));
+    glowDisc(ctx, mx, my, 3.2, rgba(hexRgb(nuc?.glow ?? '#ffd9a0'), 0.45));
     drawShape(ctx, 'circle', mx, my, 1.3, 'rgba(255,240,220,0.9)');
   }
 
@@ -703,9 +734,9 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   }
   ctx.closePath();
   const bodyG = ctx.createRadialGradient(x - 5, y - 6, 2, x, y, 16 * beat);
-  bodyG.addColorStop(0, '#ff8ba0');
-  bodyG.addColorStop(0.55, THEME.hive.body);
-  bodyG.addColorStop(1, '#a5303f');
+  bodyG.addColorStop(0, nuc?.glow ?? '#ff8ba0');
+  bodyG.addColorStop(0.55, nuc?.accent ?? THEME.hive.body);
+  bodyG.addColorStop(1, nuc ? '#241626' : '#a5303f');
   ctx.fillStyle = bodyG;
   ctx.fill();
 
@@ -1089,6 +1120,34 @@ function drawTower(ctx: CanvasRenderingContext2D, tw: RenderState['towers'][numb
   // organs + all evolution layers below still draw over it.
   drawTowerForm(ctx, tw.kind, tw.x, tw.y, r, kcolor, now, fresh, breathe);
   if (skin) drawCosmeticAura(ctx, tw.x, tw.y, r, skin, now, tw.id);
+  // Wardrobe Placement Effect (docs/COSMETICS.md §wardrobe): while a fresh tower grows in
+  // (grow < 1), an expanding accent ring + ground burst marks the arrival in the equipped style.
+  const plFx = wardrobeKit().placementFx;
+  if (plFx?.accent && grow < 1) {
+    const gr = grow;
+    ctx.strokeStyle = rgba(hexRgb(plFx.accent), 0.55 * (1 - gr));
+    ctx.lineWidth = 2.5 * (1 - gr) + 0.5;
+    ctx.beginPath();
+    ctx.arc(tw.x, tw.y, r * (0.6 + gr * 1.9), 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.2566 + tw.id;
+      const dr = r * (0.5 + gr * 1.6);
+      glowDisc(ctx, tw.x + Math.cos(a) * dr, tw.y + Math.sin(a) * dr * 0.8, 2.6 * (1 - gr), rgba(hexRgb(plFx.accent), 0.5 * (1 - gr)));
+    }
+  }
+  // Wardrobe Tower Particle FX (docs/COSMETICS.md §wardrobe): a global idle flourish — two
+  // drifting motes per tower in the equipped accent. Cheap, deterministic, under the Phenotype.
+  const twFx = wardrobeKit().towerFx;
+  if (twFx?.accent) {
+    for (let i = 0; i < 2; i++) {
+      const a = now * (0.7 + i * 0.23) + tw.id * 1.7 + i * Math.PI;
+      const rise = ((now * 0.35 + tw.id * 0.13 + i * 0.5) % 1);
+      const fx = tw.x + Math.cos(a) * r * (0.7 + 0.3 * rise);
+      const fy = tw.y - r * 0.4 - rise * r * 1.1;
+      glowDisc(ctx, fx, fy, 2.4 * (1 - rise), rgba(hexRgb(twFx.accent), 0.4 * (1 - rise)));
+    }
+  }
 
   if (tw.kind === 'reactor') {
     drawShape(ctx, 'circle', tw.x, tw.y, 5 * grow * breathe, 'rgba(255,255,255,0.3)');
@@ -1337,7 +1396,13 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   // (branch skins above keep their authored identity — a branch IS an identity). A HERO's shot is
   // re-tinted by its equipped weapon (heroWeapon), so a legendary rifle fires a legendary-hued bolt.
   const core = heroWeapon ?? (skin ? skin.glow : splash ? THEME.projectile.splash : parasite ? THEME.projectile.parasite : THEME.projectile.bolt);
-  const trail = heroWeapon ? hexRgb(heroWeapon) : skin ? hexRgb(skin.primary) : splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
+  // Wardrobe projectile trail (docs/COSMETICS.md §wardrobe): a global signature color/style —
+  // hero weapons and per-tower Phenotypes still win (specific beats global).
+  const wdTrail = wardrobeKit().projectileTrail;
+  const trail = heroWeapon ? hexRgb(heroWeapon)
+    : skin ? hexRgb(skin.primary)
+      : wdTrail?.accent ? hexRgb(wdTrail.accent)
+        : splash ? THEME.projectile.splashTrail : parasite ? THEME.projectile.parasiteTrail : THEME.projectile.boltTrail;
 
   // heading toward the target point — the trail streams out behind it
   let ux = p.tx - p.x;
@@ -1357,13 +1422,21 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
   ctx.moveTo(p.x, p.y);
   ctx.lineTo(p.x - ux * tlen * 0.8, p.y - uy * tlen * 0.8);
   ctx.stroke();
+  // The equipped trail's STYLE family flavors the segments: ribbon/petal/phage weave a sine
+  // wave off-axis; sparks/static/void chip into offset dashes; comet/gilded keep the taper.
+  const wavy = wdTrail && (wdTrail.trail === 'ribbon' || wdTrail.trail === 'petal' || wdTrail.trail === 'phage');
+  const chips = wdTrail && (wdTrail.trail === 'sparks' || wdTrail.trail === 'static' || wdTrail.trail === 'void');
+  const px2 = -uy; // trail-normal (for the weave)
+  const py2 = ux;
   for (let s = 0; s < 4; s++) {
     const f = s / 4; // 0 = nearest the head
     ctx.strokeStyle = rgba(trail, 0.5 * (1 - f));
     ctx.lineWidth = head * (1.15 - f * 0.8);
+    const off = wavy ? Math.sin((p.x + p.y) * 0.2 + s * 1.9) * head * 1.1 * f : 0;
+    const gap = chips ? 0.1 : 0;
     ctx.beginPath();
-    ctx.moveTo(p.x - ux * tlen * f, p.y - uy * tlen * f);
-    ctx.lineTo(p.x - ux * tlen * (f + 0.28), p.y - uy * tlen * (f + 0.28));
+    ctx.moveTo(p.x - ux * tlen * (f + gap) + px2 * off, p.y - uy * tlen * (f + gap) + py2 * off);
+    ctx.lineTo(p.x - ux * tlen * (f + 0.28 - gap) + px2 * off, p.y - uy * tlen * (f + 0.28 - gap) + py2 * off);
     ctx.stroke();
   }
   ctx.lineCap = 'butt';
@@ -1558,7 +1631,7 @@ function updateEnemyMotion(enemies: RenderState['enemies'], t: number): void {
   for (const [id, m] of enemyMotion) {
     if (m.seen === motionFrame) continue;
     if (deathEchoes.length < 48) { // a vanished enemy died — leave a fading crumple
-      const def = ENEMY_DEFS[m.kind];
+      const def = themedEnemyDef(m.kind);
       deathEchoes.push({ form: ENEMY_BODY[m.kind], x: m.x, y: m.y, r: def.radius, color: def.color, seed: ENEMY_VARIANT[m.kind], phase: id, t0: t });
     }
     enemyMotion.delete(id);
@@ -1587,7 +1660,7 @@ function drawEnemy(
   detail: boolean,
   t: number,
 ): void {
-  const def = ENEMY_DEFS[e.kind];
+  const def = themedEnemyDef(e.kind); // Wardrobe enemy reskin: color-swapped clone, else the base def
   const r = def.radius;
   const flying = def.behavior.flying === true;
   const shape = ENEMY_SHAPE[e.kind];
@@ -1633,7 +1706,7 @@ function drawEnemy(
 
   // Boss visual identity (render/bossChassis.ts): a framework boss renders in its OWN def
   // palette (not the borrowed tyrant body's) — burrow mound, crown, buds and body all tint.
-  const bcol = e.boss ? bossColorOf(e.boss.defId) : def.color;
+  const bcol = e.boss ? themedBossColor(bossColorOf(e.boss.defId)) : def.color; // boss skin re-lights the chassis
 
   // Burrowed boss (docs/BOSS-DESIGN.md §siege): the body is BENEATH the field — draw the
   // churning mound where it tunnels and skip everything else (it can't be seen or hit).
@@ -1918,7 +1991,9 @@ function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTier
 function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0, skin?: CosmeticTheme, gear?: HeroGearSpec): void {
   const t = rs.time;
   const def = HERO_DEFS[h.kind];
-  const tint = hexRgb(skin?.primary ?? def.color); // class-colored halo/locator/trail (Phenotype re-tints)
+  // Class-colored halo/locator/trail. Specific beats global: a per-hero Phenotype wins, then the
+  // Wardrobe's global Hero Ability FX light, then the def color (classic).
+  const tint = hexRgb(skin?.primary ?? wardrobeKit().heroFx?.accent ?? def.color);
   if (skin) drawCosmeticAura(ctx, h.x, h.y, 12, skin, t, h.kind.length);
   const shape = HERO_SHAPE[h.kind];
   const down = h.down;

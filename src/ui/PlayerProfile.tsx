@@ -7,8 +7,9 @@
 // components rather than duplicating them.
 
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { AccountCard } from './components/AccountPanel';
-import { meta } from '../state/meta';
+import { meta, equippedWardrobe } from '../state/meta';
 import { bossDef } from '../core/boss';
 import {
   PROFILE_SECTION_TITLES,
@@ -48,13 +49,24 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(banner.name);
   const maxShare = Math.max(1, ...power.slices.map((s) => s.share));
+  // Wardrobe identity (docs/COSMETICS.md §wardrobe): the commander card wears every equipped
+  // identity cosmetic — name ink, title, nameplate, backdrop, banner standard, emblem, borders.
+  const wd = equippedWardrobe(save);
+  const bannerStyle: CSSProperties = {
+    ...(wd.profileBg?.bg ? { background: `radial-gradient(circle at 20% 0%, ${wd.profileBg.accent}22, transparent 55%), linear-gradient(160deg, ${wd.profileBg.bg}, transparent 140%)` } : {}),
+    ...(wd.prestigeBorder?.accent ? { borderColor: wd.prestigeBorder.accent } : wd.collectionBorder?.accent ? { borderColor: wd.collectionBorder.accent } : {}),
+  };
 
   return (
     <div className="pf">
       {/* ── 1 · PLAYER BANNER — who is this? ── */}
-      <section className={`pf-banner frame-${banner.frame.id}`} aria-label="Player banner">
+      <section className={`pf-banner frame-${banner.frame.id}`} aria-label="Player banner" style={bannerStyle}>
         <div className="pf-banner-bg" aria-hidden />
+        {wd.banner?.glyph && (
+          <span className="pf-standard" style={{ color: wd.banner.accent }} aria-hidden>{wd.banner.glyph}</span>
+        )}
         <div className="pf-id">
+          {wd.emblem?.glyph && <span className="pf-emblem" style={{ color: wd.emblem.accent }} title="Emblem" aria-hidden>{wd.emblem.glyph}</span>}
           {editing ? (
             <input
               className="pf-name-input"
@@ -66,11 +78,20 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
               onKeyDown={(e) => { if (e.key === 'Enter') { meta.setProfileName(draft); setEditing(false); } }}
             />
           ) : (
-            <button type="button" className="pf-name" onClick={() => { setDraft(banner.name); setEditing(true); }} title="Rename the specimen line">
+            <button
+              type="button"
+              className="pf-name"
+              onClick={() => { setDraft(banner.name); setEditing(true); }}
+              title="Rename the specimen line"
+              style={{
+                ...(wd.nameColor?.accent ? { color: wd.nameColor.accent } : {}),
+                ...(wd.nameplate?.bg ? { background: wd.nameplate.bg, boxShadow: `inset 0 0 0 1px ${wd.nameplate.accent ?? 'transparent'}`, padding: '2px 10px' } : {}),
+              }}
+            >
               {banner.name} <i aria-hidden>✎</i>
             </button>
           )}
-          {banner.title && <span className="pf-title">« {banner.title} »</span>}
+          {(wd.title?.text ?? banner.title) && <span className="pf-title">« {wd.title?.text ?? banner.title} »</span>}
           <span className="pf-frame-name">{banner.frame.name} frame</span>
         </div>
         <div className="pf-banner-stats">

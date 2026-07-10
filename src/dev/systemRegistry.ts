@@ -290,11 +290,18 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/NEMESIS.md'],
   },
   {
-    id: 'cosmetics', name: 'Phenotypes (Cosmetics)', purpose: 'Data-driven visual skins (docs/COSMETICS.md): six theme families × every tower/hero (generator — new kinds inherit automatically); save v26 owned/equipped; renderer re-expression (palette/aura/projectiles/beams) + firing-sfx variants; Phenotype Lab hub screen; Phenotypes collection codex with a hive-wide passive.',
-    files: ['src/core/cosmetics.ts', 'src/ui/PhenotypeLab.tsx'],
-    dependsOn: ['meta-store', 'collection', 'hub-shell'], powerScore: 'via the collection codex weight', save: ['cosmetics'],
-    tutorial: [], help: [], hud: [], ui: ['PhenotypeLab'], collection: 'cosmetics category (Phenotypes codex)', achievements: [],
+    id: 'cosmetics', name: 'The Wardrobe (Cosmetics)', purpose: 'The cosmetics ECOSYSTEM (docs/COSMETICS.md): unit Phenotypes (six theme families × every tower/hero, generator-driven) PLUS the account Wardrobe — 34 global cosmetic kinds in four groups (arena FX / audio packs / interface shells / commander identity) on one validated registry with typed unlock sources (campaign/depth/daily/rush/roulette/achievements/collection ranks/Ichor boutique/battle pass/milestones/events). Payloads are flat presentation params consumed by the dressing layer (root attrs + cue families + music transforms + renderer kit). Six collection codices, milestone reward track, persisted unlock-ceremony queue. Save v31 wardrobe record.',
+    files: ['src/core/cosmetics.ts', 'src/core/wardrobe.ts', 'src/ui/PhenotypeLab.tsx', 'src/ui/Wardrobe.tsx', 'src/ui/wardrobeDressing.ts', 'src/ui/components/WardrobeReveal.tsx', 'src/render/wardrobeFx.ts'],
+    dependsOn: ['meta-store', 'collection', 'hub-shell'], powerScore: 'via the collection codex weights (tiny, cosmetic-first)', save: ['cosmetics', 'wardrobe'],
+    tutorial: [], help: [], hud: [], ui: ['Wardrobe', 'PhenotypeLab', 'WardrobeReveal'], collection: 'towerSkins/heroSkins + four wardrobe codices', achievements: [],
     localization: 'inline-en', docs: ['docs/COSMETICS.md'],
+  },
+  {
+    id: 'battle-pass', name: 'Battle Pass (Season)', purpose: 'Rotating 100-level dual-track season over the Wardrobe (docs/BATTLEPASS.md): data-driven SeasonDefs (theme + passives + phenotype levels), reward tables DERIVED from wardrobe battlepass sources + filler cadence (no empty levels), XP from runs/achievements/expeditions/roulette, Ichor level buys, rewarded-ad advances, premium via Ichor (250) or the store Season Pass SKU, free premium tastes at 1/50/99, permanents once-ever with repeat replacements, the infinitely-stacking Perennial Bloom, max-window tamper rule, rollover auto-claim. Save v31 battlePass record.',
+    files: ['src/core/battlePass.ts', 'src/ui/BattlePassScreen.tsx'],
+    dependsOn: ['meta-store', 'cosmetics', 'premium', 'hub-shell'], powerScore: 'permanents + Perennial stacks fold into the meta bucket', save: ['battlePass'],
+    tutorial: [], help: [], hud: [], ui: ['BattlePassScreen'], collection: 'grants land in the wardrobe codices', achievements: [],
+    localization: 'inline-en', docs: ['docs/BATTLEPASS.md'],
   },
   {
     id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',

@@ -27,6 +27,10 @@ export type MusicCategory = 'menu' | 'combat' | 'boss' | 'mega' | 'victory' | 'd
 export type LayerId = 'bass' | 'drums' | 'arp' | 'lead' | 'pad' | 'texture' | 'choir' | 'hits';
 export const LAYER_IDS: LayerId[] = ['bass', 'drums', 'arp', 'lead', 'pad', 'texture', 'choir', 'hits'];
 
+/** A Wardrobe music pack's re-voicing (docs/COSMETICS.md §wardrobe): semitone root shift,
+ *  tempo multiplier, and 0..1 brightness over the layer mix. */
+export interface MusicTransform { rootShift: number; bpmMult: number; brightness: number }
+
 export interface Note {
   /** Offset inside the bar, in 16th steps (0..15). */
   step: number;
@@ -565,6 +569,46 @@ class MusicManager {
     return true;
   }
 
+  // Wardrobe music packs (docs/COSMETICS.md §wardrobe): per-scope re-voicings applied to
+  // WHATEVER track the picker chooses — root shift, tempo, and a brightness curve over the
+  // layer gains. 'menu' re-voices the idle songs; 'combat' covers combat/boss/mega.
+  // Ceremonial one-shots (victory/defeat/cinema) stay pure.
+  private wardrobe: { menu?: MusicTransform; combat?: MusicTransform } = {};
+
+  /** Install the equipped packs; re-voices the CURRENT track live via a normal crossfade. */
+  setWardrobe(w: { menu?: MusicTransform; combat?: MusicTransform }): void {
+    this.wardrobe = w;
+    const cur = this.current;
+    if (cur && this.active && !this.active.def.oneShot) {
+      this.current = null; // force the same category through play() → crossfade into the new voice
+      this.play(cur);
+    }
+  }
+
+  private transformFor(category: MusicCategory): MusicTransform | undefined {
+    if (category === 'menu' || category === 'events') return this.wardrobe.menu;
+    if (category === 'combat' || category === 'boss' || category === 'mega') return this.wardrobe.combat;
+    return undefined;
+  }
+
+  /** Apply the scope's re-voicing to a picked track — pure derivation, the library untouched. */
+  private revoice(def: TrackDef, category: MusicCategory): TrackDef {
+    const tr = this.transformFor(category);
+    if (!tr) return def;
+    const bright = Math.max(0, Math.min(1, tr.brightness));
+    // Brightness shapes the mix: glassy layers rise with it, the murk sinks.
+    const mult = (id: LayerId): number =>
+      id === 'arp' || id === 'lead' || id === 'texture' ? 0.55 + 0.9 * bright
+        : id === 'bass' || id === 'pad' ? 1.25 - 0.5 * bright
+          : 1;
+    return {
+      ...def,
+      root: def.root + Math.round(tr.rootShift),
+      bpm: def.bpm * tr.bpmMult,
+      layers: def.layers.map((l) => ({ ...l, gain: [l.gain[0] * mult(l.id), l.gain[1] * mult(l.id)] as [number, number] })),
+    };
+  }
+
   /** Request a CATEGORY (never a hardcoded track) — the manager picks (rotation + scene +
    *  progression + boss binding), bar-aligns the switch, and equal-power crossfades. One-shots
    *  (victory/defeat) play once over the fading bed and end silent. */
@@ -575,11 +619,13 @@ class MusicManager {
       // Same category: only re-pick when a DIFFERENT boss demands its own theme.
       if (!(category === 'boss' && opts.boss && this.active.boss !== opts.boss)) return;
     }
-    const def = opts.trackId
+    const picked = opts.trackId
       ? TRACK_LIBRARY.find((t) => t.id === opts.trackId) ?? TRACKS[category]
       : category === 'boss' && opts.boss
         ? bossTrackFor(opts.boss)
         : pickTrack(category, { exclude: this.active?.def.id, scene: this.scene ?? undefined, tier: this.progressionTier, roll: Math.random() });
+    // Wardrobe re-voicing rides the pick (docs/COSMETICS.md §wardrobe) — dev pins stay pure.
+    const def = opts.trackId ? picked : this.revoice(picked, category);
 
     const bus = this.ctx.createGain();
     bus.gain.value = 0;

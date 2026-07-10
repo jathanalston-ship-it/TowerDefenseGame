@@ -12,6 +12,7 @@
 
 import { WIDTH, HEIGHT } from '../core/map';
 import { hexRgb, rgba } from './theme';
+import { themedMegaColor } from './wardrobeFx';
 import type { RenderState } from '../core/game';
 import type { MegaWeakPoint } from '../core/megaboss';
 
@@ -51,9 +52,11 @@ const wpRuptureT = new Map<number, number>(); // spec → renderer-now of the ru
 
 // ── The body (under entities) ────────────────────────────────────────────────
 export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
-  const body = hexRgb(v.palette.body);
-  const glo = hexRgb(v.palette.glow);
-  const acc = hexRgb(v.palette.accent);
+  // Wardrobe Mega Boss variant (docs/COSMETICS.md §wardrobe): re-veins the palette; the
+  // silhouette/behavior presentation is untouched (identity preserved, dress swapped).
+  const body = hexRgb(themedMegaColor(v.palette.body));
+  const glo = hexRgb(themedMegaColor(v.palette.glow));
+  const acc = hexRgb(themedMegaColor(v.palette.accent));
   const tier = v.visualTier;
   const collapse = collapseOf(v);
   const dead = collapse > 0;

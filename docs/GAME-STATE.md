@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 30` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 31` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -389,10 +389,25 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   compile error), Settings language picker, live re-render — I18N.md
 
 ### Retention & identity systems (the live-game batch)
-- ✅ **Phenotypes (cosmetics)**: 6 theme families × every tower/hero (generated; new kinds
-  inherit), save v26 owned/equipped, renderer re-expression + aura flourishes + themed
-  projectiles/beams + firing-sfx pitch variants, Phenotype Lab nav tab, Phenotypes
-  collection codex paying Biomass ×1.06 @100% — COSMETICS.md
+- ✅ **The Wardrobe (cosmetics ecosystem)** (**overhauled 2026-07**): unit Phenotypes (6
+  families × every tower/hero, generated) PLUS 34 global cosmetic KINDS in four groups
+  (arena FX / audio & music packs / interface shells / commander identity) — ~125-item
+  launch catalog on one validated registry with typed unlock sources (campaign/depth/
+  daily/rush/roulette/achievements/collection ranks/Ichor Boutique/battle pass/milestones/
+  events). Dressing layer applies payloads to root CSS attrs + cue families + music
+  transforms + the renderer kit (precomputed enemy/boss/mega reskins, nucleus/battlefield/
+  trail/FX params). Save v31 wardrobe record (equips/favorites/seen/milestones/persisted
+  reveal queue); Wardrobe screen (tabs+search+filters+audition+randomize), unlock ceremony,
+  6 collection codices (skins pay Biomass ×1.03 each; wardrobe codices are zero-power,
+  paid via the claimable milestone track) — COSMETICS.md §wardrobe
+- ✅ **Battle Pass (seasons)**: 100-level dual-track, 14-day rotation (max-window tamper
+  rule, rollover auto-claim mail), two launch seasons (Crimson Bloom ❁ / Abyssal Tide ≋ —
+  unique palette/music re-voice/crown rewards), XP from runs/achievements/expeditions/
+  roulette (curve 320+6n ≈ 61.7k total; archetype sims pinned), Ichor level buys, 1 ad
+  level/day, premium via 250 Ichor OR the store `bp_premium` SKU (rebalanced from the
+  1500 draft — §pricing), free taste levels 1/50/99, permanents once-ever (premium ones
+  economy-only) with repeat replacements, infinite Perennial Bloom stack, save v31
+  battlePass record, Season nav screen — BATTLEPASS.md
 - ✅ **Champion Contracts**: weekly deterministic 3-contract board (LiveOps weekIndex),
   data constraint vocabulary judged in finishRun, core payouts + Gilded exclusives,
   home board + Results category — CONTRACTS.md

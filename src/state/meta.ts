@@ -87,8 +87,16 @@ import type { MechanicDef } from './mechanics';
 import { unlatchedReveals } from './unlocks';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
-import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
-import { cosmeticById, cultivatePool, nemesisPool, CULTIVATE_COST } from '../core/cosmetics';
+import type { CollectionContext, CollectionEconomyBonuses, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
+import { cosmeticById, cosmeticRegistry, cultivatePool, nemesisPool, CULTIVATE_COST } from '../core/cosmetics';
+import {
+  earnedAutoItems, wardrobeItem, wardrobeItemsOf, wardrobeMilestone, WARDROBE_KINDS, WARDROBE_MILESTONES,
+} from '../core/wardrobe';
+import type { WardrobeItemDef, WardrobeKind, WardrobePayload, WardrobeUnlockCtx, WardrobeMilestone } from '../core/wardrobe';
+import {
+  BP, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, seasonForWindow, seasonTracks, xpToReach,
+} from '../core/battlePass';
+import type { PassReward, SeasonDef } from '../core/battlePass';
 import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
@@ -138,6 +146,181 @@ export function equippedCosmeticThemes(save: SaveData): {
   return { towers, heroes };
 }
 
+/** The equipped Wardrobe payloads by kind ({} on a fresh save ⇒ every consumer's classic look).
+ *  UI roots (App/Hub) and the render kit read this; docs/COSMETICS.md §wardrobe. */
+export function equippedWardrobe(save: SaveData): Partial<Record<WardrobeKind, WardrobePayload>> {
+  const out: Partial<Record<WardrobeKind, WardrobePayload>> = {};
+  for (const [kind, id] of Object.entries(save.wardrobe.equipped)) {
+    const def = typeof id === 'string' ? wardrobeItem(id) : undefined;
+    if (def) out[kind as WardrobeKind] = def.payload;
+  }
+  return out;
+}
+
+/** Battle Pass permanent passives (effect-bearing) + the Perennial stacks as run effects.
+ *  Empty on a fresh save ⇒ byte-identical runs (golden-safe). */
+function battlePassEffectsOf(save: SaveData): CardEffect[] {
+  const out: CardEffect[] = [];
+  for (const id of save.battlePass.permanents) {
+    const p = passPassive(id);
+    if (p?.effect) out.push({ op: 'mul', field: p.effect.field, value: p.effect.value } as CardEffect);
+  }
+  if (save.battlePass.stacks > 0) {
+    out.push({ op: 'mul', field: 'biomassMult', value: 1 + BP.stackBiomassPerStack * save.battlePass.stacks } as CardEffect);
+  }
+  return out;
+}
+
+/** Collection codex economy bonuses COMPOSED with the Battle Pass permanent econ passives —
+ *  the one read every econ consumer (mastery XP, loot quality, run rewards) goes through.
+ *  Neutral on a fresh save (docs/BATTLEPASS.md §permanents). */
+function accountEconomyBonuses(save: SaveData): CollectionEconomyBonuses {
+  const out = { ...collectionEconomyBonuses(collectionView(collectionContextOf(save))) };
+  for (const id of save.battlePass.permanents) {
+    const p = passPassive(id);
+    if (!p?.econ) continue;
+    if (p.econ.key === 'lootQualityTier') out.lootQualityTier += p.econ.value;
+    else out[p.econ.key] *= 1 + p.econ.value;
+  }
+  return out;
+}
+
+/** The Battle Pass screen's read-model (docs/BATTLEPASS.md §ui). */
+export interface BattlePassView {
+  season: SeasonDef;
+  window: number;
+  endsInMs: number;
+  xp: number;
+  level: number;
+  into: number;
+  need: number;
+  totalXp: number;
+  premium: boolean;
+  tracks: ReturnType<typeof seasonTracks>;
+  claimedFree: Set<number>;
+  claimedPremium: Set<number>;
+  claimableFree: number[];
+  claimablePremium: number[];
+  permanents: Set<string>;
+  completions: number; // full clears of THIS season (repeat rotations)
+  stacks: number;
+  levelPrice: number | null; // Ichor to buy the next level (null at 100)
+  adAvailable: boolean;
+}
+
+/** Apply ONE pass level's rewards to a save draft (no persist — callers batch + persist).
+ *  Repeat-safe: an already-owned permanent/cosmetic/phenotype pays the replacement bundle
+ *  instead (docs/BATTLEPASS.md §permanents — boosts never stack across rotations). */
+function applyPassRewards(
+  draft: SaveData,
+  season: SeasonDef,
+  rewards: PassReward[],
+  track: 'free' | 'premium',
+  level: number,
+): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number } {
+  let next = draft;
+  const lines: PremiumReceiptLine[] = [];
+  let stamina = 0;
+  const replacement = (label: string): void => {
+    const { ichor, cores } = BP.repeatReplacement;
+    next = {
+      ...next,
+      ichor: next.ichor + ichor, lifetimeIchor: next.lifetimeIchor + ichor,
+      shards: next.shards + cores, lifetimeShards: next.lifetimeShards + cores,
+    };
+    lines.push({ icon: '⟳', label: `${label} (owned) → ${ichor} Ichor + ${cores} Cores` });
+  };
+  for (const r of rewards) {
+    switch (r.kind) {
+      case 'ichor':
+        next = { ...next, ichor: next.ichor + r.qty, lifetimeIchor: next.lifetimeIchor + r.qty };
+        lines.push({ icon: '◆', label: `${r.qty} Ichor` });
+        break;
+      case 'cores':
+        next = { ...next, shards: next.shards + r.qty, lifetimeShards: next.lifetimeShards + r.qty };
+        lines.push({ icon: '⬡', label: `${r.qty} Genome Cores` });
+        break;
+      case 'geneEssence':
+        next = { ...next, geneEssence: next.geneEssence + r.qty };
+        lines.push({ icon: '⌬', label: `${r.qty} Gene Essence` });
+        break;
+      case 'mats':
+        next = { ...next, mats: { ...next.mats, mutagen: next.mats.mutagen + (r.mutagen ?? 0), scrap: next.mats.scrap + (r.scrap ?? 0), catalyst: next.mats.catalyst + (r.catalyst ?? 0) } };
+        lines.push({ icon: '⚒', label: `Materials — ⊕${r.mutagen ?? 0} · ◳${r.scrap ?? 0} · ✷${r.catalyst ?? 0}` });
+        break;
+      case 'towerShardsAll': {
+        const towerShards = { ...next.towerShards };
+        for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
+        next = { ...next, towerShards };
+        lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
+        break;
+      }
+      case 'heroShardsAll': {
+        const heroShards = { ...next.heroShards };
+        for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
+        next = { ...next, heroShards };
+        lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
+        break;
+      }
+      case 'container':
+        next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'loot' as const, rarity: r.rarity }))] };
+        lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity });
+        break;
+      case 'runCache':
+        next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'cache' as const, chestId: RUN_CHEST }))] };
+        lines.push({ icon: '⬢', label: `${r.count}× Run Cache` });
+        break;
+      case 'rushStamina':
+        stamina += r.qty; // granted after the persist via the capped pipeline
+        lines.push({ icon: '☠', label: `${r.qty} Rush Stamina` });
+        break;
+      case 'cosmetic': {
+        const def = wardrobeItem(r.id);
+        if (!def) break;
+        if (next.wardrobe.owned.includes(r.id)) replacement(def.name);
+        else {
+          next = { ...next, wardrobe: { ...next.wardrobe, owned: [...next.wardrobe.owned, r.id], pendingReveal: [...next.wardrobe.pendingReveal, r.id] } };
+          lines.push({ icon: '❖', label: def.name });
+        }
+        break;
+      }
+      case 'phenotype': {
+        // First unowned phenotype of the family (deterministic — claims are replay-stable).
+        const pool = cosmeticRegistry.all().filter((d) => d.id.startsWith(`pt_${r.family}_`) || d.id.startsWith(`ph_${r.family}_`));
+        const grant = pool.find((d) => !next.cosmetics.owned.includes(d.id));
+        if (!grant) { replacement(`${r.family} Phenotype`); break; }
+        next = { ...next, cosmetics: { ...next.cosmetics, owned: [...next.cosmetics.owned, grant.id] } };
+        lines.push({ icon: '🧬', label: grant.name });
+        break;
+      }
+      case 'passive': {
+        const def = passPassive(r.id);
+        if (!def) break;
+        if (next.battlePass.permanents.includes(r.id)) replacement(def.name);
+        else {
+          next = { ...next, battlePass: { ...next.battlePass, permanents: [...next.battlePass.permanents, r.id] } };
+          lines.push({ icon: '♾', label: `${def.name} — permanent (${def.desc})` });
+        }
+        break;
+      }
+      case 'stack':
+        next = {
+          ...next,
+          battlePass: {
+            ...next.battlePass,
+            stacks: next.battlePass.stacks + 1,
+            completions: { ...next.battlePass.completions, [season.id]: (next.battlePass.completions[season.id] ?? 0) + 1 },
+          },
+        };
+        lines.push({ icon: '❁', label: `Perennial Bloom ×${next.battlePass.stacks} — the season fully cleared` });
+        break;
+    }
+  }
+  const key = track === 'free' ? 'claimedFree' : 'claimedPremium';
+  next = { ...next, battlePass: { ...next.battlePass, [key]: [...next.battlePass[key], level] } };
+  return { next, lines, stamina };
+}
+
 export function collectionContextOf(save: SaveData): CollectionContext {
   return {
     stats: save.stats,
@@ -149,6 +332,7 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     megaSpeed: new Set(save.megaProgress.speed),
     biomesSeen: biomesSeenOf(save),
     cosmeticsOwned: new Set(save.cosmetics.owned),
+    wardrobeOwned: new Set(save.wardrobe.owned),
     mulliganDex: save.mulliganDex ?? {},
     mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => {
       const st = save.mulligans[k];
@@ -371,6 +555,8 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
   });
   // Collection completion bonuses are permanent account strength → their offense folds into `meta`.
   const collectionMult = effectsPower(collectionBonusEffects(collectionView(collectionContextOf(save))));
+  // Battle Pass permanents + Perennial stacks are the same class of strength (docs/BATTLEPASS.md).
+  const battlePassMult = effectsPower(battlePassEffectsOf(save));
   // Unlocked hero slots beyond the first are account strength (a fielded extra champion) — the
   // hero-slot twin of the tower bonusSlots fold (POWER-AUDIT.md).
   const heroSlotMult = 1 + HERO_SLOT_POWER * Math.max(0, heroSlotsUnlocked(save) - 1);
@@ -380,7 +566,7 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     // upgrade raises Power. Towers/heroes/equipment/temporary are the other buckets.
     // Permanent gene-card upgrades are account strength → they fold into `meta` via the scale-safe
     // gene collection multiplier (1 until Task 4 authors upgrade levels; docs/GENE-EVOLUTION.md).
-    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * geneCollectionPowerMult(save.genes) * heroSlotMult,
+    meta: mm.towerDamageMult * effectsPower(genomeRunEffects(save)) * metaExtras * collectionMult * battlePassMult * geneCollectionPowerMult(save.genes) * heroSlotMult,
     towers: geomean(TOWER_ORDER.map((k) => tp[k].damageMult)),
     heroes: geomean(HERO_ORDER.map((k) => hp[k].damageMult)),
     equipment: equipmentPower(save),
@@ -422,8 +608,8 @@ function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, numb
   // the difficulty's lootQualityMult; the Ascendant Fortune node adds a permanent account-wide tilt
   // on top (×1 without it). standard + no node ⇒ 0 tier ⇒ no tilt, golden-safe.
   const fortune = ascendantBonuses(save.prestige.nodes).lootQualityMult;
-  // Armory collection tilts loot quality richer as it fills (+0 on a fresh account).
-  const codexLoot = collectionEconomyBonuses(collectionView(collectionContextOf(save))).lootQualityTier;
+  // Armory collection (+ Battle Pass quality permanents) tilt loot richer (+0 on a fresh account).
+  const codexLoot = accountEconomyBonuses(save).lootQualityTier;
   const tier = lootQualityTier({ difficultyLootQualityMult: economyFor(difficultyId).lootQualityMult, fortuneMult: fortune, codexTier: codexLoot });
   return lootBias({
     idsAscending: rarityRegistry.ids(), // registration order is ascending rarity value
@@ -475,7 +661,7 @@ export function masteryXpMults(
   difficulty: string | undefined,
 ): { tower: number; hero: number } {
   const asc = ascendantBonuses(save.prestige.nodes);
-  const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save)));
+  const cb = accountEconomyBonuses(save); // codex + Battle Pass permanents, one composed read
   const econDiff = economyFor(difficulty);
   const modeMult = modeMasteryMult({ endless: !!mode.endless, campaign: !!mode.campaign, bossRush: !!mode.bossRush });
   const base = modeMult * econDiff.xpMult * asc.masteryXpMult;
@@ -930,6 +1116,8 @@ export interface CrackedContainer {
  * for the player to crack open manually. */
 export interface RunOutcome {
   reward: RunReward;
+  passXp: number; // Battle Pass XP this run banked (docs/BATTLEPASS.md §xp)
+  passLevelUp?: { from: number; to: number }; // present when the run crossed ≥1 pass level
   mastery: Record<TowerKind, MasteryDelta>;
   heroMastery: Record<HeroKind, MasteryDelta>;
   loot: { queue: LootQueueState; banked: PendingContainer[] }; // containers banked unopened this run (Vault)
@@ -1195,7 +1383,7 @@ export const meta = {
   finishRun(result: RunResult): RunOutcome {
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
-    const cb = collectionEconomyBonuses(collectionView(collectionContextOf(save))); // codex economy bonuses (neutral on a fresh save)
+    const cb = accountEconomyBonuses(save); // codex + Battle Pass economy bonuses (neutral on a fresh save)
     const rewardMult = result.rewardMult ?? 1; // campaign per-stage reward/loot scalar (1 otherwise)
     // Difficulty ECONOMY scalars (docs/DIFFICULTY.md). standard ⇒ identity (golden-safe). Campaign
     // already folds difficulty.rewardMult into result.rewardMult, so the currency reward scalar is
@@ -1606,7 +1794,24 @@ export const meta = {
     const unlockedAchievements = this.evaluateAchievements(result)
       .map(achievementById)
       .filter((d): d is AchievementDef => !!d);
+    // Battle Pass XP (docs/BATTLEPASS.md §xp): every meaningful activity feeds the season.
+    // Kills + waves are the base; bosses/megas/wins/stages/daily-clears/contracts stack on.
+    const passXp = Math.round(
+      result.kills * 0.5
+      + result.wave * 8
+      + (result.stats.bossKills ?? 0) * 25
+      + (result.stats.megaKills?.length ?? 0) * 80
+      + (result.won ? 120 : 30)
+      + (result.campaignStage ?? 0) * 3
+      + (isDaily && result.won ? 200 : 0)
+      + contractHits.length * 150,
+    );
+    const passLevelUp = this.grantPassXp('run', passXp);
+    // Wardrobe auto-unlocks ride the same seam (new stage/depth/daily/rush/roulette records).
+    this.pollWardrobeUnlocks();
     return {
+      passXp,
+      ...(passLevelUp ? { passLevelUp } : {}),
       reward: { shardsEarned, newBest },
       mastery,
       heroMastery,
@@ -1931,6 +2136,8 @@ export const meta = {
       achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)],
       timeline,
     });
+    // Achievements feed the Battle Pass (docs/BATTLEPASS.md §xp) — a flat bounty per unlock.
+    this.grantPassXp('achievement', newly.length * 150);
     return newly.map((a) => a.id);
   },
 
@@ -2280,6 +2487,7 @@ export const meta = {
       },
       timeline: pushTimeline(s.timeline, '⇠', `Expedition — ${HERO_DEFS[hero].name} ${flavor} (${def.name})${find ? ` · ${find.name}!` : ''}`),
     });
+    this.grantPassXp('expedition', 40); // away-missions feed the season (docs/BATTLEPASS.md §xp)
     return { reward, outcome: outcome.kind, find };
   },
 
@@ -2353,6 +2561,356 @@ export const meta = {
     });
     return def;
   },
+
+  // ── WARDROBE (docs/COSMETICS.md §wardrobe) — account cosmetics: the auto-unlock poll,
+  //    equip slots, favorites, the Ichor boutique, milestone claims, the reveal queue. ──
+
+  /** The auto-lane unlock context (campaign/depth/daily/rush/roulette/achievements/ranks). */
+  wardrobeUnlockCtx(): WardrobeUnlockCtx {
+    const save = store.get();
+    const v = this.collection();
+    const ranks: Partial<Record<CollectionCategoryId, number>> = {};
+    for (const c of v.categories) ranks[c.id] = c.rankIndex;
+    return {
+      campaignStage: highestCampaignStage(save),
+      bestDepth: save.bestWave,
+      dailyClears: save.daily.completions,
+      rushBossKills: save.stats.rushBossKills,
+      rouletteSpores: save.stats.rouletteSpores,
+      achievements: new Set(save.achievements ?? []),
+      collectionRanks: ranks,
+      overallRank: v.rankIndex,
+    };
+  },
+
+  /** Achievement-style poll: grant every EARNED auto-lane item not yet owned. Newly granted
+   *  ids queue the unlock ceremony (persisted — a run-end unlock survives reload). */
+  pollWardrobeUnlocks(): WardrobeItemDef[] {
+    const fresh = earnedAutoItems(this.wardrobeUnlockCtx());
+    const save = store.get();
+    const owned = new Set(save.wardrobe.owned);
+    const grants = fresh.filter((d) => !owned.has(d.id));
+    if (grants.length === 0) return [];
+    let timeline = save.timeline;
+    for (const d of grants) timeline = pushTimeline(timeline, '❖', `Wardrobe — ${d.name} unlocked`);
+    persist({
+      ...save,
+      timeline,
+      wardrobe: {
+        ...save.wardrobe,
+        owned: [...save.wardrobe.owned, ...grants.map((d) => d.id)],
+        pendingReveal: [...save.wardrobe.pendingReveal, ...grants.map((d) => d.id)],
+      },
+    });
+    return grants;
+  },
+
+  /** Equip an owned wardrobe item into its kind's slot (null clears to the classic look). */
+  equipWardrobe(kind: WardrobeKind, id: string | null): boolean {
+    const save = store.get();
+    if (id !== null) {
+      const def = wardrobeItem(id);
+      if (!def || def.kind !== kind || !save.wardrobe.owned.includes(id)) return false;
+    }
+    const equipped = { ...save.wardrobe.equipped };
+    if (id === null) delete equipped[kind];
+    else equipped[kind] = id;
+    persist({ ...save, wardrobe: { ...save.wardrobe, equipped } });
+    return true;
+  },
+
+  toggleWardrobeFavorite(id: string): boolean {
+    const save = store.get();
+    if (!save.wardrobe.owned.includes(id)) return false;
+    const favorites = save.wardrobe.favorites.includes(id)
+      ? save.wardrobe.favorites.filter((x) => x !== id)
+      : [...save.wardrobe.favorites, id];
+    persist({ ...save, wardrobe: { ...save.wardrobe, favorites } });
+    return true;
+  },
+
+  /** The dice: equip a random owned item in every kind that owns one. */
+  randomizeWardrobe(): void {
+    const save = store.get();
+    const owned = new Set(save.wardrobe.owned);
+    const equipped = { ...save.wardrobe.equipped };
+    for (const k of WARDROBE_KINDS) {
+      const pool = wardrobeItemsOf(k.id).filter((d) => owned.has(d.id));
+      if (pool.length > 0) equipped[k.id] = pool[Math.floor(Math.random() * pool.length)].id;
+    }
+    persist({ ...save, wardrobe: { ...save.wardrobe, equipped } });
+  },
+
+  /** Opening the Wardrobe clears its NEW badges (idempotent). */
+  markWardrobeSeen(): void {
+    const save = store.get();
+    const unseen = save.wardrobe.owned.filter((id) => !save.wardrobe.seen.includes(id));
+    if (unseen.length === 0) return;
+    persist({ ...save, wardrobe: { ...save.wardrobe, seen: [...save.wardrobe.seen, ...unseen] } });
+  },
+
+  /** Buy a boutique item with Ichor (cosmetics never rotate out of the boutique). */
+  buyWardrobeItem(id: string): boolean {
+    const save = store.get();
+    const def = wardrobeItem(id);
+    if (!def || def.source.kind !== 'shop' || save.wardrobe.owned.includes(id)) return false;
+    if (save.ichor < def.source.ichor) return false;
+    persist({
+      ...save,
+      ichor: save.ichor - def.source.ichor,
+      timeline: pushTimeline(save.timeline, '❖', `Boutique — ${def.name} acquired`),
+      wardrobe: { ...save.wardrobe, owned: [...save.wardrobe.owned, id], pendingReveal: [...save.wardrobe.pendingReveal, id] },
+    });
+    return true;
+  },
+
+  /** Direct grant (events / dev / future lanes). Idempotent; queues the ceremony. */
+  grantWardrobeItem(id: string): boolean {
+    const save = store.get();
+    if (!wardrobeItem(id) || save.wardrobe.owned.includes(id)) return false;
+    persist({
+      ...save,
+      wardrobe: { ...save.wardrobe, owned: [...save.wardrobe.owned, id], pendingReveal: [...save.wardrobe.pendingReveal, id] },
+    });
+    return true;
+  },
+
+  /** Drain the unlock-ceremony queue (the reveal overlay consumes it). */
+  takeWardrobeReveals(): WardrobeItemDef[] {
+    const save = store.get();
+    if (save.wardrobe.pendingReveal.length === 0) return [];
+    const defs = save.wardrobe.pendingReveal
+      .map((id) => wardrobeItem(id))
+      .filter((d): d is WardrobeItemDef => d !== undefined);
+    persist({ ...save, wardrobe: { ...save.wardrobe, pendingReveal: [] } });
+    return defs;
+  },
+
+  /** Milestone track state (docs/COSMETICS.md §milestones). */
+  wardrobeMilestones(): { def: WardrobeMilestone; state: 'locked' | 'claimable' | 'claimed'; at: number }[] {
+    const save = store.get();
+    const v = this.collection();
+    return WARDROBE_MILESTONES.map((def) => {
+      const at = v.categories.find((c) => c.id === def.category)?.rankIndex ?? 0;
+      const state: 'locked' | 'claimable' | 'claimed' =
+        save.wardrobe.milestones.includes(def.id) ? 'claimed' : at >= def.rank ? 'claimable' : 'locked';
+      return { def, state, at };
+    });
+  },
+
+  /** Claim one cosmetic milestone → its receipt lines (null if not claimable). */
+  claimWardrobeMilestone(id: string): PremiumReceiptLine[] | null {
+    const def = wardrobeMilestone(id);
+    if (!def) return null;
+    const row = this.wardrobeMilestones().find((m) => m.def.id === id);
+    if (!row || row.state !== 'claimable') return null;
+    const save = store.get();
+    const lines: PremiumReceiptLine[] = [];
+    let next: SaveData = { ...save, wardrobe: { ...save.wardrobe, milestones: [...save.wardrobe.milestones, id] } };
+    for (const r of def.rewards) {
+      switch (r.kind) {
+        case 'ichor':
+          next = { ...next, ichor: next.ichor + r.qty, lifetimeIchor: next.lifetimeIchor + r.qty };
+          lines.push({ icon: '◆', label: `${r.qty} Ichor` });
+          break;
+        case 'cores':
+          next = { ...next, shards: next.shards + r.qty, lifetimeShards: next.lifetimeShards + r.qty };
+          lines.push({ icon: '⬡', label: `${r.qty} Genome Cores` });
+          break;
+        case 'geneEssence':
+          next = { ...next, geneEssence: next.geneEssence + r.qty };
+          lines.push({ icon: '⌬', label: `${r.qty} Gene Essence` });
+          break;
+        case 'container':
+          next = { ...next, pendingContainers: [...next.pendingContainers, ...Array.from({ length: r.count }, () => ({ kind: 'loot' as const, rarity: r.rarity }))] };
+          lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity });
+          break;
+        case 'towerShardsAll': {
+          const towerShards = { ...next.towerShards };
+          for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
+          next = { ...next, towerShards };
+          lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
+          break;
+        }
+        case 'heroShardsAll': {
+          const heroShards = { ...next.heroShards };
+          for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
+          next = { ...next, heroShards };
+          lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
+          break;
+        }
+        case 'item':
+          if (wardrobeItem(r.id) && !next.wardrobe.owned.includes(r.id)) {
+            next = { ...next, wardrobe: { ...next.wardrobe, owned: [...next.wardrobe.owned, r.id], pendingReveal: [...next.wardrobe.pendingReveal, r.id] } };
+            lines.push({ icon: '❖', label: wardrobeItem(r.id)!.name });
+          }
+          break;
+      }
+    }
+    persist({ ...next, timeline: pushTimeline(next.timeline, '❖', `Milestone — ${def.name} claimed`) });
+    return lines;
+  },
+
+  // ── BATTLE PASS (docs/BATTLEPASS.md) — rotating dual-track seasons over the Wardrobe. ──
+
+  /** Advance the rotation window (max-window tamper rule — a rolled-back clock can't forge a
+   *  fresh season). On rollover, every EARNED-but-unclaimed level auto-claims first (mail-on-
+   *  rollover: progress is never lost), then the record resets for the incoming season. */
+  pollBattlePass(now = Date.now()): void {
+    const save = store.get();
+    const w = passWindow(now);
+    if (w <= save.battlePass.window) return;
+    const season = seasonForWindow(save.battlePass.window);
+    const tracks = seasonTracks(season.id);
+    const level = levelOf(save.battlePass.xp).level;
+    let draft = save;
+    let stamina = 0;
+    for (let l = 1; l <= level; l++) {
+      if (!draft.battlePass.claimedFree.includes(l)) {
+        const res = applyPassRewards(draft, season, tracks.free[l - 1], 'free', l);
+        draft = res.next; stamina += res.stamina;
+      }
+      const premiumOk = draft.battlePass.premium || BP.freePremiumLevels.includes(l);
+      if (premiumOk && !draft.battlePass.claimedPremium.includes(l)) {
+        const res = applyPassRewards(draft, season, tracks.premium[l - 1], 'premium', l);
+        draft = res.next; stamina += res.stamina;
+      }
+    }
+    persist({
+      ...draft,
+      timeline: level > 0 ? pushTimeline(draft.timeline, season.glyph, `${season.name} concluded — unclaimed rewards delivered`) : draft.timeline,
+      battlePass: { ...draft.battlePass, window: w, xp: 0, premium: false, claimedFree: [], claimedPremium: [], adDay: '', adUsed: 0 },
+    });
+    if (stamina > 0) this.grantRushStamina(stamina, now);
+  },
+
+  /** The pass screen's read-model. Poll separately (UI tick) — this never persists. */
+  battlePass(now = Date.now()): BattlePassView {
+    const save = store.get();
+    const bp = save.battlePass;
+    const season = seasonForWindow(Math.max(bp.window, passWindow(now)));
+    const lp = levelOf(bp.xp);
+    const claimableFree: number[] = [];
+    const claimablePremium: number[] = [];
+    for (let l = 1; l <= lp.level; l++) {
+      if (!bp.claimedFree.includes(l)) claimableFree.push(l);
+      if ((bp.premium || BP.freePremiumLevels.includes(l)) && !bp.claimedPremium.includes(l)) claimablePremium.push(l);
+    }
+    return {
+      season,
+      window: bp.window,
+      endsInMs: msToPassEnd(now),
+      xp: bp.xp,
+      level: lp.level,
+      into: lp.into,
+      need: lp.need,
+      totalXp: xpToReach(BP.levels),
+      premium: bp.premium,
+      tracks: seasonTracks(season.id),
+      claimedFree: new Set(bp.claimedFree),
+      claimedPremium: new Set(bp.claimedPremium),
+      claimableFree,
+      claimablePremium,
+      permanents: new Set(bp.permanents),
+      completions: bp.completions[season.id] ?? 0,
+      stacks: bp.stacks,
+      levelPrice: lp.level >= BP.levels ? null : levelBuyPrice(lp.level),
+      adAvailable: (bp.adDay === dayKey(now) ? bp.adUsed : 0) < BP.adLevelsPerDay && lp.level < BP.levels,
+    };
+  },
+
+  /** Claim one earned level's rewards on a track → receipt lines (null = not claimable).
+   *  Premium levels need Premium — except the free-preview levels (1 / 50 / 99). */
+  claimPassLevel(track: 'free' | 'premium', level: number, now = Date.now()): PremiumReceiptLine[] | null {
+    this.pollBattlePass(now);
+    const save = store.get();
+    const bp = save.battlePass;
+    if (level < 1 || level > BP.levels || level > levelOf(bp.xp).level) return null;
+    const claimed = track === 'free' ? bp.claimedFree : bp.claimedPremium;
+    if (claimed.includes(level)) return null;
+    if (track === 'premium' && !bp.premium && !BP.freePremiumLevels.includes(level)) return null;
+    const season = seasonForWindow(bp.window);
+    const rewards = seasonTracks(season.id)[track][level - 1];
+    const { next, lines, stamina } = applyPassRewards(save, season, rewards, track, level);
+    persist(next);
+    if (stamina > 0) this.grantRushStamina(stamina, now);
+    this.evaluateAchievements();
+    return lines;
+  },
+
+  /** Claim EVERYTHING currently claimable (both tracks, ascending) → combined lines. */
+  claimAllPass(now = Date.now()): PremiumReceiptLine[] {
+    this.pollBattlePass(now);
+    const lines: PremiumReceiptLine[] = [];
+    const view = this.battlePass(now);
+    for (const l of view.claimableFree) lines.push(...(this.claimPassLevel('free', l, now) ?? []));
+    for (const l of view.claimablePremium) lines.push(...(this.claimPassLevel('premium', l, now) ?? []));
+    return lines;
+  },
+
+  /** Grant pass XP from a gameplay source. Returns {from,to} on a level-up (for toasts).
+   *  `source` is the faucet's name — kept for future analytics parity with grantIchor. */
+  grantPassXp(_source: string, xp: number, now = Date.now()): { from: number; to: number } | null {
+    const amt = Math.max(0, Math.round(xp));
+    if (amt <= 0) return null;
+    this.pollBattlePass(now);
+    const save = store.get();
+    const cap = xpToReach(BP.levels);
+    if (save.battlePass.xp >= cap) return null;
+    const from = levelOf(save.battlePass.xp).level;
+    const nextXp = Math.min(cap, save.battlePass.xp + amt);
+    const to = levelOf(nextXp).level;
+    persist({ ...save, battlePass: { ...save.battlePass, xp: nextXp } });
+    return to > from ? { from, to } : null;
+  },
+
+  /** Buy ONE level with Ichor (price ramps every 10 levels). */
+  buyPassLevel(now = Date.now()): boolean {
+    this.pollBattlePass(now);
+    const save = store.get();
+    const lp = levelOf(save.battlePass.xp);
+    if (lp.level >= BP.levels) return false;
+    const price = levelBuyPrice(lp.level);
+    if (save.ichor < price) return false;
+    persist({ ...save, ichor: save.ichor - price, battlePass: { ...save.battlePass, xp: save.battlePass.xp + (lp.need - lp.into) } });
+    return true;
+  },
+
+  /** Advance one level via a completed rewarded ad (caller runs the provider first;
+   *  docs/RESEARCH.md provider rules). Capped per UTC day. */
+  adAdvancePass(now = Date.now()): boolean {
+    this.pollBattlePass(now);
+    const save = store.get();
+    const day = dayKey(now);
+    const used = save.battlePass.adDay === day ? save.battlePass.adUsed : 0;
+    if (used >= BP.adLevelsPerDay) return false;
+    const lp = levelOf(save.battlePass.xp);
+    if (lp.level >= BP.levels) return false;
+    persist({ ...save, battlePass: { ...save.battlePass, xp: save.battlePass.xp + (lp.need - lp.into), adDay: day, adUsed: used + 1 } });
+    return true;
+  },
+
+  /** Unlock the CURRENT season's Premium track with Ichor (the real-money path is the
+   *  store's Season Pass offer — both land on the same flag). */
+  buyPassPremium(now = Date.now()): boolean {
+    this.pollBattlePass(now);
+    const save = store.get();
+    if (save.battlePass.premium || save.ichor < BP.premiumIchor) return false;
+    const season = seasonForWindow(save.battlePass.window);
+    persist({
+      ...save,
+      ichor: save.ichor - BP.premiumIchor,
+      battlePass: { ...save.battlePass, premium: true },
+      timeline: pushTimeline(save.timeline, season.glyph, `${season.name} — Premium track unlocked`),
+    });
+    return true;
+  },
+
+  /** Battle Pass permanents + Perennial stacks as run effects (folded like gear). */
+  battlePassRunEffects(): CardEffect[] {
+    return battlePassEffectsOf(store.get());
+  },
+
   upgradeGene(id: string): boolean {
     const save = store.get();
     const def = cardRegistry.get(id);
@@ -3059,6 +3617,7 @@ export const meta = {
     const pending = [...save.pendingContainers];
     const inventory = [...save.equipment.inventory];
     let stamina = 0;
+    let battlePassPremium = save.battlePass.premium;
     const lines: PremiumReceiptLine[] = [];
     for (const g of offer.grants) {
       switch (g.grant) {
@@ -3114,6 +3673,12 @@ export const meta = {
           stamina += g.qty; // granted after the persist via the existing capped pipeline
           lines.push({ icon: '☠', label: `${g.qty} Rush Stamina` });
           break;
+        case 'battlePassPremium':
+          // Same flag the Ichor door sets (docs/BATTLEPASS.md §premium). Idempotent — an
+          // already-premium season simply re-lines the receipt (store availability gates it).
+          battlePassPremium = true;
+          lines.push({ icon: '❁', label: 'Season Pass — premium track unlocked' });
+          break;
       }
     }
     return {
@@ -3124,6 +3689,7 @@ export const meta = {
         ichor, lifetimeIchor, shards, lifetimeShards, geneEssence, mats, towerShards, heroShards,
         pendingContainers: pending,
         equipment: { ...save.equipment, inventory },
+        battlePass: { ...save.battlePass, premium: battlePassPremium },
       },
     };
   },
@@ -3254,6 +3820,7 @@ export const meta = {
       }
     }
     persist(next);
+    this.grantPassXp('roulette', 30); // the wheel feeds the season too (docs/BATTLEPASS.md §xp)
     this.evaluateAchievements();
   },
 

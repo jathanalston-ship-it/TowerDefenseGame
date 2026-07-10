@@ -217,6 +217,14 @@ export function Results({
     stats: [
       { id: 'biomass', label: 'Biomass Earned', value: Math.round(result.stats.biomassEarned), icon: <BiomassIcon />, accent: 'var(--caustic)' },
       { id: 'shards', label: `${ACCOUNT_CURRENCY.name} Earned`, value: outcome.reward.shardsEarned, icon: <CurrencyIcon id="genomeCores" />, accent: 'var(--gold)' },
+      // Season Pass XP (docs/BATTLEPASS.md §xp) — every run feeds the season; a crossed level celebrates.
+      ...(outcome.passXp > 0
+        ? [{
+            id: 'season-xp', label: 'Season XP', value: outcome.passXp,
+            format: (n: number) => outcome.passLevelUp ? `+${num(n)} — LEVEL ${outcome.passLevelUp.to}!` : `+${num(n)}`,
+            accent: 'var(--viral)', celebrate: !!outcome.passLevelUp,
+          }]
+        : []),
       // Boss Rush lifetime-record bands (docs/BOSS-RUSH.md §ichor): the record progress always
       // shows on a rush run; the Ichor row appears only when a NEW record actually bled.
       ...(outcome.rushProgress

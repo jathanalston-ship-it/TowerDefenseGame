@@ -94,7 +94,6 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:mulligans', kind: 'modifies', to: 'system:rendering', note: 'grafted organisms recolor host towers, projectiles and Living-Battlefield ground hues' },
   { from: 'system:equipment', kind: 'modifies', to: 'system:rendering', note: 'heroes render worn gear; gear color skins hero projectiles' },
   { from: 'system:onboarding', kind: 'triggers', to: 'system:audio', note: 'the opening cinematic scores itself via the cinema track + cin_* beat cues' },
-  { from: 'system:cosmetics', kind: 'modifies', to: 'system:audio', note: 'Phenotype firing variants repitch tower fire cues' },
   { from: 'system:progression-gating', kind: 'gates', to: 'system:hub-shell', note: 'nav entries, wallet chips and home widgets reveal via the FEATURES registry (teasers = next two reveals)' },
   { from: 'system:progression-gating', kind: 'extends', to: 'system:onboarding', note: "screen-linked mechanics rows delegate unlock predicates to featureRevealed — What's New fires exactly when a wing reveals" },
   { from: 'system:bosses', kind: 'triggers', to: 'system:audio', note: 'bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)' },
@@ -103,6 +102,12 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
   { from: 'system:prestige', kind: 'references', to: 'system:cutscenes', note: 'the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it' },
   { from: 'system:cutscenes', kind: 'provides', to: 'concept:progression-gates', note: 'memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive' },
+  { from: 'system:cosmetics', kind: 'modifies', to: 'system:audio', note: 'Phenotype firing variants repitch tower fire cues; Wardrobe packs re-voice whole cue FAMILIES (tower/enemy/notif/hero/wave) + re-voice menu/combat music (root/tempo/brightness) — per-unit variants always win over the global pack' },
+  { from: 'system:cosmetics', kind: 'modifies', to: 'system:rendering', note: 'the Wardrobe render kit (render/wardrobeFx.ts) re-dresses nucleus/battlefield/trails/tower FX/placement and PRECOMPUTES enemy/boss/mega palettes — module state set by ui/wardrobeDressing.ts, never per-frame work' },
+  { from: 'system:battle-pass', kind: 'consumes', to: 'system:cosmetics', note: 'reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree' },
+  { from: 'system:battle-pass', kind: 'consumes', to: 'system:premium', note: "the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor" },
+  { from: 'system:battle-pass', kind: 'conflictsWith', to: 'concept:golden-test', note: 'permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break' },
+  { from: 'system:cosmetics', kind: 'conflictsWith', to: 'concept:power-score', note: 'wardrobe codices carry ZERO powerWeight — starter items are pre-owned, so any weight moves a fresh account off POWER_BASE (the 1002 bug)' },
 
   // ── Potential conflicts (landmines discovered in development — check these before editing) ──
   { from: 'system:daily', kind: 'conflictsWith', to: 'system:mulligans', note: 'the Daily SUBSTITUTES seeded organisms via mulliganOverride — account organisms must not leak into a daily run' },

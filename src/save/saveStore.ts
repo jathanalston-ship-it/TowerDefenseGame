@@ -28,6 +28,9 @@ import type { GeneSave } from '../core/geneCards';
 import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
 import { reforgeModById } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mulligan';
+import { starterItems, wardrobeItem, wardrobeMilestone, WARDROBE_KINDS } from '../core/wardrobe';
+import type { WardrobeKind } from '../core/wardrobe';
+import { BP, passPassive, seasonById } from '../core/battlePass';
 
 export interface SaveData {
   shards: number;
@@ -217,6 +220,34 @@ export interface SaveData {
   //    All additive: pre-v26 saves default empty Mulligans + empty dex. ──
   mulligans: Record<TowerKind, MulliganState>;
   mulliganDex: Record<string, MulliganRarity>; // modifier id → highest rarity discovered (equip ceiling)
+  // ── Wardrobe (v31, docs/COSMETICS.md §wardrobe) — account cosmetics beyond unit Phenotypes:
+  //    owned item ids (starter rows seeded on load), ONE equipped id per kind ({} = classic
+  //    look everywhere ⇒ golden-safe), favorites + seen (NEW badges), claimed cosmetic
+  //    milestones, and the unlock-ceremony queue (persisted so run-end unlocks survive reload). ──
+  wardrobe: {
+    owned: string[];
+    equipped: Partial<Record<WardrobeKind, string>>;
+    favorites: string[];
+    seen: string[];
+    milestones: string[];
+    pendingReveal: string[];
+  };
+  // ── Battle Pass (v31, docs/BATTLEPASS.md) — the rotating dual-track season. `window` is the
+  //    MAX rotation window observed (clock-tamper rule); xp/claims/premium are THIS window's;
+  //    `permanents` is FOREVER (cross-season, never re-granted); `completions` counts full
+  //    100-level clears per season id; `stacks` is the infinite completion bonus. ──
+  battlePass: {
+    window: number;
+    xp: number;
+    premium: boolean;
+    claimedFree: number[];
+    claimedPremium: number[];
+    adDay: string; // UTC day key of the last rewarded-ad level advance
+    adUsed: number; // ad advances consumed on adDay
+    permanents: string[];
+    completions: Record<string, number>;
+    stacks: number;
+  };
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -277,8 +308,10 @@ export interface TutorialSave {
 // v28→v29: Mulligan overhaul — piece EXCLUSIVITY (one tower per piece; cross-tower dupes
 // sanitize away), reforge fields (locked + reforges — docs/MULLIGANS.md §reforge).
 // v29→v30: Ichor Exchange window record (ichorExchange — docs/MARKET.md §exchange).
+// v30→v31: Wardrobe (account cosmetics: owned/equipped/favorites/milestones/reveal queue —
+// docs/COSMETICS.md §wardrobe) + Battle Pass season record (docs/BATTLEPASS.md).
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 30;
+export const CURRENT_VERSION = 31;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -569,6 +602,8 @@ export function defaultSave(): SaveData {
     lifetimeIchor: 0,
     market: { window: 0, bought: [], seenWindow: 0, starter: false },
     ichorExchange: { window: 0, reserve: 0, bought: [] },
+    wardrobe: defaultWardrobe(),
+    battlePass: { window: 0, xp: 0, premium: false, claimedFree: [], claimedPremium: [], adDay: '', adUsed: 0, permanents: [], completions: {}, stacks: 0 },
     mulligans: emptyMulligansByTower(),
     mulliganDex: {},
   };
@@ -667,6 +702,64 @@ function sanitizeCosmetics(raw: unknown): SaveData['cosmetics'] {
   };
   fill(o.towers, 'tower', out.towers);
   fill(o.heroes, 'hero', out.heroes);
+  return out;
+}
+
+/** A fresh Wardrobe: starter items owned + pre-seen (no NEW noise on first boot), nothing
+ *  equipped ({} = the classic look everywhere — golden-safe). */
+function defaultWardrobe(): SaveData['wardrobe'] {
+  const starters = starterItems().map((d) => d.id);
+  return { owned: [...starters], equipped: {}, favorites: [], seen: [...starters], milestones: [], pendingReveal: [] };
+}
+
+function sanitizeWardrobe(raw: unknown): SaveData['wardrobe'] {
+  const out = defaultWardrobe();
+  if (!raw || typeof raw !== 'object') return out;
+  const o = raw as Record<string, unknown>;
+  const ids = (v: unknown): string[] =>
+    Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && wardrobeItem(x) !== undefined))] : [];
+  out.owned = [...new Set([...out.owned, ...ids(o.owned)])]; // starters are always owned
+  const ownedSet = new Set(out.owned);
+  out.favorites = ids(o.favorites).filter((id) => ownedSet.has(id));
+  out.seen = [...new Set([...out.seen, ...ids(o.seen)])];
+  out.pendingReveal = ids(o.pendingReveal).filter((id) => ownedSet.has(id));
+  if (o.milestones && Array.isArray(o.milestones)) {
+    out.milestones = [...new Set(o.milestones.filter((x): x is string => typeof x === 'string' && wardrobeMilestone(x) !== undefined))];
+  }
+  if (o.equipped && typeof o.equipped === 'object') {
+    for (const k of WARDROBE_KINDS) {
+      const v = (o.equipped as Record<string, unknown>)[k.id];
+      if (typeof v !== 'string' || !ownedSet.has(v)) continue;
+      const def = wardrobeItem(v);
+      if (def && def.kind === k.id) out.equipped[k.id as WardrobeKind] = v;
+    }
+  }
+  return out;
+}
+
+function sanitizeBattlePass(raw: unknown): SaveData['battlePass'] {
+  const out: SaveData['battlePass'] = { window: 0, xp: 0, premium: false, claimedFree: [], claimedPremium: [], adDay: '', adUsed: 0, permanents: [], completions: {}, stacks: 0 };
+  if (!raw || typeof raw !== 'object') return out;
+  const o = raw as Record<string, unknown>;
+  const nat = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
+  out.window = nat(o.window);
+  out.xp = nat(o.xp);
+  out.premium = o.premium === true;
+  const levels = (v: unknown): number[] =>
+    Array.isArray(v) ? [...new Set(v.map(nat).filter((n) => n >= 1 && n <= BP.levels))] : [];
+  out.claimedFree = levels(o.claimedFree);
+  out.claimedPremium = levels(o.claimedPremium);
+  out.adDay = typeof o.adDay === 'string' ? o.adDay : '';
+  out.adUsed = nat(o.adUsed);
+  out.stacks = nat(o.stacks);
+  if (Array.isArray(o.permanents)) {
+    out.permanents = [...new Set(o.permanents.filter((x): x is string => typeof x === 'string' && passPassive(x) !== undefined))];
+  }
+  if (o.completions && typeof o.completions === 'object') {
+    for (const [k, v] of Object.entries(o.completions as Record<string, unknown>)) {
+      if (seasonById(k) && nat(v) > 0) out.completions[k] = nat(v);
+    }
+  }
   return out;
 }
 
@@ -868,6 +961,8 @@ function withDefaults(data: SaveData): SaveData {
     // Mulligan system (docs/MULLIGANS.md): pre-v26 saves ⇒ empty organisms + empty dex.
     mulligans: sanitizeMulligans((data as { mulligans?: unknown }).mulligans),
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
+    wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
+    battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
   });
 }
 

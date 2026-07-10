@@ -76,12 +76,17 @@ function ensure(): boolean {
 
 const t = (): number => ctx!.currentTime;
 
+// Wardrobe audio packs (docs/COSMETICS.md §wardrobe): a transient family pitch factor applied
+// around one cue dispatch — tone()/noise() read it, so EVERY synth in the family re-voices
+// without touching each cue function. 1 = classic. Per-unit Phenotype variants win over it.
+let wdPitch = 1;
+
 function tone(freq: number, dur: number, type: OscillatorType, peak: number, slideTo?: number): void {
   if (voices >= MAX_VOICES) return;
   const o = ctx!.createOscillator();
   o.type = type;
-  o.frequency.setValueAtTime(freq, t());
-  if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), t() + dur);
+  o.frequency.setValueAtTime(freq * wdPitch, t());
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo * wdPitch), t() + dur);
   const g = ctx!.createGain();
   g.gain.setValueAtTime(0.0001, t());
   g.gain.exponentialRampToValueAtTime(peak, t() + Math.min(0.02, dur * 0.3));
@@ -100,8 +105,8 @@ function noise(dur: number, peak: number, filterFreq: number, slideTo?: number):
   src.buffer = noiseBuf;
   const f = ctx!.createBiquadFilter();
   f.type = 'lowpass';
-  f.frequency.setValueAtTime(filterFreq, t());
-  if (slideTo) f.frequency.exponentialRampToValueAtTime(Math.max(60, slideTo), t() + dur);
+  f.frequency.setValueAtTime(filterFreq * wdPitch, t());
+  if (slideTo) f.frequency.exponentialRampToValueAtTime(Math.max(60, slideTo * wdPitch), t() + dur);
   const g = ctx!.createGain();
   g.gain.setValueAtTime(peak, t());
   g.gain.exponentialRampToValueAtTime(0.0001, t() + dur);
@@ -146,6 +151,22 @@ function sTfZap(i: number, vf = 1): void { tone((640 + i * 45) * vf, 0.07, 'sawt
 function sTfTing(i: number, vf = 1): void { tone((1400 - i * 60) * vf, 0.09, 'sine', 0.045, 1900 * vf); tone((2050 - i * 80) * vf, 0.06, 'sine', 0.025); } // crystalline ting
 /** Phenotype sfx variants → pitch factors (audible identity shift on the same synth). */
 const VARIANT_PITCH: Record<string, number> = { deep: 0.72, crisp: 1.32, wet: 0.86, aetheric: 1.16 };
+
+// ── Wardrobe audio packs (docs/COSMETICS.md §wardrobe) — GLOBAL cue-family variants. Each
+//    equipped pack re-voices its family through the same VARIANT_PITCH vocabulary. A per-unit
+//    Phenotype `~variant` on the tag wins over the global pack (specific beats global).
+interface WardrobeCueFamilies { tower?: string; enemy?: string; notif?: string; hero?: string; wave?: string }
+let wdFamilies: WardrobeCueFamilies = {};
+/** The family the tag belongs to → its equipped variant pitch (1 when nothing is equipped). */
+function wardrobeFamilyPitch(tag: string): number {
+  const v = tag.startsWith('tfire_') || tag.startsWith('br_') ? wdFamilies.tower
+    : tag.startsWith('edie_') || tag === 'kill' ? wdFamilies.enemy
+      : tag === 'achieve' || tag === 'reveal' ? wdFamilies.notif
+        : tag === 'ability' ? wdFamilies.hero
+          : tag === 'wave' || tag === 'clear' ? wdFamilies.wave
+            : undefined;
+  return v ? VARIANT_PITCH[v] ?? 1 : 1;
+}
 // ── Hive Siege voices (docs/HIVE-SIEGE.md §audio) ──
 function sHiveHit(): void { tone(72, 0.14, 'sine', 0.16, 48); noise(0.07, 0.07, 420, 90); } // a wet chitin THUD — one per landed bite (capped per tick)
 function sHiveGroan(): void { // the organism groans as a damage state fails (75/50/25/10%)
@@ -405,6 +426,8 @@ export const audio = {
         }
       }
       const d = at < 0 ? 0 : Math.min(1, Math.max(0, (Number(core.slice(at + 1)) - 1) / 4));
+      // Wardrobe pack re-voicing: only when NO per-unit variant rode the tag (vf === 1).
+      wdPitch = vf === 1 ? wardrobeFamilyPitch(tag) : 1;
       switch (tag) {
         case 'hit': for (let i = 0; i < Math.min(3, n); i++) sHit(i); break;
         case 'kill': for (let i = 0; i < Math.min(5, n); i++) sKill(); break;
@@ -499,6 +522,12 @@ export const audio = {
         case 'br_collapse': sBrPsi(d); break; // Rift Event Horizon — a psionic void pull
         case 'br_annihilate': for (let i = 0; i < Math.min(2, n); i++) sBrStorm(d); break; // Rift Annihilation Core — a roaring crush
       }
+      wdPitch = 1; // family re-voicing scopes to one dispatch — never leaks across cues
     }
+  },
+  /** Install the equipped Wardrobe audio packs (docs/COSMETICS.md §wardrobe). Each value is a
+   *  VARIANT_PITCH id ('deep'/'crisp'/'wet'/'aetheric'); undefined = that family stays classic. */
+  setWardrobeCues(families: { tower?: string; enemy?: string; notif?: string; hero?: string; wave?: string }): void {
+    wdFamilies = families;
   },
 };

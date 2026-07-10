@@ -42,12 +42,15 @@ import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
-import { PhenotypeLab } from './PhenotypeLab';
+import { Wardrobe } from './Wardrobe';
+import { BattlePassScreen } from './BattlePassScreen';
+import { WardrobeReveal } from './components/WardrobeReveal';
+import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
-  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily'
+  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'season'
   | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans'
   | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
@@ -68,6 +71,7 @@ const navGroups = (): NavGroup[] => [
     { key: 'infinite', label: t('nav.infinite'), mono: '∞' },
     { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
     { key: 'daily', label: t('nav.daily'), mono: '☀' },
+    { key: 'season', label: t('nav.season'), mono: '❁' },
   ] },
   { title: t('nav.group.progression'), accent: 'var(--kinetic)', items: [
     { key: 'towers', label: t('nav.towers'), mono: 'T' },
@@ -256,6 +260,15 @@ export function Hub({
     music.setScene(nav);
     return () => music.setScene(null); // leaving the hub (into a run) clears the bias
   }, [nav]);
+  // Wardrobe dressing (docs/COSMETICS.md §wardrobe): re-apply the equipped payloads to the
+  // shell/audio/music/render kit whenever an equip changes. Idempotent + cheap.
+  useEffect(() => { applyWardrobeDressing(save); }, [save.wardrobe.equipped]);
+  // Season heartbeat: advance the pass window while the hub is open (rollover auto-claims).
+  useEffect(() => {
+    meta.pollBattlePass(Date.now());
+    const t = window.setInterval(() => meta.pollBattlePass(Date.now()), 60_000);
+    return () => window.clearInterval(t);
+  }, []);
 
   const go = (k: NavKey): void => {
     audio.cue('ui');
@@ -271,6 +284,7 @@ export function Hub({
   return (
     <div className="hub">
       <LabAtmosphere />
+      <WardrobeReveal />
       {navOpen && <div className="hub-nav-veil" onClick={() => setNavOpen(false)} aria-hidden />}
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
@@ -390,7 +404,8 @@ export function Hub({
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}
-          {nav === 'phenotypes' && <PhenotypeLab />}
+          {nav === 'season' && <BattlePassScreen />}
+          {nav === 'phenotypes' && <Wardrobe />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'store' && <PremiumStore />}
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}

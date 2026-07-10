@@ -186,33 +186,37 @@ export const FEATURES: FeatureDef[] = [
     blurb: 'Rank badges and bonuses for everything you catalogue.', condition: { kind: 'stage', stage: 5 },
     because: 'By stage 5 several enemy families, cards and drops exist to catalogue — rank bonuses stop being abstract.', teach: 'collection-codex' },
 
+  { kind: 'screen', id: 'season', name: 'Season Pass', glyph: '❁', order: 15,
+    blurb: 'A rotating reward season fed by everything you play.', condition: { kind: 'stage', stage: 5 },
+    because: 'XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it.', teach: 'season-pass' },
+
   // ── Stage 6–8: the collection meta-layer + monetization LAST. ──
-  { kind: 'screen', id: 'gearcodex', name: 'Gear Codex', glyph: '❑', order: 15,
+  { kind: 'screen', id: 'gearcodex', name: 'Gear Codex', glyph: '❑', order: 16,
     blurb: 'The full equipment gallery, sets and all.', condition: { kind: 'stage', stage: 6 },
     because: 'A collection layer OVER gear — lands after the Armory habit forms; undiscovered silhouettes become goals.', teach: 'gear-codex' },
-  { kind: 'screen', id: 'mulligans', name: 'Mulligan Lab', glyph: '⊛', order: 16,
+  { kind: 'screen', id: 'mulligans', name: 'Mulligan Lab', glyph: '⊛', order: 17,
     blurb: 'Graft living organisms onto your towers.', condition: { kind: 'any', of: [{ kind: 'mulligans' }, { kind: 'stage', stage: 7 }] },
     because: 'Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency.', teach: 'mulligans' },
-  { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 17,
+  { kind: 'screen', id: 'phenotypes', name: 'Phenotype Lab', glyph: '❖', order: 18,
     blurb: 'Cosmetic phenotypes for every strain and champion.', condition: { kind: 'stage', stage: 7 },
     because: 'Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades.', teach: 'phenotype-lab' },
-  { kind: 'screen', id: 'store', name: 'Premium Store', glyph: '✷', order: 18,
+  { kind: 'screen', id: 'store', name: 'Premium Store', glyph: '✷', order: 19,
     blurb: 'Optional support — never the path.', condition: { kind: 'stage', stage: 8 },
     because: 'Monetization reveals LAST among the mid-game (docs/PREMIUM-STORE.md): the game proves itself before it asks.', teach: 'premium-store' },
 
   // ── Stage 10: the third pillar. ──
-  { kind: 'screen', id: 'bossrush', name: 'Boss Rush', glyph: '☠', order: 19,
+  { kind: 'screen', id: 'bossrush', name: 'Boss Rush', glyph: '☠', order: 20,
     blurb: 'The gauntlet: wave N is N bosses.', condition: { kind: 'any', of: [{ kind: 'stage', stage: MODE_UNLOCKS.bossRush }, { kind: 'rushHistory' }] },
     because: 'The established gate: the skill-check pillar arrives once builds are real. History grandfathers.', teach: 'boss-rush' },
 
   // ── Currencies (top bar) — appear when they exist or their sink reveals. ──
-  { kind: 'currency', id: 'cur:ichor', name: 'Ichor', glyph: '🩸', order: 20,
+  { kind: 'currency', id: 'cur:ichor', name: 'Ichor', glyph: '🩸', order: 21,
     blurb: 'The organism’s black blood.', condition: { kind: 'any', of: [{ kind: 'ichor' }, { kind: 'stage', stage: 3 }] },
     because: 'Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose.' },
-  { kind: 'currency', id: 'cur:mats', name: 'Materials', glyph: '⊕', order: 21,
+  { kind: 'currency', id: 'cur:mats', name: 'Materials', glyph: '⊕', order: 22,
     blurb: 'Mutagen · Scrap · Catalyst.', condition: { kind: 'any', of: [{ kind: 'mats' }, { kind: 'stage', stage: 6 }] },
     because: 'Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak.' },
-  { kind: 'currency', id: 'cur:cells', name: 'Ascendant Cells', glyph: '✦', order: 22,
+  { kind: 'currency', id: 'cur:cells', name: 'Ascendant Cells', glyph: '✦', order: 23,
     blurb: 'The prestige currency.', condition: { kind: 'any', of: [{ kind: 'molted' }, { kind: 'stage', stage: 9 }] },
     because: 'Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless.' },
 ];

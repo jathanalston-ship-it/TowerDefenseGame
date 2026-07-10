@@ -79,7 +79,7 @@ export function PhenotypeLab(): JSX.Element {
       window.setTimeout(() => setGrown(null), 3500);
     }
   };
-  const codex = meta.collection().categories.find((c) => c.id === 'cosmetics');
+  const codex = meta.collection().categories.find((c) => c.id === 'towerSkins');
 
   return (
     <div className="panel pl-panel">

@@ -12,6 +12,21 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Story Cutscenes & Memory Archive",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New system: Progression Gating & Director",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New system: Battle Pass (Season)",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Public Intelligence Layer",
         "major": true
       },
@@ -137,6 +152,38 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Market: Ichor Exchange — reserve-scaled 30-min barter lots for cores, essence & scrap"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Story cutscenes — unlockable animated films, the Memory Archive, and THE RULE"
+      },
+      {
+        "cat": "Music",
+        "text": "Complete adaptive soundtrack overhaul — motif score, boss themes, stingers, console"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Prestige overhaul — the Molt Chamber: live chamber, decision support, ceremony, tree wings"
+      },
+      {
+        "cat": "Framework",
+        "text": "Progression gating framework — the game reveals itself one beat at a time"
+      },
+      {
+        "cat": "Music",
+        "text": "Css: tap-floor for dev-panel inputs (Music Console under ?debug on touch)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons"
+      },
+      {
+        "cat": "Audio",
+        "text": "Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX"
       }
     ]
   },

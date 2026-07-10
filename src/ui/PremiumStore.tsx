@@ -52,6 +52,7 @@ function grantLine(g: PremiumGrant): { icon: string; label: string; rarity?: str
     case 'runCache': return { icon: '⬢', label: `${g.count}× Run Cache` };
     case 'equipment': return { icon: '⛨', label: `${g.count}× ${g.rarity} Equipment`, rarity: g.rarity };
     case 'rushStamina': return { icon: '☠', label: `${g.qty} Rush Stamina` };
+    case 'battlePassPremium': return { icon: '❁', label: 'Premium track — current season' };
   }
 }
 

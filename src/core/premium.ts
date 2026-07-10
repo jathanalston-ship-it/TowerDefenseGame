@@ -35,10 +35,11 @@ export type PremiumGrant =
   | { grant: 'container'; rarity: PremiumContainerRarity; count: number } // cracks in the Vault
   | { grant: 'runCache'; count: number } // a standard Run Cache container
   | { grant: 'equipment'; rarity: PremiumEquipRarity; count: number } // rolled by the normal generator
-  | { grant: 'rushStamina'; qty: number };
+  | { grant: 'rushStamina'; qty: number }
+  | { grant: 'battlePassPremium' }; // unlock the CURRENT season's premium track (docs/BATTLEPASS.md)
 
 // ── The offer definition ──────────────────────────────────────────────────────
-export type PremiumOfferKind = 'ichor' | 'permanent' | 'rotating' | 'event';
+export type PremiumOfferKind = 'ichor' | 'permanent' | 'rotating' | 'event' | 'season';
 
 export interface PremiumOfferDef {
   id: string;
@@ -68,6 +69,7 @@ export const premiumRegistry = new Registry<PremiumOfferDef>('premiumOffer', {
     if (d.kind === 'permanent' && d.limit !== 1) out.push('permanent packs must be limit: 1');
     if (d.kind === 'rotating' && d.rotationIndex === undefined) out.push('rotating packs need rotationIndex');
     if (d.kind === 'event' && !d.window) out.push('event offers need a date window');
+    if (d.kind === 'season' && !d.grants.some((g) => g.grant === 'battlePassPremium')) out.push('season offers must grant battlePassPremium');
     return out;
   },
 });
@@ -190,7 +192,18 @@ export const ROTATING_PACKS: PremiumOfferDef[] = [
   },
 ];
 
-export const PREMIUM_OFFERS: PremiumOfferDef[] = [...ICHOR_BUNDLES, ...PERMANENT_PACKS, ...ROTATING_PACKS];
+// ── Season Pass — the Battle Pass premium track, once per rotation ────────────
+// Repurchasable each season (meta gates on the live record: unavailable while premium is
+// already owned this window). The in-game Ichor path (BP.premiumIchor) prices at the same
+// $9.99 anchor — two doors, one flag.
+export const SEASON_PASS_OFFER: PremiumOfferDef = {
+  id: 'bp_premium', kind: 'season',
+  name: 'Season Pass — Premium', tagline: 'Unlock the current season’s premium reward track.',
+  audience: 'Every commander', priceUsd: 9.99, accent: 'var(--gold)', art: '❁',
+  grants: [{ grant: 'battlePassPremium' }],
+};
+
+export const PREMIUM_OFFERS: PremiumOfferDef[] = [...ICHOR_BUNDLES, ...PERMANENT_PACKS, ...ROTATING_PACKS, SEASON_PASS_OFFER];
 premiumRegistry.registerAll(PREMIUM_OFFERS);
 
 // ── Availability ──────────────────────────────────────────────────────────────
@@ -247,6 +260,9 @@ export function offerValueIchor(offer: PremiumOfferDef): number {
       case 'runCache': v += VALUE.runCacheIchor * g.count; break;
       case 'equipment': v += (MARKET.equipPrice[g.rarity] ?? 12) * g.count; break;
       case 'rushStamina': v += g.qty * VALUE.staminaIchor; break;
+      // The in-game Ichor door for the same unlock (BP.premiumIchor — battlePass.test.ts pins
+      // this constant against core/battlePass.ts; hardcoded to keep the functions/ bundle lean).
+      case 'battlePassPremium': v += 250; break;
     }
   }
   return Math.round(v);

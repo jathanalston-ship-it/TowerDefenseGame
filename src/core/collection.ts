@@ -19,11 +19,18 @@ import { CHASSIS } from './boss';
 import { megaBossRegistry } from './megaboss';
 import { BIOMES } from './biomes';
 import { cosmeticRegistry } from './cosmetics';
+import type { CosmeticDef } from './cosmetics';
+import { wardrobeGroupItems } from './wardrobe';
+import type { WardrobeGroup } from './wardrobe';
 import { MULLIGAN_RARITY, mulliganRegistry, rarityAtLeast } from './mulligan';
 import type { MulliganRarity } from './mulligan';
 import type { LifetimeStats } from './types';
 
-export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests' | 'cosmetics' | 'mulligans' | 'mulliganOrganisms';
+export type CollectionCategoryId =
+  | 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests'
+  | 'towerSkins' | 'heroSkins' // unit Phenotypes, split per target (docs/COSMETICS.md)
+  | 'wardrobeArena' | 'wardrobeAudio' | 'wardrobeInterface' | 'wardrobeIdentity' // Wardrobe codices (§wardrobe)
+  | 'mulligans' | 'mulliganOrganisms';
 
 export interface CollectionEntry {
   id: string;
@@ -69,7 +76,8 @@ export interface CollectionContext {
   megaPerfect: Set<string>; // …defeated with zero Nucleus integrity lost
   megaSpeed: Set<string>; // …defeated faster than the expected kill time
   biomesSeen: Set<string>; // biome ids the account has reached in Campaign
-  cosmeticsOwned: Set<string>; // Phenotype ids owned (docs/COSMETICS.md) — drives the Phenotypes codex
+  cosmeticsOwned: Set<string>; // Phenotype ids owned (docs/COSMETICS.md) — drives the skin codices
+  wardrobeOwned: Set<string>; // Wardrobe item ids owned (§wardrobe) — drives the four Wardrobe codices
   mulliganDex: Record<string, MulliganRarity>; // Mulligan modifier id → best DISCOVERED rarity — drives the Pieces codex
   /** Per-tower organism status (docs/MULLIGANS.md §collection) — complete Mulligans are their
    *  own codex, SEPARATE from pieces: awake (all three grafts) is tier 1, reforge-locked is tier 2. */
@@ -204,11 +212,23 @@ export function collectionView(ctx: CollectionContext): CollectionView {
   });
 
   // Phenotypes (docs/COSMETICS.md): owned = expressed. Registry-driven like everything else,
-  // so new towers/heroes (and new theme families) extend the codex automatically.
-  const cosmetics = cosmeticRegistry.all().map((c) => {
+  // so new towers/heroes (and new theme families) extend the codices automatically. Split per
+  // target — Tower Skins and Hero Skins are separate collections (§wardrobe).
+  const phenoEntry = (c: CosmeticDef): CollectionEntry => {
     const tier = ctx.cosmeticsOwned.has(c.id) ? 1 : 0;
     return { id: c.id, name: c.name, tier, maxTier: 1, tierLabel: tier ? 'Expressed' : 'Dormant' };
-  });
+  };
+  const towerSkins = cosmeticRegistry.all().filter((c) => c.target.kind === 'tower').map(phenoEntry);
+  const heroSkins = cosmeticRegistry.all().filter((c) => c.target.kind === 'hero').map(phenoEntry);
+
+  // Wardrobe codices (docs/COSMETICS.md §wardrobe): one collection per cosmetic GROUP —
+  // arena FX, audio packs, interface shells, commander identity. Registry-driven: a new
+  // wardrobe item joins its group's codex (and the completion math) by itself.
+  const wardrobeCat = (group: WardrobeGroup): CollectionEntry[] =>
+    wardrobeGroupItems(group).map((d) => {
+      const tier = ctx.wardrobeOwned.has(d.id) ? 1 : 0;
+      return { id: d.id, name: d.name, tier, maxTier: 1, tierLabel: tier ? 'Fitted' : 'Unclaimed' };
+    });
 
   // Mulligan Modifiers (docs/MULLIGANS.md §collection): tiered MASTERY over the dex —
   // discovering the modifier is tier 1, seeing it at Legendary-or-better is tier 2 — so the
@@ -242,7 +262,12 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('equipment', 'Armory', equipment),
     makeCategory('biomes', 'Biomes', biomes),
     makeCategory('chests', 'Caches', chests),
-    makeCategory('cosmetics', 'Phenotypes', cosmetics),
+    makeCategory('towerSkins', 'Tower Skins', towerSkins),
+    makeCategory('heroSkins', 'Hero Skins', heroSkins),
+    makeCategory('wardrobeArena', 'Arena FX', wardrobeCat('arena')),
+    makeCategory('wardrobeAudio', 'Audio Packs', wardrobeCat('audio')),
+    makeCategory('wardrobeInterface', 'Interface', wardrobeCat('interface')),
+    makeCategory('wardrobeIdentity', 'Identity', wardrobeCat('identity')),
     makeCategory('mulligans', 'Mulligan Pieces', mulligans),
     makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
   ];
@@ -282,7 +307,17 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   biomes: { effects: [], econ: [{ key: 'campaignRewardMult', max: 0.2, label: 'Campaign Rewards' }], powerWeight: 0.03 },
   chests: { effects: [], econ: [], powerWeight: 0 }, // caches are cosmetic (discovered on a fresh save → no bonus)
   // Phenotype expression pays a small hive-wide vigor edge — visual mastery with real teeth.
-  cosmetics: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.06, label: 'Biomass' }], econ: [], powerWeight: 0.03 },
+  // Split across the two skin codices (the old 6% biomass, halved each — same total at 100%).
+  towerSkins: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.03, label: 'Biomass' }], econ: [], powerWeight: 0.02 },
+  heroSkins: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.03, label: 'Biomass' }], econ: [], powerWeight: 0.02 },
+  // Wardrobe codices (docs/COSMETICS.md §wardrobe) stay STRICTLY cosmetic: zero Power, zero
+  // effects — starter items are pre-owned, so ANY weight would move a fresh account off
+  // POWER_BASE (the chests precedent). Their real payout is the milestone track
+  // (Ichor/containers/cores/shards/exclusive cosmetics via WARDROBE_MILESTONES).
+  wardrobeArena: { effects: [], econ: [], powerWeight: 0 },
+  wardrobeAudio: { effects: [], econ: [], powerWeight: 0 },
+  wardrobeInterface: { effects: [], econ: [], powerWeight: 0 },
+  wardrobeIdentity: { effects: [], econ: [], powerWeight: 0 },
   // Modifier mastery (docs/MULLIGANS.md §collection) quickens every graft host: run-wide fire
   // rate at full completion — the set bonus for sequencing the whole modifier library.
   mulligans: { effects: [{ op: 'mul', field: 'towerFireRateMult', max: 1.05, label: 'Fire Rate' }], econ: [], powerWeight: 0.03 },

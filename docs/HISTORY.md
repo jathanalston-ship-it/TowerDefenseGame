@@ -44,3 +44,16 @@
 - `f340e97` **[Gameplay]** Infestation map: collapse to a one-line teaser while dormant
 - `da845a4` **[Gameplay]** Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony
 - `4b29f33` **[Gameplay]** Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony
+- `bd303fa` **[Gameplay]** Market: Ichor Exchange — reserve-scaled 30-min barter lots for cores, essence & scrap
+- `71e06a9` **[Gene Cards]** Story cutscenes — unlockable animated films, the Memory Archive, and THE RULE
+- `a5d6182` **[Music]** Complete adaptive soundtrack overhaul — motif score, boss themes, stingers, console
+- `d65feb5` **[Gameplay]** Prestige overhaul — the Molt Chamber: live chamber, decision support, ceremony, tree wings
+- `bc7108d` **[Framework]** Progression gating framework — the game reveals itself one beat at a time
+- `b62a49b` **[UI]** Dil+docs: regen graphs over the merged tree (menu overhaul + cutscenes rebase) _(internal)_
+- ⚑ `ec9c36d` **[Framework]** Validate: refresh VALIDATION_REPORT over the merged tree _(internal)_
+- `9899e35` **[Music]** Regen graphs + validation report over the soundtrack-rebase tree _(internal)_
+- `52ad8b1` **[Music]** Css: tap-floor for dev-panel inputs (Music Console under ?debug on touch)
+- ⚑ `9ef3ff5` **[Framework]** Regen graphs + validation over the Molt Chamber rebase _(internal)_
+- `cb9a1c8` **[Gameplay]** Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons
+- `c15ba09` **[Audio]** Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX
+- `8db8161` **[Gameplay]** Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons

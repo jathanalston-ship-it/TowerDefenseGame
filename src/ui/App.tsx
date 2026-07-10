@@ -26,6 +26,7 @@ import { WelcomeGate, ConflictModal } from './components/AccountPanel';
 import { isDebugEnabled } from '../debug/debug';
 import { meta, metaModifiers } from '../state/meta';
 import { audio } from '../audio/sound';
+import { applyWardrobeDressing } from './wardrobeDressing';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { HeroKind, HeroProgress, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
@@ -112,6 +113,9 @@ export function App(): JSX.Element {
   useEffect(() => {
     audio.setEnabled(sfxPref());
     music.setEnabled(musicPref());
+    // Wardrobe dressing on boot (docs/COSMETICS.md §wardrobe): covers reload-into-run paths
+    // that never mount the Hub (which re-applies on every equip change).
+    applyWardrobeDressing(meta.get());
   }, []);
 
   // Touch tooltips (docs/RESPONSIVE-DESIGN.md §touch): hover-less pointers TAP a .tt to
@@ -176,7 +180,7 @@ export function App(): JSX.Element {
 
     // Battlefield-global run effects: Genome Core seam + collection bonuses + any Campaign-event
     // Mutation boon the player chose before deploying (docs/CAMPAIGN-EVENTS.md).
-    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...extraRunEffects];
+    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...meta.battlePassRunEffects(), ...extraRunEffects];
     modeRef.current = mode;
     stageRef.current = stage;
     // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of

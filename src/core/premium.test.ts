@@ -61,7 +61,9 @@ describe('pack value — worthwhile, never a skip', () => {
         if (g.grant === 'container') expect(['common', 'rare', 'epic', 'legendary']).toContain(g.rarity); // exotic = market-only
         // The grant LANGUAGE itself has no campaign/prestige/evolution/hero-slot verbs — asserting
         // the union stays closed keeps future offers inside the safeguards by construction.
-        expect(['ichor', 'cores', 'geneEssence', 'mats', 'towerShardsAll', 'heroShardsAll', 'container', 'runCache', 'equipment', 'rushStamina']).toContain(g.grant);
+        // battlePassPremium unlocks a COSMETIC-first reward track (docs/BATTLEPASS.md §no-pay-to-win),
+        // never direct power — its premium permanents are economy-only by type.
+        expect(['ichor', 'cores', 'geneEssence', 'mats', 'towerShardsAll', 'heroShardsAll', 'container', 'runCache', 'equipment', 'rushStamina', 'battlePassPremium']).toContain(g.grant);
       }
     }
   });
