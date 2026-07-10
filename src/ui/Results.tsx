@@ -18,6 +18,8 @@ import { LoopDirective, NextGoalCliffhanger } from './NextGoalBanner';
 import { BiomassIcon } from './components/Icon';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { FieldResearchCard } from './components/FieldResearch';
+import { rewardLine } from './components/AccountXpBar';
+import { audio } from '../audio/sound';
 import { ShareReplayButton } from './components/ShareReplay';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 
@@ -97,6 +99,11 @@ export function Results({
   useEffect(() => {
     if (firstClear) music.stinger('chapter');
   }, [firstClear]);
+  // Account level-ups crossed this run land the dedicated cue as the capsule opens.
+  const acctLevelled = outcome.accountXp.levelUps.length > 0;
+  useEffect(() => {
+    if (acctLevelled) audio.cue('levelup');
+  }, [acctLevelled]);
   const flawlessNotice: { tone: 'earned' | 'miss'; text: string } | null =
     !fc ? null
     : fc.earned ? { tone: 'earned', text: 'Flawless clear — bonus Flawless Cache secured! No damage taken.' }
@@ -203,6 +210,37 @@ export function Results({
             </div>
           );
         })}
+      </div>
+    ) : undefined,
+  });
+
+  // 2b — ACCOUNT LEVEL (docs/ACCOUNT-LEVEL.md): the account-wide XP lane — every run pays in.
+  // The bar fills toward the NEXT level (post-run state); crossed levels list their rewards.
+  const axp = outcome.accountXp;
+  const acct = meta.accountLevel();
+  const acctMilestone = axp.levelUps.some((l) => l.milestone);
+  categories.push({
+    id: 'account',
+    title: 'Account Level',
+    icon: '⬆',
+    accent: 'var(--viral)',
+    summary: axp.levelUps.length > 0
+      ? `+${num(axp.gained)} XP · LEVEL ${axp.to}${acctMilestone ? ' · ✦ MILESTONE' : ''}`
+      : `+${num(axp.gained)} XP · LV ${acct.level}`,
+    stats: [
+      { id: 'axp', label: 'Account XP Earned', value: axp.gained, format: (n) => `${n.toLocaleString()} XP`, accent: 'var(--viral)', bar: Math.min(1, acct.into / Math.max(1, acct.need)) },
+      axp.levelUps.length > 0
+        ? { id: 'alevel', label: 'Account Level', value: axp.to, format: (n) => `LV ${axp.from} → ${n}`, accent: acctMilestone ? 'var(--gold)' : 'var(--viral)', celebrate: true }
+        : { id: 'alevel', label: 'Account Level', value: acct.level, format: (n) => `LV ${n} · ${num(acct.into)}/${num(acct.need)} XP`, },
+    ],
+    extra: axp.levelUps.length > 0 ? (
+      <div className="axp-runups">
+        {axp.levelUps.map((lu) => (
+          <div className={`axp-runup${lu.milestone ? ' is-milestone' : ''}`} key={lu.level}>
+            <b>{lu.milestone ? '✦' : '⬆'} Level {lu.level}</b>
+            <span>{rewardLine(lu.reward)}</span>
+          </div>
+        ))}
       </div>
     ) : undefined,
   });

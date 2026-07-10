@@ -85,6 +85,8 @@ import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
 import { unlatchedReveals } from './unlocks';
+import { ACCOUNT_XP, accountLevelReward, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
+import type { AccountLevelReward } from '../core/accountLevel';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionEconomyBonuses, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
@@ -387,6 +389,65 @@ function megaKillExpectation(save: SaveData, k: MegaKillStat): { expected: numbe
 // save state: the unlock itself derives from megaProgress.slain; this is only the "play it
 // after THIS summary" signal.
 let pendingMegaCutscenes: string[] = [];
+
+// ── Account Level (docs/ACCOUNT-LEVEL.md) — the XP fold + level-up queue ────────────────────
+// Level-ups earned OUTSIDE a run settle (buying stars, upgrading genes, molting …) queue here
+// and are drained by the menu toaster, so a level-up is always visible wherever it happens.
+let pendingAccountLevelUps: AccountLevelUp[] = [];
+
+/** Fold gained Account XP onto a save DRAFT: lifetime + rolling week/month ledgers, then every
+ *  crossed level's procedurally generated reward (cores/essence/shards/mats/ichor/containers/
+ *  titles — through the same fields every other grant uses). Pure over the draft; the caller
+ *  persists the returned save. Crossed level-ups also queue for the menu toaster. */
+function foldAccountXp(draft: SaveData, gained: number, now = Date.now()): { save: SaveData; delta: AccountXpDelta } {
+  const g = Math.max(0, Math.round(gained));
+  const from = levelFromXp(draft.accountXp.xp);
+  if (g === 0) return { save: draft, delta: { gained: 0, from, to: from, levelUps: [] } };
+  const wk = weekKey(now);
+  const mk = monthKey(now);
+  const accountXp = {
+    xp: draft.accountXp.xp + g,
+    week: { key: wk, xp: (draft.accountXp.week.key === wk ? draft.accountXp.week.xp : 0) + g },
+    month: { key: mk, xp: (draft.accountXp.month.key === mk ? draft.accountXp.month.xp : 0) + g },
+  };
+  const to = levelFromXp(accountXp.xp);
+  let save: SaveData = { ...draft, accountXp };
+  const levelUps: AccountLevelUp[] = [];
+  for (let level = from + 1; level <= to; level++) {
+    const reward = accountLevelReward(level);
+    const towerKind = TOWER_ORDER[(level - 1) % TOWER_ORDER.length];
+    const heroKind = HERO_ORDER[(level - 1) % HERO_ORDER.length];
+    save = {
+      ...save,
+      shards: save.shards + reward.cores,
+      lifetimeShards: save.lifetimeShards + reward.cores,
+      geneEssence: save.geneEssence + reward.essence,
+      ichor: save.ichor + reward.ichor,
+      lifetimeIchor: save.lifetimeIchor + reward.ichor,
+      towerShards: reward.towerShards > 0
+        ? { ...save.towerShards, [towerKind]: (save.towerShards[towerKind] ?? 0) + reward.towerShards }
+        : save.towerShards,
+      heroShards: reward.heroShards > 0
+        ? { ...save.heroShards, [heroKind]: (save.heroShards[heroKind] ?? 0) + reward.heroShards }
+        : save.heroShards,
+      mats: {
+        mutagen: save.mats.mutagen + reward.mats.mutagen,
+        scrap: save.mats.scrap + reward.mats.scrap,
+        catalyst: save.mats.catalyst + reward.mats.catalyst,
+      },
+      pendingContainers: reward.containers.length > 0
+        ? [...save.pendingContainers, ...reward.containers.map((chestId): PendingContainer => ({ kind: 'cache', chestId }))]
+        : save.pendingContainers,
+      unlockedTitles: reward.titleId && !save.unlockedTitles.includes(reward.titleId)
+        ? [...save.unlockedTitles, reward.titleId]
+        : save.unlockedTitles,
+      timeline: reward.milestone ? pushTimeline(save.timeline, '⬆', `Account Level ${level} — milestone`) : save.timeline,
+    };
+    levelUps.push({ level, milestone: reward.milestone, reward });
+  }
+  pendingAccountLevelUps.push(...levelUps);
+  return { save, delta: { gained: g, from, to, levelUps } };
+}
 
 // Mega Boss ledger (docs/MEGA-BOSS.md §collection) — recorded the moment it happens, mirroring the
 // bossKilled pattern: kills / perfect / speed / fastest per def. Idempotent set-adds.
@@ -1150,7 +1211,14 @@ export interface RunOutcome {
   // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
   // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
   flawlessCache: { earned: boolean; firstClear: boolean; noDamage: boolean } | null;
+  // Account Level (docs/ACCOUNT-LEVEL.md): this settle's Account-XP delta — total gained (run +
+  // achievements), the before/after levels, and every level crossed with its procedural reward.
+  accountXp: AccountXpDelta;
 }
+
+/** One Account Level crossed during a settle, with its generated reward (docs/ACCOUNT-LEVEL.md). */
+export interface AccountLevelUp { level: number; milestone: boolean; reward: AccountLevelReward }
+export interface AccountXpDelta { gained: number; from: number; to: number; levelUps: AccountLevelUp[] }
 
 /** One granted line on a premium receipt — the reveal ceremony renders these. */
 export interface PremiumReceiptLine {
@@ -1222,11 +1290,11 @@ export const meta = {
     const cost = upgradeCost(def, level);
     if (save.shards < cost) return false;
     const powerBefore = meta.power().score;
-    persist({
+    persist(foldAccountXp({
       ...save,
       shards: save.shards - cost,
       upgrades: { ...save.upgrades, [id]: level + 1 },
-    });
+    }, ACCOUNT_XP.acquisition).save); // every permanent acquisition advances the account (docs/ACCOUNT-LEVEL.md)
     announcePower(`${def.name} L${level + 1} — Genome Upgrade`, powerBefore, meta.power().score);
     return true;
   },
@@ -1341,7 +1409,7 @@ export const meta = {
     if (gain < PRESTIGE.molt.minCells) return false;
     if (highestCampaignStage(save) < prestigeStageReq(save.prestige.molts)) return false; // campaign gate (PROGRESSION.md)
     saveStore.backup(); // ascensions are big + irreversible — keep a recoverable snapshot
-    persist({
+    persist(foldAccountXp({
       ...save,
       shards: 0, // reset the engine: banked Shards …
       upgrades: {}, // … and the capped meta-upgrade levels
@@ -1353,7 +1421,7 @@ export const meta = {
         nodes: save.prestige.nodes, // the Ascendant Tree is permanent — kept across Molts
       },
       timeline: pushTimeline(save.timeline, '◬', `MOLT ${save.prestige.molts + 1} — ${gain} Ascendant Cells`), // profile milestone
-    });
+    }, ACCOUNT_XP.molt).save); // a MOLT is a chapter of account history (docs/ACCOUNT-LEVEL.md)
     return true;
   },
 
@@ -1745,7 +1813,19 @@ export const meta = {
       const fedResult = feedInfestation(save.infestation.sectors, targetId, infestGain, infestNow);
       nextInfestation = { ...save.infestation, sectors: fedResult.sectors };
     }
-    persist({
+    // Account XP (docs/ACCOUNT-LEVEL.md): the run's play fold — kills, waves, bosses, mode beats.
+    // Acquisition/achievement XP land in their own folds; this is the "playing pays" lane.
+    const runXp =
+      result.kills * ACCOUNT_XP.kill +
+      bossKills * ACCOUNT_XP.bossKill +
+      (result.stats.megaKills?.length ?? 0) * ACCOUNT_XP.megaKill +
+      result.wave * ACCOUNT_XP.wave +
+      (isRush ? result.wave * ACCOUNT_XP.bossRushWavePremium : 0) +
+      (result.won ? ACCOUNT_XP.win : 0) +
+      (isCampaign && result.won ? stageNo * ACCOUNT_XP.campaignClearPerStage + (firstClear ? ACCOUNT_XP.campaignFirstClear : 0) : 0) +
+      (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0);
+    const acctXpBefore = save.accountXp.xp;
+    const settled: SaveData = {
       ...save,
       prediction,
       createdAt: save.createdAt || Date.now(),
@@ -1786,7 +1866,8 @@ export const meta = {
       // Prestige: this run's Shards count toward the current Molt cycle's mint metric.
       prestige: { ...save.prestige, cycleShards: save.prestige.cycleShards + shardsEarned },
       campaign: nextCampaign,
-    });
+    };
+    persist(foldAccountXp(settled, runXp).save);
     runLootBanked = 0; // this run is settled — re-arm the live-bank cycle for the next run
     runContainersBanked = [];
     // Run-end milestones (extract, kills, mastery, …). The Results screen shows these inline AFTER
@@ -1809,9 +1890,19 @@ export const meta = {
     const passLevelUp = this.grantPassXp('run', passXp);
     // Wardrobe auto-unlocks ride the same seam (new stage/depth/daily/rush/roulette records).
     this.pollWardrobeUnlocks();
+    // The settle's TOTAL Account-XP delta (run fold + the achievement fold inside evaluate) —
+    // drained here so Results owns this settle's level-ups (the menu toaster shows the rest).
+    const acctAfter = store.get().accountXp.xp;
+    const accountXp: AccountXpDelta = {
+      gained: acctAfter - acctXpBefore,
+      from: levelFromXp(acctXpBefore),
+      to: levelFromXp(acctAfter),
+      levelUps: pendingAccountLevelUps.splice(0),
+    };
     return {
       passXp,
       ...(passLevelUp ? { passLevelUp } : {}),
+      accountXp,
       reward: { shardsEarned, newBest },
       mastery,
       heroMastery,
@@ -2127,7 +2218,8 @@ export const meta = {
     const ichorReward = newly.reduce((n, a) => n + ichorForAchievement(a.reward ?? 0), 0);
     let timeline = save.timeline;
     for (const a of newly) timeline = pushTimeline(timeline, '✦', `Achievement — ${a.name}`); // profile milestones
-    persist({
+    // Every achievement also pays Account XP (docs/ACCOUNT-LEVEL.md) — folded into the SAME persist.
+    persist(foldAccountXp({
       ...save,
       shards: save.shards + reward,
       lifetimeShards: save.lifetimeShards + reward,
@@ -2135,7 +2227,7 @@ export const meta = {
       lifetimeIchor: save.lifetimeIchor + ichorReward,
       achievements: [...(save.achievements ?? []), ...newly.map((a) => a.id)],
       timeline,
-    });
+    }, newly.length * ACCOUNT_XP.achievement).save);
     // Achievements feed the Battle Pass (docs/BATTLEPASS.md §xp) — a flat bounty per unlock.
     this.grantPassXp('achievement', newly.length * 150);
     return newly.map((a) => a.id);
@@ -2924,11 +3016,11 @@ export const meta = {
     if (save.geneEssence < cost) return false;
     const prev = save.genes[id];
     const powerBefore = meta.power().score;
-    persist({
+    persist(foldAccountXp({
       ...save,
       geneEssence: save.geneEssence - cost,
       genes: { ...save.genes, [id]: { ...prev, level: next, upgradedAt: Date.now() } },
-    });
+    }, ACCOUNT_XP.acquisition).save);
     announcePower(`${def.name} — Gene Level ${next}`, powerBefore, meta.power().score);
     return true;
   },
@@ -3237,11 +3329,11 @@ export const meta = {
     const cost = heroStarCost(stars);
     if ((save.heroShards[kind] ?? 0) < cost) return false;
     const powerBefore = meta.power().score;
-    persist({
+    persist(foldAccountXp({
       ...save,
       heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
       heroStars: { ...save.heroStars, [kind]: stars + 1 },
-    });
+    }, ACCOUNT_XP.acquisition).save);
     announcePower(`${HERO_DEFS[kind].name} — Evolution ◈${stars + 1}`, powerBefore, meta.power().score);
     return true;
   },
@@ -3263,11 +3355,11 @@ export const meta = {
     const cost = towerStarCost(stars);
     if ((save.towerShards[kind] ?? 0) < cost) return false;
     const powerBefore = meta.power().score;
-    persist({
+    persist(foldAccountXp({
       ...save,
       towerShards: { ...save.towerShards, [kind]: (save.towerShards[kind] ?? 0) - cost },
       towerStars: { ...save.towerStars, [kind]: stars + 1 },
-    });
+    }, ACCOUNT_XP.acquisition).save);
     announcePower(`${TOWER_DEFS[kind].name} — Evolution ◈${stars + 1}`, powerBefore, meta.power().score);
     this.evaluateAchievements(); // first_star / star3
     return true;
@@ -4302,7 +4394,7 @@ export const meta = {
     const heroShards = { ...save.heroShards, [hero]: (save.heroShards[hero] ?? 0) + HSHARD };
     const container: PendingContainer = { kind: 'loot', rarity: 'rare' }; // the guaranteed Tutorial Bio-Container
     const item: OwnedItem = { uid: `tut-${Date.now().toString(36)}`, defId: 'w_quill', rarity: 'rare', affixes: [] };
-    persist({
+    persist(foldAccountXp({
       ...save,
       shards: save.shards + CORES,
       lifetimeShards: save.lifetimeShards + CORES,
@@ -4311,7 +4403,7 @@ export const meta = {
       pendingContainers: [...save.pendingContainers, container],
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, item] },
       tutorial: { ...save.tutorial, rewarded: [...save.tutorial.rewarded, id] },
-    });
+    }, ACCOUNT_XP.tutorialComplete).save); // onboarding completion is account history (docs/ACCOUNT-LEVEL.md)
     const unlocked = this.evaluateAchievements(); // grants tutorial_complete (completeTutorial ran first)
     return {
       cores: CORES, towerShards: TSHARD, heroShards: HSHARD, containerRarity: 'rare',
@@ -4354,6 +4446,26 @@ export const meta = {
     const seen = Array.from(new Set([...s.help.seen, ...ids]));
     persist({ ...s, help: { ...s.help, seen } });
   },
+  // ── Account Level (docs/ACCOUNT-LEVEL.md) ─────────────────────────────────
+  /** The live Account-Level view: level, bar progress, period ledgers, next milestone. */
+  accountLevel(): { xp: number; level: number; into: number; need: number; nextMilestone: number; weekXp: number; monthXp: number } {
+    const s = store.get();
+    const p = levelProgress(s.accountXp.xp);
+    return {
+      xp: s.accountXp.xp,
+      level: p.level,
+      into: p.into,
+      need: p.need,
+      nextMilestone: nextMilestone(p.level + 1),
+      weekXp: s.accountXp.week.key === weekKey(Date.now()) ? s.accountXp.week.xp : 0,
+      monthXp: s.accountXp.month.key === monthKey(Date.now()) ? s.accountXp.month.xp : 0,
+    };
+  },
+  /** Drain level-ups earned OUTSIDE a run settle (spends, molts …) — the menu toaster's feed. */
+  drainAccountLevelUps(): AccountLevelUp[] {
+    return pendingAccountLevelUps.splice(0);
+  },
+
   // ── Progression Director (docs/PROGRESSION-GATING.md) ─────────────────────
   /** Latch any feature whose unlock condition newly holds (save.director.revealed[id] = the
    *  totalRuns count at reveal). A latched surface never re-seals — salvaging your last gear or

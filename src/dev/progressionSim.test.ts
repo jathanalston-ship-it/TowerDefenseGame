@@ -15,9 +15,10 @@ import { Rng } from '../core/rng';
 import { PERSONAS } from './personas';
 import { FEATURES, featureRevealed } from '../state/unlocks';
 import { defaultSave } from '../save/saveStore';
+import { accountLevelReward, levelFromXp } from '../core/accountLevel';
 
 function cp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
-  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, ...p };
+  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, accountLevel: 1, ...p };
 }
 
 describe('problem detectors (synthetic traces)', () => {
@@ -82,6 +83,36 @@ describe('live mini-simulation (real meta layer)', () => {
     expect(last.molts).toBeGreaterThanOrEqual(2); // …but the milestone gate must not freeze early
     expect(last.molts).toBeLessThanOrEqual(36); // re-bounded 2026-07: the early-campaign grace retune legitimately quickens the loop (the SPIRAL detector is the early-molt bound above)
     expect(last.stage).toBeLessThanOrEqual(130); // the requirement curve still bites at CI scale
+    } finally {
+      rnd.mockRestore();
+    }
+  }, 60_000);
+
+  it('account level: the lane always moves, decelerates with depth, and its rewards stay a supplement', () => {
+    // ACCOUNT-LEVEL economy guards (docs/ACCOUNT-LEVEL.md §validation), same pinned account as
+    // the loop test. Measured 2026-07: bands [29, 48, 60], level-reward cores 2.3% of lifetime.
+    const lootRng = new Rng(0x51ce);
+    const rnd = vi.spyOn(Math, 'random').mockImplementation(() => lootRng.next());
+    try {
+      const trace = simulateAccount(0xbeef, [5, 15, 30]);
+      const [a, b, c] = trace.checkpoints.map((k) => k.accountLevel);
+      // The evergreen contract: EVERY band levels the account — whatever the loop is doing
+      // (pushing, farming, walled), the lane moves. A flat band is a broken XP source.
+      expect(a).toBeGreaterThanOrEqual(10);
+      expect(b).toBeGreaterThan(a);
+      expect(c).toBeGreaterThan(b);
+      // Progressively slower, never runaway: per-hour leveling falls band over band
+      // (5h → +29, then 10h → +19, then 15h → +12 measured), and 30h stays far under L200.
+      expect((b - a) / 10).toBeLessThan(a / 5);
+      expect((c - b) / 15).toBeLessThan((b - a) / 10);
+      expect(c).toBeLessThanOrEqual(200);
+      // Rewards SUPPLEMENT play, never replace it: the cores granted by every crossed level
+      // stay a sliver of lifetime cores (guards the curve exponents — reward ∝ n^0.7 must
+      // keep losing to requirement ∝ n^1.25; flipping them trips this loudly).
+      const s = meta.get();
+      let levelCores = 0;
+      for (let l = 2; l <= levelFromXp(s.accountXp.xp); l++) levelCores += accountLevelReward(l).cores;
+      expect(levelCores).toBeLessThan(s.lifetimeShards * 0.15);
     } finally {
       rnd.mockRestore();
     }

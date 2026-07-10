@@ -24,6 +24,10 @@ import { LoopDirective } from './NextGoalBanner';
 import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { formatPower } from '../core/power';
+import { AccountXpBar, rewardLine } from './components/AccountXpBar';
+import { ACCOUNT_TITLES, MILESTONE_LEVELS, accountLevelReward } from '../core/accountLevel';
+import { LeaderboardBlock } from './components/LeaderboardBlock';
+import type { LbMode } from '../net/leaderboard';
 
 const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'collection'];
 
@@ -43,11 +47,13 @@ function StatCell({ s }: { s: ProfileStat }): JSX.Element {
 export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => void }): JSX.Element {
   const save = meta.use();
   const banner = playerBanner(save);
+  const acct = meta.accountLevel();
   const power = powerBreakdown(save);
   const showcase = achievementShowcase(save);
   const goals = nextGoals(save, 5);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(banner.name);
+  const [board, setBoard] = useState<LbMode>('accountLevel');
   const maxShare = Math.max(1, ...power.slices.map((s) => s.share));
   // Wardrobe identity (docs/COSMETICS.md §wardrobe): the commander card wears every equipped
   // identity cosmetic — name ink, title, nameplate, backdrop, banner standard, emblem, borders.
@@ -127,6 +133,43 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
             </button>
           ))}
         </div>
+      </section>
+
+      {/* ── 1b · ACCOUNT LEVEL — the evergreen lane (docs/ACCOUNT-LEVEL.md): the full bar,
+          what the next level pays, and the milestone track. Never caps; always one more. ── */}
+      <section className="pf-block pf-axp" aria-label="Account level">
+        <div className="pf-h">Account Level</div>
+        <AccountXpBar />
+        <div className="axp-nextreward">
+          <span className="axp-nr-k">Level {acct.level + 1} pays</span>
+          <span className="axp-nr-v">{rewardLine(accountLevelReward(acct.level + 1))}</span>
+        </div>
+        <div className="axp-milestones" aria-label="Milestone track">
+          {MILESTONE_LEVELS.map((m) => {
+            const t = ACCOUNT_TITLES.find((x) => x.level === m);
+            const done = acct.level >= m;
+            return (
+              <span
+                key={m}
+                className={`axp-ms${done ? ' is-done' : ''}${m === acct.nextMilestone ? ' is-next' : ''}`}
+                title={t ? `L${m} — title: ${t.name}` : `Milestone level ${m}`}
+              >
+                {done ? '✦' : '◇'} L{m}{t ? ` ${t.name}` : ''}
+              </span>
+            );
+          })}
+          <span className="axp-ms" title="Milestones continue forever — every 500 levels beyond 1000.">∞</span>
+        </div>
+        {/* Account standings (docs/ACCOUNT-LEVEL.md §leaderboards) — all-time level plus the
+            weekly/monthly XP races. Fail-soft: offline renders the block's quiet one-liner. */}
+        <div className="axp-board-tabs" role="tablist" aria-label="Account standings board">
+          {(['accountLevel', 'weeklyXp', 'monthlyXp'] as const).map((m) => (
+            <button key={m} role="tab" aria-selected={board === m} className={`fork-opt ${board === m ? 'on' : ''}`} onClick={() => setBoard(m)}>
+              {m === 'accountLevel' ? 'Highest Level' : m === 'weeklyXp' ? 'Weekly XP' : 'Monthly XP'}
+            </button>
+          ))}
+        </div>
+        <LeaderboardBlock mode={board} key={board} />
       </section>
 
       {/* ── ACCOUNT & SYNC — where this life lives (docs/ACCOUNTS.md) ── */}

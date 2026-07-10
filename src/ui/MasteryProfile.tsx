@@ -5,12 +5,13 @@
 
 import { meta } from '../state/meta';
 import { masteryRewardById } from '../core/mastery';
+import { titleName } from '../state/profile';
 
 export function MasteryProfile(): JSX.Element {
   const save = meta.use();
   const titles = save.unlockedTitles;
   const lore = save.unlockedLore;
-  const equippedName = save.equippedTitle ? masteryRewardById(save.equippedTitle)?.name ?? save.equippedTitle : null;
+  const equippedName = save.equippedTitle ? titleName(save.equippedTitle) : null;
 
   return (
     <div className="panel">
@@ -35,7 +36,7 @@ export function MasteryProfile(): JSX.Element {
               className={`fork-opt ${save.equippedTitle === id ? 'on' : ''}`}
               onClick={() => meta.equipTitle(id)}
             >
-              {masteryRewardById(id)?.name ?? id}
+              {titleName(id)}
             </button>
           ))}
         </div>

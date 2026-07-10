@@ -253,9 +253,9 @@ class FakeStatement {
         .slice(0, 20);
       return { rows, changes: 0 };
     }
-    if (sql.startsWith('SELECT score FROM leaderboard')) {
+    if (sql.startsWith('SELECT score, wave FROM leaderboard')) {
       const row = [...db.leaderboard.values()].find((r) => r.mode === args[0] && r.day_key === args[1] && r.player_id === args[2]);
-      return { rows: row ? [{ score: row.score }] : [], changes: 0 };
+      return { rows: row ? [{ score: row.score, wave: row.wave }] : [], changes: 0 };
     }
     if (sql === 'SELECT 1') return { rows: [{ 1: 1 }], changes: 0 };
     throw new Error(`FakeD1: unsupported query — add a fake for it:\n${sql}`);

@@ -9,6 +9,7 @@ import { Results } from './Results';
 const DebugPanel = lazy(() => import('./DebugPanel').then((m) => ({ default: m.DebugPanel })));
 import { AchievementToaster } from './AchievementToaster';
 import { PowerToaster } from './components/PowerToaster';
+import { AccountLevelToast } from './components/AccountXpBar';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
 import { UpdateBriefing } from './UpdateBriefing';
@@ -478,6 +479,9 @@ export function App(): JSX.Element {
           it never overlaps the summary. On the hub (e.g. a star-buy unlock) it toasts as usual. */}
       <AchievementToaster suppressed={screen !== 'menu'} />
       {screen === 'menu' && <PowerToaster />}
+      {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
+          render inline on Results instead, so the toaster only drains on the menu. */}
+      {screen === 'menu' && <AccountLevelToast />}
       {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
       <LootToaster />
       {/* Onboarding + discovery (menu only): the HUD Tour runs once after the tutorial, then the

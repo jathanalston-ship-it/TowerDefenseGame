@@ -5,10 +5,11 @@
 
 import { meta } from '../state/meta';
 import { dailyKey } from '../core/daily';
+import { monthKey, weekKey } from '../core/accountLevel';
 import { playerId } from './identity';
 import { turnstileToken } from './turnstile';
 
-export type LbMode = 'daily' | 'bossRush';
+export type LbMode = 'daily' | 'bossRush' | 'accountLevel' | 'weeklyXp' | 'monthlyXp';
 
 export interface LbEntry {
   rank: number;
@@ -24,7 +25,7 @@ export interface LbView {
   dayKey: string;
   total: number;
   entries: LbEntry[];
-  you: { rank: number; score: number } | null;
+  you: { rank: number; score: number; wave: number } | null;
 }
 
 const SENT_KEY = 'assimilate.lb.sent';
@@ -48,13 +49,27 @@ function rememberSent(key: string, score: number): void {
   }
 }
 
-/** The player's current submittable claim for a mode, from the save ledgers. */
+/** The player's current submittable claim for a mode, from the save ledgers.
+ *  Account boards (docs/ACCOUNT-LEVEL.md §leaderboards): `score` carries XP (all-time or the
+ *  period ledger — strictly monotonic, so keep-best upserts are exact) and `wave` carries the
+ *  account LEVEL for display. The period boards skip stale ledgers (key mismatch = no play
+ *  this week/month yet, nothing to say). */
 export function currentClaim(mode: LbMode): { score: number; wave: number; dayKey: string } | null {
   const save = meta.get();
   if (mode === 'daily') {
     const key = dailyKey();
     if (save.daily.lastKey !== key || save.daily.lastWave <= 0) return null; // no attempt today
     return { score: save.daily.lastWave, wave: save.daily.lastWave, dayKey: key };
+  }
+  if (mode === 'accountLevel' || mode === 'weeklyXp' || mode === 'monthlyXp') {
+    const level = meta.accountLevel().level;
+    if (mode === 'accountLevel') {
+      return save.accountXp.xp > 0 ? { score: save.accountXp.xp, wave: level, dayKey: '' } : null;
+    }
+    const ledger = mode === 'weeklyXp' ? save.accountXp.week : save.accountXp.month;
+    const key = mode === 'weeklyXp' ? weekKey(Date.now()) : monthKey(Date.now());
+    if (ledger.key !== key || ledger.xp <= 0) return null;
+    return { score: ledger.xp, wave: level, dayKey: key };
   }
   if (save.rushBestBoss <= 0) return null;
   return { score: save.rushBestBoss, wave: save.rushBestWave, dayKey: '' };

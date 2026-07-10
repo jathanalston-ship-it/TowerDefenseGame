@@ -319,6 +319,13 @@ export const SYSTEMS: SystemDef[] = [
     achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md'],
   },
   {
+    id: 'account-level', name: 'Account Level (evergreen meta-progression)', purpose: 'Uncapped Account XP from nearly every activity; smooth infinite curve; deterministic weighted per-level rewards; infinite milestones with titles; week/month XP ledgers.',
+    files: ['src/core/accountLevel.ts', 'src/ui/components/AccountXpBar.tsx'],
+    dependsOn: ['meta-store', 'loot'], powerScore: null, save: ['accountXp'],
+    tutorial: [], help: [], hud: [], ui: ['Results (XP fill + level-ups)', 'PlayerProfile (level block)', 'CommandCenter vitals', 'Hub topbar chip'], collection: null,
+    achievements: [], localization: 'inline-en', docs: ['docs/ACCOUNT-LEVEL.md'],
+  },
+  {
     id: 'progression-gating', name: 'Progression Gating & Director', purpose: 'The reveal framework: one registry deciding when every hub screen/currency unlocks, teasers + unlock briefings, reveal latching, exposure tracking, cognitive-load bands.',
     files: ['src/state/unlocks.ts', 'src/state/progressionDirector.ts', 'src/state/navBus.ts'],
     dependsOn: ['meta-store', 'campaign', 'onboarding'], powerScore: null, save: ['director'],

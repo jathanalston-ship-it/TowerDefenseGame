@@ -19,6 +19,7 @@ import { cardRegistry } from '../core/cards';
 import { DOCTRINES } from '../core/doctrines';
 import { resolveDifficulty } from '../core/difficulty';
 import { masteryRewardById } from '../core/mastery';
+import { ACCOUNT_TITLE_BY_ID } from '../core/accountLevel';
 import { ACHIEVEMENTS, achievementById } from './achievements';
 import type { AchievementDef } from './achievements';
 import { favoriteTowerName } from './stats';
@@ -229,13 +230,19 @@ export interface BannerModel {
   frames: (ProfileFrame & { isUnlocked: boolean })[];
 }
 
+/** Resolve any earned-title id to its display name — mastery rewards AND account-level titles
+ * share the equipped-title slot, so every display surface resolves through this one chain. */
+export function titleName(id: string): string {
+  return masteryRewardById(id)?.name ?? ACCOUNT_TITLE_BY_ID.get(id)?.name ?? id;
+}
+
 export function playerBanner(save: SaveData): BannerModel {
   const favHeroId = argmax(save.stats.heroUsage) as HeroKind | null;
   const frames = PROFILE_FRAMES.map((f) => ({ ...f, isUnlocked: f.unlocked(save) }));
   const frame = PROFILE_FRAMES.find((f) => f.id === save.profileFrame && f.unlocked(save)) ?? PROFILE_FRAMES[0];
   return {
     name: save.profileName,
-    title: save.equippedTitle ? masteryRewardById(save.equippedTitle)?.name ?? save.equippedTitle : null,
+    title: save.equippedTitle ? titleName(save.equippedTitle) : null,
     power: composePower(accountPowerParts(save)).score,
     stage: highestCampaignStage(save),
     bestWave: save.bestWave,

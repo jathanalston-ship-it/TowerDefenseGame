@@ -7,6 +7,7 @@ import { onRequestGet as dailySeed, mintDayTicket, serverDailySeed, utcDayKey } 
 import { onRequestPost as lbSubmit } from './api/leaderboard/submit';
 import { onRequestGet as lbTop } from './api/leaderboard/top';
 import { ctx, makeEnv, postJson } from './lib/testkit';
+import { utcWeekKey } from './lib/period';
 import { hashStr } from '../src/core/hash';
 import { dailySeed as clientDailySeed } from '../src/core/daily';
 
@@ -129,6 +130,27 @@ describe('/api/leaderboard', () => {
     const body = (await top.json()) as { total: number; entries: { score: number }[] };
     expect(body.total).toBe(1);
     expect(body.entries[0].score).toBe(12);
+  });
+
+  // Account boards (docs/ACCOUNT-LEVEL.md §leaderboards): score = XP, wave = account level.
+  it('accountLevel: accepts deep-level claims (beyond run bounds) and returns the level as wave', async () => {
+    const e = makeEnv();
+    const res = await submit(e, { mode: 'accountLevel', dayKey: undefined, ticket: undefined, score: 900_000_000, wave: 1_800 });
+    expect(res.status).toBe(200);
+    const top = await lbTop(ctx(new Request(`https://g.test/api/leaderboard/top?mode=accountLevel&playerId=${PLAYER}`, { headers: { 'cf-connecting-ip': '4.4.4.7' } }), e));
+    const body = (await top.json()) as { entries: { score: number; wave: number }[]; you: { rank: number; wave: number } };
+    expect(body.entries[0].wave).toBe(1_800); // a run-mode submit at wave 1 800 would be rejected
+    expect(body.you.wave).toBe(1_800);
+  });
+
+  it('weeklyXp: buckets under the SERVER-derived week key (client cannot pick a period)', async () => {
+    const e = makeEnv();
+    const res = await submit(e, { mode: 'weeklyXp', dayKey: '1999-W01', ticket: undefined, score: 4_200, wave: 7 });
+    expect(res.status).toBe(200);
+    const top = await lbTop(ctx(new Request('https://g.test/api/leaderboard/top?mode=weeklyXp', { headers: { 'cf-connecting-ip': '4.4.4.8' } }), e));
+    const body = (await top.json()) as { dayKey: string; entries: { score: number }[] };
+    expect(body.dayKey).toBe(utcWeekKey()); // the forged key was ignored
+    expect(body.entries[0].score).toBe(4_200);
   });
 });
 

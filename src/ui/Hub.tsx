@@ -22,6 +22,7 @@ import { BossRushScreen } from './BossRushScreen';
 import { DailyScreen } from './DailyScreen';
 import { PremiumStore } from './PremiumStore';
 import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
+import { AccountXpBar } from './components/AccountXpBar';
 import { navBus } from '../state/navBus';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
@@ -370,9 +371,10 @@ export function Hub({
           <button className="hub-burger" onClick={() => setNavOpen((v) => !v)} aria-label="Open navigation" aria-expanded={navOpen}>
             ☰ <span className="hub-burger-l">Menu</span>
           </button>
-          {/* The wallet, and only the wallet — standings live on the Home board, not up here.
-              Chips reveal with their currency (docs/PROGRESSION-GATING.md §economy): a chip
+          {/* The wallet (+ the account level chip) — standings live on the Home board, not up
+              here. Chips reveal with their currency (docs/PROGRESSION-GATING.md §economy): a chip
               never precedes its purpose, so the first-session top bar reads calm. */}
+          <AccountXpBar compact />
           <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
           {featureRevealed(save, 'cur:ichor') && <span className="hub-cur"><CurrencyIcon id="ichor" size={15} /> {save.ichor} <span className="hub-cur-l">Ichor</span></span>}
           {featureRevealed(save, 'cur:cells') && <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>}

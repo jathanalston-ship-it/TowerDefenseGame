@@ -636,3 +636,36 @@ analytics; per-currency reveal rows generalize to any future wallet chip.
 its owning systems — this framework gates HUB surfaces; the persona pacing test evaluates
 worst-case (stage/runs) only, ignoring drop-luck acceleration; media slots on What's New cards
 remain placeholder captions until art lands.
+
+## Compressed system summary — Account Level (docs/ACCOUNT-LEVEL.md)
+
+**Architecture.** A pure core module (`src/core/accountLevel.ts` — curve, XP table, milestone
+math, deterministic per-level rewards, UTC period keys) + one meta-side fold
+(`foldAccountXp` in `src/state/meta.ts`) that every XP-paying persist wraps. Save module:
+`save.accountXp = {xp, week{key,xp}, month{key,xp}}` — **level is always derived** from XP
+(`levelFromXp`), never stored. Curve `80 + 40·n^1.25` (uncapped, spike-free, overflow-safe to
+L100k+); reward budget `18 + 6·n^0.7` — value deliberately grows slower than requirement.
+
+**Public APIs.** Core: `ACCOUNT_XP`, `xpForLevel/levelFromXp/levelProgress/totalXpForLevel`,
+`isMilestoneLevel/nextMilestone` (named tiers 10/25/50/100/250/500/1000, then every 500),
+`ACCOUNT_TITLES/ACCOUNT_TITLE_BY_ID`, `accountLevelReward(level)`, `weekKey/monthKey` | meta:
+`accountLevel()` → {xp, level, into, need, nextMilestone, weekXp, monthXp},
+`drainAccountLevelUps()`, `RunOutcome.accountXp: AccountXpDelta` | UI: `AccountXpBar`
+(compact/full), `AccountLevelToast`, `rewardLine(reward)`, `titleName(id)` (profile.ts).
+
+**Extension points.** New XP source = one `ACCOUNT_XP` row + wrap its persist in
+`foldAccountXp`; new reward currency = one `ACCOUNT_REWARD_POOL` row + one apply line in the
+fold; leaderboard modes `accountLevel/weeklyXp/monthlyXp` live in `MODE_BOUNDS`
+(functions/api/leaderboard/submit.ts) + `currentClaim` (src/net/leaderboard.ts).
+
+**Important assumptions.** Rewards are deterministic per level (shared ladder — previewable,
+fair, save-RNG-free); level containers reuse `kind:'cache'` (no new PendingContainer branch);
+run-settle level-ups celebrate on Results (outcome drains the queue), off-run grants toast on
+the menu — two paths, never both; period boards bucket by SERVER-derived keys.
+
+**Future hooks.** Weekly/monthly ledgers are battle-pass/season-track ready; sim checkpoints
+carry `accountLevel` (PROGRESSION_REPORT column) for pacing evidence.
+
+**Known limitations.** Boards are client claims (bounds + keep-best friction, like
+daily/bossRush); `levelFromXp` is an O(level) walk (fine at real scales); milestone toasts
+beyond the named tiers reuse the generic celebration (no per-tier bespoke art yet).

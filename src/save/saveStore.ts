@@ -178,6 +178,9 @@ export interface SaveData {
   //    `visits` counts hub-screen opens (exposure / ignored-feature detection). Additive;
   //    withDefaults fills empties for older saves; never read by the sim (golden-safe). ──
   director: { revealed: Record<string, number>; visits: Record<string, number> };
+  // ── Account Level (docs/ACCOUNT-LEVEL.md): lifetime Account XP (level is DERIVED — one source
+  //    of truth) + rolling week/month XP ledgers (leaderboard feed). Additive; golden-safe. ──
+  accountXp: { xp: number; week: { key: string; xp: number }; month: { key: string; xp: number } };
   // ── Gene Cards — permanent progression (schema v18, docs/GENE-EVOLUTION.md). Sparse per-card state
   //    (level / rarity-tier / ascension / skin), keyed by the card's permanent id. Absent id ⇒ base
   //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
@@ -589,6 +592,7 @@ export function defaultSave(): SaveData {
     prediction: { campaign: defaultCalib(), infinite: defaultCalib(), bossRush: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
     director: { revealed: {}, visits: {} },
+    accountXp: { xp: 0, week: { key: '', xp: 0 }, month: { key: '', xp: 0 } },
     genes: {},
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
@@ -649,6 +653,19 @@ function sanitizeHelp(raw: unknown): SaveData['help'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   const seen = Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [];
   return { seen, primed: o.primed === true, hudTour: o.hudTour === true };
+}
+/** Coerce the Account-XP block: finite ≥0 lifetime XP + rolling period ledgers. */
+function sanitizeAccountXp(raw: unknown): SaveData['accountXp'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const num = (v: unknown): number => {
+    const n = Math.floor(Number(v));
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  };
+  const period = (v: unknown): { key: string; xp: number } => {
+    const p = (typeof v === 'object' && v !== null ? v : {}) as Record<string, unknown>;
+    return { key: typeof p.key === 'string' ? p.key : '', xp: num(p.xp) };
+  };
+  return { xp: num(o.xp), week: period(o.week), month: period(o.month) };
 }
 /** Coerce the Progression Director ledgers to string → finite ≥0 int maps (junk entries dropped). */
 function sanitizeDirector(raw: unknown): SaveData['director'] {
@@ -910,6 +927,7 @@ function withDefaults(data: SaveData): SaveData {
     prediction: sanitizePrediction(data.prediction),
     help: sanitizeHelp(data.help),
     director: sanitizeDirector((data as { director?: unknown }).director), // additive: pre-director saves ⇒ empty ledgers
+    accountXp: sanitizeAccountXp((data as { accountXp?: unknown }).accountXp), // additive: pre-level saves ⇒ zero XP
     genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
     // v18→v19: Starting Gene Loadout. Pre-v19 ⇒ 1 slot, empty loadout; junk ids/duplicates dropped.
     geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),

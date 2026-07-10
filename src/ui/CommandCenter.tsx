@@ -164,7 +164,9 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
 function Vitals({ save, view, go }: WidgetCtx): ReactNode {
   const vaults = view.vaultReady;
   const ach = (save.achievements ?? []).length;
+  const acct = meta.accountLevel();
   const vitals: { k: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
+    { k: 'Level', v: `LV ${acct.level}`, c: 'var(--viral)', nav: 'profile', title: `Account Level — ${acct.into}/${acct.need} XP toward L${acct.level + 1}` },
     { k: 'Power', v: formatPower(view.power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
     { k: 'Campaign', v: `Stage ${view.world.stage}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
     { k: 'Infinite', v: `Wave ${save.bestWave}`, nav: 'infinite', title: 'Infinite personal best' },

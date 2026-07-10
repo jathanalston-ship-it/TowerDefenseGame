@@ -11,7 +11,7 @@ import { PERSONAS, PERSONA_IDS } from './personas';
 import type { SimCheckpoint } from './progressionSim';
 
 function mkCp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
-  return { power: 100, stage: 5, bestWave: 20, molts: 0, runs: 10, farmRuns: 5, readiness: 0.5, unspentShards: 100, unlocks: 10, failedPushes: 0, ...p };
+  return { power: 100, stage: 5, bestWave: 20, molts: 0, runs: 10, farmRuns: 5, readiness: 0.5, unspentShards: 100, unlocks: 10, failedPushes: 0, accountLevel: 1, ...p };
 }
 
 function mkRun(personaId: string, cps: SimCheckpoint[][]): PersonaRun {

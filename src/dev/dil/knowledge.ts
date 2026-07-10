@@ -98,6 +98,11 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:progression-gating', kind: 'extends', to: 'system:onboarding', note: "screen-linked mechanics rows delegate unlock predicates to featureRevealed — What's New fires exactly when a wing reveals" },
   { from: 'system:bosses', kind: 'triggers', to: 'system:audio', note: 'bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)' },
   { from: 'system:mega-bosses', kind: 'triggers', to: 'system:audio', note: 'the telegraph-resolve edge (banner snapshot-diff, stun-guarded so eye interrupts stay silent) fires mega_cast — the SAME edge drives the render-side CAST shock ring in megaboss.ts' },
+  { from: 'system:account-level', kind: 'consumes', to: 'system:meta-store', note: 'every XP-paying persist wraps in foldAccountXp — a NEW XP source is one ACCOUNT_XP row + one wrap, never a parallel pipeline' },
+  { from: 'system:account-level', kind: 'provides', to: 'system:loot', note: "every 5th level + milestones bank Bio-Containers as kind:'cache' — REUSE the cache branch, never add a PendingContainer kind for level rewards" },
+  { from: 'system:account-level', kind: 'references', to: 'system:mastery', note: 'account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone' },
+  { from: 'system:account-level', kind: 'conflictsWith', to: 'system:shards-economy', note: 'level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)' },
+  { from: 'system:net-backend', kind: 'extends', to: 'system:account-level', note: 'leaderboard modes accountLevel/weeklyXp/monthlyXp: score = XP, wave = level; the SERVER derives period bucket keys (functions/lib/period.ts mirrors core weekKey/monthKey)' },
 
   { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
   { from: 'system:prestige', kind: 'references', to: 'system:cutscenes', note: 'the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it' },

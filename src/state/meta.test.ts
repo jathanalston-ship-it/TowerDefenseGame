@@ -187,6 +187,7 @@ describe('prestige MOLT (the ascension loop)', () => {
     expect(before.canMolt).toBe(true);
     expect(before.gain).toBe(15); // 1.5·√(10000/100)
 
+    meta.drainAccountLevelUps(); // pre-molt level-ups' cores are wiped by the reset — only the MOLT's own matter below
     expect(meta.molt()).toBe(true);
 
     const after = meta.prestigeView();
@@ -197,7 +198,10 @@ describe('prestige MOLT (the ascension loop)', () => {
     expect(after.mult).toBeCloseTo(1 + 0.1 * Math.sqrt(15), 10);
 
     const save = meta.get();
-    expect(save.shards).toBe(0); // engine reset …
+    // Engine reset: the pre-molt bank is gone. The MOLT itself pays Account XP whose crossed
+    // levels may mint a few fresh cores (docs/ACCOUNT-LEVEL.md) — assert the reset, not zero.
+    const moltLevelCores = meta.drainAccountLevelUps().reduce((n, lu) => n + lu.reward.cores, 0);
+    expect(save.shards).toBe(moltLevelCores); // engine reset …
     expect(save.upgrades).toEqual({}); // …
     expect(save.towerStars.needle).toBe(5); // … but the star trophy is kept
 
@@ -300,6 +304,19 @@ function totalShards(save: ReturnType<typeof meta.get>): number {
   return t + h;
 }
 
+/** Account-Level containers granted by a settle (docs/ACCOUNT-LEVEL.md) — every 5th level banks
+ *  one; these ride pendingContainers alongside the run's own bank. */
+function acctContainers(out: ReturnType<typeof meta.finishRun>): number {
+  return out.accountXp.levelUps.reduce((n, lu) => n + lu.reward.containers.length, 0);
+}
+/** Account-Level immediate value (shard-map + material units) granted by a settle's level-ups. */
+function acctUnits(out: ReturnType<typeof meta.finishRun>): number {
+  return out.accountXp.levelUps.reduce(
+    (n, lu) => n + lu.reward.towerShards + lu.reward.heroShards + lu.reward.mats.mutagen + lu.reward.mats.scrap + lu.reward.mats.catalyst,
+    0,
+  );
+}
+
 describe('deferred loot banking (containers bank unopened; cracked in the Vault)', () => {
   it('banks loot LIVE mid-run into the pending stockpile (unopened) and conserves every point', () => {
     meta.reset(); // fresh queue, progress 0, no prestige → lootGainMult = 1 (integer points)
@@ -316,7 +333,7 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
 
     // Every container banked this run (live + final) carried into the stockpile exactly once …
     expect(out.loot.banked.length).toBeGreaterThanOrEqual(liveBanked);
-    expect(meta.pendingContainers().length).toBe(out.loot.banked.length);
+    expect(meta.pendingContainers().length).toBe(out.loot.banked.length + acctContainers(out));
     // … and the loot points are conserved: container costs + leftover progress == the full earn.
     const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(fullPoints);
@@ -339,7 +356,7 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     const out = meta.finishRun(runResult(12, 300)); // 12·14 + 300 = 468 pts
     const spent = out.loot.banked.reduce((s, c) => s + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0);
     expect(spent + out.loot.queue.progress).toBe(12 * 14 + 300);
-    expect(meta.pendingContainers().length).toBe(out.loot.banked.length);
+    expect(meta.pendingContainers().length).toBe(out.loot.banked.length + acctContainers(out));
   });
 
   it('re-arms across runs: a new run banks its own full amount instead of under-counting', () => {
@@ -381,7 +398,9 @@ describe('deferred loot banking (containers bank unopened; cracked in the Vault)
     // Exactly one run cache is banked (alongside any loot boxes), and it is NOT opened at run end.
     expect(out.loot.banked.filter((c) => c.kind === 'cache').length).toBe(1);
     expect(meta.pendingContainers().some((c) => c.kind === 'cache')).toBe(true);
-    expect(reward(meta.get())).toBe(before); // no shards/materials/gear granted yet
+    // No CONTAINER rewards granted yet — the only movement is the settle's own account
+    // level-up payout (docs/ACCOUNT-LEVEL.md), which is not the cache's contents.
+    expect(reward(meta.get())).toBe(before + acctUnits(out));
 
     // Cracking everything (loot boxes + the cache) is what finally grants the rewards.
     while (meta.openContainer()) { /* open them all */ }

@@ -377,6 +377,13 @@ function sUnlock(): void {
   tone(988, 0.2, 'sine', 0.12); tone(1319, 0.46, 'sine', 0.14); // the arrival chord blooms
   noise(0.32, 0.045, 7000); // airy shimmer tail
 }
+// ACCOUNT LEVEL UP (docs/ACCOUNT-LEVEL.md §ceremony) — a warm two-step pulse into a held bloom:
+// "the ACCOUNT grew". Softer attack than sUnlock (levels are frequent), unmistakably celebratory.
+function sLevelUp(): void {
+  tone(440, 0.1, 'triangle', 0.11); tone(554, 0.1, 'triangle', 0.11); // the two-step
+  tone(880, 0.34, 'sine', 0.13, 932); // held bloom with a gentle upward bend
+  noise(0.22, 0.035, 6500);
+}
 
 export const audio = {
   resume(): void {
@@ -495,6 +502,7 @@ export const audio = {
         case 'shard_hero': sShardHero(); break;
         case 'achieve': sAchieve(); break;
         case 'unlock': sUnlock(); break;
+        case 'levelup': sLevelUp(); break;
         case 'power': sPower(); break;
         case 'mastery': sMastery(); break;
         case 'rankup': sRankUp(); break;

@@ -153,8 +153,10 @@ describe('one-click collection (meta.grantRouletteRewards)', () => {
     );
     const s = meta.get();
     // The collection also unlocks 'roulette_first' (15 cores → +3 Ichor bleed) and 'hero_shard'
-    // (+3 Ichor) through the normal achievements channel — assert the composite explicitly.
-    expect(s.shards).toBe(before.shards + 5 + 15);
+    // (+3 Ichor) through the normal achievements channel — and the achievements' Account XP may
+    // cross levels whose procedural rewards mint cores on top (docs/ACCOUNT-LEVEL.md).
+    const acctCores = meta.drainAccountLevelUps().reduce((n, lu) => n + lu.reward.cores, 0);
+    expect(s.shards).toBe(before.shards + 5 + 15 + acctCores);
     expect(s.ichor).toBe(before.ichor + 2 + 3 + 3);
     expect(s.achievements).toContain('hero_shard');
     expect(s.towerShards.needle).toBe((before.towerShards.needle ?? 0) + 8);

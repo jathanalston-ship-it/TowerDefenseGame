@@ -15,11 +15,18 @@ import { verifyTurnstile } from '../../lib/turnstile';
 import { timingSafeEqualStr } from '../../lib/crypto';
 import { isDayKey, isIntInRange, isPlayerId, sanitizeName } from '../../lib/validate';
 import { mintDayTicket, utcDayKey } from '../daily/seed';
+import { utcMonthKey, utcWeekKey } from '../../lib/period';
 
-const MODES = new Set(['daily', 'bossRush']);
-// Generous but finite claim bounds — anything outside is a rejected forgery.
-const MAX_SCORE = 500_000_000;
-const MAX_WAVE = 1_000;
+// Generous but finite claim bounds — anything outside is a rejected forgery. The account-XP
+// modes (docs/ACCOUNT-LEVEL.md §leaderboards) carry lifetime XP as `score` and the account
+// LEVEL as `wave`, so their ceilings are far higher than a run's (score 1e10 ≈ level ~10 000).
+const MODE_BOUNDS: Record<string, { score: number; wave: number }> = {
+  daily: { score: 500_000_000, wave: 1_000 },
+  bossRush: { score: 500_000_000, wave: 1_000 },
+  accountLevel: { score: 10_000_000_000, wave: 200_000 },
+  weeklyXp: { score: 500_000_000, wave: 200_000 },
+  monthlyXp: { score: 500_000_000, wave: 200_000 },
+};
 const MAX_POWER = 50_000_000;
 
 interface Body {
@@ -42,8 +49,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   const body = await readJson<Body>(request, 300_000); // roomy: replay blobs are ~10KB, capped at 256KB
   if (!body || !isPlayerId(body.playerId)) return err(400, 'bad-request');
-  if (typeof body.mode !== 'string' || !MODES.has(body.mode)) return err(400, 'bad-mode');
-  if (!isIntInRange(body.score, 1, MAX_SCORE) || !isIntInRange(body.wave, 0, MAX_WAVE) || !isIntInRange(body.power, 0, MAX_POWER)) {
+  const bounds = typeof body.mode === 'string' ? MODE_BOUNDS[body.mode] : undefined;
+  if (!bounds) return err(400, 'bad-mode');
+  if (!isIntInRange(body.score, 1, bounds.score) || !isIntInRange(body.wave, 0, bounds.wave) || !isIntInRange(body.power, 0, MAX_POWER)) {
     return err(400, 'out-of-bounds');
   }
 
@@ -60,6 +68,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       if (typeof body.ticket !== 'string' || !timingSafeEqualStr(expected, body.ticket)) return err(403, 'bad-ticket');
     }
   }
+  // Period XP boards bucket by a SERVER-derived key — a stale/forged client key can only
+  // land in the current period (no tickets needed: XP within a period only grows).
+  if (body.mode === 'weeklyXp') dayKey = utcWeekKey();
+  if (body.mode === 'monthlyXp') dayKey = utcMonthKey();
 
   const name = sanitizeName(body.name);
   // Replay blob (daily only): stored verbatim for offline re-simulation. A better score
