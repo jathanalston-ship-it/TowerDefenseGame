@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 644 nodes · 1068 edges, built from the live
+> **The project's brain** (docs/DIL.md). 645 nodes · 1070 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -508,7 +508,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…160 more (query: `npm run dil -- node system:engine`)_
+  - _…161 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1021,9 +1021,9 @@ _at: src/core/currencies.ts, src/core/economyDirector.ts, src/ui/components/Curr
 
 ### `system:splice-market` — Splice Market & Ichor
 
-The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die.
+The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die. The ICHOR EXCHANGE (core/ichorExchange.ts, docs/MARKET.md §exchange, v30): six 30-min barter lots (two per currency — cores/essence/scrap) priced from the Ichor reserve snapshot at window roll, sublinear volume (qty ∝ cost^0.7 — bulk pays a leaner rate, anti-snowball), max-window clock-tamper rule.
 
-_at: src/core/market.ts, src/state/spliceMarket.ts, src/ui/SpliceMarket.tsx_
+_at: src/core/market.ts, src/core/ichorExchange.ts, src/state/spliceMarket.ts, src/ui/SpliceMarket.tsx_
 
   - dependsOn → `system:currencies`
   - dependsOn → `system:loot`
@@ -1031,6 +1031,7 @@ _at: src/core/market.ts, src/state/spliceMarket.ts, src/ui/SpliceMarket.tsx_
   - consumes → `system:meta-store` — owns save field 'ichor'
   - consumes → `system:meta-store` — owns save field 'lifetimeIchor'
   - consumes → `system:meta-store` — owns save field 'market'
+  - consumes → `system:meta-store` — owns save field 'ichorExchange'
   - modifies → `currency:materials` — exchange rates between currencies
   - requiredBy ← `system:premium`
   - requiredBy ← `system:field-research`
@@ -1316,7 +1317,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…76 more (query: `npm run dil -- node system:meta-store`)_
+  - _…77 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2529,7 +2530,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (200)
+## Tests (201)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2696,6 +2697,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroLab.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroSlots.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/ichorExchange.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/infestation.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemPower.test.ts` — automated validation _(tests `system:power`)_

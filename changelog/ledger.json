@@ -1,6 +1,6 @@
 {
-  "lastSha": "da845a428278fd9c001a68a6088509c37be10ccc",
-  "commitsSinceDraft": 7,
+  "lastSha": "4b29f33761918277acca194cd185deb9b612c034",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -1842,6 +1842,14 @@
     },
     {
       "sha": "da845a428278fd9c001a68a6088509c37be10ccc",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "4b29f33761918277acca194cd185deb9b612c034",
       "date": "2026-07-10",
       "cat": "Gameplay",
       "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony",

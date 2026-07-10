@@ -170,7 +170,7 @@ graph TD
 | **Evolution HQ (Genome Cores)** (`evolution-hq`) | `content-infra` · `prestige` | `prestige` | ⚡ META_UPGRADES fold into the permanent bucket | `upgrades` | `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` |
 | **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md` |
 | **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
-| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` | `docs/MARKET.md` |
+| **Splice Market & Ichor** (`splice-market`) | `currencies` · `loot` | `premium` · `field-research` | ⚡ none by design (Ichor never feeds Power) | `ichor` · `lifetimeIchor` · `market` · `ichorExchange` | `docs/MARKET.md` |
 | **Achievements** (`achievements`) | `stats` | `profile` | ⚡ rewards (shards) move Power indirectly | `achievements` | `docs/PROGRESSION-SYSTEMS.md` |
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
 | **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `contracts` | — | — | `docs/LIVEOPS.md` |
@@ -580,13 +580,13 @@ graph TD
 
 ### Splice Market & Ichor (`splice-market`)
 
-*The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die.*
+*The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die. The ICHOR EXCHANGE (core/ichorExchange.ts, docs/MARKET.md §exchange, v30): six 30-min barter lots (two per currency — cores/essence/scrap) priced from the Ichor reserve snapshot at window roll, sublinear volume (qty ∝ cost^0.7 — bulk pays a leaner rate, anti-snowball), max-window clock-tamper rule.*
 
-- **Files:** `src/core/market.ts` · `src/state/spliceMarket.ts` · `src/ui/SpliceMarket.tsx`
+- **Files:** `src/core/market.ts` · `src/core/ichorExchange.ts` · `src/state/spliceMarket.ts` · `src/ui/SpliceMarket.tsx`
 - **Depends on:** `currencies` · `loot`
 - **Consumers — what breaks if you change this:** `premium` · `field-research`
 - **Power Score:** none by design (Ichor never feeds Power)
-- **Save fields:** `ichor` · `lifetimeIchor` · `market`
+- **Save fields:** `ichor` · `lifetimeIchor` · `market` · `ichorExchange`
 - **Tutorial:** — · **Help mechanics:** `splice-market`
 - **HUD surfaces:** `top resource bar (Ichor chip)` · **UI screens:** `SpliceMarket` · `Hub nav (Collection group)`
 - **Collection:** — · **Achievements:** —

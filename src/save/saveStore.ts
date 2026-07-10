@@ -199,6 +199,10 @@ export interface SaveData {
   ichor: number;
   lifetimeIchor: number;
   market: { window: number; bought: string[]; seenWindow: number; starter: boolean };
+  // ── Ichor Exchange (v30, docs/MARKET.md §exchange) — the 30-min barter window: max window
+  //    observed (clock-tamper rule), the Ichor reserve SNAPSHOT the lots were priced from,
+  //    and the slot indices already traded this window. ──
+  ichorExchange: { window: number; reserve: number; bought: number[] };
   // ── Mulligan system (schema v26, docs/MULLIGANS.md) — the per-tower biomechanical organism. Each
   //    tower kind permanently owns ONE Mulligan (three modifier slots + generated visual/anim seeds);
   //    the organism does NOTHING until all three slots are filled, so a fresh account is byte-identical
@@ -267,8 +271,9 @@ export interface TutorialSave {
 // v27→v28: Patch-note tracking (patchNotes.seen + optOut — docs/CHANGELOG-PIPELINE.md).
 // v28→v29: Mulligan overhaul — piece EXCLUSIVITY (one tower per piece; cross-tower dupes
 // sanitize away), reforge fields (locked + reforges — docs/MULLIGANS.md §reforge).
+// v29→v30: Ichor Exchange window record (ichorExchange — docs/MARKET.md §exchange).
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 29;
+export const CURRENT_VERSION = 30;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -557,6 +562,7 @@ export function defaultSave(): SaveData {
     ichor: 0,
     lifetimeIchor: 0,
     market: { window: 0, bought: [], seenWindow: 0, starter: false },
+    ichorExchange: { window: 0, reserve: 0, bought: [] },
     mulligans: emptyMulligansByTower(),
     mulliganDex: {},
   };
@@ -827,6 +833,16 @@ function withDefaults(data: SaveData): SaveData {
     premium: sanitizePremium((data as { premium?: unknown }).premium),
     lifetimeIchor: Math.max(0, Math.floor(Number((data as { lifetimeIchor?: unknown }).lifetimeIchor) || 0)),
     market: sanitizeMarket((data as { market?: unknown }).market),
+    ichorExchange: ((): SaveData['ichorExchange'] => {
+      const raw = (data as { ichorExchange?: { window?: unknown; reserve?: unknown; bought?: unknown } }).ichorExchange;
+      return {
+        window: Math.max(0, Math.floor(Number(raw?.window) || 0)),
+        reserve: Math.max(0, Math.floor(Number(raw?.reserve) || 0)),
+        bought: Array.isArray(raw?.bought)
+          ? [...new Set(raw.bought.filter((x): x is number => Number.isInteger(x) && x >= 0 && x < 6))]
+          : [],
+      };
+    })(),
     // Mulligan system (docs/MULLIGANS.md): pre-v26 saves ⇒ empty organisms + empty dex.
     mulligans: sanitizeMulligans((data as { mulligans?: unknown }).mulligans),
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),

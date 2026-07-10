@@ -99,3 +99,23 @@ progression yield badge, and armed observation boosts. Hidden entirely when no a
 provider is configured (`VITE_ADS_PROVIDER=none`). Its Ichor trickle (≤5/day, flat
 forever) is accounted in the faucet philosophy above: a supplement that never rivals
 either the earn lanes or the store.
+
+## §exchange — the Ichor Exchange (2026-07)
+
+The one-way valve OUT of the premium reserve: six barter lots on the Splice Market screen
+(`core/ichorExchange.ts` pure; `meta.pollIchorExchange/ichorExchangeView/buyIchorOffer`;
+save v30 `ichorExchange`). Two lots per currency — Genome Cores, Gene Essence, Scrap — a
+small taste (~10% of the reserve) and a bulk lot (~25%), refreshing every **30 minutes**.
+
+- **Reserve-scaled pricing:** lots are priced from the Ichor reserve SNAPSHOT taken when
+  the window first rolls (mid-window spends never re-price the board). At 10 Ichor the
+  lots read "1 Ichor → 10 Genome Cores / 1 Ichor → 1 Scrap"; at 1000 they read
+  "≈250 Ichor → ≈50 Scrap".
+- **Anti-snowball curve:** volume is SUBLINEAR (`qty = rate₀ × cost^0.7`, ±15% seeded
+  jitter, +10% bulk sweetener) — a whale's mega-trade pays a leaner per-Ichor rate than a
+  pocket trade, so hoarded Ichor accelerates the grind but never breaks the economy.
+  Rate anchors (per-Ichor at pocket size): **10 cores · 6 essence · 1 scrap** — derived
+  from expedition bundle parities and the Bio-Roulette pod weights.
+- **One trade per lot per window;** the max-window rule mirrors the market stock (a
+  rolled-back clock cannot forge fresh lots). Ichor itself stays never-farmable — the
+  exchange only spends it.

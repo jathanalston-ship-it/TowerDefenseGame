@@ -221,9 +221,9 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/ECONOMY.md', 'docs/LEXICON.md', 'docs/ECONOMY_FORMULAS.md'],
   },
   {
-    id: 'splice-market', name: 'Splice Market & Ichor', purpose: 'The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die.',
-    files: ['src/core/market.ts', 'src/state/spliceMarket.ts', 'src/ui/SpliceMarket.tsx'],
-    dependsOn: ['currencies', 'loot'], powerScore: 'none by design (Ichor never feeds Power)', save: ['ichor', 'lifetimeIchor', 'market'],
+    id: 'splice-market', name: 'Splice Market & Ichor', purpose: 'The refreshing store (deterministic 5-min stock windows; cores for small goods, Ichor for premium goods + Bio-Containers) and the Ichor premium currency: front-loaded faucets (achievements, collection ranks, campaign milestones, Infinite depth records, container bleeds) with an under-water gamble EV so lucky chains always die. The ICHOR EXCHANGE (core/ichorExchange.ts, docs/MARKET.md §exchange, v30): six 30-min barter lots (two per currency — cores/essence/scrap) priced from the Ichor reserve snapshot at window roll, sublinear volume (qty ∝ cost^0.7 — bulk pays a leaner rate, anti-snowball), max-window clock-tamper rule.',
+    files: ['src/core/market.ts', 'src/core/ichorExchange.ts', 'src/state/spliceMarket.ts', 'src/ui/SpliceMarket.tsx'],
+    dependsOn: ['currencies', 'loot'], powerScore: 'none by design (Ichor never feeds Power)', save: ['ichor', 'lifetimeIchor', 'market', 'ichorExchange'],
     tutorial: [], help: ['splice-market'], hud: ['top resource bar (Ichor chip)'], ui: ['SpliceMarket', 'Hub nav (Collection group)'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/MARKET.md'],
   },

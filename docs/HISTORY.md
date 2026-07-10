@@ -43,3 +43,4 @@
 - `3bb32f1` **[Optimization]** Main menu overhaul — coherence, hierarchy, optimization (hub shell + Command Center)
 - `f340e97` **[Gameplay]** Infestation map: collapse to a one-line teaser while dormant
 - `da845a4` **[Gameplay]** Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony
+- `4b29f33` **[Gameplay]** Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony

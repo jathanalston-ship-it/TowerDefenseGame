@@ -10,6 +10,8 @@ import { meta } from '../state/meta';
 import { marketView } from '../state/spliceMarket';
 import type { MarketSlotView } from '../state/spliceMarket';
 import { ICHOR, MARKET } from '../core/market';
+import type { ExchangeCurrency } from '../core/ichorExchange';
+import { audio } from '../audio/sound';
 import { CURRENCIES } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 
@@ -43,6 +45,63 @@ function SlotCard({ slot, justBought, onBuy }: { slot: MarketSlotView; justBough
         </button>
       )}
     </div>
+  );
+}
+
+const EXCHANGE_META: Record<ExchangeCurrency, { name: string; icon: 'genomeCores' | 'geneEssence'; glyph?: string; color: string }> = {
+  genomeCores: { name: 'Genome Cores', icon: 'genomeCores', color: 'var(--gold)' },
+  geneEssence: { name: 'Gene Essence', icon: 'geneEssence', color: 'var(--caustic, #6ad1b0)' },
+  scrap: { name: 'Scrap', icon: 'genomeCores', glyph: '◳', color: 'var(--muted)' },
+};
+
+/** ICHOR EXCHANGE (docs/MARKET.md §exchange) — six barter lots (two per currency), priced
+ *  from the Ichor reserve snapshot at window roll, refreshing every 30 minutes. */
+function IchorExchange({ now }: { now: number }): JSX.Element {
+  meta.use();
+  useEffect(() => { meta.pollIchorExchange(); }, [now]);
+  const view = meta.ichorExchangeView(now);
+  const buy = (index: number): void => {
+    if (meta.buyIchorOffer(index)) audio.cue('chest');
+  };
+  const m = Math.ceil(view.msToRefresh / 60_000);
+  return (
+    <section className="ix" aria-label="Ichor Exchange">
+      <div className="ix-head">
+        <div>
+          <div className="market-eyebrow">⇄ The Black Blood Barters</div>
+          <h3 className="ix-title">Ichor Exchange</h3>
+        </div>
+        <span className="ix-refresh" title="Lots re-price from your Ichor reserve when the window rolls">
+          fresh lots in <b>{m}m</b>
+        </span>
+      </div>
+      <p className="ix-sub">
+        Bleed the premium reserve down into the grind currencies. Lots scale to your reserve
+        (priced at <b>{view.reserve.toLocaleString()}</b> Ichor this window) — bulk lots move more,
+        but the organ keeps the difference: big trades pay a leaner rate.
+      </p>
+      <div className="ix-grid">
+        {view.offers.map((o) => {
+          const em = EXCHANGE_META[o.currency];
+          return (
+            <div key={o.index} className={`ix-card${o.traded ? ' is-traded' : ''}${o.bulk ? ' is-bulk' : ''}`} style={{ ['--xc' as string]: em.color }}>
+              <div className="ix-card-art" aria-hidden>
+                {em.glyph ? <span className="ix-glyph">{em.glyph}</span> : <CurrencyIcon id={em.icon} size={26} title="" />}
+              </div>
+              <div className="ix-card-qty">+{o.qty.toLocaleString()}</div>
+              <div className="ix-card-name">{em.name}{o.bulk ? ' · bulk' : ''}</div>
+              {o.traded ? (
+                <span className="market-sold">TRADED</span>
+              ) : (
+                <button type="button" className={`shop-buy market-buy ${o.affordable ? 'is-afford' : ''}`} disabled={!o.affordable} onClick={() => buy(o.index)}>
+                  {o.cost.toLocaleString()} <CurrencyIcon id="ichor" />
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -104,6 +163,8 @@ export function SpliceMarket(): JSX.Element {
           <SlotCard key={s.id} slot={s} justBought={justBought === s.id} onBuy={onBuy} />
         ))}
       </div>
+
+      <IchorExchange now={now} />
 
       <FieldResearchPanel />
 

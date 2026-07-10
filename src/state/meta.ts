@@ -68,6 +68,8 @@ import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarn
 import type { AdaptNode } from '../core/adaptation';
 import { MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
 import { REFORGE_RARITY, reforgeCost as mulliganReforgeCost, reforgeModById, rollReforgeMod } from '../core/mulliganReforge';
+import { exchangeWindow, msToExchangeRefresh, rollExchange } from '../core/ichorExchange';
+import type { ExchangeOffer } from '../core/ichorExchange';
 import type { MulliganReforgeMod } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganState, ResolvedMulligan } from '../core/mulligan';
 import type { PowerParts, PowerScore } from '../core/power';
@@ -3323,6 +3325,61 @@ export const meta = {
         break;
       }
     }
+    persist(next);
+    return true;
+  },
+
+  // ── Ichor Exchange (docs/MARKET.md §exchange) — the 30-min barter of Ichor DOWN into the
+  //    grind currencies. Lots are priced from the reserve SNAPSHOT taken when the window
+  //    first rolls (mid-window spends never re-price the board); the max-window rule
+  //    mirrors the Splice Market, so clocks can't forge fresh lots. ──
+  /** Roll the window record forward when a new 30-min window begins. Idempotent (UI tick). */
+  pollIchorExchange(now = Date.now()): void {
+    const save = store.get();
+    const w = Math.max(exchangeWindow(now), save.ichorExchange.window);
+    if (w === save.ichorExchange.window) return;
+    persist({ ...save, ichorExchange: { window: w, reserve: save.ichor, bought: [] } });
+  },
+  /** The six lots + countdown for the UI — pure over the persisted snapshot. An un-polled
+   *  fresh window previews at the live reserve (poll persists those same values). */
+  ichorExchangeView(now = Date.now()): {
+    offers: (ExchangeOffer & { traded: boolean; affordable: boolean })[];
+    msToRefresh: number;
+    reserve: number;
+    ichor: number;
+  } {
+    const save = store.get();
+    const rec = save.ichorExchange;
+    const w = Math.max(exchangeWindow(now), rec.window);
+    const fresh = w !== rec.window;
+    const reserve = fresh ? save.ichor : rec.reserve;
+    const bought = fresh ? [] : rec.bought;
+    return {
+      offers: rollExchange(w, reserve).map((o) => ({ ...o, traded: bought.includes(o.index), affordable: save.ichor >= o.cost })),
+      msToRefresh: msToExchangeRefresh(now),
+      reserve,
+      ichor: save.ichor,
+    };
+  },
+  /** Trade one lot: spend the Ichor, grant the currency, mark the slot. False (no mutation)
+   *  when the lot is already traded this window or unaffordable. One persist. */
+  buyIchorOffer(index: number, now = Date.now()): boolean {
+    meta.pollIchorExchange(now);
+    const save = store.get();
+    const rec = save.ichorExchange;
+    if (rec.bought.includes(index)) return false;
+    const offer = rollExchange(rec.window, rec.reserve).find((o) => o.index === index);
+    if (!offer || save.ichor < offer.cost) return false;
+    const name = offer.currency === 'genomeCores' ? 'Genome Cores' : offer.currency === 'geneEssence' ? 'Gene Essence' : 'Scrap';
+    let next: SaveData = {
+      ...save,
+      ichor: save.ichor - offer.cost,
+      ichorExchange: { ...rec, bought: [...rec.bought, index] },
+      timeline: pushTimeline(save.timeline, '⇄', `Ichor Exchange — ${offer.cost} Ichor → ${offer.qty} ${name}`),
+    };
+    if (offer.currency === 'genomeCores') next = { ...next, shards: next.shards + offer.qty, lifetimeShards: next.lifetimeShards + offer.qty };
+    else if (offer.currency === 'geneEssence') next = { ...next, geneEssence: next.geneEssence + offer.qty };
+    else next = { ...next, mats: { ...next.mats, scrap: next.mats.scrap + offer.qty } };
     persist(next);
     return true;
   },
