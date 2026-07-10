@@ -148,6 +148,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'prestige.molt', category: 'progression', level: 'strict', limit: S({ count: 1, perMs: 8000 }), cooldownMs: 5000,
     analytics: 'sec_molt', doc: 'The Ascension molt — resets the cycle; the ceremony is the pace.', at: META,
   },
+  'trophy.equip': {
+    id: 'trophy.equip', category: 'progression', level: 'permissive', limit: P({ count: 20 }), dedupeMs: 200,
+    analytics: 'sec_trophy_equip', doc: 'Mount/unmount a Trophy Rack organ (reversible loadout toggle — docs/NEMESIS.md §rack).', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -207,6 +211,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyUpgrade: 'progress.upgrade',
   buyAscendantNode: 'progress.ascendant',
   molt: 'prestige.molt',
+  equipTrophy: 'trophy.equip',
   importText: 'save.import',
   restoreBackup: 'save.restore',
   reset: 'account.reset',

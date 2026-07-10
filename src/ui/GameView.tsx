@@ -280,6 +280,9 @@ export function GameView({
   // Boss PHASE SHIFT roar (docs/BOSS-DESIGN.md §phases): the sim's splice-crunch marks the cut;
   // this dedicated mutation roar gives the evolution a throat. Rides the bossPhase event.
   useEffect(() => gameEvents.on('bossPhase', () => audio.cue('boss_phase')), []);
+  // NEMESIS entrance (docs/NEMESIS.md): the personal hunt returning earns its own vengeful roar,
+  // distinct from a normal boss intro — the moment you recognize your rival cresting the membrane.
+  useEffect(() => gameEvents.on('bossSpawned', (e) => { if (e.nemesis) audio.cue('nemesis_roar'); }), []);
   // MEGA BOSS arrival spectacle (docs/MEGA-BOSS.md): the raid banner flipping null→present IS the
   // arrival — a grander card than the boss intro (the audio roar + quake ride the sfx queue).
   const [megaIntro, setMegaIntro] = useState<{ name: string; title: string; glow: string; at: number } | null>(null);

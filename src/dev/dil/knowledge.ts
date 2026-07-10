@@ -143,6 +143,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   // ── Future expansion (planned, not built — replaces re-deriving intent every session) ──
   { from: 'system:website', kind: 'plans', to: 'system:liveops', note: 'community spotlight + seasonal event pages once events ship' },
   { from: 'system:nemesis', kind: 'plans', to: 'system:bosses', note: 'nemesis organisms escalate the boss framework with per-player memory' },
+  { from: 'system:nemesis', kind: 'modifies', to: 'system:engine', note: 'nemesisTraits(slain) rides RunOptions → spawnBoss applies hp/armor/damage/attack-speed deterministically (core/nemesis.ts)' },
+  { from: 'system:nemesis', kind: 'consumes', to: 'system:mega-bosses', note: 'mega + vengeance trophy organs; mega kills derive mega-source trophy ownership' },
   { from: 'system:prestige', kind: 'extends', to: 'system:meta-store', note: 'Ascendant nodes multiply the permanent buckets' },
   { from: 'system:living-battlefield', kind: 'plans', to: 'system:biomes', note: 'per-biome bespoke terrain flora beyond the BIOME_FLORA tint map' },
 ];

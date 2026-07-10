@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 33` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 34` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -446,9 +446,15 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 - ✅ **Champion Contracts**: weekly deterministic 3-contract board (LiveOps weekIndex),
   data constraint vocabulary judged in finishRun, core payouts + Gilded exclusives,
   home board + Results category (now surfaced on the Quest Board) — CONTRACTS.md
-- ✅ **Nemesis & Trophies**: losses seed a buffed, branded returning hunter (replay-
-  deterministic via RunOptions; dailies excluded); revenge pays scaled cores + Abyssal
-  phenotype; 10 tradeoff trophy organs, ONE mounted, derived ownership — NEMESIS.md
+- ✅ **Nemesis & Trophies** (**overhauled 2026-07**): losses seed a returning hunter whose
+  **grudge ladder** (core/nemesis.ts) escalates it by `slain` into named tiers (Marked →
+  Hunted → Reviled → Apex Predator), each layering REAL deterministic traits (hp, armor,
+  +Nucleus damage, faster sieges) via RunOptions — dailies excluded, replay-exact; a
+  tier-intensity brand + a vengeful entrance roar. Revenge pays tier-scaled cores + an Abyssal
+  phenotype + a permanent **Vengeance organ** (pure-upside, one per chassis). Trophies: 10
+  tradeoff organs + 5 vengeance organs, mounted on a **RACK of up to 3 slots** (grows with
+  organs harvested), derived ownership + a `save.vengeance` avenged-chassis ledger (v34) —
+  NEMESIS.md
 - ✅ **Hero Expeditions**: benched heroes on 7-mission board (2h–16h, absolute endsAt,
   offline-safe); class affinity (+25%), risk tiers (deterministic windfall/setback rolls),
   rare finds, per-mission mastery ledger (v27), multiplier-stack offer matrix in the

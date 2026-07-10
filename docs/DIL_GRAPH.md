@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 692 nodes · 1188 edges, built from the live
+> **The project's brain** (docs/DIL.md). 692 nodes · 1191 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -120,6 +120,8 @@ graph LR
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
+  system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
 ### Power Score Map
@@ -381,6 +383,7 @@ graph LR
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
 ### Presentation Couplings Map
@@ -395,6 +398,7 @@ graph LR
   system_mega_bosses["Mega Bosses"] -->|triggers| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
 ## Concepts (6)
@@ -586,7 +590,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…169 more (query: `npm run dil -- node system:engine`)_
+  - _…170 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1261,17 +1265,20 @@ _at: src/core/expeditions.ts_
 
 ### `system:nemesis` — Nemesis & Trophies
 
-The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — it returns buffed (+15%/slay hp, capped, via RunOptions ⇒ replay-deterministic) and branded; revenge pays scaled cores + an Abyssal phenotype. Boss trophies: one organ per chassis/mega, DERIVED ownership, ONE equipped tradeoff pair folded like gear.
+The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — a data-driven GRUDGE LADDER (core/nemesis.ts) escalates it by `slain` into named tiers (Marked→Apex Predator) that layer real traits (hp, armor, +Nucleus damage, faster sieges) via RunOptions ⇒ replay-deterministic + branded by tier; revenge pays tier-scaled cores + an Abyssal phenotype + a permanent VENGEANCE trophy. Trophies: tradeoff organs per chassis/mega (DERIVED ownership) PLUS pure-upside vengeance organs (save.vengeance), mounted on a RACK of up to trophySlots (grows with organs owned) folded like gear.
 
-_at: src/core/trophies.ts_
+_at: src/core/trophies.ts, src/core/nemesis.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:bosses`
   - dependsOn → `system:meta-store`
   - dependsOn → `system:cosmetics`
   - consumes → `system:meta-store` — owns save field 'nemesis'
-  - consumes → `system:meta-store` — owns save field 'equippedTrophy'
+  - consumes → `system:meta-store` — owns save field 'equippedTrophies'
+  - consumes → `system:meta-store` — owns save field 'vengeance'
   - plans → `system:bosses` — nemesis organisms escalate the boss framework with per-player memory
+  - modifies → `system:engine` — nemesisTraits(slain) rides RunOptions → spawnBoss applies hp/armor/damage/attack-speed deterministically (core/nemesis.ts)
+  - consumes → `system:mega-bosses` — mega + vengeance trophy organs; mega kills derive mega-source trophy ownership
   - documentedBy ← `doc:NEMESIS.md`
 
 ### `system:cosmetics` — The Wardrobe (Cosmetics)
@@ -1532,7 +1539,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…94 more (query: `npm run dil -- node system:meta-store`)_
+  - _…95 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1584,7 +1591,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - referencedBy ← `achievement:mega_perfect`
   - referencedBy ← `achievement:mega_speed`
   - referencedBy ← `achievement:mega_all`
-  - _…10 more (query: `npm run dil -- node system:mega-bosses`)_
+  - _…11 more (query: `npm run dil -- node system:mega-bosses`)_
 
 ### `system:cutscenes` — Story Cutscenes & Memory Archive
 

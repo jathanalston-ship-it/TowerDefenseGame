@@ -18,6 +18,7 @@ const DUCK: Record<string, [number, number]> = {
   wpBreak: [0.28, 0.7], splice: [0.3, 0.8], breach: [0.25, 0.6],
   boss_phase: [0.28, 0.8], mega_cast: [0.22, 0.6],
   megaStagger: [0.32, 1.0], megaCataclysm: [0.5, 1.6], megaGorge: [0.24, 0.7],
+  nemesis_roar: [0.34, 1.2],
 };
 
 /** Reward cues that ALSO land a musical stinger (audio/music.ts STINGERS) — mapped here so every
@@ -190,6 +191,11 @@ function sBoss(): void { // apex-threat sting: falling tritone over a sub thump 
 function sBossPhase(): void { // boss MUTATION roar: chitin crack + a rising beast-throat sweep — evolution, not injury
   noise(0.2, 0.13, 2800, 400); tone(140, 0.8, 'sawtooth', 0.15, 260);
   tone(93, 0.7, 'sawtooth', 0.1, 175); tone(50, 0.8, 'sine', 0.2, 38);
+}
+function sNemesisRoar(): void { // the personal hunt RETURNS (docs/NEMESIS.md): a vengeful sub-growl + bent snarl + ragged breath
+  tone(46, 1.2, 'sine', 0.34, 29); // deep, sinking sub — it remembers you
+  tone(174, 0.7, 'sawtooth', 0.18, 92); tone(116, 0.9, 'sawtooth', 0.12, 58); // a bent, snarling fall
+  noise(0.9, 0.12, 700, 110); // ragged breath drawing in
 }
 // ── Mega Boss suite (docs/MEGA-BOSS.md §audio) — the raid encounter's sonic identity ──
 function sMega(): void { // arrival: a continental roar — sub quake + descending double saw + long hiss
@@ -493,6 +499,7 @@ export const audio = {
         case 'wave': sWave(); break;
         case 'boss': sBoss(); break;
         case 'boss_phase': sBossPhase(); break;
+        case 'nemesis_roar': sNemesisRoar(); break;
         case 'mega_cast': sMegaCast(); break;
         case 'mega': sMega(); break;
         case 'megaMaw': sMegaMaw(); break;

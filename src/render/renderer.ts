@@ -56,6 +56,7 @@ import type { Assimilation } from './livingBattlefield';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
 import { bossColorOf, drawBossBody, drawBossCrown } from './bossChassis';
 import { dangerCurve } from '../core/dangerCamera';
+import { GRUDGE_LADDER } from '../core/nemesis';
 import type { CosmeticTheme } from '../core/cosmetics';
 import { themedBossColor, themedEnemyDef, wardrobeKit } from './wardrobeFx';
 
@@ -1727,21 +1728,30 @@ function drawEnemy(
     const vt = e.boss?.visualTier ?? 0;
     glowDisc(ctx, e.x, drawY, r * (2.3 + vt * 0.25) * pulse(t, 2.2, 0.92, 1.08), THEME.boss.glow);
     // NEMESIS mark (docs/NEMESIS.md): the boss hunting THIS account wears a black-red
-    // counter-rotating brand — you know it the moment it crests the membrane.
+    // counter-rotating brand whose intensity ESCALATES with its grudge tier — a Marked
+    // rival glows; an Apex Predator burns with layered, faster-spinning rings.
     if (e.boss?.nemesis) {
-      glowDisc(ctx, e.x, drawY, r * 2.9 * pulse(t, 1.4, 0.9, 1.1), 'rgba(20,2,8,0.5)');
-      ring(ctx, e.x, drawY, r * (1.9 + 0.08 * Math.sin(t * 3)), rgba(hexRgb('#ff4d6d'), 0.7), 2.5, [10, 6]);
+      const nt = e.boss.nemesisTier ?? 0;
+      glowDisc(ctx, e.x, drawY, r * (2.7 + nt * 0.16) * pulse(t, 1.4 + nt * 0.25, 0.88, 1.12), `rgba(20,2,8,${(0.42 + nt * 0.06).toFixed(2)})`);
+      ring(ctx, e.x, drawY, r * (1.9 + 0.08 * Math.sin(t * 3)), rgba(hexRgb('#ff4d6d'), 0.6 + nt * 0.1), 2 + nt * 0.5, [10, 6]);
       ctx.save();
       ctx.strokeStyle = rgba(hexRgb('#2b0812'), 0.9);
       ctx.lineWidth = 1.5;
       ctx.setLineDash([4, 10]);
-      ctx.lineDashOffset = (t * 30) % 14;
+      ctx.lineDashOffset = (t * (30 + nt * 12)) % 14;
       ctx.beginPath();
       ctx.arc(e.x, drawY, r * 2.1, 0, Math.PI * 2);
       ctx.stroke();
+      if (nt >= 2) { // Reviled+ earns a second brand ring spinning the other way
+        ctx.lineDashOffset = -(t * 42) % 14;
+        ctx.beginPath();
+        ctx.arc(e.x, drawY, r * (2.4 + nt * 0.1), 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
       ctx.setLineDash([]);
-      labelAt(ctx, e.x, drawY - r * 2.5, '☠ NEMESIS', '#ff4d6d');
+      const tierName = (GRUDGE_LADDER[Math.min(nt, GRUDGE_LADDER.length - 1)]?.name ?? '').toUpperCase();
+      labelAt(ctx, e.x, drawY - r * 2.5, `☠ NEMESIS · ${tierName}`, '#ff4d6d');
     }
     if (e.boss) drawBossCrown(ctx, e.boss.defId, e.x, drawY, r, vt, t); // chassis-keyed signature
     else spikeCrown(ctx, e.x, drawY, r * 1.02, r * (0.5 + vt * 0.16), 8 + vt * 3, THEME.boss.crown, t * 0.6);

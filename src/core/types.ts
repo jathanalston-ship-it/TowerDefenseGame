@@ -181,6 +181,7 @@ export interface BossRuntime {
   burrow: number; // burrower: seconds submerged (untargetable; emerges beside the Hive)
   visualTier: number; // phase mutation stage the renderer draws (0 = base form)
   nemesis?: boolean; // this boss is the account's NEMESIS this run (docs/NEMESIS.md) — buffed + marked
+  nemesisTier?: number; // grudge-tier index (0..3) — drives the brand's intensity + tier label
 }
 
 /** A transient banner shown when a tower buys a branch tier (the "mutation" celebration). `id`

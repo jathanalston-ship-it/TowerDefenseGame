@@ -290,9 +290,9 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/EXPEDITIONS.md'],
   },
   {
-    id: 'nemesis', name: 'Nemesis & Trophies', purpose: 'The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — it returns buffed (+15%/slay hp, capped, via RunOptions ⇒ replay-deterministic) and branded; revenge pays scaled cores + an Abyssal phenotype. Boss trophies: one organ per chassis/mega, DERIVED ownership, ONE equipped tradeoff pair folded like gear.',
-    files: ['src/core/trophies.ts'],
-    dependsOn: ['engine', 'bosses', 'meta-store', 'cosmetics'], powerScore: null, save: ['nemesis', 'equippedTrophy'],
+    id: 'nemesis', name: 'Nemesis & Trophies', purpose: 'The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — a data-driven GRUDGE LADDER (core/nemesis.ts) escalates it by `slain` into named tiers (Marked→Apex Predator) that layer real traits (hp, armor, +Nucleus damage, faster sieges) via RunOptions ⇒ replay-deterministic + branded by tier; revenge pays tier-scaled cores + an Abyssal phenotype + a permanent VENGEANCE trophy. Trophies: tradeoff organs per chassis/mega (DERIVED ownership) PLUS pure-upside vengeance organs (save.vengeance), mounted on a RACK of up to trophySlots (grows with organs owned) folded like gear.',
+    files: ['src/core/trophies.ts', 'src/core/nemesis.ts'],
+    dependsOn: ['engine', 'bosses', 'meta-store', 'cosmetics'], powerScore: null, save: ['nemesis', 'equippedTrophies', 'vengeance'],
     tutorial: [], help: [], hud: ['NEMESIS brand (renderer)'], ui: ['PlayerProfile (Trophy Rack + hunt banner)'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/NEMESIS.md'],
   },

@@ -10,7 +10,6 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { AccountCard } from './components/AccountPanel';
 import { meta, equippedWardrobe } from '../state/meta';
-import { bossDef } from '../core/boss';
 import {
   PROFILE_SECTION_TITLES,
   achievementShowcase,
@@ -59,6 +58,10 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
   // Wardrobe identity (docs/COSMETICS.md §wardrobe): the commander card wears every equipped
   // identity cosmetic — name ink, title, nameplate, backdrop, banner standard, emblem, borders.
   const wd = equippedWardrobe(save);
+  // Nemesis & Trophy Rack (docs/NEMESIS.md) — the active hunt's grudge tier + traits, and the
+  // rack's live slot capacity (grows with organs harvested).
+  const nemView = meta.nemesisView();
+  const rack = meta.trophyRack();
   const bannerStyle: CSSProperties = {
     ...(wd.profileBg?.bg ? { background: `radial-gradient(circle at 20% 0%, ${wd.profileBg.accent}22, transparent 55%), linear-gradient(160deg, ${wd.profileBg.bg}, transparent 140%)` } : {}),
     ...(wd.prestigeBorder?.accent ? { borderColor: wd.prestigeBorder.accent } : wd.collectionBorder?.accent ? { borderColor: wd.collectionBorder.accent } : {}),
@@ -199,30 +202,51 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
       {/* ── 6b · NEMESIS + TROPHY RACK (docs/NEMESIS.md) — the hunt and the spoils ── */}
       <section className="pf-block" aria-label="Nemesis and trophies">
         <div className="pf-h">Nemesis &amp; Trophy Rack</div>
-        {save.nemesis ? (
+        {nemView ? (
           <div className="pf-nemesis">
-            ☠ <b>{bossDef(save.nemesis.defId)?.name ?? save.nemesis.defId}</b> hunts you — it has ended
-            {' '}{save.nemesis.slain} of your runs. It returns STRONGER each time; kill it for
-            {' '}<b>+{60 * save.nemesis.slain} Cores</b> and an Abyssal phenotype.
+            <div className="pf-nemesis-head">
+              <span>☠ <b>{nemView.name}</b> hunts you</span>
+              <span className={`pf-grudge pf-grudge-${nemView.tier}`}>{nemView.tierName}</span>
+            </div>
+            <div className="pf-nemesis-sub">
+              It has ended <b>{nemView.slain}</b> of your runs and returns STRONGER each time. Break the hunt for
+              {' '}<b>+{nemView.rewardCores} Cores</b>, an Abyssal phenotype, and its Vengeance organ.
+            </div>
+            <ul className="pf-grudge-traits">
+              {nemView.traits.map((tr, i) => <li key={i}>{tr}</li>)}
+            </ul>
           </div>
         ) : (
           <div className="pf-nemesis dim">No nemesis stalks you. Lose a run to a boss and it will remember.</div>
         )}
-        <div className="pf-trophies">
-          {meta.trophies().map(({ def, owned, equipped }) => (
-            <button
-              key={def.id}
-              className={`pf-trophy${equipped ? ' on' : ''}${owned ? '' : ' is-locked'}`}
-              disabled={!owned}
-              onClick={() => meta.equipTrophy(equipped ? null : def.id)}
-              title={owned ? `${def.organ} — ${def.up} / ${def.down}` : 'Slay its source to claim this organ'}
-            >
-              <b>{owned ? (equipped ? '◈ ' : '') : '🔒 '}{def.name}</b>
-              <span className="pf-trophy-fx"><i className="up">{def.up}</i> · <i className="down">{def.down}</i></span>
-            </button>
-          ))}
+        <div className="pf-rack-head">
+          <span className="pf-rack-slots">RACK <b>{rack.used}/{rack.slots}</b> slots</span>
+          <span className="pf-rack-owned">{rack.owned} organ{rack.owned === 1 ? '' : 's'} harvested</span>
         </div>
-        <div className="pf-trophy-note">One trophy may be mounted at a time — every organ pays AND costs.</div>
+        <div className="pf-trophies">
+          {meta.trophies().map(({ def, owned, equipped }) => {
+            const venge = def.source.kind === 'vengeance';
+            const rackFull = !equipped && rack.used >= rack.slots;
+            return (
+              <button
+                key={def.id}
+                className={`pf-trophy${equipped ? ' on' : ''}${owned ? '' : ' is-locked'}${venge ? ' is-venge' : ''}`}
+                disabled={!owned || rackFull}
+                onClick={() => meta.equipTrophy(def.id, !equipped)}
+                title={owned
+                  ? `${def.organ} — ${def.up}${def.down ? ` / ${def.down}` : ' (pure upside)'}${rackFull ? ' · rack full — unmount one first' : ''}`
+                  : 'Slay its source to claim this organ'}
+              >
+                <b>{owned ? (equipped ? '◈ ' : '') : '🔒 '}{def.name}</b>
+                <span className="pf-trophy-fx">
+                  <i className="up">{def.up}</i>
+                  {def.down ? <> · <i className="down">{def.down}</i></> : <> · <i className="venge">pure upside</i></>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="pf-trophy-note">Mount up to your rack's slots — tradeoff organs pay AND cost; Vengeance organs (from avenged Nemeses) only pay.</div>
       </section>
 
       {/* ── 3 · POWER BREAKDOWN — where the strength comes from ── */}

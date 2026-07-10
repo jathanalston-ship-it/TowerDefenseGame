@@ -212,7 +212,7 @@ graph TD
 | **Infestation Map** (`infestation`) | `meta-store` · `hub-shell` | — | — | `infestation` | `docs/INFESTATION.md` |
 | **Chronicle (patch-note pipeline)** (`chronicle`) | `meta-store` | — | — | `patchNotes` | `docs/CHANGELOG-PIPELINE.md` |
 | **Hero Expeditions** (`expeditions`) | `heroes` · `meta-store` | — | — | `expeditions` | `docs/EXPEDITIONS.md` |
-| **Nemesis & Trophies** (`nemesis`) | `engine` · `bosses` · `meta-store` · `cosmetics` | — | — | `nemesis` · `equippedTrophy` | `docs/NEMESIS.md` |
+| **Nemesis & Trophies** (`nemesis`) | `engine` · `bosses` · `meta-store` · `cosmetics` | — | — | `nemesis` · `equippedTrophies` · `vengeance` | `docs/NEMESIS.md` |
 | **The Wardrobe (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `contracts` · `nemesis` · `battle-pass` · `quests` | ⚡ via the collection codex weights (tiny, cosmetic-first) | `cosmetics` · `wardrobe` | `docs/COSMETICS.md` |
 | **Battle Pass (Season)** (`battle-pass`) | `meta-store` · `cosmetics` · `premium` · `hub-shell` | `quests` | ⚡ permanents + Perennial stacks fold into the meta bucket | `battlePass` | `docs/BATTLEPASS.md` |
 | **Quests & Missions** (`quests`) | `meta-store` · `battle-pass` · `contracts` · `cutscenes` · `cosmetics` · `collection` · `hub-shell` | — | ⚡ quest/mission codices carry small collection weights | `quests` | `docs/QUESTS.md` |
@@ -771,13 +771,13 @@ graph TD
 
 ### Nemesis & Trophies (`nemesis`)
 
-*The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — it returns buffed (+15%/slay hp, capped, via RunOptions ⇒ replay-deterministic) and branded; revenge pays scaled cores + an Abyssal phenotype. Boss trophies: one organ per chassis/mega, DERIVED ownership, ONE equipped tradeoff pair folded like gear.*
+*The personal hunt (docs/NEMESIS.md): a boss standing at your defeat becomes the Nemesis — a data-driven GRUDGE LADDER (core/nemesis.ts) escalates it by `slain` into named tiers (Marked→Apex Predator) that layer real traits (hp, armor, +Nucleus damage, faster sieges) via RunOptions ⇒ replay-deterministic + branded by tier; revenge pays tier-scaled cores + an Abyssal phenotype + a permanent VENGEANCE trophy. Trophies: tradeoff organs per chassis/mega (DERIVED ownership) PLUS pure-upside vengeance organs (save.vengeance), mounted on a RACK of up to trophySlots (grows with organs owned) folded like gear.*
 
-- **Files:** `src/core/trophies.ts`
+- **Files:** `src/core/trophies.ts` · `src/core/nemesis.ts`
 - **Depends on:** `engine` · `bosses` · `meta-store` · `cosmetics`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)
-- **Save fields:** `nemesis` · `equippedTrophy`
+- **Save fields:** `nemesis` · `equippedTrophies` · `vengeance`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** `NEMESIS brand (renderer)` · **UI screens:** `PlayerProfile (Trophy Rack + hunt banner)`
 - **Collection:** — · **Achievements:** —

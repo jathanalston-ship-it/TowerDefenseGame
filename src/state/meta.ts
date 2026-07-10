@@ -110,7 +110,9 @@ import { cutsceneDef } from '../core/cutscenes';
 import { cutsceneBus } from './navBus';
 import { DIRECTIVE_CAPSTONE, accrueDirectives, activeDirectives, capstoneState, directiveBoard, directiveWeekKey } from '../core/directives';
 import type { DirectiveReward } from '../core/directives';
-import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
+import { TROPHY_DEFS, trophyById, trophyOwned, trophySlots, vengeanceTrophyFor } from '../core/trophies';
+import type { TrophyOwnCtx } from '../core/trophies';
+import { deepenNemesis, nemesisTraits, vengeanceCores } from '../core/nemesis';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
 import { ALL_SECTORS, REGIONS, effectiveLevel, feedInfestation, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays } from '../core/infestation';
@@ -462,24 +464,45 @@ gameEvents.on('bossKilled', (e) => {
   persist({ ...save, bossesSlain: [...save.bossesSlain, chassis] });
 });
 
-// NEMESIS revenge (docs/NEMESIS.md): killing YOUR nemesis pays blood-price cores + one
-// unowned ABYSSAL phenotype, then the hunt ends. Account-side only — the run is untouched.
+// NEMESIS revenge (docs/NEMESIS.md): killing YOUR nemesis pays tier-scaled blood-price cores,
+// one unowned ABYSSAL phenotype, AND a permanent VENGEANCE trophy for that boss's chassis
+// (the spoils of the personal hunt), then the hunt ends. Account-side only — the run is
+// untouched. The chassis lands in save.vengeance, which unlocks the vengeance organ.
 gameEvents.on('bossKilled', (e) => {
   const save = store.get();
   const nem = save.nemesis;
   if (!nem || nem.defId !== e.defId) return;
-  const cores = 60 * nem.slain;
+  const cores = vengeanceCores(nem.slain);
   const pool = nemesisPool().filter((d) => !save.cosmetics.owned.includes(d.id));
   const grant = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+  const chassis = bossDef(e.defId)?.chassis;
+  const venge = trophyForChassis(chassis);
+  const newVenge = chassis && !save.vengeance.includes(chassis);
   persist({
     ...save,
     shards: save.shards + cores,
     lifetimeShards: save.lifetimeShards + cores,
     nemesis: null,
-    timeline: pushTimeline(save.timeline, '☠', `Revenge — ${bossDef(e.defId)?.name ?? e.defId} repaid in kind (+${cores} Cores${grant ? ' · Abyssal phenotype claimed' : ''})`),
+    vengeance: newVenge ? [...save.vengeance, chassis!] : save.vengeance,
+    timeline: pushTimeline(save.timeline, '☠', `Revenge — ${bossDef(e.defId)?.name ?? e.defId} repaid in kind (+${cores} Cores${grant ? ' · Abyssal phenotype' : ''}${newVenge && venge ? ` · ${venge.name} claimed` : ''})`),
     cosmetics: grant ? { ...save.cosmetics, owned: [...save.cosmetics.owned, grant.id] } : save.cosmetics,
   });
 });
+
+/** The vengeance organ granted for avenging a nemesis of `chassis` (undefined ⇒ unknown chassis). */
+function trophyForChassis(chassis: string | undefined): { name: string } | undefined {
+  return chassis ? vengeanceTrophyFor(chassis) : undefined;
+}
+
+/** Trophy ownership context — the three ledgers that decide what organs a save holds. */
+function trophyCtx(s: SaveData): TrophyOwnCtx {
+  return { bossesSlain: s.bossesSlain, megaSlain: s.megaProgress.slain, vengeance: s.vengeance };
+}
+/** How many trophy organs this save owns (drives the rack's slot count). */
+function trophyOwnedCount(s: SaveData): number {
+  const ctx = trophyCtx(s);
+  return TROPHY_DEFS.reduce((n, d) => n + (trophyOwned(d, ctx) ? 1 : 0), 0);
+}
 
 /** The account's expected kill time + efficiency for one mega kill (docs/MEGA-BOSS.md §rewards).
  *  The expectation is content-anchored (tier → the campaign band hosting that tier) and POWER-
@@ -1947,9 +1970,7 @@ export const meta = {
     // NEMESIS (docs/NEMESIS.md): a boss standing over the fallen Nucleus becomes — or
     // deepens — the hunt. Wins never touch it; revenge clears it via the bossKilled lane.
     const fallenTo = !result.won ? (result.stats.bossesAtDefeat ?? []) : [];
-    const nextNemesis = fallenTo.length > 0
-      ? { defId: fallenTo[0], slain: save.nemesis?.defId === fallenTo[0] ? Math.min(50, save.nemesis.slain + 1) : 1 }
-      : save.nemesis;
+    const nextNemesis = fallenTo.length > 0 ? deepenNemesis(save.nemesis, fallenTo[0]) : save.nemesis;
     if (fallenTo.length > 0) {
       const nm = bossDef(fallenTo[0])?.name ?? fallenTo[0];
       timeline = pushTimeline(timeline, '☠', save.nemesis?.defId === fallenTo[0]
@@ -2817,31 +2838,69 @@ export const meta = {
     return { reward, outcome: outcome.kind, find };
   },
 
-  // ── Trophy Rack (docs/NEMESIS.md §trophies) — ownership derives from kill ledgers. ──
+  // ── Trophy Rack (docs/NEMESIS.md §trophies) — a RACK of up to trophySlots organs. Ownership
+  //    derives from the kill ledgers (chassis/mega) + the vengeance ledger. ──
   trophies(): { def: TrophyDef; owned: boolean; equipped: boolean }[] {
     const s = store.get();
+    const ctx = trophyCtx(s);
     return TROPHY_DEFS.map((def) => ({
       def,
-      owned: trophyOwned(def, s.bossesSlain, s.megaProgress.slain),
-      equipped: s.equippedTrophy === def.id,
+      owned: trophyOwned(def, ctx),
+      equipped: s.equippedTrophies.includes(def.id),
     }));
   },
-  /** Mount ONE trophy (null clears). Refuses unowned organs. */
-  equipTrophy(id: string | null): boolean {
+  /** Rack capacity + fill (docs/NEMESIS.md §rack) — slots grow with organs owned. */
+  trophyRack(): { slots: number; used: number; owned: number } {
     const s = store.get();
-    if (id !== null) {
-      const def = trophyById(id);
-      if (!def || !trophyOwned(def, s.bossesSlain, s.megaProgress.slain)) return false;
+    const owned = trophyOwnedCount(s);
+    const slots = trophySlots(owned);
+    return { slots, used: Math.min(slots, s.equippedTrophies.length), owned };
+  },
+  /** Mount (on=true) or unmount (on=false) ONE organ. Refuses unowned organs and a full rack;
+   *  idempotent. Light-guarded against toggle spam (docs/SECURITY.md). */
+  equipTrophy(id: string, on: boolean): boolean {
+    if (!guardOk('trophy.equip', id)) return false;
+    const s = store.get();
+    const def = trophyById(id);
+    if (!def || !trophyOwned(def, trophyCtx(s))) return false;
+    const has = s.equippedTrophies.includes(id);
+    if (on === has) return true; // already in the requested state
+    if (on) {
+      if (s.equippedTrophies.length >= trophySlots(trophyOwnedCount(s))) return false; // rack full
+      persist({ ...s, equippedTrophies: [...s.equippedTrophies, id] });
+    } else {
+      persist({ ...s, equippedTrophies: s.equippedTrophies.filter((t) => t !== id) });
     }
-    persist({ ...s, equippedTrophy: id });
     return true;
   },
-  /** The equipped trophy's tradeoff pair, folded into runs like gear. [] when nothing mounted. */
+  /** The mounted rack's folded effects (docs/NEMESIS.md) — every equipped+owned organ's pair,
+   *  clamped to the live slot count. [] when the rack is empty (golden-safe). */
   trophyRunEffects(): CardEffect[] {
     const s = store.get();
-    const def = s.equippedTrophy ? trophyById(s.equippedTrophy) : undefined;
-    if (!def || !trophyOwned(def, s.bossesSlain, s.megaProgress.slain)) return [];
-    return def.effects;
+    const ctx = trophyCtx(s);
+    const slots = trophySlots(trophyOwnedCount(s));
+    const out: CardEffect[] = [];
+    for (const id of s.equippedTrophies.slice(0, slots)) {
+      const def = trophyById(id);
+      if (def && trophyOwned(def, ctx)) out.push(...def.effects);
+    }
+    return out;
+  },
+  /** The active hunt for the UI (docs/NEMESIS.md): grudge tier + escalation traits + the
+   *  tier-scaled revenge bounty. null when no nemesis stalks the account. */
+  nemesisView(): { defId: string; name: string; slain: number; tier: number; tierName: string; traits: string[]; rewardCores: number } | null {
+    const nem = store.get().nemesis;
+    if (!nem) return null;
+    const tb = nemesisTraits(nem.slain);
+    return {
+      defId: nem.defId,
+      name: bossDef(nem.defId)?.name ?? nem.defId,
+      slain: nem.slain,
+      tier: tb.tier,
+      tierName: tb.tierName,
+      traits: tb.traits,
+      rewardCores: vengeanceCores(nem.slain),
+    };
   },
   /** Grant a cosmetic by id (contracts/nemesis/cultivation all land here). Idempotent. */
   grantCosmetic(id: string): boolean {

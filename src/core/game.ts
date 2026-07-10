@@ -81,6 +81,7 @@ import { effectiveGeneEffects } from './geneCards';
 import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
+import { nemesisTraits } from './nemesis';
 import { MINES } from './config';
 import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
 import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaMotif, MegaRuntime, MegaWeakPoint } from './megaboss';
@@ -2467,13 +2468,12 @@ export class Game {
    * the director / endless / debug — never in the authored golden waves.
    */
   spawnBoss(def: BossDef): void {
-    // NEMESIS (docs/NEMESIS.md): the boss that killed you returns HARDER — hp/bounty scale
-    // with how many times it has slain this account (capped). Rides ctor opts ⇒ replays
-    // reproduce it exactly; absent (fresh saves, dailies) ⇒ identical to the base spawn.
-    const nem = this.nemesisSpec !== null && this.nemesisSpec.defId === def.id ? this.nemesisSpec : null;
-    const nemHpMult = nem ? Math.min(2.5, 1 + 0.15 * nem.slain) : 1;
-    const nemBountyMult = nem ? Math.min(2, 1 + 0.1 * nem.slain) : 1;
-    const hp = BOSS.baseHp * def.hpMult * nemHpMult;
+    // NEMESIS (docs/NEMESIS.md): the boss that killed you returns HARDER — its GRUDGE LADDER
+    // (core/nemesis.ts) folds `slain` into a full trait bundle (hp, bounty, armor, Nucleus
+    // damage, siege cadence), not just HP. Rides ctor opts ⇒ replays reproduce it exactly;
+    // absent (fresh saves, dailies) ⇒ every lever is ×1/+0 ⇒ identical to the base spawn.
+    const nem = this.nemesisSpec !== null && this.nemesisSpec.defId === def.id ? nemesisTraits(this.nemesisSpec.slain) : null;
+    const hp = BOSS.baseHp * def.hpMult * (nem ? nem.hpMult : 1);
     this.procBosses.set(def.id, def); // ensure bossSystem can always resolve this boss's def
     this.bossCount++;
     const splitter = def.modules.find((m) => m.kind === 'splitter');
@@ -2484,10 +2484,10 @@ export class Game {
       y: 8,
       hp,
       maxHp: hp,
-      baseArmor: def.armor ?? 14,
+      baseArmor: (def.armor ?? 14) + (nem ? nem.armorBonus : 0),
       speed: CHASSIS[def.chassis].speed,
-      bounty: Math.round(def.bounty * nemBountyMult),
-      damage: def.damage,
+      bounty: Math.round(def.bounty * (nem ? nem.bountyMult : 1)),
+      damage: def.damage * (nem ? nem.damageMult : 1),
       fracture: 0,
       corrosion: 0,
       infection: 0,
@@ -2503,7 +2503,7 @@ export class Game {
       ring: 0,
       attackCd: 0,
       windup: -1,
-      attackInterval: CHASSIS[def.chassis].attack.interval,
+      attackInterval: CHASSIS[def.chassis].attack.interval / (nem ? nem.attackSpeedMult : 1),
       attackWindup: CHASSIS[def.chassis].attack.windup,
       lastHitKind: null,
       elite: false,
@@ -2522,11 +2522,16 @@ export class Game {
         grip: 0,
         burrow: 0,
         visualTier: 0,
-        ...(nem ? { nemesis: true } : {}),
+        ...(nem ? { nemesis: true, nemesisTier: nem.tier } : {}),
         splitsLeft: splitter ? splitter.generations ?? 1 : 0,
         telegraph: null,
       },
     });
+    // Side-channel for the HUD/audio (docs/NEMESIS.md) — a nemesis entrance earns its roar.
+    // No listeners on the headless/golden path ⇒ never emitted, never a determinism factor.
+    if (gameEvents.hasListeners('bossSpawned')) {
+      gameEvents.emit('bossSpawned', { defId: def.id, name: def.name, nemesis: !!nem, nemesisTier: nem ? nem.tier : 0 });
+    }
   }
 
   /**

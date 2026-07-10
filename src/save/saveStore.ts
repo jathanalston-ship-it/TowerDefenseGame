@@ -13,7 +13,7 @@ import type { LootQueueState } from '../core/lootQueue';
 import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
-import { trophyById } from '../core/trophies';
+import { trophyById, TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
 import { ALL_SECTORS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
 import type { PrestigeState } from '../core/prestige';
@@ -83,10 +83,13 @@ export interface SaveData {
   //    `week` scopes progress to the current UTC week (reset when it rolls over); `progress`
   //    accumulates per directive id; `claimed` holds '<week>:<id>' + '<week>:__capstone'. ──
   directives: { week: string; progress: Record<string, number>; claimed: string[] };
-  // ── Nemesis + trophies (v26, docs/NEMESIS.md). nemesis: the boss currently hunting this
-  //    account (null = none); equippedTrophy: the ONE mounted trophy organ (null = none). ──
+  // ── Nemesis + trophies (v26, docs/NEMESIS.md; rack + vengeance v34). nemesis: the boss
+  //    currently hunting this account (null = none). equippedTrophies: the mounted rack (up to
+  //    trophySlots organs). vengeance: chassis you have AVENGED — the vengeance-trophy ledger
+  //    AND the hunt's rap sheet (a real event, not a kill count). ──
   nemesis: { defId: string; slain: number } | null;
-  equippedTrophy: string | null;
+  equippedTrophies: string[];
+  vengeance: string[];
   // ── Hero Expeditions (v26, docs/EXPEDITIONS.md) — active away-missions (absolute endsAt ms)
   //    + per-mission mastery ledger (v27: completions per defId → permanent reward bonus). ──
   expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[]; mastery: Record<string, number> };
@@ -340,8 +343,11 @@ export interface TutorialSave {
 // finale ledger — docs/QUESTS.md).
 // v32→v33: Weekly Directives (the cumulative liveops objective ladder — docs/LIVEOPS.md
 // §directives): save.directives { week, progress, claimed }.
-// All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 33;
+// v33→v34: Nemesis & Trophy overhaul (docs/NEMESIS.md) — the single `equippedTrophy` becomes a
+// multi-slot rack `equippedTrophies[]` (the old value migrates into a one-organ rack) + a
+// `vengeance[]` ledger (chassis avenged → vengeance-trophy ownership + the hunt's rap sheet).
+// All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
+export const CURRENT_VERSION = 34;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -578,7 +584,8 @@ export function defaultSave(): SaveData {
     contracts: { completed: [] },
     directives: { week: '', progress: {}, claimed: [] },
     nemesis: null,
-    equippedTrophy: null,
+    equippedTrophies: [],
+    vengeance: [],
     expeditions: { active: [], mastery: {} },
     infestation: { target: null, sectors: {} },
     patchNotes: { seen: '', optOut: false },
@@ -937,10 +944,26 @@ function withDefaults(data: SaveData): SaveData {
       const slain = Math.max(1, Math.min(50, Math.floor(Number(n.slain) || 1)));
       return { defId: n.defId, slain };
     })(),
-    equippedTrophy: typeof (data as { equippedTrophy?: unknown }).equippedTrophy === 'string'
-      && trophyById((data as { equippedTrophy: string }).equippedTrophy) !== undefined
-      ? (data as { equippedTrophy: string }).equippedTrophy
-      : null,
+    // v34: the rack. Accept the new array; MIGRATE the old single `equippedTrophy` string into
+    // a one-organ rack; drop unknown ids; hard-cap at the max possible slots (tamper ceiling —
+    // meta re-clamps to the live slot count on equip/fold).
+    equippedTrophies: ((): string[] => {
+      const d = data as { equippedTrophies?: unknown; equippedTrophy?: unknown };
+      const raw = Array.isArray(d.equippedTrophies)
+        ? d.equippedTrophies
+        : typeof d.equippedTrophy === 'string' ? [d.equippedTrophy] : [];
+      const seen = new Set<string>();
+      const out: string[] = [];
+      for (const x of raw) {
+        if (typeof x === 'string' && !seen.has(x) && trophyById(x)) { seen.add(x); out.push(x); }
+      }
+      return out.slice(0, TROPHY_SLOT_THRESHOLDS.length);
+    })(),
+    // v34: the avenged-chassis ledger (vengeance-trophy ownership + rap sheet). Plain strings,
+    // deduped, bounded; unknown chassis are inert (no vengeance organ matches them).
+    vengeance: Array.isArray((data as { vengeance?: unknown }).vengeance)
+      ? [...new Set(((data as { vengeance: unknown[] }).vengeance).filter((x): x is string => typeof x === 'string'))].slice(0, 16)
+      : [],
     expeditions: ((): SaveData['expeditions'] => {
       const rawExp = (data as { expeditions?: { active?: unknown; mastery?: unknown } }).expeditions;
       const raw = rawExp?.active;

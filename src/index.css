@@ -9283,10 +9283,33 @@ kbd {
 .pf-trophy.on { border-color: var(--gold); }
 .pf-trophy.on b { color: var(--gold); }
 .pf-trophy.is-locked { opacity: 0.45; }
+.pf-trophy.is-venge { background: color-mix(in srgb, var(--caustic) 7%, var(--panel-2)); border-color: color-mix(in srgb, var(--caustic) 35%, var(--line)); }
+.pf-trophy.is-venge.on { border-color: var(--caustic); }
+.pf-trophy.is-venge.on b { color: var(--caustic); }
 .pf-trophy-fx { font-size: 11px; }
 .pf-trophy-fx .up { color: var(--caustic); font-style: normal; }
 .pf-trophy-fx .down { color: var(--vital); font-style: normal; }
+.pf-trophy-fx .venge { color: var(--caustic); font-style: normal; opacity: 0.85; }
 .pf-trophy-note { margin-top: 8px; font-size: 11px; color: var(--muted); }
+
+/* ── Nemesis hunt banner — grudge tier + escalation traits (docs/NEMESIS.md) ── */
+.pf-nemesis-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
+.pf-nemesis-sub { margin-top: 5px; font-size: 12px; color: color-mix(in srgb, var(--text) 82%, transparent); }
+.pf-grudge {
+  flex: none; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+  color: #ffd9df; background: color-mix(in srgb, var(--vital) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vital) 60%, var(--line));
+}
+.pf-grudge-1 { background: color-mix(in srgb, var(--vital) 42%, transparent); }
+.pf-grudge-2 { background: color-mix(in srgb, #ff5a36 46%, transparent); border-color: #ff5a36; color: #fff; }
+.pf-grudge-3 { background: linear-gradient(90deg, #ff2d55, #ff7a1a); border-color: #ffb15a; color: #fff; box-shadow: 0 0 12px color-mix(in srgb, #ff5a36 55%, transparent); }
+.pf-grudge-traits { margin: 8px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 2px; }
+.pf-grudge-traits li { font-size: 11px; color: var(--muted); list-style: '☠ '; }
+.pf-rack-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+.pf-rack-slots { font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+.pf-rack-slots b { color: var(--gold); }
+.pf-rack-owned { font-size: 11px; color: var(--muted); }
 
 /* ── Hero Expeditions (HeroLab, docs/EXPEDITIONS.md) ── */
 .exp-panel { margin-top: 12px; }
