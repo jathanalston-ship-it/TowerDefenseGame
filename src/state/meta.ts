@@ -102,7 +102,7 @@ import {
   BP, PASS_PASSIVES, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, seasonForWindow, seasonTracks, xpToReach,
 } from '../core/battlePass';
 import type { PassReward, SeasonDef } from '../core/battlePass';
-import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
+import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
 import type { MissionDef, QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
@@ -1362,6 +1362,12 @@ export interface RunOutcome {
   // Quest missions COMPLETED by this run's credit (docs/QUESTS.md §credit) — rewards claim
   // on the Quest Board; this names the movement. `quest` is the owning quest's display name.
   questMissions?: { id: string; name: string; quest: string }[];
+  // Contract NEAR-MISSES (docs/CONTRACTS.md §near-miss): open board rows this run failed by
+  // EXACTLY one constraint — the Results chase line ("so close: <what was missed>").
+  contractNears?: { id: string; name: string; missed: string }[];
+  // PERFECT WEEK (docs/CONTRACTS.md §perfect-week): this run swept the week's whole board —
+  // bonus cores already folded into the reward.
+  perfectWeek?: { cores: number };
   // Story cutscene premieres earned by THIS run — mega bosses first-defeated here
   // (docs/CUTSCENES.md §autoplay). The App plays them after the Results summary, in order.
   megaCutscenes?: string[];
@@ -1702,15 +1708,32 @@ export const meta = {
       won: result.won,
       wave: result.wave,
       kills: result.kills,
+      bossKills: result.stats.bossKills ?? 0,
+      cardsDrafted: result.stats.cardIds.length,
       integrityLost: result.stats.integrityLost,
       towerBuilds: result.stats.towerBuilds,
       heroId: result.stats.heroId,
     };
     const contractWeek = contractWeekKey();
-    const contractHits = activeContracts().filter(
-      (c) => !save.contracts.completed.includes(`${contractWeek}:${c.id}`) && contractSatisfied(c, contractFacts),
-    );
-    const contractCores = contractHits.reduce((a, c) => a + c.reward.cores, 0);
+    const contractBoard = activeContracts();
+    const contractOpen = contractBoard.filter((c) => !save.contracts.completed.includes(`${contractWeek}:${c.id}`));
+    const contractHits = contractOpen.filter((c) => contractSatisfied(c, contractFacts));
+    // Near-misses: open rows the run failed by EXACTLY one constraint (mode already matched) —
+    // the chase feedback that makes a silent board feel alive (docs/CONTRACTS.md §near-miss).
+    const contractNears = contractOpen
+      .filter((c) => !contractHits.includes(c))
+      .map((c) => ({ c, rep: contractReport(c, contractFacts) }))
+      .filter(({ rep }) => rep.modeOk && rep.checks.filter((k) => !k.ok).length === 1)
+      .map(({ c, rep }) => ({ id: c.id, name: c.name, missed: rep.checks.find((k) => !k.ok)!.label }));
+    // Perfect Week: THIS run completed the board's last open row (docs/CONTRACTS.md §perfect-week).
+    // The lastPerfect watermark stops a re-pay if the ledger is ever re-satisfied in-week.
+    const contractLedger = contractHits.length > 0
+      ? [...save.contracts.completed, ...contractHits.map((c) => `${contractWeek}:${c.id}`)]
+      : save.contracts.completed;
+    const perfectWeek = contractHits.length > 0
+      && save.contracts.lastPerfect !== contractWeek
+      && contractBoard.every((c) => contractLedger.includes(`${contractWeek}:${c.id}`));
+    const contractCores = contractHits.reduce((a, c) => a + c.reward.cores, 0) + (perfectWeek ? PERFECT_WEEK.cores : 0);
 
     // Weekly Directives (docs/LIVEOPS.md §directives): bank THIS run's facts into the cumulative
     // ladder. A new UTC week resets the board (progress + claims) before accruing — no reward is
@@ -1966,6 +1989,7 @@ export const meta = {
 
     if (contractHits.length > 0) {
       for (const c of contractHits) timeline = pushTimeline(timeline, '❖', `Contract honoured — ${c.name}`);
+      if (perfectWeek) timeline = pushTimeline(timeline, '❖', 'PERFECT WEEK — every Champion Contract honoured');
     }
     // NEMESIS (docs/NEMESIS.md): a boss standing over the fallen Nucleus becomes — or
     // deepens — the hunt. Wins never touch it; revenge clears it via the bossKilled lane.
@@ -2000,16 +2024,20 @@ export const meta = {
       (isRush ? result.wave * ACCOUNT_XP.bossRushWavePremium : 0) +
       (result.won ? ACCOUNT_XP.win : 0) +
       (isCampaign && result.won ? stageNo * ACCOUNT_XP.campaignClearPerStage + (firstClear ? ACCOUNT_XP.campaignFirstClear : 0) : 0) +
-      (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0);
+      (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0) +
+      contractHits.length * ACCOUNT_XP.contract +
+      (perfectWeek ? ACCOUNT_XP.perfectWeek : 0);
     const acctXpBefore = save.accountXp.xp;
     const settled: SaveData = {
       ...save,
       prediction,
       createdAt: save.createdAt || Date.now(),
       timeline,
-      contracts: contractHits.length > 0
-        ? { completed: [...save.contracts.completed, ...contractHits.map((c) => `${contractWeek}:${c.id}`)] }
-        : save.contracts,
+      contracts: {
+        completed: contractLedger,
+        perfectWeeks: save.contracts.perfectWeeks + (perfectWeek ? 1 : 0),
+        lastPerfect: perfectWeek ? contractWeek : save.contracts.lastPerfect,
+      },
       directives: nextDirectives,
       nemesis: nextNemesis ?? null,
       infestation: nextInfestation,
@@ -2116,6 +2144,8 @@ export const meta = {
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
       ...(contractHits.length > 0 ? { contracts: contractHits.map((c) => ({ id: c.id, name: c.name, cores: c.reward.cores, cosmetic: c.reward.cosmetic })) } : {}),
       ...(questMissions.length > 0 ? { questMissions } : {}),
+      ...(contractNears.length > 0 ? { contractNears } : {}),
+      ...(perfectWeek ? { perfectWeek: { cores: PERFECT_WEEK.cores } } : {}),
       // First-defeat story premieres queued by the megaKilled lane — drained here so they
       // play exactly once, after THIS run's reward summary (docs/CUTSCENES.md §autoplay).
       ...(pendingMegaCutscenes.length > 0 ? { megaCutscenes: pendingMegaCutscenes.splice(0) } : {}),
@@ -4999,6 +5029,7 @@ export const meta = {
       bestWave: save.bestWave,
       rushBestBoss: save.rushBestBoss,
       dailyCompletions: save.daily.completions,
+      contractsHonoured: save.contracts.completed.length,
       powerScore: composePower(accountPowerParts(save)).score,
       molts: save.prestige.molts,
       masteryLevels,

@@ -262,10 +262,10 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'none', docs: ['docs/I18N.md'],
   },
   {
-    id: 'contracts', name: 'Champion Contracts', purpose: 'Weekly authored constraint runs (docs/CONTRACTS.md): a deterministic UTC 3-contract board (same weekIndex as LiveOps), a data constraint vocabulary evaluated against run facts in finishRun, core payouts folded into the run reward, and Gilded-phenotype marquee exclusives.',
+    id: 'contracts', name: 'Champion Contracts', purpose: 'Weekly authored constraint runs (docs/CONTRACTS.md): a deterministic UTC 3-contract board (same weekIndex as LiveOps) over a 24-row/8-week pool, a 14-verb data constraint vocabulary (incl. CombatClass bans/purities) evaluated against run facts in finishRun, per-constraint near-miss reports, core+XP payouts folded into the run reward, PERFECT WEEK sweep bonuses, Gilded-phenotype marquee exclusives (one per week by pool invariant), and a Genome Rank journey source.',
     files: ['src/core/contracts.ts', 'src/ui/components/ContractsCard.tsx'],
-    dependsOn: ['meta-store', 'liveops', 'cosmetics'], powerScore: null, save: ['contracts'],
-    tutorial: [], help: [], hud: [], ui: ['CommandCenter (contracts board)', 'Results (contracts category)'], collection: null, achievements: [],
+    dependsOn: ['meta-store', 'liveops', 'cosmetics', 'towers', 'account-level', 'genome-rank'], powerScore: null, save: ['contracts'],
+    tutorial: [], help: ['contracts'], hud: [], ui: ['CommandCenter (contracts board)', 'Results (contracts category + near-misses + perfect week)'], collection: null, achievements: ['contract_first', 'contract_12', 'perfect_week'],
     localization: 'inline-en', docs: ['docs/CONTRACTS.md'],
   },
   {

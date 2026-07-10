@@ -443,9 +443,15 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   `quests`+`missions` collection codices (fresh-save zero); Quest Board nav screen
   (stage-4 reveal) hosting Champion Contracts as its third section; run completions
   surface as a Results category + a claimable-count nav badge — QUESTS.md
-- ✅ **Champion Contracts**: weekly deterministic 3-contract board (LiveOps weekIndex),
-  data constraint vocabulary judged in finishRun, core payouts + Gilded exclusives,
-  home board + Results category (now surfaced on the Quest Board) — CONTRACTS.md
+- ✅ **Champion Contracts** (overhauled): weekly deterministic 3-contract board (LiveOps
+  weekIndex) over a 24-row/8-week pool, 14-verb data vocabulary (incl. CombatClass
+  bans/purities, boss/draft/hero verbs) judged in finishRun via contractReport (payout and
+  display share one evaluator), difficulty pips, core + Account-XP payouts, exactly one
+  Gilded marquee per week (pool-stride invariant, pinned), PERFECT WEEK sweep bonus
+  (lifetime counter + watermark, v-safe additive save fields), near-miss Results feedback
+  ("missed by one: <label>"), rotation countdown + sweep meter on the board card (home +
+  Quest Board third section), Genome Rank journey source, 3 achievements, Help-wiki teach
+  row — CONTRACTS.md
 - ✅ **Nemesis & Trophies** (**overhauled 2026-07**): losses seed a returning hunter whose
   **grudge ladder** (core/nemesis.ts) escalates it by `slain` into named tiers (Marked →
   Hunted → Reviled → Apex Predator), each layering REAL deterministic traits (hp, armor,

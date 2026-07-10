@@ -29,12 +29,17 @@ function freshMeta(): void {
 
 const hasCache = (banked: { kind: string }[]): boolean => banked.some((c) => c.kind === 'cache');
 
+/** The run's cores MINUS any Champion Contract payouts — this suite measures the rush
+ *  lanes in isolation (a boss-heavy run can honour boss-verb contracts on the side). */
+const coreLane = (o: ReturnType<typeof meta.finishRun>): number =>
+  o.reward.shardsEarned - (o.contracts ?? []).reduce((a, c) => a + c.cores, 0) - (o.perfectWeek?.cores ?? 0);
+
 describe('Boss Rush meta rewards (docs/BOSS-RUSH.md)', () => {
   it('pays RUSH.corePerBoss per boss defeated on top of the wave/kill lane', () => {
     freshMeta();
-    const base = meta.finishRun(makeResult({ wave: 5, kills: 40, bossRush: true }, 0)).reward.shardsEarned;
+    const base = coreLane(meta.finishRun(makeResult({ wave: 5, kills: 40, bossRush: true }, 0)));
     freshMeta();
-    const paid = meta.finishRun(makeResult({ wave: 5, kills: 40, bossRush: true }, 15)).reward.shardsEarned;
+    const paid = coreLane(meta.finishRun(makeResult({ wave: 5, kills: 40, bossRush: true }, 15)));
     expect(paid - base).toBe(RUSH.corePerBoss * 15); // identity mults on a fresh standard save
   });
 

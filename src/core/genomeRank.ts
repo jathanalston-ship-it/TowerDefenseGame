@@ -26,6 +26,7 @@ export interface GenomeSnapshot {
   bestWave: number; // Infinite personal best
   rushBestBoss: number; // most bosses felled in one rush
   dailyCompletions: number; // lifetime daily clears
+  contractsHonoured: number; // lifetime Champion Contracts completed (docs/CONTRACTS.md)
   powerScore: number; // the one strength number
   molts: number; // prestige cycles
   masteryLevels: number; // Σ tower + hero mastery levels
@@ -75,6 +76,8 @@ export const GENOME_SOURCES: GenomeSource[] = [
     score: (s) => depth(s.rushBestBoss, 0.8, 2), hint: 'Fell more bosses in a single rush.' },
   { id: 'daily', name: 'Daily Gauntlets', category: 'journey', weight: 45, nav: 'daily',
     score: (s) => depth(s.dailyCompletions, 0.7, 1.5), hint: 'Complete today’s Daily Run.' },
+  { id: 'contracts', name: 'Champion Contracts', category: 'journey', weight: 40, nav: 'home',
+    score: (s) => depth(s.contractsHonoured, 0.7, 1.2), hint: 'Honour this week’s Champion Contracts.' },
   { id: 'prestige', name: 'Molts', category: 'journey', weight: 80, nav: 'evolution',
     score: (s) => depth(s.molts, 0.75, 1 / 1.2), hint: 'Complete another Molt cycle.' },
   { id: 'battle-pass', name: 'Seasons', category: 'journey', weight: 55, nav: 'season',

@@ -77,8 +77,9 @@ export interface SaveData {
   // ── Phenotypes (schema v26, docs/COSMETICS.md) — owned cosmetic ids + per-kind equips.
   //    PURE presentation: nothing here is read by the sim (golden-safe by construction). ──
   cosmetics: { owned: string[]; towers: Partial<Record<TowerKind, string>>; heroes: Partial<Record<HeroKind, string>> };
-  // ── Champion Contracts (v26, docs/CONTRACTS.md) — weekly completion ledger ('w<week>:<id>'). ──
-  contracts: { completed: string[] };
+  // ── Champion Contracts (v26, docs/CONTRACTS.md) — weekly completion ledger ('w<week>:<id>')
+  //    + Perfect Week chase (lifetime count; lastPerfect week-key stops double-pays). ──
+  contracts: { completed: string[]; perfectWeeks: number; lastPerfect: string };
   // ── Weekly Directives (v33, docs/LIVEOPS.md §directives) — the cumulative objective ladder.
   //    `week` scopes progress to the current UTC week (reset when it rolls over); `progress`
   //    accumulates per directive id; `claimed` holds '<week>:<id>' + '<week>:__capstone'. ──
@@ -581,7 +582,7 @@ export function defaultSave(): SaveData {
     research: { day: '', claims: {}, pendingBoosts: [], lifetime: { views: 0, claims: {} } },
     daily: { lastKey: '', lastWave: 0, bestWave: 0, completions: 0, streak: 0, rewardedKey: '', lastReplay: null },
     cosmetics: { owned: [], towers: {}, heroes: {} },
-    contracts: { completed: [] },
+    contracts: { completed: [], perfectWeeks: 0, lastPerfect: '' },
     directives: { week: '', progress: {}, claimed: [] },
     nemesis: null,
     equippedTrophies: [],
@@ -919,9 +920,16 @@ function withDefaults(data: SaveData): SaveData {
     adaptation: sanitizeAdaptation((data as { adaptation?: unknown }).adaptation),
     // v25→v26: Phenotypes — empty for older saves (identity look ⇒ golden-safe).
     cosmetics: sanitizeCosmetics((data as { cosmetics?: unknown }).cosmetics),
-    contracts: { completed: Array.isArray((data as { contracts?: { completed?: unknown } }).contracts?.completed)
-      ? [...new Set(((data as { contracts: { completed: unknown[] } }).contracts.completed).filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 2000)
-      : [] },
+    contracts: ((): SaveData['contracts'] => {
+      const c = (data as { contracts?: { completed?: unknown; perfectWeeks?: unknown; lastPerfect?: unknown } }).contracts;
+      return {
+        completed: Array.isArray(c?.completed)
+          ? [...new Set(c.completed.filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 2000)
+          : [],
+        perfectWeeks: Math.max(0, Math.floor(Number(c?.perfectWeeks) || 0)),
+        lastPerfect: typeof c?.lastPerfect === 'string' && /^w\d+$/.test(c.lastPerfect) ? c.lastPerfect : '',
+      };
+    })(),
     // v32→v33: Weekly Directives ledger — a bounded {week, progress, claimed}. Absent/garbage
     // on older saves ⇒ an empty board (rebuilds on the next run) ⇒ golden-safe.
     directives: ((): SaveData['directives'] => {

@@ -30,6 +30,8 @@ export const ACCOUNT_XP = {
   campaignFirstClear: 120, // discovery premium on a first clear
   dailyComplete: 300, // the day's gauntlet completed
   bossRushWavePremium: 10, // rush waves pay this ON TOP of `wave` (the gauntlet is denser)
+  contract: 250, // per Champion Contract honoured (docs/CONTRACTS.md)
+  perfectWeek: 600, // the week's whole contract board swept (rides PERFECT_WEEK cores)
   // Acquisition XP (the dopamine ledger, docs/PROGRESSION-GATING.md): every permanent
   // acquisition — a star, an upgrade level, a gene level, a hero, a molt — advances the account.
   acquisition: 15,

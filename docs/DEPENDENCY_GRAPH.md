@@ -96,6 +96,9 @@ graph TD
   contracts --> meta_store
   contracts --> liveops
   contracts --> cosmetics
+  contracts --> towers
+  contracts --> account_level
+  contracts --> genome_rank
   infestation --> meta_store
   infestation --> hub_shell
   chronicle --> meta_store
@@ -190,7 +193,7 @@ graph TD
 | **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | `field-research` · `net-backend` · `battle-pass` | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
 | **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | `security` | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
-| **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` · `mulligans` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
+| **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` · `mulligans` · `contracts` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
 | **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` · `expeditions` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
 | **Equipment & Armory** (`equipment`) | `content-infra` · `loot` · `power` · `heroes` | `crafting` | ⚡ equipped items score via itemPower into the gear bucket | `equipment` | `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` |
@@ -208,7 +211,7 @@ graph TD
 | **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `directives` · `contracts` | — | — | `docs/LIVEOPS.md` |
 | **Weekly Directives** (`directives`) | `meta-store` · `liveops` · `daily` | — | — | `directives` | `docs/LIVEOPS.md` |
 | **Localization Core** (`i18n`) | — | — | — | — | `docs/I18N.md` |
-| **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` | `quests` | — | `contracts` | `docs/CONTRACTS.md` |
+| **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` · `towers` · `account-level` · `genome-rank` | `quests` | — | `contracts` | `docs/CONTRACTS.md` |
 | **Infestation Map** (`infestation`) | `meta-store` · `hub-shell` | — | — | `infestation` | `docs/INFESTATION.md` |
 | **Chronicle (patch-note pipeline)** (`chronicle`) | `meta-store` | — | — | `patchNotes` | `docs/CHANGELOG-PIPELINE.md` |
 | **Hero Expeditions** (`expeditions`) | `heroes` · `meta-store` | — | — | `expeditions` | `docs/EXPEDITIONS.md` |
@@ -218,8 +221,8 @@ graph TD
 | **Quests & Missions** (`quests`) | `meta-store` · `battle-pass` · `contracts` · `cutscenes` · `cosmetics` · `collection` · `hub-shell` | — | ⚡ quest/mission codices carry small collection weights | `quests` | `docs/QUESTS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | `progression-gating` | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
-| **Account Level (evergreen meta-progression)** (`account-level`) | `meta-store` · `loot` | `genome-rank` | — | `accountXp` | `docs/ACCOUNT-LEVEL.md` |
-| **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | — | — | `genomeRank` | `docs/GENOME-RANK.md` |
+| **Account Level (evergreen meta-progression)** (`account-level`) | `meta-store` · `loot` | `contracts` · `genome-rank` | — | `accountXp` | `docs/ACCOUNT-LEVEL.md` |
+| **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | `contracts` | — | `genomeRank` | `docs/GENOME-RANK.md` |
 | **Progression Gating & Director** (`progression-gating`) | `meta-store` · `campaign` · `onboarding` | — | — | `director` | `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` |
 | **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
@@ -445,14 +448,14 @@ graph TD
 
 - **Files:** `src/core/stars.ts` · `src/core/branches.ts` · `src/core/branchTree.ts` · `src/core/strains.ts` · `src/core/conveyor.ts` · `src/ui/TowerLab.tsx` · `src/ui/TowerCodex.tsx` · `src/ui/TowerPortrait.tsx` · `src/ui/towerLabModel.ts` · `src/ui/towerCodexModel.ts` · `src/ui/StarCeremony.tsx` · `src/ui/components/BranchTree.tsx`
 - **Depends on:** `content-infra` · `shards-economy` · `campaign`
-- **Consumers — what breaks if you change this:** `engine` · `daily` · `mulligans`
+- **Consumers — what breaks if you change this:** `engine` · `daily` · `mulligans` · `contracts`
 - **Power Score:** stars/branches feed permanent + temporary buckets
 - **Save fields:** `towerStars` · `towerShards` · `towerMasteryXp` · `towerForks`
 - **Tutorial:** `combat` · **Help mechanics:** `towers` · `tower-stars` · `tower-branches`
 - **HUD surfaces:** `tower rail` · `Inspector` · **UI screens:** `TowerLab` · `TowerCodex` · `StarCeremony`
 - **Collection:** towers category (usage tiers) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/MULLIGANS.md`
+- **Docs to update on change:** `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` · `docs/MULLIGANS.md` · `docs/CONTRACTS.md`
 
 ### Mastery / Adaptation (`mastery`)
 
@@ -711,16 +714,16 @@ graph TD
 
 ### Champion Contracts (`contracts`)
 
-*Weekly authored constraint runs (docs/CONTRACTS.md): a deterministic UTC 3-contract board (same weekIndex as LiveOps), a data constraint vocabulary evaluated against run facts in finishRun, core payouts folded into the run reward, and Gilded-phenotype marquee exclusives.*
+*Weekly authored constraint runs (docs/CONTRACTS.md): a deterministic UTC 3-contract board (same weekIndex as LiveOps) over a 24-row/8-week pool, a 14-verb data constraint vocabulary (incl. CombatClass bans/purities) evaluated against run facts in finishRun, per-constraint near-miss reports, core+XP payouts folded into the run reward, PERFECT WEEK sweep bonuses, Gilded-phenotype marquee exclusives (one per week by pool invariant), and a Genome Rank journey source.*
 
 - **Files:** `src/core/contracts.ts` · `src/ui/components/ContractsCard.tsx`
-- **Depends on:** `meta-store` · `liveops` · `cosmetics`
+- **Depends on:** `meta-store` · `liveops` · `cosmetics` · `towers` · `account-level` · `genome-rank`
 - **Consumers — what breaks if you change this:** `quests`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `contracts`
-- **Tutorial:** — · **Help mechanics:** —
-- **HUD surfaces:** — · **UI screens:** `CommandCenter (contracts board)` · `Results (contracts category)`
-- **Collection:** — · **Achievements:** —
+- **Tutorial:** — · **Help mechanics:** `contracts`
+- **HUD surfaces:** — · **UI screens:** `CommandCenter (contracts board)` · `Results (contracts category + near-misses + perfect week)`
+- **Collection:** — · **Achievements:** `contract_first` · `contract_12` · `perfect_week`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/CONTRACTS.md` · `docs/QUESTS.md`
 
@@ -865,14 +868,14 @@ graph TD
 
 - **Files:** `src/core/accountLevel.ts` · `src/ui/components/AccountXpBar.tsx`
 - **Depends on:** `meta-store` · `loot`
-- **Consumers — what breaks if you change this:** `genome-rank`
+- **Consumers — what breaks if you change this:** `contracts` · `genome-rank`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `accountXp`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `Results (XP fill + level-ups)` · `PlayerProfile (level block)` · `CommandCenter vitals` · `Hub topbar chip`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md`
+- **Docs to update on change:** `docs/ACCOUNT-LEVEL.md` · `docs/CONTRACTS.md` · `docs/GENOME-RANK.md`
 
 ### Genome Rank (ultimate mastery ladder) (`genome-rank`)
 
@@ -880,14 +883,14 @@ graph TD
 
 - **Files:** `src/core/genomeRank.ts` · `src/ui/components/GenomeRankPanel.tsx`
 - **Depends on:** `meta-store` · `account-level` · `power` · `collection`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `contracts`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `genomeRank`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `PlayerProfile (emblem + breakdown + advisor)` · `App (promotion cinematic)` · `Profile standings tab`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/GENOME-RANK.md`
+- **Docs to update on change:** `docs/GENOME-RANK.md` · `docs/CONTRACTS.md`
 
 ### Progression Gating & Director (`progression-gating`)
 

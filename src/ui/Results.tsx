@@ -327,25 +327,46 @@ export function Results({
     ),
   });
 
-  // 4b — CHAMPION CONTRACTS honoured this run (docs/CONTRACTS.md): cores are already in
-  // the Resources lane; this category makes the WIN itself visible + names the exclusive.
-  if (outcome.contracts && outcome.contracts.length > 0) {
+  // 4b — CHAMPION CONTRACTS (docs/CONTRACTS.md): honoured rows, the PERFECT WEEK sweep,
+  // and near-misses (failed by exactly ONE constraint — the named chase line). Cores are
+  // already in the Resources lane; this category makes the WIN and the CHASE visible.
+  if ((outcome.contracts?.length ?? 0) > 0 || (outcome.contractNears?.length ?? 0) > 0 || outcome.perfectWeek) {
+    const hits = outcome.contracts ?? [];
+    const nears = outcome.contractNears ?? [];
     categories.push({
       id: 'contracts',
       title: 'Champion Contracts',
       icon: '❖',
       accent: 'var(--gold)',
-      summary: outcome.contracts.map((c) => c.name).join(' · '),
+      summary: outcome.perfectWeek
+        ? 'PERFECT WEEK — every contract honoured'
+        : hits.length > 0 ? hits.map((c) => c.name).join(' · ') : 'So close — one constraint short',
       stats: [
-        { id: 'ccount', label: 'Contracts Honoured', value: outcome.contracts.length, accent: 'var(--gold)', celebrate: true },
-        { id: 'ccores', label: 'Bonus Cores', value: outcome.contracts.reduce((a, c) => a + c.cores, 0), accent: 'var(--gold)' },
+        ...(hits.length > 0 ? [
+          { id: 'ccount', label: 'Contracts Honoured', value: hits.length, accent: 'var(--gold)', celebrate: true },
+          { id: 'ccores', label: 'Bonus Cores', value: hits.reduce((a, c) => a + c.cores, 0) + (outcome.perfectWeek?.cores ?? 0), accent: 'var(--gold)' },
+        ] : []),
+        ...(outcome.perfectWeek ? [{ id: 'cweek', label: 'Perfect Week', value: outcome.perfectWeek.cores, format: (n: number) => `+${n.toLocaleString()}`, accent: 'var(--gold)', celebrate: true }] : []),
+        ...(hits.length === 0 && nears.length > 0 ? [{ id: 'cnear', label: 'Near Misses', value: nears.length, accent: 'var(--muted)' }] : []),
       ],
       extra: (
         <div className="rr-contract-list">
-          {outcome.contracts.map((c) => (
+          {hits.map((c) => (
             <div className="rr-contract" key={c.id}>
               <b>❖ {c.name}</b>
               <span>+{c.cores} Cores{c.cosmetic ? ' · Gilded phenotype unlocked — equip it in the Phenotype Lab' : ''}</span>
+            </div>
+          ))}
+          {outcome.perfectWeek && (
+            <div className="rr-contract is-perfect">
+              <b>❖ PERFECT WEEK</b>
+              <span>The whole board honoured — +{outcome.perfectWeek.cores} Cores</span>
+            </div>
+          )}
+          {nears.map((c) => (
+            <div className="rr-contract is-near" key={c.id}>
+              <b>◌ {c.name}</b>
+              <span>Missed by one: {c.missed}</span>
             </div>
           ))}
         </div>

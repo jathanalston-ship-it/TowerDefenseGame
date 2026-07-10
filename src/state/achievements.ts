@@ -110,6 +110,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (c) => ({ cur: c.save.stats.rushBossKills, max: n }),
   })),
 
+  // ── Champion Contracts (docs/CONTRACTS.md — the weekly constraint board) ──
+  { id: 'contract_first', name: 'Under Contract', desc: 'Honour your first Champion Contract.', reward: 15, test: (c) => c.save.contracts.completed.length >= 1 },
+  { id: 'contract_12', name: 'Sworn Champion', desc: 'Honour 12 Champion Contracts (lifetime).', reward: 40, test: (c) => c.save.contracts.completed.length >= 12, progress: (c) => ({ cur: c.save.contracts.completed.length, max: 12 }) },
+  { id: 'perfect_week', name: 'Perfect Week', desc: 'Honour all three Champion Contracts in one week.', reward: 60, test: (c) => c.save.contracts.perfectWeeks >= 1 },
+
   // ── Hidden (surprise milestones — concealed until earned) ──
   { id: 'apex_slayer', name: 'Apex Slayer', desc: 'Slay a Brood Tyrant.', hidden: true, reward: 75, test: (c) => (c.save.stats.killsByEnemy.tyrant ?? 0) >= 1 },
   { id: 'annihilation', name: 'Annihilation', desc: 'Deal 1,000,000 total damage (lifetime).', hidden: true, reward: 100, test: (c) => c.save.stats.totalDamage >= 1_000_000, progress: (c) => ({ cur: c.save.stats.totalDamage, max: 1_000_000 }) },

@@ -22,7 +22,7 @@ const WEEK = QUESTS.rotationMs;
 const run = (over: Partial<QuestRunFacts> = {}): { type: 'run'; facts: QuestRunFacts } => ({
   type: 'run',
   facts: {
-    mode: 'stage', won: true, wave: 10, kills: 100, integrityLost: 0,
+    mode: 'stage', won: true, wave: 10, kills: 100, cardsDrafted: 0, integrityLost: 0,
     towerBuilds: { needle: 4 }, heroId: 'myco', bossKills: 2, megaKills: 0, ...over,
   },
 });

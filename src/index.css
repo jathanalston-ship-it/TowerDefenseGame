@@ -9203,13 +9203,40 @@ kbd {
 .rr-contract { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
 .rr-contract b { color: var(--gold); }
 .rr-contract span { color: var(--muted); }
+.rr-contract.is-perfect b { text-shadow: 0 0 10px color-mix(in srgb, var(--gold) 55%, transparent); }
+.rr-contract.is-near b { color: var(--muted); font-weight: 600; }
 .cc-contracts { padding: 10px 12px; }
-.cc-contract { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.cc-contract { display: flex; flex-direction: column; gap: 3px; padding: 6px 0 6px 8px; border-top: 1px solid var(--line); border-left: 2px solid transparent; font-size: 12px; }
 .cc-contract:first-of-type { border-top: 0; }
+.cc-contract.is-marquee { border-left-color: var(--gold); }
+.cc-contract.is-done { opacity: 0.72; }
+.cc-contract-top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .cc-contract-name { font-weight: 700; color: var(--text); white-space: nowrap; }
 .cc-contract-name.done { color: var(--caustic); }
+.cc-contract-diff { font-size: 10px; letter-spacing: 1px; color: var(--gold); }
+.cc-contract-mode {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+  padding: 0 5px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+}
 .cc-contract-blurb { color: var(--muted); min-width: 0; }
-.cc-contract-pay { margin-left: auto; white-space: nowrap; font-size: 11px; color: var(--gold); }
+.cc-contract-terms { display: flex; flex-wrap: wrap; gap: 4px; }
+.cc-contract-terms i {
+  font-style: normal; font-size: 10px; color: var(--muted);
+  padding: 0 5px; border: 1px solid var(--line); border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 30%, transparent);
+}
+.cc-contract.is-done .cc-contract-terms i { color: var(--caustic); border-color: color-mix(in srgb, var(--caustic) 40%, var(--line)); }
+.cc-contract-pay { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; font-size: 11px; color: var(--gold); }
+.cc-contract-xp { color: var(--muted); }
+.cc-contract-marquee { color: var(--gold); font-weight: 700; }
+/* Perfect Week sweep meter (docs/CONTRACTS.md §perfect-week) */
+.cc-sweep { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+.cc-sweep-pips { display: inline-flex; gap: 4px; }
+.cc-sweep-pips i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--line); background: transparent; }
+.cc-sweep-pips i.on { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent); }
+.cc-sweep-label { min-width: 0; }
+.cc-sweep.is-swept .cc-sweep-label { color: var(--gold); font-weight: 700; letter-spacing: 0.3px; }
+.cc-sweep-life { margin-left: auto; font-weight: 700; color: var(--gold); }
 
 /* ── LiveOps console headline band (docs/LIVEOPS.md) ── */
 .liveops-band {
