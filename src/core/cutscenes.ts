@@ -230,6 +230,82 @@ export const CUTSCENES: CutsceneDef[] = [
       },
     ],
   },
+  {
+    id: 'mega:sarcophage',
+    kind: 'mega',
+    title: 'THE LAST COURSE',
+    subtitle: 'What the Self-Devourer was fattening itself for',
+    palette: { body: '#3a4218', glow: '#c8e64a', accent: '#e0d8a8' },
+    unlock: { kind: 'mega', megaId: 'sarcophage' },
+    unlockHint: 'Defeat SARCOPHAGE, the Self-Devourer',
+    boost: { effect: { op: 'mul', field: 'heroHealingMult', value: 1.02 }, label: 'Glutton’s Lesson — +2% champion healing' },
+    scenes: [
+      {
+        id: 'starve', painter: 'behemoth', durMs: 8400,
+        lines: [
+          { at: 0.8, text: 'The Self-Devourer starves at last.' },
+          { at: 3.4, text: 'A famine, dying the way famines do: still hungry.', em: true },
+        ],
+        beats: [{ at: 0.2, cue: 'cin_rumble' }, { at: 2.2, cue: 'cin_shriek' }, { at: 4.6, cue: 'cin_creep' }, { at: 6.4, cue: 'cin_snap' }],
+      },
+      {
+        id: 'gullet', painter: 'maw', durMs: 9000,
+        lines: [
+          { at: 0.9, text: 'Inside the gullet: everything it ever ate, kept.' },
+          { at: 3.6, text: 'Not digested. PRESERVED.' },
+          { at: 6.0, text: 'It was not feeding itself. It was provisioning a voyage.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_creep' }, { at: 2.8, cue: 'cin_ping' }, { at: 5.6, cue: 'cin_alarm' }, { at: 7.4, cue: 'cin_heart' }],
+      },
+      {
+        id: 'below', painter: 'deep', durMs: 8600,
+        lines: [
+          { at: 1.0, text: 'Provisions for a journey DOWN.' },
+          { at: 3.8, text: 'Whatever waits at the bottom of the world —' },
+          { at: 6.2, text: 'it expected to be fed on arrival.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_rumble' }, { at: 3.2, cue: 'cin_heart' }, { at: 5.8, cue: 'cin_heart' }, { at: 7.2, cue: 'cin_rumble' }],
+      },
+    ],
+  },
+  {
+    id: 'mega:myriad',
+    kind: 'mega',
+    title: 'THE ANSWERS RUN OUT',
+    subtitle: 'What Myriad never learned to survive',
+    palette: { body: '#332844', glow: '#c9b8ff', accent: '#8fe8d0' },
+    unlock: { kind: 'mega', megaId: 'myriad' },
+    unlockHint: 'Defeat MYRIAD, the Thousand Answers',
+    boost: { effect: { op: 'mul', field: 'heroSpeedMult', value: 1.02 }, label: 'Thousandth Answer — +2% champion speed' },
+    scenes: [
+      {
+        id: 'unanswer', painter: 'countdown', durMs: 8600,
+        lines: [
+          { at: 0.8, text: 'One by one, Myriad’s answers go dark.' },
+          { at: 3.6, text: 'A thousand remembered victories, useless against ONE new question.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_ping' }, { at: 2.2, cue: 'cin_ping' }, { at: 4.0, cue: 'cin_cut' }, { at: 6.4, cue: 'cin_shriek' }],
+      },
+      {
+        id: 'mirror', painter: 'veinsplit', durMs: 9200,
+        lines: [
+          { at: 0.9, text: 'Its hide is a museum of every weapon ever raised against it.' },
+          { at: 3.8, text: 'And there — new among the scars — a shape you recognize.' },
+          { at: 6.4, text: 'It had already started learning YOU.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_creep' }, { at: 3.4, cue: 'cin_ping' }, { at: 6.0, cue: 'cin_alarm' }, { at: 7.8, cue: 'cin_heart' }],
+      },
+      {
+        id: 'question', painter: 'root', durMs: 8800,
+        lines: [
+          { at: 1.0, text: 'Every answer it kept was for a question asked from BELOW.' },
+          { at: 4.0, text: 'Something down there is still asking.' },
+          { at: 6.4, text: 'And now it will have to ask you directly.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_rumble' }, { at: 3.4, cue: 'cin_heart' }, { at: 5.8, cue: 'cin_heart' }, { at: 7.4, cue: 'cin_alarm' }],
+      },
+    ],
+  },
 
   // ── Story milestones — the Core's own awakening (4 films, docs/CUTSCENES.md §arc) ──
   {

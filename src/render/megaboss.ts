@@ -46,7 +46,10 @@ function collapseOf(v: MegaView): number {
 //    open→destroyed edge. One mega exists at a time, so plain module scope is safe — and
 //    stale entries simply draw nothing on the next encounter.
 let lastTele = false;
+let lastTeleKind: string | null = null; // what was winding up — a resolved CATACLYSM flashes harder
 let castFlashT = -10; // renderer-now when the last telegraph resolved
+let castFlashBig = false; // the resolved cast was a cataclysm
+let staggerEase = 0; // smoothed 0..1 slump into/out of the STAGGERED posture (cosmetic lerp)
 const wpPrevState = new Map<number, MegaWeakPoint['state']>(); // spec → last-frame state
 const wpRuptureT = new Map<number, number>(); // spec → renderer-now of the rupture
 
@@ -60,9 +63,13 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   const tier = v.visualTier;
   const collapse = collapseOf(v);
   const dead = collapse > 0;
+  // STAGGER slump (§stagger): the whole mass drops and hangs while toppled — a smoothed
+  // render-side ease so the fall and the recovery both read as weight, not a snap.
+  staggerEase += ((v.staggered && !dead ? 1 : 0) - staggerEase) * 0.07;
+  if (staggerEase < 0.005) staggerEase = 0;
   // Breathing: a slow whole-mass swell; guttering/erratic through the death sequence.
   const breathe = dead ? 1 + Math.sin(now * 14) * 0.01 * (1 - collapse) : 1 + Math.sin(now * 0.9) * (0.018 + tier * 0.004);
-  const sag = collapse * 60; // the mass slumps as it dies
+  const sag = collapse * 60 + staggerEase * 26; // the mass slumps as it dies (and when TOPPLED)
   const baseY = (v.anchorY + 90) * breathe + sag; // the ridge's lower edge center line
   const alpha = dead ? 1 - collapse * 0.55 : 1;
 
@@ -116,6 +123,10 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
     ctx.lineWidth = 1.8;
     ctx.stroke();
   }
+
+  // Per-def ANATOMY MOTIF (§visual overhaul): the silhouette suite that keeps seven megas from
+  // reading as palette swaps — jaws, bells, crooks, streamers, scales, gullets, extra eyes.
+  drawMotif(ctx, v, now, baseY, breathe, alpha, body, glo, acc);
 
   // Living emissions (beauty pass): spores sift down off the mass, and viscous ichor
   // strands hang + drip from the lobe line — the organism sheds onto the battlefield.
@@ -205,23 +216,25 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   }
   ctx.lineCap = 'butt';
 
-  // THE EYE — tracking iris; blinks; dilates and locks bright during a telegraph.
+  // THE EYE — tracking iris; blinks; dilates and locks bright during a telegraph; rolls back
+  // and half-lids while the organism is TOPPLED.
   const eyeX = WIDTH * 0.5 + Math.sin(now * 0.23) * 40;
   const eyeY = v.anchorY + 26 + Math.sin(now * 0.31) * 8 + sag;
   const blink = dead ? collapse : Math.max(0, Math.sin(now * 0.47) > 0.985 ? 1 : 0);
-  const eyeOpen = 1 - blink * 0.9;
+  const eyeOpen = (1 - blink * 0.9) * (1 - staggerEase * 0.65);
   const tele = v.telegraph;
   // The windup just resolved — the strike lands NOW. A vanished telegraph with stun on it was
-  // an eye INTERRUPT (the player's win), so that edge must not flash like a landed cast.
-  if (lastTele && !tele && !dead && v.stunned <= 0) castFlashT = now;
+  // an eye INTERRUPT or a stagger (the player's wins) — those edges must not flash like a cast.
+  if (lastTele && !tele && !dead && v.stunned <= 0) { castFlashT = now; castFlashBig = lastTeleKind === 'cataclysm'; }
   lastTele = !!tele && !dead;
+  if (tele) lastTeleKind = tele.kind;
   const irisR = (7 + (tele ? 4 * tele.frac : 0)) * eyeOpen;
   ctx.fillStyle = rgba('12, 8, 10', alpha * 0.9);
   ctx.beginPath();
   ctx.ellipse(eyeX, eyeY, 26, 15 * eyeOpen, 0, 0, TAU);
   ctx.fill();
   const lookX = tele ? 0 : Math.sin(now * 0.6) * 9;
-  const lookY = tele ? 4 : Math.cos(now * 0.43) * 4;
+  const lookY = (tele ? 4 : Math.cos(now * 0.43) * 4) - staggerEase * 7; // rolled back while toppled
   glow(ctx, eyeX + lookX, eyeY + lookY, irisR * 2.4, rgba(glo, (tele ? 0.9 : 0.55) * eyeOpen * alpha));
   ctx.fillStyle = rgba(glo, alpha * eyeOpen);
   ctx.beginPath();
@@ -232,10 +245,12 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   ctx.arc(eyeX + lookX, eyeY + lookY, irisR * 0.45, 0, TAU);
   ctx.fill();
 
-  // THE MAW — center underside; cycles open; gapes during a telegraph; slack in death.
+  // THE MAW — center underside; cycles open; gapes during a telegraph; slack in death and
+  // hanging slack-jawed while TOPPLED (drool strands below).
   const mawX = WIDTH * 0.5;
   const mawY = baseY + 6;
-  const gape = dead ? 0.9 : tele ? 0.45 + 0.45 * tele.frac : 0.18 + pulse(now, 3.4) * 0.16;
+  let gape = dead ? 0.9 : tele ? 0.45 + 0.45 * tele.frac : 0.18 + pulse(now, 3.4) * 0.16;
+  if (staggerEase > 0) gape = Math.max(gape, staggerEase * 0.8);
   ctx.fillStyle = rgba('10, 5, 8', alpha * 0.95);
   ctx.beginPath();
   ctx.ellipse(mawX, mawY, 64, 30 * gape, 0, 0, TAU);
@@ -254,39 +269,70 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
     ctx.fill();
   }
 
+  // Toppled drool — the slack jaw weeps while the raid pours damage in.
+  if (staggerEase > 0.3 && !dead) {
+    ctx.strokeStyle = rgba(glo, 0.35 * staggerEase);
+    ctx.lineWidth = 1.4;
+    for (let i = -1; i <= 1; i += 2) {
+      const dx0 = mawX + i * 22;
+      ctx.beginPath();
+      ctx.moveTo(dx0, mawY + 20 * gape);
+      ctx.quadraticCurveTo(dx0 + i * 3, mawY + 44, dx0 + Math.sin(now * 1.8 + i) * 4, mawY + 58 + Math.sin(now * 2.6) * 5);
+      ctx.stroke();
+    }
+  }
   // Telegraph GATHER: motes of power stream INTO the gaping maw across the windup — the
-  // counterplay window is legible from body language alone, before any UI timer.
+  // counterplay window is legible from body language alone, before any UI timer. A CATACLYSM
+  // gathers HARDER: more motes, hotter color, and a white-hot core swelling in the throat.
+  const cata = tele !== null && tele.kind === 'cataclysm';
   if (tele && !dead) {
-    for (let i = 0; i < 12; i++) {
+    const n = cata ? 22 : 12;
+    const hot = cata ? hexRgb('#ff6a5a') : glo;
+    for (let i = 0; i < n; i++) {
       const h = Math.abs(Math.sin(i * 91.7 + 7.3) * 10000) % 1;
-      const f = (now * (0.9 + h * 0.7) + h) % 1; // 0 = born far out → 1 = swallowed
+      const f = (now * ((cata ? 1.3 : 0.9) + h * 0.7) + h) % 1; // 0 = born far out → 1 = swallowed
       const a2 = h * TAU + i * 0.7;
       const d = (46 + h * 110) * (1 - f);
-      ctx.fillStyle = rgba(glo, (0.2 + 0.6 * f) * tele.frac * alpha);
+      ctx.fillStyle = rgba(hot, (0.2 + 0.6 * f) * tele.frac * alpha);
       ctx.beginPath();
       ctx.arc(mawX + Math.cos(a2) * d, mawY + Math.sin(a2) * d * 0.5, 1.2 + h * 1.8, 0, TAU);
       ctx.fill();
     }
+    if (cata) {
+      const f = tele.frac;
+      glow(ctx, mawX, mawY, 30 + 60 * f, rgba(glo, 0.35 + 0.3 * f));
+      ctx.fillStyle = `rgba(255, 246, 230, ${0.25 + 0.6 * f})`;
+      ctx.beginPath();
+      ctx.ellipse(mawX, mawY, 10 + 26 * f, (10 + 26 * f) * 0.55, 0, 0, TAU);
+      ctx.fill();
+    }
   }
-  // CAST shock: the frame the telegraph resolves, a ground-plane ring slams out of the maw.
+  // CAST shock: the frame the telegraph resolves, a ground-plane ring slams out of the maw —
+  // a resolved CATACLYSM slams a far bigger one (the finale you failed to interrupt).
   const castAge = now - castFlashT;
   if (castAge >= 0 && castAge < 0.5 && !dead) {
     const f = castAge / 0.5;
+    const R = castFlashBig ? 1.7 : 1;
     ctx.strokeStyle = rgba(glo, (1 - f) * 0.7 * alpha);
-    ctx.lineWidth = 1 + (1 - f) * 3;
+    ctx.lineWidth = 1 + (1 - f) * (castFlashBig ? 5 : 3);
     ctx.beginPath();
-    ctx.ellipse(mawX, mawY, 24 + f * 170, (24 + f * 170) * 0.42, 0, 0, TAU);
+    ctx.ellipse(mawX, mawY, (24 + f * 170) * R, (24 + f * 170) * R * 0.42, 0, 0, TAU);
     ctx.stroke();
     ctx.strokeStyle = `rgba(255,250,240,${(1 - f) * 0.5})`;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.ellipse(mawX, mawY, 12 + f * 120, (12 + f * 120) * 0.42, 0, 0, TAU);
+    ctx.ellipse(mawX, mawY, (12 + f * 120) * R, (12 + f * 120) * R * 0.42, 0, 0, TAU);
     ctx.stroke();
   }
 
   // Exposure flood (heart window): the whole mass runs hot — commit NOW.
   if (v.exposed && !dead) {
     ctx.fillStyle = rgba(glo, 0.1 + pulse(now, 0.5) * 0.08);
+    ctx.fillRect(-90, -40, WIDTH + 180, baseY + 40);
+  }
+  // Stagger flood: the toppled mass runs GOLD — the raid's damage window, painted on the body.
+  if (staggerEase > 0.05 && !dead) {
+    ctx.fillStyle = rgba('255, 210, 77', (0.05 + pulse(now, 0.6) * 0.03) * staggerEase);
     ctx.fillRect(-90, -40, WIDTH + 180, baseY + 40);
   }
   // Stun arcs (eye interrupt): crackles over the crest while the rotation is frozen.
@@ -313,6 +359,190 @@ export function drawMegaBody(ctx: Ctx, v: MegaView, now: number): void {
   ctx.fillRect(0, baseY, WIDTH, 130);
 
   ctx.restore();
+}
+
+// ── Per-def anatomy motifs (§visual overhaul) ────────────────────────────────
+/** The silhouette suite keyed by MegaBossDef.motif — one small procedural anatomy layer per
+ *  identity, drawn over the front ridge. Deterministic in `now`; a new mega picks a motif in
+ *  its def (or earns a new case here) and the rest of its presentation stays free. */
+function drawMotif(
+  ctx: Ctx,
+  v: MegaView,
+  now: number,
+  baseY: number,
+  breathe: number,
+  alpha: number,
+  body: string,
+  glo: string,
+  acc: string,
+): void {
+  const cx = WIDTH * 0.5;
+  switch (v.motif) {
+    case 'maw': {
+      // A second rank of tusks along the lobe line — the ridge IS a jaw.
+      ctx.fillStyle = rgba(acc, alpha * 0.85);
+      for (let i = 0; i < 7; i++) {
+        const x = WIDTH * (0.14 + 0.12 * i) + Math.sin(i * 2.6) * 8;
+        const h = (14 + (i % 3) * 8) * breathe;
+        const y = baseY - 4 + Math.sin(i * 2.1 + now * 0.45) * 6;
+        ctx.beginPath();
+        ctx.moveTo(x - 5, y);
+        ctx.quadraticCurveTo(x, y + h * 0.4, x + (i % 2 === 0 ? 3 : -3), y + h);
+        ctx.lineTo(x + 5, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      break;
+    }
+    case 'choir': {
+      // Hanging bell-organs on cords, swinging out of phase — the song made anatomy.
+      for (let i = 0; i < 4; i++) {
+        const bx = WIDTH * (0.2 + 0.2 * i);
+        const sway = Math.sin(now * 0.7 + i * 1.9) * 10;
+        const by = baseY + 26 + (i % 2) * 10;
+        ctx.strokeStyle = rgba(body, alpha * 0.8);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bx, baseY - 8);
+        ctx.quadraticCurveTo(bx + sway * 0.4, baseY + 8, bx + sway, by);
+        ctx.stroke();
+        ctx.fillStyle = rgba(body, alpha * 0.9);
+        ctx.beginPath();
+        ctx.arc(bx + sway, by, 9, Math.PI, 0);
+        ctx.lineTo(bx + sway + 9, by + 7);
+        ctx.lineTo(bx + sway - 9, by + 7);
+        ctx.closePath();
+        ctx.fill();
+        drawDot(ctx, bx + sway + Math.sin(now * 2.2 + i) * 3, by + 8, 2, rgba(glo, alpha * (0.5 + 0.3 * Math.sin(now * 2.2 + i)))); // the clapper tolls
+      }
+      break;
+    }
+    case 'shepherd': {
+      // Two bone crooks cresting the ridge + chime strands that sway with the flock's walk.
+      ctx.strokeStyle = rgba(acc, alpha * 0.75);
+      ctx.lineWidth = 4;
+      for (let s = -1; s <= 1; s += 2) {
+        const rx = cx + s * WIDTH * 0.24;
+        ctx.beginPath();
+        ctx.moveTo(rx, baseY - 10);
+        ctx.quadraticCurveTo(rx + s * 6, v.anchorY - 26, rx + s * 30, v.anchorY - 34);
+        ctx.quadraticCurveTo(rx + s * 52, v.anchorY - 38, rx + s * 46, v.anchorY - 16);
+        ctx.stroke();
+      }
+      for (let i = 0; i < 3; i++) {
+        const bx = WIDTH * (0.3 + 0.2 * i);
+        const sway = Math.sin(now * 0.9 + i * 2.2) * 7;
+        ctx.strokeStyle = rgba(acc, alpha * 0.5);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(bx, baseY - 6);
+        ctx.lineTo(bx + sway, baseY + 24);
+        ctx.stroke();
+        for (let b = 1; b <= 2; b++) drawDot(ctx, bx + sway * (b / 2), baseY - 6 + b * 12, 2.2, rgba(acc, alpha * 0.8)); // bone chimes
+      }
+      break;
+    }
+    case 'tide': {
+      // A translucent medusa bell over the anchor + streamers drifting on a current.
+      ctx.fillStyle = rgba(glo, alpha * 0.1);
+      ctx.beginPath();
+      ctx.ellipse(cx, v.anchorY - 10, WIDTH * 0.3, 46 * breathe, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.strokeStyle = rgba(glo, alpha * 0.35);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(cx, v.anchorY - 10, WIDTH * 0.3, 46 * breathe, 0, Math.PI, 0);
+      ctx.stroke();
+      for (let i = 0; i < 4; i++) {
+        const sx = WIDTH * (0.25 + 0.17 * i);
+        const drift = Math.sin(now * 0.5 + i * 1.7) * 18;
+        ctx.strokeStyle = rgba(glo, alpha * 0.28);
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(sx, baseY - 12);
+        ctx.bezierCurveTo(sx + drift, baseY + 30, sx - drift * 0.6, baseY + 62, sx + drift * 1.4, baseY + 92);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'tithe': {
+      // Gilded scale-plates along the ridge + a slow rain of golden beads — wealth as armor.
+      ctx.fillStyle = rgba(acc, alpha * 0.7);
+      for (let i = 0; i < 9; i++) {
+        const x = WIDTH * (0.1 + 0.1 * i);
+        const y = baseY - 20 + Math.sin(i * 1.9 + now * 0.4) * 5;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 6);
+        ctx.lineTo(x + 6, y);
+        ctx.lineTo(x, y + 6);
+        ctx.lineTo(x - 6, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      for (let i = 0; i < 3; i++) {
+        const h = Math.abs(Math.sin(i * 57.3 + 11.1) * 7919) % 1;
+        const f = (now * (0.25 + h * 0.2) + h) % 1;
+        drawDot(ctx, WIDTH * (0.22 + h * 0.56), baseY + f * 90, 2, rgba(glo, alpha * (1 - f) * 0.7));
+      }
+      break;
+    }
+    case 'gorge': {
+      // A stacked SECOND jaw beneath the maw + a gullet bulge that swallows on a slow cycle.
+      const gulp = Math.max(0, Math.sin(now * 0.55)) ** 3; // the swallow travels
+      ctx.fillStyle = rgba(body, alpha * 0.9);
+      ctx.beginPath();
+      ctx.ellipse(cx, baseY + 34, 46, 14, 0, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = rgba('230, 224, 210', alpha * 0.8);
+      for (let i = 0; i < 7; i++) {
+        const tx = cx - 38 + (76 / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(tx - 3, baseY + 28);
+        ctx.lineTo(tx, baseY + 36 + (i % 2) * 3);
+        ctx.lineTo(tx + 3, baseY + 28);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.fillStyle = rgba(body, alpha * 0.85);
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.sin(now * 0.55) * 20, baseY - 34 - gulp * 10, 34 + gulp * 12, 18 + gulp * 8, 0, 0, TAU);
+      ctx.fill(); // the gullet bulge — something is always going down
+      break;
+    }
+    case 'myriad': {
+      // A scatter of lesser eyes across the ridge — all tracking, blinking out of sync — over
+      // faint mirror-facet streaks. It is looking at everything you own.
+      ctx.strokeStyle = rgba(acc, alpha * 0.16);
+      ctx.lineWidth = 10;
+      for (let i = 0; i < 3; i++) {
+        const fx = WIDTH * (0.2 + 0.28 * i);
+        ctx.beginPath();
+        ctx.moveTo(fx - 26, baseY - 66);
+        ctx.lineTo(fx + 26, baseY - 18);
+        ctx.stroke();
+      }
+      for (let i = 0; i < 7; i++) {
+        const h = Math.abs(Math.sin(i * 37.7 + 5.3) * 6151) % 1;
+        const ex = WIDTH * (0.12 + 0.76 * h);
+        const ey = baseY - 26 - (Math.abs(Math.sin(i * 71.3) * 911) % 1) * 42;
+        const open = Math.sin(now * (0.6 + h * 0.5) + i * 2.4) > -0.75 ? 1 : 0.15; // independent blinks
+        const r = 4 + h * 3.5;
+        ctx.fillStyle = rgba('12, 8, 10', alpha * 0.85);
+        ctx.beginPath();
+        ctx.ellipse(ex, ey, r * 1.5, r * open, 0, 0, TAU);
+        ctx.fill();
+        drawDot(ctx, ex + Math.sin(now * 0.6) * r * 0.5, ey, r * 0.55 * open, rgba(glo, alpha * 0.9));
+      }
+      break;
+    }
+  }
+}
+
+function drawDot(ctx: Ctx, x: number, y: number, r: number, style: string): void {
+  ctx.fillStyle = style;
+  ctx.beginPath();
+  ctx.arc(x, y, Math.max(0.1, r), 0, TAU);
+  ctx.fill();
 }
 
 // ── Weak-point organs (over enemies) ─────────────────────────────────────────
@@ -407,6 +637,14 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       ctx.arc(ox, oy, ringR, now % TAU, (now % TAU) + TAU);
       ctx.stroke();
       ctx.setLineDash([]);
+      // STAGGERED urgency: windows are frozen — every open organ burns gold, begging for it.
+      if (v.staggered) {
+        ctx.strokeStyle = rgba('255, 210, 77', 0.45 + pulse(now, 0.3) * 0.4);
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(ox, oy, ringR + 6, 0, TAU);
+        ctx.stroke();
+      }
       // HP arc: how close the rupture is.
       const frac = Math.max(0, wp.hp / wp.maxHp);
       ctx.strokeStyle = rgba('255, 255, 255', 0.75);
@@ -608,14 +846,24 @@ export function drawMegaVignette(ctx: Ctx, v: MegaView, now: number): void {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   // Telegraph warning band: the top of the frame — where the organism lives — heats up
-  // across the windup, hammering "look UP now" without blocking the field.
+  // across the windup, hammering "look UP now" without blocking the field. A CATACLYSM
+  // windup burns RED, twice as deep, twice as fast — the one you cannot ignore.
   if (v.telegraph && collapse === 0) {
+    const cata = v.telegraph.kind === 'cataclysm';
     const f = v.telegraph.frac;
-    const bg = ctx.createLinearGradient(0, 0, 0, HEIGHT * 0.14);
-    bg.addColorStop(0, rgba(glo, 0.14 * f + pulse(now, 0.36, 0, 0.05 * f)));
+    const col = cata ? hexRgb('#ff5d73') : glo;
+    const depth = cata ? 0.2 : 0.14;
+    const bg = ctx.createLinearGradient(0, 0, 0, HEIGHT * depth);
+    bg.addColorStop(0, rgba(col, (0.14 * f + pulse(now, cata ? 0.2 : 0.36, 0, 0.05 * f)) * (cata ? 1.8 : 1)));
     bg.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT * 0.14);
+    ctx.fillRect(0, 0, WIDTH, HEIGHT * depth);
+  }
+  // Staggered: a thin gold edge-light frames the burst window (the field says NOW too).
+  if (v.staggered && collapse === 0) {
+    ctx.strokeStyle = rgba('255, 210, 77', 0.25 + pulse(now, 0.5) * 0.2);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(1.5, 1.5, WIDTH - 3, HEIGHT - 3);
   }
   // Death flash: one white gasp at the moment of collapse, then the light drains.
   if (collapse > 0 && collapse < 0.18) {

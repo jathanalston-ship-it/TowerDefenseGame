@@ -24,7 +24,7 @@
 | Heroes | 5 | 30 | Vitriol (Caustic siege) + Revenant (Viral phase-assassin) added; per-hero equipment loadouts; ★10 cap + ★5/★8 ability forks |
 | Enemies | 40 | 100 | + elites; role fusions: Cyst Wraith fly+regen · Cinder Sapper burrow+suicide · Stratovore fly+artillery · Brood Weaver summon+regen · Cataclyst heavy+suicide · Aegis Zealot shield+regen · Carrion Zeppelin fly+summon · Bastion Spitter siege+regen · Hollow Oracle heal+shield · Bloat Cluster swarm+bomb. **Visual overhaul: 12 procedural creature body-forms** (`render/enemyForms.ts`, `ENEMY_BODY`) — grub/dart/beetle/crab/polyp/mole/moth/broodsac/frond/bulb/mortar/maw, each a shaded silhouette + anatomy + idle animation; per-kind colour + `ENEMY_VARIANT` seed vary the build; LOD-gated (flat `ENEMY_SHAPE` fallback + bestiary), cosmetic (no golden impact). Trait tells (shield/regen/summon/…) layer on top. **+ lifecycle animation** (render-side motion tracker → velocity **bank/bob**, spawn **emerge** scale-in, death **crumple** echo; grounded contact shadows; size jitter) **+ per-archetype death AUDIO** (`enemyDeathCue` → 5 timbres squelch/crack/screech/pop/splat, layered under the kill-streak ping). **+ ASSIMILATION gore** (`render/gore.ts` ← sim `DeathEvent` buffer): color-coded pieces routed to organized destinations — viscera gibs→floor decals, occasional juice spray, biomass motes→HUD, XP shards→the killing tower/hero (throb on arrival), assim chunks→container meter; explosion∝overkill, counts∝bounty; `assimilate` shimmer cue. **+ unique BIRTH intros** (`drawSpawnIntro`: hatch/erupt/bloom/assemble/phase/ignite per archetype). All render-side ⇒ golden-safe. Docs: ENEMIES.md §8.1–8.2 |
 | **Bosses** | **13 authored** | 50 | Progenitor + Milestone-1 line (stages 5–30) + Act-2 siege line (35/40/45) + Act-3 graduation line (50/55/60) |
-| **Mega Bosses** | **5 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
+| **Mega Bosses** | **7 authored** | 20 | battlefield-scale raid organisms (`megaBossRegistry`); every 10 campaign stages / 20 Infinite waves / 5 Rush waves + the rare Daily Mega variant |
 | Cards (genes) | 102 | 500 | effect DSL (mul/add/flag/set/grant/hook); 44 progression-`unlock`-gated (below) |
 | Equipment | ~180 | 500 | weapons/armor/relics + behavioral affixes + **16 build-enabling sets** (EQUIPMENT.md §12) |
 | Meta upgrades (Genome) | 87 | 1,000 | `META_UPGRADES` (Deep Genome tier: 20 open + 10 progression-`unlock`-gated) |
@@ -200,10 +200,13 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   (corruptor+dampener+channeler: total suppression); same registry/codex/collection path as Act 1
 - ✅ **MEGA BOSSES** (`core/megaboss.ts` + `render/megaboss.ts` — docs/MEGA-BOSS.md): battlefield-scale
   RAID organisms — anchored across the top of the field, ability rotation manipulating the whole
-  battle (12 modular verbs), 10-kind weak-point library where every destruction CHANGES the fight,
-  encounter cadence in all four modes + the rare Daily Mega variant (roster: Voraxis the aggression
-  mega · Meridia the suppression mega · Ossira the FORTIFICATION mega — it armors/shields/mends the
-  horde itself), efficiency-scaled guaranteed
+  battle (15 modular verbs incl. gorge/adapt/cataclysm), 10-kind weak-point library where every
+  destruction CHANGES the fight, the STAGGER posture system (3 ruptures in a push topple it:
+  frozen windows + bonus damage), a mandatory interruptible CATACLYSM finale per def,
+  encounter cadence in all four modes + the rare Daily Mega variant (roster of 7: Voraxis
+  aggression · Meridia suppression · Ossira fortification · Vesperine tempo · Moloch-Ama economy
+  · Sarcophage gluttony/gorge · Myriad adaptation/anti-meta), per-def anatomy MOTIFS on the
+  renderer, efficiency-scaled guaranteed
   Ichor, `megaBosses` collection category (Slain/Mastered/Dominated) + 11 achievements — compressed
   summary below
 - 📋 Milestones 3–4 (biome/prestige/∞ bosses + elite-variant overlay); per-boss Bestiary + first-kill

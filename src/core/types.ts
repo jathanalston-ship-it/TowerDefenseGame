@@ -212,6 +212,8 @@ export interface MegaBannerSnapshot {
   phases: number;
   telegraph: { kind: string; frac: number } | null;
   stunned: boolean;
+  stagger: number; // posture meter 0..1 (weak-point ruptures fill it — docs/MEGA-BOSS.md §stagger)
+  staggered: boolean; // TOPPLED — organ windows frozen, the burst window is NOW
   exposed: boolean;
   effects: string[]; // live manipulation chips (e.g. 'HASTE', 'LEECH'; '*' = passive)
   weakPoints: { kind: string; name: string; hpPct: number; note: string }[]; // OPEN organs

@@ -17,6 +17,7 @@ const DUCK: Record<string, [number, number]> = {
   mega: [0.45, 1.4], megaDeath: [0.5, 1.8], megaPhase: [0.3, 0.9],
   wpBreak: [0.28, 0.7], splice: [0.3, 0.8], breach: [0.25, 0.6],
   boss_phase: [0.28, 0.8], mega_cast: [0.22, 0.6],
+  megaStagger: [0.32, 1.0], megaCataclysm: [0.5, 1.6], megaGorge: [0.24, 0.7],
 };
 
 /** Reward cues that ALSO land a musical stinger (audio/music.ts STINGERS) — mapped here so every
@@ -214,6 +215,22 @@ function sMegaTide(): void { // Vesperine theme sting: submerged bells — detun
 function sMegaTithe(): void { // Moloch-Ama theme sting: coins into a drum — hollow gold over a greedy pulse
   tone(880, 0.1, 'triangle', 0.1); tone(1174, 0.1, 'triangle', 0.09); tone(740, 0.12, 'triangle', 0.08);
   tone(58, 0.5, 'sine', 0.26, 44); tone(58, 0.5, 'sine', 0.2, 44); noise(0.8, 0.07, 700, 150);
+}
+function sMegaGorge(): void { // Sarcophage theme + the GORGE itself: wet chewing collapse into a swallowing drone
+  noise(0.3, 0.14, 1100, 260); noise(0.24, 0.1, 800, 200);
+  tone(120, 0.5, 'sine', 0.16, 52); tone(72, 0.9, 'sawtooth', 0.12, 40); tone(44, 1.1, 'sine', 0.22, 34);
+}
+function sMegaMyriad(): void { // Myriad theme sting: a detuned answer-cluster resolving into one cold tone
+  tone(311, 0.9, 'triangle', 0.09, 308); tone(370, 0.8, 'triangle', 0.08, 366); tone(415, 0.7, 'triangle', 0.07, 412);
+  tone(233, 1.4, 'sine', 0.12, 231); noise(1.0, 0.05, 4200, 1400); tone(47, 1.6, 'sine', 0.22, 40);
+}
+function sMegaStagger(): void { // the TOPPLE: structure gives way — crunch cascade over a falling gong
+  noise(0.28, 0.18, 2600, 300); noise(0.4, 0.12, 900, 160);
+  tone(196, 0.9, 'sawtooth', 0.14, 65); tone(98, 1.1, 'sine', 0.2, 42); tone(523, 0.5, 'sine', 0.09, 260);
+}
+function sMegaCataclysm(): void { // the finale LANDS: a full-weight strike into the Hive — brutal and final
+  tone(48, 0.9, 'sine', 0.34, 26); tone(90, 0.6, 'sawtooth', 0.2, 38);
+  noise(0.7, 0.16, 1600, 120); tone(150, 0.4, 'square', 0.1, 60); noise(0.25, 0.14, 4800, 900);
 }
 function sMegaAbility(): void { // telegraph riser: tension you can HEAR building — interrupt it
   tone(196, 0.8, 'sawtooth', 0.1, 392); noise(0.7, 0.06, 700, 2600); tone(49, 0.8, 'sine', 0.14);
@@ -475,6 +492,10 @@ export const audio = {
         case 'megaShepherd': sMegaShepherd(); break;
         case 'megaTide': sMegaTide(); break;
         case 'megaTithe': sMegaTithe(); break;
+        case 'megaGorge': sMegaGorge(); break;
+        case 'megaMyriad': sMegaMyriad(); break;
+        case 'megaStagger': sMegaStagger(); break;
+        case 'megaCataclysm': sMegaCataclysm(); break;
         case 'mine': for (let i = 0; i < Math.min(3, n); i++) sMine(); break;
         case 'megaAbility': sMegaAbility(); break;
         case 'megaPhase': sMegaPhase(); break;

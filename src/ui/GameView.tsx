@@ -61,6 +61,7 @@ const TRAUMA: Record<string, number> = {
   // Mega Boss camera events (docs/MEGA-BOSS.md §visuals): arrival quake, phase crunch, weak-point
   // rupture payoff, and the long collapse — the biggest impulses in the game, by design.
   mega: 0.5, megaPhase: 0.3, wpOpen: 0.05, wpBreak: 0.24, megaDeath: 0.6, megaAbility: 0.06,
+  megaStagger: 0.3, megaCataclysm: 0.55, megaGorge: 0.12, // §functional overhaul: topple, finale, the meal
   mine: 0.02, // spore-mine bursts: a light patter even when a field chains
 };
 // Hive damage-state thresholds (docs/HIVE-SIEGE.md §states) — a GROAN marks each failure.
@@ -1002,7 +1003,7 @@ export function GameView({
           </div>
         )}
         {hud.megaBanner && (
-          <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
+          <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}${hud.megaBanner.staggered ? ' is-staggered' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
             <div className="mega-banner-row">
               <span className="mega-name">{hud.megaBanner.name}</span>
               <span className="mega-title">{hud.megaBanner.title}</span>
@@ -1011,12 +1012,17 @@ export function GameView({
             <div className="mega-hp">
               <div className="mega-hp-fill" style={{ width: `${hud.megaBanner.hpPct * 100}%` }} />
             </div>
+            {/* Stagger posture (docs/MEGA-BOSS.md §stagger): ruptures fill it; full = TOPPLED. */}
+            <div className="mega-stagger" title="Stagger — weak-point ruptures fill it; full topples the organism">
+              <div className={`mega-stagger-fill${hud.megaBanner.staggered ? ' is-full' : ''}`} style={{ width: `${(hud.megaBanner.staggered ? 1 : hud.megaBanner.stagger) * 100}%` }} />
+            </div>
             <div className="mega-banner-row2">
-              {hud.megaBanner.stunned && <span className="mega-chip mega-chip-stun">STUNNED</span>}
+              {hud.megaBanner.staggered && <span className="mega-chip mega-chip-staggered">STAGGERED — POUR IT ON</span>}
+              {hud.megaBanner.stunned && !hud.megaBanner.staggered && <span className="mega-chip mega-chip-stun">STUNNED</span>}
               {hud.megaBanner.exposed && <span className="mega-chip mega-chip-exposed">EXPOSED</span>}
               {hud.megaBanner.telegraph && (
-                <span className="mega-chip mega-chip-cast">
-                  {hud.megaBanner.telegraph.kind.toUpperCase()}
+                <span className={`mega-chip mega-chip-cast${hud.megaBanner.telegraph.kind === 'cataclysm' ? ' is-cataclysm' : ''}`}>
+                  {hud.megaBanner.telegraph.kind === 'cataclysm' ? '⚠ CATACLYSM — INTERRUPT IT' : hud.megaBanner.telegraph.kind.toUpperCase()}
                   <i className="mega-cast-fill" style={{ width: `${hud.megaBanner.telegraph.frac * 100}%` }} />
                 </span>
               )}

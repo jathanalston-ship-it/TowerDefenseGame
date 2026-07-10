@@ -30,7 +30,13 @@ export type MegaAbilityKind =
   | 'slowShots' // projectile velocity mult < 1 (shots hang in the air)
   | 'leech' // biomass income mult < 1 (the boss drinks the economy)
   | 'jam' // hero ability cooldowns run slower (magnitude = cooldown mult > 1)
-  | 'corrupt'; // corrupt `count` build slots (towers there are disabled for the window)
+  | 'corrupt' // corrupt `count` build slots (towers there are disabled for the window)
+  | 'gorge' // DEVOUR up to `count` field enemies nearest the maw, healing `magnitude` HP each
+  //           (tier-scaled) — deny it by slaughtering the food first, or interrupt the meal
+  | 'adapt' // learn the run's TOP-DAMAGE tower kind: that kind deals ×magnitude (<1) to this
+  //           boss for `duration` — the anti-meta verb; diversify, or interrupt the lesson
+  | 'cataclysm'; // the FINALE: a long, interruptible windup → `magnitude` Hive integrity damage
+  //               lands if it resolves. Every mega carries one in its desperation phase.
 
 /** One rotation entry: telegraphed (interruptible during `telegraph`), then active for `duration`.
  *  Instant verbs (brood/eliteSurge/menders/shieldWeave) fire at the end of the telegraph. */
@@ -142,6 +148,11 @@ export interface MegaPhase {
   visualTier?: number; // renderer mutation stage (defaults to phase index)
 }
 
+/** The renderer's per-def ANATOMY key (render/megaboss.ts drawMotif): each motif is a small
+ *  silhouette suite (crest, underside organs, maw character) layered over the shared body, so
+ *  two megas never read as palette swaps. A new mega picks one (or earns a new suite). */
+export type MegaMotif = 'maw' | 'choir' | 'shepherd' | 'tide' | 'tithe' | 'gorge' | 'myriad';
+
 export interface MegaBossDef {
   id: string;
   name: string;
@@ -152,6 +163,7 @@ export interface MegaBossDef {
   armor: number; // base armor (armored_growth strips it)
   bodyFrac: number; // fraction of field height its visible mass occupies (renderer)
   palette: { body: string; glow: string; accent: string }; // procedural visual identity
+  motif: MegaMotif; // per-def anatomy suite (renderer) — silhouette identity beyond palette
   abilities: MegaAbility[];
   phases: MegaPhase[]; // ordered high→low threshold; phases[0].threshold === 1
   weakPoints: WeakPointSpawn[];
@@ -174,6 +186,7 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     armor: 14,
     bodyFrac: 0.32,
     palette: { body: '#7a2334', glow: '#ff5d73', accent: '#c7b27a' },
+    motif: 'maw',
     abilities: [
       { kind: 'haste', cooldown: 16, telegraph: 2.2, duration: 8, magnitude: 1.35 }, // 0
       { kind: 'chitinize', cooldown: 19, telegraph: 2.4, duration: 9, magnitude: 10 }, // 1
@@ -181,12 +194,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { kind: 'eliteSurge', cooldown: 26, telegraph: 3.0, duration: 0, count: 2, addKind: 'rusher' }, // 3
       { kind: 'shieldWeave', cooldown: 22, telegraph: 2.6, duration: 0, magnitude: 60 }, // 4
       { kind: 'brood', cooldown: 17, telegraph: 2.2, duration: 0, count: 3, addKind: 'lasher' }, // 5
+      { kind: 'cataclysm', cooldown: 48, telegraph: 5.5, duration: 0, magnitude: 16 }, // 6 — the ridge itself bites
     ],
     phases: [
       { threshold: 1, abilities: [0, 2], visualTier: 0 }, // P1: learn the eye-interrupt
       { threshold: 0.72, abilities: [0, 1, 2], entrySurge: { count: 4, addKind: 'runner' }, visualTier: 1 },
       { threshold: 0.45, abilities: [0, 1, 3, 4], passive: { kind: 'haste', magnitude: 1.12 }, entrySurge: { count: 5, addKind: 'rusher' }, visualTier: 2 },
-      { threshold: 0.18, abilities: [2, 3, 4, 5], passive: { kind: 'haste', magnitude: 1.2 }, entrySurge: { count: 6, addKind: 'rusher' }, regenPerSec: 6, visualTier: 3 }, // desperation: it knits itself
+      { threshold: 0.18, abilities: [2, 3, 4, 5, 6], passive: { kind: 'haste', magnitude: 1.2 }, entrySurge: { count: 6, addKind: 'rusher' }, regenPerSec: 6, visualTier: 3 }, // desperation: it knits itself
     ],
     weakPoints: [
       { kind: 'eye', on: 'abilityCast', ability: 'eliteSurge', x: 0.3, y: 430 },
@@ -214,6 +228,7 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     armor: 8,
     bodyFrac: 0.36,
     palette: { body: '#22333f', glow: '#8fd0ff', accent: '#d98cff' },
+    motif: 'choir',
     abilities: [
       { kind: 'dampen', cooldown: 18, telegraph: 2.4, duration: 9, magnitude: 0.62 }, // 0
       { kind: 'suppressRange', cooldown: 21, telegraph: 2.6, duration: 8, magnitude: 0.75 }, // 1
@@ -222,12 +237,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { kind: 'menders', cooldown: 20, telegraph: 2.4, duration: 0, count: 2, addKind: 'mender' }, // 4
       { kind: 'corrupt', cooldown: 27, telegraph: 3.0, duration: 8, count: 2 }, // 5
       { kind: 'slowShots', cooldown: 19, telegraph: 2.2, duration: 8, magnitude: 0.6 }, // 6
+      { kind: 'cataclysm', cooldown: 52, telegraph: 6.0, duration: 0, magnitude: 15 }, // 7 — one note, aimed at the Core
     ],
     phases: [
       { threshold: 1, abilities: [0, 3], visualTier: 0 }, // P1: the dampen/leech duet
       { threshold: 0.75, abilities: [0, 3, 4], passive: { kind: 'dampen', magnitude: 0.92 }, visualTier: 1 },
       { threshold: 0.5, abilities: [1, 2, 4, 6], passive: { kind: 'dampen', magnitude: 0.88 }, entrySurge: { count: 4, addKind: 'knitter' }, regenPerSec: 4, visualTier: 2 },
-      { threshold: 0.22, abilities: [0, 1, 2, 5, 6], passive: { kind: 'suppressRange', magnitude: 0.85 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 7, visualTier: 3 },
+      { threshold: 0.22, abilities: [0, 1, 2, 5, 6, 7], passive: { kind: 'suppressRange', magnitude: 0.85 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 7, visualTier: 3 },
     ],
     weakPoints: [
       { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.25, y: 440 },
@@ -259,6 +275,7 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     armor: 20,
     bodyFrac: 0.34,
     palette: { body: '#4a4238', glow: '#e8d5a0', accent: '#c7b27a' },
+    motif: 'shepherd',
     abilities: [
       { kind: 'chitinize', cooldown: 15, telegraph: 2.4, duration: 10, magnitude: 12 }, // 0
       { kind: 'shieldWeave', cooldown: 20, telegraph: 2.6, duration: 0, magnitude: 80 }, // 1
@@ -266,12 +283,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { kind: 'brood', cooldown: 16, telegraph: 2.2, duration: 0, count: 3, addKind: 'warden' }, // 3
       { kind: 'corrupt', cooldown: 28, telegraph: 3.0, duration: 7, count: 2 }, // 4
       { kind: 'haste', cooldown: 21, telegraph: 2.4, duration: 7, magnitude: 1.22 }, // 5
+      { kind: 'cataclysm', cooldown: 55, telegraph: 6.0, duration: 0, magnitude: 18 }, // 6 — the crook comes down
     ],
     phases: [
       { threshold: 1, abilities: [0, 3], visualTier: 0 }, // P1: the chitin lesson
       { threshold: 0.7, abilities: [0, 1, 3], passive: { kind: 'chitinize', magnitude: 5 }, entrySurge: { count: 3, addKind: 'bulwark' }, visualTier: 1 },
       { threshold: 0.42, abilities: [0, 1, 2, 4], passive: { kind: 'chitinize', magnitude: 8 }, entrySurge: { count: 4, addKind: 'warden' }, regenPerSec: 8, visualTier: 2 },
-      { threshold: 0.16, abilities: [1, 2, 3, 5], passive: { kind: 'chitinize', magnitude: 10 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 14, visualTier: 3 }, // desperation: the flock stampedes
+      { threshold: 0.16, abilities: [1, 2, 3, 5, 6], passive: { kind: 'chitinize', magnitude: 10 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 14, visualTier: 3 }, // desperation: the flock stampedes
     ],
     weakPoints: [
       { kind: 'armored_growth', on: 'phaseEntry', x: 0.35, y: 460 },
@@ -300,6 +318,7 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     armor: 10,
     bodyFrac: 0.35,
     palette: { body: '#1e2a4a', glow: '#6ad4e8', accent: '#b48ae0' },
+    motif: 'tide',
     abilities: [
       { kind: 'slowShots', cooldown: 15, telegraph: 2.2, duration: 8, magnitude: 0.55 }, // 0 — the amber tide
       { kind: 'haste', cooldown: 17, telegraph: 2.4, duration: 7, magnitude: 1.3 }, // 1 — the surge tide
@@ -307,12 +326,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { kind: 'brood', cooldown: 14, telegraph: 2.0, duration: 0, count: 4, addKind: 'darter' }, // 3 — the tide's teeth
       { kind: 'eliteSurge', cooldown: 27, telegraph: 3.0, duration: 0, count: 2, addKind: 'lasher' }, // 4
       { kind: 'suppressRange', cooldown: 20, telegraph: 2.5, duration: 7, magnitude: 0.8 }, // 5 — the horizon closes
+      { kind: 'cataclysm', cooldown: 45, telegraph: 5.0, duration: 0, magnitude: 15 }, // 6 — the hour strikes
     ],
     phases: [
       { threshold: 1, abilities: [0, 3], visualTier: 0 }, // P1: learn the amber tide
       { threshold: 0.72, abilities: [0, 1, 3], visualTier: 1 }, // P2: the ALTERNATION begins
       { threshold: 0.45, abilities: [0, 1, 2, 4], passive: { kind: 'slowShots', magnitude: 0.9 }, entrySurge: { count: 4, addKind: 'darter' }, visualTier: 2 },
-      { threshold: 0.18, abilities: [1, 2, 4, 5], passive: { kind: 'haste', magnitude: 1.12 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 6, visualTier: 3 },
+      { threshold: 0.18, abilities: [1, 2, 4, 5, 6], passive: { kind: 'haste', magnitude: 1.12 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 6, visualTier: 3 },
     ],
     weakPoints: [
       { kind: 'eye', on: 'abilityCast', ability: 'slowShots', x: 0.3, y: 435 },
@@ -341,6 +361,7 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     armor: 16,
     bodyFrac: 0.33,
     palette: { body: '#3a2e1e', glow: '#e8b84a', accent: '#a06a30' },
+    motif: 'tithe',
     abilities: [
       { kind: 'leech', cooldown: 14, telegraph: 2.0, duration: 11, magnitude: 0.5 }, // 0 — the tithe
       { kind: 'corrupt', cooldown: 24, telegraph: 2.8, duration: 8, count: 2 }, // 1 — quiet emplacements
@@ -348,12 +369,13 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
       { kind: 'chitinize', cooldown: 18, telegraph: 2.4, duration: 9, magnitude: 8 }, // 3 — gilded hides
       { kind: 'brood', cooldown: 15, telegraph: 2.2, duration: 0, count: 4, addKind: 'runner' }, // 4
       { kind: 'dampen', cooldown: 21, telegraph: 2.6, duration: 8, magnitude: 0.72 }, // 5 — bought silence
+      { kind: 'cataclysm', cooldown: 60, telegraph: 6.5, duration: 0, magnitude: 20 }, // 6 — the debt is called in
     ],
     phases: [
       { threshold: 1, abilities: [0, 4], passive: { kind: 'leech', magnitude: 0.92 }, visualTier: 0 }, // P1: the ledger opens
       { threshold: 0.7, abilities: [0, 1, 2], passive: { kind: 'leech', magnitude: 0.88 }, visualTier: 1 },
       { threshold: 0.42, abilities: [0, 1, 2, 3], passive: { kind: 'leech', magnitude: 0.85 }, entrySurge: { count: 4, addKind: 'brute' }, regenPerSec: 7, visualTier: 2 },
-      { threshold: 0.16, abilities: [1, 2, 3, 5], passive: { kind: 'dampen', magnitude: 0.9 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 10, visualTier: 3 },
+      { threshold: 0.16, abilities: [1, 2, 3, 5, 6], passive: { kind: 'dampen', magnitude: 0.9 }, entrySurge: { count: 5, addKind: 'warden' }, regenPerSec: 10, visualTier: 3 },
     ],
     weakPoints: [
       { kind: 'spore_cluster', on: 'abilityCast', ability: 'leech', x: 0.35, y: 480 }, // the counter-ledger
@@ -366,6 +388,92 @@ export const MEGA_BOSS_DEFS: Record<string, MegaBossDef> = {
     ],
     reward: { ichor: 36 },
     themeCue: 'megaTithe',
+  },
+
+  // SARCOPHAGE — the GLUTTONY mega: it FEEDS ON ITS OWN. It plants broods, then GORGES on them
+  // to heal — the first mega whose sustain the player can starve. Kill the food before the maw
+  // closes, or burst the Gorge-Eyes to interrupt the meal itself. Everything else it does
+  // (haste, elites, chitin) exists to keep its larder alive long enough to swallow.
+  sarcophage: {
+    id: 'sarcophage',
+    name: 'SARCOPHAGE',
+    title: 'The Self-Devourer',
+    lore: 'It was a famine once, and it survived the way famines do: by eating what it had already eaten. The larder it plants beneath the ridge is not an army. It is a meal that walks itself to the mouth.',
+    codex: 'Anchored over its larder. Plants broods, then GORGES — devouring its own spawn to heal massive HP. STARVE IT: slaughter the food before the maw closes, or burst the Gorge-Eyes to interrupt the meal. Its Parasite Sac weakens fresh plantings; the Gullet-Heart at half is your commit window, and the Regeneration Organ in its last phase must die on sight.',
+    hp: 7000,
+    armor: 12,
+    bodyFrac: 0.34,
+    palette: { body: '#3a4218', glow: '#c8e64a', accent: '#e0d8a8' },
+    motif: 'gorge',
+    abilities: [
+      { kind: 'brood', cooldown: 12, telegraph: 2.0, duration: 0, count: 5, addKind: 'runner' }, // 0 — plants the meal
+      { kind: 'gorge', cooldown: 21, telegraph: 3.2, duration: 0, count: 4, magnitude: 240 }, // 1 — EATS the meal
+      { kind: 'haste', cooldown: 18, telegraph: 2.4, duration: 8, magnitude: 1.28 }, // 2 — herd the food home
+      { kind: 'chitinize', cooldown: 20, telegraph: 2.5, duration: 9, magnitude: 9 }, // 3 — preserve the larder
+      { kind: 'eliteSurge', cooldown: 26, telegraph: 2.8, duration: 0, count: 2, addKind: 'brute' }, // 4 — fattened stock
+      { kind: 'brood', cooldown: 16, telegraph: 2.2, duration: 0, count: 3, addKind: 'lasher' }, // 5
+      { kind: 'cataclysm', cooldown: 50, telegraph: 5.8, duration: 0, magnitude: 17 }, // 6 — the last course
+    ],
+    phases: [
+      { threshold: 1, abilities: [0, 1], visualTier: 0 }, // P1: learn the plant-then-eat loop
+      { threshold: 0.72, abilities: [0, 1, 2], entrySurge: { count: 4, addKind: 'runner' }, visualTier: 1 },
+      { threshold: 0.45, abilities: [0, 1, 3, 4], passive: { kind: 'haste', magnitude: 1.1 }, entrySurge: { count: 4, addKind: 'brute' }, visualTier: 2 },
+      { threshold: 0.2, abilities: [0, 1, 4, 5, 6], passive: { kind: 'haste', magnitude: 1.16 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 5, visualTier: 3 }, // desperation: it eats faster than you kill
+    ],
+    weakPoints: [
+      { kind: 'eye', on: 'abilityCast', ability: 'gorge', x: 0.32, y: 435 }, // interrupt the MEAL
+      { kind: 'eye', on: 'timer', every: 25, x: 0.68, y: 435 },
+      { kind: 'parasite_sac', on: 'abilityCast', ability: 'brood', x: 0.18, y: 495 },
+      { kind: 'armored_growth', on: 'phaseEntry', x: 0.5, y: 465 },
+      { kind: 'heart', on: 'hpBelow', at: 0.45, x: 0.5, y: 545 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.25, x: 0.64, y: 510 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.6, x: 0.84, y: 490 },
+    ],
+    reward: { ichor: 38 },
+    themeCue: 'megaGorge',
+  },
+
+  // MYRIAD — the ADAPTATION mega: it learns YOU. On every adapt cast it studies the tower kind
+  // that has hurt it most and grows resistant to exactly that — the anti-meta encounter that
+  // punishes one-gun builds. Diversify your damage, sever the Nerve Bundles that carry the
+  // lesson, or burst the Study-Eyes mid-telegraph so the answer never finishes forming.
+  myriad: {
+    id: 'myriad',
+    name: 'MYRIAD',
+    title: 'The Thousand Answers',
+    lore: 'Every weapon that has ever been raised against it is remembered somewhere on its hide — a scar shaped like the wound it refused to take twice. It is not learning to fight you. It has already fought you. It is remembering the answer.',
+    codex: 'Anchored in the mirror-dark. STUDIES your defense: each Adapt cast armors it against the tower kind that has damaged it most (that kind hits for less than half). DIVERSIFY your line, interrupt the Study-Eyes mid-lesson, and sever the Nerve Bundles carrying its reflex choir. The Resonant Heart at half is the window where none of its answers apply.',
+    hp: 6900,
+    armor: 10,
+    bodyFrac: 0.35,
+    palette: { body: '#332844', glow: '#c9b8ff', accent: '#8fe8d0' },
+    motif: 'myriad',
+    abilities: [
+      { kind: 'adapt', cooldown: 19, telegraph: 2.8, duration: 12, magnitude: 0.45 }, // 0 — it studies your favorite gun
+      { kind: 'dampen', cooldown: 20, telegraph: 2.4, duration: 8, magnitude: 0.7 }, // 1
+      { kind: 'jam', cooldown: 23, telegraph: 2.6, duration: 9, magnitude: 1.7 }, // 2 — champions, answered
+      { kind: 'slowShots', cooldown: 17, telegraph: 2.2, duration: 7, magnitude: 0.62 }, // 3
+      { kind: 'brood', cooldown: 14, telegraph: 2.0, duration: 0, count: 4, addKind: 'darter' }, // 4
+      { kind: 'eliteSurge', cooldown: 27, telegraph: 2.9, duration: 0, count: 2, addKind: 'lasher' }, // 5
+      { kind: 'cataclysm', cooldown: 46, telegraph: 5.2, duration: 0, magnitude: 16 }, // 6 — the final answer
+    ],
+    phases: [
+      { threshold: 1, abilities: [0, 4], visualTier: 0 }, // P1: the first lesson
+      { threshold: 0.72, abilities: [0, 1, 4], passive: { kind: 'dampen', magnitude: 0.93 }, visualTier: 1 },
+      { threshold: 0.45, abilities: [0, 2, 3, 5], passive: { kind: 'dampen', magnitude: 0.9 }, entrySurge: { count: 4, addKind: 'darter' }, regenPerSec: 4, visualTier: 2 },
+      { threshold: 0.18, abilities: [0, 1, 2, 5, 6], passive: { kind: 'suppressRange', magnitude: 0.88 }, entrySurge: { count: 5, addKind: 'lasher' }, regenPerSec: 7, visualTier: 3 },
+    ],
+    weakPoints: [
+      { kind: 'eye', on: 'abilityCast', ability: 'adapt', x: 0.4, y: 435 }, // interrupt the LESSON
+      { kind: 'eye', on: 'timer', every: 26, x: 0.75, y: 440 },
+      { kind: 'nerve_bundle', on: 'phaseEntry', x: 0.25, y: 455 }, // sever the reflex choir
+      { kind: 'energy_core', on: 'abilityCast', ability: 'dampen', x: 0.85, y: 515 },
+      { kind: 'heart', on: 'hpBelow', at: 0.5, x: 0.5, y: 548 },
+      { kind: 'mutation_node', on: 'hpBelow', at: 0.65, x: 0.15, y: 490 },
+      { kind: 'regen_organ', on: 'hpBelow', at: 0.28, x: 0.6, y: 512 },
+    ],
+    reward: { ichor: 40 },
+    themeCue: 'megaMyriad',
   },
 };
 
@@ -382,7 +490,15 @@ export function megaBossProblems(d: MegaBossDef): string[] {
     if (a.kind === 'corrupt' && !(a.count && a.count > 0)) out.push('corrupt needs a slot count');
     if ((a.kind === 'haste' || a.kind === 'jam') && !(a.magnitude && a.magnitude > 1)) out.push(`${a.kind} magnitude must be > 1`);
     if ((a.kind === 'dampen' || a.kind === 'suppressRange' || a.kind === 'leech' || a.kind === 'slowShots') && !(a.magnitude && a.magnitude > 0 && a.magnitude < 1)) out.push(`${a.kind} magnitude must be in (0,1)`);
+    if (a.kind === 'gorge' && !(a.count && a.count > 0 && a.magnitude && a.magnitude > 0)) out.push('gorge needs count (max devoured) + magnitude (heal per enemy)');
+    if (a.kind === 'adapt' && !(a.magnitude && a.magnitude > 0 && a.magnitude < 1 && a.duration > 0)) out.push('adapt needs magnitude ∈ (0,1) + a positive duration');
+    if (a.kind === 'cataclysm' && !(a.magnitude && a.magnitude > 0 && a.telegraph >= 4)) out.push('cataclysm needs magnitude (integrity damage) + telegraph ≥ 4s (it MUST be interruptible)');
   }
+  // The FINALE mandate: every mega carries a cataclysm and its LAST phase can cast it — the
+  // desperation beat is part of the encounter contract, not per-def taste.
+  const cataIdx = d.abilities.findIndex((a) => a.kind === 'cataclysm');
+  if (cataIdx < 0) out.push('every mega boss needs a cataclysm ability (the desperation finale)');
+  else if (d.phases.length > 0 && !d.phases[d.phases.length - 1].abilities.includes(cataIdx)) out.push('the final phase must include the cataclysm ability');
   if (d.weakPoints.length < 2) out.push('a mega boss needs ≥ 2 weak point spawns (the signature mechanic)');
   for (const w of d.weakPoints) {
     if (!WEAK_POINT_DEFS[w.kind]) out.push(`unknown weak point kind '${w.kind}'`);
@@ -416,6 +532,15 @@ export const MEGA = {
   bodyBandY: 300, // towers within range of this line may chip the body between windows
   exposeFallback: 0.5, // 'expose' frac default
   stunFloatText: 'INTERRUPTED', // shared presentation strings (HUD + floats read one source)
+  // STAGGER (§functional overhaul): every destroyed weak point adds to a hidden posture meter;
+  // filling it TOPPLES the organism — rotation stunned, telegraph dropped, body takes bonus
+  // damage, and open organ windows FREEZE (burst them at leisure). The raid-mechanic payoff
+  // for focus-fire choreography; the meter decays so it must be earned in a push.
+  staggerPerWp: 0.4, // meter added per destroyed weak point (3 in a push topples it)
+  staggerDecayPerSec: 0.04, // meter bleed while not staggered
+  staggerDurSec: 6, // seconds toppled
+  staggerDamageAmp: 0.4, // body takes ×(1+this) while staggered (stacks with a heart exposure)
+  staggerFloatText: 'STAGGERED',
   // Encounter cadence — data, not scattered mode checks.
   campaignEvery: 10, // one Mega Boss every N campaign stages … forever (procedural scaling)
   infiniteEvery: 20, // one every N endless waves
@@ -558,6 +683,16 @@ export interface MegaRuntime {
   timerT: number[]; // per weakPoints spec: countdown for 'timer' specs
   spawnedAt: number;
   integrityAtSpawn: number;
+  // STAGGER posture (§functional overhaul): meter 0..1, the toppled window, and the count.
+  stagger: number;
+  staggeredUntil: number;
+  staggers: number;
+  // ADAPT bookkeeping: per-tower-kind damage this encounter (the verb learns the argmax) and
+  // the live adaptation window. Empty/neutral unless the verb exists on the def.
+  dmgByKind: Record<string, number>;
+  adaptKind: string | null;
+  adaptUntil: number;
+  adaptMult: number;
   // Encounter statistics (RunStats + collection + achievements).
   wpDestroyed: number;
   wpKinds: WeakPointKind[];
@@ -602,6 +737,13 @@ export function createMegaRuntime(def: MegaBossDef, enc: MegaEncounter, encounte
     timerT: def.weakPoints.map((w) => (w.on === 'timer' ? (w.every ?? 0) : 0)),
     spawnedAt: 0,
     integrityAtSpawn: 0,
+    stagger: 0,
+    staggeredUntil: 0,
+    staggers: 0,
+    dmgByKind: {},
+    adaptKind: null,
+    adaptUntil: 0,
+    adaptMult: 1,
     wpDestroyed: 0,
     wpKinds: [],
     interrupts: 0,

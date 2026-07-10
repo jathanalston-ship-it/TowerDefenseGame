@@ -83,7 +83,7 @@ import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
 import { MINES } from './config';
 import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
-import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaRuntime, MegaWeakPoint } from './megaboss';
+import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaMotif, MegaRuntime, MegaWeakPoint } from './megaboss';
 import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, spawnCount } from './config';
 import { pendingReaction } from './reactions';
 import type { ReactionDef } from './reactions';
@@ -340,6 +340,7 @@ export interface MegaBossView {
   name: string;
   title: string;
   palette: { body: string; glow: string; accent: string };
+  motif: MegaMotif; // per-def anatomy suite (render/megaboss.ts drawMotif)
   bodyFrac: number;
   anchorY: number;
   hp: number;
@@ -349,6 +350,8 @@ export interface MegaBossView {
   visualTier: number;
   telegraph: { kind: string; frac: number } | null; // frac 0→1 across the windup (the counterplay read)
   stunned: number; // seconds of rotation stun left (eye interrupt feedback)
+  stagger: number; // posture meter 0..1 (weak-point ruptures fill it)
+  staggered: boolean; // TOPPLED — organ windows frozen, body takes bonus damage
   exposed: boolean; // heart window — the renderer floods the body with glow
   deathT: number; // > 0: the death sequence is playing
   weakPoints: MegaWeakPoint[];
@@ -2879,6 +2882,8 @@ export class Game {
     const regen = (phase.regenPerSec ?? 0) * (1 + (rt.tier - 1) * 0.25) + rt.evolveStacks * MEGA.dailyEvolveRegen;
     if (regen > 0 && this.time >= rt.regenOffUntil && rt.hp < rt.maxHp) rt.hp = Math.min(rt.maxHp, rt.hp + regen * dt);
     rt.armor = this.time < rt.armorOffUntil ? 0 : rt.baseArmor;
+    // Stagger posture bleeds while it stands — the topple must be earned in one push.
+    if (this.time >= rt.staggeredUntil && rt.stagger > 0) rt.stagger = Math.max(0, rt.stagger - MEGA.staggerDecayPerSec * dt);
     // Expired aura effects fall off.
     for (let i = rt.active.length - 1; i >= 0; i--) if (this.time >= rt.active[i].until) rt.active.splice(i, 1);
     // ── Ability rotation: telegraph → cast. A stun (eye interrupt) freezes the whole rotation. ──
@@ -2921,7 +2926,7 @@ export class Game {
       if (wp.hitFlash > 0) wp.hitFlash -= dt;
       if (wp.state === 'open') {
         if (wp.emergeT < 1) wp.emergeT = Math.min(1, wp.emergeT + dt * 2); // the organ descends (0.5s)
-        if (wp.window > 0) {
+        if (wp.window > 0 && this.time >= rt.staggeredUntil) { // toppled ⇒ windows FREEZE (burst at leisure)
           wp.window -= dt;
           if (wp.window <= 0) { // sealed itself — regen kinds regrow, one-shot kinds stay gone
             wp.state = 'closed';
@@ -3018,6 +3023,68 @@ export class Game {
         }
         break;
       }
+      case 'gorge': {
+        // The boss DEVOURS its own field — up to `count` living non-boss enemies nearest the
+        // maw (smallest y; id-tiebreak keeps it deterministic), each healing tier-scaled HP.
+        // No bounty, no kill credit: the player's counterplay is DENIAL, not harvesting.
+        const food = this.enemies
+          .filter((e) => e.alive && e.boss === null)
+          .sort((p, q) => p.y - q.y || p.id - q.id)
+          .slice(0, a.count ?? 1);
+        if (food.length === 0) {
+          this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 90, text: 'STARVED — NOTHING TO GORGE', color: '#6effa8', life: 1.6 });
+          break;
+        }
+        const healEach = (a.magnitude ?? 100) * (0.7 + 0.3 * rt.tier);
+        for (const e of food) {
+          e.alive = false; // devoured — mirrors detonate()'s manual removal bookkeeping
+          e.sieging = false;
+          this.armorBreakUntil.delete(e.id);
+          this.floats.push({ x: e.x, y: e.y - 12, text: 'DEVOURED', color: def.palette.glow, life: 1.1 });
+          this.spawnParticles(e.x, e.y, PARTICLE.spore, def.palette.body);
+        }
+        const healed = Math.min(rt.maxHp - rt.hp, healEach * food.length);
+        rt.hp += healed;
+        this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 74, text: `GORGED ×${food.length} — +${Math.round(healed)}`, color: def.palette.glow, life: 1.8 });
+        this.pushSfx('megaGorge');
+        break;
+      }
+      case 'adapt': {
+        // It studies the tower kind that has hurt it MOST this encounter and answers it: that
+        // kind deals ×magnitude to the boss while the window holds. Deterministic argmax over
+        // the canonical TOWER_DEFS key order; with no damage on the ledger the lesson fizzles.
+        let top: string | null = null;
+        let best = 0;
+        for (const k of Object.keys(TOWER_DEFS)) {
+          const d = rt.dmgByKind[k] ?? 0;
+          if (d > best) { best = d; top = k; }
+        }
+        if (top === null) {
+          this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 90, text: 'NOTHING LEARNED', color: '#6effa8', life: 1.4 });
+          break;
+        }
+        rt.adaptKind = top;
+        rt.adaptUntil = this.time + a.duration;
+        rt.adaptMult = a.magnitude ?? 0.5;
+        this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 74, text: `IT LEARNS YOUR ${TOWER_DEFS[top as TowerKind].name.toUpperCase()}`, color: def.palette.accent, life: 2 });
+        break;
+      }
+      case 'cataclysm': {
+        // The FINALE lands: a direct strike into the Hive. The long telegraph was the whole
+        // counterplay — an eye interrupt or a stagger during the windup prevents this entirely.
+        const dmg = Math.round(a.magnitude ?? 15);
+        if (!this.god) {
+          this.integrity -= dmg;
+          this.statIntegrityLost += dmg; // flawless-run tracking, same ledger as siege shells
+          this.hiveRecentDamage += dmg;
+          this.hiveHitPulse = Math.min(1, this.hiveHitPulse + 0.5 + dmg * 0.012);
+        }
+        this.floats.push({ x: nucleusPoint.x, y: nucleusPoint.y - 22, text: `CATACLYSM −${dmg}`, color: '#ff5d73', life: 2.2 });
+        this.spawnParticles(nucleusPoint.x, nucleusPoint.y, PARTICLE.bossfall, def.palette.glow);
+        this.spawnParticles(WIDTH / 2, MEGA.anchorY + 80, PARTICLE.breach, def.palette.accent);
+        this.pushSfx('megaCataclysm');
+        break;
+      }
       default:
         // Aura verbs fold through megaFx while active.
         rt.active.push({ kind: a.kind, until: this.time + a.duration, magnitude: a.magnitude ?? 1 });
@@ -3082,10 +3149,16 @@ export class Game {
   /** Tower raid-fire: burst an open weak point (priority) or chip the anchored body when the field
    *  is empty. Returns true when the shot was consumed (the caller skips its normal cast). */
   private towerMegaFire(t: Tower, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): boolean {
+    const rt = this.mega!;
+    // ADAPT (§functional overhaul): the boss's learned resistance answers ONE tower kind.
+    // The per-kind ledger below is what the verb studies — heroes bypass both.
+    const adaptMul = this.time < rt.adaptUntil && t.kind === rt.adaptKind ? rt.adaptMult : 1;
     const range = def.range * (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1) * this.megaFx.towerRange;
     const wp = this.megaWeakPointInRange(t.x, t.y, range);
     if (wp !== null) {
-      this.megaHitWeakPoint(wp, def.damage * dmgMult, t.x, t.y, TOWER_DEFS[t.kind].color);
+      const raw = def.damage * dmgMult * adaptMul;
+      this.megaHitWeakPoint(wp, raw, t.x, t.y, TOWER_DEFS[t.kind].color);
+      rt.dmgByKind[t.kind] = (rt.dmgByKind[t.kind] ?? 0) + raw;
       this.masteryAccrual[t.kind].damage += def.damage * dmgMult; // raid damage still earns mastery
       t.cooldown = def.fireInterval / rateMult;
       return true;
@@ -3094,7 +3167,9 @@ export class Game {
     if (this.enemies.length === 0) {
       const bx = Math.max(WIDTH * 0.2, Math.min(WIDTH * 0.8, t.x));
       if (dist2(t.x, t.y, bx, MEGA.bodyBandY) <= range * range) {
-        this.megaHitBody(def.damage * dmgMult * MEGA.bodyChipMult, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS[t.kind].color);
+        const raw = def.damage * dmgMult * MEGA.bodyChipMult * adaptMul;
+        this.megaHitBody(raw, t.x, t.y, bx, MEGA.bodyBandY, TOWER_DEFS[t.kind].color);
+        rt.dmgByKind[t.kind] = (rt.dmgByKind[t.kind] ?? 0) + raw;
         t.cooldown = def.fireInterval / rateMult;
         return true;
       }
@@ -3112,10 +3187,12 @@ export class Game {
     if (wp.hp <= 0 && wp.state === 'open') this.destroyWeakPoint(wp);
   }
 
-  /** Apply a hit to the anchored body: boss armor (unless broken), heart-exposure vulnerability. */
+  /** Apply a hit to the anchored body: boss armor (unless broken), heart-exposure vulnerability,
+   *  and the stagger window's bonus (a toppled organism cannot hold its guard). */
   private megaHitBody(raw: number, sx: number, sy: number, tx: number, ty: number, color: string): void {
     const rt = this.mega!;
-    const vuln = this.time < rt.exposedUntil ? 1 + rt.exposedFrac : 1;
+    let vuln = this.time < rt.exposedUntil ? 1 + rt.exposedFrac : 1;
+    if (this.time < rt.staggeredUntil) vuln *= 1 + MEGA.staggerDamageAmp;
     const applied = damageAfter(raw, vuln, rt.armor);
     rt.hp -= applied;
     this.statDamageDealt += applied;
@@ -3176,6 +3253,21 @@ export class Game {
       case 'weakenPhase':
         rt.weakenNextPhase = true;
         break;
+    }
+    // STAGGER posture (§functional overhaul): every rupture rocks the organism; enough of them
+    // in one push TOPPLE it — rotation stunned, telegraph dropped (a cataclysm defused this way
+    // is the raid's clutch play), organ windows frozen, body wide open to bonus damage.
+    if (this.time >= rt.staggeredUntil) {
+      rt.stagger = Math.min(1, rt.stagger + MEGA.staggerPerWp);
+      if (rt.stagger >= 1) {
+        rt.stagger = 0;
+        rt.staggers++;
+        rt.staggeredUntil = this.time + MEGA.staggerDurSec;
+        rt.stunned = Math.max(rt.stunned, MEGA.staggerDurSec);
+        rt.telegraph = null; // whatever it was winding up dies with its footing
+        this.floats.push({ x: WIDTH / 2, y: MEGA.anchorY + 96, text: MEGA.staggerFloatText, color: '#ffd24d', life: 2.4 });
+        this.pushSfx('megaStagger');
+      }
     }
     // The payoff ceremony: rupture burst, roar, and the "what changed" callout (HUD reads the event).
     this.spawnParticles(wp.x, wp.y, PARTICLE.bossfall, megaBossDef(rt.defId)!.palette.glow);
@@ -6277,11 +6369,13 @@ export class Game {
     const effects: string[] = [];
     for (const a of rt.active) if (this.time < a.until) effects.push(a.kind.toUpperCase());
     if (phase.passive && this.time >= rt.passiveOffUntil) effects.push(`${phase.passive.kind.toUpperCase()}*`);
+    if (rt.adaptKind !== null && this.time < rt.adaptUntil) effects.push(`ADAPTED·${TOWER_DEFS[rt.adaptKind as TowerKind].name.toUpperCase()}`);
     return {
       defId: def.id,
       name: def.name,
       title: def.title,
       palette: def.palette,
+      motif: def.motif,
       bodyFrac: def.bodyFrac,
       anchorY: MEGA.anchorY,
       hp: Math.max(0, rt.hp),
@@ -6293,6 +6387,8 @@ export class Game {
         ? { kind: def.abilities[rt.telegraph.ability].kind, frac: 1 - rt.telegraph.t / rt.telegraph.total }
         : null,
       stunned: rt.stunned,
+      stagger: rt.stagger,
+      staggered: this.time < rt.staggeredUntil,
       exposed: this.time < rt.exposedUntil,
       deathT: rt.deathT,
       weakPoints: rt.weakPoints,
@@ -6504,6 +6600,8 @@ export class Game {
       phases: def.phases.length,
       telegraph: view.telegraph,
       stunned: rt.stunned > 0,
+      stagger: rt.stagger,
+      staggered: this.time < rt.staggeredUntil,
       exposed: this.time < rt.exposedUntil,
       effects: view.effects,
       weakPoints: rt.weakPoints

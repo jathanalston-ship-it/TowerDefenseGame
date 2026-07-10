@@ -21,7 +21,7 @@ const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageM
 const forwardSlots = [...towerSlots].sort((a, b) => a.y - b.y);
 
 describe('content + validators', () => {
-  it('both authored megas register clean; every weak point kind validates', () => {
+  it('every authored mega registers clean; every weak point kind validates', () => {
     expect(megaBossRegistry.size).toBeGreaterThanOrEqual(2);
     expect(megaBossRegistry.validate()).toEqual([]);
     expect(weakPointRegistry.validate()).toEqual([]);
@@ -162,6 +162,128 @@ describe('sim raid loop', () => {
     off();
     expect(phases).toContain(1);
     expect(g.getRenderState().megaBoss!.phase).toBe(1);
+  });
+});
+
+describe('§functional overhaul — stagger, cataclysm, gorge, adapt', () => {
+  // Precision tests drive the private seams directly (compile-time privacy only) — the same
+  // approach keeps them deterministic without re-deriving full raid timings per mechanic.
+  type Internals = {
+    mega: import('./megaboss').MegaRuntime;
+    openWeakPoint: (def: (typeof MEGA_BOSS_DEFS)[string], rt: import('./megaboss').MegaRuntime, i: number) => void;
+    destroyWeakPoint: (wp: import('./megaboss').MegaWeakPoint) => void;
+    castMegaAbility: (def: (typeof MEGA_BOSS_DEFS)[string], rt: import('./megaboss').MegaRuntime, ai: number) => void;
+  };
+  const guts = (g: Game): Internals => g as unknown as Internals;
+
+  it('three ruptures in one push TOPPLE the organism: stun, dropped telegraph, frozen windows, reset meter', () => {
+    const g = new Game(5, NO_META);
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
+    g.startWave();
+    const rt = guts(g).mega;
+    const def = MEGA_BOSS_DEFS.voraxis;
+    rt.telegraph = { ability: 0, t: 2, total: 2.2 }; // something is winding up when it topples
+    for (const spec of [0, 1, 3]) { // two eyes + the parasite sac — three ruptures back-to-back
+      guts(g).openWeakPoint(def, rt, spec);
+      const wp = rt.weakPoints.find((w) => w.spec === spec)!;
+      guts(g).destroyWeakPoint(wp);
+    }
+    expect(rt.staggers).toBe(1);
+    expect(rt.stagger).toBe(0); // the meter spent itself
+    expect(rt.telegraph).toBeNull(); // the windup died with its footing
+    expect(rt.stunned).toBeGreaterThanOrEqual(MEGA.staggerDurSec - 0.01);
+    expect(g.getSnapshot().megaBanner!.staggered).toBe(true);
+    // Open organ windows FREEZE while it is down (burst at leisure).
+    guts(g).openWeakPoint(def, rt, 4); // the heart (window 11)
+    const heart = rt.weakPoints.find((w) => w.spec === 4)!;
+    const w0 = heart.window;
+    for (let i = 0; i < 60; i++) g.advance(SIM_DT); // one second, still toppled
+    expect(heart.window).toBeCloseTo(w0, 5);
+    // …and the topple expires back into a standing fight.
+    for (let i = 0; i < 60 * 7; i++) g.advance(SIM_DT);
+    expect(g.getSnapshot().megaBanner!.staggered).toBe(false);
+    expect(heart.window).toBeLessThan(w0);
+  });
+
+  it('a resolved CATACLYSM strikes Hive integrity; an interrupt during its windup prevents it', () => {
+    const g = new Game(9, NO_META); // god OFF — integrity is the point
+    g.spawnMegaBoss({ defId: 'voraxis', tier: 1 }, 'campaign');
+    g.startWave();
+    const rt = guts(g).mega;
+    const def = MEGA_BOSS_DEFS.voraxis;
+    const cataIdx = def.abilities.findIndex((a) => a.kind === 'cataclysm');
+    const before = g.getSnapshot().integrity;
+    guts(g).castMegaAbility(def, rt, cataIdx);
+    expect(g.getSnapshot().integrity).toBe(before - def.abilities[cataIdx].magnitude!);
+    // The counterplay: an eye rupture during the windup cancels the cast entirely.
+    rt.telegraph = { ability: cataIdx, t: 3, total: def.abilities[cataIdx].telegraph };
+    guts(g).openWeakPoint(def, rt, 0);
+    guts(g).destroyWeakPoint(rt.weakPoints.find((w) => w.spec === 0)!);
+    expect(rt.telegraph).toBeNull();
+    expect(g.getSnapshot().integrity).toBe(before - def.abilities[cataIdx].magnitude!); // no second strike
+  });
+
+  it('GORGE devours the enemies nearest the maw for tier-scaled healing — and pays no bounty', () => {
+    const g = new Game(13, NO_META);
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'sarcophage', tier: 1 }, 'campaign');
+    g.startWave();
+    g.debugSpawn('runner', 5);
+    for (let i = 0; i < 12; i++) g.advance(SIM_DT); // let them materialize + step
+    const rt = guts(g).mega;
+    const def = MEGA_BOSS_DEFS.sarcophage;
+    const gorgeIdx = def.abilities.findIndex((a) => a.kind === 'gorge');
+    const a = def.abilities[gorgeIdx];
+    rt.hp = rt.maxHp * 0.5;
+    const biomassBefore = g.getSnapshot().biomass;
+    // Assert on the same tick as the cast — the live wave keeps spawning, so flag counts
+    // (not array length across advances) are the stable observation.
+    const deadBefore = g.getRenderState().enemies.filter((e) => !e.alive).length;
+    guts(g).castMegaAbility(def, rt, gorgeIdx);
+    const expectHeal = a.magnitude! * (0.7 + 0.3 * rt.tier) * a.count!;
+    expect(rt.hp).toBeCloseTo(rt.maxHp * 0.5 + expectHeal, 3);
+    expect(g.getRenderState().enemies.filter((e) => !e.alive).length).toBe(deadBefore + a.count!); // devoured, not culled yet
+    expect(g.getSnapshot().biomass).toBe(biomassBefore); // devoured ≠ killed: no bounty
+    // Starved: with nothing left to eat, the meal heals nothing.
+    for (const e of g.getRenderState().enemies) e.alive = false; // clear the field flag-wise
+    const hpBeforeStarved = rt.hp;
+    guts(g).castMegaAbility(def, rt, gorgeIdx);
+    expect(rt.hp).toBe(hpBeforeStarved);
+  });
+
+  it('ADAPT studies the top-damage tower kind and labels the answer on the HUD', () => {
+    const g = new Game(17, NO_META);
+    g.god = true;
+    g.spawnMegaBoss({ defId: 'myriad', tier: 1 }, 'campaign');
+    g.startWave();
+    const rt = guts(g).mega;
+    const def = MEGA_BOSS_DEFS.myriad;
+    const adaptIdx = def.abilities.findIndex((a) => a.kind === 'adapt');
+    // Nothing on the ledger yet: the lesson fizzles.
+    guts(g).castMegaAbility(def, rt, adaptIdx);
+    expect(rt.adaptKind).toBeNull();
+    rt.dmgByKind = { coil: 500, needle: 220 };
+    guts(g).castMegaAbility(def, rt, adaptIdx);
+    expect(rt.adaptKind).toBe('coil');
+    expect(rt.adaptMult).toBe(def.abilities[adaptIdx].magnitude);
+    expect(g.getRenderState().megaBoss!.effects.some((e) => e.startsWith('ADAPTED·'))).toBe(true);
+  });
+
+  it('the validator enforces the new verbs and the finale mandate', () => {
+    const s = MEGA_BOSS_DEFS.sarcophage;
+    expect(megaBossProblems({ ...s, abilities: s.abilities.map((a) => (a.kind === 'gorge' ? { ...a, count: 0 } : a)) }).length).toBeGreaterThan(0);
+    const m = MEGA_BOSS_DEFS.myriad;
+    expect(megaBossProblems({ ...m, abilities: m.abilities.map((a) => (a.kind === 'adapt' ? { ...a, magnitude: 1.2 } : a)) }).length).toBeGreaterThan(0);
+    const v = MEGA_BOSS_DEFS.voraxis;
+    expect(megaBossProblems({ ...v, abilities: v.abilities.map((a) => (a.kind === 'cataclysm' ? { ...a, telegraph: 1 } : a)) }).some((p) => p.includes('interruptible'))).toBe(true);
+    // Stripping the finale (and the final phase's reference to it) fails the mandate.
+    const noCata = {
+      ...v,
+      abilities: v.abilities.filter((a) => a.kind !== 'cataclysm'),
+      phases: v.phases.map((p) => ({ ...p, abilities: p.abilities.filter((ai) => ai < v.abilities.length - 1) })),
+    };
+    expect(megaBossProblems(noCata).some((p) => p.includes('cataclysm'))).toBe(true);
   });
 });
 

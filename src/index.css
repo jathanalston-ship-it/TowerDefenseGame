@@ -8330,6 +8330,20 @@ kbd {
 .mega-chip-stun { border-color: #ffd24d; color: #ffd24d; animation: mega-chip-pulse 0.5s ease-in-out infinite alternate; }
 .mega-chip-exposed { border-color: #6effa8; color: #6effa8; animation: mega-chip-pulse 0.4s ease-in-out infinite alternate; }
 @keyframes mega-chip-pulse { from { opacity: 0.7; } to { opacity: 1; } }
+/* Stagger posture (docs/MEGA-BOSS.md §stagger): the thin meter under the HP bar; a full bar
+   TOPPLES the organism and the banner itself shakes with it. */
+.mega-stagger { height: 4px; margin-top: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.mega-stagger-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8a6a2a, #ffd24d); transition: width 0.2s ease-out; /* bespoke */ }
+.mega-stagger-fill.is-full { background: #ffd24d; box-shadow: 0 0 10px #ffd24d; }
+.mega-banner.is-staggered { animation: mega-stagger-shake 0.22s linear infinite; }
+.mega-chip-staggered { border-color: #ffd24d; color: #0a0d14; background: #ffd24d; font-weight: 700; animation: mega-chip-pulse 0.3s ease-in-out infinite alternate; }
+.mega-chip-cast.is-cataclysm { border-color: #ff5d73; color: #ff5d73; font-weight: 700; animation: mega-chip-pulse 0.25s ease-in-out infinite alternate; }
+@keyframes mega-stagger-shake {
+  0% { transform: translateX(-50%); }
+  25% { transform: translateX(calc(-50% - 1.5px)); }
+  75% { transform: translateX(calc(-50% + 1.5px)); }
+  100% { transform: translateX(-50%); }
+}
 .mega-wps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .mega-wp { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: var(--mega, #ff5d73); letter-spacing: 0.04em; }
 .mega-wp-hp { display: inline-block; width: 40px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
