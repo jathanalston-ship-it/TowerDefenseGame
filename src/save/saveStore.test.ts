@@ -140,6 +140,24 @@ describe('save export / import', () => {
       expect(r.data.geneLoadout).not.toContain('__junk__'); // unknown card dropped
     }
   });
+
+  it('sanitizes the expedition mastery ledger (v27: known ids, whole counts; pre-v27 deep-fills)', () => {
+    const bad = {
+      ...defaultSave(),
+      expeditions: { active: [], mastery: { exp_patrol: 3.9, __junk__: 5, exp_relic: -2, exp_hunt: 'nope' } },
+    } as unknown as Record<string, unknown>;
+    const r = parseImport(JSON.stringify(bad));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.expeditions.mastery).toEqual({ exp_patrol: 3 }); // floored; junk/negative/NaN dropped
+    }
+    // A pre-v27 save (no mastery field) deep-fills an empty ledger.
+    const legacy = { ...defaultSave() } as Record<string, unknown>;
+    legacy.expeditions = { active: [] };
+    const l = parseImport(JSON.stringify(legacy));
+    expect(l.ok).toBe(true);
+    if (l.ok) expect(l.data.expeditions.mastery).toEqual({});
+  });
 });
 
 describe('backups & corruption recovery', () => {

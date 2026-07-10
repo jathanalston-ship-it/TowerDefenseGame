@@ -255,7 +255,7 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/INFESTATION.md'],
   },
   {
-    id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) and return star-scaled bundles of cores/essence/materials. HeroLab panel with countdowns, claims and the send flow.',
+    id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). HeroLab panel: offer matrix with projected multipliers, progress bars, outcome claim ceremony.',
     files: ['src/core/expeditions.ts'],
     dependsOn: ['heroes', 'meta-store'], powerScore: null, save: ['expeditions'],
     tutorial: [], help: [], hud: [], ui: ['HeroLab (Expeditions panel)'], collection: null, achievements: [],

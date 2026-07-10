@@ -8556,15 +8556,33 @@ kbd {
   background: color-mix(in srgb, var(--caustic) 8%, transparent);
   animation: ui-rise var(--dur-3) var(--ease-out) both;
 }
+.exp-claimed.is-windfall {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+}
+.exp-claimed.is-setback {
+  border-color: color-mix(in srgb, var(--bad) 45%, var(--line));
+  background: color-mix(in srgb, var(--bad) 8%, transparent);
+}
 .exp-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; }
 .exp-hero { font-weight: 800; white-space: nowrap; }
 .exp-mission { color: var(--muted); }
-.exp-eta { margin-left: auto; font-size: 12px; color: var(--muted); }
+.exp-eta { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+/* Live mission progress — a thin fill bar beside the countdown. */
+.exp-prog { display: inline-block; width: 52px; height: 4px; border-radius: 999px; background: var(--panel); overflow: hidden; }
+.exp-prog-fill { display: block; height: 100%; border-radius: 999px; background: color-mix(in srgb, var(--caustic) 70%, var(--text)); }
 .exp-claim { margin-left: auto; padding: 6px 12px; min-height: 24px; font-size: 12px; }
 .exp-start { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
 .exp-offer { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-2); padding: 10px 12px; }
-.exp-offer-h { display: flex; align-items: baseline; justify-content: space-between; font-size: 13px; }
-.exp-hours { font-size: 11px; color: var(--muted); }
+.exp-offer-h { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+.exp-hours { margin-left: auto; font-size: 11px; color: var(--muted); }
+/* Risk tier chip — Safe (muted) / Risky (gold) / Perilous (bad). */
+.exp-risk { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.exp-risk.r1 { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+.exp-risk.r2 { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+.exp-meta-line { display: flex; align-items: baseline; gap: 10px; font-size: 11px; margin-bottom: 4px; }
+.exp-aff { color: var(--caustic); font-weight: 700; }
+.exp-mastery { color: var(--muted); }
 .exp-blurb { margin: 4px 0 6px; font-size: 11px; color: var(--muted); }
 .exp-pay { font-size: 11px; color: var(--gold); margin-bottom: 8px; }
 .exp-send { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -8577,6 +8595,9 @@ kbd {
   border: 1px solid color-mix(in srgb, var(--hc, var(--line)) 45%, var(--line));
   border-radius: var(--r-md);
 }
+.exp-send-btn.is-affine { border-color: color-mix(in srgb, var(--hc, var(--line)) 80%, var(--line)); box-shadow: 0 0 8px color-mix(in srgb, var(--hc, transparent) 25%, transparent); }
+.exp-mult { font-style: normal; font-size: 10px; color: var(--muted); }
+.exp-send-btn.is-affine .exp-mult { color: var(--hc, var(--muted)); }
 .exp-empty { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
 /* ── Infestation board (InfestationBoard.tsx, docs/INFESTATION.md) ── */

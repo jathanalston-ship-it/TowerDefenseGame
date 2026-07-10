@@ -78,8 +78,9 @@ export interface SaveData {
   //    account (null = none); equippedTrophy: the ONE mounted trophy organ (null = none). ──
   nemesis: { defId: string; slain: number } | null;
   equippedTrophy: string | null;
-  // ── Hero Expeditions (v26, docs/EXPEDITIONS.md) — active away-missions (absolute endsAt ms). ──
-  expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[] };
+  // ── Hero Expeditions (v26, docs/EXPEDITIONS.md) — active away-missions (absolute endsAt ms)
+  //    + per-mission mastery ledger (v27: completions per defId → permanent reward bonus). ──
+  expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[]; mastery: Record<string, number> };
   // ── Infestation map (v26, docs/INFESTATION.md) — sector conquest {level, updatedAt} + target. ──
   infestation: { target: string | null; sectors: Record<string, { level: number; updatedAt: number }> };
   totalRuns: number;
@@ -257,8 +258,10 @@ export interface TutorialSave {
 // (docs/RESEARCH.md). v25→v26: Phenotypes (owned + equipped cosmetics — docs/COSMETICS.md) +
 // Mulligans (per-tower organism: mulligans + mulliganDex — docs/MULLIGANS.md). The short-lived
 // `geneOverflow` wallet was unified into `geneEssence` (its balance folds in on load).
+// v26→v27: Expedition overhaul — per-mission mastery ledger (expeditions.mastery); the
+// roster/risk/affinity depth is data-side and needs no save shape.
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 26;
+export const CURRENT_VERSION = 27;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -467,7 +470,7 @@ export function defaultSave(): SaveData {
     contracts: { completed: [] },
     nemesis: null,
     equippedTrophy: null,
-    expeditions: { active: [] },
+    expeditions: { active: [], mastery: {} },
     infestation: { target: null, sectors: {} },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
@@ -660,8 +663,18 @@ function withDefaults(data: SaveData): SaveData {
       ? (data as { equippedTrophy: string }).equippedTrophy
       : null,
     expeditions: ((): SaveData['expeditions'] => {
-      const raw = (data as { expeditions?: { active?: unknown } }).expeditions?.active;
-      if (!Array.isArray(raw)) return { active: [] };
+      const rawExp = (data as { expeditions?: { active?: unknown; mastery?: unknown } }).expeditions;
+      const raw = rawExp?.active;
+      // Mastery ledger (v27): keep only known mission ids, whole non-negative counts.
+      const mastery: Record<string, number> = {};
+      if (rawExp?.mastery && typeof rawExp.mastery === 'object') {
+        for (const [k, v] of Object.entries(rawExp.mastery as Record<string, unknown>)) {
+          if (expeditionById(k) === undefined) continue;
+          const n = Math.max(0, Math.min(100_000, Math.floor(Number(v) || 0)));
+          if (n > 0) mastery[k] = n;
+        }
+      }
+      if (!Array.isArray(raw)) return { active: [], mastery };
       const seen = new Set<string>();
       const active = raw
         .filter((e): e is { defId: string; hero: HeroKind; endsAt: number } => {
@@ -672,7 +685,7 @@ function withDefaults(data: SaveData): SaveData {
         })
         .filter((e) => { if (seen.has(e.hero)) return false; seen.add(e.hero); return true; })
         .slice(0, EXPEDITION_SLOTS);
-      return { active };
+      return { active, mastery };
     })(),
     infestation: ((): SaveData['infestation'] => {
       const raw = (data as { infestation?: { target?: unknown; sectors?: unknown } }).infestation;

@@ -11,6 +11,7 @@ import { HERO_DEFS, HERO_ORDER } from '../core/config';
 import { heroIdentity } from '../core/heroIdentity';
 import type { HeroKind } from '../core/types';
 import { masteryRank } from '../core/mastery';
+import { RISK_TIERS } from '../core/expeditions';
 import { PowerPreview } from './components/PowerScore';
 import { HeroPortrait } from './components/HeroPortrait';
 import { AdaptationTree } from './components/AdaptationTree';
@@ -412,12 +413,14 @@ export function HeroLab(): JSX.Element {
   );
 }
 
-/** Away-missions for BENCHED heroes: live countdowns, claims, and a start flow.
- *  Ticks once a minute — expedition time is hours, not frames. */
+/** Away-missions for BENCHED heroes: live countdowns + progress, an offer board with risk
+ *  tiers / class affinity / mastery, projected multipliers per forager, and an outcome
+ *  ceremony on claim (windfall / setback / rare find). Ticks once a minute — expedition
+ *  time is hours, not frames. */
 function ExpeditionsPanel(): JSX.Element {
   const save = meta.use();
   const [, tick] = useState(0);
-  const [claimedNote, setClaimedNote] = useState<string | null>(null);
+  const [claimedNote, setClaimedNote] = useState<{ kind: string; text: string } | null>(null);
   useEffect(() => {
     const id = window.setInterval(() => tick((n) => n + 1), 60_000);
     return () => window.clearInterval(id);
@@ -432,46 +435,64 @@ function ExpeditionsPanel(): JSX.Element {
     const r = meta.claimExpedition(hero);
     if (!r) return;
     audio.cue('chest');
-    setClaimedNote(`${HERO_DEFS[hero].name} returns — +${r.cores} Cores · +${r.essence} Essence · ⊕${r.mats.mutagen} ◳${r.mats.scrap} ✷${r.mats.catalyst}`);
-    window.setTimeout(() => setClaimedNote(null), 4000);
+    const lead = r.outcome === 'windfall' ? '⚡ WINDFALL — ' : r.outcome === 'setback' ? '⚠ setback — ' : '';
+    const bundle = `+${r.reward.cores} Cores · +${r.reward.essence} Essence · ⊕${r.reward.mats.mutagen} ◳${r.reward.mats.scrap} ✷${r.reward.mats.catalyst}`;
+    const find = r.find ? ` · ✦ ${r.find.name}!` : '';
+    setClaimedNote({ kind: r.outcome, text: `${HERO_DEFS[hero].name} returns — ${lead}${bundle}${find}` });
+    window.setTimeout(() => setClaimedNote(null), 6000);
   };
   return (
     <div className="panel exp-panel">
       <div className="panel-title">Hero Expeditions</div>
       <div className="panel-sub">
         Benched heroes forage while you fight — {view.slotsFree} of {view.active.length + view.slotsFree} away-slots free.
-        Rewards scale with the hero's stars.
+        Matched-class foragers earn +25%; every completion builds mission mastery. Risky roads can windfall — or bite.
       </div>
-      {claimedNote && <div className="exp-claimed" role="status">⇠ {claimedNote}</div>}
+      {claimedNote && <div className={`exp-claimed is-${claimedNote.kind}`} role="status">⇠ {claimedNote.text}</div>}
       {view.active.map((e) => {
         const def = view.defs.find((d) => d.id === e.defId)!;
         return (
           <div className="exp-row" key={e.hero}>
             <span className="exp-hero" style={{ color: HERO_DEFS[e.hero].color }}>{HERO_DEFS[e.hero].name}</span>
             <span className="exp-mission">{def.name}</span>
+            <span className={`exp-risk r${def.risk}`}>{RISK_TIERS[def.risk].name}</span>
             {e.claimable
               ? <button className="primary exp-claim" onClick={() => claim(e.hero)}>⇠ Claim spoils</button>
-              : <span className="exp-eta">returns in {fmt(e.remainingMs)}</span>}
+              : (
+                <span className="exp-eta">
+                  <i className="exp-prog" aria-hidden><i className="exp-prog-fill" style={{ width: `${Math.round(e.progress * 100)}%` }} /></i>
+                  returns in {fmt(e.remainingMs)}
+                </span>
+              )}
           </div>
         );
       })}
       {view.slotsFree > 0 && view.benched.length > 0 && (
         <div className="exp-start">
-          {view.defs.map((d) => (
+          {view.offers.map(({ def: d, masteryRuns, masteryBonus: mb, picks }) => (
             <div className="exp-offer" key={d.id}>
               <div className="exp-offer-h">
                 <b>{d.name}</b>
+                <span className={`exp-risk r${d.risk}`}>{RISK_TIERS[d.risk].name}</span>
                 <span className="exp-hours">{d.hours}h</span>
               </div>
               <p className="exp-blurb">{d.blurb}</p>
+              <div className="exp-meta-line">
+                <span className="exp-aff" title={`${d.affinity}-class heroes forage +25% here`}>◈ {d.affinity}</span>
+                <span className="exp-mastery" title="Each completion adds +2% (caps at +20%)">
+                  Mastery {Math.min(masteryRuns, 10)}/10{mb > 0 ? ` · +${Math.round(mb * 100)}%` : ''}
+                </span>
+              </div>
               <div className="exp-pay">
                 +{d.reward.cores} Cores · +{d.reward.essence} Essence · ⊕{d.reward.mats.mutagen} ◳{d.reward.mats.scrap}{d.reward.mats.catalyst > 0 ? ` ✷${d.reward.mats.catalyst}` : ''}
               </div>
               <div className="exp-send">
-                {view.benched.map((h) => (
-                  <button key={h} className="exp-send-btn" style={{ ['--hc' as string]: HERO_DEFS[h].color }}
-                    onClick={() => { if (meta.startExpedition(d.id, h)) audio.cue('ui'); }}>
-                    ⇢ {HERO_DEFS[h].name}
+                {picks.map((p) => (
+                  <button key={p.hero} className={`exp-send-btn${p.affinity ? ' is-affine' : ''}`}
+                    style={{ ['--hc' as string]: HERO_DEFS[p.hero].color }}
+                    title={`${HERO_DEFS[p.hero].name}${p.stars > 0 ? ` ★${p.stars}` : ''}${p.affinity ? ` — ${d.affinity} affinity` : ''} · ×${p.mult.toFixed(2)} rewards`}
+                    onClick={() => { if (meta.startExpedition(d.id, p.hero)) audio.cue('ui'); }}>
+                    ⇢ {HERO_DEFS[p.hero].name}{p.affinity ? ' ◈' : ''} <i className="exp-mult">×{p.mult.toFixed(2)}</i>
                   </button>
                 ))}
               </div>

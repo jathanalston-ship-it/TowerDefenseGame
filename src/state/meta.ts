@@ -85,8 +85,8 @@ import { cosmeticById, cultivatePool, nemesisPool, CULTIVATE_COST } from '../cor
 import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
-import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, scaleReward } from '../core/expeditions';
-import type { ExpeditionDef, ExpeditionReward } from '../core/expeditions';
+import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
+import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
 import { ALL_SECTORS, REGIONS, effectiveLevel, feedInfestation, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays } from '../core/infestation';
 import type { SectorTier } from '../core/infestation';
 import type { TrophyDef } from '../core/trophies';
@@ -2104,12 +2104,20 @@ export const meta = {
   },
 
   // ── Hero Expeditions (docs/EXPEDITIONS.md) — the benched-hero idle lane. ──
-  /** The full board: defs + live missions (+remaining ms) + whether each can start. */
+  /** The full board: live missions (+remaining ms/progress) + the offer matrix — every
+   *  mission × every benched hero with its projected multiplier (stars × affinity ×
+   *  mastery; the risk outcome stays hidden until claim). */
   expeditionsView(now = Date.now()): {
     defs: ExpeditionDef[];
-    active: { defId: string; hero: HeroKind; endsAt: number; remainingMs: number; claimable: boolean }[];
+    active: { defId: string; hero: HeroKind; endsAt: number; remainingMs: number; claimable: boolean; progress: number }[];
     benched: HeroKind[];
     slotsFree: number;
+    offers: {
+      def: ExpeditionDef;
+      masteryRuns: number;
+      masteryBonus: number;
+      picks: { hero: HeroKind; stars: number; affinity: boolean; mult: number }[];
+    }[];
   } {
     const s = store.get();
     const fielded = new Set(this.fieldedLoadout());
@@ -2117,13 +2125,30 @@ export const meta = {
     const benched = (s.heroUnlocked ?? []).filter((h) => !fielded.has(h) && !away.has(h));
     return {
       defs: EXPEDITION_DEFS,
-      active: s.expeditions.active.map((e) => ({
-        ...e,
-        remainingMs: Math.max(0, e.endsAt - now),
-        claimable: now >= e.endsAt,
-      })),
+      active: s.expeditions.active.map((e) => {
+        const hours = expeditionById(e.defId)?.hours ?? 1;
+        return {
+          ...e,
+          remainingMs: Math.max(0, e.endsAt - now),
+          claimable: now >= e.endsAt,
+          progress: Math.max(0, Math.min(1, 1 - (e.endsAt - now) / (hours * 3_600_000))),
+        };
+      }),
       benched,
       slotsFree: EXPEDITION_SLOTS - s.expeditions.active.length,
+      offers: EXPEDITION_DEFS.map((def) => {
+        const runs = s.expeditions.mastery[def.id] ?? 0;
+        return {
+          def,
+          masteryRuns: runs,
+          masteryBonus: masteryBonus(runs),
+          picks: benched.map((hero) => {
+            const affinity = HERO_DEFS[hero].combatClass === def.affinity;
+            const stars = s.heroStars[hero] ?? 0;
+            return { hero, stars, affinity, mult: expeditionMult(stars, affinity, runs) };
+          }),
+        };
+      }),
     };
   },
   /** Send a BENCHED hero out. Refuses fielded/away heroes, full slots, unknown defs. */
@@ -2137,19 +2162,29 @@ export const meta = {
     if (s.expeditions.active.some((e) => e.hero === hero)) return false; // already away
     persist({
       ...s,
-      expeditions: { active: [...s.expeditions.active, { defId, hero, endsAt: now + def.hours * 3_600_000 }] },
+      expeditions: { ...s.expeditions, active: [...s.expeditions.active, { defId, hero, endsAt: now + def.hours * 3_600_000 }] },
       timeline: pushTimeline(s.timeline, '⇢', `Expedition — ${HERO_DEFS[hero].name} departs (${def.name})`),
     });
     return true;
   },
-  /** Claim a finished mission: pays the star-scaled bundle, frees the hero. Null before time. */
-  claimExpedition(hero: HeroKind, now = Date.now()): ExpeditionReward | null {
+  /** Claim a finished mission: rolls the risk outcome + rare find (both deterministic from
+   *  the mission's identity), pays the multiplied bundle, bumps the mission's mastery, and
+   *  frees the hero. Null before time. `reward` is the TOTAL paid (find included). */
+  claimExpedition(hero: HeroKind, now = Date.now()): { reward: ExpeditionReward; outcome: ExpeditionOutcome; find: RareFind | null } | null {
     const s = store.get();
     const e = s.expeditions.active.find((x) => x.hero === hero);
     if (!e || now < e.endsAt) return null;
     const def = expeditionById(e.defId);
     if (!def) return null;
-    const reward = scaleReward(def.reward, s.heroStars[hero] ?? 0);
+    const affinity = HERO_DEFS[hero].combatClass === def.affinity;
+    const runs = s.expeditions.mastery[def.id] ?? 0;
+    const outcome = expeditionOutcome(e);
+    const find = rollRareFind(e);
+    const base = scaleReward(def.reward, expeditionMult(s.heroStars[hero] ?? 0, affinity, runs) * outcome.mult);
+    const reward = find ? sumRewards(base, find.reward) : base;
+    const flavor = outcome.kind === 'windfall' ? 'returns heavy with spoils'
+      : outcome.kind === 'setback' ? 'limps home with a lean haul'
+        : 'returns bearing spoils';
     persist({
       ...s,
       shards: s.shards + reward.cores,
@@ -2160,10 +2195,13 @@ export const meta = {
         scrap: s.mats.scrap + reward.mats.scrap,
         catalyst: s.mats.catalyst + reward.mats.catalyst,
       },
-      expeditions: { active: s.expeditions.active.filter((x) => x.hero !== hero) },
-      timeline: pushTimeline(s.timeline, '⇠', `Expedition — ${HERO_DEFS[hero].name} returns bearing spoils (${def.name})`),
+      expeditions: {
+        active: s.expeditions.active.filter((x) => x.hero !== hero),
+        mastery: { ...s.expeditions.mastery, [def.id]: runs + 1 },
+      },
+      timeline: pushTimeline(s.timeline, '⇠', `Expedition — ${HERO_DEFS[hero].name} ${flavor} (${def.name})${find ? ` · ${find.name}!` : ''}`),
     });
-    return reward;
+    return { reward, outcome: outcome.kind, find };
   },
 
   // ── Trophy Rack (docs/NEMESIS.md §trophies) — ownership derives from kill ledgers. ──
