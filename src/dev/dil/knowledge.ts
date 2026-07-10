@@ -97,6 +97,7 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:cosmetics', kind: 'modifies', to: 'system:audio', note: 'Phenotype firing variants repitch tower fire cues' },
 
   { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
+  { from: 'system:prestige', kind: 'references', to: 'system:cutscenes', note: 'the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it' },
   { from: 'system:cutscenes', kind: 'provides', to: 'concept:progression-gates', note: 'memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive' },
 
   // ── Potential conflicts (landmines discovered in development — check these before editing) ──

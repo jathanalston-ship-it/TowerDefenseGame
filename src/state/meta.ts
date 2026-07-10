@@ -43,7 +43,7 @@ import { addProgress } from '../core/lootQueue';
 import type { LootQueueState } from '../core/lootQueue';
 import { resolveStarKit } from '../core/stars';
 import { masteryPerksUpTo, masteryRewardsBetween } from '../core/mastery';
-import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq } from '../core/prestige';
+import { PRESTIGE, canMolt, cellsForCycle, prestigeMult, prestigeStageReq, shardsForCells } from '../core/prestige';
 import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } from '../core/ascendant';
 import { accumulateStats } from './stats';
 import { DEVICE_PREF_KEYS } from './prefs';
@@ -1059,6 +1059,13 @@ export const meta = {
     campaignReq: number; // Campaign stage required to unlock the NEXT Molt
     campaignMet: boolean; // the campaign gate is satisfied
     campaignProgress: number; // 0..1 toward the campaign requirement
+    // ── Decision support (docs/PROGRESSION-REDESIGN.md §molt-chamber) ──
+    multAfter: number; // the global multiplier a Molt RIGHT NOW would leave you at
+    nextCellNeed: number; // cycle Genome Cores at which the next raw cell mints
+    nextCellProgress: number; // 0..1 between the current raw cell and the next
+    mintProgress: number; // 0..1 toward the FIRST offerable mint (minCells) — the pre-ready bar
+    spentCells: number; // lifetime cells invested into the Ascendant Tree
+    upgradeLevels: number; // Genome-upgrade levels a Molt resets (the manifest's number)
   } {
     const save = store.get();
     const s = save.prestige;
@@ -1066,19 +1073,34 @@ export const meta = {
     const req = prestigeStageReq(s.molts);
     const campaignMet = stage >= req;
     const shardsReady = canMolt(s.cycleShards);
+    const gain = moltGain(save); // includes the Ascendant Resonance compounding
+    const rawCells = cellsForCycle(s.cycleShards);
+    const curFloor = shardsForCells(rawCells);
+    const nextCellNeed = shardsForCells(rawCells + 1);
+    const spentCells = ASCENDANT_NODES.reduce((sum, def) => {
+      let acc = 0;
+      for (let l = 0; l < (s.nodes[def.id] ?? 0); l++) acc += ascendantCost(def, l);
+      return sum + acc;
+    }, 0);
     return {
       cells: s.cells,
       lifetimeCells: s.lifetimeCells,
       molts: s.molts,
       cycleShards: s.cycleShards,
       mult: prestigeMult(s.lifetimeCells),
-      gain: moltGain(save), // includes the Ascendant Resonance compounding
+      gain,
       canMolt: shardsReady && campaignMet, // Prestige needs the mint AND the campaign gate
       shardsReady,
       campaignStage: stage,
       campaignReq: req,
       campaignMet,
       campaignProgress: req > 0 ? Math.min(1, stage / req) : 1,
+      multAfter: prestigeMult(s.lifetimeCells + gain),
+      nextCellNeed,
+      nextCellProgress: Math.max(0, Math.min(1, (s.cycleShards - curFloor) / Math.max(1, nextCellNeed - curFloor))),
+      mintProgress: Math.max(0, Math.min(1, s.cycleShards / Math.max(1, shardsForCells(PRESTIGE.molt.minCells)))),
+      spentCells,
+      upgradeLevels: Object.values(save.upgrades).reduce((a, v) => a + (v ?? 0), 0),
     };
   },
 

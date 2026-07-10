@@ -106,6 +106,21 @@ largely global multipliers. The *act* (MOLT) is 🟩; the *tree* is 🟨 (mostly
 - The rule: **a new prestige layer is only worth adding when it introduces a decision the
   game didn't have.** Never a sixth multiplier.
 
+### §molt-chamber — the shipped prestige surface (2026-07 overhaul)
+
+`src/ui/PrestigePanel.tsx` is **the Molt Chamber**: a live canvas chamber (the cutscene
+library's `molt` tableau, rethemed via `drawCutsceneFrame` — reuse, never fork) fronting the
+decision — the **×now → ×after** multiplier move, the mint headline, a progress bar to the
+NEXT cell (`prestigeView.nextCellNeed/nextCellProgress`, `mintProgress` pre-ready), the
+campaign gate, and an explicit **SHEDS / KEEPS manifest** with live counts
+(`upgradeLevels`, banked Cores). The browser `confirm()` is gone: an in-app Popup confirms,
+then the Molt plays a fullscreen **ceremony** (shed → cell count-up on `cin_heart` ticks →
+seal with the multiplier move, auto-dismissing). The Ascendant Tree renders as three
+stat-derived **wings** — Dominion (combat) / Economy Engine / Income Axes — each node a card
+with level pips and a "now → next" preview; new nodes auto-join their wing by stat
+(`WING_OF`). View-model decision fields are additive on `meta.prestigeView()` and pinned by
+`src/state/prestigeView.test.ts`; core math (`prestige.ts`/`ascendant.ts`) is untouched.
+
 ---
 
 ## 6. Campaign unlocks → **a branching corruption path** 🟨→🟩

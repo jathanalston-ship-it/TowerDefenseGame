@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 650 nodes · 1080 edges, built from the live
+> **The project's brain** (docs/DIL.md). 651 nodes · 1082 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -513,7 +513,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…163 more (query: `npm run dil -- node system:engine`)_
+  - _…164 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -997,6 +997,7 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/ui/PrestigePanel.tsx_
   - dependsOn → `system:evolution-hq`
   - provides → `concept:power-score` — the P bucket (log fold of Cells + tree)
   - consumes → `system:meta-store` — owns save field 'prestige'
+  - references → `system:cutscenes` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
   - extends → `system:meta-store` — Ascendant nodes multiply the permanent buckets
   - requiredBy ← `system:evolution-hq`
   - requiredBy ← `system:profile`
@@ -1386,6 +1387,7 @@ _at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.
   - documentedBy ← `doc:CUTSCENES.md`
   - testedBy ← `test:src/core/cutscenes.test.ts`
   - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
+  - referencedBy ← `system:prestige` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
 
 ### `system:biomes` — Biomes
 
@@ -2553,7 +2555,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (203)
+## Tests (204)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2743,6 +2745,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/powerIntegration.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumSafeguards.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/prestigeView.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/profile.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/state/progression.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/progressionLoop.test.ts` — automated validation _(tests `system:hub-shell`)_

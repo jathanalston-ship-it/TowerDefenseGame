@@ -40,7 +40,7 @@ export function MusicDebug(): JSX.Element | null {
     <div style={row} key={label}>
       <span style={lbl}>{label}</span>
       <input
-        type="range" min={0} max={1} step={0.01} value={v} style={{ flex: 1, minWidth: 120 }}
+        type="range" min={0} max={1} step={0.01} value={v} style={{ flex: 1, minWidth: 120, minHeight: 24 }}
         onChange={(e) => { const n = Number(e.target.value); set(n); apply(n); }}
         aria-label={label}
       />
@@ -95,7 +95,7 @@ export function MusicDebug(): JSX.Element | null {
           value={bossName}
           onChange={(e) => setBossName(e.target.value)}
           placeholder="boss name / id"
-          style={{ flex: 1, minWidth: 120 }}
+          style={{ flex: 1, minWidth: 120, minHeight: 24 }}
           aria-label="Boss name for theme preview"
         />
         <code style={{ fontSize: 11 }}>→ {assigned.name}</code>

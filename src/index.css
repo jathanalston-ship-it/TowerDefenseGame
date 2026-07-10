@@ -2722,18 +2722,95 @@ kbd {
 .molt-gate-hint { font-size: 12px; color: var(--muted); }
 .molt-gate-hint b { color: var(--viral); }
 
-.ascendant-tree {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.asc-node-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+/* ── THE MOLT CHAMBER (docs/PROGRESSION-REDESIGN.md §molt-chamber) — prestige as a place ── */
+.molt-hq { display: flex; flex-direction: column; gap: 14px; }
+
+.molt-chamber { position: relative; overflow: hidden; min-height: 210px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--viral) 35%, var(--line-strong)); background: #0a0612; }
+.molt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.molt-chamber-grade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(6,4,10,0.55), transparent 34%, transparent 62%, rgba(6,4,10,0.75)); }
+.molt-chamber-head { position: absolute; top: 10px; left: 14px; right: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.molt-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.24em; color: var(--viral); text-shadow: 0 0 14px color-mix(in srgb, var(--viral) 60%, transparent); }
+.molt-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.molt-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: var(--text); border: 1px solid color-mix(in srgb, var(--viral) 35%, var(--line)); background: rgba(6,4,10,0.6); }
+.molt-chamber-mult { position: absolute; left: 14px; bottom: 12px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.molt-mult-now { font-size: 34px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(0,0,0,0.8); }
+.molt-mult-after { font-size: 34px; font-weight: 800; color: var(--viral); font-variant-numeric: tabular-nums; text-shadow: 0 0 22px color-mix(in srgb, var(--viral) 70%, transparent); }
+.molt-arrow { color: var(--muted); }
+.molt-mult-k { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+.molt-decision { display: flex; flex-direction: column; gap: 10px; }
+.molt-mint { padding: 12px 14px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--viral) 30%, var(--line)); background: var(--panel-2); display: flex; flex-direction: column; gap: 8px; }
+.molt-mint-head { display: flex; align-items: baseline; gap: 10px; }
+.molt-mint-gain { display: inline-flex; align-items: center; gap: 6px; font-size: 26px; font-weight: 800; color: var(--viral); font-variant-numeric: tabular-nums; }
+.molt-mint-k { font-size: 12px; color: var(--muted); }
+.molt-mint-cycle { font-size: 12px; color: var(--muted); }
+.molt-mint-cycle b { color: var(--text); font-variant-numeric: tabular-nums; }
+.molt-next { display: flex; flex-direction: column; gap: 5px; }
+.molt-next-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.molt-next-hint { font-size: 11px; color: var(--muted); }
+
+.molt-manifest { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); gap: 10px; }
+.molt-mf { padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--line); background: rgba(0,0,0,0.2); }
+.molt-mf-h { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; margin-bottom: 6px; }
+.molt-mf-reset .molt-mf-h { color: var(--danger); }
+.molt-mf-keep .molt-mf-h { color: var(--gold); }
+.molt-mf ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
+.molt-mf li b { color: var(--text); font-variant-numeric: tabular-nums; }
+.molt-mf-keep li:last-child { color: var(--viral); font-weight: 700; }
+.molt-cta { font-size: 16px; padding: 12px 22px; }
+
+/* The Ascendant Tree — three themed wings of permanent levers */
+.asc-tree { display: flex; flex-direction: column; gap: 12px; }
+.asc-tree-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.asc-tree-title { font-size: 13px; font-weight: 900; letter-spacing: 0.16em; color: var(--viral); }
+.asc-tree-bal { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.asc-wing { --wing: var(--viral); border: 1px solid color-mix(in srgb, var(--wing) 22%, var(--line)); border-radius: var(--r-md); padding: 10px 12px; background: rgba(0,0,0,0.16); display: flex; flex-direction: column; gap: 9px; }
+.asc-wing.is-dominion { --wing: var(--danger); }
+.asc-wing.is-economy { --wing: var(--gold); }
+.asc-wing.is-axes { --wing: var(--kinetic); }
+.asc-wing-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.asc-wing-t { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: color-mix(in srgb, var(--wing) 80%, var(--text)); }
+.asc-wing-t i { font-style: normal; }
+.asc-wing-b { font-size: 11px; color: var(--muted); }
+.asc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 8px; }
+.asc-node { display: flex; flex-direction: column; gap: 5px; padding: 9px 11px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--panel); transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+.asc-node.is-afford { border-color: color-mix(in srgb, var(--wing) 45%, var(--line)); box-shadow: 0 0 16px -8px var(--wing); }
+.asc-node.is-maxed { opacity: 0.82; border-style: dashed; }
+.asc-node-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.asc-node-name { font-size: 13px; font-weight: 800; color: color-mix(in srgb, var(--wing) 70%, var(--text)); }
+.asc-pips { display: inline-flex; gap: 2px; }
+.asc-pips i { width: 6px; height: 6px; border-radius: 2px; background: rgba(255,255,255,0.1); }
+.asc-pips i.on { background: var(--wing); box-shadow: 0 0 5px color-mix(in srgb, var(--wing) 70%, transparent); }
+.asc-node-desc { font-size: 11px; color: var(--muted); min-height: 26px; }
+.asc-node-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.asc-node-now { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.asc-node-now b { color: color-mix(in srgb, var(--wing) 75%, var(--text)); }
+.asc-buy { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.asc-buy.is-afford { border-color: color-mix(in srgb, var(--wing) 55%, var(--line)); color: color-mix(in srgb, var(--wing) 80%, var(--text)); background: color-mix(in srgb, var(--wing) 12%, var(--panel-2)); }
+
+/* The confirm — an in-app promise, not a browser dialog */
+.molt-confirm-veil { position: fixed; inset: 0; z-index: 940; display: grid; place-items: center; padding: 20px; background: rgba(4, 6, 12, 0.7); backdrop-filter: blur(3px); }
+.molt-confirm { max-width: 440px; width: 100%; padding: 20px 22px; border-radius: var(--r-lg); border: 1px solid color-mix(in srgb, var(--viral) 45%, var(--line)); background: var(--panel); box-shadow: 0 0 44px -12px var(--viral); display: flex; flex-direction: column; gap: 10px; text-align: center; animation: ui-pop var(--dur-3) var(--ease-out) both; }
+.molt-confirm-line { font-size: 14px; color: var(--text); }
+.molt-confirm-line b { color: var(--viral); }
+.molt-confirm-cost { font-size: 12px; color: var(--muted); }
+.molt-confirm-cost b { color: var(--text); }
+.molt-confirm-row { display: flex; gap: 10px; justify-content: center; margin-top: 4px; }
+.molt-cancel { padding: 8px 18px; border-radius: 999px; }
+
+/* The MOLT CEREMONY — shed → mint → seal, fullscreen */
+.molt-ceremony { position: fixed; inset: 0; z-index: 4000; background: #05030a; display: grid; place-items: center; cursor: pointer; }
+.molt-ceremony-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.molt-ceremony-copy { position: relative; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px; text-shadow: 0 2px 18px rgba(0,0,0,0.85); }
+.molt-ceremony-cells { display: inline-flex; align-items: baseline; gap: 8px; font-size: 58px; font-weight: 800; color: var(--viral); font-variant-numeric: tabular-nums; opacity: 0.25; transition: opacity var(--dur-3) var(--ease-out); text-shadow: 0 0 34px color-mix(in srgb, var(--viral) 70%, transparent); }
+.molt-ceremony-cells.is-live { opacity: 1; }
+.molt-ceremony-k { font-size: 11px; font-weight: 900; letter-spacing: 0.24em; color: var(--muted); }
+.molt-ceremony-mult { margin-top: 12px; font-size: 18px; color: var(--text); animation: cs-coda-in 0.6s var(--ease-out) both; }
+.molt-ceremony-mult b { color: var(--viral); }
+.molt-ceremony-hint { max-width: 430px; font-size: 13px; color: var(--muted); animation: cs-coda-in 0.6s var(--ease-out) 0.3s both; }
+.molt-ceremony-continue { margin-top: 12px; animation: cs-coda-in 0.6s var(--ease-out) 0.6s both; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) {
+  .molt-ceremony-cells { transition: none; }
 }
 .lab-evo {
   display: flex;
