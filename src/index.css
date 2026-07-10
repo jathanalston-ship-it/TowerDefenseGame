@@ -8369,6 +8369,31 @@ kbd {
   .intro-bar, .intro-gate-glyph, .intro-receive { animation: none; }
 }
 
+/* ── Story cutscenes (docs/CUTSCENES.md) — the intro's film chrome, reused; plus the CODA
+      (the archive stamp) and the Memory Archive's collectible cards. ── */
+.cutscene .intro-eyebrow { letter-spacing: 0.28em; }
+.cutscene-coda { cursor: default; }
+.cutscene-coda-title { margin: 6px 0 2px; font-size: 26px; font-weight: 800; letter-spacing: 0.14em; text-shadow: 0 0 26px currentColor; animation: cs-coda-in 0.6s var(--ease-out) both; }
+.cutscene-coda-sub { margin: 0 0 10px; font-size: 14px; color: var(--muted); animation: cs-coda-in 0.6s var(--ease-out) 0.25s both; }
+.cutscene-coda-boost { display: block; width: fit-content; margin: 0 auto 16px; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--cs, var(--gold)); border: 1px solid color-mix(in srgb, var(--cs, var(--gold)) 45%, transparent); background: color-mix(in srgb, var(--cs, var(--gold)) 10%, transparent); animation: cs-coda-in 0.6s var(--ease-out) 0.55s both; }
+.cutscene-coda-boost small { color: var(--muted); font-weight: 600; }
+.cutscene-coda-continue { display: block; margin: 0 auto; animation: cs-coda-in 0.6s var(--ease-out) 0.85s both; }
+@keyframes cs-coda-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.mem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 10px; margin-bottom: 14px; }
+.mem-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md); overflow: hidden; border: 1px solid color-mix(in srgb, var(--mc, var(--line)) 35%, var(--line)); background: var(--panel); }
+.mem-card.is-locked { border-color: var(--line); }
+.mem-art { width: 100%; height: 86px; object-fit: cover; display: block; background: #030509; }
+.mem-body { display: flex; flex-direction: column; gap: 2px; padding: 9px 11px 10px; }
+.mem-kind { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; color: color-mix(in srgb, var(--mc, var(--muted)) 70%, var(--muted)); }
+.mem-card.is-locked .mem-kind { color: var(--muted); }
+.mem-title { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--text); }
+.mem-sub { font-size: 11px; color: var(--muted); }
+.mem-boost { margin-top: 4px; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--gold) 80%, var(--text)); }
+.mem-card.is-locked .mem-boost { color: var(--muted); }
+.mem-play { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; padding: 5px 11px; border-radius: 999px; color: #0a0d12; background: var(--mc, var(--gold)); border: none; }
+.mem-lock { position: absolute; top: 10px; right: 12px; font-size: 14px; opacity: 0.7; }
+
 /* ── Wave-launch BREACH (GameView) — the build→combat handoff gets a physical
    moment: a caustic shock sweeps DOWN from the enemy spawn edge and the field
    flashes once, exactly when the banner + push-in fire. Presentation only. ── */

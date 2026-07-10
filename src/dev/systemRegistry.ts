@@ -361,6 +361,13 @@ export const SYSTEMS: SystemDef[] = [
     docs: ['docs/MEGA-BOSS.md'],
   },
   {
+    id: 'cutscenes', name: 'Story Cutscenes & Memory Archive', purpose: 'Unlockable animated story films: one premiere per mega boss first-defeat (ENFORCED — every mega def must ship a cutscene, cutscenes.test.ts) + four milestone story beats; collected + replayed forever in the Memory Archive, each granting a small permanent passive.',
+    files: ['src/core/cutscenes.ts', 'src/render/cutsceneScenes.ts', 'src/ui/CutscenePlayer.tsx'],
+    dependsOn: ['mega-bosses', 'meta-store', 'audio'], powerScore: null, save: [],
+    tutorial: [], help: [], hud: [], ui: ['CutscenePlayer', 'CollectionPanel (Memory Archive)'],
+    collection: 'Memory Archive section (Collection screen)', achievements: [], localization: 'inline-en', docs: ['docs/CUTSCENES.md'],
+  },
+  {
     id: 'biomes', name: 'Biomes', purpose: 'Environmental zones with modifiers/hazards rotating with depth.',
     files: ['src/core/biomes.ts'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: ['biomes'], hud: ['biome banner'], ui: ['CampaignScreen'],

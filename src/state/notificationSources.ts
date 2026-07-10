@@ -8,6 +8,7 @@
 
 import { registerNotification } from './notifications';
 import { geneArchiveRows } from './geneArchive';
+import { unlockedCutsceneIds } from '../save/derive';
 import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
@@ -73,6 +74,13 @@ registerNotification({
   id: 'collection.discovered',
   channel: 'collection',
   count: (s) => collectionView(collectionContextOf(s)).discovered,
+});
+
+// Memory Archive — story cutscenes recovered since last viewed (docs/CUTSCENES.md §archive).
+registerNotification({
+  id: 'collection.memories',
+  channel: 'collection',
+  count: (s) => unlockedCutsceneIds(s).length,
 });
 
 // Gene Archive — cards you can permanently upgrade RIGHT NOW (owned + gate met + affordable).

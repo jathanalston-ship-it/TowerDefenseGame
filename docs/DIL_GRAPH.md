@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 645 nodes · 1070 edges, built from the live
+> **The project's brain** (docs/DIL.md). 649 nodes · 1078 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:campaign` · `system:towers` · `system:gene-cards` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
+`system:campaign` · `system:towers` · `system:gene-cards` · `system:mega-bosses` · `system:cutscenes` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
 
 ### Economy / Reward Index
 
@@ -30,7 +30,7 @@
 
 ### Audio Index
 
-`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:cosmetics` · `system:onboarding` · `system:living-battlefield` · `system:assimilation`
+`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:cosmetics` · `system:onboarding` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
 
 ### Teaching Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -296,6 +296,9 @@ graph LR
   system_mega_bosses["Mega Bosses"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_mega_bosses["Mega Bosses"] -->|dependsOn| system_bosses["Bosses"]
   system_mega_bosses["Mega Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_cutscenes["Story Cutscenes & Memory Archive"] -->|dependsOn| system_mega_bosses["Mega Bosses"]
+  system_cutscenes["Story Cutscenes & Memory Archive"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_cutscenes["Story Cutscenes & Memory Archive"] -->|dependsOn| system_audio["Audio"]
   system_biomes["Biomes"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_difficulty["Difficulty"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_website["Marketing Website"] -->|dependsOn| system_content_infra["Content Infrastructure"]
@@ -378,6 +381,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
   - providedBy ← `system:campaign` — depth is the master unlock axis
+  - providedBy ← `system:cutscenes` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
 
 ### `concept:replays` — Replays
 
@@ -478,7 +482,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (55)
+## Systems (56)
 
 ### `system:engine` — Sim Engine
 
@@ -508,7 +512,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…161 more (query: `npm run dil -- node system:engine`)_
+  - _…162 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1317,7 +1321,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…77 more (query: `npm run dil -- node system:meta-store`)_
+  - _…78 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1353,6 +1357,8 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - dependsOn → `system:bosses`
   - provides → `concept:power-score` — megaBosses collection category weight
   - consumes → `system:meta-store` — owns save field 'megaProgress'
+  - gates → `system:cutscenes` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
+  - requiredBy ← `system:cutscenes`
   - contains ← `mega:voraxis`
   - contains ← `mega:meridia`
   - contains ← `mega:ossira`
@@ -1364,8 +1370,21 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - referencedBy ← `achievement:mega_all`
   - referencedBy ← `achievement:mega_10`
   - referencedBy ← `achievement:wp_first`
-  - referencedBy ← `achievement:wp_100`
-  - _…7 more (query: `npm run dil -- node system:mega-bosses`)_
+  - _…8 more (query: `npm run dil -- node system:mega-bosses`)_
+
+### `system:cutscenes` — Story Cutscenes & Memory Archive
+
+Unlockable animated story films: one premiere per mega boss first-defeat (ENFORCED — every mega def must ship a cutscene, cutscenes.test.ts) + four milestone story beats; collected + replayed forever in the Memory Archive, each granting a small permanent passive.
+
+_at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.tsx_
+
+  - dependsOn → `system:mega-bosses`
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:audio`
+  - provides → `concept:progression-gates` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
+  - documentedBy ← `doc:CUTSCENES.md`
+  - testedBy ← `test:src/core/cutscenes.test.ts`
+  - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
 
 ### `system:biomes` — Biomes
 
@@ -1474,6 +1493,7 @@ Synthesized SFX/music bus — cues, heartbeat tempo, reward stingers.
 _at: src/audio/*_
 
   - visualizes → `system:assimilation` — music intensity floor rides the index (sonifies the same state the terrain draws)
+  - requiredBy ← `system:cutscenes`
   - requiredBy ← `system:living-battlefield`
   - contains ← `music:menu`
   - contains ← `music:combat`
@@ -1485,8 +1505,7 @@ _at: src/audio/*_
   - contains ← `music:cinema`
   - documentedBy ← `doc:GAME-FEEL.md`
   - testedBy ← `test:src/audio/music.test.ts`
-  - triggeredBy ← `system:onboarding` — the opening cinematic scores itself via the cinema track + cin_* beat cues
-  - _…1 more (query: `npm run dil -- node system:audio`)_
+  - _…2 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 
@@ -2382,7 +2401,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (145)
+## Documentation (146)
 
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
 - `doc:ADAPTATION.md` — project documentation _(documents `system:mastery`)_
@@ -2412,6 +2431,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:CONTRACTS.md` — project documentation _(documents `system:contracts`)_
 - `doc:CORE-FRAMEWORKS.md` — project documentation _(documents `system:content-infra`)_
 - `doc:COSMETICS.md` — project documentation _(documents `system:cosmetics`)_
+- `doc:CUTSCENES.md` — project documentation _(documents `system:cutscenes`)_
 - `doc:DAILY-RUN.md` — project documentation _(documents `system:daily`)_
 - `doc:DEPENDENCY_GRAPH.md` — project documentation _(documents `system:dev-registry`)_
 - `doc:DEPLOYMENT.md` — project documentation _(documents `system:accounts`, documents `system:net-backend`, documents `system:website`)_
@@ -2530,7 +2550,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (201)
+## Tests (203)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2561,6 +2581,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/contracts.test.ts` — automated validation _(tests `system:contracts`)_
 - `test:src/core/conveyor.test.ts` — automated validation _(tests `system:towers`)_
 - `test:src/core/cosmetics.test.ts` — automated validation _(tests `system:cosmetics`)_
+- `test:src/core/cutscenes.test.ts` — automated validation _(tests `system:cutscenes`)_
 - `test:src/core/daily.test.ts` — automated validation _(tests `system:daily`)_
 - `test:src/core/dailySim.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/dangerCamera.test.ts` — automated validation _(tests `system:rendering`)_
@@ -2687,6 +2708,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/bossrushMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/commanderName.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/contracts.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/cutscenePremiere.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/devReset.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/state/endlessTaperBanking.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/evolutionHQ.test.ts` — automated validation _(tests `system:evolution-hq`)_

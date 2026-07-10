@@ -4,6 +4,8 @@
 // Add a derivation here the moment a second module needs it; never re-inline.
 
 import { DEEP_STRAIN_STAGE, MODE_UNLOCKS } from '../core/config';
+import { CUTSCENES } from '../core/cutscenes';
+import type { CutsceneDef } from '../core/cutscenes';
 import type { SaveData } from './saveStore';
 
 /** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress.
@@ -42,4 +44,22 @@ export function isDailyUnlocked(save: SaveData): boolean {
  *  opens the deep gene cards to the draft AND starts the Marrow Siphon's shards dropping. */
 export function isDeepStrainUnlocked(save: SaveData): boolean {
   return highestCampaignStage(save) >= DEEP_STRAIN_STAGE;
+}
+
+/** Cutscene unlock resolution (docs/CUTSCENES.md §unlocks) — DERIVED, never stored: megas by
+ *  the lifetime slain ledger, story beats by their milestone. Exhaustive over CutsceneUnlock
+ *  (a new unlock kind fails to compile here before it can silently never unlock). */
+export function isCutsceneUnlocked(save: SaveData, def: CutsceneDef): boolean {
+  const u = def.unlock;
+  switch (u.kind) {
+    case 'mega': return save.megaProgress.slain.includes(u.megaId);
+    case 'stage': return highestCampaignStage(save) >= u.stage;
+    case 'molt': return (save.prestige?.molts ?? 0) >= 1;
+    case 'wave': return save.bestWave >= u.wave;
+  }
+}
+
+/** Every unlocked cutscene id, in authored order (the Archive + the passive fold read this). */
+export function unlockedCutsceneIds(save: SaveData): string[] {
+  return CUTSCENES.filter((c) => isCutsceneUnlocked(save, c)).map((c) => c.id);
 }

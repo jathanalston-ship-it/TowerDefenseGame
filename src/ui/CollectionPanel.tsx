@@ -5,11 +5,15 @@
 // visit (meta.pollCollectionRankUps, session-diffed). Read-only over meta.collection(); self-
 // contained (inline-styled + one injected <style> for the celebration keyframes).
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
+import { music } from '../audio/music';
 import { RANK_COLORS, rankMilestones } from '../core/collection';
 import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, CollectionRankUp, RewardKind } from '../core/collection';
+import type { CutsceneDef } from '../core/cutscenes';
+import { drawCutsceneStill } from '../render/cutsceneScenes';
+import { CutscenePlayer } from './CutscenePlayer';
 
 const REWARD_ICON: Record<RewardKind, string> = { title: '✦', badge: '◈', portrait: '☻', theme: '◧', cosmetic: '✷', bonus: '▲' };
 const MILES = rankMilestones(); // [{ rank, at }] — the reward-track pip positions (single source)
@@ -20,6 +24,65 @@ const KEYFRAMES = `
 @keyframes codexPow { 0% { transform: scale(0.5); opacity: 0 } 55% { transform: scale(1.18) } 100% { transform: scale(1); opacity: 1 } }
 @keyframes codexBadge { 0% { transform: scale(0.4) rotate(-12deg); opacity: 0 } 70% { transform: scale(1.15) rotate(4deg) } 100% { transform: scale(1) rotate(0); opacity: 1 } }
 `;
+
+/** One Memory Archive card — the cutscene as a collectible: painted thumbnail art (its own
+ *  opening tableau), the memory's name, its small permanent passive, and ▶ Watch when
+ *  unlocked; locked cards show the silhouette + the unlock hint (docs/CUTSCENES.md §archive). */
+function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boolean; onPlay: () => void }): JSX.Element {
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const cv = cvRef.current;
+    const ctx = cv?.getContext('2d');
+    if (!cv || !ctx) return;
+    cv.width = 260;
+    cv.height = 96;
+    drawCutsceneStill(ctx, cv.width, cv.height, def);
+    if (!unlocked) {
+      // the locked silhouette: dim the still to a rumor of itself
+      ctx.fillStyle = 'rgba(3,5,9,0.82)';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+    }
+  }, [def, unlocked]);
+  return (
+    <div className={`mem-card${unlocked ? '' : ' is-locked'}`} style={{ ['--mc' as string]: def.palette.glow }}>
+      <canvas ref={cvRef} className="mem-art" aria-hidden />
+      <div className="mem-body">
+        <span className="mem-kind">{def.kind === 'mega' ? '☠ MEGA MEMORY' : '◈ STORY MEMORY'}</span>
+        <span className="mem-title">{unlocked ? def.title : '· · ·'}</span>
+        <span className="mem-sub">{unlocked ? def.subtitle : def.unlockHint}</span>
+        <span className="mem-boost">{unlocked ? `✦ ${def.boost.label}` : '✦ Unlock for a small permanent boost'}</span>
+      </div>
+      {unlocked ? (
+        <button className="mem-play" onClick={onPlay} aria-label={`Watch ${def.title}`}>▶ Watch</button>
+      ) : (
+        <span className="mem-lock" aria-hidden>🔒</span>
+      )}
+    </div>
+  );
+}
+
+/** The Memory Archive — every story cutscene as a collectible, replayable forever. */
+function MemoryArchive(): JSX.Element {
+  const memories = useMemo(() => meta.cutscenesView(), []);
+  const [playing, setPlaying] = useState<CutsceneDef | null>(null);
+  const unlocked = memories.filter((m) => m.unlocked).length;
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '14px 0 8px' }}>
+        <h3 style={{ margin: 0, fontSize: 16, letterSpacing: '0.06em' }}>Memory Archive</h3>
+        <span style={{ fontSize: 12, opacity: 0.7 }}>{unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive</span>
+      </div>
+      <div className="mem-grid">
+        {memories.map((m) => (
+          <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
+        ))}
+      </div>
+      {playing && (
+        <CutscenePlayer def={playing} onDone={() => { setPlaying(null); music.play('menu'); }} />
+      )}
+    </>
+  );
+}
 
 function RankBadge({ rank, size = 11 }: { rank: CollectionRank; size?: number }): JSX.Element {
   const c = RANK_COLORS[rank];
@@ -196,6 +259,8 @@ export function CollectionScreen(): JSX.Element {
       <div style={{ height: 14 }} />
 
       {view.categories.map((c) => <CategoryCard key={c.id} c={c} />)}
+
+      <MemoryArchive />
 
       <h3 style={{ margin: '10px 0 8px', fontSize: 15, letterSpacing: '0.06em' }}>Identity Rewards</h3>
       {rewards.length === 0 ? (

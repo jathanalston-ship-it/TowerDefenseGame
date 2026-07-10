@@ -96,6 +96,9 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:onboarding', kind: 'triggers', to: 'system:audio', note: 'the opening cinematic scores itself via the cinema track + cin_* beat cues' },
   { from: 'system:cosmetics', kind: 'modifies', to: 'system:audio', note: 'Phenotype firing variants repitch tower fire cues' },
 
+  { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
+  { from: 'system:cutscenes', kind: 'provides', to: 'concept:progression-gates', note: 'memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive' },
+
   // ── Potential conflicts (landmines discovered in development — check these before editing) ──
   { from: 'system:daily', kind: 'conflictsWith', to: 'system:mulligans', note: 'the Daily SUBSTITUTES seeded organisms via mulliganOverride — account organisms must not leak into a daily run' },
   { from: 'system:cosmetics', kind: 'conflictsWith', to: 'concept:golden-test', note: 'skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds' },

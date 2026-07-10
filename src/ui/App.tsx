@@ -14,6 +14,8 @@ import { WhatsNew } from './WhatsNew';
 import { UpdateBriefing } from './UpdateBriefing';
 import { CommanderName } from './components/CommanderName';
 import { InitCutscene, introSeen } from './InitCutscene';
+import { CutscenePlayer } from './CutscenePlayer';
+import { cutsceneDef } from '../core/cutscenes';
 import { UpdateToast } from './components/UpdateToast';
 import { SpectateView } from './SpectateView';
 import { decodeReplayCode } from '../net/replayShare';
@@ -174,7 +176,7 @@ export function App(): JSX.Element {
 
     // Battlefield-global run effects: Genome Core seam + collection bonuses + any Campaign-event
     // Mutation boon the player chose before deploying (docs/CAMPAIGN-EVENTS.md).
-    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.mulliganGlobalEffects(), ...extraRunEffects];
+    effectsRef.current = [...meta.genomeRunEffects(), ...meta.collectionRunEffects(), ...meta.trophyRunEffects(), ...meta.infestationRunEffects(), ...meta.cutsceneRunEffects(), ...meta.mulliganGlobalEffects(), ...extraRunEffects];
     modeRef.current = mode;
     stageRef.current = stage;
     // The deployment interstitial (docs/HUD.md §deploy): a short mode-aware breath instead of
@@ -305,7 +307,13 @@ export function App(): JSX.Element {
   const toMenu = useCallback(() => setScreen('menu'), []);
   // While a roulette is pending, EVERY Results exit passes through the ceremony (rewards are
   // collected there — even Skip collects; nothing earned is ever lost).
-  const afterResults = useCallback(() => setScreen(roulette ? 'roulette' : 'menu'), [roulette]);
+  // Story premieres (docs/CUTSCENES.md §autoplay): a first mega defeat queues its cutscene —
+  // it plays AFTER the reward summary (Results dismiss), before the menu/roulette resumes.
+  const [cutsceneQueue, setCutsceneQueue] = useState<string[]>([]);
+  const afterResults = useCallback(() => {
+    if (last?.outcome.megaCutscenes?.length) setCutsceneQueue(last.outcome.megaCutscenes);
+    setScreen(roulette ? 'roulette' : 'menu');
+  }, [roulette, last]);
   // One-tap "Infect Again" from Results — re-run the SAME mode without a menu round-trip. The run
   // re-snapshots the now-updated save (begin() reads meta fresh), so the replay uses the progression
   // just earned. Campaign replays the same host stage; the map is where you advance to the next.
@@ -424,6 +432,21 @@ export function App(): JSX.Element {
             // The film ran the 'cinema' score; hand the baton to the screen it lands on (the
             // tutorial's combat bed on first boot, the menu theme on a Settings replay).
             music.play(screen === 'tutorial' ? 'combat' : 'menu');
+          }}
+        />
+      )}
+      {/* Story premieres — first mega defeats, played in order after the reward summary
+          (docs/CUTSCENES.md §autoplay). Fullscreen over whatever the run exits into. */}
+      {!introActive && cutsceneQueue.length > 0 && cutsceneDef(cutsceneQueue[0]) && (
+        <CutscenePlayer
+          key={cutsceneQueue[0]}
+          def={cutsceneDef(cutsceneQueue[0])!}
+          onDone={() => {
+            setCutsceneQueue((q) => {
+              const rest = q.slice(1);
+              if (rest.length === 0) music.play('menu'); // the film ran 'cinema'; hand back the hall theme
+              return rest;
+            });
           }}
         />
       )}

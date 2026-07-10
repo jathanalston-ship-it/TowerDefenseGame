@@ -13,7 +13,9 @@ import {
   serializeExport,
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
-import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked } from '../save/derive';
+import { highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, unlockedCutsceneIds } from '../save/derive';
+import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
+import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
 import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
@@ -195,11 +197,22 @@ function megaKillExpectation(save: SaveData, k: MegaKillStat): { expected: numbe
   return { expected, efficiency: megaKillEfficiency(expected, k.killSec) };
 }
 
+// First-defeat cutscenes queued by the megaKilled lane, drained into the NEXT finishRun's
+// outcome (docs/CUTSCENES.md §autoplay) — Results dismisses into the film. Module state, not
+// save state: the unlock itself derives from megaProgress.slain; this is only the "play it
+// after THIS summary" signal.
+let pendingMegaCutscenes: string[] = [];
+
 // Mega Boss ledger (docs/MEGA-BOSS.md §collection) — recorded the moment it happens, mirroring the
 // bossKilled pattern: kills / perfect / speed / fastest per def. Idempotent set-adds.
 gameEvents.on('megaKilled', (e) => {
   const save = store.get();
   const mp = save.megaProgress;
+  // FIRST defeat of this def → its story cutscene premieres after the run's reward summary.
+  if (!mp.slain.includes(e.defId)) {
+    const cs = cutsceneForMega(e.defId);
+    if (cs && !pendingMegaCutscenes.includes(cs.id)) pendingMegaCutscenes.push(cs.id);
+  }
   const { expected } = megaKillExpectation(save, e);
   const speed = e.killSec > 0 && e.killSec <= expected;
   const fastestSec = { ...mp.fastestSec };
@@ -941,6 +954,9 @@ export interface RunOutcome {
   // Champion Contracts honoured by THIS run (docs/CONTRACTS.md) — cores already folded
   // into the reward; cosmetic = the granted Gilded phenotype id (null for core-only rows).
   contracts?: { id: string; name: string; cores: number; cosmetic: string | null }[];
+  // Story cutscene premieres earned by THIS run — mega bosses first-defeated here
+  // (docs/CUTSCENES.md §autoplay). The App plays them after the Results summary, in order.
+  megaCutscenes?: string[];
   // Campaign "Flawless first-clear" bonus-cache status, for the Results notice. null on non-campaign
   // runs and campaign losses (the bonus doesn't apply). The bonus cache is granted only when
   // earned === true (firstClear AND noDamage); the other flags let the UI explain a miss.
@@ -1589,6 +1605,9 @@ export const meta = {
         : {}),
       ...(isDaily ? { dailyProgress: { cores: dailyCoreBonus, streak: nextDaily.streak, cleared: result.won } } : {}),
       ...(contractHits.length > 0 ? { contracts: contractHits.map((c) => ({ id: c.id, name: c.name, cores: c.reward.cores, cosmetic: c.reward.cosmetic })) } : {}),
+      // First-defeat story premieres queued by the megaKilled lane — drained here so they
+      // play exactly once, after THIS run's reward summary (docs/CUTSCENES.md §autoplay).
+      ...(pendingMegaCutscenes.length > 0 ? { megaCutscenes: pendingMegaCutscenes.splice(0) } : {}),
       flawlessCache,
     };
   },
@@ -2126,6 +2145,18 @@ export const meta = {
   /** The map's region passives, folded into every run like gear. [] on a fresh board. */
   infestationRunEffects(now = Date.now()): CardEffect[] {
     return infestationEffects(store.get().infestation.sectors, now);
+  },
+
+  // ── Story cutscenes (docs/CUTSCENES.md) — the Memory Archive. ──
+  /** Every cutscene with its live unlock state — the Archive renders THIS. */
+  cutscenesView(): { def: CutsceneDef; unlocked: boolean }[] {
+    const save = store.get();
+    return CUTSCENES.map((def) => ({ def, unlocked: isCutsceneUnlocked(save, def) }));
+  },
+  /** The Archive's small permanent passives — one per unlocked memory, folded into every
+   *  run beside the other permanent lanes. [] on a fresh save (golden-safe). */
+  cutsceneRunEffects(): CardEffect[] {
+    return cutsceneEffects(unlockedCutsceneIds(store.get()));
   },
 
   // ── Hero Expeditions (docs/EXPEDITIONS.md) — the benched-hero idle lane. ──
