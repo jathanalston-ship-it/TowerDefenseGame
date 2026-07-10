@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://assimilation.pages.dev/sitemap.xml
+Sitemap: https://assimilationtowerdefense.com/sitemap.xml
