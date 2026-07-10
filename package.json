@@ -1,10 +1,12 @@
 {
   "name": "assimilate",
   "private": true,
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "version": "1.0.0",
   "type": "module",
-  "description": "ASSIMILATE — a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
+  "description": "ASSIMILATE \u2014 a cyberpunk bio-horror tower defense (playable vertical slice). Static React + TypeScript + Vite app, built for Cloudflare Pages.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json && vite build && node scripts/stamp-sw.mjs",
@@ -32,7 +34,8 @@
     "validate": "vite-node scripts/validate.ts",
     "handoff": "vite-node scripts/handoff.ts",
     "sim:progression": "vite-node scripts/sim-progression.ts",
-    "sim:report": "vite-node scripts/sim-balance-report.ts"
+    "sim:report": "vite-node scripts/sim-balance-report.ts",
+    "pil": "vite-node scripts/pil.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -79,6 +79,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/ENDLESS-SCALING.md', 'docs/MODE-IDENTITY.md'],
   },
   {
+    id: 'pil', name: 'Public Intelligence Layer', purpose: 'The DIL public extension: page registry + media manifest joined to the knowledge graph; impact analysis (game changed -> which public surfaces update), structural rot audit (ghost refs, broken links, placeholders), staleness reporting.',
+    files: ['src/dev/pil/pil.ts'], // CLI: scripts/pil.ts (the walker scans src/ only)
+    dependsOn: ['dev-registry'], powerScore: null, save: [], tutorial: [], help: [],
+    hud: [], ui: [], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/PIL.md'],
+  },
+  {
     id: 'accounts', name: 'Account Platform', purpose: 'Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating.',
     files: ['src/account/accountStore.ts', 'src/account/providers.ts', 'src/save/envelope.ts', 'src/save/merge.ts', 'src/net/syncEngine.ts', 'src/net/connectivity.ts', 'src/ui/components/AccountPanel.tsx'],
     dependsOn: ['meta-store', 'profile'], powerScore: null, save: [], tutorial: [], help: [],

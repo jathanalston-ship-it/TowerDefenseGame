@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 639 nodes · 1062 edges, built from the live
+> **The project's brain** (docs/DIL.md). 643 nodes · 1065 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PLACEHOLDER-ART.md`, `PLAYTEST-CHECKLIST.md`, `POLYP.md` · …18 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PIL_REPORT.md`, `PLACEHOLDER-ART.md`, `PLAYTEST-CHECKLIST.md` · …19 more
 
 ## Indexes
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -161,6 +161,7 @@ graph LR
   system_infinite["Infinite Mode"] -->|dependsOn| system_loot["Loot & Bio-Containers"]
   system_infinite["Infinite Mode"] -->|dependsOn| system_difficulty["Difficulty"]
   system_infinite["Infinite Mode"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_pil["Public Intelligence Layer"] -->|dependsOn| system_dev_registry["System Registry & Design Intelligence Layer"]
   system_accounts["Account Platform"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_accounts["Account Platform"] -->|dependsOn| system_profile["Player Profile"]
   system_boss_rush["Boss Rush"] -->|dependsOn| system_engine["Sim Engine"]
@@ -475,7 +476,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (54)
+## Systems (55)
 
 ### `system:engine` — Sim Engine
 
@@ -595,6 +596,16 @@ _at: src/ui/InfiniteScreen.tsx_
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `guide:infinite`
   - balancedBy ← `system:difficulty` — endless threat curves
+
+### `system:pil` — Public Intelligence Layer
+
+The DIL public extension: page registry + media manifest joined to the knowledge graph; impact analysis (game changed -> which public surfaces update), structural rot audit (ghost refs, broken links, placeholders), staleness reporting.
+
+_at: src/dev/pil/pil.ts_
+
+  - dependsOn → `system:dev-registry`
+  - documentedBy ← `doc:PIL.md`
+  - testedBy ← `test:src/dev/pil/pil.test.ts`
 
 ### `system:accounts` — Account Platform
 
@@ -1519,6 +1530,7 @@ THIS registry + the doc-sync/validation generators + the DIL (src/dev/dil/*): th
 
 _at: src/dev/*, src/dev/dil/*_
 
+  - requiredBy ← `system:pil`
   - documentedBy ← `doc:DIL.md`
   - documentedBy ← `doc:DEPENDENCY_GRAPH.md`
   - documentedBy ← `doc:ENGINEERING-AUDIT.md`
@@ -1530,8 +1542,7 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/mobileContent.test.ts`
   - testedBy ← `test:src/dev/progressionSim.test.ts`
   - testedBy ← `test:src/dev/systemRegistry.test.ts`
-  - testedBy ← `test:src/dev/tutorialAnchors.test.ts`
-  - _…1 more (query: `npm run dil -- node system:dev-registry`)_
+  - _…2 more (query: `npm run dil -- node system:dev-registry`)_
 
 ## Towers (15)
 
@@ -2365,7 +2376,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (143)
+## Documentation (145)
 
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
 - `doc:ADAPTATION.md` — project documentation _(documents `system:mastery`)_
@@ -2450,6 +2461,8 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:NEMESIS.md` — project documentation _(documents `system:nemesis`)_
 - `doc:NOTIFICATIONS.md` — project documentation _(documents `system:notifications`)_
 - `doc:ONE-MORE-RUN.md` — project documentation _(documents `system:hub-shell`)_
+- `doc:PIL.md` — project documentation _(documents `system:pil`)_
+- `doc:PIL_REPORT.md` — project documentation
 - `doc:PLACEHOLDER-ART.md` — project documentation
 - `doc:PLAYTEST-CHECKLIST.md` — project documentation
 - `doc:POLYP.md` — project documentation
@@ -2511,7 +2524,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (198)
+## Tests (199)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2638,6 +2651,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/dev/balanceReport.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/dil/dil.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/mobileContent.test.ts` — automated validation _(tests `system:dev-registry`)_
+- `test:src/dev/pil/pil.test.ts` — automated validation _(tests `system:pil`)_
 - `test:src/dev/progressionSim.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/systemRegistry.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/tutorialAnchors.test.ts` — automated validation _(tests `system:dev-registry`)_

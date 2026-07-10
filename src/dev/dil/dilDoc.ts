@@ -8,11 +8,12 @@ import { DilGraph, EDGE_INVERSE } from './graph';
 import type { DilNode, NodeKind } from './graph';
 import { allAutoFailures } from './checklists';
 
-const KIND_ORDER: NodeKind[] = ['concept', 'currency', 'system', 'mode', 'tower', 'hero', 'enemy', 'boss', 'megaboss', 'biome', 'music', 'tutorial', 'help', 'guide', 'achievement', 'doc', 'test'];
+const KIND_ORDER: NodeKind[] = ['concept', 'currency', 'system', 'mode', 'tower', 'hero', 'enemy', 'boss', 'megaboss', 'biome', 'music', 'tutorial', 'help', 'guide', 'achievement', 'doc', 'test', 'page', 'asset'];
 const KIND_LABEL: Record<NodeKind, string> = {
   concept: 'Concepts', currency: 'Currencies', system: 'Systems', mode: 'Modes', tower: 'Towers', hero: 'Heroes',
   enemy: 'Enemies', boss: 'Bosses', megaboss: 'Mega Bosses', biome: 'Biomes', music: 'Music', tutorial: 'Tutorials',
   help: 'Help Topics', guide: 'Site Guides', achievement: 'Achievements', doc: 'Documentation', test: 'Tests',
+  page: 'Public Pages', asset: 'Media Assets',
 };
 
 /** The domain INDEXES — each is just a query over the graph (nodes referenced, never duplicated). */

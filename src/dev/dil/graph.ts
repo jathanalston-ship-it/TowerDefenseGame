@@ -13,7 +13,8 @@ export type NodeKind =
   | 'tower' | 'hero' | 'enemy' | 'boss' | 'megaboss' | 'biome' // content entities (auto-ingested)
   | 'mode' // campaign / infinite / boss rush / daily
   | 'currency' // biomass, cores, shards, essence, materials, …
-  | 'music' | 'doc' | 'guide' | 'tutorial' | 'help' | 'achievement' | 'test';
+  | 'music' | 'doc' | 'guide' | 'tutorial' | 'help' | 'achievement' | 'test'
+  | 'page' | 'asset'; // PIL (docs/PIL.md): public web pages + marketing/media assets
 
 export interface DilNode {
   id: string; // stable slug: '<kind>:<key>' (e.g. 'tower:needle', 'concept:power-score')
