@@ -9,6 +9,7 @@ import { meta } from '../state/meta';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { MASTERY, ENEMY_DEFS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { DOCTRINES } from '../core/doctrines';
 import type { EnemyKind } from '../core/types';
 import { rarityRank, rarityRegistry } from '../core/loot';
 import { masteryRewardById } from '../core/mastery';
@@ -421,12 +422,15 @@ export function Results({
 
   const achievements: AchievementItem[] = outcome.achievements.map((a) => ({ id: a.id, name: a.name, desc: a.desc, reward: a.reward }));
 
+  // The run's doctrine commitment reads back on the report (docs/DOCTRINES.md §presence).
+  const doc = result.doctrine && result.doctrine !== 'none' ? DOCTRINES[result.doctrine] : null;
   const title = (
     <div className={`rr-title ${result.won ? 'win' : 'lose'}`}>
       <div className="rr-eyebrow">{result.won ? 'RUN COMPLETE' : 'RUN ENDED'}</div>
       <div className="rr-headline">
         {result.endless ? `DEPTH ${result.wave} REACHED` : result.won ? 'EXTRACTION COMPLETE' : 'NUCLEUS LOST'}
       </div>
+      {doc && <div className="rr-doctrine" title={doc.blurb}>{doc.icon} {doc.name}</div>}
     </div>
   );
 

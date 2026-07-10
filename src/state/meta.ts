@@ -78,6 +78,7 @@ import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
 import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
+import { doctrineRank } from '../core/doctrines';
 import { coreShardIncome, lootPointIncome } from '../core/economyDirector';
 import { predictBossRush, predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { RouletteReward } from './bioRoulette';
@@ -1721,8 +1722,12 @@ export const meta = {
       : save.daily;
 
     // 1. global shards + run records
-    // Doctrine protocols (docs/MODE-IDENTITY.md §doctrines): run-end reward warps (director policy).
-    const docEcon = doctrineEconomy(result.doctrine);
+    // Doctrine protocols (docs/DOCTRINES.md): run-end reward warps (director policy) × the
+    // account's MASTERY RANK with this doctrine (pre-run ledgers — this run settles after).
+    const docRank = result.doctrine
+      ? doctrineRank(result.doctrine, save.stats.doctrineWins[result.doctrine] ?? 0, save.stats.doctrineBestWave[result.doctrine] ?? 0)
+      : 0;
+    const docEcon = doctrineEconomy(result.doctrine, docRank);
     const doctrineEssence = docEcon.essenceFor(result.wave);
     // Genome Cores ride the economy framework's composition (docs/ECONOMY_FORMULAS.md) — the
     // same factor chain, one owner, with an explainable trace.

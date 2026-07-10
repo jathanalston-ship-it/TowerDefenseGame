@@ -35,7 +35,7 @@ function powerTier(p: number): number {
   return p >= 1e12 ? 4 : p >= 1e9 ? 3 : p >= 1e6 ? 2 : 1;
 }
 
-export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean }): JSX.Element {
+export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = null }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean; doctrine?: { icon: string; name: string } | null }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
@@ -230,8 +230,13 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false }: { hud: HudS
                 ? 'Choose a Gene Card'
                 : ' '}
         </div>
-        {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline) && (
+        {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline || doctrine) && (
           <div className="wm-chips">
+            {doctrine && (
+              <span className="wm-chip wm-doc" title="This run's doctrine commitment (docs/DOCTRINES.md)">
+                {doctrine.icon} {doctrine.name}
+              </span>
+            )}
             {hud.biome.id !== 'neutral' && (
               <span className="wm-chip wm-biome" style={{ ['--biome' as string]: hud.biome.accent }}>
                 {hud.biome.name}

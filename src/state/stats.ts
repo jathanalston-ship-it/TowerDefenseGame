@@ -51,8 +51,16 @@ export function accumulateStats(
   }
 
   // Profile ledgers (schema v22): duration, doctrine, and per-card draft counts.
+  // Doctrine MASTERY ledgers (docs/DOCTRINES.md §mastery): wins + deepest wave per doctrine —
+  // core/doctrines.ts doctrineRank derives ranks from these (additive; withDefaults fills {}).
   const doctrineRuns = { ...prev.doctrineRuns };
-  if (extra?.doctrine && extra.doctrine !== 'none') doctrineRuns[extra.doctrine] = (doctrineRuns[extra.doctrine] ?? 0) + 1;
+  const doctrineWins = { ...prev.doctrineWins };
+  const doctrineBestWave = { ...prev.doctrineBestWave };
+  if (extra?.doctrine && extra.doctrine !== 'none') {
+    doctrineRuns[extra.doctrine] = (doctrineRuns[extra.doctrine] ?? 0) + 1;
+    if (run.won) doctrineWins[extra.doctrine] = (doctrineWins[extra.doctrine] ?? 0) + 1;
+    if (run.wave > (doctrineBestWave[extra.doctrine] ?? 0)) doctrineBestWave[extra.doctrine] = run.wave;
+  }
   const cardDrafts = { ...prev.cardDrafts };
   for (const id of run.cardIds) cardDrafts[id] = (cardDrafts[id] ?? 0) + 1;
   const dur = Math.max(0, Math.round(extra?.durationSec ?? 0));
@@ -78,6 +86,8 @@ export function accumulateStats(
     longestRunSec: Math.max(prev.longestRunSec, dur),
     waveSum: prev.waveSum + run.wave,
     doctrineRuns,
+    doctrineWins,
+    doctrineBestWave,
     cardDrafts,
     // Boss Rush ledgers (docs/BOSS-RUSH.md): only a bossRush run advances them.
     rushRuns: prev.rushRuns + (extra?.bossRush ? 1 : 0),

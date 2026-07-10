@@ -555,6 +555,8 @@ export function defaultLifetimeStats(): LifetimeStats {
     longestRunSec: 0,
     waveSum: 0,
     doctrineRuns: {},
+    doctrineWins: {},
+    doctrineBestWave: {},
     cardDrafts: {},
     rushRuns: 0,
     rushBossKills: 0,
@@ -1205,6 +1207,9 @@ function mergeStats(base: LifetimeStats, s: LifetimeStats | undefined): Lifetime
     towerBestStrain: { ...base.towerBestStrain, ...s.towerBestStrain },
     // v21→v22: profile ledgers — zeroed/empty for older saves (additive).
     doctrineRuns: { ...base.doctrineRuns, ...s.doctrineRuns },
+    // Doctrine mastery ledgers (docs/DOCTRINES.md §mastery) — empty for older saves (additive).
+    doctrineWins: { ...base.doctrineWins, ...s.doctrineWins },
+    doctrineBestWave: { ...base.doctrineBestWave, ...s.doctrineBestWave },
     cardDrafts: { ...base.cardDrafts, ...s.cardDrafts },
   };
 }

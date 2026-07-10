@@ -59,6 +59,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:net-backend', kind: 'consumes', to: 'concept:replays', note: 'leaderboard verification recomputes submitted runs' },
 
   // ── Economy: who pays what (reward sources), who spends what ──
+  { from: 'system:doctrines', kind: 'rewards', to: 'currency:gene-essence', note: 'essencePerWave protocols (Corrupted Genome / Overmind) pay at finishRun' },
+  { from: 'system:doctrines', kind: 'dependsOn', to: 'concept:progression-gates', note: 'unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)' },
   { from: 'system:campaign', kind: 'rewards', to: 'currency:genome-cores', note: 'first-clear + stage rewards' },
   { from: 'system:campaign', kind: 'rewards', to: 'currency:tower-shards', note: 'stage rewards feed unlock gates' },
   { from: 'system:infinite', kind: 'rewards', to: 'currency:genome-cores', note: 'depth records + chest tiers' },

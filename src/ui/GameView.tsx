@@ -23,6 +23,7 @@ import type { LiveMasteryView } from '../state/masteryEvents';
 import { MasteryToaster } from './components/MasteryToaster';
 import { AudioToggles } from './components/AudioToggles';
 import { MASTERY, TOWER_DEFS, FX } from '../core/config';
+import { resolveDoctrine } from '../core/doctrines';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { masteryProgress, masteryXpMults, masteryXpRaw } from '../state/meta';
 import { music } from '../audio/music';
@@ -845,7 +846,7 @@ export function GameView({
 
   return (
     <div className="game" data-hphase={hphase}>
-      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} />
+      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} />
       <PowerToaster />
       <MasteryToaster />
       <div className="stage">

@@ -10,33 +10,14 @@ import { meta } from '../state/meta';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS, resolveDifficulty } from '../core/difficulty';
-import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
-import type { DoctrineDef } from '../core/doctrines';
+import { DOCTRINES } from '../core/doctrines';
+import { DoctrinePicker } from './components/DoctrinePicker';
 import { BIOMES } from '../core/biomes';
 import { DIRECTOR, ENDLESS, ENDLESS_TAPER, endlessTaper } from '../core/config';
 import { createDirector, doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
 import { LoopDirective } from './NextGoalBanner';
-
-/** Human-readable lines for a doctrine's full impact (effects + world warp). */
-function doctrineLines(d: DoctrineDef): string[] {
-  const out: string[] = [];
-  const w = d.warp ?? {};
-  if (w.countMult) out.push(w.countMult > 1 ? `Spawns ×${w.countMult}` : `Spawns ×${w.countMult} (sparse)`);
-  if (w.hpMult) out.push(`Enemy HP ×${w.hpMult}`);
-  if (w.damageMult) out.push(`Enemy damage ×${w.damageMult}`);
-  if (w.speedMult) out.push(`Enemy speed ×${w.speedMult}`);
-  if (w.eliteChance) out.push(`${Math.round(w.eliteChance * 100)}% elite spawns`);
-  if (w.scalingRateMult) out.push(`Scaling ×${w.scalingRateMult} faster`);
-  if (w.bountyMult) out.push(`Bounty ×${w.bountyMult}`);
-  if (w.rewardMult) out.push(`Rewards ×${w.rewardMult}`);
-  if (w.essencePerWave) out.push(`+${w.essencePerWave} Essence / wave`);
-  for (const e of d.effects) {
-    if (e.op === 'mul' && e.field === 'biomassMult') out.push(`Biomass ×${e.value}`);
-  }
-  return out;
-}
 
 /** Compact ×-multiplier for the forecast ladder (deep HP walls reach ×10⁷ under fast protocols). */
 function fmtMult(v: number): string {
@@ -138,37 +119,9 @@ export function InfiniteScreen({
           </div>
         </div>
 
-        {/* ── PROTOCOL SELECTION — doctrine cards with full readouts (one commitment) ── */}
-        <div className="inf-doctrines" role="radiogroup" aria-label="Doctrine protocol">
-          {DOCTRINE_IDS.map((id) => {
-            const d = DOCTRINES[id];
-            const lines = doctrineLines(d);
-            const on = id === doctrine;
-            return (
-              <button
-                key={id}
-                role="radio"
-                aria-checked={on}
-                className={`inf-doc${on ? ' on' : ''}${d.warp ? ' is-protocol' : ''}`}
-                onClick={() => setDoctrine(id)}
-                title={d.blurb}
-              >
-                <span className="inf-doc-top">
-                  <span className="inf-doc-name">{d.name}</span>
-                  <i className="inf-doc-hz" title={`Hazard ${hazardRating(diff, d)}/5 at ${dsel.name}`}>{'◆'.repeat(hazardRating(diff, d))}</i>
-                </span>
-                {lines.length > 0
-                  ? <span className="inf-doc-fx">{lines.slice(0, 3).map((l) => <i key={l}>{l}</i>)}</span>
-                  : <span className="inf-doc-fx"><i className="is-dim">{id === 'none' ? 'No commitment' : 'Build-shaping'}</i></span>}
-              </button>
-            );
-          })}
-        </div>
-        {active.id !== 'none' && (
-          <div className="inf-doc-detail">
-            <b>{active.name}</b> — {active.blurb}
-          </div>
-        )}
+        {/* ── DOCTRINE SELECTION — the shared commitment picker (components/DoctrinePicker):
+            family groups, lock seals, mastery rank pips, hazard priced at THIS difficulty ── */}
+        <DoctrinePicker value={doctrine} onChange={setDoctrine} difficultyId={diff} />
       </div>
 
       <aside className="play-side">

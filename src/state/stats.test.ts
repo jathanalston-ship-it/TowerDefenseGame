@@ -117,4 +117,18 @@ describe('lifetime statistics', () => {
       expect(r.data.stats.killsByEnemy.runner).toBe(0);
     }
   });
+
+  it('folds the doctrine MASTERY ledgers: runs, wins, deepest wave (docs/DOCTRINES.md)', () => {
+    let s = accumulateStats(defaultLifetimeStats(), run({ wave: 9, won: true }), undefined, { doctrine: 'titan' });
+    expect(s.doctrineRuns.titan).toBe(1);
+    expect(s.doctrineWins.titan).toBe(1);
+    expect(s.doctrineBestWave.titan).toBe(9);
+    s = accumulateStats(s, run({ wave: 22, won: false }), undefined, { doctrine: 'titan' });
+    expect(s.doctrineRuns.titan).toBe(2);
+    expect(s.doctrineWins.titan).toBe(1); // losses never advance wins
+    expect(s.doctrineBestWave.titan).toBe(22); // …but depth still counts
+    s = accumulateStats(s, run({ wave: 50, won: true }), undefined, { doctrine: 'none' });
+    expect(s.doctrineRuns.none).toBeUndefined(); // 'none' is not a commitment — never ledgered
+    expect(s.doctrineWins.none).toBeUndefined();
+  });
 });

@@ -511,6 +511,8 @@ export interface LifetimeStats {
   longestRunSec: number; // the single longest settled run
   waveSum: number; // Σ final waves across settled runs → average wave = waveSum / totalRuns
   doctrineRuns: Record<string, number>; // runs settled per doctrine id ('none' excluded)
+  doctrineWins: Record<string, number>; // WON runs per doctrine id — mastery rank signal (docs/DOCTRINES.md)
+  doctrineBestWave: Record<string, number>; // deepest wave per doctrine id — the other rank signal
   cardDrafts: Record<string, number>; // lifetime drafts per gene-card id (argmax = most drafted)
   // ── Boss Rush ledgers (docs/BOSS-RUSH.md) — additive; 0 for old saves ──
   rushRuns: number; // Boss Rush runs settled

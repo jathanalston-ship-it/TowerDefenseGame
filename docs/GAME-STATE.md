@@ -243,6 +243,16 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 
 ### Modes & progression
 - ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director; **campaign-gated: unlocks at Stage 3**), Quick Skirmish — MODE-IDENTITY.md §gates, CAMPAIGN.md
+- ✅ **Doctrine system overhaul** (2026-07, DOCTRINES.md): 19 pickable run-start commitments in
+  THREE families — 8 build (⚡Overclock/⛨Bastion/✥Vanguard new), 9 world-warping protocols
+  (◌Famine drought / ≫Velocity / ◉Overmind new), and the new PACT family (effects+warp both:
+  ⚉Pact of Blood, ⌖Predator's Wager — validator-enforced). Campaign `unlockStage` gates with
+  ledger grandfathering (`isDoctrineUnlocked`), MASTERY RANKS 0–4 from doctrineWins/BestWave
+  ledgers (max(wins 1/3/8/18, wave 12/20/32/50)) paying +4%/rank run-end rewards on the
+  doctrine lane (`doctrineEconomy(id, rank)`), drought+elite hazard axes, shared
+  `DoctrinePicker` (family groups, lock seals, rank pips; compact variant replaces the
+  Command Center's bare `<select>`), HUD wm-doc chip + Results verdict chip. Adding a
+  doctrine = one data row — every surface derives. doctrines.test (13) + stats/director tests
 - ✅ **Campaign EVENTS** (`core/campaignEvents.ts`, CAMPAIGN-EVENTS.md) — the authoring SEAM that ends
   "every stage is the same board with bigger numbers." A `CampaignEventDef` registry (9 defs, 4
   archetypes: **eliteRush / gauntlet / cache / mutation**) that `generateStage` samples deterministically

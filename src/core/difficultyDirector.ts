@@ -26,7 +26,7 @@
 import type { DifficultyDef } from './difficulty';
 import { resolveDifficulty } from './difficulty';
 import type { DoctrineWarp } from './doctrines';
-import { resolveDoctrine, DOCTRINES } from './doctrines';
+import { resolveDoctrine, DOCTRINES, doctrineRankBonus } from './doctrines';
 import type { DoctrineDef } from './doctrines';
 import { DIRECTOR_ADAPTIVE, ENDLESS, MODE_REWARDS, WAVE_BOUNTY_GROWTH, WAVE_HP_GROWTH } from './config';
 
@@ -188,11 +188,13 @@ export function modeMasteryMult(flags: { endless: boolean; campaign: boolean; bo
   return flags.bossRush ? MODE_REWARDS.mastery.bossRush : flags.endless ? MODE_REWARDS.mastery.endless : flags.campaign ? MODE_REWARDS.mastery.campaign : MODE_REWARDS.mastery.stage;
 }
 
-/** A doctrine's run-END economy: reward multiplier + Gene Essence payout for waves survived. */
-export function doctrineEconomy(doctrineId?: string): { rewardMult: number; essenceFor: (wave: number) => number } {
+/** A doctrine's run-END economy: reward multiplier + Gene Essence payout for waves survived.
+ *  `rank` is the account's mastery rank with THIS doctrine (core/doctrines.ts doctrineRank) —
+ *  commitment pays a small premium on the doctrine's own lane (rank 0 ⇒ ×1 identity). */
+export function doctrineEconomy(doctrineId?: string, rank = 0): { rewardMult: number; essenceFor: (wave: number) => number } {
   const w = resolveDoctrine(doctrineId).warp ?? {};
   return {
-    rewardMult: w.rewardMult ?? 1,
+    rewardMult: (w.rewardMult ?? 1) * doctrineRankBonus(rank),
     essenceFor: (wave) => (w.essencePerWave ? Math.floor(w.essencePerWave * wave) : 0),
   };
 }
@@ -209,6 +211,10 @@ export function hazardRating(difficultyId: string, doctrine: DoctrineDef = DOCTR
   const diff = resolveDifficulty(difficultyId);
   const w = doctrine.warp ?? {};
   const load = (diff?.enemyHealthMult ?? 1) * (w.hpMult ?? 1) * (w.damageMult ?? 1) *
-    (w.countMult && w.countMult > 1 ? w.countMult : 1) * (w.speedMult ?? 1) * (w.scalingRateMult ?? 1);
+    (w.countMult && w.countMult > 1 ? w.countMult : 1) * (w.speedMult ?? 1) * (w.scalingRateMult ?? 1) *
+    // Economy DROUGHTS are difficulty too (Famine Protocol): a bounty cut rates like a load rise.
+    (w.bountyMult && w.bountyMult < 1 ? 1 + (1 - w.bountyMult) : 1) *
+    // Extra elites raise sustained pressure (Experimental Mutation / Predator's Wager).
+    (w.eliteChance ? 1 + w.eliteChance * 0.8 : 1);
   return Math.max(1, Math.min(5, Math.round(1 + (load - 1) * 1.4)));
 }

@@ -140,6 +140,11 @@ redesign; authored set-pieces can later override specific stage numbers without 
 
 ## §doctrines (2026-07) — protocols that reshape the WORLD
 
+> **Superseded by docs/DOCTRINES.md** (2026-07 overhaul): three families (build/protocol/PACT),
+> 19 pickable doctrines, campaign unlock gates, mastery ranks over the doctrineWins/BestWave
+> ledgers, drought/elite hazard axes, and the shared `DoctrinePicker`. This section stays as
+> the original protocol design record.
+
 Two doctrine families now coexist (12 total + none):
 - **Build-shaping** (the original five): Glass/Swarm/Ascetic/Cascade/Resonance — they bend the
   PLAYER's math via CardEffect, unchanged.

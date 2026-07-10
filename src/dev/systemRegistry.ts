@@ -180,7 +180,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'gene-cards', name: 'Gene Cards (draft + permanent evolution)', purpose: 'Between-wave drafts + the permanent Archive: Essence-funded levels, gates, loadouts, Ascension backend.',
-    files: ['src/core/cards.ts', 'src/core/geneCards.ts', 'src/core/geneUpgrades.ts', 'src/core/geneEssence.ts', 'src/core/geneLoadout.ts', 'src/state/geneArchive.ts', 'src/ui/GeneArchive.tsx', 'src/ui/DraftModal.tsx', 'src/ui/cardAffects.tsx', 'src/ui/components/GeneCardArt.tsx', 'src/core/doctrines.ts'],
+    files: ['src/core/cards.ts', 'src/core/geneCards.ts', 'src/core/geneUpgrades.ts', 'src/core/geneEssence.ts', 'src/core/geneLoadout.ts', 'src/state/geneArchive.ts', 'src/ui/GeneArchive.tsx', 'src/ui/DraftModal.tsx', 'src/ui/cardAffects.tsx', 'src/ui/components/GeneCardArt.tsx'],
     dependsOn: ['content-infra', 'power', 'campaign', 'shards-economy'], powerScore: 'permanent levels fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility', save: ['genes', 'geneEssence', 'geneSlots', 'geneLoadout'],
     tutorial: ['combat'], help: ['gene-cards', 'gene-essence', 'gene-archive', 'gene-loadout'], hud: ['DraftModal', 'BuildPanel', 'gene splash'],
     ui: ['GeneArchive'], collection: 'cards category (Gene Level labels)', achievements: ['collector'], localization: 'inline-en',
@@ -421,6 +421,13 @@ export const SYSTEMS: SystemDef[] = [
     files: ['src/core/biomes.ts'],
     dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: ['biomes'], hud: ['biome banner'], ui: ['CampaignScreen'],
     collection: 'biomes category', achievements: [], localization: 'inline-en', docs: ['docs/BIOMES.md'],
+  },
+  {
+    id: 'doctrines', name: 'Doctrines', purpose: 'Exclusive run-start commitments in three families (build / world-warping protocol / PACT) with campaign unlock gates, mastery ranks over the doctrineWins/BestWave ledgers (+4%/rank run-end premium), and the shared family-grouped picker — adding a doctrine is one data row.',
+    files: ['src/core/doctrines.ts', 'src/ui/components/DoctrinePicker.tsx'],
+    dependsOn: ['content-infra', 'gene-cards', 'difficulty'], powerScore: null, save: [], tutorial: [], help: [],
+    hud: ['wm-doc chip (run HUD wave module)'], ui: ['DoctrinePicker (Infinite terminal + Command Center)', 'Results verdict chip'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/DOCTRINES.md', 'docs/MODE-IDENTITY.md'],
   },
   {
     id: 'difficulty', name: 'Difficulty', purpose: 'Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).',

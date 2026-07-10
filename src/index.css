@@ -6316,6 +6316,22 @@ kbd {
 .inf-doc-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
 .inf-doc-hz { flex: none; font-style: normal; font-size: 10px; letter-spacing: 0.1em; color: var(--danger); opacity: 0.85; }
 
+/* ── Doctrine picker (components/DoctrinePicker, docs/DOCTRINES.md) — families, seals, ranks ── */
+.doc-fam-h { grid-column: 1 / -1; margin-top: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--dim); }
+.doc-ico { font-style: normal; opacity: 0.9; margin-right: 2px; }
+.inf-doc.is-pact { border-color: color-mix(in srgb, var(--gold) 32%, var(--line)); background: linear-gradient(150deg, color-mix(in srgb, var(--gold) 6%, var(--panel-2)), var(--panel-2) 60%); }
+.inf-doc.is-locked { opacity: 0.55; border-style: dashed; cursor: not-allowed; filter: saturate(0.4); }
+.doc-lock { flex: none; font-style: normal; font-size: 11px; color: var(--dim); }
+.doc-rank { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--gold); letter-spacing: 0.08em; }
+.doc-rank i { font-style: normal; font-weight: 700; color: color-mix(in srgb, var(--gold) 75%, var(--muted)); }
+.doc-pick.is-compact .inf-doctrines { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-height: 260px; overflow-y: auto; padding-right: 2px; margin-top: var(--s2); }
+.doc-pick.is-compact .inf-doc { padding: 7px 9px; gap: 3px; }
+.mc-doc-ro { font-size: 14px; font-weight: 700; color: var(--text); padding: 9px 0; text-align: left; }
+.mc-doc-ro.has-doc { color: var(--viral); }
+.mc-doc-ro small { color: var(--muted); font-weight: 600; font-size: 11px; }
+.wm-doc { color: var(--viral); border-color: color-mix(in srgb, var(--viral) 32%, transparent); }
+.rr-doctrine { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--viral); opacity: 0.9; }
+
 /* ── Prep-terminal SHELL (Infinite · Boss Rush share .play-*): hero column + side rail on
    desktop, one column under 900px. Was unstyled block flow — one long scroll on every screen. ── */
 .play-screen { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s4); align-items: start; max-width: 1120px; }

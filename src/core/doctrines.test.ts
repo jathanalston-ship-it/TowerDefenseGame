@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { DOCTRINES, DOCTRINE_IDS, doctrineRegistry, resolveDoctrine } from './doctrines';
+import {
+  DOCTRINES, DOCTRINE_IDS, DOCTRINE_RANK_MAX, doctrineNextRank, doctrineRank, doctrineRankBonus,
+  doctrineRegistry, resolveDoctrine,
+} from './doctrines';
+import { doctrineEconomy } from './difficultyDirector';
+import { isDoctrineUnlocked } from '../save/derive';
+import { defaultSave } from '../save/saveStore';
 import { simulateBattle } from './simharness';
 
 describe('doctrines (exclusive run-start commitments)', () => {
@@ -10,11 +16,33 @@ describe('doctrines (exclusive run-start commitments)', () => {
     expect(DOCTRINE_IDS).toContain('none');
   });
 
-  it('every doctrine validates and carries a name + blurb', () => {
+  it('every doctrine validates and carries a name + blurb + icon + family + gate', () => {
     expect(doctrineRegistry.validate()).toEqual([]);
     for (const d of Object.values(DOCTRINES)) {
       expect(d.name.length).toBeGreaterThan(0);
       expect(d.blurb.length).toBeGreaterThan(0);
+      expect(d.icon.length).toBeGreaterThan(0);
+      expect(['build', 'protocol', 'pact']).toContain(d.family);
+      expect(d.unlockStage).toBeGreaterThanOrEqual(0);
+    }
+    expect(DOCTRINES.none.unlockStage).toBe(0); // playing free is never gated
+  });
+
+  it('family capability contracts hold: protocols warp the world, pacts pay both sides', () => {
+    for (const d of Object.values(DOCTRINES)) {
+      if (d.family === 'protocol') expect(d.warp, d.id).toBeTruthy();
+      if (d.family === 'pact') {
+        expect(d.warp, d.id).toBeTruthy();
+        expect(d.effects.length, d.id).toBeGreaterThan(0);
+      }
+      if (d.family === 'build') expect(d.warp, d.id).toBeUndefined(); // builds never touch the world
+    }
+  });
+
+  it('the roster grew to a real strategic axis (19 pickable commitments)', () => {
+    expect(DOCTRINE_IDS.length).toBeGreaterThanOrEqual(20); // incl. 'none'
+    for (const id of ['overclock', 'bastion', 'vanguard', 'famine', 'velocity', 'overmind', 'bloodpact', 'predator']) {
+      expect(DOCTRINES[id], id).toBeTruthy();
     }
   });
 
@@ -65,5 +93,72 @@ describe('protocol doctrines (enemy-world warps)', () => {
     const a = simulateBattle({ seed: 23, maxWaves: 4, doctrine: 'corrupted' });
     const b = simulateBattle({ seed: 23, maxWaves: 4, doctrine: 'corrupted' });
     expect(a).toEqual(b);
+  });
+
+  it('the NEW protocols reshape the run and stay deterministic', () => {
+    const base = simulateBattle({ seed: 31, maxWaves: 5 });
+    const velocity = simulateBattle({ seed: 31, maxWaves: 5, doctrine: 'velocity' });
+    expect(velocity.enemiesSpawned).toBeLessThan(base.enemiesSpawned); // ×0.8 thins the queue
+    expect(simulateBattle({ seed: 31, maxWaves: 5, doctrine: 'velocity' })).toEqual(velocity);
+    const famine = simulateBattle({ seed: 31, maxWaves: 5, doctrine: 'famine' });
+    expect(famine).not.toEqual(base); // the bounty drought changes the run's economy
+    expect(simulateBattle({ seed: 31, maxWaves: 5, doctrine: 'famine' })).toEqual(famine);
+    const pact = simulateBattle({ seed: 31, maxWaves: 5, doctrine: 'bloodpact' });
+    expect(pact).not.toEqual(base); // both sides of the pact land (effects + warp)
+    expect(simulateBattle({ seed: 31, maxWaves: 5, doctrine: 'bloodpact' })).toEqual(pact);
+  });
+});
+
+describe('doctrine gates (docs/DOCTRINES.md §gates — anticipation, not absence)', () => {
+  it('a fresh account gets the day-one doctrines; deep campaign unseals everything', () => {
+    const fresh = defaultSave();
+    expect(isDoctrineUnlocked(fresh, DOCTRINES.none)).toBe(true);
+    expect(isDoctrineUnlocked(fresh, DOCTRINES.glasscannon)).toBe(true);
+    expect(isDoctrineUnlocked(fresh, DOCTRINES.titan)).toBe(false);
+    expect(isDoctrineUnlocked(fresh, DOCTRINES.overmind)).toBe(false);
+    const deep = defaultSave();
+    deep.campaign.cleared.standard = 30;
+    for (const id of DOCTRINE_IDS) expect(isDoctrineUnlocked(deep, DOCTRINES[id]), id).toBe(true);
+  });
+
+  it('accounts that already RAN a doctrine are grandfathered past its gate', () => {
+    const s = defaultSave();
+    s.stats.doctrineRuns.titan = 3; // used before the gate existed
+    expect(isDoctrineUnlocked(s, DOCTRINES.titan)).toBe(true);
+  });
+
+  it('every gate sits inside the campaign progression band (reachable, staged)', () => {
+    for (const d of Object.values(DOCTRINES)) {
+      expect(d.unlockStage).toBeLessThanOrEqual(30); // nothing gated past the graduate exam
+    }
+    // The drip is real: some day-one, some early, some deep.
+    const stages = Object.values(DOCTRINES).map((d) => d.unlockStage);
+    expect(stages.filter((s) => s === 0).length).toBeGreaterThanOrEqual(2);
+    expect(stages.filter((s) => s >= 20).length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('doctrine mastery ranks (commitment pays)', () => {
+  it('ranks derive from wins OR depth — whichever signal is further', () => {
+    expect(doctrineRank('titan', 0, 0)).toBe(0);
+    expect(doctrineRank('titan', 1, 0)).toBe(1); // first win
+    expect(doctrineRank('titan', 0, 12)).toBe(1); // …or wave 12
+    expect(doctrineRank('titan', 3, 0)).toBe(2);
+    expect(doctrineRank('titan', 0, 50)).toBe(4);
+    expect(doctrineRank('titan', 99, 999)).toBe(DOCTRINE_RANK_MAX);
+    expect(doctrineRank('none', 99, 999)).toBe(0); // no commitment, no rank
+  });
+
+  it('rank pays a small run-end premium on the doctrine lane (identity at rank 0)', () => {
+    expect(doctrineRankBonus(0)).toBe(1);
+    expect(doctrineRankBonus(4)).toBeCloseTo(1.16, 10);
+    expect(doctrineEconomy('corrupted').rewardMult).toBe(1.5); // rank omitted ⇒ unchanged policy
+    expect(doctrineEconomy('corrupted', 2).rewardMult).toBeCloseTo(1.5 * 1.08, 10);
+    expect(doctrineEconomy('corrupted', 2).essenceFor(20)).toBe(60); // essence is rank-free
+  });
+
+  it('next-rank hints exist until max rank', () => {
+    expect(doctrineNextRank(0)).toEqual({ wins: 1, wave: 12 });
+    expect(doctrineNextRank(DOCTRINE_RANK_MAX)).toBeNull();
   });
 });

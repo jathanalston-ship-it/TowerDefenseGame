@@ -145,10 +145,18 @@ describe('standalone policy queries — parity with the legacy call sites', () =
         const diff = DIFFICULTIES[diffId];
         const w = DOCTRINES[docId].warp ?? {};
         const load = (diff?.enemyHealthMult ?? 1) * (w.hpMult ?? 1) * (w.damageMult ?? 1) *
-          (w.countMult && w.countMult > 1 ? w.countMult : 1) * (w.speedMult ?? 1) * (w.scalingRateMult ?? 1);
+          (w.countMult && w.countMult > 1 ? w.countMult : 1) * (w.speedMult ?? 1) * (w.scalingRateMult ?? 1) *
+          (w.bountyMult && w.bountyMult < 1 ? 1 + (1 - w.bountyMult) : 1) * // droughts rate as load
+          (w.eliteChance ? 1 + w.eliteChance * 0.8 : 1); // elite pressure rates as load
         const legacy = Math.max(1, Math.min(5, Math.round(1 + (load - 1) * 1.4)));
         expect(hazardRating(diffId, DOCTRINES[docId])).toBe(legacy);
       }
+    }
+    // The new axes actually bite: Famine's drought rates above baseline outright, and elite
+    // pressure (Predator's Wager) never rates BELOW a warpless doctrine at any difficulty.
+    expect(hazardRating('standard', DOCTRINES.famine)).toBeGreaterThan(1);
+    for (const diffId of DIFFICULTY_IDS) {
+      expect(hazardRating(diffId, DOCTRINES.predator)).toBeGreaterThanOrEqual(hazardRating(diffId, DOCTRINES.glasscannon));
     }
   });
 

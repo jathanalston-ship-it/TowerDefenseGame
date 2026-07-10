@@ -6,6 +6,7 @@
 import { DEEP_STRAIN_STAGE, MODE_UNLOCKS } from '../core/config';
 import { CUTSCENES } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
+import type { DoctrineDef } from '../core/doctrines';
 import type { SaveData } from './saveStore';
 
 /** Highest Campaign stage cleared on ANY difficulty track — the player's furthest progress.
@@ -44,6 +45,17 @@ export function isDailyUnlocked(save: SaveData): boolean {
  *  opens the deep gene cards to the draft AND starts the Marrow Siphon's shards dropping. */
 export function isDeepStrainUnlocked(save: SaveData): boolean {
   return highestCampaignStage(save) >= DEEP_STRAIN_STAGE;
+}
+
+/** Doctrine unlock (docs/DOCTRINES.md §gates): each doctrine names its campaign stage. Accounts
+ *  that have ALREADY run a doctrine are grandfathered via the doctrineRuns ledger — a gate added
+ *  after the fact never takes an option away. */
+export function isDoctrineUnlocked(save: SaveData, def: DoctrineDef): boolean {
+  return (
+    def.unlockStage <= 0 ||
+    highestCampaignStage(save) >= def.unlockStage ||
+    (save.stats?.doctrineRuns?.[def.id] ?? 0) > 0
+  );
 }
 
 /** Cutscene unlock resolution (docs/CUTSCENES.md §unlocks) — DERIVED, never stored: megas by

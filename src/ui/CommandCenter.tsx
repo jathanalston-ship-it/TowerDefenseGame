@@ -16,7 +16,8 @@ import type { SaveData } from '../save/saveStore';
 import { audio } from '../audio/sound';
 import { PlayIcon } from './components/Icon';
 import { DIFFICULTIES } from '../core/difficulty';
-import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
+import { DOCTRINES } from '../core/doctrines';
+import { DoctrinePicker } from './components/DoctrinePicker';
 import { formatPower } from '../core/power';
 import { FEATURES } from '../core/features';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -193,6 +194,11 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
 /** Mission control — CONTINUE CAMPAIGN dominates; the primary decision of every visit. */
 function MissionControl({ view, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
   const { diff, stage, cleared, cfg, rec, ready, isMilestone, firstClearCore } = view.frontier;
+  // Doctrine commitment (docs/DOCTRINES.md): the field shows the pick; tapping it unfolds the
+  // shared picker (lock seals + rank pips) — no more blind dropdown on the campaign path.
+  const [doctrine, setDoctrine] = useState(doctrineRef.current || 'none');
+  const [docOpen, setDocOpen] = useState(false);
+  const docDef = DOCTRINES[doctrine] ?? DOCTRINES.none;
   const power = view.power;
   const objective = isMilestone
     ? 'Milestone stage — clearing it raises your Evolution Cap'
@@ -260,15 +266,26 @@ function MissionControl({ view, go, start, onStartCampaign, doctrineRef }: Widge
               {DIFFICULTIES[diff]?.name ?? 'Standard'} <small>· set in Campaign</small>
             </button>
           </div>
-          <label className="play-field">
+          <div className="play-field">
             <span className="play-field-k">Doctrine</span>
-            <select defaultValue={doctrineRef.current} onChange={(e) => (doctrineRef.current = e.target.value)}>
-              {DOCTRINE_IDS.map((id) => (
-                <option key={id} value={id} title={DOCTRINES[id].blurb}>{DOCTRINES[id].name}</option>
-              ))}
-            </select>
-          </label>
+            <button
+              className={`mc-doc-ro${doctrine !== 'none' ? ' has-doc' : ''}`}
+              onClick={() => setDocOpen((o) => !o)}
+              aria-expanded={docOpen}
+              title={docDef.blurb}
+            >
+              {docDef.icon} {docDef.name} <small>{docOpen ? '▴' : '▾'}</small>
+            </button>
+          </div>
         </div>
+        {docOpen && (
+          <DoctrinePicker
+            value={doctrine}
+            onChange={(id) => { setDoctrine(id); doctrineRef.current = id; setDocOpen(false); }}
+            difficultyId={diff}
+            compact
+          />
+        )}
       </div>
     </section>
   );

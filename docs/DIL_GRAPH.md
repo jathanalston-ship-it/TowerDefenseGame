@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 690 nodes · 1181 edges, built from the live
+> **The project's brain** (docs/DIL.md). 692 nodes · 1188 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,11 +18,11 @@
 
 ### Progression Index
 
-`system:campaign` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
+`system:campaign` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:directives` · `system:expeditions` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · `achievement:centurion` · …76 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · …77 more
 
 ### Power Score Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -89,6 +89,7 @@ graph LR
   system_meta_store["Meta Store & Save"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_bosses["Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_mega_bosses["Mega Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_doctrines["Doctrines"] -->|rewards| currency_gene_essence["Gene Essence"]
   system_campaign["Campaign"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_campaign["Campaign"] -->|rewards| currency_tower_shards["Tower Shards (✦)"]
   system_infinite["Infinite Mode"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
@@ -348,6 +349,9 @@ graph LR
   system_security["Game Action Security Layer"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_security["Game Action Security Layer"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
   system_biomes["Biomes"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_doctrines["Doctrines"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_doctrines["Doctrines"] -->|dependsOn| system_gene_cards["Gene Cards (draft + permanent evolution)"]
+  system_doctrines["Doctrines"] -->|dependsOn| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_website["Marketing Website"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_rendering["Rendering & VFX"] -->|dependsOn| system_engine["Sim Engine"]
@@ -448,6 +452,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `hero:revenant` — progression unlock requirement
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
+  - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
   - providedBy ← `system:campaign` — depth is the master unlock axis
   - providedBy ← `system:cutscenes` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
 
@@ -532,6 +537,7 @@ Per-hero permanent currency for hero Stars and unlocks.
 
 Levels Gene Archive cards and assembles/levels Mulligan modifiers.
 
+  - rewardedBy ← `system:doctrines` — essencePerWave protocols (Corrupted Genome / Overmind) pay at finishRun
   - consumedBy ← `system:gene-cards` — Archive leveling
   - consumedBy ← `system:mulligans` — modifier assembly + leveling
 
@@ -550,7 +556,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (63)
+## Systems (64)
 
 ### `system:engine` — Sim Engine
 
@@ -600,7 +606,7 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
   - requiredBy ← `system:gene-cards`
   - requiredBy ← `system:collection`
   - requiredBy ← `system:evolution-hq`
-  - _…14 more (query: `npm run dil -- node system:content-infra`)_
+  - _…15 more (query: `npm run dil -- node system:content-infra`)_
 
 ### `system:power` — Power Score
 
@@ -987,7 +993,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
 
 Between-wave drafts + the permanent Archive: Essence-funded levels, gates, loadouts, Ascension backend.
 
-_at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/core/geneEssence.ts, src/core/geneLoadout.ts, src/state/geneArchive.ts, src/ui/GeneArchive.tsx, src/ui/DraftModal.tsx, src/ui/cardAffects.tsx, src/ui/components/GeneCardArt.tsx, src/core/doctrines.ts_
+_at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/core/geneEssence.ts, src/core/geneLoadout.ts, src/state/geneArchive.ts, src/ui/GeneArchive.tsx, src/ui/DraftModal.tsx, src/ui/cardAffects.tsx, src/ui/components/GeneCardArt.tsx_
 
   - dependsOn → `system:content-infra`
   - dependsOn → `system:power`
@@ -1000,6 +1006,7 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/cor
   - consumes → `system:meta-store` — owns save field 'geneLoadout'
   - consumes → `currency:gene-essence` — Archive leveling
   - requiredBy ← `system:engine`
+  - requiredBy ← `system:doctrines`
   - taughtBy ← `tutorial:combat`
   - taughtBy ← `help:gene-cards`
   - taughtBy ← `help:gene-essence`
@@ -1010,7 +1017,6 @@ _at: src/core/cards.ts, src/core/geneCards.ts, src/core/geneUpgrades.ts, src/cor
   - documentedBy ← `doc:CARDS.md`
   - documentedBy ← `doc:GENE-AUDIT-REPORT.md`
   - documentedBy ← `guide:gene-cards`
-  - testedBy ← `test:src/core/cards.test.ts`
   - _…7 more (query: `npm run dil -- node system:gene-cards`)_
 
 ### `system:shards-economy` — Shards & Star Economy
@@ -1632,6 +1638,21 @@ _at: src/core/biomes.ts_
   - contains ← `biome:ossuary`
   - _…5 more (query: `npm run dil -- node system:biomes`)_
 
+### `system:doctrines` — Doctrines
+
+Exclusive run-start commitments in three families (build / world-warping protocol / PACT) with campaign unlock gates, mastery ranks over the doctrineWins/BestWave ledgers (+4%/rank run-end premium), and the shared family-grouped picker — adding a doctrine is one data row.
+
+_at: src/core/doctrines.ts, src/ui/components/DoctrinePicker.tsx_
+
+  - dependsOn → `system:content-infra`
+  - dependsOn → `system:gene-cards`
+  - dependsOn → `system:difficulty`
+  - rewards → `currency:gene-essence` — essencePerWave protocols (Corrupted Genome / Overmind) pay at finishRun
+  - dependsOn → `concept:progression-gates` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
+  - documentedBy ← `doc:DOCTRINES.md`
+  - documentedBy ← `doc:MODE-IDENTITY.md`
+  - testedBy ← `test:src/core/doctrines.test.ts`
+
 ### `system:difficulty` — Difficulty
 
 Difficulty variants + the Universal Difficulty Director — ONE composition layer for every scaling policy (threat curves, doctrine warps, stage folds, mode economy).
@@ -1645,6 +1666,7 @@ _at: src/core/difficulty.ts, src/core/difficultyDirector.ts_
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:infinite`
   - requiredBy ← `system:boss-rush`
+  - requiredBy ← `system:doctrines`
   - documentedBy ← `doc:DIFFICULTY.md`
   - documentedBy ← `doc:DIFFICULTY_DIRECTOR.md`
   - testedBy ← `test:src/core/difficulty.test.ts`
@@ -2652,7 +2674,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (154)
+## Documentation (155)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -2696,6 +2718,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:DIFFICULTY_DIRECTOR.md` — project documentation _(documents `system:difficulty`)_
 - `doc:DIL.md` — project documentation _(documents `system:dev-registry`)_
 - `doc:DIL_GRAPH.md` — project documentation
+- `doc:DOCTRINES.md` — project documentation _(documents `system:doctrines`)_
 - `doc:EA-DESIGN-AUDIT.md` — project documentation
 - `doc:ECONOMY.md` — project documentation _(documents `system:shards-economy`, documents `system:currencies`)_
 - `doc:ECONOMY_FORMULAS.md` — project documentation _(documents `system:currencies`)_
@@ -2852,7 +2875,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/difficultyEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/directives.test.ts` — automated validation _(tests `system:directives`)_
 - `test:src/core/director.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/core/doctrines.test.ts` — automated validation _(tests `system:gene-cards`)_
+- `test:src/core/doctrines.test.ts` — automated validation _(tests `system:doctrines`)_
 - `test:src/core/draftcadence.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/core/endlessTaper.test.ts` — automated validation _(tests `system:engine`)_
