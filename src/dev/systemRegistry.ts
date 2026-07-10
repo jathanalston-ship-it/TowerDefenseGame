@@ -359,6 +359,12 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/DIFFICULTY.md', 'docs/DIFFICULTY_DIRECTOR.md'],
   },
   {
+    id: 'website', name: 'Marketing Website', purpose: 'The public face at the domain root (the game app lives at /play/): a GENERATED static site — home, guides, data-driven encyclopedias, dev blog, git-derived patch notes, legal — built by scripts/gen-site.ts from site/* into committed public/ pages (drift-tested by site/gen.test.ts), with SEO/OG/JSON-LD on every page, labelled ad slots (set-ads), a complete sitemap and a living-background shell.',
+    files: ['src/net/replayShare.ts'],
+    dependsOn: ['content-infra'], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: [],
+    collection: null, achievements: [], localization: 'inline-en', docs: ['docs/WEBSITE.md', 'docs/DEPLOYMENT.md'],
+  },
+  {
     id: 'rendering', name: 'Rendering & VFX', purpose: 'Canvas2D battlefield, tower visual evolution, particles/vfx, theme, danger-camera state machine.',
     files: ['src/render/*', 'src/core/dangerCamera.ts'],
     dependsOn: ['engine'], powerScore: null, save: [], tutorial: [], help: [], hud: ['the battlefield itself'], ui: [],

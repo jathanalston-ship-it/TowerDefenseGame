@@ -1,0 +1,1525 @@
+[
+  {
+    "date": "2026-07-10",
+    "title": "Opening cinematic + tutorial overhaul + 5 more",
+    "categories": [
+      "Audio",
+      "Towers",
+      "Modes",
+      "Content",
+      "Visuals"
+    ],
+    "items": [
+      {
+        "cat": "Audio",
+        "text": "Opening cinematic + tutorial overhaul — a scored film that dives into the trial"
+      },
+      {
+        "cat": "Towers",
+        "text": "chore(site): stamp custom domain assimilationtowerdefense.com (robots/sitemap/canonical/OG)"
+      },
+      {
+        "cat": "Modes",
+        "text": "feat(expeditions): full overhaul — 7-mission board, affinity, risk tiers, rare finds, mastery"
+      },
+      {
+        "cat": "Content",
+        "text": "feat(liveops): full overhaul — schedule engine, richer calendar, LIVE OPERATIONS console"
+      },
+      {
+        "cat": "Content",
+        "text": "Assimilation Index future-proofing: every likely addition becomes a data row"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Living Battlefield v3 — vein network, infection field, dual-layer heartbeat bake, watching terrain"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "title": "Assimilation Index overhaul + 28 more",
+    "categories": [
+      "Content",
+      "Visuals",
+      "UI",
+      "Onboarding",
+      "Internal Framework",
+      "Website",
+      "Heroes",
+      "Progression",
+      "Bosses",
+      "Towers",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "Content",
+        "text": "Assimilation Index overhaul: zero-alloc group-normalized fold + the Ascension Moment"
+      },
+      {
+        "cat": "Content",
+        "text": "Infestation Map — full overhaul: living canvas territory map + mechanics depth"
+      },
+      {
+        "cat": "Visuals",
+        "text": "feat(mulligans): unify upgrade currency into Gene Essence + graft visual pass"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Living Battlefield — full overhaul: cached terraform layer + richer, map-consuming visuals"
+      },
+      {
+        "cat": "UI",
+        "text": "Mulligan presentation overhaul — the Lab joins the design language"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Living Battlefield — drive terrain stage from the canonical Assimilation Index"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Living Battlefield — the arena assimilates as a run deepens (render-only, golden-safe)"
+      },
+      {
+        "cat": "Content",
+        "text": "Assimilation Index — the run's master presentation state"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Init cutscene overhaul — full procedural canvas cinematics"
+      },
+      {
+        "cat": "Internal Framework",
+        "text": "chore: set governing law — Colorado, United States"
+      },
+      {
+        "cat": "Website",
+        "text": "chore: stamp assimilation.pages.dev as the live domain"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Equipment visuals — rotatable inspect turntable + full item history timeline"
+      },
+      {
+        "cat": "Internal Framework",
+        "text": "chore: bind the real D1 database id (assimilate-db)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Mulligan reconciliation — the parallel session's system is canonical; close its spec gaps"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Equipment visuals — deeper polish: inspect preview, Equip Codex, gear-sourced shots"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Equipment visuals — heroes wear their gear on the battlefield"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Equipment art — bespoke procedural item-card illustrations (no more placeholder icons)"
+      },
+      {
+        "cat": "UI",
+        "text": "Mulligan surfaces — earn loop, Mulligan Lab UI, achievements, dev tools"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Mulligan generators — procedural organism + animation + projectile (drawn on the battlefield)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Mulligan system — foundational framework (core + save + Power + fold + 30 modifiers)"
+      },
+      {
+        "cat": "Content",
+        "text": "Infestation Map: persistent sector-conquest meta + batch GAME-STATE record"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero Expeditions: the benched-roster idle lane"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Nemesis bosses + boss trophies"
+      },
+      {
+        "cat": "Towers",
+        "text": "Champion Contracts: weekly constraint runs + Gilded exclusives"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Phenotypes: the full cosmetics system (save v26)"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Gene Archive folders + viewport-true popups (portal fix)"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Beauty pass B: enemies, elites, bosses, mega-boss presence"
+      },
+      {
+        "cat": "Towers",
+        "text": "Beauty pass A: battlefield, nucleus, towers, projectiles + corrosive-field overhaul"
+      },
+      {
+        "cat": "Towers",
+        "text": "Two new towers: Spitfang Turret (easy gate) + Rift Anchor (deep gate)"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-08",
+    "title": "Shareable replays + 30 more",
+    "categories": [
+      "Content",
+      "Performance",
+      "Onboarding",
+      "Audio",
+      "Towers",
+      "Bug Fixes",
+      "Visuals",
+      "Heroes",
+      "Website",
+      "Saves",
+      "Documentation"
+    ],
+    "items": [
+      {
+        "cat": "Content",
+        "text": "Shareable replays: gzip share codes + links + self-verifying Replay Theater"
+      },
+      {
+        "cat": "Content",
+        "text": "Localization framework: typed t() core + EN/ES/PT beachhead"
+      },
+      {
+        "cat": "Content",
+        "text": "Rewarded-ads activation: repo-side complete (status audit + env.production wiring)"
+      },
+      {
+        "cat": "Content",
+        "text": "LiveOps calendar: deterministic UTC events + hub strip + reward folding"
+      },
+      {
+        "cat": "Performance",
+        "text": "Service worker: offline shell + versioned caches + update toast"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Register InitCutscene in the system registry (fixes the red suite from the last push)"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Initialization cutscene (first boot, replayable) + wave-launch breach transition"
+      },
+      {
+        "cat": "Audio",
+        "text": "Authored audio pass + Commander designation with auto cloud sync"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower AAA visual pass: full lighting model (gradients, bloom, rim, speculars)"
+      },
+      {
+        "cat": "Content",
+        "text": "Leaderboard replay verification (R1) + mobile pass with permanent enforcement"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower overhaul: procedural turrets, firing animation, sounds, comet projectiles"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Release-candidate pass: 12-phase audit, two player-facing fixes, RC report"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Cinema trailer v2, Hi-DPI battlefield + directed screenshots, one-command secrets"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Assimilation death gore + unique per-archetype birth intros"
+      },
+      {
+        "cat": "Audio",
+        "text": "Enemy AV pass: lifecycle animation + per-archetype death sounds"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Enemy visual overhaul: 12 procedural creature body-forms"
+      },
+      {
+        "cat": "Performance",
+        "text": "Campaign events: the authoring seam (elite-rush / gauntlet / cache / mutation)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero ability forks (★5/★8): A/B reworks of unlocked abilities"
+      },
+      {
+        "cat": "Content",
+        "text": "Trailer, ad wiring, and one-command DB setup — operator work approaches zero"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Give heroes real ability kits — star-gated auto-cast skills (fix the one-verb problem)"
+      },
+      {
+        "cat": "Content",
+        "text": "Release simplification: everything automatable is done — operator work is minimal"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Pool equipment set pieces team-wide so the 4-piece tier comes online"
+      },
+      {
+        "cat": "Website",
+        "text": "Public-release package: marketing site, PWA branding, Field Research lane, analytics"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Add status VFX for the Mark & Resonance stacks"
+      },
+      {
+        "cat": "Saves",
+        "text": "chore: sync package-lock with the added @cloudflare/workers-types dep"
+      },
+      {
+        "cat": "Content",
+        "text": "Complete the reaction matrix: wire Vital (Mark) + Resonant (Resonance)"
+      },
+      {
+        "cat": "Documentation",
+        "text": "Security review pass: token-auth the receipts endpoint + close-out docs"
+      },
+      {
+        "cat": "Saves",
+        "text": "Production deployment: Cloudflare Pages Functions backend + Stripe Checkout store"
+      },
+      {
+        "cat": "Heroes",
+        "text": "fix(equipment): route global gear + SET bonuses to the board in multi-hero runs"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Add 13 equipment sets (3 → 16) — one build-enabler per class/playstyle"
+      },
+      {
+        "cat": "Heroes",
+        "text": "fix(hero): Vitriol earns Hero Shards for Stars like the rest of the roster"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-07",
+    "title": "Batch-3 close-out + 22 more",
+    "categories": [
+      "Documentation",
+      "Bosses",
+      "Performance",
+      "Towers",
+      "Modes",
+      "UI",
+      "Audio",
+      "Heroes",
+      "Progression",
+      "Balance",
+      "Content"
+    ],
+    "items": [
+      {
+        "cat": "Documentation",
+        "text": "Batch-3 close-out: validation PASS, dependency graph, session handoff docs"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss visual distinction overhaul — chassis body plans + authored palettes"
+      },
+      {
+        "cat": "Performance",
+        "text": "Expansion III gene pool: Spire/Polyp signature sets + six fresh-gated cards"
+      },
+      {
+        "cat": "Towers",
+        "text": "Batch-3 core content: 2 biomes, Act-3 boss line, 2 megas, Spire + Polyp towers"
+      },
+      {
+        "cat": "Modes",
+        "text": "Add 5 Deep-Fauna enemies (role fusions) — integrated across all modes + Bestiary"
+      },
+      {
+        "cat": "UI",
+        "text": "Add 10 content-tied achievements + sync docs/codex with recent content"
+      },
+      {
+        "cat": "Audio",
+        "text": "feat(cards): add 5 gated gene cards on fresh scored axes (Expansion II)"
+      },
+      {
+        "cat": "Towers",
+        "text": "Content expansion: Blight Sower tower, Ossira mega, 3 enemies, gated Genome tier"
+      },
+      {
+        "cat": "Towers",
+        "text": "Differentiate the two beam towers — Siphon becomes a harvester, not a Coil clone"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Add Revenant — a Viral phase-assassin hero, uniquely gated on Infinite Depth"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Add Mega Bosses — battlefield-scale raid organisms with modular weak points"
+      },
+      {
+        "cat": "Towers",
+        "text": "Add Marrow Siphon tower (beam mechanic) + Deep-Strain gene set behind a Stage-15 gate"
+      },
+      {
+        "cat": "Heroes",
+        "text": "fix(premium): capped equipment grants can no longer leak Exotic gear"
+      },
+      {
+        "cat": "UI",
+        "text": "feat(enemies): add Cyst Wraith (fly+regen) and Cinder Sapper (burrow+suicide)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Add 5 behavioral progression-gated Gene Cards on the unlock framework"
+      },
+      {
+        "cat": "Progression",
+        "text": "Add 10 expansion gene cards (5 ungated + 5 uniquely gated) with upgrades"
+      },
+      {
+        "cat": "Balance",
+        "text": "Add 30 capped Genome-Core meta upgrades (balanced) + wire heroHealingMult"
+      },
+      {
+        "cat": "Towers",
+        "text": "Add Resonance Coil tower (beam melter) + 7 progression-gated gene cards"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(cards): add Carrion Bloom — a new Epic economy gene card, fully wired"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(hero): Vitriol — Caustic siege hero (milestone-gated area-denial)"
+      },
+      {
+        "cat": "Content",
+        "text": "feat(biomes): add Molten Verge + Tempest Reach — integrated across all four pillars"
+      },
+      {
+        "cat": "Documentation",
+        "text": "feat(premium): Premium Store — ethical monetization as pure data (docs/PREMIUM-STORE.md)"
+      },
+      {
+        "cat": "Modes",
+        "text": "feat(daily): Daily Run — one seed, one world, the fourth pillar (docs/DAILY-RUN.md)"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-06",
+    "title": "Gate 2nd campaign cache on a flawless (no-damage) first clear + 3 more",
+    "categories": [
+      "Balance",
+      "Heroes"
+    ],
+    "items": [
+      {
+        "cat": "Balance",
+        "text": "Gate 2nd campaign cache on a flawless (no-damage) first clear"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Strain verb audit + hero visual evolution, exotic market card, quick-salvage"
+      },
+      {
+        "cat": "Balance",
+        "text": "Late-game Infinite rebalance: pace over sponge, durable deep bosses, reward taper"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Sim/feel fixes: last-enemy targeting, mortar deadzone, hero auto-cast, shake cap, speed-safe prep"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-05",
+    "title": "Campaign-gate the secondary pillars + 15 more",
+    "categories": [
+      "Bosses",
+      "Content",
+      "Towers",
+      "Heroes"
+    ],
+    "items": [
+      {
+        "cat": "Bosses",
+        "text": "Campaign-gate the secondary pillars: Infinite at Stage 3, Boss Rush at Stage 10"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Session handoff: Boss Rush saga status boards"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Bio-Roulette: the Boss Rush-exclusive second reward ceremony"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss Rush stamina + lifetime-record Ichor/container bands"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss Rush mode: the third pillar — wave N = N bosses, paid per kill"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Boss siege behaviors + four-phase mutation arcs (P1 of the boss saga)"
+      },
+      {
+        "cat": "Content",
+        "text": "Overhaul the favicon: the infected-cell mark replaces the flat pink dot"
+      },
+      {
+        "cat": "Content",
+        "text": "Splice Market + Ichor: refreshing store and the premium currency loop"
+      },
+      {
+        "cat": "Content",
+        "text": "Evolution HQ overhaul + uncapped Runaway mutation per category"
+      },
+      {
+        "cat": "Towers",
+        "text": "Fix Live Army + organism organs showing dormant strains as owned"
+      },
+      {
+        "cat": "Content",
+        "text": "Escalate the hatching: beat-synced egg, heavier rupture, rarity theater"
+      },
+      {
+        "cat": "Content",
+        "text": "Redo Bio-Container opening as a four-act diegetic hatching"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Fix: GEARING chip onto the type scale (uiStandards guard)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Armory: Current Loadouts cards for every fielded hero"
+      },
+      {
+        "cat": "Content",
+        "text": "Conveyor anti-farm: free instant gift organism, growth only under fire"
+      },
+      {
+        "cat": "Content",
+        "text": "Expansion trio locked for new profiles: shard synthesis into the conveyor"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-04",
+    "title": "Session handoff + 12 more",
+    "categories": [
+      "Content",
+      "Bug Fixes",
+      "Towers",
+      "Modes"
+    ],
+    "items": [
+      {
+        "cat": "Content",
+        "text": "Session handoff: AI_HANDOFF filled, PROJECT_STATUS board updated"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Expansion validation: contracts, probes, and two framework fixes"
+      },
+      {
+        "cat": "Towers",
+        "text": "Expansion towers meta layer: cards, affixes, sounds, subjects, docs"
+      },
+      {
+        "cat": "Towers",
+        "text": "Three new towers: Carrion Maw, Amber Chrysalis, Wailing Effigy (core + progression)"
+      },
+      {
+        "cat": "Towers",
+        "text": "Strain integration long-tail: lifetime ledgers, achievements, tutorial nod"
+      },
+      {
+        "cat": "Towers",
+        "text": "Strain economy validated: gentler merge escalator + PROMPT-8 report"
+      },
+      {
+        "cat": "Towers",
+        "text": "Strain polish + integration: ceremony feel, Results trophy, help entries"
+      },
+      {
+        "cat": "Towers",
+        "text": "Biomorph Conveyor: favorite tower, living queue, merge + universal economy"
+      },
+      {
+        "cat": "Towers",
+        "text": "Strain ladders complete: 20 evolutions, 16 unique verbs across all towers"
+      },
+      {
+        "cat": "Towers",
+        "text": "Strain verbs: kill-chaining needles + concussive mortar stagger"
+      },
+      {
+        "cat": "Towers",
+        "text": "Strain framework: the in-run tower evolution layer (I-V)"
+      },
+      {
+        "cat": "Content",
+        "text": "Hive Siege: enemies attack the Core instead of crossing a line"
+      },
+      {
+        "cat": "Modes",
+        "text": "Calibrate early-campaign difficulty to the power contract"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-03",
+    "title": "Fix zone flicker + 9 more",
+    "categories": [
+      "Bug Fixes",
+      "Bosses",
+      "Visuals",
+      "Onboarding",
+      "Content",
+      "Balance"
+    ],
+    "items": [
+      {
+        "cat": "Bug Fixes",
+        "text": "Fix zone flicker: banners overlay instead of resizing the bar; no danger zoom"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Game-feel pass: wave/boss spectacle, crit pops, rooting placement, draft juice"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Combat HUD premium redesign: phase-reactive skin, zones, focal Start Wave"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Tutorial follow-through: anchor guard, mobile-shell layout, status board"
+      },
+      {
+        "cat": "Content",
+        "text": "Session handoff record"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Tutorial overhaul: gated lessons, anchored Field Orientation, milestone rewards"
+      },
+      {
+        "cat": "Content",
+        "text": "Danger Camera: hysteresis state machine kills the zone-edge throbbing"
+      },
+      {
+        "cat": "Balance",
+        "text": "Regenerate BALANCE_REPORT with shipped-state diagnoses (26 → 9 signals)"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Amendment follow-through: shipped-state diagnoses, audit-noise fix, results"
+      },
+      {
+        "cat": "Balance",
+        "text": "Balance report amendments: consolation, readiness UI, deep ladder, detectors"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-02",
+    "title": "Wave Briefing console + 25 more",
+    "categories": [
+      "Content",
+      "Visuals",
+      "Bosses",
+      "Balance",
+      "Internal Framework",
+      "Towers",
+      "Saves",
+      "Modes",
+      "UI",
+      "Heroes",
+      "Progression",
+      "Bug Fixes",
+      "Audio",
+      "Documentation"
+    ],
+    "items": [
+      {
+        "cat": "Content",
+        "text": "Wave Briefing console: the prep popup becomes threat intel + session handoff"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Deployment interstitial: a mode-aware breath between menu and battlefield"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Enemy/boss battlefield revamp: role visuals everywhere + real artillery shells"
+      },
+      {
+        "cat": "Balance",
+        "text": "Permanent simulation framework: personas, dopamine ledger, BALANCE_REPORT"
+      },
+      {
+        "cat": "Internal Framework",
+        "text": "Command Center: living bio-organic home with registry-driven widgets"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower Adaptation/Antigen: per-tower trees, capped economy, lab UI, FORM stages"
+      },
+      {
+        "cat": "Saves",
+        "text": "Player Profile: registry-driven account dashboard (save v22)"
+      },
+      {
+        "cat": "Balance",
+        "text": "Balance tuning pass: molt milestone gate + first-clear trim (simulated)"
+      },
+      {
+        "cat": "Balance",
+        "text": "Balance audit capstone: validation PASS + session handoff"
+      },
+      {
+        "cat": "Balance",
+        "text": "Progression simulator + adaptive economy framework + balance docs"
+      },
+      {
+        "cat": "Modes",
+        "text": "Progression loop engine: enforce + surface the Campaign-Infinite loop"
+      },
+      {
+        "cat": "Content",
+        "text": "Universal Difficulty Director: one composition layer for all scaling"
+      },
+      {
+        "cat": "UI",
+        "text": "Rebuild the Bio-Container meter: truthful fill, reset, earn ceremony"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Badge first-discovery equipment as NEW in container reveals"
+      },
+      {
+        "cat": "UI",
+        "text": "Staged Bio-Container openings: energy build-up, fast mode, legendary light"
+      },
+      {
+        "cat": "Progression",
+        "text": "Genetic Vault: premium vault objects, drop rates, multi-open, ledger"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Gameplay Speed: 1x/2x/5x fixed-step simulation control with auto-slow"
+      },
+      {
+        "cat": "Modes",
+        "text": "Doctrine protocols + the Infinite survival-experiment terminal"
+      },
+      {
+        "cat": "Modes",
+        "text": "Campaign roadmap: gate jumps, goal rail, premium mission card, clear records"
+      },
+      {
+        "cat": "Audio",
+        "text": "Run Build overhaul, console auto-pause, split audio toggles, premium pause menu"
+      },
+      {
+        "cat": "Documentation",
+        "text": "docs: reconcile the status board (shipped milestones, test count)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero Combat Console: the in-run hero menu becomes a command surface"
+      },
+      {
+        "cat": "UI",
+        "text": "Multi-platform responsive framework: one codebase, every screen adapts"
+      },
+      {
+        "cat": "Progression",
+        "text": "Live Mastery experience: watch the craft grow, celebrate every level"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower Lab redesign: specimen rail + mutation-chamber showcase"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Visual identity audit + unification: one game, one studio, one voice"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-01",
+    "title": "docs + 69 more",
+    "categories": [
+      "Documentation",
+      "UI",
+      "Content",
+      "Audio",
+      "Heroes",
+      "Internal Framework",
+      "Progression",
+      "Onboarding",
+      "Modes",
+      "Visuals",
+      "Bug Fixes",
+      "Performance",
+      "Bosses",
+      "Towers",
+      "Balance"
+    ],
+    "items": [
+      {
+        "cat": "Documentation",
+        "text": "docs: refresh session state board, handoff, and validation report"
+      },
+      {
+        "cat": "UI",
+        "text": "Redesign the gameplay HUD: vital hierarchy, glass styling, responsive scale"
+      },
+      {
+        "cat": "Content",
+        "text": "Command Center redesign: living background, vitals dashboard, premium feel"
+      },
+      {
+        "cat": "Audio",
+        "text": "Music engine: a real soundtrack (composition core + adaptive manager), six categories"
+      },
+      {
+        "cat": "Audio",
+        "text": "Power Score feel: gain toasts with sources, rolling badge, chime, previews everywhere"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Power audit: fix Branch + Hero Slot bypass bugs, runtime validator, full report"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Fix clipped Details button on equipment cards"
+      },
+      {
+        "cat": "UI",
+        "text": "Governance + UI design system: constitution, AI handoff framework, standards + enforcement"
+      },
+      {
+        "cat": "Documentation",
+        "text": "Automation core: dependency registry + doc-sync enforcement + regression-audit pipeline"
+      },
+      {
+        "cat": "Documentation",
+        "text": "Engineering audit report + PROJECT_MANIFEST.md (the single source of truth)"
+      },
+      {
+        "cat": "Internal Framework",
+        "text": "Engineering audit refactors: one implementation per concept (zero behavior change)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Task 12: final audit + 100/250/500-card stress test + closing report"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Gene Task 11: onboarding + docs — new players learn the Gene system naturally"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Task 10: Ascension backend — complete architecture, zero gameplay"
+      },
+      {
+        "cat": "Modes",
+        "text": "Gene Task 9: Power integration audit — calibrate scale, prevent bypass, real-model previews"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Archive: search, sort, favorites, pinning, keyboard nav (Task 8)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Starting Gene Loadouts — permanent run-start genes, 1–5 slots (Task 7)"
+      },
+      {
+        "cat": "Modes",
+        "text": "Campaign-gated gene levels: surface the next unlock everywhere (Task 6)"
+      },
+      {
+        "cat": "UI",
+        "text": "Gene Archive — the permanent collection screen + campaign gate spine (Task 5)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Cards: permanent upgrade levels for EVERY card (Task 4)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Essence container drops + economy audit (Task 3)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Essence currency + duplicate-shard conversion (Task 2)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Gene Cards: permanent-progression architecture (Task 1, no upgrades yet)"
+      },
+      {
+        "cat": "Audio",
+        "text": "Show a live run Power Score in the HUD"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Add Hero Evolution — an in-run Biomass sink for the hero roster"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Extend the Hero Selection Panel to the full stat readout"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "fix(loot): container reveal showed mirrored text + never revealed the reward"
+      },
+      {
+        "cat": "Performance",
+        "text": "Gate Stage Cache rewards by run outcome / Infinite depth"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(hero): in-run hero selection — click a hero to inspect it (non-modal, future-proof)"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Fix Auto Wave to stay armed-but-inactive until first placement/wave"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "fix(waves): enemy counts always display (and spawn) whole integers"
+      },
+      {
+        "cat": "Documentation",
+        "text": "docs: reconcile docs to current game state + add GAME-STATE / BACKLOG"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(equipment): destruction safeguards + Undo Salvage"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(equipment): simplify item cards + a dedicated Details screen"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(loot): crafting materials from Genetic Vaults — scaled + pity-protected"
+      },
+      {
+        "cat": "UI",
+        "text": "fix(ui): hide unbuilt \"Soon\" menu tiles behind a feature flag"
+      },
+      {
+        "cat": "Bosses",
+        "text": "feat(boss): Milestone-1 boss line + the module spine that teaches"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(progression): Mastery → Adaptation — turn the mastery hum into a decision"
+      },
+      {
+        "cat": "UI",
+        "text": "docs: COLLECTION.md — the Codex progression system"
+      },
+      {
+        "cat": "UI",
+        "text": "feat(collection): Codex progression UI — ranks, reward tracks, bonuses, celebration"
+      },
+      {
+        "cat": "Modes",
+        "text": "feat(collection): permanent progression model — completion, ranks, bonuses, Power"
+      },
+      {
+        "cat": "Audio",
+        "text": "refactor(power): purge legacy ×multiplier remnants; unify + guarantee Power Score"
+      },
+      {
+        "cat": "Towers",
+        "text": "Identity step 2: currency rename — Strain Samples / Apex Genome"
+      },
+      {
+        "cat": "Content",
+        "text": "Identity pass step 1: LEXICON + ★→◈ Evolutions + assimilated rarity grades"
+      },
+      {
+        "cat": "Modes",
+        "text": "Anticipation engine: Next-Goal read-model + Home NEXT banner + Results cliffhanger"
+      },
+      {
+        "cat": "Modes",
+        "text": "feat(runs): Run Identity — every Campaign/Endless run develops a memorable identity"
+      },
+      {
+        "cat": "Documentation",
+        "text": "docs: content-production audit (AUTHORING) + production plan (CONTENT-ROADMAP)"
+      },
+      {
+        "cat": "Bosses",
+        "text": "docs: ASSIMILATE identity + boss + progression + anticipation design pass"
+      },
+      {
+        "cat": "Documentation",
+        "text": "docs: Early-Access design audit (no-code AAA consultation, Top-100 issues)"
+      },
+      {
+        "cat": "Audio",
+        "text": "Power Score coverage — engine-level enforcement (no strength content escapes Power)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Equipment Power comparison (▲/▼/=) across inventory, Compare, and the Vault"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero Collection unlock + power-scaled equipment acquisition"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Genetic Vault: fullscreen cinematic reveal + honest pull count"
+      },
+      {
+        "cat": "UI",
+        "text": "Help system: living wiki + first-launch HUD Tour + \"What's New?\" unlocks"
+      },
+      {
+        "cat": "Modes",
+        "text": "Progress Prediction: self-calibrating campaign/infinite estimates"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Combat Tutorial: 10 authored lessons over a live game + idempotent rewards"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Part E: redesign Evolution tab into a progression headquarters"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Part F: expand permanent progression (16 genome + 6 ascendant upgrades)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Part C: animated loot-fill toast (queued, rarity-glow, non-interrupting)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Part B+D: campaign-gate hero slots + prestige, with unlock cinematic"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Tutorial presentation systems + runner + wiring (Tutorial §M/§N)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Part A: per-hero equipment loadouts for multi-hero rosters"
+      },
+      {
+        "cat": "Onboarding",
+        "text": "Tutorial framework: architecture doc + pure core + persistence (Tutorial §L)"
+      },
+      {
+        "cat": "Balance",
+        "text": "Economic rebalance via comprehensive difficulty presets + per-mode selection (§J)"
+      },
+      {
+        "cat": "UI",
+        "text": "chore(ui): drop obsolete debug section; mark locked affixes on item cards"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero Slot progression: implement the 1 → 2 → 3 roster (audit found it missing)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(equipment): Reforge system — improve existing gear, no recipes (Part 2)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Progression-aware loot: catch-up weighting + dupe protection (Loot §I)"
+      },
+      {
+        "cat": "Audio",
+        "text": "Power Score UI: animated badge + upgrade deltas (Power Score §H)"
+      },
+      {
+        "cat": "Audio",
+        "text": "Universal Power Score foundation + formula doc (Power Score §G)"
+      }
+    ]
+  },
+  {
+    "date": "2026-06-30",
+    "title": "Hub Phase 2+3 + 15 more",
+    "categories": [
+      "Content",
+      "Progression",
+      "Heroes",
+      "Visuals",
+      "UI",
+      "Saves",
+      "Towers",
+      "Modes"
+    ],
+    "items": [
+      {
+        "cat": "Content",
+        "text": "Hub Phase 2+3: interaction polish + evolving Home Base"
+      },
+      {
+        "cat": "Progression",
+        "text": "Hub Phase 1: grouped nav sidebar (Play/Progression/Collection/Account)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(heroes): data-driven Hero identity framework + role-aware AI (Part 1)"
+      },
+      {
+        "cat": "Content",
+        "text": "Reward Preview system — advertise likely earnings everywhere (Home redesign §F)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Living-laboratory atmosphere behind the headquarters (Home redesign §E)"
+      },
+      {
+        "cat": "Content",
+        "text": "Make the Home dashboard dynamic + advertise the next reward (Home redesign §D)"
+      },
+      {
+        "cat": "UI",
+        "text": "Add Living Progress dashboard to the Home screen (Home redesign §C)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Redesign Home into Mission Control: Continue Campaign hero (Home redesign §B)"
+      },
+      {
+        "cat": "Saves",
+        "text": "feat(dev): Developer Reset utility — granular, typed-confirm save resets"
+      },
+      {
+        "cat": "Towers",
+        "text": "Branch Visual Evolution: every tier mutates all seven senses"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(towers): Evolution Codex (preview every stage) + Campaign Evolution-Tier unlocks"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat: star-driven Tower Visual Evolution — towers visibly mutate as they evolve"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat: Campaign Evolution Cap — gate Tower Star tiers by Campaign progress"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(towers): in-run Tower Sell + Relocate, and a faster Build-Phase flow"
+      },
+      {
+        "cat": "Modes",
+        "text": "Campaign world map: a living descent into the infected planet"
+      },
+      {
+        "cat": "Modes",
+        "text": "Redistribute rewards by mode: Campaign currency, Infinite loot/mastery"
+      }
+    ]
+  },
+  {
+    "date": "2026-06-29",
+    "title": "feat(biomes) + 15 more",
+    "categories": [
+      "Modes",
+      "Balance",
+      "UI",
+      "Towers",
+      "Visuals",
+      "Heroes",
+      "Content",
+      "Saves"
+    ],
+    "items": [
+      {
+        "cat": "Modes",
+        "text": "feat(biomes): make biomes mechanical across Campaign + Infinite mode"
+      },
+      {
+        "cat": "Balance",
+        "text": "Rebalance Infinite mode: cap enemy density, make HP the wall"
+      },
+      {
+        "cat": "Modes",
+        "text": "feat: depth-scaled Gene Card cadence for Infinite mode"
+      },
+      {
+        "cat": "Modes",
+        "text": "feat(campaign): procedural, deterministic Campaign framework"
+      },
+      {
+        "cat": "Balance",
+        "text": "Rebalance Tower-Shard star economy + audit Hero Shards + shard reward sounds"
+      },
+      {
+        "cat": "UI",
+        "text": "feat: Abandon Run from the pause menu — forfeit all rewards to the main menu"
+      },
+      {
+        "cat": "Towers",
+        "text": "fix(in-game): center the branch-commit popup + add an in-game pause (hotkey + button)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Add per-currency visual identity (icon, color, glow, motion, pickup)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat: redesign Hero Equipment as a collectible Armory + hero power viz"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat: redesign Hero Lab as a Champion Select with a dedicated hero page"
+      },
+      {
+        "cat": "Content",
+        "text": "Route merged RewardReveal achievement reward through Genome Cores"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(tower-lab): redesign as a collection of evolving organisms + star ceremony"
+      },
+      {
+        "cat": "Saves",
+        "text": "Rename account currency to Genome Cores + add currency framework"
+      },
+      {
+        "cat": "Content",
+        "text": "polish: numbered notification badges, reduced-motion tooltip, vault low-loot note"
+      },
+      {
+        "cat": "UI",
+        "text": "Tone down per-hit screen shake to 1/5 (it was far too aggressive)"
+      },
+      {
+        "cat": "UI",
+        "text": "feat(results): redesign End-of-Run screen as a paced progression capsule"
+      }
+    ]
+  },
+  {
+    "date": "2026-06-28",
+    "title": "feat(cards) + 35 more",
+    "categories": [
+      "Heroes",
+      "Documentation",
+      "Bug Fixes",
+      "Performance",
+      "Progression",
+      "Content",
+      "UI",
+      "Towers",
+      "Visuals",
+      "Balance"
+    ],
+    "items": [
+      {
+        "cat": "Heroes",
+        "text": "feat(cards): Gene Card \"what it affects\" badge — tower / HERO / GLOBAL / ECONOMY / HIVE"
+      },
+      {
+        "cat": "Documentation",
+        "text": "docs: correct stale reduced-motion note in NOTIFICATIONS.md"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "fix(loot): reward summary no longer auto-dismisses; explicit player controls"
+      },
+      {
+        "cat": "Performance",
+        "text": "fix: give Run Cache a distinct color/design from Legendary containers"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat: full bio-container breakdown in the End-of-Run Genetic Vault summary"
+      },
+      {
+        "cat": "Content",
+        "text": "Redesign the gameplay → End-of-Run Summary transition (emotional outro)"
+      },
+      {
+        "cat": "Content",
+        "text": "Redesign End-of-Run Summary: inline achievements, no floating overlap"
+      },
+      {
+        "cat": "UI",
+        "text": "feat: global menu notification badge system"
+      },
+      {
+        "cat": "UI",
+        "text": "UI feel overhaul: a consistent menu/chrome motion language"
+      },
+      {
+        "cat": "Towers",
+        "text": "Make branch-tier purchases feel important — the mutation MOMENT"
+      },
+      {
+        "cat": "Content",
+        "text": "polish: tighten gameplay interaction responsiveness + accidental-click guards"
+      },
+      {
+        "cat": "Progression",
+        "text": "Co-locate the Auto Gene toggle with Auto Wave for semi-idle play"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat: Auto Gene Selection — countdown auto-draft of the PICK card"
+      },
+      {
+        "cat": "Towers",
+        "text": "Data-driven tower visual evolution — every tier visibly mutates"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Settle the battlefield between Combat and Build phases"
+      },
+      {
+        "cat": "Towers",
+        "text": "fix(inspect): route occupied-slot clicks to tower inspection"
+      },
+      {
+        "cat": "Towers",
+        "text": "Align tower-placement hit lattice with the symmetric battlefield"
+      },
+      {
+        "cat": "Towers",
+        "text": "Redesign the Tower Inspect panel around the mutation upgrade tree"
+      },
+      {
+        "cat": "Towers",
+        "text": "docs: record the tower-branch sensory layer (TOWER-BRANCHES §9)"
+      },
+      {
+        "cat": "Towers",
+        "text": "Renderer smoke test: drive all 10 branches (tier 5) through drawGame"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower-branch sensory mutations: Neural Obelisk"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower-branch sensory mutations: Parasite Nest"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower-branch sensory mutations: Flesh Reactor"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower-branch sensory mutations: Bone Mortar"
+      },
+      {
+        "cat": "Towers",
+        "text": "Tower-branch sensory mutations: framework + Needle Spitter"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(slots): permanent + temporary tower-slot progression"
+      },
+      {
+        "cat": "UI",
+        "text": "ui: eliminate Build-Phase layout shift with top-center overlay"
+      },
+      {
+        "cat": "Balance",
+        "text": "balance(economy): calibrate the in-run Biomass curve (build → branch sink) + document it"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(towers): Tower Branching — per-instance Biomass upgrade paths (Bloons-style)"
+      },
+      {
+        "cat": "Performance",
+        "text": "Defer the run-end cache to the Vault too — all loot opens in one place"
+      },
+      {
+        "cat": "Progression",
+        "text": "Genetic Vault: manual click-to-crack containers (defer loot opening)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "fix(enemy): artillery must commit downlane before bombarding (no spawn-edge sniping)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Redesign the inter-run hub into a headquarters menu system"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(loot): premium card-reveal opening ceremony (NBA-2K-style anticipation)"
+      },
+      {
+        "cat": "Content",
+        "text": "Bank loot live into the meta queue during a run"
+      },
+      {
+        "cat": "Content",
+        "text": "Richer minion feedback: spawn pop, draining HP bar, hit-flash, low-HP urgency"
+      }
+    ]
+  },
+  {
+    "date": "2026-06-27",
+    "title": "Minions become body-blockers + 26 more",
+    "categories": [
+      "Balance",
+      "Progression",
+      "Heroes",
+      "Bug Fixes",
+      "Visuals",
+      "Bosses",
+      "Audio",
+      "Towers",
+      "UI",
+      "Content"
+    ],
+    "items": [
+      {
+        "cat": "Balance",
+        "text": "Minions become body-blockers: HP + enemy contact damage (the summon future hook)"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(cards): gene card framework (4 rarities, data-driven weights, categories) + 30 cards"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Make the `summon` ability primitive live: friendly-unit system (Shepherd Bloom Wisps)"
+      },
+      {
+        "cat": "Balance",
+        "text": "Make the `buff` ability primitive live: timed run-wide buffs (Overseer Mass Override)"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "fix(loot): live meter cycles through boxes instead of capping"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(equipment): ~100 behavioral items + a 6-axis verb vocabulary"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Surface the Shepherd Bloom shield in the HUD + pin it with tests"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(reactor): true support radius + \"+support radius\" mastery"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(hero): Shepherd Bloom grants an absorb-shield (the grantShield primitive goes live)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "feat(render): class-aware range visualization + identity-range upgrades"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Wire the reserved boss modules: charger (dash) + suppressor"
+      },
+      {
+        "cat": "Audio",
+        "text": "feat(progression): Power Score + docs accuracy pass"
+      },
+      {
+        "cat": "Towers",
+        "text": "Auto-start: longer setup window on the first tower of the opening prep"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(prestige): Ascendant Tree — spendable cells (completes MOLT)"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Implement the auto-wave-start system"
+      },
+      {
+        "cat": "Progression",
+        "text": "feat(prestige): Layer 1 — MOLT (the first ascension)"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Collection: track framework bosses in the Bestiary (Every Boss)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "fix(equipment): status-on-hit weapon grant works for pulse heroes too"
+      },
+      {
+        "cat": "UI",
+        "text": "Surface difficulty + doctrine pickers on the menu"
+      },
+      {
+        "cat": "Heroes",
+        "text": "feat(mastery): hero mastery-rank cosmetic halo (in-game)"
+      },
+      {
+        "cat": "Content",
+        "text": "feat(ability): wire the reserved Pierce component to the projectile system"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(towers): range identity + Final Defense Zone emergency targeting"
+      },
+      {
+        "cat": "Content",
+        "text": "Expand the enemy roster to ~30 archetypes across 12 roles"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(mastery): in-game cosmetic visual mutations (veteran tower halo)"
+      },
+      {
+        "cat": "Towers",
+        "text": "feat(progression): mastery milestone perks + reactor economy star path"
+      },
+      {
+        "cat": "Content",
+        "text": "feat(effects): unified grant/set/hook language — weapons/relics/armor light up"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Visual reward spectacle: boss kill, flawless wave, stage clear (no audio)"
+      }
+    ]
+  }
+]

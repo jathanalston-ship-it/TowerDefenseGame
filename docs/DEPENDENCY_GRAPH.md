@@ -129,6 +129,7 @@ graph TD
   mega_bosses --> bosses
   biomes --> content_infra
   difficulty --> content_infra
+  website --> content_infra
   rendering --> engine
   living_battlefield --> rendering
   living_battlefield --> engine
@@ -143,7 +144,7 @@ graph TD
 | System | Depends on | Consumers (break first) | Power Score | Save fields | Docs |
 |---|---|---|---|---|---|
 | **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation` | `campaign` · `infinite` · `boss-rush` · `daily` · `heroes` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `rendering` · `living-battlefield` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
-| **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `difficulty` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
+| **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `difficulty` · `website` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
 | **Power Score** (`power`) | `content-infra` | `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `profile` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
@@ -187,6 +188,7 @@ graph TD
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | — | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` · `boss-rush` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
+| **Marketing Website** (`website`) | `content-infra` | — | — | — | `docs/WEBSITE.md` · `docs/DEPLOYMENT.md` |
 | **Rendering & VFX** (`rendering`) | `engine` | `living-battlefield` | — | — | `docs/RENDER-PIPELINE.md` · `docs/TOWER-VISUAL-EVOLUTION.md` · `docs/GAME-FEEL.md` · `docs/CAMERA.md` |
 | **Living Battlefield** (`living-battlefield`) | `rendering` · `engine` · `audio` · `assimilation` | — | — | — | `docs/LIVING-BATTLEFIELD.md` |
 | **Audio** (`audio`) | — | `living-battlefield` | — | — | `docs/GAME-FEEL.md` |
@@ -218,14 +220,14 @@ graph TD
 
 - **Files:** `src/core/registry.ts` · `src/core/validate.ts` · `src/core/config.ts` · `src/core/types.ts` · `src/core/math.ts` · `src/core/rng.ts` · `src/core/spatial.ts` · `src/core/features.ts` · `src/vite-env.d.ts`
 - **Depends on:** —
-- **Consumers — what breaks if you change this:** `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `difficulty`
+- **Consumers — what breaks if you change this:** `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `difficulty` · `website`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md`
+- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
 
 ### Power Score (`power`)
 
@@ -871,6 +873,21 @@ graph TD
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/ENDLESS-SCALING.md` · `docs/BOSS-RUSH.md`
+
+### Marketing Website (`website`)
+
+*The public face at the domain root (the game app lives at /play/): a GENERATED static site — home, guides, data-driven encyclopedias, dev blog, git-derived patch notes, legal — built by scripts/gen-site.ts from site/* into committed public/ pages (drift-tested by site/gen.test.ts), with SEO/OG/JSON-LD on every page, labelled ad slots (set-ads), a complete sitemap and a living-background shell.*
+
+- **Files:** `src/net/replayShare.ts`
+- **Depends on:** `content-infra`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** — (intentionally none)
+- **Save fields:** —
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** —
+- **Collection:** — · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
 
 ### Rendering & VFX (`rendering`)
 

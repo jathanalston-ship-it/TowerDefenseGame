@@ -1,0 +1,267 @@
+// CORE PAGES (docs/WEBSITE.md §content) — home + the static pages, as functions of a small
+// context the generator supplies (latest post/patch, live content counts, featured picks).
+// All copy is original and specific — no lorem, no stubs: every page must stand alone for a
+// human reader (and an AdSense reviewer) with real information.
+
+import { CONTACT_EMAIL, PLAY_PATH } from './config';
+import { adSlot, esc } from './shell';
+import type { BlogPost } from './blog';
+
+export interface HomeCtx {
+  latestPost: BlogPost;
+  latestPatch: { date: string; title: string; categories: string[] } | null;
+  counts: { towers: number; heroes: number; enemies: number; biomes: number; bosses: number };
+  featuredTower: { name: string; blurb: string; color: string };
+  featuredHero: { name: string; blurb: string; color: string };
+}
+
+export function homePage(ctx: HomeCtx): string {
+  const c = ctx.counts;
+  return `
+<section class="home-hero">
+  <div class="shell-wrap">
+    <div class="eyebrow">DEFEND · EVOLVE · CONSUME</div>
+    <h1 class="home-title">ASSIMILATE</h1>
+    <p class="home-tag">A cyberpunk bio-horror tower defense. Grow a living hive, mutate ${c.towers} tower strains through stars, branches and grafts, and hold the line against ${c.bosses}+ apex organisms.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="${PLAY_PATH}">▶ PLAY FREE IN YOUR BROWSER</a>
+      <a class="btn-ghost" href="/about/">What is ASSIMILATE?</a>
+    </div>
+    <p class="hero-sub">No install. No account. Your hive saves on your device — with optional cloud backup.</p>
+    <div class="store-row">
+      <span class="store-pill"><b>Steam</b> — wishlist coming soon</span>
+      <span class="store-pill"><b>iOS / Android</b> — in development</span>
+      <span class="store-pill"><b>Web</b> — playable now</span>
+    </div>
+  </div>
+</section>
+
+<section class="section"><div class="shell-wrap">
+  <h2>Watch the hive at work</h2>
+  <p class="lead">Real gameplay: the Command Center, the line under siege, and a battlefield-scale raid organism.</p>
+  <video class="trailer-video" controls muted playsinline preload="metadata"
+         poster="/media/shots/combat.webp" src="/media/trailer.webm"
+         aria-label="ASSIMILATE gameplay trailer">
+    Your browser can't play this video — <a href="${PLAY_PATH}">play the game itself instead</a>.
+  </video>
+</div></section>
+
+${adSlot('home-below-trailer', 'banner')}
+
+<section class="section"><div class="shell-wrap">
+  <h2>Screenshots</h2>
+  <div class="shots-grid">
+    <figure><img src="/media/shots/combat.webp" alt="Combat: a full garrison holding the line against a hundred-strong wave" loading="lazy" width="720" height="960" />
+      <figcaption>Hold the line — every enemy is a body on a battlefield, not a number on a path.</figcaption></figure>
+    <figure><img src="/media/shots/megaraid.webp" alt="A Mega Boss raid: a battlefield-scale organism with exposed weak points" loading="lazy" width="720" height="960" />
+      <figcaption>Mega raids: battlefield-scale organisms fought through weak-point surgery.</figcaption></figure>
+    <figure><img src="/media/shots/command.webp" alt="The Command Center home screen with the living world status organism" loading="lazy" width="720" height="960" />
+      <figcaption>The Command Center — your hive between runs, alive and growing.</figcaption></figure>
+  </div>
+</div></section>
+
+<section class="section"><div class="shell-wrap">
+  <h2>This week in the hive</h2>
+  <div class="widget-grid">
+    <div class="widget"><div class="k">Latest Devlog</div>
+      <h3><a href="/blog/${ctx.latestPost.slug}/">${esc(ctx.latestPost.title)}</a></h3>
+      <p>${esc(ctx.latestPost.summary)}</p>
+      <a class="more" href="/blog/">All devlogs →</a></div>
+    <div class="widget"><div class="k">Latest Patch</div>
+      ${ctx.latestPatch
+        ? `<h3><a href="/news/">${esc(ctx.latestPatch.title)}</a></h3><p>${esc(ctx.latestPatch.date)} · ${esc(ctx.latestPatch.categories.slice(0, 4).join(', '))}</p>`
+        : '<h3><a href="/news/">Patch notes</a></h3><p>The full change history, categorized and searchable.</p>'}
+      <a class="more" href="/news/">All patch notes →</a></div>
+    <div class="widget"><div class="k">Featured Tower</div>
+      <h3><span class="swatch" style="background:${esc(ctx.featuredTower.color)}"></span>${esc(ctx.featuredTower.name)}</h3>
+      <p>${esc(ctx.featuredTower.blurb)}</p>
+      <a class="more" href="/guides/towers/">Tower guide →</a></div>
+    <div class="widget"><div class="k">Featured Hero</div>
+      <h3><span class="swatch" style="background:${esc(ctx.featuredHero.color)}"></span>${esc(ctx.featuredHero.name)}</h3>
+      <p>${esc(ctx.featuredHero.blurb)}</p>
+      <a class="more" href="/guides/heroes/">Hero guide →</a></div>
+    <div class="widget"><div class="k">Today's Daily Run</div>
+      <h3>One seed, worldwide</h3>
+      <p>Every UTC day generates one deterministic run — same biome, same bosses, same modifiers for everyone. Pure skill on the board.</p>
+      <a class="more" href="${PLAY_PATH}">Play today's seed →</a></div>
+    <div class="widget"><div class="k">Up Next</div>
+      <h3>The roadmap</h3>
+      <p>Steam release, new tower strains, deeper prestige, and community events — see what's growing.</p>
+      <a class="more" href="/roadmap/">Full roadmap →</a></div>
+  </div>
+</div></section>
+
+<section class="section"><div class="shell-wrap">
+  <h2>A tower defense that grows back</h2>
+  <div class="feature-strip">
+    <div class="f"><b>${c.towers} tower strains</b><span>Stars, branches, strains and mastery — four evolution layers per tower.</span></div>
+    <div class="f"><b>${c.heroes} heroes</b><span>Living weapons with doctrines, equipment, ability forks and ★10 paths.</span></div>
+    <div class="f"><b>${c.enemies}+ enemy strains</b><span>Swarms, fliers, artillery, summoners, volatiles — every body a real threat.</span></div>
+    <div class="f"><b>${c.bosses} bosses</b><span>Framework apexes and battlefield-scale Mega raid organisms.</span></div>
+    <div class="f"><b>${c.biomes} biomes</b><span>Ecosystems that warp the rules — permafrost, bone dunes, neural storms.</span></div>
+    <div class="f"><b>Deterministic</b><span>Same seed, same run, byte for byte — shareable replays and fair dailies.</span></div>
+  </div>
+  <p style="margin-top:22px"><a class="btn-ghost" href="/features/">Every feature in depth →</a></p>
+</div></section>`;
+}
+
+export function aboutPage(): string {
+  return `
+<h2>What ASSIMILATE is</h2>
+<p>ASSIMILATE is a single-player tower defense set inside a bio-mechanical ecosystem. You are the Hive Core — the last organism still growing back — holding a defensive line against an appetite that consumes flesh, steel and thought. It plays free in any modern browser: no install, no account, no pay-to-win.</p>
+<h2>What makes it different</h2>
+<p><b>Everything grows.</b> Towers are organisms with four independent evolution layers. Heroes wear their equipment on the battlefield. The terrain itself assimilates as your run deepens, until the arena no longer resembles the map you started on.</p>
+<p><b>Everything is deterministic.</b> A run is a pure function of its seed and your inputs — which gives you shareable replay links, honest daily leaderboards and a game that can never secretly cheat you.</p>
+<p><b>Everything persists.</b> Biomass dies with the run; knowledge, shards, genes, mastery and collections do not. A lost run is still fuel.</p>
+<h2>The state of the game</h2>
+<p>ASSIMILATE is in active development with frequent updates — the <a href="/news/">patch notes</a> are generated straight from the development history, and the <a href="/blog/">dev blog</a> covers the systems as they land. The web version is the live game, not a demo.</p>
+<h2>Who makes it</h2>
+<p>ASSIMILATE is an independent project — a small team building the tower defense we always wanted: systems-deep, visually alive, and respectful of your time and wallet. Say hello on the <a href="/contact/">contact page</a>.</p>`;
+}
+
+export function featuresPage(): string {
+  return `
+<h2>Combat</h2>
+<p>Waves descend from the breeding membrane toward your Hive Core. Towers target, lead and fire on their own; you decide what grows where, when to relocate, and when to spend your hero's ability. Reactions (fracture + corrosion = shred), armor, shields, auras, artillery deadzones and flying strains keep placement decisions sharp for hundreds of hours.</p>
+<h2>Four evolution layers per tower</h2>
+<p><b>Stars</b> — permanent ★-paths bought with shards. <b>Branches</b> — in-run mutually exclusive mutations that re-author how a tower fires. <b>Strains</b> — in-run evolution fed by consuming duplicates from the Biomorph Conveyor. <b>Mastery</b> — kill-fed ranks with lore and visible cosmetic evolution. All four stack, and all four are visible on the battlefield model.</p>
+<h2>Heroes</h2>
+<p>Champions with doctrines (dive, guard, control, phase), active abilities, ★10 upgrade paths with ability forks at ★5/★8, and full Weapon/Armor/Relic loadouts with set bonuses — rendered on the battlefield by a procedural gear system.</p>
+<h2>The permanent game</h2>
+<p>A genome upgrade tree, a levelable Gene Archive of draft cards, tower and hero labs, equipment crafting, per-tower Mulligan organisms, collections with rank bonuses, prestige with Ascendant nodes, and a Power Score that folds all of it into one honest number.</p>
+<h2>Modes</h2>
+<p><b>Campaign</b> — a procedurally authored stage ladder with events and milestone bosses. <b>Infinite</b> — an AI Director escalating against your best. <b>Boss Rush</b> — wave N is N bosses. <b>Daily Run</b> — one deterministic seed per day, worldwide.</p>
+<h2>Presentation</h2>
+<p>A living battlefield that terraforms with your run, procedural creature and turret bodies, a fully scored opening cinematic, an adaptive generative soundtrack (the Mega raids have their own hymn), and gore that routes every kill's biomass visibly home. All of it procedural — the whole game ships lighter than one video file.</p>
+<h2>Fair by construction</h2>
+<p>Deterministic simulation, replays as links, no energy timers on core play, no loot boxes for power, and saves that live on YOUR device with optional cloud backup.</p>`;
+}
+
+export function roadmapPage(): string {
+  return `
+<p class="note">This roadmap reflects current development priorities. Order and scope evolve with player feedback — the <a href="/blog/">dev blog</a> announces changes.</p>
+<ul class="timeline">
+  <li><span class="t-date">NOW — LIVE</span><h3>The living game</h3>
+    <p>Campaign, Infinite, Boss Rush and Daily runs; 15 tower strains; 5 heroes with equipment and forks; Mega Boss raids; the Living Battlefield; the scored opening cinematic; expeditions; collections and prestige.</p></li>
+  <li><span class="t-date">NEXT</span><h3>Deeper roster</h3>
+    <p>New tower strains and heroes toward the long-term targets (100 towers / 30 heroes), more authored bosses and Mega organisms, and new biome ecosystems with bespoke terrain flora.</p></li>
+  <li><span class="t-date">SOON</span><h3>Community & competition</h3>
+    <p>Expanded daily leaderboards, replay theater sharing improvements, seasonal events, and community spotlight features on this site.</p></li>
+  <li><span class="t-date">PLANNED</span><h3>Steam release</h3>
+    <p>A Steam edition with achievements and cloud saves. Wishlist link lands on the homepage the day the store page is live.</p></li>
+  <li><span class="t-date">PLANNED</span><h3>Mobile</h3>
+    <p>iOS and Android builds — the game is already touch-first and portrait-native; the remaining work is store packaging and platform polish.</p></li>
+  <li><span class="t-date">EXPLORING</span><h3>The far horizon</h3>
+    <p>Co-op raid experiments, user-authored daily modifiers, and localization beyond EN/ES/PT.</p></li>
+</ul>`;
+}
+
+export function faqPage(): { html: string; qa: [string, string][] } {
+  const qa: [string, string][] = [
+    ['Is ASSIMILATE really free?', 'Yes. The full game plays free in your browser with no install and no account. Optional cosmetic and convenience purchases support development — power is never for sale.'],
+    ['Where is my save stored?', 'On your device, in your browser\'s local storage. Named accounts can additionally mirror saves to the cloud for free backup and cross-device play. Export/import is always available.'],
+    ['Does it work on mobile?', 'Yes — the game is touch-first and portrait-native, and plays well in mobile browsers. Native iOS/Android builds are on the roadmap.'],
+    ['Does it work offline?', 'Yes. After your first visit the game installs a service worker and runs fully offline. You can also install it as an app from your browser.'],
+    ['What does "deterministic" mean here?', 'A run is a pure function of its seed and your inputs: replaying it reproduces the exact same result, byte for byte. That is what makes replay links and fair daily leaderboards possible.'],
+    ['How do daily runs work?', 'Every UTC day generates one seed — the same biome, bosses, modifiers and tower pool for every player in the world. The leaderboard compares decisions, not luck.'],
+    ['I lost a run. Did I lose progress?', 'No. Biomass dies with the run; everything else — shards, genes, mastery, collections, unlocks — persists. Losing runs is part of the loop.'],
+    ['Will it come to Steam?', 'A Steam release is planned. The homepage will carry the wishlist link the day the store page is live.'],
+    ['How often does the game update?', 'Continuously — patch notes are generated straight from the development history. See the News page for the full record.'],
+    ['How do I report a bug or give feedback?', `Email ${CONTACT_EMAIL} — reports with a replay code attached are gold, because we can reproduce your exact run.`],
+  ];
+  const html = qa.map(([q, a]) => `<h2>${esc(q)}</h2><p>${a}</p>`).join('');
+  return { html, qa };
+}
+
+export function contactPage(): string {
+  return `
+<h2>Get in touch</h2>
+<p>ASSIMILATE is an independent project and we read everything.</p>
+<p><b>Email:</b> <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></p>
+<h2>Bug reports</h2>
+<p>The most useful bug report includes: what you expected, what happened, your browser, and — if it happened during a run — the run's <b>replay code</b> (Results screen → Share). Because the game is deterministic, a replay code lets us reproduce your exact run.</p>
+<h2>Press & content creators</h2>
+<p>You are welcome to publish videos, streams and articles about ASSIMILATE, monetized or not. Screenshots and captures from the game may be used freely for coverage. For a press kit or interview, email us with "PRESS" in the subject.</p>
+<h2>Business</h2>
+<p>Partnership or platform inquiries: same address, subject "BIZ". We answer within a few business days.</p>`;
+}
+
+export function creditsPage(): string {
+  return `
+<h2>The team</h2>
+<p>ASSIMILATE is designed, engineered, composed and illustrated by a small independent team, with systems and content built in the open — the development history behind the <a href="/news/">patch notes</a> is the honest record of who did what, when.</p>
+<h2>Technology</h2>
+<p>Built with TypeScript, React and Vite. Rendering is hand-written Canvas 2D. The soundtrack and every sound effect are synthesized procedurally in the Web Audio API — the game ships with no audio files. Hosting by Cloudflare Pages.</p>
+<h2>Special thanks</h2>
+<p>To the early players who lost runs so you don't have to, filed replay codes with their bug reports, and argued about tower balance until it got better. The hive remembers.</p>
+<h2>Open-source acknowledgements</h2>
+<p>React (MIT), Vite (MIT), TypeScript (Apache-2.0), Vitest (MIT). Full license texts ship with the source distribution.</p>`;
+}
+
+export function leaderboardsPage(): string {
+  return `
+<h2>Daily Run standings</h2>
+<p>Every UTC day, one deterministic seed — the same run for every player on Earth. Standings are recorded in-game and verified by replay: a submitted score is its run, recomputable byte-for-byte.</p>
+<p><a class="btn-primary" href="${PLAY_PATH}">Play today's seed →</a></p>
+<h2>Where the boards live</h2>
+<p>Live standings — today's daily, all-time Infinite depth records, and Boss Rush bests — are inside the game's <b>Leaderboards</b> screen, next to the modes they measure. This page is the map; the game is the territory.</p>
+<h2>How verification works</h2>
+<p>Because the simulation is deterministic, a leaderboard entry is more than a number: it is the seed plus your inputs. Suspicious entries can be replayed exactly, which makes the classic fake-score attack useless. Fair by construction beats fair by moderation.</p>
+<h2>Personal records</h2>
+<p>Your own bests — deepest Infinite wave, highest Boss Rush wave, daily streaks and per-mode records — live in the game's Progress Dashboard and persist with your save.</p>`;
+}
+
+export function privacyPage(): string {
+  return `
+<p class="note">Effective date: July 10, 2026. This policy covers assimilationtowerdefense.com and the ASSIMILATE web game.</p>
+<h2>The short version</h2>
+<p>Your game save lives on your device. We don't sell data, we don't require accounts, and the game contains no third-party trackers. The website may show clearly-labelled advertisements; if and when it does, the ad provider's cookie usage is disclosed here and governed by the <a href="/cookies/">Cookie Policy</a>.</p>
+<h2>Data stored on your device</h2>
+<p>The game stores your save (progression, settings, records) in your browser's local storage. It never leaves your device unless you explicitly use cloud backup or share a replay. Clearing site data deletes it — use the in-game export first.</p>
+<h2>Optional cloud backup</h2>
+<p>If you create a named account for cloud backup, we store: your chosen name, a credential hash, and your save blob, solely to provide sync. We do not use it for anything else and you can delete it in-game at any time.</p>
+<h2>Replays and leaderboards</h2>
+<p>Submitting a daily score or sharing a replay uploads that run's seed and inputs plus your chosen display name. Replays contain no personal data beyond the name you picked.</p>
+<h2>Analytics</h2>
+<p>We use Cloudflare's privacy-preserving, cookie-free analytics to count page views and measure performance. It does not profile you across sites.</p>
+<h2>Advertising</h2>
+<p>Website pages (never gameplay) may carry advertisements from Google AdSense or similar providers. Ad providers may use cookies to serve non-personalized or personalized ads depending on your region and consent; see the <a href="/cookies/">Cookie Policy</a> for controls. Ads are always visually labelled and separated from content.</p>
+<h2>Children</h2>
+<p>The site and game are suitable for a general audience and do not knowingly collect personal information from children.</p>
+<h2>Your rights</h2>
+<p>You can export or delete your local save in-game, delete any cloud account in-game, and contact <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> for any privacy request. We answer within 30 days.</p>
+<h2>Changes</h2>
+<p>Material changes to this policy are announced on the <a href="/news/">News page</a> and the effective date above is updated.</p>`;
+}
+
+export function termsPage(): string {
+  return `
+<p class="note">Effective date: July 10, 2026.</p>
+<h2>The service</h2>
+<p>ASSIMILATE is a free browser game provided as-is. We work hard to keep it available and your progress safe, but we cannot guarantee uninterrupted service or that updates will never affect balance, content or saved data. The in-game export tool is your friend.</p>
+<h2>Acceptable use</h2>
+<p>Don't attack the service, scrape it abusively, submit falsified leaderboard entries, or attempt to disrupt other players' experience. Leaderboard entries may be verified by deterministic replay and removed if falsified.</p>
+<h2>Purchases</h2>
+<p>Optional purchases (cosmetics and convenience) are processed by third-party payment providers; we never see your card details. Purchases attach to your save/account. Consumed digital goods are generally non-refundable except where law requires otherwise — contact us and we'll be reasonable.</p>
+<h2>Your content</h2>
+<p>Replay codes, display names and shared runs you publish may be visible to other players. Don't use a display name you wouldn't show a stranger.</p>
+<h2>Intellectual property</h2>
+<p>The game, site, art, music and written content are © ASSIMILATE. You may capture, stream and publish gameplay freely (monetized included). You may not redistribute the game itself or use our assets to build a competing product.</p>
+<h2>Liability</h2>
+<p>To the maximum extent permitted by law, the service is provided without warranties, and our liability is limited to the amount you paid us in the past twelve months.</p>
+<h2>Contact</h2>
+<p>Questions about these terms: <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.</p>`;
+}
+
+export function cookiesPage(): string {
+  return `
+<p class="note">Effective date: July 10, 2026.</p>
+<h2>What we use</h2>
+<p><b>Strictly necessary storage.</b> The game uses your browser's local storage for your save and settings. This is not a tracking cookie — it never leaves your device and is required for the game to function.</p>
+<p><b>Analytics.</b> Cloudflare Web Analytics is cookie-free and does not track you across sites.</p>
+<p><b>Advertising cookies.</b> Only if advertisements are enabled on website pages: the ad provider (e.g. Google AdSense) may set cookies to serve and measure ads. In regions requiring consent, a consent prompt is shown before any advertising cookies are set, and non-personalized ads are served absent consent.</p>
+<h2>Your controls</h2>
+<p>You can clear local storage from your browser (export your save first!), block third-party cookies entirely, and — where the consent prompt is shown — change your choice at any time from the link in the site footer. Google's ad settings are at <a href="https://adssettings.google.com" rel="noopener nofollow">adssettings.google.com</a>.</p>
+<h2>No dark patterns</h2>
+<p>Declining advertising cookies never blocks content, gameplay or features. Ads are labelled, separated from content, and never appear inside gameplay.</p>`;
+}

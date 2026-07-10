@@ -7,7 +7,7 @@
 //   1. public/_headers — swaps the CSP line for the Google-ads-augmented variant
 //      (script/frame/img/connect hosts the H5 Games Ads runtime needs);
 //   2. public/ads.txt — writes the AdSense authorization line (required, easy to miss);
-//   3. public/welcome/ads.js — sets the site display-ad provider + client id
+//   3. public/site.js — sets the site display-ad provider + client id
 //      (site slots stay hidden until you also map their numeric unit ids there);
 //   4. prints the two Pages env vars to set (VITE_ADS_PROVIDER / VITE_ADS_GOOGLE_CLIENT)
 //      — build-time values, so set them in Cloudflare and redeploy.
@@ -49,7 +49,7 @@ function patchEnvProduction(provider: string, client: string): void {
 }
 
 function patchSiteAds(provider: string, id: string): void {
-  const f = 'public/welcome/ads.js';
+  const f = 'public/site.js';
   let s = readFileSync(f, 'utf8');
   s = s.replace(/var AD_PROVIDER = '[^']*';/, `var AD_PROVIDER = '${provider}';`);
   if (s.includes('var AD_CLIENT')) s = s.replace(/var AD_CLIENT = '[^']*';/, `var AD_CLIENT = '${id}';`);
@@ -73,11 +73,11 @@ All four surfaces are set (CSP, ads.txt, site ads.js, .env.production) — commi
 to deploy; no dashboard fields needed. The in-game Field Research lane goes live once AdSense approves the
 site for H5 Games Ads; until approval, studies quietly report 'unavailable'.
 Site display slots additionally need their numeric unit ids mapped in
-public/welcome/ads.js (create units in AdSense → copy each data-ad-slot number).
+public/site.js (create units in AdSense → copy each data-ad-slot number).
 Test the reward loop any time with VITE_ADS_PROVIDER=simulated on a preview.`);
 } else if (mode === 'status') {
   const headers = readFileSync('public/_headers', 'utf8');
-  const adsJs = readFileSync('public/welcome/ads.js', 'utf8');
+  const adsJs = readFileSync('public/site.js', 'utf8');
   const provider = /var AD_PROVIDER = '([^']*)'/.exec(adsJs)?.[1] ?? '?';
   const client = /var AD_CLIENT = '([^']*)'/.exec(adsJs)?.[1] ?? '';
   const googleCsp = headers.includes('pagead2.googlesyndication.com');
@@ -86,7 +86,7 @@ Test the reward loop any time with VITE_ADS_PROVIDER=simulated on a preview.`);
   const viteProvider = /^VITE_ADS_PROVIDER=(\S*)/m.exec(envProd)?.[1] ?? '(unset)';
   const viteClient = /^VITE_ADS_GOOGLE_CLIENT=(\S*)/m.exec(envProd)?.[1] ?? '';
   console.log(`Ads wiring status:
-  site provider (welcome/ads.js): ${provider}${client ? ` · ${client}` : ''}
+  site provider (site.js): ${provider}${client ? ` · ${client}` : ''}
   CSP (public/_headers):          ${googleCsp ? 'Google-augmented' : 'strict (no ad hosts)'}
   ads.txt:                        ${adsTxt ? 'present' : 'absent'}
   .env.production:                VITE_ADS_PROVIDER=${viteProvider}${viteClient ? ` · client ${viteClient}` : ''}`);
