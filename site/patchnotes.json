@@ -1,187 +1,99 @@
 [
   {
-    "date": "2026-07-10",
-    "title": "Website overhaul + 8 more",
-    "categories": [
-      "Website",
-      "Progression",
-      "Audio",
-      "Towers",
-      "Modes",
-      "Content",
-      "Visuals"
-    ],
-    "items": [
-      {
-        "cat": "Website",
-        "text": "Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)"
-      },
-      {
-        "cat": "Progression",
-        "text": "Account platform: guest/email accounts, versioned cloud sync, cross-progression, offline-first"
-      },
-      {
-        "cat": "Website",
-        "text": "feat(site): marketing page becomes the front door — game moves to /play"
-      },
-      {
-        "cat": "Audio",
-        "text": "Opening cinematic + tutorial overhaul — a scored film that dives into the trial"
-      },
-      {
-        "cat": "Towers",
-        "text": "chore(site): stamp custom domain assimilationtowerdefense.com (robots/sitemap/canonical/OG)"
-      },
-      {
-        "cat": "Modes",
-        "text": "feat(expeditions): full overhaul — 7-mission board, affinity, risk tiers, rare finds, mastery"
-      },
-      {
-        "cat": "Content",
-        "text": "feat(liveops): full overhaul — schedule engine, richer calendar, LIVE OPERATIONS console"
-      },
-      {
-        "cat": "Content",
-        "text": "Assimilation Index future-proofing: every likely addition becomes a data row"
-      },
-      {
-        "cat": "Visuals",
-        "text": "Living Battlefield v3 — vein network, infection field, dual-layer heartbeat bake, watching terrain"
-      }
-    ]
-  },
-  {
     "date": "2026-07-09",
-    "title": "Assimilation Index overhaul + 28 more",
+    "title": "The Living World Update",
     "categories": [
-      "Content",
+      "Gameplay",
       "Visuals",
-      "UI",
-      "Onboarding",
-      "Internal Framework",
-      "Website",
-      "Heroes",
-      "Progression",
-      "Bosses",
       "Towers",
-      "Bug Fixes"
+      "Heroes",
+      "UX",
+      "Website"
     ],
     "items": [
       {
-        "cat": "Content",
-        "text": "Assimilation Index overhaul: zero-alloc group-normalized fold + the Ascension Moment"
+        "cat": "Gameplay",
+        "text": "★ New system: Marketing Website"
       },
       {
-        "cat": "Content",
-        "text": "Infestation Map — full overhaul: living canvas territory map + mechanics depth"
+        "cat": "Gameplay",
+        "text": "★ New system: Account Platform"
       },
       {
-        "cat": "Visuals",
-        "text": "feat(mulligans): unify upgrade currency into Gene Essence + graft visual pass"
-      },
-      {
-        "cat": "Visuals",
-        "text": "Living Battlefield — full overhaul: cached terraform layer + richer, map-consuming visuals"
-      },
-      {
-        "cat": "UI",
-        "text": "Mulligan presentation overhaul — the Lab joins the design language"
+        "cat": "Gameplay",
+        "text": "★ New system: Chronicle (patch-note pipeline)"
       },
       {
         "cat": "Visuals",
-        "text": "Living Battlefield — drive terrain stage from the canonical Assimilation Index"
+        "text": "Init cutscene overhaul — full procedural canvas cinematics"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Assimilation Index — the run's master presentation state"
       },
       {
         "cat": "Visuals",
         "text": "Living Battlefield — the arena assimilates as a run deepens (render-only, golden-safe)"
       },
       {
-        "cat": "Content",
-        "text": "Assimilation Index — the run's master presentation state"
+        "cat": "Visuals",
+        "text": "Living Battlefield — drive terrain stage from the canonical Assimilation Index"
       },
       {
-        "cat": "Onboarding",
-        "text": "Init cutscene overhaul — full procedural canvas cinematics"
+        "cat": "Towers",
+        "text": "Mulligan presentation overhaul — the Lab joins the design language"
       },
       {
-        "cat": "Internal Framework",
-        "text": "chore: set governing law — Colorado, United States"
+        "cat": "Visuals",
+        "text": "Living Battlefield — full overhaul: cached terraform layer + richer, map-consuming visuals"
+      },
+      {
+        "cat": "Towers",
+        "text": "Unify upgrade currency into Gene Essence + graft visual pass"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Infestation Map — full overhaul: living canvas territory map + mechanics depth"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Assimilation Index overhaul: zero-alloc group-normalized fold + the Ascension Moment"
+      },
+      {
+        "cat": "Visuals",
+        "text": "Living Battlefield v3 — vein network, infection field, dual-layer heartbeat bake, watching terrain"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Assimilation Index future-proofing: every likely addition becomes a data row"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Liveops: full overhaul — schedule engine, richer calendar, LIVE OPERATIONS console"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Expeditions: full overhaul — 7-mission board, affinity, risk tiers, rare finds, mastery"
+      },
+      {
+        "cat": "UX",
+        "text": "Opening cinematic + tutorial overhaul — a scored film that dives into the trial"
       },
       {
         "cat": "Website",
-        "text": "chore: stamp assimilation.pages.dev as the live domain"
+        "text": "Marketing page becomes the front door — game moves to /play"
       },
       {
-        "cat": "Heroes",
-        "text": "Equipment visuals — rotatable inspect turntable + full item history timeline"
+        "cat": "Gameplay",
+        "text": "Account platform: guest/email accounts, versioned cloud sync, cross-progression, offline-first"
       },
       {
-        "cat": "Internal Framework",
-        "text": "chore: bind the real D1 database id (assimilate-db)"
+        "cat": "Website",
+        "text": "Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)"
       },
       {
-        "cat": "Progression",
-        "text": "Mulligan reconciliation — the parallel session's system is canonical; close its spec gaps"
-      },
-      {
-        "cat": "Heroes",
-        "text": "Equipment visuals — deeper polish: inspect preview, Equip Codex, gear-sourced shots"
-      },
-      {
-        "cat": "Heroes",
-        "text": "Equipment visuals — heroes wear their gear on the battlefield"
-      },
-      {
-        "cat": "Heroes",
-        "text": "Equipment art — bespoke procedural item-card illustrations (no more placeholder icons)"
-      },
-      {
-        "cat": "UI",
-        "text": "Mulligan surfaces — earn loop, Mulligan Lab UI, achievements, dev tools"
-      },
-      {
-        "cat": "Visuals",
-        "text": "Mulligan generators — procedural organism + animation + projectile (drawn on the battlefield)"
-      },
-      {
-        "cat": "Progression",
-        "text": "Mulligan system — foundational framework (core + save + Power + fold + 30 modifiers)"
-      },
-      {
-        "cat": "Content",
-        "text": "Infestation Map: persistent sector-conquest meta + batch GAME-STATE record"
-      },
-      {
-        "cat": "Heroes",
-        "text": "Hero Expeditions: the benched-roster idle lane"
-      },
-      {
-        "cat": "Bosses",
-        "text": "Nemesis bosses + boss trophies"
-      },
-      {
-        "cat": "Towers",
-        "text": "Champion Contracts: weekly constraint runs + Gilded exclusives"
-      },
-      {
-        "cat": "Visuals",
-        "text": "Phenotypes: the full cosmetics system (save v26)"
-      },
-      {
-        "cat": "Bug Fixes",
-        "text": "Gene Archive folders + viewport-true popups (portal fix)"
-      },
-      {
-        "cat": "Bosses",
-        "text": "Beauty pass B: enemies, elites, bosses, mega-boss presence"
-      },
-      {
-        "cat": "Towers",
-        "text": "Beauty pass A: battlefield, nucleus, towers, projectiles + corrosive-field overhaul"
-      },
-      {
-        "cat": "Towers",
-        "text": "Two new towers: Spitfang Turret (easy gate) + Rift Anchor (deep gate)"
+        "cat": "Website",
+        "text": "Site: regenerate with stamped contact + merged forwarding"
       }
     ]
   },
@@ -189,33 +101,31 @@
     "date": "2026-07-08",
     "title": "Shareable replays + 30 more",
     "categories": [
-      "Content",
+      "Gameplay",
       "Performance",
-      "Onboarding",
+      "UX",
       "Audio",
       "Towers",
       "Bug Fixes",
       "Visuals",
       "Heroes",
-      "Website",
-      "Saves",
-      "Documentation"
+      "Website"
     ],
     "items": [
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Shareable replays: gzip share codes + links + self-verifying Replay Theater"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Localization framework: typed t() core + EN/ES/PT beachhead"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Rewarded-ads activation: repo-side complete (status audit + env.production wiring)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "LiveOps calendar: deterministic UTC events + hub strip + reward folding"
       },
       {
@@ -223,11 +133,11 @@
         "text": "Service worker: offline shell + versioned caches + update toast"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Register InitCutscene in the system registry (fixes the red suite from the last push)"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Initialization cutscene (first boot, replayable) + wave-launch breach transition"
       },
       {
@@ -239,7 +149,7 @@
         "text": "Tower AAA visual pass: full lighting model (gradients, bloom, rim, speculars)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Leaderboard replay verification (R1) + mobile pass with permanent enforcement"
       },
       {
@@ -255,7 +165,7 @@
         "text": "Cinema trailer v2, Hi-DPI battlefield + directed screenshots, one-command secrets"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Assimilation death gore + unique per-archetype birth intros"
       },
       {
@@ -275,7 +185,7 @@
         "text": "Hero ability forks (★5/★8): A/B reworks of unlocked abilities"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Trailer, ad wiring, and one-command DB setup — operator work approaches zero"
       },
       {
@@ -283,7 +193,7 @@
         "text": "Give heroes real ability kits — star-gated auto-cast skills (fix the one-verb problem)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Release simplification: everything automatable is done — operator work is minimal"
       },
       {
@@ -299,19 +209,15 @@
         "text": "Add status VFX for the Mark & Resonance stacks"
       },
       {
-        "cat": "Saves",
+        "cat": "Gameplay",
         "text": "chore: sync package-lock with the added @cloudflare/workers-types dep"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Complete the reaction matrix: wire Vital (Mark) + Resonant (Resonance)"
       },
       {
-        "cat": "Documentation",
-        "text": "Security review pass: token-auth the receipts endpoint + close-out docs"
-      },
-      {
-        "cat": "Saves",
+        "cat": "Gameplay",
         "text": "Production deployment: Cloudflare Pages Functions backend + Stripe Checkout store"
       },
       {
@@ -332,23 +238,16 @@
     "date": "2026-07-07",
     "title": "Batch-3 close-out + 22 more",
     "categories": [
-      "Documentation",
       "Bosses",
       "Performance",
       "Towers",
-      "Modes",
+      "Gameplay",
       "UI",
       "Audio",
       "Heroes",
-      "Progression",
-      "Balance",
-      "Content"
+      "Balance"
     ],
     "items": [
-      {
-        "cat": "Documentation",
-        "text": "Batch-3 close-out: validation PASS, dependency graph, session handoff docs"
-      },
       {
         "cat": "Bosses",
         "text": "Boss visual distinction overhaul — chassis body plans + authored palettes"
@@ -362,7 +261,7 @@
         "text": "Batch-3 core content: 2 biomes, Act-3 boss line, 2 megas, Spire + Polyp towers"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Add 5 Deep-Fauna enemies (role fusions) — integrated across all modes + Bestiary"
       },
       {
@@ -402,11 +301,11 @@
         "text": "feat(enemies): add Cyst Wraith (fly+regen) and Cinder Sapper (burrow+suicide)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Add 5 behavioral progression-gated Gene Cards on the unlock framework"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Add 10 expansion gene cards (5 ungated + 5 uniquely gated) with upgrades"
       },
       {
@@ -418,7 +317,7 @@
         "text": "Add Resonance Coil tower (beam melter) + 7 progression-gated gene cards"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(cards): add Carrion Bloom — a new Epic economy gene card, fully wired"
       },
       {
@@ -426,15 +325,11 @@
         "text": "feat(hero): Vitriol — Caustic siege hero (milestone-gated area-denial)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "feat(biomes): add Molten Verge + Tempest Reach — integrated across all four pillars"
       },
       {
-        "cat": "Documentation",
-        "text": "feat(premium): Premium Store — ethical monetization as pure data (docs/PREMIUM-STORE.md)"
-      },
-      {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "feat(daily): Daily Run — one seed, one world, the fourth pillar (docs/DAILY-RUN.md)"
       }
     ]
@@ -470,7 +365,7 @@
     "title": "Campaign-gate the secondary pillars + 15 more",
     "categories": [
       "Bosses",
-      "Content",
+      "Gameplay",
       "Towers",
       "Heroes"
     ],
@@ -500,15 +395,15 @@
         "text": "Boss siege behaviors + four-phase mutation arcs (P1 of the boss saga)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Overhaul the favicon: the infected-cell mark replaces the flat pink dot"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Splice Market + Ichor: refreshing store and the premium currency loop"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Evolution HQ overhaul + uncapped Runaway mutation per category"
       },
       {
@@ -516,11 +411,11 @@
         "text": "Fix Live Army + organism organs showing dormant strains as owned"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Escalate the hatching: beat-synced egg, heavier rupture, rarity theater"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Redo Bio-Container opening as a four-act diegetic hatching"
       },
       {
@@ -532,11 +427,11 @@
         "text": "Armory: Current Loadouts cards for every fielded hero"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Conveyor anti-farm: free instant gift organism, growth only under fire"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Expansion trio locked for new profiles: shard synthesis into the conveyor"
       }
     ]
@@ -545,14 +440,13 @@
     "date": "2026-07-04",
     "title": "Session handoff + 12 more",
     "categories": [
-      "Content",
+      "Gameplay",
       "Bug Fixes",
-      "Towers",
-      "Modes"
+      "Towers"
     ],
     "items": [
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Session handoff: AI_HANDOFF filled, PROJECT_STATUS board updated"
       },
       {
@@ -596,11 +490,11 @@
         "text": "Strain framework: the in-run tower evolution layer (I-V)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Hive Siege: enemies attack the Core instead of crossing a line"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Calibrate early-campaign difficulty to the power contract"
       }
     ]
@@ -612,8 +506,8 @@
       "Bug Fixes",
       "Bosses",
       "Visuals",
-      "Onboarding",
-      "Content",
+      "UX",
+      "Gameplay",
       "Balance"
     ],
     "items": [
@@ -630,19 +524,19 @@
         "text": "Combat HUD premium redesign: phase-reactive skin, zones, focal Start Wave"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Tutorial follow-through: anchor guard, mobile-shell layout, status board"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Session handoff record"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Tutorial overhaul: gated lessons, anchored Field Orientation, milestone rewards"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Danger Camera: hysteresis state machine kills the zone-edge throbbing"
       },
       {
@@ -663,24 +557,20 @@
     "date": "2026-07-02",
     "title": "Wave Briefing console + 25 more",
     "categories": [
-      "Content",
+      "Gameplay",
       "Visuals",
       "Bosses",
       "Balance",
-      "Internal Framework",
+      "Framework",
       "Towers",
-      "Saves",
-      "Modes",
       "UI",
       "Heroes",
-      "Progression",
       "Bug Fixes",
-      "Audio",
-      "Documentation"
+      "Audio"
     ],
     "items": [
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Wave Briefing console: the prep popup becomes threat intel + session handoff"
       },
       {
@@ -696,7 +586,7 @@
         "text": "Permanent simulation framework: personas, dopamine ledger, BALANCE_REPORT"
       },
       {
-        "cat": "Internal Framework",
+        "cat": "Framework",
         "text": "Command Center: living bio-organic home with registry-driven widgets"
       },
       {
@@ -704,7 +594,7 @@
         "text": "Tower Adaptation/Antigen: per-tower trees, capped economy, lab UI, FORM stages"
       },
       {
-        "cat": "Saves",
+        "cat": "Gameplay",
         "text": "Player Profile: registry-driven account dashboard (save v22)"
       },
       {
@@ -720,11 +610,11 @@
         "text": "Progression simulator + adaptive economy framework + balance docs"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Progression loop engine: enforce + surface the Campaign-Infinite loop"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Universal Difficulty Director: one composition layer for all scaling"
       },
       {
@@ -740,7 +630,7 @@
         "text": "Staged Bio-Container openings: energy build-up, fast mode, legendary light"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Genetic Vault: premium vault objects, drop rates, multi-open, ledger"
       },
       {
@@ -748,20 +638,16 @@
         "text": "Gameplay Speed: 1x/2x/5x fixed-step simulation control with auto-slow"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Doctrine protocols + the Infinite survival-experiment terminal"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Campaign roadmap: gate jumps, goal rail, premium mission card, clear records"
       },
       {
         "cat": "Audio",
         "text": "Run Build overhaul, console auto-pause, split audio toggles, premium pause menu"
-      },
-      {
-        "cat": "Documentation",
-        "text": "docs: reconcile the status board (shipped milestones, test count)"
       },
       {
         "cat": "Heroes",
@@ -772,7 +658,7 @@
         "text": "Multi-platform responsive framework: one codebase, every screen adapts"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Live Mastery experience: watch the craft grow, celebrate every level"
       },
       {
@@ -789,15 +675,12 @@
     "date": "2026-07-01",
     "title": "docs + 69 more",
     "categories": [
-      "Documentation",
       "UI",
-      "Content",
+      "Gameplay",
       "Audio",
       "Heroes",
-      "Internal Framework",
-      "Progression",
-      "Onboarding",
-      "Modes",
+      "Framework",
+      "UX",
       "Visuals",
       "Bug Fixes",
       "Performance",
@@ -807,15 +690,11 @@
     ],
     "items": [
       {
-        "cat": "Documentation",
-        "text": "docs: refresh session state board, handoff, and validation report"
-      },
-      {
         "cat": "UI",
         "text": "Redesign the gameplay HUD: vital hierarchy, glass styling, responsive scale"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Command Center redesign: living background, vitals dashboard, premium feel"
       },
       {
@@ -839,35 +718,27 @@
         "text": "Governance + UI design system: constitution, AI handoff framework, standards + enforcement"
       },
       {
-        "cat": "Documentation",
-        "text": "Automation core: dependency registry + doc-sync enforcement + regression-audit pipeline"
-      },
-      {
-        "cat": "Documentation",
-        "text": "Engineering audit report + PROJECT_MANIFEST.md (the single source of truth)"
-      },
-      {
-        "cat": "Internal Framework",
+        "cat": "Framework",
         "text": "Engineering audit refactors: one implementation per concept (zero behavior change)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Task 12: final audit + 100/250/500-card stress test + closing report"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Gene Task 11: onboarding + docs — new players learn the Gene system naturally"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Task 10: Ascension backend — complete architecture, zero gameplay"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Gene Task 9: Power integration audit — calibrate scale, prevent bypass, real-model previews"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Archive: search, sort, favorites, pinning, keyboard nav (Task 8)"
       },
       {
@@ -875,7 +746,7 @@
         "text": "Starting Gene Loadouts — permanent run-start genes, 1–5 slots (Task 7)"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Campaign-gated gene levels: surface the next unlock everywhere (Task 6)"
       },
       {
@@ -883,19 +754,19 @@
         "text": "Gene Archive — the permanent collection screen + campaign gate spine (Task 5)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Cards: permanent upgrade levels for EVERY card (Task 4)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Essence container drops + economy audit (Task 3)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Essence currency + duplicate-shard conversion (Task 2)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Gene Cards: permanent-progression architecture (Task 1, no upgrades yet)"
       },
       {
@@ -931,10 +802,6 @@
         "text": "fix(waves): enemy counts always display (and spawn) whole integers"
       },
       {
-        "cat": "Documentation",
-        "text": "docs: reconcile docs to current game state + add GAME-STATE / BACKLOG"
-      },
-      {
         "cat": "Heroes",
         "text": "feat(equipment): destruction safeguards + Undo Salvage"
       },
@@ -943,7 +810,7 @@
         "text": "feat(equipment): simplify item cards + a dedicated Details screen"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(loot): crafting materials from Genetic Vaults — scaled + pity-protected"
       },
       {
@@ -955,7 +822,7 @@
         "text": "feat(boss): Milestone-1 boss line + the module spine that teaches"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(progression): Mastery → Adaptation — turn the mastery hum into a decision"
       },
       {
@@ -967,7 +834,7 @@
         "text": "feat(collection): Codex progression UI — ranks, reward tracks, bonuses, celebration"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "feat(collection): permanent progression model — completion, ranks, bonuses, Power"
       },
       {
@@ -979,28 +846,20 @@
         "text": "Identity step 2: currency rename — Strain Samples / Apex Genome"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Identity pass step 1: LEXICON + ★→◈ Evolutions + assimilated rarity grades"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Anticipation engine: Next-Goal read-model + Home NEXT banner + Results cliffhanger"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "feat(runs): Run Identity — every Campaign/Endless run develops a memorable identity"
-      },
-      {
-        "cat": "Documentation",
-        "text": "docs: content-production audit (AUTHORING) + production plan (CONTENT-ROADMAP)"
       },
       {
         "cat": "Bosses",
         "text": "docs: ASSIMILATE identity + boss + progression + anticipation design pass"
-      },
-      {
-        "cat": "Documentation",
-        "text": "docs: Early-Access design audit (no-code AAA consultation, Top-100 issues)"
       },
       {
         "cat": "Audio",
@@ -1015,7 +874,7 @@
         "text": "Hero Collection unlock + power-scaled equipment acquisition"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Genetic Vault: fullscreen cinematic reveal + honest pull count"
       },
       {
@@ -1023,11 +882,11 @@
         "text": "Help system: living wiki + first-launch HUD Tour + \"What's New?\" unlocks"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Progress Prediction: self-calibrating campaign/infinite estimates"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Combat Tutorial: 10 authored lessons over a live game + idempotent rewards"
       },
       {
@@ -1047,7 +906,7 @@
         "text": "Part B+D: campaign-gate hero slots + prestige, with unlock cinematic"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Tutorial presentation systems + runner + wiring (Tutorial §M/§N)"
       },
       {
@@ -1055,7 +914,7 @@
         "text": "Part A: per-hero equipment loadouts for multi-hero rosters"
       },
       {
-        "cat": "Onboarding",
+        "cat": "UX",
         "text": "Tutorial framework: architecture doc + pure core + persistence (Tutorial §L)"
       },
       {
@@ -1075,7 +934,7 @@
         "text": "feat(equipment): Reforge system — improve existing gear, no recipes (Part 2)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Progression-aware loot: catch-up weighting + dupe protection (Loot §I)"
       },
       {
@@ -1092,22 +951,19 @@
     "date": "2026-06-30",
     "title": "Hub Phase 2+3 + 15 more",
     "categories": [
-      "Content",
-      "Progression",
+      "Gameplay",
       "Heroes",
       "Visuals",
       "UI",
-      "Saves",
-      "Towers",
-      "Modes"
+      "Towers"
     ],
     "items": [
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Hub Phase 2+3: interaction polish + evolving Home Base"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Hub Phase 1: grouped nav sidebar (Play/Progression/Collection/Account)"
       },
       {
@@ -1115,7 +971,7 @@
         "text": "feat(heroes): data-driven Hero identity framework + role-aware AI (Part 1)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Reward Preview system — advertise likely earnings everywhere (Home redesign §F)"
       },
       {
@@ -1123,7 +979,7 @@
         "text": "Living-laboratory atmosphere behind the headquarters (Home redesign §E)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Make the Home dashboard dynamic + advertise the next reward (Home redesign §D)"
       },
       {
@@ -1135,7 +991,7 @@
         "text": "Redesign Home into Mission Control: Continue Campaign hero (Home redesign §B)"
       },
       {
-        "cat": "Saves",
+        "cat": "Gameplay",
         "text": "feat(dev): Developer Reset utility — granular, typed-confirm save resets"
       },
       {
@@ -1159,11 +1015,11 @@
         "text": "feat(towers): in-run Tower Sell + Relocate, and a faster Build-Phase flow"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Campaign world map: a living descent into the infected planet"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "Redistribute rewards by mode: Campaign currency, Infinite loot/mastery"
       }
     ]
@@ -1172,18 +1028,16 @@
     "date": "2026-06-29",
     "title": "feat(biomes) + 15 more",
     "categories": [
-      "Modes",
+      "Gameplay",
       "Balance",
       "UI",
       "Towers",
       "Visuals",
-      "Heroes",
-      "Content",
-      "Saves"
+      "Heroes"
     ],
     "items": [
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "feat(biomes): make biomes mechanical across Campaign + Infinite mode"
       },
       {
@@ -1191,11 +1045,11 @@
         "text": "Rebalance Infinite mode: cap enemy density, make HP the wall"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "feat: depth-scaled Gene Card cadence for Infinite mode"
       },
       {
-        "cat": "Modes",
+        "cat": "Gameplay",
         "text": "feat(campaign): procedural, deterministic Campaign framework"
       },
       {
@@ -1223,7 +1077,7 @@
         "text": "feat: redesign Hero Lab as a Champion Select with a dedicated hero page"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Route merged RewardReveal achievement reward through Genome Cores"
       },
       {
@@ -1231,11 +1085,11 @@
         "text": "feat(tower-lab): redesign as a collection of evolving organisms + star ceremony"
       },
       {
-        "cat": "Saves",
+        "cat": "Gameplay",
         "text": "Rename account currency to Genome Cores + add currency framework"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "polish: numbered notification badges, reduced-motion tooltip, vault low-loot note"
       },
       {
@@ -1253,11 +1107,9 @@
     "title": "feat(cards) + 35 more",
     "categories": [
       "Heroes",
-      "Documentation",
       "Bug Fixes",
       "Performance",
-      "Progression",
-      "Content",
+      "Gameplay",
       "UI",
       "Towers",
       "Visuals",
@@ -1269,10 +1121,6 @@
         "text": "feat(cards): Gene Card \"what it affects\" badge — tower / HERO / GLOBAL / ECONOMY / HIVE"
       },
       {
-        "cat": "Documentation",
-        "text": "docs: correct stale reduced-motion note in NOTIFICATIONS.md"
-      },
-      {
         "cat": "Bug Fixes",
         "text": "fix(loot): reward summary no longer auto-dismisses; explicit player controls"
       },
@@ -1281,15 +1129,15 @@
         "text": "fix: give Run Cache a distinct color/design from Legendary containers"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat: full bio-container breakdown in the End-of-Run Genetic Vault summary"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Redesign the gameplay → End-of-Run Summary transition (emotional outro)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Redesign End-of-Run Summary: inline achievements, no floating overlap"
       },
       {
@@ -1305,15 +1153,15 @@
         "text": "Make branch-tier purchases feel important — the mutation MOMENT"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "polish: tighten gameplay interaction responsiveness + accidental-click guards"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Co-locate the Auto Gene toggle with Auto Wave for semi-idle play"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat: Auto Gene Selection — countdown auto-draft of the PICK card"
       },
       {
@@ -1385,7 +1233,7 @@
         "text": "Defer the run-end cache to the Vault too — all loot opens in one place"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "Genetic Vault: manual click-to-crack containers (defer loot opening)"
       },
       {
@@ -1397,15 +1245,15 @@
         "text": "Redesign the inter-run hub into a headquarters menu system"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(loot): premium card-reveal opening ceremony (NBA-2K-style anticipation)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Bank loot live into the meta queue during a run"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Richer minion feedback: spawn pop, draining HP bar, hit-flash, low-HP urgency"
       }
     ]
@@ -1415,15 +1263,14 @@
     "title": "Minions become body-blockers + 24 more",
     "categories": [
       "Balance",
-      "Progression",
+      "Gameplay",
       "Heroes",
       "Bug Fixes",
       "Visuals",
       "Bosses",
       "Audio",
       "Towers",
-      "UI",
-      "Content"
+      "UI"
     ],
     "items": [
       {
@@ -1431,7 +1278,7 @@
         "text": "Minions become body-blockers: HP + enemy contact damage (the summon future hook)"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(cards): gene card framework (4 rarities, data-driven weights, categories) + 30 cards"
       },
       {
@@ -1455,7 +1302,7 @@
         "text": "Surface the Shepherd Bloom shield in the HUD + pin it with tests"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(reactor): true support radius + \"+support radius\" mastery"
       },
       {
@@ -1479,7 +1326,7 @@
         "text": "Auto-start: longer setup window on the first tower of the opening prep"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(prestige): Ascendant Tree — spendable cells (completes MOLT)"
       },
       {
@@ -1487,7 +1334,7 @@
         "text": "Implement the auto-wave-start system"
       },
       {
-        "cat": "Progression",
+        "cat": "Gameplay",
         "text": "feat(prestige): Layer 1 — MOLT (the first ascension)"
       },
       {
@@ -1507,7 +1354,7 @@
         "text": "feat(mastery): hero mastery-rank cosmetic halo (in-game)"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "feat(ability): wire the reserved Pierce component to the projectile system"
       },
       {
@@ -1515,7 +1362,7 @@
         "text": "feat(towers): range identity + Final Defense Zone emergency targeting"
       },
       {
-        "cat": "Content",
+        "cat": "Gameplay",
         "text": "Expand the enemy roster to ~30 archetypes across 12 roles"
       },
       {

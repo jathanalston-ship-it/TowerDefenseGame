@@ -10,10 +10,10 @@
 
 const VERSION = '__SW_VERSION__';
 const CACHE = `asm-${VERSION}`;
-// The game shell lives at /play (the root 302s to the marketing site — see
-// public/_redirects); precaching '/' would store a redirected response, which
-// navigations must not be answered with.
-const SHELL = ['/play', '/index.html', '/manifest.json'];
+// The game shell is a real asset directory at /play/ (its own Vite entry); the domain
+// root is the marketing site's Home. Precache only the game shell — site pages are
+// cached individually by the network-first branch as they're visited.
+const SHELL = ['/play/', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -73,8 +73,8 @@ self.addEventListener('fetch', (event) => {
       .catch(async () => {
         const hit = await caches.match(req);
         if (hit) return hit;
-        if (req.mode === 'navigate') {
-          const shell = await caches.match('/index.html');
+        if (req.mode === 'navigate' && url.pathname.startsWith('/play')) {
+          const shell = await caches.match('/play/');
           if (shell) return shell;
         }
         return Response.error();

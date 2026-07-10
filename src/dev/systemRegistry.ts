@@ -262,6 +262,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/INFESTATION.md'],
   },
   {
+    id: 'chronicle', name: 'Chronicle (patch-note pipeline)', purpose: 'Automated git-history documentation (docs/CHANGELOG-PIPELINE.md): npm run notes classifies every commit (pure classifier, standard categories, review flags), diffs the content registries for major additions, and regenerates the committed artifacts — releases.gen.ts (in-game Update Briefing, save v28 patchNotes.seen/optOut), site/patchnotes.json (the /news/ page via npm run site), docs/HISTORY.md, dev-blog drafts every ≥10 commits.',
+    files: ['src/changelog/types.ts', 'src/changelog/classify.ts', 'src/changelog/releases.gen.ts', 'src/ui/UpdateBriefing.tsx'],
+    dependsOn: ['meta-store'], powerScore: null, save: ['patchNotes'],
+    tutorial: [], help: [], hud: [], ui: ['App (UpdateBriefing popup)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/CHANGELOG-PIPELINE.md'],
+  },
+  {
     id: 'expeditions', name: 'Hero Expeditions', purpose: 'The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). HeroLab panel: offer matrix with projected multipliers, progress bars, outcome claim ceremony.',
     files: ['src/core/expeditions.ts'],
     dependsOn: ['heroes', 'meta-store'], powerScore: null, save: ['expeditions'],

@@ -83,6 +83,9 @@ export interface SaveData {
   expeditions: { active: { defId: string; hero: HeroKind; endsAt: number }[]; mastery: Record<string, number> };
   // ── Infestation map (v26, docs/INFESTATION.md) — sector conquest {level, updatedAt} + target. ──
   infestation: { target: string | null; sectors: Record<string, { level: number; updatedAt: number }> };
+  // ── Patch notes (v28, docs/CHANGELOG-PIPELINE.md) — last release id seen (drives the
+  //    Update Briefing) + a permanent opt-out. ──
+  patchNotes: { seen: string; optOut: boolean };
   totalRuns: number;
   lifetimeShards: number;
   cardsSeen: number;
@@ -260,8 +263,9 @@ export interface TutorialSave {
 // `geneOverflow` wallet was unified into `geneEssence` (its balance folds in on load).
 // v26→v27: Expedition overhaul — per-mission mastery ledger (expeditions.mastery); the
 // roster/risk/affinity depth is data-side and needs no save shape.
+// v27→v28: Patch-note tracking (patchNotes.seen + optOut — docs/CHANGELOG-PIPELINE.md).
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 27;
+export const CURRENT_VERSION = 28;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -472,6 +476,7 @@ export function defaultSave(): SaveData {
     equippedTrophy: null,
     expeditions: { active: [], mastery: {} },
     infestation: { target: null, sectors: {} },
+    patchNotes: { seen: '', optOut: false },
     premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
     totalRuns: 0,
     lifetimeShards: 0,
@@ -771,6 +776,13 @@ function withDefaults(data: SaveData): SaveData {
       ? ((data as { profileName?: unknown }).profileName as string).slice(0, 24)
       : d.profileName,
     profileFrame: typeof (data as { profileFrame?: unknown }).profileFrame === 'string' ? ((data as { profileFrame?: unknown }).profileFrame as string) : d.profileFrame,
+    patchNotes: ((): SaveData['patchNotes'] => {
+      const raw = (data as { patchNotes?: { seen?: unknown; optOut?: unknown } }).patchNotes;
+      return {
+        seen: typeof raw?.seen === 'string' ? raw.seen.slice(0, 32) : '',
+        optOut: raw?.optOut === true,
+      };
+    })(),
     timeline: sanitizeTimeline((data as { timeline?: unknown }).timeline),
     antigen: Math.max(0, Math.floor(Number((data as { antigen?: unknown }).antigen) || 0)),
     // Splice Market (docs/MARKET.md): pre-market saves ⇒ 0 Ichor + a fresh window record.

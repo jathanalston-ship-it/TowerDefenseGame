@@ -3622,6 +3622,28 @@ kbd {
 .wn-go { margin-top: 12px; min-width: 200px; }
 .wn-foot { font-size: 11px; color: var(--muted); }
 
+/* Update Briefing (UpdateBriefing.tsx, docs/CHANGELOG-PIPELINE.md) — the version
+   patch-notes card. Rides the .whatsnew/.wn-card frame; groups rise in a stagger. */
+/* The rotating rays must not feed the dialog's scroll area (overflow: auto) — a rotated
+   inset:0 box sweeps a larger bounding box every frame, which made the card jitter.
+   Fixed-position children never contribute to ancestor scrollable overflow. */
+.whatsnew .evo-rays { position: fixed; }
+.ub-card { width: min(520px, 100%); }
+.ub-sub { font-size: 12px; color: var(--muted); }
+.ub-highlights { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.ub-hi { padding: 7px 12px; border-radius: var(--r-md); text-align: left; font-size: 13px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line)); }
+.ub-groups { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 44vh; overflow: auto; text-align: left; }
+.ub-group { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; animation: ui-rise var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.ub-cat { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--success); }
+.ub-lines { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
+.ub-lines li { font-size: 12px; color: var(--text); line-height: 1.45; }
+.ub-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; }
+.ub-go { min-width: 150px; }
+.ub-link { display: inline-flex; align-items: center; min-height: 24px; padding: 4px 10px; font-size: 12px; color: var(--text); border: 1px solid var(--line); border-radius: var(--r-md); text-decoration: none; }
+.ub-link:hover { border-color: var(--success); }
+.ub-never { min-height: 24px; padding: 4px 10px; font-size: 11px; color: var(--muted); background: transparent; border: none; text-decoration: underline; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .ub-group { animation: none; } }
+
 /* Help · Field Manual — the living wiki. */
 .help-wiki .help-count { font-size: 11px; font-weight: 700; color: var(--muted); margin-left: 8px; }
 .help-search { width: 100%; margin: 8px 0 12px; padding: 9px 13px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font: inherit; font-size: 13px; }

@@ -11,6 +11,7 @@ import { AchievementToaster } from './AchievementToaster';
 import { PowerToaster } from './components/PowerToaster';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
+import { UpdateBriefing } from './UpdateBriefing';
 import { CommanderName } from './components/CommanderName';
 import { InitCutscene, introSeen } from './InitCutscene';
 import { UpdateToast } from './components/UpdateToast';
@@ -440,6 +441,7 @@ export function App(): JSX.Element {
           "What's New?" queue announces each newly-unlocked mechanic. */}
       {screen === 'menu' && tourActive && <HudTour onClose={() => setTourActive(false)} />}
       {screen === 'menu' && !tourActive && <WhatsNew />}
+      {screen === 'menu' && !tourActive && <UpdateBriefing />}
       {/* Commander designation: the FIRST prompt an unnamed save sees on reaching the hub
           (i.e. immediately after the tutorial completes or is skipped). */}
       {screen === 'menu' && !tourActive && <CommanderName />}

@@ -304,6 +304,7 @@ architecture").
 | Preview a build | `npm run preview` |
 | Test | `npm test` (Vitest) |
 | Typecheck | `npm run typecheck` |
+| Patch notes | `npm run notes` (Chronicle: commits → patch notes/devlog — docs/CHANGELOG-PIPELINE.md; run at batch end) |
 
 Balance lives in `src/core/config.ts` (centralized tunables). `node_modules/` and
 `dist/` are gitignored; `package-lock.json` is committed for reproducible builds.

@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 27` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 28` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -383,6 +383,11 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   offline-safe); class affinity (+25%), risk tiers (deterministic windfall/setback rolls),
   rare finds, per-mission mastery ledger (v27), multiplier-stack offer matrix in the
   HeroLab panel — EXPEDITIONS.md
+- ✅ **Chronicle (patch-note pipeline)**: `npm run notes` — git commits → classified,
+  categorized patch notes (pure classifier + registry-diff content detection + ⚑ review
+  flags); generates in-game Update Briefing data (save v28 `patchNotes`), website
+  patch-notes page data, docs/HISTORY.md, dev-blog drafts every ≥10 commits —
+  CHANGELOG-PIPELINE.md
 - ✅ **Infestation Map** (**overhauled**): 4 regions × 4 sectors; every run feeds with
   **spillover** (overflow → same region → emptiest anywhere), sectors climb named **tiers**
   (Dormant→Foothold→Colony→Stronghold→Saturated), saturation **halves decay**, a full region

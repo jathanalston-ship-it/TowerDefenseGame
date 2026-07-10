@@ -89,6 +89,8 @@ import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expe
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
 import { ALL_SECTORS, REGIONS, effectiveLevel, feedInfestation, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays } from '../core/infestation';
 import type { SectorTier } from '../core/infestation';
+import { RELEASES } from '../changelog/releases.gen';
+import type { Release } from '../changelog/types';
 import type { TrophyDef } from '../core/trophies';
 import type { CosmeticDef, CosmeticTheme } from '../core/cosmetics';
 import { BIOMES } from '../core/biomes';
@@ -3620,6 +3622,28 @@ export const meta = {
     const seen = Array.from(new Set([...after.help.seen, ...unlockedMechanics(after).filter((m) => !m.core).map((m) => m.id)]));
     persist({ ...after, help: { ...after.help, seen } });
     return reward;
+  },
+
+  // ── Patch notes (docs/CHANGELOG-PIPELINE.md) — the Update Briefing read-model. ──
+  /** Releases the player hasn't seen (newest first), the latest, and the opt-out. */
+  patchNotesView(): { latest: Release | null; unseen: Release[]; optOut: boolean } {
+    const s = store.get();
+    const latest = RELEASES[0] ?? null;
+    const seenIdx = s.patchNotes.seen === '' ? RELEASES.length : RELEASES.findIndex((r) => r.id === s.patchNotes.seen);
+    const unseen = RELEASES.slice(0, seenIdx === -1 ? RELEASES.length : seenIdx).filter((r) => r.entries.length > 0);
+    return { latest, unseen, optOut: s.patchNotes.optOut };
+  },
+  /** Mark everything up to the latest release as seen (Continue / open-full-notes). */
+  markPatchNotesSeen(): void {
+    const s = store.get();
+    const latest = RELEASES[0];
+    if (!latest || s.patchNotes.seen === latest.id) return;
+    persist({ ...s, patchNotes: { ...s.patchNotes, seen: latest.id } });
+  },
+  /** Permanent "never show again" (also marks the current release seen). Reversible in Settings. */
+  setPatchNotesOptOut(optOut: boolean): void {
+    const s = store.get();
+    persist({ ...s, patchNotes: { seen: RELEASES[0]?.id ?? s.patchNotes.seen, optOut } });
   },
 
   reset(): void {
