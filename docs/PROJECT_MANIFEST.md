@@ -473,16 +473,27 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Audio
 
-- **Purpose:** synthesized SFX/music bus (no audio assets) — cues for combat, UI, rewards,
-  branch tiers; heartbeat tempo under pressure.
-- **Dependencies:** WebAudio; volume/on-off persisted (`audioOn` key).
-- **Files:** `audio/sound.ts` (the bus + all synths). Docs: `GAME-FEEL.md`.
-- **Related:** HUD (UI cues), Loot reveals, Star ceremonies, branch evolution.
-- **Future expansion:** new cue = a synth function + a tag; real audio assets could layer in
-  behind the same `audio.cue(tag)` API.
-- **Known limitations:** fully procedural — distinctive but synthetic.
-- **Developer tips:** the public API is `audio.cue(tag)` / `audio.resume()` (autoplay policy);
-  there is no `audio.play`.
+- **Purpose:** synthesized SFX bus (no audio assets) — cues for combat, UI, rewards, branch
+  tiers; heartbeat tempo under pressure — plus the ADAPTIVE SOUNDTRACK: a motif-library score
+  (15-track data library, 8 intensity-gated layers, scene/rotation/progression-weighted
+  selection, stable per-boss themes, reward stingers, near-death duress, bar-aligned equal-power
+  crossfades, mastering compressor).
+- **Dependencies:** WebAudio; volume/on-off persisted (`audioOn` key); `core/events.ts`
+  (`bossKilled` → the bossDown stinger).
+- **Files:** `audio/sound.ts` (SFX bus + all synths + the cue→stinger `STING` bridge),
+  `audio/music.ts` (pure composition core + the music manager), `ui/MusicDebug.tsx` (Settings
+  dev console). Docs: `MUSIC.md`, `GAME-FEEL.md`.
+- **Related:** HUD (UI cues), Loot reveals, Star ceremonies, branch evolution, Assimilation
+  Index (intensity floor), Hub (menu scenes), GameView (category/boss/duress).
+- **Future expansion:** new SFX cue = a synth function + a tag; new track/motif/stinger = one
+  data row in `music.ts`; a new boss hash-assigns its theme (or one `BOSS_THEME_OVERRIDES`
+  entry); real audio assets could layer in behind the same `audio.cue(tag)` / voice functions.
+- **Known limitations:** fully procedural — distinctive but synthetic (choir is detuned
+  triangles, not voices).
+- **Developer tips:** SFX API is `audio.cue(tag)` / `audio.resume()` (autoplay policy); music
+  API is `music.play(category, opts)` + `setIntensity`/`setDuress`/`setScene`/`setProgression`/
+  `stinger` — callers never pick tracks (there is no `audio.play`). Audition everything in
+  Settings → Music Console (dev builds).
 
 ## Visual Effects
 

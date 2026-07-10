@@ -142,6 +142,13 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   weighted threat fold (proximity ramp × tier × health) into ONE smooth intensity that every
   tension effect keys on (vignette+heartbeat, red edge, saturation dip, banner, music — NO view scaling, retired on feedback);
   render-only (goldens untouched), targeting override stays instantaneous — CAMERA.md
+- ✅ **Adaptive Music overhaul** (`audio/music.ts`) — motif-library score (10 recurring themes),
+  15-track data library across 8 categories (4 menus scene-tagged to hub wings, 3-track combat
+  arc, 3 boss theme families hash-assigned per boss name + override table, Colossus Hymn,
+  victory/defeat cadences, events, the Cold Open cinematic), 8 intensity-gated layers (choir + industrial hits AWAKEN as
+  Assimilation rises), near-death duress low-pass, progression-weighted + rotating selection,
+  bar-aligned equal-power crossfades, mastering compressor, 8 reward stingers riding the SFX cue
+  bus, Settings Music Console (dev) — see the compressed summary below — MUSIC.md
 
 ### Heroes
 - ✅ **Revenant** (5th hero, Viral) — a phase-stalking ASSASSIN with a NEW behavior `'phase'`: instead
@@ -542,3 +549,40 @@ mutated trees) via a biome→motif bias map; optional HUD "assimilation" meter.
 **Known limitations.** Combat scars reuse the enemy death buffer (bosses excluded there → tracked by
 id-disappearance instead); the cached membrane is generic-per-stage (build character comes from the
 live regional blooms, not the base texture).
+
+## Compressed system summary — Adaptive Music (docs/MUSIC.md)
+
+**Architecture.** Two halves in `src/audio/music.ts`: (1) a PURE composition core — `MOTIFS`
+(10 scale-degree melodies), `TRACK_LIBRARY` (15 `TrackDef` rows: bpm/root/scale/progression/
+introBars/motif/counterMotif/scenes/lateWeight/rotateAfterLoops/8 layer gain ranges),
+`barNotes(track, bar)` deterministically rendering every layer's notes per bar, pure selection
+(`pickTrack`, `bossTrackFor`), `STINGERS` (8 melodic reward gestures); (2) a WebAudio manager —
+lookahead scheduler (150 ms/40 ms), per-layer buses + fixed stereo stage, mastering chain
+(master → duress low-pass → compressor glue), bar-aligned equal-power crossfades (urgent cap
+0.35 s), rotation after authored loop budgets. SFX bridge in `sound.ts`: `STING` map (cue tag →
+stinger, 6 s throttle) + `bossKilled` listener. Dev console: `src/ui/MusicDebug.tsx` (Settings).
+
+**Public APIs.** `music.play(category, { boss?, force?, trackId? })` — callers request a
+CATEGORY, the manager picks (GameView passes the boss banner name; victory/defeat are one-shot
+cadences). `setIntensity(0..1)` (layer gain seam — Assimilation floor + combat pressure),
+`setDuress(0..1)` (<35 % integrity low-pass drown), `setProgression(0..1)` (App: campaign depth
++ molts), `setScene(navKey)` (Hub: biases next menu pick), `stinger(id)`, `duck(depth, s)`,
+`setLayerGain`, `setPinned(on)` (dev override), `setEnabled`, `setVolume`, `stop`,
+`currentTrackId`. Pure exports for tests/tools: `TRACK_LIBRARY`, `TRACKS`, `MOTIFS`, `STINGERS`,
+`LAYER_IDS`, `tracksOf`, `pickTrack`, `bossTrackFor`, `barNotes`, `chordAt`,
+`BOSS_THEME_OVERRIDES`.
+
+**Extension points.** New track/motif/stinger = one data row; new boss = nothing (stable FNV-1a
+hash into the boss slice) or one `BOSS_THEME_OVERRIDES` entry; new menu scene = tag a nav key in
+`scenes`; cue-driven payoff = one `STING` map row.
+
+**Assumptions.** Layer gain max ≥ min (intensity only ADDS — test-enforced); combat/boss author
+choir/hits `[0, x]` so instruments emerge with intensity; stingers stay in the E-minor home-key
+family; `barNotes` deterministic (same bar → identical notes); render/audio-only ⇒ golden-safe.
+
+**Future hooks.** Sample-based voices swap inside `voice()`/`drum()`/`hit()` without touching
+composition; per-biome motif bias; scene-change acknowledgment stingers.
+
+**Known limitations.** `setLayerGain` overrides last until the next `setIntensity`/track switch;
+events category has one track; choir is synthesized (detuned triangles + vibrato), not vocal
+samples.

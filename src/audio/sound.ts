@@ -8,6 +8,8 @@ type AnyWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
 let ctx: AudioContext | null = null;
 import { music } from './music';
+import type { StingerId } from './music';
+import { gameEvents } from '../core/events';
 
 /** Stings heavy enough to DUCK the score under (depth removed, recovery seconds) —
  *  the mix glue that makes the big moments read as one soundtrack, not two layers. */
@@ -15,6 +17,25 @@ const DUCK: Record<string, [number, number]> = {
   mega: [0.45, 1.4], megaDeath: [0.5, 1.8], megaPhase: [0.3, 0.9],
   wpBreak: [0.28, 0.7], splice: [0.3, 0.8], breach: [0.25, 0.6],
 };
+
+/** Reward cues that ALSO land a musical stinger (audio/music.ts STINGERS) — mapped here so every
+ *  existing and future call site pays off musically with zero per-site wiring. Throttled per
+ *  stinger id (streamy cues like the Power toaster can't turn a motif into a siren). */
+const STING: Record<string, StingerId> = {
+  jackpot: 'legendary', achieve: 'achievement', mastery: 'mastery',
+  rankup: 'unlock', power: 'power', megaDeath: 'bossDown',
+};
+const STING_COOLDOWN_MS = 6000;
+const stingLastAt: Partial<Record<StingerId, number>> = {};
+
+// Boss defeated mid-run → its musical payoff. Registered at module scope like the meta listeners
+// (app-only: the sim/golden tests never import the audio layer). Mega deaths ride megaDeath above.
+gameEvents.on('bossKilled', () => {
+  const now = Date.now();
+  if ((stingLastAt.bossDown ?? -1e12) + STING_COOLDOWN_MS > now) return;
+  stingLastAt.bossDown = now;
+  music.stinger('bossDown');
+});
 
 let master: GainNode | null = null;
 let sfxBus: GainNode | null = null;
@@ -357,6 +378,14 @@ export const audio = {
       const tag = at < 0 ? core : core.slice(0, at);
       const duck = DUCK[tag];
       if (duck) music.duck(duck[0], duck[1]);
+      const sting = STING[tag];
+      if (sting) {
+        const now = Date.now();
+        if ((stingLastAt[sting] ?? -1e12) + STING_COOLDOWN_MS <= now) {
+          stingLastAt[sting] = now;
+          music.stinger(sting);
+        }
+      }
       const d = at < 0 ? 0 : Math.min(1, Math.max(0, (Number(core.slice(at + 1)) - 1) / 4));
       switch (tag) {
         case 'hit': for (let i = 0; i < Math.min(3, n); i++) sHit(i); break;

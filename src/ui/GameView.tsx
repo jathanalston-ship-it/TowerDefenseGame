@@ -190,9 +190,11 @@ export function GameView({
   useEffect(() => {
     if (hud.phase === 'won') { music.play('victory'); return; }
     if (hud.phase === 'lost') { music.play('defeat'); return; }
-    music.play(hud.megaBanner !== null ? 'mega' : bossLive ? 'boss' : 'combat'); // the Colossus Hymn owns mega raids
+    if (hud.megaBanner !== null) { music.play('mega'); return; } // the Colossus Hymn owns mega raids
+    if (bossLive) { music.play('boss', { boss: hud.bossBanner?.name }); return; } // each boss binds ITS theme
+    music.play('combat');
     // Intensity is driven LIVE by the run loop (pressure → layers); the floor rises for bosses.
-  }, [hud.phase, bossLive, hud.megaBanner !== null]); // mega → boss handoff mid-wave must re-pick the track
+  }, [hud.phase, bossLive, hud.megaBanner !== null, hud.bossBanner?.name]); // mega → boss handoff (and boss → boss) must re-pick the track
   // Pause: freezes the sim (the rAF loop skips advance) — both a hotkey (P) and a button drive it.
   // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
   const pausedRef = useRef(false);
@@ -305,6 +307,7 @@ export function GameView({
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const intensityRef = useRef(-1); // last music intensity sent (throttle — see the run loop)
+  const duressRef = useRef(0); // last near-death music treatment sent (throttle — see the run loop)
   const assimTargetRef = useRef(0); // last Assimilation Index target (recomputed at ~8Hz; smoothed every frame)
   const assimHudRef = useRef(-1); // last HUD-glow value pushed to CSS (throttle)
   const assimAscendRef = useRef(-1); // last Ascension-flourish pulse pushed to CSS (throttle)
@@ -615,6 +618,13 @@ export function GameView({
         if (Math.abs(intensity - intensityRef.current) > 0.04) {
           intensityRef.current = intensity;
           music.setIntensity(intensity);
+        }
+        // NEAR-DEATH treatment (audio/music.ts §duress): under 35% Nucleus integrity the mix
+        // starts to drown (low-pass sweep) — fully reversible when the run recovers or ends.
+        const duress = game.phase === 'won' || game.phase === 'lost' ? 0 : Math.min(1, Math.max(0, (0.35 - intRatio) / 0.35));
+        if (Math.abs(duress - duressRef.current) > 0.03) {
+          duressRef.current = duress;
+          music.setDuress(duress);
         }
         // HUD organic accent (docs/ASSIMILATION.md §HUD): publish the master state to CSS as
         // variables the run HUD reads for a subtle living glow — throttled to real changes, and

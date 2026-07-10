@@ -398,10 +398,10 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'none', docs: ['docs/LIVING-BATTLEFIELD.md'],
   },
   {
-    id: 'audio', name: 'Audio', purpose: 'Synthesized SFX/music bus — cues, heartbeat tempo, reward stingers.',
-    files: ['src/audio/*'],
-    dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: ['(audible)'], ui: [], collection: null, achievements: [],
-    localization: 'none', docs: ['docs/GAME-FEEL.md'],
+    id: 'audio', name: 'Audio', purpose: 'Synthesized SFX bus + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.',
+    files: ['src/audio/*', 'src/ui/MusicDebug.tsx'],
+    dependsOn: ['engine'], powerScore: null, save: [], tutorial: [], help: [], hud: ['(audible)'], ui: ['MusicDebug (Settings dev console)'], collection: null, achievements: [],
+    localization: 'none', docs: ['docs/MUSIC.md', 'docs/GAME-FEEL.md'],
   },
   {
     id: 'assimilation', name: 'Assimilation Index',

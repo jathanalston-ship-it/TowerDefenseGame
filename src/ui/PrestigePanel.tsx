@@ -4,6 +4,7 @@
 // the reactive save store; the action goes through meta.molt.
 
 import { meta } from '../state/meta';
+import { music } from '../audio/music';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressBar } from './components/ProgressBar';
@@ -16,6 +17,7 @@ export function PrestigePanel(): JSX.Element {
     if (!p.canMolt) return;
     if (confirm(`Molt for +${p.gain} Ascendant Cells?\n\nThis RESETS your banked ${ACCOUNT_CURRENCY.name} and core upgrades. Everything else — stars, mastery, gear, shards, loot — is kept.`)) {
       meta.molt();
+      music.stinger('prestige'); // ascension owns its musical moment (audio/music.ts STINGERS)
     }
   };
 

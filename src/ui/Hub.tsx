@@ -9,6 +9,7 @@ import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { ReplayRecord } from '../core/replay';
 import { audio } from '../audio/sound';
+import { music } from '../audio/music';
 import { AudioToggles } from './components/AudioToggles';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -39,6 +40,7 @@ import { CloudBackup } from './components/CloudBackup';
 import { AccountPanel } from './components/AccountPanel';
 import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
+import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
 import { PhenotypeLab } from './PhenotypeLab';
 import { LabAtmosphere } from './LabAtmosphere';
@@ -195,6 +197,7 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
             {t('settings.reset')}
           </button>
         </div>
+        <MusicDebug />
         <DevTools />
       </div>
     </div>
@@ -250,6 +253,14 @@ export function Hub({
 
   // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset).
   useEffect(() => { notifications.sync(save); }, [save]);
+
+  // Hub scene → menu music (audio/music.ts §scenes): each wing of the Command Center biases the
+  // NEXT menu pick toward its scene-tagged themes — rotation (not this) actually switches tracks,
+  // so browsing never stutters the score.
+  useEffect(() => {
+    music.setScene(nav);
+    return () => music.setScene(null); // leaving the hub (into a run) clears the bias
+  }, [nav]);
 
   const go = (k: NavKey): void => {
     audio.cue('ui');

@@ -4,7 +4,9 @@
 // This file is the DATA layer — it turns the outcome into RewardCategory[] (add a progression system
 // = add one category here); RewardReveal owns the pacing, animation, and player controls.
 
+import { useEffect } from 'react';
 import { meta } from '../state/meta';
+import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
 import { MASTERY, ENEMY_DEFS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import type { EnemyKind } from '../core/types';
@@ -89,6 +91,12 @@ export function Results({
   // Flawless bonus-cache notice — tells the player whether the no-damage first-clear bonus landed,
   // and why not when it didn't (took damage, or a replay). null → not a campaign clear, show nothing.
   const fc = outcome.flawlessCache;
+  // A campaign FIRST CLEAR is a chapter beat — it lands the 'chapter' stinger over the victory
+  // cadence as the capsule opens (audio/music.ts STINGERS). Replays stay quiet.
+  const firstClear = fc?.firstClear ?? false;
+  useEffect(() => {
+    if (firstClear) music.stinger('chapter');
+  }, [firstClear]);
   const flawlessNotice: { tone: 'earned' | 'miss'; text: string } | null =
     !fc ? null
     : fc.earned ? { tone: 'earned', text: 'Flawless clear — bonus Flawless Cache secured! No damage taken.' }

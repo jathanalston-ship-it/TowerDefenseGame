@@ -360,6 +360,12 @@ export function App(): JSX.Element {
   useEffect(() => {
     if (screen !== 'menu') return;
     startSyncEngine(); // the account sync engine mirrors + pulls quietly (net/syncEngine.ts)
+    music.setDuress(0); // any lingering near-death treatment ends with the run
+    // Account progression → soundtrack evolution (audio/music.ts §progression): veterans hear
+    // the darker late-game menu themes more. Campaign depth + molts, saturating ~stage 30.
+    const s = meta.get();
+    const cleared = Math.max(0, ...Object.values(s.campaign.cleared), 0);
+    music.setProgression(Math.min(1, cleared / 30 + s.prestige.molts * 0.2));
     const start = (): void => music.play('menu');
     start(); // no-op until the AudioContext may run…
     window.addEventListener('pointerdown', start, { once: true }); // …then the first click unlocks it
