@@ -410,8 +410,8 @@ export const SYSTEMS: SystemDef[] = [
     collection: 'Memory Archive section (Collection screen)', achievements: [], localization: 'inline-en', docs: ['docs/CUTSCENES.md'],
   },
   {
-    id: 'security', name: 'Game Action Security Layer', purpose: 'Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.',
-    files: ['src/security/actionGuard.ts', 'src/security/registry.ts', 'src/ui/SecurityPulse.tsx'],
+    id: 'security', name: 'Game Action Security Layer', purpose: 'Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, run-settle REPLAY protection (finishRun WeakMap settle-once cache — the same result object can never pay twice), cross-tab WRITE ARBITRATION (newest tab owns the save; stale tabs stop persisting + show a reload notice), debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.',
+    files: ['src/security/actionGuard.ts', 'src/security/registry.ts', 'src/security/tabArbiter.ts', 'src/ui/SecurityPulse.tsx'],
     dependsOn: ['meta-store', 'net-backend'], powerScore: null, save: [],
     tutorial: [], help: [], hud: [], ui: ['SecurityPulse'],
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/SECURITY.md'],

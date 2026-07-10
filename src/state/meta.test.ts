@@ -297,6 +297,22 @@ describe('loot queue integration (the finishRun banking seam)', () => {
   });
 });
 
+describe('run settlement replay protection (docs/SECURITY.md §replay)', () => {
+  it('the SAME result object settles once — a replay returns the first outcome, save untouched', () => {
+    meta.reset();
+    const result = runResult(10, 40);
+    const first = meta.finishRun(result);
+    const savedAfterFirst = meta.get();
+    const replay = meta.finishRun(result); // double event fire / effect re-fire / navigation replay
+    expect(replay).toBe(first); // the first settle's outcome object — nothing recomputed
+    expect(meta.get()).toBe(savedAfterFirst); // and NO persist happened — zero double rewards
+    // a DISTINCT run (fresh result object) still settles normally
+    const second = meta.finishRun(runResult(10, 40));
+    expect(second).not.toBe(first);
+    expect(meta.get().totalRuns).toBe(savedAfterFirst.totalRuns + 1);
+  });
+});
+
 /** Total per-tower + per-hero star Shards banked in a save (what cracking a container grants). */
 function totalShards(save: ReturnType<typeof meta.get>): number {
   const t = TOWER_ORDER.reduce((s, k) => s + (save.towerShards[k] ?? 0), 0);

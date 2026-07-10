@@ -9798,3 +9798,13 @@ html[data-debug-layout] body::after {
   pointer-events: none;
 }
 @keyframes sec-pulse-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%); } }
+/* Cross-tab takeover (docs/SECURITY.md §tabs) — persistent, interactive, unmissable. */
+.sec-pulse.is-conflict {
+  pointer-events: auto;
+  border-color: color-mix(in srgb, var(--vital) 65%, var(--line));
+  color: #ffd9df; background: rgba(24, 4, 10, 0.95);
+}
+.sec-pulse-reload {
+  padding: 0 2px; font-size: 12px; letter-spacing: 0.06em;
+  background: none; border: none; color: var(--gold); text-decoration: underline; cursor: pointer;
+}

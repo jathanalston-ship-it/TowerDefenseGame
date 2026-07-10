@@ -11,10 +11,15 @@ const THROTTLE_MS = 2500;
 
 export function SecurityPulse(): JSX.Element | null {
   const [at, setAt] = useState(0);
+  const [conflict, setConflict] = useState(false);
   useEffect(() => {
     let last = 0;
     onSecurityBlock((b) => {
       if (b.reason === 'flood') return; // disk coalescing is invisible by design
+      if (b.reason === 'conflict') {
+        setConflict(true); // cross-tab takeover (docs/SECURITY.md §tabs) — persistent, not a pulse
+        return;
+      }
       const now = Date.now();
       if (now - last < THROTTLE_MS) return;
       last = now;
@@ -27,6 +32,13 @@ export function SecurityPulse(): JSX.Element | null {
     const id = setTimeout(() => setAt(0), SHOW_MS);
     return () => clearTimeout(id);
   }, [at]);
+  if (conflict) {
+    return (
+      <div className="sec-pulse is-conflict" role="alert">
+        ⚠ Another tab took over this save — <button className="sec-pulse-reload" onClick={() => window.location.reload()}>reload</button> to continue here
+      </div>
+    );
+  }
   if (!at) return null;
   return (
     <div className="sec-pulse" role="status" aria-live="polite">

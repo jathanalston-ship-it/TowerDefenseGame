@@ -1029,9 +1029,9 @@ graph TD
 
 ### Game Action Security Layer (`security`)
 
-*Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.*
+*Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, run-settle REPLAY protection (finishRun WeakMap settle-once cache — the same result object can never pay twice), cross-tab WRITE ARBITRATION (newest tab owns the save; stale tabs stop persisting + show a reload notice), debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.*
 
-- **Files:** `src/security/actionGuard.ts` · `src/security/registry.ts` · `src/ui/SecurityPulse.tsx`
+- **Files:** `src/security/actionGuard.ts` · `src/security/registry.ts` · `src/security/tabArbiter.ts` · `src/ui/SecurityPulse.tsx`
 - **Depends on:** `meta-store` · `net-backend`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

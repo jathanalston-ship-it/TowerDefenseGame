@@ -126,7 +126,8 @@ import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/cam
 import { bossDef } from '../core/boss';
 import { MEGA, megaBossDef, megaBossIchor, megaExpectedKillSec, megaKillEfficiency } from '../core/megaboss';
 import type { MegaKillStat } from '../core/types';
-import { admitWrite, guardOk, noteClock, resetSecurity } from '../security/actionGuard';
+import { admitWrite, guardOk, noteClock, reportConflict, resetSecurity } from '../security/actionGuard';
+import { initTabArbiter, stampWriter, tabIsStale } from '../security/tabArbiter';
 import { isDebugEnabled } from '../debug/debug';
 
 /** Biome ids the account has reached in Campaign, derived from campaign depth (biomes occupy
@@ -520,6 +521,13 @@ function megaKillExpectation(save: SaveData, k: MegaKillStat): { expected: numbe
 // after THIS summary" signal.
 let pendingMegaCutscenes: string[] = [];
 
+// REPLAY PROTECTION (docs/SECURITY.md §replay): a RunResult settles EXACTLY once. The same
+// object re-entering finishRun (a double game-over event, an effect re-fire, a navigation
+// replay) returns the FIRST settle's outcome without touching the save again — duplicate
+// run rewards are structurally impossible. WeakMap on object identity: two legitimate runs
+// are two distinct result objects, and settled results are garbage-collected with the run.
+const settledOutcomes = new WeakMap<RunResult, RunOutcome>();
+
 // ── Account Level (docs/ACCOUNT-LEVEL.md) — the XP fold + level-up queue ────────────────────
 // Level-ups earned OUTSIDE a run settle (buying stars, upgrading genes, molting …) queue here
 // and are drained by the menu toaster, so a level-up is always visible wherever it happens.
@@ -647,17 +655,29 @@ let persistFlushTimer: ReturnType<typeof setTimeout> | null = null;
 function persist(next: SaveData): void {
   store.set(next);
   noteClock();
+  // Cross-tab arbitration (docs/SECURITY.md §tabs): once another tab owns the save, THIS
+  // tab's disk writes stop — memory stays live for the session, the takeover banner says
+  // reload. Writing anyway would clobber the owner and re-pay replayed claims.
+  if (tabIsStale()) return;
   if (admitWrite()) {
     saveStore.save(next);
+    stampWriter();
     return;
   }
   if (persistFlushTimer === null) {
     persistFlushTimer = setTimeout(() => {
       persistFlushTimer = null;
+      if (tabIsStale()) return; // takeover raced the flush — the owner's disk state wins
       saveStore.save(store.get()); // trailing flush — the newest state wins
+      stampWriter();
     }, 300);
   }
 }
+
+// Arm the cross-tab arbiter once at boot (window-gated inside; inert under Node). A takeover
+// is surfaced through the security block feed — SecurityPulse renders it as a persistent
+// "reload to continue" notice rather than a transient pulse.
+initTabArbiter(() => reportConflict('save.tabConflict'));
 
 // Loot banked LIVE during the in-progress run (see meta.syncRunLoot). The HUD drives this as
 // the run advances, so the meta queue rolls real boxes in real time — exact even for deep
@@ -1616,6 +1636,9 @@ export const meta = {
   },
 
   finishRun(result: RunResult): RunOutcome {
+    // Settle-once (docs/SECURITY.md §replay): an already-settled result replays its outcome.
+    const replayed = settledOutcomes.get(result);
+    if (replayed) return replayed;
     const save = store.get();
     const asc = ascendantBonuses(save.prestige.nodes); // permanent prestige-tree economy mults (×1 if none)
     const cb = accountEconomyBonuses(save); // codex + Battle Pass economy bonuses (neutral on a fresh save)
@@ -2118,7 +2141,7 @@ export const meta = {
       to: levelFromXp(acctAfter),
       levelUps: pendingAccountLevelUps.splice(0),
     };
-    return {
+    const outcome: RunOutcome = {
       passXp,
       ...(passLevelUp ? { passLevelUp } : {}),
       accountXp,
@@ -2151,6 +2174,8 @@ export const meta = {
       ...(pendingMegaCutscenes.length > 0 ? { megaCutscenes: pendingMegaCutscenes.splice(0) } : {}),
       flawlessCache,
     };
+    settledOutcomes.set(result, outcome);
+    return outcome;
   },
 
   /** Equip (or clear, id=null) a mastery title for the player profile. No-op if the title

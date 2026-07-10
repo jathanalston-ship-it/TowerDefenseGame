@@ -17,7 +17,7 @@
 import { SECURITY_ACTIONS } from './registry';
 import type { ActionPolicy } from './registry';
 
-export type BlockReason = 'rate' | 'cooldown' | 'duplicate' | 'flood';
+export type BlockReason = 'rate' | 'cooldown' | 'duplicate' | 'flood' | 'conflict';
 
 export interface BlockInfo {
   id: string;
@@ -156,6 +156,13 @@ export function guard(id: string, key?: string): GuardResult {
 /** Convenience: guard + boolean (for `if (!guardOk('x')) return false;` call sites). */
 export function guardOk(id: string, key?: string): boolean {
   return guard(id, key).ok;
+}
+
+/** Report a CONFLICT into the block log + UI feed (docs/SECURITY.md §tabs) — used by the
+ *  cross-tab arbiter when another tab takes over the save. Not a guard: nothing is paced,
+ *  the event is simply made observable (log ring + the persistent takeover banner). */
+export function reportConflict(id: string): void {
+  logBlock({ id, reason: 'conflict', retryInMs: 0, at: clock() });
 }
 
 // ── Persist flood control (docs/SECURITY.md §flood) ──────────────────────────

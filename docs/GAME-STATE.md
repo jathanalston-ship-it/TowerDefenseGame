@@ -389,6 +389,16 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 - ✅ Production backend (Cloudflare Pages Functions + D1 + Stripe + Turnstile): purchases
   (exactly-once), cloud save + auto sync, daily seed, leaderboard + replay verification,
   aggregate analytics — DEPLOYMENT.md, SECURITY-AUDIT.md, LEADERBOARD-INTEGRITY.md
+- ✅ **Game Action Security Layer** (**hardened 2026-07**): every meaningful player action passes
+  `guard(actionId, key?)` — data-driven token buckets + cooldowns + duplicate windows from ONE
+  central registry (~35 policies across purchase/claim/economy/progression/network/account);
+  the `persist()` chokepoint adds a flood valve + clock-rollback high-water mark + **cross-tab
+  write arbitration** (newest tab owns the save; stale tabs stop persisting and show a reload
+  notice — security/tabArbiter.ts) for every current AND future meta mutation automatically;
+  `finishRun` carries a **settle-once replay cache** (the same result object can never pay
+  twice). Inert in Node (sim/personas unaffected); enforcement tests make unguarded economy
+  mutators and registry drift unshippable; debug surface compiles out under
+  VITE_RELEASE_HARDENED — SECURITY.md
 - ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition — **overhauled to full procedural canvas cinematics** (`render/introScenes.ts`): five deterministic set-pieces (deep-crust radar reacquisition, the swarm boiling up ember-lit strata, veins consuming a steel lattice, the breathing molten Hive Core, the title spore-field/aurora), film-style cross-dissolves, letterbox grade + grain, per-scene copy accents; reduced-motion shows a hand-picked still per scene; DPR-capped for mobile
 - ✅ Service worker: offline shell, versioned caches, player-controlled update toast — DEPLOYMENT.md §sw
 - ✅ LiveOps calendar — **overhauled again (2026-07)**: 11 deterministic UTC events across 4 weighted

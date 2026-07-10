@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 696 nodes · 1208 edges, built from the live
+> **The project's brain** (docs/DIL.md). 697 nodes · 1210 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -113,6 +113,7 @@ graph LR
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_directives["Weekly Directives"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_contracts["Champion Contracts"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_contracts["Champion Contracts"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
@@ -405,6 +406,7 @@ graph LR
   system_onboarding["Tutorials, Help & Onboarding"] -->|triggers| system_audio["Audio"]
   system_bosses["Bosses"] -->|triggers| system_audio["Audio"]
   system_mega_bosses["Mega Bosses"] -->|triggers| system_audio["Audio"]
+  system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
@@ -1562,7 +1564,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…95 more (query: `npm run dil -- node system:meta-store`)_
+  - _…96 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1635,17 +1637,19 @@ _at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.
 
 ### `system:security` — Game Action Security Layer
 
-Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.
+Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, run-settle REPLAY protection (finishRun WeakMap settle-once cache — the same result object can never pay twice), cross-tab WRITE ARBITRATION (newest tab owns the save; stale tabs stop persisting + show a reload notice), debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.
 
-_at: src/security/actionGuard.ts, src/security/registry.ts, src/ui/SecurityPulse.tsx_
+_at: src/security/actionGuard.ts, src/security/registry.ts, src/security/tabArbiter.ts, src/ui/SecurityPulse.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:net-backend`
   - gates → `system:meta-store` — every economy-named meta mutator must carry a guard() or an allowlist reason (securityRegistry.test.ts name-shape scan); the persist() chokepoint gives ALL mutations flood control automatically
   - consumes → `concept:determinism` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
   - conflictsWith → `concept:golden-test` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
+  - modifies → `system:meta-store` — tabArbiter: the newest writing tab owns the save — persist() stops disk writes in stale tabs (storage-event takeover latch) and finishRun replays return the settle-once cached outcome; both inherited by all future mutations/run modes
   - documentedBy ← `doc:SECURITY.md`
   - testedBy ← `test:src/security/actionGuard.test.ts`
+  - testedBy ← `test:src/security/tabArbiter.test.ts`
 
 ### `system:biomes` — Biomes
 
@@ -2866,7 +2870,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (218)
+## Tests (219)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3023,6 +3027,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/save/saveStore.test.ts` — automated validation _(tests `system:meta-store`)_
 - `test:src/security/actionGuard.test.ts` — automated validation _(tests `system:security`)_
 - `test:src/security/securityRegistry.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/security/tabArbiter.test.ts` — automated validation _(tests `system:security`)_
 - `test:src/state/abandon.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.framework.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.test.ts` — automated validation _(tests `system:achievements`)_

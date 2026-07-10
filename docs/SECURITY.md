@@ -26,8 +26,9 @@ Player input
   |    ├─ cooldown         (hard spacing between accepted actions)
   |    └─ token bucket     (limit.count per limit.perMs, burst up to count)
   → domain validation      (currencies, ownership, eligibility, caps — the method's own checks)
-  → execution + persist()  (one chokepoint: flood valve + clock high-water mark, automatic
-  |                         for every CURRENT AND FUTURE meta mutation)
+  → execution + persist()  (one chokepoint: flood valve + clock high-water mark + cross-tab
+  |                         writer arbitration, automatic for every CURRENT AND FUTURE
+  |                         meta mutation; run settles are replay-cached — §replay)
   → save integrity         (checksummed blob, rolling backups — save/saveStore.ts)
   → analytics + log        (block ring buffer, onSecurityBlock listener)
   → UI feedback            (SecurityPulse — one throttled "hold on" nudge)
@@ -41,7 +42,8 @@ input boundary instead — a blocked click simply never enters the input stream.
 ## §engine — src/security/actionGuard.ts
 
 - `guard(id, key?)` → `{ok:true}` or `{ok:false, block:{reason, retryInMs}}`. Reasons:
-  `duplicate` (same key in the window), `cooldown`, `rate` (bucket empty), `flood`.
+  `duplicate` (same key in the window), `cooldown`, `rate` (bucket empty), `flood`, and
+  `conflict` (cross-tab takeover — reported by the arbiter via `reportConflict`, not a guard).
 - **Token buckets** refill continuously (`count` per `perMs`); burst up to the full count.
 - **Inert outside the browser.** The deterministic suite, economy personas and balance sims
   hammer meta methods thousands of times per second by design — in Node the layer is off
@@ -129,6 +131,35 @@ without passing `persist()` (the chokepoint), and no reward may be claimable twi
   serverside, turnstile tokens; the `leaderboard.submit` guard keeps the client polite.
 - **Offline:** everything works offline by design; time-keyed systems self-heal on clock
   rollback, and `securityClockAnomaly()` surfaces manipulation for analytics/support.
+
+## §replay — run settlement happens exactly once
+
+`meta.finishRun` is the single most value-dense action in the game (currencies, XP, loot,
+directives, quests, contracts, infestation all settle there), so it carries structural
+replay protection: a `WeakMap<RunResult, RunOutcome>` settle-once cache. The SAME result
+object re-entering (a double game-over event, an effect re-fire, a navigation replay)
+returns the FIRST settle's outcome without touching the save — duplicate run rewards are
+impossible by construction. Object identity is the key: two legitimate runs are two distinct
+result objects, and settled entries garbage-collect with the run. No token plumbing, no API
+change, and every current and future run mode inherits it automatically.
+
+## §tabs — cross-tab write arbitration (src/security/tabArbiter.ts)
+
+Two tabs open on the same save are a duplicate-reward machine: each boots from the same
+blob, both persist independently — last-writer-wins silently clobbers, and replaying a claim
+in the stale tab pays it twice. The arbiter makes the NEWEST writing tab the owner:
+
+- Every disk write stamps a **writer mark** (`assimilate.saveWriter` — a separate key, never
+  inside the checksummed blob).
+- Other tabs observe the mark through the `storage` event (which never fires for the writer
+  itself) and latch **STALE**: the in-memory session keeps working, but `persist()` stops
+  writing to disk (including the trailing flood-flush) and `SecurityPulse` shows a
+  persistent "another tab took over — reload" notice (`reportConflict('save.tabConflict')`,
+  block reason `conflict`).
+- No merge machinery, no prompt fatigue — the resolution is always "reload the stale tab".
+
+Node-safe (window-gated), tested on its pure parts (tabArbiter.test.ts), and inherited
+automatically — future systems persist through the same chokepoint.
 
 ## §debug — release hardening
 
