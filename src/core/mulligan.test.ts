@@ -9,15 +9,18 @@ import {
   isMulliganActive, levelCap, makeSlot, modifiersByCategory, mulliganPower, mulliganRegistry,
   resolveMulligan, rollRarity, seedFor, upgradeCost,
 } from './mulligan';
+import { TOWER_ORDER } from './config';
 import type { MulliganState } from './mulligan';
 
 describe('catalog', () => {
-  it('registers 30 modifiers — 10 offensive · 10 utility · 10 biological — and all validate', () => {
-    expect(mulliganRegistry.size).toBe(30);
+  it('tracks the tower roster at EXACTLY three pieces per tower (§exclusivity math) and validates', () => {
+    // 3 pieces activate one organism and a piece lives on one tower at a time, so the
+    // catalog must always hold 3× the tower roster — adding a tower forces new pieces.
+    expect(mulliganRegistry.size).toBe(3 * TOWER_ORDER.length);
     expect(mulliganRegistry.validate()).toEqual([]);
-    expect(modifiersByCategory('offensive').length).toBe(10);
-    expect(modifiersByCategory('utility').length).toBe(10);
-    expect(modifiersByCategory('biological').length).toBe(10);
+    expect(modifiersByCategory('offensive').length).toBe(TOWER_ORDER.length);
+    expect(modifiersByCategory('utility').length).toBe(TOWER_ORDER.length);
+    expect(modifiersByCategory('biological').length).toBe(TOWER_ORDER.length);
   });
   it('every modifier declares an influence over KNOWN axes and a positive Power weight', () => {
     for (const m of mulliganRegistry.all()) {

@@ -66,7 +66,9 @@ import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../co
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
-import { MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, makeSlot, mulliganRegistry, nextRarity, rarityAtLeast, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import { MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import { REFORGE_RARITY, reforgeCost as mulliganReforgeCost, reforgeModById, rollReforgeMod } from '../core/mulliganReforge';
+import type { MulliganReforgeMod } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganState, ResolvedMulligan } from '../core/mulligan';
 import type { PowerParts, PowerScore } from '../core/power';
 import { lootBias } from '../core/progressionLoot';
@@ -143,6 +145,10 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     biomesSeen: biomesSeenOf(save),
     cosmeticsOwned: new Set(save.cosmetics.owned),
     mulliganDex: save.mulliganDex ?? {},
+    mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => {
+      const st = save.mulligans[k];
+      return [k, { active: isMulliganActive(st), locked: st?.locked === true }];
+    })),
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
   };
 }
@@ -1819,25 +1825,38 @@ export const meta = {
     // Surface the bleed on the reveal (an event pull) so the spoils are never invisible.
     chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceBleed, note: 'Gene Bleed' });
     const premiumMull = containerRarity === 'epic' || containerRarity === 'legendary' || containerRarity === 'exotic' || containerRarity === 'mythic';
-    if (premiumMull) {
+    let dupeEssence = 0;
+    // §gate: pieces only drop once the pillar is unlocked (3 distinct Mega Bosses slain,
+    // or the account already holds pieces — grandfathered pre-v29 progress).
+    if (premiumMull && meta.mulligansUnlocked()) {
+      // §exclusivity economy: prefer an UNOWNED piece (pieces are unique — one copy each).
+      // When the whole catalog is owned, the pull dissolves into Gene Essence on the spot
+      // (there is no selling; duplicates never enter the inventory).
       const modIds = mulliganRegistry.ids();
-      const id = modIds[Math.floor(Math.random() * modIds.length)];
+      const unowned = modIds.filter((m) => !mulliganDex[m]);
       const rar = rollRarity(Math.random());
-      const cur = mulliganDex[id];
-      if (id && (!cur || !rarityAtLeast(cur, rar))) {
+      const revealRarity: LootRarity = rar === 'ascendant' ? 'exotic' : rar === 'uncommon' ? 'common' : rar;
+      if (unowned.length > 0) {
+        const id = unowned[Math.floor(Math.random() * unowned.length)];
         mulliganDex = { ...mulliganDex, [id]: rar };
-        // The DISCOVERY moment (docs/MULLIGANS.md §loot): a first find — or a rarity upgrade —
-        // is a reveal-worthy pull; the ceremony names the modifier + its sequenced rarity.
-        const revealRarity: LootRarity = rar === 'ascendant' ? 'exotic' : rar === 'uncommon' ? 'common' : rar;
+        // The DISCOVERY moment (docs/MULLIGANS.md §loot + §reveal) — a unique ceremony pull.
         chest.items.push({
           type: 'event', rarity: revealRarity, currency: 'mulliganModifier', amount: 1,
-          note: `${cur ? 'Modifier Ascended' : 'Modifier Sequenced'} — ${mulliganRegistry.get(id)?.name ?? id} (${MULLIGAN_RARITY[rar].label})`,
+          note: `Modifier Sequenced — ${mulliganRegistry.get(id)?.name ?? id} (${MULLIGAN_RARITY[rar].label})`,
+        });
+      } else {
+        const DUP_ESSENCE: Record<MulliganRarity, number> = { common: 30, uncommon: 50, rare: 90, epic: 160, legendary: 280, ascendant: 500 };
+        dupeEssence = DUP_ESSENCE[rar];
+        const dupId = modIds[Math.floor(Math.random() * modIds.length)];
+        chest.items.push({
+          type: 'event', rarity: revealRarity, currency: 'geneEssence', amount: dupeEssence,
+          note: `Duplicate Dissolved — ${mulliganRegistry.get(dupId)?.name ?? 'Modifier'} (${MULLIGAN_RARITY[rar].label})`,
         });
       }
     }
     persist({
       ...save, towerShards, heroShards, mats, matPity: pity, antigen,
-      geneEssence: save.geneEssence + essenceGained + essenceBleed,
+      geneEssence: save.geneEssence + essenceGained + essenceBleed + dupeEssence,
       mulliganDex,
       ichor: save.ichor + ichorBleed,
       lifetimeIchor: save.lifetimeIchor + ichorBleed,
@@ -2301,6 +2320,16 @@ export const meta = {
   // ── Mulligan system (docs/MULLIGANS.md) — the per-tower biomechanical organism. All mutations go
   //    through the save; a Mulligan does nothing until all three slots are filled (resolveMulligan). ──
 
+  /** §gate — the pillar unlocks after slaying THREE distinct Mega Bosses. Accounts that
+   *  already hold pieces are grandfathered (pre-gate progress is never confiscated). */
+  mulligansUnlocked(): boolean {
+    const s = store.get();
+    return s.megaProgress.slain.length >= MULLIGAN_GATE_MEGAS || Object.keys(s.mulliganDex).length > 0;
+  },
+  /** Distinct Mega Bosses slain toward the gate (UI progress line). */
+  mulliganGateProgress(): { slain: number; needed: number } {
+    return { slain: store.get().megaProgress.slain.length, needed: MULLIGAN_GATE_MEGAS };
+  },
   /** The persisted Mulligan for a tower kind (a fresh empty one if never touched). */
   mulligan(kind: TowerKind): MulliganState {
     return store.get().mulligans[kind] ?? emptyMulligan();
@@ -2324,7 +2353,9 @@ export const meta = {
     const save = store.get();
     persist({ ...save, geneEssence: Math.max(0, save.geneEssence + Math.floor(amount)) });
   },
-  /** Slot a DISCOVERED modifier into a tower's Mulligan (rarity ≤ the discovered ceiling; level 1).
+  /** Slot an OWNED piece into a tower's Mulligan (rarity ≤ the owned ceiling; level 1).
+   *  §exclusivity: a piece lives on ONE tower — equipping it here MOVES it off its current
+   *  host (that organism deactivates) unless either tower is reforge-LOCKED, which refuses.
    *  Recomputes the organism seeds from the new composition. Returns success. */
   equipMulligan(kind: TowerKind, slotIndex: number, modId: string, rarity?: MulliganRarity): boolean {
     const save = store.get();
@@ -2333,24 +2364,34 @@ export const meta = {
     if (!def) return false;
     const owned = save.mulliganDex[modId];
     if (!owned) return false; // must be discovered first
+    const cur = save.mulligans[kind] ?? emptyMulligan();
+    if (cur.locked) return false; // a reforged organism is permanent (§reforge)
+    if (cur.slots.some((s, i) => s?.id === modId && i !== slotIndex)) return false; // one physical piece
+    const host = modifierHost(save.mulligans, modId);
+    let mulligans = save.mulligans;
+    if (host && host !== kind) {
+      const hostState = mulligans[host as TowerKind];
+      if (hostState?.locked) return false; // the piece is BOUND into a locked organism
+      const hostSlots = hostState.slots.map((s) => (s?.id === modId ? null : s));
+      mulligans = { ...mulligans, [host]: { ...hostState, slots: hostSlots, ...seedFor(host, hostSlots) } };
+    }
     const useRarity: MulliganRarity = rarity && rarityAtLeast(owned, rarity) ? rarity : owned; // cap at discovered
     const slot = makeSlot(modId, useRarity, 1);
     if (!slot) return false;
-    const cur = save.mulligans[kind] ?? emptyMulligan();
     const slots = cur.slots.slice();
     slots[slotIndex] = slot;
     const powerBefore = meta.power().score;
-    persist({ ...save, mulligans: { ...save.mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
+    persist({ ...save, mulligans: { ...mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
     // Power only moves once the organism ACTIVATES (all three slots) — announce the awakening jump,
     // stay silent for the first two grafts (no partial activation ⇒ no Power change by design).
     if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — ${def.name}`, powerBefore, meta.power().score);
     return true;
   },
-  /** Clear a slot (organism deactivates until refilled). Recomputes seeds. */
+  /** Clear a slot (organism deactivates until refilled). Refused on a LOCKED organism. */
   unequipMulligan(kind: TowerKind, slotIndex: number): boolean {
     const save = store.get();
     const cur = save.mulligans[kind];
-    if (!cur || slotIndex < 0 || slotIndex >= MULLIGAN_SLOTS || !cur.slots[slotIndex]) return false;
+    if (!cur || cur.locked || slotIndex < 0 || slotIndex >= MULLIGAN_SLOTS || !cur.slots[slotIndex]) return false;
     const slots = cur.slots.slice();
     slots[slotIndex] = null;
     persist({ ...save, mulligans: { ...save.mulligans, [kind]: { slots, ...seedFor(kind, slots) } } });
@@ -2389,6 +2430,48 @@ export const meta = {
     persist({ ...save, geneEssence: save.geneEssence - cost, mulliganDex, mulligans: { ...save.mulligans, [kind]: { ...cur, slots, ...seedFor(kind, slots) } } });
     if (meta.mulliganResolved(kind).active) announcePower(`${TOWER_DEFS[kind].name} Mulligan — ${nxt}`, powerBefore, meta.power().score);
     return true;
+  },
+  /** §reforge — spin the wheel on an ACTIVE organism's reforge slot. Spends Ichor, rolls a
+   *  rarity-weighted mod (the wheel animates TO this result), and PERMANENTLY LOCKS the
+   *  organism onto its host — no unequip, no re-slotting, ever. Re-spinning an occupied
+   *  slot replaces its mod (the gamble). Returns the rolled mod, or null (refused). */
+  reforgeMulligan(kind: TowerKind, slotIndex: number): { mod: MulliganReforgeMod; cost: number } | null {
+    const save = store.get();
+    const cur = save.mulligans[kind];
+    if (!cur || !isMulliganActive(cur)) return null;
+    const usable = reforgeSlotCount(cur);
+    if (slotIndex < 0 || slotIndex >= usable) return null;
+    const cost = mulliganReforgeCost(slotIndex);
+    if (save.ichor < cost) return null;
+    const mod = rollReforgeMod(Math.random(), Math.random());
+    const reforges = (cur.reforges ?? [null, null, null]).slice(0, 3);
+    while (reforges.length < 3) reforges.push(null);
+    reforges[slotIndex] = mod.id;
+    const powerBefore = meta.power().score;
+    persist({
+      ...save,
+      ichor: save.ichor - cost,
+      mulligans: { ...save.mulligans, [kind]: { ...cur, locked: true, reforges } },
+      timeline: pushTimeline(save.timeline, '⊛', `Mulligan Reforged — ${TOWER_DEFS[kind].name}: ${mod.name} (${REFORGE_RARITY[mod.rarity].label})`),
+    });
+    announcePower(`${TOWER_DEFS[kind].name} Reforge — ${mod.name}`, powerBefore, meta.power().score);
+    return { mod, cost };
+  },
+  /** §reforge — the account-wide passives from LEGENDARY reforge mods across every locked
+   *  organism, folded into runs beside the collection/trophy/infestation lanes. */
+  mulliganGlobalEffects(): CardEffect[] {
+    const s = store.get();
+    const out: CardEffect[] = [];
+    for (const kind of TOWER_ORDER) {
+      const st = s.mulligans[kind];
+      if (!st?.reforges) continue;
+      const usable = reforgeSlotCount(st);
+      for (let i = 0; i < usable; i++) {
+        const mod = st.reforges[i] ? reforgeModById(st.reforges[i]!) : undefined;
+        if (mod?.global) out.push(...mod.global);
+      }
+    }
+    return out;
   },
 
   /** Progress prediction (docs/PREDICTION.md) — an intelligent, self-calibrating ESTIMATE (never a

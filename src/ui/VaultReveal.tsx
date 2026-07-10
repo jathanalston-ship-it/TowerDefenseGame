@@ -28,6 +28,7 @@ import type { ChestResult } from '../state/lootbox';
 import { buildReveal, rarityLabel } from '../state/vaultReveal';
 import type { PullView, SummarySection } from '../state/vaultReveal';
 import { CHESTS } from '../core/config';
+import { MULLIGAN_MARK } from '../core/mulligan';
 import type { LootRarity } from '../core/config';
 import { rarityRank } from '../core/loot';
 import { formatPower } from '../core/power';
@@ -40,11 +41,15 @@ import type { PowerCompare } from '../state/itemPower';
 const TIER: LootRarity[] = ['common', 'rare', 'epic', 'legendary', 'exotic'];
 
 function PullFace({ pull }: { pull: PullView }): JSX.Element {
+  // Mulligan piece discoveries (⊛) wear a UNIQUE ceremony (docs/MULLIGANS.md §reveal):
+  // the sigil grafts in with a wriggle while tendril rings radiate from the emblem.
+  const isMulligan = pull.glyph === MULLIGAN_MARK;
   return (
-    <div className="vreveal-face">
+    <div className={`vreveal-face${isMulligan ? ' is-mulligan' : ''}`}>
       {pull.isNew && <div className="vreveal-new" aria-label="First discovery">✦ NEW DISCOVERY</div>}
       <div className="vreveal-face-rword" style={{ color: pull.color }}>{rarityLabel(pull.rarity)}</div>
       <div className="vreveal-emblem" style={{ ['--rw' as string]: pull.color }}>
+        {isMulligan && <span className="vreveal-tendrils" aria-hidden><i /><i /><i /></span>}
         {pull.currency ? <CurrencyIcon id={pull.currency} color={pull.color} size={46} pickup /> : <span className="vreveal-glyph">{pull.glyph ?? '◆'}</span>}
       </div>
       <div className="vreveal-face-name">{pull.name}</div>

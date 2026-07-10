@@ -7,6 +7,7 @@ import { clamp01, sumValues } from '../core/math';
 import { HERO_ORDER, META_UPGRADES, STAR, TOWER_ORDER } from '../core/config';
 import { cardRegistry } from '../core/cards';
 import { geneLevel, geneMaxLevel } from '../core/geneCards';
+import { mulliganRegistry } from '../core/mulligan';
 
 
 
@@ -27,5 +28,7 @@ export function navProgress(save: SaveData): Partial<Record<string, number>> {
     heroes: heroMax > 0 ? clamp01(sumValues(save.heroStars) / heroMax) : 0,
     evolution: upgradeMax > 0 ? clamp01(upgradeNow / upgradeMax) : 0,
     genes: geneMax > 0 ? clamp01(geneNow / geneMax) : 0,
+    // Pieces sequenced / catalog — the Mulligan ring the other progression menus already wear.
+    mulligans: mulliganRegistry.size > 0 ? clamp01(Object.keys(save.mulliganDex).length / mulliganRegistry.size) : 0,
   };
 }

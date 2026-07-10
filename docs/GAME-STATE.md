@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 28` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 29` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -121,6 +121,11 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   organism-emitter projectiles wired into drawProjectile, container-reveal Overflow/discovery pulls,
   organic audio (squelch/crack/field heartbeat), help-wiki entry, profile dex/Overflow rows, mobile
   NAVS coverage. **MULLIGANS.md**
+  **v29 overhaul:** piece EXCLUSIVITY (one tower per piece; catalog pinned at 3× the tower
+  roster = 45 pieces), 3-distinct-Mega-Boss gate, duplicates dissolve to Gene Essence, split
+  Collection (Pieces + complete Mulligans, each with its own %), Hub nav ring, and the
+  ichor-fueled REFORGE wheel (1–3 slots by combined rarity; legendary rolls = GLOBAL passives;
+  first spin permanently BINDS the organism) — MULLIGANS.md §reforge
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +

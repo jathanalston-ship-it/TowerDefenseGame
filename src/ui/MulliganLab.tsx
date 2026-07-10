@@ -13,6 +13,10 @@ import type { TowerKind } from '../core/types';
 import { mulliganLabView } from '../state/mulliganLabModel';
 import type { OwnedModifier, SlotView } from '../state/mulliganLabModel';
 import { MULLIGAN_RARITY, resolveMulligan } from '../core/mulligan';
+import type { MulliganReforgeMod } from '../core/mulliganReforge';
+import { REFORGE_RARITY } from '../core/mulliganReforge';
+import { angleForSegment, drawReforgeWheel } from '../render/reforgeWheel';
+import { REFORGE_MODS } from '../core/mulliganReforge';
 import { CURRENCIES } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { drawTowerForm } from '../render/towerForms';
@@ -63,13 +67,98 @@ function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
   return <canvas ref={ref} className="mgl-canvas" style={{ width: SIZE, height: SIZE }} aria-hidden />;
 }
 
+/** The REFORGE WHEEL ceremony (docs/MULLIGANS.md §reforge): the roll is already decided
+ *  (meta.reforgeMulligan) — this spins the bio-horror iris TO that result with an eased
+ *  deceleration, lights the winning wedge, then presents the mod. Reduced motion skips
+ *  straight to the result. */
+function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClose: () => void }): JSX.Element {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [landed, setLanded] = useState(false);
+  const SIZE = 300;
+  const target = REFORGE_MODS.findIndex((m) => m.id === mod.id);
+  useEffect(() => {
+    const cv = ref.current;
+    const ctx = cv?.getContext('2d');
+    if (!cv || !ctx) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = SIZE * dpr;
+    cv.height = SIZE * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const finalAngle = angleForSegment(target) - 4 * Math.PI * 2; // four full revolutions in
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      drawReforgeWheel(ctx, SIZE, angleForSegment(target), 0.9, target);
+      setLanded(true);
+      return;
+    }
+    const t0 = performance.now();
+    const DUR = 2600;
+    let raf = 0;
+    const loop = (now: number): void => {
+      const p = Math.min(1, (now - t0) / DUR);
+      const ease = 1 - Math.pow(1 - p, 3); // cubic ease-out — a heavy organ spinning down
+      const angle = finalAngle * (1 - ease) + angleForSegment(target) * ease
+        + (1 - ease) * 0; // finalAngle already encodes the revolutions
+      drawReforgeWheel(ctx, SIZE, angle, now / 1000, p >= 1 ? target : -1);
+      if (p >= 1) { setLanded(true); audio.cue('graftCrack'); return; }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  const tier = REFORGE_RARITY[mod.rarity];
+  return (
+    <div className="rfw-overlay" role="dialog" aria-label="Mulligan reforge" onClick={landed ? onClose : undefined}>
+      <div className="rfw-card" onClick={(e) => e.stopPropagation()}>
+        <div className="rfw-badge">⊛ REFORGE — THE WHEEL DECIDES</div>
+        <canvas ref={ref} className="rfw-canvas" style={{ width: SIZE, height: SIZE }} aria-hidden />
+        {landed && (
+          <div className="rfw-result" style={{ ['--rc' as string]: tier.color }}>
+            <span className="rfw-rarity">{tier.label}</span>
+            <span className="rfw-name">{mod.name}</span>
+            <span className="rfw-desc">{mod.desc}</span>
+            <span className="rfw-bound">⚠ This organism is now BOUND to its host — permanently.</span>
+            <button className="primary rfw-go" onClick={onClose}>Accept the graft ▸</button>
+          </div>
+        )}
+        {!landed && <div className="rfw-spinning">the iris turns…</div>}
+      </div>
+    </div>
+  );
+}
+
 export function MulliganLab(): JSX.Element {
   const save = meta.use();
   const view = mulliganLabView(save);
   const [selected, setSelected] = useState<TowerKind>(view.towers[0].kind);
   const [armed, setArmed] = useState<number | null>(null); // explicitly armed graft site
   const [cat, setCat] = useState<'all' | ModCategory>('all');
+  const [wheel, setWheel] = useState<MulliganReforgeMod | null>(null); // §reforge — the spinning ceremony
   const tv = view.towers.find((t) => t.kind === selected) ?? view.towers[0];
+
+  // §gate — the pillar is sealed until three DISTINCT Mega Bosses have fallen (accounts
+  // already holding pieces are grandfathered). The briefing sells the goal, not a wall.
+  if (!view.unlocked) {
+    return (
+      <div className="panel mgl-panel">
+        <div className="panel-title">Mulligan Lab</div>
+        <div className="mgl-gate" role="status">
+          <div className="mgl-gate-glyph" aria-hidden>⊛</div>
+          <div className="mgl-gate-title">SEALED BEHIND APEX BIOLOGY</div>
+          <p className="mgl-gate-copy">
+            The graft wing unlocks when the hive has assimilated enough apex genome —
+            slay <b>{view.gate.needed} distinct Mega Bosses</b> to open it. Once open,
+            epic-or-better Bio-Containers begin dropping <b>Mulligan pieces</b>: graft three
+            onto a tower and a living secondary organism awakens on it.
+          </p>
+          <div className="mgl-gate-bar">
+            <ProgressBar value={view.gate.slain} max={view.gate.needed} color="var(--viral)" height={8} label="Mega Bosses slain" />
+            <span className="mgl-gate-count">{view.gate.slain} / {view.gate.needed} unique Mega Bosses slain</span>
+          </div>
+          <p className="mgl-gate-hint">Mega Bosses anchor every 10th Campaign stage, every 20th Infinite wave, and every 5th Boss Rush wave.</p>
+        </div>
+      </div>
+    );
+  }
 
   // The armed site: an explicit pick wins; otherwise the first empty site is live, so a fresh
   // player can simply tap a modifier in the library and watch it take.
@@ -84,6 +173,10 @@ export function MulliganLab(): JSX.Element {
   const upgrade = (slot: number): void => { if (meta.upgradeMulligan(tv.kind, slot)) audio.cue('graftCrack'); };
   const ascend = (slot: number): void => { if (meta.ascendMulligan(tv.kind, slot)) audio.cue('splice'); };
   const unequip = (slot: number): void => { if (meta.unequipMulligan(tv.kind, slot)) { audio.cue('select'); setArmed(null); } };
+  const spin = (slot: number): void => {
+    const res = meta.reforgeMulligan(tv.kind, slot);
+    if (res) { audio.cue('splice'); setWheel(res.mod); }
+  };
 
   // Power preview before every spend (docs/DESIGN_LANGUAGE.md §3) — only an AWAKE organism moves
   // Power, so dormant slots skip the (full-model) computation entirely.
@@ -171,6 +264,7 @@ export function MulliganLab(): JSX.Element {
                   ? <>Awake — <b className="mgl-axis">{tv.dominant}</b> organism</>
                   : <>Graft {3 - tv.filled} more modifier{3 - tv.filled === 1 ? '' : 's'} to awaken the organism</>}
               </span>
+              {tv.locked && <span className="mgl-bound" title="Reforged — this organism is permanently bound to this tower">⊛ REFORGED — BOUND</span>}
               <span className="mgl-sites" aria-label={`${tv.filled} of 3 graft sites filled`}>
                 {tv.slots.map((s) => (
                   <span key={s.index} className={`mgl-site-pip${s.filled ? ' on' : ''}`} style={s.filled ? { ['--mg' as string]: s.rarityColor } : undefined}>
@@ -199,7 +293,7 @@ export function MulliganLab(): JSX.Element {
                     <span className="mgl-slot-site">{SITE[s.index]}</span>
                     <span className="mgl-slot-name">{s.name}</span>
                     <span className="mgl-slot-tier">{MULLIGAN_RARITY[s.rarity!].label} · Lv {s.level}/{s.maxLevel}</span>
-                    <button className="mgl-clear" title="Clear this graft site (the modifier stays sequenced)" aria-label={`Clear site ${SITE[s.index]}`} onClick={() => unequip(s.index)}>✕</button>
+                    {!tv.locked && <button className="mgl-clear" title="Clear this graft site (the modifier stays sequenced)" aria-label={`Clear site ${SITE[s.index]}`} onClick={() => unequip(s.index)}>✕</button>}
                   </div>
                   <ProgressBar value={s.level!} max={s.maxLevel!} color={s.rarityColor!} height={4} label={`${s.name} level`} />
                   <span className="mgl-slot-desc">{s.desc}</span>
@@ -237,6 +331,39 @@ export function MulliganLab(): JSX.Element {
             </div>
           </div>
 
+          {/* ── Reforge Bay (§reforge): the ichor wheel — visible once the organism is AWAKE ── */}
+          {tv.active && (
+            <div className="mgl-block mgl-reforge">
+              <div className="mgl-block-h">
+                <span className="mgl-eyebrow">Reforge Bay</span>
+                <span className="mgl-block-hint">
+                  <CurrencyIcon id="ichor" size={12} title="Ichor" /> {view.ichor.toLocaleString()} ichor ·
+                  {' '}{tv.reforge.usable} wheel slot{tv.reforge.usable === 1 ? '' : 's'} (combined graft rarity)
+                </span>
+              </div>
+              {!tv.locked && (
+                <p className="mgl-reforge-warn" role="note">
+                  ⚠ The first spin <b>permanently binds</b> this organism to {tv.name} — its pieces can
+                  never be moved or cleared again. Re-spins replace the slot's mod. There is no way back.
+                </p>
+              )}
+              <div className="mgl-rf-slots">
+                {tv.reforge.slots.map((r) => (
+                  <div key={r.index} className={`mgl-rf-slot${r.mod ? ' is-rolled' : ''}`} style={r.mod ? { ['--rc' as string]: r.mod.color } : undefined}>
+                    <span className="mgl-rf-idx">{r.index + 1}</span>
+                    {r.mod
+                      ? <span className="mgl-rf-mod"><b>{r.mod.name}</b><i>{r.mod.rarity}</i><em>{r.mod.desc}</em></span>
+                      : <span className="mgl-rf-empty">Unrolled</span>}
+                    <button className="mgl-btn mgl-rf-spin" disabled={!r.affordable} onClick={() => spin(r.index)}
+                      title={`Spin the wheel — ${r.cost} Ichor${r.mod ? ' (replaces the current mod)' : ''}`}>
+                      {r.mod ? 'Re-spin' : 'Spin'} · <CurrencyIcon id="ichor" size={12} title="" /> {r.cost}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── Sequenced-modifier library ── */}
           <div className="mgl-block">
             <div className="mgl-block-h">
@@ -261,10 +388,14 @@ export function MulliganLab(): JSX.Element {
             ) : (
               <div className="mgl-mods">
                 {mods.map((m: OwnedModifier) => (
-                  <button key={m.id} className="mgl-mod" disabled={armedSite == null} onClick={() => equip(m.id)}
-                    style={{ ['--mg' as string]: m.rarityColor }} title={m.desc}>
+                  <button key={m.id} className={`mgl-mod${m.bound ? ' is-bound' : ''}`}
+                    disabled={armedSite == null || m.bound || tv.locked}
+                    onClick={() => equip(m.id)}
+                    style={{ ['--mg' as string]: m.rarityColor }}
+                    title={m.bound ? `${m.desc} — BOUND to ${m.hostName} (reforged)` : m.host && m.host !== tv.kind ? `${m.desc} — grafting here moves it off ${m.hostName}` : m.desc}>
                     <span className="mgl-mod-name">{m.name}</span>
                     <span className="mgl-mod-sub">{MULLIGAN_RARITY[m.rarity].label} · {CATEGORY_LABEL[m.category]}</span>
+                    {m.host && <span className={`mgl-mod-host${m.bound ? ' is-bound' : ''}`}>{m.bound ? '⊛ bound · ' : '→ '}{m.hostName}</span>}
                   </button>
                 ))}
                 {mods.length === 0 && <p className="mgl-empty">No {cat} modifiers sequenced yet.</p>}
@@ -273,6 +404,7 @@ export function MulliganLab(): JSX.Element {
           </div>
         </div>
       </div>
+      {wheel && <ReforgeWheelOverlay mod={wheel} onClose={() => setWheel(null)} />}
     </div>
   );
 }

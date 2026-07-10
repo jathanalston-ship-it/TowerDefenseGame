@@ -6,9 +6,11 @@ the player **assembles from genetic modifiers**. The resulting organism grows a 
 generated** appearance, animation, and projectile from the modifiers it holds. The design bet:
 **modularity** — a future modifier is one registry row and needs *zero* new gameplay or draw code.
 
-> Status: **SHIPPED end-to-end.** Framework + 30 modifiers + save v26 + Power + sim fold + the
-> procedural organism/animation/projectile generators (drawn on the battlefield) + the earn loop
-> (Bio-Container loot) + the **Mulligan Lab** player screen + dev tools + achievements — all tested.
+> Status: **SHIPPED end-to-end**, then **OVERHAULED (v29)**: piece exclusivity (one tower per
+> piece; the catalog is pinned at **3× the tower roster** — currently 45 pieces / 15 towers), a
+> **progress gate** (3 distinct Mega Boss kills), duplicate pulls dissolving to Gene Essence,
+> a split Collection (pieces AND complete organisms), and the **Reforge wheel** (§reforge) —
+> an ichor-fueled bio-horror spinner that permanently BINDS an organism to its host.
 
 ---
 
@@ -18,6 +20,17 @@ generated** appearance, animation, and projectile from the modifiers it holds. T
 - **Every tower kind permanently owns ONE Mulligan.** It is account-permanent and persists between
   runs (like Stars / Adaptation), keyed per `TowerKind`.
 - Each Mulligan has **three modifier slots** (A / B / C).
+- **§exclusivity — a PIECE lives on ONE tower at a time.** Pieces are unique physical items:
+  equipping one on a second tower MOVES it (the first organism deactivates); the same piece can
+  never fill two slots. The catalog is pinned at **exactly 3 pieces per tower**
+  (`mulliganRegistry.size === 3 × TOWER_ORDER.length`, content-integrity tested), so every tower
+  can host a full organism with zero sharing — adding a tower forces three new pieces.
+- **§gate — the pillar unlocks after slaying 3 distinct Mega Bosses** (`MULLIGAN_GATE_MEGAS`;
+  `meta.mulligansUnlocked`). The Lab shows a progress briefing until then; containers hold their
+  piece drops. Accounts already holding pieces are grandfathered. Dailies still field loaner
+  organisms pre-gate — the system teaches itself there.
+- **No selling, no duplicates:** when the whole catalog is owned, a container's piece pull
+  **dissolves into Gene Essence on the spot** (rarity-scaled), surfaced on the reveal ceremony.
 - **No partial activation.** The organism does **nothing** until *all three* slots are filled. This
   single rule is also the **golden-safety gate** (below).
 - **Mixing and stacking both matter.** `Bone Spike + Acid Gland + Rapid Synapse` produces a
@@ -99,8 +112,10 @@ PlayerProfile) shows **"Mulligans"** as its own slice — the required *separate
 
 ## 6. Save (schema v26)
 
-`save.mulligans: Record<TowerKind, MulliganState>` · `save.mulliganDex: Record<string,
-MulliganRarity>` (discovered modifiers → best rarity, the equip ceiling + collection source).
+`save.mulligans: Record<TowerKind, MulliganState>` (v29: + `locked`, `reforges`) ·
+`save.mulliganDex: Record<string, MulliganRarity>` (owned pieces → best rarity, the equip
+ceiling + collection source). The v29 sanitizer also enforces §exclusivity: cross-tower or
+within-tower duplicate piece ids null out deterministically (first host in TOWER_ORDER wins).
 Modifier upgrades spend **`save.geneEssence`** — the SAME unified currency Gene Cards level with
 (the short-lived `geneOverflow` wallet was retired; a legacy balance folds into `geneEssence` 1:1
 on load, so nothing banked is lost). All **additive**: pre-v26 saves migrate to empty organisms +
@@ -222,10 +237,31 @@ carries a briefing line.
 
 ## Collection (§collection)
 
-Codex category **`mulligans` (Modifiers)**, dex-driven: tier 1 `Discovered — <rarity>` on first
-sequencing, tier 2 `Transcendent` at legendary-or-better. Set bonus at completion = **+5% tower
-fire rate** + the standard 0.03 Power weight (`CATEGORY_BONUS_SPECS`). Registry-driven — a future
-modifier joins the codex by itself.
+TWO codex categories — pieces and complete organisms are **separate collection items**:
+
+- **`mulligans` (Mulligan Pieces)**, dex-driven: tier 1 `Discovered — <rarity>` on first
+  sequencing, tier 2 `Transcendent` at legendary-or-better. Set bonus **+5% tower fire rate**.
+- **`mulliganOrganisms` (Mulligans)**, one entry per tower kind: tier 1 `Grafted — Awake`
+  (all three sites filled), tier 2 `Reforged — Bound` (§reforge). Set bonus **+5% tower damage**.
+
+Both wear the standard 0.03 Power weight and surface their own % completion in the Collection
+panel; the Hub's Mulligans nav item carries a progress ring (pieces sequenced / catalog).
+
+## Reforge (§reforge) — the permanent gamble
+
+Once an organism is AWAKE, the Lab's **Reforge Bay** offers **1–3 wheel slots** by the combined
+rarity of its three grafts (`reforgeSlotCount`: tier-sum ≤4 → 1, 5–9 → 2, ≥10 → 3). A spin costs
+**Ichor** (`REFORGE_COSTS = [40, 90, 160]` by slot) and plays the bio-horror **wheel ceremony**
+(`render/reforgeWheel.ts` — a fleshy iris of rarity wedges spun under a bone pointer; reduced
+motion lands instantly). The roll (`core/mulliganReforge.ts`, weighted Common 44 → Legendary 3)
+lands on a mod: Commons are flat % rides, Epics reach ability territory (extra projectile, deep
+pierce), **Legendaries are GLOBAL passives** (+4% all-tower damage / fire rate, +6% biomass —
+folded into runs via `meta.mulliganGlobalEffects`, beside the collection/trophy/infestation lanes).
+Tower-local mods fold through `resolveMulligan`'s existing channels — zero new sim branches.
+
+**THE PRICE IS PERMANENCE:** the first spin sets `locked` — the organism is bound to its host
+forever. No unequip, no re-slotting, and its pieces can never move to another tower (leveling
+and ascension stay available). Re-spinning an occupied slot replaces that slot's mod.
 
 ## Inspect (§inspect)
 

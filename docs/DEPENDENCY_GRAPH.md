@@ -323,9 +323,9 @@ graph TD
 
 ### Mulligan System (`mulligans`)
 
-*A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch).*
+*A permanent endgame pillar: each tower kind permanently owns ONE biomechanical Mulligan organism assembled from THREE genetic modifiers. Fully data-driven — a new modifier is one registry row; the organism's appearance, animation and projectile are PROCEDURALLY generated from the modifiers' stat profile. Inactive until all three slots fill ⇒ golden-safe; folds through the existing TowerMods channels (no new sim branch). OVERHAUL (v29): pieces are EXCLUSIVE (one tower at a time; catalog pinned at 3× the tower roster), the pillar gates behind 3 distinct Mega Boss kills, duplicates dissolve to Gene Essence, and the REFORGE wheel (core/mulliganReforge.ts, ichor-fueled, 1–3 slots by combined rarity) permanently BINDS an organism to its host — legendary rolls grant GLOBAL passives.*
 
-- **Files:** `src/core/mulligan.ts` · `src/render/mulliganOrganism.ts` · `src/state/mulliganLabModel.ts` · `src/ui/MulliganLab.tsx`
+- **Files:** `src/core/mulligan.ts` · `src/render/mulliganOrganism.ts` · `src/state/mulliganLabModel.ts` · `src/ui/MulliganLab.tsx` · `src/core/mulliganReforge.ts` · `src/render/reforgeWheel.ts`
 - **Depends on:** `content-infra` · `towers` · `power` · `meta-store`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled

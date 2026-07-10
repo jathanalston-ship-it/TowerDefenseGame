@@ -6,13 +6,14 @@ import { describe, it, expect } from 'vitest';
 import { meta } from './meta';
 import { mulliganLabView } from './mulliganLabModel';
 import { defaultSave } from '../save/saveStore';
+import { mulliganRegistry } from '../core/mulligan';
 
 describe('mulliganLabView', () => {
   it('a fresh account: 0 essence, nothing discovered, every organism empty + inactive', () => {
     const v = mulliganLabView(defaultSave());
     expect(v.essence).toBe(0);
     expect(v.discovered).toBe(0);
-    expect(v.total).toBe(30);
+    expect(v.total).toBe(mulliganRegistry.size);
     expect(v.owned).toEqual([]);
     expect(v.towers.every((t) => !t.active && t.power === 1 && t.slots.every((s) => !s.filled))).toBe(true);
     // Dormant organisms carry no identity or package — the showcase copy relies on this.

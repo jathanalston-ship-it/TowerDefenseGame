@@ -14,7 +14,8 @@ import { meta } from '../state/meta';
 import { itemDef } from '../core/equipment';
 import { masteryPanelModel } from './towerLabModel';
 import type { LiveMasteryView } from '../state/masteryEvents';
-import { MULLIGAN_RARITY, dominantAxis, mulliganRegistry, resolveMulligan } from '../core/mulligan';
+import { MULLIGAN_RARITY, dominantAxis, mulliganRegistry, reforgeSlotCount, resolveMulligan } from '../core/mulligan';
+import { REFORGE_RARITY, reforgeModById } from '../core/mulliganReforge';
 import type { MulliganState } from '../core/mulligan';
 import type { HudSnapshot, SelectedPlacedTower, TowerKind } from '../core/types';
 
@@ -127,6 +128,19 @@ function MulliganLive({ state }: { state: MulliganState | undefined }): JSX.Elem
         ))}
       </div>
       {lines.length > 0 && <div className="insp-mg-pkg">{lines.join(' · ')}</div>}
+      {/* §reforge — rolled wheel mods on a BOUND organism (locked builds wear their rolls). */}
+      {state.locked && (
+        <div className="insp-mg-chips">
+          {(state.reforges ?? []).slice(0, reforgeSlotCount(state)).map((id, i) => {
+            const mod = id ? reforgeModById(id) : undefined;
+            return mod && (
+              <span className="insp-mg-chip" key={`rf-${i}`} style={{ ['--mg' as string]: REFORGE_RARITY[mod.rarity].color }} title={mod.desc}>
+                ⊛ {mod.name}
+              </span>
+            );
+          })}
+        </div>
+      )}
       <div className="insp-mg-abil">
         {state.slots.flatMap((slot) => (slot ? [mulliganRegistry.get(slot.id)?.desc ?? ''] : [])).filter(Boolean).slice(0, 3).map((d) => (
           <span className="insp-mg-a" key={d}>{d}</span>

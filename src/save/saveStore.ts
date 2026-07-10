@@ -26,6 +26,7 @@ import { sanitizeGeneSave } from '../core/geneCards';
 import { sanitizeGeneLoadout, sanitizeGeneSlots } from '../core/geneLoadout';
 import type { GeneSave } from '../core/geneCards';
 import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
+import { reforgeModById } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mulligan';
 
 export interface SaveData {
@@ -264,8 +265,10 @@ export interface TutorialSave {
 // v26→v27: Expedition overhaul — per-mission mastery ledger (expeditions.mastery); the
 // roster/risk/affinity depth is data-side and needs no save shape.
 // v27→v28: Patch-note tracking (patchNotes.seen + optOut — docs/CHANGELOG-PIPELINE.md).
+// v28→v29: Mulligan overhaul — piece EXCLUSIVITY (one tower per piece; cross-tower dupes
+// sanitize away), reforge fields (locked + reforges — docs/MULLIGANS.md §reforge).
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 28;
+export const CURRENT_VERSION = 29;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -328,10 +331,21 @@ function sanitizeMulligan(raw: unknown): MulliganState {
     const level = Math.max(1, Math.min(levelCap(rarity), Math.floor(Number(s.level) || 1)));
     slots.push({ id: s.id, rarity, level });
   }
+  // §reforge (v29): the permanent lock + rolled wheel mods (unknown ids drop harmlessly).
+  const o2 = raw as { locked?: unknown; reforges?: unknown };
+  const reforges: (string | null)[] = [];
+  if (Array.isArray(o2.reforges)) {
+    for (let i = 0; i < 3; i++) {
+      const id = o2.reforges[i];
+      reforges.push(typeof id === 'string' && reforgeModById(id) ? id : null);
+    }
+  }
   return {
     slots,
     visualSeed: Math.floor(Number(o.visualSeed) || 0) >>> 0,
     animSeed: Math.floor(Number(o.animSeed) || 0) >>> 0,
+    ...(o2.locked === true ? { locked: true } : {}),
+    ...(reforges.some((r) => r) ? { reforges } : {}),
   };
 }
 function sanitizeMulligans(raw: unknown): Record<TowerKind, MulliganState> {
@@ -339,6 +353,21 @@ function sanitizeMulligans(raw: unknown): Record<TowerKind, MulliganState> {
   if (raw && typeof raw === 'object') {
     const o = raw as Record<string, unknown>;
     for (const k of TOWER_ORDER) if (k in o) out[k] = sanitizeMulligan(o[k]);
+  }
+  // §exclusivity (v29): a piece lives on ONE tower (and one slot) at a time. Walk the
+  // roster in canonical order and null out any repeat of an already-seen modifier id —
+  // pre-v29 saves that stacked or shared pieces sanitize to the first host deterministically.
+  const seen = new Set<string>();
+  for (const k of TOWER_ORDER) {
+    const st = out[k];
+    let changed = false;
+    const slots = st.slots.map((slot) => {
+      if (!slot) return slot;
+      if (seen.has(slot.id)) { changed = true; return null; }
+      seen.add(slot.id);
+      return slot;
+    });
+    if (changed) out[k] = { ...st, slots };
   }
   return out;
 }

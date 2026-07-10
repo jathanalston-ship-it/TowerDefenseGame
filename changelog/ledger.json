@@ -1,6 +1,6 @@
 {
-  "lastSha": "656fd214ef93b37ba4b44217b19b36c2bdf5bc2c",
-  "commitsSinceDraft": 3,
+  "lastSha": "7b5da8193c03594c35282f5b8cb508a32723df82",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -1521,6 +1521,10 @@
         {
           "cat": "Website",
           "text": "Site: regenerate with stamped contact + merged forwarding"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle patch-note pipeline, unified with the generated site"
         }
       ]
     }
@@ -1683,6 +1687,14 @@
       "date": "2026-07-10",
       "cat": "Website",
       "text": "Site: regenerate with stamped contact + merged forwarding",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7b5da8193c03594c35282f5b8cb508a32723df82",
+      "date": "2026-07-10",
+      "cat": "Website",
+      "text": "Chronicle patch-note pipeline, unified with the generated site",
       "internal": false,
       "needsReview": false
     }

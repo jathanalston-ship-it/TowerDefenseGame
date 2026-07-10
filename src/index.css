@@ -6825,6 +6825,7 @@ kbd {
 .vreveal-face { display: grid; gap: 8px; place-items: center; text-align: center; }
 .vreveal-face-rword { font: 800 11px/1 system-ui, sans-serif; letter-spacing: 0.2em; }
 .vreveal-emblem {
+  position: relative;
   width: 92px;
   height: 92px;
   border-radius: 50%;
@@ -8907,6 +8908,68 @@ kbd {
 .mgl-mod-name { font-size: 12px; font-weight: 800; color: var(--mg); }
 .mgl-mod-sub { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .mgl-empty { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ── Mulligan gate (§gate) — the sealed-wing briefing ── */
+.mgl-gate { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 36px 20px; text-align: center; }
+.mgl-gate-glyph { font-size: 58px; color: var(--viral); opacity: 0.85; animation: mgl-gate-pulse 3.2s ease-in-out infinite; }
+@keyframes mgl-gate-pulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.08); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mgl-gate-glyph { animation: none; } }
+.mgl-gate-title { font-size: 13px; font-weight: 900; letter-spacing: 0.2em; color: var(--viral); }
+.mgl-gate-copy { max-width: 520px; margin: 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
+.mgl-gate-bar { width: min(380px, 100%); display: flex; flex-direction: column; gap: 6px; }
+.mgl-gate-count { font-size: 12px; font-weight: 700; color: var(--text); }
+.mgl-gate-hint { margin: 0; font-size: 11px; color: var(--muted); }
+
+/* ── Reforge bay + bound state (§reforge) ── */
+.mgl-bound { align-self: flex-start; margin-top: 4px; padding: 3px 10px; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; color: var(--viral); border: 1px solid color-mix(in srgb, var(--viral) 55%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--viral) 9%, transparent); }
+.mgl-reforge-warn { margin: 0 0 8px; padding: 8px 12px; font-size: 12px; line-height: 1.5; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line)); border-radius: var(--r-md); background: color-mix(in srgb, var(--gold) 7%, transparent); }
+.mgl-rf-slots { display: flex; flex-direction: column; gap: 8px; }
+.mgl-rf-slot { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-2); }
+.mgl-rf-slot.is-rolled { border-color: color-mix(in srgb, var(--rc, var(--line)) 55%, var(--line)); }
+.mgl-rf-idx { flex: none; width: 22px; height: 22px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; }
+.mgl-rf-mod { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mgl-rf-mod b { font-size: 13px; color: var(--rc, var(--text)); }
+.mgl-rf-mod i { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rc, var(--muted)); }
+.mgl-rf-mod em { font-style: normal; font-size: 11px; color: var(--muted); }
+.mgl-rf-empty { font-size: 12px; color: var(--muted); }
+.mgl-rf-spin { margin-left: auto; flex: none; }
+.mgl-mod-host { display: block; margin-top: 2px; font-size: 10px; color: var(--caustic); }
+.mgl-mod-host.is-bound { color: var(--viral); }
+.mgl-mod.is-bound { opacity: 0.55; }
+
+/* ── The reforge WHEEL overlay — the bio-horror spinner ceremony ── */
+.rfw-overlay { position: fixed; inset: 0; z-index: 96; display: grid; place-items: center; overflow: auto; padding: 20px; background: radial-gradient(120% 90% at 50% 35%, rgba(30, 14, 22, 0.85), rgba(4, 3, 8, 0.97)); backdrop-filter: blur(6px); animation: fade-in 0.4s ease both; }
+.rfw-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid color-mix(in srgb, var(--viral) 45%, var(--line)); box-shadow: 0 24px 70px rgba(0,0,0,0.65), 0 0 44px -14px var(--viral); }
+.rfw-badge { font-size: 11px; font-weight: 900; letter-spacing: 0.2em; color: var(--viral); }
+.rfw-canvas { display: block; }
+.rfw-spinning { font-size: 12px; color: var(--muted); font-style: italic; animation: mgl-gate-pulse 1.6s ease-in-out infinite; }
+.rfw-result { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+.rfw-rarity { font-size: 10px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc, var(--muted)); }
+.rfw-name { font-size: 20px; font-weight: 900; color: var(--rc, #fff); text-shadow: 0 2px 18px color-mix(in srgb, var(--rc, transparent) 50%, transparent); }
+.rfw-desc { max-width: 300px; font-size: 12px; color: var(--text); line-height: 1.45; }
+.rfw-bound { font-size: 11px; color: var(--viral); }
+.rfw-go { margin-top: 8px; min-width: 190px; }
+
+/* ── Unique Mulligan reveal ceremony (§reveal): the sigil grafts in, tendril rings radiate ── */
+.vreveal-face.is-mulligan .vreveal-glyph { animation: mull-graft-in 0.9s var(--ease-out) both; display: inline-block; }
+@keyframes mull-graft-in {
+  0% { transform: scale(0.2) rotate(-160deg); opacity: 0; }
+  55% { transform: scale(1.25) rotate(14deg); opacity: 1; }
+  75% { transform: scale(0.94) rotate(-6deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.vreveal-tendrils { position: absolute; inset: 0; pointer-events: none; }
+.vreveal-tendrils i { position: absolute; inset: 0; border: 1.5px solid var(--rw, var(--viral)); border-radius: 999px; opacity: 0; animation: mull-tendril 1.4s var(--ease-out) both; }
+.vreveal-tendrils i:nth-child(2) { animation-delay: 0.18s; border-style: dashed; }
+.vreveal-tendrils i:nth-child(3) { animation-delay: 0.36s; border-style: dotted; }
+@keyframes mull-tendril {
+  0% { transform: scale(0.5); opacity: 0.9; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vreveal-face.is-mulligan .vreveal-glyph, .vreveal-tendrils i, .rfw-spinning { animation: none; }
+  .vreveal-tendrils { display: none; }
+}
 
 /* ── ACCOUNT PLATFORM (docs/ACCOUNTS.md) — settings panel, profile card, conflict
    modal, welcome gate. Tokens only; all text sizes from the sanctioned scale. */

@@ -96,6 +96,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "Site: regenerate with stamped contact + merged forwarding"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle patch-note pipeline, unified with the generated site"
       }
     ]
   },

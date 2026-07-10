@@ -11,7 +11,7 @@
 // categories read 0 on a fresh save, so a new account's run + Power are byte-identical (golden-safe).
 // Pure: no DOM, no sim; meta.ts builds the context + folds the bonuses, the UI renders it.
 
-import { ENEMY_DEFS, TOWER_DEFS, HERO_DEFS, CHESTS, chestForWave, TOTAL_WAVES, enemyRegistry, towerRegistry, heroRegistry, chestRegistry } from './config';
+import { ENEMY_DEFS, TOWER_DEFS, TOWER_ORDER, HERO_DEFS, CHESTS, chestForWave, TOTAL_WAVES, enemyRegistry, towerRegistry, heroRegistry, chestRegistry } from './config';
 import { cardRegistry } from './cards';
 import type { CardEffect } from './cards';
 import { ALL_ITEMS } from './equipment';
@@ -23,7 +23,7 @@ import { MULLIGAN_RARITY, mulliganRegistry, rarityAtLeast } from './mulligan';
 import type { MulliganRarity } from './mulligan';
 import type { LifetimeStats } from './types';
 
-export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests' | 'cosmetics' | 'mulligans';
+export type CollectionCategoryId = 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests' | 'cosmetics' | 'mulligans' | 'mulliganOrganisms';
 
 export interface CollectionEntry {
   id: string;
@@ -70,7 +70,10 @@ export interface CollectionContext {
   megaSpeed: Set<string>; // …defeated faster than the expected kill time
   biomesSeen: Set<string>; // biome ids the account has reached in Campaign
   cosmeticsOwned: Set<string>; // Phenotype ids owned (docs/COSMETICS.md) — drives the Phenotypes codex
-  mulliganDex: Record<string, MulliganRarity>; // Mulligan modifier id → best DISCOVERED rarity — drives the Modifier codex
+  mulliganDex: Record<string, MulliganRarity>; // Mulligan modifier id → best DISCOVERED rarity — drives the Pieces codex
+  /** Per-tower organism status (docs/MULLIGANS.md §collection) — complete Mulligans are their
+   *  own codex, SEPARATE from pieces: awake (all three grafts) is tier 1, reforge-locked is tier 2. */
+  mulliganOrganisms: Record<string, { active: boolean; locked: boolean }>;
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
@@ -218,6 +221,17 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: m.id, name: m.name, tier, maxTier: 2, tierLabel: label };
   });
 
+  // Complete Mulligans (§collection) — one entry per tower kind: growing the organism to
+  // AWAKE discovers it; REFORGING (the permanent lock) masters it. Separate from pieces.
+  const mulliganOrganisms = TOWER_ORDER.map((k): CollectionEntry => {
+    const st = ctx.mulliganOrganisms[k] ?? { active: false, locked: false };
+    const tier = st.locked ? 2 : st.active ? 1 : 0;
+    return {
+      id: `org_${k}`, name: `${TOWER_DEFS[k].name} Organism`, tier, maxTier: 2,
+      tierLabel: st.locked ? 'Reforged — Bound' : st.active ? 'Grafted — Awake' : 'Dormant',
+    };
+  });
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
@@ -229,7 +243,8 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('biomes', 'Biomes', biomes),
     makeCategory('chests', 'Caches', chests),
     makeCategory('cosmetics', 'Phenotypes', cosmetics),
-    makeCategory('mulligans', 'Modifiers', mulligans),
+    makeCategory('mulligans', 'Mulligan Pieces', mulligans),
+    makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
   ];
   const discovered = categories.reduce((a, c) => a + c.discovered, 0);
   const total = categories.reduce((a, c) => a + c.total, 0);
@@ -271,6 +286,7 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   // Modifier mastery (docs/MULLIGANS.md §collection) quickens every graft host: run-wide fire
   // rate at full completion — the set bonus for sequencing the whole modifier library.
   mulligans: { effects: [{ op: 'mul', field: 'towerFireRateMult', max: 1.05, label: 'Fire Rate' }], econ: [], powerWeight: 0.03 },
+  mulliganOrganisms: { effects: [{ op: 'mul', field: 'towerDamageMult', max: 1.05, label: 'Tower Damage' }], econ: [], powerWeight: 0.03 },
 };
 
 const effVal = (op: 'mul' | 'add', max: number, c: number): number => (op === 'mul' ? 1 + (max - 1) * c : max * c);

@@ -28,3 +28,4 @@
 - `65fce4d` **[Gameplay]** Account platform: guest/email accounts, versioned cloud sync, cross-progression, offline-first
 - `2a8ef60` **[Website]** Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)
 - `656fd21` **[Website]** Site: regenerate with stamped contact + merged forwarding
+- `7b5da81` **[Website]** Chronicle patch-note pipeline, unified with the generated site

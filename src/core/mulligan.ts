@@ -13,6 +13,7 @@
 // loot; nothing here perturbs the pinned autoplay run. Pure data + pure helpers (no Game/DOM/save).
 
 import { Registry } from './registry';
+import { REFORGE_RARITY, reforgeModById } from './mulliganReforge';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rarity ladder — six tiers. Rarity is a PER-SLOT property (a modifier can sit at
@@ -181,7 +182,36 @@ const BIOLOGICAL: MulliganModifier[] = [
   { id: 'genesis_organ', name: 'Genesis Organ', category: 'biological', baseRarity: 'ascendant', stats: { damageMult: 1.14, fireRateMult: 1.08, splashMult: 1.08 }, influence: { poison: 0.8, healing: 0.8, support: 0.6, debuff: 0.5 }, powerWeight: 0.155, desc: 'The apex biological organ — a whole ecology in one graft.', flavor: 'It remembers being the first cell. It intends to be the last.' },
 ];
 
-mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL]);
+// ── The expansion 15 (5 per category) — the catalog tracks the tower roster at exactly
+// THREE PIECES PER TOWER (content-integrity test), so every tower can host a full organism
+// with zero piece-sharing (each piece lives on ONE tower at a time — §exclusivity). ──
+const OFFENSIVE_2: MulliganModifier[] = [
+  { id: 'marrow_cannon', name: 'Marrow Cannon', category: 'offensive', baseRarity: 'rare', stats: { damageMult: 1.12, splashMult: 1.05 }, influence: { damage: 0.8, splash: 0.5 }, powerWeight: 0.07, desc: 'A bone mortar grown mid-graft — heavy, wide hits.', flavor: 'It was a femur once. It has ambitions now.' },
+  { id: 'twitch_fiber', name: 'Twitch Fiber', category: 'offensive', baseRarity: 'common', stats: { fireRateMult: 1.08, rangeMult: 1.03 }, influence: { attackSpeed: 1, support: 0.2 }, powerWeight: 0.048, desc: 'Fast-twitch muscle bundles — quicker cycling.', flavor: 'It practices between shots. There is no between.' },
+  { id: 'ember_sac', name: 'Ember Sac', category: 'offensive', baseRarity: 'uncommon', stats: { damageMult: 1.09 }, influence: { damage: 0.6, poison: 0.4 }, powerWeight: 0.056, desc: 'A smoldering chemical bladder — burning payloads.', flavor: 'Warm to the touch. Do not touch.' },
+  { id: 'lance_array', name: 'Lance Array', category: 'offensive', baseRarity: 'epic', stats: { damageMult: 1.08, fireRateMult: 1.05, projectileMutators: ['pierce1'] }, influence: { pierce: 0.8, attackSpeed: 0.5 }, powerWeight: 0.086, desc: 'A rack of ossified lances — piercing volleys.', flavor: 'Six spears, one argument.' },
+  { id: 'carnage_engine', name: 'Carnage Engine', category: 'offensive', baseRarity: 'legendary', stats: { damageMult: 1.16, fireRateMult: 1.06 }, influence: { damage: 0.9, crit: 0.5, attackSpeed: 0.3 }, powerWeight: 0.118, desc: 'A self-feeding violence loop — damage begets damage.', flavor: 'It idles at a murder. It does not idle long.' },
+];
+const UTILITY_2: MulliganModifier[] = [
+  { id: 'echo_bulb', name: 'Echo Bulb', category: 'utility', baseRarity: 'common', stats: { rangeMult: 1.06, fireRateMult: 1.03 }, influence: { support: 0.7, debuff: 0.2 }, powerWeight: 0.046, desc: 'A resonant bulb that sharpens the tower\'s senses.', flavor: 'It hears the shot land before the shot leaves.' },
+  { id: 'gravemind_knot', name: 'Gravemind Knot', category: 'utility', baseRarity: 'uncommon', stats: { rangeMult: 1.08, splashMult: 1.04 }, influence: { debuff: 0.8, slow: 0.4 }, powerWeight: 0.054, desc: 'A knotted neural mass that unsettles the wave.', flavor: 'It thinks about you. That is the weapon.' },
+  { id: 'prism_lens', name: 'Prism Lens', category: 'utility', baseRarity: 'rare', stats: { rangeMult: 1.1, damageMult: 1.05 }, influence: { crit: 0.8, support: 0.3 }, powerWeight: 0.068, desc: 'A crystalline eye that finds the killing angle.', flavor: 'Every refraction is a decision.' },
+  { id: 'tremor_bell', name: 'Tremor Bell', category: 'utility', baseRarity: 'epic', stats: { splashMult: 1.12, rangeMult: 1.06 }, influence: { splash: 0.8, slow: 0.5 }, powerWeight: 0.086, desc: 'A subsonic organ — wide, staggering impacts.', flavor: 'You do not hear it. Your bones do.' },
+  { id: 'chrono_polyp', name: 'Chrono Polyp', category: 'utility', baseRarity: 'legendary', stats: { fireRateMult: 1.12, rangeMult: 1.08 }, influence: { attackSpeed: 0.8, slow: 0.6, support: 0.4 }, powerWeight: 0.116, desc: 'A time-dilating growth — the tower lives faster.', flavor: 'It budgets your seconds. It skims a fee.' },
+];
+const BIOLOGICAL_2: MulliganModifier[] = [
+  { id: 'marrow_leech', name: 'Marrow Leech', category: 'biological', baseRarity: 'common', stats: { damageMult: 1.05, fireRateMult: 1.03 }, influence: { healing: 0.7, poison: 0.3 }, powerWeight: 0.047, desc: 'A feeding leech that returns strength to the host.', flavor: 'A fair trade, assessed by the leech.' },
+  { id: 'cyst_garden', name: 'Cyst Garden', category: 'biological', baseRarity: 'uncommon', stats: { splashMult: 1.08, rangeMult: 1.03 }, influence: { poison: 0.6, splash: 0.5 }, powerWeight: 0.054, desc: 'A bed of bursting cysts — spreading toxin pockets.', flavor: 'Something is always ripening.' },
+  { id: 'plague_heart', name: 'Plague Heart', category: 'biological', baseRarity: 'rare', stats: { damageMult: 1.08, splashMult: 1.06 }, influence: { poison: 0.9, debuff: 0.3 }, powerWeight: 0.069, desc: 'A second heart that pumps pestilence.', flavor: 'Two beats: one for the host, one for the harvest.' },
+  { id: 'mother_polyp', name: 'Mother Polyp', category: 'biological', baseRarity: 'epic', stats: { rangeMult: 1.08, fireRateMult: 1.07 }, influence: { support: 0.7, healing: 0.6, splash: 0.3 }, powerWeight: 0.087, desc: 'A brooding polyp that nurtures the whole graft.', flavor: 'Everything it touches, it raises.' },
+  { id: 'wombworks', name: 'Wombworks', category: 'biological', baseRarity: 'legendary', stats: { damageMult: 1.08, fireRateMult: 1.08, rangeMult: 1.06 }, influence: { healing: 0.8, support: 0.6, poison: 0.4 }, powerWeight: 0.12, desc: 'A living factory — the organism improves itself.', flavor: 'Version two is already gestating.' },
+];
+
+mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL, ...OFFENSIVE_2, ...UTILITY_2, ...BIOLOGICAL_2]);
+
+// ── Progress gate (§gate): the whole pillar unlocks after slaying THREE distinct Mega
+// Bosses (save.megaProgress.slain). Accounts that already hold pieces are grandfathered. ──
+export const MULLIGAN_GATE_MEGAS = 3;
 
 /** All modifiers of a category (UI grouping / collections). */
 export function modifiersByCategory(cat: MulliganModifier['category']): MulliganModifier[] {
@@ -202,10 +232,32 @@ export interface MulliganState {
   slots: (MulliganSlot | null)[]; // length MULLIGAN_SLOTS
   visualSeed: number; // deterministic organism generation
   animSeed: number; // deterministic animation phase generation
+  /** §reforge (v29): the first wheel spin permanently binds this organism to its host —
+   *  no unequip, no re-slotting, ever. */
+  locked?: boolean;
+  /** §reforge (v29): rolled reforge mod ids by slot (1–3 usable — reforgeSlotCount). */
+  reforges?: (string | null)[];
 }
 
 export function emptyMulligan(): MulliganState {
   return { slots: [null, null, null], visualSeed: 0, animSeed: 0 };
+}
+
+/** §exclusivity — a piece lives on ONE tower at a time: find which tower currently hosts a
+ *  modifier id (the equip pipeline moves it, the sanitizer enforces it). Null if unhosted. */
+export function modifierHost(mulligans: Record<string, MulliganState | undefined>, modId: string): string | null {
+  for (const [kind, st] of Object.entries(mulligans)) {
+    if (st?.slots?.some((s) => s?.id === modId)) return kind;
+  }
+  return null;
+}
+
+/** §reforge — usable wheel slots (1–3) from the COMBINED rarity of the three grafts:
+ *  humble organisms gamble once, apex organisms three times. 0 while inactive. */
+export function reforgeSlotCount(state: MulliganState | undefined | null): number {
+  if (!isMulliganActive(state)) return 0;
+  const sum = state!.slots.reduce((a, s) => a + (s ? MULLIGAN_RARITY[s.rarity].tier : 0), 0); // 0..15
+  return sum >= 10 ? 3 : sum >= 5 ? 2 : 1;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -291,6 +343,22 @@ export function resolveMulligan(state: MulliganState | undefined | null): Resolv
       if (inf) out.profile[axis] += inf * w;
     }
     out.power *= 1 + def.powerWeight * r.powerMult * (1 + PER_LEVEL * (Math.max(1, slot.level) - 1));
+  }
+  // §reforge — rolled mods fold their TOWER-LOCAL stats through the same channels (global
+  // passives are folded account-side by meta.mulliganGlobalEffects, never here). Only slots
+  // the composition actually grants count; unknown ids are ignored (sanitizer parity).
+  const usable = reforgeSlotCount(state);
+  for (let i = 0; i < usable; i++) {
+    const rf = state!.reforges?.[i] ? reforgeModById(state!.reforges![i]!) : undefined;
+    if (!rf) continue;
+    const s = rf.stats;
+    if (s?.damageMult) out.damageMult *= s.damageMult;
+    if (s?.fireRateMult) out.fireRateMult *= s.fireRateMult;
+    if (s?.rangeMult) out.rangeMult *= s.rangeMult;
+    if (s?.splashMult) out.splashMult *= s.splashMult;
+    if (s?.extraProjectiles) out.extraProjectiles += s.extraProjectiles;
+    if (s?.projectileMutators) out.projectileMutators.push(...s.projectileMutators);
+    out.power *= 1 + REFORGE_RARITY[rf.rarity].power;
   }
   return out;
 }
@@ -397,8 +465,10 @@ export function dailyMulliganAssignment(
   const owned = Object.keys(dex).filter((id) => mulliganRegistry.has(id));
   const tutorial = owned.length === 0;
   // The draw pool: discovered modifiers at their dex rarity, padded with the tutorial trio
-  // (at common) when the dex can't fill three slots by itself. Stacking is legal (the design
-  // explicitly supports Rapid Synapse ×3), so draws are with replacement.
+  // (at common) when the dex can't fill three slots by itself. Pieces are EXCLUSIVE
+  // (§exclusivity), so a tower never wears the same piece twice; across towers the day
+  // deals from the pool without replacement while it lasts (a 3×towers dex fills every
+  // tower uniquely), then reshuffles — thin accounts still field full organisms.
   const pool: { id: string; rarity: MulliganRarity }[] = owned.map((id) => ({ id, rarity: dex[id] }));
   if (pool.length < MULLIGAN_SLOTS) for (const id of TUTORIAL_MULLIGAN_IDS) pool.push({ id, rarity: 'common' });
   // A tiny deterministic PRNG over the daily seed — independent of the sim's rng streams.
@@ -407,11 +477,24 @@ export function dailyMulliganAssignment(
     h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
     return h / 0x1_0000_0000;
   };
+  let deck: { id: string; rarity: MulliganRarity }[] = [];
+  const draw = (exclude: Set<string>): { id: string; rarity: MulliganRarity } => {
+    // Deal from the shuffled deck, skipping ids this tower already wears; reshuffle when dry.
+    for (let guard = 0; guard < 2; guard++) {
+      const i = deck.findIndex((p) => !exclude.has(p.id));
+      if (i >= 0) return deck.splice(i, 1)[0];
+      deck = pool.slice();
+      for (let j = deck.length - 1; j > 0; j--) { const k = Math.floor(next() * (j + 1)); [deck[j], deck[k]] = [deck[k], deck[j]]; }
+    }
+    return deck.splice(0, 1)[0] ?? pool[0]; // pool < 3 distinct ids — tolerate the repeat
+  };
   const byKind: Partial<Record<string, MulliganState>> = {};
   for (const kind of kinds) {
     const slots: (MulliganSlot | null)[] = [];
+    const worn = new Set<string>();
     for (let i = 0; i < MULLIGAN_SLOTS; i++) {
-      const pick = pool[Math.floor(next() * pool.length)];
+      const pick = draw(worn);
+      worn.add(pick.id);
       slots.push(makeSlot(pick.id, pick.rarity, 1));
     }
     byKind[kind] = { slots, ...seedFor(kind, slots) };
