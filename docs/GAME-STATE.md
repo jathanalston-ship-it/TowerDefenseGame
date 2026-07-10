@@ -349,8 +349,13 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   aggregate analytics — DEPLOYMENT.md, SECURITY-AUDIT.md, LEADERBOARD-INTEGRITY.md
 - ✅ Initialization cutscene (first boot, replayable from Settings) + wave-launch breach transition — **overhauled to full procedural canvas cinematics** (`render/introScenes.ts`): five deterministic set-pieces (deep-crust radar reacquisition, the swarm boiling up ember-lit strata, veins consuming a steel lattice, the breathing molten Hive Core, the title spore-field/aurora), film-style cross-dissolves, letterbox grade + grain, per-scene copy accents; reduced-motion shows a hand-picked still per scene; DPR-capped for mobile
 - ✅ Service worker: offline shell, versioned caches, player-controlled update toast — DEPLOYMENT.md §sw
-- ✅ LiveOps calendar: deterministic UTC events (weekend surge + weekly spotlights) folding ×1-baseline
-  reward multipliers into finishRun; hub strip — LIVEOPS.md
+- ✅ LiveOps calendar — **overhauled**: 7 deterministic UTC events (weekend surge + weekly spotlights +
+  Mutation Wednesday + monthly Harvest Moon + quarterly Bloom Cycle) folding ×1-baseline lane
+  multipliers (cores / Gene Essence / materials) into finishRun + openContainer, each at the reward's
+  SOURCE scalar so reveals match grants; a generic schedule engine (`windowEnd`/`nextWindow`/
+  `upcomingWindows` — hour-scan over pure predicates) drives the hub's LIVE OPERATIONS console
+  (pulsing LIVE dot, accent event cards with data-driven boost chips + "ends in" countdowns, UP NEXT
+  forecast rail, reduced-motion-safe sheen) — LIVEOPS.md
 - ✅ Localization core: typed `t()` layer, EN source-of-truth keys, ES/PT catalogs (missing key =
   compile error), Settings language picker, live re-render — I18N.md
 

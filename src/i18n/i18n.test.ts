@@ -43,13 +43,13 @@ describe('i18n catalogs', () => {
 describe('t()', () => {
   it('interpolates {var} slots', () => {
     setLocale('en');
-    expect(t('liveops.weekendIn', { days: 3 })).toBe('Weekend Surge in 3d');
+    expect(t('liveops.endsIn', { left: '2d 14h' })).toBe('ends 2d 14h');
     expect(t('cmdname.hint.preview', { name: 'OVERMIND' })).toContain('OVERMIND');
   });
 
   it('leaves unknown slots literal', () => {
     setLocale('en');
-    expect(t('liveops.weekendIn', { nope: 1 })).toContain('{days}');
+    expect(t('liveops.endsIn', { nope: 1 })).toContain('{left}');
   });
 });
 

@@ -586,7 +586,7 @@ graph TD
 
 ### LiveOps calendar (`liveops`)
 
-*Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge + rotating weekly mode spotlights fold ×1-baseline reward multipliers into finishRun; the hub strip shows what is live. Clock pinned under tests.*
+*Deterministic UTC event calendar (docs/LIVEOPS.md): weekend surge, rotating weekly spotlights, Mutation Wednesday, monthly Harvest Moon + quarterly Bloom Cycle fold ×1-baseline lane multipliers (cores/essence/materials) into finishRun + openContainer; a schedule engine (windowEnd/nextWindow) drives the hub console countdowns + UP NEXT forecast. Clock pinned under tests.*
 
 - **Files:** `src/core/liveops.ts` · `src/ui/components/LiveEventsStrip.tsx`
 - **Depends on:** `meta-store` · `daily`

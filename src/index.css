@@ -8203,24 +8203,106 @@ kbd {
 .swtoast-btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
 .swtoast-later { padding: 8px 10px; font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: var(--r-md); }
 
-/* ── LiveOps strip (components/LiveEventsStrip.tsx) ───────────────────────── */
+/* ── LIVE OPERATIONS console (components/LiveEventsStrip.tsx, docs/LIVEOPS.md) ──
+   The broadcast desk: a pulsing LIVE dot, accent event CARDS (icon medallion + boost
+   chips + an "ends in" countdown, with a slow sheen sweep while live), and the muted
+   UP NEXT forecast rail. .liveops-head/.liveops-k/.liveops-next are shared with the
+   Contracts + Infestation cards — do not restyle them here. ── */
 .liveops { padding: 10px 12px; }
 .liveops-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .liveops-k { font-size: 11px; letter-spacing: 0.16em; font-weight: 800; color: var(--gold); }
 .liveops-next { font-size: 11px; color: var(--muted); }
-.liveops-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.liveops-chip {
-  display: inline-flex;
+.liveops-utc { font-size: 10px; letter-spacing: 0.08em; color: var(--muted); opacity: 0.8; }
+.liveops-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--vital, #ff6b6b);
+  box-shadow: 0 0 6px var(--vital, #ff6b6b);
+  animation: liveops-pulse 1.8s ease-in-out infinite;
+  vertical-align: 1px;
+}
+@keyframes liveops-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.liveops-cards { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.liveops-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  min-height: 24px;
-  font-size: 12px;
+  gap: 10px;
+  padding: 7px 10px;
   border-radius: var(--r-md);
   border: 1px solid color-mix(in srgb, var(--lo, var(--gold)) 45%, var(--line));
-  background: color-mix(in srgb, var(--lo, var(--gold)) 10%, transparent);
+  background:
+    linear-gradient(100deg, color-mix(in srgb, var(--lo, var(--gold)) 14%, transparent), color-mix(in srgb, var(--lo, var(--gold)) 4%, transparent));
 }
-.liveops-chip i { color: var(--lo, var(--gold)); }
+/* Live sheen: a slow light sweep so an active window reads as BROADCASTING, not static. */
+.liveops-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--lo, var(--gold)) 18%, transparent) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: liveops-sheen 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes liveops-sheen { 0%, 55% { transform: translateX(-100%); } 85%, 100% { transform: translateX(100%); } }
+.liveops-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 14px;
+  color: var(--lo, var(--gold));
+  border: 1px solid color-mix(in srgb, var(--lo, var(--gold)) 55%, transparent);
+  background: color-mix(in srgb, var(--lo, var(--gold)) 12%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--lo, var(--gold)) 25%, transparent);
+}
+.liveops-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.liveops-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.liveops-boosts { display: flex; flex-wrap: wrap; gap: 4px; }
+.liveops-boost {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--lo, var(--gold));
+  background: color-mix(in srgb, var(--lo, var(--gold)) 14%, transparent);
+}
+.liveops-ends {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+.liveops-rail { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.liveops-rail-k { font-size: 10px; letter-spacing: 0.14em; font-weight: 800; color: var(--muted); }
+.liveops-soon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--lo, var(--gold)) 35%, var(--line));
+  background: color-mix(in srgb, var(--lo, var(--gold)) 5%, transparent);
+}
+.liveops-soon i { color: color-mix(in srgb, var(--lo, var(--gold)) 80%, var(--muted)); }
+.liveops-soon em { font-style: normal; font-size: 10px; opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) {
+  .liveops-dot { animation: none; }
+  .liveops-card::after { animation: none; display: none; }
+}
 
 /* ── Replay Theater (SpectateView.tsx + Daily/Results share, docs/REPLAY-SHARE.md) ── */
 .spectate {

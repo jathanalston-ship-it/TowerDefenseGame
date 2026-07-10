@@ -1540,7 +1540,7 @@ export const meta = {
       heroKills,
       heroFavEquip,
       stats: accumulateStats(save.stats, result.stats, result.mastery, { durationSec: result.durationSec, doctrine: result.doctrine, bossRush: isRush }),
-      geneEssence: save.geneEssence + Math.round(doctrineEssence * asc.essenceGainMult), // Corrupted Genome essence × Ascendant Alchemy (both ×1/0 by default)
+      geneEssence: save.geneEssence + Math.round(doctrineEssence * asc.essenceGainMult * lo.essenceMult), // Corrupted Genome essence × Ascendant Alchemy × LiveOps essence lane (all ×1/0 by default)
       lootQueue: lootAdv.state,
       pendingContainers: [...pendingBase, ...newlyBanked], // bank the run-end remainder + cache (unopened); an unqualified Infinite run rolled its live loot back out of pendingBase
       unlockedTitles,
@@ -1731,11 +1731,15 @@ export const meta = {
     // Applied to BOTH container kinds so every Vault container can feed crafting (equipment stays
     // primary). Folded into the reveal + save; matPity persists the guarantee across containers.
     const ascOpen = ascendantBonuses(save.prestige.nodes); // Alchemy/Forgeblood income levers (×1 without nodes)
+    // LiveOps calendar lanes (docs/LIVEOPS.md): essence/material windows scale each reward AT ITS
+    // SOURCE scalar (before it feeds both the reveal item and the grant), so the ceremony always
+    // shows exactly what was banked. Every lane is ×1 outside its window — inert baseline.
+    const lo = liveopsMods();
     const { drop, pity } = rollMaterialDrop({
       containerRarity: chest.topRarity, power, campaignStage: highestCampaignStage(save), pity: save.matPity, rng: Math.random,
     });
     if (drop) {
-      const matAmt = Math.max(1, Math.round(drop.amount * ascOpen.matGainMult)); // × Ascendant Forgeblood
+      const matAmt = Math.max(1, Math.round(drop.amount * ascOpen.matGainMult * lo.materialsMult)); // × Ascendant Forgeblood × Harvest window
       chest.items.push({ type: 'material', rarity: drop.rarity, mat: drop.mat, amount: matAmt });
       chest.materials[drop.mat] += matAmt;
       mats = { ...mats, [drop.mat]: mats[drop.mat] + matAmt };
@@ -1768,12 +1772,12 @@ export const meta = {
     }
     const rName = rarityRegistry.get(containerRarity)?.name ?? containerRarity;
     if (towerDupes > 0) {
-      const amt = Math.round(essenceForDuplicates(containerRarity, towerDupes) * ascOpen.essenceGainMult);
+      const amt = Math.round(essenceForDuplicates(containerRarity, towerDupes) * ascOpen.essenceGainMult * lo.essenceMult);
       essenceGained += amt;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Tower` });
     }
     if (heroDupes > 0) {
-      const amt = Math.round(essenceForDuplicates(containerRarity, heroDupes) * ascOpen.essenceGainMult);
+      const amt = Math.round(essenceForDuplicates(containerRarity, heroDupes) * ascOpen.essenceGainMult * lo.essenceMult);
       essenceGained += amt;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: amt, note: `Duplicate ${rName} Hero` });
     }
@@ -1781,7 +1785,7 @@ export const meta = {
     //    replaces a guaranteed reward), scaled by the container's rarity + slightly by Campaign
     //    progress and Power Score. Duplicate conversion above stays the dominant source (simulated
     //    in docs/GENE-EVOLUTION.md §Economy). ──
-    const essenceDrop = Math.round(rollEssenceDrop({ containerRarity, power, campaignStage: highestCampaignStage(save), rng: Math.random }) * ascOpen.essenceGainMult);
+    const essenceDrop = Math.round(rollEssenceDrop({ containerRarity, power, campaignStage: highestCampaignStage(save), rng: Math.random }) * ascOpen.essenceGainMult * lo.essenceMult);
     if (essenceDrop > 0) {
       essenceGained += essenceDrop;
       chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceDrop, note: 'Essence Trace' });
@@ -1808,7 +1812,7 @@ export const meta = {
     //    rarity; epic+ containers additionally DISCOVER a random modifier at a rolled rarity
     //    (recording the best rarity seen in the dex). Purely additive — a fresh account is unaffected. ──
     const BLEED_BY_RARITY: Record<string, number> = { common: 15, rare: 30, epic: 55, legendary: 90, exotic: 140, mythic: 200 };
-    const essenceBleed = Math.round((BLEED_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6));
+    const essenceBleed = Math.round((BLEED_BY_RARITY[containerRarity] ?? 15) * (0.7 + Math.random() * 0.6) * lo.essenceMult);
     let mulliganDex = save.mulliganDex;
     // Surface the bleed on the reveal (an event pull) so the spoils are never invisible.
     chest.items.push({ type: 'event', rarity: chest.topRarity, currency: 'geneEssence', amount: essenceBleed, note: 'Gene Bleed' });
