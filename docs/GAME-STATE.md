@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 31` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 32` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -411,9 +411,22 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   1500 draft — §pricing), free taste levels 1/50/99, permanents once-ever (premium ones
   economy-only) with repeat replacements, infinite Perennial Bloom stack, save v31
   battlePass record, Season nav screen — BATTLEPASS.md
+- ✅ **Quests & Missions (the directive layer)**: missions compose quests — a 12-verb
+  counted-objective vocabulary (`MissionCond`) credited from finishRun/vault/expeditions/
+  roulette/pass-levels into BOTH lanes at once. WEEKLY lane: ring of 3 quests × 6 missions
+  on 7-day windows (pass epoch; max-window tamper rule; progress NEVER carries over —
+  rollover auto-claims earned rewards then resets; repeat finales substitute 40 Ichor +
+  300 Cores). MAIN questline “The Descent Below”: 3 permanent chapters × 10 missions,
+  sequential (claimed finale opens the next; only the active chapter accrues). Every
+  finale's FIRST completion grants a story cutscene (quest-unlock kind resolved off the
+  `once` ledger; premiered from the hub via cutsceneBus) + an exclusive quest-source
+  wardrobe cosmetic — both cross-links test-pinned. Rewards reuse the Battle-Pass
+  interpreter (shared `applyRewardList`); claims feed pass XP. Save v32 `quests` record;
+  `quests`+`missions` collection codices (fresh-save zero); Quest Board nav screen
+  (stage-4 reveal) hosting Champion Contracts as its third section — QUESTS.md
 - ✅ **Champion Contracts**: weekly deterministic 3-contract board (LiveOps weekIndex),
   data constraint vocabulary judged in finishRun, core payouts + Gilded exclusives,
-  home board + Results category — CONTRACTS.md
+  home board + Results category (now surfaced on the Quest Board) — CONTRACTS.md
 - ✅ **Nemesis & Trophies**: losses seed a buffed, branded returning hunter (replay-
   deterministic via RunOptions; dailies excluded); revenge pays scaled cores + Abyssal
   phenotype; 10 tradeoff trophy organs, ONE mounted, derived ownership — NEMESIS.md

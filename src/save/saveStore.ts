@@ -31,6 +31,7 @@ import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mullig
 import { starterItems, wardrobeItem, wardrobeMilestone, WARDROBE_KINDS } from '../core/wardrobe';
 import type { WardrobeKind } from '../core/wardrobe';
 import { BP, passPassive, seasonById } from '../core/battlePass';
+import { missionById, questById } from '../core/quests';
 
 export interface SaveData {
   shards: number;
@@ -255,6 +256,20 @@ export interface SaveData {
     completions: Record<string, number>;
     stacks: number;
   };
+  // ── Quests & Missions (v32, docs/QUESTS.md). The weekly lane is windowed: `window` is the MAX
+  //    rotation window observed (clock-tamper rule); progress/claims are THIS window's and NEVER
+  //    carry over (rollover auto-claims earned rewards, then resets). The main questline is
+  //    permanent + sequential (`completions` gates the next chapter). `once` is the FOREVER
+  //    ledger of granted one-time finale unlocks ('cutscene:<questId>' / 'cosmetic:<questId>' —
+  //    repeats substitute currency); `missionsDone`/`questCompletions` are lifetime codex
+  //    ledgers (collections). ──
+  quests: {
+    weekly: { window: number; progress: Record<string, number>; claimed: string[]; completionClaimed: boolean };
+    main: { progress: Record<string, number>; claimed: string[]; completions: string[] };
+    once: string[];
+    missionsDone: string[];
+    questCompletions: Record<string, number>;
+  };
 }
 
 /** Permanent tutorial state: which tutorials are fully done, which have paid out their one-time
@@ -317,8 +332,10 @@ export interface TutorialSave {
 // v29→v30: Ichor Exchange window record (ichorExchange — docs/MARKET.md §exchange).
 // v30→v31: Wardrobe (account cosmetics: owned/equipped/favorites/milestones/reveal queue —
 // docs/COSMETICS.md §wardrobe) + Battle Pass season record (docs/BATTLEPASS.md).
+// v31→v32: Quests & Missions (weekly window record + main questline ledgers + the once-granted
+// finale ledger — docs/QUESTS.md).
 // All additive — withDefaults() deep-fills, migrate() passes through.
-export const CURRENT_VERSION = 31;
+export const CURRENT_VERSION = 32;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -613,8 +630,17 @@ export function defaultSave(): SaveData {
     ichorExchange: { window: 0, reserve: 0, bought: [] },
     wardrobe: defaultWardrobe(),
     battlePass: { window: 0, xp: 0, premium: false, claimedFree: [], claimedPremium: [], adDay: '', adUsed: 0, permanents: [], completions: {}, stacks: 0 },
+    quests: defaultQuests(),
     mulligans: emptyMulligansByTower(),
     mulliganDex: {},
+  };
+}
+
+export function defaultQuests(): SaveData['quests'] {
+  return {
+    weekly: { window: 0, progress: {}, claimed: [], completionClaimed: false },
+    main: { progress: {}, claimed: [], completions: [] },
+    once: [], missionsDone: [], questCompletions: {},
   };
 }
 
@@ -786,6 +812,52 @@ function sanitizeBattlePass(raw: unknown): SaveData['battlePass'] {
   if (o.completions && typeof o.completions === 'object') {
     for (const [k, v] of Object.entries(o.completions as Record<string, unknown>)) {
       if (seasonById(k) && nat(v) > 0) out.completions[k] = nat(v);
+    }
+  }
+  return out;
+}
+
+/** Coerce a loaded quest record (docs/QUESTS.md): every referenced mission/quest must be REAL
+ *  (removed content sanitizes away), progress clamps to 0..target, ledgers dedupe. */
+function sanitizeQuests(raw: unknown): SaveData['quests'] {
+  const out = defaultQuests();
+  if (!raw || typeof raw !== 'object') return out;
+  const o = raw as Record<string, unknown>;
+  const nat = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
+  const progress = (v: unknown): Record<string, number> => {
+    const p: Record<string, number> = {};
+    if (v && typeof v === 'object') {
+      for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
+        const def = missionById(k);
+        if (def && nat(n) > 0) p[k] = Math.min(def.target, nat(n));
+      }
+    }
+    return p;
+  };
+  const missionIds = (v: unknown): string[] =>
+    Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && missionById(x) !== undefined))] : [];
+  const w = (o.weekly && typeof o.weekly === 'object' ? o.weekly : {}) as Record<string, unknown>;
+  out.weekly = { window: nat(w.window), progress: progress(w.progress), claimed: missionIds(w.claimed), completionClaimed: w.completionClaimed === true };
+  const m = (o.main && typeof o.main === 'object' ? o.main : {}) as Record<string, unknown>;
+  out.main = {
+    progress: progress(m.progress), claimed: missionIds(m.claimed),
+    completions: Array.isArray(m.completions)
+      ? [...new Set(m.completions.filter((x): x is string => typeof x === 'string' && questById(x)?.lane === 'main'))]
+      : [],
+  };
+  if (Array.isArray(o.once)) {
+    out.once = [...new Set(o.once.filter((x): x is string => {
+      if (typeof x !== 'string') return false;
+      const sep = x.indexOf(':');
+      if (sep < 0) return false;
+      const tag = x.slice(0, sep);
+      return (tag === 'cutscene' || tag === 'cosmetic') && questById(x.slice(sep + 1)) !== undefined;
+    }))];
+  }
+  out.missionsDone = missionIds(o.missionsDone);
+  if (o.questCompletions && typeof o.questCompletions === 'object') {
+    for (const [k, v] of Object.entries(o.questCompletions as Record<string, unknown>)) {
+      if (questById(k) && nat(v) > 0) out.questCompletions[k] = nat(v);
     }
   }
   return out;
@@ -993,6 +1065,7 @@ function withDefaults(data: SaveData): SaveData {
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
     wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
     battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
+    quests: sanitizeQuests((data as { quests?: unknown }).quests),
   });
 }
 

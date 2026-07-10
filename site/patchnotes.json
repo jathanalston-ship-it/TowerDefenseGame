@@ -16,9 +16,19 @@
       "Gene Cards",
       "Music",
       "Framework",
-      "Audio"
+      "Audio",
+      "Bug Fixes",
+      "Security"
     ],
     "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Game Action Security Layer"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Quests & Missions"
+      },
       {
         "cat": "Gameplay",
         "text": "★ New system: Genome Rank (ultimate mastery ladder)"
@@ -214,6 +224,22 @@
       {
         "cat": "Mega Bosses",
         "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Tutorial battlefield was clipped to a ~140px strip — board never shrinks; declutter the phone lesson"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)"
+      },
+      {
+        "cat": "Towers",
+        "text": "Mulligan class synergy: classed modifiers, Complete Class Adaptations, visual overhaul"
+      },
+      {
+        "cat": "Security",
+        "text": "Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts"
       }
     ]
   },

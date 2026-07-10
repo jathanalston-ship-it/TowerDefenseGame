@@ -109,6 +109,13 @@ graph TD
   battle_pass --> cosmetics
   battle_pass --> premium
   battle_pass --> hub_shell
+  quests --> meta_store
+  quests --> battle_pass
+  quests --> contracts
+  quests --> cutscenes
+  quests --> cosmetics
+  quests --> collection
+  quests --> hub_shell
   profile --> stats
   profile --> power
   profile --> achievements
@@ -185,7 +192,7 @@ graph TD
 | **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `boss-rush` · `equipment` · `crafting` · `shards-economy` · `splice-market` · `account-level` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
 | **Gene Cards (draft + permanent evolution)** (`gene-cards`) | `content-infra` · `power` · `campaign` · `shards-economy` | `engine` | ⚡ permanent levels fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility | `genes` · `geneEssence` · `geneSlots` · `geneLoadout` | `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` |
 | **Shards & Star Economy** (`shards-economy`) | `loot` | `towers` · `heroes` · `gene-cards` | ⚡ stars bought with shards move the permanent bucket | `shards` · `lifetimeShards` | `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` |
-| **Collections / Codex** (`collection`) | `content-infra` · `stats` | `cosmetics` · `profile` · `genome-rank` | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
+| **Collections / Codex** (`collection`) | `content-infra` · `stats` | `cosmetics` · `quests` · `profile` · `genome-rank` | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
 | **Evolution HQ (Genome Cores)** (`evolution-hq`) | `content-infra` · `prestige` | `prestige` | ⚡ META_UPGRADES fold into the permanent bucket | `upgrades` | `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` |
 | **Prestige (Molt / Ascendant)** (`prestige`) | `campaign` · `evolution-hq` | `evolution-hq` · `profile` | ⚡ the P bucket (log fold of Cells + tree) | `prestige` | `docs/PROGRESSION-PHILOSOPHY.md` · `docs/PROGRESSION-REDESIGN.md` · `docs/SIMULATION-FRAMEWORK.md` · `docs/BALANCE_REPORT.md` |
 | **Currencies & Economy Framework** (`currencies`) | `content-infra` | `splice-market` | — | — | `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` |
@@ -194,26 +201,27 @@ graph TD
 | **Lifetime Stats** (`stats`) | — | `mastery` · `collection` · `achievements` · `profile` | — | `stats` · `totalRuns` · `bestWave` | `docs/PROGRESSION-SYSTEMS.md` |
 | **LiveOps calendar** (`liveops`) | `meta-store` · `daily` | `contracts` | — | — | `docs/LIVEOPS.md` |
 | **Localization Core** (`i18n`) | — | — | — | — | `docs/I18N.md` |
-| **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` | — | — | `contracts` | `docs/CONTRACTS.md` |
+| **Champion Contracts** (`contracts`) | `meta-store` · `liveops` · `cosmetics` | `quests` | — | `contracts` | `docs/CONTRACTS.md` |
 | **Infestation Map** (`infestation`) | `meta-store` · `hub-shell` | — | — | `infestation` | `docs/INFESTATION.md` |
 | **Chronicle (patch-note pipeline)** (`chronicle`) | `meta-store` | — | — | `patchNotes` | `docs/CHANGELOG-PIPELINE.md` |
 | **Hero Expeditions** (`expeditions`) | `heroes` · `meta-store` | — | — | `expeditions` | `docs/EXPEDITIONS.md` |
 | **Nemesis & Trophies** (`nemesis`) | `engine` · `bosses` · `meta-store` · `cosmetics` | — | — | `nemesis` · `equippedTrophy` | `docs/NEMESIS.md` |
-| **The Wardrobe (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `contracts` · `nemesis` · `battle-pass` | ⚡ via the collection codex weights (tiny, cosmetic-first) | `cosmetics` · `wardrobe` | `docs/COSMETICS.md` |
-| **Battle Pass (Season)** (`battle-pass`) | `meta-store` · `cosmetics` · `premium` · `hub-shell` | — | ⚡ permanents + Perennial stacks fold into the meta bucket | `battlePass` | `docs/BATTLEPASS.md` |
+| **The Wardrobe (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `contracts` · `nemesis` · `battle-pass` · `quests` | ⚡ via the collection codex weights (tiny, cosmetic-first) | `cosmetics` · `wardrobe` | `docs/COSMETICS.md` |
+| **Battle Pass (Season)** (`battle-pass`) | `meta-store` · `cosmetics` · `premium` · `hub-shell` | `quests` | ⚡ permanents + Perennial stacks fold into the meta bucket | `battlePass` | `docs/BATTLEPASS.md` |
+| **Quests & Missions** (`quests`) | `meta-store` · `battle-pass` · `contracts` · `cutscenes` · `cosmetics` · `collection` · `hub-shell` | — | ⚡ quest/mission codices carry small collection weights | `quests` | `docs/QUESTS.md` |
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | `progression-gating` | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
 | **Account Level (evergreen meta-progression)** (`account-level`) | `meta-store` · `loot` | `genome-rank` | — | `accountXp` | `docs/ACCOUNT-LEVEL.md` |
 | **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | — | — | `genomeRank` | `docs/GENOME-RANK.md` |
 | **Progression Gating & Director** (`progression-gating`) | `meta-store` · `campaign` · `onboarding` | — | — | `director` | `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` |
-| **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `infestation` · `cosmetics` · `battle-pass` · `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
+| **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | `cutscenes` | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
-| **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | — | — | — | `docs/CUTSCENES.md` |
+| **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | `quests` | — | — | `docs/CUTSCENES.md` |
 | **Game Action Security Layer** (`security`) | `meta-store` · `net-backend` | — | — | — | `docs/SECURITY.md` |
 | **Biomes** (`biomes`) | `content-infra` | `engine` · `campaign` · `daily` | — | — | `docs/BIOMES.md` |
 | **Difficulty** (`difficulty`) | `content-infra` | `engine` · `campaign` · `infinite` · `boss-rush` | — | — | `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` |
@@ -549,14 +557,14 @@ graph TD
 
 - **Files:** `src/core/collection.ts` · `src/ui/CollectionPanel.tsx`
 - **Depends on:** `content-infra` · `stats`
-- **Consumers — what breaks if you change this:** `cosmetics` · `profile` · `genome-rank`
+- **Consumers — what breaks if you change this:** `cosmetics` · `quests` · `profile` · `genome-rank`
 - **Power Score:** completion feeds the collection bucket
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `CollectionPanel`
 - **Collection:** IS the system · **Achievements:** `collector`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/COLLECTION.md` · `docs/COSMETICS.md` · `docs/PROFILE.md` · `docs/GENOME-RANK.md`
+- **Docs to update on change:** `docs/COLLECTION.md` · `docs/COSMETICS.md` · `docs/QUESTS.md` · `docs/PROFILE.md` · `docs/GENOME-RANK.md`
 
 ### Evolution HQ (Genome Cores) (`evolution-hq`)
 
@@ -684,14 +692,14 @@ graph TD
 
 - **Files:** `src/core/contracts.ts` · `src/ui/components/ContractsCard.tsx`
 - **Depends on:** `meta-store` · `liveops` · `cosmetics`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `quests`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `contracts`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `CommandCenter (contracts board)` · `Results (contracts category)`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/CONTRACTS.md`
+- **Docs to update on change:** `docs/CONTRACTS.md` · `docs/QUESTS.md`
 
 ### Infestation Map (`infestation`)
 
@@ -759,14 +767,14 @@ graph TD
 
 - **Files:** `src/core/cosmetics.ts` · `src/core/wardrobe.ts` · `src/ui/PhenotypeLab.tsx` · `src/ui/Wardrobe.tsx` · `src/ui/wardrobeDressing.ts` · `src/ui/components/WardrobeReveal.tsx` · `src/render/wardrobeFx.ts`
 - **Depends on:** `meta-store` · `collection` · `hub-shell`
-- **Consumers — what breaks if you change this:** `contracts` · `nemesis` · `battle-pass`
+- **Consumers — what breaks if you change this:** `contracts` · `nemesis` · `battle-pass` · `quests`
 - **Power Score:** via the collection codex weights (tiny, cosmetic-first)
 - **Save fields:** `cosmetics` · `wardrobe`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `Wardrobe` · `PhenotypeLab` · `WardrobeReveal`
 - **Collection:** towerSkins/heroSkins + four wardrobe codices · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/COSMETICS.md` · `docs/CONTRACTS.md` · `docs/NEMESIS.md` · `docs/BATTLEPASS.md`
+- **Docs to update on change:** `docs/COSMETICS.md` · `docs/CONTRACTS.md` · `docs/NEMESIS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md`
 
 ### Battle Pass (Season) (`battle-pass`)
 
@@ -774,14 +782,29 @@ graph TD
 
 - **Files:** `src/core/battlePass.ts` · `src/ui/BattlePassScreen.tsx`
 - **Depends on:** `meta-store` · `cosmetics` · `premium` · `hub-shell`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `quests`
 - **Power Score:** permanents + Perennial stacks fold into the meta bucket
 - **Save fields:** `battlePass`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `BattlePassScreen`
 - **Collection:** grants land in the wardrobe codices · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/BATTLEPASS.md`
+- **Docs to update on change:** `docs/BATTLEPASS.md` · `docs/QUESTS.md`
+
+### Quests & Missions (`quests`)
+
+*The directive layer: missions compose quests. One weekly quest live from a rotating ring (7-day windows, progress never carries over, rollover mail, repeat finales substitute currency) + the permanent 3-chapter main questline. Every finale guarantees a story cutscene + exclusive cosmetic on first completion. Save v32 quests record.*
+
+- **Files:** `src/core/quests.ts` · `src/ui/QuestBoard.tsx`
+- **Depends on:** `meta-store` · `battle-pass` · `contracts` · `cutscenes` · `cosmetics` · `collection` · `hub-shell`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** quest/mission codices carry small collection weights
+- **Save fields:** `quests`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** — · **UI screens:** `QuestBoard`
+- **Collection:** quests + missions codices · **Achievements:** —
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/QUESTS.md`
 
 ### Player Profile (`profile`)
 
@@ -864,14 +887,14 @@ graph TD
 
 - **Files:** `src/ui/Hub.tsx` · `src/ui/CommandCenter.tsx` · `src/ui/DeployScreen.tsx` · `src/ui/homeModel.ts` · `src/ui/WorldStatus.tsx` · `src/ui/ProgressDashboard.tsx` · `src/ui/NextGoalBanner.tsx` · `src/state/nextGoal.ts` · `src/state/progressionLoop.ts` · `src/ui/hubProgress.ts` · `src/ui/homeBaseTiers.ts` · `src/ui/LabAtmosphere.tsx` · `src/ui/App.tsx` · `src/ui/ErrorBoundary.tsx` · `src/main.tsx` · `src/net/swRegister.ts` · `src/ui/components/UpdateToast.tsx` · `src/ui/components/Popup.tsx`
 - **Depends on:** `meta-store` · `notifications` · `prediction` · `power`
-- **Consumers — what breaks if you change this:** `infestation` · `cosmetics` · `battle-pass` · `profile`
+- **Consumers — what breaks if you change this:** `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `Hub` · `CommandCenter` · `ProgressDashboard`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/INFESTATION.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/PROFILE.md`
+- **Docs to update on change:** `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/INFESTATION.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/PROFILE.md`
 
 ### In-Run HUD & Results (`run-ui`)
 
@@ -924,14 +947,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
+- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `liveops` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
 
 ### Bosses (`bosses`)
 
@@ -969,14 +992,14 @@ graph TD
 
 - **Files:** `src/core/cutscenes.ts` · `src/render/cutsceneScenes.ts` · `src/ui/CutscenePlayer.tsx`
 - **Depends on:** `mega-bosses` · `meta-store` · `audio`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `quests`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `CutscenePlayer` · `CollectionPanel (Memory Archive)`
 - **Collection:** Memory Archive section (Collection screen) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/CUTSCENES.md`
+- **Docs to update on change:** `docs/CUTSCENES.md` · `docs/QUESTS.md`
 
 ### Game Action Security Layer (`security`)
 

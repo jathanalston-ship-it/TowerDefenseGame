@@ -1,6 +1,6 @@
 {
-  "lastSha": "bf4afdc67334ad4de6480f1484ad02cbfc6639e4",
-  "commitsSinceDraft": 6,
+  "lastSha": "941618b9c9e322fb739e557907b28cfc6e1f4e8d",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -215,6 +215,7 @@
       "nemesis",
       "cosmetics",
       "battle-pass",
+      "quests",
       "profile",
       "onboarding",
       "account-level",
@@ -228,6 +229,7 @@
       "bosses",
       "mega-bosses",
       "cutscenes",
+      "security",
       "biomes",
       "difficulty",
       "website",
@@ -1445,6 +1447,16 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Game Action Security Layer",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New system: Quests & Missions",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Genome Rank (ultimate mastery ladder)",
           "major": true
         },
@@ -1649,6 +1661,22 @@
         {
           "cat": "Mega Bosses",
           "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Tutorial battlefield was clipped to a ~140px strip — board never shrinks; declutter the phone lesson"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)"
+        },
+        {
+          "cat": "Towers",
+          "text": "Mulligan class synergy: classed modifiers, Complete Class Adaptations, visual overhaul"
+        },
+        {
+          "cat": "Security",
+          "text": "Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts"
         }
       ]
     }
@@ -2075,6 +2103,54 @@
       "date": "2026-07-10",
       "cat": "Mega Bosses",
       "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "5bd217e1403c9aba07d5dad41efe284b5f53e999",
+      "date": "2026-07-10",
+      "cat": "Framework",
+      "text": "Chronicle + graphs: regen over the mega-overhaul rebase (re-anchored ledger)",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "510d43581cd4632d645faab0103bb4a5149d9c89",
+      "date": "2026-07-10",
+      "cat": "Bug Fixes",
+      "text": "Tutorial battlefield was clipped to a ~140px strip — board never shrinks; declutter the phone lesson",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9b50cc8ba11ebf26aec864dc47d307fb2ae86493",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2d85a17015c4702bb55e5f6ece11f40be3bacead",
+      "date": "2026-07-10",
+      "cat": "Towers",
+      "text": "Mulligan class synergy: classed modifiers, Complete Class Adaptations, visual overhaul",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "cb70528ae31e2da0e6e15a030fafb07409b8d0ca",
+      "date": "2026-07-10",
+      "cat": "Security",
+      "text": "Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "941618b9c9e322fb739e557907b28cfc6e1f4e8d",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)",
       "internal": false,
       "needsReview": false
     }

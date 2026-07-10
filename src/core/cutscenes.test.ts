@@ -106,9 +106,11 @@ describe('derived unlocks (save/derive.isCutsceneUnlocked)', () => {
     expect(fx.length).toBe(4); // voraxis + awakening + first-molt + the-deep
   });
 
-  it('story milestones are DISTINCT (each of the four unlocks from a different door)', () => {
+  it('story milestones are DISTINCT (every story film unlocks from a different door)', () => {
     const keys = CUTSCENES.filter((c) => c.kind === 'story').map((c) =>
-      c.unlock.kind === 'stage' ? `stage:${c.unlock.stage}` : c.unlock.kind);
+      c.unlock.kind === 'stage' ? `stage:${c.unlock.stage}`
+        : c.unlock.kind === 'quest' ? `quest:${c.unlock.questId}`
+        : c.unlock.kind);
     expect(new Set(keys).size).toBe(keys.length);
   });
 });

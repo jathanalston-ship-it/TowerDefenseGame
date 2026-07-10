@@ -18,3 +18,22 @@ export const navBus = {
     return () => { subs.delete(fn); };
   },
 };
+
+// Same shape, different cargo: meta asks the App shell to PREMIERE story cutscenes (quest
+// finales unlock films from the hub, where there is no Results outcome to ride —
+// docs/QUESTS.md §finale). Emits before the App subscribes are dropped; the Memory Archive
+// still lists every unlocked film, so a missed premiere is never lost content.
+type PremiereFn = (cutsceneIds: string[]) => void;
+
+const premiereSubs = new Set<PremiereFn>();
+
+export const cutsceneBus = {
+  premiere(cutsceneIds: string[]): void {
+    if (cutsceneIds.length === 0) return;
+    for (const fn of premiereSubs) fn(cutsceneIds);
+  },
+  onPremiere(fn: PremiereFn): () => void {
+    premiereSubs.add(fn);
+    return () => { premiereSubs.delete(fn); };
+  },
+};

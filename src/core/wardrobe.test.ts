@@ -26,7 +26,7 @@ describe('the catalog', () => {
 
   it('every source lane is populated (the progression spread is real)', () => {
     const lanes = new Set(wardrobeRegistry.all().map((d) => d.source.kind));
-    for (const lane of ['starter', 'campaign', 'infinite', 'daily', 'rush', 'roulette', 'achievement', 'collection', 'shop', 'battlepass', 'milestone', 'event'] as const) {
+    for (const lane of ['starter', 'campaign', 'infinite', 'daily', 'rush', 'roulette', 'achievement', 'collection', 'shop', 'battlepass', 'milestone', 'event', 'quest'] as const) {
       expect(lanes.has(lane), `no item from lane ${lane}`).toBe(true);
     }
   });
@@ -94,14 +94,14 @@ describe('the auto-unlock evaluator', () => {
     expect(earnedAutoItems(ranked).some((d) => d.source.kind === 'collection')).toBe(true);
   });
 
-  it('shop/battlepass/milestone/event lanes NEVER auto-unlock', () => {
+  it('shop/battlepass/milestone/event/quest lanes NEVER auto-unlock', () => {
     const maxed: WardrobeUnlockCtx = {
       campaignStage: 999, bestDepth: 999, dailyClears: 999, rushBossKills: 9999, rouletteSpores: 9999,
       achievements: new Set(wardrobeRegistry.all().flatMap((d) => (d.source.kind === 'achievement' ? [d.source.id] : []))),
       collectionRanks: { }, overallRank: 6,
     };
     for (const d of earnedAutoItems(maxed)) {
-      expect(['shop', 'battlepass', 'milestone', 'event', 'starter']).not.toContain(d.source.kind);
+      expect(['shop', 'battlepass', 'milestone', 'event', 'quest', 'starter']).not.toContain(d.source.kind);
     }
   });
 });

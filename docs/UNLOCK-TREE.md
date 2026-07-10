@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 24 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 25 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -19,17 +19,18 @@
 | 10 | ◆ **Splice Market** `market` | screen | Clear Campaign Stage 3 · 3 to go | S3 | S3 | Splice Market & Ichor (`splice-market`) | Opens once Core income is steady (stage 3) so its stock means something — and Ichor gets a visible sink before Ichor itself flows. |
 | 11 | ⌬ **Gene Archive** `genes` | screen | Collect 6 Gene Cards · 6 to go | start | S3 | Gene Archive (`gene-archive`) | Cards collect from run 1, but the Archive teaches best once a small library exists (6 cards, or stage 3 as backstop). |
 | 12 | ⛨ **Armory** `equipment` | screen | Find your first Bio-Gear | start | S4 | Equipment (`equipment`) | Reveals with the first Bio-Gear drop (container luck), stage 4 as backstop — never an empty Armory, never gear without a home. |
-| 13 | ☀ **Daily Run** `daily` | screen | Clear Campaign Stage 5 · 5 to go | start | S5 | Daily Run (`daily-run`) | The established gate (docs/DAILY-RUN.md): the retention rhythm starts once the core loop is fluent. History grandfathers. |
-| 14 | ▤ **Bio-Dex** `collection` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Bio-Dex (Collection) (`collection-codex`) | By stage 5 several enemy families, cards and drops exist to catalogue — rank bonuses stop being abstract. |
-| 15 | ❁ **Season Pass** `season` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Season Pass (`season-pass`) | XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it. |
-| 16 | ❑ **Gear Codex** `gearcodex` | screen | Clear Campaign Stage 6 · 6 to go | S6 | S6 | Gear Codex (`gear-codex`) | A collection layer OVER gear — lands after the Armory habit forms; undiscovered silhouettes become goals. |
-| 17 | ⊛ **Mulligan Lab** `mulligans` | screen | Discover a Mulligan modifier | start | S7 | Mulligan Organisms (`mulligans`) | Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency. |
-| 18 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
-| 19 | ✷ **Premium Store** `store` | screen | Clear Campaign Stage 8 · 8 to go | S8 | S8 | Premium Store (`premium-store`) | Monetization reveals LAST among the mid-game (docs/PREMIUM-STORE.md): the game proves itself before it asks. |
-| 20 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 10 · 10 to go | start | S10 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
-| 21 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
-| 22 | ⊕ **Materials** `cur:mats` | currency | Find crafting materials | start | S6 | — | Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak. |
-| 23 | ✦ **Ascendant Cells** `cur:cells` | currency | Molt for the first time | start | S9 | — | Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless. |
+| 13 | ✪ **Quest Board** `quests` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Quests & Missions (`quests`) | Directives give the mid-early game its to-do list: by stage 4 enough systems exist for missions to point at, and Chapter I is already half-earnable from natural play. |
+| 14 | ☀ **Daily Run** `daily` | screen | Clear Campaign Stage 5 · 5 to go | start | S5 | Daily Run (`daily-run`) | The established gate (docs/DAILY-RUN.md): the retention rhythm starts once the core loop is fluent. History grandfathers. |
+| 15 | ▤ **Bio-Dex** `collection` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Bio-Dex (Collection) (`collection-codex`) | By stage 5 several enemy families, cards and drops exist to catalogue — rank bonuses stop being abstract. |
+| 16 | ❁ **Season Pass** `season` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Season Pass (`season-pass`) | XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it. |
+| 17 | ❑ **Gear Codex** `gearcodex` | screen | Clear Campaign Stage 6 · 6 to go | S6 | S6 | Gear Codex (`gear-codex`) | A collection layer OVER gear — lands after the Armory habit forms; undiscovered silhouettes become goals. |
+| 18 | ⊛ **Mulligan Lab** `mulligans` | screen | Discover a Mulligan modifier | start | S7 | Mulligan Organisms (`mulligans`) | Reveals with the first discovered modifier (container luck), stage 7 as backstop — the deepest tower system waits for tower fluency. |
+| 19 | ❖ **Phenotype Lab** `phenotypes` | screen | Clear Campaign Stage 7 · 7 to go | S7 | S7 | Phenotype Lab (`phenotype-lab`) | Pure luxury — cosmetics wait until the mechanical wardrobe is full and Gene Essence has a purpose beyond upgrades. |
+| 20 | ✷ **Premium Store** `store` | screen | Clear Campaign Stage 8 · 8 to go | S8 | S8 | Premium Store (`premium-store`) | Monetization reveals LAST among the mid-game (docs/PREMIUM-STORE.md): the game proves itself before it asks. |
+| 21 | ☠ **Boss Rush** `bossrush` | screen | Clear Campaign Stage 10 · 10 to go | start | S10 | Boss Rush (`boss-rush`) | The established gate: the skill-check pillar arrives once builds are real. History grandfathers. |
+| 22 | 🩸 **Ichor** `cur:ichor` | currency | Bleed your first Ichor | start | S3 | — | Shows with its first drop, or when the Splice Market (its sink) reveals — a currency chip never precedes its purpose. |
+| 23 | ⊕ **Materials** `cur:mats` | currency | Find crafting materials | start | S6 | — | Crafting materials appear the moment the first container drops some — alongside the gear they reforge. Stage 6 backstops a dry streak. |
+| 24 | ✦ **Ascendant Cells** `cur:cells` | currency | Molt for the first time | start | S9 | — | Teased one stage before Prestige unlocks (10) so the Molt pitch lands with a visible wallet; earned Cells reveal it regardless. |
 
 ## The worst-case walk (no drop luck — every backstop earning its keep)
 
@@ -37,7 +38,7 @@
 - **Stage 1** — ◑ Player Profile · T Tower Lab
 - **Stage 2** — ◈ Genetic Vault · ✷ Evolution HQ · H Hero Hall
 - **Stage 3** — ∞ Infinite · ◆ Splice Market · ⌬ Gene Archive · 🩸 Ichor
-- **Stage 4** — ⛨ Armory
+- **Stage 4** — ⛨ Armory · ✪ Quest Board
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ❖ Phenotype Lab

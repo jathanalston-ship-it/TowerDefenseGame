@@ -11,9 +11,10 @@ import { BIOMES } from './biomes';
 import { cosmeticRegistry } from './cosmetics';
 import { wardrobeRegistry } from './wardrobe';
 import { mulliganRegistry } from './mulligan';
+import { ALL_QUESTS, allMissions } from './quests';
 import { validateEffects } from './validate';
 
-const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {} });
+const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {}, questCompletions: {}, missionsDone: new Set() });
 
 function fullCtx(): CollectionContext {
   const stats = defaultLifetimeStats();
@@ -22,15 +23,15 @@ function fullCtx(): CollectionContext {
   for (const id of HERO_IDS) stats.heroUsage[id] = 10_000;
   stats.uniqueCards = cardRegistry.ids();
   const megaIds = new Set(megaBossRegistry.ids());
-  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])) };
+  return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])), questCompletions: Object.fromEntries(ALL_QUESTS.map((q) => [q.id, 3])), missionsDone: new Set(allMissions().map((m) => m.id)) };
 }
 
 describe('collection layer', () => {
   it('enumerates straight from the registries (scales with content)', () => {
     const v = collectionView(freshCtx());
-    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + wardrobeRegistry.size + mulliganRegistry.size + TOWER_ORDER.length;
+    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + wardrobeRegistry.size + mulliganRegistry.size + TOWER_ORDER.length + ALL_QUESTS.length + allMissions().length;
     expect(v.total).toBe(expectedTotal);
-    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'towerSkins', 'heroSkins', 'wardrobeArena', 'wardrobeAudio', 'wardrobeInterface', 'wardrobeIdentity', 'mulligans', 'mulliganOrganisms']);
+    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'towerSkins', 'heroSkins', 'wardrobeArena', 'wardrobeAudio', 'wardrobeInterface', 'wardrobeIdentity', 'quests', 'missions', 'mulligans', 'mulliganOrganisms']);
   });
 
   it('the codex enumerates the recent content (Coil/Siphon towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)', () => {

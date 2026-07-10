@@ -93,6 +93,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'container.open', category: 'claim', level: 'permissive', limit: P({ count: 20 }), cooldownMs: 250,
     analytics: 'sec_container_open', doc: 'Open the next pending Bio-Container (reveal ceremony pacing).', at: META,
   },
+  'quest.claim': {
+    id: 'quest.claim', category: 'claim', level: 'moderate', limit: M({ count: 30 }), dedupeMs: 600,
+    analytics: 'sec_quest_claim', doc: 'Quest mission/finale claim — clearing a full board in one burst is legitimate (docs/QUESTS.md).', at: META,
+  },
 
   // ── Repeatable economy operations ──
   // NOTE (§standards): grants that land AFTER a paid ceremony (roulette results, run outcomes)
@@ -179,6 +183,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   adAdvancePass: 'pass.ad',
   claimWardrobeMilestone: 'wardrobe.claim',
   claimExpedition: 'expedition.claim',
+  claimQuestMission: 'quest.claim',
+  claimQuestFinale: 'quest.claim',
   grantTutorialRewards: 'tutorial.claim',
   openContainer: 'container.open',
   upgradeMulligan: 'craft.mulligan',

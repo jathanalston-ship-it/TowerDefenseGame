@@ -56,6 +56,7 @@ export function isCutsceneUnlocked(save: SaveData, def: CutsceneDef): boolean {
     case 'stage': return highestCampaignStage(save) >= u.stage;
     case 'molt': return (save.prestige?.molts ?? 0) >= 1;
     case 'wave': return save.bestWave >= u.wave;
+    case 'quest': return save.quests.once.includes(`cutscene:${u.questId}`);
   }
 }
 

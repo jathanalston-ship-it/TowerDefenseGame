@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 683 nodes · 1154 edges, built from the live
+> **The project's brain** (docs/DIL.md). 688 nodes · 1172 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:campaign` · `system:towers` · `system:gene-cards` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
+`system:campaign` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
 
 ### Economy / Reward Index
 
@@ -26,7 +26,7 @@
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
+`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
 
 ### Audio Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · `guide:collections` · `guide:mastery` · …1 more
+`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · `guide:collections` · …2 more
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -78,6 +78,7 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_quests["Quests & Missions"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_profile["Player Profile"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -114,6 +115,8 @@ graph LR
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
+  system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
+  system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
 ```
 
 ### Power Score Map
@@ -141,6 +144,7 @@ graph LR
   system_achievements["Achievements"] -->|provides| concept_power_score["Power Score"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|provides| concept_power_score["Power Score"]
   system_battle_pass["Battle Pass (Season)"] -->|provides| concept_power_score["Power Score"]
+  system_quests["Quests & Missions"] -->|provides| concept_power_score["Power Score"]
   system_run_ui["In-Run HUD & Results"] -->|provides| concept_power_score["Power Score"]
   system_prediction["Progress Prediction"] -->|provides| concept_power_score["Power Score"]
   system_meta_store["Meta Store & Save"] -->|provides| concept_power_score["Power Score"]
@@ -282,6 +286,14 @@ graph LR
   system_battle_pass["Battle Pass (Season)"] -->|dependsOn| system_premium["Premium Store"]
   system_battle_pass["Battle Pass (Season)"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_battle_pass["Battle Pass (Season)"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_contracts["Champion Contracts"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_cutscenes["Story Cutscenes & Memory Archive"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_collection["Collections / Codex"]
+  system_quests["Quests & Missions"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
+  system_quests["Quests & Missions"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_profile["Player Profile"] -->|dependsOn| system_stats["Lifetime Stats"]
   system_profile["Player Profile"] -->|dependsOn| system_power["Power Score"]
   system_profile["Player Profile"] -->|dependsOn| system_achievements["Achievements"]
@@ -356,6 +368,8 @@ graph LR
   system_security["Game Action Security Layer"] -->|consumes| concept_determinism["Determinism"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
+  system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
+  system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
 ```
 
 ### Presentation Couplings Map
@@ -391,7 +405,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…18 more (query: `npm run dil -- node concept:power-score`)_
+  - _…19 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -415,6 +429,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:mulligans` — adaptation bonuses fold ONLY through existing MulliganStats channels inside resolveMulligan — a new sim branch for a class bonus breaks the inactive⇒identity gate
   - conflictsWith ← `system:security` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
   - conflictsWith ← `system:battle-pass` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
+  - conflictsWith ← `system:quests` — weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
 
 ### `concept:progression-gates` — Progression Gates
@@ -527,7 +542,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (61)
+## Systems (62)
 
 ### `system:engine` — Sim Engine
 
@@ -557,7 +572,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…168 more (query: `npm run dil -- node system:engine`)_
+  - _…169 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1016,6 +1031,7 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - dependsOn → `system:stats`
   - provides → `concept:power-score` — completion feeds the collection bucket
   - requiredBy ← `system:cosmetics`
+  - requiredBy ← `system:quests`
   - requiredBy ← `system:profile`
   - requiredBy ← `system:genome-rank`
   - referencedBy ← `achievement:collector`
@@ -1171,8 +1187,10 @@ _at: src/core/contracts.ts, src/ui/components/ContractsCard.tsx_
   - dependsOn → `system:liveops`
   - dependsOn → `system:cosmetics`
   - consumes → `system:meta-store` — owns save field 'contracts'
+  - requiredBy ← `system:quests`
   - documentedBy ← `doc:CONTRACTS.md`
   - testedBy ← `test:src/core/contracts.test.ts`
+  - referencedBy ← `system:quests` — contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)
 
 ### `system:infestation` — Infestation Map
 
@@ -1243,10 +1261,12 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:battle-pass`
+  - requiredBy ← `system:quests`
   - documentedBy ← `doc:COSMETICS.md`
   - testedBy ← `test:src/core/cosmetics.test.ts`
   - testedBy ← `test:src/core/wardrobe.test.ts`
   - consumedBy ← `system:battle-pass` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
+  - consumedBy ← `system:quests` — every quest's finaleCosmetic must be a wardrobe item with source {kind:'quest',quest} (never auto-unlocks; sourceLabel's QUEST_NAMES map is pinned against quest names by quests.test)
 
 ### `system:battle-pass` — Battle Pass (Season)
 
@@ -1263,8 +1283,33 @@ _at: src/core/battlePass.ts, src/ui/BattlePassScreen.tsx_
   - consumes → `system:cosmetics` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
   - consumes → `system:premium` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor
   - conflictsWith → `concept:golden-test` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
+  - requiredBy ← `system:quests`
   - documentedBy ← `doc:BATTLEPASS.md`
   - testedBy ← `test:src/core/battlePass.test.ts`
+  - consumedBy ← `system:quests` — quest rewards SPEAK PassReward through the shared applyRewardList interpreter (never author stack/passive/cosmetic kinds — quests.test pins it); claims feed pass XP, pass level-ups credit passLevels missions via grantPassXp
+
+### `system:quests` — Quests & Missions
+
+The directive layer: missions compose quests. One weekly quest live from a rotating ring (7-day windows, progress never carries over, rollover mail, repeat finales substitute currency) + the permanent 3-chapter main questline. Every finale guarantees a story cutscene + exclusive cosmetic on first completion. Save v32 quests record.
+
+_at: src/core/quests.ts, src/ui/QuestBoard.tsx_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:battle-pass`
+  - dependsOn → `system:contracts`
+  - dependsOn → `system:cutscenes`
+  - dependsOn → `system:cosmetics`
+  - dependsOn → `system:collection`
+  - dependsOn → `system:hub-shell`
+  - provides → `concept:power-score` — quest/mission codices carry small collection weights
+  - consumes → `system:meta-store` — owns save field 'quests'
+  - consumes → `system:battle-pass` — quest rewards SPEAK PassReward through the shared applyRewardList interpreter (never author stack/passive/cosmetic kinds — quests.test pins it); claims feed pass XP, pass level-ups credit passLevels missions via grantPassXp
+  - gates → `system:cutscenes` — every quest's finaleCutscene must exist with unlock {kind:'quest',questId} — resolved off save.quests.once ('cutscene:<questId>'), premiered from the hub via cutsceneBus; quests.test fails without the link
+  - consumes → `system:cosmetics` — every quest's finaleCosmetic must be a wardrobe item with source {kind:'quest',quest} (never auto-unlocks; sourceLabel's QUEST_NAMES map is pinned against quest names by quests.test)
+  - references → `system:contracts` — contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)
+  - conflictsWith → `concept:golden-test` — weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE
+  - documentedBy ← `doc:QUESTS.md`
+  - testedBy ← `test:src/core/quests.test.ts`
 
 ### `system:profile` — Player Profile
 
@@ -1309,7 +1354,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:field-research`
   - contains ← `help:splice-market`
   - contains ← `help:gene-archive`
-  - _…43 more (query: `npm run dil -- node system:onboarding`)_
+  - _…44 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -1380,6 +1425,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
   - requiredBy ← `system:battle-pass`
+  - requiredBy ← `system:quests`
   - requiredBy ← `system:profile`
   - documentedBy ← `doc:COMMAND-CENTER.md`
   - documentedBy ← `doc:HOME-BASE.md`
@@ -1388,8 +1434,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - testedBy ← `test:src/state/nextGoal.test.ts`
   - testedBy ← `test:src/state/progressionLoop.test.ts`
-  - testedBy ← `test:src/ui/homeBaseTiers.test.ts`
-  - _…3 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…4 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1455,7 +1500,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…90 more (query: `npm run dil -- node system:meta-store`)_
+  - _…92 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1519,10 +1564,12 @@ _at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.
   - dependsOn → `system:meta-store`
   - dependsOn → `system:audio`
   - provides → `concept:progression-gates` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
+  - requiredBy ← `system:quests`
   - documentedBy ← `doc:CUTSCENES.md`
   - testedBy ← `test:src/core/cutscenes.test.ts`
   - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - referencedBy ← `system:prestige` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
+  - gatedBy ← `system:quests` — every quest's finaleCutscene must exist with unlock {kind:'quest',questId} — resolved off save.quests.once ('cutscene:<questId>'), premiered from the hub via cutsceneBus; quests.test fails without the link
 
 ### `system:security` — Game Action Security Layer
 
@@ -2294,7 +2341,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (44)
+## Help Topics (45)
 
 - `help:hive-core` — Your one life — defend it. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:biomorph-conveyor` — Towers arrive on a living belt — Deploy, Strain, or Discard. _(partOf `system:onboarding`)_
@@ -2333,6 +2380,7 @@ _at: src/core/tutorial.ts_
 - `help:containers` — Loot boxes you crack open in the Vault. _(partOf `system:onboarding`, teaches `system:loot`)_
 - `help:collection-codex` — Rank badges, bonuses and Power for everything you catalogue. _(partOf `system:onboarding`)_
 - `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
+- `help:quests` — Weekly directives and the story questline. _(partOf `system:onboarding`)_
 - `help:season-pass` — A rotating 100-level reward season fed by everything you play. _(partOf `system:onboarding`)_
 - `help:premium-store` — Optional support — never the path. _(partOf `system:onboarding`)_
 - `help:campaign` — The main progression path — descend, stage by stage. _(partOf `system:onboarding`, teaches `system:campaign`)_
@@ -2578,7 +2626,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (153)
+## Documentation (154)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -2690,6 +2738,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:PROGRESSION_REPORT.md` — project documentation
 - `doc:PROJECT_MANIFEST.md` — project documentation _(documents `system:meta-store`)_
 - `doc:PROJECT_STATUS.md` — project documentation _(documents `system:dev-registry`)_
+- `doc:QUESTS.md` — project documentation _(documents `system:quests`)_
 - `doc:RANGE.md` — project documentation
 - `doc:READABILITY.md` — project documentation _(documents `system:run-ui`)_
 - `doc:REFORGE.md` — project documentation _(documents `system:crafting`)_
@@ -2734,7 +2783,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (215)
+## Tests (217)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2827,6 +2876,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/prepcountdown.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/prestige.test.ts` — automated validation _(tests `system:prestige`)_
 - `test:src/core/progressionLoot.test.ts` — automated validation _(tests `system:loot`)_
+- `test:src/core/quests.test.ts` — automated validation _(tests `system:quests`)_
 - `test:src/core/reactions.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactionsSim.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/reactor.test.ts` — automated validation _(tests `system:engine`)_
@@ -2937,6 +2987,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/progression.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/progressionDirector.test.ts` — automated validation _(tests `system:progression-gating`)_
 - `test:src/state/progressionLoop.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/state/questsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/research.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rewardEligibility.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/rushStamina.test.ts` — automated validation _(tests `system:engine`)_

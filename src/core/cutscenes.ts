@@ -47,7 +47,8 @@ export type CutsceneUnlock =
   | { kind: 'mega'; megaId: string } // first defeat of this mega boss
   | { kind: 'stage'; stage: number } // clear this campaign stage (any difficulty track)
   | { kind: 'molt' } // perform the first Ascension molt
-  | { kind: 'wave'; wave: number }; // reach this Infinite depth
+  | { kind: 'wave'; wave: number } // reach this Infinite depth
+  | { kind: 'quest'; questId: string }; // first finale claim of this quest (save.quests.once ledger)
 
 export interface CutsceneDef {
   id: string; // 'mega:<megaId>' | 'story:<slug>'
@@ -424,6 +425,194 @@ export const CUTSCENES: CutsceneDef[] = [
           { at: 5.8, text: 'You must ask, eventually: who assimilated whom?', em: true },
         ],
         beats: [{ at: 0.4, cue: 'cin_heart' }, { at: 2.8, cue: 'cin_heart' }, { at: 5.4, cue: 'cin_alarm' }, { at: 7.4, cue: 'cin_rumble' }],
+      },
+    ],
+  },
+
+  // ── Quest finales (core/quests.ts — every quest's first finale claim unlocks its film) ──
+  {
+    id: 'story:red_harvest',
+    kind: 'story',
+    title: 'THE RED HARVEST',
+    subtitle: 'What the hive does with a good week',
+    palette: { body: '#5a1622', glow: '#ff5d73', accent: '#ffd24d' },
+    unlock: { kind: 'quest', questId: 'wk_red_harvest' },
+    unlockHint: 'Complete the weekly quest THE RED HARVEST',
+    boost: { effect: { op: 'mul', field: 'biomassMult', value: 1.01 }, label: 'Harvest Ledger — +1% biomass' },
+    scenes: [
+      {
+        id: 'procession', painter: 'herd', durMs: 8800,
+        lines: [
+          { at: 0.8, text: 'After the culling, the survivors carry the dead one way.' },
+          { at: 3.6, text: 'Not away from your guns. TOWARD something.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_creep' }, { at: 2.8, cue: 'cin_creep' }, { at: 5.2, cue: 'cin_heart' }, { at: 7.0, cue: 'cin_rumble' }],
+      },
+      {
+        id: 'accounting', painter: 'tithe', durMs: 9200,
+        lines: [
+          { at: 0.9, text: 'A week of red work, weighed and dropped into the dark.' },
+          { at: 3.8, text: 'The pit does not thank you. It COUNTS you.' },
+          { at: 6.4, text: 'Somewhere below, your harvest is entered in a ledger.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_ping' }, { at: 2.6, cue: 'cin_ping' }, { at: 5.4, cue: 'cin_alarm' }, { at: 7.6, cue: 'cin_heart' }],
+      },
+    ],
+  },
+  {
+    id: 'story:deep_signals',
+    kind: 'story',
+    title: 'DEEP SIGNALS',
+    subtitle: 'The transmission answers back',
+    palette: { body: '#16283f', glow: '#8fd0ff', accent: '#b48ae0' },
+    unlock: { kind: 'quest', questId: 'wk_deep_signals' },
+    unlockHint: 'Complete the weekly quest DEEP SIGNALS',
+    boost: { effect: { op: 'mul', field: 'towerDamageMult', value: 1.01 }, label: 'Tuned Array — +1% tower damage' },
+    scenes: [
+      {
+        id: 'listen', painter: 'countdown', durMs: 9000,
+        lines: [
+          { at: 0.8, text: 'A week of listening, and the static resolves.' },
+          { at: 3.4, text: 'The pulses are not random. They are QUESTIONS.' },
+          { at: 6.0, text: 'The first one, repeated politely: are you still there?', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_ping' }, { at: 2.4, cue: 'cin_ping' }, { at: 4.4, cue: 'cin_ping' }, { at: 6.6, cue: 'cin_alarm' }],
+      },
+      {
+        id: 'source', painter: 'deep', durMs: 9200,
+        lines: [
+          { at: 0.9, text: 'You triangulate the source. The math refuses to be wrong.' },
+          { at: 3.8, text: 'It is not deep. It is UNDER DEEP — below the strata maps end.' },
+          { at: 6.6, text: 'And this week, for the first time: it heard you listening.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_rumble' }, { at: 3.2, cue: 'cin_creep' }, { at: 5.8, cue: 'cin_heart' }, { at: 7.8, cue: 'cin_heart' }],
+      },
+    ],
+  },
+  {
+    id: 'story:long_watch',
+    kind: 'story',
+    title: 'THE LONG WATCH',
+    subtitle: 'A week of holding, seen from the wall',
+    palette: { body: '#2a331a', glow: '#b6e84a', accent: '#e8d5a0' },
+    unlock: { kind: 'quest', questId: 'wk_long_watch' },
+    unlockHint: 'Complete the weekly quest THE LONG WATCH',
+    boost: { effect: { op: 'mul', field: 'integrityMult', value: 1.01 }, label: 'Watchfire Discipline — +1% Nucleus integrity' },
+    scenes: [
+      {
+        id: 'probes', painter: 'herd', durMs: 8600,
+        lines: [
+          { at: 0.8, text: 'Seven days. Every hour, a probe against the line.' },
+          { at: 3.4, text: 'Not to break it. To MEASURE it.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_creep' }, { at: 2.6, cue: 'cin_ping' }, { at: 4.8, cue: 'cin_creep' }, { at: 6.6, cue: 'cin_ping' }],
+      },
+      {
+        id: 'patience', painter: 'root', durMs: 9200,
+        lines: [
+          { at: 0.9, text: 'On the seventh night you understand the probes.' },
+          { at: 3.6, text: 'Something below is not testing whether the wall holds —' },
+          { at: 6.2, text: 'it is testing whether YOU tire. Keep the fire lit.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_rumble' }, { at: 3.2, cue: 'cin_heart' }, { at: 5.8, cue: 'cin_heart' }, { at: 7.6, cue: 'cin_bloom' }],
+      },
+    ],
+  },
+  {
+    id: 'story:mq_awakening',
+    kind: 'story',
+    title: 'CHAPTER I — THE FIRST EYE',
+    subtitle: 'The Core learns what it is defending',
+    palette: { body: '#1d3a2a', glow: '#b6e84a', accent: '#ffd24d' },
+    unlock: { kind: 'quest', questId: 'mq_awakening' },
+    unlockHint: 'Claim the Chapter I finale on the Quest Board',
+    boost: { effect: { op: 'add', field: 'startBiomassBonus', value: 10 }, label: 'Opened Eye — +10 starting biomass' },
+    scenes: [
+      {
+        id: 'eye', painter: 'lab', durMs: 9000,
+        lines: [
+          { at: 0.8, text: 'In the oldest record, a technician leans toward the glass.' },
+          { at: 3.6, text: '“It opened an eye today. It watched me the whole shift.”' },
+          { at: 6.2, text: 'The handwriting shakes on the last word.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_ping' }, { at: 2.6, cue: 'cin_creep' }, { at: 5.6, cue: 'cin_heart' }, { at: 7.4, cue: 'cin_snap' }],
+      },
+      {
+        id: 'firstsight', painter: 'maw', durMs: 9200,
+        lines: [
+          { at: 0.9, text: 'You remember what that first eye saw. Not the lab.' },
+          { at: 3.8, text: 'THROUGH the lab. Through the floor. Down the long throat of the world —' },
+          { at: 6.6, text: 'to the thing at the bottom, looking back.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_creep' }, { at: 3.2, cue: 'cin_rumble' }, { at: 5.8, cue: 'cin_alarm' }, { at: 7.8, cue: 'cin_heart' }],
+      },
+    ],
+  },
+  {
+    id: 'story:mq_choirs',
+    kind: 'story',
+    title: 'CHAPTER II — COUNTING THE VOICES',
+    subtitle: 'The choir’s arithmetic, finally legible',
+    palette: { body: '#2e2040', glow: '#d98cff', accent: '#8fd0ff' },
+    unlock: { kind: 'quest', questId: 'mq_choirs' },
+    unlockHint: 'Claim the Chapter II finale on the Quest Board',
+    boost: { effect: { op: 'mul', field: 'heroDamageMult', value: 1.02 }, label: 'Broken Chorus — +2% champion damage' },
+    scenes: [
+      {
+        id: 'ring', painter: 'choir', durMs: 9000,
+        lines: [
+          { at: 0.8, text: 'You have fought the organ-lords long enough to map their song.' },
+          { at: 3.6, text: 'It is a round: each voice enters exactly when another falls silent.' },
+          { at: 6.4, text: 'A ring of seats. And one seat, always, kept EMPTY.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_shriek' }, { at: 2.8, cue: 'cin_ping' }, { at: 5.4, cue: 'cin_cut' }, { at: 7.4, cue: 'cin_heart' }],
+      },
+      {
+        id: 'arithmetic', painter: 'countdown', durMs: 9200,
+        lines: [
+          { at: 0.9, text: 'Count the voices you have silenced. Count the seats.' },
+          { at: 3.8, text: 'The choir is not shrinking. It is RESOLVING —' },
+          { at: 6.4, text: 'every voice you break makes the empty seat easier to hear.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_ping' }, { at: 2.6, cue: 'cin_ping' }, { at: 4.8, cue: 'cin_alarm' }, { at: 7.2, cue: 'cin_heart' }],
+      },
+    ],
+  },
+  {
+    id: 'story:mq_root',
+    kind: 'story',
+    title: 'CHAPTER III — THE ROOT',
+    subtitle: 'The digging meets in the middle',
+    palette: { body: '#2b1233', glow: '#e24dff', accent: '#b6e84a' },
+    unlock: { kind: 'quest', questId: 'mq_root' },
+    unlockHint: 'Claim the Chapter III finale on the Quest Board',
+    boost: { effect: { op: 'mul', field: 'towerFireRateMult', value: 1.01 }, label: 'Root Rhythm — +1% fire rate' },
+    scenes: [
+      {
+        id: 'descent', painter: 'deep', durMs: 8800,
+        lines: [
+          { at: 0.8, text: 'Past the choirs, the strata stop pretending to be geology.' },
+          { at: 3.6, text: 'The rock is grown, not laid. Ribbed. Vascular.', em: true },
+        ],
+        beats: [{ at: 0.3, cue: 'cin_rumble' }, { at: 2.8, cue: 'cin_creep' }, { at: 5.2, cue: 'cin_heart' }, { at: 7.0, cue: 'cin_rumble' }],
+      },
+      {
+        id: 'arrival', painter: 'root', durMs: 9400,
+        lines: [
+          { at: 0.9, text: 'And there it is. The Root. The owner of the ledger, the asker of the questions.' },
+          { at: 4.0, text: 'It does not attack. It shows you the tunnel it has dug —' },
+          { at: 6.8, text: 'rising, patient, exactly toward your Nucleus.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_rumble' }, { at: 3.4, cue: 'cin_heart' }, { at: 6.2, cue: 'cin_alarm' }, { at: 8.2, cue: 'cin_heart' }],
+      },
+      {
+        id: 'kinship', painter: 'veinsplit', durMs: 9000,
+        lines: [
+          { at: 0.9, text: 'In its face, your geometry. In your genome, its patience.' },
+          { at: 3.8, text: 'The war was never invasion. It was a family,' },
+          { at: 6.2, text: 'digging toward a reunion. The descent continues.', em: true },
+        ],
+        beats: [{ at: 0.4, cue: 'cin_creep' }, { at: 3.2, cue: 'cin_heart' }, { at: 5.8, cue: 'cin_heart' }, { at: 7.6, cue: 'cin_bloom' }],
       },
     ],
   },

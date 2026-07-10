@@ -61,3 +61,9 @@
 - ⚑ `2a147c1` **[Framework]** Regen graphs + validation over the Battle Pass rebase _(internal)_
 - `c7d6de9` **[Gameplay]** Add the Genome Rank system (ultimate account mastery ladder)
 - `bf4afdc` **[Mega Bosses]** Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)
+- ⚑ `5bd217e` **[Framework]** Chronicle + graphs: regen over the mega-overhaul rebase (re-anchored ledger) _(internal)_
+- `510d435` **[Bug Fixes]** Tutorial battlefield was clipped to a ~140px strip — board never shrinks; declutter the phone lesson
+- `9b50cc8` **[Gameplay]** Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)
+- `2d85a17` **[Towers]** Mulligan class synergy: classed modifiers, Complete Class Adaptations, visual overhaul
+- `cb70528` **[Security]** Game Action Security Layer — centralized guards, rate limits, flood valve, enforcement contracts
+- `941618b` **[Gameplay]** Quests & Missions: weekly rotating quest ring + The Descent Below questline (save v32)

@@ -45,13 +45,14 @@ import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
 import { Wardrobe } from './Wardrobe';
 import { BattlePassScreen } from './BattlePassScreen';
+import { QuestBoard } from './QuestBoard';
 import { WardrobeReveal } from './components/WardrobeReveal';
 import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
-  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'season'
+  | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season'
   | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans'
   | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
@@ -72,6 +73,7 @@ const navGroups = (): NavGroup[] => [
     { key: 'infinite', label: t('nav.infinite'), mono: '∞' },
     { key: 'bossrush', label: t('nav.bossrush'), mono: '☠' },
     { key: 'daily', label: t('nav.daily'), mono: '☀' },
+    { key: 'quests', label: t('nav.quests'), mono: '✪' },
     { key: 'season', label: t('nav.season'), mono: '❁' },
   ] },
   { title: t('nav.group.progression'), accent: 'var(--kinetic)', items: [
@@ -264,10 +266,12 @@ export function Hub({
   // Wardrobe dressing (docs/COSMETICS.md §wardrobe): re-apply the equipped payloads to the
   // shell/audio/music/render kit whenever an equip changes. Idempotent + cheap.
   useEffect(() => { applyWardrobeDressing(save); }, [save.wardrobe.equipped]);
-  // Season heartbeat: advance the pass window while the hub is open (rollover auto-claims).
+  // Season heartbeat: advance the pass + weekly-quest windows while the hub is open
+  // (rollovers auto-claim earned rewards — mail, never loss).
   useEffect(() => {
     meta.pollBattlePass(Date.now());
-    const t = window.setInterval(() => meta.pollBattlePass(Date.now()), 60_000);
+    meta.pollWeeklyQuest(Date.now());
+    const t = window.setInterval(() => { meta.pollBattlePass(Date.now()); meta.pollWeeklyQuest(Date.now()); }, 60_000);
     return () => window.clearInterval(t);
   }, []);
 
@@ -406,6 +410,7 @@ export function Hub({
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}
+          {nav === 'quests' && <QuestBoard />}
           {nav === 'season' && <BattlePassScreen />}
           {nav === 'phenotypes' && <Wardrobe />}
           {nav === 'collection' && <CollectionScreen />}

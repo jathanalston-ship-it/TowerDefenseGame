@@ -304,6 +304,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/BATTLEPASS.md'],
   },
   {
+    id: 'quests', name: 'Quests & Missions', purpose: 'The directive layer: missions compose quests. One weekly quest live from a rotating ring (7-day windows, progress never carries over, rollover mail, repeat finales substitute currency) + the permanent 3-chapter main questline. Every finale guarantees a story cutscene + exclusive cosmetic on first completion. Save v32 quests record.',
+    files: ['src/core/quests.ts', 'src/ui/QuestBoard.tsx'],
+    dependsOn: ['meta-store', 'battle-pass', 'contracts', 'cutscenes', 'cosmetics', 'collection', 'hub-shell'], powerScore: 'quest/mission codices carry small collection weights', save: ['quests'],
+    tutorial: [], help: [], hud: [], ui: ['QuestBoard'], collection: 'quests + missions codices', achievements: [],
+    localization: 'inline-en', docs: ['docs/QUESTS.md'],
+  },
+  {
     id: 'profile', name: 'Player Profile', purpose: 'The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.',
     files: ['src/state/profile.ts', 'src/ui/PlayerProfile.tsx', 'src/ui/components/CommanderName.tsx'],
     dependsOn: ['stats', 'power', 'achievements', 'collection', 'prestige', 'hub-shell'], powerScore: null,

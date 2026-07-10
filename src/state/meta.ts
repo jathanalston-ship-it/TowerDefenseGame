@@ -103,6 +103,10 @@ import {
 import type { PassReward, SeasonDef } from '../core/battlePass';
 import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
+import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
+import type { QuestDef, QuestMetaEvent, QuestRunFacts } from '../core/quests';
+import { cutsceneDef } from '../core/cutscenes';
+import { cutsceneBus } from './navBus';
 import { TROPHY_DEFS, trophyById, trophyOwned } from '../core/trophies';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
@@ -214,21 +218,47 @@ export interface BattlePassView {
   adAvailable: boolean;
 }
 
-/** Apply ONE pass level's rewards to a save draft (no persist — callers batch + persist).
- *  Repeat-safe: an already-owned permanent/cosmetic/phenotype pays the replacement bundle
- *  instead (docs/BATTLEPASS.md §permanents — boosts never stack across rotations). */
-function applyPassRewards(
+/** The Quest Board's read-model (docs/QUESTS.md §ui). */
+export interface QuestsView {
+  weekly: {
+    quest: QuestDef;
+    endsInMs: number;
+    progress: Record<string, number>;
+    claimed: Set<string>;
+    completionClaimed: boolean;
+    complete: boolean;
+    finaleClaimable: boolean;
+    completions: number; // lifetime finale claims of THIS quest def (repeat rotations)
+    firstTime: boolean; // the finale's one-time unlocks (cutscene + cosmetic) still ungranted
+  };
+  main: {
+    quest: QuestDef;
+    state: 'done' | 'active' | 'locked';
+    progress: Record<string, number>;
+    claimed: Set<string>;
+    complete: boolean;
+    finaleClaimable: boolean;
+    firstTime: boolean;
+  }[];
+  missionsDone: number; // lifetime missions completed (the codex count)
+}
+
+/** Apply a PassReward list to a save draft (no persist, no claim ledgers) — THE reward
+ *  interpreter, shared by Battle Pass levels and Quest claims (docs/QUESTS.md reuses the pass
+ *  reward language). Repeat-safe: an already-owned permanent/cosmetic/phenotype pays the given
+ *  replacement bundle instead (boosts never stack across rotations). `seasonForStack` credits
+ *  'stack' completions (Battle Pass only — quest rewards never author it). */
+function applyRewardList(
   draft: SaveData,
-  season: SeasonDef,
   rewards: PassReward[],
-  track: 'free' | 'premium',
-  level: number,
+  repl: { ichor: number; cores: number },
+  seasonForStack: SeasonDef | null,
 ): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number } {
   let next = draft;
   const lines: PremiumReceiptLine[] = [];
   let stamina = 0;
   const replacement = (label: string): void => {
-    const { ichor, cores } = BP.repeatReplacement;
+    const { ichor, cores } = repl;
     next = {
       ...next,
       ichor: next.ichor + ichor, lifetimeIchor: next.lifetimeIchor + ichor,
@@ -310,21 +340,85 @@ function applyPassRewards(
         break;
       }
       case 'stack':
+        if (!seasonForStack) break;
         next = {
           ...next,
           battlePass: {
             ...next.battlePass,
             stacks: next.battlePass.stacks + 1,
-            completions: { ...next.battlePass.completions, [season.id]: (next.battlePass.completions[season.id] ?? 0) + 1 },
+            completions: { ...next.battlePass.completions, [seasonForStack.id]: (next.battlePass.completions[seasonForStack.id] ?? 0) + 1 },
           },
         };
         lines.push({ icon: '❁', label: `Perennial Bloom ×${next.battlePass.stacks} — the season fully cleared` });
         break;
     }
   }
-  const key = track === 'free' ? 'claimedFree' : 'claimedPremium';
-  next = { ...next, battlePass: { ...next.battlePass, [key]: [...next.battlePass[key], level] } };
   return { next, lines, stamina };
+}
+
+/** Apply a quest FINALE to a draft (no persist): the repeatable reward list plus — FIRST
+ *  completion only — the guaranteed story cutscene + exclusive cosmetic (the `once` ledger).
+ *  Repeats substitute the QUESTS.repeatFinale bundle for the unlocks (docs/QUESTS.md §finale).
+ *  Also settles the completion ledgers: questCompletions++, weekly.completionClaimed / the
+ *  main-lane completions append (which opens the next chapter). */
+function grantQuestFinale(draft: SaveData, quest: QuestDef): { next: SaveData; lines: PremiumReceiptLine[]; premiere: boolean } {
+  const res = applyRewardList(draft, quest.finaleRewards, QUESTS.repeatFinale, null);
+  let next = res.next;
+  const lines = [...res.lines];
+  let premiere = false;
+  const cutKey = `cutscene:${quest.id}`;
+  const cosKey = `cosmetic:${quest.id}`;
+  if (!next.quests.once.includes(cutKey)) {
+    next = { ...next, quests: { ...next.quests, once: [...next.quests.once, cutKey] } };
+    lines.push({ icon: '▣', label: `Memory unlocked — ${cutsceneDef(quest.finaleCutscene)?.title ?? quest.finaleCutscene}` });
+    premiere = true;
+  } else {
+    // A repeat completion: the story unlocks stay unlocked, the currency substitution pays once.
+    const { ichor, cores } = QUESTS.repeatFinale;
+    next = {
+      ...next,
+      ichor: next.ichor + ichor, lifetimeIchor: next.lifetimeIchor + ichor,
+      shards: next.shards + cores, lifetimeShards: next.lifetimeShards + cores,
+    };
+    lines.push({ icon: '⟳', label: `Story rewards (unlocked) → ${ichor} Ichor + ${cores} Cores` });
+  }
+  const item = wardrobeItem(quest.finaleCosmetic);
+  if (item && !next.quests.once.includes(cosKey)) {
+    next = {
+      ...next,
+      quests: { ...next.quests, once: [...next.quests.once, cosKey] },
+      wardrobe: next.wardrobe.owned.includes(item.id)
+        ? next.wardrobe
+        : { ...next.wardrobe, owned: [...next.wardrobe.owned, item.id], pendingReveal: [...next.wardrobe.pendingReveal, item.id] },
+    };
+    lines.push({ icon: '❖', label: `${item.name} — quest exclusive` });
+  }
+  next = {
+    ...next,
+    quests: {
+      ...next.quests,
+      questCompletions: { ...next.quests.questCompletions, [quest.id]: (next.quests.questCompletions[quest.id] ?? 0) + 1 },
+      ...(quest.lane === 'weekly'
+        ? { weekly: { ...next.quests.weekly, completionClaimed: true } }
+        : { main: { ...next.quests.main, completions: [...next.quests.main.completions, quest.id] } }),
+    },
+  };
+  return { next, lines, premiere };
+}
+
+/** Apply ONE pass level's rewards to a save draft (no persist — callers batch + persist) and
+ *  mark the level claimed on its track (docs/BATTLEPASS.md §permanents). */
+function applyPassRewards(
+  draft: SaveData,
+  season: SeasonDef,
+  rewards: PassReward[],
+  track: 'free' | 'premium',
+  level: number,
+): { next: SaveData; lines: PremiumReceiptLine[]; stamina: number } {
+  const res = applyRewardList(draft, rewards, BP.repeatReplacement, season);
+  const key = track === 'free' ? 'claimedFree' : 'claimedPremium';
+  const next = { ...res.next, battlePass: { ...res.next.battlePass, [key]: [...res.next.battlePass[key], level] } };
+  return { next, lines: res.lines, stamina: res.stamina };
 }
 
 export function collectionContextOf(save: SaveData): CollectionContext {
@@ -344,6 +438,8 @@ export function collectionContextOf(save: SaveData): CollectionContext {
       const st = save.mulligans[k];
       return [k, { active: isMulliganActive(st), locked: st?.locked === true }];
     })),
+    questCompletions: save.quests.questCompletions,
+    missionsDone: new Set(save.quests.missionsDone),
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
   };
 }
@@ -1920,6 +2016,16 @@ export const meta = {
       + contractHits.length * 150,
     );
     const passLevelUp = this.grantPassXp('run', passXp);
+    // Quests (docs/QUESTS.md §credit): the settled run feeds both lanes' missions — the same
+    // facts the contracts judge saw, plus the depth extras.
+    this.creditQuests({
+      type: 'run',
+      facts: {
+        ...contractFacts,
+        bossKills: result.stats.bossKills ?? 0,
+        megaKills: result.stats.megaKills?.length ?? 0,
+      },
+    });
     // Wardrobe auto-unlocks ride the same seam (new stage/depth/daily/rush/roulette records).
     this.pollWardrobeUnlocks();
     // Genome Rank promotions (docs/GENOME-RANK.md): the settle may have crossed a rank —
@@ -2240,6 +2346,7 @@ export const meta = {
       equipment: { ...save.equipment, inventory: [...save.equipment.inventory, ...chest.equipment] },
       pendingContainers: rest,
     });
+    this.creditQuests({ type: 'containers', n: 1 }); // the Vault feeds the directive layer (docs/QUESTS.md §credit)
     return { chest, label, color };
   },
 
@@ -2617,6 +2724,7 @@ export const meta = {
       timeline: pushTimeline(s.timeline, '⇠', `Expedition — ${HERO_DEFS[hero].name} ${flavor} (${def.name})${find ? ` · ${find.name}!` : ''}`),
     });
     this.grantPassXp('expedition', 40); // away-missions feed the season (docs/BATTLEPASS.md §xp)
+    this.creditQuests({ type: 'expeditions', n: 1 }); // …and the directive layer (docs/QUESTS.md §credit)
     return { reward, outcome: outcome.kind, find };
   },
 
@@ -2993,6 +3101,7 @@ export const meta = {
     const nextXp = Math.min(cap, save.battlePass.xp + amt);
     const to = levelOf(nextXp).level;
     persist({ ...save, battlePass: { ...save.battlePass, xp: nextXp } });
+    if (to > from) this.creditQuests({ type: 'passLevels', n: to - from }, now); // seasons feed the directives (docs/QUESTS.md §credit)
     return to > from ? { from, to } : null;
   },
 
@@ -3042,6 +3151,185 @@ export const meta = {
   /** Battle Pass permanents + Perennial stacks as run effects (folded like gear). */
   battlePassRunEffects(): CardEffect[] {
     return battlePassEffectsOf(store.get());
+  },
+
+  // ── QUESTS & MISSIONS (docs/QUESTS.md) — the directive layer. Missions compose quests;
+  //    the weekly lane is windowed (progress never carries over), the main questline is the
+  //    permanent story spine. Crediting seams push events here; claims pay PassReward lists
+  //    through the shared interpreter. ──
+
+  /** Advance the weekly rotation window (max-window tamper rule, the Battle-Pass pattern).
+   *  On rollover, the OUTGOING week's earned-but-unclaimed missions — and, if every mission
+   *  landed, its finale — auto-claim first (mail: progress is never lost), then the weekly
+   *  record resets for the incoming quest. Repeat finales substitute currency (§once). */
+  pollWeeklyQuest(now = Date.now()): void {
+    const save = store.get();
+    const w = weeklyWindow(now);
+    if (w <= save.quests.weekly.window) return;
+    const quest = weeklyQuestFor(save.quests.weekly.window);
+    let draft = save;
+    let mailed = 0;
+    for (const mi of quest.missions) {
+      if ((draft.quests.weekly.progress[mi.id] ?? 0) < mi.target || draft.quests.weekly.claimed.includes(mi.id)) continue;
+      draft = applyRewardList(draft, mi.rewards, QUESTS.repeatFinale, null).next;
+      draft = { ...draft, quests: { ...draft.quests, weekly: { ...draft.quests.weekly, claimed: [...draft.quests.weekly.claimed, mi.id] } } };
+      mailed++;
+    }
+    if (questComplete(quest, draft.quests.weekly.progress) && !draft.quests.weekly.completionClaimed) {
+      draft = grantQuestFinale(draft, quest).next;
+      mailed++;
+    }
+    persist({
+      ...draft,
+      timeline: mailed > 0 ? pushTimeline(draft.timeline, quest.glyph, `${quest.name} concluded — unclaimed rewards delivered`) : draft.timeline,
+      quests: { ...draft.quests, weekly: { window: w, progress: {}, claimed: [], completionClaimed: false } },
+    });
+  },
+
+  /** Fold one credit event (a settled run, or a meta act) into BOTH lanes: the live weekly
+   *  quest and the ACTIVE main chapter (locked/finished chapters never accrue). Missions that
+   *  reach their target here enter the lifetime `missionsDone` codex (docs/QUESTS.md §credit). */
+  creditQuests(ev: { type: 'run'; facts: QuestRunFacts } | QuestMetaEvent, now = Date.now()): void {
+    this.pollWeeklyQuest(now);
+    const save = store.get();
+    const q = save.quests;
+    const weekly = weeklyQuestFor(q.weekly.window);
+    const chapter = MAIN_QUESTLINE.find((c) => !q.main.completions.includes(c.id)) ?? null;
+    const wk = foldCredit(weekly.missions, q.weekly.progress, ev);
+    const mn = chapter ? foldCredit(chapter.missions, q.main.progress, ev) : { next: q.main.progress, moved: [] as string[] };
+    if (wk.moved.length === 0 && mn.moved.length === 0) return;
+    const nowDone = [...wk.moved, ...mn.moved].filter((id) => {
+      const mi = missionById(id);
+      const p = wk.moved.includes(id) ? wk.next[id] : mn.next[id];
+      return !!mi && (p ?? 0) >= mi.target && !q.missionsDone.includes(id);
+    });
+    persist({
+      ...save,
+      quests: {
+        ...q,
+        weekly: { ...q.weekly, progress: wk.next },
+        main: { ...q.main, progress: mn.next },
+        missionsDone: nowDone.length > 0 ? [...q.missionsDone, ...nowDone] : q.missionsDone,
+      },
+    });
+  },
+
+  /** Claim one earned mission's rewards → receipt lines (null = not claimable). Weekly
+   *  missions must belong to the LIVE window's quest; main missions to the active chapter. */
+  claimQuestMission(missionId: string, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('quest.claim', missionId)) return null;
+    this.pollWeeklyQuest(now);
+    const save = store.get();
+    const q = save.quests;
+    const mi = missionById(missionId);
+    const quest = mi ? questById(missionId.slice(0, missionId.indexOf(':'))) : undefined;
+    if (!mi || !quest) return null;
+    const lane = quest.lane === 'weekly' ? q.weekly : q.main;
+    if (quest.lane === 'weekly' && weeklyQuestFor(q.weekly.window).id !== quest.id) return null;
+    if (quest.lane === 'main' && (MAIN_QUESTLINE.find((c) => !q.main.completions.includes(c.id))?.id !== quest.id)) return null;
+    if ((lane.progress[missionId] ?? 0) < mi.target || lane.claimed.includes(missionId)) return null;
+    const res = applyRewardList(save, mi.rewards, QUESTS.repeatFinale, null);
+    const claimed = [...lane.claimed, missionId];
+    persist({
+      ...res.next,
+      quests: {
+        ...res.next.quests,
+        ...(quest.lane === 'weekly'
+          ? { weekly: { ...res.next.quests.weekly, claimed } }
+          : { main: { ...res.next.quests.main, claimed } }),
+        missionsDone: res.next.quests.missionsDone.includes(missionId)
+          ? res.next.quests.missionsDone
+          : [...res.next.quests.missionsDone, missionId],
+      },
+    });
+    if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
+    this.grantPassXp('quest', 40, now); // directives feed the season (docs/BATTLEPASS.md §xp)
+    return res.lines;
+  },
+
+  /** Claim a completed quest's FINALE → receipt lines (null = not claimable). Earned-but-
+   *  unclaimed missions auto-claim first (nothing strands). First completion grants the story
+   *  cutscene + exclusive cosmetic FOREVER; repeats substitute currency (docs/QUESTS.md §finale).
+   *  Claiming a main chapter's finale opens the next chapter. */
+  claimQuestFinale(questId: string, now = Date.now()): PremiumReceiptLine[] | null {
+    // Dedupe key carries the rotation window — one finale per quest per window is the domain
+    // rule, and a NEW window's re-claim (the weekly repeat) must never read as a duplicate.
+    if (!guardOk('quest.claim', `finale:${questId}:${weeklyWindow(now)}`)) return null;
+    this.pollWeeklyQuest(now);
+    const save = store.get();
+    const q = save.quests;
+    const quest = questById(questId);
+    if (!quest) return null;
+    if (quest.lane === 'weekly' && (weeklyQuestFor(q.weekly.window).id !== questId || q.weekly.completionClaimed)) return null;
+    if (quest.lane === 'main' && (MAIN_QUESTLINE.find((c) => !q.main.completions.includes(c.id))?.id !== questId)) return null;
+    const lane = quest.lane === 'weekly' ? q.weekly : q.main;
+    if (!questComplete(quest, lane.progress)) return null;
+    const lines: PremiumReceiptLine[] = [];
+    let draft = save;
+    for (const mi of quest.missions) {
+      const cur = quest.lane === 'weekly' ? draft.quests.weekly : draft.quests.main;
+      if (cur.claimed.includes(mi.id)) continue;
+      const res = applyRewardList(draft, mi.rewards, QUESTS.repeatFinale, null);
+      const claimed = [...cur.claimed, mi.id];
+      draft = {
+        ...res.next,
+        quests: {
+          ...res.next.quests,
+          ...(quest.lane === 'weekly'
+            ? { weekly: { ...res.next.quests.weekly, claimed } }
+            : { main: { ...res.next.quests.main, claimed } }),
+          missionsDone: res.next.quests.missionsDone.includes(mi.id)
+            ? res.next.quests.missionsDone
+            : [...res.next.quests.missionsDone, mi.id],
+        },
+      };
+      lines.push(...res.lines);
+    }
+    const fin = grantQuestFinale(draft, quest);
+    draft = fin.next;
+    lines.push(...fin.lines);
+    persist({
+      ...draft,
+      timeline: pushTimeline(draft.timeline, quest.glyph, `Quest complete — ${quest.name}`),
+    });
+    if (fin.premiere) cutsceneBus.premiere([quest.finaleCutscene]);
+    this.grantPassXp('quest', 150, now);
+    this.evaluateAchievements();
+    return lines;
+  },
+
+  /** The Quest Board's read-model (docs/QUESTS.md §ui). Never persists — poll separately. */
+  quests(now = Date.now()): QuestsView {
+    const save = store.get();
+    const q = save.quests;
+    const weekly = weeklyQuestFor(Math.max(q.weekly.window, weeklyWindow(now)));
+    const live = weekly.id === weeklyQuestFor(q.weekly.window).id; // false only pre-poll on a stale record
+    const wkProgress = live ? q.weekly.progress : {};
+    const wkClaimed = live ? q.weekly.claimed : [];
+    const activeIdx = MAIN_QUESTLINE.findIndex((c) => !q.main.completions.includes(c.id));
+    return {
+      weekly: {
+        quest: weekly,
+        endsInMs: msToWeeklyRotation(now),
+        progress: wkProgress,
+        claimed: new Set(wkClaimed),
+        completionClaimed: live ? q.weekly.completionClaimed : false,
+        complete: questComplete(weekly, wkProgress),
+        finaleClaimable: questComplete(weekly, wkProgress) && !(live ? q.weekly.completionClaimed : false),
+        completions: q.questCompletions[weekly.id] ?? 0,
+        firstTime: !q.once.includes(`cosmetic:${weekly.id}`),
+      },
+      main: MAIN_QUESTLINE.map((c, i) => ({
+        quest: c,
+        state: q.main.completions.includes(c.id) ? 'done' : (i === activeIdx ? 'active' : 'locked') as 'done' | 'active' | 'locked',
+        progress: q.main.progress,
+        claimed: new Set(q.main.claimed),
+        complete: questComplete(c, q.main.progress),
+        finaleClaimable: i === activeIdx && questComplete(c, q.main.progress),
+        firstTime: !q.once.includes(`cosmetic:${c.id}`),
+      })),
+      missionsDone: q.missionsDone.length,
+    };
   },
 
   upgradeGene(id: string): boolean {
@@ -3964,6 +4252,7 @@ export const meta = {
     }
     persist(next);
     this.grantPassXp('roulette', 30); // the wheel feeds the season too (docs/BATTLEPASS.md §xp)
+    this.creditQuests({ type: 'roulette', n: 1 }); // …and the directive layer (docs/QUESTS.md §credit)
     this.evaluateAchievements();
   },
 

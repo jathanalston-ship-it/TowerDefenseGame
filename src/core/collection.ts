@@ -24,12 +24,14 @@ import { wardrobeGroupItems } from './wardrobe';
 import type { WardrobeGroup } from './wardrobe';
 import { MULLIGAN_RARITY, mulliganRegistry, rarityAtLeast } from './mulligan';
 import type { MulliganRarity } from './mulligan';
+import { ALL_QUESTS, allMissions } from './quests';
 import type { LifetimeStats } from './types';
 
 export type CollectionCategoryId =
   | 'enemies' | 'bosses' | 'megaBosses' | 'towers' | 'heroes' | 'cards' | 'equipment' | 'biomes' | 'chests'
   | 'towerSkins' | 'heroSkins' // unit Phenotypes, split per target (docs/COSMETICS.md)
   | 'wardrobeArena' | 'wardrobeAudio' | 'wardrobeInterface' | 'wardrobeIdentity' // Wardrobe codices (§wardrobe)
+  | 'quests' | 'missions' // the directive codices (docs/QUESTS.md §collection)
   | 'mulligans' | 'mulliganOrganisms';
 
 export interface CollectionEntry {
@@ -82,6 +84,8 @@ export interface CollectionContext {
   /** Per-tower organism status (docs/MULLIGANS.md §collection) — complete Mulligans are their
    *  own codex, SEPARATE from pieces: awake (all three grafts) is tier 1, reforge-locked is tier 2. */
   mulliganOrganisms: Record<string, { active: boolean; locked: boolean }>;
+  questCompletions: Record<string, number>; // quest id → lifetime finale claims (docs/QUESTS.md §collection)
+  missionsDone: Set<string>; // mission ids ever completed (lifetime, both lanes)
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
@@ -241,6 +245,25 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: m.id, name: m.name, tier, maxTier: 2, tierLabel: label };
   });
 
+  // Quests (docs/QUESTS.md §collection): one entry per quest def. Weekly quests are REPLAYABLE,
+  // so their codex is tiered mastery — first finale claim discovers, three claims master. Main
+  // chapters complete once. Registry-driven: a new quest def joins the codex by itself.
+  const quests = ALL_QUESTS.map((q): CollectionEntry => {
+    const n = ctx.questCompletions[q.id] ?? 0;
+    if (q.lane === 'weekly') {
+      const tier = n >= 3 ? 2 : n >= 1 ? 1 : 0;
+      return { id: q.id, name: q.name, tier, maxTier: 2, tierLabel: tier === 2 ? 'Perennial' : tier === 1 ? 'Answered' : 'Unanswered' };
+    }
+    const tier = n >= 1 ? 1 : 0;
+    return { id: q.id, name: q.name, tier, maxTier: 1, tierLabel: tier ? 'Chronicled' : 'Unwritten' };
+  });
+
+  // Missions (§collection): every mission across every quest — the fine-grained directive log.
+  const missions = allMissions().map((mi): CollectionEntry => {
+    const tier = ctx.missionsDone.has(mi.id) ? 1 : 0;
+    return { id: mi.id, name: mi.name, tier, maxTier: 1, tierLabel: tier ? 'Accomplished' : 'Standing' };
+  });
+
   // Complete Mulligans (§collection) — one entry per tower kind: growing the organism to
   // AWAKE discovers it; REFORGING (the permanent lock) masters it. Separate from pieces.
   const mulliganOrganisms = TOWER_ORDER.map((k): CollectionEntry => {
@@ -268,6 +291,8 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('wardrobeAudio', 'Audio Packs', wardrobeCat('audio')),
     makeCategory('wardrobeInterface', 'Interface', wardrobeCat('interface')),
     makeCategory('wardrobeIdentity', 'Identity', wardrobeCat('identity')),
+    makeCategory('quests', 'Quests', quests),
+    makeCategory('missions', 'Missions', missions),
     makeCategory('mulligans', 'Mulligan Pieces', mulligans),
     makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
   ];
@@ -318,6 +343,10 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   wardrobeAudio: { effects: [], econ: [], powerWeight: 0 },
   wardrobeInterface: { effects: [], econ: [], powerWeight: 0 },
   wardrobeIdentity: { effects: [], econ: [], powerWeight: 0 },
+  // Directive codices (docs/QUESTS.md §collection): fresh saves have zero claims/missions, so
+  // both read 0 (golden-safe). Quests pay campaign-side economy; missions a small vigor edge.
+  quests: { effects: [], econ: [{ key: 'campaignRewardMult', max: 0.1, label: 'Campaign Rewards' }], powerWeight: 0.02 },
+  missions: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.04, label: 'Biomass' }], econ: [], powerWeight: 0.02 },
   // Modifier mastery (docs/MULLIGANS.md §collection) quickens every graft host: run-wide fire
   // rate at full completion — the set bonus for sequencing the whole modifier library.
   mulligans: { effects: [{ op: 'mul', field: 'towerFireRateMult', max: 1.05, label: 'Fire Rate' }], econ: [], powerWeight: 0.03 },

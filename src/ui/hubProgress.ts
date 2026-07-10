@@ -11,6 +11,7 @@ import { mulliganRegistry } from '../core/mulligan';
 import { cosmeticRegistry } from '../core/cosmetics';
 import { wardrobeRegistry } from '../core/wardrobe';
 import { BP, levelOf } from '../core/battlePass';
+import { allMissions } from '../core/quests';
 
 
 
@@ -37,5 +38,7 @@ export function navProgress(save: SaveData): Partial<Record<string, number>> {
     phenotypes: clamp01((save.cosmetics.owned.length + save.wardrobe.owned.length) / Math.max(1, cosmeticRegistry.size + wardrobeRegistry.size)),
     // The season ring: pass level / 100 (docs/BATTLEPASS.md).
     season: clamp01(levelOf(save.battlePass.xp).level / BP.levels),
+    // The Quest Board ring: lifetime missions accomplished / the full codex (docs/QUESTS.md).
+    quests: clamp01(save.quests.missionsDone.length / Math.max(1, allMissions().length)),
   };
 }

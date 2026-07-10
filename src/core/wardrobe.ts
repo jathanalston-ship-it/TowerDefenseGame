@@ -134,7 +134,8 @@ export type WardrobeSource =
   | { kind: 'shop'; ichor: number } // Wardrobe boutique, bought with Ichor
   | { kind: 'battlepass'; season: string; level: number; track: 'free' | 'premium' }
   | { kind: 'milestone' } // granted by a cosmetic-collection milestone claim (see MILESTONES)
-  | { kind: 'event'; event: string }; // LiveOps grant lane (seasonal/holiday drops)
+  | { kind: 'event'; event: string } // LiveOps grant lane (seasonal/holiday drops)
+  | { kind: 'quest'; quest: string }; // quest finale exclusive (granted once by the finale claim — core/quests.ts)
 
 export type WardrobeRarity = 'common' | 'rare' | 'epic' | 'legendary';
 export const WARDROBE_RARITY_COLOR: Record<WardrobeRarity, string> = {
@@ -349,6 +350,13 @@ const ROWS: Row[] = [
   ['emblem', 'Bloom Mark', 'rare', bp('s1', 80, 'free'), { glyph: '❁', accent: '#ff4d6d' }, 'Crimson Bloom free reward — you were there when it flowered.'],
   ['nameColor', 'Tide Grey', 'rare', bp('s2', 55, 'free'), { accent: '#9fb8bd' }, 'Abyssal Tide free reward — ink the color of deep water.'],
   ['title', 'Tideborn', 'rare', bp('s2', 85, 'free'), { text: 'Tideborn' }, 'Abyssal Tide free reward — the deep claims its own.'],
+  // ── Quest finale exclusives (core/quests.ts — each finale's first claim grants one FOREVER) ──
+  ['projectileTrail', 'Reaper’s Wake', 'epic', { kind: 'quest', quest: 'wk_red_harvest' }, { trail: 'phage', accent: '#ff5d73' }, 'The Red Harvest finale — every shot drags a wake of red chaff.'],
+  ['nucleusSkin', 'Signal Heart', 'epic', { kind: 'quest', quest: 'wk_deep_signals' }, { accent: '#8fd0ff', glow: '#e8f8ff', fx: 'static' }, 'Deep Signals finale — a heart that beats in dots and dashes.'],
+  ['banner', 'Watchfire Standard', 'epic', { kind: 'quest', quest: 'wk_long_watch' }, { accent: '#b6e84a', glyph: '☄' }, 'The Long Watch finale — flown wherever the line held.'],
+  ['emblem', 'First Eye', 'epic', { kind: 'quest', quest: 'mq_awakening' }, { glyph: '◎', accent: '#b6e84a' }, 'Chapter I finale — the Core’s first eye, open ever since.'],
+  ['banner', 'Choirbreaker', 'legendary', { kind: 'quest', quest: 'mq_choirs' }, { accent: '#d98cff', glyph: '♆' }, 'Chapter II finale — one voice fewer in the deep chorus.'],
+  ['uiTheme', 'The Root', 'legendary', { kind: 'quest', quest: 'mq_root' }, { css: 'root', accent: '#e24dff' }, 'Chapter III finale — the shell re-grown from below.'],
 ];
 
 const slug = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
@@ -421,6 +429,13 @@ export function earnedAutoItems(ctx: WardrobeUnlockCtx): WardrobeItemDef[] {
   return wardrobeRegistry.all().filter((d) => isAutoSource(d.source) && sourceMet(d.source, ctx));
 }
 
+/** Quest display names for locked-card hints — quests.test.ts pins these against core/quests.ts
+ *  (kept as data here so wardrobe never imports quest defs; see the battlepass season names). */
+const QUEST_NAMES: Record<string, string> = {
+  wk_red_harvest: 'The Red Harvest', wk_deep_signals: 'Deep Signals', wk_long_watch: 'The Long Watch',
+  mq_awakening: 'Chapter I — Awakening', mq_choirs: 'Chapter II — The Choirs', mq_root: 'Chapter III — The Root',
+};
+
 /** Human text for where an item comes from (the Wardrobe's locked-card hint). */
 export function sourceLabel(s: WardrobeSource): string {
   switch (s.kind) {
@@ -436,6 +451,7 @@ export function sourceLabel(s: WardrobeSource): string {
     case 'battlepass': return `${s.season === 's1' ? 'Crimson Bloom' : s.season === 's2' ? 'Abyssal Tide' : s.season} Pass — Level ${s.level}${s.track === 'premium' ? ' (Premium)' : ''}`;
     case 'milestone': return 'Cosmetic milestone reward';
     case 'event': return 'Seasonal event exclusive';
+    case 'quest': return `Quest finale — ${QUEST_NAMES[s.quest] ?? s.quest}`;
   }
 }
 

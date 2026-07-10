@@ -54,6 +54,7 @@ import type { DailyPlan } from '../core/daily';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 import { sporesFromParts } from '../state/bioRoulette';
 import { tutorial } from '../state/tutorial';
+import { cutsceneBus } from '../state/navBus';
 import { TutorialRunner } from './TutorialRunner';
 import { DeployScreen } from './DeployScreen';
 import type { DeployInfo } from './DeployScreen';
@@ -321,6 +322,9 @@ export function App(): JSX.Element {
     if (last?.outcome.megaCutscenes?.length) setCutsceneQueue(last.outcome.megaCutscenes);
     setScreen(roulette ? 'roulette' : 'menu');
   }, [roulette, last]);
+  // Quest-finale premieres (docs/QUESTS.md §finale): a hub claim that unlocks a NEW film emits
+  // over the bus — queued exactly like a first mega defeat (same player, same dismiss flow).
+  useEffect(() => cutsceneBus.onPremiere((ids) => setCutsceneQueue((q) => [...q, ...ids.filter((id) => !q.includes(id))])), []);
   // One-tap "Infect Again" from Results — re-run the SAME mode without a menu round-trip. The run
   // re-snapshots the now-updated save (begin() reads meta fresh), so the replay uses the progression
   // just earned. Campaign replays the same host stage; the map is where you advance to the next.
