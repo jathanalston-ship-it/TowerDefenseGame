@@ -77,7 +77,7 @@ async function main(): Promise<void> {
       const page = await ctx.newPage();
       const pageErrs: string[] = [];
       page.on('pageerror', (e) => pageErrs.push(String(e).slice(0, 120)));
-      await page.goto(`http://localhost:${PORT}/?debug`, { waitUntil: 'networkidle' });
+      await page.goto(`http://localhost:${PORT}/play/?debug`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(800);
       await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
       await dismiss(page);
@@ -114,7 +114,7 @@ async function main(): Promise<void> {
     for (const vp of TUTORIAL_VIEWPORTS) {
       const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: true });
       const page = await ctx.newPage();
-      await page.goto(`http://localhost:${PORT}/?debug`, { waitUntil: 'networkidle' });
+      await page.goto(`http://localhost:${PORT}/play/?debug`, { waitUntil: 'networkidle' });
       await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
       // First-launch gate → Continue as Guest (part of the real first-run path).
       await page.waitForTimeout(700);
