@@ -2211,6 +2211,20 @@ canvas.board {
   }
 }
 
+/* Phone battlefield integrity (docs/RESPONSIVE-DESIGN.md §hud): in the promoted run column
+   the wrap kept the desktop stage's flex:1 1 auto, and the over-tall column CRUSHED it to a
+   ~140px overflow-clipped strip — the tutorial's "place your tower" slot was literally
+   invisible/untappable (the reported mobile-tutorial blocker). The column scrolls by design,
+   so the board must NEVER shrink: it keeps its intrinsic footprint (the ≤900px 56vh cap
+   still applies) and everything else flows around it. */
+@media (max-width: 640px) {
+  .stage .canvas-wrap { flex: none; }
+  /* Tutorial declutter: the lesson callout carries the message on a phone — the scripted-
+     deployment note and the wave-forecast chips only bury the board it points at. */
+  .tut-runner .wb-tutlock { display: none; }
+  .tut-runner .wm-chips { display: none; }
+}
+
 /* Coarse pointers (touch): comfortable 44px tap targets regardless of width. */
 @media (pointer: coarse) {
   button,
