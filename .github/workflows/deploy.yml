@@ -1,0 +1,52 @@
+# Production deploy → Cloudflare Pages (docs/DEPLOYMENT.md §ci).
+# Runs the repo's blessed deploy path (npm run build → wrangler pages deploy dist) on every push
+# to the development branch, and on demand via "Run workflow".
+#
+# REQUIRED repo secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   — dash.cloudflare.com → My Profile → API Tokens → Create Token →
+#                            "Edit Cloudflare Workers"/Pages template (needs Pages:Edit).
+#   CLOUDFLARE_ACCOUNT_ID  — dash.cloudflare.com → Workers & Pages (right sidebar).
+# Until both exist, the workflow still BUILDS (CI value) and prints a clear notice instead of
+# failing — so the pipeline is safe to merge before the secrets are pasted.
+
+name: deploy
+on:
+  push:
+    branches: [claude/zen-hawking-rh1gxl]
+  workflow_dispatch: {}
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false # never kill a half-finished production upload
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build (typecheck + vite + sw stamp)
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          # Idempotent: create the project on first ever deploy, then upload dist.
+          npx wrangler@3 pages project create assimilate --production-branch "${GITHUB_REF_NAME}" 2>/dev/null || true
+          npx wrangler@3 pages deploy dist --project-name assimilate --branch "${GITHUB_REF_NAME}" --commit-hash "${GITHUB_SHA}"
+
+      - name: Secrets missing — deploy skipped
+        if: ${{ env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '' }}
+        run: |
+          echo "::notice::Build succeeded, but CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID repo secrets are not set — production deploy skipped. Add them under Settings → Secrets and variables → Actions, then re-run this workflow."

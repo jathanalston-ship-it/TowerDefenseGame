@@ -287,3 +287,18 @@ server's 12 PUTs/10min) plus an immediate flush when the tab hides (the mobile
 "closed the game" moment). Unnamed saves never sync; offline/unconfigured backends
 fail soft. The Settings → Cloud panel shows the last automatic mirror time, and the
 existing sync-code flow is the cross-device recovery path.
+
+## §ci — automated production deploys (GitHub Actions)
+
+`.github/workflows/deploy.yml` runs the blessed deploy path (`npm run build` → `wrangler pages
+deploy dist --project-name assimilate`) on every push to the development branch, plus manual
+"Run workflow". It needs two repo secrets (Settings → Secrets and variables → Actions):
+
+- `CLOUDFLARE_API_TOKEN` — My Profile → API Tokens → Create Token → the Pages/Workers edit
+  template (must include **Pages: Edit**).
+- `CLOUDFLARE_ACCOUNT_ID` — Workers & Pages, right sidebar.
+
+Until both exist the workflow builds (CI signal) and prints a notice instead of failing. The
+deploy step is idempotent: it creates the `assimilate` Pages project on the first ever run.
+Note: this is the DIRECT-UPLOAD flow (matching `npm run deploy`); do not also git-connect the
+same Pages project in the dashboard, or the two will fight over production.
