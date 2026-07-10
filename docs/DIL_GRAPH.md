@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 659 nodes · 1093 edges, built from the live
+> **The project's brain** (docs/DIL.md). 660 nodes · 1095 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -30,7 +30,7 @@
 
 ### Audio Index
 
-`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:cosmetics` · `system:onboarding` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
+`music:menu` · `music:combat` · `music:boss` · `music:mega` · `music:victory` · `music:defeat` · `music:events` · `music:cinema` · `system:engine` · `system:cosmetics` · `system:onboarding` · `system:cutscenes` · `system:living-battlefield` · `system:assimilation`
 
 ### Teaching Index
 
@@ -312,6 +312,7 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|dependsOn| system_engine["Sim Engine"]
   system_living_battlefield["Living Battlefield"] -->|dependsOn| system_audio["Audio"]
   system_living_battlefield["Living Battlefield"] -->|dependsOn| system_assimilation["Assimilation Index"]
+  system_audio["Audio"] -->|dependsOn| system_engine["Sim Engine"]
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_devtools["Dev Tools & Debug"] -->|dependsOn| system_assimilation["Assimilation Index"]
   concept_replays["Replays"] -->|dependsOn| concept_determinism["Determinism"]
@@ -517,7 +518,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…162 more (query: `npm run dil -- node system:engine`)_
+  - _…163 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1510,10 +1511,11 @@ _at: src/render/livingBattlefield.ts_
 
 ### `system:audio` — Audio
 
-Synthesized SFX/music bus — cues, heartbeat tempo, reward stingers.
+Synthesized SFX bus + the ADAPTIVE SOUNDTRACK: a motif-library score (track library, 8 intensity-gated layers, scene/rotation/progression selection, stable per-boss themes, reward stingers, duress treatment) rendered by a pure deterministic composer + a WebAudio manager with bar-aligned equal-power crossfades and a mastering chain.
 
-_at: src/audio/*_
+_at: src/audio/*, src/ui/MusicDebug.tsx_
 
+  - dependsOn → `system:engine`
   - visualizes → `system:assimilation` — music intensity floor rides the index (sonifies the same state the terrain draws)
   - requiredBy ← `system:cutscenes`
   - requiredBy ← `system:living-battlefield`
@@ -1525,9 +1527,9 @@ _at: src/audio/*_
   - contains ← `music:defeat`
   - contains ← `music:events`
   - contains ← `music:cinema`
+  - documentedBy ← `doc:MUSIC.md`
   - documentedBy ← `doc:GAME-FEEL.md`
-  - testedBy ← `test:src/audio/music.test.ts`
-  - _…2 more (query: `npm run dil -- node system:audio`)_
+  - _…3 more (query: `npm run dil -- node system:audio`)_
 
 ### `system:assimilation` — Assimilation Index
 
@@ -2428,7 +2430,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (148)
+## Documentation (149)
 
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
 - `doc:ADAPTATION.md` — project documentation _(documents `system:mastery`)_
@@ -2511,6 +2513,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:MEGA-BOSS.md` — project documentation _(documents `system:mega-bosses`)_
 - `doc:MODE-IDENTITY.md` — project documentation _(documents `system:campaign`, documents `system:infinite`, documents `system:boss-rush`)_
 - `doc:MULLIGANS.md` — project documentation _(documents `system:mulligans`)_
+- `doc:MUSIC.md` — project documentation _(documents `system:audio`)_
 - `doc:NEMESIS.md` — project documentation _(documents `system:nemesis`)_
 - `doc:NOTIFICATIONS.md` — project documentation _(documents `system:notifications`)_
 - `doc:ONE-MORE-RUN.md` — project documentation _(documents `system:hub-shell`)_
