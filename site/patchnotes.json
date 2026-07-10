@@ -1,8 +1,10 @@
 [
   {
     "date": "2026-07-10",
-    "title": "Opening cinematic + tutorial overhaul + 5 more",
+    "title": "Website overhaul + 8 more",
     "categories": [
+      "Website",
+      "Progression",
       "Audio",
       "Towers",
       "Modes",
@@ -10,6 +12,18 @@
       "Visuals"
     ],
     "items": [
+      {
+        "cat": "Website",
+        "text": "Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)"
+      },
+      {
+        "cat": "Progression",
+        "text": "Account platform: guest/email accounts, versioned cloud sync, cross-progression, offline-first"
+      },
+      {
+        "cat": "Website",
+        "text": "feat(site): marketing page becomes the front door — game moves to /play"
+      },
       {
         "cat": "Audio",
         "text": "Opening cinematic + tutorial overhaul — a scored film that dives into the trial"
@@ -1398,7 +1412,7 @@
   },
   {
     "date": "2026-06-27",
-    "title": "Minions become body-blockers + 26 more",
+    "title": "Minions become body-blockers + 24 more",
     "categories": [
       "Balance",
       "Progression",
@@ -1511,14 +1525,6 @@
       {
         "cat": "Towers",
         "text": "feat(progression): mastery milestone perks + reactor economy star path"
-      },
-      {
-        "cat": "Content",
-        "text": "feat(effects): unified grant/set/hook language — weapons/relics/armor light up"
-      },
-      {
-        "cat": "Bosses",
-        "text": "Visual reward spectacle: boss kill, flawless wave, stage clear (no audio)"
       }
     ]
   }
