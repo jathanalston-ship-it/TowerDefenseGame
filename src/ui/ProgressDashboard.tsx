@@ -1,18 +1,17 @@
-// Living Progress dashboard — the Home screen's "how far have I come / what's waiting"
-// row, and the engine that always advertises the next dopamine hit. Each card translates a
-// progression SYSTEM into momentum (a headline + a bar toward the next goal), deep-links to
-// that system's Hub screen, and turns HOT (glowing, with an action verb) the moment it has
-// something to claim. When Ascension is available it dominates with a full-width banner.
-// Pure presentation over the existing meta + notification systems; the card set is
-// data-driven so a new progression system is one array entry.
+// Living Progress dashboard — the Home screen's CLAIM row: each card is a stockpile or
+// ready-action surface (containers to crack, stars affordable now, gear to equip, codex
+// momentum) that turns HOT (glowing, with an action verb) the moment it has something to
+// claim. Campaign/Infinite standings live in the command strip, not here — this row is
+// about what the player can DO right now. When Ascension is available it dominates with a
+// full-width banner. Pure presentation over the existing meta + notification systems; the
+// card set is data-driven so a new progression system is one array entry.
 
 import { meta, nextStarCost } from '../state/meta';
 import { audio } from '../audio/sound';
 import { notifications } from '../state/notifications';
-import { TOWER_ORDER, CAMPAIGN_REWARDS, MODE_UNLOCKS } from '../core/config';
+import { TOWER_ORDER } from '../core/config';
 import { costOf, rarityRank, rarityRegistry } from '../core/loot';
 import type { NavKey } from './Hub';
-import { highestCampaignStage, isInfiniteUnlocked } from '../save/derive';
 
 interface DashCard {
   key: string;
@@ -28,29 +27,9 @@ interface DashCard {
   onClick: () => void;
 }
 
-export function ProgressDashboard({
-  go,
-  onStartEndless,
-}: {
-  go: (k: NavKey) => void;
-  onStartEndless: () => void;
-}): JSX.Element {
+export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Element {
   const save = meta.use();
   const badges = notifications.badges(save);
-
-  // Campaign — deepest cleared across all difficulty tracks, climbing toward the next
-  // Evolution-Cap milestone (every CAMPAIGN_REWARDS.milestoneEvery stages).
-  const ms = CAMPAIGN_REWARDS.milestoneEvery;
-  const campCleared = highestCampaignStage(save);
-  const nextMilestone = (Math.floor(campCleared / ms) + 1) * ms;
-  const campProgress = (campCleared - (nextMilestone - ms)) / ms;
-  const milestoneNext = (campCleared + 1) % ms === 0; // clearing the next stage unlocks a tier
-
-  // Infinite — best depth + the next round-number personal goal. Sealed until the campaign
-  // gate falls (docs/MODE-IDENTITY.md §gates) — the card then routes to the Campaign instead.
-  const infUnlocked = isInfiniteUnlocked(save);
-  const best = save.bestWave;
-  const nextGoal = (Math.floor(best / 10) + 1) * 10;
 
   // Vault — containers ready to crack, else the front box's fill toward its rarity.
   const pendingList = meta.pendingContainers();
@@ -93,22 +72,6 @@ export function ProgressDashboard({
 
   const cards: DashCard[] = [
     {
-      key: 'campaign', title: 'Campaign', accent: 'var(--vital)',
-      big: `Stage ${campCleared}`, sub: `Next unlock · Stage ${nextMilestone}`,
-      progress: campProgress, hot: milestoneNext, cta: 'Unlock Next', onClick: () => nav('campaign'),
-    },
-    infUnlocked
-      ? {
-          key: 'infinite', title: 'Infinite', accent: 'var(--r-rare)',
-          big: `Wave ${best}`, sub: `Next goal · Wave ${nextGoal}`,
-          progress: (best % 10) / 10, onClick: () => { audio.cue('ui'); onStartEndless(); },
-        }
-      : {
-          key: 'infinite', title: 'Infinite', accent: 'var(--r-rare)',
-          big: '🔒 Sealed', sub: `Unlocks at Campaign Stage ${MODE_UNLOCKS.infinite}`,
-          progress: Math.min(1, campCleared / MODE_UNLOCKS.infinite), onClick: () => nav('campaign'),
-        },
-    {
       key: 'vault', title: 'Genetic Vault', accent: 'var(--gold)',
       big: pending > 0 ? `${pending} Ready` : `${Math.round(fillPct * 100)}%`,
       sub: pending > 0 ? 'Containers to crack' : `${frontName} container filling`,
@@ -127,6 +90,8 @@ export function ProgressDashboard({
       badge: newGear, hot: newGear > 0, cta: 'Equip', onClick: () => nav('equipment'),
     },
     {
+      // CollectionView.pct is THE home-surface completion number (the command strip shows
+      // the same field) — never .completion here, or the board contradicts itself.
       key: 'collection', title: 'Collection', accent: 'var(--r-epic)',
       big: `${Math.round(col.pct * 100)}%`, sub: `${col.discovered}/${col.total} discovered`,
       progress: col.pct, badge: badges.collection, onClick: () => nav('collection'),

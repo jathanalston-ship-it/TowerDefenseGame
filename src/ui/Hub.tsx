@@ -4,7 +4,7 @@
 // level; dense screens lay out in columns and the content area is the only scroll region.
 
 import { t, useLocale, setLocale, getLocale, LOCALES } from '../i18n';
-import { useEffect, useState, type CSSProperties, type MutableRefObject } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type MutableRefObject } from 'react';
 import { meta } from '../state/meta';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { ReplayRecord } from '../core/replay';
@@ -52,7 +52,10 @@ export type NavKey =
   | 'profile' | 'settings' | 'help';
 
 interface NavItem { key: NavKey; label: string; mono: string }
-interface NavGroup { title: string; accent: string; items: NavItem[] }
+/** `compact` renders the group as a row of labelled icon squares (the Account trio) so every
+ * destination — Settings included — stays visible without scrolling the rail. `headerless`
+ * drops the group title when it would merely repeat its only item's label (the Store). */
+interface NavGroup { title: string; accent: string; items: NavItem[]; compact?: boolean; headerless?: boolean }
 
 // The nav is GROUPED by intent (the user-facing IA): Play / Progression / Collection / Account.
 // Adding a screen is one row in the right group — the renderer, badges, and rings are generic.
@@ -80,11 +83,12 @@ const navGroups = (): NavGroup[] => [
     { key: 'collection', label: t('nav.collection'), mono: '▤' },
   ] },
   // The Premium Store sits in its OWN group — monetization stays visibly separate from
-  // gameplay progression (docs/PREMIUM-STORE.md §philosophy).
-  { title: t('nav.group.store'), accent: 'var(--viral)', items: [
+  // gameplay progression (docs/PREMIUM-STORE.md §philosophy). Headerless: the divider +
+  // viral accent carry the separation; a "STORE" title over a "STORE" row said it twice.
+  { title: t('nav.group.store'), accent: 'var(--viral)', headerless: true, items: [
     { key: 'store', label: t('nav.store'), mono: '✷' },
   ] },
-  { title: t('nav.group.account'), accent: 'var(--muted)', items: [
+  { title: t('nav.group.account'), accent: 'var(--muted)', compact: true, items: [
     { key: 'profile', label: t('nav.profile'), mono: '◑' },
     { key: 'help', label: t('nav.help'), mono: '?' },
     { key: 'settings', label: t('nav.settings'), mono: '⚙' },
@@ -134,8 +138,20 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
   };
   return (
     <div className="hub-cols">
-      <div>
+      {/* Column split by concern — DATA (save, account, cloud) | BEHAVIOR (prefs, help,
+          danger) — so both columns carry real weight instead of one panel vs. six. */}
+      <div className="hub-col-stack">
         <SaveManager />
+        <div className="panel">
+          <div className="panel-title">Account</div>
+          <div className="panel-sub">One account, every platform — guest today, permanent whenever you choose. Everything transfers.</div>
+          <AccountPanel />
+        </div>
+        <div className="panel">
+          <div className="panel-title">{t('settings.cloud.title')}</div>
+          <div className="panel-sub">One manual slot per sync code. Your code works like a password — it restores this account on any device.</div>
+          <CloudBackup />
+        </div>
       </div>
       <div className="hub-col-stack">
         <div className="panel">
@@ -168,16 +184,6 @@ function SettingsScreen({ onReplayTutorial, onReplayTour, onReplayIntro }: { onR
           <button className="set-switch" onClick={onReplayTutorial}>{t('settings.replayTutorial')}</button>
           <button className="set-switch" onClick={onReplayTour}>{t('settings.replayTour')}</button>
           <button className="set-switch" onClick={onReplayIntro}>{t('settings.replayIntro')}</button>
-        </div>
-        <div className="panel">
-          <div className="panel-title">Account</div>
-          <div className="panel-sub">One account, every platform — guest today, permanent whenever you choose. Everything transfers.</div>
-          <AccountPanel />
-        </div>
-        <div className="panel">
-          <div className="panel-title">{t('settings.cloud.title')}</div>
-          <div className="panel-sub">One manual slot per sync code. Your code works like a password — it restores this account on any device.</div>
-          <CloudBackup />
         </div>
         <div className="panel">
           <div className="panel-title">{t('settings.danger.title')}</div>
@@ -228,10 +234,12 @@ export function Hub({
   useLocale(); // nav labels re-resolve on language switch
   const [navOpen, setNavOpen] = useState(false); // narrow-shell drawer (docs/RESPONSIVE-DESIGN.md)
   const save = meta.use();
-  notifications.use(); // re-render when a badge is acknowledged
+  const ackTick = notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
-  const badges = notifications.badges(save);
-  const progress = navProgress(save); // 0..1 completion rings per menu
+  // Derived rail state — recomputed only when the save snapshot (or an ack) changes, not on
+  // every shell render; navProgress walks every tower/hero/upgrade/card.
+  const badges = useMemo(() => notifications.badges(save), [save, ackTick]);
+  const progress = useMemo(() => navProgress(save), [save]); // 0..1 completion rings per menu
   // Campaign gates (docs/MODE-IDENTITY.md §gates): locked modes stay VISIBLE (anticipation) —
   // the nav shows a seal and the screen becomes the unlock briefing instead of the terminal.
   const modeLocked: Partial<Record<NavKey, boolean>> = {
@@ -259,12 +267,33 @@ export function Hub({
         <div className="hub-navlist">
           {navGroups().map((group) => (
             <div
-              className="hub-navgroup"
+              className={`hub-navgroup${group.compact ? ' is-compact' : ''}`}
               key={group.title}
               style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
             >
-              <div className="hub-navgroup-h" aria-hidden>{group.title}</div>
-              {group.items.map((n) => {
+              {!group.headerless && <div className="hub-navgroup-h" aria-hidden>{group.title}</div>}
+              {group.compact && <div className="hub-navrow">{group.items.map((n) => {
+                const badge = badges[n.key] ?? 0;
+                return (
+                  <button
+                    key={n.key}
+                    data-nav={n.key}
+                    className={`hub-navsquare ${nav === n.key ? 'on' : ''}`}
+                    onClick={() => go(n.key)}
+                    onPointerEnter={() => audio.cue('hover')}
+                    aria-current={nav === n.key ? 'page' : undefined}
+                    aria-label={badge > 0 ? `${n.label} — ${badge} new` : n.label}
+                    title={n.label}
+                  >
+                    <span className="hub-mono" aria-hidden>
+                      {n.mono}
+                      {badge > 0 && <span className="nav-badge" aria-hidden>{badge > 1 ? (badge > 9 ? '9+' : badge) : ''}</span>}
+                    </span>
+                    <span className="hub-navsquare-l">{n.label}</span>
+                  </button>
+                );
+              })}</div>}
+              {!group.compact && group.items.map((n) => {
                 const badge = badges[n.key] ?? 0;
                 const ring = progress[n.key];
                 const locked = modeLocked[n.key] === true;
@@ -284,15 +313,13 @@ export function Hub({
                       style={ring != null ? ({ ['--p' as string]: ring } as CSSProperties) : undefined}
                     >
                       {n.mono}
+                      {/* The badge anchors to the glyph corner so it never collides with the
+                          ring % at the row's right edge (the pre-overhaul overlap). */}
+                      {badge > 0 && <span className="nav-badge" aria-hidden>{badge > 1 ? (badge > 9 ? '9+' : badge) : ''}</span>}
                     </span>
                     <span className="hub-navlabel">{n.label}</span>
                     {locked && <span className="hub-lock" aria-hidden>🔒</span>}
-                    {ring != null && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
-                    {badge > 0 && (
-                      <span className="nav-badge" aria-hidden>
-                        {badge > 1 ? (badge > 9 ? '9+' : badge) : ''}
-                      </span>
-                    )}
+                    {ring != null && ring >= 0.005 && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
                   </button>
                 );
               })}
@@ -309,11 +336,16 @@ export function Hub({
           <button className="hub-burger" onClick={() => setNavOpen((v) => !v)} aria-label="Open navigation" aria-expanded={navOpen}>
             ☰ <span className="hub-burger-l">Menu</span>
           </button>
+          {/* The wallet, and only the wallet — standings live on the Home board, not up here.
+              Cells hide until Ascension has ever mattered (a fresh account sees no dead zero). */}
           <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
           <span className="hub-cur"><CurrencyIcon id="ichor" size={15} /> {save.ichor} <span className="hub-cur-l">Ichor</span></span>
-          <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>
-          <span className="hub-cur" title="Mutagen · Scrap · Catalyst">⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst}</span>
-          <span className="hub-cur hub-cur-r">Best Wave <b>{save.bestWave}</b> · Runs <b>{save.totalRuns}</b></span>
+          {(cells > 0 || (save.prestige?.molts ?? 0) > 0) && (
+            <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>
+          )}
+          <span className="hub-cur" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
+            ⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst} <span className="hub-cur-l">Materials</span>
+          </span>
         </header>
 
         <section className="hub-screen" key={nav}>

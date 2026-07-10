@@ -66,7 +66,7 @@ async function main(): Promise<void> {
   }
   const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', detached: false });
   try {
-    await waitFor(`http://localhost:${PORT}/`, 20_000);
+    await waitFor(`http://localhost:${PORT}/play/`, 20_000);
     const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox', '--disable-gpu'] });
     const violations: Violation[] = [];
     for (const vp of VIEWPORTS) {

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 644 nodes · 1066 edges, built from the live
+> **The project's brain** (docs/DIL.md). 644 nodes · 1068 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -100,6 +100,7 @@ graph LR
   system_equipment["Equipment & Armory"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
   system_meta_store["Meta Store & Save"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
   system_splice_market["Splice Market & Ichor"] -->|modifies| currency_materials["Materials (mutagen/scrap/catalyst)"]
+  system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_mulligans["Mulligan System"] -->|modifies| system_rendering["Rendering & VFX"]
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
@@ -313,6 +314,7 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| concept_determinism["Determinism"]
   system_prediction["Progress Prediction"] -->|dependsOn| concept_determinism["Determinism"]
   system_net_backend["Backend lanes (net/)"] -->|consumes| concept_replays["Replays"]
+  system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
 ```
 
@@ -578,7 +580,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `doc:STAGES.md`
   - documentedBy ← `guide:campaign`
-  - _…4 more (query: `npm run dil -- node system:campaign`)_
+  - _…5 more (query: `npm run dil -- node system:campaign`)_
 
 ### `system:infinite` — Infinite Mode
 
@@ -961,6 +963,7 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - documentedBy ← `doc:COLLECTION.md`
   - documentedBy ← `guide:collections`
   - testedBy ← `test:src/core/collection.test.ts`
+  - referencedBy ← `system:hub-shell` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
 
 ### `system:evolution-hq` — Evolution HQ (Genome Cores)
 
@@ -1233,6 +1236,8 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - dependsOn → `system:notifications`
   - dependsOn → `system:prediction`
   - dependsOn → `system:power`
+  - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
+  - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
   - requiredBy ← `system:profile`

@@ -22,13 +22,13 @@ guards (a fresh account's board stays calm — no empty panels).
 
 | Zone | Launch widgets |
 |---|---|
-| `strip` | `vitals` — the command strip: Power / Campaign / Infinite / Collection / Champions / Vaults / Next unlock / Achievements, **every chip a door** |
+| `strip` | `vitals` — the command strip: Power / Campaign / Infinite / Collection / Champions / Vaults / Achievements, **every chip a door** (the nearest goal is deliberately absent — the NEXT banner owns it) |
 | `world` | `world-status` — the living centerpiece (§2) |
-| `main` | `next-goal` (anticipation banner), `mission-control` (CONTINUE CAMPAIGN dominates) |
-| `side` | `forecast` (PredictionPanel; hidden until the first run), `roadmap` (§3) |
+| `main` | `mission-control` FIRST (the deploy decision leads the board), then `next-goal` (the single nearest goal), `live-events`, `contracts` |
+| `side` | `forecast` (PredictionPanel; hidden until the first run), `roadmap` (§3 — goals **behind** the banner's) |
 | `army` | `army` — the live roster (§4) |
-| `ops` | `modes` — Infinite / Quick Skirmish (+ FEATURES-flagged future modes) |
-| `feed` | `command-feed` (§5; hidden until history exists), `dashboard` (system momentum cards) |
+| `ops` | `modes` — Infinite / Boss Rush / Daily / Quick Skirmish (mirrors the nav's Play group), then `infestation` (the conquest map rides with operations, never above the deploy button) |
+| `feed` | `command-feed` (§5; hidden until history exists), `dashboard` (claim cards: Vault / Tower Evolution / Equipment / Collection) |
 | `foot` | `tip` — the one-line teacher |
 
 **Adding a widget** = `homeRegistry.register({ id, zone, order, when? })` in `homeModel.ts`
@@ -36,6 +36,19 @@ guards (a fresh account's board stays calm — no empty panels).
 `WIDGETS` map. The shell, zones and CSS never change. Unknown ids render nothing (a widget
 without its renderer is inert, never a crash). `main`+`side` share a responsive row
 (mission | rail) that stacks under 900px.
+
+### The home view-model — one fact, one value
+
+`buildHomeView(save)` computes **every number the board shows once per save change**
+(memoized in the shell, handed to every renderer as `ctx.view`): the Power fold, the
+campaign frontier (`homeFrontier` — stage, generated config, recommendation, readiness,
+first-clear payout), the `nextGoals` queue, the canonical codex completion, vault count and
+the `WorldStatusView`. Widgets read slices of the view instead of re-deriving models — that
+is the coherence contract (the pre-overhaul board computed `nextGoals` three times and
+showed two different Collection percentages) and the perf contract (one `generateStage`,
+one Power fold per save change). **Collection on home surfaces is `CollectionView.pct`**
+(discovery — the number the Collection screen leads with), never the rank-weighted
+`.completion`.
 
 ## 2. World Status — the living centerpiece
 
@@ -45,19 +58,23 @@ atmosphere uses), ambient **intensity**, campaign stage / best wave / molts / Po
 frontier biome, and one **organ per OWNED strain** (color, Stars, Adaptation FORM stage) —
 dormant (shard-gated, unsynthesized) strains are not part of the organism yet.
 
-`WorldStatus.tsx` renders it as one rAF canvas: a wobbling membrane nucleus that grows with
-the era (molts add faint shells; the iris glows gold when Power meets the campaign
-frontier's recommendation — "PRIMED FOR DESCENT"), one orbiting organelle per strain
-(size = Stars, viral rings = FORM stages), a drifting DNA helix, and a spore field whose
-density follows intensity. HTML overlays carry the vitals (crisp text). The canvas dies
-with the component; spore count tops out ~84; `prefers-reduced-motion` stills the CSS
-layer (the canvas stays subtle by construction).
+`WorldStatus.tsx` renders it (as a `ws` prop — a slice of the home view-model) as one rAF
+canvas: a wobbling membrane nucleus that grows with the era (molts add faint shells; the
+iris glows gold when Power meets the campaign frontier's recommendation — "PRIMED FOR
+DESCENT"), one orbiting organelle per strain (size = Stars, viral rings = FORM stages), a
+drifting DNA helix, and a spore field whose density follows intensity. The HTML overlay
+carries only what no other widget shows — era, readiness posture, next-descent biome; the
+numbers themselves live in the command strip. The canvas dies with the component, **pauses
+while the tab is hidden** (visibilitychange), and renders a single still frame under
+`prefers-reduced-motion`; spore count tops out ~84.
 
 ## 3. Unlock roadmap
 
-`nextGoals(save, 4)` (state/nextGoal.ts — the ONE-MORE-RUN engine) rendered as a rail of
-conic progress rings: the next hero release / evolution / prestige / collection / campaign
-gate, each with % complete, "N to go", and a deep link.
+`view.goals` (state/nextGoal.ts — the ONE-MORE-RUN engine, computed once in the view-model)
+split across two surfaces without overlap: the NEXT banner owns `goals[0]`; the side
+roadmap renders `goals[1..4]` as a "COMING UP" rail of conic progress rings — the next hero
+release / evolution / prestige / collection / campaign gate, each with % complete, "N to
+go", and a deep link. One goal, one surface.
 
 ## 4. Live army
 

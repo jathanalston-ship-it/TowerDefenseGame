@@ -47,10 +47,12 @@ export function NextGoalCliffhanger(): JSX.Element | null {
   );
 }
 
-/** The Home NEXT banner + a "coming up" rail of the next few goals. Reactive to the save. */
-export function NextGoalBanner({ onNavigate }: { onNavigate?: (nav: string) => void }): JSX.Element | null {
+/** The Home NEXT banner + a "coming up" rail of the next few goals. Reactive to the save,
+ * unless the caller passes precomputed `goals` (the Command Center hands a slice of its
+ * home view-model so the banner and the roadmap can split the queue without overlap). */
+export function NextGoalBanner({ onNavigate, goals: given }: { onNavigate?: (nav: string) => void; goals?: NextGoal[] }): JSX.Element | null {
   const save = meta.use();
-  const goals = nextGoals(save);
+  const goals = given ?? nextGoals(save);
   if (goals.length === 0) return null;
   const [next, ...rest] = goals;
   const go = (g: NextGoal): void => onNavigate?.(g.nav);

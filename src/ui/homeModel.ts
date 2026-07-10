@@ -7,14 +7,18 @@
 
 import type { SaveData } from '../save/saveStore';
 import type { TimelineEvent } from '../core/types';
-import { HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { CAMPAIGN_REWARDS, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { adaptVisualTier } from '../core/adaptation';
-import { isTowerUnlocked, masteryLevel, accountPowerParts } from '../state/meta';
+import { isTowerUnlocked, masteryLevel, accountPowerParts, collectionContextOf } from '../state/meta';
 import { composePower } from '../core/power';
+import { collectionView } from '../core/collection';
 import { highestCampaignStage } from '../save/derive';
 import { labEra, labIntensity, labScore } from './homeBaseTiers';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
+import type { StageConfig } from '../core/campaign';
 import { difficultyPref } from '../state/prefs';
+import { nextGoals } from '../state/nextGoal';
+import type { NextGoal } from '../state/nextGoal';
 
 // ── World Status — the living organism's vitals (the centerpiece's data) ─────────────────
 
@@ -35,12 +39,14 @@ export interface WorldStatusView {
 const ERA_NAMES = ['NASCENT', 'GROWING', 'THRIVING', 'ASCENDANT'] as const;
 
 export function worldStatus(save: SaveData): WorldStatusView {
+  const power = composePower(accountPowerParts(save)).score;
+  return worldStatusFrom(save, homeFrontier(save, power), power);
+}
+
+/** worldStatus over an already-computed frontier + power (buildHomeView's single-compute path). */
+function worldStatusFrom(save: SaveData, frontier: HomeFrontier, power: number): WorldStatusView {
   const score = labScore(save);
   const era = labEra(score);
-  const diff = difficultyPref('campaign');
-  const frontier = (save.campaign.cleared[diff] ?? 0) + 1;
-  const power = composePower(accountPowerParts(save)).score;
-  const ready = power >= recommendedPowerScore(frontier, diff);
   return {
     era,
     eraName: ERA_NAMES[era],
@@ -49,9 +55,9 @@ export function worldStatus(save: SaveData): WorldStatusView {
     bestWave: save.bestWave,
     molts: save.prestige?.molts ?? 0,
     power,
-    ready,
-    readiness: ready ? 'PRIMED FOR DESCENT' : 'GATHERING STRENGTH',
-    frontierBiome: generateStage(frontier, diff).biome.name,
+    ready: frontier.ready,
+    readiness: frontier.ready ? 'PRIMED FOR DESCENT' : 'GATHERING STRENGTH',
+    frontierBiome: frontier.cfg.biome.name,
     // the organism only carries organs it has actually synthesized — dormant strains are absent
     organs: TOWER_ORDER.filter((kind) => isTowerUnlocked(save, kind)).map((kind) => ({
       kind,
@@ -59,6 +65,72 @@ export function worldStatus(save: SaveData): WorldStatusView {
       stars: save.towerStars[kind] ?? 0,
       form: adaptVisualTier(save.adaptation?.[`tower:${kind}`] ?? []),
     })),
+  };
+}
+
+// ── The campaign frontier — the next stage on the selected difficulty track ──────────────
+
+export interface HomeFrontier {
+  diff: string;
+  stage: number; // the stage the CTA deploys into (cleared + 1 on this track)
+  cleared: number; // stages cleared on this track
+  cfg: StageConfig;
+  rec: number; // recommended Power for the frontier
+  ready: boolean;
+  isMilestone: boolean; // clearing it raises the Evolution Cap
+  firstClearCore: number; // ◆ paid on first clear
+}
+
+export function homeFrontier(save: SaveData, power: number): HomeFrontier {
+  const diff = difficultyPref('campaign');
+  const cleared = save.campaign.cleared[diff] ?? 0;
+  const stage = cleared + 1;
+  const rec = recommendedPowerScore(stage, diff);
+  const isMilestone = stage % CAMPAIGN_REWARDS.milestoneEvery === 0;
+  return {
+    diff,
+    stage,
+    cleared,
+    cfg: generateStage(stage, diff),
+    rec,
+    ready: power >= rec,
+    isMilestone,
+    firstClearCore:
+      CAMPAIGN_REWARDS.firstClearCore +
+      CAMPAIGN_REWARDS.firstClearCorePerStage * stage +
+      (isMilestone ? CAMPAIGN_REWARDS.milestoneCore : 0),
+  };
+}
+
+// ── The home view-model — every number the board shows, computed ONCE per save ───────────
+// Widgets read slices of THIS (via WidgetCtx.view) instead of re-deriving models; that is
+// what keeps the board coherent — one fact has one value — and cheap (nextGoals, campaign
+// generation and the Power fold each run once per save change, not once per widget).
+
+export interface HomeView {
+  power: number;
+  frontier: HomeFrontier;
+  goals: NextGoal[]; // nearest first — the banner owns [0], the roadmap the rest
+  collectionPct: number; // canonical codex completion (same number the Collection screen leads with)
+  collectionDiscovered: number;
+  collectionTotal: number;
+  vaultReady: number; // unopened containers
+  world: WorldStatusView;
+}
+
+export function buildHomeView(save: SaveData): HomeView {
+  const power = composePower(accountPowerParts(save)).score;
+  const frontier = homeFrontier(save, power);
+  const codex = collectionView(collectionContextOf(save));
+  return {
+    power,
+    frontier,
+    goals: nextGoals(save, 5),
+    collectionPct: codex.pct,
+    collectionDiscovered: codex.discovered,
+    collectionTotal: codex.total,
+    vaultReady: save.pendingContainers.length,
+    world: worldStatusFrom(save, frontier, power),
   };
 }
 
@@ -157,17 +229,20 @@ class HomeRegistry {
 export const homeRegistry = new HomeRegistry();
 
 // The launch board. `when` guards keep a fresh account's board calm (no empty panels).
+// HIERARCHY CONTRACT (docs/COMMAND-CENTER.md §zones): the primary decision — Mission
+// Control's deploy — leads the main zone; intel (goals, events, contracts) supports below
+// it; the Infestation conquest map rides with operations, not above the deploy button.
 homeRegistry.register({ id: 'vitals', zone: 'strip', order: 10 });
 homeRegistry.register({ id: 'world-status', zone: 'world', order: 10 });
-homeRegistry.register({ id: 'next-goal', zone: 'main', order: 5 });
-homeRegistry.register({ id: 'live-events', zone: 'main', order: 7 }); // LiveOps calendar strip (docs/LIVEOPS.md)
-homeRegistry.register({ id: 'contracts', zone: 'main', order: 8 }); // Champion Contracts board (docs/CONTRACTS.md)
-homeRegistry.register({ id: 'infestation', zone: 'main', order: 9 }); // Infestation conquest map (docs/INFESTATION.md)
 homeRegistry.register({ id: 'mission-control', zone: 'main', order: 10 });
+homeRegistry.register({ id: 'next-goal', zone: 'main', order: 20 });
+homeRegistry.register({ id: 'live-events', zone: 'main', order: 30 }); // LiveOps calendar strip (docs/LIVEOPS.md)
+homeRegistry.register({ id: 'contracts', zone: 'main', order: 40 }); // Champion Contracts board (docs/CONTRACTS.md)
 homeRegistry.register({ id: 'forecast', zone: 'side', order: 10, when: (s) => s.totalRuns > 0 });
 homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });
 homeRegistry.register({ id: 'army', zone: 'army', order: 10 });
 homeRegistry.register({ id: 'modes', zone: 'ops', order: 10 });
+homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20 }); // Infestation conquest map (docs/INFESTATION.md)
 homeRegistry.register({ id: 'command-feed', zone: 'feed', order: 10, when: (s) => (s.timeline ?? []).length > 0 });
 homeRegistry.register({ id: 'dashboard', zone: 'feed', order: 20 });
 homeRegistry.register({ id: 'tip', zone: 'foot', order: 10 });

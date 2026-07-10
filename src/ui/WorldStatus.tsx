@@ -3,13 +3,13 @@
 // with the development era, one orbiting organelle per strain (tinted its class hue, swollen
 // by its Stars, ringed at Adaptation FORM stages), a drifting DNA helix, and a spore field
 // whose density follows the lab intensity — so a veteran's world visibly seethes where a
-// fresh account's barely stirs. Pure presentation over homeModel.worldStatus(); the vitals
-// overlay is HTML (crisp text), the motion is one rAF canvas that dies with the component.
+// fresh account's barely stirs. Pure presentation over the ws prop (a slice of the home
+// view-model — the numbers themselves live in the command strip, never repeated here); the
+// motion is one rAF canvas that dies with the component, pauses while the tab is hidden,
+// and renders a single still frame under prefers-reduced-motion.
 
 import { useEffect, useRef } from 'react';
-import { worldStatus } from './homeModel';
 import type { WorldStatusView } from './homeModel';
-import { meta } from '../state/meta';
 
 const TAU = Math.PI * 2;
 
@@ -107,9 +107,7 @@ function drawWorld(ctx: CanvasRenderingContext2D, w: number, h: number, t: numbe
   });
 }
 
-export function WorldStatus(): JSX.Element {
-  const save = meta.use();
-  const ws = worldStatus(save);
+export function WorldStatus({ ws }: { ws: WorldStatusView }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef(ws);
   wsRef.current = ws;
@@ -121,6 +119,7 @@ export function WorldStatus(): JSX.Element {
     if (!ctx) return;
     let raf = 0;
     let spores: Spore[] = [];
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const size = (): void => {
       const rect = canvas.getBoundingClientRect();
@@ -132,19 +131,31 @@ export function WorldStatus(): JSX.Element {
         r: 0.6 + Math.random() * 1.6, vy: -(0.06 + Math.random() * 0.22), vx: (Math.random() - 0.5) * 0.08,
         a: 0.25 + Math.random() * 0.5,
       }));
+      if (still) frame(performance.now()); // re-render the still frame at the new size
     };
-    size();
-    const ro = new ResizeObserver(size);
-    ro.observe(canvas);
     const t0 = performance.now();
-    const tick = (now: number): void => {
+    const frame = (now: number): void => {
       const rect = canvas.getBoundingClientRect();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawWorld(ctx, rect.width, rect.height, (now - t0) / 1000, wsRef.current, spores);
+    };
+    const tick = (now: number): void => {
+      frame(now);
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    const play = (): void => {
+      if (still) return; // reduced motion: one composed frame, no loop
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    };
+    // A hidden tab burns no frames — the organism sleeps with the player.
+    const onVis = (): void => { document.hidden ? cancelAnimationFrame(raf) : play(); };
+    size();
+    const ro = new ResizeObserver(size);
+    ro.observe(canvas);
+    play();
+    document.addEventListener('visibilitychange', onVis);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); document.removeEventListener('visibilitychange', onVis); };
   }, []);
 
   return (
@@ -154,12 +165,6 @@ export function WorldStatus(): JSX.Element {
         <span className="cc-world-eyebrow">◉ WORLD STATUS</span>
         <span className="cc-world-era">{ws.eraName} ORGANISM</span>
         <span className={`cc-world-ready ${ws.ready ? 'is-go' : ''}`}>{ws.readiness}</span>
-      </div>
-      <div className="cc-world-vitals">
-        <span className="cc-wv"><b>{ws.stage}</b> STAGE</span>
-        <span className="cc-wv"><b>{ws.bestWave}</b> BEST WAVE</span>
-        <span className="cc-wv"><b>{ws.molts}</b> MOLTS</span>
-        <span className="cc-wv"><b>{ws.power}</b> POWER</span>
       </div>
       <div className="cc-world-foot">Next descent · {ws.frontierBiome}</div>
     </div>

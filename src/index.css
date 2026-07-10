@@ -4796,8 +4796,8 @@ kbd {
 .hub-nav {
   display: flex;
   flex-direction: column;
-  gap: var(--s4);
-  padding: 22px 14px;
+  gap: var(--s3);
+  padding: 12px 14px 12px;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border-right: 1px solid var(--line);
   min-height: 0;
@@ -4806,26 +4806,27 @@ kbd {
   font-weight: 800;
   letter-spacing: 0.2em;
   font-size: 18px;
-  padding: 4px 8px 14px;
+  padding: 2px 8px 10px;
   background: linear-gradient(90deg, var(--vital), var(--r-epic), var(--kinetic));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   border-bottom: 1px solid var(--line);
 }
-.hub-navlist { display: flex; flex-direction: column; gap: 2px; flex: 1; min-height: 0; overflow-y: auto; }
+.hub-navlist { display: flex; flex-direction: column; gap: 1px; flex: 1; min-height: 0; overflow-y: auto; }
 
 /* Grouped nav — each section is a labelled zone carrying its own accent hue (--nav-accent),
-   so the rail reads as four intent-zones rather than one flat list. */
-.hub-navgroup { display: flex; flex-direction: column; gap: 3px; }
-.hub-navgroup + .hub-navgroup { margin-top: 9px; border-top: 1px solid var(--line); padding-top: 11px; }
+   so the rail reads as four intent-zones rather than one flat list. Rows are DENSE on
+   purpose: all ~20 destinations must fit a 900px-tall shell without scrolling the rail. */
+.hub-navgroup { display: flex; flex-direction: column; gap: 2px; }
+.hub-navgroup + .hub-navgroup { margin-top: 4px; border-top: 1px solid var(--line); padding-top: 5px; }
 .hub-navgroup-h {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--nav-accent) 50%, var(--muted));
-  padding: 0 12px 4px;
+  padding: 0 12px 2px;
   user-select: none;
 }
 
@@ -4835,7 +4836,7 @@ kbd {
   align-items: center;
   gap: 11px;
   width: 100%;
-  padding: 9px 12px;
+  padding: 5px 12px;
   border-radius: var(--r-sm);
   background: transparent;
   border: 1px solid transparent;
@@ -4875,13 +4876,13 @@ kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 23px;
+  height: 23px;
   flex: none;
   border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 11px;
   transition: background var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
 .hub-navitem:hover .hub-mono { border-color: color-mix(in srgb, var(--nav-accent) 45%, var(--line)); }
@@ -4928,11 +4929,13 @@ kbd {
   100% { opacity: 0; transform: scale(1.7); }
 }
 
-/* Global notification dot (notifications.ts) — any menu with unacknowledged news. */
+/* Global notification dot (notifications.ts) — any menu with unacknowledged news. It anchors
+   to the GLYPH's corner (the .hub-mono square), never the row edge, so it can't collide with
+   the completion % that lives at the row's right. */
 .nav-badge {
   position: absolute;
-  top: 7px;
-  right: 9px;
+  top: -4px;
+  right: -5px;
   display: grid;
   place-items: center;
   min-width: 9px;
@@ -4942,13 +4945,15 @@ kbd {
   box-shadow: 0 0 0 2px var(--panel), 0 0 8px 1px rgba(255, 178, 77, 0.7);
   animation: nav-badge-pulse 1.6s ease-in-out infinite;
   pointer-events: none;
+  letter-spacing: 0;
 }
 /* Count ≥ 2 → a numbered pill (≤ "9+"); count 1 stays a bare dot (empty span). */
 .nav-badge:not(:empty) {
-  top: 5px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+  top: -7px;
+  right: -8px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
   font-size: 10px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -4959,8 +4964,34 @@ kbd {
   50% { transform: scale(1.12); box-shadow: 0 0 0 2px var(--panel), 0 0 11px 2px rgba(255, 178, 77, 0.95); }
 }
 .hub-navlabel { font-weight: 600; }
+
+/* Compact group (Account) — a row of labelled icon squares. Every destination stays on
+   screen at 900px-tall shells; the labels keep it self-explanatory (no mystery meat). */
+.hub-navrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.hub-navsquare {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 2px 3px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.hub-navsquare:hover { background: var(--panel-3); color: var(--text); }
+.hub-navsquare.on {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--nav-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--nav-accent) 12%, transparent);
+}
+.hub-navsquare-l { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .hub-power {
-  padding: 10px 12px;
+  padding: 7px 12px;
   border-radius: var(--r-sm);
   background: var(--panel);
   border: 1px solid var(--line);
@@ -5089,9 +5120,6 @@ kbd {
 .cc-world.is-era3 .cc-world-era { color: var(--viral); }
 .cc-world-ready { margin-left: auto; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(90, 209, 255, 0.4); color: var(--kinetic); }
 .cc-world-ready.is-go { border-color: rgba(255, 210, 77, 0.5); color: var(--gold); box-shadow: 0 0 12px rgba(255, 210, 77, 0.18); }
-.cc-world-vitals { position: absolute; left: 14px; bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
-.cc-wv { display: flex; flex-direction: column-reverse; font-size: 10px; letter-spacing: 0.12em; color: var(--muted); }
-.cc-wv b { font-size: 18px; font-weight: 900; color: var(--text); letter-spacing: 0; }
 .cc-world-foot { position: absolute; right: 14px; bottom: 12px; font-size: 11px; color: var(--muted); }
 
 /* Unlock roadmap — the next few earns as a rail of progress rings */
@@ -5178,7 +5206,7 @@ kbd {
 .mc-diff-ro { font-size: 14px; font-weight: 700; color: var(--text); padding: 9px 0; }
 .mc-diff-ro small { color: var(--muted); font-weight: 600; font-size: 11px; }
 
-.mc-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mc-secondary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); gap: 12px; }
 .mc-sec { display: flex; align-items: center; gap: 12px; text-align: left; padding: 13px 15px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--text); cursor: pointer; transition: border-color var(--dur-2) ease, transform var(--dur-2) ease; }
 .mc-sec:hover:not(:disabled) { border-color: var(--line-strong); transform: translateY(-2px); }
 .mc-sec-endless { border-color: color-mix(in srgb, var(--vital) 40%, var(--line)); }
@@ -5200,11 +5228,12 @@ kbd {
 .mc-sec-rwp { margin-top: 6px; }
 .mc-sec-rwp .rwp-chip { font-size: 10px; padding: 2px 6px; gap: 4px; }
 @media (max-width: 1100px) {
-  .mc-facts, .mc-secondary { grid-template-columns: repeat(2, 1fr); }
+  .mc-facts { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ── Living Progress dashboard — momentum cards ── */
-.dash { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+/* ── Living Progress dashboard — claim cards. auto-fit (not a fixed 6) so the row can
+      never overflow its feed column — minmax(0,…) keeps min-content from forcing width. ── */
+.dash { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px; }
 .dash-card {
   position: relative; text-align: left; display: flex; flex-direction: column; gap: 7px;
   padding: 14px 15px; min-height: 116px;
@@ -5223,8 +5252,6 @@ kbd {
 .dash-sub { font-size: 11px; color: var(--muted); margin-top: auto; }
 .dash-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
 .dash-chip { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; padding: 2px 6px; border-radius: 999px; color: var(--text); background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--cc) 45%, var(--line)); }
-@media (max-width: 1400px) { .dash { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 900px) { .dash { grid-template-columns: repeat(2, 1fr); } }
 
 /* Hot card — something to claim right now: gains weight + shows an action verb */
 .dash-card.is-hot { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--panel)); animation: dash-hot 2.4s ease-in-out infinite; }

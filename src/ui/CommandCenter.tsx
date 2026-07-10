@@ -7,9 +7,9 @@
 // dashboard → the tip. Pure presentation over existing read-models; run starts route
 // through the same callbacks the Hub always passed.
 
-import { useEffect, useState, type MutableRefObject, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type MutableRefObject, type ReactNode } from 'react';
 import { meta } from '../state/meta';
-import { isBossRushUnlocked, isInfiniteUnlocked } from '../save/derive';
+import { isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
 import { MODE_UNLOCKS } from '../core/config';
 import type { RunOutcome, RunResult } from '../state/meta';
 import type { SaveData } from '../save/saveStore';
@@ -17,18 +17,13 @@ import { audio } from '../audio/sound';
 import { PlayIcon } from './components/Icon';
 import { DIFFICULTIES } from '../core/difficulty';
 import { DOCTRINES, DOCTRINE_IDS } from '../core/doctrines';
-import { difficultyPref } from '../state/prefs';
-import { generateStage, recommendedPowerScore } from '../core/campaign';
 import { formatPower } from '../core/power';
-import { CAMPAIGN_REWARDS } from '../core/config';
 import { FEATURES } from '../core/features';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { ProgressDashboard } from './ProgressDashboard';
 import { pickTip } from './tips';
-import { collectionView } from '../core/collection';
-import { collectionContextOf, heroSlotsUnlocked } from '../state/meta';
+import { heroSlotsUnlocked } from '../state/meta';
 import { highestCampaignStage } from '../save/derive';
-import { nextGoals } from '../state/nextGoal';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
 import { NextGoalBanner } from './NextGoalBanner';
@@ -37,8 +32,8 @@ import { WorldStatus } from './WorldStatus';
 import { LiveEventsStrip } from './components/LiveEventsStrip';
 import { ContractsCard } from './components/ContractsCard';
 import { InfestationBoard } from './components/InfestationBoard';
-import { armyView, commandFeed, homeRegistry } from './homeModel';
-import type { HomeZone } from './homeModel';
+import { armyView, buildHomeView, commandFeed, homeRegistry } from './homeModel';
+import type { HomeView, HomeZone } from './homeModel';
 import type { NavKey } from './Hub';
 
 type RunRecap = { result: RunResult; outcome: RunOutcome } | null;
@@ -59,9 +54,12 @@ function recapItems(last: RunRecap): { icon: string; label: string }[] {
   return out;
 }
 
-/** Everything a widget renderer may need — one context object so renderer signatures never churn. */
+/** Everything a widget renderer may need — one context object so renderer signatures never churn.
+ * `view` is THE home view-model (built once per save change); widgets read it instead of
+ * re-deriving models so every number on the board agrees with every other. */
 interface WidgetCtx {
   save: SaveData;
+  view: HomeView;
   go: (k: NavKey) => void;
   start: (fn: () => void) => void;
   onStart: () => void;
@@ -89,6 +87,8 @@ export function CommandCenter({
   doctrineRef: MutableRefObject<string>;
 }): JSX.Element {
   const save = meta.use();
+  // The board's single source of numbers — recomputed only when the save snapshot changes.
+  const view = useMemo(() => buildHomeView(save), [save]);
   // Snapshot the last run ONCE at mount so the recap survives onSeenLast clearing it.
   const [recap] = useState(() => recapItems(last));
   const [tip] = useState(pickTip);
@@ -99,7 +99,7 @@ export function CommandCenter({
     audio.cue('ui');
     fn();
   };
-  const ctx: WidgetCtx = { save, go, start, onStart, onStartEndless, onStartCampaign, doctrineRef, tip };
+  const ctx: WidgetCtx = { save, view, go, start, onStart, onStartEndless, onStartCampaign, doctrineRef, tip };
 
   const zone = (z: HomeZone): ReactNode =>
     homeRegistry.zone(save, z).map((d) => {
@@ -138,40 +138,39 @@ export function CommandCenter({
 
 const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'vitals': Vitals,
-  'world-status': () => <WorldStatus />,
-  'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} />,
+  'world-status': (c) => <WorldStatus ws={c.view.world} />,
+  // The banner owns ONLY the nearest goal; the side roadmap owns the queue behind it —
+  // one goal, one surface (the pre-overhaul board showed the same goal three times).
+  'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} goals={c.view.goals.slice(0, 1)} />,
   'live-events': () => <LiveEventsStrip />,
   'contracts': () => <ContractsCard />,
   'infestation': () => <InfestationBoard />,
   'mission-control': MissionControl,
-  'forecast': () => (
+  'forecast': (c) => (
     <div className="cc-forecast">
-      <PredictionPanel mode="campaign" difficultyId={difficultyPref('campaign')} label="Campaign Stage" />
+      <PredictionPanel mode="campaign" difficultyId={c.view.frontier.diff} label="Campaign Stage" />
     </div>
   ),
   'roadmap': Roadmap,
   'army': Army,
   'modes': Modes,
   'command-feed': CommandFeed,
-  'dashboard': (c) => <ProgressDashboard go={c.go} onStartEndless={c.onStartEndless} />,
+  'dashboard': (c) => <ProgressDashboard go={c.go} />,
   'tip': (c) => <div className="mc-tip" role="note"><span className="mc-tip-k">TIP</span>{c.tip}</div>,
 };
 
-/** The command strip — every account vital, every one a door. */
-function Vitals({ save, go }: WidgetCtx): ReactNode {
-  const codex = collectionView(collectionContextOf(save));
-  const goal = nextGoals(save, 1)[0];
-  const vaults = save.pendingContainers.length;
+/** The command strip — every account vital, every one a door. (The NEXT banner owns the
+ * nearest goal; it is deliberately absent here — one goal, one surface.) */
+function Vitals({ save, view, go }: WidgetCtx): ReactNode {
+  const vaults = view.vaultReady;
   const ach = (save.achievements ?? []).length;
-  const power = meta.power().score;
   const vitals: { k: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
-    { k: 'Power', v: formatPower(power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
-    { k: 'Campaign', v: `Stage ${highestCampaignStage(save)}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
+    { k: 'Power', v: formatPower(view.power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
+    { k: 'Campaign', v: `Stage ${view.world.stage}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
     { k: 'Infinite', v: `Wave ${save.bestWave}`, nav: 'infinite', title: 'Infinite personal best' },
-    { k: 'Collection', v: `${Math.round(codex.completion * 100)}%`, nav: 'collection', title: 'Codex completion' },
+    { k: 'Collection', v: `${Math.round(view.collectionPct * 100)}%`, nav: 'collection', title: `Codex discovery — ${view.collectionDiscovered}/${view.collectionTotal}` },
     { k: 'Champions', v: `${save.heroLoadout.length}/${heroSlotsUnlocked(save)}`, nav: 'heroes', title: 'Fielded champions / unlocked slots' },
     { k: 'Vaults', v: vaults > 0 ? `${vaults} ready` : '—', c: vaults > 0 ? 'var(--r-epic)' : undefined, nav: 'vault', title: 'Unopened Bio-Containers' },
-    ...(goal ? [{ k: 'Next unlock', v: `${goal.label} · ${Math.round(goal.progress * 100)}%`, c: goal.color, nav: goal.nav as NavKey, title: `${goal.remaining} to go` }] : []),
     ...(ach > 0 ? [{ k: 'Achievements', v: `${ach}`, nav: 'profile' as NavKey, title: 'Achievements earned' }] : []),
   ];
   return (
@@ -188,22 +187,12 @@ function Vitals({ save, go }: WidgetCtx): ReactNode {
 }
 
 /** Mission control — CONTINUE CAMPAIGN dominates; the primary decision of every visit. */
-function MissionControl({ save, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
-  const diff = difficultyPref('campaign');
-  const cleared = save.campaign.cleared[diff] ?? 0;
-  const frontier = cleared + 1;
-  const cfg = generateStage(frontier, diff);
-  const rec = recommendedPowerScore(frontier, diff);
-  const power = meta.power().score;
-  const ready = power >= rec;
-  const isMilestone = frontier % CAMPAIGN_REWARDS.milestoneEvery === 0;
-  const firstClearCore =
-    CAMPAIGN_REWARDS.firstClearCore +
-    CAMPAIGN_REWARDS.firstClearCorePerStage * frontier +
-    (isMilestone ? CAMPAIGN_REWARDS.milestoneCore : 0);
+function MissionControl({ view, go, start, onStartCampaign, doctrineRef }: WidgetCtx): ReactNode {
+  const { diff, stage, cleared, cfg, rec, ready, isMilestone, firstClearCore } = view.frontier;
+  const power = view.power;
   const objective = isMilestone
     ? 'Milestone stage — clearing it raises your Evolution Cap'
-    : `Descend into the ${cfg.biome.name} and clear Stage ${frontier}`;
+    : `Descend into the ${cfg.biome.name} and clear Stage ${stage}`;
   const campaignRewards: PreviewChip[] = [
     { label: 'Strain Samples', color: 'var(--kinetic)', icon: <CurrencyIcon id="towerShards" size={12} title="" /> },
     { label: 'Apex Genome', color: 'var(--vital)', icon: <CurrencyIcon id="heroShards" size={12} title="" /> },
@@ -218,7 +207,7 @@ function MissionControl({ save, go, start, onStartCampaign, doctrineRef }: Widge
       <div className="mc-head">
         <div className="mc-stage">
           <span className="mc-stage-k">Stage</span>
-          <span className="mc-stage-n">{frontier}</span>
+          <span className="mc-stage-n">{stage}</span>
         </div>
         <div className="mc-biome">
           <div className="mc-biome-name" style={{ color: cfg.biome.accent }}>{cfg.biome.name}</div>
@@ -241,8 +230,8 @@ function MissionControl({ save, go, start, onStartCampaign, doctrineRef }: Widge
           </span>
         </div>
         <div className="mc-fact">
-          <span className="mc-fact-k">Highest Stage</span>
-          <span className="mc-fact-v">{cleared}</span>
+          <span className="mc-fact-k">{DIFFICULTIES[diff]?.name ?? 'Standard'} Track</span>
+          <span className="mc-fact-v">{cleared} cleared</span>
         </div>
         <div className="mc-fact">
           <span className="mc-fact-k">First Clear</span>
@@ -255,7 +244,7 @@ function MissionControl({ save, go, start, onStartCampaign, doctrineRef }: Widge
       <div className="mc-cta">
         <button
           className={`primary mc-deploy${ready ? '' : ' is-underready'}`}
-          onClick={() => start(() => onStartCampaign(frontier))}
+          onClick={() => start(() => onStartCampaign(stage))}
           title={ready ? undefined : `Below recommended Power (${formatPower(rec)}) — expect a wall. Failed frontier attempts still recover partial field data.`}
         >
           <PlayIcon /> {ready ? 'Continue Campaign' : `Deploy Under-Powered ⚠ ${formatPower(power)} / ${formatPower(rec)}`}
@@ -281,13 +270,13 @@ function MissionControl({ save, go, start, onStartCampaign, doctrineRef }: Widge
   );
 }
 
-/** Unlock roadmap — the next few things the account is about to earn, as a visual rail. */
-function Roadmap({ save, go }: WidgetCtx): ReactNode {
-  const goals = nextGoals(save, 4);
+/** Unlock roadmap — the queue BEHIND the NEXT banner's goal (goals[1..]), as a visual rail. */
+function Roadmap({ view, go }: WidgetCtx): ReactNode {
+  const goals = view.goals.slice(1, 5);
   if (goals.length === 0) return null;
   return (
     <section className="cc-roadmap" aria-label="Upcoming unlocks">
-      <span className="cc-panel-h">⬡ UNLOCK ROADMAP</span>
+      <span className="cc-panel-h">⬡ COMING UP</span>
       <div className="cc-road">
         {goals.map((g) => (
           <button className="cc-road-stop" key={g.id} style={{ ['--g' as string]: g.color }} onClick={() => go(g.nav as NavKey)} title={g.reward}>
@@ -336,10 +325,11 @@ function Army({ save, go }: WidgetCtx): ReactNode {
   );
 }
 
-/** Operations — the secondary run modes beneath the campaign. */
+/** Operations — the secondary run modes beneath the campaign (mirrors the nav's Play group). */
 function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNode {
   const infUnlocked = isInfiniteUnlocked(save);
   const rushUnlocked = isBossRushUnlocked(save);
+  const dailyUnlocked = isDailyUnlocked(save);
   const stage = highestCampaignStage(save);
   const infiniteRewards: PreviewChip[] = [
     { label: 'Containers', color: 'var(--r-epic)' },
@@ -350,6 +340,10 @@ function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNo
     { label: 'Cores / boss', color: 'var(--gold)' },
     { label: 'Loot / boss', color: 'var(--r-epic)' },
     { label: 'Ichor / records', color: 'var(--viral)' },
+  ];
+  const dailyRewards: PreviewChip[] = [
+    { label: 'Genome Cores', color: 'var(--gold)' },
+    { label: 'Global board', color: 'var(--kinetic)' },
   ];
   return (
     <section className="mc-secondary" aria-label="Other modes">
@@ -381,6 +375,21 @@ function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNo
               : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.bossRush} — you're at ${stage}`}
           </span>
           <RewardPreview chips={rushRewards} className="mc-sec-rwp" />
+        </span>
+      </button>
+      <button
+        className={`mc-sec mc-sec-daily${dailyUnlocked ? '' : ' is-locked'}`}
+        onClick={() => go(dailyUnlocked ? 'daily' : 'campaign')}
+      >
+        <span className="mc-sec-i" aria-hidden>☀</span>
+        <span className="mc-sec-body">
+          <span className="mc-sec-t">Daily Run</span>
+          <span className="mc-sec-d">
+            {dailyUnlocked
+              ? 'One seed per day · the same gauntlet worldwide'
+              : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.daily} — you're at ${stage}`}
+          </span>
+          <RewardPreview chips={dailyRewards} className="mc-sec-rwp" />
         </span>
       </button>
       <button className="mc-sec" onClick={() => start(onStart)}>

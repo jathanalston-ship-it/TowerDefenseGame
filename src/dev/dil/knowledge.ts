@@ -86,6 +86,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:difficulty', kind: 'balances', to: 'system:infinite', note: 'endless threat curves' },
 
   // ── Presentation couplings that are easy to miss ──
+  { from: 'system:hub-shell', kind: 'consumes', to: 'system:campaign', note: 'buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models' },
+  { from: 'system:hub-shell', kind: 'references', to: 'system:collection', note: 'home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board' },
   { from: 'system:living-battlefield', kind: 'consumes', to: 'system:assimilation', note: 'terrain stage comes from tierAt(game.assimilation.index) — ONE source of truth with music/HUD mood' },
   { from: 'system:assimilation', kind: 'consumes', to: 'concept:power-score', note: 'live Power is the universal contribution profile' },
   { from: 'system:audio', kind: 'visualizes', to: 'system:assimilation', note: 'music intensity floor rides the index (sonifies the same state the terrain draws)' },

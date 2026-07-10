@@ -3,7 +3,7 @@
 // is OPEN — a future system registers a widget and appears in its zone without shell surgery.
 
 import { describe, it, expect } from 'vitest';
-import { agoLabel, armyView, commandFeed, homeRegistry, worldStatus } from './homeModel';
+import { agoLabel, armyView, buildHomeView, commandFeed, homeRegistry, worldStatus } from './homeModel';
 import { defaultSave } from '../save/saveStore';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
 
@@ -78,11 +78,42 @@ describe('armyView — every strain + champion', () => {
   });
 });
 
+describe('buildHomeView — the board\'s single source of numbers', () => {
+  it('agrees with itself: frontier, world and goals derive from ONE compute', () => {
+    const s = defaultSave();
+    s.campaign = { ...s.campaign, cleared: { standard: 7 } };
+    const v = buildHomeView(s);
+    expect(v.frontier.stage).toBe(8); // cleared + 1 on the selected track
+    expect(v.frontier.cleared).toBe(7);
+    expect(v.world.ready).toBe(v.frontier.ready); // the organism's posture IS the frontier readiness
+    expect(v.world.frontierBiome).toBe(v.frontier.cfg.biome.name);
+    expect(v.world.power).toBe(v.power);
+    expect(v.goals.length).toBeGreaterThan(0); // a fresh-ish account always has a next goal
+    expect(v.vaultReady).toBe(s.pendingContainers.length);
+  });
+
+  it('collection numbers are the canonical codex DISCOVERY pct (0..1) with matching counts', () => {
+    const v = buildHomeView(defaultSave());
+    expect(v.collectionPct).toBeGreaterThanOrEqual(0);
+    expect(v.collectionPct).toBeLessThanOrEqual(1);
+    expect(Math.round(v.collectionPct * v.collectionTotal)).toBeCloseTo(v.collectionDiscovered, 0);
+  });
+
+  it('matches the standalone worldStatus model (no drift between the two paths)', () => {
+    const s = defaultSave();
+    s.bestWave = 17;
+    expect(buildHomeView(s).world).toEqual(worldStatus(s));
+  });
+});
+
 describe('home widget registry — the shell renders THIS', () => {
   it('ships the launch board and honors `when` guards', () => {
     const fresh = defaultSave();
     expect(homeRegistry.zone(fresh, 'world').map((d) => d.id)).toEqual(['world-status']);
-    expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['next-goal', 'live-events', 'contracts', 'infestation', 'mission-control']);
+    // HIERARCHY CONTRACT: the deploy decision leads the main zone; intel follows it.
+    expect(homeRegistry.zone(fresh, 'main').map((d) => d.id)).toEqual(['mission-control', 'next-goal', 'live-events', 'contracts']);
+    // the Infestation conquest map rides with operations, below the deploy button
+    expect(homeRegistry.zone(fresh, 'ops').map((d) => d.id)).toEqual(['modes', 'infestation']);
     // feed hides on an empty timeline; appears once history exists
     expect(homeRegistry.zone(fresh, 'feed').map((d) => d.id)).toEqual(['dashboard']);
     const vet = { ...fresh, timeline: [{ at: 1, icon: '★', label: 'x' }] };
