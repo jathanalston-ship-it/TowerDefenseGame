@@ -38,3 +38,8 @@
 - `c5f1914` **[Mega Bosses]** Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split
 - `210362d` **[Developer Tools]** Public Intelligence Layer P1 — the public knowledge graph over the DIL _(internal)_
 - `58ff03b` **[Towers]** Dil+pil: regen generated docs over the merged tree (mulligans overhaul rebase) _(internal)_
+- `e982e28` **[Developer Tools]** PIL P2 — store bundles from one source + sitemap enforcement (riding Chronicle)
+- `35e0499` **[UI]** Overhaul Campaign + Infinite prep screens (visual + functional)
+- `3bb32f1` **[Optimization]** Main menu overhaul — coherence, hierarchy, optimization (hub shell + Command Center)
+- `f340e97` **[Gameplay]** Infestation map: collapse to a one-line teaser while dormant
+- `da845a4` **[Gameplay]** Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony

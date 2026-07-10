@@ -154,9 +154,21 @@ collection: `meta.grantRouletteRewards`.
 - **Spores** (`sporesFor` / `sporesFromParts`): **1 per NEW lifetime-record boss** (the
   `rushBestBoss` delta finishRun already computes — `rushProgress.newRecordBosses`) **+ 1 per
   5 bosses felled that run** (volume lane), capped at 40. Zero spores ⇒ no ceremony.
-- **The board is FRESH every run** (`rollBoard`): 12 weighted pods — tower/hero shards
-  dominate, cores/scrap/essence fill the middle, a small Ichor pod tempts, **Bio-Gear is VERY
-  rare (weight 2)** and a **Bio-Container EXTREMELY rare (weight 1)**. Pod count and reward
+- **The board is FRESH every run** (`rollBoard(rng, roster, tier)`): 12 weighted pods —
+  tower/hero shards dominate, cores/scrap/essence fill the middle, a small Ichor pod tempts,
+  **Bio-Gear is VERY rare (weight 2)** and a **Bio-Container EXTREMELY rare (weight 1)**.
+  **§tier — DEPTH TIERS (2026-07 overhaul):** every QUANTITY scales with the account's
+  `rushBestWave` record (`boardTier`: ×1 below wave 5, +0.25 per 5 waves, cap ×3) — the organ's
+  payouts keep pace with progression (gear/container rarities never scale). Labels roll ONCE and
+  reuse the same quantity they pay (a former double-roll could lie by ±1).
+  **§surge — MUTATION SURGE (pity):** `rollOutcomesWithSurge` guarantees a streak of
+  `ROULETTE.surgeAt` (5) common landings mutates the NEXT spore — it is forced into the
+  **premium pool** (pods at weight ≤ 6: the big shard/core pods, Bio-Gear, the Container). The
+  ceremony renders surge spores viral-magenta with a bigger comet + shockwave, and a live pity
+  arc fills around the orifice. Every spore still pays; the surge only decides WHERE.
+  **§jackpot:** one QUANTITY pod per ceremony (never gear/containers) is crowned ×3
+  (`rollJackpot` + `tripleReward`) — gold double-ring on the wheel, tagged in the tally.
+  Pod count and reward
   vocabulary are extension points (the renderer + outcome roll are count-agnostic).
 - **Pre-rolled outcomes** (`rollOutcomes`): the physics is presentation — spheres launch
   ~0.55s apart, spin the organ under cubic-decel momentum, wobble to rest at their pod, get

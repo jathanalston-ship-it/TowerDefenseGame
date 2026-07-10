@@ -117,6 +117,26 @@ export const RELEASES: Release[] = [
       {
         "cat": "Mega Bosses",
         "text": "Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "PIL P2 — store bundles from one source + sitemap enforcement (riding Chronicle)"
+      },
+      {
+        "cat": "UI",
+        "text": "Overhaul Campaign + Infinite prep screens (visual + functional)"
+      },
+      {
+        "cat": "Optimization",
+        "text": "Main menu overhaul — coherence, hierarchy, optimization (hub shell + Command Center)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Infestation map: collapse to a one-line teaser while dormant"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony"
       }
     ]
   },

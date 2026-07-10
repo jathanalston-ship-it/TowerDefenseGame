@@ -15,6 +15,12 @@ export const ROULETTE = {
   sporesPerRecordBoss: 1, // one spore per NEW lifetime-record boss this run …
   sporesPerVolume: 5, // … +1 per this many bosses felled this run (volume lane, farmable-but-small)
   sporeCap: 40, // ceremony sanity cap (a 40-spore launch is already ~30s of theater)
+  /** §surge — Mutation Surge pity: this many consecutive COMMON landings force the next
+   *  spore into the PREMIUM pool (weight ≤ surgePoolMaxWeight). Never a dud streak. */
+  surgeAt: 5,
+  surgePoolMaxWeight: 6, // pods at-or-below this weight form the premium (surge) pool
+  /** §jackpot — one quantity pod per ceremony pays triple. */
+  jackpotMult: 3,
 } as const;
 
 // ── Rewards ─────────────────────────────────────────────────────────────────────────────────
@@ -59,34 +65,48 @@ export interface RouletteRoster {
 const pick = <T>(rng: () => number, arr: readonly T[]): T => arr[Math.floor(rng() * arr.length)];
 const int = (rng: () => number, lo: number, hi: number): number => lo + Math.floor(rng() * (hi - lo + 1));
 
+/** §tier — quantities scale with the account's Boss Rush depth record, so the organ's
+ *  payouts keep pace with progression: ×1 below wave 5, +0.25 per 5 record waves, cap ×3. */
+export function boardTier(rushBestWave: number): number {
+  return 1 + 0.25 * Math.min(8, Math.floor(Math.max(0, rushBestWave) / 5));
+}
+
 /**
  * A FRESH board every run — 12 weighted pods. Composition (weights in parens, Σ≈100):
  * tower/hero shards dominate (the grind currencies), cores + scrap + essence fill the middle,
  * a small Ichor pod tempts, Bio-Gear is VERY rare (2) and a Bio-Container EXTREMELY rare (1).
- * Extend by pushing more pods — the renderer + outcome roll are count-agnostic.
+ * `tier` (§tier) multiplies every QUANTITY (never the gear/container rarities). Extend by
+ * pushing more pods — the renderer + outcome roll are count-agnostic.
  */
-export function rollBoard(rng: () => number, roster: RouletteRoster): RouletteSlot[] {
+export function rollBoard(rng: () => number, roster: RouletteRoster, tier = 1): RouletteSlot[] {
   const towers = roster.towers.length > 0 ? roster.towers : (['needle'] as TowerKind[]);
   const heroes = roster.heroes.length > 0 ? roster.heroes : ['ravager'];
+  const t = Math.max(1, tier);
+  const scaled = (lo: number, hi: number): number => Math.round(int(rng, lo, hi) * t);
   const pods: Omit<RouletteSlot, 'id'>[] = [];
   const tower = (qty: number, weight: number): void => {
-    const t = pick(rng, towers);
-    pods.push({ label: `${qty}× Tower Samples`, short: `${qty}◈`, weight, color: 'var(--kinetic)', reward: { kind: 'towerShards', tower: t, qty } });
+    const tk = pick(rng, towers);
+    pods.push({ label: `${qty}× Tower Samples`, short: `${qty}◈`, weight, color: 'var(--kinetic)', reward: { kind: 'towerShards', tower: tk, qty } });
   };
   const hero = (qty: number, weight: number): void => {
     const h = pick(rng, heroes);
     pods.push({ label: `${qty}× Hero Genome`, short: `${qty}✶`, weight, color: 'var(--vital)', reward: { kind: 'heroShards', hero: h, qty } });
   };
-  tower(int(rng, 3, 6), 15);
-  tower(int(rng, 7, 12), 9);
-  tower(int(rng, 14, 20), 4);
-  hero(int(rng, 1, 2), 12);
-  hero(int(rng, 3, 5), 5);
-  pods.push({ label: `${int(rng, 3, 5)} Genome Cores`, short: 'CORE', weight: 14, color: 'var(--gold)', reward: { kind: 'cores', qty: int(rng, 3, 5) } });
-  pods.push({ label: `${int(rng, 8, 12)} Genome Cores`, short: 'CORE+', weight: 6, color: 'var(--gold)', reward: { kind: 'cores', qty: int(rng, 8, 12) } });
-  pods.push({ label: `${int(rng, 2, 4)}× Scrap`, short: '◳', weight: 12, color: 'var(--muted)', reward: { kind: 'scrap', qty: int(rng, 2, 4) } });
-  pods.push({ label: `${int(rng, 6, 12)} Gene Essence`, short: '⌬', weight: 11, color: 'var(--caustic, #6ad1b0)', reward: { kind: 'geneEssence', qty: int(rng, 6, 12) } });
-  pods.push({ label: `${int(rng, 2, 3)} Ichor`, short: '◆', weight: 9, color: 'var(--viral)', reward: { kind: 'ichor', qty: int(rng, 2, 3) } });
+  tower(scaled(3, 6), 15);
+  tower(scaled(7, 12), 9);
+  tower(scaled(14, 20), 4);
+  hero(scaled(1, 2), 12);
+  hero(scaled(3, 5), 5);
+  const cores1 = scaled(3, 5);
+  const cores2 = scaled(8, 12);
+  const scrapQ = scaled(2, 4);
+  const essQ = scaled(6, 12);
+  const ichorQ = scaled(2, 3);
+  pods.push({ label: `${cores1} Genome Cores`, short: 'CORE', weight: 14, color: 'var(--gold)', reward: { kind: 'cores', qty: cores1 } });
+  pods.push({ label: `${cores2} Genome Cores`, short: 'CORE+', weight: 6, color: 'var(--gold)', reward: { kind: 'cores', qty: cores2 } });
+  pods.push({ label: `${scrapQ}× Scrap`, short: '◳', weight: 12, color: 'var(--muted)', reward: { kind: 'scrap', qty: scrapQ } });
+  pods.push({ label: `${essQ} Gene Essence`, short: '⌬', weight: 11, color: 'var(--caustic, #6ad1b0)', reward: { kind: 'geneEssence', qty: essQ } });
+  pods.push({ label: `${ichorQ} Ichor`, short: '◆', weight: 9, color: 'var(--viral)', reward: { kind: 'ichor', qty: ichorQ } });
   const gearRarity = rng() < 0.8 ? ('epic' as const) : ('legendary' as const);
   pods.push({ label: `${gearRarity === 'epic' ? 'Epic' : 'Legendary'} Bio-Gear`, short: 'GEAR', weight: 2, color: 'var(--r-epic)', reward: { kind: 'equipment', rarity: gearRarity } });
   const contRarity = rng() < 0.7 ? 'rare' : rng() < 0.85 ? 'epic' : 'legendary';
@@ -110,11 +130,79 @@ export function rollOutcomes(rng: () => number, board: RouletteSlot[], spores: n
   return Array.from({ length: spores }, () => rollOutcome(rng, board));
 }
 
-/** Aggregate landed rewards for the summary panel (stable label order, quantities merged). */
-export function summarizeRewards(board: RouletteSlot[], outcomes: number[]): { label: string; color: string; count: number }[] {
+/** §surge — a pod in the PREMIUM (surge) pool: the rare half of the board. */
+export function isPremiumPod(slot: RouletteSlot): boolean {
+  return slot.weight <= ROULETTE.surgePoolMaxWeight;
+}
+
+/** One weighted roll RESTRICTED to the premium pool (falls back to the whole board if a
+ *  degenerate composition has no premium pods — never throws). */
+export function rollPremiumOutcome(rng: () => number, board: RouletteSlot[]): number {
+  const pool = board.map((s, i) => ({ s, i })).filter(({ s }) => isPremiumPod(s));
+  if (pool.length === 0) return rollOutcome(rng, board);
+  const total = pool.reduce((a, { s }) => a + s.weight, 0);
+  let r = rng() * total;
+  for (const { s, i } of pool) { r -= s.weight; if (r < 0) return i; }
+  return pool[pool.length - 1].i;
+}
+
+/** §surge — MUTATION SURGE (the pity lane): pre-roll every spore with the guarantee that a
+ *  streak of `ROULETTE.surgeAt` COMMON landings mutates the NEXT spore — it is forced into
+ *  the premium pool. Any premium landing (natural or forced) resets the streak. The design
+ *  contract holds: every spore still pays; the surge only decides WHERE the overdue one lands. */
+export function rollOutcomesWithSurge(
+  rng: () => number,
+  board: RouletteSlot[],
+  spores: number,
+): { outcomes: number[]; surges: boolean[] } {
+  const outcomes: number[] = [];
+  const surges: boolean[] = [];
+  let streak = 0;
+  for (let i = 0; i < spores; i++) {
+    if (streak >= ROULETTE.surgeAt) {
+      const o = rollPremiumOutcome(rng, board);
+      outcomes.push(o);
+      surges.push(true);
+      streak = 0;
+      continue;
+    }
+    const o = rollOutcome(rng, board);
+    outcomes.push(o);
+    surges.push(false);
+    streak = isPremiumPod(board[o]) ? 0 : streak + 1;
+  }
+  return { outcomes, surges };
+}
+
+/** §jackpot — pick the ceremony's ×3 pod: uniform among QUANTITY pods (gear/containers are
+ *  already the board's jackpots — tripling a container would break the economy). */
+export function rollJackpot(rng: () => number, board: RouletteSlot[]): number {
+  const pool = board.map((s, i) => ({ s, i })).filter(({ s }) => s.reward.kind !== 'equipment' && s.reward.kind !== 'container');
+  return pool.length > 0 ? pool[Math.floor(rng() * pool.length)].i : 0;
+}
+
+/** §jackpot — a landed jackpot pod pays triple. Non-quantity rewards pass through untouched. */
+export function tripleReward(reward: RouletteReward): RouletteReward {
+  switch (reward.kind) {
+    case 'cores': case 'ichor': case 'scrap': case 'geneEssence':
+      return { ...reward, qty: reward.qty * ROULETTE.jackpotMult };
+    case 'towerShards': case 'heroShards':
+      return { ...reward, qty: reward.qty * ROULETTE.jackpotMult };
+    default:
+      return reward;
+  }
+}
+
+/** Aggregate landed rewards for the summary panel (stable label order, quantities merged).
+ *  `jackpot` tags that pod's row so the tally shows the ×3. */
+export function summarizeRewards(
+  board: RouletteSlot[],
+  outcomes: number[],
+  jackpot = -1,
+): { label: string; color: string; count: number; jackpot: boolean }[] {
   const byPod = new Map<number, number>();
   for (const o of outcomes) byPod.set(o, (byPod.get(o) ?? 0) + 1);
   return [...byPod.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([i, count]) => ({ label: board[i].label, color: board[i].color, count }));
+    .map(([i, count]) => ({ label: board[i].label, color: board[i].color, count, jackpot: i === jackpot }));
 }

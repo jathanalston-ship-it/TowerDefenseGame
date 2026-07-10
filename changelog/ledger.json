@@ -1,6 +1,6 @@
 {
-  "lastSha": "58ff03ba957630063d89e1f57b102779ffcbd732",
-  "commitsSinceDraft": 0,
+  "lastSha": "da845a428278fd9c001a68a6088509c37be10ccc",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -1543,6 +1543,26 @@
         {
           "cat": "Mega Bosses",
           "text": "Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "PIL P2 — store bundles from one source + sitemap enforcement (riding Chronicle)"
+        },
+        {
+          "cat": "UI",
+          "text": "Overhaul Campaign + Infinite prep screens (visual + functional)"
+        },
+        {
+          "cat": "Optimization",
+          "text": "Main menu overhaul — coherence, hierarchy, optimization (hub shell + Command Center)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Infestation map: collapse to a one-line teaser while dormant"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony"
         }
       ]
     }
@@ -1786,6 +1806,46 @@
       "cat": "Towers",
       "text": "Dil+pil: regen generated docs over the merged tree (mulligans overhaul rebase)",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e982e28ff178dc5c81fa5b57cce1c19eeeb2bd27",
+      "date": "2026-07-10",
+      "cat": "Developer Tools",
+      "text": "PIL P2 — store bundles from one source + sitemap enforcement (riding Chronicle)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "35e04992372b1f99534dbf0f95b9bf9351e16d62",
+      "date": "2026-07-10",
+      "cat": "UI",
+      "text": "Overhaul Campaign + Infinite prep screens (visual + functional)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3bb32f1422fa31b1622ed0972bbbd3fee192ba8c",
+      "date": "2026-07-10",
+      "cat": "Optimization",
+      "text": "Main menu overhaul — coherence, hierarchy, optimization (hub shell + Command Center)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f340e97d4afa3c1bbef6ba69adca86bf9688debc",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Infestation map: collapse to a one-line teaser while dormant",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "da845a428278fd9c001a68a6088509c37be10ccc",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Bio-Roulette overhaul — depth tiers, Mutation Surge pity, jackpot pod, living-organ ceremony",
+      "internal": false,
       "needsReview": false
     }
   ]

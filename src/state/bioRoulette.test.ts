@@ -2,7 +2,7 @@
 // distribution, and the one-click collection grants.
 
 import { describe, it, expect } from 'vitest';
-import { ROULETTE, rollBoard, rollOutcome, rollOutcomes, sporesFor, sporesFromParts, summarizeRewards } from './bioRoulette';
+import { ROULETTE, boardTier, isPremiumPod, rollBoard, rollJackpot, rollOutcome, rollOutcomes, rollOutcomesWithSurge, sporesFor, sporesFromParts, summarizeRewards, tripleReward } from './bioRoulette';
 import { meta } from './meta';
 import { Rng } from '../core/rng';
 
@@ -69,6 +69,68 @@ describe('the board', () => {
     const sum = summarizeRewards(board, [0, 0, 3, 0]);
     expect(sum.find((s) => s.label === board[0].label)?.count).toBe(3);
     expect(sum.find((s) => s.label === board[3].label)?.count).toBe(1);
+  });
+});
+
+describe('depth tiers (§tier)', () => {
+  it('scales quantities with the rush record and caps at ×3', () => {
+    expect(boardTier(0)).toBe(1);
+    expect(boardTier(4)).toBe(1);
+    expect(boardTier(10)).toBe(1.5);
+    expect(boardTier(40)).toBe(3);
+    expect(boardTier(500)).toBe(3);
+  });
+  it('a tiered board pays more per pod than a base board (same seed)', () => {
+    const base = rollBoard(rng(31), ROSTER, 1);
+    const deep = rollBoard(rng(31), ROSTER, 3);
+    const qty = (b: typeof base): number => b.reduce((a, s) => a + ('qty' in s.reward ? s.reward.qty : 0), 0);
+    expect(qty(deep)).toBeGreaterThan(qty(base) * 2);
+    // Labels stay truthful to the paid quantity (one roll, reused).
+    for (const s of deep) if ('qty' in s.reward) expect(s.label.startsWith(String(s.reward.qty))).toBe(true);
+  });
+});
+
+describe('Mutation Surge (§surge — the pity lane)', () => {
+  it('a streak of surgeAt common landings forces the next spore into the premium pool', () => {
+    const board = rollBoard(rng(8), ROSTER);
+    const { outcomes, surges } = rollOutcomesWithSurge(rng(1234), board, 400);
+    let streak = 0;
+    for (let i = 0; i < outcomes.length; i++) {
+      if (streak >= ROULETTE.surgeAt) {
+        expect(surges[i], `spore ${i} should surge after ${streak} commons`).toBe(true);
+        expect(isPremiumPod(board[outcomes[i]])).toBe(true);
+      }
+      streak = isPremiumPod(board[outcomes[i]]) ? 0 : streak + 1;
+    }
+    // With 400 spores the pity MUST have fired at least once (commons dominate the weights).
+    expect(surges.some(Boolean)).toBe(true);
+    expect(outcomes).toHaveLength(400);
+  });
+  it('never marks a natural premium landing as a surge', () => {
+    const board = rollBoard(rng(8), ROSTER);
+    const { outcomes, surges } = rollOutcomesWithSurge(rng(77), board, 200);
+    for (let i = 0; i < outcomes.length; i++) {
+      if (surges[i]) expect(isPremiumPod(board[outcomes[i]])).toBe(true);
+    }
+  });
+});
+
+describe('Jackpot pod (§jackpot)', () => {
+  it('lands on a quantity pod (never gear/containers) and triples exactly its quantities', () => {
+    const board = rollBoard(rng(3), ROSTER);
+    for (let i = 0; i < 40; i++) {
+      const j = rollJackpot(rng(i), board);
+      expect(['equipment', 'container']).not.toContain(board[j].reward.kind);
+    }
+    expect(tripleReward({ kind: 'cores', qty: 4 })).toEqual({ kind: 'cores', qty: 12 });
+    expect(tripleReward({ kind: 'towerShards', tower: 'needle', qty: 5 })).toEqual({ kind: 'towerShards', tower: 'needle', qty: 15 });
+    expect(tripleReward({ kind: 'equipment', rarity: 'epic' })).toEqual({ kind: 'equipment', rarity: 'epic' }); // pass-through
+  });
+  it('the tally tags the jackpot row', () => {
+    const board = rollBoard(rng(5), ROSTER);
+    const sum = summarizeRewards(board, [0, 2, 0], 0);
+    expect(sum.find((r) => r.label === board[0].label)?.jackpot).toBe(true);
+    expect(sum.find((r) => r.label === board[2].label)?.jackpot).toBe(false);
   });
 });
 

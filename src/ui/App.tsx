@@ -149,6 +149,13 @@ export function App(): JSX.Element {
   // Bio-Roulette (docs/BOSS-RUSH.md §roulette): spores earned by the LAST settled rush run —
   // Results routes through the ceremony while this is pending; its exit clears it.
   const [roulette, setRoulette] = useState<{ spores: number } | null>(null);
+  // Dev affordance (?debug&roulette=N): open the Bio-Roulette ceremony directly — the same
+  // pre-rolled pipeline, granted on collect like a real run. Debug builds only.
+  useEffect(() => {
+    if (!isDebugEnabled()) return;
+    const n = Number(new URL(window.location.href).searchParams.get('roulette'));
+    if (Number.isFinite(n) && n > 0) { setRoulette({ spores: Math.min(40, Math.floor(n)) }); setScreen('roulette'); }
+  }, []);
   const begin = useCallback((mode: RunMode, stage: StageConfig | null = null, extraRunEffects: CardEffect[] = []) => {
     seedRef.current = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
     // Snapshot permanent progression + hero choice + equipped loadout at run start
