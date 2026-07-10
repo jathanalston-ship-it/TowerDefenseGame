@@ -145,7 +145,10 @@ export const COMBAT_TUTORIAL: TutorialDef = {
         callout: { eyebrow: 'UPLINK 07 · THE HERO', text: 'Your Hero fights on its own — but its Active Ability is yours. It’s the burst you save for the moment a wave gets past your towers. Arm it (the button, or Q), then click the field to unleash it.', target: '[data-tut="ability"]', side: 'top' } } },
     { id: 'gene-card', title: 'Draft a Gene Card', advance: { kind: 'event', event: 'card-chosen' },
       milestone: { label: 'First strain isolated', essence: 10 },
-      cue: { callout: { eyebrow: 'UPLINK 08 · EVOLUTION', text: 'Time to evolve. You’ll draft a Gene Card: its boost lasts only THIS run, but the card itself joins your permanent Gene Archive, where it can be leveled forever. Pick whichever calls to you.' } } },
+      // focus: the draft mounts mid-step (when its wave settles) — the reachability scroll
+      // brings it into view the moment it appears, on any layout.
+      cue: { focus: '.overlay .cards',
+        callout: { eyebrow: 'UPLINK 08 · EVOLUTION', text: 'Time to evolve. You’ll draft a Gene Card: its boost lasts only THIS run, but the card itself joins your permanent Gene Archive, where it can be leveled forever. Pick whichever calls to you.' } } },
     { id: 'inspect', title: 'Inspect your towers', advance: { kind: 'continue' },
       cue: { spotlight: '.side-panel.inspector',
         callout: { eyebrow: 'UPLINK 09 · KNOW YOUR STRAIN', text: 'We’ve selected your Needle Spitter. The Inspector shows its stats, live Mastery, and — as you push deeper — Branch mutations that re-author how it fires. Look around, then continue.', target: '.side-panel.inspector', side: 'left' } } },

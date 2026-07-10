@@ -137,6 +137,7 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:quests', kind: 'consumes', to: 'system:cosmetics', note: "every quest's finaleCosmetic must be a wardrobe item with source {kind:'quest',quest} (never auto-unlocks; sourceLabel's QUEST_NAMES map is pinned against quest names by quests.test)" },
   { from: 'system:quests', kind: 'references', to: 'system:contracts', note: 'contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)' },
   { from: 'system:quests', kind: 'conflictsWith', to: 'concept:golden-test', note: 'weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE' },
+  { from: 'system:onboarding', kind: 'conflictsWith', to: 'system:run-ui', note: 'PHONE DOCK CONTRACT (docs/TUTORIAL.md §phone): ≤700px the lesson callout DOCKS to the edge opposite its anchor and must never cover the step’s action (the step-3 slot bug); controls live top-right, the banner yields to the draft, and a missing spotlight target renders NO scrim' },
 
   // ── Potential conflicts (landmines discovered in development — check these before editing) ──
   { from: 'system:daily', kind: 'conflictsWith', to: 'system:mulligans', note: 'the Daily SUBSTITUTES seeded organisms via mulliganOverride — account organisms must not leak into a daily run' },

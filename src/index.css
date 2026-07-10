@@ -6589,8 +6589,7 @@ kbd {
   /* Narrow shells: every fixed corner is taken (HUD stack, console, controls, toolbar) — the
      step counter rides INSIDE the callout instead, and the floating pill retires. */
   .tut-objective { display: none; }
-  .tut-callout-step { display: block; }
-  .tut-milestone { top: auto; left: auto; bottom: calc(var(--safe-b, 0px) + 130px); right: 10px; }
+  .tut-callout-step { display: block; float: right; margin: 1px 0 0 10px; color: var(--muted); }
 }
 /* Wave console under tutorial lock: intel stays, launch controls are held by the director. */
 .wb-tutlock { display: flex; align-items: center; padding: 10px 16px; border-radius: var(--r-sm); border: 1px dashed var(--line-strong); background: var(--panel-2); color: var(--muted); font-size: 12px; letter-spacing: 0.06em; min-width: 0; white-space: normal; line-height: 1.35; }
@@ -6609,6 +6608,49 @@ kbd {
 .tut-ctl:hover { color: var(--text); border-color: var(--vital); }
 .tut-skip { color: var(--dim); }
 .tut-paused-veil { position: fixed; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); background: rgba(4, 7, 12, 0.55); }
+
+/* ── THE PHONE DOCK (docs/TUTORIAL.md §phone) — placed AFTER the base .tut rules so the
+   overrides win the cascade. A floating bubble lands mid-board on narrow shells — over the
+   very slots the lesson asks the player to tap (the step-3 bug). Docked to the edge OPPOSITE
+   the step's anchor, the transmission reads as an uplink banner and the action stays clear. ── */
+@keyframes tut-dock-down { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+@keyframes tut-dock-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (max-width: 700px) {
+  .tut-callout.is-docked {
+    left: 8px; right: 8px; width: auto; max-width: none;
+    padding: 12px 14px 12px 15px;
+    border-left: 3px solid var(--vital);
+    background: color-mix(in srgb, var(--panel) 90%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 14px 44px -14px #000, 0 0 26px -10px color-mix(in srgb, var(--vital) 50%, transparent);
+    max-height: 40dvh; overflow: hidden;
+  }
+  .tut-callout.dock-top { top: calc(var(--safe-t, 0px) + 48px); bottom: auto; animation: tut-dock-down var(--dur-3) var(--ease-out) both; }
+  .tut-callout.dock-bottom { top: auto; bottom: calc(var(--safe-b, 0px) + 8px); animation: tut-dock-up var(--dur-3) var(--ease-out) both; }
+  .tut-callout.is-docked .tut-callout-eyebrow { float: left; margin-bottom: 4px; }
+  .tut-callout.is-docked .tut-callout-text { clear: both; padding-top: 2px; font-size: 13px; line-height: 1.45; }
+  .tut-callout.is-docked .tut-continue { display: block; width: 100%; margin-top: 10px; padding: 9px 0; text-align: center; }
+  .tut-callout.is-docked .tut-waiting { margin-top: 8px; }
+  /* Pause/Skip retire to a compact translucent top-right row — the bottom-right corner IS the
+     toolbar on phones (the pills sat ~30% over the hero ability button). --tut-ctl-top drops
+     them below a spotlight that holds the top band (set inline by the overlay). */
+  .tut-controls { top: var(--tut-ctl-top, calc(var(--safe-t, 0px) + 8px)); bottom: auto; right: 8px; gap: 6px; transition: top var(--dur-3) var(--ease-out); }
+  .tut-ctl {
+    padding: 5px 12px; font-size: 11px; min-height: 30px;
+    background: color-mix(in srgb, var(--panel) 78%, transparent);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  /* Milestone toast joins the top strip beside the controls (pointer-transparent; it must never
+     ride over the board or the toolbar). */
+  .tut-milestone { top: calc(var(--safe-t, 0px) + 8px); bottom: auto; left: 8px; right: auto; max-width: 58%; padding: 8px 12px; }
+  /* While the Gene-Card draft is up, the lesson YIELDS: the banner collapses to its eyebrow
+     strip so no card sits behind it — the draft's own header carries the moment (progressive
+     enhancement — without :has the banner stays translucent and pointer-transparent). */
+  .tut-runner:has(.overlay .cards) .tut-callout.is-docked { max-height: 46px; opacity: 0.94; }
+  /* …and floating side sheets stand down: a hero console opened by a stray field tap must
+     never sit OVER the modal draft on a phone. */
+  .tut-runner:has(.overlay .cards) .hero-panel { display: none; }
+}
 /* ── The tutorial's cinematic COLD OPEN — the film hands the trial to RELAY 7 (letterboxed, tap to
    dismiss). Rides over the live (god-mode) board so the world is already breathing beneath it. ── */
 .tut-cine-open { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(3, 5, 9, 0.6); cursor: pointer; animation: fade-in 0.5s ease both; }
@@ -6620,7 +6662,7 @@ kbd {
 .tut-cine-title { margin-top: 12px; font-size: 26px; font-weight: 900; letter-spacing: 0.14em; color: #fff; text-shadow: 0 0 26px rgba(255, 210, 77, 0.35), 0 4px 18px rgba(0, 0, 0, 0.9); animation: intro-line 1.1s var(--ease-out) 0.55s both; }
 .tut-cine-sub { margin-top: 10px; font-size: 14px; color: var(--muted); letter-spacing: 0.06em; animation: intro-line 1s var(--ease-out) 1.1s both; }
 @media (prefers-reduced-motion: reduce) {
-  .tut-ring, .tut-arrow, .tut-callout { animation: none; }
+  .tut-ring, .tut-arrow, .tut-callout, .tut-callout.dock-top, .tut-callout.dock-bottom { animation: none; }
   .tut-cine-open, .tut-cine-bar-top, .tut-cine-bar-bot, .tut-cine-eyebrow, .tut-cine-title, .tut-cine-sub { animation-duration: 0.01s; }
   .tut-caret { animation: none; }
   .tut-obj-bar i { transition: none; }

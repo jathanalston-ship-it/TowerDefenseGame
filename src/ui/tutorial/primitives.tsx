@@ -8,10 +8,12 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 type Side = 'top' | 'bottom' | 'left' | 'right';
 
 /** Spotlight — dim ALL UI except the target rect (four dim panels around a hole), with a pulsing
- * outline on the target. No rect ⇒ a full dim scrim. The hole passes clicks through to the target;
- * the panels swallow clicks elsewhere (focuses interaction on the highlighted element). */
-export function Spotlight({ rect, padding = 8 }: { rect: DOMRect | null; padding?: number }): JSX.Element {
-  if (!rect) return <div className="tut-dim tut-dim-full" />;
+ * outline on the target. No rect ⇒ a full dim scrim by default; `dimWhenMissing={false}` renders
+ * nothing instead (the tutorial uses it so a late-mounting/hidden target can never black out the
+ * lesson — the HudTour keeps the scrim as its backdrop). The hole passes clicks through to the
+ * target; the panels swallow clicks elsewhere (focuses interaction on the highlighted element). */
+export function Spotlight({ rect, padding = 8, dimWhenMissing = true }: { rect: DOMRect | null; padding?: number; dimWhenMissing?: boolean }): JSX.Element | null {
+  if (!rect) return dimWhenMissing ? <div className="tut-dim tut-dim-full" /> : null;
   const x = Math.max(0, rect.left - padding);
   const y = Math.max(0, rect.top - padding);
   const w = rect.width + padding * 2;
@@ -83,6 +85,19 @@ export function Callout({
   }, []);
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  // PHONE DOCK (docs/RESPONSIVE-DESIGN.md §tutorial): on narrow shells a floating bubble lands
+  // mid-board — directly over the build slots the lesson is asking the player to tap. Instead
+  // the lesson DOCKS to the viewport edge OPPOSITE its anchor (target in the top half → dock
+  // bottom; toolbar/no-target steps → dock top), so the action zone is never covered. Same
+  // breakpoint as the narrow-shell tutorial chrome (the objective pill retires there too).
+  if (vw <= 700) {
+    const anchorTop = !!rect && !offViewport(rect) && rect.top + rect.height / 2 < vh * 0.45;
+    return (
+      <div ref={selfRef} className={`tut-callout is-docked ${anchorTop ? 'dock-bottom' : 'dock-top'}`} role="dialog">
+        {children}
+      </div>
+    );
+  }
   const pad = 8;
   const clampX = (x: number): number => Math.max(pad, Math.min(x, vw - pad - dims.w));
   const clampY = (y: number): number => Math.max(pad, Math.min(y, vh - pad - dims.h));

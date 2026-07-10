@@ -71,3 +71,11 @@
 - `225834d` **[Gameplay]** Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge
 - `115b5be` **[Gameplay]** LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console
 - `f5373f6` **[Gameplay]** Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge
+- `2eeec9f` **[Gameplay]** Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge
+- `dac8987` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
+- `83122a0` **[Gameplay]** Doctrines: overhaul + expand — three families, gates, mastery ranks, shared picker
+- `7adcd65` **[Bosses]** Nemesis & Trophy overhaul: grudge ladder + vengeance organs + multi-slot rack
+- `2116bd7` **[Heroes]** Champion Contracts overhaul: 14-verb vocabulary, 8-week pool, Perfect Week, near-misses
+- `7000546` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
+- `b1c2d4c` **[Security]** Security hardening: run-settle replay protection + cross-tab write arbitration
+- `afabd1c` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap

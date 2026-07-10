@@ -9,7 +9,7 @@
 // banner — the film's RELAY 7 voice establishing the trial — then the lessons run as typed uplink
 // transmissions (Typewriter) with a soft `tut_step` blip on every completed checkpoint.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { audio } from '../../audio/sound';
 import { tutorial } from '../../state/tutorial';
 import { currentCheckpoint } from '../../core/tutorial';
@@ -62,13 +62,16 @@ export function TutorialOverlay(): JSX.Element | null {
   // scrolls, so a step's target can start below the fold. Every checkpoint AUTO-SCROLLS its primary
   // target into view (nested scroll containers included), and re-asserts shortly after in case the
   // target mounted late or a panel transition moved it. A tutorial must never point at nothing.
-  const targetSel = cue?.arrow?.target ?? cue?.callout?.target ?? cue?.spotlight ?? null;
+  // `cue.focus` joins the fallback chain so a step whose surface mounts mid-step (the Gene-Card
+  // draft opens only when its wave settles) still gets brought into view — the late-mount window
+  // is generous for exactly that case.
+  const targetSel = cue?.arrow?.target ?? cue?.callout?.target ?? cue?.spotlight ?? cue?.focus ?? null;
   useEffect(() => {
     if (!targetSel) return;
     let tries = 0;
     const bring = (): void => {
       const el = document.querySelector(targetSel);
-      if (!el) { if (++tries < 10) t = window.setTimeout(bring, 250); return; } // late-mounting target
+      if (!el) { if (++tries < 60) t = window.setTimeout(bring, 400); return; } // late-mounting target (draft opens at wave end)
       const r = el.getBoundingClientRect();
       const out = r.top < 0 || r.bottom > window.innerHeight || r.left < 0 || r.right > window.innerWidth;
       if (out) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
@@ -104,8 +107,9 @@ export function TutorialOverlay(): JSX.Element | null {
   return (
     <div className={`tut-overlay ${paused ? 'is-paused' : ''}`}>
       {/* Only dim when a step actually declares a spotlight — arrow/callout-only steps must leave the
-          board fully interactive (else the full-dim fallback would block tower placement / casting). */}
-      {cue?.spotlight && <Spotlight rect={spotlightRect} />}
+          board fully interactive. dimWhenMissing=false: a hidden/late target renders NO scrim (a
+          lesson must never black out the screen it is teaching). */}
+      {cue?.spotlight && <Spotlight rect={spotlightRect} dimWhenMissing={false} />}
       {cue?.focus && <CameraFocus target={cue.focus} />}
       {cue?.arrow && <TutorialArrow rect={arrowRect} from={cue.arrow.from} />}
 
@@ -132,7 +136,15 @@ export function TutorialOverlay(): JSX.Element | null {
         {advanceKind === 'event' && <div className="tut-waiting">Complete the objective to continue…</div>}
       </Callout>
 
-      <div className="tut-controls">
+      {/* On phones the pills live in the top strip — when a spotlight holds that band (the
+          Hive-Core lesson), they drop just below its ring so the spotlit HUD stays pristine.
+          The CSS var only applies inside the phone block; desktop keeps its bottom corner. */}
+      <div
+        className="tut-controls"
+        style={spotlightRect && spotlightRect.top < 96
+          ? ({ ['--tut-ctl-top' as string]: `${Math.round(spotlightRect.bottom + 14)}px` } as CSSProperties)
+          : undefined}
+      >
         <button className="tut-ctl" onClick={() => (paused ? tutorial.resume() : tutorial.pause())}>
           {paused ? 'Resume' : 'Pause'}
         </button>

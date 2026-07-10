@@ -1,6 +1,6 @@
 {
-  "lastSha": "f5373f603a6bc55e1a5b77b0a306bdd8e9eb773c",
-  "commitsSinceDraft": 4,
+  "lastSha": "afabd1cb542ae89f8d2e4124c3f9c225d73e886d",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -128,6 +128,9 @@
       "roulette_50",
       "rush_bosses50",
       "rush_bosses250",
+      "contract_first",
+      "contract_12",
+      "perfect_week",
       "apex_slayer",
       "annihilation",
       "deep_fauna",
@@ -232,6 +235,7 @@
       "cutscenes",
       "security",
       "biomes",
+      "doctrines",
       "difficulty",
       "website",
       "rendering",
@@ -1448,6 +1452,26 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Doctrines",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Perfect Week",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Sworn Champion",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Under Contract",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Weekly Directives",
           "major": true
         },
@@ -1691,6 +1715,26 @@
         {
           "cat": "Gameplay",
           "text": "LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Doctrines: overhaul + expand — three families, gates, mastery ranks, shared picker"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Nemesis & Trophy overhaul: grudge ladder + vengeance organs + multi-slot rack"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Champion Contracts overhaul: 14-verb vocabulary, 8-week pool, Perfect Week, near-misses"
+        },
+        {
+          "cat": "Security",
+          "text": "Security hardening: run-settle replay protection + cross-tab write arbitration"
         }
       ]
     }
@@ -2197,6 +2241,70 @@
       "date": "2026-07-10",
       "cat": "Gameplay",
       "text": "Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2eeec9f2cc78e710fbd5cab1b09c22ff4b01c698",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Quests follow-ups: rollover mail pays season XP; completions surface on Results + a nav badge",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "dac898729fe6ee896a95d41ad7ba82e2902dd73a",
+      "date": "2026-07-10",
+      "cat": "Bug Fixes",
+      "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "83122a006d04aa282c23859e808b668db987a0c4",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Doctrines: overhaul + expand — three families, gates, mastery ranks, shared picker",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7adcd658eef9d4e00a1aacfb9bb6a118f1effe9d",
+      "date": "2026-07-10",
+      "cat": "Bosses",
+      "text": "Nemesis & Trophy overhaul: grudge ladder + vengeance organs + multi-slot rack",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2116bd716e22c313f9a45945de764000513ee5c7",
+      "date": "2026-07-10",
+      "cat": "Heroes",
+      "text": "Champion Contracts overhaul: 14-verb vocabulary, 8-week pool, Perfect Week, near-misses",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "700054604438652373ca0aaa89ed62c41be43b29",
+      "date": "2026-07-10",
+      "cat": "Bug Fixes",
+      "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b1c2d4cd4df932aa1903f3158f2aba9dac7a40be",
+      "date": "2026-07-10",
+      "cat": "Security",
+      "text": "Security hardening: run-settle replay protection + cross-tab write arbitration",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "afabd1cb542ae89f8d2e4124c3f9c225d73e886d",
+      "date": "2026-07-10",
+      "cat": "Bug Fixes",
+      "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap",
       "internal": false,
       "needsReview": false
     }

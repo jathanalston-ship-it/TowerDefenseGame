@@ -150,3 +150,24 @@ TRANSMISSIONS: every authored callout carries an `eyebrow` uplink header (`UPLIN
 ~1.1s, tap-to-complete, reduced-motion shows it whole), the objective tracker fills an uplink
 progress bar, a soft `tut_step` blip marks every COMPLETED checkpoint (never a retry), and genuine
 completion lands the `tut_done` graduation stinger under the reward reveal.
+
+## §phone — the dock contract (docs/RESPONSIVE-DESIGN.md §tutorial)
+
+**A lesson must never cover the action it is asking for.** On narrow shells (≤700px) the
+floating callout bubble is replaced by a DOCKED transmission banner (`.tut-callout.is-docked`,
+`primitives.tsx`): the lesson docks to the viewport edge OPPOSITE its anchor — a target in the
+top 45% (the HUD spotlights) docks the banner to the bottom; toolbar anchors and target-less
+steps dock to the top, clear of the build-slot rows. Pause/Skip retire to a compact translucent
+top-right row (their old bottom corner sat on the hero ability button), dropping below any
+spotlight that holds the top band (`--tut-ctl-top`, set inline by the overlay). The milestone
+toast rides the top-left strip. While the Gene-Card draft is up the banner COLLAPSES to its
+eyebrow strip and floating side sheets stand down (`:has(.overlay .cards)`) — the draft owns the
+screen. Reachability: `cue.focus` joins the auto-scroll fallback chain with a generous
+late-mount window, so a surface that opens mid-step (the draft appears when its wave settles)
+is still brought into view; a missing spotlight target renders NO scrim
+(`dimWhenMissing={false}`) instead of blacking out the lesson.
+
+Verified by a headless per-step geometry audit at 390×844: at every checkpoint the required
+interaction surfaces (continue button / tower card + all 15 build slots / ability button + cast
+zone / draft cards) are asserted unobstructed and pointer-reachable, then the full 10-checkpoint
+trial is completed end-to-end. Desktop (>700px) keeps the measured floating bubble unchanged.

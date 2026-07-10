@@ -12,6 +12,26 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Doctrines",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Perfect Week",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Sworn Champion",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Under Contract",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Weekly Directives",
         "major": true
       },
@@ -255,6 +275,26 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gameplay",
         "text": "LiveOps overhaul: expanded event calendar + Weekly Directives ladder + unified operations console"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Doctrines: overhaul + expand — three families, gates, mastery ranks, shared picker"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Nemesis & Trophy overhaul: grudge ladder + vengeance organs + multi-slot rack"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Champion Contracts overhaul: 14-verb vocabulary, 8-week pool, Perfect Week, near-misses"
+      },
+      {
+        "cat": "Security",
+        "text": "Security hardening: run-settle replay protection + cross-tab write arbitration"
       }
     ]
   },

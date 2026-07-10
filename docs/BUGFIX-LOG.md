@@ -77,3 +77,28 @@ credited as a kill (no bounty/mastery/stat) — a 1-tick artifact of the system 
 (damage → move → death). "Fixing" it (skip-if-dead before the breach check) changes
 Integrity/kill/biomass outcomes → golden drift. Recorded here; revisit only if the
 system order is ever reworked.
+
+---
+
+## 13 · Mobile tutorial — the lesson bubble sat on the very slots it asked you to tap
+
+**Symptom (user report).** On phones, step 3 ("Place a Needle Spitter") could not be
+completed: the tutorial dialogue floated mid-screen, directly over the glowing build
+slots. A per-step geometry audit showed it was systemic — the floating callout covered
+ALL 15 build slots on steps 3/4/7/8 (10/15 on 6/10), and the Pause/Skip pills sat ~30%
+over the hero ability button for the whole trial.
+
+**Root cause.** The `Callout` primitive positions a measured bubble beside its ANCHOR
+(the tower card / HUD cell) with viewport clamping — on a 390×844 phone "beside the
+toolbar anchor, clamped" IS the lower board, and centered fallbacks land mid-board. The
+bubble is pointer-transparent, so automated force-taps passed while a human sees the
+slot band hidden. Controls were fixed to the bottom-right corner, which on phones is
+the toolbar itself.
+
+**Fix.** Phone dock contract (docs/TUTORIAL.md §phone): ≤700px the lesson docks to the
+edge OPPOSITE its anchor (never over the action), controls move to a translucent
+top-right row that ducks below top-band spotlights, the banner collapses to its eyebrow
+strip while the draft is open, side sheets stand down under the draft, `cue.focus`
+joins the auto-scroll chain (late-mounting draft), and a missing spotlight target no
+longer blacks out the screen. Gated by a headless per-step no-overlap audit + full
+10-checkpoint completion at 390×844.
