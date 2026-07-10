@@ -1,3 +1,10 @@
-# Cloudflare Pages SPA fallback: serve index.html for any path (200, not 301),
-# so client-side routes resolve correctly. Harmless for the current single-page app.
+# Front door (docs/WEBSITE.md §routing): the marketing site owns the root — the bare
+# domain 302s to /welcome/ (redirects outrank static assets on Cloudflare Pages, so this
+# wins over dist/index.html). The GAME lives at /play — no asset exists there, so the
+# SPA fallback below serves the app shell. 302 (not 301) so the front door stays
+# reversible; flip to 301 once the layout is settled.
+/    /welcome/    302
+
+# SPA fallback: serve the app shell for any non-asset path (200 rewrite — existing
+# static assets shadow it), so /play and client-side routes resolve correctly.
 /*    /index.html    200

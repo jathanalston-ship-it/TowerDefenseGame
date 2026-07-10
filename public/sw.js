@@ -10,7 +10,10 @@
 
 const VERSION = '__SW_VERSION__';
 const CACHE = `asm-${VERSION}`;
-const SHELL = ['/', '/index.html', '/manifest.json'];
+// The game shell lives at /play (the root 302s to the marketing site — see
+// public/_redirects); precaching '/' would store a redirected response, which
+// navigations must not be answered with.
+const SHELL = ['/play', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

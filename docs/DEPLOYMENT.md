@@ -69,7 +69,7 @@ Design rules this deployment follows:
 ├─ vite.config.ts          build: hashed assets, vendor chunk, source maps
 ├─ public/
 │  ├─ _headers             CSP + security headers + immutable asset caching
-│  └─ _redirects           SPA fallback (/* → /index.html 200)
+│  └─ _redirects           front door (/ → /welcome/ 302) + SPA fallback (/* → /index.html 200; game at /play)
 ├─ migrations/
 │  └─ 0001_init.sql        D1 schema (purchases/fulfillments/webhook_events/
 │                          cloud_saves/leaderboard/rate_limits)

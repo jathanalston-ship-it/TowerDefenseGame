@@ -47,11 +47,11 @@ patch('index.html', (s) => {
   s = setAbs(s, 'name="twitter:image" content="', '/og.png');
   // og:url — insert after og:site_name if absent, else rewrite
   if (s.includes('property="og:url"')) {
-    s = s.replace(/(property="og:url" content=")[^"]*(")/, `$1${origin}/$2`);
+    s = s.replace(/(property="og:url" content=")[^"]*(")/, `$1${origin}/play$2`);
   } else {
     s = s.replace(
       '<meta property="og:site_name" content="ASSIMILATE" />',
-      `<meta property="og:site_name" content="ASSIMILATE" />\n    <meta property="og:url" content="${origin}/" />`,
+      `<meta property="og:site_name" content="ASSIMILATE" />\n    <meta property="og:url" content="${origin}/play" />`,
     );
   }
   return s;
@@ -69,7 +69,11 @@ patch('public/sitemap.xml', (s) => s.replace(/https:\/\/[^/<]+\//g, `${origin}/`
 
 if (contact) {
   for (const f of ['public/welcome/privacy.html', 'public/welcome/terms.html']) {
-    patch(f, (s) => s.replace(/PLACEHOLDER_CONTACT/g, `<a href="mailto:${contact}">${contact}</a>`));
+    // First stamp replaces the placeholder; re-runs rewrite the previously stamped
+    // mailto (so switching to a dedicated support address later stays one command).
+    patch(f, (s) => s
+      .replace(/PLACEHOLDER_CONTACT/g, `<a href="mailto:${contact}">${contact}</a>`)
+      .replace(/<a href="mailto:[^"]+">[^<]+<\/a>/g, `<a href="mailto:${contact}">${contact}</a>`));
   }
 }
 

@@ -15,8 +15,13 @@ Static, dependency-free pages served by the same Pages deployment (zero extra in
 | `/welcome/privacy.html` | Privacy Policy — honest behavioral skeleton, **must be completed by counsel before launch** |
 | `/welcome/terms.html` | Terms of Service — topic skeleton, **must be completed before launch** |
 
-The game stays at `/` (players' bookmarks, PWA start_url). Point marketing links at
-`/welcome/`; optionally add a Cloudflare redirect rule from a `www.` host to it.
+**Routing (§routing): the marketing site is the FRONT DOOR.** The bare domain 302s to
+`/welcome/` (`public/_redirects` — redirects outrank static assets on Pages) and the
+GAME lives at **`/play`** (no asset there, so the SPA fallback serves the app shell).
+PWA `start_url`, the SW shell precache, `og:url`, share/Stripe-return URLs, and the
+sitemap all point at `/play`; `/welcome/forward.js` forwards game-bound query params
+(`replay`/`checkout`/`session_id`) that land on the front door, so old root deep-links
+keep working. Flip the root rule to 301 once the layout is settled.
 The trailer is REAL: `/welcome/trailer.webm` — a ~46s cinema cut (title cards →
 garrison siege → apex boss + hero → the Vesperine mega raid, weak-point kill and death)
 captured FRAME-BY-FRAME from the actual build (Playwright fake-clock stepping at 30fps,

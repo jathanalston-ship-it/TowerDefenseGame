@@ -86,5 +86,5 @@ export async function decodeReplayCode(code: string): Promise<ReplayRecord | nul
 /** A shareable link for short codes; null when the code must travel as plain text. */
 export function replayShareUrl(code: string): string | null {
   if (code.length > MAX_URL_CODE_CHARS || typeof window === 'undefined') return null;
-  return `${window.location.origin}/?replay=${code}`;
+  return `${window.location.origin}/play?replay=${code}`;
 }
