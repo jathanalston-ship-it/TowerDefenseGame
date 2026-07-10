@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 634 nodes · 1057 edges, built from the live
+> **The project's brain** (docs/DIL.md). 639 nodes · 1062 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -8,7 +8,7 @@
 ## Gap report (the graph's own radar)
 
 - **Systems with no test:** `system:infinite`, `system:field-research`, `system:shards-economy`, `system:i18n`, `system:expeditions`, `system:nemesis`, `system:run-ui`, `system:devtools`, `system:ui-kit`
-- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PLACEHOLDER-ART.md`, `PLAYTEST-CHECKLIST.md`, `POLYP.md`, `PRODUCTION-READINESS.md` · …17 more
+- **Docs referenced by no system (review for retirement):** `ADVANCED-SYSTEMS.md`, `ARCHITECTURE-AUDIT.md`, `BACKLOG.md`, `BALANCE_ARCHITECTURE.md`, `BRANCH-EVOLUTION.md`, `BUGFIX-LOG.md`, `CONTENT-ROADMAP.md`, `DEV-FRAMEWORKS.md`, `DIL_GRAPH.md`, `EA-DESIGN-AUDIT.md`, `ENEMIES.md`, `ENEMY-ROSTER.md`, `GAME-STATE.md`, `HISTORY.md`, `HIVE-SIEGE.md`, `IDENTITY-AUDIT.md`, `LIVING-HIVE.md`, `PLACEHOLDER-ART.md`, `PLAYTEST-CHECKLIST.md`, `POLYP.md` · …18 more
 
 ## Indexes
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:profile` · `system:onboarding` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -73,6 +73,7 @@ graph LR
   system_stats["Lifetime Stats"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_contracts["Champion Contracts"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_infestation["Infestation Map"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_chronicle["Chronicle (patch-note pipeline)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_expeditions["Hero Expeditions"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_cosmetics["Phenotypes (Cosmetics)"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -249,6 +250,8 @@ graph LR
   system_infestation["Infestation Map"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_infestation["Infestation Map"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
   system_infestation["Infestation Map"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_chronicle["Chronicle (patch-note pipeline)"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_chronicle["Chronicle (patch-note pipeline)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_expeditions["Hero Expeditions"] -->|dependsOn| system_heroes["Heroes"]
   system_expeditions["Hero Expeditions"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_expeditions["Hero Expeditions"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -472,7 +475,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (53)
+## Systems (54)
 
 ### `system:engine` — Sim Engine
 
@@ -502,7 +505,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…158 more (query: `npm run dil -- node system:engine`)_
+  - _…159 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1108,6 +1111,17 @@ _at: src/core/infestation.ts, src/render/infestationMap.ts, src/ui/components/In
   - documentedBy ← `doc:INFESTATION.md`
   - testedBy ← `test:src/render/infestationMap.test.ts`
 
+### `system:chronicle` — Chronicle (patch-note pipeline)
+
+Automated git-history documentation (docs/CHANGELOG-PIPELINE.md): npm run notes classifies every commit (pure classifier, standard categories, review flags), diffs the content registries for major additions, and regenerates the committed artifacts — releases.gen.ts (in-game Update Briefing, save v28 patchNotes.seen/optOut), site/patchnotes.json (the /news/ page via npm run site), docs/HISTORY.md, dev-blog drafts every ≥10 commits.
+
+_at: src/changelog/types.ts, src/changelog/classify.ts, src/changelog/releases.gen.ts, src/ui/UpdateBriefing.tsx_
+
+  - dependsOn → `system:meta-store`
+  - consumes → `system:meta-store` — owns save field 'patchNotes'
+  - documentedBy ← `doc:CHANGELOG-PIPELINE.md`
+  - testedBy ← `test:src/changelog/classify.test.ts`
+
 ### `system:expeditions` — Hero Expeditions
 
 The benched-hero idle lane (docs/EXPEDITIONS.md): owned-but-unfielded heroes run real-time away-missions (absolute endsAt timestamps — offline-safe, testable now params) on a 7-mission board with class affinity (+25%), risk tiers (deterministic hash-rolled windfalls/setbacks), rare finds, and a per-mission mastery ledger (save v27). HeroLab panel: offer matrix with projected multipliers, progress bars, outcome claim ceremony.
@@ -1286,7 +1300,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…74 more (query: `npm run dil -- node system:meta-store`)_
+  - _…76 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2351,7 +2365,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (141)
+## Documentation (143)
 
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
 - `doc:ADAPTATION.md` — project documentation _(documents `system:mastery`)_
@@ -2373,6 +2387,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:CAMPAIGN-EVENTS.md` — project documentation _(documents `system:campaign`)_
 - `doc:CAMPAIGN.md` — project documentation _(documents `system:campaign`)_
 - `doc:CARDS.md` — project documentation _(documents `system:gene-cards`)_
+- `doc:CHANGELOG-PIPELINE.md` — project documentation _(documents `system:chronicle`)_
 - `doc:CODEMAP.md` — project documentation _(documents `system:engine`, documents `system:content-infra`)_
 - `doc:COLLECTION.md` — project documentation _(documents `system:collection`)_
 - `doc:COMMAND-CENTER.md` — project documentation _(documents `system:hub-shell`)_
@@ -2414,6 +2429,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HERO-FRAMEWORK.md` — project documentation _(documents `system:heroes`)_
 - `doc:HERO-SELECTION.md` — project documentation _(documents `system:heroes`)_
 - `doc:HEROES.md` — project documentation _(documents `system:heroes`)_
+- `doc:HISTORY.md` — project documentation
 - `doc:HIVE-SIEGE.md` — project documentation
 - `doc:HOME-BASE.md` — project documentation _(documents `system:hub-shell`)_
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
@@ -2495,9 +2511,10 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (196)
+## Tests (198)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
+- `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
 - `test:src/core/ability.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/adaptation.test.ts` — automated validation _(tests `system:mastery`)_
 - `test:src/core/artillery.test.ts` — automated validation _(tests `system:engine`)_
@@ -2674,6 +2691,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/nemesis.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/nextGoal.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/state/notifications.test.ts` — automated validation _(tests `system:notifications`)_
+- `test:src/state/patchNotes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/powerEvents.test.ts` — automated validation _(tests `system:power`)_
 - `test:src/state/powerIntegration.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumEconomy.test.ts` — automated validation _(tests `system:engine`)_
