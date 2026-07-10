@@ -601,7 +601,7 @@ _at: src/ui/InfiniteScreen.tsx_
 
 The DIL public extension: page registry + media manifest joined to the knowledge graph; impact analysis (game changed -> which public surfaces update), structural rot audit (ghost refs, broken links, placeholders), staleness reporting.
 
-_at: src/dev/pil/pil.ts_
+_at: src/dev/pil/pil.ts, src/dev/pil/storeCopy.ts_
 
   - dependsOn → `system:dev-registry`
   - documentedBy ← `doc:PIL.md`

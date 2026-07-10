@@ -29,3 +29,12 @@
 - `2a8ef60` **[Website]** Website overhaul — the public face of ASSIMILATE (SEO, AdSense-ready, retention, marketing)
 - `656fd21` **[Website]** Site: regenerate with stamped contact + merged forwarding
 - `7b5da81` **[Website]** Chronicle patch-note pipeline, unified with the generated site
+- `3b97504` **[Developer Tools]** Design Intelligence Layer — the project's living knowledge graph (src/dev/dil)
+- `8ac9864` **[Developer Tools]** Dil: regen graph doc after the Chronicle pipeline landed (drift test doing its job) _(internal)_
+- `0042e8e` **[Developer Tools]** GitHub Actions production deploy to Cloudflare Pages _(internal)_
+- `df23f9f` **[UX]** Multi-platform responsive overhaul: layout profiles, portrait tutorial unblocked, matrix-enforced zero-list
+- `9f701be` **[Developer Tools]** Responsive gate follow-up: probe the game at its new /play home _(internal)_
+- ⚑ `2527341` **[Framework]** Dil: regen graph after registering the responsive-layer files _(internal)_
+- `c5f1914` **[Mega Bosses]** Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split
+- `210362d` **[Developer Tools]** Public Intelligence Layer P1 — the public knowledge graph over the DIL _(internal)_
+- `58ff03b` **[Towers]** Dil+pil: regen generated docs over the merged tree (mulligans overhaul rebase) _(internal)_

@@ -12,6 +12,11 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Public Intelligence Layer",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Marketing Website",
         "major": true
       },
@@ -100,6 +105,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Website",
         "text": "Chronicle patch-note pipeline, unified with the generated site"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Design Intelligence Layer — the project's living knowledge graph (src/dev/dil)"
+      },
+      {
+        "cat": "UX",
+        "text": "Multi-platform responsive overhaul: layout profiles, portrait tutorial unblocked, matrix-enforced zero-list"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split"
       }
     ]
   },

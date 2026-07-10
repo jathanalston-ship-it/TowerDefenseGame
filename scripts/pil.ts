@@ -4,8 +4,9 @@
 //   npm run pil -- staleness            advisory: pages whose referenced systems moved since review
 //   npm run pil -- regen                rewrite docs/PIL_REPORT.md (audit + staleness + inventory)
 
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { allMediaAssets, allPublicPages, auditPublic, buildPil, publicImpact, stalenessReport } from '../src/dev/pil/pil';
+import { DESCRIPTION_LONG, FEATURE_BULLETS, GAME_NAME, SEO_KEYWORDS, SHORT_DESC, STORE_TARGETS, TAGLINE } from '../src/dev/pil/storeCopy';
 
 const [cmd, arg] = process.argv.slice(2).filter((a) => a !== '--');
 
@@ -56,8 +57,40 @@ if (cmd === 'impact' && arg) {
   }
 } else if (cmd === 'staleness') {
   for (const s of stalenessReport()) console.log(`  ~ ${s.page} ← ${s.ref} (source changed ${s.sourceChanged})`);
+} else if (cmd === 'release') {
+  // STORE BUNDLES (docs/PIL.md §stores): the latest Chronicle release (site/patchnotes.json)
+  // + the canonical store copy → one reviewed .md per storefront. Written ONCE, emitted
+  // everywhere; character caps enforced per store so a paste can never be rejected.
+  interface Patch { date: string; title: string; items: { cat: string; text: string }[] }
+  const latest = (JSON.parse(readFileSync('site/patchnotes.json', 'utf-8')) as Patch[])[0];
+  const shots = allMediaAssets().filter((a) => a.kind === 'screenshot');
+  mkdirSync('store', { recursive: true });
+  for (const t of STORE_TARGETS) {
+    const whatsNewFull = `${latest.title} (${latest.date})\n` + latest.items.map((i) => `• [${i.cat}] ${i.text}`).join('\n');
+    const whatsNew = whatsNewFull.length > t.whatsNewMax ? `${whatsNewFull.slice(0, t.whatsNewMax - 1)}…` : whatsNewFull;
+    const shortDesc = SHORT_DESC[t.id];
+    if (shortDesc.length > t.shortDescMax) {
+      console.error(`pil release: ${t.label} short description exceeds ${t.shortDescMax} chars (${shortDesc.length}) — fix src/dev/pil/storeCopy.ts`);
+      process.exit(1);
+    }
+    const L = [
+      `# ${GAME_NAME} — ${t.label} listing (GENERATED — 'npm run pil -- release'; edit src/dev/pil/storeCopy.ts)`,
+      '',
+      `## Tagline`, TAGLINE, '',
+      `## Short description (${shortDesc.length}/${t.shortDescMax})`, shortDesc, '',
+      '## Long description', DESCRIPTION_LONG, '',
+      '## Feature bullets', ...FEATURE_BULLETS.map((b) => `- ${b}`), '',
+      `## What's new (${whatsNew.length}/${t.whatsNewMax})`, '```', whatsNew, '```', '',
+      '## SEO / store keywords', SEO_KEYWORDS.join(', '), '',
+      '## Screenshot checklist (from the PIL media manifest)',
+      ...(shots.length ? shots.map((s) => `- [${s.status === 'current' ? 'x' : ' '}] ${s.path} (captured ${s.capturedAt})`) : ['- [ ] capture gameplay screenshots into public/media/shots/ (they auto-join the manifest)']),
+      '',
+    ];
+    writeFileSync(`store/${t.id}.md`, L.join('\n'));
+  }
+  console.log(`pil release: store/{${STORE_TARGETS.map((t) => t.id).join(',')}}.md regenerated from '${latest.title}' + storeCopy.ts`);
 } else if (cmd === 'regen') {
   regen();
 } else {
-  console.log('usage: npm run pil -- impact <nodeId> | audit | staleness | regen');
+  console.log('usage: npm run pil -- impact <nodeId> | audit | staleness | release | regen');
 }

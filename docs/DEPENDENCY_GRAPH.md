@@ -282,7 +282,7 @@ graph TD
 
 *The DIL public extension: page registry + media manifest joined to the knowledge graph; impact analysis (game changed -> which public surfaces update), structural rot audit (ghost refs, broken links, placeholders), staleness reporting.*
 
-- **Files:** `src/dev/pil/pil.ts`
+- **Files:** `src/dev/pil/pil.ts` · `src/dev/pil/storeCopy.ts`
 - **Depends on:** `dev-registry`
 - **Consumers — what breaks if you change this:** —
 - **Power Score:** — (intentionally none)

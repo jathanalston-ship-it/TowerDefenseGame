@@ -232,7 +232,19 @@ export function auditPublic(): PilFinding[] {
     for (const term of DEPRECATED_TERMS) if (html.includes(term)) findings.push({ page: p.path, kind: 'deprecated-term', detail: `uses retired terminology '${term}'` });
   }
 
-  // 5) Manifest assets exist on disk.
+  // 5) SEO: every registered page is in the committed sitemap (gen-site writes it;
+  //    a page missing from it is invisible to crawlers — structural rot).
+  const sitemapPath = join(PUBLIC_ROOT, 'sitemap.xml');
+  if (existsSync(sitemapPath)) {
+    const sitemap = readFileSync(sitemapPath, 'utf-8');
+    for (const p2 of pages) {
+      if (p2.path === '404.html') continue; // deliberately unlisted
+      const url = `/${p2.path.replace(/index\.html$/, '')}`;
+      if (!sitemap.includes(`${url}</loc>`)) findings.push({ page: p2.path, kind: 'sitemap-missing', detail: `${url} not in public/sitemap.xml (npm run site regenerates)` });
+    }
+  }
+
+  // 6) Manifest assets exist on disk.
   for (const a of allMediaAssets()) {
     if (!existsSync(join(PUBLIC_ROOT, a.path))) findings.push({ page: a.path, kind: 'missing-asset', detail: `manifest asset '${a.id}' not on disk` });
   }

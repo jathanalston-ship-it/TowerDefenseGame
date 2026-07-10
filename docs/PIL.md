@@ -51,11 +51,25 @@ npm run pil -- regen                  # rewrite docs/PIL_REPORT.md
 - **Staleness sweep** → `pil -- staleness` compares each page's `lastReviewed` against the git
   mtimes of the systems it references — the "the game moved; re-read this page" list.
 
+## The release lane (division of labor with Chronicle)
+
+**Chronicle** (`npm run notes`, docs/CHANGELOG-PIPELINE.md) already owns commit history → release
+truth: the in-game Update Briefing (`src/changelog/releases.gen.ts`), the website patch notes
+(`site/patchnotes.json` → /news/), `docs/HISTORY.md`, and dev-blog DRAFTS every ≥10 commits.
+The PIL rides on top of that single source:
+
+- **`npm run pil -- release`** → `store/{steam,googleplay,appstore}.md`: canonical marketing copy
+  (`src/dev/pil/storeCopy.ts` — tagline, descriptions, feature bullets, SEO keywords) + the latest
+  Chronicle release as each store's "What's New" + the screenshot checklist from the media
+  manifest. Per-store character caps are ENFORCED at generation (a paste can never be rejected).
+  Written once, emitted everywhere — updating a listing is editing `storeCopy.ts` and re-running.
+- **Sitemap enforcement**: gen-site writes `public/sitemap.xml`; the PIL audit fails if any
+  registered page is missing from it (SEO rot is structural rot).
+
 ## Seams left open (next passes)
 
-- **Release pipeline**: single-source `releases.ts` → patch-notes page + in-game What's New +
-  per-store "what's new"/description bundles + SEO keywords (no duplicate writing).
-- **Blog cadence**: `pil -- blog-draft` scaffolding a draft from the git log since the last release.
 - **Screenshot automation**: the responsive gate's headless harness (scripts/mobilecheck.ts) can
-  capture per-screen shots into `public/media/shots/` with manifest entries stamped per commit.
-- **Store listings**: Steam/Google Play/App Store copy as data files under the same audit.
+  capture per-screen shots into `public/media/shots/` with manifest entries stamped per commit
+  (they auto-join the manifest and the store checklists today).
+- **Per-shot curation**: `depicts` defaults to gameplay for auto-joined shots; curate as the
+  library grows so `pil -- impact` flags exactly the right captures.

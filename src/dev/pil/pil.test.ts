@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { allMediaAssets, allPublicPages, auditPublic, buildPil, publicImpact } from './pil';
+import { SHORT_DESC, STORE_TARGETS } from './storeCopy';
 
 describe('PIL — the public knowledge graph', () => {
   it('structural audit is clean (unregistered pages / ghost refs / broken links / placeholders / missing assets)', () => {
@@ -35,6 +36,15 @@ describe('PIL — the public knowledge graph', () => {
     const guidePages = pages.filter((p) => p.id.startsWith('page:guide-'));
     expect(guidePages.length).toBeGreaterThanOrEqual(15);
     for (const p of guidePages) expect(p.references[0]).toMatch(/^guide:/); // linked back to its DIL guide node
+  });
+
+  it('store bundles exist, are generated, and respect per-store caps', () => {
+    for (const t of STORE_TARGETS) {
+      const doc = readFileSync(`store/${t.id}.md`, 'utf-8');
+      expect(doc).toContain('GENERATED');
+      expect(SHORT_DESC[t.id].length).toBeLessThanOrEqual(t.shortDescMax);
+      expect(doc).toContain(SHORT_DESC[t.id]); // the canonical copy IS the bundle (no drift)
+    }
   });
 
   it('docs/PIL_REPORT.md is fresh (run `npm run pil -- regen`)', () => {

@@ -80,7 +80,7 @@ export const SYSTEMS: SystemDef[] = [
   },
   {
     id: 'pil', name: 'Public Intelligence Layer', purpose: 'The DIL public extension: page registry + media manifest joined to the knowledge graph; impact analysis (game changed -> which public surfaces update), structural rot audit (ghost refs, broken links, placeholders), staleness reporting.',
-    files: ['src/dev/pil/pil.ts'], // CLI: scripts/pil.ts (the walker scans src/ only)
+    files: ['src/dev/pil/pil.ts', 'src/dev/pil/storeCopy.ts'], // CLI: scripts/pil.ts (the walker scans src/ only)
     dependsOn: ['dev-registry'], powerScore: null, save: [], tutorial: [], help: [],
     hud: [], ui: [], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/PIL.md'],

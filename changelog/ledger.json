@@ -1,6 +1,6 @@
 {
-  "lastSha": "7b5da8193c03594c35282f5b8cb508a32723df82",
-  "commitsSinceDraft": 4,
+  "lastSha": "58ff03ba957630063d89e1f57b102779ffcbd732",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -181,6 +181,7 @@
       "power",
       "campaign",
       "infinite",
+      "pil",
       "accounts",
       "boss-rush",
       "daily",
@@ -1437,6 +1438,11 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Public Intelligence Layer",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Marketing Website",
           "major": true
         },
@@ -1525,6 +1531,18 @@
         {
           "cat": "Website",
           "text": "Chronicle patch-note pipeline, unified with the generated site"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Design Intelligence Layer — the project's living knowledge graph (src/dev/dil)"
+        },
+        {
+          "cat": "UX",
+          "text": "Multi-platform responsive overhaul: layout profiles, portrait tutorial unblocked, matrix-enforced zero-list"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split"
         }
       ]
     }
@@ -1696,6 +1714,78 @@
       "cat": "Website",
       "text": "Chronicle patch-note pipeline, unified with the generated site",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3b97504510c4240e61b004696a261c13bfa5406e",
+      "date": "2026-07-10",
+      "cat": "Developer Tools",
+      "text": "Design Intelligence Layer — the project's living knowledge graph (src/dev/dil)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8ac98644f932c50387c4969c0341f1c6f87b2301",
+      "date": "2026-07-10",
+      "cat": "Developer Tools",
+      "text": "Dil: regen graph doc after the Chronicle pipeline landed (drift test doing its job)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0042e8eb1bef3753cf0daa3555febe918244a560",
+      "date": "2026-07-10",
+      "cat": "Developer Tools",
+      "text": "GitHub Actions production deploy to Cloudflare Pages",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "df23f9f047f7329ef5e86e4205a961b9fec3c979",
+      "date": "2026-07-10",
+      "cat": "UX",
+      "text": "Multi-platform responsive overhaul: layout profiles, portrait tutorial unblocked, matrix-enforced zero-list",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "9f701be3513ebf7f4b664efba71e95672b6a828e",
+      "date": "2026-07-10",
+      "cat": "Developer Tools",
+      "text": "Responsive gate follow-up: probe the game at its new /play home",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "25273414512306473b4bd87ff33f73abdc7faf70",
+      "date": "2026-07-10",
+      "cat": "Framework",
+      "text": "Dil: regen graph after registering the responsive-layer files",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "c5f1914617cfff680d22b9fccb8ef6e823f99a18",
+      "date": "2026-07-10",
+      "cat": "Mega Bosses",
+      "text": "Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "210362d34e1c056c82f64ae6fb7f1af13607da31",
+      "date": "2026-07-10",
+      "cat": "Developer Tools",
+      "text": "Public Intelligence Layer P1 — the public knowledge graph over the DIL",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "58ff03ba957630063d89e1f57b102779ffcbd732",
+      "date": "2026-07-10",
+      "cat": "Towers",
+      "text": "Dil+pil: regen generated docs over the merged tree (mulligans overhaul rebase)",
+      "internal": true,
       "needsReview": false
     }
   ]

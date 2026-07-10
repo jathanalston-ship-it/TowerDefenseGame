@@ -8,9 +8,15 @@
       "Towers",
       "Heroes",
       "UX",
-      "Website"
+      "Website",
+      "Developer Tools",
+      "Mega Bosses"
     ],
     "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Public Intelligence Layer"
+      },
       {
         "cat": "Gameplay",
         "text": "★ New system: Marketing Website"
@@ -98,6 +104,18 @@
       {
         "cat": "Website",
         "text": "Chronicle patch-note pipeline, unified with the generated site"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Design Intelligence Layer — the project's living knowledge graph (src/dev/dil)"
+      },
+      {
+        "cat": "UX",
+        "text": "Multi-platform responsive overhaul: layout profiles, portrait tutorial unblocked, matrix-enforced zero-list"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Full overhaul — exclusivity, mega-boss gate, reforge wheel, collection split"
       }
     ]
   },
