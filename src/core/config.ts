@@ -495,7 +495,7 @@ export function enemyDeathCue(def: EnemyDef): string {
  *  (no per-shot cue). Golden-safe: a cue never touches wave/kills/integrity/biomass. */
 export function towerFireCue(kind: TowerKind): string {
   switch (kind) {
-    case 'needle': case 'spire': return 'tfire_tick'; // a sharp kinetic/synaptic snap
+    case 'needle': case 'spire': case 'spitfang': return 'tfire_tick'; // a sharp kinetic/synaptic snap (autocannon included — gap caught by the DIL checklist)
     case 'mortar': return 'tfire_thud'; // a heavy lobbed thud
     case 'parasite': case 'maw': case 'polyp': case 'sower': return 'tfire_wet'; // a wet organic blip
     case 'obelisk': case 'effigy': return 'tfire_zap'; // a psionic zap

@@ -158,18 +158,22 @@ the current task rather than re-deriving it from scratch.
 
 ---
 
-## 🔎 Targeted reading — inspect the minimum
+## 🔎 Targeted reading — consult the DIL first, then inspect the minimum
 
-Before opening files, decide what's actually relevant and read only that. The
-repo is the cost surface for tokens and attention alike; traversing it wholesale
-is the waste this rule prevents.
+**The Design Intelligence Layer (docs/DIL.md) exists so you don't search the repo.** Before
+opening files: `npm run dil -- node <id>` / `affects <id>` / `requires <id>` / `find <text>`
+answers "what connects to what" from the live knowledge graph (docs/DIL_GRAPH.md is the written
+form). Check `conflictsWith` edges on anything you're about to touch, and run
+`npm run dil -- checklist <tower|hero|enemy> <id>` when integrating content. **When you learn a
+relationship the graph doesn't know, add one line to `src/dev/dil/knowledge.ts`** — that is the
+recursive-improvement contract; after content/system changes, `npm run dil -- regen`.
 
-- **Name the likely-relevant files first**, then open only those.
+- **Name the likely-relevant files first** (the DIL's `at:` fields name them), then open only those.
 - **Don't recursively explore directories** or skim unrelated code "for
   context."
 - **Read incrementally.** If a file turns out to be necessary, open it then — not
   preemptively.
-- **Minimize traversal.** Prefer a targeted search (symbol, path) over walking
+- **Minimize traversal.** Prefer a DIL query, then a targeted search (symbol, path), over walking
   the tree; widen scope only when the task demonstrably needs it.
 
 ---

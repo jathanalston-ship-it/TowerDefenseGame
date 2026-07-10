@@ -25,6 +25,7 @@
     "test": "vitest run",
     "site": "vite-node scripts/gen-notes.ts && vite-node scripts/gen-site.ts",
     "blog:draft": "vite-node scripts/blog-draft.ts",
+    "dil": "vite-node scripts/dil.ts",
     "docs:graph": "vite-node scripts/gen-depgraph.ts",
     "notes": "vite-node scripts/gen-notes.ts",
     "docs:check": "vite-node scripts/doc-sync.ts",

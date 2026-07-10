@@ -410,10 +410,10 @@ export const SYSTEMS: SystemDef[] = [
     collection: null, achievements: [], localization: 'inline-en', docs: ['docs/UI-STANDARDS.md', 'docs/STYLE-GUIDE.md', 'docs/UI-MOTION.md', 'docs/VISUAL_IDENTITY.md', 'docs/UI_STYLE_GUIDE.md', 'docs/DESIGN_LANGUAGE.md', 'docs/RESPONSIVE-DESIGN.md'],
   },
   {
-    id: 'dev-registry', name: 'System Registry & Doc Tooling', purpose: 'THIS registry + the doc-sync/validation generators (dev-only).',
-    files: ['src/dev/*'],
+    id: 'dev-registry', name: 'System Registry & Design Intelligence Layer', purpose: 'THIS registry + the doc-sync/validation generators + the DIL (src/dev/dil/*): the typed knowledge graph over every system/entity/concept — query with `npm run dil` instead of searching the repo (docs/DIL.md).',
+    files: ['src/dev/*', 'src/dev/dil/*'],
     dependsOn: [], powerScore: null, save: [], tutorial: [], help: [], hud: [], ui: [], collection: null, achievements: [],
-    localization: 'none', docs: ['docs/DEPENDENCY_GRAPH.md', 'docs/ENGINEERING-AUDIT.md', 'docs/GAME_CONSTITUTION.md', 'docs/PROJECT_STATUS.md', 'docs/AI_HANDOFF.md'],
+    localization: 'none', docs: ['docs/DIL.md', 'docs/DEPENDENCY_GRAPH.md', 'docs/ENGINEERING-AUDIT.md', 'docs/GAME_CONSTITUTION.md', 'docs/PROJECT_STATUS.md', 'docs/AI_HANDOFF.md'],
   },
 ];
 
