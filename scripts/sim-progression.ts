@@ -39,8 +39,8 @@ let md = `# PROGRESSION_REPORT.md — simulated player progression
 
 ## Hour-band medians (p50, with p10–p90 spread)
 
-| Hours | Power | Campaign stage | Infinite best | Molts | Account level | Runs | Farm share |
-|---|---|---|---|---|---|---|---|
+| Hours | Power | Campaign stage | Infinite best | Molts | Account level | Genome rating | Runs | Farm share |
+|---|---|---|---|---|---|---|---|---|
 `;
 for (let b = 0; b < BANDS.length; b++) {
   const at = traces.map((t) => t.checkpoints[b]).filter(Boolean);
@@ -48,7 +48,7 @@ for (let b = 0; b < BANDS.length; b++) {
   const col = (f: (c: (typeof at)[0]) => number): string =>
     `${fmt(q(at.map(f), 0.5))} <sub>${fmt(q(at.map(f), 0.1))}–${fmt(q(at.map(f), 0.9))}</sub>`;
   const farm = at.map((c) => (c.runs > 0 ? (100 * c.farmRuns) / c.runs : 0));
-  md += `| ${BANDS[b]} | ${col((c) => c.power)} | ${col((c) => c.stage)} | ${col((c) => c.bestWave)} | ${col((c) => c.molts)} | ${col((c) => c.accountLevel)} | ${col((c) => c.runs)} | ${Math.round(q(farm, 0.5))}% |\n`;
+  md += `| ${BANDS[b]} | ${col((c) => c.power)} | ${col((c) => c.stage)} | ${col((c) => c.bestWave)} | ${col((c) => c.molts)} | ${col((c) => c.accountLevel)} | ${col((c) => c.genomeRating)} | ${col((c) => c.runs)} | ${Math.round(q(farm, 0.5))}% |\n`;
 }
 
 const allFlags = { deadProgression: 0, wallStall: 0, powerSpike: 0, sinkExhaustion: 0 };

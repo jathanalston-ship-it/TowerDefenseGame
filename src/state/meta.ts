@@ -48,9 +48,9 @@ import { ASCENDANT_NODES, ascendantBonuses, ascendantCost, nextAscendantCost } f
 import { accumulateStats } from './stats';
 import { DEVICE_PREF_KEYS } from './prefs';
 import { announcePower } from './powerEvents';
-import { achievementById, checkAchievements, rewardFor } from './achievements';
+import { ACHIEVEMENTS, achievementById, checkAchievements, rewardFor } from './achievements';
 import type { AchievementDef, RunSummary } from './achievements';
-import { CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower, teamSetEffects } from '../core/equipment';
+import { ALL_ITEMS, CAPPED_GRANT_ITEMS, EQUIP_SLOTS, emptyLoadout, itemDef, loadoutEffects, rollItem, rollItemDrop, rollItemForPower, teamSetEffects } from '../core/equipment';
 import type { EquipSlot, Loadout, OwnedItem } from '../core/equipment';
 import { ICHOR, ichorForAchievement, ichorForBossRecord, ichorForDepthRecord, marketWindow, nextRushIchorAt, rollIchorDrop, rollRushVaultRarity, rollStock, vaultsForBossRecord } from '../core/market';
 import type { MarketSlot } from '../core/market';
@@ -87,16 +87,18 @@ import type { MechanicDef } from './mechanics';
 import { unlatchedReveals } from './unlocks';
 import { ACCOUNT_XP, accountLevelReward, levelFromXp, levelProgress, monthKey, nextMilestone, weekKey } from '../core/accountLevel';
 import type { AccountLevelReward } from '../core/accountLevel';
+import { genomeAdvice, genomeBreakdown, genomeRankReward, genomeRating, rankFromRating, rankName, romanNumeral } from '../core/genomeRank';
+import type { GenomeAdvice, GenomeContribution, GenomeRankReward, GenomeRankView, GenomeSnapshot } from '../core/genomeRank';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionEconomyBonuses, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
 import { cosmeticById, cosmeticRegistry, cultivatePool, nemesisPool, CULTIVATE_COST } from '../core/cosmetics';
 import {
-  earnedAutoItems, wardrobeItem, wardrobeItemsOf, wardrobeMilestone, WARDROBE_KINDS, WARDROBE_MILESTONES,
+  earnedAutoItems, wardrobeItem, wardrobeItemsOf, wardrobeMilestone, WARDROBE_ITEMS, WARDROBE_KINDS, WARDROBE_MILESTONES,
 } from '../core/wardrobe';
 import type { WardrobeItemDef, WardrobeKind, WardrobePayload, WardrobeUnlockCtx, WardrobeMilestone } from '../core/wardrobe';
 import {
-  BP, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, seasonForWindow, seasonTracks, xpToReach,
+  BP, PASS_PASSIVES, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, seasonForWindow, seasonTracks, xpToReach,
 } from '../core/battlePass';
 import type { PassReward, SeasonDef } from '../core/battlePass';
 import { activeContracts, contractSatisfied, contractWeekKey } from '../core/contracts';
@@ -394,6 +396,12 @@ let pendingMegaCutscenes: string[] = [];
 // Level-ups earned OUTSIDE a run settle (buying stars, upgrading genes, molting …) queue here
 // and are drained by the menu toaster, so a level-up is always visible wherever it happens.
 let pendingAccountLevelUps: AccountLevelUp[] = [];
+
+// ── Genome Rank (docs/GENOME-RANK.md) — promotions queue for the cinematic ─────────────────
+// The rating is DERIVED; promotions are detected against the celebrated watermark by
+// pollGenomePromotions (finishRun + the menu drain) and celebrated exactly once.
+export interface GenomePromotion { index: number; name: string; numeral: string; reward: GenomeRankReward }
+let pendingGenomePromotions: GenomePromotion[] = [];
 
 /** Fold gained Account XP onto a save DRAFT: lifetime + rolling week/month ledgers, then every
  *  crossed level's procedurally generated reward (cores/essence/shards/mats/ichor/containers/
@@ -1890,6 +1898,9 @@ export const meta = {
     const passLevelUp = this.grantPassXp('run', passXp);
     // Wardrobe auto-unlocks ride the same seam (new stage/depth/daily/rush/roulette records).
     this.pollWardrobeUnlocks();
+    // Genome Rank promotions (docs/GENOME-RANK.md): the settle may have crossed a rank —
+    // grant + queue now so the cinematic fires the moment the player returns to the menu.
+    this.pollGenomePromotions();
     // The settle's TOTAL Account-XP delta (run fold + the achievement fold inside evaluate) —
     // drained here so Results owns this settle's level-ups (the menu toaster shows the rest).
     const acctAfter = store.get().accountXp.xp;
@@ -4464,6 +4475,100 @@ export const meta = {
   /** Drain level-ups earned OUTSIDE a run settle (spends, molts …) — the menu toaster's feed. */
   drainAccountLevelUps(): AccountLevelUp[] {
     return pendingAccountLevelUps.splice(0);
+  },
+
+  // ── Genome Rank (docs/GENOME-RANK.md) ─────────────────────────────────────
+  /** The plain-number snapshot the pure rating core consumes. Completion denominators are the
+   *  LIVE content registries, so shipping new towers/cards/items automatically deepens the
+   *  ladder. A future system integrates here (one field) + one GENOME_SOURCES row. */
+  genomeSnapshot(): GenomeSnapshot {
+    const save = store.get();
+    const towers = TOWER_ORDER.length;
+    const heroes = HERO_ORDER.length;
+    const cards = cardRegistry.ids().length;
+    const sumRec = (r: Record<string, number>): number => Object.values(r).reduce((a, n) => a + (n ?? 0), 0);
+    const masteryLevels =
+      TOWER_ORDER.reduce((a, k) => a + masteryLevel(save.towerMasteryXp[k] ?? 0), 0) +
+      HERO_ORDER.reduce((a, k) => a + masteryLevel(save.heroMasteryXp[k] ?? 0), 0);
+    const assembled = TOWER_ORDER.filter((k) => {
+      const m = save.mulligans[k];
+      return m && m.slots.length >= MULLIGAN_SLOTS && m.slots.every((s) => s !== null);
+    }).length;
+    const geneLevels = Object.keys(save.genes).reduce((a, id) => a + geneLevel(save.genes, id), 0);
+    return {
+      accountLevel: levelFromXp(save.accountXp.xp),
+      campaignStage: highestCampaignStage(save),
+      bestWave: save.bestWave,
+      rushBestBoss: save.rushBestBoss,
+      dailyCompletions: save.daily.completions,
+      powerScore: composePower(accountPowerParts(save)).score,
+      molts: save.prestige.molts,
+      masteryLevels,
+      lifetimeIchor: save.lifetimeIchor,
+      titles: save.unlockedTitles.length,
+      towerStarRatio: sumRec(save.towerStars) / (towers * 10), // 10 = the evolution design target
+      strainRatio: sumRec(save.stats.towerBestStrain) / (towers * 5),
+      mulliganRatio: assembled / towers,
+      heroRatio: (save.heroUnlocked.length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
+      gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,
+      geneRatio: (save.stats.uniqueCards.length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,
+      achievementRatio: (save.achievements ?? []).length / ACHIEVEMENTS.length,
+      collectionCompletion: collectionView(collectionContextOf(save)).completion,
+      cosmeticRatio: (save.cosmetics.owned.length / cosmeticRegistry.ids().length + save.wardrobe.owned.length / WARDROBE_ITEMS.length) / 2,
+      passScore: Math.min(1, save.battlePass.permanents.length / PASS_PASSIVES.length)
+        + 0.25 * Object.values(save.battlePass.completions).reduce((a, n) => a + n, 0),
+    };
+  },
+  /** The live Genome Rank view — rating + the rank ladder position (docs/GENOME-RANK.md). */
+  genomeRank(): GenomeRankView {
+    return rankFromRating(genomeRating(this.genomeSnapshot()));
+  },
+  /** Per-source contribution bars (Profile breakdown). */
+  genomeBreakdown(): GenomeContribution[] {
+    return genomeBreakdown(this.genomeSnapshot());
+  },
+  /** The Genome Progress Advisor — the biggest realistic rating opportunities right now. */
+  genomeAdvice(n = 4): GenomeAdvice[] {
+    return genomeAdvice(this.genomeSnapshot(), n);
+  },
+  /** Detect rank crossings past the celebrated watermark; grant each crossed rank's one-time
+   *  reward (cores/ichor/container + the rank title) and queue its promotion for the cinematic.
+   *  Idempotent: the watermark persists WITH the rewards, so a crash can't double-pay. */
+  pollGenomePromotions(): GenomePromotion[] {
+    const save = store.get();
+    const view = rankFromRating(genomeRating(this.genomeSnapshot()));
+    const from = Math.max(1, save.genomeRank.celebrated);
+    if (view.index <= from) return [];
+    const fresh: GenomePromotion[] = [];
+    let draft: SaveData = { ...save, genomeRank: { celebrated: view.index } };
+    let timeline = draft.timeline;
+    for (let i = from + 1; i <= view.index; i++) {
+      const reward = genomeRankReward(i);
+      fresh.push({ index: i, name: rankName(i), numeral: romanNumeral(i), reward });
+      draft = {
+        ...draft,
+        shards: draft.shards + reward.cores,
+        lifetimeShards: draft.lifetimeShards + reward.cores,
+        ichor: draft.ichor + reward.ichor,
+        lifetimeIchor: draft.lifetimeIchor + reward.ichor,
+        pendingContainers: [
+          ...draft.pendingContainers,
+          ...reward.containers.map((chestId): PendingContainer => ({ kind: 'cache', chestId })),
+        ],
+        unlockedTitles: draft.unlockedTitles.includes(reward.titleId)
+          ? draft.unlockedTitles
+          : [...draft.unlockedTitles, reward.titleId],
+      };
+      timeline = pushTimeline(timeline, '⟁', `Genome Rank ${romanNumeral(i)} — ${rankName(i)}`);
+    }
+    persist({ ...draft, timeline });
+    pendingGenomePromotions.push(...fresh);
+    return fresh;
+  },
+  /** Drain queued promotions — the menu cinematic's feed (polls first, so menu grants count). */
+  drainGenomePromotions(): GenomePromotion[] {
+    this.pollGenomePromotions();
+    return pendingGenomePromotions.splice(0);
   },
 
   // ── Progression Director (docs/PROGRESSION-GATING.md) ─────────────────────

@@ -326,6 +326,13 @@ export const SYSTEMS: SystemDef[] = [
     achievements: [], localization: 'inline-en', docs: ['docs/ACCOUNT-LEVEL.md'],
   },
   {
+    id: 'genome-rank', name: 'Genome Rank (ultimate mastery ladder)', purpose: 'Hidden Genome Rating from weighted contributions of EVERY major system (GENOME_SOURCES — data-driven); prestigious ranks Dormant → Living Catastrophe, then infinite; one-time promotion rewards + titles; Progress Advisor names the easiest remaining rating.',
+    files: ['src/core/genomeRank.ts', 'src/ui/components/GenomeRankPanel.tsx'],
+    dependsOn: ['meta-store', 'account-level', 'power', 'collection'], powerScore: null, save: ['genomeRank'],
+    tutorial: [], help: [], hud: [], ui: ['PlayerProfile (emblem + breakdown + advisor)', 'App (promotion cinematic)', 'Profile standings tab'], collection: null,
+    achievements: [], localization: 'inline-en', docs: ['docs/GENOME-RANK.md'],
+  },
+  {
     id: 'progression-gating', name: 'Progression Gating & Director', purpose: 'The reveal framework: one registry deciding when every hub screen/currency unlocks, teasers + unlock briefings, reveal latching, exposure tracking, cognitive-load bands.',
     files: ['src/state/unlocks.ts', 'src/state/progressionDirector.ts', 'src/state/navBus.ts'],
     dependsOn: ['meta-store', 'campaign', 'onboarding'], powerScore: null, save: ['director'],

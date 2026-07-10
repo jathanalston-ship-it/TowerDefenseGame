@@ -27,6 +27,7 @@ import { formatPower } from '../core/power';
 import { AccountXpBar, rewardLine } from './components/AccountXpBar';
 import { ACCOUNT_TITLES, MILESTONE_LEVELS, accountLevelReward } from '../core/accountLevel';
 import { LeaderboardBlock } from './components/LeaderboardBlock';
+import { GenomeRankPanel } from './components/GenomeRankPanel';
 import type { LbMode } from '../net/leaderboard';
 
 const CAREER_SECTIONS: ProfileSectionId[] = ['combat', 'economy', 'campaign', 'infinite', 'bossrush', 'collection'];
@@ -135,6 +136,10 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         </div>
       </section>
 
+      {/* ── 1a · GENOME RANK — the ultimate mastery ladder (docs/GENOME-RANK.md): the emblem,
+          what feeds the rating, and the Advisor's easiest next points. ── */}
+      <GenomeRankPanel onNavigate={onNavigate} />
+
       {/* ── 1b · ACCOUNT LEVEL — the evergreen lane (docs/ACCOUNT-LEVEL.md): the full bar,
           what the next level pays, and the milestone track. Never caps; always one more. ── */}
       <section className="pf-block pf-axp" aria-label="Account level">
@@ -163,9 +168,9 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         {/* Account standings (docs/ACCOUNT-LEVEL.md §leaderboards) — all-time level plus the
             weekly/monthly XP races. Fail-soft: offline renders the block's quiet one-liner. */}
         <div className="axp-board-tabs" role="tablist" aria-label="Account standings board">
-          {(['accountLevel', 'weeklyXp', 'monthlyXp'] as const).map((m) => (
+          {(['accountLevel', 'weeklyXp', 'monthlyXp', 'genomeRating'] as const).map((m) => (
             <button key={m} role="tab" aria-selected={board === m} className={`fork-opt ${board === m ? 'on' : ''}`} onClick={() => setBoard(m)}>
-              {m === 'accountLevel' ? 'Highest Level' : m === 'weeklyXp' ? 'Weekly XP' : 'Monthly XP'}
+              {m === 'accountLevel' ? 'Highest Level' : m === 'weeklyXp' ? 'Weekly XP' : m === 'monthlyXp' ? 'Monthly XP' : 'Genome Rank'}
             </button>
           ))}
         </div>

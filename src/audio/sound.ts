@@ -384,6 +384,14 @@ function sLevelUp(): void {
   tone(880, 0.34, 'sine', 0.13, 932); // held bloom with a gentle upward bend
   noise(0.22, 0.035, 6500);
 }
+// GENOME RANK PROMOTION (docs/GENOME-RANK.md §cinematic) — the biggest personal fanfare in the
+// kit: a low organic swell under a rising two-step into a held two-voice bloom. Rare by design.
+function sPromotion(): void {
+  tone(110, 0.5, 'sawtooth', 0.05, 165); // the sub-swell (the organism stirs)
+  tone(330, 0.16, 'triangle', 0.1); tone(415, 0.16, 'triangle', 0.1); // rising steps
+  tone(523, 0.5, 'sine', 0.13, 587); tone(659, 0.5, 'sine', 0.1, 698); // the held bloom
+  noise(0.4, 0.03, 4200);
+}
 
 export const audio = {
   resume(): void {
@@ -503,6 +511,7 @@ export const audio = {
         case 'achieve': sAchieve(); break;
         case 'unlock': sUnlock(); break;
         case 'levelup': sLevelUp(); break;
+        case 'promotion': sPromotion(); break;
         case 'power': sPower(); break;
         case 'mastery': sMastery(); break;
         case 'rankup': sRankUp(); break;

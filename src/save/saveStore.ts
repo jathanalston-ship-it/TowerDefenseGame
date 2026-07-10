@@ -181,6 +181,10 @@ export interface SaveData {
   // ── Account Level (docs/ACCOUNT-LEVEL.md): lifetime Account XP (level is DERIVED — one source
   //    of truth) + rolling week/month XP ledgers (leaderboard feed). Additive; golden-safe. ──
   accountXp: { xp: number; week: { key: string; xp: number }; month: { key: string; xp: number } };
+  // ── Genome Rank (docs/GENOME-RANK.md): the rating + rank are always DERIVED from the whole
+  //    save (meta.genomeRank); the ONLY stored piece is the ceremony/reward watermark — the
+  //    highest rank index already celebrated and paid. Additive; golden-safe. ──
+  genomeRank: { celebrated: number };
   // ── Gene Cards — permanent progression (schema v18, docs/GENE-EVOLUTION.md). Sparse per-card state
   //    (level / rarity-tier / ascension / skin), keyed by the card's permanent id. Absent id ⇒ base
   //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
@@ -593,6 +597,7 @@ export function defaultSave(): SaveData {
     help: { seen: [], primed: false, hudTour: false },
     director: { revealed: {}, visits: {} },
     accountXp: { xp: 0, week: { key: '', xp: 0 }, month: { key: '', xp: 0 } },
+    genomeRank: { celebrated: 1 },
     genes: {},
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
@@ -666,6 +671,12 @@ function sanitizeAccountXp(raw: unknown): SaveData['accountXp'] {
     return { key: typeof p.key === 'string' ? p.key : '', xp: num(p.xp) };
   };
   return { xp: num(o.xp), week: period(o.week), month: period(o.month) };
+}
+/** Coerce the Genome Rank watermark: a finite rank index ≥ 1 (rank I never celebrates). */
+function sanitizeGenomeRank(raw: unknown): SaveData['genomeRank'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const n = Math.floor(Number(o.celebrated));
+  return { celebrated: Number.isFinite(n) && n >= 1 ? n : 1 };
 }
 /** Coerce the Progression Director ledgers to string → finite ≥0 int maps (junk entries dropped). */
 function sanitizeDirector(raw: unknown): SaveData['director'] {
@@ -928,6 +939,7 @@ function withDefaults(data: SaveData): SaveData {
     help: sanitizeHelp(data.help),
     director: sanitizeDirector((data as { director?: unknown }).director), // additive: pre-director saves ⇒ empty ledgers
     accountXp: sanitizeAccountXp((data as { accountXp?: unknown }).accountXp), // additive: pre-level saves ⇒ zero XP
+    genomeRank: sanitizeGenomeRank((data as { genomeRank?: unknown }).genomeRank), // additive: pre-rank saves ⇒ watermark I
     genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
     // v18→v19: Starting Gene Loadout. Pre-v19 ⇒ 1 slot, empty loadout; junk ids/duplicates dropped.
     geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),

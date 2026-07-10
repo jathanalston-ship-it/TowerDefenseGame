@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { fetchTop, maybeSubmitBest } from '../../net/leaderboard';
 import type { LbMode, LbView } from '../../net/leaderboard';
+import { romanNumeral } from '../../core/genomeRank';
 
 /** Per-mode display strings — the account boards carry XP as `score` and LEVEL as `wave`. */
 const LB_STRINGS: Record<LbMode, { context: (v: LbView) => string; score: (e: { score: number; wave: number }) => string }> = {
@@ -14,6 +15,7 @@ const LB_STRINGS: Record<LbMode, { context: (v: LbView) => string; score: (e: { 
   accountLevel: { context: () => 'All-time account levels', score: (e) => `LV ${e.wave}` },
   weeklyXp: { context: (v) => `This week · ${v.dayKey}`, score: (e) => `${e.score.toLocaleString()} XP` },
   monthlyXp: { context: (v) => `This month · ${v.dayKey}`, score: (e) => `${e.score.toLocaleString()} XP` },
+  genomeRating: { context: () => 'All-time Genome Ratings', score: (e) => `${romanNumeral(e.wave)} · ${e.score.toLocaleString()}` },
 };
 
 export function LeaderboardBlock({ mode }: { mode: LbMode }): JSX.Element {

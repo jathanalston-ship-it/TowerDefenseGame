@@ -9,7 +9,7 @@ import { monthKey, weekKey } from '../core/accountLevel';
 import { playerId } from './identity';
 import { turnstileToken } from './turnstile';
 
-export type LbMode = 'daily' | 'bossRush' | 'accountLevel' | 'weeklyXp' | 'monthlyXp';
+export type LbMode = 'daily' | 'bossRush' | 'accountLevel' | 'weeklyXp' | 'monthlyXp' | 'genomeRating';
 
 export interface LbEntry {
   rank: number;
@@ -70,6 +70,10 @@ export function currentClaim(mode: LbMode): { score: number; wave: number; dayKe
     const key = mode === 'weeklyXp' ? weekKey(Date.now()) : monthKey(Date.now());
     if (ledger.key !== key || ledger.xp <= 0) return null;
     return { score: ledger.xp, wave: level, dayKey: key };
+  }
+  if (mode === 'genomeRating') {
+    const v = meta.genomeRank(); // rating derives from the whole save; keep-best is exact
+    return v.rating > 0 ? { score: v.rating, wave: v.index, dayKey: '' } : null;
   }
   if (save.rushBestBoss <= 0) return null;
   return { score: save.rushBestBoss, wave: save.rushBestWave, dayKey: '' };

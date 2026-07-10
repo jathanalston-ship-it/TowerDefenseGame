@@ -16,9 +16,10 @@ import { PERSONAS } from './personas';
 import { FEATURES, featureRevealed } from '../state/unlocks';
 import { defaultSave } from '../save/saveStore';
 import { accountLevelReward, levelFromXp } from '../core/accountLevel';
+import { rankFromRating } from '../core/genomeRank';
 
 function cp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
-  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, accountLevel: 1, ...p };
+  return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, accountLevel: 1, genomeRating: 0, ...p };
 }
 
 describe('problem detectors (synthetic traces)', () => {
@@ -113,6 +114,32 @@ describe('live mini-simulation (real meta layer)', () => {
       let levelCores = 0;
       for (let l = 2; l <= levelFromXp(s.accountXp.xp); l++) levelCores += accountLevelReward(l).cores;
       expect(levelCores).toBeLessThan(s.lifetimeShards * 0.15);
+    } finally {
+      rnd.mockRestore();
+    }
+  }, 60_000);
+
+  it('genome rank: the ladder climbs every band, lands mid-ladder at 30h, and no source dominates', () => {
+    // GENOME-RANK guards (docs/GENOME-RANK.md §validation), same pinned account. Measured
+    // 2026-07: ratings rise to ~1036 (Rank V Parasitic); top source (campaign) holds 17%.
+    const lootRng = new Rng(0x51ce);
+    const rnd = vi.spyOn(Math, 'random').mockImplementation(() => lootRng.next());
+    try {
+      const trace = simulateAccount(0xbeef, [5, 15, 30]);
+      const [a, b, c] = trace.checkpoints.map((k) => k.genomeRating);
+      expect(a).toBeGreaterThan(0);
+      expect(b).toBeGreaterThan(a); // the ladder never stalls flat across a band
+      expect(c).toBeGreaterThan(b);
+      // 30h optimal play sits mid-ladder: past Mutating (IV), short of Dominant (VII) — the
+      // named tops stay a long horizon (thresholds are DATA; retune trips this loudly).
+      const rank = rankFromRating(c);
+      expect(rank.index).toBeGreaterThanOrEqual(4);
+      expect(rank.index).toBeLessThanOrEqual(6);
+      // Breadth stays the point on a REAL account too: no source may carry over 35%.
+      const top = meta.genomeBreakdown()[0];
+      expect(top.share, `${top.id} dominates the live rating`).toBeLessThanOrEqual(0.35);
+      // Promotions were detected + celebrated along the way (the watermark tracks the rank).
+      expect(meta.get().genomeRank.celebrated).toBe(rank.index);
     } finally {
       rnd.mockRestore();
     }

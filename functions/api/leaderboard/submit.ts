@@ -26,6 +26,8 @@ const MODE_BOUNDS: Record<string, { score: number; wave: number }> = {
   accountLevel: { score: 10_000_000_000, wave: 200_000 },
   weeklyXp: { score: 500_000_000, wave: 200_000 },
   monthlyXp: { score: 500_000_000, wave: 200_000 },
+  // Genome Rank (docs/GENOME-RANK.md): score = rating, wave = rank index.
+  genomeRating: { score: 100_000_000, wave: 10_000 },
 };
 const MAX_POWER = 50_000_000;
 

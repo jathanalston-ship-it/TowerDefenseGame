@@ -669,3 +669,38 @@ carry `accountLevel` (PROGRESSION_REPORT column) for pacing evidence.
 **Known limitations.** Boards are client claims (bounds + keep-best friction, like
 daily/bossRush); `levelFromXp` is an O(level) walk (fine at real scales); milestone toasts
 beyond the named tiers reuse the generic celebration (no per-tier bespoke art yet).
+
+## Compressed system summary — Genome Rank (docs/GENOME-RANK.md)
+
+**Architecture.** A pure core module (`src/core/genomeRank.ts`) computes a hidden GENOME RATING
+from `GENOME_SOURCES` — 20 data rows (id, category journey/strength/arsenal/identity, weight,
+nav, score(snapshot), advisor hint) spanning every major system. Completion axes score
+`clamp(ratio)×10` against LIVE registries (new content deepens the ladder); depth axes
+(stage/level/wave/molts/power/…) decelerate forever. Ranks: ten authored tiers (Dormant 0 …
+Living Catastrophe 5200), then +1600 per rank infinitely with deterministic procedural names.
+`meta.genomeSnapshot()` adapts SaveData → plain numbers; **rating/rank always DERIVED** — the
+only stored piece is `save.genomeRank.celebrated` (the promotion watermark).
+
+**Public APIs.** Core: `genomeRating`, `genomeBreakdown`, `genomeAdvice`, `rankFromRating`,
+`rankName/romanNumeral/rankThreshold`, `genomeRankReward(i)`, `genomeTitleName` | meta:
+`genomeSnapshot()`, `genomeRank()`, `genomeBreakdown()`, `genomeAdvice(n)`,
+`pollGenomePromotions()` (finishRun + drain call it), `drainGenomePromotions()` | UI:
+`GenomeRankPanel` (Profile: emblem/bar/breakdown/advisor), `GenomePromotionCinematic` (App,
+menu), leaderboard mode `genomeRating` (score = rating, wave = rank index), audio cue
+`promotion`.
+
+**Extension points.** A future system integrates with ONE `GENOME_SOURCES` row + ONE
+`GenomeSnapshot` field in `meta.genomeSnapshot()` — breakdown, advisor, dominance guards and
+UI all derive from the table. Thresholds/weights are data; recalibrate on `npm run sim:report`.
+
+**Important assumptions.** Monotonic in every axis (progress never demotes); no source > 12%
+of table weight (static test) nor > 35% of a live account's rating (sim guard); promotions pay
+exactly once — watermark persists WITH rewards; rewards are prestige-only (cores/ichor/
+containers/titles), NEVER gameplay passives (golden-safe + no pay-to-win by construction).
+
+**Calibration (2026-07, pinned sim).** 30h optimal → rating ≈ 1036 → Rank V Parasitic; top
+source (campaign) 17%; guard pins the 30h band to ranks IV–VI and rising rating every band.
+
+**Known limitations.** Snapshot recomputes collection+power on demand (ms-scale, event-driven
+only); rank-gated profile frames deferred (titles carry identity); promotion cinematic reuses
+the evo-unlock frame rather than bespoke per-rank art.

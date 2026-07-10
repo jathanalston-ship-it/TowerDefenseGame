@@ -10,6 +10,7 @@ const DebugPanel = lazy(() => import('./DebugPanel').then((m) => ({ default: m.D
 import { AchievementToaster } from './AchievementToaster';
 import { PowerToaster } from './components/PowerToaster';
 import { AccountLevelToast } from './components/AccountXpBar';
+import { GenomePromotionCinematic } from './components/GenomeRankPanel';
 import { LootToaster } from './LootToaster';
 import { WhatsNew } from './WhatsNew';
 import { UpdateBriefing } from './UpdateBriefing';
@@ -482,6 +483,8 @@ export function App(): JSX.Element {
       {/* Account level-ups earned off-run (star buys, molts …) celebrate here; run-settle level-ups
           render inline on Results instead, so the toaster only drains on the menu. */}
       {screen === 'menu' && <AccountLevelToast />}
+      {/* Genome Rank promotions (docs/GENOME-RANK.md) — the full-screen ceremony, menu only. */}
+      {screen === 'menu' && <GenomePromotionCinematic />}
       {/* Loot-fill toast — bio-container earned on the live meter; queued, never interrupts play. */}
       <LootToaster />
       {/* Onboarding + discovery (menu only): the HUD Tour runs once after the tutorial, then the

@@ -9,7 +9,7 @@ import { utcDayKey } from '../daily/seed';
 import { utcMonthKey, utcWeekKey } from '../../lib/period';
 
 const TOP_N = 20;
-const MODES = new Set(['daily', 'bossRush', 'accountLevel', 'weeklyXp', 'monthlyXp']);
+const MODES = new Set(['daily', 'bossRush', 'accountLevel', 'weeklyXp', 'monthlyXp', 'genomeRating']);
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const ip = clientIp(request);

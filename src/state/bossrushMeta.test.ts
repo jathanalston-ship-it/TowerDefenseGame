@@ -6,7 +6,7 @@ import { meta } from './meta';
 import type { RunResult } from './meta';
 import { defaultLifetimeStats } from '../save/saveStore';
 import { HERO_ORDER, RUSH, TOWER_ORDER } from '../core/config';
-import { ICHOR, ichorForBossRecord, nextRushIchorAt, vaultsForBossRecord } from '../core/market';
+import { ICHOR, ichorForAchievement, ichorForBossRecord, nextRushIchorAt, vaultsForBossRecord } from '../core/market';
 import type { RunStats } from '../core/types';
 
 function makeResult(over: Partial<RunResult>, bossKills = 0): RunResult {
@@ -121,14 +121,24 @@ describe('Boss Rush lifetime-record Ichor bands (docs/BOSS-RUSH.md §ichor)', ()
     expect(first.rushProgress).toMatchObject({ bossKills: 16, bestBoss: 16, nextIchorAt: 20, ichor: 3 * ICHOR.rushBossPerBand, vaults: 1 });
     expect(first.loot.banked.filter((c) => c.kind === 'loot').length).toBeGreaterThanOrEqual(1); // the 10-band vault banked
     const afterFirst = meta.get().ichor;
+    meta.drainGenomePromotions(); // flush run-1 ceremonies — their ichor is already in afterFirst
+
+    // Account-wide ceremonies (achievements, level milestones, Genome promotions) may bleed
+    // their OWN ichor during any settle — the RUSH contract here is only that no rush band
+    // pays on a repeat.
+    const ceremonyIchor = (o: ReturnType<typeof meta.finishRun>): number =>
+      o.achievements.reduce((n, a) => n + ichorForAchievement(a.reward ?? 0), 0) +
+      o.accountXp.levelUps.reduce((n, lu) => n + lu.reward.ichor, 0) +
+      meta.drainGenomePromotions().reduce((n, p) => n + p.reward.ichor, 0);
 
     const repeat = meta.finishRun(makeResult({ wave: 4, kills: 40, bossRush: true }, 11)); // below record
     expect(repeat.rushProgress).toMatchObject({ bestBoss: 16, ichor: 0, vaults: 0 });
-    expect(meta.get().ichor).toBe(afterFirst); // a repeat pays nothing
+    expect(meta.get().ichor).toBe(afterFirst + ceremonyIchor(repeat)); // a repeat pays no RUSH ichor
 
+    const afterRepeat = meta.get().ichor;
     const record = meta.finishRun(makeResult({ wave: 6, kills: 70, bossRush: true }, 21)); // 16→21: band 20 (+its vault)
     expect(record.rushProgress).toMatchObject({ bestBoss: 21, ichor: ICHOR.rushBossPerBand, vaults: 1 });
-    expect(meta.get().ichor).toBe(afterFirst + ICHOR.rushBossPerBand);
+    expect(meta.get().ichor).toBe(afterRepeat + ICHOR.rushBossPerBand + ceremonyIchor(record));
     expect(meta.get().rushBestBoss).toBe(21);
   });
 });

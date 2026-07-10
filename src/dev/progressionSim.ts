@@ -21,6 +21,7 @@ import { itemPowerScore } from '../state/itemPower';
 import { EQUIP_SLOTS, itemDef } from '../core/equipment';
 import { sumValues } from '../core/math';
 import { levelFromXp } from '../core/accountLevel';
+import { genomeRating } from '../core/genomeRank';
 import { highestCampaignStage } from '../save/derive';
 import type { Persona } from './personas';
 
@@ -176,6 +177,7 @@ export interface SimCheckpoint {
   unlocks: number; // cumulative ACQUISITIONS (stars/upgrades/heroes/molts/genes/stages/feats) — the dopamine ledger
   failedPushes: number; // cumulative under-ready campaign attempts that FAILED (persona frustration)
   accountLevel: number; // the evergreen lane (docs/ACCOUNT-LEVEL.md) — must rise every band
+  genomeRating: number; // the mastery ladder (docs/GENOME-RANK.md) — breadth-weighted, must rise
 }
 
 /** One integer that counts every meaningful acquisition on the account — each +1 is one
@@ -280,6 +282,7 @@ export function simulateAccount(seed: number, bands: number[], persona?: Persona
         unlocks: progressSignature(),
         failedPushes,
         accountLevel: levelFromXp(s2.accountXp.xp),
+        genomeRating: genomeRating(meta.genomeSnapshot()),
       });
       bandIx++;
     }

@@ -103,6 +103,10 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:account-level', kind: 'references', to: 'system:mastery', note: 'account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone' },
   { from: 'system:account-level', kind: 'conflictsWith', to: 'system:shards-economy', note: 'level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)' },
   { from: 'system:net-backend', kind: 'extends', to: 'system:account-level', note: 'leaderboard modes accountLevel/weeklyXp/monthlyXp: score = XP, wave = level; the SERVER derives period bucket keys (functions/lib/period.ts mirrors core weekKey/monthKey)' },
+  { from: 'system:genome-rank', kind: 'consumes', to: 'system:account-level', note: 'account level is ONE weighted GENOME_SOURCES row — the rank measures breadth across every system, never one lane' },
+  { from: 'system:genome-rank', kind: 'consumes', to: 'concept:power-score', note: 'power is the strength category source; if its live share exceeds 35% the sim dominance guard trips (retune exp/div in the table)' },
+  { from: 'system:genome-rank', kind: 'references', to: 'system:mastery', note: 'grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups' },
+  { from: 'system:genome-rank', kind: 'conflictsWith', to: 'concept:golden-test', note: 'promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break' },
 
   { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
   { from: 'system:prestige', kind: 'references', to: 'system:cutscenes', note: 'the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it' },
