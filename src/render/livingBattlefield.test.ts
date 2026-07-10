@@ -5,7 +5,7 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import {
-  computeAssimilation, profileForTower, profileForHero, profileForMulligan, profileForGene,
+  computeAssimilation, deriveTerraform, profileForTower, profileForHero, profileForMulligan, profileForGene,
   setStageOverride, STAGE_NAMES, STAGE_COUNT,
 } from './livingBattlefield';
 import { tierAt } from '../core/assimilation';
@@ -96,6 +96,51 @@ describe('Living Battlefield — assimilation accumulator', () => {
     expect(a.progress).toBe(1);
     setStageOverride(null);
     expect(computeAssimilation(rs(), ctx()).stage).toBe(0);
+  });
+});
+
+describe('Living Battlefield — terraform spec (derive is pure + stable)', () => {
+  const at = (stage: number, biome = 'neutral', n = 5): ReturnType<typeof deriveTerraform> => {
+    setStageOverride(stage);
+    const a = computeAssimilation(rs({ towers: towers(n) as RenderState['towers'] }), ctx(500));
+    setStageOverride(null);
+    return deriveTerraform(a, biome);
+  };
+
+  it('the vein NETWORK is a spanning tree over the build — one edge per tower, all connected', () => {
+    const sp = at(3, 'neutral', 7);
+    expect(sp.veins).toHaveLength(7); // tree: N towers ⇒ N edges (rooted at the nucleus)
+    // connectivity: every edge starts from the nucleus or a previously-connected tower endpoint
+    const known = new Set([`${Math.round(sp.veins[0].x0)},${Math.round(sp.veins[0].y0)}`]);
+    for (const v of sp.veins) {
+      expect(known.has(`${Math.round(v.x0)},${Math.round(v.y0)}`)).toBe(true);
+      known.add(`${Math.round(v.x1)},${Math.round(v.y1)}`);
+    }
+  });
+
+  it('terrain eyes open only at stage ≥ 4 and multiply toward stage 5', () => {
+    expect(at(3).eyes).toHaveLength(0);
+    const s4 = at(4).eyes.length, s5 = at(5).eyes.length;
+    expect(s4).toBeGreaterThan(0);
+    expect(s5).toBeGreaterThanOrEqual(s4);
+  });
+
+  it('flora is biome-flavoured (data row), with a dominant-motif fallback for unknown biomes', () => {
+    const frost = at(4, 'frostbound');
+    expect(frost.flora.length).toBeGreaterThan(0);
+    expect(frost.flora.every((f) => f.motif === 'crystal')).toBe(true); // BIOME_FLORA.frostbound
+    const unknown = at(4, 'biome_from_2027');
+    const a = computeAssimilation(rs({ towers: towers(5) as RenderState['towers'] }), ctx(500));
+    expect(unknown.flora.every((f) => f.motif === a.dominant)).toBe(true); // falls back to the build
+  });
+
+  it('spread grows with stage: frontier + reach are monotonic, and derive is deterministic', () => {
+    const s1 = at(1), s3 = at(3), s5 = at(5);
+    expect(s3.front).toBeGreaterThan(s1.front);
+    expect(s5.front).toBeGreaterThan(s3.front);
+    expect(s5.reach).toBeGreaterThan(s1.reach);
+    const again = at(5);
+    expect(again.veins).toEqual(s5.veins); // same layout ⇒ identical spec (stable bake keys)
   });
 });
 

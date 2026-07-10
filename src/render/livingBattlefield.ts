@@ -271,23 +271,120 @@ function resolveAccent(accent: string): Col | null {
 }
 function motifIdx(m: Motif): number { return MOTIFS.indexOf(m); }
 
-// ══ TERRAFORM LAYER (the optimization) ═══════════════════════════════════════════════════════════
-// The whole stable terrain — membrane, tubular veins, shaded blooms, edge overgrowth, permanent scars —
-// is BAKED ONCE into an offscreen canvas keyed by (stage, biome, build layout, perm-scar count) and
-// blitted a single time per frame. It is rebuilt only when that key changes (a stage step, a biome
-// flip, a tower placed/upgraded, a boss falling) and CROSSFADES from the previous bake, so the arena
-// grows instead of popping. Per-frame cost collapses from dozens of gradient allocations to one
-// drawImage + a handful of cheap live accents (heartbeat beads, the nucleus organ, a combat flare).
+// ══ TERRAFORM SPEC (pure derive — house derive*/draw* pattern, like equipmentArt/mulliganOrganism) ═
+// Everything with a POSITION is derived once into a spec: the branching vein network, terrain eye
+// sites, biome flora, and the spread parameters. The bake paints from it; the live accents (beads,
+// crawlers, pupils) read the SAME spec, so animation always matches the baked geometry.
+export interface VeinSeg { x0: number; y0: number; cx: number; cy: number; x1: number; y1: number; w: number; hue: string; seed: number }
+export interface EyeSite { x: number; y: number; r: number; seed: number }
+interface Flora { x: number; y: number; size: number; motif: Motif; seed: number }
+export interface TerraformSpec {
+  veins: VeinSeg[]; // greedy nearest-connected TREE (nucleus → build), so the network branches organically
+  eyes: EyeSite[]; // terrain eyes (stage ≥ 4) — sockets baked, pupils live
+  flora: Flora[]; // biome-flavoured micro-growth scattered through the infected zone
+  front: number; // bottom-up frontier (fraction of map height consumed from the hive)
+  reach: number; // 0..1 radial spread multiplier — how far mutation radiates from each hotspot
+}
+
+/** Biome → the flora that grows on assimilated ground (docs/BIOMES.md). The infection CONSUMES the
+ *  biome: frozen ground sprouts ice crystal, the ossuary sprouts bone. Unknown/future biomes fall back
+ *  to the build's dominant motif — one data row to curate, zero code. */
+const BIOME_FLORA: Record<string, Motif> = {
+  verdant: 'spore', necrotic: 'flesh', frostbound: 'crystal', ashen: 'ember', carapace: 'chitin',
+  neural: 'crystal', molten: 'ember', tempest: 'crystal', ossuary: 'bone', umbral: 'vein',
+};
+
+/** The radial infection field 0..~1 at a point: mutation RADIATES from every hotspot (reach grows with
+ *  stage) and pools up from the hive frontier — the two merge, so the ground visibly spreads OUTWARD
+ *  from the player's build rather than tinting uniformly. */
+function infectionField(x: number, y: number, regions: Region[], front: number, reach: number): number {
+  const bottom = Math.max(0, front - (HEIGHT - y) / HEIGHT + 0.2);
+  let radial = 0;
+  for (const r of regions) {
+    const rad = (66 + r.strength * 20) * (0.3 + reach * 1.1);
+    const d = Math.hypot(x - r.x, y - r.y);
+    if (d < rad) { const v = 1 - d / rad; if (v > radial) radial = v; }
+  }
+  return Math.max(bottom * 0.95, radial);
+}
+
+/** Pure: derive the full terraform spec from the assimilation state. Hash-seeded ⇒ stable per layout. */
+export function deriveTerraform(a: Assimilation, biomeId: string): TerraformSpec {
+  const front = 0.14 + (a.stage / (STAGE_COUNT - 1)) * 0.98;
+  const reach = Math.min(1, (a.stage + a.progress) / STAGE_COUNT);
+  const towers = a.regions.filter((r) => r.kind === 'tower');
+
+  // Vein NETWORK: greedy nearest-connected tree rooted at the nucleus — each tower joins the closest
+  // already-connected node, so veins branch through the build instead of star-bursting from one point.
+  const nodes: { x: number; y: number }[] = [{ x: nucleusPoint.x, y: nucleusPoint.y }];
+  const veins: VeinSeg[] = [];
+  const pending = [...towers].sort((p, q) =>
+    (Math.hypot(p.x - nucleusPoint.x, p.y - nucleusPoint.y)) - (Math.hypot(q.x - nucleusPoint.x, q.y - nucleusPoint.y)));
+  for (const t of pending) {
+    let bi = 0, bd = Infinity;
+    for (let i = 0; i < nodes.length; i++) { const d = Math.hypot(t.x - nodes[i].x, t.y - nodes[i].y); if (d < bd) { bd = d; bi = i; } }
+    const n = nodes[bi];
+    const mx = (n.x + t.x) / 2, my = (n.y + t.y) / 2;
+    const px = -(t.y - n.y), py = t.x - n.x; // perpendicular — bow the vein sideways
+    const bow = (hash01(t.seed) - 0.5) * 0.5;
+    veins.push({ x0: n.x, y0: n.y, cx: mx + px * bow, cy: my + py * bow, x1: t.x, y1: t.y,
+      w: 2 + Math.min(3.4, t.strength * 0.3), hue: t.hue, seed: t.seed });
+    nodes.push({ x: t.x, y: t.y });
+  }
+
+  // Terrain EYES (stage ≥ 4): sockets open across the infected midfield, edge-biased for readability.
+  const eyes: EyeSite[] = [];
+  if (a.stage >= 4) {
+    const n = (a.stage - 3) * 3 + Math.round(a.progress * 2);
+    for (let k = 0; k < n; k++) {
+      const h1 = hash01(k * 17.3 + 3), h2 = hash01(k * 29.7 + 7);
+      const side = k % 2 === 0 ? h1 * 0.3 : 0.7 + h1 * 0.3; // outer thirds
+      const x = 24 + side * (WIDTH - 48);
+      const y = HEIGHT * (0.36 + h2 * 0.5);
+      if (Math.hypot(x - nucleusPoint.x, y - nucleusPoint.y) < 90) continue; // the organ owns its zone
+      eyes.push({ x, y, r: 4 + hash01(k * 5.1) * 3.5, seed: k * 977 });
+    }
+  }
+
+  // FLORA: motif micro-growth scattered where the infection field has taken (rejection-sampled).
+  const flora: Flora[] = [];
+  const floraMotif = BIOME_FLORA[biomeId] ?? a.dominant;
+  const want = Math.min(160, Math.round(30 * (a.stage + a.progress)));
+  for (let i = 0; i < want * 4 && flora.length < want; i++) {
+    const x = hash01(i * 13.7 + 11) * WIDTH, y = hash01(i * 7.9 + 23) * HEIGHT;
+    if (infectionField(x, y, a.regions, front, reach) < 0.25 + hash01(i * 3.1) * 0.3) continue;
+    flora.push({ x, y, size: 2 + hash01(i * 5.3) * 4, motif: floraMotif, seed: i });
+  }
+  return { veins, eyes, flora, front, reach };
+}
+
+// Spec cache — recomputed only when the layout key changes; live accents read it every frame.
+let spec: TerraformSpec | null = null;
+let specKey = '';
+function ensureSpec(a: Assimilation, biomeId: string, key: string): TerraformSpec {
+  if (key !== specKey || !spec) { spec = deriveTerraform(a, biomeId); specKey = key; }
+  return spec;
+}
+
+// ══ TERRAFORM BAKE (the optimization) ════════════════════════════════════════════════════════════
+// The stable terrain is baked into TWO offscreen canvases keyed by (stage, biome, layout, perm scars):
+//   • BASE — flesh membrane behind the infection field, feathered crust, vein casings, shaded blooms,
+//     flora, eye sockets, permanent scars. Blitted with a slow breathing alpha.
+//   • GLOW — vein cores, bloom glints, frontier shimmer, ember light. Blitted with a HEARTBEAT-
+//     modulated alpha, so the entire network pulses as one organism for the cost of a drawImage.
+// Rebuilt only when the key changes (stage step / biome flip / tower placed / boss fell) and
+// CROSSFADED (~0.85s) from the previous bake, so the arena grows instead of popping.
 const FLESH_BASE: Col = [50, 21, 29];
 const FLESH_HI: Col = [128, 46, 62];
-const FADE_SECS = 0.85; // crossfade between two bakes on a stage/build change
-let curLayer: HTMLCanvasElement | null = null;
-let prevLayer: HTMLCanvasElement | null = null;
+const FADE_SECS = 0.85;
+interface Bake { base: HTMLCanvasElement; glow: HTMLCanvasElement }
+let curBake: Bake | null = null;
+let prevBake: Bake | null = null;
 let curKey = '';
 let fade = 1; // 0..1 crossfade progress (1 = current bake fully shown)
-let fadeAt = 0; // last `now` the fade advanced at
+let fadeAt = 0;
 
-function clearTerraform(): void { curLayer = null; prevLayer = null; curKey = ''; fade = 1; fadeAt = 0; }
+function clearTerraform(): void { curBake = null; prevBake = null; curKey = ''; fade = 1; fadeAt = 0; spec = null; specKey = ''; }
 
 function layerKey(stage: number, biomeId: string, towers: Region[], permN: number): string {
   let k = stage + '|' + biomeId + '|p' + permN;
@@ -295,47 +392,48 @@ function layerKey(stage: number, biomeId: string, towers: Region[], permN: numbe
   return k;
 }
 
-/** Ensure the current terraform bake matches (stage, biome, layout); on a change, roll the old bake
- *  into `prevLayer` and start a crossfade to the fresh one. */
-function ensureLayer(a: Assimilation, tint: Col | null, towers: Region[], biomeId: string, permN: number): void {
-  const key = layerKey(a.stage, biomeId, towers, permN);
-  if (key === curKey && curLayer) return;
-  prevLayer = curLayer; // crossfade FROM the previous look (null on the very first bake)
-  fade = prevLayer ? 0 : 1;
-  curLayer = buildTerraform(a, tint, towers);
+function ensureBake(a: Assimilation, tint: Col | null, sp: TerraformSpec, key: string): void {
+  if (key === curKey && curBake) return;
+  prevBake = curBake;
+  fade = prevBake ? 0 : 1;
+  curBake = buildBake(a, tint, sp);
   curKey = key;
 }
 
-function buildTerraform(a: Assimilation, tint: Col | null, towers: Region[]): HTMLCanvasElement {
+function makeCanvas(): [HTMLCanvasElement, Ctx] {
   const c = document.createElement('canvas');
   c.width = WIDTH; c.height = HEIGHT;
-  const g = c.getContext('2d')!;
+  return [c, c.getContext('2d')!];
+}
+
+function buildBake(a: Assimilation, tint: Col | null, sp: TerraformSpec): Bake {
+  const [baseC, gb] = makeCanvas();
+  const [glowC, gg] = makeCanvas();
   const tier = a.tierColor as Col;
   // Palette: dark flesh, consuming the biome accent and pulled toward the tier accent (art-direction unity).
   let base = FLESH_BASE, hi = FLESH_HI;
   if (tint) { base = mix(base, tint, 0.26); hi = mix(hi, tint, 0.3); }
   base = mix(base, tier, 0.12); hi = mix(hi, tier, 0.2);
-  paintMembrane(g, a.stage, base, hi);
-  paintOvergrowth(g, a.stage, hi, tier);
-  const core = nucleusPoint;
-  for (const t of towers) paintVein(g, core.x, core.y, t, base, hi);
-  for (const t of towers) paintBloom(g, t, a.stage);
-  for (const s of scars) if (s.perm) paintPermScar(g, s);
-  return c;
+  const towers = a.regions.filter((r) => r.kind === 'tower');
+
+  paintMembrane(gb, a, sp, base, hi);
+  paintCrust(gb, gg, a.stage, hi, tier);
+  for (const v of sp.veins) paintVein(gb, gg, v, base, hi);
+  for (const t of towers) { paintBloomBase(gb, t, a.stage); paintBloomGlow(gg, t, a.stage); }
+  for (const f of sp.flora) paintFlora(gb, gg, f);
+  for (const e of sp.eyes) paintEyeSocket(gb, e, base);
+  for (const s of scars) if (s.perm) paintPermScar(gb, s);
+  return { base: baseC, glow: glowC };
 }
 
-/** The living membrane: multi-octave fleshy mottling behind an assimilation FRONTIER that advances from
- *  the hive (bottom) toward the spawn line (top) as the run deepens — the map is consumed, not overlaid. */
-function paintMembrane(g: Ctx, stage: number, base: Col, hi: Col): void {
-  const front = 0.16 + (stage / (STAGE_COUNT - 1)) * 0.96; // fraction of height reached from the bottom
+/** The living membrane: two octaves of fleshy mottling gated by the INFECTION FIELD, so flesh pools
+ *  around every hotspot and up from the hive, merging as the run deepens — consumed, not overlaid. */
+function paintMembrane(g: Ctx, a: Assimilation, sp: TerraformSpec, base: Col, hi: Col): void {
   const blotch = (count: number, rMin: number, rSpan: number, salt: number, a0: number): void => {
     for (let i = 0; i < count; i++) {
       const h1 = hash01(i * 1.7 + salt), h2 = hash01(i * 3.3 + salt * 2 + 5), h3 = hash01(i * 5.1 + salt + 9);
       const x = h1 * WIDTH, y = h2 * HEIGHT;
-      const belowFront = Math.max(0, front - (HEIGHT - y) / HEIGHT + 0.25); // 0 above the frontier → dense at the hive
-      const dN = Math.hypot(x - nucleusPoint.x, y - nucleusPoint.y) / WIDTH;
-      const dens = belowFront * 1.1 + Math.max(0, 0.34 - dN);
-      if (h3 > dens) continue;
+      if (h3 > infectionField(x, y, a.regions, sp.front, sp.reach) * 1.15) continue;
       const rr = rMin + h3 * rSpan;
       const rad = g.createRadialGradient(x, y, 0, x, y, rr);
       rad.addColorStop(0, css(mix(base, hi, h1 * 0.9), a0));
@@ -343,82 +441,89 @@ function paintMembrane(g: Ctx, stage: number, base: Col, hi: Col): void {
       g.fillStyle = rad; g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill();
     }
   };
-  blotch(70 + stage * 26, 26, 78, 0, 0.5); // broad soft flesh
-  blotch(90 + stage * 30, 6, 20, 100, 0.32); // fine detail speckle
-  // capillary filaments threading the membrane
+  blotch(90 + a.stage * 30, 26, 78, 0, 0.5); // broad soft flesh
+  blotch(110 + a.stage * 34, 6, 20, 100, 0.32); // fine detail speckle
+  // capillary filaments threading the infected ground
   g.lineCap = 'round';
-  for (let i = 0; i < 14 + stage * 8; i++) {
-    let x = hash01(i * 8.1 + stage) * WIDTH, y = hash01(i * 2.7 + stage) * HEIGHT;
-    g.strokeStyle = css(shade(hi, 0.12), 0.10 + stage * 0.012); g.lineWidth = 0.8 + hash01(i) * 0.8;
+  for (let i = 0; i < 14 + a.stage * 8; i++) {
+    let x = hash01(i * 8.1 + a.stage) * WIDTH, y = hash01(i * 2.7 + a.stage) * HEIGHT;
+    if (infectionField(x, y, a.regions, sp.front, sp.reach) < 0.15) continue;
+    g.strokeStyle = css(shade(hi, 0.12), 0.10 + a.stage * 0.012); g.lineWidth = 0.8 + hash01(i) * 0.8;
     g.beginPath(); g.moveTo(x, y);
     for (let k = 0; k < 6; k++) { x += (hash01(i + k * 3.1) - 0.5) * 76; y += (hash01(i + k * 7.7) - 0.5) * 76; g.lineTo(x, y); }
     g.stroke();
   }
 }
 
-/** Edge + grid OVERGROWTH (stage ≥ 2): the infection creeps in from the screen edges and gnaws the tile
- *  lattice, so by late-game the arena no longer reads as the clean starting map. */
-function paintOvergrowth(g: Ctx, stage: number, hi: Col, tier: Col): void {
+/** Smooth organic frontier line (sum of incommensurate sines — no per-x hash jitter, so it feathers). */
+function lipY(x: number, crest: number, amp: number): number {
+  return crest + Math.sin(x * 0.021 + 1.7) * amp + Math.sin(x * 0.043 + 4.2) * amp * 0.55 + Math.sin(x * 0.011 + 2.9) * amp * 1.3;
+}
+
+/** The rising bottom crust with a FEATHERED lip (three stacked fills), side tendrils, chitin plating on
+ *  the tile lattice (stage ≥ 4), and a shimmer line along the lip on the glow layer — the living tide. */
+function paintCrust(gb: Ctx, gg: Ctx, stage: number, hi: Col, tier: Col): void {
   if (stage < 2) return;
-  const reach = (stage - 1) / (STAGE_COUNT - 2); // 0..1
-  // bottom crust rising from the hive
+  const reach = (stage - 1) / (STAGE_COUNT - 2);
   const crust = HEIGHT * (0.1 + reach * 0.32);
-  const grad = g.createLinearGradient(0, HEIGHT, 0, HEIGHT - crust);
+  const crest = HEIGHT - crust;
+  const grad = gb.createLinearGradient(0, HEIGHT, 0, crest);
   grad.addColorStop(0, css(mix(hi, tier, 0.3), 0.5)); grad.addColorStop(1, css(hi, 0));
-  g.fillStyle = grad; g.fillRect(0, HEIGHT - crust, WIDTH, crust);
-  // ragged frontier lip on the crust
-  g.fillStyle = css(mix(hi, tier, 0.25), 0.28);
-  g.beginPath(); g.moveTo(0, HEIGHT);
-  for (let x = 0; x <= WIDTH; x += 18) { const yy = HEIGHT - crust + Math.sin(x * 0.06) * 10 - hash01(x) * 22 * reach; g.lineTo(x, yy); }
-  g.lineTo(WIDTH, HEIGHT); g.closePath(); g.fill();
+  gb.fillStyle = grad; gb.fillRect(0, crest, WIDTH, crust);
+  // feathered lip: three offset fills at decreasing alpha melt the tide-line into the ground
+  const amp = 8 + reach * 12;
+  for (let pass = 0; pass < 3; pass++) {
+    const off = pass * (6 + reach * 6), al = [0.22, 0.13, 0.07][pass];
+    gb.fillStyle = css(mix(hi, tier, 0.25), al);
+    gb.beginPath(); gb.moveTo(0, HEIGHT);
+    for (let x = 0; x <= WIDTH; x += 12) gb.lineTo(x, lipY(x, crest, amp) - off);
+    gb.lineTo(WIDTH, HEIGHT); gb.closePath(); gb.fill();
+  }
+  // the lip GLOWS faintly — the frontier is where the organism is actively eating
+  gg.strokeStyle = css(mix(shade(hi, 0.35), tier, 0.4), 0.3); gg.lineWidth = 1.6; gg.lineCap = 'round';
+  gg.beginPath();
+  for (let x = 0; x <= WIDTH; x += 12) { const yy = lipY(x, crest, amp); if (x === 0) gg.moveTo(x, yy); else gg.lineTo(x, yy); }
+  gg.stroke();
   // creeping tendrils from the side edges
   const tendrils = Math.round(6 * reach) + 2;
-  g.lineCap = 'round';
+  gb.lineCap = 'round';
   for (let i = 0; i < tendrils; i++) {
     const left = i % 2 === 0; const ey = hash01(i * 5.7) * HEIGHT;
     let x = left ? 0 : WIDTH, y = ey; let ang = left ? 0 : Math.PI;
     const len = (40 + hash01(i) * 90) * reach;
-    g.strokeStyle = css(mix(hi, tier, 0.35), 0.22); g.lineWidth = 2.4 + hash01(i * 2) * 2;
-    g.beginPath(); g.moveTo(x, y);
-    const steps = 5;
-    for (let k = 0; k < steps; k++) { ang += (hash01(i * 3 + k) - 0.5) * 0.9; const d = len / steps; x += Math.cos(ang) * d; y += Math.sin(ang) * d; g.lineTo(x, y); }
-    g.stroke();
+    gb.strokeStyle = css(mix(hi, tier, 0.35), 0.22); gb.lineWidth = 2.4 + hash01(i * 2) * 2;
+    gb.beginPath(); gb.moveTo(x, y);
+    for (let k = 0; k < 5; k++) { ang += (hash01(i * 3 + k) - 0.5) * 0.9; const d = len / 5; x += Math.cos(ang) * d; y += Math.sin(ang) * d; gb.lineTo(x, y); }
+    gb.stroke();
   }
-  // gnaw the tile grid near the crust — chitin plates snapping onto the lattice
-  if (stage >= 4) {
-    g.fillStyle = css(mix(hi, tier, 0.4), 0.14);
+  if (stage >= 4) { // chitin plating snapping onto the tile lattice near the crust
+    gb.fillStyle = css(mix(hi, tier, 0.4), 0.14);
     for (let i = 0; i < 40; i++) {
       const gx = Math.floor(hash01(i * 4.4) * (WIDTH / CELL)) * CELL;
       const gy = HEIGHT - Math.floor(hash01(i * 9.1) * (crust / CELL) + 1) * CELL;
-      hexAt(g, gx + CELL / 2, gy + CELL / 2, CELL * 0.5); g.fill();
+      hexAt(gb, gx + CELL / 2, gy + CELL / 2, CELL * 0.5); gb.fill();
     }
   }
 }
 
-/** A tubular vein nucleus→tower: a dark casing, a bright inner core, and a couple of capillary offshoots. */
-function paintVein(g: Ctx, x0: number, y0: number, t: Region, base: Col, hi: Col): void {
-  const midx = (x0 + t.x) / 2 + (hash01(t.seed) - 0.5) * 46;
-  const midy = (y0 + t.y) / 2 + (hash01(t.seed * 3) - 0.5) * 46;
-  const hueCol = mix(hex(CORE_HUE), hex(t.hue), 0.5);
-  const w = 2.2 + Math.min(3.4, t.strength * 0.3);
-  g.lineCap = 'round';
-  g.strokeStyle = css(shade(base, -0.2), 0.5); g.lineWidth = w + 2; // casing
-  g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(midx, midy, t.x, t.y); g.stroke();
-  g.strokeStyle = css(mix(hueCol, hi, 0.3), 0.5); g.lineWidth = w; // wall
-  g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(midx, midy, t.x, t.y); g.stroke();
-  g.strokeStyle = css(shade(hueCol, 0.5), 0.55); g.lineWidth = Math.max(0.8, w * 0.4); // bright core
-  g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(midx, midy, t.x, t.y); g.stroke();
-  // capillary offshoots at the midpoint
-  for (let k = 0; k < 2; k++) {
-    const ang = hash01(t.seed + k * 7) * TAU; const len = 16 + hash01(t.seed + k) * 24;
-    g.strokeStyle = css(mix(hueCol, hi, 0.2), 0.3); g.lineWidth = 1.2;
-    g.beginPath(); g.moveTo(midx, midy); g.lineTo(midx + Math.cos(ang) * len, midy + Math.sin(ang) * len); g.stroke();
+/** One vein edge: dark casing + wall on the base; the bright luminous core on the GLOW layer (it will
+ *  pulse with the heartbeat), plus capillary offshoots at the midpoint. */
+function paintVein(gb: Ctx, gg: Ctx, v: VeinSeg, base: Col, hi: Col): void {
+  const hueCol = mix(hex(CORE_HUE), hex(v.hue), 0.5);
+  const path = (g: Ctx): void => { g.beginPath(); g.moveTo(v.x0, v.y0); g.quadraticCurveTo(v.cx, v.cy, v.x1, v.y1); g.stroke(); };
+  gb.lineCap = 'round'; gg.lineCap = 'round';
+  gb.strokeStyle = css(shade(base, -0.2), 0.5); gb.lineWidth = v.w + 2.2; path(gb); // casing
+  gb.strokeStyle = css(mix(hueCol, hi, 0.3), 0.5); gb.lineWidth = v.w; path(gb); // wall
+  gg.strokeStyle = css(shade(hueCol, 0.5), 0.6); gg.lineWidth = Math.max(0.9, v.w * 0.4); path(gg); // core (pulses)
+  for (let k = 0; k < 2; k++) { // capillary offshoots
+    const ang = hash01(v.seed + k * 7) * TAU; const len = 16 + hash01(v.seed + k) * 24;
+    gb.strokeStyle = css(mix(hueCol, hi, 0.2), 0.3); gb.lineWidth = 1.2;
+    gb.beginPath(); gb.moveTo(v.cx, v.cy); gb.lineTo(v.cx + Math.cos(ang) * len, v.cy + Math.sin(ang) * len); gb.stroke();
   }
 }
 
-/** A shaded regional bloom — each motif grown out of the ground with a lit side + a shadow side (the key
- *  light matches the renderer's up-left convention, so it sits in the same world). */
-function paintBloom(g: Ctx, r: Region, stage: number): void {
+/** A shaded regional bloom — lit up-left to match the renderer's key light. */
+function paintBloomBase(g: Ctx, r: Region, stage: number): void {
   const grow = (0.6 + stage * 0.5) * (0.7 + Math.min(2.4, r.strength * 0.18));
   const base = 11 * grow;
   const a0 = 0.3 + stage * 0.05;
@@ -466,8 +571,6 @@ function paintBloom(g: Ctx, r: Region, stage: number): void {
       const rad = g.createRadialGradient(0, 0, 0, 0, 0, base);
       rad.addColorStop(0, css(shade(col, 0.45), a0)); rad.addColorStop(0.6, css(col, a0 * 0.5)); rad.addColorStop(1, css(col, 0));
       g.fillStyle = rad; g.beginPath(); g.arc(0, 0, base, 0, TAU); g.fill();
-      g.strokeStyle = css(shade(col, 0.5), a0 * 0.7); g.lineWidth = 1.3;
-      for (let k = 0; k < 4; k++) { const ang = hash01(r.seed + k) * TAU; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(ang) * base, Math.sin(ang) * base); g.stroke(); }
       break;
     }
     default: { // vein / flesh — a shaded sac with a rim + a specular kiss
@@ -479,11 +582,85 @@ function paintBloom(g: Ctx, r: Region, stage: number): void {
   }
   g.restore();
 }
-function hexAt(g: Ctx, x: number, y: number, r: number): void {
-  g.beginPath();
-  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (i === 0) g.moveTo(px, py); else g.lineTo(px, py); }
-  g.closePath();
+
+/** The bloom's luminous accents on the glow layer (crystal facet glints, ember cracks, sac rims). */
+function paintBloomGlow(g: Ctx, r: Region, stage: number): void {
+  const grow = (0.6 + stage * 0.5) * (0.7 + Math.min(2.4, r.strength * 0.18));
+  const base = 11 * grow;
+  const col = hex(r.hue);
+  g.save(); g.translate(r.x, r.y);
+  if (r.motif === 'ember') {
+    g.strokeStyle = css(shade(col, 0.5), 0.5); g.lineWidth = 1.3;
+    for (let k = 0; k < 4; k++) { const ang = hash01(r.seed + k) * TAU; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(ang) * base, Math.sin(ang) * base); g.stroke(); }
+  } else if (r.motif === 'crystal') {
+    g.fillStyle = css(shade(col, 0.55), 0.4);
+    for (let k = 0; k < 5; k++) { const ang = (k / 5) * TAU + r.seed; const len = base * (0.6 + hash01(r.seed + k) * 0.8);
+      g.beginPath(); g.arc(Math.cos(ang) * len, Math.sin(ang) * len, 1.4, 0, TAU); g.fill(); }
+  } else {
+    g.strokeStyle = css(shade(col, 0.4), 0.28); g.lineWidth = 1;
+    g.beginPath(); g.arc(0, 0, base * 0.8, 0, TAU); g.stroke();
+  }
+  g.restore();
 }
+
+/** One flora sprig — tiny biome-flavoured growth (a shard, a spur, a cap, a sac …). */
+function paintFlora(gb: Ctx, gg: Ctx, f: Flora): void {
+  const col = hex(MOTIF_HUE[f.motif]);
+  const a0 = 0.3;
+  const s = f.size;
+  switch (f.motif) {
+    case 'crystal': {
+      gb.fillStyle = css(shade(col, -0.15), a0);
+      gb.beginPath(); gb.moveTo(f.x, f.y - s * 1.4); gb.lineTo(f.x + s * 0.6, f.y + s * 0.4); gb.lineTo(f.x - s * 0.6, f.y + s * 0.4); gb.closePath(); gb.fill();
+      gg.fillStyle = css(shade(col, 0.5), 0.35); gg.beginPath(); gg.arc(f.x, f.y - s * 1.2, 0.9, 0, TAU); gg.fill();
+      break;
+    }
+    case 'bone': {
+      gb.strokeStyle = css(col, a0); gb.lineWidth = 1.1; gb.lineCap = 'round';
+      const ang = hash01(f.seed) * TAU;
+      gb.beginPath(); gb.moveTo(f.x, f.y); gb.lineTo(f.x + Math.cos(ang) * s * 1.5, f.y + Math.sin(ang) * s * 1.5); gb.stroke();
+      gb.beginPath(); gb.moveTo(f.x, f.y); gb.lineTo(f.x + Math.cos(ang + 2.4) * s, f.y + Math.sin(ang + 2.4) * s); gb.stroke();
+      break;
+    }
+    case 'spore': {
+      gb.fillStyle = css(shade(col, -0.2), a0); gb.beginPath(); gb.arc(f.x, f.y, s * 0.7, 0, TAU); gb.fill();
+      gb.fillStyle = css(shade(col, 0.25), a0); gb.beginPath(); gb.arc(f.x - s * 0.2, f.y - s * 0.25, s * 0.35, 0, TAU); gb.fill();
+      break;
+    }
+    case 'ember': {
+      gb.fillStyle = css(shade(col, -0.3), a0); gb.beginPath(); gb.arc(f.x, f.y, s * 0.6, 0, TAU); gb.fill();
+      gg.fillStyle = css(shade(col, 0.4), 0.4); gg.beginPath(); gg.arc(f.x, f.y, s * 0.35, 0, TAU); gg.fill();
+      break;
+    }
+    case 'chitin': {
+      gb.fillStyle = css(shade(col, -0.15), a0); hexAt(gb, f.x, f.y, s * 0.7); gb.fill();
+      break;
+    }
+    case 'root': {
+      gb.strokeStyle = css(col, a0); gb.lineWidth = 1.1; gb.lineCap = 'round';
+      const ang = hash01(f.seed) * TAU;
+      gb.beginPath(); gb.moveTo(f.x, f.y);
+      gb.quadraticCurveTo(f.x + Math.cos(ang) * s, f.y + Math.sin(ang) * s, f.x + Math.cos(ang + 1) * s * 1.6, f.y + Math.sin(ang + 1) * s * 1.6);
+      gb.stroke();
+      break;
+    }
+    default: { // vein / flesh — a tiny wet sac
+      gb.fillStyle = css(col, a0); gb.beginPath(); gb.arc(f.x, f.y, s * 0.55, 0, TAU); gb.fill();
+      gb.fillStyle = css(shade(col, 0.35), a0); gb.beginPath(); gb.arc(f.x - s * 0.15, f.y - s * 0.18, s * 0.22, 0, TAU); gb.fill();
+    }
+  }
+}
+
+/** A closed terrain-eye socket (the lid) baked into the base — the live pass draws the watching pupil. */
+function paintEyeSocket(g: Ctx, e: EyeSite, base: Col): void {
+  g.save(); g.translate(e.x, e.y); g.rotate((hash01(e.seed) - 0.5) * 0.6);
+  g.fillStyle = css(shade(base, -0.35), 0.55);
+  g.beginPath(); g.ellipse(0, 0, e.r * 1.5, e.r * 0.95, 0, 0, TAU); g.fill();
+  g.strokeStyle = css(shade(base, 0.18), 0.4); g.lineWidth = 1.1;
+  g.beginPath(); g.ellipse(0, 0, e.r * 1.5, e.r * 0.95, 0, 0, TAU); g.stroke();
+  g.restore();
+}
+
 /** Permanent boss/mega crater baked into the terrain memory. */
 function paintPermScar(g: Ctx, s: Scar): void {
   const rad = g.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
@@ -491,9 +668,14 @@ function paintPermScar(g: Ctx, s: Scar): void {
   g.fillStyle = rad; g.beginPath(); g.arc(s.x, s.y, s.r, 0, TAU); g.fill();
   g.strokeStyle = css(shade(s.hue, 0.25), 0.26); g.lineWidth = 1.6; g.beginPath(); g.arc(s.x, s.y, s.r * 0.78, 0, TAU); g.stroke();
 }
+function hexAt(g: Ctx, x: number, y: number, r: number): void {
+  g.beginPath();
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (i === 0) g.moveTo(px, py); else g.lineTo(px, py); }
+  g.closePath();
+}
 function quad(a: number, b: number, c: number, t: number): number { const u = 1 - t; return u * u * a + 2 * u * t * b + t * t * c; }
 
-// ══ Draw — one cached blit + cheap live accents ══════════════════════════════════════════════════
+// ══ Draw — two cached blits + living accents ═════════════════════════════════════════════════════
 /** Draws the living battlefield BENEATH the entities. Returns the computed assimilation (for the HUD/
  *  audio). Fully inert at Stage 0 ⇒ the original clean arena (and always render-only ⇒ golden-safe). */
 export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext, now: number, detail = true, masterIndex?: number): Assimilation {
@@ -510,50 +692,117 @@ export function drawLivingBattlefield(ctx: Ctx, rs: RenderState, data: LBContext
   if (a.stage <= 0 && scars.length === 0) return a; // Stage 0, no history ⇒ nothing drawn
 
   const towers = a.regions.filter((r) => r.kind === 'tower');
-  const breathe = 0.92 + 0.08 * Math.sin(now * 1.25); // the ground BREATHES (one sin, applied to the blit)
+  let permN = 0; for (const s of scars) if (s.perm) permN++;
+  const key = layerKey(a.stage, a.stage > 0 ? rs.biome.id : 'x', towers, permN);
+  const sp = ensureSpec(a, rs.biome.id, key);
+
+  // One shared heartbeat: a soft lub each ~1.15s. Drives the glow layer, the beads and the organ.
+  const phase = (now % 1.15) / 1.15;
+  const beat = Math.pow(Math.max(0, Math.sin(phase * Math.PI)), 3);
+  const breathe = 0.92 + 0.08 * Math.sin(now * 1.25);
   const alpha = Math.min(0.66, a.intensity * 0.78) * breathe;
 
   if (typeof document === 'undefined') { // headless/stubbed (tests): cheap direct wash, no offscreen cache
-    drawDirectFallback(ctx, rs, a, alpha, towers, now);
+    drawDirectFallback(ctx, rs, a, alpha, sp, now);
     return a;
   }
   if (a.stage <= 0) { drawLiveScars(ctx, a); return a; } // scar history only, no woken field
 
-  let permN = 0; for (const s of scars) if (s.perm) permN++;
-  ensureLayer(a, resolveAccent(rs.biome.accent), towers, rs.biome.id, permN);
-  // advance the crossfade on renderer time; drop the previous bake once it has fully faded (no wasted blit)
-  if (fade < 1) { const dt = Math.max(0, Math.min(0.1, now - fadeAt)); fade = Math.min(1, fade + dt / FADE_SECS); if (fade >= 1) prevLayer = null; }
+  ensureBake(a, resolveAccent(rs.biome.accent), sp, key);
+  // advance the crossfade on renderer time; drop the previous bake once it has fully faded
+  if (fade < 1) { const dt = Math.max(0, Math.min(0.1, now - fadeAt)); fade = Math.min(1, fade + dt / FADE_SECS); if (fade >= 1) prevBake = null; }
   fadeAt = now;
 
+  const glowAlpha = Math.min(0.85, a.intensity * (0.5 + 0.45 * beat)); // the network pulses as one organism
   ctx.save();
-  if (prevLayer && fade < 1) { ctx.globalAlpha = alpha * (1 - fade); ctx.drawImage(prevLayer, 0, 0); }
-  ctx.globalAlpha = alpha * (prevLayer ? fade : 1);
-  if (curLayer) ctx.drawImage(curLayer, 0, 0);
+  if (prevBake && fade < 1) {
+    ctx.globalAlpha = alpha * (1 - fade); ctx.drawImage(prevBake.base, 0, 0);
+    ctx.globalAlpha = glowAlpha * (1 - fade); ctx.drawImage(prevBake.glow, 0, 0);
+  }
+  const k = prevBake ? fade : 1;
+  if (curBake) {
+    ctx.globalAlpha = alpha * k; ctx.drawImage(curBake.base, 0, 0);
+    ctx.globalAlpha = glowAlpha * k; ctx.drawImage(curBake.glow, 0, 0);
+  }
   ctx.restore();
 
   drawLiveScars(ctx, a); // fresh combat scorch, over the baked flesh
-  drawVeinBeats(ctx, a, towers, now, detail); // heartbeats travelling the baked veins
+  drawVeinBeats(ctx, a, sp, now, detail); // nutrient beads travelling the baked network
+  if (detail) drawVeinCrawlers(ctx, a, sp, now); // parasites crawling the veins (under entities ⇒ correct occlusion)
+  drawTerrainEyes(ctx, rs, a, sp, now, detail); // the ground WATCHES — pupils track the swarm
   drawNucleusOrgan(ctx, a, now); // the central organ (blinks/pulses — kept live)
   drawCombatFlare(ctx, a, now); // hot mutation where the line is pressed hardest
   drawMegaBloom(ctx, a, now); // battlefield-scale bloom under a mega (rare)
   return a;
 }
 
-/** Heartbeat beads running nucleus→tower along the baked veins — the network pulses with the core. */
-function drawVeinBeats(ctx: Ctx, a: Assimilation, towers: Region[], now: number, detail: boolean): void {
-  const max = detail ? towers.length : Math.min(6, towers.length);
-  const beat = (now % 1.15) / 1.15;
-  const core = nucleusPoint;
+/** Nutrient beads running along the vein NETWORK edges toward the build — synced to the heartbeat. */
+function drawVeinBeats(ctx: Ctx, a: Assimilation, sp: TerraformSpec, now: number, detail: boolean): void {
+  const max = detail ? sp.veins.length : Math.min(6, sp.veins.length);
+  const beatT = (now % 1.15) / 1.15;
   ctx.save();
   for (let i = 0; i < max; i++) {
-    const t = towers[i];
-    const midx = (core.x + t.x) / 2 + (hash01(t.seed) - 0.5) * 46;
-    const midy = (core.y + t.y) / 2 + (hash01(t.seed * 3) - 0.5) * 46;
-    const bt = (beat + hash01(t.seed)) % 1;
-    const bx = quad(core.x, midx, t.x, bt), by = quad(core.y, midy, t.y, bt);
+    const v = sp.veins[i];
+    const bt = (beatT + hash01(v.seed)) % 1;
+    const bx = quad(v.x0, v.cx, v.x1, bt), by = quad(v.y0, v.cy, v.y1, bt);
     const glow = (1 - bt) * (0.35 + a.intensity * 0.4);
-    ctx.fillStyle = css(shade(hex(t.hue), 0.5), glow);
+    ctx.fillStyle = css(shade(hex(v.hue), 0.5), glow);
     ctx.beginPath(); ctx.arc(bx, by, 1.6 + a.intensity * 1.8, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** Tiny parasites crawling ALONG the vein network (stage ≥ 3) — the infrastructure is inhabited. Drawn
+ *  under the entities, so they slip beneath towers at the endpoints (correct occlusion). */
+function drawVeinCrawlers(ctx: Ctx, a: Assimilation, sp: TerraformSpec, now: number): void {
+  if (a.stage < 3 || sp.veins.length === 0) return;
+  const n = Math.min(8, sp.veins.length * 2);
+  ctx.save(); ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const v = sp.veins[i % sp.veins.length];
+    const dir = i % 2 === 0 ? 1 : -1; // some crawl outward, some crawl home
+    const speed = 0.05 + hash01(i * 3.7) * 0.05;
+    let t = (now * speed + hash01(i * 9.3)) % 1;
+    if (dir < 0) t = 1 - t;
+    const x = quad(v.x0, v.cx, v.x1, t), y = quad(v.y0, v.cy, v.y1, t);
+    const t2 = Math.min(1, Math.max(0, t + dir * 0.02));
+    const x2 = quad(v.x0, v.cx, v.x1, t2), y2 = quad(v.y0, v.cy, v.y1, t2);
+    const wig = Math.sin(now * 6 + i * 2.1) * 1.5;
+    ctx.strokeStyle = css([172, 66, 88], 0.34 * a.intensity);
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo((x + x2) / 2 + wig, (y + y2) / 2 - wig, x2, y2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** The terrain eyes open and WATCH: each pupil tracks the nearest enemy (idle wander when none, or
+ *  under LOD). Sockets are baked; this draws only the moving parts — sclera, iris, lid. */
+function drawTerrainEyes(ctx: Ctx, rs: RenderState, a: Assimilation, sp: TerraformSpec, now: number, detail: boolean): void {
+  if (sp.eyes.length === 0) return;
+  ctx.save();
+  for (const e of sp.eyes) {
+    const h = hash01(e.seed);
+    const cyc = (now * 0.22 + h) % 1;
+    const open = Math.min(1, Math.abs(cyc - 0.5) * 9); // brief blink once per cycle
+    if (open < 0.1) continue;
+    // pupil target: the nearest enemy within its gaze (LOD: idle wander instead of a scan)
+    let dx = Math.cos(now * 0.4 + e.seed) * 0.5, dy = Math.sin(now * 0.3 + e.seed) * 0.5;
+    if (detail) {
+      let bd = 260 * 260;
+      for (const en of rs.enemies) {
+        const ddx = en.x - e.x, ddy = en.y - e.y; const d2 = ddx * ddx + ddy * ddy;
+        if (d2 < bd) { bd = d2; const d = Math.sqrt(d2) || 1; dx = ddx / d; dy = ddy / d; }
+      }
+    }
+    const look = e.r * 0.32;
+    ctx.globalAlpha = 0.5 * Math.min(1, a.intensity * 1.6);
+    ctx.fillStyle = css([236, 226, 214], open);
+    ctx.beginPath(); ctx.ellipse(e.x, e.y, e.r * 1.15, e.r * 0.7 * open, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = css([150, 40, 52], open);
+    ctx.beginPath(); ctx.arc(e.x + dx * look, e.y + dy * look * 0.6, e.r * 0.42, 0, TAU); ctx.fill();
+    ctx.fillStyle = css([16, 6, 10], open);
+    ctx.beginPath(); ctx.arc(e.x + dx * look, e.y + dy * look * 0.6, e.r * 0.2, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1;
   }
   ctx.restore();
 }
@@ -635,9 +884,9 @@ function drawMegaBloom(ctx: Ctx, a: Assimilation, now: number): void {
   ctx.fillStyle = rad; ctx.beginPath(); ctx.ellipse(r.x, r.y, 220, 120, 0, 0, TAU); ctx.fill();
 }
 
-/** Headless / stubbed-context fallback (tests, jsdom): a cheap direct wash + simple veins/blooms so the
- *  draw path still executes end-to-end without an offscreen canvas (mirrors renderer.ts drawFloor). */
-function drawDirectFallback(ctx: Ctx, rs: RenderState, a: Assimilation, alpha: number, towers: Region[], now: number): void {
+/** Headless / stubbed-context fallback (tests, jsdom): a cheap direct wash + the spec's vein network as
+ *  straight segments, so the draw path still executes end-to-end without an offscreen canvas. */
+function drawDirectFallback(ctx: Ctx, rs: RenderState, a: Assimilation, alpha: number, sp: TerraformSpec, now: number): void {
   if (a.stage <= 0 && scars.length === 0) return;
   const tint = resolveAccent(rs.biome.accent);
   ctx.save();
@@ -648,22 +897,24 @@ function drawDirectFallback(ctx: Ctx, rs: RenderState, a: Assimilation, alpha: n
   drawLiveScars(ctx, a);
   if (a.stage <= 0) return;
   ctx.save(); ctx.lineCap = 'round';
-  for (const t of towers) {
-    ctx.strokeStyle = css(mix(hex(CORE_HUE), hex(t.hue), 0.5), 0.2 + a.intensity * 0.2); ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(nucleusPoint.x, nucleusPoint.y); ctx.lineTo(t.x, t.y); ctx.stroke();
-    ctx.fillStyle = css(hex(t.hue), 0.24); ctx.beginPath(); ctx.arc(t.x, t.y, 6 + a.stage * 2, 0, TAU); ctx.fill();
+  for (const v of sp.veins) {
+    ctx.strokeStyle = css(mix(hex(CORE_HUE), hex(v.hue), 0.5), 0.2 + a.intensity * 0.2); ctx.lineWidth = v.w;
+    ctx.beginPath(); ctx.moveTo(v.x0, v.y0); ctx.lineTo(v.x1, v.y1); ctx.stroke();
+    ctx.fillStyle = css(hex(v.hue), 0.24); ctx.beginPath(); ctx.arc(v.x1, v.y1, 6 + a.stage * 2, 0, TAU); ctx.fill();
   }
   ctx.restore();
-  drawVeinBeats(ctx, a, towers, now, true);
+  drawVeinBeats(ctx, a, sp, now, true);
+  drawTerrainEyes(ctx, rs, a, sp, now, false);
   drawNucleusOrgan(ctx, a, now);
 }
 
 // ══ Ambient life (OVER the entities — pure atmosphere, stage-gated so it never clutters readability) ═
-/** A few crawling parasites, drifting spores and a rare floating eye — only at deep stages, low alpha,
- *  LOD-gated. Kept sparse + edge-biased so the play-critical centre stays readable. */
+/** Drifting spores and the rare floating eye — only at deep stages, low alpha, LOD-gated, edge-biased
+ *  so the play-critical centre stays readable. (Crawling parasites live UNDER the entities, on the
+ *  vein network — see drawVeinCrawlers.) */
 export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: number, detail = true): void {
   if (a.stage < 3 || !detail) return;
-  const count = Math.min(12, (a.stage - 2) * 4);
+  const count = Math.min(10, (a.stage - 2) * 3);
   ctx.save();
   for (let i = 0; i < count; i++) {
     const speed = 0.05 + hash01(i * 3.1) * 0.06;
@@ -673,13 +924,8 @@ export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: num
     const edge = Math.min(1, Math.min(x, WIDTH - x) / (WIDTH * 0.32)); // fade toward centre — protect readability
     const alpha = 0.11 * (1 - edge * 0.7) * a.intensity;
     if (alpha < 0.01) continue;
-    const kind = i % 3;
-    if (kind === 0) { // drifting spore
+    if (i % 2 === 0) { // drifting spore
       ctx.fillStyle = css([155, 224, 74], alpha); ctx.beginPath(); ctx.arc(x, y, 1.5 + hash01(i) * 1.5, 0, TAU); ctx.fill();
-    } else if (kind === 1) { // crawling parasite
-      const wig = Math.sin(now * 4 + i) * 3;
-      ctx.strokeStyle = css([160, 60, 80], alpha * 1.4); ctx.lineWidth = 1.4; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(x - 3, y); ctx.quadraticCurveTo(x, y + wig, x + 3, y); ctx.stroke();
     } else { // floating eye
       const open = Math.max(0, Math.sin(now * 0.6 + i * 2));
       if (open < 0.2) continue;
@@ -689,3 +935,4 @@ export function drawLivingBattlefieldAmbient(ctx: Ctx, a: Assimilation, now: num
   }
   ctx.restore();
 }
+

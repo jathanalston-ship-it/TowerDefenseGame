@@ -62,31 +62,34 @@ Mutation blooms outward from **hotspots**, each in its own motif:
 `arteries` (pulsing veins with a travelling heartbeat) connect the nucleus to each tower, so the network
 literally follows the player's layout.
 
-## The Terraform Layer (architecture + optimization)
+## The Terraform Spec + dual-layer bake (architecture + optimization)
 
-All the **stable** terrain — membrane, tubular veins, shaded blooms, edge overgrowth and permanent
-scars — is **baked once** into an offscreen canvas, keyed by `(stage, biome, build layout, perm-scar
-count)`. It is rebuilt only when that key changes (a stage step, a biome flip, a tower placed/upgraded,
-a boss falling) and **crossfades** from the previous bake over ~0.85 s, so the arena *grows* instead of
-popping. Per frame the drawer does **one `drawImage`** plus a handful of cheap, gradient-free live
-accents. Baked in:
+Everything with a position is first **derived** into a pure `TerraformSpec` (the house
+`derive*`/`draw*` pattern): the **vein network** — a greedy nearest-connected *tree* rooted at the
+nucleus, so veins branch organically through the build instead of star-bursting from one point —
+plus terrain **eye sites**, biome **flora**, and the spread parameters. The bake paints from the spec
+and the live accents read the *same* spec, so animation always matches the baked geometry.
 
-1. **Membrane** — multi-octave fleshy mottling behind an **assimilation frontier** that advances from the
-   hive (bottom) toward the spawn line (top) as the run deepens — the map is *consumed*, not overlaid.
-   **Tinted** toward the biome accent (consume, don't overwrite) **and** the Assimilation-Index tier
-   colour, so the ground shares the mood-FX/HUD art direction.
-2. **Veins** — tubular nucleus→tower channels (dark casing, bright core, capillary offshoots) following
-   the real build.
-3. **Regional blooms** — 2-tone **shaded** per-motif geometry (bone spurs, crystal shards, spore pods,
-   roots, chitin plates, ember cracks, specular sacs), lit up-left to match the renderer.
-4. **Overgrowth** (stage ≥ 2) — a rising bottom crust, creeping edge tendrils and, at stage ≥ 4, chitin
-   plating snapping onto the tile lattice — this is what makes late-game *not the starting map*.
-5. **Permanent scars** — boss/mega craters (tracked render-side by boss-id disappearance, so no sim change).
+Spread is governed by a radial **infection field**: mutation *radiates outward* from every hotspot
+(reach grows with stage) and pools up from the hive **frontier**, the two merging as the run deepens —
+the original map is consumed, not overlaid.
 
-**Live accents** (cheap, over the blit): breathing blit-alpha, heartbeat beads travelling the veins, the
-**nucleus organ** (roots/sacs/blinking eyes/heartbeat ring), a **combat flare** where the line is pressed
-hardest, a mega bloom, fading combat scorch (two-arc fills, no gradients), and **ambient life** over the
-entities.
+The stable terrain is baked into **two** offscreen canvases keyed by `(stage, biome, build layout,
+perm-scar count)`, rebuilt only on a real change and **crossfaded** (~0.85 s):
+
+- **BASE** — field-gated fleshy membrane (biome + tier tinted), the **feathered** frontier crust +
+  edge tendrils + stage-4 chitin plating on the tile lattice, vein casings/walls + capillaries, 2-tone
+  shaded per-motif blooms, **flora** (biome-flavoured micro-growth: `BIOME_FLORA` data row, dominant-
+  motif fallback), closed **eye sockets**, permanent scars. Blitted with a slow breathing alpha.
+- **GLOW** — vein cores, bloom glints, the frontier shimmer, ember light. Blitted with a
+  **heartbeat-modulated alpha**, so the entire network pulses as one organism for the cost of a
+  `drawImage`.
+
+**Live accents** (cheap, over the blits): nutrient beads running the vein network, **parasites crawling
+along the veins** (under the entities ⇒ correct occlusion), **terrain eyes whose pupils track the
+nearest enemy** (idle wander under LOD), the **nucleus organ** (roots/sacs/blinking eyes/heartbeat
+ring), a **combat flare** where the line is pressed hardest, a mega bloom, fading combat scorch
+(two-arc fills, no gradients), and **ambient spores/floating eyes** over the entities.
 
 ## Audio
 
