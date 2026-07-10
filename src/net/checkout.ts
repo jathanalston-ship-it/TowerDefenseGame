@@ -12,6 +12,7 @@
 import { meta } from '../state/meta';
 import type { PremiumReceipt } from '../state/meta';
 import type { PremiumOfferDef } from '../core/premium';
+import { guard } from '../security/actionGuard';
 import { playerId } from './identity';
 import { turnstileToken } from './turnstile';
 
@@ -23,6 +24,9 @@ export type CheckoutStart = { ok: true } | { ok: false; error: string };
 /** Begin a real-money checkout: create the session, persist the pending marker,
  *  redirect. Only returns on failure (success navigates away). */
 export async function beginCheckout(offer: PremiumOfferDef): Promise<CheckoutStart> {
+  // Security layer (docs/SECURITY.md): real-money checkouts are the most heavily spaced
+  // action in the game — double-clicks and second-tab races collapse before any network.
+  if (!guard('purchase.checkout', offer.id).ok) return { ok: false, error: 'Please wait a moment before trying again.' };
   try {
     const token = await turnstileToken();
     const res = await fetch('/api/store/checkout', {

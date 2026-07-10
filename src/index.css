@@ -9612,3 +9612,14 @@ html[data-debug-layout] body::after {
   border: 1px solid var(--vital);
   border-radius: 999px;
 }
+
+/* ── Game Action Security Layer feedback (docs/SECURITY.md §feedback) ── */
+.sec-pulse {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  padding: 6px 14px; border-radius: 999px; z-index: 220;
+  background: rgba(8, 6, 12, 0.92); border: 1px solid rgba(255, 210, 77, 0.5);
+  color: #ffd24d; font-size: 12px; letter-spacing: 0.06em;
+  animation: sec-pulse-in 0.18s ease-out both;
+  pointer-events: none;
+}
+@keyframes sec-pulse-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%); } }

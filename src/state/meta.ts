@@ -117,6 +117,8 @@ import { BIOME_REGION, recommendedPowerScore, stageWaveCount } from '../core/cam
 import { bossDef } from '../core/boss';
 import { MEGA, megaBossDef, megaBossIchor, megaExpectedKillSec, megaKillEfficiency } from '../core/megaboss';
 import type { MegaKillStat } from '../core/types';
+import { admitWrite, guardOk, noteClock, resetSecurity } from '../security/actionGuard';
+import { isDebugEnabled } from '../debug/debug';
 
 /** Biome ids the account has reached in Campaign, derived from campaign depth (biomes occupy
  *  contiguous BIOME_REGION-stage bands that rotate through BIOMES). No new save field. */
@@ -501,15 +503,34 @@ gameEvents.on('megaWeakPointDown', (e) => {
 
 const saveStore = new SaveStore();
 const store = createStore<SaveData>(saveStore.load());
+noteClock(); // boot clock high-water check (docs/SECURITY.md §offline) — no-op outside the browser
 
 // Splice Market stock seed (docs/MARKET.md): derived from the profile's createdAt stamp so
 // defaultSave() stays deterministic (no rolled field) while every real profile still gets its
 // own stock stream. 0 (pre-first-settle) is a valid seed.
 const marketSeedOf = (s: SaveData): number => (s.createdAt || 0) >>> 0;
 
+// ── Game Action Security Layer chokepoint (docs/SECURITY.md §pipeline) ──
+// EVERY persistent mutation — current and future — funnels through persist(), so flood
+// control lives here once and new systems inherit it automatically. In-memory state is
+// always exact (store.set is unconditional); only the DISK write coalesces under flood
+// (button-mashing, scripted input, a buggy loop), with a trailing flush so the last
+// state always lands. The clock high-water mark rides the same chokepoint.
+let persistFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
 function persist(next: SaveData): void {
   store.set(next);
-  saveStore.save(next);
+  noteClock();
+  if (admitWrite()) {
+    saveStore.save(next);
+    return;
+  }
+  if (persistFlushTimer === null) {
+    persistFlushTimer = setTimeout(() => {
+      persistFlushTimer = null;
+      saveStore.save(store.get()); // trailing flush — the newest state wins
+    }, 300);
+  }
 }
 
 // Loot banked LIVE during the in-progress run (see meta.syncRunLoot). The HUD drives this as
@@ -1289,6 +1310,7 @@ export const meta = {
   upgrades: META_UPGRADES,
 
   buyUpgrade(id: string): boolean {
+    if (!guardOk('progress.upgrade', id)) return false;
     const save = store.get();
     const def = META_UPGRADES.find((u) => u.id === id);
     if (!def) return false;
@@ -1388,6 +1410,7 @@ export const meta = {
 
   /** Spend Ascendant Cells to raise a tree node by one level. False if unknown/maxed/unaffordable. */
   buyAscendantNode(id: string): boolean {
+    if (!guardOk('progress.ascendant', id)) return false;
     const save = store.get();
     const def = ASCENDANT_NODES.find((n) => n.id === id);
     if (!def) return false;
@@ -1412,6 +1435,7 @@ export const meta = {
    * Molt isn't worth offering yet (< minCells). Backs up first — it's destructive.
    */
   molt(): boolean {
+    if (!guardOk('prestige.molt')) return false;
     const save = store.get();
     const gain = moltGain(save);
     if (gain < PRESTIGE.molt.minCells) return false;
@@ -2034,6 +2058,7 @@ export const meta = {
    * A loot box folds tower/hero Shards; a run cache also folds materials + adds equipment.
    * Null when nothing is pending (or a tampered entry can't be resolved → discarded). */
   openContainer(): CrackedContainer | null {
+    if (!guardOk('container.open')) return null;
     const save = store.get();
     const [c, ...rest] = save.pendingContainers;
     if (!c) return null;
@@ -2560,6 +2585,7 @@ export const meta = {
    *  the mission's identity), pays the multiplied bundle, bumps the mission's mastery, and
    *  frees the hero. Null before time. `reward` is the TOTAL paid (find included). */
   claimExpedition(hero: HeroKind, now = Date.now()): { reward: ExpeditionReward; outcome: ExpeditionOutcome; find: RareFind | null } | null {
+    if (!guardOk('expedition.claim', hero)) return null;
     const s = store.get();
     const e = s.expeditions.active.find((x) => x.hero === hero);
     if (!e || now < e.endsAt) return null;
@@ -2754,6 +2780,7 @@ export const meta = {
 
   /** Buy a boutique item with Ichor (cosmetics never rotate out of the boutique). */
   buyWardrobeItem(id: string): boolean {
+    if (!guardOk('wardrobe.buy', id)) return false;
     const save = store.get();
     const def = wardrobeItem(id);
     if (!def || def.source.kind !== 'shop' || save.wardrobe.owned.includes(id)) return false;
@@ -2803,6 +2830,7 @@ export const meta = {
 
   /** Claim one cosmetic milestone → its receipt lines (null if not claimable). */
   claimWardrobeMilestone(id: string): PremiumReceiptLine[] | null {
+    if (!guardOk('wardrobe.claim', id)) return null;
     const def = wardrobeMilestone(id);
     if (!def) return null;
     const row = this.wardrobeMilestones().find((m) => m.def.id === id);
@@ -2925,6 +2953,7 @@ export const meta = {
   /** Claim one earned level's rewards on a track → receipt lines (null = not claimable).
    *  Premium levels need Premium — except the free-preview levels (1 / 50 / 99). */
   claimPassLevel(track: 'free' | 'premium', level: number, now = Date.now()): PremiumReceiptLine[] | null {
+    if (!guardOk('pass.claim', `${track}:${level}`)) return null;
     this.pollBattlePass(now);
     const save = store.get();
     const bp = save.battlePass;
@@ -2982,6 +3011,7 @@ export const meta = {
   /** Advance one level via a completed rewarded ad (caller runs the provider first;
    *  docs/RESEARCH.md provider rules). Capped per UTC day. */
   adAdvancePass(now = Date.now()): boolean {
+    if (!guardOk('pass.ad')) return false;
     this.pollBattlePass(now);
     const save = store.get();
     const day = dayKey(now);
@@ -3015,6 +3045,7 @@ export const meta = {
   },
 
   upgradeGene(id: string): boolean {
+    if (!guardOk('gene.upgrade', id)) return false;
     const save = store.get();
     const def = cardRegistry.get(id);
     if (!def) return false;
@@ -3118,6 +3149,7 @@ export const meta = {
   },
   /** Spend Gene Essence to raise a slot's level by one (within its rarity ceiling). */
   upgradeMulligan(kind: TowerKind, slotIndex: number): boolean {
+    if (!guardOk('craft.mulligan', `${kind}:${slotIndex}`)) return false;
     const save = store.get();
     const cur = save.mulligans[kind];
     const slot = cur?.slots[slotIndex];
@@ -3134,6 +3166,7 @@ export const meta = {
   /** Spend Gene Essence to ASCEND a MAXED slot to the next rarity (Ascension-ready). Bumps the dex
    *  so the modifier can be re-slotted at the new rarity; recomputes the (intensified) organism. */
   ascendMulligan(kind: TowerKind, slotIndex: number): boolean {
+    if (!guardOk('craft.mulligan', `${kind}:${slotIndex}:asc`)) return false;
     const save = store.get();
     const cur = save.mulligans[kind];
     const slot = cur?.slots[slotIndex];
@@ -3155,6 +3188,7 @@ export const meta = {
    *  organism onto its host — no unequip, no re-slotting, ever. Re-spinning an occupied
    *  slot replaces its mod (the gamble). Returns the rolled mod, or null (refused). */
   reforgeMulligan(kind: TowerKind, slotIndex: number): { mod: MulliganReforgeMod; cost: number } | null {
+    if (!guardOk('craft.mulligan', `${kind}:${slotIndex}:rf`)) return null;
     const save = store.get();
     const cur = save.mulligans[kind];
     if (!cur || !isMulliganActive(cur)) return null;
@@ -3248,6 +3282,7 @@ export const meta = {
    *  marks it owned, and returns true — it immediately joins the Biomorph Conveyor pool and can
    *  be starred / set as the favorite. False if already owned or unaffordable. */
   unlockTower(kind: TowerKind): boolean {
+    if (!guardOk('progress.unlock', kind)) return false;
     const save = store.get();
     if (isTowerUnlocked(save, kind)) return false;
     if (!towerShardGateMet(save, kind)) return false; // its campaign gate isn't cleared — no shards yet
@@ -3318,6 +3353,7 @@ export const meta = {
    *  and returns true. False if already owned or unaffordable. The claimed hero is immediately
    *  selectable (setHeroInSlot no longer rejects it). */
   unlockHero(kind: HeroKind): boolean {
+    if (!guardOk('progress.unlock', `hero:${kind}`)) return false;
     const save = store.get();
     if (isHeroUnlocked(save, kind)) return false;
     if (HERO_DEFS[kind].unlock) return false; // milestone-gated (Vitriol) — earned by a feat, never claimed with Shards
@@ -3334,6 +3370,7 @@ export const meta = {
 
   /** Spend hero shards to add a star to `kind`. Returns false if unaffordable/maxed. */
   buyHeroStar(kind: HeroKind): boolean {
+    if (!guardOk('progress.star', `hero:${kind}`)) return false;
     const save = store.get();
     const stars = save.heroStars[kind] ?? 0;
     if (stars >= STAR.maxStars) return false;
@@ -3358,6 +3395,7 @@ export const meta = {
   /** Spend tower shards to add a star to `kind`. Returns false if unaffordable, maxed, OR gated by
    *  the Campaign Evolution Cap (Shards are the fuel, Campaign is the permission). */
   buyStar(kind: TowerKind): boolean {
+    if (!guardOk('progress.star', kind)) return false;
     const save = store.get();
     if (!isTowerUnlocked(save, kind)) return false; // locked: shards bank toward the unlock
     const stars = save.towerStars[kind] ?? 0;
@@ -3498,6 +3536,7 @@ export const meta = {
    * touch campaign progress, evolution caps, or hero slots.
    */
   purchaseOffer(offerId: string, now?: Date): PremiumReceipt | null {
+    if (!guardOk('purchase.offer', offerId)) return null;
     const save = store.get();
     const offer = premiumOfferById(offerId);
     if (!offer) return null;
@@ -3630,6 +3669,7 @@ export const meta = {
    * refused (capped / unknown / gated).
    */
   claimResearch(rewardId: string, pick?: EmergencyPick, now?: Date): PremiumReceipt | null {
+    if (!guardOk('research.claim', rewardId)) return null;
     const save = store.get();
     const def = researchRewardById(rewardId);
     if (!def) return null;
@@ -3944,6 +3984,7 @@ export const meta = {
 
   /** Guarded Ichor spend — false (and no mutation) when unaffordable. */
   spendIchor(n: number): boolean {
+    if (!guardOk('ichor.spend')) return false;
     const amt = Math.max(0, Math.floor(n));
     const save = store.get();
     if (amt <= 0 || save.ichor < amt) return false;
@@ -3987,6 +4028,7 @@ export const meta = {
    *  stock (stale click across a refresh), already bought, unaffordable in its currency, or a
    *  container buy would overflow the pending queue. All effects land in ONE persist. */
   buyMarketSlot(slotId: string, now = Date.now()): boolean {
+    if (!guardOk('market.buy', slotId)) return false;
     const save = store.get();
     const window = Math.max(marketWindow(now), save.market.window);
     const bought = save.market.window === window ? save.market.bought : [];
@@ -4088,6 +4130,7 @@ export const meta = {
   /** Trade one lot: spend the Ichor, grant the currency, mark the slot. False (no mutation)
    *  when the lot is already traded this window or unaffordable. One persist. */
   buyIchorOffer(index: number, now = Date.now()): boolean {
+    if (!guardOk('market.ichorOffer', String(index))) return false;
     meta.pollIchorExchange(now);
     const save = store.get();
     const rec = save.ichorExchange;
@@ -4154,6 +4197,7 @@ export const meta = {
   /** Apply a whole-item Reforge operation (Enhance / Reroll / Reforge / Upgrade), spending its
    *  material cost. No-ops (Upgrade at cap, Enhance with nothing to raise) don't charge. */
   reforgeOp(uid: string, op: ReforgeOp): boolean {
+    if (!guardOk('craft.equipment', uid)) return false;
     const save = store.get();
     const inv = save.equipment.inventory;
     const idx = inv.findIndex((i) => i.uid === uid);
@@ -4221,6 +4265,7 @@ export const meta = {
    *  salvage in those states, so a `false` here is the defensive backstop. The item + its material
    *  refund are stashed in `lastSalvage` so the dismantle is UNDOABLE until the next salvage. */
   salvageItem(uid: string): boolean {
+    if (!guardOk('equipment.salvage', uid)) return false;
     const save = store.get();
     const item = save.equipment.inventory.find((i) => i.uid === uid);
     if (!item || item.locked || item.favorite || this.isItemEquipped(uid)) return false;
@@ -4288,6 +4333,7 @@ export const meta = {
    *  defensively. The one-deep Undo buffer holds the LAST item of the batch — undo restores that
    *  one (the Armory's confirm copy says so). Returns the count salvaged + the aggregate refund. */
   salvageItems(uids: string[]): { count: number; refund: { mutagen: number; scrap: number; catalyst: number } } {
+    if (!guardOk('equipment.salvage', uids.join(','))) return { count: 0, refund: { mutagen: 0, scrap: 0, catalyst: 0 } };
     const save = store.get();
     const gone: OwnedItem[] = [];
     for (const uid of uids) {
@@ -4318,6 +4364,7 @@ export const meta = {
   },
 
   debugGrantGear(n = 3): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const items: OwnedItem[] = [];
     for (let i = 0; i < n; i++) items.push(rollItemDrop(Math.random, save.bestWave + 6));
@@ -4337,6 +4384,7 @@ export const meta = {
 
   /** Validate + apply an imported save string. Backs up the current save first. */
   importText(text: string): ImportResult {
+    if (!guardOk('save.import')) return { ok: false, error: 'Rate limited — try again in a moment.' };
     const result = parseImport(text);
     if (!result.ok) return result;
     saveStore.backup(); // non-destructive: keep the pre-import state recoverable
@@ -4361,6 +4409,7 @@ export const meta = {
   },
 
   restoreBackup(id: string): boolean {
+    if (!guardOk('save.restore', id)) return false;
     const data = saveStore.restoreBackup(id);
     if (!data) return false;
     store.set(data);
@@ -4395,6 +4444,7 @@ export const meta = {
   /** Grant a tutorial's ONE-TIME completion rewards (idempotent — a replay from Settings never
    *  re-grants). Returns the reward summary for the reveal, or null if already paid out. */
   grantTutorialRewards(id: string): TutorialRewardSummary | null {
+    if (!guardOk('tutorial.claim', id)) return null;
     const save = store.get();
     if (save.tutorial.rewarded.includes(id)) return null; // already paid — replays never duplicate
     const powerBefore = composePower(accountPowerParts(save)).score;
@@ -4650,6 +4700,8 @@ export const meta = {
   },
 
   reset(): void {
+    if (!guardOk('account.reset')) return;
+    resetSecurity();
     saveStore.backup();
     persist(defaultSave());
   },
@@ -4658,6 +4710,7 @@ export const meta = {
    *  persists a valid, complete, current-version save (re-checksummed by SaveStore.save), so no
    *  orphaned references or version drift. 'everything' also clears backups + preference keys. */
   devReset(id: string): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     if (id === 'everything') {
       saveStore.wipeAll(); // remove the main save, all backups, and the index (no recovery — factory-fresh)
       // Clear known preference/flag keys (not a blind clear — never touches unrelated keys).
@@ -4675,11 +4728,13 @@ export const meta = {
   // ── Debug seeding (used by the debug panel; harmless no-ops otherwise) ────
 
   debugAddShards(n: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     persist({ ...save, shards: Math.max(0, save.shards + n) });
   },
 
   debugSetUpgrade(id: string, level: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const def = META_UPGRADES.find((u) => u.id === id);
     if (!def) return;
     const lvl = Math.max(0, Math.min(def.maxLevel, Math.floor(level)));
@@ -4687,12 +4742,14 @@ export const meta = {
   },
 
   debugMaxUpgrades(): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const upgrades: Record<string, number> = {};
     for (const u of META_UPGRADES) upgrades[u.id] = u.maxLevel;
     persist({ ...store.get(), upgrades });
   },
 
   debugAddTowerShards(n: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const towerShards = { ...save.towerShards };
     for (const k of TOWER_ORDER) towerShards[k] = Math.max(0, (towerShards[k] ?? 0) + n);
@@ -4700,6 +4757,7 @@ export const meta = {
   },
 
   debugAddMasteryXp(n: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const towerMasteryXp = { ...save.towerMasteryXp };
     for (const k of TOWER_ORDER) towerMasteryXp[k] = Math.max(0, (towerMasteryXp[k] ?? 0) + n);
@@ -4708,14 +4766,17 @@ export const meta = {
 
   // ── Mulligan dev tools (docs/MULLIGANS.md §dev) — exercise the whole pipeline without loot. ──
   debugGrantEssence(n: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     meta.grantGeneEssence(n);
   },
   /** Discover every modifier at Epic (headroom for upgrade/ascension testing). */
   debugDiscoverAllMulligans(): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     for (const m of mulliganRegistry.all()) meta.discoverModifier(m.id, 'epic');
   },
   /** Discover all + fill every tower's three slots with a VARIED triple (a live organism per kind). */
   debugAutoAssembleMulligans(): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const ids = mulliganRegistry.ids();
     meta.debugDiscoverAllMulligans();
     TOWER_ORDER.forEach((k, i) => {
@@ -4726,6 +4787,7 @@ export const meta = {
   /** Set the highest cleared Campaign stage for a difficulty track — drives the Evolution Cap
    *  (lets the debug panel + tests exercise the cap gating without playing the ladder). */
   debugSetCampaignStage(stage: number, difficulty = 'standard'): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     persist({ ...save, campaign: { ...save.campaign, cleared: { ...save.campaign.cleared, [difficulty]: Math.max(0, Math.floor(stage)) } } });
   },
@@ -4733,6 +4795,7 @@ export const meta = {
   /** Fully evolve every tower (★max) and unlock the Evolution Cap — to inspect the late-game
    *  visual evolution (lab portraits + battlefield) without the full grind. */
   debugMaxEvolution(): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const towerStars = { ...save.towerStars };
     for (const k of TOWER_ORDER) towerStars[k] = STAR.maxTowerStars;
@@ -4740,6 +4803,7 @@ export const meta = {
   },
 
   debugAddHeroShards(n: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const heroShards = { ...save.heroShards };
     for (const k of HERO_ORDER) heroShards[k] = Math.max(0, (heroShards[k] ?? 0) + n);
@@ -4747,6 +4811,7 @@ export const meta = {
   },
 
   debugAddHeroMasteryXp(n: number): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const heroMasteryXp = { ...save.heroMasteryXp };
     for (const k of HERO_ORDER) heroMasteryXp[k] = Math.max(0, (heroMasteryXp[k] ?? 0) + n);
@@ -4756,6 +4821,7 @@ export const meta = {
   /** Own every hero — the debug shortcut for testing gated content. Claims the Shard-gated heroes
    *  (into heroUnlocked) AND satisfies the milestone gate (records a boss kill → unlocks Vitriol). */
   debugUnlockHeroes(): void {
+    if (!isDebugEnabled()) return; // release isolation (docs/SECURITY.md §debug)
     const save = store.get();
     const shardGated = HERO_ORDER.filter((k) => (HERO_DEFS[k].unlockShards ?? 0) > 0 && !HERO_DEFS[k].unlock);
     const heroUnlocked = [...new Set([...(save.heroUnlocked ?? []), ...shardGated])];
@@ -4765,6 +4831,7 @@ export const meta = {
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */
   debugOpenChest(chestId: string = RUN_CHEST): ChestResult {
+    if (!isDebugEnabled()) return rollChest(CHESTS[RUN_CHEST], () => 0); // release isolation (inert roll, nothing granted)
     const chest = rollChest(CHESTS[chestId] ?? CHESTS[RUN_CHEST]);
     const save = store.get();
     const towerShards = { ...save.towerShards };
@@ -4788,6 +4855,7 @@ export const meta = {
 
   /** Bank loot points directly (skips a run); completed containers bank UNOPENED into the Vault. */
   debugAddLootPoints(n: number): RunOutcome['loot'] {
+    if (!isDebugEnabled()) return { points: 0, boxes: [], claimedThreshold: 0 } as unknown as RunOutcome['loot']; // release isolation
     const save = store.get();
     const adv = addProgress(save.lootQueue, n);
     const entries: PendingContainer[] = adv.awarded.map((rarity) => ({ kind: 'loot', rarity }));

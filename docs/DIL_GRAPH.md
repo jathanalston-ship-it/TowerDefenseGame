@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 679 nodes · 1146 edges, built from the live
+> **The project's brain** (docs/DIL.md). 683 nodes · 1154 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:campaign` · `system:towers` · `system:gene-cards` · `system:progression-gating` · `system:hub-shell` · `system:mega-bosses` · `system:cutscenes` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
+`system:campaign` · `system:towers` · `system:gene-cards` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
 
 ### Economy / Reward Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -327,6 +327,8 @@ graph LR
   system_cutscenes["Story Cutscenes & Memory Archive"] -->|dependsOn| system_mega_bosses["Mega Bosses"]
   system_cutscenes["Story Cutscenes & Memory Archive"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_cutscenes["Story Cutscenes & Memory Archive"] -->|dependsOn| system_audio["Audio"]
+  system_security["Game Action Security Layer"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_security["Game Action Security Layer"] -->|dependsOn| system_net_backend["Backend lanes (net/)"]
   system_biomes["Biomes"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_difficulty["Difficulty"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_website["Marketing Website"] -->|dependsOn| system_content_infra["Content Infrastructure"]
@@ -351,6 +353,7 @@ graph LR
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
+  system_security["Game Action Security Layer"] -->|consumes| concept_determinism["Determinism"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
 ```
@@ -401,6 +404,7 @@ A run is a pure function of seed + inputs — the invariant behind replays, fair
   - consumedBy ← `system:rendering` — render-only contract: reads snapshots, NEVER writes sim state
   - consumedBy ← `system:living-battlefield` — terrain evolution is render-side; inert at stage 0
   - requiredBy ← `system:prediction` — outcome prediction replays candidate futures
+  - consumedBy ← `system:security` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
 
 ### `concept:golden-test` — Golden Test
 
@@ -409,6 +413,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - tests → `concept:determinism` — six pinned seeds catch any sim drift
   - conflictsWith ← `system:genome-rank` — promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break
   - conflictsWith ← `system:mulligans` — adaptation bonuses fold ONLY through existing MulliganStats channels inside resolveMulligan — a new sim branch for a class bonus breaks the inactive⇒identity gate
+  - conflictsWith ← `system:security` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
   - conflictsWith ← `system:battle-pass` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
 
@@ -522,7 +527,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (60)
+## Systems (61)
 
 ### `system:engine` — Sim Engine
 
@@ -552,7 +557,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…167 more (query: `npm run dil -- node system:engine`)_
+  - _…168 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -800,6 +805,7 @@ _at: src/net/identity.ts, src/net/checkout.ts, src/net/cloudSave.ts, src/net/syn
   - consumes → `system:meta-store` — owns save field 'premium'
   - consumes → `concept:replays` — leaderboard verification recomputes submitted runs
   - extends → `system:account-level` — leaderboard modes accountLevel/weeklyXp/monthlyXp: score = XP, wave = level; the SERVER derives period bucket keys (functions/lib/period.ts mirrors core weekKey/monthKey)
+  - requiredBy ← `system:security`
   - documentedBy ← `doc:DEPLOYMENT.md`
   - documentedBy ← `doc:REPLAY-SHARE.md`
   - testedBy ← `test:src/core/replay.test.ts`
@@ -1449,7 +1455,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…88 more (query: `npm run dil -- node system:meta-store`)_
+  - _…90 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1517,6 +1523,20 @@ _at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/ui/CutscenePlayer.
   - testedBy ← `test:src/core/cutscenes.test.ts`
   - gatedBy ← `system:mega-bosses` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - referencedBy ← `system:prestige` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
+
+### `system:security` — Game Action Security Layer
+
+Centralized guard pipeline every meaningful player action passes before executing: data-driven rate limits, duplicate-request windows, cooldowns, a persist-level flood valve every current AND future meta mutation inherits automatically, clock-rollback detection, debug release-hardening (VITE_RELEASE_HARDENED), and a block log. Enforced by securityRegistry.test.ts — new economy mutators cannot ship unguarded.
+
+_at: src/security/actionGuard.ts, src/security/registry.ts, src/ui/SecurityPulse.tsx_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:net-backend`
+  - gates → `system:meta-store` — every economy-named meta mutator must carry a guard() or an allowlist reason (securityRegistry.test.ts name-shape scan); the persist() chokepoint gives ALL mutations flood control automatically
+  - consumes → `concept:determinism` — guards live OUTSIDE the sim: wall-clock rate limits on in-run verbs would corrupt replays/dailies/goldens — in-run spam is absorbed at the UI input boundary instead
+  - conflictsWith → `concept:golden-test` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
+  - documentedBy ← `doc:SECURITY.md`
+  - testedBy ← `test:src/security/actionGuard.test.ts`
 
 ### `system:biomes` — Biomes
 
@@ -2558,7 +2578,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (152)
+## Documentation (153)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -2685,6 +2705,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:RUN-IDENTITY.md` — project documentation
 - `doc:SCALABILITY.md` — project documentation _(documents `system:meta-store`)_
 - `doc:SECURITY-AUDIT.md` — project documentation
+- `doc:SECURITY.md` — project documentation _(documents `system:security`)_
 - `doc:SHARD-ECONOMY.md` — project documentation _(documents `system:shards-economy`)_
 - `doc:SIMULATION-FRAMEWORK.md` — project documentation _(documents `system:prestige`)_
 - `doc:SIPHON.md` — project documentation
@@ -2713,7 +2734,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (213)
+## Tests (215)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -2866,6 +2887,8 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/render/towerEvolution.test.ts` — automated validation _(tests `system:rendering`)_
 - `test:src/save/envelope.test.ts` — automated validation _(tests `system:meta-store`, tests `system:accounts`)_
 - `test:src/save/saveStore.test.ts` — automated validation _(tests `system:meta-store`)_
+- `test:src/security/actionGuard.test.ts` — automated validation _(tests `system:security`)_
+- `test:src/security/securityRegistry.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/abandon.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.framework.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/achievements.test.ts` — automated validation _(tests `system:achievements`)_

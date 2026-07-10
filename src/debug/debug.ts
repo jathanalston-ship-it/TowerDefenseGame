@@ -1,10 +1,13 @@
 // Debug system. Enabled in dev (`npm run dev`) automatically, and on deployed
 // builds only via an explicit `?debug` opt-in (persisted) — so it is OFF by
-// default in production. Set ALLOW_DEBUG = false to strip it entirely.
+// default in production. RELEASE HARDENING (docs/SECURITY.md §debug): building
+// with VITE_RELEASE_HARDENED=1 compiles the entire debug surface to a dead
+// branch — no ?debug door, no debug meta mutators, no window.__game handle —
+// for store releases; CI/preview harnesses keep the opt-in.
 
 import type { Game } from '../core/game';
 
-const ALLOW_DEBUG = true;
+const ALLOW_DEBUG = import.meta.env.VITE_RELEASE_HARDENED !== '1';
 const FLAG_KEY = 'assimilate.debug';
 
 export function isDebugEnabled(): boolean {

@@ -7,6 +7,7 @@ import { meta } from '../state/meta';
 import { dailyKey } from '../core/daily';
 import { monthKey, weekKey } from '../core/accountLevel';
 import { playerId } from './identity';
+import { guard } from '../security/actionGuard';
 import { turnstileToken } from './turnstile';
 
 export type LbMode = 'daily' | 'bossRush' | 'accountLevel' | 'weeklyXp' | 'monthlyXp' | 'genomeRating';
@@ -86,6 +87,9 @@ export async function maybeSubmitBest(mode: LbMode): Promise<void> {
   if (!claim) return;
   const sentKey = `${mode}:${claim.dayKey}`;
   if ((sentMap()[sentKey] ?? 0) >= claim.score) return; // nothing new to say
+  // Security layer (docs/SECURITY.md): a strict client budget on submissions — the SERVER is
+  // the truth (replay re-simulation, best-per-player); this just refuses to be noisy.
+  if (!guard('leaderboard.submit', `${sentKey}:${claim.score}`).ok) return;
   try {
     let ticket: string | undefined;
     if (mode === 'daily') {

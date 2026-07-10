@@ -19,6 +19,13 @@ Severity scale: **Critical** (money/account loss) · **High** (cross-player
 damage) · **Medium** (public-surface abuse) · **Low** (self-inflicted /
 cosmetic).
 
+> **Companion framework:** the client-side **Game Action Security Layer**
+> (docs/SECURITY.md — `src/security/`) now implements the audit's client-side
+> hardening as ARCHITECTURE: a central action registry with data-driven rate
+> limits, duplicate-request windows, a persist-level flood valve, clock-rollback
+> detection, debug release-hardening (`VITE_RELEASE_HARDENED`), and build-failing
+> enforcement so new economy surfaces cannot ship unguarded.
+
 ---
 
 ## 1. System-by-system review

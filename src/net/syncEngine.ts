@@ -20,6 +20,7 @@ import { powerBreakdown } from '../state/profile';
 import { account, currentPlatform } from '../account/accountStore';
 import { ensureGuestRegistered } from '../account/providers';
 import { connectivity } from './connectivity';
+import { guard } from '../security/actionGuard';
 import { trackEvent } from './events';
 
 export const MIN_INTERVAL_MS = 150_000; // ≤4 PUTs / 10 min — well inside the server budget
@@ -99,6 +100,9 @@ async function fetchCloudMeta(): Promise<{ rev: number; updatedAt: number; meta:
 
 /** Upload the current save as a v2 envelope with optimistic concurrency. */
 async function push(): Promise<'ok' | 'conflict' | 'error'> {
+  // Security layer (docs/SECURITY.md): a client-side budget ON TOP of MIN_INTERVAL/backoff —
+  // a blocked push simply stays dirty and retries on the normal cadence.
+  if (!guard('sync.push').ok) return 'error';
   const save = meta.get();
   const env = localEnvelope(save);
   const c = account.credentials();

@@ -19,6 +19,7 @@ import { InitCutscene, introSeen } from './InitCutscene';
 import { CutscenePlayer } from './CutscenePlayer';
 import { cutsceneDef } from '../core/cutscenes';
 import { UpdateToast } from './components/UpdateToast';
+import { SecurityPulse } from './SecurityPulse';
 import { SpectateView } from './SpectateView';
 import { decodeReplayCode } from '../net/replayShare';
 import type { ReplayRecord } from '../core/replay';
@@ -499,6 +500,9 @@ export function App(): JSX.Element {
           conflict resolution — the modal can surface during ANY screen (a push can 409). */}
       {screen === 'menu' && <WelcomeGate />}
       <ConflictModal />
+      {/* Game Action Security Layer feedback (docs/SECURITY.md §feedback) — the one visible
+          surface of the guard engine: a throttled "hold on" pulse when an action is blocked. */}
+      <SecurityPulse />
     </div>
   );
 }
