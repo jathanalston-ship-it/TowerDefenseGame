@@ -157,4 +157,13 @@ describe('infestation × finishRun', () => {
     expect(v.completion).toBeGreaterThan(0);
     expect(v.saturatedCount).toBe(0);
   });
+
+  it('dormancy: a fresh board is dormant (home teaser); the first fed point wakes it', () => {
+    meta.reset();
+    const before = meta.infestationView();
+    expect(before.dormant).toBe(true);
+    expect(before.feedsInto).toBeTruthy(); // the teaser still previews where the next run lands
+    meta.finishRun(run(5, true));
+    expect(meta.infestationView().dormant).toBe(false);
+  });
 });

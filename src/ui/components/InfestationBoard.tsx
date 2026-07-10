@@ -6,6 +6,10 @@
 // Header shows map totals; a control row pins a sector/region/spread; a detail line reads the
 // focused sector's tier + decay forecast. The canvas loop is DPR-aware and pauses when hidden
 // or under prefers-reduced-motion (one still frame).
+//
+// DORMANT COLLAPSE: while nothing is infested anywhere (view.dormant) the board renders as a
+// one-line teaser — what the system is, where the next run feeds, and a "View map" expander —
+// instead of a screen-tall empty map. The first infested point opens the full board for good.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { meta } from '../../state/meta';
@@ -31,6 +35,11 @@ export function InfestationBoard(): JSX.Element {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [focus, setFocus] = useState<string | null>(null); // hovered/keyboard-focused sector for the detail line
   const [, bump] = useState(0);
+  // Dormant collapse: the full map mounts only on request while nothing is infested.
+  // `showMap` gates the render; the layout effects below re-arm on it (the canvas/wrap
+  // refs are null while the teaser is up).
+  const [open, setOpen] = useState(false);
+  const showMap = !view.dormant || open;
 
   // Live draw state, mutated each frame from the current view (kept in a ref so the rAF loop
   // never restarts on a React render). Feed flashes are seeded when a sector's level rises.
@@ -110,7 +119,7 @@ export function InfestationBoard(): JSX.Element {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [showMap]); // re-arm when the map mounts out of the dormant teaser
 
   // Redraw the reduced-motion still whenever the data changes (no loop to pick it up).
   useEffect(() => {
@@ -134,7 +143,7 @@ export function InfestationBoard(): JSX.Element {
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [showMap]);
   const overlay = useMemo(() => infestationLayout(box.w, box.h, REGION_IDS), [box.w, box.h]);
 
   const setTarget = (id: string | null): void => {
@@ -146,6 +155,29 @@ export function InfestationBoard(): JSX.Element {
   const focusDetail = focus ? view.sectorDetails[focus] : view.sectorDetails[view.feedsInto];
   const focusRegion = focusDetail ? regionOfSector(focusDetail.id) : undefined;
 
+  const toggle = (next: boolean): void => {
+    audio.cue('ui');
+    setOpen(next);
+  };
+
+  // Nothing infested anywhere → the one-line teaser (the full empty map ate a screen of
+  // scroll for zero information). The next feed target keeps the pin feature discoverable.
+  if (!showMap) {
+    return (
+      <div className="inf-board inf-teaser panel" aria-label="Infestation map — dormant">
+        <span className="liveops-k">⬢ INFESTATION MAP</span>
+        <span className="inf-teaser-tag">DORMANT</span>
+        <span className="inf-teaser-line">
+          Every finished run seeds infestation into a sector — held territory pays permanent passives and decays if neglected.
+          Next feed · <b>{view.sectorDetails[view.feedsInto]?.name ?? '—'}</b>
+        </span>
+        <button className="inf-chip inf-teaser-open" onClick={() => toggle(true)} aria-expanded={false}>
+          View map ▸
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="inf-board panel" aria-label="Infestation map">
       <div className="liveops-head">
@@ -154,6 +186,11 @@ export function InfestationBoard(): JSX.Element {
           {Math.round(view.completion * 100)}% infested
           {view.saturatedCount > 0 && <i className="inf-sat"> · {view.saturatedCount} saturated</i>}
         </span>
+        {view.dormant && (
+          <button className="inf-chip inf-teaser-hide" onClick={() => toggle(false)} aria-expanded>
+            Hide ▾
+          </button>
+        )}
       </div>
 
       <div className="inf-canvas-wrap" ref={wrapRef}>

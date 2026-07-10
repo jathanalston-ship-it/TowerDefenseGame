@@ -64,10 +64,14 @@ The board is a **procedural canvas territory map**, not a row of bars:
   target** wears a reticle; a just-fed cell erupts a decaying **flash** ring.
 - `meta.infestationView()` is the read-model: per-sector `{level, tier, zeroInDays,
   tierHoldDays, saturated}`, per-region `{fraction, entrenched, bonusNow}`, the resolved
-  `feedsInto`, map `completion`, and `saturatedCount`.
+  `feedsInto`, map `completion`, `saturatedCount`, and `dormant` (nothing infested anywhere).
 - The canvas loop is **DPR-aware**, **pauses when the tab is hidden**, and renders a single
   still under `prefers-reduced-motion`. The board's controls pin a region / spread; clicking
   a cell pins/unpins that sector; hover/focus drives the tier + forecast detail line.
+- **Dormant collapse (home hierarchy):** while `view.dormant` the board renders as a
+  one-line teaser — the system's pitch, the resolved next-feed sector, and a "View map"
+  expander (session-local state; the canvas effects re-arm on expand) — instead of a
+  screen-tall empty map. The first infested point opens the full board unconditionally.
 
 ## Extending
 

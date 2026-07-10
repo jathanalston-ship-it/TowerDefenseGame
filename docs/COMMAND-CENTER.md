@@ -27,7 +27,7 @@ guards (a fresh account's board stays calm — no empty panels).
 | `main` | `mission-control` FIRST (the deploy decision leads the board), then `next-goal` (the single nearest goal), `live-events`, `contracts` |
 | `side` | `forecast` (PredictionPanel; hidden until the first run), `roadmap` (§3 — goals **behind** the banner's) |
 | `army` | `army` — the live roster (§4) |
-| `ops` | `modes` — Infinite / Boss Rush / Daily / Quick Skirmish (mirrors the nav's Play group), then `infestation` (the conquest map rides with operations, never above the deploy button) |
+| `ops` | `modes` — Infinite / Boss Rush / Daily / Quick Skirmish (mirrors the nav's Play group), then `infestation` (the conquest map rides with operations, never above the deploy button; **collapses to a one-line teaser while `view.dormant`** — docs/INFESTATION.md §map) |
 | `feed` | `command-feed` (§5; hidden until history exists), `dashboard` (claim cards: Vault / Tower Evolution / Equipment / Collection) |
 | `foot` | `tip` — the one-line teacher |
 

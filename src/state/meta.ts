@@ -898,6 +898,7 @@ export interface InfestationMapView {
   feedsInto: string; // the SECTOR the next run will actually feed (pin resolved)
   completion: number; // 0..1 across the whole map
   saturatedCount: number;
+  dormant: boolean; // nothing infested anywhere — the home board shows a teaser, not an empty map
 }
 
 /** The result of cracking one container open in the Vault — the rolled rewards plus a
@@ -2109,6 +2110,7 @@ export const meta = {
       feedsInto,
       completion: total / (ALL_SECTORS.length * 100),
       saturatedCount: ALL_SECTORS.filter((x) => sectorDetails[x.id].saturated).length,
+      dormant: total <= 0,
     };
   },
   /** Pin where future runs feed: a SECTOR id, a REGION id (its emptiest sector), or null

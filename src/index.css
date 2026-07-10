@@ -8794,6 +8794,13 @@ kbd {
 .inf-board { padding: 10px 12px; }
 .inf-total { font-size: 11px; color: var(--muted); }
 .inf-sat { color: var(--gold); font-style: normal; }
+
+/* Dormant teaser — the whole board as one calm line until infestation exists (or on demand). */
+.inf-teaser { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.inf-teaser-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); }
+.inf-teaser-line { flex: 1; min-width: 220px; font-size: 12px; color: var(--muted); }
+.inf-teaser-line b { color: var(--text); font-weight: 700; }
+.inf-teaser-open, .inf-teaser-hide { flex: none; }
 .inf-canvas-wrap {
   position: relative;
   width: 100%;
