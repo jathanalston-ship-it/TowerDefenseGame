@@ -170,6 +170,11 @@ export interface SaveData {
   //    Help wiki); `primed` guards a one-time seed so existing saves don't flood on first load. Also
   //    tracks whether the first-launch HUD Tour has run. Additive; golden-safe. ──
   help: { seen: string[]; primed: boolean; hudTour: boolean };
+  // ── Progression Director (docs/PROGRESSION-GATING.md): `revealed` latches each feature id to
+  //    the totalRuns count at its reveal (a revealed surface never re-seals + pacing analytics);
+  //    `visits` counts hub-screen opens (exposure / ignored-feature detection). Additive;
+  //    withDefaults fills empties for older saves; never read by the sim (golden-safe). ──
+  director: { revealed: Record<string, number>; visits: Record<string, number> };
   // ── Gene Cards — permanent progression (schema v18, docs/GENE-EVOLUTION.md). Sparse per-card state
   //    (level / rarity-tier / ascension / skin), keyed by the card's permanent id. Absent id ⇒ base
   //    (level 0); ownership stays in stats.uniqueCards so this map only holds upgraded cards. Additive:
@@ -550,6 +555,7 @@ export function defaultSave(): SaveData {
     tutorial: { completed: [], rewarded: [], milestones: [], progress: null },
     prediction: { campaign: defaultCalib(), infinite: defaultCalib(), bossRush: defaultCalib() },
     help: { seen: [], primed: false, hudTour: false },
+    director: { revealed: {}, visits: {} },
     genes: {},
     geneSlots: 1,
     geneLoadout: [null, null, null, null, null],
@@ -608,6 +614,21 @@ function sanitizeHelp(raw: unknown): SaveData['help'] {
   const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   const seen = Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [];
   return { seen, primed: o.primed === true, hudTour: o.hudTour === true };
+}
+/** Coerce the Progression Director ledgers to string → finite ≥0 int maps (junk entries dropped). */
+function sanitizeDirector(raw: unknown): SaveData['director'] {
+  const o = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  const numMap = (v: unknown): Record<string, number> => {
+    const out: Record<string, number> = {};
+    if (typeof v === 'object' && v !== null) {
+      for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
+        const num = Math.floor(Number(n));
+        if (Number.isFinite(num) && num >= 0) out[k] = num;
+      }
+    }
+    return out;
+  };
+  return { revealed: numMap(o.revealed), visits: numMap(o.visits) };
 }
 /** Coerce the Undo-Salvage buffer: needs a plausible item (uid + defId) and a numeric refund, else null. */
 function sanitizeLastSalvage(raw: unknown): SaveData['lastSalvage'] {
@@ -795,6 +816,7 @@ function withDefaults(data: SaveData): SaveData {
     tutorial: sanitizeTutorial(data.tutorial),
     prediction: sanitizePrediction(data.prediction),
     help: sanitizeHelp(data.help),
+    director: sanitizeDirector((data as { director?: unknown }).director), // additive: pre-director saves ⇒ empty ledgers
     genes: sanitizeGeneSave(data.genes), // v18: drops unknown/renamed cards + clamps levels (pre-v18 ⇒ {})
     // v18→v19: Starting Gene Loadout. Pre-v19 ⇒ 1 slot, empty loadout; junk ids/duplicates dropped.
     geneSlots: sanitizeGeneSlots((data as { geneSlots?: unknown }).geneSlots),

@@ -19,11 +19,12 @@ import {
   heroCollection, towerStarCost, nextHeroStarCost, evolutionStarCap, heroSlotsUnlocked,
   collectionContextOf,
 } from './meta';
+import { nextReveals } from './unlocks';
 
 /** One imminent reward the player is close to earning. `progress` is 0..1 toward it. */
 export interface NextGoal {
   id: string;
-  kind: 'hero-release' | 'evolution' | 'prestige' | 'collection' | 'campaign-gate';
+  kind: 'hero-release' | 'evolution' | 'prestige' | 'collection' | 'campaign-gate' | 'reveal';
   label: string; // the thing you're about to get, e.g. "Release Shepherd"
   remaining: string; // how far, e.g. "18 Apex Genome" / "2 stages"
   reward: string; // one-line preview of the payoff
@@ -150,8 +151,21 @@ export function nextGoals(save: SaveData, limit = 6): NextGoal[] {
     });
   }
 
+  // ── Feature reveal — the next SCREEN the progression-gating framework will open
+  //    (docs/PROGRESSION-GATING.md): a whole new system is itself the reward. ──
+  for (const v of nextReveals(save, 1)) {
+    if (v.progress <= 0) continue; // untouched gates rank as noise; teasers in the nav cover them
+    goals.push({
+      id: `reveal:${v.def.id}`, kind: 'reveal',
+      label: `Unlock the ${v.def.name}`,
+      remaining: v.label,
+      reward: v.def.blurb,
+      progress: v.progress, nav: 'campaign', color: 'var(--viral)',
+    });
+  }
+
   // Closest-to-done first; ties broken by kind priority (a near unlock beats a near collection).
-  const KIND_RANK: Record<NextGoal['kind'], number> = { 'hero-release': 0, evolution: 1, 'campaign-gate': 2, prestige: 3, collection: 4 };
+  const KIND_RANK: Record<NextGoal['kind'], number> = { 'hero-release': 0, evolution: 1, reveal: 2, 'campaign-gate': 3, prestige: 4, collection: 5 };
   return goals
     .sort((a, b) => b.progress - a.progress || KIND_RANK[a.kind] - KIND_RANK[b.kind])
     .slice(0, limit);

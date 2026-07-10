@@ -81,6 +81,34 @@ async function main(): Promise<void> {
       await page.waitForTimeout(800);
       await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
       await dismiss(page);
+      // Minute-0 layout gate: the FRESH hub (4 revealed navs + teasers) must itself be clean.
+      violations.push(...(await audit(page, 'hub-fresh', vp.name, touch)));
+      // PROGRESSION GATING (docs/PROGRESSION-GATING.md): a fresh profile hides most wings — seed
+      // a developed account (mutating the app's own save blob, checksum recomputed) so the sweep
+      // still audits EVERY screen at every viewport. help.primed=false lets App boot silently
+      // archive the announcement backlog (no What's-New flood mid-audit).
+      await page.evaluate(() => {
+        const raw = localStorage.getItem('assimilate.save');
+        if (!raw) return;
+        const blob = JSON.parse(raw) as { data: Record<string, unknown>; checksum: string };
+        const d = blob.data as { campaign?: { cleared?: Record<string, number> }; prestige?: { molts?: number }; mats?: Record<string, number>; help?: Record<string, unknown> };
+        blob.data.campaign = { ...(d.campaign ?? {}), cleared: { standard: 30 }, bestTime: {} };
+        blob.data.bestWave = 37;
+        blob.data.totalRuns = 21;
+        blob.data.ichor = 3;
+        if (d.mats) d.mats.scrap = Math.max(1, d.mats.scrap ?? 0);
+        if (d.prestige) d.prestige.molts = Math.max(1, d.prestige.molts ?? 0);
+        blob.data.help = { seen: [], primed: false, hudTour: true };
+        const s = JSON.stringify(blob.data);
+        let h = 5381;
+        for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+        blob.checksum = (h >>> 0).toString(36);
+        localStorage.setItem('assimilate.save', JSON.stringify(blob));
+      });
+      await page.reload({ waitUntil: 'networkidle' });
+      await page.waitForTimeout(700);
+      await page.addStyleTag({ content: '.debug-panel { display: none !important; }' });
+      await dismiss(page);
       for (const nav of NAVS) {
         await page.evaluate((n) => (document.querySelector(`[data-nav="${n}"]`) as HTMLElement | null)?.click(), nav);
         await page.waitForTimeout(650); // let ui-rise / panel transitions settle before measuring
@@ -197,7 +225,7 @@ async function dismiss(page: import('playwright-core').Page): Promise<void> {
   for (let i = 0; i < 6; i++) {
     const acted = await page.evaluate(() => {
       const btns = [...document.querySelectorAll('button')];
-      const pat = /^(continue|got it|close|claim|collect|skip tutorial|skip|onward|begin|ok|later|✕|×)$/i;
+      const pat = /^(continue|got it|close|claim|collect|skip tutorial|skip|onward|begin|ok|later|✕|×)$|^got it\b/i; // "Got it · N more ▸" queues count down
       const b = btns.find((x) => pat.test(x.textContent?.trim() ?? '') && (x as HTMLElement).offsetParent !== null);
       if (b) { (b as HTMLElement).click(); return true; }
       return false;

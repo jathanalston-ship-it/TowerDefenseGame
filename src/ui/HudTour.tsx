@@ -8,6 +8,7 @@
 import { useState, type CSSProperties } from 'react';
 import { meta } from '../state/meta';
 import type { TutorialRewardSummary } from '../state/meta';
+import { featureRevealed } from '../state/unlocks';
 import { TutorialRewardReveal } from './tutorial/TutorialRewardReveal';
 import { Spotlight } from './tutorial/primitives';
 import { useTargetRect } from './tutorial/useTargetRect';
@@ -85,10 +86,18 @@ export const TOUR: TourStop[] = [
 ];
 
 export function HudTour({ onClose }: { onClose: () => void }): JSX.Element {
+  // Progression gating (docs/PROGRESSION-GATING.md): the tour only visits REVEALED surfaces —
+  // a fresh account gets a short, focused orientation; hidden wings are each introduced by
+  // their own What's New card when they unlock. Snapshotted once so a mid-tour reveal can't
+  // reshuffle the stops (replays from Settings naturally cover more ground).
+  const [stops] = useState(() => TOUR.filter((st) => {
+    const m = st.anchor?.match(/\[data-nav="([^"]+)"\]/);
+    return !m || featureRevealed(meta.get(), m[1]);
+  }));
   const [i, setI] = useState(0);
   const [reward, setReward] = useState<TutorialRewardSummary | null>(null);
   const [ended, setEnded] = useState(false);
-  const step = TOUR[i];
+  const step = stops[i];
   const rect = useTargetRect(step.anchor);
 
   const finish = (): void => {
@@ -111,13 +120,13 @@ export function HudTour({ onClose }: { onClose: () => void }): JSX.Element {
       ? { left: Math.min(vw - 470, Math.max(12, rect.left + 24)), top: Math.min(vh - 380, rect.bottom + 16) }
       : { left: Math.min(vw - 470, rect.right + 18), top: Math.max(12, Math.min(vh - 380, rect.top - 8)) }
     : { left: '50%', top: '50%', transform: 'translate(-50%, -50%)' };
-  const last = i === TOUR.length - 1;
+  const last = i === stops.length - 1;
 
   return (
     <div className="hudtour" role="dialog" aria-label="Field Orientation">
       <Spotlight rect={rect} />
       <div className="hudtour-card is-anchored" style={cardStyle}>
-        <div className="hudtour-step">Field Orientation · {i + 1} / {TOUR.length}</div>
+        <div className="hudtour-step">Field Orientation · {i + 1} / {stops.length}</div>
         <h3 className="hudtour-area">{step.area}</h3>
         <div className="hudtour-rows">
           <div className="hudtour-row"><span className="hudtour-k">What</span><span className="hudtour-v">{step.what}</span></div>
@@ -126,7 +135,7 @@ export function HudTour({ onClose }: { onClose: () => void }): JSX.Element {
           <div className="hudtour-row"><span className="hudtour-k">Later</span><span className="hudtour-v">{step.later}</span></div>
         </div>
         <div className="hudtour-dots" aria-hidden>
-          {TOUR.map((_, n) => <span key={n} className={`hudtour-dot ${n === i ? 'on' : n < i ? 'past' : ''}`} />)}
+          {stops.map((_, n) => <span key={n} className={`hudtour-dot ${n === i ? 'on' : n < i ? 'past' : ''}`} />)}
         </div>
         <div className="hudtour-btns">
           <button className="hudtour-skip" onClick={skip}>Skip</button>

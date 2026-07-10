@@ -3712,7 +3712,10 @@ kbd {
 .wn-row { display: grid; grid-template-columns: 54px 1fr; gap: 8px; align-items: baseline; }
 .wn-k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--success); }
 .wn-v { font-size: 13px; color: var(--text); line-height: 1.4; }
-.wn-go { margin-top: 12px; min-width: 200px; }
+.wn-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; margin-top: 12px; }
+.wn-go { min-width: 180px; }
+.wn-later { padding: 9px 16px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--muted); font-size: 13px; font-weight: 700; }
+.wn-later:hover { color: var(--text); border-color: color-mix(in srgb, var(--success) 40%, var(--line-strong)); }
 .wn-foot { font-size: 11px; color: var(--muted); }
 
 /* Update Briefing (UpdateBriefing.tsx, docs/CHANGELOG-PIPELINE.md) — the version

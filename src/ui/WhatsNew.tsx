@@ -1,16 +1,24 @@
-// "What's New?" (docs/HELP.md) — when a permanent mechanic first unlocks, a concise, celebratory
-// intro: what it is, why it matters, where to find it, and what it enables next. Never dumps the
-// player into the feature. On dismiss it's archived into the Help wiki (so it's revisitable and never
-// re-announces). Queued: unlocks that land together show one at a time. Rendered on the menu only.
+// "What's New?" (docs/HELP.md, docs/PROGRESSION-GATING.md §presentation) — when a permanent
+// mechanic first unlocks, a concise, celebratory intro: what it is, why it matters, where to find
+// it, and what it enables next. Never dumps the player into the feature — but offers the door:
+// the CTA routes straight to the mechanic's hub screen via the nav bus. Each card lands with the
+// unlock fanfare. On dismiss it's archived into the Help wiki (revisitable, never re-announces).
+// Queued: unlocks that land together show one at a time. Rendered on the menu only.
 
+import { useEffect } from 'react';
 import { meta } from '../state/meta';
+import { audio } from '../audio/sound';
+import { navBus } from '../state/navBus';
 
 export function WhatsNew(): JSX.Element | null {
   meta.use(); // re-render as the archive changes
   const queue = meta.whatsNew();
-  if (queue.length === 0) return null;
-  const m = queue[0];
+  const m = queue.length > 0 ? queue[0] : null;
+  // The unlock fanfare — once per card as it takes the stage (id-keyed, so the next card re-fires).
+  useEffect(() => { if (m) audio.cue('unlock'); }, [m?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!m) return null;
   const close = (): void => meta.archiveMechanics([m.id]); // persist → re-render drops this card, shows the next
+  const open = (): void => { const nav = m.nav; close(); if (nav) navBus.go(nav); };
 
   return (
     <div className="whatsnew" role="dialog" aria-label="New System Unlocked" onClick={close}>
@@ -26,9 +34,12 @@ export function WhatsNew(): JSX.Element | null {
           <div className="wn-row"><span className="wn-k">Where</span><span className="wn-v">{m.where}</span></div>
           <div className="wn-row"><span className="wn-k">Next</span><span className="wn-v">{m.next}</span></div>
         </div>
-        <button className="primary wn-go" onClick={close}>
-          Got it{queue.length > 1 ? ` · ${queue.length - 1} more` : ''} ▸
-        </button>
+        <div className="wn-actions">
+          {m.nav && <button className="primary wn-go" onClick={open}>Open it now ▸</button>}
+          <button className={m.nav ? 'wn-later' : 'primary wn-go'} onClick={close}>
+            Got it{queue.length > 1 ? ` · ${queue.length - 1} more` : ''} ▸
+          </button>
+        </div>
         <div className="wn-foot">Archived in Help — revisit any time.</div>
       </div>
     </div>

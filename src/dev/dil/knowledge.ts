@@ -95,6 +95,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:equipment', kind: 'modifies', to: 'system:rendering', note: 'heroes render worn gear; gear color skins hero projectiles' },
   { from: 'system:onboarding', kind: 'triggers', to: 'system:audio', note: 'the opening cinematic scores itself via the cinema track + cin_* beat cues' },
   { from: 'system:cosmetics', kind: 'modifies', to: 'system:audio', note: 'Phenotype firing variants repitch tower fire cues' },
+  { from: 'system:progression-gating', kind: 'gates', to: 'system:hub-shell', note: 'nav entries, wallet chips and home widgets reveal via the FEATURES registry (teasers = next two reveals)' },
+  { from: 'system:progression-gating', kind: 'extends', to: 'system:onboarding', note: "screen-linked mechanics rows delegate unlock predicates to featureRevealed — What's New fires exactly when a wing reveals" },
 
   { from: 'system:mega-bosses', kind: 'gates', to: 'system:cutscenes', note: 'ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one' },
   { from: 'system:prestige', kind: 'references', to: 'system:cutscenes', note: 'the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it' },

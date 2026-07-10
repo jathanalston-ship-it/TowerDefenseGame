@@ -12,6 +12,9 @@ import { detectProblems, simulateAccount } from './progressionSim';
 import type { SimCheckpoint } from './progressionSim';
 import { meta } from '../state/meta';
 import { Rng } from '../core/rng';
+import { PERSONAS } from './personas';
+import { FEATURES, featureRevealed } from '../state/unlocks';
+import { defaultSave } from '../save/saveStore';
 
 function cp(p: Partial<SimCheckpoint> & { hours: number }): SimCheckpoint {
   return { power: 1000, stage: 1, bestWave: 5, molts: 0, runs: 1, farmRuns: 0, readiness: 1, unspentShards: 0, unlocks: 0, failedPushes: 0, ...p };
@@ -83,4 +86,28 @@ describe('live mini-simulation (real meta layer)', () => {
       rnd.mockRestore();
     }
   }, 60_000);
+
+  it('archetype unlock timelines: the reveal curve is alive for slow AND optimal players', () => {
+    // PLAYER SIMULATION TESTING (docs/PROGRESSION-GATING.md §simulation): replay the unlock
+    // framework over persona traces. Worst-case evaluation (stage/runs only — resource luck
+    // ignored) so a passing bound here holds for every drop-luck percentile. Coarse on purpose:
+    // pacing DESIGN lives in the generated report; CI only proves no archetype stalls flat.
+    const lootRng = new Rng(0x51ce);
+    const rnd = vi.spyOn(Math, 'random').mockImplementation(() => lootRng.next());
+    try {
+      for (const persona of [PERSONAS.fresh, PERSONAS.efficient]) {
+        const trace = simulateAccount(0xfeed, [1, 3, 6], persona);
+        const screens = trace.checkpoints.map((c) => {
+          const base = defaultSave();
+          const s = { ...base, totalRuns: c.runs, campaign: { ...base.campaign, cleared: { standard: c.stage } } };
+          return FEATURES.filter((f) => f.kind === 'screen' && featureRevealed(s, f.id)).length;
+        });
+        expect(screens[1], `${persona.id} regressed`).toBeGreaterThanOrEqual(screens[0]);
+        expect(screens[2], `${persona.id} regressed`).toBeGreaterThanOrEqual(screens[1]);
+        expect(screens[2], `${persona.id} stalled on the always-four`).toBeGreaterThanOrEqual(6); // beyond the minute-0 hub within six hours
+      }
+    } finally {
+      rnd.mockRestore();
+    }
+  }, 120_000);
 });

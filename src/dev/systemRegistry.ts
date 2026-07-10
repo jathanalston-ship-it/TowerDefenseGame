@@ -312,6 +312,13 @@ export const SYSTEMS: SystemDef[] = [
     achievements: [], localization: 'inline-en', docs: ['docs/TUTORIAL.md', 'docs/HELP.md', 'docs/TUTORIAL-AUDIT.md'],
   },
   {
+    id: 'progression-gating', name: 'Progression Gating & Director', purpose: 'The reveal framework: one registry deciding when every hub screen/currency unlocks, teasers + unlock briefings, reveal latching, exposure tracking, cognitive-load bands.',
+    files: ['src/state/unlocks.ts', 'src/state/progressionDirector.ts', 'src/state/navBus.ts'],
+    dependsOn: ['meta-store', 'campaign', 'onboarding'], powerScore: null, save: ['director'],
+    tutorial: [], help: [], hud: [], ui: ['Hub (nav gating + FeatureLocked)', 'WhatsNew (unlock ceremony)', 'HudTour (revealed stops)', 'CommandCenter (widget gates)'], collection: null,
+    achievements: [], localization: 'inline-en', docs: ['docs/PROGRESSION-GATING.md', 'docs/UNLOCK-TREE.md'],
+  },
+  {
     id: 'hub-shell', name: 'Hub Shell & Home', purpose: 'The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.',
     files: ['src/ui/Hub.tsx', 'src/ui/CommandCenter.tsx', 'src/ui/DeployScreen.tsx', 'src/ui/homeModel.ts', 'src/ui/WorldStatus.tsx', 'src/ui/ProgressDashboard.tsx', 'src/ui/NextGoalBanner.tsx', 'src/state/nextGoal.ts', 'src/state/progressionLoop.ts', 'src/ui/hubProgress.ts', 'src/ui/homeBaseTiers.ts', 'src/ui/LabAtmosphere.tsx', 'src/ui/App.tsx', 'src/ui/ErrorBoundary.tsx', 'src/main.tsx', 'src/net/swRegister.ts', 'src/ui/components/UpdateToast.tsx', 'src/ui/components/Popup.tsx'],
     dependsOn: ['meta-store', 'notifications', 'prediction', 'power'], powerScore: null, save: [],

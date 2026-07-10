@@ -21,8 +21,8 @@ import { InfiniteScreen } from './InfiniteScreen';
 import { BossRushScreen } from './BossRushScreen';
 import { DailyScreen } from './DailyScreen';
 import { PremiumStore } from './PremiumStore';
-import { highestCampaignStage, isBossRushUnlocked, isDailyUnlocked, isInfiniteUnlocked } from '../save/derive';
-import { MODE_UNLOCKS } from '../core/config';
+import { featureRevealed, featureView, nextReveals, type FeatureView } from '../state/unlocks';
+import { navBus } from '../state/navBus';
 import { CampaignScreen } from './CampaignScreen';
 import { TowerLab } from './TowerLab';
 import { MulliganLab } from './MulliganLab';
@@ -99,31 +99,26 @@ const navGroups = (): NavGroup[] => [
 
 // Accent tint per group rides the group row itself (localization-safe — titles translate).
 
-/** A campaign-sealed mode's unlock briefing (docs/MODE-IDENTITY.md §gates) — the mode stays
- * VISIBLE for anticipation; the briefing names the gate, shows live progress, and routes to
- * the Campaign instead of dead-ending. */
-function ModeLocked({ title, glyph, blurb, stage, current, go }: {
-  title: string;
-  glyph: string;
-  blurb: string;
-  stage: number; // the campaign stage that opens this mode
-  current: number; // the account's highest cleared stage
-  go: (k: NavKey) => void;
-}): JSX.Element {
-  const pct = Math.min(100, Math.round((current / stage) * 100));
+/** A sealed feature's unlock briefing (docs/PROGRESSION-GATING.md) — a TEASED surface stays
+ * visible for anticipation; the briefing names the gate, shows live progress, and routes toward
+ * the progress instead of dead-ending. Generalizes the old per-mode ModeLocked to EVERY gated
+ * screen, fed by the unlock registry (same CSS). */
+function FeatureLocked({ view, go }: { view: FeatureView; go: (k: NavKey) => void }): JSX.Element {
+  const pct = Math.min(100, Math.round(view.progress * 100));
+  const viaCampaign = view.label.includes('Stage'); // stage-gated ⇒ the Campaign is the path
   return (
     <div className="menu mode-locked">
-      <h1 className="title">{title}</h1>
-      <p className="subtitle">{blurb}</p>
+      <h1 className="title">{view.def.name.toUpperCase()}</h1>
+      <p className="subtitle">{view.def.blurb}</p>
       <div className="panel mode-locked-panel">
-        <div className="mode-locked-glyph" aria-hidden>{glyph}</div>
-        <div className="mode-locked-k">SEALED BY THE CAMPAIGN</div>
-        <p className="mode-locked-body">
-          Clear <b>Campaign Stage {stage}</b> to open this front — you are at <b>Stage {current}</b>.
-        </p>
+        <div className="mode-locked-glyph" aria-hidden>{view.def.glyph}</div>
+        <div className="mode-locked-k">SEALED BY PROGRESSION</div>
+        <p className="mode-locked-body"><b>{view.label || 'Keep playing'}</b> to open this wing.</p>
         <div className="rush-mile-bar mode-locked-bar" aria-hidden><i style={{ width: `${pct}%` }} /></div>
-        <div className="mode-locked-pct">{current}/{stage} stages</div>
-        <button className="primary" onClick={() => go('campaign')}>⬡ Continue the Campaign</button>
+        <div className="mode-locked-pct">{pct}% there</div>
+        <button className="primary" onClick={() => go(viaCampaign ? 'campaign' : 'home')}>
+          {viaCampaign ? '⬡ Continue the Campaign' : '⌂ Keep playing'}
+        </button>
       </div>
     </div>
   );
@@ -243,16 +238,16 @@ export function Hub({
   // every shell render; navProgress walks every tower/hero/upgrade/card.
   const badges = useMemo(() => notifications.badges(save), [save, ackTick]);
   const progress = useMemo(() => navProgress(save), [save]); // 0..1 completion rings per menu
-  // Campaign gates (docs/MODE-IDENTITY.md §gates): locked modes stay VISIBLE (anticipation) —
-  // the nav shows a seal and the screen becomes the unlock briefing instead of the terminal.
-  const modeLocked: Partial<Record<NavKey, boolean>> = {
-    infinite: !isInfiniteUnlocked(save),
-    bossrush: !isBossRushUnlocked(save),
-    daily: !isDailyUnlocked(save),
-  };
+  // Progression gating (docs/PROGRESSION-GATING.md): the nav lists REVEALED screens plus the
+  // next two upcoming reveals as locked TEASERS (anticipation with live progress); everything
+  // deeper stays hidden — the game reveals itself one learnable beat at a time.
+  const teasers = useMemo(() => nextReveals(save, 2), [save]);
+  const teaserOf = new Map(teasers.map((v) => [v.def.id, v] as const));
+  const navVisible = (k: NavKey): boolean => featureRevealed(save, k) || teaserOf.has(k);
 
-  // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset).
-  useEffect(() => { notifications.sync(save); }, [save]);
+  // Keep watermarks clamped to the live save (re-light a dot after claim/open/reset)
+  // and latch any newly-satisfied reveals (the write side of the gating framework).
+  useEffect(() => { notifications.sync(save); meta.latchNewReveals(); }, [save]);
 
   // Hub scene → menu music (audio/music.ts §scenes): each wing of the Command Center biases the
   // NEXT menu pick toward its scene-tagged themes — rotation (not this) actually switches tracks,
@@ -265,9 +260,13 @@ export function Hub({
   const go = (k: NavKey): void => {
     audio.cue('ui');
     notifications.markSeen(k, save); // viewing a menu clears its badge immediately
+    meta.noteNavVisit(k); // exposure ledger (docs/PROGRESSION-GATING.md §director)
     setNav(k);
     setNavOpen(false); // picking a destination closes the narrow-shell drawer
   };
+
+  // What's New "Open ▸" CTA (and any future out-of-hub caller) navigates through the bus.
+  useEffect(() => navBus.onGo((k) => go(k as NavKey)), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="hub">
@@ -276,25 +275,31 @@ export function Hub({
       <nav className={`hub-nav${navOpen ? ' is-open' : ''}`} aria-label="Headquarters">
         <div className="hub-brand">ASSIMILATE</div>
         <div className="hub-navlist">
-          {navGroups().map((group) => (
+          {navGroups().map((group) => {
+            // Progression gating: only REVEALED entries + the next-two teasers render; a group
+            // with nothing revealed stays silent.
+            const items = group.items.filter((n) => navVisible(n.key));
+            if (items.length === 0) return null;
+            return (
             <div
               className={`hub-navgroup${group.compact ? ' is-compact' : ''}`}
               key={group.title}
               style={{ ['--nav-accent' as string]: group.accent } as CSSProperties}
             >
               {!group.headerless && <div className="hub-navgroup-h" aria-hidden>{group.title}</div>}
-              {group.compact && <div className="hub-navrow">{group.items.map((n) => {
-                const badge = badges[n.key] ?? 0;
+              {group.compact && <div className="hub-navrow">{items.map((n) => {
+                const teaser = teaserOf.get(n.key);
+                const badge = teaser ? 0 : (badges[n.key] ?? 0);
                 return (
                   <button
                     key={n.key}
                     data-nav={n.key}
-                    className={`hub-navsquare ${nav === n.key ? 'on' : ''}`}
+                    className={`hub-navsquare ${nav === n.key ? 'on' : ''}${teaser ? ' is-locked' : ''}`}
                     onClick={() => go(n.key)}
                     onPointerEnter={() => audio.cue('hover')}
                     aria-current={nav === n.key ? 'page' : undefined}
-                    aria-label={badge > 0 ? `${n.label} — ${badge} new` : n.label}
-                    title={n.label}
+                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : badge > 0 ? `${n.label} — ${badge} new` : n.label}
+                    title={teaser ? teaser.label : n.label}
                   >
                     <span className="hub-mono" aria-hidden>
                       {n.mono}
@@ -304,19 +309,22 @@ export function Hub({
                   </button>
                 );
               })}</div>}
-              {!group.compact && group.items.map((n) => {
-                const badge = badges[n.key] ?? 0;
-                const ring = progress[n.key];
-                const locked = modeLocked[n.key] === true;
+              {!group.compact && items.map((n) => {
+                const teaser = teaserOf.get(n.key);
+                const badge = teaser ? 0 : (badges[n.key] ?? 0);
+                // A teaser's ring shows progress TOWARD the unlock; a revealed entry keeps
+                // its completion ring.
+                const ring = teaser ? (teaser.progress > 0 ? teaser.progress : null) : progress[n.key];
                 return (
                   <button
                     key={n.key}
                     data-nav={n.key}
-                    className={`hub-navitem ${nav === n.key ? 'on' : ''}${locked ? ' is-locked' : ''}`}
+                    className={`hub-navitem ${nav === n.key ? 'on' : ''}${teaser ? ' is-locked' : ''}`}
                     onClick={() => go(n.key)}
                     onPointerEnter={() => audio.cue('hover')}
                     aria-current={nav === n.key ? 'page' : undefined}
-                    aria-label={badge > 0 ? `${n.label} — ${badge} new` : undefined}
+                    aria-label={teaser ? `${n.label} — locked. ${teaser.label}` : badge > 0 ? `${n.label} — ${badge} new` : undefined}
+                    title={teaser ? teaser.label : undefined}
                   >
                     <span
                       className={`hub-mono ${ring != null ? 'has-ring' : ''}`}
@@ -329,13 +337,14 @@ export function Hub({
                       {badge > 0 && <span className="nav-badge" aria-hidden>{badge > 1 ? (badge > 9 ? '9+' : badge) : ''}</span>}
                     </span>
                     <span className="hub-navlabel">{n.label}</span>
-                    {locked && <span className="hub-lock" aria-hidden>🔒</span>}
-                    {ring != null && ring >= 0.005 && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
+                    {teaser && <span className="hub-lock" aria-hidden>🔒</span>}
+                    {ring != null && (teaser || ring >= 0.005) && <span className="hub-ringpct" aria-hidden>{Math.round(ring * 100)}%</span>}
                   </button>
                 );
               })}
             </div>
-          ))}
+            );
+          })}
         </div>
         <div className="hub-power" data-tour="power">
           <PowerBadge />
@@ -348,40 +357,30 @@ export function Hub({
             ☰ <span className="hub-burger-l">Menu</span>
           </button>
           {/* The wallet, and only the wallet — standings live on the Home board, not up here.
-              Cells hide until Ascension has ever mattered (a fresh account sees no dead zero). */}
+              Chips reveal with their currency (docs/PROGRESSION-GATING.md §economy): a chip
+              never precedes its purpose, so the first-session top bar reads calm. */}
           <span className="hub-cur"><CurrencyIcon id="genomeCores" size={15} /> {save.shards} <span className="hub-cur-l">{ACCOUNT_CURRENCY.name}</span></span>
-          <span className="hub-cur"><CurrencyIcon id="ichor" size={15} /> {save.ichor} <span className="hub-cur-l">Ichor</span></span>
-          {(cells > 0 || (save.prestige?.molts ?? 0) > 0) && (
-            <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>
+          {featureRevealed(save, 'cur:ichor') && <span className="hub-cur"><CurrencyIcon id="ichor" size={15} /> {save.ichor} <span className="hub-cur-l">Ichor</span></span>}
+          {featureRevealed(save, 'cur:cells') && <span className="hub-cur"><CurrencyIcon id="ascendantCells" size={15} /> {cells} <span className="hub-cur-l">Cells</span></span>}
+          {featureRevealed(save, 'cur:mats') && (
+            <span className="hub-cur" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
+              ⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst} <span className="hub-cur-l">Materials</span>
+            </span>
           )}
-          <span className="hub-cur" title="Materials — Mutagen · Scrap · Catalyst (Armory crafting)">
-            ⊕ {save.mats.mutagen} · ◳ {save.mats.scrap} · ✷ {save.mats.catalyst} <span className="hub-cur-l">Materials</span>
-          </span>
         </header>
 
         <section className="hub-screen" key={nav}>
+          {/* Any screen whose feature hasn't revealed shows its unlock briefing instead —
+              one gate for every wing (the old per-mode ModeLocked, generalized). */}
+          {!featureRevealed(save, nav) && <FeatureLocked view={featureView(save, nav)} go={go} />}
+          {featureRevealed(save, nav) && <>
           {nav === 'home' && (
             <CommandCenter onStart={onStart} onStartEndless={onStartEndless} onStartCampaign={onStartCampaign} go={go} last={last} onSeenLast={onSeenLast} doctrineRef={doctrineRef} />
           )}
           {nav === 'campaign' && <CampaignScreen onStart={onStartCampaign} difficultyRef={difficultyRef} />}
-          {nav === 'infinite' && (
-            modeLocked.infinite
-              ? <ModeLocked title="INFINITE" glyph="∞" stage={MODE_UNLOCKS.infinite} current={highestCampaignStage(save)}
-                  blurb="Endless, escalating waves under the AI Director — the account's endurance chase." go={go} />
-              : <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />
-          )}
-          {nav === 'bossrush' && (
-            modeLocked.bossrush
-              ? <ModeLocked title="BOSS RUSH" glyph="☠" stage={MODE_UNLOCKS.bossRush} current={highestCampaignStage(save)}
-                  blurb="The gauntlet: wave N deploys N assembled bosses, and every kill pays. Prove the hive first." go={go} />
-              : <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />
-          )}
-          {nav === 'daily' && (
-            modeLocked.daily
-              ? <ModeLocked title="DAILY RUN" glyph="☀" stage={MODE_UNLOCKS.daily} current={highestCampaignStage(save)}
-                  blurb="One seed per day — the same 20-wave gauntlet worldwide, under the day's modifiers." go={go} />
-              : <DailyScreen onStartDaily={onStartDaily} onSpectate={onSpectate} />
-          )}
+          {nav === 'infinite' && <InfiniteScreen onStartEndless={onStartEndless} difficultyRef={difficultyRef} doctrineRef={doctrineRef} />}
+          {nav === 'bossrush' && <BossRushScreen onStartBossRush={onStartBossRush} difficultyRef={difficultyRef} />}
+          {nav === 'daily' && <DailyScreen onStartDaily={onStartDaily} onSpectate={onSpectate} />}
           {nav === 'towers' && <TowerLab />}
           {nav === 'mulligans' && <MulliganLab />}
           {nav === 'gearcodex' && <EquipmentCollection />}
@@ -397,6 +396,7 @@ export function Hub({
           {nav === 'profile' && <PlayerProfile onNavigate={(k) => go(k as NavKey)} />}
           {nav === 'settings' && <SettingsScreen onReplayTutorial={onReplayTutorial} onReplayTour={onReplayTour} onReplayIntro={onReplayIntro} />}
           {nav === 'help' && <HelpWiki onNavigate={(k) => go(k as NavKey)} onReplayTour={onReplayTour} />}
+          </>}
         </section>
       </div>
     </div>

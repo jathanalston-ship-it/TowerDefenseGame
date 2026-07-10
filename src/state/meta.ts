@@ -84,6 +84,7 @@ import type { RouletteReward } from './bioRoulette';
 import type { Prediction } from '../core/predict';
 import { unlockedMechanics, pendingAnnouncements } from './mechanics';
 import type { MechanicDef } from './mechanics';
+import { unlatchedReveals } from './unlocks';
 import type { TutorialProgress } from '../core/tutorial';
 import { collectionView, unlockedRewards, collectionBonusEffects, collectionEconomyBonuses, collectionRankUps, rankSnapshot } from '../core/collection';
 import type { CollectionContext, CollectionReward, CollectionView, CollectionRankUp, CollectionCategoryId } from '../core/collection';
@@ -3786,6 +3787,26 @@ export const meta = {
     const seen = Array.from(new Set([...s.help.seen, ...ids]));
     persist({ ...s, help: { ...s.help, seen } });
   },
+  // ── Progression Director (docs/PROGRESSION-GATING.md) ─────────────────────
+  /** Latch any feature whose unlock condition newly holds (save.director.revealed[id] = the
+   *  totalRuns count at reveal). A latched surface never re-seals — salvaging your last gear or
+   *  opening your last container can't hide a screen again. Returns the newly latched ids
+   *  (empty ⇒ nothing persisted). Veterans auto-latch everything their history already earns. */
+  latchNewReveals(): string[] {
+    const s = store.get();
+    const fresh = unlatchedReveals(s);
+    if (fresh.length === 0) return fresh;
+    const revealed = { ...s.director.revealed };
+    for (const id of fresh) revealed[id] = s.totalRuns;
+    persist({ ...s, director: { ...s.director, revealed } });
+    return fresh;
+  },
+  /** Count a hub-screen open (exposure ledger — powers ignored-feature detection). */
+  noteNavVisit(key: string): void {
+    const s = store.get();
+    persist({ ...s, director: { ...s.director, visits: { ...s.director.visits, [key]: (s.director.visits[key] ?? 0) + 1 } } });
+  },
+
   /** One-time prime (App boot): silently archive everything ALREADY unlocked so an existing save
    *  doesn't flood with What's New on first load. A brand-new account primes empty ⇒ it discovers
    *  each mechanic as it unlocks. */

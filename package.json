@@ -35,7 +35,8 @@
     "handoff": "vite-node scripts/handoff.ts",
     "sim:progression": "vite-node scripts/sim-progression.ts",
     "sim:report": "vite-node scripts/sim-balance-report.ts",
-    "pil": "vite-node scripts/pil.ts"
+    "pil": "vite-node scripts/pil.ts",
+    "unlocks": "vite-node scripts/gen-unlocks.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

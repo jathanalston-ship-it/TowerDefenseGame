@@ -5,6 +5,8 @@ import { CARD_POOL } from '../core/cards';
 import type { Game } from '../core/game';
 import { AssimilationDebug } from './AssimilationDebug';
 import { ResponsiveDebug } from './components/ResponsiveDebug';
+import { nextReveals } from '../state/unlocks';
+import { loadEstimate } from '../state/progressionDirector';
 import {
   getAssimilationDebug, getStageOverride, setStageOverride,
   isLivingBattlefieldEnabled, setLivingBattlefieldEnabled, STAGE_NAMES,
@@ -54,6 +56,17 @@ export function DebugPanel(): JSX.Element {
       {open && (
         <div className="debug-body">
           <ResponsiveDebug />
+          {(() => {
+            // Progression-gating live readout (docs/PROGRESSION-GATING.md §load).
+            const load = loadEstimate(save);
+            const next = nextReveals(save, 2).map((v) => v.def.id).join(', ') || '(all revealed)';
+            return (
+              <div className="debug-sec">
+                <div className="h">Cognitive load · {load.band}</div>
+                <div className="debug-note">{load.screens} screens · {load.currencies} currencies · {load.mechanics} mechanics · next: {next}</div>
+              </div>
+            );
+          })()}
           <div className="debug-sec">
             <div className="h">Meta / Save · {save.shards} ◆</div>
             <div className="debug-row">

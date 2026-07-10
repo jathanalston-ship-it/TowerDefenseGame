@@ -13,6 +13,7 @@ import { isTowerUnlocked, masteryLevel, accountPowerParts, collectionContextOf }
 import { composePower } from '../core/power';
 import { collectionView } from '../core/collection';
 import { highestCampaignStage } from '../save/derive';
+import { featureRevealed } from '../state/unlocks';
 import { labEra, labIntensity, labScore } from './homeBaseTiers';
 import { generateStage, recommendedPowerScore } from '../core/campaign';
 import type { StageConfig } from '../core/campaign';
@@ -228,7 +229,9 @@ class HomeRegistry {
 
 export const homeRegistry = new HomeRegistry();
 
-// The launch board. `when` guards keep a fresh account's board calm (no empty panels).
+// The launch board. `when` guards keep a fresh account's board calm (no empty panels) and ride
+// the progression-gating reveals (docs/PROGRESSION-GATING.md) — a home widget showcasing a wing
+// appears WITH that wing, so minute-0 Home is the campaign card, the next goal, and little else.
 // HIERARCHY CONTRACT (docs/COMMAND-CENTER.md §zones): the primary decision — Mission
 // Control's deploy — leads the main zone; intel (goals, events, contracts) supports below
 // it; the Infestation conquest map rides with operations, not above the deploy button.
@@ -237,12 +240,12 @@ homeRegistry.register({ id: 'world-status', zone: 'world', order: 10 });
 homeRegistry.register({ id: 'mission-control', zone: 'main', order: 10 });
 homeRegistry.register({ id: 'next-goal', zone: 'main', order: 20 });
 homeRegistry.register({ id: 'live-events', zone: 'main', order: 30 }); // LiveOps calendar strip (docs/LIVEOPS.md)
-homeRegistry.register({ id: 'contracts', zone: 'main', order: 40 }); // Champion Contracts board (docs/CONTRACTS.md)
+homeRegistry.register({ id: 'contracts', zone: 'main', order: 40, when: (s) => featureRevealed(s, 'daily') }); // Champion Contracts board (docs/CONTRACTS.md) — the weekly rhythm arrives with the daily one
 homeRegistry.register({ id: 'forecast', zone: 'side', order: 10, when: (s) => s.totalRuns > 0 });
 homeRegistry.register({ id: 'roadmap', zone: 'side', order: 20 });
-homeRegistry.register({ id: 'army', zone: 'army', order: 10 });
+homeRegistry.register({ id: 'army', zone: 'army', order: 10, when: (s) => featureRevealed(s, 'towers') }); // the roster strip appears with the Tower Lab
 homeRegistry.register({ id: 'modes', zone: 'ops', order: 10 });
-homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20 }); // Infestation conquest map (docs/INFESTATION.md)
+homeRegistry.register({ id: 'infestation', zone: 'ops', order: 20, when: (s) => featureRevealed(s, 'infinite') }); // Infestation conquest map (docs/INFESTATION.md) — a meta-layer over the modes it spans
 homeRegistry.register({ id: 'command-feed', zone: 'feed', order: 10, when: (s) => (s.timeline ?? []).length > 0 });
 homeRegistry.register({ id: 'dashboard', zone: 'feed', order: 20 });
 homeRegistry.register({ id: 'tip', zone: 'foot', order: 10 });

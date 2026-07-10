@@ -586,3 +586,38 @@ composition; per-biome motif bias; scene-change acknowledgment stingers.
 **Known limitations.** `setLayerGain` overrides last until the next `setIntensity`/track switch;
 events category has one track; choir is synthesized (detuned triangles + vibrato), not vocal
 samples.
+
+## Compressed system summary — Progression Gating & Director (docs/PROGRESSION-GATING.md)
+
+**Architecture.** One declarative registry (`src/state/unlocks.ts` `FEATURES`) decides when every
+hub screen (all 20 NavKeys) and gated wallet chip (`cur:ichor`/`cur:mats`/`cur:cells`) reveals:
+per-row condition (`always|runs|stage|cores|gear|containers|cards|mulligans|ichor|mats|molted|
+rushHistory|dailyHistory|any`), learning-curve `order`, teaser `blurb`, `teach` link, written
+`because`. Reveals LATCH in `save.director.revealed` (meta.latchNewReveals — a surface never
+re-seals); `director.visits` counts screen opens. The read-model layer
+(`src/state/progressionDirector.ts`) derives exposure/ignored-features/advice/cognitive-load
+bands. Generated timeline: docs/UNLOCK-TREE.md (`npm run unlocks`, drift-tested).
+
+**Public APIs.** `featureRevealed(save, id)` · `featureView(save, id)` → {revealed, progress,
+label} · `nextReveals(save, n)` (nav teasers) · `unlatchedReveals` · `cognitiveLoad` ·
+`unlockTimeline` · `guaranteedByStage` | meta: `latchNewReveals()`, `noteNavVisit(k)` |
+director: `revealAge`, `ignoredReveals`, `directorAdvice`, `loadEstimate` | `navBus.go/onGo`.
+
+**Extension points.** New screen = NavKey + one FeatureDef + one mechanics row with
+`unlock: featureRevealed(...)` — tests enforce coverage/backstop/pacing/teach/announcement-sync
+(the whole integration). Consumers: Hub (nav filter + next-2 teasers + FeatureLocked briefing +
+wallet chips), What's New (unlock fanfare `audio.cue('unlock')` + "Open it now ▸" via navBus),
+nextGoals `reveal` kind, HudTour (revealed stops only), homeModel widget `when` gates.
+
+**Important assumptions.** Fresh account = home/campaign/help/settings only (`calm` band);
+worst-case walk reveals ≥1 screen every stage 1–8, ≤3 per stage; everything guaranteed by
+Stage 10 (bossrush); veterans auto-pass (conditions over save + rush/daily grandfather clauses);
+completeHudTour archives the onboarding-time backlog so the queue never cascades post-tutorial.
+
+**Future hooks.** directorAdvice feeds adaptive hints/session summaries; latch stamps are pacing
+analytics; per-currency reveal rows generalize to any future wallet chip.
+
+**Known limitations.** In-run mechanic gating (branches at S3, deep strains at S15 …) stays with
+its owning systems — this framework gates HUB surfaces; the persona pacing test evaluates
+worst-case (stage/runs) only, ignoring drop-luck acceleration; media slots on What's New cards
+remain placeholder captions until art lands.

@@ -338,6 +338,15 @@ function sRankUp(): void {
   tone(523, 0.12, 'triangle', 0.12); tone(659, 0.12, 'triangle', 0.12);
   tone(784, 0.16, 'sine', 0.14); tone(1047, 0.42, 'sine', 0.16); noise(0.28, 0.05, 6500);
 }
+// NEW SYSTEM UNLOCKED (docs/PROGRESSION-GATING.md §presentation) — the reveal fanfare: a rising
+// organic swell into a bright arrival chord. Bigger than sAchieve (a whole WING opened, not one
+// feat), distinct from sRankUp's ladder — the ear learns "the game just grew".
+function sUnlock(): void {
+  tone(330, 0.16, 'triangle', 0.1, 494); // low swell rising a fifth
+  tone(659, 0.14, 'square', 0.08);
+  tone(988, 0.2, 'sine', 0.12); tone(1319, 0.46, 'sine', 0.14); // the arrival chord blooms
+  noise(0.32, 0.045, 7000); // airy shimmer tail
+}
 
 export const audio = {
   resume(): void {
@@ -451,6 +460,7 @@ export const audio = {
         case 'shard_tower': sShardTower(); break;
         case 'shard_hero': sShardHero(); break;
         case 'achieve': sAchieve(); break;
+        case 'unlock': sUnlock(); break;
         case 'power': sPower(); break;
         case 'mastery': sMastery(); break;
         case 'rankup': sRankUp(); break;
