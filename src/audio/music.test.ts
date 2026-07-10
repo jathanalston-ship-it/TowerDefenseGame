@@ -7,11 +7,11 @@ import { describe, it, expect } from 'vitest';
 import { TRACKS, barNotes, chordAt } from './music';
 import type { MusicCategory } from './music';
 
-const CATEGORIES: MusicCategory[] = ['menu', 'combat', 'boss', 'mega', 'victory', 'defeat', 'events'];
+const CATEGORIES: MusicCategory[] = ['menu', 'combat', 'boss', 'mega', 'victory', 'defeat', 'events', 'cinema'];
 const menu = TRACKS.menu;
 
 describe('music tracks — the data contract', () => {
-  it('all six categories exist with sane tempo, layers, and gain ranges', () => {
+  it('all categories exist with sane tempo, layers, and gain ranges', () => {
     for (const c of CATEGORIES) {
       const t = TRACKS[c];
       expect(t.category).toBe(c);

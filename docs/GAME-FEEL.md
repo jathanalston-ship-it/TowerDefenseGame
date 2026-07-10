@@ -196,3 +196,25 @@ audibly angers it. GameView hands off mega→boss→combat per banner state. The
 layer now sidechain-DUCKS the score under heavyweight stings (mega arrival/death,
 phase cracks, weak-point ruptures, splices) via `music.duck(depth, seconds)` — one
 soundtrack, not two layers.
+
+## §intro — the opening cinematic (the cold open)
+
+The first boot opens on a fully SCORED procedural film (`ui/InitCutscene.tsx` — the projector;
+`render/introScenes.ts` — the five set-piece painters + the dive), replayable from Settings → Help:
+
+- **Pre-roll gate.** "INCOMING TRANSMISSION — TAP TO RECEIVE": the one tap the browser's autoplay
+  policy demands, staged diegetically. The tap unlocks the AudioContext, rolls the `cinema` score
+  (`TRACKS.cinema` — a 62bpm D-minor processional, percussion nearly absent), and starts the film
+  at t=0, fully scored.
+- **A film, not a slideshow.** One master timeline; scenes are DATA (`SCENES`): staged copy LINES
+  with per-line reveal times, and sound-design BEATS — scene-relative times firing `cin_*` cues in
+  sync with the visuals (radar pings ride the sweep, the heartbeat rides the core's 1.9s
+  double-thump, the title swell lands with the wordmark). The score's intensity seam walks 0→1
+  scene-by-scene. Letterboxed; each set-piece runs under a slow camera drift (Ken Burns push/pan);
+  tap = next scene, Skip = out; the title card waits for the player.
+- **THE DESCENT.** Leaving the title never hard-cuts: `drawDiveTransition` dives from the looming
+  nucleus down a living tunnel and blooms white-gold into the next screen — the tutorial on first
+  boot (whose letterboxed cold-open banner picks the film's voice straight up), the menu on a
+  replay. App hands the music baton on landing (`combat`/`menu`).
+- **Accessibility.** prefers-reduced-motion swaps the animation for a hand-picked still per scene
+  (gentle CSS fades), skips the dive, and shows typewriter text whole.

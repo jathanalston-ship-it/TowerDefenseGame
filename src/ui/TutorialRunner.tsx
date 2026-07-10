@@ -5,6 +5,7 @@
 // replay from Settings never re-grants) and shows the reward reveal; a Skip just leaves.
 
 import { useEffect, useRef, useState } from 'react';
+import { audio } from '../audio/sound';
 import { tutorial } from '../state/tutorial';
 import { meta, metaModifiers } from '../state/meta';
 import type { TutorialRewardSummary } from '../state/meta';
@@ -53,6 +54,7 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
       wasActive.current = true;
     } else if (wasActive.current) {
       if (tutorial.lastEndReason() === 'completed') {
+        audio.cue('tut_done'); // graduation — the rising ceremony stinger
         const r = meta.grantTutorialRewards('combat'); // idempotent — null on a replay
         if (r) { setReward(r); return; }
       }

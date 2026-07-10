@@ -207,6 +207,47 @@ function sGraftCrack(): void { // bone crack + a rising vital swell — the upgr
 function sBioStage(): void { // LIVING BATTLEFIELD deepens a stage — a low organic swell + soft rising shimmer (subtle, never abrupt)
   tone(70, 0.55, 'sine', 0.055, 56); tone(210, 0.42, 'sine', 0.03, 300); tone(316, 0.5, 'triangle', 0.024, 430); noise(0.5, 0.012, 480, 150);
 }
+// ── OPENING CINEMATIC sound design (docs/GAME-FEEL.md §intro) — beat-fired by InitCutscene ──
+function sCinPing(): void { // deep-crust radar contact — a cold sonar ping with a phosphor tail
+  tone(1180, 0.5, 'sine', 0.07, 1160); tone(2360, 0.22, 'sine', 0.02, 2330);
+}
+function sCinAlarm(): void { // the signal ERUPTS — a two-note klaxon under static
+  tone(620, 0.16, 'square', 0.05, 590); tone(466, 0.24, 'square', 0.05, 440); noise(0.35, 0.03, 2400, 800);
+}
+function sCinRumble(): void { // the crust groans — a long sub swell (the appetite below)
+  tone(38, 1.6, 'sine', 0.12, 33); tone(57, 1.3, 'sine', 0.07, 49); noise(1.5, 0.05, 160, 70);
+}
+function sCinShriek(): void { // a distant swarm shriek rising out of the rumble
+  tone(880, 0.5, 'sawtooth', 0.028, 1900); tone(1320, 0.4, 'sawtooth', 0.018, 2500); noise(0.4, 0.02, 3600, 1800);
+}
+function sCinCreep(): void { // veins taking steel — wet fibrous creep + a strained groan
+  noise(0.7, 0.05, 620, 220); tone(96, 0.65, 'sine', 0.05, 74); tone(340, 0.35, 'triangle', 0.02, 210);
+}
+function sCinSnap(): void { // a girder gives way — metallic crack + falling ring
+  noise(0.06, 0.1, 3600, 1200); tone(520, 0.4, 'triangle', 0.05, 130); tone(1560, 0.2, 'sine', 0.03, 900);
+}
+function sCinHeart(): void { // the Hive Core's double-thump — the film's pulse (matches the 1.9s visual)
+  tone(52, 0.16, 'sine', 0.14, 40); tone(52, 0.13, 'sine', 0.1, 38); noise(0.2, 0.015, 500, 180);
+}
+function sCinBloom(): void { // regrowth — a warm gathering shimmer (motes spiraling home)
+  tone(523, 0.35, 'sine', 0.03, 784); tone(659, 0.3, 'sine', 0.024, 988); tone(392, 0.42, 'triangle', 0.02, 523);
+}
+function sCinTitle(): void { // the wordmark lands — a wide dark-major swell with a sub floor
+  tone(65, 1.7, 'sine', 0.1, 63); tone(196, 1.4, 'sine', 0.05); tone(247, 1.4, 'sine', 0.045); tone(392, 1.2, 'triangle', 0.035); noise(1.2, 0.02, 900, 300);
+}
+function sCinCut(): void { // scene cut — a soft air whoosh (never a slam; the score carries the weight)
+  noise(0.3, 0.05, 300, 2400); tone(180, 0.2, 'sine', 0.02, 90);
+}
+function sCinDive(): void { // THE DESCENT — diving into the hive: a long falling sweep into a heartbeat landing
+  tone(980, 1.15, 'sine', 0.06, 60); noise(1.1, 0.06, 4200, 240); tone(48, 0.5, 'sine', 0.12, 36);
+}
+// ── TUTORIAL presentation cues (docs/TUTORIAL.md §4) ──
+function sTutStep(): void { // checkpoint complete — a soft affirmative uplink blip
+  tone(660, 0.09, 'sine', 0.06, 880); tone(990, 0.12, 'sine', 0.04, 1320);
+}
+function sTutDone(): void { // graduation — a short rising ceremony (three-step lift + shimmer)
+  tone(392, 0.14, 'triangle', 0.09); tone(523, 0.16, 'triangle', 0.09); tone(659, 0.3, 'triangle', 0.1, 784); tone(1046, 0.4, 'sine', 0.03, 1568);
+}
 // ── progression / reward dopamine cues ──
 function sClear(): void { // wave-cleared fanfare (rising major triad)
   tone(392, 0.14, 'triangle', 0.15); tone(523, 0.16, 'triangle', 0.15); tone(659, 0.34, 'triangle', 0.16);
@@ -358,6 +399,19 @@ export const audio = {
         case 'graftSquelch': sGraftSquelch(); break;
         case 'graftCrack': sGraftCrack(); break;
         case 'bioStage': sBioStage(); break;
+        case 'cin_ping': sCinPing(); break;
+        case 'cin_alarm': sCinAlarm(); break;
+        case 'cin_rumble': sCinRumble(); break;
+        case 'cin_shriek': sCinShriek(); break;
+        case 'cin_creep': sCinCreep(); break;
+        case 'cin_snap': sCinSnap(); break;
+        case 'cin_heart': sCinHeart(); break;
+        case 'cin_bloom': sCinBloom(); break;
+        case 'cin_title': sCinTitle(); break;
+        case 'cin_cut': sCinCut(); break;
+        case 'cin_dive': sCinDive(); break;
+        case 'tut_step': sTutStep(); break;
+        case 'tut_done': sTutDone(); break;
         case 'ui': sSelect(); break;
         case 'hover': sHover(); break;
         case 'launch': sLaunch(); break;

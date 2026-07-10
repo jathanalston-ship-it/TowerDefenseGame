@@ -139,3 +139,14 @@ fail states** — and on a loss it calls `restartCheckpoint()` (never restarts t
 - **Later (content):** the real combat lessons — authoring each checkpoint's highlight targets,
   arrows, callouts, and `event` advance triggers, plus the simplified tutorial encounter wired into
   the sim. No framework change required; lessons are data + presentation props.
+
+## Cinematic presentation (the film → trial handoff)
+
+The tutorial opens under a letterboxed COLD-OPEN banner ("DEEP CRUST RELAY 7 · UPLINK ESTABLISHED /
+TRIAL ONE — HOLD THE LINE") that continues the opening cinematic's voice — shown once per session
+start (tap to dismiss), over the already-breathing god-mode board. Lessons then run as
+TRANSMISSIONS: every authored callout carries an `eyebrow` uplink header (`UPLINK 01 · THE CORE` …
+`FINAL UPLINK · GRADUATION`), body copy types in via the `Typewriter` primitive (~28ms/char, capped
+~1.1s, tap-to-complete, reduced-motion shows it whole), the objective tracker fills an uplink
+progress bar, a soft `tut_step` blip marks every COMPLETED checkpoint (never a retry), and genuine
+completion lands the `tut_done` graduation stinger under the reward reveal.

@@ -485,8 +485,26 @@ const PAINTERS: Record<IntroVisual, (ctx: Ctx, w: number, h: number, t: number) 
   signal: drawSignal, descent: drawDescent, veins: drawVeins, core: drawCore, title: drawTitle,
 };
 
-/** Paint one cinematic frame: the current scene, with the PREVIOUS scene cross-fading out
- *  over its first `fade` (0..1). Fills the full canvas each call (opaque base). */
+/** Slow per-scene CAMERA DRIFT (a Ken Burns push/pan) — each world breathes differently: the radar
+ *  pushes in, the descent falls, the takeover drifts sideways, the core leans close, the title recedes. */
+const DRIFT: Record<IntroVisual, { zoom: number; dx: number; dy: number }> = {
+  signal: { zoom: 0.045, dx: 0, dy: 0.006 },
+  descent: { zoom: 0.03, dx: 0, dy: -0.02 },
+  veins: { zoom: 0.04, dx: 0.014, dy: 0 },
+  core: { zoom: 0.06, dx: 0, dy: 0.004 },
+  title: { zoom: -0.035, dx: 0, dy: 0 },
+};
+function applyDrift(ctx: Ctx, w: number, h: number, visual: IntroVisual, t: number): void {
+  const d = DRIFT[visual];
+  const k = Math.min(1, t / 9); // a slow 9s move, easing off (never accelerates)
+  const z = 1 + d.zoom * ease(k);
+  ctx.translate(w / 2 + d.dx * w * k, h / 2 + d.dy * h * k);
+  ctx.scale(z, z);
+  ctx.translate(-w / 2, -h / 2);
+}
+
+/** Paint one cinematic frame: the current scene (under its camera drift), with the PREVIOUS scene
+ *  cross-fading out over its first `fade` (0..1). Fills the full canvas each call (opaque base). */
 export function drawIntroFrame(
   ctx: Ctx, w: number, h: number,
   visual: IntroVisual, t: number,
@@ -497,14 +515,77 @@ export function drawIntroFrame(
   ctx.fillRect(0, 0, w, h);
   if (prev && fade < 1) {
     ctx.globalAlpha = 1;
+    ctx.save();
+    applyDrift(ctx, w, h, prev, prevT);
     PAINTERS[prev](ctx, w, h, prevT);
+    ctx.restore();
     ctx.fillStyle = `rgba(3,5,9,${ease(fade)})`; // dip the outgoing scene toward black
     ctx.fillRect(0, 0, w, h);
     ctx.globalAlpha = ease(fade);
+    ctx.save();
+    applyDrift(ctx, w, h, visual, t);
     PAINTERS[visual](ctx, w, h, t);
+    ctx.restore();
     ctx.globalAlpha = 1;
   } else {
+    ctx.save();
+    applyDrift(ctx, w, h, visual, t);
     PAINTERS[visual](ctx, w, h, t);
+    ctx.restore();
+  }
+}
+
+/** THE DESCENT (docs/GAME-FEEL.md §intro→tutorial) — the transition OUT of the film: the camera dives
+ *  from the title's looming nucleus down a living tunnel and blooms white-gold into the game. Painted
+ *  over the last title frame; `t` runs 0..1 across the dive. Render-only, deterministic. */
+export function drawDiveTransition(ctx: Ctx, w: number, h: number, t: number): void {
+  const k = Math.min(1, Math.max(0, t));
+  const cx = w / 2;
+  const cy = h * 0.46;
+  const speed = ease(k); // accelerate into the fall
+  // The tunnel: concentric membrane rings rushing PAST the camera (born small, flying outward).
+  ctx.save();
+  for (let i = 0; i < 14; i++) {
+    const ring = ((i / 14) + speed * 2.2) % 1; // 0 far → 1 at the lens
+    const rr = Math.pow(ring, 2.6) * Math.max(w, h) * 0.95 + 2;
+    const alpha = Math.min(0.5, ring * 0.55) * Math.min(1, k * 5);
+    ctx.strokeStyle = rgba(i % 3 === 0 ? GOLD : i % 3 === 1 ? EMBER : RED, alpha);
+    ctx.lineWidth = 1 + ring * 7;
+    ctx.beginPath();
+    for (let a = 0; a <= 30; a++) {
+      const ang = (a / 30) * TAU;
+      const wob = 1 + Math.sin(ang * 5 + i * 2.2 + k * 9) * 0.05;
+      const px = cx + Math.cos(ang) * rr * wob;
+      const py = cy + Math.sin(ang) * rr * wob * 0.92;
+      if (a === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+  // Speed streaks converging on the destination.
+  for (let i = 0; i < 26; i++) {
+    const ang = h01(i * 7.7) * TAU;
+    const d0 = (h01(i * 3.1) + speed * 1.6) % 1;
+    const r1 = Math.pow(d0, 2.2) * Math.max(w, h) * 0.8;
+    const r2 = r1 + 30 + speed * 90;
+    ctx.strokeStyle = rgba(GOLD, Math.min(0.5, d0 * 0.5) * Math.min(1, k * 4));
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1 * 0.92);
+    ctx.lineTo(cx + Math.cos(ang) * r2, cy + Math.sin(ang) * r2 * 0.92);
+    ctx.stroke();
+  }
+  ctx.restore();
+  // The landing bloom: the last third whites out gold → the next screen fades in from it.
+  const bloom = ease((k - 0.62) / 0.38);
+  if (bloom > 0) {
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * (0.2 + bloom * 0.9));
+    g.addColorStop(0, `rgba(255,246,214,${bloom})`);
+    g.addColorStop(0.6, `rgba(255,210,77,${bloom * 0.85})`);
+    g.addColorStop(1, `rgba(255,122,71,${bloom * 0.5})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
   }
 }
 

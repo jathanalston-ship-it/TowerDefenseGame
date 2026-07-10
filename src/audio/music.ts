@@ -19,7 +19,7 @@
 
 // ── The pure composition core ────────────────────────────────────────────────────────────────
 
-export type MusicCategory = 'menu' | 'combat' | 'boss' | 'mega' | 'victory' | 'defeat' | 'events';
+export type MusicCategory = 'menu' | 'combat' | 'boss' | 'mega' | 'victory' | 'defeat' | 'events' | 'cinema';
 export type LayerId = 'bass' | 'drums' | 'arp' | 'lead' | 'pad' | 'texture';
 
 export interface Note {
@@ -152,6 +152,25 @@ export const TRACKS: Record<MusicCategory, TrackDef> = {
     layers: [
       { id: 'bass', gain: [0.5, 0.7] }, { id: 'drums', gain: [0.45, 0.65] }, { id: 'arp', gain: [0.4, 0.55] },
       { id: 'lead', gain: [0.4, 0.55] }, { id: 'pad', gain: [0.2, 0.3] }, { id: 'texture', gain: [0.15, 0.3] },
+    ],
+  },
+  cinema: {
+    // THE COLD OPEN (docs/GAME-FEEL.md §intro) — the opening cinematic's score. A slow 62bpm
+    // processional in D minor: pads + a distant lead breathe under the narration, percussion nearly
+    // absent (the SFX beats ARE the rhythm). The intensity seam is driven scene-by-scene by
+    // InitCutscene (0 at the listening post → 1 at the title), so the film swells to the wordmark.
+    id: 'cinema_cold_open', category: 'cinema', bpm: 62, root: 38, scale: MINOR,
+    progression: [0, 0, 5, 5, 3, 3, 4, 4],
+    introBars: 2,
+    // A slow, mournful call — long tones with breaths; the second phrase reaches up and falls back.
+    motif: [0, -1, -1, -1, 3, -1, 2, -1, 5, -1, -1, -1, 4, -1, 3, -1, 7, -1, -1, 5, 4, -1, 3, -1, 2, -1, -1, -1, 0, -1, -1, -1],
+    layers: [
+      { id: 'bass', gain: [0.3, 0.55] },
+      { id: 'drums', gain: [0.0, 0.18] }, // nearly silent — the cinematic SFX beats carry the pulse
+      { id: 'arp', gain: [0.08, 0.3] },
+      { id: 'lead', gain: [0.35, 0.6] },
+      { id: 'pad', gain: [0.4, 0.5] },
+      { id: 'texture', gain: [0.25, 0.45] },
     ],
   },
 };

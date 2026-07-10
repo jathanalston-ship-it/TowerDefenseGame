@@ -6276,14 +6276,34 @@ kbd {
 .wb-tutlock { display: flex; align-items: center; padding: 10px 16px; border-radius: var(--r-sm); border: 1px dashed var(--line-strong); background: var(--panel-2); color: var(--muted); font-size: 12px; letter-spacing: 0.06em; min-width: 0; white-space: normal; line-height: 1.35; }
 .tut-obj-step { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--vital); font-weight: 800; }
 .tut-obj-title { font-size: 14px; font-weight: 700; color: var(--text); }
+/* Uplink progress fill under the tracker — the lesson's place in the transmission. */
+.tut-obj-bar { width: 100%; height: 3px; margin-top: 5px; border-radius: 2px; background: rgba(159, 176, 200, 0.18); overflow: hidden; }
+.tut-obj-bar i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--vital), var(--gold)); transition: width var(--dur-4) var(--ease-out); }
+/* Transmission voice: the eyebrow over a callout + the typewriter caret. */
+.tut-callout-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--gold); margin-bottom: 6px; }
+.tut-caret { font-style: normal; color: var(--vital); animation: tut-caret 0.7s steps(1) infinite; }
+@keyframes tut-caret { 50% { opacity: 0; } }
 /* Controls (bottom-right) */
 .tut-controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; }
 .tut-ctl { padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted); cursor: pointer; }
 .tut-ctl:hover { color: var(--text); border-color: var(--vital); }
 .tut-skip { color: var(--dim); }
 .tut-paused-veil { position: fixed; inset: 0; display: grid; place-items: center; font-size: 26px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); background: rgba(4, 7, 12, 0.55); }
+/* ── The tutorial's cinematic COLD OPEN — the film hands the trial to RELAY 7 (letterboxed, tap to
+   dismiss). Rides over the live (god-mode) board so the world is already breathing beneath it. ── */
+.tut-cine-open { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(3, 5, 9, 0.6); cursor: pointer; animation: fade-in 0.5s ease both; }
+.tut-cine-bar { position: absolute; left: 0; right: 0; height: max(9vh, 54px); background: #000; }
+.tut-cine-bar-top { top: 0; animation: intro-bar-top 0.8s var(--ease-out) both; }
+.tut-cine-bar-bot { bottom: 0; animation: intro-bar-bot 0.8s var(--ease-out) both; }
+.tut-cine-copy { position: relative; text-align: center; padding: 0 24px; }
+.tut-cine-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.28em; color: var(--gold); animation: intro-line 0.9s var(--ease-out) 0.2s both; }
+.tut-cine-title { margin-top: 12px; font-size: 26px; font-weight: 900; letter-spacing: 0.14em; color: #fff; text-shadow: 0 0 26px rgba(255, 210, 77, 0.35), 0 4px 18px rgba(0, 0, 0, 0.9); animation: intro-line 1.1s var(--ease-out) 0.55s both; }
+.tut-cine-sub { margin-top: 10px; font-size: 14px; color: var(--muted); letter-spacing: 0.06em; animation: intro-line 1s var(--ease-out) 1.1s both; }
 @media (prefers-reduced-motion: reduce) {
   .tut-ring, .tut-arrow, .tut-callout { animation: none; }
+  .tut-cine-open, .tut-cine-bar-top, .tut-cine-bar-bot, .tut-cine-eyebrow, .tut-cine-title, .tut-cine-sub { animation-duration: 0.01s; }
+  .tut-caret { animation: none; }
+  .tut-obj-bar i { transition: none; }
 }
 
 /* ── Bio-Container HATCHING — the fullscreen opening ceremony (src/ui/VaultReveal) ─
@@ -8132,9 +8152,6 @@ kbd {
   justify-content: space-between;
   padding: 14px 18px calc(14px + var(--safe-b));
 }
-.intro-dots { display: flex; gap: 7px; }
-.intro-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(159, 176, 200, 0.28); transition: background var(--dur-2) ease; }
-.intro-dots i.on { background: var(--intro-accent, var(--gold)); box-shadow: 0 0 8px var(--intro-accent, var(--gold)); }
 .intro-skip {
   padding: 8px 16px;
   min-height: 24px;
@@ -8144,9 +8161,65 @@ kbd {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
 }
+/* Multi-line staged copy: each line rides its own animation-delay (the film's beat sheet). */
+.intro-text.is-em { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 0.02em; }
+.intro-text + .intro-text { margin-top: 10px; }
+/* Hard cinema letterbox BARS (over the soft grade) — slide in as the film starts, lift on the dive. */
+.intro-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: max(4.5vh, 26px);
+  background: #000;
+  pointer-events: none;
+  z-index: 2;
+}
+.intro-bar-top { top: 0; animation: intro-bar-top 1.1s var(--ease-out) both; }
+.intro-bar-bot { bottom: 0; animation: intro-bar-bot 1.1s var(--ease-out) both; }
+@keyframes intro-bar-top { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes intro-bar-bot { from { transform: translateY(100%); } to { transform: none; } }
+.intro-stage.is-diving .intro-bar-top { animation: intro-bar-top 0.9s var(--ease-out) reverse both; }
+.intro-stage.is-diving .intro-bar-bot { animation: intro-bar-bot 0.9s var(--ease-out) reverse both; }
+.intro-stage.is-diving .intro-copy { animation: fade-in 0.5s ease reverse both; }
+.intro-foot.is-diving { opacity: 0; transition: opacity var(--dur-3) ease; }
+/* The pre-roll gate — the one tap the browser needs, staged as the transmission arriving. */
+.intro-gate { position: relative; display: grid; place-items: center; gap: 6px; text-align: center; }
+.intro-gate-glyph {
+  font-size: 34px;
+  color: var(--intro-accent, #7ad1ff);
+  animation: intro-gate-pulse 2.2s ease-in-out infinite;
+  text-shadow: 0 0 26px var(--intro-accent, #7ad1ff);
+}
+@keyframes intro-gate-pulse { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+.intro-receive {
+  margin-top: 16px;
+  padding: 14px 30px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #06131c;
+  background: var(--intro-accent, #7ad1ff);
+  border: none;
+  border-radius: var(--r-md);
+  box-shadow: 0 0 28px rgba(122, 209, 255, 0.4);
+  animation: intro-gate-pulse 2.2s ease-in-out infinite;
+}
+.intro-gate-skip { margin-top: 22px; }
+/* Film TIMELINE — segmented progress (replaces the dots): played beats fill, the current glows. */
+.intro-timeline { display: flex; gap: 5px; }
+.intro-timeline i {
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(159, 176, 200, 0.22);
+  transition: background var(--dur-2) ease, box-shadow var(--dur-2) ease;
+}
+.intro-timeline i.done { background: rgba(159, 176, 200, 0.6); }
+.intro-timeline i.on { background: var(--intro-accent, var(--gold)); box-shadow: 0 0 8px var(--intro-accent, var(--gold)); }
 @media (prefers-reduced-motion: reduce) {
   .intro-stage, .intro-text, .intro-title, .intro-begin { animation-duration: 0.3s; }
   .intro-stage .intro-fx { animation: none; opacity: 0.8; }
+  .intro-bar, .intro-gate-glyph, .intro-receive { animation: none; }
 }
 
 /* ── Wave-launch BREACH (GameView) — the build→combat handoff gets a physical

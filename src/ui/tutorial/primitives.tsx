@@ -3,7 +3,7 @@
 // handled in CSS. These are the building blocks any future tutorial composes; none know anything
 // about combat or a specific lesson.
 
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 
 type Side = 'top' | 'bottom' | 'left' | 'right';
 
@@ -74,13 +74,46 @@ export function Callout({
   return <div className={`tut-callout ${cls}`} style={style} role="dialog">{children}</div>;
 }
 
-/** The temporary objective tracker — "Step X of N" + the current objective title. */
+/** The temporary objective tracker — "Step X of N" + the current objective title, over an animated
+ * uplink progress fill (the lesson's place in the transmission at a glance). */
 export function ObjectiveTracker({ title, step, total }: { title: string; step: number; total: number }): JSX.Element {
   return (
     <div className="tut-objective">
       <span className="tut-obj-step">Step {step} of {total}</span>
       <span className="tut-obj-title">{title}</span>
+      <span className="tut-obj-bar" aria-hidden>
+        <i style={{ width: `${Math.round(((step - 1) / total) * 100)}%` }} />
+      </span>
     </div>
+  );
+}
+
+const reducedMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+/** Typewriter — reveals text like an incoming transmission (~28ms/char, capped ~1.1s so long lessons
+ * never drag), with a blinking caret while typing. Reduced motion (or a re-render of the same text)
+ * shows it whole. Generic: any future tutorial callout/briefing types through this. */
+export function Typewriter({ text }: { text: string }): JSX.Element {
+  const [shown, setShown] = useState(reducedMotion ? text.length : 0);
+  useEffect(() => {
+    if (reducedMotion) { setShown(text.length); return undefined; }
+    setShown(0);
+    const step = Math.max(1, Math.ceil(text.length / 40)); // cap the reveal at ~40 ticks (~1.1s)
+    const id = setInterval(() => {
+      setShown((n) => {
+        const next = Math.min(text.length, n + step);
+        if (next >= text.length) clearInterval(id);
+        return next;
+      });
+    }, 28);
+    return () => clearInterval(id);
+  }, [text]);
+  const typing = shown < text.length;
+  return (
+    <span className="tut-type" onClick={typing ? () => setShown(text.length) : undefined}>
+      {text.slice(0, shown)}
+      {typing && <i className="tut-caret" aria-hidden>▌</i>}
+    </span>
   );
 }
 

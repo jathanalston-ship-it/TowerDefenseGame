@@ -3,8 +3,9 @@
 // stills — against a stub 2D context, at several canvas sizes (the geometry cache rebuilds).
 
 import { describe, expect, it } from 'vitest';
-import { REDUCED_FRAME_T, drawIntroFrame } from './introScenes';
+import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from './introScenes';
 import type { IntroVisual } from './introScenes';
+import { SCENES } from '../ui/InitCutscene';
 
 const VISUALS: IntroVisual[] = ['signal', 'descent', 'veins', 'core', 'title'];
 
@@ -44,5 +45,31 @@ describe('intro scene painters', () => {
       expect(REDUCED_FRAME_T[v]).toBeGreaterThan(0);
       expect(() => drawIntroFrame(ctx, 1280, 800, v, REDUCED_FRAME_T[v], null, 0, 1)).not.toThrow();
     }
+  });
+
+  it('the DESCENT transition paints across its whole dive (incl. the landing bloom)', () => {
+    const ctx = stubCtx();
+    expect(() => {
+      for (const t of [0, 0.2, 0.5, 0.65, 0.8, 1]) drawDiveTransition(ctx, 1280, 800, t);
+    }).not.toThrow();
+  });
+});
+
+describe('the authored film (InitCutscene SCENES) — data contract', () => {
+  it('every scene has staged copy + sound beats inside its hold, in playback order', () => {
+    expect(SCENES.length).toBeGreaterThanOrEqual(5);
+    for (const s of SCENES) {
+      expect(VISUALS).toContain(s.visual);
+      expect(s.lines.length).toBeGreaterThan(0);
+      expect(s.beats.length).toBeGreaterThan(0); // the whole film is scored — no silent scene
+      const dur = s.durMs === 0 ? Infinity : s.durMs / 1000; // 0 = the title waits for the player
+      for (const l of s.lines) expect(l.at).toBeLessThan(dur);
+      for (let i = 0; i < s.beats.length; i++) {
+        expect(s.beats[i].cue.startsWith('cin_')).toBe(true);
+        expect(s.beats[i].at).toBeLessThan(dur);
+        if (i > 0) expect(s.beats[i].at).toBeGreaterThan(s.beats[i - 1].at); // fired in clock order
+      }
+    }
+    expect(SCENES[SCENES.length - 1].durMs).toBe(0); // the title card never yanks itself away
   });
 });

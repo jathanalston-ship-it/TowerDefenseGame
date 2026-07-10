@@ -405,7 +405,16 @@ export function App(): JSX.Element {
       {spectate && screen !== 'playing' && (
         <SpectateView record={spectate} onExit={() => { setSpectate(null); clearReplayParam(); }} />
       )}
-      {introActive && <InitCutscene onDone={() => setIntroActive(false)} />}
+      {introActive && (
+        <InitCutscene
+          onDone={() => {
+            setIntroActive(false);
+            // The film ran the 'cinema' score; hand the baton to the screen it lands on (the
+            // tutorial's combat bed on first boot, the menu theme on a Settings replay).
+            music.play(screen === 'tutorial' ? 'combat' : 'menu');
+          }}
+        />
+      )}
       <UpdateToast />
       {screen === 'roulette' && roulette && (
         <BioRoulette spores={roulette.spores} onExit={() => { setRoulette(null); setScreen('menu'); }} />
