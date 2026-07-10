@@ -1,6 +1,6 @@
 {
-  "lastSha": "8db81613397047ffb1b408b8563691723285c5d8",
-  "commitsSinceDraft": 2,
+  "lastSha": "bf4afdc67334ad4de6480f1484ad02cbfc6639e4",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -88,7 +88,9 @@
       "meridia",
       "ossira",
       "vesperine",
-      "moloch_ama"
+      "moloch_ama",
+      "sarcophage",
+      "myriad"
     ],
     "biome": [],
     "achievement": [
@@ -215,6 +217,8 @@
       "battle-pass",
       "profile",
       "onboarding",
+      "account-level",
+      "genome-rank",
       "progression-gating",
       "hub-shell",
       "run-ui",
@@ -1441,6 +1445,26 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Genome Rank (ultimate mastery ladder)",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New system: Account Level (evergreen meta-progression)",
+          "major": true
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "New Mega Boss: MYRIAD",
+          "major": true
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "New Mega Boss: SARCOPHAGE",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Story Cutscenes & Memory Archive",
           "major": true
         },
@@ -1613,6 +1637,18 @@
         {
           "cat": "Audio",
           "text": "Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Add the infinite Account Level system (meta progression)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Add the Genome Rank system (ultimate account mastery ladder)"
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)"
         }
       ]
     }
@@ -2007,6 +2043,38 @@
       "date": "2026-07-10",
       "cat": "Gameplay",
       "text": "Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "836f23e94226a6edb2bf00a9a83eb05f0ff68258",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Add the infinite Account Level system (meta progression)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2a147c1bf64b5d4d39c9986ae8262fcc7404fec7",
+      "date": "2026-07-10",
+      "cat": "Framework",
+      "text": "Regen graphs + validation over the Battle Pass rebase",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "c7d6de91a46c1e6172cdb93eacf7808ba1ad22ec",
+      "date": "2026-07-10",
+      "cat": "Gameplay",
+      "text": "Add the Genome Rank system (ultimate account mastery ladder)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bf4afdc67334ad4de6480f1484ad02cbfc6639e4",
+      "date": "2026-07-10",
+      "cat": "Mega Bosses",
+      "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)",
       "internal": false,
       "needsReview": false
     }

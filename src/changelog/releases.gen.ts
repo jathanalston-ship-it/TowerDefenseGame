@@ -12,6 +12,26 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Genome Rank (ultimate mastery ladder)",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New system: Account Level (evergreen meta-progression)",
+        "major": true
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "New Mega Boss: MYRIAD",
+        "major": true
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "New Mega Boss: SARCOPHAGE",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Story Cutscenes & Memory Archive",
         "major": true
       },
@@ -184,6 +204,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Add the infinite Account Level system (meta progression)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Add the Genome Rank system (ultimate account mastery ladder)"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)"
       }
     ]
   },

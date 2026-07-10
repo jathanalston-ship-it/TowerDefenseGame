@@ -4,13 +4,13 @@
     "title": "The Living World Update",
     "categories": [
       "Gameplay",
+      "Mega Bosses",
       "Visuals",
       "Towers",
       "Heroes",
       "UX",
       "Website",
       "Developer Tools",
-      "Mega Bosses",
       "UI",
       "Optimization",
       "Gene Cards",
@@ -19,6 +19,22 @@
       "Audio"
     ],
     "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Genome Rank (ultimate mastery ladder)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Account Level (evergreen meta-progression)"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "★ New Mega Boss: MYRIAD"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "★ New Mega Boss: SARCOPHAGE"
+      },
       {
         "cat": "Gameplay",
         "text": "★ New system: Story Cutscenes & Memory Archive"
@@ -186,6 +202,18 @@
       {
         "cat": "Audio",
         "text": "Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Add the infinite Account Level system (meta progression)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Add the Genome Rank system (ultimate account mastery ladder)"
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)"
       }
     ]
   },

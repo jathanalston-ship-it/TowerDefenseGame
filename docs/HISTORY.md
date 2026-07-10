@@ -57,3 +57,7 @@
 - `cb9a1c8` **[Gameplay]** Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons
 - `c15ba09` **[Audio]** Creature presentation v2 — enemy materials/gait, boss anatomy+damage states, mega cinematics, battle SFX
 - `8db8161` **[Gameplay]** Cosmetics: The Wardrobe ecosystem + rotating Battle Pass seasons
+- `836f23e` **[Gameplay]** Add the infinite Account Level system (meta progression)
+- ⚑ `2a147c1` **[Framework]** Regen graphs + validation over the Battle Pass rebase _(internal)_
+- `c7d6de9` **[Gameplay]** Add the Genome Rank system (ultimate account mastery ladder)
+- `bf4afdc` **[Mega Bosses]** Mega-boss overhaul: stagger + cataclysm + gorge/adapt verbs, per-def motifs, and two new megas (SARCOPHAGE, MYRIAD)

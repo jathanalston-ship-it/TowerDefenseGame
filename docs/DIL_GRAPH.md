@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 677 nodes · 1141 edges, built from the live
+> **The project's brain** (docs/DIL.md). 679 nodes · 1144 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,7 +14,7 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · …28 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · …30 more
 
 ### Progression Index
 
@@ -828,7 +828,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:chrysalis`
   - contains ← `tower:effigy`
   - contains ← `tower:coil`
-  - _…24 more (query: `npm run dil -- node system:towers`)_
+  - _…25 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1482,6 +1482,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - provides → `concept:power-score` — megaBosses collection category weight
   - consumes → `system:meta-store` — owns save field 'megaProgress'
   - triggers → `system:audio` — the telegraph-resolve edge (banner snapshot-diff, stun-guarded so eye interrupts stay silent) fires mega_cast — the SAME edge drives the render-side CAST shock ring in megaboss.ts
+  - balances → `system:towers` — the ADAPT verb (Myriad) armors against the top-damage tower kind from a per-kind ledger at the raid-fire seams — single-kind stacking is punished by design; heroes bypass it
   - gates → `system:cutscenes` — ENFORCED CONTENT CONTRACT: every MEGA_BOSS_DEFS id must ship a defeat cutscene — cutscenes.test.ts fails the build without one
   - requiredBy ← `system:cutscenes`
   - contains ← `mega:voraxis`
@@ -1489,13 +1490,13 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
   - contains ← `mega:ossira`
   - contains ← `mega:vesperine`
   - contains ← `mega:moloch_ama`
+  - contains ← `mega:sarcophage`
+  - contains ← `mega:myriad`
   - referencedBy ← `achievement:mega_first`
   - referencedBy ← `achievement:mega_perfect`
   - referencedBy ← `achievement:mega_speed`
   - referencedBy ← `achievement:mega_all`
-  - referencedBy ← `achievement:mega_10`
-  - referencedBy ← `achievement:wp_first`
-  - _…8 more (query: `npm run dil -- node system:mega-bosses`)_
+  - _…10 more (query: `npm run dil -- node system:mega-bosses`)_
 
 ### `system:cutscenes` — Story Cutscenes & Memory Archive
 
@@ -2036,7 +2037,7 @@ _at: src/core/boss.ts BOSS_DEFS_
 
   - partOf → `system:bosses`
 
-## Mega Bosses (5)
+## Mega Bosses (7)
 
 ### `mega:voraxis` — VORAXIS
 
@@ -2073,6 +2074,22 @@ _at: src/core/megaboss.ts MEGA_BOSS_DEFS_
 ### `mega:moloch_ama` — MOLOCH-AMA
 
 The Tithe
+
+_at: src/core/megaboss.ts MEGA_BOSS_DEFS_
+
+  - partOf → `system:mega-bosses`
+
+### `mega:sarcophage` — SARCOPHAGE
+
+The Self-Devourer
+
+_at: src/core/megaboss.ts MEGA_BOSS_DEFS_
+
+  - partOf → `system:mega-bosses`
+
+### `mega:myriad` — MYRIAD
+
+The Thousand Answers
 
 _at: src/core/megaboss.ts MEGA_BOSS_DEFS_
 
