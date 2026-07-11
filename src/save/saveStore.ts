@@ -15,6 +15,7 @@ import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById, TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
 import { vowById, MAX_VOWS } from '../core/vows';
+import { hiveOrganById } from '../core/hiveOrgans';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
 import { ALL_SECTORS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
 import type { PrestigeState } from '../core/prestige';
@@ -85,6 +86,9 @@ export interface SaveData {
   //    `week` scopes progress to the current UTC week (reset when it rolls over); `progress`
   //    accumulates per directive id; `claimed` holds '<week>:<id>' + '<week>:__capstone'. ──
   directives: { week: string; progress: Record<string, number>; claimed: string[] };
+  // ── Hive Construction (v36, docs/HIVE-CONSTRUCTION.md) — the built laboratory organs:
+  //    organ id → built tier (1..def.tiers). Purely base-side (fixtures/QoL — never Power). ──
+  hive: { built: Record<string, number> };
   // ── Nemesis + trophies (v26, docs/NEMESIS.md; rack + vengeance v34). nemesis: the boss
   //    currently hunting this account (null = none). equippedTrophies: the mounted rack (up to
   //    trophySlots organs). vengeance: chassis you have AVENGED — the vengeance-trophy ledger
@@ -350,8 +354,10 @@ export interface TutorialSave {
 // `vengeance[]` ledger (chassis avenged → vengeance-trophy ownership + the hunt's rap sheet).
 // v34→v35: Molt Vows (docs/VOWS.md) — `prestige.vows` (armed wager ids; settled + cleared at
 // the next Molt). Additive inside the prestige blob — withDefaults deep-fills, sanitize caps.
+// v35→v36: Hive Construction (docs/HIVE-CONSTRUCTION.md) — `hive.built` (organ id → tier):
+// the active base-building ledger; fixtures/QoL only, never Power.
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 35;
+export const CURRENT_VERSION = 36;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -587,6 +593,7 @@ export function defaultSave(): SaveData {
     cosmetics: { owned: [], towers: {}, heroes: {} },
     contracts: { completed: [], perfectWeeks: 0, lastPerfect: '' },
     directives: { week: '', progress: {}, claimed: [] },
+    hive: { built: {} },
     nemesis: null,
     equippedTrophies: [],
     vengeance: [],
@@ -948,6 +955,19 @@ function withDefaults(data: SaveData): SaveData {
         ? [...new Set((raw!.claimed as unknown[]).filter((x): x is string => typeof x === 'string' && /^w\d+:[a-z_]+$/.test(x)))].slice(0, 500)
         : [];
       return { week, progress, claimed };
+    })(),
+    // v35→v36: the Hive Construction ledger — real organ ids only, tiers clamped to the def.
+    hive: ((): SaveData['hive'] => {
+      const raw = (data as { hive?: { built?: unknown } }).hive?.built;
+      const built: Record<string, number> = {};
+      if (raw && typeof raw === 'object') {
+        for (const [id, v] of Object.entries(raw as Record<string, unknown>)) {
+          const def = hiveOrganById(id);
+          const tier = Math.floor(Number(v));
+          if (def && Number.isFinite(tier) && tier > 0) built[id] = Math.min(tier, def.tiers);
+        }
+      }
+      return { built };
     })(),
     nemesis: ((): SaveData['nemesis'] => {
       const n = (data as { nemesis?: unknown }).nemesis as { defId?: unknown; slain?: unknown } | null | undefined;

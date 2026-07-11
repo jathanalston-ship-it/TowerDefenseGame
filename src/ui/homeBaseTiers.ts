@@ -9,6 +9,7 @@
 
 import type { SaveData } from '../save/saveStore';
 import { sumValues } from '../core/math';
+import { hiveFixtures, hiveGlow } from '../core/hiveOrgans';
 
 
 /** A single monotonic measure of "how developed is this account" — drives the lab's growth.
@@ -69,22 +70,27 @@ export const LAB_FIXTURES: LabFixture[] = [
 ];
 
 /** The fixtures currently present, given the account. Pure; respects per-system gates so the
- *  environment never lies (no hero chambers without hero stars; no ascension device pre-Molt). */
+ *  environment never lies (no hero chambers without hero stars; no ascension device pre-Molt).
+ *  BUILT Hive organs (docs/HIVE-CONSTRUCTION.md) layer their own fixtures on top — the passive
+ *  score ladder and the active construction share ONE renderer. */
 export function unlockedFixtures(save: SaveData): string[] {
   const score = labScore(save);
   const heroStars = sumValues(save.heroStars);
   const cells = save.prestige?.lifetimeCells ?? 0;
-  return LAB_FIXTURES.filter((f) => {
+  const passive = LAB_FIXTURES.filter((f) => {
     if (f.id === 'herochambers') return heroStars >= 3 && score >= f.at;
     if (f.id === 'ascension') return cells >= 1; // a Molt is the true unlock
     return score >= f.at;
   }).map((f) => f.id);
+  return [...passive, ...hiveFixtures(save.hive?.built ?? {})];
 }
 
 export interface LabState { score: number; era: 0 | 1 | 2 | 3; intensity: number; fixtures: string[] }
 
-/** One call for the renderer: the full evolving-lab state derived from a save. */
+/** One call for the renderer: the full evolving-lab state derived from a save. The built Hive
+ *  raises ambient intensity a little (visual glow only — nothing gameplay reads LabState). */
 export function labState(save: SaveData): LabState {
   const score = labScore(save);
-  return { score, era: labEra(score), intensity: labIntensity(score), fixtures: unlockedFixtures(save) };
+  const intensity = Math.min(1, labIntensity(score) + hiveGlow(save.hive?.built ?? {}));
+  return { score, era: labEra(score), intensity, fixtures: unlockedFixtures(save) };
 }

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 711 nodes · 1246 edges, built from the live
+> **The project's brain** (docs/DIL.md). 716 nodes · 1260 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · …9 more
+`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · …10 more
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -67,6 +67,7 @@ graph LR
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_splice_market["Splice Market & Ichor"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_achievements["Achievements"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -92,6 +93,11 @@ graph LR
   system_doctrines["Doctrines"] -->|rewards| currency_gene_essence["Gene Essence"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
+  system_hive_construction["Hive Construction"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
+  system_hive_construction["Hive Construction"] -->|consumes| currency_gene_essence["Gene Essence"]
+  system_hive_construction["Hive Construction"] -->|consumes| currency_tower_shards["Tower Shards (✦)"]
+  system_hive_construction["Hive Construction"] -->|consumes| currency_hero_shards["Hero Shards"]
+  system_hive_construction["Hive Construction"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
   system_campaign["Campaign"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_campaign["Campaign"] -->|rewards| currency_tower_shards["Tower Shards (✦)"]
   system_infinite["Infinite Mode"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
@@ -262,6 +268,10 @@ graph LR
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|dependsOn| system_content_infra["Content Infrastructure"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|dependsOn| system_prestige["Prestige (Molt / Ascendant)"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_hive_construction["Hive Construction"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_hive_construction["Hive Construction"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
+  system_hive_construction["Hive Construction"] -->|dependsOn| system_shards_economy["Shards & Star Economy"]
+  system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|dependsOn| system_campaign["Campaign"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|dependsOn| system_evolution_hq["Evolution HQ (Genome Cores)"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -530,7 +540,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…84 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…85 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -546,6 +556,7 @@ Per-tower permanent currency: unlocks locked towers, buys Star evolutions.
   - gates → `tower:polyp` — 440 shards to unlock
   - gates → `tower:spitfang` — 45 shards to unlock
   - gates → `tower:rift` — 640 shards to unlock
+  - consumedBy ← `system:hive-construction` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
   - rewardedBy ← `system:campaign` — stage rewards feed unlock gates
   - rewardedBy ← `system:loot` — chest pipeline
   - consumedBy ← `system:towers` — unlocks + Star purchases
@@ -554,6 +565,7 @@ Per-tower permanent currency: unlocks locked towers, buys Star evolutions.
 
 Per-hero permanent currency for hero Stars and unlocks.
 
+  - consumedBy ← `system:hive-construction` — Apex Genome lanes drain the per-kind wallet richest-first
   - rewardedBy ← `system:loot` — chest pipeline
   - consumedBy ← `system:heroes` — unlocks + Star purchases
 
@@ -562,6 +574,7 @@ Per-hero permanent currency for hero Stars and unlocks.
 Levels Gene Archive cards and assembles/levels Mulligan modifiers.
 
   - rewardedBy ← `system:doctrines` — essencePerWave protocols (Corrupted Genome / Overmind) pay at finishRun
+  - consumedBy ← `system:hive-construction` — most organ recipes charge an Essence lane (Spore Garden/Vein Loom/Symbiote Pool/World-Womb)
   - consumedBy ← `system:gene-cards` — Archive leveling
   - consumedBy ← `system:mulligans` — modifier assembly + leveling
 
@@ -569,6 +582,7 @@ Levels Gene Archive cards and assembles/levels Mulligan modifiers.
 
 Equipment crafting + reforge inputs (Armory).
 
+  - consumedBy ← `system:hive-construction` — mutagen/scrap/catalyst lanes compete with equipment crafting for the same mats wallet
   - rewardedBy ← `system:expeditions` — mission payouts
   - consumedBy ← `system:equipment` — crafting + reforge ops
   - modifiedBy ← `system:splice-market` — exchange rates between currencies
@@ -580,7 +594,7 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (64)
+## Systems (65)
 
 ### `system:engine` — Sim Engine
 
@@ -610,7 +624,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…172 more (query: `npm run dil -- node system:engine`)_
+  - _…173 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1056,6 +1070,7 @@ Strain Samples / Apex Genome income + star cost curves + duplicate→Essence con
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
   - requiredBy ← `system:gene-cards`
+  - requiredBy ← `system:hive-construction`
   - taughtBy ← `help:tower-stars`
   - documentedBy ← `doc:SHARD-ECONOMY.md`
   - documentedBy ← `doc:ECONOMY.md`
@@ -1098,6 +1113,25 @@ _at: src/state/evolutionHQ.ts, src/ui/EvolutionHQ.tsx, src/ui/EvolutionUnlock.ts
   - documentedBy ← `doc:GENOME-CORE.md`
   - documentedBy ← `doc:EVOLUTION-CAP.md`
   - testedBy ← `test:src/state/evolutionHQ.test.ts`
+
+### `system:hive-construction` — Hive Construction
+
+The composite long-horizon sink (docs/HIVE-CONSTRUCTION.md): BUILD the Home Base — 10 organ data rows across labScore eras 0–3 (the passive ladder is the prerequisite), each a MULTI-currency recipe (Cores/Essence/Strain/Apex/materials, ≥2 lanes enforced, factor-traced geometric tiers, per-kind drains richest-first) spent through ONE atomic guarded action; built organs layer fixtures into LabAtmosphere immediately + lift ambient glow. Sidegrades only — Power Score never reads it.
+
+_at: src/core/hiveOrgans.ts, src/ui/HiveScreen.tsx_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:hub-shell`
+  - dependsOn → `system:shards-economy`
+  - consumes → `system:meta-store` — owns save field 'hive'
+  - consumes → `currency:genome-cores` — organ recipes MIX lanes (≥2 enforced): Cores + Gene Essence + Strain/Apex totals (per-kind drains richest-first) + materials — the composite long-horizon sink (docs/HIVE-CONSTRUCTION.md)
+  - consumes → `currency:gene-essence` — most organ recipes charge an Essence lane (Spore Garden/Vein Loom/Symbiote Pool/World-Womb)
+  - consumes → `currency:tower-shards` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
+  - consumes → `currency:hero-shards` — Apex Genome lanes drain the per-kind wallet richest-first
+  - consumes → `currency:materials` — mutagen/scrap/catalyst lanes compete with equipment crafting for the same mats wallet
+  - documentedBy ← `doc:HIVE-CONSTRUCTION.md`
+  - documentedBy ← `doc:HOME-BASE.md`
+  - testedBy ← `test:src/core/hiveOrgans.test.ts`
 
 ### `system:prestige` — Prestige (Molt / Ascendant)
 
@@ -1435,8 +1469,8 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:gene-essence`
   - contains ← `help:field-research`
   - contains ← `help:splice-market`
-  - contains ← `help:gene-archive`
-  - _…45 more (query: `npm run dil -- node system:onboarding`)_
+  - contains ← `help:hive-construction`
+  - _…46 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -1509,6 +1543,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - dependsOn → `system:power`
   - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
+  - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
   - requiredBy ← `system:battle-pass`
@@ -1520,8 +1555,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - testedBy ← `test:src/state/nextGoal.test.ts`
-  - testedBy ← `test:src/state/progressionLoop.test.ts`
-  - _…4 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…5 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1588,7 +1622,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…96 more (query: `npm run dil -- node system:meta-store`)_
+  - _…98 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2457,7 +2491,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (46)
+## Help Topics (47)
 
 - `help:hive-core` — Your one life — defend it. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:biomorph-conveyor` — Towers arrive on a living belt — Deploy, Strain, or Discard. _(partOf `system:onboarding`)_
@@ -2468,6 +2502,7 @@ _at: src/core/tutorial.ts_
 - `help:gene-essence` — Permanent currency that upgrades Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`, teaches `system:currencies`)_
 - `help:field-research` — Optional daily field studies — review a specimen observation for a small sample payout. Never required, never the path. _(partOf `system:onboarding`, teaches `system:field-research`)_
 - `help:splice-market` — A refreshing black bazaar: small goods for Genome Cores, premium goods and Bio-Containers for Ichor. _(partOf `system:onboarding`, teaches `system:splice-market`)_
+- `help:hive-construction` — Build the laboratory organism — organs that visibly transform your base. _(partOf `system:onboarding`)_
 - `help:gene-archive` — Permanently level your collected Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
 - `help:gene-loadout` — Equip genes that auto-activate every run. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
 - `help:biomass` — In-run currency from kills. _(partOf `system:onboarding`, teaches `system:engine`)_
@@ -2805,7 +2840,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (156)
+## Documentation (157)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -2875,8 +2910,9 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HERO-SELECTION.md` — project documentation _(documents `system:heroes`)_
 - `doc:HEROES.md` — project documentation _(documents `system:heroes`)_
 - `doc:HISTORY.md` — project documentation
+- `doc:HIVE-CONSTRUCTION.md` — project documentation _(documents `system:hive-construction`)_
 - `doc:HIVE-SIEGE.md` — project documentation
-- `doc:HOME-BASE.md` — project documentation _(documents `system:hub-shell`)_
+- `doc:HOME-BASE.md` — project documentation _(documents `system:hive-construction`, documents `system:hub-shell`)_
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
 - `doc:I18N.md` — project documentation _(documents `system:i18n`)_
 - `doc:IDENTITY-AUDIT.md` — project documentation
@@ -2964,7 +3000,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (222)
+## Tests (224)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3037,6 +3073,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/heroSelect.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
@@ -3146,6 +3183,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroLab.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroSlots.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/hiveMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/ichorExchange.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/infestation.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_

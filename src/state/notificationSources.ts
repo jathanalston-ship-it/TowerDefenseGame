@@ -8,6 +8,9 @@
 
 import { registerNotification } from './notifications';
 import { geneArchiveRows } from './geneArchive';
+import { HIVE_ORGANS, hiveCost } from '../core/hiveOrgans';
+import { labEra, labScore } from '../ui/homeBaseTiers';
+import { sumValues } from '../core/math';
 import { unlockedCutsceneIds } from '../save/derive';
 import { collectionContextOf, isTowerUnlocked, nextStarCost } from './meta';
 import { collectionView } from '../core/collection';
@@ -21,6 +24,25 @@ registerNotification({
   id: 'vault.containers',
   channel: 'vault',
   count: (s) => s.pendingContainers.length,
+});
+
+// The Hive — organs whose NEXT tier is affordable right now (era met, every recipe line
+// covered). Drops as you build or spend; pure recomputation of the board's affordability.
+registerNotification({
+  id: 'hive.affordable',
+  channel: 'hive',
+  count: (s) => {
+    const era = labEra(labScore(s));
+    const wallet = {
+      cores: s.shards, essence: s.geneEssence, strain: sumValues(s.towerShards), apex: sumValues(s.heroShards),
+      mutagen: s.mats.mutagen, scrap: s.mats.scrap, catalyst: s.mats.catalyst,
+    };
+    return HIVE_ORGANS.reduce((n, def) => {
+      const built = Math.min(s.hive?.built[def.id] ?? 0, def.tiers);
+      if (era < def.era || built >= def.tiers) return n;
+      return n + (hiveCost(def, built + 1).every((l) => wallet[l.key] >= l.amount) ? 1 : 0);
+    }, 0);
+  },
 });
 
 // Splice Market — a stock window the player hasn't seen yet (fresh goods landed). Uses the

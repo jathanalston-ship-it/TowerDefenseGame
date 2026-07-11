@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 35` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 36` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -308,7 +308,14 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   next Molt's cell mint (×1.3–×1.6 each, stacking); arming sinks banked Cores geometrically
   (750/3k/12k, never refunded); `prestige.vows` (v35), settled + cleared at molt; Molt
   Chamber wager rail + HUD ⛧ chip; dailies/tutorial excluded (fair boards)
-- ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md; registry-driven, so the
+- ✅ **Hive Construction** (the composite long-horizon sink — HIVE-CONSTRUCTION.md): BUILD the
+  Home Base's next eras — 10 organ data rows (4 ×3-tiered, geometric) across labScore eras 0–3
+  (the passive ladder stays the PREREQUISITE; locked eras visible for anticipation), each a
+  MULTI-currency recipe (Cores + Gene Essence + Strain Samples + Apex Genome + materials —
+  ≥2 lanes enforced; factor-traced costs; per-kind shard drains richest-first) spent through
+  ONE atomic guarded action; built organs layer fixtures into LabAtmosphere's generic renderer
+  immediately + lift ambient glow. `hive.built` (v36). THE HIVE nav screen + affordability
+  badge. Sidegrades only — Power Score untouched (constitution)
   recent content (Coil/Siphon beam towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)
   joins the codex automatically (guarded by `collection.test.ts`)
 - ✅ Achievements — data-driven milestone framework (`state/achievements.ts`: Genome-Core rewards,

@@ -43,6 +43,7 @@ import { navProgress } from './hubProgress';
 import { DevTools } from './DevTools';
 import { MusicDebug } from './MusicDebug';
 import { GeneArchive } from './GeneArchive';
+import { HiveScreen } from './HiveScreen';
 import { Wardrobe } from './Wardrobe';
 import { BattlePassScreen } from './BattlePassScreen';
 import { QuestBoard } from './QuestBoard';
@@ -53,7 +54,7 @@ import { PowerBadge } from './components/PowerScore';
 
 export type NavKey =
   | 'home' | 'campaign' | 'infinite' | 'bossrush' | 'daily' | 'quests' | 'season'
-  | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans'
+  | 'towers' | 'heroes' | 'evolution' | 'genes' | 'mulligans' | 'hive'
   | 'vault' | 'market' | 'equipment' | 'gearcodex' | 'phenotypes' | 'collection'
   | 'store'
   | 'profile' | 'settings' | 'help';
@@ -82,6 +83,7 @@ const navGroups = (): NavGroup[] => [
     { key: 'evolution', label: t('nav.evolution'), mono: '✷' },
     { key: 'genes', label: t('nav.genes'), mono: '⌬' },
     { key: 'mulligans', label: t('nav.mulligans'), mono: '⊛' },
+    { key: 'hive', label: t('nav.hive'), mono: '⬡' }, // Hive Construction (docs/HIVE-CONSTRUCTION.md)
   ] },
   { title: t('nav.group.collection'), accent: 'var(--gold)', items: [
     { key: 'vault', label: t('nav.vault'), mono: '◈' },
@@ -407,6 +409,7 @@ export function Hub({
           {nav === 'heroes' && <HeroLab />}
           {nav === 'evolution' && <EvolutionHQ />}
           {nav === 'genes' && <GeneArchive />}
+          {nav === 'hive' && <HiveScreen />}
           {nav === 'vault' && <GeneticVault />}
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}

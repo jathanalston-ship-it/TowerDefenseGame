@@ -58,3 +58,10 @@ system so the environment never lies about what you've achieved.
   loop; reduced-motion stills it. Fixtures are edge-anchored so they never occlude content.
 - **Future-proof:** new equipment, new eras, or a re-weighted score are local edits to
   `homeBaseTiers.ts` + one CSS rule — the renderer is generic.
+
+## The next stage — HIVE CONSTRUCTION
+
+The passive score ladder above is now the PREREQUISITE for an ACTIVE system:
+**docs/HIVE-CONSTRUCTION.md** — the player builds the lab's organs with multi-currency
+recipes; built organs layer extra fixtures into the SAME generic renderer and lift ambient
+intensity slightly. This file's eras gate what can be constructed; nothing here changed.

@@ -208,6 +208,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/EVOLUTION-HQ.md', 'docs/GENOME-CORE.md', 'docs/EVOLUTION-CAP.md'],
   },
   {
+    id: 'hive-construction', name: 'Hive Construction', purpose: 'The composite long-horizon sink (docs/HIVE-CONSTRUCTION.md): BUILD the Home Base — 10 organ data rows across labScore eras 0–3 (the passive ladder is the prerequisite), each a MULTI-currency recipe (Cores/Essence/Strain/Apex/materials, ≥2 lanes enforced, factor-traced geometric tiers, per-kind drains richest-first) spent through ONE atomic guarded action; built organs layer fixtures into LabAtmosphere immediately + lift ambient glow. Sidegrades only — Power Score never reads it.',
+    files: ['src/core/hiveOrgans.ts', 'src/ui/HiveScreen.tsx'],
+    dependsOn: ['meta-store', 'hub-shell', 'shards-economy'], powerScore: null, save: ['hive'],
+    tutorial: [], help: [], hud: [], ui: ['HiveScreen', 'LabAtmosphere (fixture layers)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/HIVE-CONSTRUCTION.md', 'docs/HOME-BASE.md'],
+  },
+  {
     id: 'prestige', name: 'Prestige (Molt / Ascendant)', purpose: 'Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.',
     files: ['src/core/prestige.ts', 'src/core/ascendant.ts', 'src/core/vows.ts', 'src/ui/PrestigePanel.tsx'],
     dependsOn: ['campaign', 'evolution-hq'], powerScore: 'the P bucket (log fold of Cells + tree)', save: ['prestige'],

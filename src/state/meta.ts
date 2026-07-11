@@ -114,6 +114,10 @@ import { TROPHY_DEFS, trophyById, trophyOwned, trophySlots, vengeanceTrophyFor }
 import type { TrophyOwnCtx } from '../core/trophies';
 import { deepenNemesis, nemesisTraits, vengeanceCores } from '../core/nemesis';
 import { MAX_VOWS, VOWS, combinedVowWarp, vowArmCost, vowById, vowYieldProduct } from '../core/vows';
+import { HIVE_ORGANS, apexDrainPlan, hiveCost, hiveOrganById, strainDrainPlan } from '../core/hiveOrgans';
+import type { HiveCostLine, HiveOrganDef, RecipeKey } from '../core/hiveOrgans';
+import { labEra, labScore } from '../ui/homeBaseTiers'; // pure model (no DOM) — the hive's era prerequisite
+import { sumValues } from '../core/math';
 import type { VowDef } from '../core/vows';
 import type { DoctrineWarp } from '../core/doctrines';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
@@ -1722,6 +1726,81 @@ export const meta = {
     const s = store.get();
     if (!s.prestige.vows.includes(id)) return false;
     persist({ ...s, prestige: { ...s.prestige, vows: s.prestige.vows.filter((v) => v !== id) } });
+    return true;
+  },
+
+  // ── HIVE CONSTRUCTION (docs/HIVE-CONSTRUCTION.md) — build the laboratory's organs. ─────────
+  /** The construction board: every organ with its era gate, built tier, the NEXT tier's traced
+   *  cost, and per-currency affordability (the wallet snapshot the card chips render). */
+  hiveView(): {
+    era: 0 | 1 | 2 | 3;
+    organs: {
+      def: HiveOrganDef;
+      built: number; // 0..def.tiers
+      eraMet: boolean;
+      next: { tier: number; lines: (HiveCostLine & { held: number; ok: boolean })[]; affordable: boolean } | null; // null = maxed
+    }[];
+    wallet: Record<RecipeKey, number>;
+  } {
+    const s = store.get();
+    const era = labEra(labScore(s));
+    const wallet: Record<RecipeKey, number> = {
+      cores: s.shards,
+      essence: s.geneEssence,
+      strain: sumValues(s.towerShards),
+      apex: sumValues(s.heroShards),
+      mutagen: s.mats.mutagen,
+      scrap: s.mats.scrap,
+      catalyst: s.mats.catalyst,
+    };
+    return {
+      era,
+      organs: HIVE_ORGANS.map((def) => {
+        const built = Math.min(s.hive.built[def.id] ?? 0, def.tiers);
+        const eraMet = era >= def.era;
+        if (built >= def.tiers) return { def, built, eraMet, next: null };
+        const tier = built + 1;
+        const lines = hiveCost(def, tier).map((l) => ({ ...l, held: wallet[l.key], ok: wallet[l.key] >= l.amount }));
+        return { def, built, eraMet, next: { tier, lines, affordable: eraMet && lines.every((l) => l.ok) } };
+      }),
+      wallet,
+    };
+  },
+  /** Build the NEXT tier of an organ — ONE atomic multi-currency spend (docs/SECURITY.md +
+   *  economyDirector discipline: every charged line is verified against the live wallet, the
+   *  per-kind Strain/Apex drains are planned richest-first, and only then does a single
+   *  persist commit every deduction + the built tier + the timeline entry). */
+  buildOrgan(id: string): boolean {
+    if (!guardOk('hive.build', id)) return false;
+    const s = store.get();
+    const def = hiveOrganById(id);
+    if (!def) return false;
+    const built = Math.min(s.hive.built[id] ?? 0, def.tiers);
+    if (built >= def.tiers) return false; // maxed
+    if (labEra(labScore(s)) < def.era) return false; // era gate (homeBaseTiers prerequisite)
+    const tier = built + 1;
+    const lines = hiveCost(def, tier);
+    const need = (k: RecipeKey): number => lines.find((l) => l.key === k)?.amount ?? 0;
+    // Verify EVERY line first (atomicity: no partial spends, ever).
+    if (s.shards < need('cores') || s.geneEssence < need('essence')) return false;
+    if (s.mats.mutagen < need('mutagen') || s.mats.scrap < need('scrap') || s.mats.catalyst < need('catalyst')) return false;
+    const strainPlanned = strainDrainPlan(s.towerShards, need('strain'));
+    const apexPlanned = apexDrainPlan(s.heroShards, need('apex'));
+    if (!strainPlanned || !apexPlanned) return false;
+    const towerShards = { ...s.towerShards };
+    for (const d of strainPlanned) towerShards[d.kind] -= d.take;
+    const heroShards = { ...s.heroShards };
+    for (const d of apexPlanned) heroShards[d.kind] -= d.take;
+    persist({
+      ...s,
+      shards: s.shards - need('cores'),
+      geneEssence: s.geneEssence - need('essence'),
+      mats: { mutagen: s.mats.mutagen - need('mutagen'), scrap: s.mats.scrap - need('scrap'), catalyst: s.mats.catalyst - need('catalyst') },
+      towerShards,
+      heroShards,
+      hive: { built: { ...s.hive.built, [id]: tier } },
+      timeline: pushTimeline(s.timeline, def.icon, `Hive grown — ${def.name}${def.tiers > 1 ? ` ${['I', 'II', 'III'][tier - 1]}` : ''}`),
+    });
     return true;
   },
 

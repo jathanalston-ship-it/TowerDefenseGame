@@ -156,6 +156,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'prestige.vow', category: 'progression', level: 'moderate', limit: M(), cooldownMs: 400, dedupeMs: 1200,
     analytics: 'sec_vow', doc: 'Arm/break a Molt Vow (docs/VOWS.md) — arming sinks Genome Cores on the geometric curve; costs never refund.', at: META,
   },
+  'hive.build': {
+    id: 'hive.build', category: 'economy', level: 'strict', limit: S({ count: 4 }), cooldownMs: 700, dedupeMs: 1500,
+    analytics: 'sec_hive_build', doc: 'Build a Hive organ (docs/HIVE-CONSTRUCTION.md) — one atomic multi-currency spend; the ceremony is the pace.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -218,6 +222,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   equipTrophy: 'trophy.equip',
   armVow: 'prestige.vow',
   disarmVow: 'prestige.vow',
+  buildOrgan: 'hive.build',
   importText: 'save.import',
   restoreBackup: 'save.restore',
   reset: 'account.reset',

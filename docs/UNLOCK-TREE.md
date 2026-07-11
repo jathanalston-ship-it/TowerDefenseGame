@@ -1,6 +1,6 @@
 # UNLOCK-TREE.md — the complete progression reveal timeline (GENERATED — `npm run unlocks`)
 
-> 25 features under progression gating (docs/PROGRESSION-GATING.md): every hub
+> 26 features under progression gating (docs/PROGRESSION-GATING.md): every hub
 > screen and wallet chip, in learning-curve order. "Possible" = earliest a lucky account can
 > reveal it; "guaranteed" = the campaign stage that opens it regardless of drops.
 
@@ -20,6 +20,7 @@
 | 11 | ⌬ **Gene Archive** `genes` | screen | Collect 6 Gene Cards · 6 to go | start | S3 | Gene Archive (`gene-archive`) | Cards collect from run 1, but the Archive teaches best once a small library exists (6 cards, or stage 3 as backstop). |
 | 12 | ⛨ **Armory** `equipment` | screen | Find your first Bio-Gear | start | S4 | Equipment (`equipment`) | Reveals with the first Bio-Gear drop (container luck), stage 4 as backstop — never an empty Armory, never gear without a home. |
 | 13 | ✪ **Quest Board** `quests` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Quests & Missions (`quests`) | Directives give the mid-early game its to-do list: by stage 4 enough systems exist for missions to point at, and Chapter I is already half-earnable from natural play. |
+| 13.5 | ⬡ **The Hive** `hive` | screen | Clear Campaign Stage 4 · 4 to go | S4 | S4 | Hive Construction (`hive-construction`) | A composite sink needs wallets to sink — by stage 4 Cores/Essence/materials all flow and the era-0 organs read as a real goal (stage 3 already reveals three screens). |
 | 14 | ☀ **Daily Run** `daily` | screen | Clear Campaign Stage 5 · 5 to go | start | S5 | Daily Run (`daily-run`) | The established gate (docs/DAILY-RUN.md): the retention rhythm starts once the core loop is fluent. History grandfathers. |
 | 15 | ▤ **Bio-Dex** `collection` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Bio-Dex (Collection) (`collection-codex`) | By stage 5 several enemy families, cards and drops exist to catalogue — rank bonuses stop being abstract. |
 | 16 | ❁ **Season Pass** `season` | screen | Clear Campaign Stage 5 · 5 to go | S5 | S5 | Season Pass (`season-pass`) | XP accrues silently from run 1 (rollover mail keeps it lossless) — the track REVEALS once the loop is fluent and several faucets exist to feed it. |
@@ -38,7 +39,7 @@
 - **Stage 1** — ◑ Player Profile · T Tower Lab
 - **Stage 2** — ◈ Genetic Vault · ✷ Evolution HQ · H Hero Hall
 - **Stage 3** — ∞ Infinite · ◆ Splice Market · ⌬ Gene Archive · 🩸 Ichor
-- **Stage 4** — ⛨ Armory · ✪ Quest Board
+- **Stage 4** — ⛨ Armory · ✪ Quest Board · ⬡ The Hive
 - **Stage 5** — ☀ Daily Run · ▤ Bio-Dex · ❁ Season Pass
 - **Stage 6** — ❑ Gear Codex · ⊕ Materials
 - **Stage 7** — ⊛ Mulligan Lab · ❖ Phenotype Lab
