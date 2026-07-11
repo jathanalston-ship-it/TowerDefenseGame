@@ -397,6 +397,18 @@
       {
         "cat": "Gameplay",
         "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)"
+      },
+      {
+        "cat": "UI",
+        "text": "Mobile shell: portrait bottom-tab navigation with self-describing index pages"
+      },
+      {
+        "cat": "UI",
+        "text": "Portrait linearization + combat dock: heavy screens and the run read top-to-bottom"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract"
       }
     ]
   },

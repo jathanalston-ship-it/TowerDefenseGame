@@ -101,3 +101,11 @@
 - `dbf25cf` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v38)
 - `0427025` **[UX]** THE COMMISSIONING — account creation as a ceremony at tutorial completion
 - `6758a3a` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)
+- `942fa90` **[Backend]** Flip the public checkout flag to Stripe (.env.production) _(internal)_
+- `eb55d6e` **[Developer Tools]** Prime: 1k-hour simulation report + the attribution-honest delta table _(internal)_
+- `240cce2` **[Backend]** Redeploy — bind the freshly saved Stripe secrets into a new Pages deployment _(internal)_
+- `e8164d1` **[Framework]** Redeploy — first CI upload with the Cloudflare credentials in place _(internal)_
+- `05e6866` **[UI]** Mobile shell: portrait bottom-tab navigation with self-describing index pages
+- `b491f94` **[UI]** Portrait linearization + combat dock: heavy screens and the run read top-to-bottom
+- `26b2732` **[Developer Tools]** Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract
+- ⚑ `747d769` **[Framework]** Mobile rebuild docs + knowledge: RESPONSIVE-DESIGN §3b, GAME-STATE summary, DIL edges _(internal)_

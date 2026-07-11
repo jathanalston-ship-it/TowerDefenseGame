@@ -1,6 +1,6 @@
 {
-  "lastSha": "6758a3a05ee94a56aaf5be9ee487c49165815a4e",
-  "commitsSinceDraft": 0,
+  "lastSha": "747d7692e1366ef512ece4dcd20ef8b52635b730",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -1863,6 +1863,18 @@
         {
           "cat": "Gameplay",
           "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)"
+        },
+        {
+          "cat": "UI",
+          "text": "Mobile shell: portrait bottom-tab navigation with self-describing index pages"
+        },
+        {
+          "cat": "UI",
+          "text": "Portrait linearization + combat dock: heavy screens and the run read top-to-bottom"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract"
         }
       ]
     }
@@ -2595,6 +2607,70 @@
       "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "942fa90a35b54f85854285df932f5f623b0ab68e",
+      "date": "2026-07-11",
+      "cat": "Backend",
+      "text": "Flip the public checkout flag to Stripe (.env.production)",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eb55d6e956398cfd25d0600a2ec4e56899243327",
+      "date": "2026-07-11",
+      "cat": "Developer Tools",
+      "text": "Prime: 1k-hour simulation report + the attribution-honest delta table",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "240cce25372ab5b4a70750393ed8b8b36fb7dea7",
+      "date": "2026-07-11",
+      "cat": "Backend",
+      "text": "Redeploy — bind the freshly saved Stripe secrets into a new Pages deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e8164d134cb14d65ea166733ea29b06ffc0825d2",
+      "date": "2026-07-11",
+      "cat": "Framework",
+      "text": "Redeploy — first CI upload with the Cloudflare credentials in place",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "05e6866d4c33749c22ba7435c9a2faaf2a88a606",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "Mobile shell: portrait bottom-tab navigation with self-describing index pages",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b491f94923668ebba09e7a18ffe12c6c0e4814dd",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "Portrait linearization + combat dock: heavy screens and the run read top-to-bottom",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "26b2732ad7628248663eb952503917d9a68b11b8",
+      "date": "2026-07-11",
+      "cat": "Developer Tools",
+      "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "747d7692e1366ef512ece4dcd20ef8b52635b730",
+      "date": "2026-07-11",
+      "cat": "Framework",
+      "text": "Mobile rebuild docs + knowledge: RESPONSIVE-DESIGN §3b, GAME-STATE summary, DIL edges",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }
