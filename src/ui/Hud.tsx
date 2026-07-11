@@ -15,6 +15,7 @@ import { formatPower } from '../core/power';
 import { ProgressBar } from './components/ProgressBar';
 import { LootMeter } from './LootMeter';
 import { audio } from '../audio/sound';
+import { useLayoutProfile } from './layoutProfile';
 
 const PHASE_TITLE: Record<HudSnapshot['phase'], string> = {
   prep: 'BUILD PHASE',
@@ -36,6 +37,7 @@ function powerTier(p: number): number {
 }
 
 export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = null, vows = [] }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean; doctrine?: { icon: string; name: string } | null; vows?: { icon: string; name: string }[] }): JSX.Element {
+  const layout = useLayoutProfile(); // touch copy: no space bar on a phone
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
@@ -223,7 +225,11 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
           {hud.phase === 'prep'
             ? tutorial
               ? 'Build & upgrade — the lesson launches each wave'
-              : 'Build & upgrade — press SPACE to start the wave'
+              : layout.profile === 'portrait'
+                ? 'Build & upgrade — tap ▶ Start Wave below'
+                : layout.coarse
+                  ? 'Build & upgrade — tap ▶ Start Wave when ready'
+                  : 'Build & upgrade — press SPACE to start the wave'
             : hud.phase === 'wave'
               ? `${hud.enemiesAlive} hostiles in the field`
               : hud.phase === 'draft'

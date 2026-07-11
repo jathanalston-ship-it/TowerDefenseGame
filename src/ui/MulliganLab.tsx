@@ -25,6 +25,7 @@ import { drawTowerForm } from '../render/towerForms';
 import { drawMulliganOrganism } from '../render/mulliganOrganism';
 import { NucleusChambers } from './NucleusChambers';
 import { TowerPortrait } from './TowerPortrait';
+import { MobileSection } from './components/MobileSection';
 import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
 import { audio } from '../audio/sound';
@@ -153,7 +154,14 @@ export function MulliganLab(): JSX.Element {
         <div className="panel-title">Mulligan Lab</div>
         {/* The Nucleus's own chambers open BEFORE the tower graft wing (chamber 1 from the start —
             docs/NUCLEUS.md §gates), so the console lives above the mega-boss seal. */}
-        <NucleusChambers />
+        <MobileSection
+          title="Hive Nucleus"
+          hint="The Hive grows its OWN organism — three chambers of support organs."
+          count={`${Object.keys(save.nucleus.grown).length} organs`}
+          defaultOpen
+        >
+          <NucleusChambers />
+        </MobileSection>
         <div className="mgl-gate" role="status">
           <div className="mgl-gate-glyph" aria-hidden>⊛</div>
           <div className="mgl-gate-title">SEALED BEHIND APEX BIOLOGY</div>
@@ -267,8 +275,16 @@ export function MulliganLab(): JSX.Element {
         </div>
       </div>
 
-      {/* ── The Hive's OWN organism (docs/NUCLEUS.md) — chambers above the tower grafts ── */}
-      <NucleusChambers />
+      {/* ── The Hive's OWN organism (docs/NUCLEUS.md) — chambers above the tower grafts.
+            Portrait: a collapsible section, so the tower graft wing (this screen's primary
+            job) stays one thumb-scroll away instead of a console-length below the fold. ── */}
+      <MobileSection
+        title="Hive Nucleus"
+        hint="The Hive grows its OWN organism — three chambers of support organs."
+        count={`${Object.keys(save.nucleus.grown).length} organs`}
+      >
+        <NucleusChambers />
+      </MobileSection>
 
       <div className="mgl-body">
         {/* ── Host rail: one row per tower, organism status at a glance (scales to a 100-tower roster) ── */}
