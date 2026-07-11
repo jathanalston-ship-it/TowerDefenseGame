@@ -93,3 +93,5 @@
 - ⚑ `46fae24` **[Framework]** Chronicle + graphs for the Transcendence batch (rebased) _(internal)_
 - `9629539` **[Gene Cards]** Session handoff: Gene Card Transcendence batch _(internal)_
 - `4d04c1a` **[Towers]** Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant
+- `fdb0ab6` **[Website]** Chronicle + site sync for the adaptation lock batch
+- `257b5f8` **[Towers]** Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)

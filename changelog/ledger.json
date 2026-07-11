@@ -1,6 +1,6 @@
 {
-  "lastSha": "4d04c1a722716edaf886eda23bed71bd9c5c268d",
-  "commitsSinceDraft": 3,
+  "lastSha": "257b5f8f804d2f429971a7617045cddeaf36e19b",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -111,6 +111,9 @@
       "mulligan_dex",
       "mulligan_perfected",
       "mulligan_ascendant",
+      "nucleus_awake",
+      "nucleus_adapted",
+      "nucleus_sovereign",
       "mulligan_overlord",
       "exterminator",
       "biomass_baron",
@@ -205,6 +208,7 @@
       "crafting",
       "loot",
       "gene-cards",
+      "nucleus",
       "shards-economy",
       "collection",
       "evolution-hq",
@@ -1457,6 +1461,26 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Nucleus Mulligans",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Sovereign Organism",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Chamber Symphony",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The Heart Grows Teeth",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Hive Construction",
           "major": true
         },
@@ -1801,6 +1825,14 @@
         {
           "cat": "Towers",
           "text": "Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site sync for the adaptation lock batch"
+        },
+        {
+          "cat": "Towers",
+          "text": "Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)"
         }
       ]
     }
@@ -2467,6 +2499,22 @@
       "date": "2026-07-11",
       "cat": "Towers",
       "text": "Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fdb0ab69ba127fbedea2df3ce73710fb584dc895",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site sync for the adaptation lock batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "257b5f8f804d2f429971a7617045cddeaf36e19b",
+      "date": "2026-07-11",
+      "cat": "Towers",
+      "text": "Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)",
       "internal": false,
       "needsReview": false
     }

@@ -12,6 +12,26 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Nucleus Mulligans",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Sovereign Organism",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Chamber Symphony",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Heart Grows Teeth",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Hive Construction",
         "major": true
       },
@@ -356,6 +376,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site sync for the adaptation lock batch"
+      },
+      {
+        "cat": "Towers",
+        "text": "Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)"
       }
     ]
   },
