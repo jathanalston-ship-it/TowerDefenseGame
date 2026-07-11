@@ -64,7 +64,11 @@ export function LootMeter(): JSX.Element {
   useEffect(() => () => window.clearTimeout(celebTimer.current), []); // unmount only
 
   return (
-    <div className={`hud-cell hud-loot tt${celeb ? ' is-celebrating' : ''}`} tabIndex={0}>
+    <div
+      className={`hud-cell hud-loot tt${celeb ? ' is-celebrating' : ''}`}
+      tabIndex={0}
+      style={{ ['--hud-acc' as string]: color }} /* the vessel's chrome wears the incubating rarity */
+    >
       <div className="hud-k">Loot</div>
       <div className="loot-row">
         <span
@@ -96,6 +100,7 @@ export function LootMeter(): JSX.Element {
                 <b style={{ color: next.color }}>{next.name}</b>
               </span>
             )}
+            <span className="loot-pct">{Math.floor(pct * 100)}%</span>
           </div>
         </div>
       </div>

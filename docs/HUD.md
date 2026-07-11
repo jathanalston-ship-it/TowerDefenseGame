@@ -32,6 +32,39 @@ The redesign below has been implemented and extended. The live combat HUD is now
   rarity-lit equipment slots, evolution chip, compact run stats.
 - **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section.
 
+### §0b — the 2026-07 HUD OVERHAUL (triple-A pass: organs, belt, vessel)
+
+A second full pass on the modules that still read flat. Everything is CSS-layer motion
+(background-position / transform / opacity — no reflow, reduced-motion collapses all loops);
+every class name, `data-tut` anchor, and the portrait grid contract are unchanged.
+
+- **Carved bio-glass cells**: accent-tinged corner light + top facet + deep floor; the accent
+  is a breathing gradient VEIN along the cell floor with a glowing label dot; value numerals
+  carry depth shadows. The bar itself wears a phase-lit top FILAMENT.
+- **Hive Core = the Heart organ**: membrane-walled vessel, plasma drift inside the fill, a lit
+  meniscus at the leading edge, membrane-rib segments — on top of the existing siege ghost /
+  critical heartbeat states.
+- **Bio-Container meter = the Incubation vessel**: 11px glass tube, rarity-colored culture
+  fluid with drifting bubbles + charge shimmer, organic blob SOCKET that idle-floats and pops
+  on completion, fill-% on the shoulder, near-full agitation; the cell's chrome inherits the
+  incubating rarity (`--hud-acc`).
+- **Biomorph Conveyor = a real belt**: recessed machine channel with a scrolling TREAD and a
+  breathing feed-mouth; pods are vat-lit specimen glass (tower-color from below, lid line that
+  lights at ready) that SLIDE IN from the feed side and settle (the same animation replays at
+  grow→ready — a completion pop for free); growth is amniotic fluid with a floating countdown;
+  pod controls are real keys (tower-color DEPLOY, gold gift-key with rolling sheen, gold
+  STRAIN splice, ghost recycler) with press-scale and coarse-pointer 32px floors. The old
+  Strain-era `.cv-deploy.is-free` gold-TEXT rule was removed — gold-on-gold was the historical
+  unreadable-label bug.
+- **Wave module**: 34px wave numeral with phase glow; capsule pips (lit cores, breathing
+  current); faceted chips.
+- **Toolbar deck**: same glass family; tower cards get class-colored corner bloom, hover lift,
+  press, and an affordable-BREATHING class edge (`.tcard.is-ready`); the hero disc breathes;
+  the ability key wears a live conic COOLDOWN RING (`--cd`, set by the Toolbar from
+  `hero.abilityCd / def.ability.cooldown`) that yields to a ready-glow.
+- **Start Wave = the command key**: layered energy core + rolling charge-sheen + halo ring +
+  landing press — desktop briefing bar and the portrait dock share it.
+
 The sections below are the original analysis/spec that led here — kept as design rationale.
 
 ---

@@ -495,19 +495,45 @@ button:disabled {
 
 /* HUD — top bar (single compact row; phase centered between clusters) */
 .hud {
+  position: relative;
   display: flex;
   gap: var(--s4);
   align-items: stretch;
   justify-content: space-between;
   flex: none;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 92%, transparent) 0%, rgba(10, 14, 20, 0.92) 100%);
+  /* BIO-GLASS SHELL (HUD overhaul 2026-07): phase-lit ambient wash over a faint organic
+     cell-field over deep glass — three cheap paint layers, zero per-frame work. */
+  background:
+    radial-gradient(120% 240% at 50% -80%, color-mix(in srgb, var(--hph, var(--caustic)) 9%, transparent), transparent 55%),
+    repeating-radial-gradient(circle at 18% -60%, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, color-mix(in srgb, var(--panel) 94%, transparent) 0%, rgba(9, 13, 19, 0.95) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 8px var(--s4);
   flex-wrap: wrap;
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 26px -18px var(--hph);
-  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -14px 22px -20px var(--hph, transparent), 0 0 26px -18px var(--hph);
+  backdrop-filter: blur(7px);
   transition: box-shadow var(--dur-4) var(--ease-out), border-color var(--dur-4) var(--ease-out);
+}
+/* The phase FILAMENT: a lit energy line along the top edge — the whole bar reads as one
+   powered organism, its color the phase's (build-green / combat-heat / danger-red). */
+.hud::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 7%;
+  right: 7%;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hph, var(--caustic)) 75%, #fff 6%) 30% 70%, transparent);
+  box-shadow: 0 0 10px 0 color-mix(in srgb, var(--hph, var(--caustic)) 45%, transparent);
+  opacity: 0.8;
+  animation: hud-filament 5.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hud-filament {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
 }
 /* PHASE SKIN (docs/HUD.md): the whole bar re-tints per phase — BUILD is calm preparation,
    COMBAT heats up, DANGER rides the committed emergency state. One variable, every accent. */
@@ -531,21 +557,32 @@ button:disabled {
   justify-content: center;
   gap: 3px;
   min-width: 68px;
-  padding: 3px 12px 6px;
+  padding: 4px 12px 7px;
   border-radius: var(--r-sm);
-  /* GLASS DEPTH (docs/VISUAL_IDENTITY.md): layered gradient + inner highlight + soft lift on
-     hover — no flat rectangles. Ambient sheen is transform/opacity-free (GPU-cheap). */
+  /* CARVED BIO-GLASS (HUD overhaul 2026-07): an accent-tinged corner light + top facet
+     highlight + deep floor — each cell reads as a machined vessel, its accent glowing
+     through the glass instead of a painted-on underline. */
   background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.012) 45%, rgba(0, 0, 0, 0.10) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+    radial-gradient(130% 90% at 12% 0%, color-mix(in srgb, var(--hud-acc, var(--hph, #8aa)) 8%, transparent), transparent 52%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.014) 38%, rgba(0, 0, 0, 0.16) 100%);
+  border: 1px solid color-mix(in srgb, var(--hud-acc, var(--line-strong)) 16%, rgba(255, 255, 255, 0.055));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -10px 14px -14px color-mix(in srgb, var(--hud-acc, var(--hph, transparent)) 55%, transparent),
+    0 2px 10px -4px rgba(0, 0, 0, 0.55);
   transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
 }
 .hud-cell:hover {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--hud-acc, var(--hph, var(--line-strong))) 35%, rgba(255, 255, 255, 0.06));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 6px 16px -8px rgba(0, 0, 0, 0.6), 0 0 14px -6px color-mix(in srgb, var(--hud-acc, var(--hph, transparent)) 45%, transparent);
+  border-color: color-mix(in srgb, var(--hud-acc, var(--hph, var(--line-strong))) 42%, rgba(255, 255, 255, 0.06));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -10px 16px -14px color-mix(in srgb, var(--hud-acc, var(--hph, transparent)) 70%, transparent),
+    0 6px 16px -8px rgba(0, 0, 0, 0.6),
+    0 0 16px -6px color-mix(in srgb, var(--hud-acc, var(--hph, transparent)) 50%, transparent);
 }
+/* The accent VEIN: a living light-line along the cell floor — gradient-bodied, softly
+   breathing, the one color the eye keys on before it reads a single word. */
 .hud-cell::after {
   content: '';
   position: absolute;
@@ -554,25 +591,45 @@ button:disabled {
   bottom: 0;
   height: 2px;
   border-radius: 999px;
-  background: var(--hud-acc, var(--line-strong));
-  opacity: 0.55;
+  background: linear-gradient(90deg, transparent, var(--hud-acc, var(--line-strong)) 22% 78%, transparent);
+  box-shadow: 0 0 8px 0 color-mix(in srgb, var(--hud-acc, transparent) 45%, transparent);
+  opacity: 0.75;
+  animation: hud-vein 4.6s ease-in-out infinite;
 }
-.hud-cell.hud-mini { background: transparent; }
-.hud-cell.hud-mini::after { opacity: 0.25; }
+@keyframes hud-vein {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+}
+.hud-cell.hud-mini { background: transparent; border-color: transparent; box-shadow: none; }
+.hud-cell.hud-mini::after { opacity: 0.25; animation: none; }
 .hud-cell.tt:focus-visible {
   box-shadow: none;
 }
 .hud-k {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   color: var(--muted);
   font-size: 10px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
+}
+.hud-k::before {
+  content: '';
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--hud-acc, var(--line-strong));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--hud-acc, transparent) 70%, transparent);
 }
 .hud-v {
   font-size: clamp(18px, 1.3vw, 26px);
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), 0 0 18px color-mix(in srgb, var(--hud-acc, transparent) 22%, transparent);
 }
 .hud-v.is-danger {
   color: var(--danger);
@@ -613,35 +670,120 @@ button:disabled {
 .hud-vital-row .bar {
   flex: 1;
 }
-/* ── BIOMORPH CONVEYOR (docs/STRAIN.md §conveyor): the living deployment rail ── */
+/* ── BIOMORPH CONVEYOR (docs/STRAIN.md §conveyor · HUD overhaul 2026-07): a real BELT ──
+   The rail is a recessed machine channel with a scrolling tread; each organism rides it as
+   a glass SPECIMEN POD — vat-lit from below in its tower's color, growing behind amniotic
+   fluid, lid lighting up when it's ready for a decision. Arrivals slide in from the belt's
+   feed side and settle. All motion is background-position/transform/opacity (GPU-cheap);
+   the global reduced-motion collapse silences every loop. */
 .conveyor {
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: stretch;
   margin-left: 8px;
-  padding-left: 10px;
-  border-left: 1px solid color-mix(in srgb, var(--caustic) 30%, transparent);
+  padding: 6px 8px 8px 12px;
+  border-radius: var(--r-sm);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(10, 15, 21, 0.2) 30%, rgba(255, 255, 255, 0.025) 96%),
+    rgba(7, 10, 15, 0.6);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    inset 2px 0 6px -2px color-mix(in srgb, var(--caustic) 30%, transparent);
+  overflow: hidden;
+}
+/* The TREAD: machined belt ticks scrolling toward the favorite (right → left, the direction
+   pods are consumed). Pure background-position loop — one compositor layer, no reflow. */
+.conveyor::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--caustic) 35%, rgba(255, 255, 255, 0.1)) 0 3px, transparent 3px 16px);
+  opacity: 0.5;
+  animation: cv-tread 1.8s linear infinite;
+  pointer-events: none;
+}
+@keyframes cv-tread {
+  from { background-position: 16px 0; }
+  to { background-position: 0 0; }
+}
+/* Feed-side glow: the belt mouth where new organisms arrive breathes faintly. */
+.conveyor::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  right: 0;
+  width: 14px;
+  background: linear-gradient(270deg, color-mix(in srgb, var(--caustic) 30%, transparent), transparent);
+  animation: cv-feed 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes cv-feed {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
 }
 .cv-slot {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 128px;
-  padding: 6px 8px;
+  min-width: 132px;
+  padding: 6px 9px 7px;
   border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--cv) 8%, rgba(10, 14, 18, 0.85));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 35%, transparent);
-  animation: cv-arrive 0.35s var(--ease-out, ease-out); /* the organism POPS onto the belt */
+  background:
+    radial-gradient(120% 85% at 50% 108%, color-mix(in srgb, var(--cv) 22%, transparent), transparent 58%),
+    linear-gradient(172deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01) 40%, rgba(0, 0, 0, 0.2)),
+    color-mix(in srgb, var(--cv) 7%, rgba(10, 14, 18, 0.9));
+  border: 1px solid color-mix(in srgb, var(--cv) 32%, rgba(255, 255, 255, 0.05));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 3px 8px -3px rgba(0, 0, 0, 0.6);
+  animation: cv-arrive 0.42s var(--ease-out) both; /* rolls IN off the feed side and settles */
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+/* The pod LID: a light-line across the top — dim while growing, LIT the moment it's ready. */
+.cv-slot::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--cv) 30% 70%, transparent);
+  opacity: 0.25;
+  transition: opacity var(--dur-3) var(--ease-out), box-shadow var(--dur-3) var(--ease-out);
+  pointer-events: none;
 }
 .cv-slot.is-ready {
-  animation: cv-ready-pulse 1.6s ease-in-out infinite; /* alive and waiting for a decision */
+  animation: cv-arrive 0.42s var(--ease-out) both, cv-ready-pulse 2.6s ease-in-out 0.42s infinite;
 }
+.cv-slot.is-ready::after {
+  opacity: 0.95;
+  box-shadow: 0 0 9px 0 color-mix(in srgb, var(--cv) 70%, transparent);
+}
+.cv-slot:hover { transform: translateY(-1px); }
 .cv-slot.is-armed {
-  box-shadow: inset 0 0 0 2px var(--cv), 0 0 14px color-mix(in srgb, var(--cv) 45%, transparent);
+  transform: translateY(-2px);
+  border-color: var(--cv);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 0 0 1px var(--cv),
+    0 0 18px -2px color-mix(in srgb, var(--cv) 60%, transparent),
+    0 6px 14px -6px rgba(0, 0, 0, 0.7);
 }
-.cv-slot.rare { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--r-rare, #6e7bff) 70%, transparent); }
-.cv-slot.epic { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--r-epic, #d98cff) 80%, transparent); }
+/* Rarity chrome rides the pod frame (the vat glow stays the tower's color). */
+.cv-slot.rare { border-color: color-mix(in srgb, var(--r-rare, #6e7bff) 65%, transparent); }
+.cv-slot.epic {
+  border-color: color-mix(in srgb, var(--r-epic, #d98cff) 75%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 0 12px -4px color-mix(in srgb, var(--r-epic, #d98cff) 55%, transparent), 0 3px 8px -3px rgba(0, 0, 0, 0.6);
+}
 .cv-head {
   display: flex;
   align-items: baseline;
@@ -652,27 +794,47 @@ button:disabled {
   font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--cv);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--cv) 40%, transparent);
 }
+/* Strain tier plate: a faceted chevron chip — the merge ladder wears chrome, not plain text. */
 .cv-strain {
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
   font-size: var(--fs-2xs);
   font-weight: 800;
   letter-spacing: var(--track-wide);
   color: var(--gold);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 22%, transparent), color-mix(in srgb, var(--gold) 8%, transparent));
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 8px -2px color-mix(in srgb, var(--gold) 50%, transparent);
 }
+/* The GROWTH VAT: amniotic fluid rising left→right behind glass, its surface shimmering;
+   the countdown floats in the vat. --grow drives a transform — no width reflow per tick. */
 .cv-grow {
   position: relative;
-  height: 18px;
-  border-radius: var(--r-xs);
+  height: 20px;
+  border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(16, 22, 30, 0.3) 50%, rgba(255, 255, 255, 0.03)),
+    #0a0e15;
+  border: 1px solid color-mix(in srgb, var(--cv) 28%, var(--line));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55);
 }
 .cv-grow-fill {
   position: absolute;
   inset: 0;
   transform-origin: left;
   transform: scaleX(var(--grow));
-  background: color-mix(in srgb, var(--cv) 55%, transparent);
-  animation: cv-pulse 1.4s ease-in-out infinite;
+  background:
+    linear-gradient(90deg, transparent 0 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70% 100%) 0 0 / 220% 100%,
+    linear-gradient(180deg, color-mix(in srgb, var(--cv) 75%, #fff 8%), color-mix(in srgb, var(--cv) 48%, transparent) 65%);
+  box-shadow: inset 0 -3px 6px -2px color-mix(in srgb, var(--cv) 80%, transparent);
+  animation: cv-fluid 2.8s linear infinite;
+}
+@keyframes cv-fluid {
+  from { background-position: 190% 0, 0 0; }
+  to { background-position: -90% 0, 0 0; }
 }
 .cv-timer {
   position: absolute;
@@ -680,38 +842,72 @@ button:disabled {
   display: grid;
   place-items: center;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
 }
 .cv-actions {
   display: flex;
-  gap: 4px;
+  gap: 5px;
 }
+/* Pod controls: DEPLOY is the tower-colored energy key, STRAIN the gold splice, DISCARD a
+   ghost recycler. Every press lands (scale) inside a frame; disabled reads dimmed-glass. */
 .cv-btn {
   flex: 1;
-  padding: 3px 4px;
-  border: 0;
+  min-height: 24px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
   border-radius: var(--r-xs);
   font-size: var(--fs-2xs);
   font-weight: 800;
+  letter-spacing: 0.04em;
   cursor: pointer;
   color: #08110d;
-  background: color-mix(in srgb, var(--cv) 70%, #fff 10%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 55%),
+    color-mix(in srgb, var(--cv) 72%, #fff 10%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 6px -3px color-mix(in srgb, var(--cv) 70%, transparent);
+  transition: filter var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
+.cv-btn:hover:not(:disabled) { filter: brightness(1.15); }
+.cv-btn:active:not(:disabled) { transform: scale(0.95); }
 .cv-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.38;
   cursor: default;
+  filter: saturate(0.4);
 }
 .cv-btn.cv-deploy.is-on {
-  outline: 2px solid #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 0 2px #fff, 0 0 12px color-mix(in srgb, var(--cv) 70%, transparent);
+}
+/* The run-start GIFT: gold-lit, a slow sheen rolling across — impossible to miss, once.
+   No haze layers over the label: small dark glyphs on gold must stay CRISP mid-sweep. */
+.cv-btn.cv-deploy.is-free {
+  background:
+    linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%) 0 0 / 220% 100%,
+    linear-gradient(180deg, var(--gold), color-mix(in srgb, var(--gold) 70%, #b56a00));
+  animation: cv-gift 2.6s linear infinite;
+}
+@keyframes cv-gift {
+  from { background-position: 190% 0, 0 0; }
+  to { background-position: -90% 0, 0 0; }
 }
 .cv-btn.cv-strainb {
-  background: color-mix(in srgb, var(--gold, #ffd24d) 75%, #fff 8%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 55%),
+    color-mix(in srgb, var(--gold, #ffd24d) 78%, #fff 6%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 6px -3px color-mix(in srgb, var(--gold) 70%, transparent);
 }
 .cv-btn.cv-discard {
-  background: rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  border-color: rgba(255, 255, 255, 0.09);
   color: var(--muted);
+  box-shadow: none;
+}
+.cv-btn.cv-discard:hover:not(:disabled) { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, transparent); filter: none; }
+/* Touch: pod controls get real thumb room (the 24px base floor grows on coarse pointers). */
+@media (pointer: coarse) {
+  .cv-btn { min-height: 32px; }
 }
 .tl2-convbtn {
   padding: 2px 8px;
@@ -731,18 +927,21 @@ button:disabled {
   color: var(--gold);
   font-size: var(--fs-xs);
 }
-@keyframes cv-pulse {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 0.6; }
-}
+/* Arrival: the pod rolls IN from the belt's feed side (right), overshoots a hair, settles.
+   The same animation replays when a pod matures (grow→ready re-lists it) — a "completion
+   pop" for free, exactly when the decision becomes available. */
 @keyframes cv-arrive {
-  from { transform: scale(0.7); opacity: 0; }
-  60% { transform: scale(1.06); }
-  to { transform: scale(1); opacity: 1; }
+  from { transform: translateX(26px) scale(0.92); opacity: 0; }
+  55% { transform: translateX(-2px) scale(1.02); opacity: 1; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
 }
 @keyframes cv-ready-pulse {
-  0%, 100% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 45%, transparent), 0 0 6px color-mix(in srgb, var(--cv) 25%, transparent); }
-  50% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv) 80%, transparent), 0 0 16px color-mix(in srgb, var(--cv) 50%, transparent); }
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 8px -2px color-mix(in srgb, var(--cv) 35%, transparent), 0 3px 8px -3px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 0 18px -2px color-mix(in srgb, var(--cv) 60%, transparent), 0 3px 8px -3px rgba(0, 0, 0, 0.6);
+  }
 }
 
 /* STRAIN identity line in the Inspector (docs/STRAIN.md §framework) */
@@ -773,6 +972,49 @@ button:disabled {
 }
 .hud-vital-bar .bar {
   width: 100%;
+}
+/* THE HEART ORGAN (HUD overhaul 2026-07): the integrity bar is a living vessel — membrane
+   walls, plasma that drifts while the organ lives, a lit meniscus at the fill's leading
+   edge. The fill COLOR stays the ProgressBar's inline ramp (green→amber→red); the life
+   layers ride pseudo-elements so the component contract is untouched. */
+.hud-vital-bar .bar {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(16, 22, 30, 0.35) 45%, rgba(255, 255, 255, 0.03)),
+    #0a0e15;
+  border-color: color-mix(in srgb, var(--hud-acc, var(--line-strong)) 30%, var(--line));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+.hud-vital-bar .bar-seg {
+  width: 2px;
+  background: linear-gradient(180deg, rgba(7, 10, 15, 0.9), rgba(7, 10, 15, 0.55));
+}
+.hud-vital-bar .bar-fill { position: relative; overflow: hidden; }
+/* Plasma drift: a slow internal current — the organ is ALIVE even at full health. */
+.hud-vital-bar .bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0 34%, rgba(255, 255, 255, 0.14) 50%, transparent 66% 100%) 0 0 / 220% 100%,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 55%);
+  animation: vital-plasma 3.6s linear infinite;
+}
+@keyframes vital-plasma {
+  from { background-position: 180% 0, 0 0; }
+  to { background-position: -80% 0, 0 0; }
+}
+/* The meniscus: the fill's leading edge glows — where life ends is the brightest point. */
+.hud-vital-bar .bar-fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.3));
+  box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  opacity: 0.8;
 }
 .hud-vital-ghost {
   position: absolute;
@@ -836,27 +1078,33 @@ button:disabled {
   flex: 1;
   min-width: 60px;
 }
+/* Wave pips: capsule ticks — cleared ones burn success-green with a lit core, the current
+   one breathes gold with a halo, the road ahead sits as dim glass sockets. */
 .wave-pips {
   display: flex;
   gap: 3px;
   margin-top: 3px;
 }
 .wave-pips .pip {
-  width: 8px;
-  height: 4px;
-  background: var(--line);
+  width: 9px;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.3)), var(--line);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+  transition: background var(--dur-3) var(--ease-out), box-shadow var(--dur-3) var(--ease-out);
 }
 .wave-pips .pip.done {
-  background: var(--success);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--success) 85%, #fff 12%), var(--success));
+  box-shadow: 0 0 5px -1px var(--success), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 .wave-pips .pip.active {
-  background: var(--gold);
-  box-shadow: 0 0 6px var(--gold);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 90%, #fff 15%), var(--gold));
+  box-shadow: 0 0 8px var(--gold), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   animation: pip-pulse 1.1s ease-in-out infinite;
 }
 @keyframes pip-pulse {
   50% {
-    opacity: 0.5;
+    opacity: 0.55;
   }
 }
 .phase-chip {
@@ -916,10 +1164,11 @@ button:disabled {
 .wm-endless { margin-left: 6px; color: var(--viral); }
 .wm-main { display: flex; align-items: baseline; justify-content: center; gap: 2px; line-height: 1; }
 .wm-num {
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), 0 0 24px color-mix(in srgb, var(--hph, transparent) 25%, transparent);
   transition: color var(--dur-4) var(--ease-out), text-shadow var(--dur-4) var(--ease-out);
 }
 .hud[data-hphase='combat'] .wm-num,
@@ -934,10 +1183,11 @@ button:disabled {
   font-weight: 800;
   letter-spacing: 0.06em;
   font-variant: small-caps;
-  padding: 0 7px;
+  padding: 1px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015) 60%, rgba(0, 0, 0, 0.12));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   color: var(--text-dim);
 }
 .wm-chip-sub { font-style: normal; color: var(--muted); font-weight: 600; }
@@ -1120,34 +1370,51 @@ button:disabled {
   min-height: 12px;
 }
 
-/* Top-bar Loot Box Meter */
+/* ── Bio-Container INCUBATION VESSEL (HUD overhaul 2026-07) — the loot meter is a glass
+   tube of rarity-colored culture fluid: bubbles drift toward the socket, the surface
+   shimmers with live banking, and the container socket at the head twitches to life as
+   the vessel brims. The fill width stays the backend fraction (docs/LOOTBOX.md §meter). ── */
 .hud-loot {
-  min-width: 156px;
+  min-width: 168px;
 }
 .loot-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+/* The SOCKET: where the grown container crystallizes — an organic port, rarity-lit. */
 .loot-chest {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: var(--r-sm);
+  border-radius: 42% 58% 55% 45% / 48% 44% 56% 52%;
   font-size: 14px;
+  background:
+    radial-gradient(70% 70% at 50% 38%, color-mix(in srgb, currentColor 20%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.25));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 0 10px -4px currentColor;
+  text-shadow: 0 0 8px currentColor;
+  animation: loot-socket 4.4s ease-in-out infinite;
+}
+@keyframes loot-socket {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
 }
 .loot-bar-wrap {
   flex: 1;
   min-width: 0;
 }
 .loot-bar {
-  height: 8px;
+  height: 11px;
   border-radius: 999px;
-  background: #0a0e15;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(16, 22, 30, 0.3) 50%, rgba(255, 255, 255, 0.03)),
+    #0a0e15;
   border: 1px solid var(--line);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55);
   overflow: hidden;
 }
 .loot-bar-fill {
@@ -1156,23 +1423,53 @@ button:disabled {
   border-radius: 999px;
   transition: width var(--dur-3) var(--ease-out);
 }
+/* Culture BUBBLES: three drift sizes riding toward the socket — the fluid is alive. */
+.loot-bar-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle 2px at 12% 30%, rgba(255, 255, 255, 0.55), transparent 70%) 0 0 / 64px 100%,
+    radial-gradient(circle 1px at 55% 65%, rgba(255, 255, 255, 0.45), transparent 70%) 0 0 / 44px 100%,
+    radial-gradient(circle 1px at 80% 40%, rgba(255, 255, 255, 0.35), transparent 70%) 0 0 / 30px 100%;
+  animation: loot-bubbles 3.2s linear infinite;
+  opacity: 0.8;
+}
+@keyframes loot-bubbles {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 64px 0, 44px 0, 30px 0; }
+}
 /* Charging shimmer — a light band sweeps the filled span so live banking reads ALIVE. */
 .loot-bar-fill::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: linear-gradient(100deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%) 0 0 / 200% 100%;
+  background:
+    linear-gradient(100deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%) 0 0 / 200% 100%,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 55%);
   animation: loot-shimmer 2.4s linear infinite;
-  opacity: 0.55;
+  opacity: 0.6;
 }
-@keyframes loot-shimmer { from { background-position: 170% 0; } to { background-position: -70% 0; } }
-/* Near-full (≥85%): the bar breathes in anticipation — a container is imminent. */
-.loot-bar.is-hot { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+@keyframes loot-shimmer { from { background-position: 170% 0, 0 0; } to { background-position: -70% 0, 0 0; } }
+/* Near-full (≥85%): the vessel AGITATES — brighter fluid, racing bubbles, a lit rim. */
+.loot-bar.is-hot {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55), 0 0 12px -4px var(--gold);
+}
 .loot-bar.is-hot .loot-bar-fill { animation: loot-hot 1.1s ease-in-out infinite; }
+.loot-bar.is-hot .loot-bar-fill::before { animation-duration: 1.1s; }
 @keyframes loot-hot {
   0%, 100% { filter: brightness(1); box-shadow: 0 0 4px 0 currentColor; }
   50% { filter: brightness(1.4); box-shadow: 0 0 11px 1px currentColor; }
+}
+/* Fill fraction, worn on the tube's shoulder — the number impatience actually asks for. */
+.loot-pct {
+  float: right;
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
 }
 /* ── Completion ceremony (docs/BUGFIX-LOG.md #10): pure OVERLAYS — the width never lies. ──
    T0: bar flash in the completed rarity's color + the earned container streaks in from the
@@ -1274,18 +1571,23 @@ canvas.board {
   touch-action: none;
 }
 
-/* ── Toolbar — bottom bar ─────────────────────────────────────────────────── */
+/* ── Toolbar — bottom bar (HUD overhaul 2026-07: the deployment DECK — same bio-glass
+   family as the top bar, lit from its work surface) ── */
 .toolbar {
+  position: relative;
   display: flex;
   gap: 10px;
   align-items: stretch;
   flex-wrap: wrap;
   flex: none; /* fixed bottom bar — the stage above takes the remaining height */
-  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-deep) 100%);
+  background:
+    radial-gradient(120% 200% at 50% 190%, color-mix(in srgb, var(--caustic) 6%, transparent), transparent 55%),
+    linear-gradient(180deg, var(--panel) 0%, var(--panel-deep) 100%);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 10px var(--s3);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(7px);
 }
 .tower-rail {
   display: flex;
@@ -1302,6 +1604,30 @@ canvas.board {
   padding: 10px 12px 12px;
   overflow: visible;
   text-align: left;
+  background:
+    radial-gradient(130% 100% at 0% 100%, color-mix(in srgb, var(--tc, transparent) 10%, transparent), transparent 55%),
+    linear-gradient(172deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012) 40%, rgba(0, 0, 0, 0.18));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 3px 10px -4px rgba(0, 0, 0, 0.55);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.tcard.kinetic { --tc: var(--kinetic); }
+.tcard.caustic { --tc: var(--caustic); }
+.tcard.vital { --tc: var(--vital); }
+.tcard.viral { --tc: var(--viral); }
+.tcard.neural { --tc: var(--neural); }
+.tcard:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px -8px rgba(0, 0, 0, 0.65), 0 0 16px -6px color-mix(in srgb, var(--tc, var(--line-strong)) 45%, transparent);
+}
+.tcard:active:not(:disabled) { transform: translateY(0) scale(0.985); }
+/* Affordable + playable: the card's class edge BREATHES — "you can act" reads from color
+   motion alone, before any text. */
+.tcard.is-ready .tcard-edge {
+  animation: tcard-ready 2.4s ease-in-out infinite;
+}
+@keyframes tcard-ready {
+  0%, 100% { box-shadow: 0 0 4px 0 var(--tc, var(--line-strong)); }
+  50% { box-shadow: 0 0 12px 1px var(--tc, var(--line-strong)); }
 }
 .tcard-edge {
   position: absolute;
@@ -1396,18 +1722,47 @@ canvas.board {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--gold) 20%, var(--panel-deep)), var(--panel));
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--gold) 26%, var(--panel-deep)), var(--panel) 72%);
   border: 1px solid var(--gold);
   color: var(--gold);
   font-size: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 12px -4px var(--gold);
+  animation: hero-disc-breathe 4.2s ease-in-out infinite;
 }
+@keyframes hero-disc-breathe {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 8px -4px var(--gold); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 14px -3px var(--gold); }
+}
+/* Ability key: carries a live COOLDOWN RING (conic --cd 0→1, set inline by the Toolbar) —
+   the recharge is visible at a glance, and the ready moment closes the ring with a glow. */
 .ability-btn {
   position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  font-weight: 700;
+  overflow: visible;
 }
+.ability-btn::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(var(--gold) calc(var(--cd, 1) * 360deg), rgba(255, 255, 255, 0.08) 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+.ability-btn:not(:disabled)::before { opacity: 0; } /* ready: the ring yields to the glow */
+.ability-btn:not(:disabled) {
+  box-shadow: 0 0 14px -4px var(--gold);
+}
+.ability-btn:active:not(:disabled) { transform: scale(0.96); }
 .ability-btn.is-armed {
   border-color: var(--kinetic);
   color: var(--kinetic);
@@ -3196,8 +3551,9 @@ kbd {
 .tl2-rank { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .tl2-mlevel { display: flex; align-items: baseline; justify-content: space-between; font-size: 16px; }
 .tl2-mxp { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-/* ── Tower unlock gate (docs/TOWERS.md §expansion): the dormant-strain synthesis bar ── */
-.cv-deploy.is-free { border-color: var(--gold); color: var(--gold); text-shadow: 0 0 8px color-mix(in srgb, var(--gold) 50%, transparent); }
+/* ── Tower unlock gate (docs/TOWERS.md §expansion): the dormant-strain synthesis bar ──
+   (The old `.cv-deploy.is-free` gold-TEXT rule that lived here is superseded by the HUD
+   overhaul's gold gift KEY — gold text on the gold key was the unreadable-label bug.) */
 .tl2-lockbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); margin-top: var(--s2); padding: 6px 10px; border: 1px dashed var(--line); border-radius: var(--r-md); background: color-mix(in srgb, var(--tw, var(--muted)) 8%, transparent); }
 .tl2-lockbar-txt { font-size: 11px; letter-spacing: var(--track-wide); text-transform: uppercase; color: var(--muted); }
 .tl2-lockbar-progress { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
@@ -8353,15 +8709,32 @@ kbd {
 
 /* ── START WAVE: the build phase's focal point — glow, gather, compress, sweep ── */
 .hud[data-hphase] ~ * .start-btn { /* (scoped fallback no-op) */ }
+/* THE COMMAND KEY (HUD overhaul 2026-07): the Start Wave button is an energized organ —
+   layered energy core, a slow charge-sheen rolling across, halo ring, and a press that
+   physically LANDS. The single most-pressed control in the game earns the most light. */
 .start-btn {
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   font-size: 16px;
   font-weight: 900;
   letter-spacing: 0.08em;
   padding: 12px 22px;
-  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
-  box-shadow: 0 0 22px -8px color-mix(in srgb, var(--success) 70%, transparent), 0 6px 18px -10px rgba(0, 0, 0, 0.6);
+  background:
+    linear-gradient(100deg, transparent 34%, rgba(255, 255, 255, 0.22) 50%, transparent 66%) 0 0 / 240% 100%,
+    radial-gradient(120% 160% at 50% -40%, color-mix(in srgb, var(--success) 45%, #fff 8%), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--success) 78%, #123) 0%, color-mix(in srgb, var(--success) 48%, #0a1410) 100%);
+  border: 1px solid color-mix(in srgb, var(--success) 65%, #fff 8%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  animation: start-charge 3.2s linear infinite;
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), filter var(--dur-2) var(--ease-out);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 22px -8px color-mix(in srgb, var(--success) 70%, transparent),
+    0 6px 18px -10px rgba(0, 0, 0, 0.6);
+}
+@keyframes start-charge {
+  from { background-position: 210% 0, 0 0, 0 0; }
+  to { background-position: -110% 0, 0 0, 0 0; }
 }
 .start-btn .start-btn-ring {
   position: absolute;
@@ -8376,8 +8749,12 @@ kbd {
   70% { opacity: 0; transform: scale(1.08); }
   100% { opacity: 0; transform: scale(1.08); }
 }
-.start-btn:hover { transform: scale(1.04); box-shadow: 0 0 34px -6px color-mix(in srgb, var(--success) 85%, transparent), 0 8px 22px -10px rgba(0, 0, 0, 0.65); }
-.start-btn:active { transform: scale(0.96); }
+.start-btn:hover {
+  transform: scale(1.04);
+  filter: brightness(1.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 34px -6px color-mix(in srgb, var(--success) 85%, transparent), 0 8px 22px -10px rgba(0, 0, 0, 0.65);
+}
+.start-btn:active { transform: scale(0.95); filter: brightness(0.95); }
 .wave-sweep {
   position: absolute;
   inset: 0;

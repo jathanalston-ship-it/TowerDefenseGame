@@ -185,6 +185,9 @@ export function Toolbar({
         <button
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}
           disabled={!hud.hero.abilityReady || !playable}
+          // Cooldown ring (--cd 0→1): the recharge is visible at a glance; the ring closes and
+          // yields to the ready-glow the moment the ability comes back.
+          style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, heroDef.ability.cooldown))) }}
           onClick={() => {
             audio.resume();
             game.armAbility();

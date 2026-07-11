@@ -261,6 +261,17 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   `navModel.test.ts` (every NavKey in exactly one tab + has name/glyph/blurb) + discovery-based
   mobilecheck walk ⇒ future screens are auto-indexed/explained/swept on phones with no
   second list to maintain.
+- ✅ **In-run HUD overhaul** (2026-07, HUD.md §0b — the triple-A pass): carved bio-glass cells
+  (accent corner light + breathing floor VEIN + label dots + phase FILAMENT), the Hive Core as
+  a plasma-drift Heart organ (membrane, meniscus), the Bio-Container meter as a bubbling
+  rarity-lit Incubation vessel (fill-%, agitation, floating socket), the Biomorph Conveyor as
+  a REAL belt (scrolling tread, feed-mouth, vat-lit specimen pods sliding in from the feed
+  side, amniotic growth fluid, real pod keys w/ 32px coarse floors), capsule wave pips + 34px
+  glowing wave numeral, class-bloom tower cards with affordable-breathing edges, live conic
+  ability cooldown ring, and the Start Wave command key (energy core + charge sheen). All
+  background-position/transform/opacity motion; class names, data-tut anchors, and the
+  portrait grid contract untouched (mobilecheck CLEAN); killed the legacy `.cv-deploy.is-free`
+  gold-text rule (the historical unreadable gift-label bug).
 
 ### Account platform (docs/ACCOUNTS.md)
 - ✅ **Guest + Email/Password accounts** over the anonymous identity (same account_id ⇒ upgrade keeps
