@@ -41,15 +41,21 @@ if (robots.includes('PLACEHOLDER_DOMAIN')) {
   warn('production domain not set (robots/sitemap/og URLs)', 'npm run set-domain -- your.domain --contact you@example.com (RELEASE-GUIDE step 12)');
 } else ok('domain strings set (robots/sitemap)');
 
-// Legal placeholders
-const terms = readFileSync('public/welcome/terms.html', 'utf8');
-const privacy = readFileSync('public/welcome/privacy.html', 'utf8');
-if (privacy.includes('PLACEHOLDER_CONTACT') || terms.includes('PLACEHOLDER_CONTACT')) {
-  warn('legal contact not filled', 'run set-domain with --contact, or edit public/welcome/{privacy,terms}.html');
-} else ok('legal contact filled');
-if (terms.includes('PLACEHOLDER_JURISDICTION')) {
-  warn('governing law not set in terms.html', 'set PLACEHOLDER_JURISDICTION with counsel before launch');
-} else ok('governing law set');
+// Legal pages (generated from site/ into public/{terms,privacy}/index.html; the contact
+// address is sourced from site/config.ts → CONTACT_EMAIL, then `npm run site`).
+const termsPath = 'public/terms/index.html';
+const privacyPath = 'public/privacy/index.html';
+if (existsSync(termsPath) && existsSync(privacyPath)) {
+  const terms = readFileSync(termsPath, 'utf8');
+  const privacy = readFileSync(privacyPath, 'utf8');
+  const hasContact = (s: string): boolean => /mailto:[^"']+@/.test(s) && !s.includes('PLACEHOLDER_CONTACT');
+  if (hasContact(privacy) && hasContact(terms)) ok('legal contact filled');
+  else warn('legal contact not filled', 'set site/config.ts → CONTACT_EMAIL, then npm run site');
+  if (/governing law/i.test(terms)) ok('governing law set');
+  else warn('governing law clause missing from terms', 'add a Governing Law section to termsPage() in site/pages.ts (with counsel), then npm run site');
+} else {
+  warn('legal pages not generated', 'run npm run site (expects public/{terms,privacy}/index.html)');
+}
 
 // Public build config (.env.production — committed by design, no secrets)
 if (existsSync('.env.production')) {

@@ -68,13 +68,10 @@ patch('public/robots.txt', (s) => s.replace(/https:\/\/[^/\s]+\/sitemap\.xml/, `
 patch('public/sitemap.xml', (s) => s.replace(/https:\/\/[^/<]+\//g, `${origin}/`));
 
 if (contact) {
-  for (const f of ['public/welcome/privacy.html', 'public/welcome/terms.html']) {
-    // First stamp replaces the placeholder; re-runs rewrite the previously stamped
-    // mailto (so switching to a dedicated support address later stays one command).
-    patch(f, (s) => s
-      .replace(/PLACEHOLDER_CONTACT/g, `<a href="mailto:${contact}">${contact}</a>`)
-      .replace(/<a href="mailto:[^"]+">[^<]+<\/a>/g, `<a href="mailto:${contact}">${contact}</a>`));
-  }
+  // The legal contact now lives in site/config.ts → CONTACT_EMAIL (the generated
+  // contact/privacy/terms pages read it); it is no longer string-patched into HTML.
+  // Set it there and re-run `npm run site` — this flag only reminds you.
+  console.log(`  · contact address: set CONTACT_EMAIL in site/config.ts to ${contact}, then \`npm run site\` (this flag does not edit it)`);
 }
 
 console.log(edits > 0 ? `\nDone — ${edits} file(s) updated. Review with \`git diff\`, then commit + push.` : '\nNothing to change (already set).');
