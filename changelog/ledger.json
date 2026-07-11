@@ -1,6 +1,6 @@
 {
-  "lastSha": "d8e841b2e0c3d3edf8d8900d5992bd92aac50f62",
-  "commitsSinceDraft": 9,
+  "lastSha": "d116c3618f1cadcabc0255a2dc591bbe05027ce5",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -1943,6 +1943,14 @@
         {
           "cat": "Heroes",
           "text": "Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Zero-clip portrait pass: hero HP fixed + geometric truncation joins the gate"
+        },
+        {
+          "cat": "UI",
+          "text": "Guest Mode: session-only offline tryout with in-place account conversion"
         }
       ]
     }
@@ -2825,6 +2833,22 @@
       "date": "2026-07-11",
       "cat": "Gameplay",
       "text": "Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0edf4e5210a5207deb9e1fc586a8ba14da88ffa4",
+      "date": "2026-07-11",
+      "cat": "Heroes",
+      "text": "Zero-clip portrait pass: hero HP fixed + geometric truncation joins the gate",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "d116c3618f1cadcabc0255a2dc591bbe05027ce5",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "Guest Mode: session-only offline tryout with in-place account conversion",
       "internal": false,
       "needsReview": false
     }

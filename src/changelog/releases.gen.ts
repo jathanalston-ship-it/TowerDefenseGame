@@ -485,6 +485,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Zero-clip portrait pass: hero HP fixed + geometric truncation joins the gate"
+      },
+      {
+        "cat": "UI",
+        "text": "Guest Mode: session-only offline tryout with in-place account conversion"
       }
     ]
   },

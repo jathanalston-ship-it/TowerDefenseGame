@@ -120,3 +120,5 @@
 - `fbcb27d` **[Website]** Chronicle + site sync for the merged lineage (re-anchored ledger)
 - `c23020e` **[Heroes]** Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall
 - `d8e841b` **[Gameplay]** Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate
+- `0edf4e5` **[Heroes]** Zero-clip portrait pass: hero HP fixed + geometric truncation joins the gate
+- `d116c36` **[UI]** Guest Mode: session-only offline tryout with in-place account conversion
