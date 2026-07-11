@@ -1,6 +1,6 @@
 {
-  "lastSha": "3eb68319957d2412d1baa9003334337f053dc1c4",
-  "commitsSinceDraft": 0,
+  "lastSha": "7f2c837b2762dfc29e6c7bc342c846cc59ac9b43",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -2013,6 +2013,10 @@
         {
           "cat": "Heroes",
           "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen"
         }
       ]
     }
@@ -2983,6 +2987,14 @@
       "date": "2026-07-11",
       "cat": "Heroes",
       "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7f2c837b2762dfc29e6c7bc342c846cc59ac9b43",
+      "date": "2026-07-11",
+      "cat": "Heroes",
+      "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen",
       "internal": false,
       "needsReview": false
     }

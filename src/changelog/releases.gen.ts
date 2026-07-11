@@ -550,6 +550,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen"
       }
     ]
   },

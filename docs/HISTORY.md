@@ -131,3 +131,4 @@
 - `223c57d` **[Website]** Chronicle + site regen for the HUD overhaul
 - `92e3d1d` **[Heroes]** New hero: the Knell — Resonant amplification conductor, gated on the first Molt
 - `3eb6831` **[Heroes]** Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)
+- `7f2c837` **[Heroes]** Merge follow-up: seven-hero roster docs/pins + chronicle/site regen

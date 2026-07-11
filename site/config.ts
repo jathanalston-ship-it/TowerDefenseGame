@@ -7,9 +7,8 @@
 export const DOMAIN = 'https://assimilationtowerdefense.com';
 export const SITE_NAME = 'ASSIMILATE';
 export const TAGLINE = 'Grow. Mutate. Assimilate. A cyberpunk bio-horror tower defense.';
-// Interim REAL support address (stamped by the account-platform batch; replace with a dedicated
-// support alias once mail on the domain is set up — AdSense wants a reachable contact).
-export const CONTACT_EMAIL = 'jathan.alston@gmail.com';
+// The game's dedicated support address (a reachable contact — AdSense + the legal pages want one).
+export const CONTACT_EMAIL = 'assimilationtowerdefense@gmail.com';
 
 /** Primary navigation — grouped for the header (groups become dropdowns on desktop,
  *  sections in the mobile drawer). `path` is the served URL (always trailing slash). */

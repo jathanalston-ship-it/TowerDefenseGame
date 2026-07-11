@@ -83,5 +83,6 @@ drift from the generator. Runs with `npm test`.
 
 `npm run set-domain -- <domain> [--contact email]` stamps absolute URLs + the legal
 contact (re-runnable; re-runs rewrite a previously stamped contact). Current:
-`assimilationtowerdefense.com` · interim contact `jathan.alston@gmail.com` (swap for a
-dedicated support address when created).
+`assimilationtowerdefense.com` · contact `assimilationtowerdefense@gmail.com` (the
+game's dedicated support address; `site/config.ts` → `CONTACT_EMAIL` is the source of
+truth for the generated contact/privacy/terms pages).
