@@ -11,6 +11,21 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Heroes",
+        "text": "New hero: Cinderwyrm",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Drake Roost",
+        "major": true
+      },
+      {
+        "cat": "Towers",
+        "text": "New tower: Wyrmwing Glaive",
+        "major": true
+      },
+      {
         "cat": "Gameplay",
         "text": "New achievement: For Whom the Bell",
         "major": true
@@ -531,6 +546,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)"
       }
     ]
   },

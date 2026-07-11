@@ -1,6 +1,6 @@
 {
-  "lastSha": "92e3d1df0c2e8238ebb3138667c08077db3def2a",
-  "commitsSinceDraft": 9,
+  "lastSha": "3eb68319957d2412d1baa9003334337f053dc1c4",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -17,7 +17,9 @@
       "spire",
       "polyp",
       "spitfang",
-      "rift"
+      "rift",
+      "glaive",
+      "roost"
     ],
     "hero": [
       "ravager",
@@ -25,7 +27,8 @@
       "overseer",
       "vitriol",
       "revenant",
-      "knell"
+      "knell",
+      "wyrm"
     ],
     "enemy": [
       "runner",
@@ -1471,6 +1474,21 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Heroes",
+          "text": "New hero: Cinderwyrm",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Drake Roost",
+          "major": true
+        },
+        {
+          "cat": "Towers",
+          "text": "New tower: Wyrmwing Glaive",
+          "major": true
+        },
+        {
           "cat": "Gameplay",
           "text": "New achievement: For Whom the Bell",
           "major": true
@@ -1991,6 +2009,10 @@
         {
           "cat": "Heroes",
           "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)"
         }
       ]
     }
@@ -2953,6 +2975,14 @@
       "date": "2026-07-11",
       "cat": "Heroes",
       "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3eb68319957d2412d1baa9003334337f053dc1c4",
+      "date": "2026-07-11",
+      "cat": "Heroes",
+      "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)",
       "internal": false,
       "needsReview": false
     }

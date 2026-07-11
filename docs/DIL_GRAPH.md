@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 750 nodes · 1357 edges, built from the live
+> **The project's brain** (docs/DIL.md). 753 nodes · 1368 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -14,11 +14,11 @@
 
 ### Gameplay Index
 
-`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · …31 more
+`tower:needle` · `tower:mortar` · `tower:reactor` · `tower:parasite` · `tower:obelisk` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:ravager` · `hero:shepherd` · `hero:overseer` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · …34 more
 
 ### Progression Index
 
-`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant` · `hero:knell`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `tower:glaive` · `tower:roost` · `hero:vitriol` · `hero:revenant` · `hero:knell` · `hero:wyrm`
 
 ### Economy / Reward Index
 
@@ -145,6 +145,7 @@ graph LR
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
+  system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
@@ -447,6 +448,7 @@ graph LR
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
+  system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
@@ -527,6 +529,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - gates → `hero:vitriol` — progression unlock requirement
   - gates → `hero:revenant` — progression unlock requirement
   - gates → `hero:knell` — progression unlock requirement
+  - gates → `hero:wyrm` — progression unlock requirement
   - gates → `system:gene-cards` — 44 cards unlock by progression
   - gates → `system:towers` — locked kinds carry unlockShards + stage requirements
   - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
@@ -573,7 +576,7 @@ THE run currency — dropped by kills, spent on towers/upgrades; dies with the r
   - consumedBy ← `tower:siphon` — placement cost 175
   - consumedBy ← `tower:sower` — placement cost 130
   - consumedBy ← `tower:spire` — placement cost 150
-  - _…44 more (query: `npm run dil -- node currency:biomass`)_
+  - _…46 more (query: `npm run dil -- node currency:biomass`)_
 
 ### `currency:genome-cores` — Genome Cores (◆)
 
@@ -607,6 +610,8 @@ Per-tower permanent currency: unlocks locked towers, buys Star evolutions.
   - gates → `tower:polyp` — 440 shards to unlock
   - gates → `tower:spitfang` — 45 shards to unlock
   - gates → `tower:rift` — 640 shards to unlock
+  - gates → `tower:glaive` — 420 shards to unlock
+  - gates → `tower:roost` — 520 shards to unlock
   - consumedBy ← `system:hive-construction` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
   - rewardedBy ← `system:campaign` — stage rewards feed unlock gates
   - rewardedBy ← `system:loot` — chest pipeline
@@ -682,7 +687,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…177 more (query: `npm run dil -- node system:engine`)_
+  - _…180 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -959,6 +964,8 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - consumes → `system:meta-store` — owns save field 'towerMasteryXp'
   - consumes → `system:meta-store` — owns save field 'towerForks'
   - consumes → `currency:tower-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md — geometric costs, log-diminishing bonus; deep levels also consume Catalyst)
+  - extends → `system:engine` — DRACONIC pair (2026-07, TOWERS.md §draconic): TowerFiring gained 'arc' (Wyrmwing Glaive — a RETURNING blade: out to effective range piercing everything, hitIds clears at the turnaround, dies back at the origin; pure kinematics in the projectile step, extra-projectile channels = extra blades, pierce mutators are no-ops for it) and 'summon' (Drake Roost — game.roostSystem incubates a standing brood; damage/rate/range folds bake into each hatch like mine plant-time stats). Both LOCKED by default (unlockStage 22/26 + shards) ⇒ goldens byte-identical without re-pin
+  - consumes → `system:engine` — HERO-AI MINIONS (roost drakes): MinionDef.heroAI dispatches minionSystem to game.drakeBrain (deepest-threat + elites-first targeting, rally leash around homeX/homeY, retreat-to-perch < ROOST.retreatFrac with perchRegen × (1 + towerProgress.roost.roostRegenBonus), re-engage at reengageFrac) — wisp/harvester/broodling never reach it (flag-gated ⇒ byte-identical). Unit TIER climbs ROOST.unitByTier via the 'brood' star/branch grant vocabulary (roostBroodBonus/roostTierBonus/roostRegenBonus on ResolvedStarKit) — upgrades improve the UNITS, functionally AND visually (drakeling→drake→wyrmspawn defs)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:mulligans`
@@ -971,7 +978,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:maw`
   - contains ← `tower:chrysalis`
   - contains ← `tower:effigy`
-  - _…28 more (query: `npm run dil -- node system:towers`)_
+  - _…30 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1012,6 +1019,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - consumes → `system:meta-store` — owns save field 'heroLoadout'
   - consumes → `system:meta-store` — owns save field 'heroMasteryXp'
   - consumes → `currency:hero-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (mirrors towers; direct shard lanes BANK for Prime, only container opens convert duplicates)
+  - extends → `system:engine` — CINDERWYRM (HEROES.md §6): HeroBehavior gained 'swoop' (game.updateSwoopHero) — the flying strafe brain: strike on the fly-by, Corrosion via WYRM.corrodePerStrike, then BANK THROUGH to Hero.bankX/bankY = WYRM.bankDist past the victim (sim fields for the flight, absent on every other hero). Unlock bossSlain 5 ⇒ never on a fresh account ⇒ golden-safe; wings render behavior-keyed (drawHeroWings) so a future flyer inherits them
   - requiredBy ← `system:engine`
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:expeditions`
@@ -1021,10 +1029,10 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:vitriol`
   - contains ← `hero:revenant`
   - contains ← `hero:knell`
+  - contains ← `hero:wyrm`
   - taughtBy ← `tutorial:combat`
   - taughtBy ← `help:heroes`
-  - taughtBy ← `help:hero-slots`
-  - _…8 more (query: `npm run dil -- node system:heroes`)_
+  - _…9 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:equipment` — Equipment & Armory
 
@@ -2080,7 +2088,7 @@ _at: src/dev/*, src/dev/dil/*_
   - testedBy ← `test:src/dev/systemRegistry.test.ts`
   - _…2 more (query: `npm run dil -- node system:dev-registry`)_
 
-## Towers (15)
+## Towers (17)
 
 ### `tower:needle` — Needle Spitter
 
@@ -2227,7 +2235,27 @@ _at: src/core/config.ts TOWER_DEFS_
   - consumes → `currency:biomass` — placement cost 175
   - gatedBy ← `currency:tower-shards` — 640 shards to unlock
 
-## Heroes (6)
+### `tower:glaive` — Wyrmwing Glaive
+
+Hurls a returning wing-blade that carves THROUGH the lane twice — out and back, one cut per pass.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 185
+  - gatedBy ← `currency:tower-shards` — 420 shards to unlock
+
+### `tower:roost` — Drake Roost
+
+Incubates a brood of biomech drakes — hunting units that leash to the roost, retreat to mend, and dive back in.
+
+_at: src/core/config.ts TOWER_DEFS_
+
+  - partOf → `system:towers`
+  - consumes → `currency:biomass` — placement cost 200
+  - gatedBy ← `currency:tower-shards` — 520 shards to unlock
+
+## Heroes (7)
 
 ### `hero:ravager` — Ravager
 
@@ -2274,6 +2302,15 @@ _at: src/core/config.ts HERO_DEFS_
 ### `hero:knell` — Knell
 
 The bell SLAMS: a massive resonant blast that staggers the pack — and for 6s the whole hive answers, every tower striking +30% harder.
+
+_at: src/core/config.ts HERO_DEFS_
+
+  - partOf → `system:heroes`
+  - gatedBy ← `concept:progression-gates` — progression unlock requirement
+
+### `hero:wyrm` — Cinderwyrm
+
+Sweeps low and BREATHES: a pyroclastic blast that corrodes everything caught, leaving a firestorm that burns on.
 
 _at: src/core/config.ts HERO_DEFS_
 

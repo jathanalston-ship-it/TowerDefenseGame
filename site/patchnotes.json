@@ -3,11 +3,11 @@
     "date": "2026-07-09",
     "title": "The Living World Update",
     "categories": [
-      "Gameplay",
       "Heroes",
+      "Towers",
+      "Gameplay",
       "Mega Bosses",
       "Visuals",
-      "Towers",
       "UX",
       "Website",
       "Developer Tools",
@@ -23,6 +23,18 @@
       "Balance"
     ],
     "items": [
+      {
+        "cat": "Heroes",
+        "text": "★ New hero: Cinderwyrm"
+      },
+      {
+        "cat": "Towers",
+        "text": "★ New tower: Drake Roost"
+      },
+      {
+        "cat": "Towers",
+        "text": "★ New tower: Wyrmwing Glaive"
+      },
       {
         "cat": "Gameplay",
         "text": "★ New achievement: For Whom the Bell"
@@ -506,6 +518,10 @@
       {
         "cat": "Heroes",
         "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)"
       }
     ]
   },
