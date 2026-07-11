@@ -3,9 +3,9 @@
     "date": "2026-07-09",
     "title": "The Living World Update",
     "categories": [
+      "Gameplay",
       "Heroes",
       "Towers",
-      "Gameplay",
       "Mega Bosses",
       "Visuals",
       "UX",
@@ -23,6 +23,26 @@
       "Balance"
     ],
     "items": [
+      {
+        "cat": "Gameplay",
+        "text": "★ New system: Hero Symbiotes"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: More Symbiote Than Champion"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: The Body Sings"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: Complete Hero Adaptation"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "★ New achievement: The First Graft"
+      },
       {
         "cat": "Heroes",
         "text": "★ New hero: Cinderwyrm"
@@ -526,6 +546,10 @@
       {
         "cat": "Heroes",
         "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)"
       }
     ]
   },

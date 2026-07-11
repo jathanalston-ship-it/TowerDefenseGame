@@ -1,6 +1,6 @@
 {
-  "lastSha": "7f2c837b2762dfc29e6c7bc342c846cc59ac9b43",
-  "commitsSinceDraft": 1,
+  "lastSha": "9127c882fac0f36d38af4ade936012d3c2fe5e5b",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -119,6 +119,10 @@
       "nucleus_adapted",
       "nucleus_sovereign",
       "mulligan_overlord",
+      "symbiote_grafted",
+      "symbiote_adapted",
+      "symbiote_resonant",
+      "symbiote_apex",
       "exterminator",
       "biomass_baron",
       "collector",
@@ -221,6 +225,7 @@
       "loot",
       "gene-cards",
       "nucleus",
+      "hero-symbiotes",
       "idle-harvest",
       "shards-economy",
       "collection",
@@ -1474,6 +1479,31 @@
       "sealed": false,
       "entries": [
         {
+          "cat": "Gameplay",
+          "text": "New system: Hero Symbiotes",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: More Symbiote Than Champion",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The Body Sings",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Complete Hero Adaptation",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: The First Graft",
+          "major": true
+        },
+        {
           "cat": "Heroes",
           "text": "New hero: Cinderwyrm",
           "major": true
@@ -2017,6 +2047,10 @@
         {
           "cat": "Heroes",
           "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen"
+        },
+        {
+          "cat": "Heroes",
+          "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)"
         }
       ]
     }
@@ -2995,6 +3029,30 @@
       "date": "2026-07-11",
       "cat": "Heroes",
       "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "2c81c9421072bc0c918c39a0c23c5a2bf5fa468e",
+      "date": "2026-07-11",
+      "cat": "Framework",
+      "text": "Set contact email to the game's dedicated address",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "1d7fca5992cf305e5a11026cf367c996381603bc",
+      "date": "2026-07-11",
+      "cat": "Developer Tools",
+      "text": "Fix release tooling drift: legal pages moved to public/{terms,privacy}",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9127c882fac0f36d38af4ade936012d3c2fe5e5b",
+      "date": "2026-07-11",
+      "cat": "Heroes",
+      "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)",
       "internal": false,
       "needsReview": false
     }

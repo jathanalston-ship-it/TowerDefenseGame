@@ -11,6 +11,31 @@ export const RELEASES: Release[] = [
     "sealed": false,
     "entries": [
       {
+        "cat": "Gameplay",
+        "text": "New system: Hero Symbiotes",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: More Symbiote Than Champion",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The Body Sings",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Complete Hero Adaptation",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: The First Graft",
+        "major": true
+      },
+      {
         "cat": "Heroes",
         "text": "New hero: Cinderwyrm",
         "major": true
@@ -554,6 +579,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Merge follow-up: seven-hero roster docs/pins + chronicle/site regen"
+      },
+      {
+        "cat": "Heroes",
+        "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)"
       }
     ]
   },

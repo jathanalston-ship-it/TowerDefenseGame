@@ -3,7 +3,21 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-07-09 (**MULLIGAN PRESENTATION OVERHAUL** — the Mulligan Lab
+> **Last updated:** 2026-07-11 (**HERO SYMBIOTE SYSTEM** — the champion wing of the
+> Mulligan pillar, docs/HERO-SYMBIOTES.md: every hero hosts 3 gated slots × 3 organ seats
+> from a 36-species catalog (behavior-verb kit, structurally unable to duplicate Hero
+> Equipment stats); per-slot Complete Hero Adaptations; category-census Resonance; per-hero
+> identity trials + Ichor (`HERO_SYMBIOTE_GATES`, typed complete over HeroKind); staged
+> visual mutation (`render/heroSymbiotes.ts`) + Hero Lab Symbiote Chamber console + live
+> portrait preview; save **v41** `heroSymbiotes`; NEW hero killing-blow credit
+> (`Enemy.lastHitHero` → lifetime `heroKills` — previously never accrued); Power via the
+> mulligans bucket ×`accountSymbiotePower`; genome source, 4 collection codices, 4
+> achievements. Suite 1943, validate PASS, mobilecheck CLEAN, live combat probe PASS
+> (all 11 verbs), goldens byte-identical. Earlier same-day: DRACONIC content (Cinderwyrm
+> swoop hero + Wyrmwing Glaive 'arc' + Drake Roost 'summon', pushed 7f2c837).
+> Previous session below.)
+>
+> **2026-07-09** (**MULLIGAN PRESENTATION OVERHAUL** — the Mulligan Lab
 > rebuilt to the design language (token-driven `.mgl-*`; host rail → live graft-chamber
 > showcase → Power-previewed graft sites → category-filterable modifier library; auto-armed
 > first empty site; DPR/reduced-motion-aware preview canvas); `MULLIGAN_RARITY` colors now

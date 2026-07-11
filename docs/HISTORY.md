@@ -132,3 +132,6 @@
 - `92e3d1d` **[Heroes]** New hero: the Knell — Resonant amplification conductor, gated on the first Molt
 - `3eb6831` **[Heroes]** Draconic content: Cinderwyrm hero (swoop brain), Wyrmwing Glaive (arc), Drake Roost (hero-AI brood)
 - `7f2c837` **[Heroes]** Merge follow-up: seven-hero roster docs/pins + chronicle/site regen
+- ⚑ `2c81c94` **[Framework]** Set contact email to the game's dedicated address _(internal)_
+- `1d7fca5` **[Developer Tools]** Fix release tooling drift: legal pages moved to public/{terms,privacy} _(internal)_
+- `9127c88` **[Heroes]** Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)

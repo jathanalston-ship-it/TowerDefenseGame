@@ -4,86 +4,106 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-11 01:45 UTC · **Diff scope:** HEAD~1...HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 46fae24
+- **Generated:** 2026-07-11 22:06 UTC · **Diff scope:** session (draconic follow-up → 9127c88 + chronicle/site regen)
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 9127c88
 
 ## Summary of work completed
 
-Shipped **Gene Card Transcendence** (docs/GENE-EVOLUTION.md §Transcendence) — the late-game
-Essence sink: a card at max level buys a permanent SECOND effect line from a per-archetype pool
-(`src/core/geneTranscend.ts`, all nine categories, zero per-card code; `CardDef.transcendOptions`
-overrides). Cost = rarity base × `ESSENCE_COST.transcendMult` (120); choice permanent, re-choice
-full price. The fold rides `effectiveGeneEffects` 4th arg + `RunOptions.geneTranscends` — no new
-seam, untranscended saves byte-identical. Five previously-unscored RunModifiers fields became
-scored Power axes (they are now permanent): mortarPoolDurationMult / corrosionSlowBonus /
-killFractureSplash / bonusTowerSlots / integrityRegenPerWave — validate.ts errors on a
-Power-invisible family option. **The one thing to know:** transcend options must never use
-boot-only fields (startBiomassBonus/integrityMult/heroMaxHpMult — dead on mid-run draft);
-cardProblems + the geneTranscend tests enforce it.
+Shipped the **HERO SYMBIOTE SYSTEM** (9127c88, docs/HERO-SYMBIOTES.md) — the champion wing of
+the Mulligan pillar: every hero hosts 3 gated slots × 3 organ seats from a 36-species catalog;
+the kit is BEHAVIOR VERBS only (structurally unable to duplicate Hero Equipment stats), with
+per-slot Complete Hero Adaptations, category-census Resonance, per-hero identity trials (Ichor),
+staged visual mutation, and full Power/Genome/Collections/achievements recognition. The one thing
+the next session must know: **hero KILLING-BLOW credit now exists** (`Enemy.lastHitHero` →
+`heroMasteryAccrual[].kills` → lifetime `save.heroKills`) — it was previously never incremented,
+the symbiote gates read it, and the kill verbs trigger from it. Save schema bumped to **v41**
+(`heroSymbiotes`). Rebased over upstream legal/contact commits before pushing; suite re-verified.
 
 ## Files modified
 
-- Source (1): `src/changelog/releases.gen.ts`
-- Tests (0): —
-- Docs (5): `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-07-11.md`
+- New core/render/UI: `src/core/heroSymbiote.ts`(+test), `src/render/heroSymbiotes.ts`(+test),
+  `src/ui/SymbioteChamber.tsx`, `docs/HERO-SYMBIOTES.md`
+- Seams: `src/core/types.ts` (HeroSymbioteKit, HeroMods.symbiote, Enemy.lastHitHero, Hero.echo*),
+  `src/core/game.ts` (foldHeroSymbiotes + 10 presence-gated reads + castHeroEcho + kill credit),
+  `src/core/config.ts` (SYMBIOTE tunables), `src/state/meta.ts` (fold + 7 actions/selectors +
+  power + genome + collection ctx), `src/save/saveStore.ts` (v41) + envelope/devReset,
+  `src/core/genomeRank.ts`, `src/core/collection.ts`, `src/state/achievements.ts`,
+  `src/security/registry.ts`, `src/state/heroView.ts`, `src/ui/HeroLab.tsx`,
+  `src/ui/components/HeroPortrait.tsx`, `src/ui/GameView.tsx`, `src/render/renderer.ts`
+- Governance: systemRegistry (`hero-symbiotes`), DIL knowledge edges, DEPENDENCY_GRAPH/DIL_GRAPH
+  regen, GAME-STATE/HEROES/PROJECT_MANIFEST sections, chronicle + site regen
 
 ## Systems affected (from the dependency registry)
 
-- **chronicle** — `src/changelog/releases.gen.ts`
+- **hero-symbiotes** (new) — depends on mulligans/heroes/content-infra/power/meta-store/genome-rank
+- **heroes**, **engine**, **power**, **collection**, **genome-rank**, **achievements**,
+  **meta-store** (save v41), **chronicle**
 
 ## Power Score changes
 
-None — no Power-relevant system touched.
+`accountSymbiotePower` multiplies the **mulligans** PowerParts bucket (pillar precedent:
+`nucleusPower`); exactly ×1 while no slot is complete ⇒ POWER_BASE preserved. Organ powerWeights
+mirror Mulligan magnitudes; adaptations +6%/+2.5%, resonance +6%. announcePower fires on
+upgrade/seat actions.
 
 ## UI changes
 
-Surfaces in the blast radius: `App (UpdateBriefing popup)`
-
-Gene Archive: card detail gained the ❂ TRANSCEND panel (locked anticipation copy below max
-level, option picker with effect previews, two-step confirm stating permanence/full-price
-re-choice), grid tiles show mythic-tier `is-transcended` chrome + ❂ TRANSCENDED / ❂ TRANSCEND
-READY status lines, summary shows a transcended count, help gained a Transcendence row. Verified
-by a live headless smoke (scratch probe): seeded maxed card → real UI transcend flow → control
-run ×1.2968 vs transcended run ×1.4005 (exactly ×1.08).
+Hero Lab gains the **Symbiote Chamber** section (slot cards with trial checklists + two-step
+Ichor confirm, organ conservatory, recommendation line — reuses the Nucleus `ncl-*` console
+primitives), a Symbiosis chip in the stat strip, and the portrait now overlays the LIVE in-run
+graft layer (`drawHeroSymbiotes` on a canvas). mobilecheck: CLEAN across all four viewports.
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`
-
-docs/CHANGELOG-PIPELINE.md — no change needed (pipeline unchanged; ledger re-anchored after the
-rebase, a documented recovery). Updated: docs/GENE-EVOLUTION.md (§Transcendence + tier-2 hook),
-docs/GAME-STATE.md (gene section + compressed summary), DEPENDENCY/DIL graphs regenerated.
+`docs/HERO-SYMBIOTES.md` (new, canonical) · HEROES.md §symbiotes pointer · GAME-STATE.md system
+block + `CURRENT_VERSION = 41` anchor · PROJECT_MANIFEST.md §Hero Symbiotes + index ·
+DEPENDENCY_GRAPH/DIL_GRAPH regenerated · docs/CHANGELOG-PIPELINE.md: no change needed (chronicle
+ran normally; 1 pre-existing upstream commit remains ⚑-flagged in HISTORY.md, not this session's).
 
 ## Save changes
 
-None — save layer untouched.
+**v40 → v41**: `heroSymbiotes: Partial<Record<HeroKind, HeroSymbioteState>>` (sparse; per-host
+`unlocked/slots/grown/adapted/resonated/evolved`). Additive: `withDefaults` seeds `{}`,
+`sanitizeHeroSymbiotes` drops unknown kinds/ids, clamps levels, enforces per-host seat
+exclusivity. Envelope `heroes` module + devReset `heroes` scope carry it; conflict merge keeps
+the primary side (nucleus parity).
 
 ## Known edge cases
 
-- The shared branch stays HOT: this batch rebased across Molt Vows + chassis identity + Hive
-  Construction (save v36). Conflicts were only generated files (graphs via `--theirs` + regen;
-  chronicle by skipping the notes commit and re-running `npm run notes` after re-anchoring
-  `changelog/ledger.json.lastSha` to the last upstream notes commit).
-- `npm run notes` updates `site/patchnotes.json` ⇒ `npm run site` must follow or
-  site/gen.test.ts fails on public/ drift.
-- Headless probes: the LoadoutBar unequip button's text is ✕ — a naive overlay-dismiss helper
-  clicks it and silently unequips the loadout (cost an hour of probe debugging).
+- Hero kill credit lands on KILLING BLOWS from the strike/ability paths only — deferred
+  projectiles (Vitriol siege shells, symbiote splinters) carry no hero source, matching the
+  pre-existing damage-credit semantics. Gate kill thresholds were tuned to that reality.
+- `foldHeroEquip` early-returns on gear-less rosters — symbiote strike verbs therefore fold in
+  their OWN pass (`foldHeroSymbiotes`, called after it). Do not move that call before pass 2:
+  the gear clones would clobber the lists.
+- The echo re-cast (`castHeroEcho`) deliberately skips the crit roll, relic hooks, tutorial
+  events, and repositioning — keep it that way or the golden rng/count contracts drift.
+- `heroStatuses`/`heroKits` maps are cloned-from-globals on first symbiote/gear touch; a hero
+  with BOTH gear and symbiotes appends symbiote verbs onto its gear clone (ordering matters).
 
 ## Remaining technical debt
 
-None new. Observed: run-level assertions in probes should be differential (account-level
-bonuses like the under-powered consolation ride every run and break absolute expectations).
+- Slot II/III gate thresholds (kills/mastery/stage) are first-pass calibrations — run the
+  persona simulator over them next balance pass (heroKills accrual is brand-new, so no
+  historical data existed to calibrate against).
+- The Symbiote Chamber reuses `ncl-*` CSS wholesale; if the Nucleus console is ever reskinned,
+  split the shared classes into a named console primitive first.
+- Mechanics/help has no dedicated symbiote teach row yet (the chamber is self-describing; add a
+  row when the next teach-coverage pass runs).
 
 ## Recommended next tasks
 
-1. Transcendence tier 2 when the economy needs a deeper sink: `transcend2?` on GeneCardSave +
-   `transcendMult2` in ESSENCE_COST + a second resolver pass in `src/core/geneTranscend.ts`
-   (all seams documented in the module header).
-2. Consider a '❂ Transcendable' Archive filter chip once players hold several maxed cards
-   (`GeneFilter` union in `src/ui/GeneArchive.tsx`).
+1. Persona-simulator pass over `HERO_SYMBIOTE_GATES` thresholds (entry: scripts/ + core/heroSymbiote.ts gate book).
+2. Mechanics registry teach row + Help wiki entry for symbiotes (entry: state/mechanics.ts).
+3. Consider surfacing symbiote next-steps in the Next-Goal engine (entry: state/nextGoal read of
+   `meta.heroSymbioteGate` rows).
 
 ## Future expansion hooks
 
-- `src/core/geneTranscend.ts` — `transcend2` second-tier hook (header comment).
-- `CardDef.transcendOptions` (src/core/cards.ts) — per-card override pool, validated by
-  cardProblems; no card uses it yet (family pools cover all 102).
+- New organ = one `symbioteRegistry` row (`core/heroSymbiote.ts` — validator enforces the cell
+  coverage + no-stat-dupe contract).
+- New verb = one optional `HeroSymbioteKit` field (`core/types.ts`) + one presence-gated seam
+  read in `core/game.ts` (see the DIL edge `hero-symbiotes modifies engine` for the seam map).
+- New hero = its `HERO_SYMBIOTE_GATES` pair (compiler-enforced) + `HERO_SYMBIOTE_VISUALS` stages
+  (test-enforced).
+- Fourth slot / new resonances = data (`SYMBIOTE_SLOTS`, `SYMBIOTE_RESONANCES` census table).
