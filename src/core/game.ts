@@ -134,7 +134,8 @@ export type RunMode = 'stage' | 'endless' | 'campaign' | 'bossRush' | 'daily';
 
 /** Options a run can boot with. */
 export interface RunOptions {
-  runEffects?: CardEffect[]; // run-start effects folded into the R-bucket (e.g. equipment)
+  runEffects?: CardEffect[];
+  nucleusEffects?: CardEffect[]; // resolved Nucleus chamber organs (docs/NUCLEUS.md) — boot fold; empty/omitted ⇒ byte-identical // run-start effects folded into the R-bucket (e.g. equipment)
   mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage; 'bossRush' = escalating boss gauntlet (docs/BOSS-RUSH.md); 'daily' = the day's shared challenge (docs/DAILY-RUN.md)
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
@@ -729,6 +730,10 @@ export class Game {
     // 'none' / no gear contribute nothing, so a default run stays byte-identical.
     for (const e of resolveDoctrine(opts.doctrine).effects) this.bootRunEffect(e);
     if (opts.runEffects) for (const e of opts.runEffects) this.bootRunEffect(e);
+    // Nucleus Mulligans (docs/NUCLEUS.md) — the Hive's own organ chambers fold HERE, before
+    // integrity/biomass/heroes consume the mods (boot-only fields like integrityMult land).
+    // Omitted/empty ⇒ nothing happens (the golden run is byte-identical).
+    if (opts.nucleusEffects) for (const e of opts.nucleusEffects) this.bootRunEffect(e);
     // Daily modifiers — boot-time folds into the SAME run buckets doctrine/gear use (×1 neutral ⇒
     // byte-identical without them). Per-tick knobs (drain/regen/armor/speed/elites/costs/cadence)
     // are read at their hooks from this.dailyFx.

@@ -70,6 +70,11 @@ import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
 import { MULLIGAN_GATE_MEGAS, MULLIGAN_RARITY, MULLIGAN_SLOTS, accountMulliganPower, adaptationOf, ascendCost, emptyMulligan, identityMulligan, isMaxLevel, isMulliganActive, makeSlot, modifierHost, mulliganRegistry, nextRarity, rarityAtLeast, reforgeSlotCount, resolveMulligan, rollRarity, seedFor, upgradeCost as mulliganUpgradeCost } from '../core/mulligan';
+import {
+  NUCLEUS_CHAMBERS, chamberAdaptation, isChamberActive, nucleusGateProgress, nucleusPower,
+  nucleusRegistry, organChamber, organGrowCost, organLevelCap, organUpgradeCost, resolveNucleus,
+} from '../core/nucleus';
+import type { NucleusGateSnapshot, NucleusGateProgress, ResolvedNucleus, NucleusState } from '../core/nucleus';
 import { REFORGE_RARITY, reforgeCost as mulliganReforgeCost, reforgeModById, rollReforgeMod } from '../core/mulliganReforge';
 import { exchangeWindow, msToExchangeRefresh, rollExchange } from '../core/ichorExchange';
 import type { ExchangeOffer } from '../core/ichorExchange';
@@ -463,6 +468,8 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     questCompletions: save.quests.questCompletions,
     missionsDone: new Set(save.quests.missionsDone),
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
+    nucleusGrown: Object.fromEntries(Object.entries(save.nucleus?.grown ?? {}).map(([id, g]) => [id, g.level])),
+    nucleusAdapted: new Set(save.nucleus?.adapted ?? []),
   };
 }
 
@@ -830,7 +837,9 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     collection: collectionView(collectionContextOf(save)).power,
     // Mulligan organisms (docs/MULLIGANS.md) — a dedicated, separately-inspectable bucket. Each
     // tower's Mulligan is 1 until all three slots are filled ⇒ 1 on a fresh account ⇒ POWER_BASE.
-    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => [save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)),
+    // × the Nucleus's own organism (docs/NUCLEUS.md) — same pillar, same bucket; exactly 1
+    // while no chamber is complete, so a fresh account still reads POWER_BASE.
+    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => [save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) * nucleusPower(save.nucleus),
     temporary,
   };
 }
@@ -3800,6 +3809,123 @@ export const meta = {
     return true;
   },
 
+  // ── Nucleus Mulligans (docs/NUCLEUS.md) — the Hive Nucleus's own organ system. Organs are
+  //    GROWN with Gene Essence (permanent dex), slotted into unlocked CHAMBERS (exclusive), and
+  //    chambers 2/3 open through the data-driven NUCLEUS_GATES trials. ──
+
+  /** The raw Nucleus state (read-only view of save.nucleus). */
+  nucleus(): NucleusState {
+    return store.get().nucleus;
+  },
+  /** The resolved Nucleus — boot effects, Power, mutations, adaptations (identity while empty). */
+  nucleusResolved(): ResolvedNucleus {
+    return resolveNucleus(store.get().nucleus);
+  },
+  /** The run-boot effect list (RunOptions.nucleusEffects). Empty ⇒ byte-identical golden run. */
+  nucleusEffects() {
+    return resolveNucleus(store.get().nucleus).effects;
+  },
+  /** The live snapshot NUCLEUS_GATES evaluate against (UI + the unlock action share it). */
+  nucleusGateSnapshot(): NucleusGateSnapshot {
+    const save = store.get();
+    const g = meta.genomeSnapshot();
+    return {
+      campaignStage: g.campaignStage,
+      genomeRankTier: rankFromRating(genomeRating(g)).index,
+      powerScore: g.powerScore,
+      megasSlain: save.megaProgress.slain.length,
+      rushBestBoss: g.rushBestBoss,
+      mulligansActive: TOWER_ORDER.filter((k) => isMulliganActive(save.mulligans?.[k])).length,
+      masteryLevels: g.masteryLevels,
+      molts: g.molts,
+      dailyCompletions: g.dailyCompletions,
+      collectionPct: g.collectionCompletion,
+      ichor: save.ichor,
+    };
+  },
+  /** A chamber gate's live progress rows (null for chamber 1 — born open). */
+  nucleusGate(chamber: number): NucleusGateProgress | null {
+    return nucleusGateProgress(chamber, meta.nucleusGateSnapshot());
+  },
+  /** GROW an organ — the permanent Gene Essence sink. Idempotent per organ (already grown ⇒ false). */
+  growNucleusOrgan(id: string): boolean {
+    if (!guardOk('nucleus.grow', id)) return false;
+    const save = store.get();
+    const def = nucleusRegistry.get(id);
+    if (!def) return false;
+    if (save.nucleus.grown[id]) return false; // already grown
+    const cost = organGrowCost(def);
+    if (save.geneEssence < cost) return false;
+    persist(foldAccountXp({
+      ...save,
+      geneEssence: save.geneEssence - cost,
+      nucleus: { ...save.nucleus, grown: { ...save.nucleus.grown, [id]: { level: 1 } } },
+    }, ACCOUNT_XP.acquisition).save);
+    return true;
+  },
+  /** Level a grown organ (Gene Essence). Moves Power at once when its chamber is active. */
+  upgradeNucleusOrgan(id: string): boolean {
+    if (!guardOk('nucleus.grow', `up:${id}`)) return false;
+    const save = store.get();
+    const def = nucleusRegistry.get(id);
+    const cur = save.nucleus.grown[id];
+    if (!def || !cur) return false;
+    if (cur.level >= organLevelCap(def)) return false;
+    const cost = organUpgradeCost(def, cur.level);
+    if (save.geneEssence < cost) return false;
+    const powerBefore = meta.power().score;
+    const hosted = organChamber(save.nucleus, id) !== null && isChamberActive(save.nucleus, organChamber(save.nucleus, id)!);
+    persist({
+      ...save,
+      geneEssence: save.geneEssence - cost,
+      nucleus: { ...save.nucleus, grown: { ...save.nucleus.grown, [id]: { level: cur.level + 1 } } },
+    });
+    announcePower(`${def.name} — Nucleus organ level ${cur.level + 1}`, powerBefore, meta.power().score, hosted);
+    return true;
+  },
+  /** Slot a grown organ into an unlocked chamber (null clears). MOVE semantics — an organ lives
+   *  in ONE chamber slot; slotting it elsewhere vacates its old seat (§exclusivity). */
+  setNucleusSlot(chamber: number, slot: number, organId: string | null): boolean {
+    if (!guardOk('nucleus.slot', `${chamber}:${slot}:${organId ?? '-'}`)) return false;
+    const save = store.get();
+    if (chamber < 0 || chamber >= save.nucleus.unlocked) return false;
+    if (slot < 0 || slot >= (save.nucleus.chambers[chamber]?.length ?? 0)) return false;
+    if (organId !== null && (!nucleusRegistry.has(organId) || !save.nucleus.grown[organId])) return false;
+    const powerBefore = meta.power().score;
+    const chambers = save.nucleus.chambers.map((row) => row.slice());
+    if (organId !== null) {
+      for (const row of chambers) {
+        for (let i = 0; i < row.length; i++) if (row[i] === organId) row[i] = null; // vacate the old seat
+      }
+    }
+    chambers[chamber][slot] = organId;
+    const nucleusNext = { ...save.nucleus, chambers };
+    // Chronicle a COMPLETED full adaptation into the lifetime ledger (the Adaptation codex —
+    // re-slotting later never confiscates the credit).
+    const a = chamberAdaptation(nucleusNext, chamber);
+    if (a?.tier === 'full' && !(nucleusNext.adapted ?? []).includes(a.cls)) {
+      nucleusNext.adapted = [...(nucleusNext.adapted ?? []), a.cls];
+    }
+    persist({ ...save, nucleus: nucleusNext });
+    // Completing (or breaking) a chamber legitimately moves Power either way — no gain expectation.
+    announcePower('Nucleus chamber reconfigured', powerBefore, meta.power().score, false);
+    return true;
+  },
+  /** Open the NEXT chamber once its trial is met (chamber 3 also pays its Ichor price). */
+  unlockNucleusChamber(chamber: number): boolean {
+    if (!guardOk('nucleus.unlock', String(chamber))) return false;
+    const save = store.get();
+    if (chamber !== save.nucleus.unlocked + 1 || chamber > NUCLEUS_CHAMBERS) return false; // sequential
+    const gate = nucleusGateProgress(chamber, meta.nucleusGateSnapshot());
+    if (!gate || !gate.ready) return false;
+    persist(foldAccountXp({
+      ...save,
+      ichor: save.ichor - gate.gate.ichorCost,
+      nucleus: { ...save.nucleus, unlocked: chamber },
+    }, ACCOUNT_XP.acquisition).save);
+    return true;
+  },
+
   // ── Mulligan system (docs/MULLIGANS.md) — the per-tower biomechanical organism. All mutations go
   //    through the save; a Mulligan does nothing until all three slots are filled (resolveMulligan). ──
 
@@ -5304,6 +5430,11 @@ export const meta = {
       towerStarRatio: sumRec(save.towerStars) / (towers * 10), // 10 = the evolution design target
       strainRatio: sumRec(save.stats.towerBestStrain) / (towers * 5),
       mulliganRatio: (assembled + adapted) / (towers * 2),
+      nucleusRatio: (() => {
+        let active = 0;
+        for (let c = 0; c < NUCLEUS_CHAMBERS; c++) if (isChamberActive(save.nucleus, c)) active++;
+        return (active + Math.min(NUCLEUS_CHAMBERS, (save.nucleus.adapted ?? []).length)) / (NUCLEUS_CHAMBERS * 2);
+      })(),
       heroRatio: (save.heroUnlocked.length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
       gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,
       geneRatio: (save.stats.uniqueCards.length / cards + Math.min(1, geneLevels / (cards * 3))) / 2,

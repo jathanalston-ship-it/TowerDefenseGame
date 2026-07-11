@@ -29,7 +29,7 @@ export interface SaveModuleDef {
 export const SAVE_MODULES: readonly SaveModuleDef[] = [
   { id: 'profile', fields: ['profileName', 'profileFrame', 'createdAt', 'unlockedTitles', 'equippedTitle', 'timeline'] },
   { id: 'wallet', fields: ['shards', 'lifetimeShards', 'ichor', 'lifetimeIchor', 'mats', 'matPity', 'geneEssence'] },
-  { id: 'progression', fields: ['upgrades', 'prestige', 'research', 'expeditions', 'infestation', 'adaptation', 'antigen', 'mulligans', 'mulliganDex'] },
+  { id: 'progression', fields: ['upgrades', 'prestige', 'research', 'expeditions', 'infestation', 'adaptation', 'antigen', 'mulligans', 'mulliganDex', 'nucleus'] },
   { id: 'towers', fields: ['towerShards', 'towerStars', 'towerForks', 'towerMasteryXp', 'towerKills', 'towerUnlocked', 'favoriteTower'] },
   { id: 'heroes', fields: ['heroShards', 'heroStars', 'heroForks', 'heroMasteryXp', 'heroKills', 'selectedHero', 'heroLoadout', 'heroUnlocked', 'heroFavEquip'] },
   { id: 'equipment', fields: ['equipment', 'lastSalvage'] },

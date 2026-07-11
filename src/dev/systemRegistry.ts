@@ -187,6 +187,14 @@ export const SYSTEMS: SystemDef[] = [
     docs: ['docs/GENE-EVOLUTION.md', 'docs/CARDS.md', 'docs/GENE-AUDIT-REPORT.md'],
   },
   {
+    id: 'nucleus', name: 'Nucleus Mulligans', purpose: 'The Hive Nucleus\u2019s own organ system: 3 chambers \u00d7 3 support organs, class adaptations, visible Hive mutations, multi-system chamber trials.',
+    files: ['src/core/nucleus.ts', 'src/render/nucleusDress.ts', 'src/ui/NucleusChambers.tsx'],
+    dependsOn: ['mulligans', 'content-infra', 'power', 'meta-store', 'genome-rank'], powerScore: 'nucleusPower multiplies the mulligans PowerParts bucket (\u00d71 while no chamber is complete); organs are SUPPORT-only \u2014 towerDamageMult is registry-banned', save: ['nucleus'],
+    tutorial: [], help: ['nucleus'], hud: ['in-run Nucleus mutations (drawBase)'],
+    ui: ['MulliganLab (NucleusChambers console)'], collection: 'nucleusOrgans + nucleusAdaptations categories', achievements: ['nucleus_awake', 'nucleus_adapted', 'nucleus_sovereign'],
+    localization: 'inline-en', docs: ['docs/NUCLEUS.md'],
+  },
+  {
     id: 'shards-economy', name: 'Shards & Star Economy', purpose: 'Strain Samples / Apex Genome income + star cost curves + duplicate→Essence conversion seam.',
     files: [],
     dependsOn: ['loot'], powerScore: 'stars bought with shards move the permanent bucket', save: ['shards', 'lifetimeShards'],

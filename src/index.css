@@ -9985,6 +9985,76 @@ kbd {
 .insp-mg-adapt.is-full { color: var(--cc); font-weight: 700; }
 .insp-mg-adapt b { color: var(--cc); }
 
+/* ── NUCLEUS CHAMBERS (docs/NUCLEUS.md §UI) — the Hive's own graft console ── */
+.ncl { display: flex; flex-direction: column; gap: 12px; padding: 12px 14px; margin-bottom: 14px; border-radius: var(--r-md); background: linear-gradient(160deg, rgba(255, 122, 89, 0.05), rgba(0, 0, 0, 0.22)); border: 1px solid color-mix(in srgb, var(--vital, #ff7a59) 25%, var(--line)); }
+.ncl-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.ncl-title { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 16px; font-weight: 800; color: var(--vital, #ff7a59); }
+.ncl-sub { font-size: 12px; color: var(--muted); max-width: 560px; line-height: 1.45; margin-top: 2px; }
+.ncl-vitals { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ncl-preview { border-radius: var(--r-md); background: radial-gradient(circle at 50% 45%, rgba(255, 138, 122, 0.08), rgba(0, 0, 0, 0.35)); border: 1px solid var(--line); }
+.ncl-pow { font-size: 11px; color: var(--muted); } .ncl-pow b { color: var(--gold); }
+.ncl-chambers { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.ncl-chamber { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: var(--r-md); background: var(--panel-2); border: 1px solid var(--line); }
+.ncl-chamber.is-active { border-color: color-mix(in srgb, var(--vital, #ff7a59) 55%, var(--line)); box-shadow: 0 0 14px color-mix(in srgb, var(--vital, #ff7a59) 18%, transparent); }
+.ncl-chamber.is-adapted { box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent), 0 0 16px color-mix(in srgb, var(--gold) 20%, transparent); }
+.ncl-chamber.is-locked { background: rgba(0, 0, 0, 0.25); border-style: dashed; }
+.ncl-chamber-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ncl-chamber-name { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+.ncl-chamber-state { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
+.ncl-chamber-state.on { color: var(--success); font-weight: 800; }
+.ncl-sockets { display: flex; flex-direction: column; gap: 6px; }
+.ncl-socket { display: flex; align-items: stretch; gap: 0; border-radius: var(--r-sm); }
+.ncl-socket.is-empty { padding: 9px 10px; border: 1px dashed var(--line-strong); background: rgba(255, 255, 255, 0.03); font-size: 11px; color: var(--muted); }
+.ncl-socket.is-empty.is-arming { border-color: var(--vital, #ff7a59); color: var(--text); }
+.ncl-socket.is-filled { border: 1px solid color-mix(in srgb, var(--rc) 45%, var(--line)); background: color-mix(in srgb, var(--cc) 7%, var(--panel-2)); overflow: hidden; }
+.ncl-socket-body { flex: 1; display: flex; align-items: center; gap: 7px; padding: 7px 9px; min-width: 0; text-align: left; }
+.ncl-socket-glyph { color: var(--cc); font-size: 13px; flex: none; }
+.ncl-socket-name { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ncl-socket-lvl { margin-left: auto; font-size: 10px; color: var(--rc); font-weight: 800; }
+.ncl-socket-x { flex: none; width: 26px; background: rgba(0, 0, 0, 0.25); color: var(--muted); font-size: 11px; }
+.ncl-socket-x:hover { color: var(--text); }
+.ncl-adapt { font-size: 11px; padding: 7px 9px; border-radius: var(--r-sm); border: 1px solid color-mix(in srgb, var(--cc) 45%, var(--line)); background: color-mix(in srgb, var(--cc) 8%, transparent); display: flex; flex-direction: column; gap: 2px; }
+.ncl-adapt b { color: var(--cc); }
+.ncl-adapt.is-full { box-shadow: 0 0 10px color-mix(in srgb, var(--cc) 25%, transparent); }
+.ncl-adapt span { color: var(--muted); }
+.ncl-adapt-hint { font-size: 10px; color: var(--muted); }
+.ncl-gate-title { font-size: 13px; font-weight: 900; letter-spacing: 0.16em; color: var(--vital, #ff7a59); }
+.ncl-gate-blurb { font-size: 11px; color: var(--muted); line-height: 1.45; margin: 0; }
+.ncl-gate-reqs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
+.ncl-gate-reqs li { color: var(--kinetic); display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.ncl-gate-reqs li.is-met { color: var(--success); }
+.ncl-gate-reqs li span { color: var(--muted); }
+.ncl-gate-btn { padding: 8px 12px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); color: var(--muted); }
+.ncl-gate-btn.is-ready { background: color-mix(in srgb, var(--vital, #ff7a59) 22%, transparent); border-color: var(--vital, #ff7a59); color: var(--text); animation: pulse 1.8s ease-in-out infinite; }
+.ncl-gate-confirm { display: flex; flex-direction: column; gap: 8px; padding: 9px 10px; border-radius: var(--r-sm); background: rgba(0, 0, 0, 0.3); border: 1px solid color-mix(in srgb, var(--vital, #ff7a59) 40%, var(--line)); font-size: 11px; color: var(--muted); }
+.ncl-gate-confirm b { color: var(--text); }
+.ncl-gate-confirm-row { display: flex; justify-content: flex-end; gap: 8px; }
+.ncl-gate-confirm-row button { padding: 6px 12px; border-radius: var(--r-sm); font-size: 11px; }
+.ncl-gate-go { background: color-mix(in srgb, var(--vital, #ff7a59) 24%, transparent); border: 1px solid var(--vital, #ff7a59); color: var(--text); font-weight: 800; }
+.ncl-shelf-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ncl-shelf-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.ncl-cats { display: flex; gap: 5px; }
+.ncl-cat { padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+.ncl-cat.on { border-color: var(--vital, #ff7a59); color: var(--vital, #ff7a59); background: color-mix(in srgb, var(--vital, #ff7a59) 10%, transparent); }
+.ncl-wallet { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text); }
+.ncl-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.ncl-shelf.is-arming .ncl-organ.is-grown { outline: 1px dashed var(--vital, #ff7a59); cursor: copy; }
+.ncl-organ { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--rc) 30%, var(--line)); }
+.ncl-organ:not(.is-grown) { opacity: 0.75; }
+.ncl-organ-h { display: flex; align-items: center; gap: 6px; }
+.ncl-organ-glyph { color: var(--cc); flex: none; }
+.ncl-organ-name { font-size: 12px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ncl-organ-rarity { margin-left: auto; font-size: 10px; font-weight: 800; color: var(--rc); text-transform: uppercase; letter-spacing: 0.06em; flex: none; }
+.ncl-organ-desc { font-size: 11px; color: var(--muted); line-height: 1.4; min-height: 30px; }
+.ncl-organ-meta { display: flex; gap: 8px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.ncl-organ-host { color: var(--vital, #ff7a59); font-weight: 700; }
+.ncl-organ-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ncl-grow, .ncl-levelup { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: var(--r-sm); font-size: 11px; font-weight: 700; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); }
+.ncl-grow:not(:disabled) { border-color: color-mix(in srgb, var(--success) 50%, var(--line)); color: var(--success); }
+.ncl-slotin { padding: 5px 10px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; }
+.ncl-maxed { font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.06em; }
+@media (max-width: 560px) { .ncl-head { flex-direction: column; } .ncl-vitals { align-self: center; } }
+
 /* ── Mulligan gate (§gate) — the sealed-wing briefing ── */
 .mgl-gate { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 36px 20px; text-align: center; }
 .mgl-gate-glyph { font-size: 58px; color: var(--viral); opacity: 0.85; animation: mgl-gate-pulse 3.2s ease-in-out infinite; }

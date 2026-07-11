@@ -28,6 +28,8 @@ import { sanitizeGeneSave } from '../core/geneCards';
 import { sanitizeGeneLoadout, sanitizeGeneSlots } from '../core/geneLoadout';
 import type { GeneSave } from '../core/geneCards';
 import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
+import { emptyNucleus, sanitizeNucleus } from '../core/nucleus';
+import type { NucleusState } from '../core/nucleus';
 import { reforgeModById } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mulligan';
 import { starterItems, wardrobeItem, wardrobeMilestone, WARDROBE_KINDS } from '../core/wardrobe';
@@ -241,6 +243,12 @@ export interface SaveData {
   //    All additive: pre-v26 saves default empty Mulligans + empty dex. ──
   mulligans: Record<TowerKind, MulliganState>;
   mulliganDex: Record<string, MulliganRarity>; // modifier id → highest rarity discovered (equip ceiling)
+  // ── Nucleus Mulligans (schema v37, docs/NUCLEUS.md) — the Hive Nucleus's OWN organ system: up
+  //    to three CHAMBERS, each a three-organ Mulligan triple. `grown` is the permanent organ dex
+  //    (Gene Essence sink); chambers reference grown organs (exclusive). Chamber 1 is born open;
+  //    2 and 3 open through NUCLEUS_GATES. Everything empty ⇒ resolveNucleus is identity
+  //    (golden-safe). All additive: pre-v37 saves default to emptyNucleus(). ──
+  nucleus: NucleusState;
   // ── Wardrobe (v31, docs/COSMETICS.md §wardrobe) — account cosmetics beyond unit Phenotypes:
   //    owned item ids (starter rows seeded on load), ONE equipped id per kind ({} = classic
   //    look everywhere ⇒ golden-safe), favorites + seen (NEW badges), claimed cosmetic
@@ -356,8 +364,10 @@ export interface TutorialSave {
 // the next Molt). Additive inside the prestige blob — withDefaults deep-fills, sanitize caps.
 // v35→v36: Hive Construction (docs/HIVE-CONSTRUCTION.md) — `hive.built` (organ id → tier):
 // the active base-building ledger; fixtures/QoL only, never Power.
+// v36→v37: Nucleus Mulligans (docs/NUCLEUS.md) — `nucleus` (chambers/grown/unlocked): the
+// Hive Nucleus's own organ system. Empty ⇒ identity fold (golden-safe).
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 36;
+export const CURRENT_VERSION = 37;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -660,6 +670,7 @@ export function defaultSave(): SaveData {
     quests: defaultQuests(),
     mulligans: emptyMulligansByTower(),
     mulliganDex: {},
+    nucleus: emptyNucleus(),
   };
 }
 
@@ -1142,6 +1153,7 @@ function withDefaults(data: SaveData): SaveData {
     // Mulligan system (docs/MULLIGANS.md): pre-v26 saves ⇒ empty organisms + empty dex.
     mulligans: sanitizeMulligans((data as { mulligans?: unknown }).mulligans),
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
+    nucleus: sanitizeNucleus((data as { nucleus?: unknown }).nucleus),
     wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
     battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
     quests: sanitizeQuests((data as { quests?: unknown }).quests),

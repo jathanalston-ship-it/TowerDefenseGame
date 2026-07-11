@@ -23,6 +23,7 @@ import { CURRENCIES } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { drawTowerForm } from '../render/towerForms';
 import { drawMulliganOrganism } from '../render/mulliganOrganism';
+import { NucleusChambers } from './NucleusChambers';
 import { TowerPortrait } from './TowerPortrait';
 import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
@@ -150,6 +151,9 @@ export function MulliganLab(): JSX.Element {
     return (
       <div className="panel mgl-panel">
         <div className="panel-title">Mulligan Lab</div>
+        {/* The Nucleus's own chambers open BEFORE the tower graft wing (chamber 1 from the start —
+            docs/NUCLEUS.md §gates), so the console lives above the mega-boss seal. */}
+        <NucleusChambers />
         <div className="mgl-gate" role="status">
           <div className="mgl-gate-glyph" aria-hidden>⊛</div>
           <div className="mgl-gate-title">SEALED BEHIND APEX BIOLOGY</div>
@@ -262,6 +266,9 @@ export function MulliganLab(): JSX.Element {
           </span>
         </div>
       </div>
+
+      {/* ── The Hive's OWN organism (docs/NUCLEUS.md) — chambers above the tower grafts ── */}
+      <NucleusChambers />
 
       <div className="mgl-body">
         {/* ── Host rail: one row per tower, organism status at a glance (scales to a 100-tower roster) ── */}

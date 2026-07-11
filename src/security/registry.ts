@@ -160,6 +160,18 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'hive.build', category: 'economy', level: 'strict', limit: S({ count: 4 }), cooldownMs: 700, dedupeMs: 1500,
     analytics: 'sec_hive_build', doc: 'Build a Hive organ (docs/HIVE-CONSTRUCTION.md) — one atomic multi-currency spend; the ceremony is the pace.', at: META,
   },
+  'nucleus.grow': {
+    id: 'nucleus.grow', category: 'economy', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 400,
+    analytics: 'sec_nucleus_grow', doc: 'Grow/level a Nucleus organ (docs/NUCLEUS.md) — Gene Essence sink; rapid essence-dumping is legitimate.', at: META,
+  },
+  'nucleus.slot': {
+    id: 'nucleus.slot', category: 'progression', level: 'permissive', limit: P({ count: 20 }), dedupeMs: 200,
+    analytics: 'sec_nucleus_slot', doc: 'Slot/clear a Nucleus chamber organ (reversible loadout move — docs/NUCLEUS.md §chambers).', at: META,
+  },
+  'nucleus.unlock': {
+    id: 'nucleus.unlock', category: 'progression', level: 'strict', limit: S({ count: 3 }), cooldownMs: 700, dedupeMs: 1500,
+    analytics: 'sec_nucleus_unlock', doc: 'Open a Nucleus chamber (docs/NUCLEUS.md §gates) — a once-per-account milestone; chamber 3 spends Ichor.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -223,6 +235,10 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   armVow: 'prestige.vow',
   disarmVow: 'prestige.vow',
   buildOrgan: 'hive.build',
+  growNucleusOrgan: 'nucleus.grow',
+  upgradeNucleusOrgan: 'nucleus.grow',
+  setNucleusSlot: 'nucleus.slot',
+  unlockNucleusChamber: 'nucleus.unlock',
   importText: 'save.import',
   restoreBackup: 'save.restore',
   reset: 'account.reset',

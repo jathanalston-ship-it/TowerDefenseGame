@@ -22,7 +22,7 @@ function snap(over: Partial<GenomeSnapshot> = {}): GenomeSnapshot {
   return {
     accountLevel: 0, campaignStage: 0, bestWave: 0, rushBestBoss: 0, dailyCompletions: 0,
     contractsHonoured: 0, powerScore: 0, molts: 0, masteryLevels: 0, lifetimeIchor: 0, titles: 0,
-    towerStarRatio: 0, strainRatio: 0, mulliganRatio: 0, heroRatio: 0, gearRatio: 0,
+    towerStarRatio: 0, strainRatio: 0, mulliganRatio: 0, nucleusRatio: 0, heroRatio: 0, gearRatio: 0,
     geneRatio: 0, achievementRatio: 0, collectionCompletion: 0, cosmeticRatio: 0, passScore: 0,
     ...over,
   };
@@ -31,7 +31,7 @@ function snap(over: Partial<GenomeSnapshot> = {}): GenomeSnapshot {
 const MID = snap({
   accountLevel: 30, campaignStage: 30, bestWave: 37, rushBestBoss: 6, dailyCompletions: 4,
   contractsHonoured: 6, powerScore: 50_000, molts: 3, masteryLevels: 40, lifetimeIchor: 12, titles: 3,
-  towerStarRatio: 0.3, strainRatio: 0.25, mulliganRatio: 0.2, heroRatio: 0.4, gearRatio: 0.3,
+  towerStarRatio: 0.3, strainRatio: 0.25, mulliganRatio: 0.2, nucleusRatio: 0.2, heroRatio: 0.4, gearRatio: 0.3,
   geneRatio: 0.35, achievementRatio: 0.4, collectionCompletion: 0.3, cosmeticRatio: 0.15, passScore: 0.4,
 });
 

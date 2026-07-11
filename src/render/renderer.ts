@@ -59,6 +59,7 @@ import { dangerCurve } from '../core/dangerCamera';
 import { GRUDGE_LADDER } from '../core/nemesis';
 import type { CosmeticTheme } from '../core/cosmetics';
 import { themedBossColor, themedEnemyDef, wardrobeKit } from './wardrobeFx';
+import { drawNucleusMutations } from './nucleusDress';
 
 export interface Pointer {
   x: number;
@@ -782,6 +783,11 @@ function drawBase(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): vo
   bodyG.addColorStop(1, nuc ? '#241626' : '#a5303f');
   ctx.fillStyle = bodyG;
   ctx.fill();
+
+  // Nucleus Mulligan mutations (docs/NUCLEUS.md §visuals) — grown organs visibly mutate the
+  // organism (veins/plating/eyes/tentacles/pulse/sacs/spores; adaptations crest a crown).
+  // Kit unset (fresh account / daily / tutorial) ⇒ zero draw calls, the exact classic organ.
+  drawNucleusMutations(ctx, x, y, R, beat, t);
 
   // ── DAMAGE STATES (docs/HIVE-SIEGE.md §states): the shell visibly fails as integrity falls.
   //    Deterministic geometry (id-hashed angles, no rng) — stable frame to frame.

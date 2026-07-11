@@ -14,6 +14,7 @@
 import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { MULLIGAN_RARITY, accountMulliganPower, isMaxLevel, isMulliganActive, mulliganRegistry } from '../core/mulligan';
+import { NUCLEUS_CHAMBERS, isChamberActive } from '../core/nucleus';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
 import { DOCTRINE_RANK_MAX, doctrineRank, doctrineRegistry } from '../core/doctrines';
 import type { DoctrineFamily } from '../core/doctrines';
@@ -90,6 +91,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'mulligan_dex', name: 'Complete Sequence', desc: 'Discover every known Mulligan modifier.', reward: 100, test: (c) => mulliganRegistry.ids().every((id) => !!c.save.mulliganDex?.[id]), progress: (c) => ({ cur: Object.keys(c.save.mulliganDex ?? {}).length, max: mulliganRegistry.size }) },
   { id: 'mulligan_perfected', name: 'Perfected Strain', desc: 'Grow a slotted modifier to its rarity level cap.', reward: 55, test: (c) => TOWER_ORDER.some((k) => (c.save.mulligans?.[k]?.slots ?? []).some((s) => s && isMaxLevel(s))) },
   { id: 'mulligan_ascendant', name: 'Ascendant Symbiosis', desc: 'Slot an Ascendant-rarity modifier — the apex strain.', hidden: true, reward: 90, test: (c) => TOWER_ORDER.some((k) => (c.save.mulligans?.[k]?.slots ?? []).some((s) => s && s.rarity === 'ascendant')) },
+  // ── Nucleus Mulligans (docs/NUCLEUS.md) — the Hive's own organism ──
+  { id: 'nucleus_awake', name: 'The Heart Grows Teeth', desc: 'Awaken a Nucleus chamber (all three organs grafted).', reward: 30, test: (c) => Array.from({ length: NUCLEUS_CHAMBERS }, (_, i) => i).some((i) => isChamberActive(c.save.nucleus, i)) },
+  { id: 'nucleus_adapted', name: 'Chamber Symphony', desc: 'Complete a Nucleus class adaptation (three matching organ classes in one chamber).', reward: 55, test: (c) => (c.save.nucleus?.adapted ?? []).length >= 1 },
+  { id: 'nucleus_sovereign', name: 'Sovereign Organism', desc: 'Awaken all three Nucleus chambers — the Hive complete.', hidden: true, reward: 120, test: (c) => Array.from({ length: NUCLEUS_CHAMBERS }, (_, i) => i).every((i) => isChamberActive(c.save.nucleus, i)) },
   { id: 'mulligan_overlord', name: 'Biomechanical Overlord', desc: 'Reach ×1.5 account Power from Mulligan organisms.', reward: 100, test: (c) => accountMulliganPower(TOWER_ORDER.map((k) => [c.save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) >= 1.5, progress: (c) => ({ cur: Math.round(accountMulliganPower(TOWER_ORDER.map((k) => [c.save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) * 100), max: 150 }) },
 
   // ── Statistics-driven (integrates with the lifetime stats system) ──

@@ -35,6 +35,7 @@ export interface GenomeSnapshot {
   towerStarRatio: number; // Σ stars / (roster × star target)
   strainRatio: number; // Σ best strain / (roster × 5)
   mulliganRatio: number; // fully assembled organisms / roster
+  nucleusRatio: number; // active Nucleus chambers + lifetime full adaptations / (chambers × 2)
   heroRatio: number; // blend of roster unlocked + hero stars
   gearRatio: number; // distinct equipment defs owned / all defs
   geneRatio: number; // blend of cards discovered + levels bought
@@ -94,6 +95,8 @@ export const GENOME_SOURCES: GenomeSource[] = [
     score: (s) => ratio(s.strainRatio), hint: 'Evolve deeper Strains (merge duplicates in-run).' },
   { id: 'mulligans', name: 'Mulligan Organisms', category: 'arsenal', weight: 50, nav: 'mulligans',
     score: (s) => ratio(s.mulliganRatio), hint: 'Assemble a full three-modifier organism.' },
+  { id: 'nucleus', name: 'Nucleus Chambers', category: 'arsenal', weight: 45, nav: 'mulligans',
+    score: (s) => ratio(s.nucleusRatio), hint: 'Grow the Hive Nucleus’s own organs and complete its chamber adaptations.' },
   { id: 'heroes', name: 'Champion Roster', category: 'arsenal', weight: 85, nav: 'heroes',
     score: (s) => ratio(s.heroRatio), hint: 'Unlock and star-up champions.' },
   { id: 'equipment', name: 'Armory Codex', category: 'arsenal', weight: 60, nav: 'gearcodex',

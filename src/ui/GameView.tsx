@@ -54,6 +54,7 @@ import { BuildPanel } from './BuildPanel';
 import { HeroEvolutionPanel } from './HeroEvolutionPanel';
 import { Inspector } from './Inspector';
 import { DraftModal } from './DraftModal';
+import { setNucleusDress } from '../render/nucleusDress';
 import type { HeroKind, HeroProgress, HudSnapshot, MetaModifiers, TowerKind, TowerProgress } from '../core/types';
 import type { CardEffect } from '../core/cards';
 import type { MegaEncounter } from '../core/megaboss';
@@ -178,6 +179,9 @@ export function GameView({
     ...(!daily && !tutorial && meta.get().prestige.vows.length > 0 ? { vows: meta.get().prestige.vows } : {}),
     geneLevels: meta.geneLevels(),
     geneTranscends: meta.geneTranscends(), // chosen Transcendence second lines (§Transcendence)
+    // Nucleus Mulligans (docs/NUCLEUS.md): the Hive's own chamber organs fold at boot. Kept OUT of
+    // the tutorial sandbox and the shared Daily gauntlet (same fairness rule as tower Mulligans).
+    nucleusEffects: tutorial || daily ? [] : meta.nucleusEffects(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),
     // Progression-gated gene cards the account has earned (campaign depth / best wave / owning the
@@ -190,6 +194,14 @@ export function GameView({
     !daily && !tutorial
       ? meta.get().prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v).map((v) => ({ icon: v.icon, name: v.name }))
       : []);
+  // Nucleus dress (docs/NUCLEUS.md §visuals): hand the renderer the resolved mutations for THIS
+  // run — account visuals stay out of the daily/tutorial exactly like the sim fold above.
+  useEffect(() => {
+    if (tutorial || daily) { setNucleusDress(null); return; }
+    setNucleusDress({ mutations: meta.nucleusResolved().mutations, crowns: 0 });
+    return () => setNucleusDress(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // The starting-genes CINEMATIC: a brief splash naming the genes that just activated (auto-fades).
   const [geneSplash, setGeneSplash] = useState<string[]>(() => (tutorial ? [] : meta.startingGenes()));
   useEffect(() => {

@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 36` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 37` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -378,6 +378,19 @@ difficulty's bar; adaptive inputs unwired until the loop engine feeds them (by d
 - ✅ Transcendence: maxed cards buy a permanent SECOND effect line from per-archetype pools
   (`core/geneTranscend.ts`, cost = rarity base ×120, permanent choice / full-price re-choice,
   ❂ Archive panel + grid chrome) — the designed sink beyond full levels (GENE-EVOLUTION.md §Transcendence)
+
+### Nucleus Mulligans (the Hive's own organ system) — NUCLEUS.md
+- ✅ Core: 18 support organs (3 per class, 3 categories), 3 chambers × 3 organs, class adaptations
+  (`core/nucleus.ts`, save v37 `nucleus`) — towerDamageMult BANNED (registry-enforced identity)
+- ✅ Gates: chamber 1 free · chamber 2 "THE TRIAL OF THE SWARM" (6-system trial) · chamber 3
+  "THE APEX CHAMBER" (deep campaign/genome/power/megas/molts/mastery/collection + 300 Ichor)
+- ✅ Run fold: `RunOptions.nucleusEffects` at boot (golden-safe; out of daily/tutorial); visible
+  Hive mutations per organ (veins/plating/eyes/tentacles/pulse/sacs/spores + adaptation crowns)
+  via `render/nucleusDress.ts`
+- ✅ Recognition: mulligans Power bucket ×`nucleusPower`, genome source `nucleus` (45), collections
+  `nucleusOrgans`+`nucleusAdaptations`, achievements ×3, mechanics teach row, security guards ×3
+- ✅ UI: `ui/NucleusChambers.tsx` atop the Mulligan Lab — chamber cards, trial checklists with live
+  ✓/✗ rows, two-step Ichor confirm, organ conservatory (grow/slot/level), live mutation preview
 
 **Compressed summary (Gene Evolution).** *Architecture:* `CardDef` (cards.ts) carries optional
 `maxLevel`/`upgrades`/`ascension`/`skins`/`art`; player state is a sparse `save.genes:

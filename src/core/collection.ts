@@ -23,6 +23,8 @@ import type { CosmeticDef } from './cosmetics';
 import { wardrobeGroupItems } from './wardrobe';
 import type { WardrobeGroup } from './wardrobe';
 import { MULLIGAN_RARITY, mulliganRegistry, rarityAtLeast } from './mulligan';
+import { NUCLEUS_ADAPTATIONS, nucleusRegistry, organLevelCap } from './nucleus';
+import { COMBAT_CLASS_ORDER } from './combatClass';
 import type { MulliganRarity } from './mulligan';
 import { ALL_QUESTS, allMissions } from './quests';
 import { DOCTRINE_RANK_MAX, DOCTRINE_RANK_NAMES, doctrineRank, doctrineRegistry } from './doctrines';
@@ -34,7 +36,8 @@ export type CollectionCategoryId =
   | 'wardrobeArena' | 'wardrobeAudio' | 'wardrobeInterface' | 'wardrobeIdentity' // Wardrobe codices (§wardrobe)
   | 'quests' | 'missions' // the directive codices (docs/QUESTS.md §collection)
   | 'doctrines' // run-commitment mastery (docs/DOCTRINES.md §collection)
-  | 'mulligans' | 'mulliganOrganisms';
+  | 'mulligans' | 'mulliganOrganisms'
+  | 'nucleusOrgans' | 'nucleusAdaptations'; // the Hive Nucleus's own organ system (docs/NUCLEUS.md)
 
 export interface CollectionEntry {
   id: string;
@@ -86,6 +89,8 @@ export interface CollectionContext {
   /** Per-tower organism status (docs/MULLIGANS.md §collection) — complete Mulligans are their
    *  own codex, SEPARATE from pieces: awake (all three grafts) is tier 1, reforge-locked is tier 2. */
   mulliganOrganisms: Record<string, { active: boolean; locked: boolean }>;
+  nucleusGrown: Record<string, number>; // Nucleus organ id → grown level (docs/NUCLEUS.md §collection)
+  nucleusAdapted: Set<string>; // classes whose FULL Nucleus adaptation has ever completed (lifetime)
   questCompletions: Record<string, number>; // quest id → lifetime finale claims (docs/QUESTS.md §collection)
   missionsDone: Set<string>; // mission ids ever completed (lifetime, both lanes)
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
@@ -290,6 +295,22 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     };
   });
 
+  // Nucleus Organs (docs/NUCLEUS.md §collection): GROWING an organ discovers it; raising it to
+  // its rarity's level cap masters it. Registry-driven — a future organ row joins by itself.
+  const nucleusOrgans = nucleusRegistry.all().map((o): CollectionEntry => {
+    const lvl = ctx.nucleusGrown[o.id] ?? 0;
+    const tier = lvl >= organLevelCap(o) ? 2 : lvl >= 1 ? 1 : 0;
+    return { id: o.id, name: o.name, tier, maxTier: 2, tierLabel: tier === 2 ? 'Apex Growth' : tier === 1 ? `Grown — L${lvl}` : 'Ungrown' };
+  });
+
+  // Nucleus Adaptations (§collection): one entry per biological class — completing the class's
+  // FULL chamber adaptation (three matching organs) chronicles it forever (a lifetime ledger,
+  // never confiscated by re-slotting). A future class = one COMBAT_CLASSES row, zero edits here.
+  const nucleusAdaptations = COMBAT_CLASS_ORDER.map((cls): CollectionEntry => {
+    const tier = ctx.nucleusAdapted.has(cls) ? 1 : 0;
+    return { id: `nadapt_${cls}`, name: `${NUCLEUS_ADAPTATIONS[cls].title}`, tier, maxTier: 1, tierLabel: tier ? 'Synchronized' : 'Unexpressed' };
+  });
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
@@ -311,6 +332,8 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('doctrines', 'Doctrines', doctrines),
     makeCategory('mulligans', 'Mulligan Pieces', mulligans),
     makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
+    makeCategory('nucleusOrgans', 'Nucleus Organs', nucleusOrgans),
+    makeCategory('nucleusAdaptations', 'Nucleus Adaptations', nucleusAdaptations),
   ];
   const discovered = categories.reduce((a, c) => a + c.discovered, 0);
   const total = categories.reduce((a, c) => a + c.total, 0);
@@ -371,6 +394,10 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   // rate at full completion — the set bonus for sequencing the whole modifier library.
   mulligans: { effects: [{ op: 'mul', field: 'towerFireRateMult', max: 1.05, label: 'Fire Rate' }], econ: [], powerWeight: 0.03 },
   mulliganOrganisms: { effects: [{ op: 'mul', field: 'towerDamageMult', max: 1.05, label: 'Tower Damage' }], econ: [], powerWeight: 0.03 },
+  // Nucleus codices (docs/NUCLEUS.md §collection): the Hive rewards its own cultivation in its
+  // own language — economy + endurance, never raw tower DPS (the Nucleus identity rule).
+  nucleusOrgans: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.04, label: 'Biomass' }], econ: [], powerWeight: 0.03 },
+  nucleusAdaptations: { effects: [{ op: 'mul', field: 'integrityMult', max: 1.04, label: 'Integrity' }], econ: [], powerWeight: 0.02 },
 };
 
 const effVal = (op: 'mul' | 'add', max: number, c: number): number => (op === 'mul' ? 1 + (max - 1) * c : max * c);
