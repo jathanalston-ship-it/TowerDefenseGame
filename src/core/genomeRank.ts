@@ -26,6 +26,7 @@ export interface GenomeSnapshot {
   bestWave: number; // Infinite personal best
   rushBestBoss: number; // most bosses felled in one rush
   dailyCompletions: number; // lifetime daily clears
+  lifetimeLogins: number; // lifetime Daily Bio-Cache claims (docs/DAILY-LOGIN.md — never reset)
   contractsHonoured: number; // lifetime Champion Contracts completed (docs/CONTRACTS.md)
   powerScore: number; // the one strength number
   molts: number; // prestige cycles
@@ -77,6 +78,8 @@ export const GENOME_SOURCES: GenomeSource[] = [
     score: (s) => depth(s.rushBestBoss, 0.8, 2), hint: 'Fell more bosses in a single rush.' },
   { id: 'daily', name: 'Daily Gauntlets', category: 'journey', weight: 45, nav: 'daily',
     score: (s) => depth(s.dailyCompletions, 0.7, 1.5), hint: 'Complete today’s Daily Run.' },
+  { id: 'login', name: 'Daily Tithe', category: 'journey', weight: 40, nav: 'home',
+    score: (s) => depth(s.lifetimeLogins, 0.7, 1.6), hint: 'Open the Daily Bio-Cache — every day answered counts.' },
   { id: 'contracts', name: 'Champion Contracts', category: 'journey', weight: 40, nav: 'home',
     score: (s) => depth(s.contractsHonoured, 0.7, 1.2), hint: 'Honour this week’s Champion Contracts.' },
   { id: 'prestige', name: 'Molts', category: 'journey', weight: 80, nav: 'evolution',
@@ -238,6 +241,7 @@ export function genomeAdvice(s: GenomeSnapshot, n = 4): GenomeAdvice[] {
     'infinite': (x, k) => ({ ...x, bestWave: x.bestWave + k }),
     'boss-rush': (x, k) => ({ ...x, rushBestBoss: x.rushBestBoss + k }),
     'daily': (x, k) => ({ ...x, dailyCompletions: x.dailyCompletions + k }),
+    'login': (x, k) => ({ ...x, lifetimeLogins: x.lifetimeLogins + k }),
     'prestige': (x) => ({ ...x, molts: x.molts + 1 }), // one molt IS the chunk
     'mastery': (x, k) => ({ ...x, masteryLevels: x.masteryLevels + k * 2 }),
     'titles': (x, k) => ({ ...x, titles: x.titles + k }),

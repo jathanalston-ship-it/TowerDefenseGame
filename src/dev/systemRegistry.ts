@@ -223,6 +223,13 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/HIVE-CONSTRUCTION.md', 'docs/HOME-BASE.md'],
   },
   {
+    id: 'daily-login', name: 'Daily Bio-Cache (login streak)', purpose: 'The login-streak faucet (docs/DAILY-LOGIN.md): one procedurally generated reward bundle per UTC day, sized by an internal Ichor-Value budget base(lifetime)×streakMult(streak) — the multiplier rises slightly EVERY consecutive day, uncapped, never explosive — and paid through the shared PassReward interpreter (2–3 weighted lanes anchored to live exchange/market rates + Season-XP rider + streak-milestone containers + a ~1-in-220 login-drop cosmetic jackpot). Missing a day resets ONLY the multiplier; lifetime/best feed the zero-power Devotion codex, a Genome Rank journey source and wardrobe identity exclusives.',
+    files: ['src/core/loginStreak.ts', 'src/ui/BioCache.tsx'],
+    dependsOn: ['meta-store', 'battle-pass', 'cosmetics', 'collection'], powerScore: null, save: ['login'],
+    tutorial: [], help: ['daily-login'], hud: [], ui: ['BioCacheCard (home board)', 'rupture ceremony'], collection: 'logins (Devotion — zero-power)', achievements: [],
+    localization: 'inline-en', docs: ['docs/DAILY-LOGIN.md', 'docs/DAILY-RUN.md', 'docs/ECONOMY.md'],
+  },
+  {
     id: 'prestige', name: 'Prestige (Molt / Ascendant)', purpose: 'Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.',
     files: ['src/core/prestige.ts', 'src/core/ascendant.ts', 'src/core/vows.ts', 'src/ui/PrestigePanel.tsx'],
     dependsOn: ['campaign', 'evolution-hq'], powerScore: 'the P bucket (log fold of Cells + tree)', save: ['prestige'],

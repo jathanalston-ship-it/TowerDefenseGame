@@ -12,7 +12,7 @@ import { achievementById } from '../state/achievements';
 import { SEASONS } from './battlePass';
 
 const freshCtx = (): WardrobeUnlockCtx => ({
-  campaignStage: 0, bestDepth: 0, dailyClears: 0, rushBossKills: 0, rouletteSpores: 0,
+  campaignStage: 0, bestDepth: 0, dailyClears: 0, lifetimeLogins: 0, rushBossKills: 0, rouletteSpores: 0,
   achievements: new Set(), collectionRanks: {}, overallRank: 0,
 });
 
@@ -96,12 +96,12 @@ describe('the auto-unlock evaluator', () => {
 
   it('shop/battlepass/milestone/event/quest lanes NEVER auto-unlock', () => {
     const maxed: WardrobeUnlockCtx = {
-      campaignStage: 999, bestDepth: 999, dailyClears: 999, rushBossKills: 9999, rouletteSpores: 9999,
+      campaignStage: 999, bestDepth: 999, dailyClears: 999, lifetimeLogins: 9999, rushBossKills: 9999, rouletteSpores: 9999,
       achievements: new Set(wardrobeRegistry.all().flatMap((d) => (d.source.kind === 'achievement' ? [d.source.id] : []))),
       collectionRanks: { }, overallRank: 6,
     };
     for (const d of earnedAutoItems(maxed)) {
-      expect(['shop', 'battlepass', 'milestone', 'event', 'quest', 'starter']).not.toContain(d.source.kind);
+      expect(['shop', 'battlepass', 'milestone', 'event', 'quest', 'starter', 'login-drop']).not.toContain(d.source.kind);
     }
   });
 });

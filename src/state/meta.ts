@@ -105,9 +105,10 @@ import {
 } from '../core/wardrobe';
 import type { WardrobeItemDef, WardrobeKind, WardrobePayload, WardrobeUnlockCtx, WardrobeMilestone } from '../core/wardrobe';
 import {
-  BP, PASS_PASSIVES, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, seasonForWindow, seasonTracks, xpToReach,
+  BP, PASS_PASSIVES, levelBuyPrice, levelOf, msToPassEnd, passPassive, passWindow, rewardLabel, seasonForWindow, seasonTracks, xpToReach,
 } from '../core/battlePass';
 import type { PassReward, SeasonDef } from '../core/battlePass';
+import { LOGIN, loginTargetValue, milestoneContainer, rollLoginBundle, streakMult } from '../core/loginStreak';
 import { PERFECT_WEEK, activeContracts, contractReport, contractSatisfied, contractWeekKey } from '../core/contracts';
 import type { ContractRunFacts } from '../core/contracts';
 import { MAIN_QUESTLINE, QUESTS, foldCredit, missionById, questById, questComplete, msToWeeklyRotation, weeklyQuestFor, weeklyWindow } from '../core/quests';
@@ -383,6 +384,35 @@ function applyRewardList(
  *  pay the SAME rates, so deferring a claim never costs season progress. */
 const QUEST_PASS_XP = { mission: 40, finale: 150 } as const;
 
+// ── Daily Bio-Cache read-models (docs/DAILY-LOGIN.md §ui) ─────────────────────
+/** The home widget's read-model — everything the streak presentation shows. */
+export interface LoginView {
+  claimable: boolean;
+  todayKey: string;
+  streak: number; // as recorded (today's claim included once claimed)
+  nextStreak: number; // the streak the NEXT claim will record
+  lifetime: number;
+  best: number;
+  mult: number; // multiplier on today's cache (claimed or pending)
+  target: number; // today's IV budget
+  todayLines: { icon: string; label: string }[]; // today's bundle (identical pre/post claim)
+  todayMilestone: 'rare' | 'epic' | 'legendary' | null;
+  tomorrow: { mult: number; target: number; milestone: 'rare' | 'epic' | 'legendary' | null };
+  msToReset: number; // to the next UTC midnight
+}
+
+/** What claimLogin hands the ceremony. */
+export interface LoginReceipt {
+  lines: PremiumReceiptLine[];
+  streak: number;
+  best: number;
+  lifetime: number;
+  mult: number;
+  value: number;
+  jackpot: boolean;
+  milestone: 'rare' | 'epic' | 'legendary' | null;
+}
+
 /** Apply a quest FINALE to a draft (no persist): the repeatable reward list plus — FIRST
  *  completion only — the guaranteed story cutscene + exclusive cosmetic (the `once` ledger).
  *  Repeats substitute the QUESTS.repeatFinale bundle for the unlocks (docs/QUESTS.md §finale).
@@ -467,6 +497,8 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     })),
     questCompletions: save.quests.questCompletions,
     missionsDone: new Set(save.quests.missionsDone),
+    lifetimeLogins: save.login.lifetime,
+    bestLoginStreak: save.login.best,
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
     nucleusGrown: Object.fromEntries(Object.entries(save.nucleus?.grown ?? {}).map(([id, g]) => [id, g.level])),
     nucleusAdapted: new Set(save.nucleus?.adapted ?? []),
@@ -3228,6 +3260,7 @@ export const meta = {
       campaignStage: highestCampaignStage(save),
       bestDepth: save.bestWave,
       dailyClears: save.daily.completions,
+      lifetimeLogins: save.login.lifetime,
       rushBossKills: save.stats.rushBossKills,
       rouletteSpores: save.stats.rouletteSpores,
       achievements: new Set(save.achievements ?? []),
@@ -3550,6 +3583,80 @@ export const meta = {
     if (lp.level >= BP.levels) return false;
     persist({ ...save, battlePass: { ...save.battlePass, xp: save.battlePass.xp + (lp.need - lp.into), adDay: day, adUsed: used + 1 } });
     return true;
+  },
+
+  // ── Daily Bio-Cache (docs/DAILY-LOGIN.md) — the login-streak faucet ─────────
+
+  /** The streak presentation read-model. The day's bundle is a PURE roll of
+   *  (dayKey, lifetimeAtRoll, streakAtRoll), so pre-claim preview, the claim itself and a
+   *  post-claim reload all show the SAME rewards; tomorrow is the same roll one day ahead
+   *  (teased as value/multiplier/milestone only — the lines stay a surprise). */
+  loginView(now = Date.now()): LoginView {
+    const save = store.get();
+    const l = save.login;
+    const todayKey = dayKey(now);
+    const claimedToday = l.last === todayKey;
+    const claimable = l.last < todayKey; // lexical ISO compare — forged future keys wait it out
+    const nextStreak = isPrevDayKey(l.last, todayKey) ? l.streak + 1 : claimedToday ? l.streak : 1;
+    // Today's roll inputs: post-claim they're recorded (lifetime-1 was the count AT roll).
+    const today = claimedToday
+      ? rollLoginBundle(l.last, l.lifetime - 1, l.streak)
+      : rollLoginBundle(todayKey, l.lifetime, nextStreak);
+    const todayStreak = claimedToday ? l.streak : nextStreak;
+    const todayLines = today.rewards.map((r) => rewardLabel(r));
+    if (today.passXp > 0) todayLines.push({ icon: '✚', label: `${today.passXp} Season XP` });
+    // Tomorrow assumes the streak holds (today claimed) — that IS the anticipation pitch.
+    const tomorrowStreak = todayStreak + 1;
+    const tomorrowLifetime = claimedToday ? l.lifetime : l.lifetime + 1;
+    return {
+      claimable,
+      todayKey,
+      streak: l.streak,
+      nextStreak,
+      lifetime: l.lifetime,
+      best: l.best,
+      mult: streakMult(todayStreak),
+      target: today.target,
+      todayLines,
+      todayMilestone: today.milestone,
+      tomorrow: {
+        mult: streakMult(tomorrowStreak),
+        target: loginTargetValue(tomorrowLifetime, tomorrowStreak),
+        milestone: milestoneContainer(tomorrowStreak),
+      },
+      msToReset: Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate() + 1) - now,
+    };
+  },
+
+  /** Open today's Bio-Cache — ONCE per UTC day. A consecutive day extends the streak; a gap
+   *  resets the multiplier to day 1 but NEVER touches lifetime/best (collections, titles and
+   *  Genome Rank ride the lifetime count). Grants speak the shared reward interpreter; the
+   *  Season-XP rider pays through the same faucet quests use. Returns the ceremony receipt. */
+  claimLogin(now = Date.now()): LoginReceipt | null {
+    if (!guardOk('login.claim')) return null;
+    const save = store.get();
+    const key = dayKey(now);
+    if (save.login.last >= key) return null; // claimed already (or forged future — self-heals)
+    const nextStreak = isPrevDayKey(save.login.last, key) ? save.login.streak + 1 : 1;
+    const bundle = rollLoginBundle(key, save.login.lifetime, nextStreak);
+    const res = applyRewardList(save, bundle.rewards, LOGIN.repeatReplacement, null);
+    const lifetime = save.login.lifetime + 1;
+    const best = Math.max(save.login.best, nextStreak);
+    persist({
+      ...res.next,
+      login: { last: key, streak: nextStreak, best, lifetime },
+      timeline: pushTimeline(res.next.timeline, '◈', `Daily Bio-Cache opened — day ${lifetime}, streak ${nextStreak} (×${streakMult(nextStreak).toFixed(2)})`),
+    });
+    if (res.stamina > 0) this.grantRushStamina(res.stamina, now);
+    if (bundle.passXp > 0) this.grantPassXp('login', bundle.passXp, now);
+    this.pollWardrobeUnlocks(); // devotion titles/plaques land the moment their day is reached
+    this.evaluateAchievements();
+    const lines = [...res.lines];
+    if (bundle.passXp > 0) lines.push({ icon: '✚', label: `${bundle.passXp} Season XP` });
+    return {
+      lines, streak: nextStreak, best, lifetime,
+      mult: streakMult(nextStreak), value: bundle.value, jackpot: bundle.jackpot, milestone: bundle.milestone,
+    };
   },
 
   /** Unlock the CURRENT season's Premium track with Ichor (the real-money path is the
@@ -5421,6 +5528,7 @@ export const meta = {
       bestWave: save.bestWave,
       rushBestBoss: save.rushBestBoss,
       dailyCompletions: save.daily.completions,
+      lifetimeLogins: save.login.lifetime,
       contractsHonoured: save.contracts.completed.length,
       powerScore: composePower(accountPowerParts(save)).score,
       molts: save.prestige.molts,

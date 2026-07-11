@@ -34,6 +34,7 @@ with completion (0 at fresh → the listed max at 100%):
 | **Armory** (equipment) | — | +1.0 Loot Quality tier | 0.03 |
 | **Biomes** | — | +20% Campaign Rewards | 0.03 |
 | **Caches** (chests) | — | — | 0 (cosmetic) |
+| **Devotion** (logins) | — | — | 0 (identity — see DAILY-LOGIN.md; entries are lifetime-login milestones + the best-streak watermark, so the codex never regresses) |
 
 - **Run effects** are `CardEffect[]` folded into a run like gear (`App.tsx` appends
   `meta.collectionRunEffects()`); Power-relevant fields also count toward Power via `effectsPower`.

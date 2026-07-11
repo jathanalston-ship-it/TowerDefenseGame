@@ -25,12 +25,13 @@ the Genome Rank measures **breadth** — how much of the whole organism the play
 
 ## Architecture
 
-- **`GENOME_SOURCES`** (core, DATA): 20 rows — id, category (`journey/strength/arsenal/
+- **`GENOME_SOURCES`** (core, DATA): 21 rows — id, category (`journey/strength/arsenal/
   identity`), weight, nav, `score(snapshot)`, advisor hint. Completion axes score
   `ratio × 10` (clamped); depth axes decelerate forever (`v^exp / div`).
   `genomeRating = Σ weight·score / 10`.
 - **`GenomeSnapshot`** (plain numbers) is built by `meta.genomeSnapshot()`: depth axes from the
-  save (account level, stage, wave, rush, dailies, molts, power, mastery levels, ichor, titles);
+  save (account level, stage, wave, rush, dailies, lifetime Bio-Cache logins — DAILY-LOGIN.md,
+  molts, power, mastery levels, ichor, titles);
   ratio axes against live registries (TOWER/HERO_ORDER, cardRegistry, ALL_ITEMS,
   cosmeticRegistry + WARDROBE_ITEMS, ACHIEVEMENTS, PASS_PASSIVES, collectionView completion).
 - **Ranks**: `GENOME_RANKS` thresholds (0/90/260/520/880/1340/1950/2750/3800/5200), then

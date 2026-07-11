@@ -31,6 +31,7 @@ import { NextGoalBanner } from './NextGoalBanner';
 import { PredictionPanel } from './PredictionPanel';
 import { WorldStatus } from './WorldStatus';
 import { LiveEventsStrip } from './components/LiveEventsStrip';
+import { BioCacheCard } from './BioCache';
 import { DirectivesCard } from './components/DirectivesCard';
 import { ContractsCard } from './components/ContractsCard';
 import { InfestationBoard } from './components/InfestationBoard';
@@ -144,6 +145,7 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   // The banner owns ONLY the nearest goal; the side roadmap owns the queue behind it —
   // one goal, one surface (the pre-overhaul board showed the same goal three times).
   'next-goal': (c) => <NextGoalBanner onNavigate={(k) => c.go(k as NavKey)} goals={c.view.goals.slice(0, 1)} />,
+  'bio-cache': () => <BioCacheCard />,
   'live-events': () => <LiveEventsStrip />,
   'directives': () => <DirectivesCard />,
   'contracts': () => <ContractsCard />,

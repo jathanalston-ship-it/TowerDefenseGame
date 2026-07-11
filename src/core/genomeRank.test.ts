@@ -20,7 +20,7 @@ import { defaultLifetimeStats } from '../save/saveStore';
 
 function snap(over: Partial<GenomeSnapshot> = {}): GenomeSnapshot {
   return {
-    accountLevel: 0, campaignStage: 0, bestWave: 0, rushBestBoss: 0, dailyCompletions: 0,
+    accountLevel: 0, campaignStage: 0, bestWave: 0, rushBestBoss: 0, dailyCompletions: 0, lifetimeLogins: 0,
     contractsHonoured: 0, powerScore: 0, molts: 0, masteryLevels: 0, lifetimeIchor: 0, titles: 0,
     towerStarRatio: 0, strainRatio: 0, mulliganRatio: 0, nucleusRatio: 0, heroRatio: 0, gearRatio: 0,
     geneRatio: 0, achievementRatio: 0, collectionCompletion: 0, cosmeticRatio: 0, passScore: 0,

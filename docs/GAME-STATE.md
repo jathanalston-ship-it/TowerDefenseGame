@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 37` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 38` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -316,6 +316,19 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   ONE atomic guarded action; built organs layer fixtures into LabAtmosphere's generic renderer
   immediately + lift ambient glow. `hive.built` (v36). THE HIVE nav screen + affordability
   badge. Sidegrades only — Power Score untouched (constitution)
+- ✅ **Daily Bio-Cache** (the login-streak faucet — DAILY-LOGIN.md): one living cache per UTC
+  day, sized by an internal ICHOR-VALUE budget `base(lifetime)×streakMult(streak)` (√ growth —
+  slight daily rise, uncapped, ×1.86 @ 365d, never explosive) and paid as a seeded procedural
+  bundle SPEAKING PassReward through the shared interpreter (2–3 weighted lanes priced off
+  live exchange/market rates + a Season-XP rider ≤300 + streak-milestone containers
+  7 rare/30 epic/100+yearly legendary riding ON TOP + a ~1-in-220 login-drop cosmetic
+  jackpot). Missing a day resets ONLY the multiplier — `login` {last,streak,best,lifetime}
+  (v38) keeps lifetime/best forever, feeding the zero-power Devotion codex (6 milestones +
+  streak watermark → rank-up Ichor faucet), a Genome Rank journey source, and 6 wardrobe
+  identity exclusives (login-days titles/plaque/banner/border + logins-rank border). Home
+  board widget (pod → streak presentation + tomorrow tease) + rupture ceremony
+  (grow→pulse→tap→erupt) + home badge re-lit each UTC midnight. Guarded `claimLogin`
+  (once/day by lexical key gate — forged future keys self-heal by waiting)
   recent content (Coil/Siphon beam towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)
   joins the codex automatically (guarded by `collection.test.ts`)
 - ✅ Achievements — data-driven milestone framework (`state/achievements.ts`: Genome-Core rewards,

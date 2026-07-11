@@ -26,6 +26,14 @@ registerNotification({
   count: (s) => s.pendingContainers.length,
 });
 
+// Daily Bio-Cache — today's cache is still sealed (docs/DAILY-LOGIN.md). Lexical ISO-key
+// compare mirrors the claim gate, so a forged future key shows no badge either.
+registerNotification({
+  id: 'login.cache',
+  channel: 'home',
+  count: (s) => (s.login.last < dailyKey() ? 1 : 0),
+});
+
 // The Hive — organs whose NEXT tier is affordable right now (era met, every recipe line
 // covered). Drops as you build or spend; pure recomputation of the board's affordability.
 registerNotification({

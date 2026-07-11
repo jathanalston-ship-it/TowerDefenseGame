@@ -239,6 +239,7 @@ homeRegistry.register({ id: 'vitals', zone: 'strip', order: 10 });
 homeRegistry.register({ id: 'world-status', zone: 'world', order: 10 });
 homeRegistry.register({ id: 'mission-control', zone: 'main', order: 10 });
 homeRegistry.register({ id: 'next-goal', zone: 'main', order: 20 });
+homeRegistry.register({ id: 'bio-cache', zone: 'main', order: 25, when: (s) => s.totalRuns > 0 }); // Daily Bio-Cache (docs/DAILY-LOGIN.md) — the day's first beat; held back from the minute-0 board so the first-boot funnel stays clean
 homeRegistry.register({ id: 'live-events', zone: 'main', order: 30 }); // LiveOps calendar strip (docs/LIVEOPS.md)
 homeRegistry.register({ id: 'directives', zone: 'main', order: 35, when: (s) => featureRevealed(s, 'daily') }); // Weekly Directives ladder (docs/LIVEOPS.md §directives) — arrives with the weekly rhythm
 homeRegistry.register({ id: 'contracts', zone: 'main', order: 40, when: (s) => featureRevealed(s, 'daily') }); // Champion Contracts board (docs/CONTRACTS.md) — the weekly rhythm arrives with the daily one

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 724 nodes · 1287 edges, built from the live
+> **The project's brain** (docs/DIL.md). 730 nodes · 1305 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · …87 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · …89 more
 
 ### Power Score Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · …11 more
+`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · …12 more
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -69,6 +69,7 @@ graph LR
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_splice_market["Splice Market & Ichor"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_achievements["Achievements"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -99,6 +100,10 @@ graph LR
   system_hive_construction["Hive Construction"] -->|consumes| currency_tower_shards["Tower Shards (✦)"]
   system_hive_construction["Hive Construction"] -->|consumes| currency_hero_shards["Hero Shards"]
   system_hive_construction["Hive Construction"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|rewards| currency_ichor["Ichor (premium)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|rewards| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_campaign["Campaign"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_campaign["Campaign"] -->|rewards| currency_tower_shards["Tower Shards (✦)"]
   system_infinite["Infinite Mode"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
@@ -172,6 +177,8 @@ graph LR
   system_meta_store["Meta Store & Save"] -->|provides| concept_power_score["Power Score"]
   system_mega_bosses["Mega Bosses"] -->|provides| concept_power_score["Power Score"]
   system_assimilation["Assimilation Index"] -->|provides| concept_power_score["Power Score"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_collection["Collections / Codex"]
   concept_power_score["Power Score"] -->|displays| system_campaign["Campaign"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
@@ -281,6 +288,11 @@ graph LR
   system_hive_construction["Hive Construction"] -->|dependsOn| system_hub_shell["Hub Shell & Home"]
   system_hive_construction["Hive Construction"] -->|dependsOn| system_shards_economy["Shards & Star Economy"]
   system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|dependsOn| system_battle_pass["Battle Pass (Season)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|dependsOn| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|dependsOn| system_collection["Collections / Codex"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|dependsOn| system_campaign["Campaign"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|dependsOn| system_evolution_hq["Evolution HQ (Genome Cores)"]
   system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -403,6 +415,9 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| concept_determinism["Determinism"]
   system_prediction["Progress Prediction"] -->|dependsOn| concept_determinism["Determinism"]
   system_net_backend["Backend lanes (net/)"] -->|consumes| concept_replays["Replays"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
+  system_daily_login["Daily Bio-Cache (login streak)"] -->|provides| system_collection["Collections / Codex"]
   system_hub_shell["Hub Shell & Home"] -->|consumes| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|provides| system_loot["Loot & Bio-Containers"]
@@ -516,7 +531,7 @@ One deterministic run per UTC day, identical worldwide (core/daily.ts).
   - dependsOn → `concept:determinism` — fair boards need identical runs
   - documentedBy ← `guide:daily`
 
-## Currencies (7)
+## Currencies (8)
 
 ### `currency:biomass` — Biomass
 
@@ -552,7 +567,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…88 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…89 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -606,7 +621,13 @@ Attempt gate for Boss Rush — makes each gauntlet deliberate.
   - documentedBy ← `guide:boss-rush`
   - consumedBy ← `system:boss-rush` — attempt gating
 
-## Systems (66)
+### `currency:ichor` — Ichor (premium)
+
+The premium reserve — never farmable; bled from achievements, collection ranks, milestones and records; spent in the Splice Market.
+
+  - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
+
+## Systems (67)
 
 ### `system:engine` — Sim Engine
 
@@ -636,7 +657,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…173 more (query: `npm run dil -- node system:engine`)_
+  - _…174 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1126,6 +1147,7 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - dependsOn → `system:stats`
   - provides → `concept:power-score` — completion feeds the collection bucket
   - consumes → `system:doctrines` — the doctrines codex tier IS 1 + doctrineRank over the stats ledgers ('none' never rows) — one ladder shared with the picker, so never author parallel codex thresholds; fresh save = 0 runs ⇒ tier 0 ⇒ golden-safe
+  - requiredBy ← `system:daily-login`
   - requiredBy ← `system:cosmetics`
   - requiredBy ← `system:quests`
   - requiredBy ← `system:profile`
@@ -1134,6 +1156,7 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - documentedBy ← `doc:COLLECTION.md`
   - documentedBy ← `guide:collections`
   - testedBy ← `test:src/core/collection.test.ts`
+  - providedBy ← `system:daily-login` — the Devotion codex (6 lifetime milestones + best-streak watermark) is ZERO-POWER; its rank-ups bleed Ichor via the shared collection-rank faucet
   - referencedBy ← `system:hub-shell` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
 
 ### `system:evolution-hq` — Evolution HQ (Genome Cores)
@@ -1171,6 +1194,29 @@ _at: src/core/hiveOrgans.ts, src/ui/HiveScreen.tsx_
   - documentedBy ← `doc:HIVE-CONSTRUCTION.md`
   - documentedBy ← `doc:HOME-BASE.md`
   - testedBy ← `test:src/core/hiveOrgans.test.ts`
+
+### `system:daily-login` — Daily Bio-Cache (login streak)
+
+The login-streak faucet (docs/DAILY-LOGIN.md): one procedurally generated reward bundle per UTC day, sized by an internal Ichor-Value budget base(lifetime)×streakMult(streak) — the multiplier rises slightly EVERY consecutive day, uncapped, never explosive — and paid through the shared PassReward interpreter (2–3 weighted lanes anchored to live exchange/market rates + Season-XP rider + streak-milestone containers + a ~1-in-220 login-drop cosmetic jackpot). Missing a day resets ONLY the multiplier; lifetime/best feed the zero-power Devotion codex, a Genome Rank journey source and wardrobe identity exclusives.
+
+_at: src/core/loginStreak.ts, src/ui/BioCache.tsx_
+
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:battle-pass`
+  - dependsOn → `system:cosmetics`
+  - dependsOn → `system:collection`
+  - consumes → `system:meta-store` — owns save field 'login'
+  - consumes → `system:battle-pass` — the Bio-Cache SPEAKS PassReward through the shared applyRewardList interpreter (never authors passive/stack/phenotype — loginStreak.test pins it) and rides a Season-XP faucet capped at 300/day so pass pace stays owned by play
+  - rewards → `currency:genome-cores` — the IV budget (base(lifetime)×streakMult(streak), docs/DAILY-LOGIN.md) pays 2–3 weighted lanes priced off the Ichor Exchange/Splice Market anchors; cores absorb rounding top-ups
+  - rewards → `currency:ichor` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
+  - rewards → `system:cosmetics` — login-drop jackpot (~1-in-220) grants login-EXCLUSIVE items (Ichor Wake / Caul Filigree) so the Ichor boutique inventory is never devalued; the login auto-lane pays devotion titles/plaque/banner/border off lifetime claims
+  - provides → `system:genome-rank` — lifetimeLogins is a journey source (weight 40, depth 0.7/1.6) — attendance credits breadth, never Power
+  - provides → `system:collection` — the Devotion codex (6 lifetime milestones + best-streak watermark) is ZERO-POWER; its rank-ups bleed Ichor via the shared collection-rank faucet
+  - taughtBy ← `help:daily-login`
+  - documentedBy ← `doc:DAILY-LOGIN.md`
+  - documentedBy ← `doc:DAILY-RUN.md`
+  - documentedBy ← `doc:ECONOMY.md`
+  - testedBy ← `test:src/core/loginStreak.test.ts`
 
 ### `system:prestige` — Prestige (Molt / Ascendant)
 
@@ -1410,6 +1456,7 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - modifies → `system:rendering` — the Wardrobe render kit (render/wardrobeFx.ts) re-dresses nucleus/battlefield/trails/tower FX/placement and PRECOMPUTES enemy/boss/mega palettes — module state set by ui/wardrobeDressing.ts, never per-frame work
   - conflictsWith → `concept:power-score` — wardrobe codices carry ZERO powerWeight — starter items are pre-owned, so any weight moves a fresh account off POWER_BASE (the 1002 bug)
   - conflictsWith → `concept:golden-test` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
+  - requiredBy ← `system:daily-login`
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:battle-pass`
@@ -1417,6 +1464,7 @@ _at: src/core/cosmetics.ts, src/core/wardrobe.ts, src/ui/PhenotypeLab.tsx, src/u
   - documentedBy ← `doc:COSMETICS.md`
   - testedBy ← `test:src/core/cosmetics.test.ts`
   - testedBy ← `test:src/core/wardrobe.test.ts`
+  - rewardedBy ← `system:daily-login` — login-drop jackpot (~1-in-220) grants login-EXCLUSIVE items (Ichor Wake / Caul Filigree) so the Ichor boutique inventory is never devalued; the login auto-lane pays devotion titles/plaque/banner/border off lifetime claims
   - consumedBy ← `system:contracts` — marquee rows pay pt_gilded_* phenotypes under a pinned POOL INVARIANT: length % 3 == 0 and marquees EXACTLY at indices ≡ 0 mod 3 — one Gilded marquee per weekly window; off-stride marquees give some weeks two and others none
   - consumedBy ← `system:battle-pass` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
   - consumedBy ← `system:quests` — every quest's finaleCosmetic must be a wardrobe item with source {kind:'quest',quest} (never auto-unlocks; sourceLabel's QUEST_NAMES map is pinned against quest names by quests.test)
@@ -1436,9 +1484,11 @@ _at: src/core/battlePass.ts, src/ui/BattlePassScreen.tsx_
   - consumes → `system:cosmetics` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
   - consumes → `system:premium` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor
   - conflictsWith → `concept:golden-test` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
+  - requiredBy ← `system:daily-login`
   - requiredBy ← `system:quests`
   - documentedBy ← `doc:BATTLEPASS.md`
   - testedBy ← `test:src/core/battlePass.test.ts`
+  - consumedBy ← `system:daily-login` — the Bio-Cache SPEAKS PassReward through the shared applyRewardList interpreter (never authors passive/stack/phenotype — loginStreak.test pins it) and rides a Season-XP faucet capped at 300/day so pass pace stays owned by play
   - consumedBy ← `system:quests` — quest rewards SPEAK PassReward through the shared applyRewardList interpreter (never author stack/passive/cosmetic kinds — quests.test pins it); claims feed pass XP, pass level-ups credit passLevels missions via grantPassXp
 
 ### `system:quests` — Quests & Missions
@@ -1508,8 +1558,8 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:gene-essence`
   - contains ← `help:field-research`
   - contains ← `help:splice-market`
-  - contains ← `help:hive-construction`
-  - _…47 more (query: `npm run dil -- node system:onboarding`)_
+  - contains ← `help:daily-login`
+  - _…48 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -1552,6 +1602,7 @@ _at: src/core/genomeRank.ts, src/ui/components/GenomeRankPanel.tsx_
   - documentedBy ← `doc:GENOME-RANK.md`
   - documentedBy ← `guide:account-progression`
   - testedBy ← `test:src/core/genomeRank.test.ts`
+  - providedBy ← `system:daily-login` — lifetimeLogins is a journey source (weight 40, depth 0.7/1.6) — attendance credits breadth, never Power
   - providedBy ← `system:contracts` — lifetime completions (save.contracts.completed.length) are the contractsHonoured journey source — a pool expansion needs NO genome change
 
 ### `system:progression-gating` — Progression Gating & Director
@@ -1662,7 +1713,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…100 more (query: `npm run dil -- node system:meta-store`)_
+  - _…102 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2531,7 +2582,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (48)
+## Help Topics (49)
 
 - `help:hive-core` — Your one life — defend it. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:biomorph-conveyor` — Towers arrive on a living belt — Deploy, Strain, or Discard. _(partOf `system:onboarding`)_
@@ -2542,6 +2593,7 @@ _at: src/core/tutorial.ts_
 - `help:gene-essence` — Permanent currency that upgrades Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`, teaches `system:currencies`)_
 - `help:field-research` — Optional daily field studies — review a specimen observation for a small sample payout. Never required, never the path. _(partOf `system:onboarding`, teaches `system:field-research`)_
 - `help:splice-market` — A refreshing black bazaar: small goods for Genome Cores, premium goods and Bio-Containers for Ichor. _(partOf `system:onboarding`, teaches `system:splice-market`)_
+- `help:daily-login` — One living cache per day — its value compounds for every consecutive day you answer. _(partOf `system:onboarding`, teaches `system:daily-login`)_
 - `help:hive-construction` — Build the laboratory organism — organs that visibly transform your base. _(partOf `system:onboarding`)_
 - `help:gene-archive` — Permanently level your collected Gene Cards. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
 - `help:gene-loadout` — Equip genes that auto-activate every run. _(partOf `system:onboarding`, teaches `system:gene-cards`)_
@@ -2884,7 +2936,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (158)
+## Documentation (159)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -2917,7 +2969,8 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:CORE-FRAMEWORKS.md` — project documentation _(documents `system:content-infra`)_
 - `doc:COSMETICS.md` — project documentation _(documents `system:cosmetics`)_
 - `doc:CUTSCENES.md` — project documentation _(documents `system:cutscenes`)_
-- `doc:DAILY-RUN.md` — project documentation _(documents `system:daily`)_
+- `doc:DAILY-LOGIN.md` — project documentation _(documents `system:daily-login`)_
+- `doc:DAILY-RUN.md` — project documentation _(documents `system:daily`, documents `system:daily-login`)_
 - `doc:DEPENDENCY_GRAPH.md` — project documentation _(documents `system:dev-registry`)_
 - `doc:DEPLOYMENT.md` — project documentation _(documents `system:accounts`, documents `system:net-backend`, documents `system:website`)_
 - `doc:DESIGN.md` — project documentation _(documents `system:engine`)_
@@ -2930,7 +2983,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:DIL_GRAPH.md` — project documentation
 - `doc:DOCTRINES.md` — project documentation _(documents `system:doctrines`)_
 - `doc:EA-DESIGN-AUDIT.md` — project documentation
-- `doc:ECONOMY.md` — project documentation _(documents `system:shards-economy`, documents `system:currencies`)_
+- `doc:ECONOMY.md` — project documentation _(documents `system:shards-economy`, documents `system:daily-login`, documents `system:currencies`)_
 - `doc:ECONOMY_FORMULAS.md` — project documentation _(documents `system:currencies`)_
 - `doc:ENDLESS-SCALING.md` — project documentation _(documents `system:infinite`)_
 - `doc:ENEMIES.md` — project documentation
@@ -3045,7 +3098,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (226)
+## Tests (228)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3123,6 +3176,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
+- `test:src/core/loginStreak.test.ts` — automated validation _(tests `system:daily-login`)_
 - `test:src/core/loot.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/lootQueue.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/core/market.test.ts` — automated validation _(tests `system:splice-market`)_
@@ -3235,6 +3289,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/infestation.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemPower.test.ts` — automated validation _(tests `system:power`)_
+- `test:src/state/loginMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/lootbox.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/state/marketEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/mechanics.test.ts` — automated validation _(tests `system:onboarding`)_

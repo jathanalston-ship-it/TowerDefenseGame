@@ -127,6 +127,8 @@ export type WardrobeSource =
   | { kind: 'campaign'; stage: number }
   | { kind: 'infinite'; depth: number } // best endless Depth (save.bestWave)
   | { kind: 'daily'; clears: number } // lifetime Daily Run clears
+  | { kind: 'login'; days: number } // lifetime Daily Bio-Cache claims (docs/DAILY-LOGIN.md)
+  | { kind: 'login-drop' } // the Bio-Cache's extremely-rare jackpot bleed (never auto-earned)
   | { kind: 'rush'; bossKills: number } // lifetime Boss Rush boss kills
   | { kind: 'roulette'; spores: number } // lifetime Bio-Spores wagered
   | { kind: 'achievement'; id: string }
@@ -344,6 +346,16 @@ const ROWS: Row[] = [
   ['collectionBorder', 'Gold Fret', 'rare', { kind: 'collection', category: 'overall', rank: 3 }, { css: 'gold', accent: '#ffd24d' }, 'Gold rank, worn on the profile’s edge.'],
   ['collectionBorder', 'Ascendant Fret', 'legendary', { kind: 'collection', category: 'overall', rank: 6 }, { css: 'ascendant', accent: '#e6a2ff' }, '100% of everything. The frame agrees.'],
   ['emblem', 'Curator’s Eye', 'epic', { kind: 'milestone' }, { glyph: '◉', accent: '#e6a2ff' }, 'A milestone-track exclusive — the eye that catalogued it all.'],
+  // ── Daily Bio-Cache devotion ladder (docs/DAILY-LOGIN.md — lifetime claims, never lost) ──
+  ['title', 'The Devoted', 'rare', { kind: 'login', days: 7 }, { text: 'The Devoted' }, 'Seven caches opened. The organism has started expecting you.'],
+  ['nameplate', 'Vein-Grown Plaque', 'epic', { kind: 'login', days: 30 }, { accent: '#e0314b', bg: '#1a070d' }, 'A month of tithes — your name now has a pulse.'],
+  ['banner', 'Standard of the Vigil', 'epic', { kind: 'login', days: 100 }, { accent: '#e0314b', glyph: '◈' }, 'A hundred days answered. Flown in arterial red.'],
+  ['title', 'Year-Bound', 'legendary', { kind: 'login', days: 365 }, { text: 'Year-Bound' }, 'Three hundred sixty-five communions. The hive keeps your calendar now.'],
+  ['prestigeBorder', 'Thousandth Dawn', 'legendary', { kind: 'login', days: 1000 }, { css: 'dawn', accent: '#e0314b' }, 'A thousand mornings at the membrane. Time itself frames you.'],
+  ['collectionBorder', 'Devoted Fret', 'epic', { kind: 'collection', category: 'logins', rank: 4 }, { css: 'devoted', accent: '#e0314b' }, 'Platinum devotion, worn on the profile’s edge.'],
+  // The Bio-Cache jackpot pool (source 'login-drop' — granted ONLY by the ~1-in-220 cache roll).
+  ['projectileTrail', 'Ichor Wake', 'epic', { kind: 'login-drop' }, { trail: 'gilded', accent: '#e0314b' }, 'A jackpot bleed from a Daily Bio-Cache — every shot trails black blood.'],
+  ['cardFrame', 'Caul Filigree', 'legendary', { kind: 'login-drop' }, { css: 'caul', accent: '#e0314b' }, 'A jackpot bleed from a Daily Bio-Cache — drafts framed in birth membrane.'],
   // ── Season FREE-track cosmetics (docs/BATTLEPASS.md — every pass seeds the free lane too) ──
   ['waveTheme', 'Bloom Fanfare', 'rare', bp('s1', 35, 'free'), { accent: '#ff9ab8', cue: 'crisp' }, 'Crimson Bloom free reward — waves announced in falling petals.'],
   ['nameColor', 'Petal Pink', 'rare', bp('s1', 60, 'free'), { accent: '#ff9ab8' }, 'Crimson Bloom free reward — a name signed in bloom.'],
@@ -394,6 +406,7 @@ export interface WardrobeUnlockCtx {
   campaignStage: number; // highest cleared stage
   bestDepth: number; // best endless Depth (save.bestWave)
   dailyClears: number;
+  lifetimeLogins: number; // lifetime Daily Bio-Cache claims (docs/DAILY-LOGIN.md)
   rushBossKills: number;
   rouletteSpores: number;
   achievements: Set<string>;
@@ -403,8 +416,8 @@ export interface WardrobeUnlockCtx {
 
 /** Whether an item's source is an AUTO lane (progression-derived, granted by the poll). */
 export function isAutoSource(s: WardrobeSource): boolean {
-  return s.kind === 'campaign' || s.kind === 'infinite' || s.kind === 'daily' || s.kind === 'rush'
-    || s.kind === 'roulette' || s.kind === 'achievement' || s.kind === 'collection';
+  return s.kind === 'campaign' || s.kind === 'infinite' || s.kind === 'daily' || s.kind === 'login'
+    || s.kind === 'rush' || s.kind === 'roulette' || s.kind === 'achievement' || s.kind === 'collection';
 }
 
 /** Evaluate one auto source against the context. Non-auto sources always read false. */
@@ -413,6 +426,7 @@ export function sourceMet(s: WardrobeSource, ctx: WardrobeUnlockCtx): boolean {
     case 'campaign': return ctx.campaignStage >= s.stage;
     case 'infinite': return ctx.bestDepth >= s.depth;
     case 'daily': return ctx.dailyClears >= s.clears;
+    case 'login': return ctx.lifetimeLogins >= s.days;
     case 'rush': return ctx.rushBossKills >= s.bossKills;
     case 'roulette': return ctx.rouletteSpores >= s.spores;
     case 'achievement': return ctx.achievements.has(s.id);
@@ -443,6 +457,8 @@ export function sourceLabel(s: WardrobeSource): string {
     case 'campaign': return `Clear Campaign Stage ${s.stage}`;
     case 'infinite': return `Reach Depth ${s.depth} (Infinite)`;
     case 'daily': return `${s.clears} lifetime Daily clears`;
+    case 'login': return `${s.days} lifetime Daily Bio-Cache claims`;
+    case 'login-drop': return 'Daily Bio-Cache rarity bleed — extremely rare';
     case 'rush': return `${s.bossKills} lifetime Boss Rush kills`;
     case 'roulette': return `Wager ${s.spores} lifetime Bio-Spores`;
     case 'achievement': return 'Achievement reward';

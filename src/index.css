@@ -5055,8 +5055,12 @@ kbd {
 .hive-build:disabled { opacity: 0.55; cursor: default; }
 .hive-maxed { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--caustic); }
 .hive-note { font-size: 11px; color: var(--muted); }
+/* Full-screen veils fade in WITHOUT a transform — sec-pulse-in ends at translateX(-50%)
+   (it belongs to the left:50%-anchored SecurityPulse toast) and its retained fill 'both'
+   shifted a reused veil half a viewport left. */
+@keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
 .hive-ceremony-veil { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
-  background: rgba(4, 2, 8, 0.82); animation: sec-pulse-in 0.18s ease-out both; }
+  background: rgba(4, 2, 8, 0.82); animation: veil-in 0.18s ease-out both; }
 .hive-ceremony { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
   max-width: 400px; padding: 26px 28px; border-radius: var(--r-lg);
   border: 1px solid color-mix(in srgb, var(--caustic) 45%, var(--line));
@@ -5066,6 +5070,93 @@ kbd {
 .hive-ceremony-name { font-size: 18px; font-weight: 800; letter-spacing: 0.06em; color: var(--text); }
 .hive-ceremony-blurb { font-size: 12px; color: var(--muted); }
 .hive-ceremony-perk { font-size: 12px; color: var(--caustic); }
+
+/* ── Daily Bio-Cache (docs/DAILY-LOGIN.md §ui) — arterial-crimson identity (#e0314b, the
+   Ichor hue: the cache is priced in ichor-value). Card on the home board + the rupture
+   ceremony. The pod is an ORGANIC blob (the sanctioned 30–70% radius grammar). */
+.bc-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: linear-gradient(170deg, color-mix(in srgb, #e0314b 4%, var(--panel-2)), var(--panel-2) 65%); }
+.bc-card.is-ready { border-color: color-mix(in srgb, #e0314b 40%, var(--line)); animation: bc-breathe 3.2s ease-in-out infinite; }
+@keyframes bc-breathe {
+  0%, 100% { box-shadow: 0 0 22px -12px color-mix(in srgb, #e0314b 55%, transparent); }
+  50% { box-shadow: 0 0 34px -10px color-mix(in srgb, #e0314b 80%, transparent); }
+}
+.bc-ready { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bc-pod-mini { position: relative; width: 52px; height: 56px; flex: none; padding: 0; border: none; cursor: pointer;
+  background: radial-gradient(circle at 38% 30%, color-mix(in srgb, #e0314b 55%, #2a0a12), #1a060c 72%);
+  border-radius: 52% 48% 46% 54% / 60% 60% 40% 40%;
+  box-shadow: inset 0 -6px 14px rgba(0, 0, 0, 0.55), 0 0 18px -6px color-mix(in srgb, #e0314b 70%, transparent);
+  animation: bc-throb 2.1s ease-in-out infinite; }
+.bc-pm-vein { position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
+  border: 1px solid color-mix(in srgb, #e0314b 45%, transparent); opacity: 0.7; animation: bc-throb 2.1s ease-in-out infinite reverse; }
+.bc-pm-core { position: absolute; left: 50%; top: 46%; width: 14px; height: 14px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: #e0314b; pointer-events: none;
+  box-shadow: 0 0 14px 2px color-mix(in srgb, #e0314b 75%, transparent); animation: bc-core-throb 1.05s ease-in-out infinite; }
+@keyframes bc-throb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes bc-core-throb { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.18); } }
+.bc-ready-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 180px; }
+.bc-ready-line { font-size: 13px; letter-spacing: 0.06em; color: var(--text); }
+.bc-ready-line b { color: #e0314b; }
+.bc-ready-sub { font-size: 11px; color: var(--muted); }
+.bc-mile { color: var(--gold); font-weight: 700; }
+.bc-ready-warn { font-size: 11px; color: var(--vital); }
+.bc-open { flex: none; }
+.bc-claimed { display: flex; flex-direction: column; gap: 8px; }
+.bc-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+.bc-stat { display: flex; flex-direction: column; gap: 1px; }
+.bc-stat-k { font-size: 10px; letter-spacing: 0.12em; color: var(--muted); }
+.bc-stat-v { font-size: 16px; font-weight: 800; color: var(--text); }
+.bc-today { display: flex; gap: 6px; flex-wrap: wrap; }
+.bc-chip { font-size: 11px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel); color: var(--muted); }
+.bc-tomorrow { font-size: 11px; color: var(--muted); }
+.bc-tomorrow b { color: #e0314b; }
+.bc-reset { opacity: 0.8; }
+
+/* The rupture ceremony — pod grows over the veil, pulses until tapped, bursts, erupts. */
+.bc-veil { position: fixed; inset: 0; z-index: 220; display: grid; place-items: center;
+  background: rgba(4, 2, 8, 0.86); animation: veil-in 0.18s ease-out both; }
+.bc-pod { position: relative; width: 190px; height: 212px; padding: 0; border: none; background: transparent; cursor: pointer; }
+.bc-pod-body { position: absolute; inset: 0; border-radius: 52% 48% 46% 54% / 60% 60% 40% 40%;
+  background:
+    radial-gradient(circle at 36% 26%, color-mix(in srgb, #e0314b 60%, #2a0a12), transparent 58%),
+    radial-gradient(circle at 66% 72%, color-mix(in srgb, #e0314b 30%, #170509), #12040a 80%);
+  box-shadow: inset 0 -20px 44px rgba(0, 0, 0, 0.6), 0 0 60px -12px color-mix(in srgb, #e0314b 75%, transparent); }
+.bc-pod-veins { position: absolute; inset: -16px; border-radius: 52% 48% 46% 54% / 60% 60% 40% 40%; pointer-events: none;
+  border: 1px solid color-mix(in srgb, #e0314b 50%, transparent);
+  background: repeating-radial-gradient(circle at 50% 55%, transparent 0 14px, color-mix(in srgb, #e0314b 16%, transparent) 15px 16px);
+  opacity: 0.55; }
+.bc-pod-core { position: absolute; left: 50%; top: 48%; width: 34px; height: 34px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: #e0314b; pointer-events: none;
+  box-shadow: 0 0 34px 6px color-mix(in srgb, #e0314b 80%, transparent); }
+.is-grow .bc-pod { animation: bc-grow 0.95s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+@keyframes bc-grow { from { transform: scale(0.08); opacity: 0; } 60% { opacity: 1; } to { transform: scale(1); opacity: 1; } }
+.is-pulse .bc-pod-body { animation: bc-throb 1.15s ease-in-out infinite; }
+.is-pulse .bc-pod-veins { animation: bc-throb 1.15s ease-in-out infinite reverse; }
+.is-pulse .bc-pod-core { animation: bc-core-throb 0.58s ease-in-out infinite; }
+.bc-pod-hint { position: absolute; left: 0; right: 0; bottom: -38px; text-align: center;
+  font-size: 11px; letter-spacing: 0.24em; color: #e0314b; animation: bc-hint 1.4s ease-in-out infinite; }
+@keyframes bc-hint { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.is-burst .bc-pod-body, .is-burst .bc-pod-veins { animation: bc-rupture 0.6s ease-out both; }
+.is-burst .bc-pod-core { animation: bc-core-rupture 0.6s ease-out both; }
+@keyframes bc-rupture { 40% { transform: scale(1.16); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+@keyframes bc-core-rupture { to { transform: translate(-50%, -50%) scale(5); opacity: 0; } }
+.bc-summary { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  max-width: 420px; padding: 26px 28px; border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, #e0314b 45%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, #e0314b 9%, var(--panel)), var(--panel));
+  box-shadow: 0 0 80px -18px color-mix(in srgb, #e0314b 60%, transparent); }
+.bc-sum-day { font-size: 18px; font-weight: 800; letter-spacing: 0.06em; color: var(--text); }
+.bc-sum-day b { color: #e0314b; }
+.bc-sum-mile { font-size: 11px; letter-spacing: 0.12em; color: var(--gold); }
+.bc-sum-lines { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.bc-sum-line { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text);
+  animation: bc-erupt 0.4s ease-out both; }
+.bc-sum-i { color: #e0314b; }
+@keyframes bc-erupt { from { transform: translateY(10px) scale(0.9); opacity: 0; } to { transform: none; opacity: 1; } }
+.bc-sum-jackpot { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); font-weight: 700; }
+.bc-sum-foot { font-size: 11px; color: var(--muted); }
 .hub-nav {
   display: flex;
   flex-direction: column;

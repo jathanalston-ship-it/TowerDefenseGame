@@ -24,6 +24,7 @@ export const CONCEPTS: DilNode[] = [
   { id: 'currency:gene-essence', kind: 'currency', name: 'Gene Essence', summary: 'Levels Gene Archive cards and assembles/levels Mulligan modifiers.' },
   { id: 'currency:materials', kind: 'currency', name: 'Materials (mutagen/scrap/catalyst)', summary: 'Equipment crafting + reforge inputs (Armory).' },
   { id: 'currency:stamina', kind: 'currency', name: 'Rush Stamina', summary: 'Attempt gate for Boss Rush — makes each gauntlet deliberate.' },
+  { id: 'currency:ichor', kind: 'currency', name: 'Ichor (premium)', summary: 'The premium reserve — never farmable; bled from achievements, collection ranks, milestones and records; spent in the Splice Market.' },
 ];
 
 /** Which game surfaces each public site guide explains (guide slug → node ids). */
@@ -73,6 +74,12 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:hive-construction', kind: 'consumes', to: 'currency:tower-shards', note: 'Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last' },
   { from: 'system:hive-construction', kind: 'consumes', to: 'currency:hero-shards', note: 'Apex Genome lanes drain the per-kind wallet richest-first' },
   { from: 'system:hive-construction', kind: 'consumes', to: 'currency:materials', note: 'mutagen/scrap/catalyst lanes compete with equipment crafting for the same mats wallet' },
+  { from: 'system:daily-login', kind: 'consumes', to: 'system:battle-pass', note: 'the Bio-Cache SPEAKS PassReward through the shared applyRewardList interpreter (never authors passive/stack/phenotype — loginStreak.test pins it) and rides a Season-XP faucet capped at 300/day so pass pace stays owned by play' },
+  { from: 'system:daily-login', kind: 'rewards', to: 'currency:genome-cores', note: 'the IV budget (base(lifetime)×streakMult(streak), docs/DAILY-LOGIN.md) pays 2–3 weighted lanes priced off the Ichor Exchange/Splice Market anchors; cores absorb rounding top-ups' },
+  { from: 'system:daily-login', kind: 'rewards', to: 'currency:ichor', note: 'a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds' },
+  { from: 'system:daily-login', kind: 'rewards', to: 'system:cosmetics', note: 'login-drop jackpot (~1-in-220) grants login-EXCLUSIVE items (Ichor Wake / Caul Filigree) so the Ichor boutique inventory is never devalued; the login auto-lane pays devotion titles/plaque/banner/border off lifetime claims' },
+  { from: 'system:daily-login', kind: 'provides', to: 'system:genome-rank', note: 'lifetimeLogins is a journey source (weight 40, depth 0.7/1.6) — attendance credits breadth, never Power' },
+  { from: 'system:daily-login', kind: 'provides', to: 'system:collection', note: 'the Devotion codex (6 lifetime milestones + best-streak watermark) is ZERO-POWER; its rank-ups bleed Ichor via the shared collection-rank faucet' },
   { from: 'system:doctrines', kind: 'dependsOn', to: 'concept:progression-gates', note: 'unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)' },
   { from: 'system:campaign', kind: 'rewards', to: 'currency:genome-cores', note: 'first-clear + stage rewards' },
   { from: 'system:campaign', kind: 'rewards', to: 'currency:tower-shards', note: 'stage rewards feed unlock gates' },

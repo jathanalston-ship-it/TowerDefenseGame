@@ -51,6 +51,9 @@ multiplier, and the Dormancy draft cadence are read at their hooks from `Game.da
   Infinite `bestWave` record (mode identity, like Boss Rush).
 - `finishRun` lane keys off `RunResult.dailyKey` (set by App); `RunOutcome.dailyProgress` carries
   the run's cores/streak/cleared for Results.
+- **Sibling system**: the Daily Run rewards PLAY; the **Daily Bio-Cache** (DAILY-LOGIN.md)
+  rewards SHOWING UP — a separate login-streak faucet with its own `save.login` ledger. The
+  two streaks are independent by design (its `isPrevDayKey` day math is reused from here).
 
 ## Boot path (worldwide identity)
 

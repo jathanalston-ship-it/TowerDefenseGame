@@ -183,6 +183,12 @@ The run's payday. A boss kill grants:
 - A chance at a **relic** or **Exotic** (scales with corruption depth).
 - **Boss tokens** → spend at the boss-specific reward track for targeted farming.
 
+### Daily Bio-Cache *(the login faucet — DAILY-LOGIN.md)*
+One procedurally generated bundle per UTC day, sized by an internal **Ichor-Value** budget
+(`base(lifetime) × streakMult(streak)` — compounding forever, never explosive) and paid
+through the shared PassReward interpreter. A pleasant trickle beside play income
+(~6 IV day one), never a primary faucet; streak milestones ride guaranteed containers.
+
 ### Loot boxes & Chests *(earned, never purchased)*
 All chests are *earned* (waves, bosses, milestones, dailies) — **no paid power**.
 Weighted contents with **duplicate protection** and **pity**:

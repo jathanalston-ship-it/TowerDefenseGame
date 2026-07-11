@@ -172,6 +172,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'nucleus.unlock', category: 'progression', level: 'strict', limit: S({ count: 3 }), cooldownMs: 700, dedupeMs: 1500,
     analytics: 'sec_nucleus_unlock', doc: 'Open a Nucleus chamber (docs/NUCLEUS.md §gates) — a once-per-account milestone; chamber 3 spends Ichor.', at: META,
   },
+  'login.claim': {
+    id: 'login.claim', category: 'economy', level: 'strict', limit: S({ count: 3 }), cooldownMs: 1000, dedupeMs: 2500,
+    analytics: 'sec_login_claim', doc: 'Open the Daily Bio-Cache (docs/DAILY-LOGIN.md) — once per UTC day by the save-side key gate; the guard just blunts spam.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -239,6 +243,7 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   upgradeNucleusOrgan: 'nucleus.grow',
   setNucleusSlot: 'nucleus.slot',
   unlockNucleusChamber: 'nucleus.unlock',
+  claimLogin: 'login.claim',
   importText: 'save.import',
   restoreBackup: 'save.restore',
   reset: 'account.reset',

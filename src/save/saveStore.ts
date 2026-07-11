@@ -91,6 +91,11 @@ export interface SaveData {
   // ── Hive Construction (v36, docs/HIVE-CONSTRUCTION.md) — the built laboratory organs:
   //    organ id → built tier (1..def.tiers). Purely base-side (fixtures/QoL — never Power). ──
   hive: { built: Record<string, number> };
+  // ── Daily Bio-Cache (v38, docs/DAILY-LOGIN.md) — the login-streak ledger. last: the UTC day
+  //    key already claimed (once-per-day gate; a forged FUTURE key self-heals by waiting);
+  //    streak: consecutive-day claims; best: streak watermark; lifetime: total claims ever
+  //    (NEVER reset — collections/titles/Genome Rank ride it). ──
+  login: { last: string; streak: number; best: number; lifetime: number };
   // ── Nemesis + trophies (v26, docs/NEMESIS.md; rack + vengeance v34). nemesis: the boss
   //    currently hunting this account (null = none). equippedTrophies: the mounted rack (up to
   //    trophySlots organs). vengeance: chassis you have AVENGED — the vengeance-trophy ledger
@@ -366,8 +371,10 @@ export interface TutorialSave {
 // the active base-building ledger; fixtures/QoL only, never Power.
 // v36→v37: Nucleus Mulligans (docs/NUCLEUS.md) — `nucleus` (chambers/grown/unlocked): the
 // Hive Nucleus's own organ system. Empty ⇒ identity fold (golden-safe).
+// v37→v38: Daily Bio-Cache (docs/DAILY-LOGIN.md) — `login` {last, streak, best, lifetime}:
+// the login-streak ledger behind the daily cache faucet; pure economy, never Power.
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 37;
+export const CURRENT_VERSION = 38;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -604,6 +611,7 @@ export function defaultSave(): SaveData {
     contracts: { completed: [], perfectWeeks: 0, lastPerfect: '' },
     directives: { week: '', progress: {}, claimed: [] },
     hive: { built: {} },
+    login: { last: '', streak: 0, best: 0, lifetime: 0 },
     nemesis: null,
     equippedTrophies: [],
     vengeance: [],
@@ -979,6 +987,21 @@ function withDefaults(data: SaveData): SaveData {
         }
       }
       return { built };
+    })(),
+    // v36→v37: the Daily Bio-Cache ledger — ISO day key + non-negative ints; best keeps its
+    // watermark contract (≥ streak). A forged FUTURE `last` is kept as-is: the claim gate
+    // compares day keys lexically, so it self-heals by waiting (the rushStamina convention).
+    login: ((): SaveData['login'] => {
+      const raw = (data as { login?: unknown }).login as { last?: unknown; streak?: unknown; best?: unknown; lifetime?: unknown } | undefined;
+      // A REAL calendar day only (shape + round-trip) — '2027-99-99' would otherwise sit
+      // lexically in the future and lock the cache until 2028.
+      const shaped = typeof raw?.last === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.last) ? raw.last : '';
+      const parsed = shaped ? Date.parse(shaped + 'T00:00:00Z') : NaN;
+      const last = Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === shaped ? shaped : '';
+      const int = (v: unknown): number => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(1e9, Math.floor(Number(v)))) : 0);
+      const streak = int(raw?.streak);
+      const lifetime = Math.max(int(raw?.lifetime), streak); // lifetime can never trail the live streak
+      return { last, streak, best: Math.max(int(raw?.best), streak), lifetime };
     })(),
     nemesis: ((): SaveData['nemesis'] => {
       const n = (data as { nemesis?: unknown }).nemesis as { defId?: unknown; slain?: unknown } | null | undefined;

@@ -35,6 +35,7 @@ export type CollectionCategoryId =
   | 'towerSkins' | 'heroSkins' // unit Phenotypes, split per target (docs/COSMETICS.md)
   | 'wardrobeArena' | 'wardrobeAudio' | 'wardrobeInterface' | 'wardrobeIdentity' // Wardrobe codices (§wardrobe)
   | 'quests' | 'missions' // the directive codices (docs/QUESTS.md §collection)
+  | 'logins' // Daily Bio-Cache devotion (docs/DAILY-LOGIN.md §collection)
   | 'doctrines' // run-commitment mastery (docs/DOCTRINES.md §collection)
   | 'mulligans' | 'mulliganOrganisms'
   | 'nucleusOrgans' | 'nucleusAdaptations'; // the Hive Nucleus's own organ system (docs/NUCLEUS.md)
@@ -93,6 +94,8 @@ export interface CollectionContext {
   nucleusAdapted: Set<string>; // classes whose FULL Nucleus adaptation has ever completed (lifetime)
   questCompletions: Record<string, number>; // quest id → lifetime finale claims (docs/QUESTS.md §collection)
   missionsDone: Set<string>; // mission ids ever completed (lifetime, both lanes)
+  lifetimeLogins: number; // Daily Bio-Cache claims ever (docs/DAILY-LOGIN.md — never reset)
+  bestLoginStreak: number; // longest consecutive-day claim streak (a watermark — never regresses)
   geneLevels?: Record<string, number>; // card id → permanent Gene level (label enrichment only)
 }
 
@@ -271,6 +274,30 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: mi.id, name: mi.name, tier, maxTier: 1, tierLabel: tier ? 'Accomplished' : 'Standing' };
   });
 
+  // Devotion (docs/DAILY-LOGIN.md §collection): the Daily Bio-Cache milestone ladder. Lifetime
+  // claims only ever GROW and the streak entry reads the best-streak WATERMARK, so this codex
+  // never regresses — a missed day costs the multiplier, never the collection. Fresh save = 0.
+  const LOGIN_MILESTONES: { at: number; name: string }[] = [
+    { at: 1, name: 'First Communion' },
+    { at: 7, name: 'Week of Devotion' },
+    { at: 30, name: 'The Faithful Month' },
+    { at: 100, name: 'Hundred Communions' },
+    { at: 365, name: 'The Long Vigil' },
+    { at: 1000, name: 'Thousand Days Below' },
+  ];
+  const logins: CollectionEntry[] = LOGIN_MILESTONES.map((m) => {
+    const tier = ctx.lifetimeLogins >= m.at ? 1 : 0;
+    return { id: `login_${m.at}`, name: m.name, tier, maxTier: 1, tierLabel: tier ? 'Answered' : `${Math.min(ctx.lifetimeLogins, m.at)}/${m.at} days` };
+  });
+  {
+    const STREAK_TIERS = [7, 30, 100];
+    const tier = tierFor(ctx.bestLoginStreak, STREAK_TIERS);
+    logins.push({
+      id: 'login_streak', name: 'Unbroken Vigil', tier, maxTier: STREAK_TIERS.length,
+      tierLabel: labelAt(tier, ['Unkept', 'Week Unbroken', 'Month Unbroken', 'Hundred Unbroken']),
+    });
+  }
+
   // Doctrines (docs/DOCTRINES.md §collection): one entry per real doctrine (the 'none' default
   // is no commitment and never ranks). A settled run under it DISCOVERS it; beyond that the
   // codex tier IS 1 + the live mastery rank (doctrineRank over the stats ledgers) — one ladder,
@@ -329,6 +356,7 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('wardrobeIdentity', 'Identity', wardrobeCat('identity')),
     makeCategory('quests', 'Quests', quests),
     makeCategory('missions', 'Missions', missions),
+    makeCategory('logins', 'Devotion', logins),
     makeCategory('doctrines', 'Doctrines', doctrines),
     makeCategory('mulligans', 'Mulligan Pieces', mulligans),
     makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
@@ -386,6 +414,10 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   // both read 0 (golden-safe). Quests pay campaign-side economy; missions a small vigor edge.
   quests: { effects: [], econ: [{ key: 'campaignRewardMult', max: 0.1, label: 'Campaign Rewards' }], powerWeight: 0.02 },
   missions: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.04, label: 'Biomass' }], econ: [], powerWeight: 0.02 },
+  // Devotion (docs/DAILY-LOGIN.md §collection) stays STRICTLY identity: the cache itself IS the
+  // economy payout, and its ranks already bleed Ichor via the shared rank-up faucet — any Power
+  // or run bonus here would double-pay pure attendance (the wardrobe-codex precedent).
+  logins: { effects: [], econ: [], powerWeight: 0 },
   // Doctrine mastery (docs/DOCTRINES.md §collection): commitment breeds efficiency — a small
   // hive-wide Biomass edge at full mastery. Kept light: ranks ALREADY pay their own run-end
   // premium (doctrineRankBonus); the codex rewards breadth, not the same lever twice.
