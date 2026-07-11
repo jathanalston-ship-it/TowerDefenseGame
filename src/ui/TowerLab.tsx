@@ -220,7 +220,8 @@ export function TowerLab(): JSX.Element {
                     {r.affordable && <i className="tl2-b tl2-b-up" title="Next star affordable">▲</i>}
                     {r.locked && <i className="tl2-b tl2-b-lock" title={`Locked — synthesize for ${r.unlockCost} Strain Samples`}>🔒</i>}
                     {r.capLocked && !r.locked && <i className="tl2-b tl2-b-cap" title="Campaign-gated">🔒</i>}
-                    {meta.adaptation('tower', k).pointsAvailable > 0 && <i className="tl2-b tl2-b-pts" title="Adaptation points to spend">{meta.adaptation('tower', k).pointsAvailable}</i>}
+                    {/* Adaptation pts only signal on SYNTHESIZED towers — a dormant tree is locked shut. */}
+                    {!r.locked && meta.adaptation('tower', k).pointsAvailable > 0 && <i className="tl2-b tl2-b-pts" title="Adaptation points to spend">{meta.adaptation('tower', k).pointsAvailable}</i>}
                   </span>
                 </button>
               );
@@ -235,6 +236,17 @@ export function TowerLab(): JSX.Element {
             <div className={`tl2-chamber${chamberFlash % 2 ? ' flash-a' : ' flash-b'}`} data-flash={chamberFlash > 0 || undefined}>
               <TowerPortrait color={m.color} stars={m.stars} size={224} kind={selected} />
               <span className="tl2-chamber-lvl" style={{ color: m.color }}>◈{m.stars}</span>
+              {/* DORMANT STRAIN: the chamber itself reads LOCKED, prerequisite in plain sight
+                  (the lockbar below carries the Synthesize action). */}
+              {m.locked && (
+                <div className="tl2-chamber-locked" role="note" aria-label={`${m.name} is locked — synthesis prerequisites below`}>
+                  <span className="tl2-chamber-locked-glyph" aria-hidden>🔒</span>
+                  <span className="tl2-chamber-locked-title">LOCKED</span>
+                  <span className="tl2-chamber-locked-req" data-met={m.canUnlock || undefined}>
+                    {num(m.shards)} / {num(m.unlockCost)} <CurrencyIcon id="towerShards" color={m.color} size={12} title="Strain Samples" />
+                  </span>
+                </div>
+              )}
               {m.nextVisualMutation && (
                 <div className="tl2-next-form" title={`${m.nextVisualMutation.name} — ${m.nextVisualMutation.desc}`}>
                   <TowerPortrait color={m.color} stars={m.nextVisualMutation.at} size={64} kind={selected} />
@@ -396,9 +408,32 @@ export function TowerLab(): JSX.Element {
 
           <div className="tl2-block">
             <button className="tl-forks-toggle" onClick={() => setOpenAdapt((v) => !v)}>
-              Adaptation {meta.adaptation('tower', selected).pointsAvailable > 0 && <span className="tl-adapt-badge">{meta.adaptation('tower', selected).pointsAvailable}</span>} {openAdapt ? '▾' : '▸'}
+              {/* The spendable-points signal belongs to SYNTHESIZED towers only; a dormant tree is locked. */}
+              Adaptation {m.locked && <span className="tl-adapt-lockmark" title="Locked — synthesize this tower first">🔒</span>}{!m.locked && meta.adaptation('tower', selected).pointsAvailable > 0 && <span className="tl-adapt-badge">{meta.adaptation('tower', selected).pointsAvailable}</span>} {openAdapt ? '▾' : '▸'}
             </button>
-            {openAdapt && <AdaptationTree subject="tower" unit={selected} color={m.color} />}
+            {openAdapt && (m.locked ? (
+              // DORMANT STRAIN: the tree renders as a dimmed, inert preview under a LOCKED plate that
+              // states the synthesis prerequisite (requirements always SHOWN — the anticipation rule).
+              <div className="tl-adapt-lockwrap">
+                <div className="tl-adapt-dim" aria-hidden>
+                  <AdaptationTree subject="tower" unit={selected} color={m.color} />
+                </div>
+                <div className="tl-adapt-locked" role="note" aria-label={`Adaptation locked — synthesize ${m.name} first`}>
+                  <span className="tl-adapt-locked-glyph" aria-hidden>🔒</span>
+                  <span className="tl-adapt-locked-title">LOCKED</span>
+                  <span className="tl-adapt-locked-sub">DORMANT STRAIN — Adaptation awakens when this tower is synthesized</span>
+                  <span className={`tl-adapt-locked-req${m.canUnlock ? ' is-met' : ''}`}>
+                    {m.canUnlock ? '✓' : '✗'} Bank <b>{num(m.shards)} / {num(m.unlockCost)}</b>
+                    <CurrencyIcon id="towerShards" color={m.color} size={13} title="Strain Samples" /> Strain Samples (Bio-Containers drop them)
+                  </span>
+                  <span className="tl-adapt-locked-hint">
+                    {m.canUnlock ? 'Ready — press Synthesize above to unlock this organism.' : 'Then press Synthesize above to unlock this organism.'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <AdaptationTree subject="tower" unit={selected} color={m.color} />
+            ))}
           </div>
         </div>
       </div>

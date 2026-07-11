@@ -2714,6 +2714,9 @@ export const meta = {
    *  (tier ladder + campaign gate + no exclusive sibling owned). Takes effect on the next run. */
   spendAdaptation(subject: 'tower' | 'hero', unit: string, nodeId: string): boolean {
     const save = store.get();
+    // A DORMANT tower's tree is locked shut — Antigen only flows into synthesized organisms
+    // (the Lab shows the same lock; this guard keeps every other surface honest).
+    if (subject === 'tower' && !isTowerUnlocked(save, unit as TowerKind)) return false;
     const key = `${subject}:${unit}`;
     const chosen = save.adaptation?.[key] ?? [];
     const view = adaptationView(save, subject, unit);

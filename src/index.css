@@ -3143,6 +3143,13 @@ kbd {
 .tl2-chamber { position: relative; width: 240px; height: 240px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--tw) 16%, var(--panel-deep)) 0%, var(--panel-deep) 72%); border: 1px solid color-mix(in srgb, var(--tw) 30%, var(--line)); }
 .tl2-chamber::before { content: ''; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--tw) 26%, transparent); animation: tl2-chamber-breathe 6s ease-in-out infinite; pointer-events: none; }
 @keyframes tl2-chamber-breathe { 0%, 100% { opacity: 0.35; transform: scale(0.985); } 50% { opacity: 0.9; transform: scale(1.015); } }
+/* DORMANT STRAIN — the chamber reads LOCKED at a glance: circular scrim desaturates the specimen
+   beneath (backdrop-filter, no structural re-dress) with the synthesis prerequisite in the middle. */
+.tl2-chamber-locked { position: absolute; inset: 0; z-index: 2; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: radial-gradient(circle at 50% 45%, rgba(7, 10, 15, 0.55), rgba(7, 10, 15, 0.82)); backdrop-filter: grayscale(0.85) brightness(0.75) blur(1px); pointer-events: none; }
+.tl2-chamber-locked-glyph { font-size: 40px; filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.65)); }
+.tl2-chamber-locked-title { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.28em; text-indent: 0.28em; color: var(--text); }
+.tl2-chamber-locked-req { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--line-strong); font-size: 12px; font-weight: 700; color: var(--kinetic); }
+.tl2-chamber-locked-req[data-met] { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--line)); }
 .tl2-chamber[data-flash].flash-a { animation: tl2-flash-a 0.9s var(--ease-out); }
 .tl2-chamber[data-flash].flash-b { animation: tl2-flash-b 0.9s var(--ease-out); }
 @keyframes tl2-flash-a { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tw) 70%, transparent); } 100% { box-shadow: 0 0 60px 24px transparent; } }
@@ -3279,6 +3286,19 @@ kbd {
 .tl-fork-opt { font-size: 11px; padding: 4px 9px; border-radius: var(--r-sm); }
 .tl-fork-opt.on { background: rgba(63, 224, 138, 0.16); border-color: rgba(63, 224, 138, 0.5); color: var(--success); }
 .tl-adapt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px; background: var(--gold); color: #1a1400; font-size: 10px; font-weight: 900; }
+.tl-adapt-lockmark { font-size: 11px; opacity: 0.8; }
+/* Dormant-strain Adaptation: the tree shows as an inert preview under a big LOCKED plate that
+   names the synthesis prerequisite (requirements always SHOWN — the anticipation rule). */
+.tl-adapt-lockwrap { position: relative; }
+.tl-adapt-dim { pointer-events: none; user-select: none; filter: grayscale(0.85) brightness(0.55); opacity: 0.5; }
+.tl-adapt-locked { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 18px; text-align: center; border-radius: var(--r-md); background: radial-gradient(circle at 50% 40%, rgba(7, 10, 15, 0.72), rgba(7, 10, 15, 0.9)); border: 1px dashed var(--line-strong); backdrop-filter: blur(1.5px); }
+.tl-adapt-locked-glyph { font-size: 34px; filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6)); }
+.tl-adapt-locked-title { font-family: 'Chakra Petch', system-ui, sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 0.28em; text-indent: 0.28em; color: var(--text); }
+.tl-adapt-locked-sub { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.tl-adapt-locked-req { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); font-size: 12px; color: var(--kinetic); }
+.tl-adapt-locked-req.is-met { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--line)); }
+.tl-adapt-locked-req b { color: var(--text); }
+.tl-adapt-locked-hint { font-size: 11px; color: var(--muted); }
 
 /* ── Adaptation lab (docs/ADAPTATION.md — Tower Lab + Hero Lab) ────────────────────────────── */
 .adapt { display: flex; flex-direction: column; gap: 8px; }

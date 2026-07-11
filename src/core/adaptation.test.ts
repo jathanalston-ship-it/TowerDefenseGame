@@ -164,6 +164,16 @@ describe('meta layer — spends, campaign gating, PRICED + GATED respec', () => 
     expect(meta.spendAdaptation('tower', 'needle', 'needle.predation.4b')).toBe(false); // sealed
   });
 
+  it('a LOCKED (dormant) tower refuses spends outright — Antigen only flows into synthesized organisms', () => {
+    // maw ships gated (unlockShards > 0): with a fat budget the spend is still refused until
+    // synthesis, then the SAME pick succeeds — the guard tests unlock state, nothing else.
+    meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: { ...defaultSave().towerMasteryXp, maw: 1e9 } }));
+    expect(meta.adaptation('tower', 'maw').pointsAvailable).toBeGreaterThan(0); // budget exists…
+    expect(meta.spendAdaptation('tower', 'maw', 'maw.predation.1')).toBe(false); // …but the tree is sealed
+    meta.importText(serializeExport({ ...meta.get(), towerUnlocked: [...(meta.get().towerUnlocked ?? []), 'maw'] }));
+    expect(meta.spendAdaptation('tower', 'maw', 'maw.predation.1')).toBe(true); // synthesis opens it
+  });
+
   it('respec: refused before the stage gate; then PRICED in Genome Cores and refunds all', () => {
     meta.importText(serializeExport({ ...defaultSave(), towerMasteryXp: xp, shards: 1000 }));
     meta.spendAdaptation('tower', 'needle', 'needle.predation.1');
