@@ -583,6 +583,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Heroes",
         "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen, handoff + status board for the Symbiote batch"
+      },
+      {
+        "cat": "Towers",
+        "text": "Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species"
       }
     ]
   },

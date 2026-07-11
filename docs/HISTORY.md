@@ -135,3 +135,5 @@
 - ⚑ `2c81c94` **[Framework]** Set contact email to the game's dedicated address _(internal)_
 - `1d7fca5` **[Developer Tools]** Fix release tooling drift: legal pages moved to public/{terms,privacy} _(internal)_
 - `9127c88` **[Heroes]** Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)
+- `7e88475` **[Website]** Chronicle + site regen, handoff + status board for the Symbiote batch
+- `11a9110` **[Towers]** Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species

@@ -1,6 +1,6 @@
 {
-  "lastSha": "9127c882fac0f36d38af4ade936012d3c2fe5e5b",
-  "commitsSinceDraft": 4,
+  "lastSha": "11a91106eabafdfc6971bd4a2df8b83a784b3eab",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -2051,6 +2051,14 @@
         {
           "cat": "Heroes",
           "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen, handoff + status board for the Symbiote batch"
+        },
+        {
+          "cat": "Towers",
+          "text": "Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species"
         }
       ]
     }
@@ -3053,6 +3061,22 @@
       "date": "2026-07-11",
       "cat": "Heroes",
       "text": "Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7e8847554a91dbe8241e6b3b7e273196dafc5787",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site regen, handoff + status board for the Symbiote batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "11a91106eabafdfc6971bd4a2df8b83a784b3eab",
+      "date": "2026-07-11",
+      "cat": "Towers",
+      "text": "Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species",
       "internal": false,
       "needsReview": false
     }
