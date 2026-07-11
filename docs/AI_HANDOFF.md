@@ -4,64 +4,55 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-07-09 08:55 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** fcb893f
+- **Generated:** 2026-07-11 01:45 UTC · **Diff scope:** HEAD~1...HEAD
+- **Branch:** claude/zen-hawking-rh1gxl · **HEAD:** 46fae24
 
 ## Summary of work completed
 
-Full visual overhaul of the Mulligan system's presentation. The Mulligan Lab was rebuilt from
-inline-styled scaffolding into the design language (token-driven `.mgl-*` CSS, Tower-Lab
-master–detail: host rail → graft-chamber showcase → graft sites → modifier library), with
-Power-previewed spends, an auto-armed first empty site, DPR-crisp reduced-motion-aware canvas
-preview, and category filtering. Rarity colors in `MULLIGAN_RARITY` now mirror the global `--r-*`
-ladder (ascendant = mythic register), and a new `GENE_OVERFLOW` metadata export gives the currency
-one name/glyph/color (⊛, gene-green) shared by the Lab wallet, the container-reveal pulls, and the
-Inspector/Daily surfaces (whose phantom `--ink`/`--ink-dim` vars were fixed to real tokens). The
-one thing to know: the Lab's display data now comes from `mulliganLabView` (`filled`, `dominant`,
-`packageLines` per tower) — keep the React layer dumb and extend the model, not the component.
+Shipped **Gene Card Transcendence** (docs/GENE-EVOLUTION.md §Transcendence) — the late-game
+Essence sink: a card at max level buys a permanent SECOND effect line from a per-archetype pool
+(`src/core/geneTranscend.ts`, all nine categories, zero per-card code; `CardDef.transcendOptions`
+overrides). Cost = rarity base × `ESSENCE_COST.transcendMult` (120); choice permanent, re-choice
+full price. The fold rides `effectiveGeneEffects` 4th arg + `RunOptions.geneTranscends` — no new
+seam, untranscended saves byte-identical. Five previously-unscored RunModifiers fields became
+scored Power axes (they are now permanent): mortarPoolDurationMult / corrosionSlowBonus /
+killFractureSplash / bonusTowerSlots / integrityRegenPerWave — validate.ts errors on a
+Power-invisible family option. **The one thing to know:** transcend options must never use
+boot-only fields (startBiomassBonus/integrityMult/heroMaxHpMult — dead on mid-run draft);
+cardProblems + the geneTranscend tests enforce it.
 
 ## Files modified
 
-- Source (5): `src/core/mulligan.ts`, `src/index.css`, `src/state/mulliganLabModel.ts`, `src/state/vaultReveal.ts`, `src/ui/MulliganLab.tsx`
-- Tests (1): `src/state/mulliganLabModel.test.ts`
-- Docs (3): `docs/GAME-STATE.md`, `docs/MULLIGANS.md`, `docs/VALIDATION_REPORT.md`
+- Source (1): `src/changelog/releases.gen.ts`
+- Tests (0): —
+- Docs (5): `docs/DEPENDENCY_GRAPH.md`, `docs/DIL_GRAPH.md`, `docs/HISTORY.md`, `docs/VALIDATION_REPORT.md`, `docs/devlog/DRAFT-2026-07-11.md`
 
 ## Systems affected (from the dependency registry)
 
-- **loot** — `src/state/vaultReveal.ts`
-- **mulligans** — `src/core/mulligan.ts`, `src/state/mulliganLabModel.ts`, `src/ui/MulliganLab.tsx`
-- Consumer ring (verify, unchanged): boss-rush, crafting, equipment, infinite, shards-economy, splice-market
+- **chronicle** — `src/changelog/releases.gen.ts`
 
 ## Power Score changes
 
-No scoring change — only rarity `color` strings moved in `MULLIGAN_RARITY` (statMult/powerMult/
-levelCap untouched; pinned by `core/mulligan.test.ts` + `state/mulligan.test.ts` golden gate).
-NEW preview surfaces: the Lab's graft-site level-up and ascend buttons now render `PowerPreview`
-(current → next via `meta.previewPower` on the slot transform), computed only for awake organisms.
+None — no Power-relevant system touched.
 
 ## UI changes
 
-Surfaces in the blast radius: `GeneticVault`, `VaultReveal`, `LootMeter`, `LootToaster`, `GameView (organism overlay + emitter shots + graft ambience)`, `MulliganLab`, `Inspector (organism block)`, `DailyScreen (assignment briefing)`, `Vault reveal (Overflow + discovery pulls)`, `PlayerProfile (dex + Overflow rows)`
+Surfaces in the blast radius: `App (UpdateBriefing popup)`
 
-- **MulliganLab** — complete rebuild (see Summary). Verified live in headless Chromium: empty
-  dex, dormant→awake equip flow (3 library clicks), level-ups deducting Overflow with Power
-  previews, ascend affordances, category filter counts, partial-state dormancy copy, 1440px +
-  390px (no horizontal overflow; `flex: none` fix keeps rail rows from compressing).
-- **Vault reveal** — `geneOverflow` / `mulliganModifier` event pulls now carry the ⊛ glyph and
-  the currency green / sequenced-rarity color instead of the generic ✦ + viral fallback.
-- **Inspector organism block + Daily briefing** — phantom `var(--ink)`/`var(--ink-dim)`/raw-hex
-  fallbacks replaced with real tokens (`--muted`/`--text`/`--success`/`color-mix` on `--viral`).
-- **GameView / battlefield + emitter shots** — untouched (procedural generators unchanged).
-- `npm run mobilecheck` CLEAN (20 screens × 390/320px); `npm run validate` PASS.
+Gene Archive: card detail gained the ❂ TRANSCEND panel (locked anticipation copy below max
+level, option picker with effect previews, two-step confirm stating permanence/full-price
+re-choice), grid tiles show mythic-tier `is-transcended` chrome + ❂ TRANSCENDED / ❂ TRANSCEND
+READY status lines, summary shows a transcended count, help gained a Transcendence row. Verified
+by a live headless smoke (scratch probe): seeded maxed card → real UI transcend flow → control
+run ×1.2968 vs transcended run ×1.4005 (exactly ×1.08).
 
 ## Documentation changes
 
-- `docs/MULLIGANS.md` — §UI rewritten for the new Lab; §reveal notes the ⊛ pull identity; new
-  visual-identity bullet (rarity ladder alignment + `GENE_OVERFLOW`). **Updated.**
-- `docs/GAME-STATE.md` — Mulligans entry's Lab sentence refreshed. **Updated.**
-- Registry-listed loot/economy docs (`LOOTBOX.md`, `REWARD-PRESENTATION.md`, `EQUIPMENT*.md`,
-  `SHARD-ECONOMY.md`, `ECONOMY.md`, `MARKET.md`, …): **no change needed** — reveal-pull visuals
-  only; no economy/loot numbers or flows moved.
+Registry says these move with the touched systems: `docs/CHANGELOG-PIPELINE.md`
+
+docs/CHANGELOG-PIPELINE.md — no change needed (pipeline unchanged; ledger re-anchored after the
+rebase, a documented recovery). Updated: docs/GENE-EVOLUTION.md (§Transcendence + tier-2 hook),
+docs/GAME-STATE.md (gene section + compressed summary), DEPENDENCY/DIL graphs regenerated.
 
 ## Save changes
 
@@ -69,35 +60,30 @@ None — save layer untouched.
 
 ## Known edge cases
 
-- `MULLIGAN_RARITY[*].color` is consumed as raw hex by canvas + inline styles — keep them raw
-  (no `var()`), and keep them mirroring `:root --r-*` when the palette ever changes.
-- The Lab's first-empty-site auto-arm means a library click equips immediately; an explicit
-  armed pick (`setArmed`) always wins. Clearing a site resets the explicit pick.
-- `OrganismPreview` reads `meta.get()` inside its rAF loop (always-live organism), draws one
-  static frame under `prefers-reduced-motion`, and relies on rAF's tab-hidden throttling.
-- The reveal special-case keys off the literal strings `'geneOverflow'` / `'mulliganModifier'`
-  pushed by `meta.openContainer` — if a new mulligan event kind is added, extend that branch.
+- The shared branch stays HOT: this batch rebased across Molt Vows + chassis identity + Hive
+  Construction (save v36). Conflicts were only generated files (graphs via `--theirs` + regen;
+  chronicle by skipping the notes commit and re-running `npm run notes` after re-anchoring
+  `changelog/ledger.json.lastSha` to the last upstream notes commit).
+- `npm run notes` updates `site/patchnotes.json` ⇒ `npm run site` must follow or
+  site/gen.test.ts fails on public/ drift.
+- Headless probes: the LoadoutBar unequip button's text is ✕ — a naive overlay-dismiss helper
+  clicks it and silently unequips the loadout (cost an hour of probe debugging).
 
 ## Remaining technical debt
 
-- The host rail runs one `TowerPortrait` rAF per tower (same pattern/cost as the Tower Lab rail);
-  fine at the current roster, worth a shared ticker if rails reach ~50+ rows.
-- Gene Overflow still isn't a wallet `CurrencyId` (deliberate — no icon silhouette yet);
-  `GENE_OVERFLOW` in core/mulligan.ts is the single seam to upgrade it later.
+None new. Observed: run-level assertions in probes should be differential (account-level
+bonuses like the under-powered consolation ride every run and break absolute expectations).
 
 ## Recommended next tasks
 
-1. A dedicated Gene Overflow SVG silhouette in `ui/components/Icon.tsx` + promote it through
-   `GENE_OVERFLOW` so the reveal can render an animated icon instead of the glyph.
-2. Slot-hover organ highlighting: `deriveOrganism` already returns per-organ data — the chamber
-   could pulse the organs a hovered modifier contributes (entry: `OrganismPreview`).
-3. An equip ceremony beat (chamber flash on awakening, like `tl2-flash-a`) when the third site
-   fills — the Power announce already fires; the chamber could react too.
+1. Transcendence tier 2 when the economy needs a deeper sink: `transcend2?` on GeneCardSave +
+   `transcendMult2` in ESSENCE_COST + a second resolver pass in `src/core/geneTranscend.ts`
+   (all seams documented in the module header).
+2. Consider a '❂ Transcendable' Archive filter chip once players hold several maxed cards
+   (`GeneFilter` union in `src/ui/GeneArchive.tsx`).
 
 ## Future expansion hooks
 
-- `state/mulliganLabModel.ts` `TowerMulliganView.packageLines` / `dominant` — any future surface
-  (tooltips, codex) can reuse the same display-ready package without touching the resolver.
-- `core/mulligan.ts` `GENE_OVERFLOW` — the one place to evolve the currency's identity.
-- `.mgl-*` CSS keys off `--tw` (host) / `--mg` (rarity) custom props — new rarities or hosts
-  restyle without new rules.
+- `src/core/geneTranscend.ts` — `transcend2` second-tier hook (header comment).
+- `CardDef.transcendOptions` (src/core/cards.ts) — per-card override pool, validated by
+  cardProblems; no card uses it yet (family pools cover all 102).
