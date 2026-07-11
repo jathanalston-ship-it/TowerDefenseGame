@@ -32,9 +32,9 @@ const SCREENS = FEATURES.filter((f) => f.kind === 'screen');
 
 describe('unlock registry — structural contracts', () => {
   it('covers the Hub NavKey union exactly (a new screen must join the learning curve)', () => {
-    const hub = readFileSync('src/ui/Hub.tsx', 'utf-8');
-    const union = /export type NavKey =([\s\S]*?);/.exec(hub);
-    expect(union, 'NavKey union not found in Hub.tsx').toBeTruthy();
+    const model = readFileSync('src/ui/navModel.ts', 'utf-8'); // the nav IA's single source of truth
+    const union = /export type NavKey =([\s\S]*?);/.exec(model);
+    expect(union, 'NavKey union not found in navModel.ts').toBeTruthy();
     const navKeys = [...union![1].matchAll(/'([a-z]+)'/g)].map((m) => m[1]).sort();
     expect(SCREENS.map((f) => f.id).sort()).toEqual(navKeys);
   });
