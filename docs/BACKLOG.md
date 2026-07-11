@@ -19,9 +19,12 @@
   want a balance pass once real players reach C25.
 
 ## Economy (the top open P0 from EA-DESIGN-AUDIT)
-- **Mid/late-game currency sink.** Star/currency sinks cap in tens of hours; overflow Strain Samples /
-  Apex Genome then have nowhere to go. ECONOMY.md's "every phase opens a new sink" is designed, not
-  built. This is the highest-leverage retention gap.
+- **Mid/late-game currency sink.** Star/currency sinks cap in tens of hours. The LEAK half is now
+  closed (2026-07): every direct shard lane (level-ups, quest/season/pass claims, wardrobe, premium
+  packs) converts maxed-unit grants to Gene Essence via `settleDirectShardGrants`
+  (GENE-EVOLUTION.md §Economy) — no lane accumulates dead currency. The DECISION half remains: new
+  sinks that create choices, not bigger numbers (candidate specs drafted: Molt Vows, Card
+  Transcendence, Hive Construction, Prime Strains). Still the highest-leverage retention gap.
 
 ## Architecture / cleanup
 - **Decompose `meta.ts`** (~1,500-line god-object) by domain behind the same public object

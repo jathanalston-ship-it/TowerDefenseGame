@@ -129,6 +129,17 @@ never convert (their shards still go toward unlocking). The conversion (and the 
 container's **true** rarity: a loot box IS its box rarity, a run cache reads its best pull, and the
 cache ladder's `exotic` pays its own tier (12/shard — between legendary and mythic).
 
+**Direct-lane conversion (the leak closer, 2026-07).** Shard lanes that are NOT container opens —
+account level-ups, quest/questline/season-pass claims (`applyRewardList`), wardrobe milestones, and
+premium packs (`interpretGrants`) — route through `settleDirectShardGrants` (`state/meta.ts`): the
+same maxed-unit diff as the container lane, converting at the **flat common rate** (1 Essence/shard,
+no rarity scaling, no Ascendant/LiveOps multipliers) so the container lane stays the strictly-richer,
+dominant Essence source the simulation above assumes. Every converting surface receipts it honestly
+("max-Star duplicates converted" line; level-up toasts append it via `rewardLine`), and un-maxed
+accounts hit a pure no-op. The one exempt lane is the tutorial's one-time grant — it pays onto
+effectively-fresh accounts where a maxed unit is unreachable. Pinned by
+`state/directShardGrants.test.ts`.
+
 **Anti-exploit.** Conversion is driven by shards actually **granted at open time** (the pre/post diff),
 not by re-reading star counts — so it can't be farmed by re-opening. Resets grant no shards ⇒ mint no
 Essence. `sanitizeGeneSave` + a numeric clamp on load neutralize save manipulation.

@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 701 nodes · 1226 edges, built from the live
+> **The project's brain** (docs/DIL.md). 702 nodes · 1227 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -605,7 +605,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…170 more (query: `npm run dil -- node system:engine`)_
+  - _…171 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -2890,7 +2890,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (219)
+## Tests (220)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3061,6 +3061,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/contracts.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/cutscenePremiere.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/devReset.test.ts` — automated validation _(tests `system:meta-store`)_
+- `test:src/state/directShardGrants.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/endlessTaperBanking.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/evolutionHQ.test.ts` — automated validation _(tests `system:evolution-hq`)_
 - `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_

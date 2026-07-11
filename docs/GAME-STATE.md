@@ -217,7 +217,7 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ Splice Market: deterministic 5-min stock windows (4 core slots + premium shelf + rotating Bio-Containers), Ichor faucets + under-water gamble EV — MARKET.md
 - ✅ Genetic Vault: cinematic reveal, run-banked containers, ~50% power-scaled equipment drop
 - ✅ **Crafting materials from containers** — low-chance, pity-protected Catalyst (`core/materialDrop.ts`) — EQUIPMENT.md §8
-- 🟨 Mid/late-game currency SINKS cap out (star sink exhausts in tens of hours) — economy stagnation is the top P0 (EA-DESIGN-AUDIT §4)
+- 🟨 Mid/late-game currency SINKS cap out (star sink exhausts in tens of hours) — economy stagnation is the top P0 (EA-DESIGN-AUDIT §4). The LEAK half is closed (2026-07): all direct shard lanes (level-ups, quest/season/pass, wardrobe, premium packs) now convert maxed-unit grants to Gene Essence via `settleDirectShardGrants` — GENE-EVOLUTION.md §Economy; the open half is DECISION-quality sinks
 
 ### Equipment
 - ✅ ~180 items, affixes/sets, Reforge (enhance/reroll/reforge/upgrade), salvage — EQUIPMENT.md, REFORGE.md

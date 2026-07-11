@@ -11,8 +11,10 @@ import { ACCOUNT_TITLE_BY_ID } from '../../core/accountLevel';
 import type { AccountLevelReward } from '../../core/accountLevel';
 import { audio } from '../../audio/sound';
 
-/** One-line reward summary for a level's payout (toast, Results, and the Profile preview). */
-export function rewardLine(r: AccountLevelReward): string {
+/** One-line reward summary for a level's payout (toast, Results, and the Profile preview).
+ *  `essenceConverted` = shards this level granted to a max-Star unit that converted to Gene
+ *  Essence instead (docs/GENE-EVOLUTION.md §Economy) — appended so reveals match grants. */
+export function rewardLine(r: AccountLevelReward, essenceConverted?: number): string {
   const parts: string[] = [];
   if (r.cores > 0) parts.push(`+${r.cores} Cores`);
   if (r.essence > 0) parts.push(`+${r.essence} Essence`);
@@ -23,6 +25,7 @@ export function rewardLine(r: AccountLevelReward): string {
   if (r.ichor > 0) parts.push(`+${r.ichor} Ichor`);
   if (r.containers.length > 0) parts.push(`${r.containers.length} Bio-Container${r.containers.length > 1 ? 's' : ''}`);
   if (r.titleId) parts.push(`Title: ${ACCOUNT_TITLE_BY_ID.get(r.titleId)?.name ?? r.titleId}`);
+  if (essenceConverted && essenceConverted > 0) parts.push(`max-★ duplicates → +${essenceConverted} Essence`);
   return parts.join(' · ');
 }
 
@@ -75,7 +78,7 @@ export function AccountLevelToast(): JSX.Element | null {
     <div className={`axp-toast${lu.milestone ? ' is-milestone' : ''}`} role="status" onClick={() => setQueue((q) => q.slice(1))}>
       <span className="axp-toast-badge">{lu.milestone ? '✦ MILESTONE ✦' : 'ACCOUNT LEVEL UP'}</span>
       <span className="axp-toast-lv">Level {lu.level}</span>
-      <span className="axp-toast-r">{rewardLine(lu.reward)}</span>
+      <span className="axp-toast-r">{rewardLine(lu.reward, lu.essenceConverted)}</span>
     </div>
   );
 }

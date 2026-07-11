@@ -293,15 +293,19 @@ function applyRewardList(
       case 'towerShardsAll': {
         const towerShards = { ...next.towerShards };
         for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
-        next = { ...next, towerShards };
+        const dup = settleDirectShardGrants(next, { towerShards }); // maxed towers convert (docs/GENE-EVOLUTION.md §Economy)
+        next = { ...next, towerShards, geneEssence: next.geneEssence + dup };
         lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
+        if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
         break;
       }
       case 'heroShardsAll': {
         const heroShards = { ...next.heroShards };
         for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
-        next = { ...next, heroShards };
+        const dup = settleDirectShardGrants(next, { heroShards }); // maxed unlocked heroes convert
+        next = { ...next, heroShards, geneEssence: next.geneEssence + dup };
         lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
+        if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
         break;
       }
       case 'container':
@@ -561,19 +565,27 @@ function foldAccountXp(draft: SaveData, gained: number, now = Date.now()): { sav
     const reward = accountLevelReward(level);
     const towerKind = TOWER_ORDER[(level - 1) % TOWER_ORDER.length];
     const heroKind = HERO_ORDER[(level - 1) % HERO_ORDER.length];
+    // Level-up shard grants ride the direct-lane duplicate conversion (docs/GENE-EVOLUTION.md
+    // §Economy): a maxed rotation target converts its grant to Gene Essence instead of leaking.
+    const towerShards = reward.towerShards > 0
+      ? { ...save.towerShards, [towerKind]: (save.towerShards[towerKind] ?? 0) + reward.towerShards }
+      : save.towerShards;
+    const heroShards = reward.heroShards > 0
+      ? { ...save.heroShards, [heroKind]: (save.heroShards[heroKind] ?? 0) + reward.heroShards }
+      : save.heroShards;
+    const dupEssence = settleDirectShardGrants(save, {
+      ...(reward.towerShards > 0 ? { towerShards } : {}), // pass only fresh copies (settle mutates)
+      ...(reward.heroShards > 0 ? { heroShards } : {}),
+    });
     save = {
       ...save,
       shards: save.shards + reward.cores,
       lifetimeShards: save.lifetimeShards + reward.cores,
-      geneEssence: save.geneEssence + reward.essence,
+      geneEssence: save.geneEssence + reward.essence + dupEssence,
       ichor: save.ichor + reward.ichor,
       lifetimeIchor: save.lifetimeIchor + reward.ichor,
-      towerShards: reward.towerShards > 0
-        ? { ...save.towerShards, [towerKind]: (save.towerShards[towerKind] ?? 0) + reward.towerShards }
-        : save.towerShards,
-      heroShards: reward.heroShards > 0
-        ? { ...save.heroShards, [heroKind]: (save.heroShards[heroKind] ?? 0) + reward.heroShards }
-        : save.heroShards,
+      towerShards,
+      heroShards,
       mats: {
         mutagen: save.mats.mutagen + reward.mats.mutagen,
         scrap: save.mats.scrap + reward.mats.scrap,
@@ -587,7 +599,7 @@ function foldAccountXp(draft: SaveData, gained: number, now = Date.now()): { sav
         : save.unlockedTitles,
       timeline: reward.milestone ? pushTimeline(save.timeline, '⬆', `Account Level ${level} — milestone`) : save.timeline,
     };
-    levelUps.push({ level, milestone: reward.milestone, reward });
+    levelUps.push({ level, milestone: reward.milestone, reward, essenceConverted: dupEssence > 0 ? dupEssence : undefined });
   }
   pendingAccountLevelUps.push(...levelUps);
   return { save, delta: { gained: g, from, to, levelUps } };
@@ -1024,6 +1036,42 @@ export function towerShardPool(save: SaveData): TowerKind[] {
   return TOWER_ORDER.filter((k) => towerShardGateMet(save, k));
 }
 
+/** DIRECT-LANE duplicate conversion (docs/GENE-EVOLUTION.md §Economy): shard lanes that are NOT
+ *  container opens — account level-ups, quest/season/pass claims, wardrobe milestones, premium
+ *  packs — settle here. Shards granted to a MAX-Star tower (or an unlocked MAX-Star hero) can't
+ *  be spent, so they convert to Gene Essence at the flat COMMON duplicate rate instead of piling
+ *  up dead. Container opens keep their richer rarity-scaled, window-boosted conversion (the
+ *  dominant Essence source by design — docs/GENE-EVOLUTION.md §Economy simulation); this seam
+ *  just closes the leak everywhere else. Same anti-exploit shape as openContainer's: diffs the
+ *  mutated maps against `before`, reverts the maxed excess IN PLACE (pass copies, never the
+ *  live save maps), and returns the Essence to bank — 0 on the common un-maxed path. */
+export function settleDirectShardGrants(
+  before: SaveData,
+  maps: { towerShards?: Record<TowerKind, number>; heroShards?: Record<string, number> },
+): number {
+  let dupes = 0;
+  if (maps.towerShards) {
+    for (const k of TOWER_ORDER) {
+      const granted = (maps.towerShards[k] ?? 0) - (before.towerShards[k] ?? 0);
+      if (granted > 0 && (before.towerStars[k] ?? 0) >= STAR.maxTowerStars) {
+        maps.towerShards[k] = before.towerShards[k] ?? 0; // maxed → convert instead of accumulating
+        dupes += granted;
+      }
+    }
+  }
+  if (maps.heroShards) {
+    for (const id of Object.keys(maps.heroShards)) {
+      const granted = (maps.heroShards[id] ?? 0) - (before.heroShards[id] ?? 0);
+      // Locked heroes keep their shards toward unlocking (mirrors the container lane's rule).
+      if (granted > 0 && isHeroUnlocked(before, id as HeroKind) && (before.heroStars[id as HeroKind] ?? 0) >= STAR.maxStars) {
+        maps.heroShards[id] = before.heroShards[id] ?? 0;
+        dupes += granted;
+      }
+    }
+  }
+  return dupes > 0 ? essenceForDuplicates('common', dupes) : 0;
+}
+
 /** Whether a gene card's progression gate is satisfied (ungated ⇒ always true). Drives which gated
  *  cards are injected into a run's draft pool (RunOptions.unlockedCardIds). */
 export function cardUnlocked(save: SaveData, def: CardDef): boolean {
@@ -1401,7 +1449,14 @@ export interface RunOutcome {
 }
 
 /** One Account Level crossed during a settle, with its generated reward (docs/ACCOUNT-LEVEL.md). */
-export interface AccountLevelUp { level: number; milestone: boolean; reward: AccountLevelReward }
+export interface AccountLevelUp {
+  level: number;
+  milestone: boolean;
+  reward: AccountLevelReward;
+  /** Shards this level granted to a max-Star unit, converted to Gene Essence instead
+   *  (docs/GENE-EVOLUTION.md §Economy) — the toast surfaces it so reveals match grants. */
+  essenceConverted?: number;
+}
 export interface AccountXpDelta { gained: number; from: number; to: number; levelUps: AccountLevelUp[] }
 
 /** One granted line on a premium receipt — the reveal ceremony renders these. */
@@ -3170,15 +3225,19 @@ export const meta = {
         case 'towerShardsAll': {
           const towerShards = { ...next.towerShards };
           for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
-          next = { ...next, towerShards };
+          const dup = settleDirectShardGrants(next, { towerShards }); // maxed towers convert (docs/GENE-EVOLUTION.md §Economy)
+          next = { ...next, towerShards, geneEssence: next.geneEssence + dup };
           lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
+          if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
           break;
         }
         case 'heroShardsAll': {
           const heroShards = { ...next.heroShards };
           for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
-          next = { ...next, heroShards };
+          const dup = settleDirectShardGrants(next, { heroShards }); // maxed unlocked heroes convert
+          next = { ...next, heroShards, geneEssence: next.geneEssence + dup };
           lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
+          if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
           break;
         }
         case 'item':
@@ -4322,6 +4381,13 @@ export const meta = {
           lines.push({ icon: '❁', label: 'Season Pass — premium track unlocked' });
           break;
       }
+    }
+    // Direct-lane duplicate conversion (docs/GENE-EVOLUTION.md §Economy): shards the pack granted
+    // to max-Star units convert to Gene Essence instead of accumulating dead — receipted honestly.
+    const dupEssence = settleDirectShardGrants(save, { towerShards, heroShards });
+    if (dupEssence > 0) {
+      geneEssence += dupEssence;
+      lines.push({ icon: '⌬', label: `${dupEssence} Gene Essence — max-Star duplicates converted` });
     }
     return {
       lines,
