@@ -120,11 +120,13 @@
 - `fbcb27d` **[Website]** Chronicle + site sync for the merged lineage (re-anchored ledger)
 - `c23020e` **[Heroes]** Portrait folds for the long screens: Evolution HQ, Equip Codex, Bio-Dex, Hero Hall
 - `d8e841b` **[Gameplay]** Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate
+- `e5d1140` **[Gameplay]** Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate
 - `0edf4e5` **[Heroes]** Zero-clip portrait pass: hero HP fixed + geometric truncation joins the gate
 - `d116c36` **[UI]** Guest Mode: session-only offline tryout with in-place account conversion
 - `300c6fb` **[Website]** Chronicle + site regen for the Guest Mode batch
-- `14252ed` **[Balance]** Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend
 - `59a2595` **[UI]** Identity: designation tags — duplicate names disambiguated by a stable register number
 - `16a31d8` **[Balance]** Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend
 - `a735354` **[Website]** Chronicle + site regen for the balance pass
 - `70d8b6a` **[UI]** In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel
+- `223c57d` **[Website]** Chronicle + site regen for the HUD overhaul
+- `92e3d1d` **[Heroes]** New hero: the Knell — Resonant amplification conductor, gated on the first Molt

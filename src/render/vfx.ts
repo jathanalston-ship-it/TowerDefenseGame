@@ -62,7 +62,7 @@ export function ring(
 
 // ── Silhouette "sprites" (data-driven shapes — swap for art later) ───────────
 
-export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex';
+export type ShapeKind = 'circle' | 'triangle' | 'square' | 'diamond' | 'hex' | 'bell';
 
 /** Build (but don't paint) a silhouette path of `r` radius centered at (x,y).
  * Shared by drawShape (fill) and strokeShape (outline) so the polygon math lives
@@ -105,6 +105,14 @@ export function shapePath(
         if (i === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
+      ctx.closePath();
+      break;
+    case 'bell': // a tolling bell: rounded dome, flared skirt (the Knell's silhouette)
+      ctx.moveTo(x - r * 0.92, y + r * 0.78);
+      ctx.quadraticCurveTo(x - r * 0.55, y + r * 0.55, x - r * 0.5, y - r * 0.05);
+      ctx.quadraticCurveTo(x - r * 0.45, y - r, x, y - r);
+      ctx.quadraticCurveTo(x + r * 0.45, y - r, x + r * 0.5, y - r * 0.05);
+      ctx.quadraticCurveTo(x + r * 0.55, y + r * 0.55, x + r * 0.92, y + r * 0.78);
       ctx.closePath();
       break;
   }

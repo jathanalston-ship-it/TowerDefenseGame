@@ -1,6 +1,6 @@
 {
-  "lastSha": "70d8b6a93f95a9d2bb1c5955027fe1afb58e4c5d",
-  "commitsSinceDraft": 6,
+  "lastSha": "92e3d1df0c2e8238ebb3138667c08077db3def2a",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -24,7 +24,8 @@
       "shepherd",
       "overseer",
       "vitriol",
-      "revenant"
+      "revenant",
+      "knell"
     ],
     "enemy": [
       "runner",
@@ -189,6 +190,7 @@
       "beam_veteran",
       "field_vitriol",
       "field_revenant",
+      "field_knell",
       "full_menagerie",
       "complete_arsenal",
       "deep_genome",
@@ -1470,6 +1472,16 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New achievement: For Whom the Bell",
+          "major": true
+        },
+        {
+          "cat": "Heroes",
+          "text": "New hero: Knell",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Idle Harvest",
           "major": true
         },
@@ -1957,12 +1969,12 @@
           "text": "Chronicle + site regen for the Guest Mode batch"
         },
         {
-          "cat": "Balance",
-          "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
-        },
-        {
           "cat": "UI",
           "text": "Identity: designation tags — duplicate names disambiguated by a stable register number"
+        },
+        {
+          "cat": "Balance",
+          "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
         },
         {
           "cat": "Website",
@@ -1971,6 +1983,14 @@
         {
           "cat": "UI",
           "text": "In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the HUD overhaul"
+        },
+        {
+          "cat": "Heroes",
+          "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt"
         }
       ]
     }
@@ -2857,6 +2877,14 @@
       "needsReview": false
     },
     {
+      "sha": "e5d1140c382b60a371078947712d8a6a26e949e9",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate",
+      "internal": false,
+      "needsReview": false
+    },
+    {
       "sha": "0edf4e5210a5207deb9e1fc586a8ba14da88ffa4",
       "date": "2026-07-11",
       "cat": "Heroes",
@@ -2877,14 +2905,6 @@
       "date": "2026-07-11",
       "cat": "Website",
       "text": "Chronicle + site regen for the Guest Mode batch",
-      "internal": false,
-      "needsReview": false
-    },
-    {
-      "sha": "14252edaeadb5161a0536021cdb1495355f06a4f",
-      "date": "2026-07-11",
-      "cat": "Balance",
-      "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend",
       "internal": false,
       "needsReview": false
     },
@@ -2917,6 +2937,22 @@
       "date": "2026-07-11",
       "cat": "UI",
       "text": "In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "223c57d7a7291887519ca002c497be196580b97f",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the HUD overhaul",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "92e3d1df0c2e8238ebb3138667c08077db3def2a",
+      "date": "2026-07-11",
+      "cat": "Heroes",
+      "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt",
       "internal": false,
       "needsReview": false
     }

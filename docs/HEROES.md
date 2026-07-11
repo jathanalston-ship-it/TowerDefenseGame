@@ -329,6 +329,52 @@ on a swarm** — it wants ONE fat target, and a wide wave with no elite starves 
 
 ---
 
+## 6. KNELL — Resonant (amplification conductor / tolling bell) · **progression-gated**
+
+**Lore.** When the hive completes its first **Molt**, the shed carapace does not rot — the hive
+CASTS it. Hammered hollow and hung with chime-organs, the Knell is the colony's first true voice:
+a bone-bell that walks. It does not hunt and it does not mend; it goes where the fight is thickest
+and TOLLS, and everything the hive has ever grown answers the note.
+
+**Role.** Amplification conductor — the roster's **only Resonant hero** and its sixth class. It
+floats to the densest crowd (the `control` movement archetype) and tolls a **damaging resonant
+shockwave** (real AoE chip with a brief stagger — concussion, not Overseer-grade control). Its
+identity is the **amp**: its peals grant timed run-wide tower-damage windows through the shared
+run-buff bus (`grantRunBuff` — refresh-not-stack, so re-casts never snowball), and its innate
+**Resonance** aura (`towerAura`) hastens + hardens the towers standing near the bell.
+
+**Base abilities (implemented).**
+- *The Toll* (auto, `control` AI) — a pulsing resonant shockwave: real AoE damage each ring with a
+  short stagger on everything caught.
+- **Ult — Sundering Peal** — the bell SLAMS: a massive resonant blast that staggers the pack, and
+  for 6s the whole hive answers — **every tower strikes +30% harder** (`buffStat: 'towerDamage'`).
+- *Kit (★3/★7)* — **Tolling Strike** (a focused damaging toll) and **Battle Hymn** (a sustained
+  +15% tower-damage hum). The ★5 fork chooses **Crescendo** (deeper, longer amp — via the
+  `mulBuffAmount`/`addBuffSeconds` fork levers) or **Dirge** (heavier blasts, longer stagger); the
+  ★8 fork transforms the Hymn near-permanent (**Eternal Hymn**) or the Strike devastating
+  (**Requiem**).
+
+**Progression gate (unique — the THIRD milestone axis).** The Knell is **cast from the hive's
+first rebirth**: it **auto-unlocks at your first Molt** (`save.prestige.molts ≥ 1`) and can never
+be claimed with Hero Shards. Prestige is the game's deepest progression beat and now breeds its
+own war-form — a different axis from every other hero (starter · Shards · boss-chassis breadth ·
+Infinite Depth · **Molt**). The gate is data-driven (`HeroDef.unlock` = `{ kind: 'molts',
+count: 1 }`) and evaluated in `isHeroUnlocked` → `heroMilestoneMet` like its siblings, with live
+progress in the Hero Hall.
+
+**Strengths.** Run-wide damage windows on demand (the amp multiplies a whole BUILD); innate aura
+hastens + hardens nearby towers; real AoE chip with a stagger.
+**Weaknesses.** No single-target burst of its own; slow — the bell arrives late; its value
+multiplies a build — fielded alone over empty ground, it is quiet.
+
+**Synergy.**
+- **Every tower at once** — the amp is build-agnostic: the stronger your board, the louder the Peal.
+- **Overseer** — vulnerability (+damage taken) × the Knell's +damage dealt compound multiplicatively.
+- **Resonance Coil** — the other Resonant voice; the codex/adaptation class pairings finally have a
+  hero partner (Resonant expeditions too — *Echo Sounding*).
+
+---
+
 ## Hero roster summary
 
 | Hero | Class | Identity | Personal DPS | Carries the team via |
@@ -338,11 +384,13 @@ on a swarm** — it wants ONE fat target, and a wide wave with no elite starves 
 | **Overseer** | Neural | controller | ~None | vulnerability + hijack (amplifies *your* damage) |
 | **Vitriol** | Caustic | siege / area-denial | **High (DoT)** | Corrosion pools + armor melt (gated) |
 | **Revenant** | Viral | phase-assassin / boss-deleter | **Burst (single-target)** | teleport-deletes elites + spreads Infection (gated) |
+| **Knell** | Resonant | amplification conductor | Low (AoE chip) | run-wide tower-damage peals + a tower aura (gated) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and
-Vitriol adds a ranged Caustic zone-denial option once earned, while the Revenant adds a
-Viral single-target executioner for the elites and bosses the trinity can't burst down. Since
+Vitriol adds a ranged Caustic zone-denial option once earned, the Revenant adds a
+Viral single-target executioner for the elites and bosses the trinity can't burst down, and the
+Knell (the sixth class — one hero per combat class now) turns any mature board into a louder one. Since
 slots unlock over time and classes are shared with towers, players build toward many other
 combinations.
 

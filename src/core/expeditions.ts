@@ -73,6 +73,11 @@ export const EXPEDITION_DEFS: ExpeditionDef[] = [
     reward: { cores: 55, essence: 95, mats: { mutagen: 3, scrap: 6, catalyst: 1 } },
   },
   {
+    id: 'exp_echo', name: 'Echo Sounding', hours: 5, risk: 1, affinity: 'Resonant',
+    blurb: 'Toll into the hollows and map what tolls back. The resonance pays in kind.',
+    reward: { cores: 80, essence: 120, mats: { mutagen: 5, scrap: 9, catalyst: 1 } },
+  },
+  {
     id: 'exp_harvest', name: 'Deep Harvest', hours: 6, risk: 0, affinity: 'Vital',
     blurb: 'Follow the vein-lines under the old city and bring back what still pulses.',
     reward: { cores: 110, essence: 150, mats: { mutagen: 8, scrap: 14, catalyst: 1 } },

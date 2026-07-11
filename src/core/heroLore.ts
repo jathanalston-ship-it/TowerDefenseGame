@@ -44,6 +44,11 @@ const AUTHORED: Record<string, Partial<HeroLore>> = {
     tagline: 'Bends the battlefield — slows, exposes, and overclocks your towers.',
     specialization: 'Control Amplifier',
   },
+  knell: {
+    title: 'The First Toll',
+    tagline: 'Cast from the carapace of your first Molt — when the bell sounds, the whole hive answers.',
+    specialization: 'Resonance Conductor',
+  },
 };
 
 /** Resolve a hero's lore, deriving any unauthored field from its definition. */

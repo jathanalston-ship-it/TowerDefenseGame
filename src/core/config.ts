@@ -1094,12 +1094,14 @@ export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege' | 'phase';
 
 /** How a hero is gated. Absent on a HeroDef ⇒ always available (the launch trio). Data only
  *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save.
- *  Each hero's gate is a DISTINCT axis: bossSlain (Vitriol) · infiniteDepth (Revenant).
+ *  Each hero's gate is a DISTINCT axis: bossSlain (Vitriol) · infiniteDepth (Revenant) ·
+ *  molts (Knell — born from the hive's first prestige rebirth).
  *  bossSlain counts DISTINCT chassis (save.bossesSlain is chassis-keyed): every campaign stage
  *  spawns a framework boss, so "any boss ever" is met minutes in — breadth is the real feat. */
 export type HeroUnlockReq =
   | { kind: 'bossSlain'; count: number; label: string }
-  | { kind: 'infiniteDepth'; wave: number; label: string };
+  | { kind: 'infiniteDepth'; wave: number; label: string }
+  | { kind: 'molts'; count: number; label: string };
 
 export interface HeroAbilityDef {
   name: string;
@@ -1139,6 +1141,10 @@ export interface HeroAbilityUpgrade {
   addFracture?: number; addCorrode?: number; addInfect?: number; addDisrupt?: number; // deepen statuses
   addHeal?: number; addShield?: number;
   mulPoolRadius?: number; mulPoolDps?: number; // scale a pool-dropping ability (Vitriol's Mire)
+  /** Scale a buff-granting ability's BONUS (buffAmount 1.3 × mulBuffAmount 1.5 ⇒ 1.45 — the
+   *  ×(amount−1) part scales, so a no-buff ability stays ×1). The Knell's amplification lever. */
+  mulBuffAmount?: number;
+  addBuffSeconds?: number; // lengthen a buff-granting ability's window (no-op without buffStat)
   setMinEnemies?: number; // e.g. an execute fork re-focuses onto one target
   particle?: ParticleKind; fxColor?: string; // the upgraded ability's NEW visual signature (the upgrade reads on screen)
 }
@@ -1306,6 +1312,37 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
       ] },
     ],
   },
+  knell: {
+    // The hive's TOLLING BELL (Resonant) — the roster's amplification conductor and its sixth
+    // class. Floats to the densest fight (the 'control' movement archetype — the conductor goes
+    // where the choir is) and tolls damaging resonant shockwaves; its kit rides the timed
+    // run-buff bus (grantRunBuff — refresh-not-stack, golden-safe when idle) as its IDENTITY,
+    // where the Overseer only carries a buff rider on a disruption chassis. Progression-gated
+    // on a THIRD milestone axis: cast from the carapace the hive sheds at its FIRST MOLT —
+    // prestige is the game's deepest progression beat and now breeds its own war-form.
+    kind: 'knell', name: 'Knell', combatClass: 'Resonant', behavior: 'control', color: '#f2e6c8',
+    maxHp: 240, speed: 92, attackRange: 0, attackInterval: 0, attackDamage: 0, attackFracture: 0,
+    aggroRange: 1400, contactRange: 24, respawnTime: 9,
+    // The toll: real AoE chip (unlike the Overseer's 3-damage field) with only a BRIEF stagger —
+    // concussion, not control. Its power is the amp windows, not the debuff.
+    pulseInterval: 1.6, pulseRadius: 120, pulseDamage: 14, pulseDisrupt: 0.35, nucleusRegen: 0,
+    unlock: { kind: 'molts', count: 1, label: 'Complete your first Molt' },
+    ability: { name: 'Sundering Peal', blurb: 'The bell SLAMS: a massive resonant blast that staggers the pack — and for 6s the whole hive answers, every tower striking +30% harder.', cooldown: 13, radius: 140, damage: 60, fracture: 0, disrupt: 1.0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.3, buffSeconds: 6, particle: 'heroBurst', fxColor: '#ffc46b' },
+    skills: [
+      { name: 'Tolling Strike', blurb: 'A focused toll — resonant damage that briefly staggers everything caught.', cooldown: 7, radius: 100, damage: 30, fracture: 0, disrupt: 0.6, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroBurst', fxColor: '#f2d49a' },
+      { name: 'Battle Hymn', blurb: 'A sustained hum through the hive: towers strike +15% harder for 5s (refreshes, never stacks).', cooldown: 15, radius: 0, damage: 0, fracture: 0, disrupt: 0, heal: 0, buffStat: 'towerDamage', buffAmount: 1.15, buffSeconds: 5, castOn: 'self', minEnemies: 0, particle: 'heroMote', fxColor: '#ffe9b8' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'crescendo', name: 'Crescendo', blurb: 'The amp deepens — the Peal answers half again as loud, for longer.', upgrades: [{ target: 'ult', mulBuffAmount: 1.5, addBuffSeconds: 2, fxColor: '#ffd88a' }, { target: 1, mulBuffAmount: 1.4 }] },
+        { id: 'dirge', name: 'Dirge', blurb: 'The toll turns funerary — heavier blasts, longer stagger.', upgrades: [{ target: 'ult', mulDamage: 1.4, addDisrupt: 0.8, fxColor: '#d8c4ff' }, { target: 0, mulDamage: 1.3 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'eternal', name: 'Eternal Hymn', blurb: 'Battle Hymn becomes a near-permanent chorus.', upgrades: [{ target: 1, name: 'Eternal Hymn', mulBuffAmount: 1.35, addBuffSeconds: 4, mulCooldown: 0.75, particle: 'heroMote', fxColor: '#fff3d0' }] },
+        { id: 'requiem', name: 'Requiem', blurb: 'Tolling Strike becomes a devastating requiem.', upgrades: [{ target: 0, name: 'Requiem', mulDamage: 1.9, mulRadius: 1.3, addDisrupt: 0.6, particle: 'heroBurst', fxColor: '#ffe0a8' }] },
+      ] },
+    ],
+  },
 };
 
 export function heroProblems(d: HeroDef): string[] {
@@ -1437,6 +1474,8 @@ function applyHeroUpgrade(ab: HeroAbilityDef, up: HeroAbilityUpgrade): HeroAbili
   if (up.addShield) out.shield = (out.shield ?? 0) + up.addShield;
   if (up.mulPoolRadius && out.poolRadius) out.poolRadius = Math.round(out.poolRadius * up.mulPoolRadius);
   if (up.mulPoolDps && out.poolDps) out.poolDps = Math.round(out.poolDps * up.mulPoolDps);
+  if (up.mulBuffAmount && out.buffAmount) out.buffAmount = Math.round((1 + (out.buffAmount - 1) * up.mulBuffAmount) * 100) / 100;
+  if (up.addBuffSeconds && out.buffStat) out.buffSeconds = (out.buffSeconds ?? 5) + up.addBuffSeconds;
   if (up.setMinEnemies !== undefined) out.minEnemies = up.setMinEnemies;
   if (up.particle) out.particle = up.particle;
   if (up.fxColor) out.fxColor = up.fxColor;

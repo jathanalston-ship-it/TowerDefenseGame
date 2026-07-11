@@ -12,6 +12,16 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New achievement: For Whom the Bell",
+        "major": true
+      },
+      {
+        "cat": "Heroes",
+        "text": "New hero: Knell",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Idle Harvest",
         "major": true
       },
@@ -499,12 +509,12 @@ export const RELEASES: Release[] = [
         "text": "Chronicle + site regen for the Guest Mode batch"
       },
       {
-        "cat": "Balance",
-        "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
-      },
-      {
         "cat": "UI",
         "text": "Identity: designation tags — duplicate names disambiguated by a stable register number"
+      },
+      {
+        "cat": "Balance",
+        "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
       },
       {
         "cat": "Website",
@@ -513,6 +523,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "In-run HUD overhaul: bio-glass organs, living conveyor belt, incubation loot vessel"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the HUD overhaul"
+      },
+      {
+        "cat": "Heroes",
+        "text": "New hero: the Knell — Resonant amplification conductor, gated on the first Molt"
       }
     ]
   },

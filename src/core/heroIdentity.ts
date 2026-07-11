@@ -23,7 +23,8 @@ export type HeroTraitKind =
   | 'broodTender' // summons/pulse lean to crowd control (Shepherd)
   | 'targetHijack' // the control field drags + denies the lane (Overseer)
   | 'groundDenial' // every shell leaves a lingering acid pool (Vitriol)
-  | 'plagueStrike'; // blink-strikes inject Infection that spreads on the host's death (Revenant)
+  | 'plagueStrike' // blink-strikes inject Infection that spreads on the host's death (Revenant)
+  | 'resonantToll'; // the tolling pulse staggers; its peals amplify the whole hive (Knell — the stagger IS the pulse's disrupt)
 
 /** How a hero scales WITHIN a run so it stays relevant to endgame. */
 export type HeroScalingKind =
@@ -102,6 +103,16 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     trait: { name: 'Plague Strike', desc: 'Its blink-strikes inject a deep Infection; an infected host bursts the plague to its neighbors on death.', kind: 'plagueStrike' },
     scaling: { name: 'Virulence', desc: 'The deeper the run, the more its Infection softens targets (up to +30%).', kind: 'virulence', perStack: 0.015, cap: 0.3 },
     survival: 'evasive',
+  },
+  knell: {
+    kind: 'knell',
+    role: 'Amplification conductor — tolls damaging shockwaves in the densest fight and makes the WHOLE hive strike harder in answer.',
+    strengths: ['Run-wide tower-damage peals (the amp windows)', 'Innate aura hastens + hardens nearby towers', 'Real AoE chip with a stagger'],
+    weaknesses: ['No single-target burst of its own', 'Slow — the bell arrives late', 'Its value multiplies a BUILD; alone it is quiet'],
+    passive: { name: 'Resonance', desc: 'Towers near the Knell gain fire rate and damage — one note the battlefield obeys.', kind: 'towerAura', amount: 0.12 },
+    trait: { name: 'The Toll', desc: 'Its pulse is a damaging shockwave that briefly staggers everything caught.', kind: 'resonantToll' },
+    scaling: { name: 'Congregation', desc: 'The Resonance aura strengthens for each tower standing near the bell.', kind: 'livingHive', perStack: 0.12, cap: 0.48 },
+    survival: 'cautious',
   },
 };
 

@@ -2034,7 +2034,7 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle' } as const;
+const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell' } as const;
 
 function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}, heroGear: Partial<Record<string, HeroGearSpec>> = {}): void {
   for (let i = 0; i < rs.heroes.length; i++) {

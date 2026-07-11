@@ -1088,6 +1088,7 @@ function heroMilestoneMet(save: SaveData, req: HeroUnlockReq): boolean {
     // across the enemy's war-forms is the real feat.
     case 'bossSlain': return save.bossesSlain.length >= req.count;
     case 'infiniteDepth': return save.bestWave >= req.wave; // Revenant — earned from the endless deep
+    case 'molts': return save.prestige.molts >= req.count; // Knell — cast from the hive's first rebirth
   }
 }
 
@@ -1096,6 +1097,7 @@ function heroMilestoneProgress(save: SaveData, req: HeroUnlockReq): number {
   switch (req.kind) {
     case 'bossSlain': return Math.min(1, save.bossesSlain.length / req.count);
     case 'infiniteDepth': return Math.min(1, save.bestWave / req.wave);
+    case 'molts': return Math.min(1, save.prestige.molts / req.count);
   }
 }
 
@@ -6133,7 +6135,9 @@ export const meta = {
     const bossesSlain = [...new Set([...save.bossesSlain, ...Object.keys(CHASSIS).slice(0, chassisNeed)])];
     const revenantReq = HERO_DEFS.revenant.unlock;
     const bestWave = revenantReq?.kind === 'infiniteDepth' ? Math.max(save.bestWave, revenantReq.wave) : save.bestWave;
-    persist({ ...save, heroUnlocked, bossesSlain, bestWave });
+    const knellReq = HERO_DEFS.knell.unlock;
+    const molts = knellReq?.kind === 'molts' ? Math.max(save.prestige.molts, knellReq.count) : save.prestige.molts;
+    persist({ ...save, heroUnlocked, bossesSlain, bestWave, prestige: { ...save.prestige, molts } });
   },
 
   /** Roll + grant a chest immediately (returns it so the panel can show a reveal). */

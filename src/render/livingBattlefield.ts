@@ -70,7 +70,7 @@ const TOWER_MOTIF: Record<string, Motif> = { // the 15 authored tower kinds (doc
 };
 const MULLIGAN_MOTIF: Record<string, Motif> = { offensive: 'ember', utility: 'crystal', biological: 'flesh' };
 const HERO_MOTIF: Record<string, Motif> = {
-  ravager: 'ember', shepherd: 'flesh', overseer: 'crystal', vitriol: 'spore', revenant: 'chitin',
+  ravager: 'ember', shepherd: 'flesh', overseer: 'crystal', vitriol: 'spore', revenant: 'chitin', knell: 'bone',
 };
 const GENE_MOTIF: Record<string, Motif> = { damage: 'ember', control: 'crystal', economy: 'spore', defense: 'bone', biomass: 'vein' };
 
