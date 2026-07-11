@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 730 nodes · 1305 edges, built from the live
+> **The project's brain** (docs/DIL.md). 731 nodes · 1309 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -355,6 +355,8 @@ graph LR
   system_profile["Player Profile"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_engine["Sim Engine"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_profile["Player Profile"]
+  system_onboarding["Tutorials, Help & Onboarding"] -->|dependsOn| system_accounts["Account Platform"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_account_level["Account Level (evergreen meta-progression)"] -->|dependsOn| system_loot["Loot & Bio-Containers"]
@@ -767,6 +769,7 @@ _at: src/account/accountStore.ts, src/account/providers.ts, src/save/envelope.ts
   - dependsOn → `system:meta-store`
   - dependsOn → `system:profile`
   - conflictsWith → `system:meta-store` — cloud sync merges the same save blob the local store owns — schema changes need BOTH migration paths
+  - requiredBy ← `system:onboarding`
   - documentedBy ← `doc:ACCOUNTS.md`
   - documentedBy ← `doc:DEPLOYMENT.md`
   - testedBy ← `test:src/net/syncEngine.test.ts`
@@ -1517,9 +1520,9 @@ _at: src/core/quests.ts, src/ui/QuestBoard.tsx_
 
 ### `system:profile` — Player Profile
 
-The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.
+The account dashboard: banner + frames + the commissioning identity (sigils, founding titles, designation generator), registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.
 
-_at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/CommanderName.tsx_
+_at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/CommanderName.tsx, src/core/identity.ts_
 
   - dependsOn → `system:stats`
   - dependsOn → `system:power`
@@ -1530,19 +1533,24 @@ _at: src/state/profile.ts, src/ui/PlayerProfile.tsx, src/ui/components/Commander
   - consumes → `system:meta-store` — owns save field 'createdAt'
   - consumes → `system:meta-store` — owns save field 'profileName'
   - consumes → `system:meta-store` — owns save field 'profileFrame'
+  - consumes → `system:meta-store` — owns save field 'profileSigil'
   - consumes → `system:meta-store` — owns save field 'timeline'
   - requiredBy ← `system:accounts`
+  - requiredBy ← `system:onboarding`
   - documentedBy ← `doc:PROFILE.md`
+  - testedBy ← `test:src/core/identity.test.ts`
   - testedBy ← `test:src/state/profile.test.ts`
 
 ### `system:onboarding` — Tutorials, Help & Onboarding
 
-Combat Tutorial over a live sim, HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
+Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.
 
 _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, src/state/tutorial.ts, src/state/mechanics.ts, src/ui/TutorialRunner.tsx, src/ui/tutorial/*, src/ui/HelpWiki.tsx, src/ui/WhatsNew.tsx, src/ui/HudTour.tsx, src/ui/tips.ts_
 
   - dependsOn → `system:engine`
   - dependsOn → `system:meta-store`
+  - dependsOn → `system:profile`
+  - dependsOn → `system:accounts`
   - consumes → `system:meta-store` — owns save field 'tutorial'
   - consumes → `system:meta-store` — owns save field 'help'
   - triggers → `system:audio` — the opening cinematic scores itself via the cinema track + cin_* beat cues
@@ -1713,7 +1721,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…102 more (query: `npm run dil -- node system:meta-store`)_
+  - _…103 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -3098,7 +3106,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (228)
+## Tests (229)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3174,6 +3182,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/loginStreak.test.ts` — automated validation _(tests `system:daily-login`)_

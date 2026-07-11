@@ -76,3 +76,30 @@ exactly, with a live "will appear as" preview. Confirming sets the name, marks t
 device designated (`localStorage assimilate.designated`), arms auto cloud sync, and
 takes the first backup. "Later" defers for the session; the Profile rename (which also
 sets the designated flag) remains the permanent editor.
+
+## §commissioning — account creation as a ceremony (2026-07 overhaul)
+
+The scattered onboarding asks (rewards reveal → later a CommanderName modal → a cold
+first-launch WelcomeGate that *completers never even saw*) are unified into **THE
+COMMISSIONING** (`ui/tutorial/Commissioning.tsx`) — fired once, at genuine tutorial
+completion, in four skippable steps:
+
+1. **GRADUATION** — the one-time reward payout (shared `RewardRows` primitives with the
+   Hud Tour's reveal).
+2. **DESIGNATION** — the commander name: server-mirrored sanitizer, live preview, and a
+   one-tap callsign generator (`core/identity.ts suggestCommanderName` — always
+   sanitizer-clean). Auto-skipped for already-named veterans; skipping defers to the
+   CommanderName modal next session (same keys, no double-ask this session).
+3. **IDENTITY** — a **SIGIL** (`core/identity.ts SIGILS`, 12 glyph+accent rows, worn
+   beside the name on the banner; freely re-chosen later in the Mastery Profile via
+   `meta.setProfileSigil`) and a **FOUNDING TITLE** — one of three, granted **once,
+   permanently** (`meta.commission` refuses a second oath): the roads not taken stay
+   untaken. Founding titles share the equipped-title slot through the `titleName` chain.
+4. **SAFEGUARD** — the account decision, folded in from the accounts platform (guest /
+   create account / sign in — the exported `AuthForms`), asked *after* the player has
+   something to lose. Completing any route marks the device onboarded, arms the sync
+   engine, and takes the first mirror.
+
+**Save:** `profileSigil: string | null` (additive; junk sanitizes to null). **Skippers**
+(tutorial Skip) keep the legacy fallbacks unchanged — CommanderName modal + WelcomeGate.
+Tests: `core/identity.test.ts` (registry, oath one-time, generator hygiene, round-trip).

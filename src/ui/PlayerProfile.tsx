@@ -98,6 +98,11 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
                 ...(wd.nameplate?.bg ? { background: wd.nameplate.bg, boxShadow: `inset 0 0 0 1px ${wd.nameplate.accent ?? 'transparent'}`, padding: '2px 10px' } : {}),
               }}
             >
+              {banner.sigil && (
+                <i className="pf-sigil" style={{ color: banner.sigil.accent }} title={`${banner.sigil.name} — ${banner.sigil.blurb}`} aria-hidden>
+                  {banner.sigil.glyph}
+                </i>
+              )}
               {banner.name} <i aria-hidden>✎</i>
             </button>
           )}

@@ -142,6 +142,8 @@ graph TD
   profile --> hub_shell
   onboarding --> engine
   onboarding --> meta_store
+  onboarding --> profile
+  onboarding --> accounts
   account_level --> meta_store
   account_level --> loot
   genome_rank --> meta_store
@@ -198,7 +200,7 @@ graph TD
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
 | **Public Intelligence Layer** (`pil`) | `dev-registry` | — | — | — | `docs/PIL.md` |
-| **Account Platform** (`accounts`) | `meta-store` · `profile` | — | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
+| **Account Platform** (`accounts`) | `meta-store` · `profile` | `onboarding` | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | `field-research` | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
 | **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` · `directives` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
 | **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | `nucleus` | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
@@ -234,8 +236,8 @@ graph TD
 | **The Wardrobe (Cosmetics)** (`cosmetics`) | `meta-store` · `collection` · `hub-shell` | `daily-login` · `contracts` · `nemesis` · `battle-pass` · `quests` | ⚡ via the collection codex weights (tiny, cosmetic-first) | `cosmetics` · `wardrobe` | `docs/COSMETICS.md` |
 | **Battle Pass (Season)** (`battle-pass`) | `meta-store` · `cosmetics` · `premium` · `hub-shell` | `daily-login` · `quests` | ⚡ permanents + Perennial stacks fold into the meta bucket | `battlePass` | `docs/BATTLEPASS.md` |
 | **Quests & Missions** (`quests`) | `meta-store` · `battle-pass` · `contracts` · `cutscenes` · `cosmetics` · `collection` · `hub-shell` | — | ⚡ quest/mission codices carry small collection weights | `quests` | `docs/QUESTS.md` |
-| **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` | — | `createdAt` · `profileName` · `profileFrame` · `timeline` | `docs/PROFILE.md` |
-| **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` | `progression-gating` | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
+| **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` · `onboarding` | — | `createdAt` · `profileName` · `profileFrame` · `profileSigil` · `timeline` | `docs/PROFILE.md` |
+| **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` · `profile` · `accounts` | `progression-gating` | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
 | **Account Level (evergreen meta-progression)** (`account-level`) | `meta-store` · `loot` | `contracts` · `genome-rank` | — | `accountXp` | `docs/ACCOUNT-LEVEL.md` |
 | **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | `nucleus` · `contracts` | — | `genomeRank` | `docs/GENOME-RANK.md` |
 | **Progression Gating & Director** (`progression-gating`) | `meta-store` · `campaign` · `onboarding` | — | — | `director` | `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` |
@@ -358,14 +360,14 @@ graph TD
 
 - **Files:** `src/account/accountStore.ts` · `src/account/providers.ts` · `src/save/envelope.ts` · `src/save/merge.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/ui/components/AccountPanel.tsx`
 - **Depends on:** `meta-store` · `profile`
-- **Consumers — what breaks if you change this:** —
+- **Consumers — what breaks if you change this:** `onboarding`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `AccountPanel` · `WelcomeGate` · `ConflictModal` · `PlayerProfile` · `Hub`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md`
 
 ### Boss Rush (`boss-rush`)
 
@@ -894,25 +896,25 @@ graph TD
 
 ### Player Profile (`profile`)
 
-*The account dashboard: banner + frames, registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.*
+*The account dashboard: banner + frames + the commissioning identity (sigils, founding titles, designation generator), registry-driven career stats, power breakdown, showcase, milestone timeline, next milestones, analytics.*
 
-- **Files:** `src/state/profile.ts` · `src/ui/PlayerProfile.tsx` · `src/ui/components/CommanderName.tsx`
+- **Files:** `src/state/profile.ts` · `src/ui/PlayerProfile.tsx` · `src/ui/components/CommanderName.tsx` · `src/core/identity.ts`
 - **Depends on:** `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell`
-- **Consumers — what breaks if you change this:** `accounts`
+- **Consumers — what breaks if you change this:** `accounts` · `onboarding`
 - **Power Score:** — (intentionally none)
-- **Save fields:** `createdAt` · `profileName` · `profileFrame` · `timeline`
+- **Save fields:** `createdAt` · `profileName` · `profileFrame` · `profileSigil` · `timeline`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `PlayerProfile`
 - **Collection:** per-category completion rendered · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/PROFILE.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/PROFILE.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md`
 
 ### Tutorials, Help & Onboarding (`onboarding`)
 
-*Combat Tutorial over a live sim, HUD Tour, mechanics-registry Help wiki, What's New, loading tips.*
+*Combat Tutorial over a live sim, THE COMMISSIONING (post-tutorial account-creation ceremony: rewards, designation, sigil + founding-title oath, account safeguard), HUD Tour, mechanics-registry Help wiki, What's New, loading tips.*
 
 - **Files:** `src/ui/InitCutscene.tsx` · `src/render/introScenes.ts` · `src/core/tutorial.ts` · `src/state/tutorial.ts` · `src/state/mechanics.ts` · `src/ui/TutorialRunner.tsx` · `src/ui/tutorial/*` · `src/ui/HelpWiki.tsx` · `src/ui/WhatsNew.tsx` · `src/ui/HudTour.tsx` · `src/ui/tips.ts`
-- **Depends on:** `engine` · `meta-store`
+- **Depends on:** `engine` · `meta-store` · `profile` · `accounts`
 - **Consumers — what breaks if you change this:** `progression-gating`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `tutorial` · `help`

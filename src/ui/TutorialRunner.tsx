@@ -14,7 +14,7 @@ import type { HeroKind, HeroProgress, MetaModifiers, TowerProgress } from '../co
 import { GameView } from './GameView';
 import { TutorialOverlay } from './tutorial/TutorialOverlay';
 import { useTutorialDirector } from './tutorial/tutorialDirector';
-import { TutorialRewardReveal } from './tutorial/TutorialRewardReveal';
+import { Commissioning } from './tutorial/Commissioning';
 
 const TUTORIAL_SEED = 0x7c0de; // fixed → the tutorial encounter is identical every time
 
@@ -62,7 +62,10 @@ export function TutorialRunner({ onExit }: { onExit: () => void }): JSX.Element 
     }
   }, [session, onExit]);
 
-  if (reward) return <TutorialRewardReveal reward={reward} onClose={onExit} />;
+  // Genuine completion → THE COMMISSIONING (docs/PROFILE.md §commissioning): rewards, then
+  // designation + identity + the account safeguard as ONE ceremony (skips stay on the old
+  // menu-modal fallbacks — CommanderName / WelcomeGate — unchanged).
+  if (reward) return <Commissioning reward={reward} onClose={onExit} />;
 
   return (
     <div className="tut-runner">

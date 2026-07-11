@@ -39,9 +39,9 @@ function syncLine(s: SyncState, online: boolean, lastSyncedAt: number): { dot: s
   }
 }
 
-// ── shared auth forms ────────────────────────────────────────────────────────────
+// ── shared auth forms (also rendered by the Commissioning ceremony's safeguard step) ──────────
 
-function AuthForms({ mode, onDone }: { mode: 'register' | 'signin'; onDone?: () => void }): JSX.Element {
+export function AuthForms({ mode, onDone }: { mode: 'register' | 'signin'; onDone?: () => void }): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);

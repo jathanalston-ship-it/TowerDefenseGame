@@ -85,6 +85,7 @@ import { lootBias } from '../core/progressionLoot';
 import { resolveDifficulty } from '../core/difficulty';
 import { doctrineEconomy, economyFor, lootQualityTier, modeCoreMult, modeLootMult, modeMasteryMult } from '../core/difficultyDirector';
 import { doctrineRank } from '../core/doctrines';
+import { FOUNDING_TITLES, sigilById } from '../core/identity';
 import { coreShardIncome, lootPointIncome } from '../core/economyDirector';
 import { predictBossRush, predictCampaign, predictInfinite, calibrate } from '../core/predict';
 import type { RouletteReward } from './bioRoulette';
@@ -2434,6 +2435,36 @@ export const meta = {
       /* storage unavailable — the prompt gates on the name value alone */
     }
     persist({ ...store.get(), profileName: cleaned });
+  },
+
+  /** Wear a commissioning sigil (docs/PROFILE.md §commissioning) — null clears it. Unknown ids
+   *  are refused (the picker only offers registry rows; imports sanitize separately). */
+  setProfileSigil(id: string | null): void {
+    if (id !== null && sigilById(id) === null) return;
+    persist({ ...store.get(), profileSigil: id });
+  },
+
+  /** THE COMMISSIONING (docs/PROFILE.md §commissioning) — the one-time identity settle at
+   *  tutorial completion: designation + sigil + the founding-title oath in ONE persist.
+   *  Every part is optional (each ceremony step is skippable); the founding title grants
+   *  ONLY the chosen one — the other two are the roads not taken, permanently (an identity
+   *  choice, like a doctrine oath). Re-invocations never re-grant a second founding title. */
+  commission(choice: { name?: string; sigilId?: string | null; titleId?: string | null }): void {
+    let save = store.get();
+    const cleaned = choice.name !== undefined ? sanitizeCommanderName(choice.name) : null;
+    if (cleaned !== null) {
+      save = { ...save, profileName: cleaned };
+      try { localStorage.setItem('assimilate.designated', '1'); } catch { /* name value gates alone */ }
+    }
+    if (choice.sigilId !== undefined && (choice.sigilId === null || sigilById(choice.sigilId) !== null)) {
+      save = { ...save, profileSigil: choice.sigilId };
+    }
+    const title = choice.titleId ? FOUNDING_TITLES.find((t) => t.id === choice.titleId) : undefined;
+    const alreadySwore = FOUNDING_TITLES.some((t) => save.unlockedTitles.includes(t.id));
+    if (title && !alreadySwore) {
+      save = { ...save, unlockedTitles: [...save.unlockedTitles, title.id], equippedTitle: title.id };
+    }
+    persist(save);
   },
 
   /** Select an unlockable profile banner frame (docs/PROFILE.md). The UI only offers unlocked

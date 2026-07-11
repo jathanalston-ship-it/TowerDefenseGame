@@ -36,7 +36,10 @@ Gene Archive.
   the first draft — celebrated by an overlay toast. First COMPLETION (gated on the store's end
   reason — a Skip never pays) grants Genome Cores + Tower/Hero Shards + a guaranteed **rare
   Tutorial Bio-Container** + a basic Hero weapon + the *Assimilation Protocol* achievement —
-  shown by `TutorialRewardReveal`. Replays re-teach but **never re-grant** (all three ledgers).
+  shown as the GRADUATION step of **THE COMMISSIONING** (`ui/tutorial/Commissioning.tsx`,
+  docs/PROFILE.md §commissioning) — the post-tutorial account-creation ceremony that then walks
+  designation → sigil + founding-title oath → the account safeguard. Replays re-teach but
+  **never re-grant** (all three ledgers), and never re-run the ceremony.
 
 Below is the underlying architecture (unchanged; the lessons are data + presentation props on it).
 

@@ -21,6 +21,8 @@ import { resolveDifficulty } from '../core/difficulty';
 import { masteryRewardById } from '../core/mastery';
 import { ACCOUNT_TITLE_BY_ID } from '../core/accountLevel';
 import { genomeTitleName } from '../core/genomeRank';
+import { foundingTitleName, sigilById } from '../core/identity';
+import type { SigilDef } from '../core/identity';
 import { ACHIEVEMENTS, achievementById } from './achievements';
 import type { AchievementDef } from './achievements';
 import { favoriteTowerName } from './stats';
@@ -217,6 +219,7 @@ export const PROFILE_FRAMES: ProfileFrame[] = [
 
 export interface BannerModel {
   name: string;
+  sigil: SigilDef | null; // the commissioning sigil worn beside the name (docs/PROFILE.md)
   title: string | null; // resolved worn-title name
   power: number;
   stage: number;
@@ -231,11 +234,11 @@ export interface BannerModel {
   frames: (ProfileFrame & { isUnlocked: boolean })[];
 }
 
-/** Resolve any earned-title id to its display name — mastery rewards, account-level titles and
- * Genome Rank titles share the equipped-title slot, so every display surface resolves through
- * this one chain. */
+/** Resolve any earned-title id to its display name — mastery rewards, account-level titles,
+ * Genome Rank titles and the commissioning FOUNDING titles share the equipped-title slot, so
+ * every display surface resolves through this one chain. */
 export function titleName(id: string): string {
-  return masteryRewardById(id)?.name ?? ACCOUNT_TITLE_BY_ID.get(id)?.name ?? genomeTitleName(id) ?? id;
+  return masteryRewardById(id)?.name ?? ACCOUNT_TITLE_BY_ID.get(id)?.name ?? genomeTitleName(id) ?? foundingTitleName(id) ?? id;
 }
 
 export function playerBanner(save: SaveData): BannerModel {
@@ -244,6 +247,7 @@ export function playerBanner(save: SaveData): BannerModel {
   const frame = PROFILE_FRAMES.find((f) => f.id === save.profileFrame && f.unlocked(save)) ?? PROFILE_FRAMES[0];
   return {
     name: save.profileName,
+    sigil: sigilById(save.profileSigil),
     title: save.equippedTitle ? titleName(save.equippedTitle) : null,
     power: composePower(accountPowerParts(save)).score,
     stage: highestCampaignStage(save),

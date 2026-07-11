@@ -430,6 +430,16 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
 
 ### Onboarding & UX
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **THE COMMISSIONING** (2026-07, PROFILE.md §commissioning) — account creation at tutorial
+  completion as ONE four-step ceremony (was: scattered reveal + CommanderName modal + a cold
+  first-launch WelcomeGate that completers never saw): GRADUATION (reward payout, shared
+  RewardRows) → DESIGNATION (server-mirrored name + sanitizer-clean callsign generator,
+  auto-skipped for named veterans) → IDENTITY (12-sigil registry worn on the banner +
+  re-choosable in Mastery Profile; a ONE-TIME founding-title oath of three, riding the
+  titleName chain) → SAFEGUARD (guest/create/sign-in via the accounts platform's AuthForms,
+  asked after the player has something to lose). `core/identity.ts` + `profileSigil` (additive)
+  + `meta.commission` one-persist settle; skippers keep the legacy modal fallbacks;
+  identity.test (9). All chrome fully localized (EN/ES/PT `commission.*`)
 - ✅ **Onboarding overhaul (full audit + rebuild)** — GATED Combat Tutorial (`game.tutorialMode`:
   director scripts every wave, holds/releases the draft at its lesson, locked console/speed/hotkeys,
   sim-freezing pause, exact-element arrows, canvas-focus camera, mid-flow milestone rewards with

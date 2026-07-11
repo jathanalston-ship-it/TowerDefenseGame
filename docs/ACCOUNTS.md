@@ -61,9 +61,14 @@ back in.
 
 ## First-time experience
 
-`WelcomeGate` (App, menu screen): **Continue as Guest** (instant, works offline; server registration
-is lazy on first contact) or **I have an account** (email sign-in → cloud pull). Existing saves are
-grandfathered — the gate never nags a device that already has a life.
+**Tutorial completers** get the account decision as the SAFEGUARD step of THE COMMISSIONING
+(docs/PROFILE.md §commissioning) — guest / create account / sign in, asked after the first
+rewards land (something to lose), reusing this platform's `AuthForms` + onboarded flag +
+sync arm. `WelcomeGate` (App, menu screen) remains the fallback for everyone else (tutorial
+skippers who reach the menu without meaningful progress): **Continue as Guest** (instant,
+works offline; server registration is lazy on first contact) or **I have an account** (email
+sign-in → cloud pull). Existing saves are grandfathered — the gate never nags a device that
+already has a life.
 
 ---
 

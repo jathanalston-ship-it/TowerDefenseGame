@@ -224,6 +224,7 @@ export interface SaveData {
   createdAt: number;
   profileName: string;
   profileFrame: string; // unlockable banner frame id (state/profile PROFILE_FRAMES)
+  profileSigil: string | null; // commissioning sigil id (core/identity SIGILS; null = none)
   timeline: TimelineEvent[];
   // ── Adaptation (v22, docs/ADAPTATION.md) — Antigen granted by legendary+ containers.
   //    Consumed as a CAPPED budget source (core/adaptation ANTIGEN.containerCap). ──
@@ -667,6 +668,7 @@ export function defaultSave(): SaveData {
     createdAt: 0, // stamped by the first settle — defaultSave() must stay deterministic
     profileName: DEFAULT_PROFILE_NAME,
     profileFrame: 'membrane',
+    profileSigil: null,
     timeline: [],
     antigen: 0,
     ichor: 0,
@@ -1141,6 +1143,8 @@ function withDefaults(data: SaveData): SaveData {
       ? ((data as { profileName?: unknown }).profileName as string).slice(0, 24)
       : d.profileName,
     profileFrame: typeof (data as { profileFrame?: unknown }).profileFrame === 'string' ? ((data as { profileFrame?: unknown }).profileFrame as string) : d.profileFrame,
+    // Commissioning sigil (docs/PROFILE.md §commissioning) — additive; null for older saves.
+    profileSigil: typeof (data as { profileSigil?: unknown }).profileSigil === 'string' ? ((data as { profileSigil?: unknown }).profileSigil as string) : null,
     patchNotes: ((): SaveData['patchNotes'] => {
       const raw = (data as { patchNotes?: { seen?: unknown; optOut?: unknown } }).patchNotes;
       return {

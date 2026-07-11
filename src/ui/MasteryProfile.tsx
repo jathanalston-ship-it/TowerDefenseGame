@@ -6,6 +6,7 @@
 import { meta } from '../state/meta';
 import { masteryRewardById } from '../core/mastery';
 import { titleName } from '../state/profile';
+import { SIGILS, sigilById } from '../core/identity';
 
 export function MasteryProfile(): JSX.Element {
   const save = meta.use();
@@ -43,6 +44,28 @@ export function MasteryProfile(): JSX.Element {
       ) : (
         <div className="mp-empty">No titles yet — raise a tower or hero to Mastery 25 to earn one.</div>
       )}
+
+      {/* Commissioning SIGIL (docs/PROFILE.md §commissioning) — worn beside the name; unlike the
+          founding-title oath, the sigil is freely re-chosen here any time. */}
+      <div className="mp-titlebar">
+        <span className="mp-label">Worn sigil</span>
+        <span className="mp-equipped">{sigilById(save.profileSigil)?.name ?? '— none —'}</span>
+      </div>
+      <div className="lab-fork-opts" style={{ flexWrap: 'wrap' }}>
+        <button className={`fork-opt ${save.profileSigil === null ? 'on' : ''}`} onClick={() => meta.setProfileSigil(null)}>
+          None
+        </button>
+        {SIGILS.map((s) => (
+          <button
+            key={s.id}
+            className={`fork-opt ${save.profileSigil === s.id ? 'on' : ''}`}
+            title={s.blurb}
+            onClick={() => meta.setProfileSigil(s.id)}
+          >
+            <i style={{ color: s.accent, fontStyle: 'normal' }} aria-hidden>{s.glyph}</i> {s.name}
+          </button>
+        ))}
+      </div>
 
       <div className="mp-codex-h">Codex{lore.length > 0 ? ` · ${lore.length}` : ''}</div>
       {lore.length > 0 ? (
