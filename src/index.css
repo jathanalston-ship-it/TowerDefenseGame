@@ -2235,6 +2235,11 @@ canvas.board {
   [role='button'] {
     min-height: 44px;
   }
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 24px;
+    height: 24px; /* WCAG 2.5.8 floor — the wrapping label extends the true target further */
+  }
   [role='button'] { display: inline-flex; align-items: center; }
   .tcard {
     min-height: 56px;
