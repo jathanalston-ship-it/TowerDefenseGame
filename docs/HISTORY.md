@@ -90,3 +90,6 @@
 - `894e529` **[Bosses]** Bosses: chassis identity depth — signature verbs, epithets, desperation profiles
 - `27a9f7d` **[Gameplay]** Hive Construction — the composite long-horizon sink (save v36)
 - `e13390a` **[Gene Cards]** Gene Card Transcendence: maxed cards graft a chosen second effect line
+- ⚑ `46fae24` **[Framework]** Chronicle + graphs for the Transcendence batch (rebased) _(internal)_
+- `9629539` **[Gene Cards]** Session handoff: Gene Card Transcendence batch _(internal)_
+- `4d04c1a` **[Towers]** Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant

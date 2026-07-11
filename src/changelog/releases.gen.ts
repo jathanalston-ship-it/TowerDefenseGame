@@ -352,6 +352,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gene Cards",
         "text": "Gene Card Transcendence: maxed cards graft a chosen second effect line"
+      },
+      {
+        "cat": "Towers",
+        "text": "Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant"
       }
     ]
   },

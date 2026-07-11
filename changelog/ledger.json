@@ -1,6 +1,6 @@
 {
-  "lastSha": "e13390a6a0f875888a2d1ec5a0cefa57a274ccb3",
-  "commitsSinceDraft": 0,
+  "lastSha": "4d04c1a722716edaf886eda23bed71bd9c5c268d",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -1797,6 +1797,10 @@
         {
           "cat": "Gene Cards",
           "text": "Gene Card Transcendence: maxed cards graft a chosen second effect line"
+        },
+        {
+          "cat": "Towers",
+          "text": "Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant"
         }
       ]
     }
@@ -2439,6 +2443,30 @@
       "date": "2026-07-11",
       "cat": "Gene Cards",
       "text": "Gene Card Transcendence: maxed cards graft a chosen second effect line",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "46fae240833cf9c9d338bec3c2eead5329859151",
+      "date": "2026-07-11",
+      "cat": "Framework",
+      "text": "Chronicle + graphs for the Transcendence batch (rebased)",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "9629539a5a531deb98aea43aa788e09deb11aa49",
+      "date": "2026-07-11",
+      "cat": "Gene Cards",
+      "text": "Session handoff: Gene Card Transcendence batch",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4d04c1a722716edaf886eda23bed71bd9c5c268d",
+      "date": "2026-07-11",
+      "cat": "Towers",
+      "text": "Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant",
       "internal": false,
       "needsReview": false
     }
