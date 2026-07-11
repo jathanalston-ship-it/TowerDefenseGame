@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 702 nodes · 1227 edges, built from the live
+> **The project's brain** (docs/DIL.md). 708 nodes · 1240 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -34,7 +34,7 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · …3 more
+`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · `guide:boss-rush` · `guide:daily` · `guide:mulligans` · …9 more
 
 ### Testing Index
 
@@ -962,6 +962,7 @@ _at: src/core/equipment.ts, src/render/equipmentArt.ts, src/ui/EquipmentPanel.ts
   - documentedBy ← `doc:EQUIPMENT.md`
   - documentedBy ← `doc:EQUIPMENT-PHILOSOPHY.md`
   - documentedBy ← `guide:heroes`
+  - documentedBy ← `guide:equipment`
   - testedBy ← `test:src/core/equipment.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
 
@@ -1253,6 +1254,7 @@ _at: src/core/contracts.ts, src/ui/components/ContractsCard.tsx_
   - referencedBy ← `achievement:contract_12`
   - referencedBy ← `achievement:perfect_week`
   - documentedBy ← `doc:CONTRACTS.md`
+  - documentedBy ← `guide:contracts`
   - testedBy ← `test:src/core/contracts.test.ts`
   - referencedBy ← `system:quests` — contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)
 
@@ -1308,6 +1310,7 @@ _at: src/core/trophies.ts, src/core/nemesis.ts_
   - modifies → `system:engine` — nemesisTraits(slain) rides RunOptions → spawnBoss applies hp/armor/damage/attack-speed deterministically (core/nemesis.ts)
   - consumes → `system:mega-bosses` — mega + vengeance trophy organs; mega kills derive mega-source trophy ownership
   - documentedBy ← `doc:NEMESIS.md`
+  - documentedBy ← `guide:nemesis`
 
 ### `system:cosmetics` — The Wardrobe (Cosmetics)
 
@@ -1377,6 +1380,7 @@ _at: src/core/quests.ts, src/ui/QuestBoard.tsx_
   - references → `system:contracts` — contracts are the quest-adjacent weekly SKILL checks — same board (ContractsCard mounts in QuestBoard), same run-facts DNA (QuestRunFacts extends ContractRunFacts)
   - conflictsWith → `concept:golden-test` — weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE
   - documentedBy ← `doc:QUESTS.md`
+  - documentedBy ← `guide:quests`
   - testedBy ← `test:src/core/quests.test.ts`
 
 ### `system:profile` — Player Profile
@@ -1441,6 +1445,7 @@ _at: src/core/accountLevel.ts, src/ui/components/AccountXpBar.tsx_
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:genome-rank`
   - documentedBy ← `doc:ACCOUNT-LEVEL.md`
+  - documentedBy ← `guide:account-progression`
   - testedBy ← `test:src/core/accountLevel.test.ts`
   - extendedBy ← `system:net-backend` — leaderboard modes accountLevel/weeklyXp/monthlyXp: score = XP, wave = level; the SERVER derives period bucket keys (functions/lib/period.ts mirrors core weekKey/monthKey)
   - consumedBy ← `system:genome-rank` — account level is ONE weighted GENOME_SOURCES row — the rank measures breadth across every system, never one lane
@@ -1462,6 +1467,7 @@ _at: src/core/genomeRank.ts, src/ui/components/GenomeRankPanel.tsx_
   - conflictsWith → `concept:golden-test` — promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:GENOME-RANK.md`
+  - documentedBy ← `guide:account-progression`
   - testedBy ← `test:src/core/genomeRank.test.ts`
   - providedBy ← `system:contracts` — lifetime completions (save.contracts.completed.length) are the contractsHonoured journey source — a pool expansion needs NO genome change
 
@@ -1699,6 +1705,7 @@ _at: src/core/doctrines.ts, src/ui/components/DoctrinePicker.tsx_
   - referencedBy ← `achievement:doctrine_exemplar`
   - documentedBy ← `doc:DOCTRINES.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
+  - documentedBy ← `guide:doctrines`
   - testedBy ← `test:src/core/doctrines.test.ts`
   - consumedBy ← `system:collection` — the doctrines codex tier IS 1 + doctrineRank over the stats ledgers ('none' never rows) — one ladder shared with the picker, so never author parallel codex thresholds; fresh save = 0 runs ⇒ tier 0 ⇒ golden-safe
   - consumedBy ← `system:achievements` — doctrine_first/breadth/families/exemplar read the stats doctrine ledgers registry-checked — stale/unknown ledger ids never count as commitment
@@ -1743,7 +1750,7 @@ _at: src/net/replayShare.ts_
   - contains ← `guide:progression`
   - contains ← `guide:campaign`
   - contains ← `guide:infinite`
-  - _…8 more (query: `npm run dil -- node system:website`)_
+  - _…14 more (query: `npm run dil -- node system:website`)_
 
 ### `system:rendering` — Rendering & VFX
 
@@ -2488,7 +2495,7 @@ _at: src/core/tutorial.ts_
 - `help:biomes` — Shifting environments with their own modifiers. _(partOf `system:onboarding`, teaches `system:biomes`)_
 - `help:bosses` — Multi-phase threats with big rewards. _(partOf `system:onboarding`, teaches `system:bosses`)_
 
-## Site Guides (16)
+## Site Guides (22)
 
 ### `guide:beginner` — Beginner Guide — Your First Runs
 
@@ -2630,6 +2637,61 @@ _at: site/guides.ts → /guides/mastery/_
 
   - partOf → `system:website`
   - documents → `system:mastery`
+
+### `guide:doctrines` — Doctrine Guide — Run Commitments
+
+Nineteen exclusive run-start commitments in three families — what each family changes, and how mastery ranks pay you back for specializing.
+
+_at: site/guides.ts → /guides/doctrines/_
+
+  - partOf → `system:website`
+  - documents → `system:doctrines`
+
+### `guide:contracts` — Champion Contracts Guide — The Weekly Board
+
+Three constraint runs a week, the same board for everyone — difficulty pips, the Gilded marquee, near-misses and the Perfect Week.
+
+_at: site/guides.ts → /guides/contracts/_
+
+  - partOf → `system:website`
+  - documents → `system:contracts`
+
+### `guide:quests` — Quest Guide — Missions & The Descent Below
+
+The directive layer: a weekly ring of rotating quests and a permanent three-chapter questline, both fed by everything you already do.
+
+_at: site/guides.ts → /guides/quests/_
+
+  - partOf → `system:website`
+  - documents → `system:quests`
+
+### `guide:account-progression` — Account Level & Genome Rank Guide
+
+The two account-wide meters: an uncapped XP level that pays on everything, and the prestigious rank that measures your breadth.
+
+_at: site/guides.ts → /guides/account-progression/_
+
+  - partOf → `system:website`
+  - documents → `system:account-level`
+  - documents → `system:genome-rank`
+
+### `guide:nemesis` — Nemesis Guide — The Grudge Ladder
+
+Losses create a hunter that comes back stronger — tiers, vengeance organs, and the trophy rack that pays for revenge.
+
+_at: site/guides.ts → /guides/nemesis/_
+
+  - partOf → `system:website`
+  - documents → `system:nemesis`
+
+### `guide:equipment` — Equipment Guide — The Armory
+
+Weapon, Armor and Relic loadouts with behavioral affixes: acquisition, sets, crafting, reforging and salvage without regret.
+
+_at: site/guides.ts → /guides/equipment/_
+
+  - partOf → `system:website`
+  - documents → `system:equipment`
 
 ### `guide:prestige` — Prestige Guide — The Ascendant Layer
 

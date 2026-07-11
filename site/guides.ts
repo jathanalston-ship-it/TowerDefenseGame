@@ -245,6 +245,98 @@ export const GUIDES: Guide[] = [
     ],
   },
   {
+    slug: 'doctrines', title: 'Doctrine Guide — Run Commitments', category: 'Modes',
+    summary: 'Nineteen exclusive run-start commitments in three families — what each family changes, and how mastery ranks pay you back for specializing.',
+    sections: [
+      { h: 'One commitment, whole run', body: [
+        'A Doctrine is chosen BEFORE a run and reshapes one rule for its entire length — you take exactly one, or none. <b>Build</b> doctrines bend your own math (Glass Doctrine trades Core integrity for raw tower damage; Overclock trades economy for fire rate). <b>Protocols</b> reshape the enemy world itself (Swarm Protocol nearly doubles spawn counts at half health; Titan Protocol sends a handful of monsters; Famine starves your Biomass and pays premium rewards for surviving it). <b>Pacts</b> do both at once — a sacrifice and a payoff on the same signature.',
+        'Exclusivity is the design: you cannot stack every multiplier, so a doctrine forces a divergent build instead of a bigger one. A run with no doctrine is always legal and never punished.',
+      ] },
+      { h: 'Which doctrine when', body: [
+        'Match the doctrine to what your account is good at, not to the biggest advertised number. A splash-heavy line feasts under Swarm Protocol; a beam-and-sniper build wants Titan. If your economy management is strong, Famine and Overclock pay far above their sticker price. Protocols carry reward multipliers up to ×1.6 — the harder the warp, the richer the run — and the reward premium stacks with your mastery rank in that doctrine.',
+        'New doctrines unseal as your campaign deepens (the picker shows each gate), so the roster grows with you: two are available from your first run, and the graduate-exam Overmind Protocol waits at stage 30.',
+      ] },
+      { h: 'Mastery ranks', body: [
+        'Every doctrine tracks your wins and your deepest wave under it, and ranks up on whichever signal is further: Initiate, Adept, Zealot, Exemplar. Each rank adds a permanent run-end reward premium for that doctrine, your Bio-Dex records the ladder per doctrine, and achievements recognize breadth — winning under five different doctrines, and under all three families. Commitment is a progression axis of its own: the doctrine you keep returning to literally pays better.',
+      ] },
+    ],
+  },
+  {
+    slug: 'contracts', title: 'Champion Contracts Guide — The Weekly Board', category: 'Modes',
+    summary: 'Three constraint runs a week, the same board for everyone — difficulty pips, the Gilded marquee, near-misses and the Perfect Week.',
+    sections: [
+      { h: 'How the board works', body: [
+        'Every week, three Champion Contracts go live — authored challenges like "win without a single Kinetic tower", "reach wave 12 without losing integrity" or "win fielding Viral towers only". Every player sees the same board on the same UTC clock, and it rotates weekly through an eight-week pool. Any qualifying run counts automatically: there is nothing to activate, no separate mode to enter. Difficulty pips on each contract mark how hard it bites.',
+      ] },
+      { h: 'Rewards worth planning around', body: [
+        'Each honoured contract pays bonus Genome Cores AND Account XP on top of the run’s normal rewards. One contract each week is the <b>marquee</b>: it carries an exclusive GILDED phenotype — a living-gold skin for a specific tower that exists nowhere else in the game. Honour all three in one week and the sweep itself pays out: a <b>Perfect Week</b> bonus, a lifetime counter on your board, and an achievement the first time you do it.',
+      ] },
+      { h: 'Playing the chase', body: [
+        'Check the board before you deploy — a run you were already planning often satisfies a contract with one small adjustment, and the board card names every constraint as a chip so you can read the exact terms. After a run, the Results screen reports <b>near-misses</b>: any open contract you failed by exactly one constraint, with the missed term named ("Missed by one: Lose no integrity"). That line is the whole strategy — it tells you precisely what to change before rerolling the same run. Contracts never re-pay within their week; a ✓ row is settled until rotation.',
+      ] },
+    ],
+  },
+  {
+    slug: 'quests', title: 'Quest Guide — Missions & The Descent Below', category: 'Progression',
+    summary: 'The directive layer: a weekly ring of rotating quests and a permanent three-chapter questline, both fed by everything you already do.',
+    sections: [
+      { h: 'Two lanes, one credit stream', body: [
+        'Quests are composed of counted missions — "fell 20 bosses", "draft 30 gene cards", "open 5 Bio-Containers" — and every mission credits automatically from normal play: runs, vault openings, expeditions, roulette spins and season levels all feed the same ledger, into both lanes at once. The <b>weekly ring</b> rotates three quests on seven-day windows. The <b>main questline</b>, The Descent Below, is three permanent chapters of ten missions each, cleared sequentially at your own pace.',
+      ] },
+      { h: 'Claims, finales and rollover', body: [
+        'Rewards claim on the Quest Board — and the weekly lane is lossless by design: when the window rolls over, anything you earned but hadn’t claimed is auto-claimed into rollover mail (and pays its season XP), then the ring resets. Weekly progress never carries over, so partial quests are not hoarded homework — each week is a fresh ring. Chapter finales in The Descent Below premiere a story cutscene on first completion and grant an exclusive quest-source wardrobe cosmetic.',
+      ] },
+      { h: 'Playing the board efficiently', body: [
+        'Read the ring on Monday and let it steer variety, not grind: the missions are deliberately broad enough that a normal week of play completes most of them. The active-chapter rule matters — only the current Descent chapter accrues, so claim finales promptly to open the next. Weekly finales you repeat in later rotations substitute a flat Ichor-and-Cores payout, so a completed ring is never a dead week.',
+      ] },
+    ],
+  },
+  {
+    slug: 'account-progression', title: 'Account Level & Genome Rank Guide', category: 'Progression',
+    summary: 'The two account-wide meters: an uncapped XP level that pays on everything, and the prestigious rank that measures your breadth.',
+    sections: [
+      { h: 'Account Level — the dedication meter', body: [
+        'Nearly everything pays Account XP: kills, waves, wins, campaign clears, dailies, contracts, achievements, acquisitions. The level curve is smooth and uncapped — there is no ceiling and no reset — and every level pays a procedurally weighted reward, with richer milestone levels carrying titles. Weekly and monthly XP ledgers feed their own leaderboards, so the meter is both a lifetime record and a live race.',
+      ] },
+      { h: 'Genome Rank — the breadth meter', body: [
+        'Your Genome Rating folds a weighted contribution from EVERY major system — campaign depth, Infinite records, Power Score, collections, mastery, doctrines, contracts, cosmetics, prestige and more — into one prestigious rank: Dormant, through the named ladder, to Living Catastrophe and beyond (the ladder is infinite). No single lane can dominate it by design: the rank measures how much of the game you have actually made yours.',
+      ] },
+      { h: 'Raising them on purpose', body: [
+        'Account Level responds to volume — just play, and prefer activities that stack sources (a daily that also honours a contract pays both). Genome Rank responds to breadth: its Progress Advisor names your biggest realistic rating opportunities right now, which is usually a system you have ignored rather than a deeper grind in one you haven’t. Promotions pay prestige-leaning rewards (cores, Ichor, containers, titles) — never gameplay power, so the ladder stays honest.',
+      ] },
+    ],
+  },
+  {
+    slug: 'nemesis', title: 'Nemesis Guide — The Grudge Ladder', category: 'Combat',
+    summary: 'Losses create a hunter that comes back stronger — tiers, vengeance organs, and the trophy rack that pays for revenge.',
+    sections: [
+      { h: 'How a nemesis is born', body: [
+        'Lose a run to a boss and it remembers: that organism becomes your Nemesis and returns in later runs, branded and buffed. Every time it beats you the grudge ladder escalates — Marked, Hunted, Reviled, Apex Predator — each tier layering real, deterministic advantages (more HP, armor, heavier Core damage, faster sieges). Dailies are excluded, so the shared worldwide seed stays fair; everywhere else, your history hunts you.',
+      ] },
+      { h: 'The revenge payout', body: [
+        'Killing your Nemesis pays tier-scaled Genome Cores, an exclusive Abyssal phenotype, and a permanent <b>Vengeance organ</b> — a pure-upside trophy from that chassis, one per body plan. The deeper the grudge ladder climbed before you ended it, the richer the revenge: a nemesis you let reach Apex Predator is a walking jackpot, if you can collect.',
+      ] },
+      { h: 'The trophy rack', body: [
+        'Harvested organs mount on a trophy RACK that grows to three slots as your collection deepens. Classic trophy organs are tradeoffs — real power with a real cost — while vengeance organs are clean bonuses; the rack lets you mix them. Rack composition is a genuine build decision between runs: match the organs to the mode you are about to enter, not to the biggest number on the shelf.',
+      ] },
+    ],
+  },
+  {
+    slug: 'equipment', title: 'Equipment Guide — The Armory', category: 'Progression',
+    summary: 'Weapon, Armor and Relic loadouts with behavioral affixes: acquisition, sets, crafting, reforging and salvage without regret.',
+    sections: [
+      { h: 'What equipment does', body: [
+        'Each hero carries a Weapon / Armor / Relic loadout, worn visibly on the battlefield. Affixes are BEHAVIORAL, not just numeric — items change how a hero fights: what they prioritize, how abilities echo, what happens on kill or on wound. Set bonuses reward committing to a family, with deep four-piece bonuses unlocked by pooling duplicate sets across your whole team.',
+      ] },
+      { h: 'Getting and improving items', body: [
+        'Items drop from Bio-Containers and craft from materials (mutagen, scrap, catalyst) in the Armory; the Gear Codex tracks every definition you have ever owned as a collection. Crafting is pity-protected — bad-luck streaks bend the odds back toward you. Reforging rerolls an item’s affixes when the base is right but the behavior is wrong; it is usually cheaper than chasing a fresh drop of the same slot.',
+      ] },
+      { h: 'Salvage without regret', body: [
+        'Salvage converts surplus into crafting materials — and it is deliberately hard to hurt yourself: equipped items, set pieces you still need, and recent acquisitions are guarded, and salvage itself carries an UNDO. The rule of thumb: keep one strong item per slot per hero plus anything completing a set; melt the rest without ceremony. Materials in the bank are worth more than a museum of almost-good relics.',
+      ] },
+    ],
+  },
+  {
     slug: 'prestige', title: 'Prestige Guide — The Ascendant Layer', category: 'Progression',
     summary: 'When to reset, what carries over, and how Ascendant nodes reshape the early game.',
     sections: [

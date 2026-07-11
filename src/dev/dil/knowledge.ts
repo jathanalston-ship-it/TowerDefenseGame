@@ -44,6 +44,12 @@ export const GUIDE_TOPICS: Record<string, string[]> = {
   collections: ['system:collection'],
   mastery: ['system:mastery'],
   prestige: ['system:prestige'],
+  doctrines: ['system:doctrines'],
+  contracts: ['system:contracts'],
+  quests: ['system:quests'],
+  'account-progression': ['system:account-level', 'system:genome-rank'],
+  nemesis: ['system:nemesis'],
+  equipment: ['system:equipment'],
 };
 
 /** The curated design edges. ADD A LINE when you learn something the graph should know. */

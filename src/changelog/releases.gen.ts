@@ -12,6 +12,26 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New achievement: Exemplar",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Three Schools",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Doctrinaire",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
+        "text": "New achievement: Sworn In",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New system: Doctrines",
         "major": true
       },
@@ -295,6 +315,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Security",
         "text": "Security hardening: run-settle replay protection + cross-tab write arbitration"
+      },
+      {
+        "cat": "Music",
+        "text": "Events music: grow the category 1→3 and actually wire it — dailies get their own voice"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers"
       }
     ]
   },

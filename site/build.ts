@@ -10,8 +10,8 @@ import { adSlot, esc, page, pageHero } from './shell';
 import { GUIDES } from './guides';
 import { POSTS } from './blog';
 import {
-  biomeCount, biomeEncyclopedia, bossCount, bossGallery, enemyCompendium, enemyCount,
-  featuredHero, featuredTower, heroCount, heroTable, towerCount, towerTable,
+  biomeCount, biomeEncyclopedia, bossCount, bossGallery, doctrineCodex, doctrineCount,
+  enemyCompendium, enemyCount, featuredHero, featuredTower, heroCount, heroTable, towerCount, towerTable,
 } from './encyclopedia';
 import {
   aboutPage, contactPage, cookiesPage, creditsPage, faqPage, featuresPage, homePage,
@@ -51,7 +51,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
     homePage({
       latestPost: posts[0],
       latestPatch: patches[0] ? { date: fmtDate(patches[0].date), title: patches[0].title, categories: patches[0].categories } : null,
-      counts: { towers: towerCount(), heroes: heroCount(), enemies: enemyCount(), biomes: biomeCount(), bosses: bossCount() },
+      counts: { towers: towerCount(), heroes: heroCount(), enemies: enemyCount(), biomes: biomeCount(), bosses: bossCount(), doctrines: doctrineCount() },
       featuredTower: featuredTower(),
       featuredHero: featuredHero(),
     }),
@@ -118,6 +118,7 @@ export function buildSite(root = process.cwd()): Map<string, string> {
   const ency: { path: string; title: string; desc: string; hero: [string, string, string]; body: string }[] = [
     { path: '/encyclopedia/enemies/', title: `Enemy Compendium — All ${enemyCount()} Strains · ${SITE_NAME}`, desc: `Every enemy strain in the live build — ${enemyCount()} organisms with stats, roles and traits, grouped by threat.`, hero: ['ENCYCLOPEDIA', 'Enemy Compendium', `All ${enemyCount()} strains in the live build, with authored stats and threat roles.`], body: enemyCompendium() },
     { path: '/encyclopedia/biomes/', title: `Biome Encyclopedia — ${biomeCount()} Ecosystems · ${SITE_NAME}`, desc: `The ${biomeCount()} biomes that warp the rules: modifiers, hazards and character, straight from the game data.`, hero: ['ENCYCLOPEDIA', 'Biome Encyclopedia', 'Ecosystems that rewrite the rules — modifiers and hazards from the live data.'], body: biomeEncyclopedia() },
+    { path: '/encyclopedia/doctrines/', title: `Doctrine Codex — All ${doctrineCount()} Run Commitments · ${SITE_NAME}`, desc: `Every Doctrine in the live build: ${doctrineCount()} exclusive run-start commitments across Build, Protocol and Pact families, with their unlock gates.`, hero: ['ENCYCLOPEDIA', 'Doctrine Codex', `All ${doctrineCount()} run commitments — three families, straight from the live registry.`], body: doctrineCodex() + `<p style="margin-top:18px"><a class="btn-ghost" href="/guides/doctrines/">How to play them — the Doctrine Guide →</a></p>` },
     { path: '/encyclopedia/collections/', title: `Collection Records · ${SITE_NAME}`, desc: 'The account-wide record: what collections track, the rank ladder, and the permanent bonuses completion pays.', hero: ['ENCYCLOPEDIA', 'Collection Records', 'Bronze to Ascendant — what the hive remembers, and what it pays.'], body: `
       <h2>What is recorded</h2><p>Strains assimilated, bosses felled, biomes survived, gene cards archived, equipment catalogued, organisms assembled — every category climbs a rank ladder as it completes.</p>
       <h2>The rank ladder</h2><p>Unranked → Bronze → Silver → Gold → Platinum → Diamond → Ascendant. Each rank pays a permanent account bonus, making completion a real progression path — the details live in the in-game Collection screen, which always reflects your own record.</p>

@@ -60,6 +60,7 @@ const SINGLETON_PAGES: PublicPage[] = [
   { id: 'page:blog-index', path: 'blog/index.html', title: 'Dev Blog Index', references: [], lastReviewed: R },
   { id: 'page:ency-enemies', path: 'encyclopedia/enemies/index.html', title: 'Enemy Encyclopedia', references: ['system:bosses', 'system:difficulty'], lastReviewed: R },
   { id: 'page:ency-biomes', path: 'encyclopedia/biomes/index.html', title: 'Biome Encyclopedia', references: ['system:biomes'], lastReviewed: R },
+  { id: 'page:ency-doctrines', path: 'encyclopedia/doctrines/index.html', title: 'Doctrine Codex', references: ['system:doctrines'], lastReviewed: R },
   { id: 'page:ency-collections', path: 'encyclopedia/collections/index.html', title: 'Collections Encyclopedia', references: ['system:collection'], lastReviewed: R },
 ];
 
@@ -80,9 +81,16 @@ const GUIDE_REFS: Record<string, string[]> = {
   'prestige': ['system:prestige'],
   'progression': ['system:prestige', 'system:mastery'],
   'collections': ['system:collection'],
+  'doctrines': ['system:doctrines'],
+  'contracts': ['system:contracts'],
+  'quests': ['system:quests'],
+  'account-progression': ['system:account-level', 'system:genome-rank'],
+  'nemesis': ['system:nemesis'],
+  'equipment': ['system:equipment'],
 };
 
 const BLOG_REFS: Record<string, string[]> = {
+  'the-weekly-game': ['system:contracts', 'system:quests', 'system:account-level', 'system:genome-rank'],
   'determinism': ['concept:determinism'],
   'equipment-identity': ['system:equipment'],
   'living-battlefield': ['system:living-battlefield'],

@@ -1,6 +1,6 @@
 {
-  "lastSha": "afabd1cb542ae89f8d2e4124c3f9c225d73e886d",
-  "commitsSinceDraft": 2,
+  "lastSha": "206c33171fec1ce93fa95a8d2c9ce73434a9050c",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -128,6 +128,10 @@
       "roulette_50",
       "rush_bosses50",
       "rush_bosses250",
+      "doctrine_first",
+      "doctrine_breadth",
+      "doctrine_families",
+      "doctrine_exemplar",
       "contract_first",
       "contract_12",
       "perfect_week",
@@ -1452,6 +1456,26 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New achievement: Exemplar",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Three Schools",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Doctrinaire",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
+          "text": "New achievement: Sworn In",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Doctrines",
           "major": true
         },
@@ -1735,6 +1759,14 @@
         {
           "cat": "Security",
           "text": "Security hardening: run-settle replay protection + cross-tab write arbitration"
+        },
+        {
+          "cat": "Music",
+          "text": "Events music: grow the category 1→3 and actually wire it — dailies get their own voice"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers"
         }
       ]
     }
@@ -2305,6 +2337,22 @@
       "date": "2026-07-10",
       "cat": "Bug Fixes",
       "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f42d2ac1f7a8892f056fdb8596da9e55a73042fd",
+      "date": "2026-07-11",
+      "cat": "Music",
+      "text": "Events music: grow the category 1→3 and actually wire it — dailies get their own voice",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "206c33171fec1ce93fa95a8d2c9ce73434a9050c",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers",
       "internal": false,
       "needsReview": false
     }

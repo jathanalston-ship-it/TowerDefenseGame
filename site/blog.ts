@@ -17,6 +17,24 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'the-weekly-game',
+    date: '2026-07-11',
+    title: 'The Weekly Game: contracts, quests and a hive that keeps a calendar',
+    category: 'Systems',
+    tags: ['liveops', 'contracts', 'quests', 'progression', 'design'],
+    summary: 'The last month rebuilt what a week of ASSIMILATE feels like: a worldwide contract board with near-miss feedback, a lossless quest ring, weekly directives, and two account-wide meters that recognize all of it — with a hard rule that none of it may become a chore.',
+    body: `
+<p>A single run of ASSIMILATE has always known what it is. The question this batch of updates answered is different: what is a <i>week</i> of ASSIMILATE?</p>
+<h2>One board, everyone</h2>
+<p>Champion Contracts put three authored constraint runs on a weekly board — "win without a single Kinetic tower", "reach wave 12 flawless" — and every player on Earth sees the same board, rotating on the same UTC clock through an eight-week pool. There is no server deciding this: the rotation is deterministic, the same trick our daily seeds use. One contract each week is the marquee, carrying a Gilded phenotype that exists nowhere else; sweeping all three pays a Perfect Week bonus and a lifetime badge.</p>
+<h2>Near-misses are the feature</h2>
+<p>The quietly important part is what happens when you FAIL a contract. If a run missed by exactly one constraint, the results screen names it: "Missed by one: Lose no integrity." The evaluator that pays the reward is the same code that writes that sentence, so the feedback can never lie — and a board you haven't beaten becomes a puzzle with a visible next move instead of a wall.</p>
+<h2>Quests that respect the clock</h2>
+<p>The quest layer is two lanes fed by one credit stream: a weekly ring of three rotating quests, and The Descent Below — a permanent three-chapter questline whose finales premiere story cutscenes. Every mission credits from things you were already doing; nothing asks you to play differently. And the weekly lane is lossless: at rollover, anything earned but unclaimed auto-claims into mail, then the ring resets. A busy week never becomes homework debt.</p>
+<h2>Meters that notice everything</h2>
+<p>Underneath it all, two account-wide meters landed. The Account Level is an uncapped XP curve that pays on nearly every action, with procedurally weighted rewards and weekly/monthly leaderboards. The Genome Rank folds a weighted contribution from EVERY major system into one prestigious, infinite ladder — and its advisor names the system you've been neglecting, because breadth is what it measures. Promotions pay prestige, never power: the ladders stay honest, and the weekly game stays a game.</p>`,
+  },
+  {
     slug: 'living-battlefield',
     date: '2026-07-09',
     title: 'The Living Battlefield: making the ground remember your run',

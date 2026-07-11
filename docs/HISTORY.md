@@ -79,3 +79,7 @@
 - `7000546` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
 - `b1c2d4c` **[Security]** Security hardening: run-settle replay protection + cross-tab write arbitration
 - `afabd1c` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
+## 2026-07-11
+
+- `f42d2ac` **[Music]** Events music: grow the category 1→3 and actually wire it — dailies get their own voice
+- `206c331` **[Gameplay]** Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers

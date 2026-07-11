@@ -7,6 +7,8 @@ import { ENEMY_DEFS, HERO_DEFS, TOWER_DEFS } from '../src/core/config';
 import { BIOMES } from '../src/core/biomes';
 import { BOSS_DEFS } from '../src/core/boss';
 import { MEGA_BOSS_DEFS } from '../src/core/megaboss';
+import { DOCTRINES } from '../src/core/doctrines';
+import type { DoctrineFamily } from '../src/core/doctrines';
 import { esc } from './shell';
 
 const num = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -34,6 +36,25 @@ export function heroCount(): number { return Object.keys(HERO_DEFS).length; }
 export function enemyCount(): number { return Object.keys(ENEMY_DEFS).length; }
 export function biomeCount(): number { return BIOMES.length; }
 export function bossCount(): number { return Object.keys(BOSS_DEFS).length + Object.keys(MEGA_BOSS_DEFS).length; }
+export function doctrineCount(): number { return Object.keys(DOCTRINES).length - 1; } // 'none' is no commitment
+
+/** The Doctrine Codex — every run commitment grouped by family, straight from the registry. */
+export function doctrineCodex(): string {
+  const fams: { id: DoctrineFamily; title: string; blurb: string }[] = [
+    { id: 'build', title: 'Build Doctrines', blurb: 'Bend YOUR math — damage, cadence, integrity, economy. The enemy world stays honest; your rules change.' },
+    { id: 'protocol', title: 'Protocols', blurb: 'Reshape the ENEMY WORLD — spawn counts, monster stats, the endless ramp — and collect run-end reward premiums for surviving the warp.' },
+    { id: 'pact', title: 'Pacts', blurb: 'A sacrifice AND a payoff, signed together — both sides of the ledger on one signature.' },
+  ];
+  return fams.map((f) => {
+    const cards = Object.values(DOCTRINES)
+      .filter((d) => d.id !== 'none' && d.family === f.id)
+      .sort((a, b) => a.unlockStage - b.unlockStage)
+      .map((d) => `
+      <div class="card"><div class="k">${esc(d.icon)} ${d.unlockStage > 0 ? `UNSEALS AT STAGE ${d.unlockStage}` : 'AVAILABLE FROM RUN ONE'}</div>
+      <h3>${esc(d.name)}</h3><p>${esc(d.blurb)}</p></div>`).join('');
+    return `<h2>${esc(f.title)}</h2><p>${esc(f.blurb)}</p><div class="card-grid">${cards}</div>`;
+  }).join('');
+}
 
 /** A rotating "featured" pick — deterministic by ISO week, so the homepage changes weekly
  *  without a server. */

@@ -1,10 +1,32 @@
 # PIL_REPORT.md — Public Intelligence Layer report (GENERATED — `npm run pil -- regen`)
 
-> The public-facing sync ledger (docs/PIL.md): 39 pages · 6 assets tracked against the DIL.
+> The public-facing sync ledger (docs/PIL.md): 47 pages · 6 assets tracked against the DIL.
 
 ## Structural audit — ✅ clean
 
-## Staleness (advisory) — 0 page/ref pair(s) to re-review
+## Staleness (advisory) — 22 page/ref pair(s) to re-review
+- `guides/beginner/index.html` references **guide:beginner** whose source changed 2026-07-11
+- `guides/towers/index.html` references **guide:towers** whose source changed 2026-07-11
+- `guides/heroes/index.html` references **guide:heroes** whose source changed 2026-07-11
+- `guides/gene-cards/index.html` references **guide:gene-cards** whose source changed 2026-07-11
+- `guides/bosses/index.html` references **guide:bosses** whose source changed 2026-07-11
+- `guides/mega-bosses/index.html` references **guide:mega-bosses** whose source changed 2026-07-11
+- `guides/power-score/index.html` references **guide:power-score** whose source changed 2026-07-11
+- `guides/progression/index.html` references **guide:progression** whose source changed 2026-07-11
+- `guides/campaign/index.html` references **guide:campaign** whose source changed 2026-07-11
+- `guides/infinite/index.html` references **guide:infinite** whose source changed 2026-07-11
+- `guides/boss-rush/index.html` references **guide:boss-rush** whose source changed 2026-07-11
+- `guides/daily/index.html` references **guide:daily** whose source changed 2026-07-11
+- `guides/mulligans/index.html` references **guide:mulligans** whose source changed 2026-07-11
+- `guides/collections/index.html` references **guide:collections** whose source changed 2026-07-11
+- `guides/mastery/index.html` references **guide:mastery** whose source changed 2026-07-11
+- `guides/doctrines/index.html` references **guide:doctrines** whose source changed 2026-07-11
+- `guides/contracts/index.html` references **guide:contracts** whose source changed 2026-07-11
+- `guides/quests/index.html` references **guide:quests** whose source changed 2026-07-11
+- `guides/account-progression/index.html` references **guide:account-progression** whose source changed 2026-07-11
+- `guides/nemesis/index.html` references **guide:nemesis** whose source changed 2026-07-11
+- `guides/equipment/index.html` references **guide:equipment** whose source changed 2026-07-11
+- `guides/prestige/index.html` references **guide:prestige** whose source changed 2026-07-11
 
 ## Page inventory
 - `/` — Home → system:towers, system:heroes, system:campaign, system:infinite, system:boss-rush, concept:power-score
@@ -24,6 +46,7 @@
 - `/blog/` — Dev Blog Index → (static)
 - `/encyclopedia/enemies/` — Enemy Encyclopedia → system:bosses, system:difficulty
 - `/encyclopedia/biomes/` — Biome Encyclopedia → system:biomes
+- `/encyclopedia/doctrines/` — Doctrine Codex → system:doctrines
 - `/encyclopedia/collections/` — Collections Encyclopedia → system:collection
 - `/guides/beginner/` — Beginner Guide — Your First Runs → guide:beginner, system:towers, system:gene-cards, system:heroes
 - `/guides/towers/` — Tower Guide — The Full Roster → guide:towers, system:towers
@@ -40,12 +63,19 @@
 - `/guides/mulligans/` — Mulligan Guide — Tower Organisms → guide:mulligans, system:mulligans
 - `/guides/collections/` — Collection Guide → guide:collections, system:collection
 - `/guides/mastery/` — Mastery Guide → guide:mastery, system:mastery
+- `/guides/doctrines/` — Doctrine Guide — Run Commitments → guide:doctrines, system:doctrines
+- `/guides/contracts/` — Champion Contracts Guide — The Weekly Board → guide:contracts, system:contracts
+- `/guides/quests/` — Quest Guide — Missions & The Descent Below → guide:quests, system:quests
+- `/guides/account-progression/` — Account Level & Genome Rank Guide → guide:account-progression, system:account-level, system:genome-rank
+- `/guides/nemesis/` — Nemesis Guide — The Grudge Ladder → guide:nemesis, system:nemesis
+- `/guides/equipment/` — Equipment Guide — The Armory → guide:equipment, system:equipment
 - `/guides/prestige/` — Prestige Guide — The Ascendant Layer → guide:prestige, system:prestige
 - `/blog/determinism/` — Dev Blog — determinism → concept:determinism
 - `/blog/equipment-identity/` — Dev Blog — equipment-identity → system:equipment
 - `/blog/living-battlefield/` — Dev Blog — living-battlefield → system:living-battlefield
 - `/blog/mega-boss-raids/` — Dev Blog — mega-boss-raids → system:mega-bosses
 - `/blog/opening-cinematic/` — Dev Blog — opening-cinematic → system:onboarding
+- `/blog/the-weekly-game/` — Dev Blog — the-weekly-game → system:contracts, system:quests, system:account-level, system:genome-rank
 
 ## Media inventory
 - `og.png` — og · current · captured 2026-07-10

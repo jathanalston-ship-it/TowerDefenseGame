@@ -10,7 +10,7 @@ import type { BlogPost } from './blog';
 export interface HomeCtx {
   latestPost: BlogPost;
   latestPatch: { date: string; title: string; categories: string[] } | null;
-  counts: { towers: number; heroes: number; enemies: number; biomes: number; bosses: number };
+  counts: { towers: number; heroes: number; enemies: number; biomes: number; bosses: number; doctrines: number };
   featuredTower: { name: string; blurb: string; color: string };
   featuredHero: { name: string; blurb: string; color: string };
 }
@@ -84,6 +84,10 @@ ${adSlot('home-below-trailer', 'banner')}
       <h3>One seed, worldwide</h3>
       <p>Every UTC day generates one deterministic run — same biome, same bosses, same modifiers for everyone. Pure skill on the board.</p>
       <a class="more" href="${PLAY_PATH}">Play today's seed →</a></div>
+    <div class="widget"><div class="k">This Week's Contracts</div>
+      <h3>Three constraint runs</h3>
+      <p>One Champion Contract board worldwide, rotating weekly — honour all three for a Perfect Week, and chase the exclusive Gilded marquee.</p>
+      <a class="more" href="/guides/contracts/">How contracts work →</a></div>
     <div class="widget"><div class="k">Up Next</div>
       <h3>The roadmap</h3>
       <p>Steam release, new tower strains, deeper prestige, and community events — see what's growing.</p>
@@ -99,6 +103,8 @@ ${adSlot('home-below-trailer', 'banner')}
     <div class="f"><b>${c.enemies}+ enemy strains</b><span>Swarms, fliers, artillery, summoners, volatiles — every body a real threat.</span></div>
     <div class="f"><b>${c.bosses} bosses</b><span>Framework apexes and battlefield-scale Mega raid organisms.</span></div>
     <div class="f"><b>${c.biomes} biomes</b><span>Ecosystems that warp the rules — permafrost, bone dunes, neural storms.</span></div>
+    <div class="f"><b>${c.doctrines} doctrines</b><span>Exclusive run commitments that reshape the rules — and rank up as you master them.</span></div>
+    <div class="f"><b>A living week</b><span>Daily seeds, Champion Contracts, quest rings and directives — the hive resets its rituals weekly.</span></div>
     <div class="f"><b>Deterministic</b><span>Same seed, same run, byte for byte — shareable replays and fair dailies.</span></div>
   </div>
   <p style="margin-top:22px"><a class="btn-ghost" href="/features/">Every feature in depth →</a></p>
@@ -126,15 +132,23 @@ export function featuresPage(): string {
 <h2>Four evolution layers per tower</h2>
 <p><b>Stars</b> — permanent ★-paths bought with shards. <b>Branches</b> — in-run mutually exclusive mutations that re-author how a tower fires. <b>Strains</b> — in-run evolution fed by consuming duplicates from the Biomorph Conveyor. <b>Mastery</b> — kill-fed ranks with lore and visible cosmetic evolution. All four stack, and all four are visible on the battlefield model.</p>
 <h2>Heroes</h2>
-<p>Champions with doctrines (dive, guard, control, phase), active abilities, ★10 upgrade paths with ability forks at ★5/★8, and full Weapon/Armor/Relic loadouts with set bonuses — rendered on the battlefield by a procedural gear system.</p>
+<p>Champions with battle doctrines (dive, guard, control, phase), active abilities, ★10 upgrade paths with ability forks at ★5/★8, and full Weapon/Armor/Relic loadouts with behavioral affixes and set bonuses — rendered on the battlefield by a procedural gear system. Benched heroes run timed <b>Expeditions</b> for materials while you play.</p>
+<h2>Doctrines — commit to a run</h2>
+<p>Before a run you may sign exactly ONE <a href="/guides/doctrines/">Doctrine</a>: a Build doctrine that bends your own math, a Protocol that reshapes the enemy world (double swarms at half health; a handful of titans; a famine that pays premium rewards), or a Pact that does both. Doctrines carry campaign unlock gates, mastery ranks that raise their payouts, and a Bio-Dex codex of their own — commitment is a progression axis.</p>
+<h2>The weekly game</h2>
+<p>The hive runs on rituals. A <b>Daily Run</b> — one deterministic seed worldwide. <a href="/guides/contracts/"><b>Champion Contracts</b></a> — three constraint runs a week on one shared board, with a Gilded marquee exclusive and a Perfect Week sweep bonus. A <b>weekly quest ring</b> plus the permanent Descent Below questline, credited automatically from everything you already do. <b>Weekly Directives</b> — a cumulative objective ladder with milestone payouts. A <b>Season Pass</b> fed by all of it. None of these are chores: they read from your normal play.</p>
 <h2>The permanent game</h2>
-<p>A genome upgrade tree, a levelable Gene Archive of draft cards, tower and hero labs, equipment crafting, per-tower Mulligan organisms, collections with rank bonuses, prestige with Ascendant nodes, and a Power Score that folds all of it into one honest number.</p>
+<p>A genome upgrade tree, a levelable Gene Archive of draft cards, tower and hero labs, equipment crafting with pity protection and undo-able salvage, per-tower Mulligan organisms with class adaptations, collections with rank bonuses, prestige with Ascendant nodes, and a Power Score that folds all of it into one honest number.</p>
+<h2>Account mastery</h2>
+<p>An uncapped <b>Account Level</b> pays on nearly everything you do, with procedurally weighted level rewards, milestone titles and weekly/monthly XP leaderboards. Above it sits the <b>Genome Rank</b> — a breadth-weighted rating folding every major system into one prestigious, infinite ladder, with a Progress Advisor that names your best next move. Promotions pay prestige, never power.</p>
+<h2>The hunt hunts back</h2>
+<p>Lose to a boss and it becomes your <a href="/guides/nemesis/"><b>Nemesis</b></a> — returning branded and buffed, escalating a grudge ladder (Marked → Apex Predator) every time it wins again. Revenge pays tier-scaled rewards, an exclusive phenotype and a permanent Vengeance organ for the trophy rack. Meanwhile the <b>Infestation Map</b> turns every finished run into territory: sectors climb tiers, regions entrench, and your conquest pays live passives.</p>
 <h2>Modes</h2>
-<p><b>Campaign</b> — a procedurally authored stage ladder with events and milestone bosses. <b>Infinite</b> — an AI Director escalating against your best. <b>Boss Rush</b> — wave N is N bosses. <b>Daily Run</b> — one deterministic seed per day, worldwide.</p>
+<p><b>Campaign</b> — a procedurally authored stage ladder with events and milestone bosses every tenth stage. <b>Infinite</b> — an AI Director escalating against your best. <b>Boss Rush</b> — wave N is N bosses, stamina-gated, paying per kill. <b>Daily Run</b> — one deterministic seed per day, worldwide, verified by replay.</p>
 <h2>Presentation</h2>
-<p>A living battlefield that terraforms with your run, procedural creature and turret bodies, a fully scored opening cinematic, an adaptive generative soundtrack (the Mega raids have their own hymn), and gore that routes every kill's biomass visibly home. All of it procedural — the whole game ships lighter than one video file.</p>
+<p>A living battlefield that terraforms with your run, procedural creature and turret bodies, a fully scored opening cinematic plus story cutscenes premiered by quest finales and Mega defeats, an adaptive generative soundtrack (the Mega raids have their own hymn; events re-voice the dailies), and gore that routes every kill's biomass visibly home. All of it procedural — the whole game ships lighter than one video file.</p>
 <h2>Fair by construction</h2>
-<p>Deterministic simulation, replays as links, no energy timers on core play, no loot boxes for power, and saves that live on YOUR device with optional cloud backup.</p>`;
+<p>Deterministic simulation, replays as links, replay-verified leaderboards, no energy timers on core play, no loot boxes for power, and saves that live on YOUR device with optional cloud accounts for backup and cross-device play.</p>`;
 }
 
 export function roadmapPage(): string {
@@ -142,11 +156,13 @@ export function roadmapPage(): string {
 <p class="note">This roadmap reflects current development priorities. Order and scope evolve with player feedback — the <a href="/blog/">dev blog</a> announces changes.</p>
 <ul class="timeline">
   <li><span class="t-date">NOW — LIVE</span><h3>The living game</h3>
-    <p>Campaign, Infinite, Boss Rush and Daily runs; 15 tower strains; 5 heroes with equipment and forks; Mega Boss raids; the Living Battlefield; the scored opening cinematic; expeditions; collections and prestige.</p></li>
+    <p>Four modes (Campaign, Infinite, Boss Rush, Daily); the full tower roster with stars, branches, strains, mastery and Mulligan organisms; heroes with equipment, forks and expeditions; Mega Boss raids; Doctrines with mastery ranks; the Living Battlefield; story cutscenes; collections and prestige.</p></li>
+  <li><span class="t-date">NOW — LIVE</span><h3>The weekly game</h3>
+    <p>Shipped and running on the weekly clock: Champion Contracts with Gilded marquees and Perfect Weeks, the rotating quest ring plus The Descent Below questline, Weekly Directives, a two-season Battle Pass, a LiveOps event calendar, and Account Level + Genome Rank with weekly and monthly leaderboards.</p></li>
   <li><span class="t-date">NEXT</span><h3>Deeper roster</h3>
     <p>New tower strains and heroes toward the long-term targets (100 towers / 30 heroes), more authored bosses and Mega organisms, and new biome ecosystems with bespoke terrain flora.</p></li>
   <li><span class="t-date">SOON</span><h3>Community & competition</h3>
-    <p>Expanded daily leaderboards, replay theater sharing improvements, seasonal events, and community spotlight features on this site.</p></li>
+    <p>Community spotlight features on this site, richer replay-theater sharing, and seasonal leaderboard ladders built on the replay-verified boards already live.</p></li>
   <li><span class="t-date">PLANNED</span><h3>Steam release</h3>
     <p>A Steam edition with achievements and cloud saves. Wishlist link lands on the homepage the day the store page is live.</p></li>
   <li><span class="t-date">PLANNED</span><h3>Mobile</h3>
@@ -167,6 +183,9 @@ export function faqPage(): { html: string; qa: [string, string][] } {
     ['I lost a run. Did I lose progress?', 'No. Biomass dies with the run; everything else — shards, genes, mastery, collections, unlocks — persists. Losing runs is part of the loop.'],
     ['Will it come to Steam?', 'A Steam release is planned. The homepage will carry the wishlist link the day the store page is live.'],
     ['How often does the game update?', 'Continuously — patch notes are generated straight from the development history. See the News page for the full record.'],
+    ['What is there to do each week?', 'The hive runs on a weekly clock: a daily seed every UTC day, three Champion Contracts on one worldwide board (sweep all three for a Perfect Week), a rotating quest ring, Weekly Directives, and a season pass fed by all of it. Everything credits from normal play — no chore lists.'],
+    ['What are Doctrines?', 'Optional run-start commitments — you sign exactly one, and it reshapes a rule for the whole run: your own math (Build), the enemy world (Protocol), or both (Pact). Harder doctrines pay reward premiums, and each ranks up as you master it.'],
+    ['Do I need an account?', 'No. The game plays fully without one. A free named account adds cloud backup, cross-device play and leaderboard identity — and you can delete it in-game at any time.'],
     ['How do I report a bug or give feedback?', `Email ${CONTACT_EMAIL} — reports with a replay code attached are gold, because we can reproduce your exact run.`],
   ];
   const html = qa.map(([q, a]) => `<h2>${esc(q)}</h2><p>${a}</p>`).join('');
