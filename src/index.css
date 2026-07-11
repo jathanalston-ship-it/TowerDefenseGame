@@ -5785,8 +5785,13 @@ kbd {
    The run screen reads top-to-bottom: compact HUD strip → battlefield → tower tray →
    panels; the wave-prep briefing becomes a FIXED BOTTOM DOCK so ▶ Start Wave is
    always under the thumb (it slides away when the wave runs — the board gets the room). */
-[data-layout='portrait'] .hud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 6px 8px; }
+[data-layout='portrait'] .hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 6px 8px; }
 [data-layout='portrait'] .hud .hud-vital, [data-layout='portrait'] .hud .hud-loot { grid-column: 1 / -1; }
+/* Desktop cells carry hard min-width floors (.hud-hero is 150px) — wider than a portrait grid
+   track, so their text rendered past the screen edge (the clipped hero-HP bug). Cells shed
+   their floors; the hero cell spans a full row so label + bar + value fit honestly. */
+[data-layout='portrait'] .hud .hud-cell { min-width: 0; }
+[data-layout='portrait'] .hud .hud-hero { grid-column: 1 / -1; }
 /* The wave module must stay ONE grid item — the ≤900px `.hz { display:contents }` rule would
    scatter its eyebrow/hint/pips into separate cells (hz-c IS the module). */
 [data-layout='portrait'] .hud .hz-c { display: flex; flex-direction: column; gap: 2px; grid-column: 1 / -1; min-width: 0; }
@@ -5813,7 +5818,8 @@ kbd {
   align-items: stretch;
   gap: 8px;
 }
-[data-layout='portrait'] .wb-threats { flex-wrap: nowrap; overflow-x: auto; max-width: none; padding-bottom: 2px; scrollbar-width: none; }
+[data-layout='portrait'] .wb-brief { min-width: 0; max-width: 100%; }
+[data-layout='portrait'] .wb-threats { flex-wrap: nowrap; overflow-x: auto; width: 100%; max-width: 100%; min-width: 0; padding-bottom: 2px; scrollbar-width: none; }
 [data-layout='portrait'] .wb-threats::-webkit-scrollbar { display: none; }
 [data-layout='portrait'] .wb-actions { border-left: none; padding-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.07); padding-top: 8px; }
 [data-layout='portrait'] .start-btn { width: 100%; justify-content: center; min-height: 48px; } /* explicit — the 44px coarse-pointer floor doesn't reach headless verification */

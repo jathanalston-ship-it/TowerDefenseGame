@@ -390,6 +390,7 @@ async function dismiss(page: import('playwright-core').Page): Promise<void> {
 function audit(page: import('playwright-core').Page, screen: string, vp: string, touch = true): Promise<Violation[]> {
   return page.evaluate(({ screen, vp, TAP_MIN, touch }) => {
     const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
+    window.scrollTo(0, 0); // normalize probe state — focus-scroll during the walk skews rect math
     const doc = document.documentElement;
     if (doc.scrollWidth > window.innerWidth + 2) {
       // Only VISIBLE geometry is a violation: closed drawers/tooltips keep layout via
@@ -429,6 +430,47 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string,
         el.children.length === 0
       ) {
         out.push({ screen, vp, kind: 'clipped-text', detail: `<${el.tagName.toLowerCase()} class="${el.className}"> "${(el.textContent ?? '').trim().slice(0, 32)}" ${el.clientWidth}w/${el.scrollWidth}sw` });
+      }
+    }
+    // GEOMETRIC TRUNCATION (touch layouts) — the detector above only sees an element overflowing
+    // its OWN box; text is just as unreadable when an ANCESTOR's overflow box (or the viewport
+    // edge) cuts it — the 2026-07 "hero HP clipped on the first tutorial screen" class. For every
+    // visible TEXT-carrying element (has a direct non-empty text node), fail if its rect pokes
+    // horizontally out of the nearest clipping ancestor or the viewport, unless it sits inside a
+    // deliberate horizontal scroller (reachable by swipe).
+    if (touch) {
+      const TOL = 1.5; // px — sub-pixel rounding is not a clip
+      const isScroller = (c: CSSStyleDeclaration): boolean => c.overflowX === 'auto' || c.overflowX === 'scroll';
+      for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+        let ownText = '';
+        for (const n of el.childNodes) if (n.nodeType === 3) ownText += n.textContent ?? '';
+        ownText = ownText.trim();
+        if (!ownText) continue;
+        if (!visible(el)) continue;
+        if (Number(getComputedStyle(el).opacity) === 0) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
+        // Nearest clipping ancestor decides; a scroller ancestry legitimizes the overhang.
+        for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+          const pcs = getComputedStyle(p);
+          if (isScroller(pcs)) break;
+          if (!(pcs.overflowX === 'hidden' || pcs.overflowX === 'clip' || pcs.overflow === 'hidden')) {
+            if (pcs.position === 'fixed') break; // fixed chrome escapes ancestor overflow clips — the viewport-spill check below guards it
+            continue;
+          }
+          const pr = p.getBoundingClientRect();
+          if (r.right > pr.right + TOL || r.left < pr.left - TOL) {
+            out.push({ screen, vp, kind: 'geo-clip', detail: `<${el.tagName.toLowerCase()} class="${el.className}"> "${ownText.slice(0, 30)}" cut by <${(p.className || p.tagName).toString().split(' ')[0]}> at x=${Math.round(pr.right)}` });
+          }
+          break;
+        }
+        if (r.right > window.innerWidth + TOL || r.left < -TOL) {
+          let scrollable = false;
+          for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+            if (isScroller(getComputedStyle(p)) && p.scrollWidth > p.clientWidth + 2) { scrollable = true; break; }
+          }
+          if (!scrollable) out.push({ screen, vp, kind: 'viewport-spill', detail: `<${el.tagName.toLowerCase()} class="${el.className}"> "${ownText.slice(0, 30)}" spans ${Math.round(r.left)}..${Math.round(r.right)} vs vw=${window.innerWidth}` });
+        }
       }
     }
     for (const el of document.querySelectorAll('button, a, input, select, summary, [role="button"]')) {
