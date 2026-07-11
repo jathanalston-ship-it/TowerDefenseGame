@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 745 nodes · 1346 edges, built from the live
+> **The project's brain** (docs/DIL.md). 735 nodes · 1318 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,11 +22,11 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · …96 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · …89 more
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
+`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
 
 ### Audio Index
 
@@ -34,11 +34,11 @@
 
 ### Teaching Index
 
-`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:idle-harvest` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · …13 more
+`tutorial:combat` · `help:hive-core` · `help:biomorph-conveyor` · `help:strain-evolution` · `help:boss-sieges` · `help:boss-rush` · `help:bio-roulette` · `help:gene-essence` · `help:field-research` · `help:splice-market` · `help:daily-login` · `help:hive-construction` · `help:gene-archive` · `help:gene-loadout` · `help:biomass` · `help:wave-rhythm` · `help:game-speed` · `help:emergency-defense` · `help:power-score` · `help:account-level` · `help:genome-rank` · `help:towers` · `help:tower-stars` · `help:tower-mastery` · `help:tower-branches` · `help:adaptation` · `help:mulligans` · `help:nucleus` · `help:gene-cards` · `help:heroes` · `help:hero-evolution` · `help:hero-slots` · `help:equipment` · `help:equipment-reforge` · `help:gear-codex` · `help:genome-core` · `help:prestige` · `help:ascension` · `help:containers` · `help:collection-codex` · `help:phenotype-lab` · `help:quests` · `help:season-pass` · `help:premium-store` · `help:campaign` · `help:infinite` · `help:daily-run` · `help:contracts` · `help:biomes` · `help:bosses` · `guide:beginner` · `guide:towers` · `guide:heroes` · `guide:gene-cards` · `guide:bosses` · `guide:mega-bosses` · `guide:power-score` · `guide:progression` · `guide:campaign` · `guide:infinite` · …12 more
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -66,7 +66,6 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_nucleus["Nucleus Mulligans"] -->|consumes| system_meta_store["Meta Store & Save"]
-  system_idle_harvest["Idle Harvest"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_hive_construction["Hive Construction"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -143,7 +142,6 @@ graph LR
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
-  system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
@@ -166,7 +164,6 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|provides| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|provides| concept_power_score["Power Score"]
   system_nucleus["Nucleus Mulligans"] -->|provides| concept_power_score["Power Score"]
-  system_idle_harvest["Idle Harvest"] -->|provides| concept_power_score["Power Score"]
   system_shards_economy["Shards & Star Economy"] -->|provides| concept_power_score["Power Score"]
   system_collection["Collections / Codex"] -->|provides| concept_power_score["Power Score"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|provides| concept_power_score["Power Score"]
@@ -281,11 +278,6 @@ graph LR
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_nucleus["Nucleus Mulligans"] -->|consumes| system_meta_store["Meta Store & Save"]
-  system_idle_harvest["Idle Harvest"] -->|dependsOn| system_meta_store["Meta Store & Save"]
-  system_idle_harvest["Idle Harvest"] -->|dependsOn| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
-  system_idle_harvest["Idle Harvest"] -->|dependsOn| system_collection["Collections / Codex"]
-  system_idle_harvest["Idle Harvest"] -->|dependsOn| system_account_level["Account Level (evergreen meta-progression)"]
-  system_idle_harvest["Idle Harvest"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_shards_economy["Shards & Star Economy"] -->|dependsOn| system_loot["Loot & Bio-Containers"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_collection["Collections / Codex"] -->|dependsOn| system_content_infra["Content Infrastructure"]
@@ -445,7 +437,6 @@ graph LR
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
-  system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
@@ -468,7 +459,7 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
-## Concepts (6)
+## Concepts (7)
 
 ### `concept:power-score` — Power Score
 
@@ -487,7 +478,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…23 more (query: `npm run dil -- node concept:power-score`)_
+  - _…22 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -515,7 +506,6 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:security` — the guard layer is window-gated INERT in Node — the deterministic suite + economy personas hammer meta methods by design; a jsdom test environment would silently activate it (keep tests in Node or setSecurityEnabled(false))
   - conflictsWith ← `system:battle-pass` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
   - conflictsWith ← `system:quests` — weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE
-  - conflictsWith ← `system:idle-harvest` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
 
 ### `concept:progression-gates` — Progression Gates
@@ -543,6 +533,14 @@ One deterministic run per UTC day, identical worldwide (core/daily.ts).
 
   - dependsOn → `concept:determinism` — fair boards need identical runs
   - documentedBy ← `guide:daily`
+
+### `concept:responsive` — Responsive / Portrait Shell
+
+Three intentional interfaces from one codebase (layoutProfile → data-layout); portrait phones get the tab-shell game (docs/RESPONSIVE-DESIGN.md §3b), machine-enforced by mobilecheck + navModel.test.
+
+  - providedBy ← `system:hub-shell` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
+  - conflictsWith ← `system:hub-shell` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
+  - providedBy ← `system:run-ui` — PORTRAIT COMBAT DOCK: build-controls become a FIXED bottom dock on data-layout=portrait (≥48px Start Wave, slides away in combat); the HUD is a 3-col grid where the wave module must stay ONE item (hz-c re-flexed — the ≤900px .hz{display:contents} scatters its children); mobilecheck portraitRunContract pins all of it
 
 ## Currencies (8)
 
@@ -580,7 +578,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…96 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…89 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -641,7 +639,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (68)
+## Systems (67)
 
 ### `system:engine` — Sim Engine
 
@@ -671,7 +669,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…176 more (query: `npm run dil -- node system:engine`)_
+  - _…175 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1136,29 +1134,6 @@ _at: src/core/nucleus.ts, src/render/nucleusDress.ts, src/ui/NucleusChambers.tsx
   - documentedBy ← `doc:NUCLEUS.md`
   - testedBy ← `test:src/core/nucleus.test.ts`
 
-### `system:idle-harvest` — Idle Harvest
-
-Permanent passive lane (docs/IDLE-HARVEST.md): away-time accrues toward an upgradeable cap, collects roll the gated drop registry, the 10-node infinite evolution tree grows every axis — always priced far below active play (the guardrail).
-
-_at: src/core/idleHarvest.ts, src/ui/HarvestScreen.tsx_
-
-  - dependsOn → `system:meta-store`
-  - dependsOn → `system:genome-rank`
-  - dependsOn → `system:collection`
-  - dependsOn → `system:account-level`
-  - provides → `concept:power-score` — none — pure economy by design (idle must never buy Power); the idle codex is identity-only
-  - consumes → `system:meta-store` — owns save field 'idle'
-  - conflictsWith → `concept:golden-test` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
-  - consumes → `system:genome-rank` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta)
-  - taughtBy ← `help:idle-harvest`
-  - referencedBy ← `achievement:idle_first`
-  - referencedBy ← `achievement:idle_hours24`
-  - referencedBy ← `achievement:idle_brimmed`
-  - referencedBy ← `achievement:idle_bloom`
-  - referencedBy ← `achievement:idle_tree25`
-  - documentedBy ← `doc:IDLE-HARVEST.md`
-  - testedBy ← `test:src/core/idleHarvest.test.ts`
-
 ### `system:shards-economy` — Shards & Star Economy
 
 Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).
@@ -1191,7 +1166,6 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - dependsOn → `system:stats`
   - provides → `concept:power-score` — completion feeds the collection bucket
   - consumes → `system:doctrines` — the doctrines codex tier IS 1 + doctrineRank over the stats ledgers ('none' never rows) — one ladder shared with the picker, so never author parallel codex thresholds; fresh save = 0 runs ⇒ tier 0 ⇒ golden-safe
-  - requiredBy ← `system:idle-harvest`
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:cosmetics`
   - requiredBy ← `system:quests`
@@ -1348,7 +1322,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…90 more (query: `npm run dil -- node system:achievements`)_
+  - _…83 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -1609,7 +1583,7 @@ _at: src/ui/InitCutscene.tsx, src/render/introScenes.ts, src/core/tutorial.ts, s
   - contains ← `help:field-research`
   - contains ← `help:splice-market`
   - contains ← `help:daily-login`
-  - _…49 more (query: `npm run dil -- node system:onboarding`)_
+  - _…48 more (query: `npm run dil -- node system:onboarding`)_
 
 ### `system:account-level` — Account Level (evergreen meta-progression)
 
@@ -1624,7 +1598,6 @@ _at: src/core/accountLevel.ts, src/ui/components/AccountXpBar.tsx_
   - provides → `system:loot` — every 5th level + milestones bank Bio-Containers as kind:'cache' — REUSE the cache branch, never add a PendingContainer kind for level rewards
   - references → `system:mastery` — account titles share save.equippedTitle with mastery rewards — display surfaces MUST resolve via titleName() (profile.ts), not masteryRewardById alone
   - conflictsWith → `system:shards-economy` — level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)
-  - requiredBy ← `system:idle-harvest`
   - requiredBy ← `system:contracts`
   - requiredBy ← `system:genome-rank`
   - documentedBy ← `doc:ACCOUNT-LEVEL.md`
@@ -1649,14 +1622,12 @@ _at: src/core/genomeRank.ts, src/ui/components/GenomeRankPanel.tsx_
   - references → `system:mastery` — grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups
   - conflictsWith → `concept:golden-test` — promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break
   - requiredBy ← `system:nucleus`
-  - requiredBy ← `system:idle-harvest`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:GENOME-RANK.md`
   - documentedBy ← `guide:account-progression`
   - testedBy ← `test:src/core/genomeRank.test.ts`
   - providedBy ← `system:daily-login` — lifetimeLogins is a journey source (weight 40, depth 0.7/1.6) — attendance credits breadth, never Power
   - providedBy ← `system:contracts` — lifetime completions (save.contracts.completed.length) are the contractsHonoured journey source — a pool expansion needs NO genome change
-  - consumedBy ← `system:idle-harvest` — six-lens gates read rankFromRating(genomeRating(snapshot)).index via meta.idleGateContext; the journey source id 'idle' reads lifetimeHours back — keep both directions cycle-free (core never imports meta)
 
 ### `system:progression-gating` — Progression Gating & Director
 
@@ -1679,7 +1650,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
 
 The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.
 
-_at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx_
+_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:notifications`
@@ -1687,6 +1658,8 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - dependsOn → `system:power`
   - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
+  - provides → `concept:responsive` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
+  - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
@@ -1699,7 +1672,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - testedBy ← `test:src/state/nextGoal.test.ts`
-  - _…5 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…6 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1712,6 +1685,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - dependsOn → `system:power`
   - dependsOn → `system:assimilation`
   - provides → `concept:power-score` — renders live run Power
+  - provides → `concept:responsive` — PORTRAIT COMBAT DOCK: build-controls become a FIXED bottom dock on data-layout=portrait (≥48px Start Wave, slides away in combat); the HUD is a 3-col grid where the wave module must stay ONE item (hz-c re-flexed — the ≤900px .hz{display:contents} scatters its children); mobilecheck portraitRunContract pins all of it
   - taughtBy ← `tutorial:combat`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:READABILITY.md`
@@ -1766,7 +1740,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…107 more (query: `npm run dil -- node system:meta-store`)_
+  - _…105 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2033,7 +2007,7 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx_
 
   - documentedBy ← `doc:UI-STANDARDS.md`
   - documentedBy ← `doc:STYLE-GUIDE.md`
@@ -2635,7 +2609,7 @@ _at: src/core/tutorial.ts_
   - teaches → `system:onboarding`
   - teaches → `system:run-ui`
 
-## Help Topics (50)
+## Help Topics (49)
 
 - `help:hive-core` — Your one life — defend it. _(partOf `system:onboarding`, teaches `system:engine`)_
 - `help:biomorph-conveyor` — Towers arrive on a living belt — Deploy, Strain, or Discard. _(partOf `system:onboarding`)_
@@ -2677,7 +2651,6 @@ _at: src/core/tutorial.ts_
 - `help:containers` — Loot boxes you crack open in the Vault. _(partOf `system:onboarding`, teaches `system:loot`)_
 - `help:collection-codex` — Rank badges, bonuses and Power for everything you catalogue. _(partOf `system:onboarding`)_
 - `help:phenotype-lab` — Cosmetic phenotypes for every strain and champion. _(partOf `system:onboarding`)_
-- `help:idle-harvest` — The Hive keeps harvesting while you are away — collect on return, grow the hive to bank more. _(partOf `system:onboarding`, teaches `system:idle-harvest`)_
 - `help:quests` — Weekly directives and the story questline. _(partOf `system:onboarding`)_
 - `help:season-pass` — A rotating 100-level reward season fed by everything you play. _(partOf `system:onboarding`)_
 - `help:premium-store` — Optional support — never the path. _(partOf `system:onboarding`)_
@@ -2895,7 +2868,7 @@ _at: site/guides.ts → /guides/prestige/_
   - partOf → `system:website`
   - documents → `system:prestige`
 
-## Achievements (99)
+## Achievements (92)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -2941,13 +2914,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:contract_first` — Honour your first Champion Contract. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:contracts`)_
 - `achievement:contract_12` — Honour 12 Champion Contracts (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:contracts`)_
 - `achievement:perfect_week` — Honour all three Champion Contracts in one week. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:contracts`)_
-- `achievement:idle_first` — Collect your first Idle Harvest. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:idle-harvest`)_
-- `achievement:idle_hours24` — Bank 24 idle hours (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:idle-harvest`)_
-- `achievement:idle_hours240` — Bank 240 idle hours (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
-- `achievement:idle_hours2400` — Bank 2,400 idle hours (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
-- `achievement:idle_brimmed` — Return to a single harvest of 12 banked hours or more. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:idle-harvest`)_
-- `achievement:idle_bloom` — Witness a Bloom — the Hive doubling its own harvest. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:idle-harvest`)_
-- `achievement:idle_tree25` — Grow 25 total Hive Evolution levels. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:idle-harvest`)_
 - `achievement:apex_slayer` — Slay a Brood Tyrant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:annihilation` — Deal 1,000,000 total damage (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:deep_fauna` — Slay all five Deep-Fauna strains. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -2997,7 +2963,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (161)
+## Documentation (160)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3074,7 +3040,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HUD.md` — project documentation _(documents `system:hub-shell`, documents `system:run-ui`)_
 - `doc:I18N.md` — project documentation _(documents `system:i18n`)_
 - `doc:IDENTITY-AUDIT.md` — project documentation
-- `doc:IDLE-HARVEST.md` — project documentation _(documents `system:idle-harvest`)_
 - `doc:INFESTATION.md` — project documentation _(documents `system:infestation`)_
 - `doc:LEXICON.md` — project documentation _(documents `system:currencies`)_
 - `doc:LIVEOPS.md` — project documentation _(documents `system:liveops`, documents `system:directives`)_
@@ -3161,7 +3126,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (232)
+## Tests (231)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3238,7 +3203,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
 - `test:src/core/hiveSiege.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/identity.test.ts` — automated validation _(tests `system:profile`)_
-- `test:src/core/idleHarvest.test.ts` — automated validation _(tests `system:idle-harvest`)_
 - `test:src/core/keystones.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/liveops.test.ts` — automated validation _(tests `system:liveops`)_
 - `test:src/core/loginStreak.test.ts` — automated validation _(tests `system:daily-login`)_
@@ -3351,7 +3315,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/heroSlots.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/hiveMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/ichorExchange.test.ts` — automated validation _(tests `system:engine`)_
-- `test:src/state/idleMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/infestation.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemDetails.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/itemPower.test.ts` — automated validation _(tests `system:power`)_
@@ -3393,5 +3356,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/ui/navModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/towerCodexModel.test.ts` — automated validation _(tests `system:towers`)_
 - `test:site/gen.test.ts` — automated validation _(tests `system:website`)_
