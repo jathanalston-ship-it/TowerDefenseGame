@@ -88,3 +88,5 @@
 - `cd042a3` **[Website]** Site overhaul: weekly-game content wave — 6 new guides, Doctrine Codex, refreshed shell
 - `6a9252b` **[Gameplay]** Molt Vows: the prestige wager — cycle-long handicaps that multiply the next mint
 - `894e529` **[Bosses]** Bosses: chassis identity depth — signature verbs, epithets, desperation profiles
+- `27a9f7d` **[Gameplay]** Hive Construction — the composite long-horizon sink (save v36)
+- `e13390a` **[Gene Cards]** Gene Card Transcendence: maxed cards graft a chosen second effect line

@@ -1,6 +1,6 @@
 {
-  "lastSha": "894e529bce19368e2816ea0186165ae324ced847",
-  "commitsSinceDraft": 9,
+  "lastSha": "e13390a6a0f875888a2d1ec5a0cefa57a274ccb3",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -208,6 +208,7 @@
       "shards-economy",
       "collection",
       "evolution-hq",
+      "hive-construction",
       "prestige",
       "currencies",
       "splice-market",
@@ -1456,6 +1457,11 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Hive Construction",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New achievement: Exemplar",
           "major": true
         },
@@ -1783,6 +1789,14 @@
         {
           "cat": "Bosses",
           "text": "Bosses: chassis identity depth — signature verbs, epithets, desperation profiles"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Hive Construction — the composite long-horizon sink (save v36)"
+        },
+        {
+          "cat": "Gene Cards",
+          "text": "Gene Card Transcendence: maxed cards graft a chosen second effect line"
         }
       ]
     }
@@ -2409,6 +2423,22 @@
       "date": "2026-07-11",
       "cat": "Bosses",
       "text": "Bosses: chassis identity depth — signature verbs, epithets, desperation profiles",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "27a9f7d2f9cb9991d57beca1cbee08cc37d990e1",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Hive Construction — the composite long-horizon sink (save v36)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e13390a6a0f875888a2d1ec5a0cefa57a274ccb3",
+      "date": "2026-07-11",
+      "cat": "Gene Cards",
+      "text": "Gene Card Transcendence: maxed cards graft a chosen second effect line",
       "internal": false,
       "needsReview": false
     }

@@ -12,6 +12,11 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
+        "text": "New system: Hive Construction",
+        "major": true
+      },
+      {
+        "cat": "Gameplay",
         "text": "New achievement: Exemplar",
         "major": true
       },
@@ -339,6 +344,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Bosses",
         "text": "Bosses: chassis identity depth — signature verbs, epithets, desperation profiles"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Hive Construction — the composite long-horizon sink (save v36)"
+      },
+      {
+        "cat": "Gene Cards",
+        "text": "Gene Card Transcendence: maxed cards graft a chosen second effect line"
       }
     ]
   },
