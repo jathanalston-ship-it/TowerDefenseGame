@@ -87,6 +87,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
   { from: 'system:towers', kind: 'consumes', to: 'currency:tower-shards', note: 'unlocks + Star purchases' },
   { from: 'system:heroes', kind: 'consumes', to: 'currency:hero-shards', note: 'unlocks + Star purchases' },
   { from: 'system:gene-cards', kind: 'consumes', to: 'currency:gene-essence', note: 'Archive leveling' },
+  { from: 'system:gene-cards', kind: 'provides', to: 'concept:power-score', note: 'Transcendence (geneTranscend.ts) made mortarPoolDuration/corrosionSlow/killFractureSplash/bonusTowerSlots/integrityRegenPerWave SCORED fields — permanent second lines must be Power-visible (validate.ts errors on an invisible family option; cardProblems on overrides)' },
+  { from: 'system:gene-cards', kind: 'conflictsWith', to: 'concept:golden-test', note: 'Transcendence rides effectiveGeneEffects 4th arg + RunOptions.geneTranscends — untranscended saves MUST fold byte-identical (transcendPowerMult ×1, stale ids drop in the sanitizer); options may never use boot-only fields (dead on mid-run draft)' },
   { from: 'system:mulligans', kind: 'consumes', to: 'currency:gene-essence', note: 'modifier assembly + leveling' },
   { from: 'system:equipment', kind: 'consumes', to: 'currency:materials', note: 'crafting + reforge ops' },
   { from: 'system:meta-store', kind: 'consumes', to: 'currency:genome-cores', note: 'genome upgrade tree' },

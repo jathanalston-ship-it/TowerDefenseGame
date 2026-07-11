@@ -6,8 +6,9 @@ import { geneArchiveRows, geneArchiveSummary } from './geneArchive';
 import { meta } from './meta';
 import { defaultSave, serializeExport } from '../save/saveStore';
 import { CARD_POOL } from '../core/cards';
-import { geneLevelCapForStage } from '../core/geneCards';
-import { essenceUpgradeCost } from '../core/geneEssence';
+import { geneLevelCapForStage, genePermanentPowerMult } from '../core/geneCards';
+import { transcendOptionsFor } from '../core/geneTranscend';
+import { essenceTranscendCost, essenceUpgradeCost } from '../core/geneEssence';
 
 const card = CARD_POOL[0]; // sharpened_needles (common)
 
@@ -181,5 +182,69 @@ describe('meta.upgradeGene — the guarded spend', () => {
     for (let i = 0; i < card.maxLevel!; i++) expect(meta.upgradeGene(card.id)).toBe(true);
     expect(meta.upgradeGene(card.id)).toBe(false); // authored ceiling reached
     expect(meta.get().genes[card.id].level).toBe(card.maxLevel);
+  });
+});
+
+describe('meta.transcendGene — the late-game sink (docs/GENE-EVOLUTION.md §Transcendence)', () => {
+  const cost = essenceTranscendCost(card.rarity);
+  const opts = transcendOptionsFor(card);
+  const maxed = (essence: number) => ({
+    stats: { ...defaultSave().stats, uniqueCards: [card.id] },
+    geneEssence: essence,
+    genes: { [card.id]: { level: card.maxLevel! } },
+  });
+
+  it('refuses undiscovered / below-max / bogus-option / unaffordable', () => {
+    seed({ geneEssence: cost, genes: { [card.id]: { level: card.maxLevel! } } });
+    expect(meta.transcendGene(card.id, opts[0].id)).toBe(false); // not discovered
+    seed({ stats: { ...defaultSave().stats, uniqueCards: [card.id] }, geneEssence: cost, genes: { [card.id]: { level: card.maxLevel! - 1 } } });
+    expect(meta.transcendGene(card.id, opts[0].id)).toBe(false); // max level only
+    seed(maxed(cost));
+    expect(meta.transcendGene(card.id, '__forged__')).toBe(false); // real options only
+    seed(maxed(cost - 1));
+    expect(meta.transcendGene(card.id, opts[0].id)).toBe(false); // can't afford
+    expect(meta.get().genes[card.id].transcend).toBeUndefined(); // nothing leaked through
+  });
+
+  it('spends the full price, persists the choice, moves Power immediately', () => {
+    seed(maxed(cost + 5));
+    const before = meta.power().score;
+    expect(meta.transcendGene(card.id, opts[0].id)).toBe(true);
+    const s = meta.get();
+    expect(s.geneEssence).toBe(5);
+    expect(s.genes[card.id].transcend).toBe(opts[0].id);
+    expect(s.genes[card.id].level).toBe(card.maxLevel); // level untouched
+    expect(s.genes[card.id].upgradedAt).toBeGreaterThan(0);
+    expect(meta.power().score).toBeGreaterThan(before); // the second line counts at once
+  });
+
+  it('re-buying the SAME option is refused; a DIFFERENT one pays the full price again', () => {
+    seed({ ...maxed(cost * 2), genes: { [card.id]: { level: card.maxLevel!, transcend: opts[0].id } } });
+    expect(meta.transcendGene(card.id, opts[0].id)).toBe(false); // pure waste — blocked
+    expect(meta.transcendGene(card.id, opts[1].id)).toBe(true); // the sink: full price re-choice
+    expect(meta.get().geneEssence).toBe(cost); // one full price deducted
+    expect(meta.get().genes[card.id].transcend).toBe(opts[1].id); // old line replaced
+  });
+
+  it('survives a save round-trip and surfaces on the Archive rows + summary', () => {
+    seed(maxed(cost));
+    expect(meta.transcendGene(card.id, opts[0].id)).toBe(true);
+    meta.importText(serializeExport(meta.get())); // export → sanitizer → import
+    expect(meta.get().genes[card.id].transcend).toBe(opts[0].id);
+    const row = geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!;
+    expect(row.transcend?.id).toBe(opts[0].id);
+    expect(row.transcendOptions.length).toBeGreaterThanOrEqual(2);
+    expect(row.transcendCost).toBe(cost);
+    expect(row.powerMult).toBeGreaterThan(genePermanentPowerMult(card, card.maxLevel!)); // tile shows the line
+    expect(geneArchiveSummary(meta.get()).transcended).toBe(1);
+  });
+
+  it('rows flag transcendReady only when owned + maxed + affordable', () => {
+    seed(maxed(cost));
+    expect(geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!.transcendReady).toBe(true);
+    seed(maxed(cost - 1));
+    expect(geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!.transcendReady).toBe(false);
+    seed({ ...maxed(cost), genes: { [card.id]: { level: card.maxLevel! - 1 } } });
+    expect(geneArchiveRows(meta.get()).find((r) => r.def.id === card.id)!.transcendReady).toBe(false);
   });
 });

@@ -288,6 +288,9 @@ export interface CardDef {
   maxLevel?: number; // permanent upgrade ceiling (default = base only). Task 4 sets 3–5.
   upgrades?: GeneUpgradeLevel[]; // per-level upgrades; index i = the jump to level i+1. Task 4.
   ascension?: GeneAscension; // ascension backend (Task 10) — no gameplay.
+  // Transcendence pool OVERRIDE (docs/GENE-EVOLUTION.md §Transcendence) — absent ⇒ the card
+  // resolves its CATEGORY's pool (core/geneTranscend.ts). Type kept structural to avoid a cycle.
+  transcendOptions?: { id: string; label: string; effects: CardEffect[] }[];
   skins?: GeneSkin[]; // future artwork variants.
   art?: string; // base artwork key (procedural fallback if absent).
 }
@@ -519,6 +522,27 @@ export function cardProblems(c: CardDef): string[] {
     //    permanent upgrade invisible to Power — a validation ERROR, so future content can't ship it.
     if (effectsPower(u.effects) <= 1) out.push(`upgrade L${i + 1} is invisible to Power Score (add a scored effect)`);
   });
+  // ── Transcendence override contract (docs/GENE-EVOLUTION.md §Transcendence) — a per-card
+  //    `transcendOptions` pool replaces the family pool wholesale, so it must stand alone: a real
+  //    CHOICE (≥2 options, unique ids, labels), every option valid, live mid-run (no boot-only
+  //    fields — the second line folds at the draft seam too), and Power-visible (Task 9). The
+  //    family pools themselves are checked by validate.ts (they live beside this registry). ──
+  if (c.transcendOptions) {
+    const opts = c.transcendOptions;
+    if (opts.length < 2) out.push(`transcend override must offer a choice (≥2 options, has ${opts.length})`);
+    if (new Set(opts.map((o) => o.id)).size !== opts.length) out.push('transcend override has duplicate option ids');
+    opts.forEach((o) => {
+      if (!o.label?.trim()) out.push(`transcend '${o.id}' has no label`);
+      if (o.effects.length === 0) out.push(`transcend '${o.id}' has no effects`);
+      for (const e of o.effects) {
+        out.push(...effectProblems(e, mods).map((p) => `transcend '${o.id}': ${p}`));
+        if ((e.op === 'mul' || e.op === 'add') && BOOT_ONLY_FIELDS.has(e.field)) {
+          out.push(`transcend '${o.id}': '${e.field}' is boot-only (dead when drafted mid-run)`);
+        }
+      }
+      if (effectsPower(o.effects) <= 1) out.push(`transcend '${o.id}' is invisible to Power Score (add a scored effect)`);
+    });
+  }
   // ── Ascension backend contract (Task 10) — NO tiers are authored yet, but the moment future
   //    content ships one, it must be complete (effects per tier), rule-abiding (no boot-only
   //    fields, no rarity downgrade), and Power-visible (the same Task 9 bypass prevention). ──

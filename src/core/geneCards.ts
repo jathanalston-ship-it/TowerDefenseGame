@@ -12,10 +12,12 @@ import { cardRegistry, CARD_RARITY_LADDER } from './cards';
 import type { CardDef, CardEffect } from './cards';
 import type { CardRarity } from './types';
 import { effectsPower } from './power';
+import { transcendOption, transcendOptionsFor, transcendPowerMult } from './geneTranscend';
 
 /** PERMANENT per-card player state (saved, sparse — only non-default cards get an entry). */
 export interface GeneCardSave {
   level: number; // permanent upgrade level (0 = base). Campaign-gated ceiling (GENE_LEVEL_GATES).
+  transcend?: string; // chosen Transcendence option id (docs/GENE-EVOLUTION.md §Transcendence). Max-level only; re-choosing pays full price.
   rarityTier?: number; // rarity-UPGRADE tier above the card's base rarity (0 = base). Backend (Task 10).
   ascension?: number; // ascension tier (0 = none). Backend only — NO gameplay (Task 10).
   skin?: string; // equipped skin id (future artwork).
@@ -77,10 +79,11 @@ export function geneLevel(genes: GeneSave, id: string): number {
  *  plus every authored ASCENSION tier up to `ascension` (Task 10 backend — no tiers are authored
  *  and no save can reach tier > 0 yet, so today the third argument is always a no-op).
  *  With nothing authored this returns the base effects unchanged (golden-safe). */
-export function effectiveGeneEffects(def: CardDef, level: number, ascension = 0): CardEffect[] {
+export function effectiveGeneEffects(def: CardDef, level: number, ascension = 0, transcendId?: string): CardEffect[] {
   const ups = def.upgrades;
   const tiers = ascension > 0 ? def.ascension?.tiers : undefined;
-  if ((!ups || ups.length === 0 || level <= 0) && !tiers) return def.effects;
+  const trans = transcendOption(def, transcendId); // §Transcendence — the chosen SECOND line
+  if ((!ups || ups.length === 0 || level <= 0) && !tiers && !trans) return def.effects;
   const out = def.effects.slice();
   if (ups && level > 0) {
     const cap = Math.min(level, ups.length);
@@ -90,6 +93,7 @@ export function effectiveGeneEffects(def: CardDef, level: number, ascension = 0)
     const cap = Math.min(ascension, tiers.length);
     for (let i = 0; i < cap; i++) out.push(...(tiers[i].effects ?? []));
   }
+  if (trans) out.push(...trans.effects);
   return out;
 }
 
@@ -170,6 +174,9 @@ export function geneCollectionPowerMult(genes: GeneSave): number {
     // Ascension folds into the SAME linear sum (Task 10) — a no-op today (no tiers authored, no
     // save reaches tier > 0), but the moment Ascension ships, Power counts it with no extra wire.
     sum += geneAscensionPowerMult(def, genes[id].ascension ?? 0) - 1;
+    // Transcendence (§Transcendence): the chosen second line rides the SAME gene bucket —
+    // ×1 untranscended, so a legacy save's Power is untouched.
+    sum += transcendPowerMult(def, genes[id].transcend) - 1;
   }
   return 1 + GENE_POWER_SCALE * sum;
 }
@@ -190,14 +197,17 @@ export function sanitizeGeneSave(raw: unknown): GeneSave {
     // so save manipulation can't fabricate progression that content doesn't define.
     const rarityTier = clampInt(s.rarityTier, 0, CARD_RARITY_LADDER.length - 1 - Math.max(0, CARD_RARITY_LADDER.indexOf(def.rarity)));
     const ascension = clampInt(s.ascension, 0, geneAscensionMaxTier(def));
+    // Transcendence clamps to CONTENT like everything else: only an id in the card's live pool
+    // survives (stale/foreign ids drop), and only on a card that can actually be maxed.
+    const transcend = typeof s.transcend === 'string' && transcendOptionsFor(def).some((o) => o.id === s.transcend) ? s.transcend : undefined;
     const skin = typeof s.skin === 'string' ? s.skin : undefined;
     const acquiredAt = typeof s.acquiredAt === 'number' && s.acquiredAt >= 0 ? s.acquiredAt : undefined;
     const upgradedAt = typeof s.upgradedAt === 'number' && s.upgradedAt >= 0 ? s.upgradedAt : undefined;
     const favorite = s.favorite === true;
     const pinned = s.pinned === true;
     // Persist only meaningful (non-default) state so the map stays sparse.
-    if (level > 0 || rarityTier > 0 || ascension > 0 || skin || acquiredAt !== undefined || upgradedAt !== undefined || favorite || pinned) {
-      out[id] = { level, ...(rarityTier ? { rarityTier } : {}), ...(ascension ? { ascension } : {}), ...(skin ? { skin } : {}), ...(acquiredAt !== undefined ? { acquiredAt } : {}), ...(upgradedAt !== undefined ? { upgradedAt } : {}), ...(favorite ? { favorite } : {}), ...(pinned ? { pinned } : {}) };
+    if (level > 0 || transcend || rarityTier > 0 || ascension > 0 || skin || acquiredAt !== undefined || upgradedAt !== undefined || favorite || pinned) {
+      out[id] = { level, ...(transcend ? { transcend } : {}), ...(rarityTier ? { rarityTier } : {}), ...(ascension ? { ascension } : {}), ...(skin ? { skin } : {}), ...(acquiredAt !== undefined ? { acquiredAt } : {}), ...(upgradedAt !== undefined ? { upgradedAt } : {}), ...(favorite ? { favorite } : {}), ...(pinned ? { pinned } : {}) };
     }
   }
   return out;

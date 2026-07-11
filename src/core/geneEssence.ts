@@ -93,10 +93,20 @@ export function rollEssenceDrop(p: EssenceDropParams): number {
 export const ESSENCE_COST = {
   baseByCardRarity: { common: 25, rare: 45, epic: 80, legendary: 130 } as Record<string, number>,
   levelGrowth: 5, // cost(level) = base × growth^(level-1) — L4 legendary ≈ 16k (a real chase)
+  // TRANSCENDENCE (docs/GENE-EVOLUTION.md §Transcendence) — the late-game sink on top of a maxed
+  // card: cost = rarity base × this. Re-choosing an option pays the FULL price again (that is the
+  // sink). A second tier would add its own multiplier here (documented future hook, not built).
+  transcendMult: 120, // common 3k · rare 5.4k · epic 9.6k · legendary 15.6k
 } as const;
 
 /** Essence cost to buy `level` (1-based) on a card of `cardRarity`. */
 export function essenceUpgradeCost(cardRarity: string, level: number): number {
   const base = ESSENCE_COST.baseByCardRarity[cardRarity] ?? ESSENCE_COST.baseByCardRarity.common;
   return Math.round(base * Math.pow(ESSENCE_COST.levelGrowth, Math.max(0, level - 1)));
+}
+
+/** Essence cost to TRANSCEND a maxed card of `cardRarity` (and to re-choose — full price). */
+export function essenceTranscendCost(cardRarity: string): number {
+  const base = ESSENCE_COST.baseByCardRarity[cardRarity] ?? ESSENCE_COST.baseByCardRarity.common;
+  return Math.round(base * ESSENCE_COST.transcendMult);
 }

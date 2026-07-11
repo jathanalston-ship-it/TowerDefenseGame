@@ -375,15 +375,19 @@ difficulty's bar; adaptive inputs unwired until the loop engine feeds them (by d
 - ✅ Onboarding: tutorial step, HUD Tour stop, Help mechanics, loading tips, in-Archive help
 - ✅ **Final audit + 100/250/500-card stress test PASSED** — GENE-AUDIT-REPORT.md. The system is a
   **permanent core progression pillar** alongside Towers, Heroes, Equipment, Campaign, Prestige.
+- ✅ Transcendence: maxed cards buy a permanent SECOND effect line from per-archetype pools
+  (`core/geneTranscend.ts`, cost = rarity base ×120, permanent choice / full-price re-choice,
+  ❂ Archive panel + grid chrome) — the designed sink beyond full levels (GENE-EVOLUTION.md §Transcendence)
 
 **Compressed summary (Gene Evolution).** *Architecture:* `CardDef` (cards.ts) carries optional
 `maxLevel`/`upgrades`/`ascension`/`skins`/`art`; player state is a sparse `save.genes:
 Record<id, GeneCardSave{level, ascension?, rarityTier?, skin?, favorite?, pinned?, timestamps}>`
 owned by `core/geneCards.ts`. Ownership = `stats.uniqueCards` (draft once ⇒ collected forever).
 The run seam is `effectiveGeneEffects(def, level, ascension=0)` — base + authored level effects —
-applied in `chooseCard` and at boot for `RunOptions.startingGenes`. Level 0 ⇒ base effects, so
+applied in `chooseCard` and at boot for `RunOptions.startingGenes` (the same seam folds the
+chosen Transcendence line via the 4th arg + `RunOptions.geneTranscends`). Level 0 ⇒ base effects, so
 fresh saves stay golden byte-identical. *Public APIs:* `meta.upgradeGene(id)` (guarded spend:
-owned + gate + wallet), `meta.setGeneSlot/swapGeneSlots/buyGeneSlot/startingGenes`,
+owned + gate + wallet), `meta.transcendGene(id, optionId)` (maxed + real option + wallet; permanent), `meta.setGeneSlot/swapGeneSlots/buyGeneSlot/startingGenes`,
 `meta.toggleGeneFavorite/Pin`; read-models `state/geneArchive.geneArchiveRows/Summary`; economy
 `core/geneEssence` (`ESSENCE_PER_SHARD`, `rollEssenceDrop`, `essenceUpgradeCost` — base
 25/45/80/130 × 5^(level−1)). *Extension points:* a new card = one `CARD_POOL` row + a

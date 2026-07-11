@@ -53,6 +53,7 @@ const FIELD_WEIGHT: Record<string, number> = {
   siphonDrainMult: 0.25, // more biomass siphoned per hit (economy — the Vital return)
   sowerBlastRadiusMult: 0.35, // wider mine detonations — a single-tower AoE lever (per-tower band)
   polypFieldMult: 0.3, // a wider undertow — single-tower control reach (delay = survival)
+  mortarPoolDurationMult: 0.25, // longer Corrosion pools ⇒ more uptime (single-tower band, like siphonDrainMult)
 };
 // `add`-op fields that meaningfully raise offense/strength, expressed as "per unit" multiplier bumps.
 const ADD_POWER: Record<string, number> = {
@@ -79,6 +80,12 @@ const ADD_POWER: Record<string, number> = {
   reactorOverchargeBonus: 0.1,
   startBiomassBonus: 0.0003, // flat starting biomass — economy tempo; small per-unit so a big grant ≈ a few %
   sellRefundFrac: 0.2, // tower sell refund — economy flexibility (a small but real advantage)
+  // Gene Transcendence made these PERMANENT axes (docs/GENE-EVOLUTION.md §Transcendence), so the
+  // contract requires scoring them (they previously rode only temporary draft effects):
+  corrosionSlowBonus: 0.3, // stronger Corrosion slow — control aura band (heroTowerHasteAura)
+  killFractureSplash: 0.05, // each kill-spread Fracture ≈ a denial-field unit (sowerExtraMines band)
+  bonusTowerSlots: 0.05, // one more emplacement ≈ +5% offense — META_SLOT_POWER's in-run twin
+  integrityRegenPerWave: 0.0015, // flat per-wave repair — survivability tempo (+30 regen ≈ +4.5%)
 };
 
 /** The canonical set of run-modifier fields that represent account STRENGTH — the CONTRACT the Power
@@ -108,6 +115,8 @@ export const POWER_RELEVANT_FIELDS: readonly string[] = [
   'sowerBlastRadiusMult', 'sowerExtraMines',
   // Synapse Spire (chain-arc) + Undertow Polyp (pull-field):
   'spireChainJumps', 'polypFieldMult',
+  // Gene Transcendence axes (docs/GENE-EVOLUTION.md §Transcendence — permanent second lines):
+  'mortarPoolDurationMult', 'corrosionSlowBonus', 'killFractureSplash', 'bonusTowerSlots', 'integrityRegenPerWave',
 ];
 
 /** The run-modifier fields the Power model currently scores (mul weights ∪ add bumps). */

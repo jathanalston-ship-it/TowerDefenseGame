@@ -189,6 +189,43 @@ fully maxes around hour ~400, with the last legendary levels each a double-digit
 **Ascension (Task 10) is the designed sink beyond that**. Sim source: the Task 3 scratch script
 (`essenceSim.ts`), re-runnable against these tunables.
 
+## Transcendence — the late-game sink on a MAXED card
+
+A card at its authored max level may **TRANSCEND**: one large Essence spend grafts a permanent
+**second effect line**, chosen by the player from a small curated pool. Everything lives in
+`src/core/geneTranscend.ts`; the spend path is `meta.transcendGene(id, optionId)`.
+
+- **Data-driven by ARCHETYPE.** `TRANSCEND_BY_CATEGORY` authors 2–3 options per card *category*
+  (all nine union members — tower/economy/hero/control/poison/aoe/crit/mutation/summons), so **every
+  card in the registry resolves a pool with zero per-card code** — including future cards, the day
+  they ship. A card may override its family pool via `CardDef.transcendOptions` (validated by
+  `cardProblems`: ≥2 options, unique ids, Power-visible, no boot-only fields).
+- **Cost.** `essenceTranscendCost(rarity)` = rarity base × `ESSENCE_COST.transcendMult` (120):
+  common 3k · rare 5.4k · epic 9.6k · legendary 15.6k. Sized against endgame duplicate income
+  (~1–1.2k/hr): each transcend is a multi-hour chase; the full library ≈ 500k on top of the 351k
+  level sink. **The choice is permanent** — re-choosing a different line later pays the FULL price
+  again (that is the sink; re-buying the same line is refused as pure waste).
+- **The fold gains no new seam.** The chosen option rides `effectiveGeneEffects(def, level,
+  ascension, transcendId)` — the exact pipeline leveled upgrades use, at the same two `game.ts`
+  sites (boot loadout + mid-run draft), fed by `RunOptions.geneTranscends` (sparse map, from
+  `meta.geneTranscends()`). Untranscended ⇒ byte-identical effects (golden-safe).
+- **Power.** `transcendPowerMult` folds the chosen line into the SAME per-card linear sum as levels
+  and Ascension (`geneCollectionPowerMult`) — ×1 untranscended. Because transcend lines are
+  PERMANENT, every field they touch must be scored: `validate.ts` errors on any family option
+  invisible to Power, and this feature promoted `mortarPoolDurationMult` / `corrosionSlowBonus` /
+  `killFractureSplash` / `bonusTowerSlots` / `integrityRegenPerWave` into the scored contract.
+- **Save.** Additive `GeneCardSave.transcend?: string`. The sanitizer keeps only an id present in
+  the card's LIVE pool (stale/foreign ids drop silently — content is the authority), and a
+  transcend-only entry persists through the sparse rule.
+- **UI.** The Archive card detail gains a ❂ TRANSCEND panel — locked (requirement shown) below max
+  level, an option picker with effect previews + a two-step confirm that states the permanence and
+  full-price re-choice, and mythic-tier chrome (❂ badge/frame) on the grid tile.
+
+**Future hook (documented, not built):** a SECOND transcendence tier adds `transcend2?` beside
+`transcend`, its own `transcendMult2` in `ESSENCE_COST`, and a second resolver pass in
+`geneTranscend.ts` — the fold, Power and sanitizer seams are all shaped to take it without
+restructuring.
+
 ## Invariants
 - **Gameplay preserved / golden byte-identical** — every seam is a no-op with no authored upgrades.
 - **Permanent id is sacred** — the save key. Renames = new card.

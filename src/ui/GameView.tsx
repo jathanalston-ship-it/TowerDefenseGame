@@ -177,6 +177,7 @@ export function GameView({
     // daily gauntlet (fair worldwide board — same exclusion as the nemesis) and the tutorial.
     ...(!daily && !tutorial && meta.get().prestige.vows.length > 0 ? { vows: meta.get().prestige.vows } : {}),
     geneLevels: meta.geneLevels(),
+    geneTranscends: meta.geneTranscends(), // chosen Transcendence second lines (§Transcendence)
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),
     // Progression-gated gene cards the account has earned (campaign depth / best wave / owning the

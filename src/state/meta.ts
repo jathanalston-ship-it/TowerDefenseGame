@@ -63,8 +63,9 @@ import type { CardDef, CardEffect, CardUnlock } from '../core/cards';
 import { CARD_POOL, cardRegistry } from '../core/cards';
 import { HERO_SLOT_POWER, composePower, effectsPower, geomean, itemRarityPower, metaExtrasPower } from '../core/power';
 import { geneCollectionPowerMult, geneLevel, geneLevelCapForStage, geneMaxLevel } from '../core/geneCards';
+import { transcendOptionsFor } from '../core/geneTranscend';
 import type { GeneSave } from '../core/geneCards';
-import { essenceForDuplicates, essenceUpgradeCost, rollEssenceDrop } from '../core/geneEssence';
+import { essenceForDuplicates, essenceTranscendCost, essenceUpgradeCost, rollEssenceDrop } from '../core/geneEssence';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { ADAPT_RESPEC, ANTIGEN, adaptationEffect, adaptNodesFor, adaptPointsEarned, adaptVisualTier, antigenEarned, canPickAdapt, respecCost } from '../core/adaptation';
 import type { AdaptNode } from '../core/adaptation';
@@ -2787,6 +2788,14 @@ export const meta = {
     for (const id in g) { const lvl = geneLevel(g, id); if (lvl > 0) out[id] = lvl; }
     return out;
   },
+  /** Chosen Transcendence options (card id → option id) for a run boot (§Transcendence).
+   *  Sparse; empty ⇒ no second lines (golden path). */
+  geneTranscends(): Record<string, string> {
+    const out: Record<string, string> = {};
+    const g = store.get().genes;
+    for (const id in g) { const t = g[id].transcend; if (t) out[id] = t; }
+    return out;
+  },
   // ── Starting Gene Loadout (docs/GENE-EVOLUTION.md §Loadouts) ──────────────────
   /** Unlocked loadout slot count (1..GENE_LOADOUT_MAX; slot 1 is always owned). */
   geneSlots(): number {
@@ -3759,6 +3768,32 @@ export const meta = {
       genes: { ...save.genes, [id]: { ...prev, level: next, upgradedAt: Date.now() } },
     }, ACCOUNT_XP.acquisition).save);
     announcePower(`${def.name} — Gene Level ${next}`, powerBefore, meta.power().score);
+    return true;
+  },
+
+  /** TRANSCEND a maxed card (docs/GENE-EVOLUTION.md §Transcendence): spend Essence to add the
+   *  chosen SECOND effect line. Re-choosing a DIFFERENT option later pays the full price again
+   *  (that is the sink); re-buying the same option is refused (a pure waste). */
+  transcendGene(id: string, optionId: string): boolean {
+    if (!guardOk('gene.upgrade', `${id}:${optionId}`)) return false;
+    const save = store.get();
+    const def = cardRegistry.get(id);
+    if (!def) return false;
+    if (!(save.stats?.uniqueCards ?? []).includes(id)) return false; // must be discovered first
+    if (geneLevel(save.genes, id) < geneMaxLevel(def)) return false; // max level only
+    if (!transcendOptionsFor(def).some((o) => o.id === optionId)) return false; // real option only
+    const prev = save.genes[id];
+    if (prev?.transcend === optionId) return false; // already chosen — nothing to buy
+    const cost = essenceTranscendCost(def.rarity);
+    if (save.geneEssence < cost) return false;
+    const powerBefore = meta.power().score;
+    persist(foldAccountXp({
+      ...save,
+      geneEssence: save.geneEssence - cost,
+      genes: { ...save.genes, [id]: { ...(prev ?? { level: geneLevel(save.genes, id) }), transcend: optionId, upgradedAt: Date.now() } },
+    }, ACCOUNT_XP.acquisition).save);
+    // A FIRST transcend must raise Power (audit armed); RE-choosing may go lateral/down by design.
+    announcePower(`${def.name} — Transcended`, powerBefore, meta.power().score, !prev?.transcend);
     return true;
   },
 

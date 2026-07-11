@@ -10,7 +10,9 @@ import type { CardSubject } from '../core/types';
 import {
   geneGateForLevel, geneLevel, geneLevelCapForStage, geneMaxLevel, genePermanentPowerMult,
 } from '../core/geneCards';
-import { essenceUpgradeCost } from '../core/geneEssence';
+import { transcendOption, transcendOptionsFor, transcendPowerMult } from '../core/geneTranscend';
+import type { TranscendOption } from '../core/geneTranscend';
+import { essenceTranscendCost, essenceUpgradeCost } from '../core/geneEssence';
 import type { SaveData } from '../save/saveStore';
 import { highestCampaignStage } from '../save/derive';
 
@@ -31,6 +33,11 @@ export interface GeneArchiveRow {
   // ── History / future (the inspection screen) ──
   historyNotes: string[]; // notes of levels already purchased (the upgrade history)
   futureNotes: { level: number; note: string; cost: number; gateStage: number; gateMet: boolean }[];
+  // ── Transcendence (docs/GENE-EVOLUTION.md §Transcendence) — the late-game sink on a MAXED card ──
+  transcend: TranscendOption | null; // the chosen second line (null = untranscended)
+  transcendOptions: TranscendOption[]; // the pool this card picks from (family or per-card override)
+  transcendCost: number; // Essence price — choosing AND re-choosing pay this in full (the sink)
+  transcendReady: boolean; // owned && maxed && affordable — the "sink is buyable now" signal
   acquiredAt?: number;
   upgradedAt?: number;
   favorite: boolean;
@@ -43,6 +50,7 @@ export interface GeneArchiveSummary {
   upgradeable: number; // rows with the buy-now signal
   levels: number; // Σ purchased levels
   maxLevels: number; // Σ ceilings
+  transcended: number; // cards carrying a chosen Transcendence line (§Transcendence)
   essence: number; // wallet
   campaignStage: number;
   levelCap: number; // globally-unlocked level ceiling at this stage
@@ -65,13 +73,17 @@ export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
     const gateStage = maxed ? 0 : geneGateForLevel(nextLevel);
     const gateMet = !maxed && nextLevel <= cap;
     const canAfford = nextCost !== null && save.geneEssence >= nextCost;
+    const chosenTranscend = save.genes[def.id]?.transcend;
+    const transcendCost = essenceTranscendCost(def.rarity);
     return {
       def,
       subject: cardSubject(def),
       owned,
       level,
       maxLevel: max,
-      powerMult: genePermanentPowerMult(def, level),
+      // Permanent contribution = upgrade levels + the transcended second line, combined ADDITIVELY —
+      // the same linear per-card sum geneCollectionPowerMult folds (so the tile shows fold truth).
+      powerMult: genePermanentPowerMult(def, level) + (transcendPowerMult(def, chosenTranscend) - 1),
       nextCost,
       nextNote: maxed ? null : ups[level]?.note ?? null,
       gateStage,
@@ -83,6 +95,10 @@ export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
         const l = level + i + 1;
         return { level: l, note: u.note, cost: essenceUpgradeCost(def.rarity, l), gateStage: geneGateForLevel(l), gateMet: l <= cap };
       }),
+      transcend: transcendOption(def, chosenTranscend),
+      transcendOptions: transcendOptionsFor(def),
+      transcendCost,
+      transcendReady: owned && maxed && save.geneEssence >= transcendCost,
       acquiredAt: save.genes[def.id]?.acquiredAt,
       upgradedAt: save.genes[def.id]?.upgradedAt,
       favorite: save.genes[def.id]?.favorite === true,
@@ -96,12 +112,13 @@ export function geneArchiveRows(save: SaveData): GeneArchiveRow[] {
 export function geneArchiveSummary(save: SaveData, rows = geneArchiveRows(save)): GeneArchiveSummary {
   const stage = highestCampaignStage(save);
   const cap = geneLevelCapForStage(stage);
-  let levels = 0, maxLevels = 0, owned = 0, upgradeable = 0;
+  let levels = 0, maxLevels = 0, owned = 0, upgradeable = 0, transcended = 0;
   for (const r of rows) {
     levels += r.level;
     maxLevels += r.maxLevel;
     if (r.owned) owned++;
     if (r.upgradeable) upgradeable++;
+    if (r.transcend) transcended++;
   }
   // The next gate above the current cap (null once every authored level is globally unlocked).
   const nextGate = (() => {
@@ -112,5 +129,5 @@ export function geneArchiveSummary(save: SaveData, rows = geneArchiveRows(save))
     }
     return best;
   })();
-  return { total: rows.length, owned, upgradeable, levels, maxLevels, essence: save.geneEssence, campaignStage: stage, levelCap: cap, nextGate };
+  return { total: rows.length, owned, upgradeable, levels, maxLevels, transcended, essence: save.geneEssence, campaignStage: stage, levelCap: cap, nextGate };
 }

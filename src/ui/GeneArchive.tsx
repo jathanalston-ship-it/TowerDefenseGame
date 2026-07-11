@@ -10,6 +10,7 @@ import { meta } from '../state/meta';
 import { geneArchiveRows, geneArchiveSummary } from '../state/geneArchive';
 import type { GeneArchiveRow } from '../state/geneArchive';
 import { CARD_CATEGORY_LABEL, cardRegistry, cardSubject } from '../core/cards';
+import type { CardEffect } from '../core/cards';
 import { GENE_LOADOUT_SLOTS } from '../core/geneLoadout';
 import { TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import type { TowerKind } from '../core/types';
@@ -19,6 +20,20 @@ import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { highestCampaignStage } from '../save/derive';
 import { Popup } from './components/Popup';
+
+/** Compact preview phrase for one Transcendence-option effect (§Transcendence). The pools only
+ *  author field-bearing mul/add ops, so this covers them fully: mul reads as ±%, a sub-1 add reads
+ *  as +% (chances/fractions), an integer add reads as +N. Field names prettify from camelCase. */
+function fmtTranscendEffect(e: CardEffect): string {
+  if (!('field' in e)) return String(e.op);
+  const name = e.field.replace(/Mult$|Frac$|Bonus$/, '').replace(/([A-Z])/g, ' $1').trim().toLowerCase();
+  if (e.op === 'mul') {
+    const pct = Math.round((e.value - 1) * 100);
+    return `${pct >= 0 ? '+' : ''}${pct}% ${name}`;
+  }
+  if (e.op === 'add') return Math.abs(e.value) < 1 ? `+${Math.round(e.value * 100)}% ${name}` : `+${e.value} ${name}`;
+  return name;
+}
 
 function levelPips(level: number, max: number, color: string): JSX.Element {
   return (
@@ -37,12 +52,13 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
   const rc = geneRarityColor(def.rarity);
   return (
     <button
-      className={`ga-tile${row.owned ? '' : ' is-unowned'}${row.upgradeable ? ' is-upgradeable' : ''}`}
+      className={`ga-tile${row.owned ? '' : ' is-unowned'}${row.upgradeable ? ' is-upgradeable' : ''}${row.transcend ? ' is-transcended' : ''}`}
       style={{ ['--rc' as string]: rc, ['--acc' as string]: aff.color }}
       onClick={onOpen}
       title={`${def.name} — inspect`}
     >
       {row.upgradeable && <span className="ga-up" title="Upgrade available">▲</span>}
+      {row.transcend && <span className="ga-tr" title={`Transcended — ${row.transcend.label}`}>❂</span>}
       <span className="ga-marks">
         <span
           className={`ga-mark${row.pinned ? ' is-on' : ''}`}
@@ -67,7 +83,11 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
         {levelPips(row.level, row.maxLevel, rc)}
         <span className="ga-line">
           {row.owned ? (
-            row.nextCost === null ? <span className="ga-maxed">MAXED</span>
+            row.nextCost === null ? (
+              row.transcend ? <span className="ga-transcended">❂ TRANSCENDED</span>
+              : row.transcendReady ? <span className="ga-tr-ready">❂ TRANSCEND READY</span>
+              : <span className="ga-maxed">MAXED</span>
+            )
             : !row.gateMet ? <span className="ga-gate">🔒 Stage {row.gateStage}</span>
             : <span className={`ga-cost${row.canAfford ? ' ok' : ''}`}><CurrencyIcon id="geneEssence" size={11} title="" /> {row.nextCost.toLocaleString()}</span>
           ) : (
@@ -83,12 +103,17 @@ function GeneTile({ row, onOpen }: { row: GeneArchiveRow; onOpen: () => void }):
 /** The card inspection screen — everything about ONE gene, incl. the Upgrade action. */
 function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.Element | null {
   const save = meta.use();
+  // Transcendence picker: the option awaiting the two-step confirm (null = nothing armed).
+  const [pickT, setPickT] = useState<string | null>(null);
   const row = geneArchiveRows(save).find((r) => r.def.id === id);
   if (!row) return null;
   const { def } = row;
   const aff = affectsOf(row.subject);
   const rc = geneRarityColor(def.rarity);
   const buy = (): void => { if (meta.upgradeGene(id)) audio.cue('draft'); };
+  const doTranscend = (): void => {
+    if (pickT && meta.transcendGene(id, pickT)) { audio.cue('jackpot'); setPickT(null); }
+  };
   return (
     <Popup>
     <div className="cmp-overlay" onClick={onClose}>
@@ -122,6 +147,12 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
           ) : (
             <div className="ga-hint">No permanent levels yet — upgrades below apply every time this card is drafted.</div>
           )}
+          {row.transcend && (
+            <div className="ga-effect is-owned is-tr">
+              <span className="ga-effect-tag ga-tr-tag">❂</span>
+              <span className="ga-effect-body"><b>{row.transcend.label}</b> — {row.transcend.effects.map(fmtTranscendEffect).join(' · ')}</span>
+            </div>
+          )}
         </div>
 
         {/* Future upgrades: cost + campaign gate per level (requirements always SHOWN). */}
@@ -138,6 +169,73 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
                 </span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* TRANSCENDENCE (docs/GENE-EVOLUTION.md §Transcendence) — the late-game Essence sink.
+            Locked (with the requirement SHOWN) until max level; then a curated option picker adds a
+            permanent SECOND effect line. Choosing is permanent — re-choosing pays full price again. */}
+        {row.owned && row.transcendOptions.length > 0 && (
+          <div className={`ga-section ga-transcend${row.transcend ? ' is-done' : ''}`}>
+            <div className="ga-sec-title ga-tr-title">❂ Transcendence</div>
+            {row.level < row.maxLevel ? (
+              <div className="ga-hint ga-tr-locked">
+                🔒 Reach <b>Level {row.maxLevel}</b> to unlock — Transcendence grafts a permanent <b>second effect line</b> of
+                your choosing onto this card (<CurrencyIcon id="geneEssence" size={11} title="" /> {row.transcendCost.toLocaleString()}).
+              </div>
+            ) : (
+              <>
+                {!row.transcend && (
+                  <div className="ga-hint">
+                    This card has reached its final level. Spend <b><CurrencyIcon id="geneEssence" size={11} title="" /> {row.transcendCost.toLocaleString()}</b> to
+                    graft a permanent second effect line — choose wisely: re-choosing later costs the full price again.
+                  </div>
+                )}
+                <div className="ga-tr-options">
+                  {row.transcendOptions.map((o) => {
+                    const chosen = row.transcend?.id === o.id;
+                    return (
+                      <button
+                        key={o.id}
+                        className={`ga-tr-opt${chosen ? ' is-chosen' : ''}${pickT === o.id ? ' is-picked' : ''}`}
+                        disabled={chosen}
+                        onClick={() => setPickT(pickT === o.id ? null : o.id)}
+                        title={chosen ? 'Your chosen line' : `Preview ${o.label}`}
+                      >
+                        <span className="ga-tr-opt-name">{chosen ? '❂ ' : ''}{o.label}</span>
+                        <span className="ga-tr-opt-fx">{o.effects.map(fmtTranscendEffect).join(' · ')}</span>
+                        {chosen && <span className="ga-tr-opt-tag">CHOSEN</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                {pickT && (() => {
+                  const opt = row.transcendOptions.find((o) => o.id === pickT);
+                  if (!opt) return null;
+                  const afford = save.geneEssence >= row.transcendCost;
+                  return (
+                    <div className="ga-tr-confirm">
+                      <div className="ga-tr-confirm-copy">
+                        {row.transcend
+                          ? <>Replace <b>{row.transcend.label}</b> with <b>{opt.label}</b>? This costs the <b>full price</b> — the old line is gone for good.</>
+                          : <><b>{opt.label}</b> becomes this card's permanent second line. This choice is <b>permanent</b> — picking a different line later costs the full price again.</>}
+                      </div>
+                      <div className="ga-tr-confirm-row">
+                        <button className="ga-tr-cancel" onClick={() => setPickT(null)}>Cancel</button>
+                        <button
+                          className="primary ga-tr-go"
+                          disabled={!afford}
+                          onClick={doTranscend}
+                          title={afford ? undefined : 'Not enough Gene Essence'}
+                        >
+                          {row.transcend ? 'Re-Transcend' : 'Transcend'} · <CurrencyIcon id="geneEssence" size={13} title="" /> {row.transcendCost.toLocaleString()}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
           </div>
         )}
 
@@ -158,7 +256,7 @@ function GeneInspect({ id, onClose }: { id: string; onClose: () => void }): JSX.
         <div className="ga-actions">
           <span className="ga-wallet" title="Gene Essence"><CurrencyIcon id="geneEssence" size={14} title="" /> {save.geneEssence.toLocaleString()}</span>
           {row.nextCost === null ? (
-            <span className="ga-maxed big">FULLY EVOLVED</span>
+            <span className="ga-maxed big">{row.transcend ? '❂ TRANSCENDED' : 'FULLY EVOLVED'}</span>
           ) : (
             <button
               className={`primary ga-buy${row.upgradeable ? ' is-ready' : ''}`}
@@ -374,7 +472,7 @@ export function GeneArchive(): JSX.Element {
         </span>
       </div>
       <div className="panel-sub">
-        Your permanent Gene Card collection — {sum.owned}/{sum.total} discovered · {sum.levels}/{sum.maxLevels} levels evolved.
+        Your permanent Gene Card collection — {sum.owned}/{sum.total} discovered · {sum.levels}/{sum.maxLevels} levels evolved{sum.transcended > 0 ? <> · <span className="ga-transcended">❂ {sum.transcended} transcended</span></> : ''}.
         Spend Gene Essence to permanently upgrade a card; it applies every time you draft it.
       </div>
 
@@ -387,6 +485,7 @@ export function GeneArchive(): JSX.Element {
           <li><b>Upgrade</b> — each card has 3–5 permanent levels; every level adds real new effects and raises your Power Score immediately.</li>
           <li><b>Campaign gates</b> — deeper levels unlock globally: L2 at Stage 15, L3 at 30, L4 at 50, L5 at 75.</li>
           <li><b>Starting Genes</b> — equip up to five cards above; they auto-activate at their level when every run begins. <i>Card Ascension arrives in a future update.</i></li>
+          <li><b>❂ Transcendence</b> — a card at max level can spend a large sum of Essence on a permanent <i>second effect line</i>, chosen from its family's pool. Permanent — re-choosing costs full price.</li>
         </ul>
       </details>
 

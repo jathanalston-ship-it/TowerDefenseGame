@@ -53,6 +53,7 @@ import {
 } from './equipment';
 import { DIFFICULTIES, difficultyRegistry } from './difficulty';
 import { DOCTRINES, doctrineRegistry } from './doctrines';
+import { TRANSCEND_BY_CATEGORY } from './geneTranscend';
 import { effectsPower, uncoveredPowerFields } from './power';
 import { statusRegistry } from './status';
 import { rarityRegistry } from './loot';
@@ -405,6 +406,17 @@ export function validateAllContentReport(): ValidationReport {
   for (const s of Object.values(SETS)) spikeCheck([...s.bonus2, ...s.bonus4], `set '${s.id}' (full bonus)`, GEAR_SPIKE);
   for (const c of CARD_POOL) spikeCheck(c.effects, `card '${c.id}'`, RUN_SPIKE);
   for (const d of Object.values(DOCTRINES)) spikeCheck(d.effects, `doctrine '${d.id}'`, RUN_SPIKE);
+  // Gene Transcendence family pools (docs/GENE-EVOLUTION.md §Transcendence) — PERMANENT second
+  // lines, so every option must be Power-visible (the Task 9 bypass rule, as an ERROR) and stay
+  // under the permanent spike cap. Per-card overrides get the same treatment via cardProblems.
+  for (const [cat, opts] of Object.entries(TRANSCEND_BY_CATEGORY)) {
+    for (const o of opts) {
+      if (effectsPower(o.effects) <= 1) {
+        issues.push(err('power-coverage', `transcend '${cat}/${o.id}'`, 'option is invisible to Power Score (add a scored effect)'));
+      }
+      spikeCheck(o.effects, `transcend '${cat}/${o.id}'`, GEAR_SPIKE);
+    }
+  }
 
   const errors = issues.filter((i) => i.severity === 'error');
   const warnings = issues.filter((i) => i.severity === 'warning');

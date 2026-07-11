@@ -145,6 +145,7 @@ export interface RunOptions {
   setEffects?: CardEffect[]; // TEAM set bonuses — set pieces pooled across the fielded roster (2pc/4pc), folded ONCE. Empty ⇒ golden-safe
   heroAbilityKits?: Partial<Record<HeroKind, ResolvedHeroKit>>; // per-hero EFFECTIVE abilities (base + star forks). Absent ⇒ the base kit (golden-safe)
   geneLevels?: Record<string, number>; // permanent gene-card levels (docs/GENE-EVOLUTION.md) — drafted cards apply at these levels. Empty ⇒ base effects (golden path)
+  geneTranscends?: Record<string, string>; // chosen Transcendence option per card id (§Transcendence) — folds through the SAME effectiveGeneEffects path. Empty ⇒ no second lines (golden path)
   favorite?: TowerKind; // the account's FAVORITE tower (docs/STRAIN.md §conveyor) — always deployable; default 'needle'
   unlocked?: TowerKind[]; // the OWNED tower roster this run (docs/TOWERS.md §expansion unlock gate):
   // gates placement, the conveyor's kind rolls, and the draft pool. Omitted ⇒ ALL kinds (the
@@ -509,6 +510,7 @@ export class Game {
   // Permanent gene-card levels (docs/GENE-EVOLUTION.md) — a drafted/starting card applies its EFFECTIVE
   // effects at the player's level. Empty ⇒ base effects everywhere ⇒ golden byte-identical.
   private readonly geneLevels: Record<string, number>;
+  private readonly geneTranscends: Record<string, string>;
   selectedTower: TowerKind | null = null;
   selectedPlacedId: number | null = null; // a placed tower selected for inspection / branch upgrades
   movingTowerId: number | null = null; // a placed tower PICKED UP for relocation (Build Phase) — docs/TOWER-MANAGEMENT.md §3
@@ -698,6 +700,7 @@ export class Game {
     // identity biome (golden-safe).
     this.activeBiome = this.stage ? this.stage.biome : this.mode === 'endless' || this.mode === 'bossRush' ? biomeForDepth(1) : NEUTRAL_BIOME;
     this.geneLevels = opts.geneLevels ?? {}; // permanent gene levels; empty ⇒ base effects (golden-safe)
+    this.geneTranscends = opts.geneTranscends ?? {}; // chosen second lines; empty ⇒ none (golden-safe)
     if (this.mode === 'endless' || this.mode === 'bossRush') this.director = new Director(() => this.rng.next(), this.diff, this.mode === 'endless');
     // Run Identity: a DEDICATED rng stream (decoupled from this.rng ⇒ base run unperturbed) + the plan.
     // Stage ⇒ null plan (golden-safe), and so does Boss Rush — its bosses ARE the run identity
@@ -771,7 +774,7 @@ export class Game {
       for (const id of opts.startingGenes) {
         const card = cardRegistry.get(id);
         if (!card) continue; // unknown id (stale save) — skip, never crash a run boot
-        const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0);
+        const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0, 0, this.geneTranscends[card.id]);
         applyCard({ ...card, effects }, this.cardContext());
         for (const e of effects) if (e.op === 'grant' || e.op === 'hook') this.collectRunVerb(e);
         this.chosenCards.push(cardToOption(card));
@@ -2114,7 +2117,7 @@ export class Game {
     if (card) {
       // Apply the card at the player's PERMANENT level (docs/GENE-EVOLUTION.md): base effects + any
       // authored upgrade levels. With no upgrades authored yet this equals card.effects (golden-safe).
-      const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0);
+      const effects = effectiveGeneEffects(card, this.geneLevels[card.id] ?? 0, 0, this.geneTranscends[card.id]);
       applyCard({ ...card, effects }, this.cardContext());
       // Behavioral verbs (grant/hook) fold into the live sim arrays too — a drafted card can
       // add a projectile mutator / battlefield rule mid-run, not just at boot (equipment).
