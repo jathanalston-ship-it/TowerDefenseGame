@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 747 nodes · 1350 edges, built from the live
+> **The project's brain** (docs/DIL.md). 747 nodes · 1351 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -18,7 +18,7 @@
 
 ### Progression Index
 
-`system:campaign` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
+`system:campaign` · `system:accounts` · `system:premium` · `system:towers` · `system:gene-cards` · `system:quests` · `system:progression-gating` · `system:hub-shell` · `system:meta-store` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:doctrines` · `concept:progression-gates` · `currency:tower-shards` · `tower:maw` · `tower:chrysalis` · `tower:effigy` · `tower:coil` · `tower:siphon` · `tower:sower` · `tower:spire` · `tower:polyp` · `tower:spitfang` · `tower:rift` · `hero:vitriol` · `hero:revenant`
 
 ### Economy / Reward Index
 
@@ -782,12 +782,13 @@ _at: src/dev/pil/pil.ts, src/dev/pil/storeCopy.ts_
 
 ### `system:accounts` — Account Platform
 
-Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating.
+Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating. Guest Mode: session-only offline tryout (session-scoped save, all network features gated) converting in-place via the normal account flow.
 
-_at: src/account/accountStore.ts, src/account/providers.ts, src/save/envelope.ts, src/save/merge.ts, src/net/syncEngine.ts, src/net/connectivity.ts, src/ui/components/AccountPanel.tsx_
+_at: src/account/accountStore.ts, src/account/providers.ts, src/save/envelope.ts, src/save/merge.ts, src/net/syncEngine.ts, src/net/connectivity.ts, src/ui/components/AccountPanel.tsx, src/state/guestMode.ts_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:profile`
+  - gates → `system:premium` — GUEST MODE (state/guestMode.ts — sessionStorage flag): meta boots the SaveStore on session storage and EVERY network seam short-circuits on guestModeActive() (ensureGuestRegistered/beginCheckout → {ok:false,error:'guest-mode'}; syncStep noops; leaderboard submits + event flushes drop); the account store is NEVER written while the flag is up (no durable onboarded mark — the WelcomeGate hides via the flag) so closing the browser leaves zero trace; conversion = the normal AuthForms flow calling meta.commitGuestSession() (swapStorage to durable + purge the session copy) BEFORE syncNow
   - conflictsWith → `system:meta-store` — cloud sync merges the same save blob the local store owns — schema changes need BOTH migration paths
   - requiredBy ← `system:onboarding`
   - documentedBy ← `doc:ACCOUNTS.md`
@@ -901,6 +902,7 @@ _at: src/core/premium.ts, src/ui/PremiumStore.tsx_
   - documentedBy ← `doc:PREMIUM-ECONOMY-REPORT.md`
   - testedBy ← `test:src/core/premium.test.ts`
   - consumedBy ← `system:battle-pass` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor
+  - gatedBy ← `system:accounts` — GUEST MODE (state/guestMode.ts — sessionStorage flag): meta boots the SaveStore on session storage and EVERY network seam short-circuits on guestModeActive() (ensureGuestRegistered/beginCheckout → {ok:false,error:'guest-mode'}; syncStep noops; leaderboard submits + event flushes drop); the account store is NEVER written while the flag is up (no durable onboarded mark — the WelcomeGate hides via the flag) so closing the browser leaves zero trace; conversion = the normal AuthForms flow calling meta.commitGuestSession() (swapStorage to durable + purge the session copy) BEFORE syncNow
 
 ### `system:field-research` — Field Research (rewarded studies)
 

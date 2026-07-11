@@ -361,9 +361,9 @@ graph TD
 
 ### Account Platform (`accounts`)
 
-*Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating.*
+*Guest + email accounts over the anonymous identity; versioned modular save envelope; bidirectional cloud sync engine with conflict resolution; offline-first with server-feature gating. Guest Mode: session-only offline tryout (session-scoped save, all network features gated) converting in-place via the normal account flow.*
 
-- **Files:** `src/account/accountStore.ts` · `src/account/providers.ts` · `src/save/envelope.ts` · `src/save/merge.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/ui/components/AccountPanel.tsx`
+- **Files:** `src/account/accountStore.ts` · `src/account/providers.ts` · `src/save/envelope.ts` · `src/save/merge.ts` · `src/net/syncEngine.ts` · `src/net/connectivity.ts` · `src/ui/components/AccountPanel.tsx` · `src/state/guestMode.ts`
 - **Depends on:** `meta-store` · `profile`
 - **Consumers — what breaks if you change this:** `onboarding`
 - **Power Score:** — (intentionally none)

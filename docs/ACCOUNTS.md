@@ -66,9 +66,42 @@ back in.
 rewards land (something to lose), reusing this platform's `AuthForms` + onboarded flag +
 sync arm. `WelcomeGate` (App, menu screen) remains the fallback for everyone else (tutorial
 skippers who reach the menu without meaningful progress): **Continue as Guest** (instant,
-works offline; server registration is lazy on first contact) or **I have an account** (email
-sign-in → cloud pull). Existing saves are grandfathered — the gate never nags a device that
-already has a life.
+works offline; server registration is lazy on first contact), **I have an account** (email
+sign-in → cloud pull), or **Play in Guest Mode** (the session-only tryout below). Existing
+saves are grandfathered — the gate never nags a device that already has a life.
+
+## Guest Mode — the session-only tryout
+
+For players who want to try the game with **no strings at all**: no purchases, no name, no saved
+data. Offered on BOTH account-decision surfaces — the WelcomeGate's third option (fresh profile)
+and the COMMISSIONING SAFEGUARD step's "keep nothing" stance (the graduate life moves onto session
+storage, playable now, gone with the browser). Distinct from the durable device-guest above —
+Guest Mode is *volatile by contract*.
+
+- **Flag:** `src/state/guestMode.ts` — sessionStorage `assimilate.guestMode` (+ `useGuestMode()`
+  hook). A mid-session reload stays in the tryout; closing the browser ends it.
+- **Save:** `meta.enterGuestSession()` swaps the `SaveStore` onto session-scoped storage and
+  purges the durable slot (the gate only shows over a fresh profile, so the purge can never eat
+  real progress); on boot `meta.ts` picks the session driver whenever the flag is up. Nothing is
+  ever written to `localStorage['assimilate.save']` while flagged.
+- **No trace:** the account store is **never written** during the tryout — no `onboarded` mark
+  (the gate hides via the flag instead), so a returning visitor gets the WelcomeGate fresh, which
+  is exactly the "nothing was saved" promise. The device identity (`assimilate.sync`) still
+  exists; it carries zero progress and is what makes conversion seamless.
+- **Network seams short-circuit on `guestModeActive()`:** `ensureGuestRegistered` and
+  `beginCheckout` return `{ok:false, error:'guest-mode'}`; `syncStep` noops; leaderboard
+  `maybeSubmitBest` drops; analytics `flush` clears its queue. Cloud-save calls are unreachable
+  (the CloudBackup panel collapses to a note).
+- **UI:** Premium Store shows a banner and disables buying; AccountPanel / AccountCard wear a
+  `◌ GUEST MODE` badge with "session only" copy; the CommanderName prompt and the COMMISSIONING
+  DESIGNATION step are suppressed (no name in Guest Mode); the COMMISSIONING SAFEGUARD step gains
+  a "this session is not saved" note — it is the natural conversion moment.
+- **Conversion (the process that stays):** any successful `AuthForms` submit — register **or**
+  sign-in, from Settings, the Commissioning, anywhere — calls `meta.commitGuestSession()` before
+  `syncNow`: the flag drops, the live save moves onto durable storage (session copy purged), and
+  the normal account lifecycle resumes. Register upgrades the same accountId as always; signing
+  into an existing account raises the standard conflict flow with the tryout progress as "this
+  device". Everything earned in the tryout is kept.
 
 ---
 

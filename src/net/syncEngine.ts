@@ -12,6 +12,7 @@
 // offline play never notices.
 
 import { meta } from '../state/meta';
+import { guestModeActive } from '../state/guestMode';
 import { serializeExport, parseImport, type SaveData } from '../save/saveStore';
 import { buildEnvelope, envelopeMeta, isEnvelope, openEnvelope, verifyEnvelope, type EnvelopeMeta } from '../save/envelope';
 import { mergeSaves } from '../save/merge';
@@ -169,6 +170,7 @@ function failSoft(what: string): void {
 
 /** One full engine step: probe, decide, act. Serialized (never two in flight). */
 export async function syncStep(reason: 'boot' | 'tick' | 'manual' | 'hidden'): Promise<SyncAction> {
+  if (guestModeActive()) return 'noop'; // Guest Mode: session-only save — nothing syncs until conversion
   if (inFlight || state.phase === 'conflict') return 'noop';
   if (!connectivity.isOnline()) {
     setState({ phase: dirty ? 'offline' : state.phase === 'synced' ? 'synced' : 'offline' });

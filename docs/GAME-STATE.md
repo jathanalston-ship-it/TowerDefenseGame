@@ -270,6 +270,15 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 - ✅ **Bidirectional sync engine** (pure decideSync core; auto pull/push, baseRev ⇒ 409 conflict flow,
   backoff, manual sync) — `src/net/syncEngine.ts`; offline-first gating — `src/net/connectivity.ts`
 - ✅ **UI**: WelcomeGate (first launch), Settings Account panel, ConflictModal, Profile account card
+- ✅ **Guest Mode** (2026-07, ACCOUNTS.md §guest-mode): session-only offline tryout offered on
+  BOTH account surfaces (WelcomeGate third option + Commissioning SAFEGUARD "keep nothing") —
+  sessionStorage flag (`src/state/guestMode.ts`) + SaveStore swapped
+  onto session storage (`swapStorage`, purge semantics unit-tested); every network seam
+  short-circuits on the flag (guest registration, checkout, syncStep, leaderboard, analytics);
+  no name prompts, no account-store writes (zero durable trace — closing the browser resets the
+  device); Premium Store banner + disabled buys, CloudBackup collapses, GUEST MODE badges.
+  Conversion stays the normal account flow: any AuthForms success calls
+  `meta.commitGuestSession()` (session save → durable, flag drops) before the first sync.
 
 ### Modes & progression
 - ✅ Campaign (procedural stages, world map, evolution cap), Infinite (AI Director; **campaign-gated: unlocks at Stage 3**), Quick Skirmish — MODE-IDENTITY.md §gates, CAMPAIGN.md

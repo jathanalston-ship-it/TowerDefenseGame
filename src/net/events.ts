@@ -6,6 +6,8 @@
 // this lane exists for GAME events dashboards can't see (run starts, research use,
 // store funnel steps), so future balancing is data-driven.
 
+import { guestModeActive } from '../state/guestMode';
+
 const FLUSH_MS = 15_000;
 const MAX_BATCH = 40;
 
@@ -48,6 +50,7 @@ function bump(key: string): void {
 }
 
 export async function flush(): Promise<void> {
+  if (guestModeActive()) { pending.clear(); return; } // Guest Mode sends nothing — the tryout is silent
   if (flushing || pending.size === 0) return;
   flushing = true;
   const events = [...pending.entries()].map(([kind, n]) => ({ kind, n }));

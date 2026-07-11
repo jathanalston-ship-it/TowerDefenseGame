@@ -8,11 +8,14 @@ import { applyDevReset } from './devReset';
 import {
   SaveStore,
   defaultSave,
+  durableStorageLike,
   parseImport,
   pushTimeline,
   serializeExport,
+  sessionStorageLike,
 } from '../save/saveStore';
 import type { BackupMeta, ImportResult, SaveData } from '../save/saveStore';
+import { enterGuestMode, exitGuestMode, guestModeActive } from './guestMode';
 import { highestCampaignStage, isBossRushUnlocked, isCutsceneUnlocked, isDailyUnlocked, unlockedCutsceneIds } from '../save/derive';
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
@@ -698,7 +701,9 @@ gameEvents.on('megaWeakPointDown', (e) => {
   });
 });
 
-const saveStore = new SaveStore();
+// Guest Mode (docs/ACCOUNTS.md §guest-mode): while the tryout flag is up the whole save
+// lifecycle rides session-scoped storage — nothing durable exists until the player converts.
+const saveStore = new SaveStore(guestModeActive() ? sessionStorageLike() : undefined);
 const store = createStore<SaveData>(saveStore.load());
 noteClock(); // boot clock high-water check (docs/SECURITY.md §offline) — no-op outside the browser
 
@@ -5957,6 +5962,27 @@ export const meta = {
     resetSecurity();
     saveStore.backup();
     persist(defaultSave());
+  },
+
+  /** GUEST MODE entry (docs/ACCOUNTS.md §guest-mode) — chosen on the WelcomeGate (fresh profile)
+   *  or the Commissioning SAFEGUARD step (a just-graduated life electing "keep nothing"). The
+   *  LIVE save moves onto session-scoped storage — current progress rides along, playable now,
+   *  gone with the browser — and the durable copy is purged so the tryout leaves no trace. */
+  enterGuestSession(): void {
+    enterGuestMode();
+    saveStore.swapStorage(sessionStorageLike(), { purgePrevious: true });
+    saveStore.save(store.get());
+  },
+
+  /** GUEST MODE conversion — the account flow succeeded (register or sign-in), so the tryout
+   *  becomes a real life: the session save commits to durable storage and every normal account
+   *  system (sync, cloud backup, purchases, standings) resumes from here. */
+  commitGuestSession(): void {
+    if (!guestModeActive()) return;
+    exitGuestMode();
+    saveStore.swapStorage(durableStorageLike(), { purgePrevious: true });
+    saveStore.save(store.get());
+    store.set(store.get()); // notify — account/store surfaces restyle out of guest mode
   },
 
   /** Developer Reset (docs/DEV-RESET.md) — wipe a specific save SCOPE (or everything). Always

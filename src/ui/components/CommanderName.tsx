@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { meta, sanitizeCommanderName } from '../../state/meta';
 import { DEFAULT_PROFILE_NAME } from '../../save/saveStore';
+import { useGuestMode } from '../../state/guestMode';
 import { startSyncEngine, syncEngine } from '../../net/syncEngine';
 import { audio } from '../../audio/sound';
 import { t, useLocale } from '../../i18n';
@@ -26,6 +27,7 @@ function deferredThisSession(): boolean {
 export function CommanderName(): JSX.Element | null {
   useLocale();
   const save = meta.use();
+  const guest = useGuestMode();
   const [draft, setDraft] = useState('');
   const [deferred, setDeferred] = useState(deferredThisSession);
 
@@ -40,7 +42,8 @@ export function CommanderName(): JSX.Element | null {
       return false;
     }
   })();
-  if (save.profileName !== DEFAULT_PROFILE_NAME || designated || deferred) return null;
+  // Guest Mode never asks for a name — the prompt returns naturally after conversion.
+  if (guest || save.profileName !== DEFAULT_PROFILE_NAME || designated || deferred) return null;
 
   const cleaned = sanitizeCommanderName(draft);
   const confirm = (): void => {

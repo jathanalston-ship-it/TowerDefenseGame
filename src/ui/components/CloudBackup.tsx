@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { backupToCloud, deleteCloudSave, restoreFromCloud } from '../../net/cloudSave';
 import { account } from '../../account/accountStore';
 import { meta } from '../../state/meta';
+import { useGuestMode } from '../../state/guestMode';
 import { adoptSyncCode, syncCode } from '../../net/identity';
 
 export function CloudBackup(): JSX.Element {
+  const guest = useGuestMode();
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showCode, setShowCode] = useState(false);
@@ -33,6 +35,14 @@ export function CloudBackup(): JSX.Element {
 
   const named = meta.use().profileName.length > 0;
   const lastAuto = account.get().lastSyncedAt;
+  // Guest Mode is fully offline — the whole panel collapses to one honest line.
+  if (guest) {
+    return (
+      <div className="cloudbk">
+        <div className="cloudbk-auto">◌ Guest Mode — nothing leaves this device and nothing is kept after this session. Create an account (Settings → Account) to enable cloud backup.</div>
+      </div>
+    );
+  }
   return (
     <div className="cloudbk">
       <div className="cloudbk-auto">

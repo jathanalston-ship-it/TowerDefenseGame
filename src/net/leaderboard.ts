@@ -4,6 +4,7 @@
 // sent (localStorage, non-authoritative) to avoid noisy resubmits.
 
 import { meta } from '../state/meta';
+import { guestModeActive } from '../state/guestMode';
 import { dailyKey } from '../core/daily';
 import { monthKey, weekKey } from '../core/accountLevel';
 import { playerId } from './identity';
@@ -83,6 +84,7 @@ export function currentClaim(mode: LbMode): { score: number; wave: number; dayKe
 /** Submit the current best for `mode` if it improved since the last submission.
  *  Daily entries fetch a day ticket first (server-authoritative day binding). */
 export async function maybeSubmitBest(mode: LbMode): Promise<void> {
+  if (guestModeActive()) return; // Guest Mode never appears on the standings (no name, no server data)
   const claim = currentClaim(mode);
   if (!claim) return;
   const sentKey = `${mode}:${claim.dayKey}`;

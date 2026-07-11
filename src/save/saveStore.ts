@@ -1568,6 +1568,17 @@ function memoryStorage(): StorageLike {
   };
 }
 
+/** Session-scoped driver (docs/ACCOUNTS.md §guest-mode): survives reloads within the tab,
+ *  dies with the browser session — the Guest Mode tryout's home. Memory fallback elsewhere. */
+export function sessionStorageLike(): StorageLike {
+  return typeof sessionStorage !== 'undefined' ? (sessionStorage as StorageLike) : memoryStorage();
+}
+
+/** The durable default driver (what the zero-arg constructor picks). */
+export function durableStorageLike(): StorageLike {
+  return typeof localStorage !== 'undefined' ? (localStorage as StorageLike) : memoryStorage();
+}
+
 export class SaveStore {
   private storage: StorageLike;
   private bakSeq = 0;
@@ -1576,6 +1587,17 @@ export class SaveStore {
     this.storage =
       storage ??
       (typeof localStorage !== 'undefined' ? (localStorage as StorageLike) : memoryStorage());
+  }
+
+  /** Re-point the store at a different driver (Guest Mode enter/convert — docs/ACCOUNTS.md
+   *  §guest-mode). `purgePrevious` removes the main save key from the OLD driver so a tryout
+   *  leaves no durable residue (enter) and a conversion leaves no stale session copy (commit).
+   *  The caller re-saves the live snapshot right after, so no data rides only on the old driver. */
+  swapStorage(next: StorageLike, opts?: { purgePrevious?: boolean }): void {
+    if (opts?.purgePrevious) {
+      try { this.storage.removeItem(SAVE_KEY); } catch { /* old driver unavailable */ }
+    }
+    this.storage = next;
   }
 
   private get(key: string): string | null {

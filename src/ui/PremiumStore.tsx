@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { meta } from '../state/meta';
 import type { PremiumReceipt } from '../state/meta';
+import { useGuestMode } from '../state/guestMode';
 import { audio } from '../audio/sound';
 import { CHECKOUT_PROVIDER, beginCheckout, takePendingReveal } from '../net/checkout';
 import { trackEvent } from '../net/events';
@@ -35,6 +36,7 @@ function storeErrorCopy(code: string): string {
     case 'turnstile-failed': return 'Bot check failed \u2014 please try again.';
     case 'rate-limited': return 'Too many attempts \u2014 wait a minute and try again.';
     case 'store-unavailable': return 'The store is not available right now.';
+    case 'guest-mode': return 'Guest Mode \u2014 purchases are disabled. Create an account in Settings first.';
     case 'network': return 'No connection \u2014 check your network and try again.';
     default: return 'Checkout could not start \u2014 please try again.';
   }
@@ -169,6 +171,7 @@ function RevealCeremony({ receipt, onClose }: { receipt: PremiumReceipt; onClose
 
 export function PremiumStore(): JSX.Element {
   const save = meta.use();
+  const guest = useGuestMode();
   const [confirm, setConfirm] = useState<PremiumOfferDef | null>(null);
   const [receipt, setReceipt] = useState<PremiumReceipt | null>(null);
   // Live clock: ticks the rotation countdown + flips the rotating slot at UTC midnight.
@@ -192,9 +195,9 @@ export function PremiumStore(): JSX.Element {
     const r = takePendingReveal();
     if (r) { audio.cue('draft'); setReceipt(r); }
   }, []);
-  const buy = (o: PremiumOfferDef): void => { setError(null); setConfirm(o); };
+  const buy = (o: PremiumOfferDef): void => { if (guest) return; setError(null); setConfirm(o); };
   const doPurchase = (): void => {
-    if (!confirm || busy) return;
+    if (!confirm || busy || guest) return; // guest gate covers the sandbox grant path too
     if (CHECKOUT_PROVIDER === 'stripe') {
       // Real money: create the session server-side and redirect. The grant happens
       // on RETURN, after /api/store/claim verifies payment (never client-alone).
@@ -220,13 +223,20 @@ export function PremiumStore(): JSX.Element {
         Everything here is earnable in play.
       </p>
 
+      {guest && (
+        <div className="ps-guestmode" role="note">
+          ◌ Guest Mode — purchases are disabled. Create an account in Settings to unlock the store
+          (your session progress converts with it).
+        </div>
+      )}
+
       {/* Today's limited pack + live events */}
       <div className="ps-section-h">Today’s Limited Pack <span className="ps-rot">rotates in {fmtCountdown(msUntilDailyReset())}</span></div>
       <div className="ps-row">
-        <OfferCard offer={rotating} hero unavailable={boughtToday} note={boughtToday ? 'Purchased today ✓' : 'One per day'} onBuy={buy} />
+        <OfferCard offer={rotating} hero unavailable={guest || boughtToday} note={boughtToday ? 'Purchased today ✓' : 'One per day'} onBuy={buy} />
         {events.map((o) => (
           <OfferCard key={o.id} offer={o} hero
-            unavailable={!offerAvailable(o, key, save.premium.purchases, save.premium.lastRotatingBuyKey)}
+            unavailable={guest || !offerAvailable(o, key, save.premium.purchases, save.premium.lastRotatingBuyKey)}
             note="Limited event" onBuy={buy} />
         ))}
       </div>
@@ -236,14 +246,14 @@ export function PremiumStore(): JSX.Element {
       <div className="ps-row">
         {PERMANENT_PACKS.map((o) => {
           const owned = (save.premium.purchases[o.id] ?? 0) >= (o.limit ?? Infinity);
-          return <OfferCard key={o.id} offer={o} hero unavailable={owned} note={owned ? 'Owned ✓' : o.audience} onBuy={buy} />;
+          return <OfferCard key={o.id} offer={o} hero unavailable={guest || owned} note={owned ? 'Owned ✓' : o.audience} onBuy={buy} />;
         })}
       </div>
 
       {/* Ichor bundles */}
       <div className="ps-section-h">Ichor <span className="ps-rot">the black-market currency — spend it in the Splice Market</span></div>
       <div className="ps-grid">
-        {ICHOR_BUNDLES.map((o) => <OfferCard key={o.id} offer={o} onBuy={buy} />)}
+        {ICHOR_BUNDLES.map((o) => <OfferCard key={o.id} offer={o} unavailable={guest} onBuy={buy} />)}
       </div>
 
       <p className="ps-foot">

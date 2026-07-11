@@ -46,6 +46,27 @@ describe('SaveStore', () => {
     s.map.set('assimilate.save', JSON.stringify(raw));
     expect(store.load()).toEqual(defaultSave());
   });
+
+  it('swapStorage({purgePrevious}) re-points writes and scrubs the old driver (Guest Mode enter/convert)', () => {
+    const a = mem();
+    const b = mem();
+    const store = new SaveStore(a);
+    store.save({ ...defaultSave(), shards: 42 });
+    expect(a.map.has('assimilate.save')).toBe(true);
+
+    // Enter: durable → session; the durable copy is purged, writes land only on the new driver.
+    store.swapStorage(b, { purgePrevious: true });
+    expect(a.map.has('assimilate.save')).toBe(false);
+    store.save({ ...defaultSave(), shards: 7 });
+    expect(b.map.has('assimilate.save')).toBe(true);
+    expect(a.map.has('assimilate.save')).toBe(false);
+
+    // Convert: session → durable; the live snapshot survives, the stale session copy is scrubbed.
+    store.swapStorage(a, { purgePrevious: true });
+    store.save({ ...defaultSave(), shards: 7 });
+    expect(b.map.has('assimilate.save')).toBe(false);
+    expect(store.load().shards).toBe(7);
+  });
 });
 
 describe('tower unlock gate (docs/TOWERS.md §expansion)', () => {

@@ -12,6 +12,7 @@ import { accountApi, ensureGuestRegistered } from '../../account/providers';
 import { syncEngine, type SyncState } from '../../net/syncEngine';
 import { connectivity } from '../../net/connectivity';
 import { meta } from '../../state/meta';
+import { guestModeActive, useGuestMode } from '../../state/guestMode';
 
 export function useAccount(): AccountState {
   return useSyncExternalStore(account.subscribe, account.get);
@@ -59,6 +60,7 @@ export function AuthForms({ mode, onDone }: { mode: 'register' | 'signin'; onDon
       setError(humanError(r.error));
       return;
     }
+    if (guestModeActive()) meta.commitGuestSession(); // Guest Mode conversion: the tryout save becomes this account's durable save
     void syncEngine.syncNow(); // register ⇒ first mirror; sign-in ⇒ pull (or conflict flow)
     onDone?.();
   };
@@ -114,6 +116,7 @@ export function AccountPanel(): JSX.Element {
   const acct = useAccount();
   const sync = useSync();
   const online = useOnline();
+  const guest = useGuestMode();
   const [form, setForm] = useState<'none' | 'register' | 'signin' | 'password'>('none');
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
@@ -129,26 +132,29 @@ export function AccountPanel(): JSX.Element {
   return (
     <div className="acct">
       <div className="acct-status">
-        <span className={`acct-badge ${acct.provider}`}>{acct.provider === 'email' ? '◈ ACCOUNT' : '◌ GUEST'}</span>
+        <span className={`acct-badge ${acct.provider}`}>{guest ? '◌ GUEST MODE' : acct.provider === 'email' ? '◈ ACCOUNT' : '◌ GUEST'}</span>
         <div className="acct-who">
-          <b>{acct.provider === 'email' ? acct.email : 'Guest on this device'}</b>
-          <small>ID {acct.accountId.slice(0, 8)} · platforms: {acct.platforms.join(', ') || 'web'}</small>
+          <b>{guest ? 'Guest Mode — session only' : acct.provider === 'email' ? acct.email : 'Guest on this device'}</b>
+          <small>{guest ? 'Nothing is kept once this browser session ends' : `ID ${acct.accountId.slice(0, 8)} · platforms: ${acct.platforms.join(', ') || 'web'}`}</small>
         </div>
       </div>
 
-      <div className="acct-sync">
-        <span className={`acct-dot ${line.dot}`} aria-hidden />
-        <span className="acct-sync-text">{line.text}</span>
-        <button className="acct-btn ghost" onClick={() => void syncEngine.syncNow()} disabled={!online || sync.phase === 'syncing'}>
-          Sync now
-        </button>
-      </div>
+      {!guest && (
+        <div className="acct-sync">
+          <span className={`acct-dot ${line.dot}`} aria-hidden />
+          <span className="acct-sync-text">{line.text}</span>
+          <button className="acct-btn ghost" onClick={() => void syncEngine.syncNow()} disabled={!online || sync.phase === 'syncing'}>
+            Sync now
+          </button>
+        </div>
+      )}
 
       {acct.provider === 'guest' ? (
         <>
           <div className="acct-note">
-            A free account makes this progress PORTABLE — continue on any device, and purchases stay yours.
-            Upgrading keeps everything (docs: nothing moves, your guest simply becomes permanent).
+            {guest
+              ? 'Guest Mode is fully offline: no purchases, no standings, and this session’s progress disappears when the browser closes. Creating an account (or signing in) converts the session — everything earned so far becomes permanent.'
+              : 'A free account makes this progress PORTABLE — continue on any device, and purchases stay yours. Upgrading keeps everything (docs: nothing moves, your guest simply becomes permanent).'}
           </div>
           <div className="acct-form-row">
             <button className={`acct-btn ${form === 'register' ? 'on' : ''}`} onClick={() => setForm(form === 'register' ? 'none' : 'register')}>Create Account</button>
@@ -191,15 +197,16 @@ export function AccountCard(): JSX.Element {
   const acct = useAccount();
   const sync = useSync();
   const online = useOnline();
+  const guest = useGuestMode();
   const save = meta.use();
   const line = syncLine(sync, online, acct.lastSyncedAt);
   return (
     <section className="pf-account" aria-label="Account & sync">
-      <span className={`acct-badge ${acct.provider}`}>{acct.provider === 'email' ? '◈ ACCOUNT' : '◌ GUEST'}</span>
+      <span className={`acct-badge ${acct.provider}`}>{guest ? '◌ GUEST MODE' : acct.provider === 'email' ? '◈ ACCOUNT' : '◌ GUEST'}</span>
       <div className="pf-account-rows">
-        <span>{acct.provider === 'email' ? acct.email : 'Guest — upgrade in Settings to play anywhere'}</span>
+        <span>{guest ? 'Guest Mode — session only, nothing persists' : acct.provider === 'email' ? acct.email : 'Guest — upgrade in Settings to play anywhere'}</span>
         <small>
-          <i className={`acct-dot ${line.dot}`} aria-hidden /> {line.text}
+          {guest ? 'Create an account in Settings to keep this progress' : <><i className={`acct-dot ${line.dot}`} aria-hidden /> {line.text}</>}
         </small>
         <small>Playtime {fmtHours(save.stats.playtimeSec)} · platforms {acct.platforms.join(' · ') || 'web'} · since {new Date(acct.createdAt).toLocaleDateString()}</small>
       </div>
@@ -261,17 +268,25 @@ export function WelcomeGate(): JSX.Element | null {
   const acct = useAccount();
   const save = meta.use();
   const online = useOnline();
+  const guest = useGuestMode();
   const [signin, setSignin] = useState(false);
   const meaningful = save.totalRuns > 0 || save.stats.playtimeSec > 60 || save.tutorial.completed.length > 0;
-  // Grandfather clause: an existing life predates the gate — never nag it.
+  // Grandfather clause: an existing life predates the gate — never nag it. (Guest Mode progress
+  // doesn't count: the session evaporates, so nothing durable gets marked onboarded.)
   useEffect(() => {
-    if (!acct.onboarded && meaningful) account.set({ onboarded: true });
-  }, [acct.onboarded, meaningful]);
-  if (acct.onboarded || meaningful) return null;
+    if (!acct.onboarded && meaningful && !guest) account.set({ onboarded: true });
+  }, [acct.onboarded, meaningful, guest]);
+  if (acct.onboarded || meaningful || guest) return null;
 
   const asGuest = (): void => {
     account.set({ onboarded: true });
     void ensureGuestRegistered(); // lazy + fail-soft: offline guests register on first contact
+  };
+
+  // Guest Mode: session-scoped tryout — no durable trace at all, so the account store is NOT
+  // touched. The gate hides while the flag is up; closing the browser brings it back fresh.
+  const asGuestMode = (): void => {
+    meta.enterGuestSession();
   };
 
   return (
@@ -288,6 +303,11 @@ export function WelcomeGate(): JSX.Element | null {
             <button className="acct-btn big" onClick={() => setSignin(true)} disabled={!online} title={online ? undefined : 'Signing in needs a connection'}>
               I have an account
             </button>
+            <button className="acct-btn ghost" onClick={asGuestMode}>Play in Guest Mode</button>
+            <div className="acct-note">
+              Guest Mode is a clean offline tryout — no name, no purchases, and nothing is saved once
+              this session ends. Creating an account in-game converts the session and keeps everything.
+            </div>
             {!online && <div className="acct-note">Offline — guest play works fully; sign in any time later.</div>}
           </div>
         ) : (

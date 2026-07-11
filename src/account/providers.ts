@@ -8,6 +8,7 @@
 // throw into gameplay code (offline play is first-class).
 
 import { account, currentPlatform } from './accountStore';
+import { guestModeActive } from '../state/guestMode';
 import { syncToken } from '../net/identity';
 import { trackEvent } from '../net/events';
 
@@ -53,6 +54,7 @@ export interface AccountProvider {
 /** Formalize this device as a guest account server-side (lazy, idempotent — called
  *  by the sync engine whenever online; pure local play never needs it). */
 export async function ensureGuestRegistered(): Promise<AuthResult> {
+  if (guestModeActive()) return { ok: false, error: 'guest-mode' }; // Guest Mode is a local tryout — no server-side account exists until conversion
   const s = account.get();
   if (s.registered) return { ok: true };
   const r = await post<{ account: AccountViewWire }>('/api/account/guest', {

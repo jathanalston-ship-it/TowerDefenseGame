@@ -16,6 +16,7 @@ import { DEFAULT_PROFILE_NAME } from '../../save/saveStore';
 import { FOUNDING_TITLES, SIGILS, suggestCommanderName } from '../../core/identity';
 import { account } from '../../account/accountStore';
 import { ensureGuestRegistered } from '../../account/providers';
+import { guestModeActive, useGuestMode } from '../../state/guestMode';
 import { startSyncEngine, syncEngine } from '../../net/syncEngine';
 import { AuthForms, useOnline } from '../components/AccountPanel';
 import { RewardRows } from './TutorialRewardReveal';
@@ -43,7 +44,10 @@ const deferNameThisSession = (): void => {
 
 export function Commissioning({ reward, onClose }: { reward: TutorialRewardSummary; onClose: () => void }): JSX.Element {
   useLocale();
-  const named = meta.get().profileName !== DEFAULT_PROFILE_NAME || alreadyDesignated();
+  const guest = useGuestMode();
+  // Guest Mode has no name (DESIGNATION is skipped like a named veteran's) — converting on the
+  // SAFEGUARD step brings the name prompt back through the normal hub modal afterwards.
+  const named = meta.get().profileName !== DEFAULT_PROFILE_NAME || alreadyDesignated() || guest;
   const [step, setStep] = useState<Step>('rewards');
   const [draft, setDraft] = useState('');
   const [sigilId, setSigilId] = useState<string | null>(null);
@@ -77,13 +81,22 @@ export function Commissioning({ reward, onClose }: { reward: TutorialRewardSumma
     advance('identity');
   };
   const finish = (): void => {
-    account.set({ onboarded: true });
+    // Guest Mode leaves no durable trace — the onboarded mark only lands when the session
+    // converted (AuthForms cleared the flag) or was never a guest-mode tryout at all.
+    if (!guestModeActive()) account.set({ onboarded: true });
     startSyncEngine();
     void syncEngine.syncNow(); // fail-soft offline — guests mirror on first contact
     onClose();
   };
   const asGuest = (): void => {
     void ensureGuestRegistered(); // lazy + fail-soft (the WelcomeGate contract)
+    finish();
+  };
+  // GUEST MODE from the ceremony — the SAFEGUARD's "keep nothing" stance: the graduate life
+  // moves onto session storage (playable now, gone with the browser). finish() already skips
+  // the durable onboarded mark while the flag is up.
+  const asGuestMode = (): void => {
+    meta.enterGuestSession();
     finish();
   };
 
@@ -195,6 +208,7 @@ export function Commissioning({ reward, onClose }: { reward: TutorialRewardSumma
             <p className="tut-reward-sub">{t('commission.account.sub')}</p>
             {auth === 'none' ? (
               <div className="acct-welcome-btns">
+                {guest && <div className="acct-note">{t('commission.account.guestmode')}</div>}
                 <button className="acct-btn primary big" onClick={asGuest}>{t('commission.account.guest')}</button>
                 <button className="acct-btn big" onClick={() => setAuth('register')} disabled={!online} title={online ? undefined : t('commission.account.offline')}>
                   {t('commission.account.create')}
@@ -202,6 +216,12 @@ export function Commissioning({ reward, onClose }: { reward: TutorialRewardSumma
                 <button className="acct-btn big" onClick={() => setAuth('signin')} disabled={!online} title={online ? undefined : t('commission.account.offline')}>
                   {t('commission.account.signin')}
                 </button>
+                {!guest && (
+                  <>
+                    <button className="acct-btn ghost" onClick={asGuestMode}>{t('commission.account.guestmode.opt')}</button>
+                    <div className="acct-note">{t('commission.account.guestmode.hint')}</div>
+                  </>
+                )}
                 {!online && <div className="acct-note">{t('commission.account.offline')}</div>}
               </div>
             ) : (

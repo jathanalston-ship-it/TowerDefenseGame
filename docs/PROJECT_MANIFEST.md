@@ -543,13 +543,14 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Purpose:** versioned, checksummed, browser-local persistence with additive migrations,
   per-field sanitizers, rotating backups, export/import, Developer Reset scopes.
 - **Dependencies:** every system's sanitizer (genes, loadouts, queue, equipment…).
-- **Files:** `save/saveStore.ts` (schema `CURRENT_VERSION`, `withDefaults`, SaveStore, backups),
+- **Files:** `save/saveStore.ts` (schema `CURRENT_VERSION`, `withDefaults`, SaveStore, backups,
+  session/durable storage drivers + `swapStorage` — Guest Mode's seam, `ACCOUNTS.md §guest-mode`),
   `save/saveFile.ts` (file I/O), `save/derive.ts` (shared pure derivations, e.g.
   `highestCampaignStage`), `state/devReset.ts` + `state/prefs.ts` (`DEVICE_PREF_KEYS` registry),
   `ui/SaveManager.tsx`. Docs: `DEV-RESET.md`, `SCALABILITY.md`.
 - **Related:** literally everything permanent; Power recomputes on every persist.
-- **Future expansion:** cloud saves/backend are a platform decision (see `GAME-STATE.md §Not
-  built`); the schema is additive-ready.
+- **Future expansion:** cloud sync shipped as the accounts platform (`ACCOUNTS.md` — envelope,
+  sync engine, conflict flow); the schema stays additive-ready.
 - **Known limitations:** browser-local only; clearing site data loses the account (export
   exists).
 - **Developer tips:** to add a field: bump `CURRENT_VERSION`, default it in `defaultSave`,
