@@ -493,6 +493,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Guest Mode: session-only offline tryout with in-place account conversion"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the Guest Mode batch"
+      },
+      {
+        "cat": "Balance",
+        "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
       }
     ]
   },

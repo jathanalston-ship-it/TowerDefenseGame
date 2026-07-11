@@ -1,6 +1,6 @@
 {
-  "lastSha": "d116c3618f1cadcabc0255a2dc591bbe05027ce5",
-  "commitsSinceDraft": 0,
+  "lastSha": "14252edaeadb5161a0536021cdb1495355f06a4f",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -1951,6 +1951,14 @@
         {
           "cat": "UI",
           "text": "Guest Mode: session-only offline tryout with in-place account conversion"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the Guest Mode batch"
+        },
+        {
+          "cat": "Balance",
+          "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend"
         }
       ]
     }
@@ -2849,6 +2857,22 @@
       "date": "2026-07-11",
       "cat": "UI",
       "text": "Guest Mode: session-only offline tryout with in-place account conversion",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "300c6fbc04895b2075e0af010b31bbaa37fd7489",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the Guest Mode batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "14252edaeadb5161a0536021cdb1495355f06a4f",
+      "date": "2026-07-11",
+      "cat": "Balance",
+      "text": "Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend",
       "internal": false,
       "needsReview": false
     }

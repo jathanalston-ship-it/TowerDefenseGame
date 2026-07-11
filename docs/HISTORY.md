@@ -122,3 +122,5 @@
 - `d8e841b` **[Gameplay]** Fix Vitriol/Revenant gating: derive milestone ownership, escalate Vitriol's dead gate
 - `0edf4e5` **[Heroes]** Zero-clip portrait pass: hero HP fixed + geometric truncation joins the gate
 - `d116c36` **[UI]** Guest Mode: session-only offline tryout with in-place account conversion
+- `300c6fb` **[Website]** Chronicle + site regen for the Guest Mode batch
+- `14252ed` **[Balance]** Balance pass round 3: activate adaptive economy seams + Genome Rank idle dividend
