@@ -188,15 +188,17 @@ export function GameView({
   const [crashed, setCrashed] = useState<string | null>(null);
   // Run soundtrack: combat by default, boss while a boss banner is live, victory/defeat cadence
   // at run end (one-shots). Categories only — the manager owns all playback (audio/music.ts).
+  // DAILY runs voice the 'events' category between bosses (docs/MUSIC.md §events): the seeded
+  // worldwide gauntlet has its own identity instead of borrowing plain combat.
   const bossLive = hud.bossBanner !== null || hud.megaBanner !== null; // a Mega Boss IS a boss theme
   useEffect(() => {
     if (hud.phase === 'won') { music.play('victory'); return; }
     if (hud.phase === 'lost') { music.play('defeat'); return; }
     if (hud.megaBanner !== null) { music.play('mega'); return; } // the Colossus Hymn owns mega raids
     if (bossLive) { music.play('boss', { boss: hud.bossBanner?.name }); return; } // each boss binds ITS theme
-    music.play('combat');
+    music.play(daily && !tutorial ? 'events' : 'combat');
     // Intensity is driven LIVE by the run loop (pressure → layers); the floor rises for bosses.
-  }, [hud.phase, bossLive, hud.megaBanner !== null, hud.bossBanner?.name]); // mega → boss handoff (and boss → boss) must re-pick the track
+  }, [hud.phase, bossLive, hud.megaBanner !== null, hud.bossBanner?.name, !!daily, tutorial]); // mega → boss handoff (and boss → boss) must re-pick the track
   // Pause: freezes the sim (the rAF loop skips advance) — both a hotkey (P) and a button drive it.
   // `pausedRef` is read inside the loop (so toggling never restarts the effect); `paused` drives UI.
   const pausedRef = useRef(false);

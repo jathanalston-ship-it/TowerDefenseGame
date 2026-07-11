@@ -252,13 +252,36 @@ export const TRACK_LIBRARY: TrackDef[] = [
     }),
   },
 
-  // ═══ EVENTS — dailies / special modes ═══
+  // ═══ EVENTS — the special-mode identity (GameView routes DAILY runs here — the seeded
+  // worldwide gauntlet earns its own musical voice instead of borrowing plain combat).
+  // Three identities rotate across a run: the pulse (hero resolve), the relay (one seed,
+  // every commander on Earth), the mutation (today's rules are WARPED). ═══
   {
     id: 'event_pulse', name: 'The Daily Pulse', category: 'events', bpm: 104, root: 40, scale: MINOR,
     progression: [0, 6, 5, 4], introBars: 1, motif: 'hero', counterMotif: 'assimilation', rotateAfterLoops: 4,
     layers: stack({
       bass: [0.5, 0.7], drums: [0.45, 0.65], arp: [0.4, 0.55], lead: [0.4, 0.55],
       pad: [0.2, 0.3], texture: [0.15, 0.3], choir: [0, 0.3], hits: [0, 0.35],
+    }),
+  },
+  {
+    // The shared-seed anthem: the whole world runs the SAME board today. The main HIVE theme
+    // over a driving dorian relay — communal, bright-edged, arp-forward (the baton keeps moving).
+    id: 'event_relay', name: 'Worldwide Relay', category: 'events', bpm: 118, root: 41, scale: DORIAN,
+    progression: [0, 3, 4, 6, 0, 3, 1, 4], introBars: 1, motif: 'hive', counterMotif: 'hero', rotateAfterLoops: 3,
+    layers: stack({
+      bass: [0.55, 0.75], drums: [0.5, 0.75], arp: [0.5, 0.68], lead: [0.42, 0.6],
+      pad: [0.18, 0.28], texture: [0.12, 0.26], choir: [0, 0.35], hits: [0, 0.4],
+    }),
+  },
+  {
+    // The modifier identity: today's rules are WARPED. Off-kilter phrygian lab unease —
+    // assimilation lead over a swarm mutter, texture-forward (something in the seed is wrong).
+    id: 'event_mutation', name: 'Mutation Protocol', category: 'events', bpm: 108, root: 37, scale: PHRYGIAN,
+    progression: [0, 1, 5, 4, 0, 1, 6, 4], introBars: 1, motif: 'assimilation', counterMotif: 'swarm', rotateAfterLoops: 3,
+    layers: stack({
+      bass: [0.52, 0.72], drums: [0.48, 0.7], arp: [0.38, 0.56], lead: [0.4, 0.58],
+      pad: [0.22, 0.32], texture: [0.25, 0.42], choir: [0, 0.32], hits: [0, 0.38],
     }),
   },
   // ═══ CINEMA — THE COLD OPEN (docs/GAME-FEEL.md §intro): the opening cinematic's score. A slow

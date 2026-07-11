@@ -99,7 +99,10 @@ theme recurs across menus, combat, and bosses in different keys/tempos/registers
 - **mega ×1** — The Colossus Hymn: slowest tempo, deepest root, 16-bar harmonic-minor
   processional; choir present from the start.
 - **victory / defeat** — one-shot cadences (play once over the fading bed, end silent).
-- **events ×1** — dailies / special modes.
+- **events ×3** — the special-mode voice (The Daily Pulse / Worldwide Relay / Mutation
+  Protocol). `GameView` routes DAILY runs here between bosses — the seeded worldwide
+  gauntlet has its own identity instead of borrowing plain combat; the three identities
+  rotate across a run (Boss Rush keeps the combat→boss arc: its identity IS the boss themes).
 - **cinema ×1** — The Cold Open: the opening cinematic's 62 bpm processional; percussion nearly
   silent (the film's SFX beats carry the pulse), intensity driven scene-by-scene by
   `InitCutscene` (0 at the listening post → 1 at the title, where the choir sings the `hive`
@@ -172,4 +175,5 @@ until unpinned — console force-plays still work).
 - `setLayerGain` overrides last only until the next `setIntensity` or track switch (dev tool).
 - Scene bias affects the NEXT pick by design (no hard switch on nav click); a future
   "scene stinger" could acknowledge navigation musically without switching tracks.
-- The events category has one track; grow it as event modes multiply (one row each).
+- The events category (×3, daily-wired) grows with future event MODES (one row each);
+  LiveOps calendar weeks color the HUB (menu scene bias), not run playback — by design.

@@ -25,6 +25,7 @@ describe('the track LIBRARY — the data contract', () => {
     expect(tracksOf('menu').length).toBeGreaterThanOrEqual(4); // menu rotation variety
     expect(tracksOf('combat').length).toBeGreaterThanOrEqual(3); // the run's musical arc
     expect(tracksOf('boss').length).toBeGreaterThanOrEqual(3); // hash-assignable theme families
+    expect(tracksOf('events').length).toBeGreaterThanOrEqual(3); // dailies rotate identities, never one loop
     for (const c of CATEGORIES) expect(TRACKS[c].category).toBe(c); // defaults resolve
   });
 
@@ -57,8 +58,8 @@ describe('the track LIBRARY — the data contract', () => {
     }
   });
 
-  it('combat + boss author the AWAKENING: choir/hits are silent until intensity wakes them', () => {
-    for (const t of TRACK_LIBRARY.filter((t) => t.category === 'combat' || t.category === 'boss')) {
+  it('combat + boss + events author the AWAKENING: choir/hits are silent until intensity wakes them', () => {
+    for (const t of TRACK_LIBRARY.filter((t) => t.category === 'combat' || t.category === 'boss' || t.category === 'events')) {
       for (const id of ['choir', 'hits'] as const) {
         const l = t.layers.find((x) => x.id === id)!;
         expect(l.gain[0], `${t.id} ${id} floor`).toBe(0); // absent at calm…
@@ -107,6 +108,9 @@ describe('pickTrack — scene, rotation, and progression selection (pure + seeda
   it('rotation never immediately repeats (exclude), but never empties the pool either', () => {
     const first = tracksOf('combat')[0].id;
     expect(pickTrack('combat', { exclude: first, roll: 0 }).id).not.toBe(first);
+    // events now rotate too — a daily run moves between identities instead of looping one track
+    const firstEvent = tracksOf('events')[0].id;
+    expect(pickTrack('events', { exclude: firstEvent, roll: 0 }).id).not.toBe(firstEvent);
     // A single-candidate pool ignores exclude rather than going silent:
     expect(pickTrack('menu', { scene: 'vault', exclude: 'menu_vault', roll: 0.5 }).id).toBe('menu_vault');
   });
