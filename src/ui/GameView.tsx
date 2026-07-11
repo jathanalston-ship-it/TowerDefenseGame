@@ -24,6 +24,8 @@ import { MasteryToaster } from './components/MasteryToaster';
 import { AudioToggles } from './components/AudioToggles';
 import { MASTERY, TOWER_DEFS, FX } from '../core/config';
 import { resolveDoctrine } from '../core/doctrines';
+import { vowById } from '../core/vows';
+import type { VowDef } from '../core/vows';
 import { MASTERY_RANK_EVERY, masteryRankTitle } from '../core/mastery';
 import { masteryProgress, masteryXpMults, masteryXpRaw } from '../state/meta';
 import { music } from '../audio/music';
@@ -169,6 +171,9 @@ export function GameView({
     ...(daily?.megaBoss ? { megaDaily: daily.megaBoss } : {}), // the Daily MEGA variant replaces the wave plan
     // NEMESIS (docs/NEMESIS.md): the hunt rides every run EXCEPT the shared daily gauntlet.
     ...(!daily && meta.get().nemesis ? { nemesis: meta.get().nemesis! } : {}),
+    // MOLT VOWS (docs/VOWS.md): the armed wager warps every run of the cycle EXCEPT the shared
+    // daily gauntlet (fair worldwide board — same exclusion as the nemesis) and the tutorial.
+    ...(!daily && !tutorial && meta.get().prestige.vows.length > 0 ? { vows: meta.get().prestige.vows } : {}),
     geneLevels: meta.geneLevels(),
     // Starting Gene Loadout — equipped genes auto-activate at boot (skip in the tutorial's clean sandbox).
     startingGenes: tutorial ? [] : meta.startingGenes(),
@@ -176,6 +181,12 @@ export function GameView({
     // Coil) — injected into the draft pool. A fresh account passes none ⇒ ungated catalog only.
     unlockedCardIds: meta.unlockedCardIds(),
   }));
+  // MOLT VOW chips (docs/VOWS.md): the armed wager's compact HUD marker — captured once at
+  // game creation (the same exclusions as the run opts: never on dailies or the tutorial).
+  const [vowChips] = useState<{ icon: string; name: string }[]>(() =>
+    !daily && !tutorial
+      ? meta.get().prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v).map((v) => ({ icon: v.icon, name: v.name }))
+      : []);
   // The starting-genes CINEMATIC: a brief splash naming the genes that just activated (auto-fades).
   const [geneSplash, setGeneSplash] = useState<string[]>(() => (tutorial ? [] : meta.startingGenes()));
   useEffect(() => {
@@ -851,7 +862,7 @@ export function GameView({
 
   return (
     <div className="game" data-hphase={hphase}>
-      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} />
+      <Hud hud={hud} power={power} onOpenConsole={() => setEvoOpen(true)} tutorial={!!tutorial && !!tutSession} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} vows={vowChips} />
       <PowerToaster />
       <MasteryToaster />
       <div className="stage">

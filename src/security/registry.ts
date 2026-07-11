@@ -152,6 +152,10 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'trophy.equip', category: 'progression', level: 'permissive', limit: P({ count: 20 }), dedupeMs: 200,
     analytics: 'sec_trophy_equip', doc: 'Mount/unmount a Trophy Rack organ (reversible loadout toggle — docs/NEMESIS.md §rack).', at: META,
   },
+  'prestige.vow': {
+    id: 'prestige.vow', category: 'progression', level: 'moderate', limit: M(), cooldownMs: 400, dedupeMs: 1200,
+    analytics: 'sec_vow', doc: 'Arm/break a Molt Vow (docs/VOWS.md) — arming sinks Genome Cores on the geometric curve; costs never refund.', at: META,
+  },
 
   // ── Network (server budgets — client-side courtesy limits on top of server truth) ──
   'sync.push': {
@@ -212,6 +216,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyAscendantNode: 'progress.ascendant',
   molt: 'prestige.molt',
   equipTrophy: 'trophy.equip',
+  armVow: 'prestige.vow',
+  disarmVow: 'prestige.vow',
   importText: 'save.import',
   restoreBackup: 'save.restore',
   reset: 'account.reset',

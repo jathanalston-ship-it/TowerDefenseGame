@@ -208,11 +208,11 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/EVOLUTION-HQ.md', 'docs/GENOME-CORE.md', 'docs/EVOLUTION-CAP.md'],
   },
   {
-    id: 'prestige', name: 'Prestige (Molt / Ascendant)', purpose: 'Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree.',
-    files: ['src/core/prestige.ts', 'src/core/ascendant.ts', 'src/ui/PrestigePanel.tsx'],
+    id: 'prestige', name: 'Prestige (Molt / Ascendant)', purpose: 'Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.',
+    files: ['src/core/prestige.ts', 'src/core/ascendant.ts', 'src/core/vows.ts', 'src/ui/PrestigePanel.tsx'],
     dependsOn: ['campaign', 'evolution-hq'], powerScore: 'the P bucket (log fold of Cells + tree)', save: ['prestige'],
-    tutorial: [], help: ['prestige', 'ascension'], hud: [], ui: ['PrestigePanel', 'EvolutionHQ (Ascension section)'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/PROGRESSION-PHILOSOPHY.md', 'docs/PROGRESSION-REDESIGN.md', 'docs/SIMULATION-FRAMEWORK.md', 'docs/BALANCE_REPORT.md'],
+    tutorial: [], help: ['prestige', 'ascension'], hud: ['⛧ vow chip (wm-chips)'], ui: ['PrestigePanel', 'EvolutionHQ (Ascension section)'], collection: null, achievements: [],
+    localization: 'inline-en', docs: ['docs/PROGRESSION-PHILOSOPHY.md', 'docs/PROGRESSION-REDESIGN.md', 'docs/SIMULATION-FRAMEWORK.md', 'docs/BALANCE_REPORT.md', 'docs/VOWS.md'],
   },
   {
     id: 'currencies', name: 'Currencies & Economy Framework', purpose: 'Currency identities (icon/color/tooltip/format) + the adaptive economy framework: one factor-traced income composition per currency, adaptive seams, health guards.',

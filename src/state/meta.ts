@@ -113,6 +113,9 @@ import type { DirectiveReward } from '../core/directives';
 import { TROPHY_DEFS, trophyById, trophyOwned, trophySlots, vengeanceTrophyFor } from '../core/trophies';
 import type { TrophyOwnCtx } from '../core/trophies';
 import { deepenNemesis, nemesisTraits, vengeanceCores } from '../core/nemesis';
+import { MAX_VOWS, VOWS, combinedVowWarp, vowArmCost, vowById, vowYieldProduct } from '../core/vows';
+import type { VowDef } from '../core/vows';
+import type { DoctrineWarp } from '../core/doctrines';
 import { EXPEDITION_DEFS, EXPEDITION_SLOTS, expeditionById, expeditionMult, expeditionOutcome, masteryBonus, rollRareFind, scaleReward, sumRewards } from '../core/expeditions';
 import type { ExpeditionDef, ExpeditionOutcome, ExpeditionReward, RareFind } from '../core/expeditions';
 import { ALL_SECTORS, REGIONS, effectiveLevel, feedInfestation, infestationEffects, isEntrenched, isValidInfestTarget, regionFraction, resolveFeedTarget, runInfestGain, tierHoldDays, tierOf, zeroInDays } from '../core/infestation';
@@ -869,8 +872,12 @@ function lootBiasFor(save: SaveData, difficultyId?: string): Record<string, numb
 }
 
 /** Cells a Molt would mint now: the sqrt base × the Ascendant Resonance node's compounding. */
+// Cell mint for the molt THIS save could commit right now: the cycle's square-root gain ×
+// Ascendant Resonance × the armed MOLT VOW wager product (docs/VOWS.md — ×1 with none armed).
+// Used by BOTH the preview (prestigeView) and the mint itself (molt), so what the dialog
+// promises is exactly what the molt pays.
 function moltGain(save: SaveData): number {
-  return Math.floor(cellsForCycle(save.prestige.cycleShards) * ascendantBonuses(save.prestige.nodes).cellGainMult);
+  return Math.floor(cellsForCycle(save.prestige.cycleShards) * ascendantBonuses(save.prestige.nodes).cellGainMult * vowYieldProduct(save.prestige.vows));
 }
 
 export function upgradeLevel(save: SaveData, id: string): number {
@@ -1661,9 +1668,60 @@ export const meta = {
         cycleShards: 0,
         molts: save.prestige.molts + 1,
         nodes: save.prestige.nodes, // the Ascendant Tree is permanent — kept across Molts
+        vows: [], // vows SETTLE here — the wager paid into `gain`; arm costs are never refunded
       },
-      timeline: pushTimeline(save.timeline, '◬', `MOLT ${save.prestige.molts + 1} — ${gain} Ascendant Cells`), // profile milestone
+      timeline: pushTimeline(save.timeline, '◬', `MOLT ${save.prestige.molts + 1} — ${gain} Ascendant Cells${save.prestige.vows.length > 0 ? ` (×${vowYieldProduct(save.prestige.vows).toFixed(2)} vow wager honoured)` : ''}`), // profile milestone
     }, ACCOUNT_XP.molt).save); // a MOLT is a chapter of account history (docs/ACCOUNT-LEVEL.md)
+    return true;
+  },
+
+  // ── MOLT VOWS (docs/VOWS.md) — the prestige wager: arm handicaps, multiply the next mint. ──
+  /** The vow board for the Molt Chamber: every vow with armed state, the geometric cost of the
+   *  NEXT arm, and the armed set's combined wager (warp product + cell multiplier). */
+  vowsView(): {
+    vows: { def: VowDef; armed: boolean }[];
+    armed: VowDef[];
+    slots: number;
+    nextCost: number | null; // null = all slots armed
+    yieldProduct: number; // combined cell-mint multiplier (×1 when none armed)
+    combinedWarp: DoctrineWarp | undefined; // the composed handicap (display the REAL risk)
+  } {
+    const s = store.get();
+    const armed = s.prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v);
+    return {
+      vows: VOWS.map((def) => ({ def, armed: s.prestige.vows.includes(def.id) })),
+      armed,
+      slots: MAX_VOWS,
+      nextCost: s.prestige.vows.length >= MAX_VOWS ? null : vowArmCost(s.prestige.vows.length),
+      yieldProduct: vowYieldProduct(s.prestige.vows),
+      combinedWarp: combinedVowWarp(s.prestige.vows),
+    };
+  },
+  /** Arm a vow for the CURRENT cycle. Costs banked Genome Cores on the geometric curve —
+   *  consumed NOW, never refunded (not by disarm, not by the Molt reset). Refuses unknown
+   *  ids, duplicates, a full board, and insufficient Cores. */
+  armVow(id: string): boolean {
+    if (!guardOk('prestige.vow', id)) return false;
+    const s = store.get();
+    const def = vowById(id);
+    if (!def || s.prestige.vows.includes(id) || s.prestige.vows.length >= MAX_VOWS) return false;
+    const cost = vowArmCost(s.prestige.vows.length);
+    if (s.shards < cost) return false;
+    persist({
+      ...s,
+      shards: s.shards - cost, // the sink — spent Cores do NOT count toward the cycle mint again
+      prestige: { ...s.prestige, vows: [...s.prestige.vows, id] },
+      timeline: pushTimeline(s.timeline, '⛧', `Vow sworn — ${def.name} (−${cost} Cores)`),
+    });
+    return true;
+  },
+  /** Break an armed vow. The arm cost is FORFEIT (the UI double-confirms) — the handicap lifts
+   *  from the next run, and the wager multiplier drops with it. */
+  disarmVow(id: string): boolean {
+    if (!guardOk('prestige.vow', id)) return false;
+    const s = store.get();
+    if (!s.prestige.vows.includes(id)) return false;
+    persist({ ...s, prestige: { ...s.prestige, vows: s.prestige.vows.filter((v) => v !== id) } });
     return true;
   },
 

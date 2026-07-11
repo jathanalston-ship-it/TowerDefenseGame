@@ -16,6 +16,7 @@ import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { PRESTIGE } from '../core/prestige';
+import type { DoctrineWarp } from '../core/doctrines';
 import { ASCENDANT_NODES } from '../core/ascendant';
 import type { AscendantStat } from '../core/ascendant';
 import { CurrencyIcon } from './components/CurrencyIcon';
@@ -170,12 +171,28 @@ function MoltCeremony({ gain, multBefore, multAfter, moltNo, onDone }: {
   );
 }
 
+/** One vow's risk, humanized from its warp (the ledger never shows raw multipliers). */
+function warpRisk(warp: DoctrineWarp): string {
+  const parts: string[] = [];
+  const pct = (v: number): string => `${v >= 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)}%`;
+  if (warp.hpMult) parts.push(`${pct(warp.hpMult)} enemy HP`);
+  if (warp.speedMult) parts.push(`${pct(warp.speedMult)} enemy speed`);
+  if (warp.damageMult) parts.push(`${pct(warp.damageMult)} enemy damage`);
+  if (warp.countMult) parts.push(`${pct(warp.countMult)} spawns`);
+  if (warp.bountyMult) parts.push(`${pct(warp.bountyMult)} biomass`);
+  if (warp.eliteChance) parts.push(`+${Math.round(warp.eliteChance * 100)}% elites`);
+  if (warp.scalingRateMult) parts.push(`${pct(warp.scalingRateMult)} ramp`);
+  return parts.join(' · ');
+}
+
 export function PrestigePanel(): JSX.Element {
   meta.use(); // re-render when the save changes
   const p = meta.prestigeView();
   const tree = meta.ascendantNodes();
+  const vv = meta.vowsView();
   const banked = meta.get().shards;
   const [confirming, setConfirming] = useState(false);
+  const [breaking, setBreaking] = useState<string | null>(null); // vow id pending its no-refund confirm
   const [ceremony, setCeremony] = useState<{ gain: number; multBefore: number; multAfter: number; moltNo: number } | null>(null);
 
   const beginMolt = (): void => {
@@ -263,6 +280,45 @@ export function PrestigePanel(): JSX.Element {
           {!p.campaignMet && (
             <div className="molt-gate-hint">Clear Campaign Stage <b>{p.campaignReq}</b> to unlock your {p.molts === 0 ? 'first' : 'next'} Molt.</div>
           )}
+        </div>
+
+        {/* ── MOLT VOWS (docs/VOWS.md) — the wager rail: handicap the whole next cycle, multiply
+            the next mint. Arm costs sink banked Cores NOW and never refund (not even by molting). ── */}
+        <div className="molt-vows" data-tour="molt-vows">
+          <div className="molt-vows-h">
+            <span className="molt-vows-t">⛧ MOLT VOWS <i>· the wager</i></span>
+            <span className="molt-vows-sum">
+              {vv.armed.length}/{vv.slots} sworn{vv.yieldProduct > 1 && <> · <b>×{vv.yieldProduct.toFixed(2)}</b> next mint</>}
+            </span>
+          </div>
+          {vv.vows.map(({ def, armed }) => {
+            const cost = vv.nextCost;
+            const canArm = !armed && cost !== null && banked >= cost;
+            return (
+              <div className={`molt-vow${armed ? ' is-armed' : ''}`} key={def.id}>
+                <span className="molt-vow-icon" aria-hidden>{def.icon}</span>
+                <span className="molt-vow-body">
+                  <span className="molt-vow-name">{def.name}</span>
+                  <span className="molt-vow-risk">{warpRisk(def.warp)} <i>every run this cycle</i></span>
+                </span>
+                <span className="molt-vow-side">
+                  <span className="molt-vow-yield">×{def.cellYieldMult.toFixed(2)} cells</span>
+                  {armed
+                    ? <button className="molt-vow-break" onClick={() => { audio.cue('ui'); setBreaking(def.id); }}>Break…</button>
+                    : cost === null
+                      ? <span className="molt-vow-full">board full</span>
+                      : <button className="molt-vow-arm" disabled={!canArm} title={canArm ? `Swear this vow for ${cost.toLocaleString()} ${ACCOUNT_CURRENCY.name} (never refunded)` : `Needs ${cost.toLocaleString()} banked ${ACCOUNT_CURRENCY.name}`}
+                          onClick={() => { if (meta.armVow(def.id)) audio.cue('power'); }}>
+                          Swear — {cost.toLocaleString()} <CurrencyIcon id="genomeCores" size={11} title="" />
+                        </button>}
+                </span>
+              </div>
+            );
+          })}
+          <div className="molt-vows-note">
+            Sworn vows warp <b>every run of this cycle</b> (dailies stay fair) and multiply the Ascendant Cell
+            mint at your NEXT Molt. Costs are consumed on the oath — breaking a vow refunds nothing.
+          </div>
         </div>
 
         {/* The manifest — what a Molt costs, what it can never touch. */}
@@ -355,6 +411,12 @@ export function PrestigePanel(): JSX.Element {
               <div className="molt-confirm-line">
                 Mint <b>+{p.gain}</b> <CurrencyIcon id="ascendantCells" size={14} title="" /> and rise to <b>×{p.multAfter.toFixed(2)}</b> global damage.
               </div>
+              {vv.armed.length > 0 && (
+                <div className="molt-confirm-vows">
+                  ⛧ Honours <b>{vv.armed.length}</b> sworn vow{vv.armed.length > 1 ? 's' : ''} — this mint already carries the
+                  {' '}<b>×{vv.yieldProduct.toFixed(2)}</b> wager ({vv.armed.map((v) => v.name).join(' · ')}). The oaths clear with the Molt.
+                </div>
+              )}
               <div className="molt-confirm-cost">
                 Sheds <b>{banked.toLocaleString()} {ACCOUNT_CURRENCY.name}</b> and <b>{p.upgradeLevels} Genome upgrade levels</b>. Everything else is kept — including the Ascendant Tree.
               </div>
@@ -366,6 +428,27 @@ export function PrestigePanel(): JSX.Element {
           </div>
         </Popup>
       )}
+
+      {/* Break-vow confirm — the cost is already burnt; make the forfeit unmistakable. */}
+      {breaking && (() => {
+        const def = vv.armed.find((v) => v.id === breaking);
+        return def ? (
+          <Popup>
+            <div className="molt-confirm-veil" onClick={() => setBreaking(null)}>
+              <div className="molt-confirm" role="dialog" aria-label="Break vow" onClick={(e) => e.stopPropagation()}>
+                <div className="intro-eyebrow">⛧ BREAK THE {def.name.toUpperCase()}?</div>
+                <div className="molt-confirm-line">The handicap lifts from your next run — and the wager drops to
+                  {' '}<b>×{(vv.yieldProduct / def.cellYieldMult).toFixed(2)}</b>.</div>
+                <div className="molt-confirm-cost">The {ACCOUNT_CURRENCY.name} paid to swear it are <b>forfeit</b> — breaking refunds nothing.</div>
+                <div className="molt-confirm-row">
+                  <button className="molt-cancel" onClick={() => setBreaking(null)}>Keep the vow</button>
+                  <button className="primary" onClick={() => { meta.disarmVow(breaking); setBreaking(null); }}>Break it</button>
+                </div>
+              </div>
+            </div>
+          </Popup>
+        ) : null;
+      })()}
 
       {ceremony && <MoltCeremony {...ceremony} onDone={() => setCeremony(null)} />}
     </div>

@@ -71,8 +71,9 @@ export interface PrestigeState {
   cycleShards: number; // Genome Cores earned since the last Molt (the mint metric)
   molts: number; // lifetime Molt count (a trophy / pacing readout)
   nodes: Record<string, number>; // Ascendant Tree node id → level (kept across Molts)
+  vows: string[]; // armed MOLT VOWS (docs/VOWS.md) — cycle-wide wagers; settled + cleared at the next Molt
 }
 
 export function defaultPrestige(): PrestigeState {
-  return { cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0, nodes: {} };
+  return { cells: 0, lifetimeCells: 0, cycleShards: 0, molts: 0, nodes: {}, vows: [] };
 }

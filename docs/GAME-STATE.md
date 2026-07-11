@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 34` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 35` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -294,6 +294,12 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   2 achievements) — BOSS-RUSH.md
 - ✅ Next-Goal engine + Results cliffhanger — ONE-MORE-RUN.md
 - ✅ Prestige (MOLT → Ascendant) — 1 layer of a designed 6 (PROGRESSION-REDESIGN)
+- ✅ **Molt Vows** (the prestige wager — VOWS.md): arm 0–3 data-row handicaps pre-Molt that
+  warp the enemy world for the ENTIRE next cycle (reusing DoctrineWarp — composed
+  multiplicatively onto the run's doctrine at the ONE director fold site) and multiply the
+  next Molt's cell mint (×1.3–×1.6 each, stacking); arming sinks banked Cores geometrically
+  (750/3k/12k, never refunded); `prestige.vows` (v35), settled + cleared at molt; Molt
+  Chamber wager rail + HUD ⛧ chip; dailies/tutorial excluded (fair boards)
 - ✅ Collection/Codex progression (ranks, reward tracks) — COLLECTION.md; registry-driven, so the
   recent content (Coil/Siphon beam towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)
   joins the codex automatically (guarded by `collection.test.ts`)

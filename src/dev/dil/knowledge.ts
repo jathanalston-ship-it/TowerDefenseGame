@@ -66,6 +66,8 @@ export const KNOWLEDGE_EDGES: KnowledgeEdge[] = [
 
   // ── Economy: who pays what (reward sources), who spends what ──
   { from: 'system:doctrines', kind: 'rewards', to: 'currency:gene-essence', note: 'essencePerWave protocols (Corrupted Genome / Overmind) pay at finishRun' },
+  { from: 'system:prestige', kind: 'modifies', to: 'system:difficulty', note: 'MOLT VOWS (core/vows.ts): armed wagers compose their DoctrineWarp onto the doctrine at the ONE director fold site (composeWarps — mult axes multiply, additive add; none armed = referential passthrough)' },
+  { from: 'system:prestige', kind: 'consumes', to: 'currency:genome-cores', note: 'vow arming is a geometric post-tree Core sink (750/3k/12k), consumed at oath time and never refunded' },
   { from: 'system:doctrines', kind: 'dependsOn', to: 'concept:progression-gates', note: 'unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)' },
   { from: 'system:campaign', kind: 'rewards', to: 'currency:genome-cores', note: 'first-clear + stage rewards' },
   { from: 'system:campaign', kind: 'rewards', to: 'currency:tower-shards', note: 'stage rewards feed unlock gates' },

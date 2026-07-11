@@ -35,7 +35,7 @@ function powerTier(p: number): number {
   return p >= 1e12 ? 4 : p >= 1e9 ? 3 : p >= 1e6 ? 2 : 1;
 }
 
-export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = null }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean; doctrine?: { icon: string; name: string } | null }): JSX.Element {
+export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = null, vows = [] }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean; doctrine?: { icon: string; name: string } | null; vows?: { icon: string; name: string }[] }): JSX.Element {
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
@@ -230,11 +230,16 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
                 ? 'Choose a Gene Card'
                 : ' '}
         </div>
-        {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline || doctrine) && (
+        {(hud.biome.id !== 'neutral' || hud.anticipation.length > 0 || hud.runHeadline || doctrine || vows.length > 0) && (
           <div className="wm-chips">
             {doctrine && (
               <span className="wm-chip wm-doc" title="This run's doctrine commitment (docs/DOCTRINES.md)">
                 {doctrine.icon} {doctrine.name}
+              </span>
+            )}
+            {vows.length > 0 && (
+              <span className="wm-chip wm-vow" title={`Molt Vows sworn (docs/VOWS.md) — the world is warped this whole cycle: ${vows.map((v) => v.name).join(' · ')}`}>
+                ⛧ {vows.map((v) => v.icon).join(' ')}
               </span>
             )}
             {hud.biome.id !== 'neutral' && (

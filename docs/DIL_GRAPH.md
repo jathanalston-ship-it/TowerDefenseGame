@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 708 nodes · 1240 edges, built from the live
+> **The project's brain** (docs/DIL.md). 711 nodes · 1245 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -90,6 +90,8 @@ graph LR
   system_bosses["Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_mega_bosses["Mega Bosses"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_doctrines["Doctrines"] -->|rewards| currency_gene_essence["Gene Essence"]
+  system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
+  system_prestige["Prestige (Molt / Ascendant)"] -->|consumes| currency_genome_cores["Genome Cores (◆)"]
   system_campaign["Campaign"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_campaign["Campaign"] -->|rewards| currency_tower_shards["Tower Shards (✦)"]
   system_infinite["Infinite Mode"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
@@ -404,6 +406,7 @@ graph LR
 
 ```mermaid
 graph LR
+  system_prestige["Prestige (Molt / Ascendant)"] -->|modifies| system_difficulty["Difficulty"]
   system_audio["Audio"] -->|visualizes| system_assimilation["Assimilation Index"]
   system_mulligans["Mulligan System"] -->|modifies| system_rendering["Rendering & VFX"]
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
@@ -525,7 +528,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…83 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…84 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -605,7 +608,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…171 more (query: `npm run dil -- node system:engine`)_
+  - _…172 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1096,14 +1099,16 @@ _at: src/state/evolutionHQ.ts, src/ui/EvolutionHQ.tsx, src/ui/EvolutionUnlock.ts
 
 ### `system:prestige` — Prestige (Molt / Ascendant)
 
-Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree.
+Reset loop: mint Ascendant Cells → compounding multiplier + permanent tree. MOLT VOWS (docs/VOWS.md): arm 0–3 data-row handicaps that warp the enemy world all cycle (DoctrineWarp reuse, composed multiplicatively onto the doctrine at the ONE director fold site) and multiply the next mint; geometric Core sink at arm time, never refunded; settled + cleared at molt; dailies/tutorial excluded.
 
-_at: src/core/prestige.ts, src/core/ascendant.ts, src/ui/PrestigePanel.tsx_
+_at: src/core/prestige.ts, src/core/ascendant.ts, src/core/vows.ts, src/ui/PrestigePanel.tsx_
 
   - dependsOn → `system:campaign`
   - dependsOn → `system:evolution-hq`
   - provides → `concept:power-score` — the P bucket (log fold of Cells + tree)
   - consumes → `system:meta-store` — owns save field 'prestige'
+  - modifies → `system:difficulty` — MOLT VOWS (core/vows.ts): armed wagers compose their DoctrineWarp onto the doctrine at the ONE director fold site (composeWarps — mult axes multiply, additive add; none armed = referential passthrough)
+  - consumes → `currency:genome-cores` — vow arming is a geometric post-tree Core sink (750/3k/12k), consumed at oath time and never refunded
   - references → `system:cutscenes` — the Molt Chamber + ceremony reuse the cutscene molt tableau via drawCutsceneFrame — retheme it, never fork it
   - extends → `system:meta-store` — Ascendant nodes multiply the permanent buckets
   - requiredBy ← `system:evolution-hq`
@@ -1114,9 +1119,11 @@ _at: src/core/prestige.ts, src/core/ascendant.ts, src/ui/PrestigePanel.tsx_
   - documentedBy ← `doc:PROGRESSION-REDESIGN.md`
   - documentedBy ← `doc:SIMULATION-FRAMEWORK.md`
   - documentedBy ← `doc:BALANCE_REPORT.md`
+  - documentedBy ← `doc:VOWS.md`
   - documentedBy ← `guide:prestige`
   - testedBy ← `test:src/core/ascendant.test.ts`
   - testedBy ← `test:src/core/prestige.test.ts`
+  - _…1 more (query: `npm run dil -- node system:prestige`)_
 
 ### `system:currencies` — Currencies & Economy Framework
 
@@ -1728,6 +1735,7 @@ _at: src/core/difficulty.ts, src/core/difficultyDirector.ts_
   - documentedBy ← `doc:DIFFICULTY_DIRECTOR.md`
   - testedBy ← `test:src/core/difficulty.test.ts`
   - testedBy ← `test:src/core/difficultyDirector.test.ts`
+  - modifiedBy ← `system:prestige` — MOLT VOWS (core/vows.ts): armed wagers compose their DoctrineWarp onto the doctrine at the ONE director fold site (composeWarps — mult axes multiply, additive add; none armed = referential passthrough)
 
 ### `system:website` — Marketing Website
 
@@ -2794,7 +2802,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (155)
+## Documentation (156)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -2950,9 +2958,10 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VALIDATION_REPORT.md` — project documentation
 - `doc:VISUAL-AUDIT.md` — project documentation
 - `doc:VISUAL_IDENTITY.md` — project documentation _(documents `system:ui-kit`)_
+- `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (220)
+## Tests (222)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3082,6 +3091,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/validatereport.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/visuals.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/vitriol.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/vows.test.ts` — automated validation _(tests `system:prestige`)_
 - `test:src/core/wardrobe.test.ts` — automated validation _(tests `system:cosmetics`)_
 - `test:src/dev/balanceReport.test.ts` — automated validation _(tests `system:dev-registry`)_
 - `test:src/dev/dil/dil.test.ts` — automated validation _(tests `system:dev-registry`)_
@@ -3168,6 +3178,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/unlocks.test.ts` — automated validation _(tests `system:progression-gating`)_
 - `test:src/state/vaultReveal.test.ts` — automated validation _(tests `system:loot`)_
 - `test:src/state/verifiedPurchase.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_

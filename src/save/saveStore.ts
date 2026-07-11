@@ -14,6 +14,7 @@ import type { PendingContainer } from '../state/lootbox';
 import { defaultPrestige } from '../core/prestige';
 import { cosmeticById } from '../core/cosmetics';
 import { trophyById, TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
+import { vowById, MAX_VOWS } from '../core/vows';
 import { expeditionById, EXPEDITION_SLOTS } from '../core/expeditions';
 import { ALL_SECTORS, SECTOR_CAP, isValidInfestTarget } from '../core/infestation';
 import type { PrestigeState } from '../core/prestige';
@@ -347,8 +348,10 @@ export interface TutorialSave {
 // v33→v34: Nemesis & Trophy overhaul (docs/NEMESIS.md) — the single `equippedTrophy` becomes a
 // multi-slot rack `equippedTrophies[]` (the old value migrates into a one-organ rack) + a
 // `vengeance[]` ledger (chassis avenged → vengeance-trophy ownership + the hunt's rap sheet).
+// v34→v35: Molt Vows (docs/VOWS.md) — `prestige.vows` (armed wager ids; settled + cleared at
+// the next Molt). Additive inside the prestige blob — withDefaults deep-fills, sanitize caps.
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 34;
+export const CURRENT_VERSION = 35;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -1216,6 +1219,10 @@ function sanitizePrestige(p: PrestigeState | undefined): Partial<PrestigeState> 
     const nodes: Record<string, number> = {};
     for (const [k, v] of Object.entries(p.nodes)) if (num(v) !== undefined) nodes[k] = Math.floor(v as number);
     out.nodes = nodes;
+  }
+  // v35: armed Molt Vows — real vow ids only, deduped, capped at the arm limit (docs/VOWS.md).
+  if (Array.isArray(p.vows)) {
+    out.vows = [...new Set(p.vows.filter((x): x is string => typeof x === 'string' && vowById(x) !== undefined))].slice(0, MAX_VOWS);
   }
   return out;
 }

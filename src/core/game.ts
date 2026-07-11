@@ -105,6 +105,7 @@ import type { Biome } from './biomes';
 import type { DifficultyDef } from './difficulty';
 import { resolveDoctrine } from './doctrines';
 import type { DoctrineWarp } from './doctrines';
+import { combinedVowWarp, composeWarps } from './vows';
 import { createDirector } from './difficultyDirector';
 import type { RunDirector } from './difficultyDirector';
 import { combineMult } from './modifiers';
@@ -137,6 +138,7 @@ export interface RunOptions {
   mode?: RunMode; // 'stage' = authored WAVES (default, golden path); 'endless' = AI Director; 'campaign' = generated stage; 'bossRush' = escalating boss gauntlet (docs/BOSS-RUSH.md); 'daily' = the day's shared challenge (docs/DAILY-RUN.md)
   difficulty?: string; // universal difficulty id (default 'standard' = identity/golden path)
   doctrine?: string; // exclusive run-start build commitment (default 'none' = no effects)
+  vows?: string[]; // armed Molt Vows (docs/VOWS.md) — cycle-wide handicap warps composed ONTO the doctrine's; absent/[] ⇒ identity (golden path). Dailies never pass this (fair shared board).
   stage?: StageConfig; // campaign mode: the procedurally generated stage to run (campaign.ts)
   heroRoster?: HeroKind[]; // the fielded hero slots (HEROES.md). Omitted / [heroKind] ⇒ single hero (golden path)
   heroEquip?: Partial<Record<HeroKind, CardEffect[]>>; // PER-HERO equipment effects — each hero's gear affects only that hero
@@ -670,9 +672,12 @@ export class Game {
     // The UNIVERSAL DIFFICULTY DIRECTOR (docs/DIFFICULTY_DIRECTOR.md) composes the run's whole
     // scaling policy — difficulty variant × doctrine warp × stage axes. The sim only APPLIES
     // its factors, at the same sites in the same order ⇒ the golden runs stay byte-identical.
+    // MOLT VOWS (docs/VOWS.md) compose ONTO the doctrine warp right here — multiplying, not
+    // replacing: mult axes multiply, additive axes add, and with no vows the doctrine's warp
+    // passes through UNTOUCHED (referential identity — the golden path never sees a new object).
     this.dd = createDirector({
       difficulty: this.stage ? this.stage.scaling : resolveDifficulty(opts.difficulty),
-      warp: resolveDoctrine(opts.doctrine).warp,
+      warp: composeWarps(resolveDoctrine(opts.doctrine).warp, combinedVowWarp(opts.vows)),
       stageEnemySpeedMult: this.stage ? this.stage.enemySpeedMult : 1,
     });
     this.diff = this.dd.difficulty; // doctrine damage already folded (the director's ONE fold site)
