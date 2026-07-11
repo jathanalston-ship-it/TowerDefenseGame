@@ -15,6 +15,8 @@ import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { MULLIGAN_RARITY, accountMulliganPower, isMaxLevel, isMulliganActive, mulliganRegistry } from '../core/mulligan';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
+import { DOCTRINE_RANK_MAX, doctrineRank, doctrineRegistry } from '../core/doctrines';
+import type { DoctrineFamily } from '../core/doctrines';
 import { highestCampaignStage } from '../save/derive';
 import type { TowerKind } from '../core/types';
 import type { SaveData } from '../save/saveStore';
@@ -49,6 +51,16 @@ export interface AchievementDef {
 
 const maxStars = (s: SaveData): number => Math.max(0, ...TOWER_ORDER.map((k) => s.towerStars[k] ?? 0));
 const maxMastery = (s: SaveData): number => Math.max(0, ...TOWER_ORDER.map((k) => s.towerMasteryXp[k] ?? 0));
+/** Real doctrine ids the account has WON under (registry-checked; 'none' is no commitment). */
+const doctrinesWon = (s: SaveData): string[] =>
+  Object.entries(s.stats.doctrineWins).filter(([id, n]) => id !== 'none' && (n ?? 0) > 0 && doctrineRegistry.get(id)).map(([id]) => id);
+/** Doctrine FAMILIES with at least one win — 'Three Schools' coverage. */
+const doctrineFamiliesWon = (s: SaveData): Set<DoctrineFamily> =>
+  new Set(doctrinesWon(s).map((id) => doctrineRegistry.get(id)!.family));
+/** The account's highest doctrine mastery rank (0..DOCTRINE_RANK_MAX), any doctrine. */
+const maxDoctrineRank = (s: SaveData): number =>
+  Math.max(0, ...doctrineRegistry.ids().filter((id) => id !== 'none')
+    .map((id) => doctrineRank(id, s.stats.doctrineWins[id] ?? 0, s.stats.doctrineBestWave[id] ?? 0)));
 const towerUse = (s: SaveData, k: TowerKind): number => s.stats.towerUsage[k] ?? 0;
 const heroUse = (s: SaveData, k: string): number => s.stats.heroUsage[k] ?? 0;
 const towersOwned = (s: SaveData): number => TOWER_ORDER.filter((k) => (TOWER_DEFS[k].unlockShards ?? 0) <= 0 || (s.towerUnlocked ?? []).includes(k)).length;
@@ -109,6 +121,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     test: (c) => c.save.stats.rushBossKills >= n,
     progress: (c) => ({ cur: c.save.stats.rushBossKills, max: n }),
   })),
+
+  // ── Doctrines (docs/DOCTRINES.md — the run-commitment mastery axis) ──
+  { id: 'doctrine_first', name: 'Sworn In', desc: 'Win a run under any Doctrine.', reward: 15, test: (c) => doctrinesWon(c.save).length >= 1 },
+  { id: 'doctrine_breadth', name: 'Doctrinaire', desc: 'Win under five different Doctrines.', reward: 40, test: (c) => doctrinesWon(c.save).length >= 5, progress: (c) => ({ cur: doctrinesWon(c.save).length, max: 5 }) },
+  { id: 'doctrine_families', name: 'Three Schools', desc: 'Win under a Build doctrine, a Protocol, and a Pact.', reward: 30, test: (c) => doctrineFamiliesWon(c.save).size >= 3, progress: (c) => ({ cur: doctrineFamiliesWon(c.save).size, max: 3 }) },
+  { id: 'doctrine_exemplar', name: 'Exemplar', desc: 'Reach the Exemplar mastery rank with any Doctrine.', reward: 60, test: (c) => maxDoctrineRank(c.save) >= DOCTRINE_RANK_MAX, progress: (c) => ({ cur: maxDoctrineRank(c.save), max: DOCTRINE_RANK_MAX }) },
 
   // ── Champion Contracts (docs/CONTRACTS.md — the weekly constraint board) ──
   { id: 'contract_first', name: 'Under Contract', desc: 'Honour your first Champion Contract.', reward: 15, test: (c) => c.save.contracts.completed.length >= 1 },

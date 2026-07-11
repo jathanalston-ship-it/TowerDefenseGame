@@ -38,6 +38,26 @@ describe('achievements', () => {
     expect(ids).not.toContain('strains50');
   });
 
+  it('doctrine recognition rides the stats ledgers (win, breadth, families, Exemplar)', () => {
+    const base = defaultSave();
+    const withLedgers = (wins: Record<string, number>, bestWave: Record<string, number> = {}) =>
+      ({ ...base, stats: { ...base.stats, doctrineWins: wins, doctrineBestWave: bestWave } });
+    expect(checkAchievements({ save: base }).map((a) => a.id)).not.toContain('doctrine_first');
+    // one Build-family win
+    let ids = checkAchievements({ save: withLedgers({ glasscannon: 1 }) }).map((a) => a.id);
+    expect(ids).toContain('doctrine_first');
+    expect(ids).not.toContain('doctrine_breadth');
+    expect(ids).not.toContain('doctrine_families');
+    // five distinct wins spanning all three families (build + protocol + pact)
+    ids = checkAchievements({ save: withLedgers({ glasscannon: 1, swarm: 2, titan: 1, frenzy: 1, bloodpact: 1 }) }).map((a) => a.id);
+    expect(ids).toContain('doctrine_breadth');
+    expect(ids).toContain('doctrine_families');
+    // 'none' and unknown ids never count as commitment
+    expect(checkAchievements({ save: withLedgers({ none: 50, ghost_doctrine: 9 }) }).map((a) => a.id)).not.toContain('doctrine_first');
+    // Exemplar fires from EITHER rank signal — a deep enough wave with zero wins
+    expect(checkAchievements({ save: withLedgers({}, { titan: 50 }) }).map((a) => a.id)).toContain('doctrine_exemplar');
+  });
+
   it('every achievement id is unique', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);

@@ -89,9 +89,27 @@ diamonds, and any future mode picker read the same number.
   rank 0 keeps every legacy call site's numbers.
 - Ledgers: losses never advance wins, depth always counts, `'none'` is never ledgered.
 
-## 8. Known limitations / future hooks
+## 8. Recognition layer (§collection · §achievements)
+
+- **Doctrines codex** (`core/collection.ts`, category `doctrines`): one entry per real
+  doctrine — `'none'` is no commitment and never rows. A settled run DISCOVERS it
+  (`Tested`); beyond that the codex **tier IS `1 + doctrineRank`** over the stats ledgers
+  (`Untested → Tested → Initiate → Adept → Zealot → Exemplar`) — one ladder shared with the
+  picker, so the codex can never drift. Fresh save = zero runs = tier 0 (golden-safe).
+  Category bonus stays light (Biomass ×1.04 at full mastery, powerWeight 0.02): ranks
+  already pay their own run-end premium — the codex rewards BREADTH, not the same lever
+  twice. Doctrine mastery thereby also feeds Collection Power + the Genome Rank collection
+  axis through the existing pipes.
+- **Achievements** (`state/achievements.ts`): `doctrine_first` (win under any doctrine),
+  `doctrine_breadth` (5 distinct), `doctrine_families` (a Build + a Protocol + a Pact),
+  `doctrine_exemplar` (max mastery rank, either signal). All registry-checked against the
+  ledgers — stale/unknown ledger ids never count.
+
+## 9. Known limitations / future hooks
 
 - Ranks pay economy only (no in-run power) — deliberate: doctrines must stay sidegrades.
-- Boss Rush and Daily currently run doctrine-less (their identity is the fixed challenge);
-  the shared picker makes opting them in a two-line change if the design ever wants it.
-- Doctrine-specific achievements/collection rows are open seams (ledgers already exist).
+- Boss Rush and Daily run doctrine-less **by design** (DIL-recorded): the Daily is ONE
+  worldwide seed — a doctrine choice would fragment the fair board — and Boss Rush's
+  boss-count pacing is its own contract. The shared picker makes opting a mode in a
+  two-line change if the design ever wants it; treat that as a design decision, not an
+  integration gap.

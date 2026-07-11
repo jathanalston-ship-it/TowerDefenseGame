@@ -252,7 +252,12 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   doctrine lane (`doctrineEconomy(id, rank)`), drought+elite hazard axes, shared
   `DoctrinePicker` (family groups, lock seals, rank pips; compact variant replaces the
   Command Center's bare `<select>`), HUD wm-doc chip + Results verdict chip. Adding a
-  doctrine = one data row — every surface derives. doctrines.test (13) + stats/director tests
+  doctrine = one data row — every surface derives. doctrines.test (13) + stats/director tests.
+  **Recognition layer** (2026-07 follow-up): `doctrines` Bio-Dex codex whose tier IS
+  1 + the live mastery rank (one ladder, Untested→Exemplar; light Biomass bonus — ranks
+  already pay their own premium) + 4 achievements (first win / 5 distinct / all three
+  families / Exemplar), all off the existing ledgers; the deliberate Daily+Rush
+  doctrine-less choice is DIL-recorded as a design decision
 - ✅ **Campaign EVENTS** (`core/campaignEvents.ts`, CAMPAIGN-EVENTS.md) — the authoring SEAM that ends
   "every stage is the same board with bigger numbers." A `CampaignEventDef` registry (9 defs, 4
   archetypes: **eliteRush / gauntlet / cache / mutation**) that `generateStage` samples deterministically

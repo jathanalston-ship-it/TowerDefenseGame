@@ -12,6 +12,7 @@ import { cosmeticRegistry } from './cosmetics';
 import { wardrobeRegistry } from './wardrobe';
 import { mulliganRegistry } from './mulligan';
 import { ALL_QUESTS, allMissions } from './quests';
+import { DOCTRINE_RANK_MAX, doctrineRegistry } from './doctrines';
 import { validateEffects } from './validate';
 
 const freshCtx = (): CollectionContext => ({ stats: defaultLifetimeStats(), ownedDefIds: new Set(), bestWave: 0, bossesSlain: new Set(), megaSlain: new Set(), megaPerfect: new Set(), megaSpeed: new Set(), biomesSeen: new Set(), cosmeticsOwned: new Set(), wardrobeOwned: new Set(), mulliganDex: {}, mulliganOrganisms: {}, questCompletions: {}, missionsDone: new Set() });
@@ -22,6 +23,10 @@ function fullCtx(): CollectionContext {
   for (const k of TOWER_ORDER) stats.towerUsage[k] = 10_000;
   for (const id of HERO_IDS) stats.heroUsage[id] = 10_000;
   stats.uniqueCards = cardRegistry.ids();
+  for (const id of doctrineRegistry.ids()) {
+    if (id === 'none') continue;
+    stats.doctrineRuns[id] = 30; stats.doctrineWins[id] = 30; stats.doctrineBestWave[id] = 60; // Exemplar on both signals
+  }
   const megaIds = new Set(megaBossRegistry.ids());
   return { stats, ownedDefIds: new Set(ALL_ITEMS.map((i) => i.id)), bestWave: 99, bossesSlain: new Set(Object.keys(CHASSIS)), megaSlain: megaIds, megaPerfect: megaIds, megaSpeed: megaIds, biomesSeen: new Set(BIOMES.map((b) => b.id)), cosmeticsOwned: new Set(cosmeticRegistry.ids()), wardrobeOwned: new Set(wardrobeRegistry.ids()), mulliganDex: Object.fromEntries(mulliganRegistry.ids().map((id) => [id, 'ascendant' as const])), mulliganOrganisms: Object.fromEntries(TOWER_ORDER.map((k) => [k, { active: true, locked: true }])), questCompletions: Object.fromEntries(ALL_QUESTS.map((q) => [q.id, 3])), missionsDone: new Set(allMissions().map((m) => m.id)) };
 }
@@ -29,9 +34,9 @@ function fullCtx(): CollectionContext {
 describe('collection layer', () => {
   it('enumerates straight from the registries (scales with content)', () => {
     const v = collectionView(freshCtx());
-    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + wardrobeRegistry.size + mulliganRegistry.size + TOWER_ORDER.length + ALL_QUESTS.length + allMissions().length;
+    const expectedTotal = enemyRegistry.size + Object.keys(CHASSIS).length + megaBossRegistry.size + towerRegistry.size + heroRegistry.size + cardRegistry.size + ALL_ITEMS.length + BIOMES.length + chestRegistry.size + cosmeticRegistry.size + wardrobeRegistry.size + mulliganRegistry.size + TOWER_ORDER.length + ALL_QUESTS.length + allMissions().length + (doctrineRegistry.size - 1); // -1: 'none' is no commitment, never a codex row
     expect(v.total).toBe(expectedTotal);
-    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'towerSkins', 'heroSkins', 'wardrobeArena', 'wardrobeAudio', 'wardrobeInterface', 'wardrobeIdentity', 'quests', 'missions', 'mulligans', 'mulliganOrganisms']);
+    expect(v.categories.map((c) => c.id)).toEqual(['enemies', 'bosses', 'megaBosses', 'towers', 'heroes', 'cards', 'equipment', 'biomes', 'chests', 'towerSkins', 'heroSkins', 'wardrobeArena', 'wardrobeAudio', 'wardrobeInterface', 'wardrobeIdentity', 'quests', 'missions', 'doctrines', 'mulligans', 'mulliganOrganisms']);
   });
 
   it('the codex enumerates the recent content (Coil/Siphon towers · Revenant/Vitriol heroes · Deep-Strain cards · Mega Bosses)', () => {
@@ -80,6 +85,19 @@ describe('collection layer', () => {
     const hi = collectionView(ctx).categories.find((c) => c.id === 'enemies')!.entries.find((e) => e.id === 'runner')!;
     expect(lo.tier).toBe(1);
     expect(hi.tier).toBe(hi.maxTier);
+  });
+
+  it('doctrine tiers ARE the live mastery rank (one ladder — codex can never drift)', () => {
+    const ctx = freshCtx();
+    const doctrines = () => collectionView(ctx).categories.find((c) => c.id === 'doctrines')!;
+    expect(doctrines().entries.every((e) => e.tier === 0 && e.tierLabel === 'Untested')).toBe(true); // fresh
+    expect(doctrines().entries.some((e) => e.id === 'none')).toBe(false); // no commitment ⇒ no row
+    ctx.stats.doctrineRuns.glasscannon = 2; // ran it, never won, shallow — discovered, unranked
+    expect(doctrines().entries.find((e) => e.id === 'glasscannon')).toMatchObject({ tier: 1, tierLabel: 'Tested' });
+    ctx.stats.doctrineWins.glasscannon = 3; // rank 2 on the wins signal
+    expect(doctrines().entries.find((e) => e.id === 'glasscannon')).toMatchObject({ tier: 3, tierLabel: 'Adept' });
+    ctx.stats.doctrineBestWave.glasscannon = 50; // rank 4 on the OTHER signal (whichever is further)
+    expect(doctrines().entries.find((e) => e.id === 'glasscannon')).toMatchObject({ tier: 1 + DOCTRINE_RANK_MAX, tierLabel: 'Exemplar' });
   });
 
   it('card entries surface the permanent Gene level in the LABEL only (completion untouched)', () => {

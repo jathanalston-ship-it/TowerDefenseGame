@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 697 nodes · 1211 edges, built from the live
+> **The project's brain** (docs/DIL.md). 701 nodes · 1226 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,7 +22,7 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · …80 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · `achievement:wave5` · `achievement:extract` · …84 more
 
 ### Power Score Index
 
@@ -117,6 +117,8 @@ graph LR
   system_directives["Weekly Directives"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_contracts["Champion Contracts"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_contracts["Champion Contracts"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_collection["Collections / Codex"] -->|consumes| system_doctrines["Doctrines"]
+  system_achievements["Achievements"] -->|consumes| system_doctrines["Doctrines"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
@@ -389,6 +391,8 @@ graph LR
   system_contracts["Champion Contracts"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_contracts["Champion Contracts"] -->|provides| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_contracts["Champion Contracts"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
+  system_collection["Collections / Codex"] -->|consumes| system_doctrines["Doctrines"]
+  system_achievements["Achievements"] -->|consumes| system_doctrines["Doctrines"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_battle_pass["Battle Pass (Season)"] -->|consumes| system_premium["Premium Store"]
   system_quests["Quests & Missions"] -->|consumes| system_battle_pass["Battle Pass (Season)"]
@@ -521,7 +525,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…79 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…83 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -769,6 +773,7 @@ _at: src/core/daily.ts, src/core/dailyModifiers.ts, src/ui/DailyScreen.tsx_
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - documentedBy ← `guide:daily`
   - testedBy ← `test:src/core/daily.test.ts`
+  - conflictsWith ← `system:doctrines` — DELIBERATE: Daily runs doctrine-less (ONE worldwide seed — a doctrine choice would fragment the fair board) and Boss Rush too (boss-count pacing is its own contract); extending the run-config axis beyond Campaign/Infinite is a future design decision, not an integration gap
 
 ### `system:mulligans` — Mulligan System
 
@@ -1060,6 +1065,7 @@ _at: src/core/collection.ts, src/ui/CollectionPanel.tsx_
   - dependsOn → `system:content-infra`
   - dependsOn → `system:stats`
   - provides → `concept:power-score` — completion feeds the collection bucket
+  - consumes → `system:doctrines` — the doctrines codex tier IS 1 + doctrineRank over the stats ledgers ('none' never rows) — one ladder shared with the picker, so never author parallel codex thresholds; fresh save = 0 runs ⇒ tier 0 ⇒ golden-safe
   - requiredBy ← `system:cosmetics`
   - requiredBy ← `system:quests`
   - requiredBy ← `system:profile`
@@ -1155,6 +1161,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - provides → `concept:power-score` — rewards (shards) move Power indirectly
   - consumes → `system:meta-store` — owns save field 'achievements'
   - rewards → `currency:genome-cores` — auto-granted on unlock
+  - consumes → `system:doctrines` — doctrine_first/breadth/families/exemplar read the stats doctrine ledgers registry-checked — stale/unknown ledger ids never count as commitment
   - requiredBy ← `system:profile`
   - contains ← `achievement:tutorial_complete`
   - contains ← `achievement:first_run`
@@ -1167,7 +1174,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…76 more (query: `npm run dil -- node system:achievements`)_
+  - _…80 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -1685,9 +1692,16 @@ _at: src/core/doctrines.ts, src/ui/components/DoctrinePicker.tsx_
   - dependsOn → `system:difficulty`
   - rewards → `currency:gene-essence` — essencePerWave protocols (Corrupted Genome / Overmind) pay at finishRun
   - dependsOn → `concept:progression-gates` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
+  - conflictsWith → `system:daily` — DELIBERATE: Daily runs doctrine-less (ONE worldwide seed — a doctrine choice would fragment the fair board) and Boss Rush too (boss-count pacing is its own contract); extending the run-config axis beyond Campaign/Infinite is a future design decision, not an integration gap
+  - referencedBy ← `achievement:doctrine_first`
+  - referencedBy ← `achievement:doctrine_breadth`
+  - referencedBy ← `achievement:doctrine_families`
+  - referencedBy ← `achievement:doctrine_exemplar`
   - documentedBy ← `doc:DOCTRINES.md`
   - documentedBy ← `doc:MODE-IDENTITY.md`
   - testedBy ← `test:src/core/doctrines.test.ts`
+  - consumedBy ← `system:collection` — the doctrines codex tier IS 1 + doctrineRank over the stats ledgers ('none' never rows) — one ladder shared with the picker, so never author parallel codex thresholds; fresh save = 0 runs ⇒ tier 0 ⇒ golden-safe
+  - consumedBy ← `system:achievements` — doctrine_first/breadth/families/exemplar read the stats doctrine ledgers registry-checked — stale/unknown ledger ids never count as commitment
 
 ### `system:difficulty` — Difficulty
 
@@ -2626,7 +2640,7 @@ _at: site/guides.ts → /guides/prestige/_
   - partOf → `system:website`
   - documents → `system:prestige`
 
-## Achievements (85)
+## Achievements (89)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -2662,6 +2676,10 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:roulette_50` — Absorb 50 lifetime Bio-Spores. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:boss-rush`)_
 - `achievement:rush_bosses50` — Defeat 50 bosses in Boss Rush (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:boss-rush`)_
 - `achievement:rush_bosses250` — Defeat 250 bosses in Boss Rush (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:boss-rush`)_
+- `achievement:doctrine_first` — Win a run under any Doctrine. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:doctrines`)_
+- `achievement:doctrine_breadth` — Win under five different Doctrines. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:doctrines`)_
+- `achievement:doctrine_families` — Win under a Build doctrine, a Protocol, and a Pact. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:doctrines`)_
+- `achievement:doctrine_exemplar` — Reach the Exemplar mastery rank with any Doctrine. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:doctrines`)_
 - `achievement:contract_first` — Honour your first Champion Contract. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:contracts`)_
 - `achievement:contract_12` — Honour 12 Champion Contracts (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:contracts`)_
 - `achievement:perfect_week` — Honour all three Champion Contracts in one week. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:contracts`)_

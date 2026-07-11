@@ -426,7 +426,7 @@ export const SYSTEMS: SystemDef[] = [
     id: 'doctrines', name: 'Doctrines', purpose: 'Exclusive run-start commitments in three families (build / world-warping protocol / PACT) with campaign unlock gates, mastery ranks over the doctrineWins/BestWave ledgers (+4%/rank run-end premium), and the shared family-grouped picker — adding a doctrine is one data row.',
     files: ['src/core/doctrines.ts', 'src/ui/components/DoctrinePicker.tsx'],
     dependsOn: ['content-infra', 'gene-cards', 'difficulty'], powerScore: null, save: [], tutorial: [], help: [],
-    hud: ['wm-doc chip (run HUD wave module)'], ui: ['DoctrinePicker (Infinite terminal + Command Center)', 'Results verdict chip'], collection: null, achievements: [],
+    hud: ['wm-doc chip (run HUD wave module)'], ui: ['DoctrinePicker (Infinite terminal + Command Center)', 'Results verdict chip'], collection: 'doctrines codex (tier = 1 + mastery rank)', achievements: ['doctrine_first', 'doctrine_breadth', 'doctrine_families', 'doctrine_exemplar'],
     localization: 'inline-en', docs: ['docs/DOCTRINES.md', 'docs/MODE-IDENTITY.md'],
   },
   {

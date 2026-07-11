@@ -1068,7 +1068,7 @@ graph TD
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** `wm-doc chip (run HUD wave module)` · **UI screens:** `DoctrinePicker (Infinite terminal + Command Center)` · `Results verdict chip`
-- **Collection:** — · **Achievements:** —
+- **Collection:** doctrines codex (tier = 1 + mastery rank) · **Achievements:** `doctrine_first` · `doctrine_breadth` · `doctrine_families` · `doctrine_exemplar`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md`
 
