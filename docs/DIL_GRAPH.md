@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 711 nodes · 1245 edges, built from the live
+> **The project's brain** (docs/DIL.md). 711 nodes · 1246 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -113,6 +113,7 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| system_assimilation["Assimilation Index"]
   system_mulligans["Mulligan System"] -->|modifies| system_rendering["Rendering & VFX"]
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
+  system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_genome_rank["Genome Rank (ultimate mastery ladder)"] -->|consumes| system_account_level["Account Level (evergreen meta-progression)"]
   system_mulligans["Mulligan System"] -->|consumes| system_towers["Towers, Stars, Branches, Strain & Codex"]
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
@@ -412,6 +413,7 @@ graph LR
   system_equipment["Equipment & Armory"] -->|modifies| system_rendering["Rendering & VFX"]
   system_onboarding["Tutorials, Help & Onboarding"] -->|triggers| system_audio["Audio"]
   system_bosses["Bosses"] -->|triggers| system_audio["Audio"]
+  system_bosses["Bosses"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mega_bosses["Mega Bosses"] -->|triggers| system_audio["Audio"]
   system_security["Game Action Security Layer"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
@@ -1598,6 +1600,7 @@ _at: src/core/boss.ts_
   - dependsOn → `system:content-infra`
   - consumes → `system:meta-store` — owns save field 'bossesSlain'
   - triggers → `system:audio` — bossPhase event → boss_phase mutation roar (GameView seam; the sim itself only pushes the splice crunch)
+  - modifies → `system:rendering` — chassis SIGNATURES (CHASSIS_IDENTITY/SIGNATURE_OWNER, ownership validator-enforced) ride HudSnapshot: mortarStrikes + nullWells tick like corruptionPools and draw beside them; epithet + MODULE_LABEL kit chips feed the intro card/banner/defeat beat. Reaction true damage intentionally pierces the unstoppable march (same vocabulary as carapace-vs-Shred)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:campaign`
   - requiredBy ← `system:boss-rush`
@@ -1780,7 +1783,7 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/infestationMap.test.ts`
   - testedBy ← `test:src/render/introScenes.test.ts`
   - testedBy ← `test:src/render/livingBattlefield.test.ts`
-  - _…8 more (query: `npm run dil -- node system:rendering`)_
+  - _…9 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 

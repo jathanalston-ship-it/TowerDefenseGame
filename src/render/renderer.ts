@@ -315,6 +315,48 @@ export function drawGame(
     ring(ctx, cp.x, cp.y, cp.r * pulse(t * 1.4, 3, 0.97, 1.02), rgba(hexRgb('#b64dff'), 0.5 * fade), 1.5, [5, 6]);
     ring(ctx, cp.x, cp.y, cp.r * 0.55, rgba(hexRgb('#7a2fae'), 0.3 * fade), 1);
   }
+  // ARTILLERY MORTARFALL reticles (docs/BOSS-DESIGN.md §identity): a target lock blooming over
+  // the guns — the outer ring TIGHTENS as the shell falls and the wash brightens near impact.
+  // The reticle IS the telegraph; spread placement is the counter. Empty array ⇒ zero cost.
+  for (const ms of rs.mortarStrikes) {
+    const k = Math.max(0, Math.min(1, ms.t / 1.15)); // 1 → 0 as impact nears
+    const c = hexRgb('#ff8a3c');
+    ctx.beginPath();
+    ctx.arc(ms.x, ms.y, ms.r, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(c, 0.07 + (1 - k) * 0.13);
+    ctx.fill();
+    ring(ctx, ms.x, ms.y, ms.r, rgba(c, 0.55), 1.5, [6, 5]);
+    const rr = ms.r * (0.3 + k * 0.7); // the closing lock
+    ring(ctx, ms.x, ms.y, rr, rgba(c, 0.9), 2);
+    ctx.strokeStyle = rgba(c, 0.85);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(ms.x - rr * 0.55, ms.y);
+    ctx.lineTo(ms.x + rr * 0.55, ms.y);
+    ctx.moveTo(ms.x, ms.y - rr * 0.55);
+    ctx.lineTo(ms.x, ms.y + rr * 0.55);
+    ctx.stroke();
+  }
+  // CONTROLLER NULL WELLS (docs/BOSS-DESIGN.md §identity): a slow violet vortex that EATS shots
+  // crossing it — counter-rotating arcs + a dark heart read "your fire dies here; find an angle."
+  for (const w of rs.nullWells) {
+    const fade = Math.min(1, w.t / 0.8); // last-second collapse
+    const c = hexRgb('#b48cff');
+    ctx.beginPath();
+    ctx.arc(w.x, w.y, w.r * 0.9, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(hexRgb('#241238'), 0.45 * fade);
+    ctx.fill();
+    ring(ctx, w.x, w.y, w.r, rgba(c, 0.55 * fade), 1.5, [4, 7]);
+    for (let i = 0; i < 3; i++) {
+      const a = t * (1.1 + i * 0.17) * (i % 2 === 0 ? 1 : -1) + (i * Math.PI * 2) / 3;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.r * (0.3 + 0.2 * i), a, a + Math.PI * 1.15);
+      ctx.strokeStyle = rgba(c, (0.5 - i * 0.11) * fade);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    glowDisc(ctx, w.x, w.y, w.r * 0.28 * pulse(t * 2.2, 1, 0.85, 1.15), rgba(c, 0.3 * fade));
+  }
 
   // Blight Sower spore mines (docs/SOWER.md): armed pods dotted on the approach — a growing
   // bud (arm fuse), then a slow pulse with a faint trigger ring. Empty on every other run.

@@ -275,6 +275,8 @@ export interface RenderState {
   enemyShells: EnemyShell[]; // artillery bombardment in flight (drawn as arcing lobs)
   pools: Pool[];
   corruptionPools: { x: number; y: number; r: number; t: number; frac: number }[]; // boss corruptor zones (docs/BOSS-DESIGN.md §siege)
+  mortarStrikes: { x: number; y: number; r: number; t: number; suppress: number }[]; // ARTILLERY signature: reticles counting down to impact (docs/BOSS-DESIGN.md §identity)
+  nullWells: { x: number; y: number; r: number; t: number }[]; // CONTROLLER signature: projectile-swallowing wells
   floats: FloatingText[];
   particles: Particle[];
   heroes: Hero[];
@@ -542,6 +544,10 @@ export class Game {
   private statMegaInterrupts = 0;
   private statMegaSurvived = 0; // mega abilities that COMPLETED against you
   corruptionPools: { x: number; y: number; r: number; t: number; frac: number }[] = []; // boss corruptor zones (docs/BOSS-DESIGN.md §siege; renderer draws them)
+  // Chassis signatures (docs/BOSS-DESIGN.md §identity) — both empty until a signature fires,
+  // so every path below is a no-op cost for boss-less (and pre-signature) runs.
+  mortarStrikes: { x: number; y: number; r: number; t: number; suppress: number }[] = []; // reticles counting down; impact SUPPRESSES towers under them
+  nullWells: { x: number; y: number; r: number; t: number }[] = []; // wells that swallow projectiles crossing them
   private targetRng = (): number => this.rng.next(); // stable closure for 'random' targeting
   private projPool: Projectile[] = [];
   private partPool: Particle[] = [];
@@ -2314,6 +2320,14 @@ export class Game {
       for (const cp of this.corruptionPools) cp.t -= dt;
       this.corruptionPools = this.corruptionPools.filter((cp) => cp.t > 0);
     }
+    // Signature fields (docs/BOSS-DESIGN.md §identity) — both outlive their caster (a landed
+    // reticle still strikes, a well still swallows), so they tick here, not in bossSystem.
+    // Empty on every non-signature run ⇒ zero cost (golden-safe).
+    if (this.mortarStrikes.length > 0) this.mortarStrikeTick(dt);
+    if (this.nullWells.length > 0) {
+      for (const w of this.nullWells) w.t -= dt;
+      this.nullWells = this.nullWells.filter((w) => w.t > 0);
+    }
     if (this.bossCount > 0) this.bossSystem(dt); // no-op cost when no boss is present
       if (this.mega !== null) this.megaBossSystem(dt); // gated: zero cost on every other run
       if (this.mines.length > 0) this.mineSystem(dt); // Blight Sower fields only — empty otherwise
@@ -2526,6 +2540,9 @@ export class Game {
         carapaceT: 0,
         grip: 0,
         burrow: 0,
+        unstop: 0,
+        unstopDR: 0,
+        exposeT: 0,
         visualTier: 0,
         ...(nem ? { nemesis: true, nemesisTier: nem.tier } : {}),
         splitsLeft: splitter ? splitter.generations ?? 1 : 0,
@@ -2596,12 +2613,13 @@ export class Game {
         b.telegraph = null;
       }
 
-      // tick + fire the phase's active modules
+      // tick + fire the phase's active modules — a desperation phase runs the kit HOT
+      // (cadenceMult < 1 — docs/BOSS-DESIGN.md §identity).
       for (const mi of phase.modules) {
         b.moduleCd[mi] -= dt;
         if (b.moduleCd[mi] > 0) continue;
         const m = def.modules[mi];
-        b.moduleCd[mi] = m.cooldown;
+        b.moduleCd[mi] = m.cooldown * (phase.cadenceMult ?? 1);
         switch (m.kind) {
           case 'spawner':
             if (this.enemies.length < PERF.maxEnemies) {
@@ -2707,6 +2725,85 @@ export class Game {
           }
           case 'rally':
             break; // phase-ENTRY behavior — fired by the transition above, never by cooldown
+          // ── Chassis signatures (docs/BOSS-DESIGN.md §identity) ──
+          case 'warcry': {
+            // BRUISER: the pack surges — every living enemy gains timed speed. Counter: slows,
+            // or hold AoE for the stampede. The boss itself rides its own cry.
+            const mult = 1 + (m.frac ?? 0.25);
+            const dur = m.duration ?? 3.5;
+            for (const we of this.enemies) {
+              if (!we.alive) continue;
+              we.hasteT = Math.max(we.hasteT ?? 0, dur);
+              we.hasteMult = Math.max(we.hasteMult ?? 1, mult);
+            }
+            b.telegraph = 'WARCRY';
+            this.floats.push({ x: e.x, y: e.y - 26, text: 'WARCRY!', color: def.color, life: 1 });
+            this.pushSfx('boss');
+            break;
+          }
+          case 'mortarfall': {
+            // ARTILLERY: reticles bloom over the DENSEST guns, then the strikes SUPPRESS
+            // whatever still sits under them. Counter: spread placement (one strike per target
+            // tower — a spread line eats one reticle, a clump eats them all).
+            if (this.towers.length === 0) { b.moduleCd[mi] = 2; break; }
+            const strikes = Math.min(m.amount ?? 3, this.towers.length);
+            // Deterministic target pick: the towers nearest the Nucleus-ward mass of the field —
+            // sort a scratch copy by neighbor density (towers within 2r), densest first.
+            const r = m.radius ?? 70;
+            const r2 = (r * 2) * (r * 2);
+            const ranked = this.towers
+              .map((t) => ({ t, n: this.towers.reduce((a, o) => a + (dist2(t.x, t.y, o.x, o.y) <= r2 ? 1 : 0), 0) }))
+              .sort((a, b2) => b2.n - a.n || a.t.y - b2.t.y);
+            for (let i = 0; i < strikes; i++) {
+              const tgt = ranked[i].t;
+              this.mortarStrikes.push({ x: tgt.x, y: tgt.y, r, t: 1.15, suppress: m.duration ?? 2.6 });
+            }
+            b.telegraph = 'MORTARFALL';
+            this.pushSfx('boss');
+            break;
+          }
+          case 'broodburst': {
+            // SWARMLORD: converts its own HP into a birthing flood — and the tearing leaves it
+            // EXPOSED (bonus damage, like the core-crush grip). Counter: punish the window.
+            const cost = Math.min(e.hp - 1, e.maxHp * (m.frac ?? 0.1));
+            if (cost <= 0 || this.enemies.length >= PERF.maxEnemies) break;
+            e.hp -= cost;
+            b.exposeT = m.duration ?? 3;
+            const n = m.amount ?? 5;
+            for (let i = 0; i < n && this.enemies.length < PERF.maxEnemies; i++) {
+              this.spawnNear(m.addKind ?? 'runner', e.x, e.y);
+            }
+            b.telegraph = 'BROODBURST';
+            e.hitFlash = FX.hitFlash;
+            this.floats.push({ x: e.x, y: e.y - 26, text: 'BROODBURST!', color: def.color, life: 1 });
+            this.pushSfx('splice');
+            break;
+          }
+          case 'nullwell': {
+            // CONTROLLER: a well between itself and the nearest tower that SWALLOWS projectiles
+            // crossing it. Counter: fire from new angles / reposition. Two wells max — fairness.
+            if (this.nullWells.length >= 2) { b.moduleCd[mi] = 3; break; }
+            let wx = e.x;
+            let wy = Math.min(HEIGHT - 60, e.y + 90);
+            let best = Infinity;
+            for (const wt of this.towers) {
+              const wd2 = dist2(e.x, e.y, wt.x, wt.y);
+              if (wd2 < best) { best = wd2; wx = (e.x + wt.x) / 2; wy = (e.y + wt.y) / 2; }
+            }
+            this.nullWells.push({ x: wx, y: wy, r: m.radius ?? 80, t: m.duration ?? 5 });
+            b.telegraph = 'NULL WELL';
+            this.pushSfx('dissolve');
+            break;
+          }
+          case 'unstoppable':
+            // JUGGERNAUT: the march — slow-immune and damage-reduced for the window. Counter:
+            // spend burst BEFORE or AFTER, never during. (applyDamage + the slow fold honor it.)
+            b.unstop = m.duration ?? 4;
+            b.unstopDR = m.frac ?? 0.35;
+            b.telegraph = 'UNSTOPPABLE';
+            e.hitFlash = FX.hitFlash;
+            this.pushSfx('boss');
+            break;
         }
       }
       if (b.carapaceT > 0) {
@@ -2745,6 +2842,14 @@ export class Game {
         b.charge = Math.max(0, b.charge - dt); // count the dash window down
         if (b.charge > 0 && b.channel <= 0 && b.shielded <= 0) b.telegraph = 'CHARGE';
       }
+      // Signature windows (docs/BOSS-DESIGN.md §identity): the juggernaut march and broodburst
+      // exposure count down here; applyDamage + the movement slow fold CONSUME them.
+      if (b.unstop > 0) {
+        b.unstop = Math.max(0, b.unstop - dt);
+        if (b.unstop > 0 && b.channel <= 0 && b.shielded <= 0) b.telegraph = 'UNSTOPPABLE';
+        else if (b.unstop <= 0) b.unstopDR = 0; // the march ends — soft again
+      }
+      if (b.exposeT > 0) b.exposeT = Math.max(0, b.exposeT - dt);
       if (phase.speedMult && b.enrage === 0) e.speed = CHASSIS[def.chassis].speed * phase.speedMult;
     }
   }
@@ -2773,6 +2878,28 @@ export class Game {
     const r2 = radius * radius;
     for (const t of this.towers) {
       if (dist2(boss.x, boss.y, t.x, t.y) <= r2) t.disabledUntil = Math.max(t.disabledUntil, this.time + duration);
+    }
+  }
+
+  /** ARTILLERY MORTARFALL reticles (docs/BOSS-DESIGN.md §identity): each counts down, then the
+   *  shell LANDS — every tower still under the blast is suppressed for the strike's window. The
+   *  reticle IS the telegraph; guns can't move, so the counter is pre-spread placement. */
+  private mortarStrikeTick(dt: number): void {
+    let landed = false;
+    for (const s of this.mortarStrikes) {
+      s.t -= dt;
+      if (s.t > 0) continue;
+      landed = true;
+      const r2 = s.r * s.r;
+      for (const t of this.towers) {
+        if (dist2(s.x, s.y, t.x, t.y) <= r2) t.disabledUntil = Math.max(t.disabledUntil, this.time + s.suppress);
+      }
+      this.spawnParticles(s.x, s.y, PARTICLE.ember, undefined, 1.5);
+      this.floats.push({ x: s.x, y: s.y - 14, text: 'IMPACT!', color: '#ff8a3c', life: 0.9 });
+    }
+    if (landed) {
+      this.pushSfx('breach');
+      this.mortarStrikes = this.mortarStrikes.filter((s) => s.t > 0);
     }
   }
 
@@ -2818,7 +2945,7 @@ export class Game {
         boss: {
           defId: def.id, name: def.name, phase: 0, phases: def.phases.length,
           moduleCd: def.modules.map((m) => m.cooldown * 0.6), shielded: 0, enrage: 0, channel: 0, charge: 0,
-          carapace: 0, carapaceT: 0, grip: 0, burrow: 0, visualTier: 0, splitsLeft: b.splitsLeft - 1, telegraph: null,
+          carapace: 0, carapaceT: 0, grip: 0, burrow: 0, unstop: 0, unstopDR: 0, exposeT: 0, visualTier: 0, splitsLeft: b.splitsLeft - 1, telegraph: null,
         },
       });
     }
@@ -4186,6 +4313,21 @@ export class Game {
         }
         continue;
       }
+      // CONTROLLER NULL WELLS (docs/BOSS-DESIGN.md §identity): a live shot crossing a well is
+      // SWALLOWED — it winks out instead of landing. Counter: fire from angles the wells don't
+      // cover (beams ignore them — texture, not a hard wall). Gated on wells existing ⇒ the
+      // base projectile path never pays for the check (golden-safe).
+      if (this.nullWells.length > 0) {
+        let eaten = false;
+        for (const w of this.nullWells) {
+          if (dist2(p.x, p.y, w.x, w.y) <= w.r * w.r) { eaten = true; break; }
+        }
+        if (eaten) {
+          this.spawnParticles(p.x, p.y, PARTICLE.disrupt, '#b48cff', 0.6);
+          p.alive = false;
+          continue;
+        }
+      }
       if (p.behavior === 'homing' || p.behavior === 'parasite') {
         const target = this.enemyById.get(p.targetId); // O(1) homing lookup
         if (!target || !target.alive) {
@@ -4393,6 +4535,7 @@ export class Game {
         this.applyInfectionDamage(e, e.infection * STATUS.infectionDpsPerStack * this.mods.parasiteInfectionMult * dt);
       }
       if (e.disrupt > 0) e.disrupt = Math.max(0, e.disrupt - dt); // Neural slow + vulnerability decays
+      if (e.hasteT !== undefined && e.hasteT > 0) e.hasteT = Math.max(0, e.hasteT - dt); // warcry surge fades
       // Universal status framework: tick any generic effects (burn/poison/regen/…) and
       // apply this tick's deltas. Inert on the historical path (no framework statuses).
       // DoT is applied precisely (no per-tick floor) and scaled by vulnerability.
@@ -4469,6 +4612,9 @@ export class Game {
       }
       if (slow > 0.85) slow = 0.85;
       if (hardStop) slow = 1; // hard control (Stun/Freeze) pins the body; Fear keeps it RUNNING
+      // JUGGERNAUT UNSTOPPABLE window (docs/BOSS-DESIGN.md §identity): the march shrugs every
+      // slow, stun and interrupt — the counter is TIMING damage, not control. Null boss ⇒ no-op.
+      if (e.boss !== null && e.boss.unstop > 0) { slow = 0; hardStop = false; disabled = false; }
       // SIEGING (docs/HIVE-SIEGE.md): the Hive Core is the target. Hold the crust ring, spread
       // along it, and run the attack loop until killed — enemies never despawn at a line.
       if (e.sieging) {
@@ -4521,9 +4667,12 @@ export class Game {
       if (e.boss !== null && e.boss.burrow > 0) { e.windup = -1; continue; }
       // Boss charger: a telegraphed dash multiplies movement this tick (null boss ⇒ ×1 ⇒ golden-safe).
       const chargeMult = e.boss && e.boss.charge > 0 ? BOSS.chargeSpeedMult : 1;
+      // BRUISER WARCRY haste (docs/BOSS-DESIGN.md §identity): a timed pack-wide surge. Undefined
+      // on every enemy the cry never touched ⇒ ×1 ⇒ golden-safe.
+      const haste = e.hasteT !== undefined && e.hasteT > 0 ? e.hasteMult ?? 1 : 1;
       // Biome hazard speed pulse (e.g. Firestorm) — transient, on top of the speed baked at spawn.
       // 1 when no hazard is active / Stage mode ⇒ golden-safe.
-      const step = e.speed * chargeMult * this.biomeHazardEnemySpeed() * this.megaFx.enemyHaste * (1 - slow) * dt;
+      const step = e.speed * chargeMult * haste * this.biomeHazardEnemySpeed() * this.megaFx.enemyHaste * (1 - slow) * dt;
 
       // 1. seek
       let vx: number;
@@ -5469,7 +5618,8 @@ export class Game {
           gameEvents.emit('enemyKilled', { id: e.id, kind: e.kind, x: e.x, y: e.y, bounty: e.bounty, byTower: e.lastHitKind, isBoss: e.boss !== null });
         }
         if (e.boss && gameEvents.hasListeners('bossKilled')) {
-          gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y });
+          const kdef = bossDef(e.boss.defId) ?? this.procBosses.get(e.boss.defId);
+          gameEvents.emit('bossKilled', { defId: e.boss.defId, name: e.boss.name, x: e.x, y: e.y, epithet: kdef?.epithet });
         }
         if (this.relicHooks.length) this.fireRelicHooks('enemyKilled', e); // relic battlefield rules
         if (this.mods.killFractureSplash > 0) { // Viral Payload (gene card) — the kill seeds Fracture nearby
@@ -5872,6 +6022,10 @@ export class Game {
     if (e.boss && e.boss.burrow > 0) return 0; // submerged — beneath the field, untargetable
     // Core-crush counterplay: a gripping boss is EXPOSED — hits land harder, so burst breaks it off.
     if (e.boss && e.boss.grip > 0) raw *= BOSS.gripExposeMult;
+    // Signature windows (docs/BOSS-DESIGN.md §identity): broodburst tearing leaves the swarmlord
+    // EXPOSED (same punish math as the grip); the juggernaut march SHRUGS its authored fraction.
+    if (e.boss && e.boss.exposeT > 0) raw *= BOSS.gripExposeMult;
+    if (e.boss && e.boss.unstop > 0) raw *= 1 - e.boss.unstopDR;
     const broken = (this.armorBreakUntil.get(e.id) ?? 0) > this.time;
     // Boss carapace: heavy bonus armor while the window is up — but a Shred (broken) cracks it too,
     // so Fracture answers the wall. Zero on every normal enemy ⇒ golden-safe.
@@ -6304,6 +6458,8 @@ export class Game {
       enemyShells: this.enemyShells,
       pools: this.pools,
       corruptionPools: this.corruptionPools,
+      mortarStrikes: this.mortarStrikes,
+      nullWells: this.nullWells,
       floats: this.floats,
       particles: this.particles,
       heroes: this.heroes,
@@ -6586,8 +6742,13 @@ export class Game {
       if (!worst || e.hp / e.maxHp < worst.hp / worst.maxHp) worst = e;
     }
     if (!worst || !worst.boss) return null;
+    // Identity fields (docs/BOSS-DESIGN.md §identity): the epithet + kit come off the def —
+    // authored bosses carry an authored epithet; procedural ones derive theirs at assembly.
+    const def = bossDef(worst.boss.defId) ?? this.procBosses.get(worst.boss.defId);
     return {
       name: worst.boss.name,
+      epithet: def?.epithet ?? '',
+      kit: def?.modules.map((m) => m.kind) ?? [],
       hpPct: Math.max(0, worst.hp / worst.maxHp),
       phase: worst.boss.phase + 1,
       phases: worst.boss.phases,

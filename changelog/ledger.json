@@ -1,6 +1,6 @@
 {
-  "lastSha": "206c33171fec1ce93fa95a8d2c9ce73434a9050c",
-  "commitsSinceDraft": 4,
+  "lastSha": "894e529bce19368e2816ea0186165ae324ced847",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -1767,6 +1767,22 @@
         {
           "cat": "Gameplay",
           "text": "Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Close the direct shard-lane leak — maxed units convert to Gene Essence everywhere"
+        },
+        {
+          "cat": "Website",
+          "text": "Site overhaul: weekly-game content wave — 6 new guides, Doctrine Codex, refreshed shell"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Molt Vows: the prestige wager — cycle-long handicaps that multiply the next mint"
+        },
+        {
+          "cat": "Bosses",
+          "text": "Bosses: chassis identity depth — signature verbs, epithets, desperation profiles"
         }
       ]
     }
@@ -2341,6 +2357,14 @@
       "needsReview": false
     },
     {
+      "sha": "249399078dc0018c6327c83643e60bf3ef7f48f5",
+      "date": "2026-07-10",
+      "cat": "Bug Fixes",
+      "text": "Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap",
+      "internal": false,
+      "needsReview": false
+    },
+    {
       "sha": "f42d2ac1f7a8892f056fdb8596da9e55a73042fd",
       "date": "2026-07-11",
       "cat": "Music",
@@ -2353,6 +2377,38 @@
       "date": "2026-07-11",
       "cat": "Gameplay",
       "text": "Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "500cf474d9c8733805c00668771e65a43b146b1d",
+      "date": "2026-07-11",
+      "cat": "Bug Fixes",
+      "text": "Close the direct shard-lane leak — maxed units convert to Gene Essence everywhere",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "cd042a351e4fd4a055c40ec78fb77864ed3f13af",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Site overhaul: weekly-game content wave — 6 new guides, Doctrine Codex, refreshed shell",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6a9252b04b37d5e560d9a9507aa40e916aa7db0d",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Molt Vows: the prestige wager — cycle-long handicaps that multiply the next mint",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "894e529bce19368e2816ea0186165ae324ced847",
+      "date": "2026-07-11",
+      "cat": "Bosses",
+      "text": "Bosses: chassis identity depth — signature verbs, epithets, desperation profiles",
       "internal": false,
       "needsReview": false
     }

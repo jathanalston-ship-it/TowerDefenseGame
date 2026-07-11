@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Rng } from './rng';
-import { assembleBoss, bossDef, bossProblems, campaignBossFor, CAMPAIGN_BOSSES, BOSS_DEFS } from './boss';
+import { assembleBoss, bossDef, bossProblems, campaignBossFor, epithetFor, CAMPAIGN_BOSSES, BOSS_DEFS, CHASSIS_IDENTITY, MODULE_LABEL, SIGNATURE_OWNER, SIGNATURE_TL } from './boss';
+import type { BossChassis } from './boss';
 
 const mk = (seed: number): (() => number) => {
   const r = new Rng(seed);
@@ -77,5 +78,66 @@ describe('campaign boss line (docs/BOSS-DESIGN §4 — Milestones 1–3)', () =>
     expect(campaignBossFor(20)!.modules.some((m) => m.kind === 'carapace')).toBe(true); // Chitin Colossus
     expect(campaignBossFor(25)!.modules.some((m) => m.kind === 'splitter')).toBe(true); // Mitotic Horror
     expect(campaignBossFor(30)!.phases.length).toBe(4); // The Purge Engine — the full siege arc (desperation CRUSH finale)
+  });
+});
+
+describe('chassis identity (docs/BOSS-DESIGN.md §identity)', () => {
+  it('signatures ↔ chassis form a bijection, and CHASSIS_IDENTITY agrees with SIGNATURE_OWNER', () => {
+    const owners = Object.values(SIGNATURE_OWNER);
+    expect(new Set(owners).size).toBe(5); // five signatures, five distinct owners
+    for (const [chassis, id] of Object.entries(CHASSIS_IDENTITY)) {
+      expect(SIGNATURE_OWNER[id.signature.kind]).toBe(chassis as BossChassis);
+      expect(bossProblems({ ...bossDef('progenitor')!, chassis: chassis as BossChassis, modules: [id.signature], phases: [{ threshold: 1, modules: [0] }] })).toEqual([]);
+    }
+  });
+
+  it('bossProblems refuses a def wearing another body plan’s signature', () => {
+    const base = bossDef('brood_cyst')!; // swarmlord
+    const stolen = { ...base, modules: [...base.modules, CHASSIS_IDENTITY.juggernaut.signature] };
+    expect(bossProblems(stolen)).toContain('unstoppable is the juggernaut signature — a swarmlord cannot field it');
+  });
+
+  it('from SIGNATURE_TL the assembled kit anchors on the signature, and desperation fields it', () => {
+    for (const seed of [3, 7, 11, 42]) {
+      const b = assembleBoss(mk(seed), 12); // TL 12 ⇒ 3 phases ⇒ a desperation finale exists
+      const sig = CHASSIS_IDENTITY[b.chassis].signature.kind;
+      expect(b.modules[0].kind).toBe(sig); // the signature anchors the composition
+      const last = b.phases[b.phases.length - 1];
+      expect(last.modules).toContain(0);
+      expect(last.cadenceMult).toBe(CHASSIS_IDENTITY[b.chassis].desperation.cadenceMult); // runs the kit HOT
+      expect(bossProblems(b)).toEqual([]);
+    }
+  });
+
+  it('below SIGNATURE_TL no signature appears (early bosses stay teachable)', () => {
+    for (const seed of [3, 7, 11, 42]) {
+      const b = assembleBoss(mk(seed), SIGNATURE_TL - 2);
+      expect(b.modules.some((m) => SIGNATURE_OWNER[m.kind] !== undefined)).toBe(false);
+    }
+  });
+
+  it('every boss carries an epithet — authored bosses author it, assembly derives it from the kit', () => {
+    for (const d of Object.values(BOSS_DEFS)) expect(d.epithet).toBeTruthy();
+    expect(assembleBoss(mk(9), 20).epithet).toBeTruthy();
+    // Priority: the signature names the boss before support verbs do.
+    expect(epithetFor('juggernaut', [
+      { kind: 'healer', cooldown: 5, amount: 50, radius: 100 },
+      { kind: 'unstoppable', cooldown: 15, duration: 4, frac: 0.35 },
+    ])).toBe('the Inevitable March');
+    // No kit match ⇒ the chassis creed stands in (never an empty byline).
+    expect(epithetFor('bruiser', [])).toBe(CHASSIS_IDENTITY.bruiser.creed);
+  });
+
+  it('cadenceMult is clamped to the fairness band [0.4, 1]', () => {
+    const base = bossDef('worldbreaker')!;
+    expect(base.phases[base.phases.length - 1].cadenceMult).toBeLessThan(1); // the authored finale runs hot
+    const tooHot = { ...base, phases: base.phases.map((p, i) => (i === 0 ? { ...p, cadenceMult: 0.1 } : p)) };
+    expect(bossProblems(tooHot)).toContain('cadenceMult must sit in [0.4, 1] (hotter than 0.4 is a fairness break)');
+  });
+
+  it('MODULE_LABEL names every module kind (kit chips can never render blank)', () => {
+    for (const [k, v] of Object.entries(MODULE_LABEL)) {
+      expect(v.length, `label for ${k}`).toBeGreaterThan(0);
+    }
   });
 });

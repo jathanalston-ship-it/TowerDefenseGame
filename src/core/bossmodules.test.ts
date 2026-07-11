@@ -189,3 +189,131 @@ describe('siege behaviors', () => {
     expect(bossProblems(siegeBoss([{ kind: 'corecrush', cooldown: 10, duration: 4 } as BossModule])).length).toBeGreaterThan(0);
   });
 });
+
+// ── Chassis signatures (docs/BOSS-DESIGN.md §identity) — each verb, executed in the sim ────────
+
+function sigBoss(chassis: BossDef['chassis'], modules: BossModule[]): BossDef {
+  return {
+    id: `sig_boss_${seq++}`, name: 'Signature Boss', chassis, hpMult: 4, radius: 34,
+    color: '#ffffff', bounty: 100, damage: 10, modules,
+    phases: [{ threshold: 1, modules: modules.map((_, i) => i) }], modifiers: [],
+  };
+}
+
+describe('chassis signature behaviors', () => {
+  it('warcry: the pack gains a timed speed surge, and it FADES', () => {
+    const g = new Game(4, NO_META);
+    g.startWave();
+    g.spawnBoss(sigBoss('bruiser', [{ kind: 'warcry', cooldown: 8, duration: 1, frac: 0.3 }]));
+    // First cast lands at 0.6×cooldown ≈ 4.8s — by then the wave has real bodies on the field.
+    for (let i = 0; i < 60 * 5; i++) g.advance(SIM_DT);
+    const hasted = g.enemies.filter((e) => e.alive && (e.hasteT ?? 0) > 0);
+    expect(hasted.length).toBeGreaterThan(0);
+    expect(hasted[0].hasteMult).toBeCloseTo(1.3, 5);
+    for (let i = 0; i < 90; i++) g.advance(SIM_DT); // 1.5s — past the 1s surge
+    expect(g.enemies.every((e) => (e.hasteT ?? 0) === 0)).toBe(true); // the cry faded before the next
+  });
+
+  it('mortarfall: reticles bloom ON the guns, then the landed strike SUPPRESSES them', () => {
+    const g = new Game(4, NO_META);
+    g.placeTower('needle', towerSlots[0].x, towerSlots[0].y);
+    const tower = g.towers[0];
+    g.startWave();
+    g.spawnBoss(sigBoss('artillery', [{ kind: 'mortarfall', cooldown: 2, amount: 2, radius: 70, duration: 2.5 }]));
+    let sawReticle = false;
+    for (let i = 0; i < 60 * 4; i++) {
+      g.advance(SIM_DT);
+      if (g.mortarStrikes.some((s) => Math.hypot(s.x - tower.x, s.y - tower.y) < 1)) sawReticle = true;
+    }
+    expect(sawReticle).toBe(true); // the lock painted the densest gun
+    expect(tower.disabledUntil).toBeGreaterThan(g.time); // the strike landed — suppressed
+  });
+
+  it('broodburst: spends its own HP to birth adds and leaves the body EXPOSED', () => {
+    const g = new Game(4, NO_META);
+    g.startWave();
+    g.spawnBoss(sigBoss('swarmlord', [{ kind: 'broodburst', cooldown: 30, amount: 5, frac: 0.1, duration: 2, addKind: 'runner' }]));
+    const boss = g.enemies.find((e) => e.boss)!;
+    const before = g.enemies.length;
+    for (let i = 0; i < 60 * 19; i++) g.advance(SIM_DT); // first cast at 0.6×30 = 18s
+    expect(boss.hp).toBeLessThan(boss.maxHp); // the tearing has a price
+    expect(g.enemies.length).toBeGreaterThanOrEqual(before + 5);
+    let exposedSeen = boss.boss!.exposeT > 0;
+    for (let i = 0; i < 60 * 3 && !exposedSeen; i++) { g.advance(SIM_DT); exposedSeen = boss.boss!.exposeT > 0; }
+    expect(exposedSeen).toBe(true);
+  });
+
+  it('nullwell: wells SWALLOW crossing projectiles (the boss walks untouched), capped at two', () => {
+    // Control first: in this exact setup (boss parked beside the gun, heroes benched) the
+    // needle LANDS — so a frozen HP bar below is the wells' doing, not a vacuous test.
+    seq = 40; // identical boss ids/names across both runs — only the module differs
+    const control = new Game(7, NO_META);
+    control.placeTower('needle', towerSlots[0].x, towerSlots[0].y);
+    control.startWave();
+    control.spawnBoss(sigBoss('controller', [{ kind: 'rally', cooldown: 999, amount: 4 }])); // never fires
+    const cBoss = control.enemies.find((e) => e.boss)!;
+    cBoss.x = towerSlots[0].x;
+    cBoss.y = towerSlots[0].y - 120;
+    for (const h of control.heroes) { h.down = true; h.respawn = 999; } // only PROJECTILES may touch it
+    for (let i = 0; i < 60 * 3; i++) control.advance(SIM_DT);
+    expect(cBoss.hp).toBeLessThan(cBoss.maxHp); // the needle lands
+
+    seq = 40;
+    const g = new Game(7, NO_META);
+    g.placeTower('needle', towerSlots[0].x, towerSlots[0].y);
+    g.startWave();
+    g.spawnBoss(sigBoss('controller', [{ kind: 'nullwell', cooldown: 1, radius: 9999, duration: 99 }]));
+    const boss = g.enemies.find((e) => e.boss)!;
+    boss.x = towerSlots[0].x;
+    boss.y = towerSlots[0].y - 120;
+    for (const h of g.heroes) { h.down = true; h.respawn = 999; }
+    let guard = 0;
+    while (g.nullWells.length === 0 && guard++ < 600) g.advance(SIM_DT); // ≤10s to the first cast
+    expect(g.nullWells.length).toBeGreaterThan(0);
+    const hpAtWell = boss.hp; // (a shot may land in the pre-well window — that's the fair fight)
+    for (let i = 0; i < 60 * 3; i++) g.advance(SIM_DT);
+    expect(boss.hp).toBe(hpAtWell); // a full-field well: every shot died crossing it
+    expect(g.nullWells.length).toBeLessThanOrEqual(2); // fairness cap holds under cooldown-1 spam
+  });
+
+  it('unstoppable: the march shrugs damage in applyDamage AND ignores slows for the window', () => {
+    const mods: BossModule[] = [{ kind: 'unstoppable', cooldown: 1, duration: 10, frac: 0.5 }];
+    const inert: BossModule[] = [{ kind: 'rally', cooldown: 999, amount: 4 }];
+    const run = (modules: BossModule[]): number => {
+      seq = 60; // identical ids across runs
+      const g = new Game(9, NO_META);
+      g.startWave();
+      g.spawnBoss(sigBoss('juggernaut', modules));
+      const boss = g.enemies.find((e) => e.boss)!;
+      boss.disrupt = 999; // a permanent Neural slow — the march must ignore it, the control must not
+      for (let i = 0; i < 60 * 3; i++) g.advance(SIM_DT);
+      if (modules === mods) {
+        expect(boss.boss!.unstop).toBeGreaterThan(0); // the window is live when we sample
+        expect(boss.boss!.unstopDR).toBe(0.5);
+        // The DR fold, sampled through the REAL damage pipe (reaction bursts are true damage
+        // and intentionally bypass it — like they crack carapace). Same hit, window on vs off:
+        const dmg = (g as unknown as { applyDamage: (e: typeof boss, raw: number) => number }).applyDamage.bind(g);
+        const during = dmg(boss, 500);
+        boss.boss!.unstop = 0; // close the window — same boss, same armor, same vulnerability
+        const after = dmg(boss, 500);
+        expect(during).toBeLessThan(after); // the march shrugged its authored fraction
+        boss.boss!.unstop = 10; // restore for the movement leg below
+      }
+      return boss.y;
+    };
+    const controlY = run(inert);
+    const marchY = run(mods);
+    expect(marchY).toBeGreaterThan(controlY); // the slow never bit — it out-marched the control
+  });
+
+  it('every signature passes content validation on its owner chassis', () => {
+    expect(bossProblems(sigBoss('bruiser', [{ kind: 'warcry', cooldown: 12, duration: 3.5, frac: 0.28 }]))).toEqual([]);
+    expect(bossProblems(sigBoss('artillery', [{ kind: 'mortarfall', cooldown: 13, amount: 3, radius: 70, duration: 2.6 }]))).toEqual([]);
+    expect(bossProblems(sigBoss('swarmlord', [{ kind: 'broodburst', cooldown: 14, amount: 6, frac: 0.1, duration: 3 }]))).toEqual([]);
+    expect(bossProblems(sigBoss('controller', [{ kind: 'nullwell', cooldown: 13, radius: 80, duration: 5 }]))).toEqual([]);
+    expect(bossProblems(sigBoss('juggernaut', [{ kind: 'unstoppable', cooldown: 15, duration: 4, frac: 0.35 }]))).toEqual([]);
+    // Malformed params refused: a warcry without a frac, a nullwell without a radius.
+    expect(bossProblems(sigBoss('bruiser', [{ kind: 'warcry', cooldown: 12, duration: 3.5 } as BossModule])).length).toBeGreaterThan(0);
+    expect(bossProblems(sigBoss('controller', [{ kind: 'nullwell', cooldown: 13, duration: 5 } as BossModule])).length).toBeGreaterThan(0);
+  });
+});

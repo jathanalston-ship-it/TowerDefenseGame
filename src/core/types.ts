@@ -131,6 +131,10 @@ export interface Enemy {
   siegeCd?: number; // seconds until the next bombardment volley (Artillery)
   venom?: number; // STRAIN venom marks (docs/STRAIN.md — Venom Ducts); undefined on the base path
   seized?: boolean; // STRAIN infestation latch (one seize per host); undefined on the base path
+  // Warcry haste (docs/BOSS-DESIGN.md §identity — the bruiser signature): a timed pack-wide
+  // surge. Optional/lazy — undefined until a warcry ever fires, so the base path is untouched.
+  hasteT?: number; // seconds of warcry haste remaining
+  hasteMult?: number; // speed multiplier while hasteT > 0 (set by the warcry that granted it)
 }
 
 /** An ARTILLERY shell in flight (Siege Maw / Acid Spitter bombardment — docs/ENEMIES.md
@@ -179,6 +183,10 @@ export interface BossRuntime {
   // ── Siege behaviors (docs/BOSS-DESIGN.md §siege) — all 0 for pre-siege bosses ──
   grip: number; // corecrush: seconds left crushing the Nucleus (exposed: takes bonus damage)
   burrow: number; // burrower: seconds submerged (untargetable; emerges beside the Hive)
+  // ── Chassis signatures (docs/BOSS-DESIGN.md §identity) — all 0 when the kit lacks them ──
+  unstop: number; // unstoppable: seconds of the juggernaut march (slow-immune, damage-reduced)
+  unstopDR: number; // fraction of damage SHRUGGED while the march is up (the module's authored frac)
+  exposeT: number; // broodburst: seconds of self-inflicted EXPOSURE (takes bonus damage, like the grip)
   visualTier: number; // phase mutation stage the renderer draws (0 = base form)
   nemesis?: boolean; // this boss is the account's NEMESIS this run (docs/NEMESIS.md) — buffed + marked
   nemesisTier?: number; // grudge-tier index (0..3) — drives the brand's intensity + tier label
@@ -197,6 +205,8 @@ export interface MutationBanner {
 
 export interface BossBannerSnapshot {
   name: string;
+  epithet: string; // the kit-derived identity line ('' for legacy defs — docs/BOSS-DESIGN.md §identity)
+  kit: string[]; // the boss's module kinds, dedup'd in def order (the intro card's threat read)
   hpPct: number;
   phase: number;
   phases: number;

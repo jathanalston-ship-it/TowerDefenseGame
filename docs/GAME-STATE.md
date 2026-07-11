@@ -184,6 +184,14 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
 
 ### Bosses
 - ✅ Module/phase framework + procedural assembly (`core/boss.ts`) — BOSS-DESIGN.md, STAGES.md §10
+- ✅ **Chassis identity depth** (BOSS-DESIGN.md §identity) — `CHASSIS_IDENTITY`: per-chassis creed,
+  a SIGNATURE verb only that body plan may field (`warcry`/`mortarfall`/`broodburst`/`nullwell`/
+  `unstoppable`, ownership validator-enforced), affinity-weighted procedural rolls, and desperation
+  profiles (`cadenceMult` runs the finale kit HOT). Epithets on every def (authored or kit-derived
+  via `epithetFor`); HUD banner + intro card (epithet byline + `MODULE_LABEL` kit chips) + defeat
+  beat; mortar reticles/null wells rendered + snapshot-carried; sim folds beside grip/carapace
+  (reaction true damage intentionally pierces the march). Tests: boss.test.ts §identity +
+  bossmodules.test.ts §signatures; golden untouched
 - ✅ **Role/boss battlefield visual language** — every enemy trait reads on the body (shield bubble +
   shatter, regen motes, summoner womb, aura reach, blast warning, artillery stance) and the boss
   runtime renders live (invuln shell, carapace plating, enrage rim, charge vector, channel tether,

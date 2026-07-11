@@ -79,7 +79,12 @@
 - `7000546` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
 - `b1c2d4c` **[Security]** Security hardening: run-settle replay protection + cross-tab write arbitration
 - `afabd1c` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
+- `2493990` **[Bug Fixes]** Tutorial lesson docked opposite the action — the dialogue no longer covers what it asks you to tap
 ## 2026-07-11
 
 - `f42d2ac` **[Music]** Events music: grow the category 1→3 and actually wire it — dailies get their own voice
 - `206c331` **[Gameplay]** Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers
+- `500cf47` **[Bug Fixes]** Close the direct shard-lane leak — maxed units convert to Gene Essence everywhere
+- `cd042a3` **[Website]** Site overhaul: weekly-game content wave — 6 new guides, Doctrine Codex, refreshed shell
+- `6a9252b` **[Gameplay]** Molt Vows: the prestige wager — cycle-long handicaps that multiply the next mint
+- `894e529` **[Bosses]** Bosses: chassis identity depth — signature verbs, epithets, desperation profiles

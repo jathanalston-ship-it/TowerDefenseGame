@@ -313,6 +313,22 @@
       {
         "cat": "Gameplay",
         "text": "Doctrine recognition layer: Bio-Dex codex + achievements off the mastery ledgers"
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Close the direct shard-lane leak — maxed units convert to Gene Essence everywhere"
+      },
+      {
+        "cat": "Website",
+        "text": "Site overhaul: weekly-game content wave — 6 new guides, Doctrine Codex, refreshed shell"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Molt Vows: the prestige wager — cycle-long handicaps that multiply the next mint"
+      },
+      {
+        "cat": "Bosses",
+        "text": "Bosses: chassis identity depth — signature verbs, epithets, desperation profiles"
       }
     ]
   },

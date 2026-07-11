@@ -246,3 +246,45 @@ fold is identity off the boss path (dampen ×1, corruption ×1 with no pools, ph
 `core/bossmodules.test.ts` §siege (grip drain + peel-break, burrow untargetability + eruption,
 bulwark soak, pool seed/decay/placement, hero drag, dampen window, rally + visualTier stamp,
 validation rejections).
+
+## §identity (2026-07) — chassis identity: signatures, epithets, desperation profiles
+
+**The body plan is a PERSONALITY, not a stat block.** `CHASSIS_IDENTITY` (core/boss.ts) gives
+each of the five chassis: a **creed** (one-line fantasy), a **SIGNATURE verb** nothing else may
+field (`SIGNATURE_OWNER`; `bossProblems` refuses cross-chassis theft), **affinity weights** that
+bend procedural module rolls toward its fantasy (`pickModule` — unlisted kinds weigh 1), and a
+**desperation profile** — the finale runs the kit HOT in that body plan's way (`cadenceMult`
+multiplies module cooldowns, validated to [0.4, 1], on top of speed/damage mults).
+
+| Chassis | Signature | What it does | Counter |
+|---|---|---|---|
+| bruiser | `warcry` | Every living enemy gains `frac` speed for `duration` (Enemy.hasteT/hasteMult, lazy fields) | Slows; hold AoE for the stampede |
+| artillery | `mortarfall` | `amount` reticles bloom on the DENSEST towers (deterministic density sort), land after 1.15s, and SUPPRESS towers under the blast for `duration` | Spread placement |
+| swarmlord | `broodburst` | Spends `frac` of its own max HP to birth `amount` adds; EXPOSED (`exposeT`, gripExposeMult) while torn | Punish the window |
+| controller | `nullwell` | A well between it and the nearest tower SWALLOWS projectiles crossing it (max 2 live; beams ignore them) | New firing angles |
+| juggernaut | `unstoppable` | March window: slow/stun/interrupt-immune, damage reduced by its authored `frac` (`unstopDR`) in applyDamage | Burst BEFORE/AFTER, never during |
+
+**Sim wiring (game.ts):** signatures fire from the same module-cooldown loop; `mortarStrikes` +
+`nullWells` tick beside corruptionPools (they outlive their caster), `unstop`/`exposeT` tick in
+bossSystem, warcry haste folds into the movement step, the well-swallow gates on wells existing,
+and the unstop/expose folds sit beside the grip fold in applyDamage. **Reaction bursts are true
+damage and intentionally pierce the march** (same vocabulary as carapace-vs-Shred) — reaction
+builds stay a juggernaut counter. All paths are empty/zero on non-signature runs (golden-safe;
+suite stayed byte-identical, no re-pin).
+
+**Identity surfaces:** every `BossDef` carries an **epithet** (authored bosses author one;
+`assembleBoss` derives one from the kit via `epithetFor` — signatures name the boss first, then
+siege verbs, then support; the chassis creed is the fallback). The HUD banner shows
+`name — epithet`; the **intro card** adds the epithet byline + one `MODULE_LABEL` chip per kit
+verb (read the fight before it starts); the **defeat beat** (`boss-fall`, off the `bossKilled`
+event's new optional `epithet`) drops the title with the body. From `SIGNATURE_TL` (8) a
+procedural kit anchors on its signature, and the desperation phase always fields it. Renderer:
+mortar reticles (closing lock + crosshair) and null wells (counter-rotating violet vortex) draw
+beside corruption pools; both carried by HudSnapshot (`mortarStrikes`, `nullWells`).
+
+**Contract tests:** boss.test.ts §identity (bijection, theft refusal, TL gating, anchor +
+desperation-fields-signature, epithet derivation/priority/fallback, cadence band, label
+totality — `MODULE_LABEL` is a total Record so a new kind without a label is a type error);
+bossmodules.test.ts §signatures (warcry haste grant + fade, mortarfall reticle-on-gun +
+suppression, broodburst self-spend + adds + exposure, nullwell swallow freeze + 2-well cap,
+unstoppable DR through applyDamage + slow-immune march).

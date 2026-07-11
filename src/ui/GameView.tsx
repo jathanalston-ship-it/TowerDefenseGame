@@ -39,6 +39,8 @@ import type { AssimilationPresentation } from '../core/assimilation';
 import { drawAssimilationFx } from '../render/assimilationFx';
 import { tutorial as tutorialStore } from '../state/tutorial';
 import { gameEvents } from '../core/events';
+import { MODULE_LABEL } from '../core/boss';
+import type { BossModuleKind } from '../core/boss';
 import { currentCheckpoint } from '../core/tutorial';
 import { audio } from '../audio/sound';
 import { setActiveGame } from '../debug/debug';
@@ -272,13 +274,16 @@ export function GameView({
     const id = setTimeout(() => setWaveBanner(null), 1700);
     return () => clearTimeout(id);
   }, [waveBanner]);
-  // BOSS ARRIVAL spectacle: the banner snapshot flipping null→present IS the arrival.
-  const [bossIntro, setBossIntro] = useState<{ name: string; phases: number; at: number } | null>(null);
+  // BOSS ARRIVAL spectacle: the banner snapshot flipping null→present IS the arrival. Identity
+  // fields (docs/BOSS-DESIGN.md §identity) ride the same snapshot, so the intro card reads the
+  // FIGHT — epithet + kit verbs — not just a name.
+  const [bossIntro, setBossIntro] = useState<{ name: string; epithet: string; kit: string[]; phases: number; at: number } | null>(null);
   const bossWasLive = useRef(false);
   useEffect(() => {
     const live = !!hud.bossBanner;
     if (live && !bossWasLive.current && hud.bossBanner) {
-      setBossIntro({ name: hud.bossBanner.name, phases: hud.bossBanner.phases, at: Date.now() });
+      const kit = hud.bossBanner.kit.map((k) => MODULE_LABEL[k as BossModuleKind] ?? k);
+      setBossIntro({ name: hud.bossBanner.name, epithet: hud.bossBanner.epithet, kit, phases: hud.bossBanner.phases, at: Date.now() });
       audio.cue('boss');
       traumaRef.current = addTrauma(traumaRef.current, BOSS_TRAUMA);
       wavePushRef.current = 1;
@@ -290,6 +295,15 @@ export function GameView({
     const id = setTimeout(() => setBossIntro(null), 3000);
     return () => clearTimeout(id);
   }, [bossIntro]);
+  // BOSS DEFEAT beat (docs/BOSS-DESIGN.md §identity): the title that announced the threat falls
+  // with the body — the epithet's return is the payoff for surviving what it promised.
+  const [bossFall, setBossFall] = useState<{ name: string; epithet: string; at: number } | null>(null);
+  useEffect(() => gameEvents.on('bossKilled', (e) => setBossFall({ name: e.name, epithet: e.epithet ?? '', at: Date.now() })), []);
+  useEffect(() => {
+    if (!bossFall) return undefined;
+    const id = setTimeout(() => setBossFall(null), 2200);
+    return () => clearTimeout(id);
+  }, [bossFall]);
   // Boss PHASE SHIFT roar (docs/BOSS-DESIGN.md §phases): the sim's splice-crunch marks the cut;
   // this dedicated mutation roar gives the evolution a throat. Rides the bossPhase event.
   useEffect(() => gameEvents.on('bossPhase', () => audio.cue('boss_phase')), []);
@@ -934,7 +948,19 @@ export function GameView({
           <div className="boss-intro" key={bossIntro.at} role="alert">
             <span className="boss-intro-eyebrow">◆ APEX THREAT DETECTED ◆</span>
             <span className="boss-intro-name">{bossIntro.name}</span>
+            {bossIntro.epithet && <span className="boss-intro-epithet">— {bossIntro.epithet} —</span>}
+            {bossIntro.kit.length > 0 && (
+              <span className="boss-intro-kit" aria-label="Boss abilities">
+                {bossIntro.kit.map((k) => <i key={k}>{k}</i>)}
+              </span>
+            )}
             <span className="boss-intro-sub">{bossIntro.phases > 1 ? `${bossIntro.phases}-phase organism — read the telegraphs` : 'Hold the line'}</span>
+          </div>
+        )}
+        {bossFall && !bossIntro && !megaIntro && (
+          <div className="boss-fall" key={bossFall.at} role="status">
+            <span className="boss-fall-name">{bossFall.name}</span>
+            <span className="boss-fall-sub">{bossFall.epithet ? `${bossFall.epithet} — FALLEN` : 'FALLEN'}</span>
           </div>
         )}
         {megaIntro && (
@@ -1059,7 +1085,10 @@ export function GameView({
         {hud.bossBanner && (
           <div className="boss-banner">
             <div className="boss-banner-row">
-              <span className="boss-name">{hud.bossBanner.name}</span>
+              <span className="boss-name">
+                {hud.bossBanner.name}
+                {hud.bossBanner.epithet && <em className="boss-epithet">{hud.bossBanner.epithet}</em>}
+              </span>
               <span className="boss-phase">
                 PHASE {hud.bossBanner.phase}/{hud.bossBanner.phases}
               </span>
