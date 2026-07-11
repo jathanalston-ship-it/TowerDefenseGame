@@ -76,21 +76,30 @@ would silently rob the new sink, and "shards became Essence you didn't ask for" 
 once a visible Prime button wants those shards. Documented in GENE-EVOLUTION.md §Economy;
 pinned by `directShardGrants.test.ts` (banking) + the lootbox suite (container conversion).
 
-## §simulation — 1,000-hour accrual delta (progression simulator, 8 seeds × 3,000 h)
+## §simulation — 1,000-hour accrual delta (progression simulator, 8 seeds × 1,000 h)
 
 The virtual-account simulator's greedy spend policy now buys Prime levels after stars
-(`progressionSim.spendEverything`, small per-pass caps). Regenerated `PROGRESSION_REPORT.md`
-delta at the 1,000-hour band (medians, pre-Prime → with Prime):
+(`progressionSim.spendEverything`, small per-pass caps; `progressSignature` counts prime
+levels). `PROGRESSION_REPORT.md` regenerated 2026-07-11; the 1,000-hour band vs. the
+previous committed report (generated 2026-07-02, pre-Prime):
 
-| Metric | Pre-Prime | With Prime | Delta |
+| Metric (1,000 h, p50) | 2026-07-02 report | 2026-07-11 report | Delta |
 |---|--:|--:|--:|
-| Power (p50) | 12,449,217 | _see PROGRESSION_REPORT.md_ | — |
-| Campaign stage (p50) | 163 | _″_ | — |
-| Molts (p50) | 52 | _″_ | — |
+| Power | 12,449,217 | 79,185,747 | ×6.4 |
+| Campaign stage | 163 | 232 | +69 |
+| Molts | 52 | 75 | +23 |
+| **Sink exhaustion** (flagged bands) | **4** | **0** | **cleared** |
 
-Reading: Prime converts the deep bands' previously-dead shard income into a slow Power drip
-(the log curve keeps the delta small by design) and removes the late-game sink-exhaustion
-signal on tower shards. The full regenerated tables live in `docs/PROGRESSION_REPORT.md`.
+**Attribution — read honestly.** The two reports bracket NINE intervening systems (cosmetics
+v2, battle pass, quests, weekly directives, nemesis/vows, hive construction, nucleus mulligans,
+daily bio-cache … all Power-moving), so the Power/stage rows measure the cumulative envelope
+shift, NOT Prime alone. Prime's own damage share is provably small by construction: the log
+curve caps a unit at ≈+2.5–4.4% at the sim's typical endgame depths (L10–20), geomean-diluted
+across the roster — a low-single-digit % of account Power. **The Prime-specific result is the
+last row:** the pre-Prime report flagged sink exhaustion in 4 deep bands (shard wallets
+compounding with nothing to buy); with Prime the detector reads 0 — the infinite ladder
+absorbs deep-band shard income exactly as designed, while the wall-stall detector stayed at 0
+(the sink adds no new walls). Full tables in `docs/PROGRESSION_REPORT.md`.
 
 ## §ui
 
