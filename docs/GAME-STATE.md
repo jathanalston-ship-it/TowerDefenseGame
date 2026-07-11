@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 40` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 41` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -440,6 +440,24 @@ difficulty's bar; adaptive inputs unwired until the loop engine feeds them (by d
 - ✅ Transcendence: maxed cards buy a permanent SECOND effect line from per-archetype pools
   (`core/geneTranscend.ts`, cost = rarity base ×120, permanent choice / full-price re-choice,
   ❂ Archive panel + grid chrome) — the designed sink beyond full levels (GENE-EVOLUTION.md §Transcendence)
+
+### Hero Symbiotes (the champion wing of the Mulligan pillar) — HERO-SYMBIOTES.md
+- ✅ Core: 36 organ SPECIES (6 per class, exactly 2 per class×category cell — coverage-tested),
+  3 slots × 3 seats per hero, per-slot Complete Hero Adaptations, 7-row category-census Resonance
+  (`core/heroSymbiote.ts`, save v41 `heroSymbiotes`) — the kit TYPE has no damage/cooldown stat
+  fields, so a symbiote can never duplicate Hero Equipment (structural contract)
+- ✅ Gates: slot I free · slots II/III per-hero IDENTITY TRIALS (`HERO_SYMBIOTE_GATES`, typed
+  complete over HeroKind — a new hero fails the compiler without its two trials) + 35/180 Ichor
+- ✅ Sim: HeroMods.symbiote behavior kit read at presence-gated seams (strike toxins/components,
+  kill plague/haste via NEW killing-blow credit `Enemy.lastHitHero` — lifetime `heroKills` finally
+  accrues — ability echo, overheal carapace, revive cocoon, aura swell, summon nurture, adaptive
+  AI); live probe asserts every verb; goldens byte-identical
+- ✅ Visuals: `render/heroSymbiotes.ts` (4th PART_DRAWERS consumer) — per-slot stage anatomy,
+  living motif shimmer, resonance crown; Hero Lab portrait previews the SAME layer
+- ✅ Recognition: mulligans Power bucket ×`accountSymbiotePower`, genome source `hero-symbiotes`
+  (50), collections ×4 (organs/adaptations/resonances/evolutions), achievements ×4
+- ✅ UI: `ui/SymbioteChamber.tsx` in the Hero Lab — slot cards, trial checklists with live ✓/✗
+  rows, two-step Ichor confirm, organ conservatory (graft/seat/level), next-step recommendation
 
 ### Nucleus Mulligans (the Hive's own organ system) — NUCLEUS.md
 - ✅ Core: 18 support organs (3 per class, 3 categories), 3 chambers × 3 organs, class adaptations

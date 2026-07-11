@@ -82,6 +82,12 @@ import {
   nucleusRegistry, organChamber, organGrowCost, organLevelCap, organUpgradeCost, resolveNucleus,
 } from '../core/nucleus';
 import type { NucleusGateSnapshot, NucleusGateProgress, ResolvedNucleus, NucleusState } from '../core/nucleus';
+import {
+  SYMBIOTE_SLOTS, accountSymbiotePower, emptyHeroSymbiote, isSlotActive, resolveHeroSymbiote,
+  resonanceOf, slotAdaptation, symbioteGateProgress, symbioteGraftCost, symbioteLevelCap,
+  symbioteRegistry, symbioteSeat, symbioteUpgradeCost,
+} from '../core/heroSymbiote';
+import type { HeroSymbioteState, ResolvedHeroSymbiote, SymbioteGateProgress, SymbioteGateSnapshot } from '../core/heroSymbiote';
 import { REFORGE_RARITY, reforgeCost as mulliganReforgeCost, reforgeModById, rollReforgeMod } from '../core/mulliganReforge';
 import { exchangeWindow, msToExchangeRefresh, rollExchange } from '../core/ichorExchange';
 import type { ExchangeOffer } from '../core/ichorExchange';
@@ -513,6 +519,25 @@ export function collectionContextOf(save: SaveData): CollectionContext {
     geneLevels: Object.fromEntries(Object.entries(save.genes).map(([id, g]) => [id, g.level])),
     nucleusGrown: Object.fromEntries(Object.entries(save.nucleus?.grown ?? {}).map(([id, g]) => [id, g.level])),
     nucleusAdapted: new Set(save.nucleus?.adapted ?? []),
+    ...(() => {
+      // Hero Symbiotes (docs/HERO-SYMBIOTES.md §collection): fold every host's grafts into the
+      // lifetime codices — best species level across hosts, adaptation classes, resonances, and
+      // the fully-evolved champions. Empty on a fresh save ⇒ all four codices read zero.
+      const heroSymbioteGrown: Record<string, number> = {};
+      const heroAdapted = new Set<string>();
+      const heroResonated = new Set<string>();
+      const heroEvolved = new Set<string>();
+      for (const [kind, st] of Object.entries(save.heroSymbiotes ?? {})) {
+        if (!st) continue;
+        for (const [id, g] of Object.entries(st.grown)) {
+          heroSymbioteGrown[id] = Math.max(heroSymbioteGrown[id] ?? 0, g.level);
+        }
+        for (const cls of st.adapted ?? []) heroAdapted.add(cls);
+        for (const r of st.resonated ?? []) heroResonated.add(r);
+        if (st.evolved) heroEvolved.add(kind);
+      }
+      return { heroSymbioteGrown, heroAdapted, heroResonated, heroEvolved };
+    })(),
   };
 }
 
@@ -878,9 +903,11 @@ export function accountPowerParts(save: SaveData, temporary = 1): PowerParts {
     collection: collectionView(collectionContextOf(save)).power,
     // Mulligan organisms (docs/MULLIGANS.md) — a dedicated, separately-inspectable bucket. Each
     // tower's Mulligan is 1 until all three slots are filled ⇒ 1 on a fresh account ⇒ POWER_BASE.
-    // × the Nucleus's own organism (docs/NUCLEUS.md) — same pillar, same bucket; exactly 1
-    // while no chamber is complete, so a fresh account still reads POWER_BASE.
-    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => [save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) * nucleusPower(save.nucleus),
+    // × the Nucleus's own organism (docs/NUCLEUS.md) and every hero's Symbiotes
+    // (docs/HERO-SYMBIOTES.md) — same grafted-organism pillar, same bucket; each factor is
+    // exactly 1 while nothing is complete, so a fresh account still reads POWER_BASE.
+    mulligans: accountMulliganPower(TOWER_ORDER.map((k) => [save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) * nucleusPower(save.nucleus)
+      * accountSymbiotePower(HERO_ORDER.map((k) => save.heroSymbiotes?.[k])),
     temporary,
   };
 }
@@ -1352,11 +1379,16 @@ export function heroProgress(save: SaveData): HeroProgress {
     const mLvl = masteryLevel(save.heroMasteryXp[k] ?? 0);
     const equip = heroEquipment(save, k);
     const adapt = adaptationEffect(save.adaptation?.[`hero:${k}`] ?? []); // golden-safe: empty ⇒ ×1
+    // Symbiote (docs/HERO-SYMBIOTES.md) — the grafted organism's merged BEHAVIOR kit rides the
+    // same HeroMods path. Identity unless a slot is fully grafted (resolveHeroSymbiote), so a
+    // fresh account attaches NO field and the sim stays byte-identical (golden-safe).
+    const sym = resolveHeroSymbiote(save.heroSymbiotes?.[k]);
     out[k] = {
       // PRIME (docs/PRIME-STRAINS.md): the hero twin of the tower fold — ×1 at level 0.
       damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult * adapt.heroDamageMult * primeMult(save.heroPrime?.[k] ?? 0),
       cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult * adapt.heroCooldownMult,
       skillCount: heroSkillCount(stars), // star-gated ability kit (★3 → 1 skill, ★7 → 2). 0 on a fresh save ⇒ golden-safe.
+      symbiote: sym.kit ?? undefined,
     };
   }
   return out;
@@ -4294,6 +4326,125 @@ export const meta = {
     return true;
   },
 
+  // ── Hero Symbiotes (docs/HERO-SYMBIOTES.md) — every champion's grafted-organism system: organs
+  //    are GRAFTED per host with Gene Essence, seated into that hero's slots (exclusive within the
+  //    host), and slots II/III open through per-hero HERO_SYMBIOTE_GATES trials + Ichor. ──
+
+  /** The raw symbiote state for a hero (an empty scaffold while untouched — read-only view). */
+  heroSymbiote(kind: HeroKind): HeroSymbioteState {
+    return store.get().heroSymbiotes?.[kind] ?? emptyHeroSymbiote();
+  },
+  /** The resolved symbiote — merged kit, adaptations, resonance, Power (identity while empty). */
+  heroSymbioteResolved(kind: HeroKind): ResolvedHeroSymbiote {
+    return resolveHeroSymbiote(store.get().heroSymbiotes?.[kind]);
+  },
+  /** The live per-hero snapshot HERO_SYMBIOTE_GATES evaluate against (UI + unlock share it). */
+  symbioteGateSnapshot(kind: HeroKind): SymbioteGateSnapshot {
+    const save = store.get();
+    const g = meta.genomeSnapshot();
+    return {
+      kills: save.heroKills[kind] ?? 0,
+      masteryLevel: masteryLevel(save.heroMasteryXp[kind] ?? 0),
+      stars: save.heroStars[kind] ?? 0,
+      campaignStage: g.campaignStage,
+      genomeRankTier: rankFromRating(genomeRating(g)).index,
+      powerScore: g.powerScore,
+      megasSlain: save.megaProgress.slain.length,
+      rushBestBoss: g.rushBestBoss,
+      molts: g.molts,
+      collectionPct: g.collectionCompletion,
+      ichor: save.ichor,
+    };
+  },
+  /** A slot gate's live progress rows (null for slot 1 — born open). */
+  heroSymbioteGate(kind: HeroKind, slot: number): SymbioteGateProgress | null {
+    return symbioteGateProgress(kind, slot, meta.symbioteGateSnapshot(kind));
+  },
+  /** GRAFT an organ into a hero — the permanent Gene Essence sink. Idempotent per host+organ. */
+  graftHeroSymbiote(kind: HeroKind, organId: string): boolean {
+    if (!guardOk('symbiote.graft', `${kind}:${organId}`)) return false;
+    const save = store.get();
+    const def = symbioteRegistry.get(organId);
+    if (!def) return false;
+    const st = save.heroSymbiotes?.[kind] ?? emptyHeroSymbiote();
+    if (st.grown[organId]) return false; // already grafted into this host
+    const cost = symbioteGraftCost(def);
+    if (save.geneEssence < cost) return false;
+    persist(foldAccountXp({
+      ...save,
+      geneEssence: save.geneEssence - cost,
+      heroSymbiotes: { ...save.heroSymbiotes, [kind]: { ...st, grown: { ...st.grown, [organId]: { level: 1 } } } },
+    }, ACCOUNT_XP.acquisition).save);
+    return true;
+  },
+  /** Level a grafted organ (Gene Essence). Moves Power at once when its slot is active. */
+  upgradeHeroSymbiote(kind: HeroKind, organId: string): boolean {
+    if (!guardOk('symbiote.graft', `up:${kind}:${organId}`)) return false;
+    const save = store.get();
+    const def = symbioteRegistry.get(organId);
+    const st = save.heroSymbiotes?.[kind];
+    const cur = st?.grown[organId];
+    if (!def || !st || !cur) return false;
+    if (cur.level >= symbioteLevelCap(def)) return false;
+    const cost = symbioteUpgradeCost(def, cur.level);
+    if (save.geneEssence < cost) return false;
+    const powerBefore = meta.power().score;
+    const seat = symbioteSeat(st, organId);
+    const hosted = seat !== null && isSlotActive(st, seat.slot);
+    persist({
+      ...save,
+      geneEssence: save.geneEssence - cost,
+      heroSymbiotes: { ...save.heroSymbiotes, [kind]: { ...st, grown: { ...st.grown, [organId]: { level: cur.level + 1 } } } },
+    });
+    announcePower(`${def.name} — symbiote organ level ${cur.level + 1}`, powerBefore, meta.power().score, hosted);
+    return true;
+  },
+  /** Seat a grafted organ into an unlocked slot (null clears). MOVE semantics within the host —
+   *  an organ lives in ONE seat; seating it elsewhere vacates its old one (§exclusivity). */
+  setHeroSymbioteSeat(kind: HeroKind, slot: number, seat: number, organId: string | null): boolean {
+    if (!guardOk('symbiote.slot', `${kind}:${slot}:${seat}:${organId ?? '-'}`)) return false;
+    const save = store.get();
+    const st = save.heroSymbiotes?.[kind] ?? emptyHeroSymbiote();
+    if (slot < 0 || slot >= st.unlocked) return false;
+    if (seat < 0 || seat >= (st.slots[slot]?.length ?? 0)) return false;
+    if (organId !== null && (!symbioteRegistry.has(organId) || !st.grown[organId])) return false;
+    const powerBefore = meta.power().score;
+    const slots = st.slots.map((row) => row.slice());
+    if (organId !== null) {
+      for (const row of slots) {
+        for (let i = 0; i < row.length; i++) if (row[i] === organId) row[i] = null; // vacate the old seat
+      }
+    }
+    slots[slot][seat] = organId;
+    const next: HeroSymbioteState = { ...st, slots };
+    // Chronicle the lifetime ledgers (re-seating never confiscates credit): full adaptations,
+    // resonances witnessed, and the host's first complete evolution (docs/HERO-SYMBIOTES.md).
+    const a = slotAdaptation(next, slot);
+    if (a?.tier === 'full' && !(next.adapted ?? []).includes(a.cls)) next.adapted = [...(next.adapted ?? []), a.cls];
+    const res = resonanceOf(next);
+    if (res && !(next.resonated ?? []).includes(res.id)) next.resonated = [...(next.resonated ?? []), res.id];
+    if (resolveHeroSymbiote(next).evolved) next.evolved = true;
+    persist({ ...save, heroSymbiotes: { ...save.heroSymbiotes, [kind]: next } });
+    // Completing (or breaking) a slot legitimately moves Power either way — no gain expectation.
+    announcePower('Symbiote slot reconfigured', powerBefore, meta.power().score, false);
+    return true;
+  },
+  /** Open the NEXT slot once its trial is met (slots II/III pay their Ichor price). */
+  unlockHeroSymbioteSlot(kind: HeroKind, slot: number): boolean {
+    if (!guardOk('symbiote.unlock', `${kind}:${slot}`)) return false;
+    const save = store.get();
+    const st = save.heroSymbiotes?.[kind] ?? emptyHeroSymbiote();
+    if (slot !== st.unlocked + 1 || slot > SYMBIOTE_SLOTS) return false; // sequential
+    const gate = symbioteGateProgress(kind, slot, meta.symbioteGateSnapshot(kind));
+    if (!gate || !gate.ready) return false;
+    persist(foldAccountXp({
+      ...save,
+      ichor: save.ichor - gate.gate.ichorCost,
+      heroSymbiotes: { ...save.heroSymbiotes, [kind]: { ...st, unlocked: slot } },
+    }, ACCOUNT_XP.acquisition).save);
+    return true;
+  },
+
   // ── Mulligan system (docs/MULLIGANS.md) — the per-tower biomechanical organism. All mutations go
   //    through the save; a Mulligan does nothing until all three slots are filled (resolveMulligan). ──
 
@@ -5847,6 +5998,15 @@ export const meta = {
         let active = 0;
         for (let c = 0; c < NUCLEUS_CHAMBERS; c++) if (isChamberActive(save.nucleus, c)) active++;
         return (active + Math.min(NUCLEUS_CHAMBERS, (save.nucleus.adapted ?? []).length)) / (NUCLEUS_CHAMBERS * 2);
+      })(),
+      symbioteRatio: (() => {
+        // Per hero: active slots (0..3) + the full-evolution crown (docs/HERO-SYMBIOTES.md).
+        let sum = 0;
+        for (const k of HERO_ORDER) {
+          const r = resolveHeroSymbiote(save.heroSymbiotes?.[k]);
+          sum += r.slotsActive + (r.evolved ? 1 : 0);
+        }
+        return sum / (heroes * (SYMBIOTE_SLOTS + 1));
       })(),
       heroRatio: (HERO_ORDER.filter((k) => isHeroUnlocked(save, k)).length / heroes + Math.min(1, sumRec(save.heroStars) / (heroes * 10))) / 2,
       gearRatio: new Set(save.equipment.inventory.map((i) => i.defId)).size / ALL_ITEMS.length,

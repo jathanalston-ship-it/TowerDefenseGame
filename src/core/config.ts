@@ -1617,6 +1617,13 @@ export const REVENANT = { infectPerStrike: 3 } as const;
 // `bankDist` px past the target before wheeling back — the strafing pass that keeps it airborne.
 export const WYRM = { corrodePerStrike: 2, bankDist: 120 } as const;
 
+// Hero Symbiote engine tunables (docs/HERO-SYMBIOTES.md) — the kit-agnostic timings every echo/
+// carapace organ shares (per-organ magnitudes live in core/heroSymbiote.ts's catalog).
+export const SYMBIOTE = {
+  echoDelay: 0.45, // seconds between the signature cast and its symbiote echo
+  shieldSeconds: 4, // how long an overheal carapace pool persists before it lapses
+} as const;
+
 // ── Summoned friendly units (the `summon` ability primitive) ────────────────
 // Data for each conjurable unit; the SummonAbility references one by id. A new unit is one
 // entry here — no sim code. Minions are time-limited attackers (see types.ts Minion).

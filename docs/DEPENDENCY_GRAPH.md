@@ -82,6 +82,12 @@ graph TD
   nucleus --> power
   nucleus --> meta_store
   nucleus --> genome_rank
+  hero_symbiotes --> mulligans
+  hero_symbiotes --> heroes
+  hero_symbiotes --> content_infra
+  hero_symbiotes --> power
+  hero_symbiotes --> meta_store
+  hero_symbiotes --> genome_rank
   idle_harvest --> meta_store
   idle_harvest --> genome_rank
   idle_harvest --> collection
@@ -199,26 +205,27 @@ graph TD
 | System | Depends on | Consumers (break first) | Power Score | Save fields | Docs |
 |---|---|---|---|---|---|
 | **Sim Engine** (`engine`) | `content-infra` · `towers` · `heroes` · `gene-cards` · `bosses` · `biomes` · `difficulty` · `assimilation` | `campaign` · `infinite` · `boss-rush` · `daily` · `heroes` · `nemesis` · `onboarding` · `run-ui` · `bosses` · `mega-bosses` · `rendering` · `living-battlefield` · `audio` | ⚡ emits the TEMPORARY in-run bucket (game.powerEffects) | — | `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` |
-| **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `doctrines` · `difficulty` · `website` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
-| **Power Score** (`power`) | `content-infra` | `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `nucleus` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
+| **Content Infrastructure** (`content-infra`) | — | `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `doctrines` · `difficulty` · `website` | — | — | `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` |
+| **Power Score** (`power`) | `content-infra` | `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction` | ⚡ IS the model (buckets, effectsPower, FIELD_WEIGHT) | — | `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` |
 | **Campaign** (`campaign`) | `engine` · `biomes` · `bosses` · `difficulty` · `power` | `daily` · `towers` · `heroes` · `loot` · `gene-cards` · `prestige` · `progression-gating` | ⚡ recommended-power display; first-clear rewards move account Power indirectly | `campaign` | `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` |
 | **Infinite Mode** (`infinite`) | `engine` · `loot` · `difficulty` | — | — | `bestWave` | `docs/ENDLESS-SCALING.md` · `docs/MODE-IDENTITY.md` |
 | **Public Intelligence Layer** (`pil`) | `dev-registry` | — | — | — | `docs/PIL.md` |
 | **Account Platform** (`accounts`) | `meta-store` · `profile` | `onboarding` | — | — | `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` |
 | **Boss Rush** (`boss-rush`) | `engine` · `bosses` · `loot` · `difficulty` | `field-research` | — | `rushBestWave` · `rushBestBoss` · `rushStamina` | `docs/BOSS-RUSH.md` · `docs/MODE-IDENTITY.md` |
 | **Daily Run** (`daily`) | `engine` · `campaign` · `biomes` · `bosses` · `towers` | `premium` · `field-research` · `net-backend` · `liveops` · `directives` | ⚡ recommended-power readiness on the day card | `daily` | `docs/DAILY-RUN.md` · `docs/MODE-IDENTITY.md` |
-| **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | `nucleus` | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
+| **Mulligan System** (`mulligans`) | `content-infra` · `towers` · `power` · `meta-store` | `nucleus` · `hero-symbiotes` | ⚡ a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled | `mulligans` · `mulliganDex` | `docs/MULLIGANS.md` |
 | **Premium Store** (`premium`) | `content-infra` · `splice-market` · `daily` · `power` | `field-research` · `net-backend` · `battle-pass` | ⚡ offerPowerPotential — the honest "up to +N when invested" estimate | `premium` | `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` |
 | **Field Research (rewarded studies)** (`field-research`) | `premium` · `meta-store` · `splice-market` · `boss-rush` · `daily` | — | — | `research` | `docs/RESEARCH.md` · `docs/WEBSITE.md` |
 | **Backend lanes (net/)** (`net-backend`) | `premium` · `meta-store` · `daily` · `power` | `security` | — | `premium` | `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` |
 | **Towers, Stars, Branches, Strain & Codex** (`towers`) | `content-infra` · `shards-economy` · `campaign` | `engine` · `daily` · `mulligans` · `contracts` | ⚡ stars/branches feed permanent + temporary buckets | `towerStars` · `towerPrime` · `towerShards` · `towerMasteryXp` · `towerForks` | `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` |
 | **Mastery / Adaptation** (`mastery`) | `stats` · `content-infra` | — | ⚡ mastery multiplier folds into the permanent bucket | `towerMasteryXp` · `heroMasteryXp` · `adaptation` · `antigen` | `docs/MASTERY.md` · `docs/ADAPTATION.md` |
-| **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` · `expeditions` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroPrime` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
+| **Heroes** (`heroes`) | `content-infra` · `engine` · `shards-economy` · `campaign` | `engine` · `equipment` · `hero-symbiotes` · `expeditions` | ⚡ hero stars/evolution feed permanent + temporary buckets | `heroStars` · `heroPrime` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp` | `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` |
 | **Equipment & Armory** (`equipment`) | `content-infra` · `loot` · `power` · `heroes` | `crafting` | ⚡ equipped items score via itemPower into the gear bucket | `equipment` | `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` |
 | **Crafting / Reforge** (`crafting`) | `equipment` · `loot` | — | ⚡ reforged items re-score through the gear bucket | `mats` · `matPity` | `docs/REFORGE.md` |
 | **Loot & Bio-Containers** (`loot`) | `content-infra` · `power` · `campaign` | `infinite` · `boss-rush` · `equipment` · `crafting` · `shards-economy` · `splice-market` · `account-level` | ⚡ reads Power for catch-up bias; grants move account Power | `lootQueue` · `pendingContainers` | `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` |
 | **Gene Cards (draft + permanent evolution)** (`gene-cards`) | `content-infra` · `power` · `campaign` · `shards-economy` | `engine` · `doctrines` | ⚡ permanent levels + Transcendence lines fold linearly (GENE_POWER_SCALE); drafts feed the temporary bucket; validator enforces visibility | `genes` · `geneEssence` · `geneSlots` · `geneLoadout` | `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` |
 | **Nucleus Mulligans** (`nucleus`) | `mulligans` · `content-infra` · `power` · `meta-store` · `genome-rank` | — | ⚡ nucleusPower multiplies the mulligans PowerParts bucket (×1 while no chamber is complete); organs are SUPPORT-only — towerDamageMult is registry-banned | `nucleus` | `docs/NUCLEUS.md` |
+| **Hero Symbiotes** (`hero-symbiotes`) | `mulligans` · `heroes` · `content-infra` · `power` · `meta-store` · `genome-rank` | — | ⚡ accountSymbiotePower multiplies the mulligans PowerParts bucket (×1 while no slot is complete); the kit TYPE has no damage/cooldown stat fields — the no-equipment-duplication contract | `heroSymbiotes` | `docs/HERO-SYMBIOTES.md` |
 | **Idle Harvest** (`idle-harvest`) | `meta-store` · `genome-rank` · `collection` · `account-level` | — | ⚡ none — pure economy by design (idle must never buy Power); the idle codex is identity-only | `idle` | `docs/IDLE-HARVEST.md` |
 | **Shards & Star Economy** (`shards-economy`) | `loot` | `towers` · `heroes` · `gene-cards` · `hive-construction` | ⚡ stars bought with shards move the permanent bucket; PRIME levels ride the towers/heroes geomeans | `shards` · `lifetimeShards` | `docs/SHARD-ECONOMY.md` · `docs/ECONOMY.md` · `docs/PRIME-STRAINS.md` |
 | **Collections / Codex** (`collection`) | `content-infra` · `stats` | `idle-harvest` · `daily-login` · `cosmetics` · `quests` · `profile` · `genome-rank` | ⚡ completion feeds the collection bucket | — | `docs/COLLECTION.md` |
@@ -244,13 +251,13 @@ graph TD
 | **Player Profile** (`profile`) | `stats` · `power` · `achievements` · `collection` · `prestige` · `hub-shell` | `accounts` · `onboarding` | — | `createdAt` · `profileName` · `profileFrame` · `profileSigil` · `timeline` | `docs/PROFILE.md` |
 | **Tutorials, Help & Onboarding** (`onboarding`) | `engine` · `meta-store` · `profile` · `accounts` | `progression-gating` | — | `tutorial` · `help` | `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` |
 | **Account Level (evergreen meta-progression)** (`account-level`) | `meta-store` · `loot` | `idle-harvest` · `contracts` · `genome-rank` | — | `accountXp` | `docs/ACCOUNT-LEVEL.md` |
-| **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | `nucleus` · `idle-harvest` · `contracts` | — | `genomeRank` | `docs/GENOME-RANK.md` |
+| **Genome Rank (ultimate mastery ladder)** (`genome-rank`) | `meta-store` · `account-level` · `power` · `collection` | `nucleus` · `hero-symbiotes` · `idle-harvest` · `contracts` | — | `genomeRank` | `docs/GENOME-RANK.md` |
 | **Progression Gating & Director** (`progression-gating`) | `meta-store` · `campaign` · `onboarding` | — | — | `director` | `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` |
 | **Hub Shell & Home** (`hub-shell`) | `meta-store` · `notifications` · `prediction` · `power` | `hive-construction` · `infestation` · `cosmetics` · `battle-pass` · `quests` · `profile` | — | — | `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` |
 | **In-Run HUD & Results** (`run-ui`) | `engine` · `meta-store` · `power` · `assimilation` | — | ⚡ renders live run Power | — | `docs/HUD.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` |
 | **Notifications** (`notifications`) | `meta-store` | `hub-shell` | — | — | `docs/NOTIFICATIONS.md` |
 | **Progress Prediction** (`prediction`) | `power` | `hub-shell` | ⚡ consumes the score as its input signal | `prediction` | `docs/PREDICTION.md` |
-| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `nucleus` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
+| **Meta Store & Save** (`meta-store`) | `content-infra` | `accounts` · `mulligans` · `field-research` · `net-backend` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools` | ⚡ recomputes the account score on every persist | `ALL (owner)` | `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` |
 | **Bosses** (`bosses`) | `engine` · `content-infra` | `engine` · `campaign` · `boss-rush` · `daily` · `nemesis` · `mega-bosses` | — | `bossesSlain` | `docs/BOSS-DESIGN.md` |
 | **Mega Bosses** (`mega-bosses`) | `engine` · `content-infra` · `bosses` | `cutscenes` | ⚡ megaBosses collection category weight | `megaProgress` | `docs/MEGA-BOSS.md` |
 | **Story Cutscenes & Memory Archive** (`cutscenes`) | `mega-bosses` · `meta-store` · `audio` | `quests` | — | — | `docs/CUTSCENES.md` |
@@ -290,14 +297,14 @@ graph TD
 
 - **Files:** `src/core/registry.ts` · `src/core/validate.ts` · `src/core/config.ts` · `src/core/types.ts` · `src/core/math.ts` · `src/core/rng.ts` · `src/core/spatial.ts` · `src/core/features.ts` · `src/vite-env.d.ts`
 - **Depends on:** —
-- **Consumers — what breaks if you change this:** `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `doctrines` · `difficulty` · `website`
+- **Consumers — what breaks if you change this:** `engine` · `power` · `mulligans` · `premium` · `towers` · `mastery` · `heroes` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `collection` · `evolution-hq` · `currencies` · `meta-store` · `bosses` · `mega-bosses` · `biomes` · `doctrines` · `difficulty` · `website`
 - **Power Score:** — (intentionally none)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** —
 - **Collection:** — · **Achievements:** —
 - **Localization:** no player-facing strings
-- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
+- **Docs to update on change:** `docs/CODEMAP.md` · `docs/CORE-FRAMEWORKS.md` · `docs/AUTHORING.md` · `docs/ARCHITECTURE.md` · `docs/DESIGN.md` · `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/TOWER-STARS.md` · `docs/TOWER-BRANCHES.md` · `docs/TOWER-LAB.md` · `docs/TOWER-CODEX.md` · `docs/TOWERS.md` · `docs/STRAIN.md` · `docs/MASTERY.md` · `docs/ADAPTATION.md` · `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/COLLECTION.md` · `docs/EVOLUTION-HQ.md` · `docs/GENOME-CORE.md` · `docs/EVOLUTION-CAP.md` · `docs/ECONOMY.md` · `docs/LEXICON.md` · `docs/ECONOMY_FORMULAS.md` · `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/BOSS-DESIGN.md` · `docs/MEGA-BOSS.md` · `docs/BIOMES.md` · `docs/DOCTRINES.md` · `docs/MODE-IDENTITY.md` · `docs/DIFFICULTY.md` · `docs/DIFFICULTY_DIRECTOR.md` · `docs/WEBSITE.md` · `docs/DEPLOYMENT.md`
 
 ### Power Score (`power`)
 
@@ -305,14 +312,14 @@ graph TD
 
 - **Files:** `src/core/power.ts` · `src/state/itemPower.ts` · `src/state/powerEvents.ts` · `src/ui/components/PowerScore.tsx` · `src/ui/components/PowerDelta.tsx` · `src/ui/components/PowerToaster.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `nucleus` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction`
+- **Consumers — what breaks if you change this:** `campaign` · `mulligans` · `premium` · `net-backend` · `equipment` · `loot` · `gene-cards` · `nucleus` · `hero-symbiotes` · `profile` · `genome-rank` · `hub-shell` · `run-ui` · `prediction`
 - **Power Score:** IS the model (buckets, effectsPower, FIELD_WEIGHT)
 - **Save fields:** —
 - **Tutorial:** — · **Help mechanics:** `power-score`
 - **HUD surfaces:** `Hud (live run Power)` · **UI screens:** `ProgressDashboard` · `CommandCenter (recommended power)`
 - **Collection:** collection completion feeds a bucket · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/PROFILE.md` · `docs/GENOME-RANK.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
+- **Docs to update on change:** `docs/POWER-SCORE.md` · `docs/POWER-AUDIT.md` · `docs/CAMPAIGN.md` · `docs/CAMPAIGN-EVENTS.md` · `docs/MODE-IDENTITY.md` · `docs/STAGES.md` · `docs/MULLIGANS.md` · `docs/PREMIUM-STORE.md` · `docs/PREMIUM-ECONOMY-REPORT.md` · `docs/DEPLOYMENT.md` · `docs/REPLAY-SHARE.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/LOOTBOX.md` · `docs/LOOT-PROGRESSION.md` · `docs/REWARD-PRESENTATION.md` · `docs/GENE-EVOLUTION.md` · `docs/CARDS.md` · `docs/GENE-AUDIT-REPORT.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/PROFILE.md` · `docs/GENOME-RANK.md` · `docs/COMMAND-CENTER.md` · `docs/HOME-BASE.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/PREDICTION.md`
 
 ### Campaign (`campaign`)
 
@@ -410,14 +417,14 @@ graph TD
 
 - **Files:** `src/core/mulligan.ts` · `src/core/combatClass.ts` · `src/render/mulliganOrganism.ts` · `src/state/mulliganLabModel.ts` · `src/ui/MulliganLab.tsx` · `src/core/mulliganReforge.ts` · `src/render/reforgeWheel.ts`
 - **Depends on:** `content-infra` · `towers` · `power` · `meta-store`
-- **Consumers — what breaks if you change this:** `nucleus`
+- **Consumers — what breaks if you change this:** `nucleus` · `hero-symbiotes`
 - **Power Score:** a DEDICATED, separately-inspectable PowerParts.mulligans bucket (accountMulliganPower) — modifiers × rarity × level; exactly 1 until an organism is fully assembled
 - **Save fields:** `mulligans` · `mulliganDex`
 - **Tutorial:** — · **Help mechanics:** `mulligans`
 - **HUD surfaces:** — · **UI screens:** `GameView (organism overlay + emitter shots + graft ambience)` · `MulliganLab` · `Inspector (organism block)` · `DailyScreen (assignment briefing)` · `Vault reveal (Overflow + discovery pulls)` · `PlayerProfile (dex + Overflow rows)`
 - **Collection:** mulligans (Modifiers) — dex-driven codex: Discovered → Transcendent; +5% fire rate at completion · **Achievements:** `mulligan_grafted` · `mulligan_splicer` · `mulligan_transcendent` · `mulligan_dex` · `mulligan_perfected` · `mulligan_ascendant` · `mulligan_overlord`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/MULLIGANS.md` · `docs/NUCLEUS.md`
+- **Docs to update on change:** `docs/MULLIGANS.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md`
 
 ### Premium Store (`premium`)
 
@@ -500,14 +507,14 @@ graph TD
 
 - **Files:** `src/core/heroIdentity.ts` · `src/core/heroLore.ts` · `src/core/heroEvolution.ts` · `src/ui/HeroLab.tsx` · `src/ui/HeroSelectPanel.tsx` · `src/ui/HeroSlotUnlock.tsx` · `src/ui/HeroEvolutionPanel.tsx` · `src/state/heroView.ts` · `src/ui/components/HeroPortrait.tsx`
 - **Depends on:** `content-infra` · `engine` · `shards-economy` · `campaign`
-- **Consumers — what breaks if you change this:** `engine` · `equipment` · `expeditions`
+- **Consumers — what breaks if you change this:** `engine` · `equipment` · `hero-symbiotes` · `expeditions`
 - **Power Score:** hero stars/evolution feed permanent + temporary buckets
 - **Save fields:** `heroStars` · `heroPrime` · `heroShards` · `heroUnlocked` · `heroLoadout` · `heroMasteryXp`
 - **Tutorial:** `combat` · **Help mechanics:** `heroes` · `hero-slots`
 - **HUD surfaces:** `ability button` · `HeroSelectPanel` · **UI screens:** `HeroLab`
 - **Collection:** heroes category (usage tiers) · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/EXPEDITIONS.md`
+- **Docs to update on change:** `docs/HEROES.md` · `docs/HERO-FRAMEWORK.md` · `docs/HERO-EVOLUTION.md` · `docs/HERO-SELECTION.md` · `docs/SLOTS.md` · `docs/ARCHITECTURE.md` · `docs/CODEMAP.md` · `docs/DESIGN.md` · `docs/EQUIPMENT.md` · `docs/EQUIPMENT-PHILOSOPHY.md` · `docs/HERO-SYMBIOTES.md` · `docs/EXPEDITIONS.md`
 
 ### Equipment & Armory (`equipment`)
 
@@ -583,6 +590,21 @@ graph TD
 - **Collection:** nucleusOrgans + nucleusAdaptations categories · **Achievements:** `nucleus_awake` · `nucleus_adapted` · `nucleus_sovereign`
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
 - **Docs to update on change:** `docs/NUCLEUS.md`
+
+### Hero Symbiotes (`hero-symbiotes`)
+
+*Every champion’s grafted-organism system (docs/HERO-SYMBIOTES.md): 3 gated slots × 3 organ seats per hero, a behavior-verb kit (never equipment stat dupes), per-slot Complete Hero Adaptations, multi-slot Resonance, per-hero identity trials, and staged visual mutation.*
+
+- **Files:** `src/core/heroSymbiote.ts` · `src/render/heroSymbiotes.ts` · `src/ui/SymbioteChamber.tsx`
+- **Depends on:** `mulligans` · `heroes` · `content-infra` · `power` · `meta-store` · `genome-rank`
+- **Consumers — what breaks if you change this:** —
+- **Power Score:** accountSymbiotePower multiplies the mulligans PowerParts bucket (×1 while no slot is complete); the kit TYPE has no damage/cooldown stat fields — the no-equipment-duplication contract
+- **Save fields:** `heroSymbiotes`
+- **Tutorial:** — · **Help mechanics:** —
+- **HUD surfaces:** `in-run symbiote grafts + resonance crown (drawHeroSymbiotes)` · **UI screens:** `HeroLab (Symbiote Chamber)`
+- **Collection:** heroSymbioteOrgans + heroAdaptations + heroResonances + heroEvolutions categories · **Achievements:** `symbiote_grafted` · `symbiote_adapted` · `symbiote_resonant` · `symbiote_apex`
+- **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
+- **Docs to update on change:** `docs/HERO-SYMBIOTES.md`
 
 ### Idle Harvest (`idle-harvest`)
 
@@ -965,14 +987,14 @@ graph TD
 
 - **Files:** `src/core/genomeRank.ts` · `src/ui/components/GenomeRankPanel.tsx`
 - **Depends on:** `meta-store` · `account-level` · `power` · `collection`
-- **Consumers — what breaks if you change this:** `nucleus` · `idle-harvest` · `contracts`
+- **Consumers — what breaks if you change this:** `nucleus` · `hero-symbiotes` · `idle-harvest` · `contracts`
 - **Power Score:** — (intentionally none)
 - **Save fields:** `genomeRank`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `PlayerProfile (emblem + breakdown + advisor)` · `App (promotion cinematic)` · `Profile standings tab`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/GENOME-RANK.md` · `docs/NUCLEUS.md` · `docs/IDLE-HARVEST.md` · `docs/CONTRACTS.md`
+- **Docs to update on change:** `docs/GENOME-RANK.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/CONTRACTS.md`
 
 ### Progression Gating & Director (`progression-gating`)
 
@@ -1055,14 +1077,14 @@ graph TD
 
 - **Files:** `src/state/meta.ts` · `src/state/store.ts` · `src/state/prefs.ts` · `src/state/devReset.ts` · `src/save/*` · `src/ui/SaveManager.tsx`
 - **Depends on:** `content-infra`
-- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `nucleus` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
+- **Consumers — what breaks if you change this:** `accounts` · `mulligans` · `field-research` · `net-backend` · `nucleus` · `hero-symbiotes` · `idle-harvest` · `hive-construction` · `daily-login` · `liveops` · `directives` · `contracts` · `infestation` · `chronicle` · `expeditions` · `nemesis` · `cosmetics` · `battle-pass` · `quests` · `onboarding` · `account-level` · `genome-rank` · `progression-gating` · `hub-shell` · `run-ui` · `notifications` · `cutscenes` · `security` · `devtools`
 - **Power Score:** recomputes the account score on every persist
 - **Save fields:** `ALL (owner)`
 - **Tutorial:** — · **Help mechanics:** —
 - **HUD surfaces:** — · **UI screens:** `SaveManager`
 - **Collection:** — · **Achievements:** —
 - **Localization:** inline English strings (no i18n layer yet — this field enumerates the surface for the day it lands)
-- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/NUCLEUS.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
+- **Docs to update on change:** `docs/DEV-RESET.md` · `docs/SCALABILITY.md` · `docs/PROJECT_MANIFEST.md` · `docs/ACCOUNTS.md` · `docs/DEPLOYMENT.md` · `docs/MULLIGANS.md` · `docs/RESEARCH.md` · `docs/WEBSITE.md` · `docs/REPLAY-SHARE.md` · `docs/NUCLEUS.md` · `docs/HERO-SYMBIOTES.md` · `docs/IDLE-HARVEST.md` · `docs/HIVE-CONSTRUCTION.md` · `docs/HOME-BASE.md` · `docs/DAILY-LOGIN.md` · `docs/DAILY-RUN.md` · `docs/ECONOMY.md` · `docs/LIVEOPS.md` · `docs/CONTRACTS.md` · `docs/INFESTATION.md` · `docs/CHANGELOG-PIPELINE.md` · `docs/EXPEDITIONS.md` · `docs/NEMESIS.md` · `docs/COSMETICS.md` · `docs/BATTLEPASS.md` · `docs/QUESTS.md` · `docs/TUTORIAL.md` · `docs/HELP.md` · `docs/TUTORIAL-AUDIT.md` · `docs/ACCOUNT-LEVEL.md` · `docs/GENOME-RANK.md` · `docs/PROGRESSION-GATING.md` · `docs/UNLOCK-TREE.md` · `docs/COMMAND-CENTER.md` · `docs/ONE-MORE-RUN.md` · `docs/HUD.md` · `docs/PROGRESSION-LOOP.md` · `docs/READABILITY.md` · `docs/REWARD-PRESENTATION.md` · `docs/NOTIFICATIONS.md` · `docs/CUTSCENES.md` · `docs/SECURITY.md`
 
 ### Bosses (`bosses`)
 

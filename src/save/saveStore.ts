@@ -30,6 +30,8 @@ import type { GeneSave } from '../core/geneCards';
 import { MULLIGAN_RARITY, MULLIGAN_SLOTS, emptyMulligan, levelCap, mulliganRegistry } from '../core/mulligan';
 import { emptyNucleus, sanitizeNucleus } from '../core/nucleus';
 import type { NucleusState } from '../core/nucleus';
+import { sanitizeHeroSymbiotes } from '../core/heroSymbiote';
+import type { HeroSymbioteState } from '../core/heroSymbiote';
 import { reforgeModById } from '../core/mulliganReforge';
 import type { MulliganRarity, MulliganSlot, MulliganState } from '../core/mulligan';
 import { starterItems, wardrobeItem, wardrobeMilestone, WARDROBE_KINDS } from '../core/wardrobe';
@@ -264,6 +266,13 @@ export interface SaveData {
   //    2 and 3 open through NUCLEUS_GATES. Everything empty ⇒ resolveNucleus is identity
   //    (golden-safe). All additive: pre-v37 saves default to emptyNucleus(). ──
   nucleus: NucleusState;
+  // ── Hero Symbiotes (schema v41, docs/HERO-SYMBIOTES.md) — every champion's OWN grafted-organism
+  //    system: up to three SLOTS per hero, each a three-organ Mulligan triple. Organs are grafted
+  //    per host with Gene Essence (`grown` is that hero's permanent dex); slot I is born open,
+  //    II/III open through per-hero HERO_SYMBIOTE_GATES trials + Ichor. Sparse map — a hero appears
+  //    only once touched; everything empty ⇒ resolveHeroSymbiote is identity (golden-safe).
+  //    All additive: pre-v41 saves default to {}. ──
+  heroSymbiotes: Partial<Record<HeroKind, HeroSymbioteState>>;
   // ── Wardrobe (v31, docs/COSMETICS.md §wardrobe) — account cosmetics beyond unit Phenotypes:
   //    owned item ids (starter rows seeded on load), ONE equipped id per kind ({} = classic
   //    look everywhere ⇒ golden-safe), favorites + seen (NEW badges), claimed cosmetic
@@ -388,8 +397,11 @@ export interface TutorialSave {
 // v39→v40: IDLE HARVEST (docs/IDLE-HARVEST.md) — `idle` {lastCollect, nodes, lifetime ledger}:
 // the away-time accrual clock + the infinite evolution tree. lastCollect seeds to NOW on
 // migration (the clock starts at the update — no retroactive grant); pure economy, never Power.
+// v40→v41: HERO SYMBIOTES (docs/HERO-SYMBIOTES.md) — `heroSymbiotes` (per-hero slots/grown/
+// unlocked + lifetime adaptation/resonance ledgers): the champion wing of the Mulligan pillar.
+// Empty ⇒ identity fold (golden-safe).
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 40;
+export const CURRENT_VERSION = 41;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -704,6 +716,7 @@ export function defaultSave(): SaveData {
     mulligans: emptyMulligansByTower(),
     mulliganDex: {},
     nucleus: emptyNucleus(),
+    heroSymbiotes: {},
   };
 }
 
@@ -1247,6 +1260,7 @@ function withDefaults(data: SaveData): SaveData {
     mulligans: sanitizeMulligans((data as { mulligans?: unknown }).mulligans),
     mulliganDex: sanitizeMulliganDex((data as { mulliganDex?: unknown }).mulliganDex),
     nucleus: sanitizeNucleus((data as { nucleus?: unknown }).nucleus),
+    heroSymbiotes: sanitizeHeroSymbiotes((data as { heroSymbiotes?: unknown }).heroSymbiotes),
     wardrobe: sanitizeWardrobe((data as { wardrobe?: unknown }).wardrobe),
     battlePass: sanitizeBattlePass((data as { battlePass?: unknown }).battlePass),
     quests: sanitizeQuests((data as { quests?: unknown }).quests),

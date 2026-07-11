@@ -15,7 +15,7 @@ const CHANGED: Record<string, (keyof SaveData)[]> = {
   infinite: ['bestWave'],
   currency: ['shards', 'lifetimeShards', 'mats', 'ichor', 'lifetimeIchor', 'market'],
   towers: ['towerStars', 'towerForks', 'towerShards', 'towerKills'],
-  heroes: ['heroStars', 'heroShards', 'heroKills', 'heroFavEquip', 'selectedHero'],
+  heroes: ['heroStars', 'heroShards', 'heroKills', 'heroFavEquip', 'selectedHero', 'heroSymbiotes'],
   equipment: ['equipment'],
   lootboxes: ['lootQueue', 'pendingContainers'],
   achievements: ['achievements'],
@@ -35,6 +35,7 @@ function dirtySave(): SaveData {
   s.towerShards = { ...s.towerShards, needle: 50 }; s.towerKills = { ...s.towerKills, needle: 100 };
   s.heroStars = { ...s.heroStars, ravager: 2 }; s.heroShards = { ...s.heroShards, ravager: 10 };
   s.heroKills = { ...s.heroKills, ravager: 20 }; s.heroFavEquip = { ...s.heroFavEquip, ravager: { blade: 1 } };
+  s.heroSymbiotes = { ravager: { unlocked: 2, slots: [['acid_ducts', null, null], [null, null, null], [null, null, null]], grown: { acid_ducts: { level: 2 } } } };
   s.selectedHero = HERO_ORDER.find((h) => h !== 'ravager') ?? 'ravager';
   s.equipment = { inventory: [{ uid: 'u1', defId: 'blade', tier: 1, affixes: [] } as never], loadouts: { [s.selectedHero]: { weapon: 'u1', armor: null, relic: null } } };
   s.pendingContainers = [{ kind: 'loot', rarity: 'common' }];

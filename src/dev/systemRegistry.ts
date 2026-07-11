@@ -195,6 +195,14 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/NUCLEUS.md'],
   },
   {
+    id: 'hero-symbiotes', name: 'Hero Symbiotes', purpose: 'Every champion\u2019s grafted-organism system (docs/HERO-SYMBIOTES.md): 3 gated slots \u00d7 3 organ seats per hero, a behavior-verb kit (never equipment stat dupes), per-slot Complete Hero Adaptations, multi-slot Resonance, per-hero identity trials, and staged visual mutation.',
+    files: ['src/core/heroSymbiote.ts', 'src/render/heroSymbiotes.ts', 'src/ui/SymbioteChamber.tsx'],
+    dependsOn: ['mulligans', 'heroes', 'content-infra', 'power', 'meta-store', 'genome-rank'], powerScore: 'accountSymbiotePower multiplies the mulligans PowerParts bucket (\u00d71 while no slot is complete); the kit TYPE has no damage/cooldown stat fields \u2014 the no-equipment-duplication contract', save: ['heroSymbiotes'],
+    tutorial: [], help: [], hud: ['in-run symbiote grafts + resonance crown (drawHeroSymbiotes)'],
+    ui: ['HeroLab (Symbiote Chamber)'], collection: 'heroSymbioteOrgans + heroAdaptations + heroResonances + heroEvolutions categories', achievements: ['symbiote_grafted', 'symbiote_adapted', 'symbiote_resonant', 'symbiote_apex'],
+    localization: 'inline-en', docs: ['docs/HERO-SYMBIOTES.md'],
+  },
+  {
     id: 'idle-harvest', name: 'Idle Harvest', purpose: 'Permanent passive lane (docs/IDLE-HARVEST.md): away-time accrues toward an upgradeable cap, collects roll the gated drop registry, the 10-node infinite evolution tree grows every axis \u2014 always priced far below active play (the guardrail).',
     files: ['src/core/idleHarvest.ts', 'src/ui/HarvestScreen.tsx'],
     dependsOn: ['meta-store', 'genome-rank', 'collection', 'account-level'], powerScore: 'none \u2014 pure economy by design (idle must never buy Power); the idle codex is identity-only', save: ['idle'],

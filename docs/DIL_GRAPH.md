@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 753 nodes · 1368 edges, built from the live
+> **The project's brain** (docs/DIL.md). 761 nodes · 1396 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -22,11 +22,11 @@
 
 ### Economy / Reward Index
 
-`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · …97 more
+`currency:biomass` · `currency:genome-cores` · `currency:tower-shards` · `currency:hero-shards` · `currency:gene-essence` · `currency:materials` · `currency:stamina` · `currency:ichor` · `system:campaign` · `system:infinite` · `system:boss-rush` · `system:daily` · `system:loot` · `system:daily-login` · `system:achievements` · `system:directives` · `system:expeditions` · `system:doctrines` · `enemy:runner` · `enemy:mite` · `enemy:larva` · `enemy:rusher` · `enemy:darter` · `enemy:lasher` · `enemy:brute` · `enemy:tank` · `enemy:golem` · `enemy:colossus` · `enemy:bulwark` · `enemy:warden` · `enemy:knitter` · `enemy:revenant` · `enemy:burrower` · `enemy:molerat` · `enemy:flyer` · `enemy:wisp` · `enemy:gargoyle` · `enemy:cystwraith` · `enemy:broodmother` · `enemy:hivecaller` · `enemy:mender` · `enemy:cantor` · `enemy:bomber` · `enemy:popper` · `enemy:sapper` · `enemy:cataclyst` · `enemy:siegeworm` · `enemy:spitter` · `enemy:stratovore` · `enemy:broodweaver` · `enemy:zealot` · `enemy:carrier` · `enemy:entrencher` · `enemy:oracle` · `enemy:glutling` · `enemy:apex` · `enemy:dreadnought` · `enemy:tyrant` · `achievement:tutorial_complete` · `achievement:first_run` · …101 more
 
 ### Power Score Index
 
-`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
+`system:engine` · `system:power` · `system:campaign` · `system:daily` · `system:mulligans` · `system:premium` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:shards-economy` · `system:collection` · `system:evolution-hq` · `system:prestige` · `system:splice-market` · `system:achievements` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:run-ui` · `system:prediction` · `system:meta-store` · `system:mega-bosses` · `system:assimilation`
 
 ### Audio Index
 
@@ -38,7 +38,7 @@
 
 ### Testing Index
 
-`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
+`system:engine` · `system:content-infra` · `system:power` · `system:campaign` · `system:pil` · `system:accounts` · `system:boss-rush` · `system:daily` · `system:mulligans` · `system:premium` · `system:net-backend` · `system:towers` · `system:mastery` · `system:heroes` · `system:equipment` · `system:crafting` · `system:loot` · `system:gene-cards` · `system:nucleus` · `system:hero-symbiotes` · `system:idle-harvest` · `system:collection` · `system:evolution-hq` · `system:hive-construction` · `system:daily-login` · `system:prestige` · `system:currencies` · `system:splice-market` · `system:achievements` · `system:stats` · `system:liveops` · `system:directives` · `system:contracts` · `system:infestation` · `system:chronicle` · `system:cosmetics` · `system:battle-pass` · `system:quests` · `system:profile` · `system:onboarding` · `system:account-level` · `system:genome-rank` · `system:progression-gating` · `system:hub-shell` · `system:notifications` · `system:prediction` · `system:meta-store` · `system:bosses` · `system:mega-bosses` · `system:cutscenes` · `system:security` · `system:biomes` · `system:doctrines` · `system:difficulty` · `system:website` · `system:rendering` · `system:living-battlefield` · `system:audio` · `system:assimilation` · `system:dev-registry`
 
 ### Developer Tooling Index
 
@@ -66,6 +66,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_nucleus["Nucleus Mulligans"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_shards_economy["Shards & Star Economy"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_evolution_hq["Evolution HQ (Genome Cores)"] -->|consumes| system_meta_store["Meta Store & Save"]
@@ -146,6 +147,8 @@ graph LR
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
@@ -168,6 +171,7 @@ graph LR
   system_loot["Loot & Bio-Containers"] -->|provides| concept_power_score["Power Score"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|provides| concept_power_score["Power Score"]
   system_nucleus["Nucleus Mulligans"] -->|provides| concept_power_score["Power Score"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|provides| concept_power_score["Power Score"]
   system_idle_harvest["Idle Harvest"] -->|provides| concept_power_score["Power Score"]
   system_shards_economy["Shards & Star Economy"] -->|provides| concept_power_score["Power Score"]
   system_collection["Collections / Codex"] -->|provides| concept_power_score["Power Score"]
@@ -283,6 +287,13 @@ graph LR
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_nucleus["Nucleus Mulligans"] -->|dependsOn| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_nucleus["Nucleus Mulligans"] -->|consumes| system_meta_store["Meta Store & Save"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|dependsOn| system_mulligans["Mulligan System"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|dependsOn| system_heroes["Heroes"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|dependsOn| system_content_infra["Content Infrastructure"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|dependsOn| system_power["Power Score"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|dependsOn| system_meta_store["Meta Store & Save"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|dependsOn| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_meta_store["Meta Store & Save"]
   system_idle_harvest["Idle Harvest"] -->|dependsOn| system_meta_store["Meta Store & Save"]
   system_idle_harvest["Idle Harvest"] -->|dependsOn| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_idle_harvest["Idle Harvest"] -->|dependsOn| system_collection["Collections / Codex"]
@@ -449,6 +460,7 @@ graph LR
   system_quests["Quests & Missions"] -->|consumes| system_cosmetics["The Wardrobe (Cosmetics)"]
   system_idle_harvest["Idle Harvest"] -->|consumes| system_genome_rank["Genome Rank (ultimate mastery ladder)"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| system_engine["Sim Engine"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|consumes| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|consumes| system_mega_bosses["Mega Bosses"]
 ```
 
@@ -469,6 +481,7 @@ graph LR
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_audio["Audio"]
   system_cosmetics["The Wardrobe (Cosmetics)"] -->|modifies| system_rendering["Rendering & VFX"]
   system_currencies["Currencies & Economy Framework"] -->|modifies| system_meta_store["Meta Store & Save"]
+  system_hero_symbiotes["Hero Symbiotes"] -->|modifies| system_engine["Sim Engine"]
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
@@ -491,7 +504,7 @@ ONE account-strength number folded from every permanent bucket + the in-run temp
   - providedBy ← `system:equipment` — equipped items score via itemPower into the gear bucket
   - providedBy ← `system:crafting` — reforged items re-score through the gear bucket
   - providedBy ← `system:loot` — reads Power for catch-up bias; grants move account Power
-  - _…23 more (query: `npm run dil -- node concept:power-score`)_
+  - _…24 more (query: `npm run dil -- node concept:power-score`)_
 
 ### `concept:determinism` — Determinism
 
@@ -520,6 +533,7 @@ Six seeded runs pinned byte-for-byte (core/golden.test.ts) — the tripwire for 
   - conflictsWith ← `system:battle-pass` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
   - conflictsWith ← `system:quests` — weekly progress NEVER carries over (rollover mails earned rewards then resets); a fresh save has empty ledgers so the quests/missions codices read zero — any starter-time credit breaks POWER_BASE
   - conflictsWith ← `system:idle-harvest` — idle is PURE economy: zero Power, zero run effects, the idle codex carries no powerWeight, soft(0)=1 — any fold at level 0 breaks POWER_BASE; the accrual anchor is MONOTONE (never rewound) or clock rollback re-farms the same span, and fixed-price drop rows need minValue floors or 5-minute dust collects mint full containers (idleHarvest.test.ts pins all three)
+  - conflictsWith ← `system:hero-symbiotes` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
   - conflictsWith ← `system:cosmetics` — skins/visual tiers must stay render-only; any def stat touched for looks breaks the pinned seeds
 
 ### `concept:progression-gates` — Progression Gates
@@ -594,7 +608,7 @@ The permanent meta currency — genome upgrades, rewards, achievement payouts.
   - rewardedBy ← `achievement:specialist` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_grafted` — +25 on unlock
   - rewardedBy ← `achievement:mulligan_splicer` — +40 on unlock
-  - _…97 more (query: `npm run dil -- node currency:genome-cores`)_
+  - _…101 more (query: `npm run dil -- node currency:genome-cores`)_
 
 ### `currency:tower-shards` — Tower Shards (✦)
 
@@ -657,7 +671,7 @@ The premium reserve — never farmable; bled from achievements, collection ranks
 
   - rewardedBy ← `system:daily-login` — a rare small lane (weight 3, clamped 2–6/day) — deliberately below the never-farmable premium posture thresholds
 
-## Systems (68)
+## Systems (69)
 
 ### `system:engine` — Sim Engine
 
@@ -687,7 +701,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…180 more (query: `npm run dil -- node system:engine`)_
+  - _…182 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -706,8 +720,8 @@ _at: src/core/registry.ts, src/core/validate.ts, src/core/config.ts, src/core/ty
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
   - requiredBy ← `system:nucleus`
-  - requiredBy ← `system:collection`
-  - _…16 more (query: `npm run dil -- node system:content-infra`)_
+  - requiredBy ← `system:hero-symbiotes`
+  - _…17 more (query: `npm run dil -- node system:content-infra`)_
 
 ### `system:power` — Power Score
 
@@ -725,11 +739,11 @@ _at: src/core/power.ts, src/state/itemPower.ts, src/state/powerEvents.ts, src/ui
   - requiredBy ← `system:loot`
   - requiredBy ← `system:gene-cards`
   - requiredBy ← `system:nucleus`
+  - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:profile`
   - requiredBy ← `system:genome-rank`
   - requiredBy ← `system:hub-shell`
-  - requiredBy ← `system:run-ui`
-  - _…8 more (query: `npm run dil -- node system:power`)_
+  - _…9 more (query: `npm run dil -- node system:power`)_
 
 ### `system:campaign` — Campaign
 
@@ -878,6 +892,7 @@ _at: src/core/mulligan.ts, src/core/combatClass.ts, src/render/mulliganOrganism.
   - consumes → `system:towers` — ADAPTATIONS compare modifier classes to TowerDef.combatClass — resolveMulligan needs the HOST class everywhere (a class-less call silently drops the set bonus); COMBAT_CLASSES (core/combatClass.ts) is the ONE display table
   - conflictsWith → `concept:golden-test` — adaptation bonuses fold ONLY through existing MulliganStats channels inside resolveMulligan — a new sim branch for a class bonus breaks the inactive⇒identity gate
   - requiredBy ← `system:nucleus`
+  - requiredBy ← `system:hero-symbiotes`
   - taughtBy ← `help:mulligans`
   - referencedBy ← `achievement:mulligan_grafted`
   - referencedBy ← `achievement:mulligan_splicer`
@@ -888,8 +903,7 @@ _at: src/core/mulligan.ts, src/core/combatClass.ts, src/render/mulliganOrganism.
   - referencedBy ← `achievement:mulligan_overlord`
   - documentedBy ← `doc:MULLIGANS.md`
   - documentedBy ← `guide:mulligans`
-  - testedBy ← `test:src/core/mulligan.test.ts`
-  - _…4 more (query: `npm run dil -- node system:mulligans`)_
+  - _…5 more (query: `npm run dil -- node system:mulligans`)_
 
 ### `system:premium` — Premium Store
 
@@ -1022,6 +1036,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - extends → `system:engine` — CINDERWYRM (HEROES.md §6): HeroBehavior gained 'swoop' (game.updateSwoopHero) — the flying strafe brain: strike on the fly-by, Corrosion via WYRM.corrodePerStrike, then BANK THROUGH to Hero.bankX/bankY = WYRM.bankDist past the victim (sim fields for the flight, absent on every other hero). Unlock bossSlain 5 ⇒ never on a fresh account ⇒ golden-safe; wings render behavior-keyed (drawHeroWings) so a future flyer inherits them
   - requiredBy ← `system:engine`
   - requiredBy ← `system:equipment`
+  - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:expeditions`
   - contains ← `hero:ravager`
   - contains ← `hero:shepherd`
@@ -1031,8 +1046,7 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - contains ← `hero:knell`
   - contains ← `hero:wyrm`
   - taughtBy ← `tutorial:combat`
-  - taughtBy ← `help:heroes`
-  - _…9 more (query: `npm run dil -- node system:heroes`)_
+  - _…11 more (query: `npm run dil -- node system:heroes`)_
 
 ### `system:equipment` — Equipment & Armory
 
@@ -1156,6 +1170,32 @@ _at: src/core/nucleus.ts, src/render/nucleusDress.ts, src/ui/NucleusChambers.tsx
   - referencedBy ← `achievement:nucleus_sovereign`
   - documentedBy ← `doc:NUCLEUS.md`
   - testedBy ← `test:src/core/nucleus.test.ts`
+
+### `system:hero-symbiotes` — Hero Symbiotes
+
+Every champion’s grafted-organism system (docs/HERO-SYMBIOTES.md): 3 gated slots × 3 organ seats per hero, a behavior-verb kit (never equipment stat dupes), per-slot Complete Hero Adaptations, multi-slot Resonance, per-hero identity trials, and staged visual mutation.
+
+_at: src/core/heroSymbiote.ts, src/render/heroSymbiotes.ts, src/ui/SymbioteChamber.tsx_
+
+  - dependsOn → `system:mulligans`
+  - dependsOn → `system:heroes`
+  - dependsOn → `system:content-infra`
+  - dependsOn → `system:power`
+  - dependsOn → `system:meta-store`
+  - dependsOn → `system:genome-rank`
+  - provides → `concept:power-score` — accountSymbiotePower multiplies the mulligans PowerParts bucket (×1 while no slot is complete); the kit TYPE has no damage/cooldown stat fields — the no-equipment-duplication contract
+  - consumes → `system:meta-store` — owns save field 'heroSymbiotes'
+  - extends → `system:heroes` — HeroMods gained ONE optional field `symbiote?: HeroSymbioteKit` (types.ts) — meta.heroProgress attaches resolveHeroSymbiote(save.heroSymbiotes[k]).kit ONLY while a slot is active, so a fresh save carries no field and the sim is byte-identical. The kit TYPE has no damage/cooldown stat fields — the no-equipment-duplication contract is structural
+  - modifies → `system:engine` — seam map (all presence-gated on heroProgress[kind].symbiote): foldHeroSymbiotes (constructor, AFTER foldHeroEquip — the equip fold early-returns on gear-less rosters, so symbiote strike verbs fold in their OWN pass) appends strikeStatuses/strikeComponents to heroStatuses[k]/heroKits[k]; heroHaste ×killHaste while rushing; heroAbilityRadiusFor ×abilityRadiusMult; healHeroBy overflow→shield; respawn ÷reviveSpeedMult; survival override at the retreat read; castHeroAbility schedules Hero.echoT/echoX/echoY → castHeroEcho (no reposition/cooldown/crit rng); summonMinions scales by abilityCaster kit; aura folds + the three vuln-passive sums ×auraMult
+  - consumes → `system:engine` — HERO KILL CREDIT (new axis): the dive/phase/swoop strike blocks + the ability dealDamage path stamp Enemy.lastHitHero on KILLING blows only; deathSystem then credits heroMasteryAccrual[].kills (feeding lifetime save.heroKills — previously never incremented) and fires the killer's symbiote kill verbs (killHaste → rushUntil, killPlague → burst the victim's corrosion/infection over grid neighbors). Pure observation + kit-gated ⇒ goldens byte-identical
+  - conflictsWith → `concept:golden-test` — every symbiote surface must stay inactive⇒identity: resolveHeroSymbiote power EXACTLY 1 / kit null while no slot is fully seated; a new kit verb needs BOTH an optional field (absent on fresh saves) AND a presence-gated seam read — an unconditional read or a default ≠ identity breaks the pinned seeds
+  - referencedBy ← `achievement:symbiote_grafted`
+  - referencedBy ← `achievement:symbiote_adapted`
+  - referencedBy ← `achievement:symbiote_resonant`
+  - referencedBy ← `achievement:symbiote_apex`
+  - documentedBy ← `doc:HERO-SYMBIOTES.md`
+  - testedBy ← `test:src/core/heroSymbiote.test.ts`
+  - testedBy ← `test:src/render/heroSymbiotes.test.ts`
 
 ### `system:idle-harvest` — Idle Harvest
 
@@ -1370,7 +1410,7 @@ _at: src/state/achievements.ts, src/ui/AchievementPanel.tsx, src/ui/AchievementT
   - contains ← `achievement:star3`
   - contains ← `achievement:specialist`
   - contains ← `achievement:hero_shard`
-  - _…91 more (query: `npm run dil -- node system:achievements`)_
+  - _…95 more (query: `npm run dil -- node system:achievements`)_
 
 ### `system:stats` — Lifetime Stats
 
@@ -1671,6 +1711,7 @@ _at: src/core/genomeRank.ts, src/ui/components/GenomeRankPanel.tsx_
   - references → `system:mastery` — grank_<n> titles share save.equippedTitle — always resolve display through titleName() (profile.ts), never per-registry lookups
   - conflictsWith → `concept:golden-test` — promotion rewards are meta-only (cores/ichor/containers/titles) — NO gameplay passives may ride ranks, or goldens and pay-to-win both break
   - requiredBy ← `system:nucleus`
+  - requiredBy ← `system:hero-symbiotes`
   - requiredBy ← `system:idle-harvest`
   - requiredBy ← `system:contracts`
   - documentedBy ← `doc:GENOME-RANK.md`
@@ -1791,7 +1832,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…108 more (query: `npm run dil -- node system:meta-store`)_
+  - _…110 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -1983,10 +2024,10 @@ _at: src/render/*, src/core/dangerCamera.ts_
   - testedBy ← `test:src/render/assimilationFx.test.ts`
   - testedBy ← `test:src/render/equipmentArt.test.ts`
   - testedBy ← `test:src/render/heroEvolution.test.ts`
+  - testedBy ← `test:src/render/heroSymbiotes.test.ts`
   - testedBy ← `test:src/render/infestationMap.test.ts`
   - testedBy ← `test:src/render/introScenes.test.ts`
-  - testedBy ← `test:src/render/livingBattlefield.test.ts`
-  - _…10 more (query: `npm run dil -- node system:rendering`)_
+  - _…11 more (query: `npm run dil -- node system:rendering`)_
 
 ### `system:living-battlefield` — Living Battlefield
 
@@ -2958,7 +2999,7 @@ _at: site/guides.ts → /guides/prestige/_
   - partOf → `system:website`
   - documents → `system:prestige`
 
-## Achievements (100)
+## Achievements (104)
 
 - `achievement:tutorial_complete` — Complete the Combat Tutorial. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:first_run` — Finish your first run. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
@@ -2981,6 +3022,10 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:nucleus_adapted` — Complete a Nucleus class adaptation (three matching organ classes in one chamber). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:nucleus`)_
 - `achievement:nucleus_sovereign` — Awaken all three Nucleus chambers — the Hive complete. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:nucleus`)_
 - `achievement:mulligan_overlord` — Reach ×1.5 account Power from Mulligan organisms. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:mulligans`)_
+- `achievement:symbiote_grafted` — Awaken a Symbiote slot on a champion (all three organ seats filled). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:hero-symbiotes`)_
+- `achievement:symbiote_adapted` — Awaken a class adaptation (three matching organ classes in one Symbiote slot). _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:hero-symbiotes`)_
+- `achievement:symbiote_resonant` — Witness a Symbiote Resonance — all three slots grafted on one champion. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:hero-symbiotes`)_
+- `achievement:symbiote_apex` — Fully evolve every fielded champion class — three complete organisms in the roster. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:hero-symbiotes`)_
 - `achievement:exterminator` — Kill 1,000 enemies (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:biomass_baron` — Harvest 50,000 biomass (lifetime). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:collector` — Collect 12 distinct Gene Cards. _(partOf `system:achievements`, rewards `currency:genome-cores`, references `system:gene-cards`)_
@@ -3061,7 +3106,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (161)
+## Documentation (162)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3130,6 +3175,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:HERO-EVOLUTION.md` — project documentation _(documents `system:heroes`)_
 - `doc:HERO-FRAMEWORK.md` — project documentation _(documents `system:heroes`)_
 - `doc:HERO-SELECTION.md` — project documentation _(documents `system:heroes`)_
+- `doc:HERO-SYMBIOTES.md` — project documentation _(documents `system:hero-symbiotes`)_
 - `doc:HEROES.md` — project documentation _(documents `system:heroes`)_
 - `doc:HISTORY.md` — project documentation
 - `doc:HIVE-CONSTRUCTION.md` — project documentation _(documents `system:hive-construction`)_
@@ -3225,7 +3271,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (234)
+## Tests (236)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3297,6 +3343,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/core/heroIdentity.test.ts` — automated validation _(tests `system:heroes`)_
 - `test:src/core/heroKit.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroSelect.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/heroSymbiote.test.ts` — automated validation _(tests `system:hero-symbiotes`)_
 - `test:src/core/heroes.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/heroshield.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/hiveOrgans.test.ts` — automated validation _(tests `system:hive-construction`)_
@@ -3378,6 +3425,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/render/assimilationFx.test.ts` — automated validation _(tests `system:rendering`, tests `system:assimilation`)_
 - `test:src/render/equipmentArt.test.ts` — automated validation _(tests `system:rendering`, tests `system:equipment`)_
 - `test:src/render/heroEvolution.test.ts` — automated validation _(tests `system:rendering`)_
+- `test:src/render/heroSymbiotes.test.ts` — automated validation _(tests `system:rendering`, tests `system:hero-symbiotes`)_
 - `test:src/render/infestationMap.test.ts` — automated validation _(tests `system:rendering`, tests `system:infestation`)_
 - `test:src/render/introScenes.test.ts` — automated validation _(tests `system:rendering`, tests `system:onboarding`)_
 - `test:src/render/livingBattlefield.test.ts` — automated validation _(tests `system:rendering`, tests `system:living-battlefield`)_

@@ -24,6 +24,8 @@ import { wardrobeGroupItems } from './wardrobe';
 import type { WardrobeGroup } from './wardrobe';
 import { MULLIGAN_RARITY, mulliganRegistry, rarityAtLeast } from './mulligan';
 import { NUCLEUS_ADAPTATIONS, nucleusRegistry, organLevelCap } from './nucleus';
+import { HERO_ORDER } from './config';
+import { SYMBIOTE_ADAPTATIONS, SYMBIOTE_RESONANCES, symbioteLevelCap, symbioteRegistry } from './heroSymbiote';
 import { COMBAT_CLASS_ORDER } from './combatClass';
 import type { MulliganRarity } from './mulligan';
 import { ALL_QUESTS, allMissions } from './quests';
@@ -39,7 +41,8 @@ export type CollectionCategoryId =
   | 'idle' // Idle Harvest milestones (docs/IDLE-HARVEST.md §collection)
   | 'doctrines' // run-commitment mastery (docs/DOCTRINES.md §collection)
   | 'mulligans' | 'mulliganOrganisms'
-  | 'nucleusOrgans' | 'nucleusAdaptations'; // the Hive Nucleus's own organ system (docs/NUCLEUS.md)
+  | 'nucleusOrgans' | 'nucleusAdaptations' // the Hive Nucleus's own organ system (docs/NUCLEUS.md)
+  | 'heroSymbioteOrgans' | 'heroAdaptations' | 'heroResonances' | 'heroEvolutions'; // Hero Symbiotes (docs/HERO-SYMBIOTES.md)
 
 export interface CollectionEntry {
   id: string;
@@ -93,6 +96,11 @@ export interface CollectionContext {
   mulliganOrganisms: Record<string, { active: boolean; locked: boolean }>;
   nucleusGrown: Record<string, number>; // Nucleus organ id → grown level (docs/NUCLEUS.md §collection)
   nucleusAdapted: Set<string>; // classes whose FULL Nucleus adaptation has ever completed (lifetime)
+  // ── Hero Symbiotes (docs/HERO-SYMBIOTES.md §collection) — lifetime, across every host ──
+  heroSymbioteGrown: Record<string, number>; // organ species id → BEST graft level on any host
+  heroAdapted: Set<string>; // classes whose Complete Hero Adaptation has ever awakened (any host)
+  heroResonated: Set<string>; // resonance ids ever witnessed (any host)
+  heroEvolved: Set<string>; // hero kinds that have ever reached full evolution (9/9)
   questCompletions: Record<string, number>; // quest id → lifetime finale claims (docs/QUESTS.md §collection)
   missionsDone: Set<string>; // mission ids ever completed (lifetime, both lanes)
   lifetimeLogins: number; // Daily Bio-Cache claims ever (docs/DAILY-LOGIN.md — never reset)
@@ -368,6 +376,29 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     return { id: `nadapt_${cls}`, name: `${NUCLEUS_ADAPTATIONS[cls].title}`, tier, maxTier: 1, tierLabel: tier ? 'Synchronized' : 'Unexpressed' };
   });
 
+  // ── Hero Symbiote codices (docs/HERO-SYMBIOTES.md §collection) — all registry/roster-driven ──
+  // Species: GRAFTING one into any host discovers it; reaching the rarity cap on any host masters it.
+  const heroSymbioteOrgans = symbioteRegistry.all().map((o): CollectionEntry => {
+    const lvl = ctx.heroSymbioteGrown[o.id] ?? 0;
+    const tier = lvl >= symbioteLevelCap(o) ? 2 : lvl >= 1 ? 1 : 0;
+    return { id: o.id, name: o.name, tier, maxTier: 2, tierLabel: tier === 2 ? 'Apex Graft' : tier === 1 ? `Grafted — L${lvl}` : 'Ungrafted' };
+  });
+  // Complete Hero Adaptations: one entry per class — any host's full slot chronicles it forever.
+  const heroAdaptations = COMBAT_CLASS_ORDER.map((cls): CollectionEntry => {
+    const tier = ctx.heroAdapted.has(cls) ? 1 : 0;
+    return { id: `hadapt_${cls}`, name: SYMBIOTE_ADAPTATIONS[cls].title, tier, maxTier: 1, tierLabel: tier ? 'Awakened' : 'Unexpressed' };
+  });
+  // Resonances: the seven crowns a fully evolved hero can sing.
+  const heroResonances = SYMBIOTE_RESONANCES.map((r): CollectionEntry => {
+    const tier = ctx.heroResonated.has(r.id) ? 1 : 0;
+    return { id: r.id, name: r.name, tier, maxTier: 1, tierLabel: tier ? 'Witnessed' : 'Unheard' };
+  });
+  // Complete Hero Evolutions: one entry per champion — nine grafted seats, chronicled forever.
+  const heroEvolutions = HERO_ORDER.map((k): CollectionEntry => {
+    const tier = ctx.heroEvolved.has(k) ? 1 : 0;
+    return { id: `hevo_${k}`, name: `${HERO_DEFS[k].name} — Fully Evolved`, tier, maxTier: 1, tierLabel: tier ? 'Complete Organism' : 'Incomplete' };
+  });
+
   const categories: CollectionCategory[] = [
     makeCategory('enemies', 'Bestiary', enemies),
     makeCategory('bosses', 'Bosses', bosses),
@@ -393,6 +424,10 @@ export function collectionView(ctx: CollectionContext): CollectionView {
     makeCategory('mulliganOrganisms', 'Mulligans', mulliganOrganisms),
     makeCategory('nucleusOrgans', 'Nucleus Organs', nucleusOrgans),
     makeCategory('nucleusAdaptations', 'Nucleus Adaptations', nucleusAdaptations),
+    makeCategory('heroSymbioteOrgans', 'Symbiote Organs', heroSymbioteOrgans),
+    makeCategory('heroAdaptations', 'Hero Adaptations', heroAdaptations),
+    makeCategory('heroResonances', 'Resonances', heroResonances),
+    makeCategory('heroEvolutions', 'Hero Evolutions', heroEvolutions),
   ];
   const discovered = categories.reduce((a, c) => a + c.discovered, 0);
   const total = categories.reduce((a, c) => a + c.total, 0);
@@ -465,6 +500,12 @@ const CATEGORY_BONUS_SPECS: Record<CollectionCategoryId, CategoryBonusSpec> = {
   // own language — economy + endurance, never raw tower DPS (the Nucleus identity rule).
   nucleusOrgans: { effects: [{ op: 'mul', field: 'biomassMult', max: 1.04, label: 'Biomass' }], econ: [], powerWeight: 0.03 },
   nucleusAdaptations: { effects: [{ op: 'mul', field: 'integrityMult', max: 1.04, label: 'Integrity' }], econ: [], powerWeight: 0.02 },
+  // Hero Symbiote codices (docs/HERO-SYMBIOTES.md §collection): the champions reward their own
+  // cultivation in hero support language — sustain, vitality, growth — never tower DPS.
+  heroSymbioteOrgans: { effects: [{ op: 'mul', field: 'heroHealingMult', max: 1.05, label: 'Hero Healing' }], econ: [], powerWeight: 0.03 },
+  heroAdaptations: { effects: [{ op: 'mul', field: 'heroMaxHpMult', max: 1.04, label: 'Hero Health' }], econ: [], powerWeight: 0.02 },
+  heroResonances: { effects: [{ op: 'mul', field: 'heroDamageMult', max: 1.03, label: 'Hero Damage' }], econ: [], powerWeight: 0.02 },
+  heroEvolutions: { effects: [], econ: [{ key: 'heroXpMult', max: 0.15, label: 'Hero XP' }], powerWeight: 0.03 },
 };
 
 const effVal = (op: 'mul' | 'add', max: number, c: number): number => (op === 'mul' ? 1 + (max - 1) * c : max * c);

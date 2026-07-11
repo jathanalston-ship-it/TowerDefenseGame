@@ -434,6 +434,19 @@ combinations.
 
 ---
 
+## Hero Symbiotes (late-game bio-augmentation) — see docs/HERO-SYMBIOTES.md
+
+Every champion hosts up to **three Symbiote slots** (slot I free; II/III open through per-hero
+identity trials + Ichor), each seating a three-organ Mulligan triple from the 36-species catalog.
+Symbiotes are permanently grafted organisms that change HOW the hero fights — behavior verbs only
+(strike toxins, kill surges, ability echoes, overheal carapaces, adaptive AI), never equipment
+stat duplicates. Matching classes in a slot awaken a **Complete Hero Adaptation**; all three slots
+together **resonate** (Apex Predator, Living Bastion, …). A NEW HERO must declare its two trials
+in `HERO_SYMBIOTE_GATES` and its three visual stages in `HERO_SYMBIOTE_VISUALS` — the compiler and
+tests refuse anything less.
+
+---
+
 ## Hero Lab — Champion Select (UI)
 
 The Hero Lab is a **champion-select**, not a roster spreadsheet: a scrollable roster

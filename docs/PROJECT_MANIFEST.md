@@ -32,7 +32,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 [Campaign](#campaign) · [Infinite](#infinite) · [Mega Bosses](#mega-bosses) · [Power Score](#power-score) ·
 [Tower Stars](#tower-stars) · [Tower Mastery / Adaptation](#tower-mastery--adaptation) ·
-[Heroes](#heroes) · [Hero Equipment](#hero-equipment) · [Gene Cards](#gene-cards) ·
+[Heroes](#heroes) · [Hero Equipment](#hero-equipment) · [Hero Symbiotes](#hero-symbiotes) · [Gene Cards](#gene-cards) ·
 [Equipment](#equipment) · [Crafting / Reforging](#crafting--reforging) · [Loot](#loot) ·
 [Collections](#collections) · [Evolution (Genome Cores)](#evolution-genome-cores) ·
 [Prestige (Molt / Ascendant)](#prestige-molt--ascendant) · [Currencies](#currencies) ·
@@ -274,6 +274,31 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Developer tips:** `heroAttackStatus`, anchors, and AI-profile knobs are the behavioral
   surface — author HOW a hero plays; check `EQUIPMENT-PHILOSOPHY.md` before adding a stat-only
   item.
+
+## Hero Symbiotes
+
+- **Purpose:** the champion wing of the Mulligan pillar — per-hero grafted organisms (3 gated
+  slots × 3 organ seats from a 36-species catalog) whose kit is BEHAVIOR VERBS only (strike
+  toxins, kill plague/surge, ability echo, overheal carapace, revive cocoon, aura swell, summon
+  nurture, adaptive AI); by type it can never duplicate Hero Equipment stats. Per-slot Complete
+  Hero Adaptations, category-census Resonance across all three slots, per-hero identity trials
+  (Ichor), staged visual mutation.
+- **Dependencies:** Mulligans (rarity ladder/level caps), Heroes (HeroMods fold), Power
+  (mulligans bucket), Genome Rank, Collections, save (`heroSymbiotes`, v41), Gene Essence + Ichor.
+- **Files:** `core/heroSymbiote.ts` (catalog/adaptations/resonance/gates/resolver/sanitizer),
+  `types.HeroSymbioteKit` + `HeroMods.symbiote`, seams in `core/game.ts` (foldHeroSymbiotes +
+  presence-gated reads; killing-blow credit `Enemy.lastHitHero`), `render/heroSymbiotes.ts`
+  (stage visuals), `ui/SymbioteChamber.tsx` (Hero Lab console). Docs: **`HERO-SYMBIOTES.md`**.
+- **Related:** Hero Equipment (the contrast — external gear vs grafted biology), Nucleus
+  Mulligans (the gate/console template), Mastery (hero kill credit now feeds `heroKills`).
+- **Future expansion:** a new organ = one registry row; a new verb = one optional kit field +
+  one gated seam; a fourth slot / new resonances are data (`SYMBIOTE_SLOTS`, the census table).
+- **Known limitations:** hero kill credit lands on KILLING BLOWS from strike/ability paths only
+  (deferred projectiles like siege shells carry no hero source — the pre-existing damage-credit
+  semantic); gate thresholds are first-pass calibrations pending persona-simulator review.
+- **Developer tips:** a NEW HERO must add its `HERO_SYMBIOTE_GATES` pair (compiler-enforced) and
+  its `HERO_SYMBIOTE_VISUALS` stages (test-enforced). Never give the kit a stat field — that is
+  equipment's language, and the separation is the system's identity.
 
 ## Gene Cards
 

@@ -15,6 +15,7 @@ import { HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { MULLIGAN_RARITY, accountMulliganPower, isMaxLevel, isMulliganActive, mulliganRegistry } from '../core/mulligan';
 import { NUCLEUS_CHAMBERS, isChamberActive } from '../core/nucleus';
+import { SYMBIOTE_SLOTS, isSlotActive } from '../core/heroSymbiote';
 import { WEAK_POINT_DEFS, megaBossRegistry } from '../core/megaboss';
 import { DOCTRINE_RANK_MAX, doctrineRank, doctrineRegistry } from '../core/doctrines';
 import type { DoctrineFamily } from '../core/doctrines';
@@ -96,6 +97,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'nucleus_adapted', name: 'Chamber Symphony', desc: 'Complete a Nucleus class adaptation (three matching organ classes in one chamber).', reward: 55, test: (c) => (c.save.nucleus?.adapted ?? []).length >= 1 },
   { id: 'nucleus_sovereign', name: 'Sovereign Organism', desc: 'Awaken all three Nucleus chambers — the Hive complete.', hidden: true, reward: 120, test: (c) => Array.from({ length: NUCLEUS_CHAMBERS }, (_, i) => i).every((i) => isChamberActive(c.save.nucleus, i)) },
   { id: 'mulligan_overlord', name: 'Biomechanical Overlord', desc: 'Reach ×1.5 account Power from Mulligan organisms.', reward: 100, test: (c) => accountMulliganPower(TOWER_ORDER.map((k) => [c.save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) >= 1.5, progress: (c) => ({ cur: Math.round(accountMulliganPower(TOWER_ORDER.map((k) => [c.save.mulligans?.[k], TOWER_DEFS[k].combatClass] as const)) * 100), max: 150 }) },
+  // ── Hero Symbiotes (docs/HERO-SYMBIOTES.md) — the champions' grafted organisms ──
+  { id: 'symbiote_grafted', name: 'The First Graft', desc: 'Awaken a Symbiote slot on a champion (all three organ seats filled).', reward: 30, test: (c) => Object.values(c.save.heroSymbiotes ?? {}).some((st) => st && Array.from({ length: SYMBIOTE_SLOTS }, (_, i) => i).some((i) => isSlotActive(st, i))) },
+  { id: 'symbiote_adapted', name: 'Complete Hero Adaptation', desc: 'Awaken a class adaptation (three matching organ classes in one Symbiote slot).', reward: 55, test: (c) => Object.values(c.save.heroSymbiotes ?? {}).some((st) => (st?.adapted ?? []).length >= 1) },
+  { id: 'symbiote_resonant', name: 'The Body Sings', desc: 'Witness a Symbiote Resonance — all three slots grafted on one champion.', reward: 90, test: (c) => Object.values(c.save.heroSymbiotes ?? {}).some((st) => (st?.resonated ?? []).length >= 1) },
+  { id: 'symbiote_apex', name: 'More Symbiote Than Champion', desc: 'Fully evolve every fielded champion class — three complete organisms in the roster.', hidden: true, reward: 130, test: (c) => Object.values(c.save.heroSymbiotes ?? {}).filter((st) => st?.evolved).length >= 3 },
 
   // ── Statistics-driven (integrates with the lifetime stats system) ──
   { id: 'exterminator', name: 'Exterminator', desc: 'Kill 1,000 enemies (lifetime).', reward: 60, test: (c) => c.save.stats.lifetimeKills >= 1000, progress: (c) => ({ cur: c.save.stats.lifetimeKills, max: 1000 }) },

@@ -176,6 +176,18 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
     id: 'nucleus.unlock', category: 'progression', level: 'strict', limit: S({ count: 3 }), cooldownMs: 700, dedupeMs: 1500,
     analytics: 'sec_nucleus_unlock', doc: 'Open a Nucleus chamber (docs/NUCLEUS.md §gates) — a once-per-account milestone; chamber 3 spends Ichor.', at: META,
   },
+  'symbiote.graft': {
+    id: 'symbiote.graft', category: 'economy', level: 'moderate', limit: M({ count: 20 }), dedupeMs: 400,
+    analytics: 'sec_symbiote_graft', doc: 'Graft/level a Hero Symbiote organ (docs/HERO-SYMBIOTES.md) — Gene Essence sink; rapid essence-dumping is legitimate.', at: META,
+  },
+  'symbiote.slot': {
+    id: 'symbiote.slot', category: 'progression', level: 'permissive', limit: P({ count: 20 }), dedupeMs: 200,
+    analytics: 'sec_symbiote_slot', doc: 'Seat/clear a Hero Symbiote organ (reversible loadout move — docs/HERO-SYMBIOTES.md §slots).', at: META,
+  },
+  'symbiote.unlock': {
+    id: 'symbiote.unlock', category: 'progression', level: 'strict', limit: S({ count: 3 }), cooldownMs: 700, dedupeMs: 1500,
+    analytics: 'sec_symbiote_unlock', doc: 'Open a Hero Symbiote slot (docs/HERO-SYMBIOTES.md §gates) — a per-hero milestone; slots II/III spend Ichor.', at: META,
+  },
   'login.claim': {
     id: 'login.claim', category: 'economy', level: 'strict', limit: S({ count: 3 }), cooldownMs: 1000, dedupeMs: 2500,
     analytics: 'sec_login_claim', doc: 'Open the Daily Bio-Cache (docs/DAILY-LOGIN.md) — once per UTC day by the save-side key gate; the guard just blunts spam.', at: META,
@@ -251,6 +263,10 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   upgradeNucleusOrgan: 'nucleus.grow',
   setNucleusSlot: 'nucleus.slot',
   unlockNucleusChamber: 'nucleus.unlock',
+  graftHeroSymbiote: 'symbiote.graft',
+  upgradeHeroSymbiote: 'symbiote.graft',
+  setHeroSymbioteSeat: 'symbiote.slot',
+  unlockHeroSymbioteSlot: 'symbiote.unlock',
   claimLogin: 'login.claim',
   importText: 'save.import',
   restoreBackup: 'save.restore',

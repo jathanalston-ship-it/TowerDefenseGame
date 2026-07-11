@@ -10,6 +10,7 @@ import type { MulliganState } from '../core/mulligan';
 import { deriveMulliganProjectile } from '../render/mulliganOrganism';
 import { deriveHeroGear } from '../render/equipmentArt';
 import type { HeroGearSpec } from '../render/equipmentArt';
+import type { HeroSymbioteRender } from '../render/heroSymbiotes';
 import { activeSets, itemDef } from '../core/equipment';
 import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
@@ -476,6 +477,17 @@ export function GameView({
     return m;
   }, []);
 
+  // Per-HERO Symbiote mutation summary (docs/HERO-SYMBIOTES.md §visuals) — stage/motifs/resonance
+  // for the grafted-organism layer. Fixed for the run (grafts are seated between runs).
+  const heroSymbioteRender = useMemo(() => {
+    const m: Record<string, HeroSymbioteRender> = {};
+    for (const k of HERO_ORDER) {
+      const r = meta.heroSymbioteResolved(k);
+      if (r.active) m[k] = { stage: r.slotsActive, fx: r.fx, resonant: r.resonance !== null };
+    }
+    return m;
+  }, []);
+
   // In-run Hero Evolution total (Hero Console) → the renderer's live "battle-dress" intensity. A
   // ref (synced each render), so the long-lived RAF draw loop reads the CURRENT value as it climbs.
   const heroEvoRef = useRef(0);
@@ -629,7 +641,7 @@ export function GameView({
         }
         // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index);
+        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
         // Living Battlefield reactivity (docs/LIVING-BATTLEFIELD.md §audio): a subtle organic swell when the
         // arena deepens a stage — never on the first frame (avoids a cue on load), never on decrease.
         {

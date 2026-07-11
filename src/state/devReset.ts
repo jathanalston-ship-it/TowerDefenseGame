@@ -55,7 +55,7 @@ export function applyDevReset(save: SaveData, id: string): SaveData {
     case 'towers':
       return { ...save, towerStars: d.towerStars, towerForks: d.towerForks, towerShards: d.towerShards, towerKills: d.towerKills };
     case 'heroes':
-      return { ...save, heroStars: d.heroStars, heroShards: d.heroShards, heroKills: d.heroKills, heroFavEquip: d.heroFavEquip, selectedHero: d.selectedHero };
+      return { ...save, heroStars: d.heroStars, heroShards: d.heroShards, heroKills: d.heroKills, heroFavEquip: d.heroFavEquip, selectedHero: d.selectedHero, heroSymbiotes: d.heroSymbiotes };
     case 'equipment':
       return { ...save, equipment: d.equipment }; // inventory + loadout together → no dangling uid
     case 'lootboxes':

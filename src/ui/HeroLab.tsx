@@ -19,6 +19,7 @@ import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
 import { MobileSection } from './components/MobileSection';
+import { SymbioteChamber } from './SymbioteChamber';
 import { useLayoutProfile } from './layoutProfile';
 import type { HeroCollectionEntry } from '../state/meta';
 
@@ -248,7 +249,10 @@ export function HeroLab(): JSX.Element {
           <HeroLockedPage entry={focusEntry} onUnlock={() => doUnlock(focus)} />
         ) : (<>
         <div className="hero-banner">
-          <HeroPortrait def={d.def} size={184} rank={d.mastery.rank} />
+          <HeroPortrait
+            def={d.def} size={184} rank={d.mastery.rank}
+            symbiote={d.symbiote.slotsActive > 0 ? { stage: d.symbiote.slotsActive, fx: d.symbiote.fx as never, resonant: d.symbiote.resonance !== null } : undefined}
+          />
           <div className="hero-id">
             <div className="hero-epithet">{d.lore.title}</div>
             <h2 className="hero-name" style={{ color: c }}>{d.def.name}</h2>
@@ -277,6 +281,10 @@ export function HeroLab(): JSX.Element {
           <div className="hstat"><span className="hstat-v">{d.mastery.level}</span><span className="hstat-k">Mastery Lv</span></div>
           <div className="hstat"><span className="hstat-v" style={{ color: c }}>{d.stars}/{d.maxStars}</span><span className="hstat-k">Stars</span></div>
           <div className="hstat"><span className="hstat-v">⚙ {d.equipScore}</span><span className="hstat-k">Equipment Score</span></div>
+          <div className="hstat" title={d.symbiote.resonance ? `Resonance: ${d.symbiote.resonance}` : d.symbiote.nextTrial ? `Next trial: ${d.symbiote.nextTrial}` : undefined}>
+            <span className="hstat-v" style={d.symbiote.resonance ? { color: c } : undefined}>⟡ {d.symbiote.slotsActive}/{d.symbiote.slots}</span>
+            <span className="hstat-k">Symbiosis</span>
+          </div>
           <div className="hstat"><span className="hstat-v">{d.kills.toLocaleString()}</span><span className="hstat-k">Lifetime Kills</span></div>
           <div className="hstat"><span className="hstat-v">{d.runs}</span><span className="hstat-k">Runs Fielded</span></div>
         </div>
@@ -375,6 +383,12 @@ export function HeroLab(): JSX.Element {
 
           {/* Ability Forks (★5/★8) — divergent reworks of the hero's unlocked abilities */}
           <HeroForkPaths kind={focus} color={c} />
+
+          {/* Symbiotes (docs/HERO-SYMBIOTES.md) — the grafted-organism console: 3 gated slots ×
+              3 organ seats, per-slot adaptations, resonance, and the identity trials. */}
+          <Section title="Symbiote Chamber" accent={c} fold hint="Graft living organs — slots, adaptations, resonance, trials.">
+            <SymbioteChamber kind={focus} />
+          </Section>
 
           {/* Mastery */}
           <Section title="Mastery" accent={c} fold hint="Lifetime rank, XP, and earned perks.">

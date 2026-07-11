@@ -121,6 +121,10 @@ export interface Enemy {
   attackInterval: number; // resolved cadence (def.attack, or the boss chassis's) — spawn-time constant
   attackWindup: number; // resolved windup/fuse — spawn-time constant
   lastHitKind: TowerKind | null; // tower kind of the last damaging hit (mastery: kill credit)
+  /** Hero that landed the KILLING blow (mastery kill credit + Symbiote kill verbs — the strike/
+   *  ability paths stamp it only when hp crosses 0). Pure observation + kit-gated triggers;
+   *  absent on the historical path ⇒ golden-safe. */
+  lastHitHero?: HeroKind;
   boss: BossRuntime | null; // present only for framework bosses (null for normal enemies)
   elite: boolean; // director-promoted elite (buffed) — drives elite-priority targeting
   // Universal status-effect container (status.ts). Optional/lazy — the four legacy
@@ -373,6 +377,11 @@ export interface Hero {
   // read only by the swoop brain; absent on every other hero ⇒ golden-safe.
   bankX?: number;
   bankY?: number;
+  // Symbiote ECHO (docs/HERO-SYMBIOTES.md) — the pending re-cast of the signature ability. Only
+  // an echo organ ever schedules it; absent otherwise ⇒ golden-safe.
+  echoT?: number; // seconds until the echo fires
+  echoX?: number; // the original cast point
+  echoY?: number;
 }
 
 /** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that
@@ -472,6 +481,25 @@ export interface MasteryCount {
 export type MasteryCounts = Record<TowerKind, MasteryCount>;
 export type HeroMasteryCounts = Record<HeroKind, MasteryCount>;
 
+/** The Hero Symbiote behavior-verb kit (docs/HERO-SYMBIOTES.md) — the merged verbs of a hero's
+ * grafted organisms, resolved by core/heroSymbiote.ts and attached to HeroMods by meta's fold.
+ * BEHAVIOR ONLY (strike toxins, kill surges, ability echoes, carapaces, AI rewires): by
+ * construction it has no damage/cooldown stat fields, so a symbiote can never duplicate Hero
+ * Equipment. Every field is read behind a presence gate in game.ts — absent ⇒ golden-safe. */
+export interface HeroSymbioteKit {
+  strikeStatuses?: { status: StatusType; amount: number }[]; // strikes inject these statuses
+  strikeComponents?: AbilityComponent[]; // on-hit ability verbs (splinters, pools, arcs …)
+  killPlague?: { frac: number; radius: number }; // kills burst the victim's afflictions outward
+  killHaste?: { mult: number; seconds: number }; // kills surge move + attack speed
+  abilityEchoFrac?: number; // the signature ability re-casts a weaker echo
+  abilityRadiusMult?: number; // per-hero ability footprint multiplier
+  auraMult?: number; // per-hero passive presence multiplier (strength + reach)
+  overhealShieldFrac?: number; // overflow healing condenses into a decaying shield
+  reviveSpeedMult?: number; // downed recovery multiplier (>1 = faster)
+  summonMult?: { hpMult: number; damageMult: number }; // the host's summons harden
+  survival?: 'aggressive' | 'cautious' | 'evasive'; // adaptive AI — overrides heroIdentity's profile
+}
+
 /** Per-hero permanent multipliers (stars + mastery + equipment), applied at run
  * start. Identity (all 1) for a fresh save, so the base hero is unchanged. This is
  * the fold point the EQUIPMENT.md item system plugs into (see meta.heroProgress). */
@@ -479,6 +507,9 @@ export interface HeroMods {
   damageMult: number;
   cooldownMult: number;
   skillCount?: number; // kit skills unlocked from stars (HERO_SKILL_STARS: ★3→1, ★7→2). Absent/0 ⇒ no kit (golden-safe)
+  /** Merged Symbiote verbs (docs/HERO-SYMBIOTES.md) — attached ONLY while a slot is active,
+   *  so a fresh save carries no field and the sim is byte-identical (golden-safe). */
+  symbiote?: HeroSymbioteKit;
 }
 export type HeroProgress = Record<HeroKind, HeroMods>;
 

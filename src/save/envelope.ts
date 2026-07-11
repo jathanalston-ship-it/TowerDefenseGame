@@ -31,7 +31,7 @@ export const SAVE_MODULES: readonly SaveModuleDef[] = [
   { id: 'wallet', fields: ['shards', 'lifetimeShards', 'ichor', 'lifetimeIchor', 'mats', 'matPity', 'geneEssence'] },
   { id: 'progression', fields: ['upgrades', 'prestige', 'research', 'expeditions', 'infestation', 'adaptation', 'antigen', 'mulligans', 'mulliganDex', 'nucleus'] },
   { id: 'towers', fields: ['towerShards', 'towerStars', 'towerForks', 'towerMasteryXp', 'towerKills', 'towerUnlocked', 'favoriteTower'] },
-  { id: 'heroes', fields: ['heroShards', 'heroStars', 'heroForks', 'heroMasteryXp', 'heroKills', 'selectedHero', 'heroLoadout', 'heroUnlocked', 'heroFavEquip'] },
+  { id: 'heroes', fields: ['heroShards', 'heroStars', 'heroForks', 'heroMasteryXp', 'heroKills', 'selectedHero', 'heroLoadout', 'heroUnlocked', 'heroFavEquip', 'heroSymbiotes'] },
   { id: 'equipment', fields: ['equipment', 'lastSalvage'] },
   { id: 'genes', fields: ['genes', 'geneSlots', 'geneLoadout', 'cardsSeen'] },
   { id: 'campaign', fields: ['campaign', 'nemesis', 'vengeance'] },

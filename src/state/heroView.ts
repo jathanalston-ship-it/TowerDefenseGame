@@ -20,6 +20,7 @@ import { emptyLoadout, EQUIP_SLOTS, itemDef, loadoutScore, SLOT_LABELS } from '.
 import type { EquipSlot, Loadout, OwnedItem, Rarity } from '../core/equipment';
 import { heroLore } from '../core/heroLore';
 import type { HeroLore } from '../core/heroLore';
+import { HERO_SYMBIOTE_GATES, SYMBIOTE_SLOTS, resolveHeroSymbiote } from '../core/heroSymbiote';
 import type { SaveData } from '../save/saveStore';
 
 export interface LoadoutView {
@@ -57,6 +58,9 @@ export interface HeroDetailView {
   loadout: LoadoutView[];
   perks: MasteryPerk[]; // earned mechanic perks (may be empty)
   nextUnlocks: FutureUnlock[];
+  /** Symbiote summary (docs/HERO-SYMBIOTES.md): active slots, graft Power, the resonance crown,
+   *  active organ motifs (the portrait preview), and the next sealed slot's trial name. */
+  symbiote: { slotsActive: number; slots: number; power: number; resonance: string | null; fx: string[]; nextTrial: string | null };
 }
 
 /** The most-run equipment def name for a hero (argmax of the usage counts), or null. */
@@ -135,5 +139,11 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
     loadout: EQUIP_SLOTS.map((s) => loadoutSlot(heroLoadout, save.equipment.inventory, s)),
     perks: masteryPerksUpTo('hero', kind, mp.level),
     nextUnlocks,
+    symbiote: (() => {
+      const r = resolveHeroSymbiote(save.heroSymbiotes?.[kind]);
+      const unlocked = save.heroSymbiotes?.[kind]?.unlocked ?? 1;
+      const nextGate = unlocked < SYMBIOTE_SLOTS ? HERO_SYMBIOTE_GATES[kind].find((g) => g.slot === unlocked + 1) : undefined;
+      return { slotsActive: r.slotsActive, slots: SYMBIOTE_SLOTS, power: r.power, resonance: r.resonance?.name ?? null, fx: r.fx, nextTrial: nextGate?.title ?? null };
+    })(),
   };
 }

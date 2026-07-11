@@ -54,6 +54,7 @@ import {
   HERO_PHASE_FLASH,
   REVENANT,
   WYRM,
+  SYMBIOTE,
   GLAIVE,
   ROOST,
   WAVES,
@@ -195,6 +196,7 @@ import type {
   HeroKind,
   HeroMasteryCounts,
   HeroProgress,
+  HeroSymbioteKit,
   HudSnapshot,
   HeroCooldownView,
   HeroStatusChip,
@@ -753,15 +755,19 @@ export class Game {
       const id = heroIdentity(k);
       this.heroIdById[k] = id;
       if (id.passive.kind === 'towerAura') {
-        this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130);
-        this.mods.heroTowerHasteAura += id.passive.amount;
-        this.mods.heroTowerDamageAura += id.passive.amount;
+        // Symbiote presence swell (docs/HERO-SYMBIOTES.md): an auraMult organ deepens the host's
+        // innate aura — strength AND reach. ×1 without one (golden-safe).
+        const am = this.heroProgress[k].symbiote?.auraMult ?? 1;
+        this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130 * am);
+        this.mods.heroTowerHasteAura += id.passive.amount * am;
+        this.mods.heroTowerDamageAura += id.passive.amount * am;
       }
     }
     // Equipment folds HERE — before integrity/biomass (below) and heroes (makeHero) consume the mods.
     // Pass 1 puts each fielded hero's GLOBAL gear (tower/economy fields + SET bonuses) into this.mods
     // so the board sees it; pass 2 builds each hero's private bundle. Gear-less roster ⇒ no-op (golden).
     this.foldHeroEquip(roster, opts.heroEquip, opts.setEffects);
+    this.foldHeroSymbiotes(roster); // symbiote strike verbs layer onto the per-hero lists (after gear)
     this.maxIntegrity = (ECON.baseIntegrity + meta.integrityBonus) * this.mods.integrityMult;
     this.integrity = this.maxIntegrity;
     // Permanent tower slots: initial allotment + Hive Emplacements upgrades (meta.bonusSlots),
@@ -852,6 +858,26 @@ export class Game {
     }
   }
 
+  /** SYMBIOTE strike verbs (docs/HERO-SYMBIOTES.md): each host's grafted organism folds its strike
+   *  toxins + on-hit components into the SAME per-hero lists gear uses (created from the globals
+   *  when the host carries no gear — runs AFTER foldHeroEquip so gear clones aren't clobbered).
+   *  The kit's other verbs are read at their seams via heroProgress[kind].symbiote. No kit ⇒
+   *  nothing allocates (golden-safe). */
+  private foldHeroSymbiotes(roster: HeroKind[]): void {
+    for (const k of roster) {
+      const kit = this.heroProgress[k].symbiote;
+      if (!kit) continue;
+      if (kit.strikeStatuses?.length) {
+        const list = this.heroStatuses[k] ?? (this.heroStatuses[k] = [...this.heroAttackStatuses]);
+        for (const s of kit.strikeStatuses) list.push({ status: s.status, amount: s.amount });
+      }
+      if (kit.strikeComponents?.length) {
+        const list = this.heroKits[k] ?? (this.heroKits[k] = [...this.heroAttackKit]);
+        list.push(...kit.strikeComponents);
+      }
+    }
+  }
+
   /** Build a hero runtime instance from its data-driven definition. */
   private makeHero(kind: HeroKind): Hero {
     const maxHp = this.heroMaxHpFor(kind); // gear survivability × Evolution Vitality — a mid-run hero inherits both
@@ -900,6 +926,11 @@ export class Game {
   private hstatuses(h: Hero): { status: StatusType; amount: number }[] {
     return this.heroStatuses[h.kind] ?? this.heroAttackStatuses;
   }
+  /** A hero's merged Symbiote behavior kit (docs/HERO-SYMBIOTES.md) — undefined on a fresh save,
+   *  so every symbiote seam below is a no-op there (golden-safe). */
+  private symbioteOf(h: Hero): HeroSymbioteKit | undefined {
+    return this.heroProgress[h.kind].symbiote;
+  }
 
   // ── Hero effective stats (docs/HERO-EVOLUTION.md) — each folds the hero's own gear mods with the
   //    run-wide Evolution bundle (this.evo). Centralized so gear + Evolution stack in ONE place and
@@ -919,22 +950,37 @@ export class Game {
   }
   /** Attack/pulse HASTE multiplier (>1 = faster) — gear × Evolution Frenzy. Divides the base interval. */
   private heroHaste(h: Hero): number {
-    return this.hmods(h).heroAttackSpeedMult * this.evo.attackSpeedMult;
+    // Symbiote kill-surge (docs/HERO-SYMBIOTES.md): while the host is rushing, a killHaste organ
+    // quickens the attack cadence too (the ×1.4 move surge stays Bloodthirst's own). No kit ⇒ ×1.
+    const kh = this.symbioteOf(h)?.killHaste;
+    const rush = kh && this.time < h.rushUntil ? kh.mult : 1;
+    return this.hmods(h).heroAttackSpeedMult * this.evo.attackSpeedMult * rush;
   }
   /** Effective ability cooldown (s): base × gear × biome × mastery × Evolution Overdrive. */
   private heroAbilityCooldownFor(h: Hero): number {
     return HERO_DEFS[h.kind].ability.cooldown * this.hmods(h).heroCooldownMult * this.activeBiome.mods.heroCooldownMult * this.heroProgress[h.kind].cooldownMult * this.evo.cooldownMult * this.megaFx.heroCd;
   }
-  /** Effective ability AoE multiplier: gear × Evolution Amplitude. */
+  /** Effective ability AoE multiplier: gear × Evolution Amplitude × the symbiote footprint. */
   private heroAbilityRadiusFor(h: Hero): number {
-    return this.hmods(h).heroAbilityRadiusMult * this.evo.abilityRadiusMult;
+    return this.hmods(h).heroAbilityRadiusMult * this.evo.abilityRadiusMult * (this.symbioteOf(h)?.abilityRadiusMult ?? 1);
   }
   /** Heal a hero by `n`, scaled by Evolution Regeneration + the run's healing-received modifier
    *  (gear / gene cards / Genome meta), clamped to max HP. No-op when down or n≤0. Both factors
    *  are 1 in a neutral run ⇒ a plain clamp (golden-safe). */
   private healHeroBy(h: Hero, n: number): void {
     if (h.down || n <= 0) return;
-    h.hp = Math.min(h.maxHp, h.hp + n * this.evo.healingMult * this.hmods(h).heroHealingMult);
+    const amt = n * this.evo.healingMult * this.hmods(h).heroHealingMult;
+    // Symbiote overheal carapace (docs/HERO-SYMBIOTES.md): overflow healing condenses into a
+    // decaying shield (the grantShield pool). No verb ⇒ exactly the old clamp (golden-safe).
+    const frac = this.symbioteOf(h)?.overhealShieldFrac;
+    if (frac) {
+      const overflow = h.hp + amt - h.maxHp;
+      if (overflow > 0) {
+        h.shield = Math.max(h.shield, overflow * frac);
+        h.shieldTime = Math.max(h.shieldTime, SYMBIOTE.shieldSeconds);
+      }
+    }
+    h.hp = Math.min(h.maxHp, h.hp + amt);
   }
   /** Roll a hero crit for one damage instance → the damage multiplier (1 = no crit) + whether it
    *  crit. GATED on crit chance > 0 so a run with no Precision spends NO rng (golden byte-identical). */
@@ -987,7 +1033,10 @@ export class Game {
       },
       dealDamage: (e, raw, flash) => {
         const applied = this.applyDamage(e, raw, this.abilitySourceKind, flash);
-        if (this.abilityHeroKind) this.heroMasteryAccrual[this.abilityHeroKind].damage += applied;
+        if (this.abilityHeroKind) {
+          this.heroMasteryAccrual[this.abilityHeroKind].damage += applied;
+          if (e.hp <= 0) e.lastHitHero = this.abilityHeroKind; // killing blow — kill credit + symbiote kill verbs
+        }
         if (this.abilityCaster) this.heroLifesteal(this.abilityCaster, applied); // lifesteal on ability/kit hits
         return applied;
       },
@@ -2247,9 +2296,10 @@ export class Game {
       const id = heroIdentity(kind);
       this.heroIdById[kind] = id;
       if (id.passive.kind === 'towerAura') {
-        this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130);
-        this.mods.heroTowerHasteAura += id.passive.amount;
-        this.mods.heroTowerDamageAura += id.passive.amount;
+        const am = this.heroProgress[kind].symbiote?.auraMult ?? 1; // symbiote presence swell
+        this.mods.heroAuraRadius = Math.max(this.mods.heroAuraRadius, 130 * am);
+        this.mods.heroTowerHasteAura += id.passive.amount * am;
+        this.mods.heroTowerDamageAura += id.passive.amount * am;
       }
     }
     this.heroes.push(this.makeHero(kind));
@@ -4998,7 +5048,7 @@ export class Game {
     let m = 0;
     for (const h of this.heroes) {
       const id = this.idOf(h);
-      if (id.passive.kind === 'vulnField') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+      if (id.passive.kind === 'vulnField') m += (id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack)) * (this.symbioteOf(h)?.auraMult ?? 1);
     }
     return m;
   }
@@ -5010,7 +5060,7 @@ export class Game {
     let m = 0;
     for (const h of this.heroes) {
       const id = this.idOf(h);
-      if (id.passive.kind === 'causticVuln') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+      if (id.passive.kind === 'causticVuln') m += (id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack)) * (this.symbioteOf(h)?.auraMult ?? 1);
     }
     return m;
   }
@@ -5022,7 +5072,7 @@ export class Game {
     let m = 0;
     for (const h of this.heroes) {
       const id = this.idOf(h);
-      if (id.passive.kind === 'viralVuln') m += id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack);
+      if (id.passive.kind === 'viralVuln') m += (id.passive.amount + Math.min(id.scaling.cap, this.waveIndex * id.scaling.perStack)) * (this.symbioteOf(h)?.auraMult ?? 1);
     }
     return m;
   }
@@ -5141,7 +5191,8 @@ export class Game {
     if (h.down) {
       h.moveState = 'downed';
       h.targetId = -1;
-      h.respawn -= dt;
+      // Symbiote cocoon (docs/HERO-SYMBIOTES.md): a reviveSpeedMult organ reknits the host faster. ×1 without one.
+      h.respawn -= dt * (this.symbioteOf(h)?.reviveSpeedMult ?? 1);
       if (h.respawn <= 0) {
         h.down = false;
         h.hp = h.maxHp;
@@ -5154,6 +5205,15 @@ export class Game {
     if (h.attackCd > 0) h.attackCd -= dt;
     if (h.abilityCd > 0) h.abilityCd -= dt;
     if (h.pulseCd > 0) h.pulseCd -= dt;
+    // Symbiote ECHO (docs/HERO-SYMBIOTES.md): the pending re-cast fires shortly after the ability.
+    // Only an echo organ ever schedules it (castHeroAbility) ⇒ golden-safe.
+    if (h.echoT !== undefined) {
+      h.echoT -= dt;
+      if (h.echoT <= 0) {
+        h.echoT = undefined;
+        this.castHeroEcho(h);
+      }
+    }
     this.updateHeroSkills(h, dt); // star-gated ability kit (auto-casts on cooldown). No-op at 0 skills ⇒ golden-safe.
     if (h.shieldTime > 0) {
       h.shieldTime -= dt;
@@ -5164,7 +5224,10 @@ export class Game {
     // nucleus at low HP; the Ravager's `aggressive` profile contributes 0 (its recklessness is a
     // designed weakness), so the golden autoplay hero never retreats ⇒ byte-identical. Equipment's
     // "wary" threshold layers on top (max).
-    const innateRetreat = this.idOf(h).survival === 'evasive' ? 0.4 : this.idOf(h).survival === 'cautious' ? 0.3 : 0;
+    // Symbiote adaptive AI (docs/HERO-SYMBIOTES.md): a survival organ rewires the host's innate
+    // profile (aggressive/cautious/evasive). Absent ⇒ the identity's own (golden-safe).
+    const survival = this.symbioteOf(h)?.survival ?? this.idOf(h).survival;
+    const innateRetreat = survival === 'evasive' ? 0.4 : survival === 'cautious' ? 0.3 : 0;
     const retreatAt = Math.max(this.hmods(h).heroRetreatThreshold, innateRetreat);
     if (retreatAt > 0 && h.hp < h.maxHp * retreatAt) {
       h.moveState = 'retreating';
@@ -5257,6 +5320,7 @@ export class Game {
       if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' }); // crit damage number
       this.heroMasteryAccrual[h.kind].damage += applied;
       this.heroLifesteal(h, applied); // weapon: sustain through attacking (no-op at 0)
+      if (target.hp <= 0) target.lastHitHero = h.kind; // killing blow — kill credit + symbiote kill verbs
       this.addFracture(target, def.attackFracture);
       // Weapon grant: the hero's hits also apply granted statuses (no-op without such gear).
       for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount });
@@ -5448,6 +5512,7 @@ export class Game {
     if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
     this.heroMasteryAccrual[h.kind].damage += applied;
     this.heroLifesteal(h, applied);
+    if (target.hp <= 0) target.lastHitHero = h.kind; // killing blow — kill credit + symbiote kill verbs
     this.infect(target, REVENANT.infectPerStrike); // deep Infection — spreads on the host's death
     for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount }); // weapon grants
     this.maybeReact(target);
@@ -5515,6 +5580,7 @@ export class Game {
     if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
     this.heroMasteryAccrual[h.kind].damage += applied;
     this.heroLifesteal(h, applied);
+    if (target.hp <= 0) target.lastHitHero = h.kind; // killing blow — kill credit + symbiote kill verbs
     this.applyStatus(target, { kind: 'Corrosion', amount: WYRM.corrodePerStrike }); // the ember wake
     for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount }); // weapon grants
     this.maybeReact(target);
@@ -5649,6 +5715,42 @@ export class Game {
     this.pushSfx('ability');
     if (gameEvents.hasListeners('heroAbilityUsed')) gameEvents.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
     this.floats.push({ x: px, y: py - 20, text: crit.crit ? `${ab.name}! ✷CRIT` : `${ab.name}!`, color: crit.crit ? '#ffcf5a' : def.color, life: 0.8, kind: crit.crit ? 'crit' : undefined });
+    // Symbiote ECHO (docs/HERO-SYMBIOTES.md): an echo organ schedules a weaker answer to the cast.
+    if (this.symbioteOf(h)?.abilityEchoFrac) {
+      h.echoT = SYMBIOTE.echoDelay;
+      h.echoX = px;
+      h.echoY = py;
+    }
+  }
+
+  /** Fire a scheduled symbiote ECHO — a weaker re-cast of the signature ability at the original
+   *  point: no reposition, no cooldown, no relic hooks or tutorial events; damage scaled by the
+   *  kit's echo fraction, footprint slightly tucked. Only an echo organ ever schedules one, and
+   *  the crit roll is skipped, so a fresh run spends no rng here (golden-safe). */
+  private castHeroEcho(h: Hero): void {
+    const frac = this.symbioteOf(h)?.abilityEchoFrac ?? 0;
+    if (h.down || frac <= 0) return;
+    const def = HERO_DEFS[h.kind];
+    const kit = this.heroAbilityKits[h.kind];
+    const ab = kit?.ult ?? def.ability;
+    const px = h.echoX ?? h.x;
+    const py = h.echoY ?? h.y;
+    this.abilitySourceKind = null;
+    this.abilityHeroKind = h.kind;
+    this.abilityCaster = h;
+    this.castScratch.x = px;
+    this.castScratch.y = py;
+    this.castScratch.damageMult = this.heroDamageMult(h) * frac;
+    this.castScratch.target = null;
+    this.castScratch.pierce = 0;
+    this.castRangeMult = this.heroAbilityRadiusFor(h) * 0.85; // the echo is a smaller answer
+    runAbilities(this.actx, kit?.ultComps ?? HERO_ULT[h.kind], this.castScratch);
+    this.castRangeMult = 1;
+    if (ab.particle) {
+      const p = PARTICLE[ab.particle];
+      this.spawnParticles(px, py, { ...p, count: Math.max(3, Math.floor(p.count / 2)) }, ab.fxColor);
+    }
+    this.floats.push({ x: px, y: py - 16, text: `${ab.name} echoes`, color: def.color, life: 0.6 });
   }
 
   private deathSystem(): void {
@@ -5664,6 +5766,30 @@ export class Game {
         this.statKillsByEnemy[e.kind]++; // lifetime-stats observation
         if (e.boss) this.bossCount = Math.max(0, this.bossCount - 1); // a boss fell
         if (e.lastHitKind) this.masteryAccrual[e.lastHitKind].kills++; // mastery: kill credit
+        // Hero KILLING-BLOW credit (stamped by the strike/ability paths) — feeds hero mastery +
+        // lifetime heroKills, and triggers the killer's Symbiote kill verbs (docs/HERO-SYMBIOTES.md).
+        // Pure observation + kit-gated triggers ⇒ golden-safe.
+        if (e.lastHitHero) {
+          this.heroMasteryAccrual[e.lastHitHero].kills++;
+          const killer = this.heroes.find((x) => x.kind === e.lastHitHero);
+          const kit = killer ? this.symbioteOf(killer) : undefined;
+          if (killer && kit) {
+            if (kit.killHaste) killer.rushUntil = Math.max(killer.rushUntil, this.time + kit.killHaste.seconds);
+            const kp = kit.killPlague;
+            if (kp && (e.corrosion > 0 || e.infection > 0)) {
+              const cor = e.corrosion * kp.frac;
+              const inf = e.infection * kp.frac;
+              const r2 = kp.radius * kp.radius;
+              this.grid.forNeighbors(e.x, e.y, kp.radius, (o) => {
+                if (!o.alive || o === e) return;
+                if (dist2(o.x, o.y, e.x, e.y) > r2) return;
+                if (cor > 0) this.applyStatus(o, { kind: 'Corrosion', amount: cor });
+                if (inf > 0) this.applyStatus(o, { kind: 'Infection', amount: inf });
+              });
+              this.spawnParticles(e.x, e.y, PARTICLE.infect, '#a7ff5e', 0.7); // the plague bursts outward
+            }
+          }
+        }
         // Expansion strain death verbs (docs/STRAIN.md) — all kit-gated (zero work pre-strain):
         // a Maw meal feeds the nearest gorging jaws; a feared death spreads its panic; a body
         // dying INSIDE its casing still shatters.
@@ -6515,14 +6641,17 @@ export class Game {
   private summonMinions(unit: string, count: number, x: number, y: number): void {
     const def = MINION_DEFS[unit];
     if (!def) return;
+    // Symbiote brood nurture (docs/HERO-SYMBIOTES.md): a HERO-cast summon inherits its caster's
+    // summonMult (tower cast paths null the caster — see towerSystem's context reset). ×1 without.
+    const sm = this.abilityCaster ? this.symbioteOf(this.abilityCaster)?.summonMult : undefined;
     const n = Math.min(count, MINION_CAP - this.minions.length);
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2;
       const r = n > 1 ? 18 : 0; // ring radius (single summon sits on the point)
       this.minions.push({
         id: this.nextId++, kind: unit, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r,
-        hp: def.hp, maxHp: def.hp, hitFlash: 0,
-        damage: def.damage, attackCd: 0, attackInterval: def.attackInterval, range: def.range,
+        hp: def.hp * (sm?.hpMult ?? 1), maxHp: def.hp * (sm?.hpMult ?? 1), hitFlash: 0,
+        damage: def.damage * (sm?.damageMult ?? 1), attackCd: 0, attackInterval: def.attackInterval, range: def.range,
         speed: def.speed, life: def.life, maxLife: def.life, radius: def.radius, color: def.color, alive: true,
         // Hero-AI units summoned OFF a roost (strain births / hero abilities) rally to their
         // spawn point — no roostId, so they never occupy a roost's brood slot.

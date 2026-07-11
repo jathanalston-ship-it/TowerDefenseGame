@@ -51,6 +51,8 @@ import type { ResolvedMulligan } from '../core/mulligan';
 import { drawHeroGear } from './equipmentArt';
 import type { HeroGearSpec } from './equipmentArt';
 import { drawHeroEvolution, heroEvolutionGrowth } from './heroEvolution';
+import { drawHeroSymbiotes } from './heroSymbiotes';
+import type { HeroSymbioteRender } from './heroSymbiotes';
 import { drawLivingBattlefield, drawLivingBattlefieldAmbient } from './livingBattlefield';
 import type { Assimilation } from './livingBattlefield';
 import { drawMegaBody, drawMegaOrgans, drawMegaShots, drawMegaVignette } from './megaboss';
@@ -211,6 +213,7 @@ export function drawGame(
   heroGear: Partial<Record<string, HeroGearSpec>> = {}, // per-hero equipped gear (docs/EQUIPMENT.md §visuals; {} = starter look)
   power = 0, // live run Power Score → the Living Battlefield's biomass accumulator (docs/LIVING-BATTLEFIELD.md)
   assimilationIndex = -1, // canonical Assimilation Index 0..1 (docs/ASSIMILATION.md); <0 ⇒ use the standalone fallback
+  heroSymbiotes: Partial<Record<string, HeroSymbioteRender>> = {}, // per-hero Symbiote mutation stage/motifs/resonance (docs/HERO-SYMBIOTES.md; {} = none)
 ): void {
   const t = rs.time;
 
@@ -403,7 +406,7 @@ export function drawGame(
   drawBeams(ctx, rs, t, towerSkins); // Resonance Coil channels (over enemies, so the melt reads on the target)
   drawParticles(ctx, rs);
   drawMinions(ctx, rs, t);
-  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins, heroGear);
+  drawHeroes(ctx, rs, cosmeticTiers, heroStarTiers, heroEvo, heroSkins, heroGear, heroSymbiotes);
   drawLivingBattlefieldAmbient(ctx, lbAssim, t, lbDetail); // deep-stage atmosphere (over entities, under labels)
   drawEmergency(ctx, rs, t); // Emergency Defense Mode alert (over the field, under labels)
   drawPointer(ctx, rs, pointer);
@@ -2100,17 +2103,17 @@ function drawHeroWings(ctx: CanvasRenderingContext2D, x: number, y: number, r: n
   ctx.restore();
 }
 
-function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}, heroGear: Partial<Record<string, HeroGearSpec>> = {}): void {
+function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}, heroGear: Partial<Record<string, HeroGearSpec>> = {}, heroSymbiotes: Partial<Record<string, HeroSymbioteRender>> = {}): void {
   for (let i = 0; i < rs.heroes.length; i++) {
     const h = rs.heroes[i];
     const fed = goreThrob(`h${h.kind}`); // XP shards just coalesced in ⇒ a feed-throb
     if (fed > 0.01) { ctx.save(); ctx.translate(h.x, h.y); const s = 1 + fed * 0.11; ctx.scale(s, s); ctx.translate(-h.x, -h.y); }
-    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo, heroSkins[h.kind], heroGear[h.kind]);
+    drawHero(ctx, rs, h, i === 0, cosmeticTiers[h.kind] ?? 0, heroStarTiers[h.kind] ?? 0, heroEvo, heroSkins[h.kind], heroGear[h.kind], heroSymbiotes[h.kind]);
     if (fed > 0.01) ctx.restore();
   }
 }
 
-function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0, skin?: CosmeticTheme, gear?: HeroGearSpec): void {
+function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState['heroes'][number], primary: boolean, tier = 0, stars = 0, heroEvo = 0, skin?: CosmeticTheme, gear?: HeroGearSpec, symbiote?: HeroSymbioteRender): void {
   const t = rs.time;
   const def = HERO_DEFS[h.kind];
   // Class-colored halo/locator/trail. Specific beats global: a per-hero Phenotype wins, then the
@@ -2206,6 +2209,9 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   drawShape(ctx, shape, h.x, h.y - 2, 5 * grow, THEME.hero.core);
   // Star anatomy organs + in-run Hero-Evolution battle-dress (both no-ops at ★0/evo-0 → classic look).
   drawHeroEvolution(ctx, h, stars, heroEvo, 16 * grow, t, def.color, down);
+  // Symbiote grafts (docs/HERO-SYMBIOTES.md §visuals): the grafted organism's stage anatomy +
+  // living motif shimmer + resonance crown. Stage 0 / no state ⇒ nothing draws (classic look).
+  drawHeroSymbiotes(ctx, h, symbiote, 16 * grow, t, skin?.primary ?? def.color, down);
   ctx.globalAlpha = 1;
 
   if (down) {
