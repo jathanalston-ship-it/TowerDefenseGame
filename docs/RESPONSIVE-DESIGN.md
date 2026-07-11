@@ -14,8 +14,8 @@ The UI is not "one layout resized" — it is THREE interfaces sharing one identi
 | profile | rule | intent |
 |---|---|---|
 | `desktop` | everything else (incl. landscape tablets / Deck / ultrawide) | information-rich, pointer-first |
-| `landscape` | wider than tall AND height ≤ 520px | phone rotated: short viewport, board dominates, thumb-edge controls |
-| `portrait` | taller than wide AND width ≤ 900px | one column, readability first, secondary info collapses |
+| `landscape` | wider than tall AND height ≤ 520px | phone rotated: NOT a supported play mode (kept honest, never designed for) |
+| `portrait` | taller than wide AND width ≤ 900px | **the phone game** (§mobile-shell): tab bar + index pages + drill-down screens |
 
 Components branch via `useLayoutProfile()`; new CSS keys on `html[data-layout="…"]` /
 `html[data-coarse="1"]`. The legacy width bands below (860/900/640/Deck) remain the underlying
@@ -61,7 +61,8 @@ chrome so the battlefield dominates). Prefer these four; don't invent new ones c
 
 ## 3. The shell
 
-- **Hub** (menus): grid `216px 1fr`. Under 860px the rail becomes an off-canvas drawer
+- **Hub** (menus): grid `216px 1fr`. Under 860px (non-portrait — narrow desktop windows,
+  landscape tablets) the rail becomes an off-canvas drawer showing the FULL labelled rail
   (`.hub > .hub-nav` fixed + translate; veil closes it; the ☰ burger lives in the topbar;
   picking a destination closes it). Specificity note: shell overrides must match
   `.hub > .hub-nav` — a bare class loses to the base rule.
@@ -71,6 +72,41 @@ chrome so the battlefield dominates). Prefer these four; don't invent new ones c
   promotes the pieces into one column so the order is hud → board → tower rail (snap chips)
   → build strip → inspector: building never needs a scroll. The Deck band drops the rail
   card blurbs to one row (board grew 268×357 → 452×603 on Deck).
+
+## 3b. The portrait shell (§mobile-shell) — the phone game
+
+On the `portrait` profile the hub is a DIFFERENT machine, built for a first-time user whose
+only tools are eyes, tooltips, and a thumb. `src/ui/navModel.ts` is the single source of
+truth (the desktop rail derives from the same rows); `src/ui/MobileShell.tsx` renders it.
+
+- **Bottom tab bar** (`.mtab-bar`, fixed, safe-area padded, five ≥52px tabs): Home / Battle /
+  Evolve / Armory / More. Tabs derive from the nav groups via `TAB_OF_GROUP` — a new nav
+  group is one mapping row. Badges aggregate per tab; the active tab tracks the open screen.
+- **Index pages** (`MobileTabIndex`): tapping a tab (except Home, which IS the Command
+  Center) opens a page of self-describing rows — unlock-registry glyph + name + **blurb**
+  (the first-timer explanation), notification badge, completion %, and teaser locks that
+  print their requirement inline (`Sealed — Reach Stage 12`). Gating rules match the rail:
+  revealed screens + the next-reveal teasers, nothing deeper.
+- **Drill-down** (`MobilePageHead`): every opened screen gets a sticky back header
+  (`‹ TabName · Screen Title`); back returns to the tab index. Deep links (What's New,
+  Command Center CTAs) land with the right tab lit because the owning tab derives from
+  `tabOf(nav)`.
+- **Screen linearization**: the master-detail labs (Tower Lab, Mulligan Lab, Hero Hall) turn
+  their roster columns into horizontal specimen strips above the showcase; huge secondary
+  consoles wrap in **`MobileSection`** (`src/ui/components/MobileSection.tsx`) — a native
+  `<details>` collapsible with a fat self-describing summary (title + hint + live count)
+  that renders children untouched on desktop. Grid columns that host strips must be
+  `minmax(0, 1fr)` (intrinsic strip width otherwise widens the page).
+- **Portrait combat**: compact 3-column HUD grid (vitals/loot/wave rows span; the wave
+  module is pinned whole — the ≤900px `.hz{display:contents}` would scatter it), board
+  capped at 42vh, and the wave-prep briefing as a **fixed bottom dock** — threat strip +
+  full-width ≥48px ▶ Start Wave + auto toggles — that slides away during combat. Prep copy
+  says "tap ▶ Start Wave below" (no space bar on phones).
+- **The automation contract**: `navModel.test.ts` proves every `NavKey` sits in exactly one
+  tab and owns an unlock-registry blurb; `mobilecheck` walks the tab shell BY DISCOVERY.
+  Net effect: a future screen only compiles once it's in `navModel.ts` + the unlock
+  registry, and from that moment it is automatically grouped, indexed, explained, gated,
+  swept, and drilled on phones. There is no separate mobile checklist to remember.
 
 ## 4. Touch (every hover has a touch equivalent)
 
@@ -99,13 +135,18 @@ control is off-screen — the "portrait couldn't finish the tutorial" class of b
 
 ## 4d. The responsive gate (`npm run mobilecheck`)
 
-Default (runs in `npm run validate`): every hub screen + a live board at one honest
-representative of each profile class — 1366×768 desktop, 390×844 + 320×568 portrait,
-**844×390 landscape phone**, 768×1024 tablet — plus the tutorial walk. Detectors: horizontal
-overflow, clipped text, sub-24px targets, off-screen interactives, **off-screen/oversize popups**
-(`[role="dialog"]` must fit or scroll), and tutorial reachability. `--full` sweeps the complete
-published matrix (desktop 1920/2560/3440-ultrawide, portrait 360/375/412/430, landscape
-568/640/932, tablets 820/1024). Debug tools: DebugPanel → 📐 Responsive (live profile/viewport/
+Default (runs in `npm run validate`): EVERY nav screen (derived from `navModel.ts`, never a
+hand list) + a live board at one honest representative of each supported profile class —
+1366×768 desktop, 390×844 + 320×568 portrait, 768×1024 tablet-portrait — plus the portrait
+tutorial walk. Desktop sweeps via the rail (`[data-nav]`); portrait sweeps via the REAL tab
+shell: tab bar present with ≥44px labelled tabs, every index row named + blurbed + ≥44px,
+every row drills in (back header, titled) and returns, and the live run passes the combat-dock
+contract (fixed dock, ≥44px on-screen ▶ Start Wave, board ≥25% of the viewport, tray present).
+Detectors on every audited surface: horizontal overflow, clipped text, sub-24px targets,
+off-screen interactives, **off-screen/oversize popups** (`[role="dialog"]` must fit or scroll),
+and tutorial reachability. Landscape phones are OUT of the default gate (vertical-only play;
+`--full` still sweeps them plus desktop 1920/2560/3440-ultrawide, portrait 360/375/412/430,
+tablets 820/1024). Debug tools: DebugPanel → 📐 Responsive (live profile/viewport/
 safe-area readout + the layout visualizer: tap-target outlines, safe-area bands, profile chip).
 - **Hold-to-repeat**: `src/ui/components/usePressRepeat.ts` — the shared primitive for buy
   buttons (click once; hold to repeat with a ramp; a failed buy halts the run = overspend
@@ -155,13 +196,28 @@ Validation state: probe matrix (12 screens × 13 viewports) — **0 horizontal o
 0 unreachable controls** (closed-drawer nav items are intentionally off-canvas); run surfaces
 verified at 4K/Deck/720p/iPad/phones with the board dominant and all chrome reachable.
 
+## 7b. 2026-07 portrait rebuild record (the "mobile is a separate game" pass)
+
+| finding (audit of the drawer-era phone UI) | resolution |
+|---|---|
+| Nav drawer rendered ~20 ICON-ONLY glyphs (a stale ≤860px "icon strip" block stripped every label) — unnavigable for a first-timer | block deleted; portrait replaced the drawer with the tab shell (§3b); the non-portrait drawer shows the full labelled rail |
+| Tower Lab list rows overlapped their own portraits on phones | flex children compressed inside the height-capped list — `.tl2-item { flex: none }`; portrait turns the list into a specimen strip |
+| Master-detail labs stranded the showcase below a 24-row column | horizontal roster strips above the showcase (§3b) |
+| Strip columns widened the page past the viewport | grid columns hosting strips are `minmax(0, 1fr)` |
+| In-run: top HUD consumed ~70% of the screen before the board; “press SPACE” copy; Start Wave floated mid-canvas; tray clipped off-screen | compact HUD grid + 42vh board + fixed bottom wave dock + touch copy (§3b) |
+| Mulligan Lab was one console-length scroll before its primary job | `MobileSection` collapsible around the Nucleus console |
+| Gate’s hand-written NAVS list had drifted (quests/season/hive/gearcodex never swept) | nav universe derived from `navModel.ts`; the first derived sweep caught a sub-24px Season checkbox |
+
 ## Machine enforcement (added with the mobile pass)
 
-- **`npm run mobilecheck`** (also a `npm run validate` stage): serves the build and
-  walks every hub screen + a live in-run board at 390×844 and 320×700, failing on
-  horizontal overflow, clipped text (non-ellipsized), sub-24px touch targets, and
-  unreachable interactives. Drawer/tooltip "parked geometry" is exempt via the
-  visibility pattern; scroll rails count as reachable.
+- **`npm run mobilecheck`** (also a `npm run validate` stage): §4d — registry-derived
+  screen sweep, portrait tab-shell walk, combat-dock contract, plus the layout detectors
+  (overflow / clipped text / sub-24px targets / unreachable interactives / popup fit).
+  Drawer/tooltip "parked geometry" is exempt via the visibility pattern; scroll rails
+  count as reachable.
+- **`src/ui/navModel.test.ts`**: every `NavKey` lives in exactly one portrait tab; the
+  bar stays five short-labelled tabs; every screen has an unlock-registry name/glyph/blurb
+  (the index rows can never render mute).
 - **Global floors** (`index.css` tail): ≤520px every interactive control gets
   `min-height: 24px` (WCAG 2.5.8); `body{overflow-x:hidden}`; tooltips clamp to the
   viewport; the wave banner clamps to `100vw` and every section shrinks/wraps.

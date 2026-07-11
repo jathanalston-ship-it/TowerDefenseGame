@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 733 nodes · 1314 edges, built from the live
+> **The project's brain** (docs/DIL.md). 735 nodes · 1318 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -459,7 +459,7 @@ graph LR
   system_nemesis["Nemesis & Trophies"] -->|modifies| system_engine["Sim Engine"]
 ```
 
-## Concepts (6)
+## Concepts (7)
 
 ### `concept:power-score` — Power Score
 
@@ -533,6 +533,14 @@ One deterministic run per UTC day, identical worldwide (core/daily.ts).
 
   - dependsOn → `concept:determinism` — fair boards need identical runs
   - documentedBy ← `guide:daily`
+
+### `concept:responsive` — Responsive / Portrait Shell
+
+Three intentional interfaces from one codebase (layoutProfile → data-layout); portrait phones get the tab-shell game (docs/RESPONSIVE-DESIGN.md §3b), machine-enforced by mobilecheck + navModel.test.
+
+  - providedBy ← `system:hub-shell` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
+  - conflictsWith ← `system:hub-shell` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
+  - providedBy ← `system:run-ui` — PORTRAIT COMBAT DOCK: build-controls become a FIXED bottom dock on data-layout=portrait (≥48px Start Wave, slides away in combat); the HUD is a 3-col grid where the wave module must stay ONE item (hz-c re-flexed — the ≤900px .hz{display:contents} scatters its children); mobilecheck portraitRunContract pins all of it
 
 ## Currencies (8)
 
@@ -1642,7 +1650,7 @@ _at: src/state/unlocks.ts, src/state/progressionDirector.ts, src/state/navBus.ts
 
 The nav shell + the Command Center home: registry-driven widgets, living World Status, mission control, feed/roadmap/army, dashboards.
 
-_at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx_
+_at: src/ui/Hub.tsx, src/ui/navModel.ts, src/ui/MobileShell.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/homeModel.ts, src/ui/WorldStatus.tsx, src/ui/ProgressDashboard.tsx, src/ui/NextGoalBanner.tsx, src/state/nextGoal.ts, src/state/progressionLoop.ts, src/ui/hubProgress.ts, src/ui/homeBaseTiers.ts, src/ui/LabAtmosphere.tsx, src/ui/App.tsx, src/ui/ErrorBoundary.tsx, src/main.tsx, src/net/swRegister.ts, src/ui/components/UpdateToast.tsx, src/ui/components/Popup.tsx_
 
   - dependsOn → `system:meta-store`
   - dependsOn → `system:notifications`
@@ -1650,6 +1658,8 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - dependsOn → `system:power`
   - consumes → `system:campaign` — buildHomeView generates the campaign frontier ONCE per save change — home widgets read ctx.view, never re-derive models
   - references → `system:collection` — home surfaces show CollectionView.pct (discovery); mixing in rank-weighted .completion once put two contradictory percentages on one board
+  - provides → `concept:responsive` — PORTRAIT SHELL (docs/RESPONSIVE-DESIGN.md §3b): ui/navModel.ts is the ONLY nav IA source — desktop rail, five-tab bottom bar, index pages (MobileShell.tsx), mobilecheck, and navModel.test all derive from it; a new screen = one group row + one unlock-registry def and it is auto-indexed/explained/swept on phones
+  - conflictsWith → `concept:responsive` — portrait strips inside grids need minmax(0,1fr) columns (intrinsic strip width widens the page past the phone viewport — the Tower Lab empty-showcase bug); flex children of height-capped roster lists need flex:none or rows compress and overlap their portraits
   - requiredBy ← `system:hive-construction`
   - requiredBy ← `system:infestation`
   - requiredBy ← `system:cosmetics`
@@ -1662,7 +1672,7 @@ _at: src/ui/Hub.tsx, src/ui/CommandCenter.tsx, src/ui/DeployScreen.tsx, src/ui/h
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:PROGRESSION-LOOP.md`
   - testedBy ← `test:src/state/nextGoal.test.ts`
-  - _…5 more (query: `npm run dil -- node system:hub-shell`)_
+  - _…6 more (query: `npm run dil -- node system:hub-shell`)_
 
 ### `system:run-ui` — In-Run HUD & Results
 
@@ -1675,6 +1685,7 @@ _at: src/ui/GameView.tsx, src/ui/Hud.tsx, src/ui/Toolbar.tsx, src/ui/BuildContro
   - dependsOn → `system:power`
   - dependsOn → `system:assimilation`
   - provides → `concept:power-score` — renders live run Power
+  - provides → `concept:responsive` — PORTRAIT COMBAT DOCK: build-controls become a FIXED bottom dock on data-layout=portrait (≥48px Start Wave, slides away in combat); the HUD is a 3-col grid where the wave module must stay ONE item (hz-c re-flexed — the ≤900px .hz{display:contents} scatters its children); mobilecheck portraitRunContract pins all of it
   - taughtBy ← `tutorial:combat`
   - documentedBy ← `doc:HUD.md`
   - documentedBy ← `doc:READABILITY.md`
@@ -1996,7 +2007,7 @@ _at: src/debug/*, src/ui/DebugPanel.tsx, src/ui/DevTools.tsx_
 
 Reusable presentation components every screen composes (icons, bars, count-ups) — the component library.
 
-_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx_
+_at: src/ui/components/Icon.tsx, src/ui/components/ProgressBar.tsx, src/ui/components/useCountUp.ts, src/ui/components/usePressRepeat.ts, src/ui/components/AudioToggles.tsx, src/ui/components/MobileSection.tsx, src/ui/layoutProfile.ts, src/ui/components/ResponsiveDebug.tsx_
 
   - documentedBy ← `doc:UI-STANDARDS.md`
   - documentedBy ← `doc:STYLE-GUIDE.md`
@@ -3115,7 +3126,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (230)
+## Tests (231)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3345,5 +3356,6 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/ui/homeBaseTiers.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/homeModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/hubProgress.test.ts` — automated validation _(tests `system:hub-shell`)_
+- `test:src/ui/navModel.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/towerCodexModel.test.ts` — automated validation _(tests `system:towers`)_
 - `test:site/gen.test.ts` — automated validation _(tests `system:website`)_

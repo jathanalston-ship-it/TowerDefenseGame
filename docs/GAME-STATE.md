@@ -244,8 +244,23 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   `<html>` (`data-layout`, `data-coarse`) + `useLayoutProfile()` — three intentional interfaces
 - ✅ **Portrait run shell scrolls** (100dvh + overflow-y) — fixed the tutorial-blocking clipped column
 - ✅ **Adaptive tutorial**: auto scroll-into-view per checkpoint, callout flip+clamp, no off-screen arrows
-- ✅ **Responsive gate** (`npm run mobilecheck`, in validate): 5-profile representative matrix +
-  tutorial walk + popup detector; `--full` = 17-viewport published matrix; DebugPanel 📐 visualizer
+- ✅ **Responsive gate** (`npm run mobilecheck`, in validate): registry-derived screen sweep
+  (navModel) at desktop/portrait×2/tablet-portrait + portrait tab-shell walk + combat-dock
+  contract + tutorial walk + popup detector; landscape phones out of the default gate
+  (vertical-only play); `--full` = full published matrix; DebugPanel 📐 visualizer
+- ✅ **Portrait shell — the phone game** (docs/RESPONSIVE-DESIGN.md §3b, 2026-07 rebuild):
+  `src/ui/navModel.ts` (single nav IA source: groups + five-tab mapping + `tabOf`) ·
+  `src/ui/MobileShell.tsx` (fixed bottom tab bar, self-describing index pages fed by
+  unlock-registry blurbs with teaser locks inline, sticky back headers) · Hub branches on
+  `useLayoutProfile()` (`mIndex`/`mTab`; deep links light the owning tab). Screens linearize:
+  labs' roster columns → horizontal specimen strips (grid cols `minmax(0,1fr)`;
+  `.tl2-item{flex:none}` fixed the row-overlap bug), `MobileSection` `<details>` collapsible
+  (desktop renders children untouched) wraps the Nucleus console. Portrait combat: 3-col HUD
+  grid (wave module pinned whole vs `.hz{display:contents}`), 42vh board, fixed bottom wave
+  dock (≥48px ▶ Start Wave, slides away in combat), touch prep copy. **Automation contract**:
+  `navModel.test.ts` (every NavKey in exactly one tab + has name/glyph/blurb) + discovery-based
+  mobilecheck walk ⇒ future screens are auto-indexed/explained/swept on phones with no
+  second list to maintain.
 
 ### Account platform (docs/ACCOUNTS.md)
 - ✅ **Guest + Email/Password accounts** over the anonymous identity (same account_id ⇒ upgrade keeps
