@@ -591,6 +591,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "Towers",
         "text": "Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species"
+      },
+      {
+        "cat": "Website",
+        "text": "Chronicle + site regen for the catalog expansion batch"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Monetization expansion: first-season half-price pass + milestone flash sales"
       }
     ]
   },

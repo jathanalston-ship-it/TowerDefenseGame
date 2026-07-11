@@ -1,6 +1,6 @@
 {
-  "lastSha": "11a91106eabafdfc6971bd4a2df8b83a784b3eab",
-  "commitsSinceDraft": 6,
+  "lastSha": "e297ddef26daf0fb0b955f880a9982cceac23e12",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -2059,6 +2059,14 @@
         {
           "cat": "Towers",
           "text": "Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species"
+        },
+        {
+          "cat": "Website",
+          "text": "Chronicle + site regen for the catalog expansion batch"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Monetization expansion: first-season half-price pass + milestone flash sales"
         }
       ]
     }
@@ -3077,6 +3085,22 @@
       "date": "2026-07-11",
       "cat": "Towers",
       "text": "Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3eed281ccd515f27e32634cb5b2b361f1d8339a5",
+      "date": "2026-07-11",
+      "cat": "Website",
+      "text": "Chronicle + site regen for the catalog expansion batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e297ddef26daf0fb0b955f880a9982cceac23e12",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Monetization expansion: first-season half-price pass + milestone flash sales",
       "internal": false,
       "needsReview": false
     }

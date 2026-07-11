@@ -137,3 +137,5 @@
 - `9127c88` **[Heroes]** Hero Symbiote System: per-hero grafted organisms (3 gated slots × 3 organs)
 - `7e88475` **[Website]** Chronicle + site regen, handoff + status board for the Symbiote batch
 - `11a9110` **[Towers]** Triple the grafted-organism catalogs: 102 tower pieces, 30 organs, 54 species
+- `3eed281` **[Website]** Chronicle + site regen for the catalog expansion batch
+- `e297dde` **[Gameplay]** Monetization expansion: first-season half-price pass + milestone flash sales
