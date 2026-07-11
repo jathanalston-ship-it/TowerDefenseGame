@@ -1,6 +1,6 @@
 {
-  "lastSha": "bd35f882ccf65cec8098725b3f6f00df234def1f",
-  "commitsSinceDraft": 8,
+  "lastSha": "37b81e706ec1c801b533677e0e4771e08dec7af6",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -1915,6 +1915,22 @@
         {
           "cat": "Gene Cards",
           "text": "Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Un-gate the Premium Store: open from minute 0 (operator decision)"
+        },
+        {
+          "cat": "UI",
+          "text": "Mobile shell: portrait bottom-tab navigation with self-describing index pages"
+        },
+        {
+          "cat": "UI",
+          "text": "Portrait linearization + combat dock: heavy screens and the run read top-to-bottom"
+        },
+        {
+          "cat": "Developer Tools",
+          "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract"
         }
       ]
     }
@@ -2711,6 +2727,54 @@
       "text": "Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail",
       "internal": false,
       "needsReview": false
+    },
+    {
+      "sha": "239a9ae8be90911742b27464d25f91cdeb0a13ea",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Un-gate the Premium Store: open from minute 0 (operator decision)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "306ae2810ce288a2b3a4614090870d4f6b94be5a",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "Mobile shell: portrait bottom-tab navigation with self-describing index pages",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e5af40dde4fd82522b0f6f1860c6542d7b742b49",
+      "date": "2026-07-11",
+      "cat": "UI",
+      "text": "Portrait linearization + combat dock: heavy screens and the run read top-to-bottom",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "0646fec51b96d58165515755213afa1847e977e8",
+      "date": "2026-07-11",
+      "cat": "Developer Tools",
+      "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "3f86fad642486b52268339dbaf1b91b5e96f3efa",
+      "date": "2026-07-11",
+      "cat": "Framework",
+      "text": "Mobile rebuild docs + knowledge: RESPONSIVE-DESIGN §3b, GAME-STATE summary, DIL edges",
+      "internal": true,
+      "needsReview": true
+    },
+    {
+      "sha": "37b81e706ec1c801b533677e0e4771e08dec7af6",
+      "date": "2026-07-11",
+      "cat": "Framework",
+      "text": "Rebase reconciliation: Idle Harvest joins the nav model + regenerated graphs/chronicle",
+      "internal": true,
+      "needsReview": true
     }
   ]
 }

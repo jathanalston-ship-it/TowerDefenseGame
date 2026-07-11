@@ -457,6 +457,22 @@ export const RELEASES: Release[] = [
       {
         "cat": "Gene Cards",
         "text": "Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Un-gate the Premium Store: open from minute 0 (operator decision)"
+      },
+      {
+        "cat": "UI",
+        "text": "Mobile shell: portrait bottom-tab navigation with self-describing index pages"
+      },
+      {
+        "cat": "UI",
+        "text": "Portrait linearization + combat dock: heavy screens and the run read top-to-bottom"
+      },
+      {
+        "cat": "Developer Tools",
+        "text": "Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract"
       }
     ]
   },

@@ -109,3 +109,9 @@
 - `e8164d1` **[Framework]** Redeploy — first CI upload with the Cloudflare credentials in place _(internal)_
 - `b2efec0` **[Backend]** Redeploy — bind the wrangler-put Stripe secrets _(internal)_
 - `bd35f88` **[Gene Cards]** Idle Harvest: infinite passive lane — accrual, evolution tree, gated drops, guardrail
+- `239a9ae` **[Gameplay]** Un-gate the Premium Store: open from minute 0 (operator decision)
+- `306ae28` **[UI]** Mobile shell: portrait bottom-tab navigation with self-describing index pages
+- `e5af40d` **[UI]** Portrait linearization + combat dock: heavy screens and the run read top-to-bottom
+- `0646fec` **[Developer Tools]** Mobilecheck v2: registry-derived auto-coverage + the portrait tab-shell contract
+- ⚑ `3f86fad` **[Framework]** Mobile rebuild docs + knowledge: RESPONSIVE-DESIGN §3b, GAME-STATE summary, DIL edges _(internal)_
+- ⚑ `37b81e7` **[Framework]** Rebase reconciliation: Idle Harvest joins the nav model + regenerated graphs/chronicle _(internal)_
