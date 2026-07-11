@@ -51,7 +51,10 @@ export function LeaderboardBlock({ mode }: { mode: LbMode }): JSX.Element {
                 {view.entries.map((e) => (
                   <tr key={e.rank}>
                     <td className="lb-rank">#{e.rank}</td>
-                    <td className="lb-name">{e.name}</td>
+                    <td className="lb-name">
+                      {e.name}
+                      {e.tag && <i className="lb-tag" title="Register number — commanders may share a name; this stays theirs">#{e.tag}</i>}
+                    </td>
                     <td className="lb-score">{LB_STRINGS[mode].score(e)}</td>
                   </tr>
                 ))}

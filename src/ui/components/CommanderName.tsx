@@ -10,6 +10,8 @@ import { useState } from 'react';
 import { meta, sanitizeCommanderName } from '../../state/meta';
 import { DEFAULT_PROFILE_NAME } from '../../save/saveStore';
 import { useGuestMode } from '../../state/guestMode';
+import { displayCommanderName } from '../../core/identity';
+import { myDesignationTag } from '../../net/identity';
 import { startSyncEngine, syncEngine } from '../../net/syncEngine';
 import { audio } from '../../audio/sound';
 import { t, useLocale } from '../../i18n';
@@ -90,9 +92,9 @@ export function CommanderName(): JSX.Element | null {
             ? t('cmdname.hint.rules')
             : cleaned === null
               ? t('cmdname.hint.short')
-              : cleaned !== draft.trim()
-                ? t('cmdname.hint.preview', { name: cleaned })
-                : ' '}
+              // Always preview the FULL identity — the register number rides every name
+              // (docs/PROFILE.md §designation-tags), so no one is surprised by it later.
+              : t('cmdname.hint.preview', { name: displayCommanderName(cleaned, myDesignationTag()) })}
         </div>
         <div className="cmdname-actions">
           <button className="primary cmdname-confirm" disabled={cleaned === null} onClick={confirm}>

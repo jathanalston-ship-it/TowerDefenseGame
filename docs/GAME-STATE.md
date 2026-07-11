@@ -470,7 +470,14 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   titleName chain) → SAFEGUARD (guest/create/sign-in via the accounts platform's AuthForms,
   asked after the player has something to lose). `core/identity.ts` + `profileSigil` (additive)
   + `meta.commission` one-persist settle; skippers keep the legacy modal fallbacks;
-  identity.test (9). All chrome fully localized (EN/ES/PT `commission.*`)
+  identity.test. All chrome fully localized (EN/ES/PT `commission.*`)
+- ✅ **Designation tags** (2026-07, PROFILE.md §designation-tags) — the duplicate-name system:
+  names stay non-unique; a stable 4-digit REGISTER NUMBER (`#0421`, FNV-1a over the permanent
+  playerId, `core/identity.designationTag`) disambiguates everywhere names meet. The
+  leaderboard read derives each row's tag SERVER-side from its stored player_id via the same
+  shared function (premium.ts pattern — zero schema change, unforgeable); dim `#tag` suffix on
+  LB rows + Profile banner; both name prompts preview the full identity. backend.test pins the
+  server derivation
 - ✅ **Onboarding overhaul (full audit + rebuild)** — GATED Combat Tutorial (`game.tutorialMode`:
   director scripts every wave, holds/releases the draft at its lesson, locked console/speed/hotkeys,
   sim-freezing pause, exact-element arrows, canvas-focus camera, mid-flow milestone rewards with

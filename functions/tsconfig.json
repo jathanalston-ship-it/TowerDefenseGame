@@ -16,5 +16,5 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["./**/*.ts", "../src/core/premium.ts"]
+  "include": ["./**/*.ts", "../src/core/premium.ts", "../src/core/identity.ts"]
 }

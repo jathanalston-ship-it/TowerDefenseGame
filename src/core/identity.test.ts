@@ -3,7 +3,7 @@
 // ONE-TIME title grant in a single persist) and the profileSigil save round-trip.
 
 import { describe, it, expect } from 'vitest';
-import { FOUNDING_TITLES, SIGILS, foundingTitleName, sigilById, sigilRegistry, suggestCommanderName } from './identity';
+import { FOUNDING_TITLES, SIGILS, designationTag, displayCommanderName, foundingTitleName, sigilById, sigilRegistry, suggestCommanderName } from './identity';
 import { meta, sanitizeCommanderName } from '../state/meta';
 import { titleName } from '../state/profile';
 import { defaultSave, serializeExport, DEFAULT_PROFILE_NAME } from '../save/saveStore';
@@ -32,6 +32,30 @@ describe('founding titles — the one-time oath', () => {
       expect(titleName(f.id)).toBe(f.name); // the equipped-title slot renders it everywhere
     }
     expect(foundingTitleName('not_a_title')).toBeNull();
+  });
+});
+
+describe('designation tags — the duplicate-name system', () => {
+  it('is deterministic, 4 digits, and never 0000', () => {
+    const a = designationTag('3f2504e0-4f89-11d3-9a0c-0305e82c3301');
+    expect(a).toBe(designationTag('3f2504e0-4f89-11d3-9a0c-0305e82c3301'));
+    for (let i = 0; i < 500; i++) {
+      const tag = designationTag(`player-${i}-${i * 7919}`);
+      expect(tag).toMatch(/^\d{4}$/);
+      expect(tag).not.toBe('0000'); // 1..9999 — a register number always reads as REAL
+    }
+  });
+
+  it('two same-named commanders almost surely read apart (the whole point)', () => {
+    const tags = new Set<string>();
+    for (let i = 0; i < 50; i++) tags.add(designationTag(crypto.randomUUID()));
+    expect(tags.size).toBeGreaterThan(45); // ~50 draws over 9999 values — collisions are rare
+  });
+
+  it('displayCommanderName composes the full identity (and degrades without a tag)', () => {
+    expect(displayCommanderName('Marrowthorn', '0421')).toBe('Marrowthorn #0421');
+    expect(displayCommanderName('Marrowthorn', null)).toBe('Marrowthorn');
+    expect(displayCommanderName('Marrowthorn')).toBe('Marrowthorn');
   });
 });
 

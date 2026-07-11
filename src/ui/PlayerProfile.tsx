@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { AccountCard } from './components/AccountPanel';
+import { myDesignationTag } from '../net/identity';
 import { meta, equippedWardrobe } from '../state/meta';
 import {
   PROFILE_SECTION_TITLES,
@@ -103,7 +104,9 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
                   {banner.sigil.glyph}
                 </i>
               )}
-              {banner.name} <i aria-hidden>✎</i>
+              {banner.name}
+              <i className="pf-tag" title="Your register number — commanders may share a name; this stays yours" aria-hidden>#{myDesignationTag()}</i>
+              {' '}<i aria-hidden>✎</i>
             </button>
           )}
           {(wd.title?.text ?? banner.title) && <span className="pf-title">« {wd.title?.text ?? banner.title} »</span>}

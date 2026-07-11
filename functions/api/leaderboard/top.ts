@@ -5,6 +5,7 @@ import type { Env } from '../../lib/env';
 import { clientIp, err, json } from '../../lib/http';
 import { rateLimit } from '../../lib/rateLimit';
 import { isDayKey, isPlayerId } from '../../lib/validate';
+import { designationTag } from '../../../src/core/identity';
 import { utcDayKey } from '../daily/seed';
 import { utcMonthKey, utcWeekKey } from '../../lib/period';
 
@@ -56,7 +57,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     mode,
     dayKey,
     total: total?.n ?? 0,
-    entries: (top.results ?? []).map((r, i) => ({ rank: i + 1, name: r.name, score: r.score, wave: r.wave, power: r.power, verified: r.verified === 1 })),
+    // `tag` = the register number derived from the STORED player_id (src/core/identity.ts —
+    // the same function the client renders with, docs/PROFILE.md §designation-tags): duplicate
+    // display names stay tellable apart ("Marrowthorn #0421" vs "#7730"), unforgeable because
+    // it never rides the submission.
+    entries: (top.results ?? []).map((r, i) => ({ rank: i + 1, name: r.name, tag: designationTag(r.player_id), score: r.score, wave: r.wave, power: r.power, verified: r.verified === 1 })),
     you,
   });
 };

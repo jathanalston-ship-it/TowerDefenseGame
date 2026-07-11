@@ -16,6 +16,9 @@ export type LbMode = 'daily' | 'bossRush' | 'accountLevel' | 'weeklyXp' | 'month
 export interface LbEntry {
   rank: number;
   name: string;
+  /** Register number (docs/PROFILE.md §designation-tags) — server-derived from the row's
+   *  player_id, so duplicate display names stay tellable apart. Absent on old responses. */
+  tag?: string;
   score: number;
   wave: number;
   power: number;

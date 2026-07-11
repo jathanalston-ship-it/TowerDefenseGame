@@ -100,6 +100,28 @@ completion, in four skippable steps:
    something to lose. Completing any route marks the device onboarded, arms the sync
    engine, and takes the first mirror.
 
-**Save:** `profileSigil: string | null` (additive; junk sanitizes to null). **Skippers**
+**Save:** `profileSigil: string | null` (additive; junk sanitizes to null). Both name steps
+preview the full identity including the register number (§designation-tags). **Skippers**
 (tutorial Skip) keep the legacy fallbacks unchanged — CommanderName modal + WelcomeGate.
 Tests: `core/identity.test.ts` (registry, oath one-time, generator hygiene, round-trip).
+
+## §designation-tags — the duplicate-name system
+
+Commander names are deliberately **not unique** — any number of players may be "Marrowthorn."
+What IS unique-in-practice is the **register number**: a stable 4-digit tag (`#0421`) derived
+from the player's permanent identity (`net/identity playerId` — the same id the accounts
+platform formalizes, so it survives guest→account upgrades and never changes).
+
+- **One implementation, both sides.** `designationTag(id)` lives in `src/core/identity.ts`;
+  the leaderboard read (`functions/api/leaderboard/top.ts`) imports THE SAME function (the
+  `premium.ts` shared-module pattern) and derives each row's tag from its **stored**
+  `player_id` at read time — zero schema changes, and a client can never forge a tag because
+  it never rides the submission. Pinned in `functions/backend.test.ts`.
+- **Deterministic + offline-first.** FNV-1a → `0001`–`9999` (never `0000`): no server
+  coordination, instant offline, ~50 same-named players still collide rarely (birthday over
+  9,999). A collision merely means two players share the full identity string — cosmetic, and
+  the verified-replay lane already disambiguates records by `player_id`.
+- **Surfaces.** Leaderboard rows (`LbEntry.tag`, dim `.lb-tag` suffix; absent on old API
+  responses → name renders bare), the Profile banner (`.pf-tag`, tooltip explains it), and
+  both name prompts (Commissioning DESIGNATION + CommanderName modal) always preview the FULL
+  identity — *"Will appear as 'Marrowthorn #0421'"* — so the number never surprises anyone.

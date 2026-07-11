@@ -6,6 +6,8 @@
 // player copies to restore on another device. Storage-less environments
 // (private mode) fall back to a per-session identity — play still works.
 
+import { designationTag } from '../core/identity';
+
 const ID_KEY = 'assimilate.playerId';
 const TOKEN_KEY = 'assimilate.syncToken';
 
@@ -60,6 +62,14 @@ export function syncToken(): string {
  *  to restore this player's cloud save and purchase history. */
 export function syncCode(): string {
   return `${playerId()}.${syncToken()}`;
+}
+
+/** THIS device's register number (docs/PROFILE.md §designation-tags) — the stable 4-digit
+ *  suffix that keeps duplicate commander names tellable apart everywhere names meet
+ *  (leaderboards, the Profile banner). Derived, never stored; the server independently
+ *  derives the same value from its player_id column, so the pair can never disagree. */
+export function myDesignationTag(): string {
+  return designationTag(playerId());
 }
 
 /** Mint a brand-new device identity (docs/ACCOUNTS.md §sign-out): fresh UUID +

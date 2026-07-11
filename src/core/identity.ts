@@ -69,6 +69,26 @@ export function foundingTitleName(id: string): string | null {
   return FOUNDING_TITLES.find((t) => t.id === id)?.name ?? null;
 }
 
+// ── DESIGNATION TAGS — the duplicate-name system (docs/PROFILE.md §designation-tags). Names
+//    are NOT unique (any commander may be "Marrowthorn"); the REGISTER NUMBER is: a stable
+//    4-digit tag derived from the player's permanent identity (net/identity playerId — the same
+//    id the accounts platform formalizes, so it survives guest→account upgrades). Deterministic
+//    FNV-1a ⇒ no server coordination, works fully offline, and the SERVER derives the same tag
+//    from its own player_id column at read time (functions/api/leaderboard/top.ts imports THIS
+//    function — one implementation, compiler-enforced) so a client can never forge one. ──
+
+/** Stable 4-digit register number for a player id — '0001'…'9999' (never '0000'). */
+export function designationTag(id: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return String(((h >>> 0) % 9999) + 1).padStart(4, '0');
+}
+
+/** The full display identity: `Name #0421` (no tag ⇒ the bare name — old API responses). */
+export function displayCommanderName(name: string, tag?: string | null): string {
+  return tag ? `${name} #${tag}` : name;
+}
+
 // ── The DESIGNATION generator — a one-tap bio-flavored callsign for the name step. Output is
 //    guaranteed to pass sanitizeCommanderName (letters only, 2–20 chars, no forbidden chars). ──
 

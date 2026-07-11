@@ -7164,6 +7164,9 @@ kbd {
 .commission-oath { margin-top: 6px; font-size: 11px; color: var(--warn); opacity: 0.85; font-style: italic; }
 .commission .acct-welcome-btns { width: 100%; }
 .pf-sigil { font-style: normal; margin-right: 6px; }
+/* Register numbers (docs/PROFILE.md §designation-tags) — the duplicate-name discriminator,
+   rendered dim so the NAME stays the identity and the number stays the fine print. */
+.pf-tag, .lb-tag { font-style: normal; font-size: 11px; font-weight: 600; color: var(--dim); margin-left: 5px; letter-spacing: 0.04em; }
 .tut-overlay { position: fixed; inset: 0; z-index: 4000; pointer-events: none; font-family: inherit; }
 .tut-overlay > * { pointer-events: auto; }
 /* Spotlight: dim panels (swallow clicks) around a hole that passes clicks to the target */

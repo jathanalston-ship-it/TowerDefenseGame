@@ -6,6 +6,7 @@ import { onRequestPut as savePut, onRequestGet as saveGet, onRequestDelete as sa
 import { onRequestGet as dailySeed, mintDayTicket, serverDailySeed, utcDayKey } from './api/daily/seed';
 import { onRequestPost as lbSubmit } from './api/leaderboard/submit';
 import { onRequestGet as lbTop } from './api/leaderboard/top';
+import { designationTag } from '../src/core/identity';
 import { ctx, makeEnv, postJson } from './lib/testkit';
 import { utcWeekKey } from './lib/period';
 import { hashStr } from '../src/core/hash';
@@ -97,8 +98,12 @@ describe('/api/leaderboard', () => {
     const res = await submit(e);
     expect(res.status).toBe(200);
     const top = await lbTop(ctx(new Request(`https://g.test/api/leaderboard/top?mode=daily&playerId=${PLAYER}`, { headers: { 'cf-connecting-ip': '4.4.4.4' } }), e));
-    const body = (await top.json()) as { entries: { name: string; score: number }[]; you: { rank: number } };
+    const body = (await top.json()) as { entries: { name: string; tag: string; score: number }[]; you: { rank: number } };
     expect(body.entries[0].name).toBe('OVERMIND');
+    // The register number (docs/PROFILE.md §designation-tags): derived from the STORED
+    // player_id with the same shared function the client renders with — never client-supplied.
+    expect(body.entries[0].tag).toBe(designationTag(PLAYER));
+    expect(body.entries[0].tag).toMatch(/^\d{4}$/);
     expect(body.you.rank).toBe(1);
   });
 
