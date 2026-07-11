@@ -24,18 +24,21 @@ reaction framework** — it supersedes the placeholder tower names used in the e
 > Evolutions, and class keystones are the designed-but-future content this spec also covers. Balance values live in
 > `src/core/config.ts`.
 >
-> **Roster now: fifteen built towers.** Beyond the launch five, the placeable roster runs to
-> **fifteen**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
+> **Roster now: seventeen built towers.** Beyond the launch five, the placeable roster runs to
+> **seventeen**: the three post-siege expansion niches (§expansion — Carrion Maw · Amber Chrysalis ·
 > Wailing Effigy), the two **Deep-Strain beam** towers (§deep-strain — **Resonance Coil**, a
 > single-target resonance melter; **Marrow Siphon**, a Vital multi-tether *harvester* that drains a
 > dying swarm into Biomass), the **Blight Sower** (§trap — a Caustic `firing: 'trap'` that
 > seeds armed spore mines up-lane), the two **Neural field/chain** towers (**Synapse Spire**, a
-> chain arc-caster; **Undertow Polyp**, an anti-progress pull field), and the two newest
-> (§dependable-deep) — **Spitfang Turret**, the dependable Kinetic autocannon on the roster's
-> *easiest* gate, and **Rift Anchor**, a Neural void pull field on its *deepest*. Each new tower
-> adds or reuses a delivery mode (`beam`, `trap`, `field`) and is **doubly progression-gated** (a
-> Campaign-stage gate → then its own Tower Shards). All are registry-driven — stars, mastery,
-> conveyor, codex, loot, and Strain inherited them with no per-system code.
+> chain arc-caster; **Undertow Polyp**, an anti-progress pull field), the pair at the progression
+> poles (§dependable-deep) — **Spitfang Turret**, the dependable Kinetic autocannon on the roster's
+> *easiest* gate, and **Rift Anchor**, a Neural void pull field on its *deepest* — and the two
+> **draconic** organs (§draconic): the **Wyrmwing Glaive**, a Kinetic RETURNING blade on the
+> all-new `firing: 'arc'` archetype, and the **Drake Roost**, a Vital `firing: 'summon'` brood
+> engine whose hero-AI drakes are the payload. Each new tower adds or reuses a delivery mode
+> (`beam`, `trap`, `field`, `arc`, `summon`) and is **doubly progression-gated** (a Campaign-stage
+> gate → then its own Tower Shards). All are registry-driven — stars, mastery, conveyor, codex,
+> loot, and Strain inherited them with no per-system code.
 
 ---
 
@@ -639,3 +642,52 @@ Disruption, Fracture, a monstrous drag that stops the wave arriving) vs **Annihi
 (★3) → Singularity/Collapse (★5) → *The Devouring Void* (★9). **Visual**: the `singularity` form —
 orbiting mass-particles, an event-horizon ring and a white-hot core with a void bloom that swells as
 it fires; it crowns itself with collapse spikes and lightning as it evolves.
+
+---
+
+## Draconic roster (§draconic) — Wyrmwing Glaive · Drake Roost
+
+The hive assimilates the sky: two organs grown from the same war-form chassis that bred the
+Cinderwyrm (HEROES.md §6), each on an **all-new firing archetype** — the roster's first RETURNING
+projectile and its first true UNIT SUMMONER. Both ship the full stack (two branches, a ★1–9 star
+path, Strain II–V, a four-branch Adaptation tree, signature gene cards, three Mulligan pieces,
+mastery lore, procedural body) and both are deep, doubly-gated unlocks.
+
+### 16. WYRMWING GLAIVE — Kinetic (the returning blade) · `firing: 'arc'`
+
+Hurls a spinning wing-blade that carves **OUT to its full range piercing everything on the path,
+then TURNS and carves home** — one cut per enemy per LEG (the cut ledger clears at the turnaround),
+so a full pass through a body is two hits and a packed lane is a lathe. The `'arc'` behavior is
+pure kinematics from the spawn params (origin, aim direction, out-leg length = the tower's
+effective range) — no retargeting, no rng, fully deterministic. Kinetic · cost **185** · out-leg
+**470** · **1.8 s** throw · **16** dmg per leg (carve corridor `GLAIVE.carveReach` 20 px) ·
+projectile speed 400 · colour `#ff9e4a`. **Gated** `unlockStage` 22 · `unlockShards` 420.
+**Branches** (`glaive_*`): **Razor Cyclone** (a second blade, Fracture along the carve, crits — the
+cut itself sharpens) vs **Ember Return** (Corrosion teeth + a DETONATION where the blade wheels).
+**Stars** fork Skyhook/Lowline (★3) → Stormblade/Emberblade (★5) → *The Wyrmfang* (★9 — a fourth
+blade + a cataclysmic turnaround). **Strains II–V**: Twin Wing (twin-cast) → Serrated Venom (venom
+marks on the blade) → Concussive Carve (the pass batters survivors up-lane) → Apex Cyclone (frenzy
+windows). Extra-projectile channels grant **extra blades**; pierce mutators are meaningless here
+(the arc already cuts everything it crosses) so no ladder spends on them. **Visual**: the `lens`
+launch-ring form; the blade itself renders as a spinning ember tri-blade that spins the OPPOSITE
+way on the return leg, so the turnaround reads at a glance.
+
+### 17. DRAKE ROOST — Vital (the brood engine) · `firing: 'summon'`
+
+Fields **no attack of its own** — it incubates a standing BROOD of biomech drakes
+(`game.roostSystem`) that fight with a **hero-style brain** (`game.drakeBrain`, gated on
+`MinionDef.heroAI`): deepest-threat targeting with elites first (the dive brain's sense), a rally
+LEASH around the perch, **retreat-to-perch when wounded** (< 30 % hp) with perch regen, then back
+into the hunt. Upgrades improve the UNITS, functionally and visually: the `'brood'` grant
+vocabulary (stars.ts) raises the **unit tier** up the `ROOST.unitByTier` ladder — **Drakeling**
+(t1, 70 hp / 11 dmg) → **Ember Drake** (t2, 150 / 24, bigger wings + a spine) → **Wyrmspawn** (t3,
+320 / 50, horned) — and the **brood size**; the shared damage/rate/range folds bake into each hatch
+(claws × the damage fold, hide at half strength, hunt leash × the range fold, hatch cadence × the
+rate fold). Vital · cost **200** · leash **380** · hatch **5.5 s** · brood **2** · colour
+`#e8a13d`. **Gated** `unlockStage` 26 · `unlockShards` 520. **Branches** (`roost_*`): **Alpha
+Brood** (fewer, BIGGER — tier bumps at T2/T4, a third egg at T5) vs **Swarm Clutch** (MORE, faster
+— eggs at T1/T3/T5, drakes mature at T4). **Stars** speak `'brood'` exclusively: eggs, perch
+regen, tier maturation → *The Wyrmmother* (★9). **Strains II–V** ride the existing `births` verb —
+a side-clutch that escalates from extra drakelings to a birthing WYRMSPAWN. Wave end clears all
+minions (the standing rule), so the roost re-incubates each wave; drakes body-block like all
+friendly units and their kills/damage credit **roost mastery**.

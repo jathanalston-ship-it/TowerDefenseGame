@@ -165,6 +165,8 @@ export const TOWER_SHAPE: Record<TowerKind, ShapeKind> = {
   polyp: 'circle', // a rooted undertow mouth (deep teal, the drag rings ripple around it)
   spitfang: 'triangle', // a sharp kinetic autocannon (aggressive red)
   rift: 'hex', // a faceted void anchor (deep violet, an accretion ring circles it)
+  glaive: 'triangle', // a swept wing-blade launcher (ember; the returning glaive spins over the lane)
+  roost: 'circle', // a clutch of biomech eggs (amber-gold; its drakes wheel around the perch)
 };
 
 export const ENEMY_SHAPE: Record<EnemyKind, ShapeKind> = {

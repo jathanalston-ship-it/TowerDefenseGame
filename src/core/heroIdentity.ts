@@ -24,7 +24,8 @@ export type HeroTraitKind =
   | 'targetHijack' // the control field drags + denies the lane (Overseer)
   | 'groundDenial' // every shell leaves a lingering acid pool (Vitriol)
   | 'plagueStrike' // blink-strikes inject Infection that spreads on the host's death (Revenant)
-  | 'resonantToll'; // the tolling pulse staggers; its peals amplify the whole hive (Knell — the stagger IS the pulse's disrupt)
+  | 'resonantToll' // the tolling pulse staggers; its peals amplify the whole hive (Knell — the stagger IS the pulse's disrupt)
+  | 'strafingRun'; // fly-by strikes corrode + bank THROUGH the target — it never stops moving (Cinderwyrm)
 
 /** How a hero scales WITHIN a run so it stays relevant to endgame. */
 export type HeroScalingKind =
@@ -113,6 +114,16 @@ export const HERO_IDENTITIES: Record<HeroKind, HeroIdentity> = {
     trait: { name: 'The Toll', desc: 'Its pulse is a damaging shockwave that briefly staggers everything caught.', kind: 'resonantToll' },
     scaling: { name: 'Congregation', desc: 'The Resonance aura strengthens for each tower standing near the bell.', kind: 'livingHive', perStack: 0.12, cap: 0.48 },
     survival: 'cautious',
+  },
+  wyrm: {
+    kind: 'wyrm',
+    role: 'Flying strafe-fighter — a biomech dragon that never lands: fly-by strikes, corroding breath, and firestorm ground denial.',
+    strengths: ['Constant mobility — strikes and BANKS through, never standing in danger', 'Corrosion on every pass softens the whole lane', 'Firestorm pools deny ground'],
+    weaknesses: ['No sustain or shields — it must keep moving to live', 'Never retreats (a designed recklessness)', 'Damage spread across passes — slow into one fat target'],
+    passive: { name: 'Emberwake', desc: 'CORRODED enemies take extra damage from ALL sources — everything it overflies smolders.', kind: 'causticVuln', amount: 0.15 },
+    trait: { name: 'Strafing Run', desc: 'Every fly-by strike douses the victim in Corrosion, and the wyrm banks THROUGH to the far side — always moving, never caught.', kind: 'strafingRun' },
+    scaling: { name: 'Firestorm', desc: 'The deeper the run, the hotter its Corrosion burns (up to +30%).', kind: 'saturation', perStack: 0.015, cap: 0.3 },
+    survival: 'aggressive',
   },
 };
 

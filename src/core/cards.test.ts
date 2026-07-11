@@ -100,6 +100,9 @@ describe('card subject — what it AFFECTS (derived from effects)', () => {
     unmakers_lesson: 'global', tyrants_grip: 'obelisk',
     saturation_doctrine: 'mortar', // poolDpsMult is mortar-tagged; splash is global
     veterans_lattice: 'hive', harvest_of_ten_thousand: 'global', golden_rot: 'economy',
+    // Draconic signature sets — Glaive blades + Roost brood
+    second_wing: 'glaive', bladestorm_communion: 'glaive',
+    spare_egg: 'roost', blackened_sky: 'roost',
   };
   const tagOf = (s: CardSubject): string => (s.kind === 'tower' ? s.tower : s.kind);
 

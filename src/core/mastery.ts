@@ -236,6 +236,20 @@ const TOWER_TRACKS: { unit: TowerKind; rewards: MasteryReward[]; perks?: Mastery
       { at: 25, kind: 'title', id: 'title.rift.voidcaller', name: 'Voidcaller' },
     ],
   },
+  {
+    unit: 'glaive',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.glaive.1', name: 'Wing Doctrine', text: 'The blade leaves, and the lane holds its breath — because everything the throw forgave on the way out, the RETURN remembers.' },
+      { at: 25, kind: 'title', id: 'title.glaive.wingwright', name: 'Wingwright' },
+    ],
+  },
+  {
+    unit: 'roost',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.roost.1', name: 'Brood Doctrine', text: 'The hive did not build a weapon. It warmed an egg, and taught what hatched whose sky this is.' },
+      { at: 25, kind: 'title', id: 'title.roost.broodkeeper', name: 'Broodkeeper' },
+    ],
+  },
 ];
 
 const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
@@ -265,6 +279,13 @@ const HERO_TRACKS: { unit: HeroKind; rewards: MasteryReward[] }[] = [
     rewards: [
       { at: 10, kind: 'lore', id: 'lore.vitriol.1', name: 'Vitriol', text: 'The hive learned patience from a siege it lost. Now it answers every wall with acid, and every charge with a sea of it.' },
       { at: 25, kind: 'title', id: 'title.vitriol.corrosive', name: 'The Corrosive' },
+    ],
+  },
+  {
+    unit: 'wyrm',
+    rewards: [
+      { at: 10, kind: 'lore', id: 'lore.wyrm.1', name: 'Cinderwyrm', text: 'Five war-forms fell, and the hive kept what mattered: the part of each that refused the ground. It has not landed since — the sky is simply where it eats.' },
+      { at: 25, kind: 'title', id: 'title.wyrm.skyreaver', name: 'Sky Reaver' },
     ],
   },
   {

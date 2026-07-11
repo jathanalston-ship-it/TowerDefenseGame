@@ -1318,6 +1318,9 @@ export function towerProgress(save: SaveData, includeMulligan = true, mulliganOv
       extraAbilities: kit.extraAbilities.length ? kit.extraAbilities : undefined,
       reactorBiomassMult: kit.reactorBiomassMult !== 1 ? kit.reactorBiomassMult : undefined,
       reactorOverchargeBonus: kit.reactorOverchargeBonus !== 0 ? kit.reactorOverchargeBonus : undefined,
+      roostBroodBonus: kit.roostBroodBonus !== 0 ? kit.roostBroodBonus : undefined,
+      roostTierBonus: kit.roostTierBonus !== 0 ? kit.roostTierBonus : undefined,
+      roostRegenBonus: kit.roostRegenBonus !== 0 ? kit.roostRegenBonus : undefined,
       cosmetics: kit.cosmetics.length ? kit.cosmetics : undefined,
     };
   }

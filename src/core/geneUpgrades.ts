@@ -611,6 +611,31 @@ export const GENE_UPGRADES: Record<string, GeneUpgradeLevel[]> = {
     { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.08 }], note: 'Dominion — +8% field reach.' },
     { effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.06 }, { op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'The crown DROWNS — +6% reach, +4% damage.' },
   ],
+  // ── Draconic signature sets: Glaive blades + Roost brood ──
+  second_wing: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Honed feathers — +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Quicker release — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Deeper carve — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 1 }], note: 'The THIRD wing — +1 blade per throw.' },
+  ],
+  bladestorm_communion: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Shared tempo — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Edges in chorus — +4% tower damage.' },
+    { effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 1 }], note: 'Another voice — +1 blade per throw.' },
+    { effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'The sky is EDGES — +1 blade, +3% damage.' },
+  ],
+  spare_egg: [ // rare → 4
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Warmer blood — +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Faster incubation — +5% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.05 }], note: 'Fiercer hatchlings — +5% tower damage.' },
+    { effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }], note: 'A SECOND spare — +1 standing drake.' },
+  ],
+  blackened_sky: [ // epic → 4
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.04 }], note: 'Restless eggs — +4% tower fire rate.' },
+    { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'Pack cunning — +4% tower damage.' },
+    { effects: [{ op: 'mul', field: 'towerFireRateMult', value: 1.05 }], note: 'Fevered clutch — +5% tower fire rate.' },
+    { effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }, { op: 'mul', field: 'towerDamageMult', value: 1.03 }], note: 'No sky left — +1 drake, +3% damage.' },
+  ],
   unmakers_lesson: [ // epic → 4
     { effects: [{ op: 'mul', field: 'towerDamageMult', value: 1.04 }], note: 'First lesson — +4% tower damage.' },
     { effects: [{ op: 'add', field: 'executeThreshold', value: 0.01 }], note: 'Sharper doctrine — unmake below +1% more health.' },

@@ -40,6 +40,8 @@ export interface RunModifiers {
   sowerExtraMines: number; // +max armed mines each Blight Sower may keep planted (its field density)
   spireChainJumps: number; // +arc hops for every Synapse Spire cast (rides the extraProjectiles channel) — docs/SPIRE.md
   polypFieldMult: number; // scales the Undertow Polyp's field radius (its identity-range) — docs/POLYP.md
+  glaiveExtraBlades: number; // +blades per Wyrmwing Glaive throw (rides the extraProjectiles channel) — docs/TOWERS.md §glaive
+  roostBroodSize: number; // +drakes each Drake Roost keeps fielded (its brood cap) — docs/TOWERS.md §roost
   heroDamageMult: number;
   heroCooldownMult: number;
   // Run-start (construction-time) behavioral knobs — folded ONCE when the run boots, so they
@@ -130,6 +132,8 @@ export function defaultRunModifiers(): RunModifiers {
     sowerExtraMines: 0,
     spireChainJumps: 0,
     polypFieldMult: 1,
+    glaiveExtraBlades: 0,
+    roostBroodSize: 0,
     heroDamageMult: 1,
     heroCooldownMult: 1,
     startBiomassBonus: 0,
@@ -463,6 +467,12 @@ export const CARD_POOL: CardDef[] = [
   { id: 'standing_wave', name: 'Standing Wave', rarity: 'epic', category: 'tower', description: 'The lightning refuses to end: every Synapse Spire arcs +2 further victims.', effects: [{ op: 'add', field: 'spireChainJumps', value: 2 }], unlock: { kind: 'towerUnlocked', tower: 'spire' } },
   { id: 'spring_tide', name: 'Spring Tide', rarity: 'rare', category: 'control', description: 'The Undertow Polyp’s field reaches 30% wider.', effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.3 }], unlock: { kind: 'towerUnlocked', tower: 'polyp' } },
   { id: 'kings_tide', name: 'King’s Tide', rarity: 'epic', category: 'control', description: 'The whole shore drowns: Undertow fields reach ×1.5 and pulse +8% faster.', effects: [{ op: 'mul', field: 'polypFieldMult', value: 1.5 }, { op: 'mul', field: 'towerFireRateMult', value: 1.08 }], unlock: { kind: 'towerUnlocked', tower: 'polyp' } },
+  // ════════════════ Draconic signature sets (4) — the Glaive/Roost identity knobs, gated on
+  // OWNING the tower (the Coil/Siphon/Sower pattern — out of the default pool, golden-safe). ════
+  { id: 'second_wing', name: 'Second Wing', rarity: 'rare', category: 'tower', description: 'Every Wyrmwing Glaive throw carries +1 blade.', effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'glaive' } },
+  { id: 'bladestorm_communion', name: 'Bladestorm Communion', rarity: 'epic', category: 'tower', description: 'The sky fills with edges: +2 blades per Glaive throw and +8% tower fire rate.', effects: [{ op: 'add', field: 'glaiveExtraBlades', value: 2 }, { op: 'mul', field: 'towerFireRateMult', value: 1.08 }], unlock: { kind: 'towerUnlocked', tower: 'glaive' } },
+  { id: 'spare_egg', name: 'Spare Egg', rarity: 'rare', category: 'tower', description: 'Every Drake Roost keeps +1 drake fielded.', effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }], unlock: { kind: 'towerUnlocked', tower: 'roost' } },
+  { id: 'blackened_sky', name: 'Blackened Sky', rarity: 'epic', category: 'tower', description: 'The territory darkens: +1 drake per Roost and +12% tower fire rate (the eggs hatch faster).', effects: [{ op: 'add', field: 'roostBroodSize', value: 1 }, { op: 'mul', field: 'towerFireRateMult', value: 1.12 }], unlock: { kind: 'towerUnlocked', tower: 'roost' } },
   { id: 'unmakers_lesson', name: 'The Unmaker’s Lesson', rarity: 'epic', category: 'mutation', description: 'What the stage-45 horror taught: unmake non-bosses below an extra 5% health; +8% tower damage.', effects: [{ op: 'add', field: 'executeThreshold', value: 0.05 }, { op: 'mul', field: 'towerDamageMult', value: 1.08 }], unlock: { kind: 'campaignStage', stage: 45 } },
   { id: 'tyrants_grip', name: 'Tyrant’s Grip', rarity: 'epic', category: 'control', description: 'The Null Tyrant’s grip, reversed: Disruption slows +20% more and exposes +10% more.', effects: [{ op: 'add', field: 'obeliskSlowBonus', value: 0.2 }, { op: 'add', field: 'obeliskVulnerabilityBonus', value: 0.1 }], unlock: { kind: 'campaignStage', stage: 55 } },
   { id: 'saturation_doctrine', name: 'Saturation Doctrine', rarity: 'rare', category: 'aoe', description: 'Blanket the approach: +30% splash radius and Corrosion pools burn +15% harder.', effects: [{ op: 'mul', field: 'splashRadiusMult', value: 1.3 }, { op: 'mul', field: 'poolDpsMult', value: 1.15 }], unlock: { kind: 'bestWave', wave: 25 } },
@@ -685,6 +695,8 @@ const FIELD_SUBJECT: Partial<Record<keyof RunModifiers, SubjectTag>> = {
   sowerExtraMines: 'sower',
   spireChainJumps: 'spire',
   polypFieldMult: 'polyp',
+  glaiveExtraBlades: 'glaive',
+  roostBroodSize: 'roost',
   siphonRampMult: 'siphon',
   siphonDrainMult: 'siphon',
   reactorBiomassMult: 'reactor',

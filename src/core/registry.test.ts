@@ -74,10 +74,11 @@ describe('core content is registry-derived (no hardcoded lists)', () => {
     expect(TOWER_ORDER).toEqual(towerRegistry.ids());
     expect(HERO_ORDER).toEqual(heroRegistry.ids());
     expect(ENEMY_KINDS).toEqual(enemyRegistry.ids());
-    // launch five + expansion three + Coil/Siphon/Sower + Spire/Polyp + Spitfang/Rift = fifteen towers;
-    // six heroes — the launch trio + Vitriol/Revenant/Knell (one hero per combat class)
-    expect(towerRegistry.size).toBe(15);
-    expect(heroRegistry.size).toBe(6);
+    // launch five + expansion three + Coil/Siphon/Sower + Spire/Polyp + Spitfang/Rift +
+    // Glaive/Roost (the draconic pair) = seventeen towers; seven heroes — the launch trio +
+    // Vitriol/Revenant/Knell (one per combat class) + the Cinderwyrm (the flying second Caustic)
+    expect(towerRegistry.size).toBe(17);
+    expect(heroRegistry.size).toBe(7);
   });
 
   it('shipped content passes registry-driven validation', () => {

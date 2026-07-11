@@ -99,10 +99,22 @@ export const HERO_EVOLUTION: Record<HeroKind, HeroEvolution> = {
       { at: 5, kind: 'nova' }, // the world-toll
     ],
   },
+  // Cinderwyrm (Caustic swooper) — the furnace ignites: an ember halo → wing-edge barbs → furnace
+  // sacs → sweeping wing-limbs → a horned draconic crown.
+  wyrm: {
+    growth: 0.05,
+    parts: [
+      { at: 1, kind: 'halo' }, // the ember updraft
+      { at: 2, kind: 'barbs', count: 4, per: 1 }, // wing-edge blades, longer each star
+      { at: 3, kind: 'biomass', count: 3 }, // furnace sacs along the throat
+      { at: 4, kind: 'limbs', count: 2 }, // sweeping wing-limbs
+      { at: 5, kind: 'crown', count: 6 }, // the horned apex wyrm
+    ],
+  },
 };
 
 /** Stable per-kind phase offset so two heroes of different kinds don't pulse in lockstep. */
-const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6 };
+const KIND_PHASE: Record<HeroKind, number> = { ravager: 1, shepherd: 2, overseer: 3, vitriol: 4, revenant: 5, knell: 6, wyrm: 7 };
 
 /** Body-silhouette scale from permanent STARS (the "bigger, prestige hero" read). Identity (1) at
  *  ★0; gentle per star so the marker never dwarfs the field (★5 ≈ 1.2–1.25×). */

@@ -217,7 +217,8 @@ function execProjectile(ctx: AbilityContext, comp: ProjectileAbility, cast: Abil
     cast.target = target; // trailing components (status/crit) act on the struck target
     return true;
   }
-  const count = (comp.count ?? 1) + (comp.behavior === 'homing' ? ctx.extraProjectiles : 0);
+  // Extra projectiles ride homing needles AND the arc blade (a second glaive per throw).
+  const count = (comp.count ?? 1) + (comp.behavior === 'homing' || comp.behavior === 'arc' ? ctx.extraProjectiles : 0);
   const targets = cast.target ? [cast.target] : ctx.pickTargets(cast.x, cast.y, range, count);
   if (targets.length === 0) return false;
   for (const e of targets) ctx.fireProjectile(cast.x, cast.y, e, e.x, e.y, comp.behavior, dmg, comp.speed, 0);

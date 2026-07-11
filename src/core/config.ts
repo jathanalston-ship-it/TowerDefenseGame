@@ -349,6 +349,41 @@ export const TOWER_DEFS: Record<TowerKind, TowerDef> = {
     blurb: 'A premium void anchor — a psionic singularity that DRAGS the wave to its heart and crushes it. The deepest unlock.',
     abilities: [{ type: 'aura', radius: 190, damage: 20, pull: 56, particle: 'disrupt' }],
   },
+  // ── DRACONIC roster (docs/TOWERS.md §draconic) — the hive assimilates the sky. Two organs with
+  //    NEW firing archetypes: the 'arc' returning blade and the 'summon' hero-AI brood. ──
+  glaive: {
+    kind: 'glaive',
+    name: 'Wyrmwing Glaive',
+    combatClass: 'Kinetic',
+    firing: 'arc', // a RETURNING wing-blade: out to range piercing everything, then back (docs/TOWERS.md §glaive)
+    unlockShards: 420, // a deep synthesis goal — sits between spire and rift
+    unlockStage: 22, // its shards drop only past Campaign Stage 22
+    cost: 185,
+    range: 470, // the OUT-LEG length — the blade carves this far up-lane, then returns the same path
+    fireInterval: 1.8, // slow, heavy throw cadence — the double-hit lane sweep is the payoff
+    damage: 16, // per LEG per enemy — a full pass through a body is 2 hits (out + return)
+    projectileSpeed: 400,
+    splash: 0,
+    color: '#ff9e4a',
+    blurb: 'Hurls a returning wing-blade that carves THROUGH the lane twice — out and back, one cut per pass.',
+  },
+  roost: {
+    kind: 'roost',
+    name: 'Drake Roost',
+    combatClass: 'Vital',
+    firing: 'summon', // fields no attack — it INCUBATES drakelings that fight with a hero-style brain
+    unlockShards: 520, // a premium late unlock — the brood engine
+    unlockStage: 26, // its shards drop only past Campaign Stage 26
+    cost: 200,
+    range: 380, // the brood's rally LEASH — drakes engage threats within this reach of the perch
+    fireInterval: 5.5, // incubation cadence: one drake hatched per interval while below the brood cap
+    damage: 0, // the units carry the damage (ROOST.tiers) — the roost itself never attacks
+    projectileSpeed: 0,
+    splash: 0,
+    color: '#e8a13d',
+    blurb: 'Incubates a brood of biomech drakes — hunting units that leash to the roost, retreat to mend, and dive back in.',
+    abilities: [], // the brood loop is bespoke (game.roostSystem); star/branch grants shape the brood via ROOST
+  },
 };
 
 /** Resonance Beam tunables (Resonance Coil, firing 'beam'). The beam deals CONTINUOUS damage each
@@ -382,6 +417,16 @@ export function towerProblems(d: TowerDef): string[] {
     if (d.range <= 0) out.push('a trap tower needs range > 0 (planting reach)');
     if (d.splash <= 0) out.push('a trap tower needs splash > 0 (the detonation radius)');
     if (d.damage <= 0) out.push('a trap tower needs damage > 0 (the detonation payload)');
+  }
+  // An arc tower's range is the blade's out-leg; the blade must actually fly.
+  if (d.firing === 'arc') {
+    if (d.range <= 0) out.push('an arc tower needs range > 0 (the out-leg length)');
+    if (d.projectileSpeed <= 0) out.push('an arc tower needs projectileSpeed > 0');
+  }
+  // A summon tower needs a leash for its brood and a hatch cadence.
+  if (d.firing === 'summon') {
+    if (d.range <= 0) out.push('a summon tower needs range > 0 (the brood leash)');
+    if (d.fireInterval <= 0) out.push('a summon tower needs fireInterval > 0 (the hatch cadence)');
   }
   return out;
 }
@@ -419,7 +464,13 @@ export const BRANCH_COSTS: Record<TowerKind, readonly [number, number, number, n
   polyp: [860, 3650, 14500, 53000, 195000], // the anti-progress organ
   spitfang: [600, 2700, 11500, 43000, 155000], // the accessible bruiser — the cheapest ladder (mirrors its easy unlock)
   rift: [980, 4100, 16500, 60000, 215000], // the premium void anchor — the priciest ladder (mirrors its deep gate)
+  glaive: [880, 3700, 15000, 54000, 198000], // the returning blade — premium kinetic, sits with chrysalis/spire
+  roost: [950, 4000, 16000, 58000, 210000], // the brood engine — premium capstone ladder (mirrors siphon)
 };
+
+/** Returning-blade tunables (Wyrmwing Glaive, firing 'arc' — docs/TOWERS.md §glaive).
+ *  `carveReach` is the blade's cutting radius as it travels — the corridor width of the carve. */
+export const GLAIVE = { carveReach: 20 } as const;
 
 /** Spore-mine tunables (Blight Sower, firing 'trap' — docs/SOWER.md). A Sower keeps up to
  *  `maxPerTower` (+sowerExtraMines/stars) mines ARMED on the approach; each arms after `armSec`,
@@ -496,11 +547,11 @@ export function enemyDeathCue(def: EnemyDef): string {
 export function towerFireCue(kind: TowerKind): string {
   switch (kind) {
     case 'needle': case 'spire': case 'spitfang': return 'tfire_tick'; // a sharp kinetic/synaptic snap (autocannon included — gap caught by the DIL checklist)
-    case 'mortar': return 'tfire_thud'; // a heavy lobbed thud
-    case 'parasite': case 'maw': case 'polyp': case 'sower': return 'tfire_wet'; // a wet organic blip
+    case 'mortar': case 'glaive': return 'tfire_thud'; // a heavy lobbed thud / a heavy blade release
+    case 'parasite': case 'maw': case 'polyp': case 'sower': case 'roost': return 'tfire_wet'; // a wet organic blip (the roost's is its HATCH — played by roostSystem)
     case 'obelisk': case 'effigy': return 'tfire_zap'; // a psionic zap
     case 'chrysalis': return 'tfire_ting'; // a crystalline ting
-    default: return ''; // coil/siphon beams + reactor support have their own continuous identity
+    default: return ''; // coil/siphon beams + reactor support + roost brood have their own identity
   }
 }
 
@@ -1071,6 +1122,14 @@ function deriveTowerAbilities(d: TowerDef): AbilityComponent[] {
       // Trap towers (Blight Sower): planting + detonation are bespoke (game.trapTowerSystem /
       // mineSystem) — the base kit is empty; star/branch extraAbilities fire AT each detonation.
       return [];
+    case 'arc':
+      // The returning blade (Wyrmwing Glaive): a projectile component with the 'arc' behavior —
+      // the arc kinematics (turnaround, per-leg pierce) live in the projectile step (game.ts).
+      return [{ type: 'projectile', behavior: 'arc', damage: d.damage, speed: d.projectileSpeed, range: d.range }];
+    case 'summon':
+      // Summon towers (Drake Roost): incubation is bespoke (game.roostSystem) — the base kit is
+      // empty; star/branch grants shape the BROOD (ROOST config), not a cast.
+      return [];
   }
 }
 
@@ -1088,9 +1147,12 @@ export const TOWER_ABILITIES: Record<TowerKind, AbilityComponent[]> = Object.fro
 //   • 'phase'   — Revenant: a BLINK-stalking assassin (Viral). Teleports to the biggest threat
 //                 (boss → elite → highest-HP), strikes hard, and injects spreading Infection. The
 //                 only single-target boss-deleter + the only Viral hero. (game.ts updatePhaseHero)
+//   • 'swoop'   — Cinderwyrm: a FLYING strafer (Caustic) that never lands. Hunts the deepest
+//                 threat, strikes on a fly-by, and BANKS THROUGH to the far side before wheeling
+//                 back for the next pass — always moving. (game.ts updateSwoopHero)
 // The Ravager's numbers are unchanged from the original single-hero build, so the
 // base game (and the golden tests) play identically.
-export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege' | 'phase';
+export type HeroBehavior = 'dive' | 'guard' | 'control' | 'siege' | 'phase' | 'swoop';
 
 /** How a hero is gated. Absent on a HeroDef ⇒ always available (the launch trio). Data only
  *  (no save import — kept acyclic); state/meta.ts `isHeroUnlocked` evaluates it against a save.
@@ -1343,6 +1405,33 @@ export const HERO_DEFS: Record<HeroKind, HeroDef> = {
       ] },
     ],
   },
+  wyrm: {
+    // The hive's SKY caste (Caustic) — a dragon-like BIOMECH grown from assimilated war-form
+    // chassis. The only FLYING hero: it never lands, never retreats — it strikes on a fly-by and
+    // BANKS THROUGH to the far side, dousing the strike in Corrosion (WYRM.corrodePerStrike),
+    // then wheels back for the next pass. Progression-gated: bred only after the hive assimilates
+    // FIVE distinct Framework Boss chassis (the deepest bossSlain feat). Numbers are tuning clay.
+    kind: 'wyrm', name: 'Cinderwyrm', combatClass: 'Caustic', behavior: 'swoop', color: '#ff8c3d',
+    maxHp: 205, speed: 132, attackRange: 44, attackInterval: 0.8, attackDamage: 34, attackFracture: 0,
+    aggroRange: 1400, contactRange: 20, respawnTime: 9,
+    pulseInterval: 0, pulseRadius: 0, pulseDamage: 0, pulseDisrupt: 0, nucleusRegen: 0,
+    unlock: { kind: 'bossSlain', count: 5, label: 'Slay 5 distinct Framework Boss chassis' },
+    ability: { name: 'Pyroclastic Breath', blurb: 'Sweeps low and BREATHES: a pyroclastic blast that corrodes everything caught, leaving a firestorm that burns on.', cooldown: 12, radius: 118, damage: 58, fracture: 0, disrupt: 0, corrode: 5, heal: 0, poolRadius: 110, poolDps: 20, poolSeconds: 4, particle: 'heroSpray', fxColor: '#ffab4a' },
+    skills: [
+      { name: 'Wing Shear', blurb: 'A razor wing-arc across the pack — kinetic shear that cracks plating.', cooldown: 7, radius: 96, damage: 30, fracture: 1, disrupt: 0, heal: 0, castOn: 'target', minEnemies: 2, particle: 'heroSlash', fxColor: '#ffc46b' },
+      { name: 'Skyfall Talon', blurb: 'Folds its wings and DIVES — a talon strike that punches deep and corrodes the wound.', cooldown: 12, radius: 52, damage: 62, fracture: 0, disrupt: 0, corrode: 3, heal: 0, castOn: 'target', minEnemies: 1, particle: 'heroLance', fxColor: '#ff7a3d' },
+    ],
+    forks: [
+      { star: 5, options: [
+        { id: 'infernal', name: 'Infernal Core', blurb: 'The furnace deepens — the breath burns harder and the firestorm rages hotter.', upgrades: [{ target: 'ult', addCorrode: 3, mulPoolDps: 1.5, fxColor: '#ff6b3d' }, { target: 1, addCorrode: 2, mulDamage: 1.2 }] },
+        { id: 'tempest', name: 'Tempest Wing', blurb: 'The wingspan widens — every sweep reaches farther and comes around faster.', upgrades: [{ target: 'ult', mulRadius: 1.25, fxColor: '#ffd27a' }, { target: 0, mulRadius: 1.4, mulCooldown: 0.8 }] },
+      ] },
+      { star: 8, options: [
+        { id: 'pyre', name: 'Pyre Titan', blurb: 'The breath becomes a CATACLYSM — a vast firestorm that swallows the approach.', upgrades: [{ target: 'ult', name: 'Cataclysm Breath', mulDamage: 1.7, mulRadius: 1.3, mulPoolRadius: 1.4, particle: 'heroSpray', fxColor: '#ff5c2e' }] },
+        { id: 'talonlord', name: 'Talon Lord', blurb: 'Skyfall Talon becomes an ANNIHILATING dive — a single strike that ends the target.', upgrades: [{ target: 1, name: 'Annihilating Dive', mulDamage: 2.3, addFracture: 2, mulRadius: 0.7, setMinEnemies: 1, particle: 'heroLance', fxColor: '#ffde8a' }] },
+      ] },
+    ],
+  },
 };
 
 export function heroProblems(d: HeroDef): string[] {
@@ -1523,6 +1612,11 @@ export const HERO_PHASE_FLASH = 0.3;
 // (its Plague Strike identity — a deep, spreading DoT on the assassinated target). Centralized clay.
 export const REVENANT = { infectPerStrike: 3 } as const;
 
+// Cinderwyrm tunables (behavior 'swoop' — docs/HEROES.md). Each fly-by strike douses the victim in
+// `corrodePerStrike` seconds of Corrosion (its ember identity); after a strike the wyrm BANKS
+// `bankDist` px past the target before wheeling back — the strafing pass that keeps it airborne.
+export const WYRM = { corrodePerStrike: 2, bankDist: 120 } as const;
+
 // ── Summoned friendly units (the `summon` ability primitive) ────────────────
 // Data for each conjurable unit; the SummonAbility references one by id. A new unit is one
 // entry here — no sim code. Minions are time-limited attackers (see types.ts Minion).
@@ -1537,14 +1631,44 @@ export interface MinionDef {
   life: number; // seconds it persists before expiring
   radius: number; // body radius (render + attack reach)
   color: string;
+  /** HERO-AI brain (docs/TOWERS.md §roost): the unit fights like a hero, not a mote — deepest-
+   *  threat targeting (elites first), a rally leash around its home point, retreat-to-perch when
+   *  wounded + perch regen, then back in. Absent ⇒ the classic seek-nearest mote (golden-safe). */
+  heroAI?: boolean;
+  /** Perch regen (hp/sec) while a wounded hero-AI unit recovers at its home point. */
+  perchRegen?: number;
+  /** Visual archetype: 'drake' units render as winged biomechs (tier read from `tier`). */
+  art?: 'drake';
+  /** Visual + power tier (1..3) — drives the drake silhouette's size/wings/horns evolution. */
+  tier?: number;
 }
 export const MINION_DEFS: Record<string, MinionDef> = {
   wisp: { id: 'wisp', name: 'Vital Wisp', hp: 30, damage: 7, attackInterval: 0.7, range: 300, speed: 130, life: 5, radius: 7, color: '#ffd0a6' },
   // STRAIN organisms (docs/STRAIN.md): the Flesh Reactor's harvester + the Parasite Nest's brood.
   harvester: { id: 'harvester', name: 'Harvester Polyp', hp: 55, damage: 5, attackInterval: 1.1, range: 220, speed: 90, life: 9, radius: 8, color: '#ffb35d' },
   broodling: { id: 'broodling', name: 'Broodling', hp: 22, damage: 6, attackInterval: 0.6, range: 160, speed: 150, life: 6, radius: 6, color: '#e24dff' },
+  // ── The Drake Roost's brood ladder (docs/TOWERS.md §roost) — upgrades improve the UNITS, both
+  //    functionally (hp/dmg) and visually (radius/color/tier art). `life` is effectively wave-long
+  //    (all minions clear at wave end); the roost re-incubates each wave. `range` here is the
+  //    unit's ATTACK acquisition reach — the roost's own range is the brood leash. ──
+  drakeling: { id: 'drakeling', name: 'Drakeling', hp: 70, damage: 11, attackInterval: 0.65, range: 340, speed: 150, life: 999, radius: 8, color: '#ffc46b', heroAI: true, perchRegen: 14, art: 'drake', tier: 1 },
+  drake: { id: 'drake', name: 'Ember Drake', hp: 150, damage: 24, attackInterval: 0.7, range: 360, speed: 145, life: 999, radius: 11, color: '#ff9e4a', heroAI: true, perchRegen: 26, art: 'drake', tier: 2 },
+  wyrmspawn: { id: 'wyrmspawn', name: 'Wyrmspawn', hp: 320, damage: 50, attackInterval: 0.8, range: 380, speed: 140, life: 999, radius: 15, color: '#ff7a3d', heroAI: true, perchRegen: 45, art: 'drake', tier: 3 },
 };
 export const MINION_CAP = 16; // global cap on live minions (perf + visual bound)
+
+/** Drake Roost tunables (firing 'summon' — docs/TOWERS.md §roost). The roost keeps `brood` units
+ *  fielded (hatching one per fireInterval while below the cap) and its upgrades improve the UNITS:
+ *  star + branch 'brood' GRANTS raise the unit TIER (unitByTier ladder) and the brood size — one
+ *  mechanism, all data (stars.ts / branches.ts); the wounded retreat at `retreatFrac` and re-engage
+ *  at `reengageFrac` (perch regen on the MinionDef, scaled by the kit's regen bonus). All roost
+ *  math reads THIS block — the tower def carries only cost/leash/cadence. */
+export const ROOST = {
+  brood: 2, // base brood size (units kept fielded per roost); 'brood' grants add to it
+  unitByTier: ['drakeling', 'drake', 'wyrmspawn'] as const, // unit id per unit-tier 1..3 ('brood' tierBonus grants climb it)
+  retreatFrac: 0.3, // a unit below this hp fraction breaks off and flies home
+  reengageFrac: 0.85, // …and rejoins the hunt once perch regen restores it past this
+} as const;
 
 // ── Economy ───────────────────────────────────────────────────────────────
 export const ECON = {

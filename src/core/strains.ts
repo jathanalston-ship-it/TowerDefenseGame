@@ -273,6 +273,48 @@ strainRegistry.register({
   desc: 'When the panic fades a psychic BACKLASH tears the victim and everything beside it.',
   hooks: { deathKnell: { damage: 30, radius: 90 } },
 });
+// ── Wyrmwing Glaive: the returning blade grows teeth (docs/TOWERS.md §glaive) ──
+strainRegistry.register({
+  id: 'glaive:2', tower: 'glaive', level: 2, name: 'Twin Wing',
+  desc: 'A second launch tendon buds beside the first — throws occasionally TWIN-CAST.',
+  hooks: { twinCastChance: 0.2 },
+});
+strainRegistry.register({
+  id: 'glaive:3', tower: 'glaive', level: 3, name: 'Serrated Venom',
+  desc: 'The blade weeps VENOM — each cut marks the host, and the third mark DETONATES.',
+  hooks: { venomMark: { threshold: 3, burstFrac: 1.4 } },
+});
+strainRegistry.register({
+  id: 'glaive:4', tower: 'glaive', level: 4, name: 'Concussive Carve',
+  desc: 'The blade BATTERS as it cuts — survivors are hurled back up-lane by the pass.',
+  hooks: { impactKnockback: 26 },
+});
+strainRegistry.register({
+  id: 'glaive:5', tower: 'glaive', level: 5, name: 'Apex Cyclone',
+  desc: 'The launch organ enters rhythmic FRENZY — windows where every throw twin-casts.',
+  hooks: { frenzyWindow: { period: 8, duration: 2 } },
+});
+// ── Drake Roost: the clutch outgrows its nest (docs/TOWERS.md §roost) ──
+strainRegistry.register({
+  id: 'roost:2', tower: 'roost', level: 2, name: 'Second Clutch',
+  desc: 'A side-clutch warms beside the brood — the roost BIRTHS an extra drakeling on its own cadence.',
+  hooks: { births: { unit: 'drakeling', count: 1, interval: 10 } },
+});
+strainRegistry.register({
+  id: 'roost:3', tower: 'roost', level: 3, name: 'Fevered Hatchery',
+  desc: 'The side-clutch quickens — TWO drakelings per birthing, faster.',
+  hooks: { births: { unit: 'drakeling', count: 2, interval: 9 } },
+});
+strainRegistry.register({
+  id: 'roost:4', tower: 'roost', level: 4, name: 'Alpha Egg',
+  desc: 'One egg grows heavier than the rest — the side-clutch now births an EMBER DRAKE.',
+  hooks: { births: { unit: 'drake', count: 1, interval: 11 } },
+});
+strainRegistry.register({
+  id: 'roost:5', tower: 'roost', level: 5, name: 'Wyrmmother’s Call',
+  desc: 'The nest answers something older — the side-clutch births a WYRMSPAWN.',
+  hooks: { births: { unit: 'wyrmspawn', count: 1, interval: 13 } },
+});
 
 const EMPTY_HOOKS: StrainHooks = {};
 

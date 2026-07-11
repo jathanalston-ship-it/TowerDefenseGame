@@ -214,7 +214,22 @@ const BIOLOGICAL_2: MulliganModifier[] = [
   { id: 'wombworks', name: 'Wombworks', category: 'biological', cls: 'Vital', baseRarity: 'legendary', stats: { damageMult: 1.08, fireRateMult: 1.08, rangeMult: 1.06 }, influence: { healing: 0.8, support: 0.6, poison: 0.4 }, powerWeight: 0.12, desc: 'A living factory — the organism improves itself.', flavor: 'Version two is already gestating.' },
 ];
 
-mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL, ...OFFENSIVE_2, ...UTILITY_2, ...BIOLOGICAL_2]);
+// ── The draconic 6 (2 per category) — keeps the catalog at three pieces per tower as the
+// roster grows to seventeen (Wyrmwing Glaive + Drake Roost). Sky-caste flavor throughout. ──
+const OFFENSIVE_3: MulliganModifier[] = [
+  { id: 'wing_razor', name: 'Wing Razor', category: 'offensive', cls: 'Kinetic', baseRarity: 'rare', stats: { damageMult: 1.1, projectileMutators: ['pierce1'] }, influence: { pierce: 0.9, attackSpeed: 0.4 }, powerWeight: 0.07, desc: 'A swept alar blade — cutting edges that pass through.', flavor: 'The wing remembers flight. The edge remembers everything else.' },
+  { id: 'furnace_heart', name: 'Furnace Heart', category: 'offensive', cls: 'Caustic', baseRarity: 'epic', stats: { damageMult: 1.14, fireRateMult: 1.04 }, influence: { damage: 0.8, poison: 0.5 }, powerWeight: 0.088, desc: 'A smoldering draconic core — every strike lands hotter.', flavor: 'It beats twice a second. Both beats are furnaces.' },
+];
+const UTILITY_3: MulliganModifier[] = [
+  { id: 'updraft_gland', name: 'Updraft Gland', category: 'utility', cls: 'Resonant', baseRarity: 'uncommon', stats: { rangeMult: 1.09, fireRateMult: 1.03 }, influence: { support: 0.7, attackSpeed: 0.4 }, powerWeight: 0.055, desc: 'A thermal organ — the host rides its own rising heat.', flavor: 'It exhales, and the tower stands a little taller.' },
+  { id: 'watch_perch', name: 'Watch Perch', category: 'utility', cls: 'Neural', baseRarity: 'rare', stats: { rangeMult: 1.12, damageMult: 1.04 }, influence: { support: 0.6, crit: 0.5 }, powerWeight: 0.067, desc: 'A raptor vantage — long sight and chosen kills.', flavor: 'Nothing crosses the territory unnoticed. Nothing crosses twice.' },
+];
+const BIOLOGICAL_3: MulliganModifier[] = [
+  { id: 'ember_marrow', name: 'Ember Marrow', category: 'biological', cls: 'Caustic', baseRarity: 'uncommon', stats: { damageMult: 1.07, splashMult: 1.05 }, influence: { poison: 0.7, damage: 0.4 }, powerWeight: 0.056, desc: 'Bone that burns from within — heat seeps into every wound.', flavor: 'Snap it open and the light gets out.' },
+  { id: 'clutch_womb', name: 'Clutch Womb', category: 'biological', cls: 'Vital', baseRarity: 'epic', stats: { fireRateMult: 1.08, rangeMult: 1.06 }, influence: { healing: 0.7, support: 0.7 }, powerWeight: 0.086, desc: 'A warm brooding chamber — the graft tends its own eggs.', flavor: 'Every shell it warms hatches owing it something.' },
+];
+
+mulliganRegistry.registerAll([...OFFENSIVE, ...UTILITY, ...BIOLOGICAL, ...OFFENSIVE_2, ...UTILITY_2, ...BIOLOGICAL_2, ...OFFENSIVE_3, ...UTILITY_3, ...BIOLOGICAL_3]);
 
 // ── Progress gate (§gate): the whole pillar unlocks after slaying THREE distinct Mega
 // Bosses (save.megaProgress.slain). Accounts that already hold pieces are grandfathered. ──

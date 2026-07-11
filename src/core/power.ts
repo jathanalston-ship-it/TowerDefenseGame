@@ -61,6 +61,8 @@ const ADD_POWER: Record<string, number> = {
   coilBeamTargets: 0.08,
   sowerExtraMines: 0.06, // each extra armed mine ≈ +6% of one tower's offense (denser denial field)
   spireChainJumps: 0.07, // each extra arc hop ≈ +7% of one tower's offense (longer lightning) // each extra beam target — a single-tower channel (weighted below needleExtraProjectiles's army-wide 0.08 in impact via the 0.35 ramp)
+  glaiveExtraBlades: 0.07, // each extra returning blade ≈ +7% of one tower's offense (a whole second carve)
+  roostBroodSize: 0.1, // each extra standing drake ≈ +10% of one tower's offense (a whole extra combatant)
   heroLifestealFrac: 0.5,
   heroThornsFrac: 0.2,
   heroCritChance: 0.5, // Hero Evolution — expected-damage from crit rate

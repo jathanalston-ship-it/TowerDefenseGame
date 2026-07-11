@@ -12,7 +12,7 @@ function run(over: Partial<RunStats> = {}): RunStats {
     damageDealt: 2000,
     integrityLost: 0,
     killsByEnemy: { ...defaultLifetimeStats().killsByEnemy, runner: 6, brute: 2, rusher: 1, flyer: 1 },
-    towerBuilds: { needle: 3, mortar: 1, reactor: 0, parasite: 0, obelisk: 0, maw: 0, chrysalis: 0, effigy: 0, coil: 0, siphon: 0, sower: 0, spire: 0, polyp: 0, spitfang: 0, rift: 0 },
+    towerBuilds: { needle: 3, mortar: 1, reactor: 0, parasite: 0, obelisk: 0, maw: 0, chrysalis: 0, effigy: 0, coil: 0, siphon: 0, sower: 0, spire: 0, polyp: 0, spitfang: 0, rift: 0, glaive: 0, roost: 0 },
     cardIds: ['twin_fang', 'twin_fang', 'venom_sacs'],
     heroId: 'ravager',
     ...over,
@@ -80,6 +80,8 @@ describe('lifetime statistics', () => {
       polyp: { kills: 0, damage: 0, activeTime: 0 },
       spitfang: { kills: 0, damage: 0, activeTime: 0 },
       rift: { kills: 0, damage: 0, activeTime: 0 },
+      glaive: { kills: 0, damage: 0, activeTime: 0 },
+      roost: { kills: 0, damage: 0, activeTime: 0 },
     };
     let s = accumulateStats(defaultLifetimeStats(), run({ wave: 9 }), combat);
     expect(s.towerDamage.needle).toBe(1501); // rounded

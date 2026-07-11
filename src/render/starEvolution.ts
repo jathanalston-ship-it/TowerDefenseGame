@@ -195,6 +195,28 @@ export const STAR_EVOLUTION: Record<TowerKind, StarEvolution> = {
       { at: 9, kind: 'nova' }, // total collapse — the apex void
     ],
   },
+  // Wyrmwing Glaive (Kinetic) — launch ring → apex blade-forge: edges, then a fanned blade rack.
+  glaive: {
+    growth: 0.022,
+    parts: [
+      { at: 1, kind: 'halo' }, // the launch-ring shimmer
+      { at: 3, kind: 'barbs', count: 4 }, // honed wing-edges bud from the ring
+      { at: 5, kind: 'barrels', count: 3 }, // a fanned rack of spare blades
+      { at: 7, kind: 'spikes', count: 6 }, // a swept, bladed carapace
+      { at: 9, kind: 'nova' }, // the apex forge
+    ],
+  },
+  // Drake Roost (Vital) — warm clutch → wyrmmother nest: eggs, feeder limbs, a horned crown.
+  roost: {
+    growth: 0.024, // the nest fattens with its brood
+    parts: [
+      { at: 1, kind: 'heart' }, // the warm incubating core
+      { at: 3, kind: 'pods', count: 3 }, // budding drake eggs
+      { at: 5, kind: 'limbs', count: 3 }, // brood-tending feeder limbs
+      { at: 7, kind: 'crown', count: 5 }, // a horned wyrmmother crest
+      { at: 9, kind: 'nova' }, // the apex nest
+    ],
+  },
 };
 
 /** Body-silhouette scale from STARS (the "larger / prestige silhouette" read). Identity (1) at

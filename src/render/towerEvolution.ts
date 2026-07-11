@@ -33,6 +33,8 @@ export const BRANCH_COLOR: Record<string, string> = {
   polyp_riptide: '#3ec8b8', polyp_gorge: '#2fa090',
   spitfang_scatter: '#ff9f3c', spitfang_slug: '#ffd166',
   rift_collapse: '#9a5cff', rift_annihilate: '#d24dff',
+  glaive_razor: '#ffd166', glaive_ember: '#ff7a3d',
+  roost_alpha: '#ff9e4a', roost_swarm: '#ffc46b',
 };
 
 /** The reusable "organ" vocabulary — each maps to a small pure drawer in PART_DRAWERS. */
@@ -398,6 +400,48 @@ export const BRANCH_EVOLUTION: Record<string, BranchEvolution> = {
       { at: 3, kind: 'arcs', count: 3 }, // accretion discharge
       { at: 4, kind: 'organs', count: 3 }, // crushing mass-nodes
       { at: 5, kind: 'nova' }, // total annihilation
+    ],
+  },
+  // GLAIVE ────────────────────────────────────────────────────────────────────
+  glaive_razor: {
+    color: BRANCH_COLOR.glaive_razor, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'barbs', count: 3, per: 1 }, // honed wing-edges, more per tier
+      { at: 2, kind: 'halo' }, // the cyclone's shimmer
+      { at: 3, kind: 'spikes', count: 4 }, // a bladed carapace
+      { at: 4, kind: 'barrels', count: 3 }, // a fanned rack of spare blades
+      { at: 5, kind: 'nova' }, // the razor cyclone
+    ],
+  },
+  glaive_ember: {
+    color: BRANCH_COLOR.glaive_ember, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'biomass', count: 3 }, // smoldering quench-sacs
+      { at: 2, kind: 'halo' }, // the forge glow
+      { at: 3, kind: 'organs', count: 3 }, // molten cores
+      { at: 4, kind: 'ripples', count: 2 }, // rolling heat-wakes
+      { at: 5, kind: 'nova' }, // the ember return
+    ],
+  },
+  // ROOST ─────────────────────────────────────────────────────────────────────
+  roost_alpha: {
+    color: BRANCH_COLOR.roost_alpha, growth: 0.055,
+    parts: [
+      { at: 1, kind: 'pods', count: 2, per: 1 }, // the warm clutch — more eggs per tier
+      { at: 2, kind: 'organs', count: 2 }, // incubation glands
+      { at: 3, kind: 'fangs', count: 3 }, // the wyrmmother's jawline
+      { at: 4, kind: 'crown', count: 5 }, // a horned crest
+      { at: 5, kind: 'nova' }, // the alpha brood
+    ],
+  },
+  roost_swarm: {
+    color: BRANCH_COLOR.roost_swarm, growth: 0.05,
+    parts: [
+      { at: 1, kind: 'pods', count: 3, per: 1 }, // a crowded clutch
+      { at: 2, kind: 'biomass', count: 3 }, // fevered incubation sacs
+      { at: 3, kind: 'tendrils', count: 3 }, // brood-tending feelers
+      { at: 4, kind: 'ripples', count: 2 }, // the beating of many wings
+      { at: 5, kind: 'nova' }, // the swarm clutch
     ],
   },
 };

@@ -16,7 +16,7 @@ function neutralProgress(): TowerProgress {
 describe('resolveStarKit', () => {
   it('is an empty (identity) kit at 0 stars', () => {
     const kit = resolveStarKit('needle', 0);
-    expect(kit).toEqual({ extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], reactorBiomassMult: 1, reactorOverchargeBonus: 0, cosmetics: [] });
+    expect(kit).toEqual({ extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], reactorBiomassMult: 1, reactorOverchargeBonus: 0, roostBroodBonus: 0, roostTierBonus: 0, roostRegenBonus: 0, cosmetics: [] });
   });
 
   it('folds unlocked nodes up to the owned star count', () => {

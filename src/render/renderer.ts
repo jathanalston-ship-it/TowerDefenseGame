@@ -23,7 +23,7 @@ import {
   slotAt,
   towerSlots,
 } from '../core/map';
-import { HERO_DEFS, HERO_PHASE_FLASH, PERF, TOWER_DEFS } from '../core/config';
+import { HERO_DEFS, HERO_PHASE_FLASH, MINION_DEFS, PERF, TOWER_DEFS } from '../core/config';
 import type { RenderState } from '../core/game';
 import type { TowerFiring, EnemyKind } from '../core/types';
 import { THEME, ENEMY_SHAPE, ENEMY_TIER, ENEMY_BODY, ENEMY_VARIANT, hexRgb, rgba } from './theme';
@@ -1439,6 +1439,32 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: RenderState['projectil
     if (fading) ctx.globalAlpha = 1;
     return;
   }
+  // The returning wing-blade (behavior 'arc' — the Wyrmwing Glaive): a SPINNING tri-blade with an
+  // ember under-glow, its edges catching light as it wheels. Rotation keys off time + id (no
+  // per-projectile state); the return leg spins the opposite way, so the turnaround READS.
+  if (p.behavior === 'arc') {
+    const tint = skin ? skin.glow : TOWER_DEFS.glaive.color;
+    const spin = (now * 14 + p.id * 1.7) * (p.arcReturn ? -1 : 1);
+    const r = 7 + (p.skinTier ?? 0) * 0.8; // branch tiers grow the blade
+    glowDisc(ctx, p.x, p.y, r * 1.9, rgba(hexRgb(tint), 0.4));
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(spin);
+    ctx.fillStyle = tint;
+    for (let b = 0; b < 3; b++) {
+      ctx.rotate((Math.PI * 2) / 3);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(r * 0.55, -r * 0.5, r, -r * 0.18); // swept leading edge
+      ctx.quadraticCurveTo(r * 0.5, -r * 0.05, 0, 0); // trailing edge back to the hub
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.9)'; // the hub — a white-hot pivot
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    if (fading) ctx.globalAlpha = 1;
+    return;
+  }
   const splash = p.behavior === 'splash';
   const parasite = p.behavior === 'parasite';
   // Phenotype shot light: the firing tower's equipped theme re-tints the base comet
@@ -2034,7 +2060,45 @@ const SELECT_RGB = hexRgb('#fff4c2'); // hero selection ring — warm white-gold
 // Low-HP urgency tint for minions (the shared "danger" red).
 const MINION_LOW_RGB = hexRgb('#ff5d73');
 
-const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell' } as const;
+const HERO_SHAPE = { ravager: 'diamond', shepherd: 'hex', overseer: 'triangle', vitriol: 'square', revenant: 'circle', knell: 'bell', wyrm: 'diamond' } as const;
+
+/** Membrane wings for FLYING heroes (behavior 'swoop'): two swept, translucent bat-wing sails
+ *  beating behind the body — the stroke deepens/quickens while the flier is on the move. Each
+ *  sail is a filled bezier from the shoulder out to a wingtip that rides the flap, plus a bright
+ *  leading-edge stroke and a finger spar, so the silhouette reads DRACONIC at battlefield zoom. */
+function drawHeroWings(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, tint: string, moving: boolean): void {
+  const flap = Math.sin(t * (moving ? 11 : 5.5)); // wingbeat: fast in motion, a lazy hover otherwise
+  const span = r * (2.3 + 0.35 * flap); // wingtip reach swells through the downstroke
+  const lift = r * (0.55 + 0.75 * flap); // wingtip height above the shoulder line
+  ctx.save();
+  for (const side of [-1, 1]) {
+    const sx = x + side * r * 0.55; // shoulder root
+    const sy = y - r * 0.15;
+    const tipX = x + side * span;
+    const tipY = y - lift;
+    // sail membrane (root → tip → trailing edge back to the hip)
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(x + side * span * 0.62, y - lift * 1.25, tipX, tipY);
+    ctx.quadraticCurveTo(x + side * span * 0.66, y + r * (0.55 - 0.2 * flap), x + side * r * 0.4, y + r * 0.5);
+    ctx.closePath();
+    ctx.fillStyle = rgba(tint, 0.22 + 0.08 * flap);
+    ctx.fill();
+    // bright leading edge + one finger spar (the bone the membrane hangs from)
+    ctx.strokeStyle = rgba(tint, 0.6);
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(x + side * span * 0.62, y - lift * 1.25, tipX, tipY);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(x + side * span * 0.7, y - lift * 0.35);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
 
 function drawHeroes(ctx: CanvasRenderingContext2D, rs: RenderState, cosmeticTiers: Partial<Record<string, number>> = {}, heroStarTiers: Partial<Record<string, number>> = {}, heroEvo = 0, heroSkins: Partial<Record<string, CosmeticTheme>> = {}, heroGear: Partial<Record<string, HeroGearSpec>> = {}): void {
   for (let i = 0; i < rs.heroes.length; i++) {
@@ -2134,6 +2198,9 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
   // framing the body — so a geared veteran reads as a different biomechanical warrior. Drawn behind
   // the body so the attachments frame it. A starter with no gear ⇒ nothing draws (golden-safe look).
   if (gear && !down) drawHeroGear(ctx, h.x, h.y, 13 * grow, gear, t, skin?.primary ?? def.color, 1);
+  // FLYING heroes (behavior 'swoop' — the Cinderwyrm): membrane wings beating behind the body, the
+  // stroke quickening in motion. Behavior-keyed so a future flyer inherits them. Render-only.
+  if (def.behavior === 'swoop' && !down) drawHeroWings(ctx, h.x, h.y, 13 * grow, t, tint, h.moveState === 'moving' || h.moveState === 'attacking');
   drawShape(ctx, shape, h.x, h.y, 16 * grow, THEME.hero.rim);
   drawShape(ctx, shape, h.x, h.y, 13 * grow, def.color);
   drawShape(ctx, shape, h.x, h.y - 2, 5 * grow, THEME.hero.core);
@@ -2154,6 +2221,8 @@ function drawHero(ctx: CanvasRenderingContext2D, rs: RenderState, h: RenderState
 }
 
 // Summoned friendly units — small glowing motes that fade out over their last second.
+// Drake units (MinionDef.art 'drake' — the roost's brood) read as WINGED biomechs instead:
+// beating membrane wings scaled by tier, a horned crest at the apex tier, a swept body.
 function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number): void {
   for (const m of rs.minions) {
     if (!m.alive) continue; // destroyed this tick, culled next — don't draw the corpse
@@ -2165,11 +2234,46 @@ function drawMinions(ctx: CanvasRenderingContext2D, rs: RenderState, t: number):
     const r = m.radius * grow;
     const spd = low ? 8 : 4; // pulse faster when in danger
     const ringRgb = low ? MINION_LOW_RGB : tint;
+    const mdef = MINION_DEFS[m.kind];
+    const drake = mdef?.art === 'drake';
+    const tier = mdef?.tier ?? 1;
 
     ctx.globalAlpha = fade;
     glowDisc(ctx, m.x, m.y, r + 4, rgba(tint, 0.4));
+    if (drake) {
+      // Wingbeat: two membrane sails flapping either side (faster when perched = idle hover).
+      const flap = Math.sin(t * 9 + m.id * 1.3);
+      const span = r * (1.7 + 0.4 * flap) * (0.9 + tier * 0.15);
+      const lift = r * (0.5 + 0.6 * flap);
+      for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(m.x + side * r * 0.4, m.y - r * 0.1);
+        ctx.quadraticCurveTo(m.x + side * span * 0.7, m.y - lift * 1.2, m.x + side * span, m.y - lift);
+        ctx.quadraticCurveTo(m.x + side * span * 0.6, m.y + r * 0.35, m.x + side * r * 0.3, m.y + r * 0.35);
+        ctx.closePath();
+        ctx.fillStyle = rgba(tint, 0.3 + 0.08 * flap);
+        ctx.fill();
+        ctx.strokeStyle = rgba(tint, 0.6);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(m.x + side * r * 0.4, m.y - r * 0.1);
+        ctx.quadraticCurveTo(m.x + side * span * 0.7, m.y - lift * 1.2, m.x + side * span, m.y - lift);
+        ctx.stroke();
+      }
+      // Apex crest: the wyrmspawn wears horns (tier 3); the drake a single spine (tier 2).
+      if (tier >= 2) {
+        ctx.strokeStyle = rgba(tint, 0.85);
+        ctx.lineWidth = 1.4;
+        for (const side of tier >= 3 ? [-1, 1] : [0]) {
+          ctx.beginPath();
+          ctx.moveTo(m.x + side * r * 0.3, m.y - r * 0.7);
+          ctx.quadraticCurveTo(m.x + side * r * 0.7, m.y - r * 1.5, m.x + side * r * 0.4, m.y - r * 1.7);
+          ctx.stroke();
+        }
+      }
+    }
     ring(ctx, m.x, m.y, r + 2 + pulse(t, spd, 0, 1), rgba(ringRgb, pulse(t, spd, 0.3, 0.65)), 1);
-    drawShape(ctx, 'circle', m.x, m.y, r, m.color);
+    drawShape(ctx, drake ? 'diamond' : 'circle', m.x, m.y, r, m.color);
     drawShape(ctx, 'circle', m.x, m.y - 1, r * 0.45, THEME.hero.core);
     // white shimmer while an enemy is chewing it (continuous contact → keep it gentle)
     if (m.hitFlash > 0) drawShape(ctx, 'circle', m.x, m.y, r, rgba(THEME.enemy.hitFlash, Math.min(0.35, m.hitFlash * 5)));

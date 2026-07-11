@@ -8,7 +8,7 @@ import type { TargetingProfile } from './targeting';
 
 export type CombatClass = 'Kinetic' | 'Caustic' | 'Viral' | 'Neural' | 'Vital' | 'Resonant';
 export type StatusType = 'Fracture' | 'Corrosion' | 'Infection' | 'Disruption' | 'Freeze' | 'Fear' | 'Mark' | 'Resonance';
-export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp' | 'spitfang' | 'rift';
+export type TowerKind = 'needle' | 'mortar' | 'reactor' | 'parasite' | 'obelisk' | 'maw' | 'chrysalis' | 'effigy' | 'coil' | 'siphon' | 'sower' | 'spire' | 'polyp' | 'spitfang' | 'rift' | 'glaive' | 'roost';
 export type EnemyKind =
   // swarm
   | 'runner' | 'mite' | 'larva'
@@ -51,7 +51,7 @@ export type EnemyKind =
   | 'glutling' // swarm + suicide: a fragile kamikaze cloud (AoE it early, spacing)
   // elite / apex
   | 'apex' | 'dreadnought' | 'tyrant';
-export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell';
+export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revenant' | 'knell' | 'wyrm';
 
 /** How a tower delivers its attack — drives the firing/projectile dispatch, so a
  * new tower that reuses a behavior is data-only (no sim code). 'support' = no fire,
@@ -59,10 +59,14 @@ export type HeroKind = 'ravager' | 'shepherd' | 'overseer' | 'vitriol' | 'revena
  * channel (no projectile): the Resonance Coil melter (game.beamTowerSystem) and the Marrow
  * Siphon drain-into-Biomass (game.beamSystem) — routed by kind in towerSystem (docs/SIPHON.md).
  * 'trap' = plants ARMED SPORE MINES on the approach instead of attacking — pre-placed area denial
- * (the Blight Sower, game.trapTowerSystem/mineSystem — docs/SOWER.md). */
-export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam' | 'trap';
+ * (the Blight Sower, game.trapTowerSystem/mineSystem — docs/SOWER.md).
+ * 'arc' = a RETURNING blade: flies out to the tower's range piercing everything, then turns and
+ * comes back, hitting once per LEG (the Wyrmwing Glaive — docs/TOWERS.md §glaive).
+ * 'summon' = fields no attack of its own; incubates friendly COMBAT UNITS that fight with a
+ * hero-style brain (the Drake Roost, game.roostSystem — docs/TOWERS.md §roost). */
+export type TowerFiring = 'homing' | 'splash' | 'support' | 'infest' | 'field' | 'beam' | 'trap' | 'arc' | 'summon';
 /** What a live projectile does on the field (a subset of TowerFiring that flies). */
-export type ProjectileBehavior = 'homing' | 'splash' | 'parasite';
+export type ProjectileBehavior = 'homing' | 'splash' | 'parasite' | 'arc';
 
 /** Run phase. A run is: prep -> wave -> draft -> prep ... -> won | lost. */
 export type Phase = 'prep' | 'wave' | 'draft' | 'won' | 'lost';
@@ -309,6 +313,14 @@ export interface Projectile {
   venom?: { threshold: number; burstFrac: number };
   /** STRAIN fragment stagger (docs/STRAIN.md) — sub-munitions inherit the knockback. */
   fragKnockback?: number;
+  // ── 'arc' kinematics (the Wyrmwing Glaive's returning blade). Set only at the arc spawn
+  //    site; absent on every other behavior ⇒ golden-safe. The blade flies (tx,ty)-ward until
+  //    it has covered `arcDist` from its origin, flips to the RETURN leg (hitIds reset — one
+  //    hit per enemy per leg), and dies when it reaches the origin again. ──
+  arcOx?: number; // launch origin (the tower) — the return destination
+  arcOy?: number;
+  arcDist?: number; // out-leg length (the tower's effective range at cast)
+  arcReturn?: boolean; // false = outbound, true = returning
 }
 
 export interface Pool {
@@ -356,6 +368,11 @@ export interface Hero {
   phaseT?: number; // seconds of blink-flash remaining
   phaseFromX?: number; // where it blinked FROM (renderer draws the phase arc)
   phaseFromY?: number;
+  // Cinderwyrm strafing bank (behavior 'swoop') — the fly-THROUGH waypoint past the last victim;
+  // the wyrm spends its attack recovery flying this line instead of standing in contact. Set and
+  // read only by the swoop brain; absent on every other hero ⇒ golden-safe.
+  bankX?: number;
+  bankY?: number;
 }
 
 /** A summoned friendly unit (the `summon` ability primitive). A temporary attacker that
@@ -380,6 +397,12 @@ export interface Minion {
   radius: number; // body radius (render + attack reach)
   color: string;
   alive: boolean;
+  // ── Hero-AI units (the Drake Roost's brood — MinionDef.heroAI). Absent on classic motes
+  //    (wisp/harvester/broodling) ⇒ their brain and bytes are untouched (golden-safe). ──
+  homeX?: number; // the roost perch it rallies around, leashes to, and retreats toward
+  homeY?: number;
+  roostId?: number; // owning roost Tower.id (its brood slot frees when this unit dies)
+  perched?: boolean; // true while recovering at the perch (regenerating, not fighting)
 }
 
 export interface FloatingText {
@@ -432,6 +455,9 @@ export interface TowerMods {
   extraAbilities?: AbilityComponent[]; // granted attacks/auras/chains run each cast
   reactorBiomassMult?: number; // reactor-only: scales its biomass generation (support evolution)
   reactorOverchargeBonus?: number; // reactor-only: extra overcharge to adjacent towers
+  roostBroodBonus?: number; // roost-only: extra drakes kept fielded (brood size)
+  roostTierBonus?: number; // roost-only: matures the clutch (unit-tier bump, capped at the ladder top)
+  roostRegenBonus?: number; // roost-only: perch-mending bonus fraction (drakes recover faster)
   cosmetics?: string[]; // visual mutation ids (renderer)
 }
 export type TowerProgress = Record<TowerKind, TowerMods>;

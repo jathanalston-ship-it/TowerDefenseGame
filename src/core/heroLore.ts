@@ -9,6 +9,7 @@ const ROLE_BY_BEHAVIOR: Record<string, string> = {
   dive: 'Striker',
   guard: 'Guardian',
   control: 'Controller',
+  swoop: 'Skirmisher',
 };
 
 /** One-line description of what a role does on the field (for the Combat Role card). */
@@ -16,6 +17,7 @@ const ROLE_DESC: Record<string, string> = {
   dive: 'Dives the densest packs and fights at the front, trading position for damage.',
   guard: 'Holds the line at the Nucleus — soaks pressure, mends Integrity, shields allies.',
   control: 'Floats over the swarm projecting a control field that slows and exposes enemies.',
+  swoop: 'Strikes on the wing — fly-by passes that hit, bank through, and wheel back in.',
 };
 
 export interface HeroLore {
@@ -48,6 +50,11 @@ const AUTHORED: Record<string, Partial<HeroLore>> = {
     title: 'The First Toll',
     tagline: 'Cast from the carapace of your first Molt — when the bell sounds, the whole hive answers.',
     specialization: 'Resonance Conductor',
+  },
+  wyrm: {
+    title: 'The Sky Assimilated',
+    tagline: 'A biomech dragon that never lands — corroding fly-bys and firestorm breath.',
+    specialization: 'Aerial Devastator',
   },
 };
 

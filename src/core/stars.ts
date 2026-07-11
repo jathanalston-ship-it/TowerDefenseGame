@@ -20,6 +20,7 @@ export type StarGrant =
   | { t: 'projectile'; extraProjectiles?: number; splashMult?: number; mutators?: string[] } // mutate the shot
   | { t: 'ability'; components: AbilityComponent[] } // an added attack/aura/chain/debuff each cast
   | { t: 'reactor'; biomassMult?: number; overchargeBonus?: number } // economy evolution (support tower)
+  | { t: 'brood'; broodBonus?: number; tierBonus?: number; regenBonus?: number } // brood evolution (summon tower — roost drakes)
   | { t: 'cosmetic'; id: string }; // visual mutation (renderer; shared with mastery cosmetics)
 
 /** A UI tag for the node's headline category (drives the preview iconography). */
@@ -92,11 +93,14 @@ export interface ResolvedStarKit {
   extraAbilities: AbilityComponent[]; // run after the base kit each cast
   reactorBiomassMult: number; // reactor economy: biomass generation (1 = base)
   reactorOverchargeBonus: number; // reactor economy: extra overcharge to adjacent towers (0 = base)
+  roostBroodBonus: number; // roost brood: extra drakes kept fielded (0 = base)
+  roostTierBonus: number; // roost brood: unit-tier maturation (0 = base; capped at the ladder top)
+  roostRegenBonus: number; // roost brood: perch-mending bonus fraction (0 = base regen)
   cosmetics: string[]; // visual mutation ids
 }
 
 export function emptyStarKit(): ResolvedStarKit {
-  return { extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], reactorBiomassMult: 1, reactorOverchargeBonus: 0, cosmetics: [] };
+  return { extraProjectiles: 0, splashMult: 1, projectileMutators: [], extraAbilities: [], reactorBiomassMult: 1, reactorOverchargeBonus: 0, roostBroodBonus: 0, roostTierBonus: 0, roostRegenBonus: 0, cosmetics: [] };
 }
 
 function optionFor(fork: StarFork, picks: Record<string, string>): StarForkOption {
@@ -121,6 +125,11 @@ export function applyGrant(kit: ResolvedStarKit, g: StarGrant): void {
     case 'reactor':
       if (g.biomassMult) kit.reactorBiomassMult *= g.biomassMult;
       if (g.overchargeBonus) kit.reactorOverchargeBonus += g.overchargeBonus;
+      break;
+    case 'brood':
+      if (g.broodBonus) kit.roostBroodBonus += g.broodBonus;
+      if (g.tierBonus) kit.roostTierBonus += g.tierBonus;
+      if (g.regenBonus) kit.roostRegenBonus += g.regenBonus;
       break;
     case 'cosmetic':
       kit.cosmetics.push(g.id);
@@ -611,7 +620,63 @@ const RIFT_PATH: StarPath = {
   ],
 };
 
-starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH]);
+// Wyrmwing Glaive (Kinetic, firing 'arc') — the returning blade. `extraProjectiles` = extra
+// blades per throw (the arc honors the channel); statuses/blasts land along the carve; pierce
+// mutators are meaningless (the arc cuts everything on its path already), so the path never
+// spends a star on them.
+const GLAIVE_PATH: StarPath = {
+  tower: 'glaive',
+  steps: [
+    { star: 1, name: 'Hunting Release', kind: 'targeting', desc: 'The throw hunts the TOUGHEST body — the carve runs through the biggest threat.', grants: [{ t: 'targeting', profile: 'highestHealth' }] },
+    { star: 2, name: 'Twin Wing', kind: 'projectile', desc: 'A SECOND blade per throw, carving its own line.', grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+    {
+      star: 3, name: 'Flight Doctrine', kind: 'fork', desc: 'Choose the blade\'s prey (re-pick any run).',
+      fork: [
+        { id: 'skyhook', name: 'Skyhook', desc: 'Cut the runners — the throw leads the FASTEST prey.', grants: [{ t: 'targeting', profile: 'fastest' }] },
+        { id: 'lowline', name: 'Lowline', desc: 'The cut FRACTURES — plating peels along the carve.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 120, status: { kind: 'Fracture', amount: 1 } }] }] },
+      ],
+    },
+    { star: 4, name: 'Searing Wake', kind: 'interaction', desc: 'The pass smolders — Corrosion burns along the cut.', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
+    {
+      star: 5, name: 'Apex Wing', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'stormblade', name: 'Stormblade', desc: 'A THIRD blade and keen crits — the sky fills with edges.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'crit', chance: 0.2, mult: 2, damage: 6 }] }] },
+        { id: 'emberblade', name: 'Emberblade', desc: 'The turnaround DETONATES — a molten blast at the carve\'s deep end.', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 120, damage: 22, react: true, particle: 'ember' }] }] },
+      ],
+    },
+    { star: 7, name: 'Molten Edge', kind: 'attack', desc: 'The edge runs white-hot — vicious critical cuts.', grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.25, mult: 2.2, damage: 8 }] }] },
+    { star: 9, name: 'The Wyrmfang', kind: 'capstone', desc: 'The forge\'s last word: a FOURTH blade and a cataclysmic turnaround.', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'explosion', radius: 140, damage: 30, react: true, particle: 'ember' }] }, { t: 'cosmetic', id: 'wyrmfang' }] },
+  ],
+};
+
+// Drake Roost (Vital, firing 'summon') — the brood engine. The roost never casts, so its path
+// speaks the 'brood' vocabulary exclusively: clutch size, unit maturity, and perch mending.
+const ROOST_PATH: StarPath = {
+  tower: 'roost',
+  steps: [
+    { star: 1, name: 'Second Egg', kind: 'interaction', desc: 'A THIRD drake joins the standing brood.', grants: [{ t: 'brood', broodBonus: 1 }] },
+    { star: 2, name: 'Nurturing Warmth', kind: 'conditional', desc: 'Wounded drakes mend far faster at the perch.', grants: [{ t: 'brood', regenBonus: 0.4 }] },
+    {
+      star: 3, name: 'Bloodline', kind: 'fork', desc: 'Choose the clutch\'s blood (re-pick any run).',
+      fork: [
+        { id: 'broodmother', name: 'Broodmother', desc: 'ANOTHER egg — the territory darkens with wings.', grants: [{ t: 'brood', broodBonus: 1 }] },
+        { id: 'highclutch', name: 'High Clutch', desc: 'The clutch MATURES a full generation.', grants: [{ t: 'brood', tierBonus: 1 }] },
+      ],
+    },
+    { star: 4, name: 'Fierce Instinct', kind: 'conditional', desc: 'The brood shrugs off wounds — perch mending deepens again.', grants: [{ t: 'brood', regenBonus: 0.3 }] },
+    {
+      star: 5, name: 'Apex Nest', kind: 'fork', desc: 'Signature transformation.',
+      fork: [
+        { id: 'skyterror', name: 'Sky Terror', desc: 'The clutch matures a generation — bigger, meaner wings.', grants: [{ t: 'brood', tierBonus: 1 }] },
+        { id: 'legion', name: 'Legion', desc: 'ANOTHER egg — quantity is its own quality.', grants: [{ t: 'brood', broodBonus: 1 }] },
+      ],
+    },
+    { star: 7, name: 'Elder Blood', kind: 'conditional', desc: 'Old blood runs hot — the perch mends its wounded almost instantly.', grants: [{ t: 'brood', regenBonus: 0.5 }] },
+    { star: 9, name: 'The Wyrmmother', kind: 'capstone', desc: 'The nest answers something ancient: another egg, and the whole clutch matures.', grants: [{ t: 'brood', broodBonus: 1, tierBonus: 1 }, { t: 'cosmetic', id: 'wyrmmother' }] },
+  ],
+};
+
+starPathRegistry.registerAll([NEEDLE, MORTAR, PARASITE, OBELISK, REACTOR, MAW, CHRYSALIS, EFFIGY, COIL, SIPHON_PATH, SOWER_PATH, SPIRE_PATH, POLYP_PATH, SPITFANG_PATH, RIFT_PATH, GLAIVE_PATH, ROOST_PATH]);
 
 /** The fork steps of a tower's path (for the loadout UI). */
 export function forksOf(tower: TowerKind): StarFork[] {

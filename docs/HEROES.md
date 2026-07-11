@@ -375,6 +375,42 @@ multiplies a build — fielded alone over empty ground, it is quiet.
 
 ---
 
+## 7. CINDERWYRM — Caustic (flying strafe-fighter) · **progression-gated**
+
+**Lore.** The hive's SKY caste — a dragon-like BIOMECH grown from assimilated war-form chassis.
+Five distinct Framework Boss chassis fell, and the hive kept the part of each that refused the
+ground. It has not landed since; the sky is simply where it eats.
+
+**Role.** The **only FLYING hero** and the first `behavior: 'swoop'` brain
+(`game.updateSwoopHero`): it never parks on a target — it hunts the deepest threat (elites first,
+the dive brain's sense), strikes on the **fly-by**, douses the wound in **Corrosion**
+(`WYRM.corrodePerStrike`), then **BANKS THROUGH** to a point `WYRM.bankDist` past the victim
+before wheeling back for the next pass. It spends its attack recovery *flying the strafe line*,
+not standing in the scrum — constant motion is both its identity and its defense (it never
+retreats; `survival: 'aggressive'` is the designed recklessness, like the Ravager).
+
+**Base kit.** Caustic · 205 hp · speed **132** (the fastest hero — it flies) · strike 34 dmg /
+0.8 s · colour `#ff8c3d`. **Ult — Pyroclastic Breath**: sweeps to the point and BREATHES — a
+corroding blast (58 dmg, r 118, corrode 5) that leaves a **firestorm pool** (110 px, 20 dps, 4 s).
+**Kit skills** (★3/★7): *Wing Shear* (a razor arc across the pack — 30 dmg, r 96, Fracture 1) and
+*Skyfall Talon* (a folded-wing dive — 62 dmg, corrode 3). **Forks**: ★5 *Infernal Core* (deeper
+burn) vs *Tempest Wing* (wider, faster); ★8 *Pyre Titan* (ult → **Cataclysm Breath**) vs *Talon
+Lord* (Skyfall → **Annihilating Dive**). **Passive/identity** (heroIdentity): *Emberwake* —
+CORRODED enemies take +15 % from ALL sources (the Caustic-amplifier family, stacking with
+Vitriol's *Solvent Rounds*); *Firestorm* scaling deepens it with run depth.
+
+**Unlock.** `{ kind: 'bossSlain', count: 5 }` — slay **five distinct Framework Boss chassis** (the
+deepest breadth feat; Vitriol's gate is three). Never owned by a fresh account ⇒ golden-safe.
+
+**Visuals.** Membrane **wings** beat behind the body (behavior-keyed — any future flyer inherits
+them), quickening in motion; its star anatomy grows wing-edge blades, furnace sacs, and a horned
+crown (`HERO_EVOLUTION.wyrm`).
+
+**Synergy.** Corrosion on every pass primes **Shred** (Fracture sources — Needle/Ravager) and
+**Putrefy** (Infection — Parasite/Revenant); *Emberwake* amplifies the Bone Mortar, Vitriol, and
+the Wyrmwing Glaive's Ember Return branch — the draconic tower pairing it was bred beside.
+---
+
 ## Hero roster summary
 
 | Hero | Class | Identity | Personal DPS | Carries the team via |
@@ -385,12 +421,14 @@ multiplies a build — fielded alone over empty ground, it is quiet.
 | **Vitriol** | Caustic | siege / area-denial | **High (DoT)** | Corrosion pools + armor melt (gated) |
 | **Revenant** | Viral | phase-assassin / boss-deleter | **Burst (single-target)** | teleport-deletes elites + spreads Infection (gated) |
 | **Knell** | Resonant | amplification conductor | Low (AoE chip) | run-wide tower-damage peals + a tower aura (gated) |
+| **Cinderwyrm** | Caustic | flying strafe-fighter | **High (mobile)** | Corrosion on every pass + Emberwake amplification (gated) |
 
 Distinct roles, distinct classes, distinct failure modes. The "ideal" core
 (Ravager + Shepherd + Overseer) is a classic damage/sustain/control trinity — and
 Vitriol adds a ranged Caustic zone-denial option once earned, the Revenant adds a
-Viral single-target executioner for the elites and bosses the trinity can't burst down, and the
-Knell (the sixth class — one hero per combat class now) turns any mature board into a louder one. Since
+Viral single-target executioner for the elites and bosses the trinity can't burst down, the
+Knell (the sixth class — every combat class now has a hero) turns any mature board into a louder
+one, and the Cinderwyrm adds a flying Caustic skirmisher that never stops moving. Since
 slots unlock over time and classes are shared with towers, players build toward many other
 combinations.
 

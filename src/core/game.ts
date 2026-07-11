@@ -53,13 +53,16 @@ import {
   HERO_AUTOCAST,
   HERO_PHASE_FLASH,
   REVENANT,
+  WYRM,
+  GLAIVE,
+  ROOST,
   WAVES,
   AUTO_START_DELAY,
   AUTO_START_FIRST_DELAY,
   MINION_DEFS,
   MINION_CAP,
 } from './config';
-import type { EnemyDef, HeroAbilityDef, HeroDef, ResolvedHeroKit, TowerDef } from './config';
+import type { EnemyDef, HeroAbilityDef, HeroDef, MinionDef, ResolvedHeroKit, TowerDef } from './config';
 import { DANGER_CAM, initialDangerCamera, stepDangerCamera } from './dangerCamera';
 import type { DangerCameraState } from './dangerCamera';
 import { initialAssimilation } from './assimilation';
@@ -3707,6 +3710,17 @@ export class Game {
         this.trapTowerSystem(t, dt, def, sprog, sbk, smods.dmgMult, smods.rateMult);
         continue;
       }
+      // Summon towers (Drake Roost, firing 'summon'): no attack — it INCUBATES a brood of hero-AI
+      // drakes on its own cadence (docs/TOWERS.md §roost). The shared damage/rate fold shapes the
+      // UNITS: dmgMult scales hatchling claws/hide, rateMult the hatch cadence, rangeMult (via the
+      // star/branch kit) the hunt leash baked into each hatch. No roost ⇒ never reached (golden-safe).
+      if (def.firing === 'summon') {
+        const rprog = this.towerProgress[t.kind];
+        const rbk = t.tier > 0 ? resolveBranchKit(t.branchId, t.tier) : null;
+        const rmods = this.towerAttackMods(t, def, rprog, rbk, ksDmg, runBuffDmg, resoClass);
+        this.roostSystem(t, dt, def, rprog, rbk, rmods.dmgMult, rmods.rateMult);
+        continue;
+      }
       t.cooldown -= dt;
       if (t.cooldown > 0) continue;
       const prog = this.towerProgress[t.kind]; // permanent per-kind buffs (stars + mastery)
@@ -3734,6 +3748,7 @@ export class Game {
       if (t.kind === 'maw') this.castRangeMult *= this.mods.mawCleaveRadiusMult; // bite reach (cards/affixes)
       if (t.kind === 'polyp') this.castRangeMult *= this.mods.polypFieldMult; // a wider undertow (cards)
       if (t.kind === 'spire') this.castExtraProjectiles += Math.max(0, Math.floor(this.mods.spireChainJumps)); // +arc hops (cards)
+      if (t.kind === 'glaive') this.castExtraProjectiles += Math.max(0, Math.floor(this.mods.glaiveExtraBlades)); // +blades per throw (cards)
       this.castProjectileMutators =
         bk && bk.projectileMutators.length
           ? [...(prog.projectileMutators ?? EMPTY_STR), ...bk.projectileMutators]
@@ -4397,6 +4412,55 @@ export class Game {
             else p.alive = false;
           } else {
             p.alive = false;
+          }
+        } else {
+          const k = step / d;
+          p.x += dx * k;
+          p.y += dy * k;
+        }
+      } else if (p.behavior === 'arc') {
+        // The returning blade (docs/TOWERS.md §glaive): CARVE every unhit body within the blade's
+        // reach as it passes — one cut per enemy per LEG (hitIds clears at the turnaround) — then
+        // flip at the leg's end; the return leg dies back at the launch origin. No retargeting,
+        // no rng: pure kinematics from the spawn params, so the flight is fully deterministic.
+        const hitIds = (p.hitIds ??= []);
+        const reach2 = GLAIVE.carveReach * GLAIVE.carveReach;
+        let carved = false;
+        this.grid.forNeighbors(p.x, p.y, GLAIVE.carveReach, (e) => {
+          if (!e.alive || hitIds.includes(e.id) || dist2(p.x, p.y, e.x, e.y) > reach2) return;
+          hitIds.push(e.id);
+          carved = true;
+          this.applyDamage(e, p.damage, p.sourceKind);
+          this.addFracture(e, 1); // Kinetic identity — the cut shreds plating
+          // STRAIN venom on the blade (Serrated Venom): same detonation contract as the needles.
+          if (p.venom && e.alive) {
+            e.venom = (e.venom ?? 0) + 1;
+            if (e.venom >= p.venom.threshold) {
+              e.venom = 0;
+              this.applyDamage(e, p.damage * p.venom.burstFrac, p.sourceKind);
+              this.spawnParticles(e.x, e.y, PARTICLE.shred, TOWER_DEFS.glaive.color, 0.7);
+            }
+          }
+          // STRAIN concussive carve (Concussive Return): survivors are batted back up-lane.
+          if (p.knockback && e.alive && !e.boss) {
+            e.y = Math.max(24, e.y - p.knockback);
+            if (e.sieging) { e.sieging = false; e.windup = -1; }
+          }
+          if (e.alive) this.maybeReact(e);
+          if (p.skin) this.spawnBranchImpact(e.x, e.y, p.skin, p.skinTier ?? 1); // branch-flavoured cut (cosmetic)
+        });
+        if (carved) this.pushSfx('hit'); // one cue per carve tick, not per body (a lane isn't a drumroll)
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d <= step + COMBAT.projectileHitEpsilon) {
+          if (p.arcReturn !== true) {
+            p.arcReturn = true; // the turnaround — the blade wheels for home
+            hitIds.length = 0; // the return pass cuts everyone AGAIN
+            p.tx = p.arcOx ?? p.x;
+            p.ty = p.arcOy ?? p.y;
+          } else {
+            p.alive = false; // caught back at the launch ring
           }
         } else {
           const k = step / d;
@@ -5115,6 +5179,7 @@ export class Game {
         case 'control': this.updateControlHero(h, def, dt); break;
         case 'siege': this.updateSiegeHero(h, def, dt); break;
         case 'phase': this.updatePhaseHero(h, def, dt); break;
+        case 'swoop': this.updateSwoopHero(h, def, dt); break;
       }
       // MEGA raid-fire fallback (docs/MEGA-BOSS.md): the line is clear — strike a reachable organ.
       if (this.mega !== null && this.mega.deathT === 0 && h.attackCd <= 0 && this.enemies.length === 0) {
@@ -5388,6 +5453,78 @@ export class Game {
     this.maybeReact(target);
     this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
     h.attackCd = def.attackInterval / this.heroHaste(h);
+  }
+
+  /** The hive's SKY caste — the CINDERWYRM (Caustic strafe-flier). It never lands and never
+   *  parks on a target: it flies AT the deepest threat (elites first, like the dive brain),
+   *  strikes on the fly-by — Corrosion doused into the wound (WYRM.corrodePerStrike) — then
+   *  BANKS THROUGH to a point past the victim before wheeling back for the next pass. The bank
+   *  is what keeps it out of the scrum: it spends its recovery flying, not standing in contact.
+   *  Fielded only via the unlock feat (never on a fresh account) ⇒ golden-safe. */
+  private updateSwoopHero(h: Hero, def: HeroDef, dt: number): void {
+    const aggro2 = (def.aggroRange * this.hmods(h).heroAggroRangeMult) ** 2;
+    let target: Enemy | null = null;
+    let best = Infinity;
+    let elite: Enemy | null = null; // apex instinct: elites first (none in Stage ⇒ golden-parallel)
+    let bestElite = Infinity;
+    for (const e of this.enemies) {
+      if (!e.alive || dist2(h.x, h.y, e.x, e.y) > aggro2) continue;
+      const gd = goalDistanceAt(e.x, e.y);
+      if (gd < best) { best = gd; target = e; }
+      if (e.elite && gd < bestElite) { bestElite = gd; elite = e; }
+    }
+    target = elite ?? target;
+    h.targetId = target ? target.id : -1;
+
+    // Mid-bank: keep flying the strafe line until the bank point is reached (or the field empties).
+    if (h.bankX !== undefined && h.bankY !== undefined) {
+      const np = moveToward(h.x, h.y, h.bankX, h.bankY, this.heroSpeed(h) * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+      h.moveState = 'moving';
+      if ((h.x === h.bankX && h.y === h.bankY) || target === null) { h.bankX = undefined; h.bankY = undefined; }
+      return;
+    }
+
+    if (!target) {
+      // Empty sky: circle the idle anchor in a slow patrol wheel (never hovers dead-still).
+      const goal = this.heroIdleGoal(h);
+      const a = this.time * 0.9;
+      const np = moveToward(h.x, h.y, goal.x + Math.cos(a) * 46, goal.y + Math.sin(a) * 30, this.heroSpeed(h) * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+      h.moveState = 'idle';
+      return;
+    }
+
+    const d = dist(h.x, h.y, target.x, target.y);
+    if (d > def.attackRange || h.attackCd > 0) {
+      // Closing (or recovering between passes): fly straight at the prey.
+      const np = moveToward(h.x, h.y, target.x, target.y, this.heroSpeed(h) * dt);
+      h.x = Math.max(0, Math.min(WIDTH, np.x));
+      h.y = Math.max(0, Math.min(HEIGHT, np.y));
+      h.moveState = 'moving';
+      return;
+    }
+
+    // THE FLY-BY: strike, douse the wound in Corrosion, and bank THROUGH to the far side.
+    h.moveState = 'attacking';
+    const crit = this.rollHeroCrit(h);
+    const dmg = def.attackDamage * this.heroDamageMult(h) * this.heroEliteDamage(h, target) * crit.mult;
+    const applied = this.applyDamage(target, dmg);
+    if (crit.crit) this.floats.push({ x: target.x, y: target.y - 16, text: `${Math.round(applied)}!`, color: '#ffcf5a', life: 0.7, kind: 'crit' });
+    this.heroMasteryAccrual[h.kind].damage += applied;
+    this.heroLifesteal(h, applied);
+    this.applyStatus(target, { kind: 'Corrosion', amount: WYRM.corrodePerStrike }); // the ember wake
+    for (const s of this.hstatuses(h)) this.applyStatus(target, { kind: s.status, amount: s.amount }); // weapon grants
+    this.maybeReact(target);
+    this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
+    this.spawnParticles(target.x, target.y, PARTICLE.acid, def.color, 0.5); // a searing pass
+    h.attackCd = def.attackInterval / this.heroHaste(h);
+    // Bank point: carry the strafe line PAST the victim (clamped to the arena).
+    const ang = Math.atan2(target.y - h.y, target.x - h.x);
+    h.bankX = Math.max(0, Math.min(WIDTH, target.x + Math.cos(ang) * WYRM.bankDist));
+    h.bankY = Math.max(0, Math.min(HEIGHT, target.y + Math.sin(ang) * WYRM.bankDist));
   }
 
   /** Densest enemy (cheap proxy: most neighbours within `r`) — the Overseer's anchor. */
@@ -5678,10 +5815,33 @@ export class Game {
     p.fade = undefined; // a reused shot starts fully opaque / live (clear any prior fade-out)
     if (p.hitIds) p.hitIds.length = 0;
     p.fragment = this.castFragment !== null && behavior === 'splash' ? this.castFragment : undefined;
-    p.knockback = this.castKnockback > 0 && behavior === 'splash' ? this.castKnockback : undefined;
+    // Knockback rides splash impacts (mortar stagger) AND the arc carve (Concussive Return).
+    p.knockback = this.castKnockback > 0 && (behavior === 'splash' || behavior === 'arc') ? this.castKnockback : undefined;
     p.fragKnockback = this.castFragKnockback && p.fragment !== undefined && p.knockback !== undefined ? p.knockback * 0.6 : undefined;
     p.ricochet = this.castRicochet !== null && behavior === 'homing' ? this.castRicochet : undefined;
-    p.venom = this.castVenom !== null && behavior === 'homing' ? this.castVenom : undefined;
+    // Venom marks ride homing needles AND the arc blade (Serrated Venom) — same detonation contract.
+    p.venom = this.castVenom !== null && (behavior === 'homing' || behavior === 'arc') ? this.castVenom : undefined;
+    // 'arc' (the Wyrmwing Glaive): repurpose (tx,ty) as the TURNAROUND point — the aim direction
+    // carried out to the tower's effective range — and stamp the return kinematics. Explicitly
+    // reset on every other behavior so a pooled shot never inherits a stale arc state.
+    if (behavior === 'arc') {
+      const reach = (sourceKind !== null ? TOWER_DEFS[sourceKind].range : 400) * this.castRangeMult;
+      const adx = tx - x;
+      const ady = ty - y;
+      const ad = Math.hypot(adx, ady) || 1;
+      p.tx = x + (adx / ad) * reach;
+      p.ty = y + (ady / ad) * reach;
+      p.arcOx = x;
+      p.arcOy = y;
+      p.arcDist = reach;
+      p.arcReturn = false;
+      p.hitIds = p.hitIds ?? []; // the per-leg cut ledger (cleared at the turnaround)
+    } else {
+      p.arcOx = undefined;
+      p.arcOy = undefined;
+      p.arcDist = undefined;
+      p.arcReturn = undefined;
+    }
     this.projectiles.push(p);
     // STRAIN echo shell (docs/STRAIN.md — Echoing Howitzer): a slower twin chases the first
     // shell to the same crater. Guarded so an echo never breeds an echo.
@@ -6364,14 +6524,117 @@ export class Game {
         hp: def.hp, maxHp: def.hp, hitFlash: 0,
         damage: def.damage, attackCd: 0, attackInterval: def.attackInterval, range: def.range,
         speed: def.speed, life: def.life, maxLife: def.life, radius: def.radius, color: def.color, alive: true,
+        // Hero-AI units summoned OFF a roost (strain births / hero abilities) rally to their
+        // spawn point — no roostId, so they never occupy a roost's brood slot.
+        homeX: def.heroAI ? x : undefined, homeY: def.heroAI ? y : undefined,
       });
     }
     if (n > 0) this.spawnParticles(x, y, PARTICLE.bloom); // a small conjuration puff
   }
 
+  /** Drake Roost incubation (firing 'summon' — docs/TOWERS.md §roost). Keeps a BROOD of hero-AI
+   *  drakes fielded around the perch: hatches one per cadence tick while below the brood cap and
+   *  re-checks quickly when full (a chewed-through drake frees its slot mid-wave). The tower's
+   *  whole upgrade surface improves the UNITS — branch tier + star 'brood' grants raise the unit
+   *  TIER (ROOST.unitByTier) and the brood size, ROOST_BRANCH shaping trades tier vs. count, and
+   *  the shared damage/range folds are baked into each hatch like a mine bakes its blast. */
+  private roostSystem(t: Tower, dt: number, def: TowerDef, prog: TowerMods, bk: ResolvedBranchKit | null, dmgMult: number, rateMult: number): void {
+    t.cooldown -= dt;
+    if (t.cooldown > 0) return;
+    let fielded = 0;
+    for (const m of this.minions) if (m.alive && m.roostId === t.id) fielded++; // ≤ MINION_CAP ⇒ bounded
+    const brood = ROOST.brood + (prog.roostBroodBonus ?? 0) + (bk?.roostBroodBonus ?? 0) + Math.max(0, Math.floor(this.mods.roostBroodSize));
+    const tier = 1 + (prog.roostTierBonus ?? 0) + (bk?.roostTierBonus ?? 0);
+    if (fielded >= brood || this.minions.length >= MINION_CAP) {
+      t.cooldown = 0.25; // full clutch — re-check soon (a lost drake frees its slot)
+      return;
+    }
+    const unit = ROOST.unitByTier[Math.max(0, Math.min(ROOST.unitByTier.length - 1, tier - 1))];
+    this.hatchDrake(t, unit, dmgMult, (prog.rangeMult ?? 1) * (bk?.rangeMult ?? 1));
+    t.cooldown = def.fireInterval / Math.max(0.05, rateMult);
+  }
+
+  /** One drake hatches from the roost: the unit def scaled by the roost's folds — claws by the
+   *  full damage fold, hide at half strength (an upgraded roost fields meaner AND tougher drakes),
+   *  hunt leash by the range fold — stamped with its perch so the hero-AI brain can leash,
+   *  retreat, and rally (docs/TOWERS.md §roost). */
+  private hatchDrake(t: Tower, unit: string, dmgMult: number, leashMult: number): void {
+    const d = MINION_DEFS[unit];
+    if (!d) return;
+    const hp = Math.round(d.hp * (1 + (dmgMult - 1) * 0.5));
+    this.minions.push({
+      id: this.nextId++, kind: unit, x: t.x, y: t.y - 16,
+      hp, maxHp: hp, hitFlash: 0,
+      damage: d.damage * dmgMult, attackCd: 0, attackInterval: d.attackInterval, range: d.range * leashMult,
+      speed: d.speed, life: d.life, maxLife: d.life, radius: d.radius, color: d.color, alive: true,
+      homeX: t.x, homeY: t.y, roostId: t.id, perched: false,
+    });
+    this.spawnParticles(t.x, t.y - 10, PARTICLE.bloom, d.color); // the hatch — shell shards + a first wingbeat
+    const fc = towerFireCue(t.kind);
+    if (fc) this.pushSfx(`${fc}:${t.kind}`); // the wet crack of the hatch (same tagging as the base firing cue)
+  }
+
+  /** Hero-style brain for drake units (MinionDef.heroAI — docs/TOWERS.md §roost). Mirrors the
+   *  hero framework's verbs at unit scale: DEEPEST-threat targeting with elites first (the dive
+   *  brain's sense), a rally LEASH around the home perch, retreat-to-perch when wounded + perch
+   *  regen (the survival profile), then back into the hunt. Classic motes never reach this
+   *  (flag-gated in minionSystem), so the wisp/harvester/broodling path is byte-identical. */
+  private drakeBrain(m: Minion, def: MinionDef, dt: number, inWave: boolean): void {
+    const homeX = m.homeX ?? m.x;
+    const homeY = m.homeY ?? m.y;
+    if (m.perched === true) {
+      // Mending at the perch: regenerate (star kit deepens it), hold position, rejoin once fit.
+      const regen = (def.perchRegen ?? 10) * (1 + (this.towerProgress.roost.roostRegenBonus ?? 0));
+      m.hp = Math.min(m.maxHp, m.hp + regen * dt);
+      if (m.hp >= m.maxHp * ROOST.reengageFrac) m.perched = false;
+      if (dist(m.x, m.y, homeX, homeY) > 6) {
+        const np = moveToward(m.x, m.y, homeX, homeY, m.speed * dt);
+        m.x = np.x;
+        m.y = np.y;
+      }
+      return;
+    }
+    if (m.hp <= m.maxHp * ROOST.retreatFrac) { m.perched = true; return; } // wounded — break off
+    if (!inWave) return; // the grid is stale between waves (mirrors the mote brain)
+    // Hunt the deepest threat within the leash of the PERCH (elites first — the apex instinct).
+    // (Locals are re-read through a widened alias below: TS narrowing can't see callback writes.)
+    let deepest: Enemy | null = null;
+    let best = Infinity;
+    let elite: Enemy | null = null;
+    let bestElite = Infinity;
+    const leash2 = m.range * m.range;
+    this.grid.forNeighbors(homeX, homeY, m.range, (e) => {
+      if (!e.alive || dist2(homeX, homeY, e.x, e.y) > leash2) return;
+      const gd = goalDistanceAt(e.x, e.y);
+      if (gd < best) { best = gd; deepest = e; }
+      if (e.elite && gd < bestElite) { bestElite = gd; elite = e; }
+    });
+    const target = (elite ?? deepest) as Enemy | null;
+    if (!target) {
+      // Empty territory: wheel back toward the perch (drakes never stray off their leash).
+      if (dist(m.x, m.y, homeX, homeY) > 24) {
+        const np = moveToward(m.x, m.y, homeX, homeY, m.speed * dt);
+        m.x = np.x;
+        m.y = np.y;
+      }
+      return;
+    }
+    const reach = m.radius + ENEMY_DEFS[target.kind].radius + 6;
+    if (dist(m.x, m.y, target.x, target.y) > reach) {
+      const np = moveToward(m.x, m.y, target.x, target.y, m.speed * dt);
+      m.x = np.x;
+      m.y = np.y;
+    } else if (m.attackCd <= 0) {
+      this.applyDamage(target, m.damage, 'roost', true); // kill/damage credit feeds roost mastery
+      this.maybeReact(target);
+      m.attackCd = m.attackInterval;
+    }
+  }
+
   /** Summoned friendly units: decay life, seek the nearest enemy, close in, and strike on
    * cooldown. Time-limited (no HP today). Seek/attack only during a wave (the grid is fresh
-   * then); life decays every frame so they never freeze between waves. */
+   * then); life decays every frame so they never freeze between waves. Hero-AI units
+   * (MinionDef.heroAI — the roost's drakes) dispatch to their own brain instead. */
   private minionSystem(dt: number): void {
     const inWave = this.phase === 'wave';
     for (const m of this.minions) {
@@ -6379,6 +6642,8 @@ export class Game {
       if (m.life <= 0) { m.alive = false; continue; }
       if (m.hitFlash > 0) m.hitFlash -= dt; // "being chewed" flash decays (visual)
       if (m.attackCd > 0) m.attackCd -= dt;
+      const mdef = MINION_DEFS[m.kind];
+      if (mdef?.heroAI) { this.drakeBrain(m, mdef, dt, inWave); continue; }
       if (!inWave) continue;
       const target = this.nearestEnemyTo(m.x, m.y, m.range);
       if (!target) continue;
@@ -6443,6 +6708,8 @@ export class Game {
     if (m.heroDamageMult !== 1) out.push(`${pct(m.heroDamageMult - 1)} hero dmg`);
     if (m.heroCooldownMult !== 1) out.push(`-${Math.round((1 - m.heroCooldownMult) * 100)}% hero cd`);
     if (m.needleExtraProjectiles > 0) out.push(`+${m.needleExtraProjectiles} needle`);
+    if (m.glaiveExtraBlades > 0) out.push(`+${m.glaiveExtraBlades} glaive blade`);
+    if (m.roostBroodSize > 0) out.push(`+${m.roostBroodSize} roost drake`);
     if (m.fractureBonusStacks > 0) out.push(`+${m.fractureBonusStacks} fracture cap`);
     if (m.mortarAppliesFracture) out.push('mortar applies Fracture');
     if (m.reactorOverchargeBonus > 0) out.push(`${pct(m.reactorOverchargeBonus)} overcharge`);

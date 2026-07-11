@@ -470,6 +470,62 @@ const BRANCHES: Branch[] = [
       { tier: 5, name: 'The Annihilation Core', desc: 'Total collapse: catastrophic crush damage and one last deep drag.', damageMult: 1.2, particle: 'dissolve', impact: 'shred', grants: [{ t: 'ability', components: [{ type: 'aura', radius: 200, damage: 18, pull: 26, react: true, particle: 'disrupt' }] }, { t: 'cosmetic', id: 'annihilate' }] },
     ],
   },
+
+  // ════════════ WYRMWING GLAIVE (Kinetic, returning 'arc' blade) ════════════
+  // The lane-carver. Its paths split the blade's identity: RAZOR CYCLONE sharpens the cut itself
+  // (a second blade, crits, shredded plating), EMBER RETURN sets the edge alight (Corrosion teeth
+  // + a detonation where the blade turns). Pierce mutators are meaningless here — the arc already
+  // cuts everything on its path — so both ladders spend on blades, statuses and blasts instead.
+  {
+    id: 'glaive_razor', tower: 'glaive', name: 'Razor Cyclone',
+    theme: 'The blade is honed past reason — more edges, deeper cuts, and plating peeling off the lane.',
+    tiers: [
+      { tier: 1, name: 'Whetted Edge', desc: 'A keener blade that hunts the TOUGHEST body on the lane.', damageMult: 1.15, particle: 'spark', sfx: 'br_slug', impact: 'shrapnel', grants: [{ t: 'targeting', profile: 'highestHealth' }] },
+      { tier: 2, name: 'Twin Glaive', desc: 'A SECOND blade per throw, carving its own line.', damageMult: 1.05, grants: [{ t: 'projectile', extraProjectiles: 1 }] },
+      { tier: 3, name: 'Flaying Arc', desc: 'Every pass FRACTURES — plating peels along the whole cut.', damageMult: 1.1, particle: 'shrapnel', impact: 'shrapnel', grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Fracture', amount: 1 } }] }] },
+      { tier: 4, name: 'Cyclone Tempo', desc: 'A faster wheel — throws come around sooner and cut farther.', fireRateMult: 1.15, rangeMult: 1.08, grants: [{ t: 'ability', components: [{ type: 'crit', chance: 0.2, mult: 2, damage: 6 }] }] },
+      { tier: 5, name: 'The Razor Cyclone', desc: 'A THIRD blade and vicious crits — the lane is a lathe.', damageMult: 1.2, fireRateMult: 1.1, particle: 'barbstorm', impact: 'shrapnel', grants: [{ t: 'projectile', extraProjectiles: 1 }, { t: 'ability', components: [{ type: 'crit', chance: 0.3, mult: 2.4, damage: 8 }] }, { t: 'cosmetic', id: 'cyclone' }] },
+    ],
+  },
+  {
+    id: 'glaive_ember', tower: 'glaive', name: 'Ember Return',
+    theme: 'The edge is quenched in the wyrm-forge — every cut smolders, and the turnaround DETONATES.',
+    tiers: [
+      { tier: 1, name: 'Quenched Edge', desc: 'The blade smolders — cuts leave Corrosion burning in the wound.', damageMult: 1.08, particle: 'ember', sfx: 'br_scatter', impact: 'ember', grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 2, name: 'Cinder Wake', desc: 'The pass sears everything NEAR the cut, not just the cut.', damageMult: 1.06, grants: [{ t: 'ability', components: [{ type: 'debuff', radius: 130, status: { kind: 'Corrosion', amount: 1 } }] }] },
+      { tier: 3, name: 'Turnaround Burst', desc: 'The blade DETONATES where it wheels — a blast at the carve\'s deep end.', damageMult: 1.08, particle: 'ember', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 110, damage: 20, react: true, particle: 'ember' }] }] },
+      { tier: 4, name: 'Long Furnace', desc: 'A longer, hotter carve — the corridor deepens.', rangeMult: 1.12, damageMult: 1.08, grants: [{ t: 'ability', components: [{ type: 'status', status: { kind: 'Corrosion', amount: 2 } }] }] },
+      { tier: 5, name: 'The Ember Return', desc: 'The turnaround becomes a CATACLYSM — a wide molten blast and deep rot on the lane.', damageMult: 1.15, fireRateMult: 1.08, particle: 'dissolve', impact: 'railburst', grants: [{ t: 'ability', components: [{ type: 'explosion', radius: 150, damage: 34, react: true, particle: 'ember' }, { type: 'debuff', radius: 150, status: { kind: 'Corrosion', amount: 2 } }] }, { t: 'cosmetic', id: 'emberreturn' }] },
+    ],
+  },
+
+  // ════════════ DRAKE ROOST (Vital, 'summon' brood) ════════════
+  // The brood engine — its branch mults shape the UNITS (damageMult = claws, fireRateMult = hatch
+  // cadence, rangeMult = the hunt leash) and its 'brood' grants shape the CLUTCH: ALPHA BROOD
+  // matures fewer, bigger drakes (unit-tier bumps read on the field as bigger, winged bodies);
+  // SWARM CLUTCH breeds more, faster. Ability grants would never fire (the roost never casts).
+  {
+    id: 'roost_alpha', tower: 'roost', name: 'Alpha Brood',
+    theme: 'Fewer eggs, warmer blood — the clutch matures into ember drakes, then true wyrmspawn.',
+    tiers: [
+      { tier: 1, name: 'Warm Blood', desc: 'The brood strikes harder and mends faster at the perch.', damageMult: 1.15, particle: 'ember', sfx: 'br_slug', impact: 'ember', grants: [{ t: 'cosmetic', id: 'alphacrest' }] },
+      { tier: 2, name: 'Ember Clutch', desc: 'The clutch MATURES — drakelings hatch as EMBER DRAKES.', damageMult: 1.08, grants: [{ t: 'brood', tierBonus: 1 }] },
+      { tier: 3, name: 'Deep Territory', desc: 'The brood ranges farther from the perch, hitting harder.', rangeMult: 1.12, damageMult: 1.1, grants: [{ t: 'cosmetic', id: 'alphahorns' }] },
+      { tier: 4, name: 'Wyrm Blood', desc: 'The clutch matures AGAIN — the roost raises true WYRMSPAWN.', damageMult: 1.1, grants: [{ t: 'brood', tierBonus: 1 }] },
+      { tier: 5, name: 'The Alpha Brood', desc: 'An apex clutch: another egg in the nest, and every wyrm strikes like a siege engine.', damageMult: 1.2, rangeMult: 1.08, particle: 'dissolve', grants: [{ t: 'brood', broodBonus: 1 }, { t: 'cosmetic', id: 'alphathrone' }] },
+    ],
+  },
+  {
+    id: 'roost_swarm', tower: 'roost', name: 'Swarm Clutch',
+    theme: 'More eggs, hotter incubation — a sky of small drakes that never stops hatching.',
+    tiers: [
+      { tier: 1, name: 'Crowded Nest', desc: 'A THIRD egg joins the clutch.', particle: 'bloom', sfx: 'br_scatter', impact: 'bloom', grants: [{ t: 'brood', broodBonus: 1 }] },
+      { tier: 2, name: 'Fevered Incubation', desc: 'Eggs hatch markedly faster.', fireRateMult: 1.2, grants: [{ t: 'cosmetic', id: 'swarmglow' }] },
+      { tier: 3, name: 'Fourth Egg', desc: 'ANOTHER egg — the territory darkens with wings.', fireRateMult: 1.08, grants: [{ t: 'brood', broodBonus: 1 }] },
+      { tier: 4, name: 'Pack Hunters', desc: 'The swarm matures — drakelings hatch as EMBER DRAKES.', damageMult: 1.08, grants: [{ t: 'brood', tierBonus: 1 }] },
+      { tier: 5, name: 'The Swarm Clutch', desc: 'A FIFTH egg and frantic hatching — the roost blackens its own sky.', damageMult: 1.1, fireRateMult: 1.15, particle: 'barbstorm', grants: [{ t: 'brood', broodBonus: 1 }, { t: 'cosmetic', id: 'swarmsky' }] },
+    ],
+  },
 ];
 
 branchRegistry.registerAll(BRANCHES);

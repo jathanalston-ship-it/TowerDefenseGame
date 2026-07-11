@@ -34,6 +34,8 @@ export const TOWER_FORM: Record<TowerKind, TowerForm> = {
   polyp: 'maw',       // a rooted undertow mouth
   spitfang: 'gatling',    // a multi-barrel kinetic autocannon
   rift: 'singularity',    // a void anchor with an accretion ring
+  glaive: 'lens',     // a swept launch-ring the returning blade spins out of
+  roost: 'nest',      // a clutch of biomech eggs around a warm perch
 };
 
 // ── colour: one memoized helper. `lit`>0 lightens toward white, <0 darkens; `a`<1 ⇒ rgba. ────────
