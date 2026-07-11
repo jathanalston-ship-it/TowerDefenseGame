@@ -9481,6 +9481,24 @@ kbd {
 .ps-btn:hover:not(:disabled) { transform: scale(1.05); filter: brightness(1.1); }
 .ps-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .ps-foot { margin-top: 20px; font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 760px; }
+/* Sale chrome (docs/PREMIUM-STORE.md §flash + §season): struck list price + discount chip.
+   The listUsd is honesty-tested — never above the goods' real à-la-carte worth. */
+.ps-was { margin-right: 7px; font-size: 11px; font-weight: 700; color: #0a0e16; opacity: 0.55; }
+.ps-sale-chip { font-size: 10px; font-weight: 900; letter-spacing: 0.06em; color: #0a0e16; padding: 2px 7px; border-radius: 999px;
+  background: linear-gradient(160deg, var(--gold), color-mix(in srgb, var(--gold) 55%, #fff)); animation: ps-sale-pulse 2.2s ease-in-out infinite; }
+@keyframes ps-sale-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.22); } }
+@media (prefers-reduced-motion: reduce) { .ps-sale-chip { animation: none; } }
+/* Flash-sale popup (components/FlashOfferPopup.tsx) — rides the ps-box modal chrome. */
+.fo-box { text-align: left; }
+.fo-flare { font-size: 11px; font-weight: 900; letter-spacing: 0.14em; color: var(--ps, var(--gold)); margin-bottom: 8px; animation: ps-sale-pulse 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .fo-flare { animation: none; } }
+.fo-why { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 2px 0 10px; }
+.fo-count { font-size: 11px; font-weight: 700; color: var(--gold); margin-top: 6px; }
+/* Battle Pass upsell — the real-money door beside the Ichor unlock. */
+.bp-unlock-usd { min-height: 34px; margin-left: 10px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+  color: var(--gold); background: transparent; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line-strong)); border-radius: var(--r-sm);
+  transition: background var(--dur-1) ease; }
+.bp-unlock-usd:hover { background: color-mix(in srgb, var(--gold) 10%, transparent); }
 /* Guest Mode banner — the store stays browsable, buying is off until the session converts. */
 .ps-guestmode { margin: 12px 0 4px; max-width: 760px; padding: 10px 14px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; line-height: 1.5;
   color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, transparent); border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--line-strong)); }

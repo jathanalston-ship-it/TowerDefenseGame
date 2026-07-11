@@ -23,6 +23,7 @@ import { downloadText, readTextFile } from '../save/saveFile';
 import { TOWER_DEFS, CAMPAIGN_REWARDS, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
+import { flashOverview, flashPopupCandidate, flashStatus } from './flashOffers';
 import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, researchRewardById, researchScale, specimenRarity } from '../core/research';
 import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef } from '../core/research';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
@@ -4947,6 +4948,65 @@ export const meta = {
     persist({ ...save, premium: { ...save.premium, seenKey: key } });
   },
 
+  /** The ONE availability truth for store surfaces + the sandbox pipeline: the pure catalog
+   *  rules (offerAvailable — limits/rotation/window/season-pair) layered with the save-aware
+   *  gates the pure fn can't see: season SKUs refuse while Premium is already owned THIS
+   *  window; flash SKUs sell only inside their live first-sight window (core/flashOffers.ts). */
+  offerPurchasable(offerId: string, now = Date.now()): boolean {
+    const offer = premiumOfferById(offerId);
+    if (!offer) return false;
+    if (offer.kind === 'season') this.pollBattlePass(now); // normalize the window first (mail-safe rollover)
+    const save = store.get();
+    if (!offerAvailable(offer, dailyKey(new Date(now)), save.premium.purchases, save.premium.lastRotatingBuyKey)) return false;
+    if (offer.kind === 'season' && save.battlePass.premium) return false; // one flag per window — no double-charge
+    if (offer.kind === 'flash' && flashStatus(offer, save, now) !== 'live') return false;
+    return true;
+  },
+
+  // ── FLASH SALES (docs/PREMIUM-STORE.md §flash) — presentation ledger ────────
+  /** The one offer allowed to pop a modal right now (null = stay quiet). Pure read. */
+  flashPopup(now = Date.now()): PremiumOfferDef | null {
+    return flashPopupCandidate(store.get(), now);
+  },
+
+  /** A popup fired: anchor the offer's countdown (first sight) + stamp the cadence limiter. */
+  markFlashShown(offerId: string, now = Date.now()): void {
+    const save = store.get();
+    const slot = save.premium.flash[offerId] ?? {};
+    persist({
+      ...save,
+      premium: {
+        ...save.premium,
+        flash: slot.shownAt !== undefined ? save.premium.flash : { ...save.premium.flash, [offerId]: { ...slot, shownAt: now } },
+        lastFlashShownAt: now,
+      },
+    });
+  },
+
+  /** The store rendered its Flash section: every ARMED offer anchors its countdown at this
+   *  first sight (the store IS a sighting — the 48h window never runs unseen). No cadence
+   *  stamp: browsing the store must not delay unrelated popups. */
+  markFlashSeen(now = Date.now()): void {
+    const save = store.get();
+    let flash = save.premium.flash;
+    let changed = false;
+    for (const f of flashOverview(save, now)) {
+      if (f.status === 'ready') {
+        flash = { ...flash, [f.offer.id]: { ...flash[f.offer.id], shownAt: now } };
+        changed = true;
+      }
+    }
+    if (changed) persist({ ...save, premium: { ...save.premium, flash } });
+  },
+
+  /** Popup closed without buying: never modal again (the store chip stays for the window). */
+  dismissFlashPopup(offerId: string): void {
+    const save = store.get();
+    const slot = save.premium.flash[offerId];
+    if (!slot || slot.dismissed) return;
+    persist({ ...save, premium: { ...save.premium, flash: { ...save.premium.flash, [offerId]: { ...slot, dismissed: true } } } });
+  },
+
   /**
    * Purchase a premium offer. Runs the full pipeline — availability → CHECKOUT SEAM → grants →
    * ledger — and returns the receipt the reveal ceremony renders (null = refused/unavailable).
@@ -4963,11 +5023,11 @@ export const meta = {
    */
   purchaseOffer(offerId: string, now?: Date): PremiumReceipt | null {
     if (!guardOk('purchase.offer', offerId)) return null;
-    const save = store.get();
     const offer = premiumOfferById(offerId);
     if (!offer) return null;
+    if (!this.offerPurchasable(offerId, (now ?? new Date()).getTime())) return null;
+    const save = store.get(); // AFTER the availability check — season SKUs may normalize the pass window
     const key = dailyKey(now);
-    if (!offerAvailable(offer, key, save.premium.purchases, save.premium.lastRotatingBuyKey)) return null;
     // ── checkout seam: this path is the SANDBOX (dev/offline) charge stub. Production
     //    builds route real money through Stripe Checkout → /api/store/claim →
     //    applyVerifiedPurchase below (docs/DEPLOYMENT.md §purchases) — the grant

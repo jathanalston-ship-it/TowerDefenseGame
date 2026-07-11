@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 761 nodes · 1396 edges, built from the live
+> **The project's brain** (docs/DIL.md). 762 nodes · 1398 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -549,6 +549,7 @@ Depth/stage/shard requirements that stage content unlocks (towers, heroes, cards
   - requiredBy ← `system:doctrines` — unlockStage campaign gates + doctrineRuns grandfathering (save/derive.ts)
   - providedBy ← `system:campaign` — depth is the master unlock axis
   - providedBy ← `system:cutscenes` — memories unlock from milestones (stages, molt, depth) and first mega defeats; each grants a small capped passive
+  - providedBy ← `system:premium` — FLASH sales (state/flashOffers.ts): one-time milestone SKUs armed at achievement highs (megas/stage/passLevel/molts triggers), 48h windows anchored at FIRST SIGHT, one popup per 72h above a stage-3/5-runs floor — the SKU rows stay in core/premium.ts so functions/ prices checkout; save v42 premium.flash ledger
 
 ### `concept:replays` — Replays
 
@@ -907,9 +908,9 @@ _at: src/core/mulligan.ts, src/core/combatClass.ts, src/render/mulliganOrganism.
 
 ### `system:premium` — Premium Store
 
-Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, and windowed event offers on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).
+Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, windowed event offers, the Season Pass pair (first-ever purchase is the half-price SKU — seasonOfferFor), and one-time milestone FLASH sales (state/flashOffers.ts: achievement-high triggers, first-sight 48h windows, one popup per 72h, eligibility floor, honesty-tested list prices) on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).
 
-_at: src/core/premium.ts, src/ui/PremiumStore.tsx_
+_at: src/core/premium.ts, src/state/flashOffers.ts, src/ui/PremiumStore.tsx, src/ui/components/FlashOfferPopup.tsx_
 
   - dependsOn → `system:content-infra`
   - dependsOn → `system:splice-market`
@@ -917,13 +918,15 @@ _at: src/core/premium.ts, src/ui/PremiumStore.tsx_
   - dependsOn → `system:power`
   - provides → `concept:power-score` — offerPowerPotential — the honest "up to +N when invested" estimate
   - consumes → `system:meta-store` — owns save field 'premium'
+  - provides → `concept:progression-gates` — FLASH sales (state/flashOffers.ts): one-time milestone SKUs armed at achievement highs (megas/stage/passLevel/molts triggers), 48h windows anchored at FIRST SIGHT, one popup per 72h above a stage-3/5-runs floor — the SKU rows stay in core/premium.ts so functions/ prices checkout; save v42 premium.flash ledger
   - requiredBy ← `system:field-research`
   - requiredBy ← `system:net-backend`
   - requiredBy ← `system:battle-pass`
   - documentedBy ← `doc:PREMIUM-STORE.md`
   - documentedBy ← `doc:PREMIUM-ECONOMY-REPORT.md`
   - testedBy ← `test:src/core/premium.test.ts`
-  - consumedBy ← `system:battle-pass` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor
+  - testedBy ← `test:src/state/flashOffers.test.ts`
+  - consumedBy ← `system:battle-pass` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor; the FIRST-ever purchase is always the half-price 'bp_premium_first' SKU (seasonOfferFor shows one door; meta.offerPurchasable refuses while premium is owned this window)
   - gatedBy ← `system:accounts` — GUEST MODE (state/guestMode.ts — sessionStorage flag): meta boots the SaveStore on session storage and EVERY network seam short-circuits on guestModeActive() (ensureGuestRegistered/beginCheckout → {ok:false,error:'guest-mode'}; syncStep noops; leaderboard submits + event flushes drop); the account store is NEVER written while the flag is up (no durable onboarded mark — the WelcomeGate hides via the flag) so closing the browser leaves zero trace; conversion = the normal AuthForms flow calling meta.commitGuestSession() (swapStorage to durable + purge the session copy) BEFORE syncNow
 
 ### `system:field-research` — Field Research (rewarded studies)
@@ -1589,7 +1592,7 @@ _at: src/core/battlePass.ts, src/ui/BattlePassScreen.tsx_
   - provides → `concept:power-score` — permanents + Perennial stacks fold into the meta bucket
   - consumes → `system:meta-store` — owns save field 'battlePass'
   - consumes → `system:cosmetics` — reward tables DERIVE cosmetic placement from wardrobe battlepass sources — battlePass.test.ts fails if an item slot and the table disagree
-  - consumes → `system:premium` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor
+  - consumes → `system:premium` — the store 'bp_premium' season SKU and the 250-Ichor door set the SAME per-season flag; offerValueIchor hardcodes 250 (functions/ bundle stays lean) and battlePass.test.ts pins it against BP.premiumIchor; the FIRST-ever purchase is always the half-price 'bp_premium_first' SKU (seasonOfferFor shows one door; meta.offerPurchasable refuses while premium is owned this window)
   - conflictsWith → `concept:golden-test` — permanents/stacks fold at the META seams (effects + accountEconomyBonuses) only — a fresh save must fold NOTHING or the pinned seeds break
   - requiredBy ← `system:daily-login`
   - requiredBy ← `system:quests`
@@ -3271,7 +3274,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (236)
+## Tests (237)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3457,6 +3460,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/evolutionHQ.test.ts` — automated validation _(tests `system:evolution-hq`)_
 - `test:src/state/evolutioncap.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/expeditions.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/flashOffers.test.ts` — automated validation _(tests `system:premium`)_
 - `test:src/state/geneArchive.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/state/geneStress.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/heroCollection.test.ts` — automated validation _(tests `system:engine`)_

@@ -428,9 +428,9 @@ graph TD
 
 ### Premium Store (`premium`)
 
-*Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, and windowed event offers on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).*
+*Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, windowed event offers, the Season Pass pair (first-ever purchase is the half-price SKU — seasonOfferFor), and one-time milestone FLASH sales (state/flashOffers.ts: achievement-high triggers, first-sight 48h windows, one popup per 72h, eligibility floor, honesty-tested list prices) on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).*
 
-- **Files:** `src/core/premium.ts` · `src/ui/PremiumStore.tsx`
+- **Files:** `src/core/premium.ts` · `src/state/flashOffers.ts` · `src/ui/PremiumStore.tsx` · `src/ui/components/FlashOfferPopup.tsx`
 - **Depends on:** `content-infra` · `splice-market` · `daily` · `power`
 - **Consumers — what breaks if you change this:** `field-research` · `net-backend` · `battle-pass`
 - **Power Score:** offerPowerPotential — the honest "up to +N when invested" estimate

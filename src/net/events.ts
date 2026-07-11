@@ -21,6 +21,7 @@ export type EventKind =
   | 'research_claim'
   | 'store_open'
   | 'checkout_start'
+  | 'flash_popup'
   | 'account_guest'
   | 'account_register'
   | 'account_login'

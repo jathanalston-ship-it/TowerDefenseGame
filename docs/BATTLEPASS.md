@@ -39,10 +39,14 @@ casual free (~2 wins/day) lands **~level 55–65**; a heavy player completes **b
   playing is always the better deal).
 - **Ad advance:** one level per UTC day via the rewarded-ad provider
   (`ads/provider.ts` rules — player-initiated, menus only, hidden without a provider).
-- **Premium:** **250 Ichor** in-game OR the store's `bp_premium` Season Pass SKU
-  ($9.99 — same flag, two doors). *Rebalanced from the 1500 draft:* at the store's
-  25 Ichor/$ anchor, 1500 Ichor would price Premium at ~$60; 250 lands on the industry-
-  standard $10 pass and keeps the earn-it-F2P path honest.
+- **Premium:** **250 Ichor** in-game OR the store's Season Pass door ($9.99 `bp_premium` —
+  same flag, two doors). The **first-ever** season purchase is always the half-price
+  **$4.99 `bp_premium_first`** SKU (limit 1; `seasonOfferFor` shows exactly ONE door, so a
+  first-time buyer can never be charged full price — docs/PREMIUM-STORE.md §season). The
+  pass screen's upsell carries an "or $X in the Store" button beside the Ichor unlock.
+  *Rebalanced from the 1500 draft:* at the store's 25 Ichor/$ anchor, 1500 Ichor would
+  price Premium at ~$60; 250 lands on the industry-standard $10 pass and keeps the
+  earn-it-F2P path honest.
 - **Never self-funding:** total Ichor across BOTH tracks (≈90 free + ≈70 premium) is well
   under the 250 premium price — pinned by test. Completing a pass can never pay for the next.
 

@@ -49,6 +49,10 @@ import { Wardrobe } from './Wardrobe';
 import { BattlePassScreen } from './BattlePassScreen';
 import { QuestBoard } from './QuestBoard';
 import { WardrobeReveal } from './components/WardrobeReveal';
+import { FlashOfferPopup } from './components/FlashOfferPopup';
+import { flashExpiresAt } from '../state/flashOffers';
+import type { PremiumOfferDef } from '../core/premium';
+import { useGuestMode } from '../state/guestMode';
 import { applyWardrobeDressing } from './wardrobeDressing';
 import { LabAtmosphere } from './LabAtmosphere';
 import { PowerBadge } from './components/PowerScore';
@@ -202,6 +206,7 @@ export function Hub({
   const [mTab, setMTab] = useState<MobileTabKey>('home');
   const [mIndex, setMIndex] = useState(false);
   const save = meta.use();
+  const guest = useGuestMode(); // flash popups never fire for guests (purchases are disabled)
   const ackTick = notifications.use(); // re-render when a badge is acknowledged
   const cells = meta.prestigeView().cells;
   // Derived rail state — recomputed only when the save snapshot (or an ack) changes, not on
@@ -237,6 +242,23 @@ export function Hub({
     const t = window.setInterval(() => { meta.pollBattlePass(Date.now()); meta.pollWeeklyQuest(Date.now()); }, 60_000);
     return () => window.clearInterval(t);
   }, []);
+  // Flash-sale popup (docs/PREMIUM-STORE.md §flash): at most one modal per cadence window,
+  // fired only from the hub (never in-run), never for guests (purchases are disabled). The
+  // shown-stamp lands BEFORE the modal renders, so a refresh can't re-pop it.
+  const [flashOffer, setFlashOffer] = useState<PremiumOfferDef | null>(null);
+  useEffect(() => {
+    if (guest) return;
+    const check = (): void => {
+      const o = meta.flashPopup(Date.now());
+      if (o) {
+        meta.markFlashShown(o.id);
+        setFlashOffer((cur) => cur ?? o);
+      }
+    };
+    check();
+    const t = window.setInterval(check, 60_000);
+    return () => window.clearInterval(t);
+  }, [guest]);
 
   const go = (k: NavKey): void => {
     audio.cue('ui');
@@ -263,6 +285,14 @@ export function Hub({
     <div className="hub">
       <LabAtmosphere />
       <WardrobeReveal />
+      {flashOffer && (
+        <FlashOfferPopup
+          offer={flashOffer}
+          expiresAt={flashExpiresAt(flashOffer, meta.get().premium.flash[flashOffer.id])}
+          onStore={() => { setFlashOffer(null); go('store'); }}
+          onClose={() => { meta.dismissFlashPopup(flashOffer.id); setFlashOffer(null); }}
+        />
+      )}
       {/* Idle Harvest return ceremony (docs/IDLE-HARVEST.md §presentation) — once the screen
           itself has revealed, a ripe hopper greets the returning player (never a bare popup). */}
       {featureRevealed(save, 'harvest') && <HarvestArrival onVisitHarvest={() => go('harvest')} />}
@@ -412,7 +442,7 @@ export function Hub({
           {nav === 'market' && <SpliceMarket />}
           {nav === 'equipment' && <EquipmentPanel />}
           {nav === 'quests' && <QuestBoard />}
-          {nav === 'season' && <BattlePassScreen />}
+          {nav === 'season' && <BattlePassScreen onStore={() => go('store')} />}
           {nav === 'phenotypes' && <Wardrobe />}
           {nav === 'collection' && <CollectionScreen />}
           {nav === 'store' && <PremiumStore />}

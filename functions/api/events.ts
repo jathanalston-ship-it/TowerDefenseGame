@@ -11,12 +11,12 @@ import { rateLimit } from '../lib/rateLimit';
 const BASE_KINDS = new Set([
   'session_start', 'run_start', 'run_end',
   'research_view', 'research_abort', 'research_claim',
-  'store_open', 'checkout_start',
+  'store_open', 'checkout_start', 'flash_popup',
   'account_guest', 'account_register', 'account_login',
   'sync_push', 'sync_pull', 'sync_conflict', 'sync_fail', 'offline_session',
 ]);
 // Detail counters ride a known prefix (e.g. research_claim:core_sample).
-const DETAIL_PREFIXES = ['research_claim:', 'run_end:', 'checkout_start:'];
+const DETAIL_PREFIXES = ['research_claim:', 'run_end:', 'checkout_start:', 'flash_popup:'];
 
 function kindAllowed(kind: string): boolean {
   if (BASE_KINDS.has(kind)) return true;

@@ -114,8 +114,8 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/MULLIGANS.md'],
   },
   {
-    id: 'premium', name: 'Premium Store', purpose: 'Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, and windowed event offers on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).',
-    files: ['src/core/premium.ts', 'src/ui/PremiumStore.tsx'],
+    id: 'premium', name: 'Premium Store', purpose: 'Ethical monetization as pure data: Ichor bundles, permanent packs, one rotating daily pack, windowed event offers, the Season Pass pair (first-ever purchase is the half-price SKU — seasonOfferFor), and one-time milestone FLASH sales (state/flashOffers.ts: achievement-high triggers, first-sight 48h windows, one popup per 72h, eligibility floor, honesty-tested list prices) on a registry; purchases accelerate but never replace gameplay (Power moves zero until invested; money never mints prestige or crosses campaign gates).',
+    files: ['src/core/premium.ts', 'src/state/flashOffers.ts', 'src/ui/PremiumStore.tsx', 'src/ui/components/FlashOfferPopup.tsx'],
     dependsOn: ['content-infra', 'splice-market', 'daily', 'power'], powerScore: 'offerPowerPotential — the honest "up to +N when invested" estimate', save: ['premium'], tutorial: [], help: [],
     hud: [], ui: ['PremiumStore'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/PREMIUM-STORE.md', 'docs/PREMIUM-ECONOMY-REPORT.md'],

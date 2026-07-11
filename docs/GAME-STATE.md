@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 41` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 42` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -576,10 +576,16 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   rule, rollover auto-claim mail), two launch seasons (Crimson Bloom ❁ / Abyssal Tide ≋ —
   unique palette/music re-voice/crown rewards), XP from runs/achievements/expeditions/
   roulette (curve 320+6n ≈ 61.7k total; archetype sims pinned), Ichor level buys, 1 ad
-  level/day, premium via 250 Ichor OR the store `bp_premium` SKU (rebalanced from the
-  1500 draft — §pricing), free taste levels 1/50/99, permanents once-ever (premium ones
-  economy-only) with repeat replacements, infinite Perennial Bloom stack, save v31
-  battlePass record, Season nav screen — BATTLEPASS.md
+  level/day, premium via 250 Ichor OR the store Season Pass door — `bp_premium` $9.99, with
+  the FIRST-ever purchase always the half-price `bp_premium_first` $4.99 SKU (limit 1,
+  `seasonOfferFor` shows exactly one door; store card + pass-screen button) — free taste
+  levels 1/50/99, permanents once-ever (premium ones economy-only) with repeat replacements,
+  infinite Perennial Bloom stack, save v31 battlePass record, Season nav screen — BATTLEPASS.md
+- ✅ **Flash sales (v42)**: 4 one-time milestone bundles ($1.99–$4.99, limit 1, value
+  ×1.4–3.0, honesty-tested list prices) armed at achievement highs (first Mega kill /
+  stage 12 / pass level 5 / first Molt), 48h windows anchored at FIRST SIGHT, one popup
+  per 72h with an eligibility floor (stage 3 + 5 runs), dismissed popups never re-pop
+  (store section keeps the countdown) — state/flashOffers.ts + PREMIUM-STORE.md §flash
 - ✅ **Quests & Missions (the directive layer)**: missions compose quests — a 12-verb
   counted-objective vocabulary (`MissionCond`) credited from finishRun/vault/expeditions/
   roulette/pass-levels into BOTH lanes at once. WEEKLY lane: ring of 3 quests × 6 missions

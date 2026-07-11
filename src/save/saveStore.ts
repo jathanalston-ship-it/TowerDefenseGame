@@ -57,6 +57,9 @@ export interface SaveData {
   //    server receipt ids (Stripe session ids) whose grants were already applied, the client-side
   //    apply-once guard; pendingCheckout — an in-flight redirect checkout to resume/claim on boot
   //    (power loss / refresh / closed-tab recovery). Sandbox purchases never touch either. ──
+  //    v42 adds the FLASH-sale ledger (docs/PREMIUM-STORE.md §flash): flash — per-offer first-sight
+  //    timestamp (anchors the 48h countdown) + dismissed flag (a closed popup never re-pops);
+  //    lastFlashShownAt — the popup cadence limiter (state/flashOffers.ts FLASH.popupCooldownMs). ──
   premium: {
     purchases: Record<string, number>;
     lastRotatingBuyKey: string;
@@ -64,6 +67,8 @@ export interface SaveData {
     totalSpentUsd: number;
     claimedReceipts: string[];
     pendingCheckout: { offerId: string; sessionId: string; startedAt: number } | null;
+    flash: Record<string, { shownAt?: number; dismissed?: boolean }>;
+    lastFlashShownAt: number;
   };
   // ── Field Research ledger (v24, docs/RESEARCH.md) — the optional rewarded-ad lane.
   //    day: the UTC key the daily counters belong to (stale day ⇒ counters read as 0 and are
@@ -401,7 +406,10 @@ export interface TutorialSave {
 // unlocked + lifetime adaptation/resonance ledgers): the champion wing of the Mulligan pillar.
 // Empty ⇒ identity fold (golden-safe).
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 41;
+// v41→v42: premium.flash (per-offer first-sight/dismiss ledger) + premium.lastFlashShownAt
+// (popup cadence limiter) — docs/PREMIUM-STORE.md §flash. Empty ledger ⇒ no flash offer has
+// been seen; purely additive (sanitizePremium deep-fills older saves).
+export const CURRENT_VERSION = 42;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -652,7 +660,7 @@ export function defaultSave(): SaveData {
     expeditions: { active: [], mastery: {} },
     infestation: { target: null, sectors: {} },
     patchNotes: { seen: '', optOut: false },
-    premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null },
+    premium: { purchases: {}, lastRotatingBuyKey: '', seenKey: '', totalSpentUsd: 0, claimedReceipts: [], pendingCheckout: null, flash: {}, lastFlashShownAt: 0 },
     totalRuns: 0,
     lifetimeShards: 0,
     cardsSeen: 0,
@@ -1468,6 +1476,20 @@ function sanitizePremium(raw: unknown): SaveData['premium'] {
     pc && typeof pc.offerId === 'string' && typeof pc.sessionId === 'string' && pc.sessionId.length <= 200
       ? { offerId: pc.offerId.slice(0, 64), sessionId: pc.sessionId, startedAt: Math.max(0, Number(pc.startedAt) || 0) }
       : null;
+  // v42: flash-sale ledger — bounded ids, timestamps coerced; junk slots simply drop
+  // (a lost slot re-anchors at next sight — never a lost purchase, purchases live above).
+  const flash: SaveData['premium']['flash'] = {};
+  if (typeof o.flash === 'object' && o.flash !== null) {
+    for (const [k, v] of Object.entries(o.flash as Record<string, unknown>)) {
+      if (k.length === 0 || k.length > 64 || typeof v !== 'object' || v === null) continue;
+      const s = v as { shownAt?: unknown; dismissed?: unknown };
+      const slot: SaveData['premium']['flash'][string] = {};
+      const at = Number(s.shownAt);
+      if (Number.isFinite(at) && at > 0) slot.shownAt = at;
+      if (s.dismissed === true) slot.dismissed = true;
+      if (slot.shownAt !== undefined || slot.dismissed) flash[k] = slot;
+    }
+  }
   return {
     purchases,
     lastRotatingBuyKey: key(o.lastRotatingBuyKey),
@@ -1475,6 +1497,8 @@ function sanitizePremium(raw: unknown): SaveData['premium'] {
     totalSpentUsd: Math.max(0, Number(o.totalSpentUsd) || 0),
     claimedReceipts,
     pendingCheckout,
+    flash,
+    lastFlashShownAt: Math.max(0, Number(o.lastFlashShownAt) || 0),
   };
 }
 

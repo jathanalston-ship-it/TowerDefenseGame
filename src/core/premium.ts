@@ -39,7 +39,15 @@ export type PremiumGrant =
   | { grant: 'battlePassPremium' }; // unlock the CURRENT season's premium track (docs/BATTLEPASS.md)
 
 // ── The offer definition ──────────────────────────────────────────────────────
-export type PremiumOfferKind = 'ichor' | 'permanent' | 'rotating' | 'event' | 'season';
+export type PremiumOfferKind = 'ichor' | 'permanent' | 'rotating' | 'event' | 'season' | 'flash';
+
+/** What arms a FLASH offer (state/flashOffers.ts evaluates these against the save — the
+ *  data stays here so functions/ prices the SKUs; the popup/status machine is client-only). */
+export type FlashTrigger =
+  | { kind: 'stage'; stage: number } // clear campaign stage N
+  | { kind: 'megas'; count: number } // distinct Mega Bosses slain
+  | { kind: 'passLevel'; level: number } // reach Season Pass level N (any season)
+  | { kind: 'molts'; count: number }; // lifetime prestige Molts
 
 export interface PremiumOfferDef {
   id: string;
@@ -48,6 +56,10 @@ export interface PremiumOfferDef {
   tagline: string; // one-line pitch under the name
   audience?: string; // who it's designed for ("New players", "Mid-game", …)
   priceUsd: number; // display price — the charge itself happens at the provider seam
+  /** Struck-through "was" price for SALE SKUs (first-season pass, flash bundles). HONESTY RULE
+   *  (premium.test.ts): never above the goods' real à-la-carte worth (offerValueIchor at the
+   *  base rate) — a sale compares against what the contents actually cost, not a made-up anchor. */
+  listUsd?: number;
   grants: PremiumGrant[];
   baseIchor?: number; // ichor bundles: the base amount (bonus on top, in `grants`)
   bonusPct?: number; // ichor bundles: the displayed bonus percentage
@@ -55,6 +67,10 @@ export interface PremiumOfferDef {
   oncePerDay?: boolean; // rotating packs: one purchase per UTC day it appears
   rotationIndex?: number; // rotating packs: slot in the daily rotation ring (0..n-1)
   window?: { from: string; to: string }; // event offers: inclusive ISO-date window (UTC)
+  /** Flash offers: the milestone that arms it + how long it stays live once first SEEN
+   *  (the countdown anchors at first sight, never at the trigger — stepping away between
+   *  sessions can't silently burn the window). Timing/cadence rules: state/flashOffers.ts. */
+  flash?: { trigger: FlashTrigger; hours: number };
   accent: string; // card accent (CSS color)
   art: string; // procedural card glyph
 }
@@ -70,6 +86,13 @@ export const premiumRegistry = new Registry<PremiumOfferDef>('premiumOffer', {
     if (d.kind === 'rotating' && d.rotationIndex === undefined) out.push('rotating packs need rotationIndex');
     if (d.kind === 'event' && !d.window) out.push('event offers need a date window');
     if (d.kind === 'season' && !d.grants.some((g) => g.grant === 'battlePassPremium')) out.push('season offers must grant battlePassPremium');
+    if (d.kind === 'flash') {
+      if (!d.flash) out.push('flash offers need a trigger + window (flash config)');
+      if (d.limit !== 1) out.push('flash offers must be limit: 1 (one-time by contract)');
+      if (d.priceUsd > 5) out.push('flash offers must stay cheap (≤ $5 by contract)');
+      if (d.listUsd === undefined || d.listUsd <= d.priceUsd) out.push('flash offers must carry a real listUsd above the sale price');
+    }
+    if (d.listUsd !== undefined && d.listUsd <= d.priceUsd) out.push('listUsd must exceed priceUsd (a sale must be a sale)');
     return out;
   },
 });
@@ -203,8 +226,67 @@ export const SEASON_PASS_OFFER: PremiumOfferDef = {
   grants: [{ grant: 'battlePassPremium' }],
 };
 
-export const PREMIUM_OFFERS: PremiumOfferDef[] = [...ICHOR_BUNDLES, ...PERMANENT_PACKS, ...ROTATING_PACKS, SEASON_PASS_OFFER];
+/** The FIRST-EVER season purchase is half price (limit 1, lifetime). While unclaimed it REPLACES
+ *  the full-price SKU in every surface (meta.seasonOfferFor) — a new spender always gets the deal;
+ *  accounts that already bought `bp_premium` at full price aren't first-timers and never see it.
+ *  Separate SKU on purpose: functions/ prices checkout by id from this shared catalog, so the
+ *  sale needs zero server changes and the fulfillment ledger enforces limit-1 server-side. */
+export const SEASON_PASS_FIRST_OFFER: PremiumOfferDef = {
+  id: 'bp_premium_first', kind: 'season', limit: 1,
+  name: 'Season Pass — First Season', tagline: 'Your first premium season, half price. Once ever.',
+  audience: 'First-time buyers', priceUsd: 4.99, listUsd: 9.99, accent: 'var(--gold)', art: '❁',
+  grants: [{ grant: 'battlePassPremium' }],
+};
+
+// ── Flash sales — one-time pop-up bundles armed by MILESTONES (docs/PREMIUM-STORE.md §flash) ──
+// Each fires at an achievement HIGH and sells goods matched to what the player is doing next.
+// Contract (validator + premium.test.ts): limit 1, ≤ $5, a real listUsd (never above the goods'
+// à-la-carte worth), value inside the same ≥×1.4/≤×3.0 pack bounds. Timing/cadence rules —
+// eligibility floor, one-popup-at-a-time, 72h cooldown, 48h first-sight window — live in
+// state/flashOffers.ts (client-only); the rows stay HERE so functions/ prices the SKUs.
+export const FLASH_OFFERS: PremiumOfferDef[] = [
+  {
+    id: 'flash_first_hunt', kind: 'flash', limit: 1,
+    name: 'First Hunt Cache', tagline: 'The first Mega falls — the market takes notice.',
+    audience: 'One-time offer', priceUsd: 1.99, listUsd: 3.99, accent: 'var(--caustic)', art: '☄',
+    flash: { trigger: { kind: 'megas', count: 1 }, hours: 48 },
+    grants: [{ grant: 'ichor', qty: 40 }, { grant: 'container', rarity: 'rare', count: 1 }, { grant: 'geneEssence', qty: 50 }],
+  },
+  {
+    id: 'flash_season_spark', kind: 'flash', limit: 1,
+    name: 'Season Spark', tagline: 'Five levels deep — fuel for the climb ahead.',
+    audience: 'One-time offer', priceUsd: 2.99, listUsd: 6.99, accent: 'var(--gold)', art: '❁',
+    flash: { trigger: { kind: 'passLevel', level: 5 }, hours: 48 },
+    grants: [{ grant: 'ichor', qty: 70 }, { grant: 'container', rarity: 'epic', count: 1 }, { grant: 'runCache', count: 1 }],
+  },
+  {
+    id: 'flash_deep_roots', kind: 'flash', limit: 1,
+    name: 'Deep Roots Bundle', tagline: 'Stage 12 cleared — grow the arsenal that got you here.',
+    audience: 'One-time offer', priceUsd: 3.99, listUsd: 8.99, accent: 'var(--kinetic)', art: '⟁',
+    flash: { trigger: { kind: 'stage', stage: 12 }, hours: 48 },
+    grants: [{ grant: 'towerShardsAll', qtyEach: 20 }, { grant: 'cores', qty: 200 }, { grant: 'container', rarity: 'epic', count: 2 }, { grant: 'ichor', qty: 60 }],
+  },
+  {
+    id: 'flash_molt_gift', kind: 'flash', limit: 1,
+    name: 'Molt Celebration', tagline: 'The organism sheds its skin — a gift for the new form.',
+    audience: 'One-time offer', priceUsd: 4.99, listUsd: 10.99, accent: 'var(--viral)', art: '♻',
+    flash: { trigger: { kind: 'molts', count: 1 }, hours: 48 },
+    grants: [{ grant: 'ichor', qty: 120 }, { grant: 'container', rarity: 'legendary', count: 1 }, { grant: 'mats', mutagen: 8, scrap: 20, catalyst: 6 }, { grant: 'geneEssence', qty: 100 }],
+  },
+];
+
+export const PREMIUM_OFFERS: PremiumOfferDef[] = [
+  ...ICHOR_BUNDLES, ...PERMANENT_PACKS, ...ROTATING_PACKS, SEASON_PASS_OFFER, SEASON_PASS_FIRST_OFFER, ...FLASH_OFFERS,
+];
 premiumRegistry.registerAll(PREMIUM_OFFERS);
+
+/** The season SKU an account should SEE and buy: the half-price first-timer SKU while it's
+ *  unclaimed (and no full-price purchase exists), the standard SKU after. One source of truth
+ *  for the store card, the pass-screen door, and meta availability. */
+export function seasonOfferFor(purchases: Record<string, number>): PremiumOfferDef {
+  const first = (purchases[SEASON_PASS_FIRST_OFFER.id] ?? 0) === 0 && (purchases[SEASON_PASS_OFFER.id] ?? 0) === 0;
+  return first ? SEASON_PASS_FIRST_OFFER : SEASON_PASS_OFFER;
+}
 
 // ── Availability ──────────────────────────────────────────────────────────────
 /** The rotating pack visible on a given UTC day key — ONE of the ring, rotating every 24h.
@@ -220,7 +302,9 @@ export function activeEventOffers(key: string): PremiumOfferDef[] {
   return premiumRegistry.all().filter((o) => o.kind === 'event' && o.window && o.window.from <= key && key <= o.window.to);
 }
 
-/** Whether `offer` is purchasable on `key` given the account's purchase ledger. */
+/** Whether `offer` is purchasable on `key` given the account's purchase ledger.
+ *  PURE layer only — season SKUs additionally gate on premium-owned-this-window and flash
+ *  SKUs on their trigger/first-sight window (both need the save: meta.offerPurchasable). */
 export function offerAvailable(offer: PremiumOfferDef, key: string, purchases: Record<string, number>, lastDayBought?: string): boolean {
   if (offer.limit !== undefined && (purchases[offer.id] ?? 0) >= offer.limit) return false;
   if (offer.kind === 'rotating') {
@@ -228,6 +312,9 @@ export function offerAvailable(offer: PremiumOfferDef, key: string, purchases: R
     if (offer.oncePerDay && lastDayBought === key) return false;
   }
   if (offer.kind === 'event') return activeEventOffers(key).some((o) => o.id === offer.id);
+  // The season pair shows exactly ONE door: the half-price first-timer SKU until it's spent,
+  // the standard SKU after — the full price is never charged to a first-time buyer.
+  if (offer.kind === 'season' && seasonOfferFor(purchases).id !== offer.id) return false;
   return true;
 }
 

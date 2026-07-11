@@ -14,16 +14,17 @@ import { CHECKOUT_PROVIDER, beginCheckout, takePendingReveal } from '../net/chec
 import { trackEvent } from '../net/events';
 import {
   ICHOR_BUNDLES, PERMANENT_PACKS, activeEventOffers, offerAvailable, offerValueIchor,
-  offerValueMultiple, todaysRotatingOffer,
+  offerValueMultiple, seasonOfferFor, todaysRotatingOffer,
 } from '../core/premium';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
+import { flashOverview, flashSalePct, flashTriggerLabel } from '../state/flashOffers';
 import { dailyKey, msUntilDailyReset } from '../core/daily';
 import { rarityColor } from './components/ItemArt';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { Popup } from './components/Popup';
 
-const fmtUsd = (v: number): string => `$${v.toFixed(2)}`;
-function fmtCountdown(ms: number): string {
+export const fmtUsd = (v: number): string => `$${v.toFixed(2)}`;
+export function fmtCountdown(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   return `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}m`;
 }
@@ -42,7 +43,7 @@ function storeErrorCopy(code: string): string {
   }
 }
 
-function grantLine(g: PremiumGrant): { icon: string; label: string; rarity?: string } {
+export function grantLine(g: PremiumGrant): { icon: string; label: string; rarity?: string } {
   switch (g.grant) {
     case 'ichor': return { icon: '◆', label: `${g.qty} Ichor` };
     case 'cores': return { icon: '⬡', label: `${g.qty} Genome Cores` };
@@ -82,6 +83,7 @@ function OfferCard({ offer, unavailable, note, hero, onBuy }: {
           })}
         </div>
         <div className="ps-meta">
+          {offer.listUsd !== undefined && <span className="ps-sale-chip">−{flashSalePct(offer)}%</span>}
           {offer.kind === 'ichor'
             ? <span className={`ps-bonus${(offer.bonusPct ?? 0) > 0 ? ' on' : ''}`}>{(offer.bonusPct ?? 0) > 0 ? `+${offer.bonusPct}% bonus` : 'base rate'}</span>
             : <span className="ps-bonus on">×{mult.toFixed(1)} value</span>}
@@ -92,6 +94,7 @@ function OfferCard({ offer, unavailable, note, hero, onBuy }: {
       <div className="ps-buy">
         {note && <span className="ps-note">{note}</span>}
         <button className="ps-btn" disabled={unavailable} onClick={() => { audio.cue('ui'); onBuy(offer); }}>
+          {offer.listUsd !== undefined && <s className="ps-was">{fmtUsd(offer.listUsd)}</s>}
           {fmtUsd(offer.priceUsd)}
         </button>
       </div>
@@ -192,9 +195,15 @@ export function PremiumStore(): JSX.Element {
   // boot) plays its reveal ceremony the next time the store opens.
   useEffect(() => {
     trackEvent('store_open');
+    meta.markFlashSeen(); // armed flash sales anchor their countdown at this first sighting
     const r = takePendingReveal();
     if (r) { audio.cue('draft'); setReceipt(r); }
   }, []);
+  // Season pass: ONE door — the half-price first-timer SKU until spent, standard after.
+  const seasonSku = seasonOfferFor(save.premium.purchases);
+  const premiumOwned = save.battlePass.premium;
+  // Flash sales visible this second: live windows tick down; expired/owned drop off.
+  const flash = flashOverview(save, Date.now()).filter((f) => f.status === 'live');
   const buy = (o: PremiumOfferDef): void => { if (guest) return; setError(null); setConfirm(o); };
   const doPurchase = (): void => {
     if (!confirm || busy || guest) return; // guest gate covers the sandbox grant path too
@@ -229,6 +238,33 @@ export function PremiumStore(): JSX.Element {
           (your session progress converts with it).
         </div>
       )}
+
+      {/* Flash sales — one-time milestone offers, live countdown */}
+      {flash.length > 0 && (
+        <>
+          <div className="ps-section-h">⚡ Flash Sale <span className="ps-rot">one-time offers — they do not return</span></div>
+          <div className="ps-row">
+            {flash.map((f) => (
+              <OfferCard key={f.offer.id} offer={f.offer} hero
+                unavailable={guest}
+                note={`${f.offer.flash ? flashTriggerLabel(f.offer.flash.trigger) + ' · ' : ''}ends in ${fmtCountdown((f.expiresAt ?? 0) - Date.now())}`}
+                onBuy={buy} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Season Pass — the premium track's real-money door (docs/BATTLEPASS.md §pricing) */}
+      <div className="ps-section-h">Season Pass <span className="ps-rot">{premiumOwned ? 'premium active this season' : seasonSku.listUsd !== undefined ? 'first season — half price, once ever' : 'once per season'}</span></div>
+      <div className="ps-row">
+        {/* Pure availability only in render (offerPurchasable polls the pass window — a write):
+            seasonOfferFor already picked the limit-eligible SKU, so "owned this window" is the
+            one remaining gate here; the purchase pipeline re-checks strictly at buy time. */}
+        <OfferCard offer={seasonSku} hero
+          unavailable={guest || premiumOwned}
+          note={premiumOwned ? 'Premium active ✓' : seasonSku.audience}
+          onBuy={buy} />
+      </div>
 
       {/* Today's limited pack + live events */}
       <div className="ps-section-h">Today’s Limited Pack <span className="ps-rot">rotates in {fmtCountdown(msUntilDailyReset())}</span></div>

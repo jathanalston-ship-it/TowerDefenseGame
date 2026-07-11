@@ -2,8 +2,11 @@
 
 The Premium Store is ASSIMILATE's monetization layer: a permanent Hub tab (its own nav group —
 visibly **separate from gameplay progression**) selling Ichor bundles, two permanent packs, one
-rotating daily pack, and time-windowed event offers. Everything is a row on a **registry**
-(`src/core/premium.ts`); the screen (`src/ui/PremiumStore.tsx`) renders whatever is registered.
+rotating daily pack, time-windowed event offers, the **Season Pass pair** (§season), and one-time
+milestone **flash sales** (§flash). Everything is a row on a **registry** (`src/core/premium.ts`);
+the screen (`src/ui/PremiumStore.tsx`) renders whatever is registered. Flash TIMING (triggers,
+first-sight windows, popup cadence) is client-only logic in `src/state/flashOffers.ts` — the SKU
+rows stay in the shared catalog so `functions/` prices checkout without changes.
 
 **The contract: purchases accelerate, they never replace gameplay.** Enforced in code
 (`state/premiumSafeguards.test.ts` + the grant-type system), not just policy:
@@ -42,6 +45,33 @@ crafting mats, Gene Essence, Cores; ×1.44 value).
 **Rotating packs** ($9.99, exactly ONE visible per UTC day, once-per-day purchase): Tower Research
 / Hero Enhancement / Equipment Forge bundles, each targeting **~×1.65 value** with a hard theme.
 Rotation is seeded off the day key (`todaysRotatingOffer`), countdown shown live.
+
+**Season Pass (§season)** — the premium track's real-money door, TWO SKUs, one shown at a time
+(`seasonOfferFor`): the **first-ever** season purchase is always `bp_premium_first` — **$4.99,
+half price, once per account** (limit 1, server-enforced from the fulfillment ledger) — and the
+standard `bp_premium` **$9.99** takes over from the second season on. Accounts that already paid
+full price are not first-timers and never see the sale. Both set the SAME per-window flag the
+250-Ichor door sets (docs/BATTLEPASS.md §pricing); while premium is owned this window, neither
+door sells (`meta.offerPurchasable`). Surfaces: a store Season section + the pass screen's
+"or $X in the Store" button.
+
+**Flash sales (§flash)** — one-time pop-up bundles ($1.99–$4.99, `limit: 1`) armed by MILESTONE
+triggers at achievement highs, with goods matched to what the player is doing next:
+
+| SKU | Price (was) | Trigger | Contents |
+|---|---|---|---|
+| First Hunt Cache | $1.99 ($3.99) | first Mega Boss slain | 40 Ichor · rare container · 50 Essence |
+| Season Spark | $2.99 ($6.99) | Season Pass level 5 | 70 Ichor · epic container · Run Cache |
+| Deep Roots Bundle | $3.99 ($8.99) | Campaign Stage 12 cleared | 20 Strain Samples ×all · 200 Cores · 2 epic containers · 60 Ichor |
+| Molt Celebration | $4.99 ($10.99) | first Molt | 120 Ichor · legendary container · mats · 100 Essence |
+
+**Timing rules** (`state/flashOffers.ts`, tested): no popup before the eligibility floor
+(**stage 3 + 5 runs** — the game proves itself first); **one popup per 72h**, one live sale at a
+time, backlog drains in catalog order; the **48h countdown anchors at FIRST SIGHT** (popup or
+store visit — a window never burns unseen); a dismissed popup **never re-pops** (the store's
+Flash section keeps the countdown). **Honesty rules** (validator + tests): `listUsd` (the struck
+"was" price) may never exceed the goods' real à-la-carte worth; flash value sits in the same
+≥×1.4 / ≤×3.0 pack window; every flash SKU is `limit: 1` and ≤ $5 **by construction**.
 
 **Value model** (`offerValueIchor` / `offerValueMultiple`): every grant converts to Ichor-equivalents
 at the LIVE Splice-Market prices — one table drives the card badges, the ≥×1.4 / ≤×3.0 test bounds

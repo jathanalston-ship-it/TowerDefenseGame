@@ -10,6 +10,7 @@ import { meta } from '../state/meta';
 import type { BattlePassView } from '../state/meta';
 import { BP, rewardLabel } from '../core/battlePass';
 import type { PassReward } from '../core/battlePass';
+import { seasonOfferFor } from '../core/premium';
 import { wardrobeItem, WARDROBE_RARITY_COLOR } from '../core/wardrobe';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
@@ -80,8 +81,8 @@ function Cell({ level, track, view, selected, onSelect, onClaim }: {
   );
 }
 
-export function BattlePassScreen(): JSX.Element {
-  meta.use(); // re-render on claims / xp
+export function BattlePassScreen({ onStore }: { onStore?: () => void } = {}): JSX.Element {
+  const save = meta.use(); // re-render on claims / xp
   const [now, setNow] = useState(() => Date.now());
   const [sel, setSel] = useState<number | null>(null);
   const [receipt, setReceipt] = useState<{ icon: string; label: string }[] | null>(null);
@@ -185,6 +186,15 @@ export function BattlePassScreen(): JSX.Element {
           <button className="primary bp-unlock" disabled={meta.get().ichor < BP.premiumIchor} onClick={() => { if (meta.buyPassPremium(Date.now())) audio.cue('jackpot'); }}>
             Unlock · <CurrencyIcon id="ichor" size={13} title="" /> {BP.premiumIchor}
           </button>
+          {onStore && (() => {
+            // The real-money door — the SAME flag through the store (docs/BATTLEPASS.md §pricing).
+            const sku = seasonOfferFor(save.premium.purchases);
+            return (
+              <button className="bp-unlock-usd" onClick={() => { audio.cue('ui'); onStore(); }}>
+                or ${sku.priceUsd.toFixed(2)} in the Store{sku.listUsd !== undefined ? ' · first season −50%' : ''}
+              </button>
+            );
+          })()}
         </div>
       )}
 

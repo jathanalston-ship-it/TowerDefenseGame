@@ -5,9 +5,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { towerShardPool, meta } from './meta';
-import { ICHOR_BUNDLES, PERMANENT_PACKS, ROTATING_PACKS, todaysRotatingOffer } from '../core/premium';
+import { FLASH_OFFERS, ICHOR_BUNDLES, PERMANENT_PACKS, ROTATING_PACKS, todaysRotatingOffer } from '../core/premium';
 import { RARITY_ORDER, itemDef } from '../core/equipment';
 import { dailyKey } from '../core/daily';
+import { defaultSave, serializeExport } from '../save/saveStore';
 
 const NOW = new Date('2026-07-07T12:00:00Z');
 const KEY = dailyKey(NOW);
@@ -110,5 +111,60 @@ describe('availability rules bind in the pipeline', () => {
     }
     meta.reset();
     expect(meta.purchaseOffer(todaysRotatingOffer(KEY).id, NOW)).not.toBeNull();
+  });
+});
+
+describe('season pair + flash SKUs in the pipeline (docs/PREMIUM-STORE.md §flash, §season)', () => {
+  it('the first-ever season purchase is the $4.99 sale; full price only opens after; owned premium blocks both doors', () => {
+    meta.reset();
+    expect(meta.purchaseOffer('bp_premium', NOW)).toBeNull(); // the sale IS the first-timer's door
+    const r = meta.purchaseOffer('bp_premium_first', NOW);
+    expect(r).not.toBeNull();
+    expect(meta.get().premium.totalSpentUsd).toBeCloseTo(4.99, 2); // charged the SALE price
+    expect(meta.get().battlePass.premium).toBe(true);
+    // Premium already owned this window: neither door re-sells the same flag.
+    expect(meta.purchaseOffer('bp_premium', NOW)).toBeNull();
+    expect(meta.purchaseOffer('bp_premium_first', NOW)).toBeNull(); // also lifetime limit 1
+  });
+
+  it('a flash SKU refuses while locked/unseen, sells once inside its live window, then never again', () => {
+    meta.reset();
+    const offer = FLASH_OFFERS[0]; // first_hunt — trigger: first Mega Boss
+    const nowMs = NOW.getTime();
+    expect(meta.purchaseOffer(offer.id, NOW)).toBeNull(); // locked: trigger unmet
+    // Seed the milestone through the normal import pipeline (sanitizer-legal).
+    const seeded = { ...defaultSave(), megaProgress: { ...defaultSave().megaProgress, slain: ['alpha'] } };
+    expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
+    expect(meta.purchaseOffer(offer.id, NOW)).toBeNull(); // ready but UNSEEN — countdown hasn't started
+    meta.markFlashShown(offer.id, nowMs); // the popup fired
+    expect(meta.get().premium.flash[offer.id]?.shownAt).toBe(nowMs);
+    expect(meta.get().premium.lastFlashShownAt).toBe(nowMs);
+    const r = meta.purchaseOffer(offer.id, NOW);
+    expect(r).not.toBeNull();
+    expect(r!.lines.length).toBeGreaterThan(0);
+    expect(meta.get().premium.purchases[offer.id]).toBe(1);
+    expect(meta.purchaseOffer(offer.id, NOW)).toBeNull(); // one-time, forever
+  });
+
+  it('an expired window refuses the sale (the countdown is real)', () => {
+    meta.reset();
+    const offer = FLASH_OFFERS[0];
+    const seeded = { ...defaultSave(), megaProgress: { ...defaultSave().megaProgress, slain: ['alpha'] } };
+    expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
+    const shownAt = NOW.getTime() - (offer.flash!.hours * 3_600_000 + 60_000); // burned an hour ago
+    meta.markFlashShown(offer.id, shownAt);
+    expect(meta.purchaseOffer(offer.id, NOW)).toBeNull();
+  });
+
+  it('dismissing a popup never re-pops it; the store sighting is idempotent', () => {
+    meta.reset();
+    const seeded = { ...defaultSave(), megaProgress: { ...defaultSave().megaProgress, slain: ['alpha'] } };
+    expect(meta.importText(serializeExport(seeded)).ok).toBe(true);
+    meta.markFlashShown('flash_first_hunt', NOW.getTime());
+    meta.dismissFlashPopup('flash_first_hunt');
+    expect(meta.get().premium.flash.flash_first_hunt?.dismissed).toBe(true);
+    const anchor = meta.get().premium.flash.flash_first_hunt?.shownAt;
+    meta.markFlashSeen(NOW.getTime() + 1000); // a later store visit must NOT re-anchor the window
+    expect(meta.get().premium.flash.flash_first_hunt?.shownAt).toBe(anchor);
   });
 });
