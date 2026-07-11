@@ -26,7 +26,7 @@ import type { SigilDef } from '../core/identity';
 import { ACHIEVEMENTS, achievementById } from './achievements';
 import type { AchievementDef } from './achievements';
 import { favoriteTowerName } from './stats';
-import { accountPowerParts, collectionContextOf } from './meta';
+import { accountPowerParts, collectionContextOf, totalPrimeLevels } from './meta';
 import { highestCampaignStage } from '../save/derive';
 import { difficultyPref, vaultLedger } from './prefs';
 import { nextRushIchorAt } from '../core/market';
@@ -169,13 +169,17 @@ profileRegistry.registerAll([
     id: 'collection-core', section: 'collection', order: 10,
     stats: (s) => {
       const cv = collectionView(collectionContextOf(s));
-      return cv.categories.map((c) => ({
+      const rows: ProfileStat[] = cv.categories.map((c) => ({
         id: `col-${c.id}`,
         label: c.name,
         value: `${c.discovered} / ${c.total}`,
         progress: pctOf(c.discovered, c.total),
         hint: `${c.rank} rank · ${Math.round(c.completion * 100)}% tier-weighted completion.`,
       }));
+      // PRIME STRAINS (docs/PRIME-STRAINS.md) — the account's total infinite-ladder depth.
+      const prime = totalPrimeLevels(s);
+      if (prime > 0) rows.push({ id: 'prime-levels', label: 'Prime Levels', value: num(prime), color: 'var(--gold)', hint: 'Prime Strain levels bought past max Stars, across every tower and hero.' });
+      return rows;
     },
   },
   {

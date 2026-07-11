@@ -6,15 +6,27 @@ import { CARD_POOL, cardSubject } from '../core/cards';
 import { MASTERY, STAR, STAR_MILESTONES, TOWER_DEFS, TOWER_ORDER, nextEvolutionUnlock, nextStarMutationTier } from '../core/config';
 import { MASTERY_RANK_EVERY, masteryRankTitle, masteryTrackRegistry, nextMasteryUnlock } from '../core/mastery';
 import type { MasteryRewardKind } from '../core/mastery';
+import { primeBonusPct, primeNextGainPct } from '../core/prime';
 import { forksOf, isFork, stepAt } from '../core/stars';
 import type { StarStep } from '../core/stars';
-import { evolutionStarCap, highestCampaignStage, masteryProgress, nextStarCost, towerProgress } from '../state/meta';
+import { evolutionStarCap, highestCampaignStage, masteryProgress, nextStarCost, nextTowerPrimeCost, towerProgress } from '../state/meta';
 import type { SaveData } from '../save/saveStore';
 import type { TowerKind } from '../core/types';
 
 type TowerStats = ReturnType<typeof towerProgress>[TowerKind];
 
 export interface StepView { star: number; name: string; desc: string; isFork: boolean; ascension?: boolean }
+
+/** PRIME ladder panel state (docs/PRIME-STRAINS.md) — null while the ★ ladder is unfinished. */
+export interface PrimeView {
+  level: number;
+  shards: number; // next level's shard price
+  catalyst: number; // Catalyst the next level ALSO consumes (0 below the first tier)
+  catalystHave: number;
+  affordable: boolean; // shards AND catalyst covered
+  bonusPct: number; // the curve's current total bonus (display, 1dp)
+  nextGainPct: number; // what the NEXT level adds — the honest diminishing readout (2dp)
+}
 export interface TowerLabModel {
   kind: TowerKind;
   name: string;
@@ -48,6 +60,7 @@ export interface TowerLabModel {
   campaignStage: number; // highest Campaign stage cleared (progress toward the next cap)
   capUnlock: { stage: number; maxStar: number } | null; // the stage that lifts the cap for the next star
   nextVisualMutation: { at: number; name: string; desc: string } | null; // upcoming visual generation
+  prime: PrimeView | null; // the PRIME ladder once ★max (docs/PRIME-STRAINS.md); null before
 }
 
 /** Resolve a star step's display (forks show the player's chosen option). */
@@ -165,6 +178,19 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
   const capLocked = !maxed && stars >= evolutionCap;
   const capUnlock = capLocked ? nextEvolutionUnlock(stars) : null;
 
+  // PRIME ladder (docs/PRIME-STRAINS.md) — opens the moment the ★ ladder finishes.
+  const primeQuote = nextTowerPrimeCost(save, kind);
+  const primeLevel = save.towerPrime?.[kind] ?? 0;
+  const prime: PrimeView | null = primeQuote === null ? null : {
+    level: primeLevel,
+    shards: primeQuote.shards,
+    catalyst: primeQuote.catalyst,
+    catalystHave: save.mats.catalyst,
+    affordable: !locked && shards >= primeQuote.shards && save.mats.catalyst >= primeQuote.catalyst,
+    bonusPct: primeBonusPct(primeLevel),
+    nextGainPct: primeNextGainPct(primeLevel),
+  };
+
   return {
     kind,
     name: def.name,
@@ -195,6 +221,7 @@ export function towerLabModel(save: SaveData, kind: TowerKind, prog: TowerStats)
     campaignStage,
     capUnlock,
     nextVisualMutation: maxed ? null : nextStarMutationTier(stars),
+    prime,
   };
 }
 
@@ -228,10 +255,12 @@ export function labRoster(
   powerOf: (k: TowerKind) => number,
 ): TowerKind[] {
   const q = filters.query.trim().toLowerCase();
+  // "Upgradeable" includes an affordable PRIME level on a maxed tower (docs/PRIME-STRAINS.md).
+  const canBuy = (m: TowerLabModel): boolean => m.affordable || (m.prime?.affordable ?? false);
   let kinds = TOWER_ORDER.filter((k) => {
     const m = models[k];
     if (filters.favoritesOnly && !favorites.has(k)) return false;
-    if (filters.upgradeableOnly && !m.affordable) return false;
+    if (filters.upgradeableOnly && !canBuy(m)) return false;
     if (!q) return true;
     return `${m.name} ${m.combatClass} ${m.specialization}`.toLowerCase().includes(q);
   });
@@ -242,7 +271,7 @@ export function labRoster(
   else if (sort === 'stars') by((k) => models[k].stars);
   else if (sort === 'mastery') by((k) => models[k].mastery.level);
   else if (sort === 'recent') by((k) => recents[k] ?? 0);
-  else if (sort === 'upgradeable') by((k) => (models[k].affordable ? 1 : 0));
+  else if (sort === 'upgradeable') by((k) => (canBuy(models[k]) ? 1 : 0));
   // Favorites always lead within the chosen order (curation beats sorting).
   return kinds.slice().sort((a, b) => Number(favorites.has(b)) - Number(favorites.has(a)));
 }

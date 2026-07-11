@@ -130,7 +130,7 @@ export const SECURITY_ACTIONS: Record<string, ActionPolicy> = {
   // ── Permanent progression ──
   'progress.star': {
     id: 'progress.star', category: 'progression', level: 'moderate', limit: M(), dedupeMs: 600,
-    analytics: 'sec_star', doc: 'Tower/Hero star evolution purchases.', at: META,
+    analytics: 'sec_star', doc: 'Tower/Hero star evolution + Prime Strain ladder purchases (docs/PRIME-STRAINS.md).', at: META,
   },
   'progress.unlock': {
     id: 'progress.unlock', category: 'progression', level: 'moderate', limit: M(), dedupeMs: 800,
@@ -230,6 +230,8 @@ export const GUARDED_META_METHODS: Record<string, string> = {
   buyWardrobeItem: 'wardrobe.buy',
   buyStar: 'progress.star',
   buyHeroStar: 'progress.star',
+  buyTowerPrime: 'progress.star',
+  buyHeroPrime: 'progress.star',
   unlockTower: 'progress.unlock',
   unlockHero: 'progress.unlock',
   buyUpgrade: 'progress.upgrade',

@@ -24,6 +24,10 @@
     "items": [
       {
         "cat": "Gameplay",
+        "text": "★ New system: Daily Bio-Cache (login streak)"
+      },
+      {
+        "cat": "Gameplay",
         "text": "★ New system: Nucleus Mulligans"
       },
       {
@@ -369,6 +373,30 @@
       {
         "cat": "Towers",
         "text": "Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)"
+      },
+      {
+        "cat": "Towers",
+        "text": "Chronicle + site sync for the Nucleus Mulligans batch"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v36)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "Daily Bio-Cache: the infinite compounding login streak (save v38)"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v38)"
+      },
+      {
+        "cat": "UX",
+        "text": "THE COMMISSIONING — account creation as a ceremony at tutorial completion"
+      },
+      {
+        "cat": "Gameplay",
+        "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)"
       }
     ]
   },

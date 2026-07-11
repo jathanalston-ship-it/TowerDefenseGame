@@ -24,6 +24,7 @@ import { EMERGENCY_PICKS, RESEARCH, activeResearchRewards, researchDayKey, resea
 import type { EmergencyPick, ResearchBoost, ResearchCategory, ResearchRewardDef } from '../core/research';
 import type { PremiumGrant, PremiumOfferDef } from '../core/premium';
 import type { HeroForkTier, HeroUnlockReq, LootRarity, ResolvedHeroKit, UpgradeDef } from '../core/config';
+import { primeCatalystCost, primeCost, primeMult } from '../core/prime';
 import type {
   HeroKind,
   HeroMasteryCounts,
@@ -306,21 +307,20 @@ function applyRewardList(
         lines.push({ icon: '⚒', label: `Materials — ⊕${r.mutagen ?? 0} · ◳${r.scrap ?? 0} · ✷${r.catalyst ?? 0}` });
         break;
       case 'towerShardsAll': {
+        // Direct lanes BANK since Prime Strains (docs/PRIME-STRAINS.md §economy): a max-Star
+        // tower's shards are spendable again (the Prime ladder), so nothing converts here —
+        // only CONTAINER opens still convert maxed duplicates (the deliberate player choice).
         const towerShards = { ...next.towerShards };
         for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
-        const dup = settleDirectShardGrants(next, { towerShards }); // maxed towers convert (docs/GENE-EVOLUTION.md §Economy)
-        next = { ...next, towerShards, geneEssence: next.geneEssence + dup };
+        next = { ...next, towerShards };
         lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
-        if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
         break;
       }
       case 'heroShardsAll': {
         const heroShards = { ...next.heroShards };
         for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
-        const dup = settleDirectShardGrants(next, { heroShards }); // maxed unlocked heroes convert
-        next = { ...next, heroShards, geneEssence: next.geneEssence + dup };
+        next = { ...next, heroShards };
         lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
-        if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
         break;
       }
       case 'container':
@@ -613,23 +613,19 @@ function foldAccountXp(draft: SaveData, gained: number, now = Date.now()): { sav
     const reward = accountLevelReward(level);
     const towerKind = TOWER_ORDER[(level - 1) % TOWER_ORDER.length];
     const heroKind = HERO_ORDER[(level - 1) % HERO_ORDER.length];
-    // Level-up shard grants ride the direct-lane duplicate conversion (docs/GENE-EVOLUTION.md
-    // §Economy): a maxed rotation target converts its grant to Gene Essence instead of leaking.
+    // Level-up shard grants BANK — even on a max-Star rotation target, shards now fuel the
+    // Prime ladder (docs/PRIME-STRAINS.md §economy); only container opens convert duplicates.
     const towerShards = reward.towerShards > 0
       ? { ...save.towerShards, [towerKind]: (save.towerShards[towerKind] ?? 0) + reward.towerShards }
       : save.towerShards;
     const heroShards = reward.heroShards > 0
       ? { ...save.heroShards, [heroKind]: (save.heroShards[heroKind] ?? 0) + reward.heroShards }
       : save.heroShards;
-    const dupEssence = settleDirectShardGrants(save, {
-      ...(reward.towerShards > 0 ? { towerShards } : {}), // pass only fresh copies (settle mutates)
-      ...(reward.heroShards > 0 ? { heroShards } : {}),
-    });
     save = {
       ...save,
       shards: save.shards + reward.cores,
       lifetimeShards: save.lifetimeShards + reward.cores,
-      geneEssence: save.geneEssence + reward.essence + dupEssence,
+      geneEssence: save.geneEssence + reward.essence,
       ichor: save.ichor + reward.ichor,
       lifetimeIchor: save.lifetimeIchor + reward.ichor,
       towerShards,
@@ -647,7 +643,7 @@ function foldAccountXp(draft: SaveData, gained: number, now = Date.now()): { sav
         : save.unlockedTitles,
       timeline: reward.milestone ? pushTimeline(save.timeline, '⬆', `Account Level ${level} — milestone`) : save.timeline,
     };
-    levelUps.push({ level, milestone: reward.milestone, reward, essenceConverted: dupEssence > 0 ? dupEssence : undefined });
+    levelUps.push({ level, milestone: reward.milestone, reward });
   }
   pendingAccountLevelUps.push(...levelUps);
   return { save, delta: { gained: g, from, to, levelUps } };
@@ -1007,6 +1003,28 @@ export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   return towerStarCost(stars); // cost ladder only; the Campaign Evolution Cap is enforced in buyStar
 }
 
+/** The next PRIME level's price (docs/PRIME-STRAINS.md), or null while the ★ ladder is
+ *  unfinished — Prime is the CONTINUATION of the star seam, never a bypass. */
+export interface PrimeQuote { toLevel: number; shards: number; catalyst: number }
+export function nextTowerPrimeCost(save: SaveData, kind: TowerKind): PrimeQuote | null {
+  if ((save.towerStars[kind] ?? 0) < STAR.maxTowerStars) return null;
+  const level = save.towerPrime?.[kind] ?? 0;
+  return { toLevel: level + 1, shards: primeCost('tower', level), catalyst: primeCatalystCost(level + 1) };
+}
+export function nextHeroPrimeCost(save: SaveData, kind: HeroKind): PrimeQuote | null {
+  if ((save.heroStars[kind] ?? 0) < STAR.maxStars) return null;
+  const level = save.heroPrime?.[kind] ?? 0;
+  return { toLevel: level + 1, shards: primeCost('hero', level), catalyst: primeCatalystCost(level + 1) };
+}
+
+/** Total PRIME levels across the account (profile / collection surface). */
+export function totalPrimeLevels(save: SaveData): number {
+  let n = 0;
+  for (const k of TOWER_ORDER) n += save.towerPrime?.[k] ?? 0;
+  for (const k of HERO_ORDER) n += save.heroPrime?.[k] ?? 0;
+  return n;
+}
+
 // Canonical implementation lives in save/derive.ts (cycle-free — mechanics/read-models import it
 // there); re-exported here so meta stays the one-stop progression API for existing callers.
 export { highestCampaignStage };
@@ -1090,41 +1108,12 @@ export function towerShardPool(save: SaveData): TowerKind[] {
   return TOWER_ORDER.filter((k) => towerShardGateMet(save, k));
 }
 
-/** DIRECT-LANE duplicate conversion (docs/GENE-EVOLUTION.md §Economy): shard lanes that are NOT
- *  container opens — account level-ups, quest/season/pass claims, wardrobe milestones, premium
- *  packs — settle here. Shards granted to a MAX-Star tower (or an unlocked MAX-Star hero) can't
- *  be spent, so they convert to Gene Essence at the flat COMMON duplicate rate instead of piling
- *  up dead. Container opens keep their richer rarity-scaled, window-boosted conversion (the
- *  dominant Essence source by design — docs/GENE-EVOLUTION.md §Economy simulation); this seam
- *  just closes the leak everywhere else. Same anti-exploit shape as openContainer's: diffs the
- *  mutated maps against `before`, reverts the maxed excess IN PLACE (pass copies, never the
- *  live save maps), and returns the Essence to bank — 0 on the common un-maxed path. */
-export function settleDirectShardGrants(
-  before: SaveData,
-  maps: { towerShards?: Record<TowerKind, number>; heroShards?: Record<string, number> },
-): number {
-  let dupes = 0;
-  if (maps.towerShards) {
-    for (const k of TOWER_ORDER) {
-      const granted = (maps.towerShards[k] ?? 0) - (before.towerShards[k] ?? 0);
-      if (granted > 0 && (before.towerStars[k] ?? 0) >= STAR.maxTowerStars) {
-        maps.towerShards[k] = before.towerShards[k] ?? 0; // maxed → convert instead of accumulating
-        dupes += granted;
-      }
-    }
-  }
-  if (maps.heroShards) {
-    for (const id of Object.keys(maps.heroShards)) {
-      const granted = (maps.heroShards[id] ?? 0) - (before.heroShards[id] ?? 0);
-      // Locked heroes keep their shards toward unlocking (mirrors the container lane's rule).
-      if (granted > 0 && isHeroUnlocked(before, id as HeroKind) && (before.heroStars[id as HeroKind] ?? 0) >= STAR.maxStars) {
-        maps.heroShards[id] = before.heroShards[id] ?? 0;
-        dupes += granted;
-      }
-    }
-  }
-  return dupes > 0 ? essenceForDuplicates('common', dupes) : 0;
-}
+// NOTE (docs/PRIME-STRAINS.md §economy): the direct-lane duplicate conversion that used to live
+// here (settleDirectShardGrants — the pre-Prime "shard leak" fix) is RETIRED. A max-Star unit's
+// shards are spendable again (the Prime ladder), so every non-container lane — level-ups,
+// quest/season/pass claims, milestones, premium packs — now BANKS its grant. Container opens
+// keep their richer rarity-scaled duplicate conversion: that is the deliberate tension — hold
+// direct income for Prime, or crack containers and take the Essence.
 
 /** Whether a gene card's progression gate is satisfied (ungated ⇒ always true). Drives which gated
  *  cards are injected into a run's draft pool (RunOptions.unlockedCardIds). */
@@ -1291,7 +1280,9 @@ export function towerProgress(save: SaveData, includeMulligan = true, mulliganOv
     rangeMult *= mull.rangeMult;
     fireRateBonus *= mull.fireRateMult;
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * adapt.damageMult * mull.damageMult,
+      // PRIME (docs/PRIME-STRAINS.md): ONE extra multiplier lane on the same star/mastery
+      // pipeline — primeMult(0) === 1 exactly, so a save without Prime folds byte-identically.
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * adapt.damageMult * mull.damageMult * primeMult(save.towerPrime?.[k] ?? 0),
       fireRateMult: (1 + STAR.fireRatePerStar * stars) * fireRateBonus,
       rangeMult: rangeMult !== 1 ? rangeMult : undefined,
       infectionSpreadMult: infectionSpreadMult !== 1 ? infectionSpreadMult : undefined,
@@ -1334,7 +1325,8 @@ export function heroProgress(save: SaveData): HeroProgress {
     const equip = heroEquipment(save, k);
     const adapt = adaptationEffect(save.adaptation?.[`hero:${k}`] ?? []); // golden-safe: empty ⇒ ×1
     out[k] = {
-      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult * adapt.heroDamageMult,
+      // PRIME (docs/PRIME-STRAINS.md): the hero twin of the tower fold — ×1 at level 0.
+      damageMult: (1 + STAR.damagePerStar * stars) * (1 + MASTERY.damagePerLevel * mLvl) * equip.damageMult * adapt.heroDamageMult * primeMult(save.heroPrime?.[k] ?? 0),
       cooldownMult: (1 / (1 + STAR.fireRatePerStar * stars)) * equip.cooldownMult * adapt.heroCooldownMult,
       skillCount: heroSkillCount(stars), // star-gated ability kit (★3 → 1 skill, ★7 → 2). 0 on a fresh save ⇒ golden-safe.
     };
@@ -1502,14 +1494,13 @@ export interface RunOutcome {
   accountXp: AccountXpDelta;
 }
 
-/** One Account Level crossed during a settle, with its generated reward (docs/ACCOUNT-LEVEL.md). */
+/** One Account Level crossed during a settle, with its generated reward (docs/ACCOUNT-LEVEL.md).
+ *  (Shard grants BANK even on max-Star units since Prime Strains — docs/PRIME-STRAINS.md §economy —
+ *  so the old `essenceConverted` toast lane is retired.) */
 export interface AccountLevelUp {
   level: number;
   milestone: boolean;
   reward: AccountLevelReward;
-  /** Shards this level granted to a max-Star unit, converted to Gene Essence instead
-   *  (docs/GENE-EVOLUTION.md §Economy) — the toast surfaces it so reveals match grants. */
-  essenceConverted?: number;
 }
 export interface AccountXpDelta { gained: number; from: number; to: number; levelUps: AccountLevelUp[] }
 
@@ -3445,21 +3436,18 @@ export const meta = {
           lines.push({ icon: '◈', label: `${r.count}× ${r.rarity} Bio-Container`, rarity: r.rarity });
           break;
         case 'towerShardsAll': {
+          // Direct lanes BANK since Prime (docs/PRIME-STRAINS.md §economy) — no conversion here.
           const towerShards = { ...next.towerShards };
           for (const k of towerShardPool(next)) towerShards[k] = (towerShards[k] ?? 0) + r.qtyEach;
-          const dup = settleDirectShardGrants(next, { towerShards }); // maxed towers convert (docs/GENE-EVOLUTION.md §Economy)
-          next = { ...next, towerShards, geneEssence: next.geneEssence + dup };
+          next = { ...next, towerShards };
           lines.push({ icon: '✦', label: `${r.qtyEach} Strain Samples × every tower` });
-          if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
           break;
         }
         case 'heroShardsAll': {
           const heroShards = { ...next.heroShards };
           for (const k of HERO_ORDER) heroShards[k] = (heroShards[k] ?? 0) + r.qtyEach;
-          const dup = settleDirectShardGrants(next, { heroShards }); // maxed unlocked heroes convert
-          next = { ...next, heroShards, geneEssence: next.geneEssence + dup };
+          next = { ...next, heroShards };
           lines.push({ icon: '✦', label: `${r.qtyEach} Apex Genome × every hero` });
-          if (dup > 0) lines.push({ icon: '⌬', label: `${dup} Gene Essence — max-Star duplicates converted` });
           break;
         }
         case 'item':
@@ -4411,6 +4399,54 @@ export const meta = {
     return true;
   },
 
+  // ── PRIME STRAINS (docs/PRIME-STRAINS.md) — the infinite ladder past max Stars ───────────
+
+  /** Buy the next PRIME level for a MAX-Star tower: spends its Strain Samples (+ Catalyst at
+   *  deep levels) in ONE atomic persist — both currencies leave together or not at all.
+   *  Refused below max Stars: Prime CONTINUES the star seam, it never bypasses it. */
+  buyTowerPrime(kind: TowerKind): boolean {
+    if (!guardOk('progress.star', `prime:${kind}`)) return false;
+    const save = store.get();
+    if (!isTowerUnlocked(save, kind)) return false;
+    if ((save.towerStars[kind] ?? 0) < STAR.maxTowerStars) return false; // finish the ★ ladder first
+    const level = save.towerPrime?.[kind] ?? 0;
+    const cost = primeCost('tower', level);
+    const catalyst = primeCatalystCost(level + 1);
+    if ((save.towerShards[kind] ?? 0) < cost) return false;
+    if (save.mats.catalyst < catalyst) return false;
+    const powerBefore = meta.power().score;
+    persist(foldAccountXp({
+      ...save,
+      towerShards: { ...save.towerShards, [kind]: (save.towerShards[kind] ?? 0) - cost },
+      towerPrime: { ...save.towerPrime, [kind]: level + 1 },
+      mats: catalyst > 0 ? { ...save.mats, catalyst: save.mats.catalyst - catalyst } : save.mats,
+    }, ACCOUNT_XP.acquisition).save);
+    announcePower(`${TOWER_DEFS[kind].name} — Prime Strain L${level + 1}`, powerBefore, meta.power().score);
+    return true;
+  },
+
+  /** The hero twin: spends Apex Genome (+ Catalyst at deep levels), same gate + atomicity. */
+  buyHeroPrime(kind: HeroKind): boolean {
+    if (!guardOk('progress.star', `prime:hero:${kind}`)) return false;
+    const save = store.get();
+    if (!isHeroUnlocked(save, kind)) return false;
+    if ((save.heroStars[kind] ?? 0) < STAR.maxStars) return false;
+    const level = save.heroPrime?.[kind] ?? 0;
+    const cost = primeCost('hero', level);
+    const catalyst = primeCatalystCost(level + 1);
+    if ((save.heroShards[kind] ?? 0) < cost) return false;
+    if (save.mats.catalyst < catalyst) return false;
+    const powerBefore = meta.power().score;
+    persist(foldAccountXp({
+      ...save,
+      heroShards: { ...save.heroShards, [kind]: (save.heroShards[kind] ?? 0) - cost },
+      heroPrime: { ...save.heroPrime, [kind]: level + 1 },
+      mats: catalyst > 0 ? { ...save.mats, catalyst: save.mats.catalyst - catalyst } : save.mats,
+    }, ACCOUNT_XP.acquisition).save);
+    announcePower(`${HERO_DEFS[kind].name} — Prime Strain L${level + 1}`, powerBefore, meta.power().score);
+    return true;
+  },
+
   // ── Hero equipment ────────────────────────────────────────────────────────
 
   /** A hero's equipped loadout (empty if none). PER-HERO (HEROES.md hero slots). */
@@ -4821,13 +4857,8 @@ export const meta = {
           break;
       }
     }
-    // Direct-lane duplicate conversion (docs/GENE-EVOLUTION.md §Economy): shards the pack granted
-    // to max-Star units convert to Gene Essence instead of accumulating dead — receipted honestly.
-    const dupEssence = settleDirectShardGrants(save, { towerShards, heroShards });
-    if (dupEssence > 0) {
-      geneEssence += dupEssence;
-      lines.push({ icon: '⌬', label: `${dupEssence} Gene Essence — max-Star duplicates converted` });
-    }
+    // Pack shards BANK even on max-Star units — they fuel the Prime ladder now
+    // (docs/PRIME-STRAINS.md §economy); only container opens convert duplicates.
     return {
       lines,
       stamina,

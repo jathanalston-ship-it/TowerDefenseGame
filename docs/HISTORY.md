@@ -95,3 +95,9 @@
 - `4d04c1a` **[Towers]** Adaptation respects the tower unlock gate: badges for synthesized only, LOCKED overlays for dormant
 - `fdb0ab6` **[Website]** Chronicle + site sync for the adaptation lock batch
 - `257b5f8` **[Towers]** Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)
+- `f382e3d` **[Towers]** Chronicle + site sync for the Nucleus Mulligans batch
+- `be28662` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v36)
+- `7e83569` **[Gameplay]** Daily Bio-Cache: the infinite compounding login streak (save v38)
+- `dbf25cf` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v38)
+- `0427025` **[UX]** THE COMMISSIONING — account creation as a ceremony at tutorial completion
+- `6758a3a` **[Gameplay]** PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)

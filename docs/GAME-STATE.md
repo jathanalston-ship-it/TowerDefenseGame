@@ -6,7 +6,7 @@
 > build disagree, **the build wins and this file is the tiebreaker.** Prefer reading this over
 > re-reading a system's implementation (per CLAUDE.md "Trust existing architecture").
 >
-> **Save schema:** `CURRENT_VERSION = 38` (additive migrations via `withDefaults` + per-field
+> **Save schema:** `CURRENT_VERSION = 39` (additive migrations via `withDefaults` + per-field
 > sanitizers; checksummed blob). **Stack:** React + TypeScript + Vite static SPA, deterministic sim
 > core in `src/core/` (no React/DOM), Canvas renderer, browser-local saves. Tests: `npm test`
 > (Vitest) — the golden characterization test pins the sim byte-for-byte.
@@ -127,6 +127,13 @@ Content — not systems — is the binding constraint (see EA-DESIGN-AUDIT). The
   ichor-fueled REFORGE wheel (1–3 slots by combined rarity; legendary rolls = GLOBAL passives;
   first spin permanently BINDS the organism) — MULLIGANS.md §reforge
 - ✅ Stars / evolution ceremony, branches (Bloons-style), per-tower mastery — TOWER-*.md
+- ✅ **PRIME STRAINS** (save v39, PRIME-STRAINS.md) — the per-unit INFINITE ladder past ★max for
+  towers AND heroes: geometric costs off the final star (×1.4/level), log-eased diminishing bonus
+  (`mult(L)=1+b·L₀·ln(1+L/L₀)`, exactly 1 at L0 — golden-safe), deep levels consume Catalyst
+  (atomic 2-currency buys on the star seam, `progress.star`-guarded), Power via the existing
+  towers/heroes buckets, lab PRIME panels + StarCeremony reuse, profile total. Direct shard lanes
+  now BANK (the pre-Prime maxed→Essence "leak closer" retired); container opens still convert —
+  the documented hold-vs-crack tension. Tests: `state/prime.test.ts` + banking contract
 - ✅ **Adaptation** — PER-TOWER generated trees (4 branches × 10 tiers; exclusive forks at 4/7; apex
   capstone) bought with multi-source capped **Antigen** (mastery ranks + campaign + container Traces +
   achievements); campaign gates at 15/30/50; battlefield FORM stages 1–3; priced stage-gated respec;

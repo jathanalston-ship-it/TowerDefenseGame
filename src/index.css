@@ -3277,6 +3277,11 @@ kbd {
 .tl-mutate.is-afford { box-shadow: 0 0 14px rgba(63, 224, 138, 0.35); }
 .tl-mutate.is-locked { background: rgba(90, 80, 130, 0.5); color: var(--r-epic); }
 .tl-shards { font-size: 13px; font-weight: 700; color: var(--gold); flex: none; }
+/* PRIME STRAINS (docs/PRIME-STRAINS.md) — the infinite ladder past ★max, and its tease. */
+.tl-prime { background: rgba(255, 210, 77, 0.05); }
+.tl-prime .tl-next-k { letter-spacing: 0.08em; }
+.tl-prime-cat { font-size: 11px; color: var(--gold); }
+.tl-prime-tease { font-size: 11px; color: var(--dim); font-style: italic; }
 .tl-forks-toggle { background: none; border: none; color: var(--muted); font-size: 11px; padding: 2px 0; align-self: flex-start; }
 .tl-forks-toggle:hover:not(:disabled) { color: var(--text); transform: none; background: none; }
 .tl-forks { display: flex; flex-direction: column; gap: 6px; }

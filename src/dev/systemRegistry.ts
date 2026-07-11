@@ -137,7 +137,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'towers', name: 'Towers, Stars, Branches, Strain & Codex', purpose: 'Tower roster; permanent Star evolutions; in-run Branch specialization; the in-run STRAIN evolution layer (docs/STRAIN.md); the Codex.',
     files: ['src/core/stars.ts', 'src/core/branches.ts', 'src/core/branchTree.ts', 'src/core/strains.ts', 'src/core/conveyor.ts', 'src/ui/TowerLab.tsx', 'src/ui/TowerCodex.tsx', 'src/ui/TowerPortrait.tsx', 'src/ui/towerLabModel.ts', 'src/ui/towerCodexModel.ts', 'src/ui/StarCeremony.tsx', 'src/ui/components/BranchTree.tsx'],
-    dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerShards', 'towerMasteryXp', 'towerForks'],
+    dependsOn: ['content-infra', 'shards-economy', 'campaign'], powerScore: 'stars/branches feed permanent + temporary buckets', save: ['towerStars', 'towerPrime', 'towerShards', 'towerMasteryXp', 'towerForks'],
     tutorial: ['combat'], help: ['towers', 'tower-stars', 'tower-branches'], hud: ['tower rail', 'Inspector'], ui: ['TowerLab', 'TowerCodex', 'StarCeremony'],
     collection: 'towers category (usage tiers)', achievements: [], localization: 'inline-en',
     docs: ['docs/TOWER-STARS.md', 'docs/TOWER-BRANCHES.md', 'docs/TOWER-LAB.md', 'docs/TOWER-CODEX.md', 'docs/TOWERS.md', 'docs/STRAIN.md'],
@@ -152,7 +152,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: 'heroes', name: 'Heroes', purpose: 'Autonomous champions: AI behaviors, abilities, stars, slots, in-run Hero Evolution.',
     files: ['src/core/heroIdentity.ts', 'src/core/heroLore.ts', 'src/core/heroEvolution.ts', 'src/ui/HeroLab.tsx', 'src/ui/HeroSelectPanel.tsx', 'src/ui/HeroSlotUnlock.tsx', 'src/ui/HeroEvolutionPanel.tsx', 'src/state/heroView.ts', 'src/ui/components/HeroPortrait.tsx'],
-    dependsOn: ['content-infra', 'engine', 'shards-economy', 'campaign'], powerScore: 'hero stars/evolution feed permanent + temporary buckets', save: ['heroStars', 'heroShards', 'heroUnlocked', 'heroLoadout', 'heroMasteryXp'],
+    dependsOn: ['content-infra', 'engine', 'shards-economy', 'campaign'], powerScore: 'hero stars/evolution feed permanent + temporary buckets', save: ['heroStars', 'heroPrime', 'heroShards', 'heroUnlocked', 'heroLoadout', 'heroMasteryXp'],
     tutorial: ['combat'], help: ['heroes', 'hero-slots'], hud: ['ability button', 'HeroSelectPanel'], ui: ['HeroLab'],
     collection: 'heroes category (usage tiers)', achievements: [], localization: 'inline-en',
     docs: ['docs/HEROES.md', 'docs/HERO-FRAMEWORK.md', 'docs/HERO-EVOLUTION.md', 'docs/HERO-SELECTION.md', 'docs/SLOTS.md'],
@@ -195,11 +195,11 @@ export const SYSTEMS: SystemDef[] = [
     localization: 'inline-en', docs: ['docs/NUCLEUS.md'],
   },
   {
-    id: 'shards-economy', name: 'Shards & Star Economy', purpose: 'Strain Samples / Apex Genome income + star cost curves + duplicate→Essence conversion seam.',
-    files: [],
-    dependsOn: ['loot'], powerScore: 'stars bought with shards move the permanent bucket', save: ['shards', 'lifetimeShards'],
+    id: 'shards-economy', name: 'Shards & Star Economy', purpose: 'Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).',
+    files: ['src/core/prime.ts'],
+    dependsOn: ['loot'], powerScore: 'stars bought with shards move the permanent bucket; PRIME levels ride the towers/heroes geomeans', save: ['shards', 'lifetimeShards'],
     tutorial: [], help: ['tower-stars'], hud: [], ui: ['TowerLab', 'HeroLab'], collection: null, achievements: [],
-    localization: 'inline-en', docs: ['docs/SHARD-ECONOMY.md', 'docs/ECONOMY.md'],
+    localization: 'inline-en', docs: ['docs/SHARD-ECONOMY.md', 'docs/ECONOMY.md', 'docs/PRIME-STRAINS.md'],
   },
   {
     id: 'collection', name: 'Collections / Codex', purpose: 'Discovery + usage tiers across all content; ranks, rewards, small Power fold.',

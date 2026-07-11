@@ -1840,6 +1840,27 @@ export const STAR = {
 /** Star levels that earn a celebratory MILESTONE moment in the upgrade ceremony (TowerLab). */
 export const STAR_MILESTONES: readonly number[] = [3, 5, 7, 10];
 
+/** PRIME STRAINS (docs/PRIME-STRAINS.md) — the per-unit INFINITE ladder past max Stars. Each
+ *  repeatable level spends the unit's own shard lane (Strain Samples / Apex Genome) on a steeply
+ *  GEOMETRIC cost curve for a small DIMINISHING damage bonus, and cross-links the material
+ *  economy: deep levels also consume Catalyst. Closed forms live in core/prime.ts:
+ *  · cost(L→L+1) = round(finalStarCost × costMult × costGrowth^L)
+ *  · mult(L)     = 1 + bonusPerLevel × softCapLevels × ln(1 + L / softCapLevels) — exactly 1 at
+ *    L0 (golden-safe), slope +0.5%/level at the start, unbounded but logarithmic (the honest
+ *    "diminishing" curve: each level past ~softCapLevels is worth about half the first). */
+export const PRIME = {
+  costMult: 1.0, // Prime L1 costs the ladder's FINAL star price — the grind simply continues
+  costGrowth: 1.4, // geometric growth per level (requirement: ≥ 1.35)
+  bonusPerLevel: 0.005, // +0.5% damage-equivalent at the start of the curve
+  softCapLevels: 40, // L₀ — the easing scale of the log curve
+  /** Deep levels ALSO spend Catalyst (the Armory's rare material): buying a TARGET level ≥ `from`
+   *  consumes that tier's Catalyst. Ascending; the highest matching row applies. */
+  catalystTiers: [
+    { from: 6, catalyst: 1 },
+    { from: 26, catalyst: 2 },
+  ] as readonly { from: number; catalyst: number }[],
+};
+
 /** Campaign EVOLUTION CAP (docs/EVOLUTION-CAP.md) — the highest Star tier a tower may be evolved
  *  to is gated by CAMPAIGN progress, not Tower Shards alone. Clearing each `stage` permanently
  *  unlocks evolving towers up to `maxStar` account-wide — "a new generation of biological

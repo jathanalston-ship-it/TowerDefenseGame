@@ -6,7 +6,8 @@
 import { HERO_DEFS, STAR } from '../core/config';
 import type { HeroDef } from '../core/config';
 import type { HeroKind } from '../core/types';
-import { heroProgress, masteryProgress, nextHeroStarCost } from './meta';
+import { heroProgress, masteryProgress, nextHeroPrimeCost, nextHeroStarCost } from './meta';
+import { primeBonusPct, primeNextGainPct } from '../core/prime';
 import {
   MASTERY_RANK_EVERY,
   masteryPerksUpTo,
@@ -43,6 +44,8 @@ export interface HeroDetailView {
   shards: number;
   nextStarCost: number | null; // null = maxed
   canBuyStar: boolean;
+  /** PRIME ladder (docs/PRIME-STRAINS.md) — opens at ★max; null before. */
+  prime: { level: number; shards: number; catalyst: number; catalystHave: number; affordable: boolean; bonusPct: number; nextGainPct: number } | null;
   dmgPct: number;
   cdPct: number;
   equipScore: number; // account gear score (the shared loadout)
@@ -111,6 +114,16 @@ export function heroDetail(save: SaveData, kind: HeroKind): HeroDetailView {
     shards,
     nextStarCost: cost,
     canBuyStar: cost !== null && shards >= cost,
+    prime: (() => {
+      const q = nextHeroPrimeCost(save, kind);
+      if (q === null) return null;
+      const level = save.heroPrime?.[kind] ?? 0;
+      return {
+        level, shards: q.shards, catalyst: q.catalyst, catalystHave: save.mats.catalyst,
+        affordable: shards >= q.shards && save.mats.catalyst >= q.catalyst,
+        bonusPct: primeBonusPct(level), nextGainPct: primeNextGainPct(level),
+      };
+    })(),
     dmgPct: Math.round((prog.damageMult - 1) * 100),
     cdPct: Math.round((1 - prog.cooldownMult) * 100),
     equipScore,

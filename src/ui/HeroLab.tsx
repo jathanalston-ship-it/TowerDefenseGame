@@ -319,20 +319,49 @@ export function HeroLab(): JSX.Element {
             </div>
             <div className="kv-row"><span>Damage</span><b style={{ color: c }}>+{d.dmgPct}%</b></div>
             {d.cdPct > 0 && <div className="kv-row"><span>Ability cooldown</span><b style={{ color: c }}>-{d.cdPct}%</b></div>}
-            <button
-              className={`shop-buy wide ${d.canBuyStar ? 'is-afford' : ''}`}
-              disabled={d.nextStarCost === null || !d.canBuyStar}
-              onClick={() => meta.buyHeroStar(focus)}
-            >
-              {d.nextStarCost === null ? 'MAX STARS' : <>Add Star · {d.nextStarCost} <CurrencyIcon id="heroShards" color={c} size={13} title="" /> (have {d.shards})</>}
-            </button>
-            {d.nextStarCost !== null && (
-              <div className="hl-power-preview">
-                <PowerPreview
-                  current={meta.power().score}
-                  next={meta.previewPower((s) => ({ ...s, heroStars: { ...s.heroStars, [focus]: (s.heroStars[focus] ?? 0) + 1 } })).score}
-                />
-              </div>
+            {d.prime === null ? (
+              <>
+                <button
+                  className={`shop-buy wide ${d.canBuyStar ? 'is-afford' : ''}`}
+                  disabled={d.nextStarCost === null || !d.canBuyStar}
+                  onClick={() => meta.buyHeroStar(focus)}
+                >
+                  {d.nextStarCost === null ? 'MAX STARS' : <>Add Star · {d.nextStarCost} <CurrencyIcon id="heroShards" color={c} size={13} title="" /> (have {d.shards})</>}
+                </button>
+                {d.nextStarCost !== null && (
+                  <div className="hl-power-preview">
+                    <PowerPreview
+                      current={meta.power().score}
+                      next={meta.previewPower((s) => ({ ...s, heroStars: { ...s.heroStars, [focus]: (s.heroStars[focus] ?? 0) + 1 } })).score}
+                    />
+                  </div>
+                )}
+                <p className="hsec-desc">◈{d.maxStars} opens the PRIME ladder — infinite levels, ever-diminishing gains.</p>
+              </>
+            ) : (
+              /* PRIME STRAIN (docs/PRIME-STRAINS.md): the ★ ladder is finished — the infinite
+                 ladder opens, and the diminishing curve is stated honestly. */
+              <>
+                <div className="kv-row"><span>Prime Strain</span><b style={{ color: c }}>L{d.prime.level} · +{d.prime.bonusPct.toFixed(1)}%</b></div>
+                <button
+                  className={`shop-buy wide ${d.prime.affordable ? 'is-afford' : ''}`}
+                  disabled={!d.prime.affordable}
+                  onClick={() => meta.buyHeroPrime(focus)}
+                  title={d.prime.catalyst > 0 ? `${d.prime.shards} Apex Genome + ${d.prime.catalyst} Catalyst` : `${d.prime.shards} Apex Genome`}
+                >
+                  Prime L{d.prime.level + 1} · {d.prime.shards} <CurrencyIcon id="heroShards" color={c} size={13} title="" />{d.prime.catalyst > 0 ? <> + {d.prime.catalyst} ✷</> : null} (have {d.shards})
+                </button>
+                <div className="hl-power-preview">
+                  <PowerPreview
+                    current={meta.power().score}
+                    next={meta.previewPower((s) => ({ ...s, heroPrime: { ...s.heroPrime, [focus]: (s.heroPrime[focus] ?? 0) + 1 } })).score}
+                  />
+                </div>
+                <p className="hsec-desc">
+                  Next level adds +{d.prime.nextGainPct.toFixed(2)}% — each Prime level is worth a little less than the last, forever.
+                  {d.prime.catalyst > 0 ? ` Deep levels also consume Catalyst (${d.prime.catalystHave} owned).` : ''}
+                </p>
+              </>
             )}
           </Section>
 

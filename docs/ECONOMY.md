@@ -30,10 +30,17 @@ table is the single source of truth:
 (DESIGN.md and PROGRESSION.md have been updated to these names.)
 
 > **Shipped note — Gene Essence.** Unlike the aspirational rows above, Gene Essence is live
-> (`core/geneEssence.ts`): earned by auto-converting duplicate max-Star shards (primary) plus a
-> rare Bio-Container bonus drop, spent on permanent Gene Card levels in the Gene Archive. Drop
-> tables, conversion rates, the cost curve, and the 10/50/200/1000-hour economy simulation are
-> canonical in `GENE-EVOLUTION.md §Economy`.
+> (`core/geneEssence.ts`): earned by auto-converting duplicate max-Star shards **on container
+> opens** plus a rare Bio-Container bonus drop, spent on permanent Gene Card levels in the Gene
+> Archive. Drop tables, conversion rates, the cost curve, and the 10/50/200/1000-hour economy
+> simulation are canonical in `GENE-EVOLUTION.md §Economy`.
+
+> **Shipped note — PRIME STRAINS (save v39, `PRIME-STRAINS.md`).** Both shard ladders now end in
+> an INFINITE sink: past ★max, each tower/hero spends its own shard lane on repeatable Prime
+> levels (geometric ×1.4/level costs, log-eased ≈+0.5%-and-diminishing damage), with deep levels
+> also consuming **Catalyst** (cross-linking the material economy). Direct shard lanes BANK for
+> Prime; only container opens still convert maxed duplicates to Gene Essence — the deliberate
+> hold-vs-crack tension. This closes the late-game "tower shards cap out" sink-exhaustion note.
 
 ---
 

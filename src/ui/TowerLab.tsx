@@ -166,6 +166,23 @@ export function TowerLab(): JSX.Element {
     setChamberFlash((n) => n + 1); // the chamber lighting reacts to the mutation
   };
 
+  // PRIME ladder buy (docs/PRIME-STRAINS.md) — the same ceremony choreography as a star: full
+  // pip track, the bought level revealed, the next level previewed (with its honest gain).
+  const upgradePrime = (k: TowerKind): void => {
+    if (!meta.buyTowerPrime(k)) return;
+    const s = meta.get();
+    const lvl = s.towerPrime[k] ?? 0;
+    const p = towerLabModel(s, k, towerProgress(s)[k]).prime;
+    setCeremony({
+      kind: k, name: TOWER_DEFS[k].name, color: TOWER_DEFS[k].color, toStar: STAR.maxTowerStars,
+      unlocked: { star: STAR.maxTowerStars, name: `Prime Strain L${lvl}`, desc: `+${p ? p.bonusPct.toFixed(1) : ''}% permanent damage — the strain deepens`, isFork: false, ascension: true },
+      next: p ? { star: STAR.maxTowerStars, name: `Prime Strain L${lvl + 1}`, desc: `+${p.nextGainPct.toFixed(2)}% more · ${p.shards} Strain Samples${p.catalyst > 0 ? ` + ${p.catalyst} Catalyst` : ''}`, isFork: false, ascension: true } : null,
+      milestoneStar: null,
+    });
+    setPrefs(setLabPrefs({ recents: { ...labPrefs().recents, [k]: Date.now() } }));
+    setChamberFlash((n) => n + 1);
+  };
+
   const upgradeableCount = TOWER_ORDER.filter((k) => models[k].affordable).length;
   const recentMs = 24 * 60 * 60 * 1000;
 
@@ -352,22 +369,54 @@ export function TowerLab(): JSX.Element {
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="tl-next is-max" style={{ borderLeftColor: m.color }}>
-                <span className="tl-next-k" style={{ color: m.color }}>FULLY ASCENDED ◈{m.stars}</span>
+            ) : m.prime ? (
+              /* PRIME STRAIN (docs/PRIME-STRAINS.md): the ★ ladder is finished — the infinite
+                 ladder opens. The curve is stated honestly: each level adds LESS than the last. */
+              <div className="tl-next is-max tl-prime" style={{ borderLeftColor: m.color }}>
+                <span className="tl-next-k" style={{ color: m.color }}>PRIME STRAIN · L{m.prime.level}</span>
+                <span className="tl-next-desc">
+                  +{m.prime.bonusPct.toFixed(1)}% permanent damage banked · next level adds +{m.prime.nextGainPct.toFixed(2)}%
+                  {' — '}each Prime level is worth a little less than the last, forever.
+                </span>
+                <span className="tl-next-power">
+                  Power{' '}
+                  <PowerPreview
+                    current={curPower}
+                    next={meta.previewPower((s) => ({ ...s, towerPrime: { ...s.towerPrime, [selected]: (s.towerPrime[selected] ?? 0) + 1 } })).score}
+                  />
+                </span>
+                {m.prime.catalyst > 0 && (
+                  <span className="tl-prime-cat" title="Deep Prime levels also consume Catalyst">
+                    ✷ Requires {m.prime.catalyst} Catalyst ({m.prime.catalystHave} owned)
+                  </span>
+                )}
               </div>
-            )}
+            ) : null}
             <div className="tl-actions">
-              <button
-                className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
-                disabled={m.maxed || !m.affordable}
-                onClick={() => { if (!m.locked) upgrade(selected, m.stars); }}
-                title={m.locked ? 'Synthesize this tower first' : m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
-              >
-                {m.locked ? '🔒 Dormant' : m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
-              </button>
+              {m.prime ? (
+                <button
+                  className={`primary tl-mutate${m.prime.affordable ? ' is-afford' : ''}`}
+                  disabled={!m.prime.affordable}
+                  onClick={() => { if (!m.locked) upgradePrime(selected); }}
+                  title={m.prime.catalyst > 0 ? `${m.prime.shards} Strain Samples + ${m.prime.catalyst} Catalyst` : `${m.prime.shards} Strain Samples`}
+                >
+                  Prime L{m.prime.level + 1} · {m.prime.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" />{m.prime.catalyst > 0 ? <> + {m.prime.catalyst} ✷</> : null}
+                </button>
+              ) : (
+                <button
+                  className={`primary tl-mutate${m.affordable ? ' is-afford' : ''}${m.capLocked ? ' is-locked' : ''}`}
+                  disabled={m.maxed || !m.affordable}
+                  onClick={() => { if (!m.locked) upgrade(selected, m.stars); }}
+                  title={m.locked ? 'Synthesize this tower first' : m.capLocked && m.capUnlock ? `Locked until Campaign Stage ${m.capUnlock.stage}` : undefined}
+                >
+                  {m.locked ? '🔒 Dormant' : m.maxed ? 'MAX' : m.capLocked && m.capUnlock ? <>🔒 Stage {m.capUnlock.stage}</> : <>Mutate · {m.cost} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></>}
+                </button>
+              )}
               <span className="tl-shards" title="Strain Samples">{m.shards} <CurrencyIcon id="towerShards" color={m.color} size={13} title="" /></span>
             </div>
+            {!m.prime && !m.locked && (
+              <span className="tl-prime-tease">◈{m.maxStars} opens the PRIME ladder — infinite levels, ever-diminishing gains.</span>
+            )}
           </div>
 
           {/* Specialization paths — both branches, re-pickable */}

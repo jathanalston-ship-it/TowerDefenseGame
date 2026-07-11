@@ -117,12 +117,14 @@ export interface SaveData {
   // ── Tower progression (per kind) — added in schema v2 ──
   towerShards: Record<TowerKind, number>; // shard currency, earned from chests
   towerStars: Record<TowerKind, number>; // star upgrade level (0 = base)
+  towerPrime: Record<TowerKind, number>; // PRIME level past max Stars (v39, docs/PRIME-STRAINS.md) — 0 = none
   towerForks: Record<TowerKind, Record<string, string>>; // per-tower star-fork picks (star → optionId)
   towerMasteryXp: Record<TowerKind, number>; // lifetime mastery XP (grows forever)
   towerKills: Record<TowerKind, number>; // lifetime kills per tower (schema v9) — Tower Lab
   heroShards: Record<string, number>; // per-hero shards (earned from chests)
   // ── Hero progression + roster (per kind) — added in schema v3 ──
   heroStars: Record<HeroKind, number>; // hero star level (0 = base)
+  heroPrime: Record<HeroKind, number>; // PRIME level past max Stars (v39, docs/PRIME-STRAINS.md) — 0 = none
   heroForks: Record<HeroKind, Record<string, string>>; // per-hero ability-fork picks (star → optionId); mirrors towerForks
   heroMasteryXp: Record<HeroKind, number>; // lifetime hero mastery XP (grows forever)
   selectedHero: HeroKind; // slot-1 hero (back-compat mirror of heroLoadout[0]); see meta.setSelectedHero
@@ -374,8 +376,10 @@ export interface TutorialSave {
 // Hive Nucleus's own organ system. Empty ⇒ identity fold (golden-safe).
 // v37→v38: Daily Bio-Cache (docs/DAILY-LOGIN.md) — `login` {last, streak, best, lifetime}:
 // the login-streak ledger behind the daily cache faucet; pure economy, never Power.
+// v38→v39: PRIME STRAINS (docs/PRIME-STRAINS.md) — `towerPrime` / `heroPrime` per-unit infinite
+// ladders past max Stars. Additive Records, zero-filled for older saves (level 0 = identity fold).
 // All additive/migrated — withDefaults() deep-fills, sanitize() folds the legacy field.
-export const CURRENT_VERSION = 38;
+export const CURRENT_VERSION = 39;
 
 /** The placeholder every save is born with — the Commander designation prompt fires
  *  while the name is still exactly this (components/CommanderName.tsx). */
@@ -625,11 +629,13 @@ export function defaultSave(): SaveData {
     cardsSeen: 0,
     towerShards: zeroByTower(),
     towerStars: zeroByTower(),
+    towerPrime: zeroByTower(),
     towerForks: emptyForksByTower(),
     towerMasteryXp: zeroByTower(),
     towerKills: zeroByTower(),
     heroShards: zeroByHero(),
     heroStars: zeroByHeroKind(),
+    heroPrime: zeroByHeroKind(),
     heroForks: emptyForksByHero(),
     heroMasteryXp: zeroByHeroKind(),
     selectedHero: 'ravager',
@@ -911,6 +917,20 @@ function sanitizeQuests(raw: unknown): SaveData['quests'] {
   return out;
 }
 
+/** PRIME level records (v39, docs/PRIME-STRAINS.md): whole, non-negative, finite — a tampered
+ *  import can't fold a NaN/negative multiplier into a run. Unknown keys drop (defaults carry
+ *  the roster); levels have no upper cap by design (the ladder is infinite). */
+function sanitizePrime<K extends string>(defaults: Record<K, number>, raw: unknown): Record<K, number> {
+  const out = { ...defaults };
+  if (typeof raw === 'object' && raw !== null) {
+    for (const k of Object.keys(defaults) as K[]) {
+      const v = (raw as Record<string, unknown>)[k];
+      if (typeof v === 'number' && isFinite(v) && v > 0) out[k] = Math.floor(v);
+    }
+  }
+  return out;
+}
+
 function withDefaults(data: SaveData): SaveData {
   const d = defaultSave();
   return stripRetired({
@@ -919,6 +939,9 @@ function withDefaults(data: SaveData): SaveData {
     upgrades: { ...data.upgrades },
     towerShards: { ...d.towerShards, ...data.towerShards },
     towerStars: { ...d.towerStars, ...data.towerStars },
+    // v38→v39: PRIME levels (docs/PRIME-STRAINS.md) — zero-filled for older saves, values
+    // clamped to whole non-negative numbers (a tampered level can't fold a NaN/negative mult).
+    towerPrime: sanitizePrime(d.towerPrime, (data as { towerPrime?: unknown }).towerPrime),
     // v4→v5: per-tower fork picks fill empty for a pre-v5 save (⇒ each fork defaults to its
     // first option). Shallow-merge keeps known towers' picks and defaults the rest.
     towerForks: { ...d.towerForks, ...(data.towerForks && typeof data.towerForks === 'object' ? data.towerForks : {}) },
@@ -926,6 +949,7 @@ function withDefaults(data: SaveData): SaveData {
     towerKills: { ...d.towerKills, ...data.towerKills }, // v8→v9: additive, zeroed for old saves
     heroShards: { ...d.heroShards, ...data.heroShards },
     heroStars: { ...d.heroStars, ...data.heroStars },
+    heroPrime: sanitizePrime(d.heroPrime, (data as { heroPrime?: unknown }).heroPrime),
     // Per-hero ability-fork picks fill empty for a pre-fork save (⇒ each fork defaults to its
     // first option). Shallow-merge keeps known heroes' picks and defaults the rest.
     heroForks: { ...d.heroForks, ...(data.heroForks && typeof data.heroForks === 'object' ? data.heroForks : {}) },

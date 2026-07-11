@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 731 nodes · 1309 edges, built from the live
+> **The project's brain** (docs/DIL.md). 733 nodes · 1314 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -116,6 +116,7 @@ graph LR
   system_achievements["Achievements"] -->|rewards| currency_genome_cores["Genome Cores (◆)"]
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|consumes| currency_tower_shards["Tower Shards (✦)"]
   system_heroes["Heroes"] -->|consumes| currency_hero_shards["Hero Shards"]
+  system_shards_economy["Shards & Star Economy"] -->|consumes| currency_materials["Materials (mutagen/scrap/catalyst)"]
   system_gene_cards["Gene Cards (draft + permanent evolution)"] -->|consumes| currency_gene_essence["Gene Essence"]
   system_nucleus["Nucleus Mulligans"] -->|modifies| system_rendering["Rendering & VFX"]
   system_mulligans["Mulligan System"] -->|consumes| currency_gene_essence["Gene Essence"]
@@ -588,7 +589,7 @@ Per-tower permanent currency: unlocks locked towers, buys Star evolutions.
   - consumedBy ← `system:hive-construction` — Strain Sample lanes drain the per-kind wallet richest-first (roster tie-break) — kinds near an Evolution are touched last
   - rewardedBy ← `system:campaign` — stage rewards feed unlock gates
   - rewardedBy ← `system:loot` — chest pipeline
-  - consumedBy ← `system:towers` — unlocks + Star purchases
+  - consumedBy ← `system:towers` — unlocks + Star purchases + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md — geometric costs, log-diminishing bonus; deep levels also consume Catalyst)
 
 ### `currency:hero-shards` — Hero Shards
 
@@ -596,7 +597,7 @@ Per-hero permanent currency for hero Stars and unlocks.
 
   - consumedBy ← `system:hive-construction` — Apex Genome lanes drain the per-kind wallet richest-first
   - rewardedBy ← `system:loot` — chest pipeline
-  - consumedBy ← `system:heroes` — unlocks + Star purchases
+  - consumedBy ← `system:heroes` — unlocks + Star purchases + the PRIME infinite ladder past ★max (mirrors towers; direct shard lanes BANK for Prime, only container opens convert duplicates)
 
 ### `currency:gene-essence` — Gene Essence
 
@@ -613,6 +614,7 @@ Equipment crafting + reforge inputs (Armory).
 
   - consumedBy ← `system:hive-construction` — mutagen/scrap/catalyst lanes compete with equipment crafting for the same mats wallet
   - rewardedBy ← `system:expeditions` — mission payouts
+  - consumedBy ← `system:shards-economy` — PRIME levels ≥6 also spend Catalyst (config.PRIME.catalystTiers) — the material economy throttles infinite-ladder depth
   - consumedBy ← `system:equipment` — crafting + reforge ops
   - modifiedBy ← `system:splice-market` — exchange rates between currencies
 
@@ -659,7 +661,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:mega-bosses`
   - requiredBy ← `system:rendering`
   - requiredBy ← `system:living-battlefield`
-  - _…174 more (query: `npm run dil -- node system:engine`)_
+  - _…175 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -929,10 +931,11 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - dependsOn → `system:campaign`
   - provides → `concept:power-score` — stars/branches feed permanent + temporary buckets
   - consumes → `system:meta-store` — owns save field 'towerStars'
+  - consumes → `system:meta-store` — owns save field 'towerPrime'
   - consumes → `system:meta-store` — owns save field 'towerShards'
   - consumes → `system:meta-store` — owns save field 'towerMasteryXp'
   - consumes → `system:meta-store` — owns save field 'towerForks'
-  - consumes → `currency:tower-shards` — unlocks + Star purchases
+  - consumes → `currency:tower-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md — geometric costs, log-diminishing bonus; deep levels also consume Catalyst)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:daily`
   - requiredBy ← `system:mulligans`
@@ -980,11 +983,12 @@ _at: src/core/heroIdentity.ts, src/core/heroLore.ts, src/core/heroEvolution.ts, 
   - dependsOn → `system:campaign`
   - provides → `concept:power-score` — hero stars/evolution feed permanent + temporary buckets
   - consumes → `system:meta-store` — owns save field 'heroStars'
+  - consumes → `system:meta-store` — owns save field 'heroPrime'
   - consumes → `system:meta-store` — owns save field 'heroShards'
   - consumes → `system:meta-store` — owns save field 'heroUnlocked'
   - consumes → `system:meta-store` — owns save field 'heroLoadout'
   - consumes → `system:meta-store` — owns save field 'heroMasteryXp'
-  - consumes → `currency:hero-shards` — unlocks + Star purchases
+  - consumes → `currency:hero-shards` — unlocks + Star purchases + the PRIME infinite ladder past ★max (mirrors towers; direct shard lanes BANK for Prime, only container opens convert duplicates)
   - requiredBy ← `system:engine`
   - requiredBy ← `system:equipment`
   - requiredBy ← `system:expeditions`
@@ -1124,12 +1128,15 @@ _at: src/core/nucleus.ts, src/render/nucleusDress.ts, src/ui/NucleusChambers.tsx
 
 ### `system:shards-economy` — Shards & Star Economy
 
-Strain Samples / Apex Genome income + star cost curves + duplicate→Essence conversion seam.
+Strain Samples / Apex Genome income + star cost curves + the PRIME infinite ladder past ★max (docs/PRIME-STRAINS.md; direct lanes bank, container opens convert duplicates).
+
+_at: src/core/prime.ts_
 
   - dependsOn → `system:loot`
-  - provides → `concept:power-score` — stars bought with shards move the permanent bucket
+  - provides → `concept:power-score` — stars bought with shards move the permanent bucket; PRIME levels ride the towers/heroes geomeans
   - consumes → `system:meta-store` — owns save field 'shards'
   - consumes → `system:meta-store` — owns save field 'lifetimeShards'
+  - consumes → `currency:materials` — PRIME levels ≥6 also spend Catalyst (config.PRIME.catalystTiers) — the material economy throttles infinite-ladder depth
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
   - requiredBy ← `system:gene-cards`
@@ -1137,6 +1144,7 @@ Strain Samples / Apex Genome income + star cost curves + duplicate→Essence con
   - taughtBy ← `help:tower-stars`
   - documentedBy ← `doc:SHARD-ECONOMY.md`
   - documentedBy ← `doc:ECONOMY.md`
+  - documentedBy ← `doc:PRIME-STRAINS.md`
   - documentedBy ← `guide:progression`
   - conflictsWith ← `system:account-level` — level-reward cores must stay a supplement — sim guard trips if they exceed 15% of lifetime cores (reward ∝ n^0.7 vs requirement ∝ n^1.25)
 
@@ -1721,7 +1729,7 @@ _at: src/state/meta.ts, src/state/store.ts, src/state/prefs.ts, src/state/devRes
   - consumedBy ← `system:mulligans` — owns save field 'mulliganDex'
   - consumedBy ← `system:premium` — owns save field 'premium'
   - requiredBy ← `system:field-research`
-  - _…103 more (query: `npm run dil -- node system:meta-store`)_
+  - _…105 more (query: `npm run dil -- node system:meta-store`)_
 
 ### `system:bosses` — Bosses
 
@@ -2944,7 +2952,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `achievement:deep_genome` — Collect 25 distinct Gene Cards (the Deep-Strain set and beyond). _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 - `achievement:return_from_deep` — Reach Infinite Depth 40 — the abyss that awakens the Revenant. _(partOf `system:achievements`, rewards `currency:genome-cores`)_
 
-## Documentation (159)
+## Documentation (160)
 
 - `doc:ACCOUNT-LEVEL.md` — project documentation _(documents `system:account-level`)_
 - `doc:ACCOUNTS.md` — project documentation _(documents `system:accounts`)_
@@ -3048,6 +3056,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:PREDICTION.md` — project documentation _(documents `system:prediction`)_
 - `doc:PREMIUM-ECONOMY-REPORT.md` — project documentation _(documents `system:premium`)_
 - `doc:PREMIUM-STORE.md` — project documentation _(documents `system:premium`)_
+- `doc:PRIME-STRAINS.md` — project documentation _(documents `system:shards-economy`)_
 - `doc:PRODUCTION-READINESS.md` — project documentation
 - `doc:PROFILE.md` — project documentation _(documents `system:profile`)_
 - `doc:PROGRESSION-GATING.md` — project documentation _(documents `system:progression-gating`)_
@@ -3106,7 +3115,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (229)
+## Tests (230)
 
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/changelog/classify.test.ts` — automated validation _(tests `system:chronicle`)_
@@ -3317,6 +3326,7 @@ _at: site/guides.ts → /guides/prestige/_
 - `test:src/state/premiumEconomy.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/premiumSafeguards.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/prestigeView.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/state/prime.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/profile.test.ts` — automated validation _(tests `system:profile`)_
 - `test:src/state/progression.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/progressionDirector.test.ts` — automated validation _(tests `system:progression-gating`)_

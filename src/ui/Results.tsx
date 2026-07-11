@@ -239,7 +239,7 @@ export function Results({
         {axp.levelUps.map((lu) => (
           <div className={`axp-runup${lu.milestone ? ' is-milestone' : ''}`} key={lu.level}>
             <b>{lu.milestone ? '✦' : '⬆'} Level {lu.level}</b>
-            <span>{rewardLine(lu.reward, lu.essenceConverted)}</span>
+            <span>{rewardLine(lu.reward)}</span>
           </div>
         ))}
       </div>

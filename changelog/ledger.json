@@ -1,6 +1,6 @@
 {
-  "lastSha": "257b5f8f804d2f429971a7617045cddeaf36e19b",
-  "commitsSinceDraft": 5,
+  "lastSha": "6758a3a05ee94a56aaf5be9ee487c49165815a4e",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -213,6 +213,7 @@
       "collection",
       "evolution-hq",
       "hive-construction",
+      "daily-login",
       "prestige",
       "currencies",
       "splice-market",
@@ -1461,6 +1462,11 @@
       "entries": [
         {
           "cat": "Gameplay",
+          "text": "New system: Daily Bio-Cache (login streak)",
+          "major": true
+        },
+        {
+          "cat": "Gameplay",
           "text": "New system: Nucleus Mulligans",
           "major": true
         },
@@ -1833,6 +1839,30 @@
         {
           "cat": "Towers",
           "text": "Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)"
+        },
+        {
+          "cat": "Towers",
+          "text": "Chronicle + site sync for the Nucleus Mulligans batch"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v36)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Daily Bio-Cache: the infinite compounding login streak (save v38)"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v38)"
+        },
+        {
+          "cat": "UX",
+          "text": "THE COMMISSIONING — account creation as a ceremony at tutorial completion"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)"
         }
       ]
     }
@@ -2515,6 +2545,54 @@
       "date": "2026-07-11",
       "cat": "Towers",
       "text": "Nucleus Mulligans: the Hive Nucleus grows its own organ system (save v37)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f382e3dcf1ec34edf0f4f0d8c0ce4893f501511c",
+      "date": "2026-07-11",
+      "cat": "Towers",
+      "text": "Chronicle + site sync for the Nucleus Mulligans batch",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "be286626ea9a7bd6a6fb50f54efc22700a4617c6",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v36)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7e83569b0fa5b3f7bb2818c1f355b509e9ee4c0c",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "Daily Bio-Cache: the infinite compounding login streak (save v38)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "dbf25cf45310a22430b69e766125d23ed75c8d0c",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v38)",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "04270259cbd413d5207b6f837c4d3256037d315a",
+      "date": "2026-07-11",
+      "cat": "UX",
+      "text": "THE COMMISSIONING — account creation as a ceremony at tutorial completion",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "6758a3a05ee94a56aaf5be9ee487c49165815a4e",
+      "date": "2026-07-11",
+      "cat": "Gameplay",
+      "text": "PRIME STRAINS — per-unit infinite ladders past max Stars (save v39)",
       "internal": false,
       "needsReview": false
     }

@@ -125,6 +125,10 @@ function spendEverything(focus: Persona['focus'] = 'balanced'): void {
   const heroCap = focus === 'towers' ? 4 : 20;
   for (const k of TOWER_ORDER) guard(() => meta.buyStar(k), towerCap);
   for (const k of HERO_ORDER) guard(() => meta.buyHeroStar(k), heroCap);
+  // PRIME (docs/PRIME-STRAINS.md): once a unit maxes its ★ ladder the banked shards feed the
+  // infinite ladder — small per-pass caps (steep geometric costs make >1-2 buys/pass rare).
+  for (const k of TOWER_ORDER) guard(() => meta.buyTowerPrime(k), 4);
+  for (const k of HERO_ORDER) guard(() => meta.buyHeroPrime(k), 4);
   for (const u of META_UPGRADES) guard(() => meta.buyUpgrade(u.id), 40);
   guard(() => meta.buyGeneSlot(), 6);
   const owned = meta.get().stats.uniqueCards;
@@ -188,7 +192,7 @@ export function progressSignature(): number {
   const geneLv = Object.values(meta.geneLevels()).reduce((a, b) => a + b, 0);
   const adaptPicks = Object.values(s.adaptation ?? {}).reduce((a, p) => a + p.length, 0);
   return (
-    sumValues(s.towerStars) + sumValues(s.heroStars) + sumValues(s.upgrades) +
+    sumValues(s.towerStars) + sumValues(s.heroStars) + sumValues(s.towerPrime) + sumValues(s.heroPrime) + sumValues(s.upgrades) +
     sumValues(s.prestige.nodes) + s.heroUnlocked.length + s.prestige.molts +
     (s.geneSlots - 1) + geneLv + adaptPicks + s.achievements.length + highestCampaignStage(s)
   );
