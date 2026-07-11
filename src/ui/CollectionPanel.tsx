@@ -14,6 +14,8 @@ import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, Co
 import type { CutsceneDef } from '../core/cutscenes';
 import { drawCutsceneStill } from '../render/cutsceneScenes';
 import { CutscenePlayer } from './CutscenePlayer';
+import { MobileSection } from './components/MobileSection';
+import { useLayoutProfile } from './layoutProfile';
 
 const REWARD_ICON: Record<RewardKind, string> = { title: '✦', badge: '◈', portrait: '☻', theme: '◧', cosmetic: '✷', bonus: '▲' };
 const MILES = rankMilestones(); // [{ rank, at }] — the reward-track pip positions (single source)
@@ -65,18 +67,31 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
 function MemoryArchive(): JSX.Element {
   const memories = useMemo(() => meta.cutscenesView(), []);
   const [playing, setPlaying] = useState<CutsceneDef | null>(null);
+  const portrait = useLayoutProfile().profile === 'portrait';
   const unlocked = memories.filter((m) => m.unlocked).length;
+  const grid = (
+    <div className="mem-grid">
+      {memories.map((m) => (
+        <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
+      ))}
+    </div>
+  );
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '14px 0 8px' }}>
-        <h3 style={{ margin: 0, fontSize: 16, letterSpacing: '0.06em' }}>Memory Archive</h3>
-        <span style={{ fontSize: 12, opacity: 0.7 }}>{unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive</span>
-      </div>
-      <div className="mem-grid">
-        {memories.map((m) => (
-          <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
-        ))}
-      </div>
+      {portrait ? (
+        // Portrait: the full-art memory wall folds — it was most of the codex's scroll.
+        <MobileSection title="Memory Archive" hint="Story cutscenes replay forever — each grants a small passive." count={`${unlocked}/${memories.length}`}>
+          {grid}
+        </MobileSection>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '14px 0 8px' }}>
+            <h3 style={{ margin: 0, fontSize: 16, letterSpacing: '0.06em' }}>Memory Archive</h3>
+            <span style={{ fontSize: 12, opacity: 0.7 }}>{unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive</span>
+          </div>
+          {grid}
+        </>
+      )}
       {playing && (
         <CutscenePlayer def={playing} onDone={() => { setPlaying(null); music.play('menu'); }} />
       )}
@@ -169,10 +184,31 @@ function EntryGrid({ entries }: { entries: CollectionEntry[] }): JSX.Element {
 
 function CategoryCard({ c }: { c: CollectionCategory }): JSX.Element {
   const [open, setOpen] = useState(false);
+  const portrait = useLayoutProfile().profile === 'portrait';
   const color = RANK_COLORS[c.rank];
   const nextText = c.nextRankAt == null ? 'Fully mastered'
     : c.rankIndex === 0 ? `${c.nextRank} — make a discovery`
     : `${c.nextRank} at ${Math.ceil(c.nextRankAt * 100)}%`;
+  const body = (
+    <>
+      <RewardTrack completion={c.completion} rankIndex={c.rankIndex} />
+      <div style={{ fontSize: 10.5, opacity: 0.6 }}>{c.rankIndex >= MILES.length ? 'Fully mastered ★' : `Next: ${nextText}`}</div>
+      <Bonuses lines={c.bonuses} />
+      <button onClick={() => setOpen((o) => !o)} style={{
+        marginTop: 8, background: 'none', border: 'none', color: '#7fd7ff', cursor: 'pointer', fontSize: 11.5, padding: 0,
+      }}>{open ? 'Hide entries ▴' : `Show ${c.total} entries ▾`}</button>
+      {open && <EntryGrid entries={c.entries} />}
+    </>
+  );
+  // Portrait: ~20 always-expanded category cards made the codex a 9-screen scroll — each
+  // category folds to a header row (name · rank progress) and opens on demand.
+  if (portrait) {
+    return (
+      <MobileSection title={c.name} hint={c.rankIndex >= MILES.length ? 'Fully mastered ★' : `${c.rank} · next: ${nextText}`} count={`${c.discovered}/${c.total} · ${Math.round(c.completion * 100)}%`}>
+        {body}
+      </MobileSection>
+    );
+  }
   return (
     <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: `1px solid ${color}33` }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -182,13 +218,7 @@ function CategoryCard({ c }: { c: CollectionCategory }): JSX.Element {
         </div>
         <span style={{ fontSize: 12, opacity: 0.75 }}>{c.discovered}/{c.total} · {Math.round(c.completion * 100)}%</span>
       </div>
-      <RewardTrack completion={c.completion} rankIndex={c.rankIndex} />
-      <div style={{ fontSize: 10.5, opacity: 0.6 }}>{c.rankIndex >= MILES.length ? 'Fully mastered ★' : `Next: ${nextText}`}</div>
-      <Bonuses lines={c.bonuses} />
-      <button onClick={() => setOpen((o) => !o)} style={{
-        marginTop: 8, background: 'none', border: 'none', color: '#7fd7ff', cursor: 'pointer', fontSize: 11.5, padding: 0,
-      }}>{open ? 'Hide entries ▴' : `Show ${c.total} entries ▾`}</button>
-      {open && <EntryGrid entries={c.entries} />}
+      {body}
     </div>
   );
 }

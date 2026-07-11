@@ -2240,6 +2240,11 @@ canvas.board {
     width: 24px;
     height: 24px; /* WCAG 2.5.8 floor — the wrapping label extends the true target further */
   }
+  summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center; /* details/summary disclosure rows are tap targets too */
+  }
   [role='button'] { display: inline-flex; align-items: center; }
   .tcard {
     min-height: 56px;

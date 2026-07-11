@@ -431,11 +431,11 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string,
         out.push({ screen, vp, kind: 'clipped-text', detail: `<${el.tagName.toLowerCase()} class="${el.className}"> "${(el.textContent ?? '').trim().slice(0, 32)}" ${el.clientWidth}w/${el.scrollWidth}sw` });
       }
     }
-    for (const el of document.querySelectorAll('button, a, input, select, [role="button"]')) {
+    for (const el of document.querySelectorAll('button, a, input, select, summary, [role="button"]')) {
       if (!visible(el)) continue;
       // Only the OUTERMOST interactive element is the tap target — decorated inner
       // spans (icons/badges with role attributes) ride inside it.
-      if (el.parentElement?.closest('button, a, [role="button"]')) continue;
+      if (el.parentElement?.closest('button, a, summary, [role="button"]')) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 && r.height === 0) continue;
       if (touch && (r.height < TAP_MIN || r.width < TAP_MIN)) {

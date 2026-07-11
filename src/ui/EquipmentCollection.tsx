@@ -11,6 +11,8 @@ import {
 import type { CardEffect } from '../core/cards';
 import type { EquipDef, Rarity } from '../core/equipment';
 import { ItemArt } from './components/ItemArt';
+import { MobileSection } from './components/MobileSection';
+import { useLayoutProfile } from './layoutProfile';
 
 /** A compact plain-language phrase for a set-bonus effect (no shared helper exists — inline).
  *  Set bonuses only ever use the field-bearing ops (mul/add/flag); others get a generic label. */
@@ -24,6 +26,7 @@ function fmtEffect(e: CardEffect): string {
 
 export function EquipmentCollection(): JSX.Element {
   const save = meta.use();
+  const portrait = useLayoutProfile().profile === 'portrait';
   // Best owned rarity per def (undiscovered ⇒ absent).
   const owned = useMemo(() => {
     const best: Record<string, Rarity> = {};
@@ -69,39 +72,68 @@ export function EquipmentCollection(): JSX.Element {
       </div>
 
       {/* ── Set bonuses ── */}
-      <div style={{ marginTop: 18 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Set Bonuses</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 10 }}>
-          {Object.values(SETS).map((set) => {
-            const members = ALL_ITEMS.filter((d) => d.setId === set.id);
-            const ownedCount = members.filter((d) => owned[d.id]).length;
-            return (
-              <div key={set.id} style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: 13 }}>
-                  <span>{set.name}</span>
-                  <span style={{ opacity: 0.6, fontSize: 11 }}>{ownedCount}/{members.length} owned</span>
+      {(() => {
+        const grid = (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 10 }}>
+            {Object.values(SETS).map((set) => {
+              const members = ALL_ITEMS.filter((d) => d.setId === set.id);
+              const ownedCount = members.filter((d) => owned[d.id]).length;
+              return (
+                <div key={set.id} style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '8px 10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: 13 }}>
+                    <span>{set.name}</span>
+                    <span style={{ opacity: 0.6, fontSize: 11 }}>{ownedCount}/{members.length} owned</span>
+                  </div>
+                  <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 3 }}>
+                    <b>(2)</b> {set.bonus2.map(fmtEffect).join(', ')}
+                  </div>
+                  <div style={{ fontSize: 11.5, opacity: 0.85 }}>
+                    <b>(4)</b> {set.bonus4.map(fmtEffect).join(', ')}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 3 }}>
-                  <b>(2)</b> {set.bonus2.map(fmtEffect).join(', ')}
-                </div>
-                <div style={{ fontSize: 11.5, opacity: 0.85 }}>
-                  <b>(4)</b> {set.bonus4.map(fmtEffect).join(', ')}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── All items, grouped by slot ── */}
-      {EQUIP_SLOTS.map((slot) => (
-        <div key={slot} style={{ marginTop: 18 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{SLOT_LABELS[slot]}s</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-            {ALL_ITEMS.filter((d) => d.slot === slot).map(card)}
+              );
+            })}
           </div>
-        </div>
-      ))}
+        );
+        if (portrait) {
+          return (
+            <MobileSection title="Set bonuses" hint="Wear 2 or 4 pieces of a set for extra effects." count={`${Object.keys(SETS).length} sets`}>
+              {grid}
+            </MobileSection>
+          );
+        }
+        return (
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Set Bonuses</div>
+            {grid}
+          </div>
+        );
+      })()}
+
+      {/* ── All items, grouped by slot (portrait: each slot folds — the codex was a 17-screen
+            scroll; folded, it reads as an index with live discovery counts) ── */}
+      {EQUIP_SLOTS.map((slot) => {
+        const items = ALL_ITEMS.filter((d) => d.slot === slot);
+        const found = items.filter((d) => owned[d.id]).length;
+        const grid = (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            {items.map(card)}
+          </div>
+        );
+        if (portrait) {
+          return (
+            <MobileSection key={slot} title={`${SLOT_LABELS[slot]}s`} hint="Tap to browse this slot's relics." count={`${found}/${items.length}`}>
+              {grid}
+            </MobileSection>
+          );
+        }
+        return (
+          <div key={slot} style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{SLOT_LABELS[slot]}s</div>
+            {grid}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -18,6 +18,8 @@ import { AdaptationTree } from './components/AdaptationTree';
 import { ProgressBar } from './components/ProgressBar';
 import { CurrencyIcon } from './components/CurrencyIcon';
 import { audio } from '../audio/sound';
+import { MobileSection } from './components/MobileSection';
+import { useLayoutProfile } from './layoutProfile';
 import type { HeroCollectionEntry } from '../state/meta';
 
 const RARITY_VAR: Record<string, string> = {
@@ -25,7 +27,13 @@ const RARITY_VAR: Record<string, string> = {
   legendary: 'var(--r-legendary)', exotic: 'var(--viral)',
 };
 
-function Section({ title, accent, children }: { title: string; accent?: string; children: React.ReactNode }): JSX.Element {
+/** `fold` marks a SECONDARY section: on portrait it collapses behind a self-describing header
+ *  (the showcase + Star buys stay inline — they are the screen's job); desktop is unchanged. */
+function Section({ title, accent, fold = false, hint, children }: { title: string; accent?: string; fold?: boolean; hint?: string; children: React.ReactNode }): JSX.Element {
+  const portrait = useLayoutProfile().profile === 'portrait';
+  if (fold && portrait) {
+    return <MobileSection title={title} hint={hint}>{children}</MobileSection>;
+  }
   return (
     <div className="hsec">
       <div className="hsec-h" style={accent ? { color: accent } : undefined}>{title}</div>
@@ -43,7 +51,7 @@ function HeroForkPaths({ kind, color }: { kind: HeroKind; color: string }): JSX.
   if (tiers.length === 0) return null;
   const picks = meta.heroForkPicks(kind);
   return (
-    <Section title="Ability Forks" accent={color}>
+    <Section title="Ability Forks" accent={color} fold hint="Divergent reworks of unlocked abilities — re-pickable.">
       <p className="hsec-desc">Divergent evolutions that reshape an unlocked ability. Re-pickable; applied next run.</p>
       <div className="hl-forks">
         {tiers.map((t) => {
@@ -291,7 +299,7 @@ export function HeroLab(): JSX.Element {
           </Section>
 
           {/* Hero Identity — the data-driven kit (docs/HERO-FRAMEWORK.md): passive · active · trait · scaling */}
-          <Section title="Hero Identity" accent={c}>
+          <Section title="Hero Identity" accent={c} fold hint="Passive · active · trait · scaling, with strengths and weaknesses.">
             <div className="hkit">
               <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Passive</span><span className="hkit-body"><b>{id.passive.name}</b> — {id.passive.desc}</span></div>
               <div className="hkit-row"><span className="hkit-tag" style={{ borderColor: c, color: c }}>Active</span><span className="hkit-body"><b>{d.def.ability.name}</b> — {d.def.ability.blurb}</span></div>
@@ -369,7 +377,7 @@ export function HeroLab(): JSX.Element {
           <HeroForkPaths kind={focus} color={c} />
 
           {/* Mastery */}
-          <Section title="Mastery" accent={c}>
+          <Section title="Mastery" accent={c} fold hint="Lifetime rank, XP, and earned perks.">
             <div className="kv-row">
               <span>Rank</span>
               <b style={{ color: c }}>{d.mastery.rankTitle}</b>
@@ -389,12 +397,12 @@ export function HeroLab(): JSX.Element {
           </Section>
 
           {/* Adaptation — spend Antigen Points earned from Mastery Ranks */}
-          <Section title="Adaptation" accent={c}>
+          <Section title="Adaptation" accent={c} fold hint="Spend Antigen Points from Mastery Ranks.">
             <AdaptationTree subject="hero" unit={d.def.kind} color={c} />
           </Section>
 
           {/* Current Loadout */}
-          <Section title="Current Loadout" accent={c}>
+          <Section title="Current Loadout" accent={c} fold hint="Equipped gear — manage it in the Armory.">
             <div className="hero-loadout">
               {d.loadout.map((l) => (
                 <div className="hl-slot" key={l.slot}>
@@ -412,7 +420,7 @@ export function HeroLab(): JSX.Element {
           </Section>
 
           {/* Specialization */}
-          <Section title="Specialization" accent={c}>
+          <Section title="Specialization" accent={c} fold hint="How this hero wants to be built.">
             <div className="hsec-role" style={{ color: c }}>{d.lore.specialization}</div>
             <p className="hsec-desc">
               {d.def.combatClass} discipline — this hero's build leans into its {d.lore.roleLabel.toLowerCase()} identity through stars, mastery, and gear.
@@ -420,7 +428,7 @@ export function HeroLab(): JSX.Element {
           </Section>
 
           {/* Future unlocks */}
-          <Section title="Future Progress" accent={c}>
+          <Section title="Future Progress" accent={c} fold hint="What this hero still has ahead.">
             {d.nextUnlocks.map((u, i) => (
               <div className="hunlock" key={i}>
                 <span className="hu-kind" style={{ borderColor: c, color: c }}>{u.kind}</span>
